@@ -13,7 +13,7 @@ namespace Scenario
 {
 namespace Command
 {
-// Rigid constraint == end TimeNode has a trigger
+// Rigid constraint == end TimeSync has a trigger
 
 SetRigidity::SetRigidity(const ConstraintModel& constraint, bool rigid)
     : m_path{constraint}, m_rigidity{rigid}

@@ -2,7 +2,7 @@
 #include <Engine/LocalTree/Scenario/ConstraintComponent.hpp>
 #include <Engine/LocalTree/Scenario/EventComponent.hpp>
 #include <Engine/LocalTree/Scenario/StateComponent.hpp>
-#include <Engine/LocalTree/Scenario/TimeNodeComponent.hpp>
+#include <Engine/LocalTree/Scenario/TimeSyncComponent.hpp>
 #include <Scenario/Document/Components/ScenarioComponent.hpp>
 
 namespace Engine
@@ -32,14 +32,14 @@ public:
 private:
   ossia::net::node_base& m_constraintsNode;
   ossia::net::node_base& m_eventsNode;
-  ossia::net::node_base& m_timeNodesNode;
+  ossia::net::node_base& m_timeSyncsNode;
   ossia::net::node_base& m_statesNode;
 
   std::vector<std::unique_ptr<BaseProperty>> m_properties;
 };
 
 using ScenarioComponent
-    = HierarchicalScenarioComponent<ScenarioComponentBase, Scenario::ProcessModel, Constraint, Event, TimeNode, State>;
+    = HierarchicalScenarioComponent<ScenarioComponentBase, Scenario::ProcessModel, Constraint, Event, TimeSync, State>;
 
 using ScenarioComponentFactory
     = Engine::LocalTree::ProcessComponentFactory_T<ScenarioComponent>;

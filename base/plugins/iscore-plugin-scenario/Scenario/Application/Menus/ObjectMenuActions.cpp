@@ -174,12 +174,12 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
   });
 
   // MERGE TIMENODES
-  m_mergeTimeNodes = new QAction{this};
-  connect(m_mergeTimeNodes, &QAction::triggered, [this]() {
+  m_mergeTimeSyncs = new QAction{this};
+  connect(m_mergeTimeSyncs, &QAction::triggered, [this]() {
     auto sm = focusedScenarioModel(m_parent->currentDocument()->context());
     ISCORE_ASSERT(sm);
 
-    Scenario::mergeTimeNodes(
+    Scenario::mergeTimeSyncs(
         *sm, m_parent->currentDocument()->context().commandStack);
   });
 
@@ -242,10 +242,10 @@ void ObjectMenuActions::makeGUIElements(iscore::GUIElements& e)
   actions.add<Actions::PasteContent>(m_pasteContent);
   actions.add<Actions::PasteElements>(m_pasteElements);
   actions.add<Actions::ElementsToJson>(m_elementsToJson);
-  actions.add<Actions::MergeTimeNodes>(m_mergeTimeNodes);
+  actions.add<Actions::MergeTimeSyncs>(m_mergeTimeSyncs);
 
   scenariomodel_cond.add<Actions::RemoveElements>();
-  scenariomodel_cond.add<Actions::MergeTimeNodes>();
+  scenariomodel_cond.add<Actions::MergeTimeSyncs>();
   scenariofocus_cond.add<Actions::PasteElements>();
 
   scenarioiface_cond.add<Actions::ClearElements>();
@@ -264,7 +264,7 @@ void ObjectMenuActions::makeGUIElements(iscore::GUIElements& e)
   object.menu()->addAction(m_pasteContent);
   object.menu()->addAction(m_pasteElements);
   object.menu()->addSeparator();
-  object.menu()->addAction(m_mergeTimeNodes);
+  object.menu()->addAction(m_mergeTimeSyncs);
   m_eventActions.makeGUIElements(e);
   m_cstrActions.makeGUIElements(e);
   m_stateActions.makeGUIElements(e);

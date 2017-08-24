@@ -27,18 +27,18 @@ addIScoreQtTest(AddSlotToRackTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddSlotToRackTest.cpp")
 addIScoreQtTest(AddLayerModelToSlotTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddLayerModelToSlotTest.cpp")
-addIscoreQtTest(SplitTimeNodeTest
-                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/SplitTimeNodeTest.cpp")
-addIscoreQtTest(MergeTimeNodesTest
-                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/MergeTimeNodesTest.cpp")
+addIscoreQtTest(SplitTimeSyncTest
+                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/SplitTimeSyncTest.cpp")
+addIscoreQtTest(MergeTimeSyncsTest
+                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/MergeTimeSyncsTest.cpp")
 
 ## elementCreation
 addIScoreQtTest(CreateEventAfterEventTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ElementCreation/CreateEventAfterEventTest.cpp")
 addIScoreQtTest(CreateEventTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ElementCreation/CreateEventTest.cpp")
-addIScoreQtTest(CreateEventAfterEventOnTimeNodeTest
-                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ElementCreation/CreateEventAfterEventOnTimeNodeTest.cpp")
+addIScoreQtTest(CreateEventAfterEventOnTimeSyncTest
+                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ElementCreation/CreateEventAfterEventOnTimeSyncTest.cpp")
 addIScoreQtTest(CreateConstraintTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ElementCreation/CreateConstraintTest.cpp")
 
@@ -73,7 +73,7 @@ addIScoreQtTest(ResizeSlotVerticallyTest
 addIScoreQtTest(ConstraintModelTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Constraint/ConstraintModelTests.cpp")
 
-## TimeNodes
-addIScoreQtTest(TimeNodeModelTest
-                                                                "${CMAKE_CURRENT_SOURCE_DIR}/TimeNode/TimeNodeModelTests.cpp")
+## TimeSyncs
+addIScoreQtTest(TimeSyncModelTest
+                                                                "${CMAKE_CURRENT_SOURCE_DIR}/TimeSync/TimeSyncModelTests.cpp")
 

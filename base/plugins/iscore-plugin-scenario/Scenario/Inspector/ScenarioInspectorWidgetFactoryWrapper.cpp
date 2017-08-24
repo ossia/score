@@ -5,12 +5,12 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 
 #include <Scenario/Inspector/Constraint/ConstraintInspectorFactory.hpp>
 #include <Scenario/Inspector/Summary/SummaryInspectorWidget.hpp>
-#include <Scenario/Inspector/TimeNode/TimeNodeInspectorWidget.hpp>
+#include <Scenario/Inspector/TimeSync/TimeSyncInspectorWidget.hpp>
 #include <Scenario/Inspector/Event/EventInspectorWidget.hpp>
 #include <Scenario/Inspector/State/StateInspectorWidget.hpp>
 
@@ -23,7 +23,7 @@ ScenarioInspectorWidgetFactoryWrapper::make(
     QWidget* parent) const
 {
   std::set<const ConstraintModel*> constraints;
-  std::set<const TimeNodeModel*> timenodes;
+  std::set<const TimeSyncModel*> timesyncs;
   std::set<const EventModel*> events;
   std::set<const StateModel*> states;
 
@@ -40,25 +40,25 @@ ScenarioInspectorWidgetFactoryWrapper::make(
     {
       if (auto ev = scenar->findEvent(st->eventId()))
       {
-        auto tn = scenar->findTimeNode(ev->timeNode());
+        auto tn = scenar->findTimeSync(ev->timeSync());
         if (!tn)
           continue;
         states.insert(st);
         events.insert(ev);
-        timenodes.insert(tn);
+        timesyncs.insert(tn);
       }
     }
     else if (auto ev = dynamic_cast<const EventModel*>(elt))
     {
-      auto tn = scenar->findTimeNode(ev->timeNode());
+      auto tn = scenar->findTimeSync(ev->timeSync());
       if (!tn)
         continue;
       events.insert(ev);
-      timenodes.insert(tn);
+      timesyncs.insert(tn);
     }
-    else if (auto tn = dynamic_cast<const TimeNodeModel*>(elt))
+    else if (auto tn = dynamic_cast<const TimeSyncModel*>(elt))
     {
-      timenodes.insert(tn);
+      timesyncs.insert(tn);
     }
     else if (auto cstr = dynamic_cast<const ConstraintModel*>(elt))
     {
@@ -70,17 +70,17 @@ ScenarioInspectorWidgetFactoryWrapper::make(
       return new StateInspectorWidget{**states.begin(), doc, parent};
   if (events.size() == 1 && constraints.empty())
       return new EventInspectorWidget{**events.begin(), doc, parent};
-  if (timenodes.size() == 1 && constraints.empty())
-    return new TimeNodeInspectorWidget{**timenodes.begin(), doc, parent};
+  if (timesyncs.size() == 1 && constraints.empty())
+    return new TimeSyncInspectorWidget{**timesyncs.begin(), doc, parent};
 
-  if (constraints.size() == 1 && timenodes.empty())
+  if (constraints.size() == 1 && timesyncs.empty())
   {
     return ConstraintInspectorFactory{}.make(
         {*constraints.begin()}, doc, parent);
   }
 
   return new SummaryInspectorWidget{
-      abstr, constraints, timenodes, events, states, doc, parent}; // the default InspectorWidgetBase need
+      abstr, constraints, timesyncs, events, states, doc, parent}; // the default InspectorWidgetBase need
                                        // an only IdentifiedObject : this will
                                        // be "abstr"
 }
@@ -91,7 +91,7 @@ bool ScenarioInspectorWidgetFactoryWrapper::matches(
   return std::any_of(objects.begin(), objects.end(), [](const QObject* obj) {
     return dynamic_cast<const StateModel*>(obj)
            || dynamic_cast<const EventModel*>(obj)
-           || dynamic_cast<const TimeNodeModel*>(obj)
+           || dynamic_cast<const TimeSyncModel*>(obj)
            || dynamic_cast<const ConstraintModel*>(obj);
   });
 }

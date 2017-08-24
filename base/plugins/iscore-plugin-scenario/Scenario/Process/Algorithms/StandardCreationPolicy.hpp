@@ -9,7 +9,7 @@ class EventModel;
 class StateModel;
 class CommentBlockModel;
 
-class TimeNodeModel;
+class TimeSyncModel;
 class ProcessModel;
 struct VerticalExtent;
 template <typename T>
@@ -28,13 +28,13 @@ public:
 };
 
 template <>
-class ScenarioCreate<TimeNodeModel>
+class ScenarioCreate<TimeSyncModel>
 {
 public:
-  static void undo(const Id<TimeNodeModel>& id, Scenario::ProcessModel& s);
+  static void undo(const Id<TimeSyncModel>& id, Scenario::ProcessModel& s);
 
-  static TimeNodeModel& redo(
-      const Id<TimeNodeModel>& id,
+  static TimeSyncModel& redo(
+      const Id<TimeSyncModel>& id,
       const VerticalExtent& extent,
       const TimeVal& date,
       Scenario::ProcessModel& s);
@@ -48,7 +48,7 @@ public:
 
   static EventModel& redo(
       const Id<EventModel>& id,
-      TimeNodeModel& timenode,
+      TimeSyncModel& timesync,
       const VerticalExtent& extent,
       Scenario::ProcessModel& s);
 };

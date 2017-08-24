@@ -6,7 +6,7 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 
 #include <Scenario/Document/Constraint/Slot.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
@@ -82,7 +82,7 @@ private slots:
     auto int_0_id = getStrongId(s0->constraints());
     auto ev_0_id = getStrongId(s0->events());
     auto fv_0_id = Id<ConstraintViewModel>{234};
-    auto tb_0_id = getStrongId(s0->timeNodes());
+    auto tb_0_id = getStrongId(s0->timeSyncs());
     StandardCreationPolicy::createConstraintAndEndEventFromEvent(
         *s0,
         s0->startEvent()->id(),
@@ -95,7 +95,7 @@ private slots:
     auto int_2_id = getStrongId(s0->constraints());
     auto fv_2_id = Id<ConstraintViewModel>{454};
     auto ev_2_id = getStrongId(s0->events());
-    auto tb_2_id = getStrongId(s0->timeNodes());
+    auto tb_2_id = getStrongId(s0->timeSyncs());
     StandardCreationPolicy::createConstraintAndEndEventFromEvent(
         *s0,
         s0->startEvent()->id(),

@@ -28,8 +28,8 @@ public:
   void setupContextMenu(Process::LayerContextMenuManager& ctxm);
 
 private:
-  void addTriggerToTimeNode();
-  void removeTriggerFromTimeNode();
+  void addTriggerToTimeSync();
+  void removeTriggerFromTimeSync();
   void addCondition();
   void removeCondition();
 

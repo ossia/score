@@ -1,6 +1,6 @@
 #pragma once
 #include "ScenarioCreationState.hpp"
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 
 #include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveNewState.hpp>
@@ -13,7 +13,7 @@
 #include <Scenario/Palette/Transitions/EventTransitions.hpp>
 #include <Scenario/Palette/Transitions/NothingTransitions.hpp>
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>
-#include <Scenario/Palette/Transitions/TimeNodeTransitions.hpp>
+#include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
 
 #include <QFinalState>
 
@@ -46,14 +46,14 @@ public:
       auto move_nothing = new StrongQState<MoveOnNothing>{mainState};
       auto move_state = new StrongQState<MoveOnState>{mainState};
       auto move_event = new StrongQState<MoveOnEvent>{mainState};
-      auto move_timenode = new StrongQState<MoveOnTimeNode>{mainState};
+      auto move_timesync = new StrongQState<MoveOnTimeSync>{mainState};
 
       pressed->setObjectName("Pressed");
       released->setObjectName("Released");
       move_nothing->setObjectName("Move on Nothing");
       move_state->setObjectName("Move on State");
       move_event->setObjectName("Move on Event");
-      move_timenode->setObjectName("Move on TimeNode");
+      move_timesync->setObjectName("Move on TimeSync");
 
       // General setup
       mainState->setInitialState(pressed);
@@ -84,10 +84,10 @@ public:
         createToEvent();
       });
 
-      // MoveOnNothing -> MoveOnTimeNode
-      this->add_transition(move_nothing, move_timenode, [&]() {
+      // MoveOnNothing -> MoveOnTimeSync
+      this->add_transition(move_nothing, move_timesync, [&]() {
         this->rollback();
-        createToTimeNode();
+        createToTimeSync();
       });
 
       /// MoveOnState -> ...
@@ -106,10 +106,10 @@ public:
         createToEvent();
       });
 
-      // MoveOnState -> MoveOnTimeNode
-      this->add_transition(move_state, move_timenode, [&]() {
+      // MoveOnState -> MoveOnTimeSync
+      this->add_transition(move_state, move_timesync, [&]() {
         this->rollback();
-        createToTimeNode();
+        createToTimeSync();
       });
 
       /// MoveOnEvent -> ...
@@ -129,34 +129,34 @@ public:
       iscore::make_transition<MoveOnEvent_Transition<Scenario_T>>(
           move_event, move_event, *this);
 
-      // MoveOnEvent -> MoveOnTimeNode
-      this->add_transition(move_event, move_timenode, [&]() {
+      // MoveOnEvent -> MoveOnTimeSync
+      this->add_transition(move_event, move_timesync, [&]() {
         this->rollback();
-        createToTimeNode();
+        createToTimeSync();
       });
 
-      /// MoveOnTimeNode -> ...
-      // MoveOnTimeNode -> MoveOnNothing
-      this->add_transition(move_timenode, move_nothing, [&]() {
+      /// MoveOnTimeSync -> ...
+      // MoveOnTimeSync -> MoveOnNothing
+      this->add_transition(move_timesync, move_nothing, [&]() {
         this->rollback();
         createToNothing();
       });
 
-      // MoveOnTimeNode -> MoveOnState
-      this->add_transition(move_timenode, move_state, [&]() {
+      // MoveOnTimeSync -> MoveOnState
+      this->add_transition(move_timesync, move_state, [&]() {
         this->rollback();
         createToState();
       });
 
-      // MoveOnTimeNode -> MoveOnEvent
-      this->add_transition(move_timenode, move_event, [&]() {
+      // MoveOnTimeSync -> MoveOnEvent
+      this->add_transition(move_timesync, move_event, [&]() {
         this->rollback();
         createToEvent();
       });
 
-      // MoveOnTimeNode -> MoveOnTimeNode
-      iscore::make_transition<MoveOnTimeNode_Transition<Scenario_T>>(
-          move_timenode, move_timenode, *this);
+      // MoveOnTimeSync -> MoveOnTimeSync
+      iscore::make_transition<MoveOnTimeSync_Transition<Scenario_T>>(
+          move_timesync, move_timesync, *this);
 
       // What happens in each state.
       QObject::connect(pressed, &QState::entered, [&]() {
@@ -193,7 +193,7 @@ public:
             stateMachine.editionSettings().sequence());
       });
 
-      QObject::connect(move_timenode, &QState::entered, [&]() {
+      QObject::connect(move_timesync, &QState::entered, [&]() {
         if (this->createdStates.empty())
         {
           this->rollback();
@@ -284,10 +284,10 @@ private:
       this->createToEvent_base(this->createdStates.first());
     }
   }
-  void createToTimeNode()
+  void createToTimeSync()
   {
     createInitialState();
-    this->createToTimeNode_base(this->createdStates.first());
+    this->createToTimeSync_base(this->createdStates.first());
   }
 };
 }

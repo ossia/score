@@ -6,7 +6,7 @@
 #include <Scenario/Commands/Cohesion/CreateCurves.hpp>
 #include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
 #include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
@@ -36,13 +36,13 @@ bool DropProcessInScenario::drop(
     TimeVal t = std::chrono::seconds{5};
 
     // Create the beginning
-    auto start_cmd = new Scenario::Command::CreateTimeNode_Event_State{
+    auto start_cmd = new Scenario::Command::CreateTimeSync_Event_State{
         scenar, pt.date, pt.y};
     m.submitCommand(start_cmd);
 
     // Create a box with the duration of the longest song
     auto box_cmd
-        = new Scenario::Command::CreateConstraint_State_Event_TimeNode{
+        = new Scenario::Command::CreateConstraint_State_Event_TimeSync{
             scenar, start_cmd->createdState(), pt.date + t, pt.y};
     m.submitCommand(box_cmd);
     auto& constraint = scenar.constraint(box_cmd->createdConstraint());

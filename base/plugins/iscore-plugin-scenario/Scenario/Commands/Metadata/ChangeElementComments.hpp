@@ -76,6 +76,6 @@ private:
 
 ISCORE_COMMAND_DECL_T(ChangeElementComments<ConstraintModel>)
 ISCORE_COMMAND_DECL_T(ChangeElementComments<EventModel>)
-ISCORE_COMMAND_DECL_T(ChangeElementComments<TimeNodeModel>)
+ISCORE_COMMAND_DECL_T(ChangeElementComments<TimeSyncModel>)
 ISCORE_COMMAND_DECL_T(ChangeElementComments<StateModel>)
 ISCORE_COMMAND_DECL_T(ChangeElementComments<Process::ProcessModel>)

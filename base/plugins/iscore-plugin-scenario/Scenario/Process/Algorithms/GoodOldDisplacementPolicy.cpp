@@ -10,7 +10,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
@@ -26,11 +26,11 @@ namespace Scenario
 {
 void GoodOldDisplacementPolicy::computeDisplacement(
     Scenario::ProcessModel& scenario,
-    const QVector<Id<TimeNodeModel>>& draggedElements,
+    const QVector<Id<TimeSyncModel>>& draggedElements,
     const TimeVal& deltaTime,
     ElementsProperties& elementsProperties)
 {
-  // this old behavior supports only the move of one timenode
+  // this old behavior supports only the move of one timesync
   if (draggedElements.length() != 1)
   {
     qDebug()
@@ -40,25 +40,25 @@ void GoodOldDisplacementPolicy::computeDisplacement(
   }
   else
   {
-    const Id<TimeNodeModel>& firstTimeNodeMovedId = draggedElements.at(0);
-    std::vector<Id<TimeNodeModel>> timeNodesToTranslate;
+    const Id<TimeSyncModel>& firstTimeSyncMovedId = draggedElements.at(0);
+    std::vector<Id<TimeSyncModel>> timeSyncsToTranslate;
 
-    GoodOldDisplacementPolicy::getRelatedTimeNodes(
-        scenario, firstTimeNodeMovedId, timeNodesToTranslate);
+    GoodOldDisplacementPolicy::getRelatedTimeSyncs(
+        scenario, firstTimeSyncMovedId, timeSyncsToTranslate);
 
-    // put each concerned timenode in modified elements and compute new values
-    for (const auto& curTimeNodeId : timeNodesToTranslate)
+    // put each concerned timesync in modified elements and compute new values
+    for (const auto& curTimeSyncId : timeSyncsToTranslate)
     {
-      auto& curTimeNode = scenario.timeNodes.at(curTimeNodeId);
+      auto& curTimeSync = scenario.timeSyncs.at(curTimeSyncId);
 
-      // if timenode NOT already in element properties, create new element
+      // if timesync NOT already in element properties, create new element
       // properties and set the old date
-      auto tn_it = elementsProperties.timenodes.find(curTimeNodeId);
-      if (tn_it == elementsProperties.timenodes.end())
+      auto tn_it = elementsProperties.timesyncs.find(curTimeSyncId);
+      if (tn_it == elementsProperties.timesyncs.end())
       {
         TimenodeProperties t;
-        t.oldDate = curTimeNode.date();
-        tn_it = elementsProperties.timenodes.emplace(curTimeNodeId, std::move(t)).first;
+        t.oldDate = curTimeSync.date();
+        tn_it = elementsProperties.timesyncs.emplace(curTimeSyncId, std::move(t)).first;
       }
 
       // put the new date
@@ -67,12 +67,12 @@ void GoodOldDisplacementPolicy::computeDisplacement(
     }
 
     // Make a list of the constraints that need to be resized
-    for (const auto& curTimeNodeId : timeNodesToTranslate)
+    for (const auto& curTimeSyncId : timeSyncsToTranslate)
     {
-      auto& curTimeNode = scenario.timeNode(curTimeNodeId);
+      auto& curTimeSync = scenario.timeSync(curTimeSyncId);
 
       // each previous constraint
-      for (const auto& ev_id : curTimeNode.events())
+      for (const auto& ev_id : curTimeSync.events())
       {
         const auto& ev = scenario.event(ev_id);
         for (const auto& st_id : ev.states())
@@ -83,7 +83,7 @@ void GoodOldDisplacementPolicy::computeDisplacement(
             auto curConstraintId = *optCurConstraintId;
             auto& curConstraint = scenario.constraints.at(curConstraintId);
 
-            // if timenode NOT already in element properties, create new
+            // if timesync NOT already in element properties, create new
             // element properties and set old values
             auto cur_constraint_it
                 = elementsProperties.constraints.find(curConstraintId);
@@ -99,14 +99,14 @@ void GoodOldDisplacementPolicy::computeDisplacement(
 
             auto& curConstraintStartEvent
                 = Scenario::startEvent(curConstraint, scenario);
-            auto& startTnodeId = curConstraintStartEvent.timeNode();
+            auto& startTnodeId = curConstraintStartEvent.timeSync();
 
             // compute default duration
             TimeVal startDate;
 
             // if prev tnode has moved take updated value else take existing
-            auto it = elementsProperties.timenodes.find(startTnodeId);
-            if (it != elementsProperties.timenodes.cend())
+            auto it = elementsProperties.timesyncs.find(startTnodeId);
+            if (it != elementsProperties.timesyncs.cend())
             {
               startDate = it.value().newDate;
             }
@@ -116,7 +116,7 @@ void GoodOldDisplacementPolicy::computeDisplacement(
             }
 
             const auto& endDate
-                = elementsProperties.timenodes[curTimeNodeId].newDate;
+                = elementsProperties.timesyncs[curTimeSyncId].newDate;
 
             TimeVal newDefaultDuration = endDate - startDate;
             TimeVal deltaBounds = newDefaultDuration
@@ -134,29 +134,29 @@ void GoodOldDisplacementPolicy::computeDisplacement(
   }
 }
 
-void GoodOldDisplacementPolicy::getRelatedTimeNodes(
+void GoodOldDisplacementPolicy::getRelatedTimeSyncs(
     Scenario::ProcessModel& scenario,
-    const Id<TimeNodeModel>& firstTimeNodeMovedId,
-    std::vector<Id<TimeNodeModel>>& translatedTimeNodes)
+    const Id<TimeSyncModel>& firstTimeSyncMovedId,
+    std::vector<Id<TimeSyncModel>>& translatedTimeSyncs)
 {
-  if (firstTimeNodeMovedId.val() == Scenario::startId_val())
+  if (firstTimeSyncMovedId.val() == Scenario::startId_val())
     return;
 
   auto it = std::find(
-      translatedTimeNodes.begin(),
-      translatedTimeNodes.end(),
-      firstTimeNodeMovedId);
-  if (it == translatedTimeNodes.end())
+      translatedTimeSyncs.begin(),
+      translatedTimeSyncs.end(),
+      firstTimeSyncMovedId);
+  if (it == translatedTimeSyncs.end())
   {
-    translatedTimeNodes.push_back(firstTimeNodeMovedId);
+    translatedTimeSyncs.push_back(firstTimeSyncMovedId);
   }
-  else // timeNode already moved
+  else // timeSync already moved
   {
     return;
   }
 
-  const auto& cur_timeNode = scenario.timeNodes.at(firstTimeNodeMovedId);
-  for (const auto& cur_eventId : cur_timeNode.events())
+  const auto& cur_timeSync = scenario.timeSyncs.at(firstTimeSyncMovedId);
+  for (const auto& cur_eventId : cur_timeSync.events())
   {
     const auto& cur_event = scenario.events.at(cur_eventId);
 
@@ -168,8 +168,8 @@ void GoodOldDisplacementPolicy::getRelatedTimeNodes(
         const auto& endStateId = scenario.constraints.at(*cons).endState();
         const auto& endTnId
             = scenario.events.at(scenario.state(endStateId).eventId())
-                  .timeNode();
-        getRelatedTimeNodes(scenario, endTnId, translatedTimeNodes);
+                  .timeSync();
+        getRelatedTimeSyncs(scenario, endTnId, translatedTimeSyncs);
       }
     }
   }

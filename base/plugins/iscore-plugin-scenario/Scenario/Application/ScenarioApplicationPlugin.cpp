@@ -44,7 +44,7 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Palette/Tool.hpp>
 #include <core/document/Document.hpp>
 
@@ -94,7 +94,7 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
   ctx.actions.onSelectionChange(
       std::make_shared<EnableWhenSelectionContains<StateModel>>());
   ctx.actions.onSelectionChange(
-      std::make_shared<EnableWhenSelectionContains<TimeNodeModel>>());
+      std::make_shared<EnableWhenSelectionContains<TimeSyncModel>>());
 
   auto on_sm = std::make_shared<EnableWhenScenarioModelObject>();
   ctx.actions.onSelectionChange(on_sm);

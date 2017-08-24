@@ -5,7 +5,7 @@
 #include <iscore/command/CommandStackFacade.hpp>
 #include <iscore/command/Command.hpp>
 
-#include "CreateConstraint_State_Event_TimeNode.hpp"
+#include "CreateConstraint_State_Event_TimeSync.hpp"
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/model/path/Path.hpp>
 #include <iscore/model/Identifier.hpp>
@@ -18,7 +18,7 @@ namespace Scenario
 class EventModel;
 class ConstraintModel;
 class StateModel;
-class TimeNodeModel;
+class TimeSyncModel;
 class ProcessModel;
 namespace Command
 {
@@ -56,16 +56,16 @@ public:
     return m_newEvent;
   }
 
-  const Id<TimeNodeModel>& createdTimeNode() const
+  const Id<TimeSyncModel>& createdTimeSync() const
   {
-    return m_newTimeNode;
+    return m_newTimeSync;
   }
 
 private:
   Id<ConstraintModel> m_newConstraint;
   Id<StateModel> m_newState;
   Id<EventModel> m_newEvent;
-  Id<TimeNodeModel> m_newTimeNode;
+  Id<TimeSyncModel> m_newTimeSync;
 };
 
 class CreateSequenceProcesses final : public iscore::Command

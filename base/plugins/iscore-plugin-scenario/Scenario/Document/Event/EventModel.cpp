@@ -21,12 +21,12 @@ namespace Scenario
 {
 EventModel::EventModel(
     const Id<EventModel>& id,
-    const Id<TimeNodeModel>& timenode,
+    const Id<TimeSyncModel>& timesync,
     const VerticalExtent& extent,
     const TimeVal& date,
     QObject* parent)
     : Entity{id, Metadata<ObjectKey_k, EventModel>::get(), parent}
-    , m_timeNode{timenode}
+    , m_timeSync{timesync}
     , m_condition{}
     , m_extent{extent}
     , m_date{date}
@@ -39,7 +39,7 @@ EventModel::EventModel(
 EventModel::EventModel(
     const EventModel& source, const Id<EventModel>& id, QObject* parent)
     : Entity{source, id, Metadata<ObjectKey_k, EventModel>::get(), parent}
-    , m_timeNode{source.m_timeNode}
+    , m_timeSync{source.m_timeSync}
     , m_states(source.m_states)
     , m_condition{source.m_condition}
     , m_extent{source.m_extent}

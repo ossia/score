@@ -17,7 +17,7 @@ public:
     SlotHandle,
     SlotOverlay,
     ConstraintHeader,
-    TimeNode,
+    TimeSync,
     Trigger,
     Event,
     State,
@@ -32,7 +32,7 @@ public:
   enum ItemZPos
   {
     Comment = 1,
-    TimeNode,
+    TimeSync,
     Event,
     Constraint,
     SelectedConstraint,

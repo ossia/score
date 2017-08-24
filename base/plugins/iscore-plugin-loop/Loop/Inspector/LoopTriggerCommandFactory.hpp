@@ -1,9 +1,9 @@
 #pragma once
-#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactory.hpp>
+#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactory.hpp>
 
 namespace Scenario
 {
-class TimeNodeModel;
+class TimeSyncModel;
 }
 namespace iscore
 {
@@ -15,11 +15,11 @@ class LoopTriggerCommandFactory
 {
   ISCORE_CONCRETE("dd32c40b-bf76-4f6c-a8e4-25132ec61d93")
 public:
-  bool matches(const Scenario::TimeNodeModel& tn) const override;
+  bool matches(const Scenario::TimeSyncModel& tn) const override;
 
   iscore::Command*
-  make_addTriggerCommand(const Scenario::TimeNodeModel& tn) const override;
+  make_addTriggerCommand(const Scenario::TimeSyncModel& tn) const override;
 
   iscore::Command*
-  make_removeTriggerCommand(const Scenario::TimeNodeModel& tn) const override;
+  make_removeTriggerCommand(const Scenario::TimeSyncModel& tn) const override;
 };

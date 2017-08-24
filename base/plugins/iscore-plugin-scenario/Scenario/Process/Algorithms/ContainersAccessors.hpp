@@ -20,9 +20,9 @@ inline static auto& getEvents(const ProcessModel& target)
   return target.events;
 }
 
-inline static auto& getTimeNodes(const ProcessModel& target)
+inline static auto& getTimeSyncs(const ProcessModel& target)
 {
-  return target.timeNodes;
+  return target.timeSyncs;
 }
 
 inline static auto getConstraints(const BaseScenarioContainer& target)
@@ -40,9 +40,9 @@ inline static auto getEvents(const BaseScenarioContainer& target)
   return target.events();
 }
 
-inline static auto getTimeNodes(const BaseScenarioContainer& target)
+inline static auto getTimeSyncs(const BaseScenarioContainer& target)
 {
-  return target.timeNodes();
+  return target.timeSyncs();
 }
 
 /**

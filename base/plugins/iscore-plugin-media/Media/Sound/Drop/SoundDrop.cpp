@@ -9,7 +9,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
 #include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
 #include <Scenario/Commands/Constraint/AddLayerInNewSlot.hpp>
 
@@ -123,11 +123,11 @@ bool DropHandler::createInParallel(
     TimeVal t = drop.dropMaxDuration();
 
     // Create the beginning
-    auto start_cmd = new Scenario::Command::CreateTimeNode_Event_State{scenar, pt.date, pt.y};
+    auto start_cmd = new Scenario::Command::CreateTimeSync_Event_State{scenar, pt.date, pt.y};
     m.submitCommand(start_cmd);
 
     // Create a box with the duration of the longest song
-    auto box_cmd = new Scenario::Command::CreateConstraint_State_Event_TimeNode{
+    auto box_cmd = new Scenario::Command::CreateConstraint_State_Event_TimeSync{
             scenar, start_cmd->createdState(), pt.date + t, pt.y};
     m.submitCommand(box_cmd);
     auto& constraint = scenar.constraint(box_cmd->createdConstraint());
@@ -148,7 +148,7 @@ static bool constraintHasNoFollowers(
         const Scenario::ProcessModel& scenar,
         const Scenario::ConstraintModel& cst)
 {
-    auto& tn = Scenario::endTimeNode(cst, scenar);
+    auto& tn = Scenario::endTimeSync(cst, scenar);
     for(auto& event_id : tn.events())
     {
         Scenario::EventModel& event = scenar.events.at(event_id);
@@ -196,7 +196,7 @@ bool ConstraintDropHandler::drop(
         }
         else if(auto scenar = dynamic_cast<Scenario::ProcessModel*>(constraint.parent()))
         {
-            // First check that the end time node has nothing afterwards :
+            // First check that the end time sync has nothing afterwards :
             // all its states must not have next constraints
             if(constraintHasNoFollowers(*scenar, constraint))
             {

@@ -10,7 +10,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CSPCoherencyCheckerInterface
 public:
   virtual ~CSPCoherencyCheckerInterface();
   virtual bool computeDisplacement(
-      const QVector<Id<Scenario::TimeNodeModel>>& positionnedElements,
+      const QVector<Id<Scenario::TimeSyncModel>>& positionnedElements,
       Scenario::ElementsProperties& elementsProperties)
       = 0;
 };

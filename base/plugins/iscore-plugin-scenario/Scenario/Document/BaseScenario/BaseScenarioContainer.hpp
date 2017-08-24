@@ -18,7 +18,7 @@ namespace Scenario
 class ConstraintModel;
 class EventModel;
 class StateModel;
-class TimeNodeModel;
+class TimeSyncModel;
 class ISCORE_PLUGIN_SCENARIO_EXPORT BaseScenarioContainer
     : public ScenarioInterface
 {
@@ -51,7 +51,7 @@ public:
   {
     return {m_startEvent, m_endEvent};
   }
-  ElementContainer<TimeNodeModel> getTimeNodes() const final override
+  ElementContainer<TimeSyncModel> getTimeSyncs() const final override
   {
     return {m_startNode, m_endNode};
   }
@@ -61,8 +61,8 @@ public:
 
   EventModel* findEvent(const Id<EventModel>& id) const final override;
 
-  TimeNodeModel*
-  findTimeNode(const Id<TimeNodeModel>& id) const final override;
+  TimeSyncModel*
+  findTimeSync(const Id<TimeSyncModel>& id) const final override;
 
   StateModel* findState(const Id<StateModel>& id) const final override;
 
@@ -71,14 +71,14 @@ public:
 
   EventModel& event(const Id<EventModel>& id) const final override;
 
-  TimeNodeModel& timeNode(const Id<TimeNodeModel>& id) const final override;
+  TimeSyncModel& timeSync(const Id<TimeSyncModel>& id) const final override;
 
   StateModel& state(const Id<StateModel>& id) const final override;
 
   ConstraintModel& constraint() const;
 
-  TimeNodeModel& startTimeNode() const final override;
-  TimeNodeModel& endTimeNode() const;
+  TimeSyncModel& startTimeSync() const final override;
+  TimeSyncModel& endTimeSync() const;
 
   EventModel& startEvent() const;
   EventModel& endEvent() const;
@@ -98,14 +98,14 @@ public:
   {
     return {m_startState, m_endState};
   }
-  iscore::IndirectArray<TimeNodeModel, 2> timeNodes() const
+  iscore::IndirectArray<TimeSyncModel, 2> timeSyncs() const
   {
     return {m_startNode, m_endNode};
   }
 
 protected:
-  TimeNodeModel* m_startNode{};
-  TimeNodeModel* m_endNode{};
+  TimeSyncModel* m_startNode{};
+  TimeSyncModel* m_endNode{};
 
   EventModel* m_startEvent{};
   EventModel* m_endEvent{};
@@ -123,7 +123,7 @@ protected:
   }
 
 private:
-  QObject* m_parent{}; // Parent for the constraints, timenodes, etc.
+  QObject* m_parent{}; // Parent for the constraints, timesyncs, etc.
                        // If inheriting, m_parent should be this.
 };
 
@@ -135,9 +135,9 @@ inline auto events(const BaseScenarioContainer& scenar)
 {
   return scenar.events();
 }
-inline auto timeNodes(const BaseScenarioContainer& scenar)
+inline auto timeSyncs(const BaseScenarioContainer& scenar)
 {
-  return scenar.timeNodes();
+  return scenar.timeSyncs();
 }
 inline auto states(const BaseScenarioContainer& scenar)
 {
@@ -159,11 +159,11 @@ struct ElementTraits<BaseScenarioContainer, EventModel>
           const BaseScenarioContainer&)>(&events);
 };
 template <>
-struct ElementTraits<BaseScenarioContainer, TimeNodeModel>
+struct ElementTraits<BaseScenarioContainer, TimeSyncModel>
 {
   static const constexpr auto accessor
-      = static_cast<iscore::IndirectArray<TimeNodeModel, 2> (*)(
-          const BaseScenarioContainer&)>(&timeNodes);
+      = static_cast<iscore::IndirectArray<TimeSyncModel, 2> (*)(
+          const BaseScenarioContainer&)>(&timeSyncs);
 };
 template <>
 struct ElementTraits<BaseScenarioContainer, StateModel>

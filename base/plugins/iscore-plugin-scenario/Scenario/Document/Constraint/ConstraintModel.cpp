@@ -25,7 +25,7 @@
 namespace Scenario
 {
 class StateModel;
-class TimeNodeModel;
+class TimeSyncModel;
 ConstraintModel::ConstraintModel(
     const Id<ConstraintModel>& id,
     double yPos,

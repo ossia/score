@@ -7,7 +7,7 @@
 #include <DocumentPlugin/OSSIAConstraintElement.hpp>
 #include <DocumentPlugin/OSSIAEventElement.hpp>
 #include <DocumentPlugin/OSSIAStateElement.hpp>
-#include <DocumentPlugin/OSSIATimeNodeElement.hpp>
+#include <DocumentPlugin/OSSIATimeSyncElement.hpp>
 
 #include <Editor/TimeConstraint.h>
 #include <Editor/Scenario.h>
@@ -31,11 +31,11 @@
 #include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeSync.hpp>
 #include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
 
 QT_BEGIN_NAMESPACE

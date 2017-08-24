@@ -23,7 +23,7 @@ LoopComponentBase::LoopComponentBase(
                                              parent_obj}
     , m_constraintsNode{*node().create_child("constraints")}
     , m_eventsNode{*node().create_child("events")}
-    , m_timeNodesNode{*node().create_child("timenodes")}
+    , m_timeSyncsNode{*node().create_child("timesyncs")}
     , m_statesNode{*node().create_child("states")}
 {
 }
@@ -43,10 +43,10 @@ Event* LoopComponentBase::make<Event, Scenario::EventModel>(
 }
 
 template <>
-TimeNode* LoopComponentBase::make<TimeNode, Scenario::TimeNodeModel>(
-    const Id<iscore::Component>& id, Scenario::TimeNodeModel& elt)
+TimeSync* LoopComponentBase::make<TimeSync, Scenario::TimeSyncModel>(
+    const Id<iscore::Component>& id, Scenario::TimeSyncModel& elt)
 {
-  return new TimeNode{m_timeNodesNode, id, elt, system(), this};
+  return new TimeSync{m_timeSyncsNode, id, elt, system(), this};
 }
 
 template <>

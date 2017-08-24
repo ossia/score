@@ -55,7 +55,7 @@ void TemporalConstraintHeader::paint(
     painter->fillRect(
         rect, skin.ConstraintHeaderRackHidden.getColor());
 
-    // Fake timenode continuation
+    // Fake timesync continuation
     painter->setPen(skin.ConstraintHeaderSeparator);
     painter->drawLine(rect.topLeft(), rect.bottomLeft());
     painter->drawLine(rect.topRight(), rect.bottomRight());

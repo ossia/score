@@ -3,8 +3,8 @@
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/Comment/SetCommentText.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateCommentBlock.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeSync.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveCommentBlock.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 #include <State/MessageListSerialization.hpp>
@@ -50,9 +50,9 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     on_eventCreated(event_model);
   }
 
-  for (const auto& tn_model : scenario.timeNodes)
+  for (const auto& tn_model : scenario.timeSyncs)
   {
-    on_timeNodeCreated(tn_model);
+    on_timeSyncCreated(tn_model);
   }
 
   for (const auto& cmt_model : scenario.comments)
@@ -87,11 +87,11 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
       .connect<TemporalScenarioPresenter, &TemporalScenarioPresenter::on_eventRemoved>(
         this);
 
-  scenario.timeNodes.added
-      .connect<TemporalScenarioPresenter, &TemporalScenarioPresenter::on_timeNodeCreated>(
+  scenario.timeSyncs.added
+      .connect<TemporalScenarioPresenter, &TemporalScenarioPresenter::on_timeSyncCreated>(
         this);
-  scenario.timeNodes.removed
-      .connect<TemporalScenarioPresenter, &TemporalScenarioPresenter::on_timeNodeRemoved>(
+  scenario.timeSyncs.removed
+      .connect<TemporalScenarioPresenter, &TemporalScenarioPresenter::on_timeSyncRemoved>(
         this);
 
   scenario.comments.added
@@ -338,10 +338,10 @@ void TemporalScenarioPresenter::on_eventRemoved(const EventModel& event)
   removeElement(m_events.get(), event.id());
 }
 
-void TemporalScenarioPresenter::on_timeNodeRemoved(
-    const TimeNodeModel& timeNode)
+void TemporalScenarioPresenter::on_timeSyncRemoved(
+    const TimeSyncModel& timeSync)
 {
-  removeElement(m_timeNodes.get(), timeNode.id());
+  removeElement(m_timeSyncs.get(), timeSync.id());
 }
 
 void TemporalScenarioPresenter::on_constraintRemoved(
@@ -414,7 +414,7 @@ void TemporalScenarioPresenter::doubleClick(QPointF pt)
 
   // Just create a dot
   auto cmd
-      = new Command::CreateTimeNode_Event_State{m_layer, sp.date, sp.y};
+      = new Command::CreateTimeSync_Event_State{m_layer, sp.date, sp.y};
   CommandDispatcher<>{m_context.context.commandStack}.submitCommand(cmd);
 }
 
@@ -463,30 +463,30 @@ void TemporalScenarioPresenter::on_eventCreated(const EventModel& event_model)
         &TemporalScenarioView::released);
 }
 
-void TemporalScenarioPresenter::on_timeNodeCreated(
-    const TimeNodeModel& timeNode_model)
+void TemporalScenarioPresenter::on_timeSyncCreated(
+    const TimeSyncModel& timeSync_model)
 {
-  auto tn_pres = new TimeNodePresenter{timeNode_model, m_view, this};
-  m_timeNodes.insert(tn_pres);
+  auto tn_pres = new TimeSyncPresenter{timeSync_model, m_view, this};
+  m_timeSyncs.insert(tn_pres);
 
-  m_viewInterface.on_timeNodeMoved(*tn_pres);
+  m_viewInterface.on_timeSyncMoved(*tn_pres);
 
-  con(timeNode_model, &TimeNodeModel::extentChanged, this,
+  con(timeSync_model, &TimeSyncModel::extentChanged, this,
       [=](const VerticalExtent&) {
-    m_viewInterface.on_timeNodeMoved(*tn_pres);
+    m_viewInterface.on_timeSyncMoved(*tn_pres);
   });
-  con(timeNode_model, &TimeNodeModel::dateChanged, this,
-      [=](const TimeVal&) { m_viewInterface.on_timeNodeMoved(*tn_pres); });
+  con(timeSync_model, &TimeSyncModel::dateChanged, this,
+      [=](const TimeVal&) { m_viewInterface.on_timeSyncMoved(*tn_pres); });
 
   // For the state machine
   connect(
-        tn_pres, &TimeNodePresenter::pressed, m_view,
+        tn_pres, &TimeSyncPresenter::pressed, m_view,
         &TemporalScenarioView::pressedAsked);
   connect(
-        tn_pres, &TimeNodePresenter::moved, m_view,
+        tn_pres, &TimeSyncPresenter::moved, m_view,
         &TemporalScenarioView::movedAsked);
   connect(
-        tn_pres, &TimeNodePresenter::released, m_view,
+        tn_pres, &TimeSyncPresenter::released, m_view,
         &TemporalScenarioView::released);
 }
 
@@ -610,9 +610,9 @@ void TemporalScenarioPresenter::updateAllElements()
     m_viewInterface.on_eventMoved(event);
   }
 
-  for (auto& timenode : m_timeNodes)
+  for (auto& timesync : m_timeSyncs)
   {
-    m_viewInterface.on_timeNodeMoved(timenode);
+    m_viewInterface.on_timeSyncMoved(timesync);
   }
 
   for (auto& comment : m_comments)

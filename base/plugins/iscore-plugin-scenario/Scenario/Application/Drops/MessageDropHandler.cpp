@@ -4,7 +4,7 @@
 
 #include <Scenario/Application/ScenarioValidity.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateStateMacro.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
@@ -21,8 +21,8 @@ namespace Scenario
 {
 static Scenario::StateModel* closestLeftState(Scenario::Point pt, const Scenario::ProcessModel& scenario)
 {
-  TimeNodeModel* cur_tn = &scenario.startTimeNode();
-  for(auto& tn : scenario.timeNodes)
+  TimeSyncModel* cur_tn = &scenario.startTimeSync();
+  for(auto& tn : scenario.timeSyncs)
   {
     auto date = tn.date();
     if(date > cur_tn->date() && date < pt.date)
@@ -141,14 +141,14 @@ bool MessageDropHandler::drop(
           = new Scenario::Command::CreateState{scenar, state->eventId(), pt.y};
       m.submitCommand(cmd1);
 
-      auto cmd2 = new Scenario::Command::CreateConstraint_State_Event_TimeNode{
+      auto cmd2 = new Scenario::Command::CreateConstraint_State_Event_TimeSync{
           scenar, cmd1->createdState(), pt.date, pt.y};
       m.submitCommand(cmd2);
       createdState = cmd2->createdState();
     }
     else
     {
-      auto cmd = new Scenario::Command::CreateConstraint_State_Event_TimeNode{
+      auto cmd = new Scenario::Command::CreateConstraint_State_Event_TimeSync{
           scenar, state->id(), pt.date, state->heightPercentage()};
       m.submitCommand(cmd);
       createdState = cmd->createdState();
@@ -157,7 +157,7 @@ bool MessageDropHandler::drop(
   else
   {
     // We create in the emptiness
-    auto cmd = new Scenario::Command::CreateTimeNode_Event_State(
+    auto cmd = new Scenario::Command::CreateTimeSync_Event_State(
         scenar, pt.date, pt.y);
     m.submitCommand(cmd);
     createdState = cmd->createdState();

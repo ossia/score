@@ -18,7 +18,7 @@ needed
 namespace Scenario
 {
 class ConstraintModel;
-class TimeNodeModel;
+class TimeSyncModel;
 
 struct TimenodeProperties
 {
@@ -58,7 +58,7 @@ struct ConstraintProperties : public ConstraintSaveData
 
 struct ElementsProperties
 {
-  iscore::hash_map<Id<TimeNodeModel>, TimenodeProperties> timenodes;
+  iscore::hash_map<Id<TimeSyncModel>, TimenodeProperties> timesyncs;
   iscore::hash_map<Id<ConstraintModel>, ConstraintProperties> constraints;
 };
 }

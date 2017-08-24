@@ -7,7 +7,7 @@
 #include <Scenario/Palette/Transitions/ConstraintTransitions.hpp>
 #include <Scenario/Palette/Transitions/EventTransitions.hpp>
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>
-#include <Scenario/Palette/Transitions/TimeNodeTransitions.hpp>
+#include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
 
 namespace Scenario
 {
@@ -42,22 +42,22 @@ public:
   }
 };
 
-class MoveTimeNodeInBaseScenario_StateWrapper
+class MoveTimeSyncInBaseScenario_StateWrapper
 {
 public:
   template <typename Scenario_T, typename ToolPalette_T>
   static void make(const ToolPalette_T& palette, QState* waitState, QState& sm)
   {
-    /// TimeNode
-    auto moveTimeNode = new Scenario::
-        MoveTimeNodeState<Command::MoveBaseEvent<Scenario_T>, Scenario_T, ToolPalette_T>{
+    /// TimeSync
+    auto moveTimeSync = new Scenario::
+        MoveTimeSyncState<Command::MoveBaseEvent<Scenario_T>, Scenario_T, ToolPalette_T>{
             palette, palette.model(), palette.context().context.commandStack,
             palette.context().context.objectLocker, &sm};
 
     iscore::
-        make_transition<Scenario::ClickOnEndTimeNode_Transition<Scenario_T>>(
-            waitState, moveTimeNode, *moveTimeNode);
-    moveTimeNode->addTransition(moveTimeNode, finishedState(), waitState);
+        make_transition<Scenario::ClickOnEndTimeSync_Transition<Scenario_T>>(
+            waitState, moveTimeSync, *moveTimeSync);
+    moveTimeSync->addTransition(moveTimeSync, finishedState(), waitState);
   }
 };
 }

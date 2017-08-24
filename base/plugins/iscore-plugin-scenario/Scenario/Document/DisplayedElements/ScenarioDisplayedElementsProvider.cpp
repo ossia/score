@@ -14,9 +14,9 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 #include <iscore/model/EntityMap.hpp>
 #include <iscore/model/Identifier.hpp>
 
@@ -44,8 +44,8 @@ ScenarioDisplayedElementsProvider::make(ConstraintModel& cst) const
         est,
         sev,
         eev,
-        parent_scenario->timeNodes.at(sev.timeNode()),
-        parent_scenario->timeNodes.at(eev.timeNode())};
+        parent_scenario->timeSyncs.at(sev.timeSync()),
+        parent_scenario->timeSyncs.at(eev.timeSync())};
   }
 
   return {};
@@ -64,8 +64,8 @@ ScenarioDisplayedElementsProvider::make_presenters(
     const auto& endState = sm->states.at(m.endState());
     const auto& startEvent = sm->events.at(startState.eventId());
     const auto& endEvent = sm->events.at(endState.eventId());
-    const auto& startNode = sm->timeNodes.at(startEvent.timeNode());
-    const auto& endNode = sm->timeNodes.at(endEvent.timeNode());
+    const auto& startNode = sm->timeSyncs.at(startEvent.timeSync());
+    const auto& endNode = sm->timeSyncs.at(endEvent.timeSync());
     return DisplayedElementsPresenterContainer{
         new FullViewConstraintPresenter{m, ctx, view_parent,
                                         parent},
@@ -73,8 +73,8 @@ ScenarioDisplayedElementsProvider::make_presenters(
         new StatePresenter{endState, view_parent, parent},
         new EventPresenter{startEvent, view_parent, parent},
         new EventPresenter{endEvent, view_parent, parent},
-        new TimeNodePresenter{startNode, view_parent, parent},
-        new TimeNodePresenter{endNode, view_parent, parent}};
+        new TimeSyncPresenter{startNode, view_parent, parent},
+        new TimeSyncPresenter{endNode, view_parent, parent}};
   }
   return {};
 }

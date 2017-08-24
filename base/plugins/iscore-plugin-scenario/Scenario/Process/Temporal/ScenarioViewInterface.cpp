@@ -24,9 +24,9 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/State/StateView.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodePresenter.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeView.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncView.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
@@ -100,14 +100,14 @@ void ScenarioViewInterface::on_constraintMoved(
   m_presenter.m_view->update();
 }
 
-void ScenarioViewInterface::on_timeNodeMoved(const TimeNodePresenter& timenode)
+void ScenarioViewInterface::on_timeSyncMoved(const TimeSyncPresenter& timesync)
 {
   auto h = m_presenter.m_view->boundingRect().height();
-  timenode.view()->setExtent(timenode.model().extent() * h);
+  timesync.view()->setExtent(timesync.model().extent() * h);
 
-  timenode.view()->setPos(
-      {timenode.model().date().toPixels(m_presenter.m_zoomRatio),
-       timenode.model().extent().top() * h});
+  timesync.view()->setPos(
+      {timesync.model().date().toPixels(m_presenter.m_zoomRatio),
+       timesync.model().extent().top() * h});
 
   m_presenter.m_view->update();
 }

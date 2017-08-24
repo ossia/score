@@ -1,14 +1,14 @@
 #pragma once
 
 #include <Scenario/Commands/Scenario/Merge/MergeEvents.hpp>
-#include <Scenario/Commands/Scenario/Merge/MergeTimeNodes.hpp>
+#include <Scenario/Commands/Scenario/Merge/MergeTimeSyncs.hpp>
 
 #include <Scenario/Palette/ScenarioPaletteBaseStates.hpp>
 #include <Scenario/Palette/Transitions/AnythingTransitions.hpp>
 #include <Scenario/Palette/Transitions/EventTransitions.hpp>
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>
 #include <Scenario/Palette/Transitions/NothingTransitions.hpp>
-#include <Scenario/Palette/Transitions/TimeNodeTransitions.hpp>
+#include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
@@ -250,7 +250,7 @@ public:
 //      auto released = new QState{mainState};
 
 //      auto onlyMoving = new QState{mainState};
-//      auto mergingOnTimeNode = new QState{mainState};
+//      auto mergingOnTimeSync = new QState{mainState};
 //      auto mergingOnEvent = new QState{mainState};
 
 //      auto rollbackTnMerging = new QState{mainState};
@@ -283,8 +283,8 @@ public:
 //              onlyMoving, onlyMoving, *this);
 
 //      iscore::
-//          make_transition<MoveOnTimeNode_Transition<Scenario::ProcessModel>>(
-//              onlyMoving, mergingOnTimeNode, *this);
+//          make_transition<MoveOnTimeSync_Transition<Scenario::ProcessModel>>(
+//              onlyMoving, mergingOnTimeSync, *this);
 
 //      iscore::make_transition<MoveOnEvent_Transition<Scenario::ProcessModel>>(
 //          onlyMoving, mergingOnEvent, *this);
@@ -298,9 +298,9 @@ public:
 //      //*/
 //      // rollback merging
 //      iscore::
-//          make_transition<MoveOnAnythingButTimeNode_Transition<Scenario::
+//          make_transition<MoveOnAnythingButTimeSync_Transition<Scenario::
 //                                                                   ProcessModel>>(
-//              mergingOnTimeNode, rollbackTnMerging, *this);
+//              mergingOnTimeSync, rollbackTnMerging, *this);
 //      iscore::
 //          make_transition<MoveOnAnythingButEvent_Transition<Scenario::
 //                                                                ProcessModel>>(
@@ -308,7 +308,7 @@ public:
 
 //      // commit merging
 //      iscore::make_transition<ReleaseOnAnything_Transition>(
-//          mergingOnTimeNode, released);
+//          mergingOnTimeSync, released);
 //      iscore::make_transition<ReleaseOnAnything_Transition>(
 //          mergingOnEvent, released);
 //      iscore::make_transition<ReleaseOnAnything_Transition>(
@@ -317,7 +317,7 @@ public:
 //      // ********************************************
 //      // What happens in each state.
 
-//      QObject::connect(mergingOnTimeNode, &QState::entered, [&]() {
+//      QObject::connect(mergingOnTimeSync, &QState::entered, [&]() {
 //          qDebug("mergingOnTimenode");
 
 
@@ -331,18 +331,18 @@ public:
 //        if (!evId)
 //          return;
 
-//        auto tnId = scenar.event(*evId).timeNode();
+//        auto tnId = scenar.event(*evId).timeSync();
 
 //        if (this->currentPoint.date <= this->m_clickedPoint.date)
 //        {
-//            auto& tn = scenar.timeNode(tnId);
+//            auto& tn = scenar.timeSync(tnId);
 //            const auto& prev = Scenario::previousConstraints(tn, scenar);
 //            if(!prev.empty())
 //                return;
 //        }
 
 
-//        if (this->hoveredTimeNode && tnId != this->hoveredTimeNode)
+//        if (this->hoveredTimeSync && tnId != this->hoveredTimeSync)
 //        {
 //          this->m_movingDispatcher.rollback();
 //          this->m_mergingEventDispatcher.rollback();
@@ -350,7 +350,7 @@ public:
 //          this->m_mergingTnDispatcher.submitCommand(
 //              this->m_scenario,
 //              tnId,
-//              *this->hoveredTimeNode);
+//              *this->hoveredTimeSync);
 //        }
 //        else
 //        {
@@ -391,11 +391,11 @@ public:
 //        if (!destinationEvId) { qDebug("bye 2");
 //          return;
 //        }
-//        auto tnId = scenar.event(*destinationEvId).timeNode();
+//        auto tnId = scenar.event(*destinationEvId).timeSync();
 
 //        if (this->currentPoint.date <= this->m_clickedPoint.date)
 //        {
-//            auto& tn = scenar.timeNode(tnId);
+//            auto& tn = scenar.timeSync(tnId);
 //            const auto& prev = Scenario::previousConstraints(tn, scenar);
 //            if(!prev.empty()) { qDebug("bye 3");
 //                return;
@@ -548,7 +548,7 @@ public:
 //  }
 
 //  SingleOngoingCommandDispatcher<MoveEventCommand_T> m_movingDispatcher;
-//  SingleOngoingCommandDispatcher<Command::MergeTimeNodes> m_mergingTnDispatcher;
+//  SingleOngoingCommandDispatcher<Command::MergeTimeSyncs> m_mergingTnDispatcher;
 //  SingleOngoingCommandDispatcher<Command::MergeEvents> m_mergingEventDispatcher;
 
 //  optional<TimeVal> m_pressedPrevious;

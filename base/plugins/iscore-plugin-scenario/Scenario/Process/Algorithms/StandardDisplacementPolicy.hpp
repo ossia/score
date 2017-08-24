@@ -4,7 +4,7 @@
 
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <Scenario/Commands/Scenario/Deletions/ClearConstraint.hpp>
@@ -33,12 +33,12 @@ public:
       ProcessScaleMethod&& scaleMethod,
       const ElementsProperties& propsToUpdate)
   {
-    // update each affected timenodes
-    for (auto it = propsToUpdate.timenodes.cbegin();
-         it != propsToUpdate.timenodes.cend();
+    // update each affected timesyncs
+    for (auto it = propsToUpdate.timesyncs.cbegin();
+         it != propsToUpdate.timesyncs.cend();
          ++it)
     {
-      auto& curTimenodeToUpdate = scenario.timeNode(it.key());
+      auto& curTimenodeToUpdate = scenario.timeSync(it.key());
       auto& curTimenodePropertiesToUpdate = it.value();
 
       curTimenodeToUpdate.setDate(curTimenodePropertiesToUpdate.newDate);
@@ -101,12 +101,12 @@ public:
       ProcessScaleMethod&& scaleMethod,
       const ElementsProperties& propsToUpdate)
   {
-    // update each affected timenodes with old values
-    for (auto it = propsToUpdate.timenodes.cbegin();
-         it != propsToUpdate.timenodes.cend();
+    // update each affected timesyncs with old values
+    for (auto it = propsToUpdate.timesyncs.cbegin();
+         it != propsToUpdate.timesyncs.cend();
          ++it)
     {
-      auto& curTimenodeToUpdate = scenario.timeNode(it.key());
+      auto& curTimenodeToUpdate = scenario.timeSync(it.key());
       auto& curTimenodePropertiesToUpdate = it.value();
 
       curTimenodeToUpdate.setDate(curTimenodePropertiesToUpdate.oldDate);

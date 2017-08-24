@@ -16,7 +16,7 @@ namespace Scenario
 class EventModel;
 class StateModel;
 class ProcessModel;
-class TimeNodeModel;
+class TimeSyncModel;
 namespace Command
 {
 class ISCORE_PLUGIN_SCENARIO_EXPORT CreateEvent_State final
@@ -29,8 +29,8 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateEvent_State final
 public:
   CreateEvent_State(
       const Scenario::ProcessModel& scenario,
-      Id<TimeNodeModel>
-          timeNode,
+      Id<TimeSyncModel>
+          timeSync,
       double stateY);
 
   const Path<Scenario::ProcessModel>& scenarioPath() const
@@ -61,7 +61,7 @@ private:
 
   CreateState m_command;
 
-  Id<TimeNodeModel> m_timeNode;
+  Id<TimeSyncModel> m_timeSync;
 };
 }
 }

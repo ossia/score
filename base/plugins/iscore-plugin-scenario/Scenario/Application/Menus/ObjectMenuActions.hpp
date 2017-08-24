@@ -57,7 +57,7 @@ private:
   QAction* m_pasteContent{};
   QAction* m_pasteElements{};
   QAction* m_elementsToJson{};
-  QAction* m_mergeTimeNodes{};
+  QAction* m_mergeTimeSyncs{};
 
 
   QAction* m_selectAll{};

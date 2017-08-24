@@ -20,7 +20,7 @@ struct ElementsProperties;
 namespace Scenario
 {
 class EventModel;
-class TimeNodeModel;
+class TimeSyncModel;
 class ConstraintModel;
 class ProcessModel;
 namespace Command
@@ -71,7 +71,7 @@ public:
       : SerializableMoveEvent{}, m_path{scenario}, m_mode{mode}
   {
     auto& s = const_cast<Scenario::ProcessModel&>(scenario);
-    DisplacementPolicy::init(s, {scenario.event(eventId).timeNode()});
+    DisplacementPolicy::init(s, {scenario.event(eventId).timeSync()});
     // we need to compute the new time delta and store this initial event id
     // for recalculate the delta on updates
     // NOTE: in the future in would be better to give directly the delta value
@@ -98,10 +98,10 @@ public:
 
     // NOTICE: multiple event displacement functionnality already available,
     // this is "retro" compatibility
-    QVector<Id<TimeNodeModel>> draggedElements;
+    QVector<Id<TimeSyncModel>> draggedElements;
     draggedElements.push_back(
-        scenario.events.at(eventId).timeNode()); // retrieve corresponding
-                                                 // timenode and store it in
+        scenario.events.at(eventId).timeSync()); // retrieve corresponding
+                                                 // timesync and store it in
                                                  // array
 
     // the displacement is computed here and we don't need to know how.

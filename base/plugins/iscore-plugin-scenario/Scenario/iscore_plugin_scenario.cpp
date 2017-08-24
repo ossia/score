@@ -8,9 +8,9 @@
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Application/ScenarioValidity.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventClassicFactory.hpp>
-#include <Scenario/Commands/TimeNode/TriggerCommandFactory/BaseScenarioTriggerCommandFactory.hpp>
-#include <Scenario/Commands/TimeNode/TriggerCommandFactory/ScenarioTriggerCommandFactory.hpp>
-#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
+#include <Scenario/Commands/TimeSync/TriggerCommandFactory/BaseScenarioTriggerCommandFactory.hpp>
+#include <Scenario/Commands/TimeSync/TriggerCommandFactory/ScenarioTriggerCommandFactory.hpp>
+#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <Scenario/Document/DisplayedElements/BaseScenarioDisplayedElementsProvider.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/BaseScenarioDisplayedElementsToolPaletteFactory.hpp>
@@ -34,7 +34,7 @@
 #include <Process/StateProcessFactoryList.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
-#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactory.hpp>
+#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactory.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProvider.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactory.hpp>
 #include <State/Value.hpp>

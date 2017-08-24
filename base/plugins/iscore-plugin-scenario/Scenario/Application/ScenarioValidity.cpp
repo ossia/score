@@ -62,7 +62,7 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
 
   for (const EventModel& event : scenar.events)
   {
-    auto tn = scenar.findTimeNode(event.timeNode());
+    auto tn = scenar.findTimeSync(event.timeSync());
     ISCORE_ASSERT(tn);
     ISCORE_ASSERT(tn->events().contains(event.id()));
 
@@ -79,20 +79,20 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
       ISCORE_ASSERT(st->eventId() == event.id());
     }
 
-    auto num = ossia::count_if(scenar.timeNodes, [&] (auto& ev) {
+    auto num = ossia::count_if(scenar.timeSyncs, [&] (auto& ev) {
         return ossia::contains(ev.events(), event.id());
     });
     ISCORE_ASSERT(num == 1);
   }
 
-  for (const TimeNodeModel& tn : scenar.timeNodes)
+  for (const TimeSyncModel& tn : scenar.timeSyncs)
   {
     ISCORE_ASSERT(!tn.events().empty());
     for (auto& event : tn.events())
     {
       auto ev = scenar.findEvent(event);
       ISCORE_ASSERT(ev);
-      ISCORE_ASSERT(ev->timeNode() == tn.id());
+      ISCORE_ASSERT(ev->timeSync() == tn.id());
     }
   }
 #endif

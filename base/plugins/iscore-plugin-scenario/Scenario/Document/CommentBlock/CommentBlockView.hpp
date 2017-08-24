@@ -14,7 +14,7 @@ class CommentBlockView final : public QObject, public QGraphicsItem
 public:
   CommentBlockView(CommentBlockPresenter& presenter, QGraphicsItem* parent);
 
-  //~TimeNodeView() = default;
+  //~TimeSyncView() = default;
 
   static constexpr int static_type()
   {

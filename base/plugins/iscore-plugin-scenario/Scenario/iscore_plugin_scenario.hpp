@@ -35,7 +35,7 @@
  * * Model-view-presenter classes for the major i-score concepts :
  *   * Scenario::ConstraintModel,
  *   * Scenario::EventModel,
- *   * Scenario::TimeNodeModel,
+ *   * Scenario::TimeSyncModel,
  *   * Scenario::StateModel,
  *   * Scenario::RackModel,
  *   * Scenario::SlotModel

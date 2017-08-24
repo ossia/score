@@ -15,7 +15,7 @@
 #include "SplitEvent.hpp"
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <iscore/model/ModelMetadata.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/model/EntityMap.hpp>
@@ -62,7 +62,7 @@ void SplitEvent::redo(const iscore::DocumentContext& ctx) const
   auto& originalEvent = scenar.event(m_originalEvent);
   ScenarioCreate<EventModel>::redo(
       m_newEvent,
-      scenar.timeNodes.at(originalEvent.timeNode()),
+      scenar.timeSyncs.at(originalEvent.timeSync()),
       originalEvent.extent(),
       scenar);
 

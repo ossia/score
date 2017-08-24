@@ -95,7 +95,7 @@ ISCORE_LIB_BASE_EXPORT const StringConstants& StringConstant()
         QStringLiteral("HeightPercentage"),
         QStringLiteral("Messages"),
         QStringLiteral("StateProcesses"),
-        QStringLiteral("TimeNode"),
+        QStringLiteral("TimeSync"),
         QStringLiteral("States"),
         QStringLiteral("Condition"),
         QStringLiteral("Offset"),

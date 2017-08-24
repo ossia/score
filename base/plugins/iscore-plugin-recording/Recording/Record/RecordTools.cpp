@@ -4,8 +4,8 @@
 #include <Recording/Record/RecordProviderFactory.hpp>
 
 #include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeSync.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
@@ -149,14 +149,14 @@ Box CreateBox(RecordContext& context)
   // Create an automation + a rack + a slot + process views for all
   // automations.
   auto default_end_date = context.point.date;
-  auto cmd_start = new Scenario::Command::CreateTimeNode_Event_State{
+  auto cmd_start = new Scenario::Command::CreateTimeSync_Event_State{
       context.scenario, default_end_date, context.point.y};
   cmd_start->redo(context.context);
   context.dispatcher.submitCommand(cmd_start);
 
   // TODO what happens if we go past the end of our scenario ? Stop recording
   // ??
-  auto cmd_end = new Scenario::Command::CreateConstraint_State_Event_TimeNode{
+  auto cmd_end = new Scenario::Command::CreateConstraint_State_Event_TimeSync{
       context.scenario, cmd_start->createdState(), default_end_date,
       context.point.y};
   cmd_end->redo(context.context);

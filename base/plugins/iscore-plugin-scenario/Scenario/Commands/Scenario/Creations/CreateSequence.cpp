@@ -25,7 +25,7 @@
 #include <Process/State/MessageNode.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeSync.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
@@ -226,12 +226,12 @@ CreateSequence* CreateSequence::make(
 {
   auto cmd = new CreateSequence;
 
-  auto create_command = new CreateConstraint_State_Event_TimeNode{
+  auto create_command = new CreateConstraint_State_Event_TimeSync{
       scenario, start, date, endStateY};
   cmd->m_newConstraint = create_command->createdConstraint();
   cmd->m_newState = create_command->createdState();
   cmd->m_newEvent = create_command->createdEvent();
-  cmd->m_newTimeNode = create_command->createdTimeNode();
+  cmd->m_newTimeSync = create_command->createdTimeSync();
 
   create_command->redo(ctx);
   cmd->addCommand(create_command);

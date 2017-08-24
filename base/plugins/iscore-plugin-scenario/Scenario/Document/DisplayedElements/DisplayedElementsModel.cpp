@@ -4,7 +4,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <algorithm>
 
 #include "DisplayedElementsModel.hpp"
@@ -33,12 +33,12 @@ ConstraintModel& DisplayedElementsModel::constraint() const
   return *m_elements.constraint;
 }
 
-const TimeNodeModel& DisplayedElementsModel::startTimeNode() const
+const TimeSyncModel& DisplayedElementsModel::startTimeSync() const
 {
   return *m_elements.startNode;
 }
 
-const TimeNodeModel& DisplayedElementsModel::endTimeNode() const
+const TimeSyncModel& DisplayedElementsModel::endTimeSync() const
 {
   return *m_elements.endNode;
 }

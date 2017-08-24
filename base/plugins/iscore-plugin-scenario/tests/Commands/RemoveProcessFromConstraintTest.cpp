@@ -6,7 +6,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Constraint/Rack/RackModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
@@ -47,7 +47,7 @@ private slots:
     auto int_0_id = getStrongId(s0->constraints());
     auto ev_0_id = getStrongId(s0->events());
     auto fv_0_id = Id<ConstraintViewModel>{234};
-    auto tb_0_id = getStrongId(s0->timeNodes());
+    auto tb_0_id = getStrongId(s0->timeSyncs());
     StandardCreationPolicy::createConstraintAndEndEventFromEvent(
         *s0, s0->startEvent()->id(), std::chrono::milliseconds{34}, 10,
         int_0_id, fv_0_id, ev_0_id);

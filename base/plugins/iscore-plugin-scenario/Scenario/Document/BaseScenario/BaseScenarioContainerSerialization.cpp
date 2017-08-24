@@ -4,7 +4,7 @@
 #include <QJsonValue>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <algorithm>
 
@@ -45,8 +45,8 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(
   base_scenario.m_constraint
       = new ConstraintModel{*this, base_scenario.m_parent};
 
-  base_scenario.m_startNode = new TimeNodeModel{*this, base_scenario.m_parent};
-  base_scenario.m_endNode = new TimeNodeModel{*this, base_scenario.m_parent};
+  base_scenario.m_startNode = new TimeSyncModel{*this, base_scenario.m_parent};
+  base_scenario.m_endNode = new TimeSyncModel{*this, base_scenario.m_parent};
 
   base_scenario.m_startEvent = new EventModel{*this, base_scenario.m_parent};
   base_scenario.m_endEvent = new EventModel{*this, base_scenario.m_parent};
@@ -72,8 +72,8 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::read(
 {
   obj["Constraint"] = toJsonObject(*base_scenario.m_constraint);
 
-  obj["StartTimeNode"] = toJsonObject(*base_scenario.m_startNode);
-  obj["EndTimeNode"] = toJsonObject(*base_scenario.m_endNode);
+  obj["StartTimeSync"] = toJsonObject(*base_scenario.m_startNode);
+  obj["EndTimeSync"] = toJsonObject(*base_scenario.m_endNode);
 
   obj["StartEvent"] = toJsonObject(*base_scenario.m_startEvent);
   obj["EndEvent"] = toJsonObject(*base_scenario.m_endEvent);
@@ -92,11 +92,11 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectWriter::write(
       JSONObject::Deserializer{obj["Constraint"].toObject()},
       base_scenario.m_parent};
 
-  base_scenario.m_startNode = new TimeNodeModel{
-      JSONObject::Deserializer{obj["StartTimeNode"].toObject()},
+  base_scenario.m_startNode = new TimeSyncModel{
+      JSONObject::Deserializer{obj["StartTimeSync"].toObject()},
       base_scenario.m_parent};
-  base_scenario.m_endNode = new TimeNodeModel{
-      JSONObject::Deserializer{obj["EndTimeNode"].toObject()},
+  base_scenario.m_endNode = new TimeSyncModel{
+      JSONObject::Deserializer{obj["EndTimeSync"].toObject()},
       base_scenario.m_parent};
 
   base_scenario.m_startEvent = new EventModel{

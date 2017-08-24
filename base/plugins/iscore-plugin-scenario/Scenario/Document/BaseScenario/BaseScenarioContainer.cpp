@@ -3,7 +3,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
@@ -26,11 +26,11 @@ BaseScenarioContainer::BaseScenarioContainer(QObject* parentObject)
     : m_parent{parentObject}
 {
   auto& stack = iscore::IDocument::documentContext(*m_parent).commandStack;
-  m_startNode = new TimeNodeModel{Scenario::startId<TimeNodeModel>(),
+  m_startNode = new TimeSyncModel{Scenario::startId<TimeSyncModel>(),
                                   {0.2, 0.8},
                                   TimeVal::zero(),
                                   m_parent};
-  m_endNode = new TimeNodeModel{Scenario::endId<TimeNodeModel>(),
+  m_endNode = new TimeSyncModel{Scenario::endId<TimeSyncModel>(),
                                 {0.2, 0.8},
                                 TimeVal::zero(),
                                 m_parent};
@@ -74,10 +74,10 @@ BaseScenarioContainer::BaseScenarioContainer(
   m_constraint = new ConstraintModel{*source.m_constraint,
                                      source.m_constraint->id(), m_parent};
 
-  m_startNode = new TimeNodeModel{*source.m_startNode,
+  m_startNode = new TimeSyncModel{*source.m_startNode,
                                   source.m_startNode->id(), m_parent};
   m_endNode
-      = new TimeNodeModel{*source.m_endNode, source.m_endNode->id(), m_parent};
+      = new TimeSyncModel{*source.m_endNode, source.m_endNode->id(), m_parent};
 
   m_startEvent = new EventModel{*source.m_startEvent,
                                 source.m_startEvent->id(), m_parent};
@@ -138,8 +138,8 @@ EventModel* BaseScenarioContainer::findEvent(const Id<EventModel>& id) const
   }
 }
 
-TimeNodeModel*
-BaseScenarioContainer::findTimeNode(const Id<TimeNodeModel>& id) const
+TimeSyncModel*
+BaseScenarioContainer::findTimeSync(const Id<TimeSyncModel>& id) const
 {
   if (id == m_startNode->id())
   {
@@ -184,8 +184,8 @@ EventModel& BaseScenarioContainer::event(const Id<EventModel>& id) const
   return id == m_startEvent->id() ? *m_startEvent : *m_endEvent;
 }
 
-TimeNodeModel&
-BaseScenarioContainer::timeNode(const Id<TimeNodeModel>& id) const
+TimeSyncModel&
+BaseScenarioContainer::timeSync(const Id<TimeSyncModel>& id) const
 {
   ISCORE_ASSERT(id == m_startNode->id() || id == m_endNode->id());
   return id == m_startNode->id() ? *m_startNode : *m_endNode;
@@ -202,12 +202,12 @@ ConstraintModel& BaseScenarioContainer::constraint() const
   return *m_constraint;
 }
 
-TimeNodeModel& BaseScenarioContainer::startTimeNode() const
+TimeSyncModel& BaseScenarioContainer::startTimeSync() const
 {
   return *m_startNode;
 }
 
-TimeNodeModel& BaseScenarioContainer::endTimeNode() const
+TimeSyncModel& BaseScenarioContainer::endTimeSync() const
 {
   return *m_endNode;
 }

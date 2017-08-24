@@ -6,13 +6,13 @@ namespace Scenario
 
 void ConstrainedDisplacementPolicy::init(
         ProcessModel &scenario,
-        const QVector<Id<TimeNodeModel> > &draggedElements)
+        const QVector<Id<TimeSyncModel> > &draggedElements)
 {
 }
 
 void ConstrainedDisplacementPolicy::computeDisplacement(
         ProcessModel &scenario,
-        const QVector<Id<TimeNodeModel> > &draggedElements,
+        const QVector<Id<TimeSyncModel> > &draggedElements,
         const TimeVal &deltaTime,
         ElementsProperties &elementsProperties)
 {
@@ -20,7 +20,7 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
     if(draggedElements.empty())
         return;
     auto tn_id = draggedElements[0];
-    auto& tn = scenario.timeNodes.at(tn_id);
+    auto& tn = scenario.timeSyncs.at(tn_id);
     const auto& constraintsBefore = Scenario::previousConstraints(tn, scenario);
     const auto& constraintsAfter = Scenario::nextConstraints(tn, scenario);
 
@@ -124,8 +124,8 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
         }
     }
 
-    auto it = elementsProperties.timenodes.find(tn.id());
-    if(it != elementsProperties.timenodes.end())
+    auto it = elementsProperties.timesyncs.find(tn.id());
+    if(it != elementsProperties.timesyncs.end())
     {
         it.value().newDate = it.value().oldDate + dt;
     }
@@ -135,7 +135,7 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
 
         t.oldDate = tn.date();
         t.newDate = t.oldDate + dt;
-        elementsProperties.timenodes.insert({tn.id(), t});
+        elementsProperties.timesyncs.insert({tn.id(), t});
     }
 }
 

@@ -19,7 +19,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/ScenarioProcessMetadata.hpp>
 #include <iscore/document/DocumentContext.hpp>
@@ -41,19 +41,19 @@ ProcessModel::ProcessModel(
           ProcessModel{duration, id,
                        Metadata<ObjectKey_k, Scenario::ProcessModel>::get(),
                        parent}
-    , m_startTimeNodeId{Scenario::startId<TimeNodeModel>()}
+    , m_startTimeSyncId{Scenario::startId<TimeSyncModel>()}
     , m_startEventId{Scenario::startId<EventModel>()}
     , m_startStateId{Scenario::startId<StateModel>()}
 {
-  auto& start_tn = ScenarioCreate<TimeNodeModel>::redo(
-      m_startTimeNodeId, {0., 0.1}, TimeVal::zero(), *this);
+  auto& start_tn = ScenarioCreate<TimeSyncModel>::redo(
+      m_startTimeSyncId, {0., 0.1}, TimeVal::zero(), *this);
 
   auto& start_ev = ScenarioCreate<EventModel>::redo(
       m_startEventId, start_tn, {0., 0.0}, *this);
 
   ScenarioCreate<StateModel>::redo(m_startStateId, start_ev, 0.02, *this);
 
-  // At the end because plug-ins depend on the start/end timenode & al being
+  // At the end because plug-ins depend on the start/end timesync & al being
   // here
   metadata().setInstanceName(*this);
 }
@@ -66,7 +66,7 @@ ProcessModel::ProcessModel(
           ProcessModel{source, id,
                        Metadata<ObjectKey_k, Scenario::ProcessModel>::get(),
                        parent}
-    , m_startTimeNodeId{source.m_startTimeNodeId}
+    , m_startTimeSyncId{source.m_startTimeSyncId}
     , m_startEventId{source.m_startEventId}
 {
   metadata().setInstanceName(*this);
@@ -79,7 +79,7 @@ ProcessModel::ProcessModel(
     for (const auto& elt : source.*m)
       (this->*m).add(new the_class{elt, elt.id(), this});
   };
-  clone(&ProcessModel::timeNodes);
+  clone(&ProcessModel::timeSyncs);
   clone(&ProcessModel::events);
   clone(&ProcessModel::constraints);
   clone(&ProcessModel::comments);
@@ -111,11 +111,11 @@ void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
 {
   double scale = newDuration / duration();
 
-  for (auto& timenode : timeNodes)
+  for (auto& timesync : timeSyncs)
   {
-    timenode.setDate(timenode.date() * scale);
+    timesync.setDate(timesync.date() * scale);
     // Since events will also move we do not need
-    // to move the timenode.
+    // to move the timesync.
   }
 
   for (auto& event : events)
@@ -229,11 +229,11 @@ void ProcessModel::setSelection(const Selection& s) const
   });
 }
 
-const QVector<Id<ConstraintModel>> constraintsBeforeTimeNode(
-    const Scenario::ProcessModel& scenar, const Id<TimeNodeModel>& timeNodeId)
+const QVector<Id<ConstraintModel>> constraintsBeforeTimeSync(
+    const Scenario::ProcessModel& scenar, const Id<TimeSyncModel>& timeSyncId)
 {
   QVector<Id<ConstraintModel>> cstrs;
-  const auto& tn = scenar.timeNodes.at(timeNodeId);
+  const auto& tn = scenar.timeSyncs.at(timeSyncId);
   for (const auto& ev : tn.events())
   {
     const auto& evM = scenar.events.at(ev);
@@ -387,7 +387,7 @@ bool ProcessModel::contentHasDuration() const
 TimeVal ProcessModel::contentDuration() const
 {
   TimeVal max_tn_pos = TimeVal::zero();
-  for(TimeNodeModel& t : timeNodes)
+  for(TimeSyncModel& t : timeSyncs)
   {
     if(t.date() > max_tn_pos)
       max_tn_pos = t.date();

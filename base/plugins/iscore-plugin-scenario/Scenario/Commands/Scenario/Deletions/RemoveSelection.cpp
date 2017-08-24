@@ -19,7 +19,7 @@
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
@@ -43,7 +43,7 @@ RemoveSelection::RemoveSelection(
     const Scenario::ProcessModel& scenar, Selection sel)
     : m_path{scenar}
 {
-  // Serialize all the events and constraints and timenodes and states and
+  // Serialize all the events and constraints and timesyncs and states and
   // comments
   // For each removed event, we also add its states to the selection.
   // For each removed state, we add the constraints.
@@ -52,7 +52,7 @@ RemoveSelection::RemoveSelection(
   // The event if a State is selected and alone
 
   // Then we have to make a round to remove all the events
-  // of the selected time nodes.
+  // of the selected time syncs.
 
   Selection cp = sel;
   for (const auto& obj : cp)
@@ -70,7 +70,7 @@ RemoveSelection::RemoveSelection(
   cp = sel;
   for (const auto& obj : cp)
   {
-    if (auto tn = dynamic_cast<const TimeNodeModel*>(obj.data()))
+    if (auto tn = dynamic_cast<const TimeSyncModel*>(obj.data()))
     {
       for (const auto& ev : tn->events())
       {
@@ -79,7 +79,7 @@ RemoveSelection::RemoveSelection(
     }
   }
 
-  QList<TimeNodeModel*> maybeRemovedTimenodes;
+  QList<TimeSyncModel*> maybeRemovedTimenodes;
   cp = sel;
   for (const auto& obj : cp) // Make a copy
   {
@@ -92,8 +92,8 @@ RemoveSelection::RemoveSelection(
         sel.append(&scenar.states.at(state));
       }
 
-      // This timenode may be removed if the event is alone.
-      auto tn = &scenar.timeNodes.at(event->timeNode());
+      // This timesync may be removed if the event is alone.
+      auto tn = &scenar.timeSyncs.at(event->timeSync());
       if (!sel.contains(tn))
         maybeRemovedTimenodes.append(tn);
     }
@@ -135,14 +135,14 @@ RemoveSelection::RemoveSelection(
       }
     }
 
-    if (auto tn = dynamic_cast<const TimeNodeModel*>(obj))
+    if (auto tn = dynamic_cast<const TimeSyncModel*>(obj))
     {
-      if (tn->id() != Id<TimeNodeModel>{0})
+      if (tn->id() != Id<TimeSyncModel>{0})
       {
         QByteArray arr;
         DataStream::Serializer s2{&arr};
         s2.readFrom(*tn);
-        m_removedTimeNodes.push_back({tn->id(), arr});
+        m_removedTimeSyncs.push_back({tn->id(), arr});
       }
     }
 
@@ -163,18 +163,18 @@ RemoveSelection::RemoveSelection(
     }
   }
 
-  // Plus the timenodes that we don't know if they will be removed (todo ugly
+  // Plus the timesyncs that we don't know if they will be removed (todo ugly
   // fixme pls)
   // TODO how does this even work ? what happens of the maybe removed events /
   // states ?
   for (const auto& tn : maybeRemovedTimenodes)
   {
-    if (tn->id() != Id<TimeNodeModel>{0})
+    if (tn->id() != Id<TimeSyncModel>{0})
     {
       QByteArray arr;
       DataStream::Serializer s2{&arr};
       s2.readFrom(*tn);
-      m_maybeRemovedTimeNodes.push_back({tn->id(), arr});
+      m_maybeRemovedTimeSyncs.push_back({tn->id(), arr});
     }
   }
 }
@@ -206,14 +206,14 @@ void RemoveSelection::undo(const iscore::DocumentContext& ctx) const
         return new EventModel{s, &scenar};
       });
 
-  QList<TimeNodeModel*> timenodes;
+  QList<TimeSyncModel*> timesyncs;
   std::transform(
-      m_removedTimeNodes.begin(),
-      m_removedTimeNodes.end(),
-      std::back_inserter(timenodes),
+      m_removedTimeSyncs.begin(),
+      m_removedTimeSyncs.end(),
+      std::back_inserter(timesyncs),
       [&](const auto& tndata) {
         DataStream::Deserializer s{tndata.second};
-        return new TimeNodeModel{s, &scenar};
+        return new TimeSyncModel{s, &scenar};
       });
 
   QList<CommentBlockModel*> comments;
@@ -226,46 +226,46 @@ void RemoveSelection::undo(const iscore::DocumentContext& ctx) const
         return new CommentBlockModel(s, &scenar);
       });
 
-  QList<TimeNodeModel*> maybeTimenodes;
+  QList<TimeSyncModel*> maybeTimenodes;
   std::transform(
-      m_maybeRemovedTimeNodes.begin(),
-      m_maybeRemovedTimeNodes.end(),
+      m_maybeRemovedTimeSyncs.begin(),
+      m_maybeRemovedTimeSyncs.end(),
       std::back_inserter(maybeTimenodes),
       [&](const auto& tndata) {
         DataStream::Deserializer s{tndata.second};
-        return new TimeNodeModel{s, &scenar};
+        return new TimeSyncModel{s, &scenar};
       });
 
-  // Recreate all the removed timenodes
-  for (auto& tn : timenodes)
+  // Recreate all the removed timesyncs
+  for (auto& tn : timesyncs)
   {
     // The events should be removed first because else
     // signals may sent and the event may not be found...
     // They will be re-added anyway.
-    auto events_in_timenode = tn->events();
-    for (auto& event : events_in_timenode)
+    auto events_in_timesync = tn->events();
+    for (auto& event : events_in_timesync)
     {
       tn->removeEvent(event);
     }
-    scenar.timeNodes.add(tn);
+    scenar.timeSyncs.add(tn);
   }
 
-  // Recreate first all the events / maybe removed timenodes
+  // Recreate first all the events / maybe removed timesyncs
   for (auto& event : events)
   {
     // We have to make a copy at each iteration since each iteration
-    // might add a timenode.
-    auto timenodes_in_scenar = shallow_copy(scenar.timeNodes.map());
-    auto scenar_timenode_it = std::find(
-        timenodes_in_scenar.begin(),
-        timenodes_in_scenar.end(),
-        event->timeNode());
-    if (scenar_timenode_it != timenodes_in_scenar.end())
+    // might add a timesync.
+    auto timesyncs_in_scenar = shallow_copy(scenar.timeSyncs.map());
+    auto scenar_timesync_it = std::find(
+        timesyncs_in_scenar.begin(),
+        timesyncs_in_scenar.end(),
+        event->timeSync());
+    if (scenar_timesync_it != timesyncs_in_scenar.end())
     {
-      // The timenode already exists
+      // The timesync already exists
       // Hence we don't need the one we serialized.
       auto to_delete = std::find(
-          maybeTimenodes.begin(), maybeTimenodes.end(), event->timeNode());
+          maybeTimenodes.begin(), maybeTimenodes.end(), event->timeSync());
 
       // TODO why do we need to check for this ? ISCORE_ASSERT sometime
       // fails...
@@ -280,28 +280,28 @@ void RemoveSelection::undo(const iscore::DocumentContext& ctx) const
 
       // Maybe this shall be done after everything has been added to prevent
       // problems ?
-      (*scenar_timenode_it)->addEvent(event->id());
+      (*scenar_timesync_it)->addEvent(event->id());
     }
     else
     {
-      // We have to insert the timenode that was removed.
-      auto removed_timenode_it = std::find(
-          maybeTimenodes.begin(), maybeTimenodes.end(), event->timeNode());
-      ISCORE_ASSERT(removed_timenode_it != maybeTimenodes.end());
-      TimeNodeModel* timeNode = *removed_timenode_it;
+      // We have to insert the timesync that was removed.
+      auto removed_timesync_it = std::find(
+          maybeTimenodes.begin(), maybeTimenodes.end(), event->timeSync());
+      ISCORE_ASSERT(removed_timesync_it != maybeTimenodes.end());
+      TimeSyncModel* timeSync = *removed_timesync_it;
 
-      maybeTimenodes.erase(removed_timenode_it);
+      maybeTimenodes.erase(removed_timesync_it);
 
       // First, since the event is not yet in the scenario
-      // we remove it from the timenode since it might crash
-      timeNode->removeEvent(event->id());
+      // we remove it from the timesync since it might crash
+      timeSync->removeEvent(event->id());
 
-      // And we add the timenode
-      scenar.timeNodes.add(timeNode);
+      // And we add the timesync
+      scenar.timeSyncs.add(timeSync);
 
       // We can re-add the event.
       scenar.events.add(event);
-      timeNode->addEvent(event->id());
+      timeSync->addEvent(event->id());
     }
   }
 
@@ -330,9 +330,9 @@ void RemoveSelection::undo(const iscore::DocumentContext& ctx) const
     SetPreviousConstraint(endState(*cstr, scenar), *cstr);
   }
 
-  for (auto& tn : scenar.timeNodes)
+  for (auto& tn : scenar.timeSyncs)
   {
-    updateTimeNodeExtent(tn.id(), scenar);
+    updateTimeSyncExtent(tn.id(), scenar);
   }
   for (auto& ev : scenar.events)
   {
@@ -373,9 +373,9 @@ void RemoveSelection::redo(const iscore::DocumentContext& ctx) const
     }
   }
 
-  for (auto& tn : scenar.timeNodes)
+  for (auto& tn : scenar.timeSyncs)
   {
-    updateTimeNodeExtent(tn.id(), scenar);
+    updateTimeSyncExtent(tn.id(), scenar);
   }
   for (auto& ev : scenar.events)
   {
@@ -385,15 +385,15 @@ void RemoveSelection::redo(const iscore::DocumentContext& ctx) const
 
 void RemoveSelection::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path << m_maybeRemovedTimeNodes << m_removedEvents
-    << m_removedTimeNodes << m_removedConstraints << m_removedStates
+  s << m_path << m_maybeRemovedTimeSyncs << m_removedEvents
+    << m_removedTimeSyncs << m_removedConstraints << m_removedStates
     << m_removedComments;
 }
 
 void RemoveSelection::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_path >> m_maybeRemovedTimeNodes >> m_removedEvents
-      >> m_removedTimeNodes >> m_removedConstraints >> m_removedStates
+  s >> m_path >> m_maybeRemovedTimeSyncs >> m_removedEvents
+      >> m_removedTimeSyncs >> m_removedConstraints >> m_removedStates
       >> m_removedComments;
 }
 }

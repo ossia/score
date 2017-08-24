@@ -77,7 +77,7 @@ void EnableWhenScenarioModelObject::action(
            || bool(dynamic_cast<const Scenario::EventModel*>(ptr))
            || bool(dynamic_cast<const Scenario::StateModel*>(ptr))
            || bool(dynamic_cast<const Scenario::CommentBlockModel*>(ptr));
-  }); // TODO why not timenode
+  }); // TODO why not timesync
 
   setEnabled(mgr, res);
 }
@@ -106,7 +106,7 @@ void EnableWhenScenarioInterfaceInstantObject::action(
   const auto& sel = doc->selectionStack.currentSelection();
   auto res = ossia::any_of(sel, [](auto obj) {
     auto ptr = obj.data();
-    return bool(dynamic_cast<const Scenario::TimeNodeModel*>(ptr))
+    return bool(dynamic_cast<const Scenario::TimeSyncModel*>(ptr))
            || bool(dynamic_cast<const Scenario::EventModel*>(ptr))
            || bool(dynamic_cast<const Scenario::StateModel*>(ptr));
   });
@@ -141,7 +141,7 @@ void EnableWhenScenarioInterfaceObject::action(
     return bool(dynamic_cast<const Scenario::ConstraintModel*>(ptr))
            || bool(dynamic_cast<const Scenario::EventModel*>(ptr))
            || bool(dynamic_cast<const Scenario::StateModel*>(ptr));
-  }); // TODO why not timenode
+  }); // TODO why not timesync
 
   setEnabled(mgr, res);
 }

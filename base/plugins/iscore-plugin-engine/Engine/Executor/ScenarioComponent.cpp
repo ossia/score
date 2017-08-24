@@ -4,7 +4,7 @@
 #include <ossia/editor/scenario/scenario.hpp>
 #include <ossia/editor/scenario/time_constraint.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
-#include <ossia/editor/scenario/time_node.hpp>
+#include <ossia/editor/scenario/time_sync.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <Engine/iscore2OSSIA.hpp>
@@ -22,12 +22,12 @@
 #include <Engine/Executor/EventComponent.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
 #include <Engine/Executor/StateComponent.hpp>
-#include <Engine/Executor/TimeNodeComponent.hpp>
+#include <Engine/Executor/TimeSyncComponent.hpp>
 #include <Scenario/Document/Constraint/ConstraintDurations.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <Scenario/ExecutionChecker/CSPCoherencyCheckerInterface.hpp>
@@ -73,7 +73,7 @@ ScenarioComponentBase::ScenarioComponentBase(
   // Setup of the OSSIA API Part
   m_ossia_process = std::make_shared<ossia::scenario>();
 
-  // Note : the hierarchical scenario shall create the time nodes first.
+  // Note : the hierarchical scenario shall create the time syncs first.
   // A better way would be :
   // * Either to not have a dependency ordering, which would require two passes
   // * Or to have the HierarchicalScenario take a variadic amount of stuff and init them in the right order.
@@ -99,7 +99,7 @@ void ScenarioComponent::init()
     m_checker = fact->make(process(), ctx.doc.app, m_properties);
     if (m_checker)
     {
-      m_properties.timenodes[Id<Scenario::TimeNodeModel>(0)].date = 0;
+      m_properties.timesyncs[Id<Scenario::TimeSyncModel>(0)].date = 0;
       m_checker->computeDisplacement(m_pastTn, m_properties);
     }
   }
@@ -153,21 +153,21 @@ std::function<void ()> ScenarioComponentBase::removing(
 }
 
 std::function<void ()> ScenarioComponentBase::removing(
-    const Scenario::TimeNodeModel& e, TimeNodeComponent& c)
+    const Scenario::TimeSyncModel& e, TimeSyncComponent& c)
 {
   // FIXME this will certainly break stuff WRT member variables, coherency checker, etc.
-  auto it = m_ossia_timenodes.find(e.id());
-  if(it != m_ossia_timenodes.end())
+  auto it = m_ossia_timesyncs.find(e.id());
+  if(it != m_ossia_timesyncs.end())
   {
     std::shared_ptr<ossia::scenario> proc = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
-    m_ctx.executionQueue.enqueue([proc,tn=c.OSSIATimeNode()] {
+    m_ctx.executionQueue.enqueue([proc,tn=c.OSSIATimeSync()] {
       tn->cleanup();
-      proc->remove_time_node(tn);
+      proc->remove_time_sync(tn);
     });
 
     it->second->cleanup();
 
-    return [=] { m_ossia_timenodes.erase(it); };
+    return [=] { m_ossia_timesyncs.erase(it); };
   }
   return {};
 }
@@ -180,7 +180,7 @@ std::function<void ()> ScenarioComponentBase::removing(
   {
     m_ctx.executionQueue.enqueue([ev=c.OSSIAEvent()] {
       ev->cleanup();
-      ev->get_time_node().remove(ev);
+      ev->get_time_sync().remove(ev);
     });
 
     c.cleanup();
@@ -284,60 +284,60 @@ EventComponent* ScenarioComponentBase::make<EventComponent, Scenario::EventModel
   auto elt = std::make_shared<EventComponent>(ev, m_ctx, id, this);
   m_ossia_timeevents.insert({ev.id(), elt});
 
-  // Find the parent time node for the new event
-  auto& nodes = m_ossia_timenodes;
-  ISCORE_ASSERT(nodes.find(ev.timeNode()) != nodes.end());
-  auto tn = nodes.at(ev.timeNode());
+  // Find the parent time sync for the new event
+  auto& nodes = m_ossia_timesyncs;
+  ISCORE_ASSERT(nodes.find(ev.timeSync()) != nodes.end());
+  auto tn = nodes.at(ev.timeSync());
 
   // Create the event
   auto ossia_ev = std::make_shared<ossia::time_event>(
         [=](ossia::time_event::status st) { return eventCallback(*elt, st); },
-        *tn->OSSIATimeNode(),
+        *tn->OSSIATimeSync(),
         ossia::expression_ptr{});
 
   elt->onSetup(ossia_ev, elt->makeExpression(), (ossia::time_event::offset_behavior) (ev.offsetBehavior()));
 
   // The event is inserted in the API edition thread
   m_ctx.executionQueue.enqueue(
-        [event=ossia_ev,time_node=tn->OSSIATimeNode()]
+        [event=ossia_ev,time_sync=tn->OSSIATimeSync()]
   {
     ISCORE_ASSERT(event);
-    ISCORE_ASSERT(time_node);
-    time_node->insert(time_node->get_time_events().begin(), event);
+    ISCORE_ASSERT(time_sync);
+    time_sync->insert(time_sync->get_time_events().begin(), event);
   });
 
   return elt.get();
 }
 
 template<>
-TimeNodeComponent* ScenarioComponentBase::make<TimeNodeComponent, Scenario::TimeNodeModel>(
+TimeSyncComponent* ScenarioComponentBase::make<TimeSyncComponent, Scenario::TimeSyncModel>(
     const Id<iscore::Component>& id,
-    Scenario::TimeNodeModel& tn)
+    Scenario::TimeSyncModel& tn)
 {
   // Create the object
-  auto elt = std::make_shared<TimeNodeComponent>(tn, m_ctx, id, this);
-  m_ossia_timenodes.insert({tn.id(), elt});
+  auto elt = std::make_shared<TimeSyncComponent>(tn, m_ctx, id, this);
+  m_ossia_timesyncs.insert({tn.id(), elt});
 
   bool must_add = false;
-  // The OSSIA API already creates the start time node so we must use it if available
-  std::shared_ptr<ossia::time_node> ossia_tn;
-  if (tn.id() ==  Scenario::startId<Scenario::TimeNodeModel>())
+  // The OSSIA API already creates the start time sync so we must use it if available
+  std::shared_ptr<ossia::time_sync> ossia_tn;
+  if (tn.id() ==  Scenario::startId<Scenario::TimeSyncModel>())
   {
-    ossia_tn = OSSIAProcess().get_start_time_node();
+    ossia_tn = OSSIAProcess().get_start_time_sync();
   }
   else
   {
-    ossia_tn = std::make_shared<ossia::time_node>();
+    ossia_tn = std::make_shared<ossia::time_sync>();
     must_add = true;
   }
 
   // Setup the object
   elt->onSetup(ossia_tn, elt->makeTrigger());
 
-  // What happens when a time node's status change
+  // What happens when a time sync's status change
   ossia_tn->triggered.add_callback([thisP=shared_from_this(),elt] {
     auto& sub = static_cast<ScenarioComponentBase&>(*thisP);
-    return sub.timeNodeCallback(
+    return sub.timeSyncCallback(
           elt.get(), sub.m_parent_constraint.OSSIAConstraint()->get_date());
   });
 
@@ -351,7 +351,7 @@ TimeNodeComponent* ScenarioComponentBase::make<TimeNodeComponent, Scenario::Time
     auto& sub = static_cast<ScenarioComponentBase&>(*thisP);
 
     if(must_add)
-      sub.OSSIAProcess().add_time_node(ossia_tn);
+      sub.OSSIAProcess().add_time_sync(ossia_tn);
   });
 
   return elt.get();
@@ -439,15 +439,15 @@ void ScenarioComponentBase::eventCallback(
   }
 }
 
-void ScenarioComponentBase::timeNodeCallback(
-    TimeNodeComponent* tn, ossia::time_value date)
+void ScenarioComponentBase::timeSyncCallback(
+    TimeSyncComponent* tn, ossia::time_value date)
 {
   if (m_checker)
   {
-    m_pastTn.push_back(tn->iscoreTimeNode().id());
+    m_pastTn.push_back(tn->iscoreTimeSync().id());
 
     // Fix Timenode
-    auto& curTnProp = m_properties.timenodes[tn->iscoreTimeNode().id()];
+    auto& curTnProp = m_properties.timesyncs[tn->iscoreTimeSync().id()];
     curTnProp.date = double(date);
     curTnProp.date_max = curTnProp.date;
     curTnProp.date_min = curTnProp.date;
@@ -455,16 +455,16 @@ void ScenarioComponentBase::timeNodeCallback(
 
     // Fix previous constraints
     auto previousCstrs
-        = Scenario::previousConstraints(tn->iscoreTimeNode(), process());
+        = Scenario::previousConstraints(tn->iscoreTimeSync(), process());
 
     for (auto& cstrId : previousCstrs)
     {
       auto& startTn
-          = Scenario::startTimeNode(process().constraint(cstrId), process());
+          = Scenario::startTimeSync(process().constraint(cstrId), process());
       auto& cstrProp = m_properties.constraints[cstrId];
 
       cstrProp.newMin.setMSecs(
-            curTnProp.date - m_properties.timenodes[startTn.id()].date);
+            curTnProp.date - m_properties.timesyncs[startTn.id()].date);
       cstrProp.newMax = cstrProp.newMin;
 
       cstrProp.status = Scenario::ExecutionStatus::Happened;

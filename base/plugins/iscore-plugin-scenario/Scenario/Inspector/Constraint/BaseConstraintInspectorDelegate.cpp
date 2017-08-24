@@ -1,11 +1,11 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Scenario/Commands/MoveBaseEvent.hpp>
-#include <Scenario/Commands/TimeNode/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
+#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
-#include <Scenario/Inspector/TimeNode/TriggerInspectorWidget.hpp>
+#include <Scenario/Inspector/TimeSync/TriggerInspectorWidget.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
 #include <iscore/tools/std/Optional.hpp>
@@ -22,7 +22,7 @@
 
 #include "BaseConstraintInspectorDelegate.hpp"
 #include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <iscore/document/DocumentContext.hpp>
@@ -42,7 +42,7 @@ BaseConstraintInspectorDelegate::BaseConstraintInspectorDelegate(
 void BaseConstraintInspectorDelegate::updateElements()
 {
   auto& scenario = *safe_cast<BaseScenario*>(m_model.parent());
-  auto& tn = endTimeNode(m_model, scenario);
+  auto& tn = endTimeSync(m_model, scenario);
   m_triggerLine->updateExpression(tn.expression());
 }
 
@@ -51,7 +51,7 @@ void BaseConstraintInspectorDelegate::addWidgets_pre(
 {
   auto& scenario = *safe_cast<BaseScenario*>(m_model.parent());
   auto& ctx = iscore::IDocument::documentContext(scenario);
-  auto& tn = endTimeNode(m_model, scenario);
+  auto& tn = endTimeSync(m_model, scenario);
   m_triggerLine = new TriggerInspectorWidget{
       ctx, ctx.app.interfaces<Command::TriggerCommandFactoryList>(),
       tn, parent};

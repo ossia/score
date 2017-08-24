@@ -8,8 +8,8 @@
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
 #include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateTimeNode_Event_State.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeSync.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
 #include <core/document/Document.hpp>

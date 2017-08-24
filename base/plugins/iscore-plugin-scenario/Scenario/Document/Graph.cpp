@@ -9,7 +9,7 @@
 
 #include "Graph.hpp"
 
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
@@ -22,7 +22,7 @@ namespace Scenario
 TimenodeGraph::TimenodeGraph(
     const Scenario::ScenarioInterface& scenar)
 {
-  for(auto& tn : scenar.getTimeNodes())
+  for(auto& tn : scenar.getTimeSyncs())
   {
     m_vertices[&tn] = boost::add_vertex(&tn, m_graph);
   }
@@ -30,8 +30,8 @@ TimenodeGraph::TimenodeGraph(
   for(auto& cst : scenar.getConstraints())
   {
     m_edges[&cst] = boost::add_edge(
-          m_vertices[&Scenario::startTimeNode(cst, scenar)],
-          m_vertices[&Scenario::endTimeNode(cst, scenar)],
+          m_vertices[&Scenario::startTimeSync(cst, scenar)],
+          m_vertices[&Scenario::endTimeSync(cst, scenar)],
           &cst,
           m_graph).first;
 

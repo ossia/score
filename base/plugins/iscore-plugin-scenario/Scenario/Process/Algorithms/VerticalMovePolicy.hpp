@@ -8,11 +8,11 @@ namespace Scenario
 class ConstraintModel;
 class EventModel;
 class ProcessModel;
-class TimeNodeModel;
+class TimeSyncModel;
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-updateTimeNodeExtent(const Id<TimeNodeModel>& id, Scenario::ProcessModel& s);
+updateTimeSyncExtent(const Id<TimeSyncModel>& id, Scenario::ProcessModel& s);
 
-// Will call updateTimeNodeExtent
+// Will call updateTimeSyncExtent
 ISCORE_PLUGIN_SCENARIO_EXPORT void
 updateEventExtent(const Id<EventModel>& id, Scenario::ProcessModel& s);
 

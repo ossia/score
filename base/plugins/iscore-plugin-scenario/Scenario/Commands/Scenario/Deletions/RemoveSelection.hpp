@@ -18,7 +18,7 @@ namespace Scenario
 class ConstraintModel;
 class EventModel;
 class StateModel;
-class TimeNodeModel;
+class TimeSyncModel;
 class CommentBlockModel;
 class ProcessModel;
 namespace Command
@@ -48,13 +48,13 @@ protected:
 private:
   Path<Scenario::ProcessModel> m_path;
 
-  // For timenodes that may be removed when there is only a single event
-  QVector<QPair<Id<TimeNodeModel>, QByteArray>> m_maybeRemovedTimeNodes;
+  // For timesyncs that may be removed when there is only a single event
+  QVector<QPair<Id<TimeSyncModel>, QByteArray>> m_maybeRemovedTimeSyncs;
 
   QVector<QPair<Id<CommentBlockModel>, QByteArray>> m_removedComments;
   QVector<QPair<Id<StateModel>, QByteArray>> m_removedStates;
   QVector<QPair<Id<EventModel>, QByteArray>> m_removedEvents;
-  QVector<QPair<Id<TimeNodeModel>, QByteArray>> m_removedTimeNodes;
+  QVector<QPair<Id<TimeSyncModel>, QByteArray>> m_removedTimeSyncs;
   QVector<QPair<Id<ConstraintModel>, QByteArray>> m_removedConstraints;
 };
 }
