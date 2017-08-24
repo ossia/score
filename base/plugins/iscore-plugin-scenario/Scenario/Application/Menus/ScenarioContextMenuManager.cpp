@@ -136,12 +136,11 @@ void ScenarioContextMenuManager::createSlotContextMenu(
       = new QAction{tr("Add new process in this slot"), &menu};
   QObject::connect(addNewProcessInExistingSlot, &QAction::triggered, [&, slot_path]() {
     auto& fact = ctx.app.interfaces<Process::ProcessFactoryList>();
-    AddProcessDialog dialog{fact, qApp->activeWindow()};
+    AddProcessDialog* dialog =new AddProcessDialog{fact, qApp->activeWindow()};
 
     QObject::connect(
-        &dialog, &AddProcessDialog::okPressed, [&, slot_path] (const auto& proc) mutable {
-          QuietMacroCommandDispatcher<Scenario::Command::
-                                          CreateProcessInExistingSlot>
+        dialog, &AddProcessDialog::okPressed, [&, slot_path] (const auto& proc) mutable {
+          QuietMacroCommandDispatcher<Scenario::Command::CreateProcessInExistingSlot>
               disp{ctx.commandStack};
 
           auto cmd1 = new Scenario::Command::AddOnlyProcessToConstraint(
@@ -157,7 +156,8 @@ void ScenarioContextMenuManager::createSlotContextMenu(
           disp.commit();
         });
 
-    dialog.launchWindow();
+    dialog->launchWindow();
+    dialog->deleteLater();
   });
   menu.addAction(addNewProcessInExistingSlot);
 
@@ -166,10 +166,10 @@ void ScenarioContextMenuManager::createSlotContextMenu(
       = new QAction{tr("Add process in a new slot"), &menu};
   QObject::connect(addNewProcessInNewSlot, &QAction::triggered, [&]() {
     auto& fact = ctx.app.interfaces<Process::ProcessFactoryList>();
-    AddProcessDialog dialog{fact, qApp->activeWindow()};
+    AddProcessDialog* dialog = new AddProcessDialog{fact, qApp->activeWindow()};
 
     QObject::connect(
-        &dialog, &AddProcessDialog::okPressed, [&](const auto& proc) {
+        dialog, &AddProcessDialog::okPressed, [&](const auto& proc) {
           using cmd = Scenario::Command::CreateProcessInNewSlot;
           QuietMacroCommandDispatcher<cmd> disp{ctx.commandStack};
 
@@ -178,7 +178,8 @@ void ScenarioContextMenuManager::createSlotContextMenu(
           disp.commit();
         });
 
-    dialog.launchWindow();
+    dialog->launchWindow();
+    dialog->deleteLater();
   });
   menu.addAction(addNewProcessInNewSlot);
 }

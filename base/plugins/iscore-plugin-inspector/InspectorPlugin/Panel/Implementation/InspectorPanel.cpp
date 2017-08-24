@@ -50,6 +50,7 @@ void InspectorPanelWidget::newItemsInspected(const Selection& objects)
 
   if (m_currentInspector)
   {
+    m_layout->removeWidget(m_currentInspector);
     m_currentInspector->deleteLater();
     m_currentInspector = nullptr;
   }

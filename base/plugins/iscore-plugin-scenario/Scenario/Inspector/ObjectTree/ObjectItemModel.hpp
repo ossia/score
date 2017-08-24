@@ -11,6 +11,8 @@
 #include <QTreeView>
 #include <QVBoxLayout>
 #include <QHeaderView>
+#include <QContextMenuEvent>
+#include <QMenu>
 
 class QToolButton;
 namespace Scenario
@@ -67,37 +69,15 @@ class ObjectItemModel final
 class ObjectWidget final: public QTreeView
 {
   public:
-    ObjectWidget(const iscore::DocumentContext& ctx, QWidget* par)
-      : QTreeView{par}
-      , model{this}
-      , m_ctx{ctx}
-    {
-      setModel(&model);
-      setAnimated(true);
-      setAlternatingRowColors(true);
-      setMidLineWidth(40);
-      setUniformRowHeights(true);
-      setWordWrap(false);
-      setMouseTracking(true);
-
-      con(model, &ObjectItemModel::changed,
-          this, &QTreeView::expandAll);
-    }
-
-    void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected) override
-    {
-      if(selected.size() > 0 && !updatingSelection)
-      {
-        iscore::SelectionDispatcher d{m_ctx.selectionStack};
-        auto obj = (IdentifiedObjectAbstract*) selected.at(0).indexes().at(0).internalPointer();
-        d.setAndCommit(Selection{obj});
-      }
-    }
-
+    ObjectWidget(const iscore::DocumentContext& ctx, QWidget* par);
     ObjectItemModel model;
 
     bool updatingSelection{false};
+
   private:
+    void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected) override;
+
+    void contextMenuEvent(QContextMenuEvent* ev) override;
     const iscore::DocumentContext& m_ctx;
 };
 

@@ -39,6 +39,7 @@ public:
     p.setWidth(2);
     painter->setPen(p);
 
+    // TODO instead of a cross, make an arrow that looks like |->
     const auto small_rad = 0.5 * m_radius;
     const QLineF l1{QPointF{0, -small_rad}, QPointF{0, small_rad}};
     const QLineF l2{QPointF{-small_rad, 0}, QPointF{small_rad, 0}};

@@ -5,27 +5,11 @@
 #include <iscore/selection/SelectionDispatcher.hpp>
 #include <list>
 
-namespace Inspector
-{
-class InspectorSectionWidget;
-}
-class QWidget;
-namespace iscore
-{
-struct DocumentContext;
-} // namespace iscore
-namespace Process
-{
-class StateProcessFactory;
-class StateProcess;
-}
 namespace Scenario
 {
-class AddStateProcessDialog;
 class StateModel;
 class StateInspectorWidget final :
-    public Inspector::InspectorWidgetBase,
-    public Nano::Observer
+    public Inspector::InspectorWidgetBase
 {
 public:
   explicit StateInspectorWidget(
@@ -33,24 +17,15 @@ public:
       const iscore::DocumentContext& context,
       QWidget* parent);
 
-public slots:
+private:
   void splitFromEvent();
   void splitFromNode();
-
-private:
-  void on_stateProcessCreated(const Process::StateProcess&);
-  void on_stateProcessRemoved(const Process::StateProcess&);
-  void createStateProcess(const UuidKey<Process::StateProcessFactory>&);
-  Inspector::InspectorSectionWidget*
-  displayStateProcess(const Process::StateProcess& process);
   void updateDisplayedValues();
 
   const StateModel& m_model;
   const iscore::DocumentContext& m_context;
   CommandDispatcher<> m_commandDispatcher;
   iscore::SelectionDispatcher m_selectionDispatcher;
-
-  AddStateProcessDialog* m_addProcess{};
 
   std::vector<QWidget*> m_properties;
 };

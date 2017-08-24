@@ -199,10 +199,9 @@ void ConstraintActions::addProcessInConstraint(
     return;
 
   auto cmd
-      = Scenario::Command::make_AddProcessToConstraint( // NOTE just the first,
-                                                        // not all ?
-                                                        **selectedConstraints.begin(),
-                                                        processName);
+      = new Scenario::Command::AddProcessToConstraint(
+          **selectedConstraints.begin(),
+          processName);
 
   emit dispatcher().submitCommand(cmd);
 }

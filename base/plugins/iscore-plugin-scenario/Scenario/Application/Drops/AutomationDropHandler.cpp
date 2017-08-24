@@ -89,12 +89,9 @@ bool DropProcessInConstraint::drop(
 
     auto& doc = iscore::IDocument::documentContext(cst);
 
-    auto cmd = Scenario::Command::make_AddProcessToConstraint(cst, p.key);
-    if (cmd)
-    {
-      CommandDispatcher<> d{doc.commandStack};
-      d.submitCommand(cmd);
-    }
+    auto cmd = new Scenario::Command::AddProcessToConstraint(cst, p.key);
+    CommandDispatcher<> d{doc.commandStack};
+    d.submitCommand(cmd);
     return true;
   }
   else

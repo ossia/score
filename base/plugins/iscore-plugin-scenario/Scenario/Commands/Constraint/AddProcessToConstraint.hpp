@@ -40,17 +40,40 @@ namespace Scenario
 {
 namespace Command
 {
-class AddProcessToConstraintBase : public iscore::Command
+class AddProcessToConstraint final : public iscore::Command
 {
-public:
-  AddProcessToConstraintBase() = default;
-  AddProcessToConstraintBase(
+    ISCORE_COMMAND_DECL(
+        ScenarioCommandFactoryName(),
+        AddProcessToConstraint,
+        "Add a process to a constraint")
+
+  public:
+  AddProcessToConstraint(
       const ConstraintModel& constraint,
-      UuidKey<Process::ProcessModel> process)
-      : m_addProcessCommand{constraint,
-                            getStrongId(constraint.processes),
-                            process}
+      const UuidKey<Process::ProcessModel>& process)
+    : m_addProcessCommand{constraint,
+                          getStrongId(constraint.processes),
+                          process}
   {
+  }
+
+  void undo(const iscore::DocumentContext& ctx) const override
+  {
+    auto& constraint = m_addProcessCommand.constraintPath().find(ctx);
+
+    constraint.removeSlot(int(constraint.smallView().size() - 1));
+    m_addProcessCommand.undo(ctx);
+  }
+  void redo(const iscore::DocumentContext& ctx) const override
+  {
+    auto& constraint = m_addProcessCommand.constraintPath().find(ctx);
+
+    // Create process model
+    auto& proc = m_addProcessCommand.redo(constraint, ctx);
+    auto h
+        = iscore::AppContext().settings<Scenario::Settings::Model>().getSlotHeight();
+    constraint.addSlot(Slot{{proc.id()}, proc.id(), h});
+    constraint.setSmallViewVisible(true);
   }
 
   const Path<ConstraintModel>& constraintPath() const
@@ -66,66 +89,10 @@ public:
     return m_addProcessCommand.processKey();
   }
 
-protected:
-  AddOnlyProcessToConstraint m_addProcessCommand;
-};
-
-template <typename AddProcessDelegate>
-class AddProcessToConstraint final : public AddProcessToConstraintBase
-{
-  friend AddProcessDelegate;
-
-public:
-  const CommandGroupKey& parentKey() const noexcept override
-  {
-    return ScenarioCommandFactoryName();
-  }
-  const CommandKey& key() const noexcept override
-  {
-    return static_key();
-  }
-  QString description() const override
-  {
-    return QObject::tr("Add a process to a constraint");
-  }
-  static const CommandKey& static_key() noexcept
-  {
-    return AddProcessDelegate::static_key();
-  }
-
-  AddProcessToConstraint() = default;
-
-  AddProcessToConstraint(
-      const iscore::ApplicationContext& context,
-      const ConstraintModel& constraint,
-      const UuidKey<Process::ProcessModel>& process)
-      : AddProcessToConstraintBase{constraint, process}
-  {
-    auto& fact = context.interfaces<Process::LayerFactoryList>();
-    m_delegate.init(fact, constraint);
-  }
-
-  void undo(const iscore::DocumentContext& ctx) const override
-  {
-    auto& constraint = m_addProcessCommand.constraintPath().find(ctx);
-
-    m_delegate.undo(constraint);
-    m_addProcessCommand.undo(ctx);
-  }
-  void redo(const iscore::DocumentContext& ctx) const override
-  {
-    auto& constraint = m_addProcessCommand.constraintPath().find(ctx);
-
-    // Create process model
-    auto& proc = m_addProcessCommand.redo(constraint, ctx);
-    m_delegate.redo(constraint, proc);
-  }
-
-protected:
+private:
   void serializeImpl(DataStreamInput& s) const override
   {
     s << m_addProcessCommand.serialize();
-    m_delegate.serialize(s);
   }
   void deserializeImpl(DataStreamOutput& s) override
   {
@@ -133,139 +100,10 @@ protected:
     s >> b;
 
     m_addProcessCommand.deserialize(b);
-    m_delegate.deserialize(s);
   }
 
-private:
-  AddProcessDelegate m_delegate{*this};
+  AddOnlyProcessToConstraint m_addProcessCommand;
 };
-
-class HasNoSlots
-{
-};
-class HasSlots
-{
-};
-
-template <typename t>
-class AddProcessDelegate;
-
-template <>
-class AddProcessDelegate<HasNoSlots>
-{
-private:
-  using proc_t
-      = AddProcessToConstraint<AddProcessDelegate<HasNoSlots>>;
-
-public:
-  static const CommandKey& static_key()
-  {
-    static const CommandKey var{
-        "AddProcessDelegate_HasNoSlots_HasRacks_NotBaseConstraint"};
-    return var;
-  }
-
-  AddProcessDelegate<HasNoSlots>(proc_t& cmd)
-  {
-  }
-
-  void init(
-      const Process::LayerFactoryList& fact, const ConstraintModel& constraint)
-  {
-  }
-
-  void undo(ConstraintModel& constraint) const
-  {
-    constraint.removeSlot(int(constraint.smallView().size() - 1));
-  }
-
-  void redo(ConstraintModel& constraint, Process::ProcessModel& proc) const
-  {
-    auto h
-        = iscore::AppContext().settings<Scenario::Settings::Model>().getSlotHeight();
-    constraint.addSlot(Slot{{proc.id()}, proc.id(), h});
-    constraint.setSmallViewVisible(true);
-  }
-
-  void serialize(DataStreamInput& s) const
-  {
-  }
-
-  void deserialize(DataStreamOutput& s)
-  {
-  }
-
-private:
-};
-
-template <>
-class AddProcessDelegate<HasSlots>
-{
-private:
-  using proc_t
-      = AddProcessToConstraint<AddProcessDelegate<HasSlots>>;
-  proc_t& m_cmd;
-
-public:
-  static const CommandKey& static_key()
-  {
-    static const CommandKey var{
-        "AddProcessDelegate_HasSlots_HasRacks_NotBaseConstraint"};
-    return var;
-  }
-
-  AddProcessDelegate<HasSlots>(proc_t& cmd)
-      : m_cmd{cmd}
-  {
-  }
-
-  void init(
-      const Process::LayerFactoryList& fact,
-      const ConstraintModel& constraint)
-  {
-  }
-
-  void undo(ConstraintModel& constraint) const
-  {
-    constraint.removeLayer(0, m_cmd.processId());
-  }
-
-  void redo(ConstraintModel& constraint, Process::ProcessModel& proc) const
-  {
-    constraint.addLayer(0, m_cmd.processId());
-  }
-
-  void serialize(DataStreamInput& s) const
-  {
-  }
-
-  void deserialize(DataStreamOutput& s)
-  {
-  }
-};
-
-
-inline Scenario::Command::AddProcessToConstraintBase*
-make_AddProcessToConstraint(
-    const ConstraintModel& constraint,
-    const UuidKey<Process::ProcessModel>& process)
-{
-  Scenario::Command::AddProcessToConstraintBase* cmd{};
-
-  auto noSlots = constraint.smallView().empty();
-  if (noSlots)
-  {
-    cmd = new AddProcessToConstraint<AddProcessDelegate<HasNoSlots>>{iscore::AppContext(),
-                                                                    constraint, process};
-  }
-  else
-  {
-    cmd = new AddProcessToConstraint<AddProcessDelegate<HasSlots>>{iscore::AppContext(),
-                                                                  constraint, process};
-  }
-
-  return cmd;
-}
 
 class AddProcessInNewBoxMacro final : public iscore::AggregateCommand
 {
@@ -276,7 +114,3 @@ class AddProcessInNewBoxMacro final : public iscore::AggregateCommand
 }
 }
 
-ISCORE_COMMAND_DECL_T(
-    AddProcessToConstraint<AddProcessDelegate<HasNoSlots>>)
-ISCORE_COMMAND_DECL_T(
-    AddProcessToConstraint<AddProcessDelegate<HasSlots>>)
