@@ -45,6 +45,6 @@ void ScenarioConstraintInspectorDelegate::on_defaultDurationChanged(
       scenario.state(m_model.endState()).eventId(),
       m_model.startDate() + val,
       m_model.heightPercentage(),
-      expandmode);
+      expandmode, LockMode::Free);
 }
 }

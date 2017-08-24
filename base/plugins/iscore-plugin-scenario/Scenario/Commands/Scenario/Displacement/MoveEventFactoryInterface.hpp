@@ -21,10 +21,12 @@ class ProcessModel;
 namespace Command
 {
 class SerializableMoveEvent;
+
 class ISCORE_PLUGIN_SCENARIO_EXPORT MoveEventFactoryInterface
     : public iscore::Interface<MoveEventFactoryInterface>
 {
   ISCORE_INTERFACE("69dc1f79-5cb9-4a36-b382-8c099f7abf57")
+
 public:
   enum Strategy
   {
@@ -33,14 +35,13 @@ public:
   };
   virtual std::unique_ptr<SerializableMoveEvent> make(
       const Scenario::ProcessModel&,
-      Id<EventModel>
-          eventId,
+      Id<EventModel> eventId,
       TimeVal newDate,
-      ExpandMode mode)
+      ExpandMode mode,
+      LockMode lm)
       = 0;
 
-  virtual std::unique_ptr<SerializableMoveEvent> make() = 0;
-
+  virtual std::unique_ptr<SerializableMoveEvent> make(LockMode) = 0;
   virtual ~MoveEventFactoryInterface();
 
   /**

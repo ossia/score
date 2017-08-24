@@ -35,6 +35,7 @@ private:
   QAction* m_grow{};
 
   QAction* m_shiftAction{};
+  QAction* m_altAction{};
 
   QAction* m_selecttool{};
   QAction* m_createtool{};

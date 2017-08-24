@@ -60,7 +60,7 @@ public:
       const double y,
       bool yLocked)
   {
-    m_cmd.update(s, id, date, y, ExpandMode::Scale);
+    m_cmd.update(s, id, date, y, ExpandMode::Scale, LockMode::Free);
     m_y = y;
     m_yLocked = yLocked;
   }

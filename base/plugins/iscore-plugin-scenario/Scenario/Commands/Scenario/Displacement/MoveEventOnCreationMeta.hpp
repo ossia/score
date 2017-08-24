@@ -44,7 +44,8 @@ public:
       const Id<EventModel>& eventId,
       const TimeVal& newDate,
       double,
-      ExpandMode mode) override;
+      ExpandMode mode,
+      LockMode lm) override;
 
   // Command interface
 protected:

@@ -33,7 +33,8 @@ public:
           eventId,
       TimeVal newDate,
       double y,
-      ExpandMode mode);
+      ExpandMode mode,
+      LockMode lock);
 
   MoveEventMeta(
       const Scenario::ProcessModel& scenarioPath,
@@ -42,6 +43,7 @@ public:
       TimeVal newDate,
       double y,
       ExpandMode mode,
+      LockMode lock,
       Id<StateModel>);
   void undo(const iscore::DocumentContext& ctx) const override;
   void redo(const iscore::DocumentContext& ctx) const override;
@@ -52,23 +54,15 @@ public:
       Scenario::ProcessModel& scenar,
       const Id<EventModel>& eventId,
       const TimeVal& newDate,
-      double y, ExpandMode mode) override
-  {
-    m_moveEventImplementation->update(scenar, eventId, newDate, y, mode);
-    m_newY = y;
-    updateY(scenar, m_newY);
-  }
+      double y, ExpandMode mode,
+      LockMode lock) override;
   void update(
       Scenario::ProcessModel& scenar,
       const Id<EventModel>& eventId,
       const TimeVal& newDate,
       double y, ExpandMode mode,
-      Id<StateModel> st)
-  {
-    m_moveEventImplementation->update(scenar, eventId, newDate, y, mode);
-    m_newY = y;
-    updateY(scenar, m_newY);
-  }
+      LockMode lock,
+      const Id<StateModel>& st);
 
 protected:
   void serializeImpl(DataStreamInput&) const override;
@@ -80,6 +74,7 @@ private:
   Path<Scenario::ProcessModel> m_scenario;
   Id<EventModel> m_eventId;
   optional<Id<StateModel>> m_stateId;
+  LockMode m_lock{};
   double m_oldY{};
   double m_newY{};
 
@@ -101,15 +96,17 @@ public:
           eventId,
       TimeVal newDate,
       double y,
-      ExpandMode mode);
+      ExpandMode mode,
+      LockMode lock);
   MoveTopEventMeta(
           const Scenario::ProcessModel& scenarioPath,
           Id<EventModel>
           eventId,
           TimeVal newDate,
           double y,
-          ExpandMode mode, Id<StateModel> )
-      : MoveTopEventMeta{scenarioPath, eventId, newDate, y ,mode}
+          ExpandMode mode,
+          LockMode lock, Id<StateModel> )
+      : MoveTopEventMeta{scenarioPath, eventId, newDate, y ,mode, lock}
   { }
 
   void undo(const iscore::DocumentContext& ctx) const override;
@@ -119,12 +116,12 @@ public:
 
   void update(
       Scenario::ProcessModel&, const Id<EventModel>& eventId, const TimeVal& newDate,
-      double y, ExpandMode mode) override;
+      double y, ExpandMode mode, LockMode) override;
   void update(
           Scenario::ProcessModel& s, const Id<EventModel>& eventId, const TimeVal& newDate,
-          double y, ExpandMode mode, const Id<StateModel>&)
+          double y, ExpandMode mode, LockMode, const Id<StateModel>&)
   {
-      update(s, eventId, newDate, y, mode);
+      update(s, eventId, newDate, y, mode, LockMode::Free);
   }
 
 protected:

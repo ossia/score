@@ -26,9 +26,10 @@ class MoveEventClassicFactory final : public MoveEventFactoryInterface
       const Scenario::ProcessModel&,
       Id<EventModel> eventId,
       TimeVal newDate,
-      ExpandMode mode) override;
+      ExpandMode mode,
+      LockMode lck) override;
 
-  std::unique_ptr<SerializableMoveEvent> make() override;
+  std::unique_ptr<SerializableMoveEvent> make(LockMode) override;
 
   int priority(
       const iscore::ApplicationContext& ctx,

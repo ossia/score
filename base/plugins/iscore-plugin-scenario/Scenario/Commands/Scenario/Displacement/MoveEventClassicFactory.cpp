@@ -29,15 +29,39 @@ std::unique_ptr<SerializableMoveEvent> MoveEventClassicFactory::make(
     Id<EventModel>
         eventId,
     TimeVal newDate,
-    ExpandMode mode)
+    ExpandMode mode,
+    LockMode lck)
 {
-  return std::make_unique<MoveEvent<GoodOldDisplacementPolicy>>(
-      std::move(scenarioPath), std::move(eventId), std::move(newDate), mode);
+  if(lck == LockMode::Free)
+  {
+    return std::make_unique<MoveEvent<GoodOldDisplacementPolicy>>(
+                                                                   std::move(scenarioPath),
+                                                                   std::move(eventId),
+                                                                   std::move(newDate),
+                                                                   mode,
+                                                                   lck);
+  }
+  else
+  {
+    return std::make_unique<MoveEvent<ConstrainedDisplacementPolicy>>(
+                                                                   std::move(scenarioPath),
+                                                                   std::move(eventId),
+                                                                   std::move(newDate),
+                                                                   mode,
+                                                                   lck);
+  }
 }
 
-std::unique_ptr<SerializableMoveEvent> MoveEventClassicFactory::make()
+std::unique_ptr<SerializableMoveEvent> MoveEventClassicFactory::make(LockMode lck)
 {
-  return std::make_unique<MoveEvent<GoodOldDisplacementPolicy>>();
+  if(lck == LockMode::Free)
+  {
+    return std::make_unique<MoveEvent<GoodOldDisplacementPolicy>>();
+  }
+  else
+  {
+    return std::make_unique<MoveEvent<ConstrainedDisplacementPolicy>>();
+  }
 }
 }
 }

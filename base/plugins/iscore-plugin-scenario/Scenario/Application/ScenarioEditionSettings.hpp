@@ -10,6 +10,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT EditionSettings final : public QObject
   Q_OBJECT
   Q_PROPERTY(ExpandMode expandMode READ expandMode WRITE setExpandMode NOTIFY
                  expandModeChanged)
+  Q_PROPERTY(LockMode lockMode READ lockMode WRITE setLockMode NOTIFY lockModeChanged)
   Q_PROPERTY(Scenario::Tool tool READ tool WRITE setTool NOTIFY toolChanged)
   Q_PROPERTY(
       bool sequence READ sequence WRITE setSequence NOTIFY sequenceChanged)
@@ -32,12 +33,20 @@ public:
   void setDefault();
   void restoreTool();
 
+  LockMode lockMode() const;
+
+public slots:
+  void setLockMode(LockMode lockMode);
+
 signals:
   void expandModeChanged(ExpandMode expandMode);
   void toolChanged(Scenario::Tool tool);
   void sequenceChanged(bool sequence);
 
+  void lockModeChanged(LockMode lockMode);
+
 private:
   Scenario::Tool m_previousTool{Scenario::Tool::Select};
+  LockMode m_lockMode;
 };
 }

@@ -22,7 +22,8 @@ public:
       const Id<EventModel>& eventId,
       const TimeVal& newDate,
       double y,
-      ExpandMode mode)
+      ExpandMode mode,
+      LockMode lm)
       = 0;
 
   virtual const Path<Scenario::ProcessModel>& path() const = 0;
