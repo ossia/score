@@ -2,7 +2,7 @@
 #include <QFile>
 #include <QAudioDecoder>
 #include <array>
-#include <Media/AudioArray.hpp>
+#include <Media/AudioDecoder.hpp>
 #include <iscore_plugin_media_export.h>
 namespace Media
 {
@@ -19,8 +19,12 @@ struct ISCORE_PLUGIN_MEDIA_EXPORT MediaFileHandle : public QObject
         QString name() const
         { return m_file; }
 
+        const AudioDecoder& decoder() const
+        {
+          return m_decoder;
+        }
         const AudioArray& data() const
-        { return m_array; }
+        { return m_decoder.data; }
 
         float** audioData() const;
 
@@ -40,8 +44,8 @@ struct ISCORE_PLUGIN_MEDIA_EXPORT MediaFileHandle : public QObject
         void mediaChanged();
     private:
         QString m_file;
-        AudioArray m_array;
-        std::array<float*, 2> m_data;
+        AudioDecoder m_decoder;
+        std::vector<float*> m_data;
         int m_sampleRate;
 };
 }

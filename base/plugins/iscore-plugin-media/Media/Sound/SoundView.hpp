@@ -5,54 +5,102 @@
 #include <Media/MediaFileHandle.hpp>
 #include <Process/ZoomHelper.hpp>
 
+Q_DECLARE_METATYPE(QList<QPainterPath>)
 namespace Media
 {
 namespace Sound
 {
+class LayerView;
+struct WaveformComputer : public QObject
+{
+    Q_OBJECT
+  public:
+    enum action {KEEP_CUR = 0, USE_PREV, USE_NEXT, RECOMPUTE_ALL};
+    Q_ENUM(action)
+
+    LayerView& m_layer;
+    WaveformComputer(LayerView& layer);
+    std::atomic_bool dirty{};
+
+    ~WaveformComputer()
+    {
+      m_drawThread.quit();
+    }
+    void stop() { m_drawThread.quit(); m_drawThread.wait(); }
+
+  signals:
+    void recompute(const MediaFileHandle*, double);
+    void ready(QList<QPainterPath>, QPainterPath, double z);
+
+  private slots:
+    void on_recompute(const MediaFileHandle* data, double ratio);
+
+  private:
+    // Returns what to do depending on current density and stored density
+    action compareDensity(const double density);
+
+    // Computes a data set for the given ZoomRatio
+    void computeDataSet(
+        const MediaFileHandle& m_data,
+        ZoomRatio ratio,
+        double* densityptr,
+        std::vector<std::vector<float>>& dataset);
+
+
+    void drawWaveForms(const MediaFileHandle& data, ZoomRatio ratio);
+    ZoomRatio m_zoom{};
+
+    double m_prevdensity = -1;
+    double m_density = -1;
+    double m_nextdensity = -1;
+
+    std::vector<std::vector<float> > m_prevdata;
+    std::vector<std::vector<float> > m_curdata;
+    std::vector<std::vector<float> > m_nextdata;
+
+    QThread m_drawThread;
+
+};
+
 class LayerView final : public Process::LayerView
 {
-        Q_OBJECT
-    public:
-        explicit LayerView(QGraphicsItem* parent);
+    Q_OBJECT
 
-        void setData(const MediaFileHandle& data);
-        void recompute(const TimeVal& dur, ZoomRatio ratio);
-    signals:
-        void pressed();
-        void askContextMenu(QPoint, QPointF);
-    private:
+  public:
+    explicit LayerView(QGraphicsItem* parent);
+    ~LayerView();
 
-        void contextMenuEvent(
-            QGraphicsSceneContextMenuEvent* event) override;
-        void paint_impl(QPainter*) const override;
-        void mousePressEvent(QGraphicsSceneMouseEvent*) override;
+    void setData(const MediaFileHandle& data);
+    void recompute(ZoomRatio ratio);
 
-        // Returns what to do depending on current density and stored density
-        long compareDensity(const double);
+  signals:
+    void pressed();
+    void askContextMenu(QPoint, QPointF);
 
-        // Computes a data set for the given ZoomRatio
-        void computeDataSet(ZoomRatio, double* ptr, std::vector<std::vector<float>>& dataset);
+  private:
+    void contextMenuEvent(
+        QGraphicsSceneContextMenuEvent* event) override;
+    void paint_impl(QPainter*) const override;
+    void mousePressEvent(QGraphicsSceneMouseEvent*) override;
 
-        void drawWaveForms(ZoomRatio);
-        void scrollValueChanged(int);
+    void scrollValueChanged(int);
 
-        AudioArray m_data{};
-        QList<QPainterPath> m_paths;
-        QPainterPath m_channels{};
-        int m_sampleRate;
+    void on_finishedDecoding();
+    void on_newData();
 
-        double m_prevdensity = -1;
-        double m_density = -1;
-        double m_nextdensity = -1;
+    QPointer<const MediaFileHandle> m_data;
+    QList<QPainterPath> m_paths;
+    QPainterPath m_channels{};
+    int m_numChan{};
+    int m_sampleRate{};
 
-        ZoomRatio m_zoom;
 
-        std::vector<std::vector<float> > m_prevdata;
-        std::vector<std::vector<float> > m_curdata;
-        std::vector<std::vector<float> > m_nextdata;
+    ZoomRatio m_pathZoom{};
+    ZoomRatio m_zoom{};
+    void printAction(long);
 
-        enum {KEEP_CUR = 0, USE_PREV, USE_NEXT, RECOMPUTE_ALL};
-        void printAction(long);
+    WaveformComputer* m_cpt{};
 };
+
 }
 }

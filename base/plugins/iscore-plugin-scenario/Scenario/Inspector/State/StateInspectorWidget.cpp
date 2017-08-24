@@ -56,15 +56,17 @@ public:
   MessageItemModel& source() const { return static_cast<MessageItemModel&>(*sourceModel()); }
   QModelIndex index(int row, int column, const QModelIndex& parent) const override
   {
-    if (row >= (int)rowCount({}) || row < 0)
-      return {};
+    if(parent == QModelIndex{})
+    {
+      if (row >= (int)rowCount({}) || row < 0)
+        return {};
 
-    if (column >= 2 || column < 0)
-      return {};
+      if (column >= 2 || column < 0)
+        return {};
 
-    if(auto obj = getNthChild(source().rootNode(), row))
-      return createIndex(row, column, obj);
-
+      if(auto obj = getNthChild(source().rootNode(), row))
+        return createIndex(row, column, obj);
+    }
     return {};
   }
 
@@ -101,6 +103,7 @@ public:
   {
     if(parent == QModelIndex())
     {
+      qDebug() << countNodes(source().rootNode());
       return countNodes(source().rootNode());
     }
     return 0;
@@ -111,29 +114,37 @@ public:
   }
   QModelIndex mapToSource(const QModelIndex& proxyIndex) const override
   {
+    qDebug("trying to map to source");
     auto idx = proxyIndex.internalPointer();
     if(!idx)
       return {};
+    qDebug("1");
 
     auto ptr = static_cast<Process::MessageNode*>(idx);
     auto parent = ptr->parent();
     if(!parent)
       return {};
+
+    qDebug() << "index" << parent->indexOfChild(ptr);;
 
     return createIndex(parent->indexOfChild(ptr), proxyIndex.column(), ptr);
   }
   QModelIndex mapFromSource(const QModelIndex& sourceIndex) const override
   {
+    qDebug("trying to map from source");
     auto idx = sourceIndex.internalPointer();
     if(!idx)
       return {};
 
+    qDebug("1");
     auto ptr = static_cast<Process::MessageNode*>(idx);
     auto parent = ptr->parent();
     if(!parent)
       return {};
 
+    qDebug("2");
     auto row = getChildIndex(source().rootNode(), ptr);
+    qDebug() << "row: " << row;
     return createIndex(row, sourceIndex.column(), idx);
   }
 

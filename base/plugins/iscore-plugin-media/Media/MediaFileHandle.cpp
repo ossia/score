@@ -44,23 +44,17 @@ void MediaFileHandle::load(const QString &filename)
   m_file = filename;
   if(isAudioFile(QFile(m_file)))
   {
-    AudioDecoder decoder;
-    decoder.decode(m_file);
+    m_decoder.decode(m_file);
 
-    m_array = std::move(decoder.data);
-    m_sampleRate = decoder.sampleRate;
-    if(m_sampleRate < 100)
-      m_sampleRate = 44100;
+    qDebug() << "Decode started";
 
-    if(m_array.size() == 2)
-      if(m_array[1].empty())
-        m_array.resize(1);
+    m_sampleRate = 44100; // for now everything is reencoded
 
-    m_data[0] = m_array[0].data();
-    if(m_array.size() == 2)
-      m_data[1] = m_array[1].data();
+    m_data.resize(m_decoder.data.size());
+    for(int i = 0; i < m_decoder.data.size(); i++)
+      m_data[i] = m_decoder.data[i].data();
+
     emit mediaChanged();
-
   }
 }
 
@@ -76,12 +70,12 @@ bool MediaFileHandle::isAudioFile(const QFile& file)
 
 int64_t MediaFileHandle::samples() const
 {
-    return channels() > 0 ? m_array[0].size() : 0;
+    return channels() > 0 ? m_decoder.data[0].size() : 0;
 }
 
 int64_t MediaFileHandle::channels() const
 {
-    return m_array.size();
+    return m_decoder.data.size();
 }
 
 }
