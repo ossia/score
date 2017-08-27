@@ -116,7 +116,7 @@ struct MessagePairs
             continue;
 
           // We can add this
-          tupleMessages.emplace_back(message, *it);
+          listMessages.emplace_back(message, *it);
         }
       }
     }
@@ -125,7 +125,7 @@ struct MessagePairs
   using messages_pairs
       = std::vector<std::pair<State::Message, State::Message>>;
   messages_pairs numericMessages;
-  messages_pairs tupleMessages;
+  messages_pairs listMessages;
 };
 
 void InterpolateStates(
@@ -157,7 +157,7 @@ void InterpolateStates(
     MessagePairs pairs{constraint, *scenar};
 
     int total_procs
-        = pairs.numericMessages.size() + pairs.tupleMessages.size();
+        = pairs.numericMessages.size() + pairs.listMessages.size();
     if (total_procs == 0)
       continue;
 
@@ -193,8 +193,8 @@ void InterpolateStates(
       cur_proc++;
     }
 
-    // Generate interpolations between tuples
-    for (const auto& elt : pairs.tupleMessages)
+    // Generate interpolations between lists
+    for (const auto& elt : pairs.listMessages)
     {
       macro->addCommand(new CreateInterpolationFromStates{
           constraint, macro->slotsToUse, process_ids[cur_proc],

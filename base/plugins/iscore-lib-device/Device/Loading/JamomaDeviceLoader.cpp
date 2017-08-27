@@ -47,7 +47,7 @@ static ossia::value stringToVal(const QString& str, const QString& type)
   }
   else if (type == "array")
   {
-    val = State::tuple_t{};
+    val = State::list_t{};
     // TODO
     ok = true;
   }
@@ -305,7 +305,7 @@ static ossia::value fromJamomaTextualType(const QString& str)
     {"integer", ossia::value(0)},
     {"decimal", ossia::value(0.)},
     {"filepath", ossia::value(std::string(""))},
-    {"decimalArray", ossia::value(State::tuple_t{})},
+    {"decimalArray", ossia::value(State::list_t{})},
     {"string", ossia::value(std::string(""))}
   };
   auto it = value_map.find(str);
@@ -343,7 +343,7 @@ static ossia::domain fromJamomaJsonDomain(
           return ossia::make_domain(dom[0].toInt(), dom[1].toInt());
           break;
         case ossia::val_type::FLOAT:
-        case ossia::val_type::TUPLE:
+        case ossia::val_type::LIST:
         case ossia::val_type::VEC2F:
         case ossia::val_type::VEC3F:
         case ossia::val_type::VEC4F:
@@ -394,19 +394,19 @@ static ossia::value fromJamomaJsonValue(
       return ossia::value{char{}};
     }
 
-    case ossia::val_type::TUPLE:
+    case ossia::val_type::LIST:
     {
-      // Tuples are always tuples of numbers in this case.
+      // Lists are always lists of numbers in this case.
       auto arr = val.toString().split(' ');
-      State::tuple_t tuple;
-      tuple.reserve(arr.size());
+      State::list_t list;
+      list.reserve(arr.size());
 
       for(const auto& val : arr)
       {
-        tuple.push_back(val.toDouble());
+        list.push_back(val.toDouble());
       }
 
-      return ossia::value{std::move(tuple)};
+      return ossia::value{std::move(list)};
     }
     case ossia::val_type::VEC2F:
     case ossia::val_type::VEC3F:

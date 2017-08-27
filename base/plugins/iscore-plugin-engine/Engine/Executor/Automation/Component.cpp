@@ -139,7 +139,7 @@ Component::on_curveChanged(
       return on_curveChanged_impl<int>(d);
     case ossia::val_type::FLOAT:
       return on_curveChanged_impl<float>(d);
-    case ossia::val_type::TUPLE:
+    case ossia::val_type::LIST:
     case ossia::val_type::VEC2F:
     case ossia::val_type::VEC3F:
     case ossia::val_type::VEC4F:

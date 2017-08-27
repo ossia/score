@@ -209,7 +209,7 @@ public:
   return_type operator()(const State::vec2f&) const { return ossia::val_type::VEC2F; }
   return_type operator()(const State::vec3f&) const { return ossia::val_type::VEC3F; }
   return_type operator()(const State::vec4f&) const { return ossia::val_type::VEC4F; }
-  return_type operator()(const State::tuple_t&) const { return ossia::val_type::TUPLE; }
+  return_type operator()(const State::list_t&) const { return ossia::val_type::LIST; }
 };
 
 void updateOSSIAAddress(
@@ -289,12 +289,12 @@ void updateOSSIAValue(const ossia::value& iscore_data, ossia::value& val)
     }
     void operator()(std::vector<ossia::value>& vec) const
     {
-      const State::tuple_t& tuple = *data.target<State::tuple_t>();
-      ISCORE_ASSERT(tuple.size() == vec.size());
+      const State::list_t& list = *data.target<State::list_t>();
+      ISCORE_ASSERT(list.size() == vec.size());
       const int n = vec.size();
       for (int i = 0; i < n; i++)
       {
-        updateOSSIAValue(tuple[i], vec[i]);
+        updateOSSIAValue(list[i], vec[i]);
       }
     }
   } visitor{iscore_data};

@@ -34,7 +34,7 @@ public:
   iscore::hash_map<State::Address, std::array<RecordData, 2>> vec2_records;
   iscore::hash_map<State::Address, std::array<RecordData, 3>> vec3_records;
   iscore::hash_map<State::Address, std::array<RecordData, 4>> vec4_records;
-  iscore::hash_map<State::Address, std::vector<RecordData>> tuple_records;
+  iscore::hash_map<State::Address, std::vector<RecordData>> list_records;
 
 signals:
   void firstMessageReceived();

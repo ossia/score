@@ -120,8 +120,8 @@
 //        case ossia::val_type::Vec2f:
 //        case ossia::val_type::Vec3f:
 //        case ossia::val_type::Vec4f:
-//        case ossia::val_type::Tuple:
-//            ISCORE_TODO; // TODO Tuples
+//        case ossia::val_type::List:
+//            ISCORE_TODO; // TODO Lists
 //            break;
 //        default:
 //            ISCORE_ABORT;

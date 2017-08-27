@@ -145,7 +145,7 @@ std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged_impl(
       return on_curveChanged_impl2<X_T, int>();
       break;
     case ossia::val_type::FLOAT:
-    case ossia::val_type::TUPLE:
+    case ossia::val_type::LIST:
     case ossia::val_type::VEC2F:
     case ossia::val_type::VEC3F:
     case ossia::val_type::VEC4F:
@@ -169,7 +169,7 @@ std::shared_ptr<ossia::curve_abstract> Component::rebuildCurve(
     case ossia::val_type::INT:
       return on_curveChanged_impl<int>(target);
     case ossia::val_type::FLOAT:
-    case ossia::val_type::TUPLE:
+    case ossia::val_type::LIST:
     case ossia::val_type::VEC2F:
     case ossia::val_type::VEC3F:
     case ossia::val_type::VEC4F:

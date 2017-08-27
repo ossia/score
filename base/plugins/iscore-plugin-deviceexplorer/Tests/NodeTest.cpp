@@ -223,7 +223,7 @@ private slots:
         ossia::value(float{}),
         ossia::value(char{}),
         ossia::value(std::string{}),
-        ossia::value(State::tuple_t{}),
+        ossia::value(State::list_t{}),
         ossia::value(std::array<float,2>{}),
         ossia::value(std::array<float,3>{}),
         ossia::value(std::array<float,4>{})

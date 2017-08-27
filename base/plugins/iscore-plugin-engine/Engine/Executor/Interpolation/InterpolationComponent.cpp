@@ -170,7 +170,7 @@ ossia::behavior Component::on_curveChanged(
       return on_curveChanged_impl<float>(
           std::min(start_v, end_v), std::max(start_v, end_v), start_v, end_v, d);
     }
-    case ossia::val_type::TUPLE:
+    case ossia::val_type::LIST:
     {
       // First check the number of curves.
       const auto& start_v = ossia::convert<std::vector<ossia::value>>(start);
