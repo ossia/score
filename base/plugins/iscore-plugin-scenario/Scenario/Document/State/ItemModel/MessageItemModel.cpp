@@ -92,7 +92,7 @@ valueColumnData(const MessageItemModel::node_type& node, int role)
       auto& val = *opt_val;
       if (ossia::is_array(val))
       {
-        // TODO a nice editor for tuples.
+        // TODO a nice editor for lists.
         return State::convert::toPrettyString(val);
       }
       else

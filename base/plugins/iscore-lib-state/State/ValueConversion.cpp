@@ -28,7 +28,7 @@ namespace convert
 const std::array<const QString, 11> ValuePrettyTypes{
     {QObject::tr("Float"), QObject::tr("Int"), QObject::tr("Vec2f"),
      QObject::tr("Vec3f"), QObject::tr("Vec4f"), QObject::tr("Impulse"),
-     QObject::tr("Bool"), QObject::tr("String"), QObject::tr("Tuple"),
+     QObject::tr("Bool"), QObject::tr("String"), QObject::tr("List"),
      QObject::tr("Char"), QObject::tr("Container")}};
 
 const std::array<std::pair<QString, ossia::val_type>, 10> ValuePrettyTypesPairArray{
@@ -41,7 +41,7 @@ const std::array<std::pair<QString, ossia::val_type>, 10> ValuePrettyTypesPairAr
      std::make_pair(QObject::tr("Vec2f"), ossia::val_type::VEC2F),
      std::make_pair(QObject::tr("Vec3f"), ossia::val_type::VEC3F),
      std::make_pair(QObject::tr("Vec4f"), ossia::val_type::VEC4F),
-     std::make_pair(QObject::tr("Tuple"), ossia::val_type::TUPLE)}};
+     std::make_pair(QObject::tr("List"), ossia::val_type::LIST)}};
 
 template <>
 QVariant value(const ossia::value& val)
@@ -99,7 +99,7 @@ QVariant value(const ossia::value& val)
     {
       return QVector4D{t[0], t[1], t[2], t[3]};
     }
-    return_type operator()(const tuple_t& t) const
+    return_type operator()(const list_t& t) const
     {
       QVariantList arr;
       arr.reserve(t.size());
@@ -181,7 +181,7 @@ QJsonValue value(const ossia::value& val)
       return QJsonArray{t[0], t[1], t[2], t[3]};
     }
 
-    return_type operator()(const tuple_t& t) const
+    return_type operator()(const list_t& t) const
     {
       QJsonArray arr;
       auto& strings = iscore::StringConstant();
@@ -255,9 +255,9 @@ QString textualType(const ossia::value& val)
     {
       return QStringLiteral("Vec4f");
     }
-    return_type operator()(const tuple_t& t) const
+    return_type operator()(const list_t& t) const
     {
-      return QStringLiteral("Tuple");
+      return QStringLiteral("List");
     }
   };
 
@@ -274,7 +274,7 @@ const QHash<QString, ossia::val_type> ValTypesMap{
     {QStringLiteral("Vec2f"), ossia::val_type::VEC2F},
     {QStringLiteral("Vec3f"), ossia::val_type::VEC3F},
     {QStringLiteral("Vec4f"), ossia::val_type::VEC4F},
-    {QStringLiteral("Tuple"), ossia::val_type::TUPLE},
+    {QStringLiteral("List"), ossia::val_type::LIST},
     {QStringLiteral("None"), ossia::val_type::NONE}};
 
 static ossia::val_type which(const QString& val)
@@ -298,15 +298,15 @@ static ossia::value fromQJsonValueImpl(const QJsonValue& val)
     case QJsonValue::Type::Array:
     {
       const auto& arr = val.toArray();
-      State::tuple_t tuple;
-      tuple.reserve(arr.size());
+      State::list_t list;
+      list.reserve(arr.size());
 
       for (const auto& v : arr)
       {
-        tuple.push_back(fromQJsonValueImpl(v));
+        list.push_back(fromQJsonValueImpl(v));
       }
 
-      return tuple;
+      return list;
     }
     case QJsonValue::Type::Null:
     case QJsonValue::Type::Object:
@@ -389,11 +389,11 @@ fromQJsonValueImpl(const QJsonValue& val, ossia::val_type type)
 
       return ossia::value{arr};
     }
-    case ossia::val_type::TUPLE:
+    case ossia::val_type::LIST:
     {
       auto arr = val.toArray();
-      State::tuple_t tuple;
-      tuple.reserve(arr.size());
+      State::list_t list;
+      list.reserve(arr.size());
 
       auto& strings = iscore::StringConstant();
 
@@ -403,12 +403,12 @@ fromQJsonValueImpl(const QJsonValue& val, ossia::val_type type)
         auto val_it = obj.find(strings.Value);
         if (val_it != obj.end() && type_it != obj.end())
         {
-          tuple.push_back(
+          list.push_back(
               fromQJsonValueImpl(*val_it, which((*type_it).toString())));
         }
       });
 
-      return ossia::value{tuple};
+      return ossia::value{list};
     }
     default:
       return ossia::value{};
@@ -502,7 +502,7 @@ int value(const ossia::value& val)
     {
       return 0;
     }
-    return_type operator()(const tuple_t& v) const
+    return_type operator()(const list_t& v) const
     {
       return 0;
     }
@@ -566,7 +566,7 @@ float value(const ossia::value& val)
     {
       return 0;
     }
-    return_type operator()(const tuple_t& v) const
+    return_type operator()(const list_t& v) const
     {
       return {};
     }
@@ -642,7 +642,7 @@ bool value(const ossia::value& val)
     {
       return false;
     }
-    return_type operator()(const tuple_t& v) const
+    return_type operator()(const list_t& v) const
     {
       return false;
     }
@@ -706,7 +706,7 @@ QChar value(const ossia::value& val)
     {
       return '-';
     }
-    return_type operator()(const tuple_t&) const
+    return_type operator()(const list_t&) const
     {
       return '-';
     }
@@ -771,7 +771,7 @@ QString value(const ossia::value& val)
     {
       return {};
     }
-    return_type operator()(const State::tuple_t& t) const
+    return_type operator()(const State::list_t& t) const
     {
       return {};
     }
@@ -789,7 +789,7 @@ std::array<float, N> string_to_vec(const std::string& s, const Vis& visitor)
   {
     const auto& val = *v;
 
-    if(auto t = val.target<tuple_t>())
+    if(auto t = val.target<list_t>())
       return visitor(*t);
   }
 
@@ -846,12 +846,12 @@ vec2f value(const ossia::value& val)
     {
       return {{v[0], v[1]}};
     }
-    return_type operator()(const State::tuple_t& t) const
+    return_type operator()(const State::list_t& t) const
     {
-      const int n = t.size();
-      const int n_2 = std::tuple_size<return_type>::value;
+      const std::size_t n = t.size();
+      const std::size_t n_2 = std::tuple_size<return_type>::value;
       return_type v{};
-      for (int i = 0; i < std::min(n, n_2); i++)
+      for (std::size_t i = 0; i < std::min(n, n_2); i++)
       {
         v[i] = value<float>(t[i]);
       }
@@ -909,12 +909,12 @@ vec3f value(const ossia::value& val)
     {
       return {{v[0], v[1], v[2]}};
     }
-    return_type operator()(const State::tuple_t& t) const
+    return_type operator()(const State::list_t& t) const
     {
-      const int n = t.size();
-      const int n_2 = std::tuple_size<return_type>::value;
+      const std::size_t n = t.size();
+      const std::size_t n_2 = std::tuple_size<return_type>::value;
       return_type v{};
-      for (int i = 0; i < std::min(n, n_2); i++)
+      for (std::size_t i = 0; i < std::min(n, n_2); i++)
       {
         v[i] = value<float>(t[i]);
       }
@@ -971,12 +971,12 @@ vec4f value(const ossia::value& val)
     {
       return v;
     }
-    return_type operator()(const State::tuple_t& t) const
+    return_type operator()(const State::list_t& t) const
     {
-      const int n = t.size();
-      const int n_2 = std::tuple_size<return_type>::value;
+      const std::size_t n = t.size();
+      const std::size_t n_2 = std::tuple_size<return_type>::value;
       return_type v{};
-      for (int i = 0; i < std::min(n, n_2); i++)
+      for (std::size_t i = 0; i < std::min(n, n_2); i++)
       {
         v[i] = value<float>(t[i]);
       }
@@ -988,11 +988,11 @@ vec4f value(const ossia::value& val)
 }
 
 template <>
-tuple_t value(const ossia::value& val)
+list_t value(const ossia::value& val)
 {
   struct vis
   {
-    using return_type = tuple_t;
+    using return_type = list_t;
     return_type operator()() const
     {
       return {};
@@ -1019,7 +1019,7 @@ tuple_t value(const ossia::value& val)
 
       if (v)
       {
-        if(auto t = v->target<tuple_t>())
+        if(auto t = v->target<list_t>())
           return *t;
       }
 
@@ -1041,7 +1041,7 @@ tuple_t value(const ossia::value& val)
     {
       return {{v[0], v[1], v[2], v[3]}};
     }
-    return_type operator()(const State::tuple_t& t) const
+    return_type operator()(const State::list_t& t) const
     {
       return t;
     }
@@ -1156,7 +1156,7 @@ QString toPrettyString(const ossia::value& val)
       return s;
     }
 
-    QString operator()(const State::tuple_t& t) const
+    QString operator()(const State::list_t& t) const
     {
       QString s{"["};
 
@@ -1244,13 +1244,13 @@ static ossia::value fromQVariantImpl(const QVariant& val)
     case QMetaType::QVariantList:
     {
       auto list = val.value<QVariantList>();
-      tuple_t tuple_val;
-      tuple_val.reserve(list.size());
+      list_t list_val;
+      list_val.reserve(list.size());
 
       Foreach(list, [&](const auto& elt) {
-        tuple_val.push_back(fromQVariantImpl(elt));
+        list_val.push_back(fromQVariantImpl(elt));
       });
-      return tuple_val;
+      return list_val;
     }
     case QMetaType::QVector2D:
     {

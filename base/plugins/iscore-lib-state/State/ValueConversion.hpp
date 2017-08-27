@@ -46,7 +46,7 @@ ISCORE_LIB_STATE_EXPORT vec3f value(const ossia::value& val);
 template <>
 ISCORE_LIB_STATE_EXPORT vec4f value(const ossia::value& val);
 template <>
-ISCORE_LIB_STATE_EXPORT tuple_t value(const ossia::value& val);
+ISCORE_LIB_STATE_EXPORT list_t value(const ossia::value& val);
 
 ISCORE_LIB_STATE_EXPORT bool
 convert(const ossia::value& orig, ossia::value& toConvert);

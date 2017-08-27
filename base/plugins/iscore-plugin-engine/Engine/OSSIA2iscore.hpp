@@ -160,15 +160,15 @@ struct MatchingType<State::vec4f>
   }
 };
 template <>
-struct MatchingType<State::tuple_t>
+struct MatchingType<State::list_t>
 {
-  static constexpr const auto val = ossia::val_type::TUPLE;
+  static constexpr const auto val = ossia::val_type::LIST;
   using type = std::vector<ossia::value>;
-  static auto convert(const State::tuple_t& t)
+  static auto convert(const State::list_t& t)
   {
     return t;
   }
-  static auto convert(State::tuple_t&& t)
+  static auto convert(State::list_t&& t)
   {
     return std::move(t);
   }

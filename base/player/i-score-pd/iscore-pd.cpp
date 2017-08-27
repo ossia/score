@@ -33,7 +33,7 @@ static void iscore_find_device(t_iscore* x)
     auto parent = ossia::pd::find_parent(&x->obj, "ossia.device", 0, &level);
     if(parent)
     {
-        auto dev = ((ossia::pd::t_device*) parent)->x_device;
+        auto dev = ((ossia::pd::t_device*) parent)->m_device;
         if(dev)
         {
             x->p->registerDevice(*dev);

@@ -28,7 +28,6 @@ namespace Scenario
 {
 class StateModel;
 }
-
 template <typename T>
 class IdentifiedObject;
 template <typename T>
@@ -268,3 +267,4 @@ JSONObjectWriter::write(Scenario::ConstraintModel& constraint)
   if(cit != obj.end() && cit->isDouble())
     constraint.m_center = fromJsonValue<TimeVal>(*cit);
 }
+

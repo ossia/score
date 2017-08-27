@@ -9,7 +9,7 @@
 #include "Widgets/AddressNoneSettingsWidget.hpp"
 #include "Widgets/AddressNumericSettingsWidget.hpp"
 #include "Widgets/AddressStringSettingsWidget.hpp"
-#include "Widgets/AddressTupleSettingsWidget.hpp"
+#include "Widgets/AddressListSettingsWidget.hpp"
 #include <Device/Address/AddressSettings.hpp>
 
 #include <Explorer/Common/AddressSettings/Widgets/AddressVecSettingsWidget.hpp>
@@ -55,9 +55,9 @@ AddressSettingsFactory::AddressSettingsFactory()
       std::
           make_unique<AddressSettingsWidgetFactoryMethodT<AddressBoolSettingsWidget>>()));
   m_addressSettingsWidgetFactory.emplace(std::make_pair(
-      ossia::val_type::TUPLE,
+      ossia::val_type::LIST,
       std::
-          make_unique<AddressSettingsWidgetFactoryMethodT<AddressTupleSettingsWidget>>()));
+          make_unique<AddressSettingsWidgetFactoryMethodT<AddressListSettingsWidget>>()));
   m_addressSettingsWidgetFactory.emplace(std::make_pair(
       ossia::val_type::CHAR,
       std::

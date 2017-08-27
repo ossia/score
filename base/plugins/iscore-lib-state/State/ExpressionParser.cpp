@@ -44,11 +44,11 @@ AddressAccessor 	:= Address, '@', (('[', [:int:], ']')* || ('[', UnitQualifier,
 # Values
 char			:= '\'', [:ascii:] - '\'', '\'';
 str				:= '"', ([:ascii:] - '"')*, '"';
-tuple			:= '[', (value % ','), ']';
+list			:= '[', (value % ','), ']';
 bool			:= 'true' || 'false' ;
 int				:= [:int:];
 float			:= [:float:];
-variant			:= char || str || tuple || bool || int || float;
+variant			:= char || str || list || bool || int || float;
 
 Value 			:= variant;
 
@@ -249,15 +249,14 @@ struct Value_parser : qi::grammar<Iterator, ossia::value()>
     char_parser %= "'" >> (char_ - "'") >> "'";
     str_parser %= '"' >> qi::lexeme[*(char_ - '"')] >> '"';
 
-    tuple_parser
-        %= skip(boost::spirit::standard::space)["[" >> start % "," >> "]"];
+    list_parser %= skip(boost::spirit::standard::space)["[" >> start % "," >> "]"];
     start %= real_parser<float, boost::spirit::qi::strict_real_policies<float>>()
-           | int_ | bool_parser | char_parser | str_parser | tuple_parser;
+           | int_ | bool_parser | char_parser | str_parser | list_parser;
   }
 
   BoolParse_map bool_parser;
 
-  qi::rule<Iterator, State::tuple_t()> tuple_parser;
+  qi::rule<Iterator, State::list_t()> list_parser;
   qi::rule<Iterator, char()> char_parser;
   qi::rule<Iterator, std::string()> str_parser;
   qi::rule<Iterator, ossia::value()> start;

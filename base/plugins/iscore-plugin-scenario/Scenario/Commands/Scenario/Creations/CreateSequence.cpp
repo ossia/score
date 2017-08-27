@@ -112,7 +112,7 @@ CreateSequenceProcesses::CreateSequenceProcesses(
   std::vector<std::pair<State::Message, Device::FullAddressSettings>>
       matchingNumericMessages;
   std::vector<std::pair<State::Message, Device::FullAddressSettings>>
-      matchingTupleMessages;
+      matchingListMessages;
   // First we filter the messages
   for (auto& message : startMessages)
   {
@@ -139,14 +139,14 @@ CreateSequenceProcesses::CreateSequenceProcesses(
 
       if (addr_it != std::end(endAddresses))
       {
-        matchingTupleMessages.emplace_back(message, *addr_it);
+        matchingListMessages.emplace_back(message, *addr_it);
       }
     }
   }
 
   // Then, if there are correct messages we can actually do our interpolation.
   m_addedProcessCount
-      = matchingNumericMessages.size() + matchingTupleMessages.size();
+      = matchingNumericMessages.size() + matchingListMessages.size();
   if (m_addedProcessCount == 0)
     return;
 
@@ -176,7 +176,7 @@ CreateSequenceProcesses::CreateSequenceProcesses(
     cur_proc++;
   }
 
-  for (const auto& elt : matchingTupleMessages)
+  for (const auto& elt : matchingListMessages)
   {
     m_interpolations.addCommand(new CreateInterpolationFromStates{
         constraint, m_interpolations.slotsToUse,

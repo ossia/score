@@ -162,7 +162,7 @@ ossia::value value(const QJSValue& val)
     return val.toString().toStdString();
   else if (val.isArray())
   {
-    State::tuple_t arr;
+    State::list_t arr;
 
     QJSValueIterator it{val};
     while (it.hasNext())

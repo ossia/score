@@ -24,7 +24,7 @@ using impulse = ossia::impulse;
 using vec2f = ossia::vec2f;
 using vec3f = ossia::vec3f;
 using vec4f = ossia::vec4f;
-using tuple_t = std::vector<ossia::value>;
+using list_t = std::vector<ossia::value>;
 
 using Value = ossia::value;
 using OptionalValue = optional<ossia::value>;
