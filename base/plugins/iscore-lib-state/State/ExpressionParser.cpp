@@ -2,7 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Expression.hpp"
 #ifndef Q_MOC_RUN
-#define BOOST_SPIRIT_DEBUG
+//#define BOOST_SPIRIT_DEBUG
 // see https://svn.boost.org/trac/boost/ticket/11875
 #if defined(_GLIBCXX_DEBUG)
 #define BOOST_PHOENIX_USING_LIBCPP
