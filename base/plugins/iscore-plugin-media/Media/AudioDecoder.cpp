@@ -1,12 +1,7 @@
 #include "AudioDecoder.hpp"
+#include <eggs/variant.hpp>
 #include <QApplication>
 #include <QTimer>
-#include <eggs/variant.hpp>
-
-
-
-
-
 #include <QFile>
 #include <QFileInfo>
 #include <stdio.h>
@@ -505,22 +500,32 @@ std::size_t AudioDecoder::read_length(const QString& path)
 
 void AudioDecoder::decode(const QString &path)
 {
+  AudioInfo info;
   auto it = database().find(path);
-  if(it != database().end())
+  if(it == database().end())
   {
-    const AudioInfo& info = *it;
-    sampleRate = info.rate;
-    data.resize(info.channels);
-    for(auto& c : data)
+    try
     {
-      c.resize(info.max_arr_length);
+      if(auto res = probe(path))
+        info = *res;
+    }
+    catch (...)
+    {
+      qDebug("Cannot decode without info");
+      emit finishedDecoding();
+      return;
     }
   }
   else
   {
-    qDebug("Cannot decode without info");
-    emit finishedDecoding();
-    return;
+    info = *it;
+  }
+
+  sampleRate = info.rate;
+  data.resize(info.channels);
+  for(auto& c : data)
+  {
+    c.resize(info.max_arr_length);
   }
 
   if(data.size() == 0)
@@ -594,6 +599,7 @@ void AudioDecoder::decodeRemaining()
 }
 void AudioDecoder::on_startDecode(QString path)
 {
+  qDebug() << "DECODING START" << path;
   try {
   const std::size_t channels = data.size();
 
@@ -740,6 +746,7 @@ void AudioDecoder::on_startDecode(QString path)
   }
 
   emit finishedDecoding();
+  qDebug("DECODING OK");
   m_decodeThread.quit();
 
   return;
