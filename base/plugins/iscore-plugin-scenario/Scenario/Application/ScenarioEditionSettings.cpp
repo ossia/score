@@ -33,8 +33,10 @@ void Scenario::EditionSettings::setTool(Scenario::Tool tool)
     if (m_tool != Scenario::Tool::Playing)
       m_previousTool = m_tool;
 
-    if (m_tool != Scenario::Tool::Create)
+    if (m_tool != Scenario::Tool::Create) {
       setSequence(false);
+      setLockMode(LockMode::Free);
+    }
 
     m_tool = tool;
     emit toolChanged(tool);
@@ -64,13 +66,16 @@ void Scenario::EditionSettings::setDefault()
 {
   setTool(Scenario::Tool::Select);
   setSequence(false);
+  setLockMode(LockMode::Free);
 }
 
 void Scenario::EditionSettings::restoreTool()
 {
   setTool(Scenario::Tool{m_previousTool});
-  if (m_tool != Scenario::Tool::Create)
+  if (m_tool != Scenario::Tool::Create) {
     setSequence(false);
+    setLockMode(LockMode::Free);
+  }
 }
 
 LockMode Scenario::EditionSettings::lockMode() const
