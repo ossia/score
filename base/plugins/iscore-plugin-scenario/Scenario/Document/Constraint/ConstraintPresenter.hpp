@@ -78,6 +78,7 @@ public:
 
   double on_playPercentageChanged(double t);
 
+  virtual void selectedSlot(int) const;
 signals:
   void pressed(QPointF) const;
   void moved(QPointF) const;

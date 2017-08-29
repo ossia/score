@@ -53,7 +53,7 @@ void TemporalConstraintHeader::paint(
   {
     const auto rect = boundingRect();
     painter->fillRect(
-        rect, skin.ConstraintHeaderRackHidden.getColor());
+        rect, skin.ConstraintHeaderRackHidden.getBrush());
 
     // Fake timesync continuation
     painter->setPen(skin.ConstraintHeaderSeparator);

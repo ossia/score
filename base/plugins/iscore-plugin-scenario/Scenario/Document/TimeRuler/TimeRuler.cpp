@@ -88,7 +88,7 @@ void TimeRuler::paint(
     painter.setPen(style.TimeRulerLargePen);
     painter.drawLine(QPointF{0., 0.}, QPointF{m_width, 0.});
     painter.setPen(style.TimeRulerSmallPen);
-    painter.setBrush(style.TimeRuler.getColor());
+    painter.setBrush(style.TimeRuler.getBrush());
     painter.drawPath(m_path);
 
     painter.setFont(iscore::Skin::instance().MonoFont);

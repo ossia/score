@@ -32,6 +32,10 @@ public:
       m_context.context.focusDispatcher.focus(this);
     });
 
+    connect(
+          m_view, &View::askContextMenu, this,
+          &Presenter::contextMenuRequested);
+
     m_view->setWidget(new Widget_T{
         static_cast<const Process_T&>(m_layer), ctx, nullptr});
   }

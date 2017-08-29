@@ -125,9 +125,9 @@ ScenarioDocumentView::ScenarioDocumentView(
   auto& skin = iscore::Skin::instance();
   con(skin, &iscore::Skin::changed, this, [&]() {
     auto& skin = ScenarioStyle::instance();
-    m_timeRulersView.setBackgroundBrush(skin.TimeRulerBackground.getColor());
-    m_minimapView.setBackgroundBrush(skin.TimeRulerBackground.getColor());
-    m_view.setBackgroundBrush(skin.Background.getColor());
+    m_timeRulersView.setBackgroundBrush(skin.TimeRulerBackground.getBrush());
+    m_minimapView.setBackgroundBrush(skin.TimeRulerBackground.getBrush());
+    m_view.setBackgroundBrush(skin.Background.getBrush());
   });
 
   m_widget->setObjectName("ScenarioViewer");

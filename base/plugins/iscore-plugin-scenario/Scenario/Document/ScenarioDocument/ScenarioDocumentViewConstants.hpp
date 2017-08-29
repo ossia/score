@@ -15,6 +15,7 @@ public:
     LeftBrace,
     RightBrace,
     SlotHandle,
+    SlotHeader,
     SlotOverlay,
     ConstraintHeader,
     TimeSync,

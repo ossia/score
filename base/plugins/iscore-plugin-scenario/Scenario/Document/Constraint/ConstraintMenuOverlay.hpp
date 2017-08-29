@@ -37,8 +37,8 @@ public:
     painter->setRenderHint(QPainter::Antialiasing, true);
     painter->drawChord(QRectF{0., 0., 20., 20.}, 5760 / 2, -5760 / 2);
 
-    painter->setBrush(skin.EventPending.getColor());
-    const auto bright = skin.EventPending.getColor().color();
+    painter->setBrush(skin.EventPending.getBrush());
+    const auto bright = skin.EventPending.getBrush().color();
     QPen p{bright.darker(300)};
     p.setWidth(2);
     painter->setPen(p);

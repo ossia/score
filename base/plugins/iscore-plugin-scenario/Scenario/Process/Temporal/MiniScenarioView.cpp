@@ -30,7 +30,7 @@ void MiniScenarioView::paint_impl(QPainter* p) const
   auto& pen = skin.MiniScenarioPen;
   for(const Scenario::ConstraintModel& c : m_scenario.constraints)
   {
-    auto col = c.metadata().getColor().getColor().color();
+    auto col = c.metadata().getColor().getBrush().color();
     col.setAlphaF(1.0);
     pen.setColor(col);
     p->setPen(pen);

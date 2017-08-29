@@ -13,6 +13,7 @@ class ProcessModel;
 namespace Scenario
 {
 class SlotHandle;
+class SlotHeader;
 class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintPresenter final
     : public ConstraintPresenter
 {
@@ -40,6 +41,7 @@ public:
   int indexOfSlot(const Process::LayerPresenter&);
   void on_zoomRatioChanged(ZoomRatio val) override;
 
+  void selectedSlot(int) const override;
 signals:
   void constraintHoverEnter();
   void constraintHoverLeave();
@@ -63,6 +65,7 @@ private:
 
   struct SlotPresenter
   {
+    SlotHeader* header{};
     SlotHandle* handle{};
     std::vector<LayerData> processes;
   };

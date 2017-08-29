@@ -54,11 +54,11 @@ void TimeSyncView::paint(
 
   if (isSelected())
   {
-    skin.TimenodePen.setBrush(skin.TimenodeSelected.getColor());
+    skin.TimenodePen.setBrush(skin.TimenodeSelected.getBrush());
   }
   else
   {
-    skin.TimenodePen.setBrush(m_color.getColor());
+    skin.TimenodePen.setBrush(m_color.getBrush());
   }
 
   painter->setPen(skin.TimenodePen);

@@ -37,7 +37,7 @@ void SimpleTextItem::paint(
   if(m_line)
   {
     auto& skin = ScenarioStyle::instance();
-    skin.TextItemPen.setBrush(m_color.getColor());
+    skin.TextItemPen.setBrush(m_color.getBrush());
     painter->setPen(skin.TextItemPen);
     painter->setBrush(skin.NoBrush);
     painter->drawGlyphRun({0, 0}, *m_line);

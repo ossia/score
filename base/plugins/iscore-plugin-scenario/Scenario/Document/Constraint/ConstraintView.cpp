@@ -190,23 +190,23 @@ const QBrush& ConstraintView::constraintColor(const ScenarioStyle& skin) const
   // TODO make a switch instead
   if (isSelected())
   {
-    return skin.ConstraintSelected.getColor();
+    return skin.ConstraintSelected.getBrush();
   }
   else if (warning())
   {
-    return skin.ConstraintWarning.getColor();
+    return skin.ConstraintWarning.getBrush();
   }
   else if (!isValid() || m_state == ConstraintExecutionState::Disabled)
   {
-    return skin.ConstraintInvalid.getColor();
+    return skin.ConstraintInvalid.getBrush();
   }
   else if (m_state == ConstraintExecutionState::Muted)
   {
-    return skin.ConstraintMuted.getColor();
+    return skin.ConstraintMuted.getBrush();
   }
   else
   {
-    return skin.ConstraintBase.getColor();
+    return skin.ConstraintBase.getBrush();
   }
 }
 

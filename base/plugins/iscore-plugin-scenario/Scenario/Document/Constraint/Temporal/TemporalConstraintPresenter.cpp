@@ -135,8 +135,10 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
   });
   con(m_model, &ConstraintModel::slotAdded,
       this, [=] (const SlotId& s) {
-    if(s.smallView())
+    if(s.smallView()) {
+      qDebug() << "slotAdded";
       createSlot(s.index, m_model.smallView()[s.index]);
+    }
   });
 
   con(m_model, &ConstraintModel::slotRemoved,
@@ -214,10 +216,10 @@ void TemporalConstraintPresenter::on_requestOverlayMenu(QPointF)
 
 double TemporalConstraintPresenter::rackHeight() const
 {
-  qreal height = 0;
+  qreal height = m_model.smallView().size() * (SlotHandle::handleHeight() + SlotHeader::headerHeight());
   for(const auto& slot : m_model.smallView())
   {
-    height += slot.height + SlotHandle::handleHeight();
+    height += slot.height;
   }
   return height;
 }
@@ -272,6 +274,7 @@ void TemporalConstraintPresenter::createSlot(int pos, const Slot& slt)
   if(m_model.smallViewVisible())
   {
     SlotPresenter p;
+    p.header = new SlotHeader{*this, pos, m_view};
     if(m_handles)
       p.handle = new SlotHandle{*this, pos, m_view};
     // p.view = new SlotView{};
@@ -384,6 +387,7 @@ void TemporalConstraintPresenter::on_slotRemoved(int pos)
         deleteGraphicsItem(elt.view);
     }
 
+    deleteGraphicsItem(slot.header);
     deleteGraphicsItem(slot.handle);
     //deleteGraphicsItem(slot.view);
 
@@ -419,17 +423,23 @@ void TemporalConstraintPresenter::updatePositions()
     const SlotPresenter& slot = m_slots[i];
     const Slot& model = m_model.smallView()[i];
 
+    if(slot.header)
+    {
+      slot.header->setPos(1, currentSlotY);
+      slot.header->setSlotIndex(i);
+    }
+    currentSlotY += SlotHeader::headerHeight();
+
     for(const LayerData& proc : slot.processes)
     {
       proc.view->setPos(0, currentSlotY);
       proc.view->update();
     }
-
     currentSlotY += model.height;
 
     if(slot.handle)
     {
-      slot.handle->setPos(0, currentSlotY);
+      slot.handle->setPos(1, currentSlotY);
       slot.handle->setSlotIndex(i);
     }
     currentSlotY += SlotHandle::handleHeight();
@@ -490,6 +500,7 @@ void TemporalConstraintPresenter::on_rackChanged()
         deleteGraphicsItem(elt.view);
     }
 
+    deleteGraphicsItem(slot.header);
     deleteGraphicsItem(slot.handle);
   }
 
@@ -534,6 +545,25 @@ void TemporalConstraintPresenter::on_zoomRatioChanged(ZoomRatio val)
   updateProcessesShape();
 }
 
+void TemporalConstraintPresenter::selectedSlot(int i) const
+{
+  iscore::SelectionDispatcher disp{m_context.selectionStack};
+  ISCORE_ASSERT(i < m_slots.size());
+  auto& slot = m_slots[i];
+  if(slot.processes.empty())
+  {
+    disp.setAndCommit({&m_model});
+  }
+  else
+  {
+    auto proc = m_model.getSmallViewSlot(i).frontProcess;
+    if(proc)
+    {
+      disp.setAndCommit({&m_model.processes.at(*proc)});
+    }
+  }
+}
+
 void TemporalConstraintPresenter::on_defaultDurationChanged(const TimeVal& val)
 {
   const auto w = val.toPixels(m_zoomRatio);
@@ -547,6 +577,7 @@ void TemporalConstraintPresenter::on_defaultDurationChanged(const TimeVal& val)
 
   for(const SlotPresenter& slot : m_slots)
   {
+    slot.header->setWidth(w);
     if(slot.handle)
       slot.handle->setWidth(w);
     for(const LayerData& proc : slot.processes)

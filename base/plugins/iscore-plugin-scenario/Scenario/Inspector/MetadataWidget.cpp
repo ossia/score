@@ -158,7 +158,7 @@ MetadataWidget::MetadataWidget(
         QSize(1.5 * m_colorIconSize, 1.5 * m_colorIconSize));
 
     m_colorButtonPixmap = QPixmap(m_colorIconSize, m_colorIconSize);
-    m_colorButtonPixmap.fill(metadata.getColor().getColor().color());
+    m_colorButtonPixmap.fill(metadata.getColor().getBrush().color());
     m_colorButton.setIcon(QIcon(m_colorButtonPixmap));
     m_colorButton.setIconSize(QSize(m_colorIconSize, m_colorIconSize));
   }
@@ -195,7 +195,7 @@ void MetadataWidget::updateAsked()
   m_comments.setText(m_metadata.getComment());
   m_meta.update(m_metadata.getExtendedMetadata());
 
-  m_colorButtonPixmap.fill(m_metadata.getColor().getColor().color());
+  m_colorButtonPixmap.fill(m_metadata.getColor().getBrush().color());
   m_colorButton.setIcon(QIcon(m_colorButtonPixmap));
 
   // m_currentColor = newColor;

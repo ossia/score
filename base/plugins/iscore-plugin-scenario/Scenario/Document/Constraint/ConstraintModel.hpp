@@ -126,6 +126,13 @@ public:
   double getSlotHeight(const SlotId& slot) const;
   void setSlotHeight(const SlotId& slot, double height);
 
+  const Slot* findSmallViewSlot(int slot) const;
+  const Slot& getSmallViewSlot(int slot) const;
+  Slot& getSmallViewSlot(int slot);
+
+  const FullSlot* findFullViewSlot(int slot) const;
+  const FullSlot& getFullViewSlot(int slot) const;
+  FullSlot& getFullViewSlot(int slot);
 signals:
   void heightPercentageChanged(double);
 
@@ -154,13 +161,6 @@ private:
   void on_removingProcess(const Process::ProcessModel&);
   void initConnections();
 
-  const Slot* findSmallViewSlot(int slot) const;
-  const Slot& getSmallViewSlot(int slot) const;
-  Slot& getSmallViewSlot(int slot);
-
-  const FullSlot* findFullViewSlot(int slot) const;
-  const FullSlot& getFullViewSlot(int slot) const;
-  FullSlot& getFullViewSlot(int slot);
 
   // Model for the full view.
   // Note : it is also present in m_constraintViewModels.

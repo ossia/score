@@ -237,7 +237,7 @@ JSONObjectWriter::write(iscore::ModelMetadata& md)
       md.m_color = iscore::Skin::instance().fromString("Base1");
   }
 
-  md.m_color.getColor();
+  md.m_color.getBrush();
 
   md.m_label = obj[strings.Label].toString();
 

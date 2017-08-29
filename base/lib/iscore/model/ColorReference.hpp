@@ -48,7 +48,7 @@ public:
     ref = &(iscore::Skin::instance().*s);
   }
 
-  const QBrush& getColor() const
+  const QBrush& getBrush() const
   {
     ISCORE_ASSERT(ref);
     return *ref;
