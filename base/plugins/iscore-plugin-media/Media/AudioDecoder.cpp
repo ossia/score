@@ -70,14 +70,16 @@ struct Decoder<SampleFormat, Channels, SampleSize, false>
     {
       auto dat = reinterpret_cast<SampleFormat*>(buf[0]);
 
+      int i = 0;
       for(std::size_t j = 0; j < Channels * n; )
       {
-        std::size_t cur_j = curpos + j;
+        std::size_t cur_j = curpos + i;
         for(std::size_t chan = 0; chan < Channels; chan++)
         {
           data[chan][cur_j] = convert_sample<SampleFormat, SampleSize>(dat[j]);
           j++;
         }
+        i++;
       }
     }
 };
@@ -106,14 +108,16 @@ struct Decoder<SampleFormat, dynamic_channels, SampleSize, false>
     {
       auto dat = reinterpret_cast<SampleFormat*>(buf[0]);
 
+      int i = 0;
       for(std::size_t j = 0; j < Channels * n; )
       {
-        std::size_t cur_j = curpos + j;
+        std::size_t cur_j = curpos + i;
         for(std::size_t chan = 0; chan < Channels; chan++)
         {
           data[chan][cur_j] = convert_sample<SampleFormat, SampleSize>(dat[j]);
           j++;
         }
+        i++;
       }
     }
 };
@@ -139,25 +143,49 @@ struct Decoder<SampleFormat, dynamic_channels, SampleSize, true>
 using decoder_t = eggs::variant<
 Decoder<int16_t, 1, 16, true>,
 Decoder<int16_t, 2, 16, true>,
-Decoder<int16_t, 2, 16, false>,
+Decoder<int16_t, 2, 16, false>,/*
+Decoder<int16_t, 4, 16, true>,
+Decoder<int16_t, 4, 16, false>,
+Decoder<int16_t, 6, 16, true>,
+Decoder<int16_t, 6, 16, false>,
+Decoder<int16_t, 8, 16, true>,
+Decoder<int16_t, 8, 16, false>,*/
 Decoder<int16_t, dynamic_channels, 16, true>,
 Decoder<int16_t, dynamic_channels, 16, false>,
 
 Decoder<int32_t, 1, 24, true>,
 Decoder<int32_t, 2, 24, true>,
-Decoder<int32_t, 2, 24, false>,
+Decoder<int32_t, 2, 24, false>,/*
+Decoder<int32_t, 4, 24, true>,
+Decoder<int32_t, 4, 24, false>,
+Decoder<int32_t, 6, 24, true>,
+Decoder<int32_t, 6, 24, false>,
+Decoder<int32_t, 8, 24, true>,
+Decoder<int32_t, 8, 24, false>,*/
 Decoder<int32_t, dynamic_channels, 24, true>,
 Decoder<int32_t, dynamic_channels, 24, false>,
 
 Decoder<int32_t, 1, 32, true>,
 Decoder<int32_t, 2, 32, true>,
-Decoder<int32_t, 2, 32, false>,
+Decoder<int32_t, 2, 32, false>,/*
+Decoder<int32_t, 4, 32, true>,
+Decoder<int32_t, 4, 32, false>,
+Decoder<int32_t, 6, 32, true>,
+Decoder<int32_t, 6, 32, false>,
+Decoder<int32_t, 8, 32, true>,
+Decoder<int32_t, 8, 32, false>,*/
 Decoder<int32_t, dynamic_channels, 32, true>,
 Decoder<int32_t, dynamic_channels, 32, false>,
 
 Decoder<float,   1, 32, true>,
 Decoder<float,   2, 32, true>,
-Decoder<float,   2, 32, false>,
+Decoder<float,   2, 32, false>,/*
+Decoder<float,   4, 32, true>,
+Decoder<float,   4, 32, false>,
+Decoder<float,   6, 32, true>,
+Decoder<float,   6, 32, false>,
+Decoder<float,   8, 32, true>,
+Decoder<float,   8, 32, false>,*/
 Decoder<float,   dynamic_channels, 32, true>,
 Decoder<float,   dynamic_channels, 32, false>
 >;
@@ -285,7 +313,10 @@ decoder_t make_N_decoder<1>(AVStream& stream)
     switch(stream.codecpar->channels)
     {
       case 1: return make_N_decoder<1>(stream);
-      case 2: return make_N_decoder<2>(stream);
+      case 2: return make_N_decoder<2>(stream);/*
+      case 4: return make_N_decoder<4>(stream);
+      case 6: return make_N_decoder<6>(stream);
+      case 8: return make_N_decoder<8>(stream);*/
       case 0: return {};
       default: return make_dynamic_decoder(stream);
     }
@@ -523,6 +554,7 @@ void AudioDecoder::decode(const QString &path)
 
   sampleRate = info.rate;
   data.resize(info.channels);
+  qDebug() << "CHANNELS" << info.channels << "LENGTH" << info.max_arr_length;
   for(auto& c : data)
   {
     c.resize(info.max_arr_length);
