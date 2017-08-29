@@ -22,6 +22,7 @@ public:
 
 signals:
   void pressed();
+  void askContextMenu(const QPoint&, const QPointF&);
 
 private:
   void updateText();
@@ -29,6 +30,9 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent*) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent*) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent*) override;
+  void contextMenuEvent(
+      QGraphicsSceneContextMenuEvent* event);
+
 
   QGraphicsProxyWidget* m_widg{};
 };

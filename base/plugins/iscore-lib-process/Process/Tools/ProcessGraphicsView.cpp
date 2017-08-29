@@ -53,7 +53,7 @@ void ProcessGraphicsView::drawBackground(QPainter* painter, const QRectF& rect)
   }
   QPixmap par = QPixmap::fromImage(img);
   */
-  painter->fillRect(rect, ScenarioStyle::instance().Background.getColor());
+  painter->fillRect(rect, ScenarioStyle::instance().Background.getBrush());
 
 }
 

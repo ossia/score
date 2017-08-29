@@ -117,6 +117,9 @@ double ConstraintPresenter::on_playPercentageChanged(double t)
     return m_view->setPlayWidth(m_view->defaultWidth() * t);
 }
 
+void ConstraintPresenter::selectedSlot(int) const {
+}
+
 void ConstraintPresenter::updateChildren()
 {
   emit askUpdate();

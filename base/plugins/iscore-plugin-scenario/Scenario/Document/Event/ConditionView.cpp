@@ -37,7 +37,7 @@ void ConditionView::paint(
 {
   auto& skin = ScenarioStyle::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
-  const QBrush& col = m_color.getColor();
+  const QBrush& col = m_color.getBrush();
   skin.ConditionPen.setBrush(col);
   skin.ConditionTrianglePen.setBrush(col);
 

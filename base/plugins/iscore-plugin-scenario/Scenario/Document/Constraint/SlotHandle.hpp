@@ -53,28 +53,42 @@ private:
   int m_slotIndex;
 };
 
-class ISCORE_PLUGIN_SCENARIO_EXPORT InactiveSlotHandle final : public QGraphicsItem
+class SlotHeader final : public QGraphicsItem
 {
-public:
-  InactiveSlotHandle(const ConstraintPresenter& slotView, int slotIndex, QGraphicsItem* parent);
+  public:
+    SlotHeader(const ConstraintPresenter& slotView, int slotIndex, QGraphicsItem* parent);
 
-  int slotIndex() const;
-  void setSlotIndex(int);
-  static constexpr double handleHeight()
-  {
-    return 4.;
-  }
+    const ConstraintPresenter& presenter() const { return m_presenter; }
+    static constexpr int static_type()
+    {
+      return QGraphicsItem::UserType + ItemType::SlotHeader;
+    }
+    int type() const override
+    {
+      return static_type();
+    }
 
-  QRectF boundingRect() const override;
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
+    int slotIndex() const;
+    void setSlotIndex(int);
+    static constexpr double headerHeight()
+    {
+      return 16.;
+    }
 
-  void setWidth(qreal width);
+    QRectF boundingRect() const override;
+    void paint(
+        QPainter* painter,
+        const QStyleOptionGraphicsItem* option,
+        QWidget* widget) override;
 
-private:
-  qreal m_width{};
-  int m_slotIndex;
+    void setWidth(qreal width);
+
+  private:
+    void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
+    const ConstraintPresenter& m_presenter;
+    qreal m_width{};
+    int m_slotIndex;
 };
 }

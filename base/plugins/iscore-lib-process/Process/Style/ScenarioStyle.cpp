@@ -118,19 +118,19 @@ void ScenarioStyle::update(const iscore::Skin& skin)
   ConstraintPlayDashPen = ConstraintDashPen;
   ConstraintWaitingDashPen = ConstraintDashPen;
   ConstraintHeaderSeparator
-      = QPen{ConstraintHeaderSideBorder.getColor(), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+      = QPen{ConstraintHeaderSideBorder.getBrush(), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
   FullViewConstraintHeaderSeparator
-      = QPen{ConstraintHeaderSideBorder.getColor(), 2, Qt::DashLine, Qt::RoundCap, Qt::RoundJoin};
+      = QPen{ConstraintHeaderSideBorder.getBrush(), 2, Qt::DashLine, Qt::RoundCap, Qt::RoundJoin};
 
   ConstraintBrace
-      = QPen{ConstraintBase.getColor(), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+      = QPen{ConstraintBase.getBrush(), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
   ConstraintBraceSelected = ConstraintBrace;
-  ConstraintBraceSelected.setBrush(ConstraintSelected.getColor());
+  ConstraintBraceSelected.setBrush(ConstraintSelected.getBrush());
   ConstraintBraceWarning = ConstraintBrace;
-  ConstraintBraceWarning.setBrush(ConstraintWarning.getColor());
+  ConstraintBraceWarning.setBrush(ConstraintWarning.getBrush());
   ConstraintBraceInvalid = ConstraintBrace;
-  ConstraintBraceInvalid.setBrush(ConstraintInvalid.getColor());
-  ConstraintHeaderTextPen = QPen{ConstraintHeaderText.getColor().color()};
+  ConstraintBraceInvalid.setBrush(ConstraintInvalid.getBrush());
+  ConstraintHeaderTextPen = QPen{ConstraintHeaderText.getBrush().color()};
 
   // don't: ConstraintSolidPen.setCosmetic(true);
   //ConstraintDashPen.setCosmetic(true);
@@ -157,13 +157,13 @@ void ScenarioStyle::update(const iscore::Skin& skin)
   EventPen.setCosmetic(true);
   EventBrush = QBrush{Qt::black};
 
-  TimeRulerLargePen = QPen{TimeRuler.getColor(), 2, Qt::SolidLine};
+  TimeRulerLargePen = QPen{TimeRuler.getBrush(), 2, Qt::SolidLine};
   TimeRulerLargePen.setCosmetic(true);
-  TimeRulerSmallPen = QPen{TimeRuler.getColor(), 1, Qt::SolidLine};
+  TimeRulerSmallPen = QPen{TimeRuler.getBrush(), 1, Qt::SolidLine};
   TimeRulerSmallPen.setCosmetic(true);
 
   SlotHandlePen.setWidth(0);
-  SlotHandlePen.setBrush(ProcessViewBorder.getColor());
+  SlotHandlePen.setBrush(ProcessViewBorder.getBrush());
 
   MiniScenarioPen.setCosmetic(true);
 

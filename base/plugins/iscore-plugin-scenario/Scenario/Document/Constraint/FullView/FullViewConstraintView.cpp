@@ -58,15 +58,15 @@ void FullViewConstraintView::paint(
   QBrush c;
   if (isSelected())
   {
-    c = skin.ConstraintSelected.getColor();
+    c = skin.ConstraintSelected.getBrush();
   }
   else if (parentItem()->isSelected())
   {
-    c = skin.ConstraintFullViewParentSelected.getColor();
+    c = skin.ConstraintFullViewParentSelected.getBrush();
   }
   else
   {
-    c = skin.ConstraintBase.getColor();
+    c = skin.ConstraintBase.getBrush();
   }
 
   skin.ConstraintSolidPen.setBrush(c);
@@ -82,7 +82,7 @@ void FullViewConstraintView::paint(
     skin.ConstraintDashPen.setBrush(c);
     p.setPen(skin.ConstraintDashPen);
 
-    p.fillRect(QRectF{def_w, (double)ConstraintHeaderHeight, m_guiWidth, this->height() - ConstraintHeaderHeight}, skin.SlotOverlay.getColor());
+    p.fillRect(QRectF{def_w, (double)ConstraintHeaderHeight, m_guiWidth, this->height() - ConstraintHeaderHeight}, skin.SlotOverlay.getBrush());
 
     p.drawLine(QPointF{min_w, 0.}, QPointF{infinite()? m_guiWidth : max_w, 0.});
 
@@ -99,7 +99,7 @@ void FullViewConstraintView::paint(
   auto pw = playWidth();
   if (pw != 0.)
   {
-    skin.ConstraintPlayPen.setBrush(skin.ConstraintPlayFill.getColor());
+    skin.ConstraintPlayPen.setBrush(skin.ConstraintPlayFill.getBrush());
     p.setPen(skin.ConstraintPlayPen);
     p.drawLine(QPointF{0., 0.}, QPointF{std::min(play_w, std::max(def_w, max_w)), 0.});
   }

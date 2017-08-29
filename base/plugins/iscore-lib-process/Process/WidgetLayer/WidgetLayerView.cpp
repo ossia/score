@@ -4,6 +4,7 @@
 #include <QGraphicsProxyWidget>
 #include <QPalette>
 #include <QWidget>
+#include <QGraphicsSceneMouseEvent>
 namespace WidgetLayer
 {
 
@@ -31,6 +32,7 @@ void View::setWidget(QWidget* w)
   w->setStyleSheet("QWidget { background-color:transparent }");
 
   connect(w, SIGNAL(pressed()), this, SIGNAL(pressed()));
+  connect(w, SIGNAL(contextMenuRequested(QPoint)), this, SIGNAL(contextMenuRequested(QPoint)));
 }
 
 void View::paint_impl(QPainter* painter) const
@@ -39,12 +41,32 @@ void View::paint_impl(QPainter* painter) const
 
 void View::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
-  emit pressed();
+  if(ev && ev->button() == Qt::RightButton)
+  {
+    emit askContextMenu(ev->screenPos(), ev->scenePos());
+  }
+  else
+  {
+    emit pressed();
+  }
+  ev->accept();
 }
+
 void View::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
 {
+  ev->accept();
 }
+
 void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
 {
+  ev->accept();
 }
+
+void View::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
+{
+  emit askContextMenu(ev->screenPos(), ev->scenePos());
+  ev->accept();
+}
+
+
 }

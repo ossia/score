@@ -236,12 +236,12 @@ void TemporalConstraintView::paint(
     rect.adjust(0, 4, 0, SlotHandle::handleHeight());
     rect.setWidth(def_w);
 
-    auto bgColor = m_bgColor.getColor().color();
+    auto bgColor = m_bgColor.getBrush().color();
     bgColor.setAlpha(m_hasFocus ? 86 : 70);
     painter.fillRect(rect, bgColor);
 
     // Fake timesync continuation
-    skin.ConstraintRackPen.setBrush(skin.RackSideBorder.getColor());
+    skin.ConstraintRackPen.setBrush(skin.RackSideBorder.getBrush());
     painter.setPen(skin.ConstraintRackPen);
     painter.drawLine(rect.topLeft(), rect.bottomLeft());
     painter.drawLine(rect.topRight(), rect.bottomRight());
@@ -269,7 +269,7 @@ void TemporalConstraintView::paint(
 
   if (!playedSolidPath.isEmpty())
   {
-    skin.ConstraintPlayPen.setBrush(skin.ConstraintPlayFill.getColor());
+    skin.ConstraintPlayPen.setBrush(skin.ConstraintPlayFill.getBrush());
 
     painter.setPen(skin.ConstraintPlayPen);
     painter.drawPath(playedSolidPath);
@@ -279,7 +279,7 @@ void TemporalConstraintView::paint(
   {
     if(this->m_waiting)
     {
-      skin.ConstraintWaitingDashPen.setBrush(skin.ConstraintWaitingDashFill.getColor());
+      skin.ConstraintWaitingDashPen.setBrush(skin.ConstraintWaitingDashFill.getBrush());
       painter.setPen(skin.ConstraintWaitingDashPen);
       painter.drawPath(waitingDashedPath);
     }
@@ -289,11 +289,11 @@ void TemporalConstraintView::paint(
   {
     if(this->m_waiting)
     {
-      skin.ConstraintPlayDashPen.setBrush(skin.ConstraintPlayDashFill.getColor());
+      skin.ConstraintPlayDashPen.setBrush(skin.ConstraintPlayDashFill.getBrush());
     }
     else
     {
-      skin.ConstraintPlayDashPen.setBrush(skin.ConstraintPlayFill.getColor());
+      skin.ConstraintPlayDashPen.setBrush(skin.ConstraintPlayFill.getBrush());
     }
 
     painter.setPen(skin.ConstraintPlayDashPen);

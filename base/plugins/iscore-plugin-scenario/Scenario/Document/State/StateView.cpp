@@ -67,15 +67,15 @@ void StateView::paint(
   auto& skin = ScenarioStyle::instance();
   painter->setPen(skin.NoPen);
   skin.StateTemporalPointBrush =
-      m_selected ? skin.StateSelected.getColor() : skin.StateDot.getColor();
+      m_selected ? skin.StateSelected.getBrush() : skin.StateDot.getBrush();
 
   auto status = m_status.get();
   if (status != ExecutionStatus::Editing)
-    skin.StateTemporalPointBrush = m_status.stateStatusColor().getColor();
+    skin.StateTemporalPointBrush = m_status.stateStatusColor().getBrush();
 
   if (m_containMessage)
   {
-    painter->setBrush(skin.StateOutline.getColor());
+    painter->setBrush(skin.StateOutline.getBrush());
     if(m_dilated)
       painter->drawPath(fullDilated);
     else
