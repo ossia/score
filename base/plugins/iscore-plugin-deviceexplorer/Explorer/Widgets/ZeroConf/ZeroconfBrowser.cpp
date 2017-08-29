@@ -35,6 +35,7 @@ ZeroconfBrowser::ZeroconfBrowser(const QString& service, QWidget* parent)
   connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
   connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
 
+
   lay->addWidget(buttonBox);
   m_dialog->setLayout(lay);
 
@@ -47,6 +48,11 @@ ZeroconfBrowser::ZeroconfBrowser(const QString& service, QWidget* parent)
   m_list = new QListView;
   m_list->setSelectionMode(QAbstractItemView::SingleSelection);
   m_list->setModel(m_model);
+
+  connect(m_list, &QListView::doubleClicked, this, [=] (const auto&) {
+    accept();
+  });
+
   lay->addWidget(m_list);
 
   auto manualWidg = new QWidget;
