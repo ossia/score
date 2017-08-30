@@ -5,6 +5,8 @@
 namespace iscore
 {
 
+DocumentMetadata::DocumentMetadata(QString file): m_fileName{file} { }
+
 QString DocumentMetadata::fileName() const
 {
   return m_fileName;

@@ -13,6 +13,7 @@
 
 iscore::DocumentBackupManager::DocumentBackupManager(iscore::Document& doc)
     : QObject{&doc}
+    , m_doc{doc}
 {
   m_modelFile.open();
 
@@ -55,6 +56,7 @@ void iscore::DocumentBackupManager::updateBackupData()
 
   auto existing_files = s.value("iscore/docs").toMap();
   existing_files.insert(
-      crashDataFile().fileName(), crashCommandFile().fileName());
+      crashDataFile().fileName(),
+      QVariant::fromValue(qMakePair(m_doc.metadata().fileName(), crashCommandFile().fileName())));
   s.setValue("iscore/docs", existing_files);
 }

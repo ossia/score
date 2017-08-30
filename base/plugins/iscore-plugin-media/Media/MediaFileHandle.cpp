@@ -2,56 +2,37 @@
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/serialization/JSONVisitor.hpp>
 #include <Media/AudioDecoder.hpp>
-
-
-template <>
-void DataStreamReader::read(
-        const Media::MediaFileHandle& lm)
-{
-    m_stream << lm.name();
-}
-
-template <>
-void DataStreamWriter::write(
-        Media::MediaFileHandle& lm)
-{
-    QString name;
-    m_stream >> name;
-    lm.load(name);
-}
-
-
-
-template <>
-void JSONObjectReader::read(
-        const Media::MediaFileHandle& lm)
-{
-    obj["File"] = lm.name();
-}
-
-template <>
-void JSONObjectWriter::write(
-        Media::MediaFileHandle& lm)
-{
-    lm.load(obj["File"].toString());
-}
-
+#include <QFileInfo>
+#include <iscore/document/DocumentContext.hpp>
+#include <core/document/Document.hpp>
 
 namespace Media
 {
-void MediaFileHandle::load(const QString &filename)
+void MediaFileHandle::load(
+    const QString &filename,
+    const iscore::DocumentContext& ctx)
 {
-  m_file = filename;
-  if(isAudioFile(QFile(m_file)))
+  QFileInfo info(filename);
+  QString path = filename;
+
+  if(!info.isAbsolute()) {
+    QFileInfo docroot{ctx.document.metadata().fileName()};
+    path = docroot.canonicalPath();
+    if(!path.endsWith('/'))
+      path += '/';
+    path += filename;
+  }
+
+  m_file = path;
+  QFile f(m_file);
+  if(isAudioFile(f))
   {
     m_decoder.decode(m_file);
-
-    qDebug() << "Decode started";
 
     m_sampleRate = 44100; // for now everything is reencoded
 
     m_data.resize(m_decoder.data.size());
-    for(int i = 0; i < m_decoder.data.size(); i++)
+    for(std::size_t i = 0; i < m_decoder.data.size(); i++)
       m_data[i] = m_decoder.data[i].data();
 
     emit mediaChanged();

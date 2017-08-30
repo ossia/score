@@ -46,6 +46,7 @@ private:
   QTemporaryFile& crashDataFile();
   CommandBackupFile& crashCommandFile();
 
+  iscore::Document& m_doc;
   QTemporaryFile m_modelFile;
   CommandBackupFile* m_commandFile{};
 };
