@@ -11,9 +11,13 @@
 #include <Explorer/Commands/Update/UpdateAddressSettings.hpp>
 #include <Explorer/Commands/Update/UpdateDeviceSettings.hpp>
 #include <Explorer/Commands/UpdateAddresses.hpp>
+#include <Explorer/Explorer/AddressItemModel.hpp>
 #include <ossia-qt/js_utilities.hpp>
 #include <QAbstractProxyModel>
 #include <QAction>
+#include <QTreeView>
+#include <QTableView>
+#include <QHeaderView>
 #include <QBoxLayout>
 #include <QComboBox>
 #include <QContextMenuEvent>
@@ -152,11 +156,33 @@ DeviceExplorerWidget::DeviceExplorerWidget(
 void DeviceExplorerWidget::buildGUI()
 {
   m_ntView = new DeviceExplorerView(this);
+  m_ntView->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
 
+
+  m_addressModel = new AddressItemModel{this};
+  m_addressView = new QTableView{this};
+  m_addressView->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
+  m_addressView->setMinimumHeight(100);
+
+  m_addressView->horizontalHeader()->hide();
+  m_addressView->verticalHeader()->hide();
+  m_addressView->horizontalHeader()->setCascadingSectionResizes(true);
+  m_addressView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+  m_addressView->horizontalHeader()->setStretchLastSection(true);
+  m_addressView->setAlternatingRowColors(true);
+  m_addressView->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+  m_addressView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+  m_addressView->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
+  m_addressView->verticalHeader()->setDefaultSectionSize(14);
+
+  m_addressView->setModel(m_addressModel);
   connect(
       m_ntView, static_cast<void (DeviceExplorerView::*)()>(
                     &DeviceExplorerView::selectionChanged),
-      this, &DeviceExplorerWidget::updateActions, Qt::QueuedConnection);
+        this, [=] {
+    updateAddressView();
+    updateActions();
+  }, Qt::QueuedConnection);
 
   m_editAction = new QAction(tr("Edit"), this);
 
@@ -334,6 +360,7 @@ void DeviceExplorerWidget::buildGUI()
   mainWidg->setContentsMargins(0, 0, 0, 0);
   QVBoxLayout* vLayout = new QVBoxLayout;
   vLayout->addWidget(m_ntView);
+  vLayout->addWidget(m_addressView);
   vLayout->addLayout(hLayout);
   mainWidg->setLayout(vLayout);
   mainWidg->setObjectName("DeviceExplorer");
@@ -355,6 +382,7 @@ void DeviceExplorerWidget::buildGUI()
 void DeviceExplorerWidget::blockGUI(bool b)
 {
   m_ntView->setDisabled(b);
+  m_addressView->setDisabled(b);
   if (b)
   {
     // m_ntView to front
@@ -532,6 +560,23 @@ void DeviceExplorerWidget::updateActions()
     m_addSiblingAction->setEnabled(false);
     m_addChildAction->setEnabled(false);
   }
+}
+
+void DeviceExplorerWidget::updateAddressView()
+{
+  auto indexes = m_ntView->selectedIndexes();
+
+  if(indexes.size() != 1)
+  {
+    m_addressModel->clear();
+    return;
+  }
+
+  auto& n = model()->nodeFromModelIndex(sourceIndex(indexes.first()));
+  if(n.is<Device::AddressSettings>())
+    m_addressModel->setAddress(Device::FullAddressSettings::make(n));
+  else
+    m_addressModel->clear();
 }
 
 DeviceExplorerModel* DeviceExplorerWidget::model() const
