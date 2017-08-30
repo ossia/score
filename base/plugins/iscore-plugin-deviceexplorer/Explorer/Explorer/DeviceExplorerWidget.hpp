@@ -17,7 +17,7 @@ class QStackedLayout;
 
 class QComboBox;
 class QLineEdit;
-
+class QTableView;
 namespace Device
 {
 class ProtocolFactoryList;
@@ -25,6 +25,7 @@ class ProtocolFactoryList;
 
 namespace Explorer
 {
+class AddressItemModel;
 class ListeningHandler;
 class DeviceEditDialog;
 class DeviceExplorerFilterProxyModel;
@@ -75,6 +76,7 @@ private:
   void filterChanged();
 
   void updateActions();
+  void updateAddressView();
 
   // Utilities
   DeviceExplorerFilterProxyModel* proxyModel();
@@ -89,6 +91,8 @@ private:
   DeviceExplorerView* m_ntView{};
   DeviceExplorerFilterProxyModel* m_proxyModel{};
   DeviceEditDialog* m_deviceDialog{};
+  AddressItemModel* m_addressModel{};
+  QTableView* m_addressView{};
 
   QAction* m_disconnect{};
   QAction* m_reconnect{};
