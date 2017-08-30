@@ -26,6 +26,8 @@ struct ISCORE_LIB_BASE_EXPORT DocumentMetadata : public QObject
   QDateTime m_lastEdition;
 
 public:
+  using QObject::QObject;
+  DocumentMetadata(QString file);
   QString fileName() const;
   QString author() const;
   QDateTime creation() const;

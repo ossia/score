@@ -121,6 +121,7 @@ public:
 
   // Load without creating presenter and view
   Document(
+      const QString& name,
       const QVariant& data,
       DocumentDelegateFactory& type,
       QObject* parent);
@@ -135,6 +136,7 @@ private:
       QObject* parent);
 
   Document(
+      const QString& name,
       const QVariant& data,
       DocumentDelegateFactory& type,
       QWidget* parentview,

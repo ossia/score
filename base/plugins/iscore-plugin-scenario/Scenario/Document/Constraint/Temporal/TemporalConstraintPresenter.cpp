@@ -548,7 +548,7 @@ void TemporalConstraintPresenter::on_zoomRatioChanged(ZoomRatio val)
 void TemporalConstraintPresenter::selectedSlot(int i) const
 {
   iscore::SelectionDispatcher disp{m_context.selectionStack};
-  ISCORE_ASSERT(i < m_slots.size());
+  ISCORE_ASSERT(size_t(i) < m_slots.size());
   auto& slot = m_slots[i];
   if(slot.processes.empty())
   {

@@ -412,7 +412,7 @@ Document* DocumentManager::loadFile(
       if (fileName.indexOf(".scorebin") != -1)
       {
         doc = loadDocument(
-            ctx, f.readAll(),
+            ctx, fileName, f.readAll(),
             *ctx.interfaces<DocumentDelegateList>().begin());
       }
       else if (fileName.indexOf(".scorejson") != -1)
@@ -422,7 +422,7 @@ Document* DocumentManager::loadFile(
         if (ok)
         {
           doc = loadDocument(
-              ctx, json.object(),
+              ctx, fileName, json.object(),
               *ctx.interfaces<DocumentDelegateList>().begin());
         }
         else
@@ -433,11 +433,6 @@ Document* DocumentManager::loadFile(
               tr("Unable to load file : "
                  "There is probably something wrong with the file format."));
         }
-      }
-
-      if (doc)
-      {
-        m_currentDocument->metadata().setFileName(fileName);
       }
     }
   }
@@ -605,10 +600,10 @@ void DocumentManager::saveRecentFilesState()
 ISCORE_LIB_BASE_EXPORT
 void DocumentManager::restoreDocuments(const iscore::GUIApplicationContext& ctx)
 {
-  for (const auto& backup : DocumentBackups::restorableDocuments())
+  for (const RestorableDocument& backup : DocumentBackups::restorableDocuments())
   {
     restoreDocument(
-        ctx, backup.first, backup.second,
+        ctx, backup.filePath, backup.doc, backup.commands,
         *ctx.interfaces<DocumentDelegateList>().begin());
   }
 }
