@@ -4,6 +4,7 @@
 #include <array>
 #include <Media/AudioDecoder.hpp>
 #include <iscore_plugin_media_export.h>
+namespace iscore { struct DocumentContext; }
 namespace Media
 {
 // TODO store them in an application-wide cache to prevent loading / unloading
@@ -14,7 +15,8 @@ struct ISCORE_PLUGIN_MEDIA_EXPORT MediaFileHandle : public QObject
     public:
         MediaFileHandle() = default;
 
-        void load(const QString& filename);
+        void load(const QString& filename,
+                  const iscore::DocumentContext&);
 
         QString name() const
         { return m_file; }

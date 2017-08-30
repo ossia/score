@@ -3,7 +3,7 @@
 template <>
 void DataStreamReader::read(const Media::Sound::ProcessModel& proc)
 {
-    m_stream << proc.m_file;
+    m_stream << proc.m_file.name();
 
     insertDelimiter();
 }
@@ -11,7 +11,9 @@ void DataStreamReader::read(const Media::Sound::ProcessModel& proc)
 template <>
 void DataStreamWriter::write(Media::Sound::ProcessModel& proc)
 {
-    m_stream >> proc.m_file;
+    QString s;
+    m_stream >> s;
+    proc.setFile(s);
 
     checkDelimiter();
 }
@@ -25,5 +27,5 @@ void JSONObjectReader::read(const Media::Sound::ProcessModel& proc)
 template <>
 void JSONObjectWriter::write(Media::Sound::ProcessModel& proc)
 {
-    proc.m_file.load(obj["File"].toString());
+    proc.setFile(obj["File"].toString());
 }

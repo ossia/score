@@ -58,6 +58,7 @@ Document* DocumentBuilder::newDocument(
 ISCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::loadDocument(
     const iscore::GUIApplicationContext& ctx,
+    QString filename,
     const QVariant& docData,
     DocumentDelegateFactory& doctype)
 {
@@ -65,7 +66,7 @@ Document* DocumentBuilder::loadDocument(
   auto& doclist = ctx.documents.documents();
   try
   {
-    doc = new Document{docData, doctype, m_parentView, m_parentPresenter};
+    doc = new Document{filename, docData, doctype, m_parentView, m_parentPresenter};
     for (auto& appPlug : ctx.guiApplicationPlugins())
     {
       appPlug->on_loadedDocument(*doc);
@@ -99,6 +100,7 @@ Document* DocumentBuilder::loadDocument(
 ISCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::restoreDocument(
     const iscore::GUIApplicationContext& ctx,
+    QString filename,
     const QByteArray& docData,
     const QByteArray& cmdData,
     DocumentDelegateFactory& doctype)
@@ -110,7 +112,7 @@ Document* DocumentBuilder::restoreDocument(
     // Restoring behaves just like loading : we reload what was loaded
     // (potentially a blank document which is saved at the beginning, once
     // every plug-in has been loaded)
-    doc = new Document{docData, doctype, m_parentView, m_parentPresenter};
+    doc = new Document{filename, docData, doctype, m_parentView, m_parentPresenter};
     for (auto& appPlug : ctx.guiApplicationPlugins())
     {
       appPlug->on_loadedDocument(*doc);
