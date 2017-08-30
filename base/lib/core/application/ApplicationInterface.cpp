@@ -24,6 +24,8 @@ ApplicationInterface::ApplicationInterface()
   qRegisterMetaType<Selection>("Selection");
   qRegisterMetaType<Id<iscore::DocumentModel>>("Id<DocumentModel>");
   qRegisterMetaType<QVector<int>>();
+  qRegisterMetaType<QPair<QString,QString>>();
+  qRegisterMetaTypeStreamOperators<QPair<QString,QString>>();
 }
 
 ApplicationInterface& ApplicationInterface::instance()

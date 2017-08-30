@@ -137,11 +137,13 @@ QByteArray Document::saveAsByteArray()
 
 // Load document
 Document::Document(
+    const QString& name,
     const QVariant& data,
     DocumentDelegateFactory& factory,
     QWidget* parentview,
     QObject* parent)
     : QObject{parent}
+    , m_metadata{name}
     , m_commandStack{*this}
     , m_objectLocker{this}
     , m_context{*this}
@@ -164,10 +166,12 @@ Document::Document(
 }
 
 Document::Document(
+    const QString& name,
     const QVariant& data,
     DocumentDelegateFactory& factory,
     QObject* parent)
   : QObject{parent}
+  , m_metadata{name}
   , m_commandStack{*this}
   , m_objectLocker{this}
   , m_context{*this}

@@ -31,7 +31,7 @@ ProcessModel::ProcessModel(
         Metadata<ObjectKey_k, ProcessModel>::get(),
         parent}
 {
-    m_file.load(source.m_file.name());
+    setFile(source.m_file.name());
     metadata().setInstanceName(*this);
     init();
 }
@@ -45,7 +45,7 @@ void ProcessModel::setFile(const QString &file)
 {
     if(file != m_file.name())
     {
-        m_file.load(file);
+        m_file.load(file, iscore::IDocument::documentContext(*this));
         emit fileChanged();
     }
 }

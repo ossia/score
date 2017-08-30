@@ -43,16 +43,16 @@ bool iscore::DocumentBackups::canRestoreDocuments()
 
 template <typename T>
 static void loadRestorableDocumentData(
-    const QString& date_filename, const QString& command_filename, T& arr)
+    const QString& date_filename, const QPair<QString, QString>& command_filename, T& arr)
 {
   QFile data_file{date_filename};
-  QFile command_file{command_filename};
+  QFile command_file{command_filename.second};
   if (data_file.exists() && command_file.exists())
   {
     data_file.open(QFile::ReadOnly);
     command_file.open(QFile::ReadOnly);
 
-    arr.push_back({data_file.readAll(), command_file.readAll()});
+    arr.push_back({command_filename.first, data_file.readAll(), command_file.readAll()});
 
     data_file.close();
     data_file.remove(); // Note: maybe we don't want to remove them that early?
@@ -62,10 +62,10 @@ static void loadRestorableDocumentData(
   }
 }
 
-std::vector<std::pair<QByteArray, QByteArray>>
+std::vector<iscore::RestorableDocument>
 iscore::DocumentBackups::restorableDocuments()
 {
-  std::vector<std::pair<QByteArray, QByteArray>> arr;
+  std::vector<iscore::RestorableDocument> arr;
   QSettings s{iscore::OpenDocumentsFile::path(), QSettings::IniFormat};
 
   auto docs = s.value("iscore/docs");
@@ -75,7 +75,8 @@ iscore::DocumentBackups::restorableDocuments()
   {
     if (file1.isEmpty())
       continue;
-    loadRestorableDocumentData(file1, existing_files[file1].toString(), arr);
+
+    loadRestorableDocumentData(file1, existing_files[file1].value<QPair<QString,QString>>(), arr);
   }
 
   s.setValue("iscore/docs", QMap<QString, QVariant>{});
@@ -96,7 +97,8 @@ ISCORE_LIB_BASE_EXPORT void iscore::DocumentBackups::clear()
     for (auto it = existing_files.cbegin(); it != existing_files.cend(); ++it)
     {
       QFile{it.key()}.remove();
-      QFile{it.value().toString()}.remove();
+      auto files = it.value().value<QPair<QString,QString>>();
+      QFile{files.second}.remove();
     }
 
     // Remove the file containing the map

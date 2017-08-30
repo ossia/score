@@ -2,11 +2,19 @@
 #include <iscore_lib_base_export.h>
 #include <utility>
 #include <vector>
-
-class QByteArray;
+#include <QString>
+#include <QByteArray>
 
 namespace iscore
 {
+
+struct RestorableDocument {
+  QString filePath;
+  QByteArray doc;
+  QByteArray commands;
+};
+
+
 /**
  * @brief Manages the list of documents that can be restored after a crash.
  *
@@ -26,7 +34,7 @@ struct ISCORE_LIB_BASE_EXPORT DocumentBackups
   static bool canRestoreDocuments();
 
   // First is the data, second is the commands.
-  static std::vector<std::pair<QByteArray, QByteArray>> restorableDocuments();
+  static std::vector<RestorableDocument> restorableDocuments();
 
   // Removes all the on-disk files that contains document backups.
   static void clear();

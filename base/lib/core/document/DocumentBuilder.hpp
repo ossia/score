@@ -31,10 +31,12 @@ public:
       iscore::DocumentDelegateFactory& doctype);
   Document* loadDocument(
       const iscore::GUIApplicationContext& ctx,
+      QString filename,
       const QVariant& data,
       iscore::DocumentDelegateFactory& doctype);
   Document* restoreDocument(
       const iscore::GUIApplicationContext& ctx,
+      QString filename,
       const QByteArray& docData,
       const QByteArray& cmdData,
       iscore::DocumentDelegateFactory& doctype);
