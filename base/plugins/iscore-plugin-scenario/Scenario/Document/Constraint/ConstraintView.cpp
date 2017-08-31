@@ -126,14 +126,6 @@ void ConstraintView::setValid(bool val)
   m_validConstraint = val;
 }
 
-void ConstraintView::setSelected(bool selected)
-{
-  m_selected = selected;
-  setZValue(m_selected ? ZPos::SelectedConstraint : ZPos::Constraint);
-  enableOverlay(selected);
-  update();
-}
-
 void ConstraintView::setGripCursor()
 {
   this->setCursor(QCursor(Qt::ClosedHandCursor));
@@ -142,11 +134,6 @@ void ConstraintView::setGripCursor()
 void ConstraintView::setUngripCursor()
 {
   this->setCursor(QCursor(Qt::OpenHandCursor));
-}
-
-void ConstraintView::enableOverlay(bool selected)
-{
-
 }
 
 void ConstraintView::mousePressEvent(QGraphicsSceneMouseEvent* event)
@@ -225,12 +212,6 @@ void ConstraintView::updateCounterPos()
 {
   m_counterItem.setPos(
         defaultWidth() - m_counterItem.boundingRect().width() - 5, 5);
-}
-
-void ConstraintView::updateOverlayPos()
-{
-  if(m_overlay)
-    m_overlay->setPos(defaultWidth() / 2. - m_overlay->boundingRect().width() / 2, -10);
 }
 
 void ConstraintView::setExecutionState(ConstraintExecutionState s)

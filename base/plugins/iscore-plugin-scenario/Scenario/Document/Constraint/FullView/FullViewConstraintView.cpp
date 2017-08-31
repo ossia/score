@@ -37,6 +37,16 @@ void FullViewConstraintView::updatePlayPaths()
 {
 }
 
+void FullViewConstraintView::updateOverlayPos()
+{
+}
+
+void FullViewConstraintView::setSelected(bool selected)
+{
+  m_selected = selected;
+  setZValue(m_selected ? ZPos::SelectedConstraint : ZPos::Constraint);
+  update();
+}
 QRectF FullViewConstraintView::boundingRect() const
 {
   return {0, 0, qreal(std::max(defaultWidth(), m_guiWidth)) + 3, qreal(constraintAndRackHeight()) + 3};

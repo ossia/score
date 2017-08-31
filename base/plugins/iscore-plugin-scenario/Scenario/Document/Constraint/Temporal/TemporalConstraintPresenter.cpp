@@ -41,10 +41,16 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
     QObject* parent)
   : ConstraintPresenter{constraint,
                         new TemporalConstraintView{*this, parentobject},
-                        new TemporalConstraintHeader, ctx, parent}
+                        new TemporalConstraintHeader{*this}, ctx, parent}
   , m_handles{handles}
 {
-  TemporalConstraintView& v = *Scenario::view(this);
+  TemporalConstraintView& v = *view();
+  con(constraint.selection, &Selectable::changed, this,
+      [=] (bool b) {
+    view()->setSelected(b);
+    header()->enableOverlay(b);
+  });
+
   con(v, &TemporalConstraintView::constraintHoverEnter, this,
       &TemporalConstraintPresenter::constraintHoverEnter);
 
@@ -96,24 +102,24 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
       });
 
   // Header set-up
-  auto header = static_cast<TemporalConstraintHeader*>(m_header);
+  auto head = header();
 
   connect(
-        header, &TemporalConstraintHeader::constraintHoverEnter, this,
+        head, &TemporalConstraintHeader::constraintHoverEnter, this,
         &TemporalConstraintPresenter::constraintHoverEnter);
   connect(
-        header, &TemporalConstraintHeader::constraintHoverLeave, this,
+        head, &TemporalConstraintHeader::constraintHoverLeave, this,
         &TemporalConstraintPresenter::constraintHoverLeave);
 
   connect(
-        header, &TemporalConstraintHeader::dropReceived, this,
+        head, &TemporalConstraintHeader::dropReceived, this,
         [=](const QPointF& pos, const QMimeData* mime) {
     m_context.app.interfaces<Scenario::ConstraintDropHandlerList>()
         .drop(m_model, mime);
   });
 
   // Go to full-view on double click
-  connect(header, &TemporalConstraintHeader::doubleClicked, this, [this]() {
+  connect(head, &TemporalConstraintHeader::doubleClicked, this, [this]() {
     using namespace iscore::IDocument;
     ScenarioDocumentPresenter& base
         = get<ScenarioDocumentPresenter>(*documentFromObject(m_model));
@@ -136,7 +142,6 @@ TemporalConstraintPresenter::TemporalConstraintPresenter(
   con(m_model, &ConstraintModel::slotAdded,
       this, [=] (const SlotId& s) {
     if(s.smallView()) {
-      qDebug() << "slotAdded";
       createSlot(s.index, m_model.smallView()[s.index]);
     }
   });
@@ -545,6 +550,11 @@ void TemporalConstraintPresenter::on_zoomRatioChanged(ZoomRatio val)
   updateProcessesShape();
 }
 
+void TemporalConstraintPresenter::changeRackState()
+{
+  ((ConstraintModel&)m_model).setSmallViewVisible(!m_model.smallViewVisible() && !m_model.smallView().empty());
+}
+
 void TemporalConstraintPresenter::selectedSlot(int i) const
 {
   iscore::SelectionDispatcher disp{m_context.selectionStack};
@@ -564,15 +574,21 @@ void TemporalConstraintPresenter::selectedSlot(int i) const
   }
 }
 
+TemporalConstraintView*TemporalConstraintPresenter::view() const { return static_cast<TemporalConstraintView*>(this->m_view); }
+
+TemporalConstraintHeader*TemporalConstraintPresenter::header() const
+{ { return static_cast<TemporalConstraintHeader*>(this->m_header); }
+}
+
 void TemporalConstraintPresenter::on_defaultDurationChanged(const TimeVal& val)
 {
   const auto w = val.toPixels(m_zoomRatio);
   m_view->setDefaultWidth(w);
   m_view->updateLabelPos();
   m_view->updateCounterPos();
-  m_view->updateOverlayPos();
+  ((TemporalConstraintView*)m_view)->updateOverlayPos();
   m_header->setWidth(w);
-
+  ((TemporalConstraintHeader*)m_header)->updateButtons();
   updateBraces();
 
   for(const SlotPresenter& slot : m_slots)

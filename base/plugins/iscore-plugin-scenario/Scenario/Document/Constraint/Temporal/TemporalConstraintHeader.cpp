@@ -17,6 +17,7 @@
 #include <iscore/widgets/GraphicsItem.hpp>
 
 #include "TemporalConstraintHeader.hpp"
+#include "TemporalConstraintPresenter.hpp"
 #include <Scenario/Document/Constraint/ConstraintHeader.hpp>
 #include <iscore/model/Skin.hpp>
 
@@ -26,7 +27,9 @@ class QWidget;
 
 namespace Scenario
 {
-TemporalConstraintHeader::TemporalConstraintHeader() : ConstraintHeader{}
+TemporalConstraintHeader::TemporalConstraintHeader(TemporalConstraintPresenter& pres)
+  : ConstraintHeader{}
+  , m_presenter{pres}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setAcceptDrops(true);
@@ -36,7 +39,6 @@ TemporalConstraintHeader::TemporalConstraintHeader() : ConstraintHeader{}
       QGraphicsItem::ItemIsSelectable |
       QGraphicsItem::ItemClipsToShape |
       QGraphicsItem::ItemClipsChildrenToShape);
-
 }
 
 QRectF TemporalConstraintHeader::boundingRect() const
@@ -60,6 +62,8 @@ void TemporalConstraintHeader::paint(
     painter->drawLine(rect.topLeft(), rect.bottomLeft());
     painter->drawLine(rect.topRight(), rect.bottomRight());
     painter->drawLine(rect.bottomLeft(), rect.bottomRight());
+    if(m_button)
+      m_button->setUnrolled(true);
   }
   else
   {
@@ -67,6 +71,8 @@ void TemporalConstraintHeader::paint(
     painter->drawLine(
                 QPointF{0., (double)ConstraintHeaderHeight},
                 QPointF{m_width, (double)ConstraintHeaderHeight});
+    if(m_button)
+      m_button->setUnrolled(false);
   }
 
   // Header
@@ -109,6 +115,28 @@ void TemporalConstraintHeader::paint(
   painter->drawGlyphRun({m_previous_x,
                          (ConstraintHeader::headerHeight() - m_textRectCache.height()) / 2.},
                         *m_line);
+}
+
+void TemporalConstraintHeader::updateButtons()
+{
+  if(m_button)
+    m_button->setPos(this->m_width * 0.9, 3);
+}
+
+void TemporalConstraintHeader::enableOverlay(bool b)
+{
+  if(b)
+  {
+    m_button = new RackButton{this};
+    connect(m_button, &RackButton::clicked, &m_presenter,
+            [=] { ((TemporalConstraintPresenter&)m_presenter).changeRackState(); });
+    updateButtons();
+  }
+  else
+  {
+    delete m_button;
+    m_button = nullptr;
+  }
 }
 
 void TemporalConstraintHeader::mouseDoubleClickEvent(
@@ -172,4 +200,80 @@ void TemporalConstraintHeader::dropEvent(QGraphicsSceneDragDropEvent* event)
 
   event->accept();
 }
+
+
+
+
+RackButton::RackButton(QGraphicsItem* parent):
+  QGraphicsObject{parent}
+{
+}
+
+void RackButton::setUnrolled(bool b)
+{
+  m_unroll = b;
+  update();
+}
+
+static const QPainterPath trianglePath{
+    [] {
+        QPainterPath p;
+        QPainterPathStroker s;
+        s.setCapStyle(Qt::RoundCap);
+        s.setJoinStyle(Qt::RoundJoin);
+        s.setWidth(2);
+
+        p.addPolygon(QVector<QPointF>{
+                         QPointF(0, 5),
+                         QPointF(0, 21),
+                         QPointF(9, 13)});
+        p.closeSubpath();
+
+        return p + s.createStroke(p);
+    }()
+};
+static const auto rotatedTriangle = QTransform().rotate(90).translate(10, -15).map(trianglePath);
+
+QRectF RackButton::boundingRect() const
+{ return QRectF(trianglePath.boundingRect()); }
+
+void RackButton::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+  painter->setRenderHint(QPainter::Antialiasing, true);
+  auto& skin = ScenarioStyle::instance();
+  painter->setBrush(skin.EventPending.getBrush());
+  const auto bright = skin.EventPending.getBrush().color();
+  QPen p{bright.darker(300)};
+  p.setWidth(2);
+  painter->setPen(p);
+
+  if(m_unroll) {
+    painter->fillPath(trianglePath, painter->brush());
+    painter->drawPath(trianglePath);
+  }
+  else {
+    painter->fillPath(rotatedTriangle, painter->brush());
+    painter->drawPath(rotatedTriangle);
+  }
+  painter->setRenderHint(QPainter::Antialiasing, false);
+}
+
+void RackButton::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+  update();
+  emit clicked();
+}
+
+void RackButton::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+}
+
+void RackButton::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+  update();
+}
+
 }

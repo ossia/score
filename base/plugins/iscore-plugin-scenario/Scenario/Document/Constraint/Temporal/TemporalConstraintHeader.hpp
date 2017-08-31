@@ -14,17 +14,44 @@ class QWidget;
 
 namespace Scenario
 {
+class TemporalConstraintPresenter;
+class RackButton final : public QGraphicsObject
+{
+    Q_OBJECT
+  public:
+    RackButton(QGraphicsItem* parent);
+
+    void setUnrolled(bool b);
+
+  signals:
+    void clicked();
+
+  private:
+    QRectF boundingRect() const override;
+
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+
+    void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+
+    bool m_unroll{false};
+};
+
+
 class TemporalConstraintHeader final : public ConstraintHeader
 {
   Q_OBJECT
 public:
-  TemporalConstraintHeader();
+  TemporalConstraintHeader(TemporalConstraintPresenter& pres);
 
   QRectF boundingRect() const override;
   void paint(
       QPainter* painter,
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
+  void updateButtons();
+  void enableOverlay(bool b);
 signals:
   void doubleClicked();
 
@@ -47,5 +74,7 @@ private:
 
   QRectF m_textRectCache;
   ossia::optional<QGlyphRun> m_line;
+  RackButton* m_button{};
+  TemporalConstraintPresenter& m_presenter;
 };
 }

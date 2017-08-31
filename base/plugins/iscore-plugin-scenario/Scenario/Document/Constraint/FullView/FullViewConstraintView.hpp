@@ -22,6 +22,8 @@ public:
 
   void updatePaths() final override;
   void updatePlayPaths() final override;
+  void updateOverlayPos();
+
   QRectF boundingRect() const override;
   void paint(
       QPainter* painter,
@@ -30,6 +32,7 @@ public:
 
   void setGuiWidth(double);
 
+  void setSelected(bool selected);
 private:
   double m_guiWidth{};
 };
