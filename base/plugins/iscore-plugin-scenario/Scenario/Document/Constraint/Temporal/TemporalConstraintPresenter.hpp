@@ -14,6 +14,7 @@ namespace Scenario
 {
 class SlotHandle;
 class SlotHeader;
+class TemporalConstraintHeader;
 class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintPresenter final
     : public ConstraintPresenter
 {
@@ -41,7 +42,10 @@ public:
   int indexOfSlot(const Process::LayerPresenter&);
   void on_zoomRatioChanged(ZoomRatio val) override;
 
+  void changeRackState();
   void selectedSlot(int) const override;
+  TemporalConstraintView* view() const;
+  TemporalConstraintHeader* header() const;
 signals:
   void constraintHoverEnter();
   void constraintHoverLeave();

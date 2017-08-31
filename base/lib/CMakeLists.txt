@@ -95,6 +95,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/SetIcons.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/QmlContainerPanel.cpp" # TODO MOVEME
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/Separator.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/QGraphicsButton.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/JS/JSEdit.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/SafeQApplication.cpp"
