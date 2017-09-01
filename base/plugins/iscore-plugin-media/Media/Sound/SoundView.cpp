@@ -74,6 +74,7 @@ void LayerView::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
 
 void LayerView::paint_impl(QPainter* painter) const
 {
+    painter->setRenderHint(QPainter::Antialiasing, false);
     const int nchannels = m_numChan;
     if (nchannels == 0)
         return;

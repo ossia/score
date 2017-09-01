@@ -170,7 +170,7 @@ void PlayerImpl::loadFile(QString file)
   const auto json = QJsonDocument::fromJson(f.readAll()).object();
 
   Scenario::ScenarioDocumentFactory fac;
-  m_currentDocument = std::make_unique<Document>(json, fac, QCoreApplication::instance());
+  m_currentDocument = std::make_unique<Document>("Untitled", json, fac, QCoreApplication::instance());
 
   setupLoadedDocument();
 }
@@ -180,7 +180,11 @@ void PlayerImpl::loadArray(QByteArray network)
   closeDocument();
 
   Scenario::ScenarioDocumentFactory fac;
-  m_currentDocument = std::make_unique<Document>(QJsonDocument::fromBinaryData(network).object(), fac, QCoreApplication::instance());
+  m_currentDocument = std::make_unique<Document>(
+                        "Untitled",
+                        QJsonDocument::fromBinaryData(network).object(),
+                        fac,
+                        QCoreApplication::instance());
 
   setupLoadedDocument();
 }

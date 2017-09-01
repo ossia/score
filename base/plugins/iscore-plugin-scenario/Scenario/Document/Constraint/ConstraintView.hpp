@@ -61,9 +61,6 @@ public:
     return m_height;
   }
 
-  void setSelected(bool selected);
-  virtual void enableOverlay(bool selected);
-
   bool isSelected() const
   {
     return m_selected;
@@ -115,7 +112,6 @@ public:
 
   void updateLabelPos();
   void updateCounterPos();
-  void updateOverlayPos();
   virtual void updatePaths() = 0;
   virtual void updatePlayPaths() = 0;
 

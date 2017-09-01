@@ -38,9 +38,6 @@ ConstraintPresenter::ConstraintPresenter(
   m_header->setConstraintView(m_view);
   m_header->hide();
 
-  con(constraint.selection, &Selectable::changed, m_view,
-      &ConstraintView::setSelected);
-
   con(constraint.duration, &ConstraintDurations::minNullChanged, this,
       [&](bool b) { updateBraces(); });
   con(constraint.duration, &ConstraintDurations::minDurationChanged, this,

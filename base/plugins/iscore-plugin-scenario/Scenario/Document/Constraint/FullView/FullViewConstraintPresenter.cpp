@@ -38,6 +38,9 @@ FullViewConstraintPresenter::FullViewConstraintPresenter(
   con(addressBar, &AddressBarItem::constraintSelected, this,
           &FullViewConstraintPresenter::constraintSelected);
 
+  con(constraint.selection, &Selectable::changed, (FullViewConstraintView*)m_view,
+      &FullViewConstraintView::setSelected);
+
   // Header
   const auto& metadata = m_model.metadata();
   con(metadata, &iscore::ModelMetadata::NameChanged, m_header,
@@ -253,7 +256,7 @@ void FullViewConstraintPresenter::on_defaultDurationChanged(const TimeVal& val)
   m_view->setDefaultWidth(w);
   m_view->updateLabelPos();
   m_view->updateCounterPos();
-  m_view->updateOverlayPos();
+  ((FullViewConstraintView*)m_view)->updateOverlayPos();
 
   m_header->update();
   m_view->update();

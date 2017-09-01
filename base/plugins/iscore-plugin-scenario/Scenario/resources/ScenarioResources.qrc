@@ -13,5 +13,6 @@
         <file>images/state-empty.svg</file>
         <file>images/event.svg</file>
         <file>images/timenode.svg</file>
+        <file>images/arrow.png</file>
     </qresource>
 </RCC>
