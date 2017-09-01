@@ -17,13 +17,13 @@ class QGraphicsSceneDragDropEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
+class QGraphicsButton;
 class ConstraintMenuOverlay;
 namespace Process { class LayerPresenter; }
 namespace Scenario
 {
 class TemporalConstraintPresenter;
 class ConstraintDurations;
-
 class ISCORE_PLUGIN_SCENARIO_EXPORT TemporalConstraintView final
     : public ConstraintView
 {
@@ -41,7 +41,7 @@ public:
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
-  void enableOverlay(bool b) override;
+  void enableOverlay(bool b);
 
   void setLabelColor(iscore::ColorRef labelColor);
   void setLabel(const QString& label);
@@ -54,6 +54,8 @@ public:
 
   void setExecutionDuration(const TimeVal& progress);
 
+  void updateOverlayPos();
+  void setSelected(bool selected);
 signals:
   void constraintHoverEnter();
   void constraintHoverLeave();
@@ -71,5 +73,6 @@ private:
   iscore::ColorRef m_bgColor;
 
   QPainterPath solidPath, dashedPath, playedSolidPath, playedDashedPath, waitingDashedPath;
+
 };
 }

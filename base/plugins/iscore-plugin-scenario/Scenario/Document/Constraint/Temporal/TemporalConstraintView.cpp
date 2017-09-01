@@ -229,7 +229,8 @@ void TemporalConstraintView::paint(
 
   // Draw the stuff present if there is a rack *in the model* ?
 
-  if (presenter().model().smallViewVisible())
+  auto& c = presenter().model();
+  if (c.smallViewVisible())
   {
     // Background
     auto rect = boundingRect();
@@ -246,6 +247,7 @@ void TemporalConstraintView::paint(
     painter.drawLine(rect.topLeft(), rect.bottomLeft());
     painter.drawLine(rect.topRight(), rect.bottomRight());
   }
+
 
   // Colors
   auto defaultColor = this->constraintColor(skin);
@@ -368,6 +370,14 @@ void TemporalConstraintView::enableOverlay(bool b)
   }
 }
 
+void TemporalConstraintView::setSelected(bool selected)
+{
+  m_selected = selected;
+  setZValue(m_selected ? ZPos::SelectedConstraint : ZPos::Constraint);
+  enableOverlay(selected);
+  update();
+}
+
 void TemporalConstraintView::setExecutionDuration(const TimeVal& progress)
 {
   // FIXME this should be merged with the slot in ConstraintPresenter!!!
@@ -387,10 +397,17 @@ void TemporalConstraintView::setExecutionDuration(const TimeVal& progress)
   update();
 }
 
+void TemporalConstraintView::updateOverlayPos()
+{
+  if(m_overlay)
+  {
+    m_overlay->setPos(defaultWidth() / 2. - m_overlay->boundingRect().width() / 2, -10);
+  }
+}
+
 void TemporalConstraintView::setLabelColor(iscore::ColorRef labelColor)
 {
   m_labelItem.setColor(labelColor);
   update();
 }
-
 }
