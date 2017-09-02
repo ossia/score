@@ -7,6 +7,9 @@ endif()
 if(ANDROID)
   return()
 endif()
+if(NOT OSSIA_PROTOCOL_MIDI)
+  return()
+endif()
 # Packages
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 
