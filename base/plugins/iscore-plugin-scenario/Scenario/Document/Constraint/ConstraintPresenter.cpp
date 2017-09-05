@@ -37,6 +37,7 @@ ConstraintPresenter::ConstraintPresenter(
   m_header->setParentItem(m_view);
   m_header->setConstraintView(m_view);
   m_header->hide();
+  //m_header->setPos(0, -m_header->headerHeight());
 
   con(constraint.duration, &ConstraintDurations::minNullChanged, this,
       [&](bool b) { updateBraces(); });

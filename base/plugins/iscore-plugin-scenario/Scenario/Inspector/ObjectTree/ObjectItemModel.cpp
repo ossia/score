@@ -478,7 +478,7 @@ QWidget *ObjectPanelDelegate::widget()
 
 const iscore::PanelStatus &ObjectPanelDelegate::defaultPanelStatus() const
 {
-  static const iscore::PanelStatus status{true, Qt::RightDockWidgetArea, 8,
+  static const iscore::PanelStatus status{true, Qt::RightDockWidgetArea, 12,
         QObject::tr("Objects"),
         QObject::tr("Ctrl+Shift+O")};
 
