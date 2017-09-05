@@ -25,6 +25,8 @@ ProcessModel::ProcessModel(
     , m_duration{std::move(duration)}
     , m_slotHeight{300}
 {
+  con(metadata(), &iscore::ModelMetadata::NameChanged,
+      this, [=] { prettyNameChanged(); });
 }
 
 ProcessModel::~ProcessModel()
@@ -41,6 +43,8 @@ ProcessModel::ProcessModel(
     , m_duration{source.duration()}
     , m_slotHeight{source.m_slotHeight}
 {
+  con(metadata(), &iscore::ModelMetadata::NameChanged,
+      this, [=] { prettyNameChanged(); });
 }
 
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
@@ -62,12 +66,16 @@ ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent)
   : Entity(vis, parent)
 {
   vis.writeTo(*this);
+  con(metadata(), &iscore::ModelMetadata::NameChanged,
+      this, [=] { prettyNameChanged(); });
 }
 
 ProcessModel::ProcessModel(JSONObject::Deserializer& vis, QObject* parent)
     : Entity(vis, parent)
 {
   vis.writeTo(*this);
+  con(metadata(), &iscore::ModelMetadata::NameChanged,
+      this, [=] { prettyNameChanged(); });
 }
 
 QString ProcessModel::prettyName() const

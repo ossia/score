@@ -29,4 +29,28 @@ void LayerPresenter::fillContextMenu(
     QMenu&, QPoint pos, QPointF scenepos, const LayerContextMenuManager&)
 {
 }
+
+GraphicsShapeItem*LayerPresenter::makeSlotHeaderDelegate()
+{
+  return nullptr;
+}
+
+GraphicsShapeItem::~GraphicsShapeItem()
+{
+
+}
+
+void GraphicsShapeItem::setSize(QSizeF sz)
+{
+  prepareGeometryChange();
+  m_sz = sz;
+  update();
+}
+
+
+QRectF GraphicsShapeItem::boundingRect() const
+{
+  return {0, 0, m_sz.width(), m_sz.height()};
+}
+
 }

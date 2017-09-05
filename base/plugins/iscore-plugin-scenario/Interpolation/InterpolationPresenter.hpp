@@ -21,18 +21,12 @@ public:
       QObject* parent)
       : CurveProcessPresenter{style, layer, view, context, parent}
   {
-    con(m_layer, &ProcessModel::addressChanged, this,
-        &Presenter::on_nameChanges);
-    con(m_layer.metadata(), &iscore::ModelMetadata::NameChanged,
-        this, &Presenter::on_nameChanges);
     con(m_layer, &ProcessModel::tweenChanged, this,
         &Presenter::on_tweenChanges);
     connect(
         m_view, &View::dropReceived, this,
         &Presenter::on_dropReceived);
 
-    m_view->setDisplayedName(m_layer.prettyName());
-    m_view->showName(true);
     on_tweenChanges(m_layer.tween());
     con(layer.curve(), &Curve::Model::curveReset,
         this, [&] {
@@ -44,11 +38,6 @@ private:
   void setFullView() override
   {
     m_curve.setBoundedMove(false);
-  }
-
-  void on_nameChanges()
-  {
-    m_view->setDisplayedName(m_layer.prettyName());
   }
 
   void on_tweenChanges(bool b)

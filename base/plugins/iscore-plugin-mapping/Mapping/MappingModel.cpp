@@ -59,8 +59,8 @@ ProcessModel::~ProcessModel()
 
 QString ProcessModel::prettyName() const
 {
-  return metadata().getName() + " :\n  " + sourceAddress().toString()
-         + " ->\n  " + targetAddress().toString();
+  return sourceAddress().toString()
+         + " -> " + targetAddress().toString();
 }
 
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
@@ -106,6 +106,7 @@ void ProcessModel::setSourceAddress(const State::AddressAccessor& arg)
 
   m_sourceAddress = arg;
   emit sourceAddressChanged(arg);
+  emit prettyNameChanged();
   emit m_curve->changed();
 }
 
@@ -153,6 +154,7 @@ void ProcessModel::setTargetAddress(const State::AddressAccessor& arg)
 
   m_targetAddress = arg;
   emit targetAddressChanged(arg);
+  emit prettyNameChanged();
   emit m_curve->changed();
 }
 

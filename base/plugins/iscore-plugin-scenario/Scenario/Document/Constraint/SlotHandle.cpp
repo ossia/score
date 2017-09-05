@@ -93,6 +93,8 @@ SlotHeader::SlotHeader(const ConstraintPresenter& slotView, int slotIndex, QGrap
     , m_slotIndex{slotIndex}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
+  this->setFlag(ItemClipsToShape);
+  this->setFlag(ItemClipsChildrenToShape);
 }
 
 int SlotHeader::slotIndex() const
@@ -107,7 +109,7 @@ void SlotHeader::setSlotIndex(int v)
 
 QRectF SlotHeader::boundingRect() const
 {
-  return {0., 0., m_width - 2., headerHeight()};
+  return {0., 0., m_width, headerHeight()};
 }
 
 void SlotHeader::paint(
@@ -115,7 +117,16 @@ void SlotHeader::paint(
 {
   const auto& style = ScenarioStyle::instance();
 
-  painter->fillRect(boundingRect(), style.ConstraintHeaderSideBorder.getBrush());
+  painter->setPen(style.StateTemporalPointPen);
+  painter->setBrush(style.NoBrush);
+  painter->drawRect(QRectF{0., 0., m_width, headerHeight() - 1});
+  double x = 4;
+  painter->drawEllipse(x += 2, 9, 1.5, 1.5);
+  painter->drawEllipse(x += 2, 5, 1.5, 1.5);
+  painter->drawEllipse(x += 2, 9, 1.5, 1.5);
+  painter->drawEllipse(x += 2, 5, 1.5, 1.5);
+  painter->drawEllipse(x += 2, 9, 1.5, 1.5);
+  painter->drawEllipse(x += 2, 5, 1.5, 1.5);
 }
 
 void SlotHeader::setWidth(qreal width)
