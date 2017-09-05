@@ -157,6 +157,7 @@ void ProcessModel::setAddress(const State::AddressAccessor& arg)
 
   m_address = arg;
   emit addressChanged(arg);
+  emit prettyNameChanged();
   emit m_curve->changed();
 }
 

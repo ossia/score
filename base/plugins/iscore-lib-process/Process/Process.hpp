@@ -96,6 +96,7 @@ signals:
   void useParentDurationChanged(bool);
 
   void slotHeightChanged(double);
+  void prettyNameChanged();
 
 protected:
   // Clone

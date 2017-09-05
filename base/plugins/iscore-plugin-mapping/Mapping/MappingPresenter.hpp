@@ -21,21 +21,6 @@ public:
       QObject* parent)
       : CurveProcessPresenter{style, layer, view, context, parent}
   {
-    con(m_layer, &ProcessModel::sourceAddressChanged, this,
-        &LayerPresenter::on_nameChanges);
-    con(m_layer, &ProcessModel::targetAddressChanged, this,
-        &LayerPresenter::on_nameChanges);
-    con(m_layer.metadata(), &iscore::ModelMetadata::NameChanged,
-        this, &LayerPresenter::on_nameChanges);
-
-    m_view->setDisplayedName(m_layer.prettyName());
-    m_view->showName(true);
-  }
-
-private:
-  void on_nameChanges()
-  {
-    m_view->setDisplayedName(m_layer.prettyName());
   }
 };
 }

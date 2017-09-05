@@ -86,14 +86,12 @@ public:
   {
     m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
     m_curve.enable();
-    m_view->showName(true);
   }
 
   void putBehind() final override
   {
     m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
     m_curve.disable();
-    m_view->showName(false);
   }
 
   void on_zoomRatioChanged(ZoomRatio val) final override
@@ -139,7 +137,7 @@ protected:
   Presenter m_curve;
   CommandDispatcher<> m_commandDispatcher;
 
-  Curve::ToolPalette_T<Process::LayerContext> m_sm;  
+  Curve::ToolPalette_T<Process::LayerContext> m_sm;
   ZoomRatio m_zoomRatio{};
 };
 }

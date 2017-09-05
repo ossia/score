@@ -5,6 +5,7 @@
 
 #include <Process/ProcessContext.hpp>
 #include <iscore/model/Identifier.hpp>
+#include <QGraphicsItem>
 class QMenu;
 class QPoint;
 class QPointF;
@@ -12,6 +13,17 @@ namespace Process
 {
 class ProcessModel;
 class LayerContextMenuManager;
+class ISCORE_LIB_PROCESS_EXPORT GraphicsShapeItem : public QGraphicsItem
+{
+  public:
+    using QGraphicsItem::QGraphicsItem;
+    ~GraphicsShapeItem();
+    void setSize(QSizeF sz);
+
+    QRectF boundingRect() const final override;
+  private:
+    QSizeF m_sz{};
+};
 class ISCORE_LIB_PROCESS_EXPORT LayerPresenter : public QObject
 {
   Q_OBJECT
@@ -52,6 +64,8 @@ public:
       QPoint pos,
       QPointF scenepos,
       const LayerContextMenuManager&);
+
+  virtual GraphicsShapeItem* makeSlotHeaderDelegate();
 
 signals:
   void contextMenuRequested(const QPoint&, const QPointF&);

@@ -211,6 +211,7 @@ void ProcessModel::setAddress(const ::State::AddressAccessor& arg)
 
   m_address = arg;
   emit addressChanged(arg);
+  emit prettyNameChanged();
   emit unitChanged(arg.qualifiers.get().unit);
   emit m_curve->changed();
 }
@@ -246,6 +247,7 @@ void ProcessModel::setUnit(const State::Unit& u)
   {
     m_address.qualifiers.get().unit = u;
     emit addressChanged(m_address);
+    emit prettyNameChanged();
     emit unitChanged(u);
   }
 }

@@ -27,12 +27,51 @@
 #include <iscore/tools/Todo.hpp>
 #include <boost/range/algorithm_ext/erase.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
 class QColor;
 class QObject;
 class QString;
 
 namespace Scenario
 {
+class DefaultHeaderDelegate
+    : public QObject
+    , public Process::GraphicsShapeItem
+{
+public:
+    DefaultHeaderDelegate(Process::LayerPresenter& p): presenter{p}
+    {
+      con(presenter.model(), &Process::ProcessModel::prettyNameChanged,
+          this, &DefaultHeaderDelegate::updateName);
+      updateName();
+      m_textcache.setFont(ScenarioStyle::instance().Bold10Pt);
+      m_textcache.setCacheEnabled(true);
+    }
+
+    void updateName()
+    {
+      m_textcache.setText(presenter.model().prettyName());
+      m_textcache.beginLayout();
+
+      QTextLine line = m_textcache.createLine();
+      line.setPosition(QPointF{0., 0.});
+
+      m_textcache.endLayout();
+
+      update();
+    }
+
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
+    {
+      painter->setPen(ScenarioStyle::instance().ConstraintHeaderSeparator);
+      m_textcache.draw(painter, QPointF{0., 0.});
+    }
+
+  private:
+    Process::LayerPresenter& presenter;
+    QTextLayout m_textcache;
+};
+
 TemporalConstraintPresenter::TemporalConstraintPresenter(
     const ConstraintModel& constraint,
     const Process::ProcessPresenterContext& ctx,
@@ -430,7 +469,7 @@ void TemporalConstraintPresenter::updatePositions()
 
     if(slot.header)
     {
-      slot.header->setPos(1, currentSlotY);
+      slot.header->setPos(0, currentSlotY);
       slot.header->setSlotIndex(i);
     }
     currentSlotY += SlotHeader::headerHeight();
@@ -455,7 +494,6 @@ void TemporalConstraintPresenter::updatePositions()
 
   updateProcessesShape();
 }
-
 void TemporalConstraintPresenter::on_layerModelPutToFront(int slot, const Process::ProcessModel& proc)
 {
   if(m_model.smallViewVisible())
@@ -463,11 +501,21 @@ void TemporalConstraintPresenter::on_layerModelPutToFront(int slot, const Proces
     // Put the selected one at z+1 and the others at -z; set "disabled" graphics
     // mode.
     // OPTIMIZEME by saving the previous to front and just switching...
-    for (const LayerData& elt : m_slots.at(slot).processes)
+    auto& slt = m_slots.at(slot);
+    deleteGraphicsItem(slt.headerDelegate);
+    slt.headerDelegate = nullptr;
+    for (const LayerData& elt : slt.processes)
     {
       if (elt.model->id() == proc.id())
       {
         elt.presenter->putToFront();
+        slt.headerDelegate = elt.presenter->makeSlotHeaderDelegate();
+        if(!slt.headerDelegate)
+        {
+          slt.headerDelegate = new DefaultHeaderDelegate{*elt.presenter};
+          slt.headerDelegate->setParentItem(slt.header);
+          slt.headerDelegate->setPos(30, 0);
+        }
       }
       else
       {
@@ -596,6 +644,8 @@ void TemporalConstraintPresenter::on_defaultDurationChanged(const TimeVal& val)
     slot.header->setWidth(w);
     if(slot.handle)
       slot.handle->setWidth(w);
+    if(slot.headerDelegate)
+      slot.headerDelegate->setSize(QSizeF{w, SlotHeader::headerHeight()});
     for(const LayerData& proc : slot.processes)
     {
       proc.presenter->setWidth(w);

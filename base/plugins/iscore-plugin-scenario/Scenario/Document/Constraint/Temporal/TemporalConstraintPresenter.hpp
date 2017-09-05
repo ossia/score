@@ -9,6 +9,7 @@ class QObject;
 namespace Process
 {
 class ProcessModel;
+class GraphicsShapeItem;
 }
 namespace Scenario
 {
@@ -70,6 +71,7 @@ private:
   struct SlotPresenter
   {
     SlotHeader* header{};
+    Process::GraphicsShapeItem* headerDelegate{};
     SlotHandle* handle{};
     std::vector<LayerData> processes;
   };
