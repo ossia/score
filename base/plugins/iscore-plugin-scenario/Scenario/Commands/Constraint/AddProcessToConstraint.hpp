@@ -50,59 +50,22 @@ class AddProcessToConstraint final : public iscore::Command
   public:
   AddProcessToConstraint(
       const ConstraintModel& constraint,
-      const UuidKey<Process::ProcessModel>& process)
-    : m_addProcessCommand{constraint,
-                          getStrongId(constraint.processes),
-                          process}
-  {
-  }
+      const UuidKey<Process::ProcessModel>& process);
+    ~AddProcessToConstraint();
 
-  void undo(const iscore::DocumentContext& ctx) const override
-  {
-    auto& constraint = m_addProcessCommand.constraintPath().find(ctx);
+  void undo(const iscore::DocumentContext& ctx) const override;
+  void redo(const iscore::DocumentContext& ctx) const override;
 
-    constraint.removeSlot(int(constraint.smallView().size() - 1));
-    m_addProcessCommand.undo(ctx);
-  }
-  void redo(const iscore::DocumentContext& ctx) const override
-  {
-    auto& constraint = m_addProcessCommand.constraintPath().find(ctx);
-
-    // Create process model
-    auto& proc = m_addProcessCommand.redo(constraint, ctx);
-    auto h
-        = iscore::AppContext().settings<Scenario::Settings::Model>().getSlotHeight();
-    constraint.addSlot(Slot{{proc.id()}, proc.id(), h});
-    constraint.setSmallViewVisible(true);
-  }
-
-  const Path<ConstraintModel>& constraintPath() const
-  {
-    return m_addProcessCommand.constraintPath();
-  }
-  const Id<Process::ProcessModel>& processId() const
-  {
-    return m_addProcessCommand.processId();
-  }
-  const UuidKey<Process::ProcessModel>& processKey() const
-  {
-    return m_addProcessCommand.processKey();
-  }
+  const Path<ConstraintModel>& constraintPath() const;
+  const Id<Process::ProcessModel>& processId() const;
+  const UuidKey<Process::ProcessModel>& processKey() const;
 
 private:
-  void serializeImpl(DataStreamInput& s) const override
-  {
-    s << m_addProcessCommand.serialize();
-  }
-  void deserializeImpl(DataStreamOutput& s) override
-  {
-    QByteArray b;
-    s >> b;
-
-    m_addProcessCommand.deserialize(b);
-  }
+  void serializeImpl(DataStreamInput& s) const override;
+  void deserializeImpl(DataStreamOutput& s) override;
 
   AddOnlyProcessToConstraint m_addProcessCommand;
+  bool m_addedSlot{};
 };
 
 class AddProcessInNewBoxMacro final : public iscore::AggregateCommand
@@ -110,6 +73,9 @@ class AddProcessInNewBoxMacro final : public iscore::AggregateCommand
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), AddProcessInNewBoxMacro,
       "Add a process in a new box")
+
+  public:
+    ~AddProcessInNewBoxMacro();
 };
 }
 }
