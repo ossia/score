@@ -1,7 +1,10 @@
 #include "AddressItemModel.hpp"
+#include <QStyledItemDelegate>
 #include <ossia/editor/dataspace/dataspace_visitors.hpp>
 #include <ossia/editor/value/value_traits.hpp>
 #include <ossia/network/base/node_attributes.hpp>
+#include <ossia/network/domain/domain.hpp>
+#include <QPainter>
 namespace Explorer
 {
 
@@ -113,6 +116,9 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
         case Rows::Address: return tr("Address");
         case Rows::Value: return tr("Value");
         case Rows::Type: return tr("Type");
+        case Rows::Min: return tr("Min");
+        case Rows::Max: return tr("Max");
+        case Rows::Values: return tr("Values");
         case Rows::Unit: return tr("Unit");
         case Rows::Access: return tr("Access");
         case Rows::Bounding: return tr("Bounding");
@@ -141,6 +147,10 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
         case Rows::Address: return m_settings.address.toString();
         case Rows::Value: return valueColumnData(m_settings.value, role);
         case Rows::Type: { return State::convert::ValuePrettyTypesArray()[(int)m_settings.value.getType()]; }
+
+        case Rows::Min: { return valueColumnData(ossia::get_min(m_settings.domain.get()), role); }
+        case Rows::Max: { return valueColumnData(ossia::get_max(m_settings.domain.get()), role); }
+        case Rows::Values: { return valueColumnData(ossia::get_values(m_settings.domain.get()), role); }
         case Rows::Unit: return QString::fromStdString(ossia::get_pretty_unit_text(m_settings.unit.get()));
         case Rows::Access: { return m_settings.ioType ? Device::AccessModeText()[*m_settings.ioType] : tr("None"); }
         case Rows::Bounding: { return Device::ClipModePrettyStringMap()[m_settings.clipMode]; }
