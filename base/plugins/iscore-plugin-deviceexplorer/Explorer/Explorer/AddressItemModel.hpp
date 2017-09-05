@@ -12,6 +12,7 @@ namespace Explorer {
  * * Value
  * * Unit
  * * Type
+ * * Domain
  * * Access mode
  * * Bounding mode
  * * Repetition filter
@@ -35,7 +36,7 @@ class AddressItemModel : public QAbstractItemModel
     QVariant
     valueColumnData(const State::Value& val, int role) const;
 
-    enum Rows { Name, Address, Value, Type, Unit,
+    enum Rows { Name, Address, Value, Type, Min, Max, Values, Unit,
                 Access, Bounding, Repetition, Description, Tags, Count
               };
     QVariant data(const QModelIndex& index, int role) const override;

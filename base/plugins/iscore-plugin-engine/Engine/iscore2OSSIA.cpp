@@ -152,27 +152,33 @@ ossia::net::node_base*
 findNodeFromPath(const Device::Node& path, ossia::net::device_base& dev)
 {
   using namespace ossia;
-  // First fill the vector of nodes
-  chobo::small_vector<const Device::Node*, 16> vec;
-  getPath(vec, &path);
-
-
   // Find the relevant node to add in the device
   ossia::net::node_base* node = &dev.get_root_node();
-  for (std::size_t i = 0; i < vec.size(); i++)
+  if(!path.is<Device::DeviceSettings>())
   {
-    auto cld = node->find_child(vec[i]->displayName());
-    if (cld)
-      node = cld;
-    else
-    {
-      qDebug() << "looking for" << Device::address(path).address
-               << " -- last found: " << node->get_name() << "\n";
-      return {};
-    }
-  }
+    // First fill the vector of nodes
+    chobo::small_vector<const Device::Node*, 16> vec;
+    getPath(vec, &path);
 
-  return node;
+    for (std::size_t i = 0; i < vec.size(); i++)
+    {
+      auto cld = node->find_child(vec[i]->displayName());
+      if (cld)
+        node = cld;
+      else
+      {
+        qDebug() << "looking for" << Device::address(path).address
+                 << " " << i << " " << vec.size() << " " << vec[i]->displayName()
+                 << " -- last found: " << node->get_name() << "\n";
+        return {};
+      }
+    }
+    return node;
+  }
+  else
+  {
+    return &dev.get_root_node();
+  }
 }
 
 ossia::net::node_base*
