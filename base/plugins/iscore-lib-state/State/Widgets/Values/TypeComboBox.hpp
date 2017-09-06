@@ -5,17 +5,17 @@
 
 namespace State
 {
-class ISCORE_LIB_STATE_EXPORT TypeComboBox : public QComboBox
+class ISCORE_LIB_STATE_EXPORT TypeComboBox final : public QComboBox
 {
   Q_OBJECT
 public:
   TypeComboBox(QWidget* parent);
   virtual ~TypeComboBox();
 
-  ossia::val_type currentType() const;
-  void setType(ossia::val_type t);
+  ossia::val_type get() const;
+  void set(ossia::val_type t);
 
 signals:
-  void typeChanged(ossia::val_type);
+  void changed(ossia::val_type);
 };
 }

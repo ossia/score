@@ -7,12 +7,12 @@
 namespace State
 {
 
-ossia::val_type TypeComboBox::currentType() const
+ossia::val_type TypeComboBox::get() const
 {
   return this->currentData().value<ossia::val_type>();
 }
 
-void TypeComboBox::setType(ossia::val_type t)
+void TypeComboBox::set(ossia::val_type t)
 {
   if(t != ossia::val_type::NONE)
     setCurrentIndex((int) t);
@@ -34,7 +34,7 @@ TypeComboBox::TypeComboBox(QWidget* parent) : QComboBox{parent}
   connect(
       this, SignalUtils::QComboBox_currentIndexChanged_int(), this,
       [=](int i) {
-        emit typeChanged(this->itemData(i).value<ossia::val_type>());
+        emit changed(this->itemData(i).value<ossia::val_type>());
       });
 }
 

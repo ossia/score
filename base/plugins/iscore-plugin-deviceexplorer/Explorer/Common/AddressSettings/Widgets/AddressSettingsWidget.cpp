@@ -17,17 +17,15 @@
 #include <QStringList>
 #include <QVariant>
 #include <State/Widgets/UnitWidget.hpp>
+#include <iscore/widgets/SignalUtils.hpp>
 #include <ossia/network/base/node_attributes.hpp>
 namespace Explorer
 {
 AddressSettingsWidget::AddressSettingsWidget(QWidget* parent)
   : QWidget(parent), m_layout{new QFormLayout}, m_none_type{false}
 {
-  m_ioTypeCBox = new QComboBox{this};
-  m_ioTypeCBox->setToolTip(
-        tr("Set in which direction the communication should happen."));
-  m_clipModeCBox = new QComboBox{this};
-  m_clipModeCBox->setToolTip(tr("Set how the values should be clipped."));
+  m_ioTypeCBox = new AccessModeComboBox{this};
+  m_clipModeCBox = new BoundingModeComboBox{this};
   m_repetition = new QCheckBox;
   m_repetition->setToolTip(
         tr("When repetitions are filtered, if two identical values are sent one "
@@ -64,19 +62,6 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget* parent)
   m_layout->addRow(makeLabel(tr("Tags"), this), tagLayout);
   m_layout->addRow(makeLabel(tr("Unit"), this), m_unit);
   m_layout->addRow(makeLabel(tr("Description"), this), m_description);
-
-  // Populate the combo boxes
-  const auto& io_map = Device::AccessModeText();
-  for (auto it = io_map.cbegin(); it != io_map.cend(); ++it)
-  {
-    m_ioTypeCBox->addItem(it.value(), (int)it.key());
-  }
-
-  const auto& clip_map = Device::ClipModePrettyStringMap();
-  for (auto it = clip_map.cbegin(); it != clip_map.cend(); ++it)
-  {
-    m_clipModeCBox->addItem(it.value(), (int)it.key());
-  }
 
   setLayout(m_layout);
 }
@@ -197,4 +182,85 @@ void AddressSettingsWidget::setCommonSettings(
     m_tagsEdit->clear();
   }
 }
+
+AccessModeComboBox::AccessModeComboBox(QWidget* parent) : QComboBox{parent}
+{
+  setToolTip(tr("Set in which direction the communication should happen."));
+  const auto& io_map = Device::AccessModeText();
+  for (auto it = io_map.cbegin(); it != io_map.cend(); ++it)
+  {
+    addItem(it.value(), (int)it.key());
+  }
+
+  connect(
+        this, SignalUtils::QComboBox_currentIndexChanged_int(), this,
+        [=](int i) {
+    emit changed(
+          (ossia::access_mode) this->itemData(i).toInt());
+  });
+}
+
+
+AccessModeComboBox::~AccessModeComboBox()
+{
+}
+
+
+ossia::access_mode AccessModeComboBox::get() const
+{
+  return (ossia::access_mode) this->currentData().toInt();
+}
+
+
+void AccessModeComboBox::set(ossia::access_mode t)
+{
+  const auto& clip_map = Device::AccessModeText();
+  for (int i = 0; i < clip_map.size(); i++)
+  {
+    if(itemData(i).toInt() == (int)t)
+    {
+      setCurrentIndex(i);
+      break;
+    }
+  }
+}
+
+BoundingModeComboBox::BoundingModeComboBox(QWidget* parent) : QComboBox{parent}
+{
+  setToolTip(tr("Set how the values should be clipped."));
+  const auto& clip_map = Device::ClipModePrettyStringMap();
+  for (auto it = clip_map.cbegin(); it != clip_map.cend(); ++it)
+  {
+    addItem(it.value(), (int)it.key());
+  }
+  connect(
+        this, SignalUtils::QComboBox_currentIndexChanged_int(), this,
+        [=](int i) {
+    emit changed(
+          (ossia::bounding_mode) this->itemData(i).toInt());
+  });
+}
+
+BoundingModeComboBox::~BoundingModeComboBox()
+{
+}
+
+ossia::bounding_mode BoundingModeComboBox::get() const
+{
+  return (ossia::bounding_mode) this->currentData().toInt();
+}
+
+void BoundingModeComboBox::set(ossia::bounding_mode t)
+{
+  const auto& clip_map = Device::ClipModePrettyStringMap();
+  for (int i = 0; i < clip_map.size(); i++)
+  {
+    if(itemData(i).toInt() == (int)t)
+    {
+      setCurrentIndex(i);
+      break;
+    }
+  }
+}
+
 }

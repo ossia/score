@@ -8,6 +8,7 @@
 #include <Explorer/Commands/Update/UpdateAddressSettings.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
+#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 namespace Explorer
 {
 
@@ -45,9 +46,6 @@ bool AddressItemModel::setData(const QModelIndex& index, const QVariant& value, 
   if(index.column() != 1)
     return false;
 
-  if(role != Qt::EditRole)
-    return false;
-
   if(index.row() < 0 || index.row() > rowCount({}))
     return false;
 
@@ -56,6 +54,7 @@ bool AddressItemModel::setData(const QModelIndex& index, const QVariant& value, 
 
   if(m_settings.address.path.empty())
     return false; // TODO just rename device ?
+
 
   Device::AddressSettings before, after;
   before.name = m_settings.address.path.last();
@@ -85,7 +84,60 @@ bool AddressItemModel::setData(const QModelIndex& index, const QVariant& value, 
 
     case Rows::Type:
     {
-      after.value = ossia::convert(before.value, (ossia::val_type)value.toInt());
+      after.value = ossia::convert(before.value, value.value<ossia::val_type>());
+      break;
+    }
+
+    case Rows::Min:
+    {
+      const auto& dom = before.domain.get();
+      auto cur_min = dom.get_min();
+      auto copy = State::convert::fromQVariant(value);
+      if (copy.v.which() != cur_min.v.which() && !State::convert::convert(cur_min, copy))
+        return false;
+
+      after.domain.get().set_min(copy);
+      break;
+    }
+    case Rows::Max:
+    {
+      const auto& dom = before.domain.get();
+      auto cur_max = dom.get_max();
+      auto copy = State::convert::fromQVariant(value);
+      if (copy.v.which() != cur_max.v.which() && !State::convert::convert(cur_max, copy))
+        return false;
+
+      after.domain.get().set_max(copy);
+      break;
+    }
+    case Rows::Access:
+    {
+      after.ioType = (ossia::access_mode)value.toInt();
+      break;
+    }
+    case Rows::Bounding:
+    {
+      after.clipMode = (ossia::bounding_mode)value.toInt();
+      break;
+    }
+    case Rows::Repetition:
+    {
+      after.repetitionFilter = value.toInt() != 0 ? ossia::repetition_filter::ON : ossia::repetition_filter::OFF;
+      break;
+    }
+    case Rows::Description:
+    {
+      ossia::net::set_description(after.extendedAttributes, value.toString().toStdString());
+      break;
+    }
+    case Rows::Tags:
+    {
+      ISCORE_TODO;
+      break;
+    }
+    case Rows::Unit:
+    {
+      after.unit.get() = value.value<State::Unit>().get();
       break;
     }
   }
@@ -156,7 +208,6 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
 {
   if(role == Qt::DisplayRole)
   {
-
     if(!m_settings.value.valid())
     {
       switch(index.column())
@@ -219,18 +270,30 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
       {
         switch(index.row())
         {
-          case Rows::Name: return m_settings.address.path.last();
-          case Rows::Address: return m_settings.address.toString();
-          case Rows::Value: return valueColumnData(m_settings.value, role);
-          case Rows::Type: { return State::convert::ValuePrettyTypesArray()[(int)m_settings.value.getType()]; }
-          case Rows::Min: { return valueColumnData(ossia::get_min(m_settings.domain.get()), role); }
-          case Rows::Max: { return valueColumnData(ossia::get_max(m_settings.domain.get()), role); }
-          case Rows::Values: { return valueColumnData(ossia::get_values(m_settings.domain.get()), role); }
-          case Rows::Unit: return QString::fromStdString(ossia::get_pretty_unit_text(m_settings.unit.get()));
-          case Rows::Access: { return m_settings.ioType ? Device::AccessModeText()[*m_settings.ioType] : tr("None"); }
-          case Rows::Bounding: { return Device::ClipModePrettyStringMap()[m_settings.clipMode]; }
-          case Rows::Repetition: return (bool) m_settings.repetitionFilter;
-          case Rows::Description: {
+          case Rows::Name:
+            return m_settings.address.path.last();
+          case Rows::Address:
+            return m_settings.address.toString();
+          case Rows::Value:
+            return valueColumnData(m_settings.value, role);
+          case Rows::Type:
+          { return State::convert::ValuePrettyTypesArray()[(int)m_settings.value.getType()]; }
+          case Rows::Min:
+          { return valueColumnData(ossia::get_min(m_settings.domain.get()), role); }
+          case Rows::Max:
+          { return valueColumnData(ossia::get_max(m_settings.domain.get()), role); }
+          case Rows::Values:
+          { return valueColumnData(ossia::get_values(m_settings.domain.get()), role); }
+          case Rows::Unit:
+          { return QString::fromStdString(ossia::get_pretty_unit_text(m_settings.unit.get())); }
+          case Rows::Access:
+          { return m_settings.ioType ? Device::AccessModeText()[*m_settings.ioType] : tr("None"); }
+          case Rows::Bounding:
+          { return Device::ClipModePrettyStringMap()[m_settings.clipMode]; }
+          case Rows::Repetition:
+          { return m_settings.repetitionFilter == ossia::repetition_filter::ON ? tr("Filtered") : tr("Unfiltered"); }
+          case Rows::Description:
+          {
             auto desc = ossia::net::get_description(m_settings.extendedAttributes);
             if(desc)
               return QString::fromStdString(*desc);
@@ -264,13 +327,24 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
   {
     if(index.column() == 1 && index.row() == Rows::Type)
     {
-       return (int)m_settings.value.getType();
+      switch(index.row())
+      {
+        case Rows::Type: return (int)m_settings.value.getType();
+        case Rows::Access: return (int)*m_settings.ioType;
+        case Rows::Bounding: return (int)m_settings.clipMode;
+      }
     }
     else
     {
       return {};
     }
-
+  }
+  else if(role == Qt::CheckStateRole)
+  {
+    if(index.column() == 1 && index.row() == Rows::Repetition)
+    {
+      return m_settings.repetitionFilter == ossia::repetition_filter::ON ? Qt::Checked : Qt::Unchecked;
+    }
   }
 
   return {};
@@ -290,7 +364,7 @@ Qt::ItemFlags AddressItemModel::flags(const QModelIndex& index) const
     , { Qt::ItemIsEditable } // unit
     , { Qt::ItemIsEditable } // access
     , { Qt::ItemIsEditable } // bounding
-    , { Qt::ItemIsEditable } // repetition
+    , { Qt::ItemIsUserCheckable | Qt::ItemIsEnabled } // repetition
     , { Qt::ItemIsEditable } // description
     , { Qt::ItemIsEditable } // tags
   }};
@@ -321,7 +395,15 @@ QWidget*AddressItemDelegate::createEditor(QWidget* parent, const QStyleOptionVie
   {
     case AddressItemModel::Rows::Type:
     {
-      return new State::TypeComboBox(parent);
+      return new State::TypeComboBox{parent};
+    }
+    case AddressItemModel::Rows::Access:
+    {
+      return new Explorer::AccessModeComboBox{parent};
+    }
+    case AddressItemModel::Rows::Bounding:
+    {
+      return new Explorer::BoundingModeComboBox{parent};
     }
   }
 
@@ -344,9 +426,32 @@ void AddressItemDelegate::setEditorData(QWidget* editor, const QModelIndex& inde
       {
         auto cur = index.data(Qt::EditRole).toInt();
         if(cur >= 0 && cur < State::convert::ValuePrettyTypesArray().size())
-          cb->setType((ossia::val_type) cur);
+          cb->set((ossia::val_type) cur);
         return;
       }
+      break;
+    }
+    case AddressItemModel::Rows::Access:
+    {
+      if (auto cb = qobject_cast<Explorer::AccessModeComboBox*>(editor))
+      {
+        auto cur = index.data(Qt::EditRole).toInt();
+        if(cur >= 0 && cur < Device::AccessModeText().size())
+          cb->set((ossia::access_mode) cur);
+        return;
+      }
+      break;
+    }
+    case AddressItemModel::Rows::Bounding:
+    {
+      if (auto cb = qobject_cast<Explorer::BoundingModeComboBox*>(editor))
+      {
+        auto cur = index.data(Qt::EditRole).toInt();
+        if(cur >= 0 && cur < Device::ClipModePrettyStringMap().size())
+          cb->set((ossia::bounding_mode) cur);
+        return;
+      }
+      break;
     }
   }
 
@@ -366,6 +471,22 @@ void AddressItemDelegate::setModelData(QWidget* editor, QAbstractItemModel* mode
     case AddressItemModel::Rows::Type:
     {
       if (auto cb = qobject_cast<State::TypeComboBox*>(editor))
+      {
+        model->setData(index, cb->itemData(cb->currentIndex()), Qt::EditRole);
+      }
+      return;
+    }
+    case AddressItemModel::Rows::Access:
+    {
+      if (auto cb = qobject_cast<Explorer::AccessModeComboBox*>(editor))
+      {
+        model->setData(index, cb->itemData(cb->currentIndex()), Qt::EditRole);
+      }
+      return;
+    }
+    case AddressItemModel::Rows::Bounding:
+    {
+      if (auto cb = qobject_cast<Explorer::BoundingModeComboBox*>(editor))
       {
         model->setData(index, cb->itemData(cb->currentIndex()), Qt::EditRole);
       }

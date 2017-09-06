@@ -5,7 +5,7 @@
 #include <QWidget>
 #include <iscore/widgets/TextLabel.hpp>
 #include <iscore_plugin_deviceexplorer_export.h>
-
+#include <QComboBox>
 class QComboBox;
 class QCheckBox;
 class QLineEdit;
@@ -51,6 +51,34 @@ private:
   QLineEdit* m_description{};
   State::UnitWidget* m_unit{};
   bool m_none_type{false};
+};
+
+class AccessModeComboBox final : public QComboBox
+{
+    Q_OBJECT
+  public:
+    AccessModeComboBox(QWidget* parent);
+    virtual ~AccessModeComboBox();
+
+    ossia::access_mode get() const;
+    void set(ossia::access_mode t);
+
+  signals:
+    void changed(ossia::access_mode);
+};
+
+class BoundingModeComboBox final : public QComboBox
+{
+    Q_OBJECT
+  public:
+    BoundingModeComboBox(QWidget* parent);
+    virtual ~BoundingModeComboBox();
+
+    ossia::bounding_mode get() const;
+    void set(ossia::bounding_mode t);
+
+  signals:
+    void changed(ossia::bounding_mode);
 };
 
 inline QLabel* makeLabel(QString text, QWidget* parent)
