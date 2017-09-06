@@ -120,7 +120,7 @@ void TemporalConstraintHeader::paint(
 void TemporalConstraintHeader::updateButtons()
 {
   if(m_button)
-    m_button->setPos(this->m_width * 0.9, 3);
+    m_button->setPos(15, 5);
 }
 
 void TemporalConstraintHeader::enableOverlay(bool b)
@@ -228,11 +228,12 @@ static const QPainterPath trianglePath{
                          QPointF(0, 21),
                          QPointF(9, 13)});
         p.closeSubpath();
+        p = QTransform().scale(0.8, 0.8).map(p);
 
         return p + s.createStroke(p);
     }()
 };
-static const auto rotatedTriangle = QTransform().rotate(90).translate(10, -15).map(trianglePath);
+static const auto rotatedTriangle = QTransform().rotate(90).translate(8, -12).map(trianglePath);
 
 QRectF RackButton::boundingRect() const
 { return QRectF(trianglePath.boundingRect()); }
@@ -241,9 +242,9 @@ void RackButton::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
 {
   painter->setRenderHint(QPainter::Antialiasing, true);
   auto& skin = ScenarioStyle::instance();
-  painter->setBrush(skin.EventPending.getBrush());
-  const auto bright = skin.EventPending.getBrush().color();
-  QPen p{bright.darker(300)};
+  painter->setBrush(skin.ConstraintSolidPen.brush());
+  const auto bright = skin.ConstraintSolidPen.brush().color();
+  QPen p{bright.darker(150)};
   p.setWidth(2);
   painter->setPen(p);
 

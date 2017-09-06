@@ -123,7 +123,7 @@ void SlotHeader::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   const auto& style = ScenarioStyle::instance();
-  painter->setPen(style.ConstraintSolidPen);
+  painter->setPen(style.ConstraintHeaderSeparator);
   painter->setBrush(style.NoBrush);
 
   // Grip
@@ -132,7 +132,7 @@ void SlotHeader::paint(
     std::array<QRectF, 6> rects;
     double x = 4;
     for(int i = 0; i < 6; i++)
-      rects[i] = {x += 2, (i % 2 == 0 ? 9. : 5.), 1., 1.};
+      rects[i] = {x += 2, (i % 2 == 0 ? 9. : 5.), 0.1, 0.1};
     return rects;
   }() };
   painter->drawRects(rects.data(), 6);
@@ -140,19 +140,21 @@ void SlotHeader::paint(
   painter->setRenderHint(QPainter::Antialiasing, true);
 
   // Frame
+  painter->setPen(style.ConstraintSolidPen);
   painter->drawRect(QRectF{0., 0., m_width, headerHeight() - 1});
 
   // Menu
   double centerX = m_width - 8.;
-  double centerY = 8.;
-  double r = 5.;
-  painter->setPen(style.MinimapPen);
+  double centerY = 7.5;
+  double r = 4.5;
+  painter->setPen(style.ConstraintHeaderSeparator);
   painter->setBrush(style.MinimapBrush);
   painter->drawEllipse(QPointF{centerX, centerY}, r, r);
-  r -= 2.;
-  painter->setPen(style.ConstraintHeaderSeparator);
+  r -= 1.;
+  painter->setRenderHint(QPainter::Antialiasing, false);
+  painter->setPen(style.TimeRulerSmallPen);
   painter->drawLine(QPointF{centerX, centerY - r}, QPointF{centerX, centerY + r});
-  painter->drawLine(QPointF{centerX - r, centerY}, QPointF{centerX + r, centerY});
+  painter->drawLine(QPointF{centerX - r, centerY }, QPointF{centerX + r, centerY });
 }
 
 void SlotHeader::setWidth(qreal width)

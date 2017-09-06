@@ -11,6 +11,7 @@ class ISCORE_LIB_STATE_EXPORT UnitWidget : public QWidget
 {
   Q_OBJECT
 public:
+  UnitWidget(QWidget* parent);
   UnitWidget(const State::Unit& u, QWidget* parent);
 
   State::Unit unit() const;

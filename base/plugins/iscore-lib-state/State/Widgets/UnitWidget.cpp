@@ -13,7 +13,7 @@
 namespace State
 {
 
-UnitWidget::UnitWidget(const State::Unit& u, QWidget* parent) : QWidget{parent}
+UnitWidget::UnitWidget(QWidget* parent) : QWidget{parent}
 {
   m_layout = new iscore::MarginLess<QHBoxLayout>{this};
 
@@ -47,7 +47,12 @@ UnitWidget::UnitWidget(const State::Unit& u, QWidget* parent) : QWidget{parent}
       [=](int i) {
         emit unitChanged(m_unit->itemData(i).value<State::Unit>());
       });
+}
 
+
+UnitWidget::UnitWidget(const State::Unit& u, QWidget* parent)
+  : UnitWidget{parent}
+{
   setUnit(u);
 }
 
