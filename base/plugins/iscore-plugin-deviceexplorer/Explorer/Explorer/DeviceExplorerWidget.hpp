@@ -118,5 +118,7 @@ private:
 
   std::unique_ptr<ListeningManager> m_listeningManager;
   QMetaObject::Connection m_modelCon;
+
+  QMetaObject::Connection m_addressCon;
 };
 }

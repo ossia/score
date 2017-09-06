@@ -141,7 +141,6 @@ public:
 
   int columnCount(const QModelIndex& parent) const override;
 
-  QVariant getData(Device::NodePath node, Column column, int role);
   QVariant data(const QModelIndex& index, int role) const override;
   QVariant headerData(
       int section, Qt::Orientation orientation, int role) const override;

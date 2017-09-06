@@ -326,15 +326,6 @@ int DeviceExplorerModel::columnCount(const QModelIndex& /*parent*/) const
   return (int)Column::Count;
 }
 
-QVariant
-DeviceExplorerModel::getData(Device::NodePath node, Column column, int role)
-{
-  QModelIndex index = createIndex(
-      convertPathToIndex(node).row(), (int)column,
-      node.toNode(&rootNode())->parent());
-  return data(index, role);
-}
-
 // must return an invalid QVariant for cases not handled
 QVariant DeviceExplorerModel::data(const QModelIndex& index, int role) const
 {
