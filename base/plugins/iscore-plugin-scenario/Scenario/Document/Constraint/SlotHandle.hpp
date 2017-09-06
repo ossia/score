@@ -12,6 +12,7 @@ class QWidget;
 namespace Scenario
 {
 class ConstraintPresenter;
+class TemporalConstraintPresenter;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT SlotHandle final : public QGraphicsItem
 {
@@ -56,9 +57,9 @@ private:
 class SlotHeader final : public QGraphicsItem
 {
   public:
-    SlotHeader(const ConstraintPresenter& slotView, int slotIndex, QGraphicsItem* parent);
+    SlotHeader(const TemporalConstraintPresenter& slotView, int slotIndex, QGraphicsItem* parent);
 
-    const ConstraintPresenter& presenter() const { return m_presenter; }
+    const TemporalConstraintPresenter& presenter() const { return m_presenter; }
     static constexpr int static_type()
     {
       return QGraphicsItem::UserType + ItemType::SlotHeader;
@@ -71,6 +72,14 @@ class SlotHeader final : public QGraphicsItem
     int slotIndex() const;
     void setSlotIndex(int);
     static constexpr double headerHeight()
+    {
+      return 16.;
+    }
+    static constexpr double handleWidth()
+    {
+      return 16.;
+    }
+    static constexpr double menuWidth()
     {
       return 16.;
     }
@@ -87,8 +96,8 @@ class SlotHeader final : public QGraphicsItem
     void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
-    const ConstraintPresenter& m_presenter;
+    const TemporalConstraintPresenter& m_presenter;
     qreal m_width{};
-    int m_slotIndex;
+    int m_slotIndex{};
 };
 }

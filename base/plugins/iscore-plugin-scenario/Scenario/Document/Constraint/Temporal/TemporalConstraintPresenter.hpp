@@ -47,6 +47,8 @@ public:
   void selectedSlot(int) const override;
   TemporalConstraintView* view() const;
   TemporalConstraintHeader* header() const;
+
+  void requestSlotMenu(int slot, QPoint pos, QPointF sp) const;
 signals:
   void constraintHoverEnter();
   void constraintHoverLeave();

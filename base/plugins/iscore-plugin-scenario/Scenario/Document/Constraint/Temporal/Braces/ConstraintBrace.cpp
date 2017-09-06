@@ -62,6 +62,8 @@ void ConstraintBrace::paint(
   painter->setBrush(Qt::NoBrush);
   painter->drawRect(boundingRect());
 #endif
+
+  painter->setRenderHint(QPainter::Antialiasing, false);
 }
 
 void ConstraintBrace::mousePressEvent(QGraphicsSceneMouseEvent* event)
