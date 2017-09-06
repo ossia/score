@@ -54,7 +54,7 @@ AddressEditDialog::AddressEditDialog(
   auto typeCb = new State::TypeComboBox{this};
 
   connect(
-      typeCb, &State::TypeComboBox::typeChanged, this,
+      typeCb, &State::TypeComboBox::changed, this,
       &AddressEditDialog::updateType, Qt::QueuedConnection);
 
   m_valueTypeCBox = typeCb;
