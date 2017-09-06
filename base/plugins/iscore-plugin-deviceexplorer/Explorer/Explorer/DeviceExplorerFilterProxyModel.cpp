@@ -79,21 +79,8 @@ bool DeviceExplorerFilterProxyModel::filterAcceptsRowItself(
   {
     case Explorer::Column::Name:
     case Explorer::Column::Value:
-    case Explorer::Column::Min:
-    case Explorer::Column::Max:
       return sourceModel()->data(index).toString().contains(filterRegExp());
 
-    case Explorer::Column::Get:
-    case Explorer::Column::Set:
-    {
-      auto data = sourceModel()->data(index, Qt::CheckStateRole).toBool();
-      auto it = values.find(filterRegExp().pattern());
-      if (it != values.end())
-      {
-        return it.value() == data;
-      }
-      return false;
-    }
     default:
       return false;
   }
