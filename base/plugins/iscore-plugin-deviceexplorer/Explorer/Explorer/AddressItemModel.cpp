@@ -9,11 +9,10 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
+#include <State/Widgets/UnitWidget.hpp>
+#include <ossia-qt/metatypes.hpp>
 namespace Explorer
 {
-
-
-
 AddressItemModel::AddressItemModel(QObject* parent):
   QAbstractItemModel{parent}
 {
@@ -332,6 +331,7 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
         case Rows::Type: return (int)m_settings.value.getType();
         case Rows::Access: return (int)*m_settings.ioType;
         case Rows::Bounding: return (int)m_settings.clipMode;
+        case Rows::Unit: return QVariant::fromValue(m_settings.unit);
       }
     }
     else
@@ -352,6 +352,9 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
 
 Qt::ItemFlags AddressItemModel::flags(const QModelIndex& index) const
 {
+  if(index.column() == 0)
+    return { Qt::ItemIsEnabled };
+
   Qt::ItemFlags f = QAbstractItemModel::flags(index);
   static const constexpr std::array<Qt::ItemFlags, Rows::Count> flags{{
       { } // name
@@ -386,6 +389,22 @@ AddressItemDelegate::~AddressItemDelegate()
 {
 }
 
+void AddressItemDelegate::paint(
+    QPainter* painter,
+    const QStyleOptionViewItem& option,
+    const QModelIndex& index) const
+{
+  QStyledItemDelegate::paint(painter, option, index);
+  /*
+  QStyleOptionViewItem opt = option;
+  initStyleOption(&opt, index);
+
+  const QWidget *widget = QStyledItemDelegatePrivate::widget(option);
+  QStyle *style = widget ? widget->style() : QApplication::style();
+  style->drawControl(QStyle::CE_ItemViewItem, &opt, painter, widget);
+  */
+}
+
 QWidget*AddressItemDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
   if(index.column() == 0)
@@ -395,15 +414,27 @@ QWidget*AddressItemDelegate::createEditor(QWidget* parent, const QStyleOptionVie
   {
     case AddressItemModel::Rows::Type:
     {
-      return new State::TypeComboBox{parent};
+      auto t = new State::TypeComboBox{parent};
+      t->set(index.data(Qt::EditRole).value<ossia::val_type>());
+      return t;
     }
     case AddressItemModel::Rows::Access:
     {
-      return new Explorer::AccessModeComboBox{parent};
+      auto t = new Explorer::AccessModeComboBox{parent};
+      t->set(index.data(Qt::EditRole).value<ossia::access_mode>());
+      return t;
     }
     case AddressItemModel::Rows::Bounding:
     {
-      return new Explorer::BoundingModeComboBox{parent};
+      auto t = new Explorer::BoundingModeComboBox{parent};
+      t->set(index.data(Qt::EditRole).value<ossia::bounding_mode>());
+      return t;
+    }
+    case AddressItemModel::Rows::Unit:
+    {
+      auto t = new State::UnitWidget{parent};
+      t->setUnit(index.data(Qt::EditRole).value<State::Unit>());
+      return t;
     }
   }
 
@@ -453,6 +484,16 @@ void AddressItemDelegate::setEditorData(QWidget* editor, const QModelIndex& inde
       }
       break;
     }
+    case AddressItemModel::Rows::Unit:
+    {
+      if (auto cb = qobject_cast<State::UnitWidget*>(editor))
+      {
+        auto cur = index.data(Qt::EditRole).value<State::Unit>();
+        cb->setUnit(cur);
+        return;
+      }
+      break;
+    }
   }
 
   QStyledItemDelegate::setEditorData(editor, index);
@@ -489,6 +530,14 @@ void AddressItemDelegate::setModelData(QWidget* editor, QAbstractItemModel* mode
       if (auto cb = qobject_cast<Explorer::BoundingModeComboBox*>(editor))
       {
         model->setData(index, cb->itemData(cb->currentIndex()), Qt::EditRole);
+      }
+      return;
+    }
+    case AddressItemModel::Rows::Unit:
+    {
+      if (auto cb = qobject_cast<State::UnitWidget*>(editor))
+      {
+        model->setData(index, QVariant::fromValue(cb->unit()), Qt::EditRole);
       }
       return;
     }

@@ -39,8 +39,6 @@ class AddressItemModel final : public QAbstractItemModel
         const Device::FullAddressSettings& s);
     void clear();
 
-
-  private:
     bool setData(const QModelIndex &index, const QVariant &value, int role) override;
     Qt::ItemFlags flags(const QModelIndex& index) const override;
     QModelIndex index(int row, int column, const QModelIndex& parent) const override;
@@ -50,11 +48,10 @@ class AddressItemModel final : public QAbstractItemModel
     QVariant valueColumnData(const State::Value& val, int role) const;
     QVariant data(const QModelIndex& index, int role) const override;
 
-
+  private:
     QPointer<DeviceExplorerModel> m_model;
     Device::NodePath m_path;
     Device::FullAddressSettings m_settings;
-
 };
 
 class AddressItemDelegate final : public QStyledItemDelegate
@@ -64,6 +61,7 @@ class AddressItemDelegate final : public QStyledItemDelegate
     ~AddressItemDelegate();
 
   private:
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
     QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
     void setEditorData(QWidget* editor, const QModelIndex& index) const override;
     void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const override;
