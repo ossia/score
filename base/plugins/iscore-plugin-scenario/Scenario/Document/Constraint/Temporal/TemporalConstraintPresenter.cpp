@@ -471,21 +471,21 @@ void TemporalConstraintPresenter::updatePositions()
 
     if(slot.header)
     {
-      slot.header->setPos(0, currentSlotY);
+      slot.header->setPos(QPointF{0, currentSlotY});
       slot.header->setSlotIndex(i);
     }
     currentSlotY += SlotHeader::headerHeight();
 
     for(const LayerData& proc : slot.processes)
     {
-      proc.view->setPos(0, currentSlotY);
+      proc.view->setPos(QPointF{0, currentSlotY});
       proc.view->update();
     }
     currentSlotY += model.height;
 
     if(slot.handle)
     {
-      slot.handle->setPos(1, currentSlotY);
+      slot.handle->setPos(QPointF{1, currentSlotY});
       slot.handle->setSlotIndex(i);
     }
     currentSlotY += SlotHandle::handleHeight();

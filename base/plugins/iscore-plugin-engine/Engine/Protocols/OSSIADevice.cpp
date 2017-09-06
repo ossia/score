@@ -115,14 +115,24 @@ void OSSIADevice::updateAddress(
   {
     ossia::net::node_base* node
         = Engine::iscore_to_ossia::getNodeFromPath(currentAddr.path, *dev);
-    auto newName = settings.address.path.last();
-    if (!latin_compare(newName, node->get_name()))
-    {
-      node->set_name(newName.toStdString());
-    }
+    bool is_listening = m_callbacks.find(currentAddr) != m_callbacks.end();
 
     if (!settings.value.valid())
     {
+      if(is_listening)
+      {
+        // Remove callbacks
+        auto it = m_callbacks.find(currentAddr);
+        if (it != m_callbacks.end())
+        {
+          it->second.first->remove_callback(it->second.second);
+          m_callbacks.erase(it);
+        }
+
+        is_listening = false;
+      }
+
+      // Remove param
       node->remove_parameter();
     }
     else
@@ -132,6 +142,13 @@ void OSSIADevice::updateAddress(
         Engine::iscore_to_ossia::updateOSSIAAddress(settings, *currentAddr);
       else
         Engine::iscore_to_ossia::createOSSIAAddress(settings, *node);
+    }
+
+    auto newName = settings.address.path.last();
+    if (!latin_compare(newName, node->get_name()))
+    {
+      renameListening_impl(currentAddr, newName);
+      node->set_name(newName.toStdString());
     }
   }
 }
@@ -153,6 +170,65 @@ void OSSIADevice::removeListening_impl(
     State::Address sub_addr = addr;
     sub_addr.path += QString::fromStdString(child->get_name());
     removeListening_impl(*child.get(), std::move(sub_addr));
+  }
+}
+
+void OSSIADevice::removeListening_impl(
+    ossia::net::node_base& node, State::Address addr, std::vector<State::Address>& vec)
+{
+  // Find & remove our callback
+  auto it = m_callbacks.find(addr);
+  if (it != m_callbacks.end())
+  {
+    it->second.first->remove_callback(it->second.second);
+    m_callbacks.erase(it);
+    vec.push_back(addr);
+  }
+
+  // Recurse
+  for (const auto& child : node.children())
+  {
+    State::Address sub_addr = addr;
+    sub_addr.path += QString::fromStdString(child->get_name());
+    removeListening_impl(*child.get(), std::move(sub_addr));
+  }
+}
+bool is_parent(const State::Address& parent, const State::Address& child)
+{
+  const auto p_size = parent.path.size();
+  if(child.path.size() < p_size)
+    return false;
+  for(int i = 0; i < p_size; i++)
+  {
+    if(child.path[i] != parent.path[i])
+      return false;
+  }
+  return true;
+}
+
+void OSSIADevice::renameListening_impl(const State::Address& parent, const QString& newName)
+{
+  // Store the elements that are renamed
+  std::vector<std::pair<State::Address, callback_pair>> saved_elts;
+  for(auto it = m_callbacks.begin(); it != m_callbacks.end(); )
+  {
+    if(is_parent(parent, it.key()))
+    {
+      State::Address addr = it.key();
+      addr.path[parent.path.size() - 1] = newName;
+      saved_elts.push_back({std::move(addr), it.value()});
+      it = m_callbacks.erase(it);
+    }
+    else
+    {
+      ++it;
+    }
+  }
+
+  // Put things back after renaming
+  for (auto&& p : std::move(saved_elts))
+  {
+    m_callbacks.insert(std::move(p));
   }
 }
 
@@ -578,6 +654,9 @@ void OSSIADevice::nodeRenamed(
   Device::AddressSettings as
       = Engine::ossia_to_iscore::ToAddressSettings(node);
   as.name = QString::fromStdString(node.get_name());
+
+  renameListening_impl(currentAddress, as.name);
+
   emit pathUpdated(currentAddress, as);
 }
 

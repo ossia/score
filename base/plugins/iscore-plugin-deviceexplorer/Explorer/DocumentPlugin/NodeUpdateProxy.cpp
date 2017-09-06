@@ -235,9 +235,6 @@ void NodeUpdateProxy::updateRemoteValue(
     // Update in the device implementation
     dev->sendMessage({addr, val});
   }
-
-  // Update in the tree
-  updateLocalValue(addr, val);
 }
 
 ossia::value

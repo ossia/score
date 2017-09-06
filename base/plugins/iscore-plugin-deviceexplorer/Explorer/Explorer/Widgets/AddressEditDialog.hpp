@@ -34,7 +34,7 @@ public:
 protected:
   void setNodeSettings();
   void setValueSettings();
-  void updateType();
+  void updateType(ossia::val_type valueType);
 
   Device::AddressSettings m_originalSettings;
   QLineEdit* m_nameEdit{};
@@ -43,4 +43,5 @@ protected:
   QFormLayout* m_layout{};
   bool m_canEdit{true};
 };
+
 }

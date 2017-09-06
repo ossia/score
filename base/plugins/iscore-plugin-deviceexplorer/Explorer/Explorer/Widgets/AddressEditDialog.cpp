@@ -11,6 +11,7 @@
 #include <State/ValueConversion.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 #include <State/Widgets/AddressValidator.hpp>
+#include <State/Widgets/Values/TypeComboBox.hpp>
 #include <qnamespace.h>
 
 #include <QString>
@@ -35,18 +36,6 @@ AddressEditDialog::AddressEditDialog(QWidget* parent)
 {
 }
 
-static void populateTypeCb(QComboBox& cb)
-{
-  auto& arr = State::convert::ValuePrettyTypesArray();
-  const int n = arr.size();
-  for (int i = 0; i < n - 1; i++)
-  {
-    auto t = static_cast<ossia::val_type>(i);
-    cb.addItem(arr[i], QVariant::fromValue(t));
-  }
-  cb.addItem(arr[n - 1], QVariant::fromValue(ossia::val_type::NONE));
-}
-
 AddressEditDialog::AddressEditDialog(
     const Device::AddressSettings& addr, QWidget* parent)
     : QDialog{parent}, m_originalSettings{addr}
@@ -62,12 +51,13 @@ AddressEditDialog::AddressEditDialog(
   setNodeSettings();
 
   // Value type
-  m_valueTypeCBox = new QComboBox(this);
-  populateTypeCb(*m_valueTypeCBox);
+  auto typeCb = new State::TypeComboBox{this};
 
   connect(
-      m_valueTypeCBox, SignalUtils::QComboBox_currentIndexChanged_int(), this,
+      typeCb, &State::TypeComboBox::typeChanged, this,
       &AddressEditDialog::updateType, Qt::QueuedConnection);
+
+  m_valueTypeCBox = typeCb;
 
   m_layout->addRow(tr("Value type"), m_valueTypeCBox);
 
@@ -90,10 +80,8 @@ AddressEditDialog::~AddressEditDialog()
 {
 }
 
-void AddressEditDialog::updateType()
+void AddressEditDialog::updateType(ossia::val_type valueType)
 {
-  const auto valueType
-      = m_valueTypeCBox->currentData().value<ossia::val_type>();
   auto widg = AddressSettingsFactory::instance().get_value_typeWidget(valueType);
 
   m_addressWidget->setWidget(widg);
@@ -176,4 +164,5 @@ void AddressEditDialog::setValueSettings()
         index); // will emit currentIndexChanged(int) & call slot
   }
 }
+
 }

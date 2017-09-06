@@ -13,6 +13,8 @@ public:
   virtual ~TypeComboBox();
 
   ossia::val_type currentType() const;
+  void setType(ossia::val_type t);
+
 signals:
   void typeChanged(ossia::val_type);
 };

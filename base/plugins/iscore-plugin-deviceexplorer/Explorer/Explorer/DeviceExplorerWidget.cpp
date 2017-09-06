@@ -161,6 +161,7 @@ void DeviceExplorerWidget::buildGUI()
 
   m_addressModel = new AddressItemModel{this};
   m_addressView = new QTableView{this};
+  m_addressView->setItemDelegate(new AddressItemDelegate);
   m_addressView->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
   m_addressView->setMinimumHeight(100);
 
@@ -446,6 +447,7 @@ void DeviceExplorerWidget::setModel(DeviceExplorerModel* model)
   m_proxyModel = nullptr;
   m_listeningManager.reset();
   QObject::disconnect(m_modelCon);
+  QObject::disconnect(m_addressCon);
 
   if (model)
   {
@@ -472,6 +474,21 @@ void DeviceExplorerWidget::setModel(DeviceExplorerModel* model)
           m_listeningManager->enableListening(*n);
       }
     });
+
+      connect(model, &DeviceExplorerModel::dataChanged,
+              this, [this] (const QModelIndex &topLeft,
+                            const QModelIndex &bottomRight,
+                            const QVector<int> &roles) {
+        auto indexes = m_ntView->selectedIndexes();
+
+        if(indexes.size() == 1)
+        {
+          auto selected = sourceIndex(indexes.first());
+
+          if(selected.parent() == topLeft.parent() && selected.row() == topLeft.row())
+            updateAddressView();
+        }
+      });
   }
   else
   {
@@ -574,9 +591,16 @@ void DeviceExplorerWidget::updateAddressView()
 
   auto& n = model()->nodeFromModelIndex(sourceIndex(indexes.first()));
   if(n.is<Device::AddressSettings>())
-    m_addressModel->setAddress(Device::FullAddressSettings::make(n));
+  {
+    m_addressModel->setState(
+          model(),
+          Device::NodePath(n),
+          Device::FullAddressSettings::make(n));
+  }
   else
+  {
     m_addressModel->clear();
+  }
 }
 
 DeviceExplorerModel* DeviceExplorerWidget::model() const

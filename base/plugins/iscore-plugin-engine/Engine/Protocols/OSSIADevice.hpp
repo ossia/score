@@ -76,10 +76,12 @@ public:
 protected:
   using DeviceInterface::DeviceInterface;
 
-  iscore::hash_map<State::Address, std::pair<ossia::net::parameter_base*, ossia::callback_container<ossia::value_callback>::iterator>>
-          m_callbacks;
+  using callback_pair = std::pair<ossia::net::parameter_base*, ossia::callback_container<ossia::value_callback>::iterator>;
+  iscore::hash_map<State::Address, callback_pair> m_callbacks;
 
   void removeListening_impl(ossia::net::node_base& node, State::Address addr);
+  void removeListening_impl(ossia::net::node_base& node, State::Address addr, std::vector<State::Address>&);
+  void renameListening_impl(const State::Address& parent, const QString& newName);
   void setLogging_impl(bool) const;
   void enableCallbacks();
   void disableCallbacks();
@@ -87,8 +89,8 @@ protected:
   // Refresh without handling callbacks
   Device::Node simple_refresh();
 
-private:
 
+private:
   bool m_logging = false;
   bool m_callbacksEnabled = false;
 };

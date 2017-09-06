@@ -123,25 +123,26 @@ void SlotHeader::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   const auto& style = ScenarioStyle::instance();
-  painter->setRenderHint(QPainter::Antialiasing, false);
-
-  // Frame
-  painter->setPen(style.StateTemporalPointPen);
+  painter->setPen(style.ConstraintSolidPen);
   painter->setBrush(style.NoBrush);
-  painter->drawRect(QRectF{0., 0., m_width, headerHeight() - 1});
 
   // Grip
-  static const std::array<QRectF, 6>& rects = [] {
-    static std::array<QRectF, 6> rects;
+  painter->setRenderHint(QPainter::Antialiasing, false);
+  static const constexpr std::array<QRectF, 6> rects{ [] {
+    std::array<QRectF, 6> rects;
     double x = 4;
     for(int i = 0; i < 6; i++)
       rects[i] = {x += 2, (i % 2 == 0 ? 9. : 5.), 1., 1.};
     return rects;
-  }();
+  }() };
   painter->drawRects(rects.data(), 6);
 
-  // Menu
   painter->setRenderHint(QPainter::Antialiasing, true);
+
+  // Frame
+  painter->drawRect(QRectF{0., 0., m_width, headerHeight() - 1});
+
+  // Menu
   double centerX = m_width - 8.;
   double centerY = 8.;
   double r = 5.;
