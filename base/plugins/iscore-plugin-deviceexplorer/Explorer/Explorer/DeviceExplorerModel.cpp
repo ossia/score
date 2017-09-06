@@ -60,11 +60,7 @@ namespace Explorer
 {
 static const QMap<Explorer::Column, QString> HEADERS{
     {Explorer::Column::Name, QObject::tr("Address")},
-    {Explorer::Column::Value, QObject::tr("Value")},
-    {Explorer::Column::Get, QObject::tr("Get")},
-    {Explorer::Column::Set, QObject::tr("Set")},
-    {Explorer::Column::Min, QObject::tr("Min")},
-    {Explorer::Column::Max, QObject::tr("Max")}};
+    {Explorer::Column::Value, QObject::tr("Value")}};
 
 DeviceExplorerModel::DeviceExplorerModel(
     DeviceDocumentPlugin& plug, QObject* parent)
@@ -370,18 +366,6 @@ QVariant DeviceExplorerModel::data(const QModelIndex& index, int role) const
       case Column::Value:
         return Device::valueColumnData(n, role);
 
-      case Column::Get:
-        return Device::GetColumnData(n, role);
-
-      case Column::Set:
-        return Device::SetColumnData(n, role);
-
-      case Column::Min:
-        return Device::minColumnData(n, role);
-
-      case Column::Max:
-        return Device::maxColumnData(n, role);
-
       case Column::Count:
       default:
         ISCORE_ABORT;
@@ -438,14 +422,6 @@ Qt::ItemFlags DeviceExplorerModel::flags(const QModelIndex& index) const
     if (index.column() == (int)Column::Name)
     {
       f |= Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
-    }
-    else if (index.column() == (int)Column::Get)
-    {
-      f |= Qt::ItemIsUserCheckable;
-    }
-    else if (index.column() == (int)Column::Set)
-    {
-      f |= Qt::ItemIsUserCheckable;
     }
 
     if (n.isEditable() && index.column() == (int) Column::Value)
@@ -518,83 +494,6 @@ bool DeviceExplorerModel::setData(
         }
       }
 
-      // TODO uncomment to enable io type edition
-      /*
-                  if(role == Qt::CheckStateRole)
-                  {
-                      if(col == Column::Get)
-                      {
-                          if(value.value<bool>())
-                          {
-                              switch(settings.ioType)
-                              {
-                                  case ossia::access_mode::GET:
-                                      break;
-                                  case ossia::access_mode::SET:
-                                      settings.ioType = ossia::access_mode::BI;
-                                      break;
-                                  case ossia::access_mode::BI:
-                                      break;
-                                  default:
-                                      settings.ioType = ossia::access_mode::GET;
-                                      break;
-                              }
-                          }
-                          else
-                          {
-                              switch(settings.ioType)
-                              {
-                                  case ossia::access_mode::GET:
-                                      settings.ioType = IOType::Invalid;
-                                      break;
-                                  case ossia::access_mode::SET:
-                                      break;
-                                  case ossia::access_mode::BI:
-                                      settings.ioType = ossia::access_mode::SET;
-                                      break;
-                                  default:
-                                      break;
-                              }
-                          }
-                      }
-                      else if(col == Column::Set)
-                      {
-                          if(value.value<bool>())
-                          {
-                              switch(settings.ioType)
-                              {
-                                  case ossia::access_mode::GET:
-                                      settings.ioType = ossia::access_mode::BI;
-                                      break;
-                                  case ossia::access_mode::SET:
-                                      break;
-                                  case ossia::access_mode::BI:
-                                      break;
-                                  default:
-                                      settings.ioType = ossia::access_mode::SET;
-                                      break;
-                              }
-                          }
-                          else
-                          {
-                              switch(settings.ioType)
-                              {
-                                  case ossia::access_mode::GET:
-                                      break;
-                                  case ossia::access_mode::SET:
-                                      settings.ioType = IOType::Invalid;
-                                      break;
-                                  case ossia::access_mode::BI:
-                                      settings.ioType = ossia::access_mode::GET;
-                                      break;
-                                  default:
-                                      break;
-                              }
-                          }
-                      }
-                  }
-                  */
-
       if (settings != n.get<Device::AddressSettings>())
       {
         // We changed
@@ -664,7 +563,6 @@ void DeviceExplorerModel::editData(
     {
       node.get<Device::AddressSettings>().value = value;
     }
-    // TODO min/max/tags editing
   }
 
   emit dataChanged(changedTopLeft, changedBottomRight);

@@ -106,10 +106,6 @@ void DeviceExplorerView::setInitialColumnsSizes()
 
   header()->resizeSection((int)Explorer::Column::Name, 220);
   header()->resizeSection((int)Explorer::Column::Value, 50);
-  header()->resizeSection((int)Explorer::Column::Get, 36);
-  header()->resizeSection((int)Explorer::Column::Set, 36);
-  header()->resizeSection((int)Explorer::Column::Min, 50);
-  header()->resizeSection((int)Explorer::Column::Max, 50);
 }
 
 void DeviceExplorerView::saveSettings()
