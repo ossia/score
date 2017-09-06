@@ -6,11 +6,15 @@
 #include <QPainter>
 #include <QPoint>
 #include <Scenario/Document/Constraint/ConstraintPresenter.hpp>
+#include <Scenario/Document/Constraint/Temporal/TemporalConstraintPresenter.hpp>
 #include <Scenario/Document/Constraint/ConstraintView.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
 #include <qnamespace.h>
 #include <QGraphicsScene>
 #include <QGraphicsView>
+#include <QApplication>
+#include <QDrag>
+#include <QMimeData>
 #include "SlotHandle.hpp"
 
 namespace Scenario
@@ -86,7 +90,10 @@ void SlotHandle::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
 
 
-SlotHeader::SlotHeader(const ConstraintPresenter& slotView, int slotIndex, QGraphicsItem* parent)
+SlotHeader::SlotHeader(
+    const TemporalConstraintPresenter& slotView,
+    int slotIndex,
+    QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_presenter{slotView}
     , m_width{slotView.view()->boundingRect().width()}
@@ -116,17 +123,35 @@ void SlotHeader::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   const auto& style = ScenarioStyle::instance();
+  painter->setRenderHint(QPainter::Antialiasing, false);
 
+  // Frame
   painter->setPen(style.StateTemporalPointPen);
   painter->setBrush(style.NoBrush);
   painter->drawRect(QRectF{0., 0., m_width, headerHeight() - 1});
-  double x = 4;
-  painter->drawEllipse(x += 2, 9, 1.5, 1.5);
-  painter->drawEllipse(x += 2, 5, 1.5, 1.5);
-  painter->drawEllipse(x += 2, 9, 1.5, 1.5);
-  painter->drawEllipse(x += 2, 5, 1.5, 1.5);
-  painter->drawEllipse(x += 2, 9, 1.5, 1.5);
-  painter->drawEllipse(x += 2, 5, 1.5, 1.5);
+
+  // Grip
+  static const std::array<QRectF, 6>& rects = [] {
+    static std::array<QRectF, 6> rects;
+    double x = 4;
+    for(int i = 0; i < 6; i++)
+      rects[i] = {x += 2, (i % 2 == 0 ? 9. : 5.), 1., 1.};
+    return rects;
+  }();
+  painter->drawRects(rects.data(), 6);
+
+  // Menu
+  painter->setRenderHint(QPainter::Antialiasing, true);
+  double centerX = m_width - 8.;
+  double centerY = 8.;
+  double r = 5.;
+  painter->setPen(style.MinimapPen);
+  painter->setBrush(style.MinimapBrush);
+  painter->drawEllipse(QPointF{centerX, centerY}, r, r);
+  r -= 2.;
+  painter->setPen(style.ConstraintHeaderSeparator);
+  painter->drawLine(QPointF{centerX, centerY - r}, QPointF{centerX, centerY + r});
+  painter->drawLine(QPointF{centerX - r, centerY}, QPointF{centerX + r, centerY});
 }
 
 void SlotHeader::setWidth(qreal width)
@@ -139,12 +164,45 @@ void SlotHeader::setWidth(qreal width)
 void SlotHeader::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   m_presenter.selectedSlot(m_slotIndex);
+
+  const auto xpos = event->pos().x();
+  if(xpos >= 0 && xpos < 16)
+  {
+  }
+  else if(xpos >= m_width - 16)
+  {
+    // menu
+    m_presenter.requestSlotMenu(m_slotIndex, event->screenPos(), event->scenePos());
+
+  }
   event->accept();
 }
+
 
 void SlotHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   event->accept();
+
+  const auto xpos = event->pos().x();
+  if(xpos >= 0 && xpos < 16)
+  {
+    if (QLineF(event->screenPos(), event->buttonDownScreenPos(Qt::LeftButton))
+        .length() < QApplication::startDragDistance()) {
+        return;
+    }
+
+    QDrag *drag = new QDrag(event->widget());
+    QMimeData *mime = new QMimeData;
+    drag->setMimeData(mime);
+
+    mime->setData("application/x-iscore-layerdrag", {});
+    /*
+    drag->setPixmap(QPixmap::fromImage(image).scaled(30, 40));
+    drag->setHotSpot(QPoint(15, 30));
+    */
+
+    drag->exec();
+  }
 }
 
 void SlotHeader::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)

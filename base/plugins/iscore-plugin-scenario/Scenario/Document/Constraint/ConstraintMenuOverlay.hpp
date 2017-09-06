@@ -52,6 +52,8 @@ public:
     painter->drawLine(l1);
     painter->drawLine(l2);
     painter->setBrush(skin.DefaultBrush);
+
+    painter->setRenderHint(QPainter::Antialiasing, false);
   }
 
 protected:

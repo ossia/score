@@ -37,6 +37,8 @@ void SeparatorItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* opt
   painter->setPen(skin.SeparatorPen);
   painter->setBrush(skin.SeparatorBrush);
   painter->drawLine(rect.bottomLeft(), rect.topRight());
+
+  painter->setRenderHint(QPainter::Antialiasing, false);
 }
 
 ClickableLabelItem::ClickableLabelItem(

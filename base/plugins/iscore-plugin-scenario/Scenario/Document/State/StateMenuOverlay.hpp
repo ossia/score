@@ -49,6 +49,8 @@ public:
     painter->setPen(p);
     painter->drawLine(l1);
     painter->drawLine(l2);
+
+    painter->setRenderHint(QPainter::Antialiasing, false);
   }
 
 private:

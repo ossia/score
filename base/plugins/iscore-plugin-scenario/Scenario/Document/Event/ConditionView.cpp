@@ -68,6 +68,8 @@ void ConditionView::paint(
   };
   painter->fillPath(trianglePath, col);
 #endif
+
+  painter->setRenderHint(QPainter::Antialiasing, false);
 }
 
 void ConditionView::changeHeight(qreal newH)

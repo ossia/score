@@ -28,6 +28,8 @@
 #include <boost/range/algorithm_ext/erase.hpp>
 #include <iscore/widgets/GraphicsItem.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 class QColor;
 class QObject;
 class QString;
@@ -504,6 +506,7 @@ void TemporalConstraintPresenter::on_layerModelPutToFront(int slot, const Proces
     auto& slt = m_slots.at(slot);
     deleteGraphicsItem(slt.headerDelegate);
     slt.headerDelegate = nullptr;
+    int i = 0;
     for (const LayerData& elt : slt.processes)
     {
       if (elt.model->id() == proc.id())
@@ -514,6 +517,8 @@ void TemporalConstraintPresenter::on_layerModelPutToFront(int slot, const Proces
         {
           slt.headerDelegate = new DefaultHeaderDelegate{*elt.presenter};
           slt.headerDelegate->setParentItem(slt.header);
+          slt.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
+          slt.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
           slt.headerDelegate->setPos(30, 0);
         }
       }
@@ -521,6 +526,7 @@ void TemporalConstraintPresenter::on_layerModelPutToFront(int slot, const Proces
       {
         elt.presenter->putBehind();
       }
+      i++;
     }
   }
 }
@@ -628,6 +634,30 @@ TemporalConstraintHeader*TemporalConstraintPresenter::header() const
 { { return static_cast<TemporalConstraintHeader*>(this->m_header); }
 }
 
+void TemporalConstraintPresenter::requestSlotMenu(int slot, QPoint pos, QPointF sp) const
+{
+  if(const auto& proc = m_model.getSmallViewSlot(slot).frontProcess)
+  {
+    const SlotPresenter& slt = m_slots.at(slot);
+    for(auto& p : slt.processes)
+    {
+      if(p.model->id() == proc)
+      {
+        auto menu = new QMenu;
+        auto& reg = iscore::GUIAppContext()
+                    .guiApplicationPlugin<ScenarioApplicationPlugin>()
+                    .layerContextMenuRegistrar();
+        ScenarioContextMenuManager::createLayerContextMenu(
+            *menu, pos, sp, reg, *p.presenter);
+        menu->exec(pos);
+        menu->close();
+        menu->deleteLater();
+        break;
+      }
+    }
+  }
+}
+
 void TemporalConstraintPresenter::on_defaultDurationChanged(const TimeVal& val)
 {
   const auto w = val.toPixels(m_zoomRatio);
@@ -645,7 +675,7 @@ void TemporalConstraintPresenter::on_defaultDurationChanged(const TimeVal& val)
     if(slot.handle)
       slot.handle->setWidth(w);
     if(slot.headerDelegate)
-      slot.headerDelegate->setSize(QSizeF{w, SlotHeader::headerHeight()});
+      slot.headerDelegate->setSize(QSizeF{w - SlotHeader::handleWidth() - SlotHeader::menuWidth(), SlotHeader::headerHeight()});
     for(const LayerData& proc : slot.processes)
     {
       proc.presenter->setWidth(w);
