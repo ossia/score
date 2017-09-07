@@ -12,7 +12,7 @@ struct time_value;
 
 namespace Scenario
 {
-class ConstraintModel;
+class IntervalModel;
 class EventModel;
 class StateModel;
 class TimeSyncModel;
@@ -24,7 +24,7 @@ namespace Engine
 {
 namespace Execution
 {
-class ConstraintComponent;
+class IntervalComponent;
 class EventComponent;
 class StateComponent;
 class TimeSyncComponent;
@@ -38,17 +38,17 @@ class BaseScenarioRefContainer
 {
 public:
   BaseScenarioRefContainer(
-      Scenario::ConstraintModel& constraint, Scenario::ScenarioInterface& s);
+      Scenario::IntervalModel& interval, Scenario::ScenarioInterface& s);
 
   BaseScenarioRefContainer(
-      Scenario::ConstraintModel& constraint,
+      Scenario::IntervalModel& interval,
       Scenario::StateModel& startState,
       Scenario::StateModel& endState,
       Scenario::EventModel& startEvent,
       Scenario::EventModel& endEvent,
       Scenario::TimeSyncModel& startNode,
       Scenario::TimeSyncModel& endNode)
-      : m_constraint{constraint}
+      : m_interval{interval}
       , m_startState{startState}
       , m_endState{endState}
       , m_startEvent{startEvent}
@@ -58,9 +58,9 @@ public:
   {
   }
 
-  Scenario::ConstraintModel& constraint() const
+  Scenario::IntervalModel& interval() const
   {
-    return m_constraint;
+    return m_interval;
   }
 
   Scenario::TimeSyncModel& startTimeSync() const
@@ -91,7 +91,7 @@ public:
   }
 
 private:
-  Scenario::ConstraintModel& m_constraint;
+  Scenario::IntervalModel& m_interval;
   Scenario::StateModel& m_startState;
   Scenario::StateModel& m_endState;
   Scenario::EventModel& m_startEvent;
@@ -114,9 +114,9 @@ public:
 
   void init(BaseScenarioRefContainer);
   void cleanup();
-  bool active() const { return bool(m_ossia_constraint); }
+  bool active() const { return bool(m_ossia_interval); }
 
-  ConstraintComponent& baseConstraint() const;
+  IntervalComponent& baseInterval() const;
 
   TimeSyncComponent& startTimeSync() const;
   TimeSyncComponent& endTimeSync() const;
@@ -132,7 +132,7 @@ signals:
 
 private:
   const Context& m_ctx;
-  std::shared_ptr<ConstraintComponent> m_ossia_constraint;
+  std::shared_ptr<IntervalComponent> m_ossia_interval;
 
   std::shared_ptr<TimeSyncComponent> m_ossia_startTimeSync;
   std::shared_ptr<TimeSyncComponent> m_ossia_endTimeSync;

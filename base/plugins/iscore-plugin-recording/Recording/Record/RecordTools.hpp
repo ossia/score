@@ -27,7 +27,7 @@ class DeviceExplorerModel;
 namespace Scenario
 {
 class ProcessModel;
-class ConstraintModel;
+class IntervalModel;
 class EventModel;
 struct Point;
 }
@@ -60,7 +60,7 @@ using RecordCommandDispatcher
 
 struct Box
 {
-  Scenario::ConstraintModel& constraint;
+  Scenario::IntervalModel& interval;
   // In the first slot.
 
   Scenario::Command::MoveNewEvent& moveCommand;

@@ -9,10 +9,10 @@ struct DocumentContext;
 
 namespace Scenario
 {
-class ConstraintModel;
+class IntervalModel;
 namespace Command
 {
 void InterpolateStates(
-    const QList<const ConstraintModel*>&, const iscore::CommandStackFacade&);
+    const QList<const IntervalModel*>&, const iscore::CommandStackFacade&);
 }
 }

@@ -52,13 +52,13 @@ ossia::state_element ProcessExecutor::state(ossia::time_value date, double pos)
 }
 
 ProcessExecutorComponent::ProcessExecutorComponent(
-    Engine::Execution::ConstraintComponent& parentConstraint,
+    Engine::Execution::IntervalComponent& parentInterval,
     Skeleton::Model& element,
     const Engine::Execution::Context& ctx,
     const Id<iscore::Component>& id,
     QObject* parent):
   ProcessComponent_T{
-    parentConstraint, element, ctx, id, "SkeletonExecutorComponent", parent}
+    parentInterval, element, ctx, id, "SkeletonExecutorComponent", parent}
 {
   m_ossia_process = std::make_shared<ProcessExecutor>(ctx.devices.list());
 }

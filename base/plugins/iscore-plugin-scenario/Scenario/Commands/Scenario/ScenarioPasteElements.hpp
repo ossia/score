@@ -18,7 +18,7 @@ struct Point;
 class EventModel;
 class StateModel;
 class TimeSyncModel;
-class ConstraintModel;
+class IntervalModel;
 namespace Command
 {
 
@@ -46,12 +46,12 @@ private:
 
   // TODO std::vector...
   QVector<Id<TimeSyncModel>> m_ids_timesyncs;
-  QVector<Id<ConstraintModel>> m_ids_constraints;
+  QVector<Id<IntervalModel>> m_ids_intervals;
   QVector<Id<EventModel>> m_ids_events;
   QVector<Id<StateModel>> m_ids_states;
 
   QVector<QJsonObject> m_json_timesyncs;
-  QVector<QJsonObject> m_json_constraints;
+  QVector<QJsonObject> m_json_intervals;
   QVector<QJsonObject> m_json_events;
   QVector<QJsonObject> m_json_states;
 };

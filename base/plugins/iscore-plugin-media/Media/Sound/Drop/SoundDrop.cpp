@@ -7,11 +7,11 @@
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
+#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
-#include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
-#include <Scenario/Commands/Constraint/AddLayerInNewSlot.hpp>
+#include <Scenario/Commands/Interval/Rack/AddSlotToRack.hpp>
+#include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
 
 #include <Loop/LoopProcessModel.hpp>
 #include <QMimeData>
@@ -24,24 +24,24 @@ namespace Sound
 {
 static void createSoundProcesses(
         RedoMacroCommandDispatcher<Media::Commands::CreateSoundBoxMacro>& m,
-        const Scenario::ConstraintModel& constraint,
+        const Scenario::IntervalModel& interval,
         DroppedAudioFiles& drop)
 {
     for(auto&& file : drop.files)
     {
         // Create sound process
-        auto process_cmd = new Scenario::Command::AddOnlyProcessToConstraint{
-                    constraint,
+        auto process_cmd = new Scenario::Command::AddOnlyProcessToInterval{
+                    interval,
                     Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get()};
         m.submitCommand(process_cmd);
 
         // Set process file
-        auto& proc = safe_cast<Sound::ProcessModel&>(constraint.processes.at(process_cmd->processId()));
+        auto& proc = safe_cast<Sound::ProcessModel&>(interval.processes.at(process_cmd->processId()));
         auto file_cmd = new Media::Commands::ChangeAudioFile{proc, std::move(file)};
         m.submitCommand(file_cmd);
 
         // Create a new slot
-        auto slot_cmd = new Scenario::Command::AddLayerInNewSlot{constraint, process_cmd->processId()};
+        auto slot_cmd = new Scenario::Command::AddLayerInNewSlot{interval, process_cmd->processId()};
         m.submitCommand(slot_cmd);
     }
 }
@@ -84,7 +84,7 @@ bool DropHandler::drop(
         return false;
     }
 
-    // We add the files in sequence, or in the same constraint
+    // We add the files in sequence, or in the same interval
     // if shift isn't pressed.
     if(qApp->keyboardModifiers() & Qt::ShiftModifier)
     {
@@ -124,16 +124,16 @@ bool DropHandler::createInParallel(
     m.submitCommand(start_cmd);
 
     // Create a box with the duration of the longest song
-    auto box_cmd = new Scenario::Command::CreateConstraint_State_Event_TimeSync{
+    auto box_cmd = new Scenario::Command::CreateInterval_State_Event_TimeSync{
             scenar, start_cmd->createdState(), pt.date + t, pt.y};
     m.submitCommand(box_cmd);
-    auto& constraint = scenar.constraint(box_cmd->createdConstraint());
+    auto& interval = scenar.interval(box_cmd->createdInterval());
 
     // Add sound processes as fit.
-    createSoundProcesses(m, constraint, drop);
+    createSoundProcesses(m, interval, drop);
 
     // Finally we show the newly created rack
-    auto show_cmd = new Scenario::Command::ShowRack{constraint};
+    auto show_cmd = new Scenario::Command::ShowRack{interval};
     m.submitCommand(show_cmd);
     m.commit();
 
@@ -141,9 +141,9 @@ bool DropHandler::createInParallel(
 }
 
 // TODO put me in some "algorithms" file.
-static bool constraintHasNoFollowers(
+static bool intervalHasNoFollowers(
         const Scenario::ProcessModel& scenar,
-        const Scenario::ConstraintModel& cst)
+        const Scenario::IntervalModel& cst)
 {
     auto& tn = Scenario::endTimeSync(cst, scenar);
     for(auto& event_id : tn.events())
@@ -152,7 +152,7 @@ static bool constraintHasNoFollowers(
         for(auto& state_id : event.states())
         {
             Scenario::StateModel& state = scenar.states.at(state_id);
-            if(state.nextConstraint())
+            if(state.nextInterval())
                 return false;
         }
     }
@@ -160,8 +160,8 @@ static bool constraintHasNoFollowers(
 }
 
 
-bool ConstraintDropHandler::drop(
-        const Scenario::ConstraintModel& constraint,
+bool IntervalDropHandler::drop(
+        const Scenario::IntervalModel& interval,
         const QMimeData *mime)
 {
     DroppedAudioFiles drop{*mime};
@@ -170,15 +170,15 @@ bool ConstraintDropHandler::drop(
         return false;
     }
 
-    auto& doc = iscore::IDocument::documentContext(constraint);
+    auto& doc = iscore::IDocument::documentContext(interval);
     RedoMacroCommandDispatcher<Media::Commands::CreateSoundBoxMacro> m{doc.commandStack};
 
     // TODO dynamic_safe_cast ? for non-static-castable types, have the compiler enforce dynamic_cast ?
-    auto scenar = dynamic_cast<Scenario::ScenarioInterface*>(constraint.parent());
+    auto scenar = dynamic_cast<Scenario::ScenarioInterface*>(interval.parent());
     ISCORE_ASSERT(scenar);
 
-    // If the constraint has no processes and nothing after, we will resize it
-    if(constraint.processes.empty())
+    // If the interval has no processes and nothing after, we will resize it
+    if(interval.processes.empty())
     {
         // TODO refactor me in a general "move event in scenario interface" way.
         if(auto loop = dynamic_cast<Loop::ProcessModel*>(scenar))
@@ -187,23 +187,23 @@ bool ConstraintDropHandler::drop(
                             *loop,
                             loop->endEvent().id(),
                             drop.dropMaxDuration(),
-                            constraint.heightPercentage(),
+                            interval.heightPercentage(),
                             ExpandMode::GrowShrink,
                             LockMode::Free};
             m.submitCommand(resize_cmd);
         }
-        else if(auto scenar = dynamic_cast<Scenario::ProcessModel*>(constraint.parent()))
+        else if(auto scenar = dynamic_cast<Scenario::ProcessModel*>(interval.parent()))
         {
             // First check that the end time sync has nothing afterwards :
-            // all its states must not have next constraints
-            if(constraintHasNoFollowers(*scenar, constraint))
+            // all its states must not have next intervals
+            if(intervalHasNoFollowers(*scenar, interval))
             {
-                auto& ev = Scenario::endState(constraint, *scenar).eventId();
+                auto& ev = Scenario::endState(interval, *scenar).eventId();
                 auto resize_cmd = new Scenario::Command::MoveEventMeta{
                         *scenar,
                         ev,
-                        constraint.startDate() + drop.dropMaxDuration(),
-                        constraint.heightPercentage(),
+                        interval.startDate() + drop.dropMaxDuration(),
+                        interval.heightPercentage(),
                         ExpandMode::GrowShrink,
                         LockMode::Free};
                 m.submitCommand(resize_cmd);
@@ -213,10 +213,10 @@ bool ConstraintDropHandler::drop(
     }
 
     // Add the processes
-    createSoundProcesses(m, constraint,  drop);
+    createSoundProcesses(m, interval,  drop);
 
     // Show the rack
-    auto show_cmd = new Scenario::Command::ShowRack{constraint};
+    auto show_cmd = new Scenario::Command::ShowRack{interval};
     m.submitCommand(show_cmd);
     m.commit();
 

@@ -15,8 +15,8 @@
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
-#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalDurations.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
@@ -71,7 +71,7 @@ ProcessModel::ProcessModel(
 {
   metadata().setInstanceName(*this);
   // This almost terrifying piece of code will simply clone
-  // all the elements (constraint, etc...) from the source to this class
+  // all the elements (interval, etc...) from the source to this class
   // without duplicating code too much.
   auto clone = [&](const auto& m) {
     using the_class =
@@ -81,7 +81,7 @@ ProcessModel::ProcessModel(
   };
   clone(&ProcessModel::timeSyncs);
   clone(&ProcessModel::events);
-  clone(&ProcessModel::constraints);
+  clone(&ProcessModel::intervals);
   clone(&ProcessModel::comments);
   auto& stack = iscore::IDocument::documentContext(*this).commandStack;
   for (const auto& elt : source.states)
@@ -90,13 +90,13 @@ ProcessModel::ProcessModel(
     states.add(st);
   }
 
-  // We re-set the constraints before and after the states
-  for (const Scenario::ConstraintModel& constraint : constraints)
+  // We re-set the intervals before and after the states
+  for (const Scenario::IntervalModel& interval : intervals)
   {
-    Scenario::SetPreviousConstraint(
-        states.at(constraint.endState()), constraint);
-    Scenario::SetNextConstraint(
-        states.at(constraint.startState()), constraint);
+    Scenario::SetPreviousInterval(
+        states.at(interval.endState()), interval);
+    Scenario::SetNextInterval(
+        states.at(interval.startState()), interval);
   }
 
   metadata().setInstanceName(*this);
@@ -128,20 +128,20 @@ void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
     cmt.setDate(cmt.date() * scale);
   }
 
-  for (auto& constraint : constraints)
+  for (auto& interval : intervals)
   {
-    constraint.setStartDate(constraint.startDate() * scale);
+    interval.setStartDate(interval.startDate() * scale);
     // Note : scale the min / max.
 
-    auto newdur = constraint.duration.defaultDuration() * scale;
-    ConstraintDurations::Algorithms::scaleAllDurations(constraint, newdur);
+    auto newdur = interval.duration.defaultDuration() * scale;
+    IntervalDurations::Algorithms::scaleAllDurations(interval, newdur);
 
-    for (auto& process : constraint.processes)
+    for (auto& process : interval.processes)
     {
       process.setParentDuration(ExpandMode::Scale, newdur);
     }
 
-    emit constraintMoved(constraint);
+    emit intervalMoved(interval);
   }
 
   this->setDuration(newDuration);
@@ -162,17 +162,17 @@ void ProcessModel::startExecution()
 {
   // TODO this is called for each process!!
   // But it should be done only once at the global level.
-  for (ConstraintModel& constraint : constraints)
+  for (IntervalModel& interval : intervals)
   {
-    constraint.startExecution();
+    interval.startExecution();
   }
 }
 
 void ProcessModel::stopExecution()
 {
-  for (ConstraintModel& constraint : constraints)
+  for (IntervalModel& interval : intervals)
   {
-    constraint.stopExecution();
+    interval.stopExecution();
   }
   for (EventModel& ev : events)
   {
@@ -182,9 +182,9 @@ void ProcessModel::stopExecution()
 
 void ProcessModel::reset()
 {
-  for (auto& constraint : constraints)
+  for (auto& interval : intervals)
   {
-    constraint.reset();
+    interval.reset();
   }
 
   for (auto& event : events)
@@ -229,10 +229,10 @@ void ProcessModel::setSelection(const Selection& s) const
   });
 }
 
-const QVector<Id<ConstraintModel>> constraintsBeforeTimeSync(
+const QVector<Id<IntervalModel>> intervalsBeforeTimeSync(
     const Scenario::ProcessModel& scenar, const Id<TimeSyncModel>& timeSyncId)
 {
-  QVector<Id<ConstraintModel>> cstrs;
+  QVector<Id<IntervalModel>> cstrs;
   const auto& tn = scenar.timeSyncs.at(timeSyncId);
   for (const auto& ev : tn.events())
   {
@@ -240,8 +240,8 @@ const QVector<Id<ConstraintModel>> constraintsBeforeTimeSync(
     for (const auto& st : evM.states())
     {
       const auto& stM = scenar.states.at(st);
-      if (stM.previousConstraint())
-        cstrs.push_back(*stM.previousConstraint());
+      if (stM.previousInterval())
+        cstrs.push_back(*stM.previousInterval());
     }
   }
 
@@ -278,40 +278,40 @@ const StateModel* furthestSelectedState(const Scenario::ProcessModel& scenar)
     }
   }
 
-  // If there is no furthest state, we instead go for a constraint
-  const ConstraintModel* furthest_constraint{};
+  // If there is no furthest state, we instead go for a interval
+  const IntervalModel* furthest_interval{};
   {
     TimeVal max_t = TimeVal::zero();
     double max_y = 0;
-    for (ConstraintModel& cst : scenar.constraints)
+    for (IntervalModel& cst : scenar.intervals)
     {
       if (cst.selection.get())
       {
         auto date = cst.duration.defaultDuration();
-        if (!furthest_constraint || date > max_t)
+        if (!furthest_interval || date > max_t)
         {
           max_t = date;
           max_y = cst.heightPercentage();
-          furthest_constraint = &cst;
+          furthest_interval = &cst;
         }
         else if (date == max_t && cst.heightPercentage() > max_y)
         {
           max_y = cst.heightPercentage();
-          furthest_constraint = &cst;
+          furthest_interval = &cst;
         }
       }
     }
 
-    if (furthest_constraint)
+    if (furthest_interval)
     {
-      return &scenar.states.at(furthest_constraint->endState());
+      return &scenar.states.at(furthest_interval->endState());
     }
   }
 
   return nullptr;
 }
 
-const StateModel* furthestSelectedStateWithoutFollowingConstraint(
+const StateModel* furthestSelectedStateWithoutFollowingInterval(
     const Scenario::ProcessModel& scenar)
 {
   const StateModel* furthest_state{};
@@ -320,7 +320,7 @@ const StateModel* furthestSelectedStateWithoutFollowingConstraint(
     double max_y = 0;
     for (StateModel& state : scenar.states)
     {
-      if (state.selection.get() && !state.nextConstraint())
+      if (state.selection.get() && !state.nextInterval())
       {
         auto date = scenar.events.at(state.eventId()).date();
         if (!furthest_state || date > max_t)
@@ -342,37 +342,37 @@ const StateModel* furthestSelectedStateWithoutFollowingConstraint(
     }
   }
 
-  // If there is no furthest state, we instead go for a constraint
-  const ConstraintModel* furthest_constraint{};
+  // If there is no furthest state, we instead go for a interval
+  const IntervalModel* furthest_interval{};
   {
     TimeVal max_t = TimeVal::zero();
     double max_y = 0;
-    for (ConstraintModel& cst : scenar.constraints)
+    for (IntervalModel& cst : scenar.intervals)
     {
       if (cst.selection.get())
       {
         const auto& state = scenar.states.at(cst.endState());
-        if (state.nextConstraint())
+        if (state.nextInterval())
           continue;
 
         auto date = cst.duration.defaultDuration();
-        if (!furthest_constraint || date > max_t)
+        if (!furthest_interval || date > max_t)
         {
           max_t = date;
           max_y = cst.heightPercentage();
-          furthest_constraint = &cst;
+          furthest_interval = &cst;
         }
         else if (date == max_t && cst.heightPercentage() > max_y)
         {
           max_y = cst.heightPercentage();
-          furthest_constraint = &cst;
+          furthest_interval = &cst;
         }
       }
     }
 
-    if (furthest_constraint)
+    if (furthest_interval)
     {
-      return &scenar.states.at(furthest_constraint->endState());
+      return &scenar.states.at(furthest_interval->endState());
     }
   }
 

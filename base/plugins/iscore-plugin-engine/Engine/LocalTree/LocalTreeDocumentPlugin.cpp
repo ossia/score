@@ -12,7 +12,7 @@
 #include <Curve/CurveModel.hpp>
 
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
@@ -99,8 +99,8 @@ void Engine::LocalTree::DocumentPlugin::create()
   if (!scenar)
     return;
 
-  auto& cstr = scenar->baseScenario().constraint();
-  m_root = new Constraint(
+  auto& cstr = scenar->baseScenario().interval();
+  m_root = new Interval(
       m_localDevice->get_root_node(),
       getStrongId(cstr.components()),
       cstr,
@@ -115,6 +115,6 @@ void Engine::LocalTree::DocumentPlugin::cleanup()
   if (!m_root)
     return;
 
-  m_root->constraint().components().remove(m_root);
+  m_root->interval().components().remove(m_root);
   m_root = nullptr;
 }

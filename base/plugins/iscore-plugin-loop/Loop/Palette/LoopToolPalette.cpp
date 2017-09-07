@@ -17,7 +17,7 @@
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 
-#include <Scenario/Document/Constraint/Temporal/TemporalConstraintPresenter.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/statemachine/GraphicsSceneToolPalette.hpp>
 #include <iscore/model/Identifier.hpp>
@@ -123,7 +123,7 @@ DisplayedElementsToolPalette::DisplayedElementsToolPalette(
     : GraphicsSceneToolPalette{*view.scene()}
     , m_model{model}
     , m_scenarioModel{*safe_cast<Loop::ProcessModel*>(
-          m_model.constraint().parent())}
+          m_model.interval().parent())}
     , m_presenter{pres}
     , m_context{pres.context(), m_presenter}
     , m_view{view}
@@ -198,15 +198,15 @@ void DisplayedElementsToolPalette::on_cancel()
 }
 std::unique_ptr<GraphicsSceneToolPalette>
 DisplayedElementsToolPaletteFactory::make(
-    Scenario::ScenarioDocumentPresenter& pres, const Scenario::ConstraintModel& constraint)
+    Scenario::ScenarioDocumentPresenter& pres, const Scenario::IntervalModel& interval)
 {
   return std::make_unique<DisplayedElementsToolPalette>(
       pres.displayedElements, pres, pres.view().baseItem());
 }
 
 bool DisplayedElementsToolPaletteFactory::matches(
-    const Scenario::ConstraintModel& constraint) const
+    const Scenario::IntervalModel& interval) const
 {
-  return dynamic_cast<Loop::ProcessModel*>(constraint.parent());
+  return dynamic_cast<Loop::ProcessModel*>(interval.parent());
 }
 }

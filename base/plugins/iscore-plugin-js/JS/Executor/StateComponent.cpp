@@ -46,13 +46,13 @@ void State::operator()()
 
 //// Component ////
 StateProcessComponent::StateProcessComponent(
-    Engine::Execution::StateComponent& parentConstraint,
+    Engine::Execution::StateComponent& parentInterval,
     JS::StateProcess& element,
     const Engine::Execution::Context& ctx,
     const Id<iscore::Component>& id,
     QObject* parent)
     : Engine::Execution::StateProcessComponent_T<JS::StateProcess>{
-          parentConstraint, element, ctx, id, "JSStateComponent", parent}
+          parentInterval, element, ctx, id, "JSStateComponent", parent}
 {
   m_ossia_state = ossia::custom_state{State{element.script(), ctx.devices}};
 }

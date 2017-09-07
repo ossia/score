@@ -33,14 +33,14 @@
  *   which set-up and displays the central part of an i-score document.
  * * The Scenario::ScenarioApplicationPlugin which handles tools, Action%s, and process focus.
  * * Model-view-presenter classes for the major i-score concepts :
- *   * Scenario::ConstraintModel,
+ *   * Scenario::IntervalModel,
  *   * Scenario::EventModel,
  *   * Scenario::TimeSyncModel,
  *   * Scenario::StateModel,
  *   * Scenario::RackModel,
  *   * Scenario::SlotModel
  *
- * * Scenario::BaseScenario is a minimalist, fixed scenario with a single constraint, a start state and an end state.
+ * * Scenario::BaseScenario is a minimalist, fixed scenario with a single interval, a start state and an end state.
  * * Inspector elements for all these objects
  * * Scenario::Palette handles user input, movements, etc.
  *

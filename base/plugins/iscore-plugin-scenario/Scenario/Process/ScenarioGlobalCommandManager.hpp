@@ -4,7 +4,7 @@
 class BaseScenario;
 namespace Scenario
 {
-class ConstraintModel;
+class IntervalModel;
 class StateModel;
 class ProcessModel;
 class BaseScenarioContainer;
@@ -25,7 +25,7 @@ void removeSelection(const BaseScenario&, const iscore::CommandStackFacade&);
 
 // Clearing content should be available for other plug-ins, e.g. loop
 ISCORE_PLUGIN_SCENARIO_EXPORT void clearContentFromSelection(
-    const QList<const ConstraintModel*>& constraintsToRemove,
+    const QList<const IntervalModel*>& intervalsToRemove,
     const QList<const StateModel*>& statesToRemove,
     const iscore::CommandStackFacade& stack);
 

@@ -1,9 +1,9 @@
 #pragma once
-#include <ossia/editor/scenario/time_constraint.hpp>
+#include <ossia/editor/scenario/time_interval.hpp>
 #include <Engine/Executor/ClockManager/ClockManagerFactory.hpp>
 namespace Scenario
 {
-class ConstraintModel;
+class IntervalModel;
 }
 namespace Engine
 {
@@ -18,8 +18,8 @@ public:
 
   virtual ~DefaultClockManager();
 
-  //! Creates an execution callback for the root ossia::time_constraint
-  ossia::time_constraint::exec_callback
+  //! Creates an execution callback for the root ossia::time_interval
+  ossia::time_interval::exec_callback
   makeDefaultCallback(Engine::Execution::BaseScenarioElement&);
 
   void prepareExecution(

@@ -5,7 +5,7 @@
 class GraphicsSceneToolPalette;
 namespace Scenario
 {
-class ConstraintModel;
+class IntervalModel;
 class ScenarioDocumentPresenter;
 
 class BaseScenarioDisplayedElementsToolPaletteFactory final
@@ -13,10 +13,10 @@ class BaseScenarioDisplayedElementsToolPaletteFactory final
 {
   ISCORE_CONCRETE("ed0d6e10-1bb8-4ee4-b8e9-7e7d9e306e2b")
 public:
-  bool matches(const ConstraintModel& constraint) const override;
+  bool matches(const IntervalModel& interval) const override;
 
   std::unique_ptr<GraphicsSceneToolPalette> make(
       ScenarioDocumentPresenter& pres,
-      const ConstraintModel& constraint) override;
+      const IntervalModel& interval) override;
 };
 }

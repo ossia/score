@@ -1,5 +1,5 @@
 #pragma once
-#include <Scenario/Document/Constraint/Slot.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
 
 namespace Scenario
 {

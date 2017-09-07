@@ -3,7 +3,7 @@
 
 #include <iscore/statemachine/StateMachineUtils.hpp>
 #include <iscore/model/path/Path.hpp>
-#include <Scenario/Document/Constraint/Slot.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
 
 #include <QAbstractTransition>
 #include <QPointF>
@@ -14,7 +14,7 @@ namespace Scenario
 {
 class EventModel;
 class TimeSyncModel;
-class ConstraintModel;
+class IntervalModel;
 class StateModel;
 // OPTIMIZEME this when we have all the tools
 template <typename Scenario_T>
@@ -30,12 +30,12 @@ public:
   {
     clickedEvent = ossia::none;
     clickedTimeSync = ossia::none;
-    clickedConstraint = ossia::none;
+    clickedInterval = ossia::none;
     clickedState = ossia::none;
 
     hoveredEvent = ossia::none;
     hoveredTimeSync = ossia::none;
-    hoveredConstraint = ossia::none;
+    hoveredInterval = ossia::none;
     hoveredState = ossia::none;
 
     currentPoint = Scenario::Point();
@@ -44,12 +44,12 @@ public:
   OptionalId<StateModel> clickedState;
   OptionalId<EventModel> clickedEvent;
   OptionalId<TimeSyncModel> clickedTimeSync;
-  OptionalId<ConstraintModel> clickedConstraint;
+  OptionalId<IntervalModel> clickedInterval;
 
   OptionalId<StateModel> hoveredState;
   OptionalId<EventModel> hoveredEvent;
   OptionalId<TimeSyncModel> hoveredTimeSync;
-  OptionalId<ConstraintModel> hoveredConstraint;
+  OptionalId<IntervalModel> hoveredInterval;
 
   Scenario::Point currentPoint{};
 

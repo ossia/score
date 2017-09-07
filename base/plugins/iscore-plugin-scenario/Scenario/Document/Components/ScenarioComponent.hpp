@@ -1,6 +1,6 @@
 #pragma once
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
@@ -18,16 +18,16 @@
 template <
     typename Component_T,
     typename Scenario_T,
-    typename ConstraintComponent_T,
+    typename IntervalComponent_T,
     bool HasOwnership = true>
 class SimpleHierarchicalScenarioComponent : public Component_T, public Nano::Observer
 {
 public:
-  struct ConstraintPair
+  struct IntervalPair
   {
-    using element_t = Scenario::ConstraintModel;
-    Scenario::ConstraintModel& element;
-    ConstraintComponent_T& component;
+    using element_t = Scenario::IntervalModel;
+    Scenario::IntervalModel& element;
+    IntervalComponent_T& component;
   };
 
   //! The default constructor will also initialize the children
@@ -49,20 +49,20 @@ public:
   //! Do not forget to call this when using the lazy constructor.
   void init()
   {
-    setup<Scenario::ConstraintModel>();
+    setup<Scenario::IntervalModel>();
   }
 
-  const std::list<ConstraintPair>& constraints_pairs() const
+  const std::list<IntervalPair>& intervals_pairs() const
   {
-    return m_constraints;
+    return m_intervals;
   }
 
   void clear()
   {
-    for (auto element : m_constraints)
+    for (auto element : m_intervals)
       do_cleanup(element);
 
-    m_constraints.clear();
+    m_intervals.clear();
   }
 
   ~SimpleHierarchicalScenarioComponent()
@@ -181,17 +181,17 @@ private:
     }
   }
 
-  std::list<ConstraintPair> m_constraints;
+  std::list<IntervalPair> m_intervals;
 
   template <bool dummy>
-  struct MatchingComponent<Scenario::ConstraintModel, dummy>
+  struct MatchingComponent<Scenario::IntervalModel, dummy>
   {
-    using type = ConstraintComponent_T;
-    using pair_type = ConstraintPair;
+    using type = IntervalComponent_T;
+    using pair_type = IntervalPair;
     static const constexpr auto local_container
-        = &SimpleHierarchicalScenarioComponent::m_constraints;
+        = &SimpleHierarchicalScenarioComponent::m_intervals;
     static const constexpr auto scenario_container = Scenario::
-        ElementTraits<Scenario_T, Scenario::ConstraintModel>::accessor;
+        ElementTraits<Scenario_T, Scenario::IntervalModel>::accessor;
   };
 };
 
@@ -200,7 +200,7 @@ private:
 template <
     typename Component_T,
     typename Scenario_T,
-    typename ConstraintComponent_T,
+    typename IntervalComponent_T,
     typename EventComponent_T,
     typename TimeSyncComponent_T,
     typename StateComponent_T,
@@ -208,11 +208,11 @@ template <
 class HierarchicalScenarioComponent : public Component_T, public Nano::Observer
 {
 public:
-  struct ConstraintPair
+  struct IntervalPair
   {
-    using element_t = Scenario::ConstraintModel;
-    Scenario::ConstraintModel& element;
-    ConstraintComponent_T& component;
+    using element_t = Scenario::IntervalModel;
+    Scenario::IntervalModel& element;
+    IntervalComponent_T& component;
   };
   struct EventPair
   {
@@ -255,12 +255,12 @@ public:
     setup<Scenario::TimeSyncModel>();
     setup<Scenario::EventModel>();
     setup<Scenario::StateModel>();
-    setup<Scenario::ConstraintModel>();
+    setup<Scenario::IntervalModel>();
   }
 
-  const std::list<ConstraintPair>& constraints_pairs() const
+  const std::list<IntervalPair>& intervals_pairs() const
   {
-    return m_constraints;
+    return m_intervals;
   }
   const std::list<EventPair>& events_pairs() const
   {
@@ -277,7 +277,7 @@ public:
 
   void clear()
   {
-    for (auto element : m_constraints)
+    for (auto element : m_intervals)
       do_cleanup(element);
     for (auto element : m_states)
       do_cleanup(element);
@@ -286,7 +286,7 @@ public:
     for (auto element : m_timeSyncs)
       do_cleanup(element);
 
-    m_constraints.clear();
+    m_intervals.clear();
     m_states.clear();
     m_events.clear();
     m_timeSyncs.clear();
@@ -411,17 +411,17 @@ private:
   std::list<TimeSyncPair> m_timeSyncs;
   std::list<EventPair> m_events;
   std::list<StatePair> m_states;
-  std::list<ConstraintPair> m_constraints;
+  std::list<IntervalPair> m_intervals;
 
   template <bool dummy>
-  struct MatchingComponent<Scenario::ConstraintModel, dummy>
+  struct MatchingComponent<Scenario::IntervalModel, dummy>
   {
-    using type = ConstraintComponent_T;
-    using pair_type = ConstraintPair;
+    using type = IntervalComponent_T;
+    using pair_type = IntervalPair;
     static const constexpr auto local_container
-        = &HierarchicalScenarioComponent::m_constraints;
+        = &HierarchicalScenarioComponent::m_intervals;
     static const constexpr auto scenario_container = Scenario::
-        ElementTraits<Scenario_T, Scenario::ConstraintModel>::accessor;
+        ElementTraits<Scenario_T, Scenario::IntervalModel>::accessor;
   };
   template <bool dummy>
   struct MatchingComponent<Scenario::EventModel, dummy>
@@ -459,18 +459,18 @@ private:
 template <
     typename Component_T,
     typename BaseScenario_T,
-    typename ConstraintComponent_T,
+    typename IntervalComponent_T,
     typename EventComponent_T,
     typename TimeSyncComponent_T,
     typename StateComponent_T>
 class HierarchicalBaseScenario : public Component_T, public Nano::Observer
 {
 public:
-  struct ConstraintPair
+  struct IntervalPair
   {
-    using element_t = Scenario::ConstraintModel;
-    Scenario::ConstraintModel& element;
-    ConstraintComponent_T& component;
+    using element_t = Scenario::IntervalModel;
+    Scenario::IntervalModel& element;
+    IntervalComponent_T& component;
   };
   struct EventPair
   {
@@ -500,13 +500,13 @@ public:
                  setup<Scenario::EventModel>(1)}
       , m_states{setup<Scenario::StateModel>(0),
                  setup<Scenario::StateModel>(1)}
-      , m_constraints{setup<Scenario::ConstraintModel>(0)}
+      , m_intervals{setup<Scenario::IntervalModel>(0)}
   {
   }
 
-  const auto& constraints() const
+  const auto& intervals() const
   {
-    return m_constraints;
+    return m_intervals;
   }
   const auto& events() const
   {
@@ -523,7 +523,7 @@ public:
 
   void clear()
   {
-    for (auto element : m_constraints)
+    for (auto element : m_intervals)
       cleanup(element);
     for (auto element : m_states)
       cleanup(element);
@@ -532,7 +532,7 @@ public:
     for (auto element : m_timeSyncs)
       cleanup(element);
 
-    m_constraints.clear();
+    m_intervals.clear();
     m_states.clear();
     m_events.clear();
     m_timeSyncs.clear();
@@ -594,17 +594,17 @@ private:
   std::list<TimeSyncPair> m_timeSyncs;
   std::list<EventPair> m_events;
   std::list<StatePair> m_states;
-  std::list<ConstraintPair> m_constraints;
+  std::list<IntervalPair> m_intervals;
 
   template <bool dummy>
-  struct MatchingComponent<Scenario::ConstraintModel, dummy>
+  struct MatchingComponent<Scenario::IntervalModel, dummy>
   {
-    using type = ConstraintComponent_T;
-    using pair_type = ConstraintPair;
+    using type = IntervalComponent_T;
+    using pair_type = IntervalPair;
     static const constexpr auto local_container
-        = &HierarchicalBaseScenario::m_constraints;
+        = &HierarchicalBaseScenario::m_intervals;
     static const constexpr auto scenario_container = Scenario::
-        ElementTraits<BaseScenario_T, Scenario::ConstraintModel>::
+        ElementTraits<BaseScenario_T, Scenario::IntervalModel>::
             accessor;
   };
   template <bool dummy>

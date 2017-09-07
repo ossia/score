@@ -1,9 +1,9 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <iscore/command/AggregateCommand.hpp>
 
-#include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
+#include <Scenario/Commands/Interval/Rack/AddSlotToRack.hpp>
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
 
 #include <ossia/detail/algorithms.hpp>
@@ -14,22 +14,22 @@ namespace Scenario
 namespace Command
 {
 // RENAMEME
-// One InterpolateMacro per constraint
-class AddMultipleProcessesToMultipleConstraintsMacro final
+// One InterpolateMacro per interval
+class AddMultipleProcessesToMultipleIntervalsMacro final
     : public iscore::AggregateCommand
 {
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),
-      AddMultipleProcessesToMultipleConstraintsMacro,
-      "Add processes to constraints")
+      AddMultipleProcessesToMultipleIntervalsMacro,
+      "Add processes to intervals")
 };
 
-class AddMultipleProcessesToConstraintMacro final
+class AddMultipleProcessesToIntervalMacro final
     : public iscore::AggregateCommand
 {
   ISCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), AddMultipleProcessesToConstraintMacro,
-      "Add processes to constraint")
+      ScenarioCommandFactoryName(), AddMultipleProcessesToIntervalMacro,
+      "Add processes to interval")
 
 public:
   auto& commands()
@@ -41,8 +41,8 @@ public:
     return std::move(m_cmds);
   }
 
-  // Use this constructor when the constraint does not exist yet.
-  AddMultipleProcessesToConstraintMacro(const Path<ConstraintModel>& cstpath)
+  // Use this constructor when the interval does not exist yet.
+  AddMultipleProcessesToIntervalMacro(const Path<IntervalModel>& cstpath)
   {
     // Then create a slot in this rack
     auto cmd_slot = new Scenario::Command::AddSlotToRack{cstpath};
@@ -51,29 +51,29 @@ public:
     slotsToUse.push_back({cstpath, 0});
   }
 
-  // Use this constructor when the constraint already exists
-  AddMultipleProcessesToConstraintMacro(const ConstraintModel& constraint)
+  // Use this constructor when the interval already exists
+  AddMultipleProcessesToIntervalMacro(const IntervalModel& interval)
   {
     // If no slot : create slot
-    if(constraint.smallView().empty())
+    if(interval.smallView().empty())
     {
-      auto cmd_slot = new Scenario::Command::AddSlotToRack{constraint};
+      auto cmd_slot = new Scenario::Command::AddSlotToRack{interval};
       addCommand(cmd_slot);
     }
 
     // Put everything in first slot
-    slotsToUse.push_back({constraint, 0});
+    slotsToUse.push_back({interval, 0});
   }
 
   // No need to save this, it is useful only for construction.
   std::vector<SlotPath> slotsToUse;
 };
 
-inline AddMultipleProcessesToConstraintMacro*
-    makeAddProcessMacro(const ConstraintModel& constraint, int num_processes)
+inline AddMultipleProcessesToIntervalMacro*
+    makeAddProcessMacro(const IntervalModel& interval, int num_processes)
 {
-  return new AddMultipleProcessesToConstraintMacro{
-      constraint};
+  return new AddMultipleProcessesToIntervalMacro{
+      interval};
 }
 }
 }

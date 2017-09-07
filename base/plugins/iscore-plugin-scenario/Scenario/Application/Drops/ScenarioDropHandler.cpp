@@ -69,16 +69,16 @@ bool DropHandlerList::drop(
   return false;
 }
 
-ConstraintDropHandler::~ConstraintDropHandler()
+IntervalDropHandler::~IntervalDropHandler()
 {
 }
 
-ConstraintDropHandlerList::~ConstraintDropHandlerList()
+IntervalDropHandlerList::~IntervalDropHandlerList()
 {
 }
 
-bool ConstraintDropHandlerList::drop(
-    const Scenario::ConstraintModel& cst, const QMimeData* mime) const
+bool IntervalDropHandlerList::drop(
+    const Scenario::IntervalModel& cst, const QMimeData* mime) const
 {
   for (auto& fact : *this)
   {

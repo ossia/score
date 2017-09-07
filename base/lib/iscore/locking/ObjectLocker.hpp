@@ -12,7 +12,7 @@ namespace iscore
  * In network operation, will graphically lock an object on the other
  * computers.
  *
- * For instance, if user A starts moving a constraint in a scenario, the
+ * For instance, if user A starts moving a interval in a scenario, the
  * other users won't be able to change the scenario.
  */
 class ISCORE_LIB_BASE_EXPORT ObjectLocker : public QObject

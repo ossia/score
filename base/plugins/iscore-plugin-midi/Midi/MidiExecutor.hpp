@@ -66,7 +66,7 @@ class Component final
 public:
     static const constexpr bool is_unique = true;
   Component(
-      Engine::Execution::ConstraintComponent& parentConstraint,
+      Engine::Execution::IntervalComponent& parentInterval,
       Midi::ProcessModel& element,
       const Engine::Execution::Context& ctx,
       const Id<iscore::Component>& id,

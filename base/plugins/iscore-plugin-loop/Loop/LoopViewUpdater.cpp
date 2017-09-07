@@ -7,16 +7,16 @@
 #include <QPoint>
 #include <QRect>
 #include <QtGlobal>
-#include <Scenario/Document/Constraint/Temporal/TemporalConstraintView.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
 #include <Scenario/Document/Event/EventView.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncView.hpp>
 
 #include "LoopViewUpdater.hpp"
 #include <Process/TimeValue.hpp>
-#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/ConstraintPresenter.hpp>
-#include <Scenario/Document/Constraint/Temporal/TemporalConstraintPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalDurations.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/IntervalPresenter.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
@@ -52,13 +52,13 @@ void ViewUpdater::updateEvent(const Scenario::EventPresenter& event)
   m_presenter.m_view->update();
 }
 
-void ViewUpdater::updateConstraint(
-    const Scenario::TemporalConstraintPresenter& pres)
+void ViewUpdater::updateInterval(
+    const Scenario::TemporalIntervalPresenter& pres)
 {
   auto msPerPixel = m_presenter.m_zoomRatio;
 
   const auto& cstr_model = pres.model();
-  Scenario::TemporalConstraintView& cstr_view = Scenario::view(pres);
+  Scenario::TemporalIntervalView& cstr_view = Scenario::view(pres);
 
   auto startPos = cstr_model.startDate().toPixels(msPerPixel);
   auto delta = cstr_view.x() - startPos;

@@ -1,13 +1,13 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <QObject>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
 #include "ScenarioDisplayedElementsProvider.hpp"
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/FullView/FullViewConstraintPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
@@ -23,13 +23,13 @@
 namespace Scenario
 {
 bool ScenarioDisplayedElementsProvider::matches(
-    const ConstraintModel& cst) const
+    const IntervalModel& cst) const
 {
   return dynamic_cast<Scenario::ProcessModel*>(cst.parent());
 }
 
 DisplayedElementsContainer
-ScenarioDisplayedElementsProvider::make(ConstraintModel& cst) const
+ScenarioDisplayedElementsProvider::make(IntervalModel& cst) const
 {
   if (auto parent_scenario
       = dynamic_cast<Scenario::ProcessModel*>(cst.parent()))
@@ -53,7 +53,7 @@ ScenarioDisplayedElementsProvider::make(ConstraintModel& cst) const
 
 DisplayedElementsPresenterContainer
 ScenarioDisplayedElementsProvider::make_presenters(
-    const ConstraintModel& m,
+    const IntervalModel& m,
     const Process::ProcessPresenterContext& ctx,
     QGraphicsItem* view_parent,
     QObject* parent) const
@@ -67,7 +67,7 @@ ScenarioDisplayedElementsProvider::make_presenters(
     const auto& startNode = sm->timeSyncs.at(startEvent.timeSync());
     const auto& endNode = sm->timeSyncs.at(endEvent.timeSync());
     return DisplayedElementsPresenterContainer{
-        new FullViewConstraintPresenter{m, ctx, view_parent,
+        new FullViewIntervalPresenter{m, ctx, view_parent,
                                         parent},
         new StatePresenter{startState, view_parent, parent},
         new StatePresenter{endState, view_parent, parent},

@@ -33,7 +33,7 @@ void updateTreeWithRemovedProcess(
     const Id<Process::ProcessModel>& proc,
     ProcessPosition pos);
 
-void updateTreeWithRemovedConstraint(
+void updateTreeWithRemovedInterval(
     Process::MessageNode& rootNode, ProcessPosition pos);
 
 void updateTreeWithRemovedUserMessage(

@@ -1,6 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <algorithm>
 
 #include "PutLayerModelToFront.hpp"
@@ -18,6 +18,6 @@ PutLayerModelToFront::PutLayerModelToFront(
 
 void PutLayerModelToFront::redo(const iscore::DocumentContext& ctx) const
 {
-  m_slotPath.constraint.find(ctx).putLayerToFront(m_slotPath.index, m_pid);
+  m_slotPath.interval.find(ctx).putLayerToFront(m_slotPath.index, m_pid);
 }
 }

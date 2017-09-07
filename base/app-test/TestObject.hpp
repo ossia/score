@@ -7,7 +7,7 @@
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
@@ -133,8 +133,8 @@ class TestObject : public QObject
             auto& doc_pm = doc->model().modelDelegate();
             auto& scenario_dm = static_cast<Scenario::ScenarioDocumentModel&>(doc_pm);
 
-            auto& scenar = static_cast<Scenario::ProcessModel&>(*scenario_dm.baseConstraint().processes.begin());
-            for(auto& elt : scenar.constraints)
+            auto& scenar = static_cast<Scenario::ProcessModel&>(*scenario_dm.baseInterval().processes.begin());
+            for(auto& elt : scenar.intervals)
             {
                 doc->context().selectionStack.pushNewSelection({&elt});
                 qApp->processEvents();

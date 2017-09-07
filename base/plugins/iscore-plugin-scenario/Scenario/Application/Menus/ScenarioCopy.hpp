@@ -4,12 +4,12 @@ class QObject;
 
 namespace Scenario
 {
-class ConstraintModel;
+class IntervalModel;
 class ProcessModel;
 
 class BaseScenario;
 class BaseScenarioContainer;
-QJsonObject copyBaseConstraint(const ConstraintModel&);
+QJsonObject copyBaseInterval(const IntervalModel&);
 
 QJsonObject copySelectedScenarioElements(const Scenario::ProcessModel& sm);
 

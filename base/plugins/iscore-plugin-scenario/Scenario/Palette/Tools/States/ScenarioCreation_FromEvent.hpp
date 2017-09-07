@@ -9,7 +9,7 @@
 
 #include <Scenario/Palette/Tools/States/ScenarioCreationState.hpp>
 #include <Scenario/Palette/Transitions/AnythingTransitions.hpp>
-#include <Scenario/Palette/Transitions/ConstraintTransitions.hpp>
+#include <Scenario/Palette/Transitions/IntervalTransitions.hpp>
 #include <Scenario/Palette/Transitions/EventTransitions.hpp>
 #include <Scenario/Palette/Transitions/NothingTransitions.hpp>
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>
@@ -97,7 +97,7 @@ public:
       });
 
       // MoveOnState -> MoveOnState
-      // We don't do anything, the constraint should not move.
+      // We don't do anything, the interval should not move.
 
       // MoveOnState -> MoveOnEvent
       this->add_transition(move_state, move_event, [&]() {
@@ -167,7 +167,7 @@ public:
       });
 
       QObject::connect(move_nothing, &QState::entered, [&]() {
-        if (this->createdConstraints.empty() || this->createdEvents.empty())
+        if (this->createdIntervals.empty() || this->createdEvents.empty())
         {
           this->rollback();
           return;
@@ -182,7 +182,7 @@ public:
 
         this->m_dispatcher.template submitCommand<MoveNewEvent>(
             this->m_scenario,
-            this->createdConstraints.last(),
+            this->createdIntervals.last(),
             this->createdEvents.last(),
             this->currentPoint.date,
             this->currentPoint.y,

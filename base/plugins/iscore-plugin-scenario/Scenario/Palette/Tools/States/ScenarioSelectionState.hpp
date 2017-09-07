@@ -84,7 +84,7 @@ public:
     using namespace std;
     Selection sel;
 
-    for (const auto& elt : m_parentSM.presenter().getConstraints())
+    for (const auto& elt : m_parentSM.presenter().getIntervals())
     {
       if (area.intersects(
               elt.view()->boundingRect().translated(elt.view()->pos())))

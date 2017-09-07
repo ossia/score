@@ -2,14 +2,14 @@
 #include <Scenario/Palette/ScenarioPaletteBaseStates.hpp>
 #include <iscore/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 
-#include <Scenario/Commands/Constraint/Rack/Slot/ResizeSlotVertically.hpp>
+#include <Scenario/Commands/Interval/Rack/Slot/ResizeSlotVertically.hpp>
 
 #include <Scenario/Palette/ScenarioPaletteBaseTransitions.hpp>
 
-#include <Scenario/Document/Constraint/Slot.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
 
-#include <Scenario/Commands/Constraint/Rack/SwapSlots.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Commands/Interval/Rack/SwapSlots.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Palette/Transitions/AnythingTransitions.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
@@ -31,7 +31,7 @@ protected:
         QEvent::Type(QEvent::User + MoveOnState_Event::user_type),
         QEvent::Type(QEvent::User + MoveOnEvent_Event::user_type),
         QEvent::Type(QEvent::User + MoveOnTimeSync_Event::user_type),
-        QEvent::Type(QEvent::User + MoveOnConstraint_Event::user_type),
+        QEvent::Type(QEvent::User + MoveOnInterval_Event::user_type),
         QEvent::Type(QEvent::User + MoveOnLeftBrace_Event::user_type),
         QEvent::Type(QEvent::User + MoveOnRightBrace_Event::user_type),
         QEvent::Type(QEvent::User + MoveOnSlotHandle_Event::user_type),
@@ -56,7 +56,7 @@ protected:
         QEvent::Type(QEvent::User + ReleaseOnState_Event::user_type),
         QEvent::Type(QEvent::User + ReleaseOnEvent_Event::user_type),
         QEvent::Type(QEvent::User + ReleaseOnTimeSync_Event::user_type),
-        QEvent::Type(QEvent::User + ReleaseOnConstraint_Event::user_type),
+        QEvent::Type(QEvent::User + ReleaseOnInterval_Event::user_type),
         QEvent::Type(QEvent::User + ReleaseOnLeftBrace_Event::user_type),
         QEvent::Type(QEvent::User + ReleaseOnRightBrace_Event::user_type),
         QEvent::Type(QEvent::User + ReleaseOnSlotHandle_Event::user_type),
@@ -96,7 +96,7 @@ public:
     connect(press, &QAbstractState::entered, [=]() {
       m_originalPoint = m_sm.scenePoint;
 
-      const ConstraintModel& cst = this->currentSlot.constraint.find(stack.context());
+      const IntervalModel& cst = this->currentSlot.interval.find(stack.context());
       m_originalHeight = cst.getSlotHeight(this->currentSlot);
     });
 
@@ -105,14 +105,14 @@ public:
           20.0,
           m_originalHeight + (m_sm.scenePoint.y() - m_originalPoint.y()));
 
-      const ConstraintModel& cst = this->currentSlot.constraint.find(stack.context());
+      const IntervalModel& cst = this->currentSlot.interval.find(stack.context());
       m_ongoingDispatcher.submitCommand(cst, this->currentSlot, val);
     });
 
     connect(release, &QAbstractState::entered, [=]() {
       m_ongoingDispatcher.commit();
 
-      ConstraintModel& cst = this->currentSlot.constraint.find(stack.context());
+      IntervalModel& cst = this->currentSlot.interval.find(stack.context());
       cst.heightFinishedChanging();
     });
   }

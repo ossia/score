@@ -22,7 +22,7 @@ class QMenu;
 class QObject;
 namespace Scenario
 {
-class TemporalConstraintPresenter;
+class TemporalIntervalPresenter;
 }
 namespace Loop
 {
@@ -49,7 +49,7 @@ namespace Loop
 {
 class LayerPresenter final
     : public Process::LayerPresenter,
-      public BaseScenarioPresenter<Loop::ProcessModel, Scenario::TemporalConstraintPresenter>
+      public BaseScenarioPresenter<Loop::ProcessModel, Scenario::TemporalIntervalPresenter>
 {
   Q_OBJECT
   friend class ViewUpdater;
@@ -67,7 +67,7 @@ public:
     return *m_view;
   }
 
-  using BaseScenarioPresenter<Loop::ProcessModel, Scenario::TemporalConstraintPresenter>::
+  using BaseScenarioPresenter<Loop::ProcessModel, Scenario::TemporalIntervalPresenter>::
       event;
   using QObject::event;
 
@@ -102,7 +102,7 @@ signals:
 
 private:
   void updateAllElements();
-  void on_constraintExecutionTimer();
+  void on_intervalExecutionTimer();
 
   const Loop::ProcessModel& m_layer;
   graphics_item_ptr<LayerView> m_view;

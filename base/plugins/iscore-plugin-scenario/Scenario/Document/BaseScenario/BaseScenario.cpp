@@ -1,7 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <QString>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
@@ -51,12 +51,12 @@ bool BaseScenario::focused() const
   return res;
 }
 
-const QVector<Id<ConstraintModel>> constraintsBeforeTimeSync(
+const QVector<Id<IntervalModel>> intervalsBeforeTimeSync(
     const BaseScenario& scen, const Id<TimeSyncModel>& timeSyncId)
 {
   if (timeSyncId == scen.endTimeSync().id())
   {
-    return {scen.constraint().id()};
+    return {scen.interval().id()};
   }
   return {};
 }

@@ -36,10 +36,10 @@ private slots:
   }
 
 private:
-  const ObjectPath test_path{{"ConstraintModel", {}},
-                             {"ConstraintModel", 0},
+  const ObjectPath test_path{{"IntervalModel", {}},
+                             {"IntervalModel", 0},
                              {"ScenarioProcessSharedModel", 23},
-                             {"ConstraintModel", -42}};
+                             {"IntervalModel", -42}};
 };
 
 QTEST_MAIN(SerializationTest)

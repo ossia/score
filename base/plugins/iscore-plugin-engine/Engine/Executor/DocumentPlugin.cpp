@@ -4,7 +4,7 @@
 
 #include "BaseScenarioComponent.hpp"
 #include "DocumentPlugin.hpp"
-#include <Engine/Executor/ConstraintComponent.hpp>
+#include <Engine/Executor/IntervalComponent.hpp>
 #include <Engine/Executor/StateProcessComponent.hpp>
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
@@ -40,16 +40,16 @@ DocumentPlugin::~DocumentPlugin()
 {
   if (m_base.active())
   {
-    m_base.baseConstraint().stop();
+    m_base.baseInterval().stop();
     clear();
   }
 }
 
-void DocumentPlugin::reload(Scenario::ConstraintModel& cst)
+void DocumentPlugin::reload(Scenario::IntervalModel& cst)
 {
   if (m_base.active())
   {
-    m_base.baseConstraint().stop();
+    m_base.baseInterval().stop();
   }
   clear();
   auto& ctx = iscore::DocumentPlugin::context();
@@ -77,7 +77,7 @@ void DocumentPlugin::on_documentClosing()
 {
   if (m_base.active())
   {
-    m_base.baseConstraint().stop();
+    m_base.baseInterval().stop();
     m_ctx.context().doc.app.guiApplicationPlugin<Engine::ApplicationPlugin>().on_stop();
     clear();
   }

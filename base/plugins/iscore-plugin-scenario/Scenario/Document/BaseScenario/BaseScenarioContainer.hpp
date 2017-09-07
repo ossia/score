@@ -15,7 +15,7 @@ class QObject;
 
 namespace Scenario
 {
-class ConstraintModel;
+class IntervalModel;
 class EventModel;
 class StateModel;
 class TimeSyncModel;
@@ -39,9 +39,9 @@ public:
     return *m_parent;
   }
 
-  ElementContainer<ConstraintModel> getConstraints() const final override
+  ElementContainer<IntervalModel> getIntervals() const final override
   {
-    return {m_constraint};
+    return {m_interval};
   }
   ElementContainer<StateModel> getStates() const final override
   {
@@ -56,8 +56,8 @@ public:
     return {m_startNode, m_endNode};
   }
 
-  ConstraintModel*
-  findConstraint(const Id<ConstraintModel>& id) const final override;
+  IntervalModel*
+  findInterval(const Id<IntervalModel>& id) const final override;
 
   EventModel* findEvent(const Id<EventModel>& id) const final override;
 
@@ -66,8 +66,8 @@ public:
 
   StateModel* findState(const Id<StateModel>& id) const final override;
 
-  ConstraintModel&
-  constraint(const Id<ConstraintModel>& id) const final override;
+  IntervalModel&
+  interval(const Id<IntervalModel>& id) const final override;
 
   EventModel& event(const Id<EventModel>& id) const final override;
 
@@ -75,7 +75,7 @@ public:
 
   StateModel& state(const Id<StateModel>& id) const final override;
 
-  ConstraintModel& constraint() const;
+  IntervalModel& interval() const;
 
   TimeSyncModel& startTimeSync() const final override;
   TimeSyncModel& endTimeSync() const;
@@ -86,9 +86,9 @@ public:
   StateModel& startState() const;
   StateModel& endState() const;
 
-  iscore::IndirectArray<ConstraintModel, 1> constraints() const
+  iscore::IndirectArray<IntervalModel, 1> intervals() const
   {
-    return m_constraint;
+    return m_interval;
   }
   iscore::IndirectArray<EventModel, 2> events() const
   {
@@ -113,23 +113,23 @@ protected:
   StateModel* m_startState{};
   StateModel* m_endState{};
 
-  ConstraintModel* m_constraint{};
+  IntervalModel* m_interval{};
 
   auto elements() const
   {
     return std::make_tuple(
         m_startNode, m_endNode, m_startEvent, m_endEvent, m_startState,
-        m_endState, m_constraint);
+        m_endState, m_interval);
   }
 
 private:
-  QObject* m_parent{}; // Parent for the constraints, timesyncs, etc.
+  QObject* m_parent{}; // Parent for the intervals, timesyncs, etc.
                        // If inheriting, m_parent should be this.
 };
 
-inline auto constraints(const BaseScenarioContainer& scenar)
+inline auto intervals(const BaseScenarioContainer& scenar)
 {
-  return scenar.constraints();
+  return scenar.intervals();
 }
 inline auto events(const BaseScenarioContainer& scenar)
 {
@@ -145,11 +145,11 @@ inline auto states(const BaseScenarioContainer& scenar)
 }
 
 template <>
-struct ElementTraits<BaseScenarioContainer, ConstraintModel>
+struct ElementTraits<BaseScenarioContainer, IntervalModel>
 {
   static const constexpr auto accessor
-      = static_cast<iscore::IndirectArray<ConstraintModel, 1> (*)(
-          const BaseScenarioContainer&)>(&constraints);
+      = static_cast<iscore::IndirectArray<IntervalModel, 1> (*)(
+          const BaseScenarioContainer&)>(&intervals);
 };
 template <>
 struct ElementTraits<BaseScenarioContainer, EventModel>

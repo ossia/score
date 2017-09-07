@@ -3,17 +3,17 @@
 #include <QtTest/QtTest>
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
 
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Slot.hpp>
-#include <Scenario/Document/Constraint/ConstraintViewModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/Rack/RackModel.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
+#include <Scenario/Document/Interval/IntervalViewModel.hpp>
 #include <Scenario/Document/Event/EventData.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 
-#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
-#include <Scenario/Commands/Constraint/AddRackToConstraint.hpp>
-#include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
-#include <Scenario/Commands/Constraint/AddLayerModelToSlot.hpp>
+#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
+#include <Scenario/Commands/Interval/AddRackToInterval.hpp>
+#include <Scenario/Commands/Interval/Rack/AddSlotToRack.hpp>
+#include <Scenario/Commands/Interval/AddLayerModelToSlot.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateEvent.hpp>
 
 #include <Process/AbstractScenarioLayerModel.hpp>
@@ -41,36 +41,36 @@ private slots:
     plist->registerProcess(new ScenarioFactory);
 
     // Setup
-    ConstraintModel* constraint = new ConstraintModel{
-        Id<ConstraintModel>{0}, Id<ConstraintViewModel>{0}, qApp};
+    IntervalModel* interval = new IntervalModel{
+        Id<IntervalModel>{0}, Id<IntervalViewModel>{0}, qApp};
 
-    // Creation of a scenario with a constraint
+    // Creation of a scenario with a interval
     auto cmd_proc
-        = new AddProcessToConstraint({{"ConstraintModel", {}}}, "Scenario");
+        = new AddProcessToInterval({{"IntervalModel", {}}}, "Scenario");
     stack.redoAndPush(cmd_proc);
     auto scenarioId = cmd_proc->m_createdProcessId;
     auto scenario = static_cast<Scenario::ProcessModel*>(
-        constraint->process(scenarioId));
+        interval->process(scenarioId));
 
-    // Creation of a way to visualize what happens in the original constraint
+    // Creation of a way to visualize what happens in the original interval
     auto cmd_rack
-        = new AddRackToConstraint(ObjectPath{{"ConstraintModel", {}}});
+        = new AddRackToInterval(ObjectPath{{"IntervalModel", {}}});
     stack.redoAndPush(cmd_rack);
     auto rackId = cmd_rack->m_createdRackId;
 
     auto cmd_slot = new AddSlotToRack(
-        ObjectPath{{"ConstraintModel", {}}, {"RackModel", rackId}});
+        ObjectPath{{"IntervalModel", {}}, {"RackModel", rackId}});
     auto slotId = cmd_slot->m_createdSlotId;
     stack.redoAndPush(cmd_slot);
 
     auto cmd_lm = new AddLayerModelToSlot(
-        {{"ConstraintModel", {}},
+        {{"IntervalModel", {}},
          {"RackModel", rackId},
          {"SlotModel", slotId}},
-        {{"ConstraintModel", {}}, {"ScenarioModel", scenarioId}});
+        {{"IntervalModel", {}}, {"ScenarioModel", scenarioId}});
     stack.redoAndPush(cmd_lm);
 
-    auto viewmodel = constraint->rackes()
+    auto viewmodel = interval->rackes()
                          .front()
                          ->getSlots()
                          .front()
@@ -80,9 +80,9 @@ private slots:
         = dynamic_cast<AbstractScenarioViewModel*>(viewmodel);
     // Put this in the tests for AbstractScenarioViewModel
     QVERIFY(scenario_viewmodel != nullptr);
-    QCOMPARE(scenario_viewmodel->constraints().count(), 0);
+    QCOMPARE(scenario_viewmodel->intervals().count(), 0);
 
-    // Creation of an even and a constraint inside the scenario
+    // Creation of an even and a interval inside the scenario
     EventData data{};
     // data.id = 0; unused here
     data.dDate.setMSecs(10);
@@ -95,38 +95,38 @@ private slots:
         data);
     stack.redoAndPush(cmd_event);
 
-    // This will create a view model for this constraint
+    // This will create a view model for this interval
     // in the previously-created Scenario View Model
-    QCOMPARE(scenario_viewmodel->constraints().count(), 1);
+    QCOMPARE(scenario_viewmodel->intervals().count(), 1);
 
-    // Check that the constraint view model is properly instantiated
-    ConstraintViewModel* constraint_viewmodel
-        = scenario_viewmodel->constraints().front();
+    // Check that the interval view model is properly instantiated
+    IntervalViewModel* interval_viewmodel
+        = scenario_viewmodel->intervals().front();
     QCOMPARE(
-        constraint_viewmodel->model(),
-        scenario->constraint(cmd_event->m_cmd->m_createdConstraintId));
-    QCOMPARE(constraint_viewmodel->isRackShown(), false); // No rack can be
+        interval_viewmodel->model(),
+        scenario->interval(cmd_event->m_cmd->m_createdIntervalId));
+    QCOMPARE(interval_viewmodel->isRackShown(), false); // No rack can be
                                                           // shown since there
                                                           // isn't any in this
-                                                          // constraint
+                                                          // interval
 
-    auto cmd_rack2 = new AddRackToConstraint(ObjectPath{
-        {"ConstraintModel", {}},
+    auto cmd_rack2 = new AddRackToInterval(ObjectPath{
+        {"IntervalModel", {}},
         {"ScenarioModel", scenarioId},
-        {"ConstraintModel", cmd_event->m_cmd->m_createdConstraintId}});
+        {"IntervalModel", cmd_event->m_cmd->m_createdIntervalId}});
     stack.redoAndPush(cmd_rack2);
 
     QCOMPARE(
-        constraint_viewmodel->isRackShown(),
+        interval_viewmodel->isRackShown(),
         false); // Now there is a rack but we do not show it
     auto rack2Id = cmd_rack2->m_createdRackId;
 
     // Show the rack
     auto cmd_showrack = new ShowRackInViewModel(
-        iscore::IDocument::path(constraint_viewmodel), rack2Id);
+        iscore::IDocument::path(interval_viewmodel), rack2Id);
     stack.redoAndPush(cmd_showrack);
-    QCOMPARE(constraint_viewmodel->isRackShown(), true);
-    QCOMPARE(constraint_viewmodel->shownRack(), rack2Id);
+    QCOMPARE(interval_viewmodel->isRackShown(), true);
+    QCOMPARE(interval_viewmodel->shownRack(), rack2Id);
   }
 };
 

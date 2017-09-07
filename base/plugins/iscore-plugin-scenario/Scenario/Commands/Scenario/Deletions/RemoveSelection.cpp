@@ -16,7 +16,7 @@
 
 #include "RemoveSelection.hpp"
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
@@ -43,10 +43,10 @@ RemoveSelection::RemoveSelection(
     const Scenario::ProcessModel& scenar, Selection sel)
     : m_path{scenar}
 {
-  // Serialize all the events and constraints and timesyncs and states and
+  // Serialize all the events and intervals and timesyncs and states and
   // comments
   // For each removed event, we also add its states to the selection.
-  // For each removed state, we add the constraints.
+  // For each removed state, we add the intervals.
 
   // First we remove :
   // The event if a State is selected and alone
@@ -104,10 +104,10 @@ RemoveSelection::RemoveSelection(
   {
     if (auto state = dynamic_cast<const StateModel*>(obj.data()))
     {
-      if (state->previousConstraint())
-        sel.append(&scenar.constraints.at(*state->previousConstraint()));
-      if (state->nextConstraint())
-        sel.append(&scenar.constraints.at(*state->nextConstraint()));
+      if (state->previousInterval())
+        sel.append(&scenar.intervals.at(*state->previousInterval()));
+      if (state->nextInterval())
+        sel.append(&scenar.intervals.at(*state->nextInterval()));
     }
   }
 
@@ -154,12 +154,12 @@ RemoveSelection::RemoveSelection(
       m_removedComments.push_back({cmt->id(), arr});
     }
 
-    if (auto constraint = dynamic_cast<const ConstraintModel*>(obj))
+    if (auto interval = dynamic_cast<const IntervalModel*>(obj))
     {
       QByteArray arr;
       DataStream::Serializer s{&arr};
-      s.readFrom(*constraint);
-      m_removedConstraints.push_back({constraint->id(), arr});
+      s.readFrom(*interval);
+      m_removedIntervals.push_back({interval->id(), arr});
     }
   }
 
@@ -317,17 +317,17 @@ void RemoveSelection::undo(const iscore::DocumentContext& ctx) const
     scenar.comments.add(cmt);
   }
 
-  // And then all the constraints.
-  for (const auto& constraintdata : m_removedConstraints)
+  // And then all the intervals.
+  for (const auto& intervaldata : m_removedIntervals)
   {
-    DataStream::Deserializer s{constraintdata.second};
-    auto cstr = new ConstraintModel{s, &scenar};
+    DataStream::Deserializer s{intervaldata.second};
+    auto cstr = new IntervalModel{s, &scenar};
 
-    scenar.constraints.add(cstr);
+    scenar.intervals.add(cstr);
 
     // Set-up the start / end events correctly.
-    SetNextConstraint(startState(*cstr, scenar), *cstr);
-    SetPreviousConstraint(endState(*cstr, scenar), *cstr);
+    SetNextInterval(startState(*cstr, scenar), *cstr);
+    SetPreviousInterval(endState(*cstr, scenar), *cstr);
   }
 
   for (auto& tn : scenar.timeSyncs)
@@ -344,16 +344,16 @@ void RemoveSelection::redo(const iscore::DocumentContext& ctx) const
 {
   auto& scenar = m_path.find(ctx);
 
-  // Remove the constraints
-  for (const auto& cstr : m_removedConstraints)
+  // Remove the intervals
+  for (const auto& cstr : m_removedIntervals)
   {
-    StandardRemovalPolicy::removeConstraint(scenar, cstr.first);
+    StandardRemovalPolicy::removeInterval(scenar, cstr.first);
   }
 
   // The other things
   for (const auto& ev : m_removedEvents)
   {
-    StandardRemovalPolicy::removeEventStatesAndConstraints(scenar, ev.first);
+    StandardRemovalPolicy::removeEventStatesAndIntervals(scenar, ev.first);
   }
 
   for (const auto& cmt : m_removedComments)
@@ -386,14 +386,14 @@ void RemoveSelection::redo(const iscore::DocumentContext& ctx) const
 void RemoveSelection::serializeImpl(DataStreamInput& s) const
 {
   s << m_path << m_maybeRemovedTimeSyncs << m_removedEvents
-    << m_removedTimeSyncs << m_removedConstraints << m_removedStates
+    << m_removedTimeSyncs << m_removedIntervals << m_removedStates
     << m_removedComments;
 }
 
 void RemoveSelection::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_path >> m_maybeRemovedTimeSyncs >> m_removedEvents
-      >> m_removedTimeSyncs >> m_removedConstraints >> m_removedStates
+      >> m_removedTimeSyncs >> m_removedIntervals >> m_removedStates
       >> m_removedComments;
 }
 }

@@ -4,7 +4,7 @@
 
 namespace Scenario
 {
-class ConstraintModel;
+class IntervalModel;
 class EventModel;
 class StateModel;
 class CommentBlockModel;
@@ -67,13 +67,13 @@ public:
 };
 
 template <>
-class ScenarioCreate<ConstraintModel>
+class ScenarioCreate<IntervalModel>
 {
 public:
-  static void undo(const Id<ConstraintModel>& id, Scenario::ProcessModel& s);
+  static void undo(const Id<IntervalModel>& id, Scenario::ProcessModel& s);
 
-  static ConstraintModel& redo(
-      const Id<ConstraintModel>& id,
+  static IntervalModel& redo(
+      const Id<IntervalModel>& id,
       StateModel& sst,
       StateModel& est,
       double ypos,

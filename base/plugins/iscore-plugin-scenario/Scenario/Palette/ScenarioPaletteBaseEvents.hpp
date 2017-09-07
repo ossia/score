@@ -1,6 +1,6 @@
 #pragma once
 #include "ScenarioPoint.hpp"
-#include <Scenario/Document/Constraint/Slot.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
 #include <iscore/statemachine/StateMachineUtils.hpp>
 
 #include <iscore/tools/Clamp.hpp>
@@ -26,7 +26,7 @@ namespace Scenario
 {
 class TimeSyncModel;
 class EventModel;
-class ConstraintModel;
+class IntervalModel;
 class StateModel;
 class TriggerModel;
 
@@ -62,7 +62,7 @@ enum ScenarioElement
   Nothing,
   TimeSync,
   Event,
-  Constraint,
+  Interval,
   State,
   SlotOverlay_e,
   SlotHandle_e,
@@ -77,8 +77,8 @@ static const constexpr int ClickOnTimeSync
     = ScenarioElement::TimeSync + iscore::Modifier::Click_tag::value;
 static const constexpr int ClickOnEvent
     = ScenarioElement::Event + iscore::Modifier::Click_tag::value;
-static const constexpr int ClickOnConstraint
-    = ScenarioElement::Constraint + iscore::Modifier::Click_tag::value;
+static const constexpr int ClickOnInterval
+    = ScenarioElement::Interval + iscore::Modifier::Click_tag::value;
 static const constexpr int ClickOnState
     = ScenarioElement::State + iscore::Modifier::Click_tag::value;
 static const constexpr int ClickOnSlotHandle
@@ -96,8 +96,8 @@ static const constexpr int MoveOnTimeSync
     = ScenarioElement::TimeSync + iscore::Modifier::Move_tag::value;
 static const constexpr int MoveOnEvent
     = ScenarioElement::Event + iscore::Modifier::Move_tag::value;
-static const constexpr int MoveOnConstraint
-    = ScenarioElement::Constraint + iscore::Modifier::Move_tag::value;
+static const constexpr int MoveOnInterval
+    = ScenarioElement::Interval + iscore::Modifier::Move_tag::value;
 static const constexpr int MoveOnState
     = ScenarioElement::State + iscore::Modifier::Move_tag::value;
 static const constexpr int MoveOnSlotHandle
@@ -115,8 +115,8 @@ static const constexpr int ReleaseOnTimeSync
     = ScenarioElement::TimeSync + iscore::Modifier::Release_tag::value;
 static const constexpr int ReleaseOnEvent
     = ScenarioElement::Event + iscore::Modifier::Release_tag::value;
-static const constexpr int ReleaseOnConstraint
-    = ScenarioElement::Constraint + iscore::Modifier::Release_tag::value;
+static const constexpr int ReleaseOnInterval
+    = ScenarioElement::Interval + iscore::Modifier::Release_tag::value;
 static const constexpr int ReleaseOnState
     = ScenarioElement::State + iscore::Modifier::Release_tag::value;
 static const constexpr int ReleaseOnSlotHandle
@@ -134,16 +134,16 @@ using ClickOnTimeSync_Event
     = PositionedWithId_ScenarioEvent<TimeSyncModel, ClickOnTimeSync>;
 using ClickOnEvent_Event
     = PositionedWithId_ScenarioEvent<EventModel, ClickOnEvent>;
-using ClickOnConstraint_Event
-    = PositionedWithId_ScenarioEvent<ConstraintModel, ClickOnConstraint>;
+using ClickOnInterval_Event
+    = PositionedWithId_ScenarioEvent<IntervalModel, ClickOnInterval>;
 using ClickOnState_Event
     = PositionedWithId_ScenarioEvent<StateModel, ClickOnState>;
 using ClickOnTrigger_Event
     = iscore::NumberedWithPath_Event<TriggerModel, ClickOnTrigger>;
 using ClickOnLeftBrace_Event
-    = PositionedWithId_ScenarioEvent<ConstraintModel, ClickOnLeftBrace>;
+    = PositionedWithId_ScenarioEvent<IntervalModel, ClickOnLeftBrace>;
 using ClickOnRightBrace_Event
-    = PositionedWithId_ScenarioEvent<ConstraintModel, ClickOnRightBrace>;
+    = PositionedWithId_ScenarioEvent<IntervalModel, ClickOnRightBrace>;
 
 
 /* move on */
@@ -152,16 +152,16 @@ using MoveOnTimeSync_Event
     = PositionedWithId_ScenarioEvent<TimeSyncModel, MoveOnTimeSync>;
 using MoveOnEvent_Event
     = PositionedWithId_ScenarioEvent<EventModel, MoveOnEvent>;
-using MoveOnConstraint_Event
-    = PositionedWithId_ScenarioEvent<ConstraintModel, MoveOnConstraint>;
+using MoveOnInterval_Event
+    = PositionedWithId_ScenarioEvent<IntervalModel, MoveOnInterval>;
 using MoveOnState_Event
     = PositionedWithId_ScenarioEvent<StateModel, MoveOnState>;
 using MoveOnTrigger_Event
     = iscore::NumberedWithPath_Event<TriggerModel, MoveOnTrigger>;
 using MoveOnLeftBrace_Event
-    = PositionedWithId_ScenarioEvent<ConstraintModel, MoveOnLeftBrace>;
+    = PositionedWithId_ScenarioEvent<IntervalModel, MoveOnLeftBrace>;
 using MoveOnRightBrace_Event
-    = PositionedWithId_ScenarioEvent<ConstraintModel, MoveOnRightBrace>;
+    = PositionedWithId_ScenarioEvent<IntervalModel, MoveOnRightBrace>;
 
 /* release on */
 using ReleaseOnNothing_Event = PositionedScenarioEvent<ReleaseOnNothing>;
@@ -169,24 +169,24 @@ using ReleaseOnTimeSync_Event
     = PositionedWithId_ScenarioEvent<TimeSyncModel, ReleaseOnTimeSync>;
 using ReleaseOnEvent_Event
     = PositionedWithId_ScenarioEvent<EventModel, ReleaseOnEvent>;
-using ReleaseOnConstraint_Event
-    = PositionedWithId_ScenarioEvent<ConstraintModel, ReleaseOnConstraint>;
+using ReleaseOnInterval_Event
+    = PositionedWithId_ScenarioEvent<IntervalModel, ReleaseOnInterval>;
 using ReleaseOnState_Event
     = PositionedWithId_ScenarioEvent<StateModel, ReleaseOnState>;
 using ReleaseOnTrigger_Event
     = iscore::NumberedWithPath_Event<TriggerModel, ReleaseOnTrigger>;
 using ReleaseOnLeftBrace_Event
-    = PositionedWithId_ScenarioEvent<ConstraintModel, ReleaseOnLeftBrace>;
+    = PositionedWithId_ScenarioEvent<IntervalModel, ReleaseOnLeftBrace>;
 using ReleaseOnRightBrace_Event
-    = PositionedWithId_ScenarioEvent<ConstraintModel, ReleaseOnRightBrace>;
+    = PositionedWithId_ScenarioEvent<IntervalModel, ReleaseOnRightBrace>;
 
 
 //using ReleaseOnSlotHandle_Event
-//    = iscore::NumberedWithPath_Event<ConstraintModel, ReleaseOnSlotHandle>;
+//    = iscore::NumberedWithPath_Event<IntervalModel, ReleaseOnSlotHandle>;
 //using MoveOnSlotHandle_Event
-//    = iscore::NumberedWithPath_Event<ConstraintModel, MoveOnSlotHandle>;
+//    = iscore::NumberedWithPath_Event<IntervalModel, MoveOnSlotHandle>;
 // using ClickOnSlotHandle_Event
-//     = iscore::NumberedWithPath_Event<ConstraintModel, ClickOnSlotHandle>;
+//     = iscore::NumberedWithPath_Event<IntervalModel, ClickOnSlotHandle>;
 struct ClickOnSlotHandle_Event: public iscore::NumberedEvent<ClickOnSlotHandle>
 {
   explicit ClickOnSlotHandle_Event(const SlotPath& p)
@@ -218,7 +218,7 @@ struct MoveOnSlotHandle_Event: public iscore::NumberedEvent<MoveOnSlotHandle>
 };
 
 // using ReleaseOnSlotHandle_Event
-//     = iscore::NumberedWithPath_Event<ConstraintModel, ReleaseOnSlotHandle>;
+//     = iscore::NumberedWithPath_Event<IntervalModel, ReleaseOnSlotHandle>;
 struct ReleaseOnSlotHandle_Event: public iscore::NumberedEvent<ReleaseOnSlotHandle>
 {
   explicit ReleaseOnSlotHandle_Event(const SlotPath& p)
@@ -266,8 +266,8 @@ QString debug_StateMachineIDs()
     case ScenarioElement::Event:
       txt += "Event";
       break;
-    case ScenarioElement::Constraint:
-      txt += "Constraint";
+    case ScenarioElement::Interval:
+      txt += "Interval";
       break;
     case ScenarioElement::State:
       txt += "State";

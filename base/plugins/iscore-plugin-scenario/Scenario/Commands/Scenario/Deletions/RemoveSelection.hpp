@@ -15,7 +15,7 @@ struct DataStreamOutput;
 
 namespace Scenario
 {
-class ConstraintModel;
+class IntervalModel;
 class EventModel;
 class StateModel;
 class TimeSyncModel;
@@ -55,7 +55,7 @@ private:
   QVector<QPair<Id<StateModel>, QByteArray>> m_removedStates;
   QVector<QPair<Id<EventModel>, QByteArray>> m_removedEvents;
   QVector<QPair<Id<TimeSyncModel>, QByteArray>> m_removedTimeSyncs;
-  QVector<QPair<Id<ConstraintModel>, QByteArray>> m_removedConstraints;
+  QVector<QPair<Id<IntervalModel>, QByteArray>> m_removedIntervals;
 };
 }
 }

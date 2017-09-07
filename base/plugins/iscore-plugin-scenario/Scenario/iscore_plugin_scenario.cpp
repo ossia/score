@@ -45,10 +45,10 @@
 #include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <iscore/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
 
-#include <Scenario/Inspector/Constraint/BaseConstraintInspectorDelegateFactory.hpp>
-#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
-#include <Scenario/Inspector/Constraint/ConstraintInspectorFactory.hpp>
-#include <Scenario/Inspector/Constraint/ScenarioConstraintInspectorDelegateFactory.hpp>
+#include <Scenario/Inspector/Interval/BaseIntervalInspectorDelegateFactory.hpp>
+#include <Scenario/Inspector/Interval/IntervalInspectorDelegateFactory.hpp>
+#include <Scenario/Inspector/Interval/IntervalInspectorFactory.hpp>
+#include <Scenario/Inspector/Interval/ScenarioIntervalInspectorDelegateFactory.hpp>
 #include <Scenario/Inspector/Interpolation/InterpolationInspectorWidget.hpp>
 #include <Scenario/Inspector/Scenario/ScenarioInspectorFactory.hpp>
 #include <Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.hpp>
@@ -87,10 +87,10 @@ iscore_plugin_scenario::iscore_plugin_scenario()
 
   qRegisterMetaTypeStreamOperators<TimeVal>();
   qRegisterMetaType<ExecutionStatus>();
-  qRegisterMetaType<Scenario::ConstraintExecutionState>();
+  qRegisterMetaType<Scenario::IntervalExecutionState>();
   qRegisterMetaType<QPointer<Process::LayerPresenter>>();
 
-  qRegisterMetaType<Path<Scenario::ConstraintModel>>();
+  qRegisterMetaType<Path<Scenario::IntervalModel>>();
   qRegisterMetaType<Id<Process::ProcessModel>>();
 
   qRegisterMetaType<Scenario::OffsetBehavior>();
@@ -127,12 +127,12 @@ iscore_plugin_scenario::factoryFamilies()
       Process::LayerFactoryList,
       MoveEventList,
       CSPCoherencyCheckerList,
-      ConstraintInspectorDelegateFactoryList,
+      IntervalInspectorDelegateFactoryList,
       DisplayedElementsToolPaletteFactoryList,
       TriggerCommandFactoryList,
       DisplayedElementsProviderList,
       DropHandlerList,
-      ConstraintDropHandlerList>();
+      IntervalDropHandlerList>();
 }
 
 template <>
@@ -168,9 +168,9 @@ iscore_plugin_scenario::factories(
       FW<iscore::PanelDelegateFactory, Scenario::ObjectPanelDelegateFactory>,
 //      FW<iscore::PanelDelegateFactory, Scenario::PanelDelegateFactory>,
       FW<Scenario::DropHandler, Scenario::MessageDropHandler, Scenario::DropProcessInScenario>,
-      FW<Scenario::ConstraintDropHandler, Scenario::DropProcessInConstraint, Scenario::AutomationDropHandler>,
+      FW<Scenario::IntervalDropHandler, Scenario::DropProcessInInterval, Scenario::AutomationDropHandler>,
       FW<Inspector::InspectorWidgetFactory, ScenarioInspectorWidgetFactoryWrapper, Interpolation::StateInspectorFactory, ScenarioInspectorFactory, Interpolation::InspectorFactory>,
-      FW<ConstraintInspectorDelegateFactory, ScenarioConstraintInspectorDelegateFactory, BaseConstraintInspectorDelegateFactory>,
+      FW<IntervalInspectorDelegateFactory, ScenarioIntervalInspectorDelegateFactory, BaseIntervalInspectorDelegateFactory>,
       FW<iscore::ValidityChecker, ScenarioValidityChecker>>(
       ctx, key);
 }

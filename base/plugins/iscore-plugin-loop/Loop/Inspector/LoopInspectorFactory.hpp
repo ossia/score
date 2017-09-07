@@ -4,29 +4,29 @@
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 #include <QList>
 #include <QString>
-#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
+#include <Scenario/Inspector/Interval/IntervalInspectorDelegateFactory.hpp>
 #include <memory>
 
 namespace Scenario
 {
-class ConstraintInspectorDelegate;
-class ConstraintModel;
+class IntervalInspectorDelegate;
+class IntervalModel;
 }
 namespace Loop
 {
 // TODO Clean this file
-class ConstraintInspectorDelegateFactory
-    : public Scenario::ConstraintInspectorDelegateFactory
+class IntervalInspectorDelegateFactory
+    : public Scenario::IntervalInspectorDelegateFactory
 {
   ISCORE_CONCRETE("295245d4-2019-4849-9d49-10c1e21c209c")
 public:
-  virtual ~ConstraintInspectorDelegateFactory();
+  virtual ~IntervalInspectorDelegateFactory();
 
 private:
-  std::unique_ptr<Scenario::ConstraintInspectorDelegate>
-  make(const Scenario::ConstraintModel& constraint) override;
+  std::unique_ptr<Scenario::IntervalInspectorDelegate>
+  make(const Scenario::IntervalModel& interval) override;
 
-  bool matches(const Scenario::ConstraintModel& constraint) const override;
+  bool matches(const Scenario::IntervalModel& interval) const override;
 };
 
 class InspectorFactory final

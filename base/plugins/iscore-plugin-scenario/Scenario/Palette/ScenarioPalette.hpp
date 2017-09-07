@@ -21,7 +21,7 @@ namespace Scenario
 class EditionSettings;
 class TemporalScenarioPresenter;
 class TemporalScenarioView;
-class MoveConstraintInScenario_StateWrapper;
+class MoveIntervalInScenario_StateWrapper;
 class MoveLeftBraceInScenario_StateWrapper;
 class MoveRightBraceInScenario_StateWrapper;
 class MoveEventInScenario_StateWrapper;
@@ -64,7 +64,7 @@ private:
   Process::LayerContext& m_context;
 
   CreationTool<ProcessModel, Scenario::ToolPalette> m_createTool;
-  SmartTool<ProcessModel, Scenario::ToolPalette, TemporalScenarioView, Scenario::MoveConstraintInScenario_StateWrapper, Scenario::MoveLeftBraceInScenario_StateWrapper, Scenario::MoveRightBraceInScenario_StateWrapper, Scenario::MoveEventInScenario_StateWrapper, Scenario::MoveTimeSyncInScenario_StateWrapper>
+  SmartTool<ProcessModel, Scenario::ToolPalette, TemporalScenarioView, Scenario::MoveIntervalInScenario_StateWrapper, Scenario::MoveLeftBraceInScenario_StateWrapper, Scenario::MoveRightBraceInScenario_StateWrapper, Scenario::MoveEventInScenario_StateWrapper, Scenario::MoveTimeSyncInScenario_StateWrapper>
       m_selectTool;
 
   PlayToolState m_playTool;

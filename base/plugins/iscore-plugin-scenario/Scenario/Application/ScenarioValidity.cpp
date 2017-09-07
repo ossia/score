@@ -23,15 +23,15 @@ bool ScenarioValidityChecker::validate(const iscore::DocumentContext& ctx)
 void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
 {
 #if defined(ISCORE_DEBUG)
-  for (const ConstraintModel& constraint : scenar.constraints)
+  for (const IntervalModel& interval : scenar.intervals)
   {
-    auto ss = scenar.findState(constraint.startState());
+    auto ss = scenar.findState(interval.startState());
     ISCORE_ASSERT(ss);
-    auto es = scenar.findState(constraint.endState());
+    auto es = scenar.findState(interval.endState());
     ISCORE_ASSERT(es);
 
-    ISCORE_ASSERT(ss->nextConstraint() == constraint.id());
-    ISCORE_ASSERT(es->previousConstraint() == constraint.id());
+    ISCORE_ASSERT(ss->nextInterval() == interval.id());
+    ISCORE_ASSERT(es->previousInterval() == interval.id());
   }
 
   for (const StateModel& state : scenar.states)
@@ -40,16 +40,16 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
     ISCORE_ASSERT(ev);
     ISCORE_ASSERT(ev->states().contains(state.id()));
 
-    if (state.previousConstraint())
+    if (state.previousInterval())
     {
-      auto cst = scenar.findConstraint(*state.previousConstraint());
+      auto cst = scenar.findInterval(*state.previousInterval());
       ISCORE_ASSERT(cst);
       ISCORE_ASSERT(cst->endState() == state.id());
     }
 
-    if (state.nextConstraint())
+    if (state.nextInterval())
     {
-      auto cst = scenar.findConstraint(*state.nextConstraint());
+      auto cst = scenar.findInterval(*state.nextInterval());
       ISCORE_ASSERT(cst);
       ISCORE_ASSERT(cst->startState() == state.id());
     }

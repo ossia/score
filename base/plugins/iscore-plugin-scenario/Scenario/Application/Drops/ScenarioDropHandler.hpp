@@ -58,25 +58,25 @@ public:
       const QMimeData* mime) const;
 };
 
-class ConstraintModel;
-class ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintDropHandler
-    : public iscore::Interface<ConstraintDropHandler>
+class IntervalModel;
+class ISCORE_PLUGIN_SCENARIO_EXPORT IntervalDropHandler
+    : public iscore::Interface<IntervalDropHandler>
 {
   ISCORE_INTERFACE("b9f3efc0-b906-487a-ac49-87924edd2cff")
 public:
-  virtual ~ConstraintDropHandler();
+  virtual ~IntervalDropHandler();
 
   // Returns false if not handled.
-  virtual bool drop(const Scenario::ConstraintModel&, const QMimeData* mime)
+  virtual bool drop(const Scenario::IntervalModel&, const QMimeData* mime)
       = 0;
 };
 
-class ConstraintDropHandlerList final
-    : public iscore::InterfaceList<ConstraintDropHandler>
+class IntervalDropHandlerList final
+    : public iscore::InterfaceList<IntervalDropHandler>
 {
 public:
-  virtual ~ConstraintDropHandlerList();
+  virtual ~IntervalDropHandlerList();
 
-  bool drop(const Scenario::ConstraintModel&, const QMimeData* mime) const;
+  bool drop(const Scenario::IntervalModel&, const QMimeData* mime) const;
 };
 }

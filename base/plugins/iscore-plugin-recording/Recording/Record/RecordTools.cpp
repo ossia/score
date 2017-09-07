@@ -3,8 +3,8 @@
 #include "RecordTools.hpp"
 #include <Recording/Record/RecordProviderFactory.hpp>
 
-#include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeSync.hpp>
+#include <Scenario/Commands/Interval/Rack/AddSlotToRack.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event_TimeSync.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
@@ -144,7 +144,7 @@ addr)});
 
 Box CreateBox(RecordContext& context)
 {
-  // Get the clicked point in scenario and create a state + constraint + state
+  // Get the clicked point in scenario and create a state + interval + state
   // there
   // Create an automation + a rack + a slot + process views for all
   // automations.
@@ -156,13 +156,13 @@ Box CreateBox(RecordContext& context)
 
   // TODO what happens if we go past the end of our scenario ? Stop recording
   // ??
-  auto cmd_end = new Scenario::Command::CreateConstraint_State_Event_TimeSync{
+  auto cmd_end = new Scenario::Command::CreateInterval_State_Event_TimeSync{
       context.scenario, cmd_start->createdState(), default_end_date,
       context.point.y};
   cmd_end->redo(context.context);
   context.dispatcher.submitCommand(cmd_end);
 
-  auto& cstr = context.scenario.constraints.at(cmd_end->createdConstraint());
+  auto& cstr = context.scenario.intervals.at(cmd_end->createdInterval());
 
   auto cmd_move = new Scenario::Command::MoveNewEvent(
       context.scenario,

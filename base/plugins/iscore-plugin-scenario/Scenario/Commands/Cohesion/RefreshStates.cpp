@@ -26,7 +26,7 @@ namespace Command
 void RefreshStates(const iscore::DocumentContext& doc)
 {
   using namespace std;
-  // Fetch the selected constraints
+  // Fetch the selected intervals
 
   // TODO this method can also be used in IScoreCohesion's other algorithms.
   auto selected_states = filterSelectionByType<StateModel>(

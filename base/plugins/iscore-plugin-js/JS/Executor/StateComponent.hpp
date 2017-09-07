@@ -22,7 +22,7 @@ namespace Engine
 {
 namespace Execution
 {
-class ConstraintComponent;
+class IntervalComponent;
 }
 }
 namespace ossia

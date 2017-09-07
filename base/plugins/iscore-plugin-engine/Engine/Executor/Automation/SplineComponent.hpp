@@ -3,7 +3,7 @@
 #include <ossia/editor/value/value.hpp>
 #include <Automation/Spline/SplineAutomModel.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
-#include <ossia/editor/scenario/time_constraint.hpp>
+#include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/curve/curve_segment/easing.hpp>
 #include <ossia/editor/automation/spline.hpp>
 #include <memory>
@@ -24,7 +24,7 @@ class Component final
     COMPONENT_METADATA("553f99e0-a12a-4a1a-a070-63f198908c6d")
     public:
       Component(
-        ::Engine::Execution::ConstraintComponent& parentConstraint,
+        ::Engine::Execution::IntervalComponent& parentInterval,
         Spline::ProcessModel& element,
         const ::Engine::Execution::Context& ctx,
         const Id<iscore::Component>& id,

@@ -23,7 +23,7 @@
 #include <QApplication>
 #include <QMainWindow>
 #include <Scenario/Application/ScenarioActions.hpp>
-#include <Scenario/Commands/Cohesion/DoForSelectedConstraints.hpp>
+#include <Scenario/Commands/Cohesion/DoForSelectedIntervals.hpp>
 #include <iscore/actions/ActionManager.hpp>
 #include <iscore/widgets/SetIcons.hpp>
 

@@ -181,14 +181,14 @@ void MoveEventMeta::updateY(Scenario::ProcessModel& scenar, double y) const
     if(stp)
     {
         auto& st = *stp;
-        if (!st.previousConstraint() && !st.nextConstraint())
+        if (!st.previousInterval() && !st.nextInterval())
         {
           st.setHeightPercentage(y);
         }
-        if (st.previousConstraint())
-          updateConstraintVerticalPos(y, *st.previousConstraint(), scenar);
-        if (st.nextConstraint())
-          updateConstraintVerticalPos(y, *st.nextConstraint(), scenar);
+        if (st.previousInterval())
+          updateIntervalVerticalPos(y, *st.previousInterval(), scenar);
+        if (st.nextInterval())
+          updateIntervalVerticalPos(y, *st.nextInterval(), scenar);
     }
 }
 

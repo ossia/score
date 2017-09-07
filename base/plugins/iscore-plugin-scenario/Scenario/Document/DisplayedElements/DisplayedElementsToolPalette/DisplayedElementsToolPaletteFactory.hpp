@@ -6,7 +6,7 @@
 
 namespace Scenario
 {
-class ConstraintModel;
+class IntervalModel;
 class ScenarioDocumentPresenter;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsToolPaletteFactory
@@ -16,15 +16,15 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsToolPaletteFactory
 public:
   virtual ~DisplayedElementsToolPaletteFactory();
 
-  virtual bool matches(const ConstraintModel& constraint) const = 0;
+  virtual bool matches(const IntervalModel& interval) const = 0;
 
   bool matches(
-      ScenarioDocumentPresenter& pres, const ConstraintModel& constraint) const
+      ScenarioDocumentPresenter& pres, const IntervalModel& interval) const
   {
-    return matches(constraint);
+    return matches(interval);
   }
 
   virtual std::unique_ptr<GraphicsSceneToolPalette>
-  make(ScenarioDocumentPresenter& pres, const ConstraintModel& constraint) = 0;
+  make(ScenarioDocumentPresenter& pres, const IntervalModel& interval) = 0;
 };
 }

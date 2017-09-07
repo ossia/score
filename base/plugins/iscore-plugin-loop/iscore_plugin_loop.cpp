@@ -14,7 +14,7 @@
 #include <Loop/LoopDisplayedElements.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactory.hpp>
-#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
+#include <Scenario/Inspector/Interval/IntervalInspectorDelegateFactory.hpp>
 #include <Loop/Palette/LoopToolPalette.hpp>
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/model/Identifier.hpp>
@@ -40,7 +40,7 @@ iscore_plugin_loop::factories(
       FW<Process::ProcessModelFactory, Loop::ProcessFactory>
       , FW<Process::LayerFactory, Loop::LayerFactory>
       , FW<Inspector::InspectorWidgetFactory, Loop::InspectorFactory>
-      , FW<ConstraintInspectorDelegateFactory, Loop::ConstraintInspectorDelegateFactory>
+      , FW<IntervalInspectorDelegateFactory, Loop::IntervalInspectorDelegateFactory>
       , FW<TriggerCommandFactory, LoopTriggerCommandFactory>
       , FW<Scenario::DisplayedElementsToolPaletteFactory, Loop::DisplayedElementsToolPaletteFactory>
       , FW<Scenario::DisplayedElementsProvider, Loop::DisplayedElementsProvider>>(

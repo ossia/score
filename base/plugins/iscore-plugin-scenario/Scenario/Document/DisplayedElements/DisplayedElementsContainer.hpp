@@ -1,13 +1,13 @@
 #pragma once
 #include <QPointer>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 class QGraphicsItem;
 namespace Scenario
 {
-class FullViewConstraintPresenter;
+class FullViewIntervalPresenter;
 class StatePresenter;
 class EventPresenter;
 class TimeSyncPresenter;
@@ -18,14 +18,14 @@ struct DisplayedElementsContainer
   DisplayedElementsContainer() = default;
 
   DisplayedElementsContainer(
-      ConstraintModel& cst,
+      IntervalModel& cst,
       const StateModel& sst,
       const StateModel& est,
       const EventModel& sev,
       const EventModel& eev,
       const TimeSyncModel& stn,
       const TimeSyncModel& etn)
-      : constraint{&cst}
+      : interval{&cst}
       , startState{&sst}
       , endState{&est}
       , startEvent{&sev}
@@ -35,7 +35,7 @@ struct DisplayedElementsContainer
   {
   }
 
-  QPointer<ConstraintModel> constraint{};
+  QPointer<IntervalModel> interval{};
   QPointer<const StateModel> startState{};
   QPointer<const StateModel> endState{};
   QPointer<const EventModel> startEvent{};
@@ -50,14 +50,14 @@ struct DisplayedElementsPresenterContainer
   DisplayedElementsPresenterContainer() = default;
 
   DisplayedElementsPresenterContainer(
-      FullViewConstraintPresenter* cp,
+      FullViewIntervalPresenter* cp,
       StatePresenter* s1,
       StatePresenter* s2,
       EventPresenter* e1,
       EventPresenter* e2,
       TimeSyncPresenter* t1,
       TimeSyncPresenter* t2)
-      : constraint{cp}
+      : interval{cp}
       , startState{s1}
       , endState{s2}
       , startEvent{e1}
@@ -67,7 +67,7 @@ struct DisplayedElementsPresenterContainer
   {
   }
 
-  FullViewConstraintPresenter* constraint{};
+  FullViewIntervalPresenter* interval{};
   StatePresenter* startState{};
   StatePresenter* endState{};
   EventPresenter* startEvent{};
