@@ -128,7 +128,7 @@ void SlotHeader::paint(
 
   // Grip
   painter->setRenderHint(QPainter::Antialiasing, false);
-  static const constexpr std::array<QRectF, 6> rects{ [] {
+  static const std::array<QRectF, 6> rects{ [] {
     std::array<QRectF, 6> rects;
     double x = 4;
     for(int i = 0; i < 6; i++)
