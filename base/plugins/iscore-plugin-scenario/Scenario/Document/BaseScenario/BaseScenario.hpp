@@ -13,7 +13,7 @@ class QObject;
 #include <iscore/model/Identifier.hpp>
 namespace Scenario
 {
-class ConstraintModel;
+class IntervalModel;
 class TimeSyncModel;
 class BaseScenario final : public IdentifiedObject<BaseScenario>,
                            public BaseScenarioContainer
@@ -43,7 +43,7 @@ public:
   using QObject::event;
 };
 
-const QVector<Id<ConstraintModel>> constraintsBeforeTimeSync(
+const QVector<Id<IntervalModel>> intervalsBeforeTimeSync(
     const BaseScenario&, const Id<TimeSyncModel>& timeSyncId);
 }
 

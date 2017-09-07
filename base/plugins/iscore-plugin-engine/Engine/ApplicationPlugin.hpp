@@ -17,7 +17,7 @@ struct VisitorVariant;
 
 namespace Scenario
 {
-class ConstraintModel;
+class IntervalModel;
 }
 namespace Engine
 {
@@ -26,7 +26,7 @@ namespace Execution
 {
 class ClockManager;
 struct Context;
-class ConstraintComponent;
+class IntervalComponent;
 }
 }
 // TODO this should have "OSSIA Policies" : one would be the
@@ -65,7 +65,7 @@ public:
 
   void on_play(bool, ::TimeVal t = ::TimeVal::zero());
   void on_play(
-      Scenario::ConstraintModel&,
+      Scenario::IntervalModel&,
       bool,
       std::function<void(const Engine::Execution::Context&)> setup = {},
       ::TimeVal t = ::TimeVal::zero());

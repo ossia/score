@@ -12,7 +12,7 @@
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <iscore/tools/std/Optional.hpp>
 
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
@@ -46,37 +46,37 @@ static void removeEventFromTimeSync(
   }
 }
 
-void StandardRemovalPolicy::removeConstraint(
-    Scenario::ProcessModel& scenario, const Id<ConstraintModel>& constraintId)
+void StandardRemovalPolicy::removeInterval(
+    Scenario::ProcessModel& scenario, const Id<IntervalModel>& intervalId)
 {
-  auto cstr_it = scenario.constraints.find(constraintId);
-  if (cstr_it != scenario.constraints.end())
+  auto cstr_it = scenario.intervals.find(intervalId);
+  if (cstr_it != scenario.intervals.end())
   {
-    ConstraintModel& cstr = *cstr_it;
+    IntervalModel& cstr = *cstr_it;
 
-    SetNoNextConstraint(startState(cstr, scenario));
-    SetNoPreviousConstraint(endState(cstr, scenario));
+    SetNoNextInterval(startState(cstr, scenario));
+    SetNoPreviousInterval(endState(cstr, scenario));
 
-    scenario.constraints.remove(&cstr);
+    scenario.intervals.remove(&cstr);
   }
   else
   {
-    qDebug() << Q_FUNC_INFO << "Warning : removing a non-existant constraint";
+    qDebug() << Q_FUNC_INFO << "Warning : removing a non-existant interval";
   }
 }
 
 void StandardRemovalPolicy::removeState(
     Scenario::ProcessModel& scenario, StateModel& state)
 {
-  if (state.previousConstraint())
+  if (state.previousInterval())
   {
-    StandardRemovalPolicy::removeConstraint(
-        scenario, *state.previousConstraint());
+    StandardRemovalPolicy::removeInterval(
+        scenario, *state.previousInterval());
   }
 
-  if (state.nextConstraint())
+  if (state.nextInterval())
   {
-    StandardRemovalPolicy::removeConstraint(scenario, *state.nextConstraint());
+    StandardRemovalPolicy::removeInterval(scenario, *state.nextInterval());
   }
 
   auto& ev = scenario.events.at(state.eventId());
@@ -87,7 +87,7 @@ void StandardRemovalPolicy::removeState(
   updateEventExtent(ev.id(), scenario);
 }
 
-void StandardRemovalPolicy::removeEventStatesAndConstraints(
+void StandardRemovalPolicy::removeEventStatesAndIntervals(
     Scenario::ProcessModel& scenario, const Id<EventModel>& eventId)
 {
   auto& ev = scenario.event(eventId);

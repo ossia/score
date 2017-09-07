@@ -5,17 +5,17 @@
 #include <Process/Process.hpp>
 
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Commands/Constraint/AddLayerInNewSlot.hpp>
-#include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
-#include <Scenario/Commands/Constraint/CreateProcessInExistingSlot.hpp>
-#include <Scenario/Commands/Constraint/CreateProcessInNewSlot.hpp>
-#include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
-#include <Scenario/Commands/Constraint/Rack/RemoveSlotFromRack.hpp>
-#include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
+#include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
+#include <Scenario/Commands/Interval/CreateProcessInExistingSlot.hpp>
+#include <Scenario/Commands/Interval/CreateProcessInNewSlot.hpp>
+#include <Scenario/Commands/Interval/Rack/AddSlotToRack.hpp>
+#include <Scenario/Commands/Interval/Rack/RemoveSlotFromRack.hpp>
+#include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateCommentBlock.hpp>
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Slot.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
@@ -46,28 +46,28 @@
 #include <iscore/plugins/customfactory/StringFactoryKey.hpp>
 #include <iscore/model/EntityMap.hpp>
 #include <iscore/model/Identifier.hpp>
-#include <Scenario/Document/Constraint/FullView/FullViewConstraintPresenter.hpp>
+#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
 
 namespace Scenario
 {
 void ScenarioContextMenuManager::createSlotContextMenu(
     const iscore::DocumentContext& ctx,
     QMenu& menu,
-    const TemporalConstraintPresenter& pres,
+    const TemporalIntervalPresenter& pres,
     int slot_index)
 {
   using namespace Scenario::Command;
   // TODO see
   // http://stackoverflow.com/questions/21443023/capturing-a-reference-by-reference-in-a-c11-lambda
-  auto& constraint = pres.model();
-  const Slot& slot = constraint.smallView().at(slot_index);
-  SlotPath slot_path{constraint, slot_index, Slot::SmallView};
+  auto& interval = pres.model();
+  const Slot& slot = interval.smallView().at(slot_index);
+  SlotPath slot_path{interval, slot_index, Slot::SmallView};
 
   // First changing the process in the current slot
   auto processes_submenu = menu.addMenu(tr("Focus process in this slot"));
   for (const Id<Process::ProcessModel>& proc : slot.processes)
   {
-    auto& p = constraint.processes.at(proc);
+    auto& p = interval.processes.at(proc);
     auto name = p.prettyName();
     if(name.isEmpty())
       name = p.prettyShortName();
@@ -84,7 +84,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
   auto new_processes_submenu = menu.addMenu(tr("Show process in new slot"));
   for (const Id<Process::ProcessModel>& proc : slot.processes)
   {
-    auto& p = constraint.processes.at(proc);
+    auto& p = interval.processes.at(proc);
     auto name = p.prettyName();
     if(name.isEmpty())
       name = p.prettyShortName();
@@ -92,7 +92,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
         = new QAction{name, new_processes_submenu};
     QObject::connect(procAct, &QAction::triggered, [&]() {
       auto cmd = new Scenario::Command::AddLayerInNewSlot{
-          constraint, p.id()};
+          interval, p.id()};
       CommandDispatcher<>{ctx.commandStack}.submitCommand(cmd);
     });
     new_processes_submenu->addAction(procAct);
@@ -111,7 +111,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
   // Then Add process in this slot
   auto existing_processes_submenu
       = menu.addMenu(tr("Add existing process in this slot"));
-  for (const Process::ProcessModel& p : constraint.processes)
+  for (const Process::ProcessModel& p : interval.processes)
   {
     // OPTIMIZEME by filtering before.
     if (ossia::none_of(slot.processes,
@@ -143,13 +143,13 @@ void ScenarioContextMenuManager::createSlotContextMenu(
           QuietMacroCommandDispatcher<Scenario::Command::CreateProcessInExistingSlot>
               disp{ctx.commandStack};
 
-          auto cmd1 = new Scenario::Command::AddOnlyProcessToConstraint(
-              constraint, proc);
+          auto cmd1 = new Scenario::Command::AddOnlyProcessToInterval(
+              interval, proc);
           cmd1->redo(ctx);
           disp.submitCommand(cmd1);
 
           auto cmd2 = new Scenario::Command::AddLayerModelToSlot(
-              std::move(slot_path), constraint.processes.at(cmd1->processId()));
+              std::move(slot_path), interval.processes.at(cmd1->processId()));
           cmd2->redo(ctx);
           disp.submitCommand(cmd2);
 
@@ -173,7 +173,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
           using cmd = Scenario::Command::CreateProcessInNewSlot;
           QuietMacroCommandDispatcher<cmd> disp{ctx.commandStack};
 
-          cmd::create(disp, constraint, proc);
+          cmd::create(disp, interval, proc);
 
           disp.commit();
         });
@@ -187,7 +187,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
 void ScenarioContextMenuManager::createSlotContextMenu(
     const iscore::DocumentContext& docContext,
     QMenu& menu,
-    const FullViewConstraintPresenter& slotp,
+    const FullViewIntervalPresenter& slotp,
     int slot_index)
 {
 
@@ -205,7 +205,7 @@ void ScenarioContextMenuManager::createLayerContextMenu(
   bool has_slot_menu = false;
 
   // Fill with slot actions
-  if(auto small_view = dynamic_cast<TemporalConstraintPresenter*>(pres.parent()))
+  if(auto small_view = dynamic_cast<TemporalIntervalPresenter*>(pres.parent()))
   {
     auto& context = pres.context().context;
     //if (context.selectionStack.currentSelection().toList().isEmpty())

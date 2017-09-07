@@ -6,29 +6,29 @@
 ScenarioStyle::ScenarioStyle(const iscore::Skin& s) noexcept
     :
 
-    ConstraintBase{&s.Base1}
-    , ConstraintSelected{&s.Base2}
-    , ConstraintPlayFill{&s.Base3}
-    , ConstraintPlayDashFill{&s.Pulse1}
-    , ConstraintWaitingDashFill{&s.Pulse2}
-    , ConstraintLoop{&s.Warn1}
-    , ConstraintWarning{&s.Warn2}
-    , ConstraintInvalid{&s.Warn3}
-    , ConstraintMuted{&s.Tender2}
-    , ConstraintDefaultLabel{&s.Gray}
-    , ConstraintDefaultBackground{&s.Transparent1}
+    IntervalBase{&s.Base1}
+    , IntervalSelected{&s.Base2}
+    , IntervalPlayFill{&s.Base3}
+    , IntervalPlayDashFill{&s.Pulse1}
+    , IntervalWaitingDashFill{&s.Pulse2}
+    , IntervalLoop{&s.Warn1}
+    , IntervalWarning{&s.Warn2}
+    , IntervalInvalid{&s.Warn3}
+    , IntervalMuted{&s.Tender2}
+    , IntervalDefaultLabel{&s.Gray}
+    , IntervalDefaultBackground{&s.Transparent1}
     ,
 
     RackSideBorder{&s.Base1}
     ,
 
-    ConstraintFullViewParentSelected{&s.Emphasis1}
+    IntervalFullViewParentSelected{&s.Emphasis1}
     ,
 
-    ConstraintHeaderText{&s.Light}
-    , ConstraintHeaderBottomLine{&s.Transparent1}
-    , ConstraintHeaderRackHidden{&s.Transparent1}
-    , ConstraintHeaderSideBorder{&s.Base1}
+    IntervalHeaderText{&s.Light}
+    , IntervalHeaderBottomLine{&s.Transparent1}
+    , IntervalHeaderRackHidden{&s.Transparent1}
+    , IntervalHeaderSideBorder{&s.Base1}
     ,
 
     ProcessViewBorder{&s.Gray}
@@ -80,13 +80,13 @@ ScenarioStyle::ScenarioStyle(const iscore::Skin& s) noexcept
   QObject::connect(&s, &iscore::Skin::changed, [&] { this->update(s); });
 }
 
-void ScenarioStyle::setConstraintWidth(double w)
+void ScenarioStyle::setIntervalWidth(double w)
 {
-  ConstraintSolidPen.setWidth(3 * w);
-  ConstraintDashPen.setWidth(3 * w);
-  ConstraintPlayPen.setWidth(3 * w);
-  ConstraintPlayDashPen.setWidth(3 * w);
-  ConstraintWaitingDashPen.setWidth(3 * w);
+  IntervalSolidPen.setWidth(3 * w);
+  IntervalDashPen.setWidth(3 * w);
+  IntervalPlayPen.setWidth(3 * w);
+  IntervalPlayDashPen.setWidth(3 * w);
+  IntervalWaitingDashPen.setWidth(3 * w);
 }
 
 ScenarioStyle& ScenarioStyle::instance()
@@ -102,42 +102,42 @@ ScenarioStyle::ScenarioStyle() noexcept
 
 void ScenarioStyle::update(const iscore::Skin& skin)
 {
-  ConstraintSolidPen = QPen{QBrush{Qt::black}, 3, Qt::SolidLine, Qt::SquareCap,
+  IntervalSolidPen = QPen{QBrush{Qt::black}, 3, Qt::SolidLine, Qt::SquareCap,
                             Qt::RoundJoin};
-  ConstraintDashPen = [] {
+  IntervalDashPen = [] {
     QPen pen{QBrush{Qt::black}, 3, Qt::CustomDashLine, Qt::SquareCap,
              Qt::RoundJoin};
 
     pen.setDashPattern({2., 4.});
     return pen;
   }();
-  ConstraintRackPen
+  IntervalRackPen
       = QPen{Qt::black, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
-  ConstraintPlayPen
+  IntervalPlayPen
       = QPen{Qt::black, 4, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
-  ConstraintPlayDashPen = ConstraintDashPen;
-  ConstraintWaitingDashPen = ConstraintDashPen;
-  ConstraintHeaderSeparator
-      = QPen{ConstraintHeaderSideBorder.getBrush(), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
-  FullViewConstraintHeaderSeparator
-      = QPen{ConstraintHeaderSideBorder.getBrush(), 2, Qt::DashLine, Qt::RoundCap, Qt::RoundJoin};
+  IntervalPlayDashPen = IntervalDashPen;
+  IntervalWaitingDashPen = IntervalDashPen;
+  IntervalHeaderSeparator
+      = QPen{IntervalHeaderSideBorder.getBrush(), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+  FullViewIntervalHeaderSeparator
+      = QPen{IntervalHeaderSideBorder.getBrush(), 2, Qt::DashLine, Qt::RoundCap, Qt::RoundJoin};
 
-  ConstraintBrace
-      = QPen{ConstraintBase.getBrush(), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
-  ConstraintBraceSelected = ConstraintBrace;
-  ConstraintBraceSelected.setBrush(ConstraintSelected.getBrush());
-  ConstraintBraceWarning = ConstraintBrace;
-  ConstraintBraceWarning.setBrush(ConstraintWarning.getBrush());
-  ConstraintBraceInvalid = ConstraintBrace;
-  ConstraintBraceInvalid.setBrush(ConstraintInvalid.getBrush());
-  ConstraintHeaderTextPen = QPen{ConstraintHeaderText.getBrush().color()};
+  IntervalBrace
+      = QPen{IntervalBase.getBrush(), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+  IntervalBraceSelected = IntervalBrace;
+  IntervalBraceSelected.setBrush(IntervalSelected.getBrush());
+  IntervalBraceWarning = IntervalBrace;
+  IntervalBraceWarning.setBrush(IntervalWarning.getBrush());
+  IntervalBraceInvalid = IntervalBrace;
+  IntervalBraceInvalid.setBrush(IntervalInvalid.getBrush());
+  IntervalHeaderTextPen = QPen{IntervalHeaderText.getBrush().color()};
 
-  // don't: ConstraintSolidPen.setCosmetic(true);
-  //ConstraintDashPen.setCosmetic(true);
-  ConstraintRackPen.setCosmetic(true);
-  //ConstraintPlayPen.setCosmetic(true);
-  //ConstraintPlayDashPen.setCosmetic(true);
-  //ConstraintWaitingDashPen.setCosmetic(true);
+  // don't: IntervalSolidPen.setCosmetic(true);
+  //IntervalDashPen.setCosmetic(true);
+  IntervalRackPen.setCosmetic(true);
+  //IntervalPlayPen.setCosmetic(true);
+  //IntervalPlayDashPen.setCosmetic(true);
+  //IntervalWaitingDashPen.setCosmetic(true);
 
   ConditionPen = QPen{Qt::black, 2};
   ConditionTrianglePen = QPen{Qt::black, 2};

@@ -44,13 +44,13 @@ class DropHandler final :
 };
 
 
-class ConstraintDropHandler final :
-        public Scenario::ConstraintDropHandler
+class IntervalDropHandler final :
+        public Scenario::IntervalDropHandler
 {
         ISCORE_CONCRETE("edbc884b-96cc-4b59-998c-2f48941a7b6a")
 
         bool drop(
-                 const Scenario::ConstraintModel&,
+                 const Scenario::IntervalModel&,
                  const QMimeData *mime) override;
 };
 

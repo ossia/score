@@ -6,12 +6,12 @@
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncView.hpp>
 
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/FullView/FullViewConstraintPresenter.hpp>
-#include <Scenario/Document/Constraint/FullView/FullViewConstraintView.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
+#include <Scenario/Document/Interval/FullView/FullViewIntervalView.hpp>
 #include <iscore/tools/std/IndirectContainer.hpp>
 
-template <typename Model_T, typename ConstraintPresenter_T>
+template <typename Model_T, typename IntervalPresenter_T>
 class BaseScenarioPresenter
 {
 public:
@@ -21,10 +21,10 @@ public:
 
   virtual ~BaseScenarioPresenter() = default;
 
-  iscore::IndirectContainer<std::vector, ConstraintPresenter_T>
-  getConstraints() const
+  iscore::IndirectContainer<std::vector, IntervalPresenter_T>
+  getIntervals() const
   {
-    return {m_constraintPresenter};
+    return {m_intervalPresenter};
   }
 
   iscore::IndirectContainer<std::vector, Scenario::StatePresenter>
@@ -63,11 +63,11 @@ public:
       return *m_endNodePresenter;
     ISCORE_ABORT;
   }
-  const ConstraintPresenter_T&
-  constraint(const Id<Scenario::ConstraintModel>& id) const
+  const IntervalPresenter_T&
+  interval(const Id<Scenario::IntervalModel>& id) const
   {
-    if (id == m_model.constraint().id())
-      return *m_constraintPresenter;
+    if (id == m_model.interval().id())
+      return *m_intervalPresenter;
     ISCORE_ABORT;
   }
   const Scenario::StatePresenter&
@@ -85,15 +85,15 @@ public:
     return m_startNodePresenter->model();
   }
 
-  ConstraintPresenter_T* constraintPresenter() const
+  IntervalPresenter_T* intervalPresenter() const
   {
-    return m_constraintPresenter;
+    return m_intervalPresenter;
   }
 
 protected:
   const Model_T& m_model;
 
-  ConstraintPresenter_T* m_constraintPresenter{};
+  IntervalPresenter_T* m_intervalPresenter{};
   Scenario::StatePresenter* m_startStatePresenter{};
   Scenario::StatePresenter* m_endStatePresenter{};
   Scenario::EventPresenter* m_startEventPresenter{};

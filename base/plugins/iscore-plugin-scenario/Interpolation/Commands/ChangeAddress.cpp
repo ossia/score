@@ -2,7 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Interpolation/Commands/ChangeAddress.hpp>
 #include <iscore/model/path/PathSerialization.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
@@ -82,7 +82,7 @@ void ChangeInterpolationAddress(const ProcessModel& proc, const State::AddressAc
   {
     // Try to find a matching state in the start & end state in order to update
     // the process
-    auto cst = dynamic_cast<Scenario::ConstraintModel*>(proc.parent());
+    auto cst = dynamic_cast<Scenario::IntervalModel*>(proc.parent());
     if (!cst)
       return;
     auto parent_scenario

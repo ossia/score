@@ -7,7 +7,7 @@ class ProcessModel;
 namespace Command
 {
 class AddLayerModelToSlot;
-class AddOnlyProcessToConstraint;
+class AddOnlyProcessToInterval;
 }
 }
 namespace Curve
@@ -25,7 +25,7 @@ namespace Recording
 struct RecordData
 {
   RecordData(
-      Scenario::Command::AddOnlyProcessToConstraint* cmd_proc,
+      Scenario::Command::AddOnlyProcessToInterval* cmd_proc,
       Scenario::Command::AddLayerModelToSlot* cmd_lay,
       Curve::Model& cm,
       Curve::PointArraySegment& seg,
@@ -38,7 +38,7 @@ struct RecordData
   {
   }
 
-  Scenario::Command::AddOnlyProcessToConstraint* addProcCmd{};
+  Scenario::Command::AddOnlyProcessToInterval* addProcCmd{};
   Scenario::Command::AddLayerModelToSlot* addLayCmd{};
 
   Curve::Model& curveModel;

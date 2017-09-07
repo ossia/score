@@ -2,13 +2,13 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioInspectorWidgetFactoryWrapper.hpp"
 
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 
-#include <Scenario/Inspector/Constraint/ConstraintInspectorFactory.hpp>
+#include <Scenario/Inspector/Interval/IntervalInspectorFactory.hpp>
 #include <Scenario/Inspector/Summary/SummaryInspectorWidget.hpp>
 #include <Scenario/Inspector/TimeSync/TimeSyncInspectorWidget.hpp>
 #include <Scenario/Inspector/Event/EventInspectorWidget.hpp>
@@ -22,7 +22,7 @@ ScenarioInspectorWidgetFactoryWrapper::make(
     const iscore::DocumentContext& doc,
     QWidget* parent) const
 {
-  std::set<const ConstraintModel*> constraints;
+  std::set<const IntervalModel*> intervals;
   std::set<const TimeSyncModel*> timesyncs;
   std::set<const EventModel*> events;
   std::set<const StateModel*> states;
@@ -60,27 +60,27 @@ ScenarioInspectorWidgetFactoryWrapper::make(
     {
       timesyncs.insert(tn);
     }
-    else if (auto cstr = dynamic_cast<const ConstraintModel*>(elt))
+    else if (auto cstr = dynamic_cast<const IntervalModel*>(elt))
     {
-      constraints.insert(cstr);
+      intervals.insert(cstr);
     }
   }
 
-  if (states.size() == 1 && constraints.empty())
+  if (states.size() == 1 && intervals.empty())
       return new StateInspectorWidget{**states.begin(), doc, parent};
-  if (events.size() == 1 && constraints.empty())
+  if (events.size() == 1 && intervals.empty())
       return new EventInspectorWidget{**events.begin(), doc, parent};
-  if (timesyncs.size() == 1 && constraints.empty())
+  if (timesyncs.size() == 1 && intervals.empty())
     return new TimeSyncInspectorWidget{**timesyncs.begin(), doc, parent};
 
-  if (constraints.size() == 1 && timesyncs.empty())
+  if (intervals.size() == 1 && timesyncs.empty())
   {
-    return ConstraintInspectorFactory{}.make(
-        {*constraints.begin()}, doc, parent);
+    return IntervalInspectorFactory{}.make(
+        {*intervals.begin()}, doc, parent);
   }
 
   return new SummaryInspectorWidget{
-      abstr, constraints, timesyncs, events, states, doc, parent}; // the default InspectorWidgetBase need
+      abstr, intervals, timesyncs, events, states, doc, parent}; // the default InspectorWidgetBase need
                                        // an only IdentifiedObject : this will
                                        // be "abstr"
 }
@@ -92,7 +92,7 @@ bool ScenarioInspectorWidgetFactoryWrapper::matches(
     return dynamic_cast<const StateModel*>(obj)
            || dynamic_cast<const EventModel*>(obj)
            || dynamic_cast<const TimeSyncModel*>(obj)
-           || dynamic_cast<const ConstraintModel*>(obj);
+           || dynamic_cast<const IntervalModel*>(obj);
   });
 }
 }

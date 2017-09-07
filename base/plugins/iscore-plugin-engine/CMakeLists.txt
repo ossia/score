@@ -35,7 +35,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/iscore2OSSIA.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ContextMenu/PlayContextMenu.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ContextMenu/PlayFromConstraintInScenario.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ContextMenu/PlayFromIntervalInScenario.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ExecutorContext.hpp"
 
@@ -47,7 +47,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/StateComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/DocumentPlugin.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/TimeSyncComponent.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ConstraintComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/IntervalComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Interpolation/InterpolationComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Automation/Component.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Automation/GradientComponent.hpp"
@@ -77,7 +77,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/ProcessComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/ScenarioComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/LoopComponent.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/ConstraintComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/IntervalComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/EventComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/TimeSyncComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/StateComponent.hpp"
@@ -115,7 +115,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/ApplicationPlugin.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ContextMenu/PlayContextMenu.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ContextMenu/PlayFromConstraintInScenario.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ContextMenu/PlayFromIntervalInScenario.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ProcessComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/StateProcessComponent.cpp"
@@ -125,7 +125,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/StateComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/DocumentPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/TimeSyncComponent.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ConstraintComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/IntervalComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Interpolation/InterpolationComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Automation/Component.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Automation/GradientComponent.cpp"
@@ -148,7 +148,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/ProcessComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/ScenarioComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/LoopComponent.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/ConstraintComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/IntervalComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/EventComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/TimeSyncComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/StateComponent.cpp"

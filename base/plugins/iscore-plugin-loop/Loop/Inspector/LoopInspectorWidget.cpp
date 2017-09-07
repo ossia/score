@@ -7,8 +7,8 @@
 
 #include <Inspector/InspectorWidgetList.hpp>
 #include <Process/ProcessList.hpp>
-#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
-#include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
+#include <Scenario/Inspector/Interval/IntervalInspectorDelegateFactory.hpp>
+#include <Scenario/Inspector/Interval/IntervalInspectorWidget.hpp>
 
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/document/DocumentContext.hpp>
@@ -21,19 +21,19 @@ LoopInspectorWidget::LoopInspectorWidget(
   // FIXME URGENT add implemented virtual destructors to every class that
   // inherits from a virtual.
   auto& appContext = doc.app;
-  auto& constraintWidgetFactory
-      = appContext.interfaces<Scenario::ConstraintInspectorDelegateFactoryList>();
+  auto& intervalWidgetFactory
+      = appContext.interfaces<Scenario::IntervalInspectorDelegateFactoryList>();
 
-  auto& constraint = object.constraint();
+  auto& interval = object.interval();
 
-  auto delegate = constraintWidgetFactory.make(
-      &Scenario::ConstraintInspectorDelegateFactory::make, constraint);
+  auto delegate = intervalWidgetFactory.make(
+      &Scenario::IntervalInspectorDelegateFactory::make, interval);
   if (!delegate)
     return;
 
   auto lay = new QVBoxLayout;
   this->setLayout(lay);
   auto& widgetFact = appContext.interfaces<Inspector::InspectorWidgetList>();
-  lay->addWidget(new Scenario::ConstraintInspectorWidget{
-      widgetFact, constraint, std::move(delegate), doc, this});
+  lay->addWidget(new Scenario::IntervalInspectorWidget{
+      widgetFact, interval, std::move(delegate), doc, this});
 }

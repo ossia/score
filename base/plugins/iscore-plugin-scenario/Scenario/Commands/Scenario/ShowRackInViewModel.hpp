@@ -8,13 +8,13 @@
 #include <iscore_plugin_scenario_export.h>
 namespace Scenario
 {
-class ConstraintModel;
+class IntervalModel;
 namespace Command
 {
 /**
  * @brief The ShowRackInViewModel class
  *
- * For a given constraint view model,
+ * For a given interval view model,
  * select the rack that is to be shown, and show it.
  */
 class ISCORE_PLUGIN_SCENARIO_EXPORT ShowRack final
@@ -23,7 +23,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ShowRack final
   ISCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), ShowRack, "Show a rack")
 public:
-  ShowRack(const Scenario::ConstraintModel& vm);
+  ShowRack(const Scenario::IntervalModel& vm);
 
   void undo(const iscore::DocumentContext& ctx) const override;
   void redo(const iscore::DocumentContext& ctx) const override;
@@ -33,7 +33,7 @@ protected:
   void deserializeImpl(DataStreamOutput&) override;
 
 private:
-  Path<ConstraintModel> m_constraintViewPath;
+  Path<IntervalModel> m_intervalViewPath;
 };
 }
 }

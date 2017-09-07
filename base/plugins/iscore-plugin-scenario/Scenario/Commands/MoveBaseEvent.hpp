@@ -16,7 +16,7 @@
 #include <iscore/model/Identifier.hpp>
 
 /*
- * Command to change a constraint duration by moving event. Vertical move is
+ * Command to change a interval duration by moving event. Vertical move is
  * not allowed.
  */
 namespace Scenario
@@ -37,10 +37,10 @@ private:
     scenar.endEvent().setDate(newDuration);
     scenar.endTimeSync().setDate(newDuration);
 
-    auto& constraint = scenar.constraint();
-    ConstraintDurations::Algorithms::changeAllDurations(
-        constraint, newDuration);
-    for (auto& process : constraint.processes)
+    auto& interval = scenar.interval();
+    IntervalDurations::Algorithms::changeAllDurations(
+        interval, newDuration);
+    for (auto& process : interval.processes)
     {
       scaleMethod(process, newDuration);
     }
@@ -78,9 +78,9 @@ public:
       ExpandMode mode, LockMode)
       : m_path{scenar}, m_newDate{date}, m_mode{mode}
   {
-    const Scenario::ConstraintModel& constraint = scenar.constraint();
-    m_oldDate = constraint.duration.defaultDuration();
-    m_saveData = ConstraintSaveData{constraint};
+    const Scenario::IntervalModel& interval = scenar.interval();
+    m_oldDate = interval.duration.defaultDuration();
+    m_saveData = IntervalSaveData{interval};
   }
 
   MoveBaseEvent(
@@ -105,17 +105,17 @@ public:
 
     // TODO do this only if we shrink.
 
-    // Now we have to restore the state of each constraint that might have been
+    // Now we have to restore the state of each interval that might have been
     // modified
     // during this command.
 
-    // 1. Clear the constraint
-    ClearConstraint clearCmd{scenar.constraint()};
+    // 1. Clear the interval
+    ClearInterval clearCmd{scenar.interval()};
     clearCmd.redo(ctx);
 
     // 2. Restore
-    auto& constraint = scenar.constraint();
-    m_saveData.reload(constraint);
+    auto& interval = scenar.interval();
+    m_saveData.reload(interval);
   }
 
   void redo(const iscore::DocumentContext& ctx) const override
@@ -162,7 +162,7 @@ private:
 
   ExpandMode m_mode{ExpandMode::Scale};
 
-  ConstraintSaveData m_saveData;
+  IntervalSaveData m_saveData;
 };
 }
 }

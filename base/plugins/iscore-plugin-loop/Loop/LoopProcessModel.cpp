@@ -1,7 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <algorithm>
@@ -15,7 +15,7 @@
 #include <Process/Process.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
-#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
+#include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 #include <iscore/model/ModelMetadata.hpp>
@@ -34,14 +34,14 @@ ProcessModel::ProcessModel(
                             Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , Scenario::BaseScenarioContainer{this}
 {
-  Scenario::ConstraintDurations::Algorithms::changeAllDurations(
-      constraint(), duration);
+  Scenario::IntervalDurations::Algorithms::changeAllDurations(
+      interval(), duration);
   endEvent().setDate(duration);
   endTimeSync().setDate(duration);
 
   const double height = 0.5;
-  constraint().setHeightPercentage(height);
-  constraint().metadata().setName("pattern");
+  interval().setHeightPercentage(height);
+  interval().metadata().setName("pattern");
   BaseScenarioContainer::startState().setHeightPercentage(height);
   BaseScenarioContainer::endState().setHeightPercentage(height);
   BaseScenarioContainer::startEvent().setExtent({height, 0.2});
@@ -69,17 +69,17 @@ ProcessModel::~ProcessModel()
 
 void ProcessModel::startExecution()
 {
-  constraint().startExecution();
+  interval().startExecution();
 }
 
 void ProcessModel::stopExecution()
 {
-  constraint().stopExecution();
+  interval().stopExecution();
 }
 
 void ProcessModel::reset()
 {
-  constraint().reset();
+  interval().reset();
   startEvent().setStatus(Scenario::ExecutionStatus::Editing, *this);
   endEvent().setStatus(Scenario::ExecutionStatus::Editing, *this);
 }
@@ -112,12 +112,12 @@ void ProcessModel::setSelection(const Selection& s) const
   });
 }
 
-const QVector<Id<Scenario::ConstraintModel>> constraintsBeforeTimeSync(
+const QVector<Id<Scenario::IntervalModel>> intervalsBeforeTimeSync(
     const ProcessModel& scen, const Id<Scenario::TimeSyncModel>& timeSyncId)
 {
   if (timeSyncId == scen.endTimeSync().id())
   {
-    return {scen.constraint().id()};
+    return {scen.interval().id()};
   }
   return {};
 }

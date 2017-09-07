@@ -22,7 +22,7 @@ namespace Engine
 namespace Execution
 {
 struct Context;
-class ConstraintComponent;
+class IntervalComponent;
 
 template <typename T>
 class InvalidProcessException : public std::runtime_error
@@ -47,7 +47,7 @@ public:
     static constexpr bool is_unique = true;
 
   ProcessComponent(
-      ConstraintComponent& cst,
+      IntervalComponent& cst,
       Process::ProcessModel& proc,
       const Context& ctx,
       const Id<iscore::Component>& id,
@@ -55,7 +55,7 @@ public:
       QObject* parent)
       : Process::GenericProcessComponent<const Context>{proc, ctx, id, name,
                                                          parent}
-      , m_parent_constraint{cst}
+      , m_parent_interval{cst}
   {
   }
 
@@ -77,7 +77,7 @@ public:
   }
 
 protected:
-  ConstraintComponent& m_parent_constraint;
+  IntervalComponent& m_parent_interval;
   std::shared_ptr<ossia::time_process> m_ossia_process;
 };
 
@@ -102,7 +102,7 @@ class ISCORE_PLUGIN_ENGINE_EXPORT ProcessComponentFactory
 public:
   virtual ~ProcessComponentFactory();
   virtual std::shared_ptr<ProcessComponent> make(
-      ConstraintComponent& cst,
+      IntervalComponent& cst,
       Process::ProcessModel& proc,
       const Context& ctx,
       const Id<iscore::Component>& id,
@@ -120,7 +120,7 @@ class ProcessComponentFactory_T
 public:
   using model_type = typename ProcessComponent_T::model_type;
   std::shared_ptr<ProcessComponent> make(
-      ConstraintComponent& cst,
+      IntervalComponent& cst,
       Process::ProcessModel& proc,
       const Context& ctx,
       const Id<iscore::Component>& id,

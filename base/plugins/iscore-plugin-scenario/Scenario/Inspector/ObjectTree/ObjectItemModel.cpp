@@ -4,12 +4,12 @@
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/StateProcess.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Commands/Constraint/CreateProcessInNewSlot.hpp>
-#include <Scenario/Commands/Constraint/RemoveProcessFromConstraint.hpp>
+#include <Scenario/Commands/Interval/CreateProcessInNewSlot.hpp>
+#include <Scenario/Commands/Interval/RemoveProcessFromInterval.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Process/StateProcessFactoryList.hpp>
@@ -34,7 +34,7 @@ void ObjectItemModel::setSelected(QList<const IdentifiedObjectAbstract*> objs)
   QList<const QObject*> root{};
   for(const QObject* sel : objs)
   {
-    if(auto cst = dynamic_cast<const Scenario::ConstraintModel*>(sel))
+    if(auto cst = dynamic_cast<const Scenario::IntervalModel*>(sel))
     {
       root.push_back(cst);
     }
@@ -84,10 +84,10 @@ void ObjectItemModel::setupConnections()
 
   for(auto obj : m_root)
   {
-    bool is_cst = dynamic_cast<const Scenario::ConstraintModel*>(obj);
+    bool is_cst = dynamic_cast<const Scenario::IntervalModel*>(obj);
     if(is_cst)
     {
-      auto cst = static_cast<const Scenario::ConstraintModel*>(obj);
+      auto cst = static_cast<const Scenario::IntervalModel*>(obj);
       cst->processes.added.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
       cst->processes.removing.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
     }
@@ -139,7 +139,7 @@ QModelIndex ObjectItemModel::index(int row, int column, const QModelIndex& paren
   auto sel = (QObject*)parent.internalPointer();
   if(sel)
   {
-    if(auto cst = dynamic_cast<Scenario::ConstraintModel*>(sel))
+    if(auto cst = dynamic_cast<Scenario::IntervalModel*>(sel))
     {
       auto it = cst->processes.begin();
       std::advance(it, row);
@@ -191,7 +191,7 @@ QModelIndex ObjectItemModel::parent(const QModelIndex& child) const
     return QModelIndex{};
 
 
-  if(dynamic_cast<Scenario::ConstraintModel*>(sel))
+  if(dynamic_cast<Scenario::IntervalModel*>(sel))
   {
     return QModelIndex{};
   }
@@ -257,7 +257,7 @@ int ObjectItemModel::rowCount(const QModelIndex& parent) const
   auto sel = (QObject*)parent.internalPointer();
   if(sel)
   {
-    if(auto cst = dynamic_cast<Scenario::ConstraintModel*>(sel))
+    if(auto cst = dynamic_cast<Scenario::IntervalModel*>(sel))
     {
       return cst->processes.size();
     }
@@ -305,7 +305,7 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
   {
     if(role == Qt::DisplayRole)
     {
-      if(auto cst = dynamic_cast<Scenario::ConstraintModel*>(sel))
+      if(auto cst = dynamic_cast<Scenario::IntervalModel*>(sel))
       {
         return cst->metadata().getName();
       }
@@ -338,9 +338,9 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
     }
     else if(role == Qt::DecorationRole)
     {
-      if(dynamic_cast<Scenario::ConstraintModel*>(sel))
+      if(dynamic_cast<Scenario::IntervalModel*>(sel))
       {
-        static const QIcon icon(":/images/constraint.svg");
+        static const QIcon icon(":/images/interval.svg");
         return icon;
       }
       else if(auto ev = dynamic_cast<Scenario::EventModel*>(sel))
@@ -395,7 +395,7 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
     }
     else if(role == Qt::ToolTipRole)
     {
-      if(auto cst = dynamic_cast<Scenario::ConstraintModel*>(sel))
+      if(auto cst = dynamic_cast<Scenario::IntervalModel*>(sel))
       {
         return tr("Start : ") + cst->startDate().toString();
       }
@@ -591,7 +591,7 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
 
     QMenu* m = new QMenu{this};
 
-    if(auto cst = dynamic_cast<Scenario::ConstraintModel*>(ptr))
+    if(auto cst = dynamic_cast<Scenario::IntervalModel*>(ptr))
     {
       auto addproc = new QAction{tr("Add process"), m};
       m->addAction(addproc);
@@ -639,7 +639,7 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
       m->addAction(deleteact);
       connect(deleteact, &QAction::triggered, this, [=] {
         CommandDispatcher<> c{m_ctx.commandStack};
-        c.submitCommand<Scenario::Command::RemoveProcessFromConstraint>(*(ConstraintModel*)proc->parent(), proc->id());
+        c.submitCommand<Scenario::Command::RemoveProcessFromInterval>(*(IntervalModel*)proc->parent(), proc->id());
       });
     }
     else if(auto stp = dynamic_cast<Process::StateProcess*>(ptr))

@@ -1,7 +1,7 @@
 #pragma once
-#include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
-#include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
+#include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <State/Address.hpp>
 #include <iscore/command/Command.hpp>
@@ -26,7 +26,7 @@ class Path;
 
 namespace Scenario
 {
-class ConstraintModel;
+class IntervalModel;
 namespace Command
 {
 
@@ -38,10 +38,10 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateProcessAndLayers
 public:
   CreateProcessAndLayers() = default;
   CreateProcessAndLayers(
-      const ConstraintModel& constraint,
+      const IntervalModel& interval,
       const std::vector<SlotPath>& slotList,
       Id<Process::ProcessModel> procId)
-      : m_addProcessCmd{std::move(constraint), std::move(procId),
+      : m_addProcessCmd{std::move(interval), std::move(procId),
                         Metadata<ConcreteKey_k, ProcessModel_T>::get()}
   {
     m_slotsCmd.reserve(slotList.size());
@@ -86,7 +86,7 @@ protected:
     }
   }
 
-  AddOnlyProcessToConstraint m_addProcessCmd;
+  AddOnlyProcessToInterval m_addProcessCmd;
   std::vector<Scenario::Command::AddLayerModelToSlot> m_slotsCmd;
 };
 
@@ -98,7 +98,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateAutomationFromStates final
       "CreateCurveFromStates")
 public:
   CreateAutomationFromStates(
-      const ConstraintModel& constraint,
+      const IntervalModel& interval,
       const std::vector<SlotPath>& slotList,
       Id<Process::ProcessModel> curveId,
       State::AddressAccessor address,
@@ -124,7 +124,7 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT CreateInterpolationFromStates final
       "CreateInterpolationFromStates")
 public:
   CreateInterpolationFromStates(
-      const ConstraintModel& constraint,
+      const IntervalModel& interval,
       const std::vector<SlotPath>& slotList,
       Id<Process::ProcessModel> curveId, State::AddressAccessor address,
       ossia::value start, ossia::value end);

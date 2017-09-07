@@ -471,7 +471,7 @@ static void rec_pruneTree(Process::MessageNode& node, ProcessPosition pos)
   cleanupNode(node);
 }
 
-void updateTreeWithRemovedConstraint(
+void updateTreeWithRemovedInterval(
     Process::MessageNode& rootNode, ProcessPosition pos)
 {
   for (auto& child : rootNode)

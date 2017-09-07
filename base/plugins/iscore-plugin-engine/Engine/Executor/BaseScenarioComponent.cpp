@@ -1,7 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <ossia/editor/state/state_element.hpp>
-#include <ossia/editor/scenario/time_constraint.hpp>
+#include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
 #include <ossia/editor/scenario/time_sync.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
@@ -15,12 +15,12 @@
 #include <vector>
 
 #include "BaseScenarioComponent.hpp"
-#include <Engine/Executor/ConstraintComponent.hpp>
+#include <Engine/Executor/IntervalComponent.hpp>
 #include <Engine/Executor/EventComponent.hpp>
 #include <Engine/Executor/StateComponent.hpp>
 #include <Engine/Executor/TimeSyncComponent.hpp>
-#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalDurations.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
@@ -58,15 +58,15 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
       [this](auto&&...) {},
       ossia::expressions::make_expression_true());
 
-  // TODO PlayDuration of base constraint.
+  // TODO PlayDuration of base interval.
   // TODO PlayDuration of FullView
-  auto main_constraint = ossia::time_constraint::create(
+  auto main_interval = ossia::time_interval::create(
       [](auto&&...) {},
       *main_start_event,
       *main_end_event,
-      m_ctx.time(element.constraint().duration.defaultDuration()),
-      m_ctx.time(element.constraint().duration.minDuration()),
-      m_ctx.time(element.constraint().duration.maxDuration()));
+      m_ctx.time(element.interval().duration.defaultDuration()),
+      m_ctx.time(element.interval().duration.minDuration()),
+      m_ctx.time(element.interval().duration.maxDuration()));
 
   m_ossia_startTimeSync = std::make_shared<TimeSyncComponent>(
       element.startTimeSync(), m_ctx, newId(element.startTimeSync()), this);
@@ -79,8 +79,8 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
   m_ossia_startState = std::make_shared<StateComponent>(element.startState(), m_ctx, newId(element.startState()), this);
   m_ossia_endState =  std::make_shared<StateComponent>(element.endState(), m_ctx, newId(element.endState()), this);
 
-  m_ossia_constraint = std::make_shared<ConstraintComponent>(
-      element.constraint(), m_ctx, newId(element.constraint()), this);
+  m_ossia_interval = std::make_shared<IntervalComponent>(
+      element.interval(), m_ctx, newId(element.interval()), this);
 
   m_ossia_startTimeSync->onSetup(main_start_node, m_ossia_startTimeSync->makeTrigger());
   m_ossia_endTimeSync->onSetup(main_end_node, m_ossia_endTimeSync->makeTrigger());
@@ -88,14 +88,14 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
   m_ossia_endEvent->onSetup(main_end_event, m_ossia_endEvent->makeExpression(), (ossia::time_event::offset_behavior)element.endEvent().offsetBehavior());
   m_ossia_startState->onSetup(main_start_event);
   m_ossia_endState->onSetup(main_end_event);
-  m_ossia_constraint->onSetup(main_constraint, m_ossia_constraint->makeDurations(), true);
+  m_ossia_interval->onSetup(main_interval, m_ossia_interval->makeDurations(), true);
 
 }
 
 void BaseScenarioElement::cleanup()
 {
-  if(m_ossia_constraint)
-    m_ossia_constraint->cleanup();
+  if(m_ossia_interval)
+    m_ossia_interval->cleanup();
   if(m_ossia_startState)
     m_ossia_startState->cleanup();
   if(m_ossia_endState)
@@ -115,7 +115,7 @@ void BaseScenarioElement::cleanup()
     m_ossia_endTimeSync->cleanup();
   }
 
-  m_ossia_constraint.reset();
+  m_ossia_interval.reset();
   m_ossia_startState.reset();
   m_ossia_endState.reset();
   m_ossia_startEvent.reset();
@@ -124,9 +124,9 @@ void BaseScenarioElement::cleanup()
   m_ossia_endTimeSync.reset();
 }
 
-ConstraintComponent& BaseScenarioElement::baseConstraint() const
+IntervalComponent& BaseScenarioElement::baseInterval() const
 {
-  return *m_ossia_constraint;
+  return *m_ossia_interval;
 }
 
 TimeSyncComponent& BaseScenarioElement::startTimeSync() const
@@ -162,10 +162,10 @@ StateComponent& BaseScenarioElement::endState() const
 }
 
 BaseScenarioRefContainer::BaseScenarioRefContainer(
-    Scenario::ConstraintModel& constraint, Scenario::ScenarioInterface& s)
-    : m_constraint{constraint}
-    , m_startState{s.state(constraint.startState())}
-    , m_endState{s.state(constraint.endState())}
+    Scenario::IntervalModel& interval, Scenario::ScenarioInterface& s)
+    : m_interval{interval}
+    , m_startState{s.state(interval.startState())}
+    , m_endState{s.state(interval.endState())}
     , m_startEvent{s.event(m_startState.eventId())}
     , m_endEvent{s.event(m_endState.eventId())}
     , m_startNode{s.timeSync(m_startEvent.timeSync())}

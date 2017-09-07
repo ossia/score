@@ -1,48 +1,48 @@
 #pragma once
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 
-// Constraints
+// Intervals
 namespace Scenario
 {
 template <typename Scenario_T>
-StateModel& startState(const ConstraintModel& cst, const Scenario_T& scenario)
+StateModel& startState(const IntervalModel& cst, const Scenario_T& scenario)
 {
   return scenario.state(cst.startState());
 }
 
 template <typename Scenario_T>
-StateModel& endState(const ConstraintModel& cst, const Scenario_T& scenario)
+StateModel& endState(const IntervalModel& cst, const Scenario_T& scenario)
 {
   return scenario.state(cst.endState());
 }
 
 template <typename Scenario_T>
 const EventModel&
-startEvent(const ConstraintModel& cst, const Scenario_T& scenario)
+startEvent(const IntervalModel& cst, const Scenario_T& scenario)
 {
   return scenario.event(startState(cst, scenario).eventId());
 }
 
 template <typename Scenario_T>
 const EventModel&
-endEvent(const ConstraintModel& cst, const Scenario_T& scenario)
+endEvent(const IntervalModel& cst, const Scenario_T& scenario)
 {
   return scenario.event(endState(cst, scenario).eventId());
 }
 
 template <typename Scenario_T>
 const TimeSyncModel&
-startTimeSync(const ConstraintModel& cst, const Scenario_T& scenario)
+startTimeSync(const IntervalModel& cst, const Scenario_T& scenario)
 {
   return scenario.timeSync(startEvent(cst, scenario).timeSync());
 }
 
 template <typename Scenario_T>
 const TimeSyncModel&
-endTimeSync(const ConstraintModel& cst, const Scenario_T& scenario)
+endTimeSync(const IntervalModel& cst, const Scenario_T& scenario)
 {
   return scenario.timeSync(endEvent(cst, scenario).timeSync());
 }
@@ -77,73 +77,73 @@ const TimeSyncModel& parentTimeSync(const TimeSyncModel& st, const Scenario_T&)
 }
 
 template <typename Scenario_T>
-const ConstraintModel&
-previousConstraint(const StateModel& st, const Scenario_T& scenario)
+const IntervalModel&
+previousInterval(const StateModel& st, const Scenario_T& scenario)
 {
-  ISCORE_ASSERT(st.previousConstraint());
-  return scenario.constraint(*st.previousConstraint());
+  ISCORE_ASSERT(st.previousInterval());
+  return scenario.interval(*st.previousInterval());
 }
 
 template <typename Scenario_T>
-const ConstraintModel&
-nextConstraint(const StateModel& st, const Scenario_T& scenario)
+const IntervalModel&
+nextInterval(const StateModel& st, const Scenario_T& scenario)
 {
-  ISCORE_ASSERT(st.nextConstraint());
-  return scenario.constraint(*st.nextConstraint());
+  ISCORE_ASSERT(st.nextInterval());
+  return scenario.interval(*st.nextInterval());
 }
 
 template <typename Scenario_T>
-std::list<Id<ConstraintModel>> nextConstraints(const EventModel& ev, const Scenario_T& scenario)
+std::list<Id<IntervalModel>> nextIntervals(const EventModel& ev, const Scenario_T& scenario)
 {
-  std::list<Id<ConstraintModel>> constraints;
+  std::list<Id<IntervalModel>> intervals;
   for (const Id<StateModel>& state : ev.states())
   {
     const StateModel& st = scenario.state(state);
-    if (const auto& cst_id = st.nextConstraint())
-      constraints.push_back(*cst_id);
+    if (const auto& cst_id = st.nextInterval())
+      intervals.push_back(*cst_id);
   }
-  return constraints;
+  return intervals;
 }
 template <typename Scenario_T>
-std::list<Id<ConstraintModel>> previousConstraints(const EventModel& ev, const Scenario_T& scenario)
+std::list<Id<IntervalModel>> previousIntervals(const EventModel& ev, const Scenario_T& scenario)
 {
-  std::list<Id<ConstraintModel>> constraints;
+  std::list<Id<IntervalModel>> intervals;
   for (const Id<StateModel>& state : ev.states())
   {
     const StateModel& st = scenario.state(state);
-    if (const auto& cst_id = st.previousConstraint())
-      constraints.push_back(*cst_id);
+    if (const auto& cst_id = st.previousInterval())
+      intervals.push_back(*cst_id);
   }
-  return constraints;
+  return intervals;
 }
 
 // TimeSyncs
 template <typename Scenario_T>
-std::list<Id<ConstraintModel>> nextConstraints(const TimeSyncModel& tn, const Scenario_T& scenario)
+std::list<Id<IntervalModel>> nextIntervals(const TimeSyncModel& tn, const Scenario_T& scenario)
 {
-  std::list<Id<ConstraintModel>> constraints;
+  std::list<Id<IntervalModel>> intervals;
   for (const Id<EventModel>& event_id : tn.events())
   {
     const EventModel& event = scenario.event(event_id);
-    auto prev = nextConstraints(event, scenario);
-    constraints.splice(constraints.end(), prev);
+    auto prev = nextIntervals(event, scenario);
+    intervals.splice(intervals.end(), prev);
   }
 
-  return constraints;
+  return intervals;
 }
 
 template <typename Scenario_T>
-std::list<Id<ConstraintModel>> previousConstraints(const TimeSyncModel& tn, const Scenario_T& scenario)
+std::list<Id<IntervalModel>> previousIntervals(const TimeSyncModel& tn, const Scenario_T& scenario)
 {
-  std::list<Id<ConstraintModel>> constraints;
+  std::list<Id<IntervalModel>> intervals;
   for (const Id<EventModel>& event_id : tn.events())
   {
     const EventModel& event = scenario.event(event_id);
-    auto prev = previousConstraints(event, scenario);
-    constraints.splice(constraints.end(), prev);
+    auto prev = previousIntervals(event, scenario);
+    intervals.splice(intervals.end(), prev);
   }
 
-  return constraints;
+  return intervals;
 }
 
 template <typename Scenario_T>

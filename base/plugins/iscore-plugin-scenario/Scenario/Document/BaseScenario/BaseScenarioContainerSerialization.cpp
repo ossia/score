@@ -2,7 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <QJsonObject>
 #include <QJsonValue>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
@@ -24,7 +24,7 @@ template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
     const Scenario::BaseScenarioContainer& base_scenario)
 {
-  readFrom(*base_scenario.m_constraint);
+  readFrom(*base_scenario.m_interval);
 
   readFrom(*base_scenario.m_startNode);
   readFrom(*base_scenario.m_endNode);
@@ -42,8 +42,8 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(
     Scenario::BaseScenarioContainer& base_scenario)
 {
   using namespace Scenario;
-  base_scenario.m_constraint
-      = new ConstraintModel{*this, base_scenario.m_parent};
+  base_scenario.m_interval
+      = new IntervalModel{*this, base_scenario.m_parent};
 
   base_scenario.m_startNode = new TimeSyncModel{*this, base_scenario.m_parent};
   base_scenario.m_endNode = new TimeSyncModel{*this, base_scenario.m_parent};
@@ -59,10 +59,10 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(
   base_scenario.m_endState
       = new StateModel{*this, stack, base_scenario.m_parent};
 
-  Scenario::SetPreviousConstraint(
-      *base_scenario.m_endState, *base_scenario.m_constraint);
-  Scenario::SetNextConstraint(
-      *base_scenario.m_startState, *base_scenario.m_constraint);
+  Scenario::SetPreviousInterval(
+      *base_scenario.m_endState, *base_scenario.m_interval);
+  Scenario::SetNextInterval(
+      *base_scenario.m_startState, *base_scenario.m_interval);
 }
 
 
@@ -70,7 +70,7 @@ template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::read(
     const Scenario::BaseScenarioContainer& base_scenario)
 {
-  obj["Constraint"] = toJsonObject(*base_scenario.m_constraint);
+  obj["Interval"] = toJsonObject(*base_scenario.m_interval);
 
   obj["StartTimeSync"] = toJsonObject(*base_scenario.m_startNode);
   obj["EndTimeSync"] = toJsonObject(*base_scenario.m_endNode);
@@ -88,8 +88,8 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectWriter::write(
     Scenario::BaseScenarioContainer& base_scenario)
 {
   using namespace Scenario;
-  base_scenario.m_constraint = new ConstraintModel{
-      JSONObject::Deserializer{obj["Constraint"].toObject()},
+  base_scenario.m_interval = new IntervalModel{
+      JSONObject::Deserializer{obj["Interval"].toObject()},
       base_scenario.m_parent};
 
   base_scenario.m_startNode = new TimeSyncModel{
@@ -116,8 +116,8 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectWriter::write(
       = new StateModel{JSONObject::Deserializer{obj["EndState"].toObject()},
                        stack, base_scenario.m_parent};
 
-  Scenario::SetPreviousConstraint(
-      *base_scenario.m_endState, *base_scenario.m_constraint);
-  Scenario::SetNextConstraint(
-      *base_scenario.m_startState, *base_scenario.m_constraint);
+  Scenario::SetPreviousInterval(
+      *base_scenario.m_endState, *base_scenario.m_interval);
+  Scenario::SetNextInterval(
+      *base_scenario.m_startState, *base_scenario.m_interval);
 }

@@ -2,8 +2,8 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/FullView/FullViewConstraintPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactoryList.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
@@ -30,7 +30,7 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/Tools/ProcessGraphicsView.hpp>
-#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
+#include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
@@ -117,7 +117,7 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
   con(ctx.app.settings<Settings::Model>(),
       &Settings::Model::GraphicZoomChanged, this, [&](double d) {
         auto& skin = ScenarioStyle::instance();
-        skin.setConstraintWidth(d);
+        skin.setIntervalWidth(d);
       });
 
 
@@ -138,16 +138,16 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
     app.editionSettings().setExpandMode(ExpandMode::GrowShrink);
   }, Qt::QueuedConnection);
 
-  setDisplayedConstraint(model().baseConstraint());
+  setDisplayedInterval(model().baseInterval());
 }
 
 ScenarioDocumentPresenter::~ScenarioDocumentPresenter()
 {
 }
 
-ConstraintModel& ScenarioDocumentPresenter::displayedConstraint() const
+IntervalModel& ScenarioDocumentPresenter::displayedInterval() const
 {
-  return displayedElements.constraint();
+  return displayedElements.interval();
 }
 
 const DisplayedElementsPresenter&ScenarioDocumentPresenter::presenters() const
@@ -175,7 +175,7 @@ void ScenarioDocumentPresenter::selectTop()
   iscore::SelectionDispatcher{m_context.selectionStack}
     .setAndCommit(
      {&displayedElements.startState(),
-      &displayedElements.constraint(),
+      &displayedElements.interval(),
       &displayedElements.endState()});
 }
 
@@ -214,7 +214,7 @@ void ScenarioDocumentPresenter::on_verticalZoom(
   auto z = ossia::clamp(zoom.y(), -100., 100.);
   if(z == 0.)
     return;
-  auto& c = displayedConstraint();
+  auto& c = displayedInterval();
   const FullRack& slts = c.fullView();
   for(std::size_t i = 0; i < slts.size(); i++)
   {
@@ -240,8 +240,8 @@ void ScenarioDocumentPresenter::on_windowSizeChanged(QSize s)
 
   view().timeRuler().setWidth(new_w);
 
-  // Update the time constraint if the window is greater.
-  auto& c = displayedConstraint();
+  // Update the time interval if the window is greater.
+  auto& c = displayedInterval();
   auto visible_rect = view().visibleSceneRect();
   if(visible_rect.width() > c.duration.guiDuration().toPixels(m_zoomRatio))
   {
@@ -257,7 +257,7 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
 {
   if(m_updatingView)
     return;
-  auto& c = displayedConstraint();
+  auto& c = displayedInterval();
   auto& gv = view().view();
 
   if(dx < 0 && !m_zooming)
@@ -312,7 +312,7 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
 double ScenarioDocumentPresenter::computeReverseZoom(ZoomRatio r)
 {
   const auto view_width = view().viewportRect().width();
-  const auto dur = displayedConstraint().duration.guiDuration();
+  const auto dur = displayedInterval().duration.guiDuration();
 
   const auto map_w = view().minimap().width();
 
@@ -323,7 +323,7 @@ ZoomRatio ScenarioDocumentPresenter::computeZoom(double l, double r)
 {
   const auto map_w = view().minimap().width();
   const auto view_width = view().viewportRect().width();
-  const auto dur = displayedConstraint().duration.guiDuration();
+  const auto dur = displayedInterval().duration.guiDuration();
 
   // Compute new zoom level
   const auto disptime = (dur * ((r - l) / map_w)).msec();
@@ -333,10 +333,10 @@ ZoomRatio ScenarioDocumentPresenter::computeZoom(double l, double r)
 void ScenarioDocumentPresenter::on_viewReady()
 {
   QTimer::singleShot(0, [=] {
-    auto z = displayedConstraint().zoom();
+    auto z = displayedInterval().zoom();
     if(z > 0)
     {
-      auto& c = displayedConstraint();
+      auto& c = displayedInterval();
       auto minimap_handle_width = computeReverseZoom(z);
       auto rx = (c.midTime() / c.duration.guiDuration()) * view().minimap().width() - minimap_handle_width / 2.;
       view().minimap().modifyHandles(rx, rx + minimap_handle_width);
@@ -355,7 +355,7 @@ void ScenarioDocumentPresenter::on_viewReady()
 void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
 {
   m_updatingMinimap = true;
-  auto& c = displayedConstraint();
+  auto& c = displayedInterval();
   const auto dur = c.duration.guiDuration();
 
   // Compute new zoom level
@@ -385,7 +385,7 @@ void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
 
   view().timeRuler().setWidth(gv.width());
 
-  // Save state in constraint
+  // Save state in interval
   c.setZoom(newZoom);
   c.setMidTime(dur * (view().visibleSceneRect().center().x() / dur.toPixels(newZoom)));
 
@@ -414,7 +414,7 @@ void ScenarioDocumentPresenter::updateMinimap()
   const auto viewRect = view().viewportRect();
   const auto visibleSceneRect = view().visibleSceneRect();
   const auto viewWidth = viewRect.width();
-  const auto cstDur = displayedConstraint().duration.guiDuration();
+  const auto cstDur = displayedInterval().duration.guiDuration();
   const auto cstWidth = cstDur.toPixels(m_zoomRatio);
 
   // ZoomRatio in the minimap view
@@ -446,15 +446,15 @@ void ScenarioDocumentPresenter::updateMinimap()
 
 double ScenarioDocumentPresenter::displayedDuration() const
 {
-  return 0.9 * displayedConstraint().duration.guiDuration().msec();
+  return 0.9 * displayedInterval().duration.guiDuration().msec();
 }
 
-void ScenarioDocumentPresenter::setDisplayedConstraint(ConstraintModel& constraint)
+void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel& interval)
 {
   auto& ctx = iscore::IDocument::documentContext(model());
   if (displayedElements.initialized())
   {
-    if (&constraint == &displayedElements.constraint())
+    if (&interval == &displayedElements.interval())
     {
       auto pres = iscore::IDocument::try_get<ScenarioDocumentPresenter>(
             ctx.document);
@@ -466,20 +466,20 @@ void ScenarioDocumentPresenter::setDisplayedConstraint(ConstraintModel& constrai
   auto& provider
       = ctx.app.interfaces<DisplayedElementsProviderList>();
   displayedElements.setDisplayedElements(
-      provider.make(&DisplayedElementsProvider::make, constraint));
+      provider.make(&DisplayedElementsProvider::make, interval));
 
   m_focusManager.focusNothing();
 
-  disconnect(m_constraintConnection);
+  disconnect(m_intervalConnection);
   disconnect(m_durationConnection);
-  if (&constraint != &model().baseConstraint())
+  if (&interval != &model().baseInterval())
   {
-    m_constraintConnection
-        = con(constraint, &QObject::destroyed, this, [&]() {
-            setDisplayedConstraint(model().baseConstraint());
+    m_intervalConnection
+        = con(interval, &QObject::destroyed, this, [&]() {
+            setDisplayedInterval(model().baseInterval());
           });
   }
-  m_durationConnection = con(constraint.duration, &ConstraintDurations::guiDurationChanged,
+  m_durationConnection = con(interval.duration, &IntervalDurations::guiDurationChanged,
                              this, [=] {
     updateMinimap();
   });
@@ -489,7 +489,7 @@ void ScenarioDocumentPresenter::setDisplayedConstraint(ConstraintModel& constrai
   m_miniLayer = nullptr;
 
   auto& layerFactoryList = ctx.app.interfaces<Process::LayerFactoryList>();
-  for(auto& proc : constraint.processes)
+  for(auto& proc : interval.processes)
   {
     if(auto fac = layerFactoryList.findDefaultFactory(proc))
     {
@@ -512,15 +512,15 @@ void ScenarioDocumentPresenter::setDisplayedConstraint(ConstraintModel& constrai
   const auto& fact
       = ctx.app.interfaces<DisplayedElementsToolPaletteFactoryList>();
   m_stateMachine
-      = fact.make(&DisplayedElementsToolPaletteFactory::make, *this, constraint);
+      = fact.make(&DisplayedElementsToolPaletteFactory::make, *this, interval);
 
   m_updatingView = true;
-  m_scenarioPresenter.on_displayedConstraintChanged(constraint);
+  m_scenarioPresenter.on_displayedIntervalChanged(interval);
   m_updatingView = false;
   connect(
-      m_scenarioPresenter.constraintPresenter(),
-      &FullViewConstraintPresenter::constraintSelected, this,
-      &ScenarioDocumentPresenter::setDisplayedConstraint);
+      m_scenarioPresenter.intervalPresenter(),
+      &FullViewIntervalPresenter::intervalSelected, this,
+      &ScenarioDocumentPresenter::setDisplayedInterval);
 
   on_viewReady();
   updateMinimap();
@@ -542,8 +542,8 @@ void ScenarioDocumentPresenter::on_viewModelDefocused(
 void ScenarioDocumentPresenter::on_viewModelFocused(
     const Process::ProcessModel* process)
 {
-  // If the parent of the layer is a constraint, we set the focus on the
-  // constraint too.
+  // If the parent of the layer is a interval, we set the focus on the
+  // interval too.
   auto slot = process->parent();
   if (!slot)
     return;
@@ -551,13 +551,13 @@ void ScenarioDocumentPresenter::on_viewModelFocused(
   if (!rack)
     return;
   auto cm = rack->parent();
-  if (auto constraint = dynamic_cast<ConstraintModel*>(cm))
+  if (auto interval = dynamic_cast<IntervalModel*>(cm))
   {
-    if (m_focusedConstraint)
-      m_focusedConstraint->focusChanged(false);
+    if (m_focusedInterval)
+      m_focusedInterval->focusChanged(false);
 
-    m_focusedConstraint = constraint;
-    m_focusedConstraint->focusChanged(true);
+    m_focusedInterval = interval;
+    m_focusedInterval->focusChanged(true);
   }
 }
 
@@ -578,7 +578,7 @@ void ScenarioDocumentPresenter::setNewSelection(const Selection& s)
     // Note : once here was a call to defocus a presenter. Why ? See git blame.
   }
   else if (ossia::any_of(s, [&](const QObject* obj) {
-             return obj == &displayedElements.constraint()
+             return obj == &displayedElements.interval()
                     || obj == &displayedElements.startTimeSync()
                     || obj == &displayedElements.endTimeSync()
                     || obj == &displayedElements.startEvent()

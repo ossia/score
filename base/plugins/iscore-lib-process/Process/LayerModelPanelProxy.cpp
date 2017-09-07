@@ -124,10 +124,10 @@ void Process::GraphicsViewLayerPanelProxy::on_zoomChanged(
 void Process::GraphicsViewLayerPanelProxy::recompute()
 {
   // computedMax : the number of pixels in a millisecond when the whole
-  // constraint
+  // interval
   // is displayed on screen;
 
-  // We want the value to be at least twice the duration of the constraint
+  // We want the value to be at least twice the duration of the interval
   const auto& duration = m_layer.duration();
   auto fullWidth = duration.toPixels(m_zoomRatio);
 

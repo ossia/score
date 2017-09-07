@@ -1,9 +1,9 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Commands/Scenario/Creations/CreateConstraint.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeSync.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateInterval.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateInterval_State.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event_TimeSync.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateEvent_State.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateSequence.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
@@ -21,12 +21,12 @@ void ScenarioRollbackStrategy::rollback(
   using namespace Scenario::Command;
   for (int i = cmds.size() - 1; i >= 0; --i)
   {
-    if (cmds[i]->key() == CreateConstraint::static_key()
+    if (cmds[i]->key() == CreateInterval::static_key()
         || cmds[i]->key() == CreateState::static_key()
         || cmds[i]->key() == CreateEvent_State::static_key()
-        || cmds[i]->key() == CreateConstraint_State::static_key()
-        || cmds[i]->key() == CreateConstraint_State_Event::static_key()
-        || cmds[i]->key() == CreateConstraint_State_Event_TimeSync::static_key()
+        || cmds[i]->key() == CreateInterval_State::static_key()
+        || cmds[i]->key() == CreateInterval_State_Event::static_key()
+        || cmds[i]->key() == CreateInterval_State_Event_TimeSync::static_key()
         || cmds[i]->key() == CreateSequence::static_key())
     {
       cmds[i]->undo(ctx);

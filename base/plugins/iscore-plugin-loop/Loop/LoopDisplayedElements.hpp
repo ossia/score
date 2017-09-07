@@ -4,7 +4,7 @@
 
 namespace Scenario
 {
-class ConstraintModel;
+class IntervalModel;
 }
 namespace Loop
 {
@@ -14,12 +14,12 @@ class DisplayedElementsProvider final
   ISCORE_CONCRETE("abf6965a-8e36-472a-a728-50b316c900a4")
 
 public:
-  bool matches(const Scenario::ConstraintModel& cst) const override;
+  bool matches(const Scenario::IntervalModel& cst) const override;
   Scenario::DisplayedElementsContainer
-  make(Scenario::ConstraintModel& cst) const override;
+  make(Scenario::IntervalModel& cst) const override;
 
   Scenario::DisplayedElementsPresenterContainer make_presenters(
-      const Scenario::ConstraintModel& m,
+      const Scenario::IntervalModel& m,
       const Process::ProcessPresenterContext& ctx,
       QGraphicsItem* view_parent,
       QObject* parent) const override;

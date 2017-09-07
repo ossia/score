@@ -33,7 +33,7 @@ class CommandStackFacade;
 namespace Scenario
 {
 class EventModel;
-class ConstraintModel;
+class IntervalModel;
 class MessageItemModel;
 class ProcessStateWrapper final : public QObject
 {
@@ -100,13 +100,13 @@ public:
   const Id<EventModel>& eventId() const;
   void setEventId(const Id<EventModel>&);
 
-  const OptionalId<ConstraintModel>& previousConstraint() const;
-  const OptionalId<ConstraintModel>& nextConstraint() const;
+  const OptionalId<IntervalModel>& previousInterval() const;
+  const OptionalId<IntervalModel>& nextInterval() const;
 
-  // Note : the added constraint shall be in
+  // Note : the added interval shall be in
   // the scenario when this is called.
-  void setNextConstraint(const OptionalId<ConstraintModel>&);
-  void setPreviousConstraint(const OptionalId<ConstraintModel>&);
+  void setNextInterval(const OptionalId<IntervalModel>&);
+  void setPreviousInterval(const OptionalId<IntervalModel>&);
 
   ProcessVector& previousProcesses()
   {
@@ -148,8 +148,8 @@ private:
   Id<EventModel> m_eventId;
 
   // OPTIMIZEME if we shift to Id = int, put this Optional
-  OptionalId<ConstraintModel> m_previousConstraint;
-  OptionalId<ConstraintModel> m_nextConstraint;
+  OptionalId<IntervalModel> m_previousInterval;
+  OptionalId<IntervalModel> m_nextInterval;
 
   double m_heightPercentage{0.5}; // In the whole scenario
 

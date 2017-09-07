@@ -13,7 +13,7 @@
 #include "ScenarioDisplayedElementsToolPalette.hpp"
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/BaseScenario/BaseElementContext.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
@@ -43,7 +43,7 @@ ScenarioDisplayedElementsToolPalette::ScenarioDisplayedElementsToolPalette(
     : GraphicsSceneToolPalette{*view.scene()}
     , m_model{model}
     , m_scenarioModel{*safe_cast<Scenario::ProcessModel*>(
-          m_model.constraint().parent())}
+          m_model.interval().parent())}
     , m_presenter{pres}
     , m_context{pres.context(), m_presenter}
     , m_view{view}

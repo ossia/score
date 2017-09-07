@@ -19,10 +19,10 @@ add_custom_target(ScenarioTestHeaders
 )
 
 # Commands
-addIScoreQtTest(AddProcessToConstraintTest
-                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddProcessToConstraintTest.cpp")
-addIScoreQtTest(AddRackToConstraintTest
-                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddRackToConstraintTest.cpp")
+addIScoreQtTest(AddProcessToIntervalTest
+                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddProcessToIntervalTest.cpp")
+addIScoreQtTest(AddRackToIntervalTest
+                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddRackToIntervalTest.cpp")
 addIScoreQtTest(AddSlotToRackTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddSlotToRackTest.cpp")
 addIScoreQtTest(AddLayerModelToSlotTest
@@ -39,14 +39,14 @@ addIScoreQtTest(CreateEventTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ElementCreation/CreateEventTest.cpp")
 addIScoreQtTest(CreateEventAfterEventOnTimeSyncTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ElementCreation/CreateEventAfterEventOnTimeSyncTest.cpp")
-addIScoreQtTest(CreateConstraintTest
-                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ElementCreation/CreateConstraintTest.cpp")
+addIScoreQtTest(CreateIntervalTest
+                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ElementCreation/CreateIntervalTest.cpp")
 
 ## elementDeletion
 addIscoreQtTest(RemoveEventTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ElementDeletion/RemoveEventTest.cpp")
-addIscoreQtTest(RemoveConstraintTest
-                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ElementDeletion/RemoveConstraintTest.cpp")
+addIscoreQtTest(RemoveIntervalTest
+                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ElementDeletion/RemoveIntervalTest.cpp")
 
 addIScoreQtTest(HideRackInViewModelTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/HideRackInViewModelTest.cpp")
@@ -55,23 +55,23 @@ addIScoreQtTest(ShowRackInViewModelTest
 
 addIScoreQtTest(MoveEventTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/MoveEventTest.cpp")
-addIScoreQtTest(MoveConstraintTest
-                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/MoveConstraintTest.cpp")
+addIScoreQtTest(MoveIntervalTest
+                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/MoveIntervalTest.cpp")
 
-addIScoreQtTest(RemoveRackFromConstraintTest
-                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/RemoveRackFromConstraintTest.cpp")
+addIScoreQtTest(RemoveRackFromIntervalTest
+                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/RemoveRackFromIntervalTest.cpp")
 addIScoreQtTest(RemoveSlotFromRackTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/RemoveSlotFromRackTest.cpp")
-addIScoreQtTest(RemoveProcessFromConstraintTest
-                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/RemoveProcessFromConstraintTest.cpp")
+addIScoreQtTest(RemoveProcessFromIntervalTest
+                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Commands/RemoveProcessFromIntervalTest.cpp")
 addIScoreQtTest(RemoveLayerFromSlotTest # TODO Rename in RemoveLayerModel
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/RemoveLayerFromSlotTest.cpp")
 addIScoreQtTest(ResizeSlotVerticallyTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ResizeSlotVerticallyTest.cpp")
 
-## Constraints
-addIScoreQtTest(ConstraintModelTest
-                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Constraint/ConstraintModelTests.cpp")
+## Intervals
+addIScoreQtTest(IntervalModelTest
+                                                                "${CMAKE_CURRENT_SOURCE_DIR}/Interval/IntervalModelTests.cpp")
 
 ## TimeSyncs
 addIScoreQtTest(TimeSyncModelTest

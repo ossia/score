@@ -8,7 +8,7 @@ namespace Scenario
 class ScenarioInterface;
 class ProcessModel;
 class StateModel;
-class ConstraintModel;
+class IntervalModel;
 
 /**
  * @brief API for the various elements that we can execute.
@@ -23,19 +23,19 @@ signals:
   void playState(
       const Scenario::ScenarioInterface&, Id<Scenario::StateModel>) const;
 
-  //! Play a single ConstraintModel
-  void playConstraint(
-      const Scenario::ScenarioInterface&, Id<Scenario::ConstraintModel>) const;
+  //! Play a single IntervalModel
+  void playInterval(
+      const Scenario::ScenarioInterface&, Id<Scenario::IntervalModel>) const;
 
   /**
-   * @brief Play from a given point in a ConstraintModel.
+   * @brief Play from a given point in a IntervalModel.
    *
-   * The other branches of the Scenario will be discarded, i.e. all the ConstraintModel
+   * The other branches of the Scenario will be discarded, i.e. all the IntervalModel
    * that aren't originating from this one.
    */
-  void playFromConstraintAtDate(
+  void playFromIntervalAtDate(
       const Scenario::ScenarioInterface&,
-      Id<Scenario::ConstraintModel>,
+      Id<Scenario::IntervalModel>,
       const TimeVal&) const;
 
   //! "Play from here" algorithm.

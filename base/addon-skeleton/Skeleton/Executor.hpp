@@ -33,7 +33,7 @@ class ProcessExecutorComponent final :
         COMPONENT_METADATA("00000000-0000-0000-0000-000000000000")
     public:
         ProcessExecutorComponent(
-                Engine::Execution::ConstraintComponent& parentConstraint,
+                Engine::Execution::IntervalComponent& parentInterval,
                 Model& element,
                 const Engine::Execution::Context& ctx,
                 const Id<iscore::Component>& id,

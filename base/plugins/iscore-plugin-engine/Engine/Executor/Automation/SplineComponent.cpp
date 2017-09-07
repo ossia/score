@@ -12,14 +12,14 @@ namespace RecreateOnPlay
 {
 
 Component::Component(
-    ::Engine::Execution::ConstraintComponent& parentConstraint,
+    ::Engine::Execution::IntervalComponent& parentInterval,
     ::Spline::ProcessModel& element,
     const ::Engine::Execution::Context& ctx,
     const Id<iscore::Component>& id,
     QObject* parent)
   : ::Engine::Execution::
       ProcessComponent_T<Spline::ProcessModel, ossia::spline_automation>{
-        parentConstraint,
+        parentInterval,
         element,
         ctx,
         id, "Executor::SplineComponent", parent}

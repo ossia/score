@@ -3,12 +3,12 @@
 #include "ScenarioGlobalCommandManager.hpp"
 #include <QDebug>
 #include <Scenario/Commands/ClearSelection.hpp>
-#include <Scenario/Commands/Scenario/Deletions/ClearConstraint.hpp>
+#include <Scenario/Commands/Scenario/Deletions/ClearInterval.hpp>
 #include <Scenario/Commands/Scenario/Deletions/ClearState.hpp>
 #include <Scenario/Commands/Scenario/Deletions/RemoveSelection.hpp>
 #include <Scenario/Commands/Scenario/Merge/MergeTimeSyncs.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
@@ -34,16 +34,16 @@ using namespace iscore::IDocument; // for ::path
 namespace Scenario
 {
 void clearContentFromSelection(
-    const QList<const ConstraintModel*>& constraintsToRemove,
+    const QList<const IntervalModel*>& intervalsToRemove,
     const QList<const StateModel*>& statesToRemove,
     const iscore::CommandStackFacade& stack)
 {
   MacroCommandDispatcher<ClearSelection> cleaner{stack};
 
   // Create a Clear command for each.
-  for (auto& constraint : constraintsToRemove)
+  for (auto& interval : intervalsToRemove)
   {
-    cleaner.submitCommand(new ClearConstraint(*constraint));
+    cleaner.submitCommand(new ClearInterval(*interval));
   }
 
   for (auto& state : statesToRemove)
@@ -59,7 +59,7 @@ void clearContentFromSelection(
     const iscore::CommandStackFacade& stack)
 {
   clearContentFromSelection(
-      selectedElements(scenario.constraints),
+      selectedElements(scenario.intervals),
       selectedElements(scenario.states),
       stack);
 }
@@ -103,10 +103,10 @@ void clearContentFromSelection(
     const BaseScenarioContainer& scenario,
     const iscore::CommandStackFacade& stack)
 {
-  QList<const Scenario::ConstraintModel*> cst;
+  QList<const Scenario::IntervalModel*> cst;
   QList<const Scenario::StateModel*> states;
-  if (scenario.constraint().selection.get())
-    cst.push_back(&scenario.constraint());
+  if (scenario.interval().selection.get())
+    cst.push_back(&scenario.interval());
   if (scenario.startState().selection.get())
     states.push_back(&scenario.startState());
   if (scenario.endState().selection.get())
@@ -127,7 +127,7 @@ void clearContentFromSelection(
     const iscore::CommandStackFacade& stack)
 {
   clearContentFromSelection(
-      selectedElements(scenario.getConstraints()),
+      selectedElements(scenario.getIntervals()),
       selectedElements(scenario.getStates()),
       stack);
 }

@@ -24,7 +24,7 @@ struct LayerContext;
 
 namespace Scenario
 {
-class MoveConstraintInBaseScenario_StateWrapper;
+class MoveIntervalInBaseScenario_StateWrapper;
 class MoveEventInBaseScenario_StateWrapper;
 class MoveTimeSyncInBaseScenario_StateWrapper;
 }
@@ -68,7 +68,7 @@ private:
 
   Scenario::
       SmartTool<Loop::ProcessModel, ToolPalette, LayerView,
-                Scenario::MoveConstraintInBaseScenario_StateWrapper,
+                Scenario::MoveIntervalInBaseScenario_StateWrapper,
                 Scenario::MoveLeftBraceInScenario_StateWrapper,
                 Scenario::MoveRightBraceInScenario_StateWrapper,
                 Scenario::MoveEventInBaseScenario_StateWrapper,
@@ -116,7 +116,7 @@ private:
             Loop::ProcessModel,
             DisplayedElementsToolPalette,
             BaseGraphicsObject,
-            Scenario::MoveConstraintInBaseScenario_StateWrapper,
+            Scenario::MoveIntervalInBaseScenario_StateWrapper,
             Scenario::MoveLeftBraceInScenario_StateWrapper,
             Scenario::MoveRightBraceInScenario_StateWrapper,
             Scenario::MoveEventInBaseScenario_StateWrapper,
@@ -133,11 +133,11 @@ class DisplayedElementsToolPaletteFactory final
 {
   ISCORE_CONCRETE("0e5053e8-2165-445e-acb8-3f5715fe25c8")
 public:
-  bool matches(const Scenario::ConstraintModel& constraint) const override;
+  bool matches(const Scenario::IntervalModel& interval) const override;
 
   std::unique_ptr<GraphicsSceneToolPalette> make(
       Scenario::ScenarioDocumentPresenter& pres,
-      const Scenario::ConstraintModel& constraint) override;
+      const Scenario::IntervalModel& interval) override;
 };
 
 }

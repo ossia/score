@@ -18,8 +18,8 @@ class QObject;
 namespace Scenario
 {
 class BaseScenario;
-class ConstraintModel;
-class FullViewConstraintViewModel;
+class IntervalModel;
+class FullViewIntervalViewModel;
 class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentModel final
     : public iscore::DocumentDelegateModel
 {
@@ -46,13 +46,13 @@ public:
     return *m_baseScenario;
   }
 
-  ConstraintModel& baseConstraint() const;
+  IntervalModel& baseInterval() const;
 
   void serialize(const VisitorVariant&) const override;
 
 private:
   void init();
-  void initializeNewDocument(const ConstraintModel& viewmodel);
+  void initializeNewDocument(const IntervalModel& viewmodel);
 
   BaseScenario* m_baseScenario{};
 };

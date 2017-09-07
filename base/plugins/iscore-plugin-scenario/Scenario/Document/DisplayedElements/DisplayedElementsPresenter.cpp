@@ -14,10 +14,10 @@
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
-#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/ConstraintView.hpp>
-#include <Scenario/Document/Constraint/FullView/FullViewConstraintPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalDurations.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/IntervalView.hpp>
+#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
@@ -44,7 +44,7 @@ class DisplayedElementsModel;
 DisplayedElementsPresenter::DisplayedElementsPresenter(
     ScenarioDocumentPresenter& parent)
     : QObject{&parent}
-    , BaseScenarioPresenter<DisplayedElementsModel, FullViewConstraintPresenter>{
+    , BaseScenarioPresenter<DisplayedElementsModel, FullViewIntervalPresenter>{
         parent.displayedElements}
     , m_model{parent}
 {
@@ -54,10 +54,10 @@ DisplayedElementsPresenter::~DisplayedElementsPresenter()
 {
   disconnect(
       &m_model.context().updateTimer, &QTimer::timeout, this,
-      &DisplayedElementsPresenter::on_constraintExecutionTimer);
+      &DisplayedElementsPresenter::on_intervalExecutionTimer);
 
   // TODO use directly displayedelementspresentercontainer
-  delete m_constraintPresenter;
+  delete m_intervalPresenter;
   delete m_startStatePresenter;
   delete m_endStatePresenter;
   delete m_startEventPresenter;
@@ -71,19 +71,19 @@ BaseGraphicsObject& DisplayedElementsPresenter::view() const
   return m_model.view().baseItem();
 }
 
-void DisplayedElementsPresenter::on_displayedConstraintChanged(
-    const ConstraintModel& m)
+void DisplayedElementsPresenter::on_displayedIntervalChanged(
+    const IntervalModel& m)
 {
   disconnect(
       &m_model.context().updateTimer, &QTimer::timeout, this,
-      &DisplayedElementsPresenter::on_constraintExecutionTimer);
+      &DisplayedElementsPresenter::on_intervalExecutionTimer);
 
   for (auto& con : m_connections)
     QObject::disconnect(con);
 
   m_connections.clear();
   // TODO use directly displayedelementspresentercontainer
-  delete m_constraintPresenter;
+  delete m_intervalPresenter;
   delete m_startStatePresenter;
   delete m_endStatePresenter;
   delete m_startEventPresenter;
@@ -97,7 +97,7 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(
   DisplayedElementsPresenterContainer elts = provider.make(
       &DisplayedElementsProvider::make_presenters, m, ctx,
       &m_model.view().baseItem(), this);
-  m_constraintPresenter = elts.constraint;
+  m_intervalPresenter = elts.interval;
   m_startStatePresenter = elts.startState;
   m_endStatePresenter = elts.endState;
   m_startEventPresenter = elts.startEvent;
@@ -106,26 +106,26 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(
   m_endNodePresenter = elts.endNode;
 
   m_connections.push_back(
-      con(m_constraintPresenter->model().duration,
-          &ConstraintDurations::defaultDurationChanged, this,
-          &DisplayedElementsPresenter::on_displayedConstraintDurationChanged));
+      con(m_intervalPresenter->model().duration,
+          &IntervalDurations::defaultDurationChanged, this,
+          &DisplayedElementsPresenter::on_displayedIntervalDurationChanged));
   m_connections.push_back(
-        con(m_constraintPresenter->model(),
-            &ConstraintModel::heightFinishedChanging, this,
+        con(m_intervalPresenter->model(),
+            &IntervalModel::heightFinishedChanging, this,
             [&]() {
-              on_displayedConstraintHeightChanged(
-                  m_constraintPresenter->view()->height());
+              on_displayedIntervalHeightChanged(
+                  m_intervalPresenter->view()->height());
             }));
 
   m_connections.push_back(connect(
-      m_constraintPresenter, &FullViewConstraintPresenter::heightChanged, this,
+      m_intervalPresenter, &FullViewIntervalPresenter::heightChanged, this,
       [&]() {
-        on_displayedConstraintHeightChanged(
-            m_constraintPresenter->view()->height());
+        on_displayedIntervalHeightChanged(
+            m_intervalPresenter->view()->height());
       }));
 
   auto elements = std::make_tuple(
-      m_constraintPresenter,
+      m_intervalPresenter,
       m_startStatePresenter,
       m_endStatePresenter,
       m_startEventPresenter,
@@ -146,38 +146,38 @@ void DisplayedElementsPresenter::on_displayedConstraintChanged(
   elts.startState->view()->disableOverlay();
   elts.endState->view()->disableOverlay();
 
-  showConstraint();
+  showInterval();
 
-  on_zoomRatioChanged(m_constraintPresenter->zoomRatio());
+  on_zoomRatioChanged(m_intervalPresenter->zoomRatio());
 
   con(ctx.updateTimer, &QTimer::timeout, this,
-      &DisplayedElementsPresenter::on_constraintExecutionTimer);
+      &DisplayedElementsPresenter::on_intervalExecutionTimer);
 }
 
-void DisplayedElementsPresenter::showConstraint()
+void DisplayedElementsPresenter::showInterval()
 {
   // We set the focus on the main scenario.
-  auto& rack = m_constraintPresenter->getSlots();
+  auto& rack = m_intervalPresenter->getSlots();
   if (!rack.empty())
   {
     emit requestFocusedPresenterChange(rack.front().process.presenter);
   }
 
-  m_constraintPresenter->updateHeight();
+  m_intervalPresenter->updateHeight();
 }
 
 void DisplayedElementsPresenter::on_zoomRatioChanged(ZoomRatio r)
 {
-  if (!m_constraintPresenter)
+  if (!m_intervalPresenter)
     return;
-  updateLength(m_constraintPresenter->model()
+  updateLength(m_intervalPresenter->model()
                    .duration.defaultDuration()
                    .toPixels(r));
 
-  m_constraintPresenter->on_zoomRatioChanged(r);
+  m_intervalPresenter->on_zoomRatioChanged(r);
 }
 
-void DisplayedElementsPresenter::on_displayedConstraintDurationChanged(
+void DisplayedElementsPresenter::on_displayedIntervalDurationChanged(
     TimeVal t)
 {
   updateLength(t.toPixels(m_model.zoomRatio()));
@@ -185,14 +185,14 @@ void DisplayedElementsPresenter::on_displayedConstraintDurationChanged(
 
 const double deltaX = 10.;
 const double deltaY = 20.;
-void DisplayedElementsPresenter::on_displayedConstraintHeightChanged(
+void DisplayedElementsPresenter::on_displayedIntervalHeightChanged(
     double size)
 {
   auto cur_rect = m_model.view().view().sceneRect();
   QRectF new_rect{qreal(ScenarioLeftSpace), 0.,
-                  m_constraintPresenter->model()
+                  m_intervalPresenter->model()
                       .duration.guiDuration()
-                      .toPixels(m_constraintPresenter->zoomRatio()),
+                      .toPixels(m_intervalPresenter->zoomRatio()),
                   size + 40};
 
   if(qApp->mouseButtons() & Qt::MouseButton::LeftButton)
@@ -202,7 +202,7 @@ void DisplayedElementsPresenter::on_displayedConstraintHeightChanged(
   m_startEventPresenter->view()->setPos(deltaX, deltaY);
   m_startNodePresenter->view()->setPos(deltaX, deltaY);
   m_startStatePresenter->view()->setPos(deltaX, deltaY);
-  m_constraintPresenter->view()->setPos(deltaX, deltaY);
+  m_intervalPresenter->view()->setPos(deltaX, deltaY);
 
   m_startEventPresenter->view()->setExtent({0., 1.});
   m_startNodePresenter->view()->setExtent({0., (qreal)size});
@@ -213,7 +213,7 @@ void DisplayedElementsPresenter::on_displayedConstraintHeightChanged(
   m_startNodePresenter->view()->setZValue(0);
   m_endEventPresenter->view()->setZValue(0);
   m_endNodePresenter->view()->setZValue(0);
-  m_constraintPresenter->view()->setZValue(1);
+  m_intervalPresenter->view()->setZValue(1);
   m_startStatePresenter->view()->setZValue(2);
 }
 
@@ -225,9 +225,9 @@ void DisplayedElementsPresenter::updateLength(double length)
   m_endNodePresenter->view()->setPos({deltaX + length, deltaY});
 }
 
-void DisplayedElementsPresenter::on_constraintExecutionTimer()
+void DisplayedElementsPresenter::on_intervalExecutionTimer()
 {
-  auto& cst = *m_constraintPresenter;
+  auto& cst = *m_intervalPresenter;
   auto pp = cst.model().duration.playPercentage();
   if(double w = cst.on_playPercentageChanged(pp))
   {

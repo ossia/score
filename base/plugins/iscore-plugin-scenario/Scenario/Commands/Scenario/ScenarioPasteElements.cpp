@@ -1,6 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
@@ -96,7 +96,7 @@ ScenarioPasteElements::ScenarioPasteElements(
   auto& stack = iscore::IDocument::documentContext(scenario).commandStack;
 
   std::vector<TimeSyncModel*> timesyncs;
-  std::vector<ConstraintModel*> constraints;
+  std::vector<IntervalModel*> intervals;
   std::vector<EventModel*> events;
   std::vector<StateModel*> states;
 
@@ -104,14 +104,14 @@ ScenarioPasteElements::ScenarioPasteElements(
   // the json should be modified without including anything in the scenario.
   // Especially their parents aren't coherent (TimeSync must not have a parent
   // because it tries to access the event in the scenario if it has one and
-  // Constraint needs a parent for the RelativePath in LayerModel)
+  // Interval needs a parent for the RelativePath in LayerModel)
   // We deserialize everything
   {
-    auto json_arr = obj["Constraints"].toArray();
-    constraints.reserve(json_arr.size());
+    auto json_arr = obj["Intervals"].toArray();
+    intervals.reserve(json_arr.size());
     for (const auto& element : json_arr)
     {
-      constraints.emplace_back(new ConstraintModel{
+      intervals.emplace_back(new IntervalModel{
           JSONObject::Deserializer{element.toObject()}, (QObject*)&scenario});
     }
   }
@@ -144,8 +144,8 @@ ScenarioPasteElements::ScenarioPasteElements(
   }
 
   // We generate identifiers for the forthcoming elements
-  auto constraint_ids = getStrongIdRange2<ConstraintModel>(
-      constraints.size(), scenario.constraints, constraints);
+  auto interval_ids = getStrongIdRange2<IntervalModel>(
+      intervals.size(), scenario.intervals, intervals);
   auto timesync_ids = getStrongIdRange2<TimeSyncModel>(
       timesyncs.size(), scenario.timeSyncs, timesyncs);
   auto event_ids
@@ -214,12 +214,12 @@ ScenarioPasteElements::ScenarioPasteElements(
         event->addState(state_ids[i]);
       }
 
-      for (ConstraintModel* constraint : constraints)
+      for (IntervalModel* interval : intervals)
       {
-        if (constraint->startState() == state->id())
-          constraint->setStartState(state_ids[i]);
-        else if (constraint->endState() == state->id())
-          constraint->setEndState(state_ids[i]);
+        if (interval->startState() == state->id())
+          interval->setStartState(state_ids[i]);
+        else if (interval->endState() == state->id())
+          interval->setEndState(state_ids[i]);
       }
 
       state->setId(state_ids[i]);
@@ -229,31 +229,31 @@ ScenarioPasteElements::ScenarioPasteElements(
 
   {
     int i = 0;
-    for (ConstraintModel* constraint : constraints)
+    for (IntervalModel* interval : intervals)
     {
-      constraint->setId(constraint_ids[i]);
+      interval->setId(interval_ids[i]);
       {
         auto start_state_id = ossia::find_if(states, [&](auto state) {
-          return state->id() == constraint->startState();
+          return state->id() == interval->startState();
         });
         if (start_state_id != states.end())
-          SetNextConstraint(**start_state_id, *constraint);
+          SetNextInterval(**start_state_id, *interval);
       }
       {
         auto end_state_id = ossia::find_if(states, [&](auto state) {
-          return state->id() == constraint->endState();
+          return state->id() == interval->endState();
         });
         if (end_state_id != states.end())
-          SetPreviousConstraint(**end_state_id, *constraint);
+          SetPreviousInterval(**end_state_id, *interval);
       }
 
-      const auto& fv = constraint->fullView();
-      if(!fv.empty() && constraint->smallView().empty())
+      const auto& fv = interval->fullView();
+      if(!fv.empty() && interval->smallView().empty())
       {
         const auto N = fv.size();
         for(std::size_t i = 0; i < N; i++)
         {
-          constraint->addSlot(Slot{{fv[i].process}, fv[i].process}, i);
+          interval->addSlot(Slot{{fv[i].process}, fv[i].process}, i);
         }
       }
       i++;
@@ -261,15 +261,15 @@ ScenarioPasteElements::ScenarioPasteElements(
   }
 
   // Set the correct positions / dates.
-  // Take the earliest constraint or timesync and compute the delta; apply the
+  // Take the earliest interval or timesync and compute the delta; apply the
   // delta everywhere.
-  if (!constraints.empty() || !timesyncs.empty()) // Should always be the case.
+  if (!intervals.empty() || !timesyncs.empty()) // Should always be the case.
   {
-    auto earliestTime = !constraints.empty() ? constraints.front()->startDate()
+    auto earliestTime = !intervals.empty() ? intervals.front()->startDate()
                                              : timesyncs.front()->date();
-    for (const ConstraintModel* constraint : constraints)
+    for (const IntervalModel* interval : intervals)
     {
-      const auto& t = constraint->startDate();
+      const auto& t = interval->startDate();
       if (t < earliestTime)
         earliestTime = t;
     }
@@ -287,9 +287,9 @@ ScenarioPasteElements::ScenarioPasteElements(
     }
 
     auto delta_t = pt.date - earliestTime;
-    for (ConstraintModel* constraint : constraints)
+    for (IntervalModel* interval : intervals)
     {
-      constraint->setStartDate(constraint->startDate() + delta_t);
+      interval->setStartDate(interval->startDate() + delta_t);
     }
     for (TimeSyncModel* tn : timesyncs)
     {
@@ -316,7 +316,7 @@ ScenarioPasteElements::ScenarioPasteElements(
 
   auto delta_y = pt.y - highest_y;
 
-  for (ConstraintModel* cst : constraints)
+  for (IntervalModel* cst : intervals)
   {
     cst->setHeightPercentage(clamp(cst->heightPercentage() + delta_y, 0., 1.));
   }
@@ -328,12 +328,12 @@ ScenarioPasteElements::ScenarioPasteElements(
 
   // We reserialize here in order to not have dangling pointers and bad cache
   // in the ids.
-  m_ids_constraints.reserve(constraints.size());
-  m_json_constraints.reserve(constraints.size());
-  for (auto elt : constraints)
+  m_ids_intervals.reserve(intervals.size());
+  m_json_intervals.reserve(intervals.size());
+  for (auto elt : intervals)
   {
-    m_ids_constraints.push_back(elt->id());
-    m_json_constraints.push_back(iscore::marshall<JSONObject>(*elt));
+    m_ids_intervals.push_back(elt->id());
+    m_json_intervals.push_back(iscore::marshall<JSONObject>(*elt));
 
     delete elt;
   }
@@ -385,9 +385,9 @@ void ScenarioPasteElements::undo(const iscore::DocumentContext& ctx) const
   {
     scenario.states.remove(elt);
   }
-  for (const auto& elt : m_ids_constraints)
+  for (const auto& elt : m_ids_intervals)
   {
-    scenario.constraints.remove(elt);
+    scenario.intervals.remove(elt);
   }
 }
 
@@ -420,11 +420,11 @@ void ScenarioPasteElements::redo(const iscore::DocumentContext& ctx) const
         new StateModel(JSONObject::Deserializer{state}, stack, &scenario));
   }
 
-  for (const auto& constraint : m_json_constraints)
+  for (const auto& interval : m_json_intervals)
   {
     auto cst
-        = new ConstraintModel(JSONObject::Deserializer{constraint}, &scenario);
-    scenario.constraints.add(cst);
+        = new IntervalModel(JSONObject::Deserializer{interval}, &scenario);
+    scenario.intervals.add(cst);
   }
 
   for (const auto& event : addedEvents)
@@ -440,16 +440,16 @@ void ScenarioPasteElements::redo(const iscore::DocumentContext& ctx) const
 void ScenarioPasteElements::serializeImpl(DataStreamInput& s) const
 {
   s << m_ts
-    << m_ids_timesyncs << m_ids_events << m_ids_states << m_ids_constraints
-    << m_json_timesyncs << m_json_events << m_json_states << m_json_constraints ;
+    << m_ids_timesyncs << m_ids_events << m_ids_states << m_ids_intervals
+    << m_json_timesyncs << m_json_events << m_json_states << m_json_intervals ;
 }
 
 void ScenarioPasteElements::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_ts
-      >> m_ids_timesyncs >> m_ids_events >> m_ids_states >> m_ids_constraints
+      >> m_ids_timesyncs >> m_ids_events >> m_ids_states >> m_ids_intervals
       >> m_json_timesyncs >> m_json_events >> m_json_states
-      >> m_json_constraints;
+      >> m_json_intervals;
 }
 }
 }

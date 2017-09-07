@@ -1,8 +1,8 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/FullView/FullViewConstraintPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
@@ -39,7 +39,7 @@
 #include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
-#include <Scenario/Document/Constraint/Slot.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
@@ -88,7 +88,7 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
       std::make_shared<EnableWhenDocumentIs<ScenarioDocumentModel>>());
 
   ctx.actions.onSelectionChange(
-      std::make_shared<EnableWhenSelectionContains<ConstraintModel>>());
+      std::make_shared<EnableWhenSelectionContains<IntervalModel>>());
   ctx.actions.onSelectionChange(
       std::make_shared<EnableWhenSelectionContains<EventModel>>());
   ctx.actions.onSelectionChange(
@@ -213,12 +213,12 @@ void ScenarioApplicationPlugin::on_documentChanged(
     }
     else
     {
-      // We focus by default the first process of the constraint in full view
+      // We focus by default the first process of the interval in full view
       // we're in
       // TODO this snippet is useful, put it somewhere in some Toolkit file.
       ScenarioDocumentPresenter& pres
           = IDocument::presenterDelegate<ScenarioDocumentPresenter>(*newdoc);
-      FullViewConstraintPresenter* cst_pres = pres.presenters().constraintPresenter();
+      FullViewIntervalPresenter* cst_pres = pres.presenters().intervalPresenter();
 
       if(!cst_pres->getSlots().empty())
       {

@@ -113,12 +113,12 @@ public:
           this->localSM().postEvent(new ClickOnTimeSync_Event{id, sp});
         },
 
-        // Press a Constraint
-        [&](const Id<ConstraintModel>&) {},
+        // Press a Interval
+        [&](const Id<IntervalModel>&) {},
         // Press a Brace (left)
-        [&](const Id<ConstraintModel>&) {},
+        [&](const Id<IntervalModel>&) {},
         // (right)
-        [&](const Id<ConstraintModel>&) {},
+        [&](const Id<IntervalModel>&) {},
 
         // Press a slot handle
         [&](const SlotPath&) {},

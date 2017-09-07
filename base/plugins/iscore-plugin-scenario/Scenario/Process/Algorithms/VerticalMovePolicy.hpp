@@ -5,7 +5,7 @@
 
 namespace Scenario
 {
-class ConstraintModel;
+class IntervalModel;
 class EventModel;
 class ProcessModel;
 class TimeSyncModel;
@@ -17,6 +17,6 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void
 updateEventExtent(const Id<EventModel>& id, Scenario::ProcessModel& s);
 
 // Will call updateEventExtent
-ISCORE_PLUGIN_SCENARIO_EXPORT void updateConstraintVerticalPos(
-    double y, const Id<ConstraintModel>& id, Scenario::ProcessModel& s);
+ISCORE_PLUGIN_SCENARIO_EXPORT void updateIntervalVerticalPos(
+    double y, const Id<IntervalModel>& id, Scenario::ProcessModel& s);
 }

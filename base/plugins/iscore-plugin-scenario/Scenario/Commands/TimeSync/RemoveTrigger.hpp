@@ -5,7 +5,7 @@
 #include <iscore/command/Command.hpp>
 #include <iscore/model/path/Path.hpp>
 
-#include <Scenario/Commands/Constraint/SetRigidity.hpp>
+#include <Scenario/Commands/Interval/SetRigidity.hpp>
 
 #include <State/Expression.hpp>
 
@@ -63,9 +63,9 @@ public:
 
     auto scenar = safe_cast<Scenario_T*>(tn.parent());
 
-    for (const auto& cstrId : constraintsBeforeTimeSync(*scenar, tn.id()))
+    for (const auto& cstrId : intervalsBeforeTimeSync(*scenar, tn.id()))
     {
-      m_cmds.emplace_back(scenar->constraint(cstrId), true);
+      m_cmds.emplace_back(scenar->interval(cstrId), true);
       m_cmds.back().redo(ctx);
     }
   }

@@ -1,6 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
@@ -51,7 +51,7 @@ BaseScenarioContainer::BaseScenarioContainer(QObject* parentObject)
   m_endState = new StateModel{Scenario::endId<StateModel>(), m_endEvent->id(),
                               0, stack, m_parent};
 
-  m_constraint = new ConstraintModel{Id<ConstraintModel>{0}, 0, m_parent};
+  m_interval = new IntervalModel{Id<IntervalModel>{0}, 0, m_parent};
 
   m_startNode->addEvent(m_startEvent->id());
   m_endNode->addEvent(m_endEvent->id());
@@ -59,11 +59,11 @@ BaseScenarioContainer::BaseScenarioContainer(QObject* parentObject)
   m_startEvent->addState(m_startState->id());
   m_endEvent->addState(m_endState->id());
 
-  m_constraint->setStartState(m_startState->id());
-  m_constraint->setEndState(m_endState->id());
+  m_interval->setStartState(m_startState->id());
+  m_interval->setEndState(m_endState->id());
 
-  SetNextConstraint(*m_startState, *m_constraint);
-  SetPreviousConstraint(*m_endState, *m_constraint);
+  SetNextInterval(*m_startState, *m_interval);
+  SetPreviousInterval(*m_endState, *m_interval);
 }
 
 BaseScenarioContainer::BaseScenarioContainer(
@@ -71,8 +71,8 @@ BaseScenarioContainer::BaseScenarioContainer(
     : m_parent{parentObject}
 {
   auto& stack = iscore::IDocument::documentContext(*m_parent).commandStack;
-  m_constraint = new ConstraintModel{*source.m_constraint,
-                                     source.m_constraint->id(), m_parent};
+  m_interval = new IntervalModel{*source.m_interval,
+                                     source.m_interval->id(), m_parent};
 
   m_startNode = new TimeSyncModel{*source.m_startNode,
                                   source.m_startNode->id(), m_parent};
@@ -89,14 +89,14 @@ BaseScenarioContainer::BaseScenarioContainer(
   m_endState = new StateModel{*source.m_endState, source.m_endState->id(),
                               stack, m_parent};
 
-  SetPreviousConstraint(*m_endState, *m_constraint);
-  SetNextConstraint(*m_startState, *m_constraint);
+  SetPreviousInterval(*m_endState, *m_interval);
+  SetNextInterval(*m_startState, *m_interval);
 }
 
 BaseScenarioContainer::~BaseScenarioContainer()
 {
-  delete m_constraint;
-  m_constraint = nullptr;
+  delete m_interval;
+  m_interval = nullptr;
 
   delete m_startState;
   m_startState = nullptr;
@@ -114,11 +114,11 @@ BaseScenarioContainer::~BaseScenarioContainer()
   m_endNode = nullptr;
 }
 
-ConstraintModel*
-BaseScenarioContainer::findConstraint(const Id<ConstraintModel>& id) const
+IntervalModel*
+BaseScenarioContainer::findInterval(const Id<IntervalModel>& id) const
 {
-  if (id == m_constraint->id())
-    return m_constraint;
+  if (id == m_interval->id())
+    return m_interval;
   return nullptr;
 }
 
@@ -171,11 +171,11 @@ StateModel* BaseScenarioContainer::findState(const Id<StateModel>& id) const
   }
 }
 
-ConstraintModel&
-BaseScenarioContainer::constraint(const Id<ConstraintModel>& id) const
+IntervalModel&
+BaseScenarioContainer::interval(const Id<IntervalModel>& id) const
 {
-  ISCORE_ASSERT(id == m_constraint->id());
-  return *m_constraint;
+  ISCORE_ASSERT(id == m_interval->id());
+  return *m_interval;
 }
 
 EventModel& BaseScenarioContainer::event(const Id<EventModel>& id) const
@@ -197,9 +197,9 @@ StateModel& BaseScenarioContainer::state(const Id<StateModel>& id) const
   return id == m_startState->id() ? *m_startState : *m_endState;
 }
 
-ConstraintModel& BaseScenarioContainer::constraint() const
+IntervalModel& BaseScenarioContainer::interval() const
 {
-  return *m_constraint;
+  return *m_interval;
 }
 
 TimeSyncModel& BaseScenarioContainer::startTimeSync() const

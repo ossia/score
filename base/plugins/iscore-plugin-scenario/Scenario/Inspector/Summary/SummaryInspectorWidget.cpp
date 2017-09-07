@@ -4,13 +4,13 @@
 
 #include <QLabel>
 
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 
 #include <Inspector/InspectorSectionWidget.hpp>
-#include <Scenario/Inspector/Constraint/ConstraintSummaryWidget.hpp>
+#include <Scenario/Inspector/Interval/IntervalSummaryWidget.hpp>
 #include <Scenario/Inspector/Event/EventSummaryWidget.hpp>
 #include <Scenario/Inspector/TimeSync/TimeSyncSummaryWidget.hpp>
 
@@ -18,8 +18,8 @@ namespace Scenario
 {
 SummaryInspectorWidget::SummaryInspectorWidget(
     const IdentifiedObjectAbstract* obj,
-    const std::set<const ConstraintModel*>&
-        constraints,
+    const std::set<const IntervalModel*>&
+        intervals,
     const std::set<const TimeSyncModel*>&
         timesyncs,
     const std::set<const EventModel*>&
@@ -34,12 +34,12 @@ SummaryInspectorWidget::SummaryInspectorWidget(
   setParent(parent);
 
   auto cSection
-      = new Inspector::InspectorSectionWidget{tr("Constraints"), false, this};
+      = new Inspector::InspectorSectionWidget{tr("Intervals"), false, this};
   m_properties.push_back(cSection);
 
-  for (auto c : constraints)
+  for (auto c : intervals)
   {
-    cSection->addContent(new ConstraintSummaryWidget{*c, context, this});
+    cSection->addContent(new IntervalSummaryWidget{*c, context, this});
   }
 
   auto tnSection

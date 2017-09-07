@@ -4,15 +4,15 @@
 
 #include <Process/LayerModel.hpp>
 #include <Process/Process.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Slot.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/Rack/RackModel.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
 
 #include <Process/ProcessList.hpp>
-#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
-#include <Scenario/Commands/Constraint/AddRackToConstraint.hpp>
-#include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
-#include <Scenario/Commands/Constraint/AddLayerModelToSlot.hpp>
+#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
+#include <Scenario/Commands/Interval/AddRackToInterval.hpp>
+#include <Scenario/Commands/Interval/Rack/AddSlotToRack.hpp>
+#include <Scenario/Commands/Interval/AddLayerModelToSlot.hpp>
 #include <Scenario/Process/ScenarioFactory.hpp>
 
 #include <core/command/CommandStack.hpp>
@@ -34,29 +34,29 @@ private slots:
     plist->registerProcess(new ScenarioFactory);
 
     // Setup
-    ConstraintModel* constraint = new ConstraintModel{
-        Id<ConstraintModel>{0}, Id<ConstraintViewModel>{0}, qApp};
+    IntervalModel* interval = new IntervalModel{
+        Id<IntervalModel>{0}, Id<IntervalViewModel>{0}, qApp};
 
     auto cmd_proc
-        = new AddProcessToConstraint({{"ConstraintModel", {0}}}, "Scenario");
+        = new AddProcessToInterval({{"IntervalModel", {0}}}, "Scenario");
     stack.redoAndPush(cmd_proc);
     auto procId = cmd_proc->m_createdProcessId;
 
     auto cmd_rack
-        = new AddRackToConstraint(ObjectPath{{"ConstraintModel", {0}}});
+        = new AddRackToInterval(ObjectPath{{"IntervalModel", {0}}});
     stack.redoAndPush(cmd_rack);
     auto rackId = cmd_rack->m_createdRackId;
 
     auto cmd_slot = new AddSlotToRack(
-        ObjectPath{{"ConstraintModel", {0}}, {"RackModel", rackId}});
+        ObjectPath{{"IntervalModel", {0}}, {"RackModel", rackId}});
     auto slotId = cmd_slot->m_createdSlotId;
     stack.redoAndPush(cmd_slot);
 
     auto cmd_lm = new AddLayerModelToSlot(
-        {{"ConstraintModel", {0}},
+        {{"IntervalModel", {0}},
          {"RackModel", rackId},
          {"SlotModel", slotId}},
-        {{"ConstraintModel", {0}}, {"ScenarioModel", procId}});
+        {{"IntervalModel", {0}}, {"ScenarioModel", procId}});
     stack.redoAndPush(cmd_lm);
 
     for (int i = 4; i-- > 0;)
@@ -72,7 +72,7 @@ private slots:
       }
     }
 
-    delete constraint;
+    delete interval;
   }
 };
 

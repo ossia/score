@@ -5,7 +5,7 @@
 #include <iscore/command/CommandStackFacade.hpp>
 #include <iscore/command/Command.hpp>
 
-#include "CreateConstraint_State_Event_TimeSync.hpp"
+#include "CreateInterval_State_Event_TimeSync.hpp"
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <iscore/model/path/Path.hpp>
 #include <iscore/model/Identifier.hpp>
@@ -16,7 +16,7 @@ struct DataStreamOutput;
 namespace Scenario
 {
 class EventModel;
-class ConstraintModel;
+class IntervalModel;
 class StateModel;
 class TimeSyncModel;
 class ProcessModel;
@@ -41,9 +41,9 @@ public:
     m_cmds.front()->undo(ctx);
   }
 
-  const Id<ConstraintModel>& createdConstraint() const
+  const Id<IntervalModel>& createdInterval() const
   {
-    return m_newConstraint;
+    return m_newInterval;
   }
 
   const Id<StateModel>& createdState() const
@@ -62,7 +62,7 @@ public:
   }
 
 private:
-  Id<ConstraintModel> m_newConstraint;
+  Id<IntervalModel> m_newInterval;
   Id<StateModel> m_newState;
   Id<EventModel> m_newEvent;
   Id<TimeSyncModel> m_newTimeSync;
@@ -78,7 +78,7 @@ class CreateSequenceProcesses final : public iscore::Command
 public:
   CreateSequenceProcesses(
       const Scenario::ProcessModel& scenario,
-      const Scenario::ConstraintModel& constraint);
+      const Scenario::IntervalModel& interval);
 
   int addedProcessCount() const { return m_addedProcessCount; }
 
@@ -91,7 +91,7 @@ protected:
 
 private:
   Path<Scenario::ProcessModel> m_scenario;
-  AddMultipleProcessesToConstraintMacro m_interpolations;
+  AddMultipleProcessesToIntervalMacro m_interpolations;
   Process::MessageNode m_stateData;
   Id<StateModel> m_endState;
   int m_addedProcessCount{};

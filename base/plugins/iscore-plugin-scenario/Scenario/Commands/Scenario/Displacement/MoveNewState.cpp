@@ -33,13 +33,13 @@ void MoveNewState::undo(const iscore::DocumentContext& ctx) const
   auto& scenar = m_path.find(ctx);
   auto& state = scenar.state(m_stateId);
   state.setHeightPercentage(m_oldy);
-  if(auto prev = state.previousConstraint())
+  if(auto prev = state.previousInterval())
   {
-    scenar.constraints.at(*prev).setHeightPercentage(m_oldy);
+    scenar.intervals.at(*prev).setHeightPercentage(m_oldy);
   }
-  if(auto next = state.nextConstraint())
+  if(auto next = state.nextInterval())
   {
-    scenar.constraints.at(*next).setHeightPercentage(m_oldy);
+    scenar.intervals.at(*next).setHeightPercentage(m_oldy);
   }
 
   updateEventExtent(state.eventId(), scenar);
@@ -50,13 +50,13 @@ void MoveNewState::redo(const iscore::DocumentContext& ctx) const
   auto& scenar = m_path.find(ctx);
   auto& state = scenar.state(m_stateId);
   state.setHeightPercentage(m_y);
-  if(auto prev = state.previousConstraint())
+  if(auto prev = state.previousInterval())
   {
-    scenar.constraints.at(*prev).setHeightPercentage(m_y);
+    scenar.intervals.at(*prev).setHeightPercentage(m_y);
   }
-  if(auto next = state.nextConstraint())
+  if(auto next = state.nextInterval())
   {
-    scenar.constraints.at(*next).setHeightPercentage(m_y);
+    scenar.intervals.at(*next).setHeightPercentage(m_y);
   }
 
   updateEventExtent(state.eventId(), scenar);

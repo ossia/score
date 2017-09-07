@@ -7,7 +7,7 @@
 #include <QString>
 #include <Scenario/Commands/Cohesion/CreateCurveFromStates.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <algorithm>
 #include <boost/iterator/indirect_iterator.hpp>
@@ -27,7 +27,7 @@
 #include <Interpolation/InterpolationProcess.hpp>
 #include <Process/Process.hpp>
 #include <Process/State/MessageNode.hpp>
-#include <Scenario/Document/Constraint/Slot.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
@@ -49,22 +49,22 @@ namespace Command
 struct MessagePairs
 {
   MessagePairs(
-      const Scenario::ConstraintModel& constraint,
+      const Scenario::IntervalModel& interval,
       const Scenario::ScenarioInterface& scenar)
       : MessagePairs{
-            Process::flatten(Scenario::startState(constraint, scenar)
+            Process::flatten(Scenario::startState(interval, scenar)
                                  .messages()
                                  .rootNode()),
             Process::flatten(
-                Scenario::endState(constraint, scenar).messages().rootNode()),
-            constraint}
+                Scenario::endState(interval, scenar).messages().rootNode()),
+            interval}
   {
   }
 
   MessagePairs(
       const State::MessageList& startMessages,
       const State::MessageList& endMessages,
-      const Scenario::ConstraintModel& constraint)
+      const Scenario::IntervalModel& interval)
   {
     for (auto& message : startMessages)
     {
@@ -81,7 +81,7 @@ struct MessagePairs
         {
           // Check that there isn't already an automation with this address
           auto has_existing_curve = ossia::any_of(
-              constraint.processes, [&](const Process::ProcessModel& proc) {
+              interval.processes, [&](const Process::ProcessModel& proc) {
                 auto ptr
                     = dynamic_cast<const Automation::ProcessModel*>(&proc);
                 return ptr && ptr->address() == message.address;
@@ -106,7 +106,7 @@ struct MessagePairs
         {
           // Check that there isn't already an interpolation with this address
           auto has_existing_curve = ossia::any_of(
-              constraint.processes, [&](const Process::ProcessModel& proc) {
+              interval.processes, [&](const Process::ProcessModel& proc) {
                 auto ptr
                     = dynamic_cast<const Interpolation::ProcessModel*>(&proc);
                 return ptr && ptr->address() == message.address;
@@ -129,32 +129,32 @@ struct MessagePairs
 };
 
 void InterpolateStates(
-    const QList<const ConstraintModel*>& selected_constraints,
+    const QList<const IntervalModel*>& selected_intervals,
     const iscore::CommandStackFacade& stack)
 {
-  // For each constraint, interpolate between the states in its start event and
+  // For each interval, interpolate between the states in its start event and
   // end event.
-  if (selected_constraints.empty())
+  if (selected_intervals.empty())
     return;
 
   // They should all be in the same scenario so we can select the first.
   auto scenar = dynamic_cast<Scenario::ScenarioInterface*>(
-      selected_constraints.first()->parent());
+      selected_intervals.first()->parent());
   if (!scenar)
     return;
 
   auto& devPlugin
-      = iscore::IDocument::documentContext(*selected_constraints.first())
+      = iscore::IDocument::documentContext(*selected_intervals.first())
             .plugin<Explorer::DeviceDocumentPlugin>();
   auto& rootNode = devPlugin.rootNode();
 
   auto big_macro = std::
-      make_unique<Command::AddMultipleProcessesToMultipleConstraintsMacro>();
-  for (auto& constraint_ptr : selected_constraints)
+      make_unique<Command::AddMultipleProcessesToMultipleIntervalsMacro>();
+  for (auto& interval_ptr : selected_intervals)
   {
-    auto& constraint = *constraint_ptr;
-    // Find the matching pairs of messages from both sides of the constraint
-    MessagePairs pairs{constraint, *scenar};
+    auto& interval = *interval_ptr;
+    // Find the matching pairs of messages from both sides of the interval
+    MessagePairs pairs{interval, *scenar};
 
     int total_procs
         = pairs.numericMessages.size() + pairs.listMessages.size();
@@ -163,10 +163,10 @@ void InterpolateStates(
 
     // Generate brand new ids for the processes, as well as layers, etc.
     auto process_ids = getStrongIdRange<Process::ProcessModel>(
-        total_procs, constraint.processes);
+        total_procs, interval.processes);
 
     // Note : a *lot* of thins happen in makeAddProcessMacro.
-    auto macro = Command::makeAddProcessMacro(constraint, total_procs);
+    auto macro = Command::makeAddProcessMacro(interval, total_procs);
 
     int cur_proc = 0;
     // Generate automations between numeric values
@@ -187,7 +187,7 @@ void InterpolateStates(
       }
 
       macro->addCommand(new CreateAutomationFromStates{
-          constraint, macro->slotsToUse, process_ids[cur_proc],
+          interval, macro->slotsToUse, process_ids[cur_proc],
           elt.first.address, d});
 
       cur_proc++;
@@ -197,7 +197,7 @@ void InterpolateStates(
     for (const auto& elt : pairs.listMessages)
     {
       macro->addCommand(new CreateInterpolationFromStates{
-          constraint, macro->slotsToUse, process_ids[cur_proc],
+          interval, macro->slotsToUse, process_ids[cur_proc],
           elt.first.address, elt.first.value, elt.second.value});
       cur_proc++;
     }

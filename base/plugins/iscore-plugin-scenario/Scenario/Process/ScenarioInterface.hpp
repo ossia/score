@@ -4,7 +4,7 @@
 #include <iscore_plugin_scenario_export.h>
 namespace Scenario
 {
-class ConstraintModel;
+class IntervalModel;
 class EventModel;
 class StateModel;
 class TimeSyncModel;
@@ -15,21 +15,21 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioInterface
 {
 public:
   virtual ~ScenarioInterface();
-  virtual ConstraintModel*
-  findConstraint(const Id<ConstraintModel>& constraintId) const = 0;
+  virtual IntervalModel*
+  findInterval(const Id<IntervalModel>& intervalId) const = 0;
   virtual EventModel* findEvent(const Id<EventModel>& eventId) const = 0;
   virtual TimeSyncModel*
   findTimeSync(const Id<TimeSyncModel>& timeSyncId) const = 0;
   virtual StateModel* findState(const Id<StateModel>& stId) const = 0;
 
-  virtual ConstraintModel&
-  constraint(const Id<ConstraintModel>& constraintId) const = 0;
+  virtual IntervalModel&
+  interval(const Id<IntervalModel>& intervalId) const = 0;
   virtual EventModel& event(const Id<EventModel>& eventId) const = 0;
   virtual TimeSyncModel&
   timeSync(const Id<TimeSyncModel>& timeSyncId) const = 0;
   virtual StateModel& state(const Id<StateModel>& stId) const = 0;
 
-  virtual ElementContainer<ConstraintModel> getConstraints() const = 0;
+  virtual ElementContainer<IntervalModel> getIntervals() const = 0;
   virtual ElementContainer<StateModel> getStates() const = 0;
   virtual ElementContainer<EventModel> getEvents() const = 0;
   virtual ElementContainer<TimeSyncModel> getTimeSyncs() const = 0;
@@ -59,12 +59,12 @@ static auto endId()
 
 template <typename Scenario_T, typename Element_T>
 struct ElementTraits;
-// { auto container_accessor = &constraints; etc... }
+// { auto container_accessor = &intervals; etc... }
 
 template <>
-struct ElementTraits<Scenario::ScenarioInterface, ConstraintModel>
+struct ElementTraits<Scenario::ScenarioInterface, IntervalModel>
 {
-  static const constexpr auto accessor = &ScenarioInterface::getConstraints;
+  static const constexpr auto accessor = &ScenarioInterface::getIntervals;
 };
 template <>
 struct ElementTraits<Scenario::ScenarioInterface, EventModel>

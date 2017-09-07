@@ -45,8 +45,8 @@ std::vector<std::unique_ptr<iscore::InterfaceBase>> iscore_plugin_media::factori
             >,
         FW<Scenario::DropHandler,
             Media::Sound::DropHandler>,
-        FW<Scenario::ConstraintDropHandler,
-            Media::Sound::ConstraintDropHandler>
+        FW<Scenario::IntervalDropHandler,
+            Media::Sound::IntervalDropHandler>
     >(ctx, key);
 }
 

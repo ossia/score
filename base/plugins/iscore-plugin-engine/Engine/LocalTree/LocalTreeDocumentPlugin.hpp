@@ -16,7 +16,7 @@ class ModelMetadata;
 namespace Scenario
 {
 class ProcessModel;
-class ConstraintModel;
+class IntervalModel;
 class EventModel;
 class TimeSyncModel;
 class StateModel;
@@ -25,7 +25,7 @@ namespace Engine
 {
 namespace LocalTree
 {
-class Constraint;
+class Interval;
 class ISCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin
     : public iscore::DocumentPlugin
 {
@@ -56,7 +56,7 @@ private:
   void create();
   void cleanup();
 
-  Constraint* m_root{};
+  Interval* m_root{};
   std::unique_ptr<ossia::net::generic_device> m_localDevice;
   Network::LocalDevice m_localDeviceWrapper;
 };

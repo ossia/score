@@ -20,30 +20,30 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
   ScenarioStyle& operator=(const ScenarioStyle&) = delete;
   ScenarioStyle& operator=(ScenarioStyle&&) = delete;
 
-  void setConstraintWidth(double w);
+  void setIntervalWidth(double w);
 
   static ScenarioStyle& instance();
 
-  iscore::ColorRef ConstraintBase;
-  iscore::ColorRef ConstraintSelected;
-  iscore::ColorRef ConstraintPlayFill;
-  iscore::ColorRef ConstraintPlayDashFill;
-  iscore::ColorRef ConstraintWaitingDashFill;
-  iscore::ColorRef ConstraintLoop;
-  iscore::ColorRef ConstraintWarning;
-  iscore::ColorRef ConstraintInvalid;
-  iscore::ColorRef ConstraintMuted;
-  iscore::ColorRef ConstraintDefaultLabel;
-  iscore::ColorRef ConstraintDefaultBackground;
+  iscore::ColorRef IntervalBase;
+  iscore::ColorRef IntervalSelected;
+  iscore::ColorRef IntervalPlayFill;
+  iscore::ColorRef IntervalPlayDashFill;
+  iscore::ColorRef IntervalWaitingDashFill;
+  iscore::ColorRef IntervalLoop;
+  iscore::ColorRef IntervalWarning;
+  iscore::ColorRef IntervalInvalid;
+  iscore::ColorRef IntervalMuted;
+  iscore::ColorRef IntervalDefaultLabel;
+  iscore::ColorRef IntervalDefaultBackground;
 
   iscore::ColorRef RackSideBorder;
 
-  iscore::ColorRef ConstraintFullViewParentSelected;
+  iscore::ColorRef IntervalFullViewParentSelected;
 
-  iscore::ColorRef ConstraintHeaderText;
-  iscore::ColorRef ConstraintHeaderBottomLine;
-  iscore::ColorRef ConstraintHeaderRackHidden;
-  iscore::ColorRef ConstraintHeaderSideBorder;
+  iscore::ColorRef IntervalHeaderText;
+  iscore::ColorRef IntervalHeaderBottomLine;
+  iscore::ColorRef IntervalHeaderRackHidden;
+  iscore::ColorRef IntervalHeaderSideBorder;
 
   iscore::ColorRef ProcessViewBorder;
 
@@ -79,21 +79,21 @@ struct ISCORE_LIB_PROCESS_EXPORT ScenarioStyle
   iscore::ColorRef TimeRuler;
   iscore::ColorRef LocalTimeRuler;
 
-  QPen ConstraintSolidPen;
-  QPen ConstraintDashPen;
-  QPen ConstraintRackPen;
-  QPen ConstraintPlayPen;
-  QPen ConstraintPlayDashPen;
-  QPen ConstraintWaitingDashPen;
-  QPen ConstraintHeaderTextPen;
+  QPen IntervalSolidPen;
+  QPen IntervalDashPen;
+  QPen IntervalRackPen;
+  QPen IntervalPlayPen;
+  QPen IntervalPlayDashPen;
+  QPen IntervalWaitingDashPen;
+  QPen IntervalHeaderTextPen;
 
-  QPen ConstraintBraceSelected;
-  QPen ConstraintBraceWarning;
-  QPen ConstraintBraceInvalid;
-  QPen ConstraintBrace;
+  QPen IntervalBraceSelected;
+  QPen IntervalBraceWarning;
+  QPen IntervalBraceInvalid;
+  QPen IntervalBrace;
 
-  QPen ConstraintHeaderSeparator;
-  QPen FullViewConstraintHeaderSeparator;
+  QPen IntervalHeaderSeparator;
+  QPen FullViewIntervalHeaderSeparator;
 
   QPen ConditionPen;
   QPen ConditionTrianglePen;
