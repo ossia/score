@@ -1,7 +1,7 @@
 #pragma once
 #include <core/application/ApplicationInterface.hpp>
 
-namespace iscore
+namespace score
 {
 namespace testing
 {
@@ -12,7 +12,7 @@ namespace testing
  * Used to setup a small application context for unit & integration tests where
  * serialization is required without needing the data from other plug-ins.
  */
-struct MockApplication final : public iscore::ApplicationInterface
+struct MockApplication final : public score::ApplicationInterface
 {
 public:
   MockApplication()
@@ -20,15 +20,15 @@ public:
     m_instance = this;
   }
 
-  const iscore::ApplicationContext& context() const override
+  const score::ApplicationContext& context() const override
   {
     throw;
   }
 
-  const iscore::ApplicationComponents& components() const override
+  const score::ApplicationComponents& components() const override
   {
-    static iscore::ApplicationComponentsData d0;
-    static iscore::ApplicationComponents d1{d0};
+    static score::ApplicationComponentsData d0;
+    static score::ApplicationComponents d1{d0};
     return d1;
   }
 };

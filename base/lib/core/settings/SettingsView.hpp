@@ -8,12 +8,12 @@
 #include <set>
 
 class QWidget;
-namespace iscore
+namespace score
 {
 class SettingsDelegateView;
-} // namespace iscore
+} // namespace score
 
-namespace iscore
+namespace score
 {
 class SettingsView final : public QDialog
 {

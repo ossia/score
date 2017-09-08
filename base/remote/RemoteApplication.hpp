@@ -8,24 +8,24 @@
 #include <WebSocketClient.hpp>
 #include <Models/NodeModel.hpp>
 
-namespace iscore {
+namespace score {
 class Settings;
 class Presenter;
-}  // namespace iscore
+}  // namespace score
 
 namespace RemoteUI
 {
 
 class RemoteApplication final :
     public QObject,
-    public iscore::ApplicationInterface
+    public score::ApplicationInterface
 {
 public:
   RemoteApplication(int& argc, char** argv);
   ~RemoteApplication();
 
-  const iscore::ApplicationContext& context() const override;
-  const iscore::ApplicationComponents& components() const override;
+  const score::ApplicationContext& context() const override;
+  const score::ApplicationComponents& components() const override;
 
   int exec();
 
@@ -38,12 +38,12 @@ private:
   QGuiApplication m_app;
   QQmlApplicationEngine m_engine;
 
-  iscore::ApplicationSettings m_applicationSettings;
+  score::ApplicationSettings m_applicationSettings;
 
-  iscore::ApplicationComponentsData m_compData;
-  iscore::ApplicationComponents m_components{m_compData};
-  std::vector<std::unique_ptr<iscore::SettingsDelegateModel>> m_settings;
-  iscore::ApplicationContext m_appContext;
+  score::ApplicationComponentsData m_compData;
+  score::ApplicationComponents m_components{m_compData};
+  std::vector<std::unique_ptr<score::SettingsDelegateModel>> m_settings;
+  score::ApplicationContext m_appContext;
 
   RemoteUI::WidgetListModel m_widgets{m_engine};
   RemoteUI::NodeModel m_nodes;

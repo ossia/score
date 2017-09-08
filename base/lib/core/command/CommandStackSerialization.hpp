@@ -1,18 +1,18 @@
 #pragma once
 #include <core/command/CommandStack.hpp>
-#include <iscore/command/CommandData.hpp>
-#include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-namespace iscore
+#include <score/command/CommandData.hpp>
+#include <score/plugins/customfactory/StringFactoryKeySerialization.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+namespace score
 {
 template <typename RedoFun>
 void loadCommandStack(
-    const iscore::ApplicationComponents& components,
+    const score::ApplicationComponents& components,
     DataStreamWriter& writer,
-    iscore::CommandStack& stack,
+    score::CommandStack& stack,
     RedoFun redo_fun)
 {
-  std::vector<iscore::CommandData> undoStack, redoStack;
+  std::vector<score::CommandData> undoStack, redoStack;
   writer.writeTo(undoStack);
   writer.writeTo(redoStack);
 

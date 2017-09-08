@@ -7,8 +7,8 @@
 #ifdef __APPLE__
 #include <QFileOpenEvent>
 #endif
-#include <iscore/tools/Todo.hpp>
-#include <iscore_lib_base_export.h>
+#include <score/tools/Todo.hpp>
+#include <score_lib_base_export.h>
 
 /**
  * @brief C++ abstraction over fopen/fclose.
@@ -16,10 +16,10 @@
  * Used to save std::cerr / std::cout to a file in Windows
  * which does not have a console for GUI programs.
  */
-class ISCORE_LIB_BASE_EXPORT LogFile
+class SCORE_LIB_BASE_EXPORT LogFile
 {
 public:
-  LogFile() : fd{fopen("i-score.log", "a")}
+  LogFile() : fd{fopen("score.log", "a")}
   {
   }
 
@@ -43,19 +43,19 @@ private:
  * Disabled for debugging, because it makes getting the stack
  * trace harder.
  */
-class ISCORE_LIB_BASE_EXPORT SafeQApplication final : public QApplication
+class SCORE_LIB_BASE_EXPORT SafeQApplication final : public QApplication
 {
   Q_OBJECT
 public:
   SafeQApplication(int& argc, char** argv) : QApplication{argc, argv}
   {
-#if defined(ISCORE_DEBUG)
+#if defined(SCORE_DEBUG)
     qInstallMessageHandler(DebugOutput);
 #endif
   }
 
   ~SafeQApplication();
-#if defined(ISCORE_DEBUG)
+#if defined(SCORE_DEBUG)
   static void DebugOutput(
       QtMsgType type, const QMessageLogContext& context, const QString& msg)
   {
@@ -111,7 +111,7 @@ public:
             localMsg.constData(),
             basename,
             context.line);
-        ISCORE_BREAKPOINT;
+        SCORE_BREAKPOINT;
         std::terminate();
     }
   }

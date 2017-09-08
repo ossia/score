@@ -6,30 +6,30 @@
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
-#include <iscore/plugins/panel/PanelDelegate.hpp>
+#include <score/plugins/panel/PanelDelegate.hpp>
 #include <iterator>
 #include <vector>
 
 #include <core/document/DocumentBackupManager.hpp>
-#include <iscore/document/DocumentContext.hpp>
-#include <iscore/selection/Selection.hpp>
-#include <iscore/selection/SelectionStack.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/selection/Selection.hpp>
+#include <score/selection/SelectionStack.hpp>
 
-#include <iscore/tools/Todo.hpp>
+#include <score/tools/Todo.hpp>
 
 class QWidget;
 class Selection;
-#include <iscore/model/Identifier.hpp>
+#include <score/model/Identifier.hpp>
 
-namespace iscore
+namespace score
 {
 DocumentContext DocumentContext::fromDocument(Document& d)
 {
-  return iscore::DocumentContext{d};
+  return score::DocumentContext{d};
 }
 
 DocumentContext::DocumentContext(Document& d)
-    : app{iscore::GUIAppContext()}
+    : app{score::GUIAppContext()}
     , document{d}
     , commandStack{d.m_commandStack}
     , selectionStack{d.selectionStack()}

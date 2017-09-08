@@ -1,0 +1,264 @@
+cmake_minimum_required(VERSION 3.1)
+project(score_plugin_engine LANGUAGES CXX)
+
+score_common_setup()
+
+# Packages
+find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
+
+# Files & main target
+set(HDRS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/CurveConversion.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/OSSIA2score.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/OssiaLogger.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Minuit/MinuitProtocolSettingsWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Minuit/MinuitDevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Minuit/MinuitSpecificSettings.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Minuit/MinuitProtocolFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSCQuery/OSCQueryProtocolSettingsWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSCQuery/OSCQueryDevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSCQuery/OSCQuerySpecificSettings.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSCQuery/OSCQueryProtocolFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Local/LocalProtocolSettingsWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Local/LocalDevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Local/LocalSpecificSettings.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Local/LocalProtocolFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSSIADevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSC/OSCDevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSC/OSCProtocolFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSC/OSCProtocolSettingsWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSC/OSCSpecificSettings.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Panel/MessagesPanel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Curve/EasingSegment.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/ApplicationPlugin.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/score2OSSIA.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ContextMenu/PlayContextMenu.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ContextMenu/PlayFromIntervalInScenario.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ExecutorContext.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/BaseScenarioComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/EventComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ScenarioComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ProcessComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/StateProcessComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/StateComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/DocumentPlugin.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/TimeSyncComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/IntervalComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Interpolation/InterpolationComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Automation/Component.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Automation/GradientComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Automation/SplineComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Mapping/Component.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Loop/Component.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Settings/ExecutorModel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Settings/ExecutorPresenter.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Settings/ExecutorView.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Settings/ExecutorFactory.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ClockManager/ClockManagerFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ClockManager/DefaultClockManager.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Listening/PlayListeningHandler.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Listening/PlayListeningHandlerFactory.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/LocalTreeDocumentPlugin.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/BaseProperty.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Property.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/SetProperty.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/GetProperty.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/NameProperty.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/BaseCallbackWrapper.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/ProcessComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/ScenarioComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/LoopComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/IntervalComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/EventComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/TimeSyncComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/StateComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/MetadataParameters.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Settings/LocalTreeModel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Settings/LocalTreePresenter.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Settings/LocalTreeView.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Settings/LocalTreeFactory.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_engine.hpp"
+    )
+set(SRCS
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Minuit/MinuitSpecificSettingsSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Minuit/MinuitProtocolSettingsWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Minuit/MinuitDevice.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Minuit/MinuitProtocolFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSCQuery/OSCQuerySpecificSettingsSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSCQuery/OSCQueryProtocolSettingsWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSCQuery/OSCQueryDevice.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSCQuery/OSCQueryProtocolFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Local/LocalSpecificSettingsSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Local/LocalProtocolSettingsWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Local/LocalDevice.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Local/LocalProtocolFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSC/OSCSpecificSettingsSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSC/OSCProtocolSettingsWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSC/OSCDevice.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSC/OSCProtocolFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSSIADevice.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Panel/MessagesPanel.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/OSSIA2score.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/ApplicationPlugin.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ContextMenu/PlayContextMenu.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ContextMenu/PlayFromIntervalInScenario.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ProcessComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/StateProcessComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/BaseScenarioComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/EventComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ScenarioComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/StateComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/DocumentPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/TimeSyncComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/IntervalComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Interpolation/InterpolationComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Automation/Component.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Automation/GradientComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Automation/SplineComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Mapping/Component.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Loop/Component.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ClockManager/ClockManagerFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ClockManager/DefaultClockManager.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Settings/ExecutorModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Settings/ExecutorPresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Settings/ExecutorView.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Listening/PlayListeningHandler.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Listening/PlayListeningHandlerFactory.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/LocalTreeDocumentPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/BaseProperty.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/ProcessComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/ScenarioComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/LoopComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/IntervalComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/EventComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/TimeSyncComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/StateComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/MetadataParameters.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Settings/LocalTreeModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Settings/LocalTreePresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Settings/LocalTreeView.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/score2OSSIA.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_engine.cpp"
+)
+
+set(MIDI_HDRS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/MIDI/MIDIProtocolFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/MIDI/MIDIDevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/MIDI/MIDIProtocolSettingsWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/MIDI/MIDISpecificSettings.hpp"
+)
+set(MIDI_SRCS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/MIDI/MIDIProtocolSettingsWidget.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/MIDI/MIDIDevice.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/MIDI/MIDIProtocolFactory.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/MIDI/MIDISpecificSettingsSerialization.cpp"
+)
+
+set(HTTP_HDRS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/HTTP/HTTPProtocolFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/HTTP/HTTPDevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/HTTP/HTTPProtocolSettingsWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/HTTP/HTTPSpecificSettings.hpp"
+)
+set(HTTP_SRCS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/HTTP/HTTPProtocolSettingsWidget.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/HTTP/HTTPDevice.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/HTTP/HTTPProtocolFactory.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/HTTP/HTTPSpecificSettingsSerialization.cpp"
+)
+
+set(WS_HDRS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/WS/WSProtocolFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/WS/WSDevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/WS/WSProtocolSettingsWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/WS/WSSpecificSettings.hpp"
+)
+set(WS_SRCS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/WS/WSProtocolSettingsWidget.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/WS/WSDevice.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/WS/WSProtocolFactory.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/WS/WSSpecificSettingsSerialization.cpp"
+)
+
+set(SERIAL_HDRS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Serial/SerialProtocolFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Serial/SerialDevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Serial/SerialProtocolSettingsWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Serial/SerialSpecificSettings.hpp"
+)
+set(SERIAL_SRCS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Serial/SerialProtocolSettingsWidget.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Serial/SerialDevice.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Serial/SerialProtocolFactory.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Serial/SerialSpecificSettingsSerialization.cpp"
+)
+
+set(PHIDGETS_HDRS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Phidgets/PhidgetsProtocolFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Phidgets/PhidgetsDevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Phidgets/PhidgetsProtocolSettingsWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Phidgets/PhidgetsSpecificSettings.hpp"
+)
+set(PHIDGETS_SRCS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Phidgets/PhidgetsProtocolSettingsWidget.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Phidgets/PhidgetsDevice.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Phidgets/PhidgetsProtocolFactory.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Phidgets/PhidgetsSpecificSettingsSerialization.cpp"
+)
+add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
+
+if(OSSIA_PROTOCOL_MIDI)
+    target_sources(${PROJECT_NAME} PRIVATE ${MIDI_HDRS} ${MIDI_SRCS})
+endif()
+
+if(OSSIA_PROTOCOL_HTTP)
+    target_sources(${PROJECT_NAME} PRIVATE ${HTTP_HDRS} ${HTTP_SRCS})
+endif()
+
+if(OSSIA_PROTOCOL_WEBSOCKETS)
+    target_sources(${PROJECT_NAME} PRIVATE ${WS_HDRS} ${WS_SRCS})
+endif()
+
+if(OSSIA_PROTOCOL_SERIAL)
+    target_sources(${PROJECT_NAME} PRIVATE ${SERIAL_HDRS} ${SERIAL_SRCS})
+    find_package(Qt5 5.7 REQUIRED COMPONENTS SerialPort)
+    target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::SerialPort)
+endif()
+
+if(OSSIA_PROTOCOL_PHIDGETS)
+    target_sources(${PROJECT_NAME} PRIVATE ${PHIDGETS_HDRS} ${PHIDGETS_SRCS})
+endif()
+
+target_link_libraries(${PROJECT_NAME}
+        PUBLIC
+          Qt5::Core Qt5::Widgets
+          score_lib_base score_lib_device score_lib_process
+          score_plugin_scenario score_plugin_curve score_plugin_automation score_plugin_deviceexplorer
+          score_plugin_mapping
+          score_plugin_loop
+          ossia
+)
+
+setup_score_plugin(${PROJECT_NAME})

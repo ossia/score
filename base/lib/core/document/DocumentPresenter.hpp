@@ -3,7 +3,7 @@
 #include <QObject>
 
 class Selection;
-namespace iscore
+namespace score
 {
 struct DocumentContext;
 class DocumentDelegateFactory;
@@ -18,7 +18,7 @@ class DocumentPresenter final : public QObject
   Q_OBJECT
 public:
   DocumentPresenter(
-      const iscore::DocumentContext& ctx,
+      const score::DocumentContext& ctx,
       DocumentDelegateFactory&,
       const DocumentModel&,
       DocumentView&,

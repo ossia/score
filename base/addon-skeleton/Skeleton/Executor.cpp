@@ -3,7 +3,7 @@
 #include <Skeleton/Process.hpp>
 #include <Device/Protocol/DeviceList.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Engine/iscore2OSSIA.hpp>
+#include <Engine/score2OSSIA.hpp>
 #include <ossia/editor/state/state_element.hpp>
 
 namespace Skeleton
@@ -39,7 +39,7 @@ ossia::state_element ProcessExecutor::state(ossia::time_value date, double pos)
   m.address = address;
   m.value = value;
 
-  if(auto res = Engine::iscore_to_ossia::message(m, m_devices))
+  if(auto res = Engine::score_to_ossia::message(m, m_devices))
   {
     if(unmuted())
       return *res;
@@ -55,7 +55,7 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     Engine::Execution::IntervalComponent& parentInterval,
     Skeleton::Model& element,
     const Engine::Execution::Context& ctx,
-    const Id<iscore::Component>& id,
+    const Id<score::Component>& id,
     QObject* parent):
   ProcessComponent_T{
     parentInterval, element, ctx, id, "SkeletonExecutorComponent", parent}

@@ -175,7 +175,7 @@ void GUIItem::sendMessage(const State::Message& m)
   JSONObject::Serializer s;
   s.readFrom(m);
 
-  s.obj[iscore::StringConstant().Message] = iscore::StringConstant().Message;
+  s.obj[score::StringConstant().Message] = score::StringConstant().Message;
   m_ctx.websocket.socket().sendTextMessage(QJsonDocument(s.obj).toJson());
 }
 

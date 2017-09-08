@@ -13,7 +13,7 @@ class LocalTreeProcessComponent :
 
     public:
       LocalTreeProcessComponent(
-        const Id<iscore::Component>& id,
+        const Id<score::Component>& id,
         ossia::net::node_base& parent,
         Skeleton::Model& scenario,
         Engine::LocalTree::DocumentPlugin& doc,

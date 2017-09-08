@@ -12,11 +12,11 @@
 #include <QSettings>
 #include <QString>
 #include <QVariant>
-#include <iscore/tools/QMapHelper.hpp>
+#include <score/tools/QMapHelper.hpp>
 
 #include "DocumentBackups.hpp"
 
-bool iscore::DocumentBackups::canRestoreDocuments()
+bool score::DocumentBackups::canRestoreDocuments()
 {
   // Try to reload if there was a crash
   if (OpenDocumentsFile::exists())
@@ -24,7 +24,7 @@ bool iscore::DocumentBackups::canRestoreDocuments()
     if (QMessageBox::question(
             qApp->activeWindow(),
             QObject::tr("Reload?"),
-            QObject::tr("It seems that i-score previously crashed. Do you "
+            QObject::tr("It seems that score previously crashed. Do you "
                         "wish to reload your work?"))
         == QMessageBox::Yes)
     {
@@ -62,13 +62,13 @@ static void loadRestorableDocumentData(
   }
 }
 
-std::vector<iscore::RestorableDocument>
-iscore::DocumentBackups::restorableDocuments()
+std::vector<score::RestorableDocument>
+score::DocumentBackups::restorableDocuments()
 {
-  std::vector<iscore::RestorableDocument> arr;
-  QSettings s{iscore::OpenDocumentsFile::path(), QSettings::IniFormat};
+  std::vector<score::RestorableDocument> arr;
+  QSettings s{score::OpenDocumentsFile::path(), QSettings::IniFormat};
 
-  auto docs = s.value("iscore/docs");
+  auto docs = s.value("score/docs");
   const auto existing_files = docs.toMap();
 
   for (const auto& file1 : QMap_keys(existing_files))
@@ -79,20 +79,20 @@ iscore::DocumentBackups::restorableDocuments()
     loadRestorableDocumentData(file1, existing_files[file1].value<QPair<QString,QString>>(), arr);
   }
 
-  s.setValue("iscore/docs", QMap<QString, QVariant>{});
+  s.setValue("score/docs", QMap<QString, QVariant>{});
   s.sync();
 
   return arr;
 }
 
-ISCORE_LIB_BASE_EXPORT void iscore::DocumentBackups::clear()
+SCORE_LIB_BASE_EXPORT void score::DocumentBackups::clear()
 {
   if (OpenDocumentsFile::exists())
   {
     // Remove all the tmp files
-    QSettings s{iscore::OpenDocumentsFile::path(), QSettings::IniFormat};
+    QSettings s{score::OpenDocumentsFile::path(), QSettings::IniFormat};
 
-    const auto existing_files = s.value("iscore/docs").toMap();
+    const auto existing_files = s.value("score/docs").toMap();
 
     for (auto it = existing_files.cbegin(); it != existing_files.cend(); ++it)
     {

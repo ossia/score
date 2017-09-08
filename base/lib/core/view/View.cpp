@@ -18,24 +18,24 @@
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
 
-#include <iscore/plugins/documentdelegate/DocumentDelegateView.hpp>
-#include <iscore/actions/Menu.hpp>
-#include <iscore/plugins/panel/PanelDelegate.hpp>
-#include <iscore/widgets/QmlContainerPanel.hpp>
-#include <iscore_git_info.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
+#include <score/actions/Menu.hpp>
+#include <score/plugins/panel/PanelDelegate.hpp>
+#include <score/widgets/QmlContainerPanel.hpp>
+#include <score_git_info.hpp>
 #include <iterator>
 #include <qcoreevent.h>
 #include <qnamespace.h>
 #include <set>
-#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
 
-namespace iscore
+namespace score
 {
 struct PanelComparator
 {
   bool operator()(
-      const QPair<iscore::PanelDelegate*, QDockWidget*>& lhs,
-      const QPair<iscore::PanelDelegate*, QDockWidget*>& rhs) const
+      const QPair<score::PanelDelegate*, QDockWidget*>& lhs,
+      const QPair<score::PanelDelegate*, QDockWidget*>& rhs) const
   {
     return lhs.first->defaultPanelStatus().priority
            < rhs.first->defaultPanelStatus().priority;
@@ -45,14 +45,14 @@ struct PanelComparator
 View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
 {
   setObjectName("View");
-  this->setWindowIcon(QIcon("://i-score.png"));
+  this->setWindowIcon(QIcon("://score.png"));
 
   QString version = QString{"%1.%2.%3-%4"}
-                        .arg(ISCORE_VERSION_MAJOR)
-                        .arg(ISCORE_VERSION_MINOR)
-                        .arg(ISCORE_VERSION_PATCH)
-                        .arg(ISCORE_VERSION_EXTRA);
-  auto title = tr("i-score - %1").arg(version);
+                        .arg(SCORE_VERSION_MAJOR)
+                        .arg(SCORE_VERSION_MINOR)
+                        .arg(SCORE_VERSION_PATCH)
+                        .arg(SCORE_VERSION_EXTRA);
+  auto title = tr("score - %1").arg(version);
   this->setWindowIconText(title);
   this->setWindowTitle(title);
   m_tabWidget->setObjectName("Documents");
@@ -117,7 +117,7 @@ void View::setupPanel(PanelDelegate* v)
   dial->setWidget(w);
   dial->toggleViewAction()->setShortcut(v->defaultPanelStatus().shortcut);
 
-  auto& mw = v->context().menus.get().at(iscore::Menus::Windows());
+  auto& mw = v->context().menus.get().at(score::Menus::Windows());
   mw.menu()->addAction(dial->toggleViewAction());
 
   // Note : this only has meaning at initialisation time.
@@ -143,7 +143,7 @@ void View::setupPanel(PanelDelegate* v)
         // dial is on top
         auto it = ossia::find_if(
             m_leftPanels, [=](auto elt) { return elt.second != dial; });
-        ISCORE_ASSERT(it != m_leftPanels.end());
+        SCORE_ASSERT(it != m_leftPanels.end());
         tabifyDockWidget(it->second, dial);
       }
     }

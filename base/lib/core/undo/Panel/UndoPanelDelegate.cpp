@@ -6,7 +6,7 @@
 #include <core/document/Document.hpp>
 #include <core/undo/Panel/Widgets/UndoListWidget.hpp>
 
-namespace iscore
+namespace score
 {
 UndoPanelDelegate::UndoPanelDelegate(const GUIApplicationContext& ctx)
     : PanelDelegate{ctx}, m_widget{new QWidget}
@@ -22,7 +22,7 @@ QWidget* UndoPanelDelegate::widget()
 
 const PanelStatus& UndoPanelDelegate::defaultPanelStatus() const
 {
-  static const iscore::PanelStatus status{
+  static const score::PanelStatus status{
       false, Qt::LeftDockWidgetArea, 1, QObject::tr("History"),
       QKeySequence::fromString("Ctrl+Shift+H")};
 
@@ -36,7 +36,7 @@ void UndoPanelDelegate::on_modelChanged(MaybeDocument oldm, MaybeDocument newm)
 
   if (newm)
   {
-    m_list = new iscore::UndoListWidget{(*newm).document.commandStack()};
+    m_list = new score::UndoListWidget{(*newm).document.commandStack()};
     m_widget->layout()->addWidget(m_list);
   }
 }

@@ -1,9 +1,9 @@
 #pragma once
 class QByteArray;
 class QVariant;
-#include <iscore/model/Identifier.hpp>
-#include <iscore_lib_base_export.h>
-namespace iscore
+#include <score/model/Identifier.hpp>
+#include <score_lib_base_export.h>
+namespace score
 {
 class Document;
 class DocumentBackupManager;
@@ -20,26 +20,26 @@ struct GUIApplicationContext;
  * - Restoring a document after a crash.
  *
  */
-class ISCORE_LIB_BASE_EXPORT DocumentBuilder
+class SCORE_LIB_BASE_EXPORT DocumentBuilder
 {
 public:
   explicit DocumentBuilder(QObject* parentPresenter, QWidget* parentView);
 
   Document* newDocument(
-      const iscore::GUIApplicationContext& ctx,
+      const score::GUIApplicationContext& ctx,
       const Id<DocumentModel>& id,
-      iscore::DocumentDelegateFactory& doctype);
+      score::DocumentDelegateFactory& doctype);
   Document* loadDocument(
-      const iscore::GUIApplicationContext& ctx,
+      const score::GUIApplicationContext& ctx,
       QString filename,
       const QVariant& data,
-      iscore::DocumentDelegateFactory& doctype);
+      score::DocumentDelegateFactory& doctype);
   Document* restoreDocument(
-      const iscore::GUIApplicationContext& ctx,
+      const score::GUIApplicationContext& ctx,
       QString filename,
       const QByteArray& docData,
       const QByteArray& cmdData,
-      iscore::DocumentDelegateFactory& doctype);
+      score::DocumentDelegateFactory& doctype);
 
 private:
   void setBackupManager(Document* doc);

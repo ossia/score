@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project("i-score-pd")
+project("score-pd")
 
 set(CMAKE_SUPPRESS_REGENERATION true)
 set(CMAKE_MACOSX_RPATH Off)
@@ -65,19 +65,19 @@ set(BUILD_SHARED_LIBS ${OLD_BUILD_SHARED_LIBS})
 
 include_directories("${OSSIA_CICM_PATH}/Sources")
 INCLUDE_DIRECTORIES("${CMAKE_CURRENT_LIST_DIR}/..")
-INCLUDE_DIRECTORIES("${CMAKE_CURRENT_BINARY_DIR}/..") # needed for iscore_player_export.h
+INCLUDE_DIRECTORIES("${CMAKE_CURRENT_BINARY_DIR}/..") # needed for score_player_export.h
 
 #set(OSSIA_3RDPARTY_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/../../3rdparty")
 #include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/nano-signal-slot/include")
 
-set(PROJECT_SRCS iscore-pd.cpp )
+set(PROJECT_SRCS score-pd.cpp )
 
 add_library(${PROJECT_NAME} SHARED ${PROJECT_SRCS})
 use_gold(${PROJECT_NAME})
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 14)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE CicmWrapper)
-target_link_libraries(${PROJECT_NAME} PRIVATE iscore_player)
+target_link_libraries(${PROJECT_NAME} PRIVATE score_player)
 if(MSVC)
     target_link_libraries(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}\\pd.lib")
 endif()
@@ -92,7 +92,7 @@ endif()
 set_target_properties(${PROJECT_NAME}
   PROPERTIES
     PREFIX ""
-    OUTPUT_NAME "i-score")
+    OUTPUT_NAME "score")
 if(APPLE)
     set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".pd_darwin")
 elseif(UNIX)

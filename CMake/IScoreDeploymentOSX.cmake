@@ -3,14 +3,14 @@ if(APPLE)
 set_target_properties(
   ${APPNAME}
   PROPERTIES
-    MACOSX_BUNDLE_INFO_STRING "i-score, an interactive sequencer for the intermedia arts"
-    MACOSX_BUNDLE_GUI_IDENTIFIER "org.i-score"
-    MACOSX_BUNDLE_LONG_VERSION_STRING "${ISCORE_VERSION}"
-    MACOSX_BUNDLE_BUNDLE_NAME "i-score"
-    MACOSX_BUNDLE_SHORT_VERSION_STRING "${ISCORE_VERSION}"
-    MACOSX_BUNDLE_BUNDLE_VERSION "${ISCORE_VERSION}"
-    MACOSX_BUNDLE_COPYRIGHT "The i-score team"
-    MACOSX_BUNDLE_ICON_FILE "i-score.icns"
+    MACOSX_BUNDLE_INFO_STRING "score, an interactive sequencer for the intermedia arts"
+    MACOSX_BUNDLE_GUI_IDENTIFIER "org.score"
+    MACOSX_BUNDLE_LONG_VERSION_STRING "${SCORE_VERSION}"
+    MACOSX_BUNDLE_BUNDLE_NAME "score"
+    MACOSX_BUNDLE_SHORT_VERSION_STRING "${SCORE_VERSION}"
+    MACOSX_BUNDLE_BUNDLE_VERSION "${SCORE_VERSION}"
+    MACOSX_BUNDLE_COPYRIGHT "The score team"
+    MACOSX_BUNDLE_ICON_FILE "score.icns"
     MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
 )
 
@@ -18,34 +18,34 @@ if(TARGET ${APPNAME}_unity)
 set_target_properties(
   ${APPNAME}_unity
   PROPERTIES
-    MACOSX_BUNDLE_INFO_STRING "i-score, an interactive sequencer for the intermedia arts"
-    MACOSX_BUNDLE_GUI_IDENTIFIER "org.i-score"
-    MACOSX_BUNDLE_LONG_VERSION_STRING "${ISCORE_VERSION}"
-    MACOSX_BUNDLE_BUNDLE_NAME "i-score"
-    MACOSX_BUNDLE_SHORT_VERSION_STRING "${ISCORE_VERSION}"
-    MACOSX_BUNDLE_BUNDLE_VERSION "${ISCORE_VERSION}"
-    MACOSX_BUNDLE_COPYRIGHT "The i-score team"
-    MACOSX_BUNDLE_ICON_FILE "i-score.icns"
+    MACOSX_BUNDLE_INFO_STRING "score, an interactive sequencer for the intermedia arts"
+    MACOSX_BUNDLE_GUI_IDENTIFIER "org.score"
+    MACOSX_BUNDLE_LONG_VERSION_STRING "${SCORE_VERSION}"
+    MACOSX_BUNDLE_BUNDLE_NAME "score"
+    MACOSX_BUNDLE_SHORT_VERSION_STRING "${SCORE_VERSION}"
+    MACOSX_BUNDLE_BUNDLE_VERSION "${SCORE_VERSION}"
+    MACOSX_BUNDLE_COPYRIGHT "The score team"
+    MACOSX_BUNDLE_ICON_FILE "score.icns"
     MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in"
 )
 endif()
 # Copy our dylibs if necessary
-if(NOT ISCORE_STATIC_PLUGINS)
-    set(ISCORE_BUNDLE_PLUGINS_FOLDER "${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins/")
+if(NOT SCORE_STATIC_PLUGINS)
+    set(SCORE_BUNDLE_PLUGINS_FOLDER "${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins/")
     
-    function(iscore_copy_osx_plugin theTarget)
+    function(score_copy_osx_plugin theTarget)
       add_custom_command(
         TARGET ${APPNAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${theTarget}> ${ISCORE_BUNDLE_PLUGINS_FOLDER})
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${theTarget}> ${SCORE_BUNDLE_PLUGINS_FOLDER})
 
       if(TARGET ${theTarget}_unity)
         add_custom_command(
           TARGET ${APPNAME}_unity POST_BUILD
-          COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${theTarget}_unity> ${ISCORE_BUNDLE_PLUGINS_FOLDER})
+          COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${theTarget}_unity> ${SCORE_BUNDLE_PLUGINS_FOLDER})
       endif()
     endfunction()
 
-    # Copy iscore plugins into the app bundle
+    # Copy score plugins into the app bundle
     add_custom_command(TARGET ${APPNAME} POST_BUILD
                        COMMAND mkdir -p ${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins/)
   if(TARGET ${APPNAME}_unity)
@@ -53,8 +53,8 @@ if(NOT ISCORE_STATIC_PLUGINS)
                COMMAND mkdir -p ${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins/)
   endif()
 
-    foreach(plugin ${ISCORE_PLUGINS_LIST})
-      iscore_copy_osx_plugin(${plugin})
+    foreach(plugin ${SCORE_PLUGINS_LIST})
+      score_copy_osx_plugin(${plugin})
     endforeach()
 endif()
 
@@ -85,7 +85,7 @@ Qml2Imports = Resources/qml
 #Translations = Resources/translations
 #Data = Resources
 
-if(ISCORE_STATIC_PLUGINS)
+if(SCORE_STATIC_PLUGINS)
     install(CODE "
         file(GLOB_RECURSE QTPLUGINS
             \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/*.dylib\")
@@ -100,8 +100,8 @@ if(ISCORE_STATIC_PLUGINS)
         " COMPONENT Runtime)
 else()
     set(CMAKE_INSTALL_RPATH "plugins")
-    foreach(plugin ${ISCORE_PLUGINS_LIST})
-        list(APPEND ISCORE_BUNDLE_INSTALLED_PLUGINS "${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins/lib${plugin}.dylib")
+    foreach(plugin ${SCORE_PLUGINS_LIST})
+        list(APPEND SCORE_BUNDLE_INSTALLED_PLUGINS "${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins/lib${plugin}.dylib")
     endforeach()
 
     install(CODE "
@@ -113,15 +113,15 @@ else()
         set(BU_CHMOD_BUNDLE_ITEMS ON)
         include(BundleUtilities)
         fixup_bundle(
-           \"${CMAKE_INSTALL_PREFIX}/i-score.app\"
-           \"\${QTPLUGINS};${QMLPLUGINS};${ISCORE_BUNDLE_INSTALLED_PLUGINS}\"
+           \"${CMAKE_INSTALL_PREFIX}/score.app\"
+           \"\${QTPLUGINS};${QMLPLUGINS};${SCORE_BUNDLE_INSTALLED_PLUGINS}\"
        \"${QT_LIBRARY_DIR};${CMAKE_BINARY_DIR}/plugins;${CMAKE_INSTALL_PREFIX}/plugins;${CMAKE_BINARY_DIR}/API/OSSIA;${CMAKE_BINARY_DIR}/base/lib;${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins/\"
         )
-message(\"${ISCORE_ROOT_SOURCE_DIR}/CMake/Deployment/OSX/set_rpath.sh\"
-          \"${CMAKE_INSTALL_PREFIX}/i-score.app/Contents\")
+message(\"${SCORE_ROOT_SOURCE_DIR}/CMake/Deployment/OSX/set_rpath.sh\"
+          \"${CMAKE_INSTALL_PREFIX}/score.app/Contents\")
 execute_process(COMMAND
-          \"${ISCORE_ROOT_SOURCE_DIR}/CMake/Deployment/OSX/set_rpath.sh\"
-          \"${CMAKE_INSTALL_PREFIX}/i-score.app/Contents\")
+          \"${SCORE_ROOT_SOURCE_DIR}/CMake/Deployment/OSX/set_rpath.sh\"
+          \"${CMAKE_INSTALL_PREFIX}/score.app/Contents\")
       ")
 endif()
 

@@ -36,7 +36,7 @@ class ProcessExecutorComponent final :
                 Engine::Execution::IntervalComponent& parentInterval,
                 Model& element,
                 const Engine::Execution::Context& ctx,
-                const Id<iscore::Component>& id,
+                const Id<score::Component>& id,
                 QObject* parent);
 };
 

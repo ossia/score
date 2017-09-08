@@ -7,9 +7,9 @@
 #include <QMessageBox>
 #include <QObject>
 #include <core/view/View.hpp>
-#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
-#include <iscore/tools/IdentifierGeneration.hpp>
-#include <iscore/tools/std/Optional.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+#include <score/tools/std/Optional.hpp>
 #include <qnamespace.h>
 
 #include <QString>
@@ -24,32 +24,32 @@
 #include "QRecentFilesMenu.h"
 #include <core/document/Document.hpp>
 #include <core/presenter/DocumentManager.hpp>
-#include <iscore/application/ApplicationComponents.hpp>
+#include <score/application/ApplicationComponents.hpp>
 
 #include <core/presenter/Presenter.hpp>
 #include <core/settings/Settings.hpp>
 #include <core/settings/SettingsView.hpp>
-#include <iscore/actions/Menu.hpp>
-#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+#include <score/actions/Menu.hpp>
+#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 
-#include <iscore/model/Identifier.hpp>
+#include <score/model/Identifier.hpp>
 
-#include "iscore_git_info.hpp"
-#include <iscore/plugins/panel/PanelDelegate.hpp>
+#include "score_git_info.hpp"
+#include <score/plugins/panel/PanelDelegate.hpp>
 
-namespace iscore
+namespace score
 {
 class Document;
 class DocumentModel;
-} // namespace iscore
+} // namespace score
 
-namespace iscore
+namespace score
 {
 
 Presenter::Presenter(
-    const iscore::ApplicationSettings& app,
-    const iscore::Settings& set,
+    const score::ApplicationSettings& app,
+    const score::Settings& set,
     View* view,
     QObject* arg_parent)
     : QObject{arg_parent}
@@ -151,22 +151,22 @@ void Presenter::setupGUI()
 
 void Presenter::optimize()
 {
-  iscore::optimize_hash_map(m_components.commands);
+  score::optimize_hash_map(m_components.commands);
   auto& com = m_components.commands;
   auto com_end = com.end();
   for(auto it = com.begin(); it != com_end; ++it)
   {
-    iscore::optimize_hash_map(it.value());
+    score::optimize_hash_map(it.value());
   }
 
-  iscore::optimize_hash_map(m_components.factories);
+  score::optimize_hash_map(m_components.factories);
   for(auto& fact : m_components.factories)
   {
     fact.second->optimize();
   }
 
-  iscore::optimize_hash_map(m_menus.get());
-  iscore::optimize_hash_map(m_actions.get());
-  iscore::optimize_hash_map(m_toolbars.get());
+  score::optimize_hash_map(m_menus.get());
+  score::optimize_hash_map(m_actions.get());
+  score::optimize_hash_map(m_toolbars.get());
 }
 }

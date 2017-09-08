@@ -1,0 +1,94 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <Curve/Segment/CurveSegmentList.hpp>
+#include <Curve/Segment/CurveSegmentModelSerialization.hpp>
+
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+#include <sys/types.h>
+
+#include "CurveModel.hpp"
+#include <score/application/ApplicationContext.hpp>
+#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/model/IdentifiedObjectMap.hpp>
+
+
+template <>
+SCORE_PLUGIN_CURVE_EXPORT void
+DataStreamReader::read(const Curve::CurveDomain& dom)
+{
+  m_stream << dom.min << dom.max << dom.start << dom.end;
+}
+
+template <>
+SCORE_PLUGIN_CURVE_EXPORT void
+DataStreamWriter::write(Curve::CurveDomain& dom)
+{
+  m_stream >> dom.min >> dom.max >> dom.start >> dom.end;
+}
+
+template <>
+SCORE_PLUGIN_CURVE_EXPORT void
+DataStreamReader::read(const Curve::Model& curve)
+{
+  const auto& segments = curve.segments();
+
+  m_stream << (int32_t)segments.size();
+  for (const auto& seg : segments)
+  {
+    readFrom(seg);
+  }
+  insertDelimiter();
+}
+
+
+template <>
+SCORE_PLUGIN_CURVE_EXPORT void
+DataStreamWriter::write(Curve::Model& curve)
+{
+  int32_t size;
+  m_stream >> size;
+
+  auto& csl = components.interfaces<Curve::SegmentList>();
+  for (; size-- > 0;)
+  {
+    auto seg = deserialize_interface(csl, *this, &curve);
+    if (seg)
+      curve.addSegment(seg);
+    else
+      SCORE_TODO;
+  }
+
+  curve.changed();
+  checkDelimiter();
+}
+
+
+template <>
+SCORE_PLUGIN_CURVE_EXPORT void
+JSONObjectReader::read(const Curve::Model& curve)
+{
+  obj[strings.Segments] = toJsonArray(curve.segments());
+}
+
+
+template <>
+SCORE_PLUGIN_CURVE_EXPORT void
+JSONObjectWriter::write(Curve::Model& curve)
+{
+  auto& csl = components.interfaces<Curve::SegmentList>();
+  for (const auto& segment : obj[strings.Segments].toArray())
+  {
+    JSONObject::Deserializer segment_deser{segment.toObject()};
+    auto seg = deserialize_interface(csl, segment_deser, &curve);
+    if (seg)
+      curve.addSegment(seg);
+    else
+      SCORE_TODO;
+  }
+
+  curve.changed();
+}

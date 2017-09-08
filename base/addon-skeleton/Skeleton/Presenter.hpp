@@ -2,7 +2,7 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/ZoomHelper.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
-#include <iscore/model/Identifier.hpp>
+#include <score/model/Identifier.hpp>
 
 namespace Skeleton
 {

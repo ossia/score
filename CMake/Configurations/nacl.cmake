@@ -1,3 +1,3 @@
 include(static-release)
-set(ISCORE_COTIRE False)
+set(SCORE_COTIRE False)
 

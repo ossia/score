@@ -1,22 +1,22 @@
-set(ISCORE_PLUGINS_TO_BUILD
+set(SCORE_PLUGINS_TO_BUILD
 
-iscore-plugin-pluginsettings
-iscore-lib-inspector
-iscore-lib-state
-iscore-lib-process
-iscore-lib-device
+score-plugin-pluginsettings
+score-lib-inspector
+score-lib-state
+score-lib-process
+score-lib-device
 
-iscore-plugin-inspector
-iscore-plugin-deviceexplorer
-iscore-plugin-curve
-iscore-plugin-automation
-iscore-plugin-scenario
-iscore-plugin-loop
+score-plugin-inspector
+score-plugin-deviceexplorer
+score-plugin-curve
+score-plugin-automation
+score-plugin-scenario
+score-plugin-loop
 
-iscore-plugin-mapping
-iscore-plugin-engine
-iscore-plugin-js
-iscore-plugin-midi
-iscore-plugin-recording
-iscore-plugin-media
+score-plugin-mapping
+score-plugin-engine
+score-plugin-js
+score-plugin-midi
+score-plugin-recording
+score-plugin-media
 )

@@ -1,15 +1,15 @@
 #pragma once
 #include <ossia/detail/string_view.hpp>
 #include <string>
-#include <iscore_player_export.h>
-namespace iscore
+#include <score_player_export.h>
+namespace score
 {
 /**
  * \brief Returns the path to a library whose name contains name_part
  *
- * e.g. the path to "i-score.pd_linux" for "i-score.p"
+ * e.g. the path to "score.pd_linux" for "score.p"
  *
  * Currently implemented only for linux and macOS
  */
-ISCORE_PLAYER_EXPORT std::string get_library_path(ossia::string_view name_part);
+SCORE_PLAYER_EXPORT std::string get_library_path(ossia::string_view name_part);
 }

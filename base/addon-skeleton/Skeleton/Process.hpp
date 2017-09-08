@@ -8,7 +8,7 @@ namespace Skeleton
 class Model final
     : public Process::ProcessModel
 {
-    ISCORE_SERIALIZE_FRIENDS
+    SCORE_SERIALIZE_FRIENDS
     PROCESS_METADATA_IMPL(Skeleton::Model)
     Q_OBJECT
 

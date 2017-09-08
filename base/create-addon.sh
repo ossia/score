@@ -34,8 +34,8 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   SED=/usr/bin/gsed
 fi
 
-cp -rf "$DIR/addon-skeleton" "$DIR/addons/iscore-addon-$ADDON"
-ADDON_DIR="$DIR/addons/iscore-addon-$ADDON"
+cp -rf "$DIR/addon-skeleton" "$DIR/addons/score-addon-$ADDON"
+ADDON_DIR="$DIR/addons/score-addon-$ADDON"
 mv "$ADDON_DIR/Skeleton" "$ADDON_DIR/$ADDON"
 $RENAME "s/skeleton/$ADDON_LC/" $ADDON_DIR/**/*.{hpp,cpp,txt} 
 $RENAME "s/Skeleton/$ADDON/" $ADDON_DIR/**/*.{hpp,cpp,txt} 

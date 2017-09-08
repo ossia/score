@@ -8,19 +8,19 @@
 #include <core/command/CommandStack.hpp>
 #include <core/document/Document.hpp>
 
-#include <iscore/actions/Menu.hpp>
-#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/actions/Menu.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
 
 #include <QIcon>
 #include <core/presenter/CoreActions.hpp>
 #include <core/presenter/CoreApplicationPlugin.hpp>
-#include <iscore/widgets/SetIcons.hpp>
+#include <score/widgets/SetIcons.hpp>
 
 class QObject;
 
-iscore::UndoApplicationPlugin::UndoApplicationPlugin(
-    const iscore::GUIApplicationContext& app)
-    : iscore::GUIApplicationPlugin{app}
+score::UndoApplicationPlugin::UndoApplicationPlugin(
+    const score::GUIApplicationContext& app)
+    : score::GUIApplicationPlugin{app}
     , m_undoAction{"Undo", nullptr}
     , m_redoAction{"Redo", nullptr}
 {
@@ -49,16 +49,16 @@ iscore::UndoApplicationPlugin::UndoApplicationPlugin(
       [&]() { currentDocument()->commandStack().redo(); });
 }
 
-iscore::UndoApplicationPlugin::~UndoApplicationPlugin()
+score::UndoApplicationPlugin::~UndoApplicationPlugin()
 {
   Foreach(
       m_connections, [](auto connection) { QObject::disconnect(connection); });
 }
 
-void iscore::UndoApplicationPlugin::on_documentChanged(
-    iscore::Document* olddoc, iscore::Document* newDoc)
+void score::UndoApplicationPlugin::on_documentChanged(
+    score::Document* olddoc, score::Document* newDoc)
 {
-  using namespace iscore;
+  using namespace score;
 
   // Cleanup
   Foreach(
@@ -103,7 +103,7 @@ void iscore::UndoApplicationPlugin::on_documentChanged(
   m_redoAction.setText(stack->redoText());
 }
 
-auto iscore::UndoApplicationPlugin::makeGUIElements() -> GUIElements
+auto score::UndoApplicationPlugin::makeGUIElements() -> GUIElements
 {
   GUIElements e;
   auto& toolbars = e.toolbars;

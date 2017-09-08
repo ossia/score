@@ -1,18 +1,18 @@
 #pragma once
-#include <iscore/application/ApplicationComponents.hpp>
-#include <iscore/application/GUIApplicationContext.hpp>
+#include <score/application/ApplicationComponents.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 
 #include <core/presenter/DocumentManager.hpp>
-#include <iscore/actions/ActionManager.hpp>
-#include <iscore/actions/MenuManager.hpp>
-#include <iscore/actions/ToolbarManager.hpp>
+#include <score/actions/ActionManager.hpp>
+#include <score/actions/MenuManager.hpp>
+#include <score/actions/ToolbarManager.hpp>
 
 #include <QMenuBar>
-#include <iscore_lib_base_export.h>
+#include <score_lib_base_export.h>
 #include <vector>
 class QObject;
 
-namespace iscore
+namespace score
 {
 
 class CoreApplicationPlugin;
@@ -28,19 +28,19 @@ class Settings;
      * It is also able to instantiate a Command from serialized Undo/Redo data.
      * (this should go in the DocumentPresenter maybe ?)
      */
-class ISCORE_LIB_BASE_EXPORT Presenter final : public QObject
+class SCORE_LIB_BASE_EXPORT Presenter final : public QObject
 {
   Q_OBJECT
-  friend class iscore::CoreApplicationPlugin;
+  friend class score::CoreApplicationPlugin;
 
 public:
   Presenter(
-      const iscore::ApplicationSettings& app,
-      const iscore::Settings& set,
-      iscore::View* view,
+      const score::ApplicationSettings& app,
+      const score::Settings& set,
+      score::View* view,
       QObject* parent);
 
-  // Exit i-score
+  // Exit score
   bool exit();
 
   View* view() const;

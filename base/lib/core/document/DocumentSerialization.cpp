@@ -16,13 +16,13 @@
 #include <core/application/ApplicationSettings.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
-#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateModel.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/tools/IdentifierGeneration.hpp>
-#include <iscore/tools/std/Optional.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
+#include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+#include <score/tools/std/Optional.hpp>
 #include <iterator>
 #include <stdexcept>
 #include <vector>
@@ -30,17 +30,17 @@
 #include "Document.hpp"
 #include "DocumentModel.hpp"
 #include <core/command/CommandStack.hpp>
-#include <iscore/application/ApplicationComponents.hpp>
-#include <iscore/application/ApplicationContext.hpp>
-#include <iscore/document/DocumentContext.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONValueVisitor.hpp>
-#include <iscore/model/IdentifiedObject.hpp>
+#include <score/application/ApplicationComponents.hpp>
+#include <score/application/ApplicationContext.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONValueVisitor.hpp>
+#include <score/model/IdentifiedObject.hpp>
 
 #include <core/presenter/DocumentManager.hpp>
-#include <iscore/model/Identifier.hpp>
+#include <score/model/Identifier.hpp>
 
-namespace iscore
+namespace score
 {
 QByteArray Document::saveDocumentModelAsByteArray()
 {
@@ -191,7 +191,7 @@ Document::Document(
 
 
 void DocumentModel::loadDocumentAsByteArray(
-    iscore::DocumentContext& ctx,
+    score::DocumentContext& ctx,
     const QByteArray& data,
     DocumentDelegateFactory& fact)
 {
@@ -229,7 +229,7 @@ void DocumentModel::loadDocumentAsByteArray(
 
   auto& plugin_factories
       = ctx.app.interfaces<DocumentPluginFactoryList>();
-  std::vector<iscore::DocumentPlugin*> docs(plug_n, nullptr);
+  std::vector<score::DocumentPlugin*> docs(plug_n, nullptr);
 
   for(int i = 0; i < plug_n; i++)
   {
@@ -246,7 +246,7 @@ void DocumentModel::loadDocumentAsByteArray(
     }
     else
     {
-      ISCORE_TODO;
+      SCORE_TODO;
     }
   }
 
@@ -255,7 +255,7 @@ void DocumentModel::loadDocumentAsByteArray(
 
   for(int i = 0; i < plug_n; i++)
   {
-    if(auto plug = qobject_cast<iscore::SerializableDocumentPlugin*>(docs[i]))
+    if(auto plug = qobject_cast<score::SerializableDocumentPlugin*>(docs[i]))
     {
       DataStream::Deserializer plug_writer{documentPluginModels[i].second};
       plug->reloadAfterDocument(plug_writer.toVariant());
@@ -264,7 +264,7 @@ void DocumentModel::loadDocumentAsByteArray(
 }
 
 void DocumentModel::loadDocumentAsJson(
-    iscore::DocumentContext& ctx,
+    score::DocumentContext& ctx,
     const QJsonObject& json,
     DocumentDelegateFactory& fact)
 {
@@ -275,7 +275,7 @@ void DocumentModel::loadDocumentAsJson(
   const auto& doc = (*doc_obj).toObject();
   this->setId(getStrongId(ctx.app.documents.documents()));
 
-  iscore::hash_map<iscore::SerializableDocumentPlugin*, QJsonObject> docs;
+  score::hash_map<score::SerializableDocumentPlugin*, QJsonObject> docs;
   // Load the plug-in models
   auto json_plugins = json["Plugins"].toObject();
   auto& plugin_factories
@@ -287,7 +287,7 @@ void DocumentModel::loadDocumentAsJson(
 
     if (plug)
     {
-      if(auto ser = qobject_cast<iscore::SerializableDocumentPlugin*>(plug))
+      if(auto ser = qobject_cast<score::SerializableDocumentPlugin*>(plug))
       {
         auto it = plug_writer.obj.find("DocumentPostModelPart");
         if((it != plug_writer.obj.end()) && it->isObject())
@@ -299,7 +299,7 @@ void DocumentModel::loadDocumentAsJson(
     }
     else
     {
-      ISCORE_TODO;
+      SCORE_TODO;
     }
   });
 
@@ -317,11 +317,11 @@ void DocumentModel::loadDocumentAsJson(
 
 // Load document model
 DocumentModel::DocumentModel(
-    iscore::DocumentContext& ctx,
+    score::DocumentContext& ctx,
     const QVariant& data,
     DocumentDelegateFactory& fact,
     QObject* parent)
-    : IdentifiedObject{Id<DocumentModel>(iscore::id_generator::getFirstId()),
+    : IdentifiedObject{Id<DocumentModel>(score::id_generator::getFirstId()),
                        "DocumentModel", parent}
 {
   using namespace std;
@@ -343,7 +343,7 @@ DocumentModel::DocumentModel(
     }
     else
     {
-      ISCORE_ABORT;
+      SCORE_ABORT;
     }
   }
   catch (...)

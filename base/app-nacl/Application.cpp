@@ -2,7 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Application.hpp"
 
-#include <iscore/tools/std/Optional.hpp>
+#include <score/tools/std/Optional.hpp>
 #include <core/application/ApplicationRegistrar.hpp>
 #include <core/document/DocumentBackups.hpp>
 #include <core/presenter/Presenter.hpp>
@@ -25,28 +25,28 @@
 #include <QStyleFactory>
 #include <QFileInfo>
 
-#include <iscore/tools/IdentifierGeneration.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
 #include <algorithm>
 #include <vector>
 
 #include <core/application/SafeQApplication.hpp>
-#include <iscore/application/ApplicationComponents.hpp>
+#include <score/application/ApplicationComponents.hpp>
 #include <core/application/ApplicationSettings.hpp>
 #include <core/plugin/PluginManager.hpp>
 #include <core/presenter/DocumentManager.hpp>
-#include <iscore/selection/Selection.hpp>
+#include <score/selection/Selection.hpp>
 
-#include <iscore/model/path/ObjectIdentifier.hpp>
-#include <iscore/model/Identifier.hpp>
-#include <iscore/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
-#include <iscore/plugins/panel/PanelDelegate.hpp>
+#include <score/model/path/ObjectIdentifier.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+#include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+#include <score/plugins/panel/PanelDelegate.hpp>
 
 #include <core/document/DocumentModel.hpp>
 #include <core/undo/Panel/UndoPanelFactory.hpp>
-#include "iscore_git_info.hpp"
-namespace iscore {
+#include "score_git_info.hpp"
+namespace score {
 class DocumentModel;
 
 static QApplication* make_application(
@@ -66,19 +66,19 @@ static void setQApplicationSettings(QApplication &m_app)
     QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf"); // Ubuntu
 
     QCoreApplication::setOrganizationName("OSSIA");
-    QCoreApplication::setOrganizationDomain("i-score.org");
-    QCoreApplication::setApplicationName("i-score");
+    QCoreApplication::setOrganizationDomain("score.org");
+    QCoreApplication::setApplicationName("score");
     QCoreApplication::setApplicationVersion(
                 QString("%1.%2.%3-%4")
-                .arg(ISCORE_VERSION_MAJOR)
-                .arg(ISCORE_VERSION_MINOR)
-                .arg(ISCORE_VERSION_PATCH)
-                .arg(ISCORE_VERSION_EXTRA)
+                .arg(SCORE_VERSION_MAJOR)
+                .arg(SCORE_VERSION_MINOR)
+                .arg(SCORE_VERSION_PATCH)
+                .arg(SCORE_VERSION_EXTRA)
                 );
 
     qRegisterMetaType<ObjectIdentifierVector> ("ObjectIdentifierVector");
     qRegisterMetaType<Selection>("Selection");
-    qRegisterMetaType<Id<iscore::DocumentModel>>("Id<DocumentModel>");
+    qRegisterMetaType<Id<score::DocumentModel>>("Id<DocumentModel>");
 
     QFile stylesheet_file{":/qdarkstyle/qdarkstyle.qss"};
     stylesheet_file.open(QFile::ReadOnly);
@@ -88,7 +88,7 @@ static void setQApplicationSettings(QApplication &m_app)
     qApp->setStyleSheet(stylesheet);
 }
 
-}  // namespace iscore
+}  // namespace score
 
 
 Application::Application(int& argc, char** argv) :
@@ -116,7 +116,7 @@ Application::~Application()
     delete m_view;
     delete m_presenter;
 
-    iscore::DocumentBackups::clear();
+    score::DocumentBackups::clear();
     QApplication::processEvents();
     delete m_app;
 }
@@ -131,11 +131,11 @@ void Application::init()
 {
     this->setObjectName("Application");
     this->setParent(qApp);
-    iscore::setQApplicationSettings(*qApp);
+    score::setQApplicationSettings(*qApp);
 
     // MVP
-    m_view = new iscore::View{this};
-    m_presenter = new iscore::Presenter{m_applicationSettings, m_settings, m_view, this};
+    m_view = new score::View{this};
+    m_presenter = new score::Presenter{m_applicationSettings, m_settings, m_view, this};
 
     // Plugins
     loadPluginData();
@@ -168,17 +168,17 @@ void Application::initDocuments()
     }
 
     // Try to reload if there was a crash
-    if(m_applicationSettings.tryToRestore && iscore::DocumentBackups::canRestoreDocuments())
+    if(m_applicationSettings.tryToRestore && score::DocumentBackups::canRestoreDocuments())
     {
         m_presenter->documentManager().restoreDocuments(ctx);
     }
     else
     {
-        if(!m_presenter->applicationComponents().interfaces<iscore::DocumentDelegateList>().empty())
+        if(!m_presenter->applicationComponents().interfaces<score::DocumentDelegateList>().empty())
             m_presenter->documentManager().newDocument(
                         ctx,
-                        Id<iscore::DocumentModel>{iscore::random_id_generator::getRandomId()},
-                        *m_presenter->applicationComponents().interfaces<iscore::DocumentDelegateList>().begin());
+                        Id<score::DocumentModel>{score::random_id_generator::getRandomId()},
+                        *m_presenter->applicationComponents().interfaces<score::DocumentDelegateList>().begin());
     }
 
     connect(m_app, &SafeQApplication::fileOpened,
@@ -190,7 +190,7 @@ void Application::initDocuments()
 void Application::loadPluginData()
 {
     auto& ctx = m_presenter->applicationContext();
-    iscore::ApplicationRegistrar registrar{
+    score::ApplicationRegistrar registrar{
         m_presenter->components(),
                 ctx,
                 *m_view,
@@ -198,33 +198,33 @@ void Application::loadPluginData()
                 m_presenter->toolbarManager(),
                 m_presenter->actionManager()};
 
-    registrar.registerFactory(std::make_unique<iscore::ValidityCheckerList>());
-    registrar.registerFactory(std::make_unique<iscore::DocumentDelegateList>());
-    auto panels = std::make_unique<iscore::PanelDelegateFactoryList>();
-    panels->insert(std::make_unique<iscore::UndoPanelDelegateFactory>());
+    registrar.registerFactory(std::make_unique<score::ValidityCheckerList>());
+    registrar.registerFactory(std::make_unique<score::DocumentDelegateList>());
+    auto panels = std::make_unique<score::PanelDelegateFactoryList>();
+    panels->insert(std::make_unique<score::UndoPanelDelegateFactory>());
     registrar.registerFactory(std::move(panels));
-    registrar.registerFactory(std::make_unique<iscore::DocumentPluginFactoryList>());
-    registrar.registerFactory(std::make_unique<iscore::SettingsDelegateFactoryList>());
+    registrar.registerFactory(std::make_unique<score::DocumentPluginFactoryList>());
+    registrar.registerFactory(std::make_unique<score::SettingsDelegateFactoryList>());
 
-    registrar.registerApplicationContextPlugin(new iscore::CoreApplicationPlugin{ctx, *m_presenter});
-    registrar.registerApplicationContextPlugin(new iscore::UndoApplicationPlugin{ctx});
+    registrar.registerApplicationContextPlugin(new score::CoreApplicationPlugin{ctx, *m_presenter});
+    registrar.registerApplicationContextPlugin(new score::UndoApplicationPlugin{ctx});
 
-    iscore::PluginLoader::loadPlugins(registrar, ctx);
+    score::PluginLoader::loadPlugins(registrar, ctx);
     // Load the settings
     QSettings s;
-    for(auto& elt : ctx.interfaces<iscore::SettingsDelegateFactoryList>())
+    for(auto& elt : ctx.interfaces<score::SettingsDelegateFactoryList>())
     {
         m_settings.setupSettingsPlugin(s, ctx, elt);
     }
 
     m_presenter->setupGUI();
 
-    for(iscore::GUIApplicationPlugin* app_plug : ctx.applicationPlugins())
+    for(score::GUIApplicationPlugin* app_plug : ctx.applicationPlugins())
     {
         app_plug->initialize();
     }
 
-    for(auto& panel_fac : context().interfaces<iscore::PanelDelegateFactoryList>())
+    for(auto& panel_fac : context().interfaces<score::PanelDelegateFactoryList>())
     {
         registrar.registerPanel(panel_fac);
     }

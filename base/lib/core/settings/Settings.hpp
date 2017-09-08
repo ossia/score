@@ -1,9 +1,9 @@
 #pragma once
 #include <QObject>
 #include <QSettings>
-#include <iscore_lib_base_export.h>
+#include <score_lib_base_export.h>
 #include <memory>
-namespace iscore
+namespace score
 {
 class SettingsDelegateFactory;
 class SettingsDelegateModel;
@@ -12,9 +12,9 @@ class SettingsPresenter;
 class SettingsView;
 
 struct ApplicationContext;
-} // namespace iscore
+} // namespace score
 
-namespace iscore
+namespace score
 {
 /**
  * @brief Application-wide user settings registering and handling.
@@ -28,11 +28,11 @@ namespace iscore
  *
  * A plug-in wishing to add user settings must :
  *
- * * Implement iscore::SettingsDelegateModel, iscore::SettingsDelegatePresenter, iscore::SettingsDelegateView
- * * Register them with ISCORE_DECLARE_SETTINGS_FACTORY.
+ * * Implement score::SettingsDelegateModel, score::SettingsDelegatePresenter, score::SettingsDelegateView
+ * * Register them with SCORE_DECLARE_SETTINGS_FACTORY.
  *
  */
-class ISCORE_LIB_BASE_EXPORT Settings final
+class SCORE_LIB_BASE_EXPORT Settings final
 {
 public:
   Settings();
@@ -45,7 +45,7 @@ public:
 
   void setupSettingsPlugin(
       QSettings& s,
-      const iscore::ApplicationContext& ctx,
+      const score::ApplicationContext& ctx,
       SettingsDelegateFactory& plugin);
   SettingsView& view() const
   {

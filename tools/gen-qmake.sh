@@ -16,7 +16,7 @@ $HEADERS
 $SOURCES
 
 $RESOURCES
-" > i-score-srcs.pri
+" > score-srcs.pri
 )
 
 (
@@ -32,7 +32,7 @@ $HEADERS
 
 $SOURCES
 
-" >> ../i-score-srcs.pri
+" >> ../score-srcs.pri
 )
 
 (
@@ -42,7 +42,7 @@ cd build
 (
 mkdir cmake-tmp
 cd cmake-tmp
-cmake -DISCORE_CONFIGURATION=static-release ../../
+cmake -DSCORE_CONFIGURATION=static-release ../../
 cp **/*.{h,hpp,cpp} ../
 )
 rm -rf cmake-tmp

@@ -1,7 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CoreApplicationPlugin.hpp"
-#include <iscore_git_info.hpp>
+#include <score_git_info.hpp>
 
 #include <QMessageBox>
 #include <QRecentFilesMenu.h>
@@ -9,9 +9,9 @@
 #include <core/settings/Settings.hpp>
 #include <core/settings/SettingsView.hpp>
 #include <core/view/View.hpp>
-#include <iscore/actions/Menu.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
-namespace iscore
+#include <score/actions/Menu.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+namespace score
 {
 
 CoreApplicationPlugin::CoreApplicationPlugin(
@@ -25,7 +25,7 @@ void CoreApplicationPlugin::newDocument()
   m_presenter.m_docManager.newDocument(
       context,
       getStrongId(m_presenter.m_docManager.documents()),
-      *context.interfaces<iscore::DocumentDelegateList>().begin());
+      *context.interfaces<score::DocumentDelegateList>().begin());
 }
 
 void CoreApplicationPlugin::load()
@@ -69,11 +69,11 @@ void CoreApplicationPlugin::openSettings()
 void CoreApplicationPlugin::about()
 {
   auto version_text = QStringLiteral("%1.%2.%3-%4 '%5'\n\n")
-                          .arg(ISCORE_VERSION_MAJOR)
-                          .arg(ISCORE_VERSION_MINOR)
-                          .arg(ISCORE_VERSION_PATCH)
-                          .arg(ISCORE_VERSION_EXTRA)
-                          .arg(ISCORE_CODENAME);
+                          .arg(SCORE_VERSION_MAJOR)
+                          .arg(SCORE_VERSION_MINOR)
+                          .arg(SCORE_VERSION_PATCH)
+                          .arg(SCORE_VERSION_EXTRA)
+                          .arg(SCORE_CODENAME);
 
   QString commit{GIT_COMMIT};
   if (!commit.isEmpty())
@@ -83,8 +83,8 @@ void CoreApplicationPlugin::about()
 
   QMessageBox::about(
       nullptr,
-      tr("About i-score"),
-      tr("With love and sweat from the i-score team. \nVersion:\n")
+      tr("About score"),
+      tr("With love and sweat from the score team. \nVersion:\n")
           + version_text);
 }
 
@@ -189,7 +189,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
   file->addSeparator();
 
   file->addMenu(export_menu);
-#ifdef ISCORE_DEBUG
+#ifdef SCORE_DEBUG
   // Add command stack import / export
   {
     auto loadStack_act = new QAction(m_presenter.view());
