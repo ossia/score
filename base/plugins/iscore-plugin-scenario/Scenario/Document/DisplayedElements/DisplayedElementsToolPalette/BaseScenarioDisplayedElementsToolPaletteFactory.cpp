@@ -2,7 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <QObject>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 #include "BaseScenarioDisplayedElementsToolPalette.hpp"
 #include "BaseScenarioDisplayedElementsToolPaletteFactory.hpp"
@@ -14,14 +14,14 @@ class ScenarioDocumentPresenter;
 
 std::unique_ptr<GraphicsSceneToolPalette>
 BaseScenarioDisplayedElementsToolPaletteFactory::make(
-    ScenarioDocumentPresenter& pres, const ConstraintModel& constraint)
+    ScenarioDocumentPresenter& pres, const IntervalModel& interval)
 {
   return std::make_unique<BaseScenarioDisplayedElementsToolPalette>(pres);
 }
 
 bool BaseScenarioDisplayedElementsToolPaletteFactory::matches(
-    const ConstraintModel& constraint) const
+    const IntervalModel& interval) const
 {
-  return dynamic_cast<BaseScenario*>(constraint.parent());
+  return dynamic_cast<BaseScenario*>(interval.parent());
 }
 }

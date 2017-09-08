@@ -28,7 +28,7 @@ class QObject;
 
 namespace Scenario
 {
-class ConstraintModel;
+class IntervalModel;
 
 UuidKey<Process::ProcessModel>
 ScenarioFactory::concreteKey() const noexcept

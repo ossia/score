@@ -131,10 +131,10 @@ private slots:
     auto event_id = event2Cmd.createdEvent();
     auto eventCreated = scenar->event(event_id);
 
-    int prevConstraintCount = 1;
-    QCOMPARE(eventCreated->previousConstraints().size(), prevConstraintCount);
+    int prevIntervalCount = 1;
+    QCOMPARE(eventCreated->previousIntervals().size(), prevIntervalCount);
 
-    auto prevConstraints = eventCreated->previousConstraints();
+    auto prevIntervals = eventCreated->previousIntervals();
 
     int nbOfEvent = 4;
     int nbOfTimeSyncs = 3;
@@ -162,11 +162,11 @@ private slots:
     QCOMPARE((int)scenar->timeSyncs().size(), nbOfTimeSyncs);
     QCOMPARE(scenar->event(event_id)->heightPercentage(), 0.4);
     QCOMPARE(
-        scenar->event(event_id)->previousConstraints().size(),
-        prevConstraintCount);
+        scenar->event(event_id)->previousIntervals().size(),
+        prevIntervalCount);
     QCOMPARE(
-        scenar->event(event_id)->previousConstraints().first(),
-        prevConstraints[0]);
+        scenar->event(event_id)->previousIntervals().first(),
+        prevIntervals[0]);
 
     removeCmd.redo(ctx);
     QCOMPARE((int)scenar->events().size(), nbOfEvent - 1);

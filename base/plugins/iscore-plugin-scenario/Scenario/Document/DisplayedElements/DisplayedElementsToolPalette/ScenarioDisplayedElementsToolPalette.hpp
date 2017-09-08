@@ -14,7 +14,7 @@ class BaseGraphicsObject;
 namespace Scenario
 {
 class EditionSettings;
-class MoveConstraintInScenario_StateWrapper;
+class MoveIntervalInScenario_StateWrapper;
 class MoveLeftBraceInScenario_StateWrapper;
 class MoveRightBraceInScenario_StateWrapper;
 class MoveEventInTopScenario_StateWrapper;
@@ -60,7 +60,7 @@ private:
             Scenario::ProcessModel,
             ScenarioDisplayedElementsToolPalette,
             BaseGraphicsObject,
-            Scenario::MoveConstraintInScenario_StateWrapper,
+            Scenario::MoveIntervalInScenario_StateWrapper,
             Scenario::MoveLeftBraceInScenario_StateWrapper,
             Scenario::MoveRightBraceInScenario_StateWrapper,
             Scenario::MoveEventInTopScenario_StateWrapper,

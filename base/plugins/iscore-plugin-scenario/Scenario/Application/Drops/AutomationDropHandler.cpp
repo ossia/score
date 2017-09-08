@@ -4,10 +4,10 @@
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 #include <Scenario/Commands/Cohesion/CreateCurves.hpp>
-#include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
-#include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
+#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
+#include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <iscore/command/Dispatchers/CommandDispatcher.hpp>
 #include <iscore/command/Dispatchers/MacroCommandDispatcher.hpp>
@@ -42,30 +42,30 @@ bool DropProcessInScenario::drop(
 
     // Create a box with the duration of the longest song
     auto box_cmd
-        = new Scenario::Command::CreateConstraint_State_Event_TimeSync{
+        = new Scenario::Command::CreateInterval_State_Event_TimeSync{
             scenar, start_cmd->createdState(), pt.date + t, pt.y};
     m.submitCommand(box_cmd);
-    auto& constraint = scenar.constraint(box_cmd->createdConstraint());
+    auto& interval = scenar.interval(box_cmd->createdInterval());
 
     // Create process
     auto process_cmd
-        = new Scenario::Command::AddOnlyProcessToConstraint{constraint, p.key};
+        = new Scenario::Command::AddOnlyProcessToInterval{interval, p.key};
     m.submitCommand(process_cmd);
 
     // Create a new slot
-    auto slot_cmd = new Scenario::Command::AddSlotToRack{constraint};
+    auto slot_cmd = new Scenario::Command::AddSlotToRack{interval};
     m.submitCommand(slot_cmd);
 
     // Add a new layer in this slot.
-    auto& proc = constraint.processes.at(process_cmd->processId());
+    auto& proc = interval.processes.at(process_cmd->processId());
     auto layer_cmd = new Scenario::Command::AddLayerModelToSlot{
-        SlotPath{constraint, int(constraint.smallView().size() - 1)},
+        SlotPath{interval, int(interval.smallView().size() - 1)},
         proc};
 
     m.submitCommand(layer_cmd);
 
     // Finally we show the newly created rack
-    auto show_cmd = new Scenario::Command::ShowRack{constraint};
+    auto show_cmd = new Scenario::Command::ShowRack{interval};
     m.submitCommand(show_cmd);
 
     m.commit();
@@ -79,8 +79,8 @@ bool DropProcessInScenario::drop(
   return false;
 }
 
-bool DropProcessInConstraint::drop(
-    const ConstraintModel& cst, const QMimeData* mime)
+bool DropProcessInInterval::drop(
+    const IntervalModel& cst, const QMimeData* mime)
 {
   if (mime->formats().contains(iscore::mime::processdata()))
   {
@@ -89,7 +89,7 @@ bool DropProcessInConstraint::drop(
 
     auto& doc = iscore::IDocument::documentContext(cst);
 
-    auto cmd = new Scenario::Command::AddProcessToConstraint(cst, p.key);
+    auto cmd = new Scenario::Command::AddProcessToInterval(cst, p.key);
     CommandDispatcher<> d{doc.commandStack};
     d.submitCommand(cmd);
     return true;
@@ -130,7 +130,7 @@ static void getAddressesRecursively(
 }
 
 bool AutomationDropHandler::drop(
-    const ConstraintModel& cst, const QMimeData* mime)
+    const IntervalModel& cst, const QMimeData* mime)
 {
   // TODO refactor with AddressEditWidget
   if (mime->formats().contains(iscore::mime::nodelist()))

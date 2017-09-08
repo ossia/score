@@ -36,14 +36,14 @@ namespace Automation
 namespace RecreateOnPlay
 {
 Component::Component(
-    ::Engine::Execution::ConstraintComponent& parentConstraint,
+    ::Engine::Execution::IntervalComponent& parentInterval,
     ::Automation::ProcessModel& element,
     const ::Engine::Execution::Context& ctx,
     const Id<iscore::Component>& id,
     QObject* parent)
   : ::Engine::Execution::
       ProcessComponent_T<Automation::ProcessModel, ossia::automation>{
-        parentConstraint,
+        parentInterval,
         element,
         ctx,
         id, "Executor::AutomationComponent", parent}

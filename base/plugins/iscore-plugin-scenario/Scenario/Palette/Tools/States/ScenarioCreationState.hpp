@@ -7,10 +7,10 @@
 
 #include <Scenario/Tools/elementFindingHelper.hpp>
 
-#include <Scenario/Commands/Scenario/Creations/CreateConstraint.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeSync.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateInterval.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateInterval_State.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event_TimeSync.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateSequence.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
@@ -46,12 +46,12 @@ public:
   QVector<Id<StateModel>> createdStates;
   QVector<Id<EventModel>> createdEvents;
   QVector<Id<TimeSyncModel>> createdTimeSyncs;
-  QVector<Id<ConstraintModel>> createdConstraints;
+  QVector<Id<IntervalModel>> createdIntervals;
 
   void clearCreatedIds()
   {
     createdEvents.clear();
-    createdConstraints.clear();
+    createdIntervals.clear();
     createdTimeSyncs.clear();
     createdStates.clear();
   }
@@ -84,13 +84,13 @@ protected:
       if (getDate(m_parentSM.model(), originalState)
           < getDate(m_parentSM.model(), *this->hoveredState))
       {
-        auto cmd = new Scenario::Command::CreateConstraint{
+        auto cmd = new Scenario::Command::CreateInterval{
             this->m_scenario, originalState,
             *this->hoveredState};
 
         m_dispatcher.submitCommand(cmd);
 
-        this->createdConstraints.append(cmd->createdConstraint());
+        this->createdIntervals.append(cmd->createdInterval());
       } // else do nothing
     }
   }
@@ -104,13 +104,13 @@ protected:
       if (getDate(m_parentSM.model(), originalState)
           < getDate(m_parentSM.model(), *this->hoveredEvent))
       {
-        auto cmd = new Scenario::Command::CreateConstraint_State{
+        auto cmd = new Scenario::Command::CreateInterval_State{
             this->m_scenario, originalState,
             *this->hoveredEvent, this->currentPoint.y};
 
         m_dispatcher.submitCommand(cmd);
 
-        this->createdConstraints.append(cmd->createdConstraint());
+        this->createdIntervals.append(cmd->createdInterval());
         this->createdStates.append(cmd->createdState());
       } // else do nothing
     }
@@ -125,7 +125,7 @@ protected:
       if (getDate(m_parentSM.model(), originalState)
           < getDate(m_parentSM.model(), *this->hoveredTimeSync))
       {
-        auto cmd = new Scenario::Command::CreateConstraint_State_Event{
+        auto cmd = new Scenario::Command::CreateInterval_State_Event{
             this->m_scenario, originalState, *this->hoveredTimeSync,
             this->currentPoint.y};
 
@@ -133,7 +133,7 @@ protected:
 
         this->createdStates.append(cmd->createdState());
         this->createdEvents.append(cmd->createdEvent());
-        this->createdConstraints.append(cmd->createdConstraint());
+        this->createdIntervals.append(cmd->createdInterval());
       }
     }
   }
@@ -142,7 +142,7 @@ protected:
   {
     if (!m_parentSM.editionSettings().sequence())
     {
-      auto cmd = new Scenario::Command::CreateConstraint_State_Event_TimeSync{
+      auto cmd = new Scenario::Command::CreateInterval_State_Event_TimeSync{
           this->m_scenario,
           originalState, // Put there in createInitialState
           this->currentPoint.date, this->currentPoint.y};
@@ -152,7 +152,7 @@ protected:
       this->createdStates.append(cmd->createdState());
       this->createdEvents.append(cmd->createdEvent());
       this->createdTimeSyncs.append(cmd->createdTimeSync());
-      this->createdConstraints.append(cmd->createdConstraint());
+      this->createdIntervals.append(cmd->createdInterval());
     }
     else
     {
@@ -170,7 +170,7 @@ protected:
       this->createdStates.append(cmd->createdState());
       this->createdEvents.append(cmd->createdEvent());
       this->createdTimeSyncs.append(cmd->createdTimeSync());
-      this->createdConstraints.append(cmd->createdConstraint());
+      this->createdIntervals.append(cmd->createdInterval());
     }
   }
 
@@ -187,10 +187,10 @@ protected:
     if (this->createdStates.empty())
       return;
 
-    if (!this->createdConstraints.empty())
+    if (!this->createdIntervals.empty())
     {
       const auto& cst
-          = m_parentSM.model().constraints.at(this->createdConstraints.last());
+          = m_parentSM.model().intervals.at(this->createdIntervals.last());
       if (!cst.processes.empty())
       {
         // In case of the presence of a sequence, we
@@ -230,8 +230,8 @@ protected:
     Selection s;
     if(!this->createdStates.empty())
       s.append(&m_parentSM.model().states.at(this->createdStates.back()));
-    if(!this->createdConstraints.empty())
-      s.append(&m_parentSM.model().constraints.at(this->createdConstraints.back()));
+    if(!this->createdIntervals.empty())
+      s.append(&m_parentSM.model().intervals.at(this->createdIntervals.back()));
 
     iscore::SelectionDispatcher d{this->m_parentSM.context().context.selectionStack};
     d.setAndCommit(s);

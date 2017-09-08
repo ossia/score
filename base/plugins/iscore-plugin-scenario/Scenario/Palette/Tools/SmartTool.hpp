@@ -18,7 +18,7 @@ template <
     typename Scenario_T,
     typename ToolPalette_T,
     typename View_T,
-    typename MoveConstraintWrapper_T,
+    typename MoveIntervalWrapper_T,
     typename MoveLeftBraceWrapper_T,
     typename MoveRightBraceWrapper_T,
     typename MoveEventWrapper_T,
@@ -41,7 +41,7 @@ public:
       auto waitState = new QState(actionsState);
       actionsState->setInitialState(waitState);
 
-      MoveConstraintWrapper_T::template make<Scenario_T, ToolPalette_T>(
+      MoveIntervalWrapper_T::template make<Scenario_T, ToolPalette_T>(
             this->m_palette, waitState, *actionsState);
       MoveLeftBraceWrapper_T::template make<Scenario_T, ToolPalette_T>(
             this->m_palette, waitState, *actionsState);
@@ -111,9 +111,9 @@ public:
       this->localSM().postEvent(new ClickOnTimeSync_Event{id, sp});
       m_nothingPressed = false;
     },
-    [&](const Id<ConstraintModel>& id) // Constraint
+    [&](const Id<IntervalModel>& id) // Interval
     {
-      const auto& elt = this->m_palette.presenter().constraint(id);
+      const auto& elt = this->m_palette.presenter().interval(id);
       if(!elt.isSelected())
       {
         m_state->dispatcher.setAndCommit(
@@ -122,12 +122,12 @@ public:
                 this->m_palette.model().selectedChildren(),
                 m_state->multiSelection()));
       }
-      this->localSM().postEvent(new ClickOnConstraint_Event{id, sp});
+      this->localSM().postEvent(new ClickOnInterval_Event{id, sp});
       m_nothingPressed = false;
     },
-    [&](const Id<ConstraintModel>& id) // LeftBrace
+    [&](const Id<IntervalModel>& id) // LeftBrace
     {
-      const auto& elt = this->m_palette.presenter().constraint(id);
+      const auto& elt = this->m_palette.presenter().interval(id);
 
       if(!elt.isSelected())
       {
@@ -141,9 +141,9 @@ public:
       this->localSM().postEvent((new ClickOnLeftBrace_Event{id, sp}));
       m_nothingPressed = false;
     },
-    [&](const Id<ConstraintModel>& id) // RightBrace
+    [&](const Id<IntervalModel>& id) // RightBrace
     {
-      const auto& elt = this->m_palette.presenter().constraint(id);
+      const auto& elt = this->m_palette.presenter().interval(id);
 
       if(!elt.isSelected())
       {
@@ -190,13 +190,13 @@ public:
       [&](const Id<TimeSyncModel>& id) {
         this->localSM().postEvent(new MoveOnTimeSync_Event{id, sp});
       }, // timesync
-      [&](const Id<ConstraintModel>& id) {
-        this->localSM().postEvent(new MoveOnConstraint_Event{id, sp});
-      }, // constraint
-      [&](const Id<ConstraintModel>& id) {
+      [&](const Id<IntervalModel>& id) {
+        this->localSM().postEvent(new MoveOnInterval_Event{id, sp});
+      }, // interval
+      [&](const Id<IntervalModel>& id) {
         this->localSM().postEvent(new MoveOnLeftBrace_Event{id, sp});
       }, // LeftBrace
-      [&](const Id<ConstraintModel>& id) {
+      [&](const Id<IntervalModel>& id) {
         this->localSM().postEvent(new MoveOnRightBrace_Event{id, sp});
       }, // RightBrace
       [&](const SlotPath& slot) {
@@ -237,15 +237,15 @@ public:
     {
       this->localSM().postEvent(new ReleaseOnTimeSync_Event{id, sp});
     },
-    [&](const Id<ConstraintModel>& id) // Constraint
+    [&](const Id<IntervalModel>& id) // Interval
     {
-      this->localSM().postEvent(new ReleaseOnConstraint_Event{id, sp});
+      this->localSM().postEvent(new ReleaseOnInterval_Event{id, sp});
     },
-    [&](const Id<ConstraintModel>& id) // LeftBrace
+    [&](const Id<IntervalModel>& id) // LeftBrace
     {
       this->localSM().postEvent(new ReleaseOnLeftBrace_Event{id, sp});
     },
-    [&](const Id<ConstraintModel>& id) // RightBrace
+    [&](const Id<IntervalModel>& id) // RightBrace
     {
       this->localSM().postEvent(new ReleaseOnRightBrace_Event{id, sp});
     },

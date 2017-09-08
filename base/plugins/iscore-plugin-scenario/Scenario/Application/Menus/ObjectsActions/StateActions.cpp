@@ -60,7 +60,7 @@ void StateActions::makeGUIElements(iscore::GUIElements& ref)
   object.menu()->addAction(m_refreshStates);
 
   Toolbar& tb = *ossia::find_if(ref.toolbars, [](auto& tb) {
-    return tb.key() == StringKey<iscore::Toolbar>("Constraint");
+    return tb.key() == StringKey<iscore::Toolbar>("Interval");
   });
   tb.toolbar()->addAction(m_snapshot);
   tb.toolbar()->addAction(m_refreshStates);

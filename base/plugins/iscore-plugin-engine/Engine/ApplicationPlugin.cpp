@@ -8,7 +8,7 @@
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 
-#include <Engine/Executor/ConstraintComponent.hpp>
+#include <Engine/Executor/IntervalComponent.hpp>
 #include <Engine/Executor/StateComponent.hpp>
 #include <Process/TimeValue.hpp>
 
@@ -18,7 +18,7 @@
 #include <iscore/tools/Todo.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/context.hpp>
-#include <ossia/editor/scenario/time_constraint.hpp>
+#include <ossia/editor/scenario/time_interval.hpp>
 #include <Engine/Executor/ClockManager/ClockManagerFactory.hpp>
 #include <Engine/Executor/ContextMenu/PlayContextMenu.hpp>
 #include <Engine/LocalTree/LocalTreeDocumentPlugin.hpp>
@@ -161,12 +161,12 @@ void ApplicationPlugin::on_play(bool b, ::TimeVal t)
         &doc->presenter().presenterDelegate());
     if (!scenar)
       return;
-    on_play(scenar->displayedElements.constraint(), b, {}, t);
+    on_play(scenar->displayedElements.interval(), b, {}, t);
   }
 }
 
 void ApplicationPlugin::on_play(
-    Scenario::ConstraintModel& cst, bool b,
+    Scenario::IntervalModel& cst, bool b,
     std::function<void(const Engine::Execution::Context&)> setup_fun,
     TimeVal t)
 {
@@ -255,7 +255,7 @@ void ApplicationPlugin::on_record(::TimeVal t)
       return;
 
     // Listening isn't stopped here.
-    plugmodel->reload(scenar->baseConstraint());
+    plugmodel->reload(scenar->baseInterval());
     m_clock = makeClock(plugmodel->context());
     m_clock->play(t);
 

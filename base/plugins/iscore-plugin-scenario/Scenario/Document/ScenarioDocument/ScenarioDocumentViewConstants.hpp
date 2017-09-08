@@ -4,20 +4,20 @@ namespace Scenario
 {
 // SPace at the left of the main box in the main scenario view.
 static const constexpr double ScenarioLeftSpace = 0.; // -5
-static const constexpr double ConstraintHeaderHeight = 30.;
+static const constexpr double IntervalHeaderHeight = 30.;
 
 class ItemType
 {
 public:
   enum Type
   {
-    Constraint = 1,
+    Interval = 1,
     LeftBrace,
     RightBrace,
     SlotHandle,
     SlotHeader,
     SlotOverlay,
-    ConstraintHeader,
+    IntervalHeader,
     TimeSync,
     Trigger,
     Event,
@@ -35,11 +35,11 @@ public:
     Comment = 1,
     TimeSync,
     Event,
-    Constraint,
-    SelectedConstraint,
+    Interval,
+    SelectedInterval,
     State
   };
-  enum ConstraintItemZPos
+  enum IntervalItemZPos
   {
     Header = 1,
     Rack,

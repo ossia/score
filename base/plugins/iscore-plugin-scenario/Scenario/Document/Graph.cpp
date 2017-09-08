@@ -10,7 +10,7 @@
 #include "Graph.hpp"
 
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 
@@ -27,7 +27,7 @@ TimenodeGraph::TimenodeGraph(
     m_vertices[&tn] = boost::add_vertex(&tn, m_graph);
   }
 
-  for(auto& cst : scenar.getConstraints())
+  for(auto& cst : scenar.getIntervals())
   {
     m_edges[&cst] = boost::add_edge(
           m_vertices[&Scenario::startTimeSync(cst, scenar)],

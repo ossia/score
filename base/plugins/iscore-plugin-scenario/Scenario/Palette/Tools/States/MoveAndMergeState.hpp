@@ -174,14 +174,14 @@ public:
         if (!evId)
           return;
 
-        auto prev_csts = previousConstraints(scenar.event(*evId), scenar);
+        auto prev_csts = previousIntervals(scenar.event(*evId), scenar);
         if (!prev_csts.empty())
         {
           // We find the one that starts the latest.
           TimeVal t = TimeVal::zero();
           for (const auto& cst_id : prev_csts)
           {
-            const auto& other_date = scenar.constraint(cst_id).startDate();
+            const auto& other_date = scenar.interval(cst_id).startDate();
             if (other_date > t)
               t = other_date;
           }
@@ -338,7 +338,7 @@ public:
 //        if (this->currentPoint.date <= this->m_clickedPoint.date)
 //        {
 //            auto& tn = scenar.timeSync(tnId);
-//            const auto& prev = Scenario::previousConstraints(tn, scenar);
+//            const auto& prev = Scenario::previousIntervals(tn, scenar);
 //            if(!prev.empty())
 //                return;
 //        }
@@ -398,7 +398,7 @@ public:
 //        if (this->currentPoint.date <= this->m_clickedPoint.date)
 //        {
 //            auto& tn = scenar.timeSync(tnId);
-//            const auto& prev = Scenario::previousConstraints(tn, scenar);
+//            const auto& prev = Scenario::previousIntervals(tn, scenar);
 //            if(!prev.empty()) { qDebug("bye 3");
 //                return;
 //            }
@@ -505,14 +505,14 @@ public:
 //        if (!evId)
 //          return;
 
-//        auto prev_csts = Scenario::previousConstraints(scenar.event(*evId), scenar);
+//        auto prev_csts = Scenario::previousIntervals(scenar.event(*evId), scenar);
 //        if (!prev_csts.empty())
 //        {
 //          // We find the one that starts the latest.
 //          TimeVal t = TimeVal::zero();
 //          for (const auto& cst_id : prev_csts)
 //          {
-//            const auto& other_date = scenar.constraint(cst_id).startDate();
+//            const auto& other_date = scenar.interval(cst_id).startDate();
 //            if (other_date > t)
 //              t = other_date;
 //          }

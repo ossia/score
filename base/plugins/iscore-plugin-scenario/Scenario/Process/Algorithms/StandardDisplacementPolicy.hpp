@@ -2,13 +2,13 @@
 #include <Process/TimeValue.hpp>
 #include <iscore/model/Identifier.hpp>
 
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
-#include <Scenario/Commands/Scenario/Deletions/ClearConstraint.hpp>
-#include <Scenario/Document/Constraint/Slot.hpp>
+#include <Scenario/Commands/Scenario/Deletions/ClearInterval.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <iscore/document/DocumentInterface.hpp>
 
@@ -50,47 +50,47 @@ public:
       }
     }
 
-    // update affected constraints
-    for(auto& e : propsToUpdate.constraints)
+    // update affected intervals
+    for(auto& e : propsToUpdate.intervals)
     {
-      auto curConstraintPropertiesToUpdate_id = e.first;
+      auto curIntervalPropertiesToUpdate_id = e.first;
 
-      auto& curConstraintToUpdate
-          = scenario.constraints.at(curConstraintPropertiesToUpdate_id);
-      auto& curConstraintPropertiesToUpdate = e.second;
+      auto& curIntervalToUpdate
+          = scenario.intervals.at(curIntervalPropertiesToUpdate_id);
+      auto& curIntervalPropertiesToUpdate = e.second;
 
       // compute default duration here
       const auto& startDate
           = scenario
-                .event(scenario.state(curConstraintToUpdate.startState())
+                .event(scenario.state(curIntervalToUpdate.startState())
                            .eventId())
                 .date();
       const auto& endDate
           = scenario
                 .event(
-                    scenario.state(curConstraintToUpdate.endState()).eventId())
+                    scenario.state(curIntervalToUpdate.endState()).eventId())
                 .date();
 
       TimeVal defaultDuration = endDate - startDate;
 
       // set start date and default duration
-      if (!(curConstraintToUpdate.startDate() - startDate).isZero())
+      if (!(curIntervalToUpdate.startDate() - startDate).isZero())
       {
-        curConstraintToUpdate.setStartDate(startDate);
+        curIntervalToUpdate.setStartDate(startDate);
       }
-      curConstraintToUpdate.duration.setDefaultDuration(defaultDuration);
+      curIntervalToUpdate.duration.setDefaultDuration(defaultDuration);
 
-      curConstraintToUpdate.duration.setMinDuration(
-          curConstraintPropertiesToUpdate.newMin);
-      curConstraintToUpdate.duration.setMaxDuration(
-          curConstraintPropertiesToUpdate.newMax);
+      curIntervalToUpdate.duration.setMinDuration(
+          curIntervalPropertiesToUpdate.newMin);
+      curIntervalToUpdate.duration.setMaxDuration(
+          curIntervalPropertiesToUpdate.newMax);
 
-      for (auto& process : curConstraintToUpdate.processes)
+      for (auto& process : curIntervalToUpdate.processes)
       {
         scaleMethod(process, defaultDuration);
       }
 
-      emit scenario.constraintMoved(curConstraintToUpdate);
+      emit scenario.intervalMoved(curIntervalToUpdate);
     }
   }
 
@@ -118,57 +118,57 @@ public:
       }
     }
 
-    // update affected constraints with old values and restor processes
-    for(auto& e : propsToUpdate.constraints)
+    // update affected intervals with old values and restor processes
+    for(auto& e : propsToUpdate.intervals)
     {
-      auto curConstraintPropertiesToUpdate_id = e.first;
+      auto curIntervalPropertiesToUpdate_id = e.first;
 
-      auto& curConstraintToUpdate
-          = scenario.constraints.at(curConstraintPropertiesToUpdate_id);
-      auto& curConstraintPropertiesToUpdate = e.second;
+      auto& curIntervalToUpdate
+          = scenario.intervals.at(curIntervalPropertiesToUpdate_id);
+      auto& curIntervalPropertiesToUpdate = e.second;
 
       // compute default duration here
       const auto& startDate
           = scenario
-                .event(scenario.state(curConstraintToUpdate.startState())
+                .event(scenario.state(curIntervalToUpdate.startState())
                            .eventId())
                 .date();
       const auto& endDate
           = scenario
                 .event(
-                    scenario.state(curConstraintToUpdate.endState()).eventId())
+                    scenario.state(curIntervalToUpdate.endState()).eventId())
                 .date();
 
       TimeVal defaultDuration = endDate - startDate;
 
       // set start date and default duration
-      if (!(curConstraintToUpdate.startDate() - startDate).isZero())
+      if (!(curIntervalToUpdate.startDate() - startDate).isZero())
       {
-        curConstraintToUpdate.setStartDate(startDate);
+        curIntervalToUpdate.setStartDate(startDate);
       }
-      curConstraintToUpdate.duration.setDefaultDuration(defaultDuration);
+      curIntervalToUpdate.duration.setDefaultDuration(defaultDuration);
 
       // set durations
-      curConstraintToUpdate.duration.setMinDuration(
-          curConstraintPropertiesToUpdate.oldMin);
-      curConstraintToUpdate.duration.setMaxDuration(
-          curConstraintPropertiesToUpdate.oldMax);
+      curIntervalToUpdate.duration.setMinDuration(
+          curIntervalPropertiesToUpdate.oldMin);
+      curIntervalToUpdate.duration.setMaxDuration(
+          curIntervalPropertiesToUpdate.oldMax);
 
-      // Now we have to restore the state of each constraint that might have
+      // Now we have to restore the state of each interval that might have
       // been modified
       // during this command.
 
-      // 1. Clear the constraint
+      // 1. Clear the interval
       // TODO Don't use a command since it serializes a ton of unused stuff.
-      Command::ClearConstraint clear_cmd{curConstraintToUpdate};
+      Command::ClearInterval clear_cmd{curIntervalToUpdate};
       clear_cmd.redo(ctx);
 
       // 2. Restore the rackes & processes.
-      // Restore the constraint. The saving is done in
+      // Restore the interval. The saving is done in
       // GenericDisplacementPolicy.
-      curConstraintPropertiesToUpdate.reload(curConstraintToUpdate);
+      curIntervalPropertiesToUpdate.reload(curIntervalToUpdate);
 
-      emit scenario.constraintMoved(curConstraintToUpdate);
+      emit scenario.intervalMoved(curIntervalToUpdate);
     }
   }
 };

@@ -5,9 +5,9 @@
 namespace Scenario
 {
 
-inline static auto& getConstraints(const ProcessModel& target)
+inline static auto& getIntervals(const ProcessModel& target)
 {
-  return target.constraints;
+  return target.intervals;
 }
 
 inline static auto& getStates(const ProcessModel& target)
@@ -25,9 +25,9 @@ inline static auto& getTimeSyncs(const ProcessModel& target)
   return target.timeSyncs;
 }
 
-inline static auto getConstraints(const BaseScenarioContainer& target)
+inline static auto getIntervals(const BaseScenarioContainer& target)
 {
-  return target.constraints();
+  return target.intervals();
 }
 
 inline static auto getStates(const BaseScenarioContainer& target)
@@ -70,7 +70,7 @@ public:
     }
   }
 
-  void visit(Scenario::ConstraintModel& c)
+  void visit(Scenario::IntervalModel& c)
   {
     for(auto& proc : c.processes)
     {

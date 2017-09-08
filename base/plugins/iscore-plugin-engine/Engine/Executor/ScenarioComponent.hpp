@@ -6,13 +6,13 @@
 #include <map>
 #include <memory>
 #include <Scenario/Document/Components/ScenarioComponent.hpp>
-#include <Engine/Executor/ConstraintComponent.hpp>
+#include <Engine/Executor/IntervalComponent.hpp>
 #include <Engine/Executor/EventComponent.hpp>
 #include <Engine/Executor/StateComponent.hpp>
 #include <Engine/Executor/TimeSyncComponent.hpp>
 
 #include "ProcessComponent.hpp"
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
 
 namespace Device
@@ -56,7 +56,7 @@ namespace Engine
 {
 namespace Execution
 {
-class ConstraintComponent;
+class IntervalComponent;
 
 // TODO see if this can be used for the base scenario model too.
 class ScenarioComponentBase
@@ -67,7 +67,7 @@ class ScenarioComponentBase
   friend class EventInitCommand;
 public:
   ScenarioComponentBase(
-      ConstraintComponent& cst,
+      IntervalComponent& cst,
       Scenario::ProcessModel& proc,
       const Context& ctx,
       const Id<iscore::Component>& id,
@@ -77,9 +77,9 @@ public:
   {
     return m_ossia_states;
   }
-  const iscore::hash_map<Id<Scenario::ConstraintModel>, std::shared_ptr<ConstraintComponent>>& constraints() const
+  const iscore::hash_map<Id<Scenario::IntervalModel>, std::shared_ptr<IntervalComponent>>& intervals() const
   {
-    return m_ossia_constraints;
+    return m_ossia_intervals;
   }
   const auto& events() const
   {
@@ -103,7 +103,7 @@ public:
   }
 
 
-  std::function<void()> removing(const Scenario::ConstraintModel& e, ConstraintComponent& c);
+  std::function<void()> removing(const Scenario::IntervalModel& e, IntervalComponent& c);
 
   std::function<void()> removing(const Scenario::TimeSyncModel& e, TimeSyncComponent& c);
 
@@ -111,17 +111,17 @@ public:
 
   std::function<void()> removing(const Scenario::StateModel& e, StateComponent& c);
 protected:
-  void startConstraintExecution(const Id<Scenario::ConstraintModel>&);
-  void stopConstraintExecution(const Id<Scenario::ConstraintModel>&);
-  void disableConstraintExecution(const Id<Scenario::ConstraintModel>& id);
+  void startIntervalExecution(const Id<Scenario::IntervalModel>&);
+  void stopIntervalExecution(const Id<Scenario::IntervalModel>&);
+  void disableIntervalExecution(const Id<Scenario::IntervalModel>& id);
 
   void eventCallback(EventComponent& ev, ossia::time_event::status newStatus);
 
   void timeSyncCallback(
       Engine::Execution::TimeSyncComponent* tn, ossia::time_value date);
 
-  iscore::hash_map<Id<Scenario::ConstraintModel>, std::shared_ptr<ConstraintComponent>>
-      m_ossia_constraints;
+  iscore::hash_map<Id<Scenario::IntervalModel>, std::shared_ptr<IntervalComponent>>
+      m_ossia_intervals;
   iscore::hash_map<Id<Scenario::StateModel>, std::shared_ptr<StateComponent>>
       m_ossia_states;
   iscore::hash_map<Id<Scenario::TimeSyncModel>, std::shared_ptr<TimeSyncComponent>>
@@ -129,8 +129,8 @@ protected:
   iscore::hash_map<Id<Scenario::EventModel>, std::shared_ptr<EventComponent>>
       m_ossia_timeevents;
 
-  iscore::hash_map<Id<Scenario::ConstraintModel>, Scenario::ConstraintModel*>
-      m_executingConstraints;
+  iscore::hash_map<Id<Scenario::IntervalModel>, Scenario::IntervalModel*>
+      m_executingIntervals;
 
   const Context& m_ctx;
 
@@ -142,12 +142,12 @@ protected:
 using ScenarioComponentHierarchy
     = HierarchicalScenarioComponent<
         ScenarioComponentBase,
-        Scenario::ProcessModel, ConstraintComponent, EventComponent, TimeSyncComponent, StateComponent, false>;
+        Scenario::ProcessModel, IntervalComponent, EventComponent, TimeSyncComponent, StateComponent, false>;
 
 struct ScenarioComponent final : public ScenarioComponentHierarchy
 {
   ScenarioComponent(
-      ConstraintComponent& cst,
+      IntervalComponent& cst,
       Scenario::ProcessModel& proc,
       const Context& ctx,
       const Id<iscore::Component>& id,

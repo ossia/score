@@ -30,7 +30,7 @@ class TimeSyncComponent;
 }
 namespace Scenario
 {
-class ConstraintModel;
+class IntervalModel;
 }
 
 namespace Loop
@@ -44,7 +44,7 @@ class Component final : public ::Engine::Execution::
   COMPONENT_METADATA("77b987ae-7bc8-4273-aa9c-9e4ba53a053d")
 public:
   Component(
-      ::Engine::Execution::ConstraintComponent& parentConstraint,
+      ::Engine::Execution::IntervalComponent& parentInterval,
       ::Loop::ProcessModel& element,
       const ::Engine::Execution::Context& ctx,
       const Id<iscore::Component>& id,
@@ -57,11 +57,11 @@ public:
   void stop() override;
 
 private:
-  void startConstraintExecution(const Id<Scenario::ConstraintModel>&);
-  void stopConstraintExecution(const Id<Scenario::ConstraintModel>&);
+  void startIntervalExecution(const Id<Scenario::IntervalModel>&);
+  void stopIntervalExecution(const Id<Scenario::IntervalModel>&);
 
 private:
-  Engine::Execution::ConstraintComponent* m_ossia_constraint{};
+  Engine::Execution::IntervalComponent* m_ossia_interval{};
 
   Engine::Execution::TimeSyncComponent* m_ossia_startTimeSync{};
   Engine::Execution::TimeSyncComponent* m_ossia_endTimeSync{};

@@ -18,7 +18,7 @@ protected:
            QEvent::Type(QEvent::User + MoveOnState_Event::user_type),
            QEvent::Type(QEvent::User + MoveOnEvent_Event::user_type),
            QEvent::Type(QEvent::User + MoveOnTimeSync_Event::user_type),
-           QEvent::Type(QEvent::User + MoveOnConstraint_Event::user_type),
+           QEvent::Type(QEvent::User + MoveOnInterval_Event::user_type),
            QEvent::Type(QEvent::User + MoveOnLeftBrace_Event::user_type),
            QEvent::Type(QEvent::User + MoveOnRightBrace_Event::user_type)};
 
@@ -48,7 +48,7 @@ protected:
         = {QEvent::Type(QEvent::User + MoveOnNothing_Event::user_type),
            QEvent::Type(QEvent::User + MoveOnState_Event::user_type),
            QEvent::Type(QEvent::User + MoveOnEvent_Event::user_type),
-           QEvent::Type(QEvent::User + MoveOnConstraint_Event::user_type),
+           QEvent::Type(QEvent::User + MoveOnInterval_Event::user_type),
            QEvent::Type(QEvent::User + MoveOnLeftBrace_Event::user_type),
            QEvent::Type(QEvent::User + MoveOnRightBrace_Event::user_type)};
 
@@ -77,7 +77,7 @@ protected:
     static const constexpr QEvent::Type types[]
         = {QEvent::Type(QEvent::User + MoveOnNothing_Event::user_type),
            QEvent::Type(QEvent::User + MoveOnTimeSync_Event::user_type),
-           QEvent::Type(QEvent::User + MoveOnConstraint_Event::user_type),
+           QEvent::Type(QEvent::User + MoveOnInterval_Event::user_type),
            QEvent::Type(QEvent::User + MoveOnLeftBrace_Event::user_type),
            QEvent::Type(QEvent::User + MoveOnRightBrace_Event::user_type)};
 
@@ -105,7 +105,7 @@ protected:
     using namespace std;
     static const constexpr QEvent::Type types[]
         = {QEvent::Type(QEvent::User + MoveOnNothing_Event::user_type),
-           QEvent::Type(QEvent::User + MoveOnConstraint_Event::user_type),
+           QEvent::Type(QEvent::User + MoveOnInterval_Event::user_type),
            QEvent::Type(QEvent::User + MoveOnLeftBrace_Event::user_type),
            QEvent::Type(QEvent::User + MoveOnRightBrace_Event::user_type)};
 
@@ -131,7 +131,7 @@ protected:
            QEvent::Type(QEvent::User + ReleaseOnState_Event::user_type),
            QEvent::Type(QEvent::User + ReleaseOnEvent_Event::user_type),
            QEvent::Type(QEvent::User + ReleaseOnTimeSync_Event::user_type),
-           QEvent::Type(QEvent::User + ReleaseOnConstraint_Event::user_type),
+           QEvent::Type(QEvent::User + ReleaseOnInterval_Event::user_type),
            QEvent::Type(QEvent::User + ReleaseOnLeftBrace_Event::user_type),
            QEvent::Type(QEvent::User + ReleaseOnRightBrace_Event::user_type)};
 

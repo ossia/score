@@ -5,8 +5,8 @@
 
 #include "StandardCreationPolicy.hpp"
 #include <Process/TimeValue.hpp>
-#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalDurations.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
@@ -103,52 +103,52 @@ StateModel& ScenarioCreate<StateModel>::redo(
   return *state;
 }
 
-void ScenarioCreate<ConstraintModel>::undo(
-    const Id<ConstraintModel>& id, Scenario::ProcessModel& s)
+void ScenarioCreate<IntervalModel>::undo(
+    const Id<IntervalModel>& id, Scenario::ProcessModel& s)
 {
-  auto& cst = s.constraints.at(id);
+  auto& cst = s.intervals.at(id);
 
-  SetNoNextConstraint(startState(cst, s));
-  SetNoPreviousConstraint(endState(cst, s));
+  SetNoNextInterval(startState(cst, s));
+  SetNoPreviousInterval(endState(cst, s));
 
-  s.constraints.remove(&cst);
+  s.intervals.remove(&cst);
 }
 
-ConstraintModel& ScenarioCreate<ConstraintModel>::redo(
-    const Id<ConstraintModel>& id,
+IntervalModel& ScenarioCreate<IntervalModel>::redo(
+    const Id<IntervalModel>& id,
     StateModel& sst,
     StateModel& est,
     double ypos,
     Scenario::ProcessModel& s)
 {
-  auto constraint = new ConstraintModel{id, ypos, &s};
+  auto interval = new IntervalModel{id, ypos, &s};
 
-  constraint->setStartState(sst.id());
-  constraint->setEndState(est.id());
+  interval->setStartState(sst.id());
+  interval->setEndState(est.id());
 
-  s.constraints.add(constraint);
+  s.intervals.add(interval);
 
-  SetNextConstraint(sst, *constraint);
-  SetPreviousConstraint(est, *constraint);
+  SetNextInterval(sst, *interval);
+  SetPreviousInterval(est, *interval);
 
   const auto& sev = s.event(sst.eventId());
   const auto& eev = s.event(est.eventId());
   const auto& tn = s.timeSync(eev.timeSync());
 
-  ConstraintDurations::Algorithms::changeAllDurations(
-      *constraint, eev.date() - sev.date());
-  constraint->setStartDate(sev.date());
+  IntervalDurations::Algorithms::changeAllDurations(
+      *interval, eev.date() - sev.date());
+  interval->setStartDate(sev.date());
 
   if (tn.active())
   {
-    constraint->duration.setRigid(false);
-    const auto& dur = constraint->duration.defaultDuration();
-    constraint->duration.setMinDuration(
+    interval->duration.setRigid(false);
+    const auto& dur = interval->duration.defaultDuration();
+    interval->duration.setMinDuration(
         TimeVal::fromMsecs(0.8 * dur.msec()));
-    constraint->duration.setMaxDuration(
+    interval->duration.setMaxDuration(
         TimeVal::fromMsecs(1.2 * dur.msec()));
   }
 
-  return *constraint;
+  return *interval;
 }
 }

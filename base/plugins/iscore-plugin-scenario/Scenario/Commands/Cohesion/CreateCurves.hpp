@@ -9,12 +9,12 @@ struct DocumentContext;
 }
 namespace Scenario
 {
-class ConstraintModel;
+class IntervalModel;
 void CreateCurves(
-    const QList<const Scenario::ConstraintModel*>& selected_constraints,
+    const QList<const Scenario::IntervalModel*>& selected_intervals,
     const iscore::CommandStackFacade& stack);
 void CreateCurvesFromAddresses(
-    const QList<const Scenario::ConstraintModel*>& selected_constraints,
+    const QList<const Scenario::IntervalModel*>& selected_intervals,
     const std::vector<Device::FullAddressSettings>& addresses,
     const iscore::CommandStackFacade& stack);
 }

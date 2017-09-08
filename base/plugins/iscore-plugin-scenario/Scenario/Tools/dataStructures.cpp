@@ -2,7 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/ProcessList.hpp>
 #include <QDataStream>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <iscore/serialization/DataStreamVisitor.hpp>
 #include <iscore/model/path/PathSerialization.hpp>
@@ -14,12 +14,12 @@
 
 namespace Scenario
 {
-ConstraintSaveData::ConstraintSaveData(
-    const Scenario::ConstraintModel& constraint)
-    : constraintPath{constraint}
+IntervalSaveData::IntervalSaveData(
+    const Scenario::IntervalModel& interval)
+    : intervalPath{interval}
 {
-  processes.reserve(constraint.processes.size());
-  for (const auto& process : constraint.processes)
+  processes.reserve(interval.processes.size());
+  for (const auto& process : interval.processes)
   {
     QByteArray arr;
     DataStream::Serializer s{&arr};
@@ -33,7 +33,7 @@ ConstraintSaveData::ConstraintSaveData(
     QByteArray arr;
     DataStream::Serializer s{&arr};
     // We only save the data proper to the racks.
-    s.readFrom(constraint.smallView());
+    s.readFrom(interval.smallView());
     racks.push_back(std::move(arr));
   }
 
@@ -41,21 +41,21 @@ ConstraintSaveData::ConstraintSaveData(
     QByteArray arr;
     DataStream::Serializer s{&arr};
     // We only save the data proper to the racks.
-    s.readFrom(constraint.fullView());
+    s.readFrom(interval.fullView());
     racks.push_back(std::move(arr));
   }
 }
 
-void ConstraintSaveData::reload(Scenario::ConstraintModel& constraint) const
+void IntervalSaveData::reload(Scenario::IntervalModel& interval) const
 {
   auto& comps = iscore::AppComponents();
   auto& procsfactories = comps.interfaces<Process::ProcessFactoryList>();
   for (auto& sourceproc : processes)
   {
     DataStream::Deserializer des{sourceproc};
-    auto proc = deserialize_interface(procsfactories, des, &constraint);
+    auto proc = deserialize_interface(procsfactories, des, &interval);
     if (proc)
-      AddProcess(constraint, proc);
+      AddProcess(interval, proc);
     else
       ISCORE_TODO;
   }
@@ -65,13 +65,13 @@ void ConstraintSaveData::reload(Scenario::ConstraintModel& constraint) const
     DataStream::Deserializer des{racks[0]};
     Scenario::Rack r;
     des.writeTo(r);
-    constraint.replaceSmallView(std::move(r));
+    interval.replaceSmallView(std::move(r));
   }
   {
     DataStream::Deserializer des{racks[1]};
     Scenario::FullRack r;
     des.writeTo(r);
-    constraint.replaceFullView(std::move(r));
+    interval.replaceFullView(std::move(r));
   }
 }
 }
@@ -100,47 +100,47 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
-    const Scenario::ConstraintSaveData& constraintProperties)
+    const Scenario::IntervalSaveData& intervalProperties)
 {
-  m_stream << constraintProperties.constraintPath
-           << constraintProperties.processes << constraintProperties.racks;
+  m_stream << intervalProperties.intervalPath
+           << intervalProperties.processes << intervalProperties.racks;
   insertDelimiter();
 }
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(
-    Scenario::ConstraintSaveData& constraintProperties)
+    Scenario::IntervalSaveData& intervalProperties)
 {
-  m_stream >> constraintProperties.constraintPath
-      >> constraintProperties.processes >> constraintProperties.racks;
+  m_stream >> intervalProperties.intervalPath
+      >> intervalProperties.processes >> intervalProperties.racks;
 
   checkDelimiter();
 }
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
-    const Scenario::ConstraintProperties& constraintProperties)
+    const Scenario::IntervalProperties& intervalProperties)
 {
-  m_stream << constraintProperties.oldDefault
-           << constraintProperties.oldMin << constraintProperties.newMin
-           << constraintProperties.oldMax << constraintProperties.newMax;
+  m_stream << intervalProperties.oldDefault
+           << intervalProperties.oldMin << intervalProperties.newMin
+           << intervalProperties.oldMax << intervalProperties.newMax;
 
   readFrom(
-      static_cast<const Scenario::ConstraintSaveData&>(constraintProperties));
+      static_cast<const Scenario::IntervalSaveData&>(intervalProperties));
 
   insertDelimiter();
 }
 
 template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(
-    Scenario::ConstraintProperties& constraintProperties)
+    Scenario::IntervalProperties& intervalProperties)
 {
   m_stream
-      >> constraintProperties.oldDefault
-      >> constraintProperties.oldMin >> constraintProperties.newMin
-      >> constraintProperties.oldMax >> constraintProperties.newMax;
+      >> intervalProperties.oldDefault
+      >> intervalProperties.oldMin >> intervalProperties.newMin
+      >> intervalProperties.oldMax >> intervalProperties.newMax;
 
-  writeTo(static_cast<Scenario::ConstraintSaveData&>(constraintProperties));
+  writeTo(static_cast<Scenario::IntervalSaveData&>(intervalProperties));
   checkDelimiter();
 }
 
@@ -149,7 +149,7 @@ template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
     const Scenario::ElementsProperties& elementsProperties)
 {
-  m_stream << elementsProperties.timesyncs << elementsProperties.constraints;
+  m_stream << elementsProperties.timesyncs << elementsProperties.intervals;
 
   insertDelimiter();
 }
@@ -159,7 +159,7 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(
     Scenario::ElementsProperties& elementsProperties)
 {
 
-  m_stream >> elementsProperties.timesyncs >> elementsProperties.constraints;
+  m_stream >> elementsProperties.timesyncs >> elementsProperties.intervals;
 
   checkDelimiter();
 }

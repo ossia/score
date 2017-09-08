@@ -4,10 +4,10 @@
 #include "CreateEvent_State.hpp"
 #include "CreateState.hpp"
 
-#include "CreateConstraint.hpp"
-#include "CreateConstraint_State.hpp"
-#include "CreateConstraint_State_Event.hpp"
-#include "CreateConstraint_State_Event_TimeSync.hpp"
+#include "CreateInterval.hpp"
+#include "CreateInterval_State.hpp"
+#include "CreateInterval_State_Event.hpp"
+#include "CreateInterval_State_Event_TimeSync.hpp"
 #include "CreateSequence.hpp"
 #include <boost/range/adaptor/reversed.hpp>
 namespace Scenario
@@ -29,12 +29,12 @@ public:
     // TODO REFACTOR WITH SCENARIOROLLBACKSTRATEGY
     for (auto& cmd : boost::adaptors::reverse(m_cmds))
     {
-      if (cmd->key() == CreateConstraint::static_key()
+      if (cmd->key() == CreateInterval::static_key()
           || cmd->key() == CreateState::static_key()
           || cmd->key() == CreateEvent_State::static_key()
-          || cmd->key() == CreateConstraint_State::static_key()
-          || cmd->key() == CreateConstraint_State_Event::static_key()
-          || cmd->key() == CreateConstraint_State_Event_TimeSync::static_key()
+          || cmd->key() == CreateInterval_State::static_key()
+          || cmd->key() == CreateInterval_State_Event::static_key()
+          || cmd->key() == CreateInterval_State_Event_TimeSync::static_key()
           || cmd->key() == CreateSequence::static_key())
       {
         cmd->undo(ctx);

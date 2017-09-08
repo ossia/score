@@ -9,7 +9,7 @@
 #include "Component.hpp"
 #include "JSAPIWrapper.hpp"
 #include <ossia/detail/logger.hpp>
-#include <ossia/editor/scenario/time_constraint.hpp>
+#include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/state/message.hpp>
 #include <ossia/editor/state/state.hpp>
 #include <JS/JSProcessModel.hpp>
@@ -110,14 +110,14 @@ ossia::state_element ProcessExecutor::state(double t)
 }
 
 Component::Component(
-    ::Engine::Execution::ConstraintComponent& parentConstraint,
+    ::Engine::Execution::IntervalComponent& parentInterval,
     JS::ProcessModel& element,
     const ::Engine::Execution::Context& ctx,
     const Id<iscore::Component>& id,
     QObject* parent)
   : ::Engine::Execution::
       ProcessComponent_T<JS::ProcessModel, ProcessExecutor>{
-        parentConstraint, element, ctx, id, "JSComponent", parent}
+        parentInterval, element, ctx, id, "JSComponent", parent}
 {
   m_ossia_process = std::make_shared<ProcessExecutor>(ctx.devices);
   OSSIAProcess().setTickFun(element.script());

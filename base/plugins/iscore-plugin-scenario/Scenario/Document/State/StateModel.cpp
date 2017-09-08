@@ -9,7 +9,7 @@
 #include "ItemModel/MessageItemModelAlgorithms.hpp"
 #include "StateModel.hpp"
 #include <Process/Process.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
@@ -44,8 +44,8 @@ StateModel::StateModel(
     : Entity{source, id, Metadata<ObjectKey_k, StateModel>::get(), parent}
     , m_stack{stack}
     , m_eventId{source.eventId()}
-    , m_previousConstraint{source.previousConstraint()}
-    , m_nextConstraint{source.nextConstraint()}
+    , m_previousInterval{source.previousInterval()}
+    , m_nextInterval{source.nextInterval()}
     , m_heightPercentage{source.heightPercentage()}
     , m_messageItemModel{new MessageItemModel{m_stack, *this, this}}
 {
@@ -99,24 +99,24 @@ void StateModel::setEventId(const Id<EventModel>& id)
   m_eventId = id;
 }
 
-const OptionalId<ConstraintModel>& StateModel::previousConstraint() const
+const OptionalId<IntervalModel>& StateModel::previousInterval() const
 {
-  return m_previousConstraint;
+  return m_previousInterval;
 }
 
-const OptionalId<ConstraintModel>& StateModel::nextConstraint() const
+const OptionalId<IntervalModel>& StateModel::nextInterval() const
 {
-  return m_nextConstraint;
+  return m_nextInterval;
 }
 
-void StateModel::setNextConstraint(const OptionalId<ConstraintModel>& id)
+void StateModel::setNextInterval(const OptionalId<IntervalModel>& id)
 {
-  m_nextConstraint = id;
+  m_nextInterval = id;
 }
 
-void StateModel::setPreviousConstraint(const OptionalId<ConstraintModel>& id)
+void StateModel::setPreviousInterval(const OptionalId<IntervalModel>& id)
 {
-  m_previousConstraint = id;
+  m_previousInterval = id;
 }
 
 MessageItemModel& StateModel::messages() const

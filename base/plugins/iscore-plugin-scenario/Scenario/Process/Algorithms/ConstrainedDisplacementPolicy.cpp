@@ -16,47 +16,47 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
         const TimeVal &deltaTime,
         ElementsProperties &elementsProperties)
 {
-    // Scale all the constraints before and after.
+    // Scale all the intervals before and after.
     if(draggedElements.empty())
         return;
     auto tn_id = draggedElements[0];
     auto& tn = scenario.timeSyncs.at(tn_id);
-    const auto& constraintsBefore = Scenario::previousConstraints(tn, scenario);
-    const auto& constraintsAfter = Scenario::nextConstraints(tn, scenario);
+    const auto& intervalsBefore = Scenario::previousIntervals(tn, scenario);
+    const auto& intervalsAfter = Scenario::nextIntervals(tn, scenario);
 
     // 1. Find the delta bounds.
-    // We have to stop as soon as a constraint would become too small.
+    // We have to stop as soon as a interval would become too small.
     TimeVal min = TimeVal::infinite();
     TimeVal max = TimeVal::infinite();
-    for(const auto& id : constraintsBefore)
+    for(const auto& id : intervalsBefore)
     {
-        auto it = elementsProperties.constraints.find(id);
-        if(it == elementsProperties.constraints.end())
+        auto it = elementsProperties.intervals.find(id);
+        if(it == elementsProperties.intervals.end())
         {
-            auto& c = scenario.constraints.at(id);
+            auto& c = scenario.intervals.at(id);
             if(c.duration.defaultDuration() < min)
                 min = c.duration.defaultDuration();
         }
         else
         {
-            const ConstraintProperties& c = it.value();
+            const IntervalProperties& c = it.value();
             if(c.oldDefault < min)
                 min = c.oldDefault;
         }
     }
 
-    for(const auto& id : constraintsAfter)
+    for(const auto& id : intervalsAfter)
     {
-        auto it = elementsProperties.constraints.find(id);
-        if(it == elementsProperties.constraints.end())
+        auto it = elementsProperties.intervals.find(id);
+        if(it == elementsProperties.intervals.end())
         {
-            auto& c = scenario.constraints.at(id);
+            auto& c = scenario.intervals.at(id);
             if(c.duration.defaultDuration() < max)
                 max = c.duration.defaultDuration();
         }
         else
         {
-            const ConstraintProperties& c = it.value();
+            const IntervalProperties& c = it.value();
             if(c.oldDefault < max)
                 max = c.oldDefault;
         }
@@ -73,10 +73,10 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
         dt = max;
     }
 
-    for(auto& id : constraintsBefore)
+    for(auto& id : intervalsBefore)
     {
-        auto it = elementsProperties.constraints.find(id);
-        if(it != elementsProperties.constraints.end())
+        auto it = elementsProperties.intervals.find(id);
+        if(it != elementsProperties.intervals.end())
         {
             auto& c = it.value();
             c.newMin = std::max(TimeVal::zero(), c.oldMin + dt);
@@ -84,24 +84,24 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
         }
         else
         {
-            auto& curConstraint = scenario.constraints.at(id);
-            ConstraintProperties c{curConstraint};
-            c.oldDefault = curConstraint.duration.defaultDuration();
-            c.oldMin = curConstraint.duration.minDuration();
-            c.oldMax = curConstraint.duration.maxDuration();
+            auto& curInterval = scenario.intervals.at(id);
+            IntervalProperties c{curInterval};
+            c.oldDefault = curInterval.duration.defaultDuration();
+            c.oldMin = curInterval.duration.minDuration();
+            c.oldMax = curInterval.duration.maxDuration();
 
             c.newMin = c.oldMin;
             c.newMax = c.oldMax;
             c.newMin = std::max(TimeVal::zero(), c.oldMin + dt);
             c.newMax = c.oldMax + dt;
-            elementsProperties.constraints.insert({id, c});
+            elementsProperties.intervals.insert({id, c});
         }
     }
 
-    for(auto& id : constraintsAfter)
+    for(auto& id : intervalsAfter)
     {
-        auto it = elementsProperties.constraints.find(id);
-        if(it != elementsProperties.constraints.end())
+        auto it = elementsProperties.intervals.find(id);
+        if(it != elementsProperties.intervals.end())
         {
             auto& c = it.value();
             c.newMin = std::max(TimeVal::zero(), c.oldMin - dt);
@@ -109,18 +109,18 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
         }
         else
         {
-            auto& curConstraint = scenario.constraints.at(id);
-            ConstraintProperties c{curConstraint};
-            c.oldDefault = curConstraint.duration.defaultDuration();
-            c.oldMin = curConstraint.duration.minDuration();
-            c.oldMax = curConstraint.duration.maxDuration();
+            auto& curInterval = scenario.intervals.at(id);
+            IntervalProperties c{curInterval};
+            c.oldDefault = curInterval.duration.defaultDuration();
+            c.oldMin = curInterval.duration.minDuration();
+            c.oldMax = curInterval.duration.maxDuration();
 
             c.newMin = c.oldMin;
             c.newMax = c.oldMax;
 
             c.newMin = std::max(TimeVal::zero(), c.oldMin - dt);
             c.newMax = c.oldMax - dt;
-            elementsProperties.constraints.insert({id, c});
+            elementsProperties.intervals.insert({id, c});
         }
     }
 

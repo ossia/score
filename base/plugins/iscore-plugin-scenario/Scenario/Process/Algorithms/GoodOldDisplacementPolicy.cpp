@@ -6,8 +6,8 @@
 #include <iscore/tools/std/Optional.hpp>
 
 #include "GoodOldDisplacementPolicy.hpp"
-#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalDurations.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
@@ -66,40 +66,40 @@ void GoodOldDisplacementPolicy::computeDisplacement(
       val.newDate = val.oldDate + deltaTime;
     }
 
-    // Make a list of the constraints that need to be resized
+    // Make a list of the intervals that need to be resized
     for (const auto& curTimeSyncId : timeSyncsToTranslate)
     {
       auto& curTimeSync = scenario.timeSync(curTimeSyncId);
 
-      // each previous constraint
+      // each previous interval
       for (const auto& ev_id : curTimeSync.events())
       {
         const auto& ev = scenario.event(ev_id);
         for (const auto& st_id : ev.states())
         {
           const auto& st = scenario.states.at(st_id);
-          if (const auto& optCurConstraintId = st.previousConstraint())
+          if (const auto& optCurIntervalId = st.previousInterval())
           {
-            auto curConstraintId = *optCurConstraintId;
-            auto& curConstraint = scenario.constraints.at(curConstraintId);
+            auto curIntervalId = *optCurIntervalId;
+            auto& curInterval = scenario.intervals.at(curIntervalId);
 
             // if timesync NOT already in element properties, create new
             // element properties and set old values
-            auto cur_constraint_it
-                = elementsProperties.constraints.find(curConstraintId);
-            if (cur_constraint_it == elementsProperties.constraints.end())
+            auto cur_interval_it
+                = elementsProperties.intervals.find(curIntervalId);
+            if (cur_interval_it == elementsProperties.intervals.end())
             {
-              ConstraintProperties c{curConstraint};
-              c.oldMin = curConstraint.duration.minDuration();
-              c.oldMax = curConstraint.duration.maxDuration();
+              IntervalProperties c{curInterval};
+              c.oldMin = curInterval.duration.minDuration();
+              c.oldMax = curInterval.duration.maxDuration();
 
-              cur_constraint_it
-                  = elementsProperties.constraints.emplace(curConstraintId, std::move(c)).first;
+              cur_interval_it
+                  = elementsProperties.intervals.emplace(curIntervalId, std::move(c)).first;
             }
 
-            auto& curConstraintStartEvent
-                = Scenario::startEvent(curConstraint, scenario);
-            auto& startTnodeId = curConstraintStartEvent.timeSync();
+            auto& curIntervalStartEvent
+                = Scenario::startEvent(curInterval, scenario);
+            auto& startTnodeId = curIntervalStartEvent.timeSync();
 
             // compute default duration
             TimeVal startDate;
@@ -112,7 +112,7 @@ void GoodOldDisplacementPolicy::computeDisplacement(
             }
             else
             {
-              startDate = curConstraintStartEvent.date();
+              startDate = curIntervalStartEvent.date();
             }
 
             const auto& endDate
@@ -120,11 +120,11 @@ void GoodOldDisplacementPolicy::computeDisplacement(
 
             TimeVal newDefaultDuration = endDate - startDate;
             TimeVal deltaBounds = newDefaultDuration
-                                    - curConstraint.duration.defaultDuration();
+                                    - curInterval.duration.defaultDuration();
 
-            auto& val = cur_constraint_it.value();
-            val.newMin = curConstraint.duration.minDuration() + deltaBounds;
-            val.newMax = curConstraint.duration.maxDuration() + deltaBounds;
+            auto& val = cur_interval_it.value();
+            val.newMin = curInterval.duration.minDuration() + deltaBounds;
+            val.newMax = curInterval.duration.maxDuration() + deltaBounds;
 
             // nothing to do for now
           }
@@ -163,9 +163,9 @@ void GoodOldDisplacementPolicy::getRelatedTimeSyncs(
     for (const auto& state_id : cur_event.states())
     {
       const auto& state = scenario.states.at(state_id);
-      if (const auto& cons = state.nextConstraint())
+      if (const auto& cons = state.nextInterval())
       {
-        const auto& endStateId = scenario.constraints.at(*cons).endState();
+        const auto& endStateId = scenario.intervals.at(*cons).endState();
         const auto& endTnId
             = scenario.events.at(scenario.state(endStateId).eventId())
                   .timeSync();

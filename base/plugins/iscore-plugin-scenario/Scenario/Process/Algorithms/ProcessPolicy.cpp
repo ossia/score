@@ -3,7 +3,7 @@
 #include "ProcessPolicy.hpp"
 #include <ossia/detail/algorithms.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
@@ -122,73 +122,73 @@ static void RemoveProcessAfterState(
     statemodel.followingProcesses().erase(it);
 }
 
-void AddProcess(ConstraintModel& constraint, Process::ProcessModel* proc)
+void AddProcess(IntervalModel& interval, Process::ProcessModel* proc)
 {
-  constraint.processes.add(proc);
+  interval.processes.add(proc);
 
-  const auto& scenar = *dynamic_cast<ScenarioInterface*>(constraint.parent());
-  AddProcessAfterState(startState(constraint, scenar), *proc);
-  AddProcessBeforeState(endState(constraint, scenar), *proc);
+  const auto& scenar = *dynamic_cast<ScenarioInterface*>(interval.parent());
+  AddProcessAfterState(startState(interval, scenar), *proc);
+  AddProcessBeforeState(endState(interval, scenar), *proc);
 }
 
 void RemoveProcess(
-    ConstraintModel& constraint, const Id<Process::ProcessModel>& proc_id)
+    IntervalModel& interval, const Id<Process::ProcessModel>& proc_id)
 {
-  const auto& proc = constraint.processes.at(proc_id);
-  const auto& scenar = *dynamic_cast<ScenarioInterface*>(constraint.parent());
+  const auto& proc = interval.processes.at(proc_id);
+  const auto& scenar = *dynamic_cast<ScenarioInterface*>(interval.parent());
 
-  RemoveProcessAfterState(startState(constraint, scenar), proc);
-  RemoveProcessBeforeState(endState(constraint, scenar), proc);
+  RemoveProcessAfterState(startState(interval, scenar), proc);
+  RemoveProcessBeforeState(endState(interval, scenar), proc);
 
-  constraint.processes.remove(proc_id);
+  interval.processes.remove(proc_id);
 }
 
-void SetPreviousConstraint(
-    StateModel& state, const ConstraintModel& constraint)
+void SetPreviousInterval(
+    StateModel& state, const IntervalModel& interval)
 {
-  SetNoPreviousConstraint(state);
+  SetNoPreviousInterval(state);
 
-  state.setPreviousConstraint(constraint.id());
-  for (const auto& proc : constraint.processes)
+  state.setPreviousInterval(interval.id());
+  for (const auto& proc : interval.processes)
   {
     AddProcessBeforeState(state, proc);
   }
 }
 
-void SetNextConstraint(StateModel& state, const ConstraintModel& constraint)
+void SetNextInterval(StateModel& state, const IntervalModel& interval)
 {
-  SetNoNextConstraint(state);
+  SetNoNextInterval(state);
 
-  state.setNextConstraint(constraint.id());
-  for (const auto& proc : constraint.processes)
+  state.setNextInterval(interval.id());
+  for (const auto& proc : interval.processes)
   {
     AddProcessAfterState(state, proc);
   }
 }
 
-void SetNoPreviousConstraint(StateModel& state)
+void SetNoPreviousInterval(StateModel& state)
 {
-  if (state.previousConstraint())
+  if (state.previousInterval())
   {
     auto node = state.messages().rootNode();
-    updateTreeWithRemovedConstraint(node, ProcessPosition::Previous);
+    updateTreeWithRemovedInterval(node, ProcessPosition::Previous);
     state.messages() = std::move(node);
 
     state.previousProcesses().clear();
-    state.setPreviousConstraint(OptionalId<ConstraintModel>{});
+    state.setPreviousInterval(OptionalId<IntervalModel>{});
   }
 }
 
-void SetNoNextConstraint(StateModel& state)
+void SetNoNextInterval(StateModel& state)
 {
-  if (state.nextConstraint())
+  if (state.nextInterval())
   {
     auto node = state.messages().rootNode();
-    updateTreeWithRemovedConstraint(node, ProcessPosition::Following);
+    updateTreeWithRemovedInterval(node, ProcessPosition::Following);
     state.messages() = std::move(node);
 
     state.followingProcesses().clear();
-    state.setNextConstraint(OptionalId<ConstraintModel>{});
+    state.setNextInterval(OptionalId<IntervalModel>{});
   }
 }
 }

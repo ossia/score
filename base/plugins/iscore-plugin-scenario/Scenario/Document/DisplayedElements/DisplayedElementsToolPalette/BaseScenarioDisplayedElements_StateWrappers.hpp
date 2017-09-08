@@ -4,20 +4,20 @@
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <Scenario/Palette/Tools/States/MoveAndMergeState.hpp>
 #include <Scenario/Palette/Tools/States/MoveStates.hpp>
-#include <Scenario/Palette/Transitions/ConstraintTransitions.hpp>
+#include <Scenario/Palette/Transitions/IntervalTransitions.hpp>
 #include <Scenario/Palette/Transitions/EventTransitions.hpp>
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>
 #include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
 
 namespace Scenario
 {
-class MoveConstraintInBaseScenario_StateWrapper
+class MoveIntervalInBaseScenario_StateWrapper
 {
 public:
   template <typename Scenario_T, typename ToolPalette_T>
   static void make(const ToolPalette_T& palette, QState* waitState, QState& sm)
   {
-    // We cannot move the constraint
+    // We cannot move the interval
   }
 };
 

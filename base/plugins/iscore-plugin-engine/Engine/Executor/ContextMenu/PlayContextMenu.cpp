@@ -5,7 +5,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
-#include <Engine/Executor/ConstraintComponent.hpp>
+#include <Engine/Executor/IntervalComponent.hpp>
 #include <Engine/Executor/EventComponent.hpp>
 #include <Engine/Executor/ScenarioComponent.hpp>
 #include <Engine/Executor/StateComponent.hpp>
@@ -13,11 +13,11 @@
 #include <Engine/iscore2OSSIA.hpp>
 #include <Engine/Executor/BaseScenarioComponent.hpp>
 
-#include <Engine/Executor/ContextMenu/PlayFromConstraintInScenario.hpp>
+#include <Engine/Executor/ContextMenu/PlayFromIntervalInScenario.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Application/ScenarioRecordInitData.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
@@ -76,14 +76,14 @@ PlayContextMenu::PlayContextMenu(
     }
   });
 
-  m_playConstraints = new QAction{tr("Play (Constraints)"), this};
-  connect(m_playConstraints, &QAction::triggered, [&]() {
+  m_playIntervals = new QAction{tr("Play (Intervals)"), this};
+  connect(m_playIntervals, &QAction::triggered, [&]() {
     const auto& ctx = m_ctx.documents.currentDocument()->context();
     auto sm = focusedScenarioInterface(ctx);
     if (!sm)
       return;
 
-    for (auto& elt : sm->getConstraints())
+    for (auto& elt : sm->getIntervals())
     {
       if (elt.selection.get())
       {
@@ -121,33 +121,33 @@ PlayContextMenu::PlayContextMenu(
         ossia_state.launch();
       });
 
-  con(exec_signals, &Scenario::ScenarioExecution::playConstraint, this,
+  con(exec_signals, &Scenario::ScenarioExecution::playInterval, this,
       [&](const Scenario::ScenarioInterface& scenar,
-          const Id<ConstraintModel>& id) {
-        plug.on_play(scenar.constraint(id), true);
+          const Id<IntervalModel>& id) {
+        plug.on_play(scenar.interval(id), true);
       });
 
-  con(exec_signals, &Scenario::ScenarioExecution::playFromConstraintAtDate, this,
+  con(exec_signals, &Scenario::ScenarioExecution::playFromIntervalAtDate, this,
       [&] (
       const Scenario::ScenarioInterface& scenar,
-      Id<Scenario::ConstraintModel> id,
+      Id<Scenario::IntervalModel> id,
       const TimeVal& t) {
 
-    // First we select the parent scenario of the constraint,
-    auto& cst_to_play = scenar.constraint(id);
+    // First we select the parent scenario of the interval,
+    auto& cst_to_play = scenar.interval(id);
 
-    // and the parent constraint of this scenario;
+    // and the parent interval of this scenario;
     // this is what needs executing.
-    auto parent_constraint =
-        safe_cast<Scenario::ConstraintModel*>(
+    auto parent_interval =
+        safe_cast<Scenario::IntervalModel*>(
           dynamic_cast<const QObject*>(&scenar)->parent());
 
     // We start playing the parent scenario.
-    // TODO: this also plays the other processes of the constraint? Maybe remove them, too ?
+    // TODO: this also plays the other processes of the interval? Maybe remove them, too ?
     plug.on_play(
-          *parent_constraint,
+          *parent_interval,
           true,
-          PlayFromConstraintScenarioPruner{scenar, cst_to_play, t},
+          PlayFromIntervalScenarioPruner{scenar, cst_to_play, t},
           t);
   });
 
@@ -214,7 +214,7 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
   Process::LayerContextMenu& state_cm
       = ctxm.menu<ContextMenus::StateContextMenu>();
   Process::LayerContextMenu& cst_cm
-      = ctxm.menu<ContextMenus::ConstraintContextMenu>();
+      = ctxm.menu<ContextMenus::IntervalContextMenu>();
 
   cst_cm.functions.push_back(
       [this](QMenu& menu, QPoint, QPointF, const Process::LayerContext& ctx) {
@@ -223,11 +223,11 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
         if (sel.empty())
           return;
 
-        if (ossia::any_of(sel, matches<Scenario::ConstraintModel>{}))
+        if (ossia::any_of(sel, matches<Scenario::IntervalModel>{}))
         {
-          auto submenu = menu.findChild<QMenu*>("Constraint");
+          auto submenu = menu.findChild<QMenu*>("Interval");
           if(submenu)
-            submenu->addAction(m_playConstraints);
+            submenu->addAction(m_playIntervals);
         }
       });
 

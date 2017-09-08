@@ -4,7 +4,7 @@
 #include <Process/ProcessContext.hpp>
 #include <QObject>
 #include <QPoint>
-#include <Scenario/Document/Constraint/Temporal/TemporalConstraintPresenter.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
 #include <Scenario/Palette/ScenarioPalette.hpp>
 #include <Scenario/Process/Temporal/ScenarioViewInterface.hpp>
 #include <iscore/model/IdentifiedObjectMap.hpp>
@@ -13,7 +13,7 @@
 #include <Process/ZoomHelper.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
@@ -94,9 +94,9 @@ public:
   {
     return m_timeSyncs.at(id);
   }
-  const auto& constraint(const Id<ConstraintModel>& id) const
+  const auto& interval(const Id<IntervalModel>& id) const
   {
-    return m_constraints.at(id);
+    return m_intervals.at(id);
   }
   const auto& state(const Id<StateModel>& id) const
   {
@@ -114,9 +114,9 @@ public:
   {
     return m_timeSyncs;
   }
-  const auto& getConstraints() const
+  const auto& getIntervals() const
   {
-    return m_constraints;
+    return m_intervals;
   }
   const auto& getStates() const
   {
@@ -175,8 +175,8 @@ public:
   void on_timeSyncCreated(const TimeSyncModel&);
   void on_timeSyncRemoved(const TimeSyncModel&);
 
-  void on_constraintCreated(const ConstraintModel&);
-  void on_constraintRemoved(const ConstraintModel&);
+  void on_intervalCreated(const IntervalModel&);
+  void on_intervalRemoved(const IntervalModel&);
 
   void on_commentCreated(const CommentBlockModel&);
   void on_commentRemoved(const CommentBlockModel&);
@@ -186,7 +186,7 @@ public:
   void on_keyPressed(int);
   void on_keyReleased(int);
 
-  void on_constraintExecutionTimer();
+  void on_intervalExecutionTimer();
 
 private:
   void doubleClick(QPointF);
@@ -210,7 +210,7 @@ private:
   IdContainer<StatePresenter, StateModel> m_states;
   IdContainer<EventPresenter, EventModel> m_events;
   IdContainer<TimeSyncPresenter, TimeSyncModel> m_timeSyncs;
-  IdContainer<TemporalConstraintPresenter, ConstraintModel> m_constraints;
+  IdContainer<TemporalIntervalPresenter, IntervalModel> m_intervals;
   IdContainer<CommentBlockPresenter, CommentBlockModel> m_comments;
 
   ScenarioViewInterface m_viewInterface;

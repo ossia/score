@@ -15,7 +15,7 @@
  * to create, save, reload
  * a process, as well as signals and slots to notify of changes.
  *
- * All processes in i-score are contained in a Scenario::ConstraintModel.
+ * All processes in i-score are contained in a Scenario::IntervalModel.
  *
  * When modifying a process (or any other model class) from the UI, it is
  * **MANDATORY** to use a Command for elements that are part of the data model,

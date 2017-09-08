@@ -3,7 +3,7 @@
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/Comment/SetCommentText.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateCommentBlock.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeSync.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event_TimeSync.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveCommentBlock.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
@@ -39,7 +39,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
   , m_sm{m_context, *this}
 {
   /////// Setup of existing data
-  // For each constraint & event, display' em
+  // For each interval & event, display' em
   for (const auto& state_model : scenario.states)
   {
     on_stateCreated(state_model);
@@ -60,17 +60,17 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
     on_commentCreated(cmt_model);
   }
 
-  for (const auto& constraint : scenario.constraints)
+  for (const auto& interval : scenario.intervals)
   {
-    on_constraintCreated(constraint);
+    on_intervalCreated(interval);
   }
 
   /////// Connections
-  scenario.constraints.added
-      .connect<TemporalScenarioPresenter, &TemporalScenarioPresenter::on_constraintCreated>(
+  scenario.intervals.added
+      .connect<TemporalScenarioPresenter, &TemporalScenarioPresenter::on_intervalCreated>(
         this);
-  scenario.constraints.removed
-      .connect<TemporalScenarioPresenter, &TemporalScenarioPresenter::on_constraintRemoved>(
+  scenario.intervals.removed
+      .connect<TemporalScenarioPresenter, &TemporalScenarioPresenter::on_intervalRemoved>(
         this);
 
   scenario.states.added
@@ -180,7 +180,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
 
   m_con = con(
         context.updateTimer, &QTimer::timeout, this,
-        &TemporalScenarioPresenter::on_constraintExecutionTimer);
+        &TemporalScenarioPresenter::on_intervalExecutionTimer);
 
   auto& es = context.app.guiApplicationPlugin<ScenarioApplicationPlugin>()
                  .editionSettings();
@@ -255,9 +255,9 @@ void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
   m_zoomRatio = val;
 
-  for (auto& constraint : m_constraints)
+  for (auto& interval : m_intervals)
   {
-    constraint.on_zoomRatioChanged(m_zoomRatio);
+    interval.on_zoomRatioChanged(m_zoomRatio);
   }
   for (auto& comment : m_comments)
   {
@@ -278,7 +278,7 @@ void TemporalScenarioPresenter::fillContextMenu(
   cm.menu<ContextMenus::ScenarioModelContextMenu>().build(
         menu, pos, scenepos, this->context());
   menu.addSeparator();
-  cm.menu<ContextMenus::ConstraintContextMenu>().build(
+  cm.menu<ContextMenus::IntervalContextMenu>().build(
         menu, pos, scenepos, this->context());
   cm.menu<ContextMenus::EventContextMenu>().build(
         menu, pos, scenepos, this->context());
@@ -344,20 +344,20 @@ void TemporalScenarioPresenter::on_timeSyncRemoved(
   removeElement(m_timeSyncs.get(), timeSync.id());
 }
 
-void TemporalScenarioPresenter::on_constraintRemoved(
-    const ConstraintModel& cvm)
+void TemporalScenarioPresenter::on_intervalRemoved(
+    const IntervalModel& cvm)
 {
   // Don't put a const auto& here, else deletion will crash.
-  for (auto& pres : m_constraints)
+  for (auto& pres : m_intervals)
   {
     // OPTIMIZEME add an index in the map on viewmodel id ?
     if (pres.id() == cvm.id())
     {
       auto cid = pres.id();
-      auto it = m_constraints.find(cid);
-      if (it != m_constraints.end())
+      auto it = m_intervals.find(cid);
+      if (it != m_intervals.end())
       {
-        m_constraints.remove(cid);
+        m_intervals.remove(cid);
         delete &pres;
       }
 
@@ -390,9 +390,9 @@ void TemporalScenarioPresenter::on_keyReleased(int k)
   emit keyReleased(k);
 }
 
-void TemporalScenarioPresenter::on_constraintExecutionTimer()
+void TemporalScenarioPresenter::on_intervalExecutionTimer()
 {
-  for (TemporalConstraintPresenter& cst : m_constraints)
+  for (TemporalIntervalPresenter& cst : m_intervals)
   {
     auto pp = cst.model().duration.playPercentage();
     if(double w = cst.on_playPercentageChanged(pp))
@@ -517,43 +517,43 @@ void TemporalScenarioPresenter::on_stateCreated(const StateModel& state)
         &TemporalScenarioPresenter::on_askUpdate);
 }
 
-void TemporalScenarioPresenter::on_constraintCreated(
-    const ConstraintModel& constraint)
+void TemporalScenarioPresenter::on_intervalCreated(
+    const IntervalModel& interval)
 {
-  auto cst_pres = new TemporalConstraintPresenter{
-      constraint, m_context.context, true, m_view, this};
-  m_constraints.insert(cst_pres);
+  auto cst_pres = new TemporalIntervalPresenter{
+      interval, m_context.context, true, m_view, this};
+  m_intervals.insert(cst_pres);
   cst_pres->on_zoomRatioChanged(m_zoomRatio);
 
-  m_viewInterface.on_constraintMoved(*cst_pres);
+  m_viewInterface.on_intervalMoved(*cst_pres);
 
   connect(
-        cst_pres, &TemporalConstraintPresenter::heightPercentageChanged, this,
-        [=]() { m_viewInterface.on_constraintMoved(*cst_pres); });
-  con(constraint, &ConstraintModel::startDateChanged, this,
+        cst_pres, &TemporalIntervalPresenter::heightPercentageChanged, this,
+        [=]() { m_viewInterface.on_intervalMoved(*cst_pres); });
+  con(interval, &IntervalModel::startDateChanged, this,
       [=](const TimeVal&) {
-    m_viewInterface.on_constraintMoved(*cst_pres);
+    m_viewInterface.on_intervalMoved(*cst_pres);
   });
   connect(
-        cst_pres, &TemporalConstraintPresenter::askUpdate, this,
+        cst_pres, &TemporalIntervalPresenter::askUpdate, this,
         &TemporalScenarioPresenter::on_askUpdate);
 
-  connect(cst_pres, &TemporalConstraintPresenter::constraintHoverEnter, [=]() {
-    m_viewInterface.on_hoverOnConstraint(cst_pres->model().id(), true);
+  connect(cst_pres, &TemporalIntervalPresenter::intervalHoverEnter, [=]() {
+    m_viewInterface.on_hoverOnInterval(cst_pres->model().id(), true);
   });
-  connect(cst_pres, &TemporalConstraintPresenter::constraintHoverLeave, [=]() {
-    m_viewInterface.on_hoverOnConstraint(cst_pres->model().id(), false);
+  connect(cst_pres, &TemporalIntervalPresenter::intervalHoverLeave, [=]() {
+    m_viewInterface.on_hoverOnInterval(cst_pres->model().id(), false);
   });
 
   // For the state machine
   connect(
-        cst_pres, &TemporalConstraintPresenter::pressed, m_view,
+        cst_pres, &TemporalIntervalPresenter::pressed, m_view,
         &TemporalScenarioView::pressedAsked);
   connect(
-        cst_pres, &TemporalConstraintPresenter::moved, m_view,
+        cst_pres, &TemporalIntervalPresenter::moved, m_view,
         &TemporalScenarioView::movedAsked);
   connect(
-        cst_pres, &TemporalConstraintPresenter::released, m_view,
+        cst_pres, &TemporalIntervalPresenter::released, m_view,
         &TemporalScenarioView::released);
 }
 
@@ -600,9 +600,9 @@ void TemporalScenarioPresenter::on_commentCreated(
 
 void TemporalScenarioPresenter::updateAllElements()
 {
-  for (auto& constraint : m_constraints)
+  for (auto& interval : m_intervals)
   {
-    m_viewInterface.on_constraintMoved(constraint);
+    m_viewInterface.on_intervalMoved(interval);
   }
 
   for (auto& event : m_events)

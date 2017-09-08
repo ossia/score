@@ -2,7 +2,7 @@
 #include <Scenario/Palette/ScenarioPaletteBaseStates.hpp>
 #include <Scenario/Palette/Tools/ScenarioRollbackStrategy.hpp>
 #include <Scenario/Palette/Transitions/AnythingTransitions.hpp>
-#include <Scenario/Palette/Transitions/ConstraintTransitions.hpp>
+#include <Scenario/Palette/Transitions/IntervalTransitions.hpp>
 #include <Scenario/Palette/Transitions/EventTransitions.hpp>
 #include <Scenario/Palette/Transitions/NothingTransitions.hpp>
 #include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
@@ -16,10 +16,10 @@
 namespace Scenario
 {
 template<typename T>
-class MoveConstraintState final : public StateBase<Scenario::ProcessModel>
+class MoveIntervalState final : public StateBase<Scenario::ProcessModel>
 {
 public:
-  MoveConstraintState(
+  MoveIntervalState(
       const T& stateMachine,
       const Scenario::ProcessModel& scenario,
       const iscore::CommandStackFacade& stack,
@@ -27,7 +27,7 @@ public:
       QState* parent)
       : StateBase<Scenario::ProcessModel>{scenario, parent}, m_movingDispatcher{stack}
   {
-    this->setObjectName("MoveConstraintState");
+    this->setObjectName("MoveIntervalState");
     using namespace Scenario::Command;
     auto finalState = new QFinalState{this};
 
@@ -48,21 +48,21 @@ public:
 
           auto& scenar = stateMachine.model();
           m_initialClick = this->currentPoint;
-          if(!this->clickedConstraint)
+          if(!this->clickedInterval)
               return;
-          auto& cst = scenario.constraint(*this->clickedConstraint);
+          auto& cst = scenario.interval(*this->clickedInterval);
           auto& sev = Scenario::startEvent(cst, scenario);
 
-          m_constraintInitialPoint = {cst.startDate(), cst.heightPercentage()};
+          m_intervalInitialPoint = {cst.startDate(), cst.heightPercentage()};
 
-          auto prev_csts = previousConstraints(sev, scenar);
+          auto prev_csts = previousIntervals(sev, scenar);
           if (!prev_csts.empty())
           {
             // We find the one that starts the latest.
             TimeVal t = TimeVal::zero();
             for (const auto& cst_id : prev_csts)
             {
-              const auto& other_date = scenar.constraint(cst_id).startDate();
+              const auto& other_date = scenar.interval(cst_id).startDate();
               if (other_date > t)
                 t = other_date;
             }
@@ -85,16 +85,16 @@ public:
 
       QObject::connect(moving, &QState::entered, [&] {
           auto& scenario = stateMachine.model();
-          if(!this->clickedConstraint)
+          if(!this->clickedInterval)
               return;
-          auto& cst = scenario.constraint(*this->clickedConstraint);
+          auto& cst = scenario.interval(*this->clickedInterval);
           auto& sev = Scenario::startEvent(cst, scenario);
 
           TimeVal date{};
           if(qApp->keyboardModifiers() & Qt::ShiftModifier)
-            date = m_constraintInitialPoint.date + (this->currentPoint.date - m_initialClick.date);
+            date = m_intervalInitialPoint.date + (this->currentPoint.date - m_initialClick.date);
           else
-            date = m_constraintInitialPoint.date;
+            date = m_intervalInitialPoint.date;
           if(this->m_pressedPrevious)
             date = std::max(date, *this->m_pressedPrevious);
           date = std::max(date, TimeVal{});
@@ -103,7 +103,7 @@ public:
                       this->m_scenario,
                       sev.id(),
                       date,
-                      m_constraintInitialPoint.y + (this->currentPoint.y - m_initialClick.y),
+                      m_intervalInitialPoint.y + (this->currentPoint.y - m_initialClick.y),
                       stateMachine.editionSettings().expandMode(),
                       stateMachine.editionSettings().lockMode(),
                       cst.startState());
@@ -129,22 +129,22 @@ public:
     this->setInitialState(mainState);
   }
 
-  //SingleOngoingCommandDispatcher<MoveConstraintCommand_T> m_dispatcher;
+  //SingleOngoingCommandDispatcher<MoveIntervalCommand_T> m_dispatcher;
   SingleOngoingCommandDispatcher<Command::MoveEventMeta> m_movingDispatcher;
 
 private:
   Scenario::Point m_initialClick{};
-  Scenario::Point m_constraintInitialPoint{};
+  Scenario::Point m_intervalInitialPoint{};
   optional<TimeVal> m_pressedPrevious;
 };
 
 template <
     typename MoveBraceCommand_T, // SetMinDuration or setMaxDuration
     typename Scenario_T, typename ToolPalette_T>
-class MoveConstraintBraceState final : public StateBase<Scenario_T>
+class MoveIntervalBraceState final : public StateBase<Scenario_T>
 {
 public:
-  MoveConstraintBraceState(
+  MoveIntervalBraceState(
       const ToolPalette_T& stateMachine,
       const Scenario_T& scenarioPath,
       const iscore::CommandStackFacade& stack,
@@ -152,7 +152,7 @@ public:
       QState* parent)
       : StateBase<Scenario_T>{scenarioPath, parent}, m_dispatcher{stack}
   {
-    this->setObjectName("MoveConstraintBraceState");
+    this->setObjectName("MoveIntervalBraceState");
     using namespace Scenario::Command;
     auto finalState = new QFinalState{this};
 
@@ -176,13 +176,13 @@ public:
 
       QObject::connect(pressed, &QState::entered, [&]() {
         this->m_initialDate = this->currentPoint.date;
-        if (this->clickedConstraint)
+        if (this->clickedInterval)
         {
           auto& scenar = stateMachine.model();
-          auto& cstr = scenar.constraint(*this->clickedConstraint);
+          auto& cstr = scenar.interval(*this->clickedInterval);
           this->m_initialDuration
               = ((cstr.duration)
-                 .*MoveBraceCommand_T::corresponding_member)(); // = constraint
+                 .*MoveBraceCommand_T::corresponding_member)(); // = interval
                                                                 // MinDuration
                                                                 // or
                                                                 // maxDuration
@@ -190,10 +190,10 @@ public:
       });
 
       QObject::connect(moving, &QState::entered, [&]() {
-        if (this->clickedConstraint)
+        if (this->clickedInterval)
         {
           auto& scenar = stateMachine.model();
-          auto& cstr = scenar.constraint(*this->clickedConstraint);
+          auto& cstr = scenar.interval(*this->clickedInterval);
           auto date
               = this->currentPoint.date - *m_initialDate + *m_initialDuration;
           this->m_dispatcher.submitCommand(cstr, date, false);
@@ -263,7 +263,7 @@ public:
 
         auto& scenar = stateMachine.model();
 
-        auto prev_csts = previousConstraints(
+        auto prev_csts = previousIntervals(
             scenar.timeSync(*this->clickedTimeSync), scenar);
         if (!prev_csts.empty())
         {
@@ -271,7 +271,7 @@ public:
           TimeVal t = TimeVal::zero();
           for (const auto& cst_id : prev_csts)
           {
-            const auto& other_date = scenar.constraint(cst_id).startDate();
+            const auto& other_date = scenar.interval(cst_id).startDate();
             if (other_date > t)
               t = other_date;
           }

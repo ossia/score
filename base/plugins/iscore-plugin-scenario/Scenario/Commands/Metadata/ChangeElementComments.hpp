@@ -74,7 +74,7 @@ private:
 }
 }
 
-ISCORE_COMMAND_DECL_T(ChangeElementComments<ConstraintModel>)
+ISCORE_COMMAND_DECL_T(ChangeElementComments<IntervalModel>)
 ISCORE_COMMAND_DECL_T(ChangeElementComments<EventModel>)
 ISCORE_COMMAND_DECL_T(ChangeElementComments<TimeSyncModel>)
 ISCORE_COMMAND_DECL_T(ChangeElementComments<StateModel>)

@@ -1,7 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <QPointer>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
@@ -28,9 +28,9 @@ void DisplayedElementsModel::setDisplayedElements(
   m_initialized = true;
 }
 
-ConstraintModel& DisplayedElementsModel::constraint() const
+IntervalModel& DisplayedElementsModel::interval() const
 {
-  return *m_elements.constraint;
+  return *m_elements.interval;
 }
 
 const TimeSyncModel& DisplayedElementsModel::startTimeSync() const

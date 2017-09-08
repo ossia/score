@@ -330,7 +330,7 @@
  *
  * Some examples of commands that can be used as base :
  * * Scenario::Command::SetCommentText for a very simple command that only changes a text
- * * Scenario::Command::AddOnlyProcessToConstraint for a command that leverages interfaces and creates new elements in a score
+ * * Scenario::Command::AddOnlyProcessToInterval for a command that leverages interfaces and creates new elements in a score
  *
  *
  * \section LaunchingCommands Launching commands
@@ -527,7 +527,7 @@
    \endcode
  *
  * The object then deserializes itself in its constructor;
- * see for instance Scenario::ConstraintModel::ConstraintModel or
+ * see for instance Scenario::IntervalModel::IntervalModel or
  * Scenario::StateModel::StateModel.
  *
  * \subsubsection JSObjDeser In JSON
@@ -544,7 +544,7 @@
  *
  * \subsection PolySer Serialization of polymorphic types
  *
- * An example is available in Scenario::ConstraintModel's serialization code, which
+ * An example is available in Scenario::IntervalModel's serialization code, which
  * has to serialize its child Process::ProcessModel.
  * The problem here is that we can't just call `new MyObject` since we don't know the type of the class
  * that we are loading at compile-time.
@@ -560,9 +560,9 @@
  *
  * \code
 template <>
-void DataStreamWriter::write(Scenario::ConstraintModel& constraint) {
+void DataStreamWriter::write(Scenario::IntervalModel& interval) {
   auto& pl = components.interfaces<Process::ProcessFactoryList>();
-  auto proc = deserialize_interface(pl, *this, &constraint);
+  auto proc = deserialize_interface(pl, *this, &interval);
   if(proc) {
    // ...
   } else {

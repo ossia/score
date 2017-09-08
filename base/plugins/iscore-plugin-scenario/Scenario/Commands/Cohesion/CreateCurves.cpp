@@ -8,7 +8,7 @@
 #include <Process/State/MessageNode.hpp>
 #include <QList>
 #include <QPointer>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
@@ -54,56 +54,56 @@ getSelectedAddresses(const iscore::DocumentContext& doc)
 }
 
 void CreateCurves(
-    const QList<const Scenario::ConstraintModel*>& selected_constraints,
+    const QList<const Scenario::IntervalModel*>& selected_intervals,
     const iscore::CommandStackFacade& stack)
 {
-  if (selected_constraints.empty())
+  if (selected_intervals.empty())
     return;
 
-  // For each constraint, interpolate between the states in its start event and
+  // For each interval, interpolate between the states in its start event and
   // end event.
   auto& doc
-      = iscore::IDocument::documentContext(*selected_constraints.first());
+      = iscore::IDocument::documentContext(*selected_intervals.first());
 
   auto addresses = getSelectedAddresses(doc);
   if (addresses.empty())
     return;
 
-  CreateCurvesFromAddresses(selected_constraints, addresses, stack);
+  CreateCurvesFromAddresses(selected_intervals, addresses, stack);
 }
 
 void CreateCurvesFromAddresses(
-    const QList<const Scenario::ConstraintModel*>& selected_constraints,
+    const QList<const Scenario::IntervalModel*>& selected_intervals,
     const std::vector<Device::FullAddressSettings>& addresses,
     const iscore::CommandStackFacade& stack)
 {
-  if (selected_constraints.empty())
+  if (selected_intervals.empty())
     return;
 
   // They should all be in the same scenario so we can select the first.
   // FIXME check that the other "cohesion" methods also use ScenarioInterface
   // and not Scenario::ProcessModel
   auto scenar = dynamic_cast<Scenario::ScenarioInterface*>(
-      selected_constraints.first()->parent());
+      selected_intervals.first()->parent());
 
   int added_processes = 0;
   // Then create the commands
   auto big_macro
-      = new Scenario::Command::AddMultipleProcessesToMultipleConstraintsMacro;
+      = new Scenario::Command::AddMultipleProcessesToMultipleIntervalsMacro;
 
-  for (const auto& constraint_ptr : selected_constraints)
+  for (const auto& interval_ptr : selected_intervals)
   {
-    auto& constraint = *constraint_ptr;
+    auto& interval = *interval_ptr;
     // Generate brand new ids for the processes
     auto process_ids = getStrongIdRange<Process::ProcessModel>(
-        addresses.size(), constraint.processes);
-    auto macro = Scenario::Command::makeAddProcessMacro(constraint, addresses.size());
+        addresses.size(), interval.processes);
+    auto macro = Scenario::Command::makeAddProcessMacro(interval, addresses.size());
 
-    const Scenario::StateModel& ss = startState(constraint, *scenar);
-    const auto& es = endState(constraint, *scenar);
+    const Scenario::StateModel& ss = startState(interval, *scenar);
+    const auto& es = endState(interval, *scenar);
 
     std::vector<State::AddressAccessor> existing_automations;
-    for (const auto& proc : constraint.processes)
+    for (const auto& proc : interval.processes)
     {
       if (auto autom = dynamic_cast<const Automation::ProcessModel*>(&proc))
         existing_automations.push_back(autom->address());
@@ -114,7 +114,7 @@ void CreateCurvesFromAddresses(
     {
       State::AddressAccessor addr{as.address, {}, as.unit};
       // First, we skip the curve if there is already a curve
-      // with this address in the constraint.
+      // with this address in the interval.
       if (ossia::contains(existing_automations, addr))
         continue;
 
@@ -149,7 +149,7 @@ void CreateCurvesFromAddresses(
 
       // Send the command.
       macro->addCommand(new Scenario::Command::CreateAutomationFromStates{
-          constraint, macro->slotsToUse, process_ids[i], addr, dom});
+          interval, macro->slotsToUse, process_ids[i], addr, dom});
 
       i++;
       added_processes++;

@@ -3,9 +3,9 @@
 #include "RecordAutomationCreationVisitor.hpp"
 #include <Automation/AutomationModel.hpp>
 #include <Curve/Segment/PointArray/PointArraySegment.hpp>
-#include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
-#include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
+#include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 #include <ossia/network/domain/domain.hpp>
 
@@ -16,14 +16,14 @@ RecordData RecordAutomationCreationVisitor::makeCurve(float start_y)
 {
   // Note : since we directly create the IDs here, we don't have to worry
   // about their generation.
-  auto cmd_proc = new Scenario::Command::AddOnlyProcessToConstraint{
-      box.constraint,
+  auto cmd_proc = new Scenario::Command::AddOnlyProcessToInterval{
+      box.interval,
       Metadata<ConcreteKey_k, Automation::ProcessModel>::get()};
   cmd_proc->redo(recorder.context.context);
-  auto& proc = box.constraint.processes.at(cmd_proc->processId());
+  auto& proc = box.interval.processes.at(cmd_proc->processId());
   auto& autom = static_cast<Automation::ProcessModel&>(proc);
 
-  auto cmd_layer = new Scenario::Command::AddLayerModelToSlot{Scenario::SlotPath{box.constraint, 0}, proc};
+  auto cmd_layer = new Scenario::Command::AddLayerModelToSlot{Scenario::SlotPath{box.interval, 0}, proc};
   cmd_layer->redo(recorder.context.context);
 
   autom.curve().clear();

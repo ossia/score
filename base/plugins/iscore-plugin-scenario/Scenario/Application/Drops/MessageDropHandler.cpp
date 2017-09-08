@@ -86,7 +86,7 @@ bool MessageDropHandler::dragMove(
   auto st = closestLeftState(pt, pres.model());
   if(st)
   {
-    if (st->nextConstraint())
+    if (st->nextInterval())
     {
       pres.drawDragLine(*st, pt);
     }
@@ -134,21 +134,21 @@ bool MessageDropHandler::drop(
   auto state = closestLeftState(pt, scenar);
   if (state)
   {
-    if (state->nextConstraint())
+    if (state->nextInterval())
     {
       // We create from the event instead
       auto cmd1
           = new Scenario::Command::CreateState{scenar, state->eventId(), pt.y};
       m.submitCommand(cmd1);
 
-      auto cmd2 = new Scenario::Command::CreateConstraint_State_Event_TimeSync{
+      auto cmd2 = new Scenario::Command::CreateInterval_State_Event_TimeSync{
           scenar, cmd1->createdState(), pt.date, pt.y};
       m.submitCommand(cmd2);
       createdState = cmd2->createdState();
     }
     else
     {
-      auto cmd = new Scenario::Command::CreateConstraint_State_Event_TimeSync{
+      auto cmd = new Scenario::Command::CreateInterval_State_Event_TimeSync{
           scenar, state->id(), pt.date, state->heightPercentage()};
       m.submitCommand(cmd);
       createdState = cmd->createdState();

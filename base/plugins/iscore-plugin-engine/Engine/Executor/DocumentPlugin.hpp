@@ -14,7 +14,7 @@ class DocumentModel;
 namespace Scenario
 {
 class BaseScenario;
-class ConstraintModel;
+class IntervalModel;
 }
 namespace Engine
 {
@@ -28,7 +28,7 @@ public:
       const iscore::DocumentContext& ctx, Id<iscore::DocumentPlugin>, QObject* parent);
 
   ~DocumentPlugin();
-  void reload(Scenario::ConstraintModel& doc);
+  void reload(Scenario::IntervalModel& doc);
   void clear();
 
   void on_documentClosing() override;

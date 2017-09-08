@@ -4,14 +4,14 @@
 #include <Process/Process.hpp>
 #include <QList>
 #include <QObject>
-#include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
-#include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
-#include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
-#include <Scenario/Commands/Constraint/Rack/Slot/ResizeSlotVertically.hpp>
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
+#include <Scenario/Commands/Interval/Rack/AddSlotToRack.hpp>
+#include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
+#include <Scenario/Commands/Interval/Rack/Slot/ResizeSlotVertically.hpp>
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <Scenario/Document/Constraint/Slot.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioProcessMetadata.hpp>
 #include <boost/iterator/iterator_facade.hpp>
@@ -19,8 +19,8 @@
 #include <iscore/tools/std/Optional.hpp>
 
 #include "ScenarioDocumentModel.hpp"
-#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalDurations.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
@@ -67,41 +67,41 @@ ScenarioDocumentModel::ScenarioDocumentModel(
   auto dur
       = ctx.app.settings<Scenario::Settings::Model>().getDefaultDuration();
 
-  m_baseScenario->constraint().duration.setRigid(false);
-  ConstraintDurations::Algorithms::changeAllDurations(
-      m_baseScenario->constraint(), dur);
-  m_baseScenario->constraint().duration.setMaxInfinite(true);
+  m_baseScenario->interval().duration.setRigid(false);
+  IntervalDurations::Algorithms::changeAllDurations(
+      m_baseScenario->interval(), dur);
+  m_baseScenario->interval().duration.setMaxInfinite(true);
   m_baseScenario->endEvent().setDate(
-      m_baseScenario->constraint().duration.defaultDuration());
+      m_baseScenario->interval().duration.defaultDuration());
   m_baseScenario->endTimeSync().setDate(
-      m_baseScenario->constraint().duration.defaultDuration());
+      m_baseScenario->interval().duration.defaultDuration());
 
   auto& doc_metadata
       = iscore::IDocument::documentContext(*parent).document.metadata();
-  m_baseScenario->constraint().metadata().setName(doc_metadata.fileName());
+  m_baseScenario->interval().metadata().setName(doc_metadata.fileName());
 
   connect(
       &doc_metadata, &iscore::DocumentMetadata::fileNameChanged, this,
       [&](const QString& newName) {
         QFileInfo info(newName);
 
-        m_baseScenario->constraint().metadata().setName(info.baseName());
+        m_baseScenario->interval().metadata().setName(info.baseName());
       });
 
   using namespace Scenario::Command;
 
-  AddOnlyProcessToConstraint cmd1{
-      m_baseScenario->constraint(),
+  AddOnlyProcessToInterval cmd1{
+      m_baseScenario->interval(),
       Metadata<ConcreteKey_k, Scenario::ProcessModel>::get()};
   cmd1.redo(ctx);
-  m_baseScenario->constraint().processes.begin()->setSlotHeight(1500);
+  m_baseScenario->interval().processes.begin()->setSlotHeight(1500);
 
   init();
 
   // Select the first state
   iscore::SelectionDispatcher d{ctx.selectionStack};
   auto scenar = dynamic_cast<Scenario::ProcessModel*>(
-      &*m_baseScenario->constraint().processes.begin());
+      &*m_baseScenario->interval().processes.begin());
   if (scenar)
     d.setAndCommit({&scenar->startEvent()});
 }
@@ -111,12 +111,12 @@ void ScenarioDocumentModel::init()
 }
 
 void ScenarioDocumentModel::initializeNewDocument(
-    const ConstraintModel& constraint_model) {
+    const IntervalModel& interval_model) {
 }
 
-ConstraintModel& ScenarioDocumentModel::baseConstraint() const
+IntervalModel& ScenarioDocumentModel::baseInterval() const
 {
-  return m_baseScenario->constraint();
+  return m_baseScenario->interval();
 }
 
 

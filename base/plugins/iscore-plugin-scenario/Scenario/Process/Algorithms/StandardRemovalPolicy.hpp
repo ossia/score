@@ -3,21 +3,21 @@
 
 namespace Scenario
 {
-class ConstraintModel;
+class IntervalModel;
 class EventModel;
 class StateModel;
 class ProcessModel;
 class CommentBlockModel;
 namespace StandardRemovalPolicy
 {
-void removeConstraint(
-    Scenario::ProcessModel& scenario, const Id<ConstraintModel>& constraintId);
+void removeInterval(
+    Scenario::ProcessModel& scenario, const Id<IntervalModel>& intervalId);
 
 void removeState(Scenario::ProcessModel& scenario, StateModel& state);
 
 void removeComment(Scenario::ProcessModel& scenario, CommentBlockModel& cmt);
 
-void removeEventStatesAndConstraints(
+void removeEventStatesAndIntervals(
     Scenario::ProcessModel& scenario, const Id<EventModel>& eventId);
 }
 }

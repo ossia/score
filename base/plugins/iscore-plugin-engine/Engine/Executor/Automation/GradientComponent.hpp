@@ -3,7 +3,7 @@
 #include <ossia/editor/value/value.hpp>
 #include <Automation/Color/GradientAutomModel.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
-#include <ossia/editor/scenario/time_constraint.hpp>
+#include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/curve/curve_segment/easing.hpp>
 #include <ossia/editor/automation/gradient.hpp>
 #include <memory>
@@ -24,7 +24,7 @@ class Component final
     COMPONENT_METADATA("45467316-6c07-47f9-9d68-9a9de0360402")
     public:
       Component(
-        ::Engine::Execution::ConstraintComponent& parentConstraint,
+        ::Engine::Execution::IntervalComponent& parentInterval,
         Gradient::ProcessModel& element,
         const ::Engine::Execution::Context& ctx,
         const Id<iscore::Component>& id,

@@ -23,16 +23,16 @@
 #include <Scenario/Document/TimeSync/TimeSyncView.hpp>
 #include <Scenario/Document/TimeSync/TriggerView.hpp>
 
-#include <Scenario/Document/Constraint/SlotHandle.hpp>
-#include <Scenario/Document/Constraint/Slot.hpp>
+#include <Scenario/Document/Interval/SlotHandle.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
 
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/ConstraintPresenter.hpp>
-#include <Scenario/Document/Constraint/ConstraintView.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/IntervalPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalView.hpp>
 
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/Constraint/ConstraintHeader.hpp>
-#include <Scenario/Document/Constraint/Temporal/Braces/LeftBrace.hpp>
+#include <Scenario/Document/Interval/IntervalHeader.hpp>
+#include <Scenario/Document/Interval/Temporal/Braces/LeftBrace.hpp>
 
 namespace iscore
 {
@@ -111,15 +111,15 @@ protected:
               ? timesync.id()
               : OptionalId<TimeSyncModel>{};
   }
-  OptionalId<ConstraintModel>
-  itemToConstraintId(const QGraphicsItem* pressedItem) const
+  OptionalId<IntervalModel>
+  itemToIntervalId(const QGraphicsItem* pressedItem) const
   {
-    const auto& constraint = static_cast<const ConstraintView*>(pressedItem)
+    const auto& interval = static_cast<const IntervalView*>(pressedItem)
                                  ->presenter()
                                  .model();
-    return constraint.parent() == &this->m_palette.model()
-               ? constraint.id()
-               : OptionalId<ConstraintModel>{};
+    return interval.parent() == &this->m_palette.model()
+               ? interval.id()
+               : OptionalId<IntervalModel>{};
   }
   OptionalId<StateModel> itemToStateId(const QGraphicsItem* pressedItem) const
   {
@@ -130,7 +130,7 @@ protected:
                ? state.id()
                : OptionalId<StateModel>{};
   }
-  optional<SlotPath> itemToConstraintFromHandle(const QGraphicsItem* pressedItem) const
+  optional<SlotPath> itemToIntervalFromHandle(const QGraphicsItem* pressedItem) const
   {
     auto handle = static_cast<const SlotHandle*>(pressedItem);
     const auto& cst = handle->presenter().model();
@@ -151,7 +151,7 @@ protected:
       typename EventFun,
       typename StateFun,
       typename TimeSyncFun,
-      typename ConstraintFun,
+      typename IntervalFun,
       typename LeftBraceFun,
       typename RightBraceFun,
       typename SlotHandleFun,
@@ -161,7 +161,7 @@ protected:
       StateFun st_fun,
       EventFun ev_fun,
       TimeSyncFun tn_fun,
-      ConstraintFun cst_fun,
+      IntervalFun cst_fun,
       LeftBraceFun lbrace_fun,
       RightBraceFun rbrace_fun,
       SlotHandleFun handle_fun,
@@ -180,7 +180,7 @@ protected:
     };
 
     // Each time :
-    // Check if it is an event / timesync / constraint /state
+    // Check if it is an event / timesync / interval /state
     // The itemToXXXId methods check that we are in the correct scenario, too.
     switch (item->type())
     {
@@ -191,8 +191,8 @@ protected:
         tryFun(ev_fun, itemToEventId(item));
         break;
 
-      case ConstraintView::static_type():
-        tryFun(cst_fun, itemToConstraintId(item));
+      case IntervalView::static_type():
+        tryFun(cst_fun, itemToIntervalId(item));
         break;
 
       case TriggerView::static_type():
@@ -208,7 +208,7 @@ protected:
 
       case SlotHandle::static_type(): // Slot handle
       {
-        auto slot = itemToConstraintFromHandle(item);
+        auto slot = itemToIntervalFromHandle(item);
         if (slot)
         {
           handle_fun(*slot);
@@ -220,21 +220,21 @@ protected:
         break;
       }
 
-      case ConstraintHeader::static_type(): // Constraint header
+      case IntervalHeader::static_type(): // Interval header
       {
-        tryFun(cst_fun, itemToConstraintId(item->parentItem()));
+        tryFun(cst_fun, itemToIntervalId(item->parentItem()));
         break;
       }
 
-      case LeftBraceView::static_type(): // Constraint Left Brace
+      case LeftBraceView::static_type(): // Interval Left Brace
       {
-        tryFun(lbrace_fun, itemToConstraintId(item->parentItem()));
+        tryFun(lbrace_fun, itemToIntervalId(item->parentItem()));
         break;
       }
 
-      case RightBraceView::static_type(): // Constraint Right Brace
+      case RightBraceView::static_type(): // Interval Right Brace
       {
-        tryFun(rbrace_fun, itemToConstraintId(item->parentItem()));
+        tryFun(rbrace_fun, itemToIntervalId(item->parentItem()));
         break;
       }
 

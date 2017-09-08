@@ -8,17 +8,17 @@ class ProcessModel;
 }
 namespace Scenario
 {
-class ConstraintModel;
+class IntervalModel;
 class StateModel;
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-AddProcess(ConstraintModel& constraint, Process::ProcessModel*);
+AddProcess(IntervalModel& interval, Process::ProcessModel*);
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-RemoveProcess(ConstraintModel& constraint, const Id<Process::ProcessModel>&);
+RemoveProcess(IntervalModel& interval, const Id<Process::ProcessModel>&);
 
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-SetPreviousConstraint(StateModel& state, const ConstraintModel& constraint);
+SetPreviousInterval(StateModel& state, const IntervalModel& interval);
 ISCORE_PLUGIN_SCENARIO_EXPORT void
-SetNextConstraint(StateModel& state, const ConstraintModel& constraint);
-ISCORE_PLUGIN_SCENARIO_EXPORT void SetNoPreviousConstraint(StateModel& state);
-ISCORE_PLUGIN_SCENARIO_EXPORT void SetNoNextConstraint(StateModel& state);
+SetNextInterval(StateModel& state, const IntervalModel& interval);
+ISCORE_PLUGIN_SCENARIO_EXPORT void SetNoPreviousInterval(StateModel& state);
+ISCORE_PLUGIN_SCENARIO_EXPORT void SetNoNextInterval(StateModel& state);
 }

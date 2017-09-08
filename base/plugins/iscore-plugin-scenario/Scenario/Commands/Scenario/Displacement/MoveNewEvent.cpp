@@ -17,13 +17,13 @@ namespace Command
 {
 MoveNewEvent::MoveNewEvent(
     const Scenario::ProcessModel& scenarioPath,
-    Id<ConstraintModel> constraintId,
+    Id<IntervalModel> intervalId,
     Id<EventModel> eventId,
     TimeVal date,
     double y,
     bool yLocked)
     : m_path{scenarioPath}
-    , m_constraintId{std::move(constraintId)}
+    , m_intervalId{std::move(intervalId)}
     , m_cmd{scenarioPath, std::move(eventId), std::move(date), ExpandMode::Scale}
     , m_y{y}
     , m_yLocked{yLocked}
@@ -32,14 +32,14 @@ MoveNewEvent::MoveNewEvent(
 
 MoveNewEvent::MoveNewEvent(
     const Scenario::ProcessModel& scenarioPath,
-    Id<ConstraintModel> constraintId,
+    Id<IntervalModel> intervalId,
     Id<EventModel> eventId,
     TimeVal date,
     const double y,
     bool yLocked,
     ExpandMode mode)
     : m_path{scenarioPath}
-    , m_constraintId{std::move(constraintId)}
+    , m_intervalId{std::move(intervalId)}
     , m_cmd{scenarioPath, std::move(eventId), std::move(date), mode}
     , m_y{y}
     , m_yLocked{yLocked}
@@ -49,7 +49,7 @@ MoveNewEvent::MoveNewEvent(
 void MoveNewEvent::undo(const iscore::DocumentContext& ctx) const
 {
   m_cmd.undo(ctx);
-  // It is not needed to move the constraint since
+  // It is not needed to move the interval since
   // the sub-command already does it correctly.
 }
 
@@ -58,19 +58,19 @@ void MoveNewEvent::redo(const iscore::DocumentContext& ctx) const
   m_cmd.redo(ctx);
   if (!m_yLocked)
   {
-    updateConstraintVerticalPos(m_y, m_constraintId, m_cmd.path().find(ctx));
+    updateIntervalVerticalPos(m_y, m_intervalId, m_cmd.path().find(ctx));
   }
 }
 
 void MoveNewEvent::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path << m_cmd.serialize() << m_constraintId << m_y << m_yLocked;
+  s << m_path << m_cmd.serialize() << m_intervalId << m_y << m_yLocked;
 }
 
 void MoveNewEvent::deserializeImpl(DataStreamOutput& s)
 {
   QByteArray a;
-  s >> m_path >> a >> m_constraintId >> m_y >> m_yLocked;
+  s >> m_path >> a >> m_intervalId >> m_y >> m_yLocked;
 
   m_cmd.deserialize(a);
 }

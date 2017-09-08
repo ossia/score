@@ -23,7 +23,7 @@ struct DataStreamOutput;
 namespace Scenario
 {
 class EventModel;
-class ConstraintModel;
+class IntervalModel;
 class ProcessModel;
 namespace Command
 {
@@ -35,14 +35,14 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT MoveNewEvent final
 public:
   MoveNewEvent(
       const Scenario::ProcessModel& scenarioPath,
-      Id<ConstraintModel> constraintId,
+      Id<IntervalModel> intervalId,
       Id<EventModel> eventId,
       TimeVal date,
       const double y,
       bool yLocked);
   MoveNewEvent(
       const Scenario::ProcessModel& scenarioPath,
-      Id<ConstraintModel>  constraintId,
+      Id<IntervalModel>  intervalId,
       Id<EventModel> eventId,
       TimeVal date,
       const double y,
@@ -76,11 +76,11 @@ protected:
 
 private:
   Path<Scenario::ProcessModel> m_path;
-  Id<ConstraintModel> m_constraintId{};
+  Id<IntervalModel> m_intervalId{};
 
   MoveEventOnCreationMeta m_cmd;
   double m_y{};
-  bool m_yLocked{true}; // default is true and constraints are on the same y.
+  bool m_yLocked{true}; // default is true and intervals are on the same y.
 };
 }
 }

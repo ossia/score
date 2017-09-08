@@ -5,7 +5,7 @@
 #include <QJsonValue>
 #include <QString>
 #include <Scenario/Application/ScenarioValidity.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <algorithm>
@@ -46,13 +46,13 @@ void DataStreamReader::read(
   m_stream << scenario.m_startEventId;
   m_stream << scenario.m_startStateId;
 
-  // Constraints
-  const auto& constraints = scenario.constraints;
-  m_stream << (int32_t)constraints.size();
+  // Intervals
+  const auto& intervals = scenario.intervals;
+  m_stream << (int32_t)intervals.size();
 
-  for (const auto& constraint : constraints)
+  for (const auto& interval : intervals)
   {
-    readFrom(constraint);
+    readFrom(interval);
   }
 
   // Timenodes
@@ -102,14 +102,14 @@ void DataStreamWriter::write(Scenario::ProcessModel& scenario)
   m_stream >> scenario.m_startEventId;
   m_stream >> scenario.m_startStateId;
 
-  // Constraints
-  int32_t constraint_count;
-  m_stream >> constraint_count;
+  // Intervals
+  int32_t interval_count;
+  m_stream >> interval_count;
 
-  for (; constraint_count-- > 0;)
+  for (; interval_count-- > 0;)
   {
-    auto constraint = new Scenario::ConstraintModel{*this, &scenario};
-    scenario.constraints.add(constraint);
+    auto interval = new Scenario::IntervalModel{*this, &scenario};
+    scenario.intervals.add(interval);
   }
 
   // Timenodes
@@ -152,13 +152,13 @@ void DataStreamWriter::write(Scenario::ProcessModel& scenario)
     scenario.comments.add(cmtModel);
   }
 
-  // Finally, we re-set the constraints before and after the states
-  for (const Scenario::ConstraintModel& constraint : scenario.constraints)
+  // Finally, we re-set the intervals before and after the states
+  for (const Scenario::IntervalModel& interval : scenario.intervals)
   {
-    Scenario::SetPreviousConstraint(
-        scenario.states.at(constraint.endState()), constraint);
-    Scenario::SetNextConstraint(
-        scenario.states.at(constraint.startState()), constraint);
+    Scenario::SetPreviousInterval(
+        scenario.states.at(interval.endState()), interval);
+    Scenario::SetNextInterval(
+        scenario.states.at(interval.startState()), interval);
   }
 
   // Scenario::ScenarioValidityChecker::checkValidity(scenario);
@@ -177,7 +177,7 @@ void JSONObjectReader::read(
   obj["TimeNodes"] = toJsonArray(scenario.timeSyncs);
   obj["Events"] = toJsonArray(scenario.events);
   obj["States"] = toJsonArray(scenario.states);
-  obj["Constraints"] = toJsonArray(scenario.constraints);
+  obj["Intervals"] = toJsonArray(scenario.intervals);
   obj["Comments"] = toJsonArray(scenario.comments);
 }
 
@@ -192,12 +192,12 @@ void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
   scenario.m_startStateId
       = fromJsonValue<Id<Scenario::StateModel>>(obj["StartStateId"]);
 
-  const auto& constraints = obj["Constraints"].toArray();
-  for (const auto& json_vref : constraints)
+  const auto& intervals = obj["Intervals"].toArray();
+  for (const auto& json_vref : intervals)
   {
-    auto constraint = new Scenario::ConstraintModel{
+    auto interval = new Scenario::IntervalModel{
         JSONObject::Deserializer{json_vref.toObject()}, &scenario};
-    scenario.constraints.add(constraint);
+    scenario.intervals.add(interval);
   }
 
   const auto& timesyncs = obj["TimeNodes"].toArray();
@@ -237,13 +237,13 @@ void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
     scenario.states.add(stmodel);
   }
 
-  // Finally, we re-set the constraints before and after the states
-  for (const Scenario::ConstraintModel& constraint : scenario.constraints)
+  // Finally, we re-set the intervals before and after the states
+  for (const Scenario::IntervalModel& interval : scenario.intervals)
   {
-    Scenario::SetPreviousConstraint(
-        scenario.states.at(constraint.endState()), constraint);
-    Scenario::SetNextConstraint(
-        scenario.states.at(constraint.startState()), constraint);
+    Scenario::SetPreviousInterval(
+        scenario.states.at(interval.endState()), interval);
+    Scenario::SetNextInterval(
+        scenario.states.at(interval.startState()), interval);
   }
 
   // Scenario::ScenarioValidityChecker::checkValidity(scenario);

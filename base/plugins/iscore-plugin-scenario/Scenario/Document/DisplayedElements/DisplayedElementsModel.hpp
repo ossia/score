@@ -5,7 +5,7 @@
 
 namespace Scenario
 {
-class ConstraintModel;
+class IntervalModel;
 class EventModel;
 class StateModel;
 class TimeSyncModel;
@@ -22,7 +22,7 @@ public:
   void setSelection(const Selection&);
 
   void setDisplayedElements(DisplayedElementsContainer&&);
-  ConstraintModel& constraint() const;
+  IntervalModel& interval() const;
 
   const TimeSyncModel& startTimeSync() const;
   const TimeSyncModel& endTimeSync() const;
@@ -43,7 +43,7 @@ private:
         m_elements.endEvent,
         m_elements.startState,
         m_elements.endState,
-        m_elements.constraint);
+        m_elements.interval);
   }
 
   DisplayedElementsContainer m_elements;

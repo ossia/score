@@ -25,8 +25,8 @@
 #include <Process/State/MessageNode.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeSync.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event_TimeSync.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
@@ -53,9 +53,9 @@ namespace Command
 
 CreateSequenceProcesses::CreateSequenceProcesses(
     const Scenario::ProcessModel& scenario,
-    const Scenario::ConstraintModel& constraint)
+    const Scenario::IntervalModel& interval)
     : m_scenario{scenario}
-    , m_endState{Scenario::endState(constraint, scenario).id()}
+    , m_endState{Scenario::endState(interval, scenario).id()}
 {
   // TESTME
 
@@ -64,7 +64,7 @@ CreateSequenceProcesses::CreateSequenceProcesses(
 
   // We get the device explorer, and we fetch the new states.
   const auto& startMessages = Process::flatten(
-      Scenario::startState(constraint, scenario).messages().rootNode());
+      Scenario::startState(interval, scenario).messages().rootNode());
 
   std::vector<Device::FullAddressSettings> endAddresses;
   endAddresses.reserve(startMessages.size());
@@ -151,7 +151,7 @@ CreateSequenceProcesses::CreateSequenceProcesses(
     return;
 
   {
-    AddMultipleProcessesToConstraintMacro interpolateMacro{constraint};
+    AddMultipleProcessesToIntervalMacro interpolateMacro{interval};
     m_interpolations.slotsToUse = interpolateMacro.slotsToUse;
     m_interpolations.commands() = interpolateMacro.takeCommands();
   }
@@ -168,7 +168,7 @@ CreateSequenceProcesses::CreateSequenceProcesses(
     auto start = State::convert::value<double>(elt.first.value);
     auto end = State::convert::value<double>(elt.second.value);
     Curve::CurveDomain d{ elt.second.domain.get(), start, end};
-    auto cmd = new CreateAutomationFromStates{constraint,
+    auto cmd = new CreateAutomationFromStates{interval,
                                               m_interpolations.slotsToUse,
                                               process_ids[cur_proc],
                                               elt.first.address, d};
@@ -179,7 +179,7 @@ CreateSequenceProcesses::CreateSequenceProcesses(
   for (const auto& elt : matchingListMessages)
   {
     m_interpolations.addCommand(new CreateInterpolationFromStates{
-        constraint, m_interpolations.slotsToUse,
+        interval, m_interpolations.slotsToUse,
         process_ids[cur_proc], elt.first.address,
         elt.first.value, elt.second.value});
     cur_proc++;
@@ -226,9 +226,9 @@ CreateSequence* CreateSequence::make(
 {
   auto cmd = new CreateSequence;
 
-  auto create_command = new CreateConstraint_State_Event_TimeSync{
+  auto create_command = new CreateInterval_State_Event_TimeSync{
       scenario, start, date, endStateY};
-  cmd->m_newConstraint = create_command->createdConstraint();
+  cmd->m_newInterval = create_command->createdInterval();
   cmd->m_newState = create_command->createdState();
   cmd->m_newEvent = create_command->createdEvent();
   cmd->m_newTimeSync = create_command->createdTimeSync();
@@ -237,14 +237,14 @@ CreateSequence* CreateSequence::make(
   cmd->addCommand(create_command);
 
   auto proc_command = new CreateSequenceProcesses{
-      scenario, scenario.constraint(create_command->createdConstraint())};
+      scenario, scenario.interval(create_command->createdInterval())};
 
   if(proc_command->addedProcessCount() > 0)
   {
     proc_command->redo(ctx);
     cmd->addCommand(proc_command);
 
-    auto show_rack = new ShowRack{scenario.constraint(create_command->createdConstraint())};
+    auto show_rack = new ShowRack{scenario.interval(create_command->createdInterval())};
     show_rack->redo(ctx);
     cmd->addCommand(show_rack);
   }
