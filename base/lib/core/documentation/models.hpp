@@ -20,7 +20,7 @@
  * This tree is based on Qt's \ref QObject. See http://doc.qt.io/qt-5/object.html for more information.
  * <br>
  * This applies to all the "meaningful" objects in the software, i.e. the objects of the i-score
- * domain (Process::ProcessModel, Scenario::ConstraintModel, Automation::ProcessModel, etc).
+ * domain (Process::ProcessModel, Scenario::IntervalModel, Automation::ProcessModel, etc).
  * <br>
  * We call these the "model" objects.
  * <br>

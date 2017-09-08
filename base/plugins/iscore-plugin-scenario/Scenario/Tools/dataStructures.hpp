@@ -17,7 +17,7 @@ needed
 
 namespace Scenario
 {
-class ConstraintModel;
+class IntervalModel;
 class TimeSyncModel;
 
 struct TimenodeProperties
@@ -32,21 +32,21 @@ struct TimenodeProperties
   ExecutionStatus status{ExecutionStatus::Editing};
 };
 
-struct ISCORE_PLUGIN_SCENARIO_EXPORT ConstraintSaveData
+struct ISCORE_PLUGIN_SCENARIO_EXPORT IntervalSaveData
 {
-  ConstraintSaveData() = default;
-  ConstraintSaveData(const ConstraintModel&);
+  IntervalSaveData() = default;
+  IntervalSaveData(const IntervalModel&);
 
-  void reload(ConstraintModel&) const;
+  void reload(IntervalModel&) const;
 
-  Path<ConstraintModel> constraintPath;
+  Path<IntervalModel> intervalPath;
   QVector<QByteArray> processes;
   QVector<QByteArray> racks;
 };
 
-struct ConstraintProperties : public ConstraintSaveData
+struct IntervalProperties : public IntervalSaveData
 {
-  using ConstraintSaveData::ConstraintSaveData;
+  using IntervalSaveData::IntervalSaveData;
 
   TimeVal oldDefault{};
   TimeVal oldMin{};
@@ -59,6 +59,6 @@ struct ConstraintProperties : public ConstraintSaveData
 struct ElementsProperties
 {
   iscore::hash_map<Id<TimeSyncModel>, TimenodeProperties> timesyncs;
-  iscore::hash_map<Id<ConstraintModel>, ConstraintProperties> constraints;
+  iscore::hash_map<Id<IntervalModel>, IntervalProperties> intervals;
 };
 }

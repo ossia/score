@@ -2,20 +2,20 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "LoopDisplayedElements.hpp"
 #include "LoopProcessModel.hpp"
-#include <Scenario/Document/Constraint/FullView/FullViewConstraintPresenter.hpp>
+#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 namespace Loop
 {
 bool DisplayedElementsProvider::matches(
-    const Scenario::ConstraintModel& cst) const
+    const Scenario::IntervalModel& cst) const
 {
   return dynamic_cast<Loop::ProcessModel*>(cst.parent());
 }
 
 Scenario::DisplayedElementsContainer
-DisplayedElementsProvider::make(Scenario::ConstraintModel& cst) const
+DisplayedElementsProvider::make(Scenario::IntervalModel& cst) const
 {
   if (auto parent_base = dynamic_cast<Loop::ProcessModel*>(cst.parent()))
   {
@@ -34,7 +34,7 @@ DisplayedElementsProvider::make(Scenario::ConstraintModel& cst) const
 }
 Scenario::DisplayedElementsPresenterContainer
 DisplayedElementsProvider::make_presenters(
-    const Scenario::ConstraintModel& m,
+    const Scenario::IntervalModel& m,
     const Process::ProcessPresenterContext& ctx,
     QGraphicsItem* view_parent,
     QObject* parent) const
@@ -42,7 +42,7 @@ DisplayedElementsProvider::make_presenters(
   if (auto bs = dynamic_cast<Loop::ProcessModel*>(m.parent()))
   {
     return Scenario::DisplayedElementsPresenterContainer{
-        new Scenario::FullViewConstraintPresenter{m, ctx, view_parent, parent},
+        new Scenario::FullViewIntervalPresenter{m, ctx, view_parent, parent},
         new Scenario::StatePresenter{bs->startState(), view_parent, parent},
         new Scenario::StatePresenter{bs->endState(), view_parent, parent},
         new Scenario::EventPresenter{bs->startEvent(), view_parent, parent},

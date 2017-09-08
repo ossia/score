@@ -38,7 +38,7 @@ private:
 
   QAction* m_playStates{};
   QAction* m_playEvents{};
-  QAction* m_playConstraints{};
+  QAction* m_playIntervals{};
 
   QAction* m_playFromHere{};
 };

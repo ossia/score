@@ -12,14 +12,14 @@ namespace RecreateOnPlay
 {
 
 Component::Component(
-    ::Engine::Execution::ConstraintComponent& parentConstraint,
+    ::Engine::Execution::IntervalComponent& parentInterval,
     ::Gradient::ProcessModel& element,
     const ::Engine::Execution::Context& ctx,
     const Id<iscore::Component>& id,
     QObject* parent)
   : ::Engine::Execution::
       ProcessComponent_T<Gradient::ProcessModel, ossia::color_automation>{
-        parentConstraint,
+        parentInterval,
         element,
         ctx,
         id, "Executor::GradientComponent", parent}

@@ -49,7 +49,7 @@
  * or use it in automations, etc.
  *
  * For instance, it allows to do conditions based on the advancement of each
- * Scenario::ConstraintModel.
+ * Scenario::IntervalModel.
  *
  * It is possible to extend the tree for Process::ProcessModel%s, or other
  * polymorphic types.
@@ -67,9 +67,9 @@
  * doing "play".
  * <br>
  * The classes inheriting from Engine::Execution::ProcessComponent
- * are first created, then the Engine::Execution::ConstraintComponent will ask
+ * are first created, then the Engine::Execution::IntervalComponent will ask
  * them for their ossia::time_process which it gives to the matching
- * ossia::time_constraint.
+ * ossia::time_interval.
  *
  * \section LiveModification Live modification during execution.
  * The execution engine allows live modification of scores.
@@ -83,13 +83,13 @@
  * Modifications are submitted from the component hierarchy :
  * <br>
  * * Engine::Execution::ScenarioComponent
- * * Engine::Execution::ConstraintComponent
+ * * Engine::Execution::IntervalComponent
  * * etc...
  * <br><br>
  * To the OSSIA structures :
  * <br>
  * * ossia::time_process
- * * ossia::time_constraint
+ * * ossia::time_interval
  * * etc...
  * <br>
  * <br>
@@ -119,8 +119,8 @@
  * \endcode
  *
  * For modification of values, for instance the duration of a
- * Constraint, this is easily visible.
- * See for instance Engine::Execution::ConstraintComponentBase 's constructor.
+ * Interval, this is easily visible.
+ * See for instance Engine::Execution::IntervalComponentBase 's constructor.
  * <br>
  * For creation and removal of objects, this should be handled automatically by
  * the various ComponentHierarchy classes which take care of creating and removing the objects
@@ -137,7 +137,7 @@
  * in a single tick. For instance when doing a complete undo - redo of the whole undo stack.
  * <br>
  * This means that anything send to the command queue must absolutely never access
- * any of the iscore structures (for instance Scenario::ConstraintModel, etc) directly : they have to be copied.
+ * any of the iscore structures (for instance Scenario::IntervalModel, etc) directly : they have to be copied.
  * Else, there *will* be crashes, someday.
  * <br>
  * In the flow graph shown before, everything up to and including "Command inserted into the execution queue"

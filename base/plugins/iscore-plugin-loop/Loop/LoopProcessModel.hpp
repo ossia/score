@@ -18,7 +18,7 @@ class JSONObject;
 namespace Scenario
 {
 class TimeSyncModel;
-class ConstraintModel;
+class IntervalModel;
 }
 
 namespace Loop
@@ -65,19 +65,19 @@ public:
   ~ProcessModel();
 };
 
-ISCORE_PLUGIN_LOOP_EXPORT const QVector<Id<Scenario::ConstraintModel>>
-constraintsBeforeTimeSync(
+ISCORE_PLUGIN_LOOP_EXPORT const QVector<Id<Scenario::IntervalModel>>
+intervalsBeforeTimeSync(
     const Loop::ProcessModel& scen,
     const Id<Scenario::TimeSyncModel>& timeSyncId);
 }
 namespace Scenario
 {
 template <>
-struct ElementTraits<Loop::ProcessModel, Scenario::ConstraintModel>
+struct ElementTraits<Loop::ProcessModel, Scenario::IntervalModel>
 {
   static const constexpr auto accessor
-      = static_cast<iscore::IndirectArray<Scenario::ConstraintModel, 1> (*)(
-          const Scenario::BaseScenarioContainer&)>(&Scenario::constraints);
+      = static_cast<iscore::IndirectArray<Scenario::IntervalModel, 1> (*)(
+          const Scenario::BaseScenarioContainer&)>(&Scenario::intervals);
 };
 template <>
 struct ElementTraits<Loop::ProcessModel, Scenario::EventModel>

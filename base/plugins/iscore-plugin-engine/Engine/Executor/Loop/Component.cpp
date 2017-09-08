@@ -5,7 +5,7 @@
 #include <ossia/network/base/device.hpp>
 #include <Engine/iscore2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
@@ -18,12 +18,12 @@
 #include <ossia/editor/loop/loop.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
 #include <ossia/editor/state/state.hpp>
-#include <Engine/Executor/ConstraintComponent.hpp>
+#include <Engine/Executor/IntervalComponent.hpp>
 #include <Engine/Executor/EventComponent.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
 #include <Engine/Executor/StateComponent.hpp>
 #include <Engine/Executor/TimeSyncComponent.hpp>
-#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
+#include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <iscore/tools/IdentifierGeneration.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
@@ -44,16 +44,16 @@ namespace Loop
 namespace RecreateOnPlay
 {
 Component::Component(
-    ::Engine::Execution::ConstraintComponent& parentConstraint,
+    ::Engine::Execution::IntervalComponent& parentInterval,
     ::Loop::ProcessModel& element,
     const ::Engine::Execution::Context& ctx,
     const Id<iscore::Component>& id,
     QObject* parent)
     : ::Engine::Execution::ProcessComponent_T<Loop::ProcessModel, ossia::loop>{
-          parentConstraint, element, ctx, id, "LoopComponent", parent}
+          parentInterval, element, ctx, id, "LoopComponent", parent}
 {
   ossia::time_value main_duration(ctx.time(
-      element.constraint().duration.defaultDuration()));
+      element.interval().duration.defaultDuration()));
 
   auto loop = std::make_shared<ossia::loop>(
       main_duration,
@@ -69,8 +69,8 @@ Component::Component(
           case ossia::time_event::status::PENDING:
             break;
           case ossia::time_event::status::HAPPENED:
-            startConstraintExecution(
-                m_ossia_constraint->iscoreConstraint().id());
+            startIntervalExecution(
+                m_ossia_interval->iscoreInterval().id());
             break;
           case ossia::time_event::status::DISPOSED:
             break;
@@ -90,8 +90,8 @@ Component::Component(
           case ossia::time_event::status::PENDING:
             break;
           case ossia::time_event::status::HAPPENED:
-            stopConstraintExecution(
-                m_ossia_constraint->iscoreConstraint().id());
+            stopIntervalExecution(
+                m_ossia_interval->iscoreInterval().id());
             break;
           case ossia::time_event::status::DISPOSED:
             break;
@@ -128,7 +128,7 @@ Component::Component(
       = new StateComponent(element.endState(), system(), iscore::newId(element.endState()), this);
 
 
-  m_ossia_constraint = new ConstraintComponent(element.constraint(), system(), iscore::newId(element.constraint()), this);
+  m_ossia_interval = new IntervalComponent(element.interval(), system(), iscore::newId(element.interval()), this);
 
   m_ossia_startTimeSync->onSetup(main_start_node, m_ossia_startTimeSync->makeTrigger());
   m_ossia_endTimeSync->onSetup(main_end_node, m_ossia_endTimeSync->makeTrigger());
@@ -136,7 +136,7 @@ Component::Component(
   m_ossia_endEvent->onSetup(main_end_event, m_ossia_endEvent->makeExpression(), (ossia::time_event::offset_behavior)element.endEvent().offsetBehavior());
   m_ossia_startState->onSetup(main_start_event);
   m_ossia_endState->onSetup(main_end_event);
-  m_ossia_constraint->onSetup(loop->get_time_constraint(), m_ossia_constraint->makeDurations(), false);
+  m_ossia_interval->onSetup(loop->get_time_interval(), m_ossia_interval->makeDurations(), false);
 
   element.startState().components().add(m_ossia_startState);
   element.endState().components().add(m_ossia_endState);
@@ -147,7 +147,7 @@ Component::Component(
   element.startTimeSync().components().add(m_ossia_startTimeSync);
   element.endTimeSync().components().add(m_ossia_endTimeSync);
 
-  element.constraint().components().add(m_ossia_constraint);
+  element.interval().components().add(m_ossia_interval);
 }
 
 Component::~Component()
@@ -156,10 +156,10 @@ Component::~Component()
 
 void Component::cleanup()
 {
-  if(m_ossia_constraint)
+  if(m_ossia_interval)
   {
-    m_ossia_constraint->cleanup();
-    process().constraint().components().remove(m_ossia_constraint);
+    m_ossia_interval->cleanup();
+    process().interval().components().remove(m_ossia_interval);
   }
   if(m_ossia_startState)
   {
@@ -194,7 +194,7 @@ void Component::cleanup()
     process().endTimeSync().components().remove(m_ossia_endTimeSync);
   }
 
-  m_ossia_constraint = nullptr;
+  m_ossia_interval = nullptr;
   m_ossia_startState = nullptr;
   m_ossia_endState = nullptr;
   m_ossia_startEvent = nullptr;
@@ -206,17 +206,17 @@ void Component::cleanup()
 void Component::stop()
 {
   ProcessComponent::stop();
-  process().constraint().duration.setPlayPercentage(0);
+  process().interval().duration.setPlayPercentage(0);
 }
 
-void Component::startConstraintExecution(const Id<Scenario::ConstraintModel>&)
+void Component::startIntervalExecution(const Id<Scenario::IntervalModel>&)
 {
-  m_ossia_constraint->executionStarted();
+  m_ossia_interval->executionStarted();
 }
 
-void Component::stopConstraintExecution(const Id<Scenario::ConstraintModel>&)
+void Component::stopIntervalExecution(const Id<Scenario::IntervalModel>&)
 {
-  m_ossia_constraint->executionStopped();
+  m_ossia_interval->executionStopped();
 }
 }
 }

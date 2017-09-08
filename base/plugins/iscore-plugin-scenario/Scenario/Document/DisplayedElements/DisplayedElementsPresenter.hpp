@@ -14,39 +14,39 @@ class LayerPresenter;
 class BaseGraphicsObject;
 namespace Scenario
 {
-class FullViewConstraintPresenter;
+class FullViewIntervalPresenter;
 class ScenarioDocumentPresenter;
-class ConstraintModel;
+class IntervalModel;
 class DisplayedElementsModel;
 // Contains the elements that are shown (not necessarily the ones in
 // BaseScenarioModel)
 class ISCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsPresenter final
     : public QObject,
-      public BaseScenarioPresenter<DisplayedElementsModel, FullViewConstraintPresenter>
+      public BaseScenarioPresenter<DisplayedElementsModel, FullViewIntervalPresenter>
 {
   Q_OBJECT
 public:
   DisplayedElementsPresenter(ScenarioDocumentPresenter& parent);
   ~DisplayedElementsPresenter();
   using QObject::event;
-  using BaseScenarioPresenter<DisplayedElementsModel, FullViewConstraintPresenter>::
+  using BaseScenarioPresenter<DisplayedElementsModel, FullViewIntervalPresenter>::
       event;
 
   BaseGraphicsObject& view() const;
 
-  void on_displayedConstraintChanged(const ConstraintModel& m);
-  void showConstraint();
+  void on_displayedIntervalChanged(const IntervalModel& m);
+  void showInterval();
 
   void on_zoomRatioChanged(ZoomRatio r);
 
-  void on_displayedConstraintDurationChanged(TimeVal);
-  void on_displayedConstraintHeightChanged(double);
+  void on_displayedIntervalDurationChanged(TimeVal);
+  void on_displayedIntervalHeightChanged(double);
 
 signals:
   void requestFocusedPresenterChange(Process::LayerPresenter*);
 
 private:
-  void on_constraintExecutionTimer();
+  void on_intervalExecutionTimer();
   void updateLength(double);
 
   ScenarioDocumentPresenter& m_model;

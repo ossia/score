@@ -19,7 +19,7 @@ namespace Scenario
 {
 // Timenode / event / state / state processes
 // or
-// Constraint / processes
+// Interval / processes
 class ObjectItemModel final
     : public QAbstractItemModel
     , public Nano::Observer

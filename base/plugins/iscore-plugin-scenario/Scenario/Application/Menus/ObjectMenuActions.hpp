@@ -3,7 +3,7 @@
 #include <QList>
 #include <QPoint>
 
-#include <Scenario/Application/Menus/ObjectsActions/ConstraintActions.hpp>
+#include <Scenario/Application/Menus/ObjectsActions/IntervalActions.hpp>
 #include <Scenario/Application/Menus/ObjectsActions/EventActions.hpp>
 #include <Scenario/Application/Menus/ObjectsActions/StateActions.hpp>
 #include <iscore/actions/Action.hpp>
@@ -47,7 +47,7 @@ private:
   ScenarioApplicationPlugin* m_parent{};
 
   EventActions m_eventActions;
-  ConstraintActions m_cstrActions;
+  IntervalActions m_cstrActions;
   StateActions m_stateActions;
 
   QAction* m_removeElements{};

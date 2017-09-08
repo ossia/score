@@ -9,7 +9,7 @@ struct ProcessPresenterContext;
 }
 namespace Scenario
 {
-class ConstraintModel;
+class IntervalModel;
 
 class ISCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsProvider
     : public iscore::Interface<DisplayedElementsProvider>
@@ -17,9 +17,9 @@ class ISCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsProvider
   ISCORE_INTERFACE("4bfcf0ee-6c47-405a-a15d-9da73436e273")
 public:
   virtual ~DisplayedElementsProvider();
-  virtual bool matches(const ConstraintModel& cst) const = 0;
+  virtual bool matches(const IntervalModel& cst) const = 0;
   bool matches(
-      const ConstraintModel& cst,
+      const IntervalModel& cst,
       const Process::ProcessPresenterContext& ctx,
       QGraphicsItem* view_parent,
       QObject* parent) const
@@ -27,9 +27,9 @@ public:
     return matches(cst);
   }
 
-  virtual DisplayedElementsContainer make(ConstraintModel& cst) const = 0;
+  virtual DisplayedElementsContainer make(IntervalModel& cst) const = 0;
   virtual DisplayedElementsPresenterContainer make_presenters(
-      const ConstraintModel& m,
+      const IntervalModel& m,
       const Process::ProcessPresenterContext& ctx,
       QGraphicsItem* view_parent,
       QObject* parent) const = 0;

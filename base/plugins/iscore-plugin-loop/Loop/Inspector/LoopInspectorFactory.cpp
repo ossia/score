@@ -3,9 +3,9 @@
 #include <Inspector/InspectorWidgetList.hpp>
 #include <Loop/LoopProcessModel.hpp>
 #include <Process/ProcessList.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegateFactory.hpp>
-#include <Scenario/Inspector/Constraint/ConstraintInspectorWidget.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Inspector/Interval/IntervalInspectorDelegateFactory.hpp>
+#include <Scenario/Inspector/Interval/IntervalInspectorWidget.hpp>
 
 #include <iscore/tools/std/Optional.hpp>
 
@@ -23,7 +23,7 @@
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/MoveBaseEvent.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Inspector/Constraint/ConstraintInspectorDelegate.hpp>
+#include <Scenario/Inspector/Interval/IntervalInspectorDelegate.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <iscore/document/DocumentContext.hpp>
@@ -37,19 +37,19 @@ class QWidget;
 // TODO cleanup this file
 namespace Loop
 {
-class ConstraintInspectorDelegate final
-    : public Scenario::ConstraintInspectorDelegate
+class IntervalInspectorDelegate final
+    : public Scenario::IntervalInspectorDelegate
 {
 public:
-  ConstraintInspectorDelegate(const Scenario::ConstraintModel& cst);
+  IntervalInspectorDelegate(const Scenario::IntervalModel& cst);
 
   void updateElements() override;
   void addWidgets_pre(
       std::vector<QWidget*>& widgets,
-      Scenario::ConstraintInspectorWidget* parent) override;
+      Scenario::IntervalInspectorWidget* parent) override;
   void addWidgets_post(
       std::vector<QWidget*>& widgets,
-      Scenario::ConstraintInspectorWidget* parent) override;
+      Scenario::IntervalInspectorWidget* parent) override;
 
   void on_defaultDurationChanged(
       OngoingCommandDispatcher& dispatcher,
@@ -57,27 +57,27 @@ public:
       ExpandMode) const override;
 };
 
-ConstraintInspectorDelegate::ConstraintInspectorDelegate(
-    const Scenario::ConstraintModel& cst)
-    : Scenario::ConstraintInspectorDelegate{cst}
+IntervalInspectorDelegate::IntervalInspectorDelegate(
+    const Scenario::IntervalModel& cst)
+    : Scenario::IntervalInspectorDelegate{cst}
 {
 }
 
-void ConstraintInspectorDelegate::updateElements()
+void IntervalInspectorDelegate::updateElements()
 {
 }
 
-void ConstraintInspectorDelegate::addWidgets_pre(
-    std::vector<QWidget*>& widgets, Scenario::ConstraintInspectorWidget* parent)
+void IntervalInspectorDelegate::addWidgets_pre(
+    std::vector<QWidget*>& widgets, Scenario::IntervalInspectorWidget* parent)
 {
 }
 
-void ConstraintInspectorDelegate::addWidgets_post(
-    std::vector<QWidget*>& widgets, Scenario::ConstraintInspectorWidget* parent)
+void IntervalInspectorDelegate::addWidgets_post(
+    std::vector<QWidget*>& widgets, Scenario::IntervalInspectorWidget* parent)
 {
 }
 
-void ConstraintInspectorDelegate::on_defaultDurationChanged(
+void IntervalInspectorDelegate::on_defaultDurationChanged(
     OngoingCommandDispatcher& dispatcher,
     const TimeVal& val,
     ExpandMode expandmode) const
@@ -92,20 +92,20 @@ void ConstraintInspectorDelegate::on_defaultDurationChanged(
           expandmode, LockMode::Free);
 }
 
-ConstraintInspectorDelegateFactory::~ConstraintInspectorDelegateFactory()
+IntervalInspectorDelegateFactory::~IntervalInspectorDelegateFactory()
 {
 }
 
-std::unique_ptr<Scenario::ConstraintInspectorDelegate>
-ConstraintInspectorDelegateFactory::make(
-    const Scenario::ConstraintModel& constraint)
+std::unique_ptr<Scenario::IntervalInspectorDelegate>
+IntervalInspectorDelegateFactory::make(
+    const Scenario::IntervalModel& interval)
 {
-  return std::make_unique<Loop::ConstraintInspectorDelegate>(constraint);
+  return std::make_unique<Loop::IntervalInspectorDelegate>(interval);
 }
 
-bool ConstraintInspectorDelegateFactory::matches(
-    const Scenario::ConstraintModel& constraint) const
+bool IntervalInspectorDelegateFactory::matches(
+    const Scenario::IntervalModel& interval) const
 {
-  return dynamic_cast<Loop::ProcessModel*>(constraint.parent());
+  return dynamic_cast<Loop::ProcessModel*>(interval.parent());
 }
 }

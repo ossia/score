@@ -27,12 +27,12 @@
 #include <iscore/model/ComponentSerialization.hpp>
 #include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <Process/ProcessList.hpp>
-#include <Engine/Executor/ConstraintComponent.hpp>
+#include <Engine/Executor/IntervalComponent.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <ossia/editor/scenario/time_constraint.hpp>
+#include <ossia/editor/scenario/time_interval.hpp>
 #include <QPluginLoader>
 #include <QJsonDocument>
 #include <ossia/context.hpp>

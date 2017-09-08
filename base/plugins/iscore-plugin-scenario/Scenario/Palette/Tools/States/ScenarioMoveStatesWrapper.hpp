@@ -1,34 +1,34 @@
 #pragma once
-#include <Scenario/Commands/Constraint/SetMaxDuration.hpp>
-#include <Scenario/Commands/Constraint/SetMinDuration.hpp>
-#include <Scenario/Commands/Scenario/Displacement/MoveConstraint.hpp>
+#include <Scenario/Commands/Interval/SetMaxDuration.hpp>
+#include <Scenario/Commands/Interval/SetMinDuration.hpp>
+#include <Scenario/Commands/Scenario/Displacement/MoveInterval.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
 #include <Scenario/Palette/Tools/States/MoveAndMergeState.hpp>
 #include <Scenario/Palette/Tools/States/MoveStates.hpp>
 
-#include <Scenario/Palette/Transitions/ConstraintTransitions.hpp>
+#include <Scenario/Palette/Transitions/IntervalTransitions.hpp>
 #include <Scenario/Palette/Transitions/EventTransitions.hpp>
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>
 #include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
 namespace Scenario
 {
-class MoveConstraintInScenario_StateWrapper
+class MoveIntervalInScenario_StateWrapper
 {
 public:
   template <typename Scenario_T, typename ToolPalette_T>
   static void
   make(const ToolPalette_T& palette, QState* waitState, QState& parent)
   {
-    /// Constraint
+    /// Interval
     /// //TODO remove useless arguments to ctor
-    auto moveConstraint
-        = new MoveConstraintState<ToolPalette_T>{
+    auto moveInterval
+        = new MoveIntervalState<ToolPalette_T>{
             palette, palette.model(), palette.context().context.commandStack,
             palette.context().context.objectLocker, &parent};
 
-    iscore::make_transition<ClickOnConstraint_Transition<Scenario_T>>(
-        waitState, moveConstraint, *moveConstraint);
-    moveConstraint->addTransition(moveConstraint, finishedState(), waitState);
+    iscore::make_transition<ClickOnInterval_Transition<Scenario_T>>(
+        waitState, moveInterval, *moveInterval);
+    moveInterval->addTransition(moveInterval, finishedState(), waitState);
   }
 };
 
@@ -40,7 +40,7 @@ public:
   make(const ToolPalette_T& palette, QState* waitState, QState& parent)
   {
     auto moveBrace
-        = new MoveConstraintBraceState<Scenario::Command::SetMinDuration, Scenario_T, ToolPalette_T>{
+        = new MoveIntervalBraceState<Scenario::Command::SetMinDuration, Scenario_T, ToolPalette_T>{
             palette, palette.model(), palette.context().context.commandStack,
             palette.context().context.objectLocker, &parent};
     iscore::make_transition<ClickOnLeftBrace_Transition<Scenario_T>>(
@@ -57,7 +57,7 @@ public:
   make(const ToolPalette_T& palette, QState* waitState, QState& parent)
   {
     auto moveBrace
-        = new MoveConstraintBraceState<Scenario::Command::SetMaxDuration, Scenario_T, ToolPalette_T>{
+        = new MoveIntervalBraceState<Scenario::Command::SetMaxDuration, Scenario_T, ToolPalette_T>{
             palette, palette.model(), palette.context().context.commandStack,
             palette.context().context.objectLocker, &parent};
     iscore::make_transition<ClickOnRightBrace_Transition<Scenario_T>>(

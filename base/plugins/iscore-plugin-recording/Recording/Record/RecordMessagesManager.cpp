@@ -4,11 +4,11 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 
-#include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
-#include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
+#include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
 
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Slot.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
 
 #include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveNewState.hpp>
@@ -47,7 +47,7 @@
 #include <qnamespace.h>
 #include <type_traits>
 #include <utility>
-#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeSync.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event_TimeSync.hpp>
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
 namespace Recording
 {
@@ -91,7 +91,7 @@ void MessageRecorder::stop()
     RecordedMessage& val = m_records[i];
 
     // Create a state
-    auto cmd = new Scenario::Command::CreateConstraint_State_Event_TimeSync{
+    auto cmd = new Scenario::Command::CreateInterval_State_Event_TimeSync{
                *m_createdProcess,
                startState,
                TimeVal::fromMsecs(val.percentage),
@@ -143,19 +143,19 @@ bool MessageRecorder::setup(
   //// Creation of the process ////
   // Note : since we directly create the IDs here, we don't have to worry
   // about their generation.
-  auto cmd_proc = new Scenario::Command::AddOnlyProcessToConstraint{
-      box.constraint,
+  auto cmd_proc = new Scenario::Command::AddOnlyProcessToInterval{
+      box.interval,
       Metadata<ConcreteKey_k, Scenario::ProcessModel>::get()};
 
   cmd_proc->redo(context.context);
   context.dispatcher.submitCommand(cmd_proc);
 
-  auto& proc = box.constraint.processes.at(cmd_proc->processId());
+  auto& proc = box.interval.processes.at(cmd_proc->processId());
   auto& record_proc = static_cast<Scenario::ProcessModel&>(proc);
   m_createdProcess = &record_proc;
 
   //// Creation of the layer ////
-  auto cmd_layer = new Scenario::Command::AddLayerModelToSlot{{box.constraint, 0}, proc};
+  auto cmd_layer = new Scenario::Command::AddLayerModelToSlot{{box.interval, 0}, proc};
   cmd_layer->redo(context.context);
   context.dispatcher.submitCommand(cmd_layer);
 

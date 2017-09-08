@@ -8,7 +8,7 @@
 #include <QString>
 #include <QVector>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
@@ -56,9 +56,9 @@ public:
   //// ScenarioModel specifics ////
 
   // Accessors
-  ElementContainer<ConstraintModel> getConstraints() const final override
+  ElementContainer<IntervalModel> getIntervals() const final override
   {
-    auto& map = constraints.map().get();
+    auto& map = intervals.map().get();
     return {map.begin(), map.end()};
   }
 
@@ -80,10 +80,10 @@ public:
     return {map.begin(), map.end()};
   }
 
-  ConstraintModel*
-  findConstraint(const Id<ConstraintModel>& id) const final override
+  IntervalModel*
+  findInterval(const Id<IntervalModel>& id) const final override
   {
-    return ossia::ptr_find(constraints, id);
+    return ossia::ptr_find(intervals, id);
   }
   EventModel* findEvent(const Id<EventModel>& id) const final override
   {
@@ -98,10 +98,10 @@ public:
     return ossia::ptr_find(states, id);
   }
 
-  ConstraintModel&
-  constraint(const Id<ConstraintModel>& constraintId) const final override
+  IntervalModel&
+  interval(const Id<IntervalModel>& intervalId) const final override
   {
-    return constraints.at(constraintId);
+    return intervals.at(intervalId);
   }
   EventModel& event(const Id<EventModel>& eventId) const final override
   {
@@ -131,7 +131,7 @@ public:
     return events.at(m_startEventId);
   }
 
-  iscore::EntityMap<ConstraintModel> constraints;
+  iscore::EntityMap<IntervalModel> intervals;
   iscore::EntityMap<EventModel> events;
   iscore::EntityMap<TimeSyncModel> timeSyncs;
   iscore::EntityMap<StateModel> states;
@@ -140,7 +140,7 @@ public:
 signals:
   void stateMoved(const StateModel&);
   void eventMoved(const EventModel&);
-  void constraintMoved(const ConstraintModel&);
+  void intervalMoved(const IntervalModel&);
   void commentMoved(const CommentBlockModel&);
 
   void locked();
@@ -194,7 +194,7 @@ private:
   template <typename Fun>
   void apply(Fun fun) const
   {
-    fun(&ProcessModel::constraints);
+    fun(&ProcessModel::intervals);
     fun(&ProcessModel::states);
     fun(&ProcessModel::events);
     fun(&ProcessModel::timeSyncs);
@@ -210,7 +210,7 @@ private:
   Id<EventModel> m_startEventId{};
 
   Id<StateModel> m_startStateId{};
-  // By default, creation in the void will make a constraint
+  // By default, creation in the void will make a interval
   // that goes to the startEvent and add a new state
 };
 }
@@ -249,18 +249,18 @@ QList<const T*> filterSelectionByType(const Container& sel)
 
 namespace Scenario
 {
-ISCORE_PLUGIN_SCENARIO_EXPORT const QVector<Id<ConstraintModel>>
-constraintsBeforeTimeSync(
+ISCORE_PLUGIN_SCENARIO_EXPORT const QVector<Id<IntervalModel>>
+intervalsBeforeTimeSync(
     const Scenario::ProcessModel&, const Id<TimeSyncModel>& timeSyncId);
 
 const StateModel*
 furthestSelectedState(const Scenario::ProcessModel& scenario);
-const StateModel* furthestSelectedStateWithoutFollowingConstraint(
+const StateModel* furthestSelectedStateWithoutFollowingInterval(
     const Scenario::ProcessModel& scenario);
 
-inline auto& constraints(const Scenario::ProcessModel& scenar)
+inline auto& intervals(const Scenario::ProcessModel& scenar)
 {
-  return scenar.constraints;
+  return scenar.intervals;
 }
 inline auto& events(const Scenario::ProcessModel& scenar)
 {
@@ -276,12 +276,12 @@ inline auto& states(const Scenario::ProcessModel& scenar)
 }
 
 template <>
-struct ElementTraits<Scenario::ProcessModel, ConstraintModel>
+struct ElementTraits<Scenario::ProcessModel, IntervalModel>
 {
   static const constexpr auto accessor
-      = static_cast<const iscore::EntityMap<ConstraintModel>& (*)(const Scenario::
+      = static_cast<const iscore::EntityMap<IntervalModel>& (*)(const Scenario::
                                                               ProcessModel&)>(
-          &constraints);
+          &intervals);
 };
 template <>
 struct ElementTraits<Scenario::ProcessModel, EventModel>

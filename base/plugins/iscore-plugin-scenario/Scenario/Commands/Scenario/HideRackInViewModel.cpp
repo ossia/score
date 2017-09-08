@@ -1,6 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 #include <algorithm>
 #include <iscore/serialization/DataStreamVisitor.hpp>
@@ -14,8 +14,8 @@ namespace Scenario
 namespace Command
 {
 HideRack::HideRack(
-    const Scenario::ConstraintModel& constraint_vm)
-    : m_path{constraint_vm}
+    const Scenario::IntervalModel& interval_vm)
+    : m_path{interval_vm}
 {
 }
 

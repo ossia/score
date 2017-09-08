@@ -259,7 +259,7 @@ void PlayerImpl::close() { if(m_app) m_app->exit(0); }
 void PlayerImpl::prepare_play()
 {
   DocumentModel& doc_model = m_currentDocument->model();
-  Scenario::ConstraintModel& root_cst = safe_cast<Scenario::ScenarioDocumentModel&>(doc_model.modelDelegate()).baseConstraint();
+  Scenario::IntervalModel& root_cst = safe_cast<Scenario::ScenarioDocumentModel&>(doc_model.modelDelegate()).baseInterval();
   m_execPlugin->reload(root_cst);
   auto& exec_ctx = m_execPlugin->context();
 

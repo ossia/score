@@ -43,23 +43,23 @@ void PlayToolState::on_pressed(
         emit m_exec.playState(m_sm.model(), *id);
       break;
     }
-    case ConstraintView::static_type():
+    case IntervalView::static_type():
     {
       const auto& cst
-          = safe_cast<const ConstraintView*>(item)->presenter().model();
+          = safe_cast<const IntervalView*>(item)->presenter().model();
 
       auto id = cst.parent() == &this->m_sm.model()
                     ? cst.id()
-                    : OptionalId<ConstraintModel>{};
+                    : OptionalId<IntervalModel>{};
       if (id)
       {
         if(QApplication::keyboardModifiers() & Qt::AltModifier)
         {
-          emit m_exec.playConstraint(m_sm.model(), *id);
+          emit m_exec.playInterval(m_sm.model(), *id);
         }
         else
         {
-          emit m_exec.playFromConstraintAtDate(
+          emit m_exec.playFromIntervalAtDate(
                 m_sm.model(),
                 *id,
                 scenarioPoint.date);
@@ -67,7 +67,7 @@ void PlayToolState::on_pressed(
       }
       break;
     }
-      // TODO Play constraint ? the code is already here.
+      // TODO Play interval ? the code is already here.
     default:
       emit m_exec.playAtDate(scenarioPoint.date);
       break;

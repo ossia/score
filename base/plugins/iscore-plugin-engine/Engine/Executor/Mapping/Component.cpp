@@ -8,7 +8,7 @@
 #include <ossia/network/base/node.hpp>
 #include <ossia/network/base/device.hpp>
 
-#include <Engine/Executor/ConstraintComponent.hpp>
+#include <Engine/Executor/IntervalComponent.hpp>
 #include <Engine/Protocols/OSSIADevice.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/Document.hpp>
@@ -31,13 +31,13 @@ namespace Mapping
 namespace RecreateOnPlay
 {
 Component::Component(
-    ::Engine::Execution::ConstraintComponent& parentConstraint,
+    ::Engine::Execution::IntervalComponent& parentInterval,
     ::Mapping::ProcessModel& element,
     const ::Engine::Execution::Context& ctx,
     const Id<iscore::Component>& id,
     QObject* parent)
     : ::Engine::Execution::
-          ProcessComponent_T<Mapping::ProcessModel, ossia::mapper>{parentConstraint,
+          ProcessComponent_T<Mapping::ProcessModel, ossia::mapper>{parentInterval,
                                                                    element,
                                                                    ctx, id,
                                                                    "MappingElement",

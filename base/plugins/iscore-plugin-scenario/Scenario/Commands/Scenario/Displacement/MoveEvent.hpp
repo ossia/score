@@ -21,7 +21,7 @@ namespace Scenario
 {
 class EventModel;
 class TimeSyncModel;
-class ConstraintModel;
+class IntervalModel;
 class ProcessModel;
 namespace Command
 {

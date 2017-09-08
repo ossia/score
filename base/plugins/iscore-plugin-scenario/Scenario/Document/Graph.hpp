@@ -6,11 +6,11 @@
 namespace Scenario
 {
 class TimeSyncModel;
-class ConstraintModel;
+class IntervalModel;
 class ScenarioInterface;
 
 using GraphVertex = Scenario::TimeSyncModel*;
-using GraphEdge = Scenario::ConstraintModel*;
+using GraphEdge = Scenario::IntervalModel*;
 
 using Graph = boost::adjacency_list<
   boost::vecS,
@@ -22,7 +22,7 @@ using Graph = boost::adjacency_list<
 /**
  * @brief A directed graph of all the TimeSync%s in a ScenarioInterface.
  *
- * The vertices are the TimeSync%s, the edges are the ConstraintModel%s.
+ * The vertices are the TimeSync%s, the edges are the IntervalModel%s.
  * The graph is built upon construction.
  *
  */
@@ -47,7 +47,7 @@ private:
       const Scenario::TimeSyncModel*,
       Graph::vertex_descriptor> m_vertices;
   iscore::hash_map<
-      const Scenario::ConstraintModel*,
+      const Scenario::IntervalModel*,
       Graph::edge_descriptor> m_edges;
 };
 

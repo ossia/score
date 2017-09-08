@@ -30,7 +30,7 @@ class MiniLayer;
 namespace Scenario
 {
 class DisplayedElementsPresenter;
-class ConstraintModel;
+class IntervalModel;
 class ScenarioDocumentModel;
 class ScenarioDocumentView;
 class TimeRulerPresenter;
@@ -39,7 +39,7 @@ class TimeRulerPresenter;
  * @brief The ScenarioDocumentPresenter class
  *
  * A bit special because we connect it to the presenter of the content model
- * inside the constraint model of the base element model.
+ * inside the interval model of the base element model.
  */
 class ISCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentPresenter final
     : public iscore::DocumentDelegatePresenter
@@ -55,14 +55,14 @@ public:
       iscore::DocumentDelegateView& view);
   virtual ~ScenarioDocumentPresenter();
 
-  ConstraintModel& displayedConstraint() const;
+  IntervalModel& displayedInterval() const;
   const DisplayedElementsPresenter& presenters() const;
   const ScenarioDocumentModel& model() const;
   ScenarioDocumentView& view() const;
   const Process::ProcessPresenterContext& context() const;
   Process::ProcessFocusManager& focusManager() const;
 
-  // The height in pixels of the displayed constraint with its rack.
+  // The height in pixels of the displayed interval with its rack.
   // double height() const;
   ZoomRatio zoomRatio() const;
 
@@ -76,7 +76,7 @@ public:
 
   void setNewSelection(const Selection& s) override;
 
-  void setDisplayedConstraint(Scenario::ConstraintModel& constraint);
+  void setDisplayedInterval(Scenario::IntervalModel& interval);
 
   void on_viewModelDefocused(const Process::ProcessModel* vm);
   void on_viewModelFocused(const Process::ProcessModel* vm);
@@ -111,7 +111,7 @@ private:
   iscore::SelectionDispatcher m_selectionDispatcher;
   FocusDispatcher m_focusDispatcher;
   mutable Process::ProcessFocusManager m_focusManager;
-  QPointer<ConstraintModel> m_focusedConstraint{};
+  QPointer<IntervalModel> m_focusedInterval{};
 
   Process::ProcessPresenterContext m_context;
 
@@ -119,7 +119,7 @@ private:
   std::unique_ptr<GraphicsSceneToolPalette> m_stateMachine;
 
   ZoomRatio m_zoomRatio{-1};
-  QMetaObject::Connection m_constraintConnection, m_durationConnection;
+  QMetaObject::Connection m_intervalConnection, m_durationConnection;
   Process::MiniLayer* m_miniLayer{};
 
   bool m_zooming{false};

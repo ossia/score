@@ -82,8 +82,8 @@ struct StringConstants
   const QString EndState;
   const QString Date;
   const QString StartDate;
-  const QString PreviousConstraint;
-  const QString NextConstraint;
+  const QString PreviousInterval;
+  const QString NextInterval;
   const QString Events;
   const QString Extent;
   const QString Active;

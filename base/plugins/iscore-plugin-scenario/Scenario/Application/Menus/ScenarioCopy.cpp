@@ -5,7 +5,7 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QList>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
@@ -42,28 +42,28 @@ static auto arrayToJson(Selected_T&& selected)
 template <typename Scenario_T>
 QJsonObject copySelected(const Scenario_T& sm, QObject* parent)
 {
-  auto selectedConstraints = selectedElements(getConstraints(sm));
+  auto selectedIntervals = selectedElements(getIntervals(sm));
   auto selectedEvents = selectedElements(getEvents(sm));
   auto selectedTimeSyncs = selectedElements(getTimeSyncs(sm));
   auto selectedStates = selectedElements(getStates(sm));
 
-  for (const ConstraintModel* constraint : selectedConstraints)
+  for (const IntervalModel* interval : selectedIntervals)
   {
     auto start_it
         = ossia::find_if(selectedStates, [&](const StateModel* state) {
-            return state->id() == constraint->startState();
+            return state->id() == interval->startState();
           });
     if (start_it == selectedStates.end())
     {
-      selectedStates.push_back(&sm.state(constraint->startState()));
+      selectedStates.push_back(&sm.state(interval->startState()));
     }
 
     auto end_it = ossia::find_if(selectedStates, [&](const StateModel* state) {
-      return state->id() == constraint->endState();
+      return state->id() == interval->endState();
     });
     if (end_it == selectedStates.end())
     {
-      selectedStates.push_back(&sm.state(constraint->endState()));
+      selectedStates.push_back(&sm.state(interval->endState()));
     }
   }
 
@@ -77,7 +77,7 @@ QJsonObject copySelected(const Scenario_T& sm, QObject* parent)
       selectedEvents.push_back(&sm.event(state->eventId()));
     }
 
-    // If the previous or next constraint is not here, we set it to null in a
+    // If the previous or next interval is not here, we set it to null in a
     // copy.
   }
   for (const EventModel* event : selectedEvents)
@@ -138,19 +138,19 @@ QJsonObject copySelected(const Scenario_T& sm, QObject* parent)
     auto clone_st = new StateModel(*st, st->id(), stack, parent);
 
     // NOTE : we must not serialize the state with their previous / next
-    // constraint
+    // interval
     // since they will change once pasted and cause crash at the end of the
     // ctor
-    // of StateModel. They are saved in the previous / next state of constraint
+    // of StateModel. They are saved in the previous / next state of interval
     // anyway.
-    SetNoPreviousConstraint(*clone_st);
-    SetNoNextConstraint(*clone_st);
+    SetNoPreviousInterval(*clone_st);
+    SetNoNextInterval(*clone_st);
 
     copiedStates.push_back(clone_st);
   }
 
   QJsonObject base;
-  base["Constraints"] = arrayToJson(selectedConstraints);
+  base["Intervals"] = arrayToJson(selectedIntervals);
   base["Events"] = arrayToJson(copiedEvents);
   base["TimeNodes"] = arrayToJson(copiedTimeSyncs);
   base["States"] = arrayToJson(copiedStates);

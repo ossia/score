@@ -7,11 +7,11 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveNewState.hpp>
 
-#include <Scenario/Commands/Scenario/Creations/CreateConstraint.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateInterval.hpp>
 
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Palette/Transitions/AnythingTransitions.hpp>
-#include <Scenario/Palette/Transitions/ConstraintTransitions.hpp>
+#include <Scenario/Palette/Transitions/IntervalTransitions.hpp>
 #include <Scenario/Palette/Transitions/EventTransitions.hpp>
 #include <Scenario/Palette/Transitions/NothingTransitions.hpp>
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>
@@ -96,7 +96,7 @@ public:
       });
 
       // MoveOnState -> MoveOnState
-      // We don't do anything, the constraint should not move.
+      // We don't do anything, the interval should not move.
 
       // MoveOnState -> MoveOnEvent
       this->add_transition(move_state, move_event, [&]() {
@@ -171,7 +171,7 @@ public:
       });
 
       QObject::connect(move_nothing, &QState::entered, [&]() {
-        if (this->createdConstraints.empty() || this->createdEvents.empty())
+        if (this->createdIntervals.empty() || this->createdEvents.empty())
         {
           this->rollback();
           return;
@@ -227,7 +227,7 @@ public:
 
         this->m_dispatcher.template submitCommand<MoveNewEvent>(
             this->m_scenario,
-            this->createdConstraints.last(),
+            this->createdIntervals.last(),
             this->createdEvents.last(),
             this->currentPoint.date,
             this->currentPoint.y,
@@ -321,7 +321,7 @@ private:
       }
       else
       {
-        if (!st.nextConstraint()) // TODO & deltaY < deltaX
+        if (!st.nextInterval()) // TODO & deltaY < deltaX
         {
           this->currentPoint.y = st.heightPercentage();
           fun(*this->clickedState);
@@ -376,16 +376,16 @@ private:
     if (this->hoveredState)
     {
       auto& st = this->m_parentSM.model().states.at(*this->hoveredState);
-      if (!st.previousConstraint())
+      if (!st.previousInterval())
       {
-        // No previous constraint -> we create a new constraint and link it to
+        // No previous interval -> we create a new interval and link it to
         // this state
         creationCheck(
             [&](const Id<StateModel>& id) { this->createToState_base(id); });
       }
       else
       {
-        // Previous constraint -> we add a new state to the event and link to
+        // Previous interval -> we add a new state to the event and link to
         // it.
         this->hoveredEvent = st.eventId();
         creationCheck(

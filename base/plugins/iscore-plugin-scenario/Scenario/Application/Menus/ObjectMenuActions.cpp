@@ -13,7 +13,7 @@
 #include <QObject>
 #include <iscore/document/DocumentInterface.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Commands/Constraint/InsertContentInConstraint.hpp>
+#include <Scenario/Commands/Interval/InsertContentInInterval.hpp>
 #include <Scenario/Commands/Scenario/ScenarioPasteContent.hpp>
 #include <Scenario/Commands/Scenario/ScenarioPasteElements.hpp>
 #include <Scenario/Commands/State/InsertContentInState.hpp>
@@ -47,7 +47,7 @@
 #include <iscore/application/ApplicationContext.hpp>
 
 #include <Scenario/Application/ScenarioActions.hpp>
-#include <Scenario/Commands/Cohesion/DoForSelectedConstraints.hpp>
+#include <Scenario/Commands/Cohesion/DoForSelectedIntervals.hpp>
 #include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
 #include <iscore/actions/ActionManager.hpp>
 #include <iscore/document/DocumentInterface.hpp>
@@ -421,14 +421,14 @@ static void writeJsonToScenario(
 {
   MacroCommandDispatcher<Command::ScenarioPasteContent> dispatcher{
       self.dispatcher().stack()};
-  auto selectedConstraints = selectedElements(getConstraints(scen));
+  auto selectedIntervals = selectedElements(getIntervals(scen));
   auto expandMode = self.appPlugin()->editionSettings().expandMode();
-  for (const auto& json_vref : obj["Constraints"].toArray())
+  for (const auto& json_vref : obj["Intervals"].toArray())
   {
-    for (const auto& constraint : selectedConstraints)
+    for (const auto& interval : selectedIntervals)
     {
-      auto cmd = new Scenario::Command::InsertContentInConstraint{
-          json_vref.toObject(), *constraint, expandMode};
+      auto cmd = new Scenario::Command::InsertContentInInterval{
+          json_vref.toObject(), *interval, expandMode};
 
       dispatcher.submitCommand(cmd);
     }
@@ -467,7 +467,7 @@ void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject& obj)
     // Full-view paste
     auto& bem =
     iscore::IDocument::modelDelegate<ScenarioDocumentModel>(*m_parent->currentDocument());
-    if(bem.baseConstraint().selection.get())
+    if(bem.baseInterval().selection.get())
     {
         return copySelectedScenarioElements(bem.baseScenario());
     }*/

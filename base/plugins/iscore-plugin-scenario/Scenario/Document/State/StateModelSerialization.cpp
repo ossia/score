@@ -24,7 +24,7 @@
 
 namespace Scenario
 {
-class ConstraintModel;
+class IntervalModel;
 class EventModel;
 }
 template <typename T>
@@ -39,7 +39,7 @@ template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamReader::read(const Scenario::StateModel& s)
 {
-  m_stream << s.m_eventId << s.m_previousConstraint << s.m_nextConstraint
+  m_stream << s.m_eventId << s.m_previousInterval << s.m_nextInterval
            << s.m_heightPercentage;
 
   // Message tree
@@ -60,7 +60,7 @@ template <>
 ISCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamWriter::write(Scenario::StateModel& s)
 {
-  m_stream >> s.m_eventId >> s.m_previousConstraint >> s.m_nextConstraint
+  m_stream >> s.m_eventId >> s.m_previousInterval >> s.m_nextInterval
       >> s.m_heightPercentage;
 
   // Message tree
@@ -91,8 +91,8 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void
 JSONObjectReader::read(const Scenario::StateModel& s)
 {
   obj[strings.Event] = toJsonValue(s.m_eventId);
-  obj[strings.PreviousConstraint] = toJsonValue(s.m_previousConstraint);
-  obj[strings.NextConstraint] = toJsonValue(s.m_nextConstraint);
+  obj[strings.PreviousInterval] = toJsonValue(s.m_previousInterval);
+  obj[strings.NextInterval] = toJsonValue(s.m_nextInterval);
   obj[strings.HeightPercentage] = s.m_heightPercentage;
 
   // Message tree
@@ -108,11 +108,11 @@ ISCORE_PLUGIN_SCENARIO_EXPORT void
 JSONObjectWriter::write(Scenario::StateModel& s)
 {
   s.m_eventId = fromJsonValue<Id<Scenario::EventModel>>(obj[strings.Event]);
-  s.m_previousConstraint
-      = fromJsonValue<OptionalId<Scenario::ConstraintModel>>(
-          obj[strings.PreviousConstraint]);
-  s.m_nextConstraint = fromJsonValue<OptionalId<Scenario::ConstraintModel>>(
-      obj[strings.NextConstraint]);
+  s.m_previousInterval
+      = fromJsonValue<OptionalId<Scenario::IntervalModel>>(
+          obj[strings.PreviousInterval]);
+  s.m_nextInterval = fromJsonValue<OptionalId<Scenario::IntervalModel>>(
+      obj[strings.NextInterval]);
   s.m_heightPercentage = obj[strings.HeightPercentage].toDouble();
 
   // Message tree

@@ -3,7 +3,7 @@
 #include <Automation/AutomationModel.hpp>
 #include <Curve/CurveModel.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 #include <iscore/tools/std/Optional.hpp>
 
@@ -14,8 +14,8 @@
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
-#include <Scenario/Commands/Constraint/AddOnlyProcessToConstraint.hpp>
-#include <Scenario/Commands/Constraint/Rack/Slot/AddLayerModelToSlot.hpp>
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
+#include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <iscore/application/ApplicationContext.hpp>
 #include <iscore/plugins/customfactory/FactoryFamily.hpp>
 
@@ -30,12 +30,12 @@ namespace Scenario
 namespace Command
 {
 CreateAutomationFromStates::CreateAutomationFromStates(
-    const ConstraintModel& constraint,
+    const IntervalModel& interval,
     const std::vector<SlotPath>& slotList,
     Id<Process::ProcessModel> curveId,
     State::AddressAccessor address,
     const Curve::CurveDomain& dom)
-    : CreateProcessAndLayers<Automation::ProcessModel>{constraint, slotList,
+    : CreateProcessAndLayers<Automation::ProcessModel>{interval, slotList,
                                                        std::move(curveId)}
     , m_address{std::move(address)}
     , m_dom{dom}
@@ -45,7 +45,7 @@ CreateAutomationFromStates::CreateAutomationFromStates(
 void CreateAutomationFromStates::redo(const iscore::DocumentContext& ctx) const
 {
   m_addProcessCmd.redo(ctx);
-  auto& cstr = m_addProcessCmd.constraintPath().find(ctx);
+  auto& cstr = m_addProcessCmd.intervalPath().find(ctx);
   auto& autom = safe_cast<Automation::ProcessModel&>(
       cstr.processes.at(m_addProcessCmd.processId()));
   autom.setAddress(m_address);
@@ -84,12 +84,12 @@ void CreateAutomationFromStates::deserializeImpl(DataStreamOutput& s)
 }
 
 CreateInterpolationFromStates::CreateInterpolationFromStates(
-    const ConstraintModel& constraint,
+    const IntervalModel& interval,
     const std::vector<SlotPath>&
         slotList,
     Id<Process::ProcessModel> curveId, State::AddressAccessor address,
     ossia::value start, ossia::value end)
-    : CreateProcessAndLayers<Interpolation::ProcessModel>{constraint, slotList,
+    : CreateProcessAndLayers<Interpolation::ProcessModel>{interval, slotList,
                                                           std::move(curveId)}
     , m_address{std::move(address)}
     , m_start{std::move(start)}
@@ -101,7 +101,7 @@ void CreateInterpolationFromStates::redo(const iscore::DocumentContext& ctx) con
 {
   m_addProcessCmd.redo(ctx);
 
-  auto& cstr = m_addProcessCmd.constraintPath().find(ctx);
+  auto& cstr = m_addProcessCmd.intervalPath().find(ctx);
   auto& autom = safe_cast<Interpolation::ProcessModel&>(
       cstr.processes.at(m_addProcessCmd.processId()));
   autom.setAddress(m_address);

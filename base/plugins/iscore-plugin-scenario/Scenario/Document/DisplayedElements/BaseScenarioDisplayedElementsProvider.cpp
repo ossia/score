@@ -2,24 +2,24 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <QObject>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 
 #include "BaseScenarioDisplayedElementsProvider.hpp"
-#include <Scenario/Document/Constraint/FullView/FullViewConstraintPresenter.hpp>
+#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
 
 namespace Scenario
 {
 bool BaseScenarioDisplayedElementsProvider::matches(
-    const ConstraintModel& cst) const
+    const IntervalModel& cst) const
 {
   return dynamic_cast<BaseScenario*>(cst.parent());
 }
 
 DisplayedElementsContainer
-BaseScenarioDisplayedElementsProvider::make(ConstraintModel& cst) const
+BaseScenarioDisplayedElementsProvider::make(IntervalModel& cst) const
 {
   if (auto parent_base = dynamic_cast<BaseScenario*>(cst.parent()))
   {
@@ -39,7 +39,7 @@ BaseScenarioDisplayedElementsProvider::make(ConstraintModel& cst) const
 
 DisplayedElementsPresenterContainer
 BaseScenarioDisplayedElementsProvider::make_presenters(
-    const ConstraintModel& m,
+    const IntervalModel& m,
     const Process::ProcessPresenterContext& ctx,
     QGraphicsItem* view_parent,
     QObject* parent) const
@@ -47,7 +47,7 @@ BaseScenarioDisplayedElementsProvider::make_presenters(
   if (auto bs = dynamic_cast<BaseScenario*>(m.parent()))
   {
     return DisplayedElementsPresenterContainer{
-        new FullViewConstraintPresenter{m, ctx, view_parent,
+        new FullViewIntervalPresenter{m, ctx, view_parent,
                                         parent},
         new StatePresenter{bs->startState(), view_parent, parent},
         new StatePresenter{bs->endState(), view_parent, parent},

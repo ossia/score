@@ -3,7 +3,7 @@
 #include <QPoint>
 #include <QRect>
 #include <QtGlobal>
-#include <Scenario/Document/Constraint/Temporal/TemporalConstraintView.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
 #include <boost/iterator/indirect_iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
@@ -14,10 +14,10 @@
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockView.hpp>
-#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/ConstraintPresenter.hpp>
-#include <Scenario/Document/Constraint/Temporal/TemporalConstraintPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalDurations.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/IntervalPresenter.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/Event/EventView.hpp>
@@ -63,8 +63,8 @@ void ScenarioViewInterface::on_eventMoved(const EventPresenter& ev)
   m_presenter.m_view->update();
 }
 
-void ScenarioViewInterface::on_constraintMoved(
-    const TemporalConstraintPresenter& pres)
+void ScenarioViewInterface::on_intervalMoved(
+    const TemporalIntervalPresenter& pres)
 {
   auto rect = m_presenter.m_view->boundingRect();
   auto msPerPixel = m_presenter.m_zoomRatio;
@@ -141,14 +141,14 @@ void update_min_max(const T& val, T& min, T& max)
   max = val > max ? val : max;
 }
 
-void ScenarioViewInterface::on_hoverOnConstraint(
-    const Id<ConstraintModel>& constraintId, bool enter)
+void ScenarioViewInterface::on_hoverOnInterval(
+    const Id<IntervalModel>& intervalId, bool enter)
 {
   /*
-  const auto& constraint = m_presenter.m_constraints.at(constraintId)->model();
-  EventPresenter* start = m_presenter.m_events.at(constraint.startEvent());
+  const auto& interval = m_presenter.m_intervals.at(intervalId)->model();
+  EventPresenter* start = m_presenter.m_events.at(interval.startEvent());
   start->view()->setShadow(enter);
-  EventPresenter* end = m_presenter.m_events.at(constraint.endEvent());
+  EventPresenter* end = m_presenter.m_events.at(interval.endEvent());
   end->view()->setShadow(enter);
   */
 }
@@ -158,9 +158,9 @@ void ScenarioViewInterface::on_hoverOnEvent(
 {
   /*
   const auto& event = m_presenter.m_events.at(eventId)->model();
-  for (const auto& cstr : event.constraints())
+  for (const auto& cstr : event.intervals())
   {
-      auto cstrView = view(m_presenter.m_constraints.at(cstr));
+      auto cstrView = view(m_presenter.m_intervals.at(cstr));
       cstrView->setShadow(enter);
   }
   */

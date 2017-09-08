@@ -1,5 +1,5 @@
 #pragma once
-#include <Engine/LocalTree/Scenario/ConstraintComponent.hpp>
+#include <Engine/LocalTree/Scenario/IntervalComponent.hpp>
 #include <Engine/LocalTree/Scenario/EventComponent.hpp>
 #include <Engine/LocalTree/Scenario/StateComponent.hpp>
 #include <Engine/LocalTree/Scenario/TimeSyncComponent.hpp>
@@ -31,7 +31,7 @@ public:
   }
 
 private:
-  ossia::net::node_base& m_constraintsNode;
+  ossia::net::node_base& m_intervalsNode;
   ossia::net::node_base& m_eventsNode;
   ossia::net::node_base& m_timeSyncsNode;
   ossia::net::node_base& m_statesNode;
@@ -40,7 +40,7 @@ private:
 };
 
 using LoopComponent
-    = HierarchicalBaseScenario<LoopComponentBase, Loop::ProcessModel, Constraint, Event, TimeSync, State>;
+    = HierarchicalBaseScenario<LoopComponentBase, Loop::ProcessModel, Interval, Event, TimeSync, State>;
 
 using LoopComponentFactory = ProcessComponentFactory_T<LoopComponent>;
 }

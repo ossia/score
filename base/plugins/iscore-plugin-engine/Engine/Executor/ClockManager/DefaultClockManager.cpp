@@ -5,7 +5,7 @@
 
 #include <ossia/editor/state/state_element.hpp>
 #include <Engine/Executor/BaseScenarioComponent.hpp>
-#include <Engine/Executor/ConstraintComponent.hpp>
+#include <Engine/Executor/IntervalComponent.hpp>
 #include <Engine/Executor/EventComponent.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
@@ -13,8 +13,8 @@
 #include <Engine/OSSIA2iscore.hpp>
 #include <Engine/iscore2OSSIA.hpp>
 
-#include <Scenario/Document/Constraint/ConstraintDurations.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalDurations.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 #include <ossia/editor/scenario/clock.hpp>
 #include <ossia/editor/state/state_element.hpp>
@@ -29,15 +29,15 @@ DefaultClockManager::DefaultClockManager(const Context& ctx)
     : ClockManager{ctx}
 {
   auto& bs = ctx.scenario;
-  ossia::time_constraint& ossia_cst = *bs.baseConstraint().OSSIAConstraint();
+  ossia::time_interval& ossia_cst = *bs.baseInterval().OSSIAInterval();
   ossia_cst.set_callback(makeDefaultCallback(bs));
 }
-ossia::time_constraint::exec_callback
+ossia::time_interval::exec_callback
 DefaultClockManager::makeDefaultCallback(
     Engine::Execution::BaseScenarioElement& bs)
 {
-  auto& cst = bs.baseConstraint();
-  return [this, &bs, &iscore_cst = cst.iscoreConstraint()](
+  auto& cst = bs.baseInterval();
+  return [this, &bs, &iscore_cst = cst.iscoreInterval()](
       double position,
       ossia::time_value date,
       const ossia::state_element& state)
@@ -66,9 +66,9 @@ DefaultClockManager::makeDefaultCallback(
 void DefaultClockManager::prepareExecution(
     const TimeVal& t, BaseScenarioElement& bs)
 {
-  ConstraintComponentBase& comp = bs.baseConstraint();
-  comp.constraint().duration.setPlayPercentage(0);
-  const auto& oc = comp.OSSIAConstraint();
+  IntervalComponentBase& comp = bs.baseInterval();
+  comp.interval().duration.setPlayPercentage(0);
+  const auto& oc = comp.OSSIAInterval();
 
   auto start_state = oc->get_start_event().get_state();
   auto offset_state = oc->offset(context.time(t));
@@ -86,9 +86,9 @@ void DefaultClockManager::play_impl(
   try
   {
     ossia::state st;
-    bs.baseConstraint().OSSIAConstraint()->start(st);
+    bs.baseInterval().OSSIAInterval()->start(st);
     ossia::launch(st);
-    bs.baseConstraint().executionStarted();
+    bs.baseInterval().executionStarted();
   }
   catch (const std::exception& e)
   {
@@ -98,17 +98,17 @@ void DefaultClockManager::play_impl(
 
 void DefaultClockManager::pause_impl(BaseScenarioElement& bs)
 {
-  bs.baseConstraint().pause();
+  bs.baseInterval().pause();
 }
 
 void DefaultClockManager::resume_impl(BaseScenarioElement& bs)
 {
-  bs.baseConstraint().resume();
+  bs.baseInterval().resume();
 }
 
 void DefaultClockManager::stop_impl(BaseScenarioElement& bs)
 {
-  bs.baseConstraint().stop();
+  bs.baseInterval().stop();
 }
 
 ControlClockFactory::~ControlClockFactory() = default;
@@ -120,7 +120,7 @@ ControlClock::ControlClock(
         const Engine::Execution::Context& ctx):
     ClockManager{ctx},
     m_default{ctx},
-    m_clock{*ctx.scenario.baseConstraint().OSSIAConstraint(), 1.}
+    m_clock{*ctx.scenario.baseInterval().OSSIAInterval(), 1.}
 {
   m_clock.set_granularity(std::chrono::microseconds(
       context.doc.app.settings<Settings::Model>().getRate() * 1000));
@@ -149,7 +149,7 @@ void ControlClock::play_impl(
       ossia::state st;
       m_clock.start(st);
       ossia::launch(st);
-      bs.baseConstraint().executionStarted();
+      bs.baseInterval().executionStarted();
     }
     catch (const std::exception& e)
     {

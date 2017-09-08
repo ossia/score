@@ -6,10 +6,10 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
 
-#include <Scenario/Commands/Scenario/Creations/CreateConstraint.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateInterval.hpp>
 
 #include <Scenario/Palette/Transitions/AnythingTransitions.hpp>
-#include <Scenario/Palette/Transitions/ConstraintTransitions.hpp>
+#include <Scenario/Palette/Transitions/IntervalTransitions.hpp>
 #include <Scenario/Palette/Transitions/EventTransitions.hpp>
 #include <Scenario/Palette/Transitions/NothingTransitions.hpp>
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>
@@ -108,7 +108,7 @@ public:
       });
 
       // MoveOnState -> MoveOnState
-      // We don't do anything, the constraint should not move.
+      // We don't do anything, the interval should not move.
 
       // MoveOnState -> MoveOnEvent
       this->add_transition(move_state, move_event, [&]() {
@@ -187,7 +187,7 @@ public:
       });
 
       QObject::connect(move_nothing, &QState::entered, [&]() {
-        if (this->createdEvents.empty() || this->createdConstraints.empty())
+        if (this->createdEvents.empty() || this->createdIntervals.empty())
         {
           this->rollback();
           return;
@@ -203,7 +203,7 @@ public:
         // Move the timesync
         this->m_dispatcher.template submitCommand<MoveNewEvent>(
             this->m_scenario,
-            this->createdConstraints.last(),
+            this->createdIntervals.last(),
             this->createdEvents.last(),
             this->currentPoint.date,
             this->currentPoint.y,

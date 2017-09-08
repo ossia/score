@@ -5,7 +5,7 @@ namespace Scenario
 {
 class EventPresenter;
 class TimeSyncPresenter;
-class TemporalConstraintPresenter;
+class TemporalIntervalPresenter;
 class StatePresenter;
 }
 namespace Loop
@@ -18,7 +18,7 @@ public:
 
   void updateEvent(const Scenario::EventPresenter& event);
 
-  void updateConstraint(const Scenario::TemporalConstraintPresenter& pres);
+  void updateInterval(const Scenario::TemporalIntervalPresenter& pres);
 
   void updateTimeSync(const Scenario::TimeSyncPresenter& timesync);
 

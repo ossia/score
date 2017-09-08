@@ -21,7 +21,7 @@ ScenarioComponentBase::ScenarioComponentBase(
                                                  id,
                                                  "ScenarioComponent",
                                                  parent_obj}
-    , m_constraintsNode{*node().create_child("constraints")}
+    , m_intervalsNode{*node().create_child("intervals")}
     , m_eventsNode{*node().create_child("events")}
     , m_timeSyncsNode{*node().create_child("timesyncs")}
     , m_statesNode{*node().create_child("states")}
@@ -29,10 +29,10 @@ ScenarioComponentBase::ScenarioComponentBase(
 }
 
 template <>
-Constraint* ScenarioComponentBase::make<Constraint, Scenario::ConstraintModel>(
-    const Id<iscore::Component>& id, Scenario::ConstraintModel& elt)
+Interval* ScenarioComponentBase::make<Interval, Scenario::IntervalModel>(
+    const Id<iscore::Component>& id, Scenario::IntervalModel& elt)
 {
-  return new Constraint{m_constraintsNode, id, elt, system(), this};
+  return new Interval{m_intervalsNode, id, elt, system(), this};
 }
 
 template <>

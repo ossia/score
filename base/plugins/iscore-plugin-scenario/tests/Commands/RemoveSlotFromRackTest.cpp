@@ -1,13 +1,13 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <QtTest/QtTest>
-#include <Scenario/Commands/Constraint/AddRackToConstraint.hpp>
-#include <Scenario/Commands/Constraint/Rack/AddSlotToRack.hpp>
-#include <Scenario/Commands/Constraint/Rack/RemoveSlotFromRack.hpp>
+#include <Scenario/Commands/Interval/AddRackToInterval.hpp>
+#include <Scenario/Commands/Interval/Rack/AddSlotToRack.hpp>
+#include <Scenario/Commands/Interval/Rack/RemoveSlotFromRack.hpp>
 
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
-#include <Scenario/Document/Constraint/Rack/RackModel.hpp>
-#include <Scenario/Document/Constraint/Slot.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/Rack/RackModel.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
 
 using namespace iscore;
 using namespace Scenario::Command;
@@ -19,22 +19,22 @@ public:
 private slots:
   void test()
   {
-    ConstraintModel* constraint = new ConstraintModel{
-        Id<ConstraintModel>{0}, Id<ConstraintViewModel>{0}, qApp};
+    IntervalModel* interval = new IntervalModel{
+        Id<IntervalModel>{0}, Id<IntervalViewModel>{0}, qApp};
 
-    AddRackToConstraint cmd{ObjectPath{{"ConstraintModel", {}}}};
+    AddRackToInterval cmd{ObjectPath{{"IntervalModel", {}}}};
 
     cmd.redo(ctx);
-    auto rack = constraint->rack(cmd.m_createdRackId);
+    auto rack = interval->rack(cmd.m_createdRackId);
 
     AddSlotToRack cmd2{
-        ObjectPath{{"ConstraintModel", {}}, {"RackModel", rack->id()}}};
+        ObjectPath{{"IntervalModel", {}}, {"RackModel", rack->id()}}};
 
     auto slotId = cmd2.m_createdSlotId;
     cmd2.redo(ctx);
 
     RemoveSlotFromRack cmd3{
-        ObjectPath{{"ConstraintModel", {}}, {"RackModel", rack->id()}},
+        ObjectPath{{"IntervalModel", {}}, {"RackModel", rack->id()}},
         slotId};
 
     QCOMPARE((int)rack->getSlots().size(), 1);

@@ -8,7 +8,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <exception>
 
-#include "ConstraintComponent.hpp"
+#include "IntervalComponent.hpp"
 #include "ScenarioComponent.hpp"
 #include "TimeSyncComponent.hpp"
 #include <ossia/editor/expression/expression.hpp>

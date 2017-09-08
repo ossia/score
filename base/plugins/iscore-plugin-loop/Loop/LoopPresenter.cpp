@@ -15,8 +15,8 @@
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
-#include <Scenario/Document/Constraint/Temporal/TemporalConstraintPresenter.hpp>
-#include <Scenario/Document/Constraint/Temporal/TemporalConstraintView.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
@@ -27,7 +27,7 @@
 
 #include <QMenu>
 #include <Scenario/Application/Menus/ObjectMenuActions.hpp>
-#include <Scenario/Application/Menus/ObjectsActions/ConstraintActions.hpp>
+#include <Scenario/Application/Menus/ObjectsActions/IntervalActions.hpp>
 #include <Scenario/Application/Menus/ObjectsActions/EventActions.hpp>
 #include <Scenario/Application/Menus/ObjectsActions/StateActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
@@ -54,15 +54,15 @@ LayerPresenter::LayerPresenter(
     const Process::ProcessPresenterContext& ctx,
     QObject* parent)
     : Process::LayerPresenter{ctx, parent}
-    , BaseScenarioPresenter<Loop::ProcessModel, Scenario::TemporalConstraintPresenter>{layer}
+    , BaseScenarioPresenter<Loop::ProcessModel, Scenario::TemporalIntervalPresenter>{layer}
     , m_layer{layer}
     , m_view{view}
     , m_viewUpdater{*this}
     , m_palette{m_layer, *this, m_context, *m_view}
 {
   using namespace Scenario;
-  m_constraintPresenter
-      = new TemporalConstraintPresenter{layer.constraint(), ctx, false, view, this};
+  m_intervalPresenter
+      = new TemporalIntervalPresenter{layer.interval(), ctx, false, view, this};
   m_startStatePresenter = new StatePresenter{
       layer.BaseScenarioContainer::startState(), m_view, this};
   m_endStatePresenter = new StatePresenter{
@@ -77,7 +77,7 @@ LayerPresenter::LayerPresenter(
       = new TimeSyncPresenter{layer.endTimeSync(), m_view, this};
 
   auto elements = std::make_tuple(
-      m_constraintPresenter,
+      m_intervalPresenter,
       m_startStatePresenter,
       m_endStatePresenter,
       m_startEventPresenter,
@@ -117,21 +117,21 @@ LayerPresenter::LayerPresenter(
   });
 
   con(ctx.updateTimer, &QTimer::timeout, this,
-      &LayerPresenter::on_constraintExecutionTimer);
+      &LayerPresenter::on_intervalExecutionTimer);
 
   m_startStatePresenter->view()->disableOverlay();
   m_endStatePresenter->view()->disableOverlay();
 
-  m_constraintPresenter->view()->unsetCursor();
+  m_intervalPresenter->view()->unsetCursor();
 }
 
 LayerPresenter::~LayerPresenter()
 {
   disconnect(
       &m_context.context.updateTimer, &QTimer::timeout, this,
-      &LayerPresenter::on_constraintExecutionTimer);
+      &LayerPresenter::on_intervalExecutionTimer);
 
-  delete m_constraintPresenter;
+  delete m_intervalPresenter;
   delete m_startStatePresenter;
   delete m_endStatePresenter;
   delete m_startEventPresenter;
@@ -140,11 +140,11 @@ LayerPresenter::~LayerPresenter()
   delete m_endNodePresenter;
 }
 
-void LayerPresenter::on_constraintExecutionTimer()
+void LayerPresenter::on_intervalExecutionTimer()
 {
-  if(m_constraintPresenter->on_playPercentageChanged(
-      m_constraintPresenter->model().duration.playPercentage()))
-    m_constraintPresenter->view()->update();
+  if(m_intervalPresenter->on_playPercentageChanged(
+      m_intervalPresenter->model().duration.playPercentage()))
+    m_intervalPresenter->view()->update();
 }
 
 void LayerPresenter::setWidth(qreal width)
@@ -155,12 +155,12 @@ void LayerPresenter::setWidth(qreal width)
 void LayerPresenter::setHeight(qreal height)
 {
   m_view->setHeight(height);
-  auto& c = m_constraintPresenter->model();
+  auto& c = m_intervalPresenter->model();
   auto max_height = height - 65.;
   const auto N = c.smallView().size();
   for(std::size_t i = 0U; i < N; i++)
   {
-    const_cast<Scenario::ConstraintModel&>(c).setSlotHeight(Scenario::SlotId{i, Scenario::Slot::SmallView}, max_height / N - 1);
+    const_cast<Scenario::IntervalModel&>(c).setSlotHeight(Scenario::SlotId{i, Scenario::Slot::SmallView}, max_height / N - 1);
   }
 }
 
@@ -179,7 +179,7 @@ void LayerPresenter::putBehind()
 void LayerPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
   m_zoomRatio = val;
-  m_constraintPresenter->on_zoomRatioChanged(m_zoomRatio);
+  m_intervalPresenter->on_zoomRatioChanged(m_zoomRatio);
 }
 
 void LayerPresenter::parentGeometryChanged()
@@ -200,7 +200,7 @@ const Id<Process::ProcessModel>& LayerPresenter::modelId() const
 
 void LayerPresenter::updateAllElements()
 {
-  m_viewUpdater.updateConstraint(*m_constraintPresenter);
+  m_viewUpdater.updateInterval(*m_intervalPresenter);
   m_viewUpdater.updateEvent(*m_startEventPresenter);
   m_viewUpdater.updateEvent(*m_endEventPresenter);
   m_viewUpdater.updateTimeSync(*m_startNodePresenter);
@@ -224,9 +224,9 @@ void LayerPresenter::fillContextMenu(
       if(auto oma = dynamic_cast<Scenario::ObjectMenuActions*>(elt))
       {
           oma->eventActions()->fillContextMenu(menu, selected, pos, scenepos);
-          if(m_model.constraint().selection.get())
-              oma->constraintActions()->fillContextMenu(menu, selected,
-  m_layer.constraint(), pos, scenepos);
+          if(m_model.interval().selection.get())
+              oma->intervalActions()->fillContextMenu(menu, selected,
+  m_layer.interval(), pos, scenepos);
           menu->addSeparator();
       }
   }

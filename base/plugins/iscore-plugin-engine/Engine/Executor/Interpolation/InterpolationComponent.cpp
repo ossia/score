@@ -4,7 +4,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <Engine/CurveConversion.hpp>
-#include <Engine/Executor/ConstraintComponent.hpp>
+#include <Engine/Executor/IntervalComponent.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <Engine/Protocols/OSSIADevice.hpp>
@@ -25,13 +25,13 @@ namespace Interpolation
 namespace Executor
 {
 Component::Component(
-    ::Engine::Execution::ConstraintComponent& parentConstraint,
+    ::Engine::Execution::IntervalComponent& parentInterval,
     ::Interpolation::ProcessModel& element,
     const ::Engine::Execution::Context& ctx,
     const Id<iscore::Component>& id,
     QObject* parent)
     : ::Engine::Execution::
-          ProcessComponent_T<Interpolation::ProcessModel, ossia::automation>{parentConstraint,
+          ProcessComponent_T<Interpolation::ProcessModel, ossia::automation>{parentInterval,
                                                                              element,
                                                                              ctx,
                                                                              id,
