@@ -15,7 +15,7 @@
 #include <QtColorWidgets/ColorWheel>
 #include <QFileDialog>
 #include <QApplication>
-#include <score/widgets/SignalUtils.hpp>
+#include <iscore/widgets/SignalUtils.hpp>
 #include <QTextEdit>
 #include <QSyntaxHighlighter>
 namespace Scenario
@@ -203,7 +203,7 @@ public:
         sublay.addWidget(&save);
         layout.addWidget(&css);
         this->setLayout(&layout);
-        score::Skin& s = score::Skin::instance();
+        iscore::Skin& s = iscore::Skin::instance();
         for(auto& col : s.getColors())
         {
             QPixmap p{16, 16};
@@ -241,7 +241,7 @@ public:
                 return;
 
             QJsonObject obj;
-            for(auto& col : score::Skin::instance().getColors())
+            for(auto& col : iscore::Skin::instance().getColors())
             {
                 obj.insert(col.second, toJsonValue(col.first));
             }
@@ -312,9 +312,9 @@ View::View() : m_widg{new QWidget}
   lay->addRow(tr("Default Slot Height"), m_slotHeightBox);
 
   // Default duration
-  m_defaultDur = new score::TimeSpinBox;
+  m_defaultDur = new iscore::TimeSpinBox;
   connect(
-      m_defaultDur, &score::TimeSpinBox::timeChanged, this,
+      m_defaultDur, &iscore::TimeSpinBox::timeChanged, this,
       [=](const QTime& t) { emit defaultDurationChanged(TimeVal{t}); });
   lay->addRow(tr("New score duration"), m_defaultDur);
 

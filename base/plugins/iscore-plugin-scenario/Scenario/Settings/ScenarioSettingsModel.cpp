@@ -4,8 +4,8 @@
 #include <QFile>
 #include <QJsonDocument>
 #include <QSettings>
-#include <score/model/Skin.hpp>
-#include <score/plugins/customfactory/FactoryFamily.hpp>
+#include <iscore/model/Skin.hpp>
+#include <iscore/plugins/customfactory/FactoryFamily.hpp>
 
 namespace Scenario
 {
@@ -13,17 +13,17 @@ namespace Settings
 {
 namespace Parameters
 {
-const score::sp<ModelSkinParameter> Skin{QStringLiteral("Skin/Skin"),
+const iscore::sp<ModelSkinParameter> Skin{QStringLiteral("Skin/Skin"),
                                           "Default"};
-const score::sp<ModelGraphicZoomParameter> GraphicZoom{
+const iscore::sp<ModelGraphicZoomParameter> GraphicZoom{
     QStringLiteral("Skin/Zoom"), 1};
-const score::sp<ModelSlotHeightParameter> SlotHeight{
+const iscore::sp<ModelSlotHeightParameter> SlotHeight{
     QStringLiteral("Skin/slotHeight"), 200};
-const score::sp<ModelDefaultDurationParameter> DefaultDuration{
+const iscore::sp<ModelDefaultDurationParameter> DefaultDuration{
     QStringLiteral("Skin/defaultDuration"), TimeVal::fromMsecs(15000)};
-const score::sp<ModelSnapshotOnCreateParameter> SnapshotOnCreate{
+const iscore::sp<ModelSnapshotOnCreateParameter> SnapshotOnCreate{
     QStringLiteral("Scenario/SnapshotOnCreate"), true};
-const score::sp<ModelAutoSequenceParameter> AutoSequence{
+const iscore::sp<ModelAutoSequenceParameter> AutoSequence{
     QStringLiteral("Scenario/AutoSequence"), true};
 
 static auto list()
@@ -34,9 +34,9 @@ static auto list()
 }
 }
 
-Model::Model(QSettings& set, const score::ApplicationContext& ctx)
+Model::Model(QSettings& set, const iscore::ApplicationContext& ctx)
 {
-  score::setupDefaultSettings(set, Parameters::list(), *this);
+  iscore::setupDefaultSettings(set, Parameters::list(), *this);
 }
 
 QString Model::getSkin() const
@@ -53,7 +53,7 @@ void Model::setSkin(const QString& skin)
   if(skin.isEmpty() || skin == QStringLiteral("Default"))
       f.setFileName(":/DefaultSkin.json");
   else if (skin == QStringLiteral("Dark"))
-      f.setFileName(":/DarkSkin.json");
+      f.setFileName(":/DarkSkin.json");    
   else if (skin == QStringLiteral("IEEE"))
       f.setFileName(":/IEEESkin.json");
 
@@ -69,7 +69,7 @@ void Model::setSkin(const QString& skin)
     else
     {
       auto obj = doc.object();
-      score::Skin::instance().load(obj);
+      iscore::Skin::instance().load(obj);
     }
   }
   else
@@ -84,10 +84,10 @@ void Model::setSkin(const QString& skin)
   emit SkinChanged(skin);
 }
 
-SCORE_SETTINGS_PARAMETER_CPP(double, Model, GraphicZoom)
-SCORE_SETTINGS_PARAMETER_CPP(qreal, Model, SlotHeight)
-SCORE_SETTINGS_PARAMETER_CPP(bool, Model, SnapshotOnCreate)
-SCORE_SETTINGS_PARAMETER_CPP(bool, Model, AutoSequence)
+ISCORE_SETTINGS_PARAMETER_CPP(double, Model, GraphicZoom)
+ISCORE_SETTINGS_PARAMETER_CPP(qreal, Model, SlotHeight)
+ISCORE_SETTINGS_PARAMETER_CPP(bool, Model, SnapshotOnCreate)
+ISCORE_SETTINGS_PARAMETER_CPP(bool, Model, AutoSequence)
 
   TimeVal Model::getDefaultDuration() const
   {
