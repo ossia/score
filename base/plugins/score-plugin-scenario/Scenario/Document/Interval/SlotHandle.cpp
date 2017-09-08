@@ -140,14 +140,12 @@ void SlotHeader::paint(
   painter->setRenderHint(QPainter::Antialiasing, true);
 
   // Frame
-  painter->setPen(style.IntervalSolidPen);
   painter->drawRect(QRectF{0., 0., m_width, headerHeight() - 1});
 
   // Menu
   double centerX = m_width - 8.;
   double centerY = 7.5;
   double r = 4.5;
-  painter->setPen(style.IntervalHeaderSeparator);
   painter->setBrush(style.MinimapBrush);
   painter->drawEllipse(QPointF{centerX, centerY}, r, r);
   r -= 1.;
