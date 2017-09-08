@@ -1,4 +1,4 @@
-## A skeleton of process add-on for i-score.
+## A skeleton of process add-on for score.
 
 ## Usage
 

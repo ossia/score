@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
-Name=i-score
+Name=score
 Comment=An interactive sequencer for the intermedia arts
-Exec=i-score
-Icon=i-score
+Exec=score
+Icon=score
 Terminal=false
 Categories=AudioVideo;
