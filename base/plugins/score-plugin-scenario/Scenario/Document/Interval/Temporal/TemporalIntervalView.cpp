@@ -30,7 +30,6 @@ namespace Scenario
 TemporalIntervalView::TemporalIntervalView(
     TemporalIntervalPresenter& presenter, QGraphicsItem* parent)
   : IntervalView{presenter, parent}
-  , m_bgColor{ScenarioStyle::instance().IntervalDefaultBackground}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setParentItem(parent);
@@ -237,8 +236,9 @@ void TemporalIntervalView::paint(
     rect.adjust(0, 4, 0, SlotHandle::handleHeight());
     rect.setWidth(def_w);
 
-    auto bgColor = m_bgColor.getBrush().color();
+    auto bgColor = m_presenter.model().metadata().getColor().getBrush().color();
     bgColor.setAlpha(m_hasFocus ? 86 : 70);
+    // TODO try to prevent allocation here by storing two copies instead
     painter.fillRect(rect, bgColor);
 
     // Fake timesync continuation
@@ -247,7 +247,6 @@ void TemporalIntervalView::paint(
     painter.drawLine(rect.topLeft(), rect.bottomLeft());
     painter.drawLine(rect.topRight(), rect.bottomRight());
   }
-
 
   // Colors
   auto defaultColor = this->intervalColor(skin);

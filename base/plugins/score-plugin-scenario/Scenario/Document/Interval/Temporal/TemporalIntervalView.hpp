@@ -46,12 +46,6 @@ public:
   void setLabelColor(score::ColorRef labelColor);
   void setLabel(const QString& label);
 
-  void setColor(score::ColorRef c)
-  {
-    m_bgColor = std::move(c);
-    update();
-  }
-
   void setExecutionDuration(const TimeVal& progress);
 
   void updateOverlayPos();
@@ -70,7 +64,6 @@ private:
 
   void updatePaths() final override;
   void updatePlayPaths() final override;
-  score::ColorRef m_bgColor;
 
   QPainterPath solidPath, dashedPath, playedSolidPath, playedDashedPath, waitingDashedPath;
 

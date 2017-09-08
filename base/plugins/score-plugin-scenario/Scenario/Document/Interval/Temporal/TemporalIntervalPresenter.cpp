@@ -86,6 +86,7 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
   , m_handles{handles}
 {
   TemporalIntervalView& v = *view();
+  auto head = header();
   con(interval.selection, &Selectable::changed, this,
       [=] (bool b) {
     view()->setSelected(b);
@@ -111,7 +112,7 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
   con(metadata, &score::ModelMetadata::ColorChanged, &v,
       [&](score::ColorRef c) {
     v.setLabelColor(c);
-    v.setColor(c);
+    v.update();;
   });
 
   con(metadata, &score::ModelMetadata::NameChanged, this,
@@ -119,14 +120,19 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
 
   v.setLabel(metadata.getLabel());
   v.setLabelColor(metadata.getColor());
-  v.setColor(metadata.getColor());
   m_header->setText(metadata.getName());
   v.setExecutionState(m_model.executionState());
 
-  con(m_model.selection, &Selectable::changed, &v,
-      &TemporalIntervalView::setFocused);
-  con(m_model, &IntervalModel::focusChanged, &v,
-      &TemporalIntervalView::setFocused);
+  con(m_model.selection, &Selectable::changed, this,
+      [&,head] (bool b){
+    v.setFocused(b);
+    head->setFocused(b);
+  });
+  con(m_model, &IntervalModel::focusChanged, this,
+      [&,head] (bool b){
+    v.setFocused(b);
+    head->setFocused(b);
+  });
 
   // Drop
   con(v, &TemporalIntervalView::dropReceived, this,
@@ -143,7 +149,6 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
       });
 
   // Header set-up
-  auto head = header();
 
   connect(
         head, &TemporalIntervalHeader::intervalHoverEnter, this,

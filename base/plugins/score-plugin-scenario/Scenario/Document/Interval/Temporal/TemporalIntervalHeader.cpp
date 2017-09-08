@@ -18,6 +18,7 @@
 
 #include "TemporalIntervalHeader.hpp"
 #include "TemporalIntervalPresenter.hpp"
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalHeader.hpp>
 #include <score/model/Skin.hpp>
 
@@ -54,8 +55,10 @@ void TemporalIntervalHeader::paint(
   if (m_state == State::RackHidden)
   {
     const auto rect = boundingRect();
-    painter->fillRect(
-        rect, skin.IntervalHeaderRackHidden.getBrush());
+    auto bgColor = m_presenter.model().metadata().getColor().getBrush().color();
+    bgColor.setAlpha(m_hasFocus ? 86 : 70);
+
+    painter->fillRect(rect, bgColor);
 
     // Fake timesync continuation
     painter->setPen(skin.IntervalHeaderSeparator);
@@ -242,8 +245,8 @@ void RackButton::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
 {
   painter->setRenderHint(QPainter::Antialiasing, true);
   auto& skin = ScenarioStyle::instance();
-  painter->setBrush(skin.IntervalSolidPen.brush());
-  const auto bright = skin.IntervalSolidPen.brush().color();
+  painter->setBrush(skin.IntervalHeaderSeparator.brush());
+  const auto bright = skin.IntervalHeaderSeparator.brush().color();
   QPen p{bright.darker(150)};
   p.setWidth(2);
   painter->setPen(p);

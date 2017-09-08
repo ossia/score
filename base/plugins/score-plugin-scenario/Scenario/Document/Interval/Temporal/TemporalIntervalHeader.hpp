@@ -52,6 +52,10 @@ public:
       QWidget* widget) override;
   void updateButtons();
   void enableOverlay(bool b);
+  void setFocused(bool b) {
+    m_hasFocus = b;
+    update();
+  }
 signals:
   void doubleClicked();
 
@@ -76,5 +80,6 @@ private:
   ossia::optional<QGlyphRun> m_line;
   RackButton* m_button{};
   TemporalIntervalPresenter& m_presenter;
+  bool m_hasFocus{};
 };
 }
