@@ -268,7 +268,7 @@ View::View() : m_widg{new QWidget}
 
   // SKIN
   m_skin = new QComboBox;
-  m_skin->addItems({"Default", "IEEE"});
+  m_skin->addItems({"Default", "Dark", "IEEE"});
   lay->addRow(tr("Skin"), m_skin);
   auto es = new QPushButton{tr("Edit skin")};
   connect(es, &QPushButton::clicked, this, []

@@ -5,6 +5,7 @@
         <file>images/loop.svg</file>
         <file>images/forward.svg</file>
         <file>DefaultSkin.json</file>
+        <file>DarkSkin.json</file>
         <file>IEEESkin.json</file>
         <file>images/state.svg</file>
         <file>images/cond.svg</file>
