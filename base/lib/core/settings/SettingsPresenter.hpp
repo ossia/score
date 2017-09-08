@@ -2,12 +2,12 @@
 #include <QObject>
 #include <vector>
 
-namespace iscore
+namespace score
 {
 class SettingsDelegatePresenter;
-} // namespace iscore
+} // namespace score
 
-namespace iscore
+namespace score
 {
 class Settings;
 class SettingsView;

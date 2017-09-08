@@ -1,0 +1,249 @@
+#pragma once
+#include <Curve/CurveModel.hpp>
+#include <Curve/CurvePresenter.hpp>
+#include <Curve/CurveStyle.hpp>
+#include <Curve/CurveView.hpp>
+#include <Curve/Palette/CurvePalette.hpp>
+#include <Process/Focus/FocusDispatcher.hpp>
+#include <Process/LayerModelPanelProxy.hpp>
+#include <Process/Process.hpp>
+#include <Process/ProcessContext.hpp>
+#include <Process/ProcessList.hpp>
+#include <Process/Tools/ProcessGraphicsView.hpp>
+#include <QActionGroup>
+#include <QGraphicsLineItem>
+#include <QScrollBar>
+#include <QVBoxLayout>
+#include <score/document/DocumentContext.hpp>
+#include <score/document/DocumentInterface.hpp>
+#include <score/widgets/DoubleSlider.hpp>
+#include <score_plugin_curve_export.h>
+
+namespace Curve
+{
+
+template <typename PanelProxy_T>
+struct PanelFocusDispatcher
+{
+  void focus(Curve::Presenter* p)
+  {
+  }
+};
+
+template <typename PanelProxy_T>
+struct PanelBaseContext : public score::DocumentContext
+{
+  PanelBaseContext(const score::DocumentContext& doc)
+      : score::DocumentContext{doc}, focusDispatcher{}
+  {
+  }
+
+  PanelFocusDispatcher<PanelProxy_T> focusDispatcher;
+};
+
+template <typename PanelProxy_T>
+struct PanelContext
+{
+  PanelBaseContext<PanelProxy_T> context;
+  Curve::Presenter& presenter;
+};
+
+template <typename Model_T>
+class CurvePanelProxy : public Process::LayerPanelProxy
+{
+  using context_t = PanelContext<CurvePanelProxy<Model_T>>;
+
+public:
+  CurvePanelProxy(
+                const Model_T& layermodel,
+                QObject* parent):
+            LayerPanelProxy{parent},
+            m_layer{layermodel},
+            m_widget{new QWidget},
+            m_scene{new QGraphicsScene{this}},
+            m_view{new ProcessGraphicsView{m_scene, m_widget}},
+            m_processEnd{new QGraphicsLineItem{}},
+            m_curveView{new Curve::View{nullptr}},
+            m_curvePresenter{
+                [this] () {
+
+            // Add the items to the scene early because
+            // the presenters might call scene() in their ctor.
+            m_scene->addItem(m_curveView);
+
+            // Setup the model
+            auto fact = score::AppContext()
+                    .interfaces<Process::LayerFactoryList>()
+                    .get(((const Process::ProcessModel&)m_layer).concreteKey());
+
+            if(!fact)
+                throw;
+
+            auto istyle = dynamic_cast<Curve::StyleInterface*>(fact);
+            SCORE_ASSERT(istyle);
+
+            // TODO find a way to not call documentcontext twice in this ctor
+            return new Curve::Presenter{
+                    score::IDocument::documentContext(m_layer),
+                    istyle->style(),
+                    m_layer.curve(),
+                    m_curveView,
+                    this};
+                } () // This lambda function gets called and returns what we need
+            },
+
+            m_context{{score::IDocument::documentContext(layermodel)}, *m_curvePresenter},
+            m_sm{m_context, *m_curvePresenter}
+  {
+    // Setup the view
+    m_scene->setItemIndexMethod(QGraphicsScene::NoIndex);
+
+    QPen p{Qt::DashLine};
+    p.setWidth(2);
+    p.setColor(QColor::fromRgba(qRgba(100, 100, 100, 100)));
+    m_processEnd->setPen(p);
+    m_scene->addItem(m_processEnd);
+
+    m_widget->setLayout(new QVBoxLayout);
+
+    m_widget->layout()->addWidget(m_view);
+
+    m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    m_view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    connect(
+        m_view, &ProcessGraphicsView::sizeChanged, this,
+        &CurvePanelProxy::on_sizeChanged);
+
+    m_zoomSlider = new score::DoubleSlider{m_widget};
+    m_zoomSlider->setValue(0.03); // 30 seconds by default on an average screen
+
+    connect(
+        m_zoomSlider, &score::DoubleSlider::valueChanged, this,
+        &CurvePanelProxy::on_zoomChanged);
+    m_widget->layout()->addWidget(m_zoomSlider);
+    m_view->show();
+
+    m_curveView->setFlag(QGraphicsItem::ItemClipsChildrenToShape, false);
+    m_view->addActions(m_curvePresenter->actions().actions());
+    m_curvePresenter->editionSettings().setTool(Curve::Tool::Select);
+    m_curvePresenter->setBoundedMove(false);
+
+    con(m_layer.curve(), &Curve::Model::changed, this,
+        &CurvePanelProxy::on_curveChanged);
+
+    // connect(&m_context.context.updateTimer, &QTimer::timeout, this,
+    // [&vp=*m_view->viewport()] { vp.update(); } );
+
+    on_curveChanged();
+    // Have a zoom here too. For now the process should be the size of the
+    // window.
+    on_sizeChanged(m_view->size());
+
+    on_zoomChanged(0.03);
+  }
+
+  virtual ~CurvePanelProxy()
+  {
+    delete m_curvePresenter;
+    delete m_widget;
+  }
+
+  void on_curveChanged()
+  {
+    // Find the last point
+
+    auto& points = m_layer.curve().points();
+    m_currentCurveMax = 0;
+    for (Curve::PointModel* point : points)
+    {
+      auto x = point->pos().x();
+      if (x > m_currentCurveMax)
+        m_currentCurveMax = x;
+    }
+  }
+
+  // Can return the same view model, or a new one.
+  const Model_T& layer() final override
+  {
+    return m_layer;
+  }
+
+  QWidget* widget() const final override
+  {
+    return m_widget;
+  }
+
+  void on_sizeChanged(const QSize& size)
+  {
+    m_height = size.height() - m_view->horizontalScrollBar()->height() - 2;
+    m_width = size.width();
+
+    recompute();
+  }
+
+  void on_zoomChanged(ZoomRatio newzoom)
+  {
+    // TODO refactor this with what's in base element model
+    // mapZoom maps a value between 0 and 1 to the correct zoom.
+    // TODO use the fma ease
+    auto mapZoom = [](double val, double min, double max) {
+      return (max - min) * val + min;
+    };
+
+    auto duration = m_layer.duration().msec();
+    if (m_currentCurveMax > 1)
+      duration *= m_currentCurveMax;
+
+    m_zoomRatio
+        = mapZoom(1.0 - newzoom, 1.5, std::max(5., 2 * duration) / m_width);
+
+    recompute();
+  }
+
+  auto& toolPalette()
+  {
+    return m_sm;
+  }
+
+private:
+  void recompute()
+  {
+    // computedMax : the number of pixels in a millisecond when the whole
+    // interval
+    // is displayed on screen;
+    // We want the value to be at least twice the duration of the interval
+    const auto& duration = m_layer.duration();
+    auto fullWidth = duration.toPixels(m_zoomRatio);
+    if (m_currentCurveMax > 1)
+      fullWidth *= m_currentCurveMax;
+
+    m_processEnd->setLine(fullWidth, 0, fullWidth, m_height);
+
+    auto maxWidth = std::max(fullWidth * 1.2, m_width) * 1.5;
+    m_view->setSceneRect({0, 0, maxWidth, m_height});
+
+    m_curveView->setRect({0, 0, maxWidth, m_height});
+    m_curvePresenter->setRect(QRectF{0, 0, fullWidth, m_height});
+  }
+
+  double m_currentCurveMax{};
+
+  double m_height{}, m_width{};
+
+  const Model_T& m_layer;
+  QWidget* m_widget{};
+
+  QGraphicsScene* m_scene{};
+  ProcessGraphicsView* m_view{};
+  score::DoubleSlider* m_zoomSlider{};
+
+  QGraphicsLineItem* m_processEnd{};
+  Curve::View* m_curveView{};
+  Curve::Presenter* m_curvePresenter{};
+
+  context_t m_context;
+
+  Curve::ToolPalette_T<context_t> m_sm;
+  ZoomRatio m_zoomRatio{};
+};
+}

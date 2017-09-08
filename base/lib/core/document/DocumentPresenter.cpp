@@ -3,16 +3,16 @@
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentView.hpp>
 #include <core/document/DocumentPresenter.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegatePresenter.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegatePresenter.hpp>
 
 
 class QObject;
 
-namespace iscore
+namespace score
 {
 DocumentPresenter::DocumentPresenter(
-    const iscore::DocumentContext& ctx,
+    const score::DocumentContext& ctx,
     DocumentDelegateFactory& fact,
     const DocumentModel& m,
     DocumentView& v,

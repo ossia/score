@@ -6,14 +6,14 @@
 #include <QPair>
 #include <QStack>
 #include <QtGlobal>
-#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 
 #include "CommandStack.hpp"
-#include <iscore/application/ApplicationComponents.hpp>
-#include <iscore/application/ApplicationContext.hpp>
-#include <iscore/command/Command.hpp>
-#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
-#include <iscore/plugins/customfactory/StringFactoryKeySerialization.hpp>
+#include <score/application/ApplicationComponents.hpp>
+#include <score/application/ApplicationContext.hpp>
+#include <score/command/Command.hpp>
+#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/plugins/customfactory/StringFactoryKeySerialization.hpp>
 
 template <typename T>
 class Reader;
@@ -21,9 +21,9 @@ template <typename T>
 class Writer;
 
 template <>
-void DataStreamReader::read(const iscore::CommandStack& stack)
+void DataStreamReader::read(const score::CommandStack& stack)
 {
-  std::vector<iscore::CommandData> undoStack, redoStack;
+  std::vector<score::CommandData> undoStack, redoStack;
   for (const auto& cmd : stack.undoable())
   {
     undoStack.emplace_back(*cmd);

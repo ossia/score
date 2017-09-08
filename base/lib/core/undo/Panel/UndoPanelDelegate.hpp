@@ -1,13 +1,13 @@
 #pragma once
-#include <iscore/plugins/panel/PanelDelegate.hpp>
+#include <score/plugins/panel/PanelDelegate.hpp>
 
-namespace iscore
+namespace score
 {
 class UndoListWidget;
-class UndoPanelDelegate final : public iscore::PanelDelegate
+class UndoPanelDelegate final : public score::PanelDelegate
 {
 public:
-  UndoPanelDelegate(const iscore::GUIApplicationContext& ctx);
+  UndoPanelDelegate(const score::GUIApplicationContext& ctx);
 
 private:
   QWidget* widget() override;
@@ -16,7 +16,7 @@ private:
 
   void on_modelChanged(MaybeDocument oldm, MaybeDocument newm) override;
 
-  iscore::UndoListWidget* m_list{};
+  score::UndoListWidget* m_list{};
   QWidget* m_widget{};
 };
 }

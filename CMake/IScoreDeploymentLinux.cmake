@@ -41,31 +41,31 @@ else()
     set(CPACK_GENERATOR "TGZ")
 endif()
 
-if(ISCORE_STATIC_QT)
+if(SCORE_STATIC_QT)
 configure_file (
-  "${CMAKE_CURRENT_LIST_DIR}/Deployment/Linux/i-score.static.desktop.in"
-  "${PROJECT_BINARY_DIR}/i-score.desktop"
+  "${CMAKE_CURRENT_LIST_DIR}/Deployment/Linux/score.static.desktop.in"
+  "${PROJECT_BINARY_DIR}/score.desktop"
   )
 else()
 configure_file (
-  "${CMAKE_CURRENT_LIST_DIR}/Deployment/Linux/i-score.desktop.in"
-  "${PROJECT_BINARY_DIR}/i-score.desktop"
+  "${CMAKE_CURRENT_LIST_DIR}/Deployment/Linux/score.desktop.in"
+  "${PROJECT_BINARY_DIR}/score.desktop"
   )
 
 endif()
 
 
-install(PROGRAMS "${CMAKE_SOURCE_DIR}/base/app/i-score.sh"
+install(PROGRAMS "${CMAKE_SOURCE_DIR}/base/app/score.sh"
         DESTINATION bin)
-install(FILES "${PROJECT_BINARY_DIR}/i-score.desktop"
+install(FILES "${PROJECT_BINARY_DIR}/score.desktop"
         DESTINATION share/applications)
-install(FILES "${CMAKE_SOURCE_DIR}/base/lib/resources/i-score.png"
+install(FILES "${CMAKE_SOURCE_DIR}/base/lib/resources/score.png"
         DESTINATION share/pixmaps)
 
-set(CPACK_PACKAGE_FILE_NAME "i-score-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}")
+set(CPACK_PACKAGE_FILE_NAME "score-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}")
 set(CPACK_PACKAGING_INSTALL_PREFIX "")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "i-score devs <i-score-devs@lists.sourceforge.net>")
-if(ISCORE_STATIC_QT)
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "score devs <score-devs@lists.sourceforge.net>")
+if(SCORE_STATIC_QT)
   set(CPACK_DEBIAN_PACKAGE_DEPENDS "")
 else()
   set(CPACK_DEBIAN_PACKAGE_DEPENDS "libqt5core5a, libqt5gui5, libqt5svg5, libqt5xml5, libqt5network5")

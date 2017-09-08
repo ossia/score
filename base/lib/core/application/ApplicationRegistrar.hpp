@@ -1,16 +1,16 @@
 #pragma once
 #include <QObject>
-#include <iscore/command/CommandGeneratorMap.hpp>
-#include <iscore/plugins/Addon.hpp>
-#include <iscore/tools/std/HashMap.hpp>
+#include <score/command/CommandGeneratorMap.hpp>
+#include <score/plugins/Addon.hpp>
+#include <score/tools/std/HashMap.hpp>
 #include <utility>
 
-#include <iscore/command/Command.hpp>
-#include <iscore/plugins/customfactory/FactoryInterface.hpp>
+#include <score/command/Command.hpp>
+#include <score/plugins/customfactory/FactoryInterface.hpp>
 
-#include <iscore/actions/Action.hpp>
-#include <iscore_lib_base_export.h>
-namespace iscore
+#include <score/actions/Action.hpp>
+#include <score_lib_base_export.h>
+namespace score
 {
 class DocumentDelegateFactory;
 class InterfaceListBase;
@@ -30,22 +30,22 @@ class Plugin_QtInterface;
  * classes of the plug-in and performs minor initialization steps.
  */
 
-class ISCORE_LIB_BASE_EXPORT ApplicationRegistrar
+class SCORE_LIB_BASE_EXPORT ApplicationRegistrar
     : public QObject
 {
 public:
   ApplicationRegistrar(
       ApplicationComponentsData&);
 
-  void registerAddons(std::vector<iscore::Addon> vec);
+  void registerAddons(std::vector<score::Addon> vec);
   void registerApplicationPlugin(ApplicationPlugin*);
 
   void registerCommands(
-      iscore::hash_map<CommandGroupKey, CommandGeneratorMap>&& cmds);
+      score::hash_map<CommandGroupKey, CommandGeneratorMap>&& cmds);
   void registerCommands(
       std::pair<CommandGroupKey, CommandGeneratorMap>&& cmds);
   void registerFactories(
-      iscore::hash_map<iscore::InterfaceKey, std::unique_ptr<InterfaceListBase>>&&
+      score::hash_map<score::InterfaceKey, std::unique_ptr<InterfaceListBase>>&&
               cmds);
   void registerFactory(std::unique_ptr<InterfaceListBase> cmds);
 
@@ -58,13 +58,13 @@ protected:
   ApplicationComponentsData& m_components;
 };
 
-class ISCORE_LIB_BASE_EXPORT GUIApplicationRegistrar
+class SCORE_LIB_BASE_EXPORT GUIApplicationRegistrar
     : public ApplicationRegistrar
 {
 public:
   GUIApplicationRegistrar(
       ApplicationComponentsData&,
-      const iscore::GUIApplicationContext&,
+      const score::GUIApplicationContext&,
       MenuManager&,
       ToolbarManager&,
       ActionManager&);
@@ -74,7 +74,7 @@ public:
   void registerPanel(PanelDelegateFactory&);
 
 private:
-  const iscore::GUIApplicationContext& m_context;
+  const score::GUIApplicationContext& m_context;
 
   MenuManager& m_menuManager;
   ToolbarManager& m_toolbarManager;

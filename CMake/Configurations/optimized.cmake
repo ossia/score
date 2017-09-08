@@ -1,2 +1,2 @@
 include(static-release)
-set(ISCORE_ENABLE_OPTIMIZE_CUSTOM True)
+set(SCORE_ENABLE_OPTIMIZE_CUSTOM True)

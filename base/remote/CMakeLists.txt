@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(iscore_remote LANGUAGES CXX)
+project(score_remote LANGUAGES CXX)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 
 set(SRCS
@@ -25,17 +25,17 @@ set(SRCS
 
 # These two lines are used to display the QMLs in the project view of IDEs
 file(GLOB_RECURSE QMLS "qml/*.qml")
-add_custom_target(iscore_remote_ui_qml SOURCES ${QMLS})
+add_custom_target(score_remote_ui_qml SOURCES ${QMLS})
 
 qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/qml.qrc")
-add_executable(iscore_remote_ui ${SRCS} ${QRCS})
+add_executable(score_remote_ui ${SRCS} ${QRCS})
 
-if(ISCORE_STATIC_PLUGINS)
-  iscore_write_static_plugins_header()
+if(SCORE_STATIC_PLUGINS)
+  score_write_static_plugins_header()
   # TODO Investigate why this is necessary ? (see testapp)
-  target_link_libraries(iscore_remote_ui PUBLIC iscore_lib_base iscore_lib_device iscore_plugin_engine Qt5::Core Qt5::Widgets Qt5::WebSockets Qt5::Qml)
+  target_link_libraries(score_remote_ui PUBLIC score_lib_base score_lib_device score_plugin_engine Qt5::Core Qt5::Widgets Qt5::WebSockets Qt5::Qml)
 else()
-  target_link_libraries(iscore_remote_ui PRIVATE iscore_lib_base iscore_lib_device iscore_plugin_engine Qt5::Core Qt5::Widgets Qt5::WebSockets Qt5::Qml)
+  target_link_libraries(score_remote_ui PRIVATE score_lib_base score_lib_device score_plugin_engine Qt5::Core Qt5::Widgets Qt5::WebSockets Qt5::Qml)
 endif()
-set(ISCORE_COTIRE False)
-setup_iscore_common_exe_features(iscore_remote_ui)
+set(SCORE_COTIRE False)
+setup_score_common_exe_features(score_remote_ui)

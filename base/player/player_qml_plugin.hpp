@@ -1,8 +1,8 @@
 #pragma once
-#include <iscore_player_export.h>
+#include <score_player_export.h>
 #include "player_impl.hpp"
 #include <QQmlExtensionPlugin>
-namespace iscore
+namespace score
 {
 
 class QMLPlayer : public QObject
@@ -31,7 +31,7 @@ private:
 };
 
 
-class ISCORE_PLAYER_EXPORT PlayerPlugin : public QQmlExtensionPlugin
+class SCORE_PLAYER_EXPORT PlayerPlugin : public QQmlExtensionPlugin
 {
   Q_OBJECT
   Q_PLUGIN_METADATA(IID QQmlExtensionInterface_iid)

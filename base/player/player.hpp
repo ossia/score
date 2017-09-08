@@ -3,12 +3,12 @@
 #include <atomic>
 #include <string>
 
-#include <iscore_player_export.h>
+#include <score_player_export.h>
 namespace ossia { namespace net { class device_base; } }
-namespace iscore
+namespace score
 {
 class PlayerImpl;
-class ISCORE_PLAYER_EXPORT Player
+class SCORE_PLAYER_EXPORT Player
 {
 public:
   Player();

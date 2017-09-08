@@ -7,7 +7,7 @@
 #include <core/document/DocumentBackupManager.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
-#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
 
 #include <QString>
 #include <QVariant>
@@ -15,22 +15,22 @@
 
 #include "DocumentBuilder.hpp"
 #include <core/command/CommandStackSerialization.hpp>
-#include <iscore/application/ApplicationComponents.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
+#include <score/application/ApplicationComponents.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 
-#include <iscore/tools/RandomNameProvider.hpp>
-#include <iscore/model/Identifier.hpp>
+#include <score/tools/RandomNameProvider.hpp>
+#include <score/model/Identifier.hpp>
 
-namespace iscore
+namespace score
 {
 DocumentBuilder::DocumentBuilder(QObject* parentPresenter, QWidget* parentView)
     : m_parentPresenter{parentPresenter}, m_parentView{parentView}
 {
 }
 
-ISCORE_LIB_BASE_EXPORT
+SCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::newDocument(
-    const iscore::GUIApplicationContext& ctx,
+    const score::GUIApplicationContext& ctx,
     const Id<DocumentModel>& id,
     DocumentDelegateFactory& doctype)
 {
@@ -55,9 +55,9 @@ Document* DocumentBuilder::newDocument(
   return doc;
 }
 
-ISCORE_LIB_BASE_EXPORT
+SCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::loadDocument(
-    const iscore::GUIApplicationContext& ctx,
+    const score::GUIApplicationContext& ctx,
     QString filename,
     const QVariant& docData,
     DocumentDelegateFactory& doctype)
@@ -97,9 +97,9 @@ Document* DocumentBuilder::loadDocument(
     return nullptr;
   }
 }
-ISCORE_LIB_BASE_EXPORT
+SCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::restoreDocument(
-    const iscore::GUIApplicationContext& ctx,
+    const score::GUIApplicationContext& ctx,
     QString filename,
     const QByteArray& docData,
     const QByteArray& cmdData,

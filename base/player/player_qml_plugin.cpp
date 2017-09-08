@@ -7,7 +7,7 @@
 #include <spdlog/sinks/android_sink.h>
 #include <ossia/detail/logger.hpp>
 
-namespace iscore
+namespace score
 {
 //! A sink to use with spdlog, that will send its log messages through Qt logs.
 struct qt_log_sink final : public spdlog::sinks::sink
@@ -112,7 +112,7 @@ void PlayerPlugin::registerTypes(const char* uri)
   ossia::context c{{std::make_shared<qt_log_sink>()}};
 #endif
 
-  qmlRegisterType<iscore::QMLPlayer>(uri, 1, 0, "Player");
+  qmlRegisterType<score::QMLPlayer>(uri, 1, 0, "Player");
   ossia::qt::qml_plugin::reg(uri);
 }
 

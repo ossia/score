@@ -1,0 +1,182 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <QPoint>
+#include <QRect>
+#include <QtGlobal>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
+#include <boost/iterator/indirect_iterator.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+
+#include "ScenarioViewInterface.hpp"
+#include "TemporalScenarioPresenter.hpp"
+#include <Process/TimeValue.hpp>
+#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
+#include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
+#include <Scenario/Document/CommentBlock/CommentBlockView.hpp>
+#include <Scenario/Document/Interval/IntervalDurations.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/IntervalPresenter.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Event/EventPresenter.hpp>
+#include <Scenario/Document/Event/EventView.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/State/StatePresenter.hpp>
+#include <Scenario/Document/State/StateView.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncView.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
+#include <score/model/IdentifiedObjectMap.hpp>
+
+#include <score/model/Identifier.hpp>
+
+namespace Scenario
+{
+ScenarioViewInterface::ScenarioViewInterface(
+    const TemporalScenarioPresenter& presenter)
+    : m_presenter{presenter}
+{
+}
+
+void ScenarioViewInterface::on_eventMoved(const EventPresenter& ev)
+{
+  auto h = m_presenter.m_view->boundingRect().height();
+
+  ev.view()->setExtent(ev.model().extent() * h);
+
+  ev.view()->setPos({ev.model().date().toPixels(m_presenter.m_zoomRatio),
+                     ev.model().extent().top() * h});
+
+  // We also have to move all the relevant states
+  for (const auto& state : ev.model().states())
+  {
+    auto state_it = m_presenter.m_states.find(state);
+    if (state_it != m_presenter.m_states.end())
+    {
+      on_stateMoved(*state_it);
+    }
+  }
+  m_presenter.m_view->update();
+}
+
+void ScenarioViewInterface::on_intervalMoved(
+    const TemporalIntervalPresenter& pres)
+{
+  auto rect = m_presenter.m_view->boundingRect();
+  auto msPerPixel = m_presenter.m_zoomRatio;
+
+  const auto& cstr_model = pres.model();
+  auto& cstr_view = view(pres);
+
+  double startPos = cstr_model.startDate().toPixels(msPerPixel);
+  // double delta = cstr_view.x() - startPos;
+  bool dateChanged = true; // Disabled because it does a whacky movement when
+                           // there are processes. (delta * delta > 1); //
+                           // Magnetism
+
+  if (dateChanged)
+  {
+    cstr_view.setPos(startPos, rect.height() * cstr_model.heightPercentage());
+  }
+  else
+  {
+    cstr_view.setY(qreal(rect.height() * cstr_model.heightPercentage()));
+  }
+
+  cstr_view.setDefaultWidth(
+      cstr_model.duration.defaultDuration().toPixels(msPerPixel));
+  cstr_view.setMinWidth(
+      cstr_model.duration.minDuration().toPixels(msPerPixel));
+  cstr_view.setMaxWidth(
+      cstr_model.duration.maxDuration().isInfinite(),
+      cstr_model.duration.maxDuration().isInfinite()
+          ? -1
+          : cstr_model.duration.maxDuration().toPixels(msPerPixel));
+
+  m_presenter.m_view->update();
+}
+
+void ScenarioViewInterface::on_timeSyncMoved(const TimeSyncPresenter& timesync)
+{
+  auto h = m_presenter.m_view->boundingRect().height();
+  timesync.view()->setExtent(timesync.model().extent() * h);
+
+  timesync.view()->setPos(
+      {timesync.model().date().toPixels(m_presenter.m_zoomRatio),
+       timesync.model().extent().top() * h});
+
+  m_presenter.m_view->update();
+}
+
+void ScenarioViewInterface::on_stateMoved(const StatePresenter& state)
+{
+  auto rect = m_presenter.m_view->boundingRect();
+  const auto& ev = m_presenter.model()
+                       .event(state.model().eventId());
+
+  state.view()->setPos({ev.date().toPixels(m_presenter.m_zoomRatio),
+                        rect.height() * state.model().heightPercentage()});
+
+  m_presenter.m_view->update();
+}
+
+void ScenarioViewInterface::on_commentMoved(
+    const CommentBlockPresenter& comment)
+{
+  auto h = m_presenter.m_view->boundingRect().height();
+  comment.view()->setPos(
+      comment.date().toPixels(m_presenter.zoomRatio()),
+      comment.model().heightPercentage() * h);
+  m_presenter.m_view->update();
+}
+
+template <typename T>
+void update_min_max(const T& val, T& min, T& max)
+{
+  min = val < min ? val : min;
+  max = val > max ? val : max;
+}
+
+void ScenarioViewInterface::on_hoverOnInterval(
+    const Id<IntervalModel>& intervalId, bool enter)
+{
+  /*
+  const auto& interval = m_presenter.m_intervals.at(intervalId)->model();
+  EventPresenter* start = m_presenter.m_events.at(interval.startEvent());
+  start->view()->setShadow(enter);
+  EventPresenter* end = m_presenter.m_events.at(interval.endEvent());
+  end->view()->setShadow(enter);
+  */
+}
+
+void ScenarioViewInterface::on_hoverOnEvent(
+    const Id<EventModel>& eventId, bool enter)
+{
+  /*
+  const auto& event = m_presenter.m_events.at(eventId)->model();
+  for (const auto& cstr : event.intervals())
+  {
+      auto cstrView = view(m_presenter.m_intervals.at(cstr));
+      cstrView->setShadow(enter);
+  }
+  */
+}
+
+void ScenarioViewInterface::on_graphicalScaleChanged(double scale)
+{
+  for (auto& e : m_presenter.getEvents())
+  {
+    e.view()->setWidthScale(scale);
+  }
+  for (auto& s : m_presenter.getStates())
+  {
+    s.view()->setScale(scale);
+  }
+
+  m_presenter.m_view->update();
+}
+}

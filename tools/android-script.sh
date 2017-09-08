@@ -14,6 +14,6 @@ cmake -DCMAKE_TOOLCHAIN_FILE=$BASE_DIR/CMake/Android/android.toolchain.cmake -DC
 make -j8
 make apk_debug
 
-adb uninstall net.iscore
-adb install base/app-android/bin/iscore-Android-debug-armeabi-v7a-03.apk
-adb shell am start -n net.iscore/org.qtproject.qt5.android.bindings.QtActivity
+adb uninstall net.score
+adb install base/app-android/bin/score-Android-debug-armeabi-v7a-03.apk
+adb shell am start -n net.score/org.qtproject.qt5.android.bindings.QtActivity

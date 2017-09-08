@@ -1,5 +1,5 @@
 #!/bin/zsh
-OUTPUT_FILE=i-score-remote-srcs.pri
+OUTPUT_FILE=score-remote-srcs.pri
 setopt null_glob
 (
 cd ..
@@ -7,7 +7,7 @@ cd ..
 HEADERS=$(ls base/lib/**/*.{h,hpp} | egrep -v "(test|Test)")
 SOURCES=$(ls base/lib/**/*.cpp | egrep -v "(test|Test|/main.cpp)")
 
-for folder in remote plugins/iscore-lib-state plugins/iscore-lib-device ; do
+for folder in remote plugins/score-lib-state plugins/score-lib-device ; do
     SUB_H=$(ls base/$folder/**/*.{h,hpp} | egrep -v "(test|Test)")
     SUB_C=$(ls base/$folder/**/*.cpp | egrep -v "(test|Test|/main.cpp)")
     
@@ -55,7 +55,7 @@ cd build
 (
 mkdir -p cmake-tmp
 cd cmake-tmp
-cmake -DISCORE_CONFIGURATION=static-release ../../
+cmake -DSCORE_CONFIGURATION=static-release ../../
 cp **/*.{h,hpp,cpp} ../
 )
 rm -rf cmake-tmp

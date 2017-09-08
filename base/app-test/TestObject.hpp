@@ -2,8 +2,8 @@
 #include <core/presenter/DocumentManager.hpp>
 #include <core/document/Document.hpp>
 #include <core/command/CommandStack.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
-#include <iscore/actions/ActionManager.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+#include <score/actions/ActionManager.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
@@ -21,10 +21,10 @@
 
 class TestObject : public QObject
 {
-        const iscore::GUIApplicationContext& m_context;
+        const score::GUIApplicationContext& m_context;
         Q_OBJECT
     public:
-        TestObject(const iscore::GUIApplicationContext& ctx):
+        TestObject(const score::GUIApplicationContext& ctx):
             m_context{ctx}
         {
             QTimer::singleShot(1000, this, SIGNAL(appStarting()));
@@ -54,7 +54,7 @@ class TestObject : public QObject
                 if(!doc)
                     continue;
 
-                iscore::CommandStack& stack = doc->commandStack();
+                score::CommandStack& stack = doc->commandStack();
                 while(stack.canUndo())
                 {
                     stack.undo(ctx);
@@ -76,7 +76,7 @@ class TestObject : public QObject
                 m_context.docManager.forceCloseDocument(m_context, *doc);
                 QApplication::processEvents();
 
-                auto& doctype = *m_context.interfaces<iscore::DocumentDelegateList>().begin();
+                auto& doctype = *m_context.interfaces<score::DocumentDelegateList>().begin();
 
                 auto ba_doc = m_context.docManager.loadDocument(m_context, byte_arr, doctype);
                 QApplication::processEvents();

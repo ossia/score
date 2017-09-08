@@ -1,26 +1,26 @@
 #pragma once
 #include <QObject>
-#include <iscore/command/Command.hpp>
-#include <iscore/command/Validity/ValidityChecker.hpp>
+#include <score/command/Command.hpp>
+#include <score/command/Validity/ValidityChecker.hpp>
 
 #include <QStack>
 #include <QString>
 
-namespace iscore
+namespace score
 {
 class Document;
 
 /**
- * \class iscore::CommandStack
+ * \class score::CommandStack
  *
  * Mostly equivalent to QUndoStack, but has added signals / slots.
  * They are used to send & receive the commands to the network, for instance.
  *
  * This class should never be used directly to send commands.
- * Instead, the various command dispatchers, in iscore/command/Dispatchers
+ * Instead, the various command dispatchers, in score/command/Dispatchers
  * should be used.
  */
-class ISCORE_LIB_BASE_EXPORT CommandStack final : public QObject
+class SCORE_LIB_BASE_EXPORT CommandStack final : public QObject
 {
   Q_OBJECT
 
@@ -29,7 +29,7 @@ class ISCORE_LIB_BASE_EXPORT CommandStack final : public QObject
 
 public:
   explicit CommandStack(
-      const iscore::Document& ctx, QObject* parent = nullptr);
+      const score::Document& ctx, QObject* parent = nullptr);
   ~CommandStack();
 
   /**
@@ -59,31 +59,31 @@ public:
 
   int size() const;
 
-  const iscore::Command* command(int index) const;
+  const score::Command* command(int index) const;
   int currentIndex() const;
 
   void markCurrentIndexAsSaved();
 
   bool isAtSavedIndex() const;
 
-  QStack<iscore::Command*>& undoable()
+  QStack<score::Command*>& undoable()
   {
     return m_undoable;
   }
-  QStack<iscore::Command*>& redoable()
+  QStack<score::Command*>& redoable()
   {
     return m_redoable;
   }
-  const QStack<iscore::Command*>& undoable() const
+  const QStack<score::Command*>& undoable() const
   {
     return m_undoable;
   }
-  const QStack<iscore::Command*>& redoable() const
+  const QStack<score::Command*>& redoable() const
   {
     return m_redoable;
   }
 
-  const iscore::DocumentContext& context() const
+  const score::DocumentContext& context() const
   {
     return m_ctx;
   }
@@ -93,7 +93,7 @@ signals:
    * @brief Emitted when a command was pushed on the stack
    * @param cmd the command that was pushed
    */
-  void localCommand(iscore::Command* cmd);
+  void localCommand(score::Command* cmd);
 
   /**
    * @brief Emitted when the user calls "Undo"
@@ -137,7 +137,7 @@ public slots:
    *
    * Calls cmd::redo()
    */
-  void redoAndPush(iscore::Command* cmd);
+  void redoAndPush(score::Command* cmd);
 
   /**
    * @brief quietPush Pushes a command on the stack
@@ -145,14 +145,14 @@ public slots:
    *
    * Does NOT call cmd::redo()
    */
-  void push(iscore::Command* cmd);
+  void push(score::Command* cmd);
 
   /**
    * @brief pushAndEmit Pushes a command on the stack and emit relevant signals
    * @param cmd The command
    */
-  void redoAndPushQuiet(iscore::Command* cmd);
-  void pushQuiet(iscore::Command* cmd);
+  void redoAndPushQuiet(score::Command* cmd);
+  void pushQuiet(score::Command* cmd);
 
   void undo()
   {
@@ -206,12 +206,12 @@ public:
   void setSavedIndex(int index);
 
 private:
-  QStack<iscore::Command*> m_undoable;
-  QStack<iscore::Command*> m_redoable;
+  QStack<score::Command*> m_undoable;
+  QStack<score::Command*> m_redoable;
 
   int m_savedIndex{};
 
   DocumentValidator m_checker;
-  const iscore::DocumentContext& m_ctx;
+  const score::DocumentContext& m_ctx;
 };
 }

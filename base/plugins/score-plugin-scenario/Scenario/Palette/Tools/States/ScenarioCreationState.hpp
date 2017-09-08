@@ -1,0 +1,253 @@
+#pragma once
+#include <Scenario/Commands/Scenario/Creations/CreationMetaCommand.hpp>
+#include <Scenario/Palette/ScenarioPaletteBaseStates.hpp>
+#include <Scenario/Palette/ScenarioPaletteBaseTransitions.hpp>
+#include <Scenario/Palette/Tools/ScenarioRollbackStrategy.hpp>
+#include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
+
+#include <Scenario/Tools/elementFindingHelper.hpp>
+
+#include <Scenario/Commands/Scenario/Creations/CreateInterval.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateInterval_State.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event_TimeSync.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateSequence.hpp>
+
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <Scenario/Commands/State/AddMessagesToState.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
+#include <score/document/DocumentInterface.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
+
+namespace Scenario
+{
+
+template <int Value>
+class StrongQState : public QState
+{
+public:
+  static constexpr auto value()
+  {
+    return Value;
+  }
+  StrongQState(QState* parent) : QState{parent}
+  {
+    this->setObjectName(debug_StateMachineIDs<Value>());
+  }
+};
+
+template <typename Scenario_T>
+class CreationStateBase : public StateBase<Scenario_T>
+{
+public:
+  using StateBase<Scenario_T>::StateBase;
+
+  QVector<Id<StateModel>> createdStates;
+  QVector<Id<EventModel>> createdEvents;
+  QVector<Id<TimeSyncModel>> createdTimeSyncs;
+  QVector<Id<IntervalModel>> createdIntervals;
+
+  void clearCreatedIds()
+  {
+    createdEvents.clear();
+    createdIntervals.clear();
+    createdTimeSyncs.clear();
+    createdStates.clear();
+  }
+};
+
+// Here to prevent pollution of the CreationState header with the command
+// dispatcher
+template <typename Scenario_T, typename ToolPalette_T>
+class CreationState : public CreationStateBase<Scenario_T>
+{
+public:
+  CreationState(
+      const ToolPalette_T& sm,
+      const score::CommandStackFacade& stack,
+      const Scenario_T& scenarioPath,
+      QState* parent)
+      : CreationStateBase<Scenario_T>{scenarioPath, parent}
+      , m_parentSM{sm}
+      , m_dispatcher{stack}
+  {
+  }
+
+protected:
+  void createToState_base(const Id<StateModel>& originalState)
+  {
+    if (this->hoveredState)
+    {
+      // make sure the hovered corresponding timesync dont have a date prior to
+      // original state date
+      if (getDate(m_parentSM.model(), originalState)
+          < getDate(m_parentSM.model(), *this->hoveredState))
+      {
+        auto cmd = new Scenario::Command::CreateInterval{
+            this->m_scenario, originalState,
+            *this->hoveredState};
+
+        m_dispatcher.submitCommand(cmd);
+
+        this->createdIntervals.append(cmd->createdInterval());
+      } // else do nothing
+    }
+  }
+
+  void createToEvent_base(const Id<StateModel>& originalState)
+  {
+    if (this->hoveredEvent)
+    {
+      // make sure the hovered corresponding timesync dont have a date prior to
+      // original state date
+      if (getDate(m_parentSM.model(), originalState)
+          < getDate(m_parentSM.model(), *this->hoveredEvent))
+      {
+        auto cmd = new Scenario::Command::CreateInterval_State{
+            this->m_scenario, originalState,
+            *this->hoveredEvent, this->currentPoint.y};
+
+        m_dispatcher.submitCommand(cmd);
+
+        this->createdIntervals.append(cmd->createdInterval());
+        this->createdStates.append(cmd->createdState());
+      } // else do nothing
+    }
+  }
+
+  void createToTimeSync_base(const Id<StateModel>& originalState)
+  {
+    if (this->hoveredTimeSync)
+    {
+      // make sure the hovered corresponding timesync dont have a date prior to
+      // original state date
+      if (getDate(m_parentSM.model(), originalState)
+          < getDate(m_parentSM.model(), *this->hoveredTimeSync))
+      {
+        auto cmd = new Scenario::Command::CreateInterval_State_Event{
+            this->m_scenario, originalState, *this->hoveredTimeSync,
+            this->currentPoint.y};
+
+        m_dispatcher.submitCommand(cmd);
+
+        this->createdStates.append(cmd->createdState());
+        this->createdEvents.append(cmd->createdEvent());
+        this->createdIntervals.append(cmd->createdInterval());
+      }
+    }
+  }
+
+  void createToNothing_base(const Id<StateModel>& originalState)
+  {
+    if (!m_parentSM.editionSettings().sequence())
+    {
+      auto cmd = new Scenario::Command::CreateInterval_State_Event_TimeSync{
+          this->m_scenario,
+          originalState, // Put there in createInitialState
+          this->currentPoint.date, this->currentPoint.y};
+
+      m_dispatcher.submitCommand(cmd);
+
+      this->createdStates.append(cmd->createdState());
+      this->createdEvents.append(cmd->createdEvent());
+      this->createdTimeSyncs.append(cmd->createdTimeSync());
+      this->createdIntervals.append(cmd->createdInterval());
+    }
+    else
+    {
+
+      // This
+      auto cmd = Scenario::Command::CreateSequence::make(
+          this->m_parentSM.context().context,
+          this->m_parentSM.model(),
+          originalState, // Put there in createInitialState
+          this->currentPoint.date,
+          this->currentPoint.y);
+
+      m_dispatcher.submitCommandQuiet(cmd);
+
+      this->createdStates.append(cmd->createdState());
+      this->createdEvents.append(cmd->createdEvent());
+      this->createdTimeSyncs.append(cmd->createdTimeSync());
+      this->createdIntervals.append(cmd->createdInterval());
+    }
+  }
+
+  void makeSnapshot()
+  {
+    const score::DocumentContext& ctx = this->m_parentSM.context().context;
+    if (!ctx.app.settings<Scenario::Settings::Model>().getSnapshotOnCreate())
+      return;
+
+    using namespace Command;
+    if (m_parentSM.editionSettings().sequence())
+      return;
+
+    if (this->createdStates.empty())
+      return;
+
+    if (!this->createdIntervals.empty())
+    {
+      const auto& cst
+          = m_parentSM.model().intervals.at(this->createdIntervals.last());
+      if (!cst.processes.empty())
+      {
+        // In case of the presence of a sequence, we
+        // only use the sequence's namespace, hence we don't need to make a
+        // snapshot at the end..
+        return;
+      }
+    }
+
+    auto& device_explorer
+        = ctx.template plugin<Explorer::DeviceDocumentPlugin>().explorer();
+
+    State::MessageList messages = getSelectionSnapshot(device_explorer);
+    if (messages.empty())
+      return;
+
+    m_dispatcher.submitCommand(new AddMessagesToState{
+        m_parentSM.model().states.at(this->createdStates.last()), messages});
+  }
+
+  template <typename DestinationState, typename Function>
+  void add_transition(QState* from, DestinationState* to, Function&& fun)
+  {
+    using transition_type
+        = Transition_T<Scenario_T, DestinationState::value()>;
+    auto trans = score::make_transition<transition_type>(from, to, *this);
+    trans->setObjectName(QString::number(DestinationState::value()));
+    QObject::connect(trans, &transition_type::triggered, this, fun);
+  }
+
+  void commit()
+  {
+    this->makeSnapshot();
+    this->m_dispatcher
+        .template commit<Scenario::Command::CreationMetaCommand>();
+    // Select all the created elements
+    Selection s;
+    if(!this->createdStates.empty())
+      s.append(&m_parentSM.model().states.at(this->createdStates.back()));
+    if(!this->createdIntervals.empty())
+      s.append(&m_parentSM.model().intervals.at(this->createdIntervals.back()));
+
+    score::SelectionDispatcher d{this->m_parentSM.context().context.selectionStack};
+    d.setAndCommit(s);
+    this->clearCreatedIds();
+    this->m_parentSM.editionSettings().setSequence(false);
+  }
+
+  void rollback()
+  {
+    m_dispatcher.template rollback<ScenarioRollbackStrategy>();
+    this->clearCreatedIds();
+  }
+
+  const ToolPalette_T& m_parentSM;
+  MultiOngoingCommandDispatcher m_dispatcher;
+
+  Scenario::Point m_clickedPoint{};
+};
+}

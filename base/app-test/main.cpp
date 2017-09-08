@@ -5,19 +5,19 @@
 #include "TestApplication.hpp"
 #include <clocale>
 #include <QLocale>
-#if defined(ISCORE_STATIC_PLUGINS)
-  #include <iscore_static_plugins.hpp>
+#if defined(SCORE_STATIC_PLUGINS)
+  #include <score_static_plugins.hpp>
 #endif
 
 
 static void init_plugins()
 {
 // TODO generate this too
-#if defined(ISCORE_STATIC_PLUGINS)
-    Q_INIT_RESOURCE(iscore);
+#if defined(SCORE_STATIC_PLUGINS)
+    Q_INIT_RESOURCE(score);
     Q_INIT_RESOURCE(ScenarioResources);
     Q_INIT_RESOURCE(DeviceExplorer);
-#if defined(ISCORE_PLUGIN_TEMPORALAUTOMATAS)
+#if defined(SCORE_PLUGIN_TEMPORALAUTOMATAS)
     Q_INIT_RESOURCE(TAResources);
 #endif
 #endif

@@ -6,13 +6,13 @@
 class MockDevice : public DeviceInterface
 {
     public:
-        MockDevice(const iscore::DeviceSettings& set):
+        MockDevice(const score::DeviceSettings& set):
             DeviceInterface(set)
         {
 
         }
 
-        void updateSettings(const iscore::DeviceSettings&) override
+        void updateSettings(const score::DeviceSettings&) override
         {
         }
 
@@ -21,35 +21,35 @@ class MockDevice : public DeviceInterface
             return false;
         }
 
-        void setListening(const iscore::Address&, bool) override
+        void setListening(const score::Address&, bool) override
         {
         }
 
-        void replaceListening(const std::vector<iscore::Address>&) override
+        void replaceListening(const std::vector<score::Address>&) override
         {
         }
 
-        std::vector<iscore::Address> listening() const override
+        std::vector<score::Address> listening() const override
         {
             return {};
         }
 
-        void addAddress(const iscore::FullAddressSettings& addr) override
+        void addAddress(const score::FullAddressSettings& addr) override
         {
             m_parameters.insert({addr.address, addr});
         }
 
-        void updateAddress(const iscore::FullAddressSettings& addr) override
+        void updateAddress(const score::FullAddressSettings& addr) override
         {
             m_parameters.insert({addr.address, addr});
         }
 
-        void removeNode(const iscore::Address& addr) override
+        void removeNode(const score::Address& addr) override
         {
             m_parameters.erase(addr);
         }
 
-        void sendMessage(iscore::Message mess) override
+        void sendMessage(score::Message mess) override
         {
         }
 
@@ -58,13 +58,13 @@ class MockDevice : public DeviceInterface
             return false;
         }
 
-        std::unordered_map<iscore::Address, iscore::FullAddressSettings> m_parameters;
+        std::unordered_map<score::Address, score::FullAddressSettings> m_parameters;
 };
 
 class MockDeviceSettings : public ProtocolSettingsWidget
 {
     public:
-        iscore::DeviceSettings getSettings() const override
+        score::DeviceSettings getSettings() const override
         {
             return {};
         }
@@ -74,7 +74,7 @@ class MockDeviceSettings : public ProtocolSettingsWidget
             return {};
         }
 
-        void setSettings(const iscore::DeviceSettings& settings) override
+        void setSettings(const score::DeviceSettings& settings) override
         {
         }
 };
@@ -87,7 +87,7 @@ class MockDeviceFactory : public ProtocolFactory
             return "Mock";
         }
 
-        DeviceInterface* makeDevice(const iscore::DeviceSettings& settings) override
+        DeviceInterface* makeDevice(const score::DeviceSettings& settings) override
         {
             return new MockDevice(settings);
         }
@@ -110,8 +110,8 @@ class MockDeviceFactory : public ProtocolFactory
         }
 
         bool checkCompatibility(
-                const iscore::DeviceSettings& a,
-                const iscore::DeviceSettings& b) const override
+                const score::DeviceSettings& a,
+                const score::DeviceSettings& b) const override
         {
             return true;
         }

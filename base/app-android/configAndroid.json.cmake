@@ -8,7 +8,7 @@
  "toolchain-version": "@ANDROID_COMPILER_VERSION@",
  "ndk-host": "@ANDROID_NDK_HOST_SYSTEM_NAME@",
  "target-architecture": "@ARM_TARGET@",
- "application-binary": "@CMAKE_LIBRARY_OUTPUT_DIRECTORY@libiscore_app_android.so",
+ "application-binary": "@CMAKE_LIBRARY_OUTPUT_DIRECTORY@libscore_app_android.so",
  "android-package-source-directory": "@PACKAGE_SOURCE_ANDROID@/",
- "android-package": "net.iscore"
+ "android-package": "net.score"
 }

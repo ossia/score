@@ -1,7 +1,7 @@
 set(CMAKE_BUILD_TYPE Debug)
-set(ISCORE_COTIRE False)
+set(SCORE_COTIRE False)
 set(DEPLOYMENT_BUILD False)
-set(ISCORE_COVERAGE False)
+set(SCORE_COVERAGE False)
 
 set(CMAKE_CXX_CLANG_TIDY "/usr/bin/clang-tidy"
   "-checks=-*,clang-analyzer-*,performance-*"

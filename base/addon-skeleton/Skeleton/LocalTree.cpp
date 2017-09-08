@@ -5,7 +5,7 @@
 namespace Skeleton
 {
 LocalTreeProcessComponent::LocalTreeProcessComponent(
-        const Id<iscore::Component>& id,
+        const Id<score::Component>& id,
         ossia::net::node_base& parent,
         Skeleton::Model& proc,
         Engine::LocalTree::DocumentPlugin& sys,

@@ -1,7 +1,7 @@
 #!/bin/sh
-if [ -f ./i-score ]; then
-    LD_LIBRARY_PATH=.:/usr/lib/i-score ./i-score
+if [ -f ./score ]; then
+    LD_LIBRARY_PATH=.:/usr/lib/score ./score
 else
     export QT_XKB_CONFIG_ROOT=/usr/share/X11/xkb
-    LD_LIBRARY_PATH=lib:lib/i-score bin/i-score
+    LD_LIBRARY_PATH=lib:lib/score bin/score
 fi

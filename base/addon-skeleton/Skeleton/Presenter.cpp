@@ -1,7 +1,7 @@
 #include <Skeleton/Presenter.hpp>
 #include <Skeleton/View.hpp>
 #include <Skeleton/Process.hpp>
-#include <iscore/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 
 
 namespace Skeleton

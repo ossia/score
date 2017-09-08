@@ -5,10 +5,10 @@
 #include <QStack>
 #include <QString>
 #include <QTemporaryFile>
-#include <iscore/command/CommandData.hpp>
-#include <iscore/command/Command.hpp>
+#include <score/command/CommandData.hpp>
+#include <score/command/Command.hpp>
 
-namespace iscore
+namespace score
 {
 class CommandStack;
 /**
@@ -16,7 +16,7 @@ class CommandStack;
  */
 struct CommandStackBackup
 {
-  CommandStackBackup(const iscore::CommandStack& stack);
+  CommandStackBackup(const score::CommandStack& stack);
 
   QStack<CommandData> savedUndo;
   QStack<CommandData> savedRedo;
@@ -34,7 +34,7 @@ struct CommandStackBackup
 class CommandBackupFile final : public QObject
 {
 public:
-  CommandBackupFile(const iscore::CommandStack& stack, QObject* parent);
+  CommandBackupFile(const score::CommandStack& stack, QObject* parent);
   QString fileName() const;
 
 private:
@@ -46,7 +46,7 @@ private:
   //! Writes the current buffers to disk.
   void commit();
 
-  const iscore::CommandStack& m_stack;
+  const score::CommandStack& m_stack;
   CommandStackBackup m_backup;
 
   QTemporaryFile m_file;

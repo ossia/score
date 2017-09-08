@@ -1,20 +1,20 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <core/document/DocumentModel.hpp>
-#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateModel.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
-#include <iscore/selection/Selection.hpp>
-#include <iscore/model/IdentifiedObject.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
+#include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+#include <score/selection/Selection.hpp>
+#include <score/model/IdentifiedObject.hpp>
 class QObject;
-#include <iscore/model/Identifier.hpp>
+#include <score/model/Identifier.hpp>
 
-namespace iscore
+namespace score
 {
 DocumentModel::DocumentModel(
     const Id<DocumentModel>& id,
-    const iscore::DocumentContext& ctx,
+    const score::DocumentContext& ctx,
     DocumentDelegateFactory& fact,
     QObject* parent)
     : IdentifiedObject{id, "DocumentModel", parent}

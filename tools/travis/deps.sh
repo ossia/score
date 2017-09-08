@@ -9,7 +9,7 @@ fi
 # Install the deps
 case "$TRAVIS_OS_NAME" in
   linux)
-    sudo wget https://github.com/OSSIA/iscore-sdk/releases/download/sdk7/boost.tar.bz2 -O /opt/boost.tar.bz2 &
+    sudo wget https://github.com/OSSIA/score-sdk/releases/download/sdk7/boost.tar.bz2 -O /opt/boost.tar.bz2 &
     
     wget https://cmake.org/files/v3.8/cmake-3.8.2-Linux-x86_64.tar.gz -O cmake-linux.tgz &
     
@@ -37,7 +37,7 @@ case "$TRAVIS_OS_NAME" in
     ARCHIVE=homebrew-cache.tar.xz
     brew install gnu-tar xz
 
-    wget https://github.com/OSSIA/iscore-sdk/releases/download/sdk8/$ARCHIVE -O $ARCHIVE
+    wget https://github.com/OSSIA/score-sdk/releases/download/sdk8/$ARCHIVE -O $ARCHIVE
     gtar xhaf $ARCHIVE --directory /usr/local/Cellar
     brew unlink cmake
     brew link --force boost cmake ninja qt5

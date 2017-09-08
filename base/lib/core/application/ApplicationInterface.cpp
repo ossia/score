@@ -8,12 +8,12 @@
 #include <core/undo/Panel/UndoPanelFactory.hpp>
 #include <core/undo/UndoApplicationPlugin.hpp>
 #include <core/view/View.hpp>
-#include <iscore/application/ApplicationContext.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
-#include <iscore/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
-#include <iscore/model/ComponentSerialization.hpp>
-namespace iscore
+#include <score/application/ApplicationContext.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+#include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
+#include <score/model/ComponentSerialization.hpp>
+namespace score
 {
 ApplicationInterface* ApplicationInterface::m_instance;
 ApplicationInterface::~ApplicationInterface() = default;
@@ -22,7 +22,7 @@ ApplicationInterface::ApplicationInterface()
 {
   qRegisterMetaType<ObjectIdentifierVector>("ObjectIdentifierVector");
   qRegisterMetaType<Selection>("Selection");
-  qRegisterMetaType<Id<iscore::DocumentModel>>("Id<DocumentModel>");
+  qRegisterMetaType<Id<score::DocumentModel>>("Id<DocumentModel>");
   qRegisterMetaType<QVector<int>>();
   qRegisterMetaType<QPair<QString,QString>>();
   qRegisterMetaTypeStreamOperators<QPair<QString,QString>>();
@@ -42,28 +42,28 @@ GUIApplicationInterface::~GUIApplicationInterface()
 {
 }
 void GUIApplicationInterface::loadPluginData(
-    const iscore::GUIApplicationContext& ctx,
-    iscore::GUIApplicationRegistrar& registrar,
-    iscore::Settings& settings,
-    iscore::Presenter& presenter)
+    const score::GUIApplicationContext& ctx,
+    score::GUIApplicationRegistrar& registrar,
+    score::Settings& settings,
+    score::Presenter& presenter)
 {
-  registrar.registerFactory(std::make_unique<iscore::DocumentDelegateList>());
-  registrar.registerFactory(std::make_unique<iscore::ValidityCheckerList>());
-  registrar.registerFactory(std::make_unique<iscore::SerializableComponentFactoryList>());
-  auto panels = std::make_unique<iscore::PanelDelegateFactoryList>();
-  panels->insert(std::make_unique<iscore::UndoPanelDelegateFactory>());
+  registrar.registerFactory(std::make_unique<score::DocumentDelegateList>());
+  registrar.registerFactory(std::make_unique<score::ValidityCheckerList>());
+  registrar.registerFactory(std::make_unique<score::SerializableComponentFactoryList>());
+  auto panels = std::make_unique<score::PanelDelegateFactoryList>();
+  panels->insert(std::make_unique<score::UndoPanelDelegateFactory>());
   registrar.registerFactory(std::move(panels));
   registrar.registerFactory(
-      std::make_unique<iscore::DocumentPluginFactoryList>());
+      std::make_unique<score::DocumentPluginFactoryList>());
   registrar.registerFactory(
-      std::make_unique<iscore::SettingsDelegateFactoryList>());
+      std::make_unique<score::SettingsDelegateFactoryList>());
 
   registrar.registerGUIApplicationPlugin(
-      new iscore::CoreApplicationPlugin{ctx, presenter});
+      new score::CoreApplicationPlugin{ctx, presenter});
   registrar.registerGUIApplicationPlugin(
-      new iscore::UndoApplicationPlugin{ctx});
+      new score::UndoApplicationPlugin{ctx});
 
-  iscore::PluginLoader::loadPlugins(registrar, ctx);
+  score::PluginLoader::loadPlugins(registrar, ctx);
 
   // Now rehash our various hash tables
   presenter.optimize();
@@ -71,21 +71,21 @@ void GUIApplicationInterface::loadPluginData(
   // Load the settings
   QSettings s;
   for (auto& elt :
-       ctx.interfaces<iscore::SettingsDelegateFactoryList>())
+       ctx.interfaces<score::SettingsDelegateFactoryList>())
   {
     settings.setupSettingsPlugin(s, ctx, elt);
   }
 
   presenter.setupGUI();
 
-  for (iscore::ApplicationPlugin* app_plug :
+  for (score::ApplicationPlugin* app_plug :
        ctx.applicationPlugins())
   {
     app_plug->initialize();
   }
 
   for (auto& panel_fac :
-       ctx.interfaces<iscore::PanelDelegateFactoryList>())
+       ctx.interfaces<score::PanelDelegateFactoryList>())
   {
     registrar.registerPanel(panel_fac);
   }
@@ -97,7 +97,7 @@ void GUIApplicationInterface::loadPluginData(
 }
 
 GUIApplicationContext::GUIApplicationContext(const ApplicationSettings& a, const ApplicationComponents& b, DocumentManager& c, MenuManager& d, ToolbarManager& e, ActionManager& f, const std::vector<std::unique_ptr<SettingsDelegateModel> >& g, QMainWindow& mw)
-  : iscore::ApplicationContext{a, b, c, g},
+  : score::ApplicationContext{a, b, c, g},
     docManager{c},
     menus{d},
     toolbars{e},
@@ -106,17 +106,17 @@ GUIApplicationContext::GUIApplicationContext(const ApplicationSettings& a, const
 {
 }
 
-ISCORE_LIB_BASE_EXPORT const ApplicationContext& AppContext()
+SCORE_LIB_BASE_EXPORT const ApplicationContext& AppContext()
 {
   return ApplicationInterface::instance().context();
 }
 
-ISCORE_LIB_BASE_EXPORT const GUIApplicationContext& GUIAppContext()
+SCORE_LIB_BASE_EXPORT const GUIApplicationContext& GUIAppContext()
 {
   return GUIApplicationInterface::instance().context();
 }
 
-ISCORE_LIB_BASE_EXPORT const ApplicationComponents& AppComponents()
+SCORE_LIB_BASE_EXPORT const ApplicationComponents& AppComponents()
 {
   return ApplicationInterface::instance().components();
 }

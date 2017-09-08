@@ -11,13 +11,13 @@
 #include <QString>
 
 #include "ApplicationSettings.hpp"
-namespace iscore
+namespace score
 {
 void ApplicationSettings::parse()
 {
   QCommandLineParser parser;
   parser.setApplicationDescription(QObject::tr(
-      "i-score - An interactive sequencer for the intermedia arts."));
+      "score - An interactive sequencer for the intermedia arts."));
   parser.addHelpOption();
   parser.addVersionOption();
   parser.addPositionalArgument(

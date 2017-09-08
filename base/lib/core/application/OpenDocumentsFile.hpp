@@ -2,7 +2,7 @@
 
 #include <QString>
 
-namespace iscore
+namespace score
 {
 /**
  * @brief File used for crash restore

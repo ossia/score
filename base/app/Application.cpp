@@ -2,7 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Application.hpp"
 
-#include <iscore/tools/std/Optional.hpp>
+#include <score/tools/std/Optional.hpp>
 #include <core/application/ApplicationRegistrar.hpp>
 #include <core/document/DocumentBackups.hpp>
 #include <core/presenter/Presenter.hpp>
@@ -24,29 +24,29 @@
 #include <QStyle>
 #include <QDir>
 #include <QQuickStyle>
-#include <iscore/tools/IdentifierGeneration.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
 #include <algorithm>
 #include <vector>
 
-#include <iscore/application/GUIApplicationContext.hpp>
-#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/application/GUIApplicationContext.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <core/application/SafeQApplication.hpp>
-#include <iscore/application/ApplicationComponents.hpp>
+#include <score/application/ApplicationComponents.hpp>
 #include <core/application/ApplicationSettings.hpp>
 #include <core/presenter/DocumentManager.hpp>
-#include <iscore/selection/Selection.hpp>
+#include <score/selection/Selection.hpp>
 
-#include <iscore/model/path/ObjectIdentifier.hpp>
-#include <iscore/model/Identifier.hpp>
-#include <iscore/plugins/panel/PanelDelegate.hpp>
-#include <iscore/command/Validity/ValidityChecker.hpp>
+#include <score/model/path/ObjectIdentifier.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/plugins/panel/PanelDelegate.hpp>
+#include <score/command/Validity/ValidityChecker.hpp>
 
 #include <core/document/DocumentModel.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 
-#include "iscore_git_info.hpp"
+#include "score_git_info.hpp"
 
-namespace iscore {
+namespace score {
 class DocumentModel;
 
 static void setQApplicationSettings(QApplication &m_app)
@@ -55,14 +55,14 @@ static void setQApplicationSettings(QApplication &m_app)
     QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf"); // Ubuntu
 
     QCoreApplication::setOrganizationName("OSSIA");
-    QCoreApplication::setOrganizationDomain("i-score.org");
-    QCoreApplication::setApplicationName("i-score");
+    QCoreApplication::setOrganizationDomain("score.org");
+    QCoreApplication::setApplicationName("score");
     QCoreApplication::setApplicationVersion(
                 QString("%1.%2.%3-%4")
-                .arg(ISCORE_VERSION_MAJOR)
-                .arg(ISCORE_VERSION_MINOR)
-                .arg(ISCORE_VERSION_PATCH)
-                .arg(ISCORE_VERSION_EXTRA)
+                .arg(SCORE_VERSION_MAJOR)
+                .arg(SCORE_VERSION_MINOR)
+                .arg(SCORE_VERSION_PATCH)
+                .arg(SCORE_VERSION_EXTRA)
                 );
 
 
@@ -96,7 +96,7 @@ static void setQApplicationSettings(QApplication &m_app)
     QQuickStyle::setStyle(":/desktopqqc2style/Desktop");
 }
 
-}  // namespace iscore
+}  // namespace score
 
 Application::Application(int& argc, char** argv) :
     QObject {nullptr},
@@ -108,7 +108,7 @@ Application::Application(int& argc, char** argv) :
 }
 
 Application::Application(
-        const iscore::ApplicationSettings& appSettings,
+        const score::ApplicationSettings& appSettings,
         int& argc,
         char** argv) :
     QObject {nullptr},
@@ -125,17 +125,17 @@ Application::~Application()
     delete m_view;
     delete m_presenter;
 
-    iscore::DocumentBackups::clear();
+    score::DocumentBackups::clear();
     QApplication::processEvents();
     delete m_app;
 }
 
-const iscore::GUIApplicationContext& Application::context() const
+const score::GUIApplicationContext& Application::context() const
 {
   return m_presenter->applicationContext();
 }
 
-const iscore::ApplicationComponents&Application::components() const
+const score::ApplicationComponents&Application::components() const
 {
   return m_presenter->applicationComponents();
 }
@@ -143,8 +143,8 @@ const iscore::ApplicationComponents&Application::components() const
 
 void Application::init()
 {
-#if !defined(ISCORE_DEBUG)
-    QSplashScreen splash{QPixmap{":/i-score.png"}, Qt::FramelessWindowHint};
+#if !defined(SCORE_DEBUG)
+    QSplashScreen splash{QPixmap{":/score.png"}, Qt::FramelessWindowHint};
     if(m_applicationSettings.gui)
         splash.show();
 #endif
@@ -155,11 +155,11 @@ void Application::init()
 #if defined(_MSC_VER)
     QDir::setCurrent(qApp->applicationDirPath());
 #endif
-    iscore::setQApplicationSettings(*qApp);
+    score::setQApplicationSettings(*qApp);
 
     // MVP
-    m_view = new iscore::View{this};
-    m_presenter = new iscore::Presenter{m_applicationSettings, m_settings, m_view, this};
+    m_view = new score::View{this};
+    m_presenter = new score::Presenter{m_applicationSettings, m_settings, m_view, this};
 
     // Plugins
     loadPluginData();
@@ -169,7 +169,7 @@ void Application::init()
     {
         m_view->show();
 
-#if !defined(ISCORE_DEBUG)
+#if !defined(SCORE_DEBUG)
         splash.finish(m_view);
 #endif
     }
@@ -207,7 +207,7 @@ void Application::initDocuments()
     });
 
     // Try to reload if there was a crash
-    if(m_applicationSettings.tryToRestore && iscore::DocumentBackups::canRestoreDocuments())
+    if(m_applicationSettings.tryToRestore && score::DocumentBackups::canRestoreDocuments())
     {
         m_presenter->documentManager().restoreDocuments(ctx);
     }
@@ -215,13 +215,13 @@ void Application::initDocuments()
     // If nothing was reloaded, open a normal document
     if(m_presenter->documentManager().documents().empty())
     {
-        auto& documentKinds = m_presenter->applicationComponents().interfaces<iscore::DocumentDelegateList>();
+        auto& documentKinds = m_presenter->applicationComponents().interfaces<score::DocumentDelegateList>();
         if(!documentKinds.empty() && m_presenter->documentManager().documents().empty())
         {
             m_presenter->documentManager().newDocument(
                         ctx,
-                        Id<iscore::DocumentModel>{iscore::random_id_generator::getRandomId()},
-                        *m_presenter->applicationComponents().interfaces<iscore::DocumentDelegateList>().begin());
+                        Id<score::DocumentModel>{score::random_id_generator::getRandomId()},
+                        *m_presenter->applicationComponents().interfaces<score::DocumentDelegateList>().begin());
         }
     }
 
@@ -230,7 +230,7 @@ void Application::initDocuments()
 void Application::loadPluginData()
 {
     auto& ctx = m_presenter->applicationContext();
-    iscore::GUIApplicationRegistrar registrar{
+    score::GUIApplicationRegistrar registrar{
         m_presenter->components(),
                 ctx,
                 m_presenter->menuManager(),

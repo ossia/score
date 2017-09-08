@@ -3,13 +3,13 @@
 #include <QObject>
 #include <QString>
 
-#include <iscore_lib_base_export.h>
-namespace iscore
+#include <score_lib_base_export.h>
+namespace score
 {
 /**
  * @brief Document-wide metadata
  */
-struct ISCORE_LIB_BASE_EXPORT DocumentMetadata : public QObject
+struct SCORE_LIB_BASE_EXPORT DocumentMetadata : public QObject
 {
   Q_OBJECT
   Q_PROPERTY(

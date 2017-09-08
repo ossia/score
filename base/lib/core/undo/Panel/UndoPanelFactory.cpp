@@ -3,7 +3,7 @@
 #include "UndoPanelFactory.hpp"
 #include "UndoPanelDelegate.hpp"
 
-namespace iscore
+namespace score
 {
 
 std::unique_ptr<PanelDelegate>

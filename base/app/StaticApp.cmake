@@ -1,4 +1,4 @@
-if(ISCORE_STATIC_QT)
+if(SCORE_STATIC_QT)
     find_package(Qt5 5.3 REQUIRED COMPONENTS DBus Qml Quick)
 
     get_target_property(QtCore_LIB Qt5::Core LOCATION)

@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
-project(iscore_merged_components LANGUAGES CXX)
+project(score_merged_components LANGUAGES CXX)
 
 # First get the list of abstract factories that will be involved
 set(CleanedAbstractFactoryList)
 
-foreach(Name ${ISCORE_GLOBAL_COMPONENTS_LIST})
+foreach(Name ${SCORE_GLOBAL_COMPONENTS_LIST})
 
-  get_property(AbstractFactory_List TARGET ${Name} PROPERTY INTERFACE_ISCORE_COMPONENT_AbstractFactory_List)
+  get_property(AbstractFactory_List TARGET ${Name} PROPERTY INTERFACE_SCORE_COMPONENT_AbstractFactory_List)
   set(CleanedAbstractFactoryList ${CleanedAbstractFactoryList} ${AbstractFactory_List})
 endforeach()
 
@@ -23,18 +23,18 @@ list(REMOVE_DUPLICATES CleanedAbstractFactoryList)
 
 set(FactoryFiles)
 set(FactoryCode)
-list(LENGTH ISCORE_GLOBAL_COMPONENTS_LIST LengthComponents)
+list(LENGTH SCORE_GLOBAL_COMPONENTS_LIST LengthComponents)
 math(EXPR NumComponents ${LengthComponents}-1)
 
 foreach(AbstractClassName ${CleanedAbstractFactoryList})
   set(CurrentCode "FW<${AbstractClassName}")
 
   # For each component
-  foreach(component ${ISCORE_GLOBAL_COMPONENTS_LIST})
+  foreach(component ${SCORE_GLOBAL_COMPONENTS_LIST})
 
-    get_property(AbstractFactory_List TARGET ${component} PROPERTY INTERFACE_ISCORE_COMPONENT_AbstractFactory_List)
-    get_property(ConcreteFactory_List TARGET ${component} PROPERTY INTERFACE_ISCORE_COMPONENT_ConcreteFactory_List)
-    get_property(ConcreteFactory_Files TARGET ${component} PROPERTY INTERFACE_ISCORE_COMPONENT_Factory_Files)
+    get_property(AbstractFactory_List TARGET ${component} PROPERTY INTERFACE_SCORE_COMPONENT_AbstractFactory_List)
+    get_property(ConcreteFactory_List TARGET ${component} PROPERTY INTERFACE_SCORE_COMPONENT_ConcreteFactory_List)
+    get_property(ConcreteFactory_Files TARGET ${component} PROPERTY INTERFACE_SCORE_COMPONENT_Factory_Files)
 
     ## Includes ##
     # Generate a file with the list of includes
@@ -66,56 +66,56 @@ foreach(AbstractClassName ${CleanedAbstractFactoryList})
 endforeach()
 
 # Create the plug-in file
-set(PLUGIN_NAME iscore_merged_components)
+set(PLUGIN_NAME score_merged_components)
 configure_file(
-    "${ISCORE_ROOT_SOURCE_DIR}/CMake/Components/iscore_component_plugin.hpp.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/iscore_merged_components_plugin.hpp")
+    "${SCORE_ROOT_SOURCE_DIR}/CMake/Components/score_component_plugin.hpp.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/score_merged_components_plugin.hpp")
 configure_file(
-    "${ISCORE_ROOT_SOURCE_DIR}/CMake/Components/iscore_component_plugin.cpp.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/iscore_merged_components_plugin.cpp")
+    "${SCORE_ROOT_SOURCE_DIR}/CMake/Components/score_component_plugin.cpp.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/score_merged_components_plugin.cpp")
 
 
 # Create the library
-add_library(iscore_merged_components
-  "${CMAKE_CURRENT_BINARY_DIR}/iscore_merged_components_plugin.hpp"
-  "${CMAKE_CURRENT_BINARY_DIR}/iscore_merged_components_plugin.cpp"
+add_library(score_merged_components
+  "${CMAKE_CURRENT_BINARY_DIR}/score_merged_components_plugin.hpp"
+  "${CMAKE_CURRENT_BINARY_DIR}/score_merged_components_plugin.cpp"
 )
 
-set_property(TARGET iscore_merged_components APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
-set_property(TARGET iscore_merged_components APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_BINARY_DIR}")
+set_property(TARGET score_merged_components APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
+set_property(TARGET score_merged_components APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_BINARY_DIR}")
 
 # Pass to the library all the properties of all the components
-foreach(Name ${ISCORE_GLOBAL_COMPONENTS_LIST})
+foreach(Name ${SCORE_GLOBAL_COMPONENTS_LIST})
   get_property(CompSrcs TARGET ${Name} PROPERTY INTERFACE_SOURCES)
   get_property(CompIncl TARGET ${Name} PROPERTY INTERFACE_INCLUDE_DIRECTORIES)
   get_property(CompLibs TARGET ${Name} PROPERTY INTERFACE_LINK_LIBRARIES)
 
-  if(ISCORE_STATIC_PLUGINS)
-    target_sources(iscore_merged_components INTERFACE ${CompSrcs})
+  if(SCORE_STATIC_PLUGINS)
+    target_sources(score_merged_components INTERFACE ${CompSrcs})
   else()
-    target_sources(iscore_merged_components PUBLIC ${CompSrcs})
+    target_sources(score_merged_components PUBLIC ${CompSrcs})
   endif()
-  target_include_directories(iscore_merged_components PUBLIC ${CompIncl})
-  target_link_libraries(iscore_merged_components PUBLIC ${CompLibs})
+  target_include_directories(score_merged_components PUBLIC ${CompIncl})
+  target_link_libraries(score_merged_components PUBLIC ${CompLibs})
 
   string(TOUPPER "${Name}" UPPERCASE_PLUGIN_NAME)
-  set_property(TARGET iscore_merged_components APPEND
+  set_property(TARGET score_merged_components APPEND
                PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${${Name}_SOURCE_DIR}")
-  set_property(TARGET iscore_merged_components APPEND
+  set_property(TARGET score_merged_components APPEND
                PROPERTY INTERFACE_COMPILE_DEFINITIONS "${UPPERCASE_PLUGIN_NAME}")
 endforeach()
 
-target_include_directories(iscore_merged_components INTERFACE "${CMAKE_CURRENT_BINARY_DIR}")
-setup_iscore_plugin(iscore_merged_components)
+target_include_directories(score_merged_components INTERFACE "${CMAKE_CURRENT_BINARY_DIR}")
+setup_score_plugin(score_merged_components)
 
 
-if(ISCORE_STATIC_PLUGINS)
-  ## note : we have to prevent from linking i-score with the components in case of a static build ##
+if(SCORE_STATIC_PLUGINS)
+  ## note : we have to prevent from linking score with the components in case of a static build ##
   ## Interface sources have to be defined before cotire for unity build.
   ## For normal builds we add non-interface sources.
-  foreach(Name ${ISCORE_GLOBAL_COMPONENTS_LIST})
+  foreach(Name ${SCORE_GLOBAL_COMPONENTS_LIST})
     get_property(CompSrcs TARGET ${Name} PROPERTY INTERFACE_SOURCES)
 
-    target_sources(iscore_merged_components PRIVATE ${CompSrcs})
+    target_sources(score_merged_components PRIVATE ${CompSrcs})
   endforeach()
 endif()

@@ -4,19 +4,19 @@
 #include <algorithm>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentBuilder.hpp>
-#include <iscore/tools/Version.hpp>
-#include <iscore_lib_base_export.h>
+#include <score/tools/Version.hpp>
+#include <score_lib_base_export.h>
 #include <set>
 #include <vector>
 class QRecentFilesMenu;
-namespace iscore
+namespace score
 {
 class Document;
 struct ApplicationContext;
 class View;
-} // namespace iscore
+} // namespace score
 
-namespace iscore
+namespace score
 {
 
 struct DocumentList
@@ -50,15 +50,15 @@ protected:
 /**
  * @brief Owns the documents
  */
-class ISCORE_LIB_BASE_EXPORT DocumentManager
+class SCORE_LIB_BASE_EXPORT DocumentManager
     : public QObject
     , public DocumentList
 {
   Q_OBJECT
 public:
-  DocumentManager(iscore::View& view, QObject* parentPresenter);
+  DocumentManager(score::View& view, QObject* parentPresenter);
 
-  void init(const iscore::GUIApplicationContext& ctx);
+  void init(const score::GUIApplicationContext& ctx);
 
   ~DocumentManager();
 
@@ -69,10 +69,10 @@ public:
 
   // Document management
   Document*
-  setupDocument(const iscore::GUIApplicationContext& ctx, iscore::Document* doc);
+  setupDocument(const score::GUIApplicationContext& ctx, score::Document* doc);
 
   template <typename... Args>
-  void newDocument(const iscore::GUIApplicationContext& ctx, Args&&... args)
+  void newDocument(const score::GUIApplicationContext& ctx, Args&&... args)
   {
     prepareNewDocument(ctx);
     setupDocument(
@@ -80,7 +80,7 @@ public:
   }
 
   template <typename... Args>
-  Document* loadDocument(const iscore::GUIApplicationContext& ctx, Args&&... args)
+  Document* loadDocument(const score::GUIApplicationContext& ctx, Args&&... args)
   {
     auto cur = currentDocument();
     if (cur && cur->virgin())
@@ -93,7 +93,7 @@ public:
   }
 
   template <typename... Args>
-  void restoreDocument(const iscore::GUIApplicationContext& ctx, Args&&... args)
+  void restoreDocument(const score::GUIApplicationContext& ctx, Args&&... args)
   {
     prepareNewDocument(ctx);
     setupDocument(
@@ -101,52 +101,52 @@ public:
   }
 
   // Restore documents after a crash
-  void restoreDocuments(const iscore::GUIApplicationContext& ctx);
+  void restoreDocuments(const score::GUIApplicationContext& ctx);
 
   void
-  setCurrentDocument(const iscore::GUIApplicationContext& ctx, Document* doc);
+  setCurrentDocument(const score::GUIApplicationContext& ctx, Document* doc);
 
   // Returns true if the document was closed.
-  bool closeDocument(const iscore::GUIApplicationContext& ctx, Document&);
-  void forceCloseDocument(const iscore::GUIApplicationContext& ctx, Document&);
+  bool closeDocument(const score::GUIApplicationContext& ctx, Document&);
+  void forceCloseDocument(const score::GUIApplicationContext& ctx, Document&);
 
   // Methods to save and load
   bool saveDocument(Document&);
   bool saveDocumentAs(Document&);
 
   bool saveStack();
-  Document* loadStack(const iscore::GUIApplicationContext& ctx);
-  Document* loadStack(const iscore::GUIApplicationContext& ctx, const QString&);
+  Document* loadStack(const score::GUIApplicationContext& ctx);
+  Document* loadStack(const score::GUIApplicationContext& ctx, const QString&);
 
-  Document* loadFile(const iscore::GUIApplicationContext& ctx);
+  Document* loadFile(const score::GUIApplicationContext& ctx);
   Document*
-  loadFile(const iscore::GUIApplicationContext& ctx, const QString& filename);
+  loadFile(const score::GUIApplicationContext& ctx, const QString& filename);
 
-  bool closeAllDocuments(const iscore::GUIApplicationContext& ctx);
+  bool closeAllDocuments(const score::GUIApplicationContext& ctx);
 
   bool preparingNewDocument() const;
 
 signals:
-  void documentChanged(iscore::Document*);
+  void documentChanged(score::Document*);
 
 private:
-  void prepareNewDocument(const iscore::GUIApplicationContext& ctx);
+  void prepareNewDocument(const score::GUIApplicationContext& ctx);
 
   /**
    * @brief checkAndUpdateJson
    * @return boolean indicating if the document is loadable
    */
   bool
-  checkAndUpdateJson(QJsonDocument&, const iscore::GUIApplicationContext& ctx);
+  checkAndUpdateJson(QJsonDocument&, const score::GUIApplicationContext& ctx);
 
   bool updateJson(
       QJsonObject& object,
-      iscore::Version json_ver,
-      iscore::Version iscore_ver);
+      score::Version json_ver,
+      score::Version score_ver);
 
   void saveRecentFilesState();
 
-  iscore::View& m_view;
+  score::View& m_view;
 
   DocumentBuilder m_builder;
 
@@ -155,5 +155,5 @@ private:
   bool m_preparingNewDocument{};
 };
 
-Id<iscore::DocumentModel> getStrongId(const std::vector<iscore::Document*>& v);
+Id<score::DocumentModel> getStrongId(const std::vector<score::Document*>& v);
 }

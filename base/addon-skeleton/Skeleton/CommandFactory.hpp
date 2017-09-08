@@ -1,5 +1,5 @@
 #pragma once
-#include <iscore/command/Command.hpp>
+#include <score/command/Command.hpp>
 
 namespace Skeleton
 {

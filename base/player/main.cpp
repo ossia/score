@@ -6,7 +6,7 @@ int main(int argc, char** argv)
 {
   if(argc > 1)
   {
-    iscore::Player p;
+    score::Player p;
     p.load(argv[1]);
     p.play();
     std::this_thread::sleep_for(std::chrono::seconds(5));
