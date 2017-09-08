@@ -52,6 +52,8 @@ void Model::setSkin(const QString& skin)
   QFile f(skin);
   if(skin.isEmpty() || skin == QStringLiteral("Default"))
       f.setFileName(":/DefaultSkin.json");
+  else if (skin == QStringLiteral("Dark"))
+      f.setFileName(":/DarkSkin.json");    
   else if (skin == QStringLiteral("IEEE"))
       f.setFileName(":/IEEESkin.json");
 
