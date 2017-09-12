@@ -1,7 +1,7 @@
 #!/bin/sh
 
-docker pull score/score-package-linux
-docker run --name buildvm score/score-package-linux /bin/bash Recipe
+docker pull ossia/score-package-linux
+docker run --name buildvm ossia/score-package-linux /bin/bash Recipe
 docker cp buildvm:/score.AppDir.txz .
 
 tar xaf score.AppDir.txz
