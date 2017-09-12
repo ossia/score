@@ -17,7 +17,7 @@ git_pull_rebase_helper()
 export NPROC=$(nproc)
 
 export BUILD_DIR=Score-build
-export APP=Score
+export APP=score
 rm -rf ./$BUILD_DIR/$APP.AppDir
 mkdir -p ./$BUILD_DIR/$APP.AppDir
 cd ./$BUILD_DIR
@@ -47,7 +47,7 @@ mkdir -p $APP.AppDir/usr
 )
 
 # Copy pixmaps
-cp $APP.AppDir/usr/share/applications/score.desktop $APP.AppDir/
+cp $APP.AppDir/usr/share/applications/Score.desktop $APP.AppDir/
 cp $APP.AppDir/usr/share/pixmaps/score.png $APP.AppDir/
 
 export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
