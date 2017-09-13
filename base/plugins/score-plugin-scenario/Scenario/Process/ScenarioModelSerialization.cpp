@@ -170,14 +170,14 @@ template <>
 void JSONObjectReader::read(
     const Scenario::ProcessModel& scenario)
 {
-  obj["StartTimeSyncId"] = toJsonValue(scenario.m_startTimeSyncId);
+  obj["StartTimeNodeId"] = toJsonValue(scenario.m_startTimeSyncId);
   obj["StartEventId"] = toJsonValue(scenario.m_startEventId);
   obj["StartStateId"] = toJsonValue(scenario.m_startStateId);
 
   obj["TimeNodes"] = toJsonArray(scenario.timeSyncs);
   obj["Events"] = toJsonArray(scenario.events);
   obj["States"] = toJsonArray(scenario.states);
-  obj["Intervals"] = toJsonArray(scenario.intervals);
+  obj["Constraints"] = toJsonArray(scenario.intervals);
   obj["Comments"] = toJsonArray(scenario.comments);
 }
 
@@ -186,13 +186,13 @@ template <>
 void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
 {
   scenario.m_startTimeSyncId
-      = fromJsonValue<Id<Scenario::TimeSyncModel>>(obj["StartTimeSyncId"]);
+      = fromJsonValue<Id<Scenario::TimeSyncModel>>(obj["StartTimeNodeId"]);
   scenario.m_startEventId
       = fromJsonValue<Id<Scenario::EventModel>>(obj["StartEventId"]);
   scenario.m_startStateId
       = fromJsonValue<Id<Scenario::StateModel>>(obj["StartStateId"]);
 
-  const auto& intervals = obj["Intervals"].toArray();
+  const auto& intervals = obj["Constraints"].toArray();
   for (const auto& json_vref : intervals)
   {
     auto interval = new Scenario::IntervalModel{
