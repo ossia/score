@@ -90,7 +90,7 @@ void Component::recompute()
 
 template <typename Y_T>
 std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged_impl(
-    double min, double max, double start, double end, const optional<ossia::Destination>& d)
+    double min, double max, double start, double end, const optional<ossia::destination>& d)
 {
   using namespace ossia;
 
@@ -141,7 +141,7 @@ std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged_impl(
 
 ossia::behavior Component::on_curveChanged(
     ossia::val_type type,
-    const optional<ossia::Destination>& d)
+    const optional<ossia::destination>& d)
 {
   auto start = process().start();
   auto end = process().end();

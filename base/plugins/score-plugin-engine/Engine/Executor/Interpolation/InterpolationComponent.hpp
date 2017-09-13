@@ -37,11 +37,11 @@ private:
 
   ossia::behavior on_curveChanged(
       ossia::val_type,
-      const optional<ossia::Destination>& d);
+      const optional<ossia::destination>& d);
 
   template <typename T>
   std::shared_ptr<ossia::curve_abstract>
-  on_curveChanged_impl(double min, double max, double s, double e, const optional<ossia::Destination>& d);
+  on_curveChanged_impl(double min, double max, double s, double e, const optional<ossia::destination>& d);
 };
 using ComponentFactory
     = ::Engine::Execution::ProcessComponentFactory_T<Component>;
