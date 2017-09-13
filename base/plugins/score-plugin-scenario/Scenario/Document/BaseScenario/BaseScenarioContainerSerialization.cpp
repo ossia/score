@@ -70,10 +70,10 @@ template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::read(
     const Scenario::BaseScenarioContainer& base_scenario)
 {
-  obj["Interval"] = toJsonObject(*base_scenario.m_interval);
+  obj["Constraint"] = toJsonObject(*base_scenario.m_interval);
 
-  obj["StartTimeSync"] = toJsonObject(*base_scenario.m_startNode);
-  obj["EndTimeSync"] = toJsonObject(*base_scenario.m_endNode);
+  obj["StartTimeNode"] = toJsonObject(*base_scenario.m_startNode);
+  obj["EndTimeNode"] = toJsonObject(*base_scenario.m_endNode);
 
   obj["StartEvent"] = toJsonObject(*base_scenario.m_startEvent);
   obj["EndEvent"] = toJsonObject(*base_scenario.m_endEvent);
@@ -89,14 +89,14 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectWriter::write(
 {
   using namespace Scenario;
   base_scenario.m_interval = new IntervalModel{
-      JSONObject::Deserializer{obj["Interval"].toObject()},
+      JSONObject::Deserializer{obj["Constraint"].toObject()},
       base_scenario.m_parent};
 
   base_scenario.m_startNode = new TimeSyncModel{
-      JSONObject::Deserializer{obj["StartTimeSync"].toObject()},
+      JSONObject::Deserializer{obj["StartTimeNode"].toObject()},
       base_scenario.m_parent};
   base_scenario.m_endNode = new TimeSyncModel{
-      JSONObject::Deserializer{obj["EndTimeSync"].toObject()},
+      JSONObject::Deserializer{obj["EndTimeNode"].toObject()},
       base_scenario.m_parent};
 
   base_scenario.m_startEvent = new EventModel{
