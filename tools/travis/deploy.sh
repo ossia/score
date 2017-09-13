@@ -11,10 +11,10 @@ fi
 
 cd build
 if [[ "$TRAVIS_OS_NAME" = "linux" ]]; then
-    mv "score.AppImage" "score-$TRAVIS_TAG-amd64.AppImage"
+    mv "Score.AppImage" "Score-$TRAVIS_TAG-amd64.AppImage"
 else
     cd bundle
-    zip -r -9 "score-$TRAVIS_TAG-OSX.zip" score.app
-    mv "score-$TRAVIS_TAG-OSX.zip" ..
+    zip -r -9 "Score-$TRAVIS_TAG-OSX.zip" Score.app
+    mv "Score-$TRAVIS_TAG-OSX.zip" ..
 fi
 

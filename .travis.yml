@@ -69,7 +69,7 @@ deploy:
   - provider: releases
     api_key:
       secure: "hk56wIhJMippWajLTGtO44szXtBCzhCNHAET9fKZ7dXcfEVG22YHuUDMo1ROn6ZhthB5m8SLgctuTf4GtuvGxhdQzjeBSsvYCs6QAAUtMjBb4/lafcBZfr3Amf5TT8MfznGESQDMGjMUjnwQlUoWCVE0XoqNq6DbFlyoZPpscSE="
-    file: build/i-score-$TRAVIS_TAG-OSX.zip
+    file: build/Score-$TRAVIS_TAG-OSX.zip
     skip_cleanup: true
     on:
       tags: true
@@ -77,7 +77,7 @@ deploy:
   - provider: releases
     api_key:
       secure: "hk56wIhJMippWajLTGtO44szXtBCzhCNHAET9fKZ7dXcfEVG22YHuUDMo1ROn6ZhthB5m8SLgctuTf4GtuvGxhdQzjeBSsvYCs6QAAUtMjBb4/lafcBZfr3Amf5TT8MfznGESQDMGjMUjnwQlUoWCVE0XoqNq6DbFlyoZPpscSE="
-    file: build/i-score-$TRAVIS_TAG-amd64.AppImage
+    file: build/Score-$TRAVIS_TAG-amd64.AppImage
     skip_cleanup: true
     on:
       tags: true

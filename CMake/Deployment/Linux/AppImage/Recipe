@@ -16,23 +16,23 @@ git_pull_rebase_helper()
 
 export NPROC=$(nproc)
 
-export BUILD_DIR=i-score-build
-export APP=i-score
+export BUILD_DIR=Score-build
+export APP=score
 rm -rf ./$BUILD_DIR/$APP.AppDir
 mkdir -p ./$BUILD_DIR/$APP.AppDir
 cd ./$BUILD_DIR
 
-# Get i-score from git
+# Get score from git
 (
-    if [ ! -d i-score ] ; then
-        git clone https://github.com/OSSIA/i-score
+    if [ ! -d score ] ; then
+        git clone https://github.com/OSSIA/score
     fi
 
-    cd i-score/
+    cd score/
     git_pull_rebase_helper
 )
 
-# Build i-score in the AppDir
+# Build score in the AppDir
 mkdir -p $APP.AppDir/usr
 
 (
@@ -40,15 +40,15 @@ mkdir -p $APP.AppDir/usr
     mkdir -p build
 
     cd build
-    cmake ../i-score -DISCORE_CONFIGURATION=release -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_PREFIX_PATH="$(dirname $(find /usr/local -name 'Qt5Config.cmake'))" -DBOOST_ROOT=$BOOST_ROOT -DCMAKE_SKIP_RPATH=ON -DOSSIA_PYTHON=0 -DOSSIA_JAVA=0 -DOSSIA_PD=0
+    cmake ../score -DSCORE_CONFIGURATION=release -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_PREFIX_PATH="$(dirname $(find /usr/local -name 'Qt5Config.cmake'))" -DBOOST_ROOT=$BOOST_ROOT -DCMAKE_SKIP_RPATH=ON -DOSSIA_PYTHON=0 -DOSSIA_JAVA=0 -DOSSIA_PD=0
 
     cmake --build . --target all_unity -- -j$NPROC
     cmake --build . --target install -- -j$NPROC
 )
 
 # Copy pixmaps
-cp $APP.AppDir/usr/share/applications/i-score.desktop $APP.AppDir/
-cp $APP.AppDir/usr/share/pixmaps/i-score.png $APP.AppDir/
+cp $APP.AppDir/usr/share/applications/Score.desktop $APP.AppDir/
+cp $APP.AppDir/usr/share/pixmaps/score.png $APP.AppDir/
 
 export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
 # Copy needed libraries and remove system ones
@@ -66,10 +66,10 @@ export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
     cp -rf "$QTDIR/qml/QtQuick.2/libqtquick2plugin.so"  ./usr/lib/qt5/plugins/quick
     cp -rf "$QTDIR/qml/QtQuick.2"  ./usr/lib/qt5/qml
 
-    # Dependencies of plugins and i-score
-    for lib in usr/lib/libiscore_lib_*; do ldd $lib; done | grep 'Qt5' | awk '{ print $1; }' | sort | uniq | xargs -I '{}' cp -v $QTDIR/lib/'{}' ./usr/lib
-    for lib in usr/lib/i-score/*; do ldd $lib; done | grep 'Qt5' | awk '{ print $1; }' | sort | uniq | xargs -I '{}' cp -v $QTDIR/lib/'{}' ./usr/lib
-    ldd usr/bin/i-score | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
+    # Dependencies of plugins and score
+    for lib in usr/lib/libscore_lib_*; do ldd $lib; done | grep 'Qt5' | awk '{ print $1; }' | sort | uniq | xargs -I '{}' cp -v $QTDIR/lib/'{}' ./usr/lib
+    for lib in usr/lib/score/*; do ldd $lib; done | grep 'Qt5' | awk '{ print $1; }' | sort | uniq | xargs -I '{}' cp -v $QTDIR/lib/'{}' ./usr/lib
+    ldd usr/bin/score | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
 
     # libossia
     cp -v ../build/API/OSSIA/*.so* usr/lib/
@@ -127,19 +127,19 @@ export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
     # Delete potentially dangerous libraries
     rm -f usr/lib/libgobject* usr/lib/libc.so.* || true
 
-    strip usr/bin/i-score usr/lib/*.* usr/lib/qt5/plugins/*/*.* usr/lib/i-score/*.* || true
+    strip usr/bin/score usr/lib/*.* usr/lib/qt5/plugins/*/*.* usr/lib/score/*.* || true
 
     cd usr/ ; find . -type f -exec sed -i -e 's|/usr/lib|././/lib|g' {} \; ; cd ..
     cd usr/ ; find . -type f -exec sed -i -e "s|$QTDIR/lib|././/lib|g" {} \; ; cd ..
 )
 
-cp i-score/CMake/Deployment/Linux/AppImage/qt.conf $APP.AppDir/usr/bin/
-mkdir -p i-score.AppDir/usr/bin/lib/
+cp score/CMake/Deployment/Linux/AppImage/qt.conf $APP.AppDir/usr/bin/
+mkdir -p score.AppDir/usr/bin/lib/
 
-export APPIMAGE=i-score.AppImage
+export APPIMAGE=Score.AppImage
 
 rm -rf out || true
 mkdir -p out
 
-tar caf i-score.AppDir.txz "$APP.AppDir"
-mv i-score.AppDir.txz /i-score.AppDir.txz
+tar caf score.AppDir.txz "$APP.AppDir"
+mv score.AppDir.txz /score.AppDir.txz
