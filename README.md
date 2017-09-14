@@ -8,7 +8,7 @@ With *score* you can sequence OSC, MIDI, etc. parameters between multiple softwa
 
 #### Download the [latest release here](https://github.com/OSSIA/score/releases/) and read the Releases section in this README.
 
-![ossia score screenshot](/Documentation/iscore.png?raw=true)
+![ossia score screenshot](/Documentation/score.png?raw=true)
 
 ## Releases
 
