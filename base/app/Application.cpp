@@ -55,7 +55,7 @@ static void setQApplicationSettings(QApplication &m_app)
     QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf"); // Ubuntu
 
     QCoreApplication::setOrganizationName("OSSIA");
-    QCoreApplication::setOrganizationDomain("score.org");
+    QCoreApplication::setOrganizationDomain("i-score.org");
     QCoreApplication::setApplicationName("score");
     QCoreApplication::setApplicationVersion(
                 QString("%1.%2.%3-%4")
