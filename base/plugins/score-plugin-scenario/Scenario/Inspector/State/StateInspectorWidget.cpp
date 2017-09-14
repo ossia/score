@@ -53,7 +53,9 @@ class MessageListProxy final : public QAbstractProxyModel
 {
 
 public:
-  MessageItemModel& source() const { return static_cast<MessageItemModel&>(*sourceModel()); }
+  MessageItemModel* source() const { 
+    return static_cast<MessageItemModel*>(sourceModel());
+ }
   QModelIndex index(int row, int column, const QModelIndex& parent) const override
   {
     if(parent == QModelIndex{})
@@ -63,8 +65,11 @@ public:
 
       if (column >= 2 || column < 0)
         return {};
+      
+      if(!source())
+        return {};
 
-      if(auto obj = getNthChild(source().rootNode(), row))
+      if(auto obj = getNthChild(source()->rootNode(), row))
         return createIndex(row, column, obj);
     }
     return {};
@@ -101,9 +106,9 @@ public:
   }
   int rowCount(const QModelIndex& parent) const override
   {
-    if(parent == QModelIndex())
+    if(parent == QModelIndex() && source())
     {
-      return countNodes(source().rootNode());
+      return countNodes(source()->rootNode());
     }
     return 0;
   }
@@ -136,7 +141,10 @@ public:
     if(!parent)
       return {};
 
-    auto row = getChildIndex(source().rootNode(), ptr);
+    if(!source())
+      return {};
+    
+    auto row = getChildIndex(source()->rootNode(), ptr);
     return createIndex(row, sourceIndex.column(), idx);
   }
 

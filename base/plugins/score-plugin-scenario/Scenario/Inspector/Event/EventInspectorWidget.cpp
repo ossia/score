@@ -10,7 +10,6 @@
 #include <Scenario/Inspector/Expression/ExpressionEditorWidget.hpp>
 #include <Scenario/Inspector/MetadataWidget.hpp>
 #include <Scenario/Inspector/SelectionButton.hpp>
-#include <Scenario/Inspector/State/StateInspectorWidget.hpp>
 #include <Scenario/Inspector/TimeSync/TriggerInspectorWidget.hpp>
 #include <State/Expression.hpp>
 #include <score/widgets/Separator.hpp>
