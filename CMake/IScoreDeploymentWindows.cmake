@@ -96,20 +96,20 @@ set(CPACK_PACKAGE_EXECUTABLES "score.exe;score")
 set(CPACK_COMPONENTS_ALL score)
 
 set(CPACK_MONOLITHIC_INSTALL TRUE)
-set(CPACK_NSIS_PACKAGE_NAME "score")
+set(CPACK_NSIS_PACKAGE_NAME "Score")
 set(CPACK_PACKAGE_ICON "${SCORE_ROOT_SOURCE_DIR}\\\\base\\\\lib\\\\resources\\\\score.ico")
 set(CPACK_NSIS_MUI_ICON "${CPACK_PACKAGE_ICON}")
 set(CPACK_NSIS_MUI_UNIICON "${CPACK_PACKAGE_ICON}")
 
-set(CPACK_NSIS_HELP_LINK "http:\\\\\\\\www.score.org")
-set(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\www.score.org")
+set(CPACK_NSIS_HELP_LINK "http:\\\\\\\\www.i-score.org")
+set(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\www.i-score.org")
 set(CPACK_NSIS_CONTACT "score-devs@lists.sourceforge.net")
 
 set(CPACK_NSIS_COMPRESSOR "/SOLID lzma")
 
 set(CPACK_NSIS_MENU_LINKS
-    "bin/score.exe" "score"
-    "http://www.score.org" "score website"
+    "bin/score.exe" "Score"
+    "http://www.i-score.org" "Score website"
     )
 
 
