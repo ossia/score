@@ -2,7 +2,7 @@
     "Document": {
         "BaseScenario": {
             "Constraint": {
-                "Center": 9064.80337078652,
+                "Center": 118983.54730554177,
                 "Components": [
                 ],
                 "DefaultDuration": 165000,
@@ -29,23 +29,23 @@
                     {
                         "Comments": [
                             {
-                                "Date": 607.6299042553312,
-                                "HTMLContent": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\n</style></head><body style=\" font-family:'Ubuntu-R'; font-size:9pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">Welcome to score ! <br /><br />score is a software meant for the authoring of interactive scores.<br />Interactive scores are scores that contain interactive elements: that is, <br />every playthrough may be different. <br /></span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">score by itself is mute : it needs other software to communicate with, <br />such as :  </span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">* Patchers: Max/MSP, PureData, ...</span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">* Programming environments: Processing, OpenFrameworks, Unity3D...</span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">* Any kind of OSC or MIDI software &amp; hardware.</span></p>\n<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Ubuntu'; font-size:10pt;\"><br /></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">Zooming and scrolling can be done with : </span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">* the minimap on top, to zoom and scroll at the same time</span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">* the time bar, to scroll</span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">* the scroll wheel. <br />Try moving it ! <br />Scroll + Cmd / Ctrl zooms horizontally. </span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">Scroll + Shift zooms vertically.</span></p>\n<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Ubuntu'; font-size:10pt;\"><br /></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">A series of tutorials can be found here: </span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">http://i-score.org/category/tutorials/</span></p>\n<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Ubuntu'; font-size:10pt;\"><br /></p></body></html>",
-                                "HeightPercentage": 0.011069306930693057,
+                                "Date": 1056.2815896485895,
+                                "HTMLContent": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\n</style></head><body style=\" font-family:'Ubuntu-R'; font-size:9pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">Welcome to i-score ! <br /><br />i-score is a software meant for the authoring of interactive scores.<br />Interactive scores are scores that contain interactive elements: that is, <br />every playthrough may be different. <br /></span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">i-score by itself is mute : it needs other software to communicate with, <br />such as :  </span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">* Patchers: Max/MSP, PureData, ...</span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">* Programming environments: Processing, OpenFrameworks, Unity3D...</span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">* Any kind of OSC or MIDI software &amp; hardware.</span></p>\n<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Ubuntu'; font-size:10pt;\"><br /></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">Zooming and scrolling can be done with : </span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">* the minimap on top, to zoom and scroll at the same time</span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">* the time bar, to scroll</span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">* the scroll wheel. <br />Try moving it ! <br />Scroll + Cmd / Ctrl zooms horizontally. </span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">Scroll + Shift zooms vertically.</span></p>\n<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Ubuntu'; font-size:10pt;\"><br /></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">A series of tutorials can be found here: </span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">http://i-score.org/category/tutorials/</span></p>\n<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Ubuntu'; font-size:10pt;\"><br /></p></body></html>",
+                                "HeightPercentage": 0.015689768976897677,
                                 "ObjectName": "CommentBlockModel",
                                 "id": 1
                             },
                             {
-                                "Date": 389.8199194707762,
-                                "HTMLContent": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\n</style></head><body style=\" font-family:'Ubuntu-R'; font-size:9pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">This is a time interval. It means that time will run </span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">for a given duration: here, roughly ten seconds.<br />You can see as a kind of tube through which time flows and </span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">propagates to the next temporal objects.</span></p></body></html>",
-                                "HeightPercentage": 0.2316831683168317,
+                                "Date": 1980.494076774147,
+                                "HTMLContent": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\n</style></head><body style=\" font-family:'Ubuntu-R'; font-size:9pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">This is a time constraint. It means that time will run </span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">for a given duration: here, roughly ten seconds.</span></p></body></html>",
+                                "HeightPercentage": 0.2501650165016502,
                                 "ObjectName": "CommentBlockModel",
                                 "id": 2
                             },
                             {
-                                "Date": 917.6174631967594,
+                                "Date": 1019.5837553315907,
                                 "HTMLContent": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\n</style></head><body style=\" font-family:'Ubuntu-R'; font-size:9pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">This blue dot is a state.<br />Like this, it does nothing: it has <br />to be linked to the beginning of the score.</span></p></body></html>",
-                                "HeightPercentage": 0.3702970297029703,
+                                "HeightPercentage": 0.3108910891089109,
                                 "ObjectName": "CommentBlockModel",
                                 "id": 3
                             },
@@ -121,7 +121,7 @@
                             },
                             {
                                 "Date": 91749.66907117108,
-                                "HTMLContent": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\n</style></head><body style=\" font-family:'Ubuntu-R'; font-size:9pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">Many objects are introspectable through the local device, <br />score. Here we use it to send a message <br />that will change the speed of the constraint below. It is also </span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">possible to control them through network via OSC.</span></p></body></html>",
+                                "HTMLContent": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\n</style></head><body style=\" font-family:'Ubuntu-R'; font-size:9pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">Many objects are introspectable through the local device, <br />i-score. Here we use it to send a message <br />that will change the speed of the constraint below. It is also </span></p>\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">possible to control them through network via OSC.</span></p></body></html>",
                                 "HeightPercentage": 0.04026402640264026,
                                 "ObjectName": "CommentBlockModel",
                                 "id": 14
@@ -1148,7 +1148,8 @@
                                         },
                                         "Duration": 6947.954064683392,
                                         "End": {
-                                            "Int": 25
+                                            "Type": "Int",
+                                            "Value": 25
                                         },
                                         "Height": 300,
                                         "Metadata": {
@@ -1159,7 +1160,8 @@
                                         },
                                         "ObjectName": "Interpolation",
                                         "Start": {
-                                            "Int": 0
+                                            "Type": "Int",
+                                            "Value": 0
                                         },
                                         "Tween": false,
                                         "Unit": "none",
@@ -1642,9 +1644,9 @@
                                                                     "Label": "",
                                                                     "ScriptingName": "State.0"
                                                                 },
-                                                                "NextInterval": 0,
+                                                                "NextConstraint": null,
                                                                 "ObjectName": "Scenario::StateModel",
-                                                                "PreviousInterval": 0,
+                                                                "PreviousConstraint": null,
                                                                 "StateProcesses": [
                                                                 ],
                                                                 "id": 0
@@ -1677,9 +1679,9 @@
                                                                     "Label": "",
                                                                     "ScriptingName": "State.2"
                                                                 },
-                                                                "NextInterval": 1,
+                                                                "NextConstraint": 1,
                                                                 "ObjectName": "Scenario::StateModel",
-                                                                "PreviousInterval": 0,
+                                                                "PreviousConstraint": null,
                                                                 "StateProcesses": [
                                                                 ],
                                                                 "id": 2
@@ -1712,9 +1714,9 @@
                                                                     "Label": "",
                                                                     "ScriptingName": "State.3"
                                                                 },
-                                                                "NextInterval": 0,
+                                                                "NextConstraint": null,
                                                                 "ObjectName": "Scenario::StateModel",
-                                                                "PreviousInterval": 1,
+                                                                "PreviousConstraint": 1,
                                                                 "StateProcesses": [
                                                                 ],
                                                                 "id": 3
@@ -1747,9 +1749,9 @@
                                                                     "Label": "",
                                                                     "ScriptingName": "State.4"
                                                                 },
-                                                                "NextInterval": 2,
+                                                                "NextConstraint": 2,
                                                                 "ObjectName": "Scenario::StateModel",
-                                                                "PreviousInterval": 0,
+                                                                "PreviousConstraint": null,
                                                                 "StateProcesses": [
                                                                 ],
                                                                 "id": 4
@@ -1782,9 +1784,9 @@
                                                                     "Label": "",
                                                                     "ScriptingName": "State.5"
                                                                 },
-                                                                "NextInterval": 0,
+                                                                "NextConstraint": null,
                                                                 "ObjectName": "Scenario::StateModel",
-                                                                "PreviousInterval": 2,
+                                                                "PreviousConstraint": 2,
                                                                 "StateProcesses": [
                                                                 ],
                                                                 "id": 5
@@ -1819,13 +1821,15 @@
                                                                                 "Relation": {
                                                                                     "LHS": {
                                                                                         "Value": {
-                                                                                            "Bool": true
+                                                                                            "Type": "Bool",
+                                                                                            "Value": true
                                                                                         }
                                                                                     },
                                                                                     "Op": 0,
                                                                                     "RHS": {
                                                                                         "Value": {
-                                                                                            "Bool": false
+                                                                                            "Type": "Bool",
+                                                                                            "Value": false
                                                                                         }
                                                                                     }
                                                                                 }
@@ -1865,13 +1869,15 @@
                                                                                 "Relation": {
                                                                                     "LHS": {
                                                                                         "Value": {
-                                                                                            "Bool": true
+                                                                                            "Type": "Bool",
+                                                                                            "Value": true
                                                                                         }
                                                                                     },
                                                                                     "Op": 0,
                                                                                     "RHS": {
                                                                                         "Value": {
-                                                                                            "Bool": false
+                                                                                            "Type": "Bool",
+                                                                                            "Value": false
                                                                                         }
                                                                                     }
                                                                                 }
@@ -1911,13 +1917,15 @@
                                                                                 "Relation": {
                                                                                     "LHS": {
                                                                                         "Value": {
-                                                                                            "Bool": true
+                                                                                            "Type": "Bool",
+                                                                                            "Value": true
                                                                                         }
                                                                                     },
                                                                                     "Op": 0,
                                                                                     "RHS": {
                                                                                         "Value": {
-                                                                                            "Bool": false
+                                                                                            "Type": "Bool",
+                                                                                            "Value": false
                                                                                         }
                                                                                     }
                                                                                 }
@@ -2138,9 +2146,9 @@
                                                     "Label": "",
                                                     "ScriptingName": "State.0"
                                                 },
-                                                "NextInterval": 0,
+                                                "NextConstraint": null,
                                                 "ObjectName": "Scenario::StateModel",
-                                                "PreviousInterval": 0,
+                                                "PreviousConstraint": null,
                                                 "StateProcesses": [
                                                 ],
                                                 "id": 0
@@ -2173,9 +2181,9 @@
                                                     "Label": "",
                                                     "ScriptingName": "State.1"
                                                 },
-                                                "NextInterval": 1,
+                                                "NextConstraint": 1,
                                                 "ObjectName": "Scenario::StateModel",
-                                                "PreviousInterval": 0,
+                                                "PreviousConstraint": null,
                                                 "StateProcesses": [
                                                 ],
                                                 "id": 1
@@ -2208,9 +2216,9 @@
                                                     "Label": "",
                                                     "ScriptingName": "State.2"
                                                 },
-                                                "NextInterval": 0,
+                                                "NextConstraint": null,
                                                 "ObjectName": "Scenario::StateModel",
-                                                "PreviousInterval": 1,
+                                                "PreviousConstraint": 1,
                                                 "StateProcesses": [
                                                 ],
                                                 "id": 2
@@ -2243,9 +2251,9 @@
                                                     "Label": "",
                                                     "ScriptingName": "State.3"
                                                 },
-                                                "NextInterval": 2,
+                                                "NextConstraint": 2,
                                                 "ObjectName": "Scenario::StateModel",
-                                                "PreviousInterval": 0,
+                                                "PreviousConstraint": null,
                                                 "StateProcesses": [
                                                 ],
                                                 "id": 3
@@ -2278,9 +2286,9 @@
                                                     "Label": "",
                                                     "ScriptingName": "State.4"
                                                 },
-                                                "NextInterval": 0,
+                                                "NextConstraint": null,
                                                 "ObjectName": "Scenario::StateModel",
-                                                "PreviousInterval": 2,
+                                                "PreviousConstraint": 2,
                                                 "StateProcesses": [
                                                 ],
                                                 "id": 4
@@ -2307,7 +2315,8 @@
                                                                         {
                                                                             "Process": 1,
                                                                             "Value": {
-                                                                                "Float": 48.847999572753906
+                                                                                "Type": "Float",
+                                                                                "Value": 48.847999572753906
                                                                             }
                                                                         }
                                                                     ],
@@ -2353,9 +2362,9 @@
                                                     "Label": "",
                                                     "ScriptingName": "State.5"
                                                 },
-                                                "NextInterval": 3,
+                                                "NextConstraint": 3,
                                                 "ObjectName": "Scenario::StateModel",
-                                                "PreviousInterval": 0,
+                                                "PreviousConstraint": null,
                                                 "StateProcesses": [
                                                 ],
                                                 "id": 5
@@ -2385,7 +2394,8 @@
                                                                         {
                                                                             "Process": 1,
                                                                             "Value": {
-                                                                                "Float": 54.847999572753906
+                                                                                "Type": "Float",
+                                                                                "Value": 54.847999572753906
                                                                             }
                                                                         }
                                                                     ],
@@ -2428,9 +2438,9 @@
                                                     "Label": "",
                                                     "ScriptingName": "State.6"
                                                 },
-                                                "NextInterval": 0,
+                                                "NextConstraint": null,
                                                 "ObjectName": "Scenario::StateModel",
-                                                "PreviousInterval": 3,
+                                                "PreviousConstraint": 3,
                                                 "StateProcesses": [
                                                 ],
                                                 "id": 6
@@ -2463,9 +2473,9 @@
                                                     "Label": "",
                                                     "ScriptingName": "State.7"
                                                 },
-                                                "NextInterval": 4,
+                                                "NextConstraint": 4,
                                                 "ObjectName": "Scenario::StateModel",
-                                                "PreviousInterval": 0,
+                                                "PreviousConstraint": null,
                                                 "StateProcesses": [
                                                 ],
                                                 "id": 7
@@ -2498,9 +2508,9 @@
                                                     "Label": "",
                                                     "ScriptingName": "State.8"
                                                 },
-                                                "NextInterval": 0,
+                                                "NextConstraint": null,
                                                 "ObjectName": "Scenario::StateModel",
-                                                "PreviousInterval": 4,
+                                                "PreviousConstraint": 4,
                                                 "StateProcesses": [
                                                 ],
                                                 "id": 8
@@ -2535,13 +2545,15 @@
                                                                 "Relation": {
                                                                     "LHS": {
                                                                         "Value": {
-                                                                            "Bool": true
+                                                                            "Type": "Bool",
+                                                                            "Value": true
                                                                         }
                                                                     },
                                                                     "Op": 0,
                                                                     "RHS": {
                                                                         "Value": {
-                                                                            "Bool": false
+                                                                            "Type": "Bool",
+                                                                            "Value": false
                                                                         }
                                                                     }
                                                                 }
@@ -2581,13 +2593,15 @@
                                                                 "Relation": {
                                                                     "LHS": {
                                                                         "Value": {
-                                                                            "Bool": true
+                                                                            "Type": "Bool",
+                                                                            "Value": true
                                                                         }
                                                                     },
                                                                     "Op": 0,
                                                                     "RHS": {
                                                                         "Value": {
-                                                                            "Bool": false
+                                                                            "Type": "Bool",
+                                                                            "Value": false
                                                                         }
                                                                     }
                                                                 }
@@ -2627,13 +2641,15 @@
                                                                 "Relation": {
                                                                     "LHS": {
                                                                         "Value": {
-                                                                            "Bool": true
+                                                                            "Type": "Bool",
+                                                                            "Value": true
                                                                         }
                                                                     },
                                                                     "Op": 0,
                                                                     "RHS": {
                                                                         "Value": {
-                                                                            "Bool": false
+                                                                            "Type": "Bool",
+                                                                            "Value": false
                                                                         }
                                                                     }
                                                                 }
@@ -2673,13 +2689,15 @@
                                                                 "Relation": {
                                                                     "LHS": {
                                                                         "Value": {
-                                                                            "Bool": true
+                                                                            "Type": "Bool",
+                                                                            "Value": true
                                                                         }
                                                                     },
                                                                     "Op": 0,
                                                                     "RHS": {
                                                                         "Value": {
-                                                                            "Bool": false
+                                                                            "Type": "Bool",
+                                                                            "Value": false
                                                                         }
                                                                     }
                                                                 }
@@ -2719,13 +2737,15 @@
                                                                 "Relation": {
                                                                     "LHS": {
                                                                         "Value": {
-                                                                            "Bool": true
+                                                                            "Type": "Bool",
+                                                                            "Value": true
                                                                         }
                                                                     },
                                                                     "Op": 0,
                                                                     "RHS": {
                                                                         "Value": {
-                                                                            "Bool": false
+                                                                            "Type": "Bool",
+                                                                            "Value": false
                                                                         }
                                                                     }
                                                                 }
@@ -3016,13 +3036,15 @@
                                                                     {
                                                                         "Process": 1,
                                                                         "Value": {
-                                                                            "Float": 1
+                                                                            "Type": "Float",
+                                                                            "Value": 1
                                                                         }
                                                                     },
                                                                     {
                                                                         "Process": 2,
                                                                         "Value": {
-                                                                            "Float": 50
+                                                                            "Type": "Float",
+                                                                            "Value": 50
                                                                         }
                                                                     }
                                                                 ],
@@ -3065,9 +3087,9 @@
                                                 "Label": "",
                                                 "ScriptingName": "State.1"
                                             },
-                                            "NextInterval": 0,
+                                            "NextConstraint": null,
                                             "ObjectName": "Scenario::StateModel",
-                                            "PreviousInterval": 0,
+                                            "PreviousConstraint": 0,
                                             "StateProcesses": [
                                             ],
                                             "id": 1
@@ -3100,13 +3122,15 @@
                                                             "Relation": {
                                                                 "LHS": {
                                                                     "Value": {
-                                                                        "Bool": true
+                                                                        "Type": "Bool",
+                                                                        "Value": true
                                                                     }
                                                                 },
                                                                 "Op": 0,
                                                                 "RHS": {
                                                                     "Value": {
-                                                                        "Bool": false
+                                                                        "Type": "Bool",
+                                                                        "Value": false
                                                                     }
                                                                 }
                                                             }
@@ -3176,13 +3200,15 @@
                                                                     {
                                                                         "Process": 1,
                                                                         "Value": {
-                                                                            "Float": 0
+                                                                            "Type": "Float",
+                                                                            "Value": 0
                                                                         }
                                                                     },
                                                                     {
                                                                         "Process": 2,
                                                                         "Value": {
-                                                                            "Float": 20
+                                                                            "Type": "Float",
+                                                                            "Value": 20
                                                                         }
                                                                     }
                                                                 ],
@@ -3228,9 +3254,9 @@
                                                 "Label": "",
                                                 "ScriptingName": "State.0"
                                             },
-                                            "NextInterval": 0,
+                                            "NextConstraint": 0,
                                             "ObjectName": "Scenario::StateModel",
-                                            "PreviousInterval": 0,
+                                            "PreviousConstraint": null,
                                             "StateProcesses": [
                                             ],
                                             "id": 0
@@ -3263,13 +3289,15 @@
                                                             "Relation": {
                                                                 "LHS": {
                                                                     "Value": {
-                                                                        "Bool": true
+                                                                        "Type": "Bool",
+                                                                        "Value": true
                                                                     }
                                                                 },
                                                                 "Op": 0,
                                                                 "RHS": {
                                                                     "Value": {
-                                                                        "Bool": false
+                                                                        "Type": "Bool",
+                                                                        "Value": false
                                                                     }
                                                                 }
                                                             }
@@ -3370,7 +3398,7 @@
                                             "ScriptingName": "Javascript.1"
                                         },
                                         "ObjectName": "Javascript",
-                                        "Script": "(function(t) { \n     var obj = { }; \n     obj.address = 'OSCdevice:/my_float'; \n     obj.value = 20 + 20 * Math.cos(50 * t + Math.sin(score.value('OSCdevice:/my_int'))); \n     return [ obj ]; \n});",
+                                        "Script": "(function(t) { \n     var obj = { }; \n     obj.address = 'OSCdevice:/my_float'; \n     obj.value = 20 + 20 * Math.cos(50 * t + Math.sin(iscore.value('OSCdevice:/my_int'))); \n     return [ obj ]; \n});",
                                         "id": 1,
                                         "uuid": "846a5de5-47f9-46c5-a898-013cb20951d0"
                                     }
@@ -5137,7 +5165,8 @@
                                                 "Op": 4,
                                                 "RHS": {
                                                     "Value": {
-                                                        "Int": 25
+                                                        "Type": "Int",
+                                                        "Value": 25
                                                     }
                                                 }
                                             }
@@ -5214,7 +5243,8 @@
                                                         "Op": 5,
                                                         "RHS": {
                                                             "Value": {
-                                                                "Int": 25
+                                                                "Type": "Int",
+                                                                "Value": 25
                                                             }
                                                         }
                                                     }
@@ -5232,7 +5262,8 @@
                                                         "Op": 2,
                                                         "RHS": {
                                                             "Value": {
-                                                                "Int": 0
+                                                                "Type": "Int",
+                                                                "Value": 0
                                                             }
                                                         }
                                                     }
@@ -5584,9 +5615,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.0"
                                 },
-                                "NextInterval": 0,
+                                "NextConstraint": null,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 0,
+                                "PreviousConstraint": null,
                                 "StateProcesses": [
                                 ],
                                 "id": 0
@@ -5619,9 +5650,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.1"
                                 },
-                                "NextInterval": 1,
+                                "NextConstraint": 1,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 0,
+                                "PreviousConstraint": null,
                                 "StateProcesses": [
                                 ],
                                 "id": 1
@@ -5654,9 +5685,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.2"
                                 },
-                                "NextInterval": 0,
+                                "NextConstraint": null,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 1,
+                                "PreviousConstraint": 1,
                                 "StateProcesses": [
                                 ],
                                 "id": 2
@@ -5689,9 +5720,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.3"
                                 },
-                                "NextInterval": 0,
+                                "NextConstraint": null,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 0,
+                                "PreviousConstraint": null,
                                 "StateProcesses": [
                                 ],
                                 "id": 3
@@ -5726,7 +5757,8 @@
                                                     ],
                                                     "Unit": "color.rgb",
                                                     "User": {
-                                                        "Vec3f": [
+                                                        "Type": "Vec3f",
+                                                        "Value": [
                                                             0,
                                                             0,
                                                             0
@@ -5750,7 +5782,8 @@
                                                     ],
                                                     "Unit": "none",
                                                     "User": {
-                                                        "Int": 1
+                                                        "Type": "Int",
+                                                        "Value": 1
                                                     }
                                                 },
                                                 {
@@ -5770,7 +5803,8 @@
                                                     ],
                                                     "Unit": "none",
                                                     "User": {
-                                                        "Float": 10
+                                                        "Type": "Float",
+                                                        "Value": 10
                                                     }
                                                 }
                                             ],
@@ -5805,9 +5839,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.4"
                                 },
-                                "NextInterval": 0,
+                                "NextConstraint": null,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 0,
+                                "PreviousConstraint": null,
                                 "StateProcesses": [
                                 ],
                                 "id": 4
@@ -5840,9 +5874,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.5"
                                 },
-                                "NextInterval": 2,
+                                "NextConstraint": 2,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 0,
+                                "PreviousConstraint": null,
                                 "StateProcesses": [
                                 ],
                                 "id": 5
@@ -5875,9 +5909,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.6"
                                 },
-                                "NextInterval": 0,
+                                "NextConstraint": null,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 2,
+                                "PreviousConstraint": 2,
                                 "StateProcesses": [
                                 ],
                                 "id": 6
@@ -5910,9 +5944,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.7"
                                 },
-                                "NextInterval": 3,
+                                "NextConstraint": 3,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 0,
+                                "PreviousConstraint": null,
                                 "StateProcesses": [
                                 ],
                                 "id": 7
@@ -5945,9 +5979,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.8"
                                 },
-                                "NextInterval": 0,
+                                "NextConstraint": null,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 3,
+                                "PreviousConstraint": 3,
                                 "StateProcesses": [
                                 ],
                                 "id": 8
@@ -5980,9 +6014,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.9"
                                 },
-                                "NextInterval": 4,
+                                "NextConstraint": 4,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 0,
+                                "PreviousConstraint": null,
                                 "StateProcesses": [
                                 ],
                                 "id": 9
@@ -6015,9 +6049,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.10"
                                 },
-                                "NextInterval": 0,
+                                "NextConstraint": null,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 4,
+                                "PreviousConstraint": 4,
                                 "StateProcesses": [
                                 ],
                                 "id": 10
@@ -6050,9 +6084,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.11"
                                 },
-                                "NextInterval": 5,
+                                "NextConstraint": 5,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 0,
+                                "PreviousConstraint": null,
                                 "StateProcesses": [
                                 ],
                                 "id": 11
@@ -6085,9 +6119,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.12"
                                 },
-                                "NextInterval": 0,
+                                "NextConstraint": null,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 5,
+                                "PreviousConstraint": 5,
                                 "StateProcesses": [
                                 ],
                                 "id": 12
@@ -6114,7 +6148,8 @@
                                                         {
                                                             "Process": 1,
                                                             "Value": {
-                                                                "Float": 1
+                                                                "Type": "Float",
+                                                                "Value": 1
                                                             }
                                                         }
                                                     ],
@@ -6160,9 +6195,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.13"
                                 },
-                                "NextInterval": 6,
+                                "NextConstraint": 6,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 0,
+                                "PreviousConstraint": null,
                                 "StateProcesses": [
                                 ],
                                 "id": 13
@@ -6189,7 +6224,8 @@
                                                         {
                                                             "Process": 1,
                                                             "Value": {
-                                                                "Float": 75.25
+                                                                "Type": "Float",
+                                                                "Value": 75.25
                                                             }
                                                         }
                                                     ],
@@ -6198,7 +6234,8 @@
                                                         {
                                                             "Process": 1,
                                                             "Value": {
-                                                                "Float": 75.25
+                                                                "Type": "Float",
+                                                                "Value": 75.25
                                                             }
                                                         }
                                                     ],
@@ -6241,9 +6278,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.14"
                                 },
-                                "NextInterval": 7,
+                                "NextConstraint": 7,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 6,
+                                "PreviousConstraint": 6,
                                 "StateProcesses": [
                                 ],
                                 "id": 14
@@ -6273,7 +6310,8 @@
                                                         {
                                                             "Process": 1,
                                                             "Value": {
-                                                                "Float": 50
+                                                                "Type": "Float",
+                                                                "Value": 50
                                                             }
                                                         }
                                                     ],
@@ -6284,7 +6322,8 @@
                                                     ],
                                                     "Unit": "none",
                                                     "User": {
-                                                        "Float": 50
+                                                        "Type": "Float",
+                                                        "Value": 50
                                                     }
                                                 },
                                                 {
@@ -6297,7 +6336,8 @@
                                                         {
                                                             "Process": 1,
                                                             "Value": {
-                                                                "Float": 0
+                                                                "Type": "Float",
+                                                                "Value": 0
                                                             }
                                                         }
                                                     ],
@@ -6321,7 +6361,8 @@
                                                         {
                                                             "Process": 2,
                                                             "Value": {
-                                                                "Float": 0
+                                                                "Type": "Float",
+                                                                "Value": 0
                                                             }
                                                         }
                                                     ],
@@ -6345,7 +6386,8 @@
                                                         {
                                                             "Process": 3,
                                                             "Value": {
-                                                                "Float": 0
+                                                                "Type": "Float",
+                                                                "Value": 0
                                                             }
                                                         }
                                                     ],
@@ -6391,9 +6433,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.15"
                                 },
-                                "NextInterval": 8,
+                                "NextConstraint": 8,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 7,
+                                "PreviousConstraint": 7,
                                 "StateProcesses": [
                                 ],
                                 "id": 15
@@ -6424,7 +6466,8 @@
                                                         {
                                                             "Process": 1,
                                                             "Value": {
-                                                                "Float": 1
+                                                                "Type": "Float",
+                                                                "Value": 1
                                                             }
                                                         }
                                                     ],
@@ -6448,7 +6491,8 @@
                                                         {
                                                             "Process": 2,
                                                             "Value": {
-                                                                "Float": 1
+                                                                "Type": "Float",
+                                                                "Value": 1
                                                             }
                                                         }
                                                     ],
@@ -6472,7 +6516,8 @@
                                                         {
                                                             "Process": 3,
                                                             "Value": {
-                                                                "Float": 1
+                                                                "Type": "Float",
+                                                                "Value": 1
                                                             }
                                                         }
                                                     ],
@@ -6515,9 +6560,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.16"
                                 },
-                                "NextInterval": 9,
+                                "NextConstraint": 9,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 8,
+                                "PreviousConstraint": 8,
                                 "StateProcesses": [
                                 ],
                                 "id": 16
@@ -6550,9 +6595,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.17"
                                 },
-                                "NextInterval": 10,
+                                "NextConstraint": 10,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 9,
+                                "PreviousConstraint": 9,
                                 "StateProcesses": [
                                 ],
                                 "id": 17
@@ -6585,9 +6630,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.18"
                                 },
-                                "NextInterval": 11,
+                                "NextConstraint": 11,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 10,
+                                "PreviousConstraint": 10,
                                 "StateProcesses": [
                                 ],
                                 "id": 18
@@ -6622,7 +6667,8 @@
                                                     ],
                                                     "Unit": "none",
                                                     "User": {
-                                                        "Int": 0
+                                                        "Type": "Int",
+                                                        "Value": 0
                                                     }
                                                 }
                                             ],
@@ -6657,9 +6703,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.19"
                                 },
-                                "NextInterval": 12,
+                                "NextConstraint": 12,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 11,
+                                "PreviousConstraint": 11,
                                 "StateProcesses": [
                                 ],
                                 "id": 19
@@ -6694,7 +6740,8 @@
                                                     ],
                                                     "Unit": "none",
                                                     "User": {
-                                                        "Int": 25
+                                                        "Type": "Int",
+                                                        "Value": 25
                                                     }
                                                 }
                                             ],
@@ -6729,9 +6776,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.20"
                                 },
-                                "NextInterval": 13,
+                                "NextConstraint": 13,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 12,
+                                "PreviousConstraint": 12,
                                 "StateProcesses": [
                                 ],
                                 "id": 20
@@ -6764,9 +6811,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.21"
                                 },
-                                "NextInterval": 0,
+                                "NextConstraint": null,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 13,
+                                "PreviousConstraint": 13,
                                 "StateProcesses": [
                                 ],
                                 "id": 21
@@ -6799,9 +6846,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.22"
                                 },
-                                "NextInterval": 14,
+                                "NextConstraint": 14,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 0,
+                                "PreviousConstraint": null,
                                 "StateProcesses": [
                                 ],
                                 "id": 22
@@ -6834,9 +6881,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.23"
                                 },
-                                "NextInterval": 0,
+                                "NextConstraint": null,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 14,
+                                "PreviousConstraint": 14,
                                 "StateProcesses": [
                                 ],
                                 "id": 23
@@ -6869,9 +6916,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.24"
                                 },
-                                "NextInterval": 15,
+                                "NextConstraint": 15,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 0,
+                                "PreviousConstraint": null,
                                 "StateProcesses": [
                                 ],
                                 "id": 24
@@ -6904,9 +6951,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.25"
                                 },
-                                "NextInterval": 0,
+                                "NextConstraint": null,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 15,
+                                "PreviousConstraint": 15,
                                 "StateProcesses": [
                                 ],
                                 "id": 25
@@ -6939,9 +6986,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.26"
                                 },
-                                "NextInterval": 16,
+                                "NextConstraint": 16,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 0,
+                                "PreviousConstraint": null,
                                 "StateProcesses": [
                                 ],
                                 "id": 26
@@ -6974,9 +7021,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.27"
                                 },
-                                "NextInterval": 0,
+                                "NextConstraint": null,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 16,
+                                "PreviousConstraint": 16,
                                 "StateProcesses": [
                                 ],
                                 "id": 27
@@ -7009,9 +7056,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.28"
                                 },
-                                "NextInterval": 17,
+                                "NextConstraint": 17,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 0,
+                                "PreviousConstraint": null,
                                 "StateProcesses": [
                                 ],
                                 "id": 28
@@ -7044,9 +7091,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.29"
                                 },
-                                "NextInterval": 18,
+                                "NextConstraint": 18,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 17,
+                                "PreviousConstraint": 17,
                                 "StateProcesses": [
                                 ],
                                 "id": 29
@@ -7079,9 +7126,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.30"
                                 },
-                                "NextInterval": 19,
+                                "NextConstraint": 19,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 18,
+                                "PreviousConstraint": 18,
                                 "StateProcesses": [
                                 ],
                                 "id": 30
@@ -7114,9 +7161,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.31"
                                 },
-                                "NextInterval": 21,
+                                "NextConstraint": 21,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 19,
+                                "PreviousConstraint": 19,
                                 "StateProcesses": [
                                 ],
                                 "id": 31
@@ -7149,9 +7196,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.32"
                                 },
-                                "NextInterval": 20,
+                                "NextConstraint": 20,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 0,
+                                "PreviousConstraint": null,
                                 "StateProcesses": [
                                 ],
                                 "id": 32
@@ -7206,7 +7253,8 @@
                                                                                             ],
                                                                                             "Unit": "none",
                                                                                             "User": {
-                                                                                                "Float": 0.5
+                                                                                                "Type": "Float",
+                                                                                                "Value": 0.5
                                                                                             }
                                                                                         }
                                                                                     ],
@@ -7277,7 +7325,7 @@
                                             ],
                                             "Following": [
                                             ],
-                                            "Name": "score",
+                                            "Name": "i-score",
                                             "Previous": [
                                             ],
                                             "Priorities": [
@@ -7306,9 +7354,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.33"
                                 },
-                                "NextInterval": 22,
+                                "NextConstraint": 22,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 20,
+                                "PreviousConstraint": 20,
                                 "StateProcesses": [
                                 ],
                                 "id": 33
@@ -7341,9 +7389,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.34"
                                 },
-                                "NextInterval": 23,
+                                "NextConstraint": 23,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 21,
+                                "PreviousConstraint": 21,
                                 "StateProcesses": [
                                 ],
                                 "id": 34
@@ -7378,7 +7426,8 @@
                                                     ],
                                                     "Unit": "none",
                                                     "User": {
-                                                        "Int": 10
+                                                        "Type": "Int",
+                                                        "Value": 10
                                                     }
                                                 }
                                             ],
@@ -7413,9 +7462,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.35"
                                 },
-                                "NextInterval": 24,
+                                "NextConstraint": 24,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 22,
+                                "PreviousConstraint": 22,
                                 "StateProcesses": [
                                 ],
                                 "id": 35
@@ -7448,9 +7497,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.36"
                                 },
-                                "NextInterval": 25,
+                                "NextConstraint": 25,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 23,
+                                "PreviousConstraint": 23,
                                 "StateProcesses": [
                                 ],
                                 "id": 36
@@ -7485,7 +7534,8 @@
                                                     ],
                                                     "Unit": "none",
                                                     "User": {
-                                                        "Int": 25
+                                                        "Type": "Int",
+                                                        "Value": 25
                                                     }
                                                 }
                                             ],
@@ -7520,9 +7570,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.37"
                                 },
-                                "NextInterval": 29,
+                                "NextConstraint": 29,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 24,
+                                "PreviousConstraint": 24,
                                 "StateProcesses": [
                                 ],
                                 "id": 37
@@ -7555,9 +7605,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.38"
                                 },
-                                "NextInterval": 28,
+                                "NextConstraint": 28,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 25,
+                                "PreviousConstraint": 25,
                                 "StateProcesses": [
                                 ],
                                 "id": 38
@@ -7590,9 +7640,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.39"
                                 },
-                                "NextInterval": 26,
+                                "NextConstraint": 26,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 0,
+                                "PreviousConstraint": null,
                                 "StateProcesses": [
                                 ],
                                 "id": 39
@@ -7625,9 +7675,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.40"
                                 },
-                                "NextInterval": 0,
+                                "NextConstraint": null,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 26,
+                                "PreviousConstraint": 26,
                                 "StateProcesses": [
                                 ],
                                 "id": 40
@@ -7660,9 +7710,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.41"
                                 },
-                                "NextInterval": 27,
+                                "NextConstraint": 27,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 0,
+                                "PreviousConstraint": null,
                                 "StateProcesses": [
                                 ],
                                 "id": 41
@@ -7695,9 +7745,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.42"
                                 },
-                                "NextInterval": 0,
+                                "NextConstraint": null,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 27,
+                                "PreviousConstraint": 27,
                                 "StateProcesses": [
                                 ],
                                 "id": 42
@@ -7730,9 +7780,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.43"
                                 },
-                                "NextInterval": 30,
+                                "NextConstraint": 30,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 28,
+                                "PreviousConstraint": 28,
                                 "StateProcesses": [
                                 ],
                                 "id": 43
@@ -7767,7 +7817,8 @@
                                                     ],
                                                     "Unit": "none",
                                                     "User": {
-                                                        "Int": 20
+                                                        "Type": "Int",
+                                                        "Value": 20
                                                     }
                                                 }
                                             ],
@@ -7802,9 +7853,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.44"
                                 },
-                                "NextInterval": 0,
+                                "NextConstraint": null,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 29,
+                                "PreviousConstraint": 29,
                                 "StateProcesses": [
                                 ],
                                 "id": 44
@@ -7837,9 +7888,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.45"
                                 },
-                                "NextInterval": 31,
+                                "NextConstraint": 31,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 30,
+                                "PreviousConstraint": 30,
                                 "StateProcesses": [
                                 ],
                                 "id": 45
@@ -7872,9 +7923,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.46"
                                 },
-                                "NextInterval": 32,
+                                "NextConstraint": 32,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 31,
+                                "PreviousConstraint": 31,
                                 "StateProcesses": [
                                 ],
                                 "id": 46
@@ -7907,9 +7958,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.47"
                                 },
-                                "NextInterval": 33,
+                                "NextConstraint": 33,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 32,
+                                "PreviousConstraint": 32,
                                 "StateProcesses": [
                                 ],
                                 "id": 47
@@ -7942,9 +7993,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.48"
                                 },
-                                "NextInterval": 34,
+                                "NextConstraint": 34,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 33,
+                                "PreviousConstraint": 33,
                                 "StateProcesses": [
                                 ],
                                 "id": 48
@@ -7977,9 +8028,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.49"
                                 },
-                                "NextInterval": 0,
+                                "NextConstraint": null,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 34,
+                                "PreviousConstraint": 34,
                                 "StateProcesses": [
                                 ],
                                 "id": 49
@@ -8012,9 +8063,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.50"
                                 },
-                                "NextInterval": 35,
+                                "NextConstraint": 35,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 0,
+                                "PreviousConstraint": null,
                                 "StateProcesses": [
                                 ],
                                 "id": 50
@@ -8049,7 +8100,8 @@
                                                     ],
                                                     "Unit": "none",
                                                     "User": {
-                                                        "Int": 25
+                                                        "Type": "Int",
+                                                        "Value": 25
                                                     }
                                                 }
                                             ],
@@ -8084,9 +8136,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.51"
                                 },
-                                "NextInterval": 36,
+                                "NextConstraint": 36,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 35,
+                                "PreviousConstraint": 35,
                                 "StateProcesses": [
                                 ],
                                 "id": 51
@@ -8116,7 +8168,8 @@
                                                         {
                                                             "Process": 1,
                                                             "Value": {
-                                                                "Float": 25
+                                                                "Type": "Float",
+                                                                "Value": 25
                                                             }
                                                         }
                                                     ],
@@ -8159,9 +8212,9 @@
                                     "Label": "",
                                     "ScriptingName": "State.52"
                                 },
-                                "NextInterval": 0,
+                                "NextConstraint": null,
                                 "ObjectName": "Scenario::StateModel",
-                                "PreviousInterval": 36,
+                                "PreviousConstraint": 36,
                                 "StateProcesses": [
                                 ],
                                 "id": 52
@@ -8196,13 +8249,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -8242,13 +8297,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -8288,13 +8345,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -8334,13 +8393,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -8380,13 +8441,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -8426,13 +8489,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -8472,13 +8537,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -8518,13 +8585,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -8564,13 +8633,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -8610,13 +8681,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -8656,13 +8729,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -8702,13 +8777,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -8748,13 +8825,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -8794,13 +8873,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -8840,13 +8921,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -8886,13 +8969,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -8932,13 +9017,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -8978,13 +9065,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -9024,13 +9113,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -9070,13 +9161,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -9116,13 +9209,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -9162,13 +9257,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -9208,13 +9305,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -9254,13 +9353,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -9300,13 +9401,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -9355,7 +9458,8 @@
                                                             "Op": 0,
                                                             "RHS": {
                                                                 "Value": {
-                                                                    "Int": 25
+                                                                    "Type": "Int",
+                                                                    "Value": 25
                                                                 }
                                                             }
                                                         }
@@ -9399,13 +9503,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -9447,13 +9553,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -9493,13 +9601,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -9539,13 +9649,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -9585,13 +9697,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -9631,13 +9745,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -9677,13 +9793,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -9723,13 +9841,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -9769,13 +9889,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -9815,13 +9937,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -9861,13 +9985,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -9907,13 +10033,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -9953,13 +10081,15 @@
                                                 "Relation": {
                                                     "LHS": {
                                                         "Value": {
-                                                            "Bool": true
+                                                            "Type": "Bool",
+                                                            "Value": true
                                                         }
                                                     },
                                                     "Op": 0,
                                                     "RHS": {
                                                         "Value": {
-                                                            "Bool": false
+                                                            "Type": "Bool",
+                                                            "Value": false
                                                         }
                                                     }
                                                 }
@@ -9982,7 +10112,7 @@
                 "SmallViewShown": false,
                 "StartDate": 0,
                 "StartState": 0,
-                "Zoom": 20.393258426966295,
+                "Zoom": 112.14283440673117,
                 "id": 0
             },
             "EndEvent": {
@@ -10041,9 +10171,9 @@
                     "Label": "",
                     "ScriptingName": "State.1"
                 },
-                "NextInterval": 0,
+                "NextConstraint": null,
                 "ObjectName": "Scenario::StateModel",
-                "PreviousInterval": 0,
+                "PreviousConstraint": 0,
                 "StateProcesses": [
                 ],
                 "id": 1
@@ -10076,13 +10206,15 @@
                                 "Relation": {
                                     "LHS": {
                                         "Value": {
-                                            "Bool": true
+                                            "Type": "Bool",
+                                            "Value": true
                                         }
                                     },
                                     "Op": 0,
                                     "RHS": {
                                         "Value": {
-                                            "Bool": false
+                                            "Type": "Bool",
+                                            "Value": false
                                         }
                                     }
                                 }
@@ -10151,9 +10283,9 @@
                     "Label": "",
                     "ScriptingName": "State.0"
                 },
-                "NextInterval": 0,
+                "NextConstraint": 0,
                 "ObjectName": "Scenario::StateModel",
-                "PreviousInterval": 0,
+                "PreviousConstraint": null,
                 "StateProcesses": [
                 ],
                 "id": 0
@@ -10186,13 +10318,15 @@
                                 "Relation": {
                                     "LHS": {
                                         "Value": {
-                                            "Bool": true
+                                            "Type": "Bool",
+                                            "Value": true
                                         }
                                     },
                                     "Op": 0,
                                     "RHS": {
                                         "Value": {
-                                            "Bool": false
+                                            "Type": "Bool",
+                                            "Value": false
                                         }
                                     }
                                 }
@@ -10239,8 +10373,9 @@
                                 },
                                 "Name": "my_pos",
                                 "RepetitionFilter": false,
+                                "Type": "Vec2f",
                                 "Unit": "position.cart2D",
-                                "Vec2f": [
+                                "Value": [
                                     0.5,
                                     0.23499999940395355
                                 ],
@@ -10278,8 +10413,9 @@
                                 },
                                 "Name": "my_color",
                                 "RepetitionFilter": false,
+                                "Type": "Vec3f",
                                 "Unit": "color.rgb",
-                                "Vec3f": [
+                                "Value": [
                                     0.7922234535217285,
                                     0.8021705746650696,
                                     0.8019587993621826
@@ -10298,10 +10434,11 @@
                                 },
                                 "Extended": {
                                 },
-                                "Int": 20,
                                 "Name": "my_int",
                                 "RepetitionFilter": false,
+                                "Type": "Int",
                                 "Unit": "none",
+                                "Value": 20,
                                 "ioType": "<->"
                             },
                             "Children": [
@@ -10318,10 +10455,11 @@
                                 },
                                 "Extended": {
                                 },
-                                "Float": 38.438045501708984,
                                 "Name": "my_float",
                                 "RepetitionFilter": false,
+                                "Type": "Float",
                                 "Unit": "none",
+                                "Value": 38.438045501708984,
                                 "ioType": "<->"
                             },
                             "Children": [
@@ -10340,10 +10478,10 @@
                     "DeviceSettings": {
                         "Host": "127.0.0.1",
                         "InPort": 9999,
-                        "Name": "score",
+                        "Name": "i-score",
                         "OutPort": 6666,
                         "Protocol": "3fad3354-e103-4bc4-a34f-2d0cc4b02565",
-                        "RemoteName": "score-remote"
+                        "RemoteName": "i-score-remote"
                     }
                 }
             ],
