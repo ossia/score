@@ -1013,6 +1013,9 @@ void DeviceExplorerWidget::learn()
   if (!di->capabilities().canLearn)
     return;
 
+  if(!di->connected())
+    return;
+
   // Make a copy of the node
   Device::Node oldDevice = n;
   // Show a dialog for as long as there is learn status active
