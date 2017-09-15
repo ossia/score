@@ -50,9 +50,10 @@ LocalDevice::~LocalDevice()
 
 void LocalDevice::setRemoteSettings(const Device::DeviceSettings& settings)
 {
+  m_dev.set_name(settings.name.toStdString());
+
   if (!m_proto)
     return;
-
   try
   {
     auto set = settings.deviceSpecificSettings.value<LocalSpecificSettings>();

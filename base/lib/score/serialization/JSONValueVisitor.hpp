@@ -616,7 +616,7 @@ struct TSerializer<JSONValue, optional<T>>
 
   static void writeTo(JSONValue::Deserializer& s, optional<T>& obj)
   {
-    if (s.val.toString() == s.strings.none)
+    if (s.val.isNull() || s.val.toString() == s.strings.none )
     {
       obj = ossia::none;
     }
