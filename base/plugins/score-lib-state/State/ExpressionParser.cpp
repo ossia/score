@@ -27,8 +27,8 @@ relevant.
 
 
 # Addresses
-fragment 		:= +[a-zA-Z0-9.~()_-];
-device 			:= fragment;
+device 			:= +[a-zA-Z0-9.~()_-];
+fragment 		:= +[a-zA-Z0-9.~():_-];
 path_element 	:= fragment;
 path 			:= ('/', path_element)+ | '/';
 
@@ -158,9 +158,8 @@ struct Address_parser : qi::grammar<Iterator, State::Address()>
   {
     using qi::alnum;
     // OPTIMIZEME
-    std::string str{ossia::net::pattern_match_characters()};
-    dev = +qi::char_(str);
-    member_elt = +qi::char_(str);
+    dev = +qi::char_(std::string(ossia::net::device_characters()));
+    member_elt = +qi::char_(std::string(ossia::net::pattern_match_characters()));
     path %= (+("/" >> member_elt) | "/");
     start %= dev >> ":" >> path;
   }

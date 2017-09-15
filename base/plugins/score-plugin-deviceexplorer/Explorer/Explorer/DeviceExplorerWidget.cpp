@@ -811,7 +811,7 @@ void DeviceExplorerWidget::addDevice()
         return;
       }
     }
-    ossia::net::sanitize_name(deviceSettings.name);
+    ossia::net::sanitize_device_name(deviceSettings.name);
 
     auto path = m_deviceDialog->getPath();
     blockGUI(true);
