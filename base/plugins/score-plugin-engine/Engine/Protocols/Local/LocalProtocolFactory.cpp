@@ -29,6 +29,7 @@ QString LocalProtocolFactory::prettyName() const
 Device::DeviceInterface* LocalProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
 {
+  qDebug() << "updating local" << settings.name ;
   auto doc = ctx.findPlugin<LocalTree::DocumentPlugin>();
   if (doc)
   {
