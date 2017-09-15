@@ -44,7 +44,8 @@ void AddressBarItem::setTargetObject(ObjectPath&& path)
   for (auto& identifier : m_currentPath)
   {
     i++;
-    if (!identifier.objectName().contains("IntervalModel"))
+    if (!identifier.objectName().contains("IntervalModel")
+     && !identifier.objectName().contains("ConstraintModel"))
       continue;
 
     auto thisPath = m_currentPath;
@@ -56,7 +57,7 @@ void AddressBarItem::setTargetObject(ObjectPath&& path)
 
     auto lab = new ClickableLabelItem{
         thisObj.metadata(),
-        [&](ClickableLabelItem* item) { emit intervalSelected(thisObj); },
+        [&](ClickableLabelItem*) { emit intervalSelected(thisObj); },
         txt, this};
 
     lab->setIndex(i);
