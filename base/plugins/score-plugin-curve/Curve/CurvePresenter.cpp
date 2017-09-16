@@ -557,6 +557,19 @@ void Presenter::removeSelection()
           lastRemoved = true;
           y1 = it->end.y();
         }
+
+        if(it->previous)
+        {
+          auto prev_it = ossia::find_if(newSegments, [&] (const SegmentData& d) { return d.id == *it->previous; });
+          if(prev_it != newSegments.end())
+            prev_it->following = OptionalId<SegmentModel>{};
+        }
+        if(it->following)
+        {
+          auto next_it = ossia::find_if(newSegments, [&] (const SegmentData& d) { return d.id == *it->following; });
+          if(next_it != newSegments.end())
+            next_it->previous = OptionalId<SegmentModel>{};
+        }
         it = newSegments.erase(it);
         continue;
       }
