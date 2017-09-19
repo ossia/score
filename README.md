@@ -34,7 +34,7 @@ When updating the score repository through the command line, don't forget to upd
     git pull
     git submodule update --init --recursive
     
-Some useful and easy potential contributions are listed [on the website](http://i-score.org/contributing/).
+Some useful and easy potential contributions are listed [on the website](http://ossia.io/contributing/).
 
 There are also many fixable areas in the code : 
 
