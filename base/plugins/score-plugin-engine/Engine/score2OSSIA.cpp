@@ -469,6 +469,7 @@ static ossia::expressions::expression_atom::val_t expressionOperand(
     {
       auto dest = expressionAddress(acc.address, devlist);
       dest.index = acc.qualifiers.get().accessors;
+      dest.unit = acc.qualifiers.get().unit;
       return dest;
     }
   } visitor{list};
