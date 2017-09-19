@@ -265,7 +265,7 @@ bool DocumentManager::saveDocumentAs(Document& doc)
 {
   QFileDialog d{&m_view, tr("Save Document As")};
   QString binFilter{tr("Binary (*.scorebin)")};
-  QString jsonFilter{tr("JSON (*.scorejson)")};
+  QString jsonFilter{tr("Score (*.score)")};
   QStringList filters;
   filters << jsonFilter << binFilter;
 
@@ -289,8 +289,8 @@ bool DocumentManager::saveDocumentAs(Document& doc)
       }
       else
       {
-        if (!savename.contains(".scorejson"))
-          savename += ".scorejson";
+        if (!savename.contains(".scorejson") && !savename.contains(".score"))
+          savename += ".score";
       }
 
       QSaveFile f{savename};
@@ -392,7 +392,7 @@ SCORE_LIB_BASE_EXPORT
 Document* DocumentManager::loadFile(const score::GUIApplicationContext& ctx)
 {
   QString loadname = QFileDialog::getOpenFileName(
-      &m_view, tr("Open"), QString(), "*.scorebin *.scorejson");
+      &m_view, tr("Open"), QString(), "*.scorebin *.score *.scorejson");
   return loadFile(ctx, loadname);
 }
 
@@ -400,8 +400,7 @@ Document* DocumentManager::loadFile(
     const score::GUIApplicationContext& ctx, const QString& fileName)
 {
   Document* doc{};
-  if (!fileName.isEmpty() && (fileName.indexOf(".scorebin") != -1
-                              || fileName.indexOf(".scorejson") != -1))
+  if (!fileName.isEmpty() && (fileName.indexOf(".scorebin") != -1 || fileName.indexOf(".scorejson") != -1 || fileName.indexOf(".score") != 1))
   {
     QFile f{fileName};
     if (f.open(QIODevice::ReadOnly))
@@ -415,7 +414,7 @@ Document* DocumentManager::loadFile(
             ctx, fileName, f.readAll(),
             *ctx.interfaces<DocumentDelegateList>().begin());
       }
-      else if (fileName.indexOf(".scorejson") != -1)
+      else if (fileName.indexOf(".score") != -1)
       {
         auto json = QJsonDocument::fromJson(f.readAll());
         bool ok = checkAndUpdateJson(json, ctx);
