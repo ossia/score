@@ -2,7 +2,7 @@ ossia score
 =======
 
 
-ossia score is an interactive intermedia sequencer - read more on http://i-score.org/ or come chat with us ! [![join the chat at https://gitter.im/OSSIA](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OSSIA?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+ossia score is an interactive intermedia sequencer - read more on http://ossia.io or come chat with us ! [![join the chat at https://gitter.im/OSSIA](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OSSIA?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 With *score* you can sequence OSC, MIDI, etc. parameters between multiple software and hardware, to create interactive and intermedia **score**s.
 
