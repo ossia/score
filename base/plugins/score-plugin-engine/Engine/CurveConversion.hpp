@@ -35,7 +35,7 @@ template <
     typename XScaleFun,
     typename YScaleFun,
     typename Segments>
-std::shared_ptr<ossia::curve_abstract> curve(
+std::shared_ptr<ossia::curve<X_T, Y_T>> curve(
     XScaleFun scale_x,
     YScaleFun scale_y,
     const Segments& segments,

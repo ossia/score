@@ -87,3 +87,27 @@ class ChangeSplineAddress final : public score::Command
 };
 }
 
+
+namespace Metronome
+{
+class ProcessModel;
+class ChangeMetronomeAddress final : public score::Command
+{
+    SCORE_COMMAND_DECL(Automation::CommandFactoryName(), ChangeMetronomeAddress, "ChangeMetronomeAddress")
+    public:
+      ChangeMetronomeAddress(
+        const ProcessModel& autom, const State::Address& newval);
+
+  public:
+    void undo(const score::DocumentContext& ctx) const override;
+    void redo(const score::DocumentContext& ctx) const override;
+
+  protected:
+    void serializeImpl(DataStreamInput&) const override;
+    void deserializeImpl(DataStreamOutput&) override;
+
+  private:
+    Path<ProcessModel> m_path;
+    State::Address m_old, m_new;
+};
+}
