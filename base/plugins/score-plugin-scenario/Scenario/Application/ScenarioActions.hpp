@@ -97,8 +97,6 @@ SCORE_DECLARE_ACTION(Grow, "&Grow mode", Scenario, Qt::ALT + Qt::Key_D)
 // Object
 SCORE_DECLARE_ACTION(
     RemoveElements, "&Remove elements", Scenario, Qt::Key_Backspace)
-SCORE_DECLARE_ACTION(
-    ClearElements, "C&lear elements", Scenario, Qt::Key_Delete)
 SCORE_DECLARE_ACTION(CopyContent, "C&opy", Scenario, QKeySequence::Copy)
 SCORE_DECLARE_ACTION(CutContent, "C&ut", Scenario, QKeySequence::Cut)
 SCORE_DECLARE_ACTION(

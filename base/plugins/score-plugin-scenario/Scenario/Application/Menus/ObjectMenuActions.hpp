@@ -51,7 +51,6 @@ private:
   StateActions m_stateActions;
 
   QAction* m_removeElements{};
-  QAction* m_clearElements{};
   QAction* m_copyContent{};
   QAction* m_cutContent{};
   QAction* m_pasteContent{};

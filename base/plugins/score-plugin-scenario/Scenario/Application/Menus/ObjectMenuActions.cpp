@@ -72,34 +72,31 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
   m_removeElements = new QAction{tr("Remove selected elements"), this};
   m_removeElements->setShortcut(Qt::Key_Backspace); // NOTE : the effective
                                                     // shortcut is in
-                                                    // CommonSelectionState.cpp
+                                                    // ../ScenarioActions.hpp
   m_removeElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   connect(m_removeElements, &QAction::triggered, [this]() {
     auto& ctx = m_parent->currentDocument()->context();
 
     auto sm = focusedScenarioModel(ctx);
+    auto si = focusedScenarioInterface(ctx);
+
+    bool flag = false;
+
     if (sm)
+    {
+      flag = Scenario::clearContentFromSelection(*sm, ctx.commandStack);
+    }
+    else if (si && !selectedElements(si->getStates()).empty())
+    {
+      flag = Scenario::clearContentFromSelection(*si, ctx.commandStack);
+    }
+
+    // if there is no content to clear, then delete element
+    if (!flag)
     {
       Scenario::removeSelection(*sm, ctx.commandStack);
     }
-  });
 
-  m_clearElements = new QAction{tr("Clear selected elements"), this};
-  m_clearElements->setShortcut(
-      QKeySequence::Delete); // NOTE : the effective shortcut is in
-                             // CommonSelectionState.cpp
-  m_clearElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-  connect(m_clearElements, &QAction::triggered, [this]() {
-    auto& ctx = m_parent->currentDocument()->context();
-
-    if (auto sm = focusedScenarioModel(ctx))
-    {
-      Scenario::clearContentFromSelection(*sm, ctx.commandStack);
-    }
-    else if (auto si = focusedScenarioInterface(ctx))
-    {
-      Scenario::clearContentFromSelection(*si, ctx.commandStack);
-    }
   });
 
   // COPY/CUT
@@ -186,7 +183,6 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
   auto doc = parent->context.mainWindow.findChild<QWidget*>("Documents", Qt::FindDirectChildrenOnly);
   SCORE_ASSERT(doc);
   doc->addAction(m_removeElements);
-  doc->addAction(m_clearElements);
   doc->addAction(m_pasteElements);
 
 
@@ -236,7 +232,6 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
                                                     ScenarioDocumentModel>>();
 
   actions.add<Actions::RemoveElements>(m_removeElements);
-  actions.add<Actions::ClearElements>(m_clearElements);
   actions.add<Actions::CopyContent>(m_copyContent);
   actions.add<Actions::CutContent>(m_cutContent);
   actions.add<Actions::PasteContent>(m_pasteContent);
@@ -248,7 +243,6 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   scenariomodel_cond.add<Actions::MergeTimeSyncs>();
   scenariofocus_cond.add<Actions::PasteElements>();
 
-  scenarioiface_cond.add<Actions::ClearElements>();
   scenarioiface_cond.add<Actions::CopyContent>();
   scenarioiface_cond.add<Actions::CutContent>();
   scenarioiface_cond.add<Actions::PasteContent>();
@@ -257,7 +251,6 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   Menu& object = base_menus.at(Menus::Object());
   object.menu()->addAction(m_elementsToJson);
   object.menu()->addAction(m_removeElements);
-  object.menu()->addAction(m_clearElements);
   object.menu()->addSeparator();
   object.menu()->addAction(m_copyContent);
   object.menu()->addAction(m_cutContent);
@@ -305,7 +298,6 @@ void ObjectMenuActions::setupContextMenu(
 
       objectMenu->addAction(m_elementsToJson);
       objectMenu->addAction(m_removeElements);
-      objectMenu->addAction(m_clearElements);
       objectMenu->addSeparator();
 
       objectMenu->addAction(m_copyContent);
@@ -334,7 +326,6 @@ void ObjectMenuActions::setupContextMenu(
           auto objectMenu = menu.addMenu(tr("Object"));
 
           objectMenu->addAction(m_elementsToJson);
-          objectMenu->addAction(m_clearElements);
           objectMenu->addSeparator();
 
           objectMenu->addAction(m_copyContent);
