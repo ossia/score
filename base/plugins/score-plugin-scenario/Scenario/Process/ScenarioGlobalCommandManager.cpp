@@ -13,6 +13,8 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+
 #include <algorithm>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
@@ -23,6 +25,7 @@
 #include <score/model/EntityMap.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/tools/std/Optional.hpp>
+
 namespace score
 {
 class CommandStackFacade;
@@ -33,32 +36,43 @@ using namespace score::IDocument; // for ::path
 
 namespace Scenario
 {
-void clearContentFromSelection(
+bool clearContentFromSelection(
     const QList<const IntervalModel*>& intervalsToRemove,
     const QList<const StateModel*>& statesToRemove,
     const score::CommandStackFacade& stack)
 {
   MacroCommandDispatcher<ClearSelection> cleaner{stack};
 
+  bool flag = false;
+
   // Create a Clear command for each.
-  for (auto& interval : intervalsToRemove)
-  {
-    cleaner.submitCommand(new ClearInterval(*interval));
-  }
 
   for (auto& state : statesToRemove)
   {
-    cleaner.submitCommand(new ClearState(*state));
+    if (state->messages().rootNode().hasChildren() )
+    {
+      cleaner.submitCommand(new ClearState(*state));
+      flag = true;
+    }
+  }
+
+  for (auto& interval : intervalsToRemove)
+  {
+    cleaner.submitCommand(new ClearInterval(*interval));
+    // if a state and an interval are selected then remove event too
+    flag = false;
   }
 
   cleaner.commit();
+
+  return flag;
 }
 
-void clearContentFromSelection(
+bool clearContentFromSelection(
     const Scenario::ProcessModel& scenario,
     const score::CommandStackFacade& stack)
 {
-  clearContentFromSelection(
+  return clearContentFromSelection(
       selectedElements(scenario.intervals),
       selectedElements(scenario.states),
       stack);
@@ -99,34 +113,34 @@ void removeSelection(
   // Shall do nothing
 }
 
-void clearContentFromSelection(
+bool clearContentFromSelection(
     const BaseScenarioContainer& scenario,
     const score::CommandStackFacade& stack)
 {
-  QList<const Scenario::IntervalModel*> cst;
+  QList<const Scenario::IntervalModel*> itv;
   QList<const Scenario::StateModel*> states;
   if (scenario.interval().selection.get())
-    cst.push_back(&scenario.interval());
+    itv.push_back(&scenario.interval());
   if (scenario.startState().selection.get())
     states.push_back(&scenario.startState());
   if (scenario.endState().selection.get())
     states.push_back(&scenario.endState());
 
-  clearContentFromSelection(cst, states, stack);
+  return clearContentFromSelection(itv, states, stack);
 }
 
-void clearContentFromSelection(
+bool clearContentFromSelection(
     const BaseScenario& scenario, const score::CommandStackFacade& stack)
 {
-  clearContentFromSelection(
+  return clearContentFromSelection(
       static_cast<const BaseScenarioContainer&>(scenario), stack);
 }
 
-void clearContentFromSelection(
+bool clearContentFromSelection(
     const Scenario::ScenarioInterface& scenario,
     const score::CommandStackFacade& stack)
 {
-  clearContentFromSelection(
+  return clearContentFromSelection(
       selectedElements(scenario.getIntervals()),
       selectedElements(scenario.getStates()),
       stack);
