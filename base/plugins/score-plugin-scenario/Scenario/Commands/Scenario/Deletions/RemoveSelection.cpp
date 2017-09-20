@@ -55,6 +55,26 @@ RemoveSelection::RemoveSelection(
   // of the selected time syncs.
 
   Selection cp = sel;
+
+  bool do_nothing = true;
+
+  // if selection only contains TimeSync, do nothing
+  for (const auto& obj : cp)
+  {
+    if ( auto event = dynamic_cast<const EventModel*>(obj.data()) )
+    {
+      ;
+    }
+    else
+    {
+      do_nothing = false;
+    }
+  }
+
+  if (!do_nothing)
+  {
+
+  cp = sel;
   for (const auto& obj : cp)
   {
     if (auto state = dynamic_cast<const StateModel*>(obj.data()))
@@ -177,6 +197,7 @@ RemoveSelection::RemoveSelection(
       m_maybeRemovedTimeSyncs.push_back({tn->id(), arr});
     }
   }
+}
 }
 
 void RemoveSelection::undo(const score::DocumentContext& ctx) const
