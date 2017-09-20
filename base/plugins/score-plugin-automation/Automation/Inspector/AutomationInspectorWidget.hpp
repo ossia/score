@@ -5,6 +5,8 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <Automation/Color/GradientAutomModel.hpp>
 #include <Automation/Spline/SplineAutomModel.hpp>
+#include <Automation/Metronome/MetronomeModel.hpp>
+#include <Explorer/Widgets/AddressEditWidget.hpp>
 
 class QWidget;
 class QCheckBox;
@@ -99,6 +101,27 @@ private:
 
   Explorer::AddressAccessorEditWidget* m_lineEdit{};
   QCheckBox* m_tween{};
+
+  CommandDispatcher<> m_dispatcher;
+};
+}
+
+namespace Metronome
+{
+class ProcessModel;
+class InspectorWidget final
+    : public Process::InspectorWidgetDelegate_T<Metronome::ProcessModel>
+{
+public:
+  explicit InspectorWidget(
+      const ProcessModel& object,
+      const score::DocumentContext& context,
+      QWidget* parent);
+
+private:
+  void on_addressChange(const Device::FullAddressAccessorSettings& newText);
+
+  Explorer::AddressAccessorEditWidget* m_lineEdit{};
 
   CommandDispatcher<> m_dispatcher;
 };

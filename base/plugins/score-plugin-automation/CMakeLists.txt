@@ -24,6 +24,12 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Spline/SplineAutomView.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Spline/SplineAutomMetadata.hpp"
 
+  "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Metronome/MetronomeColors.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Metronome/MetronomeModel.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Metronome/MetronomePresenter.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Metronome/MetronomeView.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Metronome/MetronomeProcessMetadata.hpp"
+
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/AutomationCommandFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/ChangeAddress.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/InitAutomation.hpp"
@@ -51,6 +57,10 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Spline/SplineAutomModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Spline/SplineAutomPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Spline/SplineAutomView.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Automation/Metronome/MetronomeColors.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Automation/Metronome/MetronomeModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Automation/Metronome/MetronomeView.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/InitAutomation.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/ChangeAddress.cpp"

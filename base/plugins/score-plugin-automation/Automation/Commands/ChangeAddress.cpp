@@ -26,6 +26,8 @@
 
 #include <Automation/Spline/SplineAutomModel.hpp>
 
+#include <Automation/Metronome/MetronomeModel.hpp>
+
 namespace Automation
 {
 ChangeAddress::ChangeAddress(
@@ -171,4 +173,39 @@ void ChangeSplineAddress::deserializeImpl(DataStreamOutput& s)
   s >> m_path >> m_old >> m_new;
 }
 }
+
+
+namespace Metronome
+{
+ChangeMetronomeAddress::ChangeMetronomeAddress(
+    const ProcessModel& autom, const State::Address& newval)
+    : m_path{autom}
+    , m_old{autom.address()}
+    , m_new{newval}
+{
+}
+
+void ChangeMetronomeAddress::undo(const score::DocumentContext& ctx) const
+{
+  auto& autom = m_path.find(ctx);
+  autom.setAddress(m_old);
+}
+
+void ChangeMetronomeAddress::redo(const score::DocumentContext& ctx) const
+{
+  auto& autom = m_path.find(ctx);
+  autom.setAddress(m_new);
+}
+
+void ChangeMetronomeAddress::serializeImpl(DataStreamInput& s) const
+{
+  s << m_path << m_old << m_new;
+}
+
+void ChangeMetronomeAddress::deserializeImpl(DataStreamOutput& s)
+{
+  s >> m_path >> m_old >> m_new;
+}
+}
+
 
