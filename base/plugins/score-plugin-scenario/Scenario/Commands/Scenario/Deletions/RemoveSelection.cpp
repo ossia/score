@@ -58,12 +58,14 @@ RemoveSelection::RemoveSelection(
 
   bool do_nothing = true;
 
-  // if selection only contains TimeSync, do nothing
+  // if selection only contains TimeSync, remove Trigger or do nothing
   for (const auto& obj : cp)
   {
     if ( auto event = dynamic_cast<const EventModel*>(obj.data()) )
     {
-      ;
+      auto tn = scenar.findTimeSync(event->timeSync());
+      if (tn->active())
+        tn->setActive(false);
     }
     else
     {
