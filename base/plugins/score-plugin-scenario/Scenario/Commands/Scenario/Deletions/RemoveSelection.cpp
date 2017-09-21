@@ -56,27 +56,27 @@ RemoveSelection::RemoveSelection(
 
   Selection cp = sel;
 
-  bool do_nothing = true;
-
+  bool only_event = true;
+  bool has_condition = false;
   sel.clear();
-  // if selection only contains TimeSync, remove Trigger or do nothing
+  // remove TimeSync from selection to not delete it
+  // it will be added back later if it contains only one event
   for (const auto& obj : cp)
   {
-    if ( auto event = dynamic_cast<const EventModel*>(obj.data()) )
-    {
-      auto ts = scenar.findTimeSync(event->timeSync());
-      if (ts->active())
-        ts->setActive(false);
-    }
-    else if ( !dynamic_cast<const TimeSyncModel*>(obj.data()) )
+    if ( !dynamic_cast<const TimeSyncModel*>(obj.data()) )
     {
       sel.append(obj);
-      do_nothing = false;
+    }
+
+    if ( auto event = dynamic_cast<const EventModel*>(obj.data()) )
+    {
+      // TODO can we always select an event without selecting a state ?
+      if (event->condition() != State::Expression{})
+        has_condition = true;
+    } else {
+      only_event = false;
     }
   }
-
-  if (do_nothing)
-    return;
 
   cp = sel;
   for (const auto& obj : cp)
@@ -93,22 +93,26 @@ RemoveSelection::RemoveSelection(
 
   QList<TimeSyncModel*> maybeRemovedTimenodes;
 
-  cp = sel;
-  for (const auto& obj : cp) // Make a copy
-  {
-    if (auto event = dynamic_cast<const EventModel*>(obj.data()))
+  // if we only select a Events and at least one have a condition
+  // then remove only the condition
+  if ( !(only_event && has_condition) ){
+    cp = sel;
+    for (const auto& obj : cp) // Make a copy
     {
-      // TODO have scenario take something that takes a container of ids
-      // and return the corresponding elements.
-      for (const auto& state : event->states())
+      if (auto event = dynamic_cast<const EventModel*>(obj.data()))
       {
-        sel.append(&scenar.states.at(state));
-      }
+        // TODO have scenario take something that takes a container of ids
+        // and return the corresponding elements.
+        for (const auto& state : event->states())
+        {
+          sel.append(&scenar.states.at(state));
+        }
 
-      // This timesync may be removed if the event is alone.
-      auto tn = &scenar.timeSyncs.at(event->timeSync());
-      if (!sel.contains(tn))
-        maybeRemovedTimenodes.append(tn);
+        // This timesync may be removed if the event is alone.
+        auto tn = &scenar.timeSyncs.at(event->timeSync());
+        if (!sel.contains(tn))
+          maybeRemovedTimenodes.append(tn);
+      }
     }
   }
 
@@ -266,55 +270,66 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
   // Recreate first all the events / maybe removed timesyncs
   for (auto& event : events)
   {
-    // We have to make a copy at each iteration since each iteration
-    // might add a timesync.
-    auto timesyncs_in_scenar = shallow_copy(scenar.timeSyncs.map());
-    auto scenar_timesync_it = std::find(
-        timesyncs_in_scenar.begin(),
-        timesyncs_in_scenar.end(),
-        event->timeSync());
-    if (scenar_timesync_it != timesyncs_in_scenar.end())
-    {
-      // The timesync already exists
-      // Hence we don't need the one we serialized.
-      auto to_delete = std::find(
-          maybeTimenodes.begin(), maybeTimenodes.end(), event->timeSync());
 
-      // TODO why do we need to check for this ? SCORE_ASSERT sometime
-      // fails...
-      if (to_delete != maybeTimenodes.end())
+    // first check if the node is already present
+    auto ev = scenar.findEvent(event->id());
+
+    if (ev)
+    {
+      // if so, reset it's condition
+      ev->setCondition(event->condition());
+    } else {
+
+      // We have to make a copy at each iteration since each iteration
+      // might add a timesync.
+      auto timesyncs_in_scenar = shallow_copy(scenar.timeSyncs.map());
+      auto scenar_timesync_it = std::find(
+                                  timesyncs_in_scenar.begin(),
+                                  timesyncs_in_scenar.end(),
+                                  event->timeSync());
+      if (scenar_timesync_it != timesyncs_in_scenar.end())
       {
-        delete *to_delete;
-        maybeTimenodes.erase(to_delete);
+        // The timesync already exists
+        // Hence we don't need the one we serialized.
+        auto to_delete = std::find(
+                           maybeTimenodes.begin(), maybeTimenodes.end(), event->timeSync());
+
+        // TODO why do we need to check for this ? SCORE_ASSERT sometime
+        // fails...
+        if (to_delete != maybeTimenodes.end())
+        {
+          delete *to_delete;
+          maybeTimenodes.erase(to_delete);
+        }
+
+        // We can add our event to the scenario.
+        scenar.events.add(event);
+
+        // Maybe this shall be done after everything has been added to prevent
+        // problems ?
+        (*scenar_timesync_it)->addEvent(event->id());
       }
+      else
+      {
+        // We have to insert the timesync that was removed.
+        auto removed_timesync_it = std::find(
+                                     maybeTimenodes.begin(), maybeTimenodes.end(), event->timeSync());
+        SCORE_ASSERT(removed_timesync_it != maybeTimenodes.end());
+        TimeSyncModel* timeSync = *removed_timesync_it;
 
-      // We can add our event to the scenario.
-      scenar.events.add(event);
+        maybeTimenodes.erase(removed_timesync_it);
 
-      // Maybe this shall be done after everything has been added to prevent
-      // problems ?
-      (*scenar_timesync_it)->addEvent(event->id());
-    }
-    else
-    {
-      // We have to insert the timesync that was removed.
-      auto removed_timesync_it = std::find(
-          maybeTimenodes.begin(), maybeTimenodes.end(), event->timeSync());
-      SCORE_ASSERT(removed_timesync_it != maybeTimenodes.end());
-      TimeSyncModel* timeSync = *removed_timesync_it;
+        // First, since the event is not yet in the scenario
+        // we remove it from the timesync since it might crash
+        timeSync->removeEvent(event->id());
 
-      maybeTimenodes.erase(removed_timesync_it);
+        // And we add the timesync
+        scenar.timeSyncs.add(timeSync);
 
-      // First, since the event is not yet in the scenario
-      // we remove it from the timesync since it might crash
-      timeSync->removeEvent(event->id());
-
-      // And we add the timesync
-      scenar.timeSyncs.add(timeSync);
-
-      // We can re-add the event.
-      scenar.events.add(event);
-      timeSync->addEvent(event->id());
+        // We can re-add the event.
+        scenar.events.add(event);
+        timeSync->addEvent(event->id());
+      }
     }
   }
 
@@ -364,10 +379,22 @@ void RemoveSelection::redo(const score::DocumentContext& ctx) const
   }
 
   // The other things
-  for (const auto& ev : m_removedEvents)
+  if (   m_removedIntervals.empty()
+      && m_removedComments.empty()
+      && m_removedStates.empty() )
   {
-    StandardRemovalPolicy::removeEventStatesAndIntervals(scenar, ev.first);
+    for (const auto& ev : m_removedEvents)
+    {
+      auto e = scenar.findEvent(ev.first);
+      e->setCondition({});
+    }
+  } else {
+    for (const auto& ev : m_removedEvents)
+    {
+      StandardRemovalPolicy::removeEventStatesAndIntervals(scenar, ev.first);
+    }
   }
+
 
   for (const auto& cmt : m_removedComments)
   {
