@@ -58,23 +58,25 @@ RemoveSelection::RemoveSelection(
 
   bool do_nothing = true;
 
+  sel.clear();
   // if selection only contains TimeSync, remove Trigger or do nothing
   for (const auto& obj : cp)
   {
     if ( auto event = dynamic_cast<const EventModel*>(obj.data()) )
     {
-      auto tn = scenar.findTimeSync(event->timeSync());
-      if (tn->active())
-        tn->setActive(false);
+      auto ts = scenar.findTimeSync(event->timeSync());
+      if (ts->active())
+        ts->setActive(false);
     }
-    else
+    else if ( !dynamic_cast<const TimeSyncModel*>(obj.data()) )
     {
+      sel.append(obj);
       do_nothing = false;
     }
   }
 
-  if (!do_nothing)
-  {
+  if (do_nothing)
+    return;
 
   cp = sel;
   for (const auto& obj : cp)
@@ -89,19 +91,8 @@ RemoveSelection::RemoveSelection(
     }
   }
 
-  cp = sel;
-  for (const auto& obj : cp)
-  {
-    if (auto tn = dynamic_cast<const TimeSyncModel*>(obj.data()))
-    {
-      for (const auto& ev : tn->events())
-      {
-        sel.append(&scenar.events.at(ev));
-      }
-    }
-  }
-
   QList<TimeSyncModel*> maybeRemovedTimenodes;
+
   cp = sel;
   for (const auto& obj : cp) // Make a copy
   {
@@ -199,7 +190,6 @@ RemoveSelection::RemoveSelection(
       m_maybeRemovedTimeSyncs.push_back({tn->id(), arr});
     }
   }
-}
 }
 
 void RemoveSelection::undo(const score::DocumentContext& ctx) const
