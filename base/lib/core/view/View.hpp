@@ -11,10 +11,10 @@ class QEvent;
 class QObject;
 class QTabWidget;
 
-#include <iscore/model/Identifier.hpp>
-#include <iscore_lib_base_export.h>
+#include <score/model/Identifier.hpp>
+#include <score_lib_base_export.h>
 
-namespace iscore
+namespace score
 {
 class DocumentModel;
 class DocumentView;
@@ -25,7 +25,7 @@ struct ApplicationContext;
 /**
  * @brief The main display of the application.
  */
-class ISCORE_LIB_BASE_EXPORT View final : public QMainWindow
+class SCORE_LIB_BASE_EXPORT View final : public QMainWindow
 {
   Q_OBJECT
 public:
@@ -33,10 +33,10 @@ public:
 
   void setPresenter(Presenter*);
 
-  void addDocumentView(iscore::DocumentView*);
+  void addDocumentView(score::DocumentView*);
   void setupPanel(PanelDelegate* v);
 
-  void closeDocument(iscore::DocumentView* doc);
+  void closeDocument(score::DocumentView* doc);
   void restoreLayout();
   void closeEvent(QCloseEvent*) override;
 

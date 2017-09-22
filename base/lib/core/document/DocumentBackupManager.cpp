@@ -11,26 +11,27 @@
 #include "DocumentBackupManager.hpp"
 #include <core/application/CommandBackupFile.hpp>
 
-iscore::DocumentBackupManager::DocumentBackupManager(iscore::Document& doc)
+score::DocumentBackupManager::DocumentBackupManager(score::Document& doc)
     : QObject{&doc}
+    , m_doc{doc}
 {
   m_modelFile.open();
 
   m_commandFile = new CommandBackupFile{doc.commandStack(), this};
 }
 
-iscore::DocumentBackupManager::~DocumentBackupManager()
+score::DocumentBackupManager::~DocumentBackupManager()
 {
   QSettings s(OpenDocumentsFile::path(), QSettings::IniFormat);
-  auto existing_files = s.value("iscore/docs").toStringList();
+  auto existing_files = s.value("score/docs").toStringList();
   existing_files.removeOne(crashDataFile().fileName());
-  s.setValue("iscore/docs", existing_files);
+  s.setValue("score/docs", existing_files);
 
   QFile(crashDataFile().fileName()).remove();
   QFile(crashCommandFile().fileName()).remove();
 }
 
-void iscore::DocumentBackupManager::saveModelData(const QByteArray& arr)
+void score::DocumentBackupManager::saveModelData(const QByteArray& arr)
 {
   m_modelFile.resize(0);
   m_modelFile.reset();
@@ -38,23 +39,24 @@ void iscore::DocumentBackupManager::saveModelData(const QByteArray& arr)
   m_modelFile.flush();
 }
 
-QTemporaryFile& iscore::DocumentBackupManager::crashDataFile()
+QTemporaryFile& score::DocumentBackupManager::crashDataFile()
 {
   return m_modelFile;
 }
 
-iscore::CommandBackupFile& iscore::DocumentBackupManager::crashCommandFile()
+score::CommandBackupFile& score::DocumentBackupManager::crashCommandFile()
 {
   return *m_commandFile;
 }
 
-void iscore::DocumentBackupManager::updateBackupData()
+void score::DocumentBackupManager::updateBackupData()
 {
   // Save the initial state of the document
-  QSettings s{iscore::OpenDocumentsFile::path(), QSettings::IniFormat};
+  QSettings s{score::OpenDocumentsFile::path(), QSettings::IniFormat};
 
-  auto existing_files = s.value("iscore/docs").toMap();
+  auto existing_files = s.value("score/docs").toMap();
   existing_files.insert(
-      crashDataFile().fileName(), crashCommandFile().fileName());
-  s.setValue("iscore/docs", existing_files);
+      crashDataFile().fileName(),
+      QVariant::fromValue(qMakePair(m_doc.metadata().fileName(), crashCommandFile().fileName())));
+  s.setValue("score/docs", existing_files);
 }

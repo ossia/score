@@ -1,2 +1,2 @@
 include(debug)
-set(ISCORE_STATIC_PLUGINS True)
+set(SCORE_STATIC_PLUGINS True)

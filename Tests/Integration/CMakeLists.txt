@@ -5,7 +5,7 @@ enable_testing()
 
 function(addIntegrationTest TESTNAME TESTSRCS)
     add_executable(Integration_${TESTNAME} ${TESTSRCS})
-    target_link_libraries(Integration_${TESTNAME} iscore_integration_lib)
+    target_link_libraries(Integration_${TESTNAME} score_integration_lib)
     add_test(Integration_${TESTNAME}_target Integration_${TESTNAME})
 endFunction()
 

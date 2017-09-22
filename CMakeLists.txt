@@ -11,12 +11,12 @@ set(CMAKE_PREFIX_PATH
   "${CMAKE_PREFIX_PATH}"
   "${CMAKE_MODULE_PATH}")
 
-if(NOT ISCORE_CONFIGURATION)
-  set(ISCORE_CONFIGURATION developer)
+if(NOT SCORE_CONFIGURATION)
+  set(SCORE_CONFIGURATION developer)
 endif()
-include("${ISCORE_CONFIGURATION}")
+include("${SCORE_CONFIGURATION}")
 
-project(iscore LANGUAGES C CXX)
+project(score LANGUAGES C CXX)
 
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
@@ -25,30 +25,30 @@ cmake_policy(SET CMP0042 NEW)
 cmake_policy(SET CMP0053 NEW)
 cmake_policy(SET CMP0063 NEW)
 
-set(ISCORE_VERSION_MAJOR 1)
-set(ISCORE_VERSION_MINOR 0)
-set(ISCORE_VERSION_PATCH 0)
-set(ISCORE_VERSION_EXTRA b31)
-set(ISCORE_CODENAME "Granola")
-set(ISCORE_VERSION "${ISCORE_VERSION_MAJOR}.${ISCORE_VERSION_MINOR}.${ISCORE_VERSION_PATCH}-${ISCORE_VERSION_EXTRA}")
+set(SCORE_VERSION_MAJOR 1)
+set(SCORE_VERSION_MINOR 0)
+set(SCORE_VERSION_PATCH 0)
+set(SCORE_VERSION_EXTRA b37)
+set(SCORE_CODENAME "yada yada tu connais la routine")
+set(SCORE_VERSION "${SCORE_VERSION_MAJOR}.${SCORE_VERSION_MINOR}.${SCORE_VERSION_PATCH}-${SCORE_VERSION_EXTRA}")
 
 enable_testing()
 include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreFunctions.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreConfiguration.cmake")
 
 # OSSIA API-specific configuration
-if(ISCORE_SANITIZE)
+if(SCORE_SANITIZE)
     set(OSSIA_SANITIZE True CACHE INTERNAL "" FORCE)
 endif()
-if(ISCORE_SPLIT_DEBUG)
+if(SCORE_SPLIT_DEBUG)
   set(OSSIA_SPLIT_DEBUG True CACHE INTERNAL "" FORCE)
 else()
   set(OSSIA_SPLIT_DEBUG False CACHE INTERNAL "" FORCE)
 endif()
-if(ISCORE_STATIC_PLUGINS)
+if(SCORE_STATIC_PLUGINS)
     set(OSSIA_STATIC ON CACHE INTERNAL "" FORCE)
 endif()
-if(ISCORE_ENABLE_LTO)
+if(SCORE_ENABLE_LTO)
     set(OSSIA_LTO ON CACHE INTERNAL "" FORCE)
 endif()
 set(OSSIA_NO_INSTALL ON CACHE INTERNAL "" FORCE)
@@ -70,9 +70,9 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Gui Network Xml Svg Test Q
 
 set(3RDPARTY_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/")
 set(OSSIA_3RDPARTY_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/API/3rdparty")
-set(ISCORE_ROOT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
-set(ISCORE_ROOT_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")
-include_directories("${ISCORE_ROOT_BINARY_DIR}")
+set(SCORE_ROOT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+set(SCORE_ROOT_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+include_directories("${SCORE_ROOT_BINARY_DIR}")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/variant/include")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/nano-signal-slot")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/brigand")
@@ -86,23 +86,23 @@ set(SKIP_INSTALL_ALL True) # For zlib to not install anything
 add_subdirectory("${3RDPARTY_FOLDER}/zlib" EXCLUDE_FROM_ALL)
 add_subdirectory("${3RDPARTY_FOLDER}/quazip" EXCLUDE_FROM_ALL)
 
-set(ISCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins") # todo libraries, components ?
-set(ISCORE_GLOBAL_COMPONENTS_LIST CACHE INTERNAL "List of components") # todo libraries, components ?
+set(SCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins") # todo libraries, components ?
+set(SCORE_GLOBAL_COMPONENTS_LIST CACHE INTERNAL "List of components") # todo libraries, components ?
 
 add_subdirectory(base)
-set(ISCORE_TESTBED OFF)
-if(ISCORE_TESTBED)
+set(SCORE_TESTBED OFF)
+if(SCORE_TESTBED)
 add_subdirectory(Tests/testbed)
 endif()
 
-add_custom_target(Docs SOURCES Documentation/Models/i-score.qmodel)
+add_custom_target(Docs SOURCES Documentation/Models/score.qmodel)
 #if(INTEGRATION_TESTING)
 
  #       include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Tests")
  #       file(GLOB_RECURSE TESTS_HDRS
  #               "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.hpp")
   #      add_custom_target(MocksHeaders SOURCES ${TESTS_HDRS})
-  #  setup_iscore_tests(Tests/Integration)
+  #  setup_score_tests(Tests/Integration)
 #endif()
 
 #include(CTest)

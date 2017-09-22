@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <psapi.h>
 #endif
-namespace iscore
+namespace score
 {
 
 #if defined(__linux__)

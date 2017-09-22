@@ -2,35 +2,35 @@
 #include <core/application/ApplicationInterface.hpp>
 #include <core/application/ApplicationSettings.hpp>
 
-namespace iscore {
+namespace score {
 class Settings;
 class View;
 class Presenter;
-}  // namespace iscore
+}  // namespace score
 
 class QApplication;
 
 class TestApplication final :
         public QObject,
-        public iscore::GUIApplicationInterface
+        public score::GUIApplicationInterface
 {
     public:
         TestApplication(int& argc, char** argv);
         ~TestApplication();
 
-        const iscore::GUIApplicationContext& context() const override;
-        const iscore::ApplicationComponents& components() const override
+        const score::GUIApplicationContext& context() const override;
+        const score::ApplicationComponents& components() const override
         { return context().components; }
 
         int exec();
 
         // Base stuff.
         QApplication* m_app;
-        std::unique_ptr<iscore::Settings> m_settings; // Global settings
+        std::unique_ptr<score::Settings> m_settings; // Global settings
 
         // MVP
-        iscore::View* m_view {};
-        iscore::Presenter* m_presenter {};
+        score::View* m_view {};
+        score::Presenter* m_presenter {};
 
-        iscore::ApplicationSettings m_applicationSettings;
+        score::ApplicationSettings m_applicationSettings;
 };

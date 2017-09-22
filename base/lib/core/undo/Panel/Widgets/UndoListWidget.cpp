@@ -4,16 +4,16 @@
 #include <core/command/CommandStack.hpp>
 
 #include "UndoListWidget.hpp"
-#include <iscore/command/Command.hpp>
+#include <score/command/Command.hpp>
 
-namespace iscore
+namespace score
 {
-UndoListWidget::UndoListWidget(iscore::CommandStack& s) : m_stack{s}
+UndoListWidget::UndoListWidget(score::CommandStack& s) : m_stack{s}
 {
   on_stackChanged();
 
-  con(m_stack, &iscore::CommandStack::stackChanged, this,
-      &iscore::UndoListWidget::on_stackChanged);
+  con(m_stack, &score::CommandStack::stackChanged, this,
+      &score::UndoListWidget::on_stackChanged);
   connect(
       this, &QListWidget::currentRowChanged, &m_stack,
       &CommandStack::setIndex);

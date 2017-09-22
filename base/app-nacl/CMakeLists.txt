@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.0)
-project(iscore_app LANGUAGES CXX)
+project(score_app LANGUAGES CXX)
 
 enable_testing()
-set(APPNAME "i-score-pnacl")
+set(APPNAME "score-pnacl")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
-iscore_write_static_plugins_header()
+score_write_static_plugins_header()
 
 # Find dependencies
 get_target_property(QtCore_LIB Qt5::Core LOCATION)
@@ -27,8 +27,8 @@ add_executable(${APPNAME} ${SRCS})
 
 target_compile_options(${APPNAME} PUBLIC -Wl,--undefined=PSUserCreateInstance)
 target_link_libraries(${APPNAME} PRIVATE
-    iscore_lib_base
-    ${ISCORE_PLUGINS_LIST}
+    score_lib_base
+    ${SCORE_PLUGINS_LIST}
     Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Network Qt5::Svg Qt5::Xml
     m pthread
 
@@ -43,7 +43,7 @@ target_link_libraries(${APPNAME} PRIVATE
 )
 
 
-setup_iscore_common_exe_features(${APPNAME})
+setup_score_common_exe_features(${APPNAME})
 
 install(TARGETS ${APPNAME}
   BUNDLE DESTINATION .

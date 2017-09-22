@@ -1,3 +1,3 @@
 include(static-debug)
-set(ISCORE_COTIRE False)
-set(ISCORE_PLAYER True)
+set(SCORE_COTIRE False)
+set(SCORE_PLAYER True)

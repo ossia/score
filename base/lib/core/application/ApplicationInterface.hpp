@@ -1,7 +1,7 @@
 #pragma once
-#include <iscore/application/GUIApplicationContext.hpp>
-#include <iscore_lib_base_export.h>
-namespace iscore
+#include <score/application/GUIApplicationContext.hpp>
+#include <score_lib_base_export.h>
+namespace score
 {
 class Settings;
 class Presenter;
@@ -12,13 +12,13 @@ struct GUIApplicationContext;
  * @brief The ApplicationInterface class
  *
  * This class provides an interface that should be implemented
- * and instantiated exactly once. In the main i-score application,
+ * and instantiated exactly once. In the main score application,
  * this is the \ref Application class.
  *
  * This class **SHALL** set the ApplicationInterface::m_instance member.
  *
  */
-class ISCORE_LIB_BASE_EXPORT ApplicationInterface
+class SCORE_LIB_BASE_EXPORT ApplicationInterface
 {
 public:
   ApplicationInterface();
@@ -36,7 +36,7 @@ protected:
 };
 
 
-class ISCORE_LIB_BASE_EXPORT GUIApplicationInterface : public ApplicationInterface
+class SCORE_LIB_BASE_EXPORT GUIApplicationInterface : public ApplicationInterface
 {
 public:
   using ApplicationInterface::ApplicationInterface;
@@ -59,9 +59,9 @@ public:
    * all the base functions of the software will work correctly.
    */
   void loadPluginData(
-      const iscore::GUIApplicationContext& ctx,
-      iscore::GUIApplicationRegistrar&,
-      iscore::Settings& m_settings,
-      iscore::Presenter& m_presenter);
+      const score::GUIApplicationContext& ctx,
+      score::GUIApplicationRegistrar&,
+      score::Settings& m_settings,
+      score::Presenter& m_presenter);
 };
 }

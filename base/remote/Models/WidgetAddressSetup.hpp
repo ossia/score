@@ -74,7 +74,7 @@ struct SetSliderAddress
     // TODO
   }
 
-  void operator()(const State::tuple_t& c)
+  void operator()(const State::list_t& c)
   {
     // TODO
   }
@@ -128,7 +128,7 @@ struct SetCheckboxAddress
     // TODO
   }
 
-  void operator()(const State::tuple_t& c)
+  void operator()(const State::list_t& c)
   {
     // TODO
   }
@@ -182,7 +182,7 @@ struct SetLineEditAddress
                      &item, SLOT(on_parsableValueChanged(QString)));
   }
 
-  void operator()(const State::tuple_t& c)
+  void operator()(const State::list_t& c)
   {
     item.m_connection = QObject::connect(item.item(), SIGNAL(textChange(QString)),
                      &item, SLOT(on_parsableValueChanged(QString)));
@@ -237,10 +237,10 @@ struct SetLabelAddress
         .write("Array" + QString::fromStdString(ossia::convert<std::string>(c)));
   }
 
-  void operator()(const State::tuple_t& c)
+  void operator()(const State::list_t& c)
   {
     QQmlProperty(item.item(), "text.text")
-        .write("Tuple" + State::convert::value<QString>(ossia::value::fromValue(c)));
+        .write("List" + State::convert::value<QString>(ossia::value::fromValue(c)));
   }
 };
 

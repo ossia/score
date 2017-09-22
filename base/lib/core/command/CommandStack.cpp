@@ -5,13 +5,13 @@
 #include <core/command/CommandStack.hpp>
 
 #include <core/document/Document.hpp>
-#include <iscore/command/Command.hpp>
-#include <iscore/command/Validity/ValidityChecker.hpp>
-#include <iscore/document/DocumentContext.hpp>
-namespace iscore
+#include <score/command/Command.hpp>
+#include <score/command/Validity/ValidityChecker.hpp>
+#include <score/document/DocumentContext.hpp>
+namespace score
 {
-CommandStack::CommandStack(const iscore::Document& ctx, QObject* parent)
-    : m_checker{iscore::AppComponents().interfaces<ValidityCheckerList>(),
+CommandStack::CommandStack(const score::Document& ctx, QObject* parent)
+    : m_checker{score::AppComponents().interfaces<ValidityCheckerList>(),
                 ctx}
     , m_ctx{ctx.context()}
 {

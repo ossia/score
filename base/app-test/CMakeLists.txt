@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(iscore_testapp LANGUAGES CXX)
+project(score_testapp LANGUAGES CXX)
 
 enable_testing()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
@@ -13,27 +13,27 @@ set(SRCS
 
 
 
-add_executable(iscore_testapp ${SRCS})
+add_executable(score_testapp ${SRCS})
 
-target_link_libraries(iscore_testapp PRIVATE iscore_lib_base ${ISCORE_PLUGINS_LIST}
+target_link_libraries(score_testapp PRIVATE score_lib_base ${SCORE_PLUGINS_LIST}
     Qt5::Core Qt5::Widgets Qt5::Gui Qt5::Network Qt5::Xml Qt5::Svg Qt5::Test)
 
-if(ISCORE_STATIC_PLUGINS)
-  iscore_write_static_plugins_header()
-  target_link_libraries(iscore_testapp PUBLIC ${ISCORE_PLUGINS_LIST})
+if(SCORE_STATIC_PLUGINS)
+  score_write_static_plugins_header()
+  target_link_libraries(score_testapp PUBLIC ${SCORE_PLUGINS_LIST})
 endif()
 
-setup_iscore_common_exe_features(iscore_testapp)
+setup_score_common_exe_features(score_testapp)
 
 setup_target_for_coverage(
-    iscore_test_coverage
-    iscore_testapp
+    score_test_coverage
+    score_testapp
     coverage_out)
 
 
-if(TARGET iscore_testapp_unity)
+if(TARGET score_testapp_unity)
     setup_target_for_coverage(
-        iscore_test_coverage_unity
-        iscore_testapp_unity
+        score_test_coverage_unity
+        score_testapp_unity
         coverage)
 endif()

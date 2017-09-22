@@ -1,9 +1,9 @@
 #pragma once
 #include <core/command/CommandStack.hpp>
-#include <iscore/document/DocumentContext.hpp>
-#include <iscore/locking/ObjectLocker.hpp>
-#include <iscore/selection/FocusManager.hpp>
-#include <iscore/selection/SelectionStack.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/locking/ObjectLocker.hpp>
+#include <score/selection/FocusManager.hpp>
+#include <score/selection/SelectionStack.hpp>
 
 #include <QByteArray>
 #include <QJsonObject>
@@ -14,14 +14,14 @@
 
 class QObject;
 class QWidget;
-namespace iscore
+namespace score
 {
 class DocumentBackupManager;
-} // namespace iscore
-#include <iscore/model/Identifier.hpp>
-#include <iscore_lib_base_export.h>
+} // namespace score
+#include <score/model/Identifier.hpp>
+#include <score_lib_base_export.h>
 
-namespace iscore
+namespace score
 {
 class DocumentDelegateFactory;
 class DocumentModel;
@@ -32,14 +32,14 @@ class DocumentView;
  * @brief The Document class is the central part of the software.
  *
  * It is similar to the opened file in Word for instance, this is the
- * data on which i-score operates, further defined by the plugins.
+ * data on which score operates, further defined by the plugins.
  *
  * It has ownership on the useful classes for document edition and display :
  * * Selection handling
  * * Command stack
  * * etc...
  */
-class ISCORE_LIB_BASE_EXPORT Document final : public QObject
+class SCORE_LIB_BASE_EXPORT Document final : public QObject
 {
   Q_OBJECT
   friend class DocumentBuilder;
@@ -121,6 +121,7 @@ public:
 
   // Load without creating presenter and view
   Document(
+      const QString& name,
       const QVariant& data,
       DocumentDelegateFactory& type,
       QObject* parent);
@@ -135,6 +136,7 @@ private:
       QObject* parent);
 
   Document(
+      const QString& name,
       const QVariant& data,
       DocumentDelegateFactory& type,
       QWidget* parentview,
@@ -159,6 +161,6 @@ private:
   DocumentContext m_context;
 
   bool m_virgin{false}; // Used to check if we can safely close it
-  // if we want to load a document instead upon opening i-score.
+  // if we want to load a document instead upon opening score.
 };
 }

@@ -16,11 +16,11 @@ git_pull_rebase_helper()
 }
 
 # Install required libs
-wget -nv https://github.com/OSSIA/iscore-sdk/releases/download/sdk8/iscore-linux-sdk.tgz -O i-score-sdk.txz
-tar -xaf i-score-sdk.txz --directory /
+wget -nv https://github.com/OSSIA/score-sdk/releases/download/sdk8/iscore-linux-sdk.tgz -O score-sdk.txz
+tar -xaf score-sdk.txz --directory /
 cp -rf /usr/local/lib64/* /usr/lib64/
 
-export BOOST_VER=64
+export BOOST_VER=65
 wget -nv "http://downloads.sourceforge.net/project/boost/boost/1.${BOOST_VER}.0/boost_1_${BOOST_VER}_0.tar.bz2"
 tar -xaf "boost_1_${BOOST_VER}_0.tar.bz2"
 mv "boost_1_${BOOST_VER}_0" boost

@@ -3,11 +3,11 @@
 #include <core/settings/Settings.hpp>
 #include <core/settings/SettingsPresenter.hpp>
 #include <core/settings/SettingsView.hpp>
-#include <iscore/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
-#include <iscore/plugins/settingsdelegate/SettingsDelegateModel.hpp>
-#include <iscore/plugins/settingsdelegate/SettingsDelegateView.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 
-namespace iscore
+namespace score
 {
 Settings::Settings()
     : m_settingsView{new SettingsView(nullptr)}
@@ -27,7 +27,7 @@ Settings::~Settings()
 
 void Settings::setupSettingsPlugin(
     QSettings& s,
-    const iscore::ApplicationContext& ctx,
+    const score::ApplicationContext& ctx,
     SettingsDelegateFactory& plugin)
 {
   auto model = plugin.makeModel(s, ctx);

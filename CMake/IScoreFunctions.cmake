@@ -9,20 +9,20 @@ include(IScoreTargetSetup)
 # soit générer un gros projet qui contient tout ? attention si des plug-ins ont
 # des dépendances sur d'autres plug-ins... (générer les deps automatiquement)
 
-function(iscore_add_component Name Sources Headers Dependencies Version Uuid)
+function(score_add_component Name Sources Headers Dependencies Version Uuid)
   foreach(target ${Dependencies})
     if(NOT TARGET ${target})
       return()
     endif()
   endforeach()
 
-  set(ISCORE_GLOBAL_COMPONENTS_LIST
-        ${ISCORE_GLOBAL_COMPONENTS_LIST} ${Name}
+  set(SCORE_GLOBAL_COMPONENTS_LIST
+        ${SCORE_GLOBAL_COMPONENTS_LIST} ${Name}
         CACHE INTERNAL "List of components")
 
-  iscore_parse_components(${Name} ${Headers})
+  score_parse_components(${Name} ${Headers})
 
-  if(ISCORE_MERGE_COMPONENTS)
+  if(SCORE_MERGE_COMPONENTS)
     # We create a fake library that will be instantiated in component-wrapper
     add_library(${Name} INTERFACE)
     target_include_directories(${Name} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
@@ -30,22 +30,22 @@ function(iscore_add_component Name Sources Headers Dependencies Version Uuid)
     target_link_libraries(${Name} INTERFACE ${Dependencies})
 
     get_property(ComponentAbstractFactoryList GLOBAL
-                 PROPERTY ISCORE_${Name}_AbstractFactoryList)
+                 PROPERTY SCORE_${Name}_AbstractFactoryList)
     get_property(ComponentFactoryList GLOBAL
-                 PROPERTY ISCORE_${Name}_ConcreteFactoryList)
+                 PROPERTY SCORE_${Name}_ConcreteFactoryList)
     get_property(ComponentFactoryFileList GLOBAL
-                 PROPERTY ISCORE_${Name}_FactoryFileList)
+                 PROPERTY SCORE_${Name}_FactoryFileList)
 
     set_target_properties(${Name} PROPERTIES
-      INTERFACE_ISCORE_COMPONENT_AbstractFactory_List ${ComponentAbstractFactoryList}
-      INTERFACE_ISCORE_COMPONENT_ConcreteFactory_List ${ComponentFactoryList}
-      INTERFACE_ISCORE_COMPONENT_Factory_Files ${ComponentFactoryFileList}
-      INTERFACE_ISCORE_COMPONENT_Version ${Version}
-      INTERFACE_ISCORE_COMPONENT_Key ${Uuid}
+      INTERFACE_SCORE_COMPONENT_AbstractFactory_List ${ComponentAbstractFactoryList}
+      INTERFACE_SCORE_COMPONENT_ConcreteFactory_List ${ComponentFactoryList}
+      INTERFACE_SCORE_COMPONENT_Factory_Files ${ComponentFactoryFileList}
+      INTERFACE_SCORE_COMPONENT_Version ${Version}
+      INTERFACE_SCORE_COMPONENT_Key ${Uuid}
       )
   else()
     # concrete library
-    iscore_generate_plugin_file(${Name} ${Headers} ${Version} ${Uuid})
+    score_generate_plugin_file(${Name} ${Headers} ${Version} ${Uuid})
     add_library(${Name}
         ${Sources} ${Headers}
         "${CMAKE_CURRENT_BINARY_DIR}/${Name}_plugin.cpp"
@@ -54,20 +54,20 @@ function(iscore_add_component Name Sources Headers Dependencies Version Uuid)
 
     target_link_libraries(${Name} PUBLIC ${Dependencies})
 
-    setup_iscore_plugin(${Name})
+    setup_score_plugin(${Name})
   endif()
 endfunction()
 
-function(iscore_parse_components TargetName Headers)
+function(score_parse_components TargetName Headers)
   # Initialize our lists
   set(ComponentAbstractFactoryList)
   set(ComponentFactoryList)
   set(ComponentFactoryFileList)
 
-  # First look for the ISCORE_CONCRETE_COMPONENT_FACTORY(...) ones
+  # First look for the SCORE_CONCRETE_COMPONENT_FACTORY(...) ones
   foreach(header ${Headers})
       file(READ "${header}" fileContent)
-      string(REGEX MATCHALL "ISCORE_CONCRETE_COMPONENT_FACTORY\\([A-Za-z_0-9\,\:\r\n\t ]*\\)" fileContent "${fileContent}")
+      string(REGEX MATCHALL "SCORE_CONCRETE_COMPONENT_FACTORY\\([A-Za-z_0-9\,\:\r\n\t ]*\\)" fileContent "${fileContent}")
 
       foreach(fileLine ${fileContent})
           string(REPLACE "\n" "" fileLine "${fileLine}")
@@ -75,7 +75,7 @@ function(iscore_parse_components TargetName Headers)
 
           string(STRIP "${fileLine}" strippedLine)
 
-          string(REPLACE "ISCORE_CONCRETE_COMPONENT_FACTORY(" "" strippedLine ${strippedLine})
+          string(REPLACE "SCORE_CONCRETE_COMPONENT_FACTORY(" "" strippedLine ${strippedLine})
           string(REPLACE ")" "" strippedLine ${strippedLine})
           string(REPLACE "," ";" lineAsList ${strippedLine})
           list(GET lineAsList 0 AbstractClassName)
@@ -97,15 +97,15 @@ function(iscore_parse_components TargetName Headers)
 
   endforeach()
 
-  set_property(GLOBAL PROPERTY ISCORE_${TargetName}_AbstractFactoryList ${ComponentAbstractFactoryList})
-  set_property(GLOBAL PROPERTY ISCORE_${TargetName}_ConcreteFactoryList ${ComponentFactoryList})
-  set_property(GLOBAL PROPERTY ISCORE_${TargetName}_FactoryFileList ${ComponentFactoryFileList})
+  set_property(GLOBAL PROPERTY SCORE_${TargetName}_AbstractFactoryList ${ComponentAbstractFactoryList})
+  set_property(GLOBAL PROPERTY SCORE_${TargetName}_ConcreteFactoryList ${ComponentFactoryList})
+  set_property(GLOBAL PROPERTY SCORE_${TargetName}_FactoryFileList ${ComponentFactoryFileList})
 endfunction()
 
-function(iscore_generate_plugin_file TargetName Headers Version Uuid)
-    get_property(ComponentAbstractFactoryList GLOBAL PROPERTY ISCORE_${TargetName}_AbstractFactoryList)
-    get_property(ComponentFactoryList GLOBAL PROPERTY ISCORE_${TargetName}_ConcreteFactoryList)
-    get_property(ComponentFactoryFileList GLOBAL PROPERTY ISCORE_${TargetName}_FactoryFileList)
+function(score_generate_plugin_file TargetName Headers Version Uuid)
+    get_property(ComponentAbstractFactoryList GLOBAL PROPERTY SCORE_${TargetName}_AbstractFactoryList)
+    get_property(ComponentFactoryList GLOBAL PROPERTY SCORE_${TargetName}_ConcreteFactoryList)
+    get_property(ComponentFactoryFileList GLOBAL PROPERTY SCORE_${TargetName}_FactoryFileList)
 
     set(FactoryCode)
     set(CleanedAbstractFactoryList ${ComponentAbstractFactoryList})
@@ -137,19 +137,19 @@ function(iscore_generate_plugin_file TargetName Headers Version Uuid)
 
     # Set the variables that will be replaces
     set(PLUGIN_NAME ${TargetName})
-    set(ISCORE_COMPONENT_Version ${Version})
-    set(ISCORE_COMPONENT_Uuid ${Uuid})
+    set(SCORE_COMPONENT_Version ${Version})
+    set(SCORE_COMPONENT_Uuid ${Uuid})
     configure_file(
-        "${ISCORE_ROOT_SOURCE_DIR}/CMake/Components/iscore_component_plugin.hpp.in"
+        "${SCORE_ROOT_SOURCE_DIR}/CMake/Components/score_component_plugin.hpp.in"
         "${CMAKE_CURRENT_BINARY_DIR}/${TargetName}_plugin.hpp")
     configure_file(
-        "${ISCORE_ROOT_SOURCE_DIR}/CMake/Components/iscore_component_plugin.cpp.in"
+        "${SCORE_ROOT_SOURCE_DIR}/CMake/Components/score_component_plugin.cpp.in"
         "${CMAKE_CURRENT_BINARY_DIR}/${TargetName}_plugin.cpp")
 endfunction()
 
 
 ### Generate files of commands ###
-function(iscore_write_file FileName Content)
+function(score_write_file FileName Content)
     if(EXISTS "${FileName}")
       file(READ "${FileName}" EXISTING_CONTENT)
       if(NOT "${Content}" STREQUAL "${EXISTING_CONTENT}")
@@ -160,15 +160,15 @@ function(iscore_write_file FileName Content)
     endif()
 endfunction()
 
-function(iscore_generate_command_list_file TheTarget Headers)
+function(score_generate_command_list_file TheTarget Headers)
     # Initialize our lists
     set(commandNameList)
     set(commandFileList)
 
-    # First look for the ISCORE_COMMAND_DECL(...) ones
+    # First look for the SCORE_COMMAND_DECL(...) ones
     foreach(sourceFile ${Headers})
         file(READ "${sourceFile}" fileContent)
-        string(REGEX MATCHALL "ISCORE_COMMAND_DECL\\([A-Za-z_0-9\,\:<>\r\n\t ]*\\(\\)[A-Za-z_0-9\,\"'\:<>\r\n\t ]*\\)"
+        string(REGEX MATCHALL "SCORE_COMMAND_DECL\\([A-Za-z_0-9\,\:<>\r\n\t ]*\\(\\)[A-Za-z_0-9\,\"'\:<>\r\n\t ]*\\)"
                defaultCommands "${fileContent}")
 
         foreach(fileLine ${defaultCommands})
@@ -189,15 +189,15 @@ function(iscore_generate_command_list_file TheTarget Headers)
         endif()
 
 
-        # Then look for the ISCORE_COMMAND_DECL_T(...) ones
-        string(REGEX MATCHALL "ISCORE_COMMAND_DECL_T\\([A-Za-z_0-9\,\:<>\r\n\t ]*\\)"
+        # Then look for the SCORE_COMMAND_DECL_T(...) ones
+        string(REGEX MATCHALL "SCORE_COMMAND_DECL_T\\([A-Za-z_0-9\,\:<>\r\n\t ]*\\)"
                templateCommands "${fileContent}")
         foreach(fileLine ${templateCommands})
             string(REPLACE "\n" "" fileLine "${fileLine}")
             string(REPLACE "\r" "" fileLine "${fileLine}")
             string(STRIP ${fileLine} strippedLine)
 
-            string(REPLACE "ISCORE_COMMAND_DECL_T(" "" filtered1 ${strippedLine})
+            string(REPLACE "SCORE_COMMAND_DECL_T(" "" filtered1 ${strippedLine})
             string(REPLACE ")" "" commandName ${filtered1})
             string(STRIP ${commandName} strippedCommandName)
 
@@ -218,33 +218,33 @@ function(iscore_generate_command_list_file TheTarget Headers)
         set(finalCommandFileList "${finalCommandFileList}#include <${strippedSourceFile}>\n")
     endforeach()
 
-    iscore_write_file(
+    score_write_file(
         "${CMAKE_CURRENT_BINARY_DIR}/${TheTarget}_commands_files.hpp"
         "${finalCommandFileList}"
         )
 
     # Generate a file with the list of types
     string(REPLACE ";" ", \n" commaSeparatedCommandList "${commandNameList}")
-    iscore_write_file(
+    score_write_file(
          "${CMAKE_CURRENT_BINARY_DIR}/${TheTarget}_commands.hpp"
          "${commaSeparatedCommandList}"
         )
 
 endfunction()
 
-function(iscore_write_static_plugins_header)
-  # TODO use iscore_write_file here
-  set(ISCORE_PLUGINS_FILE "${ISCORE_ROOT_BINARY_DIR}/iscore_static_plugins.hpp")
-  file(WRITE "${ISCORE_PLUGINS_FILE}" "#pragma once\n#include <QtPlugin>\n")
-  foreach(plugin ${ISCORE_PLUGINS_LIST})
-    message("Linking statically with i-score plugin : ${plugin}")
-    file(APPEND "${ISCORE_PLUGINS_FILE}" "Q_IMPORT_PLUGIN(${plugin})\n")
+function(score_write_static_plugins_header)
+  # TODO use score_write_file here
+  set(SCORE_PLUGINS_FILE "${SCORE_ROOT_BINARY_DIR}/score_static_plugins.hpp")
+  file(WRITE "${SCORE_PLUGINS_FILE}" "#pragma once\n#include <QtPlugin>\n")
+  foreach(plugin ${SCORE_PLUGINS_LIST})
+    message("Linking statically with score plugin : ${plugin}")
+    file(APPEND "${SCORE_PLUGINS_FILE}" "Q_IMPORT_PLUGIN(${plugin})\n")
   endforeach()
 endfunction()
 
 ### Adds tests ###
-function(setup_iscore_tests TestFolder)
-  if(NOT DEPLOYMENT_BUILD AND NOT ISCORE_STATIC_QT AND NOT IOS)
+function(setup_score_tests TestFolder)
+  if(NOT DEPLOYMENT_BUILD AND NOT SCORE_STATIC_QT AND NOT IOS)
     add_subdirectory(${TestFolder})
   endif()
 endfunction()

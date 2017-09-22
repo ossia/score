@@ -1,15 +1,15 @@
 #pragma once
-#include <iscore/plugins/panel/PanelDelegateFactory.hpp>
+#include <score/plugins/panel/PanelDelegateFactory.hpp>
 
-namespace iscore
+namespace score
 {
 
 class UndoPanelDelegateFactory final
     : public PanelDelegateFactory
 {
-  ISCORE_CONCRETE("293c0f8b-fcb4-4554-8425-4bc03d803c75")
+  SCORE_CONCRETE("293c0f8b-fcb4-4554-8425-4bc03d803c75")
 
   std::unique_ptr<PanelDelegate>
-  make(const iscore::GUIApplicationContext& ctx) override;
+  make(const score::GUIApplicationContext& ctx) override;
 };
 }

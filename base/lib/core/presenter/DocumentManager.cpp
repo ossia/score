@@ -12,10 +12,10 @@
 #include <core/document/DocumentModel.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
-#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
-#include <iscore/plugins/panel/PanelDelegate.hpp>
-#include <iscore/tools/IdentifierGeneration.hpp>
-#include <iscore/tools/std/Optional.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/plugins/panel/PanelDelegate.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+#include <score/tools/std/Optional.hpp>
 
 #include <QSaveFile>
 #include <QSettings>
@@ -30,53 +30,53 @@
 #include <core/command/CommandStack.hpp>
 #include <core/command/CommandStackSerialization.hpp>
 #include <core/document/Document.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
-#include <iscore/application/ApplicationComponents.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
-#include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
-#include <iscore/model/Identifier.hpp>
+#include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+#include <score/application/ApplicationComponents.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+#include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+#include <score/model/Identifier.hpp>
 
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/multi_index/identity.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index_container.hpp>
-namespace iscore
+namespace score
 {
 struct LoadedPluginVersions
 {
-  UuidKey<iscore::Plugin> plugin;
-  iscore::Version version;
+  UuidKey<score::Plugin> plugin;
+  score::Version version;
 };
 }
 
 namespace bmi = boost::multi_index;
 using LocalPluginVersionsMap = bmi::
-    multi_index_container<iscore::Plugin_QtInterface*, bmi::indexed_by<bmi::hashed_unique<bmi::const_mem_fun<iscore::Plugin_QtInterface, UuidKey<iscore::Plugin>, &iscore::Plugin_QtInterface::key>>>>;
+    multi_index_container<score::Plugin_QtInterface*, bmi::indexed_by<bmi::hashed_unique<bmi::const_mem_fun<score::Plugin_QtInterface, UuidKey<score::Plugin>, &score::Plugin_QtInterface::key>>>>;
 using LoadedPluginVersionsMap = bmi::
-    multi_index_container<iscore::Plugin_QtInterface*, bmi::indexed_by<bmi::hashed_unique<bmi::member<iscore::LoadedPluginVersions, UuidKey<iscore::Plugin>, &iscore::LoadedPluginVersions::plugin>>>>;
+    multi_index_container<score::Plugin_QtInterface*, bmi::indexed_by<bmi::hashed_unique<bmi::member<score::LoadedPluginVersions, UuidKey<score::Plugin>, &score::LoadedPluginVersions::plugin>>>>;
 
 namespace std
 {
 template <>
-struct hash<iscore::LoadedPluginVersions>
+struct hash<score::LoadedPluginVersions>
 {
-  std::size_t operator()(const iscore::LoadedPluginVersions& kagi) const
+  std::size_t operator()(const score::LoadedPluginVersions& kagi) const
       noexcept
   {
-    return std::hash<UuidKey<iscore::Plugin>>{}(kagi.plugin);
+    return std::hash<UuidKey<score::Plugin>>{}(kagi.plugin);
   }
 };
 }
 
-namespace iscore
+namespace score
 {
-DocumentManager::DocumentManager(iscore::View& view, QObject* parentPresenter)
+DocumentManager::DocumentManager(score::View& view, QObject* parentPresenter)
     : m_view{view}, m_builder{parentPresenter, &view}
 {
 }
 
-void DocumentManager::init(const iscore::GUIApplicationContext& ctx)
+void DocumentManager::init(const score::GUIApplicationContext& ctx)
 {
   con(m_view, &View::activeDocumentChanged, this,
       [&](const Id<DocumentModel>& doc) {
@@ -91,13 +91,13 @@ void DocumentManager::init(const iscore::GUIApplicationContext& ctx)
   con(m_view, &View::closeRequested, this, [&](const Id<DocumentModel>& doc) {
     auto it = ossia::find_if(
         m_documents, [&](auto other) { return other->model().id() == doc; });
-    ISCORE_ASSERT(it != m_documents.end());
+    SCORE_ASSERT(it != m_documents.end());
     closeDocument(ctx, **it);
   });
 
   m_recentFiles = new QRecentFilesMenu{tr("Recent files"), nullptr};
 
-  QSettings settings("OSSIA", "i-score");
+  QSettings settings("OSSIA", "score");
   m_recentFiles->restoreState(settings.value("RecentFiles").toByteArray());
 
   connect(
@@ -123,9 +123,9 @@ DocumentManager::~DocumentManager()
     delete m_recentFiles;
 }
 
-ISCORE_LIB_BASE_EXPORT
+SCORE_LIB_BASE_EXPORT
 Document* DocumentManager::setupDocument(
-    const iscore::GUIApplicationContext& ctx, Document* doc)
+    const score::GUIApplicationContext& ctx, Document* doc)
 {
   if (doc)
   {
@@ -151,7 +151,7 @@ Document* DocumentManager::setupDocument(
 
 
 void DocumentManager::setCurrentDocument(
-    const iscore::GUIApplicationContext& ctx, Document* doc)
+    const score::GUIApplicationContext& ctx, Document* doc)
 {
   auto old = m_currentDocument;
   m_currentDocument = doc;
@@ -179,7 +179,7 @@ void DocumentManager::setCurrentDocument(
 }
 
 bool DocumentManager::closeDocument(
-    const iscore::GUIApplicationContext& ctx, Document& doc)
+    const score::GUIApplicationContext& ctx, Document& doc)
 {
   // Warn the user if he might loose data
   if (!doc.commandStack().isAtSavedIndex())
@@ -215,7 +215,7 @@ bool DocumentManager::closeDocument(
 }
 
 void DocumentManager::forceCloseDocument(
-    const iscore::GUIApplicationContext& ctx, Document& doc)
+    const score::GUIApplicationContext& ctx, Document& doc)
 {
   for(auto plug : doc.model().pluginModels())
   {
@@ -265,7 +265,7 @@ bool DocumentManager::saveDocumentAs(Document& doc)
 {
   QFileDialog d{&m_view, tr("Save Document As")};
   QString binFilter{tr("Binary (*.scorebin)")};
-  QString jsonFilter{tr("JSON (*.scorejson)")};
+  QString jsonFilter{tr("Score (*.score)")};
   QStringList filters;
   filters << jsonFilter << binFilter;
 
@@ -289,8 +289,8 @@ bool DocumentManager::saveDocumentAs(Document& doc)
       }
       else
       {
-        if (!savename.contains(".scorejson"))
-          savename += ".scorejson";
+        if (!savename.contains(".scorejson") && !savename.contains(".score"))
+          savename += ".score";
       }
 
       QSaveFile f{savename};
@@ -346,7 +346,7 @@ bool DocumentManager::saveStack()
   return false;
 }
 
-Document* DocumentManager::loadStack(const iscore::GUIApplicationContext& ctx)
+Document* DocumentManager::loadStack(const score::GUIApplicationContext& ctx)
 {
   QString loadname = QFileDialog::getOpenFileName(
       &m_view, tr("Open Stack"), QString(), "*.stack");
@@ -359,7 +359,7 @@ Document* DocumentManager::loadStack(const iscore::GUIApplicationContext& ctx)
 }
 
 Document* DocumentManager::loadStack(
-    const iscore::GUIApplicationContext& ctx, const QString& loadname)
+    const score::GUIApplicationContext& ctx, const QString& loadname)
 {
   QFile cmdF{loadname};
 
@@ -388,20 +388,19 @@ Document* DocumentManager::loadStack(
   return nullptr;
 }
 
-ISCORE_LIB_BASE_EXPORT
-Document* DocumentManager::loadFile(const iscore::GUIApplicationContext& ctx)
+SCORE_LIB_BASE_EXPORT
+Document* DocumentManager::loadFile(const score::GUIApplicationContext& ctx)
 {
   QString loadname = QFileDialog::getOpenFileName(
-      &m_view, tr("Open"), QString(), "*.scorebin *.scorejson");
+      &m_view, tr("Open"), QString(), "*.scorebin *.score *.scorejson");
   return loadFile(ctx, loadname);
 }
 
 Document* DocumentManager::loadFile(
-    const iscore::GUIApplicationContext& ctx, const QString& fileName)
+    const score::GUIApplicationContext& ctx, const QString& fileName)
 {
   Document* doc{};
-  if (!fileName.isEmpty() && (fileName.indexOf(".scorebin") != -1
-                              || fileName.indexOf(".scorejson") != -1))
+  if (!fileName.isEmpty() && (fileName.indexOf(".scorebin") != -1 || fileName.indexOf(".scorejson") != -1 || fileName.indexOf(".score") != 1))
   {
     QFile f{fileName};
     if (f.open(QIODevice::ReadOnly))
@@ -412,17 +411,17 @@ Document* DocumentManager::loadFile(
       if (fileName.indexOf(".scorebin") != -1)
       {
         doc = loadDocument(
-            ctx, f.readAll(),
+            ctx, fileName, f.readAll(),
             *ctx.interfaces<DocumentDelegateList>().begin());
       }
-      else if (fileName.indexOf(".scorejson") != -1)
+      else if (fileName.indexOf(".score") != -1)
       {
         auto json = QJsonDocument::fromJson(f.readAll());
         bool ok = checkAndUpdateJson(json, ctx);
         if (ok)
         {
           doc = loadDocument(
-              ctx, json.object(),
+              ctx, fileName, json.object(),
               *ctx.interfaces<DocumentDelegateList>().begin());
         }
         else
@@ -434,19 +433,14 @@ Document* DocumentManager::loadFile(
                  "There is probably something wrong with the file format."));
         }
       }
-
-      if (doc)
-      {
-        m_currentDocument->metadata().setFileName(fileName);
-      }
     }
   }
 
   return doc;
 }
 
-ISCORE_LIB_BASE_EXPORT
-void DocumentManager::prepareNewDocument(const iscore::GUIApplicationContext& ctx)
+SCORE_LIB_BASE_EXPORT
+void DocumentManager::prepareNewDocument(const score::GUIApplicationContext& ctx)
 {
   m_preparingNewDocument = true;
   for (GUIApplicationPlugin* appPlugin :
@@ -457,7 +451,7 @@ void DocumentManager::prepareNewDocument(const iscore::GUIApplicationContext& ct
   m_preparingNewDocument = false;
 }
 
-bool DocumentManager::closeAllDocuments(const iscore::GUIApplicationContext& ctx)
+bool DocumentManager::closeAllDocuments(const score::GUIApplicationContext& ctx)
 {
   while (!m_documents.empty())
   {
@@ -475,7 +469,7 @@ bool DocumentManager::preparingNewDocument() const
 }
 
 bool DocumentManager::checkAndUpdateJson(
-    QJsonDocument& json, const iscore::GUIApplicationContext& ctx)
+    QJsonDocument& json, const score::GUIApplicationContext& ctx)
 {
   if (!json.isObject())
     return false;
@@ -504,7 +498,7 @@ bool DocumentManager::checkAndUpdateJson(
       if (plugin_key_it == plugin_obj.end())
         continue;
       auto plugin_key
-          = UuidKey<iscore::Plugin>::fromString((*plugin_key_it).toString());
+          = UuidKey<score::Plugin>::fromString((*plugin_key_it).toString());
 
       Version plugin_version{0};
       auto plugin_ver_it = plugin_obj.find("Version");
@@ -568,9 +562,9 @@ bool DocumentManager::checkAndUpdateJson(
 }
 
 bool DocumentManager::updateJson(
-    QJsonObject& object, Version json_ver, Version iscore_ver)
+    QJsonObject& object, Version json_ver, Version score_ver)
 {
-  iscore::hash_map<
+  score::hash_map<
       Version,
       std::pair<Version, std::function<void(QJsonObject&)>>
   > conversions;
@@ -597,23 +591,23 @@ bool DocumentManager::updateJson(
 
 void DocumentManager::saveRecentFilesState()
 {
-  QSettings settings("OSSIA", "i-score");
+  QSettings settings("OSSIA", "score");
   settings.setValue("RecentFiles", m_recentFiles->saveState());
   m_recentFiles->saveState();
 }
 
-ISCORE_LIB_BASE_EXPORT
-void DocumentManager::restoreDocuments(const iscore::GUIApplicationContext& ctx)
+SCORE_LIB_BASE_EXPORT
+void DocumentManager::restoreDocuments(const score::GUIApplicationContext& ctx)
 {
-  for (const auto& backup : DocumentBackups::restorableDocuments())
+  for (const RestorableDocument& backup : DocumentBackups::restorableDocuments())
   {
     restoreDocument(
-        ctx, backup.first, backup.second,
+        ctx, backup.filePath, backup.doc, backup.commands,
         *ctx.interfaces<DocumentDelegateList>().begin());
   }
 }
 
-Id<iscore::DocumentModel> getStrongId(const std::vector<iscore::Document*>& v)
+Id<score::DocumentModel> getStrongId(const std::vector<score::Document*>& v)
 {
   using namespace std;
   vector<int32_t> ids(v.size()); // Map reduce
@@ -622,7 +616,7 @@ Id<iscore::DocumentModel> getStrongId(const std::vector<iscore::Document*>& v)
     return elt->id().val();
   });
 
-  return Id<iscore::DocumentModel>{
-      iscore::random_id_generator::getNextId(ids)};
+  return Id<score::DocumentModel>{
+      score::random_id_generator::getNextId(ids)};
 }
 }

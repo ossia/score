@@ -6,14 +6,14 @@
 
 #include "OpenDocumentsFile.hpp"
 
-namespace iscore
+namespace score
 {
 QString OpenDocumentsFile::path()
 {
   static QString path = [] {
     auto paths
         = QStandardPaths::standardLocations(QStandardPaths::TempLocation);
-    return paths.first() + "/iscore_open_docs";
+    return paths.first() + "/score_open_docs";
   }();
 
   return path;

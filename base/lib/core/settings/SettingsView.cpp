@@ -3,10 +3,10 @@
 #include <QSize>
 #include <QWidget>
 #include <core/settings/SettingsView.hpp>
-#include <iscore/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
-#include <iscore/plugins/settingsdelegate/SettingsDelegateView.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 
-namespace iscore
+namespace score
 {
 SettingsView::SettingsView(QWidget* parent) : QDialog{parent}
 {

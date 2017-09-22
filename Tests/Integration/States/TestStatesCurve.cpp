@@ -16,11 +16,11 @@ class TestStatesCurve: public IscoreTestBase
         void setupDevice()
         {
             // We load a device
-            iscore::DeviceSettings s;
+            score::DeviceSettings s;
             s.protocol = "Mock";
             s.name = "MockDevice";
 
-            iscore::Node n{s, nullptr};
+            score::Node n{s, nullptr};
             loadDeviceFromXML("TestData/test.namespace.xml", n);
             redo(new LoadDevice{pluginModel<DeviceDocumentPlugin>(), std::move(n)});
         }
@@ -36,26 +36,26 @@ class TestStatesCurve: public IscoreTestBase
             auto newStateCmd = new CreateState(scenar, scenar.startEvent().id(), 0);
             redo(newStateCmd);
 
-            auto newConstraintCmd = new CreateConstraint_State_Event_TimeNode(scenar, newStateCmd->createdState(), TimeValue::fromMsecs(500), 0);
+            auto newConstraintCmd = new CreateConstraint_State_Event_TimeSync(scenar, newStateCmd->createdState(), TimeValue::fromMsecs(500), 0);
             redo(newConstraintCmd);
 
-            iscore::Address addr{"MockDevice", {"test1"}};
-            iscore::Address bad_addr{"MockDevice", {"this", "does", "not", "exist"}};
+            score::Address addr{"MockDevice", {"test1"}};
+            score::Address bad_addr{"MockDevice", {"this", "does", "not", "exist"}};
             // The address is in [-10; 10]
 
-            ISCORE_TODO;
+            SCORE_TODO;
             /*
             // We add start and end states -3, 7
             auto& startMessages = scenar.states.at(newStateCmd->createdState()).messages();
             auto addStartState = new AddMessagesToModel(
                                      startMessages,
-                                     iscore::MessageList{iscore::Message{addr, -3.}});
+                                     score::MessageList{score::Message{addr, -3.}});
             redo(addStartState);
 
             auto& endMessages = scenar.states.at(newConstraintCmd->createdState()).messages();
             auto addEndState = new AddMessagesToModel(
                                      endMessages,
-                                     iscore::MessageList{iscore::Message{addr, 7.}});
+                                     score::MessageList{score::Message{addr, 7.}});
             redo(addEndState);
             */
 
@@ -76,7 +76,7 @@ class TestStatesCurve: public IscoreTestBase
             QVERIFY(autom.min() == -10);
             QVERIFY(autom.max() == 10);
 
-            ISCORE_TODO;
+            SCORE_TODO;
             /*
             // The states change with the new address
             {
@@ -103,7 +103,7 @@ class TestStatesCurve: public IscoreTestBase
             QVERIFY(autom.min() == -10);
             QVERIFY(autom.max() == 10);
 
-            ISCORE_TODO;
+            SCORE_TODO;
             /*
             // We check that the states have changed :
             {
@@ -118,7 +118,7 @@ class TestStatesCurve: public IscoreTestBase
             */
             undo(); // Undo curve change
 
-            ISCORE_TODO;
+            SCORE_TODO;
             /*
             // We get out old states back
             {
@@ -134,7 +134,7 @@ class TestStatesCurve: public IscoreTestBase
 
             undo(); // Undo address change
 
-            ISCORE_TODO;
+            SCORE_TODO;
             /*
             // We get out old states back
             {
@@ -150,6 +150,6 @@ class TestStatesCurve: public IscoreTestBase
         }
 };
 
-ISCORE_INTEGRATION_TEST(TestStatesCurve)
+SCORE_INTEGRATION_TEST(TestStatesCurve)
 
 #include "TestStatesCurve.moc"

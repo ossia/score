@@ -2,8 +2,10 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DocumentMetadata.hpp"
 
-namespace iscore
+namespace score
 {
+
+DocumentMetadata::DocumentMetadata(QString file): m_fileName{file} { }
 
 QString DocumentMetadata::fileName() const
 {

@@ -2,7 +2,7 @@
 
 #include <QWidget>
 
-namespace iscore
+namespace score
 {
 class Document;
 class DocumentDelegateFactory;

@@ -2,18 +2,18 @@
 
 #include <QAction>
 #include <QList>
-#include <iscore/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
 
-#include <iscore_lib_base_export.h>
+#include <score_lib_base_export.h>
 #include <vector>
 
 class QObject;
-namespace iscore
+namespace score
 {
 class Document;
-} // namespace iscore
+} // namespace score
 
-namespace iscore
+namespace score
 {
 /**
  * @brief The UndoApplicationPlugin class
@@ -21,16 +21,16 @@ namespace iscore
  * Base class for the "fake" undo plugin,
  * which provides a undo panel.
  */
-class ISCORE_LIB_BASE_EXPORT UndoApplicationPlugin final
-    : public iscore::GUIApplicationPlugin
+class SCORE_LIB_BASE_EXPORT UndoApplicationPlugin final
+    : public score::GUIApplicationPlugin
 {
 public:
-  UndoApplicationPlugin(const iscore::GUIApplicationContext& app);
+  UndoApplicationPlugin(const score::GUIApplicationContext& app);
   ~UndoApplicationPlugin();
 
 private:
   void on_documentChanged(
-      iscore::Document* olddoc, iscore::Document* newdoc) override;
+      score::Document* olddoc, score::Document* newdoc) override;
 
   GUIElements makeGUIElements() override;
 

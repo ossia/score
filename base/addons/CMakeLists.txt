@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(iscore_addons LANGUAGES CXX)
+project(score_addons LANGUAGES CXX)
 
 macro(SUBDIRLIST result curdir)
   file(GLOB children RELATIVE ${curdir} ${curdir}/*)
@@ -15,7 +15,7 @@ endmacro()
 
 
 subdirlist(SUBDIRS "${CMAKE_CURRENT_SOURCE_DIR}")
-set(ISCORE_ADDON True)
+set(SCORE_ADDON True)
 foreach(subdir ${SUBDIRS})
   if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/CMakeLists.txt")
     add_subdirectory("${subdir}")

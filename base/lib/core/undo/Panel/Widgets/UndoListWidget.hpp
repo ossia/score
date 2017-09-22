@@ -2,7 +2,7 @@
 
 #include <QListWidget>
 
-namespace iscore
+namespace score
 {
 class CommandStack;
 
@@ -10,13 +10,13 @@ class UndoListWidget final : public QListWidget
 {
   Q_OBJECT
 public:
-  explicit UndoListWidget(iscore::CommandStack& s);
+  explicit UndoListWidget(score::CommandStack& s);
   ~UndoListWidget();
 
 public slots:
   void on_stackChanged();
 
 private:
-  iscore::CommandStack& m_stack;
+  score::CommandStack& m_stack;
 };
 }

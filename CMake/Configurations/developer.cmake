@@ -1,4 +1,4 @@
-set(ISCORE_COTIRE_DISABLE_UNITY True)
-set(ISCORE_SPLIT_DEBUG False)
+set(SCORE_COTIRE_DISABLE_UNITY True)
+set(SCORE_SPLIT_DEBUG True)
 include(travis/debug)
 include(all-plugins)

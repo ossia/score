@@ -19,11 +19,11 @@ void disableAppRestore()
 
 #endif
 
-#if defined(ISCORE_STATIC_PLUGINS)
-  #include <iscore_static_plugins.hpp>
+#if defined(SCORE_STATIC_PLUGINS)
+  #include <score_static_plugins.hpp>
 #endif
 
-#if defined(ISCORE_STATIC_QT)
+#if defined(SCORE_STATIC_QT)
   #if defined(__linux__)
     #include <QtPlugin>
 
@@ -37,11 +37,11 @@ void disableAppRestore()
 static void init_plugins()
 {
 // TODO generate this too
-#if defined(ISCORE_STATIC_PLUGINS)
-    Q_INIT_RESOURCE(iscore);
+#if defined(SCORE_STATIC_PLUGINS)
+    Q_INIT_RESOURCE(score);
     Q_INIT_RESOURCE(ScenarioResources);
     Q_INIT_RESOURCE(DeviceExplorer);
-#if defined(ISCORE_PLUGIN_TEMPORALAUTOMATAS)
+#if defined(SCORE_PLUGIN_TEMPORALAUTOMATAS)
     Q_INIT_RESOURCE(TAResources);
 #endif
 #endif
@@ -77,8 +77,8 @@ int main(int argc, char** argv)
 
     init_plugins();
 
-#undef ISCORE_OPENGL
-#if defined(ISCORE_OPENGL)
+#undef SCORE_OPENGL
+#if defined(SCORE_OPENGL)
     QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
 #if defined(__APPLE__)
     fmt.setMajorVersion(4);

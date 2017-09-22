@@ -1,2 +1,2 @@
 include(developer)
-set(ISCORE_IEEE True)
+set(SCORE_IEEE True)

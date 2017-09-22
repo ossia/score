@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<manifest android:versionName="03" package="net.iscore" android:installLocation="auto" xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="03">
-	<application android:label="iscore" android:name="org.qtproject.qt5.android.bindings.QtApplication">
+<manifest android:versionName="03" package="net.score" android:installLocation="auto" xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="03">
+	<application android:label="score" android:name="org.qtproject.qt5.android.bindings.QtApplication">
 		<activity android:label="@string/app_name" android:name="org.qtproject.qt5.android.bindings.QtActivity" android:screenOrientation="unspecified" android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|locale|fontScale|keyboard|keyboardHidden|navigation">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN"/>

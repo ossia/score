@@ -5,15 +5,15 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en_US</string>
 	<key>CFBundleDisplayName</key>
-	<string>i-score</string>
+	<string>score</string>
 	<key>CFBundleExecutable</key>
-	<string>i-score</string>
+	<string>score</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.i-score</string>
+	<string>org.score</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>i-score</string>
+	<string>score</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>CFBundlePackageType</key>

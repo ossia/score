@@ -1,0 +1,97 @@
+#pragma once
+
+#include <QColor>
+#include <QString>
+#include <QWidget>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score_lib_inspector_export.h>
+#include <list>
+#include <memory>
+#include <qnamespace.h>
+
+class IdentifiedObjectAbstract;
+class QVBoxLayout;
+
+namespace score
+{
+struct DocumentContext;
+class SelectionDispatcher;
+}
+
+namespace Inspector
+{
+/*!
+ * \brief The InspectorWidgetBase class
+ * Set the global structuration for an inspected element. Inherited by class
+ * that implement specific type
+ *
+ * Manage sections added by user.
+ */
+class SCORE_LIB_INSPECTOR_EXPORT InspectorWidgetBase : public QWidget
+{
+  Q_OBJECT
+public:
+  /*!
+   * \brief InspectorWidgetBase Constructor
+   * \param inspectedObj The selected object
+   * \param parent The parent Widget
+   */
+  explicit InspectorWidgetBase(
+      const IdentifiedObjectAbstract& inspectedObj,
+      const score::DocumentContext& context,
+      QWidget* parent);
+  ~InspectorWidgetBase();
+
+  // By default returns the name of the object.
+  virtual QString tabName();
+
+  const score::DocumentContext& context() const
+  {
+    return m_context;
+  }
+
+  void
+  updateSectionsView(QVBoxLayout* layout, const std::vector<QWidget*>& contents);
+  void updateAreaLayout(const std::vector<QWidget*>& contents);
+  void updateAreaLayout(std::initializer_list<QWidget*> contents);
+
+  void addHeader(QWidget* header);
+
+  // Manage Values
+  const IdentifiedObjectAbstract& inspectedObject() const;
+  const IdentifiedObjectAbstract* inspectedObject_addr() const
+  {
+    return &inspectedObject();
+  }
+
+  // getters
+  QVBoxLayout* areaLayout()
+  {
+    return m_scrollAreaLayout;
+  }
+
+  CommandDispatcher<>* commandDispatcher() const
+  {
+    return m_commandDispatcher;
+  }
+
+  score::SelectionDispatcher& selectionDispatcher() const
+  {
+    return *m_selectionDispatcher;
+  }
+
+private:
+  const IdentifiedObjectAbstract& m_inspectedObject;
+  const score::DocumentContext& m_context;
+  CommandDispatcher<>* m_commandDispatcher{};
+  std::unique_ptr<score::SelectionDispatcher> m_selectionDispatcher;
+  QVBoxLayout* m_scrollAreaLayout{};
+
+  std::vector<QWidget*> m_sections;
+  QColor _currentColor{Qt::gray};
+
+  static const int m_colorIconSize{21};
+
+  QVBoxLayout* m_layout{};
+};
+}
