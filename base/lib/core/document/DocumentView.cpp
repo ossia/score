@@ -4,13 +4,13 @@
 #include <QLayout>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentView.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateView.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 
-#include <iscore/document/DocumentContext.hpp>
-#include <iscore/widgets/MarginLess.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/widgets/MarginLess.hpp>
 
-namespace iscore
+namespace score
 {
 DocumentView::DocumentView(
     DocumentDelegateFactory& fact,

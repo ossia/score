@@ -1,13 +1,13 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <core/command/CommandStack.hpp>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/tools/Todo.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/tools/Todo.hpp>
 
 #include "CommandBackupFile.hpp"
-#include <iscore/command/Command.hpp>
+#include <score/command/Command.hpp>
 
-namespace iscore
+namespace score
 {
 CommandStackBackup::CommandStackBackup(const CommandStack& stack)
 {
@@ -23,7 +23,7 @@ CommandStackBackup::CommandStackBackup(const CommandStack& stack)
 }
 
 CommandBackupFile::CommandBackupFile(
-    const iscore::CommandStack& stack, QObject* parent)
+    const score::CommandStack& stack, QObject* parent)
     : QObject{parent}, m_stack{stack}, m_backup{m_stack}
 {
   m_file.open();

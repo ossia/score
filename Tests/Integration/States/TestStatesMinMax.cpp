@@ -14,11 +14,11 @@ class TestStatesMinMax: public IscoreTestBase
         void setupDevice()
         {
             // We load a device
-            iscore::DeviceSettings s;
+            score::DeviceSettings s;
             s.protocol = "Mock";
             s.name = "MockDevice";
 
-            iscore::Node n{s, nullptr};
+            score::Node n{s, nullptr};
             loadDeviceFromXML("TestData/test.namespace.xml", n);
             redo(new LoadDevice{pluginModel<DeviceDocumentPlugin>(), std::move(n)});
         }
@@ -36,7 +36,7 @@ class TestStatesMinMax: public IscoreTestBase
             auto newStateCmd = new CreateState(scenar, scenar.startEvent().id(), 0);
             redo(newStateCmd);
 
-            auto newConstraintCmd = new CreateConstraint_State_Event_TimeNode(scenar, newStateCmd->createdState(), TimeValue::fromMsecs(500), 0);
+            auto newConstraintCmd = new CreateConstraint_State_Event_TimeSync(scenar, newStateCmd->createdState(), TimeValue::fromMsecs(500), 0);
             redo(newConstraintCmd);
             auto& createdConstraint = *scenar.constraints.begin();
 
@@ -46,7 +46,7 @@ class TestStatesMinMax: public IscoreTestBase
             auto& autom = static_cast<AutomationModel&>(*createdConstraint.processes.begin());
 
             // We set the automation's address
-            iscore::Address addr{"MockDevice", {"test1"}};
+            score::Address addr{"MockDevice", {"test1"}};
             auto setAddr = new ChangeAddress(autom, addr);
             redo(setAddr);
 
@@ -54,12 +54,12 @@ class TestStatesMinMax: public IscoreTestBase
             QVERIFY(autom.min() == -10);
             QVERIFY(autom.max() == 10);
 
-            ISCORE_TODO;
+            SCORE_TODO;
             /*
             // We add start and end states [-30, 50] while the address is bewteen [-10; 10]
             auto addStartState = new AddMessagesToModel(
                                      scenar.states.at(newStateCmd->createdState()).messages(),
-                                     iscore::MessageList{iscore::Message{addr, -30.}});
+                                     score::MessageList{score::Message{addr, -30.}});
             redo(addStartState);
 
             // We check that the address min changes
@@ -68,7 +68,7 @@ class TestStatesMinMax: public IscoreTestBase
 
             auto addEndState = new AddMessagesToModel(
                                      scenar.states.at(newConstraintCmd->createdState()).messages(),
-                                     iscore::MessageList{iscore::Message{addr, 50.}});
+                                     score::MessageList{score::Message{addr, 50.}});
             redo(addEndState);
             */
 
@@ -98,7 +98,7 @@ class TestStatesMinMax: public IscoreTestBase
             auto newStateCmd = new CreateState(scenar, scenar.startEvent().id(), 0);
             redo(newStateCmd);
 
-            auto newConstraintCmd = new CreateConstraint_State_Event_TimeNode(scenar, newStateCmd->createdState(), TimeValue::fromMsecs(500), 0);
+            auto newConstraintCmd = new CreateConstraint_State_Event_TimeSync(scenar, newStateCmd->createdState(), TimeValue::fromMsecs(500), 0);
             redo(newConstraintCmd);
             auto& createdConstraint = *scenar.constraints.begin();
 
@@ -108,16 +108,16 @@ class TestStatesMinMax: public IscoreTestBase
             auto& autom = static_cast<AutomationModel&>(*createdConstraint.processes.begin());
 
             // We set the automation's address
-            iscore::Address addr{"MockDevice", {"test1"}};
+            score::Address addr{"MockDevice", {"test1"}};
             auto setAddr = new ChangeAddress(autom, addr);
             redo(setAddr);
 
-            ISCORE_TODO;
+            SCORE_TODO;
             /*
             // We add start and end states [-5, 5] while the address is bewteen [-10; 10]
             auto addStartState = new AddMessagesToModel(
                                      scenar.states.at(newStateCmd->createdState()).messages(),
-                                     iscore::MessageList{iscore::Message{addr, -5.}});
+                                     score::MessageList{score::Message{addr, -5.}});
             redo(addStartState);
 
             // We check that the address min/max does not change
@@ -126,7 +126,7 @@ class TestStatesMinMax: public IscoreTestBase
 
             auto addEndState = new AddMessagesToModel(
                                    scenar.states.at(newConstraintCmd->createdState()).messages(),
-                                   iscore::MessageList{iscore::Message{addr, 5.}});
+                                   score::MessageList{score::Message{addr, 5.}});
             redo(addEndState);
             */
             // We check that the address min/max does not change
@@ -146,6 +146,6 @@ class TestStatesMinMax: public IscoreTestBase
         }
 };
 
-ISCORE_INTEGRATION_TEST(TestStatesMinMax)
+SCORE_INTEGRATION_TEST(TestStatesMinMax)
 
 #include "TestStatesMinMax.moc"

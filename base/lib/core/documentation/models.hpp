@@ -3,24 +3,24 @@
 
 /*! \page Models
  *
- * i-score provides ways to create hierarchical data models,
+ * score provides ways to create hierarchical data models,
  * based on an entity-component paradigm similar to game engines.
  *
  * \section Organization
- * The objects in i-score are organized in a hierarchical tree :
+ * The objects in score are organized in a hierarchical tree :
  *
  * \code
- * Application -> iscore::DocumentModel -> iscore::DocumentPlugin -> [... objects of the document plugin ... ]
+ * Application -> score::DocumentModel -> score::DocumentPlugin -> [... objects of the document plugin ... ]
  *                            \
- *                        iscore::DocumentDelegateModel
+ *                        score::DocumentDelegateModel
  *                              \
  *                         [... objects of the document ...]
  * \endcode
  *
  * This tree is based on Qt's \ref QObject. See http://doc.qt.io/qt-5/object.html for more information.
  * <br>
- * This applies to all the "meaningful" objects in the software, i.e. the objects of the i-score
- * domain (Process::ProcessModel, Scenario::ConstraintModel, Automation::ProcessModel, etc).
+ * This applies to all the "meaningful" objects in the software, i.e. the objects of the score
+ * domain (Process::ProcessModel, Scenario::IntervalModel, Automation::ProcessModel, etc).
  * <br>
  * We call these the "model" objects.
  * <br>
@@ -54,7 +54,7 @@
  * This is necessary for the \ref Commands system, for instance.
  *
  * \subsection Paths
- * Paths are a list of identifiers that lead from the root of the iscore::Document, to the actual object
+ * Paths are a list of identifiers that lead from the root of the score::Document, to the actual object
  * we are looking for.
  * <br>
  * There are two variants :
@@ -66,7 +66,7 @@
  * This is necessary for undo-redo commands.
  * Take the following case :
  * * An object is created by the user by drag'n'drop.
- * * A Command is instantiated for this action and applied with iscore::Command::redo.
+ * * A Command is instantiated for this action and applied with score::Command::redo.
  * * During `redo()`, the object is allocated, inserted in the hierarchy, etc.
  * * Then, the object is moved : a new Command is created, with a Path to the moved object.
  * * Then, the user undoes everything : the move is undone, as well as the creation of the object.
@@ -80,7 +80,7 @@
  *
  * Base classes for custom model objects are provided :
  * * IdentifiedObject : provides identification.
- * * Entity<> : provides identification, \ref Components and \ref iscore::ModelMetadata.
+ * * Entity<> : provides identification, \ref Components and \ref score::ModelMetadata.
  *
  * \section ItemModel Relationship to Qt's item models
  * The previous information is separate from Qt's model-view paradigm which is more useful

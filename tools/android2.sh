@@ -8,8 +8,8 @@ cmake -DANDROID_TOOLCHAIN_NAME=arm-linux-androideabi-clang3.5 \
       -DCMAKE_PREFIX_PATH=$QT_SDK/android_armv7/lib/cmake/Qt5 \
       "$BASE_DIR"
 make
-make iscore_apk
+make score_apk
 
-#adb uninstall net.iscore
-#adb install base/app-android/bin/iscore-Android-debug-armeabi-v7a-03.apk
-adb shell am start -n net.iscore/org.qtproject.qt5.android.bindings.QtActivity
+#adb uninstall net.score
+#adb install base/app-android/bin/score-Android-debug-armeabi-v7a-03.apk
+adb shell am start -n net.score/org.qtproject.qt5.android.bindings.QtActivity

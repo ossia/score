@@ -1,7 +1,7 @@
 include(default-plugins)
-set(ISCORE_PLUGINS_TO_BUILD
-  ${ISCORE_PLUGINS_TO_BUILD}
+set(SCORE_PLUGINS_TO_BUILD
+  ${SCORE_PLUGINS_TO_BUILD}
 
-iscore-plugin-library
+score-plugin-library
 
 )

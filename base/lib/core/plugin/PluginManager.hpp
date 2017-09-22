@@ -6,16 +6,16 @@
 #include <QPluginLoader>
 
 #include <core/plugin/PluginDependencyGraph.hpp>
-#include <iscore/tools/std/Optional.hpp>
-#include <iscore/plugins/qt_interfaces/CommandFactory_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
-#include <iscore/plugins/customfactory/FactoryFamily.hpp>
-#include <iscore/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+#include <score/tools/std/Optional.hpp>
+#include <score/plugins/qt_interfaces/CommandFactory_QtInterface.hpp>
+#include <score/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
+#include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
+#include <score/plugins/customfactory/FactoryFamily.hpp>
+#include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
+#include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
-#include <iscore_lib_base_export.h>
-namespace iscore
+#include <score_lib_base_export.h>
+namespace score
 {
 struct ApplicationContext;
 class GUIApplicationRegistrar;
@@ -42,32 +42,32 @@ enum class PluginLoadingError
 QStringList addonsDir();
 QStringList pluginsDir();
 
-ISCORE_LIB_BASE_EXPORT void loadPluginsInAllFolders(
-    std::vector<iscore::Addon>& availablePlugins
+SCORE_LIB_BASE_EXPORT void loadPluginsInAllFolders(
+    std::vector<score::Addon>& availablePlugins
     , QStringList additional = {});
 
-ISCORE_LIB_BASE_EXPORT void loadAddonsInAllFolders(
-    std::vector<iscore::Addon>& availablePlugins);
+SCORE_LIB_BASE_EXPORT void loadAddonsInAllFolders(
+    std::vector<score::Addon>& availablePlugins);
 
-std::pair<iscore::Plugin_QtInterface*, PluginLoadingError>
+std::pair<score::Plugin_QtInterface*, PluginLoadingError>
 loadPlugin(
     const QString& fileName,
-    const std::vector<iscore::Addon>& availablePlugins);
+    const std::vector<score::Addon>& availablePlugins);
 
-ossia::optional<iscore::Addon> makeAddon(
+ossia::optional<score::Addon> makeAddon(
     const QString& addon_path,
     const QJsonObject& json_addon,
-    const std::vector<iscore::Addon>& availablePlugins);
+    const std::vector<score::Addon>& availablePlugins);
 
 
 template<typename Registrar_T>
 void registerPluginsImpl(
-    const std::vector<iscore::Addon>& availablePlugins,
+    const std::vector<score::Addon>& availablePlugins,
     Registrar_T& registrar,
-    const iscore::GUIApplicationContext& context)
+    const score::GUIApplicationContext& context)
 {
   // Load what the plug-ins have to offer.
-  for (const iscore::Addon& addon : availablePlugins)
+  for (const score::Addon& addon : availablePlugins)
   {
     auto commands_plugin
         = dynamic_cast<CommandFactory_QtInterface*>(addon.plugin);
@@ -82,7 +82,7 @@ void registerPluginsImpl(
     {
       for (auto& factory_family : registrar.components().factories)
       {
-        const iscore::ApplicationContext& base_ctx = context;
+        const score::ApplicationContext& base_ctx = context;
         // Register core factories
         for (auto&& new_factory :
              factories_plugin->factories(base_ctx, factory_family.first))
@@ -104,11 +104,11 @@ void registerPluginsImpl(
 
 template<typename Registrar_T>
 void registerPlugins(
-    const std::vector<iscore::Addon>& availablePlugins,
+    const std::vector<score::Addon>& availablePlugins,
     Registrar_T& registrar,
-    const iscore::GUIApplicationContext& context)
+    const score::GUIApplicationContext& context)
 {
-  for(const iscore::Addon& addon : availablePlugins)
+  for(const score::Addon& addon : availablePlugins)
   {
     auto ctrl_plugin
         = dynamic_cast<ApplicationPlugin_QtInterface*>(addon.plugin);
@@ -125,8 +125,8 @@ void registerPlugins(
 
 /**
  * @brief loadPlugins
- * @tparam Registrar_T see iscore::ApplicationRegistrar
- * @tparam Context_T see iscore::ApplicationContext
+ * @tparam Registrar_T see score::ApplicationRegistrar
+ * @tparam Context_T see score::ApplicationContext
  * Reloads all the plug-ins.
  * Note: for now this is unsafe after the first loading.
  */
@@ -135,16 +135,16 @@ void loadPlugins(
     Registrar_T& registrar, const Context_T& context)
 {
   // Here, the plug-ins that are effectively loaded.
-  std::vector<iscore::Addon> availablePlugins;
+  std::vector<score::Addon> availablePlugins;
 
   // Load static plug-ins
   for (QObject* plugin : QPluginLoader::staticInstances())
   {
-    if (auto iscore_plug = dynamic_cast<iscore::Plugin_QtInterface*>(plugin))
+    if (auto score_plug = dynamic_cast<score::Plugin_QtInterface*>(plugin))
     {
-      iscore::Addon addon;
-      addon.plugin = iscore_plug;
-      addon.key = iscore_plug->key();
+      score::Addon addon;
+      addon.plugin = score_plug;
+      addon.key = score_plug->key();
       addon.corePlugin = true;
       availablePlugins.push_back(std::move(addon));
     }
@@ -161,7 +161,7 @@ void loadPlugins(
   // factory
   // from plugin A to be loaded prior.
   // Load all the factories.
-  for (const iscore::Addon& addon : availablePlugins)
+  for (const score::Addon& addon : availablePlugins)
   {
     auto facfam_interface
         = dynamic_cast<FactoryList_QtInterface*>(addon.plugin);

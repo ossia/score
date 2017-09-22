@@ -1,6 +1,6 @@
 if(UNIX)
 
-set(ISCORE_BIN_INSTALL_DIR ".")
+set(SCORE_BIN_INSTALL_DIR ".")
 
 # Qt Libraries
 get_target_property(QtCore_LOCATION Qt5::Core LOCATION)
@@ -23,14 +23,14 @@ file(GLOB QT_SOS
 install(FILES
   ${ICU_SOS}
   ${QT_SOS}
-  DESTINATION ${ISCORE_BIN_INSTALL_DIR})
+  DESTINATION ${SCORE_BIN_INSTALL_DIR})
 
 # Qt conf file
 install(
   FILES
     "${CMAKE_CURRENT_LIST_DIR}/Deployment/Linux/qt.conf"
   DESTINATION
-    ${ISCORE_BIN_INSTALL_DIR})
+    ${SCORE_BIN_INSTALL_DIR})
 
 # Qt Platform Plugin
 install(FILES
@@ -41,11 +41,11 @@ install(FILES
   "${QT_SO_DIR}/../plugins/generic/libqevdevmouseplugin.so"
   "${QT_SO_DIR}/../plugins/xcbglintegrations/libqxcb-glx-integration.so"
 
-  DESTINATION ${ISCORE_BIN_INSTALL_DIR}/plugins/platforms)
+  DESTINATION ${SCORE_BIN_INSTALL_DIR}/plugins/platforms)
 
 # Qt helper script
 
-install(PROGRAMS "${CMAKE_SOURCE_DIR}/base/app/i-score.sh"
+install(PROGRAMS "${CMAKE_SOURCE_DIR}/base/app/score.sh"
         DESTINATION ".")
 
 endif()

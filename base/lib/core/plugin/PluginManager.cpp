@@ -7,9 +7,9 @@
 #include <boost/range/algorithm/find_if.hpp>
 #include <core/application/ApplicationRegistrar.hpp>
 #include <core/plugin/PluginManager.hpp>
-#include <iscore/application/ApplicationComponents.hpp>
-#include <iscore/application/GUIApplicationContext.hpp>
-#include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+#include <score/application/ApplicationComponents.hpp>
+#include <score/application/GUIApplicationContext.hpp>
+#include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <QJsonDocument>
 #include <QPluginLoader>
 #include <QSettings>
@@ -18,16 +18,16 @@
 
 #include <ossia/detail/algorithms.hpp>
 #include <QStandardPaths>
-#include <iscore/application/ApplicationContext.hpp>
-#include <iscore/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/application/ApplicationContext.hpp>
+#include <score/plugins/customfactory/StringFactoryKey.hpp>
 
-namespace iscore
+namespace score
 {
 namespace PluginLoader
 {
 /**
  * @brief pluginsDir
- * @return The folder where i-score should look for plug-ins, static for now.
+ * @return The folder where score should look for plug-ins, static for now.
  */
 QStringList pluginsDir()
 {
@@ -36,12 +36,12 @@ QStringList pluginsDir()
   l << (QCoreApplication::applicationDirPath() + "/plugins");
 #elif defined(__linux__)
   l << QCoreApplication::applicationDirPath() + "/plugins"
-    << QCoreApplication::applicationDirPath() + "/../lib/i-score"
-    << "/usr/lib/i-score";
+    << QCoreApplication::applicationDirPath() + "/../lib/score"
+    << "/usr/lib/score";
 #elif defined(__APPLE__) && defined(__MACH__)
   l << QCoreApplication::applicationDirPath() + "/plugins"
     << QCoreApplication::applicationDirPath()
-           + "../Frameworks/i-score/plugins";
+           + "../Frameworks/score/plugins";
 #endif
   auto pwd = QDir{}.absolutePath() + "/plugins";
 
@@ -55,22 +55,22 @@ QStringList addonsDir()
 {
   QStringList l;
 
-#if !defined(ISCORE_DEPLOYMENT_BUILD)
+#if !defined(SCORE_DEPLOYMENT_BUILD)
   l << "addons";
 #endif
   l << QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation)
                .first()
-           + "/i-score/addons";
+           + "/score/addons";
   qDebug() << l;
   return l;
 }
 
-std::pair<iscore::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
+std::pair<score::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
     const QString& fileName,
-    const std::vector<iscore::Addon>& availablePlugins)
+    const std::vector<score::Addon>& availablePlugins)
 {
-  using namespace iscore::PluginLoader;
-#if !defined(ISCORE_STATIC_QT)
+  using namespace score::PluginLoader;
+#if !defined(SCORE_STATIC_QT)
   auto blacklist = pluginsBlacklist();
 
   // Check if it is blacklisted
@@ -80,26 +80,26 @@ std::pair<iscore::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
   }
 
 #if defined(_MSC_VER)
-  QDir iscore_dir = QDir::current();
-  QPluginLoader loader{iscore_dir.relativeFilePath(fileName)};
+  QDir score_dir = QDir::current();
+  QPluginLoader loader{score_dir.relativeFilePath(fileName)};
 #else
   QPluginLoader loader{fileName};
 #endif
 
   if (QObject* plugin = loader.instance())
   {
-    auto iscore_plugin = dynamic_cast<iscore::Plugin_QtInterface*>(plugin);
-    if (!iscore_plugin)
+    auto score_plugin = dynamic_cast<score::Plugin_QtInterface*>(plugin);
+    if (!score_plugin)
     {
       qDebug() << "Warning: plugin" << plugin->metaObject()->className()
-               << "is not an i-score plug-in.";
+               << "is not an score plug-in.";
       return std::make_pair(nullptr, PluginLoadingError::NotAPlugin);
     }
 
     // Check if the plugin is not already loaded
     auto plug_it
-        = ossia::find_if(availablePlugins, [&](const iscore::Addon& obj) {
-            return obj.plugin && (obj.plugin->key() == iscore_plugin->key());
+        = ossia::find_if(availablePlugins, [&](const score::Addon& obj) {
+            return obj.plugin && (obj.plugin->key() == score_plugin->key());
           });
 
     if (plug_it != availablePlugins.end())
@@ -111,7 +111,7 @@ std::pair<iscore::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
     }
 
     // We can load the plug-in
-    return std::make_pair(iscore_plugin, PluginLoadingError::NoError);
+    return std::make_pair(score_plugin, PluginLoadingError::NoError);
   }
   else
   {
@@ -128,11 +128,11 @@ std::pair<iscore::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
 }
 
 void
-loadPluginsInAllFolders(std::vector<iscore::Addon>& availablePlugins, QStringList additional)
+loadPluginsInAllFolders(std::vector<score::Addon>& availablePlugins, QStringList additional)
 {
-  using namespace iscore::PluginLoader;
+  using namespace score::PluginLoader;
 
-#if !defined(ISCORE_STATIC_QT)
+#if !defined(SCORE_STATIC_QT)
   // Load dynamic plug-ins
   for (const QString& pluginsFolder : pluginsDir() + additional)
   {
@@ -146,10 +146,10 @@ loadPluginsInAllFolders(std::vector<iscore::Addon>& availablePlugins, QStringLis
       {
         case PluginLoadingError::NoError:
         {
-          iscore::Addon addon;
+          score::Addon addon;
           addon.path = path;
           addon.plugin = plug.first;
-          addon.key = safe_cast<iscore::Plugin_QtInterface*>(plug.first)->key();
+          addon.key = safe_cast<score::Plugin_QtInterface*>(plug.first)->key();
           addon.corePlugin = true;
           availablePlugins.push_back(std::move(addon));
           break;
@@ -162,15 +162,15 @@ loadPluginsInAllFolders(std::vector<iscore::Addon>& availablePlugins, QStringLis
 #endif
 }
 
-optional<iscore::Addon> makeAddon(
+optional<score::Addon> makeAddon(
     const QString& addon_path,
     const QJsonObject& json_addon,
-    const std::vector<iscore::Addon>& availablePlugins)
+    const std::vector<score::Addon>& availablePlugins)
 {
-  using namespace iscore::PluginLoader;
+  using namespace score::PluginLoader;
   using Funmap = std::map<QString, std::function<void(QJsonValue)>>;
 
-  iscore::Addon add;
+  score::Addon add;
 
   const Funmap funmap{
       {addonArchitecture(),
@@ -224,9 +224,9 @@ optional<iscore::Addon> makeAddon(
 }
 
 void
-loadAddonsInAllFolders(std::vector<iscore::Addon>& availablePlugins)
+loadAddonsInAllFolders(std::vector<score::Addon>& availablePlugins)
 {
-  using namespace iscore::PluginLoader;
+  using namespace score::PluginLoader;
 
   // Load dynamic plug-ins
   for (const QString& pluginsFolder : addonsDir())
@@ -256,7 +256,7 @@ loadAddonsInAllFolders(std::vector<iscore::Addon>& availablePlugins)
 
 QStringList pluginsBlacklist()
 {
-  QSettings s("OSSIA", "i-score");
+  QSettings s("OSSIA", "score");
   return s.value("PluginSettings/Blacklist", QStringList{}).toStringList();
 }
 }

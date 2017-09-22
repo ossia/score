@@ -2,9 +2,9 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <core/settings/SettingsPresenter.hpp>
 #include <core/settings/SettingsView.hpp>
-#include <iscore/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 
-namespace iscore
+namespace score
 {
 SettingsPresenter::SettingsPresenter(SettingsView* view, QObject* parent)
     : QObject{parent}, m_view{view}
@@ -18,7 +18,7 @@ SettingsPresenter::SettingsPresenter(SettingsView* view, QObject* parent)
 void SettingsPresenter::addSettingsPresenter(
     SettingsDelegatePresenter* presenter)
 {
-  ISCORE_ASSERT(ossia::find(m_pluginPresenters, presenter) == m_pluginPresenters.end());
+  SCORE_ASSERT(ossia::find(m_pluginPresenters, presenter) == m_pluginPresenters.end());
 
   m_pluginPresenters.push_back(presenter);
 }

@@ -3,7 +3,7 @@
 #include <QObject>
 #include <QTemporaryFile>
 
-namespace iscore
+namespace score
 {
 class CommandBackupFile;
 class Document;
@@ -27,9 +27,9 @@ class Document;
  * the
  * correct document save according to our position in the command stack.
  *
- * \see iscore::OpenDocumentsFile
- * \see iscore::CommandBackupFile
- * \see iscore::DocumentBackups
+ * \see score::OpenDocumentsFile
+ * \see score::CommandBackupFile
+ * \see score::DocumentBackups
  */
 class DocumentBackupManager final : public QObject
 {
@@ -46,6 +46,7 @@ private:
   QTemporaryFile& crashDataFile();
   CommandBackupFile& crashCommandFile();
 
+  score::Document& m_doc;
   QTemporaryFile m_modelFile;
   CommandBackupFile* m_commandFile{};
 };

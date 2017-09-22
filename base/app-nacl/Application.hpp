@@ -1,17 +1,17 @@
 #pragma once
 #include <core/application/ApplicationInterface.hpp>
 #include <core/application/ApplicationSettings.hpp>
-#include <iscore/application/ApplicationContext.hpp>
+#include <score/application/ApplicationContext.hpp>
 #include <core/plugin/PluginManager.hpp>
 
 #include <QApplication>
 #include <memory>
 
-namespace iscore {
+namespace score {
 class Settings;
-}  // namespace iscore
+}  // namespace score
 
-namespace iscore
+namespace score
 {
     class Presenter;
     class View;
@@ -19,7 +19,7 @@ namespace iscore
     /**
      * @brief Application
      *
-     * This class is the main object in i-score. It is the
+     * This class is the main object in score. It is the
      * parent of every other object created.
      * It does instantiate the rest of the software (MVP, settings, plugins).
      */

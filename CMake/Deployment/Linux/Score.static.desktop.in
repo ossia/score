@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=score
+Comment=An interactive sequencer for the intermedia arts
+Exec=score
+Icon=score
+Terminal=false
+Categories=AudioVideo;

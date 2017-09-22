@@ -1,16 +1,16 @@
 #pragma once
 #include <QObject>
 #include <exception>
-#include <iscore/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+#include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
+#include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <memory>
 #include <set>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/topological_sort.hpp>
-#include <iscore/plugins/Addon.hpp>
-#include <iscore/tools/std/HashMap.hpp>
+#include <score/plugins/Addon.hpp>
+#include <score/tools/std/HashMap.hpp>
 #include <chrono>
-namespace iscore
+namespace score
 {
 namespace PluginLoader
 {
@@ -25,8 +25,8 @@ struct PluginDependencyGraph
   struct GraphVertex
   {
     GraphVertex(): addon{} { }
-    GraphVertex(const iscore::Addon* add): addon{add} { }
-    const iscore::Addon* addon{};
+    GraphVertex(const score::Addon* add): addon{add} { }
+    const score::Addon* addon{};
   };
 
   using Graph = boost::adjacency_list<
@@ -36,23 +36,23 @@ struct PluginDependencyGraph
     GraphVertex>;
 
 public:
-  PluginDependencyGraph(const std::vector<iscore::Addon>& addons)
+  PluginDependencyGraph(const std::vector<score::Addon>& addons)
   {
     if(addons.empty())
       return;
 
-    iscore::hash_map<PluginKey, int32_t> keys;
-    std::vector<const iscore::Addon*> not_loaded;
+    score::hash_map<PluginKey, int32_t> keys;
+    std::vector<const score::Addon*> not_loaded;
 
     // First add all the vertices to the graph
-    for(const iscore::Addon& addon : addons)
+    for(const score::Addon& addon : addons)
     {
       auto vx = boost::add_vertex(GraphVertex{ &addon }, m_graph);
       keys[addon.key] = vx;
     }
 
     // If A depends on B, then there is an edge from B to A.
-    for(const iscore::Addon& addon : addons)
+    for(const score::Addon& addon : addons)
     {
       auto addon_k = keys[addon.key];
       for(const auto& k : addon.plugin->required())
@@ -94,7 +94,7 @@ public:
 
 private:
   Graph m_graph;
-  std::vector<iscore::Addon> m_sorted;
+  std::vector<score::Addon> m_sorted;
 
 };
 }

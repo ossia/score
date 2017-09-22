@@ -9,12 +9,12 @@
 #include <core/plugin/PluginManager.hpp>
 #include <core/undo/UndoApplicationPlugin.hpp>
 #include <core/undo/Panel/UndoPanelFactory.hpp>
-#include <iscore/plugins/panel/PanelDelegate.hpp>
-#include <iscore/selection/Selection.hpp>
+#include <score/plugins/panel/PanelDelegate.hpp>
+#include <score/selection/Selection.hpp>
 
-#include <iscore/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+#include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <core/presenter/CoreApplicationPlugin.hpp>
 #include <core/document/DocumentModel.hpp>
 TestApplication::TestApplication(int &argc, char **argv):
@@ -24,15 +24,15 @@ TestApplication::TestApplication(int &argc, char **argv):
     m_instance = this;
     this->setParent(m_app);
     // Settings
-    m_settings = std::make_unique<iscore::Settings> ();
+    m_settings = std::make_unique<score::Settings> ();
 
     // MVP
-    m_view = new iscore::View{nullptr};
-    m_presenter = new iscore::Presenter{m_applicationSettings, *m_settings, m_view, this};
+    m_view = new score::View{nullptr};
+    m_presenter = new score::Presenter{m_applicationSettings, *m_settings, m_view, this};
     auto& ctx = m_presenter->applicationContext();
 
     // Plugins
-    iscore::GUIApplicationRegistrar registrar{
+    score::GUIApplicationRegistrar registrar{
         m_presenter->components(),
                 ctx,
                 m_presenter->menuManager(),
@@ -54,7 +54,7 @@ TestApplication::~TestApplication()
     delete m_app;
 }
 
-const iscore::GUIApplicationContext& TestApplication::context() const
+const score::GUIApplicationContext& TestApplication::context() const
 {
     return m_presenter->applicationContext();
 }

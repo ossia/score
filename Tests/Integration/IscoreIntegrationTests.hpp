@@ -7,7 +7,7 @@
 #include <DocumentPlugin/OSSIAConstraintElement.hpp>
 #include <DocumentPlugin/OSSIAEventElement.hpp>
 #include <DocumentPlugin/OSSIAStateElement.hpp>
-#include <DocumentPlugin/OSSIATimeNodeElement.hpp>
+#include <DocumentPlugin/OSSIATimeSyncElement.hpp>
 
 #include <Editor/TimeConstraint.h>
 #include <Editor/Scenario.h>
@@ -15,9 +15,9 @@
 #include <core/presenter/Presenter.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <iscore/document/DocumentInterface.hpp>
-#include <iscore/document/DocumentInterface.hpp>
-#include <iscore_static_plugins.hpp>
+#include <score/document/DocumentInterface.hpp>
+#include <score/document/DocumentInterface.hpp>
+#include <score_static_plugins.hpp>
 
 #include <Automation/AutomationModel.hpp>
 #include <Curve/Commands/UpdateCurve.hpp>
@@ -31,11 +31,11 @@
 #include <Scenario/Document/BaseElement/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Constraint/ConstraintModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeNode.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateConstraint_State_Event_TimeSync.hpp>
 #include <Scenario/Commands/Constraint/AddProcessToConstraint.hpp>
 
 QT_BEGIN_NAMESPACE
@@ -44,7 +44,7 @@ QT_END_NAMESPACE
 class IscoreTestBase : public QObject
 {
     public:
-        iscore::Application app;
+        score::Application app;
 
         IscoreTestBase(int& argc, char** argv):
             app{ApplicationSettings{false, false, {}}, argc, argv}
@@ -65,7 +65,7 @@ class IscoreTestBase : public QObject
         }
 
 
-        void redo(iscore::SerializableCommand* cmd)
+        void redo(score::SerializableCommand* cmd)
         {
             getDocument().commandStack().redoAndPush(cmd);
         }
@@ -85,14 +85,14 @@ class IscoreTestBase : public QObject
             return static_cast<OSSIAControl*>(*it);
         }
 
-        iscore::Document& getDocument() const
+        score::Document& getDocument() const
         {
             return *app.presenter()->documents()[0];
         }
 
         ScenarioDocumentModel& getScenarioDocumentModel() const
         {
-            return iscore::IDocument::get<ScenarioDocumentModel>(getDocument());
+            return score::IDocument::get<ScenarioDocumentModel>(getDocument());
         }
 
         template<typename T>
@@ -118,7 +118,7 @@ class IscoreTestBase : public QObject
         }
 };
 
-#define ISCORE_INTEGRATION_TEST(TestObject) \
+#define SCORE_INTEGRATION_TEST(TestObject) \
 int main(int argc, char** argv) \
 { \
     TestObject tc(argc, argv); \

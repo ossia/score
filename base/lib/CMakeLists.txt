@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
-project(iscore_lib_base LANGUAGES CXX)
-iscore_common_setup()
+project(score_lib_base LANGUAGES CXX)
+score_common_setup()
 
 # Packages
 find_package(Qt5 5.7 REQUIRED COMPONENTS Core Widgets Svg QuickWidgets)
@@ -8,94 +8,95 @@ find_package(Qt5 5.7 REQUIRED COMPONENTS Core Widgets Svg QuickWidgets)
 # Files & main target
 file(GLOB_RECURSE HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/core/*.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/iscore/*.hpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/score/*.hpp)
 
-qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/resources/iscore.qrc")
+qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/resources/score.qrc")
 set(SRCS
 
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/serialization/StringConstants.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/serialization/AnySerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/tree/InvisibleRootNodeSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/path/ObjectPathSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/IdentifierGeneration.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/CommandDataSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/StringConstants.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/AnySerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/model/tree/InvisibleRootNodeSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/model/path/ObjectPathSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/tools/IdentifierGeneration.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/command/CommandDataSerialization.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/customfactory/FactoryInterface.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/customfactory/FactoryFamily.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/customfactory/SerializableInterface.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/customfactory/FactoryInterface.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/customfactory/FactoryFamily.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/customfactory/SerializableInterface.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/AggregateCommand.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/Command.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/CommandData.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/CommandGeneratorMap.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/PropertyCommand.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/command/Validity/ValidityChecker.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/command/AggregateCommand.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/command/Command.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/command/CommandData.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/command/CommandGeneratorMap.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/command/PropertyCommand.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/command/Validity/ValidityChecker.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/Component.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/model/Component.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/application/ApplicationContext.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/application/ApplicationComponents.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/application/ApplicationContext.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/application/ApplicationComponents.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/actions/Action.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/actions/ActionManager.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/actions/MenuManager.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/actions/ToolbarManager.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/actions/Action.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/actions/ActionManager.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/actions/MenuManager.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/actions/ToolbarManager.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/document/DocumentInterface.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/document/DocumentInterface.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/locking/ObjectLocker.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/locking/ObjectLocker.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/DocumentDelegateFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/DocumentDelegateModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/DocumentDelegateView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/DocumentDelegatePresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/documentdelegate/plugin/DocumentPlugin.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/application/GUIApplicationPlugin.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/panel/PanelDelegate.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/panel/PanelDelegateFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/documentdelegate/DocumentDelegateFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/documentdelegate/DocumentDelegateModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/documentdelegate/DocumentDelegateView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/documentdelegate/DocumentDelegatePresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/documentdelegate/plugin/DocumentPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/application/GUIApplicationPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/panel/PanelDelegate.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/panel/PanelDelegateFactory.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/settingsdelegate/SettingsDelegateFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/settingsdelegate/SettingsDelegateModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/settingsdelegate/SettingsDelegatePresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/settingsdelegate/SettingsDelegateView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/settingsdelegate/SettingsDelegateFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/settingsdelegate/SettingsDelegateModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/settingsdelegate/SettingsDelegatePresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/settingsdelegate/SettingsDelegateView.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/ProjectSettings/ProjectSettingsFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/ProjectSettings/ProjectSettingsModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/ProjectSettings/ProjectSettingsPresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/ProjectSettings/ProjectSettingsView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/ProjectSettings/ProjectSettingsFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/ProjectSettings/ProjectSettingsModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/ProjectSettings/ProjectSettingsPresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/ProjectSettings/ProjectSettingsView.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/Addon.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/Addon.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/plugins/qt_interfaces/CommandFactory_QtInterface.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/qt_interfaces/FactoryFamily_QtInterface.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/qt_interfaces/FactoryInterface_QtInterface.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/qt_interfaces/PluginRequirements_QtInterface.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/qt_interfaces/CommandFactory_QtInterface.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/selection/SelectionDispatcher.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/selection/SelectionStack.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/serialization/DataStreamVisitor.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/serialization/JSONObjectVisitor.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/serialization/QtTypesJsonVisitors.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/selection/SelectionDispatcher.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/selection/SelectionStack.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/DataStreamVisitor.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/JSONObjectVisitor.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/QtTypesJsonVisitors.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/path/ObjectIdentifierSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/IdentifiedObjectAbstract.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/model/path/ObjectIdentifierSerialization.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/model/IdentifiedObjectAbstract.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/path/ObjectPath.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/path/RelativePath.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/tools/RandomNameProvider.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/ModelMetadata.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/Skin.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/model/ColorReference.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/statemachine/GraphicsSceneToolPalette.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/statemachine/CommonSelectionState.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/GraphicsItem.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/ClearLayout.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/DoubleSlider.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/SetIcons.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/QmlContainerPanel.cpp" # TODO MOVEME
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/Separator.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/iscore/widgets/JS/JSEdit.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/model/path/ObjectPath.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/model/path/RelativePath.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/tools/RandomNameProvider.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/model/ModelMetadata.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/model/Skin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/model/ColorReference.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/statemachine/GraphicsSceneToolPalette.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/statemachine/CommonSelectionState.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/GraphicsItem.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ClearLayout.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/DoubleSlider.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SetIcons.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/QmlContainerPanel.cpp" # TODO MOVEME
+"${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/Separator.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/QGraphicsButton.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/JS/JSEdit.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/SafeQApplication.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationInterface.cpp"
@@ -129,12 +130,12 @@ set(SRCS
 
 )
 
-add_library(iscore_lib_base ${SRCS} ${HEADERS} ${QRCS})
+add_library(score_lib_base ${SRCS} ${HEADERS} ${QRCS})
 
-target_link_libraries(iscore_lib_base
+target_link_libraries(score_lib_base
         PUBLIC Qt5::Core Qt5::Widgets Qt5::Qml Qt5::QuickWidgets ossia
     PRIVATE Qt5::Svg QRecentFilesMenu)
 
-set_property(TARGET iscore_lib_base PROPERTY COTIRE_CXX_PREFIX_HEADER_INIT "${CMAKE_CURRENT_SOURCE_DIR}/iscore/prefix.hpp")
-setup_iscore_library(iscore_lib_base)
-setup_iscore_tests(tests)
+set_property(TARGET score_lib_base PROPERTY COTIRE_CXX_PREFIX_HEADER_INIT "${CMAKE_CURRENT_SOURCE_DIR}/score/prefix.hpp")
+setup_score_library(score_lib_base)
+setup_score_tests(tests)

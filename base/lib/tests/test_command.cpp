@@ -4,8 +4,8 @@
 #include <QtTest/QtTest>
 #include <core/QNamedObject>
 #include <core/command/CommandStack.hpp>
-#include <iscore/command/Command.hpp>
-using namespace iscore;
+#include <score/command/Command.hpp>
+using namespace score;
 
 
 class FakeParent : public QObject
@@ -33,7 +33,7 @@ class FakeCommand : public Command
 
         }
 
-        virtual void undo(const iscore::DocumentContext& ctx)
+        virtual void undo(const score::DocumentContext& ctx)
         {
             auto children = m_globalParent.findChildren<FakeModel*>
 ("FakeModel");
@@ -47,7 +47,7 @@ class FakeCommand : public Command
             }
         }
 
-        virtual void redo(const iscore::DocumentContext& ctx)
+        virtual void redo(const score::DocumentContext& ctx)
         {
             auto children = m_globalParent.findChildren<FakeModel*>
 ("FakeModel");

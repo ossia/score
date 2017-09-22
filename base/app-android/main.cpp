@@ -3,9 +3,9 @@
 #include <core/application/Application.hpp>
 //#include <android_native_app_glue.h>
 
-#define APPNAME "i-score3"
-#if defined(ISCORE_STATIC_PLUGINS)
-Q_IMPORT_PLUGIN(iscore_plugin_scenario)
+#define APPNAME "score3"
+#if defined(SCORE_STATIC_PLUGINS)
+Q_IMPORT_PLUGIN(score_plugin_scenario)
 Q_IMPORT_PLUGIN(InspectorPlugin)
 Q_IMPORT_PLUGIN(DeviceExplorerPlugin)
 Q_IMPORT_PLUGIN(PluginSettingsPlugin)  // static plug-ins should not be displayed.
@@ -16,7 +16,7 @@ int main()
     //app_dummy(); // Make sure glue isn't stripped
     int dummy_argc = 0;
     char** dummy_argv = nullptr;
-    iscore::Application app(dummy_argc, dummy_argv);
+    score::Application app(dummy_argc, dummy_argv);
     app.exec();
 
     //ANativeActivity_finish(state->activity);

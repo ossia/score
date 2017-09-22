@@ -1,5 +1,5 @@
 
-#include <iscore_player_export.h>
+#include <score_player_export.h>
 #include <QCoreApplication>
 #include <core/application/ApplicationSettings.hpp>
 #include <core/application/SafeQApplication.hpp>
@@ -8,7 +8,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentFactory.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentFactory.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <iscore/document/DocumentContext.hpp>
+#include <score/document/DocumentContext.hpp>
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <core/application/ApplicationInterface.hpp>
@@ -16,32 +16,32 @@
 
 #include <core/plugin/PluginManager.hpp>
 #include <core/plugin/PluginDependencyGraph.hpp>
-#include <iscore/tools/std/Optional.hpp>
-#include <iscore/plugins/qt_interfaces/CommandFactory_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
-#include <iscore/plugins/customfactory/FactoryFamily.hpp>
-#include <iscore/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
-#include <iscore/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
-#include <iscore/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
-#include <iscore/model/ComponentSerialization.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+#include <score/tools/std/Optional.hpp>
+#include <score/plugins/qt_interfaces/CommandFactory_QtInterface.hpp>
+#include <score/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
+#include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
+#include <score/plugins/customfactory/FactoryFamily.hpp>
+#include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
+#include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
+#include <score/model/ComponentSerialization.hpp>
+#include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <Process/ProcessList.hpp>
-#include <Engine/Executor/ConstraintComponent.hpp>
+#include <Engine/Executor/IntervalComponent.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <ossia/editor/scenario/time_constraint.hpp>
+#include <ossia/editor/scenario/time_interval.hpp>
 #include <QPluginLoader>
 #include <QJsonDocument>
 #include <ossia/context.hpp>
 #include <ossia-qt/device/qml_device.hpp>
-#include <iscore_player_export.h>
+#include <score_player_export.h>
 namespace Network { class NetworkDocumentPlugin; }
-namespace iscore
+namespace score
 {
-class ISCORE_PLAYER_EXPORT PlayerImpl :
+class SCORE_PLAYER_EXPORT PlayerImpl :
     public QObject,
     public ApplicationInterface
 {

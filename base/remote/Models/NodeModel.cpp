@@ -94,7 +94,7 @@ Device::Node&NodeModel::nodeFromModelIndex(const QModelIndex& index) const
   auto n = index.isValid() ? static_cast<NodeType*>(index.internalPointer())
                            : const_cast<NodeType*>(&rootNode());
 
-  ISCORE_ASSERT(n);
+  SCORE_ASSERT(n);
   return *n;
 }
 

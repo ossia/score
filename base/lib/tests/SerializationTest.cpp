@@ -1,9 +1,9 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <QtTest/QtTest>
-#include <iscore/serialization/DataStreamVisitor.hpp>
-#include <iscore/serialization/JSONVisitor.hpp>
-#include <iscore/model/path/ObjectPath.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+#include <score/model/path/ObjectPath.hpp>
 
 class SerializationTest : public QObject
 {
@@ -36,10 +36,10 @@ private slots:
   }
 
 private:
-  const ObjectPath test_path{{"ConstraintModel", {}},
-                             {"ConstraintModel", 0},
+  const ObjectPath test_path{{"IntervalModel", {}},
+                             {"IntervalModel", 0},
                              {"ScenarioProcessSharedModel", 23},
-                             {"ConstraintModel", -42}};
+                             {"IntervalModel", -42}};
 };
 
 QTEST_MAIN(SerializationTest)

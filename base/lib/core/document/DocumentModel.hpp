@@ -1,8 +1,8 @@
 #pragma once
 #include <QByteArray>
 #include <QJsonObject>
-#include <iscore/selection/Selection.hpp>
-#include <iscore/model/IdentifiedObject.hpp>
+#include <score/selection/Selection.hpp>
+#include <score/model/IdentifiedObject.hpp>
 
 #include <QString>
 #include <QVariant>
@@ -11,9 +11,9 @@
 #include <vector>
 
 class QObject;
-#include <iscore/model/Identifier.hpp>
+#include <score/model/Identifier.hpp>
 
-namespace iscore
+namespace score
 {
 class DocumentDelegateFactory;
 class DocumentDelegateModel;
@@ -26,18 +26,18 @@ struct ApplicationContext;
  * Drawbridge between the application and a model given by a plugin.
  * Contains all the "saveable" data.
  */
-class ISCORE_LIB_BASE_EXPORT DocumentModel final
+class SCORE_LIB_BASE_EXPORT DocumentModel final
     : public IdentifiedObject<DocumentModel>
 {
   Q_OBJECT
 public:
   DocumentModel(
       const Id<DocumentModel>& id,
-      const iscore::DocumentContext& ctx,
+      const score::DocumentContext& ctx,
       DocumentDelegateFactory& fact,
       QObject* parent);
   DocumentModel(
-      iscore::DocumentContext& ctx,
+      score::DocumentContext& ctx,
       const QVariant& data,
       DocumentDelegateFactory& fact,
       QObject* parent);
@@ -60,11 +60,11 @@ signals:
 
 private:
   void loadDocumentAsJson(
-      iscore::DocumentContext& ctx,
+      score::DocumentContext& ctx,
       const QJsonObject&,
       DocumentDelegateFactory& fact);
   void loadDocumentAsByteArray(
-      iscore::DocumentContext& ctx,
+      score::DocumentContext& ctx,
       const QByteArray&,
       DocumentDelegateFactory& fact);
 

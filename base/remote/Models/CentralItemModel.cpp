@@ -37,7 +37,7 @@ struct AddressItemFactory
   auto operator()(std::array<float, N> c)
   { return WidgetKind::Label; }
 
-  auto operator()(const State::tuple_t& c)
+  auto operator()(const State::list_t& c)
   { return WidgetKind::Label; }
 };
 

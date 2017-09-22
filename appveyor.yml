@@ -15,12 +15,12 @@ build_script:
   - git submodule update --init --recursive
   - mkdir build
   - cd build
-  - cmake -T host=x64 -G "Visual Studio 15 2017 Win64" -DISCORE_CONFIGURATION=static-release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5" -DISCORE_ENABLE_LTO=0 ..
+  - cmake -T host=x64 -G "Visual Studio 15 2017 Win64" -DSCORE_CONFIGURATION=static-release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5" -DSCORE_ENABLE_LTO=0 ..
   - msbuild PACKAGE.vcxproj /p:Configuration=Release /p:PreferredToolArchitecture=x64 /m
 
 artifacts:
   - name: Installer
-    path: 'build/i-score-*.exe'
+    path: 'build/score-*.exe'
 
 deploy:
   release: $(APPVEYOR_REPO_TAG_NAME)

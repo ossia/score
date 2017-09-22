@@ -12,11 +12,11 @@
 #include <QSettings>
 #include <QString>
 #include <QVariant>
-#include <iscore/tools/QMapHelper.hpp>
+#include <score/tools/QMapHelper.hpp>
 
 #include "DocumentBackups.hpp"
 
-bool iscore::DocumentBackups::canRestoreDocuments()
+bool score::DocumentBackups::canRestoreDocuments()
 {
   // Try to reload if there was a crash
   if (OpenDocumentsFile::exists())
@@ -24,7 +24,7 @@ bool iscore::DocumentBackups::canRestoreDocuments()
     if (QMessageBox::question(
             qApp->activeWindow(),
             QObject::tr("Reload?"),
-            QObject::tr("It seems that i-score previously crashed. Do you "
+            QObject::tr("It seems that score previously crashed. Do you "
                         "wish to reload your work?"))
         == QMessageBox::Yes)
     {
@@ -43,16 +43,16 @@ bool iscore::DocumentBackups::canRestoreDocuments()
 
 template <typename T>
 static void loadRestorableDocumentData(
-    const QString& date_filename, const QString& command_filename, T& arr)
+    const QString& date_filename, const QPair<QString, QString>& command_filename, T& arr)
 {
   QFile data_file{date_filename};
-  QFile command_file{command_filename};
+  QFile command_file{command_filename.second};
   if (data_file.exists() && command_file.exists())
   {
     data_file.open(QFile::ReadOnly);
     command_file.open(QFile::ReadOnly);
 
-    arr.push_back({data_file.readAll(), command_file.readAll()});
+    arr.push_back({command_filename.first, data_file.readAll(), command_file.readAll()});
 
     data_file.close();
     data_file.remove(); // Note: maybe we don't want to remove them that early?
@@ -62,41 +62,43 @@ static void loadRestorableDocumentData(
   }
 }
 
-std::vector<std::pair<QByteArray, QByteArray>>
-iscore::DocumentBackups::restorableDocuments()
+std::vector<score::RestorableDocument>
+score::DocumentBackups::restorableDocuments()
 {
-  std::vector<std::pair<QByteArray, QByteArray>> arr;
-  QSettings s{iscore::OpenDocumentsFile::path(), QSettings::IniFormat};
+  std::vector<score::RestorableDocument> arr;
+  QSettings s{score::OpenDocumentsFile::path(), QSettings::IniFormat};
 
-  auto docs = s.value("iscore/docs");
+  auto docs = s.value("score/docs");
   const auto existing_files = docs.toMap();
 
   for (const auto& file1 : QMap_keys(existing_files))
   {
     if (file1.isEmpty())
       continue;
-    loadRestorableDocumentData(file1, existing_files[file1].toString(), arr);
+
+    loadRestorableDocumentData(file1, existing_files[file1].value<QPair<QString,QString>>(), arr);
   }
 
-  s.setValue("iscore/docs", QMap<QString, QVariant>{});
+  s.setValue("score/docs", QMap<QString, QVariant>{});
   s.sync();
 
   return arr;
 }
 
-ISCORE_LIB_BASE_EXPORT void iscore::DocumentBackups::clear()
+SCORE_LIB_BASE_EXPORT void score::DocumentBackups::clear()
 {
   if (OpenDocumentsFile::exists())
   {
     // Remove all the tmp files
-    QSettings s{iscore::OpenDocumentsFile::path(), QSettings::IniFormat};
+    QSettings s{score::OpenDocumentsFile::path(), QSettings::IniFormat};
 
-    const auto existing_files = s.value("iscore/docs").toMap();
+    const auto existing_files = s.value("score/docs").toMap();
 
     for (auto it = existing_files.cbegin(); it != existing_files.cend(); ++it)
     {
       QFile{it.key()}.remove();
-      QFile{it.value().toString()}.remove();
+      auto files = it.value().value<QPair<QString,QString>>();
+      QFile{files.second}.remove();
     }
 
     // Remove the file containing the map

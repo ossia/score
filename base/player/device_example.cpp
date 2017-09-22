@@ -6,7 +6,7 @@
 int main()
 {
   // Create a player instance
-  iscore::Player p;
+  score::Player p;
 
   // Create a device
   ossia::net::generic_device dev;

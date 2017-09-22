@@ -1,7 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "WebSocketClient.hpp"
-#include <iscore/serialization/StringConstants.hpp>
+#include <score/serialization/StringConstants.hpp>
 
 namespace RemoteUI
 {
@@ -53,7 +53,7 @@ void WebSocketClient::open(QUrl u)
 void WebSocketClient::handleObject(const QJsonObject& obj)
 {
   qDebug() << obj;
-  auto it = actions.find(obj[iscore::StringConstant().Message].toString().toStdString());
+  auto it = actions.find(obj[score::StringConstant().Message].toString().toStdString());
   if(it != actions.end())
   {
     ((*it).second)(obj);

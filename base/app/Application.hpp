@@ -1,19 +1,19 @@
 #pragma once
 #include <core/application/ApplicationInterface.hpp>
 #include <core/application/ApplicationSettings.hpp>
-#include <iscore/application/ApplicationContext.hpp>
+#include <score/application/ApplicationContext.hpp>
 #include <core/plugin/PluginManager.hpp>
 
 #include <core/settings/Settings.hpp>
 #include <QApplication>
 #include <memory>
 
-namespace iscore {
+namespace score {
 class Settings;
-}  // namespace iscore
+}  // namespace score
 
 class SafeQApplication;
-namespace iscore
+namespace score
 {
     class Presenter;
     class View;
@@ -22,13 +22,13 @@ namespace iscore
 /**
      * @brief Application
      *
-     * This class is the main object in i-score. It is the
+     * This class is the main object in score. It is the
      * parent of every other object created.
      * It does instantiate the rest of the software (MVP, settings, plugins).
      */
 class Application final :
         public QObject,
-        public iscore::GUIApplicationInterface
+        public score::GUIApplicationInterface
 {
         Q_OBJECT
         friend class ChildEventFilter;
@@ -38,7 +38,7 @@ class Application final :
                 char** argv);
 
         Application(
-                const iscore::ApplicationSettings& appSettings,
+                const score::ApplicationSettings& appSettings,
                 int& argc,
                 char** argv);
 
@@ -48,11 +48,11 @@ class Application final :
 
         int exec();
 
-        const iscore::Settings& settings() const
+        const score::Settings& settings() const
         { return m_settings; }
 
-        const iscore::GUIApplicationContext& context() const override;
-        const iscore::ApplicationComponents& components() const override;
+        const score::GUIApplicationContext& context() const override;
+        const score::ApplicationComponents& components() const override;
         void init(); // m_applicationSettings has to be set.
 
     private:
@@ -61,12 +61,12 @@ class Application final :
 
         // Base stuff.
         SafeQApplication* m_app;
-        iscore::Settings m_settings; // Global settings
+        score::Settings m_settings; // Global settings
 
         // MVP
-        iscore::View* m_view {};
-        iscore::Presenter* m_presenter {};
+        score::View* m_view {};
+        score::Presenter* m_presenter {};
 
-        iscore::ApplicationSettings m_applicationSettings;
+        score::ApplicationSettings m_applicationSettings;
 };
 

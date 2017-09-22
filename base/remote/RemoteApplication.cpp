@@ -8,12 +8,12 @@
 #include <QQmlComponent>
 #include <QQmlProperty>
 #include <core/application/ApplicationRegistrar.hpp>
-#include <iscore/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
-#include <iscore/plugins/settingsdelegate/SettingsDelegateModel.hpp>
-#include <iscore/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
+#include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <core/plugin/PluginManager.hpp>
 #include <Device/Address/AddressSettings.hpp>
-#include <iscore/serialization/VisitorCommon.hpp>
+#include <score/serialization/VisitorCommon.hpp>
 #include <Models/GUIItem.hpp>
 namespace RemoteUI
 {
@@ -69,12 +69,12 @@ RemoteApplication::~RemoteApplication()
 
 }
 
-const iscore::ApplicationContext& RemoteApplication::context() const
+const score::ApplicationContext& RemoteApplication::context() const
 {
   throw;
 }
 
-const iscore::ApplicationComponents& RemoteApplication::components() const
+const score::ApplicationComponents& RemoteApplication::components() const
 { return m_components; }
 
 int RemoteApplication::exec()
@@ -87,8 +87,8 @@ void RemoteApplication::enableListening(const Device::FullAddressSettings& a, GU
   if(!a.address.path.empty())
   {
     QJsonObject obj;
-    obj[iscore::StringConstant().Message] = "EnableListening";
-    obj[iscore::StringConstant().Address] = marshall<JSONObject>(a.address);
+    obj[score::StringConstant().Message] = "EnableListening";
+    obj[score::StringConstant().Address] = marshall<JSONObject>(a.address);
     m_ws.socket().sendTextMessage(QJsonDocument(obj).toJson());
 
     m_listening[a.address] = i;
@@ -100,8 +100,8 @@ void RemoteApplication::disableListening(const Device::FullAddressSettings& a, G
   if(!a.address.path.empty())
   {
     QJsonObject obj;
-    obj[iscore::StringConstant().Message] = "DisableListening";
-    obj[iscore::StringConstant().Address] = marshall<JSONObject>(a.address);
+    obj[score::StringConstant().Message] = "DisableListening";
+    obj[score::StringConstant().Address] = marshall<JSONObject>(a.address);
     m_ws.socket().sendTextMessage(QJsonDocument(obj).toJson());
   }
 

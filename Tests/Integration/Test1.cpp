@@ -17,6 +17,6 @@ class Test1: public IscoreTestBase
         }
 };
 
-ISCORE_INTEGRATION_TEST(Test1)
+SCORE_INTEGRATION_TEST(Test1)
 
 #include "Test1.moc"

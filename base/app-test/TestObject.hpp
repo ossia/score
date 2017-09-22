@@ -2,14 +2,14 @@
 #include <core/presenter/DocumentManager.hpp>
 #include <core/document/Document.hpp>
 #include <core/command/CommandStack.hpp>
-#include <iscore/plugins/documentdelegate/DocumentDelegateFactory.hpp>
-#include <iscore/actions/ActionManager.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+#include <score/actions/ActionManager.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/Constraint/ConstraintModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeNode/TimeNodeModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <QApplication>
@@ -21,10 +21,10 @@
 
 class TestObject : public QObject
 {
-        const iscore::GUIApplicationContext& m_context;
+        const score::GUIApplicationContext& m_context;
         Q_OBJECT
     public:
-        TestObject(const iscore::GUIApplicationContext& ctx):
+        TestObject(const score::GUIApplicationContext& ctx):
             m_context{ctx}
         {
             QTimer::singleShot(1000, this, SIGNAL(appStarting()));
@@ -54,7 +54,7 @@ class TestObject : public QObject
                 if(!doc)
                     continue;
 
-                iscore::CommandStack& stack = doc->commandStack();
+                score::CommandStack& stack = doc->commandStack();
                 while(stack.canUndo())
                 {
                     stack.undo(ctx);
@@ -76,7 +76,7 @@ class TestObject : public QObject
                 m_context.docManager.forceCloseDocument(m_context, *doc);
                 QApplication::processEvents();
 
-                auto& doctype = *m_context.interfaces<iscore::DocumentDelegateList>().begin();
+                auto& doctype = *m_context.interfaces<score::DocumentDelegateList>().begin();
 
                 auto ba_doc = m_context.docManager.loadDocument(m_context, byte_arr, doctype);
                 QApplication::processEvents();
@@ -133,8 +133,8 @@ class TestObject : public QObject
             auto& doc_pm = doc->model().modelDelegate();
             auto& scenario_dm = static_cast<Scenario::ScenarioDocumentModel&>(doc_pm);
 
-            auto& scenar = static_cast<Scenario::ProcessModel&>(*scenario_dm.baseConstraint().processes.begin());
-            for(auto& elt : scenar.constraints)
+            auto& scenar = static_cast<Scenario::ProcessModel&>(*scenario_dm.baseInterval().processes.begin());
+            for(auto& elt : scenar.intervals)
             {
                 doc->context().selectionStack.pushNewSelection({&elt});
                 qApp->processEvents();
@@ -149,7 +149,7 @@ class TestObject : public QObject
                 doc->context().selectionStack.pushNewSelection({&elt});
                 qApp->processEvents();
             }
-            for(auto& elt : scenar.timeNodes)
+            for(auto& elt : scenar.timeSyncs)
             {
                 doc->context().selectionStack.pushNewSelection({&elt});
                 qApp->processEvents();

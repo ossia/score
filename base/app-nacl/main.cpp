@@ -5,28 +5,28 @@
 #include <qnamespace.h>
 #include <QtGui>
 #include <QtWidgets>
-#include <iscore_static_plugins.hpp>
+#include <score_static_plugins.hpp>
 
-#if defined(ISCORE_OPENGL)
+#if defined(SCORE_OPENGL)
 #include <QSurfaceFormat>
 #endif
 
 static void init_plugins()
 {
-    Q_INIT_RESOURCE(iscore);
+    Q_INIT_RESOURCE(score);
     Q_INIT_RESOURCE(ScenarioResources);
     Q_INIT_RESOURCE(DeviceExplorer);
-#if defined(ISCORE_PLUGIN_TEMPORALAUTOMATAS)
+#if defined(SCORE_PLUGIN_TEMPORALAUTOMATAS)
     Q_INIT_RESOURCE(TAResources);
 #endif
 }
 
-iscore::Application * app;
+score::Application * app;
 
 void app_init(int argc, char **argv)
 {
     init_plugins();
-    app = new iscore::Application{argc, argv};
+    app = new score::Application{argc, argv};
     app->init();
 }
 
