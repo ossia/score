@@ -89,7 +89,7 @@ void ObjectItemModel::setupConnections()
     {
       auto cst = static_cast<const Scenario::IntervalModel*>(obj);
       cst->processes.added.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
-      cst->processes.removing.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
+      cst->processes.removed.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
     }
     else
     {

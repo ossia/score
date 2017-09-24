@@ -49,12 +49,11 @@ class ObjectItemModel final
     template<typename... Args>
     void recompute(Args&&...)
     {
+      beginResetModel();
       cleanConnections();
 
-      beginResetModel();
-      endResetModel();
-
       setupConnections();
+      endResetModel();
 
       changed();
     }
