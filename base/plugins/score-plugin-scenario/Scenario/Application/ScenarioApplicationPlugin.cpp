@@ -287,17 +287,10 @@ TemporalScenarioPresenter* ScenarioApplicationPlugin::focusedPresenter() const
 
 void ScenarioApplicationPlugin::on_initDocument(score::Document& doc)
 {
-  doc.model().addPluginModel(new Dataflow::DocumentPlugin{
-                               doc.context(), getStrongId(doc.model().pluginModels()), &doc.model()});
 }
 
 void ScenarioApplicationPlugin::on_createdDocument(score::Document& doc)
 {
-  auto plug = doc.context().findPlugin<Dataflow::DocumentPlugin>();
-  if (plug)
-  {
-    plug->init();
-  }
 }
 
 void ScenarioApplicationPlugin::prepareNewDocument()

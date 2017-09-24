@@ -53,4 +53,5 @@ JSONObjectWriter::write(Process::ProcessModel& process)
     process.m_slotHeight = obj[strings.Height].toDouble();
   else
     process.m_slotHeight = 300;
+
 }

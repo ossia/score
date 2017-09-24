@@ -5,8 +5,13 @@
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/tools/Metadata.hpp>
 #include <score_plugin_engine_export.h>
+#include <ossia/network/generic/generic_device.hpp>
+#include <ossia/network/local/local.hpp>
+#include <ossia/dataflow/graph.hpp>
+#include <Process/Dataflow/DataflowObjects.hpp>
 #include <memory>
 
+namespace ossia { class audio_protocol; class midi_generic_parameter;}
 namespace score
 {
 class DocumentModel;
@@ -40,13 +45,30 @@ public:
   {
     return m_ctx;
   }
+  ossia::audio_protocol& audioProto() { return *audioproto; }
 
   void runAllCommands() const;
 
+  std::shared_ptr<ossia::graph> execGraph;
+  ossia::execution_state execState;
+
+  ossia::audio_protocol* audioproto{};
+  mutable ossia::net::generic_device audio_dev;
+  mutable ossia::net::generic_device midi_dev;
+
+  std::vector<ossia::midi_generic_parameter*> midi_ins;
+  std::vector<ossia::midi_generic_parameter*> midi_outs;
+
+  std::unordered_map<Process::Port*, std::shared_ptr<ossia::graph_node>> nodes;
 private:
   mutable ExecutionCommandQueue m_editionQueue;
   Context m_ctx;
   BaseScenarioElement m_base;
+
+  score::hash_map<Id<Process::Cable>, std::shared_ptr<ossia::graph_edge>> m_cables;
+  void on_cableCreated(Process::Cable& c);
+  void on_cableRemoved(const Process::Cable& c);
+  void connectCable(Process::Cable& cable);
 };
 }
 }

@@ -61,6 +61,7 @@ struct SCORE_PLUGIN_ENGINE_EXPORT Context
 
   //! \see LiveModification
   ExecutionCommandQueue& executionQueue;
+  DocumentPlugin& plugin;
 
   auto& context() const { return *this; }
 };

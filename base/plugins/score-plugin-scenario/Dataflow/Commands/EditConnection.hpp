@@ -7,6 +7,7 @@
 
 namespace Dataflow
 {
+/*
 class MoveNode final : public score::Command
 {
 
@@ -27,7 +28,7 @@ private:
   Path<Process::Node> m_model;
   QPointF m_old, m_new;
 };
-
+*/
 class CreateCable final : public score::Command
 {
   SCORE_COMMAND_DECL(Scenario::Command::ScenarioCommandFactoryName(), CreateCable, "Create cable")
@@ -79,7 +80,7 @@ class RemoveCable final : public score::Command
 
   public:
     RemoveCable(
-      const Dataflow::DocumentPlugin& dp,
+      const Scenario::ScenarioDocumentModel& dp,
       const Process::Cable& theCable);
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -90,7 +91,7 @@ protected:
   void deserializeImpl(DataStreamOutput& s) override;
 
 private:
-  Path<Dataflow::DocumentPlugin> m_model;
+  Path<Scenario::ScenarioDocumentModel> m_model;
   Id<Process::Cable> m_cable;
   Process::CableData m_data;
 };

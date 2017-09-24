@@ -119,6 +119,7 @@ void ScenarioDocumentModel::initializeNewDocument(
 
 void ScenarioDocumentModel::on_cableAdded(Process::Cable& c)
 {
+  /*
   auto source = dynamic_cast<Dataflow::NodeItem*>(c.source()->ui);
   auto sink = dynamic_cast<Dataflow::NodeItem*>(c.sink()->ui);
   if(!source || !sink)
@@ -138,30 +139,12 @@ void ScenarioDocumentModel::on_cableAdded(Process::Cable& c)
   ci->updateRect();
   ci->update();
   cableItems.insert(ci);
-}
-
-void ScenarioDocumentModel::registerNode(Dataflow::NodeItem* n)
-{
-  qDebug() << "registering" << n;
-  nodeItems.insert(n);
-
-  for(auto& cable : n->node.cables())
-  {
-    auto it = cables.find(cable);
-    if(it != cables.end())
-    {
-      qDebug("adding cable UI");
-      on_cableAdded(*it);
-    }
-  }
-
-  connect(n, &Dataflow::NodeItem::aboutToDelete, this, [=] {
-    nodeItems.erase(n);
-  });
+  */
 }
 
 void ScenarioDocumentModel::on_cableRemoving(const Process::Cable& c)
 {
+  /*
   auto& map = cableItems.get();
   auto it = map.find(c.id());
   if (it != map.end())
@@ -169,6 +152,7 @@ void ScenarioDocumentModel::on_cableRemoving(const Process::Cable& c)
     delete *it;
     map.erase(it);
   }
+  */
 }
 
 IntervalModel& ScenarioDocumentModel::baseInterval() const

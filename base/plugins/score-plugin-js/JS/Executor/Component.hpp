@@ -38,7 +38,7 @@ public:
   void setTickFun(const QString& val);
 
   ossia::state_element state(double);
-  ossia::state_element state(ossia::time_value date, double pos) override;
+  ossia::state_element state(ossia::time_value date, double pos, ossia::time_value tick_offset) override;
 
 private:
   const Device::DeviceList& m_devices;

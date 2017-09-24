@@ -60,7 +60,7 @@ void ProcessExecutor::setTickFun(const QString& val)
   }
 }
 
-ossia::state_element ProcessExecutor::state(ossia::time_value date, double pos)
+ossia::state_element ProcessExecutor::state(ossia::time_value date, double pos, ossia::time_value tick_offset)
 {
   return state(pos);
 }

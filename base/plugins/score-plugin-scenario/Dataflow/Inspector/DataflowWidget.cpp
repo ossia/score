@@ -30,12 +30,15 @@ DataflowWidget::DataflowWidget(
   setLayout(&m_lay);
 
   reinit();
+  /*
   con(proc, &Process::DataflowProcess::inletsChanged, this, &DataflowWidget::reinit, Qt::QueuedConnection);
   con(proc, &Process::DataflowProcess::outletsChanged, this, &DataflowWidget::reinit, Qt::QueuedConnection);
+  */
 }
 
 void DataflowWidget::reinit()
 {
+  /*
   score::clearLayout(&m_lay);
   m_inlets.clear();
   m_outlets.clear();
@@ -123,6 +126,7 @@ void DataflowWidget::reinit()
     m_disp.submitCommand<AddPort>(m_proc, false);
   }, Qt::QueuedConnection);
   m_lay.addWidget(m_addOutlet);
+  */
 }
 
 }

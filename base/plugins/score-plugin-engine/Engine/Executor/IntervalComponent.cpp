@@ -58,7 +58,6 @@ IntervalComponentBase::IntervalComponentBase(
     system().executionQueue.enqueue([t=ctx.time(sp),cst = m_ossia_interval]
       { cst->set_max_duration(t); });
   });
-
 }
 
 IntervalComponent::~IntervalComponent()
@@ -83,12 +82,13 @@ void IntervalComponent::cleanup()
   for(auto& proc : m_processes)
     proc.second->cleanup();
 
+  system().plugin.execGraph->remove_node(m_ossia_interval->node);
   clear();
   m_processes.clear();
   m_ossia_interval.reset();
 }
 
-IntervalComponentBase::interval_duration_data IntervalComponentBase::makeDurations() const
+interval_duration_data IntervalComponentBase::makeDurations() const
 {
   return {
         context().time(interval().duration.defaultDuration()),
@@ -127,6 +127,13 @@ void IntervalComponent::onSetup(
         cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
     });
   }
+
+  // set-up the interval ports
+  for(auto& port : interval().ports())
+  {
+    system().plugin.nodes.insert({&port, ossia_cst->node});
+  }
+  system().plugin.execGraph->add_node(ossia_cst->node);
 
   init();
 }
@@ -201,9 +208,42 @@ ProcessComponent* IntervalComponentBase::make(
     {
       m_processes.emplace(proc.id(), plug);
 
+
+      const auto& outlets = proc.outlets();
+      std::vector<int> propagated_outlets;
+      for(int i = 0; i < outlets.size(); i++)
+      {
+        if(outlets[i]->propagate)
+          propagated_outlets.push_back(i);
+      }
+
       system().executionQueue.enqueue(
-            [=,cst=m_ossia_interval] {
-        cst->add_time_process(plug->OSSIAProcessPtr());
+            [=,cst=m_ossia_interval,oproc=plug->OSSIAProcessPtr()] {
+        cst->add_time_process(oproc);
+        if(oproc->node)
+        {
+          ossia::graph_node& n = *oproc->node;
+          for(int propagated : propagated_outlets)
+          {
+            const auto& outlet = n.outputs()[propagated]->data;
+            ossia::inlet_ptr cst_inlet;
+            if(outlet.target<ossia::audio_port>()) cst_inlet = cst->node->inputs()[0];
+            else if(outlet.target<ossia::value_port>()) cst_inlet = cst->node->inputs()[1];
+            else if(outlet.target<ossia::midi_port>()) cst_inlet = cst->node->inputs()[2];
+            if(cst_inlet)
+            {
+              auto cable = ossia::make_edge(
+                             ossia::immediate_strict_connection{}
+                             , n.outputs()[propagated]
+                             , cst_inlet
+                             , oproc->node
+                             , cst->node);
+              plug->system().plugin.execGraph->connect(cable);
+            }
+          }
+
+        }
+
       });
     }
     return plug.get();

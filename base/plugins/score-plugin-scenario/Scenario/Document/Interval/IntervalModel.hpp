@@ -17,6 +17,7 @@
 #include <QVector>
 
 #include <Process/Dataflow/DataflowObjects.hpp>
+#include <Process/Dataflow/DataflowObjects.hpp>
 #include <Dataflow/UI/Slider.hpp>
 #include <score/model/Component.hpp>
 #include <score/model/EntityMap.hpp>
@@ -30,6 +31,7 @@ namespace Scenario
 {
 class StateModel;
 
+/*
 class ConstraintNode : public Process::Node
 {
 public:
@@ -51,7 +53,7 @@ public:
 
     std::vector<Id<Process::Cable>> m_cables;
 };
-
+*/
 
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalModel final
     : public score::Entity<IntervalModel>,
@@ -64,9 +66,13 @@ class SCORE_PLUGIN_SCENARIO_EXPORT IntervalModel final
   friend struct SlotPath;
   Q_PROPERTY(double heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY heightPercentageChanged)
 
+  score::EntityMap<Process::Port> m_ports;
 public:
+  const score::EntityMap<Process::Port>& ports() const { return m_ports; }
+  /*
   ConstraintNode node{this};
   Dataflow::Slider slider{this};
+  */
 
   /** Properties of the class **/
   score::EntityMap<Process::ProcessModel> processes;

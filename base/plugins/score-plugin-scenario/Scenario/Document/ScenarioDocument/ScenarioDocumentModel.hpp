@@ -1,6 +1,6 @@
 #pragma once
 #include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
-
+#include <Process/Dataflow/DataflowObjects.hpp>
 #include <Dataflow/DataflowWindow.hpp>
 #include <Dataflow/UI/NodeItem.hpp>
 #include <Process/Dataflow/DataflowObjects.hpp>
@@ -58,7 +58,7 @@ public:
   score::EntityMap<Process::Cable> cables;
   Dataflow::DataflowWindow window;
 
-  void registerNode(Dataflow::NodeItem* n);
+  //void registerNode(Dataflow::NodeItem* n);
 private:
   void init();
   void initializeNewDocument(const IntervalModel& viewmodel);
@@ -67,8 +67,8 @@ private:
   void on_cableRemoving(const Process::Cable& c);
 
   BaseScenario* m_baseScenario{};
-  IdContainer<Dataflow::CableItem, Process::Cable> cableItems;
-  std::unordered_set<Dataflow::NodeItem*> nodeItems;
+  //IdContainer<Dataflow::CableItem, Process::Cable> cableItems;
+  //std::unordered_set<Dataflow::NodeItem*> nodeItems;
 
 };
 }

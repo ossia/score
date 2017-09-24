@@ -59,6 +59,15 @@ namespace Execution
 {
 struct Context;
 class DocumentPlugin;
+
+struct interval_duration_data
+{
+  ossia::time_value defaultDuration;
+  ossia::time_value minDuration;
+  ossia::time_value maxDuration;
+  double speed;
+};
+
 class SCORE_PLUGIN_ENGINE_EXPORT IntervalComponentBase :
     public Scenario::GenericIntervalComponent<const Context>
 {
@@ -80,14 +89,6 @@ public:
   IntervalComponentBase& operator=(const IntervalComponentBase&) = delete;
   IntervalComponentBase& operator=(IntervalComponentBase&&) = delete;
 
-
-  struct interval_duration_data
-  {
-    ossia::time_value defaultDuration;
-    ossia::time_value minDuration;
-    ossia::time_value maxDuration;
-    double speed;
-  };
 
   //! To be called from the GUI thread
   interval_duration_data makeDurations() const;
@@ -119,7 +120,6 @@ public:
     if(f)
       f();
   }
-
 
   const Context& context() const { return system(); }
 protected:
@@ -155,7 +155,6 @@ class SCORE_PLUGIN_ENGINE_EXPORT IntervalComponent final :
   void onSetup(std::shared_ptr<ossia::time_interval> ossia_cst,
                interval_duration_data dur,
                bool parent_is_base_scenario);
-
 };
 }
 }

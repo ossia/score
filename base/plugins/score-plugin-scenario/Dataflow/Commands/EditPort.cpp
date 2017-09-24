@@ -3,6 +3,7 @@
 namespace Dataflow
 {
 
+/*
 AddPort::AddPort(
         const Process::DataflowProcess& model, bool inlet)
     : m_model{model}
@@ -142,5 +143,5 @@ void RemovePort::deserializeImpl(DataStreamOutput& s)
 {
     s >> m_model >> m_old >> m_index >> m_inlet;
 }
-
+*/
 }

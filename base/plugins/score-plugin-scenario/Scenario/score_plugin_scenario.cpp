@@ -173,8 +173,9 @@ score_plugin_scenario::factories(
       FW<Scenario::IntervalDropHandler, Scenario::DropProcessInInterval, Scenario::AutomationDropHandler>,
       FW<Inspector::InspectorWidgetFactory, ScenarioInspectorWidgetFactoryWrapper, Interpolation::StateInspectorFactory, ScenarioInspectorFactory, Interpolation::InspectorFactory>,
       FW<IntervalInspectorDelegateFactory, ScenarioIntervalInspectorDelegateFactory, BaseIntervalInspectorDelegateFactory>,
-      FW<score::ValidityChecker, ScenarioValidityChecker>,
-      FW<Dataflow::ProcessComponentFactory, Dataflow::ScenarioComponentFactory>>(ctx, key);
+      FW<score::ValidityChecker, ScenarioValidityChecker>
+      //, FW<Dataflow::ProcessComponentFactory, Dataflow::ScenarioComponentFactory>
+      >(ctx, key);
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>

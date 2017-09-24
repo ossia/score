@@ -42,6 +42,13 @@ template <>
 void DataStreamReader::read(
     const Scenario::ProcessModel& scenario)
 {
+  // Ports
+  m_stream << (int32_t)scenario.m_ports.size();
+  for (const auto& p : scenario.m_ports)
+  {
+    readFrom(p);
+  }
+
   m_stream << scenario.m_startTimeSyncId;
   m_stream << scenario.m_startEventId;
   m_stream << scenario.m_startStateId;
@@ -98,6 +105,14 @@ void DataStreamReader::read(
 template <>
 void DataStreamWriter::write(Scenario::ProcessModel& scenario)
 {
+  // Ports
+  int32_t port_count;
+  m_stream >> port_count;
+  for (; port_count-- > 0;)
+  {
+    scenario.m_ports.add(new Process::Port{*this, &scenario});
+  }
+
   m_stream >> scenario.m_startTimeSyncId;
   m_stream >> scenario.m_startEventId;
   m_stream >> scenario.m_startStateId;
@@ -170,6 +185,7 @@ template <>
 void JSONObjectReader::read(
     const Scenario::ProcessModel& scenario)
 {
+  obj["Ports"] = toJsonArray(scenario.m_ports);
   obj["StartTimeNodeId"] = toJsonValue(scenario.m_startTimeSyncId);
   obj["StartEventId"] = toJsonValue(scenario.m_startEventId);
   obj["StartStateId"] = toJsonValue(scenario.m_startStateId);
@@ -185,6 +201,15 @@ void JSONObjectReader::read(
 template <>
 void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
 {
+  {
+    QJsonArray port_array = obj["Ports"].toArray();
+    for (const auto& json_vref : port_array)
+    {
+      JSONObject::Deserializer deserializer{json_vref.toObject()};
+      scenario.m_ports.add(new Process::Port{deserializer, &scenario});
+    }
+  }
+
   scenario.m_startTimeSyncId
       = fromJsonValue<Id<Scenario::TimeSyncModel>>(obj["StartTimeNodeId"]);
   scenario.m_startEventId

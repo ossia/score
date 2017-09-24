@@ -2,8 +2,8 @@
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <Media/Sound/SoundModel.hpp>
-
-class QLineEdit;
+#include <QLineEdit>
+#include <QSpinBox>
 
 namespace Media
 {
@@ -19,7 +19,10 @@ class InspectorWidget final :
                 QWidget* parent);
 
     private:
-        QLineEdit* m_edit{};
+        QLineEdit m_edit;
+        QSpinBox m_start;
+        QSpinBox m_upmix;
+
         CommandDispatcher<> m_dispatcher;
 };
 }

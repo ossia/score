@@ -5,7 +5,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 namespace Dataflow
 {
-
+/*
 ScenarioBase::ScenarioBase(
         Scenario::ProcessModel &scenario,
         DocumentPlugin &doc,
@@ -61,5 +61,5 @@ void ScenarioBase::setupInterval(
 void ScenarioBase::teardownInterval(
         const Scenario::IntervalModel& c, const Interval& comp)
 {
-}
+}*/
 }

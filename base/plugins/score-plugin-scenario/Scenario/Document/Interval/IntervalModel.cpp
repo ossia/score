@@ -32,7 +32,7 @@
 #include <Dataflow/DataflowWindow.hpp>
 namespace Scenario
 {
-
+/*
 ConstraintNode::ConstraintNode(QObject *parent)
   : Process::Node{Id<Node>{}, parent}
 {
@@ -101,7 +101,7 @@ void ConstraintNode::addCable(Id<Process::Cable> c)
 
 void ConstraintNode::removeCable(Id<Process::Cable> c)
 { m_cables.erase(ossia::find(m_cables, c)); }
-
+*/
 
 
 class StateModel;
@@ -116,6 +116,19 @@ IntervalModel::IntervalModel(
   metadata().setInstanceName(*this);
   metadata().setColor(ScenarioStyle::instance().IntervalDefaultBackground);
   setHeightPercentage(yPos);
+
+  { auto p = new Process::Port{Id<Process::Port>{0}, this};
+    p->type = Process::PortType::Audio; p->propagate = true; m_ports.add(p); }
+  { auto p = new Process::Port{Id<Process::Port>{1}, this};
+    p->type = Process::PortType::Audio; p->propagate = true; m_ports.add(p); }
+  { auto p = new Process::Port{Id<Process::Port>{2}, this};
+    p->type = Process::PortType::Message; p->propagate = true; m_ports.add(p); }
+  { auto p = new Process::Port{Id<Process::Port>{3}, this};
+    p->type = Process::PortType::Message; p->propagate = true; m_ports.add(p); }
+  { auto p = new Process::Port{Id<Process::Port>{4}, this};
+    p->type = Process::PortType::Midi; p->propagate = true; m_ports.add(p); }
+  { auto p = new Process::Port{Id<Process::Port>{5}, this};
+    p->type = Process::PortType::Midi; p->propagate = true; m_ports.add(p); }
 }
 
 IntervalModel::~IntervalModel()
@@ -160,6 +173,11 @@ IntervalModel::IntervalModel(
     processes.add(newproc);
     // We don't need to resize them since the new interval will have the same
     // duration.
+  }
+
+  for(const Process::Port& port : source.m_ports)
+  {
+    m_ports.add(port.clone(this));
   }
 }
 

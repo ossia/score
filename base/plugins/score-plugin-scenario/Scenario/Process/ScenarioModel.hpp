@@ -31,28 +31,6 @@ class QEvent;
 
 namespace Scenario
 {
-class ScenarioNode : public Process::Node
-{
-public:
-    ScenarioNode(QObject *parent);
-
-    QString getText() const override;
-    std::size_t audioInlets() const override;
-    std::size_t messageInlets() const override;
-    std::size_t midiInlets() const override;
-    std::size_t audioOutlets() const override;
-    std::size_t messageOutlets() const override;
-    std::size_t midiOutlets() const override;
-    std::vector<Process::Port> inlets() const override;
-    std::vector<Process::Port> outlets() const override;
-
-    std::vector<Id<Process::Cable> > cables() const override;
-    void addCable(Id<Process::Cable> c) override;
-    void removeCable(Id<Process::Cable> c) override;
-
-    std::vector<Id<Process::Cable>> m_cables;
-};
-
 
 class ScenarioFactory;
 /**
@@ -69,9 +47,14 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
   friend class ScenarioFactory;
   friend class ScenarioTemporalLayerFactory;
 
+
+  score::EntityMap<Process::Port> m_ports;
 public:
-  ScenarioNode m_node{this};
-  Dataflow::Slider slider{this};
+  const score::EntityMap<Process::Port>& ports() const { return m_ports; }
+
+  std::vector<Process::Port*> inlets() const override;
+  std::vector<Process::Port*> outlets() const override;
+
   ProcessModel(
       const TimeVal& duration,
       const Id<Process::ProcessModel>& id,

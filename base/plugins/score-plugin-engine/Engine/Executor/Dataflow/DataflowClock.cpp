@@ -11,6 +11,7 @@
 #include <boost/graph/graphviz.hpp>
 #include <portaudio.h>
 #include <ossia/dataflow/audio_parameter.hpp>
+#include <ossia/dataflow/audio_protocol.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 namespace Dataflow
 {
@@ -18,125 +19,23 @@ Clock::Clock(
     const Engine::Execution::Context& ctx):
   ClockManager{ctx},
   m_default{ctx},
-  m_plug{context.doc.plugin<Dataflow::DocumentPlugin>()}
+  m_plug{context.doc.plugin<Engine::Execution::DocumentPlugin>()}
 {
   auto& bs = context.scenario;
   if(!bs.active())
     return;
-
-  auto& model = m_plug.context().model<Scenario::ScenarioDocumentModel>();
-  model.cables.mutable_added.connect<Clock, &Clock::on_cableCreated>(*this);
-  model.cables.removing.connect<Clock, &Clock::on_cableRemoved>(*this);
 }
 
 Clock::~Clock()
 {
-  auto& model = m_plug.context().model<Scenario::ScenarioDocumentModel>();
-  for(Process::Cable& cbl : model.cables)
-  {
-    cbl.source_node.reset();
-    cbl.sink_node.reset();
-    cbl.exec.reset();
-  }
-  m_plug.execGraph->clear();
-  m_plug.execGraph = std::make_shared<ossia::graph>();
 }
 
-void Clock::on_cableCreated(Process::Cable& c)
-{
-  connectCable(c);
-}
-
-void Clock::on_cableRemoved(const Process::Cable& c)
-{
-  auto cable = c.exec;
-  auto graph = m_plug.execGraph;
-
-  context.executionQueue.enqueue([cable,graph] {
-    graph->disconnect(cable);
-  });
-}
-
-void Clock::connectCable(Process::Cable& cable)
-{
-    std::cerr << "\n\nConnect 2\n";
-
-    if(cable.source())
-      cable.source_node = cable.source()->exec;
-    if(cable.sink())
-      cable.sink_node = cable.sink()->exec;
-
-    std::cerr << cable.source_node.get() << " && " << cable.sink_node.get() << "\n";
-    if(cable.source_node && cable.sink_node && cable.inlet() && cable.outlet())
-    {
-      std::cerr << "\n\nConnect 3\n";
-
-      context.executionQueue.enqueue(
-            [type=cable.type()
-            ,src=cable.source_node
-            ,snk=cable.sink_node
-            ,inlt=*cable.inlet()
-            ,outlt=*cable.outlet()
-            ,graph=m_plug.execGraph
-            ]
-      {
-        std::cerr << "\n\nConnect 4\n";
-        ossia::edge_ptr edge;
-        auto& outlet = src->outputs()[outlt];
-        auto& inlet = snk->inputs()[inlt];
-        switch(type)
-        {
-          case Process::CableType::ImmediateStrict:
-          {
-            std::cerr << "\n\nConnect ImmediateStrict\n";
-            edge = ossia::make_edge(
-                           ossia::immediate_strict_connection{},
-                           outlet, inlet, src, snk);
-            break;
-          }
-          case Process::CableType::ImmediateGlutton:
-          {
-            std::cerr << "\n\nConnect ImmediateGlutton\n";
-            edge = ossia::make_edge(
-                           ossia::immediate_glutton_connection{},
-                           outlet, inlet, src, snk);
-            break;
-          }
-          case Process::CableType::DelayedStrict:
-          {
-            std::cerr << "\n\nConnect DelayedStrict\n";
-            edge = ossia::make_edge(
-                           ossia::delayed_strict_connection{},
-                           outlet, inlet, src, snk);
-            break;
-          }
-          case Process::CableType::DelayedGlutton:
-          {
-            std::cerr << "\n\nConnect DelayedGlutton\n";
-            edge = ossia::make_edge(
-                           ossia::delayed_glutton_connection{},
-                           outlet, inlet, src, snk);
-            break;
-          }
-        }
-
-        graph->connect(edge);
-    });
-    }
-}
 
 void Clock::play_impl(
     const TimeVal& t,
     Engine::Execution::BaseScenarioElement& bs)
 {
   m_paused = false;
-
-  auto& model = m_plug.context().model<Scenario::ScenarioDocumentModel>();
-  qDebug() << m_plug.context().document.findChildren<Process::Node*>();
-  for(auto& cable : model.cables)
-  {
-    connectCable(cable);
-  }
 
   std::stringstream s;
   boost::write_graphviz(s, m_plug.execGraph->m_graph, [&] (auto& out, const auto& v) {
@@ -192,11 +91,11 @@ void Clock::stop_impl(
   auto plug_ptr = &m_plug;
   m_plug.audioProto().ui_tick = [plug_ptr] (unsigned long)
   {
-    DocumentPlugin& plug = *plug_ptr;
+    auto& plug = *plug_ptr;
     plug.execGraph->clear();
     plug.execGraph = std::make_shared<ossia::graph>();
 
-    auto& model = plug.context().model<Scenario::ScenarioDocumentModel>();
+    auto& model = plug.context().doc.model<Scenario::ScenarioDocumentModel>();
     for(auto& cable : model.cables)
     {
       if(cable.source_node)
@@ -218,21 +117,13 @@ void Clock::stop_impl(
       }
     }
 
-    for(auto cld : plug.context().document.findChildren<Process::Node*>())
-    {
-      if(cld->exec)
-      {
-        cld->exec->clear();
-        cld->exec.reset();
-      }
-    }
-
     plug.audioProto().ui_tick = { };
     plug.audioProto().replace_tick = true;
     qDebug("everything is clear");
   };
   m_plug.audioProto().replace_tick = true;
   m_default.stop();
+
 }
 
 bool Clock::paused() const
@@ -249,7 +140,7 @@ std::unique_ptr<Engine::Execution::ClockManager> ClockFactory::make(
 std::function<ossia::time_value (const TimeVal&)>
 ClockFactory::makeTimeFunction(const score::DocumentContext& ctx) const
 {
-  auto rate = ctx.plugin<Dataflow::DocumentPlugin>().audioProto().rate;
+  auto rate = ctx.plugin<Engine::Execution::DocumentPlugin>().audioProto().rate;
   return [=] (const TimeVal& v) -> ossia::time_value {
     // Go from milliseconds to samples
     // 1000 ms = sr samples
@@ -263,7 +154,7 @@ ClockFactory::makeTimeFunction(const score::DocumentContext& ctx) const
 std::function<TimeVal(const ossia::time_value&)>
 ClockFactory::makeReverseTimeFunction(const score::DocumentContext& ctx) const
 {
-  auto rate = ctx.plugin<Dataflow::DocumentPlugin>().audioProto().rate;
+  auto rate = ctx.plugin<Engine::Execution::DocumentPlugin>().audioProto().rate;
   return [=] (const ossia::time_value& v) -> TimeVal {
     return v.infinite()
         ? TimeVal{PositiveInfinity{}}

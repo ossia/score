@@ -14,9 +14,9 @@ score-plugin-scenario
 score-plugin-loop
 
 score-plugin-mapping
+score-plugin-media
 score-plugin-engine
 score-plugin-js
 score-plugin-midi
 score-plugin-recording
-score-plugin-media
 )

@@ -2,7 +2,6 @@
 #include <score/model/path/Path.hpp>
 #include <State/Address.hpp>
 #include <ossia/detail/optional.hpp>
-#include <Process/ProcessComponent.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
 #include <score/model/Component.hpp>
@@ -27,13 +26,13 @@ enum class CableType { ImmediateGlutton, ImmediateStrict, DelayedGlutton, Delaye
 struct SCORE_LIB_PROCESS_EXPORT CableData
 {
     CableType type{};
-    Path<Process::Node> source, sink;
+    Path<Process::Port> source, sink;
     ossia::optional<int> outlet, inlet;
 
     SCORE_LIB_PROCESS_EXPORT
     friend bool operator==(const CableData& lhs, const CableData& rhs);
 };
-
+/*
 class SCORE_LIB_PROCESS_EXPORT Node
     : public score::Entity<Node>
 {
@@ -88,15 +87,15 @@ class SCORE_LIB_PROCESS_EXPORT Node
 
   private:
     QPointF m_position;
-};
+};*/
 
 class SCORE_LIB_PROCESS_EXPORT Cable
     : public IdentifiedObject<Cable>
 {
     Q_OBJECT
     Q_PROPERTY(CableType type READ type WRITE setType NOTIFY typeChanged)
-    Q_PROPERTY(Process::Node* source READ source WRITE setSource NOTIFY sourceChanged)
-    Q_PROPERTY(Process::Node* sink READ sink WRITE setSink NOTIFY sinkChanged)
+    Q_PROPERTY(Process::Port* source READ source WRITE setSource NOTIFY sourceChanged)
+    Q_PROPERTY(Process::Port* sink READ sink WRITE setSink NOTIFY sinkChanged)
     Q_PROPERTY(ossia::optional<int> outlet READ outlet WRITE setOutlet NOTIFY outletChanged)
     Q_PROPERTY(ossia::optional<int> inlet READ inlet WRITE setInlet NOTIFY inletChanged)
   public:
@@ -115,49 +114,116 @@ class SCORE_LIB_PROCESS_EXPORT Cable
     ossia::edge_ptr exec;
 
     CableType type() const;
-    Process::Node* source() const;
-    Process::Node* sink() const;
+    Process::Port* source() const;
+    Process::Port* sink() const;
     ossia::optional<int> outlet() const;
     ossia::optional<int> inlet() const;
 
     void setType(CableType type);
-    void setSource(Process::Node* source);
-    void setSink(Process::Node* sink);
+    void setSource(Process::Port* source);
+    void setSink(Process::Port* sink);
     void setOutlet(ossia::optional<int> outlet);
     void setInlet(ossia::optional<int> inlet);
 
 signals:
     void typeChanged(CableType type);
-    void sourceChanged(Process::Node* source);
-    void sinkChanged(Process::Node* sink);
+    void sourceChanged(Process::Port* source);
+    void sinkChanged(Process::Port* sink);
     void outletChanged(ossia::optional<int> outlet);
     void inletChanged(ossia::optional<int> inlet);
 
 private:
     CableType m_type{};
-    Process::Node* m_source{};
-    Process::Node* m_sink{};
+    Process::Port* m_source{};
+    Process::Port* m_sink{};
     ossia::optional<int> m_outlet, m_inlet;
     QMetaObject::Connection m_srcDeath, m_sinkDeath;
 };
 
 enum class PortType { Message, Audio, Midi };
-struct Port
+class SCORE_LIB_PROCESS_EXPORT Port
+    : public IdentifiedObject<Port>
 {
-    PortType type;
-    QString customData;
-    State::AddressAccessor address;
+    Q_OBJECT
+    Q_PROPERTY(QString customData READ customData WRITE setCustomData NOTIFY customDataChanged)
+    Q_PROPERTY(State::AddressAccessor address READ address WRITE setAddress NOTIFY addressChanged)
+    SCORE_SERIALIZE_FRIENDS
+  public:
+    PortType type{};
     bool propagate{false};
 
-    friend bool operator==(const Port& lhs, const Port& rhs)
+    Port() = delete;
+    ~Port();
+    Port(const Port&) = delete;
+    Port(Id<Port> c, QObject* parent);
+    Port(Id<Port> c, const Port& other, QObject* parent);
+
+    Port* clone(QObject* parent) const;
+
+    template <typename DeserializerVisitor>
+    Port(DeserializerVisitor&& vis, QObject* parent) : IdentifiedObject{vis, parent}
     {
-      return lhs.type == rhs.type && lhs.customData == rhs.customData && lhs.address == rhs.address;
+      vis.writeTo(*this);
     }
+
+    void addCable(Id<Process::Cable> c)
+    {
+      m_cables.push_back(c);
+      emit cablesChanged();
+    }
+    void removeCable(Id<Process::Cable> c)
+    {
+      auto it = ossia::find(m_cables, c);
+      if(it != m_cables.end())
+      {
+        m_cables.erase(it);
+        emit cablesChanged();
+      }
+    }
+
+    QString customData() const
+    {
+      return m_customData;
+    }
+
+    State::AddressAccessor address() const
+    {
+      return m_address;
+    }
+
+public slots:
+    void setCustomData(QString customData)
+    {
+      if (m_customData == customData)
+        return;
+
+      m_customData = customData;
+      emit customDataChanged(m_customData);
+    }
+
+    void setAddress(State::AddressAccessor address)
+    {
+      if (m_address == address)
+        return;
+
+      m_address = address;
+      emit addressChanged(m_address);
+    }
+
+signals:
+    void cablesChanged();
+    void customDataChanged(QString customData);
+    void addressChanged(State::AddressAccessor address);
+
+private:
+    std::vector<Id<Cable>> m_cables;
+    QString m_customData;
+    State::AddressAccessor m_address;
 };
 
 }
 
-
+/*
 namespace Dataflow
 {
 class NodeItem;
@@ -229,3 +295,4 @@ ProcessComponentFactory>;
 
 
 }
+*/

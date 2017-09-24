@@ -50,7 +50,7 @@ ProcessExecutor::~ProcessExecutor()
 {
 }
 
-ossia::state_element ProcessExecutor::state(ossia::time_value date, double pos)
+ossia::state_element ProcessExecutor::state(ossia::time_value date, double pos, ossia::time_value tick_offset)
 {
   if (date != m_lastDate)
   {
