@@ -5,11 +5,12 @@
 #include <QLineEdit>
 #include <QFormLayout>
 #include <Dataflow/DocumentPlugin.hpp>
+#include <Engine/Executor/DocumentPlugin.hpp>
 namespace Dataflow
 {
 AudioDevice::AudioDevice(const Device::DeviceSettings& settings, const score::DocumentContext& c)
   : OSSIADevice{settings}
-  , m_dev{c.plugin<Dataflow::DocumentPlugin>().audio_dev}
+  , m_dev{c.plugin<Engine::Execution::DocumentPlugin>().audio_dev}
 {
   m_capas.canAddNode = false;
   m_capas.canRemoveNode = false;

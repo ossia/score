@@ -19,6 +19,7 @@ namespace Dataflow
 // For each state mix it.
 // -> we have to add a link to the ossia::scenario
 // -> we have to add data in events to indicate what states are to be executed
+/*
 class Interval;
 class ScenarioBase :
     public ProcessComponent_T<Scenario::ProcessModel>
@@ -63,5 +64,5 @@ Scenario::ProcessModel,
 Interval>;
 
 using ScenarioComponentFactory = ProcessComponentFactory_T<ScenarioComponent>;
-
+*/
 }

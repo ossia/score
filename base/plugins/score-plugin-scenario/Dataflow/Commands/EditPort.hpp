@@ -7,6 +7,7 @@
 
 namespace Dataflow
 {
+/*
 class AddPort final : public score::Command
 {
     SCORE_COMMAND_DECL(Scenario::Command::ScenarioCommandFactoryName(), AddPort, "Add a node port")
@@ -70,5 +71,5 @@ private:
     quint64 m_index{};
     bool m_inlet{}; // true : inlet ; false : outlet
 };
-
+*/
 }

@@ -1,3 +1,4 @@
+/*
 #include "Slider.hpp"
 #include <Dataflow/UI/NodeItem.hpp>
 #include <Dataflow/DocumentPlugin.hpp>
@@ -53,7 +54,6 @@ void SliderUI::changeValue(double pos)
 
     update();
 }
-
 
 Slider::Slider(QObject *parent)
   : Slider{score::IDocument::documentContext(*parent), Id<Process::Node>{}, parent}
@@ -136,4 +136,8 @@ void Slider::addCable(Id<Process::Cable> c)
 void Slider::removeCable(Id<Process::Cable> c)
 { m_cables.erase(ossia::find(m_cables, c)); }
 
+
+
 }
+
+*/

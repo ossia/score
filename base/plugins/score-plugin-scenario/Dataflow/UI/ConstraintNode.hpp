@@ -6,44 +6,7 @@
 namespace Dataflow
 {
 class Slider;
-class interval_node : public ossia::graph_node
-{
-public:
-  interval_node()
-  {
-    // todo maybe we can optimize by having m_outlets == m_inlets
-    // this way no copy.
-    m_inlets.push_back(ossia::make_inlet<ossia::audio_port>());
-    m_inlets.push_back(ossia::make_inlet<ossia::value_port>());
-    m_inlets.push_back(ossia::make_inlet<ossia::midi_port>());
-
-    m_outlets.push_back(ossia::make_outlet<ossia::audio_port>());
-    m_outlets.push_back(ossia::make_outlet<ossia::value_port>());
-    m_outlets.push_back(ossia::make_outlet<ossia::midi_port>());
-  }
-
-  void run(ossia::execution_state&) override
-  {
-    {
-      auto i = m_inlets[0]->data.target<ossia::audio_port>();
-      auto o = m_outlets[0]->data.target<ossia::audio_port>();
-      o->samples = std::move(i->samples);
-    }
-
-    {
-      auto i = m_inlets[1]->data.target<ossia::value_port>();
-      auto o = m_outlets[1]->data.target<ossia::value_port>();
-      o->data = std::move(i->data);
-    }
-
-    {
-      auto i = m_inlets[1]->data.target<ossia::midi_port>();
-      auto o = m_outlets[1]->data.target<ossia::midi_port>();
-      o->messages = std::move(i->messages);
-    }
-  }
-};
-
+/*
 
 class IntervalBase :
         public Scenario::GenericIntervalComponent<Dataflow::DocumentPlugin>
@@ -86,5 +49,5 @@ class Interval final :
 public:
     using score::PolymorphicComponentHierarchy<IntervalBase>::PolymorphicComponentHierarchyManager;
 };
-
+*/
 }

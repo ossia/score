@@ -94,6 +94,16 @@ void ScenarioComponent::init()
   ScenarioComponentHierarchy::init();
 
   const Context& ctx = system();
+
+
+  auto ossia_sc = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
+  // set-up the ports
+  for(auto& port : process().ports())
+  {
+    ctx.plugin.nodes.insert({&port, ossia_sc->node});
+  }
+  ctx.plugin.execGraph->add_node(ossia_sc->node);
+
   if (auto fact = ctx.doc.app.interfaces<Scenario::CSPCoherencyCheckerList>().get())
   {
     m_checker = fact->make(process(), ctx.doc.app, m_properties);
@@ -107,6 +117,8 @@ void ScenarioComponent::init()
 
 void ScenarioComponent::cleanup()
 {
+  std::shared_ptr<ossia::scenario> proc = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
+  system().plugin.execGraph->remove_node(proc->node);
   clear();
 }
 
@@ -236,6 +248,7 @@ IntervalComponent* ScenarioComponentBase::make<IntervalComponent, Scenario::Inte
 
   elt->onSetup(ossia_cst, dur, false);
 
+
   // The adding of the time_interval has to be done in the edition thread.
   m_ctx.executionQueue.enqueue(
         [thisP=shared_from_this()
@@ -248,7 +261,19 @@ IntervalComponent* ScenarioComponentBase::make<IntervalComponent, Scenario::Inte
     if(auto eev = ossia_eev->OSSIAEvent())
       eev->previous_time_intervals().push_back(ossia_cst);
 
-    sub.OSSIAProcess().add_time_interval(ossia_cst);
+    auto& proc = sub.OSSIAProcess();
+    proc.add_time_interval(ossia_cst);
+
+    for(int i = 0; i < 3; i++)
+    {
+      auto cable = ossia::make_edge(
+                     ossia::immediate_strict_connection{}
+                     , ossia_cst->node->outputs()[i]
+                     , proc.node->inputs()[i]
+                     , ossia_cst->node
+                     , proc.node);
+      sub.system().plugin.execGraph->connect(cable);
+    }
   });
   return elt.get();
 }

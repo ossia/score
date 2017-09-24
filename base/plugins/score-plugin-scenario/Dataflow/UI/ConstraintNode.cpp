@@ -11,7 +11,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Dataflow/UI/Slider.hpp>
 #include <Dataflow/UI/NodeItem.hpp>
-
+/*
 namespace Dataflow
 {
 
@@ -72,3 +72,4 @@ bool IntervalBase::removing(
 }
 
 }
+*/

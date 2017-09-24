@@ -167,10 +167,6 @@ void ProcessModel::setSelection(const Selection& s) const
 {
 }
 
-Node*ProcessModel::node() const
-{
-  return {};
-}
 
 double ProcessModel::getSlotHeight() const
 {
@@ -183,6 +179,14 @@ void ProcessModel::setSlotHeight(double v)
   emit slotHeightChanged(v);
 }
 
+std::vector<Process::Port*> ProcessModel::inlets() const
+{
+  return {};
+}
+std::vector<Process::Port*> ProcessModel::outlets() const
+{
+  return {};
+}
 ProcessModel* parentProcess(QObject* obj)
 {
   QString objName(obj ? obj->objectName() : "INVALID");

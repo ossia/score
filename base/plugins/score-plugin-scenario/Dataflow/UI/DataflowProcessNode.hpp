@@ -5,6 +5,7 @@
 namespace Process
 {
 class DataflowProcess;
+/*
 class DataflowProcessNode
         : public Process::Node
 {
@@ -32,7 +33,9 @@ class DataflowProcessNode
     void addCable(Id<Process::Cable> c) override;
     void removeCable(Id<Process::Cable> c) override;
 };
+*/
 
+/*
 class SCORE_LIB_PROCESS_EXPORT DataflowProcess : public Process::ProcessModel
 {
   Q_OBJECT
@@ -87,6 +90,6 @@ private:
   std::size_t audioOut{}, messageOut{}, midiOut{};
   } m_portCount;
 };
-
+*/
 
 }

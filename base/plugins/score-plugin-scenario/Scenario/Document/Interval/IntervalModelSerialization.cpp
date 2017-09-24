@@ -24,6 +24,7 @@
 #include <score/model/Identifier.hpp>
 #include <score/model/path/PathSerialization.hpp>
 
+
 namespace Scenario
 {
 class StateModel;
@@ -134,6 +135,13 @@ SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
            << interval.m_zoom << interval.m_center
            << interval.m_smallViewShown;
 
+  // Ports
+  m_stream << (int32_t)interval.m_ports.size();
+  for (const auto& p : interval.m_ports)
+  {
+    readFrom(p);
+  }
+
   insertDelimiter();
 }
 
@@ -172,6 +180,14 @@ DataStreamWriter::write(Scenario::IntervalModel& interval)
       >> interval.m_zoom >> interval.m_center
       >> interval.m_smallViewShown;
 
+  // Ports
+  int32_t port_count;
+  m_stream >> port_count;
+  for (; port_count-- > 0;)
+  {
+    interval.m_ports.add(new Process::Port{*this, &interval});
+  }
+
   checkDelimiter();
 }
 
@@ -201,6 +217,9 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::read(
   obj[strings.Zoom] = interval.m_zoom;
   obj[strings.Center] = toJsonValue(interval.m_center);
   obj[strings.SmallViewShown] = interval.m_smallViewShown;
+
+  // Ports
+  obj["Ports"] = toJsonArray(interval.m_ports);
 }
 
 
@@ -266,5 +285,15 @@ JSONObjectWriter::write(Scenario::IntervalModel& interval)
   auto cit = obj.find(strings.Center);
   if(cit != obj.end() && cit->isDouble())
     interval.m_center = fromJsonValue<TimeVal>(*cit);
+
+  {
+    QJsonArray port_array = obj["Ports"].toArray();
+    for (const auto& json_vref : port_array)
+    {
+      JSONObject::Deserializer deserializer{json_vref.toObject()};
+      interval.m_ports.add(new Process::Port{deserializer, &interval});
+    }
+  }
+
 }
 

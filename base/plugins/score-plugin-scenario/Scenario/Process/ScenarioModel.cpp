@@ -38,78 +38,17 @@
 
 namespace Scenario
 {
-ScenarioNode::ScenarioNode(
-        QObject *parent)
-  : Process::Node{Id<Node>{}, parent}
-{
-}
-
-QString ScenarioNode::getText() const
-{
-  return tr("Scenario");
-}
-
-std::size_t ScenarioNode::audioInlets() const
-{
-  return 1;
-}
-
-std::size_t ScenarioNode::messageInlets() const
-{
-  return 1;
-}
-
-std::size_t ScenarioNode::midiInlets() const
-{
-  return 1;
-}
-
-std::size_t ScenarioNode::audioOutlets() const
-{
-  return 1;
-}
-
-std::size_t ScenarioNode::messageOutlets() const
-{
-  return 1;
-}
-
-std::size_t ScenarioNode::midiOutlets() const
-{
-  return 1;
-}
-
-std::vector<Process::Port> ScenarioNode::inlets() const
-{
-    std::vector<Process::Port> p(3);
-    p[0].type = Process::PortType::Audio;
-    p[1].type = Process::PortType::Message;
-    p[2].type = Process::PortType::Midi;
-    return p;
-}
-
-std::vector<Process::Port> ScenarioNode::outlets() const
-{
-  std::vector<Process::Port> p(3);
-  p[0].type = Process::PortType::Audio;
-  p[1].type = Process::PortType::Message;
-  p[2].type = Process::PortType::Midi;
-  for(auto& port : p)
-    port.propagate = true;
-  return p;
-}
-
-std::vector<Id<Process::Cable> > ScenarioNode::cables() const
-{ return m_cables; }
-
-void ScenarioNode::addCable(Id<Process::Cable> c)
-{ m_cables.push_back(c); }
-
-void ScenarioNode::removeCable(Id<Process::Cable> c)
-{ m_cables.erase(ossia::find(m_cables, c)); }
-
-
 // RENAMEME and my header too
+std::vector<Process::Port*> ProcessModel::inlets() const
+{
+  return {&m_ports.at(Id<Process::Port>{0}), &m_ports.at(Id<Process::Port>{2}), &m_ports.at(Id<Process::Port>{4})};
+}
+
+std::vector<Process::Port*> ProcessModel::outlets() const
+{
+  return {&m_ports.at(Id<Process::Port>{1}), &m_ports.at(Id<Process::Port>{3}), &m_ports.at(Id<Process::Port>{5})};
+}
+
 ProcessModel::ProcessModel(
     const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
@@ -133,6 +72,19 @@ ProcessModel::ProcessModel(
   // At the end because plug-ins depend on the start/end timesync & al being
   // here
   metadata().setInstanceName(*this);
+
+  { auto p = new Process::Port{Id<Process::Port>{0}, this};
+    p->type = Process::PortType::Audio; m_ports.add(p); }
+  { auto p = new Process::Port{Id<Process::Port>{1}, this};
+    p->type = Process::PortType::Audio; p->propagate = true; m_ports.add(p); }
+  { auto p = new Process::Port{Id<Process::Port>{2}, this};
+    p->type = Process::PortType::Message; m_ports.add(p); }
+  { auto p = new Process::Port{Id<Process::Port>{3}, this};
+    p->type = Process::PortType::Message; p->propagate = true; m_ports.add(p); }
+  { auto p = new Process::Port{Id<Process::Port>{4}, this};
+    p->type = Process::PortType::Midi; m_ports.add(p); }
+  { auto p = new Process::Port{Id<Process::Port>{5}, this};
+    p->type = Process::PortType::Midi; p->propagate = true; m_ports.add(p); }
 }
 
 ProcessModel::ProcessModel(
@@ -176,11 +128,22 @@ ProcessModel::ProcessModel(
         states.at(interval.startState()), interval);
   }
 
+
+  for(const auto& port : source.m_ports)
+  {
+    m_ports.add(port.clone(this));
+  }
+
   metadata().setInstanceName(*this);
 }
 
 ProcessModel::~ProcessModel()
 {
+  comments.clear();
+  intervals.clear();
+  states.clear();
+  events.clear();
+  timeSyncs.clear();
   emit identified_object_destroying(this);
 }
 

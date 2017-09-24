@@ -5,6 +5,7 @@
 #include <score/serialization/VisitorCommon.hpp>
 #include <Media/Sound/SoundMetadata.hpp>
 #include <Media/MediaFileHandle.hpp>
+#include <Process/Dataflow/DataflowObjects.hpp>
 #include <score_plugin_media_export.h>
 
 
@@ -20,7 +21,12 @@ class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final : public Process::ProcessMode
         PROCESS_METADATA_IMPL(Media::Sound::ProcessModel)
 
         Q_OBJECT
+        Q_PROPERTY(int upmixChannels READ upmixChannels WRITE setUpmixChannels NOTIFY upmixChannelsChanged)
+        Q_PROPERTY(int startChannel READ startChannel WRITE setStartChannel NOTIFY startChannelChanged)
     public:
+        std::vector<Process::Port*> inlets() const override;
+        std::vector<Process::Port*> outlets() const override;
+
         explicit ProcessModel(
                 const TimeVal& duration,
                 const Id<Process::ProcessModel>& id,
@@ -38,6 +44,7 @@ class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final : public Process::ProcessMode
                 Impl& vis,
                 QObject* parent) :
             Process::ProcessModel{vis, parent}
+          , outlet{vis, this}
         {
             vis.writeTo(*this);
             init();
@@ -46,18 +53,27 @@ class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final : public Process::ProcessMode
         void setFile(const QString& file);
         void setFile(const MediaFileHandle& file);
 
-        MediaFileHandle& file()
-        { return m_file; }
-        const MediaFileHandle& file() const
-        { return m_file; }
+        MediaFileHandle& file();
+        const MediaFileHandle& file() const;
 
-    signals:
+        int upmixChannels() const;
+        int startChannel() const;
+
+        void setUpmixChannels(int upmixChannels);
+        void setStartChannel(int startChannel);
+
+        Process::Port outlet;
+signals:
         void fileChanged();
+        void upmixChannelsChanged(int upmixChannels);
+        void startChannelChanged(int startChannel);
 
-    private:
+private:
         void init();
 
         MediaFileHandle m_file;
+        int m_upmixChannels{};
+        int m_startChannel{};
 };
 
 }

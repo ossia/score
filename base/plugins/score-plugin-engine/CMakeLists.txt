@@ -55,6 +55,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Automation/MetronomeComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Mapping/Component.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Loop/Component.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/SoundComponent.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Settings/ExecutorModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Settings/ExecutorPresenter.hpp"
@@ -134,6 +135,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Automation/MetronomeComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Mapping/Component.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Loop/Component.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/SoundComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ClockManager/ClockManagerFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ClockManager/DefaultClockManager.cpp"
 
@@ -275,5 +277,11 @@ target_link_libraries(${PROJECT_NAME}
           score_plugin_loop
           ossia
 )
+
+if(TARGET score_plugin_media)
+  target_link_libraries(${PROJECT_NAME}
+          PUBLIC
+          score_plugin_media)
+endif()
 
 setup_score_plugin(${PROJECT_NAME})

@@ -3,6 +3,8 @@
 #include <Engine/Executor/ClockManager/DefaultClockManager.hpp>
 
 #include <score_plugin_engine_export.h>
+
+#include <Engine/Executor/DocumentPlugin.hpp>
 namespace Process
 {
 class Cable;
@@ -34,7 +36,7 @@ class Clock final
         bool paused() const override;
 
         Engine::Execution::DefaultClockManager m_default;
-        Dataflow::DocumentPlugin& m_plug;
+        Engine::Execution::DocumentPlugin& m_plug;
         Engine::Execution::BaseScenarioElement* m_cur{};
         bool m_paused{};
 };

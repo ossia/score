@@ -3,7 +3,7 @@
 
 namespace Dataflow
 {
-
+/*
 MoveNode::MoveNode(
     const Process::Node& model,
     QPointF pos)
@@ -34,7 +34,7 @@ void MoveNode::deserializeImpl(DataStreamOutput& s)
   s >> m_model >> m_old >> m_new;
 }
 
-
+*/
 
 CreateCable::CreateCable(
     const Scenario::ScenarioDocumentModel& dp,
@@ -123,7 +123,7 @@ void UpdateCable::deserializeImpl(DataStreamOutput& s)
 
 
 RemoveCable::RemoveCable(
-    const Dataflow::DocumentPlugin& dp,
+    const Scenario::ScenarioDocumentModel& dp,
     const Process::Cable& theCable)
   : m_model{dp}
  // , m_cable{std::move(cable)}

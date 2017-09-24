@@ -2,6 +2,7 @@
 #include <Process/ExpandMode.hpp>
 
 #include <Process/TimeValue.hpp>
+#include <Process/Dataflow/DataflowObjects.hpp>
 #include <QByteArray>
 #include <QString>
 #include <score/model/Entity.hpp>
@@ -27,7 +28,6 @@ class ProcessModelFactory;
 class LayerFactory;
 class ProcessModel;
 class LayerFactory;
-class Node;
 
 /**
  * @brief The Process class
@@ -41,7 +41,6 @@ class SCORE_LIB_PROCESS_EXPORT ProcessModel
   Q_OBJECT
 
   SCORE_SERIALIZE_FRIENDS
-
 public:
   ProcessModel(
       TimeVal duration,
@@ -87,10 +86,11 @@ public:
   virtual Selection selectedChildren() const;
   virtual void setSelection(const Selection& s) const;
 
-  virtual Process::Node* node() const;
-
   double getSlotHeight() const;
   void setSlotHeight(double);
+
+  virtual std::vector<Process::Port*> inlets() const;
+  virtual std::vector<Process::Port*> outlets() const;
 
 signals:
   // True if the execution is running.

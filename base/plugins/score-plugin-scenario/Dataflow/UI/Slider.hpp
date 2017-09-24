@@ -32,7 +32,7 @@ public:
     }
   }
 };
-
+/*
 class SliderUI final : public QQuickPaintedItem
 {
     Q_OBJECT
@@ -52,8 +52,9 @@ private:
 
     void changeValue(double pos);
     double m_value{};
-};
+};*/
 
+/*
 class Slider final :
         public Process::Node
 {
@@ -85,5 +86,5 @@ private:
     double m_volume{};
     std::vector<Id<Process::Cable>> m_cables;
 };
-
+*/
 }
