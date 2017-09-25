@@ -24,19 +24,19 @@ void removeSelection(
 void removeSelection(const BaseScenario&, const score::CommandStackFacade&);
 
 // Clearing content should be available for other plug-ins, e.g. loop
-SCORE_PLUGIN_SCENARIO_EXPORT bool clearContentFromSelection(
+SCORE_PLUGIN_SCENARIO_EXPORT void clearContentFromSelection(
     const QList<const IntervalModel*>& intervalsToRemove,
     const QList<const StateModel*>& statesToRemove,
     const score::CommandStackFacade& stack);
 
-SCORE_PLUGIN_SCENARIO_EXPORT bool clearContentFromSelection(
+SCORE_PLUGIN_SCENARIO_EXPORT void clearContentFromSelection(
     const BaseScenarioContainer&, const score::CommandStackFacade&);
 
-bool clearContentFromSelection(
+void clearContentFromSelection(
     const Scenario::ScenarioInterface&, const score::CommandStackFacade&);
-bool clearContentFromSelection(
+void clearContentFromSelection(
     const Scenario::ProcessModel&, const score::CommandStackFacade&);
-bool clearContentFromSelection(
+void clearContentFromSelection(
     const BaseScenario&, const score::CommandStackFacade&);
 
 void mergeTimeSyncs(
