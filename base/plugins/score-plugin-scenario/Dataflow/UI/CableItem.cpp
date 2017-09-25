@@ -2,6 +2,8 @@
 #include <Dataflow/UI/PortItem.hpp>
 #include <Process/Dataflow/DataflowObjects.hpp>
 #include <QGraphicsSceneMoveEvent>
+#include <QMenu>
+#include <QPainter>
 
 namespace Dataflow
 {
@@ -56,9 +58,10 @@ void CableItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
   if(m_p1 && m_p2)
   {
     QPen cablepen;
-    cablepen.setColor(QColor("#559999dd"));
+    cablepen.setColor(QColor("#669999dd"));
     cablepen.setJoinStyle(Qt::PenJoinStyle::RoundJoin);
-    cablepen.setWidthF(2.);
+    cablepen.setCapStyle(Qt::PenCapStyle::RoundCap);
+    cablepen.setWidthF(3.);
 
     painter->setPen(cablepen);
     painter->setBrush(Qt::transparent);
@@ -70,24 +73,31 @@ void CableItem::resize()
 {
   prepareGeometryChange();
 
-  auto p1 = m_p1->scenePos();
-  auto p2 = m_p2->scenePos();
+  if(m_p1 && m_p2)
+  {
+    auto p1 = m_p1->scenePos();
+    auto p2 = m_p2->scenePos();
 
-  auto rect = QRectF{p1, p2};
-  auto nrect = rect.normalized();
-  this->setPos(nrect.topLeft());
-  nrect.translate(-nrect.topLeft().x(), -nrect.topLeft().y());
+    auto rect = QRectF{p1, p2};
+    auto nrect = rect.normalized();
+    this->setPos(nrect.topLeft());
+    nrect.translate(-nrect.topLeft().x(), -nrect.topLeft().y());
 
-  p1 = mapFromScene(p1);
-  p2 = mapFromScene(p2);
+    p1 = mapFromScene(p1);
+    p2 = mapFromScene(p2);
 
-  auto first = p1.x() < p2.x() ? p1 : p2;
-  auto last = p1.x() >= p2.x() ? p1 : p2;
-  QPainterPath p;
-  p.moveTo(first.x(), first.y());
-  p.lineTo(first.x(), last.y());
-  p.lineTo(last.x(), last.y());
-  m_path = p;
+    auto first = p1.x() < p2.x() ? p1 : p2;
+    auto last = p1.x() >= p2.x() ? p1 : p2;
+    QPainterPath p;
+    p.moveTo(first.x(), first.y());
+    p.lineTo(first.x(), last.y());
+    p.lineTo(last.x(), last.y());
+    m_path = std::move(p);
+  }
+  else
+  {
+    m_path = QPainterPath{};
+  }
 
   update();
 }
@@ -119,8 +129,9 @@ void CableItem::setTarget(PortItem* p) { m_p2 = p; check(); }
 QPainterPath CableItem::shape() const
 {
   QPen cablepen;
+  cablepen.setCapStyle(Qt::PenCapStyle::RoundCap);
   cablepen.setJoinStyle(Qt::PenJoinStyle::RoundJoin);
-  cablepen.setWidthF(2.);
+  cablepen.setWidthF(3.);
   QPainterPathStroker stk{cablepen};
 
   return stk.createStroke(m_path);
@@ -140,6 +151,18 @@ void CableItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 void CableItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   event->accept();
+}
+
+void CableItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
+{
+  QMenu* m = new QMenu;
+  auto act = m->addAction(tr("Remove"));
+  connect(act, &QAction::triggered,
+          this, [=] {
+    emit removeRequested();
+  });
+  m->exec();
+  m->deleteLater();
 }
 
 }

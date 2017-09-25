@@ -24,10 +24,12 @@ PortItem::PortItem(Process::Port& p, QGraphicsItem* parent)
     if(c.first->source() == &p)
     {
       c.second->setSource(this);
+      cables.push_back(c.second);
     }
-    if(c.first->sink() == &p)
+    else if(c.first->sink() == &p)
     {
       c.second->setTarget(this);
+      cables.push_back(c.second);
     }
   }
 }
@@ -168,6 +170,11 @@ QVariant PortItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QV
   switch(change)
   {
     case QGraphicsItem::ItemScenePositionHasChanged:
+      for(auto cbl : cables)
+      {
+        cbl->resize();
+      }
+      break;
     case QGraphicsItem::ItemVisibleHasChanged:
     case QGraphicsItem::ItemSceneHasChanged:
       for(auto cbl : cables)

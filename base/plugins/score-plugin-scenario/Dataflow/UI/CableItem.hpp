@@ -29,6 +29,8 @@ class CableItem
 
   signals:
     void clicked();
+    void removeRequested();
+
   private:
     QRectF boundingRect() const override;
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
@@ -36,6 +38,7 @@ class CableItem
     void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+    void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
     Process::Cable& m_cable;
     QPointer<PortItem> m_p1, m_p2;
