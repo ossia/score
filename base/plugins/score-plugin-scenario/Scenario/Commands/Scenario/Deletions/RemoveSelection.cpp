@@ -45,86 +45,76 @@ RemoveSelection::RemoveSelection(
 {
   // Serialize all the events and intervals and timesyncs and states and
   // comments
-  // For each removed event, we also add its states to the selection.
-  // For each removed state, we add the intervals.
 
-  // First we remove :
-  // The event if a State is selected and alone
+  // For each removed interval, we also add its states to the selection if they are empty
+
+  // We add Event to the element to delete if all its States are selected
+  // Wa add TimeSync to the list if all its node are selected for deletion
 
   // Then we have to make a round to remove all the events
   // of the selected time syncs.
 
   Selection cp = sel;
 
-  bool only_event = true;
-  bool has_condition = false;
-  sel.clear();
-  // remove TimeSync from selection to not delete it
-  // it will be added back later if it contains only one event
+  // First add start/end state of soon-to-be-removed interval
+  // but only if they are empty with no other interval
   for (const auto& obj : cp)
   {
-    if ( !dynamic_cast<const TimeSyncModel*>(obj.data()) )
+    if (auto interval = dynamic_cast<const IntervalModel*>(obj.data()))
     {
-      sel.append(obj);
-    }
+      auto start_id = interval->startState();
+      auto& start = scenar.states.at(start_id);
+      if (start.empty() && !start.previousInterval())
+        sel.append(&start);
 
-    if ( auto event = dynamic_cast<const EventModel*>(obj.data()) )
-    {
-      // TODO can we always select an event without selecting a state ?
-      if (event->condition() != State::Expression{})
-        has_condition = true;
-    } else {
-      only_event = false;
+      auto end_id = interval->endState();
+      auto& end = scenar.states.at(end_id);
+      if (end.empty() && !end.nextInterval())
+        sel.append(&end);
     }
   }
 
+  // Then add Event to selection if we select all its States
   cp = sel;
   for (const auto& obj : cp)
   {
     if (auto state = dynamic_cast<const StateModel*>(obj.data()))
     {
       auto& ev = scenar.events.at(state->eventId());
-      if (ev.states().size() == 1)
+      bool add_event=true;
+      for (auto child : ev.states()){
+        auto& st = scenar.states.at(child);
+        if (!sel.contains(&st)){
+          add_event = false;
+          break;
+        }
+      }
+      if (add_event)
       {
         sel.append(&ev);
       }
     }
   }
 
-  QList<TimeSyncModel*> maybeRemovedTimenodes;
-
-  // if we only select a Events and at least one have a condition
-  // then remove only the condition
-  if ( !(only_event && has_condition) ){
-    cp = sel;
-    for (const auto& obj : cp) // Make a copy
-    {
-      if (auto event = dynamic_cast<const EventModel*>(obj.data()))
-      {
-        // TODO have scenario take something that takes a container of ids
-        // and return the corresponding elements.
-        for (const auto& state : event->states())
-        {
-          sel.append(&scenar.states.at(state));
-        }
-
-        // This timesync may be removed if the event is alone.
-        auto tn = &scenar.timeSyncs.at(event->timeSync());
-        if (!sel.contains(tn))
-          maybeRemovedTimenodes.append(tn);
-      }
-    }
-  }
-
+  // Then add TimeSync to selection if all its Events are gonna be deleted
   cp = sel;
-  for (const auto& obj : cp)
+  for (const auto& obj : cp) // Make a copy
   {
-    if (auto state = dynamic_cast<const StateModel*>(obj.data()))
+    if (auto event = dynamic_cast<const EventModel*>(obj.data()))
     {
-      if (state->previousInterval())
-        sel.append(&scenar.intervals.at(*state->previousInterval()));
-      if (state->nextInterval())
-        sel.append(&scenar.intervals.at(*state->nextInterval()));
+      auto& ts = scenar.timeSyncs.at(event->timeSync());
+      bool add_event=true;
+      for (auto child : ts.events()){
+        auto& st = scenar.events.at(child);
+        if (!sel.contains(&st)){
+          add_event = false;
+          break;
+        }
+      }
+      if (add_event)
+      {
+        sel.append(&ts);
+      }
     }
   }
 
@@ -152,14 +142,14 @@ RemoveSelection::RemoveSelection(
       }
     }
 
-    if (auto tn = dynamic_cast<const TimeSyncModel*>(obj))
+    if (auto ts = dynamic_cast<const TimeSyncModel*>(obj))
     {
-      if (tn->id() != Id<TimeSyncModel>{0})
+      if (ts->id() != Id<TimeSyncModel>{0})
       {
         QByteArray arr;
         DataStream::Serializer s2{&arr};
-        s2.readFrom(*tn);
-        m_removedTimeSyncs.push_back({tn->id(), arr});
+        s2.readFrom(*ts);
+        m_removedTimeSyncs.push_back({ts->id(), arr});
       }
     }
 
@@ -177,21 +167,6 @@ RemoveSelection::RemoveSelection(
       DataStream::Serializer s{&arr};
       s.readFrom(*interval);
       m_removedIntervals.push_back({interval->id(), arr});
-    }
-  }
-
-  // Plus the timesyncs that we don't know if they will be removed (todo ugly
-  // fixme pls)
-  // TODO how does this even work ? what happens of the maybe removed events /
-  // states ?
-  for (const auto& tn : maybeRemovedTimenodes)
-  {
-    if (tn->id() != Id<TimeSyncModel>{0})
-    {
-      QByteArray arr;
-      DataStream::Serializer s2{&arr};
-      s2.readFrom(*tn);
-      m_maybeRemovedTimeSyncs.push_back({tn->id(), arr});
     }
   }
 }
@@ -243,28 +218,27 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
         return new CommentBlockModel(s, &scenar);
       });
 
-  QList<TimeSyncModel*> maybeTimenodes;
-  std::transform(
-      m_maybeRemovedTimeSyncs.begin(),
-      m_maybeRemovedTimeSyncs.end(),
-      std::back_inserter(maybeTimenodes),
-      [&](const auto& tndata) {
-        DataStream::Deserializer s{tndata.second};
-        return new TimeSyncModel{s, &scenar};
-      });
-
-  // Recreate all the removed timesyncs
-  for (auto& tn : timesyncs)
+  // Recreate all the removed timesyncs or only restore their trigger
+  for (auto& timesync : timesyncs)
   {
-    // The events should be removed first because else
-    // signals may sent and the event may not be found...
-    // They will be re-added anyway.
-    auto events_in_timesync = tn->events();
-    for (auto& event : events_in_timesync)
-    {
-      tn->removeEvent(event);
+    auto ts = scenar.findTimeSync(timesync->id());
+
+    if (ts){
+      if (timesync->active())
+        ts->setActive(true);
+      else
+        ts->setActive(false);
+    } else {
+      // The events should be removed first because else
+      // signals may sent and the event may not be found...
+      // They will be re-added anyway.
+      auto events_in_timesync = timesync->events();
+      for (auto& event : events_in_timesync)
+      {
+        timesync->removeEvent(event);
+      }
+      scenar.timeSyncs.add(timesync);
     }
-    scenar.timeSyncs.add(tn);
   }
 
   // Recreate first all the events / maybe removed timesyncs
@@ -289,19 +263,6 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
                                   event->timeSync());
       if (scenar_timesync_it != timesyncs_in_scenar.end())
       {
-        // The timesync already exists
-        // Hence we don't need the one we serialized.
-        auto to_delete = std::find(
-                           maybeTimenodes.begin(), maybeTimenodes.end(), event->timeSync());
-
-        // TODO why do we need to check for this ? SCORE_ASSERT sometime
-        // fails...
-        if (to_delete != maybeTimenodes.end())
-        {
-          delete *to_delete;
-          maybeTimenodes.erase(to_delete);
-        }
-
         // We can add our event to the scenario.
         scenar.events.add(event);
 
@@ -309,35 +270,17 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
         // problems ?
         (*scenar_timesync_it)->addEvent(event->id());
       }
-      else
-      {
-        // We have to insert the timesync that was removed.
-        auto removed_timesync_it = std::find(
-                                     maybeTimenodes.begin(), maybeTimenodes.end(), event->timeSync());
-        SCORE_ASSERT(removed_timesync_it != maybeTimenodes.end());
-        TimeSyncModel* timeSync = *removed_timesync_it;
-
-        maybeTimenodes.erase(removed_timesync_it);
-
-        // First, since the event is not yet in the scenario
-        // we remove it from the timesync since it might crash
-        timeSync->removeEvent(event->id());
-
-        // And we add the timesync
-        scenar.timeSyncs.add(timeSync);
-
-        // We can re-add the event.
-        scenar.events.add(event);
-        timeSync->addEvent(event->id());
-      }
     }
   }
 
   // All the states
   for (const auto& state : states)
   {
-    scenar.states.add(state);
-    scenar.event(state->eventId()).addState(state->id());
+    auto st = scenar.findState(state->id());
+    if (!st){
+      scenar.states.add(state);
+      scenar.event(state->eventId()).addState(state->id());
+    }
   }
 
   for (const auto& cmt : comments)
@@ -379,22 +322,16 @@ void RemoveSelection::redo(const score::DocumentContext& ctx) const
   }
 
   // The other things
-  if (   m_removedIntervals.empty()
-      && m_removedComments.empty()
-      && m_removedStates.empty() )
+
+  // remove condition on selected Events
+  for (const auto& ev : m_removedEvents)
   {
-    for (const auto& ev : m_removedEvents)
+    auto e = scenar.findEvent(ev.first);
+    if (e->condition() != State::Expression{})
     {
-      auto e = scenar.findEvent(ev.first);
       e->setCondition({});
     }
-  } else {
-    for (const auto& ev : m_removedEvents)
-    {
-      StandardRemovalPolicy::removeEventStatesAndIntervals(scenar, ev.first);
-    }
   }
-
 
   for (const auto& cmt : m_removedComments)
   {
@@ -413,6 +350,15 @@ void RemoveSelection::redo(const score::DocumentContext& ctx) const
     }
   }
 
+  for (const auto& tsid : m_removedTimeSyncs)
+  {
+    auto ts = scenar.findTimeSync(tsid.first);
+    if (ts->active())
+    {
+      ts->setActive(false);
+    }
+  }
+
   for (auto& tn : scenar.timeSyncs)
   {
     updateTimeSyncExtent(tn.id(), scenar);
@@ -425,14 +371,14 @@ void RemoveSelection::redo(const score::DocumentContext& ctx) const
 
 void RemoveSelection::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path << m_maybeRemovedTimeSyncs << m_removedEvents
+  s << m_path << m_removedEvents
     << m_removedTimeSyncs << m_removedIntervals << m_removedStates
     << m_removedComments;
 }
 
 void RemoveSelection::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_path >> m_maybeRemovedTimeSyncs >> m_removedEvents
+  s >> m_path >> m_removedEvents
       >> m_removedTimeSyncs >> m_removedIntervals >> m_removedStates
       >> m_removedComments;
 }
