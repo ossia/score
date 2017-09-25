@@ -76,8 +76,9 @@ void EnableWhenScenarioModelObject::action(
     return bool(dynamic_cast<const Scenario::IntervalModel*>(ptr))
            || bool(dynamic_cast<const Scenario::EventModel*>(ptr))
            || bool(dynamic_cast<const Scenario::StateModel*>(ptr))
-           || bool(dynamic_cast<const Scenario::CommentBlockModel*>(ptr));
-  }); // TODO why not timesync
+           || bool(dynamic_cast<const Scenario::CommentBlockModel*>(ptr))
+           || bool(dynamic_cast<const Scenario::TimeSyncModel*>(ptr));
+  });
 
   setEnabled(mgr, res);
 }
