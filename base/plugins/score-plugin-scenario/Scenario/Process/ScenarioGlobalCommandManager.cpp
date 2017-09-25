@@ -91,6 +91,26 @@ void removeSelection(
     const Scenario::ProcessModel& scenario,
     const score::CommandStackFacade& stack)
 {
+  MacroCommandDispatcher<ClearSelection> cleaner{stack};
+
+  const QList<const IntervalModel*>& intervals = selectedElements(scenario.getIntervals());
+  const QList<const StateModel*>& states = selectedElements(scenario.getStates());
+
+  // Create a Clear command for each.
+
+  for (auto& state : states)
+  {
+    if (state->messages().rootNode().hasChildren() )
+    {
+      cleaner.submitCommand(new ClearState(*state));
+    }
+  }
+
+  for (auto& interval : intervals)
+  {
+    cleaner.submitCommand(new ClearInterval(*interval));
+  }
+
   Selection sel = scenario.selectedChildren();
 
   auto& ctx = score::IDocument::documentContext(scenario);
@@ -102,9 +122,10 @@ void removeSelection(
 
   if (!sel.empty())
   {
-    CommandDispatcher<> dispatcher(stack);
-    dispatcher.submitCommand(new RemoveSelection(scenario, sel));
+    cleaner.submitCommand(new RemoveSelection(scenario, sel));
   }
+
+  cleaner.commit();
 }
 
 void removeSelection(
