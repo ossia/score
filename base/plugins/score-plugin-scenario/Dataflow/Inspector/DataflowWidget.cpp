@@ -1,4 +1,7 @@
 #include <Dataflow/Inspector/DataflowWidget.hpp>
+#include <Dataflow/Commands/EditConnection.hpp>
+#include <score/widgets/SignalUtils.hpp>
+#include <QFormLayout>
 
 namespace Dataflow
 {
@@ -127,6 +130,39 @@ void DataflowWidget::reinit()
   }, Qt::QueuedConnection);
   m_lay.addWidget(m_addOutlet);
   */
+}
+
+CableWidget::CableWidget(const Process::Cable& cable, const score::DocumentContext& ctx, QWidget* parent):
+  InspectorWidgetBase{cable, ctx, parent}
+{
+  m_cabletype.addItems({tr("Immediate Glutton"), tr("Immediate Strict"), tr("Delayed Glutton"), tr("Delayed Strict")});
+  m_cabletype.setCurrentIndex((int) cable.type());
+
+  con(m_cabletype, SignalUtils::QComboBox_currentIndexChanged_int(),
+      this, [&] (int idx) {
+    CommandDispatcher<> c{ctx.commandStack};
+    c.submitCommand<Dataflow::UpdateCable>(cable, (Process::CableType) idx);
+  });
+
+  this->updateAreaLayout({&m_cabletype});
+}
+
+CableInspectorFactory::CableInspectorFactory() : InspectorWidgetFactory{}
+{
+}
+
+QWidget*CableInspectorFactory::make(
+    const QList<const QObject*>& sourceElements,
+    const score::DocumentContext& doc,
+    QWidget* parent) const {
+  return new CableWidget{
+    safe_cast<const Process::Cable&>(*sourceElements.first()), doc,
+        parent};
+}
+
+bool CableInspectorFactory::matches(const QList<const QObject*>& objects) const
+{
+  return dynamic_cast<const Process::Cable*>(objects.first());
 }
 
 }

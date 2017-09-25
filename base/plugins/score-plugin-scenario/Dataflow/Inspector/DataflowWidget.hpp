@@ -14,44 +14,70 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QLineEdit>
+#include <QComboBox>
 #include <score_plugin_scenario_export.h>
+#include <Inspector/InspectorWidgetBase.hpp>
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
 namespace Dataflow
 {
 class PortWidget :
     public QWidget
 {
-  Q_OBJECT
-  score::MarginLess<QHBoxLayout> m_lay;
-  QPushButton m_remove;
-public:
-  PortWidget(Explorer::DeviceExplorerModel& model, QWidget* parent);
+    Q_OBJECT
+    score::MarginLess<QHBoxLayout> m_lay;
+    QPushButton m_remove;
+  public:
+    PortWidget(Explorer::DeviceExplorerModel& model, QWidget* parent);
 
-  QLineEdit localName;
-  Explorer::AddressAccessorEditWidget accessor;
+    QLineEdit localName;
+    Explorer::AddressAccessorEditWidget accessor;
 
-signals:
-  void removeMe();
+  signals:
+    void removeMe();
 };
 
+class CableWidget final : public Inspector::InspectorWidgetBase
+{
+    QComboBox m_cabletype;
+  public:
+    CableWidget(
+        const Process::Cable& cable,
+        const score::DocumentContext& ctx,
+        QWidget* parent);
+};
+
+class CableInspectorFactory final : public Inspector::InspectorWidgetFactory
+{
+    SCORE_CONCRETE("4b1a99aa-016e-440f-8ba6-24b961cff532")
+  public:
+    CableInspectorFactory();
+
+    QWidget* make(
+        const QList<const QObject*>& sourceElements,
+        const score::DocumentContext& doc,
+        QWidget* parent) const override;
+
+    bool matches(const QList<const QObject*>& objects) const override;
+};
 class SCORE_PLUGIN_SCENARIO_EXPORT DataflowWidget:
     public QWidget
 {
-  Q_OBJECT
-  const Process::DataflowProcess& m_proc;
-  Explorer::DeviceExplorerModel& m_explorer;
-  CommandDispatcher<> m_disp;
-  score::MarginLess<QVBoxLayout> m_lay;
-  QPushButton* m_addInlet{};
-  QPushButton* m_addOutlet{};
-  std::vector<PortWidget*> m_inlets;
-  std::vector<PortWidget*> m_outlets;
-public:
-  DataflowWidget(
-      const score::DocumentContext& doc,
-      const Process::DataflowProcess& proc,
-      QWidget* parent);
+    Q_OBJECT
+    const Process::DataflowProcess& m_proc;
+    Explorer::DeviceExplorerModel& m_explorer;
+    CommandDispatcher<> m_disp;
+    score::MarginLess<QVBoxLayout> m_lay;
+    QPushButton* m_addInlet{};
+    QPushButton* m_addOutlet{};
+    std::vector<PortWidget*> m_inlets;
+    std::vector<PortWidget*> m_outlets;
+  public:
+    DataflowWidget(
+        const score::DocumentContext& doc,
+        const Process::DataflowProcess& proc,
+        QWidget* parent);
 
-  void reinit();
+    void reinit();
 
 };
 }

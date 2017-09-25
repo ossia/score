@@ -357,9 +357,13 @@ void ScenarioDocumentPresenter::on_viewReady()
 
 void ScenarioDocumentPresenter::on_cableAdded(Process::Cable& c)
 {
-  auto it = new CableItem{c, nullptr};
+  auto it = new Dataflow::CableItem{c, nullptr};
   view().scene().addItem(it);
   cableItems.insert(it);
+  connect(it, &Dataflow::CableItem::clicked,
+          this, [&] {
+    m_selectionDispatcher.setAndCommit({&c});
+  });
 }
 
 void ScenarioDocumentPresenter::on_cableRemoving(const Process::Cable& c)

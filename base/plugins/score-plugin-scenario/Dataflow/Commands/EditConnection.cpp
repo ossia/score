@@ -3,39 +3,6 @@
 
 namespace Dataflow
 {
-/*
-MoveNode::MoveNode(
-    const Process::Node& model,
-    QPointF pos)
-  : m_model{model}
-  , m_old{model.position()}
-  , m_new{pos}
-{
-
-}
-
-void MoveNode::undo(const score::DocumentContext& ctx) const
-{
-  m_model.find(ctx).setPosition(m_old);
-}
-
-void MoveNode::redo(const score::DocumentContext& ctx) const
-{
-  m_model.find(ctx).setPosition(m_new);
-}
-
-void MoveNode::serializeImpl(DataStreamInput& s) const
-{
-  s << m_model << m_old << m_new;
-}
-
-void MoveNode::deserializeImpl(DataStreamOutput& s)
-{
-  s >> m_model >> m_old >> m_new;
-}
-
-*/
-
 CreateCable::CreateCable(
     const Scenario::ScenarioDocumentModel& dp,
     Id<Process::Cable> theCable, Process::CableData dat)
@@ -68,9 +35,10 @@ void CreateCable::undo(const score::DocumentContext& ctx) const
 
 void CreateCable::redo(const score::DocumentContext& ctx) const
 {
-  auto c = new Process::Cable{ctx, m_cable, m_dat};
+  auto& model = m_model.find(ctx);
+  auto c = new Process::Cable{ctx, m_cable, m_dat, &model};
 
-  m_model.find(ctx).cables.add(c);
+  model.cables.add(c);
   m_dat.source.find(ctx).addCable(m_cable);
   m_dat.sink.find(ctx).addCable(m_cable);
 }
@@ -87,23 +55,21 @@ void CreateCable::deserializeImpl(DataStreamOutput& s)
 
 
 
-UpdateCable::UpdateCable(Process::Cable& cable, Process::CableData newDat)
+UpdateCable::UpdateCable(const Process::Cable& cable, Process::CableType newDat)
   : m_model{cable}
-  , m_new{std::move(newDat)}
+  , m_new{newDat}
 {
-  m_old.source = *cable.source();
-  m_old.sink = *cable.sink();
-  m_old.type = cable.type();
+  m_old = cable.type();
 }
 
 void UpdateCable::undo(const score::DocumentContext& ctx) const
 {
-  m_model.find(ctx).update(ctx, m_old);
+  m_model.find(ctx).setType(m_old);
 }
 
 void UpdateCable::redo(const score::DocumentContext& ctx) const
 {
-  m_model.find(ctx).update(ctx, m_new);
+  m_model.find(ctx).setType(m_new);
 }
 
 void UpdateCable::serializeImpl(DataStreamInput& s) const
@@ -120,31 +86,34 @@ void UpdateCable::deserializeImpl(DataStreamOutput& s)
 
 RemoveCable::RemoveCable(
     const Scenario::ScenarioDocumentModel& dp,
-    const Process::Cable& theCable)
+    const Process::Cable& c)
   : m_model{dp}
- // , m_cable{std::move(cable)}
+  , m_cable{c.id()}
 {
-
+  m_data.type = c.type();
+  if(c.source()) m_data.source = *c.source();
+  if(c.sink()) m_data.sink = *c.sink();
 }
 
 void RemoveCable::undo(const score::DocumentContext& ctx) const
 {
-//  m_model.find(ctx).createConnection(m_cable);
+  auto& model = m_model.find(ctx);
+  model.cables.add(new Process::Cable{ctx, m_cable, m_data, &model});
 }
 
 void RemoveCable::redo(const score::DocumentContext& ctx) const
 {
-//  m_model.find(ctx).removeConnection(m_cable);
+  m_model.find(ctx).cables.remove(m_cable);
 }
 
 void RemoveCable::serializeImpl(DataStreamInput& s) const
 {
-  s << m_model << m_cable;
+  s << m_model << m_cable << m_data;
 }
 
 void RemoveCable::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_model >> m_cable;
+  s >> m_model >> m_cable >> m_data;
 }
 
 }

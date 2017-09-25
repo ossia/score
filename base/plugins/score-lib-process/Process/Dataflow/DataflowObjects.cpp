@@ -3,25 +3,7 @@
 #include <ossia/dataflow/graph_node.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
-/*
-namespace Dataflow
-{
-ProcessComponent::ProcessComponent(
-    Process::ProcessModel& process,
-    DocumentPlugin& doc,
-    const Id<score::Component>& id,
-    const QString& name,
-    QObject* parent):
-  Process::GenericProcessComponent<DocumentPlugin>{process, doc, id, name, parent}
-{
 
-}
-ProcessComponent::~ProcessComponent()
-{
-}
-
-}
-*/
 namespace Process
 {
 
@@ -30,10 +12,10 @@ Cable::~Cable()
 
 }
 
-Cable::Cable(Id<Cable> c): IdentifiedObject{c, "Cable", nullptr} { }
+Cable::Cable(Id<Cable> c, QObject* parent): IdentifiedObject{c, "Cable", parent} { }
 
-Cable::Cable(const score::DocumentContext& ctx, Id<Cable> c, const CableData& data):
-  IdentifiedObject{c, "Cable", nullptr}
+Cable::Cable(const score::DocumentContext& ctx, Id<Cable> c, const CableData& data, QObject* parent):
+  IdentifiedObject{c, "Cable", parent}
 {
   m_type = data.type;
   m_source = data.source.try_find(ctx);

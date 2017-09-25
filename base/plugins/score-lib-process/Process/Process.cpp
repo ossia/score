@@ -189,35 +189,25 @@ std::vector<Process::Port*> ProcessModel::outlets() const
 }
 ProcessModel* parentProcess(QObject* obj)
 {
-  QString objName(obj ? obj->objectName() : "INVALID");
   while (obj && !dynamic_cast<ProcessModel*>(obj))
   {
     obj = obj->parent();
   }
 
-  if (!obj)
-    throw std::runtime_error(
-        QString("Object (name: %1) is not child of a Process!")
-            .arg(objName)
-            .toStdString());
-
-  return static_cast<ProcessModel*>(obj);
+  if (obj)
+    return static_cast<ProcessModel*>(obj);
+  return nullptr;
 }
 
 const ProcessModel* parentProcess(const QObject* obj)
 {
-  QString objName(obj ? obj->objectName() : "INVALID");
   while (obj && !dynamic_cast<const ProcessModel*>(obj))
   {
     obj = obj->parent();
   }
 
-  if (!obj)
-    throw std::runtime_error(
-        QString("Object (name: %1) is not child of a Process!")
-            .arg(objName)
-            .toStdString());
-
-  return static_cast<const ProcessModel*>(obj);
+  if (obj)
+    return static_cast<const ProcessModel*>(obj);
+  return nullptr;
 }
 }
