@@ -80,23 +80,14 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
     auto sm = focusedScenarioModel(ctx);
     auto si = focusedScenarioInterface(ctx);
 
-    bool flag = false;
-
     if (sm)
-    {
-      flag = Scenario::clearContentFromSelection(*sm, ctx.commandStack);
-    }
-    else if (si && !selectedElements(si->getStates()).empty())
-    {
-      flag = Scenario::clearContentFromSelection(*si, ctx.commandStack);
-    }
-
-    // if there is no content to clear, then delete element
-    if (!flag)
     {
       Scenario::removeSelection(*sm, ctx.commandStack);
     }
-
+    else if (si && !selectedElements(si->getStates()).empty())
+    {
+      Scenario::clearContentFromSelection(*si, ctx.commandStack);
+    }
   });
 
   // COPY/CUT
