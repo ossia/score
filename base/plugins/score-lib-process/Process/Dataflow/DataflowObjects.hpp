@@ -27,7 +27,6 @@ struct SCORE_LIB_PROCESS_EXPORT CableData
 {
     CableType type{};
     Path<Process::Port> source, sink;
-    ossia::optional<int> outlet, inlet;
 
     SCORE_LIB_PROCESS_EXPORT
     friend bool operator==(const CableData& lhs, const CableData& rhs);
@@ -96,8 +95,6 @@ class SCORE_LIB_PROCESS_EXPORT Cable
     Q_PROPERTY(CableType type READ type WRITE setType NOTIFY typeChanged)
     Q_PROPERTY(Process::Port* source READ source WRITE setSource NOTIFY sourceChanged)
     Q_PROPERTY(Process::Port* sink READ sink WRITE setSink NOTIFY sinkChanged)
-    Q_PROPERTY(ossia::optional<int> outlet READ outlet WRITE setOutlet NOTIFY outletChanged)
-    Q_PROPERTY(ossia::optional<int> inlet READ inlet WRITE setInlet NOTIFY inletChanged)
   public:
     Cable() = delete;
     ~Cable();
@@ -116,27 +113,20 @@ class SCORE_LIB_PROCESS_EXPORT Cable
     CableType type() const;
     Process::Port* source() const;
     Process::Port* sink() const;
-    ossia::optional<int> outlet() const;
-    ossia::optional<int> inlet() const;
 
     void setType(CableType type);
     void setSource(Process::Port* source);
     void setSink(Process::Port* sink);
-    void setOutlet(ossia::optional<int> outlet);
-    void setInlet(ossia::optional<int> inlet);
 
 signals:
     void typeChanged(CableType type);
     void sourceChanged(Process::Port* source);
     void sinkChanged(Process::Port* sink);
-    void outletChanged(ossia::optional<int> outlet);
-    void inletChanged(ossia::optional<int> inlet);
 
 private:
     CableType m_type{};
     Process::Port* m_source{};
     Process::Port* m_sink{};
-    ossia::optional<int> m_outlet, m_inlet;
     QMetaObject::Connection m_srcDeath, m_sinkDeath;
 };
 
@@ -150,7 +140,9 @@ class SCORE_LIB_PROCESS_EXPORT Port
     SCORE_SERIALIZE_FRIENDS
   public:
     PortType type{};
+    int num{};
     bool propagate{false};
+    bool outlet{false};
 
     Port() = delete;
     ~Port();

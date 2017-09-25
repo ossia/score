@@ -29,7 +29,6 @@ DocumentPlugin::DocumentPlugin(
     , audioproto{new ossia::audio_protocol}
     , audio_dev{std::unique_ptr<ossia::net::protocol_base>(audioproto), "audio"}
     , midi_dev{std::make_unique<ossia::net::multiplex_protocol>(), "midi"}
-    , m_base{m_ctx, this}
     , m_ctx{
           ctx, m_base,
           ctx.plugin<Explorer::DeviceDocumentPlugin>(),
@@ -38,6 +37,7 @@ DocumentPlugin::DocumentPlugin(
           {}, {},
           m_editionQueue, *this
       }
+    , m_base{m_ctx, this}
 {
   midi_ins.push_back(ossia::net::create_parameter<ossia::midi_generic_parameter>(midi_dev.get_root_node(), "/0/in"));
   midi_outs.push_back(ossia::net::create_parameter<ossia::midi_generic_parameter>(midi_dev.get_root_node(), "/0/out"));
@@ -83,7 +83,7 @@ void DocumentPlugin::connectCable(Process::Cable& cable)
     }
 
     std::cerr << cable.source_node.get() << " && " << cable.sink_node.get() << "\n";
-    if(cable.source_node && cable.sink_node && cable.inlet() && cable.outlet())
+    if(cable.source_node && cable.sink_node)
     {
       std::cerr << "\n\nConnect 3\n";
 
@@ -91,8 +91,8 @@ void DocumentPlugin::connectCable(Process::Cable& cable)
             [type=cable.type()
             ,src=cable.source_node
             ,snk=cable.sink_node
-            ,inlt=*cable.inlet()
-            ,outlt=*cable.outlet()
+            ,inlt=cable.sink()->num
+            ,outlt=cable.source()->num
             ,graph=execGraph
             ]
       {

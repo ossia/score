@@ -74,17 +74,17 @@ ProcessModel::ProcessModel(
   metadata().setInstanceName(*this);
 
   { auto p = new Process::Port{Id<Process::Port>{0}, this};
-    p->type = Process::PortType::Audio; m_ports.add(p); }
+    p->type = Process::PortType::Audio; p->propagate = true; p->num = 0; p->outlet = false; m_ports.add(p); }
   { auto p = new Process::Port{Id<Process::Port>{1}, this};
-    p->type = Process::PortType::Audio; p->propagate = true; m_ports.add(p); }
+    p->type = Process::PortType::Audio; p->propagate = true; p->num = 0; p->outlet = true; m_ports.add(p); }
   { auto p = new Process::Port{Id<Process::Port>{2}, this};
-    p->type = Process::PortType::Message; m_ports.add(p); }
+    p->type = Process::PortType::Message; p->propagate = true; p->num = 1; p->outlet = false; m_ports.add(p); }
   { auto p = new Process::Port{Id<Process::Port>{3}, this};
-    p->type = Process::PortType::Message; p->propagate = true; m_ports.add(p); }
+    p->type = Process::PortType::Message; p->propagate = true; p->num = 1; p->outlet = true; m_ports.add(p); }
   { auto p = new Process::Port{Id<Process::Port>{4}, this};
-    p->type = Process::PortType::Midi; m_ports.add(p); }
+    p->type = Process::PortType::Midi; p->propagate = true; p->num = 2; p->outlet = false; m_ports.add(p); }
   { auto p = new Process::Port{Id<Process::Port>{5}, this};
-    p->type = Process::PortType::Midi; p->propagate = true; m_ports.add(p); }
+    p->type = Process::PortType::Midi; p->propagate = true; p->num = 2; p->outlet = true; m_ports.add(p); }
 }
 
 ProcessModel::ProcessModel(

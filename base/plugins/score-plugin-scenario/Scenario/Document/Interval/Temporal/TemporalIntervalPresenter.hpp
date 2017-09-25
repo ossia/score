@@ -81,5 +81,69 @@ private:
   std::vector<SlotPresenter> m_slots;
   bool m_handles{true};
 };
+class PortItem;
+class CableItem
+    : public QObject
+    , public QGraphicsItem
+{
+    Q_OBJECT
+
+public:
+  CableItem(Process::Cable& c, QGraphicsItem* parent = nullptr);
+  ~CableItem();
+  QRectF boundingRect() const override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+
+  const auto& id() const { return m_cable.id(); }
+  void resize();
+  void check();
+  PortItem* source() const { return m_p1; }
+  PortItem* target() const { return m_p2; }
+  void setSource(PortItem* p) { m_p1 = p; check(); }
+  void setTarget(PortItem* p) { m_p2 = p; check(); }
+
+  QPainterPath shape() const override;
+private:
+  Process::Cable& m_cable;
+  QPointer<PortItem> m_p1, m_p2;
+  QPainterPath m_path;
+
+};
+class PortItem final
+    : public QObject
+    , public QGraphicsItem
+{
+    Q_OBJECT
+    Process::Port& m_port;
+  public:
+    PortItem(Process::Port& p, QGraphicsItem* parent);
+    ~PortItem();
+    Process::Port& port() const { return m_port; }
+    QRectF boundingRect() const override;
+    void paint(
+        QPainter* painter,
+        const QStyleOptionGraphicsItem* option,
+        QWidget* widget) override;
+
+    void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+    void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
+    void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
+    void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
+
+    void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
+    void dragMoveEvent(QGraphicsSceneDragDropEvent* event) override;
+    void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;
+    void dropEvent(QGraphicsSceneDragDropEvent* event) override;
+    QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
+    std::vector<QPointer<CableItem>> cables;
+  signals:
+    void showPanel();
+    void createCable(PortItem* src, PortItem* snk);
+
+  private:
+    double m_diam = 6.;
+};
 
 }

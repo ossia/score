@@ -123,8 +123,8 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
     auto doc = this->currentDocument();
     if(doc)
     {
-      auto& plug = doc->context().model<Scenario::ScenarioDocumentModel>();
-      plug.window.window.show();
+      //auto& plug = doc->context().model<Scenario::ScenarioDocumentModel>();
+      //plug.window.window.show();
     }
   });
 }
@@ -215,14 +215,6 @@ void ScenarioApplicationPlugin::on_documentChanged(
 
   m_editionSettings.setDefault();
   m_editionSettings.setExecution(false);
-
-
-  if (olddoc)
-  {
-    auto& doc_plugin = olddoc->context().model<Scenario::ScenarioDocumentModel>();
-
-    doc_plugin.window.window.hide();
-  }
 
   if (!newdoc)
   {

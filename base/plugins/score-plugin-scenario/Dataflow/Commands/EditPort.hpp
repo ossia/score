@@ -10,7 +10,7 @@ namespace Dataflow
 /*
 class AddPort final : public score::Command
 {
-    SCORE_COMMAND_DECL(Scenario::Command::ScenarioCommandFactoryName(), AddPort, "Add a node port")
+    SCORE _COMMAND_DECL(Scenario::Command::ScenarioCommandFactoryName(), AddPort, "Add a node port")
 
     public:
         AddPort(const Process::DataflowProcess& model, bool inlet);
@@ -29,7 +29,7 @@ private:
 
 class EditPort final : public score::Command
 {
-    SCORE_COMMAND_DECL(Scenario::Command::ScenarioCommandFactoryName(), EditPort, "Edit a node port")
+    SCORE _COMMAND_DECL(Scenario::Command::ScenarioCommandFactoryName(), EditPort, "Edit a node port")
     public:
         EditPort(const Process::DataflowProcess& model,
                  Process::Port next,
@@ -52,7 +52,7 @@ private:
 
 class RemovePort final : public score::Command
 {
-    SCORE_COMMAND_DECL(Scenario::Command::ScenarioCommandFactoryName(), RemovePort, "Remove a node port")
+    SCORE _COMMAND_DECL(Scenario::Command::ScenarioCommandFactoryName(), RemovePort, "Remove a node port")
 
     public:
         RemovePort(const Process::DataflowProcess& model,

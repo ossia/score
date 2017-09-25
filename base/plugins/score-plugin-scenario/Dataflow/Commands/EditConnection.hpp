@@ -11,7 +11,7 @@ namespace Dataflow
 class MoveNode final : public score::Command
 {
 
-  SCORE_COMMAND_DECL(Scenario::Command::ScenarioCommandFactoryName(), MoveNode, "Move node")
+  SCORE _COMMAND_DECL(Scenario::Command::ScenarioCommandFactoryName(), MoveNode, "Move node")
 
   public:
     MoveNode(const Process::Node& model, QPointF newpos);

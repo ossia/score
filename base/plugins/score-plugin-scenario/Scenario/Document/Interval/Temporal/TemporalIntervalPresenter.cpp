@@ -30,24 +30,441 @@
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Explorer/Widgets/AddressAccessorEditWidget.hpp>
+#include <QDrag>
+#include <QFormLayout>
+#include <QGraphicsProxyWidget>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Dataflow/Commands/EditConnection.hpp>
 class QColor;
 class QObject;
 class QString;
 
 namespace Scenario
 {
+static std::unordered_map<Process::Cable*, CableItem*> g_cables;
+static std::unordered_map<Process::Port*, PortItem*> g_ports;
+
+class PortWidget : public QWidget
+{
+  public:
+    PortWidget(const score::DocumentContext& ctx, Process::Port& p):
+      m_edit{ctx.plugin<Explorer::DeviceDocumentPlugin>().explorer(), this}
+    {
+      auto lay = new QFormLayout{this};
+      lay->addRow(tr("Address"), &m_edit);
+    }
+
+  private:
+    Explorer::AddressAccessorEditWidget m_edit;
+};
+
+class PortPanel final
+    : public QObject
+    , public QGraphicsItem
+{
+    QRectF m_rect;
+    QRectF m_widgrect;
+    PortWidget* m_pw{};
+    QGraphicsProxyWidget* m_proxy{};
+  public:
+    PortPanel(const score::DocumentContext& ctx, Process::Port& p, QGraphicsItem* parent):
+      QGraphicsItem{parent}
+    {
+      m_pw = new PortWidget{ctx, p};
+      m_proxy = new QGraphicsProxyWidget{this};
+      m_proxy->setWidget(m_pw);
+      m_proxy->setPos(10, 10);
+      connect(m_proxy, &QGraphicsProxyWidget::geometryChanged,
+              this, &PortPanel::updateRect);
+      updateRect();
+    }
+
+    void updateRect()
+    {
+      prepareGeometryChange();
+
+      m_widgrect = m_proxy->subWidgetRect(m_pw);
+      m_rect = m_widgrect.adjusted(0, 0, 30, 20);
+    }
+
+    QRectF boundingRect() const override
+    {
+      return m_rect;
+    }
+
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
+    {
+      painter->setRenderHint(QPainter::Antialiasing, true);
+      painter->setPen(QColor("#1A2024"));
+      painter->setBrush(QColor("#1A2024"));
+
+      QPainterPath p;
+      p.moveTo(12, 12);
+      p.lineTo(0, 22);
+      p.lineTo(12, 34);
+      p.lineTo(12, 12);
+      p.closeSubpath();
+
+      painter->drawPath(p);
+      painter->fillPath(p, painter->brush());
+
+      painter->drawRoundedRect(m_rect.adjusted(10, 0, 0, 0), 10, 10);
+
+      painter->setRenderHint(QPainter::Antialiasing, false);
+    }
+};
+
+
+CableItem::CableItem(Process::Cable& c, QGraphicsItem* parent):
+  QGraphicsItem{parent}
+, m_cable{c}
+{
+  g_cables.insert({&c, this});
+
+  auto src = g_ports.find(c.source());
+  if(src != g_ports.end())
+  {
+    m_p1 = src->second;
+    m_p1->cables.push_back(this);
+  }
+  auto snk = g_ports.find(c.sink());
+  if(snk != g_ports.end())
+  {
+    m_p2 = snk->second;
+    m_p2->cables.push_back(this);
+  }
+  check();
+  resize();
+}
+
+CableItem::~CableItem()
+{
+  if(m_p1)
+  {
+    boost::remove_erase(m_p1->cables, this);
+  }
+  if(m_p2)
+  {
+    boost::remove_erase(m_p2->cables, this);
+  }
+
+  auto it = g_cables.find(&m_cable);
+  if(it != g_cables.end())
+    g_cables.erase(it);
+}
+
+QRectF CableItem::boundingRect() const
+{
+  return m_path.boundingRect();
+}
+
+void CableItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+  if(m_p1 && m_p2)
+  {
+    QPen cablepen;
+    cablepen.setColor(QColor("#559999dd"));
+    cablepen.setJoinStyle(Qt::PenJoinStyle::RoundJoin);
+    cablepen.setWidthF(1.5);
+
+    painter->setPen(cablepen);
+    painter->setBrush(Qt::transparent);
+    painter->drawPath(m_path);
+  }
+}
+
+void CableItem::resize()
+{
+  prepareGeometryChange();
+
+  auto p1 = m_p1->scenePos();
+  auto p2 = m_p2->scenePos();
+
+  auto rect = QRectF{p1, p2};
+  auto nrect = rect.normalized();
+  qDebug() << p1 << p2 << rect << nrect;
+  this->setPos(nrect.topLeft());
+  nrect.translate(-nrect.topLeft().x(), -nrect.topLeft().y());
+
+  p1 = mapFromScene(p1);
+  p2 = mapFromScene(p2);
+
+  qDebug() << p1 << p2 << nrect;
+  auto first = p1.x() < p2.x() ? p1 : p2;
+  auto last = p1.x() >= p2.x() ? p1 : p2;
+  QPainterPath p;
+  p.moveTo(first.x(), first.y());
+  p.lineTo(first.x(), last.y());
+  p.lineTo(last.x(), last.y());
+  m_path = p;
+
+  update();
+}
+
+void CableItem::check()
+{
+  if(m_p1 && m_p2 && m_p1->isVisible() && m_p2->isVisible()) {
+    qDebug("1");
+    if(!isEnabled())
+    {
+      setVisible(true);
+      setEnabled(true);
+    }
+    resize();
+  }
+  else if(isEnabled()) {
+    qDebug("2");
+    setVisible(false);
+    setEnabled(false);
+  }
+}
+
+QPainterPath CableItem::shape() const
+{
+  return m_path;
+}
+
+
+PortItem::PortItem(Process::Port& p, QGraphicsItem* parent)
+  : QGraphicsItem{parent}
+  , m_port{p}
+{
+  this->setAcceptDrops(true);
+  this->setAcceptHoverEvents(true);
+  this->setFlag(QGraphicsItem::ItemSendsScenePositionChanges, true);
+
+  g_ports.insert({&p, this});
+
+  for(auto c : g_cables)
+  {
+    if(c.first->source() == &p)
+    {
+      c.second->setSource(this);
+    }
+    if(c.first->sink() == &p)
+    {
+      c.second->setTarget(this);
+    }
+  }
+}
+
+PortItem::~PortItem()
+{
+  for(auto cable : cables)
+  {
+    if(cable->source() == this)
+      cable->setSource(nullptr);
+    if(cable->target() == this)
+      cable->setTarget(nullptr);
+  }
+  auto it = g_ports.find(&m_port);
+  if(it != g_ports.end())
+    g_ports.erase(it);
+}
+
+QRectF PortItem::boundingRect() const
+{
+  return {-m_diam/2., -m_diam/2., m_diam, m_diam};
+}
+
+void PortItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+  painter->setRenderHint(QPainter::Antialiasing, true);
+  QColor c;
+  switch(m_port.type)
+  {
+    case Process::PortType::Audio:
+      c = QColor("#FFAAAA");
+      break;
+    case Process::PortType::Message:
+      c = QColor("#AAFFAA");
+      break;
+    case Process::PortType::Midi:
+      c = QColor("#AAAAFF");
+      break;
+  }
+
+  QPen p = c;
+  p.setWidth(2);
+  QBrush b = c.darker();
+
+  painter->setPen(p);
+  painter->setBrush(b);
+  painter->drawEllipse(boundingRect());
+  painter->setRenderHint(QPainter::Antialiasing, false);
+}
+
+static PortItem* clickedPort{};
+void PortItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+  clickedPort = this;
+  event->accept();
+}
+
+void PortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+  if(QLineF(pos(), event->pos()).length() > QApplication::startDragDistance())
+  {
+    QDrag d{this};
+    QMimeData* m = new QMimeData;
+    m->setText("cable");
+    d.setMimeData(m);
+    d.exec();
+  }
+}
+
+void PortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  if(this->contains(event->pos()))
+    emit showPanel();
+  event->accept();
+}
+
+void PortItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+{
+  prepareGeometryChange();
+  m_diam = 8.;
+  update();
+  event->accept();
+}
+
+void PortItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
+{
+  event->accept();
+}
+
+void PortItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+{
+  prepareGeometryChange();
+  m_diam = 6.;
+  update();
+  event->accept();
+}
+
+void PortItem::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
+{
+  prepareGeometryChange();
+  m_diam = 8.;
+  update();
+  event->accept();
+}
+
+void PortItem::dragMoveEvent(QGraphicsSceneDragDropEvent* event)
+{
+  event->accept();
+}
+
+void PortItem::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
+{
+  prepareGeometryChange();
+  m_diam = 6.;
+  update();
+  event->accept();
+}
+
+void PortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
+{
+  prepareGeometryChange();
+  m_diam = 6.;
+  update();
+  if(this != clickedPort)
+  {
+    if(this->m_port.outlet != clickedPort->m_port.outlet)
+    {
+      emit createCable(clickedPort, this);
+    }
+  }
+  clickedPort = nullptr;
+  event->accept();
+}
+
+QVariant PortItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value)
+{
+  switch(change)
+  {
+    case QGraphicsItem::ItemScenePositionHasChanged:
+    case QGraphicsItem::ItemVisibleHasChanged:
+    case QGraphicsItem::ItemSceneHasChanged:
+      for(auto cbl : cables)
+      {
+        cbl->check();
+      }
+      break;
+    default:
+      break;
+  }
+
+  return QGraphicsItem::itemChange(change, value);
+}
 class DefaultHeaderDelegate
     : public QObject
     , public Process::GraphicsShapeItem
 {
-public:
-    DefaultHeaderDelegate(Process::LayerPresenter& p): presenter{p}
+  public:
+    void onCreateCable(PortItem* p1, PortItem* p2)
+    {
+      auto& ctx = presenter.context().context;
+      auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
+      CommandDispatcher<> disp{ctx.commandStack};
+      Process::CableData cd;
+      cd.type = Process::CableType::ImmediateStrict;
+
+      if(p1->port().outlet)
+      {
+        cd.source = p1->port();
+        cd.sink = p2->port();
+      }
+      else
+      {
+        cd.source = p2->port();
+        cd.sink = p1->port();
+      }
+
+      disp.submitCommand<Dataflow::CreateCable>(
+            plug,
+            getStrongId(plug.cables),
+            cd);
+    }
+
+    DefaultHeaderDelegate(Process::LayerPresenter& p)
+      : presenter{p}
     {
       con(presenter.model(), &Process::ProcessModel::prettyNameChanged,
           this, &DefaultHeaderDelegate::updateName);
       updateName();
-      m_textcache.setFont(ScenarioStyle::instance().Bold10Pt);
+      m_textcache.setFont(ScenarioStyle::instance().Medium7Pt);
       m_textcache.setCacheEnabled(true);
+
+      int x = 4;
+      for(auto& port : p.model().inlets())
+      {
+        auto item = new PortItem{*port, this};
+        item->setPos(x, 16);
+        connect(item, &PortItem::showPanel,
+                this, [&,&pt=*port,item] {
+          auto panel = new PortPanel{p.context().context, pt, nullptr};
+          scene()->addItem(panel);
+          panel->setPos(item->mapToScene(item->pos()));
+        });
+        connect(item, &PortItem::createCable,
+                this, &DefaultHeaderDelegate::onCreateCable);
+        x += 10;
+      }
+      x = 4;
+      for(auto& port : p.model().outlets())
+      {
+        auto item = new PortItem{*port, this};
+        item->setPos(x, 25);
+        connect(item, &PortItem::showPanel,
+                this, [&,&pt=*port,item] {
+          auto panel = new PortPanel{p.context().context, pt, nullptr};
+          scene()->addItem(panel);
+          panel->setPos(item->mapToScene(item->pos()));
+        });
+        x += 10;
+      }
     }
 
     void updateName()
@@ -66,7 +483,10 @@ public:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
     {
       painter->setPen(ScenarioStyle::instance().IntervalHeaderSeparator);
-      m_textcache.draw(painter, QPointF{0., 0.});
+      m_textcache.draw(painter, QPointF{4., 0.});
+
+      painter->setPen(ScenarioStyle::instance().TimenodePen);
+      painter->drawLine(QPointF{0, 19}, QPointF{boundingRect().width(), 19});
     }
 
   private:
@@ -81,8 +501,8 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
     QGraphicsItem* parentobject,
     QObject* parent)
   : IntervalPresenter{interval,
-                        new TemporalIntervalView{*this, parentobject},
-                        new TemporalIntervalHeader{*this}, ctx, parent}
+                      new TemporalIntervalView{*this, parentobject},
+                      new TemporalIntervalHeader{*this}, ctx, parent}
   , m_handles{handles}
 {
   TemporalIntervalView& v = *view();
@@ -144,9 +564,9 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
   // Time
   con(interval.duration, &IntervalDurations::defaultDurationChanged, this,
       [&](const TimeVal& val) {
-        on_defaultDurationChanged(val);
-        updateChildren();
-      });
+    on_defaultDurationChanged(val);
+    updateChildren();
+  });
 
   // Header set-up
 
@@ -355,8 +775,8 @@ void TemporalIntervalPresenter::createLayer(int slot, const Process::ProcessMode
                                          });
 
     auto con_id = con(
-          proc, &Process::ProcessModel::durationChanged, this,
-          [&] (const TimeVal&) {
+                    proc, &Process::ProcessModel::durationChanged, this,
+                    [&] (const TimeVal&) {
       int i = 0;
       for(const SlotPresenter& slot : m_slots)
       {
@@ -516,15 +936,15 @@ void TemporalIntervalPresenter::on_layerModelPutToFront(int slot, const Process:
       if (elt.model->id() == proc.id())
       {
         elt.presenter->putToFront();
-        slt.headerDelegate = elt.presenter->makeSlotHeaderDelegate();
+        // slt.headerDelegate = elt.presenter->makeSlotHeaderDelegate();
         if(!slt.headerDelegate)
         {
           slt.headerDelegate = new DefaultHeaderDelegate{*elt.presenter};
-          slt.headerDelegate->setParentItem(slt.header);
-          slt.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
-          slt.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
-          slt.headerDelegate->setPos(30, 0);
         }
+        slt.headerDelegate->setParentItem(slt.header);
+        slt.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
+        slt.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
+        slt.headerDelegate->setPos(30, 0);
       }
       else
       {
@@ -651,7 +1071,7 @@ void TemporalIntervalPresenter::requestSlotMenu(int slot, QPoint pos, QPointF sp
                     .guiApplicationPlugin<ScenarioApplicationPlugin>()
                     .layerContextMenuRegistrar();
         ScenarioContextMenuManager::createLayerContextMenu(
-            *menu, pos, sp, reg, *p.presenter);
+              *menu, pos, sp, reg, *p.presenter);
         menu->exec(pos);
         menu->close();
         menu->deleteLater();

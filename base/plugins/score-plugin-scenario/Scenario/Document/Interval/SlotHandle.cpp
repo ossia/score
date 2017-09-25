@@ -212,4 +212,6 @@ void SlotHeader::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 }
 
 
+
+
 }

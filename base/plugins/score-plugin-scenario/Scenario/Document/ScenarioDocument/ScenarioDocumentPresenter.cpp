@@ -24,6 +24,7 @@
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <score/document/DocumentInterface.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
 
 #include "ScenarioDocumentPresenter.hpp"
 #include "ZoomPolicy.hpp"
@@ -139,6 +140,9 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
   }, Qt::QueuedConnection);
 
   setDisplayedInterval(model().baseInterval());
+
+  model().cables.mutable_added.connect<ScenarioDocumentPresenter, &ScenarioDocumentPresenter::on_cableAdded>(*this);
+  model().cables.removing.connect<ScenarioDocumentPresenter, &ScenarioDocumentPresenter::on_cableRemoving>(*this);
 }
 
 ScenarioDocumentPresenter::~ScenarioDocumentPresenter()
@@ -349,6 +353,24 @@ void ScenarioDocumentPresenter::on_viewReady()
     if(!window_size_set)
         on_windowSizeChanged({});
   });
+}
+
+void ScenarioDocumentPresenter::on_cableAdded(Process::Cable& c)
+{
+  auto it = new CableItem{c, nullptr};
+  view().scene().addItem(it);
+  cableItems.insert(it);
+}
+
+void ScenarioDocumentPresenter::on_cableRemoving(const Process::Cable& c)
+{
+  auto& map = cableItems.get();
+  auto it = map.find(c.id());
+  if (it != map.end())
+  {
+    delete *it;
+    map.erase(it);
+  }
 }
 
 

@@ -8,7 +8,10 @@
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
-
+namespace Process
+{
+class Port;
+}
 namespace Scenario
 {
 class IntervalPresenter;
@@ -53,7 +56,6 @@ private:
   qreal m_width{};
   int m_slotIndex;
 };
-
 class SlotHeader final : public QGraphicsItem
 {
   public:
@@ -73,7 +75,7 @@ class SlotHeader final : public QGraphicsItem
     void setSlotIndex(int);
     static constexpr double headerHeight()
     {
-      return 16.;
+      return 32.;
     }
     static constexpr double handleWidth()
     {
