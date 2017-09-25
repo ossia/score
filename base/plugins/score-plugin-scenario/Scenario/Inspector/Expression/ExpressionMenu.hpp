@@ -18,7 +18,6 @@ public:
       : menu{new QMenu{parent}}
       , deleteAction{menu->addAction(QObject::tr("Disable"))}
       , editAction{menu->addAction(QObject::tr("Edit"))}
-      , addSubAction{menu->addAction(QObject::tr("Add sub-expression"))}
   {
     connect(editAction, &QAction::triggered, this, [=] {
       bool ok = false;
@@ -37,7 +36,6 @@ public:
   QMenu* menu{};
   QAction* deleteAction{};
   QAction* editAction{};
-  QAction* addSubAction{};
 
 signals:
   void expressionChanged(QString);
