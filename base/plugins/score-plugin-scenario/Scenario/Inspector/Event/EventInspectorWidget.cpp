@@ -1,7 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
-#include <Inspector/InspectorSectionWidget.hpp>
 #include <Scenario/Commands/Event/SetCondition.hpp>
 #include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
@@ -113,16 +112,10 @@ EventInspectorWidget::EventInspectorWidget(
     con(m_model, &EventModel::conditionChanged, m_exprEditor,
         &ExpressionEditorWidget::setExpression);
 
-    auto condMenuButton = new Inspector::MenuButton{expr_widg};
-    condMenuButton->setMenu(m_menu.menu);
-
-    connect(m_menu.addSubAction, &QAction::triggered, m_exprEditor, [=] {
-      m_exprEditor->addNewTerm();
-      m_exprEditor->on_editFinished();
-    });
-
     m_menu.menu->removeAction(m_menu.deleteAction);
     delete m_menu.deleteAction; // Blergh
+
+    m_exprEditor->setMenu(m_menu.menu);
 
     con(m_menu, &ExpressionMenu::expressionChanged, this,
         [=] (const QString& str) {
@@ -141,7 +134,6 @@ EventInspectorWidget::EventInspectorWidget(
         });
 
     expr_lay->addWidget(m_exprEditor);
-    expr_lay->addWidget(condMenuButton);
     m_properties.push_back(expr_widg);
   }
 

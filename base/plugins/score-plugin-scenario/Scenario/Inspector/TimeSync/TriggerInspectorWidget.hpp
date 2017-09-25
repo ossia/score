@@ -35,7 +35,6 @@ public:
   void removeTrigger();
 
   void on_triggerActiveChanged();
-  void HideRmButton();
 
   void updateExpression(const State::Expression&);
 
@@ -46,7 +45,6 @@ private:
   Inspector::InspectorWidgetBase* m_parent{};
 
   QPushButton* m_addTrigBtn{};
-  QPushButton* m_menuButton{};
   ExpressionMenu m_menu;
 
   ExpressionEditorWidget* m_exprEditor{};

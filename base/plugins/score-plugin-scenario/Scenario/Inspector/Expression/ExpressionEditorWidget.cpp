@@ -103,6 +103,11 @@ void ExpressionEditorWidget::setExpression(State::Expression e)
   m_expression = currentExpr();
 }
 
+void ExpressionEditorWidget::setMenu(QMenu *menu)
+{
+  m_menu = menu;
+}
+
 void ExpressionEditorWidget::on_editFinished()
 {
   auto ex = currentExpr();
@@ -183,7 +188,7 @@ QString ExpressionEditorWidget::currentExpr()
 void ExpressionEditorWidget::addNewTerm()
 {
   auto relationEditor
-      = new SimpleExpressionEditorWidget{m_context, (int) m_relations.size(), this};
+      = new SimpleExpressionEditorWidget{m_context, (int) m_relations.size(), this, m_menu};
   m_relations.push_back(relationEditor);
 
   m_mainLayout->addWidget(relationEditor);
@@ -199,9 +204,17 @@ void ExpressionEditorWidget::addNewTerm()
       &ExpressionEditorWidget::on_editFinished, Qt::QueuedConnection);
 
   if(m_relations.size() == 1)
+  {
       m_relations[0]->enableRemoveButton(false);
+  }
   else if(m_relations.size() > 1)
+  {
+      m_relations[m_relations.size()-2]->enableAddButton(false);
       m_relations[0]->enableRemoveButton(true);
+  }
+
+  m_relations.front()->enableMenuButton(true);
+  m_relations.back()->enableAddButton(true);
 }
 
 void ExpressionEditorWidget::removeTerm(int index)
@@ -224,5 +237,7 @@ void ExpressionEditorWidget::removeTerm(int index)
     emit resetExpression();
     m_relations[0]->enableRemoveButton(false);
   }
+  m_relations.back()->enableAddButton(true);
+  m_relations.front()->enableMenuButton(true);
 }
 }

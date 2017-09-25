@@ -44,7 +44,7 @@ class SimpleExpressionEditorWidget final : public QWidget
   Q_OBJECT
 public:
   SimpleExpressionEditorWidget(
-      const score::DocumentContext&, int index, QWidget* parent = nullptr);
+      const score::DocumentContext&, int index, QWidget* parent = nullptr, QMenu* menu = nullptr);
 
   State::Expression relation();
   optional<State::BinaryOperator> binOperator();
@@ -60,6 +60,8 @@ public:
   QString currentOperator();
 
   void enableRemoveButton(bool);
+  void enableAddButton(bool);
+  void enableMenuButton(bool);
 
 signals:
   void editingFinished();
@@ -78,6 +80,8 @@ private:
   QLineEdit* m_value{};
   QComboBox* m_binOperator{};
   QToolButton* m_rmBtn{};
+  QToolButton* m_addBtn{};
+  QPushButton* m_menuBtn{};
 
   ExpressionValidator<State::Expression> m_validator;
   QString m_relation{};
