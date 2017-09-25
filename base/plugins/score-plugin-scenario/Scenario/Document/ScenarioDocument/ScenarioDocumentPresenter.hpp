@@ -11,7 +11,7 @@
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/ProcessContext.hpp>
 #include <Process/ZoomHelper.hpp>
-#include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
+#include <Dataflow/UI/CableItem.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
 
@@ -127,7 +127,7 @@ private:
   QMetaObject::Connection m_intervalConnection, m_durationConnection;
   Process::MiniLayer* m_miniLayer{};
 
-  IdContainer<Scenario::CableItem, Process::Cable> cableItems;
+  IdContainer<Dataflow::CableItem, Process::Cable> cableItems;
   bool m_zooming{false};
   bool m_updatingMinimap{false};
   bool m_updatingView{false};

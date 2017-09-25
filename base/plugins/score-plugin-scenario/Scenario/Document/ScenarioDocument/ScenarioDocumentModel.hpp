@@ -2,14 +2,12 @@
 #include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <Process/Dataflow/DataflowObjects.hpp>
 #include <Dataflow/DataflowWindow.hpp>
-#include <Dataflow/UI/NodeItem.hpp>
-#include <Process/Dataflow/DataflowObjects.hpp>
-#include <QPointer>
-#include <unordered_set>
 #include <core/document/Document.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score_plugin_scenario_export.h>
+#include <QPointer>
+#include <unordered_set>
 
 class JSONObject;
 class DataStream;

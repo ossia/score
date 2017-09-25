@@ -17,7 +17,6 @@
 #include <QVector>
 
 #include <Process/Dataflow/DataflowObjects.hpp>
-#include <Process/Dataflow/DataflowObjects.hpp>
 #include <Dataflow/UI/Slider.hpp>
 #include <score/model/Component.hpp>
 #include <score/model/EntityMap.hpp>
@@ -30,30 +29,6 @@ class JSONObject;
 namespace Scenario
 {
 class StateModel;
-
-/*
-class ConstraintNode : public Process::Node
-{
-public:
-    ConstraintNode(QObject *parent);
-
-    QString getText() const override;
-    std::size_t audioInlets() const override;
-    std::size_t messageInlets() const override;
-    std::size_t midiInlets() const override;
-    std::size_t audioOutlets() const override;
-    std::size_t messageOutlets() const override;
-    std::size_t midiOutlets() const override;
-    std::vector<Process::Port> inlets() const override;
-    std::vector<Process::Port> outlets() const override;
-
-    std::vector<Id<Process::Cable> > cables() const override;
-    void addCable(Id<Process::Cable> c) override;
-    void removeCable(Id<Process::Cable> c) override;
-
-    std::vector<Id<Process::Cable>> m_cables;
-};
-*/
 
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalModel final
     : public score::Entity<IntervalModel>,

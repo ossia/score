@@ -64,6 +64,7 @@
 #include <Scenario/Inspector/ObjectTree/ObjectItemModel.hpp>
 #include <Dataflow/UI/ScenarioNode.hpp>
 #include <Dataflow/UI/ConstraintNode.hpp>
+#include <Dataflow/Inspector/DataflowWidget.hpp>
 
 #include <score_plugin_scenario_commands_files.hpp>
 
@@ -171,7 +172,7 @@ score_plugin_scenario::factories(
 //      FW<score::PanelDelegateFactory, Scenario::PanelDelegateFactory>,
       FW<Scenario::DropHandler, Scenario::MessageDropHandler, Scenario::DropProcessInScenario>,
       FW<Scenario::IntervalDropHandler, Scenario::DropProcessInInterval, Scenario::AutomationDropHandler>,
-      FW<Inspector::InspectorWidgetFactory, ScenarioInspectorWidgetFactoryWrapper, Interpolation::StateInspectorFactory, ScenarioInspectorFactory, Interpolation::InspectorFactory>,
+      FW<Inspector::InspectorWidgetFactory, ScenarioInspectorWidgetFactoryWrapper, Interpolation::StateInspectorFactory, ScenarioInspectorFactory, Interpolation::InspectorFactory, Dataflow::CableInspectorFactory>,
       FW<IntervalInspectorDelegateFactory, ScenarioIntervalInspectorDelegateFactory, BaseIntervalInspectorDelegateFactory>,
       FW<score::ValidityChecker, ScenarioValidityChecker>
       //, FW<Dataflow::ProcessComponentFactory, Dataflow::ScenarioComponentFactory>

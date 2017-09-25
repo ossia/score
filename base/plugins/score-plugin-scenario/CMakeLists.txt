@@ -150,6 +150,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/Temporal/TemporalIntervalHeader.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/Temporal/DefaultHeaderDelegate.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/BaseScenarioDisplayedElementsProvider.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsContainer.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp"
@@ -313,6 +314,8 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/EditConnection.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Inspector/DataflowWidget.hpp"
 
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/CableItem.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/PortItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/ConstraintNode.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/AutomationNode.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/DataflowProcessNode.hpp"
@@ -479,6 +482,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/Temporal/Braces/IntervalBrace.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/Temporal/TemporalIntervalView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/Temporal/DefaultHeaderDelegate.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/Temporal/TemporalIntervalHeader.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/IntervalView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/IntervalDurations.cpp"
@@ -582,6 +586,8 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/DataflowWindow.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Inspector/DataflowWidget.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/CableItem.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/PortItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/ConstraintNode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/AutomationNode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/DataflowProcessNode.cpp"
