@@ -49,6 +49,7 @@
 #include <core/document/Document.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <Dataflow/UI/NodeItem.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
 
 namespace Process
 {
@@ -97,7 +98,6 @@ ScenarioDocumentModel::ScenarioDocumentModel(
   cmd1.redo(ctx);
   m_baseScenario->interval().processes.begin()->setSlotHeight(1500);
 
-  init();
 
   // Select the first state
   score::SelectionDispatcher d{ctx.selectionStack};
@@ -107,53 +107,10 @@ ScenarioDocumentModel::ScenarioDocumentModel(
     d.setAndCommit({&scenar->startEvent()});
 }
 
-void ScenarioDocumentModel::init()
-{
-  cables.mutable_added.connect<ScenarioDocumentModel, &ScenarioDocumentModel::on_cableAdded>(*this);
-  cables.removing.connect<ScenarioDocumentModel, &ScenarioDocumentModel::on_cableRemoving>(*this);
-}
-
 void ScenarioDocumentModel::initializeNewDocument(
     const IntervalModel& Interval_model) {
 }
 
-void ScenarioDocumentModel::on_cableAdded(Process::Cable& c)
-{
-  /*
-  auto source = dynamic_cast<Dataflow::NodeItem*>(c.source()->ui);
-  auto sink = dynamic_cast<Dataflow::NodeItem*>(c.sink()->ui);
-  if(!source || !sink)
-  {
-    qDebug("Unexpected source / sink missing");
-    return;
-  }
-
-  if(cableItems.find(c.id()) != cableItems.end())
-  {
-    qDebug("Cable already exists");
-    return;
-  }
-
-  auto ci = new Dataflow::CableItem{c, source, sink};
-  ci->setParentItem(window.view.contentItem());
-  ci->updateRect();
-  ci->update();
-  cableItems.insert(ci);
-  */
-}
-
-void ScenarioDocumentModel::on_cableRemoving(const Process::Cable& c)
-{
-  /*
-  auto& map = cableItems.get();
-  auto it = map.find(c.id());
-  if (it != map.end())
-  {
-    delete *it;
-    map.erase(it);
-  }
-  */
-}
 
 IntervalModel& ScenarioDocumentModel::baseInterval() const
 {

@@ -11,6 +11,7 @@
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/ProcessContext.hpp>
 #include <Process/ZoomHelper.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
 
@@ -96,6 +97,10 @@ private slots:
   void on_viewReady();
 
 private:
+  void on_cableAdded(Process::Cable& c);
+
+  void on_cableRemoving(const Process::Cable& c);
+
   void on_horizontalZoom(QPointF, QPointF);
   void on_verticalZoom(QPointF, QPointF);
   void on_timeRulerScrollEvent(QPointF, QPointF);
@@ -122,6 +127,7 @@ private:
   QMetaObject::Connection m_intervalConnection, m_durationConnection;
   Process::MiniLayer* m_miniLayer{};
 
+  IdContainer<Scenario::CableItem, Process::Cable> cableItems;
   bool m_zooming{false};
   bool m_updatingMinimap{false};
   bool m_updatingView{false};

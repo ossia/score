@@ -38,8 +38,6 @@ Cable::Cable(const score::DocumentContext& ctx, Id<Cable> c, const CableData& da
   m_type = data.type;
   m_source = data.source.try_find(ctx);
   m_sink = data.sink.try_find(ctx);
-  m_outlet = data.outlet;
-  m_inlet = data.inlet;
 }
 
 void Cable::update(const score::DocumentContext& ctx, const CableData& data)
@@ -51,8 +49,6 @@ void Cable::update(const score::DocumentContext& ctx, const CableData& data)
   setType(data.type);
   setSource(data.source.try_find(ctx));
   setSink(data.sink.try_find(ctx));
-  setOutlet(data.outlet);
-  setInlet(data.inlet);
 }
 
 CableData Cable::toCableData() const
@@ -61,8 +57,6 @@ CableData Cable::toCableData() const
   c.type = m_type;
   if(m_source) c.source = *m_source;
   if(m_sink) c.sink = *m_sink;
-  c.outlet = m_outlet;
-  c.inlet = m_inlet;
 
   return c;
 }
@@ -80,16 +74,6 @@ Process::Port* Cable::source() const
 Process::Port* Cable::sink() const
 {
   return m_sink;
-}
-
-ossia::optional<int> Cable::outlet() const
-{
-  return m_outlet;
-}
-
-ossia::optional<int> Cable::inlet() const
-{
-  return m_inlet;
 }
 
 void Cable::setType(CableType type)
@@ -148,23 +132,6 @@ void Cable::setSink(Process::Port* sink)
   emit sinkChanged(m_sink);
 }
 
-void Cable::setOutlet(ossia::optional<int> outlet)
-{
-  if (m_outlet == outlet)
-    return;
-
-  m_outlet = outlet;
-  emit outletChanged(m_outlet);
-}
-
-void Cable::setInlet(ossia::optional<int> inlet)
-{
-  if (m_inlet == inlet)
-    return;
-
-  m_inlet = inlet;
-  emit inletChanged(m_inlet);
-}
 
 Port::~Port()
 {
@@ -181,7 +148,9 @@ Port::Port(Id<Port> c, const Port& other, QObject* parent)
   : IdentifiedObject<Port>{c, QStringLiteral("Port"), parent}
 {
   type = other.type;
+  num = other.num;
   propagate = other.propagate;
+  outlet = other.outlet;
   m_cables = other.m_cables;
   m_customData = other.m_customData;
   m_address = other.m_address;
@@ -192,39 +161,19 @@ Port* Port::clone(QObject* parent) const
   return new Port{id(), *this, parent};
 }
 
-/*
-Node::Node(Id<Node> c, QObject* parent)
-  : Entity{std::move(c), QStringLiteral("Node"), parent}
-{
-
-}
-
-Node::Node(Id<Node> c, QString name, QObject* parent)
-  : Entity{std::move(c), std::move(name), parent}
-{
-
-}
-
-Node::~Node()
-{
-  if(exec)
-    exec->clear();
-  delete ui;
-}
-*/
 }
 
 
 template<>
 SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::Port>(const Process::Port& p)
 {
-  m_stream << p.type << p.propagate << p.m_customData << p.m_address << p.m_cables;
+  m_stream << p.type << p.num << p.propagate << p.outlet << p.m_customData << p.m_address << p.m_cables;
   insertDelimiter();
 }
 template<>
 SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::Port>(Process::Port& p)
 {
-  m_stream >> p.type >> p.propagate >> p.m_customData >> p.m_address >> p.m_cables;
+  m_stream >> p.type >> p.num >> p.propagate >> p.outlet >> p.m_customData >> p.m_address >> p.m_cables;
   checkDelimiter();
 }
 
@@ -232,7 +181,9 @@ template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::Port>(const Process::Port& p)
 {
   obj["Type"] = (int)p.type;
+  obj["Num"] = p.num;
   obj["Propagate"] = p.propagate;
+  obj["Outlet"] = p.outlet;
   obj["Custom"] = p.m_customData;
   obj["Address"] = toJsonObject(p.m_address);
   obj["Cables"] = toJsonValueArray(p.m_cables);
@@ -241,7 +192,9 @@ template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::Port>(Process::Port& p)
 {
   p.type = (Process::PortType)obj["Type"].toInt();
+  p.num = obj["Num"].toInt();
   p.propagate = obj["Propagate"].toBool();
+  p.outlet = obj["Outlet"].toBool();
   p.m_customData = obj["Custom"].toString();
   p.m_address = fromJsonObject<State::AddressAccessor>(obj["Address"]);
   fromJsonValueArray(obj["Cables"].toArray(), p.m_cables);
@@ -250,13 +203,13 @@ SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::Port>(Process::Po
 template<>
 SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::CableData>(const Process::CableData& p)
 {
-  m_stream << p.type << p.source << p.sink << p.outlet << p.inlet;
+  m_stream << p.type << p.source << p.sink;
   insertDelimiter();
 }
 template<>
 SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::CableData>(Process::CableData& p)
 {
-  m_stream >> p.type >> p.source >> p.sink >> p.outlet >> p.inlet;
+  m_stream >> p.type >> p.source >> p.sink;
   checkDelimiter();
 }
 
@@ -266,8 +219,6 @@ SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::CableData>(const P
   obj["Type"] = (int)p.type;
   obj["Source"] = toJsonObject(p.source);
   obj["Sink"] = toJsonObject(p.sink);
-  obj["Outlet"] = toJsonValue(p.outlet);
-  obj["Inlet"] = toJsonValue(p.inlet);
 }
 template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::CableData>(Process::CableData& p)
@@ -275,8 +226,6 @@ SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::CableData>(Proces
   p.type = (Process::CableType) obj["Type"].toInt();
   p.source = fromJsonObject<Path<Process::Port>>(obj["Source"]);
   p.sink = fromJsonObject<Path<Process::Port>>(obj["Sink"]);
-  p.outlet = fromJsonValue<optional<int>>(obj["Oulet"]);
-  p.inlet = fromJsonValue<optional<int>>(obj["Inlet"]);
 }
 
 template<>

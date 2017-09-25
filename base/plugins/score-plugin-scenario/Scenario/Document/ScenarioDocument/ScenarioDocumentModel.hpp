@@ -41,7 +41,6 @@ public:
       : score::DocumentDelegateModel{vis, parent}
   {
     vis.writeTo(*this);
-    init();
   }
 
   virtual ~ScenarioDocumentModel() = default;
@@ -56,19 +55,9 @@ public:
   void serialize(const VisitorVariant&) const override;
 
   score::EntityMap<Process::Cable> cables;
-  Dataflow::DataflowWindow window;
-
-  //void registerNode(Dataflow::NodeItem* n);
 private:
-  void init();
   void initializeNewDocument(const IntervalModel& viewmodel);
 
-  void on_cableAdded(Process::Cable& c);
-  void on_cableRemoving(const Process::Cable& c);
-
   BaseScenario* m_baseScenario{};
-  //IdContainer<Dataflow::CableItem, Process::Cable> cableItems;
-  //std::unordered_set<Dataflow::NodeItem*> nodeItems;
-
 };
 }

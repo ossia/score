@@ -306,6 +306,19 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/CommandFactory.hpp"
 
 
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/ApplicationPlugin.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/DocumentPlugin.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/DataflowWindow.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/EditPort.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/EditConnection.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Inspector/DataflowWidget.hpp"
+
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/ConstraintNode.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/AutomationNode.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/DataflowProcessNode.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/Slider.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/NodeItem.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/ScenarioNode.hpp"
 )
 qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/resources/ScenarioResources.qrc")
 
@@ -562,42 +575,23 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationProcess.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationView.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/EditPort.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/EditConnection.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/ApplicationPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/DocumentPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/DataflowWindow.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Inspector/DataflowWidget.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/ConstraintNode.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/AutomationNode.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/DataflowProcessNode.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/Slider.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/NodeItem.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/ScenarioNode.cpp"
 )
 
-set(DATAFLOW_HDRS
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/ApplicationPlugin.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/DocumentPlugin.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/DataflowWindow.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/EditPort.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/EditConnection.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Inspector/DataflowWidget.hpp"
-
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/ConstraintNode.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/AutomationNode.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/DataflowProcessNode.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/Slider.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/NodeItem.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/ScenarioNode.hpp"
-)
-
-set(DATAFLOW_SRCS
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/EditPort.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/EditConnection.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/ApplicationPlugin.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/DocumentPlugin.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/DataflowWindow.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Inspector/DataflowWidget.cpp"
-
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/ConstraintNode.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/AutomationNode.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/DataflowProcessNode.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/Slider.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/NodeItem.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/ScenarioNode.cpp"
-
-)
-add_library(score_plugin_scenario ${SRCS} ${HDRS} ${DATAFLOW_SRCS} ${DATAFLOW_HDRS} ${QRCS})
-score_generate_command_list_file(score_plugin_scenario "${HDRS}" "${DATAFLOW_HDRS}")
+add_library(score_plugin_scenario ${SRCS} ${HDRS} ${QRCS})
+score_generate_command_list_file(score_plugin_scenario "${HDRS}")
 
 target_link_libraries(score_plugin_scenario
   PUBLIC

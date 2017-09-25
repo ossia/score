@@ -82,11 +82,11 @@ ScenarioStyle::ScenarioStyle(const score::Skin& s) noexcept
 
 void ScenarioStyle::setIntervalWidth(double w)
 {
-  IntervalSolidPen.setWidth(3 * w);
-  IntervalDashPen.setWidth(3 * w);
-  IntervalPlayPen.setWidth(3 * w);
-  IntervalPlayDashPen.setWidth(3 * w);
-  IntervalWaitingDashPen.setWidth(3 * w);
+  IntervalSolidPen.setWidthF(3 * w);
+  IntervalDashPen.setWidthF(3 * w);
+  IntervalPlayPen.setWidthF(3 * w);
+  IntervalPlayDashPen.setWidthF(3 * w);
+  IntervalWaitingDashPen.setWidthF(3 * w);
 }
 
 ScenarioStyle& ScenarioStyle::instance()
