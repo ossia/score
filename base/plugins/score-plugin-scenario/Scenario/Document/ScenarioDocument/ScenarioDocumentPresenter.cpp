@@ -25,6 +25,7 @@
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
+#include <Dataflow/Commands/EditConnection.hpp>
 
 #include "ScenarioDocumentPresenter.hpp"
 #include "ZoomPolicy.hpp"
@@ -189,6 +190,11 @@ void ScenarioDocumentPresenter::setMillisPerPixel(ZoomRatio newRatio)
 
   view().timeRuler().setPixelPerMillis(1.0 / m_zoomRatio);
   m_scenarioPresenter.on_zoomRatioChanged(m_zoomRatio);
+
+  for(auto& cbl : cableItems)
+  {
+    cbl.resize();
+  }
 }
 
 void ScenarioDocumentPresenter::on_horizontalZoom(
@@ -363,6 +369,11 @@ void ScenarioDocumentPresenter::on_cableAdded(Process::Cable& c)
   connect(it, &Dataflow::CableItem::clicked,
           this, [&] {
     m_selectionDispatcher.setAndCommit({&c});
+  });
+  connect(it, &Dataflow::CableItem::removeRequested,
+          this, [&] {
+    CommandDispatcher<> d{context().commandStack};
+    d.submitCommand<Dataflow::RemoveCable>(model(), c);
   });
 }
 
