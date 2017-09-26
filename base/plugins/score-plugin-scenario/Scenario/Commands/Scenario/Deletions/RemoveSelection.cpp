@@ -292,13 +292,13 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
   for (const auto& intervaldata : m_removedIntervals)
   {
     DataStream::Deserializer s{intervaldata.second};
-    auto cstr = new IntervalModel{s, &scenar};
+    auto itv = new IntervalModel{s, &scenar};
 
-    scenar.intervals.add(cstr);
+    scenar.intervals.add(itv);
 
     // Set-up the start / end events correctly.
-    SetNextInterval(startState(*cstr, scenar), *cstr);
-    SetPreviousInterval(endState(*cstr, scenar), *cstr);
+    SetNextInterval(startState(*itv, scenar), *itv);
+    SetPreviousInterval(endState(*itv, scenar), *itv);
   }
 
   for (auto& tn : scenar.timeSyncs)
@@ -316,9 +316,9 @@ void RemoveSelection::redo(const score::DocumentContext& ctx) const
   auto& scenar = m_path.find(ctx);
 
   // Remove the intervals
-  for (const auto& cstr : m_removedIntervals)
+  for (const auto& itv : m_removedIntervals)
   {
-    StandardRemovalPolicy::removeInterval(scenar, cstr.first);
+    StandardRemovalPolicy::removeInterval(scenar, itv.first);
   }
 
   // The other things
