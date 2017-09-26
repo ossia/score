@@ -100,11 +100,6 @@ void removeSelection(
     }
   }
 
-  for (auto& interval : intervals)
-  {
-    cleaner.submitCommand(new ClearInterval(*interval));
-  }
-
   Selection sel = scenario.selectedChildren();
 
   auto& ctx = score::IDocument::documentContext(scenario);
