@@ -25,7 +25,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateInterval_State final
   SCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),
       CreateInterval_State,
-      "Create a interval and a state")
+      "Create an interval and a state")
 public:
   CreateInterval_State(
       const Scenario::ProcessModel& scenario,

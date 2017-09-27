@@ -133,11 +133,11 @@ SCORE_DECLARE_ACTION(
     CreateCurves, "Create Curves", Scenario,
     QKeySequence(QObject::tr("Ctrl+J")))
 SCORE_DECLARE_ACTION(
-    MergeTimeSyncs, "&Merge TimeSyncs", Scenario, Qt::SHIFT + Qt::Key_M)
+    MergeTimeSyncs, "&Synchronize", Scenario, Qt::SHIFT + Qt::Key_M)
 SCORE_DECLARE_ACTION(
-    ShowRacks, "&Show racks", Scenario, QKeySequence::UnknownKey)
+    ShowRacks, "&Show processes", Scenario, QKeySequence::UnknownKey)
 SCORE_DECLARE_ACTION(
-    HideRacks, "&Hide racks", Scenario, QKeySequence::UnknownKey)
+    HideRacks, "&Hide processes", Scenario, QKeySequence::UnknownKey)
 
 // Navigation
 SCORE_DECLARE_ACTION(MoveUp, "&Move up", Scenario, Qt::UpArrow)
