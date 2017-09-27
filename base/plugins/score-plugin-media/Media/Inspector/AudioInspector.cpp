@@ -59,4 +59,51 @@ InspectorWidget::InspectorWidget(
   this->setLayout(lay);
 }
 }
+
+
+namespace Input
+{
+InspectorWidget::InspectorWidget(
+    const Input::ProcessModel &object,
+    const score::DocumentContext &doc,
+    QWidget *parent):
+  InspectorWidgetDelegate_T {object, parent},
+  m_dispatcher{doc.commandStack}
+, m_start{this}
+, m_count{this}
+{;
+  m_start.setValue(object.startChannel());
+  m_count.setValue(object.numChannel());
+  m_start.setRange(0, 512);
+  m_count.setRange(0, 512);
+
+  setObjectName("InputInspectorWidget");
+
+  auto lay = new QFormLayout;
+
+  con(process(), &Input::ProcessModel::startChannelChanged,
+      this, [&] {
+    m_start.setValue(object.startChannel());
+  });
+  con(process(), &Input::ProcessModel::numChannelChanged,
+      this, [&] {
+    m_count.setValue(object.numChannel());
+  });
+
+  con(m_start, &QSpinBox::editingFinished,
+      this, [&] () {
+    m_dispatcher.submitCommand(new Commands::ChangeInputStart(object, m_start.value()));
+  });
+  con(m_count, &QSpinBox::editingFinished,
+      this, [&] () {
+    m_dispatcher.submitCommand(new Commands::ChangeInputNum(object, m_count.value()));
+  });
+
+  lay->addRow(tr("Start channel"), &m_start);
+  lay->addRow(tr("Num channels"), &m_count);
+  this->setLayout(lay);
+}
+
+}
+
 }

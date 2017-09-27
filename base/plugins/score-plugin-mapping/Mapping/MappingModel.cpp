@@ -15,13 +15,34 @@
 
 namespace Mapping
 {
+std::vector<Process::Port*> ProcessModel::inlets() const
+{
+  return {inlet.get()};
+}
+
+std::vector<Process::Port*> ProcessModel::outlets() const
+{
+  return {outlet.get()};
+}
+
 ProcessModel::ProcessModel(
     const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
     : Curve::CurveProcessModel{
           duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    , inlet{std::make_unique<Process::Port>(Id<Process::Port>(0), this)}
+    , outlet{std::make_unique<Process::Port>(Id<Process::Port>(1), this)}
 {
+  inlet->num = 0;
+  inlet->propagate = false;
+  inlet->outlet = false;
+  inlet->type = Process::PortType::Message;
+
+  outlet->num = 0;
+  outlet->propagate = false;
+  outlet->outlet = true;
+  outlet->type = Process::PortType::Message;
   setCurve(new Curve::Model{Id<Curve::Model>(45345), this});
 
   auto s1 = new Curve::DefaultCurveSegmentModel(
@@ -30,9 +51,10 @@ ProcessModel::ProcessModel(
   s1->setEnd({1., 1.});
 
   m_curve->addSegment(s1);
-  connect(m_curve, &Curve::Model::changed, this, &ProcessModel::curveChanged);
 
   metadata().setInstanceName(*this);
+
+  init();
 }
 
 ProcessModel::ProcessModel(
@@ -41,20 +63,37 @@ ProcessModel::ProcessModel(
     QObject* parent)
     : CurveProcessModel{source, id, Metadata<ObjectKey_k, ProcessModel>::get(),
                         parent}
-    , m_sourceAddress(source.sourceAddress())
-    , m_targetAddress(source.targetAddress())
+    , inlet{std::make_unique<Process::Port>(source.inlet->id(), *source.inlet, this)}
+    , outlet{std::make_unique<Process::Port>(source.outlet->id(), *source.outlet, this)}
     , m_sourceMin{source.sourceMin()}
     , m_sourceMax{source.sourceMax()}
     , m_targetMin{source.targetMin()}
     , m_targetMax{source.targetMax()}
 {
   setCurve(source.curve().clone(source.curve().id(), this));
-  connect(m_curve, &Curve::Model::changed, this, &ProcessModel::curveChanged);
   metadata().setInstanceName(*this);
+  init();
 }
 
 ProcessModel::~ProcessModel()
 {
+}
+
+void ProcessModel::init()
+{
+
+  connect(inlet.get(), &Process::Port::addressChanged,
+          this, [=] (const State::AddressAccessor& arg) {
+    emit sourceAddressChanged(arg);
+    emit prettyNameChanged();
+    emit m_curve->changed();
+  });
+  connect(outlet.get(), &Process::Port::addressChanged,
+          this, [=] (const State::AddressAccessor& arg) {
+    emit targetAddressChanged(arg);
+    emit prettyNameChanged();
+    emit m_curve->changed();
+  });
 }
 
 QString ProcessModel::prettyName() const
@@ -84,7 +123,7 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration)
 
 State::AddressAccessor ProcessModel::sourceAddress() const
 {
-  return m_sourceAddress;
+  return inlet->address();
 }
 
 double ProcessModel::sourceMin() const
@@ -99,15 +138,7 @@ double ProcessModel::sourceMax() const
 
 void ProcessModel::setSourceAddress(const State::AddressAccessor& arg)
 {
-  if (m_sourceAddress == arg)
-  {
-    return;
-  }
-
-  m_sourceAddress = arg;
-  emit sourceAddressChanged(arg);
-  emit prettyNameChanged();
-  emit m_curve->changed();
+  inlet->setAddress(arg);
 }
 
 void ProcessModel::setSourceMin(double arg)
@@ -132,7 +163,7 @@ void ProcessModel::setSourceMax(double arg)
 
 State::AddressAccessor ProcessModel::targetAddress() const
 {
-  return m_targetAddress;
+  return outlet->address();
 }
 
 double ProcessModel::targetMin() const
@@ -147,15 +178,7 @@ double ProcessModel::targetMax() const
 
 void ProcessModel::setTargetAddress(const State::AddressAccessor& arg)
 {
-  if (m_targetAddress == arg)
-  {
-    return;
-  }
-
-  m_targetAddress = arg;
-  emit targetAddressChanged(arg);
-  emit prettyNameChanged();
-  emit m_curve->changed();
+  outlet->setAddress(arg);
 }
 
 void ProcessModel::setTargetMin(double arg)

@@ -31,6 +31,10 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundView.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/Drop/SoundDrop.hpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Input/InputModel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Input/InputFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Input/InputMetadata.hpp"
+
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/MediaFileHandle.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioDecoder.hpp"
 
@@ -40,6 +44,7 @@ set(HDRS ${HDRS}
 set(SRCS
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundModelSerialization.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Input/InputModelSerialization.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/ChangeAudioFile.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/MediaCommandFactory.cpp"
@@ -50,6 +55,8 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundPresenter.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundView.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/Drop/SoundDrop.cpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Input/InputModel.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/MediaFileHandle.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioDecoder.cpp"

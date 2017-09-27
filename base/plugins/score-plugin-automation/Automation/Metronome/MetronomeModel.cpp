@@ -54,7 +54,6 @@ ProcessModel::ProcessModel(
   s1->setEnd({1., 1.});
 
   m_curve->addSegment(s1);
-  connect(m_curve, &Curve::Model::changed, this, &ProcessModel::curveChanged);
 
   metadata().setInstanceName(*this);
 }
@@ -76,7 +75,6 @@ ProcessModel::ProcessModel(
 {
   metadata().setInstanceName(*this);
   setCurve(source.curve().clone(source.curve().id(), this));
-  connect(m_curve, &Curve::Model::changed, this, &ProcessModel::curveChanged);
 }
 
 QString ProcessModel::prettyName() const
@@ -174,9 +172,6 @@ TimeVal ProcessModel::contentDuration() const
 
 void ProcessModel::setCurve_impl()
 {
-  connect(m_curve, &Curve::Model::changed, this, [&]() {
-    emit curveChanged();
-  });
 }
 
 State::Address ProcessModel::address() const

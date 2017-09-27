@@ -13,6 +13,7 @@
 #include <ossia/dataflow/audio_parameter.hpp>
 #include <ossia/dataflow/audio_protocol.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 namespace Dataflow
 {
 Clock::Clock(
@@ -46,6 +47,9 @@ void Clock::play_impl(
   std::cerr << s.str() << std::endl;
   m_cur = &bs;
 
+  m_plug.execState.globalState.clear();
+  m_plug.execState.globalState.push_back(&m_plug.midi_dev);
+  m_plug.execState.globalState.push_back(&m_plug.audio_dev);
   m_default.play(t);
 
   m_plug.audioProto().ui_tick = [this] (unsigned long frameCount) {
@@ -88,14 +92,19 @@ void Clock::stop_impl(
     Engine::Execution::BaseScenarioElement& bs)
 {
   m_paused = false;
-  auto plug_ptr = &m_plug;
-  m_plug.audioProto().ui_tick = [plug_ptr] (unsigned long)
-  {
-    auto& plug = *plug_ptr;
-    plug.execGraph->clear();
-    plug.execGraph = std::make_shared<ossia::graph>();
+  m_plug.context().executionQueue.enqueue([&] {
+    auto& model = m_plug.context().doc.model<Scenario::ScenarioDocumentModel>();
+    for(Process::Cable& cbl : model.cables)
+    {
+      cbl.source_node.reset();
+      cbl.sink_node.reset();
+      cbl.exec.reset();
+    }
+    m_plug.nodes.clear();
+    m_plug.m_cables.clear();
+    m_plug.execGraph->clear();
+    m_plug.execGraph = std::make_shared<ossia::graph>();
 
-    auto& model = plug.context().doc.model<Scenario::ScenarioDocumentModel>();
     for(auto& cable : model.cables)
     {
       if(cable.source_node)
@@ -117,13 +126,10 @@ void Clock::stop_impl(
       }
     }
 
-    plug.audioProto().ui_tick = { };
-    plug.audioProto().replace_tick = true;
-    qDebug("everything is clear");
-  };
+  });
+  m_plug.audioProto().ui_tick = { };
   m_plug.audioProto().replace_tick = true;
   m_default.stop();
-
 }
 
 bool Clock::paused() const

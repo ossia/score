@@ -7,6 +7,30 @@
 
 namespace Dataflow
 {
+
+class ChangePortAddress final : public score::Command
+{
+    SCORE_COMMAND_DECL(
+        Scenario::Command::ScenarioCommandFactoryName(),
+        ChangePortAddress,
+        "Edit a node port")
+    public:
+        ChangePortAddress(
+          const Process::Port& p,
+          State::AddressAccessor addr);
+
+    void undo(const score::DocumentContext& ctx) const override;
+    void redo(const score::DocumentContext& ctx) const override;
+
+protected:
+    void serializeImpl(DataStreamInput& s) const override;
+    void deserializeImpl(DataStreamOutput& s) override;
+
+private:
+    Path<Process::Port> m_model;
+
+    State::AddressAccessor m_old, m_new;
+};
 /*
 class AddPort final : public score::Command
 {

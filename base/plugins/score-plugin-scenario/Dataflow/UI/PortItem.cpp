@@ -4,6 +4,9 @@
 #include <QDrag>
 #include <QGraphicsSceneMoveEvent>
 #include <QMimeData>
+#include <QPainter>
+#include <QCursor>
+#include <QApplication>
 
 namespace Dataflow
 {

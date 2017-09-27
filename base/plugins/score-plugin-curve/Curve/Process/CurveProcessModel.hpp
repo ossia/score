@@ -27,13 +27,11 @@ public:
   CurveProcessModel(DataStream::Deserializer& vis, QObject* p)
       : Process::ProcessModel(vis, p)
   {
-    // Nothing to do
   }
 
   CurveProcessModel(JSONObject::Deserializer& vis, QObject* p)
       : Process::ProcessModel(vis, p)
   {
-    // Nothing to do
   }
 
   // Clone
@@ -96,6 +94,7 @@ protected:
 
     setCurve_impl();
 
+    connect(m_curve, &Curve::Model::changed, this, &CurveProcessModel::curveChanged);
     emit m_curve->changed();
   }
 
