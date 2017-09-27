@@ -84,7 +84,7 @@ EventInspectorWidget::EventInspectorWidget(
   // timeSync
   auto timeSync = m_model.timeSync();
   auto tnBtn = SelectionButton::make(
-      tr("Parent TimeSync"),
+      tr("Parent Sync"),
       &scenar->timeSync(timeSync),
       m_selectionDispatcher,
       infoWidg);
