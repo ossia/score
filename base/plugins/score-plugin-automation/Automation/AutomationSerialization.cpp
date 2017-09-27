@@ -19,10 +19,11 @@ void DataStreamReader::read(
 {
   readFrom(autom.curve());
 
-  m_stream << autom.address();
-  m_stream << autom.min();
-  m_stream << autom.max();
-  m_stream << autom.tween();
+  m_stream
+      << *autom.outlet
+      << autom.min()
+      << autom.max()
+      << autom.tween();
 
   insertDelimiter();
 }
@@ -33,13 +34,13 @@ void DataStreamWriter::write(Automation::ProcessModel& autom)
 {
   autom.setCurve(new Curve::Model{*this, &autom});
 
-  State::AddressAccessor address;
+  autom.outlet = std::make_unique<Process::Port>(*this, &autom);
+
   double min, max;
   bool tw;
 
-  m_stream >> address >> min >> max >> tw;
+  m_stream >> min >> max >> tw;
 
-  autom.setAddress(address);
   autom.setMin(min);
   autom.setMax(max);
   autom.setTween(tw);
@@ -53,7 +54,7 @@ void JSONObjectReader::read(
     const Automation::ProcessModel& autom)
 {
   obj["Curve"] = toJsonObject(autom.curve());
-  obj[strings.Address] = toJsonObject(autom.address());
+  obj["Outlet"] = toJsonObject(*autom.outlet);
   obj[strings.Min] = autom.min();
   obj[strings.Max] = autom.max();
   obj["Tween"] = autom.tween();
@@ -66,17 +67,9 @@ void JSONObjectWriter::write(Automation::ProcessModel& autom)
   JSONObject::Deserializer curve_deser{obj["Curve"].toObject()};
   autom.setCurve(new Curve::Model{curve_deser, &autom});
 
-  auto adrObj = obj[strings.Address].toObject();
-  if(adrObj.contains("Path"))
-  {
-      autom.setAddress(State::AddressAccessor{
-                  fromJsonObject<State::Address>(adrObj)});
-  }
-  else
-  {
-      autom.setAddress(
-          fromJsonObject<State::AddressAccessor>(adrObj));
-  }
+  JSONObjectWriter writer{obj["Outlet"].toObject()};
+  autom.outlet = std::make_unique<Process::Port>(writer, &autom);
+
   autom.setMin(obj[strings.Min].toDouble());
   autom.setMax(obj[strings.Max].toDouble());
   autom.setTween(obj["Tween"].toBool());

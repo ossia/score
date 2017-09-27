@@ -18,9 +18,9 @@ void DataStreamReader::read(
 {
   readFrom(autom.curve());
 
-  m_stream << autom.sourceAddress() << autom.sourceMin() << autom.sourceMax();
-
-  m_stream << autom.targetAddress() << autom.targetMin() << autom.targetMax();
+  m_stream << *autom.inlet << *autom.outlet
+           << autom.sourceMin() << autom.sourceMax()
+           << autom.targetMin() << autom.targetMax();
 
   insertDelimiter();
 }
@@ -30,23 +30,22 @@ template <>
 void DataStreamWriter::write(Mapping::ProcessModel& autom)
 {
   autom.setCurve(new Curve::Model{*this, &autom});
+
+  autom.inlet = std::make_unique<Process::Port>(*this, &autom);
+  autom.outlet = std::make_unique<Process::Port>(*this, &autom);
   { // Source
-    State::AddressAccessor address;
     double min, max;
 
-    m_stream >> address >> min >> max;
+    m_stream >> min >> max;
 
-    autom.setSourceAddress(address);
     autom.setSourceMin(min);
     autom.setSourceMax(max);
   }
   { // Target
-    State::AddressAccessor address;
     double min, max;
 
-    m_stream >> address >> min >> max;
+    m_stream >> min >> max;
 
-    autom.setTargetAddress(address);
     autom.setTargetMin(min);
     autom.setTargetMax(max);
   }
@@ -59,12 +58,12 @@ void JSONObjectReader::read(
     const Mapping::ProcessModel& autom)
 {
   obj["Curve"] = toJsonObject(autom.curve());
+  obj["Inlet"] = toJsonObject(*autom.inlet);
+  obj["Outlet"] = toJsonObject(*autom.outlet);
 
-  obj["SourceAddress"] = toJsonObject(autom.sourceAddress());
   obj["SourceMin"] = autom.sourceMin();
   obj["SourceMax"] = autom.sourceMax();
 
-  obj["TargetAddress"] = toJsonObject(autom.targetAddress());
   obj["TargetMin"] = autom.targetMin();
   obj["TargetMax"] = autom.targetMax();
 }
@@ -76,13 +75,17 @@ void JSONObjectWriter::write(Mapping::ProcessModel& autom)
   JSONObject::Deserializer curve_deser{obj["Curve"].toObject()};
   autom.setCurve(new Curve::Model{curve_deser, &autom});
 
-  autom.setSourceAddress(
-      fromJsonObject<State::AddressAccessor>(obj["SourceAddress"]));
+  {
+    JSONObjectWriter writer{obj["Inlet"].toObject()};
+    autom.inlet = std::make_unique<Process::Port>(writer, &autom);
+  }
+  {
+    JSONObjectWriter writer{obj["Outlet"].toObject()};
+    autom.outlet = std::make_unique<Process::Port>(writer, &autom);
+  }
   autom.setSourceMin(obj["SourceMin"].toDouble());
   autom.setSourceMax(obj["SourceMax"].toDouble());
 
-  autom.setTargetAddress(
-      fromJsonObject<State::AddressAccessor>(obj["TargetAddress"]));
   autom.setTargetMin(obj["TargetMin"].toDouble());
   autom.setTargetMax(obj["TargetMax"].toDouble());
 }

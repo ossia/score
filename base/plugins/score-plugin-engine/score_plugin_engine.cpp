@@ -128,6 +128,7 @@ score_plugin_engine::factories(
             FW<Engine::Execution::ProcessComponentFactory,
                  Engine::Execution::ScenarioComponentFactory,
                  Engine::Execution::SoundComponentFactory,
+                 Engine::Execution::InputComponentFactory,
                  Interpolation::Executor::ComponentFactory,
                  Automation::RecreateOnPlay::ComponentFactory,
                  Mapping::RecreateOnPlay::ComponentFactory,

@@ -123,7 +123,6 @@ ProcessModel::ProcessModel(
   s1->setEnd({1., 1.});
 
   m_curve->addSegment(s1);
-  connect(m_curve, &Curve::Model::changed, this, &ProcessModel::curveChanged);
 
   metadata().setInstanceName(*this);
 }

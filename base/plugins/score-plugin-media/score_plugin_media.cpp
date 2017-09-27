@@ -4,6 +4,7 @@
 #include <QAction>
 #include <Media/Inspector/Factory.hpp>
 
+#include <Media/Input/InputFactory.hpp>
 #include <Media/Sound/SoundFactory.hpp>
 #include <Media/Sound/Drop/SoundDrop.hpp>
 #include <Media/Inspector/Factory.hpp>
@@ -34,14 +35,17 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
 {
     return instantiate_factories<
             score::ApplicationContext,
-        FW<Process::ProcessModelFactory,
-            Media::Sound::ProcessFactory
+        FW<Process::ProcessModelFactory
+            , Media::Sound::ProcessFactory
+            , Media::Input::ProcessFactory
             >,
-        FW<Inspector::InspectorWidgetFactory,
-            Media::Sound::InspectorFactory
+        FW<Inspector::InspectorWidgetFactory
+            , Media::Sound::InspectorFactory
+            , Media::Input::InspectorFactory
             >,
-        FW<Process::LayerFactory,
-            Media::Sound::LayerFactory
+        FW<Process::LayerFactory
+          , Media::Sound::LayerFactory
+          , Media::Input::LayerFactory
             >,
         FW<Scenario::DropHandler,
             Media::Sound::DropHandler>,

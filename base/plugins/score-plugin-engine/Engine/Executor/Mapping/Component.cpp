@@ -2,6 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Component.hpp"
 #include <ossia/editor/mapper/mapper.hpp>
+#include <ossia/editor/mapper/detail/mapper_visitor.hpp>
 #include <ossia/editor/state/message.hpp>
 #include <ossia/editor/state/state.hpp>
 #include <ossia/editor/value/value.hpp>
@@ -25,11 +26,82 @@
 #include <Engine/score2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/Document.hpp>
+#include <ossia/dataflow/node_process.hpp>
+#include <ossia/misc_visitors.hpp>
 
 namespace Mapping
 {
 namespace RecreateOnPlay
 {
+class mapping_node final :
+    public ossia::graph_node
+{
+  public:
+    mapping_node()
+    {
+      m_inlets.push_back(ossia::make_inlet<ossia::value_port>());
+      m_outlets.push_back(ossia::make_outlet<ossia::value_port>());
+    }
+
+    ~mapping_node() override
+    {
+
+    }
+
+    void set_driver(optional<ossia::destination> d)
+    {
+      if(d)
+      {
+        m_inlets.front()->address = &d->address();
+      }
+      else
+      {
+        m_inlets.front()->address = {};
+      }
+    }
+
+    void set_driven(optional<ossia::destination> d)
+    {
+      if(d)
+      {
+        m_outlets.front()->address = &d->address();
+      }
+      else
+      {
+        m_outlets.front()->address = {};
+      }
+    }
+
+    void set_behavior(const ossia::behavior& b)
+    {
+      m_drive = b;
+    }
+
+  private:
+    void run(ossia::execution_state& e) override
+    {
+      if(!m_drive)
+        return;
+
+      auto& inlet = *m_inlets[0];
+      auto& outlet = *m_outlets[0];
+      ossia::value_port* ip = inlet.data.target<ossia::value_port>();
+      if(!ip->data.empty())
+      {
+        ossia::value_port* op = outlet.data.target<ossia::value_port>();
+        ossia::value val = ip->data.front();
+        if(val.valid())
+        {
+          ossia::value res =
+              ossia::apply(
+                ossia::detail::mapper_compute_visitor{}, val.v, m_drive.v);
+          op->data.push_back(std::move(res));
+        }
+      }
+    }
+
+    ossia::behavior m_drive;
+};
 Component::Component(
     ::Engine::Execution::IntervalComponent& parentInterval,
     ::Mapping::ProcessModel& element,
@@ -43,7 +115,12 @@ Component::Component(
                                                                    "MappingElement",
                                                                    parent}
 {
-  m_ossia_process = std::make_shared<ossia::mapper>();
+  auto proc = std::make_shared<ossia::node_process>(ctx.plugin.execGraph);
+  auto node = std::make_shared<mapping_node>();
+  proc->set_node(node);
+  m_ossia_process = proc;
+  m_node = node;
+
 
   con(element, &Mapping::ProcessModel::sourceAddressChanged,
       this, [this] (const auto&) { this->recompute(); });
@@ -62,7 +139,16 @@ Component::Component(
   con(element, &Mapping::ProcessModel::curveChanged,
       this, [this] () { this->recompute(); });
 
+  ctx.plugin.nodes.insert({element.inlet.get(), m_node});
+  ctx.plugin.nodes.insert({element.outlet.get(), m_node});
+  ctx.plugin.execGraph->add_node(m_node);
   recompute();
+}
+
+Component::~Component()
+{
+  m_node->clear();
+  system().plugin.execGraph->remove_node(m_node);
 }
 
 void Component::recompute()
@@ -70,33 +156,35 @@ void Component::recompute()
   const auto& devices = system().devices.list();
   auto ossia_source_addr = Engine::score_to_ossia::makeDestination(
       devices, process().sourceAddress());
+  auto ossia_target_addr = Engine::score_to_ossia::makeDestination(
+        devices, process().targetAddress());
 
-  if (ossia_source_addr)
+  std::shared_ptr<ossia::curve_abstract> curve;
+  if (ossia_source_addr && ossia_target_addr)
   {
-    auto ossia_target_addr = Engine::score_to_ossia::makeDestination(
-          devices, process().targetAddress());
-    if (ossia_target_addr)
+    auto sourceAddressType = ossia_source_addr->address().get_value_type();
+    auto targetAddressType = ossia_target_addr->address().get_value_type();
+
+    curve = rebuildCurve(sourceAddressType, targetAddressType); // If the type changes we need to rebuild the curve.
+  }
+  else
+  {
+    curve = rebuildCurve(ossia::val_type::FLOAT, ossia::val_type::FLOAT);
+  }
+
+  if (curve)
+  {
+    system().executionQueue.enqueue(
+          [proc=std::dynamic_pointer_cast<mapping_node>(m_node)
+          ,curve
+          ,ossia_source_addr
+          ,ossia_target_addr]
     {
-      auto sourceAddressType = ossia_source_addr->address().get_value_type();
-      auto targetAddressType = ossia_target_addr->address().get_value_type();
-
-      auto curve = rebuildCurve(sourceAddressType, targetAddressType); // If the type changes we need to rebuild the curve.
-
-      if (curve)
-      {
-        system().executionQueue.enqueue(
-              [proc=std::dynamic_pointer_cast<ossia::mapper>(m_ossia_process)
-              ,curve
-              ,source=*ossia_source_addr
-              ,target=*ossia_target_addr]
-        {
-          proc->set_driver(std::move(source));
-          proc->set_driven(std::move(target));
-          proc->set_behavior(std::move(curve));
-        });
-        return;
-      }
-    }
+      proc->set_driver(std::move(ossia_source_addr));
+      proc->set_driven(std::move(ossia_target_addr));
+      proc->set_behavior(std::move(curve));
+    });
+    return;
   }
 
   // If something did not work out

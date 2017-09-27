@@ -44,6 +44,7 @@ public:
       : CurveProcessModel{vis, parent}
   {
     vis.writeTo(*this);
+    init();
   }
 
   //// MappingModel specifics ////
@@ -65,7 +66,10 @@ public:
 
   QString prettyName() const override;
 
-  ~ProcessModel();
+  ~ProcessModel() override;
+
+
+  std::unique_ptr<Process::Port> inlet, outlet;
 signals:
   void sourceAddressChanged(const State::AddressAccessor& arg);
   void sourceMinChanged(double arg);
@@ -76,18 +80,18 @@ signals:
   void targetMaxChanged(double arg);
 
 private:
+  void init();
   ProcessModel(
       const ProcessModel& source,
       const Id<Process::ProcessModel>& id,
       QObject* parent);
 
   //// ProcessModel ////
+  std::vector<Process::Port*> inlets() const override;
+  std::vector<Process::Port*> outlets() const override;
   void setDurationAndScale(const TimeVal& newDuration) override;
   void setDurationAndGrow(const TimeVal& newDuration) override;
   void setDurationAndShrink(const TimeVal& newDuration) override;
-
-  State::AddressAccessor m_sourceAddress;
-  State::AddressAccessor m_targetAddress;
 
   double m_sourceMin{};
   double m_sourceMax{};

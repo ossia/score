@@ -1,5 +1,6 @@
 #pragma once
 #include <Media/Sound/SoundModel.hpp>
+#include <Media/Input/InputModel.hpp>
 #include <Dataflow/DocumentPlugin.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
 #include <Process/Dataflow/DataflowObjects.hpp>
@@ -33,14 +34,44 @@ public:
   ~SoundComponent();
 
 private:
-  ossia::node_ptr node;
+  ossia::node_ptr m_node;
 };
 
 using SoundComponentFactory
 = ::Engine::Execution::ProcessComponentFactory_T<SoundComponent>;
+
+
+
+class InputComponent final
+    : public ::Engine::Execution::
+    ProcessComponent_T<Media::Input::ProcessModel, ossia::node_process>
+{
+  COMPONENT_METADATA("c2ab6fe0-466a-4a33-b29a-42edd78b2a60")
+public:
+  InputComponent(
+      Engine::Execution::IntervalComponent& parentConstraint,
+      Media::Input::ProcessModel& element,
+      const ::Engine::Execution::Context& ctx,
+      const Id<score::Component>& id,
+      QObject* parent);
+
+  void recompute();
+
+  ~InputComponent();
+
+private:
+  ossia::node_ptr m_node;
+};
+
+using InputComponentFactory
+= ::Engine::Execution::ProcessComponentFactory_T<InputComponent>;
 }
 }
 
 SCORE_CONCRETE_COMPONENT_FACTORY(
     Engine::Execution::ProcessComponentFactory,
     Engine::Execution::SoundComponentFactory)
+
+SCORE_CONCRETE_COMPONENT_FACTORY(
+    Engine::Execution::ProcessComponentFactory,
+    Engine::Execution::InputComponentFactory)

@@ -17,7 +17,7 @@ std::vector<Process::Port*> ProcessModel::inlets() const
 
 std::vector<Process::Port*> ProcessModel::outlets() const
 {
-  return {const_cast<Process::Port*>(&outlet)};
+  return {outlet.get()};
 }
 
 ProcessModel::ProcessModel(
@@ -25,12 +25,12 @@ ProcessModel::ProcessModel(
         const Id<Process::ProcessModel>& id,
         QObject* parent):
     Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-  , outlet{Id<Process::Port>(0), this}
+  , outlet{std::make_unique<Process::Port>(Id<Process::Port>(0), this)}
 {
-    outlet.num = 0;
-    outlet.propagate = true;
-    outlet.outlet = true;
-    outlet.type = Process::PortType::Audio;
+    outlet->num = 0;
+    outlet->propagate = true;
+    outlet->outlet = true;
+    outlet->type = Process::PortType::Audio;
     metadata().setInstanceName(*this);
     setFile("/tmp/bass.aif");
     init();
@@ -45,7 +45,7 @@ ProcessModel::ProcessModel(
         id,
         Metadata<ObjectKey_k, ProcessModel>::get(),
         parent}
-  , outlet{source.outlet.id(), source.outlet, this}
+  , outlet{std::make_unique<Process::Port>(source.outlet->id(), *source.outlet, this)}
 {
     setFile(source.m_file.name());
     metadata().setInstanceName(*this);

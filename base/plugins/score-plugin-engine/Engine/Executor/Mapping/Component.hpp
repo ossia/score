@@ -32,6 +32,7 @@ public:
       const Id<score::Component>& id,
       QObject* parent);
 
+  ~Component();
 private:
   void recompute();
   std::shared_ptr<ossia::curve_abstract> rebuildCurve(
@@ -44,6 +45,7 @@ private:
 
   template <typename X_T, typename Y_T>
   std::shared_ptr<ossia::curve_abstract> on_curveChanged_impl2();
+  ossia::node_ptr m_node;
 };
 
 using ComponentFactory

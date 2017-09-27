@@ -37,14 +37,13 @@ class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final : public Process::ProcessMode
                 const Id<Process::ProcessModel>& id,
                 QObject* parent);
 
-        virtual ~ProcessModel();
+        ~ProcessModel() override;
 
         template<typename Impl>
         explicit ProcessModel(
                 Impl& vis,
                 QObject* parent) :
             Process::ProcessModel{vis, parent}
-          , outlet{vis, this}
         {
             vis.writeTo(*this);
             init();
@@ -62,7 +61,7 @@ class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final : public Process::ProcessMode
         void setUpmixChannels(int upmixChannels);
         void setStartChannel(int startChannel);
 
-        Process::Port outlet;
+        std::unique_ptr<Process::Port> outlet;
 signals:
         void fileChanged();
         void upmixChannelsChanged(int upmixChannels);

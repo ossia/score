@@ -31,8 +31,7 @@ class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
   PROCESS_METADATA_IMPL(Automation::ProcessModel)
 
   Q_OBJECT
-  Q_PROPERTY(::State::AddressAccessor address READ address WRITE setAddress
-                 NOTIFY addressChanged)
+  Q_PROPERTY(::State::AddressAccessor address READ address WRITE setAddress NOTIFY addressChanged)
   // Min and max to scale the curve with at execution
   Q_PROPERTY(double min READ min WRITE setMin NOTIFY minChanged)
   Q_PROPERTY(double max READ max WRITE setMax NOTIFY maxChanged)
@@ -53,6 +52,7 @@ public:
       , m_endState{new ProcessState{*this, 1., this}}
   {
     vis.writeTo(*this);
+    init();
   }
 
   ::State::AddressAccessor address() const;
@@ -82,6 +82,7 @@ public:
 
   QString prettyName() const override;
 
+  std::unique_ptr<Process::Port> outlet;
 signals:
   void addressChanged(const ::State::AddressAccessor&);
   void minChanged(double);
@@ -90,7 +91,11 @@ signals:
   void unitChanged(const State::Unit&);
 
 private:
+  void init();
+
   //// ProcessModel ////
+  std::vector<Process::Port*> inlets() const override;
+  std::vector<Process::Port*> outlets() const override;
   void setDurationAndScale(const TimeVal& newDuration) override;
   void setDurationAndGrow(const TimeVal& newDuration) override;
   void setDurationAndShrink(const TimeVal& newDuration) override;
@@ -108,7 +113,6 @@ private:
       QObject* parent);
 
   void setCurve_impl() override;
-  ::State::AddressAccessor m_address;
 
   double m_min{};
   double m_max{};
@@ -117,4 +121,5 @@ private:
   ProcessState* m_endState{};
   bool m_tween = false;
 };
+
 }

@@ -59,13 +59,13 @@ public:
   std::vector<ossia::midi_generic_parameter*> midi_ins;
   std::vector<ossia::midi_generic_parameter*> midi_outs;
 
-  std::unordered_map<Process::Port*, std::shared_ptr<ossia::graph_node>> nodes;
+  score::hash_map<Process::Port*, std::shared_ptr<ossia::graph_node>> nodes;
+  score::hash_map<Id<Process::Cable>, std::shared_ptr<ossia::graph_edge>> m_cables;
 private:
   mutable ExecutionCommandQueue m_editionQueue;
   Context m_ctx;
   BaseScenarioElement m_base;
 
-  score::hash_map<Id<Process::Cable>, std::shared_ptr<ossia::graph_edge>> m_cables;
   void on_cableCreated(Process::Cable& c);
   void on_cableRemoved(const Process::Cable& c);
   void connectCable(Process::Cable& cable);

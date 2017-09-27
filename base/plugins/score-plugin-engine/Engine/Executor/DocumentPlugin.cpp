@@ -184,21 +184,9 @@ void DocumentPlugin::clear()
 {
   if(m_base.active())
   {
-    auto& model = context().doc.model<Scenario::ScenarioDocumentModel>();
-    for(Process::Cable& cbl : model.cables)
-    {
-      cbl.source_node.reset();
-      cbl.sink_node.reset();
-      cbl.exec.reset();
-    }
-    m_cables.clear();
-    execGraph->clear();
-    execGraph = std::make_shared<ossia::graph>();
-
     runAllCommands();
     m_base.cleanup();
     runAllCommands();
-
   }
 }
 

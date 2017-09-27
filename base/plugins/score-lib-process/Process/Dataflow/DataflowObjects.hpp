@@ -102,12 +102,12 @@ class SCORE_LIB_PROCESS_EXPORT Port
       vis.writeTo(*this);
     }
 
-    void addCable(Id<Process::Cable> c)
+    void addCable(const Id<Process::Cable>& c)
     {
       m_cables.push_back(c);
       emit cablesChanged();
     }
-    void removeCable(Id<Process::Cable> c)
+    void removeCable(const Id<Process::Cable>& c)
     {
       auto it = ossia::find(m_cables, c);
       if(it != m_cables.end())
@@ -128,7 +128,7 @@ class SCORE_LIB_PROCESS_EXPORT Port
     }
 
 public slots:
-    void setCustomData(QString customData)
+    void setCustomData(const QString& customData)
     {
       if (m_customData == customData)
         return;
@@ -137,7 +137,7 @@ public slots:
       emit customDataChanged(m_customData);
     }
 
-    void setAddress(State::AddressAccessor address)
+    void setAddress(const State::AddressAccessor& address)
     {
       if (m_address == address)
         return;
@@ -148,8 +148,8 @@ public slots:
 
 signals:
     void cablesChanged();
-    void customDataChanged(QString customData);
-    void addressChanged(State::AddressAccessor address);
+    void customDataChanged(const QString& customData);
+    void addressChanged(const State::AddressAccessor& address);
 
 private:
     std::vector<Id<Cable>> m_cables;

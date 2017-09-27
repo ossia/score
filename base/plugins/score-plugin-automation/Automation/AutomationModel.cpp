@@ -28,15 +28,42 @@ class ProcessModel;
 class QObject;
 namespace Automation
 {
+std::vector<Process::Port*> ProcessModel::inlets() const
+{
+  return {};
+}
+
+std::vector<Process::Port*> ProcessModel::outlets() const
+{
+  return {const_cast<Process::Port*>(outlet.get())};
+}
+
+void ProcessModel::init()
+{
+  connect(outlet.get(), &Process::Port::addressChanged,
+          this, [=] (const State::AddressAccessor& arg) {
+    emit addressChanged(arg);
+    emit prettyNameChanged();
+    emit unitChanged(arg.qualifiers.get().unit);
+    emit m_curve->changed();
+  });
+}
+
 ProcessModel::ProcessModel(
     const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
     : CurveProcessModel{duration, id,
                         Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    , outlet{std::make_unique<Process::Port>(Id<Process::Port>(0), this)}
     , m_startState{new ProcessState{*this, 0., this}}
     , m_endState{new ProcessState{*this, 1., this}}
 {
+  outlet->num = 0;
+  outlet->propagate = false;
+  outlet->outlet = true;
+  outlet->type = Process::PortType::Message;
+
   // Named shall be enough ?
   setCurve(new Curve::Model{Id<Curve::Model>(45345), this});
 
@@ -46,9 +73,9 @@ ProcessModel::ProcessModel(
   s1->setEnd({1., 1.});
 
   m_curve->addSegment(s1);
-  connect(m_curve, &Curve::Model::changed, this, &ProcessModel::curveChanged);
 
   metadata().setInstanceName(*this);
+  init();
 }
 
 ProcessModel::~ProcessModel()
@@ -62,7 +89,7 @@ ProcessModel::ProcessModel(
     : Curve::CurveProcessModel{source, id,
                                Metadata<ObjectKey_k, ProcessModel>::get(),
                                parent}
-    , m_address(source.address())
+    , outlet{std::make_unique<Process::Port>(source.outlet->id(), *source.outlet, this)}
     , m_min{source.min()}
     , m_max{source.max()}
     , m_startState{new ProcessState{*this, 0., this}}
@@ -71,7 +98,7 @@ ProcessModel::ProcessModel(
 {
   metadata().setInstanceName(*this);
   setCurve(source.curve().clone(source.curve().id(), this));
-  connect(m_curve, &Curve::Model::changed, this, &ProcessModel::curveChanged);
+  init();
 }
 
 QString ProcessModel::prettyName() const
@@ -170,8 +197,6 @@ TimeVal ProcessModel::contentDuration() const
 void ProcessModel::setCurve_impl()
 {
   connect(m_curve, &Curve::Model::changed, this, [&]() {
-    emit curveChanged();
-
     m_startState->messagesChanged(m_startState->messages());
     m_endState->messagesChanged(m_endState->messages());
   });
@@ -189,7 +214,7 @@ ProcessState* ProcessModel::endStateData() const
 
 ::State::AddressAccessor ProcessModel::address() const
 {
-  return m_address;
+  return outlet->address();
 }
 
 double ProcessModel::min() const
@@ -204,16 +229,7 @@ double ProcessModel::max() const
 
 void ProcessModel::setAddress(const ::State::AddressAccessor& arg)
 {
-  if (m_address == arg)
-  {
-    return;
-  }
-
-  m_address = arg;
-  emit addressChanged(arg);
-  emit prettyNameChanged();
-  emit unitChanged(arg.qualifiers.get().unit);
-  emit m_curve->changed();
+  outlet->setAddress(arg);
 }
 
 void ProcessModel::setMin(double arg)
@@ -238,15 +254,16 @@ void ProcessModel::setMax(double arg)
 
 State::Unit ProcessModel::unit() const
 {
-  return m_address.qualifiers.get().unit;
+  return outlet->address().qualifiers.get().unit;
 }
 
 void ProcessModel::setUnit(const State::Unit& u)
 {
   if (u != unit())
   {
-    m_address.qualifiers.get().unit = u;
-    emit addressChanged(m_address);
+    auto addr = outlet->address();
+    addr.qualifiers.get().unit = u;
+    outlet->setAddress(addr);
     emit prettyNameChanged();
     emit unitChanged(u);
   }

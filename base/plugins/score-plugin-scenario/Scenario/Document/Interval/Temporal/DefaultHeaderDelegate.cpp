@@ -1,5 +1,6 @@
 #include "DefaultHeaderDelegate.hpp"
 #include <Dataflow/Commands/EditConnection.hpp>
+#include <Dataflow/Commands/EditPort.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
@@ -12,22 +13,61 @@
 #include <QGraphicsProxyWidget>
 #include <QGraphicsScene>
 #include <QPainter>
+#include <QDialogButtonBox>
 namespace Scenario
 {
 class PortWidget : public QWidget
 {
   public:
-    PortWidget(const score::DocumentContext& ctx, Process::Port& p):
-      m_edit{ctx.plugin<Explorer::DeviceDocumentPlugin>().explorer(), this}
+    PortWidget(const score::DocumentContext& ctx, Process::Port& p)
+      : m_disp{ctx.commandStack}
+      , m_edit{ctx.plugin<Explorer::DeviceDocumentPlugin>().explorer(), this}
     {
       auto lay = new QFormLayout{this};
       lay->addRow(tr("Address"), &m_edit);
+
+      m_edit.setAddress(p.address());
+      con(p, &Process::Port::addressChanged,
+          this, [this] (const State::AddressAccessor& addr) {
+        if(addr != m_edit.address().address)
+        {
+          m_edit.setAddress(addr);
+        }
+      });
+      con(m_edit, &Explorer::AddressAccessorEditWidget::addressChanged,
+          this, [this,&p] (const Device::FullAddressAccessorSettings& set) {
+        m_disp.submitCommand<Dataflow::ChangePortAddress>(p, set.address);
+      });
     }
 
   private:
+    CommandDispatcher<> m_disp;
     Explorer::AddressAccessorEditWidget m_edit;
 };
+class PortDialog final
+    : public QDialog
+{
+  public:
+    PortDialog(const score::DocumentContext& ctx, Process::Port& p, QWidget* parent):
+      QDialog{parent}
+    , m_pw{ctx, p}
+    , m_bb{QDialogButtonBox::Ok}
+    {
+      this->setLayout(&m_lay);
+      m_lay.addWidget(&m_pw);
+      m_lay.addWidget(&m_bb);
+      connect(&m_bb, &QDialogButtonBox::accepted,
+              this, [=] {
+        close();
+      });
+    }
 
+  private:
+    PortWidget m_pw;
+    QDialogButtonBox m_bb;
+    QHBoxLayout m_lay;
+};
+/** TODO
 class PortPanel final
     : public QObject
     , public QGraphicsItem
@@ -83,7 +123,7 @@ class PortPanel final
       painter->setRenderHint(QPainter::Antialiasing, false);
     }
 };
-
+*/
 
 
 void DefaultHeaderDelegate::onCreateCable(Dataflow::PortItem* p1, Dataflow::PortItem* p2)
@@ -124,12 +164,13 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(Process::LayerPresenter& p)
   for(auto& port : p.model().inlets())
   {
     auto item = new Dataflow::PortItem{*port, this};
-    item->setPos(x, 16);
+    item->setPos(x, 15);
     connect(item, &Dataflow::PortItem::showPanel,
             this, [&,&pt=*port,item] {
-      auto panel = new PortPanel{p.context().context, pt, nullptr};
-      scene()->addItem(panel);
-      panel->setPos(item->mapToScene(item->pos()));
+      auto panel = new PortDialog{p.context().context, pt, nullptr};
+      //scene()->addItem(panel);
+      //panel->setPos(item->mapToScene(item->pos()));
+      panel->exec();
     });
     connect(item, &Dataflow::PortItem::createCable,
             this, &DefaultHeaderDelegate::onCreateCable);
@@ -139,12 +180,13 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(Process::LayerPresenter& p)
   for(auto& port : p.model().outlets())
   {
     auto item = new Dataflow::PortItem{*port, this};
-    item->setPos(x, 25);
+    item->setPos(x, 24);
     connect(item, &Dataflow::PortItem::showPanel,
             this, [&,&pt=*port,item] {
-      auto panel = new PortPanel{p.context().context, pt, nullptr};
-      scene()->addItem(panel);
-      panel->setPos(item->mapToScene(item->pos()));
+      auto panel = new PortDialog{p.context().context, pt, nullptr};
+      //scene()->addItem(panel);
+      //panel->setPos(item->mapToScene(item->pos()));
+      panel->exec();
     });
     x += 10;
   }
@@ -167,12 +209,12 @@ void DefaultHeaderDelegate::paint(QPainter* painter, const QStyleOptionGraphicsI
 {
   painter->setRenderHint(QPainter::Antialiasing, true);
   painter->setPen(ScenarioStyle::instance().IntervalHeaderSeparator);
-  m_textcache.draw(painter, QPointF{8.,-4.});
+  m_textcache.draw(painter, QPointF{8.,3.});
 
   painter->setPen(ScenarioStyle::instance().TimenodePen);
   painter->setFont(ScenarioStyle::instance().Medium8Pt);
-  painter->drawText(QPointF{4, 19}, "►");
-  painter->drawText(QPointF{4, 28}, "◄");
+  painter->drawText(QPointF{4, 18}, "►");
+  painter->drawText(QPointF{4, 27}, "◄");
 
   painter->setRenderHint(QPainter::Antialiasing, false);
 }
