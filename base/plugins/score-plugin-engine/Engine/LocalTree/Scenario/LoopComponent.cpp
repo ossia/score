@@ -23,7 +23,7 @@ LoopComponentBase::LoopComponentBase(
                                              parent_obj}
     , m_intervalsNode{*node().create_child("intervals")}
     , m_eventsNode{*node().create_child("events")}
-    , m_timeSyncsNode{*node().create_child("timesyncs")}
+    , m_timeSyncsNode{*node().create_child("syncs")}
     , m_statesNode{*node().create_child("states")}
 {
 }
