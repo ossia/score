@@ -10,14 +10,20 @@ ProcessModel::ProcessModel(
     QObject* parent)
     : Process::ProcessModel{duration, id,
                             Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    , outlet{std::make_unique<Process::Port>(Id<Process::Port>(0), this)}
 {
+  outlet->num = 0;
+  outlet->propagate = false;
+  outlet->outlet = true;
+  outlet->type = Process::PortType::Midi;
+
   metadata().setInstanceName(*this);
 
   m_device = "MidiDevice";
   for (int i = 0; i < 10; i++)
   {
     auto n = new Note{Id<Note>(i), this};
-    n->setPitch(64 + i);
+    n->setPitch(32 +  3 * i);
     n->setStart(0.1 + i * 0.05);
     n->setDuration(0.1 + (9 - i) * 0.05);
     n->setVelocity(i * 127. / 9.);
@@ -31,6 +37,7 @@ ProcessModel::ProcessModel(
     QObject* parent)
     : Process::ProcessModel{source, id,
                             Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    , outlet{std::make_unique<Process::Port>(source.outlet->id(), *source.outlet, this)}
 {
   metadata().setInstanceName(*this);
   m_device = source.device();
@@ -43,6 +50,38 @@ ProcessModel::ProcessModel(
 
 ProcessModel::~ProcessModel()
 {
+}
+
+void ProcessModel::setDevice(const QString& dev)
+{
+  m_device = dev;
+  emit deviceChanged(m_device);
+}
+
+const QString&ProcessModel::device() const
+{
+  return m_device;
+}
+
+void ProcessModel::setChannel(int n)
+{
+  m_channel = clamp(n, 1, 16);
+  emit channelChanged(n);
+}
+
+int ProcessModel::channel() const
+{
+  return m_channel;
+}
+
+std::vector<Process::Port*> ProcessModel::inlets() const
+{
+  return {};
+}
+
+std::vector<Process::Port*> ProcessModel::outlets() const
+{
+  return {const_cast<Process::Port*>(outlet.get())};
 }
 
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
@@ -161,7 +200,7 @@ void JSONObjectWriter::write(Midi::Note& n)
 template <>
 void DataStreamReader::read(const Midi::ProcessModel& proc)
 {
-  m_stream << proc.device() << proc.channel();
+  m_stream << *proc.outlet <<  proc.device() << proc.channel();
 
   const auto& notes = proc.notes;
 
@@ -178,6 +217,7 @@ void DataStreamReader::read(const Midi::ProcessModel& proc)
 template <>
 void DataStreamWriter::write(Midi::ProcessModel& proc)
 {
+  proc.outlet = std::make_unique<Process::Port>(*this, &proc);
   m_stream >> proc.m_device >> proc.m_channel;
   int n;
   m_stream >> n;
@@ -192,6 +232,7 @@ void DataStreamWriter::write(Midi::ProcessModel& proc)
 template <>
 void JSONObjectReader::read(const Midi::ProcessModel& proc)
 {
+  obj["Outlet"] = toJsonObject(*proc.outlet);
   obj["Device"] = proc.device();
   obj["Channel"] = proc.channel();
   obj["Notes"] = toJsonArray(proc.notes);
@@ -201,6 +242,10 @@ void JSONObjectReader::read(const Midi::ProcessModel& proc)
 template <>
 void JSONObjectWriter::write(Midi::ProcessModel& proc)
 {
+  {
+    JSONObjectWriter writer{obj["Outlet"].toObject()};
+    proc.outlet = std::make_unique<Process::Port>(writer, &proc);
+  }
   proc.setDevice(obj["Device"].toString());
   proc.setChannel(obj["Channel"].toInt());
 

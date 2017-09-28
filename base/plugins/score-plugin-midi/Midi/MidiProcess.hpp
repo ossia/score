@@ -33,31 +33,20 @@ public:
     vis.writeTo(*this);
   }
 
-  virtual ~ProcessModel();
+  ~ProcessModel() override;
 
   score::EntityMap<Note> notes;
 
-  void setDevice(const QString& dev)
-  {
-    m_device = dev;
-    emit deviceChanged(m_device);
-  }
+  void setDevice(const QString& dev);
+  const QString& device() const;
 
-  const QString& device() const
-  {
-    return m_device;
-  }
+  void setChannel(int n);
+  int channel() const;
 
-  void setChannel(int n)
-  {
-    m_channel = clamp(n, 1, 16);
-    emit channelChanged(n);
-  }
-  int channel() const
-  {
-    return m_channel;
-  }
+  std::vector<Process::Port*> inlets() const override;
+  std::vector<Process::Port*> outlets() const override;
 
+  std::unique_ptr<Process::Port> outlet;
 signals:
   void notesChanged();
   void deviceChanged(const QString&);
@@ -71,4 +60,5 @@ private:
   QString m_device;
   int m_channel{1};
 };
+
 }
