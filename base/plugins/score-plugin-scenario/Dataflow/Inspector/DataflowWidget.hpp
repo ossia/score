@@ -63,7 +63,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT DataflowWidget:
     public QWidget
 {
     Q_OBJECT
-    const Process::DataflowProcess& m_proc;
+    const Process::ProcessModel& m_proc;
     Explorer::DeviceExplorerModel& m_explorer;
     CommandDispatcher<> m_disp;
     score::MarginLess<QVBoxLayout> m_lay;
@@ -74,7 +74,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT DataflowWidget:
   public:
     DataflowWidget(
         const score::DocumentContext& doc,
-        const Process::DataflowProcess& proc,
+        const Process::ProcessModel& proc,
         QWidget* parent);
 
     void reinit();
