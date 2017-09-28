@@ -53,7 +53,7 @@ public:
       move_nothing->setObjectName("Move on Nothing");
       move_state->setObjectName("Move on State");
       move_event->setObjectName("Move on Event");
-      move_timesync->setObjectName("Move on TimeSync");
+      move_timesync->setObjectName("Move on Sync");
 
       // General setup
       mainState->setInitialState(pressed);

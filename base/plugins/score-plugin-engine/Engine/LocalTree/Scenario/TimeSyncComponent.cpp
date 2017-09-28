@@ -16,7 +16,7 @@ TimeSync::TimeSync(
     DocumentPlugin& doc,
     QObject* parent_comp)
     : CommonComponent{parent, timeSync.metadata(), doc,
-                      id,     "StateComponent",    parent_comp}
+                      id,     "TimeSyncComponent",    parent_comp}
 {
   m_properties.push_back(add_setProperty<::State::impulse>(
       node(), "trigger", [&](auto) { timeSync.triggeredByGui(); }));
