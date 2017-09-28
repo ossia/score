@@ -101,6 +101,9 @@ signals:
   void slotHeightChanged(double);
   void prettyNameChanged();
 
+  void inletsChanged();
+  void outletsChanged();
+
 protected:
   // Clone
   ProcessModel(

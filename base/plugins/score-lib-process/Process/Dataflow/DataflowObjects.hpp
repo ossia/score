@@ -17,7 +17,6 @@ class DocumentPlugin;
 }
 namespace Process
 {
-class DataflowProcess;
 class Node;
 struct Port;
 class Cable;

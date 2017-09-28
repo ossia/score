@@ -22,7 +22,7 @@ PortWidget::PortWidget(Explorer::DeviceExplorerModel& model, QWidget* parent)
 
 DataflowWidget::DataflowWidget(
     const score::DocumentContext& doc,
-    const Process::DataflowProcess& proc,
+    const Process::ProcessModel& proc,
     QWidget* parent)
   : QWidget{parent}
   , m_proc{proc}
