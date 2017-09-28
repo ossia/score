@@ -7,6 +7,7 @@
 #include <Scenario/Commands/Scenario/Deletions/ClearState.hpp>
 #include <Scenario/Commands/Scenario/Deletions/RemoveSelection.hpp>
 #include <Scenario/Commands/Scenario/Merge/MergeTimeSyncs.hpp>
+#include <Scenario/Commands/Interval/RemoveProcessFromInterval.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
@@ -87,7 +88,6 @@ void removeSelection(
 {
   MacroCommandDispatcher<ClearSelection> cleaner{stack};
 
-  const QList<const IntervalModel*>& intervals = selectedElements(scenario.getIntervals());
   const QList<const StateModel*>& states = selectedElements(scenario.getStates());
 
   // Create a Clear command for each.
@@ -103,6 +103,26 @@ void removeSelection(
   Selection sel = scenario.selectedChildren();
 
   auto& ctx = score::IDocument::documentContext(scenario);
+
+  for(const auto& obj : ctx.selectionStack.currentSelection()) {
+    if(auto proc = dynamic_cast<const Process::ProcessModel*>(obj.data()))
+    {
+      bool remove_it = true;
+
+      for (const auto& obj : sel) {
+        if (auto itv = dynamic_cast<const IntervalModel*>(obj.data())) {
+          if ( itv == proc->parent() ) {
+            remove_it = false;
+            break;
+          }
+        }
+      }
+
+      if (remove_it)
+        cleaner.submitCommand( new Scenario::Command::RemoveProcessFromInterval(*(IntervalModel*)proc->parent(), proc->id()));
+    }
+  }
+
   score::SelectionDispatcher s{ctx.selectionStack};
   s.setAndCommit({});
   ctx.selectionStack.clear();
