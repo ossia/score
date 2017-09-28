@@ -71,6 +71,10 @@ public:
       const Engine::Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent);
+  ~Component() override;
+
+  private:
+  ossia::node_ptr m_node;
 };
 
 using ComponentFactory
