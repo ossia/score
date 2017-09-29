@@ -34,6 +34,7 @@ public:
   void setMenu(QMenu* btn);
 
   void addNewTerm();
+  void addNewTermAndFinish();
   void on_editFinished();
 
 signals:
@@ -48,6 +49,7 @@ private:
 
   QString currentExpr();
   void removeTerm(int index);
+  void removeTermAndFinish(int index);
 
   const score::DocumentContext& m_context;
   std::vector<SimpleExpressionEditorWidget*> m_relations;

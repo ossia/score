@@ -195,10 +195,10 @@ void ExpressionEditorWidget::addNewTerm()
 
   connect(
       relationEditor, &SimpleExpressionEditorWidget::addTerm, this,
-      &ExpressionEditorWidget::addNewTerm);
+      &ExpressionEditorWidget::addNewTermAndFinish);
   connect(
       relationEditor, &SimpleExpressionEditorWidget::removeTerm, this,
-      &ExpressionEditorWidget::removeTerm);
+      &ExpressionEditorWidget::removeTermAndFinish);
   connect(
       relationEditor, &SimpleExpressionEditorWidget::editingFinished, this,
       &ExpressionEditorWidget::on_editFinished, Qt::QueuedConnection);
@@ -215,6 +215,18 @@ void ExpressionEditorWidget::addNewTerm()
 
   m_relations.front()->enableMenuButton(true);
   m_relations.back()->enableAddButton(true);
+}
+
+void ExpressionEditorWidget::addNewTermAndFinish()
+{
+  addNewTerm();
+  on_editFinished();
+}
+
+void ExpressionEditorWidget::removeTermAndFinish(int index)
+{
+  removeTerm(index);
+  on_editFinished();
 }
 
 void ExpressionEditorWidget::removeTerm(int index)
