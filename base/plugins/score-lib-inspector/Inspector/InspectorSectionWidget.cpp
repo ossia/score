@@ -14,6 +14,8 @@ MenuButton::MenuButton(QWidget* parent):
 #if defined(_MSC_VER)
   QPushButton{QString(QChar(0x2699)), parent}
 #else
+  // FIXME ⚙ character add a traling gap that sucks
+  // replace with an SVG icon
   QPushButton{QStringLiteral("⚙"), parent}
 #endif
 {
