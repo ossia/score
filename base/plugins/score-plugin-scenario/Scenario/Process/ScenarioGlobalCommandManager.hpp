@@ -41,4 +41,6 @@ void clearContentFromSelection(
 
 void mergeTimeSyncs(
     const Scenario::ProcessModel&, const score::CommandStackFacade&);
+void mergeEvents(
+    const Scenario::ProcessModel&, const score::CommandStackFacade&);
 }
