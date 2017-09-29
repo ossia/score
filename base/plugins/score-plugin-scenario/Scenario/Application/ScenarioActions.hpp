@@ -108,6 +108,8 @@ SCORE_DECLARE_ACTION(
 
 // Event
 SCORE_DECLARE_ACTION(
+    MergeEvents, "Merge events", Scenario, QKeySequence::UnknownKey)
+SCORE_DECLARE_ACTION(
     AddTrigger, "&Enable Trigger", Scenario, QKeySequence::UnknownKey)
 SCORE_DECLARE_ACTION(
     RemoveTrigger, "&Disable Trigger", Scenario, QKeySequence::UnknownKey)
