@@ -64,10 +64,11 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
   m_menuBtn = new Inspector::MenuButton{this};
   m_menuBtn->setObjectName(QStringLiteral("SettingsMenu"));
   m_menuBtn->setMaximumSize(30,30);
-  // TODO the button add a gap to the inspector edge
-  // thus it is not align with other buttons below
-  // m_menuBtn->setContentsMargins(0,0,0,0);
   m_menuBtn->setMenu(menu);
+
+  QSizePolicy sp = m_menuBtn->sizePolicy();
+  sp.setRetainSizeWhenHidden(true);
+  m_menuBtn->setSizePolicy(sp);
   m_menuBtn->setVisible(false);
 
   btnLay->addWidget(m_rmBtn);
@@ -368,6 +369,10 @@ void SimpleExpressionEditorWidget::enableRemoveButton(bool b)
 void SimpleExpressionEditorWidget::enableAddButton(bool b)
 {
   m_addBtn->setVisible(b);
+
+  QSizePolicy sp = m_menuBtn->sizePolicy();
+  sp.setRetainSizeWhenHidden(!b);
+  m_menuBtn->setSizePolicy(sp);
 }
 
 void SimpleExpressionEditorWidget::enableMenuButton(bool b)
