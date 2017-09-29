@@ -7,6 +7,7 @@
 #include <Scenario/Commands/Scenario/Deletions/ClearState.hpp>
 #include <Scenario/Commands/Scenario/Deletions/RemoveSelection.hpp>
 #include <Scenario/Commands/Scenario/Merge/MergeTimeSyncs.hpp>
+#include <Scenario/Commands/Scenario/Merge/MergeEvents.hpp>
 #include <Scenario/Commands/Interval/RemoveProcessFromInterval.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -211,7 +212,6 @@ void mergeTimeSyncs(
   // We merge all the furthest timesyncs to the first one.
   auto timesyncs = make_ordered<TimeSyncModel>(scenario);
   auto states = make_ordered<StateModel>(scenario);
-  auto events = make_ordered<EventModel>(scenario);
 
   if (timesyncs.size() < 2)
   {
@@ -233,6 +233,40 @@ void mergeTimeSyncs(
     for (++it; it != timesyncs.end(); ++it)
     {
       auto cmd = new Command::MergeTimeSyncs(
+          scenario, first_tn, (*it)->id());
+      f.redoAndPush(cmd);
+    }
+  }
+}
+
+void mergeEvents(
+    const Scenario::ProcessModel& scenario,
+    const score::CommandStackFacade& f)
+{
+  // We merge all the furthest events to the first one.
+  auto states = make_ordered<StateModel>(scenario);
+  auto events = make_ordered<EventModel>(scenario);
+
+  if (events.size() < 2)
+  {
+    if (states.size() == 2)
+    {
+      auto it = states.begin();
+      auto& first = Scenario::parentEvent(**it, scenario);
+      auto& second = Scenario::parentEvent(**(++it), scenario);
+
+      auto cmd = new Command::MergeEvents(
+          scenario, second.id(), first.id());
+      f.redoAndPush(cmd);
+    }
+  }
+  else
+  {
+    auto it = events.begin();
+    auto first_tn = (*it)->id();
+    for (++it; it != events.end(); ++it)
+    {
+      auto cmd = new Command::MergeEvents(
           scenario, first_tn, (*it)->id());
       f.redoAndPush(cmd);
     }
