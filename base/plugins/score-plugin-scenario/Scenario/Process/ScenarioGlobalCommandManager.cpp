@@ -244,32 +244,39 @@ void mergeEvents(
     const score::CommandStackFacade& f)
 {
   // We merge all the furthest events to the first one.
-  auto states = make_ordered<StateModel>(scenario);
-  auto events = make_ordered<EventModel>(scenario);
+  const QList<const StateModel*>& states = selectedElements(scenario.getStates());
+  const QList<const EventModel*>& events = selectedElements(scenario.getEvents());
 
-  if (events.size() < 2)
-  {
-    if (states.size() == 2)
-    {
-      auto it = states.begin();
-      auto& first = Scenario::parentEvent(**it, scenario);
-      auto& second = Scenario::parentEvent(**(++it), scenario);
+  QList<const EventModel*> sel = events;
 
-      auto cmd = new Command::MergeEvents(
-          scenario, second.id(), first.id());
-      f.redoAndPush(cmd);
-    }
-  }
-  else
+  for (auto it = states.begin(); it != states.end() ; ++it)
   {
-    auto it = events.begin();
-    auto first_tn = (*it)->id();
-    for (++it; it != events.end(); ++it)
-    {
-      auto cmd = new Command::MergeEvents(
-          scenario, first_tn, (*it)->id());
-      f.redoAndPush(cmd);
-    }
+    sel.push_back(&Scenario::parentEvent(**it, scenario));
   }
+
+  sel = sel.toSet().toList();
+
+  MacroCommandDispatcher<MergeEventMacro> merger{f};
+
+  while (sel.size() > 1)
+  {
+    auto it = sel.begin();
+    auto first_ev = *it;
+    for (++it; it != sel.end(); )
+    {
+      // Check if Events have the same TimeSync parent
+      if( first_ev->timeSync() == (*it)->timeSync() )
+      {
+        auto cmd = new Command::MergeEvents(
+            scenario, first_ev->id(), (*it)->id());
+        // f.redoAndPush(cmd);
+        merger.submitCommand(cmd);
+        it = sel.erase(it);
+      } else
+        ++it;
+    }
+    sel.removeOne(first_ev);
+  }
+  merger.commit();
 }
 }
