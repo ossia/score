@@ -118,8 +118,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT MergeEvents final
       scenar.states.at(stateId).setEventId(m_destinationEventId);
     }
 
-    auto& tn = scenar.timeSync(destinationEvent.timeSync());
-    tn.removeEvent(m_movingEventId);
+    auto& ts = scenar.timeSync(destinationEvent.timeSync());
+    ts.removeEvent(m_movingEventId);
 
     scenar.events.remove(m_movingEventId);
     updateEventExtent(m_destinationEventId, scenar);
@@ -155,6 +155,13 @@ private:
 
   QByteArray m_serializedEvent;
   MergeTimeSyncs* m_mergeTimeSyncsCommand{};
+};
+
+class MergeEventMacro final : public score::AggregateCommand
+{
+    SCORE_COMMAND_DECL(
+        ScenarioCommandFactoryName(), MergeEventMacro,
+        "Merge events")
 };
 }
 }
