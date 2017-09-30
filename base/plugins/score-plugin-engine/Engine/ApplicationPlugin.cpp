@@ -329,12 +329,12 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     p->set_access(ossia::access_mode::GET);
 
     auto& play_action = appplug.context.actions.action<Actions::Play>();
-    connect(play_action.action(), &QAction::triggered, [=] {
+    connect(play_action.action(), &QAction::triggered, &lt, [=] {
       p->push_value(true);
     });
 
     auto& stop_action = context.actions.action<Actions::Stop>();
-    connect(stop_action.action(), &QAction::triggered, [=] {
+    connect(stop_action.action(), &QAction::triggered, &lt, [=] {
       p->push_value(false);
     });
   }
