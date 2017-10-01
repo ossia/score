@@ -67,6 +67,7 @@ public:
   // States
   void addState(const Id<StateModel>& ds);
   void removeState(const Id<StateModel>& ds);
+  void clearStates();
   const QVector<Id<StateModel>>& states() const;
 
   // Other properties
