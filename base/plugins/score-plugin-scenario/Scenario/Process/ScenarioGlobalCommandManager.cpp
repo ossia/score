@@ -139,7 +139,7 @@ struct DateComparator
   const Scenario::ProcessModel* scenario;
   bool operator()(const T* lhs, const T* rhs)
   {
-    return Scenario::date(*lhs, *scenario) < Scenario::date(*rhs, *scenario);
+    return Scenario::date(*lhs, *scenario) <= Scenario::date(*rhs, *scenario);
   }
 };
 
