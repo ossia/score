@@ -15,8 +15,10 @@ class DefaultHeaderDelegate
     void updateName();
 
   private:
+    void updatePorts();
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
     Process::LayerPresenter& presenter;
     QTextLayout m_textcache;
+    std::vector<Dataflow::PortItem*> m_items;
 };
 }

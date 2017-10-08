@@ -160,36 +160,11 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(Process::LayerPresenter& p)
   m_textcache.setFont(ScenarioStyle::instance().Medium8Pt);
   m_textcache.setCacheEnabled(true);
 
-  int x = 16;
-  for(auto& port : p.model().inlets())
-  {
-    auto item = new Dataflow::PortItem{*port, this};
-    item->setPos(x, 15);
-    connect(item, &Dataflow::PortItem::showPanel,
-            this, [&,&pt=*port,item] {
-      auto panel = new PortDialog{p.context().context, pt, nullptr};
-      //scene()->addItem(panel);
-      //panel->setPos(item->mapToScene(item->pos()));
-      panel->exec();
-    });
-    connect(item, &Dataflow::PortItem::createCable,
-            this, &DefaultHeaderDelegate::onCreateCable);
-    x += 10;
-  }
-  x = 16;
-  for(auto& port : p.model().outlets())
-  {
-    auto item = new Dataflow::PortItem{*port, this};
-    item->setPos(x, 24);
-    connect(item, &Dataflow::PortItem::showPanel,
-            this, [&,&pt=*port,item] {
-      auto panel = new PortDialog{p.context().context, pt, nullptr};
-      //scene()->addItem(panel);
-      //panel->setPos(item->mapToScene(item->pos()));
-      panel->exec();
-    });
-    x += 10;
-  }
+  con(p.model(), &Process::ProcessModel::inletsChanged,
+      this, [=] { updatePorts(); });
+  con(p.model(), &Process::ProcessModel::inletsChanged,
+      this, [=] { updatePorts(); });
+  updatePorts();
 }
 
 void DefaultHeaderDelegate::updateName()
@@ -203,6 +178,47 @@ void DefaultHeaderDelegate::updateName()
   m_textcache.endLayout();
 
   update();
+}
+
+void DefaultHeaderDelegate::updatePorts()
+{
+  qDeleteAll(m_items);
+  m_items.clear();
+  int x = 16;
+  for(auto& port : presenter.model().inlets())
+  {
+    auto item = new Dataflow::PortItem{*port, this};
+    item->setPos(x, 15);
+    connect(item, &Dataflow::PortItem::showPanel,
+            this, [&,&pt=*port,item] {
+      auto panel = new PortDialog{presenter.context().context, pt, nullptr};
+      //scene()->addItem(panel);
+      //panel->setPos(item->mapToScene(item->pos()));
+      panel->exec();
+      panel->deleteLater();
+    });
+    connect(item, &Dataflow::PortItem::createCable,
+            this, &DefaultHeaderDelegate::onCreateCable);
+    m_items.push_back(item);
+    x += 10;
+  }
+  x = 16;
+  for(auto& port : presenter.model().outlets())
+  {
+    auto item = new Dataflow::PortItem{*port, this};
+    item->setPos(x, 24);
+    connect(item, &Dataflow::PortItem::showPanel,
+            this, [&,&pt=*port,item] {
+      auto panel = new PortDialog{presenter.context().context, pt, nullptr};
+      //scene()->addItem(panel);
+      //panel->setPos(item->mapToScene(item->pos()));
+      panel->exec();
+      panel->deleteLater();
+    });
+    m_items.push_back(item);
+    x += 10;
+  }
+
 }
 
 void DefaultHeaderDelegate::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
