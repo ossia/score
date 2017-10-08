@@ -23,6 +23,7 @@ public:
 signals:
   void pressed();
   void askContextMenu(const QPoint&, const QPointF&);
+  void contextMenuRequested(QPoint);
 
 private:
   void updateText();

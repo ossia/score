@@ -20,7 +20,7 @@
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 namespace Dataflow
 {
-class PortWidget :
+class SCORE_PLUGIN_SCENARIO_EXPORT PortWidget :
     public QWidget
 {
     Q_OBJECT
