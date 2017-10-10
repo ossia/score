@@ -5,6 +5,7 @@
 
 #include <QString>
 #include <QVector>
+#include <QSlider>
 #include <list>
 #include <memory>
 #include <nano_signal_slot.hpp>

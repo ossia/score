@@ -54,8 +54,11 @@ void LocalDevice::setRemoteSettings(const Device::DeviceSettings& settings)
 
   if (!m_proto)
     return;
+
   try
   {
+    m_proto->clear();
+
     auto set = settings.deviceSpecificSettings.value<LocalSpecificSettings>();
     if (set.remoteName == "")
     {

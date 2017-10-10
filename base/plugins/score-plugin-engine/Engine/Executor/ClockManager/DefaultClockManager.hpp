@@ -1,4 +1,5 @@
 #pragma once
+#include <ossia/editor/scenario/clock.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <Engine/Executor/ClockManager/ClockManagerFactory.hpp>
 namespace Scenario

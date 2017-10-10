@@ -5,6 +5,7 @@
 #include <QLocale>
 #include <QMetaType>
 #include <QObject>
+#include <ossia-qt/js_utilities.hpp>
 #include <ossia/detail/apply.hpp>
 
 #include <QStringList>
@@ -1207,86 +1208,9 @@ bool convert(const ossia::value& orig, ossia::value& toConvert)
   return true;
 }
 
-static ossia::value fromQVariantImpl(const QVariant& val)
-{
-#pragma GCC diagnostic ignored "-Wswitch"
-#pragma GCC diagnostic ignored "-Wswitch-enum"
-  switch (auto t = QMetaType::Type(val.type()))
-  {
-    case QMetaType::Int:
-      return ossia::value{val.toInt()};
-    case QMetaType::UInt:
-      return ossia::value{(int)val.toUInt()};
-    case QMetaType::Long:
-      return ossia::value{(int)val.value<int64_t>()};
-    case QMetaType::LongLong:
-      return ossia::value{(int)val.toLongLong()};
-    case QMetaType::ULong:
-      return ossia::value{(int)val.value<uint64_t>()};
-    case QMetaType::ULongLong:
-      return ossia::value{(int)val.toULongLong()};
-    case QMetaType::Short:
-      return ossia::value{(int)val.value<int16_t>()};
-    case QMetaType::UShort:
-      return ossia::value{(int)val.value<uint16_t>()};
-    case QMetaType::Float:
-      return ossia::value{val.toFloat()};
-    case QMetaType::Double:
-      return ossia::value{(float)val.toDouble()};
-    case QMetaType::Bool:
-      return ossia::value{val.toBool()};
-    case QMetaType::QString:
-      return ossia::value{val.toString().toStdString()};
-    case QMetaType::Char:
-      return ossia::value{val.value<char>()};
-    case QMetaType::QChar:
-      return ossia::value{val.toChar().toLatin1()};
-    case QMetaType::QVariantList:
-    {
-      auto list = val.value<QVariantList>();
-      list_t list_val;
-      list_val.reserve(list.size());
-
-      Foreach(list, [&](const auto& elt) {
-        list_val.push_back(fromQVariantImpl(elt));
-      });
-      return list_val;
-    }
-    case QMetaType::QVector2D:
-    {
-      auto vec = val.value<QVector2D>();
-      return ossia::value{vec2f{{vec[0], vec[1]}}};
-    }
-    case QMetaType::QVector3D:
-    {
-      auto vec = val.value<QVector3D>();
-      return ossia::value{vec3f{{vec[0], vec[1], vec[2]}}};
-    }
-    case QMetaType::QVector4D:
-    {
-      auto vec = val.value<QVector4D>();
-      return ossia::value{vec4f{{vec[0], vec[1], vec[2], vec[3]}}};
-    }
-    default:
-    {
-      if (t == qMetaTypeId<ossia::value>())
-      {
-        return ossia::value{impulse{}};
-      }
-      else
-      {
-        return ossia::value{};
-      }
-    }
-  }
-
-#pragma GCC diagnostic warning "-Wswitch"
-#pragma GCC diagnostic warning "-Wswitch-enum"
-}
-
 ossia::value fromQVariant(const QVariant& val)
 {
-  return ossia::value{fromQVariantImpl(val)};
+  return ossia::qt::qt_to_ossia{}(val);
 }
 
 QString prettyType(ossia::val_type t)
