@@ -14,6 +14,8 @@
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 
 #include <Engine/ApplicationPlugin.hpp>
+#include <score/actions/ActionManager.hpp>
+#include <Scenario/Application/ScenarioActions.hpp>
 namespace Engine
 {
 namespace Execution
@@ -34,6 +36,11 @@ DocumentPlugin::DocumentPlugin(
       }
     , m_base{m_ctx, this}
 {
+  con(m_base, &Engine::Execution::BaseScenarioElement::finished, this,
+      [=] {
+        auto& stop_action = context().doc.app.actions.action<Actions::Stop>();
+        stop_action.action()->trigger();
+      }, Qt::QueuedConnection);
 }
 
 DocumentPlugin::~DocumentPlugin()

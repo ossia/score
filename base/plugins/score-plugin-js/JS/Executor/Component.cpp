@@ -72,24 +72,27 @@ ossia::state_element ProcessExecutor::state(double t)
     ossia::state st;
 
     // 2. Get the value of the js fun
-    auto messages = JS::convert::messages(m_tickFun.call({QJSValue{t}}));
+    auto res = m_tickFun.call({QJSValue{t}});
 
-    m_engine.collectGarbage();
-
-    for (const auto& mess : messages)
-    {
-      st.add(Engine::score_to_ossia::message(mess, m_devices));
-    }
-
-    // 3. Convert our value back
     if(unmuted())
+    {
+      auto messages = JS::convert::messages(res);
+
+      m_engine.collectGarbage();
+
+      for (const auto& mess : messages)
+      {
+        st.add(Engine::score_to_ossia::message(mess, m_devices));
+      }
+
       return st;
+    }
   }
   else if(m_object)
   {
     QVariant ret;
     QMetaObject::invokeMethod(m_object, "onTick", Qt::DirectConnection, Q_RETURN_ARG(QVariant, ret), Q_ARG(QVariant, t));
-    if(ret.canConvert<QJSValue>())
+    if(ret.canConvert<QJSValue>() && unmuted())
     {
       ossia::state st;
       auto messages = JS::convert::messages(ret.value<QJSValue>());
@@ -101,8 +104,7 @@ ossia::state_element ProcessExecutor::state(double t)
         st.add(Engine::score_to_ossia::message(mess, m_devices));
       }
 
-      if(unmuted())
-        return st;
+      return st;
     }
   }
 

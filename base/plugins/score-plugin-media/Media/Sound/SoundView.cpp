@@ -184,7 +184,7 @@ void WaveformComputer::computeDataSet(
   dataset.resize(nchannels);
   for (int c = 0; c < nchannels; ++c) {
     const auto& chan = arr[c];
-    const int chan_n = data.decoder().decoded;
+    const int chan_n = std::min(data.decoder().decoded, chan.size());
 
     const double length = double(1000ll * chan_n) / data.sampleRate(); // duration of the track
     const double size = ratio > 0 ? length / ratio : 0; // number of pixels the track will occupy in its entirety
