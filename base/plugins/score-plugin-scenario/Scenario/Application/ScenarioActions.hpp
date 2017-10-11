@@ -141,6 +141,9 @@ SCORE_DECLARE_ACTION(
 SCORE_DECLARE_ACTION(
     HideRacks, "&Hide processes", Scenario, QKeySequence::UnknownKey)
 
+SCORE_DECLARE_ACTION(
+    Encapsulate, "&Encapsulate", Scenario, Qt::SHIFT + Qt::CTRL + Qt::Key_E)
+
 // Navigation
 SCORE_DECLARE_ACTION(MoveUp, "&Move up", Scenario, Qt::UpArrow)
 SCORE_DECLARE_ACTION(MoveDown, "&Move down", Scenario, Qt::DownArrow)

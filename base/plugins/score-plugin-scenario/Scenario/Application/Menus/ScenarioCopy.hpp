@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 class QJsonObject;
 class QObject;
 
@@ -6,12 +7,32 @@ namespace Scenario
 {
 class IntervalModel;
 class ProcessModel;
+class EventModel;
+class StateModel;
+class TimeSyncModel;
 
 class BaseScenario;
 class BaseScenarioContainer;
+
+struct CategorisedScenario
+{
+  CategorisedScenario();
+  CategorisedScenario(const Scenario::ProcessModel& sm);
+  CategorisedScenario(const BaseScenarioContainer& sm);
+
+  std::vector<const IntervalModel*> selectedIntervals;
+  std::vector<const EventModel*> selectedEvents;
+  std::vector<const StateModel*> selectedStates;
+  std::vector<const TimeSyncModel*> selectedTimeSyncs;
+};
+
+
 QJsonObject copyBaseInterval(const IntervalModel&);
 
 QJsonObject copySelectedScenarioElements(const Scenario::ProcessModel& sm);
+
+QJsonObject copySelectedScenarioElements(const Scenario::ProcessModel& sm,
+                                         CategorisedScenario& cat);
 
 /**
  * The parent should be in the object tree of the scenario.

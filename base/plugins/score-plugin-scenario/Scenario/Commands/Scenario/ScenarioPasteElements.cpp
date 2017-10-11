@@ -265,11 +265,11 @@ ScenarioPasteElements::ScenarioPasteElements(
   // delta everywhere.
   if (!intervals.empty() || !timesyncs.empty()) // Should always be the case.
   {
-    auto earliestTime = !intervals.empty() ? intervals.front()->startDate()
+    auto earliestTime = !intervals.empty() ? intervals.front()->date()
                                              : timesyncs.front()->date();
     for (const IntervalModel* interval : intervals)
     {
-      const auto& t = interval->startDate();
+      const auto& t = interval->date();
       if (t < earliestTime)
         earliestTime = t;
     }
@@ -289,7 +289,7 @@ ScenarioPasteElements::ScenarioPasteElements(
     auto delta_t = pt.date - earliestTime;
     for (IntervalModel* interval : intervals)
     {
-      interval->setStartDate(interval->startDate() + delta_t);
+      interval->setStartDate(interval->date() + delta_t);
     }
     for (TimeSyncModel* tn : timesyncs)
     {

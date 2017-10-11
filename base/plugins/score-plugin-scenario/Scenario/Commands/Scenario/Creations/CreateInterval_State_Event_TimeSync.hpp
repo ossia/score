@@ -31,8 +31,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateInterval_State_Event_TimeSync final
 public:
   CreateInterval_State_Event_TimeSync(
       const Scenario::ProcessModel& scenario,
-      Id<StateModel>
-          startState,
+      Id<StateModel> startState,
       TimeVal date,
       double endStateY);
 
@@ -81,5 +80,6 @@ private:
 
   TimeVal m_date;
 };
+
 }
 }
