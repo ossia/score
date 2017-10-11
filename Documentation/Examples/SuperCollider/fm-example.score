@@ -1,0 +1,1720 @@
+{
+    "Document": {
+        "BaseScenario": {
+            "Constraint": {
+                "Center": 8929.632565326272,
+                "Components": [
+                ],
+                "DefaultDuration": 15000,
+                "EndState": 1,
+                "FullViewRack": [
+                    {
+                        "Process": 1
+                    }
+                ],
+                "GuiDuration": 17859.265130652548,
+                "HeightPercentage": 0,
+                "MaxDuration": 15000,
+                "MaxInf": true,
+                "Metadata": {
+                    "Color": "Transparent1",
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": "fm-example"
+                },
+                "MinDuration": 15000,
+                "MinNull": false,
+                "ObjectName": "Scenario::IntervalModel",
+                "Processes": [
+                    {
+                        "Comments": [
+                        ],
+                        "Components": [
+                        ],
+                        "Constraints": [
+                        ],
+                        "Duration": 15000,
+                        "Events": [
+                            {
+                                "Components": [
+                                ],
+                                "Condition": {
+                                    "Children": [
+                                    ],
+                                    "RootNode": {
+                                    }
+                                },
+                                "Date": 0,
+                                "Extent": [
+                                    0.09066666666666667,
+                                    0.09066666666666667
+                                ],
+                                "Metadata": {
+                                    "Color": "Emphasis4",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "Event.0"
+                                },
+                                "ObjectName": "Scenario::EventModel",
+                                "Offset": 0,
+                                "States": [
+                                    0
+                                ],
+                                "TimeNode": 0,
+                                "id": 0
+                            }
+                        ],
+                        "Height": 1500,
+                        "Metadata": {
+                            "Color": "Base1",
+                            "Comment": "",
+                            "Label": "",
+                            "ScriptingName": "Scenario.1"
+                        },
+                        "ObjectName": "Scenario",
+                        "StartEventId": 0,
+                        "StartStateId": 0,
+                        "StartTimeNodeId": 0,
+                        "States": [
+                            {
+                                "Components": [
+                                ],
+                                "Event": 0,
+                                "HeightPercentage": 0.09066666666666667,
+                                "Messages": {
+                                    "Accessors": [
+                                    ],
+                                    "Children": [
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ],
+                                    "Unit": "none"
+                                },
+                                "Metadata": {
+                                    "Color": "Base1",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "State.0"
+                                },
+                                "NextConstraint": null,
+                                "ObjectName": "Scenario::StateModel",
+                                "PreviousConstraint": null,
+                                "StateProcesses": [
+                                ],
+                                "id": 0
+                            }
+                        ],
+                        "TimeNodes": [
+                            {
+                                "Components": [
+                                ],
+                                "Date": 0,
+                                "Events": [
+                                    0
+                                ],
+                                "Extent": [
+                                    0.09066666666666667,
+                                    0.09066666666666667
+                                ],
+                                "Metadata": {
+                                    "Color": "Gray",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "Sync.0"
+                                },
+                                "ObjectName": "Scenario::TimeSyncModel",
+                                "Trigger": {
+                                    "Active": false,
+                                    "Expression": {
+                                        "Children": [
+                                        ],
+                                        "RootNode": {
+                                        }
+                                    }
+                                },
+                                "id": 0
+                            }
+                        ],
+                        "id": 1,
+                        "uuid": "de035912-5b03-49a8-bc4d-b2cba68e21d9"
+                    }
+                ],
+                "Rigidity": false,
+                "SmallViewRack": [
+                ],
+                "SmallViewShown": false,
+                "StartDate": 0,
+                "StartState": 0,
+                "Zoom": 24.498306077712684,
+                "id": 0
+            },
+            "EndEvent": {
+                "Components": [
+                ],
+                "Condition": {
+                    "Children": [
+                    ],
+                    "RootNode": {
+                    }
+                },
+                "Date": 15000,
+                "Extent": [
+                    0.4,
+                    0.6
+                ],
+                "Metadata": {
+                    "Color": "Emphasis4",
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": "Event.1"
+                },
+                "ObjectName": "Scenario::EventModel",
+                "Offset": 0,
+                "States": [
+                    1
+                ],
+                "TimeNode": 1,
+                "id": 1
+            },
+            "EndState": {
+                "Components": [
+                ],
+                "Event": 1,
+                "HeightPercentage": 0,
+                "Messages": {
+                    "Accessors": [
+                    ],
+                    "Children": [
+                    ],
+                    "Following": [
+                    ],
+                    "Name": "",
+                    "Previous": [
+                    ],
+                    "Priorities": [
+                        1,
+                        2,
+                        0
+                    ],
+                    "Unit": "none"
+                },
+                "Metadata": {
+                    "Color": "Base1",
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": "State.1"
+                },
+                "NextConstraint": null,
+                "ObjectName": "Scenario::StateModel",
+                "PreviousConstraint": 0,
+                "StateProcesses": [
+                ],
+                "id": 1
+            },
+            "EndTimeNode": {
+                "Components": [
+                ],
+                "Date": 15000,
+                "Events": [
+                    1
+                ],
+                "Extent": [
+                    0.2,
+                    0.8
+                ],
+                "Metadata": {
+                    "Color": "Gray",
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": "Sync.1"
+                },
+                "ObjectName": "Scenario::TimeSyncModel",
+                "Trigger": {
+                    "Active": true,
+                    "Expression": {
+                        "Children": [
+                        ],
+                        "RootNode": {
+                        }
+                    }
+                },
+                "id": 1
+            },
+            "ObjectName": "Scenario::BaseScenario",
+            "StartEvent": {
+                "Components": [
+                ],
+                "Condition": {
+                    "Children": [
+                    ],
+                    "RootNode": {
+                    }
+                },
+                "Date": 0,
+                "Extent": [
+                    0.1,
+                    0.15
+                ],
+                "Metadata": {
+                    "Color": "Emphasis4",
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": "Event.0"
+                },
+                "ObjectName": "Scenario::EventModel",
+                "Offset": 0,
+                "States": [
+                    0
+                ],
+                "TimeNode": 0,
+                "id": 0
+            },
+            "StartState": {
+                "Components": [
+                ],
+                "Event": 0,
+                "HeightPercentage": 0,
+                "Messages": {
+                    "Accessors": [
+                    ],
+                    "Children": [
+                        {
+                            "Accessors": [
+                            ],
+                            "Children": [
+                                {
+                                    "Accessors": [
+                                    ],
+                                    "Children": [
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "carfreq",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none",
+                                            "User": {
+                                                "Float": 201
+                                            }
+                                        },
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "harm_ratio",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none",
+                                            "User": {
+                                                "Float": 8.300000190734863
+                                            }
+                                        },
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "pm_index",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none",
+                                            "User": {
+                                                "Float": 1000
+                                            }
+                                        },
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "level",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none",
+                                            "User": {
+                                                "Float": 1
+                                            }
+                                        },
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "pan",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none",
+                                            "User": {
+                                                "Float": -0.17572999000549316
+                                            }
+                                        },
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                                {
+                                                    "Accessors": [
+                                                    ],
+                                                    "Children": [
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "cutoff",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "Unit": "none",
+                                                    "User": {
+                                                        "Float": 20000
+                                                    }
+                                                }
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "filter",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none"
+                                        }
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "fm_0",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ],
+                                    "Unit": "none"
+                                },
+                                {
+                                    "Accessors": [
+                                    ],
+                                    "Children": [
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "carfreq",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none",
+                                            "User": {
+                                                "Float": 100
+                                            }
+                                        },
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "harm_ratio",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none",
+                                            "User": {
+                                                "Float": 0.20000000298023224
+                                            }
+                                        },
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "pm_index",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none",
+                                            "User": {
+                                                "Float": 500
+                                            }
+                                        },
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "level",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none",
+                                            "User": {
+                                                "Float": 1
+                                            }
+                                        },
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "pan",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none",
+                                            "User": {
+                                                "Float": 0.5316774845123291
+                                            }
+                                        },
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                                {
+                                                    "Accessors": [
+                                                    ],
+                                                    "Children": [
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "cutoff",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "Unit": "none",
+                                                    "User": {
+                                                        "Float": 20000
+                                                    }
+                                                }
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "filter",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none"
+                                        }
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "fm_1",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ],
+                                    "Unit": "none"
+                                },
+                                {
+                                    "Accessors": [
+                                    ],
+                                    "Children": [
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "carfreq",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none",
+                                            "User": {
+                                                "Float": 99
+                                            }
+                                        },
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "harm_ratio",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none",
+                                            "User": {
+                                                "Float": 0.20999999344348907
+                                            }
+                                        },
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "pm_index",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none",
+                                            "User": {
+                                                "Float": 520
+                                            }
+                                        },
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "level",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none",
+                                            "User": {
+                                                "Float": 1
+                                            }
+                                        },
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "pan",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none",
+                                            "User": {
+                                                "Float": -0.7458531856536865
+                                            }
+                                        },
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                                {
+                                                    "Accessors": [
+                                                    ],
+                                                    "Children": [
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "cutoff",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "Unit": "none",
+                                                    "User": {
+                                                        "Float": 20000
+                                                    }
+                                                }
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "filter",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none"
+                                        }
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "fm_2",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ],
+                                    "Unit": "none"
+                                },
+                                {
+                                    "Accessors": [
+                                    ],
+                                    "Children": [
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "carfreq",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none",
+                                            "User": {
+                                                "Float": 200
+                                            }
+                                        },
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "harm_ratio",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none",
+                                            "User": {
+                                                "Float": 8.199999809265137
+                                            }
+                                        },
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "pm_index",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none",
+                                            "User": {
+                                                "Float": 500
+                                            }
+                                        },
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "level",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none",
+                                            "User": {
+                                                "Float": 1
+                                            }
+                                        },
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "pan",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none",
+                                            "User": {
+                                                "Float": -0.04659867286682129
+                                            }
+                                        },
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                                {
+                                                    "Accessors": [
+                                                    ],
+                                                    "Children": [
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "cutoff",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "Unit": "none",
+                                                    "User": {
+                                                        "Float": 20000
+                                                    }
+                                                }
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "filter",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none"
+                                        }
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "fm_3",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ],
+                                    "Unit": "none"
+                                },
+                                {
+                                    "Accessors": [
+                                    ],
+                                    "Children": [
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "stop",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ],
+                                    "Unit": "none",
+                                    "User": {
+                                        "Impulse": null
+                                    }
+                                },
+                                {
+                                    "Accessors": [
+                                    ],
+                                    "Children": [
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "level",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none",
+                                            "User": {
+                                                "Float": 0.20000000298023224
+                                            }
+                                        }
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "master",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ],
+                                    "Unit": "none"
+                                }
+                            ],
+                            "Following": [
+                            ],
+                            "Name": "ensatt-collider",
+                            "Previous": [
+                            ],
+                            "Priorities": [
+                                1,
+                                2,
+                                0
+                            ],
+                            "Unit": "none"
+                        }
+                    ],
+                    "Following": [
+                    ],
+                    "Name": "",
+                    "Previous": [
+                    ],
+                    "Priorities": [
+                        1,
+                        2,
+                        0
+                    ],
+                    "Unit": "none"
+                },
+                "Metadata": {
+                    "Color": "Base1",
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": "State.0"
+                },
+                "NextConstraint": 0,
+                "ObjectName": "Scenario::StateModel",
+                "PreviousConstraint": null,
+                "StateProcesses": [
+                ],
+                "id": 0
+            },
+            "StartTimeNode": {
+                "Components": [
+                ],
+                "Date": 0,
+                "Events": [
+                    0
+                ],
+                "Extent": [
+                    0.2,
+                    0.8
+                ],
+                "Metadata": {
+                    "Color": "Gray",
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": "Sync.0"
+                },
+                "ObjectName": "Scenario::TimeSyncModel",
+                "Trigger": {
+                    "Active": false,
+                    "Expression": {
+                        "Children": [
+                        ],
+                        "RootNode": {
+                        }
+                    }
+                },
+                "id": 0
+            },
+            "id": 0
+        },
+        "ObjectName": "Scenario::ScenarioDocumentModel",
+        "id": 1
+    },
+    "Plugins": {
+        "Explorer::DeviceDocumentPlugin": {
+            "Children": [
+                {
+                    "Children": [
+                        {
+                            "AddressSettings": {
+                                "ClipMode": "Free",
+                                "Domain": {
+                                },
+                                "Extended": {
+                                },
+                                "Name": "fm_0",
+                                "RepetitionFilter": false,
+                                "Unit": "none"
+                            },
+                            "Children": [
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Float": {
+                                                "Max": 20000,
+                                                "Min": 0
+                                            }
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Float": 201,
+                                        "Name": "carfreq",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none",
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Float": {
+                                                "Max": 10,
+                                                "Min": 9.999999747378752e-05
+                                            }
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Float": 8.300000190734863,
+                                        "Name": "harm_ratio",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none",
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Float": {
+                                                "Max": 1000,
+                                                "Min": 0.0010000000474974513
+                                            }
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Float": 1000,
+                                        "Name": "pm_index",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none",
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Float": {
+                                                "Max": 1,
+                                                "Min": 0
+                                            }
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Float": 1,
+                                        "Name": "level",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none",
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Float": {
+                                                "Max": 1,
+                                                "Min": -1
+                                            }
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Float": -0.17572999000549316,
+                                        "Name": "pan",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none",
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Free",
+                                        "Domain": {
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Name": "filter",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none"
+                                    },
+                                    "Children": [
+                                        {
+                                            "AddressSettings": {
+                                                "ClipMode": "Clip",
+                                                "Domain": {
+                                                    "Float": {
+                                                        "Max": 20000,
+                                                        "Min": 20
+                                                    }
+                                                },
+                                                "Extended": {
+                                                },
+                                                "Float": 20000,
+                                                "Name": "cutoff",
+                                                "RepetitionFilter": false,
+                                                "Unit": "none",
+                                                "ioType": "<->"
+                                            },
+                                            "Children": [
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "AddressSettings": {
+                                "ClipMode": "Free",
+                                "Domain": {
+                                },
+                                "Extended": {
+                                },
+                                "Name": "fm_1",
+                                "RepetitionFilter": false,
+                                "Unit": "none"
+                            },
+                            "Children": [
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Float": {
+                                                "Max": 20000,
+                                                "Min": 0
+                                            }
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Float": 100,
+                                        "Name": "carfreq",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none",
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Float": {
+                                                "Max": 10,
+                                                "Min": 9.999999747378752e-05
+                                            }
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Float": 0.20000000298023224,
+                                        "Name": "harm_ratio",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none",
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Float": {
+                                                "Max": 1000,
+                                                "Min": 0.0010000000474974513
+                                            }
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Float": 500,
+                                        "Name": "pm_index",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none",
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Float": {
+                                                "Max": 1,
+                                                "Min": 0
+                                            }
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Float": 1,
+                                        "Name": "level",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none",
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Float": {
+                                                "Max": 1,
+                                                "Min": -1
+                                            }
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Float": 0.5316774845123291,
+                                        "Name": "pan",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none",
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Free",
+                                        "Domain": {
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Name": "filter",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none"
+                                    },
+                                    "Children": [
+                                        {
+                                            "AddressSettings": {
+                                                "ClipMode": "Clip",
+                                                "Domain": {
+                                                    "Float": {
+                                                        "Max": 20000,
+                                                        "Min": 20
+                                                    }
+                                                },
+                                                "Extended": {
+                                                },
+                                                "Float": 20000,
+                                                "Name": "cutoff",
+                                                "RepetitionFilter": false,
+                                                "Unit": "none",
+                                                "ioType": "<->"
+                                            },
+                                            "Children": [
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "AddressSettings": {
+                                "ClipMode": "Free",
+                                "Domain": {
+                                },
+                                "Extended": {
+                                },
+                                "Name": "fm_2",
+                                "RepetitionFilter": false,
+                                "Unit": "none"
+                            },
+                            "Children": [
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Float": {
+                                                "Max": 20000,
+                                                "Min": 0
+                                            }
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Float": 99,
+                                        "Name": "carfreq",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none",
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Float": {
+                                                "Max": 10,
+                                                "Min": 9.999999747378752e-05
+                                            }
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Float": 0.20999999344348907,
+                                        "Name": "harm_ratio",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none",
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Float": {
+                                                "Max": 1000,
+                                                "Min": 0.0010000000474974513
+                                            }
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Float": 520,
+                                        "Name": "pm_index",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none",
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Float": {
+                                                "Max": 1,
+                                                "Min": 0
+                                            }
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Float": 1,
+                                        "Name": "level",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none",
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Float": {
+                                                "Max": 1,
+                                                "Min": -1
+                                            }
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Float": -0.7458531856536865,
+                                        "Name": "pan",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none",
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Free",
+                                        "Domain": {
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Name": "filter",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none"
+                                    },
+                                    "Children": [
+                                        {
+                                            "AddressSettings": {
+                                                "ClipMode": "Clip",
+                                                "Domain": {
+                                                    "Float": {
+                                                        "Max": 20000,
+                                                        "Min": 20
+                                                    }
+                                                },
+                                                "Extended": {
+                                                },
+                                                "Float": 20000,
+                                                "Name": "cutoff",
+                                                "RepetitionFilter": false,
+                                                "Unit": "none",
+                                                "ioType": "<->"
+                                            },
+                                            "Children": [
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "AddressSettings": {
+                                "ClipMode": "Free",
+                                "Domain": {
+                                },
+                                "Extended": {
+                                },
+                                "Name": "fm_3",
+                                "RepetitionFilter": false,
+                                "Unit": "none"
+                            },
+                            "Children": [
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Float": {
+                                                "Max": 20000,
+                                                "Min": 0
+                                            }
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Float": 200,
+                                        "Name": "carfreq",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none",
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Float": {
+                                                "Max": 10,
+                                                "Min": 9.999999747378752e-05
+                                            }
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Float": 8.199999809265137,
+                                        "Name": "harm_ratio",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none",
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Float": {
+                                                "Max": 1000,
+                                                "Min": 0.0010000000474974513
+                                            }
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Float": 500,
+                                        "Name": "pm_index",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none",
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Float": {
+                                                "Max": 1,
+                                                "Min": 0
+                                            }
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Float": 1,
+                                        "Name": "level",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none",
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Float": {
+                                                "Max": 1,
+                                                "Min": -1
+                                            }
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Float": -0.04659867286682129,
+                                        "Name": "pan",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none",
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Free",
+                                        "Domain": {
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Name": "filter",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none"
+                                    },
+                                    "Children": [
+                                        {
+                                            "AddressSettings": {
+                                                "ClipMode": "Clip",
+                                                "Domain": {
+                                                    "Float": {
+                                                        "Max": 20000,
+                                                        "Min": 20
+                                                    }
+                                                },
+                                                "Extended": {
+                                                },
+                                                "Float": 20000,
+                                                "Name": "cutoff",
+                                                "RepetitionFilter": false,
+                                                "Unit": "none",
+                                                "ioType": "<->"
+                                            },
+                                            "Children": [
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "AddressSettings": {
+                                "ClipMode": "Free",
+                                "Domain": {
+                                },
+                                "Extended": {
+                                },
+                                "Impulse": null,
+                                "Name": "start",
+                                "RepetitionFilter": false,
+                                "Unit": "none",
+                                "ioType": "<->"
+                            },
+                            "Children": [
+                            ]
+                        },
+                        {
+                            "AddressSettings": {
+                                "ClipMode": "Free",
+                                "Domain": {
+                                },
+                                "Extended": {
+                                },
+                                "Impulse": null,
+                                "Name": "stop",
+                                "RepetitionFilter": false,
+                                "Unit": "none",
+                                "ioType": "<->"
+                            },
+                            "Children": [
+                            ]
+                        },
+                        {
+                            "AddressSettings": {
+                                "ClipMode": "Free",
+                                "Domain": {
+                                },
+                                "Extended": {
+                                },
+                                "Name": "master",
+                                "RepetitionFilter": false,
+                                "Unit": "none"
+                            },
+                            "Children": [
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Free",
+                                        "Domain": {
+                                            "Float": {
+                                                "Max": 1,
+                                                "Min": 0
+                                            }
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Float": 0.20000000298023224,
+                                        "Name": "level",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none",
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "DeviceSettings": {
+                        "Host": "ws://MacBook-Pro-de-Pierre.local.:5678",
+                        "Name": "ensatt-collider",
+                        "Protocol": "1187fefe-0468-49d1-9eb7-92d7f4e11f6f"
+                    }
+                }
+            ],
+            "DocumentPostModelPart": {
+            },
+            "ObjectName": "Explorer::DeviceDocumentPlugin",
+            "RootNode": {
+            },
+            "id": 2,
+            "uuid": "6e610e1f-9de2-4c36-90dd-0ef570002a21"
+        }
+    },
+    "Version": 2
+}
