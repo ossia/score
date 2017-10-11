@@ -21,7 +21,6 @@ struct JSWidgetBase
 
   JSEdit* m_edit{};
   QLabel* m_errorLabel{};
-  QTableWidget* m_tableWidget{};
   QString m_script;
 
   CommandDispatcher<> m_dispatcher;

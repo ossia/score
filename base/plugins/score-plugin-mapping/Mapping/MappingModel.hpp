@@ -39,13 +39,8 @@ public:
       const Id<Process::ProcessModel>& id,
       QObject* parent);
 
-  template <typename Impl>
-  ProcessModel(Impl& vis, QObject* parent)
-      : CurveProcessModel{vis, parent}
-  {
-    vis.writeTo(*this);
-    init();
-  }
+  ProcessModel(DataStream::Deserializer& vis, QObject* parent);
+  ProcessModel(JSONObject::Deserializer& vis, QObject* parent);
 
   //// MappingModel specifics ////
   State::AddressAccessor sourceAddress() const;

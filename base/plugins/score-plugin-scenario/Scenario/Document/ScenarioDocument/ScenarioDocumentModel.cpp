@@ -64,6 +64,7 @@ ScenarioDocumentModel::ScenarioDocumentModel(
                             score::id_generator::getFirstId()),
                           "Scenario::ScenarioDocumentModel",
                           parent}
+  , m_context{ctx}
   , m_baseScenario{new BaseScenario{Id<BaseScenario>{0}, this}}
 {
   auto dur

@@ -8,6 +8,7 @@
 #include "AutomationModel.hpp"
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <Automation/AutomationProcessMetadata.hpp>
+#include <Process/Dataflow/DataflowObjects.hpp>
 #include <Automation/State/AutomationState.hpp>
 #include <Curve/CurveModel.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
@@ -82,13 +83,31 @@ ProcessModel::~ProcessModel()
 {
 }
 
+ProcessModel::ProcessModel(JSONObject::Deserializer& vis, QObject* parent)
+  : CurveProcessModel{vis, parent}
+  , m_startState{new ProcessState{*this, 0., this}}
+  , m_endState{new ProcessState{*this, 1., this}}
+{
+  vis.writeTo(*this);
+  init();
+}
+
+ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent)
+  : CurveProcessModel{vis, parent}
+  , m_startState{new ProcessState{*this, 0., this}}
+  , m_endState{new ProcessState{*this, 1., this}}
+{
+  vis.writeTo(*this);
+  init();
+}
+
 ProcessModel::ProcessModel(
     const ProcessModel& source,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : Curve::CurveProcessModel{source, id,
-                               Metadata<ObjectKey_k, ProcessModel>::get(),
-                               parent}
+  : Curve::CurveProcessModel{source, id,
+                             Metadata<ObjectKey_k, ProcessModel>::get(),
+                             parent}
     , outlet{std::make_unique<Process::Port>(source.outlet->id(), *source.outlet, this)}
     , m_min{source.min()}
     , m_max{source.max()}

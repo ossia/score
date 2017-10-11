@@ -4,6 +4,7 @@
 #include <Engine/OSSIA2score.hpp>
 #include <Engine/score2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <ossia-qt/js_utilities.hpp>
 #include <vector>
 
 #include "Component.hpp"
@@ -60,19 +61,14 @@ void ProcessExecutor::setTickFun(const QString& val)
   }
 }
 
-ossia::state_element ProcessExecutor::state(ossia::time_value date, double pos, ossia::time_value tick_offset)
-{
-  return state(pos);
-}
-
-ossia::state_element ProcessExecutor::state(double t)
+ossia::state_element ProcessExecutor::state(ossia::time_value date, double pos, ossia::time_value offs)
 {
   if (m_tickFun.isCallable())
   {
     ossia::state st;
 
     // 2. Get the value of the js fun
-    auto messages = JS::convert::messages(m_tickFun.call({QJSValue{t}}));
+    auto messages = JS::convert::messages(m_tickFun.call({QJSValue{pos}}));
 
     m_engine.collectGarbage();
 
@@ -88,7 +84,14 @@ ossia::state_element ProcessExecutor::state(double t)
   else if(m_object)
   {
     QVariant ret;
-    QMetaObject::invokeMethod(m_object, "onTick", Qt::DirectConnection, Q_RETURN_ARG(QVariant, ret), Q_ARG(QVariant, t));
+    QMetaObject::invokeMethod(
+          m_object, "onTick",
+          Qt::DirectConnection,
+          Q_RETURN_ARG(QVariant, ret),
+          Q_ARG(double, date),
+          Q_ARG(double, pos),
+          Q_ARG(double, offs)
+          );
     if(ret.canConvert<QJSValue>())
     {
       ossia::state st;
@@ -130,5 +133,59 @@ Component::Component(
     { proc->setTickFun(str); });
   });
 }
+
+void js_node::setScript(const QString& val)
+{
+  m_valInlets.clear();
+  m_valOutlets.clear();
+  if(val.trimmed().startsWith("import"))
+  {
+    QQmlComponent c{&m_engine};
+    c.setData(val.toUtf8(), QUrl());
+    const auto& errs = c.errors();
+    if(!errs.empty())
+    {
+      ossia::logger()
+          .error("Uncaught exception at line {} : {}",
+                 errs[0].line(),
+          errs[0].toString().toStdString());
+    }
+    else
+    {
+      m_object = c.create();
+      if(m_object)
+      {
+        m_object->setParent(&m_engine);
+        m_valInlets = m_object->findChildren<JS::ValueInlet*>();
+        m_valOutlets = m_object->findChildren<JS::ValueOutlet*>();
+      }
+    }
+  }
+}
+
+void js_node::run(ossia::execution_state&)
+{
+  for(int i = 0; i < m_valInlets.size(); i++)
+  {
+    auto& dat = m_inlets[i]->data.target<ossia::value_port>()->data;
+    if(!dat.empty())
+      m_valInlets[i]->setValue(dat.front().apply(ossia::qt::ossia_to_qvariant{}));
+  }
+
+  QMetaObject::invokeMethod(
+        m_object, "onTick",
+        Qt::DirectConnection,
+        Q_ARG(double, this->m_date),
+        Q_ARG(double, this->m_position),
+        Q_ARG(double, this->m_offset)
+        );
+
+  for(int i = 0; i < m_valOutlets.size(); i++)
+  {
+    auto& dat = m_outlets[i]->data.target<ossia::value_port>()->data;
+    dat.push_back(ossia::qt::qt_to_ossia{}(m_valOutlets[i]->value()));
+  }
+}
+
 }
 }

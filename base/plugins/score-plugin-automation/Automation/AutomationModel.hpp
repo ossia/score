@@ -45,15 +45,8 @@ public:
       QObject* parent);
   ~ProcessModel();
 
-  template <typename Impl>
-  ProcessModel(Impl& vis, QObject* parent)
-      : CurveProcessModel{vis, parent}
-      , m_startState{new ProcessState{*this, 0., this}}
-      , m_endState{new ProcessState{*this, 1., this}}
-  {
-    vis.writeTo(*this);
-    init();
-  }
+  ProcessModel(DataStream::Deserializer& vis, QObject* parent);
+  ProcessModel(JSONObject::Deserializer& vis, QObject* parent);
 
   ::State::AddressAccessor address() const;
 

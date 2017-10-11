@@ -5,19 +5,21 @@
 #include <QString>
 
 #include "JSProcessModel.hpp"
+#include <Process/Dataflow/DataflowObjects.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
-
-
 template <>
 void DataStreamReader::read(const JS::ProcessModel& proc)
 {
+  m_stream << (int32_t)proc.m_inlets.size();
+  for(auto v : proc.m_inlets)
+    m_stream << *v;
+  m_stream << (int32_t)proc.m_outlets.size();
+  for(auto v : proc.m_outlets)
+    m_stream << *v;
+
   m_stream << proc.m_script;
 
   insertDelimiter();
@@ -27,6 +29,21 @@ void DataStreamReader::read(const JS::ProcessModel& proc)
 template <>
 void DataStreamWriter::write(JS::ProcessModel& proc)
 {
+  {
+    int32_t ports;
+    m_stream >> ports;
+    for(auto i = ports; i-->0;) {
+      proc.m_inlets.push_back(new Process::Port{*this, &proc});
+    }
+  }
+  {
+    int32_t ports;
+    m_stream >> ports;
+    for(auto i = ports; i-->0;) {
+      proc.m_outlets.push_back(new Process::Port{*this, &proc});
+    }
+  }
+
   QString str;
   m_stream >> str;
   proc.setScript(str);
@@ -38,6 +55,8 @@ void DataStreamWriter::write(JS::ProcessModel& proc)
 template <>
 void JSONObjectReader::read(const JS::ProcessModel& proc)
 {
+  obj["Inlets"] = toJsonArray(proc.m_inlets);
+  obj["Outlets"] = toJsonArray(proc.m_outlets);
   obj["Script"] = proc.script();
 }
 
@@ -45,5 +64,7 @@ void JSONObjectReader::read(const JS::ProcessModel& proc)
 template <>
 void JSONObjectWriter::write(JS::ProcessModel& proc)
 {
+  fromJsonArray(obj["Inlets"].toArray(), proc.m_inlets, &proc);
+  fromJsonArray(obj["Outlets"].toArray(), proc.m_outlets, &proc);
   proc.setScript(obj["Script"].toString());
 }

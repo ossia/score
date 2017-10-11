@@ -37,6 +37,7 @@ public:
       const score::DocumentContext& ctx,
       QObject* parent)
       : score::DocumentDelegateModel{vis, parent}
+      , m_context{ctx}
   {
     vis.writeTo(*this);
   }
@@ -55,7 +56,7 @@ public:
   score::EntityMap<Process::Cable> cables;
 private:
   void initializeNewDocument(const IntervalModel& viewmodel);
-
+  const score::DocumentContext& m_context;
   BaseScenario* m_baseScenario{};
 };
 }

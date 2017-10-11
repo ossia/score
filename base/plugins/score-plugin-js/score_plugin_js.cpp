@@ -5,6 +5,7 @@
 #include <JS/Inspector/JSInspectorFactory.hpp>
 #include <JS/JSProcessFactory.hpp>
 #include <JS/JSStateProcess.hpp>
+#include <JS/Qml/QmlObjects.hpp>
 #include <score/tools/std/HashMap.hpp>
 
 #include "JS/Commands/JSCommandFactory.hpp"
@@ -19,6 +20,8 @@
 
 score_plugin_js::score_plugin_js() : QObject{}
 {
+  qmlRegisterType<JS::ValueInlet>("Score", 1, 0, "ValueInlet");
+  qmlRegisterType<JS::ValueOutlet>("Score", 1, 0, "ValueOutlet");
 }
 
 score_plugin_js::~score_plugin_js()

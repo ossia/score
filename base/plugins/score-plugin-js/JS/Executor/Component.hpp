@@ -9,6 +9,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <memory>
+#include <JS/Qml/QmlObjects.hpp>
 
 namespace Explorer
 {
@@ -37,7 +38,6 @@ public:
 
   void setTickFun(const QString& val);
 
-  ossia::state_element state(double);
   ossia::state_element state(ossia::time_value date, double pos, ossia::time_value tick_offset) override;
 
 private:
@@ -45,6 +45,25 @@ private:
   QQmlEngine m_engine;
   QObject* m_object{};
   QJSValue m_tickFun;
+};
+
+class js_node final : public ossia::graph_node
+{
+public:
+  js_node(const QString& val)
+  {
+    setScript(val);
+  }
+
+  void setScript(const QString& val);
+
+  void run(ossia::execution_state&) override;
+
+private:
+  QQmlEngine m_engine;
+  QList<ValueInlet*> m_valInlets;
+  QList<ValueOutlet*> m_valOutlets;
+  QObject* m_object{};
 };
 
 class Component final

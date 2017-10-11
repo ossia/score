@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <score/serialization/VisitorCommon.hpp>
 
+#include <Process/Dataflow/DataflowObjects.hpp>
 #include "MappingModel.hpp"
 #include <Curve/CurveModel.hpp>
 #include <State/Address.hpp>
@@ -16,10 +17,10 @@ template <>
 void DataStreamReader::read(
     const Mapping::ProcessModel& autom)
 {
+  m_stream << *autom.inlet << *autom.outlet;
   readFrom(autom.curve());
 
-  m_stream << *autom.inlet << *autom.outlet
-           << autom.sourceMin() << autom.sourceMax()
+  m_stream << autom.sourceMin() << autom.sourceMax()
            << autom.targetMin() << autom.targetMax();
 
   insertDelimiter();
@@ -29,10 +30,10 @@ void DataStreamReader::read(
 template <>
 void DataStreamWriter::write(Mapping::ProcessModel& autom)
 {
-  autom.setCurve(new Curve::Model{*this, &autom});
-
   autom.inlet = std::make_unique<Process::Port>(*this, &autom);
   autom.outlet = std::make_unique<Process::Port>(*this, &autom);
+  autom.setCurve(new Curve::Model{*this, &autom});
+
   { // Source
     double min, max;
 
@@ -57,9 +58,9 @@ template <>
 void JSONObjectReader::read(
     const Mapping::ProcessModel& autom)
 {
-  obj["Curve"] = toJsonObject(autom.curve());
   obj["Inlet"] = toJsonObject(*autom.inlet);
   obj["Outlet"] = toJsonObject(*autom.outlet);
+  obj["Curve"] = toJsonObject(autom.curve());
 
   obj["SourceMin"] = autom.sourceMin();
   obj["SourceMax"] = autom.sourceMax();
@@ -72,9 +73,6 @@ void JSONObjectReader::read(
 template <>
 void JSONObjectWriter::write(Mapping::ProcessModel& autom)
 {
-  JSONObject::Deserializer curve_deser{obj["Curve"].toObject()};
-  autom.setCurve(new Curve::Model{curve_deser, &autom});
-
   {
     JSONObjectWriter writer{obj["Inlet"].toObject()};
     autom.inlet = std::make_unique<Process::Port>(writer, &autom);
@@ -83,6 +81,10 @@ void JSONObjectWriter::write(Mapping::ProcessModel& autom)
     JSONObjectWriter writer{obj["Outlet"].toObject()};
     autom.outlet = std::make_unique<Process::Port>(writer, &autom);
   }
+
+  JSONObject::Deserializer curve_deser{obj["Curve"].toObject()};
+  autom.setCurve(new Curve::Model{curve_deser, &autom});
+
   autom.setSourceMin(obj["SourceMin"].toDouble());
   autom.setSourceMax(obj["SourceMax"].toDouble());
 
