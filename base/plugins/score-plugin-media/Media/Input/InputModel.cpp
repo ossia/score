@@ -2,6 +2,7 @@
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <QFile>
+#include <Process/Dataflow/DataflowObjects.hpp>
 
 namespace Media
 {

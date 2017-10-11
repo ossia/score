@@ -31,6 +31,12 @@ void DataStreamReader::read(
 {
   readFrom(*obj.m_baseScenario);
 
+  m_stream << (int32_t)obj.cables.size();
+  for (const auto& p : obj.cables)
+  {
+    readFrom(p);
+  }
+
   insertDelimiter();
 }
 
@@ -39,6 +45,13 @@ template <>
 void DataStreamWriter::write(Scenario::ScenarioDocumentModel& obj)
 {
   obj.m_baseScenario = new Scenario::BaseScenario{*this, &obj};
+
+  int32_t cable_count;
+  m_stream >> cable_count;
+  for (; cable_count-- > 0;)
+  {
+    obj.cables.add(new Process::Cable{*this, obj.m_context, &obj});
+  }
 
   checkDelimiter();
 }
@@ -49,14 +62,24 @@ void JSONObjectReader::read(
     const Scenario::ScenarioDocumentModel& doc)
 {
   obj["BaseScenario"] = toJsonObject(*doc.m_baseScenario);
+  obj["Cables"] = toJsonArray(doc.cables);
 }
 
 
 template <>
 void JSONObjectWriter::write(Scenario::ScenarioDocumentModel& doc)
 {
-  doc.m_baseScenario = new Scenario::BaseScenario{
-      JSONObject::Deserializer{obj["BaseScenario"].toObject()}, &doc};
+  doc.m_baseScenario = new Scenario::BaseScenario(
+        JSONObject::Deserializer{obj["BaseScenario"].toObject()}, &doc);
+
+
+  const auto& cbl = obj["Cables"].toArray();
+  for (const auto& json_vref : cbl)
+  {
+    doc.cables.add(new Process::Cable{
+                     JSONObject::Deserializer{json_vref.toObject()}, doc.m_context, &doc});
+  }
+
 }
 
 void Scenario::ScenarioDocumentModel::serialize(

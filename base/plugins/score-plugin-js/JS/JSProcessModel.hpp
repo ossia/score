@@ -11,12 +11,6 @@
 #include <score/model/Identifier.hpp>
 #include <QJSValue>
 #include <QVariantMap>
-class DataStream;
-class JSONObject;
-
-
-class QObject;
-
 namespace JS
 {
 class ProcessModel final : public Process::ProcessModel
@@ -48,8 +42,10 @@ public:
     return m_script;
   }
 
-  const std::vector<std::pair<QByteArray, QVariant>>& customProperties() const { return m_properties; }
   ~ProcessModel();
+
+  std::vector<Process::Port*> inlets() const override { return m_inlets; }
+  std::vector<Process::Port*> outlets() const override { return m_outlets; }
 signals:
   void scriptError(int, const QString&);
   void scriptOk();
@@ -57,6 +53,7 @@ signals:
 
 private:
   QString m_script;
-  std::vector<std::pair<QByteArray, QVariant>> m_properties;
+  std::vector<Process::Port*> m_inlets;
+  std::vector<Process::Port*> m_outlets;
 };
 }

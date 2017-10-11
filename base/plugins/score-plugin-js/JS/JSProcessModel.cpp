@@ -7,6 +7,8 @@
 #include <QQmlEngine>
 #include <QQmlComponent>
 #include <vector>
+#include <JS/Qml/QmlObjects.hpp>
+#include <Process/Dataflow/DataflowObjects.hpp>
 
 #include "JS/JSProcessMetadata.hpp"
 #include "JSProcessModel.hpp"
@@ -52,32 +54,45 @@ ProcessModel::~ProcessModel()
 
 void ProcessModel::setScript(const QString& script)
 {
-  static QQmlEngine test_engine;
+  qDeleteAll(m_inlets);
+  m_inlets.clear();
+  qDeleteAll(m_outlets);
+  m_outlets.clear();
+  QQmlEngine test_engine;
   m_script = script;
 
-  if(script.startsWith("import"))
+  if(script.trimmed().startsWith("import"))
   {
     QQmlComponent c{&test_engine};
-    c.setData(script.toUtf8(), QUrl());
+    c.setData(script.trimmed().toUtf8(), QUrl());
     const auto& errs = c.errors();
     if(!errs.empty())
     {
       const auto& err = errs.first();
+      qDebug() << err.line() << err.toString();
       emit scriptError(err.line(), err.toString());
     }
     else
     {
-      m_properties.clear();
       auto obj = c.create();
-      const auto mobj = obj->metaObject();
-      int i = mobj->propertyOffset();
-      const int N = mobj->propertyCount();
-      m_properties.reserve(N - i);
-      for(; i < N; i++)
-      {
-        auto prop = obj->metaObject()->property(i);
-        m_properties.emplace_back(prop.name(), prop.read(obj));
+      auto cld_inlet = obj->findChildren<ValueInlet*>();
+      auto cld_outlet = obj->findChildren<ValueOutlet*>();
+
+      int i = 0;
+      for(auto n : cld_inlet) {
+        auto inl = new Process::Port{Id<Process::Port>(i++), this};
+        inl->type = Process::PortType::Message;
+        inl->outlet = false;
+        m_inlets.push_back(inl);
       }
+
+      for(auto n : cld_outlet) {
+        auto inl = new Process::Port{Id<Process::Port>(i++), this};
+        inl->type = Process::PortType::Message;
+        inl->outlet = true;
+        m_outlets.push_back(inl);
+      }
+      delete obj;
 
       emit scriptOk();
     }
@@ -96,5 +111,7 @@ void ProcessModel::setScript(const QString& script)
   }
 
   emit scriptChanged(script);
+  emit inletsChanged();
+  emit outletsChanged();
 }
 }

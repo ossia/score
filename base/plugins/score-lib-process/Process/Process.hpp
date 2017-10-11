@@ -2,7 +2,6 @@
 #include <Process/ExpandMode.hpp>
 
 #include <Process/TimeValue.hpp>
-#include <Process/Dataflow/DataflowObjects.hpp>
 #include <QByteArray>
 #include <QString>
 #include <score/model/Entity.hpp>
@@ -24,6 +23,7 @@ class ProcessStateDataInterface;
 
 namespace Process
 {
+class Port;
 class ProcessModelFactory;
 class LayerFactory;
 class ProcessModel;

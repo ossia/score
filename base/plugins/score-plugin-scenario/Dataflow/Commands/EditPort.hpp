@@ -4,6 +4,7 @@
 #include <Dataflow/UI/DataflowProcessNode.hpp>
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
+#include <State/Address.hpp>
 
 namespace Dataflow
 {

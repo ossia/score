@@ -5,6 +5,7 @@
 #include <score/document/DocumentInterface.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <Process/Dataflow/DataflowObjects.hpp>
 #include "MappingModel.hpp"
 #include <Curve/Process/CurveProcessModel.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
@@ -57,11 +58,25 @@ ProcessModel::ProcessModel(
   init();
 }
 
+ProcessModel::ProcessModel(JSONObject::Deserializer& vis, QObject* parent)
+  : CurveProcessModel{vis, parent}
+{
+  vis.writeTo(*this);
+  init();
+}
+
+ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent)
+  : CurveProcessModel{vis, parent}
+{
+  vis.writeTo(*this);
+  init();
+}
+
 ProcessModel::ProcessModel(
     const ProcessModel& source,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : CurveProcessModel{source, id, Metadata<ObjectKey_k, ProcessModel>::get(),
+  : CurveProcessModel{source, id, Metadata<ObjectKey_k, ProcessModel>::get(),
                         parent}
     , inlet{std::make_unique<Process::Port>(source.inlet->id(), *source.inlet, this)}
     , outlet{std::make_unique<Process::Port>(source.outlet->id(), *source.outlet, this)}

@@ -2,6 +2,8 @@
 #include <Dataflow/UI/PortItem.hpp>
 #include <Process/Dataflow/DataflowObjects.hpp>
 #include <QGraphicsSceneMoveEvent>
+#include <boost/range/algorithm_ext/erase.hpp>
+
 #include <QMenu>
 #include <QPainter>
 

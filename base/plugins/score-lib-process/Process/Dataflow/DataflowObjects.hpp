@@ -3,13 +3,19 @@
 #include <State/Address.hpp>
 #include <ossia/detail/optional.hpp>
 #include <score/model/IdentifiedObject.hpp>
-#include <ossia/dataflow/graph_edge.hpp>
 #include <score/model/Component.hpp>
 #include <score/model/ComponentHierarchy.hpp>
 #include <score/plugins/customfactory/ModelFactory.hpp>
 #include <score/model/ComponentFactory.hpp>
 #include <score_lib_process_export.h>
 
+namespace ossia
+{
+class graph_node;
+class graph_edge;
+using node_ptr = std::shared_ptr<graph_node>;
+using edge_ptr = std::shared_ptr<graph_edge>;
+}
 namespace Dataflow
 {
 class NodeItem;
@@ -44,6 +50,12 @@ class SCORE_LIB_PROCESS_EXPORT Cable
     Cable(const Cable&) = delete;
     Cable(Id<Cable> c, QObject* parent);
 
+    template<typename T>
+    Cable(T&& vis, const score::DocumentContext& ctx, QObject* parent):
+      IdentifiedObject{vis, parent}
+    {
+      vis.writeTo(*this);
+    }
     Cable(const score::DocumentContext& ctx, Id<Cable> c, const CableData& data, QObject* parent);
 
     void update(const score::DocumentContext& ctx, const CableData&);

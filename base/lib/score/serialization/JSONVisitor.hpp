@@ -588,5 +588,24 @@ inline void fromJsonArray(QJsonArray&& json_arr, QStringList& arr)
   }
 }
 
+template<typename T>
+QJsonArray toJsonArray(const std::vector<T*>& array)
+{
+  QJsonArray arr;
+  for (auto& v : array)
+    arr.push_back(toJsonObject(*v));
+  return arr;
+}
+
+template<typename T>
+void fromJsonArray(const QJsonArray& arr, std::vector<T*>& array, QObject* parent)
+{
+  for (const auto& v : arr)
+  {
+    auto obj = v.toObject();
+    array.push_back(new T{JSONObjectWriter{obj}, parent});
+  }
+}
+
 Q_DECLARE_METATYPE(JSONObjectReader*)
 Q_DECLARE_METATYPE(JSONObjectWriter*)
