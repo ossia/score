@@ -134,7 +134,7 @@ void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
 
   for (auto& interval : intervals)
   {
-    interval.setStartDate(interval.startDate() * scale);
+    interval.setStartDate(interval.date() * scale);
     // Note : scale the min / max.
 
     auto newdur = interval.duration.defaultDuration() * scale;

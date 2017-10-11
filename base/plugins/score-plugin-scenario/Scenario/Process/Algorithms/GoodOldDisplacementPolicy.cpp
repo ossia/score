@@ -102,23 +102,23 @@ void GoodOldDisplacementPolicy::computeDisplacement(
             auto& startTnodeId = curIntervalStartEvent.timeSync();
 
             // compute default duration
-            TimeVal startDate;
+            TimeVal date;
 
             // if prev tnode has moved take updated value else take existing
             auto it = elementsProperties.timesyncs.find(startTnodeId);
             if (it != elementsProperties.timesyncs.cend())
             {
-              startDate = it.value().newDate;
+              date = it.value().newDate;
             }
             else
             {
-              startDate = curIntervalStartEvent.date();
+              date = curIntervalStartEvent.date();
             }
 
             const auto& endDate
                 = elementsProperties.timesyncs[curTimeSyncId].newDate;
 
-            TimeVal newDefaultDuration = endDate - startDate;
+            TimeVal newDefaultDuration = endDate - date;
             TimeVal deltaBounds = newDefaultDuration
                                     - curInterval.duration.defaultDuration();
 

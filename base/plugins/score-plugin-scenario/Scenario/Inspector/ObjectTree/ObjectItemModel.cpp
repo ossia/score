@@ -425,7 +425,7 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
     {
       if(auto cst = dynamic_cast<Scenario::IntervalModel*>(sel))
       {
-        return tr("Start : ") + cst->startDate().toString();
+        return tr("Start : ") + cst->date().toString();
       }
       else if(auto ev = dynamic_cast<Scenario::EventModel*>(sel))
       {

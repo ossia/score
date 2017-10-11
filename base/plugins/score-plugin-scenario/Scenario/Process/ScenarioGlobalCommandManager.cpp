@@ -177,21 +177,10 @@ void clearContentFromSelection(
       stack);
 }
 
-// MOVEME : these are useful.
-template <typename T>
-struct DateComparator
-{
-  const Scenario::ProcessModel* scenario;
-  bool operator()(const T* lhs, const T* rhs)
-  {
-    return Scenario::date(*lhs, *scenario) <= Scenario::date(*rhs, *scenario);
-  }
-};
-
 template <typename T>
 auto make_ordered(const Scenario::ProcessModel& scenario)
 {
-  using comp_t = DateComparator<T>;
+  using comp_t = StartDateComparator<T>;
   using set_t = std::set<const T*, comp_t>;
 
   set_t the_set(comp_t{&scenario});
@@ -279,4 +268,11 @@ void mergeEvents(
   }
   merger.commit();
 }
+
+bool EndDateComparator::operator()(const IntervalModel* lhs, const IntervalModel* rhs)
+{
+  return (Scenario::date(*lhs, *scenario) + lhs->duration.defaultDuration())
+      <= (Scenario::date(*rhs, *scenario) + rhs->duration.defaultDuration());
+}
+
 }

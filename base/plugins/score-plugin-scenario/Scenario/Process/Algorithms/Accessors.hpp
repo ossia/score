@@ -162,9 +162,14 @@ std::list<Id<StateModel>> states(const TimeSyncModel& tn, const Scenario_T& scen
 
 // Dates
 template <typename Element_T, typename Scenario_T>
-const auto& date(const Element_T& e, const Scenario_T& scenario)
+const TimeVal& date(const Element_T& e, const Scenario_T& scenario)
 {
   return parentTimeSync(e, scenario).date();
+}
+template<typename Scenario_T>
+inline const TimeVal& date(const IntervalModel& e, const Scenario_T& scenario)
+{
+  return e.date();
 }
 
 template <typename Element_T>

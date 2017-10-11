@@ -16,6 +16,7 @@
 #include <Scenario/Commands/Interval/InsertContentInInterval.hpp>
 #include <Scenario/Commands/Scenario/ScenarioPasteContent.hpp>
 #include <Scenario/Commands/Scenario/ScenarioPasteElements.hpp>
+#include <Scenario/Commands/Scenario/Encapsulate.hpp>
 #include <Scenario/Commands/State/InsertContentInState.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
@@ -181,6 +182,16 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
         *sm, m_parent->currentDocument()->context().commandStack);
   });
 
+  // Encapsulate
+  m_encapsulate = new QAction{this};
+  connect(m_encapsulate, &QAction::triggered, [this]() {
+    auto sm = focusedScenarioModel(m_parent->currentDocument()->context());
+    SCORE_ASSERT(sm);
+
+    Scenario::EncapsulateElements(
+        *sm, m_parent->currentDocument()->context().commandStack);
+  });
+
   auto doc = parent->context.mainWindow.findChild<QWidget*>("Documents", Qt::FindDirectChildrenOnly);
   SCORE_ASSERT(doc);
   doc->addAction(m_removeElements);
@@ -240,6 +251,7 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   actions.add<Actions::ElementsToJson>(m_elementsToJson);
   actions.add<Actions::MergeTimeSyncs>(m_mergeTimeSyncs);
   actions.add<Actions::MergeEvents>(m_mergeEvents);
+  actions.add<Actions::Encapsulate>(m_encapsulate);
 
   scenariomodel_cond.add<Actions::RemoveElements>();
   scenariomodel_cond.add<Actions::MergeTimeSyncs>();
@@ -261,6 +273,7 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   object.menu()->addSeparator();
   object.menu()->addAction(m_mergeTimeSyncs);
   object.menu()->addAction(m_mergeEvents);
+  object.menu()->addAction(m_encapsulate);
   m_eventActions.makeGUIElements(e);
   m_cstrActions.makeGUIElements(e);
   m_stateActions.makeGUIElements(e);
@@ -306,6 +319,7 @@ void ObjectMenuActions::setupContextMenu(
       objectMenu->addAction(m_copyContent);
       objectMenu->addAction(m_cutContent);
       objectMenu->addAction(m_pasteContent);
+      objectMenu->addAction(m_encapsulate);
     }
 
     auto pasteElements = new QAction{tr("Paste element(s)"), this};

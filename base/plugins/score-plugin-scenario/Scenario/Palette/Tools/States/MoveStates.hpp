@@ -53,7 +53,7 @@ public:
           auto& cst = scenario.interval(*this->clickedInterval);
           auto& sev = Scenario::startEvent(cst, scenario);
 
-          m_intervalInitialPoint = {cst.startDate(), cst.heightPercentage()};
+          m_intervalInitialPoint = {cst.date(), cst.heightPercentage()};
 
           auto prev_csts = previousIntervals(sev, scenar);
           if (!prev_csts.empty())
@@ -62,7 +62,7 @@ public:
             TimeVal t = TimeVal::zero();
             for (const auto& cst_id : prev_csts)
             {
-              const auto& other_date = scenar.interval(cst_id).startDate();
+              const auto& other_date = scenar.interval(cst_id).date();
               if (other_date > t)
                 t = other_date;
             }
@@ -271,7 +271,7 @@ public:
           TimeVal t = TimeVal::zero();
           for (const auto& cst_id : prev_csts)
           {
-            const auto& other_date = scenar.interval(cst_id).startDate();
+            const auto& other_date = scenar.interval(cst_id).date();
             if (other_date > t)
               t = other_date;
           }
