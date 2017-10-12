@@ -21,6 +21,8 @@ public:
       QWidget* parent);
 
 private:
+  QString tabName() override;
+
   void on_pointChanged(double);
   void on_editFinished();
 

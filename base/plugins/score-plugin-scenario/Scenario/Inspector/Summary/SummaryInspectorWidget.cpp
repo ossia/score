@@ -28,7 +28,7 @@ SummaryInspectorWidget::SummaryInspectorWidget(
         states,
     const score::DocumentContext& context,
     QWidget* parent)
-    : InspectorWidgetBase{*obj, context, parent}
+    : InspectorWidgetBase{*obj, context, parent, tabName()}
 {
   setObjectName("SummaryInspectorWidget");
   setParent(parent);
