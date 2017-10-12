@@ -4,6 +4,7 @@
 #include <score/tools/Todo.hpp>
 #include <QLayoutItem>
 #include <qnamespace.h>
+#include <score/widgets/SetIcons.hpp>
 
 #include <QAction>
 #include <QMenu>
@@ -11,16 +12,14 @@
 namespace Inspector
 {
 MenuButton::MenuButton(QWidget* parent):
-#if defined(_MSC_VER)
-  QPushButton{QString(QChar(0x2699)), parent}
-#else
-  // FIXME ⚙ character add a traling gap that sucks
-  // replace with an SVG icon
-  QPushButton{QStringLiteral("⚙"), parent}
-#endif
+  QPushButton{QStringLiteral("o"), parent}
 {
   setFlat(true);
   setObjectName(QStringLiteral("SettingsMenu"));
+  auto icon = makeIcons(
+      ":/icons/gear_on.png", ":/icons/gear_off.png");
+  setIcon(icon);
+  setIconSize(QSize(16,16));
 }
 
 InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)

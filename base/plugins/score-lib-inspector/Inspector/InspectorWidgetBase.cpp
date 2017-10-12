@@ -10,13 +10,14 @@
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/model/IdentifiedObjectAbstract.hpp>
 #include <score/widgets/MarginLess.hpp>
+#include <score/widgets/TextLabel.hpp>
 
 namespace Inspector
 {
 InspectorWidgetBase::InspectorWidgetBase(
     const IdentifiedObjectAbstract& inspectedObj,
     const score::DocumentContext& ctx,
-    QWidget* parent)
+    QWidget* parent, QString name)
     : QWidget(parent)
     , m_inspectedObject{inspectedObj}
     , m_context{ctx}
@@ -29,6 +30,11 @@ InspectorWidgetBase::InspectorWidgetBase(
   m_layout->setContentsMargins(0, 1, 0, 0);
   setLayout(m_layout);
   m_layout->setSpacing(0);
+
+  m_label = new TextLabel{name, this};
+  // TODO use a style for that
+  m_label->setStyleSheet("font-weight: bold; font-size: 18");
+  m_sections.push_back(m_label);
 
   // scroll Area
   auto scrollArea = new QScrollArea;
@@ -110,8 +116,10 @@ void InspectorWidgetBase::updateAreaLayout(const std::vector<QWidget*>& contents
 
 void InspectorWidgetBase::addHeader(QWidget* header)
 {
-  m_sections.insert(m_sections.begin(), header);
-  m_layout->insertWidget(0, header);
+  QWidget* title = m_sections[0];
+  m_sections[0] = header;
+  m_sections.insert(m_sections.begin(), title);
+  m_layout->insertWidget(1, header);
 }
 
 const IdentifiedObjectAbstract& InspectorWidgetBase::inspectedObject() const
