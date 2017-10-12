@@ -53,7 +53,7 @@ class MessageListProxy final : public QAbstractProxyModel
 {
 
 public:
-  MessageItemModel* source() const { 
+  MessageItemModel* source() const {
     return static_cast<MessageItemModel*>(sourceModel());
  }
   QModelIndex index(int row, int column, const QModelIndex& parent) const override
@@ -65,7 +65,7 @@ public:
 
       if (column >= 2 || column < 0)
         return {};
-      
+
       if(!source())
         return {};
 
@@ -143,7 +143,7 @@ public:
 
     if(!source())
       return {};
-    
+
     auto row = getChildIndex(source()->rootNode(), ptr);
     return createIndex(row, sourceIndex.column(), idx);
   }
@@ -164,7 +164,7 @@ StateInspectorWidget::StateInspectorWidget(
     const StateModel& object,
     const score::DocumentContext& doc,
     QWidget* parent)
-    : Inspector::InspectorWidgetBase{object, doc, parent}
+    : Inspector::InspectorWidgetBase{object, doc, parent, tabName()}
     , m_model{object}
     , m_context{doc}
     , m_commandDispatcher{m_context.commandStack}
@@ -323,6 +323,11 @@ void StateInspectorWidget::splitFromNode()
             }
         }
     }
+}
+
+QString StateInspectorWidget::tabName()
+{
+  return tr("State");
 }
 
 }

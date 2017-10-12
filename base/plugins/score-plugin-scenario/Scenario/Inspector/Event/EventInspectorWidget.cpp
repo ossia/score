@@ -52,7 +52,7 @@ EventInspectorWidget::EventInspectorWidget(
     const EventModel& object,
     const score::DocumentContext& doc,
     QWidget* parent)
-    : Inspector::InspectorWidgetBase{object, doc, parent}
+    : Inspector::InspectorWidgetBase{object, doc, parent, tabName()}
     , m_model{object}
     , m_context{doc}
     , m_commandDispatcher{doc.commandStack}
@@ -205,5 +205,10 @@ void EventInspectorWidget::on_conditionReset()
   auto cmd
       = new Scenario::Command::SetCondition{m_model, State::Expression{}};
   emit m_commandDispatcher.submitCommand(cmd);
+}
+
+QString EventInspectorWidget::tabName()
+{
+  return tr("Event");
 }
 }

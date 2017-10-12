@@ -39,7 +39,7 @@ public:
   explicit InspectorWidgetBase(
       const IdentifiedObjectAbstract& inspectedObj,
       const score::DocumentContext& context,
-      QWidget* parent);
+      QWidget* parent, QString name);
   ~InspectorWidgetBase();
 
   // By default returns the name of the object.
@@ -93,5 +93,6 @@ private:
   static const int m_colorIconSize{21};
 
   QVBoxLayout* m_layout{};
+  QLabel* m_label{};
 };
 }
