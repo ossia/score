@@ -11,15 +11,27 @@
 
 #include <ossia/editor/curve/curve_segment/linear.hpp>
 #include <random>
-
+#include <ctime>
 namespace Curve
 {
 template<typename T>
 struct Noise
 {
+    auto get_rand(double min, double max) const
+    {
+      static std::mt19937_64 gen(std::time(0));
+      return std::uniform_real_distribution<>{min, max}(gen);
+    }
+    auto get_rand(int min, int max) const
+    {
+      static std::mt19937_64 gen(std::time(0));
+      return std::uniform_int_distribution<>{min, max}(gen);
+    }
+
     auto operator()(double val, T start, T end) {
-      return
-          (end - start) * (double(std::rand()) / RAND_MAX);
+      return (start < end)
+          ? get_rand(start, end)
+          : get_rand(end, start);
     }
 };
 

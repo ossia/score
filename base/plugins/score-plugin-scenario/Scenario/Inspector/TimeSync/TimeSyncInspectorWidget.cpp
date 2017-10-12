@@ -47,7 +47,7 @@ TimeSyncInspectorWidget::TimeSyncInspectorWidget(
     const TimeSyncModel& object,
     const score::DocumentContext& ctx,
     QWidget* parent)
-    : InspectorWidgetBase{object, ctx, parent}, m_model{object}
+    : InspectorWidgetBase{object, ctx, parent, tabName()}, m_model{object}
 {
   setObjectName("TimeSyncInspectorWidget");
   setParent(parent);

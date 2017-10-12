@@ -60,7 +60,7 @@ void ViewUpdater::updateInterval(
   const auto& cstr_model = pres.model();
   Scenario::TemporalIntervalView& cstr_view = Scenario::view(pres);
 
-  auto startPos = cstr_model.startDate().toPixels(msPerPixel);
+  auto startPos = cstr_model.date().toPixels(msPerPixel);
   auto delta = cstr_view.x() - startPos;
   bool dateChanged = (delta * delta > 1); // Magnetism
 

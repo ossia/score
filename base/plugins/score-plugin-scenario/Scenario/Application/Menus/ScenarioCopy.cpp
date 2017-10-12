@@ -40,69 +40,64 @@ static auto arrayToJson(Selected_T&& selected)
 }
 
 template <typename Scenario_T>
-QJsonObject copySelected(const Scenario_T& sm, QObject* parent)
+QJsonObject copySelected(const Scenario_T& sm, CategorisedScenario& cs, QObject* parent)
 {
-  auto selectedIntervals = selectedElements(getIntervals(sm));
-  auto selectedEvents = selectedElements(getEvents(sm));
-  auto selectedTimeSyncs = selectedElements(getTimeSyncs(sm));
-  auto selectedStates = selectedElements(getStates(sm));
-
-  for (const IntervalModel* interval : selectedIntervals)
+  for (const IntervalModel* interval : cs.selectedIntervals)
   {
     auto start_it
-        = ossia::find_if(selectedStates, [&](const StateModel* state) {
+        = ossia::find_if(cs.selectedStates, [&](const StateModel* state) {
             return state->id() == interval->startState();
           });
-    if (start_it == selectedStates.end())
+    if (start_it == cs.selectedStates.end())
     {
-      selectedStates.push_back(&sm.state(interval->startState()));
+      cs.selectedStates.push_back(&sm.state(interval->startState()));
     }
 
-    auto end_it = ossia::find_if(selectedStates, [&](const StateModel* state) {
+    auto end_it = ossia::find_if(cs.selectedStates, [&](const StateModel* state) {
       return state->id() == interval->endState();
     });
-    if (end_it == selectedStates.end())
+    if (end_it == cs.selectedStates.end())
     {
-      selectedStates.push_back(&sm.state(interval->endState()));
+      cs.selectedStates.push_back(&sm.state(interval->endState()));
     }
   }
 
-  for (const StateModel* state : selectedStates)
+  for (const StateModel* state : cs.selectedStates)
   {
-    auto ev_it = ossia::find_if(selectedEvents, [&](const EventModel* event) {
+    auto ev_it = ossia::find_if(cs.selectedEvents, [&](const EventModel* event) {
       return state->eventId() == event->id();
     });
-    if (ev_it == selectedEvents.end())
+    if (ev_it == cs.selectedEvents.end())
     {
-      selectedEvents.push_back(&sm.event(state->eventId()));
+      cs.selectedEvents.push_back(&sm.event(state->eventId()));
     }
 
     // If the previous or next interval is not here, we set it to null in a
     // copy.
   }
-  for (const EventModel* event : selectedEvents)
+  for (const EventModel* event : cs.selectedEvents)
   {
     auto tn_it
-        = ossia::find_if(selectedTimeSyncs, [&](const TimeSyncModel* tn) {
+        = ossia::find_if(cs.selectedTimeSyncs, [&](const TimeSyncModel* tn) {
             return tn->id() == event->timeSync();
           });
-    if (tn_it == selectedTimeSyncs.end())
+    if (tn_it == cs.selectedTimeSyncs.end())
     {
-      selectedTimeSyncs.push_back(&sm.timeSync(event->timeSync()));
+      cs.selectedTimeSyncs.push_back(&sm.timeSync(event->timeSync()));
     }
 
     // If some events aren't there, we set them to null in a copy.
   }
 
   std::vector<TimeSyncModel*> copiedTimeSyncs;
-  copiedTimeSyncs.reserve(selectedTimeSyncs.size());
-  for (const auto& tn : selectedTimeSyncs)
+  copiedTimeSyncs.reserve(cs.selectedTimeSyncs.size());
+  for (const auto& tn : cs.selectedTimeSyncs)
   {
     auto clone_tn = new TimeSyncModel(*tn, tn->id(), nullptr);
     auto events = clone_tn->events();
     for (const auto& event : events)
     {
-      auto absent = ossia::none_of(selectedEvents, [&](const EventModel* ev) {
+      auto absent = ossia::none_of(cs.selectedEvents, [&](const EventModel* ev) {
         return ev->id() == event;
       });
       if (absent)
@@ -113,14 +108,14 @@ QJsonObject copySelected(const Scenario_T& sm, QObject* parent)
   }
 
   std::vector<EventModel*> copiedEvents;
-  copiedEvents.reserve(selectedEvents.size());
-  for (const auto& ev : selectedEvents)
+  copiedEvents.reserve(cs.selectedEvents.size());
+  for (const auto& ev : cs.selectedEvents)
   {
     auto clone_ev = new EventModel(*ev, ev->id(), nullptr);
     auto states = clone_ev->states();
     for (const auto& state : states)
     {
-      auto absent = ossia::none_of(selectedStates, [&](const StateModel* st) {
+      auto absent = ossia::none_of(cs.selectedStates, [&](const StateModel* st) {
         return st->id() == state;
       });
       if (absent)
@@ -131,9 +126,9 @@ QJsonObject copySelected(const Scenario_T& sm, QObject* parent)
   }
 
   std::vector<StateModel*> copiedStates;
-  copiedStates.reserve(selectedStates.size());
+  copiedStates.reserve(cs.selectedStates.size());
   auto& stack = score::IDocument::documentContext(*parent).commandStack;
-  for (const StateModel* st : selectedStates)
+  for (const StateModel* st : cs.selectedStates)
   {
     auto clone_st = new StateModel(*st, st->id(), stack, parent);
 
@@ -150,7 +145,7 @@ QJsonObject copySelected(const Scenario_T& sm, QObject* parent)
   }
 
   QJsonObject base;
-  base["Intervals"] = arrayToJson(selectedIntervals);
+  base["Intervals"] = arrayToJson(cs.selectedIntervals);
   base["Events"] = arrayToJson(copiedEvents);
   base["TimeNodes"] = arrayToJson(copiedTimeSyncs);
   base["States"] = arrayToJson(copiedStates);
@@ -165,18 +160,63 @@ QJsonObject copySelected(const Scenario_T& sm, QObject* parent)
   return base;
 }
 
-QJsonObject copySelectedScenarioElements(const Scenario::ProcessModel& sm)
+QJsonObject copySelectedScenarioElements(
+    const Scenario::ProcessModel& sm,
+    CategorisedScenario& cat)
 {
-  auto obj = copySelected(sm, const_cast<Scenario::ProcessModel*>(&sm));
+  auto obj = copySelected(sm, cat, const_cast<Scenario::ProcessModel*>(&sm));
 
   obj["Comments"] = arrayToJson(selectedElements(sm.comments));
 
   return obj;
 }
 
+QJsonObject copySelectedScenarioElements(const Scenario::ProcessModel& sm)
+{
+  CategorisedScenario cat{sm};
+  return copySelectedScenarioElements(sm, cat);
+}
+
 QJsonObject
 copySelectedScenarioElements(const BaseScenarioContainer& sm, QObject* parent)
 {
-  return copySelected(sm, parent);
+  CategorisedScenario cat{sm};
+  return copySelected(sm, cat, parent);
 }
+
+CategorisedScenario::CategorisedScenario()
+{
+
+}
+
+template<typename Vector>
+std::vector<const typename Vector::value_type*> selectedElementsVec(const Vector& in)
+{
+  std::vector<const typename Vector::value_type*> out;
+  for (const auto& elt : in)
+  {
+    if (elt.selection.get())
+      out.push_back(&elt);
+  }
+
+  return out;
+}
+
+CategorisedScenario::CategorisedScenario(const ProcessModel& sm)
+{
+  selectedIntervals = selectedElementsVec(getIntervals(sm));
+  selectedEvents = selectedElementsVec(getEvents(sm));
+  selectedTimeSyncs = selectedElementsVec(getTimeSyncs(sm));
+  selectedStates = selectedElementsVec(getStates(sm));
+}
+
+
+CategorisedScenario::CategorisedScenario(const BaseScenarioContainer& sm)
+{
+  selectedIntervals = selectedElementsVec(getIntervals(sm));
+  selectedEvents = selectedElementsVec(getEvents(sm));
+  selectedTimeSyncs = selectedElementsVec(getTimeSyncs(sm));
+  selectedStates = selectedElementsVec(getStates(sm));
+}
+
 }

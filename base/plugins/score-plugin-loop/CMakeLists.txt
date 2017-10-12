@@ -12,6 +12,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Loop/Commands/LoopCommandFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Loop/Commands/LoopTriggerCommands.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Loop/Commands/MoveLoopEvent.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Loop/Commands/PutInLoop.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Loop/Inspector/LoopInspectorFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Loop/Inspector/LoopInspectorWidget.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Loop/Inspector/LoopTriggerCommandFactory.hpp"
@@ -33,6 +34,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Loop/LoopViewUpdater.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Loop/Palette/LoopToolPalette.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Loop/Commands/PutInLoop.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Loop/Commands/LoopCommandFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Loop/Inspector/LoopTriggerCommandFactory.cpp"

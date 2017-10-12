@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/StateProcess.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <score/model/Entity.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/model/EntityMap.hpp>
@@ -133,6 +134,11 @@ public:
   }
 
   void setHeightPercentage(double y);
+
+  bool empty() const
+  {
+    return !messages().rootNode().hasChild(0);
+  }
 
 signals:
   void sig_statesUpdated();

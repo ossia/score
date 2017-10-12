@@ -99,7 +99,7 @@ void IntervalDurations::setPlayPercentage(double arg)
     return;
 
   m_playPercentage = arg;
-  //emit playPercentageChanged(arg);
+  emit playPercentageChanged(arg);
 }
 
 void IntervalDurations::setRigid(bool arg)

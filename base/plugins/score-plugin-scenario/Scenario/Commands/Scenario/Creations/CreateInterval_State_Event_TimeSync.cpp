@@ -24,8 +24,7 @@ namespace Command
 {
 CreateInterval_State_Event_TimeSync::CreateInterval_State_Event_TimeSync(
     const Scenario::ProcessModel& scenario,
-    Id<StateModel>
-        startState,
+    Id<StateModel> startState,
     TimeVal date,
     double endStateY)
     : m_newTimeSync{getStrongId(scenario.timeSyncs)}

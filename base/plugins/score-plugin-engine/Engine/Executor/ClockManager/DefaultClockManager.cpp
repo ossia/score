@@ -37,7 +37,7 @@ DefaultClockManager::makeDefaultCallback(
     Engine::Execution::BaseScenarioElement& bs)
 {
   auto& cst = bs.baseInterval();
-  return [this, &bs, &score_cst = cst.scoreInterval()](
+  return [this, &score_cst = cst.scoreInterval()](
       double position,
       ossia::time_value date,
       const ossia::state_element& state)

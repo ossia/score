@@ -600,6 +600,7 @@ void ScenarioDocumentPresenter::on_viewModelFocused(
 
 void ScenarioDocumentPresenter::setNewSelection(const Selection& s)
 {
+  static QMetaObject::Connection cur_proc_connection;
   auto process = m_focusManager.focusedModel();
 
   // Manages the selection (different case if we're
@@ -609,6 +610,7 @@ void ScenarioDocumentPresenter::setNewSelection(const Selection& s)
     if (process)
     {
       process->setSelection(Selection{});
+      QObject::disconnect(cur_proc_connection);
     }
 
     displayedElements.setSelection(Selection{});
@@ -627,6 +629,7 @@ void ScenarioDocumentPresenter::setNewSelection(const Selection& s)
     if (process)
     {
       process->setSelection(Selection{});
+      QObject::disconnect(cur_proc_connection);
     }
 
     m_focusManager.focus(
@@ -644,11 +647,16 @@ void ScenarioDocumentPresenter::setNewSelection(const Selection& s)
     if (process && newProc != process)
     {
       process->setSelection(Selection{});
+      QObject::disconnect(cur_proc_connection);
     }
 
     if (newProc)
     {
       newProc->setSelection(s);
+      cur_proc_connection = connect(newProc, &Process::ProcessModel::identified_object_destroying,
+              this, [&] {
+        m_selectionDispatcher.setAndCommit(Selection{});
+      }, Qt::UniqueConnection);
     }
   }
 

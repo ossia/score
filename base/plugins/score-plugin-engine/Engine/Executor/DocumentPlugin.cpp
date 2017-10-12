@@ -16,6 +16,8 @@
 #include <Engine/ApplicationPlugin.hpp>
 #include <ossia/dataflow/audio_protocol.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
+#include <score/actions/ActionManager.hpp>
+#include <Scenario/Application/ScenarioActions.hpp>
 namespace Engine
 {
 namespace Execution
@@ -48,6 +50,12 @@ DocumentPlugin::DocumentPlugin(
   auto& model = ctx.model<Scenario::ScenarioDocumentModel>();
   model.cables.mutable_added.connect<DocumentPlugin, &DocumentPlugin::on_cableCreated>(*this);
   model.cables.removing.connect<DocumentPlugin, &DocumentPlugin::on_cableRemoved>(*this);
+
+  con(m_base, &Engine::Execution::BaseScenarioElement::finished, this,
+      [=] {
+        auto& stop_action = context().doc.app.actions.action<Actions::Stop>();
+        stop_action.action()->trigger();
+      }, Qt::QueuedConnection);
 }
 
 void DocumentPlugin::on_cableCreated(Process::Cable& c)

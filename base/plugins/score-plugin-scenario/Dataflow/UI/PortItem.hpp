@@ -1,6 +1,7 @@
 #pragma once
 #include <QGraphicsItem>
 #include <QObject>
+#include <unordered_map>
 namespace Process { class Port; }
 
 namespace Dataflow

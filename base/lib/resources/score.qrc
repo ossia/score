@@ -228,6 +228,8 @@
         <file>desktopqqc2style/Desktop/ToolButton.qml</file>
         <file>desktopqqc2style/Desktop/ToolTip.qml</file>
         <file>desktopqqc2style/Desktop/private/DefaultListItemBackground.qml</file>
+        <file>icons/gear_off.png</file>
+        <file>icons/gear_off@2x.png</file>
     </qresource>
     <qresource prefix="/qss_icons">
         <file>rc/up_arrow_disabled.png</file>

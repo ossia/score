@@ -131,7 +131,7 @@ SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
   m_stream << interval.duration << interval.m_startState
            << interval.m_endState
 
-           << interval.m_startDate << interval.m_heightPercentage
+           << interval.m_date << interval.m_heightPercentage
            << interval.m_zoom << interval.m_center
            << interval.m_smallViewShown;
 
@@ -176,7 +176,7 @@ DataStreamWriter::write(Scenario::IntervalModel& interval)
   m_stream >> interval.duration >> interval.m_startState
       >> interval.m_endState
 
-      >> interval.m_startDate >> interval.m_heightPercentage
+      >> interval.m_date >> interval.m_heightPercentage
       >> interval.m_zoom >> interval.m_center
       >> interval.m_smallViewShown;
 
@@ -211,7 +211,7 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::read(
   obj[strings.StartState] = toJsonValue(interval.m_startState);
   obj[strings.EndState] = toJsonValue(interval.m_endState);
 
-  obj[strings.StartDate] = toJsonValue(interval.m_startDate);
+  obj[strings.StartDate] = toJsonValue(interval.m_date);
   obj[strings.HeightPercentage] = interval.m_heightPercentage;
 
   obj[strings.Zoom] = interval.m_zoom;
@@ -276,7 +276,7 @@ JSONObjectWriter::write(Scenario::IntervalModel& interval)
   interval.m_endState
       = fromJsonValue<Id<Scenario::StateModel>>(obj[strings.EndState]);
 
-  interval.m_startDate = fromJsonValue<TimeVal>(obj[strings.StartDate]);
+  interval.m_date = fromJsonValue<TimeVal>(obj[strings.StartDate]);
   interval.m_heightPercentage = obj[strings.HeightPercentage].toDouble();
 
   auto zit = obj.find(strings.Zoom);

@@ -8,7 +8,9 @@
 #include <score/tools/std/Optional.hpp>
 #include <string.h>
 #include <score/tools/std/HashMap.hpp>
-
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/actions/ActionManager.hpp>
+#include <score/actions/MenuManager.hpp>
 #include "score_plugin_loop.hpp"
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Loop/LoopDisplayedElements.hpp>
@@ -21,12 +23,64 @@
 #include <score_plugin_loop_commands_files.hpp>
 
 #include <score/plugins/customfactory/FactorySetup.hpp>
+#include <Scenario/Application/ScenarioActions.hpp>
+
+SCORE_DECLARE_ACTION(
+    PutInLoop, "&Put in Loop", Loop, Qt::SHIFT + Qt::CTRL + Qt::Key_L)
+
+namespace Loop {
+class ApplicationPlugin
+    : public QObject
+    , public score::GUIApplicationPlugin
+{
+public:
+  ApplicationPlugin(const score::GUIApplicationContext& ctx):
+    GUIApplicationPlugin{ctx}
+  {
+    m_putInLoop = new QAction{this};
+    connect(m_putInLoop, &QAction::triggered, [this] {
+      auto& ctx = currentDocument()->context();
+      auto sm = Scenario::focusedScenarioModel(ctx);
+      SCORE_ASSERT(sm);
+
+      Loop::EncapsulateInLoop(*sm, ctx.commandStack);
+    });
+  }
+
+  score::GUIElements makeGUIElements() override
+  {
+    score::GUIElements e;
+    auto& actions = e.actions;
+    auto& base_menus = context.menus.get();
+
+    actions.add<Actions::PutInLoop>(m_putInLoop);
+
+    auto& scenariomodel_cond
+        = context.actions.condition<Scenario::EnableWhenScenarioModelObject>();
+    scenariomodel_cond.add<Actions::PutInLoop>();
+
+    auto& object = base_menus.at(score::Menus::Object());
+    object.menu()->addAction(m_putInLoop);
+    return e;
+  }
+
+private:
+  QAction* m_putInLoop{};
+};
+}
+
 score_plugin_loop::score_plugin_loop() : QObject{}
 {
 }
 
 score_plugin_loop::~score_plugin_loop()
 {
+}
+
+score::GUIApplicationPlugin* score_plugin_loop::make_guiApplicationPlugin(
+    const score::GUIApplicationContext& app)
+{
+  return new Loop::ApplicationPlugin{app};
 }
 
 std::vector<std::unique_ptr<score::InterfaceBase>>
@@ -50,6 +104,7 @@ score_plugin_loop::factories(
 std::pair<const CommandGroupKey, CommandGeneratorMap>
 score_plugin_loop::make_commands()
 {
+  using namespace Loop;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       LoopCommandFactoryName(), CommandGeneratorMap{}};
 

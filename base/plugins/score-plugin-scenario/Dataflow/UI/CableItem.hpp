@@ -3,7 +3,7 @@
 #include <QObject>
 #include <score/model/Identifier.hpp>
 #include <Process/Dataflow/DataflowObjects.hpp>
-
+#include <unordered_map>
 namespace Dataflow
 {
 class PortItem;
