@@ -1,5 +1,5 @@
 #pragma once
-
+#include <QLabel>
 #include <QColor>
 #include <QString>
 #include <QWidget>
