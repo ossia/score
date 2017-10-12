@@ -11,6 +11,7 @@
 
 #include <ossia/editor/curve/curve_segment/linear.hpp>
 #include <random>
+#include <ctime>
 namespace Curve
 {
 template<typename T>
@@ -18,12 +19,12 @@ struct Noise
 {
     auto get_rand(double min, double max) const
     {
-      static Q_COMPILER_THREAD_LOCAL std::mt19937_64 gen {time(0)};
+      static std::mt19937_64 gen(std::time(0));
       return std::uniform_real_distribution<>{min, max}(gen);
     }
     auto get_rand(int min, int max) const
     {
-      static Q_COMPILER_THREAD_LOCAL std::mt19937_64 gen {time(0)};
+      static std::mt19937_64 gen(std::time(0));
       return std::uniform_int_distribution<>{min, max}(gen);
     }
 
