@@ -28,7 +28,7 @@ namespace Command
  *
  * Tries to remove what is selected in a scenario.
  */
-class RemoveSelection final : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT RemoveSelection final : public score::Command
 {
   SCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), RemoveSelection,

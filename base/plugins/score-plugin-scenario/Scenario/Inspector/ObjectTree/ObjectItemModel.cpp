@@ -161,17 +161,18 @@ QModelIndex ObjectItemModel::index(int row, int column, const QModelIndex& paren
       auto it = ev->states().begin();
       SCORE_ASSERT(row < ev->states().size());
       std::advance(it, row);
-      auto st = scenar.findState(*it);
 
-      return createIndex(row, column, st);
+      if(auto st = scenar.findState(*it))
+        return createIndex(row, column, st);
     }
     else if(auto tn = dynamic_cast<Scenario::TimeSyncModel*>(sel))
     {
       Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*tn);
       auto it = tn->events().begin();
       std::advance(it, row);
-      auto ev = scenar.findEvent(*it);
-      return createIndex(row, column, ev);
+
+      if(auto ev = scenar.findEvent(*it))
+        return createIndex(row, column, ev);
     }
     else if(auto st = dynamic_cast<Scenario::StateModel*>(sel))
     {
@@ -193,6 +194,7 @@ QModelIndex ObjectItemModel::index(int row, int column, const QModelIndex& paren
   {
     return QModelIndex{};
   }
+  return QModelIndex{};
 }
 
 bool ObjectItemModel::isAlive(QObject* obj) const
