@@ -22,7 +22,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
     std::unique_ptr<IntervalInspectorDelegate> del,
     const score::DocumentContext& ctx,
     QWidget* parent)
-    : InspectorWidgetBase{object, ctx, parent}
+    : InspectorWidgetBase{object, ctx, parent, tabName()}
     , m_widgetList{widg}
     , m_model{object}
     , m_delegate{std::move(del)}
@@ -168,6 +168,7 @@ QString IntervalInspectorWidget::tabName()
 {
   return tr("Interval");
 }
+
 void IntervalInspectorWidget::updateDisplayedValues()
 {
   m_delegate->updateElements();

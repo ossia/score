@@ -74,7 +74,7 @@ StateInspectorWidget::StateInspectorWidget(
     const ProcessState& object,
     const score::DocumentContext& doc,
     QWidget* parent)
-    : InspectorWidgetBase{object, doc, parent}
+    : InspectorWidgetBase{object, doc, parent, tabName()}
     , m_state{object}
     , m_label{new TextLabel}
 {
@@ -117,5 +117,10 @@ QWidget* StateInspectorFactory::make(
 bool StateInspectorFactory::matches(const QList<const QObject*>& objects) const
 {
   return dynamic_cast<const ProcessState*>(objects.first());
+}
+
+QString StateInspectorWidget::tabName()
+{
+  return tr("State");
 }
 }
