@@ -15,12 +15,16 @@
 class score_plugin_loop final : public QObject,
                                  public score::Plugin_QtInterface,
                                  public score::FactoryInterface_QtInterface,
-                                 public score::CommandFactory_QtInterface
+                                 public score::CommandFactory_QtInterface,
+                                 public score::ApplicationPlugin_QtInterface
 {
   Q_OBJECT
   Q_PLUGIN_METADATA(IID FactoryInterface_QtInterface_iid)
-  Q_INTERFACES(score::Plugin_QtInterface score::FactoryInterface_QtInterface
-                   score::CommandFactory_QtInterface)
+  Q_INTERFACES(score::Plugin_QtInterface
+               score::FactoryInterface_QtInterface
+               score::CommandFactory_QtInterface
+               score::ApplicationPlugin_QtInterface
+               )
   SCORE_PLUGIN_METADATA(1, "db40e6eb-add3-4b6d-8957-13690aec290b")
 
 public:
@@ -28,6 +32,9 @@ public:
   virtual ~score_plugin_loop();
 
 private:
+  score::GUIApplicationPlugin*
+  make_guiApplicationPlugin(const score::GUIApplicationContext& app) override;
+
   // Process & inspector
   std::vector<std::unique_ptr<score::InterfaceBase>> factories(
       const score::ApplicationContext& ctx,

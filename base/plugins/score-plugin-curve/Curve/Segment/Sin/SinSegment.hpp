@@ -3,6 +3,7 @@
 #include <score/serialization/VisitorCommon.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
+#include <ossia/editor/curve/curve_segment/easing.hpp>
 #include <score/model/Identifier.hpp>
 #include <ossia/detail/math.hpp>
 #include <QDebug>
@@ -25,7 +26,7 @@ namespace Curve
 struct PeriodicSegmentData
 {
   double freq{5};
-  double ampl{0.6};
+  double ampl{0.5};
 };
 
 template<typename PeriodicFunction>
@@ -94,11 +95,14 @@ public:
 
       double start_x = start().x();
       double end_x = end().x();
+      double start_y = start().y();
+      double end_y = end().y();
       for (int j = 0; j <= numInterp; j++)
       {
         QPointF& pt = m_data[j];
         pt.setX(start_x + (double(j) / numInterp) * (end_x - start_x));
-        pt.setY(0.5 + 0.5 * ampl * PeriodicFunction{}(6.28 * freq * double(j) / numInterp));
+        pt.setY((start_y + end_y) / 2. + (end_y - start_y)
+                * (ampl * PeriodicFunction{}(ossia::two_pi * freq * double(j) / numInterp)));
       }
     }
   }
@@ -106,10 +110,11 @@ public:
   template <typename Y>
   std::function<Y(double, Y, Y)> makeFunction() const
   {
+    auto amplitude = ampl;
     return [=](double ratio, Y start, Y end) {
       return
-          start + (end - start) / 2. *
-          (1. + ampl * PeriodicFunction{}(ossia::two_pi * ratio * freq));
+          (start + end) / 2. + (end - start)
+          * amplitude * PeriodicFunction{}(ossia::two_pi * ratio * freq);
     };
   }
 
