@@ -6,61 +6,53 @@ n = 4;
 
 s.waitForBoot({
 
-	~dev = OSSIA_Device("ensatt-collider").exposeOSCQueryServer(1234, 5678, {
+	~dev = OSSIA_Device("fmcollider").exposeOSCQueryServer(1234, 5678, {
 
-		~car_freq = Array.fill(n, { |i|
-			OSSIA_Parameter(~dev, '/fm_' ++ i ++ '/carfreq', Float, [0, 20000], 220, 'clip');
-		});
+		// array of parameters
+		~carfreq = OSSIA_Parameter.array(n, ~dev, "/synth.%/carfreq", Float, [0, 20000], 220, 'clip');
+		~modratio = OSSIA_Parameter.array(n, ~dev, "/synth.%/modulation/ratio",
+			Float, [0.01, 10], 2, 'clip');
+		~modindex = OSSIA_Parameter.array(n, ~dev, "/synth.%/modulation/index", Float,
+			[0.01, 1000], 100, 'clip');
+		~gain = OSSIA_Parameter.array(n, ~dev, "/synth.%/gain", Float, [-100, 12], 0, 'clip');
+		~pan = OSSIA_Parameter.array(n, ~dev, "/synth.%/pan", Float, [-1, 1], 0, 'clip');
+		~cutoff = OSSIA_Parameter.array(n, ~dev, "/synth.%/cutoff/frequency",
+			Float, [20, 20000], 20000, 'clip');
 
-		~harm_ratio = Array.fill(n, { |i|
-			OSSIA_Parameter(~dev, '/fm_' ++ i ++ '/harm_ratio', Float, [0.0001, 10], 2, 'clip');
-		});
+		~master = OSSIA_Parameter(~dev, '/master/gain', Float, [0, 1], 0.2);
 
-		~fm_index = Array.fill(n, { |i|
-			OSSIA_Parameter(~dev, '/fm_' ++ i ++ '/pm_index', Float, [0.001, 1000], 100, 'clip');
-		});
+		// start/stop parameters
+		~start = OSSIA_Parameter(~dev, 'start', Impulse)
+		.callback = {
+			var args = Array.fill(n, {|i|
+				~carfreq[i].aar ++
+				~modratio[i].aar ++
+				~modindex[i].aar ++
+				~pan[i].aar ++
+				~cutoff[i].aar ++
+				~gain[i].aar
+			});
 
-		~fm_level = Array.fill(n, {|i|
-			OSSIA_Parameter(~dev, '/fm_' ++ i ++ '/level', Float, [0, 1], 1, 'clip');
-		});
+			args = args.flatten ++ ~master.aar;
 
-		~fm_pan = Array.fill(n, {|i|
-			OSSIA_Parameter(~dev, '/fm_' ++ i ++ '/pan', Float, [-1, 1], 1.0.rand2, 'clip');
-		});
+			Synth('fmdef', args);
 
-		~fm_cutoff = Array.fill(n, {|i|
-			OSSIA_Parameter(~dev, '/fm_' ++ i ++ '/filter/cutoff', Float, [20, 20000], 20000, 'clip');
-		});
+		};
 
-		~start = OSSIA_Parameter(~dev, 'start', Impulse);
-		~stop = OSSIA_Parameter(~dev, 'stop', Impulse);
-		~master = OSSIA_Parameter(~dev, '/master/level', Float, [0, 1], 0.2);
+		~stop = OSSIA_Parameter(~dev, 'stop', Impulse)
+		.callback = { s.freeAll };
 
-		~args = Array.fill(n, {|i|
-			~car_freq[i].aar ++
-			~harm_ratio[i].aar ++
-			~fm_index[i].aar ++
-			~fm_pan[i].aar ++
-			~fm_cutoff[i].aar ++
-			~fm_level[i].aar
-		});
-
-		~args = ~args.flatten ++ ~master.aar;
-		~args.postln;
-
-		~start.callback = { Synth('fmdef', ~args) };
-		~stop.callback = { s.freeAll };
-
+		// synthdef
 		~def = SynthDef('fmdef', {
 			var fm = Mix.new(
 				Array.fill(n, { |i|
 					Pan2.ar(
 						LPF.ar(
-							SinOsc.ar(~car_freq[i].kr +
-								SinOsc.ar(~car_freq[i].kr * ~harm_ratio[i].kr, 0, ~fm_index[i].kr),
-								0, ~fm_level[i].kr),
-							~fm_cutoff[i].kr),
-						~fm_pan[i].kr);
+							SinOsc.ar(~carfreq[i].kr +
+								SinOsc.ar(~carfreq[i].kr * ~modratio[i].kr, 0, ~modindex[i].kr),
+								0, ~gain[i].kr.dbamp),
+							~cutoff[i].kr),
+						~pan[i].kr);
 			}));
 				Out.ar(0, fm * ~master.kr);
 		}).add;
@@ -69,3 +61,4 @@ s.waitForBoot({
 
 
 )
+
