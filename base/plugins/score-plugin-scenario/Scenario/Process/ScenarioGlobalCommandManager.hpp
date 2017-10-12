@@ -58,7 +58,7 @@ struct StartDateComparator
   }
 };
 
-struct EndDateComparator
+struct SCORE_PLUGIN_SCENARIO_EXPORT EndDateComparator
 {
   const Scenario::ProcessModel* scenario;
   bool operator()(const IntervalModel* lhs, const IntervalModel* rhs);

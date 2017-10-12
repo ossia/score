@@ -5,6 +5,7 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
+#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <QDataStream>
@@ -373,21 +374,21 @@ void ScenarioPasteElements::undo(const score::DocumentContext& ctx) const
 {
   auto& scenario = m_ts.find(ctx);
 
-  for (const auto& elt : m_ids_timesyncs)
+  for (const auto& elt : m_ids_intervals)
   {
-    scenario.timeSyncs.remove(elt);
-  }
-  for (const auto& elt : m_ids_events)
-  {
-    scenario.events.remove(elt);
+    ScenarioCreate<IntervalModel>::undo(elt, scenario);
   }
   for (const auto& elt : m_ids_states)
   {
-    scenario.states.remove(elt);
+    ScenarioCreate<StateModel>::undo(elt, scenario);
   }
-  for (const auto& elt : m_ids_intervals)
+  for (const auto& elt : m_ids_events)
   {
-    scenario.intervals.remove(elt);
+    ScenarioCreate<EventModel>::undo(elt, scenario);
+  }
+  for (const auto& elt : m_ids_timesyncs)
+  {
+    ScenarioCreate<TimeSyncModel>::undo(elt, scenario);
   }
 }
 

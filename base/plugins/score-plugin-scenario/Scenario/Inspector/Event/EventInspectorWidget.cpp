@@ -52,27 +52,27 @@ EventInspectorWidget::EventInspectorWidget(
     const EventModel& object,
     const score::DocumentContext& doc,
     QWidget* parent)
-    : Inspector::InspectorWidgetBase{object, doc, parent}
-    , m_model{object}
-    , m_context{doc}
-    , m_commandDispatcher{doc.commandStack}
-    , m_selectionDispatcher{doc.selectionStack}
-    , m_menu{[&] { return m_model.condition(); }, this}
+  : Inspector::InspectorWidgetBase{object, doc, parent}
+  , m_model{&object}
+  , m_context{doc}
+  , m_commandDispatcher{doc.commandStack}
+  , m_selectionDispatcher{doc.selectionStack}
+  , m_menu{[&] { return object.condition(); }, this}
 {
   setObjectName("EventInspectorWidget");
   setParent(parent);
 
-  auto scenar = dynamic_cast<ScenarioInterface*>(m_model.parent());
+  auto scenar = dynamic_cast<ScenarioInterface*>(object.parent());
   SCORE_ASSERT(scenar);
 
-  con(m_model, &EventModel::statesChanged, this,
+  con(object, &EventModel::statesChanged, this,
       &EventInspectorWidget::updateDisplayedValues, Qt::QueuedConnection);
 
   ////// HEADER
   // metadata
-  m_metadata = new MetadataWidget{m_model.metadata(), doc.commandStack,
-                                  &m_model, this};
-  m_metadata->setupConnections(m_model);
+  m_metadata = new MetadataWidget{object.metadata(), doc.commandStack,
+      &object, this};
+  m_metadata->setupConnections(object);
 
   m_properties.push_back(m_metadata);
 
@@ -82,12 +82,12 @@ EventInspectorWidget::EventInspectorWidget(
   auto infoLay = new score::MarginLess<QFormLayout>{infoWidg};
 
   // timeSync
-  auto timeSync = m_model.timeSync();
+  auto timeSync = object.timeSync();
   auto tnBtn = SelectionButton::make(
-      tr("Parent Sync"),
-      &scenar->timeSync(timeSync),
-      m_selectionDispatcher,
-      infoWidg);
+        tr("Parent Sync"),
+        &scenar->timeSync(timeSync),
+        m_selectionDispatcher,
+        infoWidg);
 
   infoLay->addWidget(tnBtn);
 
@@ -104,12 +104,12 @@ EventInspectorWidget::EventInspectorWidget(
 
     m_exprEditor = new ExpressionEditorWidget{m_context, expr_widg};
     connect(
-        m_exprEditor, &ExpressionEditorWidget::editingFinished, this,
-        &EventInspectorWidget::on_conditionChanged);
+          m_exprEditor, &ExpressionEditorWidget::editingFinished, this,
+          &EventInspectorWidget::on_conditionChanged);
     connect(
-        m_exprEditor, &ExpressionEditorWidget::resetExpression, this,
-        &EventInspectorWidget::on_conditionReset);
-    con(m_model, &EventModel::conditionChanged, m_exprEditor,
+          m_exprEditor, &ExpressionEditorWidget::resetExpression, this,
+          &EventInspectorWidget::on_conditionReset);
+    con(object, &EventModel::conditionChanged, m_exprEditor,
         &ExpressionEditorWidget::setExpression);
 
     m_menu.menu->removeAction(m_menu.deleteAction);
@@ -119,19 +119,21 @@ EventInspectorWidget::EventInspectorWidget(
 
     con(m_menu, &ExpressionMenu::expressionChanged, this,
         [=] (const QString& str) {
-          auto cond = State::parseExpression(str);
-          if (!cond)
-          {
-            cond = State::defaultTrueExpression();
-          }
+      if(!m_model)
+        return;
+      auto cond = State::parseExpression(str);
+      if (!cond)
+      {
+        cond = State::defaultTrueExpression();
+      }
 
-          if (*cond != m_model.condition())
-          {
-            auto cmd = new Scenario::Command::SetCondition{m_model,
-                                                           std::move(*cond)};
-            m_commandDispatcher.submitCommand(cmd);
-          }
-        });
+      if (*cond != m_model->condition())
+      {
+        auto cmd = new Scenario::Command::SetCondition{*m_model,
+            std::move(*cond)};
+        m_commandDispatcher.submitCommand(cmd);
+      }
+    });
 
     expr_lay->addWidget(m_exprEditor);
     m_properties.push_back(expr_widg);
@@ -143,32 +145,34 @@ EventInspectorWidget::EventInspectorWidget(
     auto l = new score::MarginLess<QFormLayout>{w};
     m_offsetBehavior = new QComboBox{w};
     m_offsetBehavior->addItem(
-        tr("True"), QVariant::fromValue(OffsetBehavior::True));
+          tr("True"), QVariant::fromValue(OffsetBehavior::True));
     m_offsetBehavior->addItem(
-        tr("False"), QVariant::fromValue(OffsetBehavior::False));
+          tr("False"), QVariant::fromValue(OffsetBehavior::False));
     m_offsetBehavior->addItem(
-        tr("Expression"), QVariant::fromValue(OffsetBehavior::Expression));
+          tr("Expression"), QVariant::fromValue(OffsetBehavior::Expression));
 
-    m_offsetBehavior->setCurrentIndex((int)m_model.offsetBehavior());
-    con(m_model, &EventModel::offsetBehaviorChanged, this,
+    m_offsetBehavior->setCurrentIndex((int)object.offsetBehavior());
+    con(object, &EventModel::offsetBehaviorChanged, this,
         [=](OffsetBehavior b) { m_offsetBehavior->setCurrentIndex((int)b); });
     connect(
-        m_offsetBehavior, SignalUtils::QComboBox_currentIndexChanged_int(),
-        this, [=](int idx) {
-          if (idx != (int)m_model.offsetBehavior())
-          {
-            CommandDispatcher<> c{this->m_context.commandStack};
-            c.submitCommand(
-                new Command::SetOffsetBehavior{m_model, (OffsetBehavior)idx});
-          }
-        });
+          m_offsetBehavior, SignalUtils::QComboBox_currentIndexChanged_int(),
+          this, [=](int idx) {
+      if(!m_model)
+        return;
+      if (idx != (int)m_model->offsetBehavior())
+      {
+        CommandDispatcher<> c{this->m_context.commandStack};
+        c.submitCommand(
+              new Command::SetOffsetBehavior{*m_model, (OffsetBehavior)idx});
+      }
+    });
 
     m_offsetBehavior->setWhatsThis(
-        tr("The offset behaviour is used when playing a score from "
-           "the middle. \nThis allows to choose the value that the event will "
-           "take, \nsince one may want to try multiple branches of conditions "
-           "easily.\n"
-           "Choosing 'Expression' will instead evaluate the expression."));
+          tr("The offset behaviour is used when playing a score from "
+             "the middle. \nThis allows to choose the value that the event will "
+             "take, \nsince one may want to try multiple branches of conditions "
+             "easily.\n"
+             "Choosing 'Expression' will instead evaluate the expression."));
     m_offsetBehavior->setToolTip(m_offsetBehavior->whatsThis());
     l->addRow(tr("Offset behaviour"), m_offsetBehavior);
 
@@ -183,27 +187,31 @@ EventInspectorWidget::EventInspectorWidget(
 void EventInspectorWidget::updateDisplayedValues()
 {
   // Cleanup
-  if (!m_model.parent())
+  if (!m_model || !m_model->parent())
     return;
 
-  m_exprEditor->setExpression(m_model.condition());
+  m_exprEditor->setExpression(m_model->condition());
 }
 
 void EventInspectorWidget::on_conditionChanged()
 {
+  if(!m_model)
+    return;
   auto cond = m_exprEditor->expression();
 
-  if (cond != m_model.condition())
+  if (cond != m_model->condition())
   {
     auto cmd
-        = new Scenario::Command::SetCondition{m_model, std::move(cond)};
+        = new Scenario::Command::SetCondition{*m_model, std::move(cond)};
     emit m_commandDispatcher.submitCommand(cmd);
   }
 }
 void EventInspectorWidget::on_conditionReset()
 {
+  if(!m_model)
+    return;
   auto cmd
-      = new Scenario::Command::SetCondition{m_model, State::Expression{}};
+      = new Scenario::Command::SetCondition{*m_model, State::Expression{}};
   emit m_commandDispatcher.submitCommand(cmd);
 }
 }

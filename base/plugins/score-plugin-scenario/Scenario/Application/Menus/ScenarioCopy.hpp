@@ -30,8 +30,10 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT CategorisedScenario
 
 QJsonObject copyBaseInterval(const IntervalModel&);
 
+SCORE_PLUGIN_SCENARIO_EXPORT
 QJsonObject copySelectedScenarioElements(const Scenario::ProcessModel& sm);
 
+SCORE_PLUGIN_SCENARIO_EXPORT
 QJsonObject copySelectedScenarioElements(const Scenario::ProcessModel& sm,
                                          CategorisedScenario& cat);
 

@@ -42,6 +42,8 @@ void EncapsulateInScenario(
       break;
     }
   }
+
+  disp.commit();
 }
 
 }

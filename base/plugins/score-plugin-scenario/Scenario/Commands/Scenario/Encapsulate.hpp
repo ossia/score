@@ -184,7 +184,6 @@ EncapsData EncapsulateElements(
     model = &scenar.interval(create_itv->createdInterval());
   }
 
-  disp.commit();
   return {topY, bottomY, model};
 }
 

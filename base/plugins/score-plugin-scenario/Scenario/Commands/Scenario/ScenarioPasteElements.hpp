@@ -22,7 +22,7 @@ class IntervalModel;
 namespace Command
 {
 
-class ScenarioPasteElements final : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPasteElements final : public score::Command
 {
   SCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),
