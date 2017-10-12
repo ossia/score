@@ -3,6 +3,7 @@
 #include <ossia/editor/value/value.hpp>
 #include <Automation/AutomationModel.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
+#include <ossia/dataflow/node_process.hpp>
 #include <memory>
 namespace ossia
 {
@@ -20,7 +21,7 @@ namespace RecreateOnPlay
 {
 class Component final
     : public ::Engine::Execution::
-          ProcessComponent_T<Automation::ProcessModel, ossia::automation>
+          ProcessComponent_T<Automation::ProcessModel, ossia::node_process>
 {
   COMPONENT_METADATA("f759eacd-5a67-4627-bbe8-c649e0f9b6c5")
 public:

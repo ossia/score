@@ -26,7 +26,7 @@ IntervalSummaryWidget::IntervalSummaryWidget(
       = SelectionButton::make("", &object, m_selectionDispatcher, this);
 
   auto l1 = new TextLabel{object.metadata().getName()};
-  auto l2 = new TextLabel{tr("Start : ") + object.startDate().toString()};
+  auto l2 = new TextLabel{tr("Start : ") + object.date().toString()};
   m_lay.addWidget(l1, 0, 0, 1, 3);
   m_lay.addWidget(l2, 0, 3, 1, 3);
   m_lay.addWidget(eventBtn, 0, 6, 1, 1);

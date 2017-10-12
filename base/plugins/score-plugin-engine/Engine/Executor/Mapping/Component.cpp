@@ -109,7 +109,7 @@ Component::Component(
     const Id<score::Component>& id,
     QObject* parent)
     : ::Engine::Execution::
-          ProcessComponent_T<Mapping::ProcessModel, ossia::mapper>{parentInterval,
+          ProcessComponent_T<Mapping::ProcessModel, ossia::node_process>{parentInterval,
                                                                    element,
                                                                    ctx, id,
                                                                    "MappingElement",
@@ -186,14 +186,6 @@ void Component::recompute()
     });
     return;
   }
-
-  // If something did not work out
-  system().executionQueue.enqueue(
-        [proc=std::dynamic_pointer_cast<ossia::mapper>(m_ossia_process)]
-  {
-     proc->clean();
-  });
-
 }
 
 template <typename X_T, typename Y_T>

@@ -36,13 +36,15 @@ signals:
   void expandEventSection(bool b);
 
 private:
+  QString tabName() override;
+
   void updateDisplayedValues();
   void on_conditionChanged();
   void on_conditionReset();
 
   std::vector<QWidget*> m_properties;
 
-  const EventModel& m_model;
+  QPointer<const EventModel> m_model;
   const score::DocumentContext& m_context;
   CommandDispatcher<> m_commandDispatcher;
   score::SelectionDispatcher m_selectionDispatcher;

@@ -60,7 +60,7 @@ public:
       auto& curIntervalPropertiesToUpdate = e.second;
 
       // compute default duration here
-      const auto& startDate
+      const auto& date
           = scenario
                 .event(scenario.state(curIntervalToUpdate.startState())
                            .eventId())
@@ -71,12 +71,12 @@ public:
                     scenario.state(curIntervalToUpdate.endState()).eventId())
                 .date();
 
-      TimeVal defaultDuration = endDate - startDate;
+      TimeVal defaultDuration = endDate - date;
 
       // set start date and default duration
-      if (!(curIntervalToUpdate.startDate() - startDate).isZero())
+      if (!(curIntervalToUpdate.date() - date).isZero())
       {
-        curIntervalToUpdate.setStartDate(startDate);
+        curIntervalToUpdate.setStartDate(date);
       }
       curIntervalToUpdate.duration.setDefaultDuration(defaultDuration);
 
@@ -128,7 +128,7 @@ public:
       auto& curIntervalPropertiesToUpdate = e.second;
 
       // compute default duration here
-      const auto& startDate
+      const auto& date
           = scenario
                 .event(scenario.state(curIntervalToUpdate.startState())
                            .eventId())
@@ -139,12 +139,12 @@ public:
                     scenario.state(curIntervalToUpdate.endState()).eventId())
                 .date();
 
-      TimeVal defaultDuration = endDate - startDate;
+      TimeVal defaultDuration = endDate - date;
 
       // set start date and default duration
-      if (!(curIntervalToUpdate.startDate() - startDate).isZero())
+      if (!(curIntervalToUpdate.date() - date).isZero())
       {
-        curIntervalToUpdate.setStartDate(startDate);
+        curIntervalToUpdate.setStartDate(date);
       }
       curIntervalToUpdate.duration.setDefaultDuration(defaultDuration);
 

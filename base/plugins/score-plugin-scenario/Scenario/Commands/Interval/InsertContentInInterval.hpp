@@ -20,7 +20,7 @@ class IntervalModel;
 
 namespace Command
 {
-class InsertContentInInterval final : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT InsertContentInInterval final : public score::Command
 {
   SCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),

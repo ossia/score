@@ -31,22 +31,6 @@ namespace JS
 class ProcessModel;
 namespace Executor
 {
-class ProcessExecutor final : public ossia::time_process
-{
-public:
-  ProcessExecutor(const Explorer::DeviceDocumentPlugin& devices);
-
-  void setTickFun(const QString& val);
-
-  ossia::state_element state(ossia::time_value date, double pos, ossia::time_value tick_offset) override;
-
-private:
-  const Device::DeviceList& m_devices;
-  QQmlEngine m_engine;
-  QObject* m_object{};
-  QJSValue m_tickFun;
-};
-
 class js_node final : public ossia::graph_node
 {
 public:
@@ -68,7 +52,7 @@ private:
 
 class Component final
     : public ::Engine::Execution::
-          ProcessComponent_T<JS::ProcessModel, ProcessExecutor>
+          ProcessComponent_T<JS::ProcessModel, js_node>
 {
   COMPONENT_METADATA("c2737929-231e-4d57-9088-a2a3a8d3c24e")
 public:

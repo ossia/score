@@ -12,7 +12,7 @@
 namespace ossia
 {
 class graph_node;
-class graph_edge;
+struct graph_edge;
 using node_ptr = std::shared_ptr<graph_node>;
 using edge_ptr = std::shared_ptr<graph_edge>;
 }
@@ -24,7 +24,7 @@ class DocumentPlugin;
 namespace Process
 {
 class Node;
-struct Port;
+class Port;
 class Cable;
 enum class CableType { ImmediateGlutton, ImmediateStrict, DelayedGlutton, DelayedStrict };
 

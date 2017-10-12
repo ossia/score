@@ -16,6 +16,7 @@
 #include <Scenario/Commands/Interval/InsertContentInInterval.hpp>
 #include <Scenario/Commands/Scenario/ScenarioPasteContent.hpp>
 #include <Scenario/Commands/Scenario/ScenarioPasteElements.hpp>
+#include <Scenario/Commands/Scenario/Encapsulate.hpp>
 #include <Scenario/Commands/State/InsertContentInState.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
@@ -72,31 +73,19 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
   m_removeElements = new QAction{tr("Remove selected elements"), this};
   m_removeElements->setShortcut(Qt::Key_Backspace); // NOTE : the effective
                                                     // shortcut is in
-                                                    // CommonSelectionState.cpp
+                                                    // ../ScenarioActions.hpp
   m_removeElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   connect(m_removeElements, &QAction::triggered, [this]() {
     auto& ctx = m_parent->currentDocument()->context();
 
     auto sm = focusedScenarioModel(ctx);
+    auto si = focusedScenarioInterface(ctx);
+
     if (sm)
     {
       Scenario::removeSelection(*sm, ctx.commandStack);
     }
-  });
-
-  m_clearElements = new QAction{tr("Clear selected elements"), this};
-  m_clearElements->setShortcut(
-      QKeySequence::Delete); // NOTE : the effective shortcut is in
-                             // CommonSelectionState.cpp
-  m_clearElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-  connect(m_clearElements, &QAction::triggered, [this]() {
-    auto& ctx = m_parent->currentDocument()->context();
-
-    if (auto sm = focusedScenarioModel(ctx))
-    {
-      Scenario::clearContentFromSelection(*sm, ctx.commandStack);
-    }
-    else if (auto si = focusedScenarioInterface(ctx))
+    else if (si && !selectedElements(si->getStates()).empty())
     {
       Scenario::clearContentFromSelection(*si, ctx.commandStack);
     }
@@ -173,7 +162,7 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
     s.exec();
   });
 
-  // MERGE TIMENODES
+  // MERGE TIMESYNC
   m_mergeTimeSyncs = new QAction{this};
   connect(m_mergeTimeSyncs, &QAction::triggered, [this]() {
     auto sm = focusedScenarioModel(m_parent->currentDocument()->context());
@@ -183,10 +172,29 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
         *sm, m_parent->currentDocument()->context().commandStack);
   });
 
+  // Merge events
+  m_mergeEvents = new QAction{this};
+  connect(m_mergeEvents, &QAction::triggered, [this]() {
+    auto sm = focusedScenarioModel(m_parent->currentDocument()->context());
+    SCORE_ASSERT(sm);
+
+    Scenario::mergeEvents(
+        *sm, m_parent->currentDocument()->context().commandStack);
+  });
+
+  // Encapsulate
+  m_encapsulate = new QAction{this};
+  connect(m_encapsulate, &QAction::triggered, [this]() {
+    auto sm = focusedScenarioModel(m_parent->currentDocument()->context());
+    SCORE_ASSERT(sm);
+
+    Scenario::EncapsulateInScenario(
+        *sm, m_parent->currentDocument()->context().commandStack);
+  });
+
   auto doc = parent->context.mainWindow.findChild<QWidget*>("Documents", Qt::FindDirectChildrenOnly);
   SCORE_ASSERT(doc);
   doc->addAction(m_removeElements);
-  doc->addAction(m_clearElements);
   doc->addAction(m_pasteElements);
 
 
@@ -236,19 +244,20 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
                                                     ScenarioDocumentModel>>();
 
   actions.add<Actions::RemoveElements>(m_removeElements);
-  actions.add<Actions::ClearElements>(m_clearElements);
   actions.add<Actions::CopyContent>(m_copyContent);
   actions.add<Actions::CutContent>(m_cutContent);
   actions.add<Actions::PasteContent>(m_pasteContent);
   actions.add<Actions::PasteElements>(m_pasteElements);
   actions.add<Actions::ElementsToJson>(m_elementsToJson);
   actions.add<Actions::MergeTimeSyncs>(m_mergeTimeSyncs);
+  actions.add<Actions::MergeEvents>(m_mergeEvents);
+  actions.add<Actions::Encapsulate>(m_encapsulate);
 
   scenariomodel_cond.add<Actions::RemoveElements>();
   scenariomodel_cond.add<Actions::MergeTimeSyncs>();
+  scenariomodel_cond.add<Actions::Encapsulate>();
   scenariofocus_cond.add<Actions::PasteElements>();
 
-  scenarioiface_cond.add<Actions::ClearElements>();
   scenarioiface_cond.add<Actions::CopyContent>();
   scenarioiface_cond.add<Actions::CutContent>();
   scenarioiface_cond.add<Actions::PasteContent>();
@@ -257,7 +266,6 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   Menu& object = base_menus.at(Menus::Object());
   object.menu()->addAction(m_elementsToJson);
   object.menu()->addAction(m_removeElements);
-  object.menu()->addAction(m_clearElements);
   object.menu()->addSeparator();
   object.menu()->addAction(m_copyContent);
   object.menu()->addAction(m_cutContent);
@@ -265,6 +273,8 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   object.menu()->addAction(m_pasteElements);
   object.menu()->addSeparator();
   object.menu()->addAction(m_mergeTimeSyncs);
+  object.menu()->addAction(m_mergeEvents);
+  object.menu()->addAction(m_encapsulate);
   m_eventActions.makeGUIElements(e);
   m_cstrActions.makeGUIElements(e);
   m_stateActions.makeGUIElements(e);
@@ -305,12 +315,12 @@ void ObjectMenuActions::setupContextMenu(
 
       objectMenu->addAction(m_elementsToJson);
       objectMenu->addAction(m_removeElements);
-      objectMenu->addAction(m_clearElements);
       objectMenu->addSeparator();
 
       objectMenu->addAction(m_copyContent);
       objectMenu->addAction(m_cutContent);
       objectMenu->addAction(m_pasteContent);
+      objectMenu->addAction(m_encapsulate);
     }
 
     auto pasteElements = new QAction{tr("Paste element(s)"), this};
@@ -334,7 +344,6 @@ void ObjectMenuActions::setupContextMenu(
           auto objectMenu = menu.addMenu(tr("Object"));
 
           objectMenu->addAction(m_elementsToJson);
-          objectMenu->addAction(m_clearElements);
           objectMenu->addSeparator();
 
           objectMenu->addAction(m_copyContent);

@@ -6,6 +6,7 @@
 #include <Mapping/MappingModel.hpp>
 #include <QPointer>
 #include <State/Address.hpp>
+#include <ossia/dataflow/node_process.hpp>
 namespace ossia
 {
 class curve_abstract;
@@ -21,7 +22,7 @@ namespace RecreateOnPlay
 {
 class Component final
     : public ::Engine::Execution::
-          ProcessComponent_T<Mapping::ProcessModel, ossia::mapper>
+          ProcessComponent_T<Mapping::ProcessModel, ossia::node_process>
 {
   COMPONENT_METADATA("da360b58-9885-4106-be54-8e272ed45dbe")
 public:

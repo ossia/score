@@ -24,6 +24,7 @@ class PortWidget : public QWidget
       , m_edit{ctx.plugin<Explorer::DeviceDocumentPlugin>().explorer(), this}
     {
       auto lay = new QFormLayout{this};
+      lay->addRow(p.customData(), (QWidget*)nullptr);
       lay->addRow(tr("Address"), &m_edit);
 
       m_edit.setAddress(p.address());
@@ -229,8 +230,8 @@ void DefaultHeaderDelegate::paint(QPainter* painter, const QStyleOptionGraphicsI
 
   painter->setPen(ScenarioStyle::instance().TimenodePen);
   painter->setFont(ScenarioStyle::instance().Medium8Pt);
-  painter->drawText(QPointF{4, 18}, "►");
-  painter->drawText(QPointF{4, 27}, "◄");
+  painter->drawText(QPointF{4, 18}, "→");
+  painter->drawText(QPointF{4, 27}, "←");
 
   painter->setRenderHint(QPainter::Antialiasing, false);
 }

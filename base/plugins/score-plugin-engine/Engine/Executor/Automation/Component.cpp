@@ -182,13 +182,6 @@ void Component::recompute()
       return;
     }
   }
-
-  // If something did not work out
-  system().executionQueue.enqueue(
-        [proc=std::dynamic_pointer_cast<ossia::automation>(m_ossia_process)]
-  {
-    proc->clean();
-  });
 }
 
 template <typename Y_T>

@@ -21,7 +21,7 @@ public:
   void setZoom(const int); // zoom percentage
   void setSlotHeight(const qreal);
   void setDefaultDuration(const TimeVal& t);
-  void setSnapshot(bool);
+
   void setSequence(bool);
 
 signals:
@@ -29,7 +29,7 @@ signals:
   void zoomChanged(int);
   void slotHeightChanged(qreal);
   void defaultDurationChanged(const TimeVal& t);
-  void snapshotChanged(bool);
+
   void sequenceChanged(bool);
 
 private:
@@ -40,7 +40,7 @@ private:
   QSpinBox* m_zoomSpinBox{};
   QSpinBox* m_slotHeightBox{};
   score::TimeSpinBox* m_defaultDur{};
-  QCheckBox* m_snapshot{};
+  
   QCheckBox* m_sequence{};
 };
 }

@@ -206,15 +206,6 @@ void ApplicationPlugin::on_play(
       auto& c = plugmodel->context();
       m_clock = makeClock(c);
 
-      con(
-          plugmodel->baseScenario(),
-          &Engine::Execution::BaseScenarioElement::finished, this,
-          [=]() {
-            auto& stop_action = context.actions.action<Actions::Stop>();
-            stop_action.action()->trigger();
-          },
-          Qt::QueuedConnection);
-
       if(setup_fun)
       {
         plugmodel->runAllCommands();
@@ -332,6 +323,22 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
   auto& root = lt.device().get_root_node();
 
   {
+    auto n = root.create_child("running");
+    auto p = n->create_parameter(ossia::val_type::BOOL);
+    p->set_value(false);
+    p->set_access(ossia::access_mode::GET);
+
+    auto& play_action = appplug.context.actions.action<Actions::Play>();
+    connect(play_action.action(), &QAction::triggered, &lt, [=] {
+      p->push_value(true);
+    });
+
+    auto& stop_action = context.actions.action<Actions::Stop>();
+    connect(stop_action.action(), &QAction::triggered, &lt, [=] {
+      p->push_value(false);
+    });
+  }
+  {
     auto local_play_node = root.create_child("play");
     auto local_play_address
         = local_play_node->create_parameter(ossia::val_type::BOOL);
@@ -372,6 +379,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
       auto& stop_action = appplug.context.actions.action<Actions::Stop>();
       stop_action.action()->trigger();
     });
+
   }
 }
 

@@ -55,7 +55,6 @@ void BaseIntervalInspectorDelegate::addWidgets_pre(
   m_triggerLine = new TriggerInspectorWidget{
       ctx, ctx.app.interfaces<Command::TriggerCommandFactoryList>(),
       tn, parent};
-  m_triggerLine->HideRmButton();
   widgets.push_back(new TextLabel(QObject::tr("Trigger")));
   widgets.push_back(m_triggerLine);
 }

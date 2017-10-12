@@ -7,12 +7,16 @@
 #include <Scenario/Commands/Scenario/Deletions/ClearState.hpp>
 #include <Scenario/Commands/Scenario/Deletions/RemoveSelection.hpp>
 #include <Scenario/Commands/Scenario/Merge/MergeTimeSyncs.hpp>
+#include <Scenario/Commands/Scenario/Merge/MergeEvents.hpp>
+#include <Scenario/Commands/Interval/RemoveProcessFromInterval.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+
 #include <algorithm>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
@@ -23,6 +27,7 @@
 #include <score/model/EntityMap.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/tools/std/Optional.hpp>
+
 namespace score
 {
 class CommandStackFacade;
@@ -41,14 +46,19 @@ void clearContentFromSelection(
   MacroCommandDispatcher<ClearSelection> cleaner{stack};
 
   // Create a Clear command for each.
-  for (auto& interval : intervalsToRemove)
-  {
-    cleaner.submitCommand(new ClearInterval(*interval));
-  }
 
   for (auto& state : statesToRemove)
   {
-    cleaner.submitCommand(new ClearState(*state));
+    if (state->messages().rootNode().hasChildren() )
+    {
+      cleaner.submitCommand(new ClearState(*state));
+    }
+  }
+
+  for (auto& interval : intervalsToRemove)
+  {
+    cleaner.submitCommand(new ClearInterval(*interval));
+    // if a state and an interval are selected then remove event too
   }
 
   cleaner.commit();
@@ -77,9 +87,43 @@ void removeSelection(
     const Scenario::ProcessModel& scenario,
     const score::CommandStackFacade& stack)
 {
+  MacroCommandDispatcher<ClearSelection> cleaner{stack};
+
+  const QList<const StateModel*>& states = selectedElements(scenario.getStates());
+
+  // Create a Clear command for each.
+
+  for (auto& state : states)
+  {
+    if (state->messages().rootNode().hasChildren() )
+    {
+      cleaner.submitCommand(new ClearState(*state));
+    }
+  }
+
   Selection sel = scenario.selectedChildren();
 
   auto& ctx = score::IDocument::documentContext(scenario);
+
+  for(const auto& obj : ctx.selectionStack.currentSelection()) {
+    if(auto proc = dynamic_cast<const Process::ProcessModel*>(obj.data()))
+    {
+      bool remove_it = true;
+
+      for (const auto& obj : sel) {
+        if (auto itv = dynamic_cast<const IntervalModel*>(obj.data())) {
+          if ( itv == proc->parent() ) {
+            remove_it = false;
+            break;
+          }
+        }
+      }
+
+      if (remove_it)
+        cleaner.submitCommand( new Scenario::Command::RemoveProcessFromInterval(*(IntervalModel*)proc->parent(), proc->id()));
+    }
+  }
+
   score::SelectionDispatcher s{ctx.selectionStack};
   s.setAndCommit({});
   ctx.selectionStack.clear();
@@ -88,9 +132,10 @@ void removeSelection(
 
   if (!sel.empty())
   {
-    CommandDispatcher<> dispatcher(stack);
-    dispatcher.submitCommand(new RemoveSelection(scenario, sel));
+    cleaner.submitCommand(new RemoveSelection(scenario, sel));
   }
+
+  cleaner.commit();
 }
 
 void removeSelection(
@@ -103,16 +148,16 @@ void clearContentFromSelection(
     const BaseScenarioContainer& scenario,
     const score::CommandStackFacade& stack)
 {
-  QList<const Scenario::IntervalModel*> cst;
+  QList<const Scenario::IntervalModel*> itv;
   QList<const Scenario::StateModel*> states;
   if (scenario.interval().selection.get())
-    cst.push_back(&scenario.interval());
+    itv.push_back(&scenario.interval());
   if (scenario.startState().selection.get())
     states.push_back(&scenario.startState());
   if (scenario.endState().selection.get())
     states.push_back(&scenario.endState());
 
-  clearContentFromSelection(cst, states, stack);
+  clearContentFromSelection(itv, states, stack);
 }
 
 void clearContentFromSelection(
@@ -132,21 +177,10 @@ void clearContentFromSelection(
       stack);
 }
 
-// MOVEME : these are useful.
-template <typename T>
-struct DateComparator
-{
-  const Scenario::ProcessModel* scenario;
-  bool operator()(const T* lhs, const T* rhs)
-  {
-    return Scenario::date(*lhs, *scenario) < Scenario::date(*rhs, *scenario);
-  }
-};
-
 template <typename T>
 auto make_ordered(const Scenario::ProcessModel& scenario)
 {
-  using comp_t = DateComparator<T>;
+  using comp_t = StartDateComparator<T>;
   using set_t = std::set<const T*, comp_t>;
 
   set_t the_set(comp_t{&scenario});
@@ -167,7 +201,6 @@ void mergeTimeSyncs(
   // We merge all the furthest timesyncs to the first one.
   auto timesyncs = make_ordered<TimeSyncModel>(scenario);
   auto states = make_ordered<StateModel>(scenario);
-  auto events = make_ordered<EventModel>(scenario);
 
   if (timesyncs.size() < 2)
   {
@@ -194,4 +227,52 @@ void mergeTimeSyncs(
     }
   }
 }
+
+void mergeEvents(
+    const Scenario::ProcessModel& scenario,
+    const score::CommandStackFacade& f)
+{
+  // We merge all the furthest events to the first one.
+  const QList<const StateModel*>& states = selectedElements(scenario.getStates());
+  const QList<const EventModel*>& events = selectedElements(scenario.getEvents());
+
+  QList<const EventModel*> sel = events;
+
+  for (auto it = states.begin(); it != states.end() ; ++it)
+  {
+    sel.push_back(&Scenario::parentEvent(**it, scenario));
+  }
+
+  sel = sel.toSet().toList();
+
+  MacroCommandDispatcher<MergeEventMacro> merger{f};
+
+  while (sel.size() > 1)
+  {
+    auto it = sel.begin();
+    auto first_ev = *it;
+    for (++it; it != sel.end(); )
+    {
+      // Check if Events have the same TimeSync parent
+      if( first_ev->timeSync() == (*it)->timeSync() )
+      {
+        auto cmd = new Command::MergeEvents(
+            scenario, first_ev->id(), (*it)->id());
+        // f.redoAndPush(cmd);
+        merger.submitCommand(cmd);
+        it = sel.erase(it);
+      } else
+        ++it;
+    }
+    sel.removeOne(first_ev);
+  }
+  merger.commit();
+}
+
+bool EndDateComparator::operator()(const IntervalModel* lhs, const IntervalModel* rhs)
+{
+  return (Scenario::date(*lhs, *scenario) + lhs->duration.defaultDuration())
+      <= (Scenario::date(*rhs, *scenario) + rhs->duration.defaultDuration());
+}
+
 }

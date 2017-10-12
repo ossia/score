@@ -132,7 +132,7 @@ void DataflowWidget::reinit()
 }
 
 CableWidget::CableWidget(const Process::Cable& cable, const score::DocumentContext& ctx, QWidget* parent):
-  InspectorWidgetBase{cable, ctx, parent}
+  InspectorWidgetBase{cable, ctx, parent, tr("Cable")}
 {
   m_cabletype.addItems({tr("Immediate Glutton"), tr("Immediate Strict"), tr("Delayed Glutton"), tr("Delayed Strict")});
   m_cabletype.setCurrentIndex((int) cable.type());

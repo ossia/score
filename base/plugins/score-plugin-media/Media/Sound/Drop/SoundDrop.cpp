@@ -202,7 +202,7 @@ bool IntervalDropHandler::drop(
                 auto resize_cmd = new Scenario::Command::MoveEventMeta{
                         *scenar,
                         ev,
-                        interval.startDate() + drop.dropMaxDuration(),
+                        interval.date() + drop.dropMaxDuration(),
                         interval.heightPercentage(),
                         ExpandMode::GrowShrink,
                         LockMode::Free};
