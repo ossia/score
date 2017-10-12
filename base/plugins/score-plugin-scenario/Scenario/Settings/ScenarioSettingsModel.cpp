@@ -22,7 +22,7 @@ const score::sp<ModelSlotHeightParameter> SlotHeight{
 const score::sp<ModelDefaultDurationParameter> DefaultDuration{
     QStringLiteral("Skin/defaultDuration"), TimeVal::fromMsecs(15000)};
 const score::sp<ModelSnapshotOnCreateParameter> SnapshotOnCreate{
-    QStringLiteral("Scenario/SnapshotOnCreate"), true};
+    QStringLiteral("Scenario/SnapshotOnCreate"), false};
 const score::sp<ModelAutoSequenceParameter> AutoSequence{
     QStringLiteral("Scenario/AutoSequence"), true};
 
