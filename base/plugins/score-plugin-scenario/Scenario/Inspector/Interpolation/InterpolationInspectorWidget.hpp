@@ -24,6 +24,7 @@ private:
   void on_addressChange(const ::State::AddressAccessor& newText);
   Explorer::AddressAccessorEditWidget* m_lineEdit{};
   QCheckBox* m_tween{};
+  QLabel* m_label;
 
   CommandDispatcher<> m_dispatcher;
   void on_tweenChanged();
