@@ -318,11 +318,6 @@ View::View() : m_widg{new QWidget}
       [=](const QTime& t) { emit defaultDurationChanged(TimeVal{t}); });
   lay->addRow(tr("New score duration"), m_defaultDur);
 
-  // Snapshot
-  m_snapshot = new QCheckBox{m_widg};
-  connect(m_snapshot, &QCheckBox::toggled, this, &View::snapshotChanged);
-  lay->addRow(tr("Snapshot"), m_snapshot);
-
   m_sequence = new QCheckBox{m_widg};
   connect(m_sequence, &QCheckBox::toggled, this, &View::sequenceChanged);
   lay->addRow(tr("Auto-Sequence"), m_sequence);
@@ -357,12 +352,6 @@ void View::setSlotHeight(const double val)
 {
   if (val != m_slotHeightBox->value())
     m_slotHeightBox->setValue(val);
-}
-
-void View::setSnapshot(const bool val)
-{
-  if (val != m_snapshot->checkState())
-    m_snapshot->setChecked(val);
 }
 
 void View::setSequence(const bool val)
