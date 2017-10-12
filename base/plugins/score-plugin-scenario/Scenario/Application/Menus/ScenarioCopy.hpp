@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <score_plugin_scenario_export.h>
 class QJsonObject;
 class QObject;
 
@@ -14,7 +15,7 @@ class TimeSyncModel;
 class BaseScenario;
 class BaseScenarioContainer;
 
-struct CategorisedScenario
+struct SCORE_PLUGIN_SCENARIO_EXPORT CategorisedScenario
 {
   CategorisedScenario();
   CategorisedScenario(const Scenario::ProcessModel& sm);

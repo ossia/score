@@ -17,7 +17,7 @@ SCORE_PLUGIN_SCENARIO_EXPORT const Scenario::ProcessModel*
 focusedScenarioModel(const score::DocumentContext& ctx);
 
 //! Anything in a scenario model
-class EnableWhenScenarioModelObject final : public score::ActionCondition
+class SCORE_PLUGIN_SCENARIO_EXPORT EnableWhenScenarioModelObject final : public score::ActionCondition
 {
 public:
   EnableWhenScenarioModelObject();

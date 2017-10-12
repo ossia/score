@@ -188,7 +188,7 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
     auto sm = focusedScenarioModel(m_parent->currentDocument()->context());
     SCORE_ASSERT(sm);
 
-    Scenario::EncapsulateElements(
+    Scenario::EncapsulateInScenario(
         *sm, m_parent->currentDocument()->context().commandStack);
   });
 
@@ -255,6 +255,7 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
 
   scenariomodel_cond.add<Actions::RemoveElements>();
   scenariomodel_cond.add<Actions::MergeTimeSyncs>();
+  scenariomodel_cond.add<Actions::Encapsulate>();
   scenariofocus_cond.add<Actions::PasteElements>();
 
   scenarioiface_cond.add<Actions::CopyContent>();
