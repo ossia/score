@@ -23,12 +23,14 @@ State::State(
 {
   m_properties.push_back(add_setProperty<::State::impulse>(
       node(), "trigger", [&] (auto) {
-    auto& r_ctx
-        = doc.context().plugin<Engine::Execution::DocumentPlugin>().context();
+    auto plug = doc.context().findPlugin<Engine::Execution::DocumentPlugin>();
+    if(plug)
+    {
+      auto ossia_state
+          = Engine::score_to_ossia::state(state, plug->context());
+      ossia_state.launch();
+    }
 
-    auto ossia_state
-        = Engine::score_to_ossia::state(state, r_ctx);
-    ossia_state.launch();
   }));
 }
 }
