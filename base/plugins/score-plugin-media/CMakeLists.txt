@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 project(score_plugin_media LANGUAGES CXX)
-
+return()
 score_common_setup()
 
 # Packages
