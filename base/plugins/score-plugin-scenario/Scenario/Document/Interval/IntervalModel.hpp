@@ -73,7 +73,7 @@ public:
   const Id<StateModel>& endState() const;
   void setEndState(const Id<StateModel>& endState);
 
-  const TimeVal& startDate() const;
+  const TimeVal& date() const;
   void setStartDate(const TimeVal& start);
   void translate(const TimeVal& deltaTime);
 
@@ -136,7 +136,7 @@ public:
 signals:
   void heightPercentageChanged(double);
 
-  void startDateChanged(const TimeVal&);
+  void dateChanged(const TimeVal&);
 
   void focusChanged(bool);
   void executionStateChanged(Scenario::IntervalExecutionState);
@@ -171,7 +171,7 @@ private:
   Id<StateModel> m_startState;
   Id<StateModel> m_endState;
 
-  TimeVal m_startDate;
+  TimeVal m_date;
   double m_heightPercentage{0.5};
 
   ZoomRatio m_zoom{-1};

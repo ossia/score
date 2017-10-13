@@ -33,6 +33,7 @@ case "$TRAVIS_OS_NAME" in
   osx)
     set +e
 
+    brew update
     brew uninstall --ignore-dependencies boost
     ARCHIVE=homebrew-cache.tar.xz
     brew install gnu-tar xz

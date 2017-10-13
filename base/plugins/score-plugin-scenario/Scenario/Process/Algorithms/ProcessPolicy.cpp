@@ -27,10 +27,6 @@ static void AddProcessBeforeState(
     // from the process ?
     auto& messages = statemodel.messages();
 
-    auto node = messages.rootNode();
-    updateTreeWithMessageList(node, ml, proc.id(), ProcessPosition::Previous);
-    messages = std::move(node);
-
     for (const ProcessStateWrapper& next_proc :
          statemodel.followingProcesses())
     {
@@ -59,10 +55,6 @@ AddProcessAfterState(StateModel& statemodel, const Process::ProcessModel& proc)
   auto next_proc_fun = [&](const State::MessageList& ml) {
     auto& messages = statemodel.messages();
 
-    auto node = messages.rootNode();
-    updateTreeWithMessageList(node, ml, proc.id(), ProcessPosition::Following);
-    messages = std::move(node);
-
     for (const ProcessStateWrapper& prev_proc : statemodel.previousProcesses())
     {
       prev_proc.process().setMessages(ml, messages.rootNode());
@@ -87,10 +79,6 @@ static void RemoveProcessBeforeState(
   if (!state)
     return;
 
-  auto node = statemodel.messages().rootNode();
-  updateTreeWithRemovedProcess(node, proc.id(), ProcessPosition::Previous);
-  statemodel.messages() = std::move(node);
-
   auto it
       = ossia::find_if(statemodel.previousProcesses(), [&](const auto& elt) {
           return state == &elt.process();
@@ -107,10 +95,6 @@ static void RemoveProcessAfterState(
   ProcessStateDataInterface* state = proc.startStateData();
   if (!state)
     return;
-
-  auto node = statemodel.messages().rootNode();
-  updateTreeWithRemovedProcess(node, proc.id(), ProcessPosition::Following);
-  statemodel.messages() = std::move(node);
 
   auto it
       = ossia::find_if(statemodel.followingProcesses(), [&](const auto& elt) {

@@ -67,7 +67,7 @@ IntervalModel::IntervalModel(
   m_endState = source.endState();
   duration = source.duration;
 
-  m_startDate = source.m_startDate;
+  m_date = source.m_date;
   m_heightPercentage = source.heightPercentage();
   m_zoom = source.m_zoom;
   m_center = source.m_center;
@@ -135,20 +135,20 @@ void IntervalModel::setEndState(const Id<StateModel>& endState)
   m_endState = endState;
 }
 
-const TimeVal& IntervalModel::startDate() const
+const TimeVal& IntervalModel::date() const
 {
-  return m_startDate;
+  return m_date;
 }
 
 void IntervalModel::setStartDate(const TimeVal& start)
 {
-  m_startDate = start;
-  emit startDateChanged(start);
+  m_date = start;
+  emit dateChanged(start);
 }
 
 void IntervalModel::translate(const TimeVal& deltaTime)
 {
-  setStartDate(m_startDate + deltaTime);
+  setStartDate(m_date + deltaTime);
 }
 
 // Simple getters and setters

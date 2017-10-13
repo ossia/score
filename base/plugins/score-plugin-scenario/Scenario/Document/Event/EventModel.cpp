@@ -132,6 +132,12 @@ void EventModel::removeState(const Id<StateModel>& ds)
   }
 }
 
+void EventModel::clearStates()
+{
+  m_states.clear();
+  emit statesChanged();
+}
+
 const QVector<Id<StateModel>>& EventModel::states() const
 {
   return m_states;

@@ -68,6 +68,14 @@ bool TimeSyncModel::removeEvent(const Id<EventModel>& eventId)
   return false;
 }
 
+void TimeSyncModel::clearEvents()
+{
+  auto ev = m_events;
+  m_events.clear();
+  for(const auto& e : ev)
+    emit eventRemoved(e);
+}
+
 const TimeVal& TimeSyncModel::date() const
 {
   return m_date;

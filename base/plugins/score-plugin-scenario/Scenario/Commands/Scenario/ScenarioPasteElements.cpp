@@ -5,6 +5,7 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
+#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <QDataStream>
@@ -265,11 +266,11 @@ ScenarioPasteElements::ScenarioPasteElements(
   // delta everywhere.
   if (!intervals.empty() || !timesyncs.empty()) // Should always be the case.
   {
-    auto earliestTime = !intervals.empty() ? intervals.front()->startDate()
+    auto earliestTime = !intervals.empty() ? intervals.front()->date()
                                              : timesyncs.front()->date();
     for (const IntervalModel* interval : intervals)
     {
-      const auto& t = interval->startDate();
+      const auto& t = interval->date();
       if (t < earliestTime)
         earliestTime = t;
     }
@@ -289,7 +290,7 @@ ScenarioPasteElements::ScenarioPasteElements(
     auto delta_t = pt.date - earliestTime;
     for (IntervalModel* interval : intervals)
     {
-      interval->setStartDate(interval->startDate() + delta_t);
+      interval->setStartDate(interval->date() + delta_t);
     }
     for (TimeSyncModel* tn : timesyncs)
     {
@@ -373,21 +374,21 @@ void ScenarioPasteElements::undo(const score::DocumentContext& ctx) const
 {
   auto& scenario = m_ts.find(ctx);
 
-  for (const auto& elt : m_ids_timesyncs)
+  for (const auto& elt : m_ids_intervals)
   {
-    scenario.timeSyncs.remove(elt);
-  }
-  for (const auto& elt : m_ids_events)
-  {
-    scenario.events.remove(elt);
+    ScenarioCreate<IntervalModel>::undo(elt, scenario);
   }
   for (const auto& elt : m_ids_states)
   {
-    scenario.states.remove(elt);
+    ScenarioCreate<StateModel>::undo(elt, scenario);
   }
-  for (const auto& elt : m_ids_intervals)
+  for (const auto& elt : m_ids_events)
   {
-    scenario.intervals.remove(elt);
+    ScenarioCreate<EventModel>::undo(elt, scenario);
+  }
+  for (const auto& elt : m_ids_timesyncs)
+  {
+    ScenarioCreate<TimeSyncModel>::undo(elt, scenario);
   }
 }
 

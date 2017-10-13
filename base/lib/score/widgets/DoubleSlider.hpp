@@ -21,7 +21,7 @@ public:
   DoubleSlider(QWidget* parent) : QSlider{Qt::Horizontal, parent}
   {
     setMinimum(0);
-    setMaximum(0.99 * max);
+    setMaximum(1.01 * max);
 
     connect(this, &QSlider::valueChanged, this, [&](int val) {
       emit valueChanged(double(val) / max);

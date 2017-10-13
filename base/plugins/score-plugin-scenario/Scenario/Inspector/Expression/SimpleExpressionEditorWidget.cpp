@@ -16,6 +16,7 @@
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/Widgets/AddressAccessorEditWidget.hpp>
 #include <Scenario/Inspector/ExpressionValidator.hpp>
+#include <Inspector/InspectorSectionWidget.hpp>
 
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SetIcons.hpp>
@@ -25,7 +26,7 @@
 namespace Scenario
 {
 SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
-    const score::DocumentContext& doc, int index, QWidget* parent)
+    const score::DocumentContext& doc, int index, QWidget* parent, QMenu* menu)
     : QWidget(parent), id{index}
 {
   auto mainLay = new score::MarginLess<QHBoxLayout>{this};
@@ -42,17 +43,37 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
   m_value = new QLineEdit{this};
 
   auto btnWidg = new QWidget{this};
-  auto btnLay = new score::MarginLess<QVBoxLayout>{btnWidg};
+  auto btnLay = new score::MarginLess<QHBoxLayout>{btnWidg};
   m_rmBtn = new QToolButton{btnWidg};
   m_rmBtn->setText(QStringLiteral("-"));
   m_rmBtn->setMaximumSize(30, 30);
-
   auto remIcon = makeIcons(
       ":/icons/condition_remove_on.png", ":/icons/condition_remove_off.png");
 
   m_rmBtn->setIcon(remIcon);
 
+  m_addBtn = new QToolButton{btnWidg};
+  m_addBtn->setText(QStringLiteral("+"));
+  m_addBtn->setMaximumSize(30, 30);
+  m_addBtn->setVisible(false);
+  auto addIcon = makeIcons(
+      ":/icons/condition_add_on.png", ":/icons/condition_add_off.png");
+
+  m_addBtn->setIcon(addIcon);
+
+  m_menuBtn = new Inspector::MenuButton{this};
+  m_menuBtn->setObjectName(QStringLiteral("SettingsMenu"));
+  m_menuBtn->setMaximumSize(30,30);
+  m_menuBtn->setMenu(menu);
+
+  QSizePolicy sp = m_menuBtn->sizePolicy();
+  sp.setRetainSizeWhenHidden(true);
+  m_menuBtn->setSizePolicy(sp);
+  m_menuBtn->setVisible(false);
+
   btnLay->addWidget(m_rmBtn);
+  btnLay->addWidget(m_addBtn);
+  btnLay->addWidget(m_menuBtn);
 
   // Main Layout
 
@@ -62,11 +83,12 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
   mainLay->addWidget(m_comparator, 0, Qt::AlignHCenter);
   mainLay->addWidget(m_value, 2);
 
-  mainLay->addWidget(btnWidg);
+  mainLay->addWidget(btnWidg, 0, Qt::AlignRight);
 
   // Connections
 
   connect(m_rmBtn, &QPushButton::clicked, this, [=]() { emit removeTerm(id); });
+  connect(m_addBtn, &QPushButton::clicked, this, [=]() { emit addTerm(); });
 
   /// EDIT FINSHED
   connect(
@@ -336,12 +358,26 @@ QString SimpleExpressionEditorWidget::currentRelation()
 
 QString SimpleExpressionEditorWidget::currentOperator()
 {
-    return m_binOperator->currentText();
+  return m_binOperator->currentText();
 }
 
 void SimpleExpressionEditorWidget::enableRemoveButton(bool b)
 {
-    m_rmBtn->setVisible(b);
+  m_rmBtn->setVisible(b);
+}
+
+void SimpleExpressionEditorWidget::enableAddButton(bool b)
+{
+  m_addBtn->setVisible(b);
+
+  QSizePolicy sp = m_menuBtn->sizePolicy();
+  sp.setRetainSizeWhenHidden(!b);
+  m_menuBtn->setSizePolicy(sp);
+}
+
+void SimpleExpressionEditorWidget::enableMenuButton(bool b)
+{
+  m_menuBtn->setVisible(b);
 }
 
 const std::map<ExpressionEditorComparator, QString>&

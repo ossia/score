@@ -28,7 +28,7 @@ namespace Command
  *
  * Tries to remove what is selected in a scenario.
  */
-class RemoveSelection final : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT RemoveSelection final : public score::Command
 {
   SCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), RemoveSelection,
@@ -47,9 +47,6 @@ protected:
 
 private:
   Path<Scenario::ProcessModel> m_path;
-
-  // For timesyncs that may be removed when there is only a single event
-  QVector<QPair<Id<TimeSyncModel>, QByteArray>> m_maybeRemovedTimeSyncs;
 
   QVector<QPair<Id<CommentBlockModel>, QByteArray>> m_removedComments;
   QVector<QPair<Id<StateModel>, QByteArray>> m_removedStates;

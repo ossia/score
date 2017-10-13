@@ -68,7 +68,7 @@ void InspectorPanelWidget::newItemsInspected(const Selection& objects)
     }
     else
     {
-      m_currentInspector = new Inspector::InspectorWidgetBase{*selectedObj.first(), doc, m_parent};
+      m_currentInspector = new Inspector::InspectorWidgetBase{*selectedObj.first(), doc, m_parent, tr("inspector gadget")};
       m_layout->addWidget(m_currentInspector);
     }
   }

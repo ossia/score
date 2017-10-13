@@ -20,7 +20,7 @@ namespace Command
 class SplitTimeSync final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), SplitTimeSync, "Split a sync")
+      ScenarioCommandFactoryName(), SplitTimeSync, "Desynchronize")
 public:
   SplitTimeSync(
       const TimeSyncModel& path, QVector<Id<EventModel>> eventsInNewTimeSync);

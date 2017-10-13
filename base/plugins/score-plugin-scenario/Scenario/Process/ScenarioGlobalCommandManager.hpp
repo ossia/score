@@ -1,5 +1,6 @@
 #pragma once
 #include <QList>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <score_plugin_scenario_export.h>
 class BaseScenario;
 namespace Scenario
@@ -41,4 +42,26 @@ void clearContentFromSelection(
 
 void mergeTimeSyncs(
     const Scenario::ProcessModel&, const score::CommandStackFacade&);
+void mergeEvents(
+    const Scenario::ProcessModel&, const score::CommandStackFacade&);
+
+
+
+// MOVEME : these are useful.
+template <typename T>
+struct StartDateComparator
+{
+  const Scenario::ProcessModel* scenario;
+  bool operator()(const T* lhs, const T* rhs)
+  {
+    return Scenario::date(*lhs, *scenario) <= Scenario::date(*rhs, *scenario);
+  }
+};
+
+struct SCORE_PLUGIN_SCENARIO_EXPORT EndDateComparator
+{
+  const Scenario::ProcessModel* scenario;
+  bool operator()(const IntervalModel* lhs, const IntervalModel* rhs);
+};
+
 }

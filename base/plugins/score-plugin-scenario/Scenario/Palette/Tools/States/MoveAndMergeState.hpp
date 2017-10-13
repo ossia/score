@@ -181,7 +181,7 @@ public:
           TimeVal t = TimeVal::zero();
           for (const auto& cst_id : prev_csts)
           {
-            const auto& other_date = scenar.interval(cst_id).startDate();
+            const auto& other_date = scenar.interval(cst_id).date();
             if (other_date > t)
               t = other_date;
           }
@@ -512,7 +512,7 @@ public:
 //          TimeVal t = TimeVal::zero();
 //          for (const auto& cst_id : prev_csts)
 //          {
-//            const auto& other_date = scenar.interval(cst_id).startDate();
+//            const auto& other_date = scenar.interval(cst_id).date();
 //            if (other_date > t)
 //              t = other_date;
 //          }

@@ -7,6 +7,7 @@
 #include <QIODevice>
 #include <QMap>
 #include <QtGlobal>
+#include <score/selection/SelectionDispatcher.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <vector>
 
@@ -29,6 +30,8 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/tools/Todo.hpp>
+#include <core/document/Document.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 
 namespace Scenario
 {
@@ -104,6 +107,7 @@ ProcessModel::ProcessModel(
 
 ProcessModel::~ProcessModel()
 {
+  score::IDocument::documentFromObject(*parent())->context().selectionStack.clear();
   emit identified_object_destroying(this);
 }
 
@@ -130,7 +134,7 @@ void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
 
   for (auto& interval : intervals)
   {
-    interval.setStartDate(interval.startDate() * scale);
+    interval.setStartDate(interval.date() * scale);
     // Note : scale the min / max.
 
     auto newdur = interval.duration.defaultDuration() * scale;

@@ -72,6 +72,9 @@ void InsertContentInInterval::undo(const score::DocumentContext& ctx) const
   {
     RemoveProcess(trg_interval, proc_id);
   }
+
+  if(trg_interval.processes.empty())
+    trg_interval.setSmallViewVisible(false);
 }
 
 void InsertContentInInterval::redo(const score::DocumentContext& ctx) const
@@ -105,7 +108,10 @@ void InsertContentInInterval::redo(const score::DocumentContext& ctx) const
     }
   }
 
-  // TODO add the new processes to the small view
+  for(auto slt : src_interval.smallView())
+    trg_interval.addSlot(slt);
+  if(!src_procs.empty() && !trg_interval.smallViewVisible())
+    trg_interval.setSmallViewVisible(true);
 }
 
 void InsertContentInInterval::serializeImpl(DataStreamInput& s) const
