@@ -8,6 +8,12 @@
 #include <QCursor>
 #include <QApplication>
 
+#include <Device/Node/NodeListMimeSerialization.hpp>
+#include <State/MessageListSerialization.hpp>
+#include <Dataflow/Commands/EditPort.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/document/DocumentInterface.hpp>
+#include <score/document/DocumentContext.hpp>
 namespace Dataflow
 {
 PortItem::port_map PortItem::g_ports;
@@ -158,12 +164,43 @@ void PortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
   prepareGeometryChange();
   m_diam = 6.;
   update();
-  if(this != clickedPort)
+  auto& mime = *event->mimeData();
+
+  if(clickedPort && this != clickedPort)
   {
     if(this->m_port.outlet != clickedPort->m_port.outlet)
     {
       emit createCable(clickedPort, this);
     }
+  }
+
+  auto& ctx = score::IDocument::documentContext(m_port);
+  CommandDispatcher<> disp{ctx.commandStack};
+  if (mime.formats().contains(score::mime::addressettings()))
+  {
+    Mime<Device::FullAddressSettings>::Deserializer des{mime};
+    Device::FullAddressSettings as = des.deserialize();
+
+    if (as.address.path.isEmpty())
+      return;
+
+    disp.submitCommand(new ChangePortAddress{m_port, State::AddressAccessor{as.address}});
+  }
+  else if (mime.formats().contains(score::mime::messagelist()))
+  {
+    Mime<State::MessageList>::Deserializer des{mime};
+    State::MessageList ml = des.deserialize();
+    if (ml.empty())
+      return;
+    auto& newAddr = ml[0].address;
+
+    if (newAddr == m_port.address())
+      return;
+
+    if (newAddr.address.path.isEmpty())
+      return;
+
+    disp.submitCommand(new ChangePortAddress{m_port, std::move(newAddr)});
   }
   clickedPort = nullptr;
   event->accept();
