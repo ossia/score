@@ -8,10 +8,8 @@ namespace Network
 {
 struct LocalSpecificSettings
 {
-  QString remoteName;
-  QString host;
-  int remotePort{};
-  int localPort{};
+  int wsPort{};
+  int oscPort{};
 };
 }
 }

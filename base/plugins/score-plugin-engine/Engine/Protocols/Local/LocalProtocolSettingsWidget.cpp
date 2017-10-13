@@ -23,16 +23,12 @@ LocalProtocolSettingsWidget::LocalProtocolSettingsWidget(QWidget* parent)
   auto lay = new QFormLayout;
   QLabel* deviceNameLabel = new TextLabel(tr("Local device"), this);
   lay->addWidget(deviceNameLabel);
-  m_remoteNameEdit = new QLineEdit;
-  m_localHostEdit = new QLineEdit;
-  m_localPort = new QSpinBox;
-  m_remotePort = new QSpinBox;
-  m_localPort->setRange(0, 65535);
-  m_remotePort->setRange(0, 65535);
-  lay->addRow(tr("Remote name"), m_remoteNameEdit);
-  lay->addRow(tr("Host"), m_localHostEdit);
-  lay->addRow(tr("Local port"), m_localPort);
-  lay->addRow(tr("Remote port"), m_remotePort);
+  m_oscPort = new QSpinBox;
+  m_wsPort = new QSpinBox;
+  m_oscPort->setRange(0, 65535);
+  m_wsPort->setRange(0, 65535);
+  lay->addRow(tr("OSC port"), m_oscPort);
+  lay->addRow(tr("WebSocket port"), m_wsPort);
 
   setLayout(lay);
 
@@ -45,10 +41,8 @@ Device::DeviceSettings LocalProtocolSettingsWidget::getSettings() const
   // TODO *** protocol was never being set here. Check everywhere.! ***
   s.name = "score";
   Network::LocalSpecificSettings local;
-  local.host = m_localHostEdit->text();
-  local.remoteName = m_remoteNameEdit->text();
-  local.localPort = m_localPort->value();
-  local.remotePort = m_remotePort->value();
+  local.oscPort = m_oscPort->value();
+  local.wsPort = m_wsPort->value();
   s.deviceSpecificSettings = QVariant::fromValue(local);
   return s;
 }
@@ -61,10 +55,8 @@ void LocalProtocolSettingsWidget::setSettings(
   {
     auto set = settings.deviceSpecificSettings
                    .value<Network::LocalSpecificSettings>();
-    m_remoteNameEdit->setText(set.remoteName);
-    m_localHostEdit->setText(set.host);
-    m_localPort->setValue(set.localPort);
-    m_remotePort->setValue(set.remotePort);
+    m_oscPort->setValue(set.oscPort);
+    m_wsPort->setValue(set.wsPort);
   }
 }
 }

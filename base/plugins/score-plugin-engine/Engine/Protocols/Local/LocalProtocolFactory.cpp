@@ -48,10 +48,8 @@ const Device::DeviceSettings& LocalProtocolFactory::static_defaultSettings()
         = static_concreteKey(); // Todo check for un-set protocol.
     s.name = "score";
     Network::LocalSpecificSettings specif;
-    specif.host = "127.0.0.1";
-    specif.remoteName = "score-remote";
-    specif.localPort = 6666;
-    specif.remotePort = 9999;
+    specif.oscPort = 6666;
+    specif.wsPort = 9999;
     s.deviceSpecificSettings = QVariant::fromValue(specif);
     return s;
   }();
