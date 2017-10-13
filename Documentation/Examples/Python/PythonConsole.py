@@ -37,15 +37,12 @@ def clear_callback(v):
 clear_parameter.add_callback(clear_callback)
 
 # PARAMETER : clear python console
-exit_parameter = local_device.add_node("/exit").create_parameter(ossia.ValueType.Impulse)
+exit_parameter = local_device.add_node("/exit").create_parameter(ossia.ValueType.Bool)
 exit_parameter.access_mode = ossia.AccessMode.Set
-
-def exit_callback(v):
-  print("\nEXIT\n")
-  sys.exit()
-exit_parameter.add_callback(exit_callback)
 
 ### MAIN LOOP
 print("\nPYTHON CONSOLE\n")
-while True:
+while exit_parameter.value != True:
   time.sleep(0.01)
+
+print("\nEXIT PYTHON CONSOLE\n")

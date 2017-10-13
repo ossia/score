@@ -2,7 +2,7 @@
     "Document": {
         "BaseScenario": {
             "Constraint": {
-                "Center": 8209.4127285293,
+                "Center": 11231.41898128129,
                 "Components": [
                 ],
                 "DefaultDuration": 15000,
@@ -105,7 +105,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 3320.8991271573104,
-                                "HeightPercentage": 0.094,
+                                "HeightPercentage": 0.09399999678134918,
                                 "MaxDuration": 1088.412971060302,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -137,7 +137,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 1273.6747533684393,
-                                "HeightPercentage": 0.094,
+                                "HeightPercentage": 0.09399999678134918,
                                 "MaxDuration": 1181.043862214371,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -169,7 +169,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 1451.3552485464293,
-                                "HeightPercentage": 0.094,
+                                "HeightPercentage": 0.09399999678134918,
                                 "MaxDuration": 1296.8324761569556,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -260,13 +260,13 @@
                                 "Center": 0,
                                 "Components": [
                                 ],
-                                "DefaultDuration": 1505.2519812536093,
+                                "DefaultDuration": 1204.2015850028874,
                                 "EndState": 10,
                                 "FullViewRack": [
                                 ],
-                                "GuiDuration": 2139.7735856589775,
-                                "HeightPercentage": 0.1433333158493042,
-                                "MaxDuration": 1505.2519812536093,
+                                "GuiDuration": 2394.5085363326657,
+                                "HeightPercentage": 0.1459999978542328,
+                                "MaxDuration": 1204.2015850028874,
                                 "MaxInf": false,
                                 "Metadata": {
                                     "Color": "Transparent1",
@@ -274,7 +274,7 @@
                                     "Label": "",
                                     "ScriptingName": "rosa94trag96"
                                 },
-                                "MinDuration": 1505.2519812536093,
+                                "MinDuration": 1204.2015850028874,
                                 "MinNull": false,
                                 "ObjectName": "Scenario::IntervalModel",
                                 "Processes": [
@@ -287,6 +287,38 @@
                                 "StartState": 9,
                                 "Zoom": -1,
                                 "id": 9
+                            },
+                            {
+                                "Center": 0,
+                                "Components": [
+                                ],
+                                "DefaultDuration": 995.7820799062338,
+                                "EndState": 12,
+                                "FullViewRack": [
+                                ],
+                                "GuiDuration": 2114.3000905916083,
+                                "HeightPercentage": 0.1459999978542328,
+                                "MaxDuration": 995.7820799062338,
+                                "MaxInf": false,
+                                "Metadata": {
+                                    "Color": "Transparent1",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "hone88noll38"
+                                },
+                                "MinDuration": 995.7820799062338,
+                                "MinNull": false,
+                                "ObjectName": "Scenario::IntervalModel",
+                                "Processes": [
+                                ],
+                                "Rigidity": true,
+                                "SmallViewRack": [
+                                ],
+                                "SmallViewShown": false,
+                                "StartDate": 7109.420896074739,
+                                "StartState": 10,
+                                "Zoom": -1,
+                                "id": 10
                             }
                         ],
                         "Duration": 15000,
@@ -525,14 +557,15 @@
                                             ],
                                             "Relation": {
                                                 "LHS": {
-                                                    "Value": {
-                                                        "Bool": true
+                                                    "Address": {
+                                                        "Device": "PythonConsole",
+                                                        "Path": "prompt/input"
                                                     }
                                                 },
-                                                "Op": 0,
+                                                "Op": 1,
                                                 "RHS": {
                                                     "Value": {
-                                                        "Bool": true
+                                                        "String": "reno"
                                                     }
                                                 }
                                             }
@@ -569,10 +602,10 @@
                                     "RootNode": {
                                     }
                                 },
-                                "Date": 7410.471292325461,
+                                "Date": 7109.420896074739,
                                 "Extent": [
-                                    0.1433333207766215,
-                                    0.1433333207766215
+                                    0.146,
+                                    0.146
                                 ],
                                 "Metadata": {
                                     "Color": "Emphasis4",
@@ -598,14 +631,15 @@
                                             ],
                                             "Relation": {
                                                 "LHS": {
-                                                    "Value": {
-                                                        "Bool": true
+                                                    "Address": {
+                                                        "Device": "PythonConsole",
+                                                        "Path": "prompt/input"
                                                     }
                                                 },
                                                 "Op": 0,
                                                 "RHS": {
                                                     "Value": {
-                                                        "Bool": true
+                                                        "String": "reno"
                                                     }
                                                 }
                                             }
@@ -616,8 +650,8 @@
                                 },
                                 "Date": 5905.219311071852,
                                 "Extent": [
-                                    0.1433333207766215,
-                                    0.1433333207766215
+                                    0.146,
+                                    0.146
                                 ],
                                 "Metadata": {
                                     "Color": "Emphasis4",
@@ -632,6 +666,34 @@
                                 ],
                                 "TimeNode": 3,
                                 "id": 10
+                            },
+                            {
+                                "Components": [
+                                ],
+                                "Condition": {
+                                    "Children": [
+                                    ],
+                                    "RootNode": {
+                                    }
+                                },
+                                "Date": 8105.202975980973,
+                                "Extent": [
+                                    0.146,
+                                    0.146
+                                ],
+                                "Metadata": {
+                                    "Color": "Emphasis4",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "erda93bump78.2"
+                                },
+                                "ObjectName": "Scenario::EventModel",
+                                "Offset": 0,
+                                "States": [
+                                    12
+                                ],
+                                "TimeNode": 10,
+                                "id": 12
                             }
                         ],
                         "Height": 1500,
@@ -1163,7 +1225,7 @@
                                                     ],
                                                     "Unit": "none",
                                                     "User": {
-                                                        "Impulse": null
+                                                        "Bool": true
                                                     }
                                                 }
                                             ],
@@ -1281,7 +1343,7 @@
                                 "Components": [
                                 ],
                                 "Event": 10,
-                                "HeightPercentage": 0.1433333207766215,
+                                "HeightPercentage": 0.146,
                                 "Messages": {
                                     "Accessors": [
                                     ],
@@ -1316,11 +1378,48 @@
                                 "Components": [
                                 ],
                                 "Event": 9,
-                                "HeightPercentage": 0.1433333207766215,
+                                "HeightPercentage": 0.146,
                                 "Messages": {
                                     "Accessors": [
                                     ],
                                     "Children": [
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                                {
+                                                    "Accessors": [
+                                                    ],
+                                                    "Children": [
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "text",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "Unit": "none",
+                                                    "User": {
+                                                        "String": "oh no !"
+                                                    }
+                                                }
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "PythonConsole",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none"
+                                        }
                                     ],
                                     "Following": [
                                     ],
@@ -1340,12 +1439,104 @@
                                     "Label": "",
                                     "ScriptingName": "State.10"
                                 },
-                                "NextConstraint": null,
+                                "NextConstraint": 10,
                                 "ObjectName": "Scenario::StateModel",
                                 "PreviousConstraint": 9,
                                 "StateProcesses": [
                                 ],
                                 "id": 10
+                            },
+                            {
+                                "Components": [
+                                ],
+                                "Event": 12,
+                                "HeightPercentage": 0.146,
+                                "Messages": {
+                                    "Accessors": [
+                                    ],
+                                    "Children": [
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                                {
+                                                    "Accessors": [
+                                                    ],
+                                                    "Children": [
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "text",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "Unit": "none",
+                                                    "User": {
+                                                        "String": "bye bye nerd !"
+                                                    }
+                                                },
+                                                {
+                                                    "Accessors": [
+                                                    ],
+                                                    "Children": [
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "exit",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "Unit": "none",
+                                                    "User": {
+                                                        "Bool": true
+                                                    }
+                                                }
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "PythonConsole",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none"
+                                        }
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ],
+                                    "Unit": "none"
+                                },
+                                "Metadata": {
+                                    "Color": "Base1",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "State.12"
+                                },
+                                "NextConstraint": null,
+                                "ObjectName": "Scenario::StateModel",
+                                "PreviousConstraint": 10,
+                                "StateProcesses": [
+                                ],
+                                "id": 12
                             }
                         ],
                         "TimeNodes": [
@@ -1447,7 +1638,7 @@
                                 ],
                                 "Extent": [
                                     0.04666666666666667,
-                                    0.1433333207766215
+                                    0.146
                                 ],
                                 "Metadata": {
                                     "Color": "Gray",
@@ -1602,13 +1793,13 @@
                             {
                                 "Components": [
                                 ],
-                                "Date": 7410.471292325461,
+                                "Date": 7109.420896074739,
                                 "Events": [
                                     9
                                 ],
                                 "Extent": [
-                                    0.1433333207766215,
-                                    0.1433333207766215
+                                    0.146,
+                                    0.146
                                 ],
                                 "Metadata": {
                                     "Color": "Gray",
@@ -1627,6 +1818,35 @@
                                     }
                                 },
                                 "id": 8
+                            },
+                            {
+                                "Components": [
+                                ],
+                                "Date": 8105.202975980973,
+                                "Events": [
+                                    12
+                                ],
+                                "Extent": [
+                                    0.146,
+                                    0.146
+                                ],
+                                "Metadata": {
+                                    "Color": "Gray",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "bibb26gogo93.1"
+                                },
+                                "ObjectName": "Scenario::TimeSyncModel",
+                                "Trigger": {
+                                    "Active": false,
+                                    "Expression": {
+                                        "Children": [
+                                        ],
+                                        "RootNode": {
+                                        }
+                                    }
+                                },
+                                "id": 10
                             }
                         ],
                         "id": 1,
@@ -1639,7 +1859,7 @@
                 "SmallViewShown": false,
                 "StartDate": 0,
                 "StartState": 0,
-                "Zoom": 23.157722788517066,
+                "Zoom": 19.8962249446967,
                 "id": 0
             },
             "EndEvent": {
@@ -1846,7 +2066,7 @@
                                 },
                                 "Name": "text",
                                 "RepetitionFilter": false,
-                                "String": "bye bye !",
+                                "String": "",
                                 "Unit": "none",
                                 "ioType": "->"
                             },
@@ -1862,7 +2082,7 @@
                                 },
                                 "Name": "prompt",
                                 "RepetitionFilter": false,
-                                "String": "and you ?",
+                                "String": "",
                                 "Unit": "none",
                                 "ioType": "->"
                             },
@@ -1876,7 +2096,7 @@
                                         },
                                         "Name": "input",
                                         "RepetitionFilter": false,
-                                        "String": "theo",
+                                        "String": "",
                                         "Unit": "none",
                                         "ioType": "<-"
                                     },
@@ -1903,12 +2123,12 @@
                         },
                         {
                             "AddressSettings": {
+                                "Bool": true,
                                 "ClipMode": "Free",
                                 "Domain": {
                                 },
                                 "Extended": {
                                 },
-                                "Impulse": null,
                                 "Name": "exit",
                                 "RepetitionFilter": false,
                                 "Unit": "none",
