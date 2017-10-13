@@ -28,12 +28,13 @@ ProcessModel::ProcessModel(
 {
   m_script =
 R"_(import QtQuick 2.0
+import Score 1.0
 Item {
   ValueInlet { id: in1 }
   ValueOutlet { id: out1 }
 
   function onTick(time, position, offset) {
-    out1.val = in1.val + Math.random();
+    out1.value = in1.value + 10 * Math.random();
   }
 }
 )_";

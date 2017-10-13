@@ -110,13 +110,18 @@ void js_node::run(ossia::execution_state&)
     if(!dat.empty())
       m_valInlets[i]->setValue(dat.front().apply(ossia::qt::ossia_to_qvariant{}));
   }
-
+  /*
+  m_object->dumpObjectInfo();
+  m_object->dumpObjectTree();
+  for(int i = 0; i < m_object->metaObject()->methodCount(); i++)
+    qDebug() << m_object->metaObject()->method(i).methodSignature();
+  */
   QMetaObject::invokeMethod(
         m_object, "onTick",
         Qt::DirectConnection,
-        Q_ARG(double, this->m_date),
-        Q_ARG(double, this->m_position),
-        Q_ARG(double, this->m_offset)
+        Q_ARG(QVariant, double(this->m_date)),
+        Q_ARG(QVariant, this->m_position),
+        Q_ARG(QVariant, double(this->m_offset))
         );
 
   for(int i = 0; i < m_valOutlets.size(); i++)
