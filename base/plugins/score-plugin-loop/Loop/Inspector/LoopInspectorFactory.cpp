@@ -87,7 +87,7 @@ void IntervalInspectorDelegate::on_defaultDurationChanged(
       .submitCommand<Scenario::Command::MoveBaseEvent<Loop::ProcessModel>>(
           loop,
           loop.state(m_model.endState()).eventId(),
-          m_model.startDate() + val,
+          m_model.date() + val,
           0,
           expandmode, LockMode::Free);
 }

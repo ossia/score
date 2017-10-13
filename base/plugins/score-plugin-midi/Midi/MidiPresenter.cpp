@@ -166,7 +166,8 @@ void Presenter::updateNote(NoteView& v)
 {
   const auto note_height = m_view->height() / 127.;
   QPointF newPos{v.note.start() * m_view->width(),
-                 m_view->height() - v.note.pitch() * note_height};
+                 m_view->height() - std::ceil(v.note.pitch() * note_height)};
+
   if (newPos != v.pos())
     v.setPos(newPos);
 

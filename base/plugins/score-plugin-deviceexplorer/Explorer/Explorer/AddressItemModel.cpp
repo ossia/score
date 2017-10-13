@@ -3,7 +3,9 @@
 #include <ossia/editor/value/value_traits.hpp>
 #include <ossia/network/base/node_attributes.hpp>
 #include <ossia/network/domain/domain.hpp>
+#include <QHBoxLayout>
 #include <QPainter>
+#include <QSpinBox>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <Explorer/Commands/Update/UpdateAddressSettings.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
@@ -11,6 +13,9 @@
 #include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 #include <State/Widgets/UnitWidget.hpp>
 #include <ossia-qt/metatypes.hpp>
+#include <score/widgets/DoubleSlider.hpp>
+#include <score/widgets/MarginLess.hpp>
+#include <score/widgets/SignalUtils.hpp>
 namespace Explorer
 {
 AddressItemModel::AddressItemModel(QObject* parent):
@@ -64,21 +69,33 @@ bool AddressItemModel::setData(const QModelIndex& index, const QVariant& value, 
   {
     case Rows::Value:
     {
-      // In this case we don't make a command, but we directly push the
-      // new value.
-      auto copy = State::convert::fromQVariant(value);
+      if(value.canConvert<ossia::value>())
+      {
+        after.value = value.value<ossia::value>();
 
-      // We may have to convert types.
-      const ossia::value& orig = before.value;
-      if (copy.v.which() != orig.v.which() && !State::convert::convert(orig, copy))
-        return false;
+        // Note : if we want to disable remote updating, we have to do it
+        // here (e.g. if this becomes a settings)
+        m_model->deviceModel().updateProxy.updateRemoteValue(State::AddressAccessor{m_settings.address}, after.value);
+        return true;
+      }
+      else
+      {
+        // In this case we don't make a command, but we directly push the
+        // new value.
+        auto copy = State::convert::fromQVariant(value);
 
-      after.value = copy;
+        // We may have to convert types.
+        const ossia::value& orig = before.value;
+        if (copy.v.which() != orig.v.which() && !State::convert::convert(orig, copy))
+          return false;
 
-      // Note : if we want to disable remote updating, we have to do it
-      // here (e.g. if this becomes a settings)
-      m_model->deviceModel().updateProxy.updateRemoteValue(State::AddressAccessor{m_settings.address}, copy);
-      return true;
+        after.value = copy;
+
+        // Note : if we want to disable remote updating, we have to do it
+        // here (e.g. if this becomes a settings)
+        m_model->deviceModel().updateProxy.updateRemoteValue(State::AddressAccessor{m_settings.address}, copy);
+        return true;
+      }
     }
 
     case Rows::Type:
@@ -324,7 +341,7 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
   }
   else if(role == Qt::EditRole)
   {
-    if(index.column() == 1 && index.row() == Rows::Type)
+    if(index.column() == 1)
     {
       switch(index.row())
       {
@@ -332,6 +349,7 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
         case Rows::Access: return (int)*m_settings.ioType;
         case Rows::Bounding: return (int)m_settings.clipMode;
         case Rows::Unit: return QVariant::fromValue(m_settings.unit);
+        case Rows::Value: return QVariant::fromValue(m_settings.value);
       }
     }
     else
@@ -356,7 +374,7 @@ Qt::ItemFlags AddressItemModel::flags(const QModelIndex& index) const
     return { Qt::ItemIsEnabled };
 
   Qt::ItemFlags f = QAbstractItemModel::flags(index);
-  static const constexpr std::array<Qt::ItemFlags, Rows::Count> flags{{
+  static const std::array<Qt::ItemFlags, Rows::Count> flags{{
       { } // name
     , { } // address
     , { Qt::ItemIsEditable } // value
@@ -405,9 +423,151 @@ void AddressItemDelegate::paint(
   */
 }
 
+class SliderValueWidget final
+    : public AddressValueWidget
+{
+  public:
+    SliderValueWidget(int min, int max, QWidget* parent)
+      : AddressValueWidget{parent}
+    {
+      m_slider.setOrientation(Qt::Horizontal);
+      m_slider.setRange(min, max);
+      m_edit.setRange(min, max);
+
+      m_slider.setContentsMargins(0,0,0,0);
+      m_edit.setContentsMargins(0,0,0,0);
+      this->setFocusProxy(&m_edit);
+
+      connect(&m_slider, &QSlider::valueChanged, this, [=] (int v) {
+        m_edit.setValue(v);
+      });
+
+      connect(&m_edit, SignalUtils::QSpinBox_valueChanged_int(), this, [=] (int v) {
+        m_slider.setValue(v);
+      });
+
+      m_lay.addWidget(&m_slider);
+      m_lay.addWidget(&m_edit);
+    }
+
+    ossia::value get() const override {
+      return m_slider.value();
+    }
+
+    void set(ossia::value t) override {
+      m_slider.setValue(ossia::convert<int>(t));
+    }
+
+  signals:
+    void changed(ossia::value);
+
+  private:
+    score::MarginLess<QHBoxLayout> m_lay{this};
+    QSlider m_slider;
+    QSpinBox m_edit;
+};
+
+
+
+class DoubleSliderValueWidget final
+    : public AddressValueWidget
+{
+  public:
+    DoubleSliderValueWidget(double min, double max, QWidget* parent)
+      : AddressValueWidget{parent}
+      , m_slider{this}
+    {
+      m_slider.setOrientation(Qt::Horizontal);
+      m_edit.setRange(min, max);
+
+      m_slider.setContentsMargins(0,0,0,0);
+      m_edit.setContentsMargins(0,0,0,0);
+      this->setFocusProxy(&m_edit);
+
+      connect(&m_slider, &score::DoubleSlider::valueChanged, this, [=] (double v) {
+        m_edit.setValue(min + v * (max - min));
+      });
+
+      connect(&m_edit, SignalUtils::QDoubleSpinBox_valueChanged_double(), this, [=] (double v) {
+        m_slider.setValue((v - min) / (max - min));
+      });
+
+      m_lay.addWidget(&m_slider);
+      m_lay.addWidget(&m_edit);
+    }
+
+    ossia::value get() const override {
+      return m_edit.value();
+    }
+
+    void set(ossia::value t) override {
+      m_edit.setValue(ossia::convert<float>(t));
+    }
+
+  signals:
+    void changed(ossia::value);
+
+  private:
+    score::MarginLess<QHBoxLayout> m_lay{this};
+    score::DoubleSlider m_slider;
+    QDoubleSpinBox m_edit;
+};
+
+
+struct make_unit
+{
+    template<typename T>
+    AddressValueWidget* operator()(T unit) { return nullptr; }
+
+    AddressValueWidget* operator()() { return nullptr; }
+};
+struct make_dataspace
+{
+    template<typename T>
+    AddressValueWidget* operator()(T ds) { return ossia::apply(make_unit{}, ds); }
+    AddressValueWidget* operator()(ossia::color_u ds) {
+      auto res = ossia::apply(make_unit{}, ds);
+      if(!res)
+        return nullptr; // TODO generic colorpicker
+      return res;
+    }
+    AddressValueWidget* operator()(ossia::position_u ds) {
+      auto res = ossia::apply(make_unit{}, ds);
+      if(!res)
+        return nullptr; // TODO generic position chooser if vec2f ?
+      return res;
+    }
+
+    AddressValueWidget* operator()() { return nullptr; }
+};
+AddressValueWidget* make_value_widget(Device::FullAddressSettings addr, QWidget* parent)
+{
+  AddressValueWidget* widg{};
+  widg = ossia::apply(make_dataspace{}, addr.unit.get().v);
+  if(!widg)
+  {
+    auto& dom =addr.domain.get();
+    auto min = dom.get_min(), max = dom.get_max();
+    if(!min.valid() || !max.valid() || !addr.value.valid())
+      return nullptr;
+
+    switch(addr.value.getType())
+    {
+      case ossia::val_type::FLOAT:
+        return new DoubleSliderValueWidget{ossia::convert<float>(min),ossia::convert<float>(max), parent};
+        break;
+      case ossia::val_type::INT:
+        return new SliderValueWidget{ossia::convert<int>(min),ossia::convert<int>(max), parent};
+      default:
+        break;
+    }
+  }
+  return nullptr;
+}
 QWidget*AddressItemDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
-  if(index.column() == 0)
+  auto model = qobject_cast<const AddressItemModel*>(index.model());
+  if(index.column() == 0 || !model)
     return QStyledItemDelegate::createEditor(parent, option, index);
 
   switch(index.row())
@@ -435,6 +595,14 @@ QWidget*AddressItemDelegate::createEditor(QWidget* parent, const QStyleOptionVie
       auto t = new State::UnitWidget{parent};
       t->setUnit(index.data(Qt::EditRole).value<State::Unit>());
       return t;
+    }
+    case AddressItemModel::Rows::Value:
+    {
+      auto t = make_value_widget(model->settings(), parent);
+      if(t)
+        return t;
+      else
+        break;
     }
   }
 
@@ -494,6 +662,15 @@ void AddressItemDelegate::setEditorData(QWidget* editor, const QModelIndex& inde
       }
       break;
     }
+    case AddressItemModel::Rows::Value:
+    {
+      if (auto cb = qobject_cast<AddressValueWidget*>(editor))
+      {
+        auto cur = index.data(Qt::EditRole).value<ossia::value>();
+        cb->set(cur);
+        return;
+      }
+    }
   }
 
   QStyledItemDelegate::setEditorData(editor, index);
@@ -538,6 +715,14 @@ void AddressItemDelegate::setModelData(QWidget* editor, QAbstractItemModel* mode
       if (auto cb = qobject_cast<State::UnitWidget*>(editor))
       {
         model->setData(index, QVariant::fromValue(cb->unit()), Qt::EditRole);
+      }
+      return;
+    }
+    case AddressItemModel::Rows::Value:
+    {
+      if (auto cb = qobject_cast<AddressValueWidget*>(editor))
+      {
+        model->setData(index, QVariant::fromValue(cb->get()), Qt::EditRole);
       }
       return;
     }

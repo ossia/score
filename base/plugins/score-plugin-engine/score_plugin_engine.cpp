@@ -31,6 +31,7 @@
 #include <Engine/Executor/Automation/Component.hpp>
 #include <Engine/Executor/Automation/GradientComponent.hpp>
 #include <Engine/Executor/Automation/SplineComponent.hpp>
+#include <Engine/Executor/Automation/MetronomeComponent.hpp>
 #include <Engine/Executor/Settings/ExecutorFactory.hpp>
 #include <Engine/Executor/StateProcessComponent.hpp>
 #include <Engine/Listening/PlayListeningHandlerFactory.hpp>
@@ -123,7 +124,8 @@ score_plugin_engine::factories(
                  Mapping::RecreateOnPlay::ComponentFactory,
                  Loop::RecreateOnPlay::ComponentFactory,
                  Gradient::RecreateOnPlay::ComponentFactory,
-                 Spline::RecreateOnPlay::ComponentFactory
+                 Spline::RecreateOnPlay::ComponentFactory,
+                 Metronome::RecreateOnPlay::ComponentFactory
       >,
             FW<Explorer::ListeningHandlerFactory,
                  Engine::Execution::PlayListeningHandlerFactory>,

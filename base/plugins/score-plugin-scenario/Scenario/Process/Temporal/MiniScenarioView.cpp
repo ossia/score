@@ -35,7 +35,7 @@ void MiniScenarioView::paint_impl(QPainter* p) const
     pen.setColor(col);
     p->setPen(pen);
     auto def = c.duration.defaultDuration().toPixels(zoom());
-    auto st = c.startDate().toPixels(zoom());
+    auto st = c.date().toPixels(zoom());
     auto y = c.heightPercentage();
     p->drawLine(QPointF{st, 4. + y * h},
                 QPointF{st + def, 4. + y * h});

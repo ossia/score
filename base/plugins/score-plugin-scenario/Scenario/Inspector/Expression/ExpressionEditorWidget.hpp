@@ -31,8 +31,10 @@ public:
 
   State::Expression expression();
   void setExpression(State::Expression e);
+  void setMenu(QMenu* btn);
 
   void addNewTerm();
+  void addNewTermAndFinish();
   void on_editFinished();
 
 signals:
@@ -47,6 +49,7 @@ private:
 
   QString currentExpr();
   void removeTerm(int index);
+  void removeTermAndFinish(int index);
 
   const score::DocumentContext& m_context;
   std::vector<SimpleExpressionEditorWidget*> m_relations;
@@ -54,6 +57,7 @@ private:
   QVBoxLayout* m_mainLayout{};
 
   ExpressionValidator<State::Expression> m_validator;
+  QMenu* m_menu{};
 
   QString m_expression{};
 };

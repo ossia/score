@@ -304,5 +304,58 @@ void InspectorWidget::on_tweenChanged()
     //m_dispatcher.submitCommand(cmd);
   }
 }
+}
+
+
+namespace Metronome
+{
+InspectorWidget::InspectorWidget(
+    const ProcessModel& automationModel,
+    const score::DocumentContext& doc,
+    QWidget* parent)
+    : InspectorWidgetDelegate_T{automationModel, parent}
+    , m_dispatcher{doc.commandStack}
+{
+  using namespace Explorer;
+  setObjectName("MetronomeInspectorWidget");
+  setParent(parent);
+
+  auto vlay = new QFormLayout;
+  vlay->setSpacing(2);
+  vlay->setMargin(2);
+  vlay->setContentsMargins(0, 0, 0, 0);
+
+  // Address
+  m_lineEdit = new AddressAccessorEditWidget{
+      doc.plugin<DeviceDocumentPlugin>().explorer(), this};
+
+  m_lineEdit->setAddress(State::AddressAccessor{process().address()});
+  con(process(), &ProcessModel::addressChanged, m_lineEdit,
+      [=] (const State::Address& addr) {
+    m_lineEdit->setAddress(State::AddressAccessor{addr});
+  });
+
+  connect(
+      m_lineEdit, &AddressAccessorEditWidget::addressChanged, this,
+      &InspectorWidget::on_addressChange);
+
+  vlay->addRow(tr("Address"), m_lineEdit);
+
+  this->setLayout(vlay);
+}
+
+void InspectorWidget::on_addressChange(const Device::FullAddressAccessorSettings& newAddr)
+{
+  // Various checks
+  if (newAddr.address.address == process().address())
+    return;
+
+  if (newAddr.address.address.path.isEmpty())
+    return;
+
+  auto cmd = new ChangeMetronomeAddress{process(), newAddr.address.address};
+
+  m_dispatcher.submitCommand(cmd);
+}
 
 }

@@ -27,6 +27,7 @@ class DeviceExplorerModel;
  */
 class AddressItemModel final : public QAbstractItemModel
 {
+    Q_OBJECT
   public:
     AddressItemModel(QObject* parent);
     enum Rows { Name, Address, Value, Type, Min, Max, Values, Unit,
@@ -38,6 +39,8 @@ class AddressItemModel final : public QAbstractItemModel
         Device::NodePath nodepath,
         const Device::FullAddressSettings& s);
     void clear();
+
+    const Device::FullAddressSettings& settings() const { return m_settings; }
 
     bool setData(const QModelIndex &index, const QVariant &value, int role) override;
     Qt::ItemFlags flags(const QModelIndex& index) const override;
@@ -65,6 +68,19 @@ class AddressItemDelegate final : public QStyledItemDelegate
     QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const override;
     void setEditorData(QWidget* editor, const QModelIndex& index) const override;
     void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const override;
+};
+
+class AddressValueWidget
+    : public QWidget
+{
+    Q_OBJECT
+  public:
+    using QWidget::QWidget;
+    virtual ossia::value get() const = 0;
+    virtual void set(ossia::value t) = 0;
+
+  signals:
+    void changed(ossia::value);
 };
 
 }

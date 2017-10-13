@@ -51,14 +51,14 @@ private:
   StateActions m_stateActions;
 
   QAction* m_removeElements{};
-  QAction* m_clearElements{};
   QAction* m_copyContent{};
   QAction* m_cutContent{};
   QAction* m_pasteContent{};
   QAction* m_pasteElements{};
   QAction* m_elementsToJson{};
   QAction* m_mergeTimeSyncs{};
-
+  QAction* m_mergeEvents{};
+  QAction* m_encapsulate{};
 
   QAction* m_selectAll{};
   QAction* m_deselectAll{};

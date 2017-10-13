@@ -35,11 +35,11 @@ template <
     typename XScaleFun,
     typename YScaleFun,
     typename Segments>
-std::shared_ptr<ossia::curve_abstract> curve(
+std::shared_ptr<ossia::curve<X_T, Y_T>> curve(
     XScaleFun scale_x,
     YScaleFun scale_y,
     const Segments& segments,
-    const optional<ossia::Destination>& tween)
+    const optional<ossia::destination>& tween)
 {
   auto curve = std::make_shared<ossia::curve<X_T, Y_T>>();
 
@@ -101,7 +101,7 @@ std::shared_ptr<ossia::curve_abstract> scalable_curve(
     Y_T min, Y_T max, Y_T end,
     XScaleFun scale_x,
     const Segments& segments,
-    const ossia::Destination& tween)
+    const ossia::destination& tween)
 {
   auto curve = std::make_shared<ossia::curve<X_T, Y_T>>();
 

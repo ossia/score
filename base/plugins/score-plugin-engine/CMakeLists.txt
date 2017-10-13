@@ -52,6 +52,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Automation/Component.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Automation/GradientComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Automation/SplineComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Automation/MetronomeComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Mapping/Component.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Loop/Component.hpp"
 
@@ -130,6 +131,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Automation/Component.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Automation/GradientComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Automation/SplineComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Automation/MetronomeComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Mapping/Component.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Loop/Component.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ClockManager/ClockManagerFactory.cpp"

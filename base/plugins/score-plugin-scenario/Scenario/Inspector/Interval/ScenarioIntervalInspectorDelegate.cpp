@@ -43,7 +43,7 @@ void ScenarioIntervalInspectorDelegate::on_defaultDurationChanged(
   dispatcher.submitCommand<Command::MoveEventMeta>(
       scenario,
       scenario.state(m_model.endState()).eventId(),
-      m_model.startDate() + val,
+      m_model.date() + val,
       m_model.heightPercentage(),
       expandmode, LockMode::Free);
 }

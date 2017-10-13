@@ -68,23 +68,15 @@ void StandardRemovalPolicy::removeInterval(
 void StandardRemovalPolicy::removeState(
     Scenario::ProcessModel& scenario, StateModel& state)
 {
-  if (state.previousInterval())
+  if (!state.previousInterval() && !state.nextInterval())
   {
-    StandardRemovalPolicy::removeInterval(
-        scenario, *state.previousInterval());
+    auto& ev = scenario.events.at(state.eventId());
+    ev.removeState(state.id());
+
+    scenario.states.remove(&state);
+
+    updateEventExtent(ev.id(), scenario);
   }
-
-  if (state.nextInterval())
-  {
-    StandardRemovalPolicy::removeInterval(scenario, *state.nextInterval());
-  }
-
-  auto& ev = scenario.events.at(state.eventId());
-  ev.removeState(state.id());
-
-  scenario.states.remove(&state);
-
-  updateEventExtent(ev.id(), scenario);
 }
 
 void StandardRemovalPolicy::removeEventStatesAndIntervals(

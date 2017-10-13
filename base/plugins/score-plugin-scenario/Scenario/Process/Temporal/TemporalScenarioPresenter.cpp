@@ -530,7 +530,7 @@ void TemporalScenarioPresenter::on_intervalCreated(
   connect(
         cst_pres, &TemporalIntervalPresenter::heightPercentageChanged, this,
         [=]() { m_viewInterface.on_intervalMoved(*cst_pres); });
-  con(interval, &IntervalModel::startDateChanged, this,
+  con(interval, &IntervalModel::dateChanged, this,
       [=](const TimeVal&) {
     m_viewInterface.on_intervalMoved(*cst_pres);
   });

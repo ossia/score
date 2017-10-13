@@ -64,6 +64,8 @@ bool OSCDevice::isLearning() const
 
 void OSCDevice::setLearning(bool b)
 {
+  if(!m_dev)
+    return;
   auto& proto = static_cast<ossia::net::osc_protocol&>(m_dev->get_protocol());
   auto& dev = *m_dev;
   if (b)

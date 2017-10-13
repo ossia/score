@@ -65,7 +65,7 @@ findNodeFromPath(const Device::Node& path, ossia::net::device_base& dev);
 SCORE_PLUGIN_ENGINE_EXPORT ossia::net::parameter_base*
 findAddress(const Device::DeviceList& devices, const State::Address& addr);
 
-SCORE_PLUGIN_ENGINE_EXPORT optional<ossia::Destination> makeDestination(
+SCORE_PLUGIN_ENGINE_EXPORT optional<ossia::destination> makeDestination(
     const Device::DeviceList& devices, const State::AddressAccessor& addr);
 
 // OSSIA::net::Node* won't be null.

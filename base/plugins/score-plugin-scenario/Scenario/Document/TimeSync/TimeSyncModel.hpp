@@ -63,6 +63,7 @@ public:
 
   void addEvent(const Id<EventModel>&);
   bool removeEvent(const Id<EventModel>&);
+  void clearEvents();
   const QVector<Id<EventModel>>& events() const;
   void setEvents(const QVector<Id<EventModel>>& events);
 

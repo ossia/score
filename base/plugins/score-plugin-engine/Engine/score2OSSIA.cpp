@@ -405,7 +405,7 @@ SCORE_PLUGIN_ENGINE_EXPORT ossia::state state(
   return s;
 }
 
-static ossia::Destination expressionAddress(
+static ossia::destination expressionAddress(
     const State::Address& addr, const Device::DeviceList& devlist)
 {
   auto dev_p = devlist.findDevice(addr.device);
@@ -430,7 +430,7 @@ static ossia::Destination expressionAddress(
     {
       auto ossia_addr = n->get_parameter();
       if (ossia_addr)
-        return ossia::Destination(*ossia_addr);
+        return ossia::destination(*ossia_addr);
       else
         throw NodeNotFoundException(addr);
     }
@@ -469,6 +469,7 @@ static ossia::expressions::expression_atom::val_t expressionOperand(
     {
       auto dest = expressionAddress(acc.address, devlist);
       dest.index = acc.qualifiers.get().accessors;
+      dest.unit = acc.qualifiers.get().unit;
       return dest;
     }
   } visitor{list};
@@ -599,7 +600,7 @@ findAddress(const Device::DeviceList& devs, const State::Address& addr)
   return {};
 }
 
-optional<ossia::Destination> makeDestination(
+optional<ossia::destination> makeDestination(
     const Device::DeviceList& devices, const State::AddressAccessor& addr)
 {
   auto ossia_addr
@@ -608,7 +609,7 @@ optional<ossia::Destination> makeDestination(
   if (ossia_addr)
   {
     auto& qual = addr.qualifiers.get();
-    return ossia::Destination{*ossia_addr, qual.accessors, qual.unit};
+    return ossia::destination{*ossia_addr, qual.accessors, qual.unit};
   }
 
   return {};

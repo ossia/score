@@ -20,6 +20,35 @@ class CommandStackFacade;
 
 namespace Curve
 {
+/*
+void checkCoherent(const std::vector<SegmentData>& vec)
+{
+  std::cerr << "\n";
+  for(int i = 0; i < vec.size(); i++)
+  {
+    if(vec[i].following)
+    {
+      auto next = ossia::find_if(vec, [&] (const SegmentData& d) { return d.id == vec[i].following; });
+      SCORE_ASSERT(next != vec.end());
+      qDebug()  << i
+                << "actual: " << vec[i].id.val() << "\n"
+                << "expected: " << (next->previous ? QString::number(next->previous->val()) : QString("none"))
+                << vec[i].following->val();
+      SCORE_ASSERT(next->previous == vec[i].id);
+    }
+    if(vec[i].previous)
+    {
+      auto prev = ossia::find_if(vec, [&] (const SegmentData& d) { return d.id == vec[i].previous; });
+      SCORE_ASSERT(prev != vec.end());
+      qDebug()  << i
+                << "actual: " <<  vec[i].id.val() << "\n"
+                << "expected: " << (prev->following ? QString::number(prev->following->val()) : QString("none"))
+                << vec[i].previous->val();
+      SCORE_ASSERT(prev->following == vec[i].id);
+    }
+  }
+}
+*/
 PenCommandObject::PenCommandObject(
     Presenter* presenter, const score::CommandStackFacade& stack)
     : CommandObjectBase{presenter, stack}
@@ -54,30 +83,30 @@ void PenCommandObject::move()
 
   segts.reserve(segts.size() + 3);
 
-  SegmentData* middle_begin_p{};
-  SegmentData* middle_end_p{};
+  optional<std::size_t> middle_begin_p{};
+  optional<std::size_t> middle_end_p{};
   if (middleBegin)
   {
     segts.push_back(*std::move(middleBegin));
-    middle_begin_p = &segts.back();
+    middle_begin_p = segts.size() - 1;
   }
   if (middleEnd)
   {
     segts.push_back(*std::move(middleEnd));
-    middle_end_p = &segts.back();
+    middle_end_p = segts.size() - 1;
   }
 
   segts.push_back(dat_base);
   SegmentData& dat = segts.back();
 
-  if (middle_begin_p && middle_end_p && middle_begin_p->id == middle_end_p->id)
+  if (middle_begin_p && middle_end_p && segts[*middle_begin_p].id == segts[*middle_end_p].id)
   {
-    middle_end_p->id = getSegmentId(segts);
+    segts[*middle_end_p].id = getSegmentId(segts);
     for (auto& seg : segts)
     {
-      if (seg.id == middle_end_p->following)
+      if (seg.id == segts[*middle_end_p].following)
       {
-        seg.previous = middle_end_p->id;
+        seg.previous = segts[*middle_end_p].id;
         break;
       }
     }
@@ -85,7 +114,7 @@ void PenCommandObject::move()
 
   if (middle_begin_p)
   {
-    SegmentData& seg = *middle_begin_p;
+    SegmentData& seg = segts[*middle_begin_p];
     seg.end = m_minPress;
     seg.following = dat.id;
     dat.previous = seg.id;
@@ -93,7 +122,7 @@ void PenCommandObject::move()
 
   if (middle_end_p)
   {
-    SegmentData& seg = *middle_end_p;
+    SegmentData& seg = segts[*middle_end_p];
     seg.start = m_maxPress;
     seg.previous = dat.id;
     dat.following = seg.id;
@@ -131,23 +160,23 @@ void PenCommandObject::release_n(seg_tuple&& segts_tpl)
 
   segts.reserve(segts.size() + lin_segments.size() + 3);
 
-  SegmentData* middle_begin_p{};
-  SegmentData* middle_end_p{};
+  optional<std::size_t> middle_begin_p{};
+  optional<std::size_t> middle_end_p{};
 
   if (auto& middleBegin = std::get<0>(segts_tpl))
   {
     segts.push_back(*std::move(middleBegin));
-    middle_begin_p = &segts.back();
+    middle_begin_p = segts.size() - 1;
   }
 
   if (auto& middleEnd = std::get<1>(segts_tpl))
   {
     segts.push_back(*std::move(middleEnd));
-    middle_end_p = &segts.back();
+    middle_end_p = segts.size() - 1;
   }
 
-  const int first_inserted_lin = segts.size();
-  const int N = lin_segments.size();
+  const std::size_t first_inserted_lin = segts.size();
+  const std::size_t N = lin_segments.size();
 
   { // Put the first one
     SegmentData& lin = lin_segments[0];
@@ -160,7 +189,7 @@ void PenCommandObject::release_n(seg_tuple&& segts_tpl)
   if (N > 1)
   {
     // Main loop
-    for (int i = 1; i < N - 1; i++)
+    for (std::size_t i = 1; i < N - 1; i++)
     {
       SegmentData& lin = lin_segments[i];
       lin.id = getSegmentId(segts);
@@ -173,23 +202,25 @@ void PenCommandObject::release_n(seg_tuple&& segts_tpl)
     }
 
     { // Put the last one
-      SegmentData& lin = lin_segments[N - 1];
+      SegmentData& lin = lin_segments.back();
       lin.id = getSegmentId(segts);
-      segts[N - 2].following = lin.id;
+      segts.back().following = lin.id;
       segts.push_back(std::move(lin));
     }
   }
 
   // Handle the case of the whole drawn curve being
   // contained in a single original segment
-  if (middle_begin_p && middle_end_p && middle_begin_p->id == middle_end_p->id)
+  if (middle_begin_p && middle_end_p && segts[*middle_begin_p].id == segts[*middle_end_p].id)
   {
-    middle_end_p->id = getSegmentId(segts);
+    auto& mb = segts[*middle_begin_p];
+    auto& me = segts[*middle_end_p];
+    me.id = getSegmentId(segts);
     for (auto& seg : segts)
     {
-      if (seg.id == middle_begin_p->following)
+      if (seg.id == mb.following)
       {
-        seg.previous = middle_end_p->id;
+        seg.previous = me.id;
         break;
       }
     }
@@ -199,7 +230,7 @@ void PenCommandObject::release_n(seg_tuple&& segts_tpl)
   auto& first_lin = segts[first_inserted_lin];
   if (middle_begin_p)
   {
-    SegmentData& seg = *middle_begin_p;
+    SegmentData& seg = segts[*middle_begin_p];
     seg.end = first_lin.start;
     seg.following = first_lin.id;
     first_lin.previous = seg.id;
@@ -208,12 +239,13 @@ void PenCommandObject::release_n(seg_tuple&& segts_tpl)
   auto& last_lin = segts.back();
   if (middle_end_p)
   {
-    SegmentData& seg = *middle_end_p;
+    SegmentData& seg = segts[*middle_end_p];
     seg.start = last_lin.end;
     seg.previous = last_lin.id;
     last_lin.following = seg.id;
   }
 
+//  checkCoherent(segts);
   submit(std::move(segts));
   m_dispatcher.commit();
   m_segment.reset();

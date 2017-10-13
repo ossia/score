@@ -46,6 +46,8 @@ class ObjectItemModel final
     void setupConnections();
     void cleanConnections();
 
+    bool isAlive(QObject* obj) const;
+
     template<typename... Args>
     void recompute(Args&&...)
     {
@@ -61,9 +63,9 @@ class ObjectItemModel final
 
     QList<const QObject*> m_root;
     QMetaObject::Connection m_con;
+    mutable QMap<const QObject*, QPointer<const QObject>> m_aliveMap;
 
     std::vector<QMetaObject::Connection> m_itemCon;
-
 };
 
 class ObjectWidget final: public QTreeView

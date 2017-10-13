@@ -117,6 +117,18 @@ std::list<Id<IntervalModel>> previousIntervals(const EventModel& ev, const Scena
   return intervals;
 }
 
+template <typename Scenario_T>
+bool hasPreviousIntervals(const EventModel& ev, const Scenario_T& scenario)
+{
+  for (const Id<StateModel>& state : ev.states())
+  {
+    const StateModel& st = scenario.state(state);
+    if (st.previousInterval())
+      return true;
+  }
+  return false;
+}
+
 // TimeSyncs
 template <typename Scenario_T>
 std::list<Id<IntervalModel>> nextIntervals(const TimeSyncModel& tn, const Scenario_T& scenario)
@@ -147,6 +159,18 @@ std::list<Id<IntervalModel>> previousIntervals(const TimeSyncModel& tn, const Sc
 }
 
 template <typename Scenario_T>
+bool hasPreviousIntervals(const TimeSyncModel& tn, const Scenario_T& scenario)
+{
+  for (const Id<EventModel>& event_id : tn.events())
+  {
+    const EventModel& event = scenario.event(event_id);
+    if(hasPreviousIntervals(event, scenario))
+      return true;
+  }
+
+  return false;
+}
+template <typename Scenario_T>
 std::list<Id<StateModel>> states(const TimeSyncModel& tn, const Scenario_T& scenario)
 {
   std::list<Id<StateModel>> stateList;
@@ -162,9 +186,14 @@ std::list<Id<StateModel>> states(const TimeSyncModel& tn, const Scenario_T& scen
 
 // Dates
 template <typename Element_T, typename Scenario_T>
-const auto& date(const Element_T& e, const Scenario_T& scenario)
+const TimeVal& date(const Element_T& e, const Scenario_T& scenario)
 {
   return parentTimeSync(e, scenario).date();
+}
+template<typename Scenario_T>
+inline const TimeVal& date(const IntervalModel& e, const Scenario_T& scenario)
+{
+  return e.date();
 }
 
 template <typename Element_T>

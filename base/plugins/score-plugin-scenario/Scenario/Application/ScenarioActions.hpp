@@ -17,7 +17,7 @@ SCORE_PLUGIN_SCENARIO_EXPORT const Scenario::ProcessModel*
 focusedScenarioModel(const score::DocumentContext& ctx);
 
 //! Anything in a scenario model
-class EnableWhenScenarioModelObject final : public score::ActionCondition
+class SCORE_PLUGIN_SCENARIO_EXPORT EnableWhenScenarioModelObject final : public score::ActionCondition
 {
 public:
   EnableWhenScenarioModelObject();
@@ -97,8 +97,6 @@ SCORE_DECLARE_ACTION(Grow, "&Grow mode", Scenario, Qt::ALT + Qt::Key_D)
 // Object
 SCORE_DECLARE_ACTION(
     RemoveElements, "&Remove elements", Scenario, Qt::Key_Backspace)
-SCORE_DECLARE_ACTION(
-    ClearElements, "C&lear elements", Scenario, Qt::Key_Delete)
 SCORE_DECLARE_ACTION(CopyContent, "C&opy", Scenario, QKeySequence::Copy)
 SCORE_DECLARE_ACTION(CutContent, "C&ut", Scenario, QKeySequence::Cut)
 SCORE_DECLARE_ACTION(
@@ -109,6 +107,8 @@ SCORE_DECLARE_ACTION(
     ElementsToJson, "Convert to &JSON", Scenario, QKeySequence::UnknownKey)
 
 // Event
+SCORE_DECLARE_ACTION(
+    MergeEvents, "Merge events", Scenario, QKeySequence::UnknownKey)
 SCORE_DECLARE_ACTION(
     AddTrigger, "&Enable Trigger", Scenario, QKeySequence::UnknownKey)
 SCORE_DECLARE_ACTION(
@@ -135,11 +135,14 @@ SCORE_DECLARE_ACTION(
     CreateCurves, "Create Curves", Scenario,
     QKeySequence(QObject::tr("Ctrl+J")))
 SCORE_DECLARE_ACTION(
-    MergeTimeSyncs, "&Merge TimeSyncs", Scenario, Qt::SHIFT + Qt::Key_M)
+    MergeTimeSyncs, "&Synchronize", Scenario, Qt::SHIFT + Qt::Key_M)
 SCORE_DECLARE_ACTION(
-    ShowRacks, "&Show racks", Scenario, QKeySequence::UnknownKey)
+    ShowRacks, "&Show processes", Scenario, QKeySequence::UnknownKey)
 SCORE_DECLARE_ACTION(
-    HideRacks, "&Hide racks", Scenario, QKeySequence::UnknownKey)
+    HideRacks, "&Hide processes", Scenario, QKeySequence::UnknownKey)
+
+SCORE_DECLARE_ACTION(
+    Encapsulate, "&Encapsulate", Scenario, Qt::SHIFT + Qt::CTRL + Qt::Key_E)
 
 // Navigation
 SCORE_DECLARE_ACTION(MoveUp, "&Move up", Scenario, Qt::UpArrow)

@@ -35,11 +35,11 @@ private:
   void recompute();
 
   std::shared_ptr<ossia::curve_abstract>
-  on_curveChanged(ossia::val_type, const optional<ossia::Destination>&);
+  on_curveChanged(ossia::val_type, const optional<ossia::destination>&);
 
   template <typename T>
   std::shared_ptr<ossia::curve_abstract>
-  on_curveChanged_impl(const optional<ossia::Destination>&);
+  on_curveChanged_impl(const optional<ossia::destination>&);
 };
 using ComponentFactory
     = ::Engine::Execution::ProcessComponentFactory_T<Component>;

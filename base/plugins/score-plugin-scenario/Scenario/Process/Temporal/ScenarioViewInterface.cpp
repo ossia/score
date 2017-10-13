@@ -72,7 +72,7 @@ void ScenarioViewInterface::on_intervalMoved(
   const auto& cstr_model = pres.model();
   auto& cstr_view = view(pres);
 
-  double startPos = cstr_model.startDate().toPixels(msPerPixel);
+  double startPos = cstr_model.date().toPixels(msPerPixel);
   // double delta = cstr_view.x() - startPos;
   bool dateChanged = true; // Disabled because it does a whacky movement when
                            // there are processes. (delta * delta > 1); //

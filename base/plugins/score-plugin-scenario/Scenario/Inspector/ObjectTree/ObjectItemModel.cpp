@@ -81,15 +81,19 @@ void ObjectItemModel::setupConnections()
 {
   if(m_root.empty())
     return;
+  m_aliveMap.clear();
 
   for(auto obj : m_root)
   {
+    m_aliveMap.insert(obj, obj);
     bool is_cst = dynamic_cast<const Scenario::IntervalModel*>(obj);
     if(is_cst)
     {
       auto cst = static_cast<const Scenario::IntervalModel*>(obj);
       cst->processes.added.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
-      cst->processes.removing.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
+      cst->processes.removed.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
+      for(auto& proc : cst->processes)
+        m_aliveMap.insert(&proc, &proc);
     }
     else
     {
@@ -101,12 +105,17 @@ void ObjectItemModel::setupConnections()
       for(const auto& ev : tn->events())
       {
         auto& e = scenar.event(ev);
+        m_aliveMap.insert(&e, &e);
         m_itemCon.push_back(con(e, &EventModel::statesChanged, this, [=] { recompute(); }));
         for(const auto& st : e.states())
         {
           auto& s = scenar.state(st);
+          m_aliveMap.insert(&s, &s);
           s.stateProcesses.added.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
           s.stateProcesses.removed.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
+
+          for(const auto& sp : s.stateProcesses)
+            m_aliveMap.insert(&sp, &sp);
         }
       }
     }
@@ -137,11 +146,12 @@ void ObjectItemModel::cleanConnections()
 QModelIndex ObjectItemModel::index(int row, int column, const QModelIndex& parent) const
 {
   auto sel = (QObject*)parent.internalPointer();
-  if(sel)
+  if(isAlive(sel))
   {
     if(auto cst = dynamic_cast<Scenario::IntervalModel*>(sel))
     {
       auto it = cst->processes.begin();
+      SCORE_ASSERT(row < cst->processes.size());
       std::advance(it, row);
       return createIndex(row, column, &*(it));
     }
@@ -149,18 +159,20 @@ QModelIndex ObjectItemModel::index(int row, int column, const QModelIndex& paren
     {
       Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*ev);
       auto it = ev->states().begin();
+      SCORE_ASSERT(row < ev->states().size());
       std::advance(it, row);
-      auto st = scenar.findState(*it);
 
-      return createIndex(row, column, st);
+      if(auto st = scenar.findState(*it))
+        return createIndex(row, column, st);
     }
     else if(auto tn = dynamic_cast<Scenario::TimeSyncModel*>(sel))
     {
       Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*tn);
       auto it = tn->events().begin();
       std::advance(it, row);
-      auto ev = scenar.findEvent(*it);
-      return createIndex(row, column, ev);
+
+      if(auto ev = scenar.findEvent(*it))
+        return createIndex(row, column, ev);
     }
     else if(auto st = dynamic_cast<Scenario::StateModel*>(sel))
     {
@@ -182,14 +194,32 @@ QModelIndex ObjectItemModel::index(int row, int column, const QModelIndex& paren
   {
     return QModelIndex{};
   }
+  return QModelIndex{};
+}
+
+bool ObjectItemModel::isAlive(QObject* obj) const
+{
+  if(!obj)
+    return false;
+
+  auto it = m_aliveMap.find(obj);
+  if(it != m_aliveMap.end())
+  {
+    if(it->isNull())
+    {
+      m_aliveMap.erase(it);
+      return false;
+    }
+    return true;
+  }
+  return false;
 }
 
 QModelIndex ObjectItemModel::parent(const QModelIndex& child) const
 {
   auto sel = (QObject*)child.internalPointer();
-  if(sel == nullptr)
+  if(!isAlive(sel))
     return QModelIndex{};
-
 
   if(dynamic_cast<Scenario::IntervalModel*>(sel))
   {
@@ -255,7 +285,7 @@ QVariant ObjectItemModel::headerData(int section, Qt::Orientation orientation, i
 int ObjectItemModel::rowCount(const QModelIndex& parent) const
 {
   auto sel = (QObject*)parent.internalPointer();
-  if(sel)
+  if(isAlive(sel))
   {
     if(auto cst = dynamic_cast<Scenario::IntervalModel*>(sel))
     {
@@ -290,7 +320,7 @@ int ObjectItemModel::columnCount(const QModelIndex& parent) const
 QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
 {
   auto sel = (QObject*)index.internalPointer();
-  if(!sel)
+  if(!isAlive(sel))
     return {};
   if(role == Qt::SizeHintRole)
   {
@@ -397,7 +427,7 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
     {
       if(auto cst = dynamic_cast<Scenario::IntervalModel*>(sel))
       {
-        return tr("Start : ") + cst->startDate().toString();
+        return tr("Start : ") + cst->date().toString();
       }
       else if(auto ev = dynamic_cast<Scenario::EventModel*>(sel))
       {

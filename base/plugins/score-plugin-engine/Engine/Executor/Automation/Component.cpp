@@ -106,7 +106,7 @@ void Component::recompute()
 
 template <typename Y_T>
 std::shared_ptr<ossia::curve_abstract>
-Component::on_curveChanged_impl(const optional<ossia::Destination>& d)
+Component::on_curveChanged_impl(const optional<ossia::destination>& d)
 {
   using namespace ossia;
 
@@ -131,7 +131,7 @@ Component::on_curveChanged_impl(const optional<ossia::Destination>& d)
 std::shared_ptr<ossia::curve_abstract>
 Component::on_curveChanged(
     ossia::val_type type,
-    const optional<ossia::Destination>& d)
+    const optional<ossia::destination>& d)
 {
   switch (type)
   {
