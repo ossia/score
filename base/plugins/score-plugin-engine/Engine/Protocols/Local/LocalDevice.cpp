@@ -11,6 +11,7 @@
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/local/local.hpp>
 #include <ossia/network/minuit/minuit.hpp>
+#include <ossia/network/oscquery/oscquery_server.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <Engine/OSSIA2score.hpp>
@@ -60,22 +61,14 @@ void LocalDevice::setRemoteSettings(const Device::DeviceSettings& settings)
     m_proto->clear();
 
     auto set = settings.deviceSpecificSettings.value<LocalSpecificSettings>();
-    if (set.remoteName == "")
-    {
-      set.remoteName = "score-remote";
-      set.host = "127.0.0.1";
-      set.remotePort = 9999;
-      set.localPort = 6666;
-    }
-    m_proto->expose_to(std::make_unique<ossia::net::minuit_protocol>(
-        set.remoteName.toStdString(),
-        set.host.toStdString(),
-        set.remotePort,
-        set.localPort));
+      set.wsPort = 9999;
+      set.oscPort = 6666;
+
+    m_proto->expose_to(std::make_unique<ossia::oscquery::oscquery_server_protocol>(set.oscPort, set.wsPort));
   }
   catch (...)
   {
-    qDebug() << "LocalDevice: could not expose score-remote on port 6666";
+    qDebug() << "LocalDevice: could not expose score on port 6666";
   }
 }
 

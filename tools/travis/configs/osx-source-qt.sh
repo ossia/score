@@ -1,6 +1,9 @@
 #!/bin/sh
-
-export QT_PATH=$(dirname $(dirname $(find /usr/local/Cellar/qt -name Qt5Config.cmake) ) )
+if [[ -d "/usr/local/Cellar/qt" ]]; then
+  export QT_PATH=$(dirname $(dirname $(find /usr/local/Cellar/qt -name Qt5Config.cmake) ) )
+elif [[ -d "/usr/local/Cellar/qt5" ]]; then
+  export QT_PATH=$(dirname $(dirname $(find /usr/local/Cellar/qt5 -name Qt5Config.cmake) ) )
+fi
 export BOOST_PATH=$(dirname $(find /usr/local/Cellar/boost -name INSTALL_RECEIPT.json))
 export CXX=clang++
 export CMAKE_PREFIX_PATH="$QT_PATH"

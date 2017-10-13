@@ -1,5 +1,6 @@
 #pragma once
 #include <QObject>
+#include <QVariant>
 namespace JS
 {
 class ValueInlet: public QObject

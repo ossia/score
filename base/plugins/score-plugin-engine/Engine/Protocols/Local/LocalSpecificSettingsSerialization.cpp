@@ -13,7 +13,7 @@ template <>
 void DataStreamReader::read(
     const Engine::Network::LocalSpecificSettings& n)
 {
-  m_stream << n.remoteName << n.host << n.remotePort << n.localPort;
+  m_stream << n.wsPort << n.oscPort;
   insertDelimiter();
 }
 
@@ -22,7 +22,7 @@ template <>
 void DataStreamWriter::write(
     Engine::Network::LocalSpecificSettings& n)
 {
-  m_stream >> n.remoteName >> n.host >> n.remotePort >> n.localPort;
+  m_stream >> n.wsPort >> n.oscPort;
   checkDelimiter();
 }
 
@@ -31,10 +31,8 @@ template <>
 void JSONObjectReader::read(
     const Engine::Network::LocalSpecificSettings& n)
 {
-  obj["RemoteName"] = n.remoteName;
-  obj["Host"] = n.host;
-  obj["InPort"] = n.remotePort;
-  obj["OutPort"] = n.localPort;
+  obj["WSPort"] = n.wsPort;
+  obj["OSCport"] = n.oscPort;
 }
 
 
@@ -42,8 +40,6 @@ template <>
 void JSONObjectWriter::write(
     Engine::Network::LocalSpecificSettings& n)
 {
-  n.remoteName = obj["RemoteName"].toString();
-  n.host = obj["Host"].toString();
-  n.remotePort = obj["InPort"].toInt();
-  n.localPort = obj["OutPort"].toInt();
+  n.wsPort = obj["WSPort"].toInt();
+  n.oscPort = obj["OSCPort"].toInt();
 }

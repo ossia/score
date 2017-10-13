@@ -33,6 +33,7 @@ case "$TRAVIS_OS_NAME" in
   osx)
     set +e
 
+    brew update
     brew uninstall --ignore-dependencies boost
     ARCHIVE=homebrew-cache.tar.xz
     brew install gnu-tar xz
@@ -40,8 +41,10 @@ case "$TRAVIS_OS_NAME" in
     wget https://github.com/OSSIA/score-sdk/releases/download/sdk8/$ARCHIVE -O $ARCHIVE
     gtar xhaf $ARCHIVE --directory /usr/local/Cellar
     brew unlink cmake
-    brew link --force boost cmake ninja qt5
-    
+    brew link --force boost ninja qt5
+
+    wget https://cmake.org/files/v3.8/cmake-3.8.2-Darwin-x86_64.tar.gz
+    gtar xaf cmake-3.8.2-Darwin-x86_64.tar.gz --directory /tmp
     set -e
   ;;
 esac

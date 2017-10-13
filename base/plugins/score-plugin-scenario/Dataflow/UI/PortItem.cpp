@@ -19,6 +19,7 @@ PortItem::PortItem(Process::Port& p, QGraphicsItem* parent)
   this->setAcceptDrops(true);
   this->setAcceptHoverEvents(true);
   this->setFlag(QGraphicsItem::ItemSendsScenePositionChanges, true);
+  this->setToolTip(p.customData());
 
   g_ports.insert({&p, this});
 
