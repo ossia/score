@@ -27,25 +27,54 @@ Component::Component(
     const Id<score::Component>& id,
     QObject* parent)
   : ::Engine::Execution::
-      ProcessComponent_T<JS::ProcessModel, js_node>{
+      ProcessComponent_T<JS::ProcessModel, ossia::node_process>{
         parentInterval, element, ctx, id, "JSComponent", parent}
 {
-  /*
-  m_ossia_process = std::make_shared<ProcessExecutor>(ctx.devices);
-  OSSIAProcess().setTickFun(element.script());
+  auto proc = std::make_shared<ossia::node_process>(ctx.plugin.execGraph);
+  auto node = std::make_shared<js_node>(element.script());
+  proc->set_node(node);
+  m_ossia_process = proc;
+  m_node = node;
 
+  auto& devices = ctx.devices.list();
+  for(auto port : element.inlets())
+  {
+    auto inlet = ossia::make_inlet<ossia::value_port>();
+    auto dest = Engine::score_to_ossia::makeDestination(devices, port->address());
+    if(dest)
+      inlet->address = &dest->address();
+
+    node->inputs().push_back(inlet);
+    ctx.plugin.nodes.insert({port, m_node});
+  }
+
+  for(auto port : element.outlets())
+  {
+    auto outlet = ossia::make_outlet<ossia::value_port>();
+    auto dest = Engine::score_to_ossia::makeDestination(devices, port->address());
+    if(dest)
+      outlet->address = &dest->address();
+
+    node->outputs().push_back(outlet);
+    ctx.plugin.nodes.insert({port, m_node});
+  }
+
+  ctx.plugin.execGraph->add_node(m_node);
+  /*
   con(element, &JS::ProcessModel::scriptChanged,
       this, [=] (const QString& str) {
     system().executionQueue.enqueue(
-          [proc=std::dynamic_pointer_cast<ProcessExecutor>(m_ossia_process),
+          [proc=std::dynamic_pointer_cast<js_node>(m_node),
           &str]
-    { proc->setTickFun(str); });
+    { proc->setScript(str); });
   });
   */
 }
 
 void js_node::setScript(const QString& val)
 {
+  m_inlets.clear();
+  m_outlets.clear();
   m_valInlets.clear();
   m_valOutlets.clear();
   if(val.trimmed().startsWith("import"))

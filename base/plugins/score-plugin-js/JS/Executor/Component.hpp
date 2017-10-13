@@ -10,6 +10,7 @@
 #include <score/document/DocumentInterface.hpp>
 #include <memory>
 #include <JS/Qml/QmlObjects.hpp>
+#include <ossia/dataflow/node_process.hpp>
 
 namespace Explorer
 {
@@ -52,7 +53,7 @@ private:
 
 class Component final
     : public ::Engine::Execution::
-          ProcessComponent_T<JS::ProcessModel, js_node>
+          ProcessComponent_T<JS::ProcessModel, ossia::node_process>
 {
   COMPONENT_METADATA("c2737929-231e-4d57-9088-a2a3a8d3c24e")
 public:
@@ -62,6 +63,8 @@ public:
       const Engine::Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent);
+
+  std::shared_ptr<js_node> m_node;
 };
 
 using ComponentFactory

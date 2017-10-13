@@ -26,14 +26,17 @@ ProcessModel::ProcessModel(
     : Process::ProcessModel{duration, id,
                             Metadata<ObjectKey_k, ProcessModel>::get(), parent}
 {
-  m_script
-      = "(function(t) { \n"
-        "     var obj = new Object; \n"
-        "     obj[\"address\"] = 'OSCdevice:/millumin/layer/x/instance'; \n"
-        "     obj[\"value\"] = t + "
-        "score.value('OSCdevice:/millumin/layer/y/instance'); \n"
-        "     return [ obj ]; \n"
-        "});";
+  m_script =
+R"_(import QtQuick 2.0
+Item {
+  ValueInlet { id: in1 }
+  ValueOutlet { id: out1 }
+
+  function onTick(time, position, offset) {
+    out1.val = in1.val + Math.random();
+  }
+}
+)_";
   metadata().setInstanceName(*this);
 }
 
@@ -80,32 +83,22 @@ void ProcessModel::setScript(const QString& script)
 
       int i = 0;
       for(auto n : cld_inlet) {
-        auto inl = new Process::Port{Id<Process::Port>(i++), this};
-        inl->type = Process::PortType::Message;
-        inl->outlet = false;
-        m_inlets.push_back(inl);
+        auto port = new Process::Port{Id<Process::Port>(i++), this};
+        port->type = Process::PortType::Message;
+        port->outlet = false;
+        port->setCustomData(n->objectName());
+        m_inlets.push_back(port);
       }
 
       for(auto n : cld_outlet) {
-        auto inl = new Process::Port{Id<Process::Port>(i++), this};
-        inl->type = Process::PortType::Message;
-        inl->outlet = true;
-        m_outlets.push_back(inl);
+        auto port = new Process::Port{Id<Process::Port>(i++), this};
+        port->type = Process::PortType::Message;
+        port->outlet = true;
+        port->setCustomData(n->objectName());
+        m_outlets.push_back(port);
       }
       delete obj;
 
-      emit scriptOk();
-    }
-  }
-  else
-  {
-    auto f = test_engine.evaluate(script);
-    if(f.isError())
-    {
-      emit scriptError(f.property("lineNumber").toInt(), f.toString());
-    }
-    else
-    {
       emit scriptOk();
     }
   }

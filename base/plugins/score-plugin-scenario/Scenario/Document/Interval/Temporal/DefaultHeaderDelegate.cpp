@@ -226,7 +226,7 @@ void DefaultHeaderDelegate::paint(QPainter* painter, const QStyleOptionGraphicsI
 {
   painter->setRenderHint(QPainter::Antialiasing, true);
   painter->setPen(ScenarioStyle::instance().IntervalHeaderSeparator);
-  m_textcache.draw(painter, QPointF{8.,3.});
+  m_textcache.draw(painter, QPointF{8.,-3.});
 
   painter->setPen(ScenarioStyle::instance().TimenodePen);
   painter->setFont(ScenarioStyle::instance().Medium8Pt);
