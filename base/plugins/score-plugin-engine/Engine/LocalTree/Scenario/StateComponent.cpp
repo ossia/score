@@ -3,7 +3,10 @@
 #include "StateComponent.hpp"
 #include "MetadataParameters.hpp"
 #include <ossia/editor/state/state_element.hpp>
-
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+#include <Engine/Executor/DocumentPlugin.hpp>
+#include <Engine/score2OSSIA.hpp>
 namespace Engine
 {
 namespace LocalTree
@@ -18,6 +21,15 @@ State::State(
     : CommonComponent{parent, state.metadata(), doc,
                       id,     "StateComponent", parent_comp}
 {
+  m_properties.push_back(add_setProperty<::State::impulse>(
+      node(), "trigger", [&] (auto) {
+    auto& r_ctx
+        = doc.context().plugin<Engine::Execution::DocumentPlugin>().context();
+
+    auto ossia_state
+        = Engine::score_to_ossia::state(state, r_ctx);
+    ossia_state.launch();
+  }));
 }
 }
 }
