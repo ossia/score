@@ -35,7 +35,7 @@ SplitEvent::SplitEvent(
     : m_scenarioPath{scenario}
     , m_originalEvent{std::move(event)}
     , m_newEvent{getStrongId(scenario.events)}
-    , m_createdName{RandomNameProvider::generateRandomName()}
+    , m_createdName{RandomNameProvider::generateName<EventModel>()}
     , m_movingStates{std::move(movingstates)}
 {
 }
