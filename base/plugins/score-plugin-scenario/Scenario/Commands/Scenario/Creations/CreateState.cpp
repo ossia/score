@@ -3,6 +3,7 @@
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <score/tools/RandomNameProvider.hpp>
 
 #include <algorithm>
 #include <boost/iterator/iterator_facade.hpp>
@@ -29,6 +30,7 @@ CreateState::CreateState(
     double stateY)
     : m_path{scenario}
     , m_newState{getStrongId(scenario.states)}
+    , m_createdName{RandomNameProvider::generateShortRandomName()}
     , m_event{std::move(event)}
     , m_stateY{stateY}
 {
@@ -55,12 +57,14 @@ void CreateState::redo(const score::DocumentContext& ctx) const
 
 void CreateState::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path << m_newState << m_event << m_stateY;
+  s << m_path << m_newState << m_createdName <<  m_event << m_stateY;
 }
 
 void CreateState::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_path >> m_newState >> m_event >> m_stateY;
+
+  s >> m_path >> m_newState >> m_createdName >> m_event >> m_stateY;
+
 }
 }
 }

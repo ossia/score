@@ -58,6 +58,7 @@ protected:
 
 private:
   Id<TimeSyncModel> m_newTimeSync;
+  QString m_createdName;
   TimeVal m_date;
 
   CreateEvent_State m_command;

@@ -3,6 +3,7 @@
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <score/tools/RandomNameProvider.hpp>
 
 #include <QByteArray>
 #include <algorithm>
@@ -28,6 +29,7 @@ CreateInterval_State::CreateInterval_State(
     Id<EventModel> endEvent,
     double endStateY)
     : m_newState{getStrongId(scenario.states)}
+    , m_createdName{RandomNameProvider::generateShortRandomName()}
     , m_command{scenario, std::move(startState), m_newState}
     , m_endEvent{std::move(endEvent)}
     , m_stateY{endStateY}
