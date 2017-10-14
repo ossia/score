@@ -26,7 +26,7 @@ CreateTimeSync_Event_State::CreateTimeSync_Event_State(
     TimeVal date,
     double stateY)
     : m_newTimeSync{getStrongId(scenario.timeSyncs)}
-    , m_createdName{RandomNameProvider::generateShortRandomName()}
+    , m_createdName{RandomNameProvider::generateName<TimeSyncModel>()}
     , m_date{std::move(date)}
     , m_command{scenario, m_newTimeSync, stateY}
 {
