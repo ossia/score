@@ -1,0 +1,8 @@
+#N canvas 471 31 450 300 10;
+#X obj 98 99 ossia.client score;
+#X obj 98 132 print;
+#X msg 98 62 connect oscquery ws://127.0.0.1:9999;
+#X msg 25 62 update;
+#X connect 0 0 1 0;
+#X connect 2 0 0 0;
+#X connect 3 0 0 0;
