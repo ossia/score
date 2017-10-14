@@ -29,7 +29,7 @@ CreateInterval_State::CreateInterval_State(
     Id<EventModel> endEvent,
     double endStateY)
     : m_newState{getStrongId(scenario.states)}
-    , m_createdName{RandomNameProvider::generateShortRandomName()}
+    , m_createdName{RandomNameProvider::generateName<StateModel>()}
     , m_command{scenario, std::move(startState), m_newState}
     , m_endEvent{std::move(endEvent)}
     , m_stateY{endStateY}
