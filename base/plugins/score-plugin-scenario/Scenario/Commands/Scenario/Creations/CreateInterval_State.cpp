@@ -53,6 +53,8 @@ void CreateInterval_State::redo(const score::DocumentContext& ctx) const
   ScenarioCreate<StateModel>::redo(
       m_newState, scenar.events.at(m_endEvent), m_stateY, scenar);
 
+    scenar.states.at(m_newState).metadata().setName(m_createdName);
+
   // The interval between
   m_command.redo(ctx);
   updateEventExtent(m_endEvent, scenar);
@@ -60,13 +62,13 @@ void CreateInterval_State::redo(const score::DocumentContext& ctx) const
 
 void CreateInterval_State::serializeImpl(DataStreamInput& s) const
 {
-  s << m_newState << m_command.serialize() << m_endEvent << m_stateY;
+  s << m_newState << m_createdName << m_command.serialize() << m_endEvent << m_stateY;
 }
 
 void CreateInterval_State::deserializeImpl(DataStreamOutput& s)
 {
   QByteArray b;
-  s >> m_newState >> b >> m_endEvent >> m_stateY;
+  s >> m_newState >> m_createdName >> b >> m_endEvent >> m_stateY;
 
   m_command.deserialize(b);
 }
