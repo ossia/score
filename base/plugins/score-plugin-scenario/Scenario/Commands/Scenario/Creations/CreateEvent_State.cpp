@@ -53,6 +53,7 @@ void CreateEvent_State::redo(const score::DocumentContext& ctx) const
       scenar);
 
   scenar.events.at(m_newEvent).metadata().setName(m_createdName);
+  scenar.events.at(m_newEvent).setCondition(State::defaultFalseExpression());
 
   // And the state
   m_command.redo(ctx);
