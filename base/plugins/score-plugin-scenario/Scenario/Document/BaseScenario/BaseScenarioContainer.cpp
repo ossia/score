@@ -30,27 +30,30 @@ BaseScenarioContainer::BaseScenarioContainer(QObject* parentObject)
                                   {0.2, 0.8},
                                   TimeVal::zero(),
                                   m_parent};
+  m_startNode->metadata().setName("Sync.start");                                  
   m_endNode = new TimeSyncModel{Scenario::endId<TimeSyncModel>(),
                                 {0.2, 0.8},
                                 TimeVal::zero(),
                                 m_parent};
-
+  m_endNode->metadata().setName("Sync.end");                                  
   m_startEvent = new EventModel{Scenario::startId<EventModel>(),
                                 m_startNode->id(),
                                 {0.1, 0.15},
                                 TimeVal::zero(),
                                 m_parent};
+  m_startEvent->metadata().setName("Event.start");                             
   m_endEvent = new EventModel{Scenario::endId<EventModel>(),
                               m_endNode->id(),
                               {0.4, 0.6},
                               TimeVal::zero(),
                               m_parent};
-
+  m_endEvent->metadata().setName("Event.end"); 
   m_startState = new StateModel{Scenario::startId<StateModel>(),
                                 m_startEvent->id(), 0, stack, m_parent};
+  m_startState->metadata().setName("State.start");
   m_endState = new StateModel{Scenario::endId<StateModel>(), m_endEvent->id(),
                               0, stack, m_parent};
-
+  m_endState->metadata().setName("State.end");
   m_interval = new IntervalModel{Id<IntervalModel>{0}, 0, m_parent};
 
   m_startNode->addEvent(m_startEvent->id());
