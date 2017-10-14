@@ -105,6 +105,7 @@ public:
 private:
   QToolButton* m_prev{};
   QToolButton* m_next{};
+  QLabel* m_label{};
   score::SelectionStack& m_stack;
 };
 
