@@ -3,6 +3,7 @@
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <score/tools/RandomNameProvider.hpp>
 
 #include <QByteArray>
 #include <algorithm>
@@ -28,6 +29,7 @@ CreateInterval_State::CreateInterval_State(
     Id<EventModel> endEvent,
     double endStateY)
     : m_newState{getStrongId(scenario.states)}
+    , m_createdName{RandomNameProvider::generateName<StateModel>()}
     , m_command{scenario, std::move(startState), m_newState}
     , m_endEvent{std::move(endEvent)}
     , m_stateY{endStateY}
@@ -51,6 +53,8 @@ void CreateInterval_State::redo(const score::DocumentContext& ctx) const
   ScenarioCreate<StateModel>::redo(
       m_newState, scenar.events.at(m_endEvent), m_stateY, scenar);
 
+    scenar.states.at(m_newState).metadata().setName(m_createdName);
+
   // The interval between
   m_command.redo(ctx);
   updateEventExtent(m_endEvent, scenar);
@@ -58,13 +62,13 @@ void CreateInterval_State::redo(const score::DocumentContext& ctx) const
 
 void CreateInterval_State::serializeImpl(DataStreamInput& s) const
 {
-  s << m_newState << m_command.serialize() << m_endEvent << m_stateY;
+  s << m_newState << m_createdName << m_command.serialize() << m_endEvent << m_stateY;
 }
 
 void CreateInterval_State::deserializeImpl(DataStreamOutput& s)
 {
   QByteArray b;
-  s >> m_newState >> b >> m_endEvent >> m_stateY;
+  s >> m_newState >> m_createdName >> b >> m_endEvent >> m_stateY;
 
   m_command.deserialize(b);
 }

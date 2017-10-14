@@ -2,6 +2,7 @@
 #include <Process/TimeValue.hpp>
 #include <score/command/Command.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <QString>
 
 #include "CreateEvent_State.hpp"
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
@@ -58,6 +59,7 @@ protected:
 
 private:
   Id<TimeSyncModel> m_newTimeSync;
+  QString m_createdName;
   TimeVal m_date;
 
   CreateEvent_State m_command;

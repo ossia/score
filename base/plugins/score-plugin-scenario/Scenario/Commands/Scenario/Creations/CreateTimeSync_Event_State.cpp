@@ -2,6 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <score/tools/RandomNameProvider.hpp>
 
 #include <QByteArray>
 #include <boost/iterator/iterator_facade.hpp>
@@ -25,6 +26,7 @@ CreateTimeSync_Event_State::CreateTimeSync_Event_State(
     TimeVal date,
     double stateY)
     : m_newTimeSync{getStrongId(scenario.timeSyncs)}
+    , m_createdName{RandomNameProvider::generateName<TimeSyncModel>()}
     , m_date{std::move(date)}
     , m_command{scenario, m_newTimeSync, stateY}
 {
