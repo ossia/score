@@ -9,7 +9,7 @@
 			"modernui" : 1
 		}
 ,
-		"rect" : [ 52.0, 270.0, 483.0, 744.0 ],
+		"rect" : [ 73.0, 380.0, 483.0, 744.0 ],
 		"bgcolor" : [ 0.0, 0.0, 0.0, 1.0 ],
 		"editing_bgcolor" : [ 0.239216, 0.254902, 0.278431, 1.0 ],
 		"bglocked" : 0,
@@ -39,6 +39,31 @@
 		"style" : "velvet",
 		"subpatcher_template" : "noTB_dark",
 		"boxes" : [ 			{
+				"box" : 				{
+					"id" : "obj-2",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 55.0, 709.0, 100.0, 22.0 ],
+					"style" : "",
+					"text" : "print"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-1",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 55.0, 677.5, 389.0, 22.0 ],
+					"style" : "",
+					"text" : "ossia.remote root/processes/Scenario.1/intervals/shed60gums39/name"
+				}
+
+			}
+, 			{
 				"box" : 				{
 					"id" : "obj-26",
 					"maxclass" : "newobj",
@@ -83,7 +108,6 @@
 						"tags" : "",
 						"style" : "velvet",
 						"subpatcher_template" : "noTB_dark",
-						"visible" : 1,
 						"boxes" : [ 							{
 								"box" : 								{
 									"id" : "obj-3",
@@ -285,7 +309,7 @@
 					"maxclass" : "newobj",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 55.0, 649.0, 34.0, 22.0 ],
+					"patching_rect" : [ 55.0, 630.0, 34.0, 22.0 ],
 					"style" : "",
 					"text" : "print"
 				}
@@ -298,7 +322,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 55.0, 616.5, 327.0, 22.0 ],
+					"patching_rect" : [ 55.0, 597.5, 327.0, 22.0 ],
 					"style" : "",
 					"text" : "ossia.remote root/processes/Scenario.1/states/State.4/label"
 				}
@@ -420,6 +444,13 @@
 			}
  ],
 		"lines" : [ 			{
+				"patchline" : 				{
+					"destination" : [ "obj-2", 0 ],
+					"source" : [ "obj-1", 0 ]
+				}
+
+			}
+, 			{
 				"patchline" : 				{
 					"destination" : [ "obj-11", 0 ],
 					"source" : [ "obj-10", 0 ]
