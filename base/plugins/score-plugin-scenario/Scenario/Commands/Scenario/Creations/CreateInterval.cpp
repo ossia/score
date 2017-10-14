@@ -36,7 +36,7 @@ CreateInterval::CreateInterval(
     Id<StateModel> startState,
     Id<StateModel> endState)
     : m_path{scenar}
-    , m_createdName{RandomNameProvider::generateName<IntervalModel>()}
+    , m_createdName{RandomNameProvider::generateShortRandomName()}
     , m_startStateId{std::move(startState)}
     , m_endStateId{std::move(endState)}
 {
