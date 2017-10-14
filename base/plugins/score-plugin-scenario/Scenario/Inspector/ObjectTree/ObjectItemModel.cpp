@@ -20,6 +20,7 @@
 #include <Scenario/Commands/State/AddStateProcess.hpp>
 #include <Scenario/Commands/State/RemoveStateProcess.hpp>
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
+#include <score/widgets/TextLabel.hpp>
 
 namespace Scenario
 {
@@ -471,6 +472,8 @@ SelectionStackWidget::SelectionStackWidget(
   m_prev->setArrowType(Qt::LeftArrow);
   m_prev->setEnabled(m_stack.canUnselect());
 
+  m_label = new TextLabel{"History", this};
+
   m_next = new QToolButton{this};
   m_next->setArrowType(Qt::RightArrow);
   m_next->setEnabled(m_stack.canReselect());
@@ -478,6 +481,7 @@ SelectionStackWidget::SelectionStackWidget(
   auto lay = new score::MarginLess<QHBoxLayout>{this};
   lay->setSizeConstraint(QLayout::SetMinimumSize);
   lay->addWidget(m_prev);
+  lay->addWidget(m_label);
   lay->addWidget(m_next);
   setLayout(lay);
 
