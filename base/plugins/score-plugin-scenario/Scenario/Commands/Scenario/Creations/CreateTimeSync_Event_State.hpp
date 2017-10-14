@@ -2,6 +2,7 @@
 #include <Process/TimeValue.hpp>
 #include <score/command/Command.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <QString>
 
 #include "CreateEvent_State.hpp"
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>

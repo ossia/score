@@ -52,6 +52,8 @@ void CreateState::redo(const score::DocumentContext& ctx) const
   ScenarioCreate<StateModel>::redo(
       m_newState, scenar.events.at(m_event), m_stateY, scenar);
 
+  scenar.states.at(m_newState).metadata().setName(m_createdName);
+
   updateEventExtent(m_event, scenar);
 }
 

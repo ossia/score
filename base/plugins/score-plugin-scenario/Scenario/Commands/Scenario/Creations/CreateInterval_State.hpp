@@ -2,6 +2,7 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <score/command/Command.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <QString>
 
 #include "CreateInterval.hpp"
 #include <score/model/path/Path.hpp>

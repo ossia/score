@@ -1,4 +1,5 @@
 #pragma once
+#include <QString>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
@@ -44,7 +45,6 @@ public:
   }
 
   void undo(const score::DocumentContext& ctx) const override;
-
   void redo(const score::DocumentContext& ctx) const override;
 
 protected:
