@@ -30,9 +30,8 @@ Component::Component(
       ProcessComponent_T<JS::ProcessModel, ossia::node_process>{
         parentInterval, element, ctx, id, "JSComponent", parent}
 {
-  auto proc = std::make_shared<ossia::node_process>(ctx.plugin.execGraph);
   auto node = std::make_shared<js_node>(element.script());
-  proc->set_node(node);
+  auto proc = std::make_shared<ossia::node_process>(ctx.plugin.execGraph, node);
   m_ossia_process = proc;
   m_node = node;
 

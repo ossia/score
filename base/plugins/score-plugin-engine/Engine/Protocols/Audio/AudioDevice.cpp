@@ -8,9 +8,11 @@
 #include <Engine/Executor/DocumentPlugin.hpp>
 namespace Dataflow
 {
-AudioDevice::AudioDevice(const Device::DeviceSettings& settings, const score::DocumentContext& c)
+AudioDevice::AudioDevice(
+    const Device::DeviceSettings& settings,
+    ossia::net::device_base& dev)
   : OSSIADevice{settings}
-  , m_dev{c.plugin<Engine::Execution::DocumentPlugin>().audio_dev}
+  , m_dev{dev}
 {
   m_capas.canAddNode = false;
   m_capas.canRemoveNode = false;
@@ -81,7 +83,15 @@ QString AudioProtocolFactory::prettyName() const
 Device::DeviceInterface* AudioProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
 {
-  return new AudioDevice{settings, ctx};
+  qDebug() << "updating audio" << settings.name ;
+  auto doc = ctx.findPlugin<Engine::Execution::DocumentPlugin>();
+  if (doc)
+  {
+    doc->audio_device->updateSettings(settings);
+    return doc->audio_device;
+  }
+  else
+    return nullptr;
 }
 
 const Device::DeviceSettings& AudioProtocolFactory::defaultSettings() const

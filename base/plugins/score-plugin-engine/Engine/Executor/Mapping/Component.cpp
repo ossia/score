@@ -115,9 +115,8 @@ Component::Component(
                                                                    "MappingElement",
                                                                    parent}
 {
-  auto proc = std::make_shared<ossia::node_process>(ctx.plugin.execGraph);
   auto node = std::make_shared<mapping_node>();
-  proc->set_node(node);
+  auto proc = std::make_shared<ossia::node_process>(ctx.plugin.execGraph, node);
   m_ossia_process = proc;
   m_node = node;
 

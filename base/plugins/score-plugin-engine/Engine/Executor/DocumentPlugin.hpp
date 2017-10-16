@@ -10,6 +10,7 @@
 #include <ossia/dataflow/graph.hpp>
 #include <Process/Dataflow/DataflowObjects.hpp>
 #include <memory>
+#include <Engine/Protocols/Audio/AudioDevice.hpp>
 
 namespace ossia { class audio_protocol; class midi_generic_parameter;}
 namespace score
@@ -55,6 +56,7 @@ public:
   ossia::audio_protocol* audioproto{};
   mutable ossia::net::generic_device audio_dev;
   mutable ossia::net::generic_device midi_dev;
+  Dataflow::AudioDevice* audio_device{};
 
   std::vector<ossia::midi_generic_parameter*> midi_ins;
   std::vector<ossia::midi_generic_parameter*> midi_outs;

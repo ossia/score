@@ -117,6 +117,7 @@ template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
     const Scenario::IntervalModel& interval)
 {
+  insertDelimiter();
   // Processes
   m_stream << (int32_t)interval.processes.size();
   for (const auto& process : interval.processes)
@@ -150,6 +151,7 @@ template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamWriter::write(Scenario::IntervalModel& interval)
 {
+  checkDelimiter();
   // Processes
   int32_t process_count;
   m_stream >> process_count;

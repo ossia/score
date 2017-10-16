@@ -46,6 +46,11 @@ DocumentPlugin::DocumentPlugin(
 
   execGraph = std::make_shared<ossia::graph>();
   audioproto->reload();
+  audio_device = new Dataflow::AudioDevice(
+    {Dataflow::AudioProtocolFactory::static_concreteKey(), "audio", {}},
+    audio_dev);
+
+  ctx.plugin<Explorer::DeviceDocumentPlugin>().list().setAudioDevice(audio_device);
 
   auto& model = ctx.model<Scenario::ScenarioDocumentModel>();
   model.cables.mutable_added.connect<DocumentPlugin, &DocumentPlugin::on_cableCreated>(*this);

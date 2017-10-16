@@ -42,6 +42,7 @@ public:
     vis.writeTo(*this);
   }
 
+  void finishLoading();
   virtual ~ScenarioDocumentModel() = default;
 
   BaseScenario& baseScenario() const
@@ -58,5 +59,6 @@ private:
   void initializeNewDocument(const IntervalModel& viewmodel);
   const score::DocumentContext& m_context;
   BaseScenario* m_baseScenario{};
+  QJsonArray m_savedCables;
 };
 }

@@ -93,7 +93,6 @@ void PortItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
 static PortItem* clickedPort{};
 void PortItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  clickedPort = this;
   event->accept();
 }
 
@@ -102,11 +101,15 @@ void PortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
   if(QLineF(pos(), event->pos()).length() > QApplication::startDragDistance())
   {
-    QDrag d{this};
+    QDrag* d{new QDrag{this}};
     QMimeData* m = new QMimeData;
+    clickedPort = this;
     m->setText("cable");
-    d.setMimeData(m);
-    d.exec();
+    d->setMimeData(m);
+    d->exec();
+    connect(d, &QDrag::destroyed, this, [] {
+      clickedPort = nullptr;
+    });
   }
 }
 
@@ -174,6 +177,8 @@ void PortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
     }
   }
 
+  clickedPort = nullptr;
+
   auto& ctx = score::IDocument::documentContext(m_port);
   CommandDispatcher<> disp{ctx.commandStack};
   if (mime.formats().contains(score::mime::addressettings()))
@@ -202,7 +207,6 @@ void PortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
 
     disp.submitCommand(new ChangePortAddress{m_port, std::move(newAddr)});
   }
-  clickedPort = nullptr;
   event->accept();
 }
 

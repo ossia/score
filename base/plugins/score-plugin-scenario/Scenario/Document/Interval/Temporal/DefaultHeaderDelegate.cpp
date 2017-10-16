@@ -27,6 +27,7 @@ class PortWidget : public QWidget
       lay->addRow(p.customData(), (QWidget*)nullptr);
       lay->addRow(tr("Address"), &m_edit);
 
+      qDebug() << p.address().toString();
       m_edit.setAddress(p.address());
       con(p, &Process::Port::addressChanged,
           this, [this] (const State::AddressAccessor& addr) {
@@ -37,7 +38,8 @@ class PortWidget : public QWidget
       });
       con(m_edit, &Explorer::AddressAccessorEditWidget::addressChanged,
           this, [this,&p] (const Device::FullAddressAccessorSettings& set) {
-        m_disp.submitCommand<Dataflow::ChangePortAddress>(p, set.address);
+        if(set.address != p.address())
+          m_disp.submitCommand<Dataflow::ChangePortAddress>(p, set.address);
       });
     }
 

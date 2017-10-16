@@ -222,6 +222,12 @@ void ScenarioApplicationPlugin::on_documentChanged(
   }
   else
   {
+    // Load cables
+
+    auto& model
+        = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(*newdoc);
+    model.finishLoading();
+
     auto focusManager = processFocusManager();
 
     if (!focusManager)
@@ -283,6 +289,7 @@ void ScenarioApplicationPlugin::on_initDocument(score::Document& doc)
 
 void ScenarioApplicationPlugin::on_createdDocument(score::Document& doc)
 {
+
 }
 
 void ScenarioApplicationPlugin::prepareNewDocument()

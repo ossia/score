@@ -108,6 +108,17 @@ ScenarioDocumentModel::ScenarioDocumentModel(
     d.setAndCommit({&scenar->startEvent()});
 }
 
+void ScenarioDocumentModel::finishLoading()
+{
+  const auto& cbl = m_savedCables;
+  for (const auto& json_vref : cbl)
+  {
+    cables.add(new Process::Cable{
+                     JSONObject::Deserializer{json_vref.toObject()}, m_context, this});
+  }
+  m_savedCables = QJsonArray{};
+}
+
 void ScenarioDocumentModel::initializeNewDocument(
     const IntervalModel& Interval_model) {
 }

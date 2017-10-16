@@ -72,13 +72,7 @@ void JSONObjectWriter::write(Scenario::ScenarioDocumentModel& doc)
   doc.m_baseScenario = new Scenario::BaseScenario(
         JSONObject::Deserializer{obj["BaseScenario"].toObject()}, &doc);
 
-
-  const auto& cbl = obj["Cables"].toArray();
-  for (const auto& json_vref : cbl)
-  {
-    doc.cables.add(new Process::Cable{
-                     JSONObject::Deserializer{json_vref.toObject()}, doc.m_context, &doc});
-  }
+  doc.m_savedCables = obj["Cables"].toArray();
 
 }
 
