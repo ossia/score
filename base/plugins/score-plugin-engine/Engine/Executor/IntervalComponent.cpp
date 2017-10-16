@@ -213,35 +213,37 @@ ProcessComponent* IntervalComponentBase::make(
       std::vector<int> propagated_outlets;
       for(int i = 0; i < outlets.size(); i++)
       {
-        if(outlets[i]->propagate)
+        if(outlets[i]->propagate && outlets[i]->cables().empty() && outlets[i]->address() == State::AddressAccessor{})
           propagated_outlets.push_back(i);
       }
 
       system().executionQueue.enqueue(
             [=,cst=m_ossia_interval,oproc=plug->OSSIAProcessPtr()] {
-        cst->add_time_process(oproc);
-        if(oproc->node)
+        if(oproc)
         {
-          ossia::graph_node& n = *oproc->node;
-          for(int propagated : propagated_outlets)
+          cst->add_time_process(oproc);
+          if(oproc->node)
           {
-            const auto& outlet = n.outputs()[propagated]->data;
-            ossia::inlet_ptr cst_inlet;
-            if(outlet.target<ossia::audio_port>()) cst_inlet = cst->node->inputs()[0];
-            else if(outlet.target<ossia::value_port>()) cst_inlet = cst->node->inputs()[1];
-            else if(outlet.target<ossia::midi_port>()) cst_inlet = cst->node->inputs()[2];
-            if(cst_inlet)
+            ossia::graph_node& n = *oproc->node;
+            for(int propagated : propagated_outlets)
             {
-              auto cable = ossia::make_edge(
-                             ossia::immediate_strict_connection{}
-                             , n.outputs()[propagated]
-                             , cst_inlet
-                             , oproc->node
-                             , cst->node);
-              plug->system().plugin.execGraph->connect(cable);
+              const auto& outlet = n.outputs()[propagated]->data;
+              ossia::inlet_ptr cst_inlet;
+              if(outlet.target<ossia::audio_port>()) cst_inlet = cst->node->inputs()[0];
+              else if(outlet.target<ossia::value_port>()) cst_inlet = cst->node->inputs()[1];
+              else if(outlet.target<ossia::midi_port>()) cst_inlet = cst->node->inputs()[2];
+              if(cst_inlet)
+              {
+                auto cable = ossia::make_edge(
+                      ossia::immediate_strict_connection{}
+                      , n.outputs()[propagated]
+                      , cst_inlet
+                      , oproc->node
+                      , cst->node);
+                plug->system().plugin.execGraph->connect(cable);
+              }
             }
           }
-
         }
 
       });

@@ -1,5 +1,7 @@
 #include "SoundComponent.hpp"
 #include <ossia/dataflow/audio_parameter.hpp>
+#include <Engine/score2OSSIA.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 namespace Engine
 {
@@ -18,9 +20,12 @@ SoundComponent::SoundComponent(
       ctx,
       id, "Executor::SoundComponent", parent}
 {
-  auto np = std::make_shared<ossia::node_process>(ctx.plugin.execGraph);
-  m_node = std::make_shared<ossia::sound_node>();
-  np->node = m_node;
+  auto node = std::make_shared<ossia::sound_node>();
+  auto np = std::make_shared<ossia::node_process>(ctx.plugin.execGraph, node);
+  m_node = node;
+
+  if(auto dest = Engine::score_to_ossia::makeDestination(ctx.devices.list(), element.outlet->address()))
+    node->outputs()[0]->address = &dest->address();
 
   con(element, &Media::Sound::ProcessModel::fileChanged,
       this, [this] { this->recompute(); });
@@ -198,10 +203,12 @@ InputComponent::InputComponent(
       ctx,
       id, "Executor::InputComponent", parent}
 {
-  auto np = std::make_shared<ossia::node_process>(ctx.plugin.execGraph);
-  m_node = std::make_shared<input_node>();
-  np->node = m_node;
+  auto node = std::make_shared<input_node>();
+  auto np = std::make_shared<ossia::node_process>(ctx.plugin.execGraph, node);
+  m_node = node;
 
+  if(auto dest = Engine::score_to_ossia::makeDestination(ctx.devices.list(), element.outlet->address()))
+    node->outputs()[0]->address = &dest->address();
   con(element, &Media::Input::ProcessModel::startChannelChanged,
       this, [this] {
     system().executionQueue.enqueue(

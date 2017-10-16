@@ -34,7 +34,8 @@ class AudioDevice final : public Engine::Network::OSSIADevice
 {
     Q_OBJECT
   public:
-    AudioDevice(const Device::DeviceSettings& settings, const score::DocumentContext& c);
+    AudioDevice(const Device::DeviceSettings& settings,
+                ossia::net::device_base& dev);
 
     bool reconnect() override;
     void recreate(const Device::Node& n) override;

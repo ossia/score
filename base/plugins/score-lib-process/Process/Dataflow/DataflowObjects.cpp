@@ -3,7 +3,8 @@
 #include <ossia/dataflow/graph_node.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
-
+#include <score/application/GUIApplicationContext.hpp>
+#include <core/presenter/DocumentManager.hpp>
 namespace Process
 {
 
@@ -149,12 +150,14 @@ Port* Port::clone(QObject* parent) const
 template<>
 SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::Port>(const Process::Port& p)
 {
+  insertDelimiter();
   m_stream << p.type << p.num << p.propagate << p.outlet << p.m_customData << p.m_address << p.m_cables;
   insertDelimiter();
 }
 template<>
 SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::Port>(Process::Port& p)
 {
+  checkDelimiter();
   m_stream >> p.type >> p.num >> p.propagate >> p.outlet >> p.m_customData >> p.m_address >> p.m_cables;
   checkDelimiter();
 }
@@ -213,21 +216,24 @@ SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::CableData>(Proces
 template<>
 SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::Cable>(const Process::Cable& p)
 {
-  m_stream << (const Process::CableData&)p;
+  m_stream << p.toCableData();
 }
 template<>
 SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::Cable>(Process::Cable& p)
 {
-  m_stream >> (Process::CableData&)p;
+  Process::CableData cd;
+  m_stream >> cd;
+  p.update(score::AppContext().documents.currentDocument()->context(), cd);
 }
 template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::Cable>(const Process::Cable& p)
 {
-  read((const Process::CableData&)p);
+  obj["Data"] = toJsonObject(p.toCableData());
 }
 template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::Cable>(Process::Cable& p)
 {
-  write((Process::CableData&)p);
+  Process::CableData cd = fromJsonObject<Process::CableData>(obj["Data"].toObject());
+  p.update(score::AppContext().documents.currentDocument()->context(), cd);
 }
 

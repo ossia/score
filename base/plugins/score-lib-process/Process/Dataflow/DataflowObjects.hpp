@@ -137,6 +137,7 @@ class SCORE_LIB_PROCESS_EXPORT Port
     {
       return m_address;
     }
+    const std::vector<Id<Cable>>& cables() const { return m_cables; }
 
 public slots:
     void setCustomData(const QString& customData)
