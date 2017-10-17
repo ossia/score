@@ -44,7 +44,7 @@ Component::Component(
       inlet->address = &dest->address();
 
     node->inputs().push_back(inlet);
-    ctx.plugin.nodes.insert({port, m_node});
+    ctx.plugin.inlets.insert({port, {m_node, inlet}});
   }
 
   for(auto port : element.outlets())
@@ -55,7 +55,7 @@ Component::Component(
       outlet->address = &dest->address();
 
     node->outputs().push_back(outlet);
-    ctx.plugin.nodes.insert({port, m_node});
+    ctx.plugin.outlets.insert({port, {m_node, outlet}});
   }
 
   ctx.plugin.execGraph->add_node(m_node);

@@ -47,10 +47,9 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
   friend class ScenarioFactory;
   friend class ScenarioTemporalLayerFactory;
 
-
-  score::EntityMap<Process::Port> m_ports;
+  std::vector<Process::Port*> m_ports;
 public:
-  const score::EntityMap<Process::Port>& ports() const { return m_ports; }
+  const std::vector<Process::Port*>& ports() const { return m_ports; }
 
   std::vector<Process::Port*> inlets() const override;
   std::vector<Process::Port*> outlets() const override;

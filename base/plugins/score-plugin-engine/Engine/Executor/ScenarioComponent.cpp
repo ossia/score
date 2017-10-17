@@ -71,7 +71,7 @@ ScenarioComponentBase::ScenarioComponentBase(
   this->setObjectName("OSSIAScenarioElement");
 
   // Setup of the OSSIA API Part
-  m_ossia_process = std::make_shared<ossia::scenario>();
+  m_ossia_process = std::make_shared<ossia::scenario>(ctx.plugin.execGraph);
 
   // Note : the hierarchical scenario shall create the time syncs first.
   // A better way would be :
@@ -98,10 +98,14 @@ void ScenarioComponent::init()
 
   auto ossia_sc = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
   // set-up the ports
-  for(auto& port : process().ports())
-  {
-    ctx.plugin.nodes.insert({&port, ossia_sc->node});
-  }
+  ctx.plugin.inlets.insert({process().inlets()[0], std::make_pair(ossia_sc->node, ossia_sc->node->inputs()[0])});
+  ctx.plugin.inlets.insert({process().inlets()[1], std::make_pair(ossia_sc->node, ossia_sc->node->inputs()[1])});
+  ctx.plugin.inlets.insert({process().inlets()[2], std::make_pair(ossia_sc->node, ossia_sc->node->inputs()[2])});
+
+  ctx.plugin.outlets.insert({process().outlets()[0], std::make_pair(ossia_sc->node, ossia_sc->node->outputs()[0])});
+  ctx.plugin.outlets.insert({process().outlets()[1], std::make_pair(ossia_sc->node, ossia_sc->node->outputs()[1])});
+  ctx.plugin.outlets.insert({process().outlets()[2], std::make_pair(ossia_sc->node, ossia_sc->node->outputs()[2])});
+
   ctx.plugin.execGraph->add_node(ossia_sc->node);
 
   if (auto fact = ctx.doc.app.interfaces<Scenario::CSPCoherencyCheckerList>().get())
@@ -267,7 +271,7 @@ IntervalComponent* ScenarioComponentBase::make<IntervalComponent, Scenario::Inte
     for(int i = 0; i < 3; i++)
     {
       auto cable = ossia::make_edge(
-                     ossia::immediate_strict_connection{}
+                     ossia::immediate_glutton_connection{}
                      , ossia_cst->node->outputs()[i]
                      , proc.node->inputs()[i]
                      , ossia_cst->node

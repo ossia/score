@@ -128,7 +128,7 @@ Component::Component(
   auto proc = std::make_shared<ossia::node_process>(ctx.plugin.execGraph, node);
   m_ossia_process = proc;
   m_node = node;
-  ctx.plugin.nodes.insert({element.outlet.get(), m_node});
+  ctx.plugin.outlets.insert({element.outlet.get(), {m_node, node->outputs()[0]}});
   ctx.plugin.execGraph->add_node(m_node);
 
   node->set_channel(element.channel());

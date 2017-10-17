@@ -39,11 +39,12 @@ IntervalBase::IntervalBase(
       &IntervalDurations::defaultDuration,
       &IntervalDurations::defaultDurationChanged, this));
 
+  /*
   m_properties.push_back(add_getProperty<float>(
       node(), "playtime", &interval.duration,
       &IntervalDurations::playPercentage,
       &IntervalDurations::playPercentageChanged, this));
-
+ */
   m_properties.push_back(add_property<double>(
       node(), "speed", &interval.duration,
       &IntervalDurations::executionSpeed,

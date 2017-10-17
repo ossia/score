@@ -55,7 +55,7 @@ Component::Component(
   ossia::time_value main_duration(ctx.time(
       element.interval().duration.defaultDuration()));
 
-  auto loop = std::make_shared<ossia::loop>(
+  std::shared_ptr<ossia::loop> loop = std::make_shared<ossia::loop>(
       main_duration,
       [](double, ossia::time_value, const ossia::state_element&) {},
       [this, &element](ossia::time_event::status newStatus) {
@@ -100,9 +100,18 @@ Component::Component(
             break;
         }
 
-      });
+      }, ctx.plugin.execGraph);
 
   m_ossia_process = loop;
+  ctx.plugin.inlets.insert({process().inlets()[0], std::make_pair(loop->node, loop->node->inputs()[0])});
+  ctx.plugin.inlets.insert({process().inlets()[1], std::make_pair(loop->node, loop->node->inputs()[1])});
+  ctx.plugin.inlets.insert({process().inlets()[2], std::make_pair(loop->node, loop->node->inputs()[2])});
+
+  ctx.plugin.outlets.insert({process().outlets()[0], std::make_pair(loop->node, loop->node->outputs()[0])});
+  ctx.plugin.outlets.insert({process().outlets()[1], std::make_pair(loop->node, loop->node->outputs()[1])});
+  ctx.plugin.outlets.insert({process().outlets()[2], std::make_pair(loop->node, loop->node->outputs()[2])});
+
+  ctx.plugin.execGraph->add_node(loop->node);
 
   // TODO also states in BasEelement
   // TODO put graphical settings somewhere.
@@ -148,6 +157,18 @@ Component::Component(
   element.endTimeSync().components().add(m_ossia_endTimeSync);
 
   element.interval().components().add(m_ossia_interval);
+
+
+  for(int i = 0; i < 3; i++)
+  {
+    auto cable = ossia::make_edge(
+                   ossia::immediate_glutton_connection{}
+                   , m_ossia_interval->OSSIAInterval()->node->outputs()[i]
+                   , loop->node->inputs()[i]
+                   , m_ossia_interval->OSSIAInterval()->node
+                   , loop->node);
+    system().plugin.execGraph->connect(cable);
+  }
 }
 
 Component::~Component()

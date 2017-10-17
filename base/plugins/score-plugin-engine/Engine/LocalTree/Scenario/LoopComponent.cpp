@@ -13,11 +13,11 @@ LoopComponentBase::LoopComponentBase(
     const Id<score::Component>& id,
     ossia::net::node_base& parent,
     Loop::ProcessModel& loop,
-    DocumentPlugin& sys,
+    DocumentPlugin& ctx,
     QObject* parent_obj)
     : ProcessComponent_T<Loop::ProcessModel>{parent,
                                              loop,
-                                             sys,
+                                             ctx,
                                              id,
                                              "LoopComponent",
                                              parent_obj}

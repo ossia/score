@@ -98,9 +98,12 @@ void Clock::stop_impl(
     {
       cbl.source_node.reset();
       cbl.sink_node.reset();
+      cbl.source_port.reset();
+      cbl.sink_port.reset();
       cbl.exec.reset();
     }
-    m_plug.nodes.clear();
+    m_plug.inlets.clear();
+    m_plug.outlets.clear();
     m_plug.m_cables.clear();
     m_plug.execGraph->clear();
     m_plug.execGraph = std::make_shared<ossia::graph>();

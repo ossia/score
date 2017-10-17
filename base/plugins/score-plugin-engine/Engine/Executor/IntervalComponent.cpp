@@ -129,10 +129,13 @@ void IntervalComponent::onSetup(
   }
 
   // set-up the interval ports
-  for(auto& port : interval().ports())
-  {
-    system().plugin.nodes.insert({&port, ossia_cst->node});
-  }
+  system().plugin.inlets.insert({interval().ports()[0], std::make_pair(ossia_cst->node, ossia_cst->node->inputs()[0])});
+  system().plugin.outlets.insert({interval().ports()[1], std::make_pair(ossia_cst->node, ossia_cst->node->outputs()[0])});
+  system().plugin.inlets.insert({interval().ports()[2], std::make_pair(ossia_cst->node, ossia_cst->node->inputs()[1])});
+  system().plugin.outlets.insert({interval().ports()[3], std::make_pair(ossia_cst->node, ossia_cst->node->outputs()[1])});
+  system().plugin.inlets.insert({interval().ports()[4], std::make_pair(ossia_cst->node, ossia_cst->node->inputs()[2])});
+  system().plugin.outlets.insert({interval().ports()[5], std::make_pair(ossia_cst->node, ossia_cst->node->outputs()[2])});
+
   system().plugin.execGraph->add_node(ossia_cst->node);
 
   init();
@@ -208,10 +211,9 @@ ProcessComponent* IntervalComponentBase::make(
     {
       m_processes.emplace(proc.id(), plug);
 
-
       const auto& outlets = proc.outlets();
       std::vector<int> propagated_outlets;
-      for(int i = 0; i < outlets.size(); i++)
+      for(std::size_t i = 0; i < outlets.size(); i++)
       {
         if(outlets[i]->propagate && outlets[i]->cables().empty() && outlets[i]->address() == State::AddressAccessor{})
           propagated_outlets.push_back(i);
@@ -235,7 +237,7 @@ ProcessComponent* IntervalComponentBase::make(
               if(cst_inlet)
               {
                 auto cable = ossia::make_edge(
-                      ossia::immediate_strict_connection{}
+                      ossia::immediate_glutton_connection{}
                       , n.outputs()[propagated]
                       , cst_inlet
                       , oproc->node

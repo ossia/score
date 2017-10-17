@@ -138,8 +138,8 @@ Component::Component(
   con(element, &Mapping::ProcessModel::curveChanged,
       this, [this] () { this->recompute(); });
 
-  ctx.plugin.nodes.insert({element.inlet.get(), m_node});
-  ctx.plugin.nodes.insert({element.outlet.get(), m_node});
+  ctx.plugin.inlets.insert({process().inlet.get(), std::make_pair(node, node->inputs()[0])});
+  ctx.plugin.outlets.insert({process().outlet.get(), std::make_pair(node, node->outputs()[0])});
   ctx.plugin.execGraph->add_node(m_node);
   recompute();
 }

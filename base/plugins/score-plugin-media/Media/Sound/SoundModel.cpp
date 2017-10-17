@@ -27,7 +27,6 @@ ProcessModel::ProcessModel(
     Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
   , outlet{std::make_unique<Process::Port>(Id<Process::Port>(0), this)}
 {
-    outlet->num = 0;
     outlet->propagate = true;
     outlet->outlet = true;
     outlet->type = Process::PortType::Audio;
