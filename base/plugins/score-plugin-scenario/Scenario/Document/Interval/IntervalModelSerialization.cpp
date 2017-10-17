@@ -140,7 +140,7 @@ SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
   m_stream << (int32_t)interval.m_ports.size();
   for (const auto& p : interval.m_ports)
   {
-    readFrom(p);
+    readFrom(*p);
   }
 
   insertDelimiter();
@@ -187,7 +187,7 @@ DataStreamWriter::write(Scenario::IntervalModel& interval)
   m_stream >> port_count;
   for (; port_count-- > 0;)
   {
-    interval.m_ports.add(new Process::Port{*this, &interval});
+    interval.m_ports.push_back(new Process::Port{*this, &interval});
   }
 
   checkDelimiter();
@@ -293,7 +293,7 @@ JSONObjectWriter::write(Scenario::IntervalModel& interval)
     for (const auto& json_vref : port_array)
     {
       JSONObject::Deserializer deserializer{json_vref.toObject()};
-      interval.m_ports.add(new Process::Port{deserializer, &interval});
+      interval.m_ports.push_back(new Process::Port{deserializer, &interval});
     }
   }
 

@@ -26,7 +26,7 @@ ProcessModel::ProcessModel(
     : Process::ProcessModel{duration, id,
                             Metadata<ObjectKey_k, ProcessModel>::get(), parent}
 {
-  m_script =
+  setScript(
 R"_(import QtQuick 2.0
 import Score 1.0
 Item {
@@ -37,7 +37,7 @@ Item {
     out1.value = in1.value + 10 * Math.random();
   }
 }
-)_";
+)_");
   metadata().setInstanceName(*this);
 }
 
@@ -47,8 +47,8 @@ ProcessModel::ProcessModel(
     QObject* parent)
     : Process::ProcessModel{source, id,
                             Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-    , m_script{source.m_script}
 {
+  setScript(source.m_script);
   metadata().setInstanceName(*this);
 }
 

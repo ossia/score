@@ -41,15 +41,14 @@
 
 namespace Scenario
 {
-// RENAMEME and my header too
 std::vector<Process::Port*> ProcessModel::inlets() const
 {
-  return {&m_ports.at(Id<Process::Port>{0}), &m_ports.at(Id<Process::Port>{2}), &m_ports.at(Id<Process::Port>{4})};
+  return {m_ports[0], m_ports[2], m_ports[4]};
 }
 
 std::vector<Process::Port*> ProcessModel::outlets() const
 {
-  return {&m_ports.at(Id<Process::Port>{1}), &m_ports.at(Id<Process::Port>{3}), &m_ports.at(Id<Process::Port>{5})};
+  return {m_ports[1], m_ports[3], m_ports[5]};
 }
 
 ProcessModel::ProcessModel(
@@ -77,17 +76,17 @@ ProcessModel::ProcessModel(
   metadata().setInstanceName(*this);
 
   { auto p = new Process::Port{Id<Process::Port>{0}, this};
-    p->type = Process::PortType::Audio; p->propagate = true; p->num = 0; p->outlet = false; m_ports.add(p); }
+    p->type = Process::PortType::Audio; p->propagate = true; p->outlet = false; m_ports.push_back(p); }
   { auto p = new Process::Port{Id<Process::Port>{1}, this};
-    p->type = Process::PortType::Audio; p->propagate = true; p->num = 0; p->outlet = true; m_ports.add(p); }
+    p->type = Process::PortType::Audio; p->propagate = true; p->outlet = true; m_ports.push_back(p); }
   { auto p = new Process::Port{Id<Process::Port>{2}, this};
-    p->type = Process::PortType::Message; p->propagate = true; p->num = 1; p->outlet = false; m_ports.add(p); }
+    p->type = Process::PortType::Message; p->propagate = true; p->outlet = false; m_ports.push_back(p); }
   { auto p = new Process::Port{Id<Process::Port>{3}, this};
-    p->type = Process::PortType::Message; p->propagate = true; p->num = 1; p->outlet = true; m_ports.add(p); }
+    p->type = Process::PortType::Message; p->propagate = true; p->outlet = true; m_ports.push_back(p); }
   { auto p = new Process::Port{Id<Process::Port>{4}, this};
-    p->type = Process::PortType::Midi; p->propagate = true; p->num = 2; p->outlet = false; m_ports.add(p); }
+    p->type = Process::PortType::Midi; p->propagate = true; p->outlet = false; m_ports.push_back(p); }
   { auto p = new Process::Port{Id<Process::Port>{5}, this};
-    p->type = Process::PortType::Midi; p->propagate = true; p->num = 2; p->outlet = true; m_ports.add(p); }
+    p->type = Process::PortType::Midi; p->propagate = true; p->outlet = true; m_ports.push_back(p); }
 }
 
 ProcessModel::ProcessModel(
@@ -131,13 +130,10 @@ ProcessModel::ProcessModel(
         states.at(interval.startState()), interval);
   }
 
-
   for(const auto& port : source.m_ports)
   {
-    m_ports.add(port.clone(this));
+    m_ports.push_back(port->clone(this));
   }
-
-  metadata().setInstanceName(*this);
 }
 
 ProcessModel::~ProcessModel()

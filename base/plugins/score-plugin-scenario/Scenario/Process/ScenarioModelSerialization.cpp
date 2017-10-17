@@ -46,7 +46,7 @@ void DataStreamReader::read(
   m_stream << (int32_t)scenario.m_ports.size();
   for (const auto& p : scenario.m_ports)
   {
-    readFrom(p);
+    readFrom(*p);
   }
 
   m_stream << scenario.m_startTimeSyncId;
@@ -110,7 +110,7 @@ void DataStreamWriter::write(Scenario::ProcessModel& scenario)
   m_stream >> port_count;
   for (; port_count-- > 0;)
   {
-    scenario.m_ports.add(new Process::Port{*this, &scenario});
+    scenario.m_ports.push_back(new Process::Port{*this, &scenario});
   }
 
   m_stream >> scenario.m_startTimeSyncId;
@@ -206,7 +206,7 @@ void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
     for (const auto& json_vref : port_array)
     {
       JSONObject::Deserializer deserializer{json_vref.toObject()};
-      scenario.m_ports.add(new Process::Port{deserializer, &scenario});
+      scenario.m_ports.push_back(new Process::Port{deserializer, &scenario});
     }
   }
 

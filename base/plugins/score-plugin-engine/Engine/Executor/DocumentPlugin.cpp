@@ -80,71 +80,63 @@ void DocumentPlugin::on_cableRemoved(const Process::Cable& c)
 
 void DocumentPlugin::connectCable(Process::Cable& cable)
 {
-    std::cerr << "\n\nConnect 2\n";
-
     if(cable.source())
     {
-      auto it = nodes.find(cable.source());
-      if(it != nodes.end())
-        cable.source_node = it->second;
+      auto it = outlets.find(cable.source());
+      if(it != outlets.end()) {
+        cable.source_node = it->second.first;
+        cable.source_port = it->second.second;
+      }
     }
     if(cable.sink())
     {
-      auto it = nodes.find(cable.sink());
-      if(it != nodes.end())
-        cable.sink_node = it->second;
+      auto it = inlets.find(cable.sink());
+      if(it != inlets.end()){
+        cable.sink_node = it->second.first;
+        cable.sink_port = it->second.second;
+      }
     }
 
-    std::cerr << cable.source_node.get() << " && " << cable.sink_node.get() << "\n";
     if(cable.source_node && cable.sink_node)
     {
-      std::cerr << "\n\nConnect 3\n";
-
       context().executionQueue.enqueue(
             [type=cable.type()
-            ,src=cable.source_node
-            ,snk=cable.sink_node
-            ,inlt=cable.sink()->num
-            ,outlt=cable.source()->num
+            ,outlet=cable.source_node
+            ,inlet=cable.sink_node
+            ,outport=cable.source_port
+            ,inport=cable.sink_port
             ,graph=execGraph
             ]
       {
-        std::cerr << "\n\nConnect 4\n";
         ossia::edge_ptr edge;
-        auto& outlet = src->outputs()[outlt];
-        auto& inlet = snk->inputs()[inlt];
         switch(type)
         {
           case Process::CableType::ImmediateStrict:
           {
-            std::cerr << "\n\nConnect ImmediateStrict\n";
             edge = ossia::make_edge(
                            ossia::immediate_strict_connection{},
-                           outlet, inlet, src, snk);
+                           outport, inport, outlet, inlet);
             break;
           }
           case Process::CableType::ImmediateGlutton:
           {
-            std::cerr << "\n\nConnect ImmediateGlutton\n";
             edge = ossia::make_edge(
                            ossia::immediate_glutton_connection{},
-                           outlet, inlet, src, snk);
+                           outport, inport, outlet, inlet);
             break;
           }
           case Process::CableType::DelayedStrict:
           {
-            std::cerr << "\n\nConnect DelayedStrict\n";
             edge = ossia::make_edge(
                            ossia::delayed_strict_connection{},
-                           outlet, inlet, src, snk);
+                           outport, inport, outlet, inlet);
             break;
           }
           case Process::CableType::DelayedGlutton:
           {
-            std::cerr << "\n\nConnect DelayedGlutton\n";
             edge = ossia::make_edge(
                            ossia::delayed_glutton_connection{},
-                           outlet, inlet, src, snk);
+                           outport, inport, outlet, inlet);
             break;
           }
         }

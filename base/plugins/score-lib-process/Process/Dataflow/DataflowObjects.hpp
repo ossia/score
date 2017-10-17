@@ -12,8 +12,12 @@
 namespace ossia
 {
 class graph_node;
+struct outlet;
+struct inlet;
 struct graph_edge;
 using node_ptr = std::shared_ptr<graph_node>;
+using outlet_ptr = std::shared_ptr<outlet>;
+using inlet_ptr = std::shared_ptr<inlet>;
 using edge_ptr = std::shared_ptr<graph_edge>;
 }
 namespace Dataflow
@@ -63,6 +67,8 @@ class SCORE_LIB_PROCESS_EXPORT Cable
     CableData toCableData() const;
     ossia::node_ptr source_node;
     ossia::node_ptr sink_node;
+    ossia::outlet_ptr source_port;
+    ossia::inlet_ptr sink_port;
     ossia::edge_ptr exec;
 
     CableType type() const;
@@ -95,7 +101,6 @@ class SCORE_LIB_PROCESS_EXPORT Port
     SCORE_SERIALIZE_FRIENDS
   public:
     PortType type{};
-    int num{};
     bool propagate{false};
     bool outlet{false};
 

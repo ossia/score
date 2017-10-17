@@ -59,11 +59,26 @@ void CableItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
 {
   if(m_p1 && m_p2)
   {
-    QPen cablepen;
-    cablepen.setColor(QColor("#669999dd"));
-    cablepen.setJoinStyle(Qt::PenJoinStyle::RoundJoin);
-    cablepen.setCapStyle(Qt::PenCapStyle::RoundCap);
-    cablepen.setWidthF(3.);
+    static QPen cablepen{[] {
+        QPen pen;
+        pen.setCapStyle(Qt::PenCapStyle::RoundCap);
+        pen.setJoinStyle(Qt::PenJoinStyle::RoundJoin);
+        pen.setWidthF(3.);
+        return pen;
+      }()};
+
+    static const QColor messageColor = QColor("#669966dd");
+    static const QColor audioColor = QColor("#669966dd");
+    static const QColor midiColor = QColor("#669966dd");
+    switch(m_type)
+    {
+    case Process::PortType::Message:
+      cablepen.setColor(messageColor); break;
+    case Process::PortType::Audio:
+      cablepen.setColor(audioColor); break;
+    case Process::PortType::Midi:
+      cablepen.setColor(midiColor); break;
+    }
 
     painter->setPen(cablepen);
     painter->setBrush(Qt::transparent);
@@ -92,8 +107,7 @@ void CableItem::resize()
     auto last = p1.x() >= p2.x() ? p1 : p2;
     QPainterPath p;
     p.moveTo(first.x(), first.y());
-    p.lineTo(first.x(), last.y());
-    p.lineTo(last.x(), last.y());
+    p.cubicTo(first.x(), last.y(), first.x(), last.y(), last.x(), last.y());
     m_path = std::move(p);
   }
   else
@@ -111,6 +125,7 @@ void CableItem::check()
     {
       setVisible(true);
       setEnabled(true);
+      m_type = m_p1->port().type;
     }
     resize();
   }
@@ -130,13 +145,15 @@ void CableItem::setTarget(PortItem* p) { m_p2 = p; check(); }
 
 QPainterPath CableItem::shape() const
 {
-  QPen cablepen;
-  cablepen.setCapStyle(Qt::PenCapStyle::RoundCap);
-  cablepen.setJoinStyle(Qt::PenJoinStyle::RoundJoin);
-  cablepen.setWidthF(3.);
-  QPainterPathStroker stk{cablepen};
+  static const QPainterPathStroker cable_stroker{[] {
+      QPen pen;
+      pen.setCapStyle(Qt::PenCapStyle::RoundCap);
+      pen.setJoinStyle(Qt::PenJoinStyle::RoundJoin);
+      pen.setWidthF(3.);
+      return pen;
+    }()};
 
-  return stk.createStroke(m_path);
+  return cable_stroker.createStroke(m_path);
 }
 
 void CableItem::mousePressEvent(QGraphicsSceneMouseEvent* event)

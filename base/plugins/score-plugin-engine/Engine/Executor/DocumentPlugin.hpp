@@ -61,7 +61,8 @@ public:
   std::vector<ossia::midi_generic_parameter*> midi_ins;
   std::vector<ossia::midi_generic_parameter*> midi_outs;
 
-  score::hash_map<Process::Port*, std::shared_ptr<ossia::graph_node>> nodes;
+  score::hash_map<Process::Port*, std::pair<ossia::node_ptr, ossia::outlet_ptr>> outlets;
+  score::hash_map<Process::Port*, std::pair<ossia::node_ptr, ossia::inlet_ptr>> inlets;
   score::hash_map<Id<Process::Cable>, std::shared_ptr<ossia::graph_edge>> m_cables;
 private:
   mutable ExecutionCommandQueue m_editionQueue;

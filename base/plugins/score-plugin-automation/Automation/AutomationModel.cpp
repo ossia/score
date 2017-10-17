@@ -60,7 +60,6 @@ ProcessModel::ProcessModel(
     , m_startState{new ProcessState{*this, 0., this}}
     , m_endState{new ProcessState{*this, 1., this}}
 {
-  outlet->num = 0;
   outlet->propagate = false;
   outlet->outlet = true;
   outlet->type = Process::PortType::Message;

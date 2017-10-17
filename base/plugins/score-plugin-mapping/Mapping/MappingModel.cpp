@@ -35,12 +35,10 @@ ProcessModel::ProcessModel(
     , inlet{std::make_unique<Process::Port>(Id<Process::Port>(0), this)}
     , outlet{std::make_unique<Process::Port>(Id<Process::Port>(1), this)}
 {
-  inlet->num = 0;
   inlet->propagate = false;
   inlet->outlet = false;
   inlet->type = Process::PortType::Message;
 
-  outlet->num = 0;
   outlet->propagate = false;
   outlet->outlet = true;
   outlet->type = Process::PortType::Message;

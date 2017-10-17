@@ -26,6 +26,17 @@
 namespace Loop
 {
 
+std::vector<Process::Port*> ProcessModel::inlets() const
+{
+  return {m_ports[0], m_ports[2], m_ports[4]};
+}
+
+std::vector<Process::Port*> ProcessModel::outlets() const
+{
+  return {m_ports[1], m_ports[3], m_ports[5]};
+}
+
+
 ProcessModel::ProcessModel(
     const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
@@ -50,6 +61,19 @@ ProcessModel::ProcessModel(
   BaseScenarioContainer::endTimeSync().setExtent({height, 1});
 
   metadata().setInstanceName(*this);
+
+  { auto p = new Process::Port{Id<Process::Port>{0}, this};
+    p->type = Process::PortType::Audio; p->propagate = true; p->outlet = false; m_ports.push_back(p); }
+  { auto p = new Process::Port{Id<Process::Port>{1}, this};
+    p->type = Process::PortType::Audio; p->propagate = true; p->outlet = true; m_ports.push_back(p); }
+  { auto p = new Process::Port{Id<Process::Port>{2}, this};
+    p->type = Process::PortType::Message; p->propagate = true; p->outlet = false; m_ports.push_back(p); }
+  { auto p = new Process::Port{Id<Process::Port>{3}, this};
+    p->type = Process::PortType::Message; p->propagate = true; p->outlet = true; m_ports.push_back(p); }
+  { auto p = new Process::Port{Id<Process::Port>{4}, this};
+    p->type = Process::PortType::Midi; p->propagate = true; p->outlet = false; m_ports.push_back(p); }
+  { auto p = new Process::Port{Id<Process::Port>{5}, this};
+    p->type = Process::PortType::Midi; p->propagate = true; p->outlet = true; m_ports.push_back(p); }
 }
 
 ProcessModel::ProcessModel(
@@ -60,6 +84,11 @@ ProcessModel::ProcessModel(
                             Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , BaseScenarioContainer{source, this}
 {
+  metadata().setInstanceName(*this);
+  for(const auto& port : source.m_ports)
+  {
+    m_ports.push_back(port->clone(this));
+  }
 }
 
 ProcessModel::~ProcessModel()

@@ -47,7 +47,7 @@ SoundComponent::SoundComponent(
   });
   recompute();
 
-  ctx.plugin.nodes.insert({element.outlet.get(), m_node});
+  ctx.plugin.outlets.insert({process().outlet.get(), std::make_pair(node, node->outputs()[0])});
   ctx.plugin.execGraph->add_node(m_node);
   m_ossia_process = np;
 }
@@ -227,7 +227,7 @@ InputComponent::InputComponent(
   });
   recompute();
 
-  ctx.plugin.nodes.insert({element.outlet.get(), m_node});
+  ctx.plugin.outlets.insert({process().outlet.get(), std::make_pair(node, node->outputs()[0])});
   ctx.plugin.execGraph->add_node(m_node);
   m_ossia_process = np;
 }
