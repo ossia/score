@@ -15,6 +15,7 @@ namespace Scenario
 {
 class SlotHandle;
 class SlotHeader;
+class DefaultHeaderDelegate;
 class TemporalIntervalHeader;
 class SCORE_PLUGIN_SCENARIO_EXPORT TemporalIntervalPresenter final
     : public IntervalPresenter
@@ -73,7 +74,7 @@ private:
   struct SlotPresenter
   {
     SlotHeader* header{};
-    Process::GraphicsShapeItem* headerDelegate{};
+    DefaultHeaderDelegate* headerDelegate{};
     SlotHandle* handle{};
     std::vector<LayerData> processes;
   };

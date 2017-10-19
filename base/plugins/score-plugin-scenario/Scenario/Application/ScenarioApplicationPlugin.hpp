@@ -97,6 +97,6 @@ private:
   ObjectMenuActions m_objectActions{this};
   ToolMenuActions m_toolActions{this};
   TransportActions m_transportActions{context};
-  QAction* m_showScene{};
+  QAction* m_showCables{};
 };
 }

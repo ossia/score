@@ -86,6 +86,7 @@ class SlotHeader final : public QGraphicsItem
       return 16.;
     }
 
+    void setMini(bool);
     QRectF boundingRect() const override;
     void paint(
         QPainter* painter,
@@ -101,5 +102,6 @@ class SlotHeader final : public QGraphicsItem
     const TemporalIntervalPresenter& m_presenter;
     qreal m_width{};
     int m_slotIndex{};
+    bool m_mini{false};
 };
 }

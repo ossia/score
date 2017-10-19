@@ -114,6 +114,12 @@ void SlotHeader::setSlotIndex(int v)
   m_slotIndex = v;
 }
 
+void SlotHeader::setMini(bool b)
+{
+  m_mini = b;
+  update();
+}
+
 QRectF SlotHeader::boundingRect() const
 {
   return {0., 0., m_width, headerHeight()};
@@ -122,37 +128,47 @@ QRectF SlotHeader::boundingRect() const
 void SlotHeader::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  const auto& style = ScenarioStyle::instance();
-  painter->setPen(style.IntervalHeaderSeparator);
-  painter->setBrush(style.NoBrush);
+  if(!m_mini) {
+    const auto& style = ScenarioStyle::instance();
+    painter->setPen(style.IntervalHeaderSeparator);
+    painter->setBrush(style.NoBrush);
 
-  // Grip
-  painter->setRenderHint(QPainter::Antialiasing, false);
-  static const std::array<QRectF, 6> rects{ [] {
-    std::array<QRectF, 6> rects;
-    double x = 4;
-    for(int i = 0; i < 6; i++)
-      rects[i] = {x += 2, (i % 2 == 0 ? 9. : 5.), 0.1, 0.1};
-    return rects;
-  }() };
-  painter->drawRects(rects.data(), 6);
+    // Grip
+    painter->setRenderHint(QPainter::Antialiasing, false);
+    static const std::array<QRectF, 6> rects{ [] {
+        std::array<QRectF, 6> rects;
+        double x = 4;
+        for(int i = 0; i < 6; i++)
+          rects[i] = {x += 2, (i % 2 == 0 ? 9. : 5.), 0.1, 0.1};
+        return rects;
+                                              }() };
+    painter->drawRects(rects.data(), 6);
 
-  painter->setRenderHint(QPainter::Antialiasing, true);
+    painter->setRenderHint(QPainter::Antialiasing, true);
 
-  // Frame
-  painter->drawRect(QRectF{0., 0., m_width, headerHeight() - 1});
+    // Frame
+    painter->drawRect(QRectF{0., 0., m_width, headerHeight() - 1});
 
-  // Menu
-  double centerX = m_width - 8.;
-  double centerY = 7.5;
-  double r = 4.5;
-  painter->setBrush(style.MinimapBrush);
-  painter->drawEllipse(QPointF{centerX, centerY}, r, r);
-  r -= 1.;
-  painter->setRenderHint(QPainter::Antialiasing, false);
-  painter->setPen(style.TimeRulerSmallPen);
-  painter->drawLine(QPointF{centerX, centerY - r}, QPointF{centerX, centerY + r});
-  painter->drawLine(QPointF{centerX - r, centerY }, QPointF{centerX + r, centerY });
+    // Menu
+    const double centerX = m_width - 8.;
+    const double centerY = 7.5;
+    double r = 4.5;
+    painter->setBrush(style.MinimapBrush);
+    painter->drawEllipse(QPointF{centerX, centerY}, r, r);
+    r -= 1.;
+    painter->setRenderHint(QPainter::Antialiasing, false);
+    painter->setPen(style.TimeRulerSmallPen);
+    painter->drawLine(QPointF{centerX, centerY - r}, QPointF{centerX, centerY + r});
+    painter->drawLine(QPointF{centerX - r, centerY }, QPointF{centerX + r, centerY });
+  }
+  else
+  {
+    const auto& style = ScenarioStyle::instance();
+    painter->setPen(style.IntervalHeaderSeparator);
+    painter->setBrush(style.NoBrush);
+
+    painter->drawRect(QRectF{0., 0., m_width, headerHeight() - 1});
+  }
 }
 
 void SlotHeader::setWidth(qreal width)

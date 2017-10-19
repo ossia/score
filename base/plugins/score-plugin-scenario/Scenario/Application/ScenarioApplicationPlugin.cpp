@@ -73,7 +73,7 @@
 #include <core/view/View.hpp>
 #include <score/document/DocumentInterface.hpp>
 
-SCORE_DECLARE_ACTION(GraphView, "&Graph view", Dataflow, Qt::ALT + Qt::SHIFT + Qt::Key_G)
+SCORE_DECLARE_ACTION(ShowCables, "&Show cables", Dataflow, Qt::ALT + Qt::SHIFT + Qt::Key_G)
 namespace Scenario
 {
 void test_parse_expr_full();
@@ -118,13 +118,16 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
   m_objectActions.setupContextMenu(m_layerCtxMenuManager);
 
   // Dataflow
-  m_showScene = new QAction{this};
-  connect(m_showScene, &QAction::triggered, this, [this] {
+  m_showCables = new QAction{this};
+  connect(m_showCables, &QAction::toggled, this, [this] (bool c) {
     auto doc = this->currentDocument();
     if(doc)
     {
-      //auto& plug = doc->context().model<Scenario::ScenarioDocumentModel>();
-      //plug.window.window.show();
+      Dataflow::CableItem::g_cables_enabled = c;
+      auto plug = score::IDocument::try_get<ScenarioDocumentPresenter>(*doc);
+      for(auto& cable : plug->cableItems) {
+        cable.check();
+      }
     }
   });
 }
@@ -141,10 +144,10 @@ auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
 
   // Dataflow
   auto& actions = e.actions;
-  actions.add<Actions::GraphView>(m_showScene);
+  actions.add<Actions::ShowCables>(m_showCables);
 
   score::Menu& menu = context.menus.get().at(score::Menus::View());
-  menu.menu()->addAction(m_showScene);
+  menu.menu()->addAction(m_showCables);
 
   return e;
 }

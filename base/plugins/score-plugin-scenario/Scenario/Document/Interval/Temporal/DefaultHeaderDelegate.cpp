@@ -27,7 +27,6 @@ class PortWidget : public QWidget
       lay->addRow(p.customData(), (QWidget*)nullptr);
       lay->addRow(tr("Address"), &m_edit);
 
-      qDebug() << p.address().toString();
       m_edit.setAddress(p.address());
       con(p, &Process::Port::addressChanged,
           this, [this] (const State::AddressAccessor& addr) {
@@ -183,15 +182,63 @@ void DefaultHeaderDelegate::updateName()
   update();
 }
 
+void DefaultHeaderDelegate::setSize(QSizeF sz)
+{
+  auto old_w = this->boundingRect().width();
+  GraphicsShapeItem::setSize(sz);
+  const auto pw = minPortWidth();
+  if(sz.width() < pw || sz.width() < pw)
+  {
+    int i = 0;
+    for(auto item : m_inPorts)
+    {
+      item->setPos(0., qreal(i) * sz.height() / qreal(m_inPorts.size()));
+      i++;
+    }
+
+    i = 0;
+    for(auto item : m_outPorts)
+    {
+      item->setPos(sz.width(), qreal(i) * sz.height() / qreal(m_outPorts.size()));
+      i++;
+    }
+  }
+  else if(old_w < pw && sz.width() > pw)
+  {
+    qreal x = 16;
+    for(auto item : m_inPorts)
+    {
+      item->setPos(x, 15.);
+      x += 10.;
+    }
+
+    x = 16.;
+    for(auto item : m_outPorts)
+    {
+      item->setPos(x, 24.);
+      x += 10.;
+    }
+  }
+}
+
+double DefaultHeaderDelegate::minPortWidth() const
+{
+  qreal inWidth =  10. * m_inPorts.size();
+  qreal outWidth = 10. * m_outPorts.size();
+  return std::max(inWidth, outWidth);
+}
+
 void DefaultHeaderDelegate::updatePorts()
 {
-  qDeleteAll(m_items);
-  m_items.clear();
-  int x = 16;
+  qDeleteAll(m_inPorts);
+  m_inPorts.clear();
+  qDeleteAll(m_outPorts);
+  m_outPorts.clear();
+  qreal x = 16;
   for(auto& port : presenter.model().inlets())
   {
     auto item = new Dataflow::PortItem{*port, this};
-    item->setPos(x, 15);
+    item->setPos(x, 15.);
     connect(item, &Dataflow::PortItem::showPanel,
             this, [&,&pt=*port,item] {
       auto panel = new PortDialog{presenter.context().context, pt, nullptr};
@@ -202,14 +249,14 @@ void DefaultHeaderDelegate::updatePorts()
     });
     connect(item, &Dataflow::PortItem::createCable,
             this, &DefaultHeaderDelegate::onCreateCable);
-    m_items.push_back(item);
-    x += 10;
+    m_inPorts.push_back(item);
+    x += 10.;
   }
-  x = 16;
+  x = 16.;
   for(auto& port : presenter.model().outlets())
   {
     auto item = new Dataflow::PortItem{*port, this};
-    item->setPos(x, 24);
+    item->setPos(x, 24.);
     connect(item, &Dataflow::PortItem::showPanel,
             this, [&,&pt=*port,item] {
       auto panel = new PortDialog{presenter.context().context, pt, nullptr};
@@ -218,24 +265,26 @@ void DefaultHeaderDelegate::updatePorts()
       panel->exec();
       panel->deleteLater();
     });
-    m_items.push_back(item);
-    x += 10;
+    m_outPorts.push_back(item);
+    x += 10.;
   }
 
 }
 
 void DefaultHeaderDelegate::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  painter->setRenderHint(QPainter::Antialiasing, true);
-  painter->setPen(ScenarioStyle::instance().IntervalHeaderSeparator);
-  m_textcache.draw(painter, QPointF{8.,-3.});
+  if(boundingRect().width() > minPortWidth()) {
+    painter->setRenderHint(QPainter::Antialiasing, true);
+    painter->setPen(ScenarioStyle::instance().IntervalHeaderSeparator);
+    m_textcache.draw(painter, QPointF{8.,-3.});
 
-  painter->setPen(ScenarioStyle::instance().TimenodePen);
-  painter->setFont(ScenarioStyle::instance().Medium8Pt);
-  painter->drawText(QPointF{4, 18}, "→");
-  painter->drawText(QPointF{4, 27}, "←");
+    painter->setPen(ScenarioStyle::instance().TimenodePen);
+    painter->setFont(ScenarioStyle::instance().Medium8Pt);
+    painter->drawText(QPointF{4, 18}, "→");
+    painter->drawText(QPointF{4, 27}, "←");
 
-  painter->setRenderHint(QPainter::Antialiasing, false);
+    painter->setRenderHint(QPainter::Antialiasing, false);
+  }
 }
 
 }

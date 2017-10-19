@@ -469,7 +469,7 @@ void TemporalIntervalPresenter::on_layerModelPutToFront(int slot, const Process:
     // Put the selected one at z+1 and the others at -z; set "disabled" graphics
     // mode.
     // OPTIMIZEME by saving the previous to front and just switching...
-    auto& slt = m_slots.at(slot);
+    SlotPresenter& slt = m_slots.at(slot);
     deleteGraphicsItem(slt.headerDelegate);
     slt.headerDelegate = nullptr;
     for (const LayerData& elt : slt.processes)
@@ -477,11 +477,7 @@ void TemporalIntervalPresenter::on_layerModelPutToFront(int slot, const Process:
       if (elt.model->id() == proc.id())
       {
         elt.presenter->putToFront();
-        // slt.headerDelegate = elt.presenter->makeSlotHeaderDelegate();
-        if(!slt.headerDelegate)
-        {
-          slt.headerDelegate = new DefaultHeaderDelegate{*elt.presenter};
-        }
+        slt.headerDelegate = new DefaultHeaderDelegate{*elt.presenter};
         slt.headerDelegate->setParentItem(slt.header);
         slt.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
         slt.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
@@ -635,11 +631,23 @@ void TemporalIntervalPresenter::on_defaultDurationChanged(const TimeVal& val)
 
   for(const SlotPresenter& slot : m_slots)
   {
+    auto pw = slot.headerDelegate->minPortWidth();
     slot.header->setWidth(w);
     if(slot.handle)
       slot.handle->setWidth(w);
-    if(slot.headerDelegate)
-      slot.headerDelegate->setSize(QSizeF{w - SlotHeader::handleWidth() - SlotHeader::menuWidth(), SlotHeader::headerHeight()});
+    if(w - SlotHeader::handleWidth() - SlotHeader::menuWidth() >= pw) {
+      slot.header->setMini(false);
+
+      slot.headerDelegate->setSize(QSizeF{std::max(0., w - SlotHeader::handleWidth() - SlotHeader::menuWidth()), SlotHeader::headerHeight()});
+      slot.headerDelegate->setX(30);
+    }
+    else {
+      slot.header->setMini(true);
+
+      slot.headerDelegate->setSize(QSizeF{w, SlotHeader::headerHeight()});
+      slot.headerDelegate->setX(0);
+    }
+
     for(const LayerData& proc : slot.processes)
     {
       proc.presenter->setWidth(w);

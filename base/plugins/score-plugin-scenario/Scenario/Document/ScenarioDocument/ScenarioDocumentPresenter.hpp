@@ -84,6 +84,7 @@ public:
 
   DisplayedElementsModel displayedElements;
 
+  IdContainer<Dataflow::CableItem, Process::Cable> cableItems;
 signals:
   void pressed(QPointF);
   void moved(QPointF);
@@ -127,7 +128,6 @@ private:
   QMetaObject::Connection m_intervalConnection, m_durationConnection;
   Process::MiniLayer* m_miniLayer{};
 
-  IdContainer<Dataflow::CableItem, Process::Cable> cableItems;
   bool m_zooming{false};
   bool m_updatingMinimap{false};
   bool m_updatingView{false};

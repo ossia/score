@@ -78,7 +78,7 @@ class mapping_node final :
     }
 
   private:
-    void run(ossia::execution_state& e) override
+    void run(ossia::token_request t, ossia::execution_state& e) override
     {
       if(!m_drive)
         return;

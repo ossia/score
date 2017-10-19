@@ -42,7 +42,7 @@ public:
 
   void setScript(const QString& val);
 
-  void run(ossia::execution_state&) override;
+  void run(ossia::token_request t, ossia::execution_state&) override;
 
 private:
   QQmlEngine m_engine;
