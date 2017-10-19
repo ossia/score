@@ -204,7 +204,7 @@ AutomExecComponent::on_curveChanged(
   return {};
 }
 
-void AutomationGraphNode::run(ossia::execution_state& e)
+void AutomationGraphNode::run(ossia::token_request t, ossia::execution_state& e)
 {
   auto base_curve = m_curve.get();
   if (!base_curve)

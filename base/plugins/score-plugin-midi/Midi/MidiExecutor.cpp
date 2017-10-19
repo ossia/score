@@ -40,19 +40,19 @@ class midi_node
     }
 
   private:
-    void run(ossia::execution_state& e) override
+    void run(ossia::token_request t, ossia::execution_state& e) override
     {
       auto& outlet = *m_outlets[0];
       ossia::midi_port* mp = outlet.data.target<ossia::midi_port>();
 
-      if (m_date != m_prev_date)
+      if (t.date != m_prev_date)
       {
-        if (m_prev_date > m_date)
+        if (m_prev_date > t.date)
           m_prev_date = 0;
 
-        auto diff = (m_date - m_prev_date) / (m_date / m_position);
-        m_prev_date = m_date;
-        auto cur_pos = m_position;
+        auto diff = (t.date - m_prev_date) / (t.date / t.position);
+        m_prev_date = t.date;
+        auto cur_pos = t.position;
         auto max_pos = cur_pos + diff;
 
         // Look for all the messages

@@ -14,6 +14,7 @@
 #include <ossia/dataflow/audio_protocol.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Engine/Protocols/OSSIADevice.hpp>
 namespace Dataflow
 {
 Clock::Clock(
@@ -50,6 +51,11 @@ void Clock::play_impl(
   m_plug.execState.globalState.clear();
   m_plug.execState.globalState.push_back(&m_plug.midi_dev);
   m_plug.execState.globalState.push_back(&m_plug.audio_dev);
+  for(auto dev : context.devices.list().devices()) {
+    if(auto od = dynamic_cast<Engine::Network::OSSIADevice*>(dev))
+      if(auto d = od->getDevice())
+        m_plug.execState.globalState.push_back(d);
+  }
   m_default.play(t);
 
   m_plug.audioProto().ui_tick = [this] (unsigned long frameCount) {

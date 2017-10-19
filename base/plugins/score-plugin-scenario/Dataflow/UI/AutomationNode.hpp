@@ -95,7 +95,7 @@ class ISCORE_ADDON_PD_EXPORT AutomationGraphNode final :
     }
 
   private:
-    void run(ossia::execution_state& e) override;
+    void run(ossia::token_request t, ossia::execution_state& e) override;
 
     std::shared_ptr<ossia::curve_abstract> m_curve{};
     ossia::val_type m_type{};

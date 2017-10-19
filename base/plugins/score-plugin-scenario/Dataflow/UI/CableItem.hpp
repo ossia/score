@@ -14,6 +14,7 @@ class CableItem
     Q_OBJECT
 
   public:
+    static bool g_cables_enabled;
     CableItem(Process::Cable& c, QGraphicsItem* parent = nullptr);
     ~CableItem();
     const Id<Process::Cable>& id() const { return m_cable.id(); }

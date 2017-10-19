@@ -107,7 +107,7 @@ private:
     }
     return {};
   }
-  void run(ossia::execution_state& e) override;
+  void run(ossia::token_request t, ossia::execution_state& e) override;
   std::vector<std::vector<float>> m_data;
 
   std::size_t m_startChan{};
@@ -125,7 +125,7 @@ input_node::~input_node()
 
 }
 
-void input_node::run(ossia::execution_state& e)
+void input_node::run(ossia::token_request t, ossia::execution_state& e)
 {
   // First read the requested channels at the end of "data".
   if(m_numChan == 0)
@@ -159,21 +159,21 @@ void input_node::run(ossia::execution_state& e)
   const auto len = (int64_t)m_data[0].size();
   ossia::audio_port& ap = *m_outlets[0]->data.target<ossia::audio_port>();
   ap.samples.resize(chan);
-  int64_t max_N = std::min(m_date.impl, len);
+  int64_t max_N = std::min(t.date.impl, len);
   if(max_N <= 0)
     return;
-  auto samples = max_N - m_prev_date + m_offset.impl;
+  auto samples = max_N - m_prev_date + t.offset.impl;
   if(samples <= 0)
     return;
 
-  if(m_date > m_prev_date)
+  if(t.date > m_prev_date)
   {
     for(std::size_t i = 0; i < chan; i++)
     {
       ap.samples[i].resize(samples);
       for(int64_t j = m_prev_date; j < max_N; j++)
       {
-        ap.samples[i][j - m_prev_date + m_offset.impl] = m_data[i][j];
+        ap.samples[i][j - m_prev_date + t.offset.impl] = m_data[i][j];
       }
     }
   }
@@ -185,7 +185,7 @@ void input_node::run(ossia::execution_state& e)
       ap.samples[i].resize(samples);
       for(int64_t j = m_prev_date; j < max_N; j++)
       {
-        ap.samples[i][max_N - (j - m_prev_date) + m_offset.impl] = m_data[i][j];
+        ap.samples[i][max_N - (j - m_prev_date) + t.offset.impl] = m_data[i][j];
       }
     }
   }

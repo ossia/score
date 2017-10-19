@@ -70,7 +70,7 @@ class automation_node final :
     }
 
   private:
-    void run(ossia::execution_state& e) override
+    void run(ossia::token_request t, ossia::execution_state& e) override
     {
       if(!m_drive)
         return;
@@ -88,7 +88,7 @@ class automation_node final :
       }
       vp->data.push_back(
             ossia::apply(
-              ossia::detail::compute_value_visitor{m_position, type}, m_drive));
+              ossia::detail::compute_value_visitor{t.position, type}, m_drive));
     }
 
     ossia::behavior m_drive;

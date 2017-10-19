@@ -102,7 +102,12 @@ void ProcessModel::setStartChannel(int startChannel)
 void ProcessModel::init()
 {
   connect(&m_file, &MediaFileHandle::mediaChanged,
-          this, &ProcessModel::fileChanged);
+          this, [=] {
+    if(m_file.channels() == 1) {
+      setUpmixChannels(2);
+    }
+    emit fileChanged();
+  });
 }
 
 }

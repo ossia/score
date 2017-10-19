@@ -16,7 +16,7 @@ public:
     m_outlets.push_back(ossia::make_outlet<ossia::audio_port>());
   }
 
-  void run(ossia::execution_state&) override
+  void run(ossia::token_request t, ossia::execution_state&) override
   {
     auto in = m_inlets[0]->data.target<ossia::audio_port>();
     auto out = m_outlets[0]->data.target<ossia::audio_port>();

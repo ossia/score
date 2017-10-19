@@ -10,6 +10,7 @@
 namespace Dataflow
 {
 CableItem::cable_map CableItem::g_cables;
+bool CableItem::g_cables_enabled = true;
 
 CableItem::CableItem(Process::Cable& c, QGraphicsItem* parent):
   QGraphicsItem{parent}
@@ -67,9 +68,9 @@ void CableItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
         return pen;
       }()};
 
-    static const QColor messageColor = QColor("#669966dd");
-    static const QColor audioColor = QColor("#669966dd");
-    static const QColor midiColor = QColor("#669966dd");
+    static const QColor messageColor = QColor("#88669966");
+    static const QColor audioColor = QColor("#88996666");
+    static const QColor midiColor = QColor("#889966dd");
     switch(m_type)
     {
     case Process::PortType::Message:
@@ -120,13 +121,13 @@ void CableItem::resize()
 
 void CableItem::check()
 {
-  if(m_p1 && m_p2 && m_p1->isVisible() && m_p2->isVisible()) {
+  if(g_cables_enabled && m_p1 && m_p2 && m_p1->isVisible() && m_p2->isVisible()) {
     if(!isEnabled())
     {
       setVisible(true);
       setEnabled(true);
-      m_type = m_p1->port().type;
     }
+    m_type = m_p1->port().type;
     resize();
   }
   else if(isEnabled()) {
@@ -180,7 +181,7 @@ void CableItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
           this, [=] {
     emit removeRequested();
   });
-  m->exec();
+  m->exec(event->screenPos());
   m->deleteLater();
 }
 
