@@ -13,6 +13,7 @@
 #include <core/document/DocumentModel.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 
+#include <Engine/Protocols/Audio/AudioDevice.hpp>
 #include <Engine/ApplicationPlugin.hpp>
 #include <ossia/dataflow/audio_protocol.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>

@@ -33,8 +33,6 @@
 #include <core/document/Document.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
-#include <Dataflow/UI/NodeItem.hpp>
-#include <Dataflow/UI/Slider.hpp>
 #include <Dataflow/DocumentPlugin.hpp>
 #include <Dataflow/DataflowWindow.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>

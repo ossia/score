@@ -71,7 +71,7 @@ ScenarioComponentBase::ScenarioComponentBase(
   this->setObjectName("OSSIAScenarioElement");
 
   // Setup of the OSSIA API Part
-  m_ossia_process = std::make_shared<ossia::scenario>(ctx.plugin.execGraph);
+  m_ossia_process = std::make_shared<ossia::scenario>();
 
   // Note : the hierarchical scenario shall create the time syncs first.
   // A better way would be :

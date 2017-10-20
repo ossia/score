@@ -108,7 +108,7 @@ Component::Component(
         id, "Executor::AutomationComponent", parent}
 {
   auto node = std::make_shared<automation_node>();
-  auto proc = std::make_shared<ossia::node_process>(ctx.plugin.execGraph, node);
+  auto proc = std::make_shared<ossia::node_process>(node);
   m_ossia_process = proc;
   m_node = node;
 
