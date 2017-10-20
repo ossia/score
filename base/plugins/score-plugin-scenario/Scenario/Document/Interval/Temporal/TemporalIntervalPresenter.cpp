@@ -631,21 +631,29 @@ void TemporalIntervalPresenter::on_defaultDurationChanged(const TimeVal& val)
 
   for(const SlotPresenter& slot : m_slots)
   {
-    auto pw = slot.headerDelegate->minPortWidth();
     slot.header->setWidth(w);
     if(slot.handle)
       slot.handle->setWidth(w);
-    if(w - SlotHeader::handleWidth() - SlotHeader::menuWidth() >= pw) {
-      slot.header->setMini(false);
 
-      slot.headerDelegate->setSize(QSizeF{std::max(0., w - SlotHeader::handleWidth() - SlotHeader::menuWidth()), SlotHeader::headerHeight()});
-      slot.headerDelegate->setX(30);
+    if(slot.headerDelegate)
+    {
+      auto pw = slot.headerDelegate->minPortWidth();
+      if(w - SlotHeader::handleWidth() - SlotHeader::menuWidth() >= pw) {
+        slot.header->setMini(false);
+
+        slot.headerDelegate->setSize(QSizeF{std::max(0., w - SlotHeader::handleWidth() - SlotHeader::menuWidth()), SlotHeader::headerHeight()});
+        slot.headerDelegate->setX(30);
+      }
+      else {
+        slot.header->setMini(true);
+
+        slot.headerDelegate->setSize(QSizeF{w, SlotHeader::headerHeight()});
+        slot.headerDelegate->setX(0);
+      }
     }
-    else {
-      slot.header->setMini(true);
-
-      slot.headerDelegate->setSize(QSizeF{w, SlotHeader::headerHeight()});
-      slot.headerDelegate->setX(0);
+    else
+    {
+      slot.header->setMini(false);
     }
 
     for(const LayerData& proc : slot.processes)

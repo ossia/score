@@ -21,7 +21,7 @@ SoundComponent::SoundComponent(
       id, "Executor::SoundComponent", parent}
 {
   auto node = std::make_shared<ossia::sound_node>();
-  auto np = std::make_shared<ossia::node_process>(ctx.plugin.execGraph, node);
+  auto np = std::make_shared<ossia::node_process>(node);
   m_node = node;
 
   if(auto dest = Engine::score_to_ossia::makeDestination(ctx.devices.list(), element.outlet->address()))
@@ -54,9 +54,17 @@ SoundComponent::SoundComponent(
 
 void SoundComponent::recompute()
 {
+  auto to_double = [] (const auto& float_vec) {
+    std::vector<std::vector<double>> v;
+    v.reserve(float_vec.size());
+    for(auto& chan : float_vec) {
+      v.emplace_back(chan.begin(), chan.end());
+    }
+    return v;
+  };
   system().executionQueue.enqueue(
         [n=std::dynamic_pointer_cast<ossia::sound_node>(this->m_node)
-        ,data=process().file().data()
+        ,data=to_double(process().file().data())
         ,upmix=process().upmixChannels()
         ,start=process().startChannel()
         ]
@@ -204,7 +212,7 @@ InputComponent::InputComponent(
       id, "Executor::InputComponent", parent}
 {
   auto node = std::make_shared<input_node>();
-  auto np = std::make_shared<ossia::node_process>(ctx.plugin.execGraph, node);
+  auto np = std::make_shared<ossia::node_process>(node);
   m_node = node;
 
   if(auto dest = Engine::score_to_ossia::makeDestination(ctx.devices.list(), element.outlet->address()))

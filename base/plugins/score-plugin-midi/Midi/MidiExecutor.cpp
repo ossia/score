@@ -50,7 +50,7 @@ class midi_node
         if (m_prev_date > t.date)
           m_prev_date = 0;
 
-        auto diff = (t.date - m_prev_date) / (t.date / t.position);
+        auto diff = norm(t.date, m_prev_date) / (t.date / t.position);
         m_prev_date = t.date;
         auto cur_pos = t.position;
         auto max_pos = cur_pos + diff;
@@ -125,7 +125,7 @@ Component::Component(
         parentInterval, element, ctx, id, "MidiComponent", parent}
 {
   auto node = std::make_shared<midi_node>();
-  auto proc = std::make_shared<ossia::node_process>(ctx.plugin.execGraph, node);
+  auto proc = std::make_shared<ossia::node_process>(node);
   m_ossia_process = proc;
   m_node = node;
   ctx.plugin.outlets.insert({element.outlet.get(), {m_node, node->outputs()[0]}});

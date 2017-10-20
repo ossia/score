@@ -10,7 +10,6 @@
 #include <ossia/dataflow/graph.hpp>
 #include <Process/Dataflow/DataflowObjects.hpp>
 #include <memory>
-#include <Engine/Protocols/Audio/AudioDevice.hpp>
 
 namespace ossia { class audio_protocol; class midi_generic_parameter;}
 namespace score
@@ -21,6 +20,10 @@ namespace Scenario
 {
 class BaseScenario;
 class IntervalModel;
+}
+namespace Dataflow
+{
+class AudioDevice;
 }
 namespace Engine
 {

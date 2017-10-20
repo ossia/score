@@ -99,8 +99,7 @@ Component::Component(
             SCORE_TODO;
             break;
         }
-
-      }, ctx.plugin.execGraph);
+      });
 
   m_ossia_process = loop;
   ctx.plugin.inlets.insert({process().inlets()[0], std::make_pair(loop->node, loop->node->inputs()[0])});
