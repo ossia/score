@@ -32,7 +32,7 @@ void View::setWidget(QWidget* w)
   w->setStyleSheet("QWidget { background-color:transparent }");
 
   connect(w, SIGNAL(pressed()), this, SIGNAL(pressed()));
-  connect(w, SIGNAL(contextMenuRequested(QPoint)), this, SIGNAL(contextMenuRequested(QPoint)));
+  //connect(w, SIGNAL(contextMenuRequested(QPoint)), this, SIGNAL(contextMenuRequested(QPoint)));
 }
 
 void View::paint_impl(QPainter* painter) const
