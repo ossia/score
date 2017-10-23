@@ -46,8 +46,10 @@ public:
 
 private:
   QQmlEngine m_engine;
-  QList<ValueInlet*> m_valInlets;
-  QList<ValueOutlet*> m_valOutlets;
+  QList<std::pair<ValueInlet*, ossia::inlet_ptr>> m_valInlets;
+  QList<std::pair<ValueOutlet*, ossia::outlet_ptr>> m_valOutlets;
+  QList<std::pair<AudioInlet*, ossia::inlet_ptr>> m_audInlets;
+  QList<std::pair<AudioOutlet*, ossia::outlet_ptr>> m_audOutlets;
   QObject* m_object{};
 };
 

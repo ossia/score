@@ -33,7 +33,7 @@ Item {
   ValueInlet { id: in1 }
   ValueOutlet { id: out1 }
 
-  function onTick(time, position, offset) {
+  function onTick(oldtime, time, position, offset) {
     out1.value = in1.value + 10 * Math.random();
   }
 }
@@ -79,13 +79,16 @@ void ProcessModel::setScript(const QString& script)
     else
     {
       auto obj = c.create();
-      auto cld_inlet = obj->findChildren<ValueInlet*>();
-      auto cld_outlet = obj->findChildren<ValueOutlet*>();
+      auto cld_inlet = obj->findChildren<Inlet*>();
+      auto cld_outlet = obj->findChildren<Outlet*>();
 
       int i = 0;
       for(auto n : cld_inlet) {
         auto port = new Process::Port{Id<Process::Port>(i++), this};
-        port->type = Process::PortType::Message;
+        if(qobject_cast<ValueInlet*>(n))
+          port->type = Process::PortType::Message;
+        else if(qobject_cast<AudioInlet*>(n))
+          port->type = Process::PortType::Audio;
         port->outlet = false;
         port->setCustomData(n->objectName());
         m_inlets.push_back(port);
@@ -93,7 +96,14 @@ void ProcessModel::setScript(const QString& script)
 
       for(auto n : cld_outlet) {
         auto port = new Process::Port{Id<Process::Port>(i++), this};
-        port->type = Process::PortType::Message;
+        if(qobject_cast<ValueOutlet*>(n))
+          port->type = Process::PortType::Message;
+        else if(qobject_cast<AudioOutlet*>(n))
+        {
+          if(n == cld_outlet[0])
+            port->propagate = true;
+          port->type = Process::PortType::Audio;
+        }
         port->outlet = true;
         port->setCustomData(n->objectName());
         m_outlets.push_back(port);

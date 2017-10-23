@@ -7,6 +7,7 @@
 #include <score/model/ComponentHierarchy.hpp>
 #include <score/plugins/customfactory/ModelFactory.hpp>
 #include <score/model/ComponentFactory.hpp>
+#include <QPointer>
 #include <score_lib_process_export.h>
 
 namespace ossia
@@ -86,8 +87,8 @@ signals:
 
 private:
     CableType m_type{};
-    Process::Port* m_source{};
-    Process::Port* m_sink{};
+    QPointer<Process::Port> m_source{};
+    QPointer<Process::Port> m_sink{};
     QMetaObject::Connection m_srcDeath, m_sinkDeath;
 };
 

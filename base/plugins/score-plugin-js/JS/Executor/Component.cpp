@@ -30,7 +30,7 @@ Component::Component(
       ProcessComponent_T<JS::ProcessModel, ossia::node_process>{
         parentInterval, element, ctx, id, "JSComponent", parent}
 {
-  auto node = std::make_shared<js_node>(element.script());
+  auto node = std::make_shared<js_node>("");
   auto proc = std::make_shared<ossia::node_process>(node);
   m_ossia_process = proc;
   m_node = node;
@@ -38,25 +38,64 @@ Component::Component(
   auto& devices = ctx.devices.list();
   for(auto port : element.inlets())
   {
-    auto inlet = ossia::make_inlet<ossia::value_port>();
-    auto dest = Engine::score_to_ossia::makeDestination(devices, port->address());
-    if(dest)
-      inlet->address = &dest->address();
+    switch(port->type)
+    {
+      case Process::PortType::Message:
+      {
+        auto inlet = ossia::make_inlet<ossia::value_port>();
+        auto dest = Engine::score_to_ossia::makeDestination(devices, port->address());
+        if(dest)
+          inlet->address = &dest->address();
 
-    node->inputs().push_back(inlet);
-    ctx.plugin.inlets.insert({port, {m_node, inlet}});
+        node->inputs().push_back(inlet);
+        ctx.plugin.inlets.insert({port, {m_node, inlet}});
+        break;
+      }
+      case Process::PortType::Audio:
+      {
+        auto inlet = ossia::make_inlet<ossia::audio_port>();
+        auto dest = Engine::score_to_ossia::makeDestination(devices, port->address());
+        if(dest)
+          inlet->address = &dest->address();
+
+        node->inputs().push_back(inlet);
+        ctx.plugin.inlets.insert({port, {m_node, inlet}});
+        break;
+      }
+    }
   }
 
   for(auto port : element.outlets())
   {
-    auto outlet = ossia::make_outlet<ossia::value_port>();
-    auto dest = Engine::score_to_ossia::makeDestination(devices, port->address());
-    if(dest)
-      outlet->address = &dest->address();
+    switch(port->type)
+    {
+      case Process::PortType::Message:
+      {
+        auto outlet = ossia::make_outlet<ossia::value_port>();
+        auto dest = Engine::score_to_ossia::makeDestination(devices, port->address());
+        if(dest)
+          outlet->address = &dest->address();
 
-    node->outputs().push_back(outlet);
-    ctx.plugin.outlets.insert({port, {m_node, outlet}});
+        node->outputs().push_back(outlet);
+        ctx.plugin.outlets.insert({port, {m_node, outlet}});
+        break;
+      }
+
+      case Process::PortType::Audio:
+      {
+        auto outlet = ossia::make_outlet<ossia::audio_port>();
+        auto dest = Engine::score_to_ossia::makeDestination(devices, port->address());
+        if(dest)
+          outlet->address = &dest->address();
+
+        node->outputs().push_back(outlet);
+        ctx.plugin.outlets.insert({port, {m_node, outlet}});
+        break;
+      }
+    }
   }
+
+  node->setScript(element.script());
 
   ctx.plugin.execGraph->add_node(m_node);
   /*
@@ -72,10 +111,6 @@ Component::Component(
 
 void js_node::setScript(const QString& val)
 {
-  m_inlets.clear();
-  m_outlets.clear();
-  m_valInlets.clear();
-  m_valOutlets.clear();
   if(val.trimmed().startsWith("import"))
   {
     QQmlComponent c{&m_engine};
@@ -94,8 +129,31 @@ void js_node::setScript(const QString& val)
       if(m_object)
       {
         m_object->setParent(&m_engine);
-        m_valInlets = m_object->findChildren<JS::ValueInlet*>();
-        m_valOutlets = m_object->findChildren<JS::ValueOutlet*>();
+        int inlets_i = 0;
+        int outlets_i = 0;
+        for(auto n : m_object->children())
+        {
+          if(auto val_in = qobject_cast<ValueInlet*>(n))
+          {
+            m_valInlets.push_back({val_in, inputs()[inlets_i]});
+            inlets_i++;
+          }
+          else if(auto aud_in = qobject_cast<AudioInlet*>(n))
+          {
+            m_audInlets.push_back({aud_in, inputs()[inlets_i]});
+            inlets_i++;
+          }
+          else if(auto val_out = qobject_cast<ValueOutlet*>(n))
+          {
+            m_valOutlets.push_back({val_out, outputs()[outlets_i]});
+            outlets_i++;
+          }
+          else if(auto aud_out = qobject_cast<AudioOutlet*>(n))
+          {
+            m_audOutlets.push_back({aud_out, outputs()[outlets_i]});
+            outlets_i++;
+          }
+        }
       }
     }
   }
@@ -103,21 +161,34 @@ void js_node::setScript(const QString& val)
 
 void js_node::run(ossia::token_request t, ossia::execution_state&)
 {
+  if(t.date == ossia::Zero)
+    return;
+  // Copy audio
+  for(int i = 0; i < m_audInlets.size(); i++)
+  {
+    auto& dat = m_audInlets[i].second->data.target<ossia::audio_port>()->samples;
+    QVector<QVector<double>> audio(dat.size());
+    for(int i = 0; i < dat.size(); i++)
+    {
+      audio[i].resize(dat[i].size());
+      for(int j = 0; j < dat[i].size(); j++)
+        audio[i][j] = dat[i][j];
+    }
+    m_audInlets[i].first->setAudio(audio);
+  }
+
+  // Copy values
   for(int i = 0; i < m_valInlets.size(); i++)
   {
-    auto& dat = m_inlets[i]->data.target<ossia::value_port>()->data;
+    auto& dat = m_valInlets[i].second->data.target<ossia::value_port>()->data;
     if(!dat.empty())
-      m_valInlets[i]->setValue(dat.front().apply(ossia::qt::ossia_to_qvariant{}));
+      m_valInlets[i].first->setValue(dat.front().apply(ossia::qt::ossia_to_qvariant{}));
   }
-  /*
-  m_object->dumpObjectInfo();
-  m_object->dumpObjectTree();
-  for(int i = 0; i < m_object->metaObject()->methodCount(); i++)
-    qDebug() << m_object->metaObject()->method(i).methodSignature();
-  */
+
   QMetaObject::invokeMethod(
         m_object, "onTick",
         Qt::DirectConnection,
+        Q_ARG(QVariant, double(m_prev_date)),
         Q_ARG(QVariant, double(t.date)),
         Q_ARG(QVariant, t.position),
         Q_ARG(QVariant, double(t.offset))
@@ -125,8 +196,21 @@ void js_node::run(ossia::token_request t, ossia::execution_state&)
 
   for(int i = 0; i < m_valOutlets.size(); i++)
   {
-    auto& dat = m_outlets[i]->data.target<ossia::value_port>()->data;
-    dat.push_back(ossia::qt::qt_to_ossia{}(m_valOutlets[i]->value()));
+    auto& dat = m_valOutlets[i].second->data.target<ossia::value_port>()->data;
+    dat.push_back(ossia::qt::qt_to_ossia{}(m_valOutlets[i].first->value()));
+  }
+
+  for(int out = 0; out < m_audOutlets.size(); out++)
+  {
+    auto& src = m_audOutlets[out].first->audio();
+    auto& snk = m_audOutlets[out].second->data.target<ossia::audio_port>()->samples;
+    snk.resize(src.size());
+    for(int chan = 0; chan < src.size(); chan++)
+    {
+      snk[chan].resize(src[chan].size() + int64_t(t.offset));
+      for(int j = 0; j < src[chan].size(); j++)
+        snk[chan][j + int64_t(t.offset)] = src[chan][j];
+    }
   }
 }
 
