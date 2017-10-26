@@ -324,7 +324,6 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/Slider.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/NodeItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/ScenarioNode.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/BaseLib/BaseLibProcess.hpp"
 )
 qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/resources/ScenarioResources.qrc")
 
