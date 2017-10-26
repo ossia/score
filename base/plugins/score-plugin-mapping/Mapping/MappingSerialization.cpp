@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <score/serialization/VisitorCommon.hpp>
 
-#include <Process/Dataflow/DataflowObjects.hpp>
+#include <Process/Dataflow/Port.hpp>
 #include "MappingModel.hpp"
 #include <Curve/CurveModel.hpp>
 #include <State/Address.hpp>

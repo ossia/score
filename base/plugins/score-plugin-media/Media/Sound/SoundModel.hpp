@@ -5,7 +5,7 @@
 #include <score/serialization/VisitorCommon.hpp>
 #include <Media/Sound/SoundMetadata.hpp>
 #include <Media/MediaFileHandle.hpp>
-#include <Process/Dataflow/DataflowObjects.hpp>
+#include <Process/Dataflow/Port.hpp>
 #include <score_plugin_media_export.h>
 
 

@@ -8,7 +8,7 @@
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/local/local.hpp>
 #include <ossia/dataflow/graph.hpp>
-#include <Process/Dataflow/DataflowObjects.hpp>
+#include <Process/Dataflow/Port.hpp>
 #include <memory>
 
 namespace ossia { class audio_protocol; class midi_generic_parameter;}

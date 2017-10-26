@@ -8,7 +8,7 @@
 #include "AutomationModel.hpp"
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <Automation/AutomationProcessMetadata.hpp>
-#include <Process/Dataflow/DataflowObjects.hpp>
+#include <Process/Dataflow/Port.hpp>
 #include <Automation/State/AutomationState.hpp>
 #include <Curve/CurveModel.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
@@ -60,7 +60,6 @@ ProcessModel::ProcessModel(
     , m_startState{new ProcessState{*this, 0., this}}
     , m_endState{new ProcessState{*this, 1., this}}
 {
-  outlet->propagate = false;
   outlet->outlet = true;
   outlet->type = Process::PortType::Message;
 

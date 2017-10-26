@@ -21,6 +21,8 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessList.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/DataflowProcess.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/DataflowObjects.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/Port.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/Cable.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/StateProcessFactoryList.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNode.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/StateProcessFactory.hpp"
@@ -62,6 +64,8 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ScenarioStyle.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/DataflowProcess.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/DataflowObjects.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/Port.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/Cable.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Layer/LayerContextMenu.cpp"
 

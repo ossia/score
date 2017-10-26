@@ -43,6 +43,7 @@ DocumentPlugin::DocumentPlugin(
     , m_base{m_ctx, this}
 {
   midi_ins.push_back(ossia::net::create_parameter<ossia::midi_generic_parameter>(midi_dev.get_root_node(), "/0/in"));
+
   midi_outs.push_back(ossia::net::create_parameter<ossia::midi_generic_parameter>(midi_dev.get_root_node(), "/0/out"));
 
   execGraph = std::make_shared<ossia::graph>();

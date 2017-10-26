@@ -1,6 +1,6 @@
 #include "PortItem.hpp"
 #include <Dataflow/UI/CableItem.hpp>
-#include <Process/Dataflow/DataflowObjects.hpp>
+#include <Process/Dataflow/Port.hpp>
 #include <QDrag>
 #include <QGraphicsSceneMoveEvent>
 #include <QMimeData>

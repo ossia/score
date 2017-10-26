@@ -3,7 +3,7 @@
 #include <Media/Input/InputModel.hpp>
 #include <Dataflow/DocumentPlugin.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
-#include <Process/Dataflow/DataflowObjects.hpp>
+#include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
 #include <ossia/dataflow/node_process.hpp>
 #include <score/model/Component.hpp>

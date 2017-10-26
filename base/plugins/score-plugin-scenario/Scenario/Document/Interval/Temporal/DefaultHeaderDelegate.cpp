@@ -5,15 +5,20 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Dataflow/UI/CableItem.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
 #include <Dataflow/UI/PortItem.hpp>
 #include <Process/Process.hpp>
 #include <Explorer/Widgets/AddressAccessorEditWidget.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Dataflow/Commands/EditPort.hpp>
 #include <QFormLayout>
 #include <QGraphicsProxyWidget>
 #include <QGraphicsScene>
 #include <QPainter>
+#include <QDialog>
 #include <QDialogButtonBox>
+#include <score/widgets/SignalUtils.hpp>
+#include <QCheckBox>
 namespace Scenario
 {
 class PortWidget : public QWidget
@@ -26,6 +31,25 @@ class PortWidget : public QWidget
       auto lay = new QFormLayout{this};
       lay->addRow(p.customData(), (QWidget*)nullptr);
       lay->addRow(tr("Address"), &m_edit);
+      if(p.outlet && p.type == Process::PortType::Audio)
+      {
+        auto cb = new QCheckBox{this};
+        cb->setChecked(p.propagate());
+        lay->addRow(tr("Propagate"), cb);
+        connect(cb, &QCheckBox::toggled,
+                this, [&] (auto ok) {
+          if(ok != p.propagate()) {
+            CommandDispatcher<> d{ctx.commandStack};
+            d.submitCommand<Dataflow::SetPortPropagate>(p, ok);
+          }
+        });
+        con(p, &Process::Port::propagateChanged,
+            this, [=] (bool p) {
+          if(p != cb->isChecked()) {
+            cb->setChecked(p);
+          }
+        });
+      }
 
       m_edit.setAddress(p.address());
       con(p, &Process::Port::addressChanged,

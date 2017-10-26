@@ -215,7 +215,7 @@ ProcessComponent* IntervalComponentBase::make(
       std::vector<int> propagated_outlets;
       for(std::size_t i = 0; i < outlets.size(); i++)
       {
-        if(outlets[i]->propagate && outlets[i]->cables().empty() && outlets[i]->address() == State::AddressAccessor{})
+        if(outlets[i]->propagate() /* && outlets[i]->cables().empty() && outlets[i]->address() == State::AddressAccessor{}*/)
           propagated_outlets.push_back(i);
       }
 

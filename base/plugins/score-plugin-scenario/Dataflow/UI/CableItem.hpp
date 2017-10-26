@@ -2,7 +2,9 @@
 #include <QGraphicsItem>
 #include <QObject>
 #include <score/model/Identifier.hpp>
-#include <Process/Dataflow/DataflowObjects.hpp>
+#include <Process/Dataflow/Cable.hpp>
+#include <Process/Dataflow/Port.hpp>
+
 #include <unordered_map>
 namespace Dataflow
 {
