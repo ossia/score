@@ -17,7 +17,7 @@
 #include <QComboBox>
 #include <score_plugin_scenario_export.h>
 
-#include <Process/Dataflow/DataflowObjects.hpp>
+#include <Process/Dataflow/Port.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 namespace Dataflow

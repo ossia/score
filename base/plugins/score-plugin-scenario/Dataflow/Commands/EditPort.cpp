@@ -1,7 +1,7 @@
 #include <Dataflow/Commands/EditPort.hpp>
 #include <score/model/path/PathSerialization.hpp>
 
-#include <Process/Dataflow/DataflowObjects.hpp>
+#include <Process/Dataflow/Port.hpp>
 namespace Dataflow
 {
 

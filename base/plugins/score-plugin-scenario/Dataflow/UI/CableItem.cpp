@@ -1,6 +1,6 @@
 #include "CableItem.hpp"
 #include <Dataflow/UI/PortItem.hpp>
-#include <Process/Dataflow/DataflowObjects.hpp>
+#include <Process/Dataflow/Cable.hpp>
 #include <QGraphicsSceneMoveEvent>
 #include <boost/range/algorithm_ext/erase.hpp>
 

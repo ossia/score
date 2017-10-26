@@ -1,7 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Midi/MidiProcess.hpp>
-#include <Process/Dataflow/DataflowObjects.hpp>
+#include <Process/Dataflow/Port.hpp>
 
 namespace Midi
 {
@@ -13,7 +13,6 @@ ProcessModel::ProcessModel(
                             Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , outlet{std::make_unique<Process::Port>(Id<Process::Port>(0), this)}
 {
-  outlet->propagate = false;
   outlet->outlet = true;
   outlet->type = Process::PortType::Midi;
 

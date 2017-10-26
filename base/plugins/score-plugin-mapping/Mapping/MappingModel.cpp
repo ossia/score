@@ -5,7 +5,7 @@
 #include <score/document/DocumentInterface.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <Process/Dataflow/DataflowObjects.hpp>
+#include <Process/Dataflow/Port.hpp>
 #include "MappingModel.hpp"
 #include <Curve/Process/CurveProcessModel.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
@@ -35,11 +35,9 @@ ProcessModel::ProcessModel(
     , inlet{std::make_unique<Process::Port>(Id<Process::Port>(0), this)}
     , outlet{std::make_unique<Process::Port>(Id<Process::Port>(1), this)}
 {
-  inlet->propagate = false;
   inlet->outlet = false;
   inlet->type = Process::PortType::Message;
 
-  outlet->propagate = false;
   outlet->outlet = true;
   outlet->type = Process::PortType::Message;
   setCurve(new Curve::Model{Id<Curve::Model>(45345), this});

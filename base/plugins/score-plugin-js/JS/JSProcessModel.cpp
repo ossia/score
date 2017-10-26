@@ -8,7 +8,7 @@
 #include <QQmlComponent>
 #include <vector>
 #include <JS/Qml/QmlObjects.hpp>
-#include <Process/Dataflow/DataflowObjects.hpp>
+#include <Process/Dataflow/Port.hpp>
 
 #include "JS/JSProcessMetadata.hpp"
 #include "JSProcessModel.hpp"
@@ -101,7 +101,7 @@ void ProcessModel::setScript(const QString& script)
         else if(qobject_cast<AudioOutlet*>(n))
         {
           if(n == cld_outlet[0])
-            port->propagate = true;
+            port->setPropagate(true);
           port->type = Process::PortType::Audio;
         }
         port->outlet = true;

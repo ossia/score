@@ -2,7 +2,7 @@
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <QFile>
-#include <Process/Dataflow/DataflowObjects.hpp>
+#include <Process/Dataflow/Port.hpp>
 
 namespace Media
 {
@@ -54,7 +54,7 @@ ProcessModel::ProcessModel(
   Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
 , outlet{std::make_unique<Process::Port>(Id<Process::Port>(0), this)}
 {
-  outlet->propagate = true;
+  outlet->setPropagate(true);
   outlet->outlet = true;
   outlet->type = Process::PortType::Audio;
 
