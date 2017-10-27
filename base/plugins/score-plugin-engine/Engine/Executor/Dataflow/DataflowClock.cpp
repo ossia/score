@@ -112,7 +112,6 @@ void Clock::stop_impl(
     m_plug.outlets.clear();
     m_plug.m_cables.clear();
     m_plug.execGraph->clear();
-    m_plug.execGraph = std::make_shared<ossia::graph>();
 
     for(auto& cable : model.cables)
     {

@@ -167,6 +167,7 @@ void js_node::run(ossia::token_request t, ossia::execution_state&)
   for(int i = 0; i < m_audInlets.size(); i++)
   {
     auto& dat = m_audInlets[i].second->data.target<ossia::audio_port>()->samples;
+
     QVector<QVector<double>> audio(dat.size());
     for(int i = 0; i < dat.size(); i++)
     {
@@ -208,6 +209,7 @@ void js_node::run(ossia::token_request t, ossia::execution_state&)
     for(int chan = 0; chan < src.size(); chan++)
     {
       snk[chan].resize(src[chan].size() + int64_t(t.offset));
+
       for(int j = 0; j < src[chan].size(); j++)
         snk[chan][j + int64_t(t.offset)] = src[chan][j];
     }

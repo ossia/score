@@ -194,6 +194,8 @@ void DocumentPlugin::clear()
     runAllCommands();
     m_base.cleanup();
     runAllCommands();
+    execGraph.reset();
+    execGraph = std::make_shared<ossia::graph>();
   }
 }
 
