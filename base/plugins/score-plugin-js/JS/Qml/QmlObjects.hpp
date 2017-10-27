@@ -62,7 +62,11 @@ class AudioInlet: public Inlet
     const QVector<QVector<double>>& audio() const;
     void setAudio(const QVector<QVector<double>>& audio);
 
-    Q_INVOKABLE QVector<double> channel(int i) const { return m_audio[i]; }
+    Q_INVOKABLE QVector<double> channel(int i) const {
+      if(m_audio.size() > i)
+        return m_audio[i];
+      return {};
+    }
 
   private:
     QVector<QVector<double>> m_audio;
