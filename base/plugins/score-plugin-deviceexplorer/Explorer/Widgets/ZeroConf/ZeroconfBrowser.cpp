@@ -49,7 +49,7 @@ ZeroconfBrowser::ZeroconfBrowser(const QString& service, QWidget* parent)
   m_list->setSelectionMode(QAbstractItemView::SingleSelection);
   m_list->setModel(m_model);
 
-  connect(m_list, &QListView::doubleClicked, this, [=] (const auto&) {
+  connect(m_list, &QListView::doubleClicked, this, [=] (const QModelIndex&) {
     accept();
   });
 
