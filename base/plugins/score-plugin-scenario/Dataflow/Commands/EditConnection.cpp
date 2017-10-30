@@ -19,8 +19,8 @@ CreateCable::CreateCable(
   : m_model{dp}
   , m_cable{std::move(theCable)}
 {
-  m_dat.source = *cable.source();
-  m_dat.sink = *cable.sink();
+  m_dat.source = cable.source();
+  m_dat.sink = cable.sink();
   m_dat.type = cable.type();
 
   SCORE_ASSERT(m_dat.source != m_dat.sink);
@@ -28,8 +28,9 @@ CreateCable::CreateCable(
 
 void CreateCable::undo(const score::DocumentContext& ctx) const
 {
-  m_dat.source.find(ctx).removeCable(m_cable);
-  m_dat.sink.find(ctx).removeCable(m_cable);
+  auto ext = m_model.extend(m_cable);
+  m_dat.source.find(ctx).removeCable(ext);
+  m_dat.sink.find(ctx).removeCable(ext);
   m_model.find(ctx).cables.remove(m_cable);
 }
 
@@ -39,8 +40,9 @@ void CreateCable::redo(const score::DocumentContext& ctx) const
   auto c = new Process::Cable{ctx, m_cable, m_dat, &model};
 
   model.cables.add(c);
-  m_dat.source.find(ctx).addCable(m_cable);
-  m_dat.sink.find(ctx).addCable(m_cable);
+  auto ext = m_model.extend(m_cable);
+  m_dat.source.find(ctx).addCable(ext);
+  m_dat.sink.find(ctx).addCable(ext);
 }
 
 void CreateCable::serializeImpl(DataStreamInput& s) const
@@ -91,8 +93,8 @@ RemoveCable::RemoveCable(
   , m_cable{c.id()}
 {
   m_data.type = c.type();
-  if(c.source()) m_data.source = *c.source();
-  if(c.sink()) m_data.sink = *c.sink();
+  m_data.source = c.source();
+  m_data.sink = c.sink();
 }
 
 void RemoveCable::undo(const score::DocumentContext& ctx) const

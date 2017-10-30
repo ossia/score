@@ -131,10 +131,6 @@ void IntervalComponent::onSetup(
   // set-up the interval ports
   system().plugin.inlets.insert({interval().ports()[0], std::make_pair(ossia_cst->node, ossia_cst->node->inputs()[0])});
   system().plugin.outlets.insert({interval().ports()[1], std::make_pair(ossia_cst->node, ossia_cst->node->outputs()[0])});
-  system().plugin.inlets.insert({interval().ports()[2], std::make_pair(ossia_cst->node, ossia_cst->node->inputs()[1])});
-  system().plugin.outlets.insert({interval().ports()[3], std::make_pair(ossia_cst->node, ossia_cst->node->outputs()[1])});
-  system().plugin.inlets.insert({interval().ports()[4], std::make_pair(ossia_cst->node, ossia_cst->node->inputs()[2])});
-  system().plugin.outlets.insert({interval().ports()[5], std::make_pair(ossia_cst->node, ossia_cst->node->outputs()[2])});
 
   system().plugin.execGraph->add_node(ossia_cst->node);
 
@@ -215,7 +211,7 @@ ProcessComponent* IntervalComponentBase::make(
       std::vector<int> propagated_outlets;
       for(std::size_t i = 0; i < outlets.size(); i++)
       {
-        if(outlets[i]->propagate() /* && outlets[i]->cables().empty() && outlets[i]->address() == State::AddressAccessor{}*/)
+        if(outlets[i]->propagate())
           propagated_outlets.push_back(i);
       }
 
@@ -230,16 +226,12 @@ ProcessComponent* IntervalComponentBase::make(
             for(int propagated : propagated_outlets)
             {
               const auto& outlet = n.outputs()[propagated]->data;
-              ossia::inlet_ptr cst_inlet;
-              if(outlet.target<ossia::audio_port>()) cst_inlet = cst->node->inputs()[0];
-              else if(outlet.target<ossia::value_port>()) cst_inlet = cst->node->inputs()[1];
-              else if(outlet.target<ossia::midi_port>()) cst_inlet = cst->node->inputs()[2];
-              if(cst_inlet)
+              if(outlet.target<ossia::audio_port>())
               {
                 auto cable = ossia::make_edge(
                       ossia::immediate_glutton_connection{}
                       , n.outputs()[propagated]
-                      , cst_inlet
+                      , cst->node->inputs()[0]
                       , oproc->node
                       , cst->node);
                 plug->system().plugin.execGraph->connect(cable);

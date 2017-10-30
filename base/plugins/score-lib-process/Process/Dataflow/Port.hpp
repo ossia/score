@@ -2,6 +2,8 @@
 #include <score/model/path/Path.hpp>
 #include <State/Address.hpp>
 #include <score/model/IdentifiedObject.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
 #include <QPointer>
 #include <score_lib_process_export.h>
 
@@ -29,19 +31,18 @@ class SCORE_LIB_PROCESS_EXPORT Port
 
     Port* clone(QObject* parent) const;
 
-    template <typename DeserializerVisitor>
-    Port(DeserializerVisitor&& vis, QObject* parent) : IdentifiedObject{vis, parent}
-    {
-      vis.writeTo(*this);
-    }
+    Port(DataStream::Deserializer& vis, QObject* parent);
+    Port(JSONObject::Deserializer& vis, QObject* parent);
+    Port(DataStream::Deserializer&& vis, QObject* parent);
+    Port(JSONObject::Deserializer&& vis, QObject* parent);
 
-    void addCable(const Id<Process::Cable>& c);
-    void removeCable(const Id<Process::Cable>& c);
+    void addCable(const Path<Process::Cable>& c);
+    void removeCable(const Path<Process::Cable>& c);
 
     QString customData() const;
 
     State::AddressAccessor address() const;
-    const std::vector<Id<Cable>>& cables() const;
+    const std::vector<Path<Cable>>& cables() const;
 
     bool propagate() const;
 
@@ -57,7 +58,7 @@ signals:
     void propagateChanged(bool propagate);
 
 private:
-    std::vector<Id<Cable>> m_cables;
+    std::vector<Path<Cable>> m_cables;
     QString m_customData;
     State::AddressAccessor m_address;
     bool m_propagate{false};

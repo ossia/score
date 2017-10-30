@@ -5,25 +5,14 @@
 #include <QFileInfo>
 #include <score/document/DocumentContext.hpp>
 #include <core/document/Document.hpp>
-
+#include <score/tools/File.hpp>
 namespace Media
 {
 void MediaFileHandle::load(
     const QString &filename,
     const score::DocumentContext& ctx)
 {
-  QFileInfo info(filename);
-  QString path = filename;
-
-  if(!info.isAbsolute()) {
-    QFileInfo docroot{ctx.document.metadata().fileName()};
-    path = docroot.canonicalPath();
-    if(!path.endsWith('/'))
-      path += '/';
-    path += filename;
-  }
-
-  m_file = path;
+  m_file = score::locateFilePath(filename, ctx);
   QFile f(m_file);
   if(isAudioFile(f))
   {

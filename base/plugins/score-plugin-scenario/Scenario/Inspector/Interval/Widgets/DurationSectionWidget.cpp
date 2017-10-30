@@ -295,6 +295,7 @@ public:
   OngoingCommandDispatcher m_dispatcher;
   CommandDispatcher<> m_simpleDispatcher;
 };
+/*
 
 class PlayGrid : public QWidget
 {
@@ -361,7 +362,7 @@ private:
   QLabel* m_defaultLab{};
   QLabel* m_currentPosLab{};
 };
-
+*/
 DurationWidget::DurationWidget(
     const Scenario::EditionSettings& set,
     const IntervalInspectorDelegate& delegate,
@@ -369,11 +370,11 @@ DurationWidget::DurationWidget(
     : QWidget{parent}
     , m_editingWidget{new EditionGrid{parent->model(), parent->context(), set,
                                       delegate}}
-    , m_playingWidget{new PlayGrid{parent->model().duration}}
+   // , m_playingWidget{new PlayGrid{parent->model().duration}}
 {
   using namespace score;
   auto mainWidg = this;
-  auto mainLay = new score::MarginLess<QStackedLayout>{mainWidg};
+  auto mainLay = new score::MarginLess<QHBoxLayout>{mainWidg};
   auto& model = parent->model();
   auto& dur = model.duration;
 
@@ -384,29 +385,30 @@ DurationWidget::DurationWidget(
 
       });
   con(dur, &IntervalDurations::minDurationChanged, this, [this](auto v) {
-    m_playingWidget->on_modelMinDurationChanged(v);
+    //m_playingWidget->on_modelMinDurationChanged(v);
     m_editingWidget->on_modelMinDurationChanged(v);
   });
   con(dur, &IntervalDurations::maxDurationChanged, this, [this](auto v) {
-    m_playingWidget->on_modelMaxDurationChanged(v);
+    //m_playingWidget->on_modelMaxDurationChanged(v);
     m_editingWidget->on_modelMaxDurationChanged(v);
   });
   con(dur, &IntervalDurations::rigidityChanged, this, [this](auto v) {
-    m_playingWidget->on_modelRigidityChanged(v);
+   // m_playingWidget->on_modelRigidityChanged(v);
     m_editingWidget->on_modelRigidityChanged(v);
   });
-
+/*
   con(set, &EditionSettings::toolChanged, this, [=](Scenario::Tool t) {
     mainLay->setCurrentWidget(
         t == Tool::Playing ? (QWidget*)m_playingWidget
                            : (QWidget*)m_editingWidget);
   });
-
-  mainLay->addWidget(m_playingWidget);
+*/
+  //mainLay->addWidget(m_playingWidget);
   mainLay->addWidget(m_editingWidget);
-
+/*
   mainLay->setCurrentWidget(
       set.tool() == Tool::Playing ? (QWidget*)m_playingWidget
                                   : (QWidget*)m_editingWidget);
+*/
 }
 }

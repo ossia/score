@@ -182,8 +182,7 @@ void js_node::run(ossia::token_request t, ossia::execution_state&)
   for(int i = 0; i < m_valInlets.size(); i++)
   {
     auto& dat = m_valInlets[i].second->data.target<ossia::value_port>()->data;
-    if(!dat.empty())
-      m_valInlets[i].first->setValue(dat.front().apply(ossia::qt::ossia_to_qvariant{}));
+    m_valInlets[i].first->setValue(dat.apply(ossia::qt::ossia_to_qvariant{}));
   }
 
   QMetaObject::invokeMethod(
@@ -198,7 +197,7 @@ void js_node::run(ossia::token_request t, ossia::execution_state&)
   for(int i = 0; i < m_valOutlets.size(); i++)
   {
     auto& dat = m_valOutlets[i].second->data.target<ossia::value_port>()->data;
-    dat.push_back(ossia::qt::qt_to_ossia{}(m_valOutlets[i].first->value()));
+    dat = ossia::qt::qt_to_ossia{}(m_valOutlets[i].first->value());
   }
 
   for(int out = 0; out < m_audOutlets.size(); out++)

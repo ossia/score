@@ -15,7 +15,7 @@ class PortItem final
     Process::Port& m_port;
   public:
     PortItem(Process::Port& p, QGraphicsItem* parent);
-    ~PortItem();
+    ~PortItem() override;
     Process::Port& port() const { return m_port; }
     std::vector<QPointer<CableItem>> cables;
 
@@ -25,6 +25,7 @@ class PortItem final
   signals:
     void showPanel();
     void createCable(PortItem* src, PortItem* snk);
+    void contextMenuRequested(QPointF scenepos, QPoint pos);
 
   private:
     QRectF boundingRect() const override;

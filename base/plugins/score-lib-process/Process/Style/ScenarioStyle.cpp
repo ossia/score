@@ -185,4 +185,19 @@ void ScenarioStyle::update(const score::Skin& skin)
   Medium12Pt = skin.SansFont;
   Medium12Pt.setPointSize(12);
   Medium12Pt.setStyleStrategy(QFont::NoAntialias);
+
+  AudioCablePen = QPen{QBrush{QColor("#88996666")}, 3., Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+  DataCablePen = QPen{QBrush{QColor("#88669966")}, 3., Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+  MidiCablePen = QPen{QBrush{QColor("#889966dd")}, 3., Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+
+  SelectedAudioCablePen = QPen{QBrush{QColor("#CC996666").lighter()}, 3., Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+  SelectedDataCablePen = QPen{QBrush{QColor("#CC669966").lighter()}, 3., Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+  SelectedMidiCablePen = QPen{QBrush{QColor("#CC9966dd").lighter()}, 3., Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+
+  AudioPortPen = QPen{QBrush{QColor("#FFAAAA")}, 2.};
+  DataPortPen = QPen{QBrush{QColor("#AAFFAA")}, 2.};
+  MidiPortPen = QPen{QBrush{QColor("#AAAAFF")}, 2.};
+  AudioPortBrush = AudioPortPen.brush().color().darker();
+  DataPortBrush = DataPortPen.brush().color().darker();
+  MidiPortBrush = MidiPortPen.brush().color().darker();;
 }

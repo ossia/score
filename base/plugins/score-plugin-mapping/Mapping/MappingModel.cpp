@@ -34,6 +34,10 @@ ProcessModel::ProcessModel(
           duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , inlet{std::make_unique<Process::Port>(Id<Process::Port>(0), this)}
     , outlet{std::make_unique<Process::Port>(Id<Process::Port>(1), this)}
+    , m_sourceMin{0.}
+    , m_sourceMax{1.}
+    , m_targetMin{0.}
+    , m_targetMax{1.}
 {
   inlet->outlet = false;
   inlet->type = Process::PortType::Message;

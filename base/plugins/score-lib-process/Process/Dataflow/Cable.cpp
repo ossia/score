@@ -19,8 +19,8 @@ Cable::Cable(const score::DocumentContext& ctx, Id<Cable> c, const CableData& da
   IdentifiedObject{c, "Cable", parent}
 {
   m_type = data.type;
-  m_source = data.source.try_find(ctx);
-  m_sink = data.sink.try_find(ctx);
+  m_source = data.source;
+  m_sink = data.sink;
 }
 
 void Cable::update(const score::DocumentContext& ctx, const CableData& data)
@@ -29,17 +29,17 @@ void Cable::update(const score::DocumentContext& ctx, const CableData& data)
   sink_node.reset();
   exec.reset();
 
-  setType(data.type);
-  setSource(data.source.try_find(ctx));
-  setSink(data.sink.try_find(ctx));
+  m_type = data.type;
+  m_source = data.source;
+  m_sink = data.sink;
 }
 
 CableData Cable::toCableData() const
 {
   CableData c;
   c.type = m_type;
-  if(m_source) c.source = *m_source;
-  if(m_sink) c.sink = *m_sink;
+  c.source = m_source;
+  c.sink = m_sink;
 
   return c;
 }
@@ -49,12 +49,12 @@ CableType Cable::type() const
   return m_type;
 }
 
-Process::Port* Cable::source() const
+Path<Process::Port> Cable::source() const
 {
   return m_source;
 }
 
-Process::Port* Cable::sink() const
+Path<Process::Port> Cable::sink() const
 {
   return m_sink;
 }
@@ -68,50 +68,19 @@ void Cable::setType(CableType type)
   emit typeChanged(m_type);
 }
 
-void Cable::setSource(Process::Port* source)
+void Cable::setSource(Path<Process::Port> source)
 {
   if (m_source == source)
     return;
-  if(m_source)
-  {
-    QObject::disconnect(m_srcDeath);
-    m_source->removeCable(id());
-  }
-
-  m_source = source;
-
-  if(m_source)
-  {
-    m_srcDeath = connect(m_source, &QObject::destroyed, this, [=] {
-      setSource(nullptr);
-    });
-    m_source->addCable(id());
-  }
-
+  m_source = std::move(source);
   emit sourceChanged(m_source);
 }
 
-void Cable::setSink(Process::Port* sink)
+void Cable::setSink(Path<Process::Port> sink)
 {
   if (m_sink == sink)
     return;
-  if(m_sink)
-  {
-    QObject::disconnect(m_sinkDeath);
-    m_sink->removeCable(id());
-  }
-
-  m_sink = sink;
-
-  if(m_sink)
-  {
-    m_sinkDeath = connect(m_sink, &QObject::destroyed, this, [=] {
-      setSink(nullptr);
-    });
-
-    m_sink->addCable(id());
-  }
-
+  m_sink = std::move(sink);
   emit sinkChanged(m_sink);
 }
 

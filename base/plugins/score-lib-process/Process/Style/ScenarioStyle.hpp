@@ -130,10 +130,25 @@ struct SCORE_LIB_PROCESS_EXPORT ScenarioStyle
   QPen SeparatorPen;
   QBrush SeparatorBrush;
   QBrush DefaultBrush;
-  QBrush TransparentBrush;
+  const QBrush TransparentBrush;
 
   const QPen NoPen{Qt::NoPen};
   const QBrush NoBrush{Qt::NoBrush};
+
+  QPen AudioCablePen;
+  QPen DataCablePen;
+  QPen MidiCablePen;
+
+  QPen SelectedAudioCablePen;
+  QPen SelectedDataCablePen;
+  QPen SelectedMidiCablePen;
+
+  QPen AudioPortPen;
+  QPen DataPortPen;
+  QPen MidiPortPen;
+  QBrush AudioPortBrush;
+  QBrush DataPortBrush;
+  QBrush MidiPortBrush;
 private:
   ScenarioStyle() noexcept;
   void update(const score::Skin& skin);

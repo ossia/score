@@ -101,7 +101,7 @@ void IntervalDurations::setPlayPercentage(double arg)
   auto old = m_playPercentage;
   m_playPercentage = arg;
 
-  if(m_defaultDuration * std::abs(old - m_playPercentage) > TimeVal{std::chrono::milliseconds(10)})
+  if(m_defaultDuration * std::abs(old - m_playPercentage) > TimeVal{std::chrono::milliseconds(16)})
   {
     emit playPercentageChanged(arg);
   }
