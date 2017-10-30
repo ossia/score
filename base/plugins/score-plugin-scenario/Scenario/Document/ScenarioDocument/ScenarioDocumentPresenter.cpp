@@ -363,7 +363,7 @@ void ScenarioDocumentPresenter::on_viewReady()
 
 void ScenarioDocumentPresenter::on_cableAdded(Process::Cable& c)
 {
-  auto it = new Dataflow::CableItem{c, nullptr};
+  auto it = new Dataflow::CableItem{c, m_context, nullptr};
   view().scene().addItem(it);
   cableItems.insert(it);
   connect(it, &Dataflow::CableItem::clicked,
@@ -603,6 +603,12 @@ void ScenarioDocumentPresenter::setNewSelection(const Selection& s)
   static QMetaObject::Connection cur_proc_connection;
   auto process = m_focusManager.focusedModel();
 
+  // OPTIMIZEME
+  for(auto& cable : model().cables)
+  {
+    cable.selection.set(false);
+  }
+
   // Manages the selection (different case if we're
   // selecting something in a process, or something in full view)
   if (s.empty())
@@ -614,6 +620,7 @@ void ScenarioDocumentPresenter::setNewSelection(const Selection& s)
     }
 
     displayedElements.setSelection(Selection{});
+
     // Note : once here was a call to defocus a presenter. Why ? See git blame.
   }
   else if (ossia::any_of(s, [&](const QObject* obj) {
@@ -657,6 +664,16 @@ void ScenarioDocumentPresenter::setNewSelection(const Selection& s)
               this, [&] {
         m_selectionDispatcher.setAndCommit(Selection{});
       }, Qt::UniqueConnection);
+    }
+    else
+    {
+      if(ossia::all_of(s, [] (const QPointer<const IdentifiedObjectAbstract>& obj) { return bool(qobject_cast<const Process::Cable*>(obj.data())); }))
+      {
+        for(auto& cable : model().cables)
+        {
+          cable.selection.set(s.contains(&cable));
+        }
+      }
     }
   }
 

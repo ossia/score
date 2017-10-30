@@ -82,22 +82,22 @@ void DocumentPlugin::on_cableRemoved(const Process::Cable& c)
 
 void DocumentPlugin::connectCable(Process::Cable& cable)
 {
-    if(cable.source())
-    {
-      auto it = outlets.find(cable.source());
-      if(it != outlets.end()) {
-        cable.source_node = it->second.first;
-        cable.source_port = it->second.second;
-      }
+  if(auto port_src = cable.source().try_find(context().doc))
+  {
+    auto it = outlets.find(port_src);
+    if(it != outlets.end()) {
+      cable.source_node = it->second.first;
+      cable.source_port = it->second.second;
     }
-    if(cable.sink())
-    {
-      auto it = inlets.find(cable.sink());
-      if(it != inlets.end()){
-        cable.sink_node = it->second.first;
-        cable.sink_port = it->second.second;
-      }
+  }
+  if(auto port_snk = cable.sink().try_find(context().doc))
+  {
+    auto it = inlets.find(port_snk);
+    if(it != inlets.end()){
+      cable.sink_node = it->second.first;
+      cable.sink_port = it->second.second;
     }
+  }
 
     if(cable.source_node && cable.sink_node)
     {

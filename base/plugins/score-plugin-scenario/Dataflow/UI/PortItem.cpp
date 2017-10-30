@@ -7,7 +7,7 @@
 #include <QPainter>
 #include <QCursor>
 #include <QApplication>
-
+#include <Process/Style/ScenarioStyle.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <State/MessageListSerialization.hpp>
 #include <Dataflow/Commands/EditPort.hpp>
@@ -29,14 +29,15 @@ PortItem::PortItem(Process::Port& p, QGraphicsItem* parent)
 
   g_ports.insert({&p, this});
 
+  Path<Process::Port> path = p;
   for(auto c : CableItem::g_cables)
   {
-    if(c.first->source() == &p)
+    if(c.first->source() == path)
     {
       c.second->setSource(this);
       cables.push_back(c.second);
     }
-    else if(c.first->sink() == &p)
+    else if(c.first->sink() == path)
     {
       c.second->setTarget(this);
       cables.push_back(c.second);
@@ -66,26 +67,24 @@ QRectF PortItem::boundingRect() const
 void PortItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, true);
-  QColor c;
+
+  auto& style = ScenarioStyle::instance();
   switch(m_port.type)
   {
     case Process::PortType::Audio:
-      c = QColor("#FFAAAA");
+      painter->setPen(style.AudioPortPen);
+      painter->setBrush(style.AudioPortBrush);
       break;
     case Process::PortType::Message:
-      c = QColor("#AAFFAA");
+      painter->setPen(style.DataPortPen);
+      painter->setBrush(style.DataPortBrush);
       break;
     case Process::PortType::Midi:
-      c = QColor("#AAAAFF");
+      painter->setPen(style.MidiPortPen);
+      painter->setBrush(style.MidiPortBrush);
       break;
   }
 
-  QPen p = c;
-  p.setWidth(2);
-  QBrush b = c.darker();
-
-  painter->setPen(p);
-  painter->setBrush(b);
   painter->drawEllipse(boundingRect());
   painter->setRenderHint(QPainter::Antialiasing, false);
 }
@@ -93,6 +92,17 @@ void PortItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
 static PortItem* clickedPort{};
 void PortItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
+  if(this->contains(event->pos()))
+  {
+    switch(event->button())
+    {
+      case Qt::RightButton:
+        emit contextMenuRequested(event->scenePos(), event->screenPos());
+        break;
+      default:
+        break;
+    }
+  }
   event->accept();
 }
 
@@ -116,7 +126,16 @@ void PortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 void PortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   if(this->contains(event->pos()))
-    emit showPanel();
+  {
+    switch(event->button())
+    {
+      case Qt::LeftButton:
+        emit showPanel();
+        break;
+      default:
+        break;
+    }
+  }
   event->accept();
 }
 

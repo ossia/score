@@ -230,6 +230,21 @@ struct TSerializer<JSONValue, Id<U>>
     obj.setVal(s.val.toInt());
   }
 };
+/*
+template <typename U>
+struct TSerializer<JSONValue, Path<U>>
+{
+  static void readFrom(JSONValue::Serializer& s, const Path<U>& obj)
+  {
+    s.val = toJsonArray(obj.unsafePath().vec());
+  }
+
+  static void writeTo(JSONValue::Deserializer& s, Path<U>& obj)
+  {
+    fromJsonArray(s.val.toArray(), obj.unsafePath_ref().vec());
+  }
+};
+*/
 
 template <typename U>
 struct TSerializer<JSONValue, OptionalId<U>>
@@ -332,6 +347,15 @@ void fromJsonValueArray(const QJsonArray&& json_arr, std::vector<Id<V>>& arr)
   for (const auto& elt : json_arr)
   {
     arr.push_back(fromJsonValue<Id<V>>(elt));
+  }
+}
+template <typename V>
+void fromJsonValueArray(const QJsonArray&& json_arr, std::vector<Path<V>>& arr)
+{
+  arr.reserve(json_arr.size());
+  for (const auto& elt : json_arr)
+  {
+    arr.push_back(fromJsonValue<Path<V>>(elt));
   }
 }
 

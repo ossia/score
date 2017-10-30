@@ -86,17 +86,12 @@ class mapping_node final :
       auto& inlet = *m_inlets[0];
       auto& outlet = *m_outlets[0];
       ossia::value_port* ip = inlet.data.target<ossia::value_port>();
-      if(!ip->data.empty())
+      ossia::value_port* op = outlet.data.target<ossia::value_port>();
+      if(ip->data.valid())
       {
-        ossia::value_port* op = outlet.data.target<ossia::value_port>();
-        ossia::value val = ip->data.front();
-        if(val.valid())
-        {
-          ossia::value res =
-              ossia::apply(
-                ossia::detail::mapper_compute_visitor{}, val.v, m_drive.v);
-          op->data.push_back(std::move(res));
-        }
+        op->data =
+            ossia::apply(
+              ossia::detail::mapper_compute_visitor{}, ip->data.v, m_drive.v);
       }
     }
 

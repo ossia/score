@@ -99,12 +99,7 @@ void ScenarioComponent::init()
   auto ossia_sc = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
   // set-up the ports
   ctx.plugin.inlets.insert({process().inlets()[0], std::make_pair(ossia_sc->node, ossia_sc->node->inputs()[0])});
-  ctx.plugin.inlets.insert({process().inlets()[1], std::make_pair(ossia_sc->node, ossia_sc->node->inputs()[1])});
-  ctx.plugin.inlets.insert({process().inlets()[2], std::make_pair(ossia_sc->node, ossia_sc->node->inputs()[2])});
-
   ctx.plugin.outlets.insert({process().outlets()[0], std::make_pair(ossia_sc->node, ossia_sc->node->outputs()[0])});
-  ctx.plugin.outlets.insert({process().outlets()[1], std::make_pair(ossia_sc->node, ossia_sc->node->outputs()[1])});
-  ctx.plugin.outlets.insert({process().outlets()[2], std::make_pair(ossia_sc->node, ossia_sc->node->outputs()[2])});
 
   ctx.plugin.execGraph->add_node(ossia_sc->node);
 
@@ -268,16 +263,13 @@ IntervalComponent* ScenarioComponentBase::make<IntervalComponent, Scenario::Inte
     auto& proc = sub.OSSIAProcess();
     proc.add_time_interval(ossia_cst);
 
-    for(int i = 0; i < 3; i++)
-    {
-      auto cable = ossia::make_edge(
-                     ossia::immediate_glutton_connection{}
-                     , ossia_cst->node->outputs()[i]
-                     , proc.node->inputs()[i]
-                     , ossia_cst->node
-                     , proc.node);
-      sub.system().plugin.execGraph->connect(cable);
-    }
+    auto cable = ossia::make_edge(
+                   ossia::immediate_glutton_connection{}
+                   , ossia_cst->node->outputs()[0]
+                   , proc.node->inputs()[0]
+                   , ossia_cst->node
+                   , proc.node);
+    sub.system().plugin.execGraph->connect(cable);
   });
   return elt.get();
 }

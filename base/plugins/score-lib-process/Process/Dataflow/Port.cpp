@@ -1,4 +1,6 @@
 #include "Port.hpp"
+#include <Process/Dataflow/Cable.hpp>
+#include <score/model/path/PathSerialization.hpp>
 
 namespace Process
 {
@@ -30,13 +32,30 @@ Port* Port::clone(QObject* parent) const
   return new Port{id(), *this, parent};
 }
 
-void Port::addCable(const Id<Cable> &c)
+Port::Port(DataStream::Deserializer& vis, QObject* parent): IdentifiedObject{vis, parent}
+{
+  vis.writeTo(*this);
+}
+Port::Port(JSONObject::Deserializer& vis, QObject* parent): IdentifiedObject{vis, parent}
+{
+  vis.writeTo(*this);
+}
+Port::Port(DataStream::Deserializer&& vis, QObject* parent): IdentifiedObject{vis, parent}
+{
+  vis.writeTo(*this);
+}
+Port::Port(JSONObject::Deserializer&& vis, QObject* parent): IdentifiedObject{vis, parent}
+{
+  vis.writeTo(*this);
+}
+
+void Port::addCable(const Path<Cable> &c)
 {
   m_cables.push_back(c);
   emit cablesChanged();
 }
 
-void Port::removeCable(const Id<Cable> &c)
+void Port::removeCable(const Path<Cable> &c)
 {
   auto it = ossia::find(m_cables, c);
   if(it != m_cables.end())
@@ -56,7 +75,7 @@ State::AddressAccessor Port::address() const
   return m_address;
 }
 
-const std::vector<Id<Cable> > &Port::cables() const { return m_cables; }
+const std::vector<Path<Cable>>& Port::cables() const { return m_cables; }
 
 bool Port::propagate() const
 {
@@ -116,7 +135,7 @@ SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::Port>(const Proces
   obj["Outlet"] = p.outlet;
   obj["Custom"] = p.m_customData;
   obj["Address"] = toJsonObject(p.m_address);
-  obj["Cables"] = toJsonValueArray(p.m_cables);
+  obj["Cables"] = toJsonArray(p.m_cables);
 }
 template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::Port>(Process::Port& p)
@@ -126,5 +145,5 @@ SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::Port>(Process::Po
   p.outlet = obj["Outlet"].toBool();
   p.m_customData = obj["Custom"].toString();
   p.m_address = fromJsonObject<State::AddressAccessor>(obj["Address"]);
-  fromJsonValueArray(obj["Cables"].toArray(), p.m_cables);
+  fromJsonArray(obj["Cables"].toArray(), p.m_cables);
 }

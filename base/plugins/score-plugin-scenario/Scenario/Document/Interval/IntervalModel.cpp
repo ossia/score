@@ -49,14 +49,6 @@ IntervalModel::IntervalModel(
     p->type = Process::PortType::Audio; p->outlet = false; m_ports.push_back(p); }
   { auto p = new Process::Port{Id<Process::Port>{1}, this};
     p->type = Process::PortType::Audio; p->setPropagate(true); p->outlet = true; m_ports.push_back(p); }
-  { auto p = new Process::Port{Id<Process::Port>{2}, this};
-    p->type = Process::PortType::Message; p->outlet = false; m_ports.push_back(p); }
-  { auto p = new Process::Port{Id<Process::Port>{3}, this};
-    p->type = Process::PortType::Message; p->outlet = true; m_ports.push_back(p); }
-  { auto p = new Process::Port{Id<Process::Port>{4}, this};
-    p->type = Process::PortType::Midi; p->outlet = false; m_ports.push_back(p); }
-  { auto p = new Process::Port{Id<Process::Port>{5}, this};
-    p->type = Process::PortType::Midi; p->outlet = true; m_ports.push_back(p); }
 }
 
 IntervalModel::~IntervalModel()

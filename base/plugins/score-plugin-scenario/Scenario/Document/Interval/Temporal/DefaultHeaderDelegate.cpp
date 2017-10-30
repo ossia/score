@@ -19,6 +19,7 @@
 #include <QDialogButtonBox>
 #include <score/widgets/SignalUtils.hpp>
 #include <QCheckBox>
+#include <QMenu>
 namespace Scenario
 {
 class PortWidget : public QWidget
@@ -151,6 +152,19 @@ class PortPanel final
 };
 */
 
+template<typename Vec>
+bool intersection_empty(const Vec& v1, const Vec& v2)
+{
+  for(const auto& e1 : v1)
+  {
+    for(const auto& e2 : v2)
+    {
+      if(e1 == e2)
+        return false;
+    }
+  }
+  return true;
+}
 
 void DefaultHeaderDelegate::onCreateCable(Dataflow::PortItem* p1, Dataflow::PortItem* p2)
 {
@@ -160,17 +174,30 @@ void DefaultHeaderDelegate::onCreateCable(Dataflow::PortItem* p1, Dataflow::Port
   Process::CableData cd;
   cd.type = Process::CableType::ImmediateStrict;
 
-  if(p1->port().outlet)
+  auto& port1 = p1->port();
+  auto& port2 = p2->port();
+  if(port1.parent() == port2.parent())
+    return;
+
+  if(!intersection_empty(port1.cables(), port2.cables()))
+     return;
+
+  if(port1.outlet == port2.outlet)
+    return;
+
+  if(port1.type != port2.type)
+    return;
+
+  if(port1.outlet)
   {
-    cd.source = p1->port();
-    cd.sink = p2->port();
+    cd.source = port1;
+    cd.sink = port2;
   }
   else
   {
-    cd.source = p2->port();
-    cd.sink = p1->port();
+    cd.source = port2;
+    cd.sink = port1;
   }
-
   disp.submitCommand<Dataflow::CreateCable>(
         plug,
         getStrongId(plug.cables),
@@ -270,6 +297,18 @@ void DefaultHeaderDelegate::updatePorts()
       //panel->setPos(item->mapToScene(item->pos()));
       panel->exec();
       panel->deleteLater();
+    });
+    connect(item, &Dataflow::PortItem::contextMenuRequested,
+            this, [&,&pt=*port,item] (QPointF sp, QPoint p) {
+      auto menu = new QMenu{};
+      auto act = menu->addAction(tr("Create automation"));
+      connect(act, &QAction::toggled, this, [] {
+        // TODO :
+        // create automation in the same interval
+        // create connection from automation output to this input
+      });
+      menu->exec(p);
+      menu->deleteLater();
     });
     connect(item, &Dataflow::PortItem::createCable,
             this, &DefaultHeaderDelegate::onCreateCable);

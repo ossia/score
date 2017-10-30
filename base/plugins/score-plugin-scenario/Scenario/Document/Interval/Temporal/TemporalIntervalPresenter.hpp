@@ -81,6 +81,7 @@ private:
 
   std::vector<SlotPresenter> m_slots;
   bool m_handles{true};
+  void setHeaderWidth(const SlotPresenter& slot, double w);
 };
 
 }

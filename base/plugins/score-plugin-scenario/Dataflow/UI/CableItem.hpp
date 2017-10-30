@@ -17,7 +17,7 @@ class CableItem
 
   public:
     static bool g_cables_enabled;
-    CableItem(Process::Cable& c, QGraphicsItem* parent = nullptr);
+    CableItem(Process::Cable& c, const score::DocumentContext& ctx, QGraphicsItem* parent = nullptr);
     ~CableItem();
     const Id<Process::Cable>& id() const { return m_cable.id(); }
     void resize();
@@ -47,6 +47,7 @@ class CableItem
     QPointer<PortItem> m_p1, m_p2;
     QPainterPath m_path;
     Process::PortType m_type{};
+    int8_t a1{}, a2{}, a3{}, a4{};
 
 
 };

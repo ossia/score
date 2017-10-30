@@ -57,6 +57,8 @@ ProcessModel::ProcessModel(
     : CurveProcessModel{duration, id,
                         Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , outlet{std::make_unique<Process::Port>(Id<Process::Port>(0), this)}
+    , m_min{0.}
+    , m_max{1.}
     , m_startState{new ProcessState{*this, 0., this}}
     , m_endState{new ProcessState{*this, 1., this}}
 {

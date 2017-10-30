@@ -482,6 +482,8 @@ void TemporalIntervalPresenter::on_layerModelPutToFront(int slot, const Process:
         slt.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
         slt.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
         slt.headerDelegate->setPos(30, 0);
+
+        setHeaderWidth(slt, m_model.duration.defaultDuration().toPixels(m_zoomRatio));
       }
       else
       {
@@ -618,6 +620,33 @@ void TemporalIntervalPresenter::requestSlotMenu(int slot, QPoint pos, QPointF sp
   }
 }
 
+void TemporalIntervalPresenter::setHeaderWidth(const SlotPresenter& slot, double w)
+{
+  slot.header->setWidth(w);
+  if(slot.handle)
+    slot.handle->setWidth(w);
+
+  if(slot.headerDelegate)
+  {
+    auto pw = slot.headerDelegate->minPortWidth();
+    if(w - SlotHeader::handleWidth() - SlotHeader::menuWidth() >= pw) {
+      slot.header->setMini(false);
+
+      slot.headerDelegate->setSize(QSizeF{std::max(0., w - SlotHeader::handleWidth() - SlotHeader::menuWidth()), SlotHeader::headerHeight()});
+      slot.headerDelegate->setX(30);
+    }
+    else {
+      slot.header->setMini(true);
+
+      slot.headerDelegate->setSize(QSizeF{w, SlotHeader::headerHeight()});
+      slot.headerDelegate->setX(0);
+    }
+  }
+  else
+  {
+    slot.header->setMini(false);
+  }
+}
 void TemporalIntervalPresenter::on_defaultDurationChanged(const TimeVal& val)
 {
   const auto w = val.toPixels(m_zoomRatio);
@@ -631,30 +660,7 @@ void TemporalIntervalPresenter::on_defaultDurationChanged(const TimeVal& val)
 
   for(const SlotPresenter& slot : m_slots)
   {
-    slot.header->setWidth(w);
-    if(slot.handle)
-      slot.handle->setWidth(w);
-
-    if(slot.headerDelegate)
-    {
-      auto pw = slot.headerDelegate->minPortWidth();
-      if(w - SlotHeader::handleWidth() - SlotHeader::menuWidth() >= pw) {
-        slot.header->setMini(false);
-
-        slot.headerDelegate->setSize(QSizeF{std::max(0., w - SlotHeader::handleWidth() - SlotHeader::menuWidth()), SlotHeader::headerHeight()});
-        slot.headerDelegate->setX(30);
-      }
-      else {
-        slot.header->setMini(true);
-
-        slot.headerDelegate->setSize(QSizeF{w, SlotHeader::headerHeight()});
-        slot.headerDelegate->setX(0);
-      }
-    }
-    else
-    {
-      slot.header->setMini(false);
-    }
+    setHeaderWidth(slot, w);
 
     for(const LayerData& proc : slot.processes)
     {

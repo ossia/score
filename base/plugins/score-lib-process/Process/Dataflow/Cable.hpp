@@ -4,6 +4,7 @@
 #include <score/model/IdentifiedObject.hpp>
 #include <score_lib_process_export.h>
 #include <QPointer>
+#include <score/selection/Selectable.hpp>
 
 namespace ossia
 {
@@ -42,9 +43,10 @@ class SCORE_LIB_PROCESS_EXPORT Cable
 {
     Q_OBJECT
     Q_PROPERTY(CableType type READ type WRITE setType NOTIFY typeChanged)
-    Q_PROPERTY(Process::Port* source READ source WRITE setSource NOTIFY sourceChanged)
-    Q_PROPERTY(Process::Port* sink READ sink WRITE setSink NOTIFY sinkChanged)
+    Q_PROPERTY(Path<Process::Port> source READ source WRITE setSource NOTIFY sourceChanged)
+    Q_PROPERTY(Path<Process::Port> sink READ sink WRITE setSink NOTIFY sinkChanged)
   public:
+    Selectable selection;
     Cable() = delete;
     ~Cable();
     Cable(const Cable&) = delete;
@@ -68,24 +70,25 @@ class SCORE_LIB_PROCESS_EXPORT Cable
     ossia::edge_ptr exec;
 
     CableType type() const;
-    Process::Port* source() const;
-    Process::Port* sink() const;
+    Path<Process::Port> source() const;
+    Path<Process::Port> sink() const;
 
     void setType(CableType type);
-    void setSource(Process::Port* source);
-    void setSink(Process::Port* sink);
-
+    void setSource(Path<Process::Port> source);
+    void setSink(Path<Process::Port> sink);
 signals:
     void typeChanged(CableType type);
-    void sourceChanged(Process::Port* source);
-    void sinkChanged(Process::Port* sink);
+    void sourceChanged(Path<Process::Port> source);
+    void sinkChanged(Path<Process::Port> sink);
 
 private:
     CableType m_type{};
-    QPointer<Process::Port> m_source{};
-    QPointer<Process::Port> m_sink{};
-    QMetaObject::Connection m_srcDeath, m_sinkDeath;
+    Path<Process::Port> m_source;
+    Path<Process::Port> m_sink;
 };
 
 
 }
+
+DEFAULT_MODEL_METADATA(Process::Cable, "Cable")
+
