@@ -5,7 +5,7 @@
 #include <atomic>
 #include <Media/AudioArray.hpp>
 #include <ossia/detail/optional.hpp>
-
+#include <score_plugin_media_export.h>
 struct AVFrame;
 struct SwrContext;
 
@@ -19,7 +19,7 @@ struct AudioInfo
     int64_t max_arr_length{};
 };
 
-class AudioDecoder :
+class SCORE_PLUGIN_MEDIA_EXPORT AudioDecoder :
     public QObject
 {
     Q_OBJECT
@@ -28,6 +28,9 @@ class AudioDecoder :
     AudioDecoder();
     ossia::optional<AudioInfo> probe(const QString& path);
     void decode(const QString& path);
+
+    static ossia::optional<std::pair<AudioInfo, AudioArray>>
+      decode_synchronous(const QString& path);
 
     int64_t sampleRate{};
     std::size_t decoded{};

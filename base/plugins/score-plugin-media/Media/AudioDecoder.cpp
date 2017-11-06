@@ -523,7 +523,6 @@ std::size_t AudioDecoder::read_length(const QString& path)
       avcodec_send_packet(codec_ctx.get(), NULL);
 
       return pos;
-
     }
   }
   return 0;
@@ -566,6 +565,21 @@ void AudioDecoder::decode(const QString &path)
   this->moveToThread(&m_decodeThread);
   m_decodeThread.start();
   emit startDecode(path);
+}
+
+ossia::optional<std::pair<AudioInfo, AudioArray>> AudioDecoder::decode_synchronous(
+    const QString& path)
+{
+
+  AudioDecoder dec;
+  auto res = dec.probe(path);
+  if(!res)
+    return ossia::none;
+
+  dec.sampleRate = res->rate;
+  dec.on_startDecode(path);
+
+  return std::make_pair(*std::move(res), std::move(dec.data));
 }
 
 template<typename Decoder>
