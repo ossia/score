@@ -9,7 +9,6 @@
 #include <Dataflow/UI/ConstraintNode.hpp>
 #include <Dataflow/DocumentPlugin.hpp>
 #include <boost/graph/graphviz.hpp>
-#include <portaudio.h>
 #include <ossia/dataflow/audio_parameter.hpp>
 #include <ossia/dataflow/audio_protocol.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>

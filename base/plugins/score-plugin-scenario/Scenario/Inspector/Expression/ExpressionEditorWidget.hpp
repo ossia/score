@@ -16,6 +16,7 @@
  * ****************************************************************/
 
 class QVBoxLayout;
+class QMenu;
 
 namespace Scenario
 {

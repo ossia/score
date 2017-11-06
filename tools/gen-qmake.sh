@@ -22,8 +22,8 @@ $RESOURCES
 (
 cd ../API
 
-HEADERS=$(ls OSSIA/**/*.{h,hpp})
-SOURCES=$(ls OSSIA/**/*.cpp)
+HEADERS=$(ls OSSIA/ossia/**/*.{h,hpp})
+SOURCES=$(ls OSSIA/ossia/**/*.cpp)
 
 HEADERS=$(echo "$HEADERS" |sed 's/^/HEADERS+=API\//g')
 SOURCES=$(echo "$SOURCES" |sed 's/^/SOURCES+=API\//g')
