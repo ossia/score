@@ -1,3 +1,5 @@
+score-srcs.pri
+*.jsc
 *.qmlc
 Tests/testdata/stacks2
 .idea

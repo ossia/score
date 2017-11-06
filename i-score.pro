@@ -3,12 +3,22 @@ TARGET = i-score
 TEMPLATE = app
 CONFIG += c++14 object_parallel_to_source warn_off
 
-QT+=core widgets gui multimedia network xml opengl websockets quick quickwidgets qml svg
+QT+=core widgets gui multimedia network xml opengl websockets quick quickwidgets qml svg serialport quickcontrols2
 
 # cp *.h *.hpp from cmake
 INCLUDEPATH += $$PWD/base/lib \
-$$PWD/3rdparty/nano-signal-slot \
-$$PWD/3rdparty/variant/include \
+$$PWD/API/3rdparty/asio/asio/include \
+$$PWD/API/3rdparty/brigand/include \
+$$PWD/API/3rdparty/chobo-shl/include \
+$$PWD/API/3rdparty/fmt \
+$$PWD/API/3rdparty/hopscotch-map/src \
+$$PWD/API/3rdparty/nano-signal-slot/include \
+$$PWD/API/3rdparty/rapidjson/include \
+$$PWD/API/3rdparty/readerwriterqueue \
+$$PWD/API/3rdparty/Servus \
+$$PWD/API/3rdparty/spdlog/include \
+$$PWD/API/3rdparty/variant/include \
+$$PWD/API/3rdparty/websocketpp \
 $$PWD/3rdparty/QRecentFilesMenu \
 $$PWD/3rdparty/QProgressIndicator \
 $$PWD/3rdparty/Qt-Color-Widgets \
@@ -21,47 +31,38 @@ $$PWD/API/3rdparty/oscpack \
 $$PWD/API/3rdparty/ModernMIDI \
 $$PWD/API/3rdparty/rapidjson/include \
 $$PWD/API/3rdparty/ModernMIDI/third_party \
-$$PWD/base/plugins/iscore-lib-state \
-$$PWD/base/plugins/iscore-plugin-curve \
-$$PWD/base/plugins/iscore-plugin-deviceexplorer \
-$$PWD/base/plugins/iscore-plugin-inspector \
-$$PWD/base/plugins/iscore-plugin-library \
-$$PWD/base/plugins/iscore-plugin-pluginsettings \
-$$PWD/base/plugins/iscore-plugin-scenario \
-$$PWD/base/plugins/iscore-lib-device \
-$$PWD/base/plugins/iscore-lib-process \
-$$PWD/base/plugins/iscore-plugin-automation \
-$$PWD/base/plugins/iscore-plugin-js \
-$$PWD/base/plugins/iscore-plugin-mapping \
-$$PWD/base/plugins/iscore-plugin-loop \
-$$PWD/base/plugins/iscore-component-executor-automation \
-$$PWD/base/plugins/iscore-component-executor-loop \
-$$PWD/base/plugins/iscore-component-executor-mapping \
-$$PWD/base/plugins/iscore-lib-inspector \
-$$PWD/base/plugins/iscore-plugin-engine \
-$$PWD/base/plugins/iscore-plugin-midi \
-$$PWD/base/plugins/iscore-plugin-recording \
-$$PWD/base/plugins/iscore-plugin-interpolation
+$$PWD/base/plugins/score-lib-state \
+$$PWD/base/plugins/score-plugin-curve \
+$$PWD/base/plugins/score-plugin-deviceexplorer \
+$$PWD/base/plugins/score-plugin-inspector \
+$$PWD/base/plugins/score-plugin-library \
+$$PWD/base/plugins/score-plugin-pluginsettings \
+$$PWD/base/plugins/score-plugin-scenario \
+$$PWD/base/plugins/score-lib-device \
+$$PWD/base/plugins/score-lib-process \
+$$PWD/base/plugins/score-plugin-automation \
+$$PWD/base/plugins/score-plugin-js \
+$$PWD/base/plugins/score-plugin-mapping \
+$$PWD/base/plugins/score-plugin-media \
+$$PWD/base/plugins/score-plugin-loop \
+$$PWD/base/plugins/score-lib-inspector \
+$$PWD/base/plugins/score-plugin-engine \
+$$PWD/base/plugins/score-plugin-midi \
+$$PWD/base/plugins/score-plugin-recording \
+$$PWD/base/plugins/score-plugin-interpolation
 
-DEFINES += QT_STATICPLUGIN ISCORE_STATIC_PLUGINS ISCORE_DEPLOYMENT_BUILD
+DEFINES += QT_STATICPLUGIN SCORE_STATIC_PLUGINS SCORE_DEPLOYMENT_BUILD TINYSPLINE_DOUBLE_PRECISION
 
-include($$PWD/i-score-srcs.pri)
+include($$PWD/score-srcs.pri)
 
 include($$PWD/3rdparty/QProgressIndicator/qprogressindicator.pri)
 include($$PWD/3rdparty/QRecentFilesMenu/QRecentFilesMenu.pri)
 include($$PWD/3rdparty/Qt-Color-Widgets/color_widgets.pri)
 include($$PWD/3rdparty/quazip/quazip/quazip.pri)
 
-HEADERS += $$PWD/base/app/Application.hpp \
-    $$OUT_PWD/iscore_component_executor_automation_plugin.hpp \
-    $$OUT_PWD/iscore_component_executor_mapping_plugin.hpp \
-    $$OUT_PWD/iscore_component_executor_loop_plugin.hpp
 SOURCES += \
     $$PWD/base/app/main.cpp \
-    $$PWD/base/app/Application.cpp \
-    $$OUT_PWD/iscore_component_executor_automation_plugin.cpp \
-    $$OUT_PWD/iscore_component_executor_mapping_plugin.cpp \
-    $$OUT_PWD/iscore_component_executor_loop_plugin.cpp
+    $$PWD/base/app/Application.cpp 
 
 LIBS += -lz
 ios{

@@ -11,6 +11,8 @@ class QComboBox;
 class QLabel;
 class QLineEdit;
 class QToolButton;
+class QMenu;
+class QPushButton;
 namespace Explorer
 {
 class AddressAccessorEditWidget;

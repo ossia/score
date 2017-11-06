@@ -1,6 +1,9 @@
 #pragma once
 #include <QObject>
 #include <QString>
+#include <QMap>
+#include <QByteArray>
+#include <memory>
 
 #include <score_plugin_deviceexplorer_export.h>
 

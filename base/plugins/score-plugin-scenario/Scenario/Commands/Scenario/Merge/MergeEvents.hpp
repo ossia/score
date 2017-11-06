@@ -11,6 +11,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/command/Command.hpp>
+#include <score/command/AggregateCommand.hpp>
 
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>

@@ -9,6 +9,7 @@ class StateProcessList;
 class ProcessModelFactory;
 class LayerFactory;
 class StateProcessFactory;
+class ProcessModel;
 }
 namespace Scenario
 {

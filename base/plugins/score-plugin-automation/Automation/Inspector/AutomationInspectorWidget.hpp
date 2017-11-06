@@ -8,6 +8,7 @@
 #include <Automation/Metronome/MetronomeModel.hpp>
 #include <Explorer/Widgets/AddressEditWidget.hpp>
 
+class QLabel;
 class QWidget;
 class QCheckBox;
 
