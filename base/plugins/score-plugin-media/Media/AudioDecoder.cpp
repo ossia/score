@@ -418,7 +418,7 @@ QHash<QString, AudioInfo>&AudioDecoder::database()
 
 auto debug_ffmpeg(int ret, QString ctx)
 {
-  if(ret < 0)
+  if(ret < 0 && ret != AVERROR_EOF)
   {
     char err[100]{0};
     av_make_error_string(err, 100, ret);
@@ -577,6 +577,12 @@ ossia::optional<std::pair<AudioInfo, AudioArray>> AudioDecoder::decode_synchrono
     return ossia::none;
 
   dec.sampleRate = res->rate;
+  dec.data.resize(res->channels);
+  for(auto& c : dec.data)
+  {
+    c.resize(res->max_arr_length);
+  }
+
   dec.on_startDecode(path);
 
   return std::make_pair(*std::move(res), std::move(dec.data));
@@ -645,7 +651,6 @@ void AudioDecoder::decodeRemaining()
 }
 void AudioDecoder::on_startDecode(QString path)
 {
-  qDebug() << "DECODING START" << path;
   try {
   const std::size_t channels = data.size();
 
@@ -792,7 +797,6 @@ void AudioDecoder::on_startDecode(QString path)
   }
 
   emit finishedDecoding();
-  qDebug("DECODING OK");
   m_decodeThread.quit();
 
   return;

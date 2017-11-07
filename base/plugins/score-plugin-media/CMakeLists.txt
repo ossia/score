@@ -108,7 +108,6 @@ endif()
 if(NOT ANDROID)
 target_link_libraries(${PROJECT_NAME} PUBLIC
   score_plugin_loop
-  ${SNDFILE_LIBRARIES}
   )
 endif()
 setup_score_plugin(${PROJECT_NAME})
