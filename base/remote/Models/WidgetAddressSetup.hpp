@@ -13,6 +13,7 @@ struct SetSliderAddress
   GUIItem& item;
   const Device::FullAddressSettings& address;
 
+  void operator()() { }
   void operator()(State::impulse c)
   {
     // Do nothing
@@ -87,6 +88,7 @@ struct SetCheckboxAddress
   GUIItem& item;
   const Device::FullAddressSettings& address;
 
+  void operator()() { }
   void operator()(State::impulse)
   {
     // Do nothing
@@ -140,6 +142,7 @@ struct SetLineEditAddress
   GUIItem& item;
   const Device::FullAddressSettings& address;
 
+  void operator()() { }
   void operator()(State::impulse)
   {
     // Do nothing
@@ -195,6 +198,7 @@ struct SetLabelAddress
   GUIItem& item;
   const Device::FullAddressSettings& address;
 
+  void operator()() { }
   void operator()(State::impulse)
   {
     // Do nothing
@@ -240,7 +244,7 @@ struct SetLabelAddress
   void operator()(const State::list_t& c)
   {
     QQmlProperty(item.item(), "text.text")
-        .write("List" + State::convert::value<QString>(ossia::value::fromValue(c)));
+        .write("List" + State::convert::value<QString>(c));
   }
 };
 

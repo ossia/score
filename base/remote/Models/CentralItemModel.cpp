@@ -15,6 +15,8 @@ namespace RemoteUI
 // Type to widget
 struct AddressItemFactory
 {
+  auto operator()()
+  { throw std::runtime_error("no item"); return WidgetKind::PushButton; }
   auto operator()(State::impulse i)
   { return WidgetKind::PushButton; }
 
@@ -102,10 +104,10 @@ void CentralItemModel::on_addressCreated(QString data, qreal x, qreal y)
     if(n)
     {
       auto as = n->target<Device::AddressSettings>();
-      if(as && as->value.val.isValid())
+      if(as && as->value.valid())
       {
         // We try to create a relevant component according to the type of the value.
-        auto comp_type = eggs::variants::apply(AddressItemFactory{}, as->value.v);
+        auto comp_type = as->value.apply(AddressItemFactory{});
 
         if(auto obj = create(comp_type))
         {

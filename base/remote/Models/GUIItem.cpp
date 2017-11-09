@@ -46,27 +46,27 @@ void GUIItem::setAddress(
   {
     case WidgetKind::HSlider:
     {
-      eggs::variants::apply(SetSliderAddress{*this, addr}, addr.value.v);
+      addr.value.apply(SetSliderAddress{*this, addr});
       break;
     }
     case WidgetKind::VSlider:
     {
-      eggs::variants::apply(SetSliderAddress{*this, addr}, addr.value.v);
+      addr.value.apply(SetSliderAddress{*this, addr});
       break;
     }
     case WidgetKind::CheckBox:
     {
-      eggs::variants::apply(SetCheckboxAddress{*this, addr}, addr.value.v);
+      addr.value.apply(SetCheckboxAddress{*this, addr});
       break;
     }
     case WidgetKind::LineEdit:
     {
-      eggs::variants::apply(SetLineEditAddress{*this, addr}, addr.value.v);
+      addr.value.apply(SetLineEditAddress{*this, addr});
       break;
     }
     case WidgetKind::Label:
     {
-      eggs::variants::apply(SetLabelAddress{*this, addr}, addr.value.v);
+      addr.value.apply(SetLabelAddress{*this, addr});
       m_ctx.application.enableListening(m_addr, this);
       // Not editable
       break;
@@ -104,7 +104,7 @@ void GUIItem::setAddress(QString data)
     if(n)
     {
       auto as = n->target<Device::AddressSettings>();
-      if(as && as->value.val.isValid())
+      if(as && as->value.valid())
       {
         setAddress(Device::FullAddressSettings::make<Device::FullAddressSettings::as_child>(*as, *address));
       }
@@ -117,7 +117,7 @@ void GUIItem::on_impulse()
   sendMessage(
         State::Message{
           State::AddressAccessor{m_addr.address},
-          ossia::value::fromValue(State::impulse{})});
+          ossia::value(State::impulse{})});
 }
 
 void GUIItem::on_boolValueChanged(bool b)
@@ -125,7 +125,7 @@ void GUIItem::on_boolValueChanged(bool b)
   sendMessage(
         State::Message{
           State::AddressAccessor{m_addr.address},
-          ossia::value::fromValue(b)});
+          ossia::value(b)});
 }
 
 void GUIItem::on_floatValueChanged(qreal r)
@@ -133,7 +133,7 @@ void GUIItem::on_floatValueChanged(qreal r)
   sendMessage(
         State::Message{
           State::AddressAccessor{m_addr.address},
-          ossia::value::fromValue((float) r)});
+          ossia::value((float) r)});
 }
 
 void GUIItem::on_stringValueChanged(QString str)
@@ -141,7 +141,7 @@ void GUIItem::on_stringValueChanged(QString str)
   sendMessage(
         State::Message{
           State::AddressAccessor{m_addr.address},
-          ossia::value::fromValue(str.toStdString())});
+          ossia::value(str.toStdString())});
 }
 
 void GUIItem::on_parsableValueChanged(QString s)
@@ -160,13 +160,13 @@ void GUIItem::on_intValueChanged(qreal r)
   sendMessage(
         State::Message{
           State::AddressAccessor{m_addr.address},
-          ossia::value::fromValue((int) r)});
+          ossia::value((int) r)});
 }
 
 void GUIItem::setValue(const State::Message& m)
 {
   if(m_compType == WidgetKind::Label)
-      eggs::variants::apply(SetLabelAddress{*this, m_addr}, m.value.v);
+      m.value.apply(SetLabelAddress{*this, m_addr});
 }
 
 
