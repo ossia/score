@@ -21,7 +21,7 @@ namespace RemoteUI
 RemoteApplication::RemoteApplication(int& argc, char** argv):
   m_app{argc, argv},
   m_engine{},
-  m_appContext{m_applicationSettings, m_components, m_settings},
+  m_appContext{m_applicationSettings, m_components, m_docs, m_settings},
   m_context{m_engine, m_widgets.componentList, m_nodes, m_ws, *this, [&] {
 
     m_engine.rootContext()->setContextProperty(
@@ -54,7 +54,7 @@ RemoteApplication::RemoteApplication(int& argc, char** argv):
         std::make_pair(
           "Message"s,
           json_fun{[this] (const QJsonObject& json) {
-  auto m = unmarshall<State::Message>(json);
+  auto m = score::unmarshall<State::Message>(json);
                      qDebug() << m;
   auto it = m_listening.find(m.address.address);
   if(it != m_listening.end())
@@ -88,7 +88,7 @@ void RemoteApplication::enableListening(const Device::FullAddressSettings& a, GU
   {
     QJsonObject obj;
     obj[score::StringConstant().Message] = "EnableListening";
-    obj[score::StringConstant().Address] = marshall<JSONObject>(a.address);
+    obj[score::StringConstant().Address] = score::marshall<JSONObject>(a.address);
     m_ws.socket().sendTextMessage(QJsonDocument(obj).toJson());
 
     m_listening[a.address] = i;
@@ -101,7 +101,7 @@ void RemoteApplication::disableListening(const Device::FullAddressSettings& a, G
   {
     QJsonObject obj;
     obj[score::StringConstant().Message] = "DisableListening";
-    obj[score::StringConstant().Address] = marshall<JSONObject>(a.address);
+    obj[score::StringConstant().Address] = score::marshall<JSONObject>(a.address);
     m_ws.socket().sendTextMessage(QJsonDocument(obj).toJson());
   }
 

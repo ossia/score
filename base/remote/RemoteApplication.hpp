@@ -7,6 +7,7 @@
 #include <Models/CentralItemModel.hpp>
 #include <WebSocketClient.hpp>
 #include <Models/NodeModel.hpp>
+#include <core/presenter/DocumentManager.hpp>
 
 namespace score {
 class Settings;
@@ -43,6 +44,7 @@ private:
   score::ApplicationComponentsData m_compData;
   score::ApplicationComponents m_components{m_compData};
   std::vector<std::unique_ptr<score::SettingsDelegateModel>> m_settings;
+  score::DocumentList m_docs;
   score::ApplicationContext m_appContext;
 
   RemoteUI::WidgetListModel m_widgets{m_engine};

@@ -2,6 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "NodeModel.hpp"
 #include <Device/ItemModels/NodeDisplayMethods.hpp>
+#include <ossia/editor/value/value_traits.hpp>
 namespace RemoteUI
 {
 
@@ -64,7 +65,7 @@ QVariant NodeModel::data(const QModelIndex &index, int role) const
       if(auto addr = n.target<Device::AddressSettings>())
       {
         const ossia::value& val = addr->value;
-        if (val.val.isArray())
+        if (ossia::is_array(val))
         {
           return State::convert::toPrettyString(val);
         }
