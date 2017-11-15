@@ -115,14 +115,13 @@ class midi_node_process : public ossia::node_process
 
 };
 Component::Component(
-    Engine::Execution::IntervalComponent& parentInterval,
     Midi::ProcessModel& element,
     const Engine::Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
   : ::Engine::Execution::
       ProcessComponent_T<Midi::ProcessModel, ossia::node_process>{
-        parentInterval, element, ctx, id, "MidiComponent", parent}
+        element, ctx, id, "MidiComponent", parent}
 {
   auto node = std::make_shared<midi_node>();
   auto proc = std::make_shared<ossia::node_process>(node);

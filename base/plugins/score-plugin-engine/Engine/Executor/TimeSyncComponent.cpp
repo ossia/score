@@ -99,24 +99,13 @@ void TimeSyncComponent::updateTrigger()
 
 void TimeSyncComponent::on_GUITrigger()
 {
-  if(dynamic_cast<Scenario::ProcessModel*>(this->scoreTimeSync().parent()))
+  this->system().executionQueue.enqueue(
+        [e = m_ossia_node]
   {
-    this->system().executionQueue.enqueue(
-          [this,e = m_ossia_node]
-    {
-        e->trigger_request = true;
-    });
-  }
-  else
-  {
-    this->system().executionQueue.enqueue(
-          [this,e = m_ossia_node]
-    {
-        ossia::state st;
-        e->trigger(st); //TODO refactor w/ loop
-    });
-  }
-
+      e->trigger_request = true;
+  });
 }
+
+
 }
 }

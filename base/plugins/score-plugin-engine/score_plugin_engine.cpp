@@ -129,13 +129,13 @@ score_plugin_engine::factories(
                  Engine::Execution::ScenarioComponentFactory,
                  Engine::Execution::SoundComponentFactory,
                  Engine::Execution::InputComponentFactory,
-                 Interpolation::Executor::ComponentFactory,
+                 //Interpolation::Executor::ComponentFactory,
                  Automation::RecreateOnPlay::ComponentFactory,
                  Mapping::RecreateOnPlay::ComponentFactory,
-                 Loop::RecreateOnPlay::ComponentFactory,
-                 Gradient::RecreateOnPlay::ComponentFactory,
-                 Spline::RecreateOnPlay::ComponentFactory,
-                 Metronome::RecreateOnPlay::ComponentFactory
+                 Loop::RecreateOnPlay::ComponentFactory
+                 //Gradient::RecreateOnPlay::ComponentFactory,
+                 //Spline::RecreateOnPlay::ComponentFactory,
+                 //Metronome::RecreateOnPlay::ComponentFactory
       >,
             FW<Explorer::ListeningHandlerFactory,
                  Engine::Execution::PlayListeningHandlerFactory>,

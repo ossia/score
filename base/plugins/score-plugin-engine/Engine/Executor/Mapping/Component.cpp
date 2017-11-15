@@ -98,13 +98,12 @@ class mapping_node final :
     ossia::behavior m_drive;
 };
 Component::Component(
-    ::Engine::Execution::IntervalComponent& parentInterval,
     ::Mapping::ProcessModel& element,
     const ::Engine::Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
     : ::Engine::Execution::
-          ProcessComponent_T<Mapping::ProcessModel, ossia::node_process>{parentInterval,
+          ProcessComponent_T<Mapping::ProcessModel, ossia::node_process>{
                                                                    element,
                                                                    ctx, id,
                                                                    "MappingElement",

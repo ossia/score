@@ -21,14 +21,13 @@ namespace JS
 namespace Executor
 {
 Component::Component(
-    ::Engine::Execution::IntervalComponent& parentInterval,
     JS::ProcessModel& element,
     const ::Engine::Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
   : ::Engine::Execution::
       ProcessComponent_T<JS::ProcessModel, ossia::node_process>{
-        parentInterval, element, ctx, id, "JSComponent", parent}
+         element, ctx, id, "JSComponent", parent}
 {
   auto node = std::make_shared<js_node>("");
   auto proc = std::make_shared<ossia::node_process>(node);

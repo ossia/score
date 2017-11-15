@@ -47,7 +47,6 @@ public:
     static constexpr bool is_unique = true;
 
   ProcessComponent(
-      IntervalComponent& cst,
       Process::ProcessModel& proc,
       const Context& ctx,
       const Id<score::Component>& id,
@@ -55,7 +54,6 @@ public:
       QObject* parent)
       : Process::GenericProcessComponent<const Context>{proc, ctx, id, name,
                                                          parent}
-      , m_parent_interval{cst}
   {
   }
 
@@ -77,7 +75,6 @@ public:
   }
 
 protected:
-  IntervalComponent& m_parent_interval;
   std::shared_ptr<ossia::time_process> m_ossia_process;
 };
 
@@ -102,7 +99,6 @@ class SCORE_PLUGIN_ENGINE_EXPORT ProcessComponentFactory
 public:
   virtual ~ProcessComponentFactory();
   virtual std::shared_ptr<ProcessComponent> make(
-      IntervalComponent& cst,
       Process::ProcessModel& proc,
       const Context& ctx,
       const Id<score::Component>& id,
@@ -120,13 +116,12 @@ class ProcessComponentFactory_T
 public:
   using model_type = typename ProcessComponent_T::model_type;
   std::shared_ptr<ProcessComponent> make(
-      IntervalComponent& cst,
       Process::ProcessModel& proc,
       const Context& ctx,
       const Id<score::Component>& id,
       QObject* parent) const final override
   {
-    auto comp = std::make_shared<ProcessComponent_T>(cst, static_cast<model_type&>(proc), ctx, id,
+    auto comp = std::make_shared<ProcessComponent_T>(static_cast<model_type&>(proc), ctx, id,
                                   parent);
     this->init(comp.get());
     return comp;
