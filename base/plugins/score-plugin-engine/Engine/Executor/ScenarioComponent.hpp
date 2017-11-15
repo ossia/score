@@ -67,7 +67,6 @@ class ScenarioComponentBase
   friend class EventInitCommand;
 public:
   ScenarioComponentBase(
-      IntervalComponent& cst,
       Scenario::ProcessModel& proc,
       const Context& ctx,
       const Id<score::Component>& id,
@@ -147,7 +146,6 @@ using ScenarioComponentHierarchy
 struct ScenarioComponent final : public ScenarioComponentHierarchy
 {
   ScenarioComponent(
-      IntervalComponent& cst,
       Scenario::ProcessModel& proc,
       const Context& ctx,
       const Id<score::Component>& id,

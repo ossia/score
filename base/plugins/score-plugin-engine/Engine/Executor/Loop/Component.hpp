@@ -25,7 +25,8 @@ namespace Execution
 {
 class EventComponent;
 class StateComponent;
-class TimeSyncComponent;
+class IntervalRawPtrComponent;
+class TimeSyncRawPtrComponent;
 }
 }
 namespace Scenario
@@ -44,7 +45,6 @@ class Component final : public ::Engine::Execution::
   COMPONENT_METADATA("77b987ae-7bc8-4273-aa9c-9e4ba53a053d")
 public:
   Component(
-      ::Engine::Execution::IntervalComponent& parentInterval,
       ::Loop::ProcessModel& element,
       const ::Engine::Execution::Context& ctx,
       const Id<score::Component>& id,
@@ -61,10 +61,10 @@ private:
   void stopIntervalExecution(const Id<Scenario::IntervalModel>&);
 
 private:
-  Engine::Execution::IntervalComponent* m_ossia_interval{};
+  Engine::Execution::IntervalRawPtrComponent* m_ossia_interval{};
 
-  Engine::Execution::TimeSyncComponent* m_ossia_startTimeSync{};
-  Engine::Execution::TimeSyncComponent* m_ossia_endTimeSync{};
+  Engine::Execution::TimeSyncRawPtrComponent* m_ossia_startTimeSync{};
+  Engine::Execution::TimeSyncRawPtrComponent* m_ossia_endTimeSync{};
 
   Engine::Execution::EventComponent* m_ossia_startEvent{};
   Engine::Execution::EventComponent* m_ossia_endEvent{};

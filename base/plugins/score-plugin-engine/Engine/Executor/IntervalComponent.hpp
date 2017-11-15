@@ -93,7 +93,7 @@ public:
   //! To be called from the GUI thread
   interval_duration_data makeDurations() const;
 
-  std::shared_ptr<ossia::time_interval> OSSIAInterval() const;
+  const std::shared_ptr<ossia::time_interval>& OSSIAInterval() const;
   Scenario::IntervalModel& scoreInterval() const;
 
   const auto& processes() const { return m_processes; }
@@ -147,6 +147,9 @@ class SCORE_PLUGIN_ENGINE_EXPORT IntervalComponent final :
   IntervalComponent& operator=(const IntervalComponent&) = delete;
   IntervalComponent& operator=(IntervalComponent&&) = delete;
   ~IntervalComponent();
+
+  // only here to help autocompletion
+  const std::shared_ptr<ossia::time_interval>& OSSIAInterval() const { return IntervalComponentBase::OSSIAInterval(); }
 
   void init();
   void cleanup();

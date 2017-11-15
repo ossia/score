@@ -39,11 +39,8 @@ DefaultClockManager::makeDefaultCallback(
   auto& cst = bs.baseInterval();
   return [this, &score_cst = cst.scoreInterval()](
       double position,
-      ossia::time_value date,
-      const ossia::state_element& state)
+      ossia::time_value date)
   {
-    ossia::launch(state);
-
     auto currentTime = this->context.reverseTime(date);
 
     auto& cstdur = score_cst.duration;
@@ -71,11 +68,10 @@ void DefaultClockManager::prepareExecution(
   const auto& oc = comp.OSSIAInterval();
 
   auto start_state = oc->get_start_event().get_state();
-  auto offset_state = oc->offset(context.time(t));
+  oc->offset(context.time(t));
 
   ossia::state accumulator;
   ossia::flatten_and_filter(accumulator, start_state);
-  ossia::flatten_and_filter(accumulator, offset_state);
   accumulator.launch();
 }
 
@@ -85,9 +81,7 @@ void DefaultClockManager::play_impl(
   prepareExecution(t, bs);
   try
   {
-    ossia::state st;
-    bs.baseInterval().OSSIAInterval()->start(st);
-    ossia::launch(st);
+    bs.baseInterval().OSSIAInterval()->start_and_tick();
     bs.baseInterval().executionStarted();
   }
   catch (const std::exception& e)
@@ -146,9 +140,7 @@ void ControlClock::play_impl(
     m_default.prepareExecution(t, bs);
     try
     {
-      ossia::state st;
-      m_clock.start(st);
-      ossia::launch(st);
+      m_clock.start_and_tick();
       bs.baseInterval().executionStarted();
     }
     catch (const std::exception& e)

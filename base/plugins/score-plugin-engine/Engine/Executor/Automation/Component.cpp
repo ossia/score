@@ -97,13 +97,11 @@ class automation_node final :
 
 
 Component::Component(
-    ::Engine::Execution::IntervalComponent& parentInterval,
     ::Automation::ProcessModel& element,
     const ::Engine::Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
   : ProcessComponent_T{
-        parentInterval,
         element,
         ctx,
         id, "Executor::AutomationComponent", parent}

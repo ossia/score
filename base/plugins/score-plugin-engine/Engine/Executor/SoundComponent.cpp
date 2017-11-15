@@ -9,13 +9,11 @@ namespace Execution
 {
 
 SoundComponent::SoundComponent(
-    Engine::Execution::IntervalComponent &parentConstraint,
     Media::Sound::ProcessModel &element,
     const Engine::Execution::Context &ctx,
     const Id<score::Component> &id,
     QObject *parent)
   : Engine::Execution::ProcessComponent_T<Media::Sound::ProcessModel, ossia::node_process>{
-      parentConstraint,
       element,
       ctx,
       id, "Executor::SoundComponent", parent}
@@ -200,13 +198,11 @@ void input_node::run(ossia::token_request t, ossia::execution_state& e)
 }
 
 InputComponent::InputComponent(
-    Engine::Execution::IntervalComponent &parentConstraint,
     Media::Input::ProcessModel &element,
     const Engine::Execution::Context &ctx,
     const Id<score::Component> &id,
     QObject *parent)
   : Engine::Execution::ProcessComponent_T<Media::Input::ProcessModel, ossia::node_process>{
-      parentConstraint,
       element,
       ctx,
       id, "Executor::InputComponent", parent}

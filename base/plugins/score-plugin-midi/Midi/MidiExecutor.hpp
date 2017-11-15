@@ -35,7 +35,6 @@ class Component final
 public:
     static const constexpr bool is_unique = true;
   Component(
-      Engine::Execution::IntervalComponent& parentInterval,
       Midi::ProcessModel& element,
       const Engine::Execution::Context& ctx,
       const Id<score::Component>& id,

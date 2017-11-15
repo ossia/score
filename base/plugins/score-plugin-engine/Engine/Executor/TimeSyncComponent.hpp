@@ -45,5 +45,6 @@ private:
   std::shared_ptr<ossia::time_sync> m_ossia_node;
   const Scenario::TimeSyncModel& m_score_node;
 };
+
 }
 }

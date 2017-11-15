@@ -114,8 +114,7 @@ void IntervalComponent::onSetup(
   {
     m_ossia_interval->set_stateless_callback(
         [&](double position,
-            ossia::time_value date,
-            const ossia::state_element& state) {
+            ossia::time_value date) {
       auto currentTime = this->context().reverseTime(date);
 
       auto& cstdur = interval().duration;
@@ -137,7 +136,7 @@ void IntervalComponent::onSetup(
   init();
 }
 
-std::shared_ptr<ossia::time_interval>
+const std::shared_ptr<ossia::time_interval>&
 IntervalComponentBase::OSSIAInterval() const
 {
   return m_ossia_interval;
@@ -202,7 +201,7 @@ ProcessComponent* IntervalComponentBase::make(
   {
     auto& self = static_cast<Engine::Execution::IntervalComponent&>(*this);
     const Engine::Execution::Context& ctx = system();
-    auto plug = fac.make(self, proc, ctx, id, nullptr);
+    auto plug = fac.make(proc, ctx, id, nullptr);
     if (plug)
     {
       m_processes.emplace(proc.id(), plug);

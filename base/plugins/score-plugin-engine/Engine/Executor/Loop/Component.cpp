@@ -18,11 +18,11 @@
 #include <ossia/editor/loop/loop.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
 #include <ossia/editor/state/state.hpp>
-#include <Engine/Executor/IntervalComponent.hpp>
+#include <Engine/Executor/IntervalRawPtrComponent.hpp>
 #include <Engine/Executor/EventComponent.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
 #include <Engine/Executor/StateComponent.hpp>
-#include <Engine/Executor/TimeSyncComponent.hpp>
+#include <Engine/Executor/TimeSyncRawPtrComponent.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
@@ -44,20 +44,19 @@ namespace Loop
 namespace RecreateOnPlay
 {
 Component::Component(
-    ::Engine::Execution::IntervalComponent& parentInterval,
     ::Loop::ProcessModel& element,
     const ::Engine::Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
     : ::Engine::Execution::ProcessComponent_T<Loop::ProcessModel, ossia::loop>{
-          parentInterval, element, ctx, id, "LoopComponent", parent}
+          element, ctx, id, "LoopComponent", parent}
 {
   ossia::time_value main_duration(ctx.time(
       element.interval().duration.defaultDuration()));
 
   std::shared_ptr<ossia::loop> loop = std::make_shared<ossia::loop>(
       main_duration,
-      [](double, ossia::time_value, const ossia::state_element&) {},
+      [](double, ossia::time_value) {},
       [this, &element](ossia::time_event::status newStatus) {
 
         element.startEvent().setStatus(
@@ -109,15 +108,15 @@ Component::Component(
 
   // TODO also states in BasEelement
   // TODO put graphical settings somewhere.
-  auto main_start_node = loop->get_start_timesync();
-  auto main_end_node = loop->get_end_timesync();
-  auto main_start_event = *main_start_node->get_time_events().begin();
-  auto main_end_event = *main_end_node->get_time_events().begin();
+  auto& main_start_node = loop->get_start_timesync();
+  auto& main_end_node = loop->get_end_timesync();
+  auto main_start_event = *main_start_node.get_time_events().begin();
+  auto main_end_event = *main_end_node.get_time_events().begin();
 
   using namespace Engine::Execution;
-  m_ossia_startTimeSync = new TimeSyncComponent(element.startTimeSync(),
+  m_ossia_startTimeSync = new TimeSyncRawPtrComponent(element.startTimeSync(),
                                               system(), score::newId(element.startTimeSync()), this);
-  m_ossia_endTimeSync = new TimeSyncComponent(element.endTimeSync(),
+  m_ossia_endTimeSync = new TimeSyncRawPtrComponent(element.endTimeSync(),
                                             system(), score::newId(element.endTimeSync()), this);
 
   m_ossia_startEvent = new EventComponent(element.startEvent(),
@@ -131,15 +130,15 @@ Component::Component(
       = new StateComponent(element.endState(), system(), score::newId(element.endState()), this);
 
 
-  m_ossia_interval = new IntervalComponent(element.interval(), system(), score::newId(element.interval()), this);
+  m_ossia_interval = new IntervalRawPtrComponent(element.interval(), system(), score::newId(element.interval()), this);
 
-  m_ossia_startTimeSync->onSetup(main_start_node, m_ossia_startTimeSync->makeTrigger());
-  m_ossia_endTimeSync->onSetup(main_end_node, m_ossia_endTimeSync->makeTrigger());
+  m_ossia_startTimeSync->onSetup(&main_start_node, m_ossia_startTimeSync->makeTrigger());
+  m_ossia_endTimeSync->onSetup(&main_end_node, m_ossia_endTimeSync->makeTrigger());
   m_ossia_startEvent->onSetup(main_start_event, m_ossia_startEvent->makeExpression(), (ossia::time_event::offset_behavior)element.startEvent().offsetBehavior());
   m_ossia_endEvent->onSetup(main_end_event, m_ossia_endEvent->makeExpression(), (ossia::time_event::offset_behavior)element.endEvent().offsetBehavior());
   m_ossia_startState->onSetup(main_start_event);
   m_ossia_endState->onSetup(main_end_event);
-  m_ossia_interval->onSetup(loop->get_time_interval(), m_ossia_interval->makeDurations(), false);
+  m_ossia_interval->onSetup(&loop->get_time_interval(), m_ossia_interval->makeDurations(), false);
 
   element.startState().components().add(m_ossia_startState);
   element.endState().components().add(m_ossia_endState);

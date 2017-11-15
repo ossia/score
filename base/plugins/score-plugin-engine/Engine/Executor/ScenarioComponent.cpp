@@ -56,12 +56,11 @@ namespace Engine
 namespace Execution
 {
 ScenarioComponentBase::ScenarioComponentBase(
-    IntervalComponent& parentInterval,
     Scenario::ProcessModel& element,
     const Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
-  : ProcessComponent_T<Scenario::ProcessModel, ossia::scenario>{parentInterval,
+  : ProcessComponent_T<Scenario::ProcessModel, ossia::scenario>{
                                                                 element, ctx,
                                                                 id,
                                                                 "ScenarioComponent",
@@ -80,12 +79,11 @@ ScenarioComponentBase::ScenarioComponentBase(
 }
 
 ScenarioComponent::ScenarioComponent(
-    IntervalComponent& cst,
     Scenario::ProcessModel& proc,
     const Context& ctx,
     const Id<score::Component>& id,
     QObject* parent):
-  ScenarioComponentHierarchy{score::lazy_init_t{}, cst, proc, ctx, id, parent}
+  ScenarioComponentHierarchy{score::lazy_init_t{}, proc, ctx, id, parent}
 {
 }
 
@@ -214,7 +212,7 @@ std::function<void ()> ScenarioComponentBase::removing(
 }
 
 static void ScenarioIntervalCallback(
-    double, ossia::time_value, const ossia::state_element& element)
+    double, ossia::time_value)
 {
 }
 
@@ -359,7 +357,7 @@ TimeSyncComponent* ScenarioComponentBase::make<TimeSyncComponent, Scenario::Time
   ossia_tn->triggered.add_callback([thisP=shared_from_this(),elt] {
     auto& sub = static_cast<ScenarioComponentBase&>(*thisP);
     return sub.timeSyncCallback(
-          elt.get(), sub.m_parent_interval.OSSIAInterval()->get_date());
+          elt.get(), ossia::time_value{}/* TODO WTF sub.m_parent_interval.OSSIAInterval()->get_date()*/);
   });
 
   // Changing the running API structures
