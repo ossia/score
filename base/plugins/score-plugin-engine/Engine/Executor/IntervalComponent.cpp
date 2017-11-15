@@ -160,8 +160,8 @@ void IntervalComponentBase::resume()
 void IntervalComponentBase::stop()
 {
   m_ossia_interval->stop();
-  auto st = m_ossia_interval->get_end_event().get_state();
-  st.launch();
+  // TODO STATE auto st = m_ossia_interval->get_end_event().get_state();
+  // TODO STATE st.launch();
 
   for (auto& process : m_processes)
   {

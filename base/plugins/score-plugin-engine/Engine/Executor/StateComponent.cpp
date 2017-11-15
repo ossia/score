@@ -28,14 +28,14 @@ SCORE_PLUGIN_ENGINE_EXPORT void StateComponent::onSetup(
     const std::shared_ptr<ossia::time_event>& root)
 {
   m_ev = root;
-  m_ev->add_state(m_state);
+  // TODO STATE m_ev->add_state(m_state);
 }
 
 SCORE_PLUGIN_ENGINE_EXPORT void StateComponent::onDelete() const
 {
   system().executionQueue.enqueue([ev=m_ev,st=m_state] {
-    if(ev)
-      ev->remove_state(st);
+  // TODO STATE   if(ev)
+  // TODO STATE     ev->remove_state(st);
   });
 }
 
