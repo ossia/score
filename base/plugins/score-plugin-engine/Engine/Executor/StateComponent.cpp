@@ -3,7 +3,12 @@
 #include "StateComponent.hpp"
 #include <Engine/score2OSSIA.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
+#include <Engine/Executor/DocumentPlugin.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
+#include <ossia/dataflow/graph.hpp>
+
+#include <ossia/dataflow/node_process.hpp>
+#include <ossia/dataflow/state_node.hpp>
 
 namespace Engine
 {
@@ -14,8 +19,8 @@ SCORE_PLUGIN_ENGINE_EXPORT StateComponent::StateComponent(
     const Engine::Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
-    : Execution::Component{ctx, id, "Executor::State", nullptr}
-    , m_state{Engine::score_to_ossia::state(element, ctx)}
+  : Execution::Component{ctx, id, "Executor::State", nullptr}
+  , m_state{Engine::score_to_ossia::state(element, ctx)}
 {
 }
 
@@ -28,14 +33,26 @@ SCORE_PLUGIN_ENGINE_EXPORT void StateComponent::onSetup(
     const std::shared_ptr<ossia::time_event>& root)
 {
   m_ev = root;
-  // TODO STATE m_ev->add_state(m_state);
+  if(!m_state.empty())
+  {
+    auto node = std::make_shared<ossia::state_node>(m_state);
+    m_ev->add_time_process(
+          std::make_shared<ossia::node_process>(
+            node));
+    this->system().plugin.execGraph->add_node(node);
+  }
 }
 
 SCORE_PLUGIN_ENGINE_EXPORT void StateComponent::onDelete() const
 {
-  system().executionQueue.enqueue([ev=m_ev,st=m_state] {
-  // TODO STATE   if(ev)
-  // TODO STATE     ev->remove_state(st);
+  system().executionQueue.enqueue([gr=this->system().plugin.execGraph,ev=m_ev,st=m_state] {
+    auto& procs = ev->get_time_processes();
+    if(!procs.empty())
+    {
+      const auto& proc = (*procs.begin());
+      gr->remove_node(proc->node);
+      ev->remove_time_process(proc.get());
+    }
   });
 }
 

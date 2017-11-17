@@ -65,14 +65,15 @@ void DefaultClockManager::prepareExecution(
 {
   IntervalComponentBase& comp = bs.baseInterval();
   comp.interval().duration.setPlayPercentage(0);
-  const auto& oc = comp.OSSIAInterval();
 
-  // TODO STATE auto start_state = oc->get_start_event().get_state();
+  // Send the first state
+  const auto& oc = comp.OSSIAInterval();
+  oc->get_start_event().tick();
+  context.plugin.execGraph->state(context.plugin.execState);
+
   oc->offset(context.time(t));
 
-  // TODO STATE ossia::state accumulator;
-  // TODO STATE ossia::flatten_and_filter(accumulator, start_state);
-  // TODO STATE accumulator.launch();
+  context.plugin.execState.commit();
 }
 
 void DefaultClockManager::play_impl(
@@ -124,9 +125,9 @@ ControlClock::ControlClock(
       [=](ossia::clock::exec_status c) {
         if (c == ossia::clock::exec_status::STOPPED)
         {
-          // TODO STATE ossia::state accumulator;
-          // TODO STATE ossia::flatten_and_filter(accumulator, context.scenario.endEvent().OSSIAEvent()->get_state());
-          // TODO STATE accumulator.launch();
+          context.scenario.endEvent().OSSIAEvent()->tick();
+          context.plugin.execGraph->state(context.plugin.execState);
+          context.plugin.execState.commit();
 
           emit context.scenario.finished();
         }
