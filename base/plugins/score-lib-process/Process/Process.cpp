@@ -179,11 +179,11 @@ void ProcessModel::setSlotHeight(double v)
   emit slotHeightChanged(v);
 }
 
-std::vector<Process::Port*> ProcessModel::inlets() const
+Inlets ProcessModel::inlets() const
 {
   return {};
 }
-std::vector<Process::Port*> ProcessModel::outlets() const
+Outlets ProcessModel::outlets() const
 {
   return {};
 }

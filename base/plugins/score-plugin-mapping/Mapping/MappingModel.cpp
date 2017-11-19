@@ -16,12 +16,12 @@
 
 namespace Mapping
 {
-std::vector<Process::Port*> ProcessModel::inlets() const
+Process::Inlets ProcessModel::inlets() const
 {
   return {inlet.get()};
 }
 
-std::vector<Process::Port*> ProcessModel::outlets() const
+Process::Outlets ProcessModel::outlets() const
 {
   return {outlet.get()};
 }
@@ -32,18 +32,16 @@ ProcessModel::ProcessModel(
     QObject* parent)
     : Curve::CurveProcessModel{
           duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-    , inlet{std::make_unique<Process::Port>(Id<Process::Port>(0), this)}
-    , outlet{std::make_unique<Process::Port>(Id<Process::Port>(1), this)}
+    , inlet{Process::make_inlet(Id<Process::Port>(0), this)}
+    , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
     , m_sourceMin{0.}
     , m_sourceMax{1.}
     , m_targetMin{0.}
     , m_targetMax{1.}
 {
-  inlet->outlet = false;
   inlet->type = Process::PortType::Message;
-
-  outlet->outlet = true;
   outlet->type = Process::PortType::Message;
+
   setCurve(new Curve::Model{Id<Curve::Model>(45345), this});
 
   auto s1 = new Curve::DefaultCurveSegmentModel(
@@ -78,8 +76,8 @@ ProcessModel::ProcessModel(
     QObject* parent)
   : CurveProcessModel{source, id, Metadata<ObjectKey_k, ProcessModel>::get(),
                         parent}
-    , inlet{std::make_unique<Process::Port>(source.inlet->id(), *source.inlet, this)}
-    , outlet{std::make_unique<Process::Port>(source.outlet->id(), *source.outlet, this)}
+    , inlet{Process::clone_inlet(*source.inlet, this)}
+    , outlet{Process::clone_outlet(*source.outlet, this)}
     , m_sourceMin{source.sourceMin()}
     , m_sourceMax{source.sourceMax()}
     , m_targetMin{source.targetMin()}

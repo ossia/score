@@ -14,7 +14,7 @@ void DataStreamWriter::write(Media::Sound::ProcessModel& proc)
     QString s;
     m_stream >> s;
     proc.setFile(s);
-    proc.outlet = std::make_unique<Process::Port>(*this, &proc);
+    proc.outlet = make_outlet(*this, &proc);
 
     checkDelimiter();
 }
@@ -31,5 +31,5 @@ void JSONObjectWriter::write(Media::Sound::ProcessModel& proc)
 {
     proc.setFile(obj["File"].toString());
     JSONObjectWriter writer{obj["Outlet"].toObject()};
-    proc.outlet = std::make_unique<Process::Port>(writer, &proc);
+    proc.outlet = Process::make_outlet(writer, &proc);
 }

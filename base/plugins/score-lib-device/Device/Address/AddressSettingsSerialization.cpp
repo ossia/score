@@ -15,7 +15,7 @@
 #include <ossia/editor/dataspace/dataspace.hpp>
 #include <ossia/editor/dataspace/dataspace_visitors.hpp>
 #include <Device/Address/ClipMode.hpp>
-#include <Device/Address/Domain.hpp>
+#include <State/Domain.hpp>
 #include <Device/Address/IOType.hpp>
 #include <State/Value.hpp>
 #include <score/serialization/AnySerialization.hpp>
@@ -68,7 +68,7 @@ void JSONObjectWriter::write(Device::AddressSettingsCommon& n)
   n.repetitionFilter = (ossia::repetition_filter) obj[strings.RepetitionFilter].toBool();
 
   writeTo(n.value);
-  n.domain = fromJsonObject<Device::Domain>(obj[strings.Domain].toObject());
+  n.domain = fromJsonObject<State::Domain>(obj[strings.Domain].toObject());
 
   n.extendedAttributes = fromJsonObject<score::any_map>(obj[strings.Extended]);
 }
@@ -193,7 +193,7 @@ JSONObjectWriter::write(Device::FullAddressAccessorSettings& n)
 
   writeTo(n.value);
 
-  n.domain = fromJsonObject<Device::Domain>(obj[strings.Domain].toObject());
+  n.domain = fromJsonObject<State::Domain>(obj[strings.Domain].toObject());
   n.extendedAttributes = fromJsonObject<score::any_map>(obj[strings.Extended]);
 
 

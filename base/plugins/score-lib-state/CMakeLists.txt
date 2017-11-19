@@ -13,6 +13,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/State/MessageSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Address.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/State/Domain.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Value.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/ValueConversion.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Relation.cpp"
@@ -37,6 +38,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/State/Address.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/DomainSerialization.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/DomainSerializationImpl.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/Domain.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/Expression.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/Message.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/MessageListSerialization.hpp"

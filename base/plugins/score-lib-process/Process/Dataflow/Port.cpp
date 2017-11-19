@@ -10,8 +10,8 @@ Port::~Port()
 
 }
 
-Port::Port(Id<Port> c, QObject* parent)
-  : IdentifiedObject<Port>{c, QStringLiteral("Port"), parent}
+Port::Port(Id<Port> c, const QString& name, QObject* parent)
+  : IdentifiedObject<Port>{c, name, parent}
 {
 
 }
@@ -20,8 +20,6 @@ Port::Port(Id<Port> c, const Port& other, QObject* parent)
   : IdentifiedObject<Port>{c, QStringLiteral("Port"), parent}
 {
   type = other.type;
-  m_propagate = other.m_propagate;
-  outlet = other.outlet;
   m_cables = other.m_cables;
   m_customData = other.m_customData;
   m_address = other.m_address;
@@ -77,11 +75,6 @@ State::AddressAccessor Port::address() const
 
 const std::vector<Path<Cable>>& Port::cables() const { return m_cables; }
 
-bool Port::propagate() const
-{
-  return m_propagate;
-}
-
 void Port::setCustomData(const QString &customData)
 {
   if (m_customData == customData)
@@ -100,7 +93,136 @@ void Port::setAddress(const State::AddressAccessor &address)
   emit addressChanged(m_address);
 }
 
-void Port::setPropagate(bool propagate)
+
+///////////////////////////////
+/// Inlet
+///////////////////////////////
+
+Inlet::~Inlet()
+{
+
+}
+
+Inlet::Inlet(Id<Process::Port> c, QObject* parent)
+  : Port{std::move(c), QStringLiteral("Inlet"), parent}
+{
+
+}
+
+Inlet::Inlet(Id<Process::Port> c, const Inlet& other, QObject* parent)
+  : Port{c, other, parent}
+{
+}
+
+Inlet* Inlet::clone(QObject* parent) const
+{
+  return new Inlet{id(), *this, parent};
+}
+
+Inlet::Inlet(DataStream::Deserializer& vis, QObject* parent): Port{vis, parent}
+{
+  vis.writeTo(*this);
+}
+Inlet::Inlet(JSONObject::Deserializer& vis, QObject* parent): Port{vis, parent}
+{
+  vis.writeTo(*this);
+}
+Inlet::Inlet(DataStream::Deserializer&& vis, QObject* parent): Port{vis, parent}
+{
+  vis.writeTo(*this);
+}
+Inlet::Inlet(JSONObject::Deserializer&& vis, QObject* parent): Port{vis, parent}
+{
+  vis.writeTo(*this);
+}
+
+
+
+
+ControlInlet::~ControlInlet()
+{
+
+}
+
+ControlInlet::ControlInlet(Id<Port> c, const ControlInlet& other, QObject* parent):
+  Inlet{std::move(c), other, parent}
+{
+  m_value = other.m_value;
+  m_domain = other.m_domain;
+}
+
+ControlInlet* ControlInlet::clone(QObject* parent) const
+{
+  return new ControlInlet{id(), *this, parent};
+}
+
+ControlInlet::ControlInlet(DataStream::Deserializer& vis, QObject* parent): Inlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+ControlInlet::ControlInlet(JSONObject::Deserializer& vis, QObject* parent): Inlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+ControlInlet::ControlInlet(DataStream::Deserializer&& vis, QObject* parent): Inlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+ControlInlet::ControlInlet(JSONObject::Deserializer&& vis, QObject* parent): Inlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+
+
+
+
+
+
+Outlet::~Outlet()
+{
+
+}
+
+Outlet::Outlet(Id<Process::Port> c, QObject* parent)
+  : Port{std::move(c), QStringLiteral("Outlet"), parent}
+{
+
+}
+
+Outlet* Outlet::clone(QObject* parent) const
+{
+  return new Outlet{id(), *this, parent};
+}
+
+Outlet::Outlet(Id<Port> c, const Outlet& other, QObject* parent):
+  Port{std::move(c), other, parent}
+{
+  m_propagate = other.m_propagate;
+}
+
+Outlet::Outlet(DataStream::Deserializer& vis, QObject* parent): Port{vis, parent}
+{
+  vis.writeTo(*this);
+}
+Outlet::Outlet(JSONObject::Deserializer& vis, QObject* parent): Port{vis, parent}
+{
+  vis.writeTo(*this);
+}
+Outlet::Outlet(DataStream::Deserializer&& vis, QObject* parent): Port{vis, parent}
+{
+  vis.writeTo(*this);
+}
+Outlet::Outlet(JSONObject::Deserializer&& vis, QObject* parent): Port{vis, parent}
+{
+  vis.writeTo(*this);
+}
+
+bool Outlet::propagate() const
+{
+  return m_propagate;
+}
+
+void Outlet::setPropagate(bool propagate)
 {
   if (m_propagate == propagate)
     return;
@@ -109,6 +231,43 @@ void Port::setPropagate(bool propagate)
   emit propagateChanged(m_propagate);
 }
 
+
+
+ControlOutlet::~ControlOutlet()
+{
+
+}
+
+ControlOutlet::ControlOutlet(Id<Port> c, const ControlOutlet& other, QObject* parent):
+  Outlet{std::move(c), other, parent}
+{
+  m_value = other.m_value;
+  m_domain = other.m_domain;
+}
+
+ControlOutlet* ControlOutlet::clone(QObject* parent) const
+{
+  return new ControlOutlet{id(), *this, parent};
+}
+
+ControlOutlet::ControlOutlet(DataStream::Deserializer& vis, QObject* parent): Outlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+ControlOutlet::ControlOutlet(JSONObject::Deserializer& vis, QObject* parent): Outlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+ControlOutlet::ControlOutlet(DataStream::Deserializer&& vis, QObject* parent): Outlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+ControlOutlet::ControlOutlet(JSONObject::Deserializer&& vis, QObject* parent): Outlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+
+
 }
 
 
@@ -116,14 +275,14 @@ template<>
 SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::Port>(const Process::Port& p)
 {
   insertDelimiter();
-  m_stream << p.type << p.m_propagate << p.outlet << p.m_customData << p.m_address << p.m_cables;
+  m_stream << p.type<< p.m_customData << p.m_address << p.m_cables;
   insertDelimiter();
 }
 template<>
 SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::Port>(Process::Port& p)
 {
   checkDelimiter();
-  m_stream >> p.type >> p.m_propagate >> p.outlet >> p.m_customData >> p.m_address >> p.m_cables;
+  m_stream >> p.type >> p.m_customData >> p.m_address >> p.m_cables;
   checkDelimiter();
 }
 
@@ -131,8 +290,6 @@ template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::Port>(const Process::Port& p)
 {
   obj["Type"] = (int)p.type;
-  obj["Propagate"] = p.m_propagate;
-  obj["Outlet"] = p.outlet;
   obj["Custom"] = p.m_customData;
   obj["Address"] = toJsonObject(p.m_address);
   obj["Cables"] = toJsonArray(p.m_cables);
@@ -141,9 +298,118 @@ template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::Port>(Process::Port& p)
 {
   p.type = (Process::PortType)obj["Type"].toInt();
-  p.m_propagate = obj["Propagate"].toBool();
-  p.outlet = obj["Outlet"].toBool();
   p.m_customData = obj["Custom"].toString();
   p.m_address = fromJsonObject<State::AddressAccessor>(obj["Address"]);
   fromJsonArray(obj["Cables"].toArray(), p.m_cables);
 }
+
+
+template<>
+SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::Inlet>(const Process::Inlet& p)
+{
+  readFrom((Process::Port&)p);
+}
+template<>
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::Inlet>(Process::Inlet& p)
+{
+}
+
+template<>
+SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::Inlet>(const Process::Inlet& p)
+{
+  readFrom((Process::Port&)p);
+}
+template<>
+SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::Inlet>(Process::Inlet& p)
+{
+}
+
+
+
+template<>
+SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::ControlInlet>(const Process::ControlInlet& p)
+{
+  readFrom((Process::Inlet&)p);
+  readFrom(p.m_value);
+  readFrom(p.m_domain);
+}
+template<>
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::ControlInlet>(Process::ControlInlet& p)
+{
+  writeTo(p.m_value);
+  writeTo(p.m_domain);
+}
+
+template<>
+SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::ControlInlet>(const Process::ControlInlet& p)
+{
+  readFrom((Process::Inlet&)p);
+
+  obj[strings.Value] = toJsonValue(p.m_value);
+  obj[strings.Domain] = toJsonObject(p.m_domain);
+}
+template<>
+SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::ControlInlet>(Process::ControlInlet& p)
+{
+  p.m_value = fromJsonValue<ossia::value>(obj[strings.Value]);
+  p.m_domain = fromJsonObject<State::Domain>(obj[strings.Domain].toObject());
+}
+
+
+
+template<>
+SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::Outlet>(const Process::Outlet& p)
+{
+  readFrom((Process::Port&)p);
+  m_stream << p.m_propagate;
+}
+template<>
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::Outlet>(Process::Outlet& p)
+{
+  m_stream >> p.m_propagate;
+}
+
+template<>
+SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::Outlet>(const Process::Outlet& p)
+{
+  readFrom((Process::Port&)p);
+
+  obj["Propagate"] = p.m_propagate;
+}
+template<>
+SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::Outlet>(Process::Outlet& p)
+{
+  p.m_propagate = obj["Propagate"].toBool();
+}
+
+
+
+template<>
+SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::ControlOutlet>(const Process::ControlOutlet& p)
+{
+  readFrom((Process::Outlet&)p);
+  readFrom(p.m_value);
+  readFrom(p.m_domain);
+}
+template<>
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::ControlOutlet>(Process::ControlOutlet& p)
+{
+  writeTo(p.m_value);
+  writeTo(p.m_domain);
+}
+
+template<>
+SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::ControlOutlet>(const Process::ControlOutlet& p)
+{
+  readFrom((Process::Outlet&)p);
+
+  obj[strings.Value] = toJsonValue(p.m_value);
+  obj[strings.Domain] = toJsonObject(p.m_domain);
+}
+template<>
+SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::ControlOutlet>(Process::ControlOutlet& p)
+{
+  p.m_value = fromJsonValue<ossia::value>(obj[strings.Value]);
+  p.m_domain = fromJsonObject<State::Domain>(obj[strings.Domain].toObject());
+}
+

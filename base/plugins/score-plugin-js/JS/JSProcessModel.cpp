@@ -84,18 +84,17 @@ void ProcessModel::setScript(const QString& script)
 
       int i = 0;
       for(auto n : cld_inlet) {
-        auto port = new Process::Port{Id<Process::Port>(i++), this};
+        auto port = new Process::Inlet{Id<Process::Port>(i++), this};
         if(qobject_cast<ValueInlet*>(n))
           port->type = Process::PortType::Message;
         else if(qobject_cast<AudioInlet*>(n))
           port->type = Process::PortType::Audio;
-        port->outlet = false;
         port->setCustomData(n->objectName());
         m_inlets.push_back(port);
       }
 
       for(auto n : cld_outlet) {
-        auto port = new Process::Port{Id<Process::Port>(i++), this};
+        auto port = new Process::Outlet{Id<Process::Port>(i++), this};
         if(qobject_cast<ValueOutlet*>(n))
           port->type = Process::PortType::Message;
         else if(qobject_cast<AudioOutlet*>(n))
@@ -104,7 +103,6 @@ void ProcessModel::setScript(const QString& script)
             port->setPropagate(true);
           port->type = Process::PortType::Audio;
         }
-        port->outlet = true;
         port->setCustomData(n->objectName());
         m_outlets.push_back(port);
       }

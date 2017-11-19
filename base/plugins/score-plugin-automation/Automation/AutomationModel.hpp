@@ -17,6 +17,7 @@ class JSONObject;
 namespace Process
 {
 class ProcessModel;
+class Outlet;
 }
 class QObject;
 #include <score/model/Identifier.hpp>
@@ -75,7 +76,7 @@ public:
 
   QString prettyName() const override;
 
-  std::unique_ptr<Process::Port> outlet;
+  std::unique_ptr<Process::Outlet> outlet;
 signals:
   void addressChanged(const ::State::AddressAccessor&);
   void minChanged(double);
@@ -87,8 +88,8 @@ private:
   void init();
 
   //// ProcessModel ////
-  std::vector<Process::Port*> inlets() const override;
-  std::vector<Process::Port*> outlets() const override;
+  Process::Inlets inlets() const override;
+  Process::Outlets outlets() const override;
   void setDurationAndScale(const TimeVal& newDuration) override;
   void setDurationAndGrow(const TimeVal& newDuration) override;
   void setDurationAndShrink(const TimeVal& newDuration) override;

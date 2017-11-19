@@ -49,12 +49,12 @@ CableType Cable::type() const
   return m_type;
 }
 
-Path<Process::Port> Cable::source() const
+Path<Process::Outlet> Cable::source() const
 {
   return m_source;
 }
 
-Path<Process::Port> Cable::sink() const
+Path<Process::Inlet> Cable::sink() const
 {
   return m_sink;
 }
@@ -68,7 +68,7 @@ void Cable::setType(CableType type)
   emit typeChanged(m_type);
 }
 
-void Cable::setSource(Path<Process::Port> source)
+void Cable::setSource(Path<Process::Outlet> source)
 {
   if (m_source == source)
     return;
@@ -76,7 +76,7 @@ void Cable::setSource(Path<Process::Port> source)
   emit sourceChanged(m_source);
 }
 
-void Cable::setSink(Path<Process::Port> sink)
+void Cable::setSink(Path<Process::Inlet> sink)
 {
   if (m_sink == sink)
     return;
@@ -109,8 +109,8 @@ template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::CableData>(Process::CableData& p)
 {
   p.type = (Process::CableType) obj["Type"].toInt();
-  p.source = fromJsonObject<Path<Process::Port>>(obj["Source"]);
-  p.sink = fromJsonObject<Path<Process::Port>>(obj["Sink"]);
+  p.source = fromJsonObject<Path<Process::Outlet>>(obj["Source"]);
+  p.sink = fromJsonObject<Path<Process::Inlet>>(obj["Sink"]);
 }
 
 template<>

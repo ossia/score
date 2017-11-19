@@ -8,23 +8,13 @@
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
-
-
 template <>
 void DataStreamReader::read(const Loop::ProcessModel& proc)
 {
   readFrom(static_cast<const Scenario::BaseScenarioContainer&>(proc));
 
   // Ports
-  m_stream << (int32_t)proc.ports().size();
-  for (const auto& p : proc.ports())
-  {
-    readFrom(*p);
-  }
+  m_stream << *proc.inlet << *proc.outlet;
 
   insertDelimiter();
 }
@@ -36,12 +26,8 @@ void DataStreamWriter::write(Loop::ProcessModel& proc)
   writeTo(static_cast<Scenario::BaseScenarioContainer&>(proc));
 
   // Ports
-  int32_t port_count;
-  m_stream >> port_count;
-  for (; port_count-- > 0;)
-  {
-    proc.m_ports.push_back(new Process::Port{*this, &proc});
-  }
+  proc.inlet = Process::make_inlet(*this, &proc);
+  proc.outlet = Process::make_outlet(*this, &proc);
 
   checkDelimiter();
 }
@@ -51,7 +37,8 @@ template <>
 void JSONObjectReader::read(const Loop::ProcessModel& proc)
 {
   readFrom(static_cast<const Scenario::BaseScenarioContainer&>(proc));
-  obj["Ports"] = toJsonArray(proc.m_ports);
+  obj["Inlet"] = toJsonObject(*proc.inlet);
+  obj["Outlet"] = toJsonObject(*proc.outlet);
 }
 
 
@@ -60,11 +47,11 @@ void JSONObjectWriter::write(Loop::ProcessModel& proc)
 {
   writeTo(static_cast<Scenario::BaseScenarioContainer&>(proc));
   {
-    QJsonArray port_array = obj["Ports"].toArray();
-    for (const auto& json_vref : port_array)
-    {
-      JSONObject::Deserializer deserializer{json_vref.toObject()};
-      proc.m_ports.push_back(new Process::Port{deserializer, &proc});
-    }
+    JSONObjectWriter writer{obj["Inlet"].toObject()};
+    proc.inlet = Process::make_inlet(writer, &proc);
+  }
+  {
+    JSONObjectWriter writer{obj["Outlet"].toObject()};
+    proc.outlet = Process::make_outlet(writer, &proc);
   }
 }

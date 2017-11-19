@@ -53,6 +53,15 @@ public:
 
   void runAllCommands() const;
 
+
+  void register_node(
+      const Process::ProcessModel& proc,
+      const std::shared_ptr<ossia::graph_node>& node);
+  void unregister_node(
+      const Process::ProcessModel& proc,
+      const std::shared_ptr<ossia::graph_node>& node);
+
+
   std::shared_ptr<ossia::graph> execGraph;
   ossia::execution_state execState;
 
@@ -64,8 +73,8 @@ public:
   std::vector<ossia::midi_generic_parameter*> midi_ins;
   std::vector<ossia::midi_generic_parameter*> midi_outs;
 
-  score::hash_map<Process::Port*, std::pair<ossia::node_ptr, ossia::outlet_ptr>> outlets;
-  score::hash_map<Process::Port*, std::pair<ossia::node_ptr, ossia::inlet_ptr>> inlets;
+  score::hash_map<Process::Outlet*, std::pair<ossia::node_ptr, ossia::outlet_ptr>> outlets;
+  score::hash_map<Process::Inlet*, std::pair<ossia::node_ptr, ossia::inlet_ptr>> inlets;
   score::hash_map<Id<Process::Cable>, std::shared_ptr<ossia::graph_edge>> m_cables;
 private:
   mutable ExecutionCommandQueue m_editionQueue;

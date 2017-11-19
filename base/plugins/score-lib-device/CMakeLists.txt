@@ -11,7 +11,6 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Xml)
 set(HEADERS
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/AddressSettings.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/ClipMode.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/Domain.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/IOType.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/ItemModels/NodeBasedItemModel.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/ItemModels/NodeDisplayMethods.hpp"
@@ -35,7 +34,6 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/IOType.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/ClipMode.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/Domain.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/AddressSettings.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Node/DeviceNode.cpp"

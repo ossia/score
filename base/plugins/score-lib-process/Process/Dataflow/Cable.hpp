@@ -26,6 +26,8 @@ namespace Process
 {
 class Node;
 class Port;
+class Outlet;
+class Inlet;
 class Cable;
 enum class CableType { ImmediateGlutton, ImmediateStrict, DelayedGlutton, DelayedStrict };
 
@@ -43,8 +45,8 @@ class SCORE_LIB_PROCESS_EXPORT Cable
 {
     Q_OBJECT
     Q_PROPERTY(CableType type READ type WRITE setType NOTIFY typeChanged)
-    Q_PROPERTY(Path<Process::Port> source READ source WRITE setSource NOTIFY sourceChanged)
-    Q_PROPERTY(Path<Process::Port> sink READ sink WRITE setSink NOTIFY sinkChanged)
+    Q_PROPERTY(Path<Process::Outlet> source READ source WRITE setSource NOTIFY sourceChanged)
+    Q_PROPERTY(Path<Process::Inlet> sink READ sink WRITE setSink NOTIFY sinkChanged)
   public:
     Selectable selection;
     Cable() = delete;
@@ -70,21 +72,21 @@ class SCORE_LIB_PROCESS_EXPORT Cable
     ossia::edge_ptr exec;
 
     CableType type() const;
-    Path<Process::Port> source() const;
-    Path<Process::Port> sink() const;
+    Path<Process::Outlet> source() const;
+    Path<Process::Inlet> sink() const;
 
     void setType(CableType type);
-    void setSource(Path<Process::Port> source);
-    void setSink(Path<Process::Port> sink);
+    void setSource(Path<Process::Outlet> source);
+    void setSink(Path<Process::Inlet> sink);
 signals:
     void typeChanged(CableType type);
-    void sourceChanged(Path<Process::Port> source);
-    void sinkChanged(Path<Process::Port> sink);
+    void sourceChanged(Path<Process::Outlet> source);
+    void sinkChanged(Path<Process::Inlet> sink);
 
 private:
     CableType m_type{};
-    Path<Process::Port> m_source;
-    Path<Process::Port> m_sink;
+    Path<Process::Outlet> m_source;
+    Path<Process::Inlet> m_sink;
 };
 
 

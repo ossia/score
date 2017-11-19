@@ -7,6 +7,7 @@
 #include <score/application/ApplicationComponents.hpp>
 #include <score/serialization/StringConstants.hpp>
 #include <score/model/IdentifiedObject.hpp>
+#include <chobo/small_vector.hpp>
 
 /**
  * This file contains facilities
@@ -606,6 +607,17 @@ void fromJsonArray(const QJsonArray& arr, std::vector<T*>& array, QObject* paren
     array.push_back(new T{JSONObjectWriter{obj}, parent});
   }
 }
+
+template<typename T, std::size_t N>
+void fromJsonArray(const QJsonArray& arr, chobo::small_vector<T*, N>& array, QObject* parent)
+{
+  for (const auto& v : arr)
+  {
+    auto obj = v.toObject();
+    array.push_back(new T{JSONObjectWriter{obj}, parent});
+  }
+}
+
 
 Q_DECLARE_METATYPE(JSONObjectReader*)
 Q_DECLARE_METATYPE(JSONObjectWriter*)

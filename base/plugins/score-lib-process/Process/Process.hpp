@@ -18,16 +18,21 @@
 #include <score/tools/Metadata.hpp>
 #include <score/model/Identifier.hpp>
 #include <score_lib_process_export.h>
+#include <chobo/small_vector.hpp>
 
 class ProcessStateDataInterface;
 
 namespace Process
 {
 class Port;
+class Inlet;
+class Outlet;
 class ProcessModelFactory;
 class LayerFactory;
 class ProcessModel;
 class LayerFactory;
+using Inlets = chobo::small_vector<Process::Inlet*, 4>;
+using Outlets = chobo::small_vector<Process::Outlet*, 4>;
 
 /**
  * @brief The Process class
@@ -89,8 +94,8 @@ public:
   double getSlotHeight() const;
   void setSlotHeight(double);
 
-  virtual std::vector<Process::Port*> inlets() const;
-  virtual std::vector<Process::Port*> outlets() const;
+  virtual Inlets inlets() const;
+  virtual Outlets outlets() const;
 
 signals:
   // True if the execution is running.

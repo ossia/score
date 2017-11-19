@@ -32,12 +32,12 @@ PortItem::PortItem(Process::Port& p, QGraphicsItem* parent)
   Path<Process::Port> path = p;
   for(auto c : CableItem::g_cables)
   {
-    if(c.first->source() == path)
+    if(c.first->source().unsafePath() == path.unsafePath())
     {
       c.second->setSource(this);
       cables.push_back(c.second);
     }
-    else if(c.first->sink() == path)
+    else if(c.first->sink().unsafePath() == path.unsafePath())
     {
       c.second->setTarget(this);
       cables.push_back(c.second);
@@ -190,7 +190,9 @@ void PortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
 
   if(clickedPort && this != clickedPort)
   {
-    if(this->m_port.outlet != clickedPort->m_port.outlet)
+    auto p1 = dynamic_cast<Process::Outlet*>(&m_port);
+    auto p2 = dynamic_cast<Process::Outlet*>(&clickedPort->m_port);
+    if((p1 && !p2) || (!p1 && p2))
     {
       emit createCable(clickedPort, this);
     }

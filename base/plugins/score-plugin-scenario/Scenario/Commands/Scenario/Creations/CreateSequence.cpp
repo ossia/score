@@ -19,7 +19,7 @@
 
 #include "CreateSequence.hpp"
 #include <Device/Address/AddressSettings.hpp>
-#include <Device/Address/Domain.hpp>
+#include <State/Domain.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <Process/State/MessageNode.hpp>

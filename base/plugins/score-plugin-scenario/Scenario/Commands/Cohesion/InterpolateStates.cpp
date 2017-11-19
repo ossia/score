@@ -22,7 +22,7 @@
 #include "InterpolateStates.hpp"
 #include <ossia/editor/value/value_conversion.hpp>
 #include <ossia/network/domain/domain.hpp>
-#include <Device/Address/Domain.hpp>
+#include <State/Domain.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <Interpolation/InterpolationProcess.hpp>
 #include <Process/Process.hpp>

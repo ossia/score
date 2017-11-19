@@ -18,7 +18,7 @@
 
 #include "AddressEditDialog.hpp"
 #include <Device/Address/AddressSettings.hpp>
-#include <Device/Address/Domain.hpp>
+#include <State/Domain.hpp>
 #include <Device/Address/IOType.hpp>
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>

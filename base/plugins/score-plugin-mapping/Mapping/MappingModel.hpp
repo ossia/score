@@ -9,7 +9,11 @@
 #include <score/serialization/VisitorInterface.hpp>
 #include <score_plugin_mapping_export.h>
 #include <score/model/Identifier.hpp>
-
+namespace Process
+{
+class Inlet;
+class Outlet;
+}
 namespace Mapping
 {
 class SCORE_PLUGIN_MAPPING_EXPORT ProcessModel final
@@ -64,7 +68,8 @@ public:
   ~ProcessModel() override;
 
 
-  std::unique_ptr<Process::Port> inlet, outlet;
+  std::unique_ptr<Process::Inlet> inlet;
+  std::unique_ptr<Process::Outlet> outlet;
 signals:
   void sourceAddressChanged(const State::AddressAccessor& arg);
   void sourceMinChanged(double arg);
@@ -82,8 +87,8 @@ private:
       QObject* parent);
 
   //// ProcessModel ////
-  std::vector<Process::Port*> inlets() const override;
-  std::vector<Process::Port*> outlets() const override;
+  Process::Inlets inlets() const override;
+  Process::Outlets outlets() const override;
   void setDurationAndScale(const TimeVal& newDuration) override;
   void setDurationAndGrow(const TimeVal& newDuration) override;
   void setDurationAndShrink(const TimeVal& newDuration) override;

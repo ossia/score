@@ -47,18 +47,18 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
   friend class ScenarioFactory;
   friend class ScenarioTemporalLayerFactory;
 
-  std::vector<Process::Port*> m_ports;
 public:
-  const std::vector<Process::Port*>& ports() const { return m_ports; }
+  std::unique_ptr<Process::Inlet> inlet;
+  std::unique_ptr<Process::Outlet> outlet;
 
-  std::vector<Process::Port*> inlets() const override;
-  std::vector<Process::Port*> outlets() const override;
+  Process::Inlets inlets() const override;
+  Process::Outlets outlets() const override;
 
   ProcessModel(
       const TimeVal& duration,
       const Id<Process::ProcessModel>& id,
       QObject* parent);
-  ~ProcessModel();
+  ~ProcessModel() override;
 
   //// ScenarioModel specifics ////
 

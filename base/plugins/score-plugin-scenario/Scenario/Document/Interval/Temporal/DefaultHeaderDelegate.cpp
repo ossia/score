@@ -32,24 +32,27 @@ class PortWidget : public QWidget
       auto lay = new QFormLayout{this};
       lay->addRow(p.customData(), (QWidget*)nullptr);
       lay->addRow(tr("Address"), &m_edit);
-      if(p.outlet && p.type == Process::PortType::Audio)
+      if(auto outlet = dynamic_cast<Process::Outlet*>(&p))
       {
-        auto cb = new QCheckBox{this};
-        cb->setChecked(p.propagate());
-        lay->addRow(tr("Propagate"), cb);
-        connect(cb, &QCheckBox::toggled,
-                this, [&] (auto ok) {
-          if(ok != p.propagate()) {
-            CommandDispatcher<> d{ctx.commandStack};
-            d.submitCommand<Dataflow::SetPortPropagate>(p, ok);
-          }
-        });
-        con(p, &Process::Port::propagateChanged,
-            this, [=] (bool p) {
-          if(p != cb->isChecked()) {
-            cb->setChecked(p);
-          }
-        });
+        if(p.type == Process::PortType::Audio)
+        {
+          auto cb = new QCheckBox{this};
+          cb->setChecked(outlet->propagate());
+          lay->addRow(tr("Propagate"), cb);
+          connect(cb, &QCheckBox::toggled,
+                  this, [&] (auto ok) {
+            if(ok != outlet->propagate()) {
+              CommandDispatcher<> d{ctx.commandStack};
+              d.submitCommand<Dataflow::SetPortPropagate>(p, ok);
+            }
+          });
+          con(*outlet, &Process::Outlet::propagateChanged,
+              this, [=] (bool p) {
+            if(p != cb->isChecked()) {
+              cb->setChecked(p);
+            }
+          });
+        }
       }
 
       m_edit.setAddress(p.address());
@@ -182,13 +185,15 @@ void DefaultHeaderDelegate::onCreateCable(Dataflow::PortItem* p1, Dataflow::Port
   if(!intersection_empty(port1.cables(), port2.cables()))
      return;
 
-  if(port1.outlet == port2.outlet)
+  auto o1 = dynamic_cast<Process::Outlet*>(&port1);
+  auto o2 = dynamic_cast<Process::Outlet*>(&port1);
+  if(bool(o1) == bool(o2)) // both outlets or both inlets
     return;
 
   if(port1.type != port2.type)
     return;
 
-  if(port1.outlet)
+  if(o1)
   {
     cd.source = port1;
     cd.sink = port2;

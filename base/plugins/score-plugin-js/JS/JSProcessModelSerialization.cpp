@@ -33,14 +33,14 @@ void DataStreamWriter::write(JS::ProcessModel& proc)
     int32_t ports;
     m_stream >> ports;
     for(auto i = ports; i-->0;) {
-      proc.m_inlets.push_back(new Process::Port{*this, &proc});
+      proc.m_inlets.push_back(new Process::Inlet{*this, &proc});
     }
   }
   {
     int32_t ports;
     m_stream >> ports;
     for(auto i = ports; i-->0;) {
-      proc.m_outlets.push_back(new Process::Port{*this, &proc});
+      proc.m_outlets.push_back(new Process::Outlet{*this, &proc});
     }
   }
 
@@ -59,7 +59,6 @@ void JSONObjectReader::read(const JS::ProcessModel& proc)
   obj["Outlets"] = toJsonArray(proc.m_outlets);
   obj["Script"] = proc.script();
 }
-
 
 template <>
 void JSONObjectWriter::write(JS::ProcessModel& proc)
