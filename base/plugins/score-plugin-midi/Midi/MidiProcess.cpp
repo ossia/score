@@ -11,9 +11,8 @@ ProcessModel::ProcessModel(
     QObject* parent)
     : Process::ProcessModel{duration, id,
                             Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-    , outlet{std::make_unique<Process::Port>(Id<Process::Port>(0), this)}
+    , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
 {
-  outlet->outlet = true;
   outlet->type = Process::PortType::Midi;
 
   metadata().setInstanceName(*this);
@@ -36,7 +35,7 @@ ProcessModel::ProcessModel(
     QObject* parent)
     : Process::ProcessModel{source, id,
                             Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-    , outlet{std::make_unique<Process::Port>(source.outlet->id(), *source.outlet, this)}
+    , outlet{Process::clone_outlet(*source.outlet, this)}
 {
   metadata().setInstanceName(*this);
   m_device = source.device();
@@ -73,14 +72,14 @@ int ProcessModel::channel() const
   return m_channel;
 }
 
-std::vector<Process::Port*> ProcessModel::inlets() const
+Process::Inlets ProcessModel::inlets() const
 {
   return {};
 }
 
-std::vector<Process::Port*> ProcessModel::outlets() const
+Process::Outlets ProcessModel::outlets() const
 {
-  return {const_cast<Process::Port*>(outlet.get())};
+  return {outlet.get()};
 }
 
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
@@ -216,7 +215,7 @@ void DataStreamReader::read(const Midi::ProcessModel& proc)
 template <>
 void DataStreamWriter::write(Midi::ProcessModel& proc)
 {
-  proc.outlet = std::make_unique<Process::Port>(*this, &proc);
+  proc.outlet = Process::make_outlet(*this, &proc);
   m_stream >> proc.m_device >> proc.m_channel;
   int n;
   m_stream >> n;
@@ -243,7 +242,7 @@ void JSONObjectWriter::write(Midi::ProcessModel& proc)
 {
   {
     JSONObjectWriter writer{obj["Outlet"].toObject()};
-    proc.outlet = std::make_unique<Process::Port>(writer, &proc);
+    proc.outlet = Process::make_outlet(writer, &proc);
   }
   proc.setDevice(obj["Device"].toString());
   proc.setChannel(obj["Channel"].toInt());

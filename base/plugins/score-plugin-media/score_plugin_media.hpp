@@ -10,6 +10,7 @@ class score_plugin_media final:
         public QObject,
         public score::Plugin_QtInterface,
         public score::FactoryInterface_QtInterface,
+        public score::ApplicationPlugin_QtInterface,
         public score::CommandFactory_QtInterface
 {
         Q_OBJECT
@@ -18,6 +19,7 @@ class score_plugin_media final:
                 score::Plugin_QtInterface
                 score::FactoryInterface_QtInterface
                 score::CommandFactory_QtInterface
+                score::ApplicationPlugin_QtInterface
                 )
   SCORE_PLUGIN_METADATA(1, "142f926e-b2d9-41ce-aff3-a1dab33d3de2")
 
@@ -30,5 +32,8 @@ class score_plugin_media final:
                 const score::InterfaceKey& factoryName) const override;
 
         std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands() override;
+
+        score::ApplicationPlugin*
+        make_applicationPlugin(const score::ApplicationContext& app) override;
 
 };

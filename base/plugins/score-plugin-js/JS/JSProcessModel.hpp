@@ -44,8 +44,8 @@ public:
 
   ~ProcessModel();
 
-  std::vector<Process::Port*> inlets() const override { return m_inlets; }
-  std::vector<Process::Port*> outlets() const override { return m_outlets; }
+  Process::Inlets inlets() const override { return m_inlets; }
+  Process::Outlets outlets() const override { return m_outlets; }
 signals:
   void scriptError(int, const QString&);
   void scriptOk();
@@ -53,7 +53,7 @@ signals:
 
 private:
   QString m_script;
-  std::vector<Process::Port*> m_inlets;
-  std::vector<Process::Port*> m_outlets;
+  Process::Inlets m_inlets;
+  Process::Outlets m_outlets;
 };
 }

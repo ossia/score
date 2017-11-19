@@ -10,6 +10,11 @@ find_package(FFmpeg COMPONENTS  AVCODEC AVFORMAT AVUTIL SWRESAMPLE)
 if(NOT FFmpeg_FOUND)
     return()
 endif()
+set(SCORE_AUDIO_PLUGINS 1)
+if(SCORE_AUDIO_PLUGINS)
+  find_package(Lilv)
+#  find_package(Faust)
+endif()
 
 file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libaudiotool/src/libwatermark/*.h")
 # Files & main target
@@ -35,8 +40,24 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Input/InputFactory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Input/InputMetadata.hpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectProcessFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectProcessMetadata.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectProcessModel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/EffectParameters.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/EffectModel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/EffectComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/EffectFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/Widgets/EffectSlider.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/Widgets/EffectWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/Widgets/EffectListWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/Missing/MissingEffectModel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Inspector/EffectInspector.hpp"
+
+
+
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/MediaFileHandle.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioDecoder.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/ApplicationPlugin.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_media.hpp"
 )
@@ -58,19 +79,62 @@ set(SRCS
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Input/InputModel.cpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectProcessModel.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/EffectModel.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/EffectFactory.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/Widgets/EffectSlider.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/Widgets/EffectWidget.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/Widgets/EffectListWidget.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/Missing/MissingEffectModel.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Inspector/EffectInspector.cpp"
+
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/MediaFileHandle.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioDecoder.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/ApplicationPlugin.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_media.cpp"
 )
 
-add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
+
+if(TARGET Lilv)
+    set(LV2_HDRS
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2EffectModel.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2EffectFactory.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/lv2_atom_helpers.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2Context.hpp"
+        )
+    set(LV2_SRCS
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2EffectModelSerialization.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2EffectModel.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2EffectFactory.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2Context.cpp"
+    )
+endif()
+
+set(ENVELOPE_HDRS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Envelope/EnvelopeEffectModel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Envelope/EnvelopeEffectFactory.hpp"
+    )
+set(ENVELOPE_SRCS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Envelope/EnvelopeEffectModelSerialization.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Envelope/EnvelopeEffectModel.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Envelope/EnvelopeEffectFactory.cpp"
+)
+
+add_library(${PROJECT_NAME}
+  ${SRCS} ${HDRS}
+  ${LV2_SRCS} ${LV2_HDRS}
+  ${ENVELOPE_SRCS} ${ENVELOPE_HDRS}
+  ${FAUST_HDRS} ${FAUST_SRCS}
+)
 
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 target_link_libraries(${PROJECT_NAME} PUBLIC
                      Qt5::Core Qt5::Widgets Qt5::Multimedia
-                     score_lib_base
+                     score_lib_base score_plugin_loop
 )
+
+### FFMPEG ###
 target_include_directories(${PROJECT_NAME} PRIVATE ${FFMPEG_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${FFMPEG_LIBRARIES})
 
@@ -105,9 +169,16 @@ if(APPLE)
         ZLIB::ZLIB
         )
 endif()
-if(NOT ANDROID)
-target_link_libraries(${PROJECT_NAME} PUBLIC
-  score_plugin_loop
-  )
+
+if(TARGET Lilv)
+    target_link_libraries(${PROJECT_NAME} PRIVATE Lilv)
+    target_include_directories(${PROJECT_NAME} PRIVATE 3rdparty/readerwriterqueue)
 endif()
+
+if(${Faust_FOUND})
+  target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_FAUST)
+  target_link_libraries(${PROJECT_NAME}  PUBLIC ${FAUST_LIBRARIES})
+  target_include_directories(${PROJECT_NAME}  PRIVATE ${FAUST_INCLUDE_DIR})
+endif()
+
 setup_score_plugin(${PROJECT_NAME})

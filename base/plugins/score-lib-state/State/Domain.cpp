@@ -4,7 +4,7 @@
 #include <ossia/network/domain/domain.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
-namespace Device
+namespace State
 {
 
 Domain::Domain() noexcept : domain{std::make_unique<ossia::domain>()}
@@ -80,29 +80,29 @@ Domain::operator ossia::domain&() noexcept
 }
 
 template <>
-SCORE_LIB_DEVICE_EXPORT void
-DataStreamReader::read(const Device::Domain& var)
+SCORE_LIB_STATE_EXPORT void
+DataStreamReader::read(const State::Domain& var)
 {
   readFrom(var.get());
 }
 
 template <>
-SCORE_LIB_DEVICE_EXPORT void
-DataStreamWriter::write(Device::Domain& var)
+SCORE_LIB_STATE_EXPORT void
+DataStreamWriter::write(State::Domain& var)
 {
   writeTo(var.get());
 }
 
 template <>
-SCORE_LIB_DEVICE_EXPORT void
-JSONObjectReader::read(const Device::Domain& var)
+SCORE_LIB_STATE_EXPORT void
+JSONObjectReader::read(const State::Domain& var)
 {
   readFrom(var.get());
 }
 
 template <>
-SCORE_LIB_DEVICE_EXPORT void
-JSONObjectWriter::write(Device::Domain& var)
+SCORE_LIB_STATE_EXPORT void
+JSONObjectWriter::write(State::Domain& var)
 {
   writeTo(var.get());
 }

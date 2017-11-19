@@ -40,9 +40,9 @@ class SCORE_PLUGIN_SCENARIO_EXPORT IntervalModel final
   friend struct SlotPath;
   Q_PROPERTY(double heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY heightPercentageChanged)
 
-  std::vector<Process::Port*> m_ports;
 public:
-  const std::vector<Process::Port*>& ports() const { return m_ports; }
+  std::unique_ptr<Process::Inlet> inlet;
+  std::unique_ptr<Process::Outlet> outlet;
 
   /** Properties of the class **/
   score::EntityMap<Process::ProcessModel> processes;

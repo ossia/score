@@ -1,6 +1,6 @@
 #pragma once
 #include <Device/Address/ClipMode.hpp>
-#include <Device/Address/Domain.hpp>
+#include <State/Domain.hpp>
 #include <Device/Address/IOType.hpp>
 #include <QString>
 #include <QVariant>
@@ -39,7 +39,7 @@ struct SCORE_LIB_DEVICE_EXPORT AddressSettingsCommon
   ~AddressSettingsCommon() noexcept;
 
   ossia::value value;
-  Device::Domain domain;
+  State::Domain domain;
 
   State::Unit unit;
 
@@ -168,7 +168,7 @@ struct SCORE_LIB_DEVICE_EXPORT FullAddressAccessorSettings
       const ossia::value& max) noexcept;
 
   ossia::value value;
-  Device::Domain domain;
+  State::Domain domain;
 
   optional<ossia::access_mode> ioType;
   ossia::bounding_mode clipMode{};

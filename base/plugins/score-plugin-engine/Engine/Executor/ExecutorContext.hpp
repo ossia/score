@@ -4,6 +4,11 @@
 #include <functional>
 #include <ossia/editor/scenario/time_value.hpp>
 #include <Process/TimeValue.hpp>
+
+namespace ossia
+{
+class graph_node;
+}
 namespace score
 {
 struct DocumentContext;

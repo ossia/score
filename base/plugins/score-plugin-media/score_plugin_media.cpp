@@ -8,6 +8,7 @@
 #include <Media/Sound/SoundFactory.hpp>
 #include <Media/Sound/Drop/SoundDrop.hpp>
 #include <Media/Inspector/Factory.hpp>
+#include <Media/ApplicationPlugin.hpp>
 
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
@@ -27,6 +28,11 @@ std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_media::make_c
     for_each_type<Types>(score::commands::FactoryInserter{cmds.second});
 
     return cmds;
+}
+
+score::ApplicationPlugin*score_plugin_media::make_applicationPlugin(const score::ApplicationContext& app)
+{
+  return new Media::ApplicationPlugin{app};
 }
 
 std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories(

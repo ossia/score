@@ -86,10 +86,10 @@ class automation_node final :
           type = param->get_value_type();
         }
       }
-      vp->data =
+      vp->add_value(
             ossia::apply(
               ossia::detail::compute_value_visitor{t.position, type},
-              m_drive);
+              m_drive));
     }
 
     ossia::behavior m_drive;

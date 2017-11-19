@@ -9,12 +9,12 @@ namespace Media
 namespace Input
 {
 
-std::vector<Process::Port*> ProcessModel::inlets() const
+Process::Inlets ProcessModel::inlets() const
 {
   return {};
 }
 
-std::vector<Process::Port*> ProcessModel::outlets() const
+Process::Outlets ProcessModel::outlets() const
 {
   return {outlet.get()};
 }
@@ -52,10 +52,9 @@ ProcessModel::ProcessModel(
     const Id<Process::ProcessModel>& id,
     QObject* parent):
   Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-, outlet{std::make_unique<Process::Port>(Id<Process::Port>(0), this)}
+, outlet{Process::make_outlet(Id<Process::Port>(0), this)}
 {
   outlet->setPropagate(true);
-  outlet->outlet = true;
   outlet->type = Process::PortType::Audio;
 
   metadata().setInstanceName(*this);
@@ -70,7 +69,7 @@ ProcessModel::ProcessModel(
     id,
     Metadata<ObjectKey_k, ProcessModel>::get(),
     parent}
-, outlet{std::make_unique<Process::Port>(source.outlet->id(), *source.outlet, this)}
+, outlet{Process::clone_outlet(*source.outlet, this)}
 , m_startChannel{source.m_startChannel}
 , m_numChannel{source.m_numChannel}
 {
@@ -96,7 +95,7 @@ void DataStreamReader::read(const Media::Input::ProcessModel& proc)
 template <>
 void DataStreamWriter::write(Media::Input::ProcessModel& proc)
 {
-  proc.outlet = std::make_unique<Process::Port>(*this, &proc);
+  proc.outlet = make_outlet(*this, &proc);
   m_stream >> proc.m_startChannel >> proc.m_numChannel;
   checkDelimiter();
 }
@@ -113,7 +112,7 @@ template <>
 void JSONObjectWriter::write(Media::Input::ProcessModel& proc)
 {
   JSONObjectWriter writer{obj["Outlet"].toObject()};
-  proc.outlet = std::make_unique<Process::Port>(writer, &proc);
+  proc.outlet = Process::make_outlet(writer, &proc);
   proc.m_startChannel = obj["Start"].toInt();
   proc.m_numChannel = obj["Num"].toInt();
 }

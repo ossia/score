@@ -29,14 +29,14 @@ class ProcessModel;
 class QObject;
 namespace Automation
 {
-std::vector<Process::Port*> ProcessModel::inlets() const
+Process::Inlets ProcessModel::inlets() const
 {
   return {};
 }
 
-std::vector<Process::Port*> ProcessModel::outlets() const
+Process::Outlets ProcessModel::outlets() const
 {
-  return {const_cast<Process::Port*>(outlet.get())};
+  return {outlet.get()};
 }
 
 void ProcessModel::init()
@@ -56,13 +56,12 @@ ProcessModel::ProcessModel(
     QObject* parent)
     : CurveProcessModel{duration, id,
                         Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-    , outlet{std::make_unique<Process::Port>(Id<Process::Port>(0), this)}
+    , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
     , m_min{0.}
     , m_max{1.}
     , m_startState{new ProcessState{*this, 0., this}}
     , m_endState{new ProcessState{*this, 1., this}}
 {
-  outlet->outlet = true;
   outlet->type = Process::PortType::Message;
 
   // Named shall be enough ?
@@ -108,7 +107,7 @@ ProcessModel::ProcessModel(
   : Curve::CurveProcessModel{source, id,
                              Metadata<ObjectKey_k, ProcessModel>::get(),
                              parent}
-    , outlet{std::make_unique<Process::Port>(source.outlet->id(), *source.outlet, this)}
+    , outlet{Process::clone_outlet(*source.outlet, this)}
     , m_min{source.min()}
     , m_max{source.max()}
     , m_startState{new ProcessState{*this, 0., this}}

@@ -47,10 +47,10 @@ class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final :
       vis.writeTo(*this);
     }
 
-    std::unique_ptr<Process::Port> outlet;
+    std::unique_ptr<Process::Outlet> outlet;
 
-    std::vector<Process::Port*> inlets() const override;
-    std::vector<Process::Port*> outlets() const override;
+    Process::Inlets inlets() const override;
+    Process::Outlets outlets() const override;
     int startChannel() const;
     int numChannel() const;
 

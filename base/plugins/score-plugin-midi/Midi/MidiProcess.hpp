@@ -43,10 +43,10 @@ public:
   void setChannel(int n);
   int channel() const;
 
-  std::vector<Process::Port*> inlets() const override;
-  std::vector<Process::Port*> outlets() const override;
+  Process::Inlets inlets() const override;
+  Process::Outlets outlets() const override;
 
-  std::unique_ptr<Process::Port> outlet;
+  std::unique_ptr<Process::Outlet> outlet;
 signals:
   void notesChanged();
   void deviceChanged(const QString&);

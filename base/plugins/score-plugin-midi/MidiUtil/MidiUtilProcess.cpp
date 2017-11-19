@@ -11,11 +11,12 @@ ProcessModel::ProcessModel(
     QObject* parent)
   : Process::ProcessModel{duration, id,
                           Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-  , outlet{std::make_unique<Process::Port>(Id<Process::Port>(0), this)}
+//  , outlet{std::make_unique<Process::Port>(Id<Process::Port>(0), this)}
 {
+  /*
   outlet->outlet = true;
   outlet->type = Process::PortType::Midi;
-
+  */
   metadata().setInstanceName(*this);
 
 }
@@ -26,7 +27,7 @@ ProcessModel::ProcessModel(
     QObject* parent)
   : Process::ProcessModel{source, id,
                           Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-  , outlet{std::make_unique<Process::Port>(source.outlet->id(), *source.outlet, this)}
+//  , outlet{std::make_unique<Process::Port>(source.outlet->id(), *source.outlet, this)}
 {
   metadata().setInstanceName(*this);
 }
@@ -35,14 +36,14 @@ ProcessModel::~ProcessModel()
 {
 }
 
-std::vector<Process::Port*> ProcessModel::inlets() const
+Process::Inlets ProcessModel::inlets() const
 {
-  return {};
+  return m_inlets;
 }
 
-std::vector<Process::Port*> ProcessModel::outlets() const
+Process::Outlets ProcessModel::outlets() const
 {
-  return {const_cast<Process::Port*>(outlet.get())};
+  return m_outlets;
 }
 
 }
@@ -50,7 +51,7 @@ std::vector<Process::Port*> ProcessModel::outlets() const
 template <>
 void DataStreamReader::read(const MidiUtil::ProcessModel& proc)
 {
-  m_stream << *proc.outlet;
+//  m_stream << *proc.outlet;
 
   insertDelimiter();
 }
@@ -59,7 +60,7 @@ void DataStreamReader::read(const MidiUtil::ProcessModel& proc)
 template <>
 void DataStreamWriter::write(MidiUtil::ProcessModel& proc)
 {
-  proc.outlet = std::make_unique<Process::Port>(*this, &proc);
+//  proc.outlet = std::make_unique<Process::Port>(*this, &proc);
   checkDelimiter();
 }
 
@@ -67,13 +68,13 @@ void DataStreamWriter::write(MidiUtil::ProcessModel& proc)
 template <>
 void JSONObjectReader::read(const MidiUtil::ProcessModel& proc)
 {
-  obj["Outlet"] = toJsonObject(*proc.outlet);
+//  obj["Outlet"] = toJsonObject(*proc.outlet);
 }
 
 
 template <>
 void JSONObjectWriter::write(MidiUtil::ProcessModel& proc)
 {
-  JSONObjectWriter writer{obj["Outlet"].toObject()};
-  proc.outlet = std::make_unique<Process::Port>(writer, &proc);
+//  JSONObjectWriter writer{obj["Outlet"].toObject()};
+//  proc.outlet = std::make_unique<Process::Port>(writer, &proc);
 }

@@ -10,12 +10,12 @@ namespace Media
 namespace Sound
 {
 
-std::vector<Process::Port*> ProcessModel::inlets() const
+Process::Inlets ProcessModel::inlets() const
 {
   return {};
 }
 
-std::vector<Process::Port*> ProcessModel::outlets() const
+Process::Outlets ProcessModel::outlets() const
 {
   return {outlet.get()};
 }
@@ -25,10 +25,9 @@ ProcessModel::ProcessModel(
         const Id<Process::ProcessModel>& id,
         QObject* parent):
     Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-  , outlet{std::make_unique<Process::Port>(Id<Process::Port>(0), this)}
+  , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
 {
     outlet->setPropagate(true);
-    outlet->outlet = true;
     outlet->type = Process::PortType::Audio;
     metadata().setInstanceName(*this);
     setFile("/tmp/bass.aif");
@@ -44,7 +43,7 @@ ProcessModel::ProcessModel(
         id,
         Metadata<ObjectKey_k, ProcessModel>::get(),
         parent}
-  , outlet{std::make_unique<Process::Port>(source.outlet->id(), *source.outlet, this)}
+  , outlet{Process::clone_outlet(*source.outlet, this)}
 {
     setFile(source.m_file.name());
     metadata().setInstanceName(*this);

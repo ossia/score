@@ -9,7 +9,7 @@
 #include <ossia/editor/value/value_conversion.hpp>
 #include <ossia/network/domain/domain.hpp>
 #include <Device/Address/AddressSettings.hpp>
-#include <Device/Address/Domain.hpp>
+#include <State/Domain.hpp>
 #include <Device/Address/IOType.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>

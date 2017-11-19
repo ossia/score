@@ -24,8 +24,8 @@ class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final : public Process::ProcessMode
         Q_PROPERTY(int upmixChannels READ upmixChannels WRITE setUpmixChannels NOTIFY upmixChannelsChanged)
         Q_PROPERTY(int startChannel READ startChannel WRITE setStartChannel NOTIFY startChannelChanged)
     public:
-        std::vector<Process::Port*> inlets() const override;
-        std::vector<Process::Port*> outlets() const override;
+        Process::Inlets inlets() const override;
+        Process::Outlets outlets() const override;
 
         explicit ProcessModel(
                 const TimeVal& duration,
@@ -61,7 +61,7 @@ class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final : public Process::ProcessMode
         void setUpmixChannels(int upmixChannels);
         void setStartChannel(int startChannel);
 
-        std::unique_ptr<Process::Port> outlet;
+        std::unique_ptr<Process::Outlet> outlet;
 signals:
         void fileChanged();
         void upmixChannelsChanged(int upmixChannels);

@@ -128,8 +128,8 @@ void IntervalRawPtrComponent::onSetup(
   }
 
   // set-up the interval ports
-  system().plugin.inlets.insert({interval().ports()[0], std::make_pair(ossia_cst->node, ossia_cst->node->inputs()[0])});
-  system().plugin.outlets.insert({interval().ports()[1], std::make_pair(ossia_cst->node, ossia_cst->node->outputs()[0])});
+  system().plugin.inlets.insert(std::make_pair(interval().inlet.get(), std::make_pair(ossia_cst->node, ossia_cst->node->inputs()[0])));
+  system().plugin.outlets.insert(std::make_pair(interval().outlet.get(), std::make_pair(ossia_cst->node, ossia_cst->node->outputs()[0])));
 
   system().plugin.execGraph->add_node(ossia_cst->node);
 

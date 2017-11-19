@@ -31,11 +31,11 @@ class SCORE_PLUGIN_LOOP_EXPORT ProcessModel final
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Loop::ProcessModel)
 
-  std::vector<Process::Port*> m_ports;
 public:
-  const std::vector<Process::Port*>& ports() const { return m_ports; }
-  std::vector<Process::Port*> inlets() const override;
-  std::vector<Process::Port*> outlets() const override;
+  std::unique_ptr<Process::Inlet> inlet;
+  std::unique_ptr<Process::Outlet> outlet;
+  Process::Inlets inlets() const override;
+  Process::Outlets outlets() const override;
 
   explicit ProcessModel(
       const TimeVal& duration,

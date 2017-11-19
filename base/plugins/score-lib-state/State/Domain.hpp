@@ -1,6 +1,6 @@
 #pragma once
 #include <QMetaType>
-#include <score_lib_device_export.h>
+#include <score_lib_state_export.h>
 #include <memory>
 
 namespace ossia
@@ -8,9 +8,9 @@ namespace ossia
 struct domain;
 }
 
-namespace Device
+namespace State
 {
-struct SCORE_LIB_DEVICE_EXPORT Domain
+struct SCORE_LIB_STATE_EXPORT Domain
 {
   Q_GADGET
 public:
@@ -27,8 +27,8 @@ public:
   operator const ossia::domain&() const noexcept;
   operator ossia::domain&() noexcept;
 
-  bool operator==(const Device::Domain& other) const noexcept;
-  bool operator!=(const Device::Domain& other) const noexcept;
+  bool operator==(const State::Domain& other) const noexcept;
+  bool operator!=(const State::Domain& other) const noexcept;
 
   const ossia::domain& get() const noexcept;
   ossia::domain& get() noexcept;
@@ -38,4 +38,4 @@ private:
 };
 }
 
-Q_DECLARE_METATYPE(Device::Domain)
+Q_DECLARE_METATYPE(State::Domain)

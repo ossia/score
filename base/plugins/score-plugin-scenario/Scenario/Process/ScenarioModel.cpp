@@ -39,14 +39,14 @@
 
 namespace Scenario
 {
-std::vector<Process::Port*> ProcessModel::inlets() const
+Process::Inlets ProcessModel::inlets() const
 {
-  return {m_ports[0]};
+  return {inlet.get()};
 }
 
-std::vector<Process::Port*> ProcessModel::outlets() const
+Process::Outlets ProcessModel::outlets() const
 {
-  return {m_ports[1]};
+  return {outlet.get()};
 }
 
 ProcessModel::ProcessModel(
@@ -57,6 +57,8 @@ ProcessModel::ProcessModel(
           ProcessModel{duration, id,
                        Metadata<ObjectKey_k, Scenario::ProcessModel>::get(),
                        parent}
+    , inlet{Process::make_inlet(Id<Process::Port>(0), this)}
+    , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
     , m_startTimeSyncId{Scenario::startId<TimeSyncModel>()}
     , m_startEventId{Scenario::startId<EventModel>()}
     , m_startStateId{Scenario::startId<StateModel>()}
@@ -73,10 +75,9 @@ ProcessModel::ProcessModel(
   // here
   metadata().setInstanceName(*this);
 
-  { auto p = new Process::Port{Id<Process::Port>{0}, this};
-    p->type = Process::PortType::Audio; p->outlet = false; m_ports.push_back(p); }
-  { auto p = new Process::Port{Id<Process::Port>{1}, this};
-    p->type = Process::PortType::Audio; p->setPropagate(true); p->outlet = true; m_ports.push_back(p); }
+  inlet->type = Process::PortType::Audio;
+  outlet->type = Process::PortType::Audio;
+  outlet->setPropagate(true);
 }
 
 ProcessModel::ProcessModel(
@@ -87,6 +88,8 @@ ProcessModel::ProcessModel(
           ProcessModel{source, id,
                        Metadata<ObjectKey_k, Scenario::ProcessModel>::get(),
                        parent}
+    , inlet{Process::clone_inlet(*source.inlet, this)}
+    , outlet{Process::clone_outlet(*source.outlet, this)}
     , m_startTimeSyncId{source.m_startTimeSyncId}
     , m_startEventId{source.m_startEventId}
 {
@@ -118,11 +121,6 @@ ProcessModel::ProcessModel(
         states.at(interval.endState()), interval);
     Scenario::SetNextInterval(
         states.at(interval.startState()), interval);
-  }
-
-  for(const auto& port : source.m_ports)
-  {
-    m_ports.push_back(port->clone(this));
   }
 }
 

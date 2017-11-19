@@ -26,14 +26,14 @@
 namespace Loop
 {
 
-std::vector<Process::Port*> ProcessModel::inlets() const
+Process::Inlets ProcessModel::inlets() const
 {
-  return {m_ports[0]};
+  return {inlet.get()};
 }
 
-std::vector<Process::Port*> ProcessModel::outlets() const
+Process::Outlets ProcessModel::outlets() const
 {
-  return {m_ports[1]};
+  return {outlet.get()};
 }
 
 
@@ -44,6 +44,8 @@ ProcessModel::ProcessModel(
     : Process::ProcessModel{duration, id,
                             Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , Scenario::BaseScenarioContainer{this}
+    , inlet{Process::make_inlet(Id<Process::Port>(0), this)}
+    , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
 {
   Scenario::IntervalDurations::Algorithms::changeAllDurations(
       interval(), duration);
@@ -62,10 +64,9 @@ ProcessModel::ProcessModel(
 
   metadata().setInstanceName(*this);
 
-  { auto p = new Process::Port{Id<Process::Port>{0}, this};
-    p->type = Process::PortType::Audio; p->outlet = false; m_ports.push_back(p); }
-  { auto p = new Process::Port{Id<Process::Port>{1}, this};
-    p->type = Process::PortType::Audio; p->setPropagate(true); p->outlet = true; m_ports.push_back(p); }
+  inlet->type = Process::PortType::Audio;
+  outlet->type = Process::PortType::Audio;
+  outlet->setPropagate(true);
 }
 
 ProcessModel::ProcessModel(
@@ -75,12 +76,10 @@ ProcessModel::ProcessModel(
     : Process::ProcessModel{source, id,
                             Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , BaseScenarioContainer{source, this}
+    , inlet{Process::clone_inlet(*source.inlet, this)}
+    , outlet{Process::clone_outlet(*source.outlet, this)}
 {
   metadata().setInstanceName(*this);
-  for(const auto& port : source.m_ports)
-  {
-    m_ports.push_back(port->clone(this));
-  }
 }
 
 ProcessModel::~ProcessModel()

@@ -118,6 +118,9 @@ SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
     const Scenario::IntervalModel& interval)
 {
   insertDelimiter();
+  // Ports
+  m_stream << *interval.inlet << *interval.outlet;
+
   // Processes
   m_stream << (int32_t)interval.processes.size();
   for (const auto& process : interval.processes)
@@ -136,12 +139,6 @@ SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
            << interval.m_zoom << interval.m_center
            << interval.m_smallViewShown;
 
-  // Ports
-  m_stream << (int32_t)interval.m_ports.size();
-  for (const auto& p : interval.m_ports)
-  {
-    readFrom(*p);
-  }
 
   insertDelimiter();
 }
@@ -152,6 +149,10 @@ SCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamWriter::write(Scenario::IntervalModel& interval)
 {
   checkDelimiter();
+  // Ports
+  interval.inlet = Process::make_inlet(*this, &interval);
+  interval.outlet = Process::make_outlet(*this, &interval);
+
   // Processes
   int32_t process_count;
   m_stream >> process_count;
@@ -182,14 +183,6 @@ DataStreamWriter::write(Scenario::IntervalModel& interval)
       >> interval.m_zoom >> interval.m_center
       >> interval.m_smallViewShown;
 
-  // Ports
-  int32_t port_count;
-  m_stream >> port_count;
-  for (; port_count-- > 0;)
-  {
-    interval.m_ports.push_back(new Process::Port{*this, &interval});
-  }
-
   checkDelimiter();
 }
 
@@ -198,6 +191,10 @@ template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::read(
     const Scenario::IntervalModel& interval)
 {
+  // Ports
+  obj["Inlet"] = toJsonObject(*interval.inlet);
+  obj["Outlet"] = toJsonObject(*interval.outlet);
+
   // Processes
   obj[strings.Processes] = toJsonArray(interval.processes);
 
@@ -219,9 +216,6 @@ SCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectReader::read(
   obj[strings.Zoom] = interval.m_zoom;
   obj[strings.Center] = toJsonValue(interval.m_center);
   obj[strings.SmallViewShown] = interval.m_smallViewShown;
-
-  // Ports
-  obj["Ports"] = toJsonArray(interval.m_ports);
 }
 
 
@@ -229,6 +223,16 @@ template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
 JSONObjectWriter::write(Scenario::IntervalModel& interval)
 {
+  {
+    JSONObjectWriter writer{obj["Inlet"].toObject()};
+    interval.inlet = Process::make_inlet(writer, &interval);
+  }
+  {
+    JSONObjectWriter writer{obj["Outlet"].toObject()};
+    interval.outlet = Process::make_outlet(writer, &interval);
+  }
+
+
   auto& pl = components.interfaces<Process::ProcessFactoryList>();
 
   QJsonArray process_array = obj[strings.Processes].toArray();
@@ -288,14 +292,6 @@ JSONObjectWriter::write(Scenario::IntervalModel& interval)
   if(cit != obj.end() && cit->isDouble())
     interval.m_center = fromJsonValue<TimeVal>(*cit);
 
-  {
-    QJsonArray port_array = obj["Ports"].toArray();
-    for (const auto& json_vref : port_array)
-    {
-      JSONObject::Deserializer deserializer{json_vref.toObject()};
-      interval.m_ports.push_back(new Process::Port{deserializer, &interval});
-    }
-  }
 
 }
 

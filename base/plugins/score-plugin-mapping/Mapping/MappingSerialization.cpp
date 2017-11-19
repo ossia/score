@@ -30,8 +30,8 @@ void DataStreamReader::read(
 template <>
 void DataStreamWriter::write(Mapping::ProcessModel& autom)
 {
-  autom.inlet = std::make_unique<Process::Port>(*this, &autom);
-  autom.outlet = std::make_unique<Process::Port>(*this, &autom);
+  autom.inlet = Process::make_inlet(*this, &autom);
+  autom.outlet = Process::make_outlet(*this, &autom);
   autom.setCurve(new Curve::Model{*this, &autom});
 
   { // Source
@@ -75,11 +75,11 @@ void JSONObjectWriter::write(Mapping::ProcessModel& autom)
 {
   {
     JSONObjectWriter writer{obj["Inlet"].toObject()};
-    autom.inlet = std::make_unique<Process::Port>(writer, &autom);
+    autom.inlet = Process::make_inlet(writer, &autom);
   }
   {
     JSONObjectWriter writer{obj["Outlet"].toObject()};
-    autom.outlet = std::make_unique<Process::Port>(writer, &autom);
+    autom.outlet = Process::make_outlet(writer, &autom);
   }
 
   JSONObject::Deserializer curve_deser{obj["Curve"].toObject()};
