@@ -77,7 +77,7 @@ constexpr scales_array make_scale(std::initializer_list<bool> notes)
   }
   return r;
 }
-static constexpr frozen::unordered_map<int, scales_array, scale::SCALES_MAX> scales{
+static Q_DECL_RELAXED_CONSTEXPR frozen::unordered_map<int, scales_array, scale::SCALES_MAX> scales{
     //                                     C   D   E F   G   A   B
     { scale::all,        make_scale({ 1,1,1,1,1,1,1,1,1,1,1,1 })}
   , { scale::ionian,     make_scale({ 1,0,1,0,1,1,0,1,0,1,0,1 })}
