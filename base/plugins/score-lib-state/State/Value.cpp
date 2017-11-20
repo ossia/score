@@ -2,9 +2,9 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Value.hpp"
 #include "Unit.hpp"
-#include <ossia/editor/dataspace/dataspace.hpp>
-#include <ossia/editor/dataspace/dataspace_visitors.hpp>
-#include <ossia/editor/value/value.hpp>
+#include <ossia/network/dataspace/dataspace.hpp>
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
+#include <ossia/network/value/value.hpp>
 #include <ossia/detail/apply.hpp>
 #include <State/ValueConversion.hpp>
 

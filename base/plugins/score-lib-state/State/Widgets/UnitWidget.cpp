@@ -1,9 +1,9 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "UnitWidget.hpp"
-#include <ossia/editor/dataspace/dataspace.hpp>
-#include <ossia/editor/dataspace/dataspace_visitors.hpp>
-#include <ossia/editor/dataspace/detail/dataspace_parse.hpp>
+#include <ossia/network/dataspace/dataspace.hpp>
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
+#include <ossia/network/dataspace/detail/dataspace_parse.hpp>
 #include <QComboBox>
 #include <QHBoxLayout>
 #include <brigand/algorithms/for_each.hpp>

@@ -6,7 +6,7 @@
 #include <qnamespace.h>
 
 #include "NodeDisplayMethods.hpp"
-#include <ossia/editor/value/value_conversion.hpp>
+#include <ossia/network/value/value_conversion.hpp>
 #include <ossia/network/domain/domain.hpp>
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Address/Domain.hpp>

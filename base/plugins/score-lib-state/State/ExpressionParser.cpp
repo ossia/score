@@ -18,7 +18,7 @@
 #include <boost/spirit/repository/include/qi_confix.hpp>
 #include <boost/variant/recursive_wrapper.hpp>
 
-#include <ossia/editor/dataspace/dataspace_parse.hpp>
+#include <ossia/network/dataspace/dataspace_parse.hpp>
 #include <score/prefix.hpp>
 #endif
 /*

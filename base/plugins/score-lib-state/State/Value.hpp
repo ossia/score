@@ -1,6 +1,6 @@
 #pragma once
-#include <ossia/editor/value/value.hpp>
-#include <ossia/editor/value/impulse.hpp>
+#include <ossia/network/value/value.hpp>
+#include <ossia/network/value/impulse.hpp>
 #include <QChar>
 #include <QList>
 #include <QString>

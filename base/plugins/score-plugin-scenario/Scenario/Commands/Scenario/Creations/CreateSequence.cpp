@@ -41,7 +41,7 @@
 #include <score/tools/Todo.hpp>
 #include <score/model/tree/TreeNode.hpp>
 
-#include <ossia/editor/value/value_conversion.hpp>
+#include <ossia/network/value/value_conversion.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 

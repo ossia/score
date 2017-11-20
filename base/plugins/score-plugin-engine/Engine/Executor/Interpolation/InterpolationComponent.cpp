@@ -14,8 +14,8 @@
 #include <Curve/CurveModel.hpp>
 
 #include <ossia/editor/curve/curve_segment/easing.hpp>
-#include <ossia/editor/dataspace/dataspace_visitors.hpp>
-#include <ossia/editor/value/value_conversion.hpp>
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
+#include <ossia/network/value/value_conversion.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/Document.hpp>
 #include <score/document/DocumentInterface.hpp>

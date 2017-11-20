@@ -7,7 +7,7 @@
 #include <score/widgets/SpinBoxes.hpp>
 
 #include "AutomationInspectorWidget.hpp"
-#include <ossia/editor/dataspace/dataspace_visitors.hpp>
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
 #include <Automation/AutomationModel.hpp>
 #include <Automation/Commands/ChangeAddress.hpp>
 #include <Automation/Commands/SetAutomationMax.hpp>
