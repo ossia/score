@@ -1,6 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <ossia/editor/value/value_conversion.hpp>
+#include <ossia/network/value/value_conversion.hpp>
 #include <Automation/AutomationModel.hpp>
 #include <Automation/Commands/InitAutomation.hpp>
 #include <Curve/Segment/PointArray/PointArraySegment.hpp>
@@ -31,7 +31,7 @@
 #include <Device/Protocol/DeviceList.hpp>
 #include <Recording/Commands/Record.hpp>
 
-#include <ossia/editor/value/value.hpp>
+#include <ossia/network/value/value.hpp>
 #include <Curve/Settings/CurveSettingsModel.hpp>
 #include <Explorer/Explorer/ListeningManager.hpp>
 #include <Process/ExpandMode.hpp>

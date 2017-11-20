@@ -3,7 +3,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include "JSAPIWrapper.hpp"
-#include <ossia/editor/value/value.hpp>
+#include <ossia/network/value/value.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <Engine/score2OSSIA.hpp>
 #include <ossia/detail/apply.hpp>

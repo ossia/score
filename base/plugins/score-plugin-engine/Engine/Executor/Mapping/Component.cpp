@@ -4,7 +4,7 @@
 #include <ossia/editor/mapper/mapper.hpp>
 #include <ossia/editor/state/message.hpp>
 #include <ossia/editor/state/state.hpp>
-#include <ossia/editor/value/value.hpp>
+#include <ossia/network/value/value.hpp>
 #include <ossia/network/base/node.hpp>
 #include <ossia/network/base/device.hpp>
 

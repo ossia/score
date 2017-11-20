@@ -12,7 +12,7 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
-#include <ossia/editor/value/value_traits.hpp>
+#include <ossia/network/value/value_traits.hpp>
 namespace Scenario
 {
 

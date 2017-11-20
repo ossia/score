@@ -1,7 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AutomationState.hpp"
-#include <ossia/editor/dataspace/dataspace_visitors.hpp>
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
 #include <Automation/AutomationModel.hpp>
 #include <Curve/CurveModel.hpp>
 #include <Curve/Palette/CurvePoint.hpp>

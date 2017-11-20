@@ -1,6 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <ossia/editor/dataspace/dataspace_visitors.hpp> // REMOVEME
+#include <ossia/network/dataspace/dataspace_visitors.hpp> // REMOVEME
 #include <ossia/editor/expression/expression.hpp>
 #include <ossia/editor/expression/expression_atom.hpp>
 #include <ossia/editor/expression/expression_composition.hpp>
@@ -26,7 +26,7 @@
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/editor/state/message.hpp>
 #include <ossia/editor/state/state.hpp>
-#include <ossia/editor/value/value.hpp>
+#include <ossia/network/value/value.hpp>
 #include <ossia/network/base/parameter.hpp>
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/node.hpp>

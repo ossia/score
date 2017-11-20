@@ -1,6 +1,6 @@
 #include "AddressItemModel.hpp"
-#include <ossia/editor/dataspace/dataspace_visitors.hpp>
-#include <ossia/editor/value/value_traits.hpp>
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
+#include <ossia/network/value/value_traits.hpp>
 #include <ossia/network/base/node_attributes.hpp>
 #include <ossia/network/domain/domain.hpp>
 #include <QHBoxLayout>

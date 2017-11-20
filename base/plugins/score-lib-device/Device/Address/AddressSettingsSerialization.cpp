@@ -12,8 +12,8 @@
 #include <score/serialization/JSONVisitor.hpp>
 
 #include "AddressSettings.hpp"
-#include <ossia/editor/dataspace/dataspace.hpp>
-#include <ossia/editor/dataspace/dataspace_visitors.hpp>
+#include <ossia/network/dataspace/dataspace.hpp>
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
 #include <Device/Address/ClipMode.hpp>
 #include <Device/Address/Domain.hpp>
 #include <Device/Address/IOType.hpp>

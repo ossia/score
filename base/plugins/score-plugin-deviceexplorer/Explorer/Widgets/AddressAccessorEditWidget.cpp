@@ -12,7 +12,7 @@
 #include <score/widgets/MarginLess.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <QHBoxLayout>
-#include <ossia/editor/value/value.hpp>
+#include <ossia/network/value/value.hpp>
 
 namespace Explorer
 {

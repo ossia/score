@@ -1,6 +1,6 @@
 #pragma once
 #include <ossia/editor/automation/automation.hpp>
-#include <ossia/editor/value/value.hpp>
+#include <ossia/network/value/value.hpp>
 #include <Automation/Color/GradientAutomModel.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
