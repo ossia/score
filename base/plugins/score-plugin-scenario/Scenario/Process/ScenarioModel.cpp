@@ -65,12 +65,13 @@ ProcessModel::ProcessModel(
 {
   auto& start_tn = ScenarioCreate<TimeSyncModel>::redo(
       m_startTimeSyncId, {0., 0.1}, TimeVal::zero(), *this);
-
+  start_tn.metadata().setName("Sync.start");
   auto& start_ev = ScenarioCreate<EventModel>::redo(
       m_startEventId, start_tn, {0., 0.0}, *this);
-
-  ScenarioCreate<StateModel>::redo(m_startStateId, start_ev, 0.02, *this);
-
+  start_ev.metadata().setName("Event.start");
+  auto& start_st = ScenarioCreate<StateModel>::redo(
+      m_startStateId, start_ev, 0.02, *this);
+  start_st.metadata().setName("State.start");
   // At the end because plug-ins depend on the start/end timesync & al being
   // here
   metadata().setInstanceName(*this);

@@ -86,11 +86,14 @@ MetadataWidget::MetadataWidget(
 
   m_cmtBtn.setArrowType(Qt::RightArrow);
   m_cmtBtn.setIconSize({4,4});
+  m_cmtLay.addWidget(&m_cmtBtn);
+  m_cmtLabel = new TextLabel{tr("properties & comments"), this};
+  m_cmtLay.addWidget(m_cmtLabel);
 
   m_meta.setVisible(false);
 
   m_btnLay.addWidget(&m_colorButton);
-  m_btnLay.addWidget(&m_cmtBtn);
+  m_btnLay.addLayout(&m_cmtLay);
 
   m_headerLay.addWidget(&m_descriptionWidget);
 

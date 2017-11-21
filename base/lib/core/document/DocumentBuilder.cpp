@@ -34,7 +34,7 @@ Document* DocumentBuilder::newDocument(
     const Id<DocumentModel>& id,
     DocumentDelegateFactory& doctype)
 {
-  QString docName = "Untitled." + RandomNameProvider::generateRandomName();
+  QString docName = "Untitled." + RandomNameProvider::generateShortRandomName();
   auto doc
       = new Document{docName, id, doctype, m_parentView, m_parentPresenter};
 

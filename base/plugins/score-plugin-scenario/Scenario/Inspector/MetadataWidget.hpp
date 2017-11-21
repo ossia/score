@@ -18,6 +18,7 @@
 #include <Scenario/Commands/Metadata/SetExtendedMetadata.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/widgets/MarginLess.hpp>
+#include <score/widgets/TextLabel.hpp>
 
 #include <score/model/IdentifiedObject.hpp>
 
@@ -131,6 +132,8 @@ private:
   score::MarginLess<QVBoxLayout> m_metadataLayout;
   score::MarginLess<QHBoxLayout> m_headerLay;
   score::MarginLess<QVBoxLayout> m_btnLay;
+  score::MarginLess<QHBoxLayout> m_cmtLay;
+  QLabel* m_cmtLabel;
   QWidget m_descriptionWidget;
   score::MarginLess<QFormLayout> m_descriptionLay;
   QLineEdit m_scriptingNameLine;

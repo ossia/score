@@ -29,7 +29,7 @@ CreateInterval_State_Event::CreateInterval_State_Event(
         endTimeSync,
     double endStateY)
     : m_newEvent{getStrongId(scenario.events)}
-    , m_createdName{RandomNameProvider::generateRandomName()}
+    , m_createdName{RandomNameProvider::generateName<EventModel>()}
     , m_command{scenario, std::move(startState), m_newEvent, endStateY}
     , m_endTimeSync{std::move(endTimeSync)}
 {

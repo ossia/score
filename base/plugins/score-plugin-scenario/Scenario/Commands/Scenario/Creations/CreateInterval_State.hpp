@@ -2,6 +2,7 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <score/command/Command.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <QString>
 
 #include "CreateInterval.hpp"
 #include <score/model/path/Path.hpp>
@@ -69,6 +70,7 @@ private:
   Id<StateModel> m_newState;
   CreateInterval m_command;
   Id<EventModel> m_endEvent;
+  QString m_createdName;
   double m_stateY{};
 };
 }
