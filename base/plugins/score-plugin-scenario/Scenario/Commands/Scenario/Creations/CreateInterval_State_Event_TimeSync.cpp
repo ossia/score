@@ -28,7 +28,7 @@ CreateInterval_State_Event_TimeSync::CreateInterval_State_Event_TimeSync(
     TimeVal date,
     double endStateY)
     : m_newTimeSync{getStrongId(scenario.timeSyncs)}
-    , m_createdName{RandomNameProvider::generateRandomName()}
+    , m_createdName{RandomNameProvider::generateName<TimeSyncModel>()}
     , m_command{scenario, std::move(startState), m_newTimeSync, endStateY}
     , m_date{std::move(date)}
 {
