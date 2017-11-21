@@ -395,6 +395,7 @@ void TemporalScenarioPresenter::on_intervalExecutionTimer()
   for (TemporalIntervalPresenter& cst : m_intervals)
   {
     auto pp = cst.model().duration.playPercentage();
+
     if(double w = cst.on_playPercentageChanged(pp))
     {
       auto& v = *cst.view();
@@ -402,7 +403,7 @@ void TemporalScenarioPresenter::on_intervalExecutionTimer()
 
       if(r.width() > 7.)
         v.update(r.x() + v.playWidth() - w, r.y(), 2 * w, 5.);
-      else if(pp == 0)
+      else if(pp == 0.)
         v.update();
     }
   }

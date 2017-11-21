@@ -8,7 +8,7 @@
 #include <ossia/dataflow/node_process.hpp>
 #include <score/model/Component.hpp>
 
-#include <ossia/editor/value/value.hpp>
+#include <ossia/network/value/value.hpp>
 
 
 namespace Engine

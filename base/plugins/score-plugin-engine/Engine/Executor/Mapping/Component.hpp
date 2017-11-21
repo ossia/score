@@ -2,7 +2,7 @@
 #include <Engine/Executor/ProcessComponent.hpp>
 
 #include <ossia/editor/mapper/mapper.hpp>
-#include <ossia/editor/value/value.hpp>
+#include <ossia/network/value/value.hpp>
 #include <Mapping/MappingModel.hpp>
 #include <QPointer>
 #include <State/Address.hpp>

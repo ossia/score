@@ -307,7 +307,7 @@ SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::Port>(Process::Po
 template<>
 SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::Inlet>(const Process::Inlet& p)
 {
-  readFrom((Process::Port&)p);
+  read((Process::Port&)p);
 }
 template<>
 SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::Inlet>(Process::Inlet& p)
@@ -317,7 +317,7 @@ SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::Inlet>(Process::I
 template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::Inlet>(const Process::Inlet& p)
 {
-  readFrom((Process::Port&)p);
+  read((Process::Port&)p);
 }
 template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::Inlet>(Process::Inlet& p)
@@ -329,7 +329,7 @@ SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::Inlet>(Process::I
 template<>
 SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::ControlInlet>(const Process::ControlInlet& p)
 {
-  readFrom((Process::Inlet&)p);
+  read((Process::Inlet&)p);
   readFrom(p.m_value);
   readFrom(p.m_domain);
 }
@@ -343,7 +343,7 @@ SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::ControlInlet>(Pro
 template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::ControlInlet>(const Process::ControlInlet& p)
 {
-  readFrom((Process::Inlet&)p);
+  read((Process::Inlet&)p);
 
   obj[strings.Value] = toJsonValue(p.m_value);
   obj[strings.Domain] = toJsonObject(p.m_domain);
@@ -360,7 +360,7 @@ SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::ControlInlet>(Pro
 template<>
 SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::Outlet>(const Process::Outlet& p)
 {
-  readFrom((Process::Port&)p);
+  read((Process::Port&)p);
   m_stream << p.m_propagate;
 }
 template<>
@@ -372,7 +372,7 @@ SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::Outlet>(Process::
 template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::Outlet>(const Process::Outlet& p)
 {
-  readFrom((Process::Port&)p);
+  read((Process::Port&)p);
 
   obj["Propagate"] = p.m_propagate;
 }
@@ -387,7 +387,7 @@ SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::Outlet>(Process::
 template<>
 SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::ControlOutlet>(const Process::ControlOutlet& p)
 {
-  readFrom((Process::Outlet&)p);
+  read((Process::Outlet&)p);
   readFrom(p.m_value);
   readFrom(p.m_domain);
 }
@@ -401,7 +401,7 @@ SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::ControlOutlet>(Pr
 template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::ControlOutlet>(const Process::ControlOutlet& p)
 {
-  readFrom((Process::Outlet&)p);
+  read((Process::Outlet&)p);
 
   obj[strings.Value] = toJsonValue(p.m_value);
   obj[strings.Domain] = toJsonObject(p.m_domain);

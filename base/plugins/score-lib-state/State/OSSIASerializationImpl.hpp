@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ossia/editor/dataspace/dataspace.hpp>
+#include <ossia/network/dataspace/dataspace.hpp>
 #include <ossia/network/domain/domain.hpp>
 #include <ossia/network/base/node_attributes.hpp>
 #include <QDataStream>

@@ -5,7 +5,7 @@
 //#include <score/widgets/MarginLess.hpp>
 //#include <Device/Node/NodeListMimeSerialization.hpp>
 //#include <ossia/network/base/node.hpp>
-//#include <ossia/editor/value/value_conversion.hpp>
+//#include <ossia/network/value/value_conversion.hpp>
 //#include <Engine/OSSIA2Score.hpp>
 //#include <QMenu>
 //#include <QLabel>

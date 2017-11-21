@@ -55,9 +55,9 @@ IntervalPresenter::IntervalPresenter(
   con(interval, &IntervalModel::heightPercentageChanged, this,
       &IntervalPresenter::heightPercentageChanged);
   con(interval, &IntervalModel::executionStarted,
-      this, [=] { m_view->setExecuting(true); });
+      this, [=] { m_view->setExecuting(true); m_view->updatePaths(); m_view->update(); });
   con(interval, &IntervalModel::executionStopped,
-      this, [=] { m_view->setExecuting(false); });
+      this, [=] { m_view->setExecuting(false); m_view->updatePaths(); m_view->update(); });
 
   con(interval.consistency, &ModelConsistency::validChanged, m_view,
       &IntervalView::setValid);

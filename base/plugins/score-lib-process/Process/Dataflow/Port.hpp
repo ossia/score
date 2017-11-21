@@ -7,7 +7,7 @@
 #include <QPointer>
 #include <chobo/small_vector.hpp>
 #include <score_lib_process_export.h>
-#include <ossia/editor/value/value.hpp>
+#include <ossia/network/value/value.hpp>
 #include <State/Domain.hpp>
 namespace Process
 {

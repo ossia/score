@@ -7,7 +7,7 @@
 #include <algorithm>
 
 #include "ChangeAddress.hpp"
-#include <ossia/editor/value/value_conversion.hpp>
+#include <ossia/network/value/value_conversion.hpp>
 #include <Automation/AutomationModel.hpp>
 #include <Curve/Point/CurvePointModel.hpp>
 #include <Device/Address/AddressSettings.hpp>

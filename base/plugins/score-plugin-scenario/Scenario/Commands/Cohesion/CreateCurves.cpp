@@ -22,7 +22,7 @@
 #include <score/selection/SelectionStack.hpp>
 #include <score/model/IdentifiedObjectAbstract.hpp>
 
-#include <ossia/editor/value/value_conversion.hpp>
+#include <ossia/network/value/value_conversion.hpp>
 #include <ossia/network/domain/domain.hpp>
 #include <Automation/AutomationModel.hpp>
 namespace Scenario
