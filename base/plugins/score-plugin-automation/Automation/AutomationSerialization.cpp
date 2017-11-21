@@ -7,7 +7,7 @@
 #include <score/serialization/JSONVisitor.hpp>
 
 #include "AutomationModel.hpp"
-#include <ossia/editor/dataspace/dataspace_visitors.hpp>
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Curve/CurveModel.hpp>
 #include <State/Address.hpp>

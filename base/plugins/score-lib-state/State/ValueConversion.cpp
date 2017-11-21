@@ -18,7 +18,7 @@
 
 #include "Expression.hpp"
 #include "ValueConversion.hpp"
-#include <ossia/editor/value/value.hpp>
+#include <ossia/network/value/value.hpp>
 #include <State/Value.hpp>
 
 namespace State

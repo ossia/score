@@ -24,7 +24,7 @@
 #include <score/model/path/Path.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/TreeNodeItemModel.hpp>
-#include <ossia/editor/value/value_traits.hpp>
+#include <ossia/network/value/value_traits.hpp>
 
 namespace Scenario
 {

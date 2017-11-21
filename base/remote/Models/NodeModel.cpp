@@ -2,7 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "NodeModel.hpp"
 #include <Device/ItemModels/NodeDisplayMethods.hpp>
-#include <ossia/editor/value/value_traits.hpp>
+#include <ossia/network/value/value_traits.hpp>
 namespace RemoteUI
 {
 

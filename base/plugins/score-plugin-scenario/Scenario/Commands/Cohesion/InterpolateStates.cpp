@@ -20,7 +20,7 @@
 #include <vector>
 
 #include "InterpolateStates.hpp"
-#include <ossia/editor/value/value_conversion.hpp>
+#include <ossia/network/value/value_conversion.hpp>
 #include <ossia/network/domain/domain.hpp>
 #include <State/Domain.hpp>
 #include <Device/Node/DeviceNode.hpp>

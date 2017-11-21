@@ -3,7 +3,7 @@
 #include <algorithm>
 
 #include <ossia/detail/algorithms.hpp>
-#include <ossia/editor/dataspace/dataspace_visitors.hpp>
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/base/name_validation.hpp>
 #include <QStringBuilder>

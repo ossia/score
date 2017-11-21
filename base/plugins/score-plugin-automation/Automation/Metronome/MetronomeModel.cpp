@@ -25,7 +25,7 @@
 #include <score/serialization/JSONVisitor.hpp>
 
 #include "MetronomeModel.hpp"
-#include <ossia/editor/dataspace/dataspace_visitors.hpp>
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
 #include <Curve/CurveModel.hpp>
 #include <State/Address.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>

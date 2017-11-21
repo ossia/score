@@ -1,6 +1,6 @@
 #pragma once
 #include "AddressSettingsWidget.hpp"
-#include <ossia/editor/value/value_conversion.hpp>
+#include <ossia/network/value/value_conversion.hpp>
 #include <QComboBox>
 #include <QDebug>
 #include <QFormLayout>

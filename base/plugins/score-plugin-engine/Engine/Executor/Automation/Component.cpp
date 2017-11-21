@@ -17,7 +17,7 @@
 
 #include <ossia/editor/curve/curve.hpp>
 #include <ossia/editor/curve/curve_segment.hpp>
-#include <ossia/editor/value/value.hpp>
+#include <ossia/network/value/value.hpp>
 #include <ossia/network/base/parameter.hpp>
 #include <ossia/network/base/node.hpp>
 #include <ossia/network/base/device.hpp>
@@ -29,7 +29,7 @@
 #include <score/document/DocumentInterface.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 
-#include <ossia/editor/dataspace/dataspace_visitors.hpp> // temporary
+#include <ossia/network/dataspace/dataspace_visitors.hpp> // temporary
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <ossia/dataflow/node_process.hpp>

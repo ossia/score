@@ -5,7 +5,7 @@
 #include <Process/TimeValue.hpp>
 
 #include <ossia/editor/scenario/time_value.hpp>
-#include <ossia/editor/value/vec.hpp>
+#include <ossia/network/value/vec.hpp>
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Address/ClipMode.hpp>
 #include <State/Domain.hpp>
