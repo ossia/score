@@ -150,6 +150,10 @@ RemoveSelection::RemoveSelection(
         DataStream::Serializer s2{&arr};
         s2.readFrom(*ts);
         m_removedTimeSyncs.push_back({ts->id(), arr});
+        for (const auto& cstrId : intervalsBeforeTimeSync(scenar, ts->id()))
+        {
+          m_cmds.emplace_back(scenar.interval(cstrId), true);
+        }
       }
     }
 
@@ -241,7 +245,7 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
     }
   }
 
-  // Recreate first all the events / maybe removed timesyncs
+  // Recreate all the events / maybe removed timesyncs
   for (auto& event : events)
   {
 
@@ -299,6 +303,11 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
     // Set-up the start / end events correctly.
     SetNextInterval(startState(*itv, scenar), *itv);
     SetPreviousInterval(endState(*itv, scenar), *itv);
+  }
+
+  for (const auto& cmd : m_cmds)
+  {
+    cmd.undo(ctx);
   }
 
   for (auto& tn : scenar.timeSyncs)
@@ -359,6 +368,11 @@ void RemoveSelection::redo(const score::DocumentContext& ctx) const
     }
   }
 
+  for (const auto& cmd : m_cmds)
+  {
+    cmd.redo(ctx);
+  }
+
   for (auto& tn : scenar.timeSyncs)
   {
     updateTimeSyncExtent(tn.id(), scenar);
@@ -374,13 +388,29 @@ void RemoveSelection::serializeImpl(DataStreamInput& s) const
   s << m_path << m_removedEvents
     << m_removedTimeSyncs << m_removedIntervals << m_removedStates
     << m_removedComments;
+
+  s << (int32_t)m_cmds.size();
+
+  for (const auto& cmd : m_cmds)
+  {
+    s << cmd.serialize();
+  }
 }
 
 void RemoveSelection::deserializeImpl(DataStreamOutput& s)
 {
+  int32_t n;
   s >> m_path >> m_removedEvents
       >> m_removedTimeSyncs >> m_removedIntervals >> m_removedStates
-      >> m_removedComments;
+      >> m_removedComments >> n;
+
+  m_cmds.resize(n);
+  for (int i = 0; i < n; i++)
+  {
+    QByteArray a;
+    s >> a;
+    m_cmds[i].deserialize(a);
+  }
 }
 }
 }
