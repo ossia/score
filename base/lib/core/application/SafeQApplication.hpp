@@ -141,23 +141,7 @@ public:
 #endif
 
 #ifdef __APPLE__
-  bool event(QEvent* ev) override
-  {
-    bool eaten;
-    switch (ev->type())
-    {
-      case QEvent::FileOpen:
-      {
-        auto loadString = static_cast<QFileOpenEvent*>(ev)->file();
-        emit fileOpened(loadString);
-        eaten = true;
-        break;
-      }
-      default:
-        return QApplication::event(ev);
-    }
-    return eaten;
-  }
+  bool event(QEvent* ev) override;
 #endif
 
 signals:

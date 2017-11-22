@@ -5,3 +5,23 @@
 SafeQApplication::~SafeQApplication()
 {
 }
+
+#ifdef __APPLE__
+bool SafeQApplication::event(QEvent *ev)
+{
+    bool eaten = false;
+    switch (ev->type())
+    {
+    case QEvent::FileOpen:
+    {
+        auto loadString = static_cast<QFileOpenEvent*>(ev)->file();
+        emit fileOpened(loadString);
+        eaten = true;
+        break;
+    }
+    default:
+        return QApplication::event(ev);
+    }
+    return eaten;
+}
+#endif
