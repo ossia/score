@@ -9,6 +9,7 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <score/selection/Selection.hpp>
+#include <Scenario/Commands/Interval/SetRigidity.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -53,6 +54,7 @@ private:
   QVector<QPair<Id<EventModel>, QByteArray>> m_removedEvents;
   QVector<QPair<Id<TimeSyncModel>, QByteArray>> m_removedTimeSyncs;
   QVector<QPair<Id<IntervalModel>, QByteArray>> m_removedIntervals;
+  std::vector<SetRigidity> m_cmds;
 };
 }
 }
