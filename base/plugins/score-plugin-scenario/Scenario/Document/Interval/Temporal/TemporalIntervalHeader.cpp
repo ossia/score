@@ -214,8 +214,11 @@ RackButton::RackButton(QGraphicsItem* parent):
 
 void RackButton::setUnrolled(bool b)
 {
-  m_unroll = b;
-  update();
+  if(m_unroll != b)
+  {
+    m_unroll = b;
+    update();
+  }
 }
 
 static const QPainterPath trianglePath{
