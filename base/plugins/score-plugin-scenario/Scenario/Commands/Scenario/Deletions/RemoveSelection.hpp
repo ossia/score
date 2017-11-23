@@ -10,6 +10,8 @@
 
 #include <score/selection/Selection.hpp>
 #include <Scenario/Commands/Interval/SetRigidity.hpp>
+#include <Scenario/Commands/Event/SplitEvent.hpp>
+#include <Scenario/Commands/TimeSync/SplitTimeSync.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -54,7 +56,9 @@ private:
   QVector<QPair<Id<EventModel>, QByteArray>> m_removedEvents;
   QVector<QPair<Id<TimeSyncModel>, QByteArray>> m_removedTimeSyncs;
   QVector<QPair<Id<IntervalModel>, QByteArray>> m_removedIntervals;
-  std::vector<SetRigidity> m_cmds;
+  std::vector<SetRigidity> m_cmds_set_rigidity;
+  std::vector<SplitEvent> m_cmds_split_event;
+  std::vector<SplitTimeSync> m_cmds_split_timesync;
 };
 }
 }
