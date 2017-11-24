@@ -96,24 +96,24 @@ void TimeSyncPresenter::on_eventAdded(const Id<EventModel>& eventId)
 
 void TimeSyncPresenter::handleDrop(const QPointF& pos, const QMimeData* mime)
 {
-  // We don't want to create a Trigger in BaseScenario
-  auto scenar = dynamic_cast<Scenario::TimeSyncModel*>(m_model.parent());
-  // todo Maybe the drop should be handled by the scenario presenter ?? or not
-
   // If the mime data has states in it we can handle it.
-  if (scenar && mime->formats().contains(score::mime::messagelist()))
+  if (mime->formats().contains(score::mime::messagelist()))
   {
     Mime<State::MessageList>::Deserializer des{*mime};
     State::MessageList ml = des.deserialize();
 
     if (ml.size() > 0)
     {
-      auto trig = State::parseExpression(ml[0].address.toString());
+      QString expr = "{ " + ml[0].address.toString() + " impulse }";
+      auto trig = State::parseExpression(expr);
 
-      CommandDispatcher dispatcher{
-        score::IDocument::documentContext(m_model).commandStack};
-      auto cmd = new Command::SetTrigger{m_model, std::move(*trig)};
-      dispatcher.submitCommand(cmd);
+      if (trig)
+      {
+        CommandDispatcher dispatcher{
+          score::IDocument::documentContext(m_model).commandStack};
+        auto cmd = new Command::SetTrigger{m_model, std::move(*trig)};
+        dispatcher.submitCommand(cmd);
+      }
     }
   }
 }
