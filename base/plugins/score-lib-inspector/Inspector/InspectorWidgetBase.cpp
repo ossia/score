@@ -22,9 +22,6 @@ InspectorWidgetBase::InspectorWidgetBase(
     , m_inspectedObject{inspectedObj}
     , m_context{ctx}
     , m_commandDispatcher(new CommandDispatcher<>{ctx.commandStack})
-    , m_selectionDispatcher(
-          new score::SelectionDispatcher{ctx.selectionStack})
-
 {
   m_layout = new QVBoxLayout;
   m_layout->setContentsMargins(0, 1, 0, 0);
