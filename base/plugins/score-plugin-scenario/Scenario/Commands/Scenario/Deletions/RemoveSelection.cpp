@@ -360,6 +360,11 @@ void RemoveSelection::redo(const score::DocumentContext& ctx) const
 {
   auto& scenar = m_path.find(ctx);
 
+  for (const auto& cmd : m_cmds_set_rigidity)
+  {
+    cmd.redo(ctx);
+  }
+
   // Remove the intervals
   for (const auto& itv : m_removedIntervals)
   {
@@ -412,11 +417,6 @@ void RemoveSelection::redo(const score::DocumentContext& ctx) const
     {
       ts->setActive(false);
     }
-  }
-
-  for (const auto& cmd : m_cmds_set_rigidity)
-  {
-    cmd.redo(ctx);
   }
 
   for (auto& tn : scenar.timeSyncs)
