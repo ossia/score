@@ -97,6 +97,27 @@ class SizePolicyWidget final : public QWidget
     QSize m_sizePolicy;
 };
 
+class NeightborSelector
+{
+public:
+  NeightborSelector(score::SelectionStack& s);
+  // does the current selection have a neightbor in that direction ?
+  bool hasRight() const;
+  bool hasLeft() const;
+  bool hasUp() const;
+  bool hasDown() const;
+
+  // Select neighbor
+  void selectRight();
+  void selectLeft();
+  void selectUp();
+  void selectDown();
+
+private:
+  score::SelectionStack& m_stack;
+  score::SelectionDispatcher m_selectionDispatcher;
+};
+
 class SelectionStackWidget final : public QWidget
 {
 public:
@@ -105,7 +126,12 @@ public:
 private:
   QToolButton* m_prev{};
   QToolButton* m_next{};
+  QToolButton* m_left{};
+  QToolButton* m_right{};
+  QToolButton* m_up{};
+  QToolButton* m_down{};
   score::SelectionStack& m_stack;
+  NeightborSelector m_selector;
 };
 
 class ObjectPanelDelegate final : public score::PanelDelegate
