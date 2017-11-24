@@ -465,7 +465,7 @@ Qt::ItemFlags ObjectItemModel::flags(const QModelIndex& index) const
 
 SelectionStackWidget::SelectionStackWidget(
     score::SelectionStack& s, QWidget* parent)
-    : QWidget{parent}, m_stack{s}
+  : QWidget{parent}, m_stack{s}, m_selector{s}
 {
   m_prev = new QToolButton{this};
   m_prev->setArrowType(Qt::LeftArrow);
@@ -475,19 +475,54 @@ SelectionStackWidget::SelectionStackWidget(
   m_next->setArrowType(Qt::RightArrow);
   m_next->setEnabled(m_stack.canReselect());
 
+  m_left = new QToolButton{this};
+  m_left->setArrowType(Qt::LeftArrow);
+  m_left->setEnabled(m_selector.hasLeft());
+
+  m_right = new QToolButton{this};
+  m_right->setArrowType(Qt::RightArrow);
+  m_right->setEnabled(m_selector.hasRight());
+
+  m_up = new QToolButton{this};
+  m_up->setArrowType(Qt::UpArrow);
+  m_up->setEnabled(m_selector.hasUp());
+
+  m_down = new QToolButton{this};
+  m_down->setArrowType(Qt::DownArrow);
+  m_down->setEnabled(m_selector.hasDown());
+
   auto lay = new score::MarginLess<QHBoxLayout>{this};
   lay->setSizeConstraint(QLayout::SetMinimumSize);
   lay->addWidget(m_prev);
   lay->addWidget(m_next);
+  QFrame* line = new QFrame();
+  line->setGeometry(QRect(1,1,10,10));
+  line->setFrameShape(QFrame::VLine);
+  line->setFrameShadow(QFrame::Sunken);
+  // TODO why I can't see this line ?
+  lay->addWidget(line);
+  lay->addWidget(m_left);
+  lay->addWidget(m_right);
+  lay->addWidget(m_up);
+  lay->addWidget(m_down);
   setLayout(lay);
 
   connect(m_prev, &QToolButton::pressed, [&]() { m_stack.unselect(); });
   connect(m_next, &QToolButton::pressed, [&]() { m_stack.reselect(); });
 
+  connect(m_left, &QToolButton::pressed, [&]() { m_selector.selectLeft();});
+  connect(m_right, &QToolButton::pressed, [&]() { m_selector.selectRight();});
+  connect(m_up, &QToolButton::pressed, [&]() { m_selector.selectUp();});
+  connect(m_down, &QToolButton::pressed, [&]() { m_selector.selectDown();});
+
   con(m_stack, &score::SelectionStack::currentSelectionChanged, this,
       [=] {
     m_prev->setEnabled(m_stack.canUnselect());
     m_next->setEnabled(m_stack.canReselect());
+    m_left->setEnabled(m_selector.hasLeft());
+    m_right->setEnabled(m_selector.hasRight());
+    m_up->setEnabled(m_selector.hasUp());
+    m_down->setEnabled(m_selector.hasDown());
   });
 }
 
@@ -685,6 +720,118 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
     m->exec(mapToGlobal(point));
     m->deleteLater();
   }
+}
+
+NeightborSelector::NeightborSelector(score::SelectionStack &s) :
+  m_stack{s}, m_selectionDispatcher{s} {};
+
+bool NeightborSelector::hasLeft() const
+{
+  for ( const auto& obj : m_stack.currentSelection() )
+  {
+    if (auto interval = dynamic_cast<const IntervalModel*>(obj.data()))
+    {
+      // Interval always have previous state
+      return true;
+    }
+    else if (auto state = dynamic_cast<const StateModel*>(obj.data()))
+    {
+      if (state->previousInterval())
+        return true;
+    }
+  }
+  return false;
+}
+
+bool NeightborSelector::hasRight() const
+{
+  for ( const auto& obj : m_stack.currentSelection() )
+  {
+    if (auto interval = dynamic_cast<const IntervalModel*>(obj.data()))
+    {
+      // Interval always have previous state
+      return true;
+    }
+    else if (auto state = dynamic_cast<const StateModel*>(obj.data()))
+    {
+      if (state->nextInterval())
+        return true;
+    }
+  }
+  return false;
+  return false;
+}
+
+bool NeightborSelector::hasUp() const
+{
+  return false;
+}
+
+bool NeightborSelector::hasDown() const
+{
+  return false;
+}
+
+void NeightborSelector::selectRight()
+{
+  Selection sel{};
+
+  for ( const auto& obj : m_stack.currentSelection() )
+  {
+    if (auto interval = dynamic_cast<const IntervalModel*>(obj.data()))
+    {
+      // Interval always have previous state
+      Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*interval);
+      sel.append(&scenar.state(interval->endState()));
+    }
+    else if (auto state = dynamic_cast<const StateModel*>(obj.data()))
+    {
+      if (state->nextInterval())
+      {
+        Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*state);
+        sel.append(&scenar.interval(*state->nextInterval()));
+      }
+    }
+  }
+
+  if (!sel.empty())
+    m_selectionDispatcher.setAndCommit(sel);
+}
+
+void NeightborSelector::selectLeft()
+{
+  Selection sel{};
+
+  for ( const auto& obj : m_stack.currentSelection() )
+  {
+    if (auto interval = dynamic_cast<const IntervalModel*>(obj.data()))
+    {
+      // Interval always have previous state
+      Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*interval);
+      sel.append(&scenar.state(interval->startState()));
+    }
+    else if (auto state = dynamic_cast<const StateModel*>(obj.data()))
+    {
+      if (state->previousInterval())
+      {
+        Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*state);
+        sel.append(&scenar.interval(*state->previousInterval()));
+      }
+    }
+  }
+
+  if (!sel.empty())
+    m_selectionDispatcher.setAndCommit(sel);
+}
+
+void NeightborSelector::selectUp()
+{
+
+}
+
+void NeightborSelector::selectDown()
+{
+
 }
 
 }
