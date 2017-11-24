@@ -19,4 +19,9 @@ void TriggerView::mousePressEvent(QGraphicsSceneMouseEvent* event)
     if (event->button() == Qt::MouseButton::LeftButton)
       emit pressed(event->scenePos());
 }
+
+void TriggerView::dropEvent(QGraphicsSceneDragDropEvent* event)
+{
+  emit dropReceived(event->scenePos(), event->mimeData());
+}
 }

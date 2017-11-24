@@ -31,6 +31,11 @@ public:
 signals:
   void pressed(QPointF);
 
+  void dropReceived(const QPointF& pos, const QMimeData*);
+
+protected:
+  void dropEvent(QGraphicsSceneDragDropEvent* event) override;
+
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent*) override;
 };
