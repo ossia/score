@@ -7,6 +7,7 @@
 #include <sys/types.h>
 
 class QGraphicsItem;
+class QMimeData;
 class QObject;
 
 namespace Scenario
@@ -34,6 +35,7 @@ public:
   TimeSyncView* view() const;
 
   void on_eventAdded(const Id<EventModel>& eventId);
+  void handleDrop(const QPointF& pos, const QMimeData* mime);
 
 signals:
   void pressed(const QPointF&);
