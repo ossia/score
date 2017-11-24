@@ -11,6 +11,7 @@ TriggerView::TriggerView(QGraphicsItem* parent)
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setScale(1.5);
+  this->setAcceptDrops(true);
   setFlag(ItemStacksBehindParent, true);
 }
 
