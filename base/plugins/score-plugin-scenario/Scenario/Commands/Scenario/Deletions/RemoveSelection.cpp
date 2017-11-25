@@ -80,10 +80,12 @@ RemoveSelection::RemoveSelection(
   {
     if (auto ts = dynamic_cast<const TimeSyncModel*>(obj.data()))
     {
-      for (int i = 1; i < ts->events().size(); i++)
-      {
-        QVector<Id<EventModel>> move_me{ts->events()[i]};
-        m_cmds_split_timesync.emplace_back(*ts, move_me);
+      if (!ts->active()){
+        for (int i = 1; i < ts->events().size(); i++)
+        {
+          QVector<Id<EventModel>> move_me{ts->events()[i]};
+          m_cmds_split_timesync.emplace_back(*ts, move_me);
+        }
       }
     }
   }
@@ -118,28 +120,6 @@ RemoveSelection::RemoveSelection(
       if (add_event)
       {
         sel.append(&ev);
-      }
-    }
-  }
-
-  // Then add TimeSync to selection if all its Events are gonna be deleted
-  cp = sel;
-  for (const auto& obj : cp) // Make a copy
-  {
-    if (auto event = dynamic_cast<const EventModel*>(obj.data()))
-    {
-      auto& ts = scenar.timeSyncs.at(event->timeSync());
-      bool add_event=true;
-      for (auto child : ts.events()){
-        auto& st = scenar.events.at(child);
-        if (!sel.contains(&st)){
-          add_event = false;
-          break;
-        }
-      }
-      if (add_event)
-      {
-        sel.append(&ts);
       }
     }
   }
