@@ -76,6 +76,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/BaseCallbackWrapper.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/AutomationComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/MappingComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/ProcessComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/ScenarioComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/LoopComponent.hpp"
