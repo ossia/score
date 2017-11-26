@@ -17,7 +17,7 @@
 class QToolButton;
 namespace Scenario
 {
-// Timenode / event / state / state processes
+// TimeSync / event / state / state processes
 // or
 // Interval / processes
 class ObjectItemModel final
@@ -100,7 +100,7 @@ class SizePolicyWidget final : public QWidget
 class NeightborSelector
 {
 public:
-  NeightborSelector(score::SelectionStack& s);
+  NeightborSelector(score::SelectionStack& s, ObjectWidget* objects);
   // does the current selection have a neightbor in that direction ?
   bool hasRight() const;
   bool hasLeft() const;
@@ -115,13 +115,14 @@ public:
 
 private:
   score::SelectionStack& m_stack;
+  ObjectWidget* m_objects{};
   score::SelectionDispatcher m_selectionDispatcher;
 };
 
 class SelectionStackWidget final : public QWidget
 {
 public:
-  SelectionStackWidget(score::SelectionStack& s, QWidget* parent);
+  SelectionStackWidget(score::SelectionStack& s, QWidget* parent, ObjectWidget* objects);
 
 private:
   QToolButton* m_prev{};

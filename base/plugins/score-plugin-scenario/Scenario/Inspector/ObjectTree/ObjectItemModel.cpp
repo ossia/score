@@ -41,16 +41,30 @@ void ObjectItemModel::setSelected(QList<const IdentifiedObjectAbstract*> objs)
     else if(auto ev = dynamic_cast<const Scenario::EventModel*>(sel))
     {
       Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*ev);
-      root.push_back(&Scenario::parentTimeSync(*ev, scenar));
+      auto& parent_ts = Scenario::parentTimeSync(*ev, scenar);
+      if (parent_ts.events().size() > 1 || parent_ts.active())
+        root.push_back(&parent_ts);
+      else
+        root.push_back(ev);
     }
-    else if(auto tn = dynamic_cast<const Scenario::TimeSyncModel*>(sel))
+    else if(auto ts = dynamic_cast<const Scenario::TimeSyncModel*>(sel))
     {
-      root.push_back(tn);
+      root.push_back(ts);
     }
     else if(auto st = dynamic_cast<const Scenario::StateModel*>(sel))
     {
       Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*st);
-      root.push_back(&Scenario::parentTimeSync(*st, scenar));
+      auto& parent_ev = Scenario::parentEvent(*st, scenar);
+      if (parent_ev.states().size() > 1 || parent_ev.condition() != State::Expression{})
+      {
+        auto& parent_ts = Scenario::parentTimeSync(parent_ev, scenar);
+        if (parent_ts.events().size() > 1 || parent_ts.active())
+          root.push_back(&parent_ts);
+        else
+          root.push_back(&parent_ev);
+      }
+      else
+        root.push_back(st);
     }
     else if(auto stp = dynamic_cast<const Process::StateProcess*>(sel))
     {
@@ -86,18 +100,15 @@ void ObjectItemModel::setupConnections()
   for(auto obj : m_root)
   {
     m_aliveMap.insert(obj, obj);
-    bool is_cst = dynamic_cast<const Scenario::IntervalModel*>(obj);
-    if(is_cst)
+    if(auto cst = dynamic_cast<const Scenario::IntervalModel*>(obj))
     {
-      auto cst = static_cast<const Scenario::IntervalModel*>(obj);
       cst->processes.added.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
       cst->processes.removed.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
       for(auto& proc : cst->processes)
         m_aliveMap.insert(&proc, &proc);
     }
-    else
+    else if (auto tn = dynamic_cast<const Scenario::TimeSyncModel*>(obj))
     {
-      auto tn = static_cast<const Scenario::TimeSyncModel*>(obj);
       auto& scenar = Scenario::parentScenario(*tn);
       m_itemCon.push_back(connect(tn, &TimeSyncModel::newEvent, this, [=] { recompute(); }));
       m_itemCon.push_back(connect(tn, &TimeSyncModel::eventRemoved, this, [=] { recompute(); }));
@@ -118,6 +129,33 @@ void ObjectItemModel::setupConnections()
             m_aliveMap.insert(&sp, &sp);
         }
       }
+    }
+    else if ( auto ev = dynamic_cast<const Scenario::EventModel*>(obj) )
+    {
+      auto& scenar = Scenario::parentScenario(*ev);
+      auto& e = *ev;
+      m_aliveMap.insert(&e, &e);
+      m_itemCon.push_back(con(e, &EventModel::statesChanged, this, [=] { recompute(); }));
+      for(const auto& st : e.states())
+      {
+        auto& s = scenar.state(st);
+        m_aliveMap.insert(&s, &s);
+        s.stateProcesses.added.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
+        s.stateProcesses.removed.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
+
+        for(const auto& sp : s.stateProcesses)
+          m_aliveMap.insert(&sp, &sp);
+      }
+    }
+    else if ( auto st = dynamic_cast<const Scenario::StateModel*>(obj) )
+    {
+      auto& s = *st;
+      m_aliveMap.insert(&s, &s);
+      s.stateProcesses.added.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
+      s.stateProcesses.removed.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
+
+      for(const auto& sp : s.stateProcesses)
+        m_aliveMap.insert(&sp, &sp);
     }
 
     m_itemCon.push_back(
@@ -151,7 +189,6 @@ QModelIndex ObjectItemModel::index(int row, int column, const QModelIndex& paren
     if(auto cst = dynamic_cast<Scenario::IntervalModel*>(sel))
     {
       auto it = cst->processes.begin();
-      SCORE_ASSERT(row < cst->processes.size());
       std::advance(it, row);
       return createIndex(row, column, &*(it));
     }
@@ -159,7 +196,6 @@ QModelIndex ObjectItemModel::index(int row, int column, const QModelIndex& paren
     {
       Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*ev);
       auto it = ev->states().begin();
-      SCORE_ASSERT(row < ev->states().size());
       std::advance(it, row);
 
       if(auto st = scenar.findState(*it))
@@ -230,7 +266,10 @@ QModelIndex ObjectItemModel::parent(const QModelIndex& child) const
     Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*ev);
     auto& tn = Scenario::parentTimeSync(*ev, scenar);
     auto idx = m_root.indexOf(&tn);
-    return createIndex(0, 0, (void*)m_root[idx]);
+    if (idx >= 0)
+      return createIndex(0, 0, (void*)m_root[idx]);
+    else
+      return QModelIndex{};
   }
   else if(dynamic_cast<Scenario::TimeSyncModel*>(sel))
   {
@@ -243,8 +282,10 @@ QModelIndex ObjectItemModel::parent(const QModelIndex& child) const
     auto it = ossia::find(tn.events(), st->eventId());
     SCORE_ASSERT(it != tn.events().end());
     auto idx = std::distance(tn.events().begin(), it);
-
-    return createIndex(idx, 0, (void*)&Scenario::parentEvent(*st, scenar));
+    if (idx >= 0)
+      return createIndex(idx, 0, (void*)&Scenario::parentEvent(*st, scenar));
+    else
+      return QModelIndex{};
   }
   else if(auto stp = dynamic_cast<Process::StateProcess*>(sel))
   {
@@ -255,12 +296,18 @@ QModelIndex ObjectItemModel::parent(const QModelIndex& child) const
     SCORE_ASSERT(it != ev.states().end());
     auto idx = std::distance(ev.states().begin(), it);
 
-    return createIndex(idx, 0, state);
+    if (idx >= 0)
+      return createIndex(idx, 0, state);
+    else
+      return QModelIndex{};
   }
   else if(auto proc = dynamic_cast<Process::ProcessModel*>(sel))
   {
     auto idx = m_root.indexOf(proc->parent());
-    return createIndex(idx, 0, (void*)m_root[idx]);
+    if (idx >= 0)
+      return createIndex(idx, 0, (void*)m_root[idx]);
+    else
+      return QModelIndex{};
   }
 
   return QModelIndex{};
@@ -295,9 +342,9 @@ int ObjectItemModel::rowCount(const QModelIndex& parent) const
     {
       return ev->states().size();
     }
-    else if(auto tn = dynamic_cast<Scenario::TimeSyncModel*>(sel))
+    else if(auto ts = dynamic_cast<Scenario::TimeSyncModel*>(sel))
     {
-      return tn->events().size();
+      return ts->events().size();
     }
     else if(auto st = dynamic_cast<Scenario::StateModel*>(sel))
     {
@@ -464,8 +511,8 @@ Qt::ItemFlags ObjectItemModel::flags(const QModelIndex& index) const
 }
 
 SelectionStackWidget::SelectionStackWidget(
-    score::SelectionStack& s, QWidget* parent)
-  : QWidget{parent}, m_stack{s}, m_selector{s}
+    score::SelectionStack& s, QWidget* parent, ObjectWidget* objects)
+  : QWidget{parent}, m_stack{s}, m_selector{s, objects}
 {
   m_prev = new QToolButton{this};
   m_prev->setArrowType(Qt::LeftArrow);
@@ -560,12 +607,12 @@ void ObjectPanelDelegate::on_modelChanged(score::MaybeDocument oldm, score::Mayb
   m_stack = nullptr;
   if (newm)
   {
-    SelectionStack& stack = newm->selectionStack;
-    m_stack = new SelectionStackWidget{stack, m_widget};
-
     m_objects = new ObjectWidget{*newm, m_widget};
 
     m_objects->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
+
+    SelectionStack& stack = newm->selectionStack;
+    m_stack = new SelectionStackWidget{stack, m_widget, m_objects};
 
     m_lay->addWidget(m_stack);
     m_lay->addWidget(m_objects);
@@ -722,8 +769,8 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
   }
 }
 
-NeightborSelector::NeightborSelector(score::SelectionStack &s) :
-  m_stack{s}, m_selectionDispatcher{s} {};
+NeightborSelector::NeightborSelector(score::SelectionStack &s, ObjectWidget* objects) :
+  m_stack{s}, m_selectionDispatcher{s}, m_objects{objects} {};
 
 bool NeightborSelector::hasLeft() const
 {
@@ -764,12 +811,18 @@ bool NeightborSelector::hasRight() const
 
 bool NeightborSelector::hasUp() const
 {
-  return false;
+  auto cur_idx = m_objects->selectionModel()->currentIndex();
+  auto idx = m_objects->indexAbove(cur_idx);
+  bool res = idx.isValid();
+  return res;
 }
 
 bool NeightborSelector::hasDown() const
 {
-  return false;
+  auto cur_idx = m_objects->selectionModel()->currentIndex();
+  auto idx = m_objects->indexBelow(cur_idx);
+  bool res = idx.isValid();
+  return res;
 }
 
 void NeightborSelector::selectRight()
@@ -826,11 +879,34 @@ void NeightborSelector::selectLeft()
 
 void NeightborSelector::selectUp()
 {
+  auto cur_idx = m_objects->selectionModel()->currentIndex();
+  m_objects->updatingSelection = true;
+  auto idx = m_objects->indexAbove(cur_idx);
+  if(idx.isValid())
+  {
+    auto selection = m_objects->selectionModel();
 
+    selection->select(cur_idx, QItemSelectionModel::Deselect | QItemSelectionModel::Rows);
+    selection->select(idx, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+  }
+  m_objects->updatingSelection = false;
 }
 
 void NeightborSelector::selectDown()
 {
+  m_objects->updatingSelection = true;
+  auto cur_idx = m_objects->selectionModel()->currentIndex();
+  auto idx = m_objects->indexBelow(cur_idx);
+  if(idx.isValid())
+  {
+    auto selection = m_objects->selectionModel();
+
+    // TODO we should use selection dispatcher instead
+    // so we can undo/redo and hopefully NeighborSelector::has*() methods will be called automatically
+    selection->select(cur_idx, QItemSelectionModel::Deselect | QItemSelectionModel::Rows);
+    selection->select(idx, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+  }
+  m_objects->updatingSelection = false;
 
 }
 
