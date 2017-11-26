@@ -186,7 +186,7 @@ void DefaultHeaderDelegate::onCreateCable(Dataflow::PortItem* p1, Dataflow::Port
      return;
 
   auto o1 = dynamic_cast<Process::Outlet*>(&port1);
-  auto o2 = dynamic_cast<Process::Outlet*>(&port1);
+  auto o2 = dynamic_cast<Process::Outlet*>(&port2);
   if(bool(o1) == bool(o2)) // both outlets or both inlets
     return;
 
