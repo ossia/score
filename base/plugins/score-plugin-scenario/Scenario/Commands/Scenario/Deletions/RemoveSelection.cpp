@@ -74,8 +74,36 @@ RemoveSelection::RemoveSelection(
     }
   }
 
-  // Then add Event to selection if we select all its States
+  // If we select a TimeSync for deletion, put its events into new separate TimeSync
   cp = sel;
+  for ( const auto& obj : cp)
+  {
+    if (auto ts = dynamic_cast<const TimeSyncModel*>(obj.data()))
+    {
+      if (!ts->active()){
+        for (int i = 1; i < ts->events().size(); i++)
+        {
+          QVector<Id<EventModel>> move_me{ts->events()[i]};
+          m_cmds_split_timesync.emplace_back(*ts, move_me);
+        }
+      }
+    }
+  }
+
+  // If we select an Event for deletion, put its states into new separate events
+  for ( const auto& obj : cp)
+  {
+    if (auto event = dynamic_cast<const EventModel*>(obj.data()))
+    {
+      for (int i = 1; i < event->states().size(); i++)
+      {
+        QVector<Id<StateModel>> move_me{event->states()[i]};
+        m_cmds_split_event.emplace_back(scenar, event->id(), move_me);
+      }
+    }
+  }
+
+  // Then add Event to selection if we select all its States
   for (const auto& obj : cp)
   {
     if (auto state = dynamic_cast<const StateModel*>(obj.data()))
@@ -92,28 +120,6 @@ RemoveSelection::RemoveSelection(
       if (add_event)
       {
         sel.append(&ev);
-      }
-    }
-  }
-
-  // Then add TimeSync to selection if all its Events are gonna be deleted
-  cp = sel;
-  for (const auto& obj : cp) // Make a copy
-  {
-    if (auto event = dynamic_cast<const EventModel*>(obj.data()))
-    {
-      auto& ts = scenar.timeSyncs.at(event->timeSync());
-      bool add_event=true;
-      for (auto child : ts.events()){
-        auto& st = scenar.events.at(child);
-        if (!sel.contains(&st)){
-          add_event = false;
-          break;
-        }
-      }
-      if (add_event)
-      {
-        sel.append(&ts);
       }
     }
   }
@@ -152,7 +158,7 @@ RemoveSelection::RemoveSelection(
         m_removedTimeSyncs.push_back({ts->id(), arr});
         for (const auto& cstrId : intervalsBeforeTimeSync(scenar, ts->id()))
         {
-          m_cmds.emplace_back(scenar.interval(cstrId), true);
+          m_cmds_set_rigidity.emplace_back(scenar.interval(cstrId), true);
         }
       }
     }
@@ -305,7 +311,17 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
     SetPreviousInterval(endState(*itv, scenar), *itv);
   }
 
-  for (const auto& cmd : m_cmds)
+  for (const auto& cmd : m_cmds_set_rigidity)
+  {
+    cmd.undo(ctx);
+  }
+
+  // Split Event and TimeSync
+  for (const auto& cmd : m_cmds_split_event)
+  {
+    cmd.undo(ctx);
+  }
+  for (const auto& cmd : m_cmds_split_timesync)
   {
     cmd.undo(ctx);
   }
@@ -324,10 +340,25 @@ void RemoveSelection::redo(const score::DocumentContext& ctx) const
 {
   auto& scenar = m_path.find(ctx);
 
+  for (const auto& cmd : m_cmds_set_rigidity)
+  {
+    cmd.redo(ctx);
+  }
+
   // Remove the intervals
   for (const auto& itv : m_removedIntervals)
   {
     StandardRemovalPolicy::removeInterval(scenar, itv.first);
+  }
+
+  // Split Event and TimeSync
+  for (const auto& cmd : m_cmds_split_event)
+  {
+    cmd.redo(ctx);
+  }
+  for (const auto& cmd : m_cmds_split_timesync)
+  {
+    cmd.redo(ctx);
   }
 
   // The other things
@@ -368,11 +399,6 @@ void RemoveSelection::redo(const score::DocumentContext& ctx) const
     }
   }
 
-  for (const auto& cmd : m_cmds)
-  {
-    cmd.redo(ctx);
-  }
-
   for (auto& tn : scenar.timeSyncs)
   {
     updateTimeSyncExtent(tn.id(), scenar);
@@ -389,9 +415,19 @@ void RemoveSelection::serializeImpl(DataStreamInput& s) const
     << m_removedTimeSyncs << m_removedIntervals << m_removedStates
     << m_removedComments;
 
-  s << (int32_t)m_cmds.size();
+  s << (int32_t)m_cmds_set_rigidity.size();
+  for (const auto& cmd : m_cmds_set_rigidity)
+  {
+    s << cmd.serialize();
+  }
 
-  for (const auto& cmd : m_cmds)
+  s << (int32_t)m_cmds_split_event.size();
+  for (const auto& cmd : m_cmds_split_event)
+  {
+    s << cmd.serialize();
+  }
+  s << (int32_t)m_cmds_split_timesync.size();
+  for (const auto& cmd : m_cmds_split_timesync)
   {
     s << cmd.serialize();
   }
@@ -404,12 +440,30 @@ void RemoveSelection::deserializeImpl(DataStreamOutput& s)
       >> m_removedTimeSyncs >> m_removedIntervals >> m_removedStates
       >> m_removedComments >> n;
 
-  m_cmds.resize(n);
+  m_cmds_set_rigidity.resize(n);
   for (int i = 0; i < n; i++)
   {
     QByteArray a;
     s >> a;
-    m_cmds[i].deserialize(a);
+    m_cmds_set_rigidity[i].deserialize(a);
+  }
+
+  s >> n;
+  m_cmds_split_event.resize(n);
+  for (int i = 0; i < n; i++)
+  {
+    QByteArray a;
+    s >> a;
+    m_cmds_split_event[i].deserialize(a);
+  }
+
+  s >> n;
+  m_cmds_split_timesync.resize(n);
+  for (int i = 0; i < n; i++)
+  {
+    QByteArray a;
+    s >> a;
+    m_cmds_split_timesync[i].deserialize(a);
   }
 }
 }

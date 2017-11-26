@@ -8,6 +8,10 @@
 #include "TimeSyncPresenter.hpp"
 #include <score/model/ModelMetadata.hpp>
 #include <score/selection/Selectable.hpp>
+#include <State/MessageListSerialization.hpp>
+#include <Scenario/Commands/TimeSync/SetTrigger.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 
 #include <score/tools/Todo.hpp>
 
@@ -40,6 +44,7 @@ TimeSyncPresenter::TimeSyncPresenter(
     m_triggerView->setVisible(m_model.active());
     m_triggerView->setToolTip(m_model.expression().toString());
   });
+
   m_view->changeColor(m_model.metadata().getColor());
   m_view->setLabel(m_model.metadata().getLabel());
   m_view->setTriggerActive(m_model.active());
@@ -59,6 +64,10 @@ TimeSyncPresenter::TimeSyncPresenter(
       m_model.triggeredByGui();
       pressed(sp);
   });
+
+  connect(m_triggerView, &TriggerView::dropReceived,
+          this, &TimeSyncPresenter::handleDrop);
+
 }
 
 TimeSyncPresenter::~TimeSyncPresenter()
@@ -83,5 +92,29 @@ TimeSyncView* TimeSyncPresenter::view() const
 void TimeSyncPresenter::on_eventAdded(const Id<EventModel>& eventId)
 {
   emit eventAdded(eventId, m_model.id());
+}
+
+void TimeSyncPresenter::handleDrop(const QPointF& pos, const QMimeData* mime)
+{
+  // If the mime data has states in it we can handle it.
+  if (mime->formats().contains(score::mime::messagelist()))
+  {
+    Mime<State::MessageList>::Deserializer des{*mime};
+    State::MessageList ml = des.deserialize();
+
+    if (ml.size() > 0)
+    {
+      QString expr = "{ " + ml[0].address.toString() + " impulse }";
+      auto trig = State::parseExpression(expr);
+
+      if (trig)
+      {
+        CommandDispatcher<> dispatcher{
+          score::IDocument::documentContext(m_model).commandStack};
+        auto cmd = new Command::SetTrigger{m_model, std::move(*trig)};
+        dispatcher.submitCommand(cmd);
+      }
+    }
+  }
 }
 }

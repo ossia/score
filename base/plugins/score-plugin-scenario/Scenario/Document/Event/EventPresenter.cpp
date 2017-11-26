@@ -23,7 +23,6 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <State/Expression.hpp>
 #include <State/Message.hpp>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/selection/Selectable.hpp>

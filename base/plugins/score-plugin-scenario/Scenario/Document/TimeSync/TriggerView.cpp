@@ -11,6 +11,7 @@ TriggerView::TriggerView(QGraphicsItem* parent)
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setScale(1.5);
+  this->setAcceptDrops(true);
   setFlag(ItemStacksBehindParent, true);
 }
 
@@ -18,5 +19,10 @@ void TriggerView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
     if (event->button() == Qt::MouseButton::LeftButton)
       emit pressed(event->scenePos());
+}
+
+void TriggerView::dropEvent(QGraphicsSceneDragDropEvent* event)
+{
+  emit dropReceived(event->scenePos(), event->mimeData());
 }
 }
