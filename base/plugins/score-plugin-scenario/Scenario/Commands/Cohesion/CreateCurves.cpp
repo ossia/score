@@ -121,6 +121,7 @@ void CreateCurvesFromAddresses(
       // Then we set-up all the necessary values
       // min / max
       Curve::CurveDomain dom{as.domain.get(), as.value};
+      bool tween = false;
 
       // start value / end value
       Process::MessageNode* s_node = Device::try_getNodeFromString(
@@ -134,6 +135,8 @@ void CreateCurvesFromAddresses(
           dom.max = std::max(dom.start, dom.max);
         }
       }
+      else
+        tween = true;
 
       Process::MessageNode* e_node = Device::try_getNodeFromString(
           es.messages().rootNode(), stringList(as.address));
@@ -149,7 +152,7 @@ void CreateCurvesFromAddresses(
 
       // Send the command.
       macro->addCommand(new Scenario::Command::CreateAutomationFromStates{
-          interval, macro->slotsToUse, process_ids[i], addr, dom});
+          interval, macro->slotsToUse, process_ids[i], addr, dom, tween});
 
       i++;
       added_processes++;
