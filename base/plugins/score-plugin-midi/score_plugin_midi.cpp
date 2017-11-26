@@ -5,10 +5,6 @@
 #include <Midi/MidiExecutor.hpp>
 #include <Midi/MidiFactory.hpp>
 
-#include <MidiUtil/MidiUtilFactory.hpp>
-#include <MidiUtil/MidiUtilExecutor.hpp>
-#include <MidiUtil/Inspector/Inspector.hpp>
-
 #include <score/plugins/customfactory/FactorySetup.hpp>
 
 #include <score_plugin_midi_commands_files.hpp>
@@ -27,10 +23,10 @@ score_plugin_midi::factories(
     const score::InterfaceKey& key) const
 {
   return instantiate_factories<score::ApplicationContext
-      , FW<Process::ProcessModelFactory, Midi::ProcessFactory, MidiUtil::ProcessFactory>
+      , FW<Process::ProcessModelFactory, Midi::ProcessFactory>
       , FW<Process::LayerFactory, Midi::LayerFactory>
-      , FW<Engine::Execution::ProcessComponentFactory, Midi::Executor::ComponentFactory, MidiUtil::Executor::ComponentFactory>
-      , FW<Inspector::InspectorWidgetFactory, Midi::InspectorFactory, MidiUtil::InspectorFactory>>(ctx, key);
+      , FW<Engine::Execution::ProcessComponentFactory, Midi::Executor::ComponentFactory>
+      , FW<Inspector::InspectorWidgetFactory, Midi::InspectorFactory>>(ctx, key);
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>
