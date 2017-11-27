@@ -13,6 +13,8 @@
 #include <QHeaderView>
 #include <QContextMenuEvent>
 #include <QMenu>
+#include <QPushButton>
+#include <QLabel>
 
 class QToolButton;
 namespace Scenario
@@ -119,6 +121,20 @@ private:
   score::SelectionDispatcher m_selectionDispatcher;
 };
 
+class SearchWidget final : public QWidget
+{
+public:
+  SearchWidget(const score::GUIApplicationContext& ctx);
+
+  void toggle() { this->isHidden() ? this->show() : this->hide();}
+  void search();
+
+private:
+  QLineEdit* m_lineEdit;
+  QPushButton* m_btn;
+  const score::GUIApplicationContext& m_ctx;
+};
+
 class SelectionStackWidget final : public QWidget
 {
 public:
@@ -153,6 +169,7 @@ private:
   QVBoxLayout* m_lay{};
   SelectionStackWidget* m_stack{};
   ObjectWidget* m_objects{};
+  SearchWidget* m_searchWidget{};
 };
 
 class ObjectPanelDelegateFactory final : public score::PanelDelegateFactory
