@@ -1,6 +1,7 @@
 #include "LV2Context.hpp"
 #include <lilv/lilv.h>
 #include <lilv/lilvmm.hpp>
+#include <iostream>
 
 namespace Media
 {
@@ -219,6 +220,97 @@ void LV2::GlobalContext::loadPlugins()
   host.atom_chunk_id = map.map(map.handle, LV2_ATOM__Chunk);
   lv2_atom_forge_init(&host.forge, &map);
 
+}
+
+LV2Data::LV2Data(HostContext& h, EffectContext& ctx):
+  host{h},
+  effect{ctx}
+{
+  for(auto res : {effect.plugin.get_required_features(), effect.plugin.get_optional_features()})
+  {
+    std::cerr << effect.plugin.get_name().as_string() << " requires " << std::endl;
+    auto it = res.begin();
+    while(it)
+    {
+      auto node = res.get(it);
+      if(node.is_uri())
+        std::cerr << "Required uri: " << node.as_uri() << std::endl;
+      it = res.next(it);
+    }
+    std::cerr << std::endl << std::endl;
+  }
+
+  const auto numports = effect.plugin.get_num_ports();
+  for(int32_t i = 0; i < numports; i++)
+  {
+    Lilv::Port port = effect.plugin.get_port_by_index(i);
+
+    std::cerr << "Port : " << lilv_node_as_string(port.get_name())<< std::endl;
+    auto cl = port.get_classes();
+    auto beg = lilv_nodes_begin(cl);
+    while(!lilv_nodes_is_end(cl, beg))
+    {
+      auto node = lilv_nodes_get(cl, beg);
+      std::cerr << " --> " << lilv_node_as_string(node) << std::endl;
+      beg = lilv_nodes_next(cl, beg);
+    }
+
+    if(port.is_a(host.audio_class))
+    {
+      if(port.is_a(host.input_class))
+      {
+        audio_in_ports.push_back(i);
+      }
+      else if(port.is_a(host.output_class))
+      {
+        audio_out_ports.push_back(i);
+      }
+      else
+      {
+        cv_ports.push_back(i);
+        qDebug() << "Audio port not input or output";
+      }
+    }
+    else if(port.is_a(host.atom_class))
+    {
+      // TODO use  atom:supports midi:MidiEvent
+      if(port.is_a(host.input_class))
+      {
+        midi_in_ports.push_back(i);
+      }
+      else if(port.is_a(host.output_class))
+      {
+        midi_out_ports.push_back(i);
+      }
+      else
+      {
+        midi_other_ports.push_back(i);
+      }
+    }
+    else if(port.is_a(host.cv_class))
+    {
+      cv_ports.push_back(i);
+    }
+    else if(port.is_a(host.control_class))
+    {
+      if(port.is_a(host.input_class))
+      {
+        control_in_ports.push_back(i);
+      }
+      else if(port.is_a(host.output_class))
+      {
+        control_out_ports.push_back(i);
+      }
+      else
+      {
+        control_other_ports.push_back(i);
+      }
+    }
+    else
+    {
+      control_other_ports.push_back(i);
+    }
+  }
 }
 
 }

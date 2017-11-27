@@ -6,15 +6,15 @@
 
 namespace Media
 {
-namespace Effect
+namespace LV2
 {
 class LV2EffectModel;
 }
 }
-EFFECT_METADATA(, Media::Effect::LV2EffectModel, "fd5243ba-70b5-4164-b44a-ecb0dcdc0494", "LV2", "LV2")
+EFFECT_METADATA(, Media::LV2::LV2EffectModel, "fd5243ba-70b5-4164-b44a-ecb0dcdc0494", "LV2", "LV2")
 namespace Media
 {
-namespace Effect
+namespace LV2
 {
 
 
@@ -25,7 +25,7 @@ namespace Effect
  * Cloning can be done with MakeCopyEffect.
  */
 class LV2EffectModel :
-        public EffectModel
+        public Effect::EffectModel
 {
         Q_OBJECT
         SCORE_SERIALIZE_FRIENDS
@@ -64,6 +64,6 @@ class LV2EffectModel :
         QString m_effectPath;
         void readPlugin();
 };
-using LV2EffectFactory = EffectFactory_T<LV2EffectModel>;
+using LV2EffectFactory = Effect::EffectFactory_T<LV2EffectModel>;
 }
 }

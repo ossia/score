@@ -9,6 +9,12 @@
 #include <Media/Sound/Drop/SoundDrop.hpp>
 #include <Media/Inspector/Factory.hpp>
 #include <Media/ApplicationPlugin.hpp>
+#include <Media/Effect/EffectProcessFactory.hpp>
+#include <Media/Effect/Effect/EffectFactory.hpp>
+#include <Media/Effect/LV2/LV2EffectModel.hpp>
+#include <Media/Effect/Inspector/EffectInspector.hpp>
+#include <Media/Sound/SoundComponent.hpp>
+
 
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
@@ -44,20 +50,43 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
         FW<Process::ProcessModelFactory
             , Media::Sound::ProcessFactory
             , Media::Input::ProcessFactory
+            , Media::Effect::ProcessFactory
             >,
         FW<Inspector::InspectorWidgetFactory
             , Media::Sound::InspectorFactory
             , Media::Input::InspectorFactory
+            , Media::Effect::InspectorFactory
             >,
         FW<Process::LayerFactory
           , Media::Sound::LayerFactory
           , Media::Input::LayerFactory
+          , Media::Effect::LayerFactory
             >,
+
+        FW<Engine::Execution::ProcessComponentFactory
+          , Engine::Execution::SoundComponentFactory
+          , Engine::Execution::InputComponentFactory
+          , Engine::Execution::EffectComponentFactory
+        >,
+        FW<Media::Effect::EffectFactory
+    #if defined(HAS_FAUST)
+              , Media::Effect::FaustEffectFactory
+    # endif
+    #if defined(LILV_SHARED)
+                , Media::LV2::LV2EffectFactory
+    #endif
+                >,
         FW<Scenario::DropHandler,
             Media::Sound::DropHandler>,
         FW<Scenario::IntervalDropHandler,
             Media::Sound::IntervalDropHandler>
     >(ctx, key);
+}
+
+std::vector<std::unique_ptr<score::InterfaceListBase> > score_plugin_media::factoryFamilies()
+{
+    return make_ptr_vector<score::InterfaceListBase,
+            Media::Effect::EffectFactoryList>();
 }
 
 score_plugin_media::score_plugin_media()

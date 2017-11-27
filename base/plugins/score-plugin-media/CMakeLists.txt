@@ -24,6 +24,9 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/ChangeAudioFile.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/CreateSoundBox.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/MediaCommandFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/CreateEffectAutomation.hpp"
+#    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/EditFaustEffect.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/InsertEffect.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Inspector/AudioInspector.hpp"
 
@@ -35,6 +38,7 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundPresenter.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundView.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/Drop/SoundDrop.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundComponent.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Input/InputModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Input/InputFactory.hpp"
@@ -69,6 +73,8 @@ set(SRCS
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/ChangeAudioFile.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/MediaCommandFactory.cpp"
+    #    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/EditFaustEffect.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/InsertEffect.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Inspector/AudioInspector.cpp"
 
@@ -76,6 +82,7 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundPresenter.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundView.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/Drop/SoundDrop.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundComponent.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Input/InputModel.cpp"
 
@@ -87,6 +94,7 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/Widgets/EffectListWidget.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/Missing/MissingEffectModel.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Inspector/EffectInspector.cpp"
+
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/MediaFileHandle.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioDecoder.cpp"
@@ -131,7 +139,7 @@ add_library(${PROJECT_NAME}
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 target_link_libraries(${PROJECT_NAME} PUBLIC
                      Qt5::Core Qt5::Widgets Qt5::Multimedia
-                     score_lib_base score_plugin_loop
+                     score_lib_base score_plugin_loop score_plugin_engine
 )
 
 ### FFMPEG ###
