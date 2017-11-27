@@ -884,34 +884,25 @@ void NeightborSelector::selectLeft()
 void NeightborSelector::selectUp()
 {
   auto cur_idx = m_objects->selectionModel()->currentIndex();
-  m_objects->updatingSelection = true;
   auto idx = m_objects->indexAbove(cur_idx);
   if(idx.isValid())
   {
-    auto selection = m_objects->selectionModel();
-
-    selection->select(cur_idx, QItemSelectionModel::Deselect | QItemSelectionModel::Rows);
-    selection->select(idx, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+    Selection sel{};
+    sel.append((IdentifiedObjectAbstract*) idx.internalPointer());
+    m_selectionDispatcher.setAndCommit(sel);
   }
-  m_objects->updatingSelection = false;
 }
 
 void NeightborSelector::selectDown()
 {
-  m_objects->updatingSelection = true;
   auto cur_idx = m_objects->selectionModel()->currentIndex();
   auto idx = m_objects->indexBelow(cur_idx);
   if(idx.isValid())
   {
-    auto selection = m_objects->selectionModel();
-
-    // TODO we should use selection dispatcher instead
-    // so we can undo/redo and hopefully NeighborSelector::has*() methods will be called automatically
-    selection->select(cur_idx, QItemSelectionModel::Deselect | QItemSelectionModel::Rows);
-    selection->select(idx, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+    Selection sel{};
+    sel.append((IdentifiedObjectAbstract*) idx.internalPointer());
+    m_selectionDispatcher.setAndCommit(sel);
   }
-  m_objects->updatingSelection = false;
-
 }
 
 }
