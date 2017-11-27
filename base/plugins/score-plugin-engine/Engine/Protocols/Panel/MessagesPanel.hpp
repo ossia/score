@@ -10,11 +10,11 @@ class DeviceList;
 namespace Engine
 {
 class LogMessagesItemModel;
-class PanelDelegate final : public QObject, public score::PanelDelegate
+class MessagesPanelDelegate final : public QObject, public score::PanelDelegate
 {
   friend class err_sink;
 public:
-  PanelDelegate(const score::GUIApplicationContext& ctx);
+  MessagesPanelDelegate(const score::GUIApplicationContext& ctx);
 
 private:
   QWidget* widget() override;
@@ -34,7 +34,7 @@ private:
   QMetaObject::Connection m_inbound{}, m_outbound{}, m_error{}, m_visible{};
 };
 
-class PanelDelegateFactory final : public score::PanelDelegateFactory
+class MessagesPanelDelegateFactory final : public score::PanelDelegateFactory
 {
   SCORE_CONCRETE("84a66cbe-aee3-496a-b7f4-0ea0d699deac")
 

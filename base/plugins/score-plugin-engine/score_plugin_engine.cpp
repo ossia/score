@@ -141,7 +141,7 @@ score_plugin_engine::factories(
                  Engine::LocalTree::MappingComponentFactory
             >,
             FW<score::PanelDelegateFactory,
-                 Engine::PanelDelegateFactory>,
+                 Engine::MessagesPanelDelegateFactory>,
             FW<Engine::Execution::ClockManagerFactory, Engine::Execution::ControlClockFactory>,
             FW<Curve::SegmentFactory,
                 Curve::SegmentFactory_T<Segment_backIn>,
