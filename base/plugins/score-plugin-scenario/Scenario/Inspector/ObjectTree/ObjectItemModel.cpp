@@ -22,6 +22,12 @@
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #include <score/widgets/TextLabel.hpp>
 
+// SearchWidget
+#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
+#include <QJsonObject>
+#include <QJsonDocument>
+#include <core/presenter/DocumentManager.hpp>
+
 namespace Scenario
 {
 
@@ -546,16 +552,12 @@ SelectionStackWidget::SelectionStackWidget(
   lay->addWidget(m_prev);
   lay->addWidget(m_label);
   lay->addWidget(m_next);
-  QFrame* line = new QFrame();
-  line->setGeometry(QRect(1,1,10,10));
-  line->setFrameShape(QFrame::VLine);
-  line->setFrameShadow(QFrame::Sunken);
-  // TODO why I can't see this line ?
-  lay->addWidget(line);
+  QLabel* separator = new QLabel{"|"};
+  lay->addWidget(separator);
   lay->addWidget(m_left);
-  lay->addWidget(m_right);
   lay->addWidget(m_up);
   lay->addWidget(m_down);
+  lay->addWidget(m_right);
   setLayout(lay);
 
   connect(m_prev, &QToolButton::pressed, [&]() { m_stack.unselect(); });
@@ -581,6 +583,7 @@ ObjectPanelDelegate::ObjectPanelDelegate(const score::GUIApplicationContext &ctx
   : score::PanelDelegate{ctx}
   , m_widget{new SizePolicyWidget}
   , m_lay{new score::MarginLess<QVBoxLayout>{m_widget}}
+  , m_searchWidget{new SearchWidget{ctx}}
 {
   m_widget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
   m_widget->setMinimumHeight(100);
@@ -609,6 +612,9 @@ void ObjectPanelDelegate::on_modelChanged(score::MaybeDocument oldm, score::Mayb
 
   delete m_stack;
   m_stack = nullptr;
+
+  m_lay->removeWidget(m_searchWidget);
+
   if (newm)
   {
     m_objects = new ObjectWidget{*newm, m_widget};
@@ -619,6 +625,7 @@ void ObjectPanelDelegate::on_modelChanged(score::MaybeDocument oldm, score::Mayb
     m_stack = new SelectionStackWidget{stack, m_widget, m_objects};
 
     m_lay->addWidget(m_stack);
+    m_lay->addWidget(m_searchWidget);
     m_lay->addWidget(m_objects);
 
     setNewSelection(stack.currentSelection());
@@ -774,13 +781,13 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
 }
 
 NeightborSelector::NeightborSelector(score::SelectionStack &s, ObjectWidget* objects) :
-  m_stack{s}, m_selectionDispatcher{s}, m_objects{objects} {};
+  m_stack{s}, m_selectionDispatcher{s}, m_objects{objects} {}
 
 bool NeightborSelector::hasLeft() const
 {
   for ( const auto& obj : m_stack.currentSelection() )
   {
-    if (auto interval = dynamic_cast<const IntervalModel*>(obj.data()))
+    if (dynamic_cast<const IntervalModel*>(obj.data()))
     {
       // Interval always have previous state
       return true;
@@ -798,7 +805,7 @@ bool NeightborSelector::hasRight() const
 {
   for ( const auto& obj : m_stack.currentSelection() )
   {
-    if (auto interval = dynamic_cast<const IntervalModel*>(obj.data()))
+    if (dynamic_cast<const IntervalModel*>(obj.data()))
     {
       // Interval always have previous state
       return true;
@@ -902,6 +909,79 @@ void NeightborSelector::selectDown()
     Selection sel{};
     sel.append((IdentifiedObjectAbstract*) idx.internalPointer());
     m_selectionDispatcher.setAndCommit(sel);
+  }
+}
+
+SearchWidget::SearchWidget(const score::GUIApplicationContext& ctx)
+  : m_ctx{ctx}
+{
+  auto lay = new score::MarginLess<QHBoxLayout>{this};
+
+  m_lineEdit = new QLineEdit();
+  m_btn = new QPushButton();
+  m_btn->setText("go");
+
+  lay->addWidget(m_lineEdit);
+  lay->addWidget(m_btn);
+  setLayout(lay);
+
+  connect(m_lineEdit, &QLineEdit::returnPressed, [&]() { search(); });
+  connect(m_btn, &QPushButton::pressed, [&]() { search(); });
+}
+
+template<typename Object>
+void add_if_contains(const Object& obj, QString& str, Selection& sel)
+{
+  QJsonObject json = score::marshall<JSONObject>(obj);
+  QJsonDocument doc{json};
+  QString jstr{doc.toJson(QJsonDocument::Compact)};
+  if (jstr.contains(str))
+    sel.append(&obj);
+}
+
+void SearchWidget::search()
+{
+  QString stxt = m_lineEdit->text();
+
+  auto* doc = m_ctx.documents.currentDocument();
+
+  auto scenarioModel = doc->focusManager().get();
+  Selection sel{};
+
+  if (scenarioModel)
+  {
+    QJsonObject json;
+
+    // Serialize ALL the things
+    for (const auto& obj : scenarioModel->children())
+    {
+      if (auto state = dynamic_cast<const StateModel*>(obj))
+      {
+        add_if_contains(*state, stxt, sel);
+      }
+      else if (auto event = dynamic_cast<const EventModel*>(obj))
+      {
+        add_if_contains(*event, stxt, sel);
+      }
+      else if (auto ts = dynamic_cast<const TimeSyncModel*>(obj))
+      {
+        add_if_contains(*ts, stxt, sel);
+      }
+      else if (auto cmt = dynamic_cast<const CommentBlockModel*>(obj))
+      {
+        add_if_contains(*cmt, stxt, sel);
+      }
+      else if (auto interval = dynamic_cast<const IntervalModel*>(obj))
+      {
+        add_if_contains(*interval, stxt, sel);
+      }
+    }
+  }
+
+  if(!sel.empty())
+  {
+    score::SelectionDispatcher d{doc->context().selectionStack};
+    d.setAndCommit(sel);
   }
 }
 
