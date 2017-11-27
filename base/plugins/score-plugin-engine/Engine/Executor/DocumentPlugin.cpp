@@ -235,36 +235,52 @@ void DocumentPlugin::register_node(
     const Process::ProcessModel& proc,
     const std::shared_ptr<ossia::graph_node>& node)
 {
-  const auto& proc_inlets = proc.inlets();
-  const auto& proc_outlets = proc.outlets();
-  const std::size_t n_inlets = proc_inlets.size();
-  const std::size_t n_outlets = proc_outlets.size();
-
-  for(std::size_t i = 0; i < n_inlets; i++)
-  {
-    inlets.insert({ proc_inlets[i], std::make_pair( node, node->inputs()[i] ) });
-  }
-
-  for(std::size_t i = 0; i < n_outlets; i++)
-  {
-    outlets.insert({ proc_outlets[i], std::make_pair( node, node->outputs()[i] ) });
-  }
-
-  execGraph->add_node(node);
+  register_node(proc.inlets(), proc.outlets(), node);
 }
 void DocumentPlugin::unregister_node(
     const Process::ProcessModel& proc,
     const std::shared_ptr<ossia::graph_node>& node)
 {
-  node->clear();
-
-  for(auto ptr : proc.inlets())
-    inlets.erase(ptr);
-  for(auto ptr : proc.outlets())
-    outlets.erase(ptr);
-
-  execGraph->remove_node(node);
+  unregister_node(proc.inlets(), proc.outlets(), node);
 }
 
+void DocumentPlugin::register_node(
+    const Process::Inlets& proc_inlets, const Process::Outlets& proc_outlets,
+    const std::shared_ptr<ossia::graph_node>& node)
+{
+  if(node)
+  {
+    const std::size_t n_inlets = proc_inlets.size();
+    const std::size_t n_outlets = proc_outlets.size();
+
+    for(std::size_t i = 0; i < n_inlets; i++)
+    {
+      inlets.insert({ proc_inlets[i], std::make_pair( node, node->inputs()[i] ) });
+    }
+
+    for(std::size_t i = 0; i < n_outlets; i++)
+    {
+      outlets.insert({ proc_outlets[i], std::make_pair( node, node->outputs()[i] ) });
+    }
+
+    execGraph->add_node(node);
+  }
+}
+void DocumentPlugin::unregister_node(
+    const Process::Inlets& proc_inlets, const Process::Outlets& proc_outlets,
+    const std::shared_ptr<ossia::graph_node>& node)
+{
+  if(node)
+  {
+    node->clear();
+
+    for(auto ptr : proc_inlets)
+      inlets.erase(ptr);
+    for(auto ptr : proc_outlets)
+      outlets.erase(ptr);
+
+    execGraph->remove_node(node);
+  }
+}
 }
 }

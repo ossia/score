@@ -56,7 +56,6 @@
 #if defined(OSSIA_DATAFLOW)
 #include <Engine/Protocols/Audio/AudioDevice.hpp>
 #include <Engine/Executor/Dataflow/DataflowClock.hpp>
-#include <Engine/Executor/SoundComponent.hpp>
 #endif
 
 #include <Scenario/score_plugin_scenario.hpp>
@@ -127,8 +126,6 @@ score_plugin_engine::factories(
             >,
             FW<Engine::Execution::ProcessComponentFactory,
                  Engine::Execution::ScenarioComponentFactory,
-                 Engine::Execution::SoundComponentFactory,
-                 Engine::Execution::InputComponentFactory,
                  //Interpolation::Executor::ComponentFactory,
                  Automation::RecreateOnPlay::ComponentFactory,
                  Mapping::RecreateOnPlay::ComponentFactory,

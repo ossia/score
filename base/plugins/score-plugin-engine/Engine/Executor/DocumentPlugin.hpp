@@ -60,6 +60,12 @@ public:
   void unregister_node(
       const Process::ProcessModel& proc,
       const std::shared_ptr<ossia::graph_node>& node);
+  void register_node(
+      const Process::Inlets& inlets, const Process::Outlets& outlets,
+      const std::shared_ptr<ossia::graph_node>& node);
+  void unregister_node(
+      const Process::Inlets& inlets, const Process::Outlets& outlets,
+      const std::shared_ptr<ossia::graph_node>& node);
 
 
   std::shared_ptr<ossia::graph> execGraph;
