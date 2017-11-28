@@ -27,6 +27,8 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <core/presenter/DocumentManager.hpp>
+#include <State/MessageListSerialization.hpp>
+#include <Device/Node/NodeListMimeSerialization.hpp>
 
 namespace Scenario
 {
@@ -915,9 +917,11 @@ void NeightborSelector::selectDown()
 SearchWidget::SearchWidget(const score::GUIApplicationContext& ctx)
   : m_ctx{ctx}
 {
+  setAcceptDrops(true);
   auto lay = new score::MarginLess<QHBoxLayout>{this};
 
   m_lineEdit = new QLineEdit();
+  m_lineEdit->setPlaceholderText("Search");
   m_btn = new QPushButton();
   m_btn->setText("go");
 
@@ -930,7 +934,7 @@ SearchWidget::SearchWidget(const score::GUIApplicationContext& ctx)
 }
 
 template<typename Object>
-void add_if_contains(const Object& obj, QString& str, Selection& sel)
+void add_if_contains(const Object& obj,const QString& str, Selection& sel)
 {
   QJsonObject json = score::marshall<JSONObject>(obj);
   QJsonDocument doc{json};
@@ -985,4 +989,62 @@ void SearchWidget::search()
   }
 }
 
+void SearchWidget::dragEnterEvent(QDragEnterEvent* event)
+{
+  const auto& formats = event->mimeData()->formats();
+  if (formats.contains(score::mime::messagelist()) ||
+      formats.contains(score::mime::addressettings()))
+  {
+    event->accept();
+  }
+}
+
+void SearchWidget::dropEvent(QDropEvent* ev)
+{
+  auto& mime = *ev->mimeData();
+
+  // TODO refactor this with AutomationPresenter and AddressLineEdit
+  if (mime.formats().contains(score::mime::addressettings()))
+  {
+    Mime<Device::FullAddressSettings>::Deserializer des{mime};
+    Device::FullAddressSettings as = des.deserialize();
+
+    if (as.address.path.isEmpty())
+      return;
+
+    m_lineEdit->setText(as.address.toString());
+    emit m_lineEdit->returnPressed();
+  }
+  else if (mime.formats().contains(score::mime::nodelist()))
+  {
+    Mime<Device::FreeNodeList>::Deserializer des{mime};
+    Device::FreeNodeList nl = des.deserialize();
+    if (nl.empty())
+      return;
+
+    // We only take the first node.
+    const Device::Node& node = nl.front().second;
+    // TODO refactor with CreateCurves and AutomationDropHandle
+    if (node.is<Device::AddressSettings>())
+    {
+      const Device::AddressSettings& addr = node.get<Device::AddressSettings>();
+      Device::FullAddressSettings as;
+      static_cast<Device::AddressSettingsCommon&>(as) = addr;
+      as.address = nl.front().first;
+
+      m_lineEdit->setText(as.address.toString());
+      emit m_lineEdit->returnPressed();
+    }
+  }
+  else if (mime.formats().contains(score::mime::messagelist()))
+  {
+    Mime<State::MessageList>::Deserializer des{mime};
+    State::MessageList ml = des.deserialize();
+    if (!ml.empty())
+    {
+      m_lineEdit->setText(ml[0].address.toString());
+      emit m_lineEdit->returnPressed();
+    }
+  }
+}
 }

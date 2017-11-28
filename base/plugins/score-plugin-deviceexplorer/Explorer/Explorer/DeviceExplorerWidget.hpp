@@ -71,6 +71,7 @@ private:
 
   void removeNodes();
   void learn();
+  void findUsage();
 
   // Answer to user interaction
   void filterChanged();
@@ -107,6 +108,7 @@ private:
 
   QAction* m_removeNodeAction{};
   QAction* m_learnAction{};
+  QAction* m_findUsageAction{};
 
   QComboBox* m_columnCBox{};
   QLineEdit* m_nameLEdit{};
