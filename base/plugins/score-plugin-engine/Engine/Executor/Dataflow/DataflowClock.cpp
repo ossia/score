@@ -47,24 +47,32 @@ void Clock::play_impl(
   std::cerr << s.str() << std::endl;
   m_cur = &bs;
 
-  m_plug.execState.globalState.clear();
-  m_plug.execState.globalState.push_back(&m_plug.midi_dev);
-  m_plug.execState.globalState.push_back(&m_plug.audio_dev);
+  m_plug.execState.clear_devices();
+  m_plug.execState.register_device(&m_plug.midi_dev);
+  m_plug.execState.register_device(&m_plug.audio_dev);
   for(auto dev : context.devices.list().devices()) {
     if(auto od = dynamic_cast<Engine::Network::OSSIADevice*>(dev))
       if(auto d = od->getDevice())
-        m_plug.execState.globalState.push_back(d);
+        m_plug.execState.register_device(d);
   }
   m_default.play(t);
+  for(auto& n : m_plug.execGraph->m_nodes.left)
+  {
+    for(auto& port : n.second->inputs())
+    {
+      if(auto vp = port->data.target<ossia::value_port>())
+      {
+        if(vp->is_event)
+        {
+          if(auto addr = port->address.target<ossia::net::parameter_base*>())
+            m_plug.execState.register_parameter(**addr);
+        }
+      }
+    }
 
-  m_plug.audioProto().ui_tick = [this] (unsigned long frameCount) {
-    m_plug.execState.clear();
-    m_cur->baseInterval().OSSIAInterval()->tick(ossia::time_value(frameCount));
-    m_plug.execGraph->state(m_plug.execState);
-    m_plug.execState.commit();
-  };
+  }
 
-  m_plug.audioProto().replace_tick = true;
+  resume_impl(bs);
 }
 
 void Clock::pause_impl(
@@ -84,6 +92,7 @@ void Clock::resume_impl(
   m_default.resume();
   m_plug.audioProto().ui_tick = [this] (unsigned long frameCount) {
     m_plug.execState.clear();
+    m_plug.execState.get_new_values();
     m_cur->baseInterval().OSSIAInterval()->tick(ossia::time_value(frameCount));
     m_plug.execGraph->state(m_plug.execState);
     m_plug.execState.commit();
