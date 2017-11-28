@@ -34,11 +34,13 @@ CreateAutomationFromStates::CreateAutomationFromStates(
     const std::vector<SlotPath>& slotList,
     Id<Process::ProcessModel> curveId,
     State::AddressAccessor address,
-    const Curve::CurveDomain& dom)
+    const Curve::CurveDomain& dom,
+    bool tween)
     : CreateProcessAndLayers<Automation::ProcessModel>{interval, slotList,
                                                        std::move(curveId)}
     , m_address{std::move(address)}
     , m_dom{dom}
+    , m_tween(tween)
 {
 }
 
@@ -50,6 +52,7 @@ void CreateAutomationFromStates::redo(const score::DocumentContext& ctx) const
       cstr.processes.at(m_addProcessCmd.processId()));
   autom.setAddress(m_address);
   autom.curve().clear();
+  autom.setTween(m_tween);
 
   // Add a segment
   auto segment = new Curve::DefaultCurveSegmentModel{

@@ -168,7 +168,6 @@ StateInspectorWidget::StateInspectorWidget(
     , m_model{object}
     , m_context{doc}
     , m_commandDispatcher{m_context.commandStack}
-    , m_selectionDispatcher{m_context.selectionStack}
 {
   setObjectName("StateInspectorWidget");
   setParent(parent);
@@ -193,31 +192,6 @@ void StateInspectorWidget::updateDisplayedValues()
 
   {
       auto linkWidget = new QWidget;
-      auto linkLay = new score::MarginLess<QHBoxLayout>{linkWidget};
-
-      // Intervals setup
-      if (m_model.previousInterval())
-      {
-          auto btn = SelectionButton::make(
-                      tr("Prev. Interval"),
-                      &scenar->interval(*m_model.previousInterval()),
-                      m_selectionDispatcher,
-                      this);
-
-          linkLay->addWidget(btn);
-      }
-      if (m_model.nextInterval())
-      {
-          auto btn = SelectionButton::make(
-                      tr("Next Interval"),
-                      &scenar->interval(*m_model.nextInterval()),
-                      m_selectionDispatcher,
-                      this);
-
-          linkLay->addWidget(btn);
-      }
-      linkLay->addStretch(1);
-
       m_properties.push_back(linkWidget);
   }
 

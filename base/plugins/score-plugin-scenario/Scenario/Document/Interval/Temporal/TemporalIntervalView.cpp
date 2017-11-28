@@ -65,31 +65,31 @@ void TemporalIntervalView::updatePaths()
   const qreal play_w = playWidth();
 
   // Paths
-  if(play_w <= 0)
+  if(play_w <= 0.)
   {
     if (infinite())
     {
       if (min_w != 0.)
       {
-        solidPath.lineTo(min_w, 0);
+        solidPath.lineTo(min_w, 0.);
       }
 
       // TODO end state should be hidden
-      dashedPath.moveTo(min_w, 0);
-      dashedPath.lineTo(def_w, 0);
+      dashedPath.moveTo(min_w, 0.);
+      dashedPath.lineTo(def_w, 0.);
     }
     else if (min_w == max_w) // TODO rigid()
     {
-      solidPath.lineTo(def_w, 0);
+      solidPath.lineTo(def_w, 0.);
     }
     else
     {
       if (min_w != 0.)
       {
-        solidPath.lineTo(min_w, 0);
+        solidPath.lineTo(min_w, 0.);
       }
-      dashedPath.moveTo(min_w, 0);
-      dashedPath.lineTo(max_w, 0);
+      dashedPath.moveTo(min_w, 0.);
+      dashedPath.lineTo(max_w, 0.);
     }
   }
   else
@@ -98,61 +98,58 @@ void TemporalIntervalView::updatePaths()
     {
       if (min_w != 0.)
       {
-        playedSolidPath.lineTo(std::min(play_w, min_w), 0);
+        playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
         if(play_w < min_w)
         {
-          solidPath.moveTo(play_w, 0);
-          solidPath.lineTo(min_w, 0);
+          solidPath.lineTo(min_w, 0.);
         }
       }
 
       if(play_w > min_w)
       {
-        playedDashedPath.moveTo(min_w, 0);
-        playedDashedPath.lineTo(std::min(def_w, play_w), 0);
+        playedDashedPath.moveTo(min_w, 0.);
+        playedDashedPath.lineTo(std::min(def_w, play_w), 0.);
 
-        waitingDashedPath.moveTo(min_w, 0);
-        waitingDashedPath.lineTo(def_w, 0);
+        waitingDashedPath.moveTo(min_w, 0.);
+        waitingDashedPath.lineTo(def_w, 0.);
       }
       else
       {
-        dashedPath.moveTo(min_w, 0);
-        dashedPath.lineTo(def_w, 0);
+        dashedPath.moveTo(min_w, 0.);
+        dashedPath.lineTo(def_w, 0.);
       }
     }
     else if (min_w == max_w) // TODO rigid()
     {
-      playedSolidPath.lineTo(std::min(play_w, def_w), 0);
+      playedSolidPath.lineTo(std::min(play_w, def_w), 0.);
       if(play_w < def_w)
       {
-        solidPath.moveTo(play_w, 0);
-        solidPath.lineTo(def_w, 0);
+        solidPath.lineTo(def_w, 0.);
       }
     }
     else
     {
       if (min_w != 0.)
       {
-        playedSolidPath.lineTo(std::min(play_w, min_w), 0);
+        playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
         if(play_w < min_w)
         {
-          solidPath.moveTo(play_w, 0);
-          solidPath.lineTo(min_w, 0);
+          solidPath.lineTo(min_w, 0.);
         }
       }
 
       if(play_w > min_w)
       {
-        playedDashedPath.moveTo(min_w, 0);
-        playedDashedPath.lineTo(play_w, 0);
+        playedDashedPath.moveTo(min_w, 0.);
+        playedDashedPath.lineTo(play_w, 0.);
 
-        waitingDashedPath.moveTo(min_w, 0);
-        waitingDashedPath.lineTo(max_w, 0);
+        waitingDashedPath.moveTo(min_w, 0.);
+        waitingDashedPath.lineTo(max_w, 0.);
       }
       else
       {
-        dashedPath.moveTo(min_w, 0);
-        dashedPath.lineTo(max_w, 0);
+        dashedPath.moveTo(min_w, 0.);
+        dashedPath.lineTo(max_w, 0.);
       }
     }
   }
@@ -171,7 +168,7 @@ void TemporalIntervalView::updatePlayPaths()
   const qreal play_w = playWidth();
 
   // Paths
-  if(play_w <= 0)
+  if(play_w <= 0.)
   {
     return;
   }
@@ -181,36 +178,36 @@ void TemporalIntervalView::updatePlayPaths()
     {
       if (min_w != 0.)
       {
-        playedSolidPath.lineTo(std::min(play_w, min_w), 0);
+        playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
       }
 
       if(play_w > min_w)
       {
-        playedDashedPath.moveTo(min_w, 0);
-        playedDashedPath.lineTo(std::min(def_w, play_w), 0);
+        playedDashedPath.moveTo(min_w, 0.);
+        playedDashedPath.lineTo(std::min(def_w, play_w), 0.);
 
-        waitingDashedPath.moveTo(min_w, 0);
-        waitingDashedPath.lineTo(def_w, 0);
+        waitingDashedPath.moveTo(min_w, 0.);
+        waitingDashedPath.lineTo(def_w, 0.);
       }
     }
     else if (min_w == max_w) // TODO rigid()
     {
-      playedSolidPath.lineTo(std::min(play_w, def_w), 0);
+      playedSolidPath.lineTo(std::min(play_w, def_w), 0.);
     }
     else
     {
       if (min_w != 0.)
       {
-        playedSolidPath.lineTo(std::min(play_w, min_w), 0);
+        playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
       }
 
       if(play_w > min_w)
       {
-        playedDashedPath.moveTo(min_w, 0);
-        playedDashedPath.lineTo(play_w, 0);
+        playedDashedPath.moveTo(min_w, 0.);
+        playedDashedPath.lineTo(play_w, 0.);
 
-        waitingDashedPath.moveTo(min_w, 0);
-        waitingDashedPath.lineTo(max_w, 0);
+        waitingDashedPath.moveTo(min_w, 0.);
+        waitingDashedPath.lineTo(max_w, 0.);
       }
     }
   }

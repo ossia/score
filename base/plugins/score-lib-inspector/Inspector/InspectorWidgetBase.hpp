@@ -75,16 +75,10 @@ public:
     return m_commandDispatcher;
   }
 
-  score::SelectionDispatcher& selectionDispatcher() const
-  {
-    return *m_selectionDispatcher;
-  }
-
 private:
   const IdentifiedObjectAbstract& m_inspectedObject;
   const score::DocumentContext& m_context;
   CommandDispatcher<>* m_commandDispatcher{};
-  std::unique_ptr<score::SelectionDispatcher> m_selectionDispatcher;
   QVBoxLayout* m_scrollAreaLayout{};
 
   std::vector<QWidget*> m_sections;
