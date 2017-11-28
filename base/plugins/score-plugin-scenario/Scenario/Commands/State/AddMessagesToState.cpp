@@ -70,6 +70,7 @@ AddMessagesToState::AddMessagesToState(
   // TODO one day there will also be State functions that will perform
   // some local computation.
   // TODO this day has come
+  // WARNING we are in the future
 
 
   updateTreeWithMessageList(m_newState, messages);
