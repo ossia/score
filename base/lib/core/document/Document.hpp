@@ -151,6 +151,7 @@ private:
   ObjectLocker m_objectLocker;
   FocusManager m_focus;
   QTimer m_documentUpdateTimer;
+  QTimer m_documentCoarseUpdateTimer;
 
   DocumentModel* m_model{};
   DocumentView* m_view{};

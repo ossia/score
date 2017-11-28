@@ -4,7 +4,7 @@
 #include <QGlyphRun>
 #include <QPen>
 #include <score/model/ColorReference.hpp>
-
+#include <score_plugin_scenario_export.h>
 namespace Scenario
 {
 class TextItem final : public QGraphicsTextItem
@@ -20,7 +20,7 @@ protected:
   void focusOutEvent(QFocusEvent* event) override;
 };
 
-class SimpleTextItem : public QGraphicsItem
+class SCORE_PLUGIN_SCENARIO_EXPORT SimpleTextItem : public QGraphicsItem
 {
 public:
   SimpleTextItem(QGraphicsItem*);

@@ -22,6 +22,7 @@ class SCORE_LIB_PROCESS_EXPORT Port
     SCORE_SERIALIZE_FRIENDS
     public:
       PortType type{};
+      bool hidden{};
 
     virtual Port* clone(QObject* parent) const;
     void addCable(const Path<Process::Cable>& c);

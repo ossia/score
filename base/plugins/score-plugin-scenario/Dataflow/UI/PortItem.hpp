@@ -2,12 +2,13 @@
 #include <QGraphicsItem>
 #include <QObject>
 #include <unordered_map>
-namespace Process { class Port; }
-
+#include <score_plugin_scenario_export.h>
+namespace Process { class Port; class Inlet; class Outlet; }
+namespace score { struct DocumentContext; }
 namespace Dataflow
 {
 class CableItem;
-class PortItem final
+class SCORE_PLUGIN_SCENARIO_EXPORT PortItem final
     : public QObject
     , public QGraphicsItem
 {
@@ -50,5 +51,9 @@ class PortItem final
 
     double m_diam = 6.;
 };
+SCORE_PLUGIN_SCENARIO_EXPORT
+PortItem* setupInlet(Process::Inlet& port, const score::DocumentContext& ctx, QGraphicsItem* parent, QObject* context);
+SCORE_PLUGIN_SCENARIO_EXPORT
+PortItem* setupOutlet(Process::Outlet& port, const score::DocumentContext& ctx, QGraphicsItem* parent, QObject* context);
 
 }

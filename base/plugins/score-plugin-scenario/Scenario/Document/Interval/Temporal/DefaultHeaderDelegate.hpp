@@ -12,7 +12,6 @@ class DefaultHeaderDelegate final
   public:
     DefaultHeaderDelegate(Process::LayerPresenter& p);
 
-    void onCreateCable(Dataflow::PortItem* p1, Dataflow::PortItem* p2);
     void updateName();
     void setSize(QSizeF sz) override;
 
