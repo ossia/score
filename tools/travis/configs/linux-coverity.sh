@@ -1,5 +1,5 @@
 #!/bin/sh
-source `readlink -e ${0%/*}/linux-source-qt.sh`
+source "$CONFIG_FOLDER/linux-source-qt.sh"
 
 if [[ "$TRAVIS_BRANCH" = "$COVERITY_SCAN_BRANCH_PATTERN" ]];
 then
