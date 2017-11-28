@@ -120,20 +120,8 @@ IntervalInspectorWidget::IntervalInspectorWidget(
     SCORE_ASSERT(scenar);
     transportLay->addStretch(1);
 
-    auto sst = m_model.startState();
-    {
-      auto btn = SelectionButton::make(
-          tr("Start State"), &scenar->state(sst), selectionDispatcher(), this);
-      transportLay->addWidget(btn);
-    }
     transportLay->addWidget(setAsDisplayedInterval);
 
-    auto est = m_model.endState();
-    {
-      auto btn = SelectionButton::make(
-          tr("End State"), &scenar->state(est), selectionDispatcher(), this);
-      transportLay->addWidget(btn);
-    }
     transportLay->addStretch(1);
 
     m_properties.push_back(transportWid);

@@ -102,7 +102,8 @@ public:
       const std::vector<SlotPath>& slotList,
       Id<Process::ProcessModel> curveId,
       State::AddressAccessor address,
-      const Curve::CurveDomain&);
+      const Curve::CurveDomain&,
+      bool tween = false);
 
   void redo(const score::DocumentContext& ctx) const override;
 
@@ -114,6 +115,7 @@ private:
   State::AddressAccessor m_address;
 
   Curve::CurveDomain m_dom;
+  bool m_tween;
 };
 
 class SCORE_PLUGIN_SCENARIO_EXPORT CreateInterpolationFromStates final

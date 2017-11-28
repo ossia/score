@@ -17,6 +17,8 @@
 #include <Engine/Executor/ProcessComponent.hpp>
 #include <Engine/Executor/ScenarioComponent.hpp>
 #include <Engine/LocalTree/Scenario/LoopComponent.hpp>
+#include <Engine/LocalTree/Scenario/AutomationComponent.hpp>
+#include <Engine/LocalTree/Scenario/MappingComponent.hpp>
 #include <Engine/LocalTree/Scenario/ScenarioComponent.hpp>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
@@ -141,7 +143,9 @@ score_plugin_engine::factories(
                  LocalTree::Settings::Factory>,
             FW<Engine::LocalTree::ProcessComponentFactory,
                  Engine::LocalTree::ScenarioComponentFactory,
-                 Engine::LocalTree::LoopComponentFactory
+                 Engine::LocalTree::LoopComponentFactory,
+                 Engine::LocalTree::AutomationComponentFactory,
+                 Engine::LocalTree::MappingComponentFactory
             >,
             FW<score::PanelDelegateFactory,
                  Engine::PanelDelegateFactory>,
