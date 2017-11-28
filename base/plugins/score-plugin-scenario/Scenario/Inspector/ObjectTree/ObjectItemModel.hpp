@@ -17,6 +17,7 @@
 #include <QLabel>
 
 class QToolButton;
+class QGraphicsSceneMouseEvent;
 namespace Scenario
 {
 // TimeSync / event / state / state processes
@@ -129,8 +130,12 @@ public:
   void toggle() { this->isHidden() ? this->show() : this->hide();}
   void search();
 
+  void dragEnterEvent(QDragEnterEvent* event) override;
+  void dropEvent(QDropEvent *event) override;
+
 private:
-  QLineEdit* m_lineEdit;
+
+  QLineEdit* m_lineEdit{};
   QPushButton* m_btn;
   const score::GUIApplicationContext& m_ctx;
 };
