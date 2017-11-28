@@ -1,5 +1,5 @@
 #!/bin/sh
-source "$CONFIG_FOLDER/linux-source-qt.sh"
+source "${0%/*}/linux-source-qt.sh"
 
 if [[ "$TRAVIS_BRANCH" = "$COVERITY_SCAN_BRANCH_PATTERN" ]];
 then
