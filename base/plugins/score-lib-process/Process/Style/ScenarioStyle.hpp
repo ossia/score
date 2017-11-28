@@ -149,6 +149,8 @@ struct SCORE_LIB_PROCESS_EXPORT ScenarioStyle
   QBrush AudioPortBrush;
   QBrush DataPortBrush;
   QBrush MidiPortBrush;
+
+  QBrush TextBrush;
 private:
   ScenarioStyle() noexcept;
   void update(const score::Skin& skin);

@@ -26,7 +26,6 @@ signals:
   void contextMenuRequested(QPoint);
 
 private:
-  void updateText();
   void paint_impl(QPainter*) const override;
   void mousePressEvent(QGraphicsSceneMouseEvent*) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent*) override;

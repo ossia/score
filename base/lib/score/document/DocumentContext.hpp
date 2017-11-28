@@ -27,6 +27,7 @@ struct SCORE_LIB_BASE_EXPORT DocumentContext
   score::ObjectLocker& objectLocker;
   const score::FocusFacade focus;
   QTimer& updateTimer;
+  QTimer& coarseUpdateTimer;
 
   const std::vector<DocumentPlugin*>& pluginModels() const;
 

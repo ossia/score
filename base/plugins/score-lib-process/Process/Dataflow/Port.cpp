@@ -20,6 +20,7 @@ Port::Port(Id<Port> c, const Port& other, QObject* parent)
   : IdentifiedObject<Port>{c, QStringLiteral("Port"), parent}
 {
   type = other.type;
+  hidden = other.hidden;
   m_cables = other.m_cables;
   m_customData = other.m_customData;
   m_address = other.m_address;
@@ -275,14 +276,14 @@ template<>
 SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::Port>(const Process::Port& p)
 {
   insertDelimiter();
-  m_stream << p.type<< p.m_customData << p.m_address << p.m_cables;
+  m_stream << p.type << p.hidden << p.m_customData << p.m_address << p.m_cables;
   insertDelimiter();
 }
 template<>
 SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::Port>(Process::Port& p)
 {
   checkDelimiter();
-  m_stream >> p.type >> p.m_customData >> p.m_address >> p.m_cables;
+  m_stream >> p.type >> p.hidden >> p.m_customData >> p.m_address >> p.m_cables;
   checkDelimiter();
 }
 
@@ -290,6 +291,7 @@ template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::Port>(const Process::Port& p)
 {
   obj["Type"] = (int)p.type;
+  obj["Hidden"] = (int)p.hidden;
   obj["Custom"] = p.m_customData;
   obj["Address"] = toJsonObject(p.m_address);
   obj["Cables"] = toJsonArray(p.m_cables);
@@ -298,6 +300,7 @@ template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::Port>(Process::Port& p)
 {
   p.type = (Process::PortType)obj["Type"].toInt();
+  p.hidden = obj["Hidden"].toBool();
   p.m_customData = obj["Custom"].toString();
   p.m_address = fromJsonObject<State::AddressAccessor>(obj["Address"]);
   fromJsonArray(obj["Cables"].toArray(), p.m_cables);

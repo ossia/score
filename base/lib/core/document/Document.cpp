@@ -36,6 +36,7 @@ DocumentContext::DocumentContext(Document& d)
     , objectLocker{d.locker()}
     , focus{d.focusManager()}
     , updateTimer{d.m_documentUpdateTimer}
+    , coarseUpdateTimer{d.m_documentCoarseUpdateTimer}
 {
 }
 
@@ -92,6 +93,9 @@ void Document::init()
 
   m_documentUpdateTimer.setInterval(16);
   m_documentUpdateTimer.start();
+
+  m_documentCoarseUpdateTimer.setInterval(250);
+  m_documentCoarseUpdateTimer.start();
 }
 
 void Document::setBackupMgr(DocumentBackupManager* backupMgr)
