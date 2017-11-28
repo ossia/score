@@ -946,6 +946,7 @@ void add_if_contains(const Object& obj,const QString& str, Selection& sel)
 void SearchWidget::search()
 {
   QString stxt = m_lineEdit->text();
+  auto addr = State::AddressAccessor::fromString(stxt);
 
   auto* doc = m_ctx.documents.currentDocument();
 
@@ -954,13 +955,20 @@ void SearchWidget::search()
 
   if (scenarioModel)
   {
-    QJsonObject json;
-
     // Serialize ALL the things
     for (const auto& obj : scenarioModel->children())
     {
       if (auto state = dynamic_cast<const StateModel*>(obj))
       {
+        if (addr)
+        {
+          auto nodes = Process::try_getNodesFromAddress(state->messages().rootNode(), addr.value());
+          if (!nodes.empty())
+          {
+            sel.append(state);
+            continue;
+          }
+        }
         add_if_contains(*state, stxt, sel);
       }
       else if (auto event = dynamic_cast<const EventModel*>(obj))
