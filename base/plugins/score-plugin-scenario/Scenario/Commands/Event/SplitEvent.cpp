@@ -69,6 +69,8 @@ void SplitEvent::redo(const score::DocumentContext& ctx) const
   auto& newEvent = scenar.events.at(m_newEvent);
   newEvent.metadata().setName(m_createdName);
 
+  newEvent.setCondition(originalEvent.condition());
+
   for (auto& st : m_movingStates)
   {
     originalEvent.removeState(st);
