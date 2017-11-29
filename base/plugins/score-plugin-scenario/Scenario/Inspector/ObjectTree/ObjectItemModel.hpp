@@ -13,8 +13,11 @@
 #include <QHeaderView>
 #include <QContextMenuEvent>
 #include <QMenu>
+#include <QPushButton>
+#include <QLabel>
 
 class QToolButton;
+class QGraphicsSceneMouseEvent;
 namespace Scenario
 {
 // TimeSync / event / state / state processes
@@ -118,6 +121,24 @@ private:
   score::SelectionDispatcher m_selectionDispatcher;
 };
 
+class SearchWidget final : public QWidget
+{
+public:
+  SearchWidget(const score::GUIApplicationContext& ctx);
+
+  void toggle() { this->isHidden() ? this->show() : this->hide();}
+  void search();
+
+  void dragEnterEvent(QDragEnterEvent* event) override;
+  void dropEvent(QDropEvent *event) override;
+
+private:
+
+  QLineEdit* m_lineEdit{};
+  QPushButton* m_btn;
+  const score::GUIApplicationContext& m_ctx;
+};
+
 class SelectionStackWidget final : public QWidget
 {
 public:
@@ -126,6 +147,7 @@ public:
 private:
   QToolButton* m_prev{};
   QToolButton* m_next{};
+  QLabel* m_label{};
   QToolButton* m_left{};
   QToolButton* m_right{};
   QToolButton* m_up{};
@@ -151,6 +173,7 @@ private:
   QVBoxLayout* m_lay{};
   SelectionStackWidget* m_stack{};
   ObjectWidget* m_objects{};
+  SearchWidget* m_searchWidget{};
 };
 
 class ObjectPanelDelegateFactory final : public score::PanelDelegateFactory

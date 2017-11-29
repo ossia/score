@@ -109,7 +109,11 @@ static void getAddressesRecursively(
   if (node.is<Device::AddressSettings>())
   {
     const Device::AddressSettings& addr = node.get<Device::AddressSettings>();
-    if (ossia::is_numeric(addr.value))
+    // FIXME see https://github.com/OSSIA/libossia/issues/291
+    if (ossia::is_numeric(addr.value)
+        || addr.value.getType() == ossia::val_type::VEC2F
+        || addr.value.getType() == ossia::val_type::VEC3F
+        || addr.value.getType() == ossia::val_type::VEC4F )
     {
       Device::FullAddressSettings as;
       static_cast<Device::AddressSettingsCommon&>(as) = addr;

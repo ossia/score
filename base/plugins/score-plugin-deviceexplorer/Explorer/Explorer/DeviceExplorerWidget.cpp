@@ -198,6 +198,7 @@ void DeviceExplorerWidget::buildGUI()
   m_removeNodeAction = new QAction(tr("Remove"), this);
   m_exportDeviceAction = new QAction{tr("Export device"), this};
   m_learnAction = new QAction{tr("Learn"), this};
+  m_findUsageAction = new QAction{tr("Find usage"), this};
 
 #ifdef __APPLE__
   m_removeNodeAction->setShortcut(QKeySequence(tr("Ctrl+Backspace")));
@@ -213,6 +214,7 @@ void DeviceExplorerWidget::buildGUI()
   m_reconnect->setEnabled(false);
   m_exportDeviceAction->setEnabled(false);
   m_learnAction->setEnabled(false);
+  m_findUsageAction->setEnabled(false);
 
   m_editAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   m_refreshAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
@@ -222,6 +224,7 @@ void DeviceExplorerWidget::buildGUI()
   m_reconnect->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   m_exportDeviceAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   m_learnAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+  m_findUsageAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 
   connect(
       m_editAction, &QAction::triggered, this, &DeviceExplorerWidget::edit);
@@ -245,6 +248,8 @@ void DeviceExplorerWidget::buildGUI()
       &DeviceExplorerWidget::exportDevice);
   connect(
       m_learnAction, &QAction::triggered, this, &DeviceExplorerWidget::learn);
+  connect(
+      m_findUsageAction, &QAction::triggered, this, &DeviceExplorerWidget::findUsage);
 
   QPushButton* addButton = new QPushButton(this);
 
@@ -331,6 +336,7 @@ void DeviceExplorerWidget::buildGUI()
     this->addAction(m_refreshAction);
     this->addAction(m_refreshValueAction);
     this->addAction(m_learnAction);
+    this->addAction(m_findUsageAction);
 
     this->addAction(m_removeNodeAction);
   }
@@ -434,6 +440,7 @@ void DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
   contextMenu->addAction(m_addChildAction);
   contextMenu->addAction(m_exportDeviceAction);
   contextMenu->addAction(m_learnAction);
+  contextMenu->addAction(m_findUsageAction);
   contextMenu->addSeparator();
   contextMenu->addAction(m_removeNodeAction);
 
@@ -538,11 +545,13 @@ void DeviceExplorerWidget::updateActions()
       m_refreshAction->setEnabled(false);
       m_refreshValueAction->setEnabled(false);
       m_removeNodeAction->setEnabled(false);
+      m_findUsageAction->setEnabled(false);
     }
     else
     {
       m_refreshAction->setEnabled(true);
       m_refreshValueAction->setEnabled(true);
+      m_findUsageAction->setEnabled(true);
     }
 
     if (selection.size() == 1)
@@ -576,6 +585,7 @@ void DeviceExplorerWidget::updateActions()
     m_removeNodeAction->setEnabled(false);
     m_addSiblingAction->setEnabled(false);
     m_addChildAction->setEnabled(false);
+    m_findUsageAction->setEnabled(false);
   }
 }
 
@@ -1048,6 +1058,11 @@ void DeviceExplorerWidget::learn()
     // No need to push anything
     cmd.undo(m_cmdDispatcher->stack().context());
   }
+}
+
+void DeviceExplorerWidget::findUsage()
+{
+
 }
 
 void DeviceExplorerWidget::addAddress(InsertMode insert)

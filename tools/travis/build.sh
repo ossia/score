@@ -11,7 +11,7 @@ case "$TRAVIS_OS_NAME" in
   ;;
   osx)
   export PATH=/tmp/CMake.app/Contents/bin:$PATH
-  export CMAKE_BIN=$(which cmake)
+  export CMAKE_BIN=$(find /tmp/cmake-* -regex .*bin/cmake)
   ;;
 esac
 export CTEST_OUTPUT_ON_FAILURE=1
@@ -21,4 +21,3 @@ cd build
 
 export CONFIG_FOLDER=$(pwd)/../tools/travis/configs/
 source "$CONFIG_FOLDER/$CONF.sh"
-

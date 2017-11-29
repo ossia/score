@@ -147,8 +147,7 @@ score_plugin_engine::factories(
                  Engine::LocalTree::AutomationComponentFactory,
                  Engine::LocalTree::MappingComponentFactory
             >,
-            FW<score::PanelDelegateFactory,
-                 Engine::PanelDelegateFactory>,
+            FW<score::PanelDelegateFactory, Engine::MessagesPanelDelegateFactory>,
             FW<Engine::Execution::ClockManagerFactory
               , Engine::Execution::ControlClockFactory
               , Dataflow::ClockFactory
