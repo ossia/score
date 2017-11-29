@@ -60,11 +60,14 @@ void SplitTimeSync::redo(const score::DocumentContext& ctx) const
   auto& originalTN = scenar.timeSync(m_originalTimeSyncId);
 
   // TODO set the correct position here.
-  auto& tn = ScenarioCreate<TimeSyncModel>::redo(
+  TimeSyncModel& tn = ScenarioCreate<TimeSyncModel>::redo(
       m_newTimeSyncId,
       VerticalExtent{}, // TODO
       originalTN.date(),
       scenar);
+
+  tn.expression() = originalTN.expression();
+  tn.setActive(originalTN.active());
 
   for (const auto& eventId : m_eventsInNewTimeSync)
   {
