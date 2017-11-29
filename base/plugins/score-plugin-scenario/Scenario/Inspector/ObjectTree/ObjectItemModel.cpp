@@ -20,6 +20,15 @@
 #include <Scenario/Commands/State/AddStateProcess.hpp>
 #include <Scenario/Commands/State/RemoveStateProcess.hpp>
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
+#include <score/widgets/TextLabel.hpp>
+
+// SearchWidget
+#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
+#include <QJsonObject>
+#include <QJsonDocument>
+#include <core/presenter/DocumentManager.hpp>
+#include <State/MessageListSerialization.hpp>
+#include <Device/Node/NodeListMimeSerialization.hpp>
 
 namespace Scenario
 {
@@ -519,6 +528,8 @@ SelectionStackWidget::SelectionStackWidget(
   m_prev->setArrowType(Qt::LeftArrow);
   m_prev->setEnabled(m_stack.canUnselect());
 
+  m_label = new TextLabel{"History", this};
+
   m_next = new QToolButton{this};
   m_next->setArrowType(Qt::RightArrow);
   m_next->setEnabled(m_stack.canReselect());
@@ -542,17 +553,14 @@ SelectionStackWidget::SelectionStackWidget(
   auto lay = new score::MarginLess<QHBoxLayout>{this};
   lay->setSizeConstraint(QLayout::SetMinimumSize);
   lay->addWidget(m_prev);
+  lay->addWidget(m_label);
   lay->addWidget(m_next);
-  QFrame* line = new QFrame();
-  line->setGeometry(QRect(1,1,10,10));
-  line->setFrameShape(QFrame::VLine);
-  line->setFrameShadow(QFrame::Sunken);
-  // TODO why I can't see this line ?
-  lay->addWidget(line);
+  QLabel* separator = new QLabel{"|"};
+  lay->addWidget(separator);
   lay->addWidget(m_left);
-  lay->addWidget(m_right);
   lay->addWidget(m_up);
   lay->addWidget(m_down);
+  lay->addWidget(m_right);
   setLayout(lay);
 
   connect(m_prev, &QToolButton::pressed, [&]() { m_stack.unselect(); });
@@ -578,6 +586,7 @@ ObjectPanelDelegate::ObjectPanelDelegate(const score::GUIApplicationContext &ctx
   : score::PanelDelegate{ctx}
   , m_widget{new SizePolicyWidget}
   , m_lay{new score::MarginLess<QVBoxLayout>{m_widget}}
+  , m_searchWidget{new SearchWidget{ctx}}
 {
   m_widget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
   m_widget->setMinimumHeight(100);
@@ -606,6 +615,9 @@ void ObjectPanelDelegate::on_modelChanged(score::MaybeDocument oldm, score::Mayb
 
   delete m_stack;
   m_stack = nullptr;
+
+  m_lay->removeWidget(m_searchWidget);
+
   if (newm)
   {
     m_objects = new ObjectWidget{*newm, m_widget};
@@ -616,6 +628,7 @@ void ObjectPanelDelegate::on_modelChanged(score::MaybeDocument oldm, score::Mayb
     m_stack = new SelectionStackWidget{stack, m_widget, m_objects};
 
     m_lay->addWidget(m_stack);
+    m_lay->addWidget(m_searchWidget);
     m_lay->addWidget(m_objects);
 
     setNewSelection(stack.currentSelection());
@@ -771,13 +784,13 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
 }
 
 NeightborSelector::NeightborSelector(score::SelectionStack &s, ObjectWidget* objects) :
-  m_stack{s}, m_selectionDispatcher{s}, m_objects{objects} {};
+  m_stack{s}, m_selectionDispatcher{s}, m_objects{objects} {}
 
 bool NeightborSelector::hasLeft() const
 {
   for ( const auto& obj : m_stack.currentSelection() )
   {
-    if (auto interval = dynamic_cast<const IntervalModel*>(obj.data()))
+    if (dynamic_cast<const IntervalModel*>(obj.data()))
     {
       // Interval always have previous state
       return true;
@@ -795,7 +808,7 @@ bool NeightborSelector::hasRight() const
 {
   for ( const auto& obj : m_stack.currentSelection() )
   {
-    if (auto interval = dynamic_cast<const IntervalModel*>(obj.data()))
+    if (dynamic_cast<const IntervalModel*>(obj.data()))
     {
       // Interval always have previous state
       return true;
@@ -881,34 +894,166 @@ void NeightborSelector::selectLeft()
 void NeightborSelector::selectUp()
 {
   auto cur_idx = m_objects->selectionModel()->currentIndex();
-  m_objects->updatingSelection = true;
   auto idx = m_objects->indexAbove(cur_idx);
   if(idx.isValid())
   {
-    auto selection = m_objects->selectionModel();
-
-    selection->select(cur_idx, QItemSelectionModel::Deselect | QItemSelectionModel::Rows);
-    selection->select(idx, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+    Selection sel{};
+    sel.append((IdentifiedObjectAbstract*) idx.internalPointer());
+    m_selectionDispatcher.setAndCommit(sel);
   }
-  m_objects->updatingSelection = false;
 }
 
 void NeightborSelector::selectDown()
 {
-  m_objects->updatingSelection = true;
   auto cur_idx = m_objects->selectionModel()->currentIndex();
   auto idx = m_objects->indexBelow(cur_idx);
   if(idx.isValid())
   {
-    auto selection = m_objects->selectionModel();
-
-    // TODO we should use selection dispatcher instead
-    // so we can undo/redo and hopefully NeighborSelector::has*() methods will be called automatically
-    selection->select(cur_idx, QItemSelectionModel::Deselect | QItemSelectionModel::Rows);
-    selection->select(idx, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+    Selection sel{};
+    sel.append((IdentifiedObjectAbstract*) idx.internalPointer());
+    m_selectionDispatcher.setAndCommit(sel);
   }
-  m_objects->updatingSelection = false;
-
 }
 
+SearchWidget::SearchWidget(const score::GUIApplicationContext& ctx)
+  : m_ctx{ctx}
+{
+  setAcceptDrops(true);
+  auto lay = new score::MarginLess<QHBoxLayout>{this};
+
+  m_lineEdit = new QLineEdit();
+  m_lineEdit->setPlaceholderText("Search");
+  m_btn = new QPushButton();
+  m_btn->setText("go");
+
+  lay->addWidget(m_lineEdit);
+  lay->addWidget(m_btn);
+  setLayout(lay);
+
+  connect(m_lineEdit, &QLineEdit::returnPressed, [&]() { search(); });
+  connect(m_btn, &QPushButton::pressed, [&]() { search(); });
+}
+
+template<typename Object>
+void add_if_contains(const Object& obj,const QString& str, Selection& sel)
+{
+  QJsonObject json = score::marshall<JSONObject>(obj);
+  QJsonDocument doc{json};
+  QString jstr{doc.toJson(QJsonDocument::Compact)};
+  if (jstr.contains(str))
+    sel.append(&obj);
+}
+
+void SearchWidget::search()
+{
+  QString stxt = m_lineEdit->text();
+  auto addr = State::AddressAccessor::fromString(stxt);
+
+  auto* doc = m_ctx.documents.currentDocument();
+
+  auto scenarioModel = doc->focusManager().get();
+  Selection sel{};
+
+  if (scenarioModel)
+  {
+    // Serialize ALL the things
+    for (const auto& obj : scenarioModel->children())
+    {
+      if (auto state = dynamic_cast<const StateModel*>(obj))
+      {
+        if (addr)
+        {
+          auto nodes = Process::try_getNodesFromAddress(state->messages().rootNode(), addr.value());
+          if (!nodes.empty())
+          {
+            sel.append(state);
+            continue;
+          }
+        }
+        add_if_contains(*state, stxt, sel);
+      }
+      else if (auto event = dynamic_cast<const EventModel*>(obj))
+      {
+        add_if_contains(*event, stxt, sel);
+      }
+      else if (auto ts = dynamic_cast<const TimeSyncModel*>(obj))
+      {
+        add_if_contains(*ts, stxt, sel);
+      }
+      else if (auto cmt = dynamic_cast<const CommentBlockModel*>(obj))
+      {
+        add_if_contains(*cmt, stxt, sel);
+      }
+      else if (auto interval = dynamic_cast<const IntervalModel*>(obj))
+      {
+        add_if_contains(*interval, stxt, sel);
+      }
+    }
+  }
+
+  if(!sel.empty())
+  {
+    score::SelectionDispatcher d{doc->context().selectionStack};
+    d.setAndCommit(sel);
+  }
+}
+
+void SearchWidget::dragEnterEvent(QDragEnterEvent* event)
+{
+  const auto& formats = event->mimeData()->formats();
+  if (formats.contains(score::mime::messagelist()) ||
+      formats.contains(score::mime::addressettings()))
+  {
+    event->accept();
+  }
+}
+
+void SearchWidget::dropEvent(QDropEvent* ev)
+{
+  auto& mime = *ev->mimeData();
+
+  // TODO refactor this with AutomationPresenter and AddressLineEdit
+  if (mime.formats().contains(score::mime::addressettings()))
+  {
+    Mime<Device::FullAddressSettings>::Deserializer des{mime};
+    Device::FullAddressSettings as = des.deserialize();
+
+    if (as.address.path.isEmpty())
+      return;
+
+    m_lineEdit->setText(as.address.toString());
+    emit m_lineEdit->returnPressed();
+  }
+  else if (mime.formats().contains(score::mime::nodelist()))
+  {
+    Mime<Device::FreeNodeList>::Deserializer des{mime};
+    Device::FreeNodeList nl = des.deserialize();
+    if (nl.empty())
+      return;
+
+    // We only take the first node.
+    const Device::Node& node = nl.front().second;
+    // TODO refactor with CreateCurves and AutomationDropHandle
+    if (node.is<Device::AddressSettings>())
+    {
+      const Device::AddressSettings& addr = node.get<Device::AddressSettings>();
+      Device::FullAddressSettings as;
+      static_cast<Device::AddressSettingsCommon&>(as) = addr;
+      as.address = nl.front().first;
+
+      m_lineEdit->setText(as.address.toString());
+      emit m_lineEdit->returnPressed();
+    }
+  }
+  else if (mime.formats().contains(score::mime::messagelist()))
+  {
+    Mime<State::MessageList>::Deserializer des{mime};
+    State::MessageList ml = des.deserialize();
+    if (!ml.empty())
+    {
+      m_lineEdit->setText(ml[0].address.toString());
+      emit m_lineEdit->returnPressed();
+    }
+  }
+}
 }

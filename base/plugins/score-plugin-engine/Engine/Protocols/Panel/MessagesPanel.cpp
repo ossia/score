@@ -104,7 +104,7 @@ public:
   QTimer m_updateScheduler;
 };
 
-PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
+MessagesPanelDelegate::MessagesPanelDelegate(const score::GUIApplicationContext& ctx)
     : score::PanelDelegate{ctx}
     , m_itemModel{new LogMessagesItemModel{this}}
     , m_widget{new QListView}
@@ -124,12 +124,12 @@ PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
       });
 }
 
-QWidget* PanelDelegate::widget()
+QWidget* MessagesPanelDelegate::widget()
 {
   return m_widget;
 }
 
-const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
+const score::PanelStatus& MessagesPanelDelegate::defaultPanelStatus() const
 {
   static const score::PanelStatus status{false, Qt::BottomDockWidgetArea, 0,
                                           QObject::tr("Messages"),
@@ -138,7 +138,7 @@ const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
   return status;
 }
 
-void PanelDelegate::on_modelChanged(
+void MessagesPanelDelegate::on_modelChanged(
     score::MaybeDocument oldm, score::MaybeDocument newm)
 {
   disableConnections();
@@ -168,7 +168,7 @@ void PanelDelegate::on_modelChanged(
   }
 }
 
-void PanelDelegate::setupConnections(Device::DeviceList& devices)
+void MessagesPanelDelegate::setupConnections(Device::DeviceList& devices)
 {
   const auto dark1 = QColor(Qt::darkGray).darker();
   const auto dark2 = dark1.darker(); // almost darker than black
@@ -201,14 +201,14 @@ void PanelDelegate::setupConnections(Device::DeviceList& devices)
   }
 }
 
-void PanelDelegate::disableConnections()
+void MessagesPanelDelegate::disableConnections()
 {
   QObject::disconnect(m_inbound);
   QObject::disconnect(m_outbound);
   QObject::disconnect(m_error);
 }
 
-Device::DeviceList* PanelDelegate::getDeviceList(score::MaybeDocument newm)
+Device::DeviceList* MessagesPanelDelegate::getDeviceList(score::MaybeDocument newm)
 {
   if (!newm)
     return nullptr;
@@ -220,8 +220,8 @@ Device::DeviceList* PanelDelegate::getDeviceList(score::MaybeDocument newm)
 }
 
 std::unique_ptr<score::PanelDelegate>
-PanelDelegateFactory::make(const score::GUIApplicationContext& ctx)
+MessagesPanelDelegateFactory::make(const score::GUIApplicationContext& ctx)
 {
-  return std::make_unique<PanelDelegate>(ctx);
+  return std::make_unique<MessagesPanelDelegate>(ctx);
 }
 }
