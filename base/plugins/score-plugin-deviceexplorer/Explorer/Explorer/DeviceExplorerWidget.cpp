@@ -72,6 +72,9 @@
 #include <score/widgets/SetIcons.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
+#include "../../../score-plugin-scenario/Scenario/Inspector/ObjectTree/ObjectItemModel.hpp"
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
+
 #include <QLabel>
 #include <QListWidget>
 namespace Explorer
@@ -1062,7 +1065,30 @@ void DeviceExplorerWidget::learn()
 
 void DeviceExplorerWidget::findUsage()
 {
+  const auto& ctx = score::AppContext();
 
+  for (auto cpt : ctx.components.guiApplicationPlugins())
+  {
+    /*
+    if (Scenario::ObjectPanelDelegate* objInspector = dynamic_cast<Scenario::ObjectPanelDelegate*>(cpt))
+    {
+      auto indexes = m_ntView->selectedIndexes();
+
+      QString search_txt = "address:";
+      for (auto index : indexes)
+      {
+        auto& n = model()->nodeFromModelIndex(sourceIndex(index));
+        if (!n.is<InvisibleRootNode>())
+        {
+          search_txt += n.displayName();
+          if (index != indexes.back())
+            search_txt += ",";
+        }
+      }
+      objInspector->search_for(search_txt);
+    }
+    */
+  }
 }
 
 void DeviceExplorerWidget::addAddress(InsertMode insert)
