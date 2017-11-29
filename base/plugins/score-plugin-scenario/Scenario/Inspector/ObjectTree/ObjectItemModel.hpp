@@ -132,6 +132,7 @@ public:
 
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent *event) override;
+  void search_for(QString address);
 
 private:
 
@@ -161,6 +162,7 @@ class ObjectPanelDelegate final : public score::PanelDelegate
 {
 public:
   ObjectPanelDelegate(const score::GUIApplicationContext& ctx);
+  void search_for(QString address);
 
 private:
   QWidget* widget() override;

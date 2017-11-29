@@ -592,6 +592,12 @@ ObjectPanelDelegate::ObjectPanelDelegate(const score::GUIApplicationContext &ctx
   m_widget->setSizeHint({200, 100});
 }
 
+void ObjectPanelDelegate::search_for(QString address)
+{
+  m_searchWidget->search_for(address);
+}
+
+
 QWidget *ObjectPanelDelegate::widget()
 {
   return m_widget;
@@ -941,6 +947,12 @@ void add_if_contains(const Object& obj,const QString& str, Selection& sel)
   QString jstr{doc.toJson(QJsonDocument::Compact)};
   if (jstr.contains(str))
     sel.append(&obj);
+}
+
+void SearchWidget::search_for(QString address)
+{
+  m_lineEdit->setText(address);
+  search();
 }
 
 void SearchWidget::search()
