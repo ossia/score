@@ -962,7 +962,7 @@ void SearchWidget::search()
       {
         if (addr)
         {
-          auto nodes = Process::try_getNodesFromAddress(state->messages().rootNode(), addr.value());
+          auto nodes = Process::try_getNodesFromAddress(state->messages().rootNode(), *addr);
           if (!nodes.empty())
           {
             sel.append(state);
