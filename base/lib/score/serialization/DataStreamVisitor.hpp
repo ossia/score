@@ -118,6 +118,7 @@ class SCORE_LIB_BASE_EXPORT DataStreamReader
 {
 public:
 
+  using type = DataStream;
   using is_visitor_tag = std::integral_constant<bool, true>;
 
   VisitorVariant toVariant()

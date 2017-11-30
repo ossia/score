@@ -40,6 +40,12 @@
 #include <Engine/LocalTree/Settings/LocalTreeFactory.hpp>
 #include <score/plugins/customfactory/FactorySetup.hpp>
 
+#include <Engine/Node/Nodes/MidiUtil.hpp>
+#include <Engine/Node/Nodes/TestNode.hpp>
+#include <Engine/Node/Nodes/AngleNode.hpp>
+#include <Engine/Node/Nodes/VelToNote.hpp>
+#include <Engine/Node/Nodes/LFO.hpp>
+
 #if defined(OSSIA_PROTOCOL_MIDI)
 #include <Engine/Protocols/MIDI/MIDIProtocolFactory.hpp>
 #endif
@@ -132,10 +138,14 @@ score_plugin_engine::factories(
                  Automation::RecreateOnPlay::ComponentFactory,
                  Mapping::RecreateOnPlay::ComponentFactory,
                  Loop::RecreateOnPlay::ComponentFactory
+      , Nodes::Direction::Factories::executor_factory
+      , Nodes::PulseToNote::Factories::executor_factory
+      , Nodes::LFO::Factories::executor_factory
+      , Nodes::MidiUtil::Factories::executor_factory
                  //Gradient::RecreateOnPlay::ComponentFactory,
                  //Spline::RecreateOnPlay::ComponentFactory,
                  //Metronome::RecreateOnPlay::ComponentFactory
-      >,
+            >,
             FW<Explorer::ListeningHandlerFactory,
                  Engine::Execution::PlayListeningHandlerFactory>,
             FW<score::SettingsDelegateFactory,
@@ -184,7 +194,22 @@ score_plugin_engine::factories(
             Curve::SegmentFactory_T<Segment_elasticOut>,
             Curve::SegmentFactory_T<Segment_elasticInOut>,
             Curve::SegmentFactory_T<Segment_perlinInOut>
-            >
+            >,
+      FW<Process::ProcessModelFactory
+         , Nodes::Direction::Factories::process_factory
+         , Nodes::PulseToNote::Factories::process_factory
+         , Nodes::LFO::Factories::process_factory
+         , Nodes::MidiUtil::Factories::process_factory>
+     , FW<Process::InspectorWidgetDelegateFactory
+         , Nodes::Direction::Factories::inspector_factory
+         , Nodes::PulseToNote::Factories::inspector_factory
+         , Nodes::LFO::Factories::inspector_factory
+         , Nodes::MidiUtil::Factories::inspector_factory>
+     , FW<Process::LayerFactory
+         , Nodes::Direction::Factories::layer_factory
+         , Nodes::PulseToNote::Factories::layer_factory
+         , Nodes::LFO::Factories::layer_factory
+         , Nodes::MidiUtil::Factories::layer_factory>
                >(ctx, key);
 }
 

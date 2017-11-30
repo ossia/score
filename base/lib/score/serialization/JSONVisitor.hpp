@@ -52,6 +52,7 @@ class SCORE_LIB_BASE_EXPORT JSONObjectReader
     : public AbstractVisitor
 {
 public:
+  using type = JSONObject;
   using is_visitor_tag = std::integral_constant<bool, true>;
 
   JSONObjectReader();
