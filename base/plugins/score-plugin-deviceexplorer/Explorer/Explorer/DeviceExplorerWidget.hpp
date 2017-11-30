@@ -31,7 +31,7 @@ class DeviceEditDialog;
 class DeviceExplorerFilterProxyModel;
 class DeviceExplorerModel;
 class DeviceExplorerView;
-class DeviceExplorerWidget final : public QWidget
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerWidget final : public QWidget
 {
   Q_OBJECT
 

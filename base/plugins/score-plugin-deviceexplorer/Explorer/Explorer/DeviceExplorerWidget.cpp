@@ -1072,10 +1072,11 @@ void DeviceExplorerWidget::findUsage()
   for (auto index : indexes)
   {
     auto& n = model()->nodeFromModelIndex(sourceIndex(index));
-    if (!n.is<InvisibleRootNode>())
-    {
-      search_txt.push_back(n.displayName());
-    }
+
+    State::AddressAccessor address = Device::address(n);
+
+    search_txt.push_back(address.address.toString());
+
   }
   emit findAddresses(search_txt);
 }
