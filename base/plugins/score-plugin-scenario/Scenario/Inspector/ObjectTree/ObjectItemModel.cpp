@@ -31,7 +31,7 @@
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Explorer/Explorer/DeviceExplorerWidget.hpp>
 #include <score/application/ApplicationContext.hpp>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/plugins/panel/PanelDelegate.hpp>
 #include <Explorer/Panel/DeviceExplorerPanelDelegate.hpp>
 
 namespace Scenario
@@ -936,17 +936,15 @@ SearchWidget::SearchWidget(const score::GUIApplicationContext& ctx)
   connect(m_lineEdit, &QLineEdit::returnPressed, [&]() { search(); });
   connect(m_btn, &QPushButton::pressed, [&]() { search(); });
 
-  const auto& appCtx = score::AppContext();
+  const auto& appCtx = score::GUIAppContext();
 
-  for (auto cpt : appCtx.components.guiApplicationPlugins())
+  for (auto& cpt : appCtx.panels())
   {
-    /*
-    if (Explorer::PanelDelegate* panel = dynamic_cast<Explorer::PanelDelegate*>(cpt))
+    if (Explorer::PanelDelegate* panel = dynamic_cast<Explorer::PanelDelegate*>(&cpt))
     {
       Explorer::DeviceExplorerWidget* widget = static_cast<Explorer::DeviceExplorerWidget*>(panel->widget());
       connect(widget, &Explorer::DeviceExplorerWidget::findAddresses, this, &SearchWidget::on_findAddresses);
     }
-    */
   }
 }
 
