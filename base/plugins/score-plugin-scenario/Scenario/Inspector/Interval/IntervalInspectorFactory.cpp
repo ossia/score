@@ -33,14 +33,16 @@ QWidget* IntervalInspectorFactory::make(
 
   // make a relevant widget delegate :
 
-  auto& interval
-      = static_cast<const IntervalModel&>(*sourceElements.first());
+  auto interval
+      = dynamic_cast<const IntervalModel*>(sourceElements.first());
 
-  return new IntervalInspectorWidget{
-      widgetFact, interval,
-      intervalWidgetFactory.make(
-          &IntervalInspectorDelegateFactory::make, interval),
-      doc, parent};
+  if(interval)
+    return new IntervalInspectorWidget{
+      widgetFact, *interval,
+          intervalWidgetFactory.make(
+            &IntervalInspectorDelegateFactory::make, *interval),
+          doc, parent};
+  return nullptr;
 }
 
 bool IntervalInspectorFactory::matches(

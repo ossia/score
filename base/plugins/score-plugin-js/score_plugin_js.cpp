@@ -24,6 +24,11 @@ score_plugin_js::score_plugin_js() : QObject{}
   qmlRegisterType<JS::ValueOutlet>("Score", 1, 0, "ValueOutlet");
   qmlRegisterType<JS::AudioInlet>("Score", 1, 0, "AudioInlet");
   qmlRegisterType<JS::AudioOutlet>("Score", 1, 0, "AudioOutlet");
+  qmlRegisterType<JS::FloatSlider>("Score", 1, 0, "FloatSlider");
+  qmlRegisterType<JS::IntSlider>("Score", 1, 0, "IntSlider");
+  qmlRegisterType<JS::Enum>("Score", 1, 0, "Enum");
+  qmlRegisterType<JS::Toggle>("Score", 1, 0, "Toggle");
+  qmlRegisterType<JS::LineEdit>("Score", 1, 0, "LineEdit");
 }
 
 score_plugin_js::~score_plugin_js()

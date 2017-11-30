@@ -68,4 +68,10 @@ Outlet::~Outlet()
 
 }
 
+FloatSlider::~FloatSlider() = default;
+IntSlider::~IntSlider() = default;
+Toggle::~Toggle() = default;
+Enum::~Enum() = default;
+LineEdit::~LineEdit() = default;
+
 }

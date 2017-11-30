@@ -6,6 +6,7 @@
 #include <score/document/DocumentInterface.hpp>
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/CommandStackFacade.hpp>
+#include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <score/selection/FocusManager.hpp>
 class IdentifiedObjectAbstract;
 namespace score
@@ -28,6 +29,8 @@ struct SCORE_LIB_BASE_EXPORT DocumentContext
   const score::FocusFacade focus;
   QTimer& updateTimer;
   QTimer& coarseUpdateTimer;
+
+  OngoingCommandDispatcher& dispatcher;
 
   const std::vector<DocumentPlugin*>& pluginModels() const;
 

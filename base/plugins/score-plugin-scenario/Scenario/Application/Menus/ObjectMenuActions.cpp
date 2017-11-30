@@ -176,7 +176,8 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
   m_mergeEvents = new QAction{this};
   connect(m_mergeEvents, &QAction::triggered, [this]() {
     auto sm = focusedScenarioModel(m_parent->currentDocument()->context());
-    SCORE_ASSERT(sm);
+    if(!sm)
+      return;
 
     Scenario::mergeEvents(
         *sm, m_parent->currentDocument()->context().commandStack);

@@ -1,6 +1,7 @@
 #pragma once
 #include <QSlider>
 #include <score/tools/Clamp.hpp>
+#include <QDebug>
 #include <limits>
 
 #include <score_lib_base_export.h>
@@ -12,16 +13,16 @@ namespace score
  *
  * Always between 0. - 1.
  */
-class SCORE_LIB_BASE_EXPORT DoubleSlider final : public QSlider
+class SCORE_LIB_BASE_EXPORT DoubleSlider : public QSlider
 {
   Q_OBJECT
-  static const constexpr double max = std::numeric_limits<int>::max() / 65536.;
 
 public:
+  static const constexpr double max = std::numeric_limits<int>::max() / 65536.;
   DoubleSlider(QWidget* parent) : QSlider{Qt::Horizontal, parent}
   {
     setMinimum(0);
-    setMaximum(1.01 * max);
+    setMaximum(max+1);
 
     connect(this, &QSlider::valueChanged, this, [&](int val) {
       emit valueChanged(double(val) / max);

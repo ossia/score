@@ -93,6 +93,19 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Settings/LocalTreeView.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Settings/LocalTreeFactory.hpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/PdNode.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Widgets.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Process.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Inspector.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Layer.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Executor.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Node.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Nodes/TestNode.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Nodes/MidiUtil.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Nodes/AngleNode.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Nodes/VelToNote.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Nodes/LFO.hpp"
+
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_engine.hpp"
     )
 set(SRCS

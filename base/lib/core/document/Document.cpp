@@ -37,6 +37,7 @@ DocumentContext::DocumentContext(Document& d)
     , focus{d.focusManager()}
     , updateTimer{d.m_documentUpdateTimer}
     , coarseUpdateTimer{d.m_documentCoarseUpdateTimer}
+    , dispatcher{d.m_disp}
 {
 }
 

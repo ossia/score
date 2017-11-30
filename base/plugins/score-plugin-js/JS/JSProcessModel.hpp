@@ -2,6 +2,8 @@
 #include <JS/JSProcessMetadata.hpp>
 #include <Process/Process.hpp>
 #include <QByteArray>
+#include <QQmlEngine>
+#include <QQmlComponent>
 #include <QString>
 #include <memory>
 
@@ -46,6 +48,8 @@ public:
 
   Process::Inlets inlets() const override { return m_inlets; }
   Process::Outlets outlets() const override { return m_outlets; }
+
+  QObject* m_dummyObject{};
 signals:
   void scriptError(int, const QString&);
   void scriptOk();
@@ -55,5 +59,7 @@ private:
   QString m_script;
   Process::Inlets m_inlets;
   Process::Outlets m_outlets;
+  QQmlEngine m_dummyEngine;
+  QQmlComponent m_dummyComponent{&m_dummyEngine};
 };
 }

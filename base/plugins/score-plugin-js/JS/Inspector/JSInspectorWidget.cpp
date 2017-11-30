@@ -17,7 +17,11 @@
 #include <QTableWidget>
 #include <QTableWidgetItem>
 #include <QHeaderView>
+#include <QFormLayout>
 #include <score/widgets/MarginLess.hpp>
+#include <Process/Dataflow/Port.hpp>
+#include <JS/Qml/QmlObjects.hpp>
+#include <Engine/Node/Widgets.hpp>
 class QVBoxLayout;
 namespace JS
 {
@@ -87,6 +91,44 @@ InspectorWidget::InspectorWidget(
 
   lay->addWidget(m_edit);
   lay->addWidget(m_errorLabel);
+
+  auto widg = new QWidget;
+  auto clay = new QFormLayout{widg};
+  lay->addWidget(widg);
+
+  if(!JSModel.m_dummyObject)
+    return;
+
+  {
+    auto cld_inlet = JSModel.m_dummyObject->findChildren<Inlet*>();
+    int i = 0;
+    auto get_control = [&] (int i) -> Process::ControlInlet& { return  *static_cast<Process::ControlInlet*>(JSModel.inlets()[i]); };
+    for(auto ctrl : cld_inlet)
+    {
+      if(auto fslider = qobject_cast<FloatSlider*>(ctrl))
+      {
+        clay->addRow(ctrl->objectName(), Process::FloatSlider::make_widget(*fslider, get_control(i), doc, this, this));
+      }
+      else if(auto islider = qobject_cast<IntSlider*>(ctrl))
+      {
+        clay->addRow(ctrl->objectName(), Process::IntSlider::make_widget(*islider, get_control(i), doc, this, this));
+      }
+      else if(auto toggle = qobject_cast<Toggle*>(ctrl))
+      {
+        clay->addRow(ctrl->objectName(), Process::Toggle::make_widget(*toggle, get_control(i), doc, this, this));
+      }
+      else if(auto edit = qobject_cast<LineEdit*>(ctrl))
+      {
+        clay->addRow(ctrl->objectName(), Process::LineEdit::make_widget(*edit, get_control(i), doc, this, this));
+      }
+      else if(auto en = qobject_cast<Enum*>(ctrl))
+      {
+        clay->addRow(ctrl->objectName(), Process::Enum<QStringList>::make_widget(*en, get_control(i), doc, this, this));
+      }
+
+      i++;
+    }
+  }
 }
 
 
@@ -115,6 +157,34 @@ StateInspectorWidget::StateInspectorWidget(
 
   lay->addWidget(m_edit);
   lay->addWidget(m_errorLabel);
+
+  auto widg = new QWidget;
+  auto clay = new QFormLayout{widg};
+  lay->addWidget(widg);
+
+  for(auto ctrl : JSModel.findChildren<Process::ControlInlet*>("", Qt::FindDirectChildrenOnly))
+  {
+    if(auto fslider = qobject_cast<FloatSlider*>(ctrl))
+    {
+      clay->addRow(ctrl->customData(), Process::FloatSlider::make_widget(*fslider, *ctrl, doc, this, this));
+    }
+    else if(auto islider = qobject_cast<IntSlider*>(ctrl))
+    {
+      clay->addRow(ctrl->customData(), Process::IntSlider::make_widget(*islider, *ctrl, doc, this, this));
+    }
+    else if(auto toggle = qobject_cast<Toggle*>(ctrl))
+    {
+      clay->addRow(ctrl->customData(), Process::Toggle::make_widget(*toggle, *ctrl, doc, this, this));
+    }
+    else if(auto edit = qobject_cast<LineEdit*>(ctrl))
+    {
+      clay->addRow(ctrl->customData(), Process::LineEdit::make_widget(*edit, *ctrl, doc, this, this));
+    }
+    else if(auto en = qobject_cast<Enum*>(ctrl))
+    {
+      clay->addRow(ctrl->customData(), Process::Enum<QStringList>::make_widget(*en, *ctrl, doc, this, this));
+    }
+  }
 }
 
 

@@ -62,14 +62,15 @@ void ProcessModel::setScript(const QString& script)
   m_inlets.clear();
   qDeleteAll(m_outlets);
   m_outlets.clear();
-  QQmlEngine test_engine;
+  delete m_dummyObject;
+  m_dummyObject = nullptr;
+
   m_script = script;
 
   if(script.trimmed().startsWith("import"))
   {
-    QQmlComponent c{&test_engine};
-    c.setData(script.trimmed().toUtf8(), QUrl());
-    const auto& errs = c.errors();
+    m_dummyComponent.setData(script.trimmed().toUtf8(), QUrl());
+    const auto& errs = m_dummyComponent.errors();
     if(!errs.empty())
     {
       const auto& err = errs.first();
@@ -78,36 +79,27 @@ void ProcessModel::setScript(const QString& script)
     }
     else
     {
-      auto obj = c.create();
-      auto cld_inlet = obj->findChildren<Inlet*>();
-      auto cld_outlet = obj->findChildren<Outlet*>();
+      m_dummyObject = m_dummyComponent.create();
 
-      int i = 0;
-      for(auto n : cld_inlet) {
-        auto port = new Process::Inlet{Id<Process::Port>(i++), this};
-        if(qobject_cast<ValueInlet*>(n))
-          port->type = Process::PortType::Message;
-        else if(qobject_cast<AudioInlet*>(n))
-          port->type = Process::PortType::Audio;
-        port->setCustomData(n->objectName());
-        m_inlets.push_back(port);
-      }
-
-      for(auto n : cld_outlet) {
-        auto port = new Process::Outlet{Id<Process::Port>(i++), this};
-        if(qobject_cast<ValueOutlet*>(n))
-          port->type = Process::PortType::Message;
-        else if(qobject_cast<AudioOutlet*>(n))
-        {
-          if(n == cld_outlet[0])
-            port->setPropagate(true);
-          port->type = Process::PortType::Audio;
+      {
+        auto cld_inlet = m_dummyObject->findChildren<Inlet*>();
+        int i = 0;
+        for(auto n : cld_inlet) {
+          auto port = n->make(Id<Process::Port>(i++), this);
+          port->setCustomData(n->objectName());
+          m_inlets.push_back(port);
         }
-        port->setCustomData(n->objectName());
-        m_outlets.push_back(port);
       }
-      delete obj;
 
+      {
+        auto cld_outlet = m_dummyObject->findChildren<Outlet*>();
+        int i = 0;
+        for(auto n : cld_outlet) {
+          auto port = n->make(Id<Process::Port>(i++), this);
+          port->setCustomData(n->objectName());
+          m_outlets.push_back(port);
+        }
+      }
       emit scriptOk();
     }
   }
