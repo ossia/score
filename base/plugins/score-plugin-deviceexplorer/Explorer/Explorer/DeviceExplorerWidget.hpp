@@ -122,5 +122,8 @@ private:
   QMetaObject::Connection m_modelCon;
 
   QMetaObject::Connection m_addressCon;
+
+signals:
+  void findAddresses(QStringList strlst);
 };
 }
