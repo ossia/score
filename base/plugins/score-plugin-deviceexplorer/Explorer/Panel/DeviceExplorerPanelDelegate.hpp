@@ -8,9 +8,9 @@ class PanelDelegate final : public score::PanelDelegate
 public:
   PanelDelegate(const score::GUIApplicationContext& ctx);
 
-private:
   QWidget* widget() override;
 
+private:
   const score::PanelStatus& defaultPanelStatus() const override;
 
   void on_modelChanged(

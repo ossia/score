@@ -29,6 +29,10 @@
 #include <core/presenter/DocumentManager.hpp>
 #include <State/MessageListSerialization.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
+#include <Explorer/Explorer/DeviceExplorerWidget.hpp>
+#include <score/application/ApplicationContext.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <Explorer/Panel/DeviceExplorerPanelDelegate.hpp>
 
 namespace Scenario
 {
@@ -592,12 +596,6 @@ ObjectPanelDelegate::ObjectPanelDelegate(const score::GUIApplicationContext &ctx
   m_widget->setSizeHint({200, 100});
 }
 
-void ObjectPanelDelegate::search_for(QString address)
-{
-  m_searchWidget->search_for(address);
-}
-
-
 QWidget *ObjectPanelDelegate::widget()
 {
   return m_widget;
@@ -937,6 +935,19 @@ SearchWidget::SearchWidget(const score::GUIApplicationContext& ctx)
 
   connect(m_lineEdit, &QLineEdit::returnPressed, [&]() { search(); });
   connect(m_btn, &QPushButton::pressed, [&]() { search(); });
+
+  const auto& appCtx = score::AppContext();
+
+  for (auto cpt : appCtx.components.guiApplicationPlugins())
+  {
+    /*
+    if (Explorer::PanelDelegate* panel = dynamic_cast<Explorer::PanelDelegate*>(cpt))
+    {
+      Explorer::DeviceExplorerWidget* widget = static_cast<Explorer::DeviceExplorerWidget*>(panel->widget());
+      connect(widget, &Explorer::DeviceExplorerWidget::findAddresses, this, &SearchWidget::on_findAddresses);
+    }
+    */
+  }
 }
 
 template<typename Object>
@@ -949,9 +960,16 @@ void add_if_contains(const Object& obj,const QString& str, Selection& sel)
     sel.append(&obj);
 }
 
-void SearchWidget::search_for(QString address)
+void SearchWidget::on_findAddresses(QStringList strlst)
 {
-  m_lineEdit->setText(address);
+  QString searchTxt = "address=";
+  for (auto str : strlst)
+  {
+    searchTxt += str;
+    if (str != strlst.back())
+      searchTxt += ",";
+  }
+  m_lineEdit->setText(searchTxt);
   search();
 }
 

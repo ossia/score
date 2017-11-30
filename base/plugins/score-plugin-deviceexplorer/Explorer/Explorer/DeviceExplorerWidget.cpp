@@ -1065,30 +1065,19 @@ void DeviceExplorerWidget::learn()
 
 void DeviceExplorerWidget::findUsage()
 {
-  const auto& ctx = score::AppContext();
 
-  for (auto cpt : ctx.components.guiApplicationPlugins())
+  auto indexes = m_ntView->selectedIndexes();
+
+  QStringList search_txt;
+  for (auto index : indexes)
   {
-    /*
-    if (Scenario::ObjectPanelDelegate* objInspector = dynamic_cast<Scenario::ObjectPanelDelegate*>(cpt))
+    auto& n = model()->nodeFromModelIndex(sourceIndex(index));
+    if (!n.is<InvisibleRootNode>())
     {
-      auto indexes = m_ntView->selectedIndexes();
-
-      QString search_txt = "address:";
-      for (auto index : indexes)
-      {
-        auto& n = model()->nodeFromModelIndex(sourceIndex(index));
-        if (!n.is<InvisibleRootNode>())
-        {
-          search_txt += n.displayName();
-          if (index != indexes.back())
-            search_txt += ",";
-        }
-      }
-      objInspector->search_for(search_txt);
+      search_txt.push_back(n.displayName());
     }
-    */
   }
+  emit findAddresses(search_txt);
 }
 
 void DeviceExplorerWidget::addAddress(InsertMode insert)
