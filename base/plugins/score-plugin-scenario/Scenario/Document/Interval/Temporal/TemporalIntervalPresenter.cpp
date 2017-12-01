@@ -8,6 +8,7 @@
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
+#include <Scenario/Document/Interval/DefaultHeaderDelegate.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -36,44 +37,6 @@ class QString;
 
 namespace Scenario
 {
-class DefaultHeaderDelegate
-    : public QObject
-    , public Process::GraphicsShapeItem
-{
-public:
-    DefaultHeaderDelegate(Process::LayerPresenter& p): presenter{p}
-    {
-      con(presenter.model(), &Process::ProcessModel::prettyNameChanged,
-          this, &DefaultHeaderDelegate::updateName);
-      updateName();
-      m_textcache.setFont(ScenarioStyle::instance().Bold10Pt);
-      m_textcache.setCacheEnabled(true);
-    }
-
-    void updateName()
-    {
-      m_textcache.setText(presenter.model().prettyName());
-      m_textcache.beginLayout();
-
-      QTextLine line = m_textcache.createLine();
-      line.setPosition(QPointF{0., 0.});
-
-      m_textcache.endLayout();
-
-      update();
-    }
-
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
-    {
-      painter->setPen(ScenarioStyle::instance().IntervalHeaderSeparator);
-      m_textcache.draw(painter, QPointF{0., 0.});
-    }
-
-  private:
-    Process::LayerPresenter& presenter;
-    QTextLayout m_textcache;
-};
-
 TemporalIntervalPresenter::TemporalIntervalPresenter(
     const IntervalModel& interval,
     const Process::ProcessPresenterContext& ctx,
