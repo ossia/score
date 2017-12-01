@@ -211,11 +211,7 @@ function(score_set_unix_compile_options theTarget)
 endfunction()
 
 function(score_set_compile_options theTarget)
-  if(${CMAKE_VERSION} VERSION_LESS 3.8.0 OR ANDROID OR APPLE)
-    set_target_properties(${TheTarget} PROPERTIES CXX_STANDARD 14)
-  else()
-    set_target_properties(${TheTarget} PROPERTIES CXX_STANDARD 17)
-  endif()
+  set_target_properties(${TheTarget} PROPERTIES CXX_STANDARD 17)
   target_compile_definitions(${TheTarget} PUBLIC
       $<$<CONFIG:Debug>:SCORE_DEBUG>
       $<$<CONFIG:Debug>:BOOST_MULTI_INDEX_ENABLE_INVARIANT_CHECKING>

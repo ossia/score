@@ -162,9 +162,9 @@ struct Node
       auto note = in.value.apply(val_visitor{self, base_note, base_vel});
 
       if(rand_note != 0)
-        note.pitch += std::uniform_int_distribution(-rand_note, rand_note)(m);
+        note.pitch += std::uniform_int_distribution<int>(-rand_note, rand_note)(m);
       if(rand_vel != 0)
-        note.vel += std::uniform_int_distribution(-rand_vel, rand_vel)(m);
+        note.vel += std::uniform_int_distribution<int>(-rand_vel, rand_vel)(m);
 
       note.pitch = ossia::clamp(note.pitch, 0, 127);
       note.vel = ossia::clamp(note.vel, 0, 127);

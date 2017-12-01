@@ -6,7 +6,7 @@
 
 
 class JSONObject;
-#if defined(__GNUC__) && __GNUC__ < 6
+#if !defined(__APPLE__) && defined(__GNUC__) && __GNUC__ < 6
 // GCC 5.x isn't happy with throw in constexpr...
 #undef Q_DECL_RELAXED_CONSTEXPR
 #define Q_DECL_RELAXED_CONSTEXPR
@@ -37,14 +37,11 @@ public:
   {
   }
 
-  Q_DECL_RELAXED_CONSTEXPR uuid(const uuid& other) noexcept : data{{}}
+  Q_DECL_RELAXED_CONSTEXPR uuid(const uuid& other) noexcept
+      : data{other.data}
   {
-    for (std::size_t i = 0; i < sizeof(data); ++i)
-    {
-      data[i] = other.data[i];
-    }
   }
-
+/*
   Q_DECL_RELAXED_CONSTEXPR uuid& operator=(const uuid& other) noexcept
   {
     for (std::size_t i = 0; i < sizeof(data); ++i)
@@ -53,22 +50,22 @@ public:
     }
     return *this;
   }
-
+*/
   Q_DECL_CONSTEXPR iterator begin() noexcept
   {
-    return data;
+    return data.begin();
   }
   Q_DECL_CONSTEXPR const_iterator begin() const noexcept
   {
-    return data;
+    return data.begin();
   }
   Q_DECL_CONSTEXPR iterator end() noexcept
   {
-    return data + size();
+    return data.end();
   }
   Q_DECL_CONSTEXPR const_iterator end() const noexcept
   {
-    return data + size();
+    return data.end();
   }
 
   Q_DECL_CONSTEXPR size_type size() const noexcept
@@ -159,7 +156,7 @@ public:
 
 public:
   // or should it be array<uint8_t, 16>
-  uint8_t data[16];
+  std::array<uint8_t, 16> data;
 };
 
 Q_DECL_RELAXED_CONSTEXPR inline bool

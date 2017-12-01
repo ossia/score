@@ -42,9 +42,9 @@ struct Node
               , Process::FloatSlider{"Offset.", -1000., 1000., 0.}
               , Process::FloatSlider{"Jitter", 0., 1., 0.}
               , Process::FloatSlider{"Phase", -1., 1., 0.}
-              , Process::Enum{"Function", 0U,
+              , Process::make_enum("Function", 0U,
                   Process::array("Sin", "Triangle", "Saw", "Square", "Noise 1", "Noise 2", "Noise 3")
-                }
+                )
                 )
       .state<State>()
       .build();
