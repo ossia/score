@@ -20,6 +20,14 @@ namespace JS
 {
 namespace Executor
 {
+struct js_control_updater
+{
+    ValueInlet& control;
+    ossia::value v;
+    void operator()() {
+      control.setValue(v.apply(ossia::qt::ossia_to_qvariant{}));
+    }
+};
 Component::Component(
     JS::ProcessModel& element,
     const ::Engine::Execution::Context& ctx,
@@ -29,13 +37,16 @@ Component::Component(
       ProcessComponent_T<JS::ProcessModel, ossia::node_process>{
          element, ctx, id, "JSComponent", parent}
 {
-  auto node = std::make_shared<js_node>("");
+  std::shared_ptr<js_node> node = std::make_shared<js_node>("");
   auto proc = std::make_shared<ossia::node_process>(node);
   m_ossia_process = proc;
   m_node = node;
 
+  const auto& inlets = element.inlets();
   auto& devices = ctx.devices.list();
-  for(auto port : element.inlets())
+  std::vector<int> control_indices;
+  int i = 0;
+  for(auto port : inlets)
   {
     switch(port->type)
     {
@@ -47,6 +58,8 @@ Component::Component(
           inlet->address = &dest->address();
 
         node->inputs().push_back(inlet);
+        if(dynamic_cast<Process::ControlInlet*>(port))
+          control_indices.push_back(i);
         ctx.plugin.inlets.insert({port, {m_node, inlet}});
         break;
       }
@@ -62,6 +75,7 @@ Component::Component(
         break;
       }
     }
+    i++;
   }
 
   for(auto port : element.outlets())
@@ -95,6 +109,18 @@ Component::Component(
   }
 
   node->setScript(element.script());
+
+  // Set-up controls
+  for(auto ctrl_idx : control_indices)
+  {
+    auto port = inlets[ctrl_idx];
+    auto ctrl = static_cast<Process::ControlInlet*>(port);
+    auto val_inlet = node->m_valInlets[ctrl_idx];
+    connect(ctrl, &Process::ControlInlet::valueChanged,
+            this, [=] (const ossia::value& val) {
+      this->system().executionQueue.enqueue(js_control_updater{*val_inlet.first, val});
+    });
+  }
 
   ctx.plugin.execGraph->add_node(m_node);
   /*
@@ -167,11 +193,13 @@ void js_node::run(ossia::token_request t, ossia::execution_state&)
   {
     auto& dat = m_audInlets[i].second->data.target<ossia::audio_port>()->samples;
 
-    QVector<QVector<double>> audio(dat.size());
-    for(int i = 0; i < dat.size(); i++)
+    const int dat_size = (int)dat.size();
+    QVector<QVector<double>> audio(dat_size);
+    for(int i = 0; i < dat_size; i++)
     {
-      audio[i].resize(dat[i].size());
-      for(int j = 0; j < dat[i].size(); j++)
+      const int dat_i_size = dat[i].size();
+      audio[i].resize(dat_i_size);
+      for(int j = 0; j < dat_i_size; j++)
         audio[i][j] = dat[i][j];
     }
     m_audInlets[i].first->setAudio(audio);
@@ -181,6 +209,12 @@ void js_node::run(ossia::token_request t, ossia::execution_state&)
   for(int i = 0; i < m_valInlets.size(); i++)
   {
     auto& dat = m_valInlets[i].second->data.target<ossia::value_port>()->get_data();
+
+    if(dat.empty())
+    {
+      // Use control
+    }
+
     for(auto& val : dat)
     {
       m_valInlets[i].first->setValue(val.value.apply(ossia::qt::ossia_to_qvariant{}));

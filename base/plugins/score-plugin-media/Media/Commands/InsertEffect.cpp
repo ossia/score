@@ -27,8 +27,12 @@ InsertEffect::InsertEffect(
 
 void InsertEffect::undo(const score::DocumentContext& ctx) const
 {
+  auto& fact_list = ctx.app.interfaces<Effect::EffectFactoryList>();
+  if(Effect::EffectFactory* fact = fact_list.get(m_effectKind))
+  {
     auto& process = m_model.find(ctx);
     process.removeEffect(m_id);
+  }
 }
 
 void InsertEffect::redo(const score::DocumentContext& ctx) const

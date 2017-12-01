@@ -92,17 +92,30 @@ InspectorWidget::InspectorWidget(
   lay->addWidget(m_edit);
   lay->addWidget(m_errorLabel);
 
-  auto widg = new QWidget;
-  auto clay = new QFormLayout{widg};
-  lay->addWidget(widg);
+  updateControls(doc);
 
-  if(!JSModel.m_dummyObject)
+  con(JSModel, &JS::ProcessModel::scriptChanged,
+      this, [&] { updateControls(doc); });
+}
+void InspectorWidget::updateControls(const score::DocumentContext& doc)
+{
+  delete m_ctrlWidg;
+  m_ctrlWidg = nullptr;
+
+  auto& proc = process();
+  if(!proc.m_dummyObject)
     return;
 
+  m_ctrlWidg = new QWidget;
+  auto clay = new QFormLayout{m_ctrlWidg};
+  this->layout()->addWidget(m_ctrlWidg);
+
   {
-    auto cld_inlet = JSModel.m_dummyObject->findChildren<Inlet*>();
+    auto cld_inlet = proc.m_dummyObject->findChildren<Inlet*>();
     int i = 0;
-    auto get_control = [&] (int i) -> Process::ControlInlet& { return  *static_cast<Process::ControlInlet*>(JSModel.inlets()[i]); };
+    auto get_control = [&] (int i) -> Process::ControlInlet& {
+      return *static_cast<Process::ControlInlet*>(proc.inlets()[i]);
+    };
     for(auto ctrl : cld_inlet)
     {
       if(auto fslider = qobject_cast<FloatSlider*>(ctrl))

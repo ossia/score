@@ -44,7 +44,6 @@ public:
 
   void run(ossia::token_request t, ossia::execution_state&) override;
 
-private:
   QQmlEngine m_engine;
   QList<std::pair<ValueInlet*, ossia::inlet_ptr>> m_valInlets;
   QList<std::pair<ValueOutlet*, ossia::outlet_ptr>> m_valOutlets;
