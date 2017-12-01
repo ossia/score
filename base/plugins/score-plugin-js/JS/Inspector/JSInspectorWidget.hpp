@@ -42,6 +42,8 @@ signals:
   void pressed();
 private:
   void on_textChange(const QString& newText);
+  void updateControls(const score::DocumentContext& );
+  QWidget* m_ctrlWidg{};
 };
 
 class StateInspectorWidget final

@@ -50,7 +50,8 @@ struct Node
       .build();
 
   static void run_precise(
-      float freq, float coarse, float fine, float offset, float jitter, float phase, const std::string& type,
+      float freq, float coarse, float fine, float offset, float jitter, float phase,
+      const std::string& type,
       ossia::value_port& out,
       State& s,
       ossia::time_value prev_date,

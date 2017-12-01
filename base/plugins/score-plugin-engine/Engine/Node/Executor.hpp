@@ -501,6 +501,25 @@ public:
   }
 };
 
+struct value_adder
+{
+    ossia::value_port& port;
+    ossia::value v;
+    void operator()() {
+      // timestamp should be > all others so that it is always active ?
+      port.add_value(std::move(v));
+    }
+};
+
+struct control_updater
+{
+    ossia::value& control;
+    ossia::value v;
+    void operator()() {
+      control = std::move(v);
+    }
+};
+
 template<typename Info>
 class Executor: public Engine::Execution::
     ProcessComponent_T<ControlProcess<Info>, ossia::node_process>
@@ -583,25 +602,6 @@ class Executor: public Engine::Execution::
           node->outputs()[i]->address = &dest->address();
         }
       }
-
-      struct value_adder
-      {
-          ossia::value_port& port;
-          ossia::value v;
-          void operator()() {
-            // timestamp should be > all others so that it is always active ?
-            port.add_value(std::move(v));
-          }
-      };
-
-      struct control_updater
-      {
-          ossia::value& control;
-          ossia::value v;
-          void operator()() {
-            control = v;
-          }
-      };
 
       for(std::size_t idx = control_start; idx < control_start + control_count; idx++)
       {

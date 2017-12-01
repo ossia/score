@@ -60,6 +60,6 @@ private:
   Process::Inlets m_inlets;
   Process::Outlets m_outlets;
   QQmlEngine m_dummyEngine;
-  QQmlComponent m_dummyComponent{&m_dummyEngine};
+  std::unique_ptr<QQmlComponent> m_dummyComponent;
 };
 }
