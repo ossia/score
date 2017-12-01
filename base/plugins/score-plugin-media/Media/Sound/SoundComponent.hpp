@@ -66,7 +66,7 @@ using InputComponentFactory
 = ::Engine::Execution::ProcessComponentFactory_T<InputComponent>;
 
 
-class EffectComponent final
+class SCORE_PLUGIN_ENGINE_EXPORT EffectComponent final
     : public ::Engine::Execution::
     ProcessComponent_T<Media::Effect::ProcessModel, ossia::node_process>
 {

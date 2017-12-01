@@ -3,6 +3,7 @@
 #include <ossia/editor/state/state_element.hpp>
 #include "ExecutorModel.hpp"
 #include <Engine/Executor/ClockManager/DefaultClockManager.hpp>
+#include <Engine/Executor/Dataflow/DataflowClock.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <Engine/score2OSSIA.hpp>
 #include <Engine/OSSIA2score.hpp>
@@ -38,10 +39,7 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 std::unique_ptr<ClockManager>
 Model::makeClock(const Engine::Execution::Context& ctx) const
 {
-  auto it = m_clockFactories.find(m_Clock);
-  return it != m_clockFactories.end()
-             ? it->make(ctx)
-             : std::make_unique<ControlClock>(ctx);
+    return std::make_unique<Dataflow::Clock>(ctx);
 }
 
 std::function<ossia::time_value(const TimeVal&)>
