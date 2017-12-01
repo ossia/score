@@ -102,7 +102,7 @@ struct NodeBuilder: Args...
 };
 
 constexpr auto create_node() {
-  return NodeBuilder{};
+  return NodeBuilder<>{};
 }
 
 
@@ -111,6 +111,13 @@ struct is_port : std::false_type {};
 template<typename T, std::size_t N>
 struct is_port<T, std::array<T, N>> : std::true_type {};
 
+template<typename T>
+struct dummy_container {
+    static constexpr bool is_event = false;
+    static constexpr auto begin() { return (T*)nullptr; }
+    static constexpr auto end() { return (T*)nullptr; }
+    static constexpr std::size_t size() { return 0; }
+};
 template<typename PortType, typename T>
 static constexpr auto get_ports(const T& t)
 {
@@ -123,7 +130,7 @@ static constexpr auto get_ports(const T& t)
   }
   else
   {
-    return std::array<PortType, 0>{};
+    return dummy_container<PortType>{};
   }
 }
 

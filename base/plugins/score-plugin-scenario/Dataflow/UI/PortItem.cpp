@@ -281,13 +281,13 @@ class PortPanel final
 {
     QRectF m_rect;
     QRectF m_widgrect;
-    PortWidget* m_pw{};
+    PortTooltip* m_pw{};
     QGraphicsProxyWidget* m_proxy{};
   public:
     PortPanel(const score::DocumentContext& ctx, Process::Port& p, QGraphicsItem* parent):
       QGraphicsItem{parent}
     {
-      m_pw = new PortWidget{ctx, p};
+      m_pw = new PortTooltip{ctx, p};
       m_proxy = new QGraphicsProxyWidget{this};
       m_proxy->setWidget(m_pw);
       m_proxy->setPos(10, 10);
@@ -346,10 +346,10 @@ bool intersection_empty(const Vec& v1, const Vec& v2)
   return true;
 }
 
-class PortWidget : public QWidget
+class PortTooltip : public QWidget
 {
   public:
-    PortWidget(const score::DocumentContext& ctx, Process::Port& p)
+    PortTooltip(const score::DocumentContext& ctx, Process::Port& p)
       : m_disp{ctx.commandStack}
       , m_edit{ctx.plugin<Explorer::DeviceDocumentPlugin>().explorer(), this}
     {
@@ -417,7 +417,7 @@ class PortDialog final
     }
 
   private:
-    PortWidget m_pw;
+    PortTooltip m_pw;
     QDialogButtonBox m_bb;
     QHBoxLayout m_lay;
 };

@@ -584,14 +584,14 @@ struct TSerializer<DataStream, UuidKey<U>>
   static void readFrom(DataStream::Serializer& s, const UuidKey<U>& uid)
   {
     s.stream().stream.writeRawData(
-        (const char*)uid.impl().data, sizeof(uid.impl().data));
+        (const char*)uid.impl().data.data(), sizeof(uid.impl().data));
     SCORE_DEBUG_INSERT_DELIMITER2(s);
   }
 
   static void writeTo(DataStream::Deserializer& s, UuidKey<U>& uid)
   {
     s.stream().stream.readRawData(
-        (char*)uid.impl().data, sizeof(uid.impl().data));
+        (char*)uid.impl().data.data(), sizeof(uid.impl().data));
     SCORE_DEBUG_CHECK_DELIMITER2(s);
   }
 };

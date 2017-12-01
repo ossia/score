@@ -152,7 +152,6 @@ std::size_t find_closest_index(const scale_array& arr, std::size_t i)
   SCORE_ABORT;
 }
 
-
 struct Node
 {
   struct Metadata
@@ -166,11 +165,11 @@ struct Node
     Process::create_node()
   .midi_ins({{"in"}})
   .midi_outs({{"out"}})
-  .controls(Process::Enum{
+  .controls(Process::make_enum(
                "scale",
                0U,
                Process::array("all", "ionian", "dorian", "phyrgian", "lydian", "mixolydian", "aeolian", "locrian",
-                "I", "II", "III", "IV", "V", "VI", "VII")},
+                "I", "II", "III", "IV", "V", "VI", "VII")),
     Process::IntSlider{"base", 0, 12, 0},
     Process::IntSlider{"transpose", -12, 12, 0}
   )

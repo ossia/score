@@ -72,17 +72,26 @@ struct ValueDoubleSlider : public score::DoubleSlider
 };
 
 
-template<typename T>
 struct ComboSlider : public QSlider
 {
-    T array;
+    QStringList array;
   public:
-    ComboSlider(const T& arr, QWidget* parent):
+    template<std::size_t N>
+    ComboSlider(const std::array<const char*, N>& arr, QWidget* parent):
+      QSlider{parent}
+    {
+        array.reserve(N);
+        for(auto str : arr)
+            array.push_back(str);
+    }
+
+    ComboSlider(const QStringList& arr, QWidget* parent):
       QSlider{parent},
       array{arr}
     {
 
     }
+
     bool moving = false;
   protected:
     void paintEvent(QPaintEvent* event) override
@@ -568,7 +577,13 @@ struct Enum: ControlInfo
 };
 
 
-
+template<typename T1, typename T2>
+constexpr auto make_enum(const T1& t1, std::size_t s, const T2& t2)
+{
+    return Process::Enum<T2>(t1, s, t2);
+}
+/*
 template<std::size_t N1, std::size_t N2>
 Enum(const char (&name)[N1], std::size_t i, const std::array<const char*, N2>& v) -> Enum<std::array<const char*, N2>>;
+*/
 }

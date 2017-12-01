@@ -74,12 +74,15 @@ public:
       m_inlets.push_back(ossia::make_inlet<ossia::midi_port>());
     }
     constexpr const auto inlet_infos = get_ports<ValueInInfo>(Info::info);
-    for(std::size_t i = 0; i < InfoFunctions<Info>::value_in_count; i++)
+    if constexpr(InfoFunctions<Info>::value_in_count > 0)
     {
-      auto inlt = ossia::make_inlet<ossia::value_port>();
-      if(inlet_infos[i].is_event)
-        inlt->data.target<ossia::value_port>()->is_event = true;
-      m_inlets.push_back(std::move(inlt));
+        for(std::size_t i = 0; i < InfoFunctions<Info>::value_in_count; i++)
+        {
+          auto inlt = ossia::make_inlet<ossia::value_port>();
+          if(inlet_infos[i].is_event)
+            inlt->data.target<ossia::value_port>()->is_event = true;
+          m_inlets.push_back(std::move(inlt));
+        }
     }
     for(std::size_t i = 0; i < InfoFunctions<Info>::control_count; i++)
     {
