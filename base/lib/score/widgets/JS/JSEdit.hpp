@@ -93,7 +93,7 @@ signals:
   void editingFinished(QString);
   void focused();
 
-public slots:
+public Q_SLOTS:
   void updateSidebar();
   void
   mark(const QString& str, Qt::CaseSensitivity sens = Qt::CaseInsensitive);
@@ -116,7 +116,7 @@ protected:
     event->ignore();
   }
 
-private slots:
+private Q_SLOTS:
   void updateCursor();
   void updateSidebar(const QRect& rect, int d);
 

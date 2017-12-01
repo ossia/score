@@ -2,9 +2,10 @@
 #include <ossia/dataflow/audio_parameter.hpp>
 #include <Engine/score2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#if defined(LILV_SHARED)
 #include <Media/Effect/LV2/LV2EffectModel.hpp>
 #include <Media/Effect/LV2/LV2Node.hpp>
-#include <Media/Effect/LV2/LV2Node.hpp>
+#endif
 #include <Media/ApplicationPlugin.hpp>
 
 namespace Engine
@@ -345,12 +346,14 @@ EffectComponent::EffectComponent(
 
     for(auto& effect : element.effects())
     {
+#if defined(LILV_SHARED)
       if(auto lv2 = dynamic_cast<Media::LV2::LV2EffectModel*>(&effect))
       {
         auto node = std::make_shared<Media::LV2::LV2AudioEffect>(Media::LV2::LV2Data{host.lv2_host_context, lv2->effectContext});
         ctx.plugin.register_node(lv2->inlets(), lv2->outlets(), node);
         proc->nodes.push_back(node);
       }
+#endif
     }
     ctx.plugin.register_node(element.inlets(), {}, start);
     ctx.plugin.register_node({}, element.outlets(), end);
@@ -393,11 +396,13 @@ EffectComponent::~EffectComponent()
     int i = 0;
     for(auto& effect : process().effects())
     {
+#if defined(LILV_SHARED)
       if(auto lv2 = dynamic_cast<Media::LV2::LV2EffectModel*>(&effect))
       {
         system().plugin.unregister_node(lv2->inlets(), lv2->outlets(), ec->nodes[i]);
         i++;
       }
+#endif
 
     }
 
@@ -407,5 +412,7 @@ EffectComponent::~EffectComponent()
 }
 }
 
+#if defined(LILV_SHARED)
 uint32_t LV2_Atom_Buffer::chunk_type;
 uint32_t LV2_Atom_Buffer::sequence_type;
+#endif

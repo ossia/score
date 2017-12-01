@@ -11,10 +11,12 @@
 #include <Media/ApplicationPlugin.hpp>
 #include <Media/Effect/EffectProcessFactory.hpp>
 #include <Media/Effect/Effect/EffectFactory.hpp>
-#include <Media/Effect/LV2/LV2EffectModel.hpp>
 #include <Media/Effect/Inspector/EffectInspector.hpp>
 #include <Media/Sound/SoundComponent.hpp>
 
+#if defined(LILV_SHARED)
+#include <Media/Effect/LV2/LV2EffectModel.hpp>
+#endif
 
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/customfactory/FactoryFamily.hpp>

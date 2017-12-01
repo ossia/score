@@ -32,9 +32,10 @@ import Score 1.0
 Item {
   ValueInlet { id: in1 }
   ValueOutlet { id: out1 }
+  FloatSlider { id: sl; min: 10; max: 100; }
 
   function onTick(oldtime, time, position, offset) {
-    out1.value = in1.value + 10 * Math.random();
+    out1.value = in1.value + sl.value * Math.random();
   }
 }
 )_");
