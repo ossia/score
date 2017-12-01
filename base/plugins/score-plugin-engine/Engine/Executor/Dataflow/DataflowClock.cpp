@@ -6,8 +6,6 @@
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
 #include <Engine/Executor/BaseScenarioComponent.hpp>
 #include <Engine/Executor/IntervalComponent.hpp>
-#include <Dataflow/UI/ConstraintNode.hpp>
-#include <Dataflow/DocumentPlugin.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <ossia/dataflow/audio_parameter.hpp>
 #include <ossia/dataflow/audio_protocol.hpp>

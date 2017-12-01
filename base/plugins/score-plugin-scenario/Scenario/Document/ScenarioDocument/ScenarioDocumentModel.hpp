@@ -2,7 +2,6 @@
 #include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/Cable.hpp>
-#include <Dataflow/DataflowWindow.hpp>
 #include <core/document/Document.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/serialization/VisitorInterface.hpp>

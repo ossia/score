@@ -39,29 +39,6 @@ private:
   Device::FullAddressAccessorSettings m_old, m_new;
 };
 }
-namespace Gradient
-{
-class ProcessModel;
-class ChangeGradientAddress final : public score::Command
-{
-    SCORE_COMMAND_DECL(Automation::CommandFactoryName(), ChangeGradientAddress, "ChangeGradientAddress")
-    public:
-      ChangeGradientAddress(
-        const ProcessModel& autom, const State::AddressAccessor& newval);
-
-  public:
-    void undo(const score::DocumentContext& ctx) const override;
-    void redo(const score::DocumentContext& ctx) const override;
-
-  protected:
-    void serializeImpl(DataStreamInput&) const override;
-    void deserializeImpl(DataStreamOutput&) override;
-
-  private:
-    Path<ProcessModel> m_path;
-    State::AddressAccessor m_old, m_new;
-};
-}
 
 namespace Spline
 {

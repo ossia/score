@@ -17,7 +17,6 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/RemoveNodes.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Remove/RemoveAddress.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/ReplaceDevice.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/UpdateAddresses.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Update/UpdateAddressSettings.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Update/UpdateDeviceSettings.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Common/AddressSettings/AddressSettingsFactory.hpp"

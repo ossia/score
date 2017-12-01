@@ -32,9 +32,6 @@
 #include <score/tools/Todo.hpp>
 #include <core/document/Document.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
-
-#include <Dataflow/DocumentPlugin.hpp>
-#include <Dataflow/DataflowWindow.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
 namespace Scenario

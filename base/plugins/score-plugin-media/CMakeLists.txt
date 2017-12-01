@@ -16,7 +16,6 @@ if(SCORE_AUDIO_PLUGINS)
 #  find_package(Faust)
 endif()
 
-file(GLOB_RECURSE HDRS "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libaudiotool/src/libwatermark/*.h")
 # Files & main target
 set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioArray.hpp"
@@ -32,7 +31,6 @@ set(HDRS ${HDRS}
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundFactory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundLayer.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundLayerPanelProxy.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundMetadata.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundPresenter.hpp"
@@ -69,7 +67,6 @@ set(HDRS ${HDRS}
 set(SRCS
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundModelSerialization.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Input/InputModelSerialization.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/ChangeAudioFile.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/MediaCommandFactory.cpp"
@@ -107,32 +104,18 @@ set(SRCS
 if(TARGET Lilv)
     set(LV2_HDRS
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2EffectModel.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2EffectFactory.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/lv2_atom_helpers.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2Context.hpp"
         )
     set(LV2_SRCS
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2EffectModelSerialization.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2EffectModel.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2EffectFactory.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2Context.cpp"
     )
 endif()
 
-set(ENVELOPE_HDRS
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Envelope/EnvelopeEffectModel.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Envelope/EnvelopeEffectFactory.hpp"
-    )
-set(ENVELOPE_SRCS
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Envelope/EnvelopeEffectModelSerialization.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Envelope/EnvelopeEffectModel.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Envelope/EnvelopeEffectFactory.cpp"
-)
-
 add_library(${PROJECT_NAME}
   ${SRCS} ${HDRS}
   ${LV2_SRCS} ${LV2_HDRS}
-  ${ENVELOPE_SRCS} ${ENVELOPE_HDRS}
   ${FAUST_HDRS} ${FAUST_SRCS}
 )
 

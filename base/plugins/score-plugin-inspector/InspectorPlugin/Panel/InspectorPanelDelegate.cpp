@@ -2,7 +2,6 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "InspectorPanelDelegate.hpp"
 #include "Implementation/InspectorPanel.hpp"
-#include "Implementation/SelectionStackWidget.hpp"
 
 #include <Inspector/InspectorWidgetList.hpp>
 

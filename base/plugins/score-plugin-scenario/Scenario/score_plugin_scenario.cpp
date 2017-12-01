@@ -62,8 +62,6 @@
 #include <score/command/Command.hpp>
 #include <score/plugins/customfactory/StringFactoryKeySerialization.hpp>
 #include <Scenario/Inspector/ObjectTree/ObjectItemModel.hpp>
-#include <Dataflow/UI/ScenarioNode.hpp>
-#include <Dataflow/UI/ConstraintNode.hpp>
 #include <Dataflow/Inspector/DataflowWidget.hpp>
 
 #include <score_plugin_scenario_commands_files.hpp>

@@ -4,7 +4,6 @@
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 #include <QLineEdit>
 #include <QFormLayout>
-#include <Dataflow/DocumentPlugin.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
 namespace Dataflow
 {

@@ -99,7 +99,7 @@ void TemporalIntervalView::updatePaths()
       if (min_w != 0.)
       {
         playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
-        if(play_w < min_w)
+        //if(play_w < min_w)
         {
           solidPath.lineTo(min_w, 0.);
         }
@@ -122,7 +122,7 @@ void TemporalIntervalView::updatePaths()
     else if (min_w == max_w) // TODO rigid()
     {
       playedSolidPath.lineTo(std::min(play_w, def_w), 0.);
-      if(play_w < def_w)
+      //if(play_w < def_w)
       {
         solidPath.lineTo(def_w, 0.);
       }
@@ -132,7 +132,7 @@ void TemporalIntervalView::updatePaths()
       if (min_w != 0.)
       {
         playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
-        if(play_w < min_w)
+        //if(play_w < min_w)
         {
           solidPath.lineTo(min_w, 0.);
         }
