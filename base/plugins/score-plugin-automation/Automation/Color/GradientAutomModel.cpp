@@ -3,6 +3,7 @@
 #include <Automation/Color/GradientAutomModel.hpp>
 #include <Automation/Color/GradientAutomPresenter.hpp>
 #include <ossia/editor/state/destination_qualifiers.hpp>
+#include <Process/Dataflow/Port.hpp>
 #include <QColor>
 namespace Gradient
 {
@@ -12,7 +13,10 @@ ProcessModel::ProcessModel(
     QObject* parent)
     : Process::ProcessModel{duration, id,
                         Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
+
 {
+  outlet->type = Process::PortType::Message;
   m_colors.insert(std::make_pair(0.2, QColor(Qt::black)));
   m_colors.insert(std::make_pair(0.8, QColor(Qt::white)));
 
@@ -29,15 +33,58 @@ ProcessModel::ProcessModel(
     QObject* parent)
     : Process::ProcessModel{
         source, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-    , m_address(source.m_address)
+    , outlet{Process::clone_outlet(*source.outlet, this)}
     , m_colors{source.m_colors}
     , m_tween{source.m_tween}
 {
+  metadata().setInstanceName(*this);
 }
 
 QString ProcessModel::prettyName() const
 {
-  return address().toString();
+  auto res = address().toString();
+  if(!res.isEmpty())
+    return res;
+  return "Gradient";
+}
+
+const ProcessModel::gradient_colors&ProcessModel::gradient() const { return m_colors; }
+
+void ProcessModel::setGradient(const ProcessModel::gradient_colors& c) {
+  if(m_colors != c)
+    {
+      m_colors = c;
+      emit gradientChanged();
+    }
+}
+
+const ::State::AddressAccessor& ProcessModel::address() const
+{
+  return outlet->address();
+}
+
+bool ProcessModel::tween() const
+{
+  return m_tween;
+}
+
+void ProcessModel::setTween(bool tween)
+{
+  if (m_tween == tween)
+    return;
+
+  m_tween = tween;
+  emit tweenChanged(tween);
+}
+
+Process::Inlets ProcessModel::inlets() const
+{
+  return {};
+}
+
+Process::Outlets ProcessModel::outlets() const
+{
+  return {outlet.get()};
 }
 
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
@@ -72,23 +119,6 @@ TimeVal ProcessModel::contentDuration() const
 
   return duration() * lastPoint;
 }
-
-::State::AddressAccessor ProcessModel::address() const
-{
-  return m_address;
-}
-
-void ProcessModel::setAddress(const ::State::AddressAccessor& arg)
-{
-  if (m_address == arg)
-  {
-    return;
-  }
-
-  m_address = arg;
-  emit addressChanged(arg);
-}
-
 }
 
 
@@ -96,8 +126,7 @@ template <>
 void DataStreamReader::read(
     const Gradient::ProcessModel& autom)
 {
-  m_stream << autom.m_address
-           << autom.m_colors
+  m_stream << autom.m_colors
            << autom.m_tween;
   insertDelimiter();
 }
@@ -106,8 +135,7 @@ void DataStreamReader::read(
 template <>
 void DataStreamWriter::write(Gradient::ProcessModel& autom)
 {
-  m_stream >> autom.m_address
-           >> autom.m_colors
+  m_stream >> autom.m_colors
            >> autom.m_tween;
 
   checkDelimiter();
@@ -118,7 +146,6 @@ template <>
 void JSONObjectReader::read(
     const Gradient::ProcessModel& autom)
 {
-  obj[strings.Address] = toJsonObject(autom.address());
   JSONValueReader v{}; v.readFrom(autom.m_colors);
   obj["Gradient"] = v.val;
   obj["Tween"] = autom.tween();
@@ -128,8 +155,6 @@ void JSONObjectReader::read(
 template <>
 void JSONObjectWriter::write(Gradient::ProcessModel& autom)
 {
-  autom.setAddress(
-      fromJsonObject<State::AddressAccessor>(obj[strings.Address]));
   autom.setTween(obj["Tween"].toBool());
   JSONValueWriter v{}; v.val = obj["Gradient"];
   v.writeTo(autom.m_colors);

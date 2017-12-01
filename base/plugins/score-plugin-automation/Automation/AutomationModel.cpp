@@ -121,7 +121,10 @@ ProcessModel::ProcessModel(
 
 QString ProcessModel::prettyName() const
 {
-  return address().toString();
+  auto res = address().toString();
+  if(!res.isEmpty())
+    return res;
+  return "Automation";
 }
 
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
@@ -230,7 +233,7 @@ ProcessState* ProcessModel::endStateData() const
   return m_endState;
 }
 
-::State::AddressAccessor ProcessModel::address() const
+const ::State::AddressAccessor& ProcessModel::address() const
 {
   return outlet->address();
 }

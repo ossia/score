@@ -37,6 +37,51 @@ namespace Automation
 {
 namespace RecreateOnPlay
 {
+// concept automation-like: control points, reset(), segments
+// TODO put this in ossia::value enum.
+struct modvalue
+{
+  public:
+    modvalue(): modvalue(ossia::value{}) {}
+    explicit modvalue(ossia::value v):
+      m_offset{std::make_unique<ossia::value>()}
+    {
+      set_offset(std::move(v));
+    }
+    modvalue(const modvalue& other): modvalue(other.offset()) { }
+    modvalue(modvalue&& other): modvalue(std::move(other.offset())) { }
+
+    modvalue& operator=(const modvalue& other)
+    {
+      set_offset(other.offset());
+      return *this;
+    }
+
+    modvalue& operator=(modvalue&& other)
+    {
+      set_offset(std::move(other.offset()));
+      return *this;
+    }
+
+    const ossia::value& offset() const { return *m_offset; }
+    ossia::value& offset() { return *m_offset; }
+    void set_offset(const ossia::value& v)
+    {
+      // if(v.target<delta>()) ... unpack it and store the inner value
+      *m_offset = v;
+    }
+    void set_offset(ossia::value&& v) { *m_offset = std::move(v); }
+  private:
+    std::unique_ptr<ossia::value> m_offset;
+};
+
+// likewise, can be used to set a value between some boundaries.
+// the "easy" node handlers should be able to leverage this to produce
+// correct values.
+struct range_position
+{
+    float position{0.5};
+};
 
 class automation_node final :
     public ossia::graph_node
@@ -69,6 +114,10 @@ class automation_node final :
       m_drive = b;
     }
 
+    void reset_drive()
+    {
+      m_drive.reset();
+    }
   private:
     void run(ossia::token_request t, ossia::execution_state& e) override
     {
@@ -77,15 +126,10 @@ class automation_node final :
 
       auto& outlet = *m_outlets[0];
       ossia::value_port* vp = outlet.data.target<ossia::value_port>();
-      ossia::val_type type = ossia::val_type::FLOAT;
-      if(outlet.targets.empty())
-      {
-        if(auto t = outlet.address.target<ossia::net::parameter_base*>())
-        {
-          auto param = *t;
-          type = param->get_value_type();
-        }
-      }
+      ossia::val_type type = ossia::underlying_type(vp->type);
+      if(type == ossia::val_type::IMPULSE)
+        type = ossia::val_type::FLOAT;
+
       vp->add_value(
             ossia::apply(
               ossia::detail::compute_value_visitor{t.position, type},
@@ -95,7 +139,15 @@ class automation_node final :
     ossia::behavior m_drive;
 };
 
-
+class automation_process : public ossia::node_process
+{
+public:
+    using ossia::node_process::node_process;
+  void start() override
+  {
+      static_cast<automation_node*>(node.get())->reset_drive();
+  }
+};
 Component::Component(
     ::Automation::ProcessModel& element,
     const ::Engine::Execution::Context& ctx,
@@ -107,7 +159,7 @@ Component::Component(
         id, "Executor::AutomationComponent", parent}
 {
   auto node = std::make_shared<automation_node>();
-  auto proc = std::make_shared<ossia::node_process>(node);
+  auto proc = std::make_shared<automation_process>(node);
   m_ossia_process = proc;
   m_node = node;
 
@@ -125,15 +177,13 @@ Component::Component(
   con(element, &Automation::ProcessModel::curveChanged,
       this, [this] () { this->recompute(); });
 
-  ctx.plugin.outlets.insert({process().outlet.get(), std::make_pair(node, node->outputs()[0])});
-  ctx.plugin.execGraph->add_node(m_node);
+  ctx.plugin.register_node(process(), node);
   recompute();
 }
 
 Component::~Component()
 {
-  m_node->clear();
-  system().plugin.execGraph->remove_node(m_node);
+  system().plugin.unregister_node(process(), m_node);
 }
 
 void Component::recompute()

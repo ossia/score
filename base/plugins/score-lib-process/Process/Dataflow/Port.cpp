@@ -64,12 +64,12 @@ void Port::removeCable(const Path<Cable> &c)
   }
 }
 
-QString Port::customData() const
+const QString& Port::customData() const
 {
   return m_customData;
 }
 
-State::AddressAccessor Port::address() const
+const State::AddressAccessor& Port::address() const
 {
   return m_address;
 }

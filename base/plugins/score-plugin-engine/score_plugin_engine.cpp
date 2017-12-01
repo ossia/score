@@ -132,17 +132,17 @@ score_plugin_engine::factories(
                  , Dataflow::AudioProtocolFactory
 #endif
             >,
-            FW<Engine::Execution::ProcessComponentFactory,
-                 Engine::Execution::ScenarioComponentFactory,
-                 //Interpolation::Executor::ComponentFactory,
-                 Automation::RecreateOnPlay::ComponentFactory,
-                 Mapping::RecreateOnPlay::ComponentFactory,
-                 Loop::RecreateOnPlay::ComponentFactory
-      , Nodes::Direction::Factories::executor_factory
-      , Nodes::PulseToNote::Factories::executor_factory
-      , Nodes::LFO::Factories::executor_factory
-      , Nodes::MidiUtil::Factories::executor_factory
-                 //Gradient::RecreateOnPlay::ComponentFactory,
+            FW<Engine::Execution::ProcessComponentFactory
+               , Engine::Execution::ScenarioComponentFactory
+             //, Interpolation::Executor::ComponentFactory
+               , Automation::RecreateOnPlay::ComponentFactory
+               , Mapping::RecreateOnPlay::ComponentFactory
+               , Loop::RecreateOnPlay::ComponentFactory
+               , Nodes::Direction::Factories::executor_factory
+               , Nodes::PulseToNote::Factories::executor_factory
+               , Nodes::LFO::Factories::executor_factory
+               , Nodes::MidiUtil::Factories::executor_factory
+               , Gradient::RecreateOnPlay::ComponentFactory
                  //Spline::RecreateOnPlay::ComponentFactory,
                  //Metronome::RecreateOnPlay::ComponentFactory
             >,

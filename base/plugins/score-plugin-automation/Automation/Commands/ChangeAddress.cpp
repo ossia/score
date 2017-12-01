@@ -106,39 +106,6 @@ void ChangeAddress::deserializeImpl(DataStreamOutput& s)
 }
 
 
-namespace Gradient
-{
-ChangeGradientAddress::ChangeGradientAddress(
-    const ProcessModel& autom, const State::AddressAccessor& newval)
-    : m_path{autom}
-    , m_old{autom.address()}
-    , m_new{newval}
-{
-}
-
-void ChangeGradientAddress::undo(const score::DocumentContext& ctx) const
-{
-  auto& autom = m_path.find(ctx);
-  autom.setAddress(m_old);
-}
-
-void ChangeGradientAddress::redo(const score::DocumentContext& ctx) const
-{
-  auto& autom = m_path.find(ctx);
-  autom.setAddress(m_new);
-}
-
-void ChangeGradientAddress::serializeImpl(DataStreamInput& s) const
-{
-  s << m_path << m_old << m_new;
-}
-
-void ChangeGradientAddress::deserializeImpl(DataStreamOutput& s)
-{
-  s >> m_path >> m_old >> m_new;
-}
-}
-
 
 
 namespace Spline

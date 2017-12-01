@@ -10,7 +10,6 @@
 #include <Explorer/Commands/ReplaceDevice.hpp>
 #include <Explorer/Commands/Update/UpdateAddressSettings.hpp>
 #include <Explorer/Commands/Update/UpdateDeviceSettings.hpp>
-#include <Explorer/Commands/UpdateAddresses.hpp>
 #include <Explorer/Explorer/AddressItemModel.hpp>
 #include <ossia-qt/js_utilities.hpp>
 #include <QAbstractProxyModel>

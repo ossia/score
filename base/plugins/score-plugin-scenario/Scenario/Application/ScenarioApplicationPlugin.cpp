@@ -58,7 +58,6 @@
 #include <score/model/EntityMap.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
-#include <Dataflow/DocumentPlugin.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/actions/Menu.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>

@@ -1,5 +1,4 @@
 #pragma once
-#include <Dataflow/DocumentPlugin.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>

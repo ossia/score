@@ -4,14 +4,26 @@
 
 #include <State/Unit.hpp>
 
-namespace Automation
+namespace Process
 {
 class ProcessModel;
+}
+namespace Automation
+{
+class SetMin final : public score::PropertyCommand
+{
+  SCORE_COMMAND_DECL(CommandFactoryName(), SetMin, "Set minimum")
+public:
+  SetMin(const Process::ProcessModel& path, double newval)
+      : score::PropertyCommand{path, "min", newval}
+  {
+  }
+};
 class SetMax final : public score::PropertyCommand
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), SetMax, "Set automation maximum")
+  SCORE_COMMAND_DECL(CommandFactoryName(), SetMax, "Set maximum")
 public:
-  SetMax(const ProcessModel& path, double newval)
+  SetMax(const Process::ProcessModel& path, double newval)
       : score::PropertyCommand{path, "max", newval}
   {
   }
@@ -20,9 +32,9 @@ public:
 // MOVEME
 class SetTween final : public score::PropertyCommand
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), SetTween, "Set automation tween")
+  SCORE_COMMAND_DECL(CommandFactoryName(), SetTween, "Set tween")
 public:
-  SetTween(const ProcessModel& path, bool newval)
+  SetTween(const Process::ProcessModel& path, bool newval)
       : score::PropertyCommand{path, "tween", newval}
   {
   }
@@ -30,11 +42,10 @@ public:
 
 class SetUnit final : public score::PropertyCommand
 {
-  SCORE_COMMAND_DECL(CommandFactoryName(), SetUnit, "Set automation unit")
+  SCORE_COMMAND_DECL(CommandFactoryName(), SetUnit, "Set unit")
 public:
-  SetUnit(const ProcessModel& path, const State::Unit& newval)
-      : score::PropertyCommand{path, "unit",
-                                QVariant::fromValue(newval)}
+  SetUnit(const Process::ProcessModel& path, const State::Unit& newval)
+      : score::PropertyCommand{path, "unit", QVariant::fromValue(newval)}
   {
   }
 };

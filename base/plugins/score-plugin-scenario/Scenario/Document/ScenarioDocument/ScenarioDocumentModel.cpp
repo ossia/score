@@ -48,7 +48,6 @@
 #include <QApplication>
 #include <core/document/Document.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
-#include <Dataflow/UI/NodeItem.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
 
 namespace Process

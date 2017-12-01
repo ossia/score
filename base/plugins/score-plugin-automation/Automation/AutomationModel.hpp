@@ -49,7 +49,7 @@ public:
   ProcessModel(DataStream::Deserializer& vis, QObject* parent);
   ProcessModel(JSONObject::Deserializer& vis, QObject* parent);
 
-  ::State::AddressAccessor address() const;
+  const ::State::AddressAccessor& address() const;
 
   double min() const;
   double max() const;

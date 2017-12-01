@@ -26,8 +26,6 @@
 #include <score/model/ModelMetadata.hpp>
 #include <score/tools/Todo.hpp>
 #include <boost/range/algorithm_ext/erase.hpp>
-#include <Dataflow/DocumentPlugin.hpp>
-#include <Dataflow/DataflowWindow.hpp>
 namespace Scenario
 {
 

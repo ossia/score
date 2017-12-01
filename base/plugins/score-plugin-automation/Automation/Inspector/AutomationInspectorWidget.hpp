@@ -75,10 +75,8 @@ public:
       QWidget* parent);
 
 private:
-  void on_addressChange(const Device::FullAddressAccessorSettings& newText);
   void on_tweenChanged();
 
-  Explorer::AddressAccessorEditWidget* m_lineEdit{};
   QCheckBox* m_tween{};
 
   CommandDispatcher<> m_dispatcher;

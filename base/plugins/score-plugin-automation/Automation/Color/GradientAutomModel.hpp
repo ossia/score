@@ -1,6 +1,7 @@
 #pragma once
 #include <Automation/Color/GradientAutomMetadata.hpp>
 #include <Process/Process.hpp>
+#include <Process/Dataflow/Port.hpp>
 #include <State/Address.hpp>
 #include <State/Unit.hpp>
 #include <boost/container/flat_map.hpp>
@@ -8,7 +9,6 @@
 
 namespace Gradient
 {
-
 class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
     : public Process::ProcessModel
 {
@@ -16,8 +16,6 @@ class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
   PROCESS_METADATA_IMPL(Gradient::ProcessModel)
 
   Q_OBJECT
-  Q_PROPERTY(State::AddressAccessor address READ address WRITE setAddress
-                 NOTIFY addressChanged)
   Q_PROPERTY(bool tween READ tween WRITE setTween NOTIFY tweenChanged)
 
 public:
@@ -34,35 +32,22 @@ public:
     vis.writeTo(*this);
   }
 
-  State::AddressAccessor address() const;
-  void setAddress(const State::AddressAccessor& arg);
+  const State::AddressAccessor& address() const;
 
-  bool tween() const
-  {
-    return m_tween;
-  }
-  void setTween(bool tween)
-  {
-    if (m_tween == tween)
-      return;
+  bool tween() const;
+  void setTween(bool tween);
 
-    m_tween = tween;
-    emit tweenChanged(tween);
-  }
-
+  Process::Inlets inlets() const override;
+  Process::Outlets outlets() const override;
   QString prettyName() const override;
 
   using gradient_colors = boost::container::flat_map<double, QColor>;
-  const gradient_colors& gradient() const { return m_colors; }
-  void setGradient(const gradient_colors& c) {
-    if(m_colors != c)
-    {
-      m_colors = c;
-      emit gradientChanged();
-    }
-  }
+  const gradient_colors& gradient() const;
+  void setGradient(const gradient_colors& c);
+
+  std::unique_ptr<Process::Outlet> outlet;
+
 signals:
-  void addressChanged(const ::State::AddressAccessor&);
   void tweenChanged(bool tween);
   void gradientChanged();
 
@@ -80,7 +65,6 @@ private:
       const Id<Process::ProcessModel>& id,
       QObject* parent);
 
-  State::AddressAccessor m_address;
   boost::container::flat_map<double, QColor> m_colors;
 
   bool m_tween = false;

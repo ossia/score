@@ -28,9 +28,9 @@ class SCORE_LIB_PROCESS_EXPORT Port
     void addCable(const Path<Process::Cable>& c);
     void removeCable(const Path<Process::Cable>& c);
 
-    QString customData() const;
+    const QString& customData() const;
 
-    State::AddressAccessor address() const;
+    const State::AddressAccessor& address() const;
     const std::vector<Path<Cable>>& cables() const;
 
 

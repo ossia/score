@@ -11,7 +11,6 @@
 #include <Automation/AutomationModel.hpp>
 #include <Automation/Commands/ChangeAddress.hpp>
 #include <Automation/Commands/SetAutomationMax.hpp>
-#include <Automation/Commands/SetAutomationMin.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <QCheckBox>
@@ -173,10 +172,10 @@ void InspectorWidget::on_unitChanged()
 namespace Gradient
 {
 InspectorWidget::InspectorWidget(
-    const ProcessModel& automationModel,
+    const ProcessModel& proc,
     const score::DocumentContext& doc,
     QWidget* parent)
-    : InspectorWidgetDelegate_T{automationModel, parent}
+    : InspectorWidgetDelegate_T{proc, parent}
     , m_dispatcher{doc.commandStack}
 {
   using namespace Explorer;
@@ -189,6 +188,11 @@ InspectorWidget::InspectorWidget(
   vlay->setContentsMargins(0, 0, 0, 0);
 
   // Address
+  /*
+  auto port = new PortTooltip{doc, *proc.outlets};
+  vlay->addWidget(port);
+  */
+/*
   m_lineEdit = new AddressAccessorEditWidget{
       doc.plugin<DeviceDocumentPlugin>().explorer(), this};
 
@@ -200,9 +204,10 @@ InspectorWidget::InspectorWidget(
       m_lineEdit, &AddressAccessorEditWidget::addressChanged, this,
       &InspectorWidget::on_addressChange);
 
-  vlay->addRow(tr("Address"), m_lineEdit);
 
-  /*
+  vlay->addRow(tr("Address"), m_lineEdit);
+*/
+
   // Tween
   m_tween = new QCheckBox{this};
   vlay->addRow(tr("Tween"), m_tween);
@@ -210,32 +215,19 @@ InspectorWidget::InspectorWidget(
   con(process(), &ProcessModel::tweenChanged, m_tween, &QCheckBox::setChecked);
   connect(
       m_tween, &QCheckBox::toggled, this, &InspectorWidget::on_tweenChanged);
-  */
+
   this->setLayout(vlay);
 }
 
-void InspectorWidget::on_addressChange(const Device::FullAddressAccessorSettings& newAddr)
-{
-  // Various checks
-  if (newAddr.address == process().address())
-    return;
-
-  if (newAddr.address.address.path.isEmpty())
-    return;
-
-  auto cmd = new ChangeGradientAddress{process(), newAddr.address};
-
-  m_dispatcher.submitCommand(cmd);
-}
 
 void InspectorWidget::on_tweenChanged()
 {
   bool newVal = m_tween->checkState();
   if (newVal != process().tween())
   {
-    //auto cmd = new SetTween{process(), newVal};
+    auto cmd = new Automation::SetTween{process(), newVal};
 
-    //m_dispatcher.submitCommand(cmd);
+    m_dispatcher.submitCommand(cmd);
   }
 }
 }

@@ -32,12 +32,6 @@ set(HEADER_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiExecutor.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiStyle.hpp"
 
-  "${CMAKE_CURRENT_SOURCE_DIR}/MidiUtil/MidiUtilProcess.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/MidiUtil/MidiUtilProcessMetadata.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/MidiUtil/MidiUtilExecutor.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/MidiUtil/MidiUtilFactory.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/MidiUtil/Inspector/Inspector.hpp"
-
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_midi.hpp"
   )
 
@@ -55,10 +49,6 @@ set(SOURCE_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiNoteView.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiNote.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiExecutor.cpp"
-
-  "${CMAKE_CURRENT_SOURCE_DIR}/MidiUtil/MidiUtilProcess.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/MidiUtil/MidiUtilExecutor.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/MidiUtil/Inspector/Inspector.cpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_midi.cpp"
   )
