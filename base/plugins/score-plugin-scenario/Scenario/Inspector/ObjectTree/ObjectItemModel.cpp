@@ -1008,7 +1008,7 @@ void SearchWidget::search()
   {
     auto opt = State::AddressAccessor::fromString(stxt);
     if (opt)
-     addresses.push_back(*opt);
+      addresses.push_back(*opt);
   }
 
   auto* doc = m_ctx.documents.currentDocument();
@@ -1023,15 +1023,46 @@ void SearchWidget::search()
     {
       if (auto state = dynamic_cast<const StateModel*>(obj))
       {
+        bool flag = false; // used to break loop at several point to avoid adding
+                           // the same object severals time and to sped-up main loop
+
+        State::MessageList list = Process::flatten(state->messages().rootNode());
+
         for (auto addr : addresses)
         {
           auto nodes = Process::try_getNodesFromAddress(state->messages().rootNode(), addr);
           if (!nodes.empty())
           {
             sel.append(state);
+            flag = true;
+            continue;
+          }
+
+          for (auto mess : list)
+          {
+            if (mess.address.address.toString().contains(addr.address.toString()))
+            {
+              sel.append(state);
+              flag = true;
+              continue;
+            }
+          }
+          if (flag)
+            continue;
+        }
+        if (flag)
+          continue;
+        for (auto mess : list)
+        {
+          if (mess.address.address.toString().contains(stxt))
+          {
+            sel.append(state);
+            flag = true;
             continue;
           }
         }
+        if (flag)
+          continue;
         add_if_contains(*state, stxt, sel);
       }
       else if (auto event = dynamic_cast<const EventModel*>(obj))
@@ -1053,11 +1084,8 @@ void SearchWidget::search()
     }
   }
 
-  if(!sel.empty())
-  {
-    score::SelectionDispatcher d{doc->context().selectionStack};
-    d.setAndCommit(sel);
-  }
+  score::SelectionDispatcher d{doc->context().selectionStack};
+  d.setAndCommit(sel);
 }
 
 void SearchWidget::dragEnterEvent(QDragEnterEvent* event)
