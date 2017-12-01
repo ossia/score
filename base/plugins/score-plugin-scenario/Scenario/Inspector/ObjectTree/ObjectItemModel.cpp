@@ -974,7 +974,42 @@ void SearchWidget::on_findAddresses(QStringList strlst)
 void SearchWidget::search()
 {
   QString stxt = m_lineEdit->text();
-  auto addr = State::AddressAccessor::fromString(stxt);
+  std::vector<State::AddressAccessor> addresses;
+
+  int idx = stxt.indexOf("=");
+  if (idx >= 0)
+  {
+    QString substr = stxt.mid(0,idx);
+    if ( substr == "address")
+    {
+      QString addrstr = stxt.mid(idx+1);
+      if (auto spaceidx = addrstr.indexOf(" ") >= 0)
+        addrstr = substr.mid(0,spaceidx);
+
+      int comma = addrstr.indexOf(",");
+      int offset = 0;
+      while (comma >= 0)
+      {
+        auto sub = addrstr.mid(offset,comma);
+        auto optaddr = State::AddressAccessor::fromString(sub);
+        if (optaddr)
+          addresses.push_back(*optaddr);
+        offset = comma+1;
+        comma = addrstr.indexOf(",", offset);
+      }
+      auto sub = addrstr.mid(offset,comma);
+      auto optaddr = State::AddressAccessor::fromString(sub);
+      if (optaddr)
+        addresses.push_back(*optaddr);
+    }
+  }
+
+  if(addresses.empty())
+  {
+    auto opt = State::AddressAccessor::fromString(stxt);
+    if (opt)
+     addresses.push_back(*opt);
+  }
 
   auto* doc = m_ctx.documents.currentDocument();
 
@@ -988,9 +1023,9 @@ void SearchWidget::search()
     {
       if (auto state = dynamic_cast<const StateModel*>(obj))
       {
-        if (addr)
+        for (auto addr : addresses)
         {
-          auto nodes = Process::try_getNodesFromAddress(state->messages().rootNode(), *addr);
+          auto nodes = Process::try_getNodesFromAddress(state->messages().rootNode(), addr);
           if (!nodes.empty())
           {
             sel.append(state);
