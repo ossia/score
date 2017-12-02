@@ -1,5 +1,6 @@
 #pragma once
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
+#include <Scenario/Document/Interval/SlotPresenter.hpp>
 
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
@@ -16,6 +17,7 @@ namespace Scenario
 class SlotHandle;
 class SlotHeader;
 class TemporalIntervalHeader;
+struct SlotPresenter;
 class SCORE_PLUGIN_SCENARIO_EXPORT TemporalIntervalPresenter final
     : public IntervalPresenter
 {
@@ -69,14 +71,6 @@ private:
   void on_requestOverlayMenu(QPointF);
   void on_rackVisibleChanged(bool);
   void on_defaultDurationChanged(const TimeVal&);
-
-  struct SlotPresenter
-  {
-    SlotHeader* header{};
-    Process::GraphicsShapeItem* headerDelegate{};
-    SlotHandle* handle{};
-    std::vector<LayerData> processes;
-  };
 
   std::vector<SlotPresenter> m_slots;
   bool m_handles{true};
