@@ -147,6 +147,8 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/FullView/FullViewIntervalView.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/DefaultHeaderDelegate.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/SlotHandle.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/SlotHeader.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/SlotPresenter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/Slot.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/Temporal/Braces/IntervalBrace.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/Temporal/Braces/LeftBrace.hpp"
@@ -463,6 +465,7 @@ set(SRCS ${SRCS}
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/BaseScenario/BaseScenarioContainer.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/SlotHandle.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/SlotHeader.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/IntervalPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/IntervalHeader.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/FullView/FullViewIntervalPresenter.cpp"
