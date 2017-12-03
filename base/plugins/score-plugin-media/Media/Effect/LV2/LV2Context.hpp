@@ -42,8 +42,7 @@ namespace Media
 namespace LV2
 {
 struct EffectContext;
-
-
+struct GlobalContext;
 struct HostContext
 {
     Lilv::Node make_node(const char* desc) {
@@ -52,6 +51,7 @@ struct HostContext
       return n;
     }
 
+    LV2::GlobalContext* global{};
     LV2::EffectContext* current{};
     LV2_Feature const * const * features{};
     Lilv::World& world;

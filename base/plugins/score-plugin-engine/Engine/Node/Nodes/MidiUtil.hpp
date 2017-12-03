@@ -158,6 +158,8 @@ struct Node
   {
     static const constexpr auto prettyName = "Midi scale";
     static const constexpr auto objectKey = "MidiScale";
+    static const constexpr auto category = "Midi";
+    static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto uuid = make_uuid("06b33b83-bb67-4f7a-9980-f5d66e4266c5");
   };
 
@@ -170,8 +172,8 @@ struct Node
                0U,
                Process::array("all", "ionian", "dorian", "phyrgian", "lydian", "mixolydian", "aeolian", "locrian",
                 "I", "II", "III", "IV", "V", "VI", "VII")),
-    Process::IntSlider{"base", 0, 12, 0},
-    Process::IntSlider{"transpose", -12, 12, 0}
+            Process::Widgets::OctaveSlider("base", 0, 1),
+            Process::Widgets::OctaveSlider("transpose", -1, 1)
   )
   .build();
 

@@ -85,7 +85,7 @@ struct NodeBuilder: Args...
     return NodeBuilder<std::array<ValueOutInfo, N>, Args...>{ossia::to_array(arg), static_cast<Args>(*this)...};
   }
   template<typename... Controls>
-  constexpr auto controls(const Controls&&... ctrls) const {
+  constexpr auto controls(Controls&&... ctrls) const {
     return NodeBuilder<std::tuple<Controls...>, Args...>{
         std::make_tuple(ctrls...), static_cast<Args>(*this)...
     };

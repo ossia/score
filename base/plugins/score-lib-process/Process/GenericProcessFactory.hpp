@@ -16,14 +16,11 @@ public:
 
 private:
   UuidKey<Process::ProcessModel> concreteKey() const noexcept override
-  {
-    return Metadata<ConcreteKey_k, Model_T>::get();
-  }
-
+  { return Metadata<ConcreteKey_k, Model_T>::get(); }
   QString prettyName() const override
-  {
-    return Metadata<PrettyName_k, Model_T>::get();
-  }
+  { return Metadata<PrettyName_k, Model_T>::get(); }
+  QString category() const override
+  { return Metadata<Category_k, Model_T>::get(); }
 
   Model_T* make(
       const TimeVal& duration,

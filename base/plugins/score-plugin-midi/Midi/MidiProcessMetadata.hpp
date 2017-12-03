@@ -12,4 +12,6 @@ PROCESS_METADATA(
     Midi::ProcessModel,
     "c189e507-3afa-4a53-9369-e38860e6bb2d",
     "Midi",
-    "Midi")
+    "Piano roll",
+    "Midi",
+    {})

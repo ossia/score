@@ -25,7 +25,7 @@ class ScenarioFactory final : public Process::ProcessModelFactory
 public:
   UuidKey<Process::ProcessModel> concreteKey() const noexcept override;
   QString prettyName() const override;
-
+  QString category() const override;
   Process::ProcessModel* make(
       const TimeVal& duration,
       const Id<Process::ProcessModel>& id,

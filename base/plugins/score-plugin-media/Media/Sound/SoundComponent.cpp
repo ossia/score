@@ -8,6 +8,9 @@
 #endif
 #include <Media/ApplicationPlugin.hpp>
 
+#include <Media/Effect/VST/VSTEffectModel.hpp>
+#include <Media/Effect/VST/VSTNode.hpp>
+
 namespace Engine
 {
 namespace Execution
@@ -349,8 +352,16 @@ EffectComponent::EffectComponent(
 #if defined(LILV_SHARED)
       if(auto lv2 = dynamic_cast<Media::LV2::LV2EffectModel*>(&effect))
       {
-        auto node = std::make_shared<Media::LV2::LV2AudioEffect>(Media::LV2::LV2Data{host.lv2_host_context, lv2->effectContext});
+        auto node = std::make_shared<Media::LV2::LV2AudioEffect>(Media::LV2::LV2Data{host.lv2_host_context, lv2->effectContext}, ctx.plugin.execState.sampleRate);
         ctx.plugin.register_node(lv2->inlets(), lv2->outlets(), node);
+        proc->nodes.push_back(node);
+      }
+#endif
+#if defined(HAS_VST2)
+      if(auto vst = dynamic_cast<Media::VST::VSTEffectModel*>(&effect))
+      {
+        auto node = std::make_shared<Media::VST::VSTAudioEffect>(*vst->fx, ctx.plugin.execState.sampleRate);
+        ctx.plugin.register_node(vst->inlets(), vst->outlets(), node);
         proc->nodes.push_back(node);
       }
 #endif

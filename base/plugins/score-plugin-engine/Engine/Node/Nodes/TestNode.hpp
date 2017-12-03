@@ -26,6 +26,8 @@ struct SomeInfo
   {
     static const constexpr auto prettyName = "My Funny Process";
     static const constexpr auto objectKey = "FunnyProcess";
+    static const constexpr auto category = "Test";
+    static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto uuid = make_uuid("f6b88ec9-cd56-43e8-a568-33208d5a8fb7");
   };
 

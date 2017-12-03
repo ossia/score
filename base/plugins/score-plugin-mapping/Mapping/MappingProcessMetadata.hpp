@@ -13,4 +13,6 @@ PROCESS_METADATA(
     Mapping::ProcessModel,
     "12a5d9b8-823e-4303-99f8-34db37c448b4",
     "Mapping",
-    "Mapping")
+    "Mapping (float)",
+    "Mappings",
+    (QStringList{"Curve", "Mapping"}))

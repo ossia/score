@@ -1,6 +1,7 @@
 #pragma once
-#include <QWidget>
+#include <QDialog>
 #include <score/plugins/customfactory/UuidKey.hpp>
+class QListWidget;
 
 namespace Process
 {
@@ -14,7 +15,7 @@ class ProcessModel;
 namespace Scenario
 {
 
-class AddProcessDialog final : public QWidget
+class AddProcessDialog final : public QDialog
 {
   Q_OBJECT
 
@@ -28,6 +29,10 @@ signals:
 
 private:
   const Process::ProcessFactoryList& m_factoryList;
+  QListWidget* m_categories{};
+  QListWidget* m_processes{};
+  void updateProcesses(const QString& str);
+  void setup();
 };
 
 class AddStateProcessDialog final : public QWidget

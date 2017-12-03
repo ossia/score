@@ -24,6 +24,8 @@ struct Node
   {
     static const constexpr auto prettyName = "Pulse to Note";
     static const constexpr auto objectKey = "VelToNote";
+    static const constexpr auto category = "Midi";
+    static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto uuid = make_uuid("2c6493c3-5449-4e52-ae04-9aee3be5fb6a");
   };
 
@@ -39,34 +41,16 @@ struct Node
     std::vector<NoteIn> running_notes;
   };
 
-
-  static const constexpr std::array<std::pair<const char*, float>, 13> notes
-  {{
-      {"None",  0.},
-      {"Whole", 1.},
-      {"Half",  1./2.},
-      {"4th",   1./4.},
-      {"8th",   1./8.},
-      {"16th",  1./16.},
-      {"32th",  1./32.},
-      {"64th",  1./64.},
-      {"Dotted Half",  3./4.},
-      {"Dotted 4th",   3./8.},
-      {"Dotted 8th",   3./16.},
-      {"Dotted 16th",  3./32.},
-      {"Dotted 32th",  3./64.}
-    }};
   static const constexpr auto info =
       Process::create_node()
       .value_ins({{"in", true}})
       .midi_outs({{"out"}})
-      .controls(
-                Process::ComboBox<float, std::size(notes)>{"Quantification", 2, notes},
-                Process::ComboBox<float, std::size(notes)>{"Duration", 2, notes},
-                Process::IntSpinBox{"Default pitch", 0, 127, 64},
-                Process::IntSpinBox{"Default vel.", 0, 127, 64},
-                Process::IntSlider{"Pitch random", 0, 24, 0},
-                Process::IntSlider{"Vel. random", 0, 24, 0}
+      .controls(Process::Widgets::QuantificationChooser(),
+                Process::Widgets::DurationChooser(),
+                Process::Widgets::MidiSpinbox("Default pitch"),
+                Process::Widgets::MidiSpinbox("Default vel."),
+                Process::Widgets::OctaveSlider("Pitch random", 0, 2),
+                Process::Widgets::OctaveSlider("Vel. random", 0, 2)
                 )
       .state<State>()
       .build();
@@ -106,15 +90,6 @@ struct Node
     }
   };
 
-  static ossia::net::node_base* find_node(ossia::execution_state& st, std::string_view name)
-  {
-    for(auto dev : st.globalState)
-    {
-      if(auto res = ossia::net::find_node(dev->get_root_node(), name))
-        return res;
-    }
-    return nullptr;
-  }
   static void run(
       const ossia::value_port& p1,
       const Process::timed_vec<float>& startq,
@@ -149,13 +124,12 @@ struct Node
 
     // Get tempo
     double tempo = 120.;
-    if(auto tempo_node = find_node(st, "/tempo"))
+    if(auto tempo_node = st.find_node("/tempo"))
       tempo = ossia::convert<float>(tempo_node->get_parameter()->value());
 
     // how much time does a whole note last at this tempo given the current sr
-    const auto sr = 44100.;
     const auto whole_dur = 240. / tempo; // in seconds
-    const auto whole_samples = whole_dur * sr;
+    const auto whole_samples = whole_dur * st.sampleRate;
 
     for(auto& in : p1.get_data())
     {

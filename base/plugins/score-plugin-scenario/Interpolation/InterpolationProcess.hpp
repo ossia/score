@@ -20,7 +20,9 @@ PROCESS_METADATA(
     Interpolation::ProcessModel,
     "aa569e11-03a9-4023-92c2-b590e88fec90",
     "Interpolation",
-    "Interpolation")
+    "Interpolation",
+    "Automations",
+    (QStringList{"Curve", "Automation"}))
 namespace Interpolation
 {
 class ProcessState final

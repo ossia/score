@@ -38,6 +38,7 @@ public:
   virtual ~ProcessModelFactory();
 
   virtual QString prettyName() const = 0;
+  virtual QString category() const = 0;
 
   virtual Process::ProcessModel*
   make(const TimeVal& duration, const Id<ProcessModel>& id, QObject* parent)

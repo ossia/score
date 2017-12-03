@@ -14,4 +14,6 @@ PROCESS_METADATA(
     Spline::ProcessModel,
     "931a6356-2fca-4f3b-9c65-2de051ef4903",
     "Spline",
-    "Spline")
+    "Automation (XY)",
+    "Automations",
+    (QStringList{"Curve", "Automation", "2D"}))

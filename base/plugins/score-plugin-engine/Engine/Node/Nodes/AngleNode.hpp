@@ -9,6 +9,8 @@ struct Node
   {
     static const constexpr auto prettyName = "Angle mapper";
     static const constexpr auto objectKey = "AngleMapper";
+    static const constexpr auto category = "Mappings";
+    static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto uuid = make_uuid("9b0e21ba-965a-4aa4-beeb-60cc5128c418");
   };
   struct State

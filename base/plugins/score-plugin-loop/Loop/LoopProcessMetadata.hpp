@@ -15,5 +15,7 @@ PROCESS_METADATA(
     Loop::ProcessModel,
     "995d41a8-0f10-4152-971d-e4c033579a02",
     "Loop",
-    "Loop")
+    "Loop",
+    "Structure",
+    {})
 UNDO_NAME_METADATA(EMPTY_MACRO, Loop::ProcessModel, "Loop")

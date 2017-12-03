@@ -40,6 +40,10 @@ QString ScenarioFactory::prettyName() const
 {
   return Metadata<PrettyName_k, Scenario::ProcessModel>::get();
 }
+QString ScenarioFactory::category() const
+{
+  return Metadata<Category_k, Scenario::ProcessModel>::get();
+}
 
 Process::ProcessModel* ScenarioFactory::make(
     const TimeVal& duration,

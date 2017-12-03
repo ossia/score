@@ -13,4 +13,6 @@ PROCESS_METADATA(
     Scenario::ProcessModel,
     "de035912-5b03-49a8-bc4d-b2cba68e21d9",
     "Scenario",
-    "Scenario")
+    "Scenario",
+    "Structure",
+    QStringList{})

@@ -20,10 +20,8 @@ class LV2AudioEffect : public ossia::graph_node
 
     LilvInstance* fInstance{};
 
-    static const constexpr int fBufferSize = 64;
-    static const constexpr int fSampleRate = 44100;
   public:
-    LV2AudioEffect(LV2Data dat):
+    LV2AudioEffect(LV2Data dat, int sampleRate):
       data{dat}
     {
       const std::size_t audio_in_size = data.audio_in_ports.size();
@@ -82,7 +80,7 @@ class LV2AudioEffect : public ossia::graph_node
       fCVs.resize(cv_size);
       for(std::size_t i = 0; i < cv_size; i++)
       {
-        fCVs[i].resize(fBufferSize);
+        fCVs[i].resize(4096);
       }
 
       fParamMin.resize(num_ports);
@@ -100,7 +98,7 @@ class LV2AudioEffect : public ossia::graph_node
 
       fInstance = lilv_plugin_instantiate(
                     data.effect.plugin.me,
-                    fSampleRate,
+                    sampleRate,
                     data.host.features);
       data.effect.instance = fInstance;
 
