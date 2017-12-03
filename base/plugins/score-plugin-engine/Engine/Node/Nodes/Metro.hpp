@@ -1,3 +1,4 @@
+#pragma once
 #include <Engine/Node/PdNode.hpp>
 #include <numeric>
 namespace Nodes

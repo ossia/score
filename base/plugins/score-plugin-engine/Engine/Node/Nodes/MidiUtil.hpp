@@ -1,3 +1,4 @@
+#pragma once
 #include <Engine/Node/PdNode.hpp>
 #undef slots
 #include <frozen/unordered_map.h>

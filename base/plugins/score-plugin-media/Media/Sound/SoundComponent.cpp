@@ -161,7 +161,7 @@ void input_node::run(ossia::token_request t, ossia::execution_state& e)
     auto& res = m_data[chan - m_startChan];
     std::size_t start = res.size();
     res.resize(start + (std::size_t)src.size());
-    for (std::size_t i = 0; i < src.size(); i++)
+    for (int i = 0; i < src.size(); i++)
       res[start + i] = src[i];
   }
 
@@ -358,9 +358,17 @@ struct effect_chain_process final :
       }
     }
 
+    void stop() override
+    {
+      for(auto& node : nodes)
+      {
+        node->all_notes_off();
+      }
+    }
+
     ossia::node_ptr startnode;
     ossia::node_ptr endnode;
-    std::vector<ossia::node_ptr> nodes;
+    std::vector<std::shared_ptr<ossia::audio_fx_node>> nodes;
 };
 
 EffectComponent::EffectComponent(
@@ -427,7 +435,23 @@ EffectComponent::EffectComponent(
 #if defined(HAS_VST2)
       if(auto vst = dynamic_cast<Media::VST::VSTEffectModel*>(&effect))
       {
-        auto node = std::make_shared<Media::VST::VSTAudioEffect>(*vst->fx, ctx.plugin.execState.sampleRate);
+        std::shared_ptr<ossia::audio_fx_node> node;
+
+        if(vst->fx->flags & effFlagsCanDoubleReplacing)
+        {
+          if(vst->fx->flags & effFlagsIsSynth)
+            node = Media::VST::make_vst_fx<true, true>(*vst->fx, ctx.plugin.execState.sampleRate);
+          else
+            node = Media::VST::make_vst_fx<true, false>(*vst->fx, ctx.plugin.execState.sampleRate);
+        }
+        else
+        {
+          if(vst->fx->flags & effFlagsIsSynth)
+            node = Media::VST::make_vst_fx<false, true>(*vst->fx, ctx.plugin.execState.sampleRate);
+          else
+            node = Media::VST::make_vst_fx<false, false>(*vst->fx, ctx.plugin.execState.sampleRate);
+        }
+
         ctx.plugin.register_node(vst->inlets(), vst->outlets(), node);
         proc->nodes.push_back(node);
       }

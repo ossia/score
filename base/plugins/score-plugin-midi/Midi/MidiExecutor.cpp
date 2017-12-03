@@ -37,8 +37,14 @@ class midi_node
       m_notes.reserve(notes.size());
       ossia::transform(notes, std::inserter(m_notes, m_notes.begin()),
                        [] (const Note& n) { return n.noteData(); });
+      m_orig_notes = m_notes;
     }
 
+    void reset()
+    {
+      m_notes = m_orig_notes;
+      m_playingnotes.clear();
+    }
   private:
     void run(ossia::token_request t, ossia::execution_state& e) override
     {
@@ -67,7 +73,6 @@ class midi_node
             mp->messages.push_back(mm::MakeNoteOn(m_channel, note.pitch(), note.velocity()));
 
             m_playingnotes.insert(note);
-            m_playing.insert(note.pitch());
             it = m_notes.erase(it);
             max_it = std::lower_bound(it, m_notes.end(), max_pos + 1, NoteComparator{});
           }
@@ -87,7 +92,6 @@ class midi_node
             mp->messages.push_back(mm::MakeNoteOff(m_channel, note.pitch(), note.velocity()));
 
             it = m_playingnotes.erase(it);
-            m_playing.erase(note.pitch());
           }
           else
           {
@@ -99,20 +103,21 @@ class midi_node
 
     using note_set = boost::container::flat_multiset<NoteData, NoteComparator>;
     note_set m_notes;
+    note_set m_orig_notes;
     note_set m_playingnotes;
 
     int m_channel{};
-    boost::container::flat_set<int> m_playing;
+
 };
 
 class midi_node_process : public ossia::node_process
 {
   public:
-    void stop() override
-    {
-      //TODO stop all note on
-    }
-
+    using ossia::node_process::node_process;
+  void stop() override
+  {
+    static_cast<midi_node*>(node.get())->reset();
+  }
 };
 Component::Component(
     Midi::ProcessModel& element,
@@ -124,7 +129,7 @@ Component::Component(
         element, ctx, id, "MidiComponent", parent}
 {
   auto node = std::make_shared<midi_node>();
-  auto proc = std::make_shared<ossia::node_process>(node);
+  auto proc = std::make_shared<midi_node_process>(node);
   m_ossia_process = proc;
   m_node = node;
   ctx.plugin.outlets.insert({element.outlet.get(), {m_node, node->outputs()[0]}});
@@ -139,5 +144,8 @@ Component::~Component()
   m_node->clear();
   system().plugin.execGraph->remove_node(m_node);
 }
+
+
+
 }
 }
