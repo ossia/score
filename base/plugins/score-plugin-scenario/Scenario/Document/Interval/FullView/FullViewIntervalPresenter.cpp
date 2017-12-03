@@ -208,12 +208,16 @@ void FullViewIntervalPresenter::updatePositions()
     const SlotPresenter& slot = m_slots[i];
     const LayerData& proc = slot.processes.front();
 
+    slot.header->setPos(QPointF{0, currentSlotY});
+    slot.header->setSlotIndex(i);
+
     proc.view->setPos(0, currentSlotY);
     proc.view->update();
 
     currentSlotY += proc.model->getSlotHeight();
 
     slot.handle->setPos(0, currentSlotY);
+    slot.handle->setSlotIndex(i);
     currentSlotY += SlotHandle::handleHeight();
   }
 
@@ -271,6 +275,19 @@ void FullViewIntervalPresenter::on_defaultDurationChanged(const TimeVal& val)
   m_view->updateLabelPos();
   m_view->updateCounterPos();
   ((FullViewIntervalView*)m_view)->updateOverlayPos();
+
+  for(const SlotPresenter& slot : m_slots)
+  {
+    slot.header->setWidth(w);
+    if(slot.handle)
+      slot.handle->setWidth(w);
+    if(slot.headerDelegate)
+      slot.headerDelegate->setSize(QSizeF{w - SlotHeader::handleWidth() - SlotHeader::menuWidth(), SlotHeader::headerHeight()});
+    for(const LayerData& proc : slot.processes)
+    {
+      proc.presenter->setWidth(w);
+    }
+  }
 
   m_header->update();
   m_view->update();

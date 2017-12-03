@@ -13,10 +13,22 @@ public:
   DefaultHeaderDelegate(Process::LayerPresenter& p);
 
   void updateName();
+  void updateMin(double f = 0.);
+  void updateMax(double f = 0.);
+  void updateUnit();
+
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+  int size();
 
 private:
+  void updateCache(QTextLayout& cache, const QString& txt);
+
   Process::LayerPresenter& presenter;
   QTextLayout m_textcache;
+  QTextLayout m_mincache;
+  QTextLayout m_maxcache;
+  QTextLayout m_unitcache;
+
+  int m_gap{10};
 };
 }
