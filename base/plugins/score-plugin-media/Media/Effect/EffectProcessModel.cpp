@@ -59,10 +59,58 @@ void ProcessModel::insertEffect(
     EffectModel* eff,
     int pos)
 {
+  // Check that the effect order makes sense.
+  const Process::Inlets& inlets = eff->inlets();
+  const Process::Outlets& outlets = eff->outlets();
+  if(inlets.empty() || outlets.empty())
+  {
+    qDebug() << "invalid effect! no inlets or outlets";
+    delete eff;
+    return;
+  }
   clamp(pos, 0, int(m_effectOrder.size()));
 
   m_effects.add(eff);
   m_effectOrder.insert(pos, eff->id());
+
+  if(pos > 0)
+  {
+    if(inlets[0]->type != m_effects.at(m_effectOrder[pos - 1]).outlets()[0]->type)
+    {
+      qDebug() << "invalid effect! (bad chaining before)";
+      m_effects.remove(eff);
+      m_effectOrder.removeAt(pos);
+      return;
+    }
+  }
+  if(m_effects.size() > 0 && pos < m_effects.size() - 1)
+  {
+    if(outlets[0]->type != m_effects.at(m_effectOrder[pos + 1]).inlets()[0]->type)
+    {
+      qDebug() << "invalid effect! (bad chaining after)";
+      m_effects.remove(eff);
+      m_effectOrder.removeAt(pos);
+      return;
+    }
+
+  }
+
+  if(pos == 0)
+  {
+    if(inlets[0]->type != this->inlet->type)
+    {
+      this->inlet->type = inlets[0]->type;
+      emit inletsChanged();
+    }
+  }
+  if(pos == m_effects.size() - 1)
+  {
+    if(outlets[0]->type != this->outlet->type)
+    {
+      this->outlet->type = outlets[0]->type;
+      emit outletsChanged();
+    }
+  }
 
   emit effectsChanged();
 }

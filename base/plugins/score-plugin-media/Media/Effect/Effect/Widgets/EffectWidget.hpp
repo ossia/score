@@ -63,7 +63,7 @@ class EffectWidget final :
         const score::DocumentContext& m_context;
         QGridLayout* m_layout{};
         std::vector<EffectSlider*> m_sliders;
-        QTimer m_timer;
+        //QTimer m_timer;
 };
 }
 }

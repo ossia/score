@@ -275,17 +275,17 @@ namespace Engine
 {
 namespace Execution
 {
-class OSSIA_EXPORT dummy_node final :
+class OSSIA_EXPORT dummy_audio_node final :
     public ossia::graph_node
 {
 public:
-  dummy_node()
+  dummy_audio_node()
   {
     m_inlets.push_back(ossia::make_inlet<ossia::audio_port>());
     m_outlets.push_back(ossia::make_outlet<ossia::audio_port>());
   }
 
-  ~dummy_node() override
+  ~dummy_audio_node() override
   {
 
   }
@@ -295,6 +295,52 @@ public:
     auto i = m_inlets[0]->data.target<ossia::audio_port>();
     auto o = m_outlets[0]->data.target<ossia::audio_port>();
     o->samples = i->samples;
+  }
+};
+class OSSIA_EXPORT dummy_midi_node final :
+    public ossia::graph_node
+{
+public:
+  dummy_midi_node()
+  {
+    m_inlets.push_back(ossia::make_inlet<ossia::midi_port>());
+    m_outlets.push_back(ossia::make_outlet<ossia::midi_port>());
+  }
+
+  ~dummy_midi_node() override
+  {
+
+  }
+
+  void run(ossia::token_request t, ossia::execution_state&) override
+  {
+    auto i = m_inlets[0]->data.target<ossia::midi_port>();
+    auto o = m_outlets[0]->data.target<ossia::midi_port>();
+    o->messages = i->messages;
+  }
+};
+class OSSIA_EXPORT dummy_value_node final :
+    public ossia::graph_node
+{
+public:
+  dummy_value_node()
+  {
+    m_inlets.push_back(ossia::make_inlet<ossia::value_port>());
+    m_outlets.push_back(ossia::make_outlet<ossia::value_port>());
+  }
+
+  ~dummy_value_node() override
+  {
+
+  }
+
+  void run(ossia::token_request t, ossia::execution_state&) override
+  {
+    // TODO optimize
+    auto i = m_inlets[0]->data.target<ossia::value_port>();
+    auto o = m_outlets[0]->data.target<ossia::value_port>();
+    for(const auto& m : i->get_data())
+      o->add_value(m);
   }
 };
 
@@ -329,7 +375,7 @@ EffectComponent::EffectComponent(
 {
   if(element.effects().empty())
   {
-    auto node = std::make_shared<dummy_node>();
+    auto node = std::make_shared<dummy_audio_node>();
     auto np = std::make_shared<ossia::node_process>(node);
     m_node = node;
     ctx.plugin.register_node(element, node);
@@ -341,10 +387,31 @@ EffectComponent::EffectComponent(
     auto& host = ctx.context().doc.app.applicationPlugin<Media::ApplicationPlugin>();
 
     // Make a chain
-    auto start = std::make_shared<dummy_node>();
-    auto end = std::make_shared<dummy_node>();
-    proc->startnode = start;
-    proc->endnode = end;
+    switch((*element.effects().begin()).inlets()[0]->type)
+    {
+      case Process::PortType::Audio:
+        proc->startnode = std::make_shared<dummy_audio_node>();
+        break;
+      case Process::PortType::Midi:
+        proc->startnode = std::make_shared<dummy_midi_node>();
+        break;
+      case Process::PortType::Message:
+        proc->startnode = std::make_shared<dummy_value_node>();
+        break;
+    }
+    switch((*(--element.effects().end())).outlets()[0]->type)
+    {
+      case Process::PortType::Audio:
+        proc->endnode = std::make_shared<dummy_audio_node>();
+        break;
+      case Process::PortType::Midi:
+        proc->endnode = std::make_shared<dummy_midi_node>();
+        break;
+      case Process::PortType::Message:
+        proc->endnode = std::make_shared<dummy_value_node>();
+        break;
+    }
+
     proc->node = proc->endnode;
 
     for(auto& effect : element.effects())
@@ -366,15 +433,15 @@ EffectComponent::EffectComponent(
       }
 #endif
     }
-    ctx.plugin.register_node(element.inlets(), {}, start);
-    ctx.plugin.register_node({}, element.outlets(), end);
+    ctx.plugin.register_node(element.inlets(), {}, proc->startnode);
+    ctx.plugin.register_node({}, element.outlets(), proc->endnode);
 
 
     ctx.plugin.execGraph->connect(ossia::make_edge(
                                     ossia::immediate_strict_connection{}
-                                    , start->outputs()[0]
+                                    , proc->startnode->outputs()[0]
                                     , proc->nodes.front()->inputs()[0]
-                                    , start
+                                    , proc->startnode
                                     , proc->nodes.front()));
     for(std::size_t i = 0; i < proc->nodes.size() - 1; i++)
     {
@@ -388,9 +455,9 @@ EffectComponent::EffectComponent(
     ctx.plugin.execGraph->connect(ossia::make_edge(
                                     ossia::immediate_strict_connection{}
                                     , proc->nodes.back()->outputs()[0]
-                                    , end->inputs()[0]
+                                    , proc->endnode->inputs()[0]
                                     , proc->nodes.back()
-                                    , end));
+                                    , proc->endnode));
     m_ossia_process = proc;
   }
 }
@@ -411,6 +478,13 @@ EffectComponent::~EffectComponent()
       if(auto lv2 = dynamic_cast<Media::LV2::LV2EffectModel*>(&effect))
       {
         system().plugin.unregister_node(lv2->inlets(), lv2->outlets(), ec->nodes[i]);
+        i++;
+      }
+#endif
+#if defined(HAS_VST2)
+      if(auto vst = dynamic_cast<Media::VST::VSTEffectModel*>(&effect))
+      {
+        system().plugin.unregister_node(vst->inlets(), vst->outlets(), ec->nodes[i]);
         i++;
       }
 #endif
