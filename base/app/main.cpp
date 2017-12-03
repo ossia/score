@@ -5,8 +5,13 @@
 #include <QPixmapCache>
 #include <qnamespace.h>
 #if defined(__APPLE__)
+struct NSAutoreleasePool;
 #include <CoreFoundation/CFNumber.h>
 #include <CoreFoundation/CFPreferences.h>
+extern "C"
+NSAutoreleasePool* mac_init_pool();
+extern "C"
+void mac_finish_pool(NSAutoreleasePool* pool);
 void disableAppRestore()
 {
     CFPreferencesSetAppValue(
@@ -52,6 +57,7 @@ static void init_plugins()
 int main(int argc, char** argv)
 {
 #if defined(__APPLE__)
+    auto pool = mac_init_pool();
     disableAppRestore();
 #endif
 
@@ -95,5 +101,9 @@ int main(int argc, char** argv)
     QPixmapCache::setCacheLimit(819200);
     Application app(argc, argv);
     app.init();
-    return app.exec();
+    int res = app.exec();
+#if defined(__APPLE__)
+    mac_finish_pool(pool);
+#endif
+    return res;
 }

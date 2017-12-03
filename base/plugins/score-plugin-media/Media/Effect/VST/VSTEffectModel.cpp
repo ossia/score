@@ -17,7 +17,9 @@
 #include <ossia/network/domain/domain.hpp>
 #include <Media/ApplicationPlugin.hpp>
 #include <aeffectx.h>
+#include <QTimer>
 #include <Process/Dataflow/Port.hpp>
+#include <websocketpp/base64/base64.hpp>
 void show_vst2_editor(AEffect* effect, uint16_t width, uint16_t height);
 
 void hide_vst2_editor(AEffect* effect);
@@ -152,6 +154,10 @@ void VSTEffectModel::closePlugin()
   }
   fx = nullptr;
   plugin.reset();
+  qDeleteAll(m_inlets);
+  qDeleteAll(m_outlets);
+  m_inlets.clear();
+  m_outlets.clear();
   metadata().setLabel("Dead VST");
 }
 
@@ -322,6 +328,26 @@ void JSONObjectReader::read(
     const Media::VST::VSTEffectModel& eff)
 {
   obj["Effect"] = eff.effect();
+  if(eff.fx)
+  {
+    if(eff.fx->flags & effFlagsProgramChunks)
+    {
+      void* ptr{};
+      auto res = eff.fx->dispatcher(eff.fx, effGetChunk, 0, 0, &ptr, 0.f);
+      if(ptr && res > 0)
+      {
+        auto encoded = websocketpp::base64_encode((const unsigned char*)ptr, res);
+        obj["Data"] = QString::fromStdString(encoded);
+      }
+    }
+    else
+    {
+      QJsonArray arr;
+      for(int i = 0; i < eff.fx->numParams; i++)
+        arr.push_back(eff.fx->getParameter(eff.fx, i));
+      obj["Params"] = std::move(arr);
+    }
+  }
 }
 
 template <>
@@ -329,4 +355,35 @@ void JSONObjectWriter::write(
     Media::VST::VSTEffectModel& eff)
 {
   eff.m_effectPath = obj["Effect"].toString();
+  eff.reload();
+  QTimer::singleShot(1000, [obj=this->obj,&eff] {
+    if(eff.fx)
+    {
+      if(eff.fx->flags & effFlagsProgramChunks)
+      {
+        auto it = obj.find("Data");
+        if(it != obj.end())
+        {
+          auto b64 = websocketpp::base64_decode(it->toString().toStdString());
+          eff.fx->dispatcher(eff.fx, effSetChunk, 0, b64.size(), b64.data(), 0.f);
+
+          for(int i = 1; i < eff.inlets().size(); i++)
+          {
+            static_cast<Process::ControlInlet*>(eff.inlets()[i])->setValue(eff.fx->getParameter(eff.fx, i-1));
+          }
+        }
+      }
+      else
+      {
+        auto it = obj.find("Params");
+        if(it != obj.end())
+        {
+          QJsonArray arr = it->toArray();
+          for(int i = 0; i < arr.size(); i++)
+          {
+            eff.fx->setParameter(eff.fx, i, arr[i].toDouble());
+          }
+        }
+      }
+    }});
 }

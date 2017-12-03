@@ -12,8 +12,11 @@ set(SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Application.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
 )
+if(APPLE)
+  set(SRCS ${SRCS} "${CMAKE_CURRENT_SOURCE_DIR}/mac_main.m")
+endif()
 if(WIN32)
-set(SRCS ${SRCS} "${CMAKE_CURRENT_SOURCE_DIR}/../lib/resources/score.rc")
+  set(SRCS ${SRCS} "${CMAKE_CURRENT_SOURCE_DIR}/../lib/resources/score.rc")
 endif()
 
 if(APPLE)
@@ -39,7 +42,10 @@ if(SCORE_STATIC_PLUGINS)
 endif()
 
 include(StaticApp.cmake)
-
+if(APPLE)
+    find_library(FOUNDATION_LIBRARY Foundation)
+    target_link_libraries(${APPNAME} PUBLIC ${FOUNDATION_LIBRARY})
+endif()
 if(IOS)
   find_library(COREFOUNDATION_LIBRARY CoreFoundation)
   find_library(COREAUDIO_LIBRARY CoreAudio)
