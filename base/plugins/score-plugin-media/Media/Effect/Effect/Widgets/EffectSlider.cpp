@@ -99,7 +99,7 @@ EffectSlider::EffectSlider(Process::ControlInlet& fx, bool is_output, QWidget* p
           // v is between 0 - 1
           const auto& cur = m_param.value();
           auto exp = float(m_min + (m_max - m_min) * v);
-          if(std::abs(ossia::convert<float>(cur) - exp) > 0.001)
+          if(std::abs(ossia::convert<float>(cur) - exp) > 0.0001)
             m_param.setValue(float{exp});
       });
   }
@@ -109,7 +109,7 @@ EffectSlider::EffectSlider(Process::ControlInlet& fx, bool is_output, QWidget* p
     if(auto v = val.target<float>())
     {
       auto scaled = (*v - m_min) / (m_max - m_min);
-      if(std::abs(scaled - m_slider->value()) > 0.001)
+      if(std::abs(scaled - m_slider->value()) > 0.0001)
       {
          m_slider->setValue(scaled);
       }

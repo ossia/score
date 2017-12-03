@@ -105,6 +105,8 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Nodes/AngleNode.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Nodes/VelToNote.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Nodes/LFO.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Nodes/Chord.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Nodes/Metro.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Nodes/Envelope.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_engine.hpp"

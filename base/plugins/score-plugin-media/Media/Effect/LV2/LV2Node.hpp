@@ -1,5 +1,5 @@
 #pragma once
-#include <ossia/dataflow/graph_node.hpp>
+#include <ossia/dataflow/fx_node.hpp>
 #include <Media/Effect/LV2/LV2Context.hpp>
 #include <Media/Effect/LV2/lv2_atom_helpers.hpp>
 
@@ -9,7 +9,7 @@ namespace LV2
 {
 
 
-class LV2AudioEffect : public ossia::graph_node
+class LV2AudioEffect : public ossia::audio_fx_node
 {
   protected:
     LV2Data data;
@@ -222,11 +222,7 @@ class LV2AudioEffect : public ossia::graph_node
       return {};
     }
 
-    void Reset()
-    {
-    }
-
-    void AllNotesOff()
+    void all_notes_off()
     {
       /*
           if(fMidiSource)
@@ -368,146 +364,9 @@ class LV2AudioEffect : public ossia::graph_node
         }
 
         postProcess();
-
       }
     }
-
 };
-
-/*
-class StereoLV2AudioEffect final : public LV2AudioEffect
-{
-    public:
-        StereoLV2AudioEffect(LV2Data dat):
-            LV2AudioEffect{std::move(dat)}
-        {
-        }
-
-    private:
-        void Process(float** input, float** output, long framesNum) override
-        {
-            if(framesNum <= 0)
-                return;
-
-            data.host.current = &data.effect;
-            preProcess();
-
-            lilv_instance_connect_port(fInstance, data.in_ports[0], input[0]);
-            lilv_instance_connect_port(fInstance, data.in_ports[1], input[1]);
-            lilv_instance_connect_port(fInstance, data.out_ports[0], output[0]);
-            lilv_instance_connect_port(fInstance, data.out_ports[1], output[1]);
-
-            lilv_instance_run(fInstance, framesNum);
-
-            postProcess();
-        }
-
-        TAudioEffectInterface* Copy() override
-        {
-            return nullptr;
-        }
-};
-
-class MonoLV2AudioEffect final : public LV2AudioEffect
-{
-    public:
-
-        MonoLV2AudioEffect(LV2Data dat):
-            LV2AudioEffect{std::move(dat)}
-        {
-        }
-
-    private:
-        void Process(float** input, float** output, long framesNum) override
-        {
-            if(framesNum <= 0)
-                return;
-
-            data.host.current = &data.effect;
-            preProcess();
-
-            lilv_instance_connect_port(fInstance, data.in_ports[0], input[0]);
-            lilv_instance_connect_port(fInstance, data.out_ports[0], output[0]);
-
-            lilv_instance_run(fInstance, framesNum);
-
-            postProcess();
-            std::copy_n(output[0], framesNum, output[1]);
-        }
-
-        TAudioEffectInterface* Copy() override
-        {
-            return nullptr;
-        }
-};
-
-
-class StereoLV2AudioInstrument final : public LV2AudioEffect
-{
-    public:
-        StereoLV2AudioInstrument(LV2Data dat):
-            LV2AudioEffect{std::move(dat)}
-        {
-        }
-
-    private:
-        long Inputs() final override { return 0; }
-        void Process(float** input, float** output, long framesNum) override
-        {
-            if(framesNum <= 0)
-                return;
-
-            data.host.current = &data.effect;
-            preProcess();
-
-            lilv_instance_connect_port(fInstance, data.out_ports[0], output[0]);
-            lilv_instance_connect_port(fInstance, data.out_ports[1], output[1]);
-
-            lilv_instance_run(fInstance, framesNum);
-
-            postProcess();
-        }
-
-        TAudioEffectInterface* Copy() override
-        {
-            return nullptr;
-        }
-};
-
-class MonoLV2AudioInstrument final : public LV2AudioEffect
-{
-    public:
-
-        MonoLV2AudioInstrument(LV2Data dat):
-            LV2AudioEffect{std::move(dat)}
-        {
-        }
-
-    private:
-        long Inputs() final override { return 0; }
-        void Process(float** input, float** output, long framesNum) override
-        {
-            if(framesNum <= 0)
-                return;
-
-            data.host.current = &data.effect;
-            preProcess();
-
-            lilv_instance_connect_port(fInstance, data.out_ports[0], output[0]);
-
-            lilv_instance_run(fInstance, framesNum);
-
-            postProcess();
-            std::copy_n(output[0], framesNum, output[1]);
-        }
-
-        TAudioEffectInterface* Copy() override
-        {
-            return nullptr;
-        }
-};
-
-*/
 
 }
 }

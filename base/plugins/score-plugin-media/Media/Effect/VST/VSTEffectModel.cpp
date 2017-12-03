@@ -245,6 +245,8 @@ void VSTEffectModel::reload()
   for(int i = 0; i < fx->numParams; i++)
   {
     auto p = new Process::ControlInlet{Id<Process::Port>{++inlet_i}, this};
+
+    // Metadata
     {
       auto get_string = [=] (auto req, int i) {
         char paramName[256] = {0};
@@ -264,12 +266,19 @@ void VSTEffectModel::reload()
         p->setCustomData("Parameter");
     }
 
+    // Value
     {
-      // Current value
       auto val = fx->getParameter(fx, i);
       p->setDomain(ossia::make_domain(0.f, 1.f));
       p->setValue(val);
       p->hidden = true;
+
+      connect(p, &Process::ControlInlet::valueChanged,
+              this, [=] (const ossia::value& v){
+        auto newval =  ossia::convert<float>(v);
+        if(std::abs(newval - fx->getParameter(fx, i)) > 0.0001)
+          fx->setParameter(fx, i, newval);
+      });
     }
 
     {
