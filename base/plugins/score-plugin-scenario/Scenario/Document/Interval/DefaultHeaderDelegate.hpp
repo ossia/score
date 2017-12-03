@@ -1,4 +1,4 @@
-#pragma ponce
+#pragma once
 
 #include <QTextLayout>
 #include <Process/LayerPresenter.hpp>
