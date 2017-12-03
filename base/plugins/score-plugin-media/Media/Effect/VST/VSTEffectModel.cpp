@@ -267,6 +267,7 @@ void VSTEffectModel::reload()
     {
       // Current value
       auto val = fx->getParameter(fx, i);
+      p->setDomain(ossia::make_domain(0.f, 1.f));
       p->setValue(val);
       p->hidden = true;
     }
@@ -281,8 +282,6 @@ void VSTEffectModel::reload()
       }
     }
 
-    p->setDomain(ossia::make_domain(0., 1.));
-    p->setValue(0.);
     m_inlets.push_back(p);
   }
 

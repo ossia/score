@@ -68,7 +68,7 @@ EffectWidget::EffectWidget(
                     "border-radius: 15px;}");
         connect(rm_but, &QPushButton::clicked,
                 this, [&] () {
-            this->m_timer.stop();
+            //this->m_timer.stop();
 
             score::clearLayout(this->m_layout);
             m_sliders.clear();
@@ -126,13 +126,15 @@ void EffectWidget::on_createAutomation(const State::Address& addr, double min, d
 
 void EffectWidget::setup()
 {
-    m_timer.stop();
+    //m_timer.stop();
 
     score::clearLayout(m_layout);
     m_sliders.clear();
 
-    for(auto& param_addr : m_effect.inlets())
+    const auto& inlets = m_effect.inlets();
+    for(std::size_t i = 0; i < std::min(inlets.size(), (std::size_t)10); i++)
     {
+      auto& param_addr = inlets[i];
       if(auto control = dynamic_cast<Process::ControlInlet*>(param_addr))
       {
         auto slider = new EffectSlider{*control, false, this};
@@ -150,11 +152,12 @@ void EffectWidget::setup()
         m_sliders.push_back(slider);
     }
     */
-
+/*
     m_timer.setInterval(50);
     connect(&m_timer, &QTimer::timeout,
             this, &EffectWidget::updateSliders, Qt::UniqueConnection);
     m_timer.start();
+    */
     flow();
 }
 
@@ -228,12 +231,13 @@ void EffectWidget::clear()
 
 
 void EffectWidget::updateSliders()
-{
+{/*
   for(EffectSlider* widg : m_sliders)
   {
     if(widg->scaledValue != widg->m_slider->value()) // TODO qFuzzyCompare instead
        widg->m_slider->setValue(widg->scaledValue);
   }
+  */
 }
 
 

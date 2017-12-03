@@ -42,6 +42,34 @@ class VSTAudioEffect : public ossia::graph_node
       dispatch(effMainsChanged, 0, 0);
     }
 
+    static const ossia::value& last(const ossia::value_vector<ossia::tvalue>& vec)
+    {
+      auto max = vec[0].timestamp;
+      const ossia::tvalue* ptr{&vec[0]};
+      for(auto& e : vec)
+      {
+        if(e.timestamp < max)
+        {
+          max = e.timestamp;
+          ptr = &e;
+        }
+      }
+      return ptr->value;
+    }
+
+    void setControls()
+    {
+      for(int i = 1; i < m_inlets.size(); i++)
+      {
+        auto& vec = m_inlets[i]->data.target<ossia::value_port>()->get_data();
+        if(vec.empty())
+        {
+          continue;
+        }
+        fx.setParameter(&fx, i-1, ossia::convert<float>(last(vec)));
+      }
+    }
+
     void dispatchMidi()
     {
       // copy midi data
@@ -61,10 +89,9 @@ class VSTAudioEffect : public ossia::graph_node
         e.type = kVstMidiType;
         e.byteSize = sizeof(VstMidiEvent);
         e.deltaFrames = mess.timestamp;
-        e.midiData[0] = mess.data[0];
-        e.midiData[1] = mess.data[1];
-        e.midiData[2] = mess.data[2];
-        e.midiData[3] = mess.data[3];
+
+        for(std::size_t k = 0; k < std::min(mess.data.size(), (std::size_t)4); k++)
+          e.midiData[k] = mess.data[k];
 
         events->events[i] = reinterpret_cast<VstEvent*>(&e);
         i++;
@@ -72,27 +99,27 @@ class VSTAudioEffect : public ossia::graph_node
       dispatch(effProcessEvents, 0, 0, events, 0.f);
     }
 
-    auto& prepareInput()
+    auto& prepareInput(std::size_t samples)
     {
       auto& ip = m_inlets[0]->data.target<ossia::audio_port>()->samples;
       if(ip.size() < 2)
         ip.resize(2);
-      if(ip[0].size() < 64)
+      if(ip[0].size() < samples)
       {
-        ip[0].resize(64);
+        ip[0].resize(samples);
       }
-      if(ip[1].size() < 64)
+      if(ip[1].size() < samples)
       {
-        ip[1].resize(64);
+        ip[1].resize(samples);
       }
       return ip;
     }
-    auto& prepareOutput()
+    auto& prepareOutput(std::size_t samples)
     {
       auto& op = m_outlets[0]->data.target<ossia::audio_port>()->samples;
       op.resize(2);
       for(auto& chan : op)
-        chan.resize(64);
+        chan.resize(samples);
       return op;
     }
     void run(ossia::token_request tk, ossia::execution_state&) override
@@ -100,6 +127,7 @@ class VSTAudioEffect : public ossia::graph_node
       if(tk.date > m_prev_date)
       {
         const std::size_t samples = tk.date - m_prev_date;
+        setControls();
 
         if(fx.flags & effFlagsCanDoubleReplacing)
         {
@@ -107,7 +135,7 @@ class VSTAudioEffect : public ossia::graph_node
           {
             dispatchMidi();
 
-            auto& op = prepareOutput();
+            auto& op = prepareOutput(samples);
             double* output[2] = { op[0].data(), op[1].data() };
 
             fx.processDoubleReplacing(&fx, nullptr, output, samples);
@@ -115,10 +143,10 @@ class VSTAudioEffect : public ossia::graph_node
           else
           {
             // copy audio data
-            auto& ip = prepareInput();
+            auto& ip = prepareInput(samples);
             double* input[2] = { ip[0].data(), ip[1].data() };
 
-            auto& op = prepareOutput();
+            auto& op = prepareOutput(samples);
             double* output[2] = { op[0].data(), op[1].data() };
 
             fx.processDoubleReplacing(&fx, input, output, samples);
@@ -130,18 +158,16 @@ class VSTAudioEffect : public ossia::graph_node
           {
             dispatchMidi();
 
-            auto& op = prepareOutput();
-
-            std::vector<std::vector<float>> v(2);
-            for(auto& vec : v)
+            auto& op = m_outlets[0]->data.target<ossia::audio_port>()->samples;
+            for(auto& vec : float_v)
               vec.resize(samples);
-            float* output[2] = { v[0].data(), v[1].data() };
+            float* output[2] = { float_v[0].data(), float_v[1].data() };
 
-            fx.processReplacing(&fx, nullptr, output, samples);
+            fx.processReplacing(&fx, output, output, samples);
 
             op.clear();
-            op.emplace_back(v[0].begin(), v[0].end());
-            op.emplace_back(v[1].begin(), v[1].end());
+            op.emplace_back(float_v[0].begin(), float_v[0].end());
+            op.emplace_back(float_v[1].begin(), float_v[1].end());
           }
           else
           {
@@ -152,27 +178,23 @@ class VSTAudioEffect : public ossia::graph_node
             if(ip.size() < 2)
               ip.resize(2);
 
-            std::vector<std::vector<float>> in_v;
-            in_v.emplace_back(ip[0].begin(), ip[0].end());
-            in_v.emplace_back(ip[1].begin(), ip[1].end());
-            in_v[0].resize(samples);
-            in_v[1].resize(samples);
-            float* input[2] = { in_v[0].data(), in_v[1].data() };
+            float_v[0].assign(ip[0].begin(), ip[0].end());
+            float_v[1].assign(ip[1].begin(), ip[1].end());
+            float_v[0].resize(samples);
+            float_v[1].resize(samples);
+            float* output[2] = { float_v[0].data(), float_v[1].data() };
 
-            std::vector<std::vector<float>> out_v(2);
-            for(auto& vec : out_v)
-              vec.resize(samples);
-            float* output[2] = { out_v[0].data(), out_v[1].data() };
-
-            fx.processReplacing(&fx, input, output, samples);
+            fx.processReplacing(&fx, output, output, samples);
 
             op.clear();
-            op.emplace_back(out_v[0].begin(), out_v[0].end());
-            op.emplace_back(out_v[1].begin(), out_v[1].end());
+            op.emplace_back(float_v[0].begin(), float_v[0].end());
+            op.emplace_back(float_v[1].begin(), float_v[1].end());
           }
         }
       }
     }
+
+    std::array<std::vector<float>, 2> float_v;
 };
 
 

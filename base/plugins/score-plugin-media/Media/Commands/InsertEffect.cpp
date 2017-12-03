@@ -31,7 +31,8 @@ void InsertEffect::undo(const score::DocumentContext& ctx) const
   if(Effect::EffectFactory* fact = fact_list.get(m_effectKind))
   {
     auto& process = m_model.find(ctx);
-    process.removeEffect(m_id);
+    if(process.effects().find(m_id) != process.effects().end())
+      process.removeEffect(m_id);
   }
 }
 
