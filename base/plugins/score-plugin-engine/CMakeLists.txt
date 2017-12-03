@@ -105,6 +105,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Nodes/AngleNode.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Nodes/VelToNote.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Nodes/LFO.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Nodes/Envelope.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_engine.hpp"
     )
@@ -180,6 +181,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Settings/LocalTreeView.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/score2OSSIA.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Widgets.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_engine.cpp"
 )

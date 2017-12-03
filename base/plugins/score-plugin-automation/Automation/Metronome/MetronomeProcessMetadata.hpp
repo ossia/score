@@ -14,4 +14,6 @@ PROCESS_METADATA(
     Metronome::ProcessModel,
     "e6f5d1fd-6b32-4799-ba53-ff793b3faabc",
     "Metronome",
-    "Metronome")
+    "Metronome",
+    "Automations",
+    (QStringList{"Curve", "Automation"}))

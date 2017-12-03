@@ -47,7 +47,7 @@ class ObjectKey_k;
 class PrettyName_k;
 
 /**
- * \class PrettyName_k
+ * \class UndoName_k
  * \brief Metadata to get the name that will be shown in the undo-redo panel.
  */
 class UndoName_k;
@@ -57,6 +57,18 @@ class UndoName_k;
  * \brief Metadata to get the description that will be shown in the undo-redo panel.
  */
 class Description_k;
+
+/**
+ * \class Category_k
+ * \brief Metadata to categorize objects: curves, audio, etc
+ */
+class Category_k;
+
+/**
+ * \class Tags_k
+ * \brief Metadata to associate tags to objects
+ */
+class Tags_k;
 
 /**
  * \class Description_k
@@ -110,6 +122,10 @@ class Json_k;
 
 #define DESCRIPTION_METADATA(Export, Model, Text) \
   TR_TEXT_METADATA(Export, Model, Description_k, Text)
+#define CATEGORY_METADATA(Export, Model, Text) \
+  TR_TEXT_METADATA(Export, Model, Category_k, Text)
+#define TAGS_METADATA(Export, Model, Text) \
+  TYPED_METADATA(Export, Model, Tags_k, QStringList, Text)
 
 #define UNDO_NAME_METADATA(Export, Model, Text) \
   TR_TEXT_METADATA(Export, Model, UndoName_k, Text)

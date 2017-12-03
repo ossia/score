@@ -46,6 +46,17 @@ EffectWidget::EffectWidget(
         auto label = new score::ReactiveLabel<score::ModelMetadataNameParameter>(fx.metadata(), this);
         label->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
         title_lay->addWidget(label);
+
+        auto uibtn = new QPushButton{"UI", this};
+        uibtn->setCheckable(true);
+        connect(uibtn, &QPushButton::toggled,
+                this, [=] (bool b) {
+          if(b)
+            m_effect.showUI();
+          else
+            m_effect.hideUI();
+        });
+        title_lay->addWidget(uibtn);
         title_lay->addStretch();
 
         auto rm_but = new QPushButton{"x"};

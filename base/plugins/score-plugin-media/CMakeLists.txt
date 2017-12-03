@@ -113,9 +113,33 @@ if(TARGET Lilv)
     )
 endif()
 
+find_package(Vst2SDK)
+if(TARGET Vst2SDK)
+    set(VST_HDRS
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTLoader.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTEffectModel.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTNode.hpp"
+        )
+    set(VST_SRCS
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTLoader.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTEffectModel.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTNode.cpp"
+        )
+
+    if(APPLE)
+        set(VST_HDRS ${VST_HDRS}
+            "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/AppleUI/vstwindow.h"
+            )
+        set(VST_SRCS ${VST_SRCS}
+            "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/AppleUI/vstwindow.m"
+            "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/AppleUI/vst2x.mm"
+            )
+    endif()
+endif()
 add_library(${PROJECT_NAME}
   ${SRCS} ${HDRS}
   ${LV2_SRCS} ${LV2_HDRS}
+  ${VST_SRCS} ${VST_HDRS}
   ${FAUST_HDRS} ${FAUST_SRCS}
 )
 
@@ -161,6 +185,10 @@ if(APPLE)
         )
 endif()
 
+if(TARGET Vst2SDK)
+    target_link_libraries(${PROJECT_NAME} PRIVATE Vst2SDK)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_VST2)
+endif()
 if(TARGET Lilv)
     target_link_libraries(${PROJECT_NAME} PRIVATE Lilv)
     target_include_directories(${PROJECT_NAME} PRIVATE 3rdparty/readerwriterqueue)

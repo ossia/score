@@ -14,4 +14,6 @@ PROCESS_METADATA(
     Gradient::ProcessModel,
     "b5da735b-a76d-4314-8853-3e8a96486fb9",
     "Gradient",
-    "Gradient")
+    "Automation (color)",
+    "Automations",
+    (QStringList{"Curve", "Automation", "Color"}))

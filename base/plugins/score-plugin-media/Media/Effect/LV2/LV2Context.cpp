@@ -147,21 +147,23 @@ GlobalContext::GlobalContext(int buffer_size, LV2::HostContext& host):
 {
   options.reserve(8);
 
+  static const int min = 0;
+  static const int max = 4096;
   options.push_back(LV2_Options_Option{
                       LV2_OPTIONS_INSTANCE,
                       0,
                       map.map(map.handle, LV2_BUF_SIZE__minBlockLength),
-                      sizeof(buffer_size),
+                      sizeof(min),
                       map.map(map.handle, LV2_ATOM__Int),
-                      &buffer_size
+                      &min
                     });
   options.push_back(LV2_Options_Option{
                       LV2_OPTIONS_INSTANCE,
                       0,
                       map.map(map.handle, LV2_BUF_SIZE__maxBlockLength),
-                      sizeof(buffer_size),
+                      sizeof(max),
                       map.map(map.handle, LV2_ATOM__Int),
-                      &buffer_size
+                      &max
                     });
   options.push_back(LV2_Options_Option{
                       LV2_OPTIONS_INSTANCE,

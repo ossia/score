@@ -14,4 +14,6 @@ PROCESS_METADATA(
     Automation::ProcessModel,
     "d2a67bd8-5d3f-404e-b6e9-e350cf2a833f",
     "Automation",
-    "Automation")
+    "Automation (float)",
+    "Automations",
+    (QStringList{"Curve", "Automation"}))

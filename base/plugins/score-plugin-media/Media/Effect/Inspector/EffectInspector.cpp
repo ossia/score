@@ -12,6 +12,9 @@
 #include <Media/ApplicationPlugin.hpp>
 #endif
 
+#if defined(HAS_VST2)
+#include <Media/Effect/VST/VSTEffectModel.hpp>
+#endif
 
 #include <QPlainTextEdit>
 #include <QVBoxLayout>
@@ -20,6 +23,7 @@
 #include <QListWidget>
 #include <QPushButton>
 #include <QInputDialog>
+#include <QFileDialog>
 
 namespace Media
 {
@@ -96,6 +100,13 @@ InspectorWidget::InspectorWidget(
         }
 #endif
         */
+
+#if defined(HAS_VST2)
+        if(auto vst = dynamic_cast<VST::VSTEffectModel*>(proc))
+        {
+
+        }
+#endif
     }, Qt::QueuedConnection);
 
     recreate();
@@ -150,6 +161,37 @@ InspectorWidget::InspectorWidget(
 
     lay->addWidget(add_lv2);
 #endif
+
+#if defined(HAS_VST2)
+    {
+      auto add_vst = new QPushButton{tr("Add (VST 2)")};
+      connect(add_vst, &QPushButton::pressed,
+              this, [=] () {
+
+        QString defaultPath;
+#if defined(__APPLE__)
+        defaultPath = "/Library/Audio/Plug-Ins/VST";
+#endif
+        auto res = QFileDialog::getOpenFileName(
+                     this,
+                     tr("Select a VST plug-in"), defaultPath,
+                     "VST (*.dll *.so *.vst *.dylib)");
+
+        if(!res.isEmpty())
+        {
+          m_dispatcher.submitCommand(
+                new Commands::InsertEffect{
+                  process(),
+                  Media::VST::VSTEffectFactory::static_concreteKey(),
+                  res,
+                  (int)process().effects().size()});
+        }
+      });
+
+      lay->addWidget(add_vst);
+    }
+#endif
+
     // Remove an effect
     // Effects changed
     // Effect list

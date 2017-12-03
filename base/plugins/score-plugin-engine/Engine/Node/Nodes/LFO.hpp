@@ -19,6 +19,8 @@ struct Node
   {
     static const constexpr auto prettyName = "LFO";
     static const constexpr auto objectKey = "LFO";
+    static const constexpr auto category = "Control";
+    static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto uuid = make_uuid("0697b807-f588-49b5-926c-f97701edd0d8");
   };
 
@@ -28,23 +30,17 @@ struct Node
       int64_t phase{};
   };
 
-  enum Waveform
-  {
-    Sin, Triangle, Saw, Square, Noise1, Noise2, Noise3
-  };
 
   static const constexpr auto info =
       Process::create_node()
       .value_outs({{"out"}})
-      .controls(Process::FloatSlider{"Freq.", 0., 50., 1.}
-              , Process::FloatSlider{"Coarse intens.", 0., 1000., 1.}
+      .controls(Process::Widgets::LFOFreqChooser()
+              , Process::FloatSlider{"Coarse intens.", 0., 1000., 0.}
               , Process::FloatSlider{"Fine intens.", 0., 1., 1.}
               , Process::FloatSlider{"Offset.", -1000., 1000., 0.}
               , Process::FloatSlider{"Jitter", 0., 1., 0.}
               , Process::FloatSlider{"Phase", -1., 1., 0.}
-              , Process::make_enum("Function", 0U,
-                  Process::array("Sin", "Triangle", "Saw", "Square", "Noise 1", "Noise 2", "Noise 3")
-                )
+              , Process::Widgets::WaveformChooser()
                 )
       .state<State>()
       .build();
@@ -56,15 +52,13 @@ struct Node
       State& s,
       ossia::time_value prev_date,
       ossia::token_request tk,
-      ossia::execution_state&)
+      ossia::execution_state& st)
   {
-    static const ossia::string_view_map<Waveform> map{{"Sin", Sin}, {"Triangle", Triangle}, {"Saw", Saw},
-                                                   {"Square", Square},
-                                                   {"Noise 1", Noise1}, {"Noise 2", Noise2}, {"Noise 3", Noise3} };
+    auto& waveform_map = Process::Widgets::waveformMap();
 
     static std::mt19937 rd;
 
-    if(auto it = map.find(type); it != map.end())
+    if(auto it = waveform_map.find(type); it != waveform_map.end())
     {
       float new_val{};
       auto ph = s.phase;
@@ -73,7 +67,8 @@ struct Node
         ph += std::normal_distribution<float>(0., 5000.)(rd) * jitter;
       }
 
-      const auto phi = phase + (2.f * float(M_PI) * freq * ph)/ 44100.f;
+      using namespace Process::Widgets;
+      const auto phi = phase + (2.f * float(M_PI) * freq * ph) / st.sampleRate;
 
       switch(it->second)
       {
@@ -100,7 +95,6 @@ struct Node
           break;
       }
       out.add_value(new_val + offset);
-  //    qDebug() << freq  ;
     }
 
     s.phase += (tk.date - prev_date);

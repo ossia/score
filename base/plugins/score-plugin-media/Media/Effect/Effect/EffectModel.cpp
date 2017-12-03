@@ -25,6 +25,16 @@ EffectModel::~EffectModel()
 {
 
 }
+
+void EffectModel::showUI()
+{
+
+}
+
+void EffectModel::hideUI()
+{
+
+}
 }
 }
 

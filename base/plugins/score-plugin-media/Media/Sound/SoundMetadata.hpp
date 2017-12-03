@@ -15,7 +15,9 @@ PROCESS_METADATA(
         Media::Sound::ProcessModel,
         "63174570-d608-44bf-a9cb-e6f5a11f73cc",
         "Sound",
-        "Sound"
+        "Sound file",
+        "Audio",
+        {}
         )
 
 

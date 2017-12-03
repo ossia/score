@@ -17,7 +17,9 @@
 #if defined(LILV_SHARED)
 #include <Media/Effect/LV2/LV2EffectModel.hpp>
 #endif
-
+#if defined(HAS_VST2)
+#include <Media/Effect/VST/VSTEffectModel.hpp>
+#endif
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
 #include <score/plugins/customfactory/FactorySetup.hpp>
@@ -76,6 +78,9 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
     # endif
     #if defined(LILV_SHARED)
                 , Media::LV2::LV2EffectFactory
+    #endif
+    #if defined(HAS_VST2)
+                , Media::VST::VSTEffectFactory
     #endif
                 >,
         FW<Scenario::DropHandler,

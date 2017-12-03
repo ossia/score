@@ -58,6 +58,9 @@ class SCORE_PLUGIN_MEDIA_EXPORT EffectModel :
         const Process::Inlets& inlets() const { return m_inlets; }
         const Process::Outlets& outlets() const { return m_outlets; }
 
+        virtual void showUI();
+        virtual void hideUI();
+
     signals:
         void effectChanged() const;
 

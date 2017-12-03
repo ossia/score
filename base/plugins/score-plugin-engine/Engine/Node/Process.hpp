@@ -20,6 +20,25 @@ struct Metadata<PrettyName_k, Process::ControlProcess<Info>>
   }
 };
 template <typename Info>
+struct Metadata<Category_k, Process::ControlProcess<Info>>
+{
+  static Q_DECL_RELAXED_CONSTEXPR auto get()
+  {
+    return Info::Metadata::category;
+  }
+};
+template <typename Info>
+struct Metadata<Tags_k, Process::ControlProcess<Info>>
+{
+  static QStringList get()
+  {
+    QStringList lst;
+    for(auto str : Info::Metadata::tags)
+      lst.append(str);
+    return lst;
+  }
+};
+template <typename Info>
 struct Metadata<ObjectKey_k, Process::ControlProcess<Info>>
 {
     static Q_DECL_RELAXED_CONSTEXPR auto get()

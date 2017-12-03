@@ -5,6 +5,7 @@
 #include <Engine/Node/Executor.hpp>
 #include <Engine/Node/Inspector.hpp>
 #include <Engine/Node/Layer.hpp>
+#include <Engine/Node/CommonWidgets.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #define make_uuid(text) score::uuids::string_generator::compute((text))
 

@@ -15,7 +15,9 @@ PROCESS_METADATA(
         Media::Input::ProcessModel,
         "fe6ec588-23c8-458c-ad47-7fdfe0e813cc",
         "Input",
-        "Input"
+        "Audio input",
+        "Audio",
+        {}
         )
 
 
