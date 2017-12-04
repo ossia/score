@@ -299,7 +299,9 @@ void FullViewIntervalPresenter::on_zoomRatioChanged(ZoomRatio val)
 
   for(const SlotPresenter& slot : m_slots)
   {
-    slot.processes.front().presenter->on_zoomRatioChanged(val);
+    slot.headerDelegate->on_zoomRatioChanged(val);
+    for (auto proc : slot.processes)
+      proc.presenter->on_zoomRatioChanged(val);
   }
 
   updateProcessesShape();

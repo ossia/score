@@ -18,6 +18,7 @@ public:
   void updateUnit();
 
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+  void on_zoomRatioChanged(ZoomRatio) override;
   int size();
 
 private:

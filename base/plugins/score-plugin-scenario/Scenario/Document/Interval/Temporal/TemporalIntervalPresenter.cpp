@@ -561,6 +561,7 @@ void TemporalIntervalPresenter::on_zoomRatioChanged(ZoomRatio val)
 
   for(const SlotPresenter& slot : m_slots)
   {
+    slot.headerDelegate->on_zoomRatioChanged(val);
     for(const LayerData& proc : slot.processes)
     {
       proc.presenter->on_zoomRatioChanged(val);
