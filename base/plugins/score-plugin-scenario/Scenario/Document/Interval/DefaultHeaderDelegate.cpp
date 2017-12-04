@@ -16,7 +16,6 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(Process::LayerPresenter& p): presen
       this, &DefaultHeaderDelegate::updateName);
   con(presenter.model(), &Process::ProcessModel::durationChanged,
       this, &DefaultHeaderDelegate::updateName);
-  // TODO connect zoom signal or onDisplaySizeChanged to updateName
 
   updateMin();
   m_mincache.setFont(ScenarioStyle::instance().Bold10Pt);
@@ -42,12 +41,17 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(Process::LayerPresenter& p): presen
   }
 }
 
+void DefaultHeaderDelegate::on_zoomRatioChanged(ZoomRatio)
+{
+  updateName();
+}
+
 void DefaultHeaderDelegate::updateName()
 {
   QString name = presenter.model().prettyName();
   updateCache(m_textcache, name);
 
-  // try to avoid to wide QTextLayout
+  // try to avoid too wide QTextLayout
   if ( size() > boundingRect().width() )
   {
     int first = name.indexOf("/");
