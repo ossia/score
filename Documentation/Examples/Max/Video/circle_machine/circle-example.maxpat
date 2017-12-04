@@ -9,7 +9,7 @@
 			"modernui" : 1
 		}
 ,
-		"rect" : [ 565.0, 56.0, 637.0, 333.0 ],
+		"rect" : [ 1009.0, 56.0, 637.0, 333.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 12.0,
@@ -171,11 +171,11 @@
 					"patching_rect" : [ 18.0, 72.0, 63.0, 219.0 ],
 					"saved_attribute_attributes" : 					{
 						"valueof" : 						{
+							"parameter_enum" : [ "circle.1", "circle.2", "circle.3", "circle.4", "circle.5", "circle.6", "circle.7", "circle.8", "circle.9", "circle.10" ],
 							"parameter_longname" : "live.tab",
 							"parameter_shortname" : "live.tab",
 							"parameter_unitstyle" : 0,
-							"parameter_type" : 2,
-							"parameter_enum" : [ "circle.1", "circle.2", "circle.3", "circle.4", "circle.5", "circle.6", "circle.7", "circle.8", "circle.9", "circle.10" ]
+							"parameter_type" : 2
 						}
 
 					}
@@ -256,16 +256,16 @@
 			}
  ],
 		"parameters" : 		{
-			"obj-9" : [ "live.tab", "live.tab", 0 ],
-			"obj-8::obj-26" : [ "live.numbox[7]", "live.numbox", 0 ],
-			"obj-8::obj-38" : [ "live.text", "live.text", 0 ],
-			"obj-8::obj-22" : [ "live.numbox[4]", "live.numbox", 0 ],
-			"obj-8::obj-13" : [ "live.numbox[3]", "live.numbox", 0 ],
-			"obj-8::obj-23" : [ "live.numbox[5]", "live.numbox", 0 ],
 			"obj-8::obj-24" : [ "live.numbox[6]", "live.numbox", 0 ],
-			"obj-8::obj-12" : [ "live.numbox[2]", "live.numbox", 0 ],
+			"obj-8::obj-13" : [ "live.numbox[3]", "live.numbox", 0 ],
+			"obj-8::obj-26" : [ "live.numbox[7]", "live.numbox", 0 ],
+			"obj-8::obj-23" : [ "live.numbox[5]", "live.numbox", 0 ],
+			"obj-8::obj-11" : [ "live.numbox[1]", "live.numbox", 0 ],
+			"obj-9" : [ "live.tab", "live.tab", 0 ],
 			"obj-8::obj-33" : [ "live.numbox[8]", "live.numbox", 0 ],
-			"obj-8::obj-11" : [ "live.numbox[1]", "live.numbox", 0 ]
+			"obj-8::obj-22" : [ "live.numbox[4]", "live.numbox", 0 ],
+			"obj-8::obj-12" : [ "live.numbox[2]", "live.numbox", 0 ],
+			"obj-8::obj-38" : [ "live.text", "live.text", 0 ]
 		}
 ,
 		"dependency_cache" : [ 			{

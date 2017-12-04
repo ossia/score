@@ -9,7 +9,7 @@
 			"modernui" : 1
 		}
 ,
-		"rect" : [ 786.0, 304.0, 595.0, 301.0 ],
+		"rect" : [ 34.0, 715.0, 595.0, 301.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 12.0,
@@ -37,6 +37,42 @@
 		"style" : "",
 		"subpatcher_template" : "",
 		"boxes" : [ 			{
+				"box" : 				{
+					"id" : "obj-5",
+					"maxclass" : "newobj",
+					"numinlets" : 0,
+					"numoutlets" : 0,
+					"patching_rect" : [ 37.0, 223.0, 81.0, 22.0 ],
+					"style" : "",
+					"text" : "synth synth.4"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-6",
+					"maxclass" : "newobj",
+					"numinlets" : 0,
+					"numoutlets" : 0,
+					"patching_rect" : [ 37.0, 199.0, 81.0, 22.0 ],
+					"style" : "",
+					"text" : "synth synth.3"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-2",
+					"maxclass" : "newobj",
+					"numinlets" : 0,
+					"numoutlets" : 0,
+					"patching_rect" : [ 37.0, 175.0, 81.0, 22.0 ],
+					"style" : "",
+					"text" : "synth synth.2"
+				}
+
+			}
+, 			{
 				"box" : 				{
 					"id" : "obj-12",
 					"maxclass" : "newobj",
@@ -137,45 +173,9 @@
 					"maxclass" : "newobj",
 					"numinlets" : 0,
 					"numoutlets" : 0,
-					"patching_rect" : [ 37.0, 152.0, 81.0, 22.0 ],
+					"patching_rect" : [ 37.0, 151.0, 81.0, 22.0 ],
 					"style" : "",
 					"text" : "synth synth.1"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-4",
-					"maxclass" : "newobj",
-					"numinlets" : 0,
-					"numoutlets" : 0,
-					"patching_rect" : [ 37.0, 176.0, 81.0, 22.0 ],
-					"style" : "",
-					"text" : "synth synth.2"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-5",
-					"maxclass" : "newobj",
-					"numinlets" : 0,
-					"numoutlets" : 0,
-					"patching_rect" : [ 37.0, 201.0, 81.0, 22.0 ],
-					"style" : "",
-					"text" : "synth synth.3"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-6",
-					"maxclass" : "newobj",
-					"numinlets" : 0,
-					"numoutlets" : 0,
-					"patching_rect" : [ 37.0, 224.0, 81.0, 22.0 ],
-					"style" : "",
-					"text" : "synth synth.4"
 				}
 
 			}
@@ -224,14 +224,14 @@
 			}
  ],
 		"parameters" : 		{
-			"obj-10::obj-1" : [ "Carrier frequency", "Carrier frequency", 0 ],
-			"obj-10::obj-8" : [ "Ratio", "Ratio", 0 ],
-			"obj-10::obj-7" : [ "live.numbox", "live.numbox", 0 ],
-			"obj-10::obj-6" : [ "Pan", "Pan", 0 ],
-			"obj-11" : [ "live.tab", "live.tab", 0 ],
-			"obj-10::obj-4" : [ "Gain", "Gain", 0 ],
 			"obj-10::obj-2" : [ "Cutoff", "Cutoff", 0 ],
-			"obj-10::obj-3" : [ "Index", "Index", 0 ]
+			"obj-10::obj-6" : [ "Pan", "Pan", 0 ],
+			"obj-10::obj-8" : [ "Ratio", "Ratio", 0 ],
+			"obj-10::obj-4" : [ "Gain", "Gain", 0 ],
+			"obj-10::obj-1" : [ "Carrier frequency", "Carrier frequency", 0 ],
+			"obj-10::obj-7" : [ "live.numbox", "live.numbox", 0 ],
+			"obj-10::obj-3" : [ "Index", "Index", 0 ],
+			"obj-11" : [ "live.tab", "live.tab", 0 ]
 		}
 ,
 		"dependency_cache" : [ 			{
