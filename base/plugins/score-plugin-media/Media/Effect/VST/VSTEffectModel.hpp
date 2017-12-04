@@ -51,6 +51,7 @@ class VSTEffectModel :
 
         std::unique_ptr<VSTModule> plugin;
         AEffect* fx{};
+
     private:
         void reload();
         void showUI() override;
