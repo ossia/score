@@ -34,22 +34,12 @@
 #include <Scenario/ExecutionChecker/CSPCoherencyCheckerList.hpp>
 #include <Scenario/ExecutionChecker/CoherencyCheckerFactoryInterface.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
-
+#include <ossia/editor/loop/loop.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
-
-namespace Process
-{
-class ProcessModel;
-}
-class QObject;
-namespace ossia
-{
-class time_process;
-} // namespace OSSIA
 
 namespace Engine
 {
@@ -76,6 +66,11 @@ ScenarioComponentBase::ScenarioComponentBase(
   // A better way would be :
   // * Either to not have a dependency ordering, which would require two passes
   // * Or to have the HierarchicalScenario take a variadic amount of stuff and init them in the right order.
+}
+
+ScenarioComponentBase::~ScenarioComponentBase()
+{
+
 }
 
 ScenarioComponent::ScenarioComponent(
@@ -275,21 +270,21 @@ IntervalComponent* ScenarioComponentBase::make<IntervalComponent, Scenario::Inte
 template<>
 StateComponent* ScenarioComponentBase::make<StateComponent, Scenario::StateModel>(
     const Id<score::Component>& id,
-    Scenario::StateModel& score_state)
+    Scenario::StateModel& st)
 {
-  auto elt = std::make_shared<StateComponent>(score_state, m_ctx, id, this);
+  auto elt = std::make_shared<StateComponent>(st, m_ctx, id, this);
 
   auto& events = m_ossia_timeevents;
 
-  SCORE_ASSERT(events.find(score_state.eventId()) != events.end());
-  auto ossia_ev = events.at(score_state.eventId());
+  SCORE_ASSERT(events.find(st.eventId()) != events.end());
+  auto ossia_ev = events.at(st.eventId());
 
   m_ctx.executionQueue.enqueue([elt,ev=ossia_ev] {
     if(auto e = ev->OSSIAEvent())
       elt->onSetup(e);
   });
 
-  m_ossia_states.insert({score_state.id(), elt});
+  m_ossia_states.insert({st.id(), elt});
 
   return elt.get();
 }

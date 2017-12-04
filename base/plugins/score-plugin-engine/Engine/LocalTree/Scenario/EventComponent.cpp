@@ -14,41 +14,55 @@ Event::Event(
     Scenario::EventModel& event,
     DocumentPlugin& doc,
     QObject* parent_comp)
-    : CommonComponent{parent, event.metadata(), doc,
-                      id,     "EventComponent", parent_comp}
+  : CommonComponent{parent, event.metadata(), doc,
+                    id,     "EventComponent", parent_comp}
 {
   auto exp_n = node().create_child("expression");
   auto exp_a = exp_n->create_parameter(ossia::val_type::STRING);
   exp_a->set_access(ossia::access_mode::BI);
 
-  exp_a->add_callback([&](const ossia::value& v) {
+  exp_a->add_callback([&](const ossia::value& v)
+  {
+    if(m_setting)
+      return;
+
     auto expr = v.target<std::string>();
     if(expr)
     {
       auto expr_p = ::State::parseExpression(*expr);
-      if(expr_p)
+      if(expr_p && expr_p != event.condition())
         event.setCondition(*std::move(expr_p));
     }
   });
 
   QObject::connect(&event, &Scenario::EventModel::conditionChanged, this,
-      [=] (const ::State::Expression& cond) {
-        // TODO try to simplify the other get / set properties like this
-        ossia::value newVal = cond.toString().toStdString();
-        try
+                   [=] (const ::State::Expression& cond)
+  {
+    m_setting = true;
+    // TODO try to simplify the other get / set properties like this
+    ossia::value newVal = cond.toString().toStdString();
+    try
+    {
+      auto res = exp_a->value();
+      if(auto str = res.target<std::string>())
+      {
+        if(State::parseExpression(*str) != cond)
         {
-          auto res = exp_a->value();
+          exp_a->push_value(std::move(newVal));
+        }
+      }
+      else
+      {
+        exp_a->push_value(std::move(newVal));
+      }
+    }
+    catch (...)
+    {
+    }
 
-          if (newVal != res)
-          {
-            exp_a->push_value(std::move(newVal));
-          }
-        }
-        catch (...)
-        {
-        }
-      },
-      Qt::QueuedConnection);
+    m_setting = false;
+  },
+  Qt::QueuedConnection);
 
   exp_a->set_value(event.condition().toString().toStdString());
 

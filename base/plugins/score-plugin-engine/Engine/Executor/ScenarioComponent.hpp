@@ -57,7 +57,7 @@ namespace Engine
 namespace Execution
 {
 class IntervalComponent;
-
+struct SubScenario;
 // TODO see if this can be used for the base scenario model too.
 class ScenarioComponentBase
     : public ProcessComponent_T<Scenario::ProcessModel, ossia::scenario>
@@ -71,6 +71,7 @@ public:
       const Context& ctx,
       const Id<score::Component>& id,
       QObject* parent);
+  ~ScenarioComponentBase() override;
 
   const auto& states() const
   {
