@@ -32,7 +32,7 @@ class QObject;
 namespace Curve
 {
 Model::Model(const Id<Model>& id, QObject* parent)
-    : IdentifiedObject<Model>(id, "CurveModel", parent)
+    : IdentifiedObject<Model>(id, QStringLiteral("CurveModel"), parent)
 {
 }
 

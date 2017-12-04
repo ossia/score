@@ -157,6 +157,7 @@ void CableItem::check()
   else if(isEnabled()) {
     setVisible(false);
     setEnabled(false);
+    update();
   }
 }
 

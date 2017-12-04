@@ -17,7 +17,7 @@ Port::Port(Id<Port> c, const QString& name, QObject* parent)
 }
 
 Port::Port(Id<Port> c, const Port& other, QObject* parent)
-  : IdentifiedObject<Port>{c, QStringLiteral("Port"), parent}
+  : IdentifiedObject<Port>{c, Metadata<ObjectKey_k, Process::Port>::get(), parent}
 {
   type = other.type;
   hidden = other.hidden;

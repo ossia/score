@@ -13,10 +13,14 @@ Cable::~Cable()
 
 }
 
-Cable::Cable(Id<Cable> c, QObject* parent): IdentifiedObject{c, "Cable", parent} { }
+Cable::Cable(Id<Cable> c, QObject* parent)
+  : IdentifiedObject{c, Metadata<ObjectKey_k, Process::Cable>::get(), parent}
+{
+
+}
 
 Cable::Cable(const score::DocumentContext& ctx, Id<Cable> c, const CableData& data, QObject* parent):
-  IdentifiedObject{c, "Cable", parent}
+  IdentifiedObject{c, Metadata<ObjectKey_k, Process::Cable>::get(), parent}
 {
   m_type = data.type;
   m_source = data.source;
