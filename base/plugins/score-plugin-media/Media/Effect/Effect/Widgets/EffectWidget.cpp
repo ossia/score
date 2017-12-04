@@ -86,6 +86,15 @@ EffectWidget::EffectWidget(
     lay->addStretch();
 
     setup();
+    // optimize me one day
+    for(auto ctrl : fx.inlets())
+    {
+      if(auto c = dynamic_cast<Process::ControlInlet*>(ctrl))
+      {
+        connect(c, &Process::ControlInlet::uiVisibleChanged,
+                this, &EffectWidget::setup);
+      }
+    }
 
     // Setup drag'n'drop
     setAcceptDrops(true);
@@ -132,16 +141,18 @@ void EffectWidget::setup()
     m_sliders.clear();
 
     const auto& inlets = m_effect.inlets();
-    for(std::size_t i = 0; i < std::min(inlets.size(), (std::size_t)10); i++)
+    for(auto& param_addr : inlets)
     {
-      auto& param_addr = inlets[i];
       if(auto control = dynamic_cast<Process::ControlInlet*>(param_addr))
       {
-        auto slider = new EffectSlider{*control, false, this};
-        m_sliders.push_back(slider);
-        connect(slider, &EffectSlider::createAutomation,
-                this, &EffectWidget::on_createAutomation,
-                Qt::QueuedConnection);
+        if(control->uiVisible())
+        {
+          auto slider = new EffectSlider{*control, false, this};
+          m_sliders.push_back(slider);
+          connect(slider, &EffectSlider::createAutomation,
+                  this, &EffectWidget::on_createAutomation,
+                  Qt::QueuedConnection);
+        }
       }
     }
 

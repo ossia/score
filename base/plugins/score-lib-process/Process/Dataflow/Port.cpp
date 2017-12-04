@@ -335,12 +335,14 @@ SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::ControlInlet>(cons
   read((Process::Inlet&)p);
   readFrom(p.m_value);
   readFrom(p.m_domain);
+  m_stream << p.m_ui;
 }
 template<>
 SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::ControlInlet>(Process::ControlInlet& p)
 {
   writeTo(p.m_value);
   writeTo(p.m_domain);
+  m_stream >> p.m_ui;
 }
 
 template<>
@@ -350,12 +352,14 @@ SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::ControlInlet>(cons
 
   obj[strings.Value] = toJsonValue(p.m_value);
   obj[strings.Domain] = toJsonObject(p.m_domain);
+  obj["UiVisible"] = p.m_ui;
 }
 template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::ControlInlet>(Process::ControlInlet& p)
 {
   p.m_value = fromJsonValue<ossia::value>(obj[strings.Value]);
   p.m_domain = fromJsonObject<State::Domain>(obj[strings.Domain].toObject());
+  p.m_ui = obj["UiVisible"].toBool();
 }
 
 

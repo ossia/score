@@ -103,9 +103,14 @@ static auto HostCallback (AEffect* effect, VstInt32 opcode, VstInt32 index, VstI
       break;
 
     case audioMasterAutomate:
-      static_cast<Process::ControlInlet*>(reinterpret_cast<VSTEffectModel*>(effect->resvd1)->inlets()[1 + index])->setValue(opt);
-      break;
+    {
+      auto vst = reinterpret_cast<VSTEffectModel*>(effect->resvd1);
+      auto inlet = static_cast<Process::ControlInlet*>(vst->inlets()[1 + index]);
+      inlet->setValue(opt);
+      inlet->setUiVisible(true);
 
+      break;
+    }
     case audioMasterGetAutomationState:
       result = kVstAutomationOff;
       break;
@@ -278,6 +283,10 @@ void VSTEffectModel::reload()
       p->setDomain(ossia::make_domain(0.f, 1.f));
       p->setValue(val);
       p->hidden = true;
+      if(fx->numParams < 10)
+      {
+        p->setUiVisible(true);
+      }
 
       connect(p, &Process::ControlInlet::valueChanged,
               this, [=] (const ossia::value& v){
@@ -288,6 +297,7 @@ void VSTEffectModel::reload()
     }
 
     {
+      /*
       VstParameterProperties props;
       auto res = dispatch(effGetParameterProperties, i, 0, &props);
       if(res == 1)
@@ -295,6 +305,7 @@ void VSTEffectModel::reload()
         // apparently there's exactly 0 plug-ins supporting this
         qDebug() << props.label << props.minInteger << props.maxInteger << props.smallStepFloat << props.stepFloat;
       }
+      */
     }
 
     m_inlets.push_back(p);
