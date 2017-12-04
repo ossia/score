@@ -8,7 +8,7 @@ class QObject;
 namespace Curve
 {
 PointModel::PointModel(const Id<PointModel>& id, QObject* parent)
-    : IdentifiedObject<PointModel>{id, "CurvePointModel", parent}
+    : IdentifiedObject<PointModel>{id, QStringLiteral("CurvePointModel"), parent}
 {
 }
 

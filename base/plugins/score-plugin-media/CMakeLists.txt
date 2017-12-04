@@ -134,6 +134,10 @@ if(TARGET Vst2SDK)
             "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/AppleUI/vstwindow.m"
             "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/AppleUI/vst2x.mm"
             )
+    elseif(UNIX)
+      set(VST_SRCS ${VST_SRCS}
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/LinuxUI/vst.cpp"
+        )
     endif()
 endif()
 add_library(${PROJECT_NAME}
@@ -188,6 +192,9 @@ endif()
 if(TARGET Vst2SDK)
     target_link_libraries(${PROJECT_NAME} PRIVATE Vst2SDK)
     target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_VST2)
+    if(UNIX AND NOT APPLE)
+      target_link_libraries(${PROJECT_NAME} PRIVATE dl)
+    endif()
 endif()
 if(TARGET Lilv)
     target_link_libraries(${PROJECT_NAME} PRIVATE Lilv)

@@ -235,3 +235,5 @@ inline std::unique_ptr<Outlet> clone_outlet(Outlet& source, QObject* parent)
 using Inlets = chobo::small_vector<Process::Inlet*, 4>;
 using Outlets = chobo::small_vector<Process::Outlet*, 4>;
 }
+
+DEFAULT_MODEL_METADATA(Process::Port, "Port")

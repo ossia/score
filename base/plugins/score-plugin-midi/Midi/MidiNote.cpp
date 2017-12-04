@@ -6,12 +6,12 @@ namespace Midi
 {
 
 Note::Note(const Id<Note>& id, QObject* parent)
-    : IdentifiedObject<Note>(id, "Note", parent)
+    : IdentifiedObject<Note>(id, QStringLiteral("Note"), parent)
 {
 }
 
 Note::Note(const Id<Note>& id, NoteData n, QObject* parent)
-    : IdentifiedObject<Note>(id, "Note", parent)
+    : IdentifiedObject<Note>(id, QStringLiteral("Note"), parent)
     , m_start{n.m_start}
     , m_duration{n.m_duration}
     , m_pitch{n.m_pitch}

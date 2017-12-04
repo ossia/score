@@ -31,4 +31,4 @@ class StateProcessFactory;
   MODEL_METADATA_IMPL(Model) \
   QString prettyShortName() const override { return Metadata<PrettyName_k, Model>::get(); } \
   QString category() const override { return Metadata<Category_k, Model>::get(); } \
-  QStringList tags() const override { return Metadata<Tags_k, Model>::get(); } \
+  QStringList tags() const override { return Metadata<Tags_k, Model>::get(); }

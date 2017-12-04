@@ -8,9 +8,10 @@
 #endif
 #include <Media/ApplicationPlugin.hpp>
 
+#if defined(HAS_VST2)
 #include <Media/Effect/VST/VSTEffectModel.hpp>
 #include <Media/Effect/VST/VSTNode.hpp>
-
+#endif
 namespace Engine
 {
 namespace Execution

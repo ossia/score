@@ -105,6 +105,12 @@ void RemoveCable::undo(const score::DocumentContext& ctx) const
 
 void RemoveCable::redo(const score::DocumentContext& ctx) const
 {
+  auto& cable = m_model.find(ctx).cables.at(m_cable);
+
+  qDebug() << "before: " << cable.source().find(ctx).cables().size();
+  cable.source().find(ctx).removeCable(cable);
+  cable.sink().find(ctx).removeCable(cable);
+  qDebug() << "after: " <<cable.source().find(ctx).cables().size();
   m_model.find(ctx).cables.remove(m_cable);
 }
 

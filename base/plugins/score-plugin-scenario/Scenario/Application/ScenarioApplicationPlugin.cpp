@@ -118,13 +118,15 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
 
   // Dataflow
   m_showCables = new QAction{this};
+  m_showCables->setCheckable(true);
+  m_showCables->setChecked(true);
   connect(m_showCables, &QAction::toggled, this, [this] (bool c) {
     auto doc = this->currentDocument();
     if(doc)
     {
       Dataflow::CableItem::g_cables_enabled = c;
       auto plug = score::IDocument::try_get<ScenarioDocumentPresenter>(*doc);
-      for(auto& cable : plug->cableItems) {
+      for(Dataflow::CableItem& cable : plug->cableItems) {
         cable.check();
       }
     }
