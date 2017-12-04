@@ -72,7 +72,6 @@ private:
   void on_rackVisibleChanged(bool);
   void on_defaultDurationChanged(const TimeVal&);
 
-  std::vector<SlotPresenter> m_slots;
   bool m_handles{true};
 };
 

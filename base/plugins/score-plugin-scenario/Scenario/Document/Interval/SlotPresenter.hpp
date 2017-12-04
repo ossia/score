@@ -6,6 +6,8 @@
 
 namespace Scenario
 {
+struct LayerData;
+class SlotHeader;
 struct SlotPresenter
 {
   SlotHeader* header{};
