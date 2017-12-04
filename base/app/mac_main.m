@@ -2,7 +2,7 @@
 
 NSAutoreleasePool* mac_init_pool()
 {
-  return nullptr;
+  return NULL;
   //NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   //return pool;
 }
