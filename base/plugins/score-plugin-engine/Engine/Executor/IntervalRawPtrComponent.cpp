@@ -199,7 +199,6 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
 {
   try
   {
-    auto& self = static_cast<Engine::Execution::IntervalRawPtrComponent&>(*this);
     const Engine::Execution::Context& ctx = system();
     auto plug = fac.make(proc, ctx, id, nullptr);
     if (plug)

@@ -14,7 +14,6 @@
 #include <ossia/editor/expression/expression.hpp>
 #include <ossia/editor/state/state.hpp>
 #include <ossia/detail/logger.hpp>
-
 namespace Engine
 {
 namespace Execution
@@ -102,7 +101,7 @@ void TimeSyncComponent::on_GUITrigger()
   this->system().executionQueue.enqueue(
         [e = m_ossia_node]
   {
-      e->trigger_request = true;
+    e->trigger_request = true;
   });
 }
 

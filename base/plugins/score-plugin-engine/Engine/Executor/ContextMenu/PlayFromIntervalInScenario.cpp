@@ -46,24 +46,32 @@ struct dfs_visitor : public boost::default_dfs_visitor
 tsl::hopscotch_set<Scenario::IntervalModel*>
 PlayFromIntervalScenarioPruner::intervalsToKeep() const
 {
-  Scenario::TimenodeGraph g{scenar};
+  if(auto sc = dynamic_cast<const Scenario::ProcessModel*>(&scenar))
+  {
+    Scenario::TimenodeGraph g{*sc};
 
-  // First find the vertex matching the time sync after our interval
-  auto vertex = g.vertices().at(&Scenario::endTimeSync(interval, scenar));
+    // First find the vertex matching the time sync after our interval
+    auto vertex = g.vertices().at(&Scenario::endTimeSync(interval, scenar));
 
-  // Do a depth-first search from where we're starting
-  dfs_visitor vis;
-  std::vector<boost::default_color_type> color_map(boost::num_vertices(g.graph()));
+    // Do a depth-first search from where we're starting
+    dfs_visitor vis;
+    std::vector<boost::default_color_type> color_map(boost::num_vertices(g.graph()));
 
-  boost::depth_first_visit(g.graph(), vertex, vis,
-                           boost::make_iterator_property_map(
-                             color_map.begin(),
-                             boost::get(boost::vertex_index, g.graph()),
-                             color_map[0]));
+    boost::depth_first_visit(g.graph(), vertex, vis,
+                             boost::make_iterator_property_map(
+                               color_map.begin(),
+                               boost::get(boost::vertex_index, g.graph()),
+                               color_map[0]));
 
-  // Add the first interval
-  vis.state->intervals.insert(&interval);
-  return vis.state->intervals;
+    // Add the first interval
+    vis.state->intervals.insert(&interval);
+    return vis.state->intervals;
+  }
+  else
+  {
+    auto itv = scenar.getIntervals();
+    return {&(*itv.begin())};
+  }
 }
 
 bool PlayFromIntervalScenarioPruner::toRemove(const tsl::hopscotch_set<Scenario::IntervalModel*>& toKeep, Scenario::IntervalModel& cst) const

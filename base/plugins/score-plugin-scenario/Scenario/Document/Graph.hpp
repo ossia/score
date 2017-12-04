@@ -7,7 +7,10 @@ namespace Scenario
 {
 class TimeSyncModel;
 class IntervalModel;
+class EventModel;
+class StateModel;
 class ScenarioInterface;
+class ProcessModel;
 
 using GraphVertex = Scenario::TimeSyncModel*;
 using GraphEdge = Scenario::IntervalModel*;
@@ -26,9 +29,28 @@ using Graph = boost::adjacency_list<
  * The graph is built upon construction.
  *
  */
+
+struct SCORE_PLUGIN_SCENARIO_EXPORT TimenodeGraphConnectedComponent
+{
+  std::vector<const Scenario::TimeSyncModel*> syncs;
+  std::vector<const Scenario::IntervalModel*> intervals;
+
+  bool isMain(const Scenario::ProcessModel&) const;
+};
+struct SCORE_PLUGIN_SCENARIO_EXPORT TimenodeGraphComponents
+{
+    const Scenario::ProcessModel& scenario;
+    std::vector<TimenodeGraphConnectedComponent> comps;
+
+    const TimenodeGraphConnectedComponent& component(const Scenario::TimeSyncModel& c) const;
+    bool isInMain(const Scenario::TimeSyncModel& c) const;
+    bool isInMain(const Scenario::IntervalModel& c) const;
+    bool isInMain(const Scenario::EventModel& c) const;
+    bool isInMain(const Scenario::StateModel& c) const;
+};
 struct SCORE_PLUGIN_SCENARIO_EXPORT TimenodeGraph
 {
-  TimenodeGraph(const Scenario::ScenarioInterface& scenar);
+  TimenodeGraph(const Scenario::ProcessModel& scenar);
 
   const Graph& graph() const
   { return m_graph; }
@@ -40,7 +62,10 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT TimenodeGraph
   //! Writes graphviz output on stdout
   void writeGraphviz();
 
+  TimenodeGraphComponents components();
+
 private:
+  const Scenario::ProcessModel& m_scenario;
   Graph m_graph;
 
   score::hash_map<

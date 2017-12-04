@@ -12,15 +12,17 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
-
+#include <boost/graph/connected_components.hpp>
 #include <score/model/ModelMetadata.hpp>
 
 namespace Scenario
 {
 
 TimenodeGraph::TimenodeGraph(
-    const Scenario::ScenarioInterface& scenar)
+    const Scenario::ProcessModel& scenar):
+  m_scenario{scenar}
 {
   for(auto& tn : scenar.getTimeSyncs())
   {
@@ -50,6 +52,72 @@ void TimenodeGraph::writeGraphviz()
   });
 
   std::cout << s.str() << std::endl << std::flush;
+}
+
+TimenodeGraphComponents TimenodeGraph::components()
+{
+  std::vector<int> component(boost::num_vertices(m_graph));
+  int num = boost::connected_components(m_graph, &component[0]);
+
+  std::vector<TimenodeGraphConnectedComponent> comps(num);
+  for(auto vtx : m_vertices)
+  {
+    auto& comp = comps[component[vtx.second]];
+    comp.syncs.push_back(vtx.first);
+    for(auto& cst : Scenario::previousIntervals(*vtx.first, m_scenario))
+    {
+      comp.intervals.push_back(&m_scenario.interval(cst));
+    }
+    for(auto& cst : Scenario::nextIntervals(*vtx.first, m_scenario))
+    {
+      comp.intervals.push_back(&m_scenario.interval(cst));
+    }
+  }
+  return {m_scenario, comps};
+}
+
+bool TimenodeGraphComponents::isInMain(const EventModel& c) const
+{
+  return isInMain(Scenario::parentTimeSync(c, parentScenario(c)));
+}
+bool TimenodeGraphComponents::isInMain(const StateModel& c) const
+{
+  return isInMain(Scenario::parentTimeSync(c, parentScenario(c)));
+}
+bool TimenodeGraphComponents::isInMain(const TimeSyncModel& c) const
+{
+  auto rs = &scenario.startTimeSync();
+
+  auto it = ossia::find_if(comps, [&] (const auto& comp) {
+    return ossia::contains(comp.syncs, rs) && ossia::contains(comp.syncs, &c);
+  });
+  return it != comps.end();
+}
+
+bool TimenodeGraphComponents::isInMain(const IntervalModel& c) const
+{
+  auto rs = &scenario.startTimeSync();
+
+  auto it = ossia::find_if(comps, [&] (const auto& comp) {
+    return ossia::contains(comp.syncs, rs) && ossia::contains(comp.intervals, &c);
+  });
+  return it != comps.end();
+}
+
+const TimenodeGraphConnectedComponent& TimenodeGraphComponents::component(
+    const Scenario::TimeSyncModel& c) const
+{
+  auto it = ossia::find_if(comps, [&] (const auto& comp) {
+    return ossia::contains(comp.syncs, &c);
+  });
+  SCORE_ASSERT(it != comps.end());
+  return *it;
+}
+
+bool TimenodeGraphConnectedComponent::isMain(const ProcessModel& root) const
+{
+  auto rs = &root.startTimeSync();
+  return ossia::contains(syncs, rs);
 }
 
 }
