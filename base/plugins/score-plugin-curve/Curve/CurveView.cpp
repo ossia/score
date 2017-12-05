@@ -94,4 +94,34 @@ QRectF View::boundingRect() const
 {
   return m_rect;
 }
+
+QPixmap View::pixmap()
+{
+    // Retrieve the bounding rect
+    QRect rect = boundingRect().toRect();
+    if (rect.isNull() || !rect.isValid()) {
+        return QPixmap();
+    }
+
+    // Create the pixmap
+    QPixmap pixmap(rect.size());
+    pixmap.fill(Qt::transparent);
+
+    // Render
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setRenderHint(QPainter::TextAntialiasing, true);
+    painter.translate(-rect.topLeft());
+    paint(&painter, nullptr, nullptr);
+    for (QGraphicsItem* child : childItems()) {
+        painter.save();
+        painter.translate(child->mapToParent(pos()));
+        child->paint(&painter, nullptr, nullptr);
+        painter.restore();
+    }
+
+    painter.end();
+
+    return pixmap;
+}
 }

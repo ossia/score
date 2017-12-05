@@ -51,6 +51,7 @@ public:
             this, [this] (QPointF pt) { m_sm.createPoint(pt); });
 
     parentGeometryChanged();
+    m_view->setCurveView(&m_curve.view());
   }
 
   virtual ~CurveProcessPresenter()
@@ -129,6 +130,9 @@ public:
     m_curve.fillContextMenu(menu, pos, scenepos);
   }
 
+  LayerView_T*  view(){
+    return m_view.impl;
+  }
 
 protected:
   const Model_T& m_layer;
