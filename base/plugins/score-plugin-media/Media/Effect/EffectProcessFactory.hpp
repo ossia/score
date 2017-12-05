@@ -79,7 +79,7 @@ class View final : public Process::ILayerView
                   this, [&] () {
                 auto cmd = new Commands::RemoveEffect{object, effect};
                 CommandDispatcher<> disp{doc.commandStack}; disp.submitCommand(cmd);
-          });
+          }, Qt::QueuedConnection);
 
           title_lay->addWidget(name);
           title_lay->addWidget(uibtn);
@@ -94,9 +94,12 @@ class View final : public Process::ILayerView
         }
 
         double pos_y = 40;
-        for(int i = 1; i < effect.inlets().size(); i++)
+        for(auto& e : effect.inlets())
         {
-          auto inlet = static_cast<Process::ControlInlet*>(effect.inlets()[i]);
+          auto inlet = dynamic_cast<Process::ControlInlet*>(e);
+          if(!inlet)
+            continue;
+
           connect(inlet, &Process::ControlInlet::uiVisibleChanged,
                   this, [&] { setup(object, doc); });
           if(inlet->uiVisible())

@@ -1,11 +1,22 @@
 #include "EffectInspector.hpp"
 
-#include <Media/Effect/Effect/Faust/FaustEffectModel.hpp>
 #include <Media/Commands/InsertEffect.hpp>
 #include <Media/Commands/EditFaustEffect.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <QPlainTextEdit>
+#include <QVBoxLayout>
+#include <QDialogButtonBox>
+#include <QDialog>
+#include <QListWidget>
+#include <QPushButton>
+#include <QInputDialog>
+#include <QFileDialog>
 
-#if defined(LILV_SHARED) // TODO instead add a proper preprocessor macro that also works in static case
+#if defined(HAS_FAUST)
+#include <Media/Effect/Faust/FaustEffectModel.hpp>
+#endif
+
+#if defined(LILV_SHARED)
 #include <lilv/lilvmm.hpp>
 #include <lv2/lv2plug.in/ns/extensions/ui/ui.h>
 #include <Media/Effect/LV2/LV2EffectModel.hpp>
@@ -16,48 +27,10 @@
 #include <Media/Effect/VST/VSTEffectModel.hpp>
 #endif
 
-#include <QPlainTextEdit>
-#include <QVBoxLayout>
-#include <QDialogButtonBox>
-#include <QDialog>
-#include <QListWidget>
-#include <QPushButton>
-#include <QInputDialog>
-#include <QFileDialog>
-
 namespace Media
 {
 namespace Effect
 {
-struct FaustEditDialog : public QDialog
-{
-        const FaustEffectModel& m_effect;
-
-        QPlainTextEdit* m_textedit{};
-    public:
-        FaustEditDialog(const FaustEffectModel& fx):
-            m_effect{fx}
-        {
-            auto lay = new QVBoxLayout;
-            this->setLayout(lay);
-
-            m_textedit = new QPlainTextEdit{m_effect.text()};
-
-            lay->addWidget(m_textedit);
-            auto bbox = new QDialogButtonBox{
-                    QDialogButtonBox::Ok | QDialogButtonBox::Cancel};
-            lay->addWidget(bbox);
-            connect(bbox, &QDialogButtonBox::accepted,
-                    this, &QDialog::accept);
-            connect(bbox, &QDialogButtonBox::rejected,
-                    this, &QDialog::reject);
-        }
-
-        QString text() const
-        {
-            return m_textedit->document()->toPlainText();
-        }
-};
 
 InspectorWidget::InspectorWidget(
         const Effect::ProcessModel &object,
@@ -79,39 +52,14 @@ InspectorWidget::InspectorWidget(
             this, [=] (QListWidgetItem* item) {
         // Make a text dialog to edit faust program.
         auto id = item->data(Qt::UserRole).value<Id<EffectModel>>();
-
         auto proc = &process().effects().at(id);
-#if defined(HAS_FAUST)
-        if(auto faust = dynamic_cast<FaustEffectModel*>(proc))
-        {
-            FaustEditDialog edit{*faust};
-            auto res = edit.exec();
-            if(res)
-            {
-                m_dispatcher.submitCommand(new Commands::EditFaustEffect{*faust, edit.text()});
-            }
-        }
-#endif
-        /*
-#if defined(LILV_SHARED)
-        if(auto lv2 = dynamic_cast<LV2EffectModel*>(proc))
-        {
-            // One can take inspiration from Qtractor, and cry a lot.
-        }
-#endif
-        */
-
-#if defined(HAS_VST2)
-        if(auto vst = dynamic_cast<VST::VSTEffectModel*>(proc))
-        {
-
-        }
-#endif
+        proc->showUI();
     }, Qt::QueuedConnection);
 
     recreate();
 
     // Add an effect
+#if defined(HAS_FAUST)
     m_add = new QPushButton{tr("Add (Faust)")};
     connect(m_add, &QPushButton::pressed,
             this, [=] () {
@@ -124,6 +72,7 @@ InspectorWidget::InspectorWidget(
     });
 
     lay->addWidget(m_add);
+#endif
 
 #if defined(LILV_SHARED)
     auto add_lv2 = new QPushButton{tr("Add (LV2)")};
@@ -171,6 +120,8 @@ InspectorWidget::InspectorWidget(
         QString defaultPath;
 #if defined(__APPLE__)
         defaultPath = "/Library/Audio/Plug-Ins/VST";
+#elif defined(__linux__)
+        defaultPath = "/usr/lib/vst";
 #endif
         auto res = QFileDialog::getOpenFileName(
                      this,

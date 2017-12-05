@@ -5,6 +5,36 @@ namespace Media
 namespace Effect
 {
 
+struct FaustEditDialog : public QDialog
+{
+        const FaustEffectModel& m_effect;
+
+        QPlainTextEdit* m_textedit{};
+    public:
+        FaustEditDialog(const FaustEffectModel& fx):
+            m_effect{fx}
+        {
+            auto lay = new QVBoxLayout;
+            this->setLayout(lay);
+
+            m_textedit = new QPlainTextEdit{m_effect.text()};
+
+            lay->addWidget(m_textedit);
+            auto bbox = new QDialogButtonBox{
+                    QDialogButtonBox::Ok | QDialogButtonBox::Cancel};
+            lay->addWidget(bbox);
+            connect(bbox, &QDialogButtonBox::accepted,
+                    this, &QDialog::accept);
+            connect(bbox, &QDialogButtonBox::rejected,
+                    this, &QDialog::reject);
+        }
+
+        QString text() const
+        {
+            return m_textedit->document()->toPlainText();
+        }
+};
+
 FaustEffectModel::FaustEffectModel(
         const QString& faustProgram,
         const Id<EffectModel>& id,
@@ -74,6 +104,21 @@ void FaustEffectModel::reload()
     }
 
     emit effectChanged();
+}
+
+void FaustEffectModel::showUI()
+{
+  FaustEditDialog edit{*faust};
+  auto res = edit.exec();
+  if(res)
+  {
+      m_dispatcher.submitCommand(new Commands::EditFaustEffect{*faust, edit.text()});
+  }
+}
+
+void FaustEffectModel::hideUI()
+{
+
 }
 
 

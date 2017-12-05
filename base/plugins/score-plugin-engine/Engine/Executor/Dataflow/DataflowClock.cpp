@@ -140,6 +140,12 @@ void Clock::stop_impl(
       }
     }
 
+    m_plug.execState.clear();
+
+    m_plug.execState.globalState.clear();
+    m_plug.execState.messages.clear();
+    m_plug.execState.mess_values.clear();
+
   });
   m_plug.audioProto().ui_tick = { };
   m_plug.audioProto().replace_tick = true;

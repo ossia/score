@@ -54,6 +54,8 @@ class FaustEffectModel :
         }
 
         void setText(const QString& txt);
+        void showUI() override;
+        void hideUI() override;
 
     private:
         void init();
