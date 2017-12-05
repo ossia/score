@@ -1,7 +1,13 @@
 #include "SlotHeader.hpp"
+#include <Process/ProcessMimeSerialization.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
 #include <Scenario/Document/Interval/IntervalView.hpp>
+
+#include <Automation/AutomationPresenter.hpp>
+#include <Curve/CurveView.hpp>
+
+#include <Process/LayerView.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <QGraphicsSceneEvent>
 #include <QDrag>
@@ -64,7 +70,7 @@ void SlotHeader::paint(
   // Menu
   double centerX = m_width - 8.;
   double centerY = 7.5;
-  double r = 4.5;
+  double r = 4.;
   painter->setBrush(style.MinimapBrush);
   painter->drawEllipse(QPointF{centerX, centerY}, r, r);
   r -= 1.;
@@ -115,11 +121,11 @@ void SlotHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     QMimeData *mime = new QMimeData;
     drag->setMimeData(mime);
 
-    mime->setData("application/x-score-layerdrag", {});
-    /*
-    drag->setPixmap(QPixmap::fromImage(image).scaled(30, 40));
-    drag->setHotSpot(QPoint(15, 30));
-    */
+    mime->setData(score::mime::layerdata(), {});
+
+    auto view = m_presenter.getSlots()[m_slotIndex].processes.front().view;
+    drag->setPixmap( view->pixmap() );
+    drag->setHotSpot(QPoint(5, 5));
 
     drag->exec();
   }
