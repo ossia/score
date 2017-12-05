@@ -95,7 +95,7 @@ struct Node
           new_val = std::cauchy_distribution<float>(0, coarse + fine)(rd);
           break;
       }
-      out.add_value(new_val + offset);
+      out.add_raw_value(new_val + offset);
     }
 
     s.phase += (tk.date - prev_date);

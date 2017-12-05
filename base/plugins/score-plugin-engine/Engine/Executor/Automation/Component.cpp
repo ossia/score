@@ -101,7 +101,11 @@ class automation_node final :
     {
       if(d)
       {
-        m_outlets.front()->address = &d->address();
+        auto& port = *m_outlets.front();
+        port.address = &d->address();
+        auto& vp = *port.data.target<ossia::value_port>();
+        vp.type = d->unit;
+        vp.index = d->index;
       }
       else
       {
@@ -133,7 +137,7 @@ class automation_node final :
       vp->add_value(
             ossia::apply(
               ossia::detail::compute_value_visitor{t.position, type},
-              m_drive));
+              m_drive), t.date);
     }
 
     ossia::behavior m_drive;

@@ -75,7 +75,7 @@ struct Node
                 ossia::tvalue t;
                 t.value = ossia::impulse{};
                 t.timestamp = next - prev_date;
-                res.add_value(t);
+                res.add_raw_value(t);
             }
         }
     }

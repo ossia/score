@@ -96,7 +96,7 @@ class mapping_node final :
           ossia::tvalue newval = tv;
           newval.value = ossia::apply(ossia::detail::mapper_compute_visitor{}, tv.value, m_drive.v);
 
-          op->add_value(std::move(newval));
+          op->add_raw_value(std::move(newval));
         }
       }
     }

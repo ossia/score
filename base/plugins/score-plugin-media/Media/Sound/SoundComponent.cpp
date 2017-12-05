@@ -341,7 +341,7 @@ public:
     auto i = m_inlets[0]->data.target<ossia::value_port>();
     auto o = m_outlets[0]->data.target<ossia::value_port>();
     for(const auto& m : i->get_data())
-      o->add_value(m);
+      o->add_raw_value(m);
   }
 };
 

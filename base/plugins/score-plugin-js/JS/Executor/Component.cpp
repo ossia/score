@@ -233,7 +233,7 @@ void js_node::run(ossia::token_request t, ossia::execution_state&)
   for(int i = 0; i < m_valOutlets.size(); i++)
   {
     auto& dat = *m_valOutlets[i].second->data.target<ossia::value_port>();
-    dat.add_value(ossia::qt::qt_to_ossia{}(m_valOutlets[i].first->value()));
+    dat.add_raw_value(ossia::qt::qt_to_ossia{}(m_valOutlets[i].first->value()));
   }
 
   for(int out = 0; out < m_audOutlets.size(); out++)

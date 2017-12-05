@@ -1,4 +1,5 @@
 #include "Widgets.hpp"
+#include "Layer.hpp"
 
 namespace Process
 {
@@ -11,6 +12,37 @@ const QPalette& transparentPalette()
       return palette;
                     }()};
   return p;
+}
+
+ILayerView::~ILayerView()
+{
+
+}
+
+void RectItem::setRect(QRectF r) { prepareGeometryChange(); m_rect = r; }
+
+QRectF RectItem::boundingRect() const
+{
+  return m_rect;
+}
+
+void RectItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+  painter->setRenderHint(QPainter::Antialiasing, true);
+  painter->setBrush(ScenarioStyle::instance().TransparentBrush);
+  painter->setPen(ScenarioStyle::instance().MinimapPen);
+  painter->drawRoundedRect(m_rect, 5, 5);
+  painter->setRenderHint(QPainter::Antialiasing, false);
+}
+
+void RectItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+{
+  this->setZValue(10);
+}
+
+void RectItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+{
+  this->setZValue(0);
 }
 
 void ToggleButton::paintEvent(QPaintEvent* event)
