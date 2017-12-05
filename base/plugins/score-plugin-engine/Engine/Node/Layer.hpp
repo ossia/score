@@ -14,11 +14,13 @@
 namespace Process
 {
 
-class ILayerView : public Process::LayerView
+
+class SCORE_PLUGIN_ENGINE_EXPORT ILayerView : public Process::LayerView
 {
     Q_OBJECT
   public:
     using Process::LayerView::LayerView;
+    ~ILayerView();
 
   signals:
     void pressed();
@@ -26,35 +28,19 @@ class ILayerView : public Process::LayerView
     void contextMenuRequested(QPoint);
 };
 
-struct RectItem : public QObject, public QGraphicsItem
+struct SCORE_PLUGIN_ENGINE_EXPORT RectItem : public QObject, public QGraphicsItem
 {
 
     QRectF m_rect{};
 public:
     using QGraphicsItem::QGraphicsItem;
-    void setRect(QRectF r) { prepareGeometryChange(); m_rect = r; }
-  QRectF boundingRect() const override
-  {
-    return m_rect;
-  }
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
-  {
-    painter->setRenderHint(QPainter::Antialiasing, true);
-    painter->setBrush(ScenarioStyle::instance().TransparentBrush);
-    painter->setPen(ScenarioStyle::instance().MinimapPen);
-    painter->drawRoundedRect(m_rect, 5, 5);
-    painter->setRenderHint(QPainter::Antialiasing, false);
-  }
+    void setRect(QRectF r);
+  QRectF boundingRect() const override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
 protected:
-  void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override
-  {
-    this->setZValue(10);
-  }
-  void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override
-  {
-    this->setZValue(0);
-  }
+  void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
+  void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
 };
 template <typename Info>
 class ControlLayerView final : public ILayerView
@@ -253,5 +239,4 @@ private:
     return nullptr;
   }
 };
-
 }

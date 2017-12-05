@@ -63,7 +63,7 @@ struct Node
           output.value = 0;
         }
 
-        p2.add_value(output);
+        p2.add_raw_value(output);
       }
     }
   }

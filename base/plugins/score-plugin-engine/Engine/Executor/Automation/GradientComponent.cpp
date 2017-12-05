@@ -34,11 +34,11 @@ class gradient_node : public ossia::graph_node
       auto beg = m_data.begin();
       if(beg->first >= position)
       {
-        out.add_value(ossia::argb{beg->second}.dataspace_value);
+        out.add_raw_value(ossia::argb{beg->second}.dataspace_value);
       }
       else if(!mustTween)
       {
-        out.add_value(ossia::argb{beg->second}.dataspace_value);
+        out.add_raw_value(ossia::argb{beg->second}.dataspace_value);
       }
       else
       {
@@ -55,7 +55,7 @@ class gradient_node : public ossia::graph_node
             tween = ossia::argb{beg->second};
           }
         }
-        out.add_value(ease_color(0., *tween, beg->first, beg->second, position).dataspace_value);
+        out.add_raw_value(ease_color(0., *tween, beg->first, beg->second, position).dataspace_value);
       }
     }
 
@@ -66,7 +66,7 @@ class gradient_node : public ossia::graph_node
       switch (m_data.size())
       {
         case 0:
-          out.add_value(ossia::vec4f{0., 0., 0., 0.});
+          out.add_raw_value(ossia::vec4f{0., 0., 0., 0.});
           return;
         case 1:
           handle_before_first(t.position);
@@ -83,14 +83,14 @@ class gradient_node : public ossia::graph_node
           // past end
           if (it_next == m_data.end())
           {
-            out.add_value(ossia::argb{m_data.rbegin()->second}.dataspace_value);
+            out.add_raw_value(ossia::argb{m_data.rbegin()->second}.dataspace_value);
             return;
           }
 
           auto it_prev = it_next;
           --it_prev;
 
-          out.add_value(
+          out.add_raw_value(
                 ease_color(it_prev->first, it_prev->second,
                            it_next->first, it_next->second, t.position).dataspace_value);
           return;

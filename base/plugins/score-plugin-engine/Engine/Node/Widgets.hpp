@@ -72,7 +72,7 @@ struct FloatSlider : ControlInfo
     });
 
     QObject::connect(&inlet, &ControlInlet::valueChanged,
-            context, [=] (ossia::value val) {
+            sl, [=] (ossia::value val) {
       if(!sl->moving)
         sl->setValue((ossia::convert<double>(val) - min) / (max - min));
     });
@@ -139,7 +139,7 @@ struct LogFloatSlider : ControlInfo
     });
 
     QObject::connect(&inlet, &ControlInlet::valueChanged,
-            context, [=] (ossia::value val) {
+            sl, [=] (ossia::value val) {
       if(!sl->moving)
         sl->setValue(to01(min, max, ossia::convert<double>(val)));
     });
@@ -197,7 +197,7 @@ struct IntSlider: ControlInfo
     });
 
     QObject::connect(&inlet, &ControlInlet::valueChanged,
-            context, [sl] (ossia::value val) {
+            sl, [sl] (ossia::value val) {
       if(!sl->moving)
         sl->setValue(ossia::convert<int>(val));
     });
@@ -248,7 +248,7 @@ struct IntSpinBox: ControlInfo
     });
 
     QObject::connect(&inlet, &ControlInlet::valueChanged,
-            context, [sl] (ossia::value val) {
+            sl, [sl] (ossia::value val) {
       sl->setValue(ossia::convert<int>(val));
     });
 
@@ -288,7 +288,7 @@ struct Toggle: ControlInfo
     });
 
     QObject::connect(&inlet, &ControlInlet::valueChanged,
-            context, [sl] (ossia::value val) {
+            sl, [sl] (ossia::value val) {
       sl->setChecked(ossia::convert<bool>(val));
     });
 
@@ -333,7 +333,7 @@ struct ChooserToggle: ControlInfo
     });
 
     QObject::connect(&inlet, &ControlInlet::valueChanged,
-            context, [sl] (ossia::value val) {
+            sl, [sl] (ossia::value val) {
       sl->setChecked(ossia::convert<bool>(val));
     });
 
@@ -372,7 +372,7 @@ struct LineEdit: ControlInfo
     });
 
     QObject::connect(&inlet, &ControlInlet::valueChanged,
-            context, [sl] (ossia::value val) {
+            sl, [sl] (ossia::value val) {
       sl->setText(QString::fromStdString(ossia::convert<std::string>(val)));
     });
 
@@ -441,7 +441,7 @@ struct ComboBox: ControlInfo
     });
 
     QObject::connect(&inlet, &ControlInlet::valueChanged,
-            context, [=] (const ossia::value& val) {
+            sl, [=] (const ossia::value& val) {
       set_index(val);
     });
 
@@ -485,7 +485,7 @@ struct ComboBox: ControlInfo
     });
 
     QObject::connect(&inlet, &ControlInlet::valueChanged,
-            context, [=] (const ossia::value& val) {
+            sl, [=] (const ossia::value& val) {
       if(sl->moving)
         return;
 
@@ -561,7 +561,7 @@ struct Enum: ControlInfo
     });
 
     QObject::connect(&inlet, &ControlInlet::valueChanged,
-            context, [=] (const ossia::value& val) {
+            sl, [=] (const ossia::value& val) {
       set_index(val);
     });
 
@@ -601,7 +601,7 @@ struct Enum: ControlInfo
     });
 
     QObject::connect(&inlet, &ControlInlet::valueChanged,
-            context, [=] (const ossia::value& val) {
+            sl, [=] (const ossia::value& val) {
       if(sl->moving)
         return;
 
