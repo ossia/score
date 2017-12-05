@@ -55,6 +55,14 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/Missing/MissingEffectModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Inspector/EffectInspector.hpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Commands.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Metadata.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Executor.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Factory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Inspector.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Model.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Presenter.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/View.hpp"
 
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/MediaFileHandle.hpp"
@@ -92,6 +100,14 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/Missing/MissingEffectModel.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Inspector/EffectInspector.cpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Commands.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Executor.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Inspector.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Model.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Presenter.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/View.cpp"
+
+
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/MediaFileHandle.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioDecoder.cpp"
@@ -100,6 +116,15 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_media.cpp"
 )
 
+
+if(TARGET Faust)
+    set(FAUST_HDRS
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Faust/FaustEffectModel.hpp"
+        )
+    set(FAUST_SRCS
+      "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Faust/FaustEffectModel.cpp"
+    )
+endif()
 
 if(TARGET Lilv)
     set(LV2_HDRS
@@ -142,6 +167,7 @@ if(TARGET Vst2SDK)
 endif()
 add_library(${PROJECT_NAME}
   ${SRCS} ${HDRS}
+  ${FAUST_SRCS} ${FAUST_HDRS}
   ${LV2_SRCS} ${LV2_HDRS}
   ${VST_SRCS} ${VST_HDRS}
   ${FAUST_HDRS} ${FAUST_SRCS}

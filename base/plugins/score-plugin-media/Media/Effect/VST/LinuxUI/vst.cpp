@@ -10,6 +10,10 @@ void show_vst2_editor(AEffect* effect, uint16_t width, uint16_t height)
   {
     effect->dispatcher(effect, effEditOpen, 0, 0, (void*)container->winId(), 0);
     container->show();
+    container->setMinimumHeight(height);
+    container->setMaximumHeight(height);
+    container->setMinimumWidth(width);
+    container->setMaximumWidth(width);
     return;
   }
   container = new QWindow;

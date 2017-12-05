@@ -4,12 +4,15 @@
 #include <QDropEvent>
 #include <QVBoxLayout>
 #include <QFileInfo>
-#include <Media/Effect/Effect/Faust/FaustEffectModel.hpp>
 #include <Media/Effect/Effect/Widgets/EffectWidget.hpp>
 #include <score/widgets/ClearLayout.hpp>
 #include <Media/Commands/InsertEffect.hpp>
 #include <Media/Effect/EffectProcessModel.hpp>
 #include <score/document/DocumentContext.hpp>
+
+#if defined(HAS_FAUST)
+#include <Media/Effect/Faust/FaustEffectModel.hpp>
+#endif
 
 #if defined(LILV_SHARED)
 #include <lilv/lilvmm.hpp>
@@ -112,6 +115,7 @@ void EffectListWidget::dropEvent(QDropEvent *event)
             QFileInfo info(path);
             if(info.isFile())
             {
+#if defined(HAS_FAUST)
                 QFile f{path};
                 if(f.open(QIODevice::ReadOnly))
                 {
@@ -127,7 +131,7 @@ void EffectListWidget::dropEvent(QDropEvent *event)
                         pos++;
                     }
                 }
-
+#endif
             }
             else if(info.isDir())
             {

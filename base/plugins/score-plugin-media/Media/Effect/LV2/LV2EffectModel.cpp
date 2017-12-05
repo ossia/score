@@ -90,6 +90,7 @@ void LV2EffectModel::readPlugin()
   for(int port_id : data.control_in_ports)
   {
     auto port = new Process::ControlInlet{Id<Process::Port>{in_id++}, this};
+    port->setUiVisible(true);
 
     port->setDomain(State::Domain{ossia::make_domain(fParamMin[port_id], fParamMax[port_id])});
     port->setValue(fParamInit[port_id]);
@@ -169,7 +170,6 @@ void LV2EffectModel::reload()
       metadata().setLabel(QString(plug.get_name().as_string()));
       effectContext.plugin.me = plug;
       readPlugin();
-      //m_effect = MakeLV2MediaEffect(&app_plug.lv2_host_context, &effectContext);
       return;
     }
     else if(!isFile && QString(plug.get_name().as_string()) == path)
@@ -177,7 +177,6 @@ void LV2EffectModel::reload()
       plugin = plug.me;
       effectContext.plugin.me = plug;
       readPlugin();
-      //m_effect = MakeLV2MediaEffect(&app_plug.lv2_host_context, &effectContext);
       metadata().setLabel(QString(plug.get_name().as_string()));
       return;
     }

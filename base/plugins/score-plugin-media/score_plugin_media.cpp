@@ -13,6 +13,8 @@
 #include <Media/Effect/Effect/EffectFactory.hpp>
 #include <Media/Effect/Inspector/EffectInspector.hpp>
 #include <Media/Sound/SoundComponent.hpp>
+#include <Media/Step/Factory.hpp>
+#include <Media/Step/Executor.hpp>
 
 #if defined(LILV_SHARED)
 #include <Media/Effect/LV2/LV2EffectModel.hpp>
@@ -55,22 +57,26 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
             , Media::Sound::ProcessFactory
             , Media::Input::ProcessFactory
             , Media::Effect::ProcessFactory
+            , Media::Step::ProcessFactory
             >,
         FW<Inspector::InspectorWidgetFactory
             , Media::Sound::InspectorFactory
             , Media::Input::InspectorFactory
             , Media::Effect::InspectorFactory
+            // , Media::Step::InspectorFactory
             >,
         FW<Process::LayerFactory
           , Media::Sound::LayerFactory
           , Media::Input::LayerFactory
           , Media::Effect::LayerFactory
+          , Media::Step::LayerFactory
             >,
 
         FW<Engine::Execution::ProcessComponentFactory
           , Engine::Execution::SoundComponentFactory
           , Engine::Execution::InputComponentFactory
           , Engine::Execution::EffectComponentFactory
+       //   , Engine::Execution::StepComponentFactory
         >,
         FW<Media::Effect::EffectFactory
     #if defined(HAS_FAUST)
