@@ -45,16 +45,14 @@ auto timestamp(const T& p)
   return p.timestamp;
 }
 
-
 template<typename Info>
 class ControlNode :
     public ossia::graph_node
-    , public decltype(get_state(Info::info))
+    , public get_state<Info>::type
 {
 public:
   using info = InfoFunctions<Info>;
-  using state_type = decltype(get_state(Info::info));
-  static const constexpr bool has_state = !std::is_same_v<state_type, dummy_t>;
+  static const constexpr bool has_state = has_state_t<Info>::value;
 
   using controls_list = std::array<ossia::value, InfoFunctions<Info>::control_count>;
   using controls_changed_list = std::bitset<InfoFunctions<Info>::control_count>;
@@ -423,10 +421,7 @@ public:
     else if constexpr(has_run<T>::value) return wrap_run<T>(std::forward<Args>(args)...);
     else throw;
   }
-
-
-
-
+  
   void run(ossia::token_request tk, ossia::execution_state& st) override
   {
     using inlets_indices = std::make_index_sequence<info::audio_in_count + info::midi_in_count + info::value_in_count>;

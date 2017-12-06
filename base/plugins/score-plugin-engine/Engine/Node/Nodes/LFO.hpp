@@ -1,4 +1,5 @@
 #pragma once
+#include <QtMath>
 #include <Engine/Node/PdNode.hpp>
 #include <array>
 #include <tuple>

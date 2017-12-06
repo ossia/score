@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <utility>
 #include <vector>
+#include <set>
 
 #include "AddProcessDialog.hpp"
 #include <Process/ProcessFactory.hpp>

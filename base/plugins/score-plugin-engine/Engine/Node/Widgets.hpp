@@ -35,6 +35,12 @@ struct FloatSlider : ControlInfo
   const float max{};
   const float init{};
 
+  template<std::size_t N>
+  constexpr FloatSlider(const char (&name)[N], float v1, float v2, float v3):
+    ControlInfo{name}, min{v1}, max{v2}, init{v3}
+  {
+  }
+  
   auto getMin() const { return min; }
   auto getMax() const { return max; }
 
@@ -94,6 +100,12 @@ struct LogFloatSlider : ControlInfo
   const float max{};
   const float init{};
 
+  template<std::size_t N>
+  constexpr LogFloatSlider(const char (&name)[N], float v1, float v2, float v3):
+    ControlInfo{name}, min{v1}, max{v2}, init{v3}
+  {
+  }
+  
   auto getMin() const { return min; }
   auto getMax() const { return max; }
 
@@ -161,6 +173,12 @@ struct IntSlider: ControlInfo
   const int max{};
   const int init{};
 
+  template<std::size_t N>
+  constexpr IntSlider(const char (&name)[N], int v1, int v2, int v3):
+    ControlInfo{name}, min{v1}, max{v2}, init{v3}
+  {
+  }
+  
   auto getMin() const { return min; }
   auto getMax() const { return max; }
 
@@ -219,6 +237,12 @@ struct IntSpinBox: ControlInfo
   const int max{};
   const int init{};
 
+  template<std::size_t N>
+  constexpr IntSpinBox(const char (&name)[N], int v1, int v2, int v3):
+    ControlInfo{name}, min{v1}, max{v2}, init{v3}
+  {
+  }
+  
   auto getMin() const { return min; }
   auto getMax() const { return max; }
 
@@ -264,6 +288,12 @@ struct IntSpinBox: ControlInfo
 };
 struct Toggle: ControlInfo
 {
+  template<std::size_t N>
+  constexpr Toggle(const char (&name)[N], bool v1):
+    ControlInfo{name}, init{v1}
+  {
+  }
+  
   using type = bool;
   const bool init{};
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
@@ -305,9 +335,15 @@ struct Toggle: ControlInfo
 
 struct ChooserToggle: ControlInfo
 {
+  template<std::size_t N>
+  constexpr ChooserToggle(const char (&name)[N], std::array<const char*, 2> alt, bool v1):
+    ControlInfo{name}, alternatives{alt}, init{v1}
+  {
+  }
   using type = bool;
   std::array<const char*, 2> alternatives;
   const bool init{};
+  
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
     auto p = new Process::ControlInlet(id, parent);
@@ -348,6 +384,12 @@ struct ChooserToggle: ControlInfo
 };
 struct LineEdit: ControlInfo
 {
+  template<std::size_t N>
+  constexpr LineEdit(const char (&name)[N], QLatin1Literal v1):
+    ControlInfo{name}, init{v1}
+  {
+  }
+  
   using type = std::string;
   const QLatin1Literal init{};
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
@@ -402,6 +444,12 @@ struct ComboBox: ControlInfo
   const std::size_t init{};
   const std::array<std::pair<const char*, T>, N> values;
 
+  template<std::size_t N, typename Arr>
+  constexpr ComboBox(const char (&name)[N], std::size_t in, Arr arr):
+    ControlInfo{name}, init{in}, values{arr}
+  {
+  }
+  
   const auto& getValues() const { return values; }
 
   auto create_inlet(Id<Process::Port> id, QObject* parent) const

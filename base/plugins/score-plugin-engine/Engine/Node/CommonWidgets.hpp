@@ -62,16 +62,16 @@ static constexpr auto WaveformChooser()
                 );
 }
 constexpr auto QuantificationChooser()
-{ return Process::ComboBox<float, std::size(notes)>{"Quant.", 2, notes}; }
+{ return Process::ComboBox<float, std::size(notes)>("Quant.", 2, notes); }
 
 constexpr auto MusicalDurationChooser()
-{ return Process::ComboBox<float, std::size(nonnull_notes)>{"Dur.", 2, nonnull_notes}; }
+{ return Process::ComboBox<float, std::size(nonnull_notes)>("Dur.", 2, nonnull_notes); }
 constexpr auto DurationChooser()
-{ return Process::ComboBox<float, std::size(notes)>{"Dur.", 2, notes}; }
+{ return Process::ComboBox<float, std::size(notes)>("Dur.", 2, notes); }
 constexpr auto FreqChooser()
-{ return Process::LogFloatSlider{"Freq.", 1., 20000., 200.}; }
+{ return Process::LogFloatSlider("Freq.", 1.f, 20000.f, 200.f); }
 constexpr auto LFOFreqChooser()
-{ return Process::LogFloatSlider{"Freq.", 0.01, 100., 1.}; }
+{ return Process::LogFloatSlider("Freq.", 0.01f, 100.f, 1.f); }
 
 
 template<typename T>

@@ -69,5 +69,5 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 
 setup_score_library(${PROJECT_NAME})
 
-setup_score_tests(Tests)
+#setup_score_tests(Tests)
 

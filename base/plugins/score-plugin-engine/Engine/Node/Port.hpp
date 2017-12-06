@@ -1,4 +1,5 @@
 #pragma once
+
 #include <QString>
 #include <cstdint>
 #include <array>
@@ -48,7 +49,7 @@ struct MidiOutInfo {
 struct ControlInfo {
   const QLatin1String name;
 
-  template<std::size_t N, typename... Args>
+  template<std::size_t N>
   constexpr ControlInfo(const char (&name)[N]):
     name{name, N}
   {

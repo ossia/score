@@ -9,12 +9,32 @@ static inline constexpr void test_nodes()
   constexpr auto res =
   n.audio_ins({{"foo"}, {"bar"}})
    .audio_outs({{"mimi"}});
+  /*
 
-  static_assert(get_ports<AudioInInfo>(res.build()).size() == 2);
-  static_assert(get_ports<AudioOutInfo>(res.build()).size() == 1);
-  static_assert(get_ports<AudioInInfo>(res.build())[0].name[0] == 'f');
-  static_assert(get_ports<AudioInInfo>(res.build())[1].name[0] == 'b');
-  static_assert(get_ports<AudioOutInfo>(res.build())[0].name[0] == 'm');
+  constexpr NodeInfo<std::array<AudioOutInfo, 1>, std::array<AudioInInfo, 2>>& bld = res.build();
+{
+  constexpr std::tuple<std::array<AudioOutInfo, 1>, std::array<AudioInInfo, 2>> t{bld};
+  
+  constexpr auto res2 = std::get<std::array<AudioInInfo, 2>>(t);
+  static_assert(res2[0].name[0] == 'f');
+  
+  constexpr auto res1 = std::get<std::array<AudioOutInfo, 1>>(t);
+  static_assert(res1[0].name[0] == 'm');
+}
+  constexpr auto res2 = std::get<std::array<AudioInInfo, 2>>(bld.v);
+  static_assert(res2[0].name[0] == 'f');
+  
+  constexpr auto res1 = std::get<std::array<AudioOutInfo, 1>>(bld.v);
+  static_assert(res1[0].name[0] == 'm');
+  
+  static_assert(get_ports<AudioInInfo>(bld.v).size() == 2);
+  static_assert(get_ports<AudioOutInfo>(bld.v).size() == 1);
+  static_assert(get_ports<AudioInInfo>(bld.v)[0].name[0] == 'f');
+  static_assert(get_ports<AudioInInfo>(bld.v)[1].name[0] == 'b');
+  constexpr auto ports = get_ports<AudioOutInfo>(bld.v);
+  constexpr auto port = ports[0];
+  constexpr auto name = port.name;
+  static_assert(name[0] == 'm');*/
 }
 }
 
