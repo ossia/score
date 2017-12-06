@@ -14,12 +14,8 @@ template<typename T>
 using timed_vec = boost::container::flat_map<int64_t, T>;
 
 
-
 template<typename... Args>
-struct NodeInfo: Args...
-{
-  using types = brigand::list<Args...>;
-};
+using NodeInfo = std::tuple<Args...>;
 
 template<typename... Args>
 static constexpr auto make_node(Args&&... args)
@@ -45,7 +41,7 @@ using Controls = std::array<ControlInfo, N>;
 template<typename T>
 struct StateWrapper
 {
-    using type = T;
+    using state_type = T;
 };
 template<typename... Args>
 struct NodeBuilder: Args...
@@ -57,6 +53,9 @@ struct NodeBuilder: Args...
   constexpr auto value_ins() const { return *this; }
   constexpr auto value_outs() const { return *this; }
   constexpr auto controls() const { return *this; }
+  
+  template<typename... SArgs>
+  constexpr NodeBuilder(SArgs&&... sargs): Args{sargs}... { }
 
   template<std::size_t N>
   constexpr auto audio_ins(const AudioInInfo (&arg)[N]) const {
@@ -118,15 +117,16 @@ struct dummy_container {
     static constexpr auto end() { return (T*)nullptr; }
     static constexpr std::size_t size() { return 0; }
 };
+
 template<typename PortType, typename T>
 static constexpr auto get_ports(const T& t)
 {
-  using index = brigand::index_if<typename T::types, is_port<PortType, brigand::_1>>;
+  using index = brigand::index_if<T, is_port<PortType, brigand::_1>>;
 
   if constexpr(!std::is_same<index, brigand::no_such_type_>::value)
   {
-    using array_type = brigand::at<typename T::types, index>;
-    return static_cast<const array_type&>(t);
+    using array_type = brigand::at<T, index>;
+    return std::get<array_type>(t);
   }
   else
   {
@@ -142,12 +142,12 @@ struct is_controls <std::tuple<Args...>> : std::true_type {};
 template<typename T>
 static constexpr auto get_controls(const T& t)
 {
-  using index = brigand::index_if<typename T::types, is_controls<brigand::_1>>;
+  using index = brigand::index_if<T, is_controls<brigand::_1>>;
 
   if constexpr(!std::is_same<index, brigand::no_such_type_>::value)
   {
-    using tuple_type = brigand::at<typename T::types, index>;
-    return static_cast<const tuple_type&>(t);
+    using tuple_type = brigand::at<T, index>;
+    return std::get<tuple_type>(t);
   }
   else
   {
@@ -155,26 +155,21 @@ static constexpr auto get_controls(const T& t)
   }
 }
 
-template<typename...>
-struct is_state : std::false_type {};
-template<typename T>
-struct is_state<StateWrapper<T>> : std::true_type {};
 struct dummy_t { };
-template<typename T>
-static constexpr auto get_state(const T& t)
-{
-  using index = brigand::index_if<typename T::types, is_state<brigand::_1>>;
 
-  if constexpr(!std::is_same<index, brigand::no_such_type_>::value)
-  {
-    using type = brigand::at<typename T::types, index>;
-    return typename type::type{};
-  }
-  else
-  {
-    return dummy_t{};
-  }
-}
+template<typename T>
+using my_void_t = void;
+template<typename T, typename = void>
+struct has_state_t : std::false_type{};
+template<typename T>
+struct has_state_t<T, my_void_t<typename T::State>> : std::true_type{};
+
+
+template<typename T, typename = void>
+struct get_state { using type = dummy_t; };
+template<typename T>
+struct get_state<T, my_void_t<typename T::State>> { using type = typename T::State; };
+
 static constexpr bool same(QLatin1String s1, QLatin1String s2)
 {
   if(s1.size() != s2.size())

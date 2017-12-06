@@ -142,5 +142,5 @@ if(OSSIA_DNSSD)
 endif()
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Core)
 setup_score_plugin(score_plugin_deviceexplorer)
-setup_score_tests(Tests)
+#setup_score_tests(Tests)
 

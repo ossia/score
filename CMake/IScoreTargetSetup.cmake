@@ -60,6 +60,7 @@ function(score_set_msvc_compile_options theTarget)
     "-wd4800" # conversion from int to bool, performance warning
     "-wd4503" # decorated name length exceeded
     "-MP"
+    "-std:c++latest"
     )
 
     target_compile_definitions(${theTarget} PUBLIC
@@ -196,7 +197,7 @@ function(score_set_unix_compile_options theTarget)
     -Werror=redundant-decls
     -Werror=return-type
     -Werror=trigraphs
-
+    -std=c++17
     # Release options
     "$<$<AND:$<CONFIG:Release>,$<BOOL:${NACL}>>:-O3>"
     "$<$<AND:$<CONFIG:Release>,$<NOT:$<BOOL:${NACL}>>>:-Ofast>"
@@ -211,7 +212,7 @@ function(score_set_unix_compile_options theTarget)
 endfunction()
 
 function(score_set_compile_options theTarget)
-  set_target_properties(${TheTarget} PROPERTIES CXX_STANDARD 17)
+  #set_target_properties(${TheTarget} PROPERTIES CXX_STANDARD 17)
   target_compile_definitions(${TheTarget} PUBLIC
       $<$<CONFIG:Debug>:SCORE_DEBUG>
       $<$<CONFIG:Debug>:BOOST_MULTI_INDEX_ENABLE_INVARIANT_CHECKING>

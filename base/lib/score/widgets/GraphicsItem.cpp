@@ -4,6 +4,7 @@
 #include <QGraphicsScene>
 
 #include "GraphicsItem.hpp"
+#include <score/plugins/customfactory/UuidKey.hpp>
 
 void deleteGraphicsObject(QGraphicsObject* item)
 {

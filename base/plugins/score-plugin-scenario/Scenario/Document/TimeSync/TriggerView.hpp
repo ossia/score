@@ -8,7 +8,7 @@ class QGraphicsSvgItem;
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
-
+class QMimeData;
 namespace Scenario
 {
 class TriggerView final : public QGraphicsSvgItem

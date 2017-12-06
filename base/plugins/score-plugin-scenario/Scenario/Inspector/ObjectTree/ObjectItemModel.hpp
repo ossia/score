@@ -15,7 +15,7 @@
 #include <QMenu>
 #include <QPushButton>
 #include <QLabel>
-
+#include <QLineEdit>
 class QToolButton;
 class QGraphicsSceneMouseEvent;
 namespace Scenario
