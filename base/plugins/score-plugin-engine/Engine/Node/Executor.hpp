@@ -1,5 +1,6 @@
 #pragma once
 #include <Engine/Node/Process.hpp>
+#include <Engine/Node/TickPolicy.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Device/Protocol/DeviceList.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
@@ -12,38 +13,20 @@
 namespace Process
 {
 
+template<typename T, typename = void>
+struct has_event_policy : std::false_type { };
+template<typename T>
+struct has_event_policy<T, std::void_t<typename T::event_policy>> : std::true_type { };
 
 template<typename T, typename = void>
-struct has_run : std::false_type { };
+struct has_audio_policy : std::false_type { };
 template<typename T>
-struct has_run<T, std::void_t<decltype(&T::run)>> : std::true_type { };
+struct has_audio_policy<T, std::void_t<typename T::audio_policy>> : std::true_type { };
 
 template<typename T, typename = void>
-struct has_run_precise : std::false_type { };
+struct has_control_policy : std::false_type { };
 template<typename T>
-struct has_run_precise<T, std::void_t<decltype(&T::run_precise)>> : std::true_type { };
-
-template<typename T, typename = void>
-struct has_run_last: std::false_type { };
-template<typename T>
-struct has_run_last<T, std::void_t<decltype(&T::run_last)>> : std::true_type { };
-
-template<typename T, typename = void>
-struct has_run_first_last: std::false_type { };
-template<typename T>
-struct has_run_first_last<T, std::void_t<decltype(&T::run_first_last)>> : std::true_type { };
-
-
-template<typename... Args>
-auto timestamp(const std::pair<Args...>& p)
-{
-  return p.first;
-}
-template<typename T>
-auto timestamp(const T& p)
-{
-  return p.timestamp;
-}
+struct has_control_policy<T, std::void_t<typename T::control_policy>> : std::true_type { };
 
 template<typename Info>
 class ControlNode :
@@ -53,6 +36,7 @@ class ControlNode :
 public:
   using info = InfoFunctions<Info>;
   static const constexpr bool has_state = has_state_t<Info>::value;
+  using state_type = typename get_state<Info>::type;
 
   using controls_list = std::array<ossia::value, InfoFunctions<Info>::control_count>;
   using controls_changed_list = std::bitset<InfoFunctions<Info>::control_count>;
@@ -122,9 +106,7 @@ public:
     static_assert(N < info::control_count);
 
     return [] (const ossia::inlets& inl, ControlNode& self) {
-      constexpr const auto controls = get_controls(Info::info);
-      constexpr const auto control = std::get<N>(controls);
-      using val_type = typename decltype(control)::type;
+      using val_type = typename std::tuple_element<N, decltype(get_controls(Info::info))>::type::type;
 
       // TODO instead, it should go as a member of the node for more perf
       timed_vec<val_type> vec;
@@ -134,7 +116,7 @@ public:
       // in all cases, set the current value at t=0
       vec.insert(std::make_pair(int64_t{0}, ossia::convert<val_type>(self.controls[N])));
 
-      // copy all the values
+      // copy all the values... values arrived later replace previous ones
       for(auto& v : vp)
       {
         vec[int64_t{v.timestamp}] = ossia::convert<val_type>(v.value);
@@ -179,249 +161,75 @@ public:
   }
 
   /////////////////
-  template<typename TickFun, typename... Args>
-  static auto precise_sub_tick(TickFun f, ossia::time_value prev_date, ossia::token_request req, const Process::timed_vec<Args>&... arg)
+
+  // Just expand three tuples
+  template<typename F, typename T1, typename T2, typename T3, std::size_t... N1, std::size_t... N2, std::size_t... N3, typename... Args>
+  static constexpr auto invoke_impl(F&& f, T1&& a1, T2&& a2, T3&& a3,
+                                    std::index_sequence<N1...> n1,
+                                    std::index_sequence<N2...> n2,
+                                    std::index_sequence<N3...> n3,
+                                    Args&&... args)
   {
-    constexpr const std::size_t N = sizeof...(arg);
-    auto iterators = std::make_tuple(arg.begin()...);
-    const auto last_iterators = std::make_tuple(--arg.end()...);
+    return f(std::get<N1>(std::forward<T1>(a1))..., std::get<N2>(std::forward<T2>(a2))..., std::get<N3>(std::forward<T3>(a3))..., std::forward<Args>(args)...);
+  }
 
-    // while all the it are != arg.rbegin(),
-    //  increment the smallest one
-    //  call a tick with this at the new date
+  template<typename F, typename T1, typename T2, typename T3, typename... Args>
+  static constexpr auto invoke(F&& f, T1&& a1, T2&& a2, T3&& a3, Args&&... args)
+  {
+    using I1 = std::make_index_sequence<std::tuple_size_v<std::decay_t<T1>>>;
+    using I2 = std::make_index_sequence<std::tuple_size_v<std::decay_t<T2>>>;
+    using I3 = std::make_index_sequence<std::tuple_size_v<std::decay_t<T3>>>;
 
-    auto reached_end = [&] {
-      bool b = true;
-      ossia::for_each_in_range<N>([&b,&iterators,&last_iterators] (auto i) {
-        b &= (std::get<i.value>(iterators) == std::get<i.value>(last_iterators));
-      });
-      return b;
-    };
+    return invoke_impl(std::forward<F>(f), std::forward<T1>(a1), std::forward<T2>(a2), std::forward<T3>(a3),
+                       I1{}, I2{}, I3{},
+                       std::forward<Args>(args)...);
+  }
 
-    //const auto parent_dur = req.date / req.position;
-    auto call_f = [&] (ossia::time_value cur) {
-      ossia::token_request r = req;
-      //r.date +=
-      std::apply([&] (const auto&... it) { f(prev_date, r, it->second...); }, iterators);
-    };
-
-    ossia::time_value current_time = req.offset;
-    while(!reached_end())
+  // Expand three tuples and applyu a function on the control tuple
+  template<typename F, typename T1, typename T2, typename T3, std::size_t... N1, std::size_t... N2, std::size_t... N3, typename... Args>
+  static constexpr auto invoke_impl_alt(F&& f, T1&& a1, T2&& a2, T3&& a3,
+                                    std::index_sequence<N1...> n1,
+                                    std::index_sequence<N2...> n2,
+                                    std::index_sequence<N3...> n3,
+                                    const ossia::time_value& prev_date,
+                                    const ossia::token_request& tk,
+                                    Args&&... rem)
+  {
+    f([&] (const ossia::time_value& sub_prev_date,
+           const ossia::token_request& sub_tk,
+           auto&&... args)
     {
-      // run a tick with the current values (TODO pass the current time too)
-      call_f(current_time);
-
-      std::bitset<sizeof...(Args)> to_increment;
-      to_increment.reset();
-      auto min = ossia::Infinite;
-      ossia::for_each_in_range<N>([&] (auto idx_t) {
-        constexpr auto idx = idx_t.value;
-        auto& it = std::get<idx>(iterators);
-        if(it != std::get<idx>(last_iterators))
-        {
-          auto next = it; ++next;
-          const auto next_ts = timestamp(*next);
-          const auto diff = next_ts - current_time;
-          if(diff < 0)
-          {
-            // token before offset, we increment in all cases
-            it = next;
-            return;
-          }
-
-          if(diff < min)
-          {
-            min = diff;
-            to_increment.reset();
-            to_increment.set(idx);
-          }
-          else if(diff == min)
-          {
-            to_increment.set(idx);
-          }
-        }
-      });
-
-      current_time += min;
-      ossia::for_each_in_range<N>([&] (auto idx_t)
-      {
-        constexpr auto idx = idx_t.value;
-        if(to_increment.test(idx))
-        {
-          ++std::get<idx>(iterators);
-        }
-      });
-    }
-
-    call_f(current_time);
+      Info::run(
+            std::get<N1>(std::forward<T1>(a1))...,
+            std::forward<decltype(args)>(args)...,
+            std::get<N3>(std::forward<T3>(a3))...,
+            sub_prev_date, sub_tk, std::forward<Args>(rem)...);
+    }, prev_date, tk, std::get<N2>(std::forward<T2>(a2))...);
   }
 
-  template<typename TickFun, typename... Args>
-  static auto last_sub_tick(TickFun f, ossia::time_value prev_date, ossia::token_request req, const Process::timed_vec<Args>&... arg)
-  {
-    // TODO use largest date instead
-    std::apply([&] (const auto&... it) { f(prev_date, req, it->second...); }, std::make_tuple(--arg.end()...));
-  }
-  template<typename TickFun, typename... Args>
-  static auto first_last_sub_tick(TickFun f, ossia::time_value prev_date, ossia::token_request req, const Process::timed_vec<Args>&... arg)
-  {
-    // TODO use correct dates
-    std::apply([&] (const auto&... it) { f(prev_date, req, it->second...); }, std::make_tuple(arg.begin()...));
-    std::apply([&] (const auto&... it) { f(prev_date, req, it->second...); }, std::make_tuple(--arg.end()...));
-  }
-
-  template<typename T, typename T1, typename T2, typename T3>
-  static constexpr auto wrap_run_precise(
+  template<typename F, typename T1, typename T2, typename T3, typename... Args>
+  static constexpr auto invoke_alt(
+      F&& f,
         T1&& a1, T2&& a2, T3&& a3,
-        ossia::time_value prev_date,
-        ossia::token_request tk,
-        ossia::execution_state& st)
+        Args&&... args)
   {
-    std::apply([&] (auto&&... in) {
-      std::apply([&] (auto&&... c) {
-        precise_sub_tick([&] (ossia::time_value prev_date, ossia::token_request req, auto&&... args) {
-          std::apply([&] (auto&&... o) {
-            T::run_precise(in..., args..., o..., prev_date, req, st);
-          }, std::forward<T3>(a3));
-        }, prev_date, tk, c...);
-      }, std::forward<T2>(a2));
-    }, std::forward<T1>(a1));
-  }
-  template<typename T, typename S, typename T1, typename T2, typename T3>
-  static constexpr auto wrap_run_precise(
-        T1&& a1, T2&& a2, T3&& a3,
-        S& s,
-        ossia::time_value prev_date,
-        ossia::token_request tk,
-        ossia::execution_state& st)
-  {
-    std::apply([&] (auto&&... in) {
-      std::apply([&] (auto&&... c) {
-        precise_sub_tick([&] (ossia::time_value prev_date, ossia::token_request req, auto&&... args) {
-          std::apply([&] (auto&&... o) {
-            T::run_precise(in..., args..., o..., s, prev_date, req, st);
-          }, std::forward<T3>(a3));
-        }, prev_date, tk, c...);
-      }, std::forward<T2>(a2));
-    }, std::forward<T1>(a1));
+    using I1 = std::make_index_sequence<std::tuple_size_v<std::decay_t<T1>>>;
+    using I2 = std::make_index_sequence<std::tuple_size_v<std::decay_t<T2>>>;
+    using I3 = std::make_index_sequence<std::tuple_size_v<std::decay_t<T3>>>;
+
+    return invoke_impl_alt(f, std::forward<T1>(a1), std::forward<T2>(a2), std::forward<T3>(a3),
+                       I1{}, I2{}, I3{}, std::forward<Args>(args)...);
   }
 
-  template<typename T, typename T1, typename T2, typename T3>
-  static constexpr auto wrap_run_last(
-        T1&& a1, T2&& a2, T3&& a3,
-        ossia::time_value prev_date,
-        ossia::token_request tk,
-        ossia::execution_state& st)
-  {
-    std::apply([&] (auto&&... in) {
-      std::apply([&] (auto&&... c) {
-        last_sub_tick([&] (ossia::time_value prev_date, ossia::token_request req, auto&&... args) {
-          std::apply([&] (auto&&... o) {
-            T::run_last(in..., args..., o..., prev_date, req, st);
-          }, std::forward<T3>(a3));
-        }, prev_date, tk, c...);
-      }, std::forward<T2>(a2));
-    }, std::forward<T1>(a1));
-  }
-  template<typename T, typename S, typename T1, typename T2, typename T3>
-  static constexpr auto wrap_run_last(
-        T1&& a1, T2&& a2, T3&& a3,
-        S& s,
-        ossia::time_value prev_date,
-        ossia::token_request tk,
-        ossia::execution_state& st)
-  {
-    std::apply([&] (auto&&... in) {
-      std::apply([&] (auto&&... c) {
-        last_sub_tick([&] (ossia::time_value prev_date, ossia::token_request req, auto&&... args) {
-          std::apply([&] (auto&&... o) {
-            T::run_last(in..., args..., o..., s, prev_date, req, st);
-          }, std::forward<T3>(a3));
-        }, prev_date, tk, c...);
-      }, std::forward<T2>(a2));
-    }, std::forward<T1>(a1));
-  }
-
-
-  template<typename T, typename T1, typename T2, typename T3>
-  static constexpr auto wrap_run_first_last(
-        T1&& a1, T2&& a2, T3&& a3,
-        ossia::time_value prev_date,
-        ossia::token_request tk,
-        ossia::execution_state& st)
-  {
-    std::apply([&] (auto&&... in) {
-      std::apply([&] (auto&&... c) {
-        first_last_sub_tick([&] (ossia::time_value prev_date, ossia::token_request req, auto&&... args) {
-          std::apply([&] (auto&&... o) {
-            T::run_first_last(in..., args..., o..., prev_date, req, st);
-          }, std::forward<T3>(a3));
-        }, prev_date, tk, c...);
-      }, std::forward<T2>(a2));
-    }, std::forward<T1>(a1));
-  }
-  template<typename T, typename S, typename T1, typename T2, typename T3>
-  static constexpr auto wrap_run_first_last(
-        T1&& a1, T2&& a2, T3&& a3,
-        S& s,
-        ossia::time_value prev_date,
-        ossia::token_request tk,
-        ossia::execution_state& st)
-  {
-    std::apply([&] (auto&&... in) {
-      std::apply([&] (auto&&... c) {
-        first_last_sub_tick([&] (ossia::time_value prev_date, ossia::token_request req, auto&&... args) {
-          std::apply([&] (auto&&... o) {
-            T::run_first_last(in..., args..., o..., s, prev_date, req, st);
-          }, std::forward<T3>(a3));
-        }, prev_date, tk, c...);
-      }, std::forward<T2>(a2));
-    }, std::forward<T1>(a1));
-  }
-
-  template<typename T, typename T1, typename T2, typename T3>
-  static constexpr auto wrap_run(
-        T1&& a1, T2&& a2, T3&& a3,
-        ossia::time_value prev_date,
-        ossia::token_request tk,
-        ossia::execution_state& st)
-  {
-    std::apply([&] (auto&&... in) {
-      std::apply([&] (auto&&... c) {
-        std::apply([&] (auto&&... o) {
-          T::run(in..., c..., o..., prev_date, tk, st);
-        }, std::forward<T3>(a3));
-      }, std::forward<T2>(a2));
-    }, std::forward<T1>(a1));
-  }
-  template<typename T, typename S, typename T1, typename T2, typename T3>
-  static constexpr auto wrap_run(
-        T1&& a1, T2&& a2, T3&& a3,
-        S& s,
-        ossia::time_value prev_date,
-        ossia::token_request tk,
-        ossia::execution_state& st)
-  {
-    std::apply([&] (auto&&... in) {
-      std::apply([&] (auto&&... c) {
-        std::apply([&] (auto&&... o) {
-          T::run(in..., c..., o..., s, prev_date, tk, st);
-        }, std::forward<T3>(a3));
-      }, std::forward<T2>(a2));
-    }, std::forward<T1>(a1));
-  }
-
-  template<typename T, typename... Args>
+  template<typename... Args>
   static constexpr auto run_function(Args&&... args)
   {
-    static_assert(has_run_precise<T>::value || has_run_last<T>::value || has_run_first_last<T>::value || has_run<T>::value);
-    if constexpr(has_run_precise<T>::value) return wrap_run_precise<T>(std::forward<Args>(args)...);
-    else if constexpr(has_run_last<T>::value) return wrap_run_last<T>(std::forward<Args>(args)...);
-    else if constexpr(has_run_first_last<T>::value) return wrap_run_first_last<T>(std::forward<Args>(args)...);
-    else if constexpr(has_run<T>::value) return wrap_run<T>(std::forward<Args>(args)...);
-    else throw;
+    if constexpr(has_control_policy<Info>::value)
+      return invoke_alt(typename Info::control_policy{}, std::forward<Args>(args)...);
+    else
+      return invoke(Info::run, std::forward<Args>(args)...);
   }
-  
+
   void run(ossia::token_request tk, ossia::execution_state& st) override
   {
     using inlets_indices = std::make_index_sequence<info::audio_in_count + info::midi_in_count + info::value_in_count>;
@@ -442,8 +250,8 @@ public:
                 [&] (auto&&... c) {
             apply_outlet_impl(
                   [&] (auto&&... o) {
-              run_function<Info>(std::tie(i(inlets)...), std::make_tuple(c(inlets, *this)...), std::tie(o(outlets)...),
-                       static_cast<state_type&>(*this), m_prev_date, tk, st);
+              run_function(std::tie(i(inlets)...), std::make_tuple(c(inlets, *this)...), std::tie(o(outlets)...),
+                       m_prev_date, tk, st, static_cast<state_type&>(*this));
             }, outlets_indices{});
           }, controls_indices{});
         }, inlets_indices{});
@@ -454,8 +262,8 @@ public:
               [&] (auto&&... i) {
           apply_outlet_impl(
                 [&] (auto&&... o) {
-            Info::run(i(inlets)..., o(outlets)..., static_cast<state_type&>(*this),
-                     m_prev_date, tk, st);
+            Info::run(i(inlets)..., o(outlets)...,
+                      m_prev_date, tk, st, static_cast<state_type&>(*this));
           }, outlets_indices{});
         }, inlets_indices{});
       }
@@ -471,7 +279,7 @@ public:
                 [&] (auto&&... c) {
             apply_outlet_impl(
                   [&] (auto&&... o) {
-              run_function<Info>(std::tie(i(inlets)...), std::make_tuple(c(inlets, *this)...), std::tie(o(outlets)...), m_prev_date, tk, st);
+              run_function(std::tie(i(inlets)...), std::make_tuple(c(inlets, *this)...), std::tie(o(outlets)...), m_prev_date, tk, st);
             }, outlets_indices{});
           }, controls_indices{});
         }, inlets_indices{});

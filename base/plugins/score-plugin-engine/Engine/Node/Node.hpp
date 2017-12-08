@@ -53,7 +53,7 @@ struct NodeBuilder: Args...
   constexpr auto value_ins() const { return *this; }
   constexpr auto value_outs() const { return *this; }
   constexpr auto controls() const { return *this; }
-  
+
   template<typename... SArgs>
   constexpr NodeBuilder(SArgs&&... sargs): Args{sargs}... { }
 

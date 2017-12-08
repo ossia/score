@@ -349,13 +349,14 @@ struct effect_chain_process final :
     public ossia::time_process
 {
     void
-    state(ossia::time_value parent_date, double relative_position, ossia::time_value tick_offset) override
+    state(ossia::time_value parent_date, double relative_position, ossia::time_value tick_offset, double speed) override
     {
-      startnode->requested_tokens.push_back({parent_date, relative_position, tick_offset});
-      endnode->requested_tokens.push_back({parent_date, relative_position, tick_offset});
+      const ossia::token_request tk{parent_date, relative_position, tick_offset, speed};
+      startnode->requested_tokens.push_back(tk);
+      endnode->requested_tokens.push_back(tk);
       for(auto& node : nodes)
       {
-        node->requested_tokens.push_back({parent_date, relative_position, tick_offset});
+        node->requested_tokens.push_back(tk);
       }
     }
 

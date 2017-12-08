@@ -100,10 +100,10 @@ struct Node
       const Process::timed_vec<int>& note_random,
       const Process::timed_vec<int>& vel_random,
       ossia::midi_port& p2,
-      State& self,
       ossia::time_value prev_date,
       ossia::token_request tk,
-      ossia::execution_state& st)
+      ossia::execution_state& st,
+      State& self)
   {
     static std::mt19937 m;
 

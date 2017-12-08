@@ -40,7 +40,7 @@ struct FloatSlider : ControlInfo
     ControlInfo{name}, min{v1}, max{v2}, init{v3}
   {
   }
-  
+
   auto getMin() const { return min; }
   auto getMax() const { return max; }
 
@@ -105,7 +105,7 @@ struct LogFloatSlider : ControlInfo
     ControlInfo{name}, min{v1}, max{v2}, init{v3}
   {
   }
-  
+
   auto getMin() const { return min; }
   auto getMax() const { return max; }
 
@@ -178,7 +178,7 @@ struct IntSlider: ControlInfo
     ControlInfo{name}, min{v1}, max{v2}, init{v3}
   {
   }
-  
+
   auto getMin() const { return min; }
   auto getMax() const { return max; }
 
@@ -242,7 +242,7 @@ struct IntSpinBox: ControlInfo
     ControlInfo{name}, min{v1}, max{v2}, init{v3}
   {
   }
-  
+
   auto getMin() const { return min; }
   auto getMax() const { return max; }
 
@@ -293,7 +293,7 @@ struct Toggle: ControlInfo
     ControlInfo{name}, init{v1}
   {
   }
-  
+
   using type = bool;
   const bool init{};
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
@@ -343,7 +343,7 @@ struct ChooserToggle: ControlInfo
   using type = bool;
   std::array<const char*, 2> alternatives;
   const bool init{};
-  
+
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
     auto p = new Process::ControlInlet(id, parent);
@@ -389,7 +389,7 @@ struct LineEdit: ControlInfo
     ControlInfo{name}, init{v1}
   {
   }
-  
+
   using type = std::string;
   const QLatin1Literal init{};
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
@@ -444,12 +444,12 @@ struct ComboBox: ControlInfo
   const std::size_t init{};
   const std::array<std::pair<const char*, T>, N> values;
 
-  template<std::size_t N, typename Arr>
-  constexpr ComboBox(const char (&name)[N], std::size_t in, Arr arr):
+  template<std::size_t M, typename Arr>
+  constexpr ComboBox(const char (&name)[M], std::size_t in, Arr arr):
     ControlInfo{name}, init{in}, values{arr}
   {
   }
-  
+
   const auto& getValues() const { return values; }
 
   auto create_inlet(Id<Process::Port> id, QObject* parent) const

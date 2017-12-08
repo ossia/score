@@ -13,6 +13,7 @@
 #include <score/plugins/customfactory/FactoryFamily.hpp>
 #include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+#include <score/application/ApplicationContext.hpp>
 
 #include <score_lib_base_export.h>
 namespace score

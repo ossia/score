@@ -33,6 +33,7 @@ struct Node
   };
 
 
+  using control_policy = Process::PreciseTick;
   static const constexpr auto info =
       Process::create_node()
       .value_outs({{"out"}})
@@ -47,14 +48,14 @@ struct Node
       .state<State>()
       .build();
 
-  static void run_precise(
+  static void run(
       float freq, float coarse, float fine, float offset, float jitter, float phase,
       const std::string& type,
       ossia::value_port& out,
-      State& s,
       ossia::time_value prev_date,
       ossia::token_request tk,
-      ossia::execution_state& st)
+      ossia::execution_state& st,
+      State& s)
   {
     auto& waveform_map = Process::Widgets::waveformMap();
 
