@@ -36,7 +36,7 @@ public:
       : data{other.data}
   {
   }
-  
+
   constexpr auto begin() noexcept
   {
     return data.data();
@@ -222,7 +222,6 @@ struct string_generator
   {
     // check open brace
     auto c = *begin++;
-    return {};
 
     bool has_dashes = false;
 

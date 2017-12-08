@@ -14,19 +14,19 @@ static inline constexpr void test_nodes()
   constexpr NodeInfo<std::array<AudioOutInfo, 1>, std::array<AudioInInfo, 2>>& bld = res.build();
 {
   constexpr std::tuple<std::array<AudioOutInfo, 1>, std::array<AudioInInfo, 2>> t{bld};
-  
+
   constexpr auto res2 = std::get<std::array<AudioInInfo, 2>>(t);
   static_assert(res2[0].name[0] == 'f');
-  
+
   constexpr auto res1 = std::get<std::array<AudioOutInfo, 1>>(t);
   static_assert(res1[0].name[0] == 'm');
 }
   constexpr auto res2 = std::get<std::array<AudioInInfo, 2>>(bld.v);
   static_assert(res2[0].name[0] == 'f');
-  
+
   constexpr auto res1 = std::get<std::array<AudioOutInfo, 1>>(bld.v);
   static_assert(res1[0].name[0] == 'm');
-  
+
   static_assert(get_ports<AudioInInfo>(bld.v).size() == 2);
   static_assert(get_ports<AudioOutInfo>(bld.v).size() == 1);
   static_assert(get_ports<AudioInInfo>(bld.v)[0].name[0] == 'f');
@@ -52,7 +52,7 @@ struct SomeInfo
     static const constexpr auto uuid = make_uuid("f6b88ec9-cd56-43e8-a568-33208d5a8fb7");
   };
 
-  struct DefaultState
+  struct State
   {
 
   };
@@ -65,7 +65,7 @@ struct SomeInfo
       .value_ins()
       .value_outs()
       .controls(Process::FloatSlider{"foo", .0, 10., 5.})
-      .state<DefaultState>()
+      .state<State>()
       .build();
 
   static void run(
@@ -73,27 +73,11 @@ struct SomeInfo
       const ossia::audio_port& p2,
       const Process::timed_vec<float>& o1,
       ossia::midi_port& p,
-      DefaultState&,
       ossia::time_value prev_date,
       ossia::token_request tk,
-      ossia::execution_state& st)
+      ossia::execution_state& ,
+      State& st)
   {
   }
 };
-/*
-struct test_gen
-{
-    using process = Process::ControlProcess<SomeInfo>;
-    using process_factory = Process::GenericProcessModelFactory<process>;
-
-    using executor = Process::Executor<SomeInfo>;
-    using executor_factory = Engine::Execution::ProcessComponentFactory_T<executor>;
-
-    using inspector = Process::InspectorWidget<SomeInfo>;
-    using inspector_factory = Process::InspectorFactory<SomeInfo>;
-
-    using layer_factory = WidgetLayer::LayerFactory<process, inspector>;
-};
-*/
-
 }

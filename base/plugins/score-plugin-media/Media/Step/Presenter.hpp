@@ -4,7 +4,7 @@
 #include <Media/Step/View.hpp>
 #include <Media/Step/Commands.hpp>
 #include <ossia/detail/math.hpp>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 
 namespace Media
 {
@@ -19,28 +19,32 @@ class Presenter final : public Process::LayerPresenter
         View* view,
         const Process::ProcessPresenterContext& ctx,
         QObject* parent)
-      : LayerPresenter{ctx, parent}, m_layer{model}, m_view{view}
+      : LayerPresenter{ctx, parent}, m_layer{model}, m_view{view},
+        m_disp{m_context.context.commandStack}
     {
       putToFront();
       auto& m = static_cast<const Step::Model&>(model);
+
       connect(view, &View::pressed, this, [&] {
         m_context.context.focusDispatcher.focus(this);
       });
-      connect(view, &View::change, this, [&] (int num, float v) {
-        if(num < 0)
-          return;
 
+      connect(view, &View::change, this, [&] (std::size_t num, float v) {
         auto vec = m.steps();
         if(num > vec.size())
         {
-          vec.resize(num);
+          vec.resize(num, 0.5f);
         }
         v = ossia::clamp(v, 0.f, 1.f);
         vec[num] = v;
 
-        CommandDispatcher<>{ctx.commandStack}
-            .submitCommand(new ChangeSteps(m, std::move(vec)));
+        m_disp.submitCommand(m, std::move(vec));
       });
+
+      connect(view, &View::released, this, [&] {
+        m_disp.commit();
+      });
+
 
       connect(
             m_view, &View::askContextMenu, this,
@@ -48,6 +52,10 @@ class Presenter final : public Process::LayerPresenter
 
       con(m, &Step::Model::stepsChanged,
           this, [&] { m_view->update(); });
+      con(m, &Step::Model::stepCountChanged,
+          this, [&] { m_view->update(); });
+      con(m, &Step::Model::stepDurationChanged,
+          this, [&] { on_zoomRatioChanged(m_ratio); });
 
       view->m_model = &m;
     }
@@ -71,8 +79,12 @@ class Presenter final : public Process::LayerPresenter
       m_view->setVisible(false);
     }
 
-    void on_zoomRatioChanged(ZoomRatio) override
+    void on_zoomRatioChanged(ZoomRatio r) override
     {
+      m_ratio = r;
+      auto& m = static_cast<const Step::Model&>(m_layer);
+      auto v = TimeVal::fromMsecs(m.stepDuration() / 44.1).toPixels(r);
+      m_view->setBarWidth(v);
     }
 
     void parentGeometryChanged() override
@@ -91,6 +103,8 @@ class Presenter final : public Process::LayerPresenter
   private:
     const Process::ProcessModel& m_layer;
     View* m_view{};
+    SingleOngoingCommandDispatcher<Media::Commands::ChangeSteps> m_disp;
+    ZoomRatio m_ratio{};
 };
 
 }

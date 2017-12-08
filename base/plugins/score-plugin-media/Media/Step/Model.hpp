@@ -1,10 +1,11 @@
 #pragma once
 #include <Process/Process.hpp>
 #include <Media/Step/Metadata.hpp>
-#include <Process/TimeValue.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+
+Q_DECLARE_METATYPE(std::size_t)
 namespace Media
 {
 namespace Step
@@ -15,8 +16,10 @@ class Model final : public Process::ProcessModel
         PROCESS_METADATA_IMPL(Media::Step::Model)
 
         Q_OBJECT
-        Q_PROPERTY(std::size_t stepCount READ stepCount WRITE setStepCount NOTIFY stepCountChanged)
-        Q_PROPERTY(TimeVal stepDuration READ stepDuration WRITE setStepDuration NOTIFY stepDurationChanged)
+        Q_PROPERTY(quint64 stepCount READ stepCount WRITE setStepCount NOTIFY stepCountChanged)
+        Q_PROPERTY(quint64 stepDuration READ stepDuration WRITE setStepDuration NOTIFY stepDurationChanged)
+        Q_PROPERTY(double min READ min WRITE setMin NOTIFY minChanged)
+        Q_PROPERTY(double max READ max WRITE setMax NOTIFY maxChanged)
     public:
         explicit Model(
                 const TimeVal& duration,
@@ -40,61 +43,37 @@ class Model final : public Process::ProcessModel
         }
 
 
-        Process::Inlets inlets() const override
-        {
-          return {};
-        }
+        Process::Inlets inlets() const override;
+        Process::Outlets outlets() const override;
 
-        Process::Outlets outlets() const override
-        {
-          return {outlet.get()};
-        }
-
-        std::unique_ptr<Process::Inlet> inlet;
+        std::vector<std::unique_ptr<Process::Inlet>> inlet;
         std::unique_ptr<Process::Outlet> outlet;
 
-        std::size_t stepCount() const { return m_stepCount; }
-        TimeVal stepDuration() const { return m_stepDuration; }
-        const std::vector<float>& steps() const { return m_steps; }
+        quint64 stepCount() const;
+        quint64 stepDuration() const;
+        const std::vector<float>& steps() const;
+        double min() const;
+        double max() const;
 
   signals:
-        void stepCountChanged(std::size_t);
-        void stepDurationChanged(TimeVal);
+        void stepCountChanged(quint64);
+        void stepDurationChanged(quint64);
         void stepsChanged();
+        void minChanged(double);
+        void maxChanged(double);
 
   public slots:
-        void setStepCount(std::size_t s)
-        {
-          if(s != m_stepCount)
-          {
-            m_stepCount = s;
-            m_steps.resize(s);
-            emit stepCountChanged(s);
-          }
-        }
-
-        void setStepDuration(TimeVal s)
-        {
-          if(s != m_stepDuration)
-          {
-            m_stepDuration = s;
-            emit stepDurationChanged(s);
-          }
-        }
-
-        void setSteps(std::vector<float> v)
-        {
-          if(m_steps != v)
-          {
-            m_steps = std::move(v);
-            emit stepsChanged();
-          }
-        }
+        void setStepCount(quint64 s);
+        void setStepDuration(quint64 s);
+        void setSteps(std::vector<float> v);
+        void setMin(double v);
+        void setMax(double v);
 
   private:
         std::vector<float> m_steps;
-        std::size_t m_stepCount{8};
-        TimeVal m_stepDuration{TimeVal::fromMsecs(400)};
+        quint64 m_stepCount{8};
+        quint64 m_stepDuration{22000};
+        double m_min{}, m_max{};
 };
 }
 }

@@ -31,6 +31,21 @@ step_node::~step_node()
 
 void step_node::run(ossia::token_request t, ossia::execution_state& e)
 {
+  // We want to send a trigger for each value change that happened between last_t and now
+  if(t.date > m_prev_date)
+  {
+    auto& port = *m_outlets[0]->data.target<ossia::value_port>();
+
+    // TODO optimizeme... quite naive for now.
+    // TODO maybe start from m_prev_date + 1 ?
+    for(int64_t i = m_prev_date.impl; i < t.date.impl; i++)
+    {
+      if(i % dur == 0)
+      {
+        port.add_value(values[(i / dur) % values.size()], i - m_prev_date + t.offset);
+      }
+    }
+  }
 }
 
 StepComponent::StepComponent(
@@ -46,25 +61,43 @@ StepComponent::StepComponent(
   auto node = std::make_shared<step_node>();
   auto np = std::make_shared<ossia::node_process>(node);
   m_node = node;
-  node->values = element.steps();
-  node->dur = ctx.time(element.stepDuration());
+  node->dur = ossia::time_value(element.stepDuration());
 
   if(auto dest = Engine::score_to_ossia::makeDestination(ctx.devices.list(), element.outlet->address()))
     node->outputs()[0]->address = &dest->address();
 
+  recompute();
+  con(element, &Media::Step::Model::stepsChanged,
+      this, &StepComponent::recompute);
+  con(element, &Media::Step::Model::minChanged,
+      this, &StepComponent::recompute);
+  con(element, &Media::Step::Model::maxChanged,
+      this, &StepComponent::recompute);
+  con(element, &Media::Step::Model::stepDurationChanged,
+      this, [=] {
+    system().executionQueue.enqueue(
+          [n=std::dynamic_pointer_cast<step_node>(this->m_node),dur=process().stepDuration()] () mutable
+    {
+      n->dur = ossia::time_value(dur);
+    });
+  });
   ctx.plugin.register_node(element, node);
-
-  ctx.plugin.outlets.insert({process().outlet.get(), std::make_pair(node, node->outputs()[0])});
-  ctx.plugin.execGraph->add_node(m_node);
   m_ossia_process = np;
 }
 
 void StepComponent::recompute()
 {
-  system().executionQueue.enqueue(
-        [n=std::dynamic_pointer_cast<step_node>(this->m_node)
-        ]
+  float min = process().min();
+  float max = process().max();
+  std::vector<float> v = process().steps();
+  for(auto& val : v)
   {
+    val = min + (1. - val) * (max - min);
+  }
+  system().executionQueue.enqueue(
+        [n=std::dynamic_pointer_cast<step_node>(this->m_node),vec=std::move(v)] () mutable
+  {
+    n->values = std::move(vec);
   });
 }
 

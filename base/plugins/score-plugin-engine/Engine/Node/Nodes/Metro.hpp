@@ -50,10 +50,10 @@ struct Node
         if(auto node = st.find_node(v))
             return ossia::convert<T>(node->get_parameter()->value());
         return val;
-
-
     }
-    static void run_last(
+
+    using control_policy = Process::LastTick;
+    static void run(
             float quantif,
             float freq,
             bool val,

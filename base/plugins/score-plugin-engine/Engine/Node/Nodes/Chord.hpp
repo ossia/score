@@ -100,10 +100,10 @@ struct Node
         const Process::timed_vec<int>& num,
         const Process::timed_vec<std::string>& chord,
         ossia::midi_port& op,
-        State& self,
         ossia::time_value prev_date,
         ossia::token_request tk,
-        ossia::execution_state& st)
+        ossia::execution_state& st,
+        State& self)
     {
       for(const mm::MidiMessage& m : ip.messages)
       {

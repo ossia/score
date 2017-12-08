@@ -29,10 +29,10 @@ struct Node
   static void run(
       const ossia::value_port& p1,
       ossia::value_port& p2,
-      State& self,
       ossia::time_value prev_date,
       ossia::token_request,
-      ossia::execution_state&)
+      ossia::execution_state&,
+      State& self)
   {
     // returns -1, 0, 1 to say if we're going backwards, staying equal, or going forward.
 

@@ -1,5 +1,5 @@
 #include "VSTLoader.hpp"
-
+#include <stdexcept>
 #if _WIN32
 #include <windows.h>
 #elif __APPLE__

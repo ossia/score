@@ -15,6 +15,7 @@
 #include <Media/Sound/SoundComponent.hpp>
 #include <Media/Step/Factory.hpp>
 #include <Media/Step/Executor.hpp>
+#include <Media/Step/Inspector.hpp>
 
 #if defined(LILV_SHARED)
 #include <Media/Effect/LV2/LV2EffectModel.hpp>
@@ -28,6 +29,15 @@
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <score_plugin_media_commands_files.hpp>
+
+score_plugin_media::score_plugin_media()
+{
+}
+
+score_plugin_media::~score_plugin_media()
+{
+
+}
 
 std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_media::make_commands()
 {
@@ -63,7 +73,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
             , Media::Sound::InspectorFactory
             , Media::Input::InspectorFactory
             , Media::Effect::InspectorFactory
-            // , Media::Step::InspectorFactory
+            , Media::Step::InspectorFactory
             >,
         FW<Process::LayerFactory
           , Media::Sound::LayerFactory
@@ -76,7 +86,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
           , Engine::Execution::SoundComponentFactory
           , Engine::Execution::InputComponentFactory
           , Engine::Execution::EffectComponentFactory
-       //   , Engine::Execution::StepComponentFactory
+          , Engine::Execution::StepComponentFactory
         >,
         FW<Media::Effect::EffectFactory
     #if defined(HAS_FAUST)
@@ -102,12 +112,3 @@ std::vector<std::unique_ptr<score::InterfaceListBase> > score_plugin_media::fact
             Media::Effect::EffectFactoryList>();
 }
 
-score_plugin_media::score_plugin_media()
-{
-
-}
-
-score_plugin_media::~score_plugin_media()
-{
-
-}
