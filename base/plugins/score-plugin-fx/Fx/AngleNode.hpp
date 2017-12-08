@@ -26,6 +26,7 @@ struct Node
       .state<State>()
       .build();
 
+  using control_policy = Process::DefaultTick;
   static void run(
       const ossia::value_port& p1,
       ossia::value_port& p2,

@@ -41,14 +41,6 @@
 #include <Engine/LocalTree/Settings/LocalTreeFactory.hpp>
 #include <score/plugins/customfactory/FactorySetup.hpp>
 
-#include <Engine/Node/Nodes/MidiUtil.hpp>
-#include <Engine/Node/Nodes/TestNode.hpp>
-#include <Engine/Node/Nodes/AngleNode.hpp>
-#include <Engine/Node/Nodes/VelToNote.hpp>
-#include <Engine/Node/Nodes/LFO.hpp>
-#include <Engine/Node/Nodes/Metro.hpp>
-#include <Engine/Node/Nodes/Envelope.hpp>
-#include <Engine/Node/Nodes/Chord.hpp>
 
 #if defined(OSSIA_PROTOCOL_MIDI)
 #include <Engine/Protocols/MIDI/MIDIProtocolFactory.hpp>
@@ -142,13 +134,6 @@ score_plugin_engine::factories(
                , Automation::RecreateOnPlay::ComponentFactory
                , Mapping::RecreateOnPlay::ComponentFactory
                , Loop::RecreateOnPlay::ComponentFactory
-               , Nodes::Direction::Factories::executor_factory
-               , Nodes::PulseToNote::Factories::executor_factory
-               , Nodes::LFO::Factories::executor_factory
-               , Nodes::Chord::Factories::executor_factory
-               , Nodes::MidiUtil::Factories::executor_factory
-               , Nodes::Metro::Factories::executor_factory
-               , Nodes::Envelope::Factories::executor_factory
                , Gradient::RecreateOnPlay::ComponentFactory
                  //Spline::RecreateOnPlay::ComponentFactory,
                  //Metronome::RecreateOnPlay::ComponentFactory
@@ -201,32 +186,8 @@ score_plugin_engine::factories(
             Curve::SegmentFactory_T<Segment_elasticOut>,
             Curve::SegmentFactory_T<Segment_elasticInOut>,
             Curve::SegmentFactory_T<Segment_perlinInOut>
-            >,
-      FW<Process::ProcessModelFactory
-         , Nodes::Direction::Factories::process_factory
-         , Nodes::PulseToNote::Factories::process_factory
-         , Nodes::LFO::Factories::process_factory
-      , Nodes::Chord::Factories::process_factory
-      , Nodes::Metro::Factories::process_factory
-      , Nodes::Envelope::Factories::process_factory
-         , Nodes::MidiUtil::Factories::process_factory>
-     , FW<Process::InspectorWidgetDelegateFactory
-         , Nodes::Direction::Factories::inspector_factory
-         , Nodes::PulseToNote::Factories::inspector_factory
-         , Nodes::LFO::Factories::inspector_factory
-      , Nodes::Chord::Factories::inspector_factory
-      , Nodes::Metro::Factories::inspector_factory
-      , Nodes::Envelope::Factories::inspector_factory
-         , Nodes::MidiUtil::Factories::inspector_factory>
-     , FW<Process::LayerFactory
-         , Nodes::Direction::Factories::layer_factory
-         , Nodes::PulseToNote::Factories::layer_factory
-         , Nodes::LFO::Factories::layer_factory
-      , Nodes::Chord::Factories::layer_factory
-      , Nodes::Metro::Factories::layer_factory
-      , Nodes::Envelope::Factories::layer_factory
-         , Nodes::MidiUtil::Factories::layer_factory>
-               >(ctx, key);
+            >
+    >(ctx, key);
 }
 
 auto score_plugin_engine::required() const

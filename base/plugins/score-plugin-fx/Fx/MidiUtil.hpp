@@ -38,7 +38,7 @@ constexpr void constexpr_rotate(T first, T middle, T last)
     constexpr_swap(*first++,*next++);
     if (next == last)
       next = middle;
-    else if (first == middle)
+    else if (first == middle) 
       middle = next;
   }
 }
@@ -178,6 +178,7 @@ struct Node
   )
   .build();
 
+  using control_policy = Process::DefaultTick;
   static void run(
       const ossia::midi_port& midi_in,
       const Process::timed_vec<std::string>& sc,

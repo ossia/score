@@ -55,7 +55,7 @@ struct Node
                 )
       .state<State>()
       .build();
-
+  using control_policy = Process::DefaultTick;
   struct val_visitor
   {
     State& st;
@@ -90,7 +90,7 @@ struct Node
       return operator()(v[0], v[1]);
     }
   };
-
+  
   static void run(
       const ossia::value_port& p1,
       const Process::timed_vec<float>& startq,

@@ -1,7 +1,7 @@
 #pragma once
 #include <ossia/dataflow/graph_node.hpp>
 #include <Engine/Node/Node.hpp>
-
+#include <ossia/detail/algorithms.hpp>
 namespace Process
 {
 
@@ -22,7 +22,6 @@ struct PreciseTick
     template<typename TickFun, typename... Args>
     void operator()(TickFun&& f, ossia::time_value prev_date, ossia::token_request req, const Process::timed_vec<Args>&... arg)
     {
-      constexpr const std::size_t N = sizeof...(arg);
       auto iterators = std::make_tuple(arg.begin()...);
       const auto last_iterators = std::make_tuple(--arg.end()...);
 
@@ -32,12 +31,12 @@ struct PreciseTick
 
       auto reached_end = [&] {
         bool b = true;
-        ossia::for_each_in_range<N>([&b,&iterators,&last_iterators] (auto i) {
+        ossia::for_each_in_range<sizeof...(arg)>([&b,&iterators,&last_iterators] (auto i) {
           b &= (std::get<i.value>(iterators) == std::get<i.value>(last_iterators));
         });
         return b;
       };
-
+       
       //const auto parent_dur = req.date / req.position;
       auto call_f = [&] (ossia::time_value cur) {
         ossia::token_request r = req;
@@ -54,7 +53,11 @@ struct PreciseTick
         std::bitset<sizeof...(Args)> to_increment;
         to_increment.reset();
         auto min = ossia::Infinite;
-        ossia::for_each_in_range<N>([&] (auto idx_t) {
+        
+        ossia::for_each_in_range<sizeof...(arg)>([&] (auto idx_t) {
+			
+			
+		  /*	
           constexpr auto idx = idx_t.value;
           auto& it = std::get<idx>(iterators);
           if(it != std::get<idx>(last_iterators))
@@ -79,11 +82,11 @@ struct PreciseTick
             {
               to_increment.set(idx);
             }
-          }
+          }*/
         });
 
         current_time += min;
-        ossia::for_each_in_range<N>([&] (auto idx_t)
+        ossia::for_each_in_range<sizeof...(arg)>([&] (auto idx_t)
         {
           constexpr auto idx = idx_t.value;
           if(to_increment.test(idx))
@@ -97,6 +100,15 @@ struct PreciseTick
     }
 };
 
+
+struct DefaultTick
+{
+    template<typename TickFun, typename... Args>
+    void operator()(TickFun&& f, const ossia::time_value& prev_date, const ossia::token_request& req, const Process::timed_vec<Args>&... arg)
+    {
+      f(prev_date, req, arg...);
+    }
+};
 
 struct LastTick
 {
