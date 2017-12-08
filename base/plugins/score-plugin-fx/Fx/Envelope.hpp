@@ -21,7 +21,7 @@ struct Node
       .audio_ins({{"audio"}})
       .value_outs({{"rms"}, {"peak"}})
       .build();
-
+  using control_policy = Process::DefaultTick;
   static auto get(const ossia::audio_channel& chan)
   {
     if(chan.size() > 0)

@@ -76,9 +76,9 @@ StepComponent::StepComponent(
   con(element, &Media::Step::Model::stepDurationChanged,
       this, [=] {
     system().executionQueue.enqueue(
-          [n=std::dynamic_pointer_cast<step_node>(this->m_node),dur=process().stepDuration()] () mutable
+          [node,dur=process().stepDuration()] () mutable
     {
-      n->dur = ossia::time_value(dur);
+      node->dur = ossia::time_value(dur);
     });
   });
   ctx.plugin.register_node(element, node);

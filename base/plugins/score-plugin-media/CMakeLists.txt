@@ -163,6 +163,10 @@ if(TARGET Vst2SDK)
       set(VST_SRCS ${VST_SRCS}
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/LinuxUI/vst.cpp"
         )
+    elseif(MSVC)
+      set(VST_SRCS ${VST_SRCS}
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/WinUI/vst.cpp"
+        )
     endif()
 endif()
 add_library(${PROJECT_NAME}

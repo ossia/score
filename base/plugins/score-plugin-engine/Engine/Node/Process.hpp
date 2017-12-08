@@ -108,6 +108,10 @@ class ControlProcess final: public Process::ProcessModel
     setup_ports();
   }
 
+  const auto& test()
+  {
+      return Info::info;
+  }
   auto setup_ports()
   {
     int inlet = 0;

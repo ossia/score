@@ -36,6 +36,14 @@ public:
       : data{other.data}
   {
   }
+  
+  constexpr uuid(uint8_t* other) noexcept
+      : data{other[0], other[1], other[2], other[3], 
+             other[4], other[5], other[6], other[7], 
+             other[8], other[9], other[10], other[11],
+             other[12], other[13], other[14], other[15]} 
+  {
+  }
 
   constexpr auto begin() noexcept
   {
@@ -225,11 +233,11 @@ struct string_generator
 
     bool has_dashes = false;
 
-    uuid u{};
+    uint8_t u[16]{};
     int i = 0;
-    for (auto it_byte = u.begin(); it_byte != u.end(); ++it_byte, ++i)
+    for (auto it_byte = u; it_byte != u + 16; ++it_byte, ++i)
     {
-      if (it_byte != u.begin())
+      if (it_byte != u)
       {
         c = *begin++;
       }
@@ -242,7 +250,7 @@ struct string_generator
           c = *begin++;
         }
       }
-
+	
       if (has_dashes)
       {
         if (i == 6 || i == 8 || i == 10)
@@ -257,12 +265,11 @@ struct string_generator
           }
         }
       }
-
-      *it_byte = get_value(c);
-
+      auto res = get_value(c);
       c = *begin++;
-      *it_byte <<= 4;
-      *it_byte |= get_value(c);
+      res <<= 4;
+      res |= get_value(c);
+      *it_byte = res;
     }
 
     return u;
@@ -272,49 +279,26 @@ private:
 
   static constexpr unsigned char get_value(char c)
   {
-    constexpr const auto digits_begin
-        = "0123456789abcdefABCDEF";
-    constexpr unsigned char const values[]
-        = {0,
-           1,
-           2,
-           3,
-           4,
-           5,
-           6,
-           7,
-           8,
-           9,
-           10,
-           11,
-           12,
-           13,
-           14,
-           15,
-           10,
-           11,
-           12,
-           13,
-           14,
-           15,
-           static_cast<unsigned char>(-1)};
-
-    bool found = false;
-    for (int i = 0; i < 22; i++)
+    switch(c)
     {
-      if (digits_begin[i] == c)
-      {
-        found = true;
-        (void)found; // to prevent warnings with static analyzers
-        return values[i];
-      }
+      case '0': return 0;
+      case '1': return 1;
+      case '2': return 2;
+      case '3': return 3;
+      case '4': return 4;
+      case '5': return 5;
+      case '6': return 6;
+      case '7': return 7;
+      case '8': return 8;
+      case '9': return 9;
+      case 'a': case 'A': return 10;
+      case 'b': case 'B': return 11;
+      case 'c': case 'C': return 12;
+      case 'd': case 'D': return 13;
+      case 'e': case 'E': return 14;
+      case 'f': case 'F': return 15;
+      default:  throw std::runtime_error{"Invalid uuid"};
     }
-
-    if (!found)
-    {
-      throw std::runtime_error{"Invalid uuid"};
-    }
-    return -1;
   }
 
   static constexpr unsigned char get_value(QChar c)

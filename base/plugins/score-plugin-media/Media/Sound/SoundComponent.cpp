@@ -37,20 +37,17 @@ SoundComponent::SoundComponent(
   con(element, &Media::Sound::ProcessModel::fileChanged,
       this, [this] { this->recompute(); });
   con(element, &Media::Sound::ProcessModel::startChannelChanged,
-      this, [this] {
+      this, [=] {
     system().executionQueue.enqueue(
-          [n=std::dynamic_pointer_cast<ossia::sound_node>(this->m_node)
-          ,start=process().startChannel()
-          ]
-    { n->set_start(start); });
+          [node,start=process().startChannel()]
+    { node->set_start(start); });
   });
   con(element, &Media::Sound::ProcessModel::upmixChannelsChanged,
-      this, [this] {
+      this, [=] {
     system().executionQueue.enqueue(
-          [n=std::dynamic_pointer_cast<ossia::sound_node>(this->m_node)
-          ,upmix=process().upmixChannels()
+          [node,upmix=process().upmixChannels()
           ]
-    { n->set_upmix(upmix); });
+    { node->set_upmix(upmix); });
   });
   recompute();
 
@@ -223,20 +220,16 @@ InputComponent::InputComponent(
   if(auto dest = Engine::score_to_ossia::makeDestination(ctx.devices.list(), element.outlet->address()))
     node->outputs()[0]->address = &dest->address();
   con(element, &Media::Input::ProcessModel::startChannelChanged,
-      this, [this] {
+      this, [=] {
     system().executionQueue.enqueue(
-          [n=std::dynamic_pointer_cast<input_node>(this->m_node)
-          ,start=process().startChannel()
-          ]
-    { n->set_start(start); });
+          [node,start=process().startChannel()]
+    { node->set_start(start); });
   });
   con(element, &Media::Input::ProcessModel::numChannelChanged,
-      this, [this] {
+      this, [=] {
     system().executionQueue.enqueue(
-          [n=std::dynamic_pointer_cast<input_node>(this->m_node)
-          ,num=process().numChannel()
-          ]
-    { n->set_num_channel(num); });
+          [node,num=process().numChannel()]
+    { node->set_num_channel(num); });
   });
   recompute();
 
@@ -247,8 +240,9 @@ InputComponent::InputComponent(
 
 void InputComponent::recompute()
 {
+  auto n = std::dynamic_pointer_cast<input_node>(this->m_node);
   system().executionQueue.enqueue(
-        [n=std::dynamic_pointer_cast<input_node>(this->m_node)
+        [n
         ,num=process().numChannel()
         ,start=process().startChannel()
         ]

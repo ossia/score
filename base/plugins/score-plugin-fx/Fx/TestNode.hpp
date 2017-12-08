@@ -67,7 +67,7 @@ struct SomeInfo
       .controls(Process::FloatSlider{"foo", .0, 10., 5.})
       .state<State>()
       .build();
-
+  using control_policy = Process::DefaultTick;
   static void run(
       const ossia::audio_port& p1,
       const ossia::audio_port& p2,

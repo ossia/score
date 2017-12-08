@@ -43,7 +43,7 @@ struct Node
                   )
         .state<State>()
         .build();
-
+    using control_policy = Process::DefaultTick;
     // C C# D D# E F F# G G# A A# B
     // 1 .  . .  1 . .  1 .  1 .  .
     static const constexpr std::array<int, 5> major7{ 0, 4, 7, 9, 12 };

@@ -101,11 +101,12 @@ public:
   template<std::size_t N>
   static constexpr auto get_control_accessor()
   {
-    constexpr const auto idx = info::control_start + N;
-    static_assert(info::control_count > 0);
-    static_assert(N < info::control_count);
 
     return [] (const ossia::inlets& inl, ControlNode& self) {
+      constexpr const auto idx = info::control_start + N;
+      static_assert(info::control_count > 0);
+      static_assert(N < info::control_count);
+    
       using val_type = typename std::tuple_element<N, decltype(get_controls(Info::info))>::type::type;
 
       // TODO instead, it should go as a member of the node for more perf
@@ -162,32 +163,9 @@ public:
 
   /////////////////
 
-  // Just expand three tuples
+  // Expand three tuples and apply a function on the control tuple
   template<typename F, typename T1, typename T2, typename T3, std::size_t... N1, std::size_t... N2, std::size_t... N3, typename... Args>
   static constexpr auto invoke_impl(F&& f, T1&& a1, T2&& a2, T3&& a3,
-                                    std::index_sequence<N1...> n1,
-                                    std::index_sequence<N2...> n2,
-                                    std::index_sequence<N3...> n3,
-                                    Args&&... args)
-  {
-    return f(std::get<N1>(std::forward<T1>(a1))..., std::get<N2>(std::forward<T2>(a2))..., std::get<N3>(std::forward<T3>(a3))..., std::forward<Args>(args)...);
-  }
-
-  template<typename F, typename T1, typename T2, typename T3, typename... Args>
-  static constexpr auto invoke(F&& f, T1&& a1, T2&& a2, T3&& a3, Args&&... args)
-  {
-    using I1 = std::make_index_sequence<std::tuple_size_v<std::decay_t<T1>>>;
-    using I2 = std::make_index_sequence<std::tuple_size_v<std::decay_t<T2>>>;
-    using I3 = std::make_index_sequence<std::tuple_size_v<std::decay_t<T3>>>;
-
-    return invoke_impl(std::forward<F>(f), std::forward<T1>(a1), std::forward<T2>(a2), std::forward<T3>(a3),
-                       I1{}, I2{}, I3{},
-                       std::forward<Args>(args)...);
-  }
-
-  // Expand three tuples and applyu a function on the control tuple
-  template<typename F, typename T1, typename T2, typename T3, std::size_t... N1, std::size_t... N2, std::size_t... N3, typename... Args>
-  static constexpr auto invoke_impl_alt(F&& f, T1&& a1, T2&& a2, T3&& a3,
                                     std::index_sequence<N1...> n1,
                                     std::index_sequence<N2...> n2,
                                     std::index_sequence<N3...> n3,
@@ -208,7 +186,7 @@ public:
   }
 
   template<typename F, typename T1, typename T2, typename T3, typename... Args>
-  static constexpr auto invoke_alt(
+  static constexpr auto invoke(
       F&& f,
         T1&& a1, T2&& a2, T3&& a3,
         Args&&... args)
@@ -217,21 +195,13 @@ public:
     using I2 = std::make_index_sequence<std::tuple_size_v<std::decay_t<T2>>>;
     using I3 = std::make_index_sequence<std::tuple_size_v<std::decay_t<T3>>>;
 
-    return invoke_impl_alt(f, std::forward<T1>(a1), std::forward<T2>(a2), std::forward<T3>(a3),
+    return invoke_impl(f, std::forward<T1>(a1), std::forward<T2>(a2), std::forward<T3>(a3),
                        I1{}, I2{}, I3{}, std::forward<Args>(args)...);
-  }
-
-  template<typename... Args>
-  static constexpr auto run_function(Args&&... args)
-  {
-    if constexpr(has_control_policy<Info>::value)
-      return invoke_alt(typename Info::control_policy{}, std::forward<Args>(args)...);
-    else
-      return invoke(Info::run, std::forward<Args>(args)...);
   }
 
   void run(ossia::token_request tk, ossia::execution_state& st) override
   {
+#if !defined(_MSC_VER)
     using inlets_indices = std::make_index_sequence<info::audio_in_count + info::midi_in_count + info::value_in_count>;
     using controls_indices = std::make_index_sequence<info::control_count>;
     using outlets_indices = std::make_index_sequence<info::outlet_size>;
@@ -250,7 +220,7 @@ public:
                 [&] (auto&&... c) {
             apply_outlet_impl(
                   [&] (auto&&... o) {
-              run_function(std::tie(i(inlets)...), std::make_tuple(c(inlets, *this)...), std::tie(o(outlets)...),
+              invoke(typename Info::control_policy{}, std::tie(i(inlets)...), std::make_tuple(c(inlets, *this)...), std::tie(o(outlets)...),
                        m_prev_date, tk, st, static_cast<state_type&>(*this));
             }, outlets_indices{});
           }, controls_indices{});
@@ -279,7 +249,7 @@ public:
                 [&] (auto&&... c) {
             apply_outlet_impl(
                   [&] (auto&&... o) {
-              run_function(std::tie(i(inlets)...), std::make_tuple(c(inlets, *this)...), std::tie(o(outlets)...), m_prev_date, tk, st);
+              invoke(typename Info::control_policy{}, std::tie(i(inlets)...), std::make_tuple(c(inlets, *this)...), std::tie(o(outlets)...), m_prev_date, tk, st);
             }, outlets_indices{});
           }, controls_indices{});
         }, inlets_indices{});
@@ -301,6 +271,7 @@ public:
       cqueue.try_enqueue(controls);
       controls_changed.reset();
     }
+#endif
   }
 };
 
