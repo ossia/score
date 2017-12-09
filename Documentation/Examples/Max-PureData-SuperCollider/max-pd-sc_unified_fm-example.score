@@ -2,7 +2,7 @@
     "Document": {
         "BaseScenario": {
             "Constraint": {
-                "Center": 66233.0397756478,
+                "Center": 68296.41005561303,
                 "Components": [
                 ],
                 "DefaultDuration": 300000,
@@ -2812,7 +2812,7 @@
                                                         "Unit": "none",
                                                         "address": {
                                                             "Device": "fmsynth",
-                                                            "Path": "synth.0/carfreq"
+                                                            "Path": "synth.0/carrier/frequency"
                                                         }
                                                     },
                                                     "Components": [
@@ -9720,7 +9720,7 @@
                 "SmallViewShown": false,
                 "StartDate": 0,
                 "StartState": 0,
-                "Zoom": 179.25044594221328,
+                "Zoom": 94.92204316277001,
                 "id": 0
             },
             "EndEvent": {
@@ -9964,7 +9964,8 @@
                                 },
                                 "Name": "synth.0",
                                 "RepetitionFilter": false,
-                                "Unit": "none"
+                                "Unit": "none",
+                                "ioType": "<->"
                             },
                             "Children": [
                                 {
@@ -9976,7 +9977,8 @@
                                         },
                                         "Name": "carrier",
                                         "RepetitionFilter": false,
-                                        "Unit": "none"
+                                        "Unit": "none",
+                                        "ioType": "<->"
                                     },
                                     "Children": [
                                         {
@@ -9990,7 +9992,7 @@
                                                 },
                                                 "Extended": {
                                                 },
-                                                "Float": 220,
+                                                "Float": 600,
                                                 "Name": "frequency",
                                                 "RepetitionFilter": false,
                                                 "Unit": "none",
@@ -10010,7 +10012,8 @@
                                         },
                                         "Name": "modulation",
                                         "RepetitionFilter": false,
-                                        "Unit": "none"
+                                        "Unit": "none",
+                                        "ioType": "<->"
                                     },
                                     "Children": [
                                         {
@@ -10066,7 +10069,7 @@
                                         },
                                         "Extended": {
                                         },
-                                        "Float": 0,
+                                        "Float": -35.5869026184082,
                                         "Name": "gain",
                                         "RepetitionFilter": false,
                                         "Unit": "none",
@@ -10086,7 +10089,7 @@
                                         },
                                         "Extended": {
                                         },
-                                        "Float": 0,
+                                        "Float": -0.20000000298023224,
                                         "Name": "pan",
                                         "RepetitionFilter": false,
                                         "Unit": "none",
@@ -10106,7 +10109,8 @@
                                 },
                                 "Name": "synth.1",
                                 "RepetitionFilter": false,
-                                "Unit": "none"
+                                "Unit": "none",
+                                "ioType": "<->"
                             },
                             "Children": [
                                 {
@@ -10118,7 +10122,8 @@
                                         },
                                         "Name": "carrier",
                                         "RepetitionFilter": false,
-                                        "Unit": "none"
+                                        "Unit": "none",
+                                        "ioType": "<->"
                                     },
                                     "Children": [
                                         {
@@ -10152,7 +10157,8 @@
                                         },
                                         "Name": "modulation",
                                         "RepetitionFilter": false,
-                                        "Unit": "none"
+                                        "Unit": "none",
+                                        "ioType": "<->"
                                     },
                                     "Children": [
                                         {
@@ -10248,7 +10254,8 @@
                                 },
                                 "Name": "synth.2",
                                 "RepetitionFilter": false,
-                                "Unit": "none"
+                                "Unit": "none",
+                                "ioType": "<->"
                             },
                             "Children": [
                                 {
@@ -10260,7 +10267,8 @@
                                         },
                                         "Name": "carrier",
                                         "RepetitionFilter": false,
-                                        "Unit": "none"
+                                        "Unit": "none",
+                                        "ioType": "<->"
                                     },
                                     "Children": [
                                         {
@@ -10294,7 +10302,8 @@
                                         },
                                         "Name": "modulation",
                                         "RepetitionFilter": false,
-                                        "Unit": "none"
+                                        "Unit": "none",
+                                        "ioType": "<->"
                                     },
                                     "Children": [
                                         {
@@ -10390,7 +10399,8 @@
                                 },
                                 "Name": "synth.3",
                                 "RepetitionFilter": false,
-                                "Unit": "none"
+                                "Unit": "none",
+                                "ioType": "<->"
                             },
                             "Children": [
                                 {
@@ -10402,7 +10412,8 @@
                                         },
                                         "Name": "carrier",
                                         "RepetitionFilter": false,
-                                        "Unit": "none"
+                                        "Unit": "none",
+                                        "ioType": "<->"
                                     },
                                     "Children": [
                                         {
@@ -10436,7 +10447,8 @@
                                         },
                                         "Name": "modulation",
                                         "RepetitionFilter": false,
-                                        "Unit": "none"
+                                        "Unit": "none",
+                                        "ioType": "<->"
                                     },
                                     "Children": [
                                         {
@@ -10532,7 +10544,8 @@
                                 },
                                 "Name": "master",
                                 "RepetitionFilter": false,
-                                "Unit": "none"
+                                "Unit": "none",
+                                "ioType": "<->"
                             },
                             "Children": [
                                 {
