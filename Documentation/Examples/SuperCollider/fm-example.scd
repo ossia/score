@@ -1,64 +1,56 @@
 (
-
-s.options.sampleRate = 48000;
+// --------------------------------------------------------------------------------------------------------
+s.options.sampleRate = 44100;
 s.boot;
 n = 4;
-
+// --------------------------------------------------------------------------------------------------------
 s.waitForBoot({
 
-	~dev = OSSIA_Device("fmcollider").exposeOSCQueryServer(1234, 5678, {
+	b = Buffer.alloc(s, 512, 1, { |buf|
+		buf.chebyMsg([0.25, 0.5, 0.25]);
+	});
 
-		// array of parameters
-		~carfreq = OSSIA_Parameter.array(n, ~dev, "/synth.%/carfreq", Float, [0, 20000], 220, 'clip');
-		~modratio = OSSIA_Parameter.array(n, ~dev, "/synth.%/modulation/ratio",
+// --------------------------------------------------------------------------------------------------------
+	~device = OSSIA_Device("fmsynth").exposeOSCQueryServer(1234, 5678, {
+// --------------------------------------------------------------------------------------------------------
+		// define array of parameters in device tree-structure
+		~carfreq = OSSIA_Parameter.array(n, ~device, "/synth.%/carrier/frequency", Float, [0, 20000], 220, 'clip');
+		~modratio = OSSIA_Parameter.array(n, ~device, "/synth.%/modulation/ratio",
 			Float, [0.01, 10], 2, 'clip');
-		~modindex = OSSIA_Parameter.array(n, ~dev, "/synth.%/modulation/index", Float,
+		~modindex = OSSIA_Parameter.array(n, ~device, "/synth.%/modulation/index", Float,
 			[0.01, 1000], 100, 'clip');
-		~gain = OSSIA_Parameter.array(n, ~dev, "/synth.%/gain", Float, [-100, 12], 0, 'clip');
-		~pan = OSSIA_Parameter.array(n, ~dev, "/synth.%/pan", Float, [-1, 1], 0, 'clip');
-		~cutoff = OSSIA_Parameter.array(n, ~dev, "/synth.%/cutoff/frequency",
-			Float, [20, 20000], 20000, 'clip');
+		~gain = OSSIA_Parameter.array(n, ~device, "/synth.%/gain", Float, [-100, 12], 0, 'clip');
+		~pan = OSSIA_Parameter.array(n, ~device, "/synth.%/pan", Float, [-1, 1], 0, 'clip');
 
-		~master = OSSIA_Parameter(~dev, '/master/gain', Float, [0, 1], 0.2);
-
+		~master = OSSIA_Parameter(~device, '/master/gain', Float, [-100, 12], -6);
+// --------------------------------------------------------------------------------------------------------
 		// start/stop parameters
-		~start = OSSIA_Parameter(~dev, 'start', Impulse)
-		.callback = {
-			var args = Array.fill(n, {|i|
-				~carfreq[i].aar ++
-				~modratio[i].aar ++
-				~modindex[i].aar ++
-				~pan[i].aar ++
-				~cutoff[i].aar ++
-				~gain[i].aar
-			});
+		~start = OSSIA_Parameter(~device, 'start', Impulse)
+		// make a snapshot of ~device excluding ~start and ~stop parameters
+		.callback = { Synth('fmdef', ~device.snapshot(~start, ~stop)) };
 
-			args = args.flatten ++ ~master.aar;
-
-			Synth('fmdef', args);
-
-		};
-
-		~stop = OSSIA_Parameter(~dev, 'stop', Impulse)
+		~stop = OSSIA_Parameter(~device, 'stop', Impulse)
 		.callback = { s.freeAll };
-
-		// synthdef
+// --------------------------------------------------------------------------------------------------------
 		~def = SynthDef('fmdef', {
 			var fm = Mix.new(
 				Array.fill(n, { |i|
 					Pan2.ar(
-						LPF.ar(
 							SinOsc.ar(~carfreq[i].kr +
 								SinOsc.ar(~carfreq[i].kr * ~modratio[i].kr, 0, ~modindex[i].kr),
 								0, ~gain[i].kr.dbamp),
-							~cutoff[i].kr),
 						~pan[i].kr);
 			}));
-				Out.ar(0, fm * ~master.kr);
+
+			var dist = Mix.ar([Shaper.ar(b, HPF.ar(fm, 1000), 0.3), fm]);
+			var comp = Compander.ar(dist, dist, -30.dbamp, 1, 1/3, mul: 18.dbamp);
+			var shelf = BHiShelf.ar(comp, 5000, 1, 6);
+			var master = shelf * ~master.kr.dbamp;
+			Out.ar(0, FreeVerb2.ar(master[0], master[1], 0.3));
 		}).add;
 	});
 });
-
-
+// --------------------------------------------------------------------------------------------------------
 )
 
+~carfreq[0].v = 60.midicps;
