@@ -9,7 +9,7 @@
 			"modernui" : 1
 		}
 ,
-		"rect" : [ 38.0, 56.0, 1612.0, 960.0 ],
+		"rect" : [ 38.0, 56.0, 1208.0, 710.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 12.0,
@@ -38,12 +38,38 @@
 		"subpatcher_template" : "",
 		"boxes" : [ 			{
 				"box" : 				{
+					"comment" : "",
+					"id" : "obj-17",
+					"index" : 2,
+					"maxclass" : "outlet",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 112.0, 667.0, 30.0, 30.0 ],
+					"style" : ""
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"comment" : "",
+					"id" : "obj-16",
+					"index" : 1,
+					"maxclass" : "outlet",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"patching_rect" : [ 63.0, 667.0, 30.0, 30.0 ],
+					"style" : ""
+				}
+
+			}
+, 			{
+				"box" : 				{
 					"id" : "obj-1",
 					"maxclass" : "newobj",
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "signal" ],
-					"patching_rect" : [ 254.0, 312.0, 46.0, 22.0 ],
+					"patching_rect" : [ 210.0, 249.0, 46.0, 22.0 ],
 					"style" : "",
 					"text" : "cycle~"
 				}
@@ -56,7 +82,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 2,
 					"outlettype" : [ "signal", "bang" ],
-					"patching_rect" : [ 363.0, 241.0, 50.0, 22.0 ],
+					"patching_rect" : [ 319.0, 178.0, 50.0, 22.0 ],
 					"style" : "",
 					"text" : "line~ 0."
 				}
@@ -69,7 +95,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 363.0, 206.0, 73.0, 22.0 ],
+					"patching_rect" : [ 319.0, 143.0, 73.0, 22.0 ],
 					"style" : "",
 					"text" : "pack 0. 100"
 				}
@@ -82,7 +108,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "signal" ],
-					"patching_rect" : [ 254.0, 366.0, 225.0, 22.0 ],
+					"patching_rect" : [ 210.0, 303.0, 225.0, 22.0 ],
 					"style" : "",
 					"text" : "*~"
 				}
@@ -95,7 +121,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "", "" ],
-					"patching_rect" : [ 363.0, 110.0, 629.0, 22.0 ],
+					"patching_rect" : [ 319.0, 47.0, 629.0, 22.0 ],
 					"style" : "",
 					"text" : "ossia.parameter modulation/ratio @default 4 @type float @range 0.001 10 @description \"Modulator frequency ratio\""
 				}
@@ -108,7 +134,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 2,
 					"outlettype" : [ "signal", "bang" ],
-					"patching_rect" : [ 460.0, 327.0, 50.0, 22.0 ],
+					"patching_rect" : [ 416.0, 264.0, 50.0, 22.0 ],
 					"style" : "",
 					"text" : "line~ 0."
 				}
@@ -121,7 +147,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 460.0, 286.0, 73.0, 22.0 ],
+					"patching_rect" : [ 416.0, 223.0, 73.0, 22.0 ],
 					"style" : "",
 					"text" : "pack 0. 100"
 				}
@@ -134,7 +160,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "signal" ],
-					"patching_rect" : [ 254.0, 278.0, 33.0, 22.0 ],
+					"patching_rect" : [ 210.0, 215.0, 33.0, 22.0 ],
 					"style" : "",
 					"text" : "*~"
 				}
@@ -147,7 +173,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "", "" ],
-					"patching_rect" : [ 105.0, 49.0, 500.0, 22.0 ],
+					"patching_rect" : [ 61.0, 17.0, 500.0, 22.0 ],
 					"style" : "",
 					"text" : "ossia.parameter carrier/frequency @default 440 @type hz @description Carrier \"frequency \""
 				}
@@ -160,7 +186,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 2,
 					"outlettype" : [ "signal", "bang" ],
-					"patching_rect" : [ 253.0, 241.0, 50.0, 22.0 ],
+					"patching_rect" : [ 209.0, 178.0, 50.0, 22.0 ],
 					"style" : "",
 					"text" : "line~ 0."
 				}
@@ -173,7 +199,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 253.0, 206.0, 73.0, 22.0 ],
+					"patching_rect" : [ 209.0, 143.0, 73.0, 22.0 ],
 					"style" : "",
 					"text" : "pack 0. 100"
 				}
@@ -186,7 +212,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "signal" ],
-					"patching_rect" : [ 107.0, 421.0, 46.0, 22.0 ],
+					"patching_rect" : [ 63.0, 358.0, 46.0, 22.0 ],
 					"style" : "",
 					"text" : "cycle~"
 				}
@@ -199,7 +225,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 2,
 					"outlettype" : [ "signal", "bang" ],
-					"patching_rect" : [ 105.0, 241.0, 50.0, 22.0 ],
+					"patching_rect" : [ 61.0, 178.0, 50.0, 22.0 ],
 					"style" : "",
 					"text" : "line~ 0."
 				}
@@ -212,21 +238,9 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 105.0, 206.0, 73.0, 22.0 ],
+					"patching_rect" : [ 61.0, 143.0, 73.0, 22.0 ],
 					"style" : "",
 					"text" : "pack 0. 100"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-15",
-					"maxclass" : "newobj",
-					"numinlets" : 2,
-					"numoutlets" : 0,
-					"patching_rect" : [ 107.0, 880.0, 68.0, 22.0 ],
-					"style" : "",
-					"text" : "dac~"
 				}
 
 			}
@@ -237,9 +251,9 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "", "" ],
-					"patching_rect" : [ 692.0, 150.0, 528.0, 22.0 ],
+					"patching_rect" : [ 648.0, 87.0, 520.0, 22.0 ],
 					"style" : "",
-					"text" : "ossia.parameter ramptime @default 20 @type ms @description \"Modulator frequency ramp time\""
+					"text" : "ossia.parameter ramptime @default 5 @type ms @description \"Modulator frequency ramp time\""
 				}
 
 			}
@@ -250,7 +264,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "", "" ],
-					"patching_rect" : [ 460.0, 245.0, 686.0, 22.0 ],
+					"patching_rect" : [ 416.0, 182.0, 686.0, 22.0 ],
 					"style" : "",
 					"text" : "ossia.parameter modulation/index @default 10 @type float @range 0 1000 @clip low @description \"Modulator frequency ratio\""
 				}
@@ -263,7 +277,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 2,
 					"outlettype" : [ "signal", "bang" ],
-					"patching_rect" : [ 187.0, 583.0, 50.0, 22.0 ],
+					"patching_rect" : [ 143.0, 430.0, 50.0, 22.0 ],
 					"style" : "",
 					"text" : "line~ 0."
 				}
@@ -276,7 +290,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 187.0, 559.0, 73.0, 22.0 ],
+					"patching_rect" : [ 143.0, 406.0, 73.0, 22.0 ],
 					"style" : "",
 					"text" : "pack 0. 100"
 				}
@@ -289,7 +303,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 187.0, 535.0, 55.0, 22.0 ],
+					"patching_rect" : [ 143.0, 382.0, 55.0, 22.0 ],
 					"style" : "",
 					"text" : "dbtoa 0."
 				}
@@ -302,7 +316,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "signal" ],
-					"patching_rect" : [ 107.0, 622.0, 99.0, 22.0 ],
+					"patching_rect" : [ 63.0, 465.0, 99.0, 22.0 ],
 					"style" : "",
 					"text" : "*~"
 				}
@@ -315,7 +329,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "", "" ],
-					"patching_rect" : [ 187.0, 511.0, 531.0, 22.0 ],
+					"patching_rect" : [ 143.0, 358.0, 531.0, 22.0 ],
 					"style" : "",
 					"text" : "ossia.parameter gain @default -12 @type db @range -100 0 @clip both @description \"Main gain\""
 				}
@@ -328,7 +342,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "float" ],
-					"patching_rect" : [ 281.5, 648.0, 31.0, 22.0 ],
+					"patching_rect" : [ 237.5, 430.0, 31.0, 22.0 ],
 					"style" : "",
 					"text" : "+ 1."
 				}
@@ -341,7 +355,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "float" ],
-					"patching_rect" : [ 281.5, 681.0, 29.5, 22.0 ],
+					"patching_rect" : [ 237.5, 463.0, 29.5, 22.0 ],
 					"style" : "",
 					"text" : "/ 8."
 				}
@@ -354,7 +368,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 2,
 					"outlettype" : [ "signal", "bang" ],
-					"patching_rect" : [ 281.5, 736.0, 50.0, 22.0 ],
+					"patching_rect" : [ 237.5, 518.0, 50.0, 22.0 ],
 					"style" : "",
 					"text" : "line~ 0."
 				}
@@ -367,7 +381,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 281.5, 709.0, 73.0, 22.0 ],
+					"patching_rect" : [ 237.5, 491.0, 73.0, 22.0 ],
 					"style" : "",
 					"text" : "pack 0. 100"
 				}
@@ -380,7 +394,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "signal" ],
-					"patching_rect" : [ 281.5, 765.0, 37.0, 22.0 ],
+					"patching_rect" : [ 237.5, 547.0, 37.0, 22.0 ],
 					"style" : "",
 					"text" : "cos~"
 				}
@@ -393,7 +407,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "signal" ],
-					"patching_rect" : [ 337.0, 765.0, 52.0, 22.0 ],
+					"patching_rect" : [ 293.0, 547.0, 52.0, 22.0 ],
 					"style" : "",
 					"text" : "+~ 0.75"
 				}
@@ -406,7 +420,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "signal" ],
-					"patching_rect" : [ 337.0, 804.0, 37.0, 22.0 ],
+					"patching_rect" : [ 293.0, 586.0, 37.0, 22.0 ],
 					"style" : "",
 					"text" : "cos~"
 				}
@@ -419,7 +433,7 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "signal" ],
-					"patching_rect" : [ 107.0, 853.0, 33.0, 22.0 ],
+					"patching_rect" : [ 63.0, 637.0, 33.0, 22.0 ],
 					"style" : "",
 					"text" : "*~"
 				}
@@ -432,35 +446,9 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "signal" ],
-					"patching_rect" : [ 156.0, 853.0, 33.0, 22.0 ],
+					"patching_rect" : [ 112.0, 637.0, 33.0, 22.0 ],
 					"style" : "",
 					"text" : "*~"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-39",
-					"maxclass" : "newobj",
-					"numinlets" : 2,
-					"numoutlets" : 1,
-					"outlettype" : [ "signal" ],
-					"patching_rect" : [ 107.0, 484.0, 61.0, 22.0 ],
-					"style" : "",
-					"text" : "onepole~"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-40",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 2,
-					"outlettype" : [ "", "" ],
-					"patching_rect" : [ 149.0, 453.0, 520.0, 22.0 ],
-					"style" : "",
-					"text" : "ossia.parameter cutoff/frequency @default 5000 @type hz @description \"Cutoff filter frequency\""
 				}
 
 			}
@@ -471,7 +459,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "", "" ],
-					"patching_rect" : [ 281.5, 611.0, 529.0, 22.0 ],
+					"patching_rect" : [ 237.5, 390.0, 529.0, 22.0 ],
 					"style" : "",
 					"text" : "ossia.parameter pan @default 0 @type float @range -1 1 @clip both @description \"Pan position\""
 				}
@@ -484,7 +472,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 1348.0, 80.0, 116.0, 22.0 ],
+					"patching_rect" : [ 759.0, 249.0, 116.0, 22.0 ],
 					"style" : "",
 					"text" : "ossia.model #1"
 				}
@@ -514,7 +502,7 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-39", 0 ],
+					"destination" : [ "obj-26", 0 ],
 					"source" : [ "obj-12", 0 ]
 				}
 
@@ -536,7 +524,7 @@
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-11", 1 ],
-					"midpoints" : [ 701.5, 188.5, 316.5, 188.5 ],
+					"midpoints" : [ 657.5, 125.5, 272.5, 125.5 ],
 					"order" : 3,
 					"source" : [ "obj-19", 0 ]
 				}
@@ -545,7 +533,7 @@
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-14", 1 ],
-					"midpoints" : [ 701.5, 188.5, 168.5, 188.5 ],
+					"midpoints" : [ 657.5, 125.5, 124.5, 125.5 ],
 					"order" : 5,
 					"source" : [ "obj-19", 0 ]
 				}
@@ -554,7 +542,7 @@
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-22", 1 ],
-					"midpoints" : [ 701.5, 542.0, 250.5, 542.0 ],
+					"midpoints" : [ 657.5, 479.0, 206.5, 479.0 ],
 					"order" : 4,
 					"source" : [ "obj-19", 0 ]
 				}
@@ -563,7 +551,7 @@
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-3", 1 ],
-					"midpoints" : [ 701.5, 188.5, 426.5, 188.5 ],
+					"midpoints" : [ 657.5, 125.5, 382.5, 125.5 ],
 					"order" : 1,
 					"source" : [ "obj-19", 0 ]
 				}
@@ -572,7 +560,7 @@
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-33", 1 ],
-					"midpoints" : [ 701.5, 542.0, 345.0, 542.0 ],
+					"midpoints" : [ 657.5, 479.0, 301.0, 479.0 ],
 					"order" : 2,
 					"source" : [ "obj-19", 0 ]
 				}
@@ -581,7 +569,7 @@
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-7", 1 ],
-					"midpoints" : [ 701.5, 188.5, 523.5, 188.5 ],
+					"midpoints" : [ 657.5, 125.5, 479.5, 125.5 ],
 					"order" : 0,
 					"source" : [ "obj-19", 0 ]
 				}
@@ -590,6 +578,7 @@
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-8", 1 ],
+					"midpoints" : [ 328.5, 210.0, 233.5, 210.0 ],
 					"source" : [ "obj-2", 0 ]
 				}
 
@@ -692,6 +681,7 @@
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-37", 1 ],
+					"midpoints" : [ 247.0, 624.0, 86.5, 624.0 ],
 					"source" : [ "obj-34", 0 ]
 				}
 
@@ -706,42 +696,30 @@
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-38", 1 ],
+					"midpoints" : [ 302.5, 624.0, 135.5, 624.0 ],
 					"source" : [ "obj-36", 0 ]
 				}
 
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-15", 0 ],
+					"destination" : [ "obj-16", 0 ],
 					"source" : [ "obj-37", 0 ]
 				}
 
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-15", 1 ],
+					"destination" : [ "obj-17", 0 ],
 					"source" : [ "obj-38", 0 ]
 				}
 
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-26", 0 ],
-					"source" : [ "obj-39", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
 					"destination" : [ "obj-12", 0 ],
+					"midpoints" : [ 219.5, 338.0, 72.5, 338.0 ],
 					"source" : [ "obj-4", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-39", 1 ],
-					"source" : [ "obj-40", 0 ]
 				}
 
 			}
@@ -783,6 +761,7 @@
 , 			{
 				"patchline" : 				{
 					"destination" : [ "obj-11", 0 ],
+					"midpoints" : [ 70.5, 98.0, 218.5, 98.0 ],
 					"order" : 0,
 					"source" : [ "obj-9", 0 ]
 				}
