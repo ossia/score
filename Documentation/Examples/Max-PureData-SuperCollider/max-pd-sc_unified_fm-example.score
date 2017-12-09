@@ -2,7 +2,7 @@
     "Document": {
         "BaseScenario": {
             "Constraint": {
-                "Center": 68296.41005561303,
+                "Center": 37456.93889096151,
                 "Components": [
                 ],
                 "DefaultDuration": 300000,
@@ -445,7 +445,7 @@
                                                 {
                                                     "End": [
                                                         1,
-                                                        0.9700000286102295
+                                                        0.949999988079071
                                                     ],
                                                     "Following": null,
                                                     "ObjectName": "CurveSegmentModel",
@@ -5521,6 +5521,12 @@
                                                             ],
                                                             "Name": "gain",
                                                             "Previous": [
+                                                                {
+                                                                    "Process": 1,
+                                                                    "Value": {
+                                                                        "Float": -5.000000953674316
+                                                                    }
+                                                                }
                                                             ],
                                                             "Priorities": [
                                                                 1,
@@ -5529,7 +5535,7 @@
                                                             ],
                                                             "Unit": "none",
                                                             "User": {
-                                                                "Float": -3
+                                                                "Float": -5
                                                             }
                                                         }
                                                     ],
@@ -9720,7 +9726,7 @@
                 "SmallViewShown": false,
                 "StartDate": 0,
                 "StartState": 0,
-                "Zoom": 94.92204316277001,
+                "Zoom": 102.76252096285735,
                 "id": 0
             },
             "EndEvent": {
@@ -9962,10 +9968,23 @@
                                 },
                                 "Extended": {
                                 },
-                                "Name": "synth.0",
+                                "Name": "carrier",
                                 "RepetitionFilter": false,
-                                "Unit": "none",
-                                "ioType": "<->"
+                                "Unit": "none"
+                            },
+                            "Children": [
+                            ]
+                        },
+                        {
+                            "AddressSettings": {
+                                "ClipMode": "Free",
+                                "Domain": {
+                                },
+                                "Extended": {
+                                },
+                                "Name": "master",
+                                "RepetitionFilter": false,
+                                "Unit": "none"
                             },
                             "Children": [
                                 {
@@ -9975,122 +9994,8 @@
                                         },
                                         "Extended": {
                                         },
-                                        "Name": "carrier",
-                                        "RepetitionFilter": false,
-                                        "Unit": "none",
-                                        "ioType": "<->"
-                                    },
-                                    "Children": [
-                                        {
-                                            "AddressSettings": {
-                                                "ClipMode": "Clip",
-                                                "Domain": {
-                                                    "Float": {
-                                                        "Max": 20000,
-                                                        "Min": 0
-                                                    }
-                                                },
-                                                "Extended": {
-                                                },
-                                                "Float": 600,
-                                                "Name": "frequency",
-                                                "RepetitionFilter": false,
-                                                "Unit": "none",
-                                                "ioType": "<->"
-                                            },
-                                            "Children": [
-                                            ]
-                                        }
-                                    ]
-                                },
-                                {
-                                    "AddressSettings": {
-                                        "ClipMode": "Free",
-                                        "Domain": {
-                                        },
-                                        "Extended": {
-                                        },
-                                        "Name": "modulation",
-                                        "RepetitionFilter": false,
-                                        "Unit": "none",
-                                        "ioType": "<->"
-                                    },
-                                    "Children": [
-                                        {
-                                            "AddressSettings": {
-                                                "ClipMode": "Clip",
-                                                "Domain": {
-                                                    "Float": {
-                                                        "Max": 10,
-                                                        "Min": 0.009999999776482582
-                                                    }
-                                                },
-                                                "Extended": {
-                                                },
-                                                "Float": 2,
-                                                "Name": "ratio",
-                                                "RepetitionFilter": false,
-                                                "Unit": "none",
-                                                "ioType": "<->"
-                                            },
-                                            "Children": [
-                                            ]
-                                        },
-                                        {
-                                            "AddressSettings": {
-                                                "ClipMode": "Clip",
-                                                "Domain": {
-                                                    "Float": {
-                                                        "Max": 1000,
-                                                        "Min": 0.009999999776482582
-                                                    }
-                                                },
-                                                "Extended": {
-                                                },
-                                                "Float": 100,
-                                                "Name": "index",
-                                                "RepetitionFilter": false,
-                                                "Unit": "none",
-                                                "ioType": "<->"
-                                            },
-                                            "Children": [
-                                            ]
-                                        }
-                                    ]
-                                },
-                                {
-                                    "AddressSettings": {
-                                        "ClipMode": "Clip",
-                                        "Domain": {
-                                            "Float": {
-                                                "Max": 12,
-                                                "Min": -100
-                                            }
-                                        },
-                                        "Extended": {
-                                        },
-                                        "Float": -35.5869026184082,
+                                        "Float": 0,
                                         "Name": "gain",
-                                        "RepetitionFilter": false,
-                                        "Unit": "none",
-                                        "ioType": "<->"
-                                    },
-                                    "Children": [
-                                    ]
-                                },
-                                {
-                                    "AddressSettings": {
-                                        "ClipMode": "Clip",
-                                        "Domain": {
-                                            "Float": {
-                                                "Max": 1,
-                                                "Min": -1
-                                            }
-                                        },
-                                        "Extended": {
-                                        },
-                                        "Float": -0.20000000298023224,
-                                        "Name": "pan",
                                         "RepetitionFilter": false,
                                         "Unit": "none",
                                         "ioType": "<->"
@@ -10109,8 +10014,7 @@
                                 },
                                 "Name": "synth.1",
                                 "RepetitionFilter": false,
-                                "Unit": "none",
-                                "ioType": "<->"
+                                "Unit": "none"
                             },
                             "Children": [
                                 {
@@ -10122,25 +10026,20 @@
                                         },
                                         "Name": "carrier",
                                         "RepetitionFilter": false,
-                                        "Unit": "none",
-                                        "ioType": "<->"
+                                        "Unit": "none"
                                     },
                                     "Children": [
                                         {
                                             "AddressSettings": {
-                                                "ClipMode": "Clip",
+                                                "ClipMode": "Free",
                                                 "Domain": {
-                                                    "Float": {
-                                                        "Max": 20000,
-                                                        "Min": 0
-                                                    }
                                                 },
                                                 "Extended": {
                                                 },
-                                                "Float": 220,
+                                                "Float": 0,
                                                 "Name": "frequency",
                                                 "RepetitionFilter": false,
-                                                "Unit": "none",
+                                                "Unit": "time.Hz",
                                                 "ioType": "<->"
                                             },
                                             "Children": [
@@ -10155,24 +10054,35 @@
                                         },
                                         "Extended": {
                                         },
-                                        "Name": "modulation",
+                                        "Float": 0,
+                                        "Name": "pan",
                                         "RepetitionFilter": false,
                                         "Unit": "none",
                                         "ioType": "<->"
                                     },
                                     "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Free",
+                                        "Domain": {
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Name": "modulation",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none"
+                                    },
+                                    "Children": [
                                         {
                                             "AddressSettings": {
-                                                "ClipMode": "Clip",
+                                                "ClipMode": "Free",
                                                 "Domain": {
-                                                    "Float": {
-                                                        "Max": 10,
-                                                        "Min": 0.009999999776482582
-                                                    }
                                                 },
                                                 "Extended": {
                                                 },
-                                                "Float": 2,
+                                                "Float": 0,
                                                 "Name": "ratio",
                                                 "RepetitionFilter": false,
                                                 "Unit": "none",
@@ -10183,16 +10093,12 @@
                                         },
                                         {
                                             "AddressSettings": {
-                                                "ClipMode": "Clip",
+                                                "ClipMode": "Free",
                                                 "Domain": {
-                                                    "Float": {
-                                                        "Max": 1000,
-                                                        "Min": 0.009999999776482582
-                                                    }
                                                 },
                                                 "Extended": {
                                                 },
-                                                "Float": 100,
+                                                "Float": 0,
                                                 "Name": "index",
                                                 "RepetitionFilter": false,
                                                 "Unit": "none",
@@ -10205,19 +10111,15 @@
                                 },
                                 {
                                     "AddressSettings": {
-                                        "ClipMode": "Clip",
+                                        "ClipMode": "Free",
                                         "Domain": {
-                                            "Float": {
-                                                "Max": 12,
-                                                "Min": -100
-                                            }
                                         },
                                         "Extended": {
                                         },
                                         "Float": 0,
                                         "Name": "gain",
                                         "RepetitionFilter": false,
-                                        "Unit": "none",
+                                        "Unit": "gain.db",
                                         "ioType": "<->"
                                     },
                                     "Children": [
@@ -10225,19 +10127,15 @@
                                 },
                                 {
                                     "AddressSettings": {
-                                        "ClipMode": "Clip",
+                                        "ClipMode": "Free",
                                         "Domain": {
-                                            "Float": {
-                                                "Max": 1,
-                                                "Min": -1
-                                            }
                                         },
                                         "Extended": {
                                         },
                                         "Float": 0,
-                                        "Name": "pan",
+                                        "Name": "ramptime",
                                         "RepetitionFilter": false,
-                                        "Unit": "none",
+                                        "Unit": "time.ms",
                                         "ioType": "<->"
                                     },
                                     "Children": [
@@ -10254,8 +10152,7 @@
                                 },
                                 "Name": "synth.2",
                                 "RepetitionFilter": false,
-                                "Unit": "none",
-                                "ioType": "<->"
+                                "Unit": "none"
                             },
                             "Children": [
                                 {
@@ -10267,25 +10164,20 @@
                                         },
                                         "Name": "carrier",
                                         "RepetitionFilter": false,
-                                        "Unit": "none",
-                                        "ioType": "<->"
+                                        "Unit": "none"
                                     },
                                     "Children": [
                                         {
                                             "AddressSettings": {
-                                                "ClipMode": "Clip",
+                                                "ClipMode": "Free",
                                                 "Domain": {
-                                                    "Float": {
-                                                        "Max": 20000,
-                                                        "Min": 0
-                                                    }
                                                 },
                                                 "Extended": {
                                                 },
-                                                "Float": 220,
+                                                "Float": 0,
                                                 "Name": "frequency",
                                                 "RepetitionFilter": false,
-                                                "Unit": "none",
+                                                "Unit": "time.Hz",
                                                 "ioType": "<->"
                                             },
                                             "Children": [
@@ -10300,24 +10192,35 @@
                                         },
                                         "Extended": {
                                         },
-                                        "Name": "modulation",
+                                        "Float": 0,
+                                        "Name": "pan",
                                         "RepetitionFilter": false,
                                         "Unit": "none",
                                         "ioType": "<->"
                                     },
                                     "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Free",
+                                        "Domain": {
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Name": "modulation",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none"
+                                    },
+                                    "Children": [
                                         {
                                             "AddressSettings": {
-                                                "ClipMode": "Clip",
+                                                "ClipMode": "Free",
                                                 "Domain": {
-                                                    "Float": {
-                                                        "Max": 10,
-                                                        "Min": 0.009999999776482582
-                                                    }
                                                 },
                                                 "Extended": {
                                                 },
-                                                "Float": 2,
+                                                "Float": 0,
                                                 "Name": "ratio",
                                                 "RepetitionFilter": false,
                                                 "Unit": "none",
@@ -10328,16 +10231,12 @@
                                         },
                                         {
                                             "AddressSettings": {
-                                                "ClipMode": "Clip",
+                                                "ClipMode": "Free",
                                                 "Domain": {
-                                                    "Float": {
-                                                        "Max": 1000,
-                                                        "Min": 0.009999999776482582
-                                                    }
                                                 },
                                                 "Extended": {
                                                 },
-                                                "Float": 100,
+                                                "Float": 0,
                                                 "Name": "index",
                                                 "RepetitionFilter": false,
                                                 "Unit": "none",
@@ -10350,19 +10249,15 @@
                                 },
                                 {
                                     "AddressSettings": {
-                                        "ClipMode": "Clip",
+                                        "ClipMode": "Free",
                                         "Domain": {
-                                            "Float": {
-                                                "Max": 12,
-                                                "Min": -100
-                                            }
                                         },
                                         "Extended": {
                                         },
                                         "Float": 0,
                                         "Name": "gain",
                                         "RepetitionFilter": false,
-                                        "Unit": "none",
+                                        "Unit": "gain.db",
                                         "ioType": "<->"
                                     },
                                     "Children": [
@@ -10370,19 +10265,15 @@
                                 },
                                 {
                                     "AddressSettings": {
-                                        "ClipMode": "Clip",
+                                        "ClipMode": "Free",
                                         "Domain": {
-                                            "Float": {
-                                                "Max": 1,
-                                                "Min": -1
-                                            }
                                         },
                                         "Extended": {
                                         },
                                         "Float": 0,
-                                        "Name": "pan",
+                                        "Name": "ramptime",
                                         "RepetitionFilter": false,
-                                        "Unit": "none",
+                                        "Unit": "time.ms",
                                         "ioType": "<->"
                                     },
                                     "Children": [
@@ -10399,8 +10290,7 @@
                                 },
                                 "Name": "synth.3",
                                 "RepetitionFilter": false,
-                                "Unit": "none",
-                                "ioType": "<->"
+                                "Unit": "none"
                             },
                             "Children": [
                                 {
@@ -10412,25 +10302,20 @@
                                         },
                                         "Name": "carrier",
                                         "RepetitionFilter": false,
-                                        "Unit": "none",
-                                        "ioType": "<->"
+                                        "Unit": "none"
                                     },
                                     "Children": [
                                         {
                                             "AddressSettings": {
-                                                "ClipMode": "Clip",
+                                                "ClipMode": "Free",
                                                 "Domain": {
-                                                    "Float": {
-                                                        "Max": 20000,
-                                                        "Min": 0
-                                                    }
                                                 },
                                                 "Extended": {
                                                 },
-                                                "Float": 220,
+                                                "Float": 0,
                                                 "Name": "frequency",
                                                 "RepetitionFilter": false,
-                                                "Unit": "none",
+                                                "Unit": "time.Hz",
                                                 "ioType": "<->"
                                             },
                                             "Children": [
@@ -10445,24 +10330,35 @@
                                         },
                                         "Extended": {
                                         },
-                                        "Name": "modulation",
+                                        "Float": 0,
+                                        "Name": "pan",
                                         "RepetitionFilter": false,
                                         "Unit": "none",
                                         "ioType": "<->"
                                     },
                                     "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Free",
+                                        "Domain": {
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Name": "modulation",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none"
+                                    },
+                                    "Children": [
                                         {
                                             "AddressSettings": {
-                                                "ClipMode": "Clip",
+                                                "ClipMode": "Free",
                                                 "Domain": {
-                                                    "Float": {
-                                                        "Max": 10,
-                                                        "Min": 0.009999999776482582
-                                                    }
                                                 },
                                                 "Extended": {
                                                 },
-                                                "Float": 2,
+                                                "Float": 0,
                                                 "Name": "ratio",
                                                 "RepetitionFilter": false,
                                                 "Unit": "none",
@@ -10473,16 +10369,12 @@
                                         },
                                         {
                                             "AddressSettings": {
-                                                "ClipMode": "Clip",
+                                                "ClipMode": "Free",
                                                 "Domain": {
-                                                    "Float": {
-                                                        "Max": 1000,
-                                                        "Min": 0.009999999776482582
-                                                    }
                                                 },
                                                 "Extended": {
                                                 },
-                                                "Float": 100,
+                                                "Float": 0,
                                                 "Name": "index",
                                                 "RepetitionFilter": false,
                                                 "Unit": "none",
@@ -10495,19 +10387,15 @@
                                 },
                                 {
                                     "AddressSettings": {
-                                        "ClipMode": "Clip",
+                                        "ClipMode": "Free",
                                         "Domain": {
-                                            "Float": {
-                                                "Max": 12,
-                                                "Min": -100
-                                            }
                                         },
                                         "Extended": {
                                         },
                                         "Float": 0,
                                         "Name": "gain",
                                         "RepetitionFilter": false,
-                                        "Unit": "none",
+                                        "Unit": "gain.db",
                                         "ioType": "<->"
                                     },
                                     "Children": [
@@ -10515,19 +10403,15 @@
                                 },
                                 {
                                     "AddressSettings": {
-                                        "ClipMode": "Clip",
+                                        "ClipMode": "Free",
                                         "Domain": {
-                                            "Float": {
-                                                "Max": 1,
-                                                "Min": -1
-                                            }
                                         },
                                         "Extended": {
                                         },
                                         "Float": 0,
-                                        "Name": "pan",
+                                        "Name": "ramptime",
                                         "RepetitionFilter": false,
-                                        "Unit": "none",
+                                        "Unit": "time.ms",
                                         "ioType": "<->"
                                     },
                                     "Children": [
@@ -10542,27 +10426,130 @@
                                 },
                                 "Extended": {
                                 },
-                                "Name": "master",
+                                "Name": "synth.0",
                                 "RepetitionFilter": false,
-                                "Unit": "none",
-                                "ioType": "<->"
+                                "Unit": "none"
                             },
                             "Children": [
                                 {
                                     "AddressSettings": {
                                         "ClipMode": "Free",
                                         "Domain": {
-                                            "Float": {
-                                                "Max": 12,
-                                                "Min": -100
-                                            }
                                         },
                                         "Extended": {
                                         },
-                                        "Float": -6,
-                                        "Name": "gain",
+                                        "Name": "carrier",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none"
+                                    },
+                                    "Children": [
+                                        {
+                                            "AddressSettings": {
+                                                "ClipMode": "Free",
+                                                "Domain": {
+                                                },
+                                                "Extended": {
+                                                },
+                                                "Float": 0,
+                                                "Name": "frequency",
+                                                "RepetitionFilter": false,
+                                                "Unit": "time.Hz",
+                                                "ioType": "<->"
+                                            },
+                                            "Children": [
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Free",
+                                        "Domain": {
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Float": 0,
+                                        "Name": "pan",
                                         "RepetitionFilter": false,
                                         "Unit": "none",
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Free",
+                                        "Domain": {
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Name": "modulation",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none"
+                                    },
+                                    "Children": [
+                                        {
+                                            "AddressSettings": {
+                                                "ClipMode": "Free",
+                                                "Domain": {
+                                                },
+                                                "Extended": {
+                                                },
+                                                "Float": 0,
+                                                "Name": "ratio",
+                                                "RepetitionFilter": false,
+                                                "Unit": "none",
+                                                "ioType": "<->"
+                                            },
+                                            "Children": [
+                                            ]
+                                        },
+                                        {
+                                            "AddressSettings": {
+                                                "ClipMode": "Free",
+                                                "Domain": {
+                                                },
+                                                "Extended": {
+                                                },
+                                                "Float": 0,
+                                                "Name": "index",
+                                                "RepetitionFilter": false,
+                                                "Unit": "none",
+                                                "ioType": "<->"
+                                            },
+                                            "Children": [
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Free",
+                                        "Domain": {
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Float": 0,
+                                        "Name": "gain",
+                                        "RepetitionFilter": false,
+                                        "Unit": "gain.db",
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Free",
+                                        "Domain": {
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Float": 0,
+                                        "Name": "ramptime",
+                                        "RepetitionFilter": false,
+                                        "Unit": "time.ms",
                                         "ioType": "<->"
                                     },
                                     "Children": [

@@ -45,7 +45,7 @@
 #X obj 25 135 synth synth.0;
 #X obj 260 274 ossia.param start @type impulse;
 #X obj 346 298 ossia.param stop @type impulse;
-#N canvas 603 244 557 427 proc 1;
+#N canvas 603 244 557 427 proc 0;
 #X obj 56 39 inlet~;
 #X obj 153 39 inlet~;
 #X obj 56 243 outlet~;

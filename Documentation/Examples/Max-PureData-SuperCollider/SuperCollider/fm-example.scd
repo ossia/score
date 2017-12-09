@@ -43,7 +43,7 @@ s.waitForBoot({
 			}));
 
 			var dist = Mix.ar([Shaper.ar(b, HPF.ar(fm, 1000), 0.3), fm]);
-			var comp = Compander.ar(dist, dist, -30.dbamp, 1, 1/3, mul: 18.dbamp);
+			var comp = Compander.ar(dist, dist, -30.dbamp, 1, 1/3, mul: 20.dbamp);
 			var shelf = BHiShelf.ar(comp, 5000, 1, 6);
 			var master = shelf * ~master.kr.dbamp;
 			Out.ar(0, FreeVerb2.ar(master[0], master[1], 0.3));
