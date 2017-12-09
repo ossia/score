@@ -101,10 +101,7 @@ Component::Component(
       });
 
   m_ossia_process = loop;
-  ctx.plugin.inlets.insert({process().inlets()[0], std::make_pair(loop->node, loop->node->inputs()[0])});
-  ctx.plugin.outlets.insert({process().outlets()[0], std::make_pair(loop->node, loop->node->outputs()[0])});
-
-  ctx.plugin.execGraph->add_node(loop->node);
+  ctx.plugin.register_node(element, loop->node);
 
   // TODO also states in BasEelement
   // TODO put graphical settings somewhere.
@@ -158,7 +155,11 @@ Component::Component(
                  , loop->node->inputs()[0]
                  , m_ossia_interval->OSSIAInterval()->node
                  , loop->node);
-  system().plugin.execGraph->connect(cable);
+  
+  system().executionQueue.enqueue(
+        [g=system().plugin.execGraph, cable] { 
+    g->connect(cable);
+  });
 }
 
 Component::~Component()
@@ -212,6 +213,8 @@ void Component::cleanup()
   m_ossia_endEvent = nullptr;
   m_ossia_startTimeSync = nullptr;
   m_ossia_endTimeSync = nullptr;
+  
+  system().plugin.unregister_node(process(), OSSIAProcess().node);
 }
 
 void Component::stop()

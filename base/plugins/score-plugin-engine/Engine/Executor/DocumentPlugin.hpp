@@ -66,7 +66,12 @@ public:
   void unregister_node(
       const Process::Inlets& inlets, const Process::Outlets& outlets,
       const std::shared_ptr<ossia::graph_node>& node);
-
+  void set_destination(
+      const State::AddressAccessor& address,
+      const ossia::inlet_ptr& );
+  void set_destination(
+      const State::AddressAccessor& address,
+      const ossia::outlet_ptr& );
 
   std::shared_ptr<ossia::graph> execGraph;
   ossia::execution_state execState;

@@ -28,11 +28,7 @@ SoundComponent::SoundComponent(
       id, "Executor::SoundComponent", parent}
 {
   auto node = std::make_shared<ossia::sound_node>();
-  auto np = std::make_shared<ossia::node_process>(node);
-  m_node = node;
-
-  if(auto dest = Engine::score_to_ossia::makeDestination(ctx.devices.list(), element.outlet->address()))
-    node->outputs()[0]->address = &dest->address();
+  m_ossia_process = std::make_shared<ossia::node_process>(node);
 
   con(element, &Media::Sound::ProcessModel::fileChanged,
       this, [this] { this->recompute(); });
@@ -50,10 +46,7 @@ SoundComponent::SoundComponent(
     { node->set_upmix(upmix); });
   });
   recompute();
-
-  ctx.plugin.outlets.insert({process().outlet.get(), std::make_pair(node, node->outputs()[0])});
-  ctx.plugin.execGraph->add_node(m_node);
-  m_ossia_process = np;
+  ctx.plugin.register_node(process(), node);
 }
 
 void SoundComponent::recompute()
@@ -67,7 +60,7 @@ void SoundComponent::recompute()
     return v;
   };
   system().executionQueue.enqueue(
-        [n=std::dynamic_pointer_cast<ossia::sound_node>(this->m_node)
+        [n=std::dynamic_pointer_cast<ossia::sound_node>(OSSIAProcess().node)
         ,data=to_double(process().file().data())
         ,upmix=process().upmixChannels()
         ,start=process().startChannel()
@@ -81,8 +74,7 @@ void SoundComponent::recompute()
 
 SoundComponent::~SoundComponent()
 {
-  m_node->clear();
-  system().plugin.execGraph->remove_node(m_node);
+  system().plugin.unregister_node(process(), OSSIAProcess().node);
 }
 
 }
@@ -214,11 +206,7 @@ InputComponent::InputComponent(
       id, "Executor::InputComponent", parent}
 {
   auto node = std::make_shared<input_node>();
-  auto np = std::make_shared<ossia::node_process>(node);
-  m_node = node;
-
-  if(auto dest = Engine::score_to_ossia::makeDestination(ctx.devices.list(), element.outlet->address()))
-    node->outputs()[0]->address = &dest->address();
+  m_ossia_process = std::make_shared<ossia::node_process>(node);
   con(element, &Media::Input::ProcessModel::startChannelChanged,
       this, [=] {
     system().executionQueue.enqueue(
@@ -232,15 +220,13 @@ InputComponent::InputComponent(
     { node->set_num_channel(num); });
   });
   recompute();
-
-  ctx.plugin.outlets.insert({process().outlet.get(), std::make_pair(node, node->outputs()[0])});
-  ctx.plugin.execGraph->add_node(m_node);
-  m_ossia_process = np;
+  
+  ctx.plugin.register_node(element, node);
 }
 
 void InputComponent::recompute()
 {
-  auto n = std::dynamic_pointer_cast<input_node>(this->m_node);
+  auto n = std::dynamic_pointer_cast<input_node>(OSSIAProcess().node);
   system().executionQueue.enqueue(
         [n
         ,num=process().numChannel()
@@ -254,8 +240,7 @@ void InputComponent::recompute()
 
 InputComponent::~InputComponent()
 {
-  m_node->clear();
-  system().plugin.execGraph->remove_node(m_node);
+  system().plugin.unregister_node(process(), OSSIAProcess().node);
 }
 
 }
@@ -380,10 +365,8 @@ EffectComponent::EffectComponent(
   if(element.effects().empty())
   {
     auto node = std::make_shared<dummy_audio_node>();
-    auto np = std::make_shared<ossia::node_process>(node);
-    m_node = node;
+    m_ossia_process = std::make_shared<ossia::node_process>(node);
     ctx.plugin.register_node(element, node);
-    m_ossia_process = np;
   }
   else
   {
@@ -456,28 +439,30 @@ EffectComponent::EffectComponent(
     ctx.plugin.register_node(element.inlets(), {}, proc->startnode);
     ctx.plugin.register_node({}, element.outlets(), proc->endnode);
 
-
-    ctx.plugin.execGraph->connect(ossia::make_edge(
-                                    ossia::immediate_strict_connection{}
-                                    , proc->startnode->outputs()[0]
-                                    , proc->nodes.front()->inputs()[0]
-                                    , proc->startnode
-                                    , proc->nodes.front()));
-    for(std::size_t i = 0; i < proc->nodes.size() - 1; i++)
-    {
-      ctx.plugin.execGraph->connect(ossia::make_edge(
-                                      ossia::immediate_strict_connection{}
-                                      , proc->nodes[i]->outputs()[0]
-                                      , proc->nodes[i+1]->inputs()[0]
-                                      , proc->nodes[i]
-                                      , proc->nodes[i+1]));
-    }
-    ctx.plugin.execGraph->connect(ossia::make_edge(
-                                    ossia::immediate_strict_connection{}
-                                    , proc->nodes.back()->outputs()[0]
-                                    , proc->endnode->inputs()[0]
-                                    , proc->nodes.back()
-                                    , proc->endnode));
+    
+    system().executionQueue.enqueue(
+          [g=ctx.plugin.execGraph, proc] { 
+      g->connect(ossia::make_edge(ossia::immediate_strict_connection{}
+                                  , proc->startnode->outputs()[0]
+                                  , proc->nodes.front()->inputs()[0]
+                                  , proc->startnode
+                                  , proc->nodes.front()));
+      
+      for(std::size_t i = 0; i < proc->nodes.size() - 1; i++)
+      {
+        g->connect(ossia::make_edge(ossia::immediate_strict_connection{}
+                                    , proc->nodes[i]->outputs()[0]
+                                    , proc->nodes[i+1]->inputs()[0]
+                                    , proc->nodes[i]
+                                    , proc->nodes[i+1]));
+      }
+      
+      g->connect(ossia::make_edge(ossia::immediate_strict_connection{}
+                                  , proc->nodes.back()->outputs()[0]
+                                  , proc->endnode->inputs()[0]
+                                  , proc->nodes.back()
+                                  , proc->endnode));
+    });
     m_ossia_process = proc;
   }
 }
@@ -486,7 +471,7 @@ EffectComponent::~EffectComponent()
 {
   if(process().effects().empty())
   {
-    system().plugin.unregister_node(process(), m_node);
+    system().plugin.unregister_node(process(), OSSIAProcess().node);
   }
   else
   {

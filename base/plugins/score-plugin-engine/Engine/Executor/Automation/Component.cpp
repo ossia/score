@@ -99,17 +99,19 @@ class automation_node final :
 
     void set_destination(optional<ossia::destination> d)
     {
+      auto& port = *m_outlets.front();
+      auto& vp = *port.data.target<ossia::value_port>();
       if(d)
       {
-        auto& port = *m_outlets.front();
         port.address = &d->address();
-        auto& vp = *port.data.target<ossia::value_port>();
         vp.type = d->unit;
         vp.index = d->index;
       }
       else
       {
-        m_outlets.front()->address = {};
+        port.address = {};
+        vp.type = ossia::val_type::FLOAT;
+        vp.index = {};
       }
     }
 
@@ -130,13 +132,13 @@ class automation_node final :
 
       auto& outlet = *m_outlets[0];
       ossia::value_port* vp = outlet.data.target<ossia::value_port>();
-      ossia::val_type type = ossia::underlying_type(vp->type);
-      if(type == ossia::val_type::IMPULSE)
-        type = ossia::val_type::FLOAT;
+      //ossia::val_type type = ossia::underlying_type(vp->type);
+      //if(type == ossia::val_type::IMPULSE)
+      //  type = ossia::val_type::FLOAT;
 
       vp->add_value(
             ossia::apply(
-              ossia::detail::compute_value_visitor{t.position, type},
+              ossia::detail::compute_value_visitor{t.position, ossia::val_type::FLOAT},
               m_drive), t.date);
     }
 
@@ -163,12 +165,8 @@ Component::Component(
         id, "Executor::AutomationComponent", parent}
 {
   auto node = std::make_shared<automation_node>();
-  auto proc = std::make_shared<automation_process>(node);
-  m_ossia_process = proc;
-  m_node = node;
+  m_ossia_process = std::make_shared<automation_process>(node);
 
-  con(element, &Automation::ProcessModel::addressChanged,
-      this, [this] (const auto&) { this->recompute(); });
   con(element, &Automation::ProcessModel::minChanged,
       this, [this] (const auto&) { this->recompute(); });
   con(element, &Automation::ProcessModel::maxChanged,
@@ -181,13 +179,13 @@ Component::Component(
   con(element, &Automation::ProcessModel::curveChanged,
       this, [this] () { this->recompute(); });
 
-  ctx.plugin.register_node(process(), node);
+  ctx.plugin.register_node(process(), OSSIAProcess().node);
   recompute();
 }
 
 Component::~Component()
 {
-  system().plugin.unregister_node(process(), m_node);
+  system().plugin.unregister_node(process(), OSSIAProcess().node);
 }
 
 void Component::recompute()
@@ -208,7 +206,7 @@ void Component::recompute()
     if (curve)
     {
       system().executionQueue.enqueue(
-            [proc=std::dynamic_pointer_cast<automation_node>(m_node)
+            [proc=std::dynamic_pointer_cast<automation_node>(OSSIAProcess().node)
             ,curve
             ,d_=d]
       {
@@ -225,7 +223,7 @@ void Component::recompute()
     if (curve)
     {
       system().executionQueue.enqueue(
-            [proc=std::dynamic_pointer_cast<automation_node>(m_node)
+            [proc=std::dynamic_pointer_cast<automation_node>(OSSIAProcess().node)
             ,curve]
       {
         proc->set_destination({});

@@ -59,12 +59,8 @@ StepComponent::StepComponent(
       id, "Executor::StepComponent", parent}
 {
   auto node = std::make_shared<step_node>();
-  auto np = std::make_shared<ossia::node_process>(node);
-  m_node = node;
+  m_ossia_process = std::make_shared<ossia::node_process>(node);
   node->dur = ossia::time_value(element.stepDuration());
-
-  if(auto dest = Engine::score_to_ossia::makeDestination(ctx.devices.list(), element.outlet->address()))
-    node->outputs()[0]->address = &dest->address();
 
   recompute();
   con(element, &Media::Step::Model::stepsChanged,
@@ -82,7 +78,6 @@ StepComponent::StepComponent(
     });
   });
   ctx.plugin.register_node(element, node);
-  m_ossia_process = np;
 }
 
 void StepComponent::recompute()
@@ -95,7 +90,7 @@ void StepComponent::recompute()
     val = min + (1. - val) * (max - min);
   }
   system().executionQueue.enqueue(
-        [n=std::dynamic_pointer_cast<step_node>(this->m_node),vec=std::move(v)] () mutable
+        [n=std::dynamic_pointer_cast<step_node>(OSSIAProcess().node),vec=std::move(v)] () mutable
   {
     n->values = std::move(vec);
   });
@@ -103,7 +98,7 @@ void StepComponent::recompute()
 
 StepComponent::~StepComponent()
 {
-  system().plugin.unregister_node(process(), m_node);
+  system().plugin.unregister_node(process(), OSSIAProcess().node);
 }
 
 }

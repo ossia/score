@@ -12,6 +12,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Engine/Protocols/OSSIADevice.hpp>
+#include <QPointer>
 namespace Dataflow
 {
 Clock::Clock(
@@ -88,12 +89,12 @@ void Clock::resume_impl(
 {
   m_paused = false;
   m_default.resume();
-  m_plug.audioProto().ui_tick = [this] (unsigned long frameCount) {
-    m_plug.execState.clear();
-    m_plug.execState.get_new_values();
-    m_cur->baseInterval().OSSIAInterval()->tick(ossia::time_value(frameCount));
-    m_plug.execGraph->state(m_plug.execState);
-    m_plug.execState.commit();
+  m_plug.audioProto().ui_tick = [&st=m_plug.execState,&g=m_plug.execGraph,itv=m_cur->baseInterval().OSSIAInterval()] (unsigned long frameCount) {
+    st.clear();
+    st.get_new_values();
+    itv->tick(ossia::time_value(frameCount));
+    g->state(st);
+    st.commit();
   };
 
   m_plug.audioProto().replace_tick = true;
@@ -104,47 +105,59 @@ void Clock::stop_impl(
     Engine::Execution::BaseScenarioElement& bs)
 {
   m_paused = false;
-  m_plug.context().executionQueue.enqueue([&] {
-    auto& model = m_plug.context().doc.model<Scenario::ScenarioDocumentModel>();
-    for(Process::Cable& cbl : model.cables)
+  QPointer<Engine::Execution::DocumentPlugin> plug = &m_plug;
+  QPointer<Scenario::ScenarioDocumentModel> doc = &m_plug.context().doc.model<Scenario::ScenarioDocumentModel>();
+  m_plug.context().executionQueue.enqueue([=] {
+    if(doc)
     {
-      cbl.source_node.reset();
-      cbl.sink_node.reset();
-      cbl.source_port.reset();
-      cbl.sink_port.reset();
-      cbl.exec.reset();
-    }
-    m_plug.inlets.clear();
-    m_plug.outlets.clear();
-    m_plug.m_cables.clear();
-    m_plug.execGraph->clear();
-
-    for(auto& cable : model.cables)
-    {
-      if(cable.source_node)
+      for(Process::Cable& cbl : doc->cables)
       {
-        cable.source_node->clear();
-        cable.source_node.reset();
-      }
-
-      if(cable.sink_node)
-      {
-        cable.sink_node->clear();
-        cable.sink_node.reset();
-      }
-
-      if(cable.exec)
-      {
-        cable.exec->clear();
-        cable.exec.reset();
+        cbl.source_node.reset();
+        cbl.sink_node.reset();
+        cbl.source_port.reset();
+        cbl.sink_port.reset();
+        cbl.exec.reset();
       }
     }
+    
+    if (plug)
+    {
+      plug->inlets.clear();
+      plug->outlets.clear();
+      plug->m_cables.clear();
+      plug->execGraph->clear();
+    }
 
-    m_plug.execState.clear();
+    if (doc)
+    {
+      for (Process::Cable& cable : doc->cables)
+      {
+        if(cable.source_node)
+        {
+          cable.source_node->clear();
+          cable.source_node.reset();
+        }
+        if(cable.sink_node)
+        {
+          cable.sink_node->clear();
+          cable.sink_node.reset();
+        }
+      
+        if(cable.exec)
+        {
+          cable.exec->clear();
+          cable.exec.reset();
+        }
+      }
+    }
+    if (plug)
+    {
+      plug->execState.clear();
+      plug->execState.globalState.clear();
+      plug->execState.messages.clear();
+      plug->execState.mess_values.clear();
+    }
 
-    m_plug.execState.globalState.clear();
-    m_plug.execState.messages.clear();
-    m_plug.execState.mess_values.clear();
 
   });
   m_plug.audioProto().ui_tick = { };

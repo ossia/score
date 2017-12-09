@@ -24,7 +24,6 @@ public:
   ~StepComponent();
 
 private:
-  ossia::node_ptr m_node;
 };
 
 using StepComponentFactory

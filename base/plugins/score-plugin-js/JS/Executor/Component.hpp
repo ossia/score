@@ -63,8 +63,7 @@ public:
       const Engine::Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent);
-
-  std::shared_ptr<js_node> m_node;
+  ~Component();
 };
 
 using ComponentFactory

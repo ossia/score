@@ -40,7 +40,6 @@ private:
   template <typename T>
   std::shared_ptr<ossia::curve_abstract>
   on_curveChanged_impl(const optional<ossia::destination>&);
-  ossia::node_ptr m_node;
 };
 using ComponentFactory
     = ::Engine::Execution::ProcessComponentFactory_T<Component>;

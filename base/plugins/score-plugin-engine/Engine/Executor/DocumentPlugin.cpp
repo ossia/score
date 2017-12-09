@@ -17,7 +17,9 @@
 #include <Engine/ApplicationPlugin.hpp>
 #include <ossia/dataflow/audio_protocol.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
+#include <ossia/dataflow/port.hpp>
 #include <score/actions/ActionManager.hpp>
+#include <Engine/score2OSSIA.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 namespace Engine
 {
@@ -47,7 +49,7 @@ DocumentPlugin::DocumentPlugin(
   midi_outs.push_back(ossia::net::create_parameter<ossia::midi_generic_parameter>(midi_dev.get_root_node(), "/0/out"));
 
   execGraph = std::make_shared<ossia::graph>();
-  audioproto->reload();
+  //audioproto->reload();
   audio_device = new Dataflow::AudioDevice(
     {Dataflow::AudioProtocolFactory::static_concreteKey(), "audio", {}},
     audio_dev);
@@ -244,6 +246,63 @@ void DocumentPlugin::unregister_node(
   unregister_node(proc.inlets(), proc.outlets(), node);
 }
 
+void DocumentPlugin::set_destination(
+    const State::AddressAccessor& address,
+    const ossia::inlet_ptr& inlet)
+{
+  if(auto dest = Engine::score_to_ossia::makeDestination(
+       context().devices.list(),
+       address))
+  {
+    m_editionQueue.enqueue([=] {
+      inlet->address = &dest->value.get();
+      if(ossia::value_port* dat = inlet->data.target<ossia::value_port>()) {
+        if(dest->unit)
+          dat->type = dest->unit;
+        dat->index = dest->index;
+      }
+    });
+  }
+  else
+  {
+    m_editionQueue.enqueue([=] {
+      inlet->address = {};
+      if(ossia::value_port* dat = inlet->data.target<ossia::value_port>()) {
+        dat->type = {};
+        dat->index.clear();
+      }
+    });
+  }
+}
+void DocumentPlugin::set_destination(
+    const State::AddressAccessor& address,
+    const ossia::outlet_ptr& outlet) 
+{
+  if(auto dest = Engine::score_to_ossia::makeDestination(
+       context().devices.list(),
+       address))
+  {
+    m_editionQueue.enqueue([=] {
+      outlet->address = &dest->value.get();
+      if(ossia::value_port* dat = outlet->data.target<ossia::value_port>()) {
+        if(dest->unit)
+          dat->type = dest->unit;
+        dat->index = dest->index;
+      }
+    });
+  }
+  else
+  {
+    m_editionQueue.enqueue([=] {
+      outlet->address = {};
+      if(ossia::value_port* dat = outlet->data.target<ossia::value_port>()) {
+        dat->type = {};
+        dat->index.clear();
+      }
+    });
+  }
+}
+
 void DocumentPlugin::register_node(
     const Process::Inlets& proc_inlets, const Process::Outlets& proc_outlets,
     const std::shared_ptr<ossia::graph_node>& node)
@@ -252,18 +311,32 @@ void DocumentPlugin::register_node(
   {
     const std::size_t n_inlets = proc_inlets.size();
     const std::size_t n_outlets = proc_outlets.size();
-
+    
     for(std::size_t i = 0; i < n_inlets; i++)
     {
+      connect(proc_inlets[i], &Process::Port::addressChanged,
+              this, [=] (const State::AddressAccessor& address) {
+        set_destination(address, node->inputs()[i]);
+      });
+      set_destination(proc_inlets[i]->address(), node->inputs()[i]);
+      
       inlets.insert({ proc_inlets[i], std::make_pair( node, node->inputs()[i] ) });
     }
-
+    
     for(std::size_t i = 0; i < n_outlets; i++)
     {
+      connect(proc_outlets[i], &Process::Port::addressChanged,
+              this, [=] (const State::AddressAccessor& address) {
+        set_destination(address, node->outputs()[i]);
+      });
+      set_destination(proc_outlets[i]->address(), node->outputs()[i]);
+      
       outlets.insert({ proc_outlets[i], std::make_pair( node, node->outputs()[i] ) });
     }
-
-    execGraph->add_node(node);
+    
+    m_editionQueue.enqueue([=] {
+      execGraph->add_node(node);
+    });
   }
 }
 void DocumentPlugin::unregister_node(
@@ -272,15 +345,17 @@ void DocumentPlugin::unregister_node(
 {
   if(node)
   {
-    node->clear();
-
-    for(auto ptr : proc_inlets)
-      inlets.erase(ptr);
-    for(auto ptr : proc_outlets)
-      outlets.erase(ptr);
-
-    execGraph->remove_node(node);
+    m_editionQueue.enqueue([=] {
+      node->clear();
+      execGraph->remove_node(node);
+    });
   }
+  
+  for(auto ptr : proc_inlets)
+    inlets.erase(ptr);
+  for(auto ptr : proc_outlets)
+    outlets.erase(ptr);
+
 }
 }
 }

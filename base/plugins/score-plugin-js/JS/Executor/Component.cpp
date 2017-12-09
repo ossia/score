@@ -40,7 +40,6 @@ Component::Component(
   std::shared_ptr<js_node> node = std::make_shared<js_node>("");
   auto proc = std::make_shared<ossia::node_process>(node);
   m_ossia_process = proc;
-  m_node = node;
 
   const auto& inlets = element.inlets();
   auto& devices = ctx.devices.list();
@@ -52,26 +51,14 @@ Component::Component(
     {
       case Process::PortType::Message:
       {
-        auto inlet = ossia::make_inlet<ossia::value_port>();
-        auto dest = Engine::score_to_ossia::makeDestination(devices, port->address());
-        if(dest)
-          inlet->address = &dest->address();
-
-        node->inputs().push_back(inlet);
+        node->inputs().push_back(ossia::make_inlet<ossia::value_port>());
         if(dynamic_cast<Process::ControlInlet*>(port))
           control_indices.push_back(i);
-        ctx.plugin.inlets.insert({port, {m_node, inlet}});
         break;
       }
       case Process::PortType::Audio:
       {
-        auto inlet = ossia::make_inlet<ossia::audio_port>();
-        auto dest = Engine::score_to_ossia::makeDestination(devices, port->address());
-        if(dest)
-          inlet->address = &dest->address();
-
-        node->inputs().push_back(inlet);
-        ctx.plugin.inlets.insert({port, {m_node, inlet}});
+        node->inputs().push_back(ossia::make_inlet<ossia::audio_port>());
         break;
       }
     }
@@ -84,25 +71,12 @@ Component::Component(
     {
       case Process::PortType::Message:
       {
-        auto outlet = ossia::make_outlet<ossia::value_port>();
-        auto dest = Engine::score_to_ossia::makeDestination(devices, port->address());
-        if(dest)
-          outlet->address = &dest->address();
-
-        node->outputs().push_back(outlet);
-        ctx.plugin.outlets.insert({port, {m_node, outlet}});
+        node->outputs().push_back(ossia::make_outlet<ossia::value_port>());
         break;
       }
-
       case Process::PortType::Audio:
       {
-        auto outlet = ossia::make_outlet<ossia::audio_port>();
-        auto dest = Engine::score_to_ossia::makeDestination(devices, port->address());
-        if(dest)
-          outlet->address = &dest->address();
-
-        node->outputs().push_back(outlet);
-        ctx.plugin.outlets.insert({port, {m_node, outlet}});
+        node->outputs().push_back(ossia::make_outlet<ossia::audio_port>());
         break;
       }
     }
@@ -122,7 +96,7 @@ Component::Component(
     });
   }
 
-  ctx.plugin.execGraph->add_node(m_node);
+  ctx.plugin.register_node(element, node);
   /*
   con(element, &JS::ProcessModel::scriptChanged,
       this, [=] (const QString& str) {
@@ -132,6 +106,11 @@ Component::Component(
     { proc->setScript(str); });
   });
   */
+}
+
+Component::~Component()
+{
+  system().plugin.unregister_node(process(), OSSIAProcess().node);
 }
 
 void js_node::setScript(const QString& val)

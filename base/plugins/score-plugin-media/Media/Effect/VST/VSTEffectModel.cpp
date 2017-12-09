@@ -181,9 +181,9 @@ void VSTEffectModel::showUI()
   }
 
   if(w <= 1)
-    w = 320;
+    w = 640;
   if(h <= 1)
-    h = 240;
+    h = 480;
 
   show_vst2_editor(fx, w, h);
 }

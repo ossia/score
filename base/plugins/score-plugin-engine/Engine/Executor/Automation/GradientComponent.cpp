@@ -141,7 +141,7 @@ Component::Component(
 {
   auto node = std::make_shared<gradient_node>();
   m_ossia_process = std::make_shared<gradient_process>(node);
-  this->m_node = node;
+  
 
   con(*element.outlet, &Process::Port::addressChanged,
       this, [=] (const auto&) {
@@ -161,8 +161,15 @@ Component::Component(
   });
   con(element, &Gradient::ProcessModel::gradientChanged,
       this, [this] { this->recompute(); });
-
+  
+  ctx.plugin.register_node(process(), OSSIAProcess().node);
+  
   recompute();
+}
+
+Component::~Component()
+{
+  system().plugin.unregister_node(process(), OSSIAProcess().node);
 }
 
 static ossia::hunter_lab to_ossia_color(const QColor& c)
@@ -200,7 +207,7 @@ void Component::recompute()
   auto g = process().gradient();
 
   s.executionQueue.enqueue(
-        [proc=std::dynamic_pointer_cast<gradient_node>(m_node)
+        [proc=std::dynamic_pointer_cast<gradient_node>(OSSIAProcess().node)
         ,g]
   {
     proc->set_gradient(to_ossia_gradient(g));

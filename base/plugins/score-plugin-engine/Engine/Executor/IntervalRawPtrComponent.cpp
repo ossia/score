@@ -68,6 +68,7 @@ IntervalRawPtrComponent::~IntervalRawPtrComponent()
   for(auto& proc : m_processes)
     proc.second->cleanup();
   executionStopped();
+  
 }
 
 void IntervalRawPtrComponent::init()
@@ -78,11 +79,17 @@ void IntervalRawPtrComponent::init()
 void IntervalRawPtrComponent::cleanup()
 {
   if(m_ossia_interval)
+  {
     m_ossia_interval->set_callback(ossia::time_interval::exec_callback{});
+    
+    system().plugin.unregister_node(
+        {interval().inlet.get()}, 
+        {interval().outlet.get()}, 
+        m_ossia_interval->node);      
+  }
   for(auto& proc : m_processes)
     proc.second->cleanup();
-
-  system().plugin.execGraph->remove_node(m_ossia_interval->node);
+  
   clear();
   m_processes.clear();
   m_ossia_interval = nullptr;
@@ -128,10 +135,10 @@ void IntervalRawPtrComponent::onSetup(
   }
 
   // set-up the interval ports
-  system().plugin.inlets.insert(std::make_pair(interval().inlet.get(), std::make_pair(ossia_cst->node, ossia_cst->node->inputs()[0])));
-  system().plugin.outlets.insert(std::make_pair(interval().outlet.get(), std::make_pair(ossia_cst->node, ossia_cst->node->outputs()[0])));
-
-  system().plugin.execGraph->add_node(ossia_cst->node);
+  system().plugin.register_node(
+      {interval().inlet.get()}, 
+      {interval().outlet.get()}, 
+      ossia_cst->node);
 
   init();
 }

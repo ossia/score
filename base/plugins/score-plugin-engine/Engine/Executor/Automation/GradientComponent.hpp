@@ -25,10 +25,10 @@ class Component final
         const ::Engine::Execution::Context& ctx,
         const Id<score::Component>& id,
         QObject* parent);
+      ~Component();
 
   private:
     void recompute();
-    ossia::node_ptr m_node;
 
 };
 using ComponentFactory
