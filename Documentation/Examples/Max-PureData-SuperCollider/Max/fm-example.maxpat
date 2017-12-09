@@ -38,6 +38,18 @@
 		"subpatcher_template" : "",
 		"boxes" : [ 			{
 				"box" : 				{
+					"id" : "obj-14",
+					"maxclass" : "button",
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"outlettype" : [ "bang" ],
+					"patching_rect" : [ 208.0, 297.0, 24.0, 24.0 ],
+					"style" : ""
+				}
+
+			}
+, 			{
+				"box" : 				{
 					"id" : "obj-43",
 					"maxclass" : "newobj",
 					"numinlets" : 2,
@@ -743,7 +755,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 0,
 					"offset" : [ 0.0, 0.0 ],
-					"patching_rect" : [ 495.0, 101.0, 293.0, 159.0 ],
+					"patching_rect" : [ 495.0, 101.0, 302.0, 139.0 ],
 					"viewvisibility" : 1
 				}
 
@@ -820,6 +832,13 @@
 				"patchline" : 				{
 					"destination" : [ "obj-10", 0 ],
 					"source" : [ "obj-12", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-4", 0 ],
+					"source" : [ "obj-14", 0 ]
 				}
 
 			}
@@ -943,8 +962,6 @@
 			"obj-10::obj-8" : [ "Ratio", "Ratio", 0 ],
 			"obj-11" : [ "live.tab", "live.tab", 0 ],
 			"obj-10::obj-1" : [ "Carrier frequency", "Carrier frequency", 0 ],
-			"obj-10::obj-2" : [ "Cutoff", "Cutoff", 0 ],
-			"obj-10::obj-7" : [ "live.numbox", "live.numbox", 0 ],
 			"obj-10::obj-4" : [ "Gain", "Gain", 0 ]
 		}
 ,
