@@ -251,9 +251,9 @@
 					"numinlets" : 1,
 					"numoutlets" : 2,
 					"outlettype" : [ "", "" ],
-					"patching_rect" : [ 648.0, 87.0, 520.0, 22.0 ],
+					"patching_rect" : [ 648.0, 87.0, 524.0, 22.0 ],
 					"style" : "",
-					"text" : "ossia.parameter ramptime @default 5 @type ms @description \"Modulator frequency ramp time\""
+					"text" : "ossia.parameter ramptime @default 5. @type ms @description \"Modulator frequency ramp time\""
 				}
 
 			}

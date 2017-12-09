@@ -938,26 +938,26 @@
 			}
  ],
 		"parameters" : 		{
-			"obj-10::obj-1" : [ "Carrier frequency", "Carrier frequency", 0 ],
 			"obj-10::obj-6" : [ "Pan", "Pan", 0 ],
 			"obj-10::obj-3" : [ "Index", "Index", 0 ],
 			"obj-10::obj-8" : [ "Ratio", "Ratio", 0 ],
 			"obj-11" : [ "live.tab", "live.tab", 0 ],
+			"obj-10::obj-1" : [ "Carrier frequency", "Carrier frequency", 0 ],
 			"obj-10::obj-2" : [ "Cutoff", "Cutoff", 0 ],
-			"obj-10::obj-4" : [ "Gain", "Gain", 0 ],
-			"obj-10::obj-7" : [ "live.numbox", "live.numbox", 0 ]
+			"obj-10::obj-7" : [ "live.numbox", "live.numbox", 0 ],
+			"obj-10::obj-4" : [ "Gain", "Gain", 0 ]
 		}
 ,
 		"dependency_cache" : [ 			{
 				"name" : "synth.maxpat",
-				"bootpath" : "~/Repositories/score/Documentation/Examples/Max",
+				"bootpath" : "~/Repositories/score/Documentation/Examples/Max-PureData-SuperCollider/Max",
 				"patcherrelativepath" : ".",
 				"type" : "JSON",
 				"implicit" : 1
 			}
 , 			{
 				"name" : "synth.view.maxpat",
-				"bootpath" : "~/Repositories/score/Documentation/Examples/Max",
+				"bootpath" : "~/Repositories/score/Documentation/Examples/Max-PureData-SuperCollider/Max",
 				"patcherrelativepath" : ".",
 				"type" : "JSON",
 				"implicit" : 1
