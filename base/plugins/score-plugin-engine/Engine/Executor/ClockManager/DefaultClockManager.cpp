@@ -37,11 +37,12 @@ DefaultClockManager::makeDefaultCallback(
     Engine::Execution::BaseScenarioElement& bs)
 {
   auto& cst = bs.baseInterval();
-  return [this, &score_cst = cst.scoreInterval()](
+  auto& ctx = this->context;
+  return [&ctx, &score_cst=cst.scoreInterval()](
       double position,
       ossia::time_value date)
   {
-    auto currentTime = this->context.reverseTime(date);
+    auto currentTime = ctx.reverseTime(date);
 
     auto& cstdur = score_cst.duration;
     const auto& maxdur = cstdur.maxDuration();
@@ -53,7 +54,7 @@ DefaultClockManager::makeDefaultCallback(
 
     // Run some commands if they have been submitted.
     ExecutionCommand c;
-    while(context.executionQueue.try_dequeue(c))
+    while(ctx.executionQueue.try_dequeue(c))
     {
       c();
     }

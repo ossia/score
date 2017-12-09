@@ -42,7 +42,6 @@ public:
   ~Component() override;
 
   private:
-  ossia::node_ptr m_node;
 };
 
 using ComponentFactory

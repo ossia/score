@@ -33,7 +33,6 @@ public:
   ~SoundComponent();
 
 private:
-  ossia::node_ptr m_node;
 };
 
 using SoundComponentFactory
@@ -58,7 +57,6 @@ public:
   ~InputComponent();
 
 private:
-  ossia::node_ptr m_node;
 };
 
 using InputComponentFactory
@@ -82,7 +80,6 @@ public:
   ~EffectComponent();
 
 private:
-  ossia::node_ptr m_node;
 };
 
 using EffectComponentFactory

@@ -88,13 +88,9 @@ void ScenarioComponent::init()
 
   const Context& ctx = system();
 
-
-  auto ossia_sc = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
   // set-up the ports
-  ctx.plugin.inlets.insert({process().inlets()[0], std::make_pair(ossia_sc->node, ossia_sc->node->inputs()[0])});
-  ctx.plugin.outlets.insert({process().outlets()[0], std::make_pair(ossia_sc->node, ossia_sc->node->outputs()[0])});
-
-  ctx.plugin.execGraph->add_node(ossia_sc->node);
+  auto ossia_sc = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
+  ctx.plugin.register_node(process(), ossia_sc->node);
 
   if (auto fact = ctx.doc.app.interfaces<Scenario::CSPCoherencyCheckerList>().get())
   {
@@ -110,7 +106,7 @@ void ScenarioComponent::init()
 void ScenarioComponent::cleanup()
 {
   std::shared_ptr<ossia::scenario> proc = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
-  system().plugin.execGraph->remove_node(proc->node);
+  system().plugin.unregister_node(process(), proc->node);
   clear();
 }
 

@@ -129,11 +129,8 @@ Component::Component(
         element, ctx, id, "MidiComponent", parent}
 {
   auto node = std::make_shared<midi_node>();
-  auto proc = std::make_shared<midi_node_process>(node);
-  m_ossia_process = proc;
-  m_node = node;
-  ctx.plugin.outlets.insert({element.outlet.get(), {m_node, node->outputs()[0]}});
-  ctx.plugin.execGraph->add_node(m_node);
+  m_ossia_process = std::make_shared<midi_node_process>(node);
+  ctx.plugin.register_node(element, node);
 
   node->set_channel(element.channel());
   node->set_notes(element.notes);
@@ -141,8 +138,7 @@ Component::Component(
 
 Component::~Component()
 {
-  m_node->clear();
-  system().plugin.execGraph->remove_node(m_node);
+  system().plugin.unregister_node(process(), OSSIAProcess().node);
 }
 
 

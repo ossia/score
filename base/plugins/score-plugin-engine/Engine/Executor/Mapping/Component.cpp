@@ -116,10 +116,7 @@ Component::Component(
                                                                    parent}
 {
   auto node = std::make_shared<mapping_node>();
-  auto proc = std::make_shared<ossia::node_process>(node);
-  m_ossia_process = proc;
-  m_node = node;
-
+  m_ossia_process = std::make_shared<ossia::node_process>(node);
 
   con(element, &Mapping::ProcessModel::sourceAddressChanged,
       this, [this] (const auto&) { this->recompute(); });
@@ -138,16 +135,13 @@ Component::Component(
   con(element, &Mapping::ProcessModel::curveChanged,
       this, [this] () { this->recompute(); });
 
-  ctx.plugin.inlets.insert({process().inlet.get(), std::make_pair(node, node->inputs()[0])});
-  ctx.plugin.outlets.insert({process().outlet.get(), std::make_pair(node, node->outputs()[0])});
-  ctx.plugin.execGraph->add_node(m_node);
+  ctx.plugin.register_node(process(), node);
   recompute();
 }
 
 Component::~Component()
 {
-  m_node->clear();
-  system().plugin.execGraph->remove_node(m_node);
+  system().plugin.unregister_node(process(), OSSIAProcess().node);
 }
 
 void Component::recompute()
@@ -174,7 +168,7 @@ void Component::recompute()
   if (curve)
   {
     system().executionQueue.enqueue(
-          [proc=std::dynamic_pointer_cast<mapping_node>(m_node)
+          [proc=std::dynamic_pointer_cast<mapping_node>(OSSIAProcess().node)
           ,curve
           ,ossia_source_addr
           ,ossia_target_addr]

@@ -326,23 +326,12 @@ class Executor: public Engine::Execution::
                             id, "Executor::ControlProcess<Info>", parent}
     {
       auto node = std::make_shared<ControlNode<Info>>();
-      auto proc = std::make_shared<ossia::node_process>(node);
-      this->m_node = node;
-      this->m_ossia_process = proc;
+      this->m_ossia_process = std::make_shared<ossia::node_process>(node);
       const auto& dl = ctx.devices.list();
 
       constexpr const auto control_start = InfoFunctions<Info>::control_start;
       constexpr const auto control_count = InfoFunctions<Info>::control_count;
 
-
-      for(std::size_t i = 0; i < InfoFunctions<Info>::inlet_size; i++)
-      {
-        auto dest = Engine::score_to_ossia::makeDestination(dl, element.inlets_ref()[i]->address());
-        if(dest)
-        {
-          node->inputs()[i]->address = &dest->address();
-        }
-      }
       if constexpr(control_count > 0)
       {
         for(std::size_t i = 0; i < control_count; i++)
@@ -367,16 +356,6 @@ class Executor: public Engine::Execution::
         });
       }
 
-
-      for(std::size_t i = 0; i < InfoFunctions<Info>::outlet_size; i++)
-      {
-        auto dest = Engine::score_to_ossia::makeDestination(dl, element.outlets_ref()[i]->address());
-        if(dest)
-        {
-          node->outputs()[i]->address = &dest->address();
-        }
-      }
-
       for(std::size_t idx = control_start; idx < control_start + control_count; idx++)
       {
         auto inlet = static_cast<ControlInlet*>(element.inlets_ref()[idx]);
@@ -396,11 +375,8 @@ class Executor: public Engine::Execution::
 
     ~Executor()
     {
-      this->system().plugin.unregister_node(this->process(), m_node);
+      this->system().plugin.unregister_node(this->process(), OSSIAProcess().node);
     }
-
-  private:
-    ossia::node_ptr m_node;
 };
 
 
