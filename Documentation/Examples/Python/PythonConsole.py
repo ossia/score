@@ -1,4 +1,4 @@
-import pyossia.ossia_python as ossia
+import ossia_python as ossia
 import os, sys, time
 
 ### LOCAL DEVICE SETUP
