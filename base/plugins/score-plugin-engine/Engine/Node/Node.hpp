@@ -97,8 +97,8 @@ struct NodeBuilder: Args...
   }
   constexpr auto build() const {
 #if defined(_MSC_VER)
-    return *this; 
-#else 
+    return *this;
+#else
     return NodeInfo<Args...>{static_cast<Args>(*this)...};
 #endif
   }
@@ -131,11 +131,11 @@ static constexpr auto get_ports(const T& t)
   if constexpr(!std::is_same<index, brigand::no_such_type_>::value)
   {
     using array_type = brigand::at<T, index>;
-      
+
 #if defined(_MSC_VER)
     return dummy_container<PortType>{};
 #else
-    return get<array_type>(t);
+    return std::get<array_type>(t);
 #endif
   }
   else
@@ -157,11 +157,11 @@ static constexpr auto get_controls(const T& t)
   if constexpr(!std::is_same<index, brigand::no_such_type_>::value)
   {
     using tuple_type = brigand::at<T, index>;
-      
+
 #if defined(_MSC_VER)
     return std::tuple<>{};
 #else
-    return get<tuple_type>(t);
+    return std::get<tuple_type>(t);
 #endif
   }
   else

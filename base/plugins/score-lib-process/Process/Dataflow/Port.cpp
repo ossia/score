@@ -150,6 +150,7 @@ ControlInlet::ControlInlet(Id<Port> c, const ControlInlet& other, QObject* paren
 {
   m_value = other.m_value;
   m_domain = other.m_domain;
+  m_ui = other.m_ui;
 }
 
 ControlInlet* ControlInlet::clone(QObject* parent) const
@@ -291,7 +292,7 @@ template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::Port>(const Process::Port& p)
 {
   obj["Type"] = (int)p.type;
-  obj["Hidden"] = (int)p.hidden;
+  obj["Hidden"] = (bool)p.hidden;
   obj["Custom"] = p.m_customData;
   obj["Address"] = toJsonObject(p.m_address);
   obj["Cables"] = toJsonArray(p.m_cables);
@@ -350,14 +351,14 @@ SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::ControlInlet>(cons
 {
   read((Process::Inlet&)p);
 
-  obj[strings.Value] = toJsonValue(p.m_value);
+  obj[strings.Value] = toJsonObject(p.m_value);
   obj[strings.Domain] = toJsonObject(p.m_domain);
   obj["UiVisible"] = p.m_ui;
 }
 template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::ControlInlet>(Process::ControlInlet& p)
 {
-  p.m_value = fromJsonValue<ossia::value>(obj[strings.Value]);
+  p.m_value = fromJsonObject<ossia::value>(obj[strings.Value]);
   p.m_domain = fromJsonObject<State::Domain>(obj[strings.Domain].toObject());
   p.m_ui = obj["UiVisible"].toBool();
 }

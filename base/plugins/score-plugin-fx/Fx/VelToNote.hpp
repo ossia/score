@@ -67,9 +67,17 @@ struct Node
     {
       return {base_note, base_vel};
     }
-    Note operator()(int vel)
+    Note operator()(float note)
     {
-      return {base_note, vel};
+      return {(int)note, base_vel};
+    }
+    Note operator()(char note)
+    {
+      return {note, base_vel};
+    }
+    Note operator()(int note)
+    {
+      return {note, base_vel};
     }
     Note operator()(int note, int vel)
     {
@@ -87,10 +95,11 @@ struct Node
     template<std::size_t N>
     Note operator()(const std::array<float, N>& v)
     {
+      static_assert(N>=2);
       return operator()(v[0], v[1]);
     }
   };
-  
+
   static void run(
       const ossia::value_port& p1,
       const Process::timed_vec<float>& startq,

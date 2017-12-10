@@ -40,7 +40,6 @@ class VSTEffectModel :
             EffectModel{vis, parent}
         {
             vis.writeTo(*this);
-            reload();
         }
 
         const QString& effect() const

@@ -47,13 +47,17 @@ class View final : public Process::ILayerView
       for(EffectModel& effect : object.effects())
       {
         auto fx_item = new Process::RectItem(this);
+        EffectUi fx_ui{effect, fx_item, {}};
+
         fx_item->setPos(pos_x, 0);
+
 
         {
           auto title = new QWidget;
           auto title_lay = new QHBoxLayout{title};
           auto gw = new QGraphicsProxyWidget{fx_item};
           gw->setWidget(title);
+          fx_ui.title = gw;
 
           auto name = new QLabel{effect.metadata().getLabel(), title};
 
@@ -93,7 +97,6 @@ class View final : public Process::ILayerView
           title->setStyleSheet(Process::transparentStylesheet());
         }
 
-        double pos_y = 40;
         for(auto& e : effect.inlets())
         {
           auto inlet = dynamic_cast<Process::ControlInlet*>(e);
@@ -101,48 +104,130 @@ class View final : public Process::ILayerView
             continue;
 
           connect(inlet, &Process::ControlInlet::uiVisibleChanged,
-                  this, [&] { setup(object, doc); });
+                  this, [this,&doc,fx=&effect,inlet] (bool vis) {
+            if(vis)
+            {
+              for(auto& e : this->effects)
+              {
+                if(&e.effect == fx)
+                {
+                  setupInlet(*inlet, e, doc);
+                  break;
+                }
+              }
+
+            }
+            else
+            {
+              for(auto& e : this->effects)
+              {
+                if(&e.effect == fx)
+                {
+                  disableInlet(*inlet, e, doc);
+                  break;
+                }
+              }
+            }
+          });
           if(inlet->uiVisible())
           {
-            auto item = new Process::RectItem{fx_item};
-            item->setPos(0, pos_y);
-
-            auto port = Dataflow::setupInlet(*inlet, doc, item, this);
-
-            auto lab = new Scenario::SimpleTextItem{item};
-            lab->setColor(ScenarioStyle::instance().EventDefault);
-            lab->setText(inlet->customData());
-
-            struct SliderInfo {
-                static float getMin() { return 0.; }
-                static float getMax() { return 1.; }
-            };
-            QWidget* widg = Process::FloatSlider::make_item(SliderInfo{}, *inlet, doc, nullptr, this);
-            widg->setMaximumWidth(150);
-            widg->setContentsMargins(0, 0, 0, 0);
-            widg->setPalette(Process::transparentPalette());
-            widg->setAutoFillBackground(false);
-            widg->setStyleSheet(Process::transparentStylesheet());
-
-            auto wrap = new QGraphicsProxyWidget{item};
-            wrap->setWidget(widg);
-            wrap->setContentsMargins(0, 0, 0, 0);
-
-            lab->setPos(15, 2);
-            wrap->setPos(15, lab->boundingRect().height());
-
-            auto h = std::max(20., (qreal)(widg->height() + lab->boundingRect().height() + 2.));
-            item->setRect(QRectF{0., 0., 170., h});
-            port->setPos(7., h / 2.);
-
-            pos_y += h;
+            setupInlet(*inlet, fx_ui, doc);
           }
         }
 
         pos_x += 180;
+        effects.push_back(fx_ui);
       }
     }
 
+    struct ControlUi
+    {
+        Process::ControlInlet* inlet;
+        Process::RectItem* rect;
+    };
+    struct EffectUi
+    {
+        const EffectModel& effect;
+        Process::RectItem* fx_item{};
+        QGraphicsProxyWidget* title{};
+        std::vector<ControlUi> widgets;
+    };
+    std::vector<EffectUi> effects;
+
+    void disableInlet(
+        Process::ControlInlet& inlet,
+        EffectUi& fx_ui,
+        const score::DocumentContext& doc)
+    {
+      for(auto it = fx_ui.widgets.begin(); it != fx_ui.widgets.end(); )
+      {
+        if(it->inlet == &inlet)
+        {
+          this->scene()->removeItem(it->rect);
+          auto h = it->rect->boundingRect().height();
+          delete it->rect;
+          for(; it != fx_ui.widgets.end(); ++it)
+          {
+            auto pos = it->rect->pos();
+            pos.ry() -= h;
+            it->rect->setPos(pos);
+          }
+          break;
+        }
+        else
+        {
+          ++it;
+        }
+      }
+    }
+
+    void setupInlet(
+        Process::ControlInlet& inlet,
+        EffectUi& fx_ui,
+        const score::DocumentContext& doc)
+    {
+      auto item = new Process::RectItem{fx_ui.fx_item};
+
+      double pos_y =
+      (fx_ui.widgets.empty())
+          ? 40
+          : fx_ui.widgets.back().rect->boundingRect().height() + fx_ui.widgets.back().rect->pos().y();
+
+
+      auto port = Dataflow::setupInlet(inlet, doc, item, this);
+
+      auto lab = new Scenario::SimpleTextItem{item};
+      lab->setColor(ScenarioStyle::instance().EventDefault);
+      lab->setText(inlet.customData());
+
+      struct SliderInfo {
+          static float getMin() { return 0.; }
+          static float getMax() { return 1.; }
+      };
+      QWidget* widg = Process::FloatSlider::make_item(SliderInfo{}, inlet, doc, nullptr, this);
+      widg->setMaximumWidth(150);
+      widg->setContentsMargins(0, 0, 0, 0);
+      widg->setPalette(Process::transparentPalette());
+      widg->setAutoFillBackground(false);
+      widg->setStyleSheet(Process::transparentStylesheet());
+
+      auto wrap = new QGraphicsProxyWidget{item};
+      wrap->setWidget(widg);
+      wrap->setContentsMargins(0, 0, 0, 0);
+
+      lab->setPos(15, 2);
+      wrap->setPos(15, lab->boundingRect().height());
+
+      auto h = std::max(20., (qreal)(widg->height() + lab->boundingRect().height() + 2.));
+
+      port->setPos(7., h / 2.);
+
+      item->setPos(0, pos_y);
+      item->setRect(QRectF{0., 0, 170., h});
+      fx_ui.widgets.push_back({&inlet, item});
+
+
+    }
 
   private:
     void paint_impl(QPainter*) const override
@@ -203,6 +288,7 @@ class Presenter final : public Process::LayerPresenter
               this, [&] {
         m_view->setup(static_cast<const Effect::ProcessModel&>(model), ctx);
       });
+      m_view->setup(static_cast<const Effect::ProcessModel&>(model), ctx);
     }
 
     void setWidth(qreal val) override

@@ -176,9 +176,6 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
   SCORE_ASSERT(parent);
   m_base.init(BaseScenarioRefContainer{cst, *parent});
 
-  ossia::graph_node& n = *m_base.baseInterval().OSSIAInterval()->node;
-  n.outputs()[0]->address = ossia::net::find_node(this->audio_dev, "/out/main")->get_parameter();
-
   auto& model = context().doc.model<Scenario::ScenarioDocumentModel>();
   //qDebug() << context().document.findChildren<Process::Node*>();
   for(auto& cable : model.cables)
@@ -276,7 +273,7 @@ void DocumentPlugin::set_destination(
 }
 void DocumentPlugin::set_destination(
     const State::AddressAccessor& address,
-    const ossia::outlet_ptr& outlet) 
+    const ossia::outlet_ptr& outlet)
 {
   if(auto dest = Engine::score_to_ossia::makeDestination(
        context().devices.list(),
@@ -311,7 +308,7 @@ void DocumentPlugin::register_node(
   {
     const std::size_t n_inlets = proc_inlets.size();
     const std::size_t n_outlets = proc_outlets.size();
-    
+
     for(std::size_t i = 0; i < n_inlets; i++)
     {
       connect(proc_inlets[i], &Process::Port::addressChanged,
@@ -319,10 +316,10 @@ void DocumentPlugin::register_node(
         set_destination(address, node->inputs()[i]);
       });
       set_destination(proc_inlets[i]->address(), node->inputs()[i]);
-      
+
       inlets.insert({ proc_inlets[i], std::make_pair( node, node->inputs()[i] ) });
     }
-    
+
     for(std::size_t i = 0; i < n_outlets; i++)
     {
       connect(proc_outlets[i], &Process::Port::addressChanged,
@@ -330,10 +327,10 @@ void DocumentPlugin::register_node(
         set_destination(address, node->outputs()[i]);
       });
       set_destination(proc_outlets[i]->address(), node->outputs()[i]);
-      
+
       outlets.insert({ proc_outlets[i], std::make_pair( node, node->outputs()[i] ) });
     }
-    
+
     m_editionQueue.enqueue([=] {
       execGraph->add_node(node);
     });
@@ -350,7 +347,7 @@ void DocumentPlugin::unregister_node(
       execGraph->remove_node(node);
     });
   }
-  
+
   for(auto ptr : proc_inlets)
     inlets.erase(ptr);
   for(auto ptr : proc_outlets)
