@@ -14,29 +14,29 @@ class ControlProcess;
 template <typename Info>
 struct Metadata<PrettyName_k, Process::ControlProcess<Info>>
 {
-  static Q_DECL_RELAXED_CONSTEXPR auto get()
-  {
-    return Info::Metadata::prettyName;
-  }
+    static Q_DECL_RELAXED_CONSTEXPR auto get()
+    {
+      return Info::Metadata::prettyName;
+    }
 };
 template <typename Info>
 struct Metadata<Category_k, Process::ControlProcess<Info>>
 {
-  static Q_DECL_RELAXED_CONSTEXPR auto get()
-  {
-    return Info::Metadata::category;
-  }
+    static Q_DECL_RELAXED_CONSTEXPR auto get()
+    {
+      return Info::Metadata::category;
+    }
 };
 template <typename Info>
 struct Metadata<Tags_k, Process::ControlProcess<Info>>
 {
-  static QStringList get()
-  {
-    QStringList lst;
-    for(auto str : Info::Metadata::tags)
-      lst.append(str);
-    return lst;
-  }
+    static QStringList get()
+    {
+      QStringList lst;
+      for(auto str : Info::Metadata::tags)
+        lst.append(str);
+      return lst;
+    }
 };
 template <typename Info>
 struct Metadata<ObjectKey_k, Process::ControlProcess<Info>>
@@ -63,221 +63,258 @@ class ControlProcess final: public Process::ProcessModel
 {
     SCORE_SERIALIZE_FRIENDS
     PROCESS_METADATA_IMPL(ControlProcess<Info>)
-  Process::Inlets m_inlets;
-  Process::Outlets m_outlets;
+    friend class TSerializer<DataStream, Process::ControlProcess<Info>>;
+    friend class TSerializer<JSONObject, Process::ControlProcess<Info>>;
+    Process::Inlets m_inlets;
+    Process::Outlets m_outlets;
 
-  Process::Inlets inlets() const final override
-  {
-    return m_inlets;
-  }
+    Process::Inlets inlets() const final override
+    {
+      return m_inlets;
+    }
 
-  Process::Outlets outlets() const final override
-  {
-    return m_outlets;
-  }
+    Process::Outlets outlets() const final override
+    {
+      return m_outlets;
+    }
 
   public:
 
-  const Process::Inlets& inlets_ref() const { return m_inlets; }
-  const Process::Outlets& outlets_ref() const { return m_outlets; }
+    const Process::Inlets& inlets_ref() const { return m_inlets; }
+    const Process::Outlets& outlets_ref() const { return m_outlets; }
 
-  ossia::value control(std::size_t i) const
-  {
-    static_assert(InfoFunctions<Info>::control_count != 0);
-    constexpr auto start = InfoFunctions<Info>::control_start;
+    ossia::value control(std::size_t i) const
+    {
+      static_assert(InfoFunctions<Info>::control_count != 0);
+      constexpr auto start = InfoFunctions<Info>::control_start;
 
-    return static_cast<ControlInlet*>(m_inlets[start + i])->value();
-  }
+      return static_cast<ControlInlet*>(m_inlets[start + i])->value();
+    }
 
-  void setControl(std::size_t i, ossia::value v)
-  {
-    static_assert(InfoFunctions<Info>::control_count != 0);
-    constexpr auto start = InfoFunctions<Info>::control_start;
+    void setControl(std::size_t i, ossia::value v)
+    {
+      static_assert(InfoFunctions<Info>::control_count != 0);
+      constexpr auto start = InfoFunctions<Info>::control_start;
 
-    static_cast<ControlInlet*>(m_inlets[start + i])->setValue(std::move(v));
-  }
+      static_cast<ControlInlet*>(m_inlets[start + i])->setValue(std::move(v));
+    }
 
-  ControlProcess(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent):
-    Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-  {
-    metadata().setInstanceName(*this);
+    ControlProcess(
+        const TimeVal& duration,
+        const Id<Process::ProcessModel>& id,
+        QObject* parent):
+      Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    {
+      metadata().setInstanceName(*this);
 
-    setup_ports();
-  }
+      setup_ports();
+    }
 
-  const auto& test()
-  {
+    const auto& test()
+    {
       return Info::info;
-  }
-  auto setup_ports()
-  {
-    int inlet = 0;
-    for(const auto& in : get_ports<AudioInInfo>(Info::info))
-    {
-      auto p = new Process::Inlet(Id<Process::Port>(inlet++), this);
-      p->type = Process::PortType::Audio;
-      p->setCustomData(in.name);
-      m_inlets.push_back(p);
     }
-    for(const auto& in : get_ports<MidiInInfo>(Info::info))
+    auto setup_ports()
     {
-      auto p = new Process::Inlet(Id<Process::Port>(inlet++), this);
-      p->type = Process::PortType::Midi;
-      p->setCustomData(in.name);
-      m_inlets.push_back(p);
-    }
-    for(const auto& in : get_ports<ValueInInfo>(Info::info))
-    {
-      auto p = new Process::Inlet(Id<Process::Port>(inlet++), this);
-      p->type = Process::PortType::Message;
-      p->setCustomData(in.name);
-      m_inlets.push_back(p);
-    }
-    ossia::for_each_in_tuple(get_controls(Info::info),
-                             [&] (const auto& ctrl) {
-      if(auto p = ctrl.create_inlet(Id<Process::Port>(inlet++), this))
+      int inlet = 0;
+      for(const auto& in : get_ports<AudioInInfo>(Info::info))
       {
-        p->hidden = true;
+        auto p = new Process::Inlet(Id<Process::Port>(inlet++), this);
+        p->type = Process::PortType::Audio;
+        p->setCustomData(in.name);
         m_inlets.push_back(p);
       }
-    });
-
-    int outlet = 0;
-    for(const auto& out : get_ports<AudioOutInfo>(Info::info))
-    {
-      auto p = new Process::Outlet(Id<Process::Port>(outlet++), this);
-      p->type = Process::PortType::Audio;
-      p->setCustomData(out.name);
-      if(outlet == 0)
-        p->setPropagate(true);
-      m_outlets.push_back(p);
-    }
-    for(const auto& out : get_ports<MidiOutInfo>(Info::info))
-    {
-      auto p = new Process::Outlet(Id<Process::Port>(outlet++), this);
-      p->type = Process::PortType::Midi;
-      p->setCustomData(out.name);
-      m_outlets.push_back(p);
-    }
-    for(const auto& out : get_ports<ValueOutInfo>(Info::info))
-    {
-      auto p = new Process::Outlet(Id<Process::Port>(outlet++), this);
-      p->type = Process::PortType::Message;
-      p->setCustomData(out.name);
-      m_outlets.push_back(p);
-    }
-  }
-
-  ControlProcess(
-      const ControlProcess& source,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent):
-    Process::ProcessModel{
-      source,
-      id,
-      Metadata<ObjectKey_k, ProcessModel>::get(),
-      parent}
-  {
-    metadata().setInstanceName(*this);
-
-    setup_ports();
-    constexpr std::size_t count = InfoFunctions<Info>::control_count;
-    if constexpr(count > 0)
-    {
-      for(std::size_t i = 0; i < count; i++)
+      for(const auto& in : get_ports<MidiInInfo>(Info::info))
       {
-        setControl(i, source.control(i));
+        auto p = new Process::Inlet(Id<Process::Port>(inlet++), this);
+        p->type = Process::PortType::Midi;
+        p->setCustomData(in.name);
+        m_inlets.push_back(p);
+      }
+      for(const auto& in : get_ports<ValueInInfo>(Info::info))
+      {
+        auto p = new Process::Inlet(Id<Process::Port>(inlet++), this);
+        p->type = Process::PortType::Message;
+        p->setCustomData(in.name);
+        m_inlets.push_back(p);
+      }
+      ossia::for_each_in_tuple(get_controls(Info::info),
+                               [&] (const auto& ctrl) {
+        if(auto p = ctrl.create_inlet(Id<Process::Port>(inlet++), this))
+        {
+          p->hidden = true;
+          m_inlets.push_back(p);
+        }
+      });
+
+      int outlet = 0;
+      for(const auto& out : get_ports<AudioOutInfo>(Info::info))
+      {
+        auto p = new Process::Outlet(Id<Process::Port>(outlet++), this);
+        p->type = Process::PortType::Audio;
+        p->setCustomData(out.name);
+        if(outlet == 0)
+          p->setPropagate(true);
+        m_outlets.push_back(p);
+      }
+      for(const auto& out : get_ports<MidiOutInfo>(Info::info))
+      {
+        auto p = new Process::Outlet(Id<Process::Port>(outlet++), this);
+        p->type = Process::PortType::Midi;
+        p->setCustomData(out.name);
+        m_outlets.push_back(p);
+      }
+      for(const auto& out : get_ports<ValueOutInfo>(Info::info))
+      {
+        auto p = new Process::Outlet(Id<Process::Port>(outlet++), this);
+        p->type = Process::PortType::Message;
+        p->setCustomData(out.name);
+        m_outlets.push_back(p);
       }
     }
-  }
+
+    ControlProcess(
+        const ControlProcess& source,
+        const Id<Process::ProcessModel>& id,
+        QObject* parent):
+      Process::ProcessModel{
+        source,
+        id,
+        Metadata<ObjectKey_k, ProcessModel>::get(),
+        parent}
+    {
+      metadata().setInstanceName(*this);
+
+      for(std::size_t i = 0; i < InfoFunctions<Info>::control_start; i++)
+      {
+        m_inlets.push_back(new Process::Inlet(source.m_inlets[i]->id(), *source.m_inlets[i], this));
+      }
+      for(auto i = InfoFunctions<Info>::control_start; i < InfoFunctions<Info>::inlet_size; i++)
+      {
+        m_inlets.push_back(new Process::ControlInlet(source.m_inlets[i]->id(), *source.m_inlets[i], this));
+      }
+
+      for(std::size_t i = 0; i < InfoFunctions<Info>::outlet_size; i++)
+      {
+        m_outlets.push_back(new Process::Outlet(source.m_outlets[i]->id(), *source.m_outlets[i], this));
+      }
+    }
 
 
-  template<typename Impl>
-  explicit ControlProcess(
-      Impl& vis,
-      QObject* parent) :
-    Process::ProcessModel{vis, parent}
-  {
-    setup_ports();
-    vis.writeTo(*this);
-  }
+    template<typename Impl>
+    explicit ControlProcess(
+        Impl& vis,
+        QObject* parent) :
+      Process::ProcessModel{vis, parent}
+    {
+      vis.writeTo(*this);
+    }
 
-  ~ControlProcess() override
-  {
+    ~ControlProcess() override
+    {
 
-  }
+    }
 };
 }
 
 template<typename Info>
 struct is_custom_serialized<Process::ControlProcess<Info>>: std::true_type { };
 
-template <typename T>
-struct TSerializer<DataStream, Process::ControlProcess<T>>
-{
-  static void
-  readFrom(DataStream::Serializer& s, const Process::ControlProcess<T>& obj)
-  {
-    constexpr std::size_t count = Process::InfoFunctions<T>::control_count;
-    if constexpr(count > 0)
-    {
-      for(std::size_t i = 0; i < count; i++)
-      {
-        s.stream() << obj.control(i);
-      }
-    }
-  }
 
-  static void writeTo(DataStream::Deserializer& s, Process::ControlProcess<T>& obj)
-  {
-    constexpr std::size_t count = Process::InfoFunctions<T>::control_count;
-    if constexpr(count > 0)
+template <typename Info>
+struct TSerializer<DataStream, Process::ControlProcess<Info>>
+{
+    static void
+    readFrom(DataStream::Serializer& s, const Process::ControlProcess<Info>& obj)
     {
-      for(std::size_t i = 0; i < count; i++)
+      using namespace Process;
       {
-        ossia::value v;
-        s.stream() >> v;
-        obj.setControl(i, std::move(v));
+        for(std::size_t i = 0; i < InfoFunctions<Info>::control_start; i++)
+        {
+          s.stream() << *obj.inlets_ref()[i];
+        }
+        for(auto i = InfoFunctions<Info>::control_start; i < InfoFunctions<Info>::inlet_size; i++)
+        {
+          s.stream() << *static_cast<Process::ControlInlet*>(obj.inlets_ref()[i]);
+        }
+      }
+
+      for (auto obj : obj.outlets_ref())
+      {
+        s.stream() << *obj;
       }
     }
-  }
+
+    static void writeTo(DataStream::Deserializer& s, Process::ControlProcess<Info>& obj)
+    {
+      using namespace Process;
+
+      for(std::size_t i = 0; i < InfoFunctions<Info>::control_start; i++)
+      {
+        obj.m_inlets.push_back(new Process::Inlet(s, &obj));
+      }
+      for(auto i = InfoFunctions<Info>::control_start; i < InfoFunctions<Info>::inlet_size; i++)
+      {
+        obj.m_inlets.push_back(new Process::ControlInlet(s, &obj));
+      }
+
+      for(std::size_t i = 0; i < InfoFunctions<Info>::outlet_size; i++)
+      {
+        obj.m_outlets.push_back(new Process::Outlet(s, &obj));
+      }
+    }
 };
 
-template <typename T>
-struct TSerializer<JSONObject, Process::ControlProcess<T>>
+template <typename Info>
+struct TSerializer<JSONObject, Process::ControlProcess<Info>>
 {
-  static void
-  readFrom(JSONObject::Serializer& s, const Process::ControlProcess<T>& obj)
-  {
-    constexpr std::size_t count = Process::InfoFunctions<T>::control_count;
-    if constexpr(count > 0)
+    static void
+    readFrom(JSONObject::Serializer& s, const Process::ControlProcess<Info>& obj)
     {
-      QJsonArray arr;
-      for(std::size_t i = 0; i < count; i++)
+      using namespace Process;
       {
-        arr.append(toJsonValue(obj.control(i)));
+        QJsonArray arr;
+        for(std::size_t i = 0; i < InfoFunctions<Info>::control_start; i++)
+        {
+          arr.push_back(toJsonObject(*obj.inlets_ref()[i]));
+        }
+        for(auto i = InfoFunctions<Info>::control_start; i < InfoFunctions<Info>::inlet_size; i++)
+        {
+          arr.push_back(toJsonObject(*static_cast<Process::ControlInlet*>(obj.inlets_ref()[i])));
+        }
+        s.obj["Inlets"] = std::move(arr);
       }
 
-      s.obj["Controls"] = std::move(arr);
+      s.obj["Outlets"] = toJsonArray(obj.outlets_ref());
     }
-  }
 
-  static void writeTo(JSONObject::Deserializer& s, Process::ControlProcess<T>& obj)
-  {
-    constexpr std::size_t count = Process::InfoFunctions<T>::control_count;
-
-    if constexpr(count > 0)
+    static void writeTo(JSONObject::Deserializer& s, Process::ControlProcess<Info>& obj)
     {
-      const auto& arr = s.obj["Controls"].toArray();
-      for(std::size_t i = 0; i < count; i++)
+      using namespace Process;
+
       {
-        obj.setControl(i, fromJsonValue<ossia::value>(arr[i]));
+        auto inlets = s.obj["Inlets"].toArray();
+
+        for(std::size_t i = 0; i < InfoFunctions<Info>::control_start; i++)
+        {
+          obj.m_inlets.push_back(new Process::Inlet(JSONObjectWriter{inlets[i].toObject()}, &obj));
+        }
+        for(auto i = InfoFunctions<Info>::control_start; i < InfoFunctions<Info>::inlet_size; i++)
+        {
+          obj.m_inlets.push_back(new Process::ControlInlet(JSONObjectWriter{inlets[i].toObject()}, &obj));
+          SCORE_ASSERT(obj.m_inlets.back()->hidden);
+        }
+      }
+
+
+      {
+        auto outlets = s.obj["Outlets"].toArray();
+        for(std::size_t i = 0; i < InfoFunctions<Info>::outlet_size; i++)
+        {
+          obj.m_outlets.push_back(new Process::Outlet(JSONObjectWriter{outlets[i].toObject()}, &obj));
+        }
       }
     }
-  }
 };
 
 namespace score

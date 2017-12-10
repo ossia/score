@@ -20,9 +20,9 @@
 #include <QTimer>
 #include <Process/Dataflow/Port.hpp>
 #include <websocketpp/base64/base64.hpp>
-void show_vst2_editor(AEffect* effect, uint16_t width, uint16_t height);
+void show_vst2_editor(AEffect& effect, uint16_t width, uint16_t height);
+void hide_vst2_editor(AEffect& effect);
 
-void hide_vst2_editor(AEffect* effect);
 namespace Media
 {
 namespace VST
@@ -150,19 +150,19 @@ static auto HostCallback (AEffect* effect, VstInt32 opcode, VstInt32 index, VstI
 }
 void VSTEffectModel::closePlugin()
 {
-  if(plugin)
+  if(fx)
   {
     hideUI();
     dispatch(effStopProcess);
     dispatch(effMainsChanged, 0, 0);
     dispatch(effClose);
+    fx = nullptr;
   }
-  fx = nullptr;
-  plugin.reset();
   qDeleteAll(m_inlets);
   qDeleteAll(m_outlets);
   m_inlets.clear();
   m_outlets.clear();
+  //plugin.reset();
   metadata().setLabel("Dead VST");
 }
 
@@ -185,12 +185,12 @@ void VSTEffectModel::showUI()
   if(h <= 1)
     h = 480;
 
-  show_vst2_editor(fx, w, h);
+  show_vst2_editor(*fx, w, h);
 }
 
 void VSTEffectModel::hideUI()
 {
-  hide_vst2_editor(fx);
+  hide_vst2_editor(*fx);
 }
 
 void VSTEffectModel::reload()
@@ -323,6 +323,7 @@ void DataStreamReader::read(
     const Media::VST::VSTEffectModel& eff)
 {
   m_stream << eff.effect();
+  // TODO save & reload program parameters
   insertDelimiter();
 }
 
@@ -331,6 +332,7 @@ void DataStreamWriter::write(
     Media::VST::VSTEffectModel& eff)
 {
   m_stream >> eff.m_effectPath;
+  eff.reload();
   checkDelimiter();
 }
 
@@ -380,7 +382,8 @@ void JSONObjectWriter::write(
 
           for(int i = 1; i < eff.inlets().size(); i++)
           {
-            static_cast<Process::ControlInlet*>(eff.inlets()[i])->setValue(eff.fx->getParameter(eff.fx, i-1));
+            static_cast<Process::ControlInlet*>(eff.inlets()[i])->setValue(
+                  eff.fx->getParameter(eff.fx, i-1));
           }
         }
       }

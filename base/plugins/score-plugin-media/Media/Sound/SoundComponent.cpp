@@ -32,6 +32,8 @@ SoundComponent::SoundComponent(
 
   con(element, &Media::Sound::ProcessModel::fileChanged,
       this, [this] { this->recompute(); });
+  con(element.file().decoder(), &Media::AudioDecoder::finishedDecoding,
+      this, [this] { this->recompute(); });
   con(element, &Media::Sound::ProcessModel::startChannelChanged,
       this, [=] {
     system().executionQueue.enqueue(
@@ -220,7 +222,7 @@ InputComponent::InputComponent(
     { node->set_num_channel(num); });
   });
   recompute();
-  
+
   ctx.plugin.register_node(element, node);
 }
 
@@ -419,16 +421,16 @@ EffectComponent::EffectComponent(
         if(vst->fx->flags & effFlagsCanDoubleReplacing)
         {
           if(vst->fx->flags & effFlagsIsSynth)
-            node = Media::VST::make_vst_fx<true, true>(*vst->fx, ctx.plugin.execState.sampleRate);
+            node = Media::VST::make_vst_fx<true, true>(vst->fx, ctx.plugin.execState.sampleRate);
           else
-            node = Media::VST::make_vst_fx<true, false>(*vst->fx, ctx.plugin.execState.sampleRate);
+            node = Media::VST::make_vst_fx<true, false>(vst->fx, ctx.plugin.execState.sampleRate);
         }
         else
         {
           if(vst->fx->flags & effFlagsIsSynth)
-            node = Media::VST::make_vst_fx<false, true>(*vst->fx, ctx.plugin.execState.sampleRate);
+            node = Media::VST::make_vst_fx<false, true>(vst->fx, ctx.plugin.execState.sampleRate);
           else
-            node = Media::VST::make_vst_fx<false, false>(*vst->fx, ctx.plugin.execState.sampleRate);
+            node = Media::VST::make_vst_fx<false, false>(vst->fx, ctx.plugin.execState.sampleRate);
         }
 
         ctx.plugin.register_node(vst->inlets(), vst->outlets(), node);
@@ -439,15 +441,15 @@ EffectComponent::EffectComponent(
     ctx.plugin.register_node(element.inlets(), {}, proc->startnode);
     ctx.plugin.register_node({}, element.outlets(), proc->endnode);
 
-    
+
     system().executionQueue.enqueue(
-          [g=ctx.plugin.execGraph, proc] { 
+          [g=ctx.plugin.execGraph, proc] {
       g->connect(ossia::make_edge(ossia::immediate_strict_connection{}
                                   , proc->startnode->outputs()[0]
                                   , proc->nodes.front()->inputs()[0]
                                   , proc->startnode
                                   , proc->nodes.front()));
-      
+
       for(std::size_t i = 0; i < proc->nodes.size() - 1; i++)
       {
         g->connect(ossia::make_edge(ossia::immediate_strict_connection{}
@@ -456,7 +458,7 @@ EffectComponent::EffectComponent(
                                     , proc->nodes[i]
                                     , proc->nodes[i+1]));
       }
-      
+
       g->connect(ossia::make_edge(ossia::immediate_strict_connection{}
                                   , proc->nodes.back()->outputs()[0]
                                   , proc->endnode->inputs()[0]

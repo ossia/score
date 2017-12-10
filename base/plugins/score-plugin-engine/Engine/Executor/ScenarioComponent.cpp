@@ -84,13 +84,13 @@ ScenarioComponent::ScenarioComponent(
 
 void ScenarioComponent::init()
 {
-  ScenarioComponentHierarchy::init();
-
-  const Context& ctx = system();
-
   // set-up the ports
+  const Context& ctx = system();
   auto ossia_sc = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
   ctx.plugin.register_node(process(), ossia_sc->node);
+
+  ScenarioComponentHierarchy::init();
+
 
   if (auto fact = ctx.doc.app.interfaces<Scenario::CSPCoherencyCheckerList>().get())
   {

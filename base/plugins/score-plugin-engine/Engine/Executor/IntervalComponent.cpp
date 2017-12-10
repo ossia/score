@@ -81,13 +81,13 @@ void IntervalComponent::cleanup()
   {
     m_ossia_interval->set_callback(ossia::time_interval::exec_callback{});
     system().plugin.unregister_node(
-        {interval().inlet.get()}, 
-        {interval().outlet.get()}, 
-        m_ossia_interval->node);  
+        {interval().inlet.get()},
+        {interval().outlet.get()},
+        m_ossia_interval->node);
   }
   for(auto& proc : m_processes)
     proc.second->cleanup();
-  
+
   clear();
   m_processes.clear();
   m_ossia_interval.reset();
@@ -108,7 +108,7 @@ void IntervalComponent::onSetup(
     interval_duration_data dur,
     bool parent_is_base_scenario)
 {
-  m_ossia_interval = ossia_cst;
+  m_ossia_interval = std::move(ossia_cst);
 
   m_ossia_interval->set_min_duration(dur.minDuration);
   m_ossia_interval->set_max_duration(dur.maxDuration);
@@ -131,13 +131,13 @@ void IntervalComponent::onSetup(
         cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
     });
   }
-  
+
   // set-up the interval ports
   system().plugin.register_node(
-      {interval().inlet.get()}, 
-      {interval().outlet.get()}, 
-      ossia_cst->node);
-  
+      {interval().inlet.get()},
+      {interval().outlet.get()},
+      m_ossia_interval->node);
+
   init();
 }
 

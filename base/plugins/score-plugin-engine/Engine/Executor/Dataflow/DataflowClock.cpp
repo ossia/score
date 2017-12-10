@@ -38,8 +38,9 @@ void Clock::play_impl(
   m_paused = false;
 
   std::stringstream s;
-  boost::write_graphviz(s, m_plug.execGraph->m_graph, [&] (auto& out, const auto& v) {
-    out << "[label=\"" << (void*)m_plug.execGraph->m_graph[v].get() << "\"]";
+  auto& g = m_plug.execGraph->m_graph;
+  boost::write_graphviz(s, g, [&] (auto& out, const auto& v) {
+    out << "[label=\"" << typeid(g[v].get()).name() << "\"]";
   },
   [] (auto&&...) {});
 
@@ -119,7 +120,7 @@ void Clock::stop_impl(
         cbl.exec.reset();
       }
     }
-    
+
     if (plug)
     {
       plug->inlets.clear();
@@ -142,7 +143,7 @@ void Clock::stop_impl(
           cable.sink_node->clear();
           cable.sink_node.reset();
         }
-      
+
         if(cable.exec)
         {
           cable.exec->clear();

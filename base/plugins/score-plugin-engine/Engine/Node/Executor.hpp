@@ -106,7 +106,7 @@ public:
       constexpr const auto idx = info::control_start + N;
       static_assert(info::control_count > 0);
       static_assert(N < info::control_count);
-    
+
       using val_type = typename std::tuple_element<N, decltype(get_controls(Info::info))>::type::type;
 
       // TODO instead, it should go as a member of the node for more perf
@@ -327,7 +327,6 @@ class Executor: public Engine::Execution::
     {
       auto node = std::make_shared<ControlNode<Info>>();
       this->m_ossia_process = std::make_shared<ossia::node_process>(node);
-      const auto& dl = ctx.devices.list();
 
       constexpr const auto control_start = InfoFunctions<Info>::control_start;
       constexpr const auto control_count = InfoFunctions<Info>::control_count;
@@ -375,7 +374,7 @@ class Executor: public Engine::Execution::
 
     ~Executor()
     {
-      this->system().plugin.unregister_node(this->process(), OSSIAProcess().node);
+      this->system().plugin.unregister_node(this->process(), this->OSSIAProcess().node);
     }
 };
 

@@ -70,6 +70,7 @@ ScenarioDocumentModel::ScenarioDocumentModel(
       = ctx.app.settings<Scenario::Settings::Model>().getDefaultDuration();
 
   m_baseScenario->interval().duration.setRigid(false);
+  m_baseScenario->interval().outlet->setAddress(*State::AddressAccessor::fromString("audio:/out/main"));
   IntervalDurations::Algorithms::changeAllDurations(
       m_baseScenario->interval(), dur);
   m_baseScenario->interval().duration.setMaxInfinite(true);
