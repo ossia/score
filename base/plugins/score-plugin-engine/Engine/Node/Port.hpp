@@ -20,7 +20,7 @@ struct AudioOutInfo {
 };
 struct ValueInInfo {
   const QLatin1String name;
-  const bool is_event{};
+  const bool is_event{true};
 
   template<std::size_t N>
   constexpr ValueInInfo(const char (&name)[N]): name{name, N} { }

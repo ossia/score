@@ -59,6 +59,7 @@ int main(int argc, char** argv)
 #if defined(__APPLE__)
     auto pool = mac_init_pool();
     disableAppRestore();
+    qputenv("QT_MAC_WANTS_LAYER", "1");
 #endif
 
 #if defined(__SSE3__)

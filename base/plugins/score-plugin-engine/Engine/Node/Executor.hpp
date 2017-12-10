@@ -61,8 +61,8 @@ public:
       for(std::size_t i = 0; i < InfoFunctions<Info>::value_in_count; i++)
       {
         auto inlt = ossia::make_inlet<ossia::value_port>();
-        if(inlet_infos[i].is_event)
-          inlt->data.target<ossia::value_port>()->is_event = true;
+
+        inlt->data.target<ossia::value_port>()->is_event = inlet_infos[i].is_event;
         m_inlets.push_back(std::move(inlt));
       }
     }

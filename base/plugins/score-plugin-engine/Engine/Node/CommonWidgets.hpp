@@ -8,6 +8,24 @@ namespace Widgets
 {
 
 
+
+static const constexpr std::array<std::pair<const char*, float>, 14> durations
+{{
+    {"None",  0.},
+    {"Inf",  -1.},
+    {"Whole", 1.},
+    {"Half",  1./2.},
+    {"4th",   1./4.},
+    {"8th",   1./8.},
+    {"16th",  1./16.},
+    {"32th",  1./32.},
+    {"64th",  1./64.},
+    {"Dotted Half",  3./4.},
+    {"Dotted 4th",   3./8.},
+    {"Dotted 8th",   3./16.},
+    {"Dotted 16th",  3./32.},
+    {"Dotted 32th",  3./64.}
+}};
 static const constexpr std::array<std::pair<const char*, float>, 13> notes
 {{
     {"None",  0.},
@@ -67,7 +85,7 @@ constexpr auto QuantificationChooser()
 constexpr auto MusicalDurationChooser()
 { return Process::ComboBox<float, std::size(nonnull_notes)>("Dur.", 2, nonnull_notes); }
 constexpr auto DurationChooser()
-{ return Process::ComboBox<float, std::size(notes)>("Dur.", 2, notes); }
+{ return Process::ComboBox<float, std::size(durations)>("Dur.", 2, durations); }
 constexpr auto FreqChooser()
 { return Process::LogFloatSlider("Freq.", 1.f, 20000.f, 200.f); }
 constexpr auto LFOFreqChooser()
@@ -78,6 +96,11 @@ template<typename T>
 constexpr auto MidiSpinbox(const T& name)
 {
     return Process::IntSpinBox{name, 0, 127, 64};
+}
+template<typename T>
+constexpr auto MidiChannel(const T& name)
+{
+    return Process::IntSpinBox{name, 1, 16, 1};
 }
 template<typename T>
 constexpr auto MidiSlider(const T& name)

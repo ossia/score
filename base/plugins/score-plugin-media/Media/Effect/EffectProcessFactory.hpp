@@ -288,6 +288,7 @@ class Presenter final : public Process::LayerPresenter
               this, [&] {
         m_view->setup(static_cast<const Effect::ProcessModel&>(model), ctx);
       });
+
       m_view->setup(static_cast<const Effect::ProcessModel&>(model), ctx);
     }
 

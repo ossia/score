@@ -13,8 +13,11 @@ auto setup_rect(QWindow* container,  uint16_t width, uint16_t height)
   container->setWidth(width);
   container->setBaseSize({width, height});
 }
-void show_vst2_editor(AEffect& effect, uint16_t width, uint16_t height)
+void show_vst2_editor(AEffect& effect, ERect rect)
 {
+  auto width = rect.right - rect.left;
+  auto height = rect.bottom - rect.top;
+
   auto container = reinterpret_cast<QWindow*>(effect.resvd2);
   if(container)
   {
