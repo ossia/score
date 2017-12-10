@@ -50,8 +50,10 @@ struct Node
                 Process::Widgets::DurationChooser(),
                 Process::Widgets::MidiSpinbox("Default pitch"),
                 Process::Widgets::MidiSpinbox("Default vel."),
+                Process::Widgets::OctaveSlider("Pitch shift", -3, 3),
                 Process::Widgets::OctaveSlider("Pitch random", 0, 2),
-                Process::Widgets::OctaveSlider("Vel. random", 0, 2)
+                Process::Widgets::OctaveSlider("Vel. random", 0, 2),
+                Process::Widgets::MidiChannel("Channel")
                 )
       .state<State>()
       .build();
@@ -62,8 +64,16 @@ struct Node
     int base_note{};
     int base_vel{};
 
-    template<typename... T>
-    Note operator()(T&&... v)
+    Note operator()()
+    {
+      return {base_note, base_vel};
+    }
+    Note operator()(ossia::impulse)
+    {
+      return {base_note, base_vel};
+    }
+    template<typename T>
+    Note operator()(const T&)
     {
       return {base_note, base_vel};
     }
@@ -83,12 +93,29 @@ struct Node
     {
       return {note, vel};
     }
+    Note operator()(int note, float vel)
+    {
+      return {note, (int)(vel * 127.)};
+    }
     Note operator()(const std::vector<ossia::value>& v)
     {
       switch(v.size())
       {
         case 0: return operator()();
         case 1: return operator()(ossia::convert<int>(v[0]));
+        case 2:
+        {
+          int note = ossia::convert<int>(v[0]);
+          switch(v[1].getType())
+          {
+            case ossia::val_type::FLOAT:
+              return operator()(note, *v[1].v.target<float>());
+            case ossia::val_type::INT:
+              return operator()(note, *v[1].v.target<int>());
+            default:
+              return operator()(note, ossia::convert<int>(v[1]));
+          }
+        }
         default: return operator()(ossia::convert<int>(v[0]), ossia::convert<int>(v[1]));
       }
     }
@@ -106,8 +133,10 @@ struct Node
       const Process::timed_vec<float>& dur,
       const Process::timed_vec<int>& basenote,
       const Process::timed_vec<int>& basevel,
+      const Process::timed_vec<int>& shift_note,
       const Process::timed_vec<int>& note_random,
       const Process::timed_vec<int>& vel_random,
+      const Process::timed_vec<int>& chan_vec,
       ossia::midi_port& p2,
       ossia::time_value prev_date,
       ossia::token_request tk,
@@ -127,10 +156,12 @@ struct Node
 
     auto start = startq.rbegin()->second;
     auto duration = dur.rbegin()->second;
+    auto shiftnote = shift_note.rbegin()->second;
     auto base_note = basenote.rbegin()->second;
     auto base_vel = basevel.rbegin()->second;
     auto rand_note = note_random.rbegin()->second;
     auto rand_vel = vel_random.rbegin()->second;
+    auto chan = chan_vec.rbegin()->second;
 
     // Get tempo
     double tempo = 120.;
@@ -150,34 +181,46 @@ struct Node
       if(rand_vel != 0)
         note.vel += std::uniform_int_distribution<int>(-rand_vel, rand_vel)(m);
 
-      note.pitch = ossia::clamp(note.pitch, 0, 127);
+      note.pitch = ossia::clamp(note.pitch + shiftnote, 0, 127);
       note.vel = ossia::clamp(note.vel, 0, 127);
 
-      if(start == 0.)  // No quantification, start directly
-      {
-        auto no = mm::MakeNoteOn(1, note.pitch, note.vel);
-        no.timestamp = in.timestamp;
 
-        p2.messages.push_back(no);
-        if(duration != 0.)
+      if(note.vel != 0)
+      {
+        if(start == 0.)  // No quantification, start directly
         {
-          auto end = tk.date + (int64_t)no.timestamp + whole_samples * duration;
-          self.running_notes.push_back({note, end});
+          auto no = mm::MakeNoteOn(chan, note.pitch, note.vel);
+          no.timestamp = in.timestamp;
+
+          p2.messages.push_back(no);
+          if(duration > 0.)
+          {
+            auto end = tk.date + (int64_t)no.timestamp + whole_samples * duration;
+            self.running_notes.push_back({note, end});
+          }
+          else if(duration == 0.)
+          {
+            // Stop at the next sample
+            auto noff = mm::MakeNoteOff(chan, note.pitch, note.vel);
+            noff.timestamp = no.timestamp + 1;
+            p2.messages.push_back(noff);
+          }
+          // else do nothing and just wait for a note off
         }
         else
         {
-          // Stop at the next sample
-          auto noff = mm::MakeNoteOff(1, note.pitch, note.vel);
-          noff.timestamp = no.timestamp + 1;
-          p2.messages.push_back(noff);
+          // Find next time that matches the requested quantification
+          const auto start_q = whole_samples * start;
+          ossia::time_value next_date{int64_t(start_q * (1 + tk.date / start_q))};
+          self.to_start.push_back({note, next_date});
         }
       }
       else
       {
-        // Find next time that matches the requested quantification
-        const auto start_q = whole_samples * start;
-        ossia::time_value next_date{int64_t(start_q * (1 + tk.date / start_q))};
-        self.to_start.push_back({note, next_date});
+        // Just stop
+        auto noff = mm::MakeNoteOff(chan, note.pitch, note.vel);
+        noff.timestamp = in.timestamp;
+        p2.messages.push_back(noff);
       }
     }
 
@@ -187,19 +230,19 @@ struct Node
       auto& note = *it;
       if(note.date > prev_date && note.date < tk.date)
       {
-        auto no = mm::MakeNoteOn(1, note.note.pitch, note.note.vel);
+        auto no = mm::MakeNoteOn(chan, note.note.pitch, note.note.vel);
         no.timestamp = note.date - prev_date;
         p2.messages.push_back(no);
 
-        if(duration != 0.)
+        if(duration > 0.)
         {
           auto end = note.date + whole_samples * duration;
           self.running_notes.push_back({note.note, end});
         }
-        else
+        else if (duration == 0.)
         {
           // Stop at the next sample
-          auto noff = mm::MakeNoteOff(1, note.note.pitch, note.note.vel);
+          auto noff = mm::MakeNoteOff(chan, note.note.pitch, note.note.vel);
           noff.timestamp = no.timestamp + 1;
           p2.messages.push_back(noff);
         }
@@ -217,7 +260,7 @@ struct Node
       auto& note = *it;
       if(note.date > prev_date && note.date < tk.date)
       {
-        auto noff = mm::MakeNoteOff(1, note.note.pitch, note.note.vel);
+        auto noff = mm::MakeNoteOff(chan, note.note.pitch, note.note.vel);
         noff.timestamp = note.date - prev_date;
         p2.messages.push_back(noff);
         it = self.running_notes.erase(it);

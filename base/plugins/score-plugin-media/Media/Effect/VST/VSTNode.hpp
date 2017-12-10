@@ -33,7 +33,7 @@ class VSTNode final : public ossia::audio_fx_node
 
       dispatch(effSetSampleRate, 0, 0, 0, sampleRate);
       dispatch(effSetBlockSize, 0, 0); // Generalize what's in pd
-      dispatch(effSetProcessPrecision, 0, kVstProcessPrecision32);
+      dispatch(effSetProcessPrecision, 0, UseDouble ? kVstProcessPrecision64 : kVstProcessPrecision32);
       dispatch(effMainsChanged, 0, 1);
       dispatch(effStartProcess);
     }

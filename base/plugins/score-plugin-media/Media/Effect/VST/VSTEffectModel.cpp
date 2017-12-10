@@ -20,7 +20,7 @@
 #include <QTimer>
 #include <Process/Dataflow/Port.hpp>
 #include <websocketpp/base64/base64.hpp>
-void show_vst2_editor(AEffect& effect, uint16_t width, uint16_t height);
+void show_vst2_editor(AEffect& effect, ERect rect);
 void hide_vst2_editor(AEffect& effect);
 
 namespace Media
@@ -185,7 +185,7 @@ void VSTEffectModel::showUI()
   if(h <= 1)
     h = 480;
 
-  show_vst2_editor(*fx, w, h);
+  show_vst2_editor(*fx, *vstRect);
 }
 
 void VSTEffectModel::hideUI()

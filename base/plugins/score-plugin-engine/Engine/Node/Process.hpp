@@ -63,8 +63,8 @@ class ControlProcess final: public Process::ProcessModel
 {
     SCORE_SERIALIZE_FRIENDS
     PROCESS_METADATA_IMPL(ControlProcess<Info>)
-    friend class TSerializer<DataStream, Process::ControlProcess<Info>>;
-    friend class TSerializer<JSONObject, Process::ControlProcess<Info>>;
+    friend struct TSerializer<DataStream, Process::ControlProcess<Info>>;
+    friend struct TSerializer<JSONObject, Process::ControlProcess<Info>>;
     Process::Inlets m_inlets;
     Process::Outlets m_outlets;
 

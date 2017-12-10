@@ -53,6 +53,7 @@ InspectorWidget::InspectorWidget(
         // Make a text dialog to edit faust program.
         auto id = item->data(Qt::UserRole).value<Id<EffectModel>>();
         auto proc = &process().effects().at(id);
+        proc->hideUI();
         proc->showUI();
     }, Qt::QueuedConnection);
 
@@ -173,15 +174,6 @@ void InspectorWidget::recreate()
         item->setData(Qt::UserRole, QVariant::fromValue(fx_id));
         m_list->addItem(item);
     }
-
-    /* TODO :
-    connect(m_list, &QListWidget::doubleClicked,
-            this, [] () {
-        // Find factory of effect.
-        // Ask it to create a GUI.
-    });
-    */
-
 }
 }
 }

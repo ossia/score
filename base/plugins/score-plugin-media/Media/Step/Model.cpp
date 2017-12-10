@@ -114,21 +114,40 @@ void Model::setMax(double v)
 template <>
 void DataStreamReader::read(const Media::Step::Model& proc)
 {
+  m_stream << *proc.outlet << proc.m_steps << proc.m_stepCount << proc.m_stepDuration << proc.m_min << proc.m_max;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Media::Step::Model& proc)
 {
+  proc.outlet = Process::make_outlet(*this, &proc);
+  m_stream >> proc.m_steps >> proc.m_stepCount >> proc.m_stepDuration >> proc.m_min >> proc.m_max;
   checkDelimiter();
 }
 
 template <>
 void JSONObjectReader::read(const Media::Step::Model& proc)
 {
+  obj["Outlet"] = toJsonObject(*proc.outlet);
+  obj["Steps"] = toJsonValueArray(proc.m_steps);
+  obj["StepCount"] = (qint64)proc.m_stepCount;
+  obj["StepDur"] = (qint64)proc.m_stepDuration;
+  obj["StepMin"] = (qint64)proc.m_min;
+  obj["StepMax"] = (qint64)proc.m_max;
 }
 
 template <>
 void JSONObjectWriter::write(Media::Step::Model& proc)
 {
+  {
+    JSONObjectWriter writer{obj["Outlet"].toObject()};
+    proc.outlet = Process::make_outlet(writer, &proc);
+  }
+
+  proc.m_steps = fromJsonValueArray<std::vector<float>>(obj["Steps"].toArray());
+  proc.m_stepCount = obj["StepCount"].toInt();
+  proc.m_stepDuration = obj["StepDur"].toInt();
+  proc.m_min = obj["StepMin"].toDouble();
+  proc.m_max = obj["StepMax"].toDouble();
 }

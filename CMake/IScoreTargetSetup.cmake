@@ -197,7 +197,7 @@ function(score_set_unix_compile_options theTarget)
     -Werror=redundant-decls
     -Werror=return-type
     -Werror=trigraphs
-    -std=c++17
+    # -std=c++17
     # Release options
     "$<$<AND:$<CONFIG:Release>,$<BOOL:${NACL}>>:-O3>"
     "$<$<AND:$<CONFIG:Release>,$<NOT:$<BOOL:${NACL}>>>:-Ofast>"
@@ -304,8 +304,8 @@ function(setup_score_common_lib_features TheTarget)
 
   generate_export_header(${TheTarget})
   if(NOT SCORE_STATIC_PLUGINS)
-    set_target_properties(${TheTarget} PROPERTIES CXX_VISIBILITY_PRESET hidden)
-      set_target_properties(${TheTarget} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
+    set_target_properties(${TheTarget} PROPERTIES CXX_VISIBILITY_PRESET default)
+      set_target_properties(${TheTarget} PROPERTIES VISIBILITY_INLINES_HIDDEN 0)
   endif()
 
   string(TOUPPER "${TheTarget}" UPPERCASE_PLUGIN_NAME)
