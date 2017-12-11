@@ -21,7 +21,7 @@ struct Node
     {
         struct chord
         {
-            int ch{};
+            std::string ch{};
             int notes{};
         };
         std::map<uint8_t, std::vector<chord>> chords;
@@ -39,7 +39,7 @@ struct Node
                   Process::make_enum(
                     "Chord",
                     0U,
-                    Process::array("Major", "Minor"))
+                    Process::array("Major", "Minor", "Sus2", "Sus4", "Dim", "Aug"))
                   )
         .state<State>()
         .build();
@@ -48,6 +48,10 @@ struct Node
     // 1 .  . .  1 . .  1 .  1 .  .
     static const constexpr std::array<int, 5> major7{ 0, 4, 7, 9, 12 };
     static const constexpr std::array<int, 5> minor7{ 0, 3, 7, 9, 12 };
+    static const constexpr std::array<int, 5> sus2{ 0, 3, 7, 9, 12 };
+    static const constexpr std::array<int, 5> sus4{ 0, 3, 7, 9, 12 };
+    static const constexpr std::array<int, 5> dim{ 0, 3, 7, 9, 12 };
+    static const constexpr std::array<int, 5> aug{ 0, 3, 7, 9, 12 };
 
     template<typename T>
     static void startChord(const T& chord, const mm::MidiMessage& m, const std::size_t num, ossia::midi_port& op)
@@ -80,20 +84,19 @@ struct Node
     }
 
     template<typename F>
-    static void dispatchChord(int chord, const mm::MidiMessage& m, int num, ossia::midi_port& op, F&& f)
+    static void dispatchChord(std::string_view chord, const mm::MidiMessage& m, int num, ossia::midi_port& op, F&& f)
     {
-      switch(chord)
-      {
-        case 0:
-          f(major7, m, num, op);
-          break;
-        case 1:
-          f(minor7, m, num, op);
-          break;
-        default:
-          break;
-      }
-
+      static const ossia::string_view_map<std::array<int, 5>> chords{
+        {"Major", major7},
+        {"Minor", minor7},
+        {"Sus2", sus2},
+        {"Sus4", sus4},
+        {"Dim", dim},
+        {"Aug", aug}
+      };
+      auto it = chords.find(chord);
+      if(it != chords.end())
+        f(it->second, m, num, op);
     }
     static void run(
         const ossia::midi_port& ip,
@@ -113,9 +116,8 @@ struct Node
         if(m.getMessageType() == mm::MessageType::NOTE_ON)
         {
           auto cur = m.data[1];
-          auto chord = (lastCh == "Major" ? 0 : 1);
-          self.chords[cur].push_back({ chord, lastNum });
-          dispatchChord(chord, m, lastNum, op, [] (auto&&... args) { startChord(args...); });
+          self.chords[cur].push_back({ lastCh, lastNum });
+          dispatchChord(lastCh, m, lastNum, op, [] (auto&&... args) { startChord(args...); });
         }
         else if(m.getMessageType() == mm::MessageType::NOTE_OFF)
         {
