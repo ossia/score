@@ -2,7 +2,7 @@
     "Document": {
         "BaseScenario": {
             "Constraint": {
-                "Center": 37456.93889096151,
+                "Center": 41546.39650537975,
                 "Components": [
                 ],
                 "DefaultDuration": 300000,
@@ -48,7 +48,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 72390.20215204426,
-                                "HeightPercentage": 0.20133333333333334,
+                                "HeightPercentage": 0.20133332908153534,
                                 "MaxDuration": 1898.6301369863015,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -83,7 +83,7 @@
                                     }
                                 ],
                                 "GuiDuration": 16746.936907978285,
-                                "HeightPercentage": 0.051333333333333335,
+                                "HeightPercentage": 0.05133333429694176,
                                 "MaxDuration": "inf",
                                 "MaxInf": true,
                                 "Metadata": {
@@ -414,7 +414,7 @@
                                     }
                                 ],
                                 "GuiDuration": 12141.980947431424,
-                                "HeightPercentage": 0.29,
+                                "HeightPercentage": 0.28999999165534973,
                                 "MaxDuration": 7811.780652553647,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -501,7 +501,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 6673.069130379163,
-                                "HeightPercentage": 0.29,
+                                "HeightPercentage": 0.28999999165534973,
                                 "MaxDuration": 5000,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -536,7 +536,7 @@
                                     }
                                 ],
                                 "GuiDuration": 33000,
-                                "HeightPercentage": 0.29,
+                                "HeightPercentage": 0.28999999165534973,
                                 "MaxDuration": "inf",
                                 "MaxInf": true,
                                 "Metadata": {
@@ -1729,7 +1729,7 @@
                                     }
                                 ],
                                 "GuiDuration": 11814.722147574501,
-                                "HeightPercentage": 0.016666666666666666,
+                                "HeightPercentage": 0.01666666753590107,
                                 "MaxDuration": 11647.069618558182,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -1817,7 +1817,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 20719.950917031205,
-                                "HeightPercentage": 0.194,
+                                "HeightPercentage": 0.1940000057220459,
                                 "MaxDuration": 16647.84682475144,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -1849,7 +1849,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 5163.445709368301,
-                                "HeightPercentage": 0.194,
+                                "HeightPercentage": 0.1940000057220459,
                                 "MaxDuration": 4694.041553971179,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -1881,7 +1881,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 6388.46066135361,
-                                "HeightPercentage": 0.194,
+                                "HeightPercentage": 0.1940000057220459,
                                 "MaxDuration": 5807.691510321463,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -1913,7 +1913,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 7490.704118195375,
-                                "HeightPercentage": 0.194,
+                                "HeightPercentage": 0.1940000057220459,
                                 "MaxDuration": 6000,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -1954,7 +1954,7 @@
                                     }
                                 ],
                                 "GuiDuration": 28063.62827645956,
-                                "HeightPercentage": 0.024666666666666667,
+                                "HeightPercentage": 0.024666666984558105,
                                 "MaxDuration": 25865.922259182673,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -2294,7 +2294,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 6786.982781466927,
-                                "HeightPercentage": 0.194,
+                                "HeightPercentage": 0.1940000057220459,
                                 "MaxDuration": 4924.089282114794,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -2329,7 +2329,7 @@
                                     }
                                 ],
                                 "GuiDuration": 5117.959396934576,
-                                "HeightPercentage": 0.22066666666666665,
+                                "HeightPercentage": 0.22066666185855865,
                                 "MaxDuration": 4652.69036084961,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -2417,7 +2417,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 3365.527574683777,
-                                "HeightPercentage": 0.194,
+                                "HeightPercentage": 0.1940000057220459,
                                 "MaxDuration": 2984.0157307319387,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -2449,7 +2449,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 5117.959396934568,
-                                "HeightPercentage": 0.194,
+                                "HeightPercentage": 0.1940000057220459,
                                 "MaxDuration": 4969.998808769946,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -2481,7 +2481,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 13271.65212461585,
-                                "HeightPercentage": 0.10266666666666666,
+                                "HeightPercentage": 0.10266666859388351,
                                 "MaxDuration": 6753.173662925705,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -2519,7 +2519,7 @@
                                     }
                                 ],
                                 "GuiDuration": 6292.082380703133,
-                                "HeightPercentage": 0.10266666666666666,
+                                "HeightPercentage": 0.10266666859388351,
                                 "MaxDuration": 6055.92136206877,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -2662,7 +2662,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 7878.697535971793,
-                                "HeightPercentage": 0.194,
+                                "HeightPercentage": 0.1940000057220459,
                                 "MaxDuration": 6988.072392121641,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -2694,7 +2694,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 6568.100451551326,
-                                "HeightPercentage": 0.194,
+                                "HeightPercentage": 0.1940000057220459,
                                 "MaxDuration": 2593.8603332600615,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -2726,7 +2726,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 3559.1550979841472,
-                                "HeightPercentage": 0.194,
+                                "HeightPercentage": 0.1940000057220459,
                                 "MaxDuration": 3493.8850053756614,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -2761,7 +2761,7 @@
                                     }
                                 ],
                                 "GuiDuration": 11898.938258714694,
-                                "HeightPercentage": 0.2833333333333333,
+                                "HeightPercentage": 0.28333333134651184,
                                 "MaxDuration": "inf",
                                 "MaxInf": true,
                                 "Metadata": {
@@ -3095,7 +3095,7 @@
                                     }
                                 ],
                                 "GuiDuration": 40852.14506150953,
-                                "HeightPercentage": 0.20466666666666666,
+                                "HeightPercentage": 0.20466665923595428,
                                 "MaxDuration": 34355.13215032924,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -3183,7 +3183,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 18759.406598951897,
-                                "HeightPercentage": 0.2946666666666667,
+                                "HeightPercentage": 0.29466667771339417,
                                 "MaxDuration": 14016.995734574128,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -3218,7 +3218,7 @@
                                     }
                                 ],
                                 "GuiDuration": 21645.775083746725,
-                                "HeightPercentage": 0.2946666666666667,
+                                "HeightPercentage": 0.29466667771339417,
                                 "MaxDuration": 20338.136415755114,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -3309,7 +3309,7 @@
                                     }
                                 ],
                                 "GuiDuration": 9180.590493762575,
-                                "HeightPercentage": 0.22666666666666666,
+                                "HeightPercentage": 0.2266666740179062,
                                 "MaxDuration": 8707.44500848814,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -3397,7 +3397,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 9123.84933680413,
-                                "HeightPercentage": 0.20466666666666666,
+                                "HeightPercentage": 0.20466665923595428,
                                 "MaxDuration": "inf",
                                 "MaxInf": true,
                                 "Metadata": {
@@ -3429,7 +3429,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 16645.78401424682,
-                                "HeightPercentage": 0.20466666666666666,
+                                "HeightPercentage": 0.20466665923595428,
                                 "MaxDuration": 13638.654109770438,
                                 "MaxInf": false,
                                 "Metadata": {
@@ -5521,12 +5521,6 @@
                                                             ],
                                                             "Name": "gain",
                                                             "Previous": [
-                                                                {
-                                                                    "Process": 1,
-                                                                    "Value": {
-                                                                        "Float": -5.000000953674316
-                                                                    }
-                                                                }
                                                             ],
                                                             "Priorities": [
                                                                 1,
@@ -9726,7 +9720,7 @@
                 "SmallViewShown": false,
                 "StartDate": 0,
                 "StartState": 0,
-                "Zoom": 102.76252096285735,
+                "Zoom": 93.46770867352025,
                 "id": 0
             },
             "EndEvent": {
@@ -9970,7 +9964,8 @@
                                 },
                                 "Name": "carrier",
                                 "RepetitionFilter": false,
-                                "Unit": "none"
+                                "Unit": "none",
+                                "ioType": "<->"
                             },
                             "Children": [
                             ]
@@ -9984,7 +9979,8 @@
                                 },
                                 "Name": "master",
                                 "RepetitionFilter": false,
-                                "Unit": "none"
+                                "Unit": "none",
+                                "ioType": "<->"
                             },
                             "Children": [
                                 {
@@ -10014,7 +10010,8 @@
                                 },
                                 "Name": "synth.1",
                                 "RepetitionFilter": false,
-                                "Unit": "none"
+                                "Unit": "none",
+                                "ioType": "<->"
                             },
                             "Children": [
                                 {
@@ -10026,7 +10023,8 @@
                                         },
                                         "Name": "carrier",
                                         "RepetitionFilter": false,
-                                        "Unit": "none"
+                                        "Unit": "none",
+                                        "ioType": "<->"
                                     },
                                     "Children": [
                                         {
@@ -10072,7 +10070,8 @@
                                         },
                                         "Name": "modulation",
                                         "RepetitionFilter": false,
-                                        "Unit": "none"
+                                        "Unit": "none",
+                                        "ioType": "<->"
                                     },
                                     "Children": [
                                         {
@@ -10152,7 +10151,8 @@
                                 },
                                 "Name": "synth.2",
                                 "RepetitionFilter": false,
-                                "Unit": "none"
+                                "Unit": "none",
+                                "ioType": "<->"
                             },
                             "Children": [
                                 {
@@ -10164,7 +10164,8 @@
                                         },
                                         "Name": "carrier",
                                         "RepetitionFilter": false,
-                                        "Unit": "none"
+                                        "Unit": "none",
+                                        "ioType": "<->"
                                     },
                                     "Children": [
                                         {
@@ -10210,7 +10211,8 @@
                                         },
                                         "Name": "modulation",
                                         "RepetitionFilter": false,
-                                        "Unit": "none"
+                                        "Unit": "none",
+                                        "ioType": "<->"
                                     },
                                     "Children": [
                                         {
@@ -10290,7 +10292,8 @@
                                 },
                                 "Name": "synth.3",
                                 "RepetitionFilter": false,
-                                "Unit": "none"
+                                "Unit": "none",
+                                "ioType": "<->"
                             },
                             "Children": [
                                 {
@@ -10302,7 +10305,8 @@
                                         },
                                         "Name": "carrier",
                                         "RepetitionFilter": false,
-                                        "Unit": "none"
+                                        "Unit": "none",
+                                        "ioType": "<->"
                                     },
                                     "Children": [
                                         {
@@ -10348,7 +10352,8 @@
                                         },
                                         "Name": "modulation",
                                         "RepetitionFilter": false,
-                                        "Unit": "none"
+                                        "Unit": "none",
+                                        "ioType": "<->"
                                     },
                                     "Children": [
                                         {
@@ -10428,7 +10433,8 @@
                                 },
                                 "Name": "synth.0",
                                 "RepetitionFilter": false,
-                                "Unit": "none"
+                                "Unit": "none",
+                                "ioType": "<->"
                             },
                             "Children": [
                                 {
@@ -10440,7 +10446,8 @@
                                         },
                                         "Name": "carrier",
                                         "RepetitionFilter": false,
-                                        "Unit": "none"
+                                        "Unit": "none",
+                                        "ioType": "<->"
                                     },
                                     "Children": [
                                         {
@@ -10486,7 +10493,8 @@
                                         },
                                         "Name": "modulation",
                                         "RepetitionFilter": false,
-                                        "Unit": "none"
+                                        "Unit": "none",
+                                        "ioType": "<->"
                                     },
                                     "Children": [
                                         {
@@ -10591,7 +10599,7 @@
                         }
                     ],
                     "DeviceSettings": {
-                        "Host": "ws://MacBook-Pro-de-Pierre.local.:5678",
+                        "Host": "ws://localhost.:5678",
                         "Name": "fmsynth",
                         "Protocol": "1187fefe-0468-49d1-9eb7-92d7f4e11f6f"
                     }
