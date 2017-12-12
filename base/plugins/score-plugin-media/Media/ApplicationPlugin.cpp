@@ -21,6 +21,9 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app):
 
 ApplicationPlugin::~ApplicationPlugin()
 {
-
+#if defined(HAS_VST2)
+    for(auto& e : vst_modules)
+      delete e.second;
+#endif
 }
 }

@@ -34,6 +34,8 @@ class ControlNode :
     , public get_state<Info>::type
 {
 public:
+
+
   using info = InfoFunctions<Info>;
   static const constexpr bool has_state = has_state_t<Info>::value;
   using state_type = typename get_state<Info>::type;
@@ -43,6 +45,19 @@ public:
   controls_list controls;
   controls_changed_list controls_changed;
   moodycamel::ReaderWriterQueue<controls_list> cqueue;
+
+  template<std::size_t N>
+  using timed_vec_t = timed_vec<typename std::tuple_element<N, decltype(get_controls(Info::info))>::type::type>;
+
+  template <std::size_t... I>
+  static constexpr auto get_control_accessor_types(const std::index_sequence<I...>& )
+  {
+    return std::tuple<timed_vec_t<I>...>{};
+  }
+
+  using control_tuple_t = decltype(get_control_accessor_types(std::make_index_sequence<InfoFunctions<Info>::control_count>()));
+  control_tuple_t control_tuple;
+
   ControlNode()
   {
     m_inlets.reserve(InfoFunctions<Info>::inlet_size);
@@ -66,6 +81,10 @@ public:
         m_inlets.push_back(std::move(inlt));
       }
     }
+    for(std::size_t i = 0; i < InfoFunctions<Info>::address_in_count; i++)
+    {
+      m_inlets.push_back(ossia::make_inlet<ossia::value_port>());
+    }
     for(std::size_t i = 0; i < InfoFunctions<Info>::control_count; i++)
     {
       m_inlets.push_back(ossia::make_inlet<ossia::value_port>());
@@ -88,21 +107,25 @@ public:
   template<std::size_t N>
   static constexpr auto get_inlet_accessor()
   {
-    if constexpr(N < info::audio_in_count)
+    constexpr auto cat = info::categorize_inlet(N);
+    if constexpr(cat == inlet_kind::audio_in)
         return [] (const ossia::inlets& inl) -> const ossia::audio_port& { return *inl[N]->data.target<ossia::audio_port>(); };
-    else if constexpr(N < (info::audio_in_count + info::midi_in_count))
+    else if constexpr(cat == inlet_kind::midi_in)
         return [] (const ossia::inlets& inl) -> const ossia::midi_port& { return *inl[N]->data.target<ossia::midi_port>(); };
-    else if constexpr(N < (info::audio_in_count + info::midi_in_count + info::value_in_count + info::control_count))
+    else if constexpr(cat == inlet_kind::value_in)
         return [] (const ossia::inlets& inl) -> const ossia::value_port& { return *inl[N]->data.target<ossia::value_port>(); };
+    else if constexpr(cat == inlet_kind::address_in)
+        return [] (const ossia::inlets& inl) -> const ossia::destination_t& { return inl[N]->address; };
     else
         throw;
   }
 
+
+
   template<std::size_t N>
   static constexpr auto get_control_accessor()
   {
-
-    return [] (const ossia::inlets& inl, ControlNode& self) {
+    return [] (const ossia::inlets& inl, ControlNode& self) -> const auto& {
       constexpr const auto idx = info::control_start + N;
       static_assert(info::control_count > 0);
       static_assert(N < info::control_count);
@@ -110,7 +133,8 @@ public:
       using val_type = typename std::tuple_element<N, decltype(get_controls(Info::info))>::type::type;
 
       // TODO instead, it should go as a member of the node for more perf
-      timed_vec<val_type> vec;
+      timed_vec<val_type>& vec = std::get<N>(self.control_tuple);
+      vec.clear();
       const auto& vp = inl[idx]->data.template target<ossia::value_port>()->get_data();
       vec.reserve(vp.size() + 1);
 
@@ -202,7 +226,7 @@ public:
   void run(ossia::token_request tk, ossia::execution_state& st) override
   {
 #if !defined(_MSC_VER)
-    using inlets_indices = std::make_index_sequence<info::audio_in_count + info::midi_in_count + info::value_in_count>;
+    using inlets_indices = std::make_index_sequence<info::control_start>;
     using controls_indices = std::make_index_sequence<info::control_count>;
     using outlets_indices = std::make_index_sequence<info::outlet_size>;
 

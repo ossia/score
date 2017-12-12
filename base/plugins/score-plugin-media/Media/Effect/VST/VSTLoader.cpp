@@ -96,9 +96,9 @@ using PluginLoader = LinuxLoader;
 #endif
 
 
-VSTModule::VSTModule(const char* fileName):
+VSTModule::VSTModule(std::string fileName):
     path{fileName}
-  , module{PluginLoader::load(fileName)}
+  , module{PluginLoader::load(fileName.c_str())}
 {
 }
 

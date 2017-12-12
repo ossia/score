@@ -162,7 +162,6 @@ void VSTEffectModel::closePlugin()
   qDeleteAll(m_outlets);
   m_inlets.clear();
   m_outlets.clear();
-  //plugin.reset();
   metadata().setLabel("Dead VST");
 }
 
@@ -197,23 +196,39 @@ void VSTEffectModel::reload()
 {
   closePlugin();
 
-  auto path = m_effectPath;
-  if(path.isEmpty())
-    return;
+  auto path = m_effectPath.toStdString();
 
-  bool isFile = QFile(QUrl(path).toString(QUrl::PreferLocalFile)).exists();
-  if(!isFile)
+  VSTModule* plugin;
+  auto& app = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
+  auto it = app.vst_modules.find(path);
+  if(it == app.vst_modules.end())
   {
-    qDebug() << "Invalid path: " << path;
-    return;
+    if(path.empty())
+      return;
+
+    bool isFile = QFile(QUrl(m_effectPath).toString(QUrl::PreferLocalFile)).exists();
+    if(!isFile)
+    {
+      qDebug() << "Invalid path: " << m_effectPath;
+      return;
+    }
+
+    try {
+      plugin = new VSTModule{path};
+      app.vst_modules.insert({std::move(path), plugin});
+    } catch(const std::runtime_error& e) {
+      qDebug() << e.what();
+      return;
+    }
+  }
+  else
+  {
+    plugin = it->second;
   }
 
-  try {
-    plugin = std::make_unique<VSTModule>(path.toUtf8());
-  } catch(const std::runtime_error& e) {
-    qDebug() << e.what();
+  if(!plugin)
     return;
-  }
+
   auto main = plugin->getMain();
   if(!main) {
     qDebug() << "plugin has no main";

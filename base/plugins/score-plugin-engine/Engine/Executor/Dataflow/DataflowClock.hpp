@@ -20,6 +20,7 @@ class Clock final
         Clock(const Engine::Execution::Context& ctx);
 
         ~Clock();
+
     private:
         void on_cableCreated(Process::Cable& c);
         void on_cableRemoved(const Process::Cable& c);

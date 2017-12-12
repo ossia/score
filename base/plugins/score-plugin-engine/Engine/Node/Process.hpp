@@ -138,6 +138,13 @@ class ControlProcess final: public Process::ProcessModel
         p->setCustomData(in.name);
         m_inlets.push_back(p);
       }
+      for(const auto& in : get_ports<AddressInInfo>(Info::info))
+      {
+        auto p = new Process::Inlet(Id<Process::Port>(inlet++), this);
+        p->type = Process::PortType::Message;
+        p->setCustomData(in.name);
+        m_inlets.push_back(p);
+      }
       ossia::for_each_in_tuple(get_controls(Info::info),
                                [&] (const auto& ctrl) {
         if(auto p = ctrl.create_inlet(Id<Process::Port>(inlet++), this))

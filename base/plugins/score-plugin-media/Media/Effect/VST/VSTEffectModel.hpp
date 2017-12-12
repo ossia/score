@@ -48,7 +48,6 @@ class VSTEffectModel :
         void setEffect(const QString& s)
         { m_effectPath = s; }
 
-        std::unique_ptr<VSTModule> plugin;
         AEffect* fx{};
 
     private:

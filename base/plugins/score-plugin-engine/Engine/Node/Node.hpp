@@ -24,6 +24,8 @@ static constexpr auto make_node(Args&&... args)
 }
 
 template<std::size_t N>
+using AddressIns = std::array<AudioInInfo, N>;
+template<std::size_t N>
 using AudioIns = std::array<AudioInInfo, N>;
 template<std::size_t N>
 using AudioOuts = std::array<AudioOutInfo, N>;
@@ -57,6 +59,10 @@ struct NodeBuilder: Args...
   template<typename... SArgs>
   constexpr NodeBuilder(SArgs&&... sargs): Args{sargs}... { }
 
+  template<std::size_t N>
+  constexpr auto address_ins(const AddressInInfo (&arg)[N]) const {
+    return NodeBuilder<std::array<AddressInInfo, N>, Args...>{ossia::to_array(arg), static_cast<Args>(*this)...};
+  }
   template<std::size_t N>
   constexpr auto audio_ins(const AudioInInfo (&arg)[N]) const {
     return NodeBuilder<std::array<AudioInInfo, N>, Args...>{ossia::to_array(arg), static_cast<Args>(*this)...};
@@ -277,13 +283,31 @@ struct InfoFunctions
       get_ports<ValueOutInfo>(Info::info).size();
   static constexpr auto control_count =
       std::tuple_size<decltype(get_controls(Info::info))>::value;
+  static constexpr auto address_in_count =
+      get_ports<AddressInInfo>(Info::info).size();
+
+  static constexpr auto categorize_inlet(std::size_t i)
+  {
+    if(i < audio_in_count)
+      return inlet_kind::audio_in;
+    else if(i < audio_in_count + midi_in_count)
+      return inlet_kind::midi_in;
+    else if(i < audio_in_count + midi_in_count + value_in_count)
+      return inlet_kind::value_in;
+    else if(i < audio_in_count + midi_in_count + value_in_count + address_in_count)
+      return inlet_kind::address_in;
+    else if(i < audio_in_count + midi_in_count + value_in_count + address_in_count + control_count)
+      return inlet_kind::control_in;
+    else
+      throw std::runtime_error("Invalid input number");
+  }
 
 
   static constexpr auto control_start =
-      audio_in_count + midi_in_count + value_in_count;
+      audio_in_count + midi_in_count + value_in_count + address_in_count;
 
   static constexpr auto inlet_size =
-      audio_in_count + midi_in_count + value_in_count + control_count;
+      control_start + control_count;
 
   static constexpr auto outlet_size =
       audio_out_count + midi_out_count + value_out_count;

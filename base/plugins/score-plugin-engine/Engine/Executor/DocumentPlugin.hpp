@@ -32,6 +32,7 @@ namespace Execution
 class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final
     : public score::DocumentPlugin
 {
+    Q_OBJECT
 public:
   DocumentPlugin(
       const score::DocumentContext& ctx, Id<score::DocumentPlugin>, QObject* parent);
@@ -87,6 +88,11 @@ public:
   score::hash_map<Process::Outlet*, std::pair<ossia::node_ptr, ossia::outlet_ptr>> outlets;
   score::hash_map<Process::Inlet*, std::pair<ossia::node_ptr, ossia::inlet_ptr>> inlets;
   score::hash_map<Id<Process::Cable>, std::shared_ptr<ossia::graph_edge>> m_cables;
+
+  std::vector<QMetaObject::Connection> runtime_connections;
+
+signals:
+  void finished();
 private:
   mutable ExecutionCommandQueue m_editionQueue;
   Context m_ctx;

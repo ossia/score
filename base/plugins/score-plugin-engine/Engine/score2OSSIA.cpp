@@ -581,7 +581,7 @@ trigger_expression(const State::Expression& e, const Device::DeviceList& list)
   return expression(e, list, def_trig{});
 }
 
-ossia::net::parameter_base*
+ossia::net::node_base*
 findAddress(const Device::DeviceList& devs, const State::Address& addr)
 {
   auto dev_p = dynamic_cast<Engine::Network::OSSIADevice*>(
@@ -594,12 +594,11 @@ findAddress(const Device::DeviceList& devs, const State::Address& addr)
       auto node
           = Engine::score_to_ossia::findNodeFromPath(addr.path, *ossia_dev);
       if (node)
-        return node->get_parameter();
+        return node;
     }
   }
   return {};
 }
-
 optional<ossia::destination> makeDestination(
     const Device::DeviceList& devices, const State::AddressAccessor& addr)
 {
@@ -608,8 +607,12 @@ optional<ossia::destination> makeDestination(
 
   if (ossia_addr)
   {
-    auto& qual = addr.qualifiers.get();
-    return ossia::destination{*ossia_addr, qual.accessors, qual.unit};
+    auto p = ossia_addr->get_parameter();
+    if(p)
+    {
+      auto& qual = addr.qualifiers.get();
+      return ossia::destination{*p, qual.accessors, qual.unit};
+    }
   }
 
   return {};
