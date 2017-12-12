@@ -18,16 +18,22 @@ class VSTNode final : public ossia::audio_fx_node
       fx->dispatcher(fx, opcode, index, value, ptr, opt);
     }
   public:
+    std::vector<ossia::value_port*> ctrl_ptrs;
     VSTNode(AEffect* dat, int sampleRate):
       fx{dat}
     {
+      m_inlets.reserve(fx->numParams + 1);
+      ctrl_ptrs.resize(fx->numParams);
       if constexpr(IsSynth)
         m_inlets.push_back(ossia::make_inlet<ossia::midi_port>());
       else
         m_inlets.push_back(ossia::make_inlet<ossia::audio_port>());
 
       for(int i = 0; i < fx->numParams; i++)
+      {
         m_inlets.push_back(ossia::make_inlet<ossia::value_port>());
+        ctrl_ptrs[i] = m_inlets.back()->data.template target<ossia::value_port>();
+      }
 
       m_outlets.push_back(ossia::make_outlet<ossia::audio_port>());
 
@@ -47,7 +53,6 @@ class VSTNode final : public ossia::audio_fx_node
     void all_notes_off() override
     {
       // copy midi data
-      auto& ip = m_inlets[0]->data.template target<ossia::midi_port>()->messages;
       VstEvents* events = (VstEvents*)alloca(sizeof(VstEvents));
       events->numEvents = 1;
 
@@ -87,14 +92,16 @@ class VSTNode final : public ossia::audio_fx_node
 
     void setControls()
     {
-      for(std::size_t i = 1; i < m_inlets.size(); i++)
+      for(int i = 0; i < fx->numParams; i++)
       {
-        auto& vec = m_inlets[i]->data.template target<ossia::value_port>()->get_data();
+        auto& vec = ctrl_ptrs[i]->get_data();
         if(vec.empty())
         {
           continue;
         }
-        fx->setParameter(fx, i-1, ossia::convert<float>(last(vec)));
+
+        if(auto t = last(vec).template target<float>())
+          fx->setParameter(fx, i, *t);
       }
     }
 
@@ -122,6 +129,7 @@ class VSTNode final : public ossia::audio_fx_node
         e.type = kVstMidiType;
         e.byteSize = sizeof(VstMidiEvent);
         e.deltaFrames = mess.timestamp;
+        e.flags = kVstMidiEventIsRealtime;
 
         for(std::size_t k = 0; k < std::min(mess.data.size(), (std::size_t)4); k++)
           e.midiData[k] = mess.data[k];

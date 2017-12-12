@@ -159,6 +159,7 @@ void Clock::stop_impl(
       plug->execState.mess_values.clear();
     }
 
+    emit plug->finished();
 
   });
   m_plug.audioProto().ui_tick = { };

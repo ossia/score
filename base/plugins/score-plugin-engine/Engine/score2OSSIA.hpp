@@ -62,7 +62,7 @@ findNodeFromPath(const QStringList& path, ossia::net::device_base& dev);
 SCORE_PLUGIN_ENGINE_EXPORT ossia::net::node_base*
 findNodeFromPath(const Device::Node& path, ossia::net::device_base& dev);
 
-SCORE_PLUGIN_ENGINE_EXPORT ossia::net::parameter_base*
+SCORE_PLUGIN_ENGINE_EXPORT ossia::net::node_base*
 findAddress(const Device::DeviceList& devices, const State::Address& addr);
 
 SCORE_PLUGIN_ENGINE_EXPORT optional<ossia::destination> makeDestination(

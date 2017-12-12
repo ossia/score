@@ -65,6 +65,15 @@ DocumentPlugin::DocumentPlugin(
         auto& stop_action = context().doc.app.actions.action<Actions::Stop>();
         stop_action.action()->trigger();
       }, Qt::QueuedConnection);
+
+  connect(this, &DocumentPlugin::finished,
+          this, [=] {
+    for(auto& con : runtime_connections)
+    {
+      QObject::disconnect(con);
+    }
+    runtime_connections.clear();
+  }, Qt::QueuedConnection);
 }
 
 void DocumentPlugin::on_cableCreated(Process::Cable& c)
@@ -245,26 +254,36 @@ void DocumentPlugin::unregister_node(
 
 void DocumentPlugin::set_destination(
     const State::AddressAccessor& address,
-    const ossia::inlet_ptr& inlet)
+    const ossia::inlet_ptr& port)
 {
-  if(auto dest = Engine::score_to_ossia::makeDestination(
-       context().devices.list(),
-       address))
+  if(auto ossia_addr = Engine::score_to_ossia::findAddress(context().devices.list(), address.address))
   {
-    m_editionQueue.enqueue([=] {
-      inlet->address = &dest->value.get();
-      if(ossia::value_port* dat = inlet->data.target<ossia::value_port>()) {
-        if(dest->unit)
-          dat->type = dest->unit;
-        dat->index = dest->index;
-      }
-    });
+    auto p = ossia_addr->get_parameter();
+    if(p)
+    {
+      auto& qual = address.qualifiers.get();
+
+      m_editionQueue.enqueue([=] {
+        port->address = p;
+        if(ossia::value_port* dat = port->data.target<ossia::value_port>()) {
+          if(qual.unit)
+            dat->type = qual.unit;
+          dat->index = qual.accessors;
+        }
+      });
+    }
+    else
+    {
+      m_editionQueue.enqueue([=] {
+        port->address = ossia_addr;
+      });
+    }
   }
   else
   {
     m_editionQueue.enqueue([=] {
-      inlet->address = {};
-      if(ossia::value_port* dat = inlet->data.target<ossia::value_port>()) {
+      port->address = {};
+      if(ossia::value_port* dat = port->data.target<ossia::value_port>()) {
         dat->type = {};
         dat->index.clear();
       }
@@ -273,26 +292,36 @@ void DocumentPlugin::set_destination(
 }
 void DocumentPlugin::set_destination(
     const State::AddressAccessor& address,
-    const ossia::outlet_ptr& outlet)
+    const ossia::outlet_ptr& port)
 {
-  if(auto dest = Engine::score_to_ossia::makeDestination(
-       context().devices.list(),
-       address))
+  if(auto ossia_addr = Engine::score_to_ossia::findAddress(context().devices.list(), address.address))
   {
-    m_editionQueue.enqueue([=] {
-      outlet->address = &dest->value.get();
-      if(ossia::value_port* dat = outlet->data.target<ossia::value_port>()) {
-        if(dest->unit)
-          dat->type = dest->unit;
-        dat->index = dest->index;
-      }
-    });
+    auto p = ossia_addr->get_parameter();
+    if(p)
+    {
+      auto& qual = address.qualifiers.get();
+
+      m_editionQueue.enqueue([=] {
+        port->address = p;
+        if(ossia::value_port* dat = port->data.target<ossia::value_port>()) {
+          if(qual.unit)
+            dat->type = qual.unit;
+          dat->index = qual.accessors;
+        }
+      });
+    }
+    else
+    {
+      m_editionQueue.enqueue([=] {
+        port->address = ossia_addr;
+      });
+    }
   }
   else
   {
     m_editionQueue.enqueue([=] {
-      outlet->address = {};
-      if(ossia::value_port* dat = outlet->data.target<ossia::value_port>()) {
+      port->address = {};
+      if(ossia::value_port* dat = port->data.target<ossia::value_port>()) {
         dat->type = {};
         dat->index.clear();
       }
@@ -309,12 +338,17 @@ void DocumentPlugin::register_node(
     const std::size_t n_inlets = proc_inlets.size();
     const std::size_t n_outlets = proc_outlets.size();
 
+    SCORE_ASSERT(node->inputs().size() >= n_inlets);
+    SCORE_ASSERT(node->outputs().size() >= n_outlets);
+
+    runtime_connections.reserve(runtime_connections.size() + n_inlets + n_outlets);
     for(std::size_t i = 0; i < n_inlets; i++)
     {
-      connect(proc_inlets[i], &Process::Port::addressChanged,
-              this, [=] (const State::AddressAccessor& address) {
-        set_destination(address, node->inputs()[i]);
-      });
+      runtime_connections.push_back(connect(proc_inlets[i], &Process::Port::addressChanged,
+              this, [this,port=node->inputs()[i]] (const State::AddressAccessor& address) {
+        set_destination(address, port);
+      }));
+      SCORE_ASSERT(node->inputs()[i]);
       set_destination(proc_inlets[i]->address(), node->inputs()[i]);
 
       inlets.insert({ proc_inlets[i], std::make_pair( node, node->inputs()[i] ) });
@@ -322,10 +356,11 @@ void DocumentPlugin::register_node(
 
     for(std::size_t i = 0; i < n_outlets; i++)
     {
-      connect(proc_outlets[i], &Process::Port::addressChanged,
-              this, [=] (const State::AddressAccessor& address) {
-        set_destination(address, node->outputs()[i]);
-      });
+      runtime_connections.push_back(connect(proc_outlets[i], &Process::Port::addressChanged,
+              this, [this,port=node->outputs()[i]] (const State::AddressAccessor& address) {
+        set_destination(address, port);
+      }));
+      SCORE_ASSERT(node->outputs()[i]);
       set_destination(proc_outlets[i]->address(), node->outputs()[i]);
 
       outlets.insert({ proc_outlets[i], std::make_pair( node, node->outputs()[i] ) });

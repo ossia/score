@@ -6,6 +6,21 @@
 
 namespace Process
 {
+
+enum class inlet_kind
+{
+  audio_in, midi_in, value_in, address_in, control_in
+};
+enum class outlet_kind
+{
+  audio_out, midi_out, value_out
+};
+struct AddressInInfo {
+  const QLatin1String name;
+
+  template<std::size_t N>
+  constexpr AddressInInfo(const char (&name)[N]): name{name, N} { }
+};
 struct AudioInInfo {
   const QLatin1String name;
 

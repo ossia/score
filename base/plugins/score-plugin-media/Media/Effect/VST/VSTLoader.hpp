@@ -16,7 +16,7 @@ struct VSTModule
     std::string path;
     void* module{};
 
-    VSTModule(const char* fileName);
+    VSTModule(std::string fileName);
     ~VSTModule();
     PluginEntryProc getMain();
 };
