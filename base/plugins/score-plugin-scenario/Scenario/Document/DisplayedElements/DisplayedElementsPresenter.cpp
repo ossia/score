@@ -53,7 +53,7 @@ DisplayedElementsPresenter::DisplayedElementsPresenter(
 DisplayedElementsPresenter::~DisplayedElementsPresenter()
 {
   disconnect(
-      &m_model.context().updateTimer, &QTimer::timeout, this,
+      &m_model.context().execTimer, &QTimer::timeout, this,
       &DisplayedElementsPresenter::on_intervalExecutionTimer);
 
   // TODO use directly displayedelementspresentercontainer
@@ -75,7 +75,7 @@ void DisplayedElementsPresenter::on_displayedIntervalChanged(
     const IntervalModel& m)
 {
   disconnect(
-      &m_model.context().updateTimer, &QTimer::timeout, this,
+      &m_model.context().execTimer, &QTimer::timeout, this,
       &DisplayedElementsPresenter::on_intervalExecutionTimer);
 
   for (auto& con : m_connections)
@@ -150,7 +150,7 @@ void DisplayedElementsPresenter::on_displayedIntervalChanged(
 
   on_zoomRatioChanged(m_intervalPresenter->zoomRatio());
 
-  con(ctx.updateTimer, &QTimer::timeout, this,
+  con(ctx.execTimer, &QTimer::timeout, this,
       &DisplayedElementsPresenter::on_intervalExecutionTimer);
 }
 

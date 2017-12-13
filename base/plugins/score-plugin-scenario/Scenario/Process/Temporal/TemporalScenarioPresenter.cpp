@@ -179,7 +179,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
   m_viewInterface.on_graphicalScaleChanged(m_graphicalScale);
 
   m_con = con(
-        context.updateTimer, &QTimer::timeout, this,
+        context.execTimer, &QTimer::timeout, this,
         &TemporalScenarioPresenter::on_intervalExecutionTimer);
 
   auto& es = context.app.guiApplicationPlugin<ScenarioApplicationPlugin>()

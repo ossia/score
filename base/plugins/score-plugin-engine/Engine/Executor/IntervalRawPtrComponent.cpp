@@ -68,7 +68,7 @@ IntervalRawPtrComponent::~IntervalRawPtrComponent()
   for(auto& proc : m_processes)
     proc.second->cleanup();
   executionStopped();
-  
+
 }
 
 void IntervalRawPtrComponent::init()
@@ -81,15 +81,15 @@ void IntervalRawPtrComponent::cleanup()
   if(m_ossia_interval)
   {
     m_ossia_interval->set_callback(ossia::time_interval::exec_callback{});
-    
+
     system().plugin.unregister_node(
-        {interval().inlet.get()}, 
-        {interval().outlet.get()}, 
-        m_ossia_interval->node);      
+        {interval().inlet.get()},
+        {interval().outlet.get()},
+        m_ossia_interval->node);
   }
   for(auto& proc : m_processes)
     proc.second->cleanup();
-  
+
   clear();
   m_processes.clear();
   m_ossia_interval = nullptr;
@@ -136,8 +136,8 @@ void IntervalRawPtrComponent::onSetup(
 
   // set-up the interval ports
   system().plugin.register_node(
-      {interval().inlet.get()}, 
-      {interval().outlet.get()}, 
+      {interval().inlet.get()},
+      {interval().outlet.get()},
       ossia_cst->node);
 
   init();
@@ -176,8 +176,8 @@ void IntervalRawPtrComponentBase::stop()
   }
   interval().reset();
 
-  executionStopped();
   interval().duration.setPlayPercentage(0);
+  executionStopped();
 }
 
 void IntervalRawPtrComponentBase::executionStarted()

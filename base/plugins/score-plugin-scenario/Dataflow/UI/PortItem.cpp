@@ -20,13 +20,22 @@
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <State/MessageListSerialization.hpp>
+#include <Dataflow/Commands/CreateModulation.hpp>
 #include <Dataflow/Commands/EditConnection.hpp>
 #include <Dataflow/Commands/EditPort.hpp>
 #include <Explorer/Widgets/AddressAccessorEditWidget.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
+#include <Automation/Commands/SetAutomationMax.hpp>
+#include <Automation/AutomationModel.hpp>
+#include <ossia/network/domain/domain.hpp>
+#include <ossia/editor/state/destination_qualifiers.hpp>
 namespace Dataflow
 {
 PortItem::port_map PortItem::g_ports;
@@ -472,13 +481,11 @@ PortItem* setupInlet(Process::Inlet& port, const score::DocumentContext& ctx, QG
     panel->deleteLater();
   });
   QObject::connect(item, &Dataflow::PortItem::contextMenuRequested,
-          context, [&,context] (QPointF sp, QPoint p) {
+          context, [&,item] (QPointF sp, QPoint p) {
     auto menu = new QMenu{};
     auto act = menu->addAction(QObject::tr("Create automation"));
-    QObject::connect(act, &QAction::toggled, context, [] {
-      // TODO :
-      // create automation in the same interval
-      // create connection from automation output to this input
+    QObject::connect(act, &QAction::triggered, item, [=,&ctx] {
+      emit item->on_createAutomation(ctx);
     });
     menu->exec(p);
     menu->deleteLater();
@@ -502,6 +509,55 @@ PortItem* setupOutlet(Process::Outlet& port, const score::DocumentContext& ctx, 
     panel->deleteLater();
   });
   return item;
+}
+
+
+void PortItem::on_createAutomation(const score::DocumentContext& ctx)
+{
+  auto ctrl = dynamic_cast<Process::ControlInlet*>(&m_port);
+  if(!ctrl)
+    return;
+
+  QObject* obj = &m_port;
+  while(obj)
+  {
+    auto parent = obj->parent();
+    if(auto cst = dynamic_cast<Scenario::IntervalModel*>(parent))
+    {
+      RedoMacroCommandDispatcher<Dataflow::CreateModulation> macro{ctx.commandStack};
+      auto make_cmd = new Scenario::Command::AddOnlyProcessToInterval{
+                      *cst,
+                      Metadata<ConcreteKey_k, Automation::ProcessModel>::get()};
+      macro.submitCommand(make_cmd);
+
+      auto lay_cmd = new Scenario::Command::AddLayerInNewSlot{*cst, make_cmd->processId()};
+      macro.submitCommand(lay_cmd);
+
+      auto dom = ctrl->domain();
+      auto min = dom.get().convert_min<float>();
+      auto max = dom.get().convert_max<float>();
+
+      State::Unit unit = ctrl->address().qualifiers.get().unit;
+      auto& autom = safe_cast<Automation::ProcessModel&>(cst->processes.at(make_cmd->processId()));
+      macro.submitCommand(new Automation::SetMin{autom, min});
+      macro.submitCommand(new Automation::SetMax{autom, max});
+
+      auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
+      Process::CableData cd;
+      cd.type = Process::CableType::ImmediateStrict;
+      cd.source = *autom.outlet;
+      cd.sink = m_port;
+
+      macro.submitCommand(new Dataflow::CreateCable{plug, getStrongId(plug.cables), std::move(cd)});
+
+      macro.commit();
+      return;
+    }
+    else
+    {
+      obj = parent;
+    }
+  }
 }
 
 }

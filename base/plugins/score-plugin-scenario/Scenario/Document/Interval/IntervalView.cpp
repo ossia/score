@@ -111,9 +111,9 @@ void IntervalView::setHeight(double height)
 
 double IntervalView::setPlayWidth(double width)
 {
-  if(width != m_playWidth)
+  const auto v = std::abs(m_playWidth - width);
+  if(v > 1.)
   {
-    const auto v = std::abs(m_playWidth - width);
     m_playWidth = width;
     updatePlayPaths();
     return v;
