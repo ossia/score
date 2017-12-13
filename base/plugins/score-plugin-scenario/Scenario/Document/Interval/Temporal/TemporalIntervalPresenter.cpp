@@ -625,6 +625,30 @@ void TemporalIntervalPresenter::requestSlotMenu(int slot, QPoint pos, QPointF sp
   }
 }
 
+void TemporalIntervalPresenter::requestProcessSelectorMenu(int slot, QPoint pos, QPointF sp) const
+{
+  if(const auto& proc = m_model.getSmallViewSlot(slot).frontProcess)
+  {
+    const SlotPresenter& slt = m_slots.at(slot);
+    for(auto& p : slt.processes)
+    {
+      if(p.model->id() == proc)
+      {
+        auto menu = new QMenu;
+        auto& reg = score::GUIAppContext()
+                    .guiApplicationPlugin<ScenarioApplicationPlugin>()
+                    .layerContextMenuRegistrar();
+        ScenarioContextMenuManager::createLayerContextMenuForProcess(
+            *menu, pos, sp, reg, *p.presenter);
+        menu->exec(pos);
+        menu->close();
+        menu->deleteLater();
+        break;
+      }
+    }
+  }
+}
+
 void TemporalIntervalPresenter::on_defaultDurationChanged(const TimeVal& val)
 {
   const auto w = val.toPixels(m_zoomRatio);
