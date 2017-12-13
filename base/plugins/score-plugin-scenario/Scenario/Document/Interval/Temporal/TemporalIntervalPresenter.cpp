@@ -487,6 +487,7 @@ void TemporalIntervalPresenter::on_layerModelPutToFront(int slot, const Process:
           slt.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
           slt.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
           slt.headerDelegate->setPos(30, 0);
+          slt.headerDelegate->setSize(QSizeF{m_view->defaultWidth() - SlotHeader::handleWidth() - SlotHeader::menuWidth(), SlotHeader::headerHeight()});
         }
       }
       else
