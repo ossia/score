@@ -16,7 +16,7 @@ InsertEffect::InsertEffect(
         const Effect::ProcessModel& model,
         const UuidKey<Effect::EffectFactory>& effectKind,
         const QString& text,
-        int effectPos):
+        std::size_t effectPos):
     m_model{model},
     m_id{getStrongId(model.effects())},
     m_effectKind{effectKind},

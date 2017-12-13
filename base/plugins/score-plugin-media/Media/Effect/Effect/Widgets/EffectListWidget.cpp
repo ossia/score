@@ -108,7 +108,7 @@ void EffectListWidget::dropEvent(QDropEvent *event)
     if(event->mimeData()->hasUrls())
     {
         auto urls = event->mimeData()->urls();
-        int pos = m_effects.effects().size();
+        auto pos = m_effects.effects().size();
         for(auto url : urls)
         {
             auto path = url.toString(QUrl::PreferLocalFile);
@@ -124,7 +124,7 @@ void EffectListWidget::dropEvent(QDropEvent *event)
                         QString dat = f.readAll();
                         auto cmd = new Commands::InsertEffect{
                                 m_effects,
-                                FaustEffectFactory::static_concreteKey(),
+                                FaustEffectModel::static_concreteKey(),
                                 dat,
                                 pos};
                         m_dispatcher.submitCommand(cmd);
@@ -141,7 +141,7 @@ void EffectListWidget::dropEvent(QDropEvent *event)
                 { // TODO factory instead.
                     auto cmd = new Commands::InsertEffect{
                             m_effects,
-                            Media::LV2::LV2EffectFactory::static_concreteKey(),
+                            Media::LV2::LV2EffectModel::static_concreteKey(),
                             url.toString(),
                             pos};
                     m_dispatcher.submitCommand(cmd);

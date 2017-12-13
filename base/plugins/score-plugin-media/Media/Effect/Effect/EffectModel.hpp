@@ -3,10 +3,14 @@
 #include <Media/Effect/Effect/EffectFactory.hpp>
 #include <score/model/Entity.hpp>
 
+#include <Engine/Executor/ExecutorContext.hpp>
 #include <score/model/Component.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/plugins/customfactory/SerializableInterface.hpp>
 #include <score_plugin_media_export.h>
+#include <ossia/dataflow/fx_node.hpp>
+#include <ossia/dataflow/graph_node.hpp>
+class QGraphicsItem;
 namespace Process
 {
 class Port;
@@ -49,6 +53,8 @@ class SCORE_PLUGIN_MEDIA_EXPORT EffectModel :
             vis.writeTo(*this);
         }
 
+        virtual QString prettyName() const = 0;
+
         virtual ~EffectModel();
 
         virtual EffectModel* clone(
@@ -58,6 +64,8 @@ class SCORE_PLUGIN_MEDIA_EXPORT EffectModel :
         const Process::Inlets& inlets() const { return m_inlets; }
         const Process::Outlets& outlets() const { return m_outlets; }
 
+        virtual QGraphicsItem* makeItem(const score::DocumentContext& ctx);
+        virtual std::shared_ptr<ossia::audio_fx_node> makeNode(const Engine::Execution::Context &, QObject* ctx);
         virtual void showUI();
         virtual void hideUI();
 
@@ -71,8 +79,10 @@ class SCORE_PLUGIN_MEDIA_EXPORT EffectModel :
 }
 }
 
-#define EFFECT_METADATA(Export, Model, Uuid, ObjectKey, PrettyName) \
-    MODEL_METADATA(Export, Media::Effect::EffectFactory, Model, Uuid, ObjectKey, PrettyName)
+#define EFFECT_METADATA(Export, Model, Uuid, ObjectKey, PrettyName, Category, Tags) \
+    MODEL_METADATA(Export, Media::Effect::EffectFactory, Model, Uuid, ObjectKey, PrettyName) \
+  CATEGORY_METADATA(Export, Model, Category)                         \
+  TAGS_METADATA(Export, Model, Tags)
 
 Q_DECLARE_METATYPE(Id<Media::Effect::EffectModel>)
 

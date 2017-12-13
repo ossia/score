@@ -21,6 +21,7 @@
 #include <lv2/lv2plug.in/ns/extensions/ui/ui.h>
 #include <Media/Effect/LV2/LV2EffectModel.hpp>
 #include <Media/ApplicationPlugin.hpp>
+#include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #endif
 
 #if defined(HAS_VST2)
@@ -59,7 +60,25 @@ InspectorWidget::InspectorWidget(
 
     recreate();
 
+
     // Add an effect
+    {
+      auto add = new QPushButton{tr("Add (Score)")};
+      connect(add, &QPushButton::pressed, this, [&] {
+
+        auto& base_fxs = doc.app.interfaces<EffectFactoryList>();
+        auto dialog = new Scenario::AddProcessDialog<EffectFactoryList>(base_fxs, this);
+
+        dialog->on_okPressed = [&] (const auto& proc)  {
+          m_dispatcher.submitCommand(
+                      new Commands::InsertEffect{process(), proc, "", process().effects().size()});
+        };
+        dialog->launchWindow();
+        dialog->deleteLater();
+      });
+      lay->addWidget(add);
+    }
+    {
 #if defined(HAS_FAUST)
     m_add = new QPushButton{tr("Add (Faust)")};
     connect(m_add, &QPushButton::pressed,
@@ -74,7 +93,9 @@ InspectorWidget::InspectorWidget(
 
     lay->addWidget(m_add);
 #endif
+    }
 
+    {
 #if defined(LILV_SHARED)
     auto add_lv2 = new QPushButton{tr("Add (LV2)")};
     connect(add_lv2, &QPushButton::pressed,
@@ -103,14 +124,15 @@ InspectorWidget::InspectorWidget(
             m_dispatcher.submitCommand(
                         new Commands::InsertEffect{
                             process(),
-                            Media::LV2::LV2EffectFactory::static_concreteKey(),
+                            Media::LV2::LV2EffectModel::static_concreteKey(),
                             res,
-                            (int)process().effects().size()});
+                            process().effects().size()});
         }
     });
 
     lay->addWidget(add_lv2);
 #endif
+    }
 
 #if defined(HAS_VST2)
     {
@@ -134,9 +156,9 @@ InspectorWidget::InspectorWidget(
           m_dispatcher.submitCommand(
                 new Commands::InsertEffect{
                   process(),
-                  Media::VST::VSTEffectFactory::static_concreteKey(),
+                  Media::VST::VSTEffectModel::static_concreteKey(),
                   res,
-                  (int)process().effects().size()});
+                  process().effects().size()});
         }
       });
 

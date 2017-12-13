@@ -8,7 +8,7 @@
 #include <score/serialization/VisitorTags.hpp>
 #include <boost/container/flat_set.hpp>
 #include <score/model/EntityBase.hpp>
-#include <chobo/small_vector.hpp>
+#include <ossia/detail/small_vector.hpp>
 template <class>
 class StringKey;
 
@@ -713,7 +713,7 @@ QJsonArray toJsonArray(
 }
 
 template<typename T, std::size_t N>
-QJsonArray toJsonArray(const chobo::small_vector<T*, N>& array)
+QJsonArray toJsonArray(const ossia::small_vector<T*, N>& array)
 {
   QJsonArray arr;
   for (auto& v : array)

@@ -36,7 +36,7 @@ struct PreciseTick
         });
         return b;
       };
-       
+
       //const auto parent_dur = req.date / req.position;
       auto call_f = [&] (ossia::time_value cur) {
         ossia::token_request r = req;
@@ -53,11 +53,8 @@ struct PreciseTick
         std::bitset<sizeof...(Args)> to_increment;
         to_increment.reset();
         auto min = ossia::Infinite;
-        
+
         ossia::for_each_in_range<sizeof...(arg)>([&] (auto idx_t) {
-			
-			
-		  /*	
           constexpr auto idx = idx_t.value;
           auto& it = std::get<idx>(iterators);
           if(it != std::get<idx>(last_iterators))
@@ -82,7 +79,7 @@ struct PreciseTick
             {
               to_increment.set(idx);
             }
-          }*/
+          }
         });
 
         current_time += min;

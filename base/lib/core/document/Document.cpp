@@ -96,7 +96,7 @@ void Document::init()
   m_documentUpdateTimer.setInterval(16);
   m_documentUpdateTimer.start();
 
-  m_documentCoarseUpdateTimer.setInterval(250);
+  m_documentCoarseUpdateTimer.setInterval(64);
   m_documentCoarseUpdateTimer.start();
 
   m_execTimer.setInterval(32);

@@ -26,6 +26,16 @@ EffectModel::~EffectModel()
 
 }
 
+QGraphicsItem*EffectModel::makeItem(const score::DocumentContext& ctx)
+{
+  return nullptr;
+}
+
+std::shared_ptr<ossia::audio_fx_node> EffectModel::makeNode(const Engine::Execution::Context&, QObject* ctx)
+{
+  return {};
+}
+
 void EffectModel::showUI()
 {
 

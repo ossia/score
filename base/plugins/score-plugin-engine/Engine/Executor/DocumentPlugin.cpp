@@ -104,53 +104,53 @@ void DocumentPlugin::connectCable(Process::Cable& cable)
     }
   }
 
-    if(cable.source_node && cable.sink_node)
+  if(m_base.active() && cable.source_node && cable.sink_node)
+  {
+    context().executionQueue.enqueue(
+          [type=cable.type()
+          ,outlet=cable.source_node
+          ,inlet=cable.sink_node
+          ,outport=cable.source_port
+          ,inport=cable.sink_port
+          ,graph=execGraph
+          ]
     {
-      context().executionQueue.enqueue(
-            [type=cable.type()
-            ,outlet=cable.source_node
-            ,inlet=cable.sink_node
-            ,outport=cable.source_port
-            ,inport=cable.sink_port
-            ,graph=execGraph
-            ]
+      ossia::edge_ptr edge;
+      switch(type)
       {
-        ossia::edge_ptr edge;
-        switch(type)
+        case Process::CableType::ImmediateStrict:
         {
-          case Process::CableType::ImmediateStrict:
-          {
-            edge = ossia::make_edge(
-                           ossia::immediate_strict_connection{},
-                           outport, inport, outlet, inlet);
-            break;
-          }
-          case Process::CableType::ImmediateGlutton:
-          {
-            edge = ossia::make_edge(
-                           ossia::immediate_glutton_connection{},
-                           outport, inport, outlet, inlet);
-            break;
-          }
-          case Process::CableType::DelayedStrict:
-          {
-            edge = ossia::make_edge(
-                           ossia::delayed_strict_connection{},
-                           outport, inport, outlet, inlet);
-            break;
-          }
-          case Process::CableType::DelayedGlutton:
-          {
-            edge = ossia::make_edge(
-                           ossia::delayed_glutton_connection{},
-                           outport, inport, outlet, inlet);
-            break;
-          }
+          edge = ossia::make_edge(
+                   ossia::immediate_strict_connection{},
+                   outport, inport, outlet, inlet);
+          break;
         }
+        case Process::CableType::ImmediateGlutton:
+        {
+          edge = ossia::make_edge(
+                   ossia::immediate_glutton_connection{},
+                   outport, inport, outlet, inlet);
+          break;
+        }
+        case Process::CableType::DelayedStrict:
+        {
+          edge = ossia::make_edge(
+                   ossia::delayed_strict_connection{},
+                   outport, inport, outlet, inlet);
+          break;
+        }
+        case Process::CableType::DelayedGlutton:
+        {
+          edge = ossia::make_edge(
+                   ossia::delayed_glutton_connection{},
+                   outport, inport, outlet, inlet);
+          break;
+        }
+      }
 
-        graph->connect(edge);
+      graph->connect(edge);
     });
-    }
+  }
 }
 
 
@@ -431,7 +431,6 @@ void DocumentPlugin::unregister_node(
     inlets.erase(ptr);
   for(auto ptr : proc_outlets)
     outlets.erase(ptr);
-
 }
 }
 }

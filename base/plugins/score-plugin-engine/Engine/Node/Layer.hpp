@@ -30,7 +30,6 @@ class SCORE_PLUGIN_ENGINE_EXPORT ILayerView : public Process::LayerView
 
 struct SCORE_PLUGIN_ENGINE_EXPORT RectItem : public QObject, public QGraphicsItem
 {
-
     QRectF m_rect{};
 public:
     using QGraphicsItem::QGraphicsItem;
@@ -42,37 +41,34 @@ protected:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
 };
-template <typename Info>
-class ControlLayerView final : public ILayerView
-{
-  public:
-    explicit ControlLayerView(QGraphicsItem* parent)
-      : ILayerView{parent}
-    {
-    }
 
-    void setup(const ControlProcess<Info>& object,
-               const score::DocumentContext& doc)
+struct UISetup
+{
+    template<typename Info, typename Model, typename View>
+    static void init(
+        const Model& object,
+        View& self,
+        const score::DocumentContext& doc,
+        double pos_y)
     {
       if constexpr(InfoFunctions<Info>::control_count > 0)
       {
         std::size_t i = 0;
-        double pos_y = 0;
         ossia::for_each_in_tuple(
               get_controls(Info::info),
               [&] (const auto& ctrl) {
-          auto item = new RectItem{this};
+          auto item = new RectItem{&self};
           item->setPos(0, pos_y);
           auto inlet = static_cast<ControlInlet*>(object.inlets_ref()[InfoFunctions<Info>::control_start + i]);
 
-          auto port = Dataflow::setupInlet(*inlet, doc, item, this);
+          auto port = Dataflow::setupInlet(*inlet, doc, item, &self);
 
 
           auto lab = new Scenario::SimpleTextItem{item};
           lab->setColor(ScenarioStyle::instance().EventDefault);
           lab->setText(ctrl.name);
 
-          QWidget* widg = ctrl.make_item(ctrl, *inlet, doc, nullptr, this);
+          QWidget* widg = ctrl.make_item(ctrl, *inlet, doc, nullptr, &self);
           widg->setMaximumWidth(150);
           widg->setContentsMargins(0, 0, 0, 0);
           widg->setPalette(transparentPalette());
@@ -96,7 +92,16 @@ class ControlLayerView final : public ILayerView
         });
       }
     }
+};
 
+template <typename Info>
+class ControlLayerView final : public ILayerView
+{
+  public:
+    explicit ControlLayerView(QGraphicsItem* parent)
+      : ILayerView{parent}
+    {
+    }
 
   private:
     void paint_impl(QPainter*) const override
@@ -154,7 +159,7 @@ public:
           m_view, &ControlLayerView<Info>::askContextMenu, this,
           &ControlLayerPresenter::contextMenuRequested);
 
-    view->setup(static_cast<const ControlProcess<Info>&>(model), ctx);
+    Process::UISetup::init<Info>(static_cast<const ControlProcess<Info>&>(model), *view, ctx, 0.);
   }
 
   void setWidth(qreal val) override

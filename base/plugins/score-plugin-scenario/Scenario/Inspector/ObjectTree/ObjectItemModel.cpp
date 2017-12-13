@@ -724,17 +724,15 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
       connect(addproc, &QAction::triggered, this, [=] {
 
         auto& fact = m_ctx.app.interfaces<Process::ProcessFactoryList>();
-        auto dialog = new AddProcessDialog{fact, this};
+        auto dialog = new AddProcessDialog<Process::ProcessFactoryList>{fact, this};
+        dialog->on_okPressed = [&] (const auto& proc) {
+          using cmd = Scenario::Command::CreateProcessInNewSlot;
+          QuietMacroCommandDispatcher<cmd> disp{m_ctx.commandStack};
 
-        QObject::connect(
-            dialog, &AddProcessDialog::okPressed, this, [&] (const auto& proc) {
-              using cmd = Scenario::Command::CreateProcessInNewSlot;
-              QuietMacroCommandDispatcher<cmd> disp{m_ctx.commandStack};
+          cmd::create(disp, *cst, proc);
 
-              cmd::create(disp, *cst, proc);
-
-              disp.commit();
-            });
+          disp.commit();
+        };
 
         dialog->launchWindow();
         dialog->deleteLater();
@@ -747,13 +745,12 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
       connect(addproc, &QAction::triggered, this, [=] {
 
         auto& fact = m_ctx.app.interfaces<Process::StateProcessList>();
-        auto dialog = new AddStateProcessDialog{fact, this};
+        auto dialog = new AddProcessDialog<Process::StateProcessList>{fact, this};
 
-        QObject::connect(
-            dialog, &AddStateProcessDialog::okPressed, this, [&] (const auto& proc) {
-              CommandDispatcher<> disp{m_ctx.commandStack};
-              disp.submitCommand<Scenario::Command::AddStateProcessToState>(*state, proc);
-            });
+        dialog->on_okPressed = [&] (const auto& proc) {
+          CommandDispatcher<> disp{m_ctx.commandStack};
+          disp.submitCommand<Scenario::Command::AddStateProcessToState>(*state, proc);
+        };
 
         dialog->launchWindow();
         dialog->deleteLater();

@@ -33,6 +33,106 @@ class View final : public Process::ILayerView
     {
     }
 
+    QGraphicsItem* makeDefaultItem(EffectModel& effect, const Effect::ProcessModel& object,
+                                   const score::DocumentContext& doc)
+    {
+      auto fx_item = new Process::RectItem(this);
+      EffectUi fx_ui{effect, fx_item, {}};
+
+
+      {
+        auto title = new QWidget;
+        auto title_lay = new QHBoxLayout{title};
+        auto gw = new QGraphicsProxyWidget{fx_item};
+        gw->setWidget(title);
+        fx_ui.title = gw;
+
+        auto name = new QLabel{effect.prettyName(), title};
+
+        auto uibtn = new QPushButton{"UI", title};
+        uibtn->setCheckable(true);
+        connect(uibtn, &QPushButton::toggled,
+                this, [=,&effect] (bool b) {
+          if(b)
+            effect.showUI();
+          else
+            effect.hideUI();
+        });
+
+
+        auto rm_but = new QPushButton{"x"};
+        rm_but->setStyleSheet(
+                    "QPushButton { "
+                    "border-style: solid;"
+                    "border-width: 2px;"
+                    "border-color: black;"
+                    "border-radius: 15px;}");
+        connect(rm_but, &QPushButton::clicked,
+                this, [&] () {
+              auto cmd = new Commands::RemoveEffect{object, effect};
+              CommandDispatcher<> disp{doc.commandStack}; disp.submitCommand(cmd);
+        }, Qt::QueuedConnection);
+
+        title_lay->addWidget(name);
+        title_lay->addWidget(uibtn);
+        title_lay->addWidget(rm_but);
+        title_lay->addStretch();
+
+        title->setMaximumWidth(150);
+        title->setContentsMargins(0, 0, 0, 0);
+        title->setPalette(Process::transparentPalette());
+        title->setAutoFillBackground(false);
+        title->setStyleSheet(Process::transparentStylesheet());
+      }
+
+      inlet_cons.reserve(effect.inlets().size() + inlet_cons.size());
+      for(auto& e : effect.inlets())
+      {
+        auto inlet = dynamic_cast<Process::ControlInlet*>(e);
+        if(!inlet)
+          continue;
+
+        auto con = connect(inlet, &Process::ControlInlet::uiVisibleChanged,
+                this, [this,&doc,fx=&effect,inlet] (bool vis) {
+          if(vis)
+          {
+            for(auto& e : this->effects)
+            {
+              if(&e.effect == fx)
+              {
+                setupInlet(*inlet, e, doc);
+
+                updateSize(e);
+                break;
+              }
+            }
+          }
+          else
+          {
+            for(auto& e : this->effects)
+            {
+              if(&e.effect == fx)
+              {
+                disableInlet(*inlet, e, doc);
+
+                updateSize(e);
+                break;
+              }
+            }
+          }
+        });
+        inlet_cons.push_back(con);
+        if(inlet->uiVisible())
+        {
+          setupInlet(*inlet, fx_ui, doc);
+        }
+      }
+
+      effects.push_back(fx_ui);
+      updateSize(fx_ui);
+      return fx_item;
+    }
+
     void setup(const Effect::ProcessModel& object,
                const score::DocumentContext& doc)
     {
@@ -50,99 +150,23 @@ class View final : public Process::ILayerView
       double pos_x = 0;
       for(EffectModel& effect : object.effects())
       {
-        auto fx_item = new Process::RectItem(this);
-        EffectUi fx_ui{effect, fx_item, {}};
-
-        fx_item->setPos(pos_x, 0);
-
+        auto item = effect.makeItem(doc);
+        if(item)
         {
-          auto title = new QWidget;
-          auto title_lay = new QHBoxLayout{title};
-          auto gw = new QGraphicsProxyWidget{fx_item};
-          gw->setWidget(title);
-          fx_ui.title = gw;
-
-          auto name = new QLabel{effect.metadata().getLabel(), title};
-
-          auto uibtn = new QPushButton{"UI", title};
-          uibtn->setCheckable(true);
-          connect(uibtn, &QPushButton::toggled,
-                  this, [=,&effect] (bool b) {
-            if(b)
-              effect.showUI();
-            else
-              effect.hideUI();
-          });
-
-
-          auto rm_but = new QPushButton{"x"};
-          rm_but->setStyleSheet(
-                      "QPushButton { "
-                      "border-style: solid;"
-                      "border-width: 2px;"
-                      "border-color: black;"
-                      "border-radius: 15px;}");
-          connect(rm_but, &QPushButton::clicked,
-                  this, [&] () {
-                auto cmd = new Commands::RemoveEffect{object, effect};
-                CommandDispatcher<> disp{doc.commandStack}; disp.submitCommand(cmd);
-          }, Qt::QueuedConnection);
-
-          title_lay->addWidget(name);
-          title_lay->addWidget(uibtn);
-          title_lay->addWidget(rm_but);
-          title_lay->addStretch();
-
-          title->setMaximumWidth(150);
-          title->setContentsMargins(0, 0, 0, 0);
-          title->setPalette(Process::transparentPalette());
-          title->setAutoFillBackground(false);
-          title->setStyleSheet(Process::transparentStylesheet());
+          EffectUi fx_ui{effect, item, {}, {}};
+          effects.push_back(fx_ui);
+          item->setParentItem(this);
         }
-
-        inlet_cons.reserve(effect.inlets().size() + inlet_cons.size());
-        for(auto& e : effect.inlets())
+        else
         {
-          auto inlet = dynamic_cast<Process::ControlInlet*>(e);
-          if(!inlet)
-            continue;
-
-          auto con = connect(inlet, &Process::ControlInlet::uiVisibleChanged,
-                  this, [this,&doc,fx=&effect,inlet] (bool vis) {
-            if(vis)
-            {
-              for(auto& e : this->effects)
-              {
-                if(&e.effect == fx)
-                {
-                  setupInlet(*inlet, e, doc);
-                  break;
-                }
-              }
-            }
-            else
-            {
-              for(auto& e : this->effects)
-              {
-                if(&e.effect == fx)
-                {
-                  disableInlet(*inlet, e, doc);
-                  break;
-                }
-              }
-            }
-          });
-          inlet_cons.push_back(con);
-          if(inlet->uiVisible())
-          {
-            setupInlet(*inlet, fx_ui, doc);
-          }
+          item = makeDefaultItem(effect, object, doc);
         }
-
-        pos_x += 180;
-        effects.push_back(fx_ui);
+        SCORE_ASSERT(item);
+        item->setPos(pos_x, 0);
+        pos_x += item->boundingRect().width();
       }
     }
+
     std::vector<QMetaObject::Connection> inlet_cons;
 
     struct ControlUi
@@ -153,10 +177,21 @@ class View final : public Process::ILayerView
     struct EffectUi
     {
         const EffectModel& effect;
-        Process::RectItem* fx_item{};
+        QGraphicsItem* fx_item{};
         QGraphicsProxyWidget* title{};
         std::vector<ControlUi> widgets;
     };
+    void updateSize(const EffectUi& fx)
+    {
+      double w = 180;
+      double h = 30 + fx.title->rect().height();
+      for(auto& widg : fx.widgets)
+      {
+        h += widg.rect->boundingRect().height();
+      }
+      safe_cast<Process::RectItem*>(fx.fx_item)->setRect({0, 0, w, h});
+    }
+
     std::vector<EffectUi> effects;
 
     void disableInlet(

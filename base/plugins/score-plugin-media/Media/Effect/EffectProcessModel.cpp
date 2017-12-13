@@ -152,8 +152,9 @@ void DataStreamReader::read(const Media::Effect::ProcessModel& proc)
   int32_t n = proc.effects().size();
   m_stream << n;
   for(auto& eff : proc.effects())
+  {
     readFrom(eff);
-
+  }
   m_stream << proc.effectsOrder();
   insertDelimiter();
 }
@@ -172,7 +173,7 @@ void DataStreamWriter::write(Media::Effect::ProcessModel& proc)
   {
     auto fx = deserialize_interface(fxs, *this, &proc);
     if(fx)
-      proc.insertEffect(fx, i++);
+      proc.insertEffect(fx, i);
     else
       SCORE_TODO;
   }

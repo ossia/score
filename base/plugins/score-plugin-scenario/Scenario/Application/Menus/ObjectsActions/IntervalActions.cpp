@@ -69,11 +69,9 @@ IntervalActions::IntervalActions(ScenarioApplicationPlugin* parent)
       return;
 
     auto& fact = appContext.interfaces<Process::ProcessFactoryList>();
-    auto dialog = new AddProcessDialog{fact, qApp->activeWindow()};
+    auto dialog = new AddProcessDialog<Process::ProcessFactoryList>{fact, qApp->activeWindow()};
 
-    connect(
-          dialog, &AddProcessDialog::okPressed, this,
-          &IntervalActions::addProcessInInterval);
+    dialog->on_okPressed = [this] (auto k) { addProcessInInterval(k); };
     dialog->launchWindow();
     dialog->deleteLater();
   });

@@ -10,7 +10,7 @@ namespace VST
 class VSTEffectModel;
 }
 }
-EFFECT_METADATA(, Media::VST::VSTEffectModel, "BE8E6BD3-75F2-4102-8895-8A4EB4EA545A", "VST", "VST")
+EFFECT_METADATA(, Media::VST::VSTEffectModel, "BE8E6BD3-75F2-4102-8895-8A4EB4EA545A", "VST", "VST", "", {})
 namespace Media
 {
 namespace VST
@@ -20,8 +20,8 @@ class VSTEffectModel :
 {
         Q_OBJECT
         SCORE_SERIALIZE_FRIENDS
-        MODEL_METADATA_IMPL(VSTEffectModel)
     public:
+        MODEL_METADATA_IMPL(VSTEffectModel)
         VSTEffectModel(
                 const QString& name,
                 const Id<EffectModel>&,
@@ -50,13 +50,13 @@ class VSTEffectModel :
 
         AEffect* fx{};
 
+        QString prettyName() const override;
+        std::shared_ptr<ossia::audio_fx_node> makeNode(const Engine::Execution::Context &, QObject* ctx) override;
     private:
         void reload();
         void showUI() override;
         void hideUI() override;
         QString m_effectPath;
-
-        void readPlugin();
 
         auto dispatch(VstInt32 opcode, VstInt32 index = 0, VstIntPtr value = 0, void *ptr = nullptr, float opt = 0.0f)
         {
