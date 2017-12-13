@@ -211,6 +211,8 @@ void FullViewIntervalPresenter::updatePositions()
     slot.header->setPos(QPointF{0, currentSlotY});
     slot.header->setSlotIndex(i);
 
+    currentSlotY += SlotHeader::headerHeight();
+
     proc.view->setPos(0, currentSlotY);
     proc.view->update();
 
