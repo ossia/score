@@ -51,6 +51,8 @@ public:
   TemporalIntervalHeader* header() const;
 
   void requestSlotMenu(int slot, QPoint pos, QPointF sp) const;
+  void requestProcessSelectorMenu(int slot, QPoint pos, QPointF sp) const;
+
 signals:
   void intervalHoverEnter();
   void intervalHoverLeave();

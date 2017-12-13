@@ -13,7 +13,8 @@ PutLayerModelToFront::PutLayerModelToFront(
     SlotPath&& slotPath, const Id<Process::ProcessModel>& pid)
     : m_slotPath{std::move(slotPath)}, m_pid{pid}
 {
-  SCORE_ASSERT(m_slotPath.index == Slot::SmallView);
+  // FIXME this assert crashes if there is only one process in the slot
+  // SCORE_ASSERT(m_slotPath.index == Slot::SmallView);
 }
 
 void PutLayerModelToFront::redo(const score::DocumentContext& ctx) const
