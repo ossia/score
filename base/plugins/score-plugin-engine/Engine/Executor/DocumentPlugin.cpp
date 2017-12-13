@@ -67,13 +67,7 @@ DocumentPlugin::DocumentPlugin(
       }, Qt::QueuedConnection);
 
   connect(this, &DocumentPlugin::finished,
-          this, [=] {
-    for(auto& con : runtime_connections)
-    {
-      QObject::disconnect(con);
-    }
-    runtime_connections.clear();
-  }, Qt::QueuedConnection);
+          this, &DocumentPlugin::on_finished, Qt::QueuedConnection);
 }
 
 void DocumentPlugin::on_cableCreated(Process::Cable& c)
@@ -170,6 +164,56 @@ DocumentPlugin::~DocumentPlugin()
   audioproto->stop();
 }
 
+void DocumentPlugin::on_finished()
+{
+  auto& doc = context().doc.model<Scenario::ScenarioDocumentModel>();
+
+  for(Process::Cable& cbl : doc.cables)
+  {
+    cbl.source_node.reset();
+    cbl.sink_node.reset();
+    cbl.source_port.reset();
+    cbl.sink_port.reset();
+    cbl.exec.reset();
+  }
+
+  inlets.clear();
+  outlets.clear();
+  m_cables.clear();
+  execGraph->clear();
+
+
+  for (Process::Cable& cable : doc.cables)
+  {
+    if(cable.source_node)
+    {
+      cable.source_node->clear();
+      cable.source_node.reset();
+    }
+    if(cable.sink_node)
+    {
+      cable.sink_node->clear();
+      cable.sink_node.reset();
+    }
+
+    if(cable.exec)
+    {
+      cable.exec->clear();
+      cable.exec.reset();
+    }
+  }
+
+  execState.clear();
+  execState.globalState.clear();
+  execState.messages.clear();
+  execState.mess_values.clear();
+
+  for(auto& con : runtime_connections)
+  {
+    QObject::disconnect(con);
+  }
+  runtime_connections.clear();
+}
 void DocumentPlugin::reload(Scenario::IntervalModel& cst)
 {
   if (m_base.active())

@@ -101,6 +101,7 @@ private:
   void on_cableCreated(Process::Cable& c);
   void on_cableRemoved(const Process::Cable& c);
   void connectCable(Process::Cable& cable);
+  void on_finished();
 };
 }
 }

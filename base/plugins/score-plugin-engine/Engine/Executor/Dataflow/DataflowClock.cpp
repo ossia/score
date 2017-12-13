@@ -107,62 +107,12 @@ void Clock::stop_impl(
 {
   m_paused = false;
   QPointer<Engine::Execution::DocumentPlugin> plug = &m_plug;
-  QPointer<Scenario::ScenarioDocumentModel> doc = &m_plug.context().doc.model<Scenario::ScenarioDocumentModel>();
-  m_plug.context().executionQueue.enqueue([=] {
-    if(doc)
-    {
-      for(Process::Cable& cbl : doc->cables)
-      {
-        cbl.source_node.reset();
-        cbl.sink_node.reset();
-        cbl.source_port.reset();
-        cbl.sink_port.reset();
-        cbl.exec.reset();
-      }
-    }
 
-    if (plug)
-    {
-      plug->inlets.clear();
-      plug->outlets.clear();
-      plug->m_cables.clear();
-      plug->execGraph->clear();
-    }
-
-    if (doc)
-    {
-      for (Process::Cable& cable : doc->cables)
-      {
-        if(cable.source_node)
-        {
-          cable.source_node->clear();
-          cable.source_node.reset();
-        }
-        if(cable.sink_node)
-        {
-          cable.sink_node->clear();
-          cable.sink_node.reset();
-        }
-
-        if(cable.exec)
-        {
-          cable.exec->clear();
-          cable.exec.reset();
-        }
-      }
-    }
-    if (plug)
-    {
-      plug->execState.clear();
-      plug->execState.globalState.clear();
-      plug->execState.messages.clear();
-      plug->execState.mess_values.clear();
-    }
-
+  m_plug.audioProto().ui_tick = [=,&proto=m_plug.audioProto()] (unsigned long) {
     emit plug->finished();
-
-  });
-  m_plug.audioProto().ui_tick = { };
+    proto.ui_tick = { };
+    proto.replace_tick = true;
+  };
   m_plug.audioProto().replace_tick = true;
   m_default.stop();
 }
