@@ -174,8 +174,8 @@ void IntervalComponentBase::stop()
   }
   interval().reset();
 
-  executionStopped();
   interval().duration.setPlayPercentage(0);
+  executionStopped();
 }
 
 void IntervalComponentBase::executionStarted()

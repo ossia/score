@@ -112,6 +112,10 @@ void ScenarioComponent::cleanup()
 
 void ScenarioComponentBase::stop()
 {
+  for(const auto& itv : m_ossia_intervals)
+  {
+    itv.second->stop();
+  }
   m_executingIntervals.clear();
   ProcessComponent::stop();
 

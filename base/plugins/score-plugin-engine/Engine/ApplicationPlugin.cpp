@@ -218,6 +218,7 @@ void ApplicationPlugin::on_play(
     }
 
     m_playing = true;
+    doc->context().execTimer.start();
   }
   else
   {
@@ -225,6 +226,8 @@ void ApplicationPlugin::on_play(
     {
       m_clock->pause();
       m_paused = true;
+
+      doc->context().execTimer.stop();
     }
   }
 }
@@ -250,6 +253,7 @@ void ApplicationPlugin::on_record(::TimeVal t)
     m_clock = makeClock(plugmodel->context());
     m_clock->play(t);
 
+    doc->context().execTimer.start();
     m_playing = true;
     m_paused = false;
   }
@@ -259,6 +263,7 @@ void ApplicationPlugin::on_stop()
 {
   m_playing = false;
   m_paused = false;
+
   if (m_clock)
   {
     m_clock->stop();
@@ -267,6 +272,7 @@ void ApplicationPlugin::on_stop()
 
   if (auto doc = currentDocument())
   {
+    doc->context().execTimer.stop();
     auto plugmodel
         = doc->context().findPlugin<Engine::Execution::DocumentPlugin>();
     if (!plugmodel)

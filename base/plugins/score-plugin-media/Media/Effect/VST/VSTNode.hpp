@@ -70,7 +70,7 @@ class VSTNode final : public ossia::audio_fx_node
       events->events[0] = reinterpret_cast<VstEvent*>(&e);
 
       dispatch(effProcessEvents, 0, 0, events, 0.f);
-
+/*
       const auto nfloats = std::max(fx->numInputs, fx->numOutputs);
       if constexpr(UseDouble)
       {
@@ -87,7 +87,7 @@ class VSTNode final : public ossia::audio_fx_node
         for(int i = 0; i < nfloats; i++)
           c[i] = &f;
         fx->processReplacing(fx, c, c, 1);
-      }
+      }*/
     }
 
     void setControls()

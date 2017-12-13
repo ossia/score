@@ -116,7 +116,7 @@ LayerPresenter::LayerPresenter(
     m_context.context.focusDispatcher.focus(this);
   });
 
-  con(ctx.updateTimer, &QTimer::timeout, this,
+  con(ctx.execTimer, &QTimer::timeout, this,
       &LayerPresenter::on_intervalExecutionTimer);
 
   m_startStatePresenter->view()->disableOverlay();
@@ -128,7 +128,7 @@ LayerPresenter::LayerPresenter(
 LayerPresenter::~LayerPresenter()
 {
   disconnect(
-      &m_context.context.updateTimer, &QTimer::timeout, this,
+      &m_context.context.execTimer, &QTimer::timeout, this,
       &LayerPresenter::on_intervalExecutionTimer);
 
   delete m_intervalPresenter;

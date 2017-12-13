@@ -29,6 +29,7 @@ struct SCORE_LIB_BASE_EXPORT DocumentContext
   const score::FocusFacade focus;
   QTimer& updateTimer;
   QTimer& coarseUpdateTimer;
+  QTimer& execTimer;
 
   OngoingCommandDispatcher& dispatcher;
 

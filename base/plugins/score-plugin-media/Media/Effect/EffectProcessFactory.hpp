@@ -37,6 +37,10 @@ class View final : public Process::ILayerView
                const score::DocumentContext& doc)
     {
       auto items = childItems();
+      effects.clear();
+      for(const auto& con : inlet_cons)
+        QObject::disconnect(con);
+      inlet_cons.clear();
       for(auto item : items)
       {
         this->scene()->removeItem(item);
@@ -50,7 +54,6 @@ class View final : public Process::ILayerView
         EffectUi fx_ui{effect, fx_item, {}};
 
         fx_item->setPos(pos_x, 0);
-
 
         {
           auto title = new QWidget;
@@ -97,13 +100,14 @@ class View final : public Process::ILayerView
           title->setStyleSheet(Process::transparentStylesheet());
         }
 
+        inlet_cons.reserve(effect.inlets().size() + inlet_cons.size());
         for(auto& e : effect.inlets())
         {
           auto inlet = dynamic_cast<Process::ControlInlet*>(e);
           if(!inlet)
             continue;
 
-          connect(inlet, &Process::ControlInlet::uiVisibleChanged,
+          auto con = connect(inlet, &Process::ControlInlet::uiVisibleChanged,
                   this, [this,&doc,fx=&effect,inlet] (bool vis) {
             if(vis)
             {
@@ -115,7 +119,6 @@ class View final : public Process::ILayerView
                   break;
                 }
               }
-
             }
             else
             {
@@ -129,6 +132,7 @@ class View final : public Process::ILayerView
               }
             }
           });
+          inlet_cons.push_back(con);
           if(inlet->uiVisible())
           {
             setupInlet(*inlet, fx_ui, doc);
@@ -139,6 +143,7 @@ class View final : public Process::ILayerView
         effects.push_back(fx_ui);
       }
     }
+    std::vector<QMetaObject::Connection> inlet_cons;
 
     struct ControlUi
     {

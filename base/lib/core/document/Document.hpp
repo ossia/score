@@ -152,6 +152,7 @@ private:
   FocusManager m_focus;
   QTimer m_documentUpdateTimer;
   QTimer m_documentCoarseUpdateTimer;
+  QTimer m_execTimer;
   CommandStackFacade m_facade{m_commandStack};
   OngoingCommandDispatcher m_disp{m_facade};
 

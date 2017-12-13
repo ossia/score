@@ -3,7 +3,7 @@
 #include <QObject>
 #include <unordered_map>
 #include <score_plugin_scenario_export.h>
-namespace Process { class Port; class Inlet; class Outlet; }
+namespace Process { class Port; class Inlet; class Outlet; class ControlInlet; }
 namespace score { struct DocumentContext; }
 namespace Dataflow
 {
@@ -23,6 +23,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT PortItem final
     using port_map = std::unordered_map<Process::Port*, Dataflow::PortItem*>;
     static port_map g_ports;
 
+    void on_createAutomation(const score::DocumentContext& m_context);
   signals:
     void showPanel();
     void createCable(PortItem* src, PortItem* snk);

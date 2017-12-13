@@ -164,7 +164,7 @@ struct Node
     auto chan = chan_vec.rbegin()->second;
 
     // Get tempo
-    double tempo = 120.;
+    float tempo = 120.;
     if(auto tempo_node = st.find_node("/tempo"))
       tempo = ossia::convert<float>(tempo_node->get_parameter()->value());
 
@@ -187,18 +187,18 @@ struct Node
 
       if(note.vel != 0)
       {
-        if(start == 0.)  // No quantification, start directly
+        if(start == 0.f) // No quantification, start directly
         {
           auto no = mm::MakeNoteOn(chan, note.pitch, note.vel);
           no.timestamp = in.timestamp;
 
           p2.messages.push_back(no);
-          if(duration > 0.)
+          if(duration > 0.f)
           {
             auto end = tk.date + (int64_t)no.timestamp + whole_samples * duration;
             self.running_notes.push_back({note, end});
           }
-          else if(duration == 0.)
+          else if(duration == 0.f)
           {
             // Stop at the next sample
             auto noff = mm::MakeNoteOff(chan, note.pitch, note.vel);
@@ -211,7 +211,7 @@ struct Node
         {
           // Find next time that matches the requested quantification
           const auto start_q = whole_samples * start;
-          ossia::time_value next_date{int64_t(start_q * (1 + tk.date / start_q))};
+          ossia::time_value next_date{int64_t(start_q * int64_t(1 + tk.date / start_q))};
           self.to_start.push_back({note, next_date});
         }
       }

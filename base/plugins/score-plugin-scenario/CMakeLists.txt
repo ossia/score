@@ -303,6 +303,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/CommandFactory.hpp"
 
 
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/CreateModulation.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/EditPort.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/EditConnection.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Inspector/DataflowWidget.hpp"
