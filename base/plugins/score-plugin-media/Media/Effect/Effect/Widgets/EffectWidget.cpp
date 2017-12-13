@@ -103,34 +103,6 @@ EffectWidget::EffectWidget(
 
 void EffectWidget::on_createAutomation(const State::Address& addr, double min, double max)
 {
-  /*
-    QObject* obj = &m_effect;
-    while(obj)
-    {
-        auto parent = obj->parent();
-        if(auto cst = dynamic_cast<Scenario::IntervalModel*>(parent))
-        {
-            RedoMacroCommandDispatcher<Commands::CreateEffectAutomation> macro{m_context.commandStack};
-            auto make_cmd = new Scenario::Command::AddOnlyProcessToInterval{
-                        *cst,
-                        Metadata<ConcreteKey_k, Automation::ProcessModel>::get()};
-            macro.submitCommand(make_cmd);
-
-            auto lay_cmd = new Scenario::Command::AddLayerInNewSlot{*cst, make_cmd->processId()};
-            macro.submitCommand(lay_cmd);
-
-            auto& autom = safe_cast<Automation::ProcessModel&>(cst->processes.at(make_cmd->processId()));
-            macro.submitCommand(new Automation::InitAutomation{autom, State::AddressAccessor{addr}, min, max});
-
-            macro.commit();
-            return;
-        }
-        else
-        {
-            obj = parent;
-        }
-    }
-    */
 }
 
 void EffectWidget::setup()

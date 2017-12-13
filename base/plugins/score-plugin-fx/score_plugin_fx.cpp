@@ -9,7 +9,9 @@
 #include <Fx/Metro.hpp>
 #include <Fx/Envelope.hpp>
 #include <Fx/Chord.hpp>
+#include <Media/Effect/Generic/Effect.hpp>
 #include <score/plugins/customfactory/FactorySetup.hpp>
+
 #include <score_plugin_engine.hpp>
 
 
@@ -26,7 +28,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>>
 score_plugin_fx::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
-{ 
+{
   return instantiate_factories<
             score::ApplicationContext,
             FW<Engine::Execution::ProcessComponentFactory
@@ -45,7 +47,15 @@ score_plugin_fx::factories(
          , Nodes::Chord::Factories::process_factory
          , Nodes::Metro::Factories::process_factory
          , Nodes::Envelope::Factories::process_factory
-         , Nodes::MidiUtil::Factories::process_factory>
+         , Nodes::MidiUtil::Factories::process_factory>,
+      FW<Media::Effect::EffectFactory
+         , Process::ControlEffectFactory<Nodes::Direction::Node>
+         , Process::ControlEffectFactory<Nodes::PulseToNote::Node>
+         , Process::ControlEffectFactory<Nodes::LFO::Node>
+         , Process::ControlEffectFactory<Nodes::Chord::Node>
+         , Process::ControlEffectFactory<Nodes::Metro::Node>
+         , Process::ControlEffectFactory<Nodes::Envelope::Node>
+         , Process::ControlEffectFactory<Nodes::MidiUtil::Node>>
      , FW<Process::InspectorWidgetDelegateFactory
          , Nodes::Direction::Factories::inspector_factory
          , Nodes::PulseToNote::Factories::inspector_factory
@@ -63,7 +73,7 @@ score_plugin_fx::factories(
          , Nodes::Envelope::Factories::layer_factory
          , Nodes::MidiUtil::Factories::layer_factory>
     >(ctx, key);
-  
+
 }
 
 auto score_plugin_fx::required() const

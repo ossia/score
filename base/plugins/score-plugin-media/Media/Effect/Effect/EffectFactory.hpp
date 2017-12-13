@@ -29,6 +29,7 @@ class SCORE_PLUGIN_MEDIA_EXPORT EffectFactory :
         virtual ~EffectFactory();
 
         virtual QString prettyName() const = 0; // VST, FaUST, etc...
+        virtual QString category() const = 0; // VST, FaUST, etc...
 
         /**
          * @brief makeM Creates an effect model
@@ -53,12 +54,12 @@ class SCORE_PLUGIN_MEDIA_EXPORT EffectFactory :
                 QObject* parent) const = 0;
 };
 
-template<typename Model_T>
 /**
  * @brief The GenericEffectFactory class
  *
  * Should handle most cases
  */
+template<typename Model_T>
 class EffectFactory_T final :
         public EffectFactory
 {
@@ -73,6 +74,8 @@ class EffectFactory_T final :
 
         QString prettyName() const override
         { return Metadata<PrettyName_k, Model_T>::get(); }
+        QString category() const override
+        { return Metadata<Category_k, Model_T>::get(); }
 
         Model_T* make(
                 const QString& info, // plugin name ? faust code ? dll location ?

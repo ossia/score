@@ -136,25 +136,24 @@ void ScenarioContextMenuManager::createSlotContextMenu(
       = new QAction{tr("Add new process in this slot"), &menu};
   QObject::connect(addNewProcessInExistingSlot, &QAction::triggered, [&, slot_path]() {
     auto& fact = ctx.app.interfaces<Process::ProcessFactoryList>();
-    AddProcessDialog* dialog =new AddProcessDialog{fact, qApp->activeWindow()};
+    auto dialog = new AddProcessDialog<Process::ProcessFactoryList>{fact, qApp->activeWindow()};
 
-    QObject::connect(
-        dialog, &AddProcessDialog::okPressed, [&, slot_path] (const auto& proc) mutable {
-          QuietMacroCommandDispatcher<Scenario::Command::CreateProcessInExistingSlot>
-              disp{ctx.commandStack};
+    dialog->on_okPressed = [&, slot_path] (const auto& proc) mutable {
+      QuietMacroCommandDispatcher<Scenario::Command::CreateProcessInExistingSlot>
+          disp{ctx.commandStack};
 
-          auto cmd1 = new Scenario::Command::AddOnlyProcessToInterval(
-              interval, proc);
-          cmd1->redo(ctx);
-          disp.submitCommand(cmd1);
+      auto cmd1 = new Scenario::Command::AddOnlyProcessToInterval(
+                    interval, proc);
+      cmd1->redo(ctx);
+      disp.submitCommand(cmd1);
 
-          auto cmd2 = new Scenario::Command::AddLayerModelToSlot(
-              std::move(slot_path), interval.processes.at(cmd1->processId()));
-          cmd2->redo(ctx);
-          disp.submitCommand(cmd2);
+      auto cmd2 = new Scenario::Command::AddLayerModelToSlot(
+                    std::move(slot_path), interval.processes.at(cmd1->processId()));
+      cmd2->redo(ctx);
+      disp.submitCommand(cmd2);
 
-          disp.commit();
-        });
+      disp.commit();
+    };
 
     dialog->launchWindow();
     dialog->deleteLater();
@@ -166,17 +165,16 @@ void ScenarioContextMenuManager::createSlotContextMenu(
       = new QAction{tr("Add process in a new slot"), &menu};
   QObject::connect(addNewProcessInNewSlot, &QAction::triggered, [&]() {
     auto& fact = ctx.app.interfaces<Process::ProcessFactoryList>();
-    AddProcessDialog* dialog = new AddProcessDialog{fact, qApp->activeWindow()};
+    auto dialog = new AddProcessDialog<Process::ProcessFactoryList>{fact, qApp->activeWindow()};
 
-    QObject::connect(
-        dialog, &AddProcessDialog::okPressed, [&](const auto& proc) {
-          using cmd = Scenario::Command::CreateProcessInNewSlot;
-          QuietMacroCommandDispatcher<cmd> disp{ctx.commandStack};
+    dialog->on_okPressed = [&](const auto& proc) {
+      using cmd = Scenario::Command::CreateProcessInNewSlot;
+      QuietMacroCommandDispatcher<cmd> disp{ctx.commandStack};
 
-          cmd::create(disp, interval, proc);
+      cmd::create(disp, interval, proc);
 
-          disp.commit();
-        });
+      disp.commit();
+    };
 
     dialog->launchWindow();
     dialog->deleteLater();

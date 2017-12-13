@@ -19,6 +19,7 @@ class SCORE_LIB_PROCESS_EXPORT StateProcessFactory
 public:
   virtual ~StateProcessFactory();
   virtual QString prettyName() const = 0;
+  virtual QString category() const = 0;
 
   virtual StateProcess* make(const Id<StateProcess>& id, QObject* parent) = 0;
 
@@ -33,6 +34,11 @@ public:
   QString prettyName() const override
   {
     return Metadata<PrettyName_k, Model_T>::get();
+  }
+
+  QString category() const override
+  {
+    return Metadata<Category_k, Model_T>::get();
   }
 
   UuidKey<Process::StateProcessFactory> concreteKey() const noexcept override

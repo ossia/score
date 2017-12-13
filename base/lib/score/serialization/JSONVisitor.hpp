@@ -7,7 +7,7 @@
 #include <score/application/ApplicationComponents.hpp>
 #include <score/serialization/StringConstants.hpp>
 #include <score/model/IdentifiedObject.hpp>
-#include <chobo/small_vector.hpp>
+#include <ossia/detail/small_vector.hpp>
 
 /**
  * This file contains facilities
@@ -610,7 +610,7 @@ void fromJsonArray(const QJsonArray& arr, std::vector<T*>& array, QObject* paren
 }
 
 template<typename T, std::size_t N>
-void fromJsonArray(const QJsonArray& arr, chobo::small_vector<T*, N>& array, QObject* parent)
+void fromJsonArray(const QJsonArray& arr, ossia::small_vector<T*, N>& array, QObject* parent)
 {
   for (const auto& v : arr)
   {

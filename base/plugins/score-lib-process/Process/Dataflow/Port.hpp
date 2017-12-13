@@ -5,7 +5,7 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <QPointer>
-#include <chobo/small_vector.hpp>
+#include <ossia/detail/small_vector.hpp>
 #include <score_lib_process_export.h>
 #include <ossia/network/value/value.hpp>
 #include <State/Domain.hpp>
@@ -244,8 +244,8 @@ inline std::unique_ptr<Outlet> clone_outlet(Outlet& source, QObject* parent)
 { return std::make_unique<Outlet>(source.id(), source, parent); }
 
 
-using Inlets = chobo::small_vector<Process::Inlet*, 4>;
-using Outlets = chobo::small_vector<Process::Outlet*, 4>;
+using Inlets = ossia::small_vector<Process::Inlet*, 4>;
+using Outlets = ossia::small_vector<Process::Outlet*, 4>;
 }
 
 DEFAULT_MODEL_METADATA(Process::Port, "Port")

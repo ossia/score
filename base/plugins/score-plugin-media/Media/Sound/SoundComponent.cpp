@@ -373,7 +373,6 @@ EffectComponent::EffectComponent(
   else
   {
     auto proc = std::make_shared<effect_chain_process>();
-    auto& host = ctx.context().doc.app.applicationPlugin<Media::ApplicationPlugin>();
 
     // Make a chain
     switch((*element.effects().begin()).inlets()[0]->type)
@@ -405,38 +404,13 @@ EffectComponent::EffectComponent(
 
     for(auto& effect : element.effects())
     {
-#if defined(LILV_SHARED)
-      if(auto lv2 = dynamic_cast<Media::LV2::LV2EffectModel*>(&effect))
-      {
-        auto node = std::make_shared<Media::LV2::LV2AudioEffect>(Media::LV2::LV2Data{host.lv2_host_context, lv2->effectContext}, ctx.plugin.execState.sampleRate);
-        ctx.plugin.register_node(lv2->inlets(), lv2->outlets(), node);
-        proc->nodes.push_back(node);
-      }
-#endif
-#if defined(HAS_VST2)
-      if(auto vst = dynamic_cast<Media::VST::VSTEffectModel*>(&effect))
-      {
-        std::shared_ptr<ossia::audio_fx_node> node;
+      auto node = effect.makeNode(ctx, this);
+      SCORE_ASSERT(node);
+      SCORE_ASSERT(node->inputs().size() > 0);
+      SCORE_ASSERT(node->outputs().size() > 0);
 
-        if(vst->fx->flags & effFlagsCanDoubleReplacing)
-        {
-          if(vst->fx->flags & effFlagsIsSynth)
-            node = Media::VST::make_vst_fx<true, true>(vst->fx, ctx.plugin.execState.sampleRate);
-          else
-            node = Media::VST::make_vst_fx<true, false>(vst->fx, ctx.plugin.execState.sampleRate);
-        }
-        else
-        {
-          if(vst->fx->flags & effFlagsIsSynth)
-            node = Media::VST::make_vst_fx<false, true>(vst->fx, ctx.plugin.execState.sampleRate);
-          else
-            node = Media::VST::make_vst_fx<false, false>(vst->fx, ctx.plugin.execState.sampleRate);
-        }
-
-        ctx.plugin.register_node(vst->inlets(), vst->outlets(), node);
-        proc->nodes.push_back(node);
-      }
-#endif
+      ctx.plugin.register_node(effect.inlets(), effect.outlets(), node);
+      proc->nodes.push_back(node);
     }
     ctx.plugin.register_node(element.inlets(), {}, proc->startnode);
     ctx.plugin.register_node({}, element.outlets(), proc->endnode);
@@ -481,23 +455,11 @@ EffectComponent::~EffectComponent()
     int i = 0;
     for(auto& effect : process().effects())
     {
-#if defined(LILV_SHARED)
-      if(auto lv2 = dynamic_cast<Media::LV2::LV2EffectModel*>(&effect))
-      {
-        system().plugin.unregister_node(lv2->inlets(), lv2->outlets(), ec->nodes[i]);
-        i++;
-      }
-#endif
-#if defined(HAS_VST2)
-      if(auto vst = dynamic_cast<Media::VST::VSTEffectModel*>(&effect))
-      {
-        system().plugin.unregister_node(vst->inlets(), vst->outlets(), ec->nodes[i]);
-        i++;
-      }
-#endif
-
+      system().plugin.unregister_node(effect.inlets(), effect.outlets(), ec->nodes[i]);
+      i++;
     }
-
+    system().plugin.unregister_node(process().inlets(), {}, ec->startnode);
+    system().plugin.unregister_node({}, process().outlets(), ec->endnode);
   }
 }
 

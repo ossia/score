@@ -18,7 +18,7 @@
 #include <score/tools/Metadata.hpp>
 #include <score/model/Identifier.hpp>
 #include <score_lib_process_export.h>
-#include <chobo/small_vector.hpp>
+#include <ossia/detail/small_vector.hpp>
 
 class ProcessStateDataInterface;
 
@@ -31,8 +31,8 @@ class ProcessModelFactory;
 class LayerFactory;
 class ProcessModel;
 class LayerFactory;
-using Inlets = chobo::small_vector<Process::Inlet*, 4>;
-using Outlets = chobo::small_vector<Process::Outlet*, 4>;
+using Inlets = ossia::small_vector<Process::Inlet*, 4>;
+using Outlets = ossia::small_vector<Process::Outlet*, 4>;
 
 /**
  * @brief The Process class

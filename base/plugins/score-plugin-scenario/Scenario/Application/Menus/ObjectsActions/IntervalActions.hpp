@@ -18,7 +18,6 @@ namespace Scenario
 {
 class ScenarioApplicationPlugin;
 class TemporalScenarioPresenter;
-class AddProcessDialog;
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalActions : public QObject
 {
 public:

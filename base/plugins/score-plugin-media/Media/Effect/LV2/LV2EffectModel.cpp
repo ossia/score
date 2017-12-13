@@ -17,9 +17,11 @@
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/network/domain/domain.hpp>
 #include <Media/ApplicationPlugin.hpp>
+#include <Engine/Executor/DocumentPlugin.hpp>
 // TODO rename this file
 
 #include "LV2Context.hpp"
+#include "LV2Node.hpp"
 
 namespace Media
 {
@@ -43,6 +45,11 @@ LV2EffectModel::LV2EffectModel(
   m_effectPath{source.effect()}
 {
   reload();
+}
+
+QString LV2EffectModel::prettyName() const
+{
+  return metadata().getLabel();
 }
 
 void LV2EffectModel::readPlugin()
@@ -186,6 +193,17 @@ void LV2EffectModel::reload()
     }
   }
 }
+
+std::shared_ptr<ossia::audio_fx_node> LV2EffectModel::makeNode(const Engine::Execution::Context & ctx, QObject*)
+{
+  auto& host = ctx.context().doc.app.applicationPlugin<Media::ApplicationPlugin>();
+  return std::make_shared<Media::LV2::LV2AudioEffect>(
+        Media::LV2::LV2Data{
+          host.lv2_host_context,
+          effectContext},
+        ctx.plugin.execState.sampleRate);
+}
+
 }
 }
 

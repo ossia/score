@@ -21,7 +21,7 @@ class InsertEffect final : public score::Command
                 const Effect::ProcessModel& model,
                 const UuidKey<Effect::EffectFactory>& effectKind,
                 const QString& text,
-                int effectPos);
+                std::size_t effectPos);
 
         void undo(const score::DocumentContext& ctx) const override;
         void redo(const score::DocumentContext& ctx) const override;
@@ -35,7 +35,7 @@ class InsertEffect final : public score::Command
         Id<Effect::EffectModel> m_id;
         UuidKey<Effect::EffectFactory> m_effectKind;
         QString m_effect;
-        int m_pos{};
+        quint64 m_pos{};
 };
 
 

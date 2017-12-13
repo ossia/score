@@ -13,12 +13,15 @@
 #include <ossia/detail/math.hpp>
 #include <score/tools/Todo.hpp>
 #include <ossia/detail/logger.hpp>
+#include <ossia/dataflow/fx_node.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/network/domain/domain.hpp>
 #include <Media/ApplicationPlugin.hpp>
+#include <Media/Effect/VST/VSTNode.hpp>
 #include <aeffectx.h>
 #include <QTimer>
 #include <Process/Dataflow/Port.hpp>
+#include <Engine/Executor/DocumentPlugin.hpp>
 #include <websocketpp/base64/base64.hpp>
 void show_vst2_editor(AEffect& effect, ERect rect);
 void hide_vst2_editor(AEffect& effect);
@@ -74,8 +77,32 @@ VSTEffectModel::~VSTEffectModel()
   closePlugin();
 }
 
-void VSTEffectModel::readPlugin()
+
+QString VSTEffectModel::prettyName() const
 {
+  return metadata().getLabel();
+}
+
+std::shared_ptr<ossia::audio_fx_node> VSTEffectModel::makeNode(const Engine::Execution::Context& ctx, QObject* )
+{
+  std::shared_ptr<ossia::audio_fx_node> node;
+
+  if(fx->flags & effFlagsCanDoubleReplacing)
+  {
+    if(fx->flags & effFlagsIsSynth)
+      node = Media::VST::make_vst_fx<true, true>(fx, ctx.plugin.execState.sampleRate);
+    else
+      node = Media::VST::make_vst_fx<true, false>(fx, ctx.plugin.execState.sampleRate);
+  }
+  else
+  {
+    if(fx->flags & effFlagsIsSynth)
+      node = Media::VST::make_vst_fx<false, true>(fx, ctx.plugin.execState.sampleRate);
+    else
+      node = Media::VST::make_vst_fx<false, false>(fx, ctx.plugin.execState.sampleRate);
+  }
+
+  return node;
 }
 
 static auto HostCallback (AEffect* effect, VstInt32 opcode, VstInt32 index, VstIntPtr value, void* ptr, float opt)
@@ -395,7 +422,7 @@ void JSONObjectWriter::write(
           auto b64 = websocketpp::base64_decode(it->toString().toStdString());
           eff.fx->dispatcher(eff.fx, effSetChunk, 0, b64.size(), b64.data(), 0.f);
 
-          for(int i = 1; i < eff.inlets().size(); i++)
+          for(std::size_t i = 1; i < eff.inlets().size(); i++)
           {
             static_cast<Process::ControlInlet*>(eff.inlets()[i])->setValue(
                   eff.fx->getParameter(eff.fx, i-1));

@@ -11,7 +11,7 @@ namespace LV2
 class LV2EffectModel;
 }
 }
-EFFECT_METADATA(, Media::LV2::LV2EffectModel, "fd5243ba-70b5-4164-b44a-ecb0dcdc0494", "LV2", "LV2")
+EFFECT_METADATA(, Media::LV2::LV2EffectModel, "fd5243ba-70b5-4164-b44a-ecb0dcdc0494", "LV2", "LV2", "", {})
 namespace Media
 {
 namespace LV2
@@ -29,8 +29,8 @@ class LV2EffectModel :
 {
         Q_OBJECT
         SCORE_SERIALIZE_FRIENDS
-        MODEL_METADATA_IMPL(LV2EffectModel)
     public:
+        MODEL_METADATA_IMPL(LV2EffectModel)
         LV2EffectModel(
                 const QString& name,
                 const Id<EffectModel>&,
@@ -56,6 +56,9 @@ class LV2EffectModel :
 
         void setEffect(const QString& s)
         { m_effectPath = s; }
+
+        QString prettyName() const override;
+        std::shared_ptr<ossia::audio_fx_node> makeNode(const Engine::Execution::Context &, QObject* ctx) override;
 
         const LilvPlugin* plugin{};
         LV2::EffectContext effectContext;

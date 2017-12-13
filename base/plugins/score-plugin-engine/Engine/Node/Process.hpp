@@ -8,7 +8,8 @@
 ////////// METADATA ////////////
 namespace Process
 {
-template<typename Info>
+struct is_control {};
+template<typename Info, typename = is_control>
 class ControlProcess;
 }
 template <typename Info>
@@ -58,13 +59,108 @@ struct Metadata<ConcreteKey_k, Process::ControlProcess<Info>>
 
 namespace Process
 {
-template<typename Info>
+
+struct PortSetup
+{
+    template<typename Info, typename T>
+    static void init(T& self)
+    {
+      auto& ins = self.m_inlets;
+      auto& outs = self.m_outlets;
+      int inlet = 0;
+      for(const auto& in : get_ports<AudioInInfo>(Info::info))
+      {
+        auto p = new Process::Inlet(Id<Process::Port>(inlet++), &self);
+        p->type = Process::PortType::Audio;
+        p->setCustomData(in.name);
+        ins.push_back(p);
+      }
+      for(const auto& in : get_ports<MidiInInfo>(Info::info))
+      {
+        auto p = new Process::Inlet(Id<Process::Port>(inlet++), &self);
+        p->type = Process::PortType::Midi;
+        p->setCustomData(in.name);
+        ins.push_back(p);
+      }
+      for(const auto& in : get_ports<ValueInInfo>(Info::info))
+      {
+        auto p = new Process::Inlet(Id<Process::Port>(inlet++), &self);
+        p->type = Process::PortType::Message;
+        p->setCustomData(in.name);
+        ins.push_back(p);
+      }
+      for(const auto& in : get_ports<AddressInInfo>(Info::info))
+      {
+        auto p = new Process::Inlet(Id<Process::Port>(inlet++), &self);
+        p->type = Process::PortType::Message;
+        p->setCustomData(in.name);
+        ins.push_back(p);
+      }
+      ossia::for_each_in_tuple(get_controls(Info::info),
+                               [&] (const auto& ctrl) {
+        if(auto p = ctrl.create_inlet(Id<Process::Port>(inlet++), &self))
+        {
+          p->hidden = true;
+          p->setUiVisible(true);
+          ins.push_back(p);
+        }
+      });
+
+      int outlet = 0;
+      for(const auto& out : get_ports<AudioOutInfo>(Info::info))
+      {
+        auto p = new Process::Outlet(Id<Process::Port>(outlet++), &self);
+        p->type = Process::PortType::Audio;
+        p->setCustomData(out.name);
+        if(outlet == 0)
+          p->setPropagate(true);
+        outs.push_back(p);
+      }
+      for(const auto& out : get_ports<MidiOutInfo>(Info::info))
+      {
+        auto p = new Process::Outlet(Id<Process::Port>(outlet++), &self);
+        p->type = Process::PortType::Midi;
+        p->setCustomData(out.name);
+        outs.push_back(p);
+      }
+      for(const auto& out : get_ports<ValueOutInfo>(Info::info))
+      {
+        auto p = new Process::Outlet(Id<Process::Port>(outlet++), &self);
+        p->type = Process::PortType::Message;
+        p->setCustomData(out.name);
+        outs.push_back(p);
+      }
+    }
+
+    template<typename Info, typename T>
+    static void clone(T& self, const T& source)
+    {
+      auto& ins = self.m_inlets;
+      auto& outs = self.m_outlets;
+      for(std::size_t i = 0; i < InfoFunctions<Info>::control_start; i++)
+      {
+        ins.push_back(new Process::Inlet(source.m_inlets[i]->id(), *source.m_inlets[i], &self));
+      }
+      for(auto i = InfoFunctions<Info>::control_start; i < InfoFunctions<Info>::inlet_size; i++)
+      {
+        ins.push_back(new Process::ControlInlet(source.m_inlets[i]->id(), *source.m_inlets[i], &self));
+      }
+
+      for(std::size_t i = 0; i < InfoFunctions<Info>::outlet_size; i++)
+      {
+        outs.push_back(new Process::Outlet(source.m_outlets[i]->id(), *source.m_outlets[i], &self));
+      }
+    }
+};
+
+template<typename Info, typename>
 class ControlProcess final: public Process::ProcessModel
 {
     SCORE_SERIALIZE_FRIENDS
     PROCESS_METADATA_IMPL(ControlProcess<Info>)
     friend struct TSerializer<DataStream, Process::ControlProcess<Info>>;
     friend struct TSerializer<JSONObject, Process::ControlProcess<Info>>;
+    friend struct Process::PortSetup;
     Process::Inlets m_inlets;
     Process::Outlets m_outlets;
 
@@ -107,77 +203,7 @@ class ControlProcess final: public Process::ProcessModel
     {
       metadata().setInstanceName(*this);
 
-      setup_ports();
-    }
-
-    const auto& test()
-    {
-      return Info::info;
-    }
-    auto setup_ports()
-    {
-      int inlet = 0;
-      for(const auto& in : get_ports<AudioInInfo>(Info::info))
-      {
-        auto p = new Process::Inlet(Id<Process::Port>(inlet++), this);
-        p->type = Process::PortType::Audio;
-        p->setCustomData(in.name);
-        m_inlets.push_back(p);
-      }
-      for(const auto& in : get_ports<MidiInInfo>(Info::info))
-      {
-        auto p = new Process::Inlet(Id<Process::Port>(inlet++), this);
-        p->type = Process::PortType::Midi;
-        p->setCustomData(in.name);
-        m_inlets.push_back(p);
-      }
-      for(const auto& in : get_ports<ValueInInfo>(Info::info))
-      {
-        auto p = new Process::Inlet(Id<Process::Port>(inlet++), this);
-        p->type = Process::PortType::Message;
-        p->setCustomData(in.name);
-        m_inlets.push_back(p);
-      }
-      for(const auto& in : get_ports<AddressInInfo>(Info::info))
-      {
-        auto p = new Process::Inlet(Id<Process::Port>(inlet++), this);
-        p->type = Process::PortType::Message;
-        p->setCustomData(in.name);
-        m_inlets.push_back(p);
-      }
-      ossia::for_each_in_tuple(get_controls(Info::info),
-                               [&] (const auto& ctrl) {
-        if(auto p = ctrl.create_inlet(Id<Process::Port>(inlet++), this))
-        {
-          p->hidden = true;
-          m_inlets.push_back(p);
-        }
-      });
-
-      int outlet = 0;
-      for(const auto& out : get_ports<AudioOutInfo>(Info::info))
-      {
-        auto p = new Process::Outlet(Id<Process::Port>(outlet++), this);
-        p->type = Process::PortType::Audio;
-        p->setCustomData(out.name);
-        if(outlet == 0)
-          p->setPropagate(true);
-        m_outlets.push_back(p);
-      }
-      for(const auto& out : get_ports<MidiOutInfo>(Info::info))
-      {
-        auto p = new Process::Outlet(Id<Process::Port>(outlet++), this);
-        p->type = Process::PortType::Midi;
-        p->setCustomData(out.name);
-        m_outlets.push_back(p);
-      }
-      for(const auto& out : get_ports<ValueOutInfo>(Info::info))
-      {
-        auto p = new Process::Outlet(Id<Process::Port>(outlet++), this);
-        p->type = Process::PortType::Message;
-        p->setCustomData(out.name);
-        m_outlets.push_back(p);
-      }
+      Process::PortSetup::init<Info>(*this);
     }
 
     ControlProcess(
@@ -191,20 +217,7 @@ class ControlProcess final: public Process::ProcessModel
         parent}
     {
       metadata().setInstanceName(*this);
-
-      for(std::size_t i = 0; i < InfoFunctions<Info>::control_start; i++)
-      {
-        m_inlets.push_back(new Process::Inlet(source.m_inlets[i]->id(), *source.m_inlets[i], this));
-      }
-      for(auto i = InfoFunctions<Info>::control_start; i < InfoFunctions<Info>::inlet_size; i++)
-      {
-        m_inlets.push_back(new Process::ControlInlet(source.m_inlets[i]->id(), *source.m_inlets[i], this));
-      }
-
-      for(std::size_t i = 0; i < InfoFunctions<Info>::outlet_size; i++)
-      {
-        m_outlets.push_back(new Process::Outlet(source.m_outlets[i]->id(), *source.m_outlets[i], this));
-      }
+      Process::PortSetup::clone<Info>(*this, source);
     }
 
 
@@ -228,11 +241,13 @@ template<typename Info>
 struct is_custom_serialized<Process::ControlProcess<Info>>: std::true_type { };
 
 
-template <typename Info>
-struct TSerializer<DataStream, Process::ControlProcess<Info>>
+
+template <template<typename, typename> class Model, typename Info>
+struct TSerializer<DataStream, Model<Info, Process::is_control>>
 {
+    using model_type = Model<Info, Process::is_control>;
     static void
-    readFrom(DataStream::Serializer& s, const Process::ControlProcess<Info>& obj)
+    readFrom(DataStream::Serializer& s, const model_type& obj)
     {
       using namespace Process;
       {
@@ -250,9 +265,10 @@ struct TSerializer<DataStream, Process::ControlProcess<Info>>
       {
         s.stream() << *obj;
       }
+      s.insertDelimiter();
     }
 
-    static void writeTo(DataStream::Deserializer& s, Process::ControlProcess<Info>& obj)
+    static void writeTo(DataStream::Deserializer& s, model_type& obj)
     {
       using namespace Process;
 
@@ -269,14 +285,16 @@ struct TSerializer<DataStream, Process::ControlProcess<Info>>
       {
         obj.m_outlets.push_back(new Process::Outlet(s, &obj));
       }
+      s.checkDelimiter();
     }
 };
 
-template <typename Info>
-struct TSerializer<JSONObject, Process::ControlProcess<Info>>
+template <template<typename, typename> class Model, typename Info>
+struct TSerializer<JSONObject, Model<Info, Process::is_control>>
 {
+    using model_type = Model<Info, Process::is_control>;
     static void
-    readFrom(JSONObject::Serializer& s, const Process::ControlProcess<Info>& obj)
+    readFrom(JSONObject::Serializer& s, const model_type& obj)
     {
       using namespace Process;
       {
@@ -295,7 +313,7 @@ struct TSerializer<JSONObject, Process::ControlProcess<Info>>
       s.obj["Outlets"] = toJsonArray(obj.outlets_ref());
     }
 
-    static void writeTo(JSONObject::Deserializer& s, Process::ControlProcess<Info>& obj)
+    static void writeTo(JSONObject::Deserializer& s, model_type& obj)
     {
       using namespace Process;
 

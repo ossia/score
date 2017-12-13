@@ -137,7 +137,7 @@ findNodeFromPath(const QStringList& path, ossia::net::device_base& dev)
   return node;
 }
 
-using small_node_vec = chobo::small_vector<const Device::Node*, 16>;
+using small_node_vec = ossia::small_vector<const Device::Node*, 16>;
 void getPath(small_node_vec& v, const Device::Node* cur)
 {
   auto p = cur->parent();
@@ -157,7 +157,7 @@ findNodeFromPath(const Device::Node& path, ossia::net::device_base& dev)
   if(!path.is<Device::DeviceSettings>())
   {
     // First fill the vector of nodes
-    chobo::small_vector<const Device::Node*, 16> vec;
+    ossia::small_vector<const Device::Node*, 16> vec;
     getPath(vec, &path);
 
     for (std::size_t i = 0; i < vec.size(); i++)

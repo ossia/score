@@ -6,6 +6,7 @@
 #include <Engine/Executor/ProcessComponent.hpp>
 #include <Engine/score2OSSIA.hpp>
 #include <QTimer>
+#include <ossia/dataflow/fx_node.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/node_process.hpp>
 #include <readerwriterqueue.h>
@@ -30,7 +31,7 @@ struct has_control_policy<T, std::void_t<typename T::control_policy>> : std::tru
 
 template<typename Info>
 class ControlNode :
-    public ossia::graph_node
+    public ossia::audio_fx_node
     , public get_state<Info>::type
 {
 public:
@@ -297,6 +298,14 @@ public:
     }
 #endif
   }
+
+  void all_notes_off() override
+  {
+    if constexpr(info::midi_in_count > 0)
+    {
+      // TODO
+    }
+  }
 };
 
 struct value_adder
@@ -376,7 +385,7 @@ class Executor: public Engine::Execution::
               element.setControl(i, arr[i]);
             }
           }
-        });
+        }, Qt::QueuedConnection);
       }
 
       for(std::size_t idx = control_start; idx < control_start + control_count; idx++)
