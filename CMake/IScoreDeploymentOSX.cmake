@@ -97,6 +97,10 @@ if(SCORE_STATIC_PLUGINS)
           \"\${CMAKE_INSTALL_PREFIX}/${APPNAME}.app\"
           \"\${QTPLUGINS};${QMLPLUGINS}\"
           \"${QT_LIBRARY_DIR}\")
+
+      execute_process(COMMAND
+                \"${SCORE_ROOT_SOURCE_DIR}/CMake/Deployment/OSX/set_rpath_static.sh\"
+                \"${CMAKE_INSTALL_PREFIX}/score.app/Contents\")
         " COMPONENT Runtime)
 else()
     set(CMAKE_INSTALL_RPATH "plugins")
