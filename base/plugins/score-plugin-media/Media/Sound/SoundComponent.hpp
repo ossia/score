@@ -1,7 +1,6 @@
 #pragma once
 #include <Media/Sound/SoundModel.hpp>
 #include <Media/Input/InputModel.hpp>
-#include <Media/Effect/EffectProcessModel.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
@@ -62,28 +61,6 @@ private:
 using InputComponentFactory
 = ::Engine::Execution::ProcessComponentFactory_T<InputComponent>;
 
-
-class SCORE_PLUGIN_ENGINE_EXPORT EffectComponent final
-    : public ::Engine::Execution::
-    ProcessComponent_T<Media::Effect::ProcessModel, ossia::node_process>
-{
-  COMPONENT_METADATA("d638adb3-64da-4b6e-b84d-7c32684fa79d")
-public:
-  EffectComponent(
-      Media::Effect::ProcessModel& element,
-      const ::Engine::Execution::Context& ctx,
-      const Id<score::Component>& id,
-      QObject* parent);
-
-  void recompute();
-
-  ~EffectComponent();
-
-private:
-};
-
-using EffectComponentFactory
-= ::Engine::Execution::ProcessComponentFactory_T<EffectComponent>;
 }
 }
 
@@ -94,7 +71,3 @@ SCORE_CONCRETE_COMPONENT_FACTORY(
 SCORE_CONCRETE_COMPONENT_FACTORY(
     Engine::Execution::ProcessComponentFactory,
     Engine::Execution::InputComponentFactory)
-
-SCORE_CONCRETE_COMPONENT_FACTORY(
-    Engine::Execution::ProcessComponentFactory,
-    Engine::Execution::EffectComponentFactory)

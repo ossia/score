@@ -3,6 +3,7 @@
 #include <lilv/lilvmm.hpp>
 #include <Media/Effect/LV2/LV2Context.hpp>
 #include <QJsonDocument>
+#include <Media/Effect/EffectExecutor.hpp>
 
 namespace Media
 {
@@ -68,5 +69,32 @@ class LV2EffectModel :
         void readPlugin();
 };
 using LV2EffectFactory = Effect::EffectFactory_T<LV2EffectModel>;
+}
+}
+
+namespace Engine
+{
+namespace Execution
+{
+class LV2EffectComponent final
+    : public Engine::Execution::EffectComponent_T<Media::LV2::LV2EffectModel>
+{
+  Q_OBJECT
+  COMPONENT_METADATA("57f50003-a179-424a-80b1-b9394d73a84a")
+
+public:
+    static constexpr bool is_unique = true;
+
+  LV2EffectComponent(
+      Media::LV2::LV2EffectModel& proc,
+      const Engine::Execution::Context& ctx,
+      const Id<score::Component>& id,
+      QObject* parent)
+    : Engine::Execution::EffectComponent_T<Media::LV2::LV2EffectModel>{proc, ctx, id, parent}
+  {
+    node = proc.makeNode(ctx, this);
+  }
+};
+using LV2EffectComponentFactory = Engine::Execution::EffectComponentFactory_T<LV2EffectComponent>;
 }
 }

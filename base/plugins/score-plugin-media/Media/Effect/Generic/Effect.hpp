@@ -3,6 +3,7 @@
 #include <Engine/Node/Layer.hpp>
 #include <Engine/Node/Process.hpp>
 #include <Media/Effect/Effect/EffectModel.hpp>
+#include <Media/Effect/EffectExecutor.hpp>
 
 ////////// METADATA ////////////
 namespace Process
@@ -223,6 +224,7 @@ class ControlEffectFactory final :
             { return new ControlEffect<Info>{deserializer, parent}; });
         }
 };
+
 }
 
 template<typename Info>
@@ -237,5 +239,47 @@ void serialize_dyn_impl(Vis& v, const Process::ControlEffect<Info>& t)
 {
   TSerializer<typename Vis::type, Process::ControlEffect<Info>>::readFrom(v, t);
 }
+
 }
 
+namespace Engine
+{
+namespace Execution
+{
+template<typename Info>
+class ControlEffectComponent final
+    : public Engine::Execution::EffectComponent_T<Process::ControlEffect<Info>>
+{
+  public:
+    static Q_DECL_RELAXED_CONSTEXPR score::Component::Key static_key()
+    {
+      return Info::Metadata::uuid;
+    }
+
+    score::Component::Key key() const final override
+    {
+      return static_key();
+    }
+
+    bool key_match(score::Component::Key other) const final override
+    {
+      return static_key() == other
+             || Engine::Execution::ProcessComponent::base_key_match(other);
+    }
+    static constexpr bool is_unique = true;
+
+  ControlEffectComponent(
+      Process::ControlEffect<Info>& proc,
+      const Engine::Execution::Context& ctx,
+      const Id<score::Component>& id,
+      QObject* parent)
+    : Engine::Execution::EffectComponent_T<Process::ControlEffect<Info>>{proc, ctx, id, parent}
+  {
+    this->node = proc.makeNode(ctx, this);
+  }
+};
+
+template<typename Info>
+using ControlEffectComponentFactory = Engine::Execution::EffectComponentFactory_T<ControlEffectComponent<Info>>;
+}
+}

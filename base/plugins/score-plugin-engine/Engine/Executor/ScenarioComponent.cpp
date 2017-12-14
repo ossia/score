@@ -242,27 +242,27 @@ IntervalComponent* ScenarioComponentBase::make<IntervalComponent, Scenario::Inte
 
 
   // The adding of the time_interval has to be done in the edition thread.
+  std::shared_ptr<ossia::scenario> proc = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
+
   m_ctx.executionQueue.enqueue(
-        [thisP=shared_from_this()
+        [g=system().plugin.execGraph
+        ,proc
         ,ossia_sev,ossia_eev,ossia_cst
         ] {
-    auto& sub = static_cast<ScenarioComponentBase&>(*thisP);
-
     if(auto sev = ossia_sev->OSSIAEvent())
       sev->next_time_intervals().push_back(ossia_cst);
     if(auto eev = ossia_eev->OSSIAEvent())
       eev->previous_time_intervals().push_back(ossia_cst);
 
-    auto& proc = sub.OSSIAProcess();
-    proc.add_time_interval(ossia_cst);
+    proc->add_time_interval(ossia_cst);
 
     auto cable = ossia::make_edge(
                    ossia::immediate_glutton_connection{}
                    , ossia_cst->node->outputs()[0]
-                   , proc.node->inputs()[0]
+                   , proc->node->inputs()[0]
                    , ossia_cst->node
-                   , proc.node);
-    sub.system().plugin.execGraph->connect(cable);
+                   , proc->node);
+    g->connect(cable);
   });
   return elt.get();
 }

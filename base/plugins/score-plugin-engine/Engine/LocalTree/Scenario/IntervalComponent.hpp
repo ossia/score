@@ -35,6 +35,8 @@ public:
   bool
   removing(const Process::ProcessModel& cst, const ProcessComponent& comp);
   template<typename... Args>
+  void added(Args&&...) { }
+  template<typename... Args>
   void removed(Args&&...) { }
 
 private:

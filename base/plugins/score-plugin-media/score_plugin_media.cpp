@@ -12,6 +12,7 @@
 #include <Media/Effect/EffectProcessFactory.hpp>
 #include <Media/Effect/Effect/EffectFactory.hpp>
 #include <Media/Effect/Inspector/EffectInspector.hpp>
+#include <Media/Effect/EffectExecutor.hpp>
 #include <Media/Sound/SoundComponent.hpp>
 #include <Media/Step/Factory.hpp>
 #include <Media/Step/Executor.hpp>
@@ -85,8 +86,16 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
         FW<Engine::Execution::ProcessComponentFactory
           , Engine::Execution::SoundComponentFactory
           , Engine::Execution::InputComponentFactory
-          , Engine::Execution::EffectComponentFactory
+          , Engine::Execution::EffectProcessComponentFactory
           , Engine::Execution::StepComponentFactory
+        >,
+        FW<Engine::Execution::EffectComponentFactory
+    #if defined(HAS_VST2)
+        , Engine::Execution::VSTEffectComponentFactory
+    #endif
+    #if defined(LILV_SHARED)
+        , Engine::Execution::LV2EffectComponentFactory
+    #endif
         >,
         FW<Media::Effect::EffectFactory
     #if defined(HAS_FAUST)
@@ -109,6 +118,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
 std::vector<std::unique_ptr<score::InterfaceListBase> > score_plugin_media::factoryFamilies()
 {
     return make_ptr_vector<score::InterfaceListBase,
-            Media::Effect::EffectFactoryList>();
+            Media::Effect::EffectFactoryList,
+            Engine::Execution::EffectComponentFactoryList>();
 }
 

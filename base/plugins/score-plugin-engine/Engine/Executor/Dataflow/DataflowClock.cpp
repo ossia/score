@@ -40,7 +40,7 @@ void Clock::play_impl(
   std::stringstream s;
   auto& g = m_plug.execGraph->m_graph;
   boost::write_graphviz(s, g, [&] (auto& out, const auto& v) {
-    out << "[label=\"" << typeid(g[v].get()).name() << "\"]";
+    out << "[label=\"" << g[v]->label() << "\"]";
   },
   [] (auto&&...) {});
 

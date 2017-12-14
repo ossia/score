@@ -73,8 +73,8 @@ class ProcessModel final : public Process::ProcessModel
           return {outlet.get()};
         }
 
-        std::unique_ptr<Process::Inlet> inlet;
-        std::unique_ptr<Process::Outlet> outlet;
+        std::unique_ptr<Process::Inlet> inlet{};
+        std::unique_ptr<Process::Outlet> outlet{};
 
     signals:
         void effectsChanged();

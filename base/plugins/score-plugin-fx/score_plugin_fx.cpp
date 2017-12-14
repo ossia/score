@@ -71,7 +71,15 @@ score_plugin_fx::factories(
          , Nodes::Chord::Factories::layer_factory
          , Nodes::Metro::Factories::layer_factory
          , Nodes::Envelope::Factories::layer_factory
-         , Nodes::MidiUtil::Factories::layer_factory>
+         , Nodes::MidiUtil::Factories::layer_factory>,
+      FW<Engine::Execution::EffectComponentFactory
+      , Engine::Execution::ControlEffectComponentFactory<Nodes::Direction::Node>
+      , Engine::Execution::ControlEffectComponentFactory<Nodes::PulseToNote::Node>
+      , Engine::Execution::ControlEffectComponentFactory<Nodes::LFO::Node>
+      , Engine::Execution::ControlEffectComponentFactory<Nodes::Chord::Node>
+      , Engine::Execution::ControlEffectComponentFactory<Nodes::Metro::Node>
+      , Engine::Execution::ControlEffectComponentFactory<Nodes::Envelope::Node>
+      , Engine::Execution::ControlEffectComponentFactory<Nodes::MidiUtil::Node>>
     >(ctx, key);
 
 }

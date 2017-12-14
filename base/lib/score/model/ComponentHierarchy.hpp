@@ -272,6 +272,7 @@ private:
       {
         model.components().add(comp);
         m_children.emplace_back(ChildPair{&model, comp});
+        ParentComponent_T::added(*comp);
       }
     }
   }
@@ -284,20 +285,20 @@ private:
     {
       // The subclass should provide this function to construct
       // the correct component relative to this process.
-      auto proc_comp = ParentComponent_T::make(
+      auto comp = ParentComponent_T::make(
           getStrongId(model.components()), *factory, model);
-      if (proc_comp)
+      if (comp)
       {
-        model.components().add(proc_comp);
-        m_children.emplace_back(ChildPair{&model, proc_comp});
+        model.components().add(comp);
+        m_children.emplace_back(ChildPair{&model, comp});
+        ParentComponent_T::added(*comp);
       }
     }
   }
 
   void do_cleanup(const ChildPair& pair)
   {
-    // TODO constexpr-if
-    if(HasOwnership)
+    if constexpr(HasOwnership)
     {
       ParentComponent_T::removing(*pair.model, *pair.component);
       pair.model->components().remove(*pair.component);

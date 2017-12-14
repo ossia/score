@@ -55,6 +55,7 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/Missing/MissingEffectModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Inspector/EffectInspector.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Generic/Effect.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectExecutor.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Commands.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Metadata.hpp"
@@ -100,6 +101,7 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/Widgets/EffectListWidget.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/Missing/MissingEffectModel.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Inspector/EffectInspector.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectExecutor.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Commands.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Executor.cpp"
