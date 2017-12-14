@@ -38,7 +38,7 @@ constexpr void constexpr_rotate(T first, T middle, T last)
     constexpr_swap(*first++,*next++);
     if (next == last)
       next = middle;
-    else if (first == middle) 
+    else if (first == middle)
       middle = next;
   }
 }
@@ -87,10 +87,10 @@ constexpr int get_scale(QLatin1String s)
   else if(Process::same(s, QLatin1String("V"))) return scale::V;
   else if(Process::same(s, QLatin1String("VI"))) return scale::VI;
   else if(Process::same(s, QLatin1String("VII"))) return scale::VII;
-  else throw;
+  else return scale::all;
 }
 static Q_DECL_RELAXED_CONSTEXPR frozen::unordered_map<int, scales_array, scale::SCALES_MAX> scales{
-    //                                     C   D   E F   G   A   B
+    //                                C   D   E F   G   A   B
     { scale::all,        make_scale({ 1,1,1,1,1,1,1,1,1,1,1,1 })}
   , { scale::ionian,     make_scale({ 1,0,1,0,1,1,0,1,0,1,0,1 })}
   , { scale::dorian,     make_scale({ 1,0,1,1,0,1,0,1,0,1,1,0 })}
@@ -109,7 +109,7 @@ static Q_DECL_RELAXED_CONSTEXPR frozen::unordered_map<int, scales_array, scale::
 };
 
 static
-std::size_t find_closest_index(const scale_array& arr, std::size_t i)
+optional<std::size_t> find_closest_index(const scale_array& arr, std::size_t i)
 {
   if(arr[i] == 1)
     return i;
@@ -150,7 +150,7 @@ std::size_t find_closest_index(const scale_array& arr, std::size_t i)
     }
   }
 
-  SCORE_ABORT;
+  return ossia::none;
 }
 
 struct Node
@@ -189,26 +189,28 @@ struct Node
       ossia::token_request tk,
       ossia::execution_state& st)
   {
-    auto cur_scale = get_scale(QLatin1String{sc.begin()->second.data(), (int)sc.begin()->second.size()});
-    auto scale = scales.at(cur_scale)[base.begin()->second];
+    const auto& cur_scale = get_scale(QLatin1String{sc.begin()->second.data(), (int)sc.begin()->second.size()});
+    const auto& scale = scales.at(cur_scale)[base.begin()->second];
     for(const auto& msg : midi_in.messages)
     {
       if(msg.isNoteOnOrOff())
       {
         // map to scale
-        auto index = find_closest_index(scale, msg.data[1]);
-
-        // transpose
-        auto res = msg;
-        res.data[1] = (uint8_t)ossia::clamp(int(index + transp.begin()->second), 0, 127);
-        midi_out.messages.push_back(res);
+        if(auto index = find_closest_index(scale, msg.data[1]))
+        {
+          // transpose
+          auto res = msg;
+          res.data[1] = (uint8_t)ossia::clamp(int(*index + transp.begin()->second), 0, 127);
+          midi_out.messages.push_back(res);
+        }
+      }
+      else
+      {
+        midi_out.messages.push_back(msg);
       }
     }
   }
 };
 using Factories = Process::Factories<Node>;
 }
-
-
-
 }

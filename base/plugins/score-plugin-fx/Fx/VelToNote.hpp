@@ -169,7 +169,7 @@ struct Node
       tempo = ossia::convert<float>(tempo_node->get_parameter()->value());
 
     // how much time does a whole note last at this tempo given the current sr
-    const auto whole_dur = 240. / tempo; // in seconds
+    const auto whole_dur = 240.f / tempo; // in seconds
     const auto whole_samples = whole_dur * st.sampleRate;
 
     for(auto& in : p1.get_data())
@@ -195,14 +195,14 @@ struct Node
           p2.messages.push_back(no);
           if(duration > 0.f)
           {
-            auto end = tk.date + (int64_t)no.timestamp + whole_samples * duration;
+            auto end = tk.date + (int64_t)no.timestamp + (int64_t)(whole_samples * duration);
             self.running_notes.push_back({note, end});
           }
           else if(duration == 0.f)
           {
             // Stop at the next sample
             auto noff = mm::MakeNoteOff(chan, note.pitch, note.vel);
-            noff.timestamp = no.timestamp + 1;
+            noff.timestamp = no.timestamp;
             p2.messages.push_back(noff);
           }
           // else do nothing and just wait for a note off
@@ -234,16 +234,16 @@ struct Node
         no.timestamp = note.date - prev_date;
         p2.messages.push_back(no);
 
-        if(duration > 0.)
+        if(duration > 0.f)
         {
-          auto end = note.date + whole_samples * duration;
+          auto end = note.date + (int64_t)(whole_samples * duration);
           self.running_notes.push_back({note.note, end});
         }
-        else if (duration == 0.)
+        else if (duration == 0.f)
         {
           // Stop at the next sample
           auto noff = mm::MakeNoteOff(chan, note.note.pitch, note.note.vel);
-          noff.timestamp = no.timestamp + 1;
+          noff.timestamp = no.timestamp;
           p2.messages.push_back(noff);
         }
 
