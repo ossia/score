@@ -21,13 +21,13 @@
 #include <lv2/lv2plug.in/ns/extensions/ui/ui.h>
 #include <Media/Effect/LV2/LV2EffectModel.hpp>
 #include <Media/ApplicationPlugin.hpp>
-#include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #endif
 
 #if defined(HAS_VST2)
 #include <Media/Effect/VST/VSTEffectModel.hpp>
 #endif
 
+#include <Scenario/DialogWidget/AddProcessDialog.hpp>
 namespace Media
 {
 namespace Effect
