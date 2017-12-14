@@ -39,6 +39,7 @@ class SCORE_PLUGIN_ENGINE_EXPORT ProcessComponent
     : public Process::GenericProcessComponent<const Context>,
       public std::enable_shared_from_this<ProcessComponent>
 {
+  Q_OBJECT
   ABSTRACT_COMPONENT_METADATA(
       Engine::Execution::ProcessComponent,
       "d0f714de-c832-42d8-a605-60f5ffd0b7af")
@@ -74,8 +75,10 @@ public:
     return *m_ossia_process;
   }
 
-protected:
-  std::shared_ptr<ossia::time_process> m_ossia_process;
+  signals:
+    void nodeChanged(ossia::node_ptr old_node, ossia::node_ptr new_node);
+  protected:
+    std::shared_ptr<ossia::time_process> m_ossia_process;
 };
 
 template <typename Process_T, typename OSSIA_Process_T>

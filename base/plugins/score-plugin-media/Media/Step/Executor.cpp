@@ -17,6 +17,11 @@ public:
   void run(ossia::token_request t, ossia::execution_state& e) override;
   std::vector<float> values;
   ossia::time_value dur{};
+
+  std::string_view label() const override
+  {
+    return "Step";
+  }
 };
 
 step_node::step_node()

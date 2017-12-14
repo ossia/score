@@ -306,6 +306,11 @@ public:
       // TODO
     }
   }
+
+  std::string_view label() const override
+  {
+    return "Control";
+  }
 };
 
 struct value_adder

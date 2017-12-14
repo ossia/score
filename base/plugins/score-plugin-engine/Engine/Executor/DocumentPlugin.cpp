@@ -77,6 +77,8 @@ void DocumentPlugin::on_cableCreated(Process::Cable& c)
 
 void DocumentPlugin::on_cableRemoved(const Process::Cable& c)
 {
+  if(!m_base.active())
+    return;
   auto cable = c.exec;
   auto graph = execGraph;
 
@@ -87,6 +89,8 @@ void DocumentPlugin::on_cableRemoved(const Process::Cable& c)
 
 void DocumentPlugin::connectCable(Process::Cable& cable)
 {
+  if(!m_base.active())
+    return;
   if(auto port_src = cable.source().try_find(context().doc))
   {
     auto it = outlets.find(port_src);
@@ -104,7 +108,7 @@ void DocumentPlugin::connectCable(Process::Cable& cable)
     }
   }
 
-  if(m_base.active() && cable.source_node && cable.sink_node)
+  if(cable.source_node && cable.sink_node)
   {
     context().executionQueue.enqueue(
           [type=cable.type()
@@ -208,9 +212,12 @@ void DocumentPlugin::on_finished()
   execState.messages.clear();
   execState.mess_values.clear();
 
-  for(auto& con : runtime_connections)
+  for(auto& v : runtime_connections)
   {
-    QObject::disconnect(con);
+    for(auto& con : v.second)
+    {
+      QObject::disconnect(con);
+    }
   }
   runtime_connections.clear();
 }
@@ -385,10 +392,12 @@ void DocumentPlugin::register_node(
     SCORE_ASSERT(node->inputs().size() >= n_inlets);
     SCORE_ASSERT(node->outputs().size() >= n_outlets);
 
-    runtime_connections.reserve(runtime_connections.size() + n_inlets + n_outlets);
+    auto& runtime_connection = runtime_connections[node];
+
+    runtime_connection.reserve(runtime_connection.size() + n_inlets + n_outlets);
     for(std::size_t i = 0; i < n_inlets; i++)
     {
-      runtime_connections.push_back(connect(proc_inlets[i], &Process::Port::addressChanged,
+      runtime_connection.push_back(connect(proc_inlets[i], &Process::Port::addressChanged,
               this, [this,port=node->inputs()[i]] (const State::AddressAccessor& address) {
         set_destination(address, port);
       }));
@@ -400,7 +409,7 @@ void DocumentPlugin::register_node(
 
     for(std::size_t i = 0; i < n_outlets; i++)
     {
-      runtime_connections.push_back(connect(proc_outlets[i], &Process::Port::addressChanged,
+      runtime_connection.push_back(connect(proc_outlets[i], &Process::Port::addressChanged,
               this, [this,port=node->outputs()[i]] (const State::AddressAccessor& address) {
         set_destination(address, port);
       }));
@@ -425,6 +434,31 @@ void DocumentPlugin::unregister_node(
       node->clear();
       execGraph->remove_node(node);
     });
+
+    for(const auto& con : runtime_connections[node])
+    {
+      QObject::disconnect(con);
+    }
+    runtime_connections.erase(node);
+  }
+
+  for(auto ptr : proc_inlets)
+    inlets.erase(ptr);
+  for(auto ptr : proc_outlets)
+    outlets.erase(ptr);
+}
+
+void DocumentPlugin::unregister_node_soft(
+    const Process::Inlets& proc_inlets, const Process::Outlets& proc_outlets,
+    const std::shared_ptr<ossia::graph_node>& node)
+{
+  if(node)
+  {
+    for(const auto& con : runtime_connections[node])
+    {
+      QObject::disconnect(con);
+    }
+    runtime_connections.erase(node);
   }
 
   for(auto ptr : proc_inlets)

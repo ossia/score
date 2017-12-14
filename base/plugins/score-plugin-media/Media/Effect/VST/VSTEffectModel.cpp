@@ -87,16 +87,16 @@ std::shared_ptr<ossia::audio_fx_node> VSTEffectModel::makeNode(const Engine::Exe
 {
   std::shared_ptr<ossia::audio_fx_node> node;
 
-  if(fx->flags & effFlagsCanDoubleReplacing)
+  if(fx->fx->flags & effFlagsCanDoubleReplacing)
   {
-    if(fx->flags & effFlagsIsSynth)
+    if(fx->fx->flags & effFlagsIsSynth)
       node = Media::VST::make_vst_fx<true, true>(fx, ctx.plugin.execState.sampleRate);
     else
       node = Media::VST::make_vst_fx<true, false>(fx, ctx.plugin.execState.sampleRate);
   }
   else
   {
-    if(fx->flags & effFlagsIsSynth)
+    if(fx->fx->flags & effFlagsIsSynth)
       node = Media::VST::make_vst_fx<false, true>(fx, ctx.plugin.execState.sampleRate);
     else
       node = Media::VST::make_vst_fx<false, false>(fx, ctx.plugin.execState.sampleRate);
@@ -180,9 +180,6 @@ void VSTEffectModel::closePlugin()
   if(fx)
   {
     hideUI();
-    dispatch(effStopProcess);
-    dispatch(effMainsChanged, 0, 0);
-    dispatch(effClose);
     fx = nullptr;
   }
   qDeleteAll(m_inlets);
@@ -211,12 +208,12 @@ void VSTEffectModel::showUI()
   if(h <= 1)
     h = 480;
 
-  show_vst2_editor(*fx, *vstRect);
+  show_vst2_editor(*fx->fx, *vstRect);
 }
 
 void VSTEffectModel::hideUI()
 {
-  hide_vst2_editor(*fx);
+  hide_vst2_editor(*fx->fx);
 }
 
 void VSTEffectModel::reload()
@@ -262,14 +259,15 @@ void VSTEffectModel::reload()
     return;
   }
 
-  fx = main(HostCallback);
-  if(!fx)
+  fx = std::make_shared<AEffectWrapper>(main(HostCallback));
+  if(!fx->fx)
   {
     qDebug() << "plugin was not created";
+    fx.reset();
     return;
   }
 
-  fx->resvd1 = reinterpret_cast<VstIntPtr>(this);
+  fx->fx->resvd1 = reinterpret_cast<VstIntPtr>(this);
 
   dispatch(effOpen);
 
@@ -284,7 +282,7 @@ void VSTEffectModel::reload()
   }
 
   int inlet_i = 0;
-  if(fx->flags & effFlagsIsSynth)
+  if(fx->fx->flags & effFlagsIsSynth)
   {
     m_inlets.push_back(new Process::Inlet(Id<Process::Port>(++inlet_i), this));
     m_inlets[0]->type = Process::PortType::Midi;
@@ -295,7 +293,7 @@ void VSTEffectModel::reload()
     m_inlets[0]->type = Process::PortType::Audio;
   }
 
-  for(int i = 0; i < fx->numParams; i++)
+  for(int i = 0; i < fx->fx->numParams; i++)
   {
     auto p = new Process::ControlInlet{Id<Process::Port>{++inlet_i}, this};
 
@@ -321,11 +319,11 @@ void VSTEffectModel::reload()
 
     // Value
     {
-      auto val = fx->getParameter(fx, i);
+      auto val = fx->getParameter(i);
       p->setDomain(ossia::make_domain(0.f, 1.f));
       p->setValue(val);
       p->hidden = true;
-      if(fx->numParams < 10)
+      if(fx->fx->numParams < 10)
       {
         p->setUiVisible(true);
       }
@@ -333,8 +331,8 @@ void VSTEffectModel::reload()
       connect(p, &Process::ControlInlet::valueChanged,
               this, [=] (const ossia::value& v){
         auto newval =  ossia::convert<float>(v);
-        if(std::abs(newval - fx->getParameter(fx, i)) > 0.0001)
-          fx->setParameter(fx, i, newval);
+        if(std::abs(newval - fx->getParameter(i)) > 0.0001)
+          fx->setParameter(i, newval);
       });
     }
 
@@ -385,10 +383,10 @@ void JSONObjectReader::read(
   obj["Effect"] = eff.effect();
   if(eff.fx)
   {
-    if(eff.fx->flags & effFlagsProgramChunks)
+    if(eff.fx->fx->flags & effFlagsProgramChunks)
     {
       void* ptr{};
-      auto res = eff.fx->dispatcher(eff.fx, effGetChunk, 0, 0, &ptr, 0.f);
+      auto res = eff.fx->dispatch(effGetChunk, 0, 0, &ptr, 0.f);
       if(ptr && res > 0)
       {
         auto encoded = websocketpp::base64_encode((const unsigned char*)ptr, res);
@@ -398,8 +396,8 @@ void JSONObjectReader::read(
     else
     {
       QJsonArray arr;
-      for(int i = 0; i < eff.fx->numParams; i++)
-        arr.push_back(eff.fx->getParameter(eff.fx, i));
+      for(int i = 0; i < eff.fx->fx->numParams; i++)
+        arr.push_back(eff.fx->getParameter(i));
       obj["Params"] = std::move(arr);
     }
   }
@@ -414,18 +412,18 @@ void JSONObjectWriter::write(
   QTimer::singleShot(1000, [obj=this->obj,&eff] {
     if(eff.fx)
     {
-      if(eff.fx->flags & effFlagsProgramChunks)
+      if(eff.fx->fx->flags & effFlagsProgramChunks)
       {
         auto it = obj.find("Data");
         if(it != obj.end())
         {
           auto b64 = websocketpp::base64_decode(it->toString().toStdString());
-          eff.fx->dispatcher(eff.fx, effSetChunk, 0, b64.size(), b64.data(), 0.f);
+          eff.fx->dispatch(effSetChunk, 0, b64.size(), b64.data(), 0.f);
 
           for(std::size_t i = 1; i < eff.inlets().size(); i++)
           {
             static_cast<Process::ControlInlet*>(eff.inlets()[i])->setValue(
-                  eff.fx->getParameter(eff.fx, i-1));
+                  eff.fx->getParameter(i-1));
           }
         }
       }
@@ -437,7 +435,7 @@ void JSONObjectWriter::write(
           QJsonArray arr = it->toArray();
           for(int i = 0; i < arr.size(); i++)
           {
-            eff.fx->setParameter(eff.fx, i, arr[i].toDouble());
+            eff.fx->setParameter(i, arr[i].toDouble());
           }
         }
       }

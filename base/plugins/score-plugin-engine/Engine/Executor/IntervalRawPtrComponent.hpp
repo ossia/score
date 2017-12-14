@@ -81,6 +81,8 @@ public:
       const Process::ProcessModel& e,
       ProcessComponent& c);
 
+  template<typename... Args>
+  void added(Args&&...) { }
   template <typename Component_T, typename Element, typename Fun>
   void removed(const Element& elt, const Component_T& comp, Fun f)
   {

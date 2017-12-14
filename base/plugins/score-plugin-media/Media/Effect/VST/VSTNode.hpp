@@ -11,25 +11,25 @@ template<bool UseDouble, bool IsSynth>
 class VSTNode final : public ossia::audio_fx_node
 {
   private:
-    AEffect* fx{};
+    std::shared_ptr<AEffectWrapper> fx{};
 
     void dispatch(VstInt32 opcode, VstInt32 index = 0, VstIntPtr value = 0, void *ptr = nullptr, float opt = 0.0f)
     {
-      fx->dispatcher(fx, opcode, index, value, ptr, opt);
+      fx->dispatch(opcode, index, value, ptr, opt);
     }
   public:
     std::vector<ossia::value_port*> ctrl_ptrs;
-    VSTNode(AEffect* dat, int sampleRate):
-      fx{dat}
+    VSTNode(std::shared_ptr<AEffectWrapper>  dat, int sampleRate):
+      fx{std::move(dat)}
     {
-      m_inlets.reserve(fx->numParams + 1);
-      ctrl_ptrs.resize(fx->numParams);
+      m_inlets.reserve(fx->fx->numParams + 1);
+      ctrl_ptrs.resize(fx->fx->numParams);
       if constexpr(IsSynth)
         m_inlets.push_back(ossia::make_inlet<ossia::midi_port>());
       else
         m_inlets.push_back(ossia::make_inlet<ossia::audio_port>());
 
-      for(int i = 0; i < fx->numParams; i++)
+      for(int i = 0; i < fx->fx->numParams; i++)
       {
         m_inlets.push_back(ossia::make_inlet<ossia::value_port>());
         ctrl_ptrs[i] = m_inlets.back()->data.template target<ossia::value_port>();
@@ -48,6 +48,11 @@ class VSTNode final : public ossia::audio_fx_node
     {
       dispatch(effStopProcess);
       dispatch(effMainsChanged, 0, 0);
+    }
+
+    std::string_view label() const override
+    {
+      return "VST";
     }
 
     void all_notes_off() override
@@ -71,14 +76,14 @@ class VSTNode final : public ossia::audio_fx_node
 
       dispatch(effProcessEvents, 0, 0, events, 0.f);
 /*
-      const auto nfloats = std::max(fx->numInputs, fx->numOutputs);
+      const auto nfloats = std::max(fx->fx->numInputs, fx->fx->numOutputs);
       if constexpr(UseDouble)
       {
         double f;
         double** c = (double**)alloca(sizeof(double*) * nfloats);
         for(int i = 0; i < nfloats; i++)
           c[i] = &f;
-        fx->processDoubleReplacing(fx, c, c, 1);
+        fx->fx->processDoubleReplacing(fx, c, c, 1);
       }
       else
       {
@@ -86,13 +91,13 @@ class VSTNode final : public ossia::audio_fx_node
         float** c = (float**)alloca(sizeof(float*) * nfloats);
         for(int i = 0; i < nfloats; i++)
           c[i] = &f;
-        fx->processReplacing(fx, c, c, 1);
+        fx->fx->processReplacing(fx, c, c, 1);
       }*/
     }
 
     void setControls()
     {
-      for(int i = 0; i < fx->numParams; i++)
+      for(int i = 0; i < fx->fx->numParams; i++)
       {
         auto& vec = ctrl_ptrs[i]->get_data();
         if(vec.empty())
@@ -101,7 +106,7 @@ class VSTNode final : public ossia::audio_fx_node
         }
 
         if(auto t = last(vec).template target<float>())
-          fx->setParameter(fx, i, *t);
+          fx->fx->setParameter(fx->fx, i, *t);
       }
     }
 
@@ -177,14 +182,14 @@ class VSTNode final : public ossia::audio_fx_node
           {
             dispatchMidi([=] {
               auto& op = prepareOutput(samples);
-              double** output = (double**)alloca(sizeof(double*) * std::max(2, this->fx->numOutputs));
+              double** output = (double**)alloca(sizeof(double*) * std::max(2, this->fx->fx->numOutputs));
               output[0] = op[0].data();
               output[1] = op[1].data();
               double* dummy = (double*)alloca(sizeof(double) * samples);
-              for(int i = 2; i < this->fx->numOutputs; i++)
+              for(int i = 2; i < this->fx->fx->numOutputs; i++)
                 output[i] = dummy;
 
-              fx->processDoubleReplacing(fx, output, output, samples);
+              fx->fx->processDoubleReplacing(fx->fx, output, output, samples);
             });
           }
           else
@@ -193,21 +198,21 @@ class VSTNode final : public ossia::audio_fx_node
             double* dummy = (double*)alloca(sizeof(double) * samples);
 
             auto& ip = prepareInput(samples);
-            double** input = (double**)alloca(sizeof(double*) * std::max(2, this->fx->numInputs));
+            double** input = (double**)alloca(sizeof(double*) * std::max(2, this->fx->fx->numInputs));
             input[0] = ip[0].data();
             input[1] = ip[1].data();
-            for(int i = 2; i < this->fx->numInputs; i++)
+            for(int i = 2; i < this->fx->fx->numInputs; i++)
               input[i] = dummy;
 
             auto& op = prepareOutput(samples);
-            double** output = (double**)alloca(sizeof(double*) * std::max(2, this->fx->numOutputs));
+            double** output = (double**)alloca(sizeof(double*) * std::max(2, this->fx->fx->numOutputs));
             output[0] = op[0].data();
             output[1] = op[1].data();
 
-            for(int i = 2; i < this->fx->numOutputs; i++)
+            for(int i = 2; i < this->fx->fx->numOutputs; i++)
               output[i] = dummy;
 
-            fx->processDoubleReplacing(fx, input, output, samples);
+            fx->fx->processDoubleReplacing(fx->fx, input, output, samples);
           }
         }
         else
@@ -220,13 +225,13 @@ class VSTNode final : public ossia::audio_fx_node
               for(auto& vec : float_v)
                 vec.resize(samples);
 
-              float** output = (float**)alloca(sizeof(float*) * std::max(2, this->fx->numOutputs));
+              float** output = (float**)alloca(sizeof(float*) * std::max(2, this->fx->fx->numOutputs));
               output[0] = float_v[0].data();
               output[1] = float_v[1].data();
-              for(int i = 2; i < this->fx->numOutputs; i++)
+              for(int i = 2; i < this->fx->fx->numOutputs; i++)
                 output[i] = dummy;
 
-              fx->processReplacing(fx, output, output, samples);
+              fx->fx->processReplacing(fx->fx, output, output, samples);
 
               op.clear();
               op.emplace_back(float_v[0].begin(), float_v[0].end());
@@ -249,13 +254,13 @@ class VSTNode final : public ossia::audio_fx_node
 
             float* dummy = (float*)alloca(sizeof(float) * samples);
 
-            float** output = (float**)alloca(sizeof(float*) * std::max(2, this->fx->numOutputs));
+            float** output = (float**)alloca(sizeof(float*) * std::max(2, this->fx->fx->numOutputs));
             output[0] = float_v[0].data();
             output[1] = float_v[1].data();
-            for(int i = 2; i < this->fx->numOutputs; i++)
+            for(int i = 2; i < this->fx->fx->numOutputs; i++)
               output[i] = dummy;
 
-            fx->processReplacing(fx, output, output, samples);
+            fx->fx->processReplacing(fx->fx, output, output, samples);
 
             op.clear();
             op.emplace_back(float_v[0].begin(), float_v[0].end());

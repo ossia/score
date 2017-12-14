@@ -67,6 +67,9 @@ public:
   void unregister_node(
       const Process::Inlets& inlets, const Process::Outlets& outlets,
       const std::shared_ptr<ossia::graph_node>& node);
+  void unregister_node_soft(
+      const Process::Inlets& inlets, const Process::Outlets& outlets,
+      const std::shared_ptr<ossia::graph_node>& node);
   void set_destination(
       const State::AddressAccessor& address,
       const ossia::inlet_ptr& );
@@ -89,7 +92,7 @@ public:
   score::hash_map<Process::Inlet*, std::pair<ossia::node_ptr, ossia::inlet_ptr>> inlets;
   score::hash_map<Id<Process::Cable>, std::shared_ptr<ossia::graph_edge>> m_cables;
 
-  std::vector<QMetaObject::Connection> runtime_connections;
+  score::hash_map<std::shared_ptr<ossia::graph_node>, std::vector<QMetaObject::Connection>> runtime_connections;
 
 signals:
   void finished();

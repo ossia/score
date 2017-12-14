@@ -1,7 +1,12 @@
 #include "LV2Context.hpp"
+#include "lv2_atom_helpers.hpp"
 #include <lilv/lilv.h>
 #include <lilv/lilvmm.hpp>
 #include <iostream>
+
+
+uint32_t LV2_Atom_Buffer::chunk_type;
+uint32_t LV2_Atom_Buffer::sequence_type;
 
 namespace Media
 {

@@ -189,7 +189,7 @@ void InspectorWidget::recreate()
     for(const auto& fx_id : process().effectsOrder())
     {
         EffectModel& fx = process().effects().at(fx_id);
-        auto item = new ListWidgetItem(fx.metadata().getLabel(), m_list);
+        auto item = new ListWidgetItem(fx.prettyName(), m_list);
 
         con(fx.metadata(), &score::ModelMetadata::LabelChanged,
             item, [=] (const auto& txt) { item->setText(txt); });

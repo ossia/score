@@ -216,8 +216,11 @@ ProcessComponent* IntervalComponentBase::make(
           propagated_outlets.push_back(i);
       }
 
+      auto oproc = plug->OSSIAProcessPtr();
+      auto g = plug->system().plugin.execGraph;
+
       system().executionQueue.enqueue(
-            [=,cst=m_ossia_interval,oproc=plug->OSSIAProcessPtr()] {
+            [cst=m_ossia_interval,oproc,g,propagated_outlets] {
         if(oproc)
         {
           cst->add_time_process(oproc);
@@ -235,12 +238,44 @@ ProcessComponent* IntervalComponentBase::make(
                       , cst->node->inputs()[0]
                       , oproc->node
                       , cst->node);
-                plug->system().plugin.execGraph->connect(cable);
+                g->connect(cable);
               }
             }
           }
         }
+      });
 
+      connect(plug.get(), &ProcessComponent::nodeChanged,
+              this, [=,&proc] (auto old_node, auto new_node) {
+        const auto& outlets = proc.outlets();
+        std::vector<int> propagated_outlets;
+        for(std::size_t i = 0; i < outlets.size(); i++)
+        {
+          if(outlets[i]->propagate())
+            propagated_outlets.push_back(i);
+        }
+
+        system().executionQueue.enqueue(
+              [=,cst=m_ossia_interval,oproc=plug->OSSIAProcessPtr()] {
+          if(oproc && oproc->node)
+          {
+            ossia::graph_node& n = *oproc->node;
+            for(int propagated : propagated_outlets)
+            {
+              const auto& outlet = n.outputs()[propagated]->data;
+              if(outlet.target<ossia::audio_port>())
+              {
+                auto cable = ossia::make_edge(
+                               ossia::immediate_glutton_connection{}
+                               , n.outputs()[propagated]
+                               , cst->node->inputs()[0]
+                               , oproc->node
+                               , cst->node);
+                g->connect(cable);
+              }
+            }
+          }
+        });
       });
     }
     return plug.get();
