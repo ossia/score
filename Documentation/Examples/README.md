@@ -6,5 +6,6 @@ This part of the repository will show you exemples of scores/scenarios for diffe
 - an example for working with the Lemur device
 - an example for Processing
 - an example for Unity
+- remote clients for Max and pd
 
 enjoy!
