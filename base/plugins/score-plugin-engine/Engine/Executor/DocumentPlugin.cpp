@@ -172,6 +172,10 @@ void DocumentPlugin::on_finished()
 {
   auto& doc = context().doc.model<Scenario::ScenarioDocumentModel>();
 
+  runAllCommands();
+  m_base.cleanup();
+  runAllCommands();
+
   for(Process::Cable& cbl : doc.cables)
   {
     cbl.source_node.reset();
@@ -185,6 +189,7 @@ void DocumentPlugin::on_finished()
   outlets.clear();
   m_cables.clear();
   execGraph->clear();
+  execGraph.reset();
 
 
   for (Process::Cable& cable : doc.cables)
@@ -220,6 +225,8 @@ void DocumentPlugin::on_finished()
     }
   }
   runtime_connections.clear();
+
+  execGraph = std::make_shared<ossia::graph>();
 }
 void DocumentPlugin::reload(Scenario::IntervalModel& cst)
 {

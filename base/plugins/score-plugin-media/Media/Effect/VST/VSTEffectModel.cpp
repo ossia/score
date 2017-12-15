@@ -53,6 +53,64 @@ struct HostCanDos
 
 };
 
+
+struct maker
+{
+    auto make_inlet(int i, QObject* parent) const
+    {
+      return new Process::Inlet(Id<Process::Port>(i), parent);
+
+    }
+    auto make_control(int i, QObject* parent) const
+    {
+      return new Process::ControlInlet{Id<Process::Port>{i}, parent};
+
+    }
+    auto make_outlet(int i, QObject* parent) const
+    {
+      return new Process::Outlet(Id<Process::Port>(i), parent);
+    }
+};
+
+struct datastream_maker
+{
+    DataStreamWriter& out;
+    auto make_inlet(int i, QObject* parent) const
+    {
+      return new Process::Inlet(out, parent);
+
+    }
+    auto make_control(int i, QObject* parent) const
+    {
+      return new Process::ControlInlet{out, parent};
+
+    }
+    auto make_outlet(int i, QObject* parent) const
+    {
+      return new Process::Outlet(out, parent);
+    }
+};
+
+struct json_maker
+{
+    const QJsonArray& inlets;
+    const QJsonArray& outlets;
+    auto make_inlet(int i, QObject* parent) const
+    {
+      return new Process::Inlet(JSONObjectWriter{inlets[i].toObject()}, parent);
+
+    }
+    auto make_control(int i, QObject* parent) const
+    {
+      return new Process::ControlInlet{JSONObjectWriter{inlets[i].toObject()}, parent};
+
+    }
+    auto make_outlet(int i, QObject* parent) const
+    {
+      return new Process::Outlet(JSONObjectWriter{outlets[i].toObject()}, parent);
+    }
+};
+
 VSTEffectModel::VSTEffectModel(
     const QString& path,
     const Id<EffectModel>& id,
@@ -60,7 +118,7 @@ VSTEffectModel::VSTEffectModel(
   EffectModel{id, parent},
   m_effectPath{path}
 {
-  reload();
+  reload(maker{});
 }
 
 VSTEffectModel::VSTEffectModel(
@@ -70,7 +128,7 @@ VSTEffectModel::VSTEffectModel(
   EffectModel{id, parent},
   m_effectPath{source.effect()}
 {
-  reload();
+  reload(maker{});
 }
 VSTEffectModel::~VSTEffectModel()
 {
@@ -216,7 +274,8 @@ void VSTEffectModel::hideUI()
   hide_vst2_editor(*fx->fx);
 }
 
-void VSTEffectModel::reload()
+template<typename T>
+void VSTEffectModel::reload(const T& port_factory)
 {
   closePlugin();
 
@@ -284,18 +343,18 @@ void VSTEffectModel::reload()
   int inlet_i = 0;
   if(fx->fx->flags & effFlagsIsSynth)
   {
-    m_inlets.push_back(new Process::Inlet(Id<Process::Port>(++inlet_i), this));
+    m_inlets.push_back(port_factory.make_inlet(inlet_i++, this));
     m_inlets[0]->type = Process::PortType::Midi;
   }
   else
   {
-    m_inlets.push_back(new Process::Inlet(Id<Process::Port>(++inlet_i), this));
+    m_inlets.push_back(port_factory.make_inlet(inlet_i++, this));
     m_inlets[0]->type = Process::PortType::Audio;
   }
 
   for(int i = 0; i < fx->fx->numParams; i++)
   {
-    auto p = new Process::ControlInlet{Id<Process::Port>{++inlet_i}, this};
+    auto p = port_factory.make_control(inlet_i++, this);
 
     // Metadata
     {
@@ -351,7 +410,7 @@ void VSTEffectModel::reload()
     m_inlets.push_back(p);
   }
 
-  m_outlets.push_back(new Process::Outlet(Id<Process::Port>(0), this));
+  m_outlets.push_back(port_factory.make_outlet(0, this));
   m_outlets[0]->type = Process::PortType::Audio;
   m_outlets[0]->setPropagate(true);
 }
@@ -363,6 +422,14 @@ void DataStreamReader::read(
     const Media::VST::VSTEffectModel& eff)
 {
   m_stream << eff.effect();
+
+  m_stream << *eff.m_inlets[0];
+  for(int i = 1; i < eff.m_inlets.size(); i++)
+    m_stream << *static_cast<Process::ControlInlet*>(eff.m_inlets[i]);
+
+  for(auto v : eff.m_outlets)
+    m_stream << *v;
+
   // TODO save & reload program parameters
   insertDelimiter();
 }
@@ -372,7 +439,7 @@ void DataStreamWriter::write(
     Media::VST::VSTEffectModel& eff)
 {
   m_stream >> eff.m_effectPath;
-  eff.reload();
+  eff.reload(Media::VST::datastream_maker{*this});
   checkDelimiter();
 }
 
@@ -381,6 +448,14 @@ void JSONObjectReader::read(
     const Media::VST::VSTEffectModel& eff)
 {
   obj["Effect"] = eff.effect();
+
+  QJsonArray inlets;
+  inlets.append(toJsonObject(*eff.m_inlets[0]));
+  for(int i = 1; i < eff.m_inlets.size(); i++)
+    inlets.append(toJsonObject(*static_cast<Process::ControlInlet*>(eff.m_inlets[i])));
+
+  obj["Inlets"] = std::move(inlets);
+  obj["Outlets"] = toJsonArray(eff.m_outlets);
   if(eff.fx)
   {
     if(eff.fx->fx->flags & effFlagsProgramChunks)
@@ -408,7 +483,7 @@ void JSONObjectWriter::write(
     Media::VST::VSTEffectModel& eff)
 {
   eff.m_effectPath = obj["Effect"].toString();
-  eff.reload();
+  eff.reload(Media::VST::json_maker{obj["Inlets"].toArray(), obj["Outlets"].toArray()});
   QTimer::singleShot(1000, [obj=this->obj,&eff] {
     if(eff.fx)
     {
