@@ -4,6 +4,7 @@
 #include <QApplication>
 #include <QPixmapCache>
 #include <qnamespace.h>
+
 #if defined(__APPLE__)
 struct NSAutoreleasePool;
 #include <CoreFoundation/CFNumber.h>

@@ -86,7 +86,8 @@ class VSTEffectModel :
         QString prettyName() const override;
         std::shared_ptr<ossia::audio_fx_node> makeNode(const Engine::Execution::Context &, QObject* ctx) override;
     private:
-        void reload();
+        template<typename T>
+        void reload(const T& port_factory);
         void showUI() override;
         void hideUI() override;
         QString m_effectPath;

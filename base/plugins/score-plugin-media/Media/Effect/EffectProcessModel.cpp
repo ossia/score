@@ -143,6 +143,8 @@ int ProcessModel::effectPosition(const Id<EffectModel>& e) const
 template <>
 void DataStreamReader::read(const Media::Effect::ProcessModel& proc)
 {
+  m_stream << *proc.inlet << *proc.outlet;
+
   int32_t n = proc.effects().size();
   m_stream << n;
   for(auto& eff : proc.effects())
@@ -156,6 +158,9 @@ void DataStreamReader::read(const Media::Effect::ProcessModel& proc)
 template <>
 void DataStreamWriter::write(Media::Effect::ProcessModel& proc)
 {
+  proc.inlet = Process::make_inlet(*this, &proc);
+  proc.outlet = Process::make_outlet(*this, &proc);
+
   int32_t n = 0;
   m_stream >> n;
 
@@ -187,15 +192,48 @@ void JSONObjectReader::read(const Media::Effect::ProcessModel& proc)
 template <>
 void JSONObjectWriter::write(Media::Effect::ProcessModel& proc)
 {
+  {
+    JSONObjectWriter writer{obj["Inlet"].toObject()};
+    proc.inlet = Process::make_inlet(writer, &proc);
+  }
+  {
+    JSONObjectWriter writer{obj["Outlet"].toObject()};
+    proc.outlet = Process::make_outlet(writer, &proc);
+  }
+
   QJsonArray fx_array = obj["Effects"].toArray();
   auto& fxs = components.interfaces<Media::Effect::EffectFactoryList>();
   int i = 0;
   for(const auto& json_vref : fx_array)
   {
     JSONObject::Deserializer deserializer{json_vref.toObject()};
-    auto fx = deserialize_interface(fxs, deserializer, &proc);
+    Media::Effect::EffectModel* fx = deserialize_interface(fxs, deserializer, &proc);
     if(fx)
-      proc.insertEffect(fx, i++);
+    {
+      auto pos = i++;
+
+      proc.m_effectOrder.insert(pos, fx->id());
+      proc.m_effects.add(fx);
+
+      if(pos == 0)
+      {
+        if(fx->inlets()[0]->type != proc.inlet->type)
+        {
+          proc.inlet->type = fx->inlets()[0]->type;
+          emit proc.inletsChanged();
+        }
+      }
+      if(pos == proc.m_effects.size() - 1)
+      {
+        if(fx->outlets()[0]->type != proc.outlet->type)
+        {
+          proc.outlet->type = fx->outlets()[0]->type;
+          emit proc.outletsChanged();
+        }
+      }
+
+      emit proc.effectsChanged();
+    }
     else
       SCORE_TODO;
   }

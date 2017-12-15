@@ -278,8 +278,9 @@ void ApplicationPlugin::on_stop()
     if (!plugmodel)
       return;
     else
-      plugmodel->clear();
-
+    {
+      //plugmodel->clear();
+    }
     // If we can we resume listening
     if (!context.docManager.preparingNewDocument())
     {
