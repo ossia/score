@@ -175,8 +175,6 @@ DocumentPlugin::~DocumentPlugin()
 
 void DocumentPlugin::on_finished()
 {
-  auto& doc = context().doc.model<Scenario::ScenarioDocumentModel>();
-
   runAllCommands();
   m_base.cleanup();
   runAllCommands();

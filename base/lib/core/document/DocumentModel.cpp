@@ -18,8 +18,8 @@ DocumentModel::DocumentModel(
     DocumentDelegateFactory& fact,
     QObject* parent)
     : IdentifiedObject{id, "DocumentModel", parent}
-    , m_model{fact.make(ctx, this)}
 {
+  fact.make(ctx, m_model, this);
   for (auto& appPlug : ctx.app.guiApplicationPlugins())
   {
     appPlug->on_initDocument(ctx.document);

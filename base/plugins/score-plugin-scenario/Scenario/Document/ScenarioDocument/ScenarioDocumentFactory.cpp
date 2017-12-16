@@ -33,19 +33,27 @@ ScenarioDocumentFactory::makePresenter(
   return new ScenarioDocumentPresenter{ctx, parent_presenter, model, view};
 }
 
-score::DocumentDelegateModel* ScenarioDocumentFactory::make(
-    const score::DocumentContext& ctx, score::DocumentModel* parent)
-{
-  return new ScenarioDocumentModel{ctx, parent};
-}
-
-score::DocumentDelegateModel* ScenarioDocumentFactory::load(
-    const VisitorVariant& vis,
+void ScenarioDocumentFactory::make(
     const score::DocumentContext& ctx,
+    score::DocumentDelegateModel*& ptr,
     score::DocumentModel* parent)
 {
-  return score::deserialize_dyn(vis, [&](auto&& deserializer) {
-    return new ScenarioDocumentModel{deserializer, ctx, parent};
+  std::allocator<ScenarioDocumentModel> alloc;
+  ptr = alloc.allocate(1);
+  alloc.construct((ScenarioDocumentModel*)ptr, ctx, parent);
+}
+
+void ScenarioDocumentFactory::load(
+    const VisitorVariant& vis,
+    const score::DocumentContext& ctx,
+    score::DocumentDelegateModel*& ptr,
+    score::DocumentModel* parent)
+{
+  std::allocator<ScenarioDocumentModel> alloc;
+  ptr = alloc.allocate(1);
+  score::deserialize_dyn(vis, [&](auto&& deserializer) {
+    alloc.construct((ScenarioDocumentModel*)ptr, deserializer, ctx, parent);
+    return ptr;
   });
 }
 }

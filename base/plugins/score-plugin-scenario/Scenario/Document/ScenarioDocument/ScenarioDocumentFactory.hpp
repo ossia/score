@@ -30,13 +30,15 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentFactory final : public score:
       const score::DocumentDelegateModel& model,
       score::DocumentDelegateView& view) override;
 
-  score::DocumentDelegateModel* make(
+  void make(
       const score::DocumentContext& ctx,
+      score::DocumentDelegateModel*& ptr,
       score::DocumentModel* parent) override;
 
-  score::DocumentDelegateModel* load(
+  void load(
       const VisitorVariant&,
       const score::DocumentContext& ctx,
+      score::DocumentDelegateModel*& ptr,
       score::DocumentModel* parent) override;
 };
 }
