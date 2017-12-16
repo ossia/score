@@ -60,7 +60,7 @@ class Application final :
         void loadPluginData();
 
         // Base stuff.
-        SafeQApplication* m_app;
+        QCoreApplication* m_app;
         score::Settings m_settings; // Global settings
 
         // MVP

@@ -455,9 +455,14 @@ bool isInFullView(const IntervalModel& cstr)
 {
   // TODO just check if parent() == basescenario
   auto& doc = score::IDocument::documentContext(cstr);
-  auto& sub = safe_cast<Scenario::ScenarioDocumentPresenter&>(
-                doc.document.presenter().presenterDelegate());
-  return &sub.displayedElements.interval() == &cstr;
+  if(auto pres = doc.document.presenter())
+  {
+    auto sub = dynamic_cast<Scenario::ScenarioDocumentPresenter*>(pres->presenterDelegate());
+    if(sub)
+      return &sub->displayedElements.interval() == &cstr;
+    return false;
+  }
+  return false;
 }
 
 bool isInFullView(const Process::ProcessModel& cstr)

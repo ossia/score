@@ -19,7 +19,7 @@ Cable::Cable(Id<Cable> c, QObject* parent)
 
 }
 
-Cable::Cable(const score::DocumentContext& ctx, Id<Cable> c, const CableData& data, QObject* parent):
+Cable::Cable(Id<Cable> c, const CableData& data, QObject* parent):
   IdentifiedObject{c, Metadata<ObjectKey_k, Process::Cable>::get(), parent}
 {
   m_type = data.type;
@@ -27,12 +27,8 @@ Cable::Cable(const score::DocumentContext& ctx, Id<Cable> c, const CableData& da
   m_sink = data.sink;
 }
 
-void Cable::update(const score::DocumentContext& ctx, const CableData& data)
+void Cable::update(const CableData& data)
 {
-  source_node.reset();
-  sink_node.reset();
-  exec.reset();
-
   m_type = data.type;
   m_source = data.source;
   m_sink = data.sink;
@@ -127,7 +123,7 @@ SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::Cable>(Process::C
 {
   Process::CableData cd;
   m_stream >> cd;
-  p.update(score::AppContext().documents.currentDocument()->context(), cd);
+  p.update(cd);
 }
 template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::Cable>(const Process::Cable& p)
@@ -138,6 +134,6 @@ template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::Cable>(Process::Cable& p)
 {
   Process::CableData cd = fromJsonObject<Process::CableData>(obj["Data"].toObject());
-  p.update(score::AppContext().documents.currentDocument()->context(), cd);
+  p.update(cd);
 }
 

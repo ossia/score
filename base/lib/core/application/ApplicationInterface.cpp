@@ -60,9 +60,12 @@ void GUIApplicationInterface::loadPluginData(
 
   registrar.registerGUIApplicationPlugin(
       new score::CoreApplicationPlugin{ctx, presenter});
-  registrar.registerGUIApplicationPlugin(
-      new score::UndoApplicationPlugin{ctx});
 
+  if(presenter.view())
+  {
+    registrar.registerGUIApplicationPlugin(
+          new score::UndoApplicationPlugin{ctx});
+  }
   score::PluginLoader::loadPlugins(registrar, ctx);
 
   // Now rehash our various hash tables
@@ -76,7 +79,10 @@ void GUIApplicationInterface::loadPluginData(
     settings.setupSettingsPlugin(s, ctx, elt);
   }
 
-  presenter.setupGUI();
+  if(presenter.view())
+  {
+    presenter.setupGUI();
+  }
 
   for (score::ApplicationPlugin* app_plug :
        ctx.applicationPlugins())
@@ -84,19 +90,22 @@ void GUIApplicationInterface::loadPluginData(
     app_plug->initialize();
   }
 
-  for (auto& panel_fac :
-       ctx.interfaces<score::PanelDelegateFactoryList>())
+  if(presenter.view())
   {
-    registrar.registerPanel(panel_fac);
-  }
+    for (auto& panel_fac :
+         ctx.interfaces<score::PanelDelegateFactoryList>())
+    {
+      registrar.registerPanel(panel_fac);
+    }
 
-  for(auto& panel : registrar.components().panels)
-  {
-    presenter.view()->setupPanel(panel.get());
+    for(auto& panel : registrar.components().panels)
+    {
+      presenter.view()->setupPanel(panel.get());
+    }
   }
 }
 
-GUIApplicationContext::GUIApplicationContext(const ApplicationSettings& a, const ApplicationComponents& b, DocumentManager& c, MenuManager& d, ToolbarManager& e, ActionManager& f, const std::vector<std::unique_ptr<SettingsDelegateModel> >& g, QMainWindow& mw)
+GUIApplicationContext::GUIApplicationContext(const ApplicationSettings& a, const ApplicationComponents& b, DocumentManager& c, MenuManager& d, ToolbarManager& e, ActionManager& f, const std::vector<std::unique_ptr<SettingsDelegateModel> >& g, QMainWindow* mw)
   : score::ApplicationContext{a, b, c, g},
     docManager{c},
     menus{d},

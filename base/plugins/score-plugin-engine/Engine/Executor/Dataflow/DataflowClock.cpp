@@ -57,9 +57,9 @@ void Clock::play_impl(
         m_plug.execState.register_device(d);
   }
   m_default.play(t);
-  for(auto& n : m_plug.execGraph->m_nodes.left)
+  for(auto& n : m_plug.execGraph->m_nodes)
   {
-    for(auto& port : n.second->inputs())
+    for(auto& port : n.first->inputs())
     {
       if(auto vp = port->data.target<ossia::value_port>())
       {

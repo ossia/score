@@ -71,8 +71,11 @@ Document::Document(
   allocator.construct(m_model, id, m_context, factory, this);
 
   // TODO don't build them / destroy them if !application.gui.
-  m_view = new DocumentView{factory, *this, parentview};
-  m_presenter = new DocumentPresenter{m_context, factory, *m_model, *m_view, this};
+  if(parentview)
+  {
+    m_view = new DocumentView{factory, *this, parentview};
+    m_presenter = new DocumentPresenter{m_context, factory, *m_model, *m_view, this};
+  }
 
   init();
 

@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "ApplicationRegistrar.hpp"
+#include "ApplicationSettings.hpp"
 #include <core/document/Document.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <score/command/CommandGeneratorMap.hpp>
@@ -86,12 +87,14 @@ SCORE_LIB_BASE_EXPORT
 void GUIApplicationRegistrar::registerGUIApplicationPlugin(
     GUIApplicationPlugin* ctrl)
 {
-  // GUI Presenter stuff...
-  auto ui = ctrl->makeGUIElements();
-  m_menuManager.insert(std::move(ui.menus));
-  m_toolbarManager.insert(std::move(ui.toolbars));
-  m_actionManager.insert(std::move(ui.actions.container));
-
+  if(m_context.applicationSettings.gui)
+  {
+    // GUI Presenter stuff...
+    auto ui = ctrl->makeGUIElements();
+    m_menuManager.insert(std::move(ui.menus));
+    m_toolbarManager.insert(std::move(ui.toolbars));
+    m_actionManager.insert(std::move(ui.actions.container));
+  }
   m_components.guiAppPlugins.push_back(ctrl);
 }
 

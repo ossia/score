@@ -50,7 +50,7 @@ void DataStreamWriter::write(Scenario::ScenarioDocumentModel& obj)
   m_stream >> cable_count;
   for (; cable_count-- > 0;)
   {
-    obj.cables.add(new Process::Cable{*this, obj.m_context, &obj});
+    obj.cables.add(new Process::Cable{*this, &obj});
   }
 
   checkDelimiter();

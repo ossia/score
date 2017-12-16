@@ -54,17 +54,6 @@ static void setQApplicationSettings(QApplication &m_app)
     QFontDatabase::addApplicationFont(":/APCCourierBold.otf"); // APCCourier-Bold
     QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf"); // Ubuntu
 
-    QCoreApplication::setOrganizationName("OSSIA");
-    QCoreApplication::setOrganizationDomain("ossia.io");
-    QCoreApplication::setApplicationName("score");
-    QCoreApplication::setApplicationVersion(
-                QString("%1.%2.%3-%4")
-                .arg(SCORE_VERSION_MAJOR)
-                .arg(SCORE_VERSION_MINOR)
-                .arg(SCORE_VERSION_PATCH)
-                .arg(SCORE_VERSION_EXTRA)
-                );
-
 
     QFile stylesheet_file{":/qdarkstyle/qdarkstyle.qss"};
     stylesheet_file.open(QFile::ReadOnly);
@@ -99,12 +88,19 @@ static void setQApplicationSettings(QApplication &m_app)
 }  // namespace score
 
 Application::Application(int& argc, char** argv) :
-    QObject {nullptr},
-    m_app{new SafeQApplication{argc, argv}}
+    QObject {nullptr}
 {
     m_instance = this;
 
-    m_applicationSettings.parse();
+    QStringList l;
+    for(int i = 0; i < argc; i++)
+      l.append(QString::fromUtf8(argv[i]));
+    m_applicationSettings.parse(l);
+
+    if(m_applicationSettings.gui)
+      m_app = new SafeQApplication{argc, argv};
+    else
+      m_app = new QCoreApplication{argc, argv};
 }
 
 Application::Application(
@@ -112,10 +108,13 @@ Application::Application(
         int& argc,
         char** argv) :
     QObject {nullptr},
-    m_app{new SafeQApplication{argc, argv}},
     m_applicationSettings(appSettings)
 {
     m_instance = this;
+    if(m_applicationSettings.gui)
+      m_app = new SafeQApplication{argc, argv};
+    else
+      m_app = new QCoreApplication{argc, argv};
 }
 
 
@@ -126,7 +125,7 @@ Application::~Application()
     delete m_presenter;
 
     score::DocumentBackups::clear();
-    QApplication::processEvents();
+    QCoreApplication::processEvents();
     delete m_app;
 }
 
@@ -144,21 +143,41 @@ const score::ApplicationComponents&Application::components() const
 void Application::init()
 {
 #if !defined(SCORE_DEBUG)
-    QSplashScreen splash{QPixmap{":/score.png"}, Qt::FramelessWindowHint};
-    if(m_applicationSettings.gui)
-        splash.show();
+  QSplashScreen* splash{};
+  if(m_applicationSettings.gui)
+  {
+    splash = new QSplashScreen{QPixmap{":/score.png"}, Qt::FramelessWindowHint};
+    splash->show();
+  }
 #endif
 
     this->setObjectName("Application");
-    this->setParent(qApp);
-    qApp->addLibraryPath(qApp->applicationDirPath() + "/plugins");
+    this->setParent(m_app);
+    m_app->addLibraryPath(m_app->applicationDirPath() + "/plugins");
 #if defined(_MSC_VER)
     QDir::setCurrent(qApp->applicationDirPath());
 #endif
-    score::setQApplicationSettings(*qApp);
+    {
+      QCoreApplication::setOrganizationName("OSSIA");
+      QCoreApplication::setOrganizationDomain("ossia.io");
+      QCoreApplication::setApplicationName("score");
+      QCoreApplication::setApplicationVersion(
+                  QString("%1.%2.%3-%4")
+                  .arg(SCORE_VERSION_MAJOR)
+                  .arg(SCORE_VERSION_MINOR)
+                  .arg(SCORE_VERSION_PATCH)
+                  .arg(SCORE_VERSION_EXTRA)
+                  );
+    }
 
     // MVP
-    m_view = new score::View{this};
+    if(m_applicationSettings.gui)
+    {
+      score::setQApplicationSettings(*qApp);
+      m_settings.setupView();
+      m_view = new score::View{this};
+    }
+
     m_presenter = new score::Presenter{m_applicationSettings, m_settings, m_view, this};
 
     // Plugins
@@ -170,7 +189,11 @@ void Application::init()
         m_view->show();
 
 #if !defined(SCORE_DEBUG)
-        splash.finish(m_view);
+        if(splash)
+        {
+          splash->finish(m_view);
+          splash->deleteLater();
+        }
 #endif
     }
 
@@ -201,10 +224,13 @@ void Application::initDocuments()
         }
     }
 
-    connect(m_app, &SafeQApplication::fileOpened,
-            this, [&] (const QString& file) {
+    if(auto sqa = dynamic_cast<SafeQApplication*>(m_app))
+    {
+      connect(sqa, &SafeQApplication::fileOpened,
+              this, [&] (const QString& file) {
         m_presenter->documentManager().loadFile(ctx, file);
-    });
+      });
+    }
 
     // Try to reload if there was a crash
     if(m_applicationSettings.tryToRestore && score::DocumentBackups::canRestoreDocuments())

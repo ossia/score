@@ -71,6 +71,7 @@
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
 #include <score/document/DocumentInterface.hpp>
+#include <core/application/ApplicationSettings.hpp>
 
 SCORE_DECLARE_ACTION(ShowCables, "&Show cables", Dataflow, Qt::ALT + Qt::SHIFT + Qt::Key_G)
 namespace Scenario
@@ -81,9 +82,13 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
     const score::GUIApplicationContext& ctx)
     : GUIApplicationPlugin{ctx}
 {
-  connect(
-      qApp, &QApplication::applicationStateChanged, this,
-      [&](Qt::ApplicationState st) { editionSettings().setDefault(); });
+  auto app = QCoreApplication::instance();
+  if(auto guiapp = qobject_cast<QGuiApplication*>(app))
+  {
+    connect(
+        guiapp, &QGuiApplication::applicationStateChanged, this,
+        [&](Qt::ApplicationState st) { editionSettings().setDefault(); });
+  }
 
   // Register conditions for the actions enablement
   using namespace score;
@@ -114,8 +119,10 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
   ctx.actions.onSelectionChange(on_si);
   ctx.actions.onFocusChange(on_si);
 
-  m_objectActions.setupContextMenu(m_layerCtxMenuManager);
-
+  if(context.applicationSettings.gui)
+  {
+    m_objectActions.setupContextMenu(m_layerCtxMenuManager);
+  }
   // Dataflow
   m_showCables = new QAction{this};
   m_showCables->setCheckable(true);
@@ -221,52 +228,58 @@ void ScenarioApplicationPlugin::on_documentChanged(
   m_editionSettings.setExecution(false);
 
   if (!newdoc)
-  {
     return;
+
+  // Load cables
+  auto& model
+      = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(*newdoc);
+  model.finishLoading();
+  // TODO do htis on restore
+
+  // Setup ui
+  if(!newdoc->context().app.mainWindow)
+    return;
+
+  auto focusManager = processFocusManager();
+
+  if (!focusManager)
+    return;
+
+  m_focusConnection = connect(
+                        focusManager, &Process::ProcessFocusManager::sig_focusedPresenter,
+                        this, &ScenarioApplicationPlugin::on_presenterFocused);
+  m_defocusConnection = connect(
+                          focusManager, &Process::ProcessFocusManager::sig_defocusedPresenter,
+                          this, &ScenarioApplicationPlugin::on_presenterDefocused);
+
+  if (focusManager->focusedPresenter())
+  {
+    // Used when switching between documents
+    on_presenterFocused(focusManager->focusedPresenter());
   }
   else
   {
-    // Load cables
-
-    auto& model
-        = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(*newdoc);
-    model.finishLoading();
-
-    auto focusManager = processFocusManager();
-
-    if (!focusManager)
-      return;
-
-    m_focusConnection = connect(
-        focusManager, &Process::ProcessFocusManager::sig_focusedPresenter,
-        this, &ScenarioApplicationPlugin::on_presenterFocused);
-    m_defocusConnection = connect(
-        focusManager, &Process::ProcessFocusManager::sig_defocusedPresenter,
-        this, &ScenarioApplicationPlugin::on_presenterDefocused);
-
-    if (focusManager->focusedPresenter())
+    // We focus by default the first process of the interval in full view
+    // we're in
+    // TODO this snippet is useful, put it somewhere in some Toolkit file.
+    ScenarioDocumentPresenter* pres
+        = IDocument::presenterDelegate<ScenarioDocumentPresenter>(*newdoc);
+    if(pres)
     {
-      // Used when switching between documents
-      on_presenterFocused(focusManager->focusedPresenter());
-    }
-    else
-    {
-      // We focus by default the first process of the interval in full view
-      // we're in
-      // TODO this snippet is useful, put it somewhere in some Toolkit file.
-      ScenarioDocumentPresenter& pres
-          = IDocument::presenterDelegate<ScenarioDocumentPresenter>(*newdoc);
-      FullViewIntervalPresenter* cst_pres = pres.presenters().intervalPresenter();
+      FullViewIntervalPresenter* cst_pres = pres->presenters().intervalPresenter();
 
       if(!cst_pres->getSlots().empty())
       {
         focusManager->focus(cst_pres->getSlots().front().process.presenter);
       }
     }
+  }
 
-    // Finally we focus the View widget.
+  // Finally we focus the View widget.
+  if(auto v = newdoc->view())
+  {
     auto bev
-        = dynamic_cast<ScenarioDocumentView*>(&newdoc->view().viewDelegate());
+        = dynamic_cast<ScenarioDocumentView*>(&v->viewDelegate());
     if (bev)
       bev->view().setFocus();
   }
@@ -298,8 +311,11 @@ void ScenarioApplicationPlugin::on_createdDocument(score::Document& doc)
 
 void ScenarioApplicationPlugin::prepareNewDocument()
 {
-  auto& stop_action = context.actions.action<Actions::Stop>();
-  stop_action.action()->trigger();
+  if(context.applicationSettings.gui)
+  {
+    auto& stop_action = context.actions.action<Actions::Stop>();
+    stop_action.action()->trigger();
+  }
 }
 
 Process::ProcessFocusManager*
@@ -307,11 +323,14 @@ ScenarioApplicationPlugin::processFocusManager() const
 {
   if (auto doc = currentDocument())
   {
-    auto bem
-        = dynamic_cast<ScenarioDocumentPresenter*>(&doc->presenter().presenterDelegate());
-    if (bem)
+    if(auto pres = doc->presenter())
     {
-      return &bem->focusManager();
+      auto bem
+          = dynamic_cast<ScenarioDocumentPresenter*>(pres->presenterDelegate());
+      if (bem)
+      {
+        return &bem->focusManager();
+      }
     }
   }
 

@@ -37,7 +37,7 @@ void CreateCable::undo(const score::DocumentContext& ctx) const
 void CreateCable::redo(const score::DocumentContext& ctx) const
 {
   auto& model = m_model.find(ctx);
-  auto c = new Process::Cable{ctx, m_cable, m_dat, &model};
+  auto c = new Process::Cable{m_cable, m_dat, &model};
 
   model.cables.add(c);
   auto ext = m_model.extend(m_cable);
@@ -100,17 +100,15 @@ RemoveCable::RemoveCable(
 void RemoveCable::undo(const score::DocumentContext& ctx) const
 {
   auto& model = m_model.find(ctx);
-  model.cables.add(new Process::Cable{ctx, m_cable, m_data, &model});
+  model.cables.add(new Process::Cable{m_cable, m_data, &model});
 }
 
 void RemoveCable::redo(const score::DocumentContext& ctx) const
 {
   auto& cable = m_model.find(ctx).cables.at(m_cable);
 
-  qDebug() << "before: " << cable.source().find(ctx).cables().size();
   cable.source().find(ctx).removeCable(cable);
   cable.sink().find(ctx).removeCable(cable);
-  qDebug() << "after: " <<cable.source().find(ctx).cables().size();
   m_model.find(ctx).cables.remove(m_cable);
 }
 

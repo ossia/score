@@ -26,6 +26,7 @@
 #include <Scenario/Commands/Cohesion/DoForSelectedIntervals.hpp>
 #include <score/actions/ActionManager.hpp>
 #include <score/widgets/SetIcons.hpp>
+#include <core/application/ApplicationSettings.hpp>
 
 namespace Recording
 {
@@ -50,9 +51,13 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
 
   m_ossiaplug = &ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
 
-  auto& stop_action = ctx.actions.action<Actions::Stop>();
-  m_stopAction = stop_action.action();
-  connect(m_stopAction, &QAction::triggered, this, [&] { stopRecord(); });
+
+  if(ctx.applicationSettings.gui)
+  {
+    auto& stop_action = ctx.actions.action<Actions::Stop>();
+    m_stopAction = stop_action.action();
+    connect(m_stopAction, &QAction::triggered, this, [&] { stopRecord(); });
+  }
 }
 
 void ApplicationPlugin::record(

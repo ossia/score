@@ -40,20 +40,23 @@ SCORE_LIB_BASE_EXPORT ObjectPath unsafe_path(const QObject& obj);
 //// Various getters ////
 
 // Presenter of a document plugin.
-SCORE_LIB_BASE_EXPORT DocumentDelegatePresenter&
+SCORE_LIB_BASE_EXPORT DocumentDelegatePresenter*
 presenterDelegate_generic(const Document& d);
 
 template <typename T>
-T& presenterDelegate(const Document& d)
+T* presenterDelegate(const Document& d)
 {
-  return safe_cast<T&>(presenterDelegate_generic(d));
+  auto pd = presenterDelegate_generic(d);
+  if(pd)
+    return safe_cast<T*>(pd);
+  return nullptr;
 }
 
 template <
     typename T,
     std::enable_if_t<std::is_base_of<DocumentDelegatePresenter, T>::
                          value>* = nullptr>
-T& get(const Document& d)
+T* get(const Document& d)
 {
   return presenterDelegate<T>(d);
 }
@@ -61,7 +64,7 @@ T& get(const Document& d)
 template <typename T>
 T* try_presenterDelegate(const Document& d)
 {
-  return dynamic_cast<T*>(&presenterDelegate_generic(d));
+  return dynamic_cast<T*>(presenterDelegate_generic(d));
 }
 
 template <

@@ -58,6 +58,7 @@
 #include <score/model/EntityMap.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <core/application/ApplicationSettings.hpp>
 
 namespace Scenario
 {
@@ -67,6 +68,8 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
     , m_cstrActions{parent}
     , m_stateActions{parent}
 {
+  if(!parent->context.applicationSettings.gui)
+    return;
   using namespace score;
 
   // REMOVE
@@ -193,11 +196,13 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
         *sm, m_parent->currentDocument()->context().commandStack);
   });
 
-  auto doc = parent->context.mainWindow.findChild<QWidget*>("Documents", Qt::FindDirectChildrenOnly);
-  SCORE_ASSERT(doc);
-  doc->addAction(m_removeElements);
-  doc->addAction(m_pasteElements);
-
+  if(parent->context.mainWindow)
+  {
+    auto doc = parent->context.mainWindow->findChild<QWidget*>("Documents", Qt::FindDirectChildrenOnly);
+    SCORE_ASSERT(doc);
+    doc->addAction(m_removeElements);
+    doc->addAction(m_pasteElements);
+  }
 
   // Selection actions
   m_selectAll = new QAction{tr("Select all"), this};

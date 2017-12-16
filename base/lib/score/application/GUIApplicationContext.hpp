@@ -21,7 +21,7 @@ struct GUIApplicationContext : public score::ApplicationContext
       score::ToolbarManager& e,
       score::ActionManager& f,
       const std::vector<std::unique_ptr<score::SettingsDelegateModel>>& g,
-      QMainWindow& mw);
+      QMainWindow* mw);
 
   /**
    * @brief List of the available GUI panels.
@@ -91,7 +91,7 @@ struct GUIApplicationContext : public score::ApplicationContext
   MenuManager& menus;
   ToolbarManager& toolbars;
   ActionManager& actions;
-  QMainWindow& mainWindow;
+  QMainWindow* mainWindow{};
 };
 
 SCORE_LIB_BASE_EXPORT const GUIApplicationContext& GUIAppContext();

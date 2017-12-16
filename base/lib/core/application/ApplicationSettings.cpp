@@ -13,7 +13,7 @@
 #include "ApplicationSettings.hpp"
 namespace score
 {
-void ApplicationSettings::parse()
+void ApplicationSettings::parse(QStringList cargs)
 {
   QCommandLineParser parser;
   parser.setApplicationDescription(QObject::tr(
@@ -36,7 +36,7 @@ void ApplicationSettings::parse()
       QCoreApplication::translate("main", "Auto-play the loaded scenario"));
   parser.addOption(autoplayOpt);
 
-  parser.process(*qApp);
+  parser.process(cargs);
 
   const QStringList args = parser.positionalArguments();
 

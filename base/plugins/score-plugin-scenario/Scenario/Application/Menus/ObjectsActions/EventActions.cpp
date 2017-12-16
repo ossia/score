@@ -23,7 +23,7 @@
 #include <QMenu>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Commands/Event/SetCondition.hpp>
-
+#include <core/application/ApplicationSettings.hpp>
 namespace Scenario
 {
 EventActions::EventActions(ScenarioApplicationPlugin* parent)
@@ -32,6 +32,8 @@ EventActions::EventActions(ScenarioApplicationPlugin* parent)
           parent->context
               .interfaces<Command::TriggerCommandFactoryList>()}
 {
+  if(!parent->context.applicationSettings.gui)
+    return;
   using namespace score;
 
   /// Add Trigger ///

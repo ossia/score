@@ -18,20 +18,39 @@ EffectProcessComponentBase::EffectProcessComponentBase(
   m_ossia_process = std::make_shared<effect_chain_process>();
 }
 
+static auto move_edges(ossia::inlet& old_in, std::shared_ptr<ossia::inlet> new_in, std::shared_ptr<ossia::graph_node> new_node, ossia::graph& g)
+{
+  auto old_sources = old_in.sources;
+  for(auto e : old_sources)
+  {
+    g.connect(ossia::make_edge(e->con, e->out, new_in, e->out_node, new_node));
+    g.disconnect(e);
+  }
+}
+static auto move_edges(ossia::outlet& old_out, std::shared_ptr<ossia::outlet> new_out, std::shared_ptr<ossia::graph_node> new_node, ossia::graph& g)
+{
+  auto old_targets = old_out.targets;
+  for(auto e : old_targets)
+  {
+    g.connect(ossia::make_edge(e->con, new_out, e->in, new_node, e->in_node));
+    g.disconnect(e);
+  }
+}
+
 EffectComponent* EffectProcessComponentBase::make(
     const Id<score::Component>& id,
     EffectComponentFactory& factory,
     Media::Effect::EffectModel& effect)
 {
-  Media::Effect::ProcessModel& element = process();
   const Engine::Execution::Context & ctx = system();
 
   std::shared_ptr<EffectComponent> fx = factory.make(effect, system(), id, this);
   if(fx)
   {
     SCORE_ASSERT(fx->node);
-    auto idx = process().effectPosition(effect.id());
-    SCORE_ASSERT(idx != -1);
+    auto idx_ = process().effectPosition(effect.id());
+    SCORE_ASSERT(idx_ != -1);
+    std::size_t idx = idx_;
     if(m_fxes.size() < (idx + 1))
       m_fxes.resize(idx + 1);
     m_fxes[idx] = std::make_pair(effect.id(), RegisteredEffect{fx, {}, {}});
@@ -43,6 +62,9 @@ EffectComponent* EffectProcessComponentBase::make(
     SCORE_ASSERT(this_fx.node()->outputs().size() > 0);
     this_fx.registeredInlets = effect.inlets();
     this_fx.registeredOutlets = effect.outlets();
+
+    std::vector<ossia::edge_ptr> edges_to_inlet;
+    std::vector<ossia::edge_ptr> edges_from_outlet;
     // TODO this could be glitchy : there's no guarantee there won't be another tick between all the submitted commands
     if(idx == 0)
     {
@@ -53,6 +75,7 @@ EffectComponent* EffectProcessComponentBase::make(
         if(old_first.second)
         {
           unreg(old_first.second);
+          // Take all the incoming cables and keep them
           old_first.second.registeredInlets = process().effects().at(old_first.first).inlets();
           reg(old_first.second);
         }
@@ -69,6 +92,8 @@ EffectComponent* EffectProcessComponentBase::make(
         system().executionQueue.enqueue(
               [g=ctx.plugin.execGraph, n1=fx->node, n2=m_fxes[1].second.node()]
         {
+          move_edges(*n2->inputs()[0], n1->inputs()[0], n1, *g);
+
           auto edge = ossia::make_edge(
             ossia::immediate_strict_connection{}, n1->outputs()[0], n2->inputs()[0], n1, n2);
           g->connect(std::move(edge));
@@ -115,6 +140,7 @@ EffectComponent* EffectProcessComponentBase::make(
           system().executionQueue.enqueue(
                 [g=ctx.plugin.execGraph, n1=old_last_comp.second.node(), n2=this_fx.node()]
           {
+            move_edges(*n1->outputs()[0], n2->outputs()[0], n2, *g);
             auto edge = ossia::make_edge(
                           ossia::immediate_strict_connection{}, n1->outputs()[0], n2->inputs()[0], n1, n2);
             g->connect(std::move(edge));
@@ -199,7 +225,7 @@ std::function<void ()> EffectProcessComponentBase::removing(
   auto it = ossia::find_if(m_fxes, [&] (const auto& v) { return v.first == e.id(); });
   if(it == m_fxes.end())
     return {};
-  auto idx = std::distance(m_fxes.begin(), it);
+  std::size_t idx = std::distance(m_fxes.begin(), it);
   auto& this_fx = it->second;
 
   // Remove all the chaining
@@ -260,6 +286,15 @@ std::function<void ()> EffectProcessComponentBase::removing(
   }
   m_fxes.erase(it);
   return {};
+}
+
+void EffectProcessComponentBase::unreg(const EffectProcessComponentBase::RegisteredEffect& fx)
+{
+  system().plugin.unregister_node_soft(fx.registeredInlets, fx.registeredOutlets, fx.node());
+}
+
+void EffectProcessComponentBase::reg(const EffectProcessComponentBase::RegisteredEffect& fx) {
+  system().plugin.register_node(fx.registeredInlets, fx.registeredOutlets, fx.node());
 }
 
 EffectProcessComponentBase::~EffectProcessComponentBase()

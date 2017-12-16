@@ -71,38 +71,41 @@ struct hash<score::LoadedPluginVersions>
 
 namespace score
 {
-DocumentManager::DocumentManager(score::View& view, QObject* parentPresenter)
-    : m_view{view}, m_builder{parentPresenter, &view}
+DocumentManager::DocumentManager(score::View* view, QObject* parentPresenter)
+    : m_view{view}, m_builder{parentPresenter, view}
 {
 }
 
 void DocumentManager::init(const score::GUIApplicationContext& ctx)
 {
-  con(m_view, &View::activeDocumentChanged, this,
-      [&](const Id<DocumentModel>& doc) {
-        prepareNewDocument(ctx);
-        auto it = ossia::find_if(m_documents, [&](auto other) {
-          return other->model().id() == doc;
-        });
-        setCurrentDocument(ctx, it != m_documents.end() ? *it : nullptr);
-      },
-      Qt::QueuedConnection);
+  if(m_view)
+  {
+    connect(m_view, &View::activeDocumentChanged, this,
+        [&](const Id<DocumentModel>& doc) {
+      prepareNewDocument(ctx);
+      auto it = ossia::find_if(m_documents, [&](auto other) {
+        return other->model().id() == doc;
+      });
+      setCurrentDocument(ctx, it != m_documents.end() ? *it : nullptr);
+    },
+    Qt::QueuedConnection);
 
-  con(m_view, &View::closeRequested, this, [&](const Id<DocumentModel>& doc) {
-    auto it = ossia::find_if(
-        m_documents, [&](auto other) { return other->model().id() == doc; });
-    SCORE_ASSERT(it != m_documents.end());
-    closeDocument(ctx, **it);
-  });
+    connect(m_view, &View::closeRequested, this, [&](const Id<DocumentModel>& doc) {
+      auto it = ossia::find_if(
+                  m_documents, [&](auto other) { return other->model().id() == doc; });
+      SCORE_ASSERT(it != m_documents.end());
+      closeDocument(ctx, **it);
+    });
 
-  m_recentFiles = new QRecentFilesMenu{tr("Recent files"), nullptr};
+    m_recentFiles = new QRecentFilesMenu{tr("Recent files"), nullptr};
 
-  QSettings settings("OSSIA", "score");
-  m_recentFiles->restoreState(settings.value("RecentFiles").toByteArray());
+    QSettings settings("OSSIA", "score");
+    m_recentFiles->restoreState(settings.value("RecentFiles").toByteArray());
 
-  connect(
-      m_recentFiles, &QRecentFilesMenu::recentFileTriggered, this,
-      [&](const QString& f) { loadFile(ctx, f); });
+    connect(
+          m_recentFiles, &QRecentFilesMenu::recentFileTriggered, this,
+          [&](const QString& f) { loadFile(ctx, f); });
+  }
 }
 
 DocumentManager::~DocumentManager()
@@ -133,11 +136,14 @@ Document* DocumentManager::setupDocument(
     if (it == m_documents.end())
       m_documents.push_back(doc);
 
-    m_view.addDocumentView(&doc->view());
+    if(m_view)
+    {
+      m_view->addDocumentView(doc->view());
+      connect(
+          &doc->metadata(), &DocumentMetadata::fileNameChanged, this,
+          [=](const QString& s) { m_view->on_fileNameChanged(doc->view(), s); });
+    }
     setCurrentDocument(ctx, doc);
-    connect(
-        &doc->metadata(), &DocumentMetadata::fileNameChanged, this,
-        [=](const QString& s) { m_view.on_fileNameChanged(&doc->view(), s); });
   }
   else
   {
@@ -224,7 +230,8 @@ void DocumentManager::forceCloseDocument(
 
   QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
-  m_view.closeDocument(&doc.view());
+  if(m_view)
+    m_view->closeDocument(doc.view());
   ossia::remove_one(m_documents, &doc);
   setCurrentDocument(ctx, !m_documents.empty() ? m_documents.back() : nullptr);
 
@@ -263,7 +270,9 @@ bool DocumentManager::saveDocument(Document& doc)
 
 bool DocumentManager::saveDocumentAs(Document& doc)
 {
-  QFileDialog d{&m_view, tr("Save Document As")};
+  if(!m_view)
+    return false;
+  QFileDialog d{m_view, tr("Save Document As")};
   QString binFilter{tr("Binary (*.scorebin)")};
   QString jsonFilter{tr("Score (*.score)")};
   QStringList filters;
@@ -317,7 +326,9 @@ bool DocumentManager::saveDocumentAs(Document& doc)
 
 bool DocumentManager::saveStack()
 {
-  QFileDialog d{&m_view, tr("Save Stack As")};
+  if(!m_view)
+    return false;
+  QFileDialog d{m_view, tr("Save Stack As")};
   d.setNameFilters({"*.stack"});
   d.setConfirmOverwrite(true);
   d.setFileMode(QFileDialog::AnyFile);
@@ -348,8 +359,11 @@ bool DocumentManager::saveStack()
 
 Document* DocumentManager::loadStack(const score::GUIApplicationContext& ctx)
 {
+  if(!m_view)
+    return nullptr;
+
   QString loadname = QFileDialog::getOpenFileName(
-      &m_view, tr("Open Stack"), QString(), "*.stack");
+      m_view, tr("Open Stack"), QString(), "*.stack");
   if (!loadname.isEmpty() && (loadname.indexOf(".stack") != -1))
   {
     return loadStack(ctx, loadname);
@@ -391,8 +405,11 @@ Document* DocumentManager::loadStack(
 SCORE_LIB_BASE_EXPORT
 Document* DocumentManager::loadFile(const score::GUIApplicationContext& ctx)
 {
+  if(!m_view)
+    return nullptr;
+
   QString loadname = QFileDialog::getOpenFileName(
-      &m_view, tr("Open"), QString(), "*.scorebin *.score *.scorejson");
+      m_view, tr("Open"), QString(), "*.scorebin *.score *.scorejson");
   return loadFile(ctx, loadname);
 }
 
@@ -405,8 +422,11 @@ Document* DocumentManager::loadFile(
     QFile f{fileName};
     if (f.open(QIODevice::ReadOnly))
     {
-      m_recentFiles->addRecentFile(fileName);
-      saveRecentFilesState();
+      if(m_recentFiles)
+      {
+        m_recentFiles->addRecentFile(fileName);
+        saveRecentFilesState();
+      }
 
       if (fileName.indexOf(".scorebin") != -1)
       {

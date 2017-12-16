@@ -106,9 +106,10 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   ////// BODY
   auto setAsDisplayedInterval = new QPushButton{tr("Full view"), this};
   connect(setAsDisplayedInterval, &QPushButton::clicked, this, [this] {
-    auto& base = get<ScenarioDocumentPresenter>(*documentFromObject(m_model));
+    auto base = get<ScenarioDocumentPresenter>(*documentFromObject(m_model));
 
-    base.setDisplayedInterval(model());
+    if(base)
+      base->setDisplayedInterval(model());
   });
 
   // Transport

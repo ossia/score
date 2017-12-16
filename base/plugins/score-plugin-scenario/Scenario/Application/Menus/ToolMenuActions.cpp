@@ -22,6 +22,7 @@
 #include <score/actions/MenuManager.hpp>
 
 #include <score/widgets/SetIcons.hpp>
+#include <core/application/ApplicationSettings.hpp>
 
 class QObject;
 namespace Scenario
@@ -49,6 +50,8 @@ QAction* makeToolbarAction(
 ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
     : m_parent{parent}
 {
+  if(!parent->context.applicationSettings.gui)
+    return;
   m_scenarioToolActionGroup = new QActionGroup{this};
 
   // NOTE : if a scenario isn't focused, they shouldn't event be clickable.
@@ -132,7 +135,8 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
   connect(m_altAction, &QAction::toggled, this, [=](bool val) {
     m_parent->editionSettings().setLockMode(val ? LockMode::Constrained : LockMode::Free);
   });
-  parent->context.mainWindow.addAction(m_altAction);
+  if(parent->context.mainWindow)
+    parent->context.mainWindow->addAction(m_altAction);
 
 
   // SCALEMODE

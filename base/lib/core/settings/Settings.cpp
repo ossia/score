@@ -10,19 +10,24 @@
 namespace score
 {
 Settings::Settings()
-    : m_settingsView{new SettingsView(nullptr)}
-    , m_settingsPresenter{new SettingsPresenter(m_settingsView, nullptr)}
 {
 }
 
 Settings::~Settings()
 {
-  m_settingsView->deleteLater();
+  if(m_settingsView)
+    m_settingsView->deleteLater();
   for (auto& ptr : m_settings)
   {
     auto p = ptr.release();
     p->deleteLater();
   }
+}
+
+void Settings::setupView()
+{
+  m_settingsView = new SettingsView(nullptr);
+  m_settingsPresenter = new SettingsPresenter(m_settingsView, nullptr);
 }
 
 void Settings::setupSettingsPlugin(
@@ -37,20 +42,23 @@ void Settings::setupSettingsPlugin(
   auto& model_ref = *model;
   m_settings.push_back(std::move(model));
 
-  auto view = plugin.makeView();
-  if (!view)
-    return;
+  if(m_settingsView)
+  {
+    auto view = plugin.makeView();
+    if (!view)
+      return;
 
-  auto pres = plugin.makePresenter(model_ref, *view, m_settingsPresenter);
-  if (pres)
-  {
-    // Ownership transfer
-    m_settingsPresenter->addSettingsPresenter(pres);
-    m_settingsView->addSettingsView(view);
-  }
-  else
-  {
-    delete view;
+    auto pres = plugin.makePresenter(model_ref, *view, m_settingsPresenter);
+    if (pres)
+    {
+      // Ownership transfer
+      m_settingsPresenter->addSettingsPresenter(pres);
+      m_settingsView->addSettingsView(view);
+    }
+    else
+    {
+      delete view;
+    }
   }
 }
 }

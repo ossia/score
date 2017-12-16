@@ -87,7 +87,10 @@ Document* DocumentBuilder::loadDocument(
   }
   catch (std::runtime_error& e)
   {
-    QMessageBox::warning(m_parentView, QObject::tr("Error"), e.what());
+    if(m_parentView)
+      QMessageBox::warning(m_parentView, QObject::tr("Error"), e.what());
+    else
+      qDebug() << "Error while loading: " << e.what();
 
     if (!doclist.empty()
         && doclist.back() == doc)
@@ -140,7 +143,10 @@ Document* DocumentBuilder::restoreDocument(
   }
   catch (std::runtime_error& e)
   {
-    QMessageBox::warning(m_parentView, QObject::tr("Error"), e.what());
+    if(m_parentView)
+      QMessageBox::warning(m_parentView, QObject::tr("Error"), e.what());
+    else
+      qDebug() << "Error while loading: " << e.what();
 
     if (!doclist.empty()
         && doclist.back() == doc)

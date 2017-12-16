@@ -128,10 +128,12 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
   // Go to full-view on double click
   connect(head, &TemporalIntervalHeader::doubleClicked, this, [this]() {
     using namespace score::IDocument;
-    ScenarioDocumentPresenter& base
+
+    ScenarioDocumentPresenter* base
         = get<ScenarioDocumentPresenter>(*documentFromObject(m_model));
 
-    base.setDisplayedInterval(const_cast<IntervalModel&>(m_model));
+    if(base)
+      base->setDisplayedInterval(const_cast<IntervalModel&>(m_model));
   });
 
   // Slots & racks

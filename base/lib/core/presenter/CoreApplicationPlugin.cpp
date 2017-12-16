@@ -53,12 +53,14 @@ void CoreApplicationPlugin::close()
 
 void CoreApplicationPlugin::quit()
 {
-  m_presenter.m_view->close();
+  if(m_presenter.m_view)
+    m_presenter.m_view->close();
 }
 
 void CoreApplicationPlugin::restoreLayout()
 {
-  m_presenter.m_view->restoreLayout();
+  if(m_presenter.m_view)
+    m_presenter.m_view->restoreLayout();
 }
 
 void CoreApplicationPlugin::openSettings()
@@ -146,130 +148,135 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
   // Close
   // Quit
 
+  if(m_presenter.view())
   {
-    auto new_doc = new QAction(m_presenter.view());
-    connect(
-        new_doc,
-        &QAction::triggered,
-        this,
-        &CoreApplicationPlugin::newDocument);
-    file->addAction(new_doc);
-    e.actions.add<Actions::New>(new_doc);
-  }
 
-  file->addSeparator();
+    {
+      auto new_doc = new QAction(m_presenter.view());
+      connect(
+          new_doc,
+          &QAction::triggered,
+          this,
+          &CoreApplicationPlugin::newDocument);
+      file->addAction(new_doc);
+      e.actions.add<Actions::New>(new_doc);
+    }
 
-  {
-    auto load_doc = new QAction(m_presenter.view());
-    connect(load_doc, &QAction::triggered, this, &CoreApplicationPlugin::load);
-    e.actions.add<Actions::Load>(load_doc);
-    file->addAction(load_doc);
-  }
+    file->addSeparator();
 
-  file->addMenu(m_presenter.m_docManager.recentFiles());
+    {
+      auto load_doc = new QAction(m_presenter.view());
+      connect(load_doc, &QAction::triggered, this, &CoreApplicationPlugin::load);
+      e.actions.add<Actions::Load>(load_doc);
+      file->addAction(load_doc);
+    }
 
-  auto& cond = context.actions.condition<EnableActionIfDocument>();
-  {
-    auto save_doc = new QAction(m_presenter.view());
-    connect(save_doc, &QAction::triggered, this, &CoreApplicationPlugin::save);
-    e.actions.add<Actions::Save>(save_doc);
-    cond.add<Actions::Save>();
-    file->addAction(save_doc);
-  }
+    file->addMenu(m_presenter.m_docManager.recentFiles());
 
-  {
-    auto saveas_doc = new QAction(m_presenter.view());
-    connect(
-        saveas_doc, &QAction::triggered, this, &CoreApplicationPlugin::saveAs);
-    e.actions.add<Actions::SaveAs>(saveas_doc);
-    cond.add<Actions::SaveAs>();
-    file->addAction(saveas_doc);
-  }
+    auto& cond = context.actions.condition<EnableActionIfDocument>();
+    {
+      auto save_doc = new QAction(m_presenter.view());
+      connect(save_doc, &QAction::triggered, this, &CoreApplicationPlugin::save);
+      e.actions.add<Actions::Save>(save_doc);
+      cond.add<Actions::Save>();
+      file->addAction(save_doc);
+    }
 
-  file->addSeparator();
+    {
+      auto saveas_doc = new QAction(m_presenter.view());
+      connect(
+          saveas_doc, &QAction::triggered, this, &CoreApplicationPlugin::saveAs);
+      e.actions.add<Actions::SaveAs>(saveas_doc);
+      cond.add<Actions::SaveAs>();
+      file->addAction(saveas_doc);
+    }
 
-  file->addMenu(export_menu);
-#ifdef SCORE_DEBUG
-  // Add command stack import / export
-  {
-    auto loadStack_act = new QAction(m_presenter.view());
-    connect(
-        loadStack_act,
-        &QAction::triggered,
-        this,
-        &CoreApplicationPlugin::loadStack);
-    actions.emplace_back(
-        loadStack_act,
-        tr("&Load a stack"),
-        "LoadStack",
-        "Common",
-        QKeySequence::UnknownKey);
-    export_menu->addAction(loadStack_act);
-  }
+    file->addSeparator();
 
-  {
-    auto saveStack_act = new QAction(m_presenter.view());
-    connect(
-        saveStack_act,
-        &QAction::triggered,
-        this,
-        &CoreApplicationPlugin::saveStack);
-    actions.emplace_back(
-        saveStack_act,
-        tr("&Save a stack"),
-        "SaveStack",
-        "Common",
-        QKeySequence::UnknownKey);
-    export_menu->addAction(saveStack_act);
-  }
-#endif
+    file->addMenu(export_menu);
+  #ifdef SCORE_DEBUG
+    // Add command stack import / export
+    {
+      auto loadStack_act = new QAction(m_presenter.view());
+      connect(
+          loadStack_act,
+          &QAction::triggered,
+          this,
+          &CoreApplicationPlugin::loadStack);
+      actions.emplace_back(
+          loadStack_act,
+          tr("&Load a stack"),
+          "LoadStack",
+          "Common",
+          QKeySequence::UnknownKey);
+      export_menu->addAction(loadStack_act);
+    }
 
-  file->addSeparator();
+    {
+      auto saveStack_act = new QAction(m_presenter.view());
+      connect(
+          saveStack_act,
+          &QAction::triggered,
+          this,
+          &CoreApplicationPlugin::saveStack);
+      actions.emplace_back(
+          saveStack_act,
+          tr("&Save a stack"),
+          "SaveStack",
+          "Common",
+          QKeySequence::UnknownKey);
+      export_menu->addAction(saveStack_act);
+    }
+  #endif
 
-  {
-    auto close_act = new QAction(m_presenter.view());
-    connect(
-        close_act, &QAction::triggered, this, &CoreApplicationPlugin::close);
-    e.actions.add<Actions::Close>(close_act);
-    file->addAction(close_act);
-  }
+    file->addSeparator();
 
-  {
-    auto quit_act = new QAction(m_presenter.view());
-    connect(quit_act, &QAction::triggered, this, &CoreApplicationPlugin::quit);
-    e.actions.add<Actions::Quit>(quit_act);
-    file->addAction(quit_act);
-  }
+    {
+      auto close_act = new QAction(m_presenter.view());
+      connect(
+          close_act, &QAction::triggered, this, &CoreApplicationPlugin::close);
+      e.actions.add<Actions::Close>(close_act);
+      file->addAction(close_act);
+    }
 
-  ////// View //////
-  view->addMenu(windows_menu);
-  {
-    auto act = new QAction(m_presenter.view());
-    connect(
-        act, &QAction::triggered, this, &CoreApplicationPlugin::restoreLayout);
-    e.actions.add<Actions::RestoreLayout>(act);
-    windows_menu->addAction(act);
-  }
+    {
+      auto quit_act = new QAction(m_presenter.view());
+      connect(quit_act, &QAction::triggered, this, &CoreApplicationPlugin::quit);
+      e.actions.add<Actions::Quit>(quit_act);
+      file->addAction(quit_act);
+    }
 
-  ////// Settings //////
-  {
-    auto settings_act = new QAction(m_presenter.view());
-    connect(
-        settings_act,
-        &QAction::triggered,
-        this,
-        &CoreApplicationPlugin::openSettings);
-    e.actions.add<Actions::OpenSettings>(settings_act);
-    settings->addAction(settings_act);
-  }
+    ////// View //////
+    view->addMenu(windows_menu);
+    {
+      auto act = new QAction(m_presenter.view());
+      connect(
+          act, &QAction::triggered, this, &CoreApplicationPlugin::restoreLayout);
+      e.actions.add<Actions::RestoreLayout>(act);
+      windows_menu->addAction(act);
+    }
 
-  ////// About /////
-  {
-    auto about_act = new QAction(m_presenter.view());
-    connect(
-        about_act, &QAction::triggered, this, &CoreApplicationPlugin::about);
-    e.actions.add<Actions::About>(about_act);
-    about->addAction(about_act);
+    ////// Settings //////
+    {
+      auto settings_act = new QAction(m_presenter.view());
+      connect(
+          settings_act,
+          &QAction::triggered,
+          this,
+          &CoreApplicationPlugin::openSettings);
+      e.actions.add<Actions::OpenSettings>(settings_act);
+      settings->addAction(settings_act);
+    }
+
+    ////// About /////
+    {
+      auto about_act = new QAction(m_presenter.view());
+      connect(
+          about_act, &QAction::triggered, this, &CoreApplicationPlugin::about);
+      e.actions.add<Actions::About>(about_act);
+      about->addAction(about_act);
+    }
+
   }
 
   return e;
