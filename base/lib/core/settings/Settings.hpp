@@ -38,6 +38,8 @@ public:
   Settings();
   ~Settings();
 
+  void setupView();
+
   Settings(const Settings&) = delete;
   Settings(Settings&&) = delete;
   Settings& operator=(const Settings&) = delete;

@@ -80,80 +80,84 @@ void DocumentPlugin::on_cableRemoved(const Process::Cable& c)
 {
   if(!m_base.active())
     return;
-  auto cable = c.exec;
-  auto graph = execGraph;
-
-  context().executionQueue.enqueue([cable,graph] {
-    graph->disconnect(cable);
-  });
+  auto it = m_cables.find(c.id());
+  if(it != m_cables.end())
+  {
+    qDebug() << "REmonvinfg" << bool(it->second);
+    context().executionQueue.enqueue([cable=it->second,graph=execGraph] {
+      graph->disconnect(cable);
+    });
+  }
 }
 
 void DocumentPlugin::connectCable(Process::Cable& cable)
 {
   if(!m_base.active())
     return;
+  ossia::node_ptr source_node, sink_node;
+  ossia::outlet_ptr source_port;
+  ossia::inlet_ptr sink_port;
   if(auto port_src = cable.source().try_find(context().doc))
   {
     auto it = outlets.find(port_src);
     if(it != outlets.end()) {
-      cable.source_node = it->second.first;
-      cable.source_port = it->second.second;
+      source_node = it->second.first;
+      source_port = it->second.second;
     }
   }
   if(auto port_snk = cable.sink().try_find(context().doc))
   {
     auto it = inlets.find(port_snk);
     if(it != inlets.end()){
-      cable.sink_node = it->second.first;
-      cable.sink_port = it->second.second;
+      sink_node = it->second.first;
+      sink_port = it->second.second;
     }
   }
 
-  if(cable.source_node && cable.sink_node)
+  if(source_node && sink_node && source_port && sink_port)
   {
-    context().executionQueue.enqueue(
-          [type=cable.type()
-          ,outlet=cable.source_node
-          ,inlet=cable.sink_node
-          ,outport=cable.source_port
-          ,inport=cable.sink_port
-          ,graph=execGraph
-          ]
+    ossia::edge_ptr edge;
+    switch(cable.type())
     {
-      ossia::edge_ptr edge;
-      switch(type)
+      case Process::CableType::ImmediateStrict:
       {
-        case Process::CableType::ImmediateStrict:
-        {
-          edge = ossia::make_edge(
-                   ossia::immediate_strict_connection{},
-                   outport, inport, outlet, inlet);
-          break;
-        }
-        case Process::CableType::ImmediateGlutton:
-        {
-          edge = ossia::make_edge(
-                   ossia::immediate_glutton_connection{},
-                   outport, inport, outlet, inlet);
-          break;
-        }
-        case Process::CableType::DelayedStrict:
-        {
-          edge = ossia::make_edge(
-                   ossia::delayed_strict_connection{},
-                   outport, inport, outlet, inlet);
-          break;
-        }
-        case Process::CableType::DelayedGlutton:
-        {
-          edge = ossia::make_edge(
-                   ossia::delayed_glutton_connection{},
-                   outport, inport, outlet, inlet);
-          break;
-        }
+        edge = ossia::make_edge(
+                 ossia::immediate_strict_connection{},
+                 std::move(source_port), std::move(sink_port),
+                 std::move(source_node), std::move(sink_node));
+        break;
       }
+      case Process::CableType::ImmediateGlutton:
+      {
+        edge = ossia::make_edge(
+                 ossia::immediate_glutton_connection{},
+                 std::move(source_port), std::move(sink_port),
+                 std::move(source_node), std::move(sink_node));
+        break;
+      }
+      case Process::CableType::DelayedStrict:
+      {
+        edge = ossia::make_edge(
+                 ossia::delayed_strict_connection{},
+                 std::move(source_port), std::move(sink_port),
+                 std::move(source_node), std::move(sink_node));
+        break;
+      }
+      case Process::CableType::DelayedGlutton:
+      {
+        edge = ossia::make_edge(
+                 ossia::delayed_glutton_connection{},
+                 std::move(source_port), std::move(sink_port),
+                 std::move(source_node), std::move(sink_node));
+        break;
+      }
+    }
 
-      graph->connect(edge);
+    m_cables[cable.id()] = edge;
+    context().executionQueue.enqueue(
+          [edge,graph=execGraph]
+    {
+      graph->connect(std::move(edge));
     });
   }
 }
@@ -177,41 +181,11 @@ void DocumentPlugin::on_finished()
   m_base.cleanup();
   runAllCommands();
 
-  for(Process::Cable& cbl : doc.cables)
-  {
-    cbl.source_node.reset();
-    cbl.sink_node.reset();
-    cbl.source_port.reset();
-    cbl.sink_port.reset();
-    cbl.exec.reset();
-  }
-
   inlets.clear();
   outlets.clear();
   m_cables.clear();
   execGraph->clear();
   execGraph.reset();
-
-
-  for (Process::Cable& cable : doc.cables)
-  {
-    if(cable.source_node)
-    {
-      cable.source_node->clear();
-      cable.source_node.reset();
-    }
-    if(cable.sink_node)
-    {
-      cable.sink_node->clear();
-      cable.sink_node.reset();
-    }
-
-    if(cable.exec)
-    {
-      cable.exec->clear();
-      cable.exec.reset();
-    }
-  }
 
   execState.clear();
   execState.globalState.clear();

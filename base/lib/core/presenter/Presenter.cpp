@@ -36,7 +36,6 @@
 #include <score/model/Identifier.hpp>
 
 #include "score_git_info.hpp"
-#include <score/plugins/panel/PanelDelegate.hpp>
 
 namespace score
 {
@@ -55,7 +54,7 @@ Presenter::Presenter(
     : QObject{arg_parent}
     , m_view{view}
     , m_settings{set}
-    , m_docManager{*view, this}
+    , m_docManager{view, this}
     , m_components{}
     , m_components_readonly{m_components}
     ,
@@ -63,12 +62,12 @@ Presenter::Presenter(
     m_menubar{new QMenuBar}
     ,
 #else
-    m_menubar{view->menuBar()}
+    m_menubar{view ? view->menuBar() : (QMenuBar*) nullptr}
     ,
 #endif
     m_context{
         app,       m_components_readonly, m_docManager, m_menus, m_toolbars,
-        m_actions, m_settings.settings(), *m_view}
+        m_actions, m_settings.settings(), m_view}
 {
   m_docManager.init(m_context); // It is necessary to break
   // this dependency cycle.
@@ -77,7 +76,8 @@ Presenter::Presenter(
       &m_context.docManager, &DocumentManager::documentChanged, &m_actions,
       &ActionManager::reset);
 
-  m_view->setPresenter(this);
+  if(m_view)
+    m_view->setPresenter(this);
 }
 
 bool Presenter::exit()
@@ -106,9 +106,12 @@ void Presenter::setupGUI()
       return lhs.column() < rhs.column();
     });
 
-    for (Menu& menu : menus)
+    if(view())
     {
-      view()->menuBar()->addMenu(menu.menu());
+      for (Menu& menu : menus)
+      {
+        view()->menuBar()->addMenu(menu.menu());
+      }
     }
   }
 
@@ -129,6 +132,9 @@ void Presenter::setupGUI()
       {
         toolbars.at(tb.second.row()).push_back(tb.second);
       }
+
+      if(!view())
+        return;
 
       int i = 0;
       int n = toolbars.size();

@@ -174,12 +174,8 @@ private:
   std::vector<std::pair<Id<Media::Effect::EffectModel>, RegisteredEffect>> m_fxes;
 
 
-  void unreg(const RegisteredEffect& fx) {
-    system().plugin.unregister_node_soft(fx.registeredInlets, fx.registeredOutlets, fx.node());
-  }
-  void reg(const RegisteredEffect& fx) {
-    system().plugin.register_node(fx.registeredInlets, fx.registeredOutlets, fx.node());
-  }
+  void unreg(const RegisteredEffect& fx);
+  void reg(const RegisteredEffect& fx);
 };
 
 

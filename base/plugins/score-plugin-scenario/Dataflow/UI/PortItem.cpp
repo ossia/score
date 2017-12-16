@@ -373,10 +373,10 @@ class PortTooltip : public QWidget
           cb->setChecked(outlet->propagate());
           lay->addRow(tr("Propagate"), cb);
           connect(cb, &QCheckBox::toggled,
-                  this, [&] (auto ok) {
-            if(ok != outlet->propagate()) {
+                  this, [&ctx,&out=*outlet] (auto ok) {
+            if(ok != out.propagate()) {
               CommandDispatcher<> d{ctx.commandStack};
-              d.submitCommand<Dataflow::SetPortPropagate>(p, ok);
+              d.submitCommand<Dataflow::SetPortPropagate>(out, ok);
             }
           });
           con(*outlet, &Process::Outlet::propagateChanged,

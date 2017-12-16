@@ -33,7 +33,7 @@
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Scenario/HideRackInViewModel.hpp>
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
-
+#include <core/application/ApplicationSettings.hpp>
 namespace Scenario
 {
 // TODO you're better than this
@@ -61,6 +61,8 @@ auto selectedIntervalsInCurrentDocument(
 IntervalActions::IntervalActions(ScenarioApplicationPlugin* parent)
   : m_parent{parent}
 {
+  if(!parent->context.applicationSettings.gui)
+    return;
   const auto& appContext = parent->context;
 
   m_addProcess = new QAction{tr("Add Process in interval"), this};
@@ -100,7 +102,8 @@ IntervalActions::IntervalActions(ScenarioApplicationPlugin* parent)
   m_curves = new QAction{this};
   m_curves->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   // TODO add "center widget" and "panels"
-  parent->context.mainWindow.addAction(m_curves);
+  if(parent->context.mainWindow)
+    parent->context.mainWindow->addAction(m_curves);
 
   setIcons(
         m_curves, QString(":/icons/create_curve_on.png"),

@@ -59,29 +59,32 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
   // Another part that, at execution time, creates structures corresponding
   // to the Scenario plug-in with the OSSIA API.
 
-  auto& play_action = ctx.actions.action<Actions::Play>();
-  connect(
-      play_action.action(), &QAction::triggered, this,
-      [&](bool b) { on_play(b); }, Qt::QueuedConnection);
+  if(ctx.applicationSettings.gui)
+  {
+    auto& play_action = ctx.actions.action<Actions::Play>();
+    connect(
+          play_action.action(), &QAction::triggered, this,
+          [&](bool b) { on_play(b); }, Qt::QueuedConnection);
 
-  auto& stop_action = ctx.actions.action<Actions::Stop>();
-  connect(
-      stop_action.action(), &QAction::triggered, this,
-      &ApplicationPlugin::on_stop, Qt::QueuedConnection);
+    auto& stop_action = ctx.actions.action<Actions::Stop>();
+    connect(
+          stop_action.action(), &QAction::triggered, this,
+          &ApplicationPlugin::on_stop, Qt::QueuedConnection);
 
-  auto& init_action = ctx.actions.action<Actions::Reinitialize>();
-  connect(
-      init_action.action(), &QAction::triggered, this,
-      &ApplicationPlugin::on_init, Qt::QueuedConnection);
+    auto& init_action = ctx.actions.action<Actions::Reinitialize>();
+    connect(
+          init_action.action(), &QAction::triggered, this,
+          &ApplicationPlugin::on_init, Qt::QueuedConnection);
 
-  auto& ctrl = ctx.guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
-  con(ctrl.execution(), &Scenario::ScenarioExecution::playAtDate, this,
-      [ =, act = play_action.action() ](const TimeVal& t) {
-        on_play(true, t);
-        act->trigger();
-      });
+    auto& ctrl = ctx.guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
+    con(ctrl.execution(), &Scenario::ScenarioExecution::playAtDate, this,
+        [ =, act = play_action.action() ](const TimeVal& t) {
+      on_play(true, t);
+      act->trigger();
+    });
 
-  m_playActions.setupContextMenu(ctrl.layerContextMenuRegistrar());
+    m_playActions.setupContextMenu(ctrl.layerContextMenuRegistrar());
+  }
 }
 
 ApplicationPlugin::~ApplicationPlugin()
@@ -157,11 +160,22 @@ void ApplicationPlugin::on_play(bool b, ::TimeVal t)
   // TODO have a on_exit handler to properly stop the scenario.
   if (auto doc = currentDocument())
   {
-    auto scenar = dynamic_cast<Scenario::ScenarioDocumentPresenter*>(
-        &doc->presenter().presenterDelegate());
-    if (!scenar)
-      return;
-    on_play(scenar->displayedElements.interval(), b, {}, t);
+    if(auto pres = doc->presenter())
+    {
+      auto scenar = dynamic_cast<Scenario::ScenarioDocumentPresenter*>(
+          pres->presenterDelegate());
+      if (scenar)
+        on_play(scenar->displayedElements.interval(), b, {}, t);
+    }
+    else
+    {
+      auto& mod = doc->model().modelDelegate();
+      auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&mod);
+      if(scenar)
+      {
+        on_play(scenar->baseInterval(), b, {}, t);
+      }
+    }
   }
 }
 
@@ -335,15 +349,19 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     p->set_value(false);
     p->set_access(ossia::access_mode::GET);
 
-    auto& play_action = appplug.context.actions.action<Actions::Play>();
-    connect(play_action.action(), &QAction::triggered, &lt, [=] {
-      p->push_value(true);
-    });
 
-    auto& stop_action = context.actions.action<Actions::Stop>();
-    connect(stop_action.action(), &QAction::triggered, &lt, [=] {
-      p->push_value(false);
-    });
+    if(context.applicationSettings.gui)
+    {
+      auto& play_action = appplug.context.actions.action<Actions::Play>();
+      connect(play_action.action(), &QAction::triggered, &lt, [=] {
+        p->push_value(true);
+      });
+
+      auto& stop_action = context.actions.action<Actions::Stop>();
+      connect(stop_action.action(), &QAction::triggered, &lt, [=] {
+        p->push_value(false);
+      });
+    }
   }
   {
     auto local_play_node = root.create_child("play");
@@ -357,8 +375,15 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
         if (!appplug.playing() && *val)
         {
           // not playing, play requested
-          auto& play_action = appplug.context.actions.action<Actions::Play>();
-          play_action.action()->trigger();
+          if(context.applicationSettings.gui)
+          {
+            auto& play_action = appplug.context.actions.action<Actions::Play>();
+            play_action.action()->trigger();
+          }
+          else
+          {
+            this->on_play(true);
+          }
         }
         else if (appplug.playing())
         {
@@ -367,9 +392,16 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
             // paused, play requested
             // or playing, pause requested
 
-            auto& play_action
-                = appplug.context.actions.action<Actions::Play>();
-            play_action.action()->trigger();
+            if(context.applicationSettings.gui)
+            {
+              auto& play_action
+                  = appplug.context.actions.action<Actions::Play>();
+              play_action.action()->trigger();
+            }
+            else
+            {
+              this->on_play(true);
+            }
           }
         }
       }
@@ -383,8 +415,15 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     local_stop_address->set_value(ossia::impulse{});
     local_stop_address->set_access(ossia::access_mode::SET);
     local_stop_address->add_callback([&](const ossia::value&) {
-      auto& stop_action = appplug.context.actions.action<Actions::Stop>();
-      stop_action.action()->trigger();
+      if(context.applicationSettings.gui)
+      {
+        auto& stop_action = appplug.context.actions.action<Actions::Stop>();
+        stop_action.action()->trigger();
+      }
+      else
+      {
+        this->on_stop();
+      }
     });
 
   }

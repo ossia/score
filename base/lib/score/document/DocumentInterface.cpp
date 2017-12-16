@@ -47,10 +47,12 @@ ObjectPath score::IDocument::unsafe_path(const QObject& obj)
   return unsafe_path(&obj);
 }
 
-score::DocumentDelegatePresenter&
+score::DocumentDelegatePresenter*
 score::IDocument::presenterDelegate_generic(const score::Document& d)
 {
-  return d.presenter().presenterDelegate();
+  if(d.presenter())
+    return d.presenter()->presenterDelegate();
+  return nullptr;
 }
 
 score::DocumentDelegateModel&

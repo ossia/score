@@ -160,8 +160,11 @@ Document::Document(
     throw;
   }
 
-  m_view = new DocumentView{factory, *this, parentview};
-  m_presenter = new DocumentPresenter{m_context, factory, *m_model, *m_view, this};
+  if(parentview)
+  {
+    m_view = new DocumentView{factory, *this, parentview};
+    m_presenter = new DocumentPresenter{m_context, factory, *m_model, *m_view, this};
+  }
   init();
 }
 

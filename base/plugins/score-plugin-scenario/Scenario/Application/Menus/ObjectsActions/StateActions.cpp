@@ -18,16 +18,20 @@
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Commands/Cohesion/SnapshotParameters.hpp>
 #include <score/widgets/SetIcons.hpp>
+#include <core/application/ApplicationSettings.hpp>
 namespace Scenario
 {
 StateActions::StateActions(ScenarioApplicationPlugin* parent)
     : m_parent{parent}
 {
+  if(!parent->context.applicationSettings.gui)
+    return;
   m_refreshStates = new QAction{tr("Refresh states"), this};
   m_refreshStates->setShortcutContext(Qt::ApplicationShortcut);
   m_refreshStates->setShortcut(tr("Ctrl+U"));
   m_refreshStates->setToolTip(tr("Ctrl+U"));
-  parent->context.mainWindow.addAction(m_refreshStates);
+  if(parent->context.mainWindow)
+    parent->context.mainWindow->addAction(m_refreshStates);
   setIcons(
       m_refreshStates, QString(":/icons/refresh_on.png"),
       QString(":/icons/refresh_off.png"));
@@ -38,7 +42,8 @@ StateActions::StateActions(ScenarioApplicationPlugin* parent)
 
   m_snapshot = new QAction{this};
   m_snapshot->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-  parent->context.mainWindow.addAction(m_snapshot);
+  if(parent->context.mainWindow)
+    parent->context.mainWindow->addAction(m_snapshot);
 
   setIcons(
       m_snapshot, QString(":/icons/snapshot_on.png"),

@@ -24,9 +24,9 @@ public:
       DocumentView&,
       QObject* parent);
 
-  DocumentDelegatePresenter& presenterDelegate() const
+  DocumentDelegatePresenter* presenterDelegate() const
   {
-    return *m_presenter;
+    return m_presenter;
   }
 
   void setNewSelection(const Selection& s);

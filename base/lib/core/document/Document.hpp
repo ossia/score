@@ -89,14 +89,14 @@ public:
     return *m_model;
   }
 
-  DocumentPresenter& presenter() const
+  DocumentPresenter* presenter() const
   {
-    return *m_presenter;
+    return m_presenter;
   }
 
-  DocumentView& view() const
+  DocumentView* view() const
   {
-    return *m_view;
+    return m_view;
   }
 
   QJsonObject saveDocumentModelAsJson();

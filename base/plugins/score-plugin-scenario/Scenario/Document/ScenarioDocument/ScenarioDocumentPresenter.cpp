@@ -82,10 +82,13 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
   using namespace score;
 
   // Setup the connections
-  con(score::GUIAppContext().mainWindow, SIGNAL(sizeChanged(QSize)),
-      this, SLOT(on_windowSizeChanged(QSize)), Qt::QueuedConnection);
-  con(score::GUIAppContext().mainWindow, SIGNAL(ready()),
-      this, SLOT(on_viewReady()), Qt::QueuedConnection);
+  if(auto win = score::GUIAppContext().mainWindow)
+  {
+    connect(win, SIGNAL(sizeChanged(QSize)),
+        this, SLOT(on_windowSizeChanged(QSize)), Qt::QueuedConnection);
+    connect(win, SIGNAL(ready()),
+        this, SLOT(on_viewReady()), Qt::QueuedConnection);
+  }
 
   con(view().view(), &ProcessGraphicsView::sizeChanged, this,
       &ScenarioDocumentPresenter::on_windowSizeChanged, Qt::QueuedConnection);
@@ -639,8 +642,9 @@ void ScenarioDocumentPresenter::setNewSelection(const Selection& s)
       QObject::disconnect(cur_proc_connection);
     }
 
-    m_focusManager.focus(
-          &score::IDocument::get<Scenario::ScenarioDocumentPresenter>(*score::IDocument::documentFromObject(this)));
+    auto pres = score::IDocument::get<Scenario::ScenarioDocumentPresenter>(*score::IDocument::documentFromObject(this));
+    if(pres)
+      m_focusManager.focus(pres);
 
     displayedElements.setSelection(s);
   }

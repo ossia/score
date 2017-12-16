@@ -55,21 +55,16 @@ class SCORE_LIB_PROCESS_EXPORT Cable
     Cable(Id<Cable> c, QObject* parent);
 
     template<typename T>
-    Cable(T&& vis, const score::DocumentContext& ctx, QObject* parent):
+    Cable(T&& vis, QObject* parent):
       IdentifiedObject{vis, parent}
     {
       vis.writeTo(*this);
     }
-    Cable(const score::DocumentContext& ctx, Id<Cable> c, const CableData& data, QObject* parent);
+    Cable(Id<Cable> c, const CableData& data, QObject* parent);
 
-    void update(const score::DocumentContext& ctx, const CableData&);
+    void update(const CableData&);
 
     CableData toCableData() const;
-    ossia::node_ptr source_node;
-    ossia::node_ptr sink_node;
-    ossia::outlet_ptr source_port;
-    ossia::inlet_ptr sink_port;
-    ossia::edge_ptr exec;
 
     CableType type() const;
     Path<Process::Outlet> source() const;

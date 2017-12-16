@@ -56,7 +56,7 @@ class SCORE_LIB_BASE_EXPORT DocumentManager
 {
   Q_OBJECT
 public:
-  DocumentManager(score::View& view, QObject* parentPresenter);
+  DocumentManager(score::View* view, QObject* parentPresenter);
 
   void init(const score::GUIApplicationContext& ctx);
 
@@ -146,7 +146,7 @@ private:
 
   void saveRecentFilesState();
 
-  score::View& m_view;
+  score::View* m_view{};
 
   DocumentBuilder m_builder;
 
