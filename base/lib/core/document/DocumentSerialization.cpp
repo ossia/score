@@ -254,7 +254,7 @@ void DocumentModel::loadDocumentAsByteArray(
   }
 
   // Load the document model
-  m_model = fact.load(doc_writer.toVariant(), ctx, this);
+  fact.load(doc_writer.toVariant(), ctx, m_model, this);
 
   for(int i = 0; i < plug_n; i++)
   {
@@ -308,7 +308,7 @@ void DocumentModel::loadDocumentAsJson(
 
   // Load the model
   JSONObject::Deserializer doc_writer{doc};
-  m_model = fact.load(doc_writer.toVariant(), ctx, this);
+  fact.load(doc_writer.toVariant(), ctx, m_model, this);
 
   auto it_end = docs.end();
   for(auto it = docs.begin(); it != it_end; ++it)

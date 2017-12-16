@@ -4,6 +4,7 @@
 #include <QString>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <stdexcept>
 
@@ -39,7 +40,7 @@ score::Document* score::IDocument::documentFromObject(const QObject& obj)
 ObjectPath score::IDocument::unsafe_path(QObject const* const& obj)
 {
   return ObjectPath::pathBetweenObjects(
-      &documentFromObject(obj)->model(), obj);
+      &documentFromObject(obj)->model().modelDelegate(), obj);
 }
 
 ObjectPath score::IDocument::unsafe_path(const QObject& obj)

@@ -39,12 +39,13 @@ public:
       DocumentDelegateView& view)
       = 0;
 
-  virtual DocumentDelegateModel*
-  make(const score::DocumentContext& ctx, DocumentModel* parent)
+  virtual void
+  make(const score::DocumentContext& ctx, DocumentDelegateModel*& ptr, DocumentModel* parent)
       = 0;
-  virtual DocumentDelegateModel* load(
+  virtual void load(
       const VisitorVariant&,
       const score::DocumentContext& ctx,
+      DocumentDelegateModel*& ptr,
       DocumentModel* parent)
       = 0;
 };

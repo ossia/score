@@ -114,9 +114,7 @@ QObject* ObjectPath::find_impl(const score::DocumentContext& ctx) const
   using namespace score;
   QObject* obj = &ctx.document.model();
 
-  auto children = boost::make_iterator_range(
-      m_objectIdentifiers.begin() + 1, m_objectIdentifiers.end());
-  for (const auto& currentObjIdentifier : children)
+  for (const auto& currentObjIdentifier : m_objectIdentifiers)
   {
     auto found_children = obj->findChildren<IdentifiedObjectAbstract*>(
         currentObjIdentifier.objectName(), Qt::FindDirectChildrenOnly);
@@ -132,9 +130,7 @@ QObject* ObjectPath::find_impl_unsafe(const score::DocumentContext& ctx) const
   using namespace score;
   QObject* obj = &ctx.document.model();
 
-  auto children = boost::make_iterator_range(
-      std::begin(m_objectIdentifiers) + 1, std::end(m_objectIdentifiers));
-  for (const auto& currentObjIdentifier : children)
+  for (const auto& currentObjIdentifier : m_objectIdentifiers)
   {
     auto found_children = obj->findChildren<IdentifiedObjectAbstract*>(
         currentObjIdentifier.objectName(), Qt::FindDirectChildrenOnly);
