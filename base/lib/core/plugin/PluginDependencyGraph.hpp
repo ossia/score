@@ -64,6 +64,7 @@ public:
         }
         else
         {
+          boost::clear_vertex(addon_k, m_graph);
           boost::remove_vertex(addon_k, m_graph);
           not_loaded.push_back(&addon);
           break;

@@ -161,10 +161,6 @@ public:
   }
 
 private:
-  void check_num_fx_before(bool adding);
-  void check_num_fx_after(bool adding);
-  void cleanup_fx();
-
   struct RegisteredEffect
   {
       std::shared_ptr<EffectComponent> comp;
@@ -176,6 +172,14 @@ private:
       operator bool() const { return bool(comp); }
   };
   std::vector<std::pair<Id<Media::Effect::EffectModel>, RegisteredEffect>> m_fxes;
+
+
+  void unreg(const RegisteredEffect& fx) {
+    system().plugin.unregister_node_soft(fx.registeredInlets, fx.registeredOutlets, fx.node());
+  }
+  void reg(const RegisteredEffect& fx) {
+    system().plugin.register_node(fx.registeredInlets, fx.registeredOutlets, fx.node());
+  }
 };
 
 

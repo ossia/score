@@ -19,6 +19,7 @@
 #include <ossia/editor/scenario/clock.hpp>
 #include <ossia/editor/state/state_element.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
+#include <ossia/dataflow/graph.hpp>
 
 namespace Engine
 {

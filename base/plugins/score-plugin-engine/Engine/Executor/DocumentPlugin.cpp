@@ -21,6 +21,7 @@
 #include <score/actions/ActionManager.hpp>
 #include <Engine/score2OSSIA.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
+#include <ossia/dataflow/graph.hpp>
 namespace Engine
 {
 namespace Execution
