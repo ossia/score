@@ -7,11 +7,15 @@
 #include <score_plugin_engine_export.h>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/local/local.hpp>
-#include <ossia/dataflow/graph.hpp>
+#include <ossia/dataflow/dataflow_fwd.hpp>
+#include <ossia/dataflow/execution_state.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <memory>
 
-namespace ossia { class audio_protocol; class midi_generic_parameter;}
+namespace ossia {
+class audio_protocol;
+class midi_generic_parameter;
+}
 namespace score
 {
 class DocumentModel;

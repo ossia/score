@@ -12,6 +12,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Engine/Protocols/OSSIADevice.hpp>
+#include <ossia/dataflow/graph.hpp>
 #include <QPointer>
 namespace Dataflow
 {

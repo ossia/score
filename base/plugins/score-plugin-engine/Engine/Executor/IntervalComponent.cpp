@@ -22,6 +22,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+#include <ossia/dataflow/graph.hpp>
 
 namespace Engine
 {

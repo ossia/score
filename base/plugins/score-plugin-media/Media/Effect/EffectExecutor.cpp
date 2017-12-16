@@ -1,5 +1,5 @@
 #include "EffectExecutor.hpp"
-
+#include <ossia/dataflow/graph.hpp>
 namespace Engine
 {
 namespace Execution
@@ -37,12 +37,6 @@ EffectComponent* EffectProcessComponentBase::make(
     m_fxes[idx] = std::make_pair(effect.id(), RegisteredEffect{fx, {}, {}});
     static_cast<effect_chain_process*>(m_ossia_process.get())->nodes.push_back(fx->node);
 
-    auto unreg = [&] (const RegisteredEffect& fx) {
-      system().plugin.unregister_node_soft(fx.registeredInlets, fx.registeredOutlets, fx.node());
-    };
-    auto reg = [&] (const RegisteredEffect& fx) {
-      system().plugin.register_node(fx.registeredInlets, fx.registeredOutlets, fx.node());
-    };
     auto& this_fx = m_fxes[idx].second;
 
     SCORE_ASSERT(this_fx.node()->inputs().size() > 0);
@@ -199,7 +193,72 @@ std::function<void ()> EffectProcessComponentBase::removing(
     const Media::Effect::EffectModel& e,
     EffectComponent& c)
 {
+  auto echain = std::dynamic_pointer_cast<effect_chain_process>(m_ossia_process);
 
+
+  auto it = ossia::find_if(m_fxes, [&] (const auto& v) { return v.first == e.id(); });
+  if(it == m_fxes.end())
+    return {};
+  auto idx = std::distance(m_fxes.begin(), it);
+  auto& this_fx = it->second;
+
+  // Remove all the chaining
+  system().executionQueue.enqueue(
+        [g=system().plugin.execGraph, n=this_fx.node(), echain] {
+    ossia::remove_one(echain->nodes, n);
+    n->clear();
+    g->remove_node(n);
+  });
+
+  unreg(this_fx);
+  if(idx == 0)
+  {
+    if(m_fxes.size() > 1)
+    {
+      // Link start with next idx
+      auto& new_first = m_fxes[1];
+      if(new_first.second)
+      {
+        unreg(new_first.second);
+        new_first.second.registeredInlets = process().effects().at(new_first.first).inlets();
+        new_first.second.registeredInlets[0] = process().inlet.get();
+        reg(new_first.second);
+      }
+    }
+  }
+  else if(idx == (m_fxes.size() - 1))
+  {
+    if(m_fxes.size() > 1)
+    {
+      auto& new_last = m_fxes[idx-1];
+      if(new_last.second)
+      {
+        unreg(new_last.second);
+        new_last.second.registeredOutlets = process().effects().at(new_last.first).outlets();
+        new_last.second.registeredOutlets[0] = process().outlet.get();
+        reg(new_last.second);
+      }
+    }
+  }
+  else
+  {
+    if(m_fxes.size() > (idx+1))
+    {
+      auto& prev = m_fxes[idx-1];
+      auto& next = m_fxes[idx+1];
+      if(prev.second && next.second)
+      {
+        system().executionQueue.enqueue(
+              [g=system().plugin.execGraph, n1=prev.second.node(), n2=next.second.node()] {
+
+          auto edge = ossia::make_edge(
+                          ossia::immediate_strict_connection{}, n1->outputs()[0], n2->inputs()[0], n1, n2);
+          g->connect(std::move(edge));
+        });
+      }
+    }
+  }
+  m_fxes.erase(it);
   return {};
 }
 

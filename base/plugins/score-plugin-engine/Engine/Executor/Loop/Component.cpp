@@ -27,6 +27,7 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
+#include <ossia/dataflow/graph.hpp>
 
 namespace Process
 {
@@ -155,9 +156,9 @@ Component::Component(
                  , loop->node->inputs()[0]
                  , m_ossia_interval->OSSIAInterval()->node
                  , loop->node);
-  
+
   system().executionQueue.enqueue(
-        [g=system().plugin.execGraph, cable] { 
+        [g=system().plugin.execGraph, cable] {
     g->connect(cable);
   });
 }
@@ -213,7 +214,7 @@ void Component::cleanup()
   m_ossia_endEvent = nullptr;
   m_ossia_startTimeSync = nullptr;
   m_ossia_endTimeSync = nullptr;
-  
+
   system().plugin.unregister_node(process(), OSSIAProcess().node);
 }
 

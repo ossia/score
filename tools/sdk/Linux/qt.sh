@@ -10,7 +10,7 @@ git clone https://code.qt.io/qt/qt5.git
 
 (
   cd qt5
-  git checkout v5.9.1
+  git checkout v5.10.0
   git submodule update --init --recursive
 )
 
@@ -35,8 +35,8 @@ mkdir qt5-build
                    -qt-libpng \
                    -qt-libjpeg \
                    -qt-zlib \
-                   -qt-freetype \
-                   -qt-harfbuzz \
+                   -system-freetype \
+                   -system-harfbuzz \
                    -openssl \
                    -qt-pcre \
                    -qt-xcb \
