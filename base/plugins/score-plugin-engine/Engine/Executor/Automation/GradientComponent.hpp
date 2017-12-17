@@ -25,7 +25,7 @@ class Component final
         const ::Engine::Execution::Context& ctx,
         const Id<score::Component>& id,
         QObject* parent);
-      ~Component();
+      ~Component() override;
 
   private:
     void recompute();

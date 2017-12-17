@@ -177,14 +177,10 @@ class ControlEffect final: public Media::Effect::EffectModel
       return node;
     }
 
-    QGraphicsItem* makeItem(const score::DocumentContext& ctx) override
+    Process::EffectItem* makeItem(const score::DocumentContext& ctx) override
     {
-      auto item = new Process::RectItem{};
-      auto txt = new Scenario::SimpleTextItem{item};
-      txt->setText(Metadata<PrettyName_k, ControlEffect<Info>>::get());
-      txt->setPos(8., 4.);
-      Process::UISetup::init<Info>(*this, *item, ctx, 20.);
-      item->setRect({0., 0., 180., item->childrenBoundingRect().height() + 10.});
+      auto item = new Process::EffectItem{};
+      Process::UISetup::init<Info>(*this, *item, ctx);
       return item;
     }
 

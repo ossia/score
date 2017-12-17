@@ -112,23 +112,23 @@ Component::Component(
   auto main_end_event = *main_end_node.get_time_events().begin();
 
   using namespace Engine::Execution;
-  m_ossia_startTimeSync = new TimeSyncRawPtrComponent(element.startTimeSync(),
+  m_ossia_startTimeSync = std::make_shared<TimeSyncRawPtrComponent>(element.startTimeSync(),
                                               system(), score::newId(element.startTimeSync()), this);
-  m_ossia_endTimeSync = new TimeSyncRawPtrComponent(element.endTimeSync(),
+  m_ossia_endTimeSync = std::make_shared<TimeSyncRawPtrComponent>(element.endTimeSync(),
                                             system(), score::newId(element.endTimeSync()), this);
 
-  m_ossia_startEvent = new EventComponent(element.startEvent(),
+  m_ossia_startEvent = std::make_shared<EventComponent>(element.startEvent(),
                                         system(), score::newId(element.startEvent()), this);
-  m_ossia_endEvent = new EventComponent(element.endEvent(),
+  m_ossia_endEvent =std::make_shared<EventComponent>(element.endEvent(),
                                       system(), score::newId(element.endEvent()), this);
 
   m_ossia_startState
-      = new StateComponent(element.startState(), system(), score::newId(element.startState()), this);
+      = std::make_shared<StateComponent>(element.startState(), system(), score::newId(element.startState()), this);
   m_ossia_endState
-      = new StateComponent(element.endState(), system(), score::newId(element.endState()), this);
+      = std::make_shared<StateComponent>(element.endState(), system(), score::newId(element.endState()), this);
 
 
-  m_ossia_interval = new IntervalRawPtrComponent(element.interval(), system(), score::newId(element.interval()), this);
+  m_ossia_interval = std::make_shared<IntervalRawPtrComponent>(element.interval(), system(), score::newId(element.interval()), this);
 
   m_ossia_startTimeSync->onSetup(&main_start_node, m_ossia_startTimeSync->makeTrigger());
   m_ossia_endTimeSync->onSetup(&main_end_node, m_ossia_endTimeSync->makeTrigger());
@@ -136,19 +136,7 @@ Component::Component(
   m_ossia_endEvent->onSetup(main_end_event, m_ossia_endEvent->makeExpression(), (ossia::time_event::offset_behavior)element.endEvent().offsetBehavior());
   m_ossia_startState->onSetup(main_start_event);
   m_ossia_endState->onSetup(main_end_event);
-  m_ossia_interval->onSetup(&loop->get_time_interval(), m_ossia_interval->makeDurations(), false);
-
-  element.startState().components().add(m_ossia_startState);
-  element.endState().components().add(m_ossia_endState);
-
-  element.startEvent().components().add(m_ossia_startEvent);
-  element.endEvent().components().add(m_ossia_endEvent);
-
-  element.startTimeSync().components().add(m_ossia_startTimeSync);
-  element.endTimeSync().components().add(m_ossia_endTimeSync);
-
-  element.interval().components().add(m_ossia_interval);
-
+  m_ossia_interval->onSetup(m_ossia_interval, &loop->get_time_interval(), m_ossia_interval->makeDurations(), false);
 
   auto cable = ossia::make_edge(
                  ossia::immediate_glutton_connection{}
@@ -171,40 +159,31 @@ void Component::cleanup()
 {
   if(m_ossia_interval)
   {
-    m_ossia_interval->cleanup();
-    process().interval().components().remove(m_ossia_interval);
+    m_ossia_interval->cleanup(m_ossia_interval);
   }
   if(m_ossia_startState)
   {
     m_ossia_startState->cleanup();
-    process().startState().components().remove(m_ossia_startState);
   }
   if(m_ossia_endState)
   {
     m_ossia_endState->cleanup();
-    process().endState().components().remove(m_ossia_endState);
   }
   if(m_ossia_startEvent)
   {
     m_ossia_startEvent->cleanup();
-    process().startEvent().components().remove(m_ossia_startEvent);
   }
   if(m_ossia_endEvent)
   {
     m_ossia_endEvent->cleanup();
-    process().endEvent().components().remove(m_ossia_endEvent);
   }
   if(m_ossia_startTimeSync)
   {
-    m_ossia_startTimeSync->OSSIATimeSync()->cleanup();
     m_ossia_startTimeSync->cleanup();
-    process().startTimeSync().components().remove(m_ossia_startTimeSync);
   }
   if(m_ossia_endTimeSync)
   {
-    m_ossia_endTimeSync->OSSIATimeSync()->cleanup();
     m_ossia_endTimeSync->cleanup();
-    process().endTimeSync().components().remove(m_ossia_endTimeSync);
   }
 
   m_ossia_interval = nullptr;
@@ -215,7 +194,7 @@ void Component::cleanup()
   m_ossia_startTimeSync = nullptr;
   m_ossia_endTimeSync = nullptr;
 
-  system().plugin.unregister_node(process(), OSSIAProcess().node);
+  ProcessComponent::cleanup();
 }
 
 void Component::stop()

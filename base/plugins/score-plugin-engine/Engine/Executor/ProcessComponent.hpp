@@ -10,6 +10,8 @@
 #include <Scenario/Document/Components/ProcessComponent.hpp>
 #include <score/plugins/customfactory/ModelFactory.hpp>
 #include <score_plugin_engine_export.h>
+
+Q_DECLARE_METATYPE(std::shared_ptr<Engine::Execution::ProcessComponent>)
 namespace ossia
 {
 class scenario;
@@ -52,15 +54,11 @@ public:
       const Context& ctx,
       const Id<score::Component>& id,
       const QString& name,
-      QObject* parent)
-      : Process::GenericProcessComponent<const Context>{proc, ctx, id, name,
-                                                         parent}
-  {
-  }
+      QObject* parent);
 
   virtual ~ProcessComponent();
 
-  virtual void cleanup() { }
+  virtual void cleanup();
   virtual void stop()
   {
     process().stopExecution();

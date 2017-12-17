@@ -29,7 +29,7 @@ public:
 
   void recompute();
 
-  ~SoundComponent();
+  ~SoundComponent() override;
 
 private:
 };
@@ -53,7 +53,7 @@ public:
 
   void recompute();
 
-  ~InputComponent();
+  ~InputComponent() override;
 
 private:
 };

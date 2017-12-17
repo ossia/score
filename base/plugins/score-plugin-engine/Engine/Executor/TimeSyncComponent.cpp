@@ -37,6 +37,9 @@ TimeSyncComponent::TimeSyncComponent(
 
 void TimeSyncComponent::cleanup()
 {
+  system().executionQueue.enqueue([ts=m_ossia_node] {
+    ts->cleanup();
+  });
   m_ossia_node.reset();
 }
 

@@ -30,7 +30,7 @@ public:
       const Id<score::Component>& id,
       QObject* parent);
 
-  ~Component();
+  ~Component() override;
 private:
   void recompute();
 

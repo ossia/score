@@ -61,16 +61,16 @@ private:
   void stopIntervalExecution(const Id<Scenario::IntervalModel>&);
 
 private:
-  Engine::Execution::IntervalRawPtrComponent* m_ossia_interval{};
+  std::shared_ptr<Engine::Execution::IntervalRawPtrComponent> m_ossia_interval;
 
-  Engine::Execution::TimeSyncRawPtrComponent* m_ossia_startTimeSync{};
-  Engine::Execution::TimeSyncRawPtrComponent* m_ossia_endTimeSync{};
+  std::shared_ptr<Engine::Execution::TimeSyncRawPtrComponent> m_ossia_startTimeSync;
+  std::shared_ptr<Engine::Execution::TimeSyncRawPtrComponent> m_ossia_endTimeSync;
 
-  Engine::Execution::EventComponent* m_ossia_startEvent{};
-  Engine::Execution::EventComponent* m_ossia_endEvent{};
+  std::shared_ptr<Engine::Execution::EventComponent> m_ossia_startEvent;
+  std::shared_ptr<Engine::Execution::EventComponent> m_ossia_endEvent;
 
-  Engine::Execution::StateComponent* m_ossia_startState{};
-  Engine::Execution::StateComponent* m_ossia_endState{};
+  std::shared_ptr<Engine::Execution::StateComponent> m_ossia_startState;
+  std::shared_ptr<Engine::Execution::StateComponent> m_ossia_endState;
 };
 
 using ComponentFactory

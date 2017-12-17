@@ -46,13 +46,11 @@ ProcessModel::ProcessModel(
     auto eff = fx.clone(fx.id(), this);
     m_effects.add(eff);
   }
-
-  m_effectOrder = source.m_effectOrder;
 }
 
 ProcessModel::~ProcessModel()
 {
-  // TODO delete components
+  m_effects.clear();
 }
 
 void ProcessModel::insertEffect(
@@ -68,11 +66,11 @@ void ProcessModel::insertEffect(
     delete eff;
     return;
   }
-  clamp(pos, 0, int(m_effectOrder.size()));
+  clamp(pos, 0, int(m_effects.size()));
 
   if(pos > 0)
   {
-    if(inlets[0]->type != m_effects.at(m_effectOrder[pos - 1]).outlets()[0]->type)
+    if(inlets[0]->type != m_effects.at_pos(pos - 1).outlets()[0]->type)
     {
       qDebug() << "invalid effect! (bad chaining before)";
       return;
@@ -80,15 +78,14 @@ void ProcessModel::insertEffect(
   }
   if(m_effects.size() > 0 && pos < m_effects.size())
   {
-    if(outlets[0]->type != m_effects.at(m_effectOrder[pos]).inlets()[0]->type)
+    if(outlets[0]->type != m_effects.at_pos(pos).inlets()[0]->type)
     {
       qDebug() << "invalid effect! (bad chaining after)";
       return;
     }
   }
 
-  m_effectOrder.insert(pos, eff->id());
-  m_effects.add(eff);
+  m_effects.insert_at(pos, eff);
 
 
   if(pos == 0)
@@ -113,27 +110,26 @@ void ProcessModel::insertEffect(
 
 void ProcessModel::removeEffect(const Id<EffectModel>& e)
 {
-  m_effectOrder.removeAll(e);
-
   m_effects.remove(e);
-
+  // TODO adjust and check ports
+  // TODO introduce a dummy effect if the ports don't match
   emit effectsChanged();
 }
 
 void ProcessModel::moveEffect(const Id<EffectModel>& e, int new_pos)
 {
-  new_pos = clamp(new_pos, 0, m_effectOrder.size() - 1);
-  auto old_pos = m_effectOrder.indexOf(e);
+  new_pos = clamp(new_pos, 0, m_effects.size() - 1);
+  auto old_pos = effectPosition(e);
   if(old_pos != -1)
   {
-    m_effectOrder.move(old_pos, new_pos);
+    m_effects.move(e, new_pos);
     emit effectsChanged();
   }
 }
 
 int ProcessModel::effectPosition(const Id<EffectModel>& e) const
 {
-  return m_effectOrder.indexOf(e);
+  return m_effects.index(e);
 }
 
 }
@@ -151,7 +147,6 @@ void DataStreamReader::read(const Media::Effect::ProcessModel& proc)
   {
     readFrom(eff);
   }
-  m_stream << proc.effectsOrder();
   insertDelimiter();
 }
 
@@ -174,9 +169,6 @@ void DataStreamWriter::write(Media::Effect::ProcessModel& proc)
       SCORE_TODO;
   }
 
-  proc.m_effectOrder.clear();
-  m_stream >> proc.m_effectOrder;
-
   checkDelimiter();
 }
 
@@ -186,7 +178,6 @@ void JSONObjectReader::read(const Media::Effect::ProcessModel& proc)
   obj["Inlet"] = toJsonObject(*proc.inlet);
   obj["Outlet"] = toJsonObject(*proc.outlet);
   obj["Effects"] = toJsonArray(proc.effects());
-  obj["Order"] = toJsonArray(proc.effectsOrder());
 }
 
 template <>
@@ -212,7 +203,6 @@ void JSONObjectWriter::write(Media::Effect::ProcessModel& proc)
     {
       auto pos = i++;
 
-      proc.m_effectOrder.insert(pos, fx->id());
       proc.m_effects.add(fx);
 
       if(pos == 0)
@@ -237,8 +227,5 @@ void JSONObjectWriter::write(Media::Effect::ProcessModel& proc)
     else
       SCORE_TODO;
   }
-
-  proc.m_effectOrder.clear();
-  fromJsonValueArray(obj["Order"].toArray(), proc.m_effectOrder);
 }
 

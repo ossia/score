@@ -38,6 +38,9 @@ EventComponent::EventComponent(
 
 void EventComponent::cleanup()
 {
+  system().executionQueue.enqueue([ev=m_ossia_event] {
+    ev->cleanup();
+  });
   m_ossia_event.reset();
 }
 

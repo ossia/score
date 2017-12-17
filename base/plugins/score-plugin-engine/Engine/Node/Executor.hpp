@@ -409,10 +409,8 @@ class Executor: public Engine::Execution::
       ctx.plugin.register_node(element, node);
     }
 
-
     ~Executor()
     {
-      this->system().plugin.unregister_node(this->process(), this->OSSIAProcess().node);
     }
 };
 

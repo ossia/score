@@ -237,6 +237,8 @@ std::function<void ()> EffectProcessComponentBase::removing(
   });
 
   unreg(this_fx);
+
+  qDebug() << "REMOVING" << idx << e.prettyName() << m_fxes.size();
   if(idx == 0)
   {
     if(m_fxes.size() > 1)
@@ -246,9 +248,13 @@ std::function<void ()> EffectProcessComponentBase::removing(
       if(new_first.second)
       {
         unreg(new_first.second);
-        new_first.second.registeredInlets = process().effects().at(new_first.first).inlets();
-        new_first.second.registeredInlets[0] = process().inlet.get();
-        reg(new_first.second);
+        if(new_first.second.node())
+        {
+          new_first.second.registeredInlets = process().effects().at(new_first.first).inlets();
+          new_first.second.registeredInlets[0] = process().inlet.get();
+          qDebug() << "REGISTERING" << idx <<  new_first.second.comp->effect().prettyName();
+          reg(new_first.second);
+        }
       }
     }
   }
@@ -260,16 +266,22 @@ std::function<void ()> EffectProcessComponentBase::removing(
       if(new_last.second)
       {
         unreg(new_last.second);
-        new_last.second.registeredOutlets = process().effects().at(new_last.first).outlets();
-        new_last.second.registeredOutlets[0] = process().outlet.get();
-        reg(new_last.second);
+        if(new_last.second.node())
+        {
+          new_last.second.registeredOutlets = process().effects().at(new_last.first).outlets();
+          new_last.second.registeredOutlets[0] = process().outlet.get();
+          qDebug() << "REGISTERING " << new_last.second.comp->effect().prettyName() <<  idx-1;
+          reg(new_last.second);
+        }
       }
     }
   }
   else
   {
+    qDebug() << "whatever 1";
     if(m_fxes.size() > (idx+1))
     {
+      qDebug() << "whatever 2";
       auto& prev = m_fxes[idx-1];
       auto& next = m_fxes[idx+1];
       if(prev.second && next.second)
@@ -284,8 +296,8 @@ std::function<void ()> EffectProcessComponentBase::removing(
       }
     }
   }
-  m_fxes.erase(it);
-  return {};
+  this_fx.comp->node.reset();
+  return [=] { m_fxes.erase(it); };
 }
 
 void EffectProcessComponentBase::unreg(const EffectProcessComponentBase::RegisteredEffect& fx)
@@ -296,10 +308,13 @@ void EffectProcessComponentBase::unreg(const EffectProcessComponentBase::Registe
 void EffectProcessComponentBase::reg(const EffectProcessComponentBase::RegisteredEffect& fx) {
   system().plugin.register_node(fx.registeredInlets, fx.registeredOutlets, fx.node());
 }
+void EffectProcessComponent::cleanup() {
+  clear();
+  ProcessComponent::cleanup();
+}
 
 EffectProcessComponentBase::~EffectProcessComponentBase()
 {
-  cleanup();
 }
 
 EffectComponentFactoryList::~EffectComponentFactoryList()

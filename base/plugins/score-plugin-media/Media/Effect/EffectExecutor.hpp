@@ -191,6 +191,8 @@ class SCORE_PLUGIN_ENGINE_EXPORT EffectProcessComponent final :
     init_hierarchy();
   }
 
+  void cleanup() override;
+
   EffectProcessComponent(const EffectProcessComponent&) = delete;
   EffectProcessComponent(EffectProcessComponent&&) = delete;
   EffectProcessComponent& operator=(const EffectProcessComponent&) = delete;

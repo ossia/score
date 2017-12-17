@@ -13,7 +13,6 @@
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Dataflow/UI/PortItem.hpp>
 #include <Scenario/Document/CommentBlock/TextItem.hpp>
-#include <Scenario/Document/CommentBlock/TextItem.hpp>
 #include <QGraphicsProxyWidget>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
@@ -25,66 +24,174 @@ namespace Effect
 {
 using ProcessFactory = Process::GenericProcessModelFactory<Effect::ProcessModel>;
 
+class QGraphicsTextButton
+    : public QObject
+    , public Scenario::SimpleTextItem
+{
+    Q_OBJECT
+  public:
+    QGraphicsTextButton(QString text, QGraphicsItem* parent)
+      : SimpleTextItem{parent}
+    {
+      setText(std::move(text));
+    }
+
+  signals:
+    void pressed();
+
+  protected:
+    void mousePressEvent(QGraphicsSceneMouseEvent* event) override
+    {
+      emit pressed();
+      event->accept();
+    }
+    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override
+    {
+      event->accept();
+    }
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override
+    {
+      event->accept();
+    }
+};
+class QGraphicsPixmapButton
+    : public QObject
+    , public QGraphicsPixmapItem
+{
+    Q_OBJECT
+    QPixmap m_pressed, m_released;
+  public:
+    QGraphicsPixmapButton(QPixmap pressed, QPixmap released, QGraphicsItem* parent)
+      : QGraphicsPixmapItem{released, parent}
+      , m_pressed{std::move(pressed)}
+      , m_released{std::move(released)}
+    {
+
+    }
+
+  signals:
+    void clicked();
+
+  protected:
+    void mousePressEvent(QGraphicsSceneMouseEvent* event) override
+    {
+      setPixmap(m_pressed);
+      event->accept();
+    }
+    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override
+    {
+      event->accept();
+    }
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override
+    {
+      setPixmap(m_released);
+      emit clicked();
+      event->accept();
+    }
+};
+class QGraphicsPixmapToggle
+    : public QObject
+    , public QGraphicsPixmapItem
+{
+    Q_OBJECT
+    QPixmap m_pressed, m_released;
+    bool m_toggled{};
+  public:
+    QGraphicsPixmapToggle(QPixmap pressed, QPixmap released, QGraphicsItem* parent)
+      : QGraphicsPixmapItem{released, parent}
+      , m_pressed{std::move(pressed)}
+      , m_released{std::move(released)}
+    {
+
+    }
+
+  signals:
+    void toggled(bool);
+
+  protected:
+    void mousePressEvent(QGraphicsSceneMouseEvent* event) override
+    {
+      m_toggled = !m_toggled;
+      setPixmap(m_toggled ? m_pressed : m_released);
+      emit toggled(m_toggled);
+      event->accept();
+    }
+    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override
+    {
+      event->accept();
+    }
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override
+    {
+      event->accept();
+    }
+};
+
 class View final : public Process::ILayerView
 {
   public:
+    struct ControlUi
+    {
+        Process::ControlInlet* inlet;
+        Process::RectItem* rect;
+    };
+
+    struct EffectUi
+    {
+        const EffectModel& effect;
+        Process::RectItem* root_item{};
+        Process::EffectItem* fx_item{};
+        QGraphicsItem* title{};
+        std::vector<ControlUi> widgets;
+    };
+
     explicit View(QGraphicsItem* parent)
       : Process::ILayerView{parent}
     {
     }
 
-    QGraphicsItem* makeDefaultItem(EffectModel& effect, const Effect::ProcessModel& object,
-                                   const score::DocumentContext& doc)
+    QGraphicsItem* makeTitle(EffectModel& effect, const Effect::ProcessModel& object, const score::DocumentContext& doc)
     {
-      auto fx_item = new Process::RectItem(this);
-      EffectUi fx_ui{effect, fx_item, {}};
+      auto root = new Process::RectItem{};
+      root->setRect({0, 0, 170, 20});
+      static const auto undock_off = QPixmap::fromImage(QImage(":/icons/undock_off.png").scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+      static const auto undock_on  = QPixmap::fromImage(QImage(":/icons/undock_on.png") .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+      static const auto close_off  = QPixmap::fromImage(QImage(":/icons/close_off.png") .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+      static const auto close_on   = QPixmap::fromImage(QImage(":/icons/close_on.png")  .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
 
+      auto ui_btn = new QGraphicsPixmapToggle{undock_on, undock_off, root};
+      connect(ui_btn, &QGraphicsPixmapToggle::toggled,
+              this, [=,&effect] (bool b) {
+        if(b)
+          effect.showUI();
+        else
+          effect.hideUI();
+      });
+      ui_btn->setPos({5, 4});
 
-      {
-        auto title = new QWidget;
-        auto title_lay = new QHBoxLayout{title};
-        auto gw = new QGraphicsProxyWidget{fx_item};
-        gw->setWidget(title);
-        fx_ui.title = gw;
+      auto rm_btn = new QGraphicsPixmapButton{close_on, close_off, root};
+      connect(rm_btn, &QGraphicsPixmapButton::clicked,
+              this, [&] () {
+        auto cmd = new Commands::RemoveEffect{object, effect};
+        CommandDispatcher<> disp{doc.commandStack}; disp.submitCommand(cmd);
+      }, Qt::QueuedConnection);
 
-        auto name = new QLabel{effect.prettyName(), title};
+      rm_btn->setPos({20, 4});
 
-        auto uibtn = new QPushButton{"UI", title};
-        uibtn->setCheckable(true);
-        connect(uibtn, &QPushButton::toggled,
-                this, [=,&effect] (bool b) {
-          if(b)
-            effect.showUI();
-          else
-            effect.hideUI();
-        });
+      auto label = new Scenario::SimpleTextItem{root};
+      label->setText(effect.prettyName());
 
+      label->setPos({35, 4});
 
-        auto rm_but = new QPushButton{"x"};
-        rm_but->setStyleSheet(
-                    "QPushButton { "
-                    "border-style: solid;"
-                    "border-width: 2px;"
-                    "border-color: black;"
-                    "border-radius: 15px;}");
-        connect(rm_but, &QPushButton::clicked,
-                this, [&] () {
-              auto cmd = new Commands::RemoveEffect{object, effect};
-              CommandDispatcher<> disp{doc.commandStack}; disp.submitCommand(cmd);
-        }, Qt::QueuedConnection);
+      return root;
+    }
 
-        title_lay->addWidget(name);
-        title_lay->addWidget(uibtn);
-        title_lay->addWidget(rm_but);
-        title_lay->addStretch();
-
-        title->setMaximumWidth(150);
-        title->setContentsMargins(0, 0, 0, 0);
-        title->setPalette(Process::transparentPalette());
-        title->setAutoFillBackground(false);
-        title->setStyleSheet(Process::transparentStylesheet());
-      }
-
+    Process::EffectItem* makeDefaultItem(
+        EffectModel& effect, const Effect::ProcessModel& object,
+        const score::DocumentContext& doc,
+        EffectUi& fx_ui)
+    {
+      auto item = new Process::EffectItem;
+      fx_ui.fx_item = item;
       inlet_cons.reserve(effect.inlets().size() + inlet_cons.size());
       for(auto& e : effect.inlets())
       {
@@ -127,10 +234,8 @@ class View final : public Process::ILayerView
           setupInlet(*inlet, fx_ui, doc);
         }
       }
+      return item;
 
-      effects.push_back(fx_ui);
-      updateSize(fx_ui);
-      return fx_item;
     }
 
     void setup(const Effect::ProcessModel& object,
@@ -150,49 +255,37 @@ class View final : public Process::ILayerView
       double pos_x = 0;
       for(EffectModel& effect : object.effects())
       {
-        auto item = effect.makeItem(doc);
-        if(item)
+        auto root_item = new Process::RectItem(this);
+        EffectUi fx_ui{effect, root_item, {}, {}};
+
+        // Title
+        fx_ui.title = makeTitle(effect, object, doc);
+        fx_ui.title->setParentItem(root_item);
+
+        // Main item
+        fx_ui.fx_item = effect.makeItem(doc);
+        if(!fx_ui.fx_item)
         {
-          EffectUi fx_ui{effect, item, {}, {}};
-          effects.push_back(fx_ui);
-          item->setParentItem(this);
+          fx_ui.fx_item = makeDefaultItem(effect, object, doc, fx_ui);
         }
-        else
-        {
-          item = makeDefaultItem(effect, object, doc);
-        }
-        SCORE_ASSERT(item);
-        item->setPos(pos_x, 0);
-        pos_x += item->boundingRect().width();
+        SCORE_ASSERT(fx_ui.fx_item);
+
+        fx_ui.fx_item->setParentItem(root_item);
+        fx_ui.fx_item->setPos({0, fx_ui.title->boundingRect().height()});
+        updateSize(fx_ui);
+        effects.push_back(fx_ui);
+
+        fx_ui.root_item->setRect({0., 0., 170., fx_ui.root_item->childrenBoundingRect().height() + 10.});
+        fx_ui.root_item->setPos(pos_x, 0);
+        pos_x += 5 + fx_ui.root_item->boundingRect().width();
       }
     }
 
-    std::vector<QMetaObject::Connection> inlet_cons;
-
-    struct ControlUi
-    {
-        Process::ControlInlet* inlet;
-        Process::RectItem* rect;
-    };
-    struct EffectUi
-    {
-        const EffectModel& effect;
-        QGraphicsItem* fx_item{};
-        QGraphicsProxyWidget* title{};
-        std::vector<ControlUi> widgets;
-    };
     void updateSize(const EffectUi& fx)
     {
-      double w = 180;
-      double h = 30 + fx.title->rect().height();
-      for(auto& widg : fx.widgets)
-      {
-        h += widg.rect->boundingRect().height();
-      }
-      safe_cast<Process::RectItem*>(fx.fx_item)->setRect({0, 0, w, h});
+      safe_cast<Process::RectItem*>(fx.root_item)->setRect(fx.root_item->childrenBoundingRect());
     }
 
-    std::vector<EffectUi> effects;
 
     void disableInlet(
         Process::ControlInlet& inlet,
@@ -230,7 +323,7 @@ class View final : public Process::ILayerView
 
       double pos_y =
       (fx_ui.widgets.empty())
-          ? 40
+          ? 0
           : fx_ui.widgets.back().rect->boundingRect().height() + fx_ui.widgets.back().rect->pos().y();
 
 
@@ -303,6 +396,8 @@ class View final : public Process::ILayerView
       ev->accept();
     }
 
+    std::vector<QMetaObject::Connection> inlet_cons;
+    std::vector<EffectUi> effects;
 };
 
 class Presenter final : public Process::LayerPresenter
