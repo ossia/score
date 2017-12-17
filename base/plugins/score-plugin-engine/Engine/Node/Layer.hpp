@@ -48,12 +48,12 @@ struct UISetup
     static void init(
         const Model& object,
         View& self,
-        const score::DocumentContext& doc,
-        double pos_y)
+        const score::DocumentContext& doc)
     {
       if constexpr(InfoFunctions<Info>::control_count > 0)
       {
         std::size_t i = 0;
+        double pos_y = 0.;
         ossia::for_each_in_tuple(
               get_controls(Info::info),
               [&] (const auto& ctrl) {
@@ -159,7 +159,7 @@ public:
           m_view, &ControlLayerView<Info>::askContextMenu, this,
           &ControlLayerPresenter::contextMenuRequested);
 
-    Process::UISetup::init<Info>(static_cast<const ControlProcess<Info>&>(model), *view, ctx, 0.);
+    Process::UISetup::init<Info>(static_cast<const ControlProcess<Info>&>(model), *view, ctx);
   }
 
   void setWidth(qreal val) override

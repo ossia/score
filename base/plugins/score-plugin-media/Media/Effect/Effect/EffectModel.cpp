@@ -26,7 +26,7 @@ EffectModel::~EffectModel()
 
 }
 
-QGraphicsItem*EffectModel::makeItem(const score::DocumentContext& ctx)
+Process::EffectItem* EffectModel::makeItem(const score::DocumentContext& ctx)
 {
   return nullptr;
 }

@@ -31,7 +31,7 @@ void InsertEffect::undo(const score::DocumentContext& ctx) const
   if(Effect::EffectFactory* fact = fact_list.get(m_effectKind))
   {
     auto& process = m_model.find(ctx);
-    if(process.effects().find(m_id) != process.effects().end())
+    if(ossia::find(process.effects(), m_id) != process.effects().end())
       process.removeEffect(m_id);
   }
 }
@@ -73,8 +73,8 @@ RemoveEffect::RemoveEffect(
     m_id{effect.id()},
     m_savedEffect{score::marshall<DataStream>(effect)}
 {
-    auto& order = model.effectsOrder();
-    m_pos = std::distance(order.begin(), ossia::find(order,m_id));
+    auto& order = model.effects();
+    m_pos = model.effectPosition(effect.id());
 }
 
 void RemoveEffect::undo(const score::DocumentContext& ctx) const
@@ -113,15 +113,15 @@ void RemoveEffect::deserializeImpl(DataStreamOutput& s)
 
 
 MoveEffect::MoveEffect(
-        const Effect::ProcessModel& model,
+        const Effect::ProcessModel& effect,
         Id<Effect::EffectModel> id,
         int new_pos):
-    m_model{model},
+    m_model{effect},
     m_id{id},
     m_newPos{new_pos}
 {
-    auto& order = model.effectsOrder();
-    m_oldPos = std::distance(order.begin(), ossia::find(order, m_id));
+  auto& order = effect.effects();
+  m_oldPos = effect.effectPosition(m_id);
 }
 
 void MoveEffect::undo(const score::DocumentContext& ctx) const

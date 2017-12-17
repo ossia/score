@@ -62,6 +62,8 @@ ScenarioComponentBase::ScenarioComponentBase(
 
   // Setup of the OSSIA API Part
   m_ossia_process = std::make_shared<ossia::scenario>();
+  connect(this, &ScenarioComponentBase::sig_eventCallback,
+          this, &ScenarioComponentBase::eventCallback, Qt::QueuedConnection);
 
   // Note : the hierarchical scenario shall create the time syncs first.
   // A better way would be :
@@ -106,9 +108,8 @@ void ScenarioComponent::init()
 
 void ScenarioComponent::cleanup()
 {
-  std::shared_ptr<ossia::scenario> proc = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
-  system().plugin.unregister_node(process(), proc->node);
   clear();
+  ProcessComponent::cleanup();
 }
 
 void ScenarioComponentBase::stop()
@@ -150,7 +151,7 @@ std::function<void ()> ScenarioComponentBase::removing(
       }
     });
 
-    c.cleanup();
+    c.cleanup(it->second);
 
     return [=] { m_ossia_intervals.erase(it); };
   }
@@ -164,12 +165,13 @@ std::function<void ()> ScenarioComponentBase::removing(
   auto it = m_ossia_timesyncs.find(e.id());
   if(it != m_ossia_timesyncs.end())
   {
-    std::shared_ptr<ossia::scenario> proc = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
-    m_ctx.executionQueue.enqueue([proc,tn=c.OSSIATimeSync()] {
-      tn->cleanup();
-      proc->remove_time_sync(tn);
-    });
-
+    if(e.id() != Scenario::startId<Scenario::TimeSyncModel>())
+    {
+      std::shared_ptr<ossia::scenario> proc = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
+      m_ctx.executionQueue.enqueue([proc,tn=c.OSSIATimeSync()] {
+        proc->remove_time_sync(tn);
+      });
+    }
     it->second->cleanup();
 
     return [=] { m_ossia_timesyncs.erase(it); };
@@ -184,8 +186,8 @@ std::function<void ()> ScenarioComponentBase::removing(
   if(it != m_ossia_timeevents.end())
   {
     m_ctx.executionQueue.enqueue([ev=c.OSSIAEvent()] {
-      ev->cleanup();
       ev->get_time_sync().remove(ev);
+      ev->cleanup();
     });
 
     c.cleanup();
@@ -239,7 +241,7 @@ IntervalComponent* ScenarioComponentBase::make<IntervalComponent, Scenario::Inte
         dur.minDuration,
         dur.maxDuration);
 
-  elt->onSetup(ossia_cst, dur, false);
+  elt->onSetup(elt, ossia_cst, dur, false);
 
 
   // The adding of the time_interval has to be done in the edition thread.
@@ -305,10 +307,22 @@ EventComponent* ScenarioComponentBase::make<EventComponent, Scenario::EventModel
   auto tn = nodes.at(ev.timeSync());
 
   // Create the event
+  std::weak_ptr<EventComponent> weak_ev = elt;
+
+  std::weak_ptr<ScenarioComponentBase> thisP = std::dynamic_pointer_cast<ScenarioComponentBase>(shared_from_this());
+  auto ev_cb = [weak_ev,thisP](ossia::time_event::status st) {
+    if(auto elt = weak_ev.lock())
+    {
+      if(auto sc = thisP.lock())
+      {
+        emit sc->sig_eventCallback(elt, st);
+      }
+    }
+  };
   auto ossia_ev = std::make_shared<ossia::time_event>(
-        [=](ossia::time_event::status st) { return eventCallback(*elt, st); },
-        *tn->OSSIATimeSync(),
-        ossia::expression_ptr{});
+                    std::move(ev_cb),
+                    *tn->OSSIATimeSync(),
+                    ossia::expression_ptr{});
 
   elt->onSetup(ossia_ev, elt->makeExpression(), (ossia::time_event::offset_behavior) (ev.offsetBehavior()));
 
@@ -357,17 +371,15 @@ TimeSyncComponent* ScenarioComponentBase::make<TimeSyncComponent, Scenario::Time
   });
 
   // Changing the running API structures
-  m_ctx.executionQueue.enqueue(
-        [
-        thisP=shared_from_this()
-        ,ossia_tn
-        ,must_add]
+  if(must_add)
   {
-    auto& sub = static_cast<ScenarioComponentBase&>(*thisP);
-
-    if(must_add)
+    m_ctx.executionQueue.enqueue(
+          [thisP=shared_from_this(),ossia_tn]
+    {
+      auto& sub = static_cast<ScenarioComponentBase&>(*thisP);
       sub.OSSIAProcess().add_time_sync(ossia_tn);
-  });
+    });
+  }
 
   return elt.get();
 }
@@ -401,9 +413,9 @@ void ScenarioComponentBase::stopIntervalExecution(
 }
 
 void ScenarioComponentBase::eventCallback(
-    EventComponent& ev, ossia::time_event::status newStatus)
+    std::shared_ptr<EventComponent> ev, ossia::time_event::status newStatus)
 {
-  auto the_event = const_cast<Scenario::EventModel*>(&ev.scoreEvent());
+  auto the_event = const_cast<Scenario::EventModel*>(&ev->scoreEvent());
   the_event->setStatus(static_cast<Scenario::ExecutionStatus>(newStatus), process());
 
   for (auto& state : the_event->states())

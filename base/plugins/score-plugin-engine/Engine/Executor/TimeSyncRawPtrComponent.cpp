@@ -38,7 +38,10 @@ TimeSyncRawPtrComponent::TimeSyncRawPtrComponent(
 
 void TimeSyncRawPtrComponent::cleanup()
 {
-  m_ossia_node = nullptr;;
+  system().executionQueue.enqueue([ts=m_ossia_node] {
+    ts->cleanup();
+  });
+  m_ossia_node = nullptr;
 }
 
 ossia::expression_ptr TimeSyncRawPtrComponent::makeTrigger() const

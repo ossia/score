@@ -76,7 +76,6 @@ void SoundComponent::recompute()
 
 SoundComponent::~SoundComponent()
 {
-  system().plugin.unregister_node(process(), OSSIAProcess().node);
 }
 
 }
@@ -242,7 +241,6 @@ void InputComponent::recompute()
 
 InputComponent::~InputComponent()
 {
-  system().plugin.unregister_node(process(), OSSIAProcess().node);
 }
 
 }

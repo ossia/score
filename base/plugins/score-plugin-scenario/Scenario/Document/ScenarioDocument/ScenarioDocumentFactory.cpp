@@ -9,12 +9,6 @@
 
 #include "ScenarioDocumentFactory.hpp"
 
-namespace score
-{
-class DocumentPresenter;
-} // namespace score
-struct VisitorVariant;
-
 namespace Scenario
 {
 score::DocumentDelegateView* ScenarioDocumentFactory::makeView(
@@ -39,8 +33,9 @@ void ScenarioDocumentFactory::make(
     score::DocumentModel* parent)
 {
   std::allocator<ScenarioDocumentModel> alloc;
-  ptr = alloc.allocate(1);
-  alloc.construct((ScenarioDocumentModel*)ptr, ctx, parent);
+  auto res = alloc.allocate(1);
+  ptr = res;
+  alloc.construct(res, ctx, parent);
 }
 
 void ScenarioDocumentFactory::load(
@@ -50,9 +45,10 @@ void ScenarioDocumentFactory::load(
     score::DocumentModel* parent)
 {
   std::allocator<ScenarioDocumentModel> alloc;
-  ptr = alloc.allocate(1);
+  auto res = alloc.allocate(1);
+  ptr = res;
   score::deserialize_dyn(vis, [&](auto&& deserializer) {
-    alloc.construct((ScenarioDocumentModel*)ptr, deserializer, ctx, parent);
+    alloc.construct(res, deserializer, ctx, parent);
     return ptr;
   });
 }

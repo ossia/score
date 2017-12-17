@@ -103,7 +103,6 @@ void StepComponent::recompute()
 
 StepComponent::~StepComponent()
 {
-  system().plugin.unregister_node(process(), OSSIAProcess().node);
 }
 
 }

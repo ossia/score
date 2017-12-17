@@ -185,7 +185,6 @@ Component::Component(
 
 Component::~Component()
 {
-  system().plugin.unregister_node(process(), OSSIAProcess().node);
 }
 
 void Component::recompute()

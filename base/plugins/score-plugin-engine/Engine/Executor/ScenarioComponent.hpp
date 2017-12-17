@@ -15,6 +15,8 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
 
+Q_DECLARE_METATYPE(std::shared_ptr<Engine::Execution::EventComponent>)
+Q_DECLARE_METATYPE(ossia::time_event::status)
 namespace Device
 {
 class DeviceList;
@@ -57,14 +59,13 @@ namespace Engine
 namespace Execution
 {
 class IntervalComponent;
-struct SubScenario;
 // TODO see if this can be used for the base scenario model too.
 class ScenarioComponentBase
     : public ProcessComponent_T<Scenario::ProcessModel, ossia::scenario>
 {
+  Q_OBJECT
   COMPONENT_METADATA("4e4b1c1a-1a2a-4ae6-a1a1-38d0900e74e8")
 
-  friend class EventInitCommand;
 public:
   ScenarioComponentBase(
       Scenario::ProcessModel& proc,
@@ -110,12 +111,15 @@ public:
   std::function<void()> removing(const Scenario::EventModel& e, EventComponent& c);
 
   std::function<void()> removing(const Scenario::StateModel& e, StateComponent& c);
+
+signals:
+  void sig_eventCallback(std::shared_ptr<EventComponent>, ossia::time_event::status st);
 protected:
   void startIntervalExecution(const Id<Scenario::IntervalModel>&);
   void stopIntervalExecution(const Id<Scenario::IntervalModel>&);
   void disableIntervalExecution(const Id<Scenario::IntervalModel>& id);
 
-  void eventCallback(EventComponent& ev, ossia::time_event::status newStatus);
+  void eventCallback(std::shared_ptr<EventComponent> ev, ossia::time_event::status newStatus);
 
   void timeSyncCallback(
       Engine::Execution::TimeSyncComponent* tn, ossia::time_value date);

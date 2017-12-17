@@ -72,7 +72,10 @@ score_plugin_engine::score_plugin_engine() : QObject{}
   qRegisterMetaTypeStreamOperators<Engine::Execution::ClockManagerFactory::
                                        ConcreteKey>("ClockManagerKey");
 
-
+  qRegisterMetaType<std::shared_ptr<Engine::Execution::ProcessComponent>>();
+  qRegisterMetaType<std::shared_ptr<Engine::Execution::EventComponent>>();
+  qRegisterMetaType<ossia::time_event::status>();
+  qRegisterMetaType<ossia::time_value>();
 }
 
 score_plugin_engine::~score_plugin_engine()

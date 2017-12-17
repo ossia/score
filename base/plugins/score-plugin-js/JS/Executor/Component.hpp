@@ -63,7 +63,7 @@ public:
       const Engine::Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent);
-  ~Component();
+  ~Component() override;
 };
 
 using ComponentFactory

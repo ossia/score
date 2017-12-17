@@ -63,24 +63,21 @@ IntervalComponentBase::IntervalComponentBase(
 
 IntervalComponent::~IntervalComponent()
 {
-  if(m_ossia_interval)
-    m_ossia_interval->set_callback(ossia::time_interval::exec_callback{});
-
-  for(auto& proc : m_processes)
-    proc.second->cleanup();
-  executionStopped();
 }
 
 void IntervalComponent::init()
 {
-    init_hierarchy();
+  init_hierarchy();
 }
 
-void IntervalComponent::cleanup()
+void IntervalComponent::cleanup(std::shared_ptr<IntervalComponent> self)
 {
   if(m_ossia_interval)
   {
-    m_ossia_interval->set_callback(ossia::time_interval::exec_callback{});
+    // self has to be kept alive until next tick
+    system().executionQueue.enqueue([itv=m_ossia_interval,self] {
+      itv->set_callback(ossia::time_interval::exec_callback{});
+    });
     system().plugin.unregister_node(
         {interval().inlet.get()},
         {interval().outlet.get()},
@@ -89,6 +86,7 @@ void IntervalComponent::cleanup()
   for(auto& proc : m_processes)
     proc.second->cleanup();
 
+  executionStopped();
   clear();
   m_processes.clear();
   m_ossia_interval.reset();
@@ -105,11 +103,12 @@ interval_duration_data IntervalComponentBase::makeDurations() const
 }
 
 void IntervalComponent::onSetup(
+    std::shared_ptr<IntervalComponent> self,
     std::shared_ptr<ossia::time_interval> ossia_cst,
     interval_duration_data dur,
     bool parent_is_base_scenario)
 {
-  m_ossia_interval = std::move(ossia_cst);
+  m_ossia_interval = ossia_cst;
 
   m_ossia_interval->set_min_duration(dur.minDuration);
   m_ossia_interval->set_max_duration(dur.maxDuration);
@@ -118,18 +117,11 @@ void IntervalComponent::onSetup(
   // BaseScenario needs a special callback. It is given in DefaultClockManager.
   if (!parent_is_base_scenario)
   {
-    m_ossia_interval->set_stateless_callback(
-        [&](double position,
-            ossia::time_value date) {
-      auto currentTime = this->context().reverseTime(date);
-
-      auto& cstdur = interval().duration;
-      const auto& maxdur = cstdur.maxDuration();
-
-      if (!maxdur.isInfinite())
-        cstdur.setPlayPercentage(currentTime / cstdur.maxDuration());
-      else
-        cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
+    system().executionQueue.enqueue([self,ossia_cst] {
+      ossia_cst->set_stateless_callback(
+            [self](double position, ossia::time_value date) {
+        emit self->sig_callback(position, date);
+      });
     });
   }
 
@@ -140,6 +132,22 @@ void IntervalComponent::onSetup(
       m_ossia_interval->node);
 
   init();
+}
+
+void IntervalComponent::slot_callback(double position, ossia::time_value date)
+{
+  if(m_ossia_interval)
+  {
+    auto currentTime = this->context().reverseTime(date);
+
+    auto& cstdur = interval().duration;
+    const auto& maxdur = cstdur.maxDuration();
+
+    if (!maxdur.isInfinite())
+      cstdur.setPlayPercentage(currentTime / cstdur.maxDuration());
+    else
+      cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
+  }
 }
 
 const std::shared_ptr<ossia::time_interval>&
@@ -218,10 +226,11 @@ ProcessComponent* IntervalComponentBase::make(
       }
 
       auto oproc = plug->OSSIAProcessPtr();
-      auto g = plug->system().plugin.execGraph;
+      auto cst = m_ossia_interval;
+      auto cst_node = cst->node;
 
       system().executionQueue.enqueue(
-            [cst=m_ossia_interval,oproc,g,propagated_outlets] {
+            [cst=m_ossia_interval,oproc,g=plug->system().plugin.execGraph,propagated_outlets] {
         if(oproc)
         {
           cst->add_time_process(oproc);
@@ -246,8 +255,10 @@ ProcessComponent* IntervalComponentBase::make(
         }
       });
 
+      std::weak_ptr<ossia::graph> g_weak = plug->system().plugin.execGraph;
+      std::weak_ptr<ossia::time_process> oproc_weak = oproc;
       connect(plug.get(), &ProcessComponent::nodeChanged,
-              this, [=,&proc] (auto old_node, auto new_node) {
+              this, [this,cst_node,g_weak,oproc_weak,&proc] (auto old_node, auto new_node) {
         const auto& outlets = proc.outlets();
         std::vector<int> propagated_outlets;
         for(std::size_t i = 0; i < outlets.size(); i++)
@@ -257,22 +268,28 @@ ProcessComponent* IntervalComponentBase::make(
         }
 
         system().executionQueue.enqueue(
-              [=,cst=m_ossia_interval,oproc=plug->OSSIAProcessPtr()] {
-          if(oproc && oproc->node)
+              [cst_node,g_weak,oproc_weak,propagated_outlets] {
+          if(auto g = g_weak.lock())
           {
-            ossia::graph_node& n = *oproc->node;
-            for(int propagated : propagated_outlets)
+            if(auto oproc = oproc_weak.lock())
             {
-              const auto& outlet = n.outputs()[propagated]->data;
-              if(outlet.target<ossia::audio_port>())
+              if(oproc->node)
               {
-                auto cable = ossia::make_edge(
-                               ossia::immediate_glutton_connection{}
-                               , n.outputs()[propagated]
-                               , cst->node->inputs()[0]
-                               , oproc->node
-                               , cst->node);
-                g->connect(cable);
+                ossia::graph_node& n = *oproc->node;
+                for(int propagated : propagated_outlets)
+                {
+                  const auto& outlet = n.outputs()[propagated]->data;
+                  if(outlet.target<ossia::audio_port>())
+                  {
+                    auto cable = ossia::make_edge(
+                                   ossia::immediate_glutton_connection{}
+                                   , n.outputs()[propagated]
+                                   , cst_node->inputs()[0]
+                                   , oproc->node
+                                   , cst_node);
+                    g->connect(cable);
+                  }
+                }
               }
             }
           }
@@ -299,16 +316,17 @@ std::function<void ()> IntervalComponentBase::removing(
   auto it = m_processes.find(e.id());
   if(it != m_processes.end())
   {
-    system().executionQueue.enqueue([cstr=m_ossia_interval,proc=c.OSSIAProcessPtr()] {
-      cstr->remove_time_process(proc.get());
+    auto cp = c.shared_from_this();
+    system().executionQueue.enqueue([cstr=m_ossia_interval,c_ptr=c.shared_from_this()] {
+      cstr->remove_time_process(c_ptr->OSSIAProcessPtr().get());
     });
-
     c.cleanup();
 
     return [=] { m_processes.erase(it); };
   }
   return {};
 }
+
 
 }
 }

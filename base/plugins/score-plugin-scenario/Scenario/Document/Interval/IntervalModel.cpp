@@ -53,6 +53,7 @@ IntervalModel::IntervalModel(
 IntervalModel::~IntervalModel()
 {
   static_assert(std::is_same<serialization_tag<IntervalModel>::type, visitor_entity_tag>::value, "");
+  processes.clear();
 }
 void IntervalModel::initConnections()
 {

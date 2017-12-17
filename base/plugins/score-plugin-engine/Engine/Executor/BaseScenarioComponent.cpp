@@ -88,14 +88,14 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
   m_ossia_endEvent->onSetup(main_end_event, m_ossia_endEvent->makeExpression(), (ossia::time_event::offset_behavior)element.endEvent().offsetBehavior());
   m_ossia_startState->onSetup(main_start_event);
   m_ossia_endState->onSetup(main_end_event);
-  m_ossia_interval->onSetup(main_interval, m_ossia_interval->makeDurations(), true);
+  m_ossia_interval->onSetup(m_ossia_interval, main_interval, m_ossia_interval->makeDurations(), true);
 
 }
 
 void BaseScenarioElement::cleanup()
 {
   if(m_ossia_interval)
-    m_ossia_interval->cleanup();
+    m_ossia_interval->cleanup(m_ossia_interval);
   if(m_ossia_startState)
     m_ossia_startState->cleanup();
   if(m_ossia_endState)
@@ -105,16 +105,9 @@ void BaseScenarioElement::cleanup()
   if(m_ossia_endEvent)
     m_ossia_endEvent->cleanup();
   if(m_ossia_startTimeSync)
-  {
-    m_ossia_startTimeSync->OSSIATimeSync()->cleanup();
     m_ossia_startTimeSync->cleanup();
-  }
   if(m_ossia_endTimeSync)
-  {
-    m_ossia_endTimeSync->OSSIATimeSync()->cleanup();
     m_ossia_endTimeSync->cleanup();
-  }
-
   m_ossia_interval.reset();
   m_ossia_startState.reset();
   m_ossia_endState.reset();

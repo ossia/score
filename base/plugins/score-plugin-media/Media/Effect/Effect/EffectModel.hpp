@@ -14,6 +14,8 @@ class QGraphicsItem;
 namespace Process
 {
 class Port;
+class RectItem;
+using EffectItem = RectItem;
 }
 namespace Media
 {
@@ -64,7 +66,7 @@ class SCORE_PLUGIN_MEDIA_EXPORT EffectModel :
         const Process::Inlets& inlets() const { return m_inlets; }
         const Process::Outlets& outlets() const { return m_outlets; }
 
-        virtual QGraphicsItem* makeItem(const score::DocumentContext& ctx);
+        virtual Process::EffectItem* makeItem(const score::DocumentContext& ctx);
         virtual std::shared_ptr<ossia::audio_fx_node> makeNode(const Engine::Execution::Context &, QObject* ctx);
         virtual void showUI();
         virtual void hideUI();
