@@ -18,6 +18,7 @@ namespace VST
 struct AEffectWrapper
 {
     AEffect* fx{};
+    VstTimeInfo info;
 
     AEffectWrapper(AEffect* f): fx{f}
     {
@@ -82,6 +83,7 @@ class VSTEffectModel :
         { m_effectPath = s; }
 
         std::shared_ptr<AEffectWrapper> fx{};
+        VstIntPtr ui{};
 
         QString prettyName() const override;
         std::shared_ptr<ossia::audio_fx_node> makeNode(const Engine::Execution::Context &, QObject* ctx) override;

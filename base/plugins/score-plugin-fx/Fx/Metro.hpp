@@ -21,7 +21,8 @@ struct Node
             .value_outs({{"out"}})
             .controls(Process::Widgets::MusicalDurationChooser(),
                       Process::Widgets::LFOFreqChooser(),
-                      Process::ChooserToggle{"Quantify", {"Free", "Sync"}, false}
+                      Process::ChooserToggle{"Quantify", {"Free", "Sync"}, false},
+                      Process::Widgets::TempoChooser()
                       )
             .build();
 
@@ -57,6 +58,7 @@ struct Node
             float quantif,
             float freq,
             bool val,
+            float tempo,
             ossia::value_port& res,
             ossia::time_value prev_date,
             ossia::token_request tk,
@@ -64,10 +66,6 @@ struct Node
     {
         if(tk.date > prev_date)
         {
-            double tempo = 120.;
-            if(auto tempo_node = st.find_node("/tempo"))
-                tempo = ossia::convert<float>(tempo_node->get_parameter()->value());
-
             const auto period = get_period(val, quantif, freq, tempo, st.sampleRate);
             const auto next = next_date(prev_date, period);
             if(next < tk.date)

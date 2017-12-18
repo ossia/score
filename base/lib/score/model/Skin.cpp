@@ -22,6 +22,11 @@ make_bimap(std::initializer_list<typename boost::bimap<L, R>::value_type> list)
 Skin::Skin() noexcept
     : SansFont{"Ubuntu"}
     , MonoFont{"APCCourier-Bold", 10, QFont::Black}
+    , TransparentPen{Qt::transparent}
+    , TransparentBrush{Qt::transparent}
+    , NoPen{Qt::NoPen}
+    , NoBrush{Qt::NoBrush}
+    , TextBrush{QColor("#1f2a30")}
     , m_colorMap(make_bimap<QString, QBrush*>(
           {SCORE_INSERT_COLOR(Dark),
            SCORE_INSERT_COLOR(HalfDark),

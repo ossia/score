@@ -35,17 +35,15 @@ class ControlNode :
     , public get_state<Info>::type
 {
 public:
-
-
   using info = InfoFunctions<Info>;
   static const constexpr bool has_state = has_state_t<Info>::value;
   using state_type = typename get_state<Info>::type;
 
-  using controls_list = std::array<ossia::value, InfoFunctions<Info>::control_count>;
   using controls_changed_list = std::bitset<InfoFunctions<Info>::control_count>;
-  controls_list controls;
+  using controls_values_type = typename InfoFunctions<Info>::controls_values_type;
+  controls_values_type controls;
   controls_changed_list controls_changed;
-  moodycamel::ReaderWriterQueue<controls_list> cqueue;
+  moodycamel::ReaderWriterQueue<controls_values_type> cqueue;
 
   template<std::size_t N>
   using timed_vec_t = timed_vec<typename std::tuple_element<N, decltype(get_controls(Info::info))>::type::type>;
@@ -131,26 +129,42 @@ public:
       static_assert(info::control_count > 0);
       static_assert(N < info::control_count);
 
-      using val_type = typename std::tuple_element<N, decltype(get_controls(Info::info))>::type::type;
+      constexpr const auto ctrls = get_controls(Info::info);
+      constexpr const auto ctrl = std::get<N>(ctrls);
+      using control_type = typename std::tuple_element<N, decltype(get_controls(Info::info))>::type;
+      using val_type = typename control_type::type;
 
-      // TODO instead, it should go as a member of the node for more perf
       timed_vec<val_type>& vec = std::get<N>(self.control_tuple);
       vec.clear();
       const auto& vp = inl[idx]->data.template target<ossia::value_port>()->get_data();
       vec.reserve(vp.size() + 1);
 
       // in all cases, set the current value at t=0
-      vec.insert(std::make_pair(int64_t{0}, ossia::convert<val_type>(self.controls[N])));
+      vec.insert(std::make_pair(int64_t{0}, std::get<N>(self.controls)));
 
       // copy all the values... values arrived later replace previous ones
-      for(auto& v : vp)
+      if constexpr(control_type::must_validate)
       {
-        vec[int64_t{v.timestamp}] = ossia::convert<val_type>(v.value);
-        self.controls_changed.set(N);
+        for(auto& v : vp)
+        {
+          if(auto res = ctrl.fromValue(v.value))
+          {
+            vec[int64_t{v.timestamp}] = *std::move(res);
+            self.controls_changed.set(N);
+          }
+        }
+      }
+      else
+      {
+        for(auto& v : vp)
+        {
+          vec[int64_t{v.timestamp}] = ctrl.fromValue(v.value);
+          self.controls_changed.set(N);
+        }
       }
 
       // the last value will be the first for the next tick
-      self.controls[N] = vec.rbegin()->second;
+      std::get<N>(self.controls) = vec.rbegin()->second;
       return vec;
     };
   }
@@ -323,14 +337,97 @@ struct value_adder
     }
 };
 
+template<typename T>
 struct control_updater
 {
-    ossia::value& control;
-    ossia::value v;
+    T& control;
+    T v;
     void operator()() {
       control = std::move(v);
     }
 };
+
+
+
+template<typename Info, typename Node_T, typename Element_T>
+void setup_node(Node_T& node
+                , Element_T& element
+                , const Engine::Execution::Context& ctx
+                , QObject* parent)
+{
+  constexpr const auto control_count = InfoFunctions<Info>::control_count;
+
+  if constexpr(control_count > 0)
+  {
+    // Initialize all the controls in the node with the current value.
+    //
+    // And update the node when the UI changes
+    ossia::for_each_in_range<control_count>([&] (auto idx_t) {
+      constexpr auto idx = idx_t.value;
+
+      constexpr const auto ctrls = get_controls(Info::info);
+      constexpr const auto ctrl = std::get<idx>(ctrls);
+      constexpr const auto control_start = InfoFunctions<Info>::control_start;
+      using control_type = typename std::tuple_element<idx, decltype(get_controls(Info::info))>::type;
+      using control_value_type = typename control_type::type;
+      auto inlet = static_cast<ControlInlet*>(element.inlets_ref()[control_start + idx]);
+
+      if constexpr(control_type::must_validate)
+      {
+        if(auto res = ctrl.fromValue(element.control(idx)))
+          std::get<idx>(node.controls) = *res;
+
+        QObject::connect(inlet, &ControlInlet::valueChanged,
+                parent, [&ctx,&node] (const ossia::value& val) {
+          constexpr const auto ctrls = get_controls(Info::info);
+          constexpr const auto ctrl = std::get<idx>(ctrls);
+          if(auto v = ctrl.fromValue(val))
+            ctx.executionQueue.enqueue(
+                  control_updater<control_value_type>{std::get<idx>(node.controls), std::move(*v)});
+        });
+      }
+      else
+      {
+        std::get<idx>(node.controls) = ctrl.fromValue(element.control(idx));
+
+        QObject::connect(inlet, &ControlInlet::valueChanged,
+                parent, [&ctx,&node] (const ossia::value& val) {
+          constexpr const auto ctrls = get_controls(Info::info);
+          constexpr const auto ctrl = std::get<idx>(ctrls);
+          ctx.executionQueue.enqueue(
+                control_updater<control_value_type>{
+                  std::get<idx>(node.controls),
+                  ctrl.fromValue(val)});
+        });
+      }
+
+    });
+
+    // Update the value in the UI
+    con(ctx.doc.coarseUpdateTimer, &QTimer::timeout,
+        parent, [&node,&element] {
+      typename Node_T::controls_values_type arr;
+      bool ok = false;
+      while(node.cqueue.try_dequeue(arr)) {
+        ok = true;
+      }
+      if(ok)
+      {
+        ossia::for_each_in_range<control_count>([&] (auto idx_t) {
+          constexpr auto idx = idx_t.value;
+          constexpr const auto ctrls = get_controls(Info::info);
+          constexpr const auto ctrl = std::get<idx>(ctrls);
+
+          element.setControl(idx, ctrl.toValue(std::get<idx>(arr)));
+        });
+      }
+    }, Qt::QueuedConnection);
+
+  }
+}
+
+
+
 
 template<typename Info>
 class Executor: public Engine::Execution::
@@ -366,45 +463,7 @@ class Executor: public Engine::Execution::
       auto node = std::make_shared<ControlNode<Info>>();
       this->m_ossia_process = std::make_shared<ossia::node_process>(node);
 
-      constexpr const auto control_start = InfoFunctions<Info>::control_start;
-      constexpr const auto control_count = InfoFunctions<Info>::control_count;
-
-      if constexpr(control_count > 0)
-      {
-        for(std::size_t i = 0; i < control_count; i++)
-        {
-          node->controls[i] = element.control(i);
-        }
-
-        con(ctx.doc.coarseUpdateTimer, &QTimer::timeout,
-            this, [&,node] {
-          typename ControlNode<Info>::controls_list arr;
-          bool ok = false;
-          while(node->cqueue.try_dequeue(arr)) {
-            ok = true;
-          }
-          if(ok)
-          {
-            for(std::size_t i = 0; i < control_count; i++)
-            {
-              element.setControl(i, arr[i]);
-            }
-          }
-        }, Qt::QueuedConnection);
-      }
-
-      for(std::size_t idx = control_start; idx < control_start + control_count; idx++)
-      {
-        auto inlet = static_cast<ControlInlet*>(element.inlets_ref()[idx]);
-        //auto port = node->inputs()[idx]->data.template target<ossia::value_port>();
-
-        QObject::connect(inlet, &ControlInlet::valueChanged,
-                this, [=] (const ossia::value& val) {
-          //this->system().executionQueue.enqueue(value_adder{*port, val});
-          this->system().executionQueue.enqueue(control_updater{node->controls[idx - control_start], val});
-
-        });
-      }
+      setup_node<Info>(*node, element, ctx, this);
 
       ctx.plugin.register_node(element, node);
     }

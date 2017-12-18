@@ -3,6 +3,7 @@
 #include <boost/container/flat_map.hpp>
 #include <brigand/sequences/list.hpp>
 #include <brigand/algorithms/index_of.hpp>
+#include <brigand/algorithms/transform.hpp>
 #include <ossia/detail/algorithms.hpp>
 #include <tuple>
 #include <array>
@@ -202,6 +203,11 @@ static constexpr bool same(QLatin1String s1, QLatin1String s2)
   }
   return true;
 }
+template<typename T>
+struct get_control_type
+{
+    using type = typename T::type;
+};
 template<typename Info>
 struct InfoFunctions
 {
@@ -269,6 +275,9 @@ struct InfoFunctions
   }
   */
 
+  using controls_type = decltype(get_controls(Info::info));
+  using controls_values_type = brigand::transform<controls_type, get_control_type<brigand::_1>>;
+
   static constexpr auto audio_in_count =
       get_ports<AudioInInfo>(Info::info).size();
   static constexpr auto audio_out_count =
@@ -282,7 +291,7 @@ struct InfoFunctions
   static constexpr auto value_out_count =
       get_ports<ValueOutInfo>(Info::info).size();
   static constexpr auto control_count =
-      std::tuple_size<decltype(get_controls(Info::info))>::value;
+      std::tuple_size<controls_type>::value;
   static constexpr auto address_in_count =
       get_ports<AddressInInfo>(Info::info).size();
 

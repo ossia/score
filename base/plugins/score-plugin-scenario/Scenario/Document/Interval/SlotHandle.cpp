@@ -128,13 +128,13 @@ QRectF SlotHeader::boundingRect() const
 void SlotHeader::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
+  painter->setRenderHint(QPainter::Antialiasing, false);
+  const auto& style = ScenarioStyle::instance();
   if(!m_mini) {
-    const auto& style = ScenarioStyle::instance();
     painter->setPen(style.IntervalHeaderSeparator);
     painter->setBrush(style.NoBrush);
 
     // Grip
-    painter->setRenderHint(QPainter::Antialiasing, false);
     static const std::array<QRectF, 6> rects{ [] {
         std::array<QRectF, 6> rects;
         double x = 4;
@@ -163,7 +163,6 @@ void SlotHeader::paint(
   }
   else
   {
-    const auto& style = ScenarioStyle::instance();
     painter->setPen(style.IntervalHeaderSeparator);
     painter->setBrush(style.NoBrush);
 

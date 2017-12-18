@@ -48,6 +48,9 @@ void Clock::play_impl(
   std::cerr << s.str() << std::endl;
   m_cur = &bs;
 
+  m_plug.execState.samples_since_start = 0;
+  m_plug.execState.start_date = std::chrono::high_resolution_clock::now();
+  m_plug.execState.cur_date = m_plug.execState.start_date;
   m_plug.execState.clear_devices();
   m_plug.execState.register_device(&m_plug.midi_dev);
   m_plug.execState.register_device(&m_plug.audio_dev);
@@ -94,6 +97,8 @@ void Clock::resume_impl(
   m_plug.audioProto().ui_tick = [&st=m_plug.execState,&g=m_plug.execGraph,itv=m_cur->baseInterval().OSSIAInterval()] (unsigned long frameCount) {
     st.clear();
     st.get_new_values();
+    st.samples_since_start += frameCount;
+    st.cur_date = std::chrono::high_resolution_clock::now();
     itv->tick(ossia::time_value(frameCount));
     g->state(st);
     st.commit();

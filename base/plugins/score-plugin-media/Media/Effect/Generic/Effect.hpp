@@ -135,45 +135,8 @@ class ControlEffect final: public Media::Effect::EffectModel
     {
       auto node = std::make_shared<Process::ControlNode<Info>>();
 
-      constexpr const auto control_start = InfoFunctions<Info>::control_start;
-      constexpr const auto control_count = InfoFunctions<Info>::control_count;
+      setup_node<Info>(*node, *this, ctx, this);
 
-      if constexpr(control_count > 0)
-      {
-        for(std::size_t i = 0; i < control_count; i++)
-        {
-          node->controls[i] = control(i);
-        }
-
-        con(ctx.doc.coarseUpdateTimer, &QTimer::timeout,
-            obj_ctx, [&,node] {
-          typename ControlNode<Info>::controls_list arr;
-          bool ok = false;
-          while(node->cqueue.try_dequeue(arr)) {
-            ok = true;
-          }
-          if(ok)
-          {
-            for(std::size_t i = 0; i < control_count; i++)
-            {
-              setControl(i, arr[i]);
-            }
-          }
-        }, Qt::QueuedConnection);
-      }
-
-      for(std::size_t idx = control_start; idx < control_start + control_count; idx++)
-      {
-        auto inlet = static_cast<ControlInlet*>(inlets_ref()[idx]);
-        //auto port = node->inputs()[idx]->data.template target<ossia::value_port>();
-
-        QObject::connect(inlet, &ControlInlet::valueChanged,
-                obj_ctx, [=,&ctx] (const ossia::value& val) {
-          //this->system().executionQueue.enqueue(value_adder{*port, val});
-          ctx.executionQueue.enqueue(control_updater{node->controls[idx - control_start], val});
-
-        });
-      }
       return node;
     }
 

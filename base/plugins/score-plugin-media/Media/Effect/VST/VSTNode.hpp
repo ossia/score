@@ -1,17 +1,22 @@
 #pragma once
 #include <ossia/dataflow/graph_node.hpp>
 #include <Media/Effect/VST/VSTEffectModel.hpp>
+#include <Engine/Node/Executor.hpp>
+#include <Engine/Node/TimeSignature.hpp>
 #include <ossia/dataflow/fx_node.hpp>
 
 namespace Media
 {
 namespace VST
 {
+using time_signature = std::pair<uint16_t, uint16_t>;
 template<bool UseDouble, bool IsSynth>
 class VSTNode final : public ossia::audio_fx_node
 {
   private:
     std::shared_ptr<AEffectWrapper> fx{};
+    double m_tempo{120};
+    time_signature m_sig{4, 4};
 
     void dispatch(VstInt32 opcode, VstInt32 index = 0, VstIntPtr value = 0, void *ptr = nullptr, float opt = 0.0f)
     {
@@ -19,20 +24,28 @@ class VSTNode final : public ossia::audio_fx_node
     }
   public:
     std::vector<ossia::value_port*> ctrl_ptrs;
+    ossia::value_port& control(int i)
+    {
+      return *ctrl_ptrs[i+2];
+    }
     VSTNode(std::shared_ptr<AEffectWrapper>  dat, int sampleRate):
       fx{std::move(dat)}
     {
-      m_inlets.reserve(fx->fx->numParams + 1);
-      ctrl_ptrs.resize(fx->fx->numParams);
+      m_inlets.reserve(fx->fx->numParams + 3);
+      ctrl_ptrs.resize(fx->fx->numParams + 2);
       if constexpr(IsSynth)
         m_inlets.push_back(ossia::make_inlet<ossia::midi_port>());
       else
         m_inlets.push_back(ossia::make_inlet<ossia::audio_port>());
 
+      m_inlets.push_back(ossia::make_inlet<ossia::value_port>()); // tempo
+      ctrl_ptrs[0] = m_inlets.back()->data.template target<ossia::value_port>();
+      m_inlets.push_back(ossia::make_inlet<ossia::value_port>()); // time signature
+      ctrl_ptrs[1] = m_inlets.back()->data.template target<ossia::value_port>();
       for(int i = 0; i < fx->fx->numParams; i++)
       {
         m_inlets.push_back(ossia::make_inlet<ossia::value_port>());
-        ctrl_ptrs[i] = m_inlets.back()->data.template target<ossia::value_port>();
+        ctrl_ptrs[i+2] = m_inlets.back()->data.template target<ossia::value_port>();
       }
 
       m_outlets.push_back(ossia::make_outlet<ossia::audio_port>());
@@ -42,10 +55,13 @@ class VSTNode final : public ossia::audio_fx_node
       dispatch(effSetProcessPrecision, 0, UseDouble ? kVstProcessPrecision64 : kVstProcessPrecision32);
       dispatch(effMainsChanged, 0, 1);
       dispatch(effStartProcess);
+
+      fx->fx->resvd2 = reinterpret_cast<VstIntPtr>(this);
     }
 
     ~VSTNode()
     {
+      fx->fx->resvd2 = 0;
       dispatch(effStopProcess);
       dispatch(effMainsChanged, 0, 0);
     }
@@ -97,9 +113,24 @@ class VSTNode final : public ossia::audio_fx_node
 
     void setControls()
     {
+      auto& tempo = ctrl_ptrs[0]->get_data();
+      if(!tempo.empty())
+      {
+        m_tempo = ossia::convert<double>(tempo.rbegin()->value);
+      }
+      auto& ts = ctrl_ptrs[1]->get_data();
+      if(!ts.empty())
+      {
+        auto str = ts.rbegin()->value.template target<std::string>();
+        if(str)
+        {
+          if(auto sig = Process::get_time_signature(*str))
+            m_sig = *sig;
+        }
+      }
       for(int i = 0; i < fx->fx->numParams; i++)
       {
-        auto& vec = ctrl_ptrs[i]->get_data();
+        auto& vec = control(i).get_data();
         if(vec.empty())
         {
           continue;
@@ -161,6 +192,7 @@ class VSTNode final : public ossia::audio_fx_node
       }
       return ip;
     }
+
     auto& prepareOutput(std::size_t samples)
     {
       auto& op = m_outlets[0]->data.template target<ossia::audio_port>()->samples;
@@ -169,12 +201,32 @@ class VSTNode final : public ossia::audio_fx_node
         chan.resize(samples);
       return op;
     }
-    void run(ossia::token_request tk, ossia::execution_state&) override
+
+    void setupTimeInfo(const ossia::token_request& tk, ossia::execution_state& st)
+    {
+      auto& time_info = fx->info;
+      time_info.samplePos = tk.date.impl;
+      time_info.sampleRate = st.sampleRate;
+      time_info.nanoSeconds = std::chrono::duration_cast<std::chrono::nanoseconds>(st.cur_date - st.start_date).count();
+      time_info.tempo = m_tempo;
+      time_info.ppqPos = (tk.date.impl / st.sampleRate) * (60. / time_info.tempo);
+      time_info.barStartPos = 0.;
+      time_info.cycleStartPos = 0.;
+      time_info.cycleEndPos = 0.;
+      time_info.timeSigNumerator = m_sig.first;
+      time_info.timeSigDenominator = m_sig.second;
+      time_info.smpteOffset = 0;
+      time_info.smpteFrameRate = 0;
+      time_info.samplesToNextClock = 0;
+      time_info.flags = kVstTransportPlaying & kVstNanosValid & kVstPpqPosValid & kVstTempoValid & kVstTimeSigValid & kVstClockValid;
+    }
+    void run(ossia::token_request tk, ossia::execution_state& st) override
     {
       if(tk.date > m_prev_date)
       {
         const std::size_t samples = tk.date - m_prev_date;
         setControls();
+        setupTimeInfo(tk, st);
 
         if constexpr(UseDouble)
         {

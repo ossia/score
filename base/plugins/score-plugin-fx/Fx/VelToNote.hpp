@@ -53,7 +53,8 @@ struct Node
                 Process::Widgets::OctaveSlider("Pitch shift", -3, 3),
                 Process::Widgets::OctaveSlider("Pitch random", 0, 2),
                 Process::Widgets::OctaveSlider("Vel. random", 0, 2),
-                Process::Widgets::MidiChannel("Channel")
+                Process::Widgets::MidiChannel("Channel"),
+                Process::Widgets::TempoChooser()
                 )
       .state<State>()
       .build();
@@ -137,6 +138,7 @@ struct Node
       const Process::timed_vec<int>& note_random,
       const Process::timed_vec<int>& vel_random,
       const Process::timed_vec<int>& chan_vec,
+      const Process::timed_vec<float>& tempo_vec,
       ossia::midi_port& p2,
       ossia::time_value prev_date,
       ossia::token_request tk,
@@ -162,11 +164,8 @@ struct Node
     auto rand_note = note_random.rbegin()->second;
     auto rand_vel = vel_random.rbegin()->second;
     auto chan = chan_vec.rbegin()->second;
+    auto tempo = tempo_vec.rbegin()->second;
 
-    // Get tempo
-    float tempo = 120.;
-    if(auto tempo_node = st.find_node("/tempo"))
-      tempo = ossia::convert<float>(tempo_node->get_parameter()->value());
 
     // how much time does a whole note last at this tempo given the current sr
     const auto whole_dur = 240.f / tempo; // in seconds

@@ -65,24 +65,15 @@ struct UISetup
 
 
           auto lab = new Scenario::SimpleTextItem{item};
-          lab->setColor(ScenarioStyle::instance().EventDefault);
+          lab->setColor(ScenarioStyle::instance().EventWaiting);
           lab->setText(ctrl.name);
-
-          QWidget* widg = ctrl.make_item(ctrl, *inlet, doc, nullptr, &self);
-          widg->setMaximumWidth(150);
-          widg->setContentsMargins(0, 0, 0, 0);
-          widg->setPalette(transparentPalette());
-          widg->setAutoFillBackground(false);
-          widg->setStyleSheet(transparentStylesheet());
-
-          auto wrap = new QGraphicsProxyWidget{item};
-          wrap->setWidget(widg);
-          wrap->setContentsMargins(0, 0, 0, 0);
-
           lab->setPos(15, 2);
-          wrap->setPos(15, lab->boundingRect().height());
 
-          auto h = std::max(20., (qreal)(widg->height() + lab->boundingRect().height() + 2.));
+          QGraphicsItem* widg = ctrl.make_item(ctrl, *inlet, doc, nullptr, &self);
+          widg->setParentItem(item);
+          widg->setPos(15, lab->boundingRect().height());
+
+          auto h = std::max(20., (qreal)(widg->boundingRect().height() + lab->boundingRect().height() + 2.));
           item->setRect(QRectF{0., 0., 170., h});
           port->setPos(7., h / 2.);
 
