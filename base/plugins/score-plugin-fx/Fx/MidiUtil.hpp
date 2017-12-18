@@ -169,12 +169,12 @@ struct Node
   .midi_ins({{"in"}})
   .midi_outs({{"out"}})
   .controls(Process::make_enum(
-               "scale",
+               "Scale",
                0U,
                Process::array("all", "ionian", "dorian", "phyrgian", "lydian", "mixolydian", "aeolian", "locrian",
                 "I", "II", "III", "IV", "V", "VI", "VII")),
-            Process::Widgets::OctaveSlider("base", 0, 1),
-            Process::Widgets::OctaveSlider("transpose", -1, 1)
+            Process::Widgets::OctaveSlider("Base", 0, 1),
+            Process::Widgets::OctaveSlider("Transpose", -1, 1)
   )
   .build();
 

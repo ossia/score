@@ -35,18 +35,18 @@ QRectF ConditionView::boundingRect() const
 void ConditionView::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  auto& skin = ScenarioStyle::instance();
+  auto& style = ScenarioStyle::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
   const QBrush& col = m_color.getBrush();
-  skin.ConditionPen.setBrush(col);
-  skin.ConditionTrianglePen.setBrush(col);
+  style.ConditionPen.setBrush(col);
+  style.ConditionTrianglePen.setBrush(col);
 
-  painter->setPen(skin.ConditionPen);
-  painter->setBrush(skin.TransparentBrush);
+  painter->setPen(style.ConditionPen);
+  painter->setBrush(style.TransparentBrush);
   painter->drawPath(m_Cpath);
 
 #if !defined(SCORE_IEEE_SKIN)
-  painter->setPen(skin.ConditionTrianglePen);
+  painter->setPen(style.ConditionTrianglePen);
   painter->setBrush(col);
 
   static const QPainterPath trianglePath{

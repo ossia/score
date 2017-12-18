@@ -74,9 +74,11 @@ ScenarioStyle::ScenarioStyle(const score::Skin& s) noexcept
     , CommentBlockPen{Qt::white, 1.}
     , SeparatorPen{Qt::white, 2.}
     , SeparatorBrush{Qt::white}
-    , TransparentBrush{Qt::transparent}
 
-    , TextBrush{QColor("#1f2a30")}
+  , TransparentPen{Qt::transparent}
+  , TransparentBrush{Qt::transparent}
+  , NoPen{Qt::NoPen}
+  , NoBrush{Qt::NoBrush}
 {
   update(s);
   QObject::connect(&s, &score::Skin::changed, [&] { this->update(s); });

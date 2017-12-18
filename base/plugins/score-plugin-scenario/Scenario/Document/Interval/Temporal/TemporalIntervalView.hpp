@@ -10,15 +10,7 @@
 #include <Scenario/Document/Interval/ExecutionState.hpp>
 #include <Scenario/Document/Interval/IntervalView.hpp>
 #include <score/model/ColorReference.hpp>
-
 class QMimeData;
-class QGraphicsSceneHoverEvent;
-class QGraphicsSceneDragDropEvent;
-class QPainter;
-class QStyleOptionGraphicsItem;
-class QWidget;
-class QGraphicsButton;
-class IntervalMenuOverlay;
 namespace Process { class LayerPresenter; }
 namespace Scenario
 {

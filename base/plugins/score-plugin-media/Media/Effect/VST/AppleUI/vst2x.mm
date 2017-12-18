@@ -11,6 +11,7 @@
 #include <QHBoxLayout>
 #include <QDebug>
 #include <QMainWindow>
+#include <Media/Effect/VST/VSTEffectModel.hpp>
 #include <QTimer>
 
 QSize sizeHint(NSView* m_view) {
@@ -46,8 +47,7 @@ struct VSTDialog: public QDialog
 // TODO have a look at https://github.com/alex-weej/Evilnote/blob/master/vsteditorwidget.mm
 void show_vst2_editor(AEffect& effect, ERect rect)
 {
-
-  auto container = reinterpret_cast<QMacCocoaViewContainer*>(effect.resvd2);
+  auto container = reinterpret_cast<QMacCocoaViewContainer*>(reinterpret_cast<Media::VST::VSTEffectModel*>(effect.resvd1)->ui);
   if(container)
   {
     effect.dispatcher(&effect, effEditOpen, 0, 0, (void*)container->cocoaView(), 0);
@@ -117,20 +117,20 @@ void show_vst2_editor(AEffect& effect, ERect rect)
   container->update();
   effect.dispatcher(&effect, __effEditTopDeprecated, 0, 0, 0, 0);
 
-  effect.resvd2 = reinterpret_cast<VstIntPtr>(container);
+  reinterpret_cast<Media::VST::VSTEffectModel*>(effect.resvd1)->ui = reinterpret_cast<VstIntPtr>(container);
   [superview release];
   [pool release];
 }
 
 void hide_vst2_editor(AEffect& effect)
 {
-  if(effect.resvd2)
+  if(effect.resvd1)
   {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    auto container = reinterpret_cast<QMacCocoaViewContainer*>(effect.resvd2);
+    auto container = reinterpret_cast<QMacCocoaViewContainer*>(reinterpret_cast<Media::VST::VSTEffectModel*>(effect.resvd1)->ui);
     ((QDialog*)container->parent())->close();
     delete container->parent();
-    effect.resvd2 = 0;
+    reinterpret_cast<Media::VST::VSTEffectModel*>(effect.resvd1)->ui = 0;
     [pool release];
   }
   effect.dispatcher(&effect, effEditClose, 0, 0, nullptr, 0);

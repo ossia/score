@@ -16,6 +16,7 @@
 #include <QGraphicsProxyWidget>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
+#include <score/widgets/GraphicWidgets.hpp>
 #include <Media/Commands/InsertEffect.hpp>
 
 namespace Media
@@ -23,108 +24,6 @@ namespace Media
 namespace Effect
 {
 using ProcessFactory = Process::GenericProcessModelFactory<Effect::ProcessModel>;
-
-class QGraphicsTextButton
-    : public QObject
-    , public Scenario::SimpleTextItem
-{
-    Q_OBJECT
-  public:
-    QGraphicsTextButton(QString text, QGraphicsItem* parent)
-      : SimpleTextItem{parent}
-    {
-      setText(std::move(text));
-    }
-
-  signals:
-    void pressed();
-
-  protected:
-    void mousePressEvent(QGraphicsSceneMouseEvent* event) override
-    {
-      emit pressed();
-      event->accept();
-    }
-    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override
-    {
-      event->accept();
-    }
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override
-    {
-      event->accept();
-    }
-};
-class QGraphicsPixmapButton
-    : public QObject
-    , public QGraphicsPixmapItem
-{
-    Q_OBJECT
-    QPixmap m_pressed, m_released;
-  public:
-    QGraphicsPixmapButton(QPixmap pressed, QPixmap released, QGraphicsItem* parent)
-      : QGraphicsPixmapItem{released, parent}
-      , m_pressed{std::move(pressed)}
-      , m_released{std::move(released)}
-    {
-
-    }
-
-  signals:
-    void clicked();
-
-  protected:
-    void mousePressEvent(QGraphicsSceneMouseEvent* event) override
-    {
-      setPixmap(m_pressed);
-      event->accept();
-    }
-    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override
-    {
-      event->accept();
-    }
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override
-    {
-      setPixmap(m_released);
-      emit clicked();
-      event->accept();
-    }
-};
-class QGraphicsPixmapToggle
-    : public QObject
-    , public QGraphicsPixmapItem
-{
-    Q_OBJECT
-    QPixmap m_pressed, m_released;
-    bool m_toggled{};
-  public:
-    QGraphicsPixmapToggle(QPixmap pressed, QPixmap released, QGraphicsItem* parent)
-      : QGraphicsPixmapItem{released, parent}
-      , m_pressed{std::move(pressed)}
-      , m_released{std::move(released)}
-    {
-
-    }
-
-  signals:
-    void toggled(bool);
-
-  protected:
-    void mousePressEvent(QGraphicsSceneMouseEvent* event) override
-    {
-      m_toggled = !m_toggled;
-      setPixmap(m_toggled ? m_pressed : m_released);
-      emit toggled(m_toggled);
-      event->accept();
-    }
-    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override
-    {
-      event->accept();
-    }
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override
-    {
-      event->accept();
-    }
-};
 
 class View final : public Process::ILayerView
 {
@@ -158,8 +57,8 @@ class View final : public Process::ILayerView
       static const auto close_off  = QPixmap::fromImage(QImage(":/icons/close_off.png") .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
       static const auto close_on   = QPixmap::fromImage(QImage(":/icons/close_on.png")  .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
 
-      auto ui_btn = new QGraphicsPixmapToggle{undock_on, undock_off, root};
-      connect(ui_btn, &QGraphicsPixmapToggle::toggled,
+      auto ui_btn = new score::QGraphicsPixmapToggle{undock_on, undock_off, root};
+      connect(ui_btn, &score::QGraphicsPixmapToggle::toggled,
               this, [=,&effect] (bool b) {
         if(b)
           effect.showUI();
@@ -168,8 +67,8 @@ class View final : public Process::ILayerView
       });
       ui_btn->setPos({5, 4});
 
-      auto rm_btn = new QGraphicsPixmapButton{close_on, close_off, root};
-      connect(rm_btn, &QGraphicsPixmapButton::clicked,
+      auto rm_btn = new score::QGraphicsPixmapButton{close_on, close_off, root};
+      connect(rm_btn, &score::QGraphicsPixmapButton::clicked,
               this, [&] () {
         auto cmd = new Commands::RemoveEffect{object, effect};
         CommandDispatcher<> disp{doc.commandStack}; disp.submitCommand(cmd);
@@ -256,7 +155,7 @@ class View final : public Process::ILayerView
       for(EffectModel& effect : object.effects())
       {
         auto root_item = new Process::RectItem(this);
-        EffectUi fx_ui{effect, root_item, {}, {}};
+        EffectUi fx_ui{effect, root_item, {}, {}, {}};
 
         // Title
         fx_ui.title = makeTitle(effect, object, doc);
@@ -332,34 +231,23 @@ class View final : public Process::ILayerView
       auto lab = new Scenario::SimpleTextItem{item};
       lab->setColor(ScenarioStyle::instance().EventDefault);
       lab->setText(inlet.customData());
+      lab->setPos(15, 2);
 
       struct SliderInfo {
           static float getMin() { return 0.; }
           static float getMax() { return 1.; }
       };
-      QWidget* widg = Process::FloatSlider::make_item(SliderInfo{}, inlet, doc, nullptr, this);
-      widg->setMaximumWidth(150);
-      widg->setContentsMargins(0, 0, 0, 0);
-      widg->setPalette(Process::transparentPalette());
-      widg->setAutoFillBackground(false);
-      widg->setStyleSheet(Process::transparentStylesheet());
+      QGraphicsItem* widg = Process::FloatSlider::make_item(SliderInfo{}, inlet, doc, nullptr, this);
+      widg->setParentItem(item);
+      widg->setPos(15, lab->boundingRect().height());
 
-      auto wrap = new QGraphicsProxyWidget{item};
-      wrap->setWidget(widg);
-      wrap->setContentsMargins(0, 0, 0, 0);
-
-      lab->setPos(15, 2);
-      wrap->setPos(15, lab->boundingRect().height());
-
-      auto h = std::max(20., (qreal)(widg->height() + lab->boundingRect().height() + 2.));
+      auto h = std::max(20., (qreal)(widg->boundingRect().height() + lab->boundingRect().height() + 2.));
 
       port->setPos(7., h / 2.);
 
       item->setPos(0, pos_y);
       item->setRect(QRectF{0., 0, 170., h});
       fx_ui.widgets.push_back({&inlet, item});
-
-
     }
 
   private:

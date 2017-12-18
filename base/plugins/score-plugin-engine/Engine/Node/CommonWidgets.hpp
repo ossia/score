@@ -7,8 +7,6 @@ namespace Process
 namespace Widgets
 {
 
-
-
 static const constexpr std::array<std::pair<const char*, float>, 14> durations
 {{
     {"None",  0.},
@@ -80,16 +78,20 @@ static constexpr auto WaveformChooser()
                 );
 }
 constexpr auto QuantificationChooser()
-{ return Process::ComboBox<float, std::size(notes)>("Quant.", 2, notes); }
+{ return Process::ComboBox<float, std::size(notes)>("Quantification", 2, notes); }
 
 constexpr auto MusicalDurationChooser()
-{ return Process::ComboBox<float, std::size(nonnull_notes)>("Dur.", 2, nonnull_notes); }
+{ return Process::ComboBox<float, std::size(nonnull_notes)>("Duration", 2, nonnull_notes); }
 constexpr auto DurationChooser()
-{ return Process::ComboBox<float, std::size(durations)>("Dur.", 2, durations); }
+{ return Process::ComboBox<float, std::size(durations)>("Duration", 2, durations); }
 constexpr auto FreqChooser()
-{ return Process::LogFloatSlider("Freq.", 1.f, 20000.f, 200.f); }
+{ return Process::LogFloatSlider("Frequency", 1.f, 20000.f, 200.f); }
 constexpr auto LFOFreqChooser()
-{ return Process::LogFloatSlider("Freq.", 0.01f, 100.f, 1.f); }
+{ return Process::LogFloatSlider("Frequency", 0.01f, 100.f, 1.f); }
+constexpr auto TimeSigChooser()
+{ return Process::TimeSignatureChooser("Sig.", "4/4"); }
+constexpr auto TempoChooser()
+{ return Process::FloatSlider("Tempo", 20, 300, 120); }
 
 
 template<typename T>

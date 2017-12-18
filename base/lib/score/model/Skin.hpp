@@ -5,6 +5,7 @@
 #include <QPair>
 #include <QVector>
 #include <boost/bimap.hpp>
+#include <QPen>
 #include <score_lib_base_export.h>
 namespace score
 {
@@ -55,6 +56,13 @@ public:
 
   QBrush Pulse1;
   QBrush Pulse2;
+
+  const QPen TransparentPen;
+  const QBrush TransparentBrush;
+  const QPen NoPen;
+  const QBrush NoBrush;
+  QBrush TextBrush;
+
   const QBrush* fromString(const QString& s) const;
   QBrush* fromString(const QString& s);
   QString toString(const QBrush*) const;

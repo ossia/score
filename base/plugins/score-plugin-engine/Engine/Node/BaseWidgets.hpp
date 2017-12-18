@@ -9,21 +9,32 @@ namespace Process
 struct SCORE_PLUGIN_ENGINE_EXPORT ToggleButton : public QPushButton
 {
   public:
-    ToggleButton(QWidget *parent): QPushButton{parent}
+    ToggleButton(std::array<const char*, 2> alt, QWidget *parent)
+      : QPushButton{parent}
     {
-        setCheckable(true);
+      alternatives[0] = alt[0];
+      alternatives[1] = alt[1];
+      setCheckable(true);
 
-        connect(this, &QPushButton::toggled,
-                this, [&] (bool b) {
-            if(b)
-            {
-                setText(alternatives[1]);
-            }
-            else
-            {
-                setText(alternatives[0]);
-            }
-        });
+      connect(this, &QPushButton::toggled,
+              this, [&] (bool b) {
+        if(b)
+        {
+          setText(alternatives[1]);
+        }
+        else
+        {
+          setText(alternatives[0]);
+        }
+      });
+      if(isChecked())
+      {
+        setText(alternatives[1]);
+      }
+      else
+      {
+        setText(alternatives[0]);
+      }
     }
     std::array<QString, 2> alternatives;
   protected:

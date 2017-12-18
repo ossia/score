@@ -169,6 +169,28 @@ static auto HostCallback (AEffect* effect, VstInt32 opcode, VstInt32 index, VstI
 
   switch (opcode)
   {
+    case audioMasterGetTime:
+    {
+      auto vst = reinterpret_cast<VSTEffectModel*>(effect->resvd1);
+      if(vst)
+      {
+        result = reinterpret_cast<VstIntPtr>(&vst->fx->info);
+      }
+      break;
+    }
+    case audioMasterProcessEvents:
+    break;
+    case audioMasterIOChanged:
+    break;
+    case audioMasterSizeWindow:
+    break;
+    case audioMasterGetInputLatency:
+    break;
+    case audioMasterGetOutputLatency:
+    break;
+    case audioMasterIdle:
+      effect->dispatcher(effect, effEditIdle, 0, 0, nullptr, 0);
+      break;
     case audioMasterVersion :
       result = kVstVersion;
       break;
@@ -190,14 +212,17 @@ static auto HostCallback (AEffect* effect, VstInt32 opcode, VstInt32 index, VstI
     case audioMasterAutomate:
     {
       auto vst = reinterpret_cast<VSTEffectModel*>(effect->resvd1);
-      auto inlet = static_cast<Process::ControlInlet*>(vst->inlets()[1 + index]);
-      inlet->setValue(opt);
-      inlet->setUiVisible(true);
+      if(vst)
+      {
+        auto inlet = static_cast<Process::ControlInlet*>(vst->inlets()[1 + index]);
+        inlet->setValue(opt);
+        inlet->setUiVisible(true);
+      }
 
       break;
     }
     case audioMasterGetAutomationState:
-      result = kVstAutomationOff;
+      result = kVstAutomationUnsupported;
       break;
 
     case audioMasterGetLanguage:
@@ -218,11 +243,24 @@ static auto HostCallback (AEffect* effect, VstInt32 opcode, VstInt32 index, VstI
       result = 1;
       break;
 
+    case audioMasterUpdateDisplay:
+      // TODO update all values
+      break;
+    case audioMasterBeginEdit:
+      break;
+    case audioMasterEndEdit:
+      break;
+    case audioMasterOpenFileSelector:
+      break;
+    case audioMasterCloseFileSelector:
+      break;
+
     case audioMasterCanDo:
     {
       static const std::set<std::string_view> supported{
         HostCanDos::canDoSendVstEvents,
         HostCanDos::canDoSendVstMidiEvent,
+        HostCanDos::canDoSendVstTimeInfo,
         HostCanDos::canDoSendVstMidiEventFlagIsRealtime,
         HostCanDos::canDoHasCockosViewAsConfig
       };
@@ -266,7 +304,16 @@ void VSTEffectModel::showUI()
   if(h <= 1)
     h = 480;
 
+  bool had_ui = bool(ui);
   show_vst2_editor(*fx->fx, *vstRect);
+  if(!had_ui && ui)
+  {
+    auto& ctx = score::IDocument::documentContext(*this);
+    connect(&ctx.coarseUpdateTimer, &QTimer::timeout,
+            this, [=] {
+      dispatch(effEditIdle);
+    });
+  }
 }
 
 void VSTEffectModel::hideUI()
