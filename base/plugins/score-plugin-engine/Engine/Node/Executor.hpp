@@ -350,11 +350,13 @@ struct control_updater
 
 
 template<typename Info, typename Node_T, typename Element_T>
-void setup_node(Node_T& node
+void setup_node(const std::shared_ptr<Node_T> node_ptr
                 , Element_T& element
                 , const Engine::Execution::Context& ctx
                 , QObject* parent)
 {
+  auto& node = *node_ptr;
+  std::weak_ptr<Node_T> weak_node = node_ptr;
   constexpr const auto control_count = InfoFunctions<Info>::control_count;
 
   if constexpr(control_count > 0)
@@ -378,12 +380,15 @@ void setup_node(Node_T& node
           std::get<idx>(node.controls) = *res;
 
         QObject::connect(inlet, &ControlInlet::valueChanged,
-                parent, [&ctx,&node] (const ossia::value& val) {
-          constexpr const auto ctrls = get_controls(Info::info);
-          constexpr const auto ctrl = std::get<idx>(ctrls);
-          if(auto v = ctrl.fromValue(val))
-            ctx.executionQueue.enqueue(
-                  control_updater<control_value_type>{std::get<idx>(node.controls), std::move(*v)});
+                parent, [&ctx,weak_node] (const ossia::value& val) {
+          if(auto node = weak_node.lock())
+          {
+            constexpr const auto ctrls = get_controls(Info::info);
+            constexpr const auto ctrl = std::get<idx>(ctrls);
+            if(auto v = ctrl.fromValue(val))
+              ctx.executionQueue.enqueue(
+                    control_updater<control_value_type>{std::get<idx>(node->controls), std::move(*v)});
+          }
         });
       }
       else
@@ -391,13 +396,16 @@ void setup_node(Node_T& node
         std::get<idx>(node.controls) = ctrl.fromValue(element.control(idx));
 
         QObject::connect(inlet, &ControlInlet::valueChanged,
-                parent, [&ctx,&node] (const ossia::value& val) {
-          constexpr const auto ctrls = get_controls(Info::info);
-          constexpr const auto ctrl = std::get<idx>(ctrls);
-          ctx.executionQueue.enqueue(
+                parent, [&ctx,weak_node] (const ossia::value& val) {
+            if(auto node = weak_node.lock())
+            {
+              constexpr const auto ctrls = get_controls(Info::info);
+              constexpr const auto ctrl = std::get<idx>(ctrls);
+              ctx.executionQueue.enqueue(
                 control_updater<control_value_type>{
-                  std::get<idx>(node.controls),
+                  std::get<idx>(node->controls),
                   ctrl.fromValue(val)});
+            }
         });
       }
 
@@ -405,21 +413,25 @@ void setup_node(Node_T& node
 
     // Update the value in the UI
     con(ctx.doc.coarseUpdateTimer, &QTimer::timeout,
-        parent, [&node,&element] {
-      typename Node_T::controls_values_type arr;
-      bool ok = false;
-      while(node.cqueue.try_dequeue(arr)) {
-        ok = true;
-      }
-      if(ok)
+        parent, [weak_node,&element] {
+      if(auto node = weak_node.lock())
       {
-        ossia::for_each_in_range<control_count>([&] (auto idx_t) {
-          constexpr auto idx = idx_t.value;
-          constexpr const auto ctrls = get_controls(Info::info);
-          constexpr const auto ctrl = std::get<idx>(ctrls);
+        // TODO disconnect the connection ? it will be disconnected shortly after...
+        typename Node_T::controls_values_type arr;
+        bool ok = false;
+        while(node->cqueue.try_dequeue(arr)) {
+          ok = true;
+        }
+        if(ok)
+        {
+          ossia::for_each_in_range<control_count>([&] (auto idx_t) {
+            constexpr auto idx = idx_t.value;
+            constexpr const auto ctrls = get_controls(Info::info);
+            constexpr const auto ctrl = std::get<idx>(ctrls);
 
-          element.setControl(idx, ctrl.toValue(std::get<idx>(arr)));
-        });
+            element.setControl(idx, ctrl.toValue(std::get<idx>(arr)));
+          });
+        }
       }
     }, Qt::QueuedConnection);
 
@@ -463,7 +475,7 @@ class Executor: public Engine::Execution::
       auto node = std::make_shared<ControlNode<Info>>();
       this->m_ossia_process = std::make_shared<ossia::node_process>(node);
 
-      setup_node<Info>(*node, element, ctx, this);
+      setup_node<Info>(node, element, ctx, this);
 
       ctx.plugin.register_node(element, node);
     }

@@ -63,8 +63,6 @@ EffectComponent* EffectProcessComponentBase::make(
     this_fx.registeredInlets = effect.inlets();
     this_fx.registeredOutlets = effect.outlets();
 
-    std::vector<ossia::edge_ptr> edges_to_inlet;
-    std::vector<ossia::edge_ptr> edges_from_outlet;
     // TODO this could be glitchy : there's no guarantee there won't be another tick between all the submitted commands
     if(idx == 0)
     {

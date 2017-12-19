@@ -214,7 +214,7 @@ static auto HostCallback (AEffect* effect, VstInt32 opcode, VstInt32 index, VstI
       auto vst = reinterpret_cast<VSTEffectModel*>(effect->resvd1);
       if(vst)
       {
-        auto inlet = static_cast<Process::ControlInlet*>(vst->inlets()[1 + index]);
+        auto inlet = static_cast<Process::ControlInlet*>(vst->inlets()[3 + index]);
         inlet->setValue(opt);
         inlet->setUiVisible(true);
       }
@@ -399,6 +399,16 @@ void VSTEffectModel::reload(const T& port_factory)
     m_inlets[0]->type = Process::PortType::Audio;
   }
 
+  // Tempo
+  m_inlets.push_back(port_factory.make_control(inlet_i++, this));
+  m_inlets[1]->type = Process::PortType::Message;
+  m_inlets[1]->setCustomData("Tempo");
+
+  // Signature
+  m_inlets.push_back(port_factory.make_control(inlet_i++, this));
+  m_inlets[2]->type = Process::PortType::Message;
+  m_inlets[2]->setCustomData("Time signature");
+
   for(int i = 0; i < fx->fx->numParams; i++)
   {
     auto p = port_factory.make_control(inlet_i++, this);
@@ -414,13 +424,12 @@ void VSTEffectModel::reload(const T& port_factory)
       auto label = get_string(effGetParamLabel, i);
       // auto display = get_string(effGetParamDisplay, i);
 
-      // Get the name
+      // Get the nameq
+      QString str = name;
       if(!label.isEmpty())
-        p->setCustomData(label);
-      else if(!name.isEmpty())
-        p->setCustomData(name);
-      else
-        p->setCustomData("Parameter");
+        str += "(" + label + ")";
+
+      p->setCustomData(name);
     }
 
     // Value
@@ -435,7 +444,7 @@ void VSTEffectModel::reload(const T& port_factory)
       }
 
       connect(p, &Process::ControlInlet::valueChanged,
-              this, [=] (const ossia::value& v){
+              this, [this,p,i] (const ossia::value& v){
         auto newval =  ossia::convert<float>(v);
         if(std::abs(newval - fx->getParameter(i)) > 0.0001)
           fx->setParameter(i, newval);
@@ -542,10 +551,10 @@ void JSONObjectWriter::write(
           auto b64 = websocketpp::base64_decode(it->toString().toStdString());
           eff.fx->dispatch(effSetChunk, 0, b64.size(), b64.data(), 0.f);
 
-          for(std::size_t i = 1; i < eff.inlets().size(); i++)
+          for(std::size_t i = 3; i < eff.inlets().size(); i++)
           {
             static_cast<Process::ControlInlet*>(eff.inlets()[i])->setValue(
-                  eff.fx->getParameter(i-1));
+                  eff.fx->getParameter(i-3));
           }
         }
       }

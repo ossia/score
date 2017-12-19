@@ -237,6 +237,7 @@ class View final : public Process::ILayerView
           static float getMin() { return 0.; }
           static float getMax() { return 1.; }
       };
+
       QGraphicsItem* widg = Process::FloatSlider::make_item(SliderInfo{}, inlet, doc, nullptr, this);
       widg->setParentItem(item);
       widg->setPos(15, lab->boundingRect().height());

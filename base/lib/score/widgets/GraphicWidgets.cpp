@@ -129,9 +129,9 @@ void QGraphicsSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     {
       m_value = curPos;
       emit valueChanged(m_value);
-      emit sliderReleased();
       update();
     }
+    emit sliderReleased();
     m_grab = false;
   }
   event->accept();
@@ -263,9 +263,9 @@ void QGraphicsLogSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     {
       m_value = curPos;
       emit valueChanged(m_value);
-      emit sliderReleased();
       update();
     }
+    emit sliderReleased();
     m_grab = false;
   }
   event->accept();
@@ -407,9 +407,9 @@ void QGraphicsIntSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     {
       m_value = res;
       emit valueChanged(m_value);
-      emit sliderReleased();
       update();
     }
+    emit sliderReleased();
     m_grab = false;
   }
   event->accept();
@@ -545,9 +545,9 @@ void QGraphicsComboSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     {
       m_value = res;
       emit valueChanged(m_value);
-      emit sliderReleased();
       update();
     }
+    emit sliderReleased();
     m_grab = false;
   }
   event->accept();

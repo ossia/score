@@ -135,7 +135,7 @@ class ControlEffect final: public Media::Effect::EffectModel
     {
       auto node = std::make_shared<Process::ControlNode<Info>>();
 
-      setup_node<Info>(*node, *this, ctx, this);
+      setup_node<Info>(node, *this, ctx, this);
 
       return node;
     }
