@@ -80,11 +80,26 @@ RemoveSelection::RemoveSelection(
   {
     if (auto ts = dynamic_cast<const TimeSyncModel*>(obj.data()))
     {
-      if (!ts->active()){
-        for (int i = 1; i < ts->events().size(); i++)
-        {
-          QVector<Id<EventModel>> move_me{ts->events()[i]};
-          m_cmds_split_timesync.emplace_back(*ts, move_me);
+      if(ts->events().size()>1)
+      {
+        bool split = false;
+        for (auto child : ts->events()){
+          auto& ev = scenar.events.at(child);
+          if (!sel.contains(&ev)){
+            split = true;
+            break;
+          }
+        }
+
+        if (split){
+          for (int i = 1; i < ts->events().size(); i++)
+          {
+            QVector<Id<EventModel>> move_me{ts->events()[i]};
+            m_cmds_split_timesync.emplace_back(*ts, move_me);
+          }
+
+          // if we split the timesync, then we won't remove it
+          sel.removeAll(obj);
         }
       }
     }
@@ -93,12 +108,28 @@ RemoveSelection::RemoveSelection(
   // If we select an Event for deletion, put its states into new separate events
   for ( const auto& obj : cp)
   {
-    if (auto event = dynamic_cast<const EventModel*>(obj.data()))
+    if (auto ev = dynamic_cast<const EventModel*>(obj.data()))
     {
-      for (int i = 1; i < event->states().size(); i++)
+      if (ev->states().size()>1)
       {
-        QVector<Id<StateModel>> move_me{event->states()[i]};
-        m_cmds_split_event.emplace_back(scenar, event->id(), move_me);
+        bool split =  false;
+        for (auto child : ev->states()){
+          auto& st = scenar.states.at(child);
+          if (!sel.contains(&st)){
+            split = true;
+            break;
+          }
+        }
+        if (split){
+          for (int i = 1; i < ev->states().size(); i++)
+          {
+            QVector<Id<StateModel>> move_me{ev->states()[i]};
+            m_cmds_split_event.emplace_back(scenar, ev->id(), move_me);
+          }
+
+          // if we split the event, then we won't remove it
+          sel.removeAll(obj);
+        }
       }
     }
   }

@@ -59,9 +59,9 @@ private:
 class SlotHeader final : public QGraphicsItem
 {
   public:
-    SlotHeader(const TemporalIntervalPresenter& slotView, int slotIndex, QGraphicsItem* parent);
+    SlotHeader(const IntervalPresenter& slotView, int slotIndex, QGraphicsItem* parent);
 
-    const TemporalIntervalPresenter& presenter() const { return m_presenter; }
+    const IntervalPresenter& presenter() const { return m_presenter; }
     static constexpr int static_type()
     {
       return QGraphicsItem::UserType + ItemType::SlotHeader;
@@ -99,7 +99,7 @@ class SlotHeader final : public QGraphicsItem
     void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
-    const TemporalIntervalPresenter& m_presenter;
+    const IntervalPresenter& m_presenter;
     qreal m_width{};
     int m_slotIndex{};
     bool m_mini{false};

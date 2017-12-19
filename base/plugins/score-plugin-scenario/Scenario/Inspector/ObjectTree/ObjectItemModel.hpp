@@ -131,6 +131,8 @@ public:
 
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent *event) override;
+  void on_findAddresses(QStringList strlst);
+  void search_for(QString address);
 
 private:
 

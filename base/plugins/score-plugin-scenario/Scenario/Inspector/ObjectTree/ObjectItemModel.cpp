@@ -29,6 +29,10 @@
 #include <core/presenter/DocumentManager.hpp>
 #include <State/MessageListSerialization.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
+#include <Explorer/Explorer/DeviceExplorerWidget.hpp>
+#include <score/application/ApplicationContext.hpp>
+#include <score/plugins/panel/PanelDelegate.hpp>
+#include <Explorer/Panel/DeviceExplorerPanelDelegate.hpp>
 
 namespace Scenario
 {
@@ -929,6 +933,17 @@ SearchWidget::SearchWidget(const score::GUIApplicationContext& ctx)
 
   connect(m_lineEdit, &QLineEdit::returnPressed, [&]() { search(); });
   connect(m_btn, &QPushButton::pressed, [&]() { search(); });
+
+  const auto& appCtx = score::GUIAppContext();
+
+  for (auto& cpt : appCtx.panels())
+  {
+    if (Explorer::PanelDelegate* panel = dynamic_cast<Explorer::PanelDelegate*>(&cpt))
+    {
+      Explorer::DeviceExplorerWidget* widget = static_cast<Explorer::DeviceExplorerWidget*>(panel->widget());
+      connect(widget, &Explorer::DeviceExplorerWidget::findAddresses, this, &SearchWidget::on_findAddresses);
+    }
+  }
 }
 
 template<typename Object>
@@ -941,10 +956,58 @@ void add_if_contains(const Object& obj,const QString& str, Selection& sel)
     sel.append(&obj);
 }
 
+void SearchWidget::on_findAddresses(QStringList strlst)
+{
+  QString searchTxt = "address=";
+  for (auto str : strlst)
+  {
+    searchTxt += str;
+    if (str != strlst.back())
+      searchTxt += ",";
+  }
+  m_lineEdit->setText(searchTxt);
+  search();
+}
+
 void SearchWidget::search()
 {
   QString stxt = m_lineEdit->text();
-  auto addr = State::AddressAccessor::fromString(stxt);
+  std::vector<State::AddressAccessor> addresses;
+
+  int idx = stxt.indexOf("=");
+  if (idx >= 0)
+  {
+    QString substr = stxt.mid(0,idx);
+    if ( substr == "address")
+    {
+      QString addrstr = stxt.mid(idx+1);
+      if (auto spaceidx = addrstr.indexOf(" ") >= 0)
+        addrstr = substr.mid(0,spaceidx);
+
+      int comma = addrstr.indexOf(",");
+      int offset = 0;
+      while (comma >= 0)
+      {
+        auto sub = addrstr.mid(offset,comma);
+        auto optaddr = State::AddressAccessor::fromString(sub);
+        if (optaddr)
+          addresses.push_back(*optaddr);
+        offset = comma+1;
+        comma = addrstr.indexOf(",", offset);
+      }
+      auto sub = addrstr.mid(offset,comma);
+      auto optaddr = State::AddressAccessor::fromString(sub);
+      if (optaddr)
+        addresses.push_back(*optaddr);
+    }
+  }
+
+  if(addresses.empty())
+  {
+    auto opt = State::AddressAccessor::fromString(stxt);
+    if (opt)
+      addresses.push_back(*opt);
+  }
 
   auto* doc = m_ctx.documents.currentDocument();
 
@@ -958,15 +1021,47 @@ void SearchWidget::search()
     {
       if (auto state = dynamic_cast<const StateModel*>(obj))
       {
-        if (addr)
+        bool flag = false; // used to break loop at several point to avoid adding
+                           // the same object severals time and to sped-up main loop
+
+        State::MessageList list = Process::flatten(state->messages().rootNode());
+
+        for (const auto& addr : addresses)
         {
-          auto nodes = Process::try_getNodesFromAddress(state->messages().rootNode(), *addr);
+          auto nodes = Process::try_getNodesFromAddress(state->messages().rootNode(), addr);
+
           if (!nodes.empty())
           {
             sel.append(state);
+            flag = true;
+            continue;
+          }
+
+          for (auto mess : list)
+          {
+            if (mess.address.address.toString().contains(addr.address.toString()))
+            {
+              sel.append(state);
+              flag = true;
+              continue;
+            }
+          }
+          if (flag)
+            continue;
+        }
+        if (flag)
+          continue;
+        for (auto mess : list)
+        {
+          if (mess.address.address.toString().contains(stxt))
+          {
+            sel.append(state);
+            flag = true;
             continue;
           }
         }
+        if (flag)
+          continue;
         add_if_contains(*state, stxt, sel);
       }
       else if (auto event = dynamic_cast<const EventModel*>(obj))
@@ -988,11 +1083,8 @@ void SearchWidget::search()
     }
   }
 
-  if(!sel.empty())
-  {
-    score::SelectionDispatcher d{doc->context().selectionStack};
-    d.setAndCommit(sel);
-  }
+  score::SelectionDispatcher d{doc->context().selectionStack};
+  d.setAndCommit(sel);
 }
 
 void SearchWidget::dragEnterEvent(QDragEnterEvent* event)

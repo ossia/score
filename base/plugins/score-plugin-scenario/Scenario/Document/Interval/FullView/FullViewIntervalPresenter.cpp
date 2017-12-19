@@ -8,6 +8,8 @@
 #include <Scenario/Document/Interval/FullView/FullViewIntervalView.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <score/document/DocumentInterface.hpp>
+#include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 
 #include <Scenario/Document/Interval/SlotHandle.hpp>
 #include <Process/LayerView.hpp>
@@ -109,8 +111,9 @@ FullViewIntervalPresenter::~FullViewIntervalPresenter()
 void FullViewIntervalPresenter::createSlot(int pos, const FullSlot& slt)
 {
   SlotPresenter p;
+  p.header = new SlotHeader{*this, pos, m_view};
   p.handle = new SlotHandle{*this, pos, m_view};
-  m_slots.insert(m_slots.begin() + pos, std::move(p));
+
 
   const auto& proc = m_model.processes.at(slt.process);
 
@@ -123,6 +126,13 @@ void FullViewIntervalPresenter::createSlot(int pos, const FullSlot& slt)
   proc_pres->on_zoomRatioChanged(m_zoomRatio);
   proc_pres->setFullView();
 
+  p.headerDelegate = new DefaultHeaderDelegate{*proc_pres};
+  p.headerDelegate->setParentItem(p.header);
+  p.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
+  p.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
+  p.headerDelegate->setPos(30, 0);
+
+  m_slots.insert(m_slots.begin() + pos, std::move(p));
   m_slots.at(pos).process = LayerData{
                   &proc, proc_pres, proc_view
                 };
@@ -136,7 +146,7 @@ void FullViewIntervalPresenter::createSlot(int pos, const FullSlot& slt)
       return elt.process.model->id() == proc.id();
     });
     if(it != m_slots.end())
-        updateProcessShape(it->process);
+        updateProcessShape(it->process, *it);
     i++;
 
   });
@@ -147,17 +157,40 @@ void FullViewIntervalPresenter::createSlot(int pos, const FullSlot& slt)
   updateProcessShape(pos);
 }
 
-void FullViewIntervalPresenter::updateProcessShape(const LayerData& data)
+
+void FullViewIntervalPresenter::requestSlotMenu(int slot, QPoint pos, QPointF sp) const
+{
+    auto menu = new QMenu;
+    auto& reg = score::GUIAppContext()
+                .guiApplicationPlugin<ScenarioApplicationPlugin>()
+                .layerContextMenuRegistrar();
+    ScenarioContextMenuManager::createLayerContextMenu(
+          *menu, pos, sp, reg, *m_slots[slot].process.presenter);
+    menu->exec(pos);
+    menu->close();
+    menu->deleteLater();
+}
+
+void FullViewIntervalPresenter::updateProcessShape(const LayerData& data, const SlotPresenter& slot)
 {
   data.presenter->setHeight(data.model->getSlotHeight());
 
   auto width = m_model.duration.guiDuration().toPixels(m_zoomRatio);
   data.presenter->setWidth(width);
+
+  slot.header->setWidth(width);
+  slot.header->setMini(false);
+
+  slot.headerDelegate->setSize(QSizeF{std::max(0., width - SlotHeader::handleWidth() - SlotHeader::menuWidth()), SlotHeader::headerHeight()});
+  slot.headerDelegate->setX(30);
+
   data.presenter->parentGeometryChanged();
 }
+
 void FullViewIntervalPresenter::updateProcessShape(int slot)
 {
-  updateProcessShape(m_slots.at(slot).process);
+  auto& slt = m_slots.at(slot);
+  updateProcessShape(slt.process, slt);
 }
 
 void FullViewIntervalPresenter::on_slotRemoved(int pos)
@@ -169,6 +202,7 @@ void FullViewIntervalPresenter::on_slotRemoved(int pos)
   if (view_p)
     deleteGraphicsItem(slot.process.view);
 
+  deleteGraphicsItem(slot.header);
   deleteGraphicsItem(slot.handle);
 
   m_slots.erase(m_slots.begin() + pos);
@@ -197,6 +231,13 @@ void FullViewIntervalPresenter::updatePositions()
     const SlotPresenter& slot = m_slots[i];
     const LayerData& proc = slot.process;
 
+    if(slot.header)
+    {
+      slot.header->setPos(QPointF{0, currentSlotY});
+      slot.header->setSlotIndex(i);
+    }
+    currentSlotY += SlotHeader::headerHeight();
+
     proc.view->setPos(0, currentSlotY);
     proc.view->update();
 
@@ -218,7 +259,7 @@ double FullViewIntervalPresenter::rackHeight() const
   qreal height = 0;
   for(const SlotPresenter& slot : m_slots)
   {
-    height += slot.process.model->getSlotHeight() + SlotHandle::handleHeight();
+    height += slot.process.model->getSlotHeight() + SlotHandle::handleHeight() + SlotHeader::headerHeight() ;
   }
   return height;
 }

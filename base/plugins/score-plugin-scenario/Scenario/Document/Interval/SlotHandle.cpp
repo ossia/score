@@ -91,7 +91,7 @@ void SlotHandle::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
 
 SlotHeader::SlotHeader(
-    const TemporalIntervalPresenter& slotView,
+    const IntervalPresenter& slotView,
     int slotIndex,
     QGraphicsItem* parent)
     : QGraphicsItem{parent}
@@ -189,7 +189,6 @@ void SlotHeader::mousePressEvent(QGraphicsSceneMouseEvent* event)
   {
     // menu
     m_presenter.requestSlotMenu(m_slotIndex, event->screenPos(), event->scenePos());
-
   }
   event->accept();
 }
