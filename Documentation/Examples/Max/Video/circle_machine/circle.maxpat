@@ -4,8 +4,8 @@
 		"appversion" : 		{
 			"major" : 7,
 			"minor" : 3,
-			"revision" : 5,
-			"architecture" : "x86",
+			"revision" : 4,
+			"architecture" : "x64",
 			"modernui" : 1
 		}
 ,
@@ -277,9 +277,9 @@
 					"numinlets" : 2,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 940.0, 115.0, 68.0, 22.0 ],
+					"patching_rect" : [ 940.0, 115.0, 73.0, 22.0 ],
 					"style" : "",
-					"text" : "getaddress"
+					"text" : "get address"
 				}
 
 			}

@@ -1,0 +1,85 @@
+#N canvas 379 22 901 704 10;
+#X obj 364 318 osc~;
+#X obj 363 241 line~;
+#X obj 363 206 pack 0 100;
+#X obj 364 372 *~, f 16;
+#X obj 473 347 line~;
+#X obj 473 310 pack 0 100;
+#X obj 254 278 *~, f 16;
+#X obj 105 49 ossia.parameter carrier/frequency @default 440 @type
+hz @description Carrier frequency";
+#X obj 253 240 line~;
+#X obj 253 205 pack 0 100;
+#X obj 107 405 osc~;
+#X obj 105 241 line~;
+#X obj 105 206 pack 0 100;
+#X obj 299 531 line~;
+#X obj 299 504 pack 0 100;
+#X text 342 449 convert dBFs to Pd's dB \, 100dB Pd = 0dBFS;
+#X obj 299 471 dbtorms;
+#X obj 299 449 + 100;
+#X obj 106 564 *~, f 28;
+#X obj 228 667 + 1;
+#X obj 229 700 / 8;
+#X obj 276 690 ossia.remote ramptime;
+#X obj 227 755 line~;
+#X obj 227 728 pack 0 100;
+#X obj 227 784 cos~;
+#X obj 288 778 +~ 0.75;
+#X obj 288 804 cos~;
+#X obj 113 834 *~;
+#X obj 177 833 *~;
+#X obj 227 630 ossia.parameter pan @default 0 @type float @range -1
+1 @clip both @description "Pan position", f 56;
+#X obj 627 868 ossia.model \$1;
+#X obj 363 110 ossia.parameter modulation/ratio @default 4 @range 0.01
+100 @clip low @type float @description "Modulator frequency ratio"
+, f 66;
+#X obj 445 253 ossia.parameter modulation/index @default 10 @range
+0 1000 @clip low @type float @description "Modulator frequency index"
+, f 63;
+#X obj 299 406 ossia.parameter gain @default -12 @range -100 12 @type
+db @description "Main gain" @clip high, f 50;
+#X obj 113 882 outlet~;
+#X obj 177 880 outlet~;
+#X obj 430 151 ossia.parameter ramptime @default 20 @type ms @description
+"Modulator frequency ramp time";
+#X connect 0 0 3 0;
+#X connect 1 0 6 1;
+#X connect 2 0 1 0;
+#X connect 3 0 10 0;
+#X connect 4 0 3 1;
+#X connect 5 0 4 0;
+#X connect 6 0 0 0;
+#X connect 7 0 9 0;
+#X connect 7 0 12 0;
+#X connect 8 0 6 0;
+#X connect 9 0 8 0;
+#X connect 10 0 18 0;
+#X connect 11 0 10 0;
+#X connect 12 0 11 0;
+#X connect 13 0 18 1;
+#X connect 14 0 13 0;
+#X connect 16 0 14 0;
+#X connect 17 0 16 0;
+#X connect 18 0 27 0;
+#X connect 18 0 28 0;
+#X connect 19 0 20 0;
+#X connect 20 0 23 0;
+#X connect 21 1 23 1;
+#X connect 22 0 24 0;
+#X connect 22 0 25 0;
+#X connect 23 0 22 0;
+#X connect 24 0 27 1;
+#X connect 25 0 26 0;
+#X connect 26 0 28 1;
+#X connect 27 0 34 0;
+#X connect 28 0 35 0;
+#X connect 29 0 19 0;
+#X connect 31 0 2 0;
+#X connect 32 0 5 0;
+#X connect 33 0 17 0;
+#X connect 36 0 2 1;
+#X connect 36 0 5 1;
+#X connect 36 0 9 1;
+#X connect 36 0 12 1;

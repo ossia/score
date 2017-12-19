@@ -31,7 +31,7 @@ class DeviceEditDialog;
 class DeviceExplorerFilterProxyModel;
 class DeviceExplorerModel;
 class DeviceExplorerView;
-class DeviceExplorerWidget final : public QWidget
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerWidget final : public QWidget
 {
   Q_OBJECT
 
@@ -122,5 +122,8 @@ private:
   QMetaObject::Connection m_modelCon;
 
   QMetaObject::Connection m_addressCon;
+
+signals:
+  void findAddresses(QStringList strlst);
 };
 }

@@ -1,8 +1,9 @@
 #pragma once
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
+#include <Scenario/Document/Interval/SlotHandle.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
-
+#include <Scenario/Document/Interval/Temporal/DefaultHeaderDelegate.hpp>
 #include <Scenario/Document/Interval/FullView/FullViewIntervalView.hpp>
 
 namespace Scenario
@@ -17,6 +18,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT FullViewIntervalPresenter final
 public:
   struct SlotPresenter
   {
+    SlotHeader* header{};
+    DefaultHeaderDelegate* headerDelegate{};
     SlotHandle* handle{};
     LayerData process;
   };
@@ -41,13 +44,14 @@ signals:
   void intervalSelected(IntervalModel&);
 
 private:
+  void requestSlotMenu(int slot, QPoint pos, QPointF sp) const override;
   void updateScaling() override;
   void on_defaultDurationChanged(const TimeVal&);
   void on_guiDurationChanged(const TimeVal&);
 
   void createSlot(int pos, const FullSlot& slt);
   void updateProcessShape(int slot);
-  void updateProcessShape(const LayerData& layer);
+  void updateProcessShape(const LayerData& layer, const SlotPresenter& pres);
   void on_slotRemoved(int);
 
   void updateProcessesShape();

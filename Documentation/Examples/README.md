@@ -1,8 +1,11 @@
-Overview.scorejson : 
+This part of the repository will show you exemples of scores/scenarios for different platforms:
 
-Four OSC nodes : 
-/my_pos (vec2f, x and y between 0 and 1)
-/my_color (vec3f), r,g,b between 0 and 1)
-/my_float (between 0 and 100)
-/my_int (between 0 and 25)
+- an Overview example, working with Pd, Max, Processing and Unity3D
+- an 'unified' fm-synthesis score example, which works with Max, Pure Data & SuperCollider
+- an example with Python
+- an example for working with the Lemur device
+- an example for Processing
+- an example for Unity
+- remote clients for Max and pd
 
+enjoy!

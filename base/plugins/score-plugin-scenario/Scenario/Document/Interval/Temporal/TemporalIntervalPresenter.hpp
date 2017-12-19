@@ -49,7 +49,7 @@ public:
   TemporalIntervalView* view() const;
   TemporalIntervalHeader* header() const;
 
-  void requestSlotMenu(int slot, QPoint pos, QPointF sp) const;
+  void requestSlotMenu(int slot, QPoint pos, QPointF sp) const override;
 signals:
   void intervalHoverEnter();
   void intervalHoverLeave();

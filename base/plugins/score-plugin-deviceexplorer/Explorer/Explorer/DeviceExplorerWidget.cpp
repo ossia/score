@@ -71,6 +71,9 @@
 #include <score/widgets/SetIcons.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
+#include "../../../score-plugin-scenario/Scenario/Inspector/ObjectTree/ObjectItemModel.hpp"
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
+
 #include <QLabel>
 #include <QListWidget>
 namespace Explorer
@@ -1062,6 +1065,19 @@ void DeviceExplorerWidget::learn()
 void DeviceExplorerWidget::findUsage()
 {
 
+  auto indexes = m_ntView->selectedIndexes();
+
+  QStringList search_txt;
+  for (auto index : indexes)
+  {
+    auto& n = model()->nodeFromModelIndex(sourceIndex(index));
+
+    State::AddressAccessor address = Device::address(n);
+
+    search_txt.push_back(address.address.toString());
+
+  }
+  emit findAddresses(search_txt);
 }
 
 void DeviceExplorerWidget::addAddress(InsertMode insert)

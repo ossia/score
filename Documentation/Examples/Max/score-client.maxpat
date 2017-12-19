@@ -9,7 +9,7 @@
 			"modernui" : 1
 		}
 ,
-		"rect" : [ 76.0, 170.0, 475.0, 792.0 ],
+		"rect" : [ 76.0, 170.0, 593.0, 796.0 ],
 		"bgcolor" : [ 0.0, 0.0, 0.0, 1.0 ],
 		"editing_bgcolor" : [ 0.239216, 0.254902, 0.278431, 1.0 ],
 		"bglocked" : 0,
@@ -40,12 +40,79 @@
 		"subpatcher_template" : "noTB_dark",
 		"boxes" : [ 			{
 				"box" : 				{
+					"format" : 6,
+					"id" : "obj-27",
+					"maxclass" : "flonum",
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"outlettype" : [ "", "bang" ],
+					"parameter_enable" : 0,
+					"patching_rect" : [ 30.5, 427.0, 50.0, 22.0 ],
+					"style" : ""
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-28",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 83.5, 431.0, 388.0, 22.0 ],
+					"style" : "",
+					"text" : "ossia.remote root/speed"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-25",
+					"maxclass" : "message",
+					"numinlets" : 2,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 51.0, 582.0, 50.0, 22.0 ],
+					"style" : "",
+					"text" : "toto"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"format" : 6,
+					"id" : "obj-20",
+					"maxclass" : "flonum",
+					"numinlets" : 1,
+					"numoutlets" : 2,
+					"outlettype" : [ "", "bang" ],
+					"parameter_enable" : 0,
+					"patching_rect" : [ 34.0, 370.0, 50.0, 22.0 ],
+					"style" : ""
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"id" : "obj-5",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 3,
+					"outlettype" : [ "", "", "" ],
+					"patching_rect" : [ 87.0, 374.0, 388.0, 22.0 ],
+					"style" : "",
+					"text" : "ossia.remote root/processes/Scenario.1/intervals/Interval.edge7/speed"
+				}
+
+			}
+, 			{
+				"box" : 				{
 					"id" : "obj-8",
 					"maxclass" : "button",
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "bang" ],
-					"patching_rect" : [ 30.0, 585.5, 24.0, 24.0 ],
+					"patching_rect" : [ 29.0, 684.5, 24.0, 24.0 ],
 					"style" : ""
 				}
 
@@ -56,7 +123,7 @@
 					"maxclass" : "newobj",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 57.0, 617.0, 100.0, 22.0 ],
+					"patching_rect" : [ 56.0, 716.0, 100.0, 22.0 ],
 					"style" : "",
 					"text" : "print interval"
 				}
@@ -69,7 +136,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 56.0, 585.5, 389.0, 22.0 ],
+					"patching_rect" : [ 55.0, 684.5, 389.0, 22.0 ],
 					"style" : "",
 					"text" : "ossia.remote root/processes/Scenario.1/intervals/plea30ding89/name"
 				}
@@ -156,7 +223,6 @@
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
 									"patching_rect" : [ 200.0, 352.0, 50.0, 22.0 ],
-									"presentation_rect" : [ 200.0, 352.0, 0.0, 0.0 ],
 									"style" : "",
 									"text" : "update"
 								}
@@ -474,7 +540,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "bang" ],
-					"patching_rect" : [ 221.0, 178.0, 24.0, 24.0 ],
+					"patching_rect" : [ 221.0, 216.0, 24.0, 24.0 ],
 					"style" : ""
 				}
 
@@ -486,7 +552,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 221.0, 214.5, 105.0, 22.0 ],
+					"patching_rect" : [ 221.0, 252.5, 105.0, 22.0 ],
 					"style" : "",
 					"text" : "ossia.remote stop"
 				}
@@ -500,7 +566,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "int" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 55.0, 178.0, 24.0, 24.0 ],
+					"patching_rect" : [ 55.0, 216.0, 24.0, 24.0 ],
 					"style" : ""
 				}
 
@@ -512,7 +578,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 55.0, 214.5, 105.0, 22.0 ],
+					"patching_rect" : [ 55.0, 252.5, 105.0, 22.0 ],
 					"style" : "",
 					"text" : "ossia.remote play"
 				}
@@ -527,7 +593,7 @@
 					"numoutlets" : 2,
 					"outlettype" : [ "", "bang" ],
 					"parameter_enable" : 0,
-					"patching_rect" : [ 191.0, 299.0, 50.0, 22.0 ],
+					"patching_rect" : [ 355.0, 290.0, 50.0, 22.0 ],
 					"style" : ""
 				}
 
@@ -539,7 +605,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 191.0, 261.5, 151.0, 22.0 ],
+					"patching_rect" : [ 355.0, 252.5, 151.0, 22.0 ],
 					"style" : "",
 					"text" : "ossia.remote root/playtime"
 				}
@@ -551,7 +617,7 @@
 					"maxclass" : "newobj",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"patching_rect" : [ 56.0, 539.0, 34.0, 22.0 ],
+					"patching_rect" : [ 51.0, 643.0, 34.0, 22.0 ],
 					"style" : "",
 					"text" : "print"
 				}
@@ -564,59 +630,9 @@
 					"numinlets" : 1,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 56.0, 506.5, 327.0, 22.0 ],
+					"patching_rect" : [ 51.0, 610.5, 377.0, 22.0 ],
 					"style" : "",
-					"text" : "ossia.remote root/processes/Scenario.1/states/State.4/label"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-12",
-					"maxclass" : "button",
-					"numinlets" : 1,
-					"numoutlets" : 1,
-					"outlettype" : [ "bang" ],
-					"patching_rect" : [ 29.0, 459.5, 24.0, 24.0 ],
-					"style" : ""
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-13",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 3,
-					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 55.0, 459.5, 336.0, 22.0 ],
-					"style" : "",
-					"text" : "ossia.remote root/processes/Scenario.1/states/State.2/trigger"
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-10",
-					"maxclass" : "button",
-					"numinlets" : 1,
-					"numoutlets" : 1,
-					"outlettype" : [ "bang" ],
-					"patching_rect" : [ 29.0, 412.5, 24.0, 24.0 ],
-					"style" : ""
-				}
-
-			}
-, 			{
-				"box" : 				{
-					"id" : "obj-11",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 3,
-					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 55.0, 412.5, 336.0, 22.0 ],
-					"style" : "",
-					"text" : "ossia.remote root/processes/Scenario.1/states/State.3/trigger"
+					"text" : "ossia.remote root/processes/Scenario.1/intervals/master.fade.in/label"
 				}
 
 			}
@@ -627,7 +643,7 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "bang" ],
-					"patching_rect" : [ 29.0, 368.5, 24.0, 24.0 ],
+					"patching_rect" : [ 28.0, 467.5, 24.0, 24.0 ],
 					"style" : ""
 				}
 
@@ -639,9 +655,9 @@
 					"numinlets" : 1,
 					"numoutlets" : 3,
 					"outlettype" : [ "", "", "" ],
-					"patching_rect" : [ 55.0, 368.5, 336.0, 22.0 ],
+					"patching_rect" : [ 54.0, 467.5, 403.0, 22.0 ],
 					"style" : "",
-					"text" : "ossia.remote root/processes/Scenario.1/states/State.4/trigger"
+					"text" : "ossia.remote root/processes/Scenario.1/syncs/Sync.huge4/trigger"
 				}
 
 			}
@@ -694,20 +710,6 @@
 			}
 , 			{
 				"patchline" : 				{
-					"destination" : [ "obj-11", 0 ],
-					"source" : [ "obj-10", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
-					"destination" : [ "obj-13", 0 ],
-					"source" : [ "obj-12", 0 ]
-				}
-
-			}
-, 			{
-				"patchline" : 				{
 					"destination" : [ "obj-15", 0 ],
 					"source" : [ "obj-14", 0 ]
 				}
@@ -717,6 +719,13 @@
 				"patchline" : 				{
 					"destination" : [ "obj-18", 0 ],
 					"source" : [ "obj-16", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-5", 0 ],
+					"source" : [ "obj-20", 0 ]
 				}
 
 			}
@@ -736,8 +745,29 @@
 			}
 , 			{
 				"patchline" : 				{
+					"destination" : [ "obj-14", 0 ],
+					"source" : [ "obj-25", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
 					"destination" : [ "obj-3", 0 ],
 					"source" : [ "obj-26", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-28", 0 ],
+					"source" : [ "obj-27", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-27", 0 ],
+					"source" : [ "obj-28", 0 ]
 				}
 
 			}
@@ -752,6 +782,13 @@
 				"patchline" : 				{
 					"destination" : [ "obj-3", 0 ],
 					"source" : [ "obj-4", 0 ]
+				}
+
+			}
+, 			{
+				"patchline" : 				{
+					"destination" : [ "obj-20", 0 ],
+					"source" : [ "obj-5", 0 ]
 				}
 
 			}

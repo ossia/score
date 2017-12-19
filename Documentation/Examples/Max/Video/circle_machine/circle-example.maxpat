@@ -4,12 +4,12 @@
 		"appversion" : 		{
 			"major" : 7,
 			"minor" : 3,
-			"revision" : 5,
-			"architecture" : "x86",
+			"revision" : 4,
+			"architecture" : "x64",
 			"modernui" : 1
 		}
 ,
-		"rect" : [ 565.0, 56.0, 637.0, 333.0 ],
+		"rect" : [ 581.0, 94.0, 637.0, 333.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 12.0,
@@ -37,6 +37,39 @@
 		"style" : "",
 		"subpatcher_template" : "",
 		"boxes" : [ 			{
+				"box" : 				{
+					"id" : "obj-22",
+					"maxclass" : "newobj",
+					"numinlets" : 1,
+					"numoutlets" : 1,
+					"outlettype" : [ "" ],
+					"patching_rect" : [ 416.0, 234.0, 114.0, 22.0 ],
+					"style" : "",
+					"text" : "ossia.device circles"
+				}
+
+			}
+, 			{
+				"box" : 				{
+					"args" : [ "/circle.1" ],
+					"bgmode" : 2,
+					"border" : 1,
+					"clickthrough" : 0,
+					"enablehscroll" : 0,
+					"enablevscroll" : 0,
+					"id" : "obj-8",
+					"lockeddragscroll" : 0,
+					"maxclass" : "bpatcher",
+					"name" : "circle.view.maxpat",
+					"numinlets" : 1,
+					"numoutlets" : 0,
+					"offset" : [ 0.0, 0.0 ],
+					"patching_rect" : [ 83.0, 73.0, 285.0, 217.0 ],
+					"viewvisibility" : 1
+				}
+
+			}
+, 			{
 				"box" : 				{
 					"id" : "obj-39",
 					"maxclass" : "newobj",
@@ -96,18 +129,6 @@
 			}
 , 			{
 				"box" : 				{
-					"id" : "obj-23",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 0,
-					"patching_rect" : [ 18.0, 14.0, 168.0, 22.0 ],
-					"style" : "",
-					"text" : "poly~ circle 10 @args circle.1"
-				}
-
-			}
-, 			{
-				"box" : 				{
 					"id" : "obj-20",
 					"maxclass" : "message",
 					"numinlets" : 2,
@@ -134,27 +155,14 @@
 			}
 , 			{
 				"box" : 				{
-					"id" : "obj-22",
-					"maxclass" : "newobj",
-					"numinlets" : 1,
-					"numoutlets" : 1,
-					"outlettype" : [ "" ],
-					"patching_rect" : [ 416.0, 234.0, 114.0, 22.0 ],
-					"style" : "",
-					"text" : "ossia.device circles"
-				}
-
-			}
-, 			{
-				"box" : 				{
 					"id" : "obj-10",
 					"maxclass" : "newobj",
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 40.0, 296.0, 81.0, 22.0 ],
+					"patching_rect" : [ 40.0, 296.0, 101.0, 22.0 ],
 					"style" : "",
-					"text" : "prepend bind"
+					"text" : "prepend address"
 				}
 
 			}
@@ -173,9 +181,9 @@
 						"valueof" : 						{
 							"parameter_longname" : "live.tab",
 							"parameter_shortname" : "live.tab",
-							"parameter_unitstyle" : 0,
 							"parameter_type" : 2,
-							"parameter_enum" : [ "circle.1", "circle.2", "circle.3", "circle.4", "circle.5", "circle.6", "circle.7", "circle.8", "circle.9", "circle.10" ]
+							"parameter_enum" : [ "circle.1", "circle.2", "circle.3", "circle.4", "circle.5", "circle.6", "circle.7", "circle.8", "circle.9", "circle.10" ],
+							"parameter_unitstyle" : 0
 						}
 
 					}
@@ -186,20 +194,13 @@
 			}
 , 			{
 				"box" : 				{
-					"bgmode" : 2,
-					"border" : 1,
-					"clickthrough" : 0,
-					"enablehscroll" : 0,
-					"enablevscroll" : 0,
-					"id" : "obj-8",
-					"lockeddragscroll" : 0,
-					"maxclass" : "bpatcher",
-					"name" : "circle.view.maxpat",
+					"id" : "obj-23",
+					"maxclass" : "newobj",
 					"numinlets" : 1,
 					"numoutlets" : 0,
-					"offset" : [ 0.0, 0.0 ],
-					"patching_rect" : [ 83.0, 73.0, 285.0, 217.0 ],
-					"viewvisibility" : 1
+					"patching_rect" : [ 18.0, 14.0, 168.0, 22.0 ],
+					"style" : "",
+					"text" : "poly~ circle 10 @args circle.1"
 				}
 
 			}
@@ -256,31 +257,39 @@
 			}
  ],
 		"parameters" : 		{
-			"obj-9" : [ "live.tab", "live.tab", 0 ],
-			"obj-8::obj-26" : [ "live.numbox[7]", "live.numbox", 0 ],
-			"obj-8::obj-38" : [ "live.text", "live.text", 0 ],
 			"obj-8::obj-22" : [ "live.numbox[4]", "live.numbox", 0 ],
-			"obj-8::obj-13" : [ "live.numbox[3]", "live.numbox", 0 ],
-			"obj-8::obj-23" : [ "live.numbox[5]", "live.numbox", 0 ],
+			"obj-8::obj-38" : [ "live.text", "live.text", 0 ],
 			"obj-8::obj-24" : [ "live.numbox[6]", "live.numbox", 0 ],
+			"obj-8::obj-11" : [ "live.numbox[1]", "live.numbox", 0 ],
+			"obj-8::obj-23" : [ "live.numbox[5]", "live.numbox", 0 ],
+			"obj-8::obj-13" : [ "live.numbox[3]", "live.numbox", 0 ],
 			"obj-8::obj-12" : [ "live.numbox[2]", "live.numbox", 0 ],
+			"obj-9" : [ "live.tab", "live.tab", 0 ],
 			"obj-8::obj-33" : [ "live.numbox[8]", "live.numbox", 0 ],
-			"obj-8::obj-11" : [ "live.numbox[1]", "live.numbox", 0 ]
+			"obj-8::obj-26" : [ "live.numbox[7]", "live.numbox", 0 ]
 		}
 ,
 		"dependency_cache" : [ 			{
-				"name" : "circle.view.maxpat",
-				"bootpath" : "~/@Developments/Git_repositories/i-score/Documentation/Examples/Max/Video/circle_machine",
+				"name" : "circle.maxpat",
+				"bootpath" : "~/dev/score/Documentation/Examples/Max-PureData-SuperCollider/Max/Video/circle_machine",
 				"patcherrelativepath" : ".",
 				"type" : "JSON",
 				"implicit" : 1
 			}
 , 			{
-				"name" : "circle.maxpat",
-				"bootpath" : "~/@Developments/Git_repositories/i-score/Documentation/Examples/Max/Video/circle_machine",
+				"name" : "circle.view.maxpat",
+				"bootpath" : "~/dev/score/Documentation/Examples/Max-PureData-SuperCollider/Max/Video/circle_machine",
 				"patcherrelativepath" : ".",
 				"type" : "JSON",
 				"implicit" : 1
+			}
+, 			{
+				"name" : "ossia.parameter.mxo",
+				"type" : "iLaX"
+			}
+, 			{
+				"name" : "ossia.model.mxo",
+				"type" : "iLaX"
 			}
 , 			{
 				"name" : "ossia.remote.mxo",
@@ -292,14 +301,6 @@
 			}
 , 			{
 				"name" : "ossia.device.mxo",
-				"type" : "iLaX"
-			}
-, 			{
-				"name" : "ossia.parameter.mxo",
-				"type" : "iLaX"
-			}
-, 			{
-				"name" : "ossia.model.mxo",
 				"type" : "iLaX"
 			}
  ],
