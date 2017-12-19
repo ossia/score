@@ -19,7 +19,7 @@ UpdateAddressSettings::UpdateAddressSettings(
     const DeviceDocumentPlugin& devplug,
     const Device::NodePath& node,
     const Device::AddressSettings& parameters)
-    : m_devicesModel{devplug}, m_node(node), m_newParameters(parameters)
+    :m_node(node), m_newParameters(parameters)
 {
   auto n = m_node.toNode(&devplug.rootNode());
   SCORE_ASSERT(n);
@@ -29,24 +29,24 @@ UpdateAddressSettings::UpdateAddressSettings(
 
 void UpdateAddressSettings::undo(const score::DocumentContext& ctx) const
 {
-  auto& devplug = m_devicesModel.find(ctx);
+  auto& devplug = ctx.plugin<DeviceDocumentPlugin>();
   devplug.updateProxy.updateAddress(m_node, m_oldParameters);
 }
 
 void UpdateAddressSettings::redo(const score::DocumentContext& ctx) const
 {
-  auto& devplug = m_devicesModel.find(ctx);
+  auto& devplug = ctx.plugin<DeviceDocumentPlugin>();
   devplug.updateProxy.updateAddress(m_node, m_newParameters);
 }
 
 void UpdateAddressSettings::serializeImpl(DataStreamInput& d) const
 {
-  d << m_devicesModel << m_node << m_oldParameters << m_newParameters;
+  d << m_node << m_oldParameters << m_newParameters;
 }
 
 void UpdateAddressSettings::deserializeImpl(DataStreamOutput& d)
 {
-  d >> m_devicesModel >> m_node >> m_oldParameters >> m_newParameters;
+  d >> m_node >> m_oldParameters >> m_newParameters;
 }
 }
 }

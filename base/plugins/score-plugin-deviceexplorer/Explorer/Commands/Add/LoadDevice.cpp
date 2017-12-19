@@ -19,32 +19,29 @@ namespace Command
 LoadDevice::LoadDevice(
     const DeviceDocumentPlugin& devplug,
     Device::Node&& node)
-    : m_devicesModel{devplug},
-      m_deviceNode(std::move(node))
+    : m_deviceNode(std::move(node))
 {
 }
 
 void LoadDevice::undo(const score::DocumentContext& ctx) const
 {
-  auto& devplug = m_devicesModel.find(ctx);
+  auto& devplug = ctx.plugin<DeviceDocumentPlugin>();
   devplug.updateProxy.removeDevice(m_deviceNode.get<Device::DeviceSettings>());
 }
 
 void LoadDevice::redo(const score::DocumentContext& ctx) const
 {
-  auto& devplug = m_devicesModel.find(ctx);
+  auto& devplug = ctx.plugin<DeviceDocumentPlugin>();
   devplug.updateProxy.loadDevice(m_deviceNode);
 }
 
 void LoadDevice::serializeImpl(DataStreamInput& d) const
 {
-  d << m_devicesModel;
   d << m_deviceNode;
 }
 
 void LoadDevice::deserializeImpl(DataStreamOutput& d)
 {
-  d >> m_devicesModel;
   d >> m_deviceNode;
 }
 
@@ -52,34 +49,33 @@ ReloadWholeDevice::ReloadWholeDevice(
     const DeviceDocumentPlugin& devplug,
     Device::Node&& oldNode,
     Device::Node&& newNode)
-    : m_devicesModel{devplug}
-    , m_oldNode(std::move(oldNode))
+    : m_oldNode(std::move(oldNode))
     , m_newNode(std::move(newNode))
 {
 }
 
 void ReloadWholeDevice::undo(const score::DocumentContext& ctx) const
 {
-  auto& devplug = m_devicesModel.find(ctx);
+  auto& devplug = ctx.plugin<DeviceDocumentPlugin>();
   devplug.updateProxy.removeDevice(m_newNode.get<Device::DeviceSettings>());
   devplug.updateProxy.loadDevice(m_oldNode);
 }
 
 void ReloadWholeDevice::redo(const score::DocumentContext& ctx) const
 {
-  auto& devplug = m_devicesModel.find(ctx);
+  auto& devplug = ctx.plugin<DeviceDocumentPlugin>();
   devplug.updateProxy.removeDevice(m_oldNode.get<Device::DeviceSettings>());
   devplug.updateProxy.loadDevice(m_newNode);
 }
 
 void ReloadWholeDevice::serializeImpl(DataStreamInput& d) const
 {
-  d << m_devicesModel << m_oldNode << m_newNode;
+  d << m_oldNode << m_newNode;
 }
 
 void ReloadWholeDevice::deserializeImpl(DataStreamOutput& d)
 {
-  d >> m_devicesModel >> m_oldNode >> m_newNode;
+  d >> m_oldNode >> m_newNode;
 }
 }
 }

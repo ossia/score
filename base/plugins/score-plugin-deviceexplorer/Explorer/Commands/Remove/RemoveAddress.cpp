@@ -22,7 +22,7 @@ namespace Command
 RemoveAddress::RemoveAddress(
     const DeviceDocumentPlugin& devplug,
     const Device::NodePath& nodePath)
-    : m_devicesModel{devplug}, m_nodePath{nodePath}
+    : m_nodePath{nodePath}
 {
   auto n = nodePath.toNode(&devplug.rootNode());
   SCORE_ASSERT(n);
@@ -32,7 +32,7 @@ RemoveAddress::RemoveAddress(
 
 void RemoveAddress::undo(const score::DocumentContext& ctx) const
 {
-  auto& devplug = m_devicesModel.find(ctx);
+  auto& devplug = ctx.plugin<DeviceDocumentPlugin>();
   auto parentPath = m_nodePath;
   parentPath.removeLast();
 
@@ -41,7 +41,7 @@ void RemoveAddress::undo(const score::DocumentContext& ctx) const
 
 void RemoveAddress::redo(const score::DocumentContext& ctx) const
 {
-  auto& devplug = m_devicesModel.find(ctx);
+  auto& devplug = ctx.plugin<DeviceDocumentPlugin>();
   auto parentPath = m_nodePath;
   parentPath.removeLast();
   devplug.updateProxy.removeNode(
@@ -50,12 +50,12 @@ void RemoveAddress::redo(const score::DocumentContext& ctx) const
 
 void RemoveAddress::serializeImpl(DataStreamInput& s) const
 {
-  s << m_devicesModel << m_nodePath << m_savedNode;
+  s << m_nodePath << m_savedNode;
 }
 
 void RemoveAddress::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_devicesModel >> m_nodePath >> m_savedNode;
+  s >> m_nodePath >> m_savedNode;
 }
 }
 }

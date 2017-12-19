@@ -42,6 +42,8 @@ void ApplicationSettings::parse(QStringList cargs)
 
   tryToRestore = !parser.isSet(noRestore);
   gui = !parser.isSet(noGUI);
+  if(!gui)
+    tryToRestore = false;
   autoplay = parser.isSet(autoplayOpt) && args.size() == 1;
 
   if (!args.empty() && QFile::exists(args[0]))

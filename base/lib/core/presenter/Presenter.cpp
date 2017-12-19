@@ -59,7 +59,7 @@ Presenter::Presenter(
     , m_components_readonly{m_components}
     ,
 #ifdef __APPLE__
-    m_menubar{new QMenuBar}
+    m_menubar{view ? new QMenuBar : (QMenuBar*) nullptr}
     ,
 #else
     m_menubar{view ? view->menuBar() : (QMenuBar*) nullptr}

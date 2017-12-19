@@ -21,7 +21,7 @@ UpdateDeviceSettings::UpdateDeviceSettings(
     const DeviceDocumentPlugin& devplug,
     const QString& name,
     const Device::DeviceSettings& parameters)
-    : m_devicesModel{devplug}, m_newParameters(parameters)
+    : m_newParameters(parameters)
 {
   auto it = std::find_if(
       devplug.rootNode().begin(),
@@ -37,24 +37,24 @@ UpdateDeviceSettings::UpdateDeviceSettings(
 
 void UpdateDeviceSettings::undo(const score::DocumentContext& ctx) const
 {
-  auto& devplug = m_devicesModel.find(ctx);
+  auto& devplug = ctx.plugin<DeviceDocumentPlugin>();
   devplug.updateProxy.updateDevice(m_newParameters.name, m_oldParameters);
 }
 
 void UpdateDeviceSettings::redo(const score::DocumentContext& ctx) const
 {
-  auto& devplug = m_devicesModel.find(ctx);
+  auto& devplug = ctx.plugin<DeviceDocumentPlugin>();
   devplug.updateProxy.updateDevice(m_oldParameters.name, m_newParameters);
 }
 
 void UpdateDeviceSettings::serializeImpl(DataStreamInput& d) const
 {
-  d << m_devicesModel << m_oldParameters << m_newParameters;
+  d << m_oldParameters << m_newParameters;
 }
 
 void UpdateDeviceSettings::deserializeImpl(DataStreamOutput& d)
 {
-  d >> m_devicesModel >> m_oldParameters >> m_newParameters;
+  d >> m_oldParameters >> m_newParameters;
 }
 }
 }

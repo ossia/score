@@ -30,7 +30,6 @@ protected:
   void deserializeImpl(DataStreamOutput&) override;
 
 private:
-  Path<DeviceDocumentPlugin> m_devicesModel;
   Device::Node m_deviceNode;
 };
 
@@ -52,7 +51,6 @@ protected:
   void deserializeImpl(DataStreamOutput&) override;
 
 private:
-  Path<DeviceDocumentPlugin> m_devicesModel;
   Device::Node m_oldNode;
   Device::Node m_newNode;
 };
