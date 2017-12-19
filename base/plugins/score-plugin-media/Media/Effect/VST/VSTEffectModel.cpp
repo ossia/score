@@ -540,7 +540,11 @@ void JSONObjectWriter::write(
 {
   eff.m_effectPath = obj["Effect"].toString();
   eff.reload(Media::VST::json_maker{obj["Inlets"].toArray(), obj["Outlets"].toArray()});
-  QTimer::singleShot(1000, [obj=this->obj,&eff] {
+  QPointer<Media::VST::VSTEffectModel> ptr = &eff;
+  QTimer::singleShot(1000, [obj=this->obj,ptr] {
+    if(!ptr)
+      return;
+    auto& eff = *ptr;
     if(eff.fx)
     {
       if(eff.fx->fx->flags & effFlagsProgramChunks)

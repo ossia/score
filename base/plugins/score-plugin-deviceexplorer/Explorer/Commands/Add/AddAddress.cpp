@@ -21,7 +21,6 @@ AddAddress::AddAddress(
     const Device::NodePath& nodePath,
     InsertMode insert,
     const Device::AddressSettings& addressSettings)
-    : m_devicesModel{devplug}
 {
   m_addressSettings = addressSettings;
 
@@ -46,24 +45,24 @@ AddAddress::AddAddress(
 
 void AddAddress::undo(const score::DocumentContext& ctx) const
 {
-  auto& devplug = m_devicesModel.find(ctx);
+  auto& devplug = ctx.plugin<DeviceDocumentPlugin>();
   devplug.updateProxy.removeNode(m_parentNodePath, m_addressSettings);
 }
 
 void AddAddress::redo(const score::DocumentContext& ctx) const
 {
-  auto& devplug = m_devicesModel.find(ctx);
+  auto& devplug = ctx.plugin<DeviceDocumentPlugin>();
   devplug.updateProxy.addAddress(m_parentNodePath, m_addressSettings, 0);
 }
 
 void AddAddress::serializeImpl(DataStreamInput& s) const
 {
-  s << m_devicesModel << m_parentNodePath << m_addressSettings;
+  s << m_parentNodePath << m_addressSettings;
 }
 
 void AddAddress::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_devicesModel >> m_parentNodePath >> m_addressSettings;
+  s >> m_parentNodePath >> m_addressSettings;
 }
 }
 }

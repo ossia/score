@@ -36,7 +36,6 @@ protected:
   void deserializeImpl(DataStreamOutput&) override;
 
 private:
-  Path<DeviceDocumentPlugin> m_deviceTree;
   int m_deviceIndex{};
   Device::Node m_deviceNode;
   Device::Node m_savedNode;

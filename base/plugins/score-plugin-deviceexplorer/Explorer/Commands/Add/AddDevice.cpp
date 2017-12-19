@@ -20,31 +20,29 @@ namespace Command
 AddDevice::AddDevice(
     const DeviceDocumentPlugin& device_tree,
     const Device::DeviceSettings& parameters)
-    : m_devicesModel{device_tree}, m_parameters(parameters)
+    : m_parameters(parameters)
 {
 }
 
 void AddDevice::undo(const score::DocumentContext& ctx) const
 {
-  auto& devplug = m_devicesModel.find(ctx);
+  auto& devplug = ctx.plugin<DeviceDocumentPlugin>();
   devplug.updateProxy.removeDevice(m_parameters);
 }
 
 void AddDevice::redo(const score::DocumentContext& ctx) const
 {
-  auto& devplug = m_devicesModel.find(ctx);
+  auto& devplug = ctx.plugin<DeviceDocumentPlugin>();
   devplug.updateProxy.addDevice(m_parameters);
 }
 
 void AddDevice::serializeImpl(DataStreamInput& d) const
 {
-  d << m_devicesModel;
   d << m_parameters;
 }
 
 void AddDevice::deserializeImpl(DataStreamOutput& d)
 {
-  d >> m_devicesModel;
   d >> m_parameters;
 }
 }

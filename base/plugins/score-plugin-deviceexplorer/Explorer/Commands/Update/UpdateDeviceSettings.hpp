@@ -33,7 +33,6 @@ protected:
   void deserializeImpl(DataStreamOutput&) override;
 
 private:
-  Path<DeviceDocumentPlugin> m_devicesModel;
   Device::DeviceSettings m_oldParameters;
   Device::DeviceSettings m_newParameters;
 };

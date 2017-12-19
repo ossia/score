@@ -26,8 +26,7 @@ ReplaceDevice::ReplaceDevice(
     const DeviceDocumentPlugin& device_tree,
     int deviceIndex,
     Device::Node&& rootNode)
-    : m_deviceTree{device_tree}
-    , m_deviceIndex(deviceIndex)
+    : m_deviceIndex(deviceIndex)
     , m_deviceNode{std::move(rootNode)}
 {
   auto& explorer = device_tree.explorer();
@@ -40,8 +39,7 @@ ReplaceDevice::ReplaceDevice(
     int deviceIndex,
     Device::Node&& oldRootNode,
     Device::Node&& newRootNode)
-    : m_deviceTree{device_tree}
-    , m_deviceIndex(deviceIndex)
+    : m_deviceIndex(deviceIndex)
     , m_deviceNode{std::move(newRootNode)}
     , m_savedNode{std::move(oldRootNode)}
 {
@@ -49,7 +47,7 @@ ReplaceDevice::ReplaceDevice(
 
 void ReplaceDevice::undo(const score::DocumentContext& ctx) const
 {
-  auto& explorer = m_deviceTree.find(ctx).explorer();
+  auto& explorer = ctx.plugin<DeviceDocumentPlugin>().explorer();
 
   explorer.removeRow(m_deviceIndex);
   explorer.addDevice(m_savedNode);
@@ -57,7 +55,7 @@ void ReplaceDevice::undo(const score::DocumentContext& ctx) const
 
 void ReplaceDevice::redo(const score::DocumentContext& ctx) const
 {
-  auto& explorer = m_deviceTree.find(ctx).explorer();
+  auto& explorer = ctx.plugin<DeviceDocumentPlugin>().explorer();
 
   const auto& cld = explorer.rootNode().children();
   for (auto it = cld.begin(); it != cld.end(); ++it)
@@ -75,12 +73,12 @@ void ReplaceDevice::redo(const score::DocumentContext& ctx) const
 
 void ReplaceDevice::serializeImpl(DataStreamInput& d) const
 {
-  d << m_deviceTree << m_deviceIndex << m_deviceNode << m_savedNode;
+  d << m_deviceIndex << m_deviceNode << m_savedNode;
 }
 
 void ReplaceDevice::deserializeImpl(DataStreamOutput& d)
 {
-  d >> m_deviceTree >> m_deviceIndex >> m_deviceNode >> m_savedNode;
+  d >> m_deviceIndex >> m_deviceNode >> m_savedNode;
 }
 }
 }
