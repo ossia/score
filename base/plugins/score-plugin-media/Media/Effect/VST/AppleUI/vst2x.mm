@@ -126,12 +126,16 @@ void hide_vst2_editor(AEffect& effect)
 {
   if(effect.resvd1)
   {
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    auto container = reinterpret_cast<QMacCocoaViewContainer*>(reinterpret_cast<Media::VST::VSTEffectModel*>(effect.resvd1)->ui);
-    ((QDialog*)container->parent())->close();
-    delete container->parent();
-    reinterpret_cast<Media::VST::VSTEffectModel*>(effect.resvd1)->ui = 0;
-    [pool release];
+    auto model = reinterpret_cast<Media::VST::VSTEffectModel*>(effect.resvd1);
+    if(model->ui)
+    {
+      NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+      auto container = reinterpret_cast<QMacCocoaViewContainer*>(model->ui);
+      ((QDialog*)container->parent())->close();
+      delete container->parent();
+      reinterpret_cast<Media::VST::VSTEffectModel*>(effect.resvd1)->ui = 0;
+      [pool release];
+    }
   }
   effect.dispatcher(&effect, effEditClose, 0, 0, nullptr, 0);
 }

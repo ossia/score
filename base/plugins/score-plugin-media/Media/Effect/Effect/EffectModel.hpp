@@ -14,7 +14,7 @@ class QGraphicsItem;
 namespace Process
 {
 class Port;
-class RectItem;
+struct RectItem;
 using EffectItem = RectItem;
 }
 namespace Media
