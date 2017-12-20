@@ -1,8 +1,6 @@
 #include "EffectFactory.hpp"
-#include <Media/Effect/Effect/EffectModel.hpp>
-namespace Media
-{
-namespace Effect
+#include <Effect/EffectModel.hpp>
+namespace Process
 {
 EffectFactory::~EffectFactory()
 {
@@ -26,13 +24,13 @@ bool EffectUIFactory::matches(const EffectModel& p) const
   return matches(p.concreteKey());
 }
 
-EffectUIFactory*EffectUIFactoryList::findDefaultFactory(
+EffectUIFactory* EffectUIFactoryList::findDefaultFactory(
     const EffectModel& proc) const
 {
   return findDefaultFactory(proc.concreteKey());
 }
 
-EffectUIFactory*Media::Effect::EffectUIFactoryList::findDefaultFactory(
+EffectUIFactory* EffectUIFactoryList::findDefaultFactory(
     const UuidKey<EffectModel>& proc) const
 {
   for (auto& fac : *this)
@@ -43,5 +41,4 @@ EffectUIFactory*Media::Effect::EffectUIFactoryList::findDefaultFactory(
   return nullptr;
 }
 
-}
 }

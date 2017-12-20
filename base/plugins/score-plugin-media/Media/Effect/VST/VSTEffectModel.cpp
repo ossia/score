@@ -17,6 +17,7 @@
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/network/domain/domain.hpp>
 #include <Media/ApplicationPlugin.hpp>
+#include <Engine/Node/CommonWidgets.hpp>
 #include <Media/Effect/VST/VSTNode.hpp>
 #include <aeffectx.h>
 #include <QTimer>
@@ -26,14 +27,13 @@
 void show_vst2_editor(AEffect& effect, ERect rect);
 void hide_vst2_editor(AEffect& effect);
 
-namespace Media
-{
-namespace VST
+namespace Media::VST
 {
 class VSTControlInlet : public Process::ControlInlet
 {
-  public:
     SCORE_SERIALIZE_FRIENDS
+  public:
+    using Process::ControlInlet::ControlInlet;
     template<typename T>
     VSTControlInlet(T&& vis, QObject* parent): ControlInlet{vis, parent}
     {
@@ -119,7 +119,6 @@ struct json_maker
     auto make_inlet(int i, QObject* parent) const
     {
       return new Process::Inlet(JSONObjectWriter{inlets[i].toObject()}, parent);
-
     }
     auto make_control(int i, QObject* parent) const
     {
@@ -142,6 +141,7 @@ VSTEffectModel::VSTEffectModel(
   EffectModel{id, parent},
   m_effectPath{path}
 {
+  init();
   reload(maker{});
 }
 
@@ -150,10 +150,76 @@ VSTEffectModel::~VSTEffectModel()
   closePlugin();
 }
 
-
 QString VSTEffectModel::prettyName() const
 {
   return metadata().getLabel();
+}
+
+VSTControlInlet* VSTEffectModel::getControl(const Id<Process::Port>& p)
+{
+  for(auto e : m_inlets)
+    if(e->id() == p)
+      return static_cast<VSTControlInlet*>(e);
+  return nullptr;
+}
+
+void VSTEffectModel::init()
+{
+  connect(this, &VSTEffectModel::addControl,
+          this, &VSTEffectModel::on_addControl);
+}
+
+void VSTEffectModel::on_addControl(int i, float v)
+{
+  auto ctrl = new VSTControlInlet{
+              Id<Process::Port>(getStrongId(inlets()).val()), this};
+  ctrl->hidden = true;
+  ctrl->fxNum = i;
+  ctrl->setDomain(ossia::make_domain(0.f, 1.f));
+  ctrl->setValue(v);
+
+  // Metadata
+  {
+    auto name = getString(effGetParamName, i);
+    auto label = getString(effGetParamLabel, i);
+    // auto display = get_string(effGetParamDisplay, i);
+
+    // Get the nameq
+    QString str = name;
+    if(!label.isEmpty())
+      str += "(" + label + ")";
+
+    ctrl->setCustomData(name);
+  }
+
+  connect(ctrl, &Process::ControlInlet::valueChanged,
+          this, [this,i] (const ossia::value& v) {
+    auto newval =  ossia::convert<float>(v);
+    if(std::abs(newval - fx->getParameter(i)) > 0.0001)
+      fx->setParameter(i, newval);
+  });
+
+  {
+    /*
+    VstParameterProperties props;
+    auto res = dispatch(effGetParameterProperties, i, 0, &props);
+    if(res == 1)
+    {
+      // apparently there's exactly 0 plug-ins supporting this
+      qDebug() << props.label << props.minInteger << props.maxInteger << props.smallStepFloat << props.stepFloat;
+    }
+    */
+  }
+  m_inlets.push_back(ctrl);
+  controls.insert({i, ctrl});
+  emit controlAdded(ctrl->id());
+}
+
+QString VSTEffectModel::getString(AEffectOpcodes op, int param)
+{
+  char paramName[512] = {0};
+  dispatch(op, param, 0, paramName);
+  return QString::fromUtf8(paramName);
 }
 
 static auto HostCallback (AEffect* effect, VstInt32 opcode, VstInt32 index, VstIntPtr value, void* ptr, float opt)
@@ -214,7 +280,7 @@ static auto HostCallback (AEffect* effect, VstInt32 opcode, VstInt32 index, VstI
         }
         else
         {
-          // TODO register control
+          emit vst->addControl(index, opt);
         }
       }
 
@@ -404,7 +470,8 @@ void VSTEffectModel::reload(const T& port_factory)
     m_inlets.push_back(tempo);
     tempo->type = Process::PortType::Message;
     tempo->setCustomData("Tempo");
-    tempo->setUiVisible(true);
+    tempo->setValue(120.);
+    tempo->setDomain(ossia::make_domain(20., 200.));
   }
   {
     // Signature
@@ -412,71 +479,239 @@ void VSTEffectModel::reload(const T& port_factory)
     m_inlets.push_back(sig);
     sig->type = Process::PortType::Message;
     sig->setCustomData("Time signature");
-    sig->setUiVisible(true);
+    sig->setValue("4/4");
   }
 
   for(int i : port_factory.controls)
   {
-    auto p = port_factory.make_vst_control(i, inlet_i++, this);
-
-    // Metadata
-    {
-      auto get_string = [=] (auto req, int i) {
-        char paramName[256] = {0};
-        dispatch(req, i, 0, paramName);
-        return QString::fromUtf8(paramName);
-      };
-      auto name = get_string(effGetParamName, i);
-      auto label = get_string(effGetParamLabel, i);
-      // auto display = get_string(effGetParamDisplay, i);
-
-      // Get the nameq
-      QString str = name;
-      if(!label.isEmpty())
-        str += "(" + label + ")";
-
-      p->setCustomData(name);
-    }
-
-    // Value
-    {
-      auto val = fx->getParameter(i);
-      p->setDomain(ossia::make_domain(0.f, 1.f));
-      p->setValue(val);
-      p->hidden = true;
-      if(fx->fx->numParams < 10)
-      {
-        p->setUiVisible(true);
-      }
-
-      connect(p, &Process::ControlInlet::valueChanged,
-              this, [this,i] (const ossia::value& v){
-        auto newval =  ossia::convert<float>(v);
-        if(std::abs(newval - fx->getParameter(i)) > 0.0001)
-          fx->setParameter(i, newval);
-      });
-    }
-
-    {
-      /*
-      VstParameterProperties props;
-      auto res = dispatch(effGetParameterProperties, i, 0, &props);
-      if(res == 1)
-      {
-        // apparently there's exactly 0 plug-ins supporting this
-        qDebug() << props.label << props.minInteger << props.maxInteger << props.smallStepFloat << props.stepFloat;
-      }
-      */
-    }
-
-    m_inlets.push_back(p);
+    on_addControl(i, fx->getParameter(i));
   }
 
   m_outlets.push_back(port_factory.make_outlet(0, this));
   m_outlets[0]->type = Process::PortType::Audio;
   m_outlets[0]->setPropagate(true);
 }
+
+
+
+VSTGraphicsSlider::VSTGraphicsSlider(AEffect* fx, int num, QGraphicsItem* parent):
+  QGraphicsItem{parent}
+{
+  this->fx = fx;
+  this->num = num;
+  this->setAcceptedMouseButtons(Qt::LeftButton);
 }
+
+void VSTGraphicsSlider::setRect(QRectF r)
+{
+  prepareGeometryChange();
+  m_rect = r;
+}
+
+void VSTGraphicsSlider::setValue(double v)
+{
+  m_value = ossia::clamp(v, 0., 1.);
+  update();
+}
+
+double VSTGraphicsSlider::value() const
+{
+  return m_value;
+}
+
+void VSTGraphicsSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+  if(isInHandle(event->pos()))
+  {
+    m_grab = true;
+  }
+
+  const auto srect = sliderRect();
+  double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+  if(curPos != m_value)
+  {
+    m_value = curPos;
+    emit valueChanged(m_value);
+    emit sliderMoved();
+    update();
+  }
+
+  event->accept();
+}
+
+void VSTGraphicsSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+  if(m_grab)
+  {
+    const auto srect = sliderRect();
+    double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+    if(curPos != m_value)
+    {
+      m_value = curPos;
+      emit valueChanged(m_value);
+      emit sliderMoved();
+      update();
+    }
+  }
+  event->accept();
+}
+
+void VSTGraphicsSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  if(m_grab)
+  {
+    double curPos = ossia::clamp(event->pos().x() / sliderRect().width(), 0., 1.);
+    if(curPos != m_value)
+    {
+      m_value = curPos;
+      emit valueChanged(m_value);
+      update();
+    }
+    emit sliderReleased();
+    m_grab = false;
+  }
+  event->accept();
+}
+
+QRectF VSTGraphicsSlider::boundingRect() const
+{
+  return m_rect;
+}
+
+void VSTGraphicsSlider::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+  const auto& skin = score::Skin::instance();
+  painter->setRenderHint(QPainter::Antialiasing, true);
+
+  static const QPen darkPen{skin.HalfDark.color()};
+  static const QPen grayPen{skin.Gray.color()};
+  painter->setPen(darkPen);
+  painter->setBrush(skin.Dark);
+
+  // Draw rect
+  const auto srect = sliderRect();
+  painter->drawRoundedRect(srect, 1, 1);
+
+  // Draw text
+  painter->setPen(grayPen);
+  char str[256]{};
+  fx->dispatcher(fx, effGetParamDisplay, num, 0, str, m_value);
+  painter->drawText(srect.adjusted(6, -2, -6, -1),
+                    QString::fromUtf8(str),
+                    getHandleX() > srect.width() / 2 ? QTextOption() : QTextOption(Qt::AlignRight));
+
+  // Draw handle
+  painter->setBrush(skin.HalfLight);
+  painter->setRenderHint(QPainter::Antialiasing, false);
+  painter->drawRect(handleRect());
+}
+
+bool VSTGraphicsSlider::isInHandle(QPointF p)
+{
+  return handleRect().contains(p);
+}
+
+double VSTGraphicsSlider::getHandleX() const
+{
+  return 4 + sliderRect().width() * m_value;
+}
+
+QRectF VSTGraphicsSlider::sliderRect() const
+{
+  return m_rect.adjusted(4, 3, -4, -3);
+}
+
+QRectF VSTGraphicsSlider::handleRect() const
+{
+  return {getHandleX() - 4., 1., 8., m_rect.height() - 1};
+}
+
+
+
+struct VSTFloatSlider : Control::ControlInfo
+{
+    static QGraphicsItem* make_item(AEffect* fx, VSTControlInlet& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
+    {
+      auto sl = new VSTGraphicsSlider{fx, inlet.fxNum, nullptr};
+      sl->setRect({0., 0., 150., 15.});
+      sl->setValue(ossia::convert<double>(inlet.value()));
+
+      QObject::connect(sl, &VSTGraphicsSlider::sliderMoved,
+                       context, [=,&inlet,&ctx] {
+        sl->moving = true;
+        ctx.dispatcher.submitCommand<Control::SetControlValue>(inlet, sl->value());
+      });
+      QObject::connect(sl, &VSTGraphicsSlider::sliderReleased,
+                       context, [&ctx,sl] () {
+        ctx.dispatcher.commit();
+        sl->moving = false;
+      });
+
+      QObject::connect(&inlet, &Process::ControlInlet::valueChanged,
+                       sl, [=] (ossia::value val) {
+        if(!sl->moving)
+          sl->setValue(ossia::convert<double>(val));
+      });
+
+      return sl;
+    }
+};
+
+
+VSTEffectItem::VSTEffectItem(const VSTEffectModel& effect, const score::DocumentContext& doc, Control::RectItem* root):
+  Control::EffectItem{root}
+{
+  rootItem = root;
+  using namespace Control::Widgets;
+  QObject::connect(
+        &effect, &Process::EffectModel::controlAdded,
+        this, [&] (const Id<Process::Port>& id) {
+    auto inlet = safe_cast<VSTControlInlet*>(effect.inlet(id));
+    setupInlet(effect, *inlet, doc);
+    rootItem->setRect(rootItem->childrenBoundingRect());
+  });
+
+  {
+    auto tempo = safe_cast<Process::ControlInlet*>(effect.inlets()[1]);
+    setupInlet(TempoChooser(), *tempo, doc);
+  }
+  {
+    auto sg = safe_cast<Process::ControlInlet*>(effect.inlets()[2]);
+    setupInlet(TimeSigChooser(), *sg, doc);
+  }
+  for(int i = 3; i < effect.inlets().size(); i++)
+  {
+    auto inlet = safe_cast<VSTControlInlet*>(effect.inlets()[i]);
+    setupInlet(effect, *inlet, doc);
+  }
+}
+
+void VSTEffectItem::setupInlet(const VSTEffectModel& fx, VSTControlInlet& inlet, const score::DocumentContext& doc)
+{
+  auto item = new Control::RectItem{this};
+
+  double pos_y = this->childrenBoundingRect().height();
+
+  auto port = Dataflow::setupInlet(inlet, doc, item, this);
+
+  auto lab = new Scenario::SimpleTextItem{item};
+  lab->setColor(ScenarioStyle::instance().EventDefault);
+  lab->setText(inlet.customData());
+  lab->setPos(15, 2);
+
+
+  QGraphicsItem* widg = VSTFloatSlider::make_item(fx.fx->fx, inlet, doc, nullptr, this);
+  widg->setParentItem(item);
+  widg->setPos(15, lab->boundingRect().height());
+
+  auto h = std::max(20., (qreal)(widg->boundingRect().height() + lab->boundingRect().height() + 2.));
+
+  port->setPos(7., h / 2.);
+
+  item->setPos(0, pos_y);
+  item->setRect(QRectF{0., 0, 170., h});
+}
+
 }
 
 template <>
@@ -604,17 +839,28 @@ Engine::Execution::VSTEffectComponent::VSTEffectComponent(
     for(auto& ctrl : proc.controls)
     {
       auto inlet = ossia::make_inlet<ossia::value_port>();
-      node->ctrl_ptrs.push_back({ ctrl.second->fxNum, inlet->data.target<ossia::value_port>(), });
+      node->ctrl_ptrs.push_back({ctrl.second->fxNum, inlet->data.target<ossia::value_port>()});
       node->inputs().push_back(std::move(inlet));
     }
 
-    connect(&proc, &Media::VST::VSTEffectModel::controlsChanged,
-            this, [=] {
-      system().executionQueue.enqueue([] {
+    std::weak_ptr<std::remove_reference_t<decltype(*node)>> wp = node;
+    connect(&proc, &Media::VST::VSTEffectModel::controlAdded,
+            this, [this,&proc,wp] (const Id<Process::Port>& id) {
+      auto port = proc.getControl(id);
+      if(!port)
+        return;
+      if(auto n = wp.lock())
+      {
+        in_exec([n,num=port->fxNum] {
+          auto inlet = ossia::make_inlet<ossia::value_port>();
 
-      });
+          n->ctrl_ptrs.push_back({num, inlet->data.target<ossia::value_port>()});
+          n->inputs().push_back(inlet);
+        });
+      }
     });
   };
+
   if(fx.flags & effFlagsCanDoubleReplacing)
   {
     if(fx.flags & effFlagsIsSynth)

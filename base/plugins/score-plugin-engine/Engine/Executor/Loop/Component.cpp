@@ -145,7 +145,7 @@ Component::Component(
                  , m_ossia_interval->OSSIAInterval()->node
                  , loop->node);
 
-  system().executionQueue.enqueue(
+  in_exec(
         [g=system().plugin.execGraph, cable] {
     g->connect(cable);
   });

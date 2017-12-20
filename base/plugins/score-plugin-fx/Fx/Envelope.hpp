@@ -17,11 +17,11 @@ struct Node
   };
 
   static const constexpr auto info =
-      Process::create_node()
+      Control::create_node()
       .audio_ins({{"audio"}})
       .value_outs({{"rms"}, {"peak"}})
       .build();
-  using control_policy = Process::DefaultTick;
+  using control_policy = Control::DefaultTick;
   static auto get(const ossia::audio_channel& chan)
   {
     if(chan.size() > 0)
@@ -84,9 +84,6 @@ struct Node
         break;
     }
   }
-
 };
-
-using Factories = Process::Factories<Node>;
 }
 }

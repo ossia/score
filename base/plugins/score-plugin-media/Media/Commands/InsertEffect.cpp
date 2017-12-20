@@ -3,7 +3,7 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <Media/Effect/EffectProcessModel.hpp>
-#include <Media/Effect/Effect/EffectFactory.hpp>
+#include <Effect/EffectFactory.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 
@@ -14,7 +14,7 @@ namespace Commands
 
 InsertEffect::InsertEffect(
         const Effect::ProcessModel& model,
-        const UuidKey<Effect::EffectModel>& effectKind,
+        const UuidKey<Process::EffectModel>& effectKind,
         const QString& text,
         std::size_t effectPos):
     m_model{model},
@@ -35,9 +35,9 @@ void InsertEffect::undo(const score::DocumentContext& ctx) const
 void InsertEffect::redo(const score::DocumentContext& ctx) const
 {
     auto& process = m_model.find(ctx);
-    auto& fact_list = ctx.app.interfaces<Effect::EffectFactoryList>();
+    auto& fact_list = ctx.app.interfaces<Process::EffectFactoryList>();
 
-    if(Effect::EffectFactory* fact = fact_list.get(m_effectKind))
+    if(auto fact = fact_list.get(m_effectKind))
     {
         auto model = fact->make(m_effect, m_id, &process);
         process.insertEffect(model, m_pos);
@@ -64,7 +64,7 @@ void InsertEffect::deserializeImpl(DataStreamOutput& s)
 
 RemoveEffect::RemoveEffect(
         const Effect::ProcessModel& model,
-        const Effect::EffectModel& effect):
+        const Process::EffectModel& effect):
     m_model{model},
     m_id{effect.id()},
     m_savedEffect{score::marshall<DataStream>(effect)}
@@ -75,7 +75,7 @@ RemoveEffect::RemoveEffect(
 void RemoveEffect::undo(const score::DocumentContext& ctx) const
 {
     auto& process = m_model.find(ctx);
-    auto& fact_list = ctx.app.interfaces<Effect::EffectFactoryList>();
+    auto& fact_list = ctx.app.interfaces<Process::EffectFactoryList>();
 
     DataStream::Deserializer des{m_savedEffect};
     if(auto fx = deserialize_interface(fact_list, des, &process))
@@ -109,7 +109,7 @@ void RemoveEffect::deserializeImpl(DataStreamOutput& s)
 
 MoveEffect::MoveEffect(
         const Effect::ProcessModel& effect,
-        Id<Effect::EffectModel> id,
+        Id<Process::EffectModel> id,
         int new_pos):
     m_model{effect},
     m_id{id},

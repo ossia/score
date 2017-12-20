@@ -1,15 +1,15 @@
 #pragma once
 #include <Engine/Node/PdNode.hpp>
 
-namespace Process
+namespace Control
 {
 static inline constexpr void test_nodes()
 {
+  /*
   constexpr NodeBuilder<> n{};
   constexpr auto res =
   n.audio_ins({{"foo"}, {"bar"}})
    .audio_outs({{"mimi"}});
-  /*
 
   constexpr NodeInfo<std::array<AudioOutInfo, 1>, std::array<AudioInInfo, 2>>& bld = res.build();
 {
@@ -58,16 +58,16 @@ struct SomeInfo
   };
 
   static const constexpr auto info =
-      Process::create_node()
+      Control::create_node()
       .audio_ins({{"audio1"}, {"audio2"}})
       .midi_ins()
       .midi_outs({{"midi1"}})
       .value_ins()
       .value_outs()
-      .controls(Process::FloatSlider{"foo", .0, 10., 5.})
+      .controls(Control::FloatSlider{"foo", .0, 10., 5.})
       .state<State>()
       .build();
-  using control_policy = Process::DefaultTick;
+  using control_policy = Control::DefaultTick;
   static void run(
       const ossia::audio_port& p1,
       const ossia::audio_port& p2,

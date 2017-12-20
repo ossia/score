@@ -43,22 +43,22 @@ struct Node
   };
 
   static const constexpr auto info =
-      Process::create_node()
+      Control::create_node()
       .value_ins({{"in", true}})
       .midi_outs({{"out"}})
-      .controls(Process::Widgets::QuantificationChooser(),
-                Process::Widgets::DurationChooser(),
-                Process::Widgets::MidiSpinbox("Default pitch"),
-                Process::Widgets::MidiSpinbox("Default vel."),
-                Process::Widgets::OctaveSlider("Pitch shift", -3, 3),
-                Process::Widgets::OctaveSlider("Pitch random", 0, 2),
-                Process::Widgets::OctaveSlider("Vel. random", 0, 2),
-                Process::Widgets::MidiChannel("Channel"),
-                Process::Widgets::TempoChooser()
+      .controls(Control::Widgets::QuantificationChooser(),
+                Control::Widgets::DurationChooser(),
+                Control::Widgets::MidiSpinbox("Default pitch"),
+                Control::Widgets::MidiSpinbox("Default vel."),
+                Control::Widgets::OctaveSlider("Pitch shift", -3, 3),
+                Control::Widgets::OctaveSlider("Pitch random", 0, 2),
+                Control::Widgets::OctaveSlider("Vel. random", 0, 2),
+                Control::Widgets::MidiChannel("Channel"),
+                Control::Widgets::TempoChooser()
                 )
       .state<State>()
       .build();
-  using control_policy = Process::DefaultTick;
+  using control_policy = Control::DefaultTick;
   struct val_visitor
   {
     State& st;
@@ -272,7 +272,6 @@ struct Node
   }
 };
 
-using Factories = Process::Factories<Node>;
 }
 
 }

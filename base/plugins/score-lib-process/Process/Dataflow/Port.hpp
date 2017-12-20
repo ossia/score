@@ -80,7 +80,6 @@ class SCORE_LIB_PROCESS_EXPORT ControlInlet : public Inlet
     Q_OBJECT
     Q_PROPERTY(ossia::value value READ value WRITE setValue NOTIFY valueChanged)
     Q_PROPERTY(State::Domain domain READ domain WRITE setDomain NOTIFY domainChanged)
-    Q_PROPERTY(bool uiVisible READ uiVisible WRITE setUiVisible NOTIFY uiVisibleChanged)
     SCORE_SERIALIZE_FRIENDS
     public:
       using Inlet::Inlet;
@@ -93,12 +92,10 @@ class SCORE_LIB_PROCESS_EXPORT ControlInlet : public Inlet
 
     const ossia::value& value() const { return m_value; }
     const State::Domain& domain() const { return m_domain; }
-    bool uiVisible() const { return m_ui; }
 
   signals:
     void valueChanged(const ossia::value& v);
     void domainChanged(const State::Domain& d);
-    void uiVisibleChanged(bool);
 
   public slots:
     void setValue(const ossia::value& value)
@@ -118,19 +115,9 @@ class SCORE_LIB_PROCESS_EXPORT ControlInlet : public Inlet
         emit domainChanged(d);
       }
     }
-
-    void setUiVisible(bool b)
-    {
-      if(b != m_ui)
-      {
-        m_ui = b;
-        emit uiVisibleChanged(b);
-      }
-    }
   private:
     ossia::value m_value;
     State::Domain m_domain;
-    bool m_ui{false};
 };
 
 class SCORE_LIB_PROCESS_EXPORT Outlet : public Port

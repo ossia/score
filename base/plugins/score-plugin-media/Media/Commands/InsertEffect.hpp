@@ -3,12 +3,15 @@
 #include <Media/Commands/MediaCommandFactory.hpp>
 #include <score/model/path/Path.hpp>
 
+namespace Process
+{
+class EffectModel;
+class EffectFactory;
+}
 namespace Media
 {
 namespace Effect {
-class EffectModel;
 class ProcessModel;
-class EffectFactory;
 }
 
 namespace Commands
@@ -19,7 +22,7 @@ class InsertEffect final : public score::Command
     public:
         InsertEffect(
                 const Effect::ProcessModel& model,
-                const UuidKey<Effect::EffectModel>& effectKind,
+                const UuidKey<Process::EffectModel>& effectKind,
                 const QString& text,
                 std::size_t effectPos);
 
@@ -32,8 +35,8 @@ class InsertEffect final : public score::Command
 
     private:
         Path<Effect::ProcessModel> m_model;
-        Id<Effect::EffectModel> m_id;
-        UuidKey<Effect::EffectModel> m_effectKind;
+        Id<Process::EffectModel> m_id;
+        UuidKey<Process::EffectModel> m_effectKind;
         QString m_effect;
         quint64 m_pos{};
 };
@@ -46,7 +49,7 @@ class RemoveEffect final : public score::Command
     public:
         RemoveEffect(
                 const Effect::ProcessModel& model,
-                const Effect::EffectModel& effect);
+                const Process::EffectModel& effect);
 
         void undo(const score::DocumentContext& ctx) const override;
         void redo(const score::DocumentContext& ctx) const override;
@@ -57,7 +60,7 @@ class RemoveEffect final : public score::Command
 
     private:
         Path<Effect::ProcessModel> m_model;
-        Id<Effect::EffectModel> m_id;
+        Id<Process::EffectModel> m_id;
         QByteArray m_savedEffect;
         int m_pos{};
 };
@@ -69,7 +72,7 @@ class MoveEffect final : public score::Command
     public:
         MoveEffect(
                 const Effect::ProcessModel& model,
-                 Id<Effect::EffectModel> id,
+                 Id<Process::EffectModel> id,
                  int new_pos);
 
         void undo(const score::DocumentContext& ctx) const override;
@@ -81,7 +84,7 @@ class MoveEffect final : public score::Command
 
     private:
         Path<Effect::ProcessModel> m_model;
-        Id<Effect::EffectModel> m_id;
+        Id<Process::EffectModel> m_id;
         int m_oldPos, m_newPos{};
 };
 }

@@ -414,6 +414,37 @@ void DocumentPlugin::register_node(
     });
   }
 }
+
+void DocumentPlugin::register_inlet(
+    Process::Inlet& proc_inlet, const ossia::inlet_ptr& port,
+    const std::shared_ptr<ossia::graph_node>& node)
+{
+  if(node)
+  {
+    auto& runtime_connection = runtime_connections[node];
+    SCORE_ASSERT(port);
+    runtime_connection.push_back(connect(&proc_inlet, &Process::Port::addressChanged,
+                                         this, [this,port] (const State::AddressAccessor& address) {
+      set_destination(address, port);
+    }));
+    set_destination(proc_inlet.address(), port);
+
+    inlets.insert({ &proc_inlet, std::make_pair( node, port ) });
+
+    if(auto vp = port->data.target<ossia::value_port>())
+    {
+      if(vp->is_event)
+      {
+        if(auto addr = port->address.target<ossia::net::parameter_base*>())
+          execState.register_parameter(**addr);
+      }
+    }
+
+    m_editionQueue.enqueue([=] {
+      execGraph->add_node(node);
+    });
+  }
+}
 void DocumentPlugin::unregister_node(
     const Process::Inlets& proc_inlets, const Process::Outlets& proc_outlets,
     const std::shared_ptr<ossia::graph_node>& node)

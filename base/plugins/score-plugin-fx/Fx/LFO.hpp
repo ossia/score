@@ -33,17 +33,17 @@ struct Node
   };
 
 
-  using control_policy = Process::PreciseTick;
+  using control_policy = Control::PreciseTick;
   static const constexpr auto info =
-      Process::create_node()
+      Control::create_node()
       .value_outs({{"out"}})
-      .controls(Process::Widgets::LFOFreqChooser()
-              , Process::FloatSlider{"Coarse intens.", 0., 1000., 0.}
-              , Process::FloatSlider{"Fine intens.", 0., 1., 1.}
-              , Process::FloatSlider{"Offset.", -1000., 1000., 0.}
-              , Process::FloatSlider{"Jitter", 0., 1., 0.}
-              , Process::FloatSlider{"Phase", -1., 1., 0.}
-              , Process::Widgets::WaveformChooser()
+      .controls(Control::Widgets::LFOFreqChooser()
+              , Control::FloatSlider{"Coarse intens.", 0., 1000., 0.}
+              , Control::FloatSlider{"Fine intens.", 0., 1., 1.}
+              , Control::FloatSlider{"Offset.", -1000., 1000., 0.}
+              , Control::FloatSlider{"Jitter", 0., 1., 0.}
+              , Control::FloatSlider{"Phase", -1., 1., 0.}
+              , Control::Widgets::WaveformChooser()
                 )
       .state<State>()
       .build();
@@ -57,7 +57,7 @@ struct Node
       ossia::execution_state& st,
       State& s)
   {
-    auto& waveform_map = Process::Widgets::waveformMap();
+    auto& waveform_map = Control::Widgets::waveformMap();
 
     static std::mt19937 rd;
 
@@ -70,7 +70,7 @@ struct Node
         ph += std::normal_distribution<float>(0., 5000.)(rd) * jitter;
       }
 
-      using namespace Process::Widgets;
+      using namespace Control::Widgets;
       const auto phi = phase + (2.f * float(M_PI) * freq * ph) / st.sampleRate;
 
       switch(it->second)
@@ -103,7 +103,5 @@ struct Node
     s.phase += (tk.date - prev_date);
   }
 };
-
-using Factories = Process::Factories<Node>;
 }
 }

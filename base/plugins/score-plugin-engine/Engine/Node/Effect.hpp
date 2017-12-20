@@ -2,8 +2,9 @@
 #include <Engine/Node/Executor.hpp>
 #include <Engine/Node/Layer.hpp>
 #include <Engine/Node/Process.hpp>
-#include <Media/Effect/Effect/EffectModel.hpp>
-#include <Media/Effect/EffectExecutor.hpp>
+#include <Effect/EffectModel.hpp>
+#include <Effect/EffectFactory.hpp>
+#include <Engine/Executor/EffectComponent.hpp>
 
 ////////// METADATA ////////////
 namespace Control
@@ -49,7 +50,7 @@ struct Metadata<ObjectKey_k, Control::ControlEffect<Info>>
 template <typename Info>
 struct Metadata<ConcreteKey_k, Control::ControlEffect<Info>>
 {
-    static Q_DECL_RELAXED_CONSTEXPR UuidKey<Media::Effect::EffectFactory> get()
+    static Q_DECL_RELAXED_CONSTEXPR UuidKey<Process::EffectModel> get()
     {
       return Info::Metadata::uuid;
     }
@@ -59,7 +60,7 @@ struct Metadata<ConcreteKey_k, Control::ControlEffect<Info>>
 namespace Control
 {
 template<typename Info, typename>
-class ControlEffect final: public Media::Effect::EffectModel
+class ControlEffect final: public Process::EffectModel
 {
     SCORE_SERIALIZE_FRIENDS
     MODEL_METADATA_IMPL(ControlEffect<Info>)
@@ -67,6 +68,36 @@ class ControlEffect final: public Media::Effect::EffectModel
     friend struct TSerializer<JSONObject, Control::ControlEffect<Info>>;
     friend struct Control::PortSetup;
   public:
+    ControlEffect(
+        const QString&,
+        const Id<Process::EffectModel>& id,
+        QObject* parent):
+      Process::EffectModel{id, parent}
+    {
+      metadata().setInstanceName(*this);
+
+      Control::PortSetup::init<Info>(*this);
+    }
+
+    template<typename Impl>
+    explicit ControlEffect(
+        Impl& vis,
+        QObject* parent) :
+      Process::EffectModel{vis, parent}
+    {
+      vis.writeTo(*this);
+    }
+
+    ~ControlEffect() override
+    {
+
+    }
+
+    QString prettyName() const override
+    {
+      return Metadata<PrettyName_k, ControlEffect<Info>>::get();
+    }
+
 
     ossia::value control(std::size_t i) const
     {
@@ -86,86 +117,20 @@ class ControlEffect final: public Media::Effect::EffectModel
 
     auto& inlets_ref() const { return m_inlets; }
     auto& outlets_ref() const { return m_outlets; }
-
-    ControlEffect(
-        const Id<Media::Effect::EffectModel>& id,
-        QObject* parent):
-      Media::Effect::EffectModel{id, parent}
-    {
-      metadata().setInstanceName(*this);
-
-      Control::PortSetup::init<Info>(*this);
-    }
-
-    template<typename Impl>
-    explicit ControlEffect(
-        Impl& vis,
-        QObject* parent) :
-      Media::Effect::EffectModel{vis, parent}
-    {
-      vis.writeTo(*this);
-    }
-
-    ~ControlEffect() override
-    {
-
-    }
-
-    QString prettyName() const override
-    {
-      return Metadata<PrettyName_k, ControlEffect<Info>>::get();
-    }
 };
 
 template<typename Info>
 struct ControlEffectView:  public Control::EffectItem
 {
   public:
-    ControlEffectView(ControlEffect<Info>& eff
-                      , const score::DocumentContext& ctx,
-                      QGraphicsItem* parent):
+    ControlEffectView(const ControlEffect<Info>& eff
+                      , const score::DocumentContext& ctx
+                      , QGraphicsItem* parent):
       Control::EffectItem{parent}
     {
       Control::UISetup::init<Info>(eff, *this, ctx);
     }
 };
-template<typename Info>
-using ControlEffectUIFactory = Media::Effect::EffectUIFactory_T<ControlEffect<Info>, ControlEffectView<Info>>;
-template<typename Info>
-class ControlEffectFactory final :
-        public Media::Effect::EffectFactory
-{
-    public:
-        virtual ~ControlEffectFactory() = default;
-
-        static auto static_concreteKey()
-        { return Metadata<ConcreteKey_k, ControlEffect<Info>>::get(); }
-    private:
-        UuidKey<Media::Effect::EffectFactory> concreteKey() const noexcept override
-        { return Metadata<ConcreteKey_k, ControlEffect<Info>>::get(); }
-
-        QString prettyName() const override
-        { return Metadata<PrettyName_k, ControlEffect<Info>>::get(); }
-        QString category() const override
-        { return Metadata<Category_k, ControlEffect<Info>>::get(); }
-
-        ControlEffect<Info>* make(
-                const QString& info, // plugin name ? faust code ? dll location ?
-                const Id<Media::Effect::EffectModel>& id,
-                QObject* parent) const final override
-        {
-            return new ControlEffect<Info>{id, parent};
-        }
-
-        ControlEffect<Info>* load(
-                const VisitorVariant& vis,
-                QObject* parent) const final override
-        {
-            return score::deserialize_dyn(vis, [&] (auto&& deserializer)
-            { return new ControlEffect<Info>{deserializer, parent}; });
-        }
-};
-
 }
 
 template<typename Info>
@@ -222,7 +187,5 @@ class ControlEffectComponent final
   }
 };
 
-template<typename Info>
-using ControlEffectComponentFactory = Engine::Execution::EffectComponentFactory_T<ControlEffectComponent<Info>>;
 }
 }

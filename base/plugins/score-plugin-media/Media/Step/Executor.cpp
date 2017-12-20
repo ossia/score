@@ -76,7 +76,7 @@ StepComponent::StepComponent(
       this, &StepComponent::recompute);
   con(element, &Media::Step::Model::stepDurationChanged,
       this, [=] {
-    system().executionQueue.enqueue(
+    in_exec(
           [node,dur=process().stepDuration()] () mutable
     {
       node->dur = ossia::time_value(dur);
@@ -94,7 +94,7 @@ void StepComponent::recompute()
   {
     val = min + (1. - val) * (max - min);
   }
-  system().executionQueue.enqueue(
+  in_exec(
         [n=std::dynamic_pointer_cast<step_node>(OSSIAProcess().node),vec=std::move(v)] () mutable
   {
     n->values = std::move(vec);

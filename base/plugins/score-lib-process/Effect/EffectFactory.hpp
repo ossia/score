@@ -1,12 +1,14 @@
 #pragma once
 #include <score/plugins/customfactory/FactoryInterface.hpp>
 #include <score/serialization/VisitorCommon.hpp>
-#include <score_plugin_media_export.h>
+#include <score_lib_process_export.h>
 
 class QGraphicsItem;
-namespace Media
+namespace Control
 {
-namespace Effect
+class RectItem;
+}
+namespace Process
 {
 class EffectModel;
 
@@ -22,7 +24,7 @@ class EffectModel;
  * of various plug-in APIs this may change.
  *
  */
-class SCORE_PLUGIN_MEDIA_EXPORT EffectFactory :
+class SCORE_LIB_PROCESS_EXPORT EffectFactory :
         public score::Interface<EffectModel>
 {
         SCORE_INTERFACE("3ffe0073-dfe0-4a7f-862f-220380ebcf08")
@@ -70,7 +72,7 @@ class EffectFactory_T final :
         static auto static_concreteKey()
         { return Metadata<ConcreteKey_k, Model_T>::get(); }
     private:
-        UuidKey<Effect::EffectModel> concreteKey() const noexcept override
+        UuidKey<Process::EffectModel> concreteKey() const noexcept override
         { return Metadata<ConcreteKey_k, Model_T>::get(); }
 
         QString prettyName() const override
@@ -102,17 +104,17 @@ class EffectFactory_T final :
  * (for instance AU plug-in on Windows),
  * a MissingEffectModel should be returned.
  */
-class SCORE_PLUGIN_MEDIA_EXPORT EffectFactoryList final :
+class SCORE_LIB_PROCESS_EXPORT EffectFactoryList final :
         public score::InterfaceList<EffectFactory>
 {
     public:
-        using object_type = Media::Effect::EffectModel;
+        using object_type = Process::EffectModel;
         object_type* loadMissing(
                 const VisitorVariant& vis,
                 QObject* parent) const;
 };
 
-class SCORE_PLUGIN_MEDIA_EXPORT EffectUIFactory
+class SCORE_LIB_PROCESS_EXPORT EffectUIFactory
     : public score::Interface<EffectModel>
 {
   SCORE_INTERFACE("0b57b4c4-7da5-4032-9ac7-6fac34896e10")
@@ -120,10 +122,10 @@ public:
   ~EffectUIFactory() override;
 
   virtual QGraphicsItem*
-  makeItem(const Effect::EffectModel& view, const score::DocumentContext& ctx, QGraphicsItem* parent) const = 0;
+  makeItem(const Process::EffectModel& view, const score::DocumentContext& ctx, Control::RectItem* parent) const = 0;
 
-  bool matches(const Effect::EffectModel& p) const;
-  virtual bool matches(const UuidKey<Effect::EffectModel>&) const = 0;
+  bool matches(const Process::EffectModel& p) const;
+  virtual bool matches(const UuidKey<Process::EffectModel>&) const = 0;
 };
 
 template<typename Model_T, typename View_T>
@@ -135,18 +137,23 @@ class EffectUIFactory_T final :
 
   private:
     QGraphicsItem*
-    makeItem(const Effect::EffectModel& view, const score::DocumentContext& ctx, QGraphicsItem* parent) const final override
+    makeItem(const Process::EffectModel& view, const score::DocumentContext& ctx, Control::RectItem* parent) const final override
     {
-      return new View_T{view, ctx, parent};
+      return new View_T{safe_cast<const Model_T&>(view), ctx, parent};
     }
 
-    bool matches(const UuidKey<Effect::EffectModel>& p) const override
+    bool matches(const UuidKey<Process::EffectModel>& p) const override
     {
       return p == Metadata<ConcreteKey_k, Model_T>::get();
     }
+
+    UuidKey<EffectModel> concreteKey() const noexcept override
+    {
+      return Metadata<ConcreteKey_k, Model_T>::get();
+    }
 };
 
-class SCORE_PLUGIN_MEDIA_EXPORT EffectUIFactoryList final :
+class SCORE_LIB_PROCESS_EXPORT EffectUIFactoryList final :
         public score::InterfaceList<EffectUIFactory>
 {
   public:
@@ -157,5 +164,4 @@ class SCORE_PLUGIN_MEDIA_EXPORT EffectUIFactoryList final :
         const UuidKey<EffectModel>& proc) const;
 };
 }
-}
-Q_DECLARE_METATYPE(UuidKey<Media::Effect::EffectFactory>)
+Q_DECLARE_METATYPE(UuidKey<Process::EffectFactory>)

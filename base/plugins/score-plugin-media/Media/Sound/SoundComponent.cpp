@@ -36,13 +36,13 @@ SoundComponent::SoundComponent(
       this, [this] { this->recompute(); });
   con(element, &Media::Sound::ProcessModel::startChannelChanged,
       this, [=] {
-    system().executionQueue.enqueue(
+    in_exec(
           [node,start=process().startChannel()]
     { node->set_start(start); });
   });
   con(element, &Media::Sound::ProcessModel::upmixChannelsChanged,
       this, [=] {
-    system().executionQueue.enqueue(
+    in_exec(
           [node,upmix=process().upmixChannels()
           ]
     { node->set_upmix(upmix); });
@@ -61,7 +61,7 @@ void SoundComponent::recompute()
     }
     return v;
   };
-  system().executionQueue.enqueue(
+  in_exec(
         [n=std::dynamic_pointer_cast<ossia::sound_node>(OSSIAProcess().node)
         ,data=to_double(process().file().data())
         ,upmix=process().upmixChannels()
@@ -210,13 +210,13 @@ InputComponent::InputComponent(
   m_ossia_process = std::make_shared<ossia::node_process>(node);
   con(element, &Media::Input::ProcessModel::startChannelChanged,
       this, [=] {
-    system().executionQueue.enqueue(
+    in_exec(
           [node,start=process().startChannel()]
     { node->set_start(start); });
   });
   con(element, &Media::Input::ProcessModel::numChannelChanged,
       this, [=] {
-    system().executionQueue.enqueue(
+    in_exec(
           [node,num=process().numChannel()]
     { node->set_num_channel(num); });
   });
@@ -228,7 +228,7 @@ InputComponent::InputComponent(
 void InputComponent::recompute()
 {
   auto n = std::dynamic_pointer_cast<input_node>(OSSIAProcess().node);
-  system().executionQueue.enqueue(
+  in_exec(
         [n
         ,num=process().numChannel()
         ,start=process().startChannel()

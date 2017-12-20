@@ -101,7 +101,6 @@ struct PortSetup
         if(auto p = ctrl.create_inlet(Id<Process::Port>(inlet++), &self))
         {
           p->hidden = true;
-          p->setUiVisible(true);
           ins.push_back(p);
         }
       });

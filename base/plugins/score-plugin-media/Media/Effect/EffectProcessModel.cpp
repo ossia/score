@@ -1,8 +1,8 @@
 #include <Media/Effect/EffectProcessModel.hpp>
-#include <Media/Effect/Effect/EffectModel.hpp>
+#include <Effect/EffectModel.hpp>
+#include <Effect/EffectFactory.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-//#include <Media/MediaStreamEngine/MediaDocumentPlugin.hpp>
 
 #include <score/tools/Clamp.hpp>
 #include <QFile>
@@ -35,7 +35,7 @@ ProcessModel::~ProcessModel()
 }
 
 void ProcessModel::insertEffect(
-    EffectModel* eff,
+    Process::EffectModel* eff,
     int pos)
 {
   // Check that the effect order makes sense.
@@ -89,7 +89,7 @@ void ProcessModel::insertEffect(
   emit effectsChanged();
 }
 
-void ProcessModel::removeEffect(const Id<EffectModel>& e)
+void ProcessModel::removeEffect(const Id<Process::EffectModel>& e)
 {
   m_effects.remove(e);
   // TODO adjust and check ports
@@ -97,7 +97,7 @@ void ProcessModel::removeEffect(const Id<EffectModel>& e)
   emit effectsChanged();
 }
 
-void ProcessModel::moveEffect(const Id<EffectModel>& e, int new_pos)
+void ProcessModel::moveEffect(const Id<Process::EffectModel>& e, int new_pos)
 {
   new_pos = clamp(new_pos, 0, m_effects.size() - 1);
   auto old_pos = effectPosition(e);
@@ -108,7 +108,7 @@ void ProcessModel::moveEffect(const Id<EffectModel>& e, int new_pos)
   }
 }
 
-int ProcessModel::effectPosition(const Id<EffectModel>& e) const
+int ProcessModel::effectPosition(const Id<Process::EffectModel>& e) const
 {
   return m_effects.index(e);
 }
@@ -140,7 +140,7 @@ void DataStreamWriter::write(Media::Effect::ProcessModel& proc)
   int32_t n = 0;
   m_stream >> n;
 
-  auto& fxs = components.interfaces<Media::Effect::EffectFactoryList>();
+  auto& fxs = components.interfaces<Process::EffectFactoryList>();
   for(int i = 0; i < n ; i++)
   {
     auto fx = deserialize_interface(fxs, *this, &proc);
@@ -174,12 +174,12 @@ void JSONObjectWriter::write(Media::Effect::ProcessModel& proc)
   }
 
   QJsonArray fx_array = obj["Effects"].toArray();
-  auto& fxs = components.interfaces<Media::Effect::EffectFactoryList>();
+  auto& fxs = components.interfaces<Process::EffectFactoryList>();
   int i = 0;
   for(const auto& json_vref : fx_array)
   {
     JSONObject::Deserializer deserializer{json_vref.toObject()};
-    Media::Effect::EffectModel* fx = deserialize_interface(fxs, deserializer, &proc);
+    Process::EffectModel* fx = deserialize_interface(fxs, deserializer, &proc);
     if(fx)
     {
       auto pos = i++;

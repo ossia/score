@@ -53,7 +53,7 @@ InspectorWidget::InspectorWidget(
   connect(m_list, &QListWidget::itemDoubleClicked,
           this, [=] (QListWidgetItem* item) {
     // Make a text dialog to edit faust program.
-    auto id = item->data(Qt::UserRole).value<Id<EffectModel>>();
+    auto id = item->data(Qt::UserRole).value<Id<Process::EffectModel>>();
     auto proc = &process().effects().at(id);
     proc->hideUI();
     proc->showUI();
@@ -109,8 +109,8 @@ InspectorWidget::InspectorWidget(
 
 void InspectorWidget::add_score(std::size_t pos)
 {
-  auto& base_fxs = m_ctx.app.interfaces<EffectFactoryList>();
-  auto dialog = new Scenario::AddProcessDialog<EffectFactoryList>(base_fxs, this);
+  auto& base_fxs = m_ctx.app.interfaces<Process::EffectFactoryList>();
+  auto dialog = new Scenario::AddProcessDialog<Process::EffectFactoryList>(base_fxs, this);
 
 
   dialog->on_okPressed = [&] (const auto& proc)  {

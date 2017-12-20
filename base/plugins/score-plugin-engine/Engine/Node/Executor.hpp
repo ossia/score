@@ -355,6 +355,7 @@ void setup_node(const std::shared_ptr<Node_T> node_ptr
                 , const Engine::Execution::Context& ctx
                 , QObject* parent)
 {
+  (void) parent;
   auto& node = *node_ptr;
   std::weak_ptr<Node_T> weak_node = node_ptr;
   constexpr const auto control_count = InfoFunctions<Info>::control_count;

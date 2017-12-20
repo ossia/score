@@ -22,7 +22,7 @@ inline ossia::optional<time_signature> get_time_signature(const std::string_view
 
   try
   {
-    if(v.size() > 3)
+    if(v.size() >= 3)
     {
       auto it = v.find('/');
       if(it > 0 && it < (v.size() - 1))

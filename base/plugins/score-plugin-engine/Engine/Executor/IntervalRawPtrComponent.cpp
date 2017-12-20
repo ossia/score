@@ -42,21 +42,21 @@ IntervalRawPtrComponentBase::IntervalRawPtrComponentBase(
   con(interval().duration,
       &Scenario::IntervalDurations::defaultDurationChanged, this,
       [&](TimeVal sp) {
-    system().executionQueue.enqueue([t=ctx.time(sp),cst = m_ossia_interval]
+    in_exec([t=ctx.time(sp),cst = m_ossia_interval]
       { cst->set_nominal_duration(t); });
   });
 
   con(interval().duration,
       &Scenario::IntervalDurations::minDurationChanged, this,
       [&](TimeVal sp) {
-    system().executionQueue.enqueue([t=ctx.time(sp),cst = m_ossia_interval]
+    in_exec([t=ctx.time(sp),cst = m_ossia_interval]
       { cst->set_min_duration(t); });
   });
 
   con(interval().duration,
       &Scenario::IntervalDurations::maxDurationChanged, this,
       [&](TimeVal sp) {
-    system().executionQueue.enqueue([t=ctx.time(sp),cst = m_ossia_interval]
+    in_exec([t=ctx.time(sp),cst = m_ossia_interval]
       { cst->set_max_duration(t); });
   });
 }
@@ -75,7 +75,7 @@ void IntervalRawPtrComponent::cleanup(std::shared_ptr<IntervalRawPtrComponent> s
 {
   if(m_ossia_interval)
   {
-    system().executionQueue.enqueue([itv=m_ossia_interval, self] {
+    in_exec([itv=m_ossia_interval, self] {
       itv->set_callback(ossia::time_interval::exec_callback{});
     });
     system().plugin.unregister_node(
@@ -117,7 +117,7 @@ void IntervalRawPtrComponent::onSetup(
   // BaseScenario needs a special callback. It is given in DefaultClockManager.
   if (!parent_is_base_scenario)
   {
-    system().executionQueue.enqueue([self,ossia_cst] {
+    in_exec([self,ossia_cst] {
       ossia_cst->set_stateless_callback(
             [self](double position, ossia::time_value date) {
         emit self->sig_callback(position, date);
@@ -173,7 +173,7 @@ void IntervalRawPtrComponentBase::resume()
 
 void IntervalRawPtrComponentBase::stop()
 {
-  system().executionQueue.enqueue([cstr=m_ossia_interval] { cstr->stop(); });
+  in_exec([cstr=m_ossia_interval] { cstr->stop(); });
 
   for (auto& process : m_processes)
   {
@@ -228,7 +228,7 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
       auto cst = m_ossia_interval;
       auto cst_node = cst->node;
 
-      system().executionQueue.enqueue(
+      in_exec(
             [cst=m_ossia_interval,oproc,g=plug->system().plugin.execGraph,propagated_outlets] {
         if(oproc)
         {
@@ -266,7 +266,7 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
             propagated_outlets.push_back(i);
         }
 
-        system().executionQueue.enqueue(
+        in_exec(
               [cst_node,g_weak,oproc_weak,propagated_outlets] {
           if(auto g = g_weak.lock())
           {
@@ -316,7 +316,7 @@ std::function<void ()> IntervalRawPtrComponentBase::removing(
   if(it != m_processes.end())
   {
     auto cp = c.shared_from_this();
-    system().executionQueue.enqueue([cstr=m_ossia_interval,c_ptr=c.shared_from_this()] {
+    in_exec([cstr=m_ossia_interval,c_ptr=c.shared_from_this()] {
       cstr->remove_time_process(c_ptr->OSSIAProcessPtr().get());
     });
     c.cleanup();

@@ -145,7 +145,7 @@ Component::Component(
 
   con(*element.outlet, &Process::Port::addressChanged,
       this, [=] (const auto&) {
-    this->system().executionQueue.enqueue([node] {
+    this->in_exec([node] {
       node->tween = ossia::none;
     });
   });
@@ -154,7 +154,7 @@ Component::Component(
   // so it may not work perfectly.
   con(element, &Gradient::ProcessModel::tweenChanged,
       this, [=] (bool b) {
-    this->system().executionQueue.enqueue([=] {
+    this->in_exec([=] {
       node->tween = ossia::none;
       node->mustTween = b;
     });

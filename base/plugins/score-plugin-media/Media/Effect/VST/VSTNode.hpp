@@ -28,8 +28,8 @@ class VSTNode final : public ossia::audio_fx_node
     VSTNode(std::shared_ptr<AEffectWrapper> dat, int sampleRate):
       fx{std::move(dat)}
     {
-      m_inlets.reserve(fx->fx->numParams + 3);
-      ctrl_ptrs.resize(fx->fx->numParams + 2);
+      m_inlets.reserve(10);
+      ctrl_ptrs.reserve(10);
       if constexpr(IsSynth)
         m_inlets.push_back(ossia::make_inlet<ossia::midi_port>());
       else

@@ -29,7 +29,7 @@ ProcessComponent::ProcessComponent(
 void ProcessComponent::cleanup()
 {
   this->system().plugin.unregister_node(process(), OSSIAProcess().node);
-  system().executionQueue.enqueue([proc=OSSIAProcessPtr()] {
+  in_exec([proc=OSSIAProcessPtr()] {
     proc->node.reset();
   });
 }

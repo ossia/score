@@ -4,7 +4,7 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 #include <Media/Effect/EffectProcessMetadata.hpp>
-#include <Media/Effect/Effect/EffectModel.hpp>
+#include <Effect/EffectModel.hpp>
 #include <boost/iterator/indirect_iterator.hpp>
 namespace Media
 {
@@ -212,14 +212,14 @@ class ProcessModel final : public Process::ProcessModel
             vis.writeTo(*this);
         }
 
-        const EntityList<EffectModel>& effects() const
+        const EntityList<Process::EffectModel>& effects() const
         { return m_effects; }
 
-        void insertEffect(EffectModel* eff, int pos);
-        void removeEffect(const Id<EffectModel>&);
-        void moveEffect(const Id<EffectModel>&, int new_pos);
+        void insertEffect(Process::EffectModel* eff, int pos);
+        void removeEffect(const Id<Process::EffectModel>&);
+        void moveEffect(const Id<Process::EffectModel>&, int new_pos);
 
-        int effectPosition(const Id<EffectModel>& e) const;
+        int effectPosition(const Id<Process::EffectModel>& e) const;
 
         Process::Inlets inlets() const override
         {
@@ -239,7 +239,7 @@ class ProcessModel final : public Process::ProcessModel
 
     private:
         // The actual effect instances
-        EntityList<EffectModel> m_effects;
+        EntityList<Process::EffectModel> m_effects;
 };
 }
 }

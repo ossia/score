@@ -73,3 +73,5 @@ struct SCORE_PLUGIN_ENGINE_EXPORT Context
 
 }
 }
+
+#define in_exec system().executionQueue.enqueue

@@ -46,6 +46,11 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerPresenter.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerView.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerPanelProxy.hpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectParameters.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectModel.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectComponent.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectFactory.hpp"
 )
 set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/StateProcessSerialization.cpp"
@@ -76,6 +81,9 @@ set(PROCESS_SRCS
 
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerView.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectFactory.cpp"
 )
 
 add_library(score_lib_process ${PROCESS_HDRS} ${PROCESS_SRCS}  )

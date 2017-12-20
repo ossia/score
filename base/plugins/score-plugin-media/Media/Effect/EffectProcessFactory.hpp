@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/WidgetLayer/WidgetProcessFactory.hpp>
+#include <Media/Effect/DefaultEffectItem.hpp>
 #include <Media/Effect/EffectProcessModel.hpp>
 #include <Media/Effect/EffectProcessMetadata.hpp>
 #include <Media/Effect/Effect/Widgets/EffectListWidget.hpp>
@@ -18,6 +19,7 @@
 #include <QPainter>
 #include <score/widgets/GraphicWidgets.hpp>
 #include <Media/Commands/InsertEffect.hpp>
+#include <Effect/EffectFactory.hpp>
 
 namespace Media
 {
@@ -36,11 +38,10 @@ class View final : public Control::ILayerView
 
     struct EffectUi
     {
-        const EffectModel& effect;
+        const Process::EffectModel& effect;
         Control::RectItem* root_item{};
         QGraphicsItem* fx_item{};
         QGraphicsItem* title{};
-        std::vector<ControlUi> widgets;
     };
 
     explicit View(QGraphicsItem* parent)
@@ -48,7 +49,7 @@ class View final : public Control::ILayerView
     {
     }
 
-    QGraphicsItem* makeTitle(EffectModel& effect, const Effect::ProcessModel& object, const score::DocumentContext& doc)
+    QGraphicsItem* makeTitle(Process::EffectModel& effect, const Effect::ProcessModel& object, const score::DocumentContext& doc)
     {
       auto root = new Control::RectItem{};
       root->setRect({0, 0, 170, 20});
@@ -84,68 +85,12 @@ class View final : public Control::ILayerView
       return root;
     }
 
-    Control::EffectItem* makeDefaultItem(
-        EffectModel& effect, const Effect::ProcessModel& object,
-        const score::DocumentContext& doc,
-        EffectUi& fx_ui)
-    {
-      auto item = new Control::EffectItem;
-      fx_ui.fx_item = item;
-      inlet_cons.reserve(effect.inlets().size() + inlet_cons.size());
-      for(auto& e : effect.inlets())
-      {
-        auto inlet = dynamic_cast<Process::ControlInlet*>(e);
-        if(!inlet)
-          continue;
-
-        auto con = connect(inlet, &Process::ControlInlet::uiVisibleChanged,
-                this, [this,&doc,fx=&effect,inlet] (bool vis) {
-          if(vis)
-          {
-            for(auto& e : this->effects)
-            {
-              if(&e.effect == fx)
-              {
-                setupInlet(*inlet, e, doc);
-
-                updateSize(e);
-                break;
-              }
-            }
-          }
-          else
-          {
-            for(auto& e : this->effects)
-            {
-              if(&e.effect == fx)
-              {
-                disableInlet(*inlet, e, doc);
-
-                updateSize(e);
-                break;
-              }
-            }
-          }
-        });
-        inlet_cons.push_back(con);
-        if(inlet->uiVisible())
-        {
-          setupInlet(*inlet, fx_ui, doc);
-        }
-      }
-      return item;
-
-    }
-
     void setup(const Effect::ProcessModel& object,
                const score::DocumentContext& doc)
     {
-      auto& fact = doc.app.interfaces<Media::Effect::EffectUIFactoryList>();
+      auto& fact = doc.app.interfaces<Process::EffectUIFactoryList>();
       auto items = childItems();
       effects.clear();
-      for(const auto& con : inlet_cons)
-        QObject::disconnect(con);
-      inlet_cons.clear();
       for(auto item : items)
       {
         this->scene()->removeItem(item);
@@ -153,10 +98,10 @@ class View final : public Control::ILayerView
       }
 
       double pos_x = 0;
-      for(EffectModel& effect : object.effects())
+      for(Process::EffectModel& effect : object.effects())
       {
         auto root_item = new Control::RectItem(this);
-        EffectUi fx_ui{effect, root_item, {}, {}, {}};
+        EffectUi fx_ui{effect, root_item, {}, {}};
 
         // Title
         fx_ui.title = makeTitle(effect, object, doc);
@@ -170,13 +115,12 @@ class View final : public Control::ILayerView
 
         if(!fx_ui.fx_item)
         {
-          fx_ui.fx_item = makeDefaultItem(effect, object, doc, fx_ui);
+          fx_ui.fx_item = new DefaultEffectItem{effect, doc, root_item};
         }
-        SCORE_ASSERT(fx_ui.fx_item);
 
         fx_ui.fx_item->setParentItem(root_item);
         fx_ui.fx_item->setPos({0, fx_ui.title->boundingRect().height()});
-        updateSize(fx_ui);
+        fx_ui.root_item->setRect(fx_ui.root_item->childrenBoundingRect());
         effects.push_back(fx_ui);
 
         fx_ui.root_item->setRect({0., 0., 170., fx_ui.root_item->childrenBoundingRect().height() + 10.});
@@ -185,17 +129,13 @@ class View final : public Control::ILayerView
       }
     }
 
-    void updateSize(const EffectUi& fx)
-    {
-      safe_cast<Control::RectItem*>(fx.root_item)->setRect(fx.root_item->childrenBoundingRect());
-    }
-
 
     void disableInlet(
         Process::ControlInlet& inlet,
         EffectUi& fx_ui,
         const score::DocumentContext& doc)
     {
+      /*
       for(auto it = fx_ui.widgets.begin(); it != fx_ui.widgets.end(); )
       {
         if(it->inlet == &inlet)
@@ -215,46 +155,9 @@ class View final : public Control::ILayerView
         {
           ++it;
         }
-      }
+      }*/
     }
 
-    void setupInlet(
-        Process::ControlInlet& inlet,
-        EffectUi& fx_ui,
-        const score::DocumentContext& doc)
-    {
-      auto item = new Control::RectItem{fx_ui.fx_item};
-
-      double pos_y =
-      (fx_ui.widgets.empty())
-          ? 0
-          : fx_ui.widgets.back().rect->boundingRect().height() + fx_ui.widgets.back().rect->pos().y();
-
-
-      auto port = Dataflow::setupInlet(inlet, doc, item, this);
-
-      auto lab = new Scenario::SimpleTextItem{item};
-      lab->setColor(ScenarioStyle::instance().EventDefault);
-      lab->setText(inlet.customData());
-      lab->setPos(15, 2);
-
-      struct SliderInfo {
-          static float getMin() { return 0.; }
-          static float getMax() { return 1.; }
-      };
-
-      QGraphicsItem* widg = Control::FloatSlider::make_item(SliderInfo{}, inlet, doc, nullptr, this);
-      widg->setParentItem(item);
-      widg->setPos(15, lab->boundingRect().height());
-
-      auto h = std::max(20., (qreal)(widg->boundingRect().height() + lab->boundingRect().height() + 2.));
-
-      port->setPos(7., h / 2.);
-
-      item->setPos(0, pos_y);
-      item->setRect(QRectF{0., 0, 170., h});
-      fx_ui.widgets.push_back({&inlet, item});
-    }
 
   private:
     void paint_impl(QPainter*) const override
@@ -290,7 +193,6 @@ class View final : public Control::ILayerView
       ev->accept();
     }
 
-    std::vector<QMetaObject::Connection> inlet_cons;
     std::vector<EffectUi> effects;
 };
 

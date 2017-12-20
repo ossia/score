@@ -1,8 +1,5 @@
 #include "EffectModel.hpp"
-#include <Media/Effect/Effect/EffectParameters.hpp>
-namespace Media
-{
-namespace Effect
+namespace Process
 {
 EffectModel::EffectModel(
         const Id<EffectModel>& id,
@@ -26,29 +23,45 @@ void EffectModel::hideUI()
 {
 
 }
+
+Process::Inlet* EffectModel::inlet(const Id<Process::Port>& p) const
+{
+  for(auto e : m_inlets)
+    if(e->id() == p)
+      return e;
+  return nullptr;
 }
+
+Process::Outlet* EffectModel::outlet(const Id<Process::Port>& p) const
+{
+  for(auto e : m_outlets)
+    if(e->id() == p)
+      return e;
+  return nullptr;
+}
+
 }
 
 template <>
 void DataStreamReader::read(
-        const Media::Effect::EffectModel& eff)
+        const Process::EffectModel& eff)
 {
 }
 
 template <>
 void DataStreamWriter::write(
-        Media::Effect::EffectModel& eff)
+        Process::EffectModel& eff)
 {
 }
 
 template <>
 void JSONObjectReader::read(
-        const Media::Effect::EffectModel& eff)
+        const Process::EffectModel& eff)
 {
 }
 
 template <>
 void JSONObjectWriter::write(
-        Media::Effect::EffectModel& eff)
+        Process::EffectModel& eff)
 {
 }

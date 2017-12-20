@@ -1,5 +1,5 @@
 #pragma once
-#include <Media/Effect/Effect/EffectModel.hpp>
+#include <Effect/EffectModel.hpp>
 
 namespace Media
 {
@@ -16,14 +16,14 @@ namespace Effect
  * something similar even in the JSON.
  */
 class MissingEffectModel :
-        public EffectModel
+        public Process::EffectModel
 {
         Q_OBJECT
         SCORE_SERIALIZE_FRIENDS
     public:
         MissingEffectModel(
                 const QByteArray& data,
-                const Id<EffectModel>&,
+                const Id<Process::EffectModel>&,
                 QObject* parent);
 
 
@@ -31,7 +31,7 @@ class MissingEffectModel :
         MissingEffectModel(
                 Impl& vis,
                 QObject* parent) :
-            EffectModel{vis, parent}
+            Process::EffectModel{vis, parent}
         {
             vis.writeTo(*this);
         }

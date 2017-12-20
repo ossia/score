@@ -204,7 +204,7 @@ void Component::recompute()
 
     if (curve)
     {
-      system().executionQueue.enqueue(
+      in_exec(
             [proc=std::dynamic_pointer_cast<automation_node>(OSSIAProcess().node)
             ,curve
             ,d_=d]
@@ -221,7 +221,7 @@ void Component::recompute()
 
     if (curve)
     {
-      system().executionQueue.enqueue(
+      in_exec(
             [proc=std::dynamic_pointer_cast<automation_node>(OSSIAProcess().node)
             ,curve]
       {
