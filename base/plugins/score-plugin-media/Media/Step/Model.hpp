@@ -26,11 +26,6 @@ class Model final : public Process::ProcessModel
                 const Id<Process::ProcessModel>& id,
                 QObject* parent);
 
-        explicit Model(
-                const Model& source,
-                const Id<Process::ProcessModel>& id,
-                QObject* parent);
-
         ~Model() override;
 
         template<typename Impl>

@@ -78,50 +78,6 @@ ProcessModel::ProcessModel(
   outlet->setPropagate(true);
 }
 
-ProcessModel::ProcessModel(
-    const Scenario::ProcessModel& source,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent)
-    : Process::
-          ProcessModel{source, id,
-                       Metadata<ObjectKey_k, Scenario::ProcessModel>::get(),
-                       parent}
-    , inlet{Process::clone_inlet(*source.inlet, this)}
-    , outlet{Process::clone_outlet(*source.outlet, this)}
-    , m_startTimeSyncId{source.m_startTimeSyncId}
-    , m_startEventId{source.m_startEventId}
-{
-  metadata().setInstanceName(*this);
-  // This almost terrifying piece of code will simply clone
-  // all the elements (interval, etc...) from the source to this class
-  // without duplicating code too much.
-  auto clone = [&](const auto& m) {
-    using the_class =
-        typename remove_qualifs_t<decltype(this->*m)>::value_type;
-    for (const auto& elt : source.*m)
-      (this->*m).add(new the_class{elt, elt.id(), this});
-  };
-  clone(&ProcessModel::timeSyncs);
-  clone(&ProcessModel::events);
-  clone(&ProcessModel::intervals);
-  clone(&ProcessModel::comments);
-  auto& stack = score::IDocument::documentContext(*this).commandStack;
-  for (const auto& elt : source.states)
-  {
-    auto st = new StateModel{elt, elt.id(), stack, this};
-    states.add(st);
-  }
-
-  // We re-set the intervals before and after the states
-  for (const Scenario::IntervalModel& interval : intervals)
-  {
-    Scenario::SetPreviousInterval(
-        states.at(interval.endState()), interval);
-    Scenario::SetNextInterval(
-        states.at(interval.startState()), interval);
-  }
-}
-
 ProcessModel::~ProcessModel()
 {
   score::IDocument::documentFromObject(*parent())->context().selectionStack.clear();

@@ -32,10 +32,6 @@ class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final : public Process::ProcessMode
                 const Id<Process::ProcessModel>& id,
                 QObject* parent);
 
-        explicit ProcessModel(
-                const ProcessModel& source,
-                const Id<Process::ProcessModel>& id,
-                QObject* parent);
 
         ~ProcessModel() override;
 

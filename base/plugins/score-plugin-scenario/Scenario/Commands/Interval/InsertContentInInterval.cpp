@@ -19,6 +19,7 @@
 #include <map>
 #include <utility>
 #include <vector>
+#include <score/document/DocumentContext.hpp>
 
 #include "InsertContentInInterval.hpp"
 #include <Process/ExpandMode.hpp>
@@ -45,20 +46,26 @@ InsertContentInInterval::InsertContentInInterval(
 {
   // Generate new ids for each cloned process.
   const auto& target_processes = targetInterval.processes;
-  std::vector<Id<Process::ProcessModel>> target_processes_ids;
-  target_processes_ids.reserve(target_processes.size());
+  std::vector<Id<Process::ProcessModel>> curIds;
+  m_processIds.reserve(target_processes.size());
   std::transform(
       target_processes.begin(), target_processes.end(),
-      std::back_inserter(target_processes_ids),
+      std::back_inserter(curIds),
       [](const auto& proc) { return proc.id(); });
 
-  for (const auto& proc : m_source["Processes"].toArray())
+
+  auto processes = m_source["Processes"].toArray();
+  for (int i = 0; i < processes.size(); i++)
   {
-    auto newId = getStrongId(target_processes_ids);
-    m_processIds.insert(
-        Id<Process::ProcessModel>(proc.toObject()["id"].toInt()), newId);
-    target_processes_ids.push_back(newId);
+    auto obj = processes[i].toObject();
+    Id<Process::ProcessModel> newId = getStrongId(curIds);
+    Id<Process::ProcessModel> oldId = Id<Process::ProcessModel>(obj["id"].toInt());
+    obj["id"] = newId.val();
+    processes[i] = std::move(obj);
+    m_processIds.insert({oldId, newId});
+    curIds.push_back(newId);
   }
+  m_source["Processes"] = std::move(processes);
 }
 
 void InsertContentInInterval::undo(const score::DocumentContext& ctx) const
@@ -70,7 +77,7 @@ void InsertContentInInterval::undo(const score::DocumentContext& ctx) const
   // Remove the processes
   for (const auto& proc_id : m_processIds)
   {
-    RemoveProcess(trg_interval, proc_id);
+    RemoveProcess(trg_interval, proc_id.second);
   }
 
   if(trg_interval.processes.empty())
@@ -79,38 +86,54 @@ void InsertContentInInterval::undo(const score::DocumentContext& ctx) const
 
 void InsertContentInInterval::redo(const score::DocumentContext& ctx) const
 {
+  auto& pl = ctx.app.components.interfaces<Process::ProcessFactoryList>();
   auto& trg_interval = m_target.find(ctx);
-  IntervalModel src_interval{JSONObject::Deserializer{m_source},
-                                 &trg_interval}; // Temporary parent
+  const auto& json_array = m_source["Processes"].toArray();
 
-  std::map<const Process::ProcessModel*, Process::ProcessModel*> processPairs;
-
-  // Clone the processes
-  const auto& src_procs = src_interval.processes;
-  for (const auto& sourceproc : src_procs)
+  for(const auto& json_vref : json_array)
   {
-    auto newproc
-        = sourceproc.clone(m_processIds[sourceproc.id()], &trg_interval);
-
-    processPairs.insert(std::make_pair(&sourceproc, newproc));
-    AddProcess(trg_interval, newproc);
-
-    // Resize the processes according to the new interval.
-    if (m_mode == ExpandMode::Scale)
+    JSONObject::Deserializer deserializer{json_vref.toObject()};
+    auto newproc = deserialize_interface(pl, deserializer, &trg_interval);
+    if (newproc)
     {
-      newproc->setParentDuration(
-          ExpandMode::Scale, trg_interval.duration.defaultDuration());
+      AddProcess(trg_interval, newproc);
+
+      // Resize the processes according to the new interval.
+      if (m_mode == ExpandMode::Scale)
+      {
+        newproc->setParentDuration(
+            ExpandMode::Scale, trg_interval.duration.defaultDuration());
+      }
+      else if (m_mode == ExpandMode::GrowShrink)
+      {
+        newproc->setParentDuration(
+            ExpandMode::ForceGrow, trg_interval.duration.defaultDuration());
+      }
     }
-    else if (m_mode == ExpandMode::GrowShrink)
-    {
-      newproc->setParentDuration(
-          ExpandMode::ForceGrow, trg_interval.duration.defaultDuration());
-    }
+    else
+      SCORE_TODO;
   }
 
-  for(auto slt : src_interval.smallView())
-    trg_interval.addSlot(slt);
-  if(!src_procs.empty() && !trg_interval.smallViewVisible())
+  auto sv_it = m_source.constFind(score::StringConstant().SmallViewRack);
+  if(sv_it != m_source.constEnd())
+  {
+    Rack smallView;
+    fromJsonArray(sv_it->toArray(), smallView);
+    for(auto& sv : smallView)
+    {
+      if(sv.frontProcess)
+      {
+        sv.frontProcess = m_processIds.at(*sv.frontProcess);
+      }
+      for(auto& proc : sv.processes)
+      {
+        proc = m_processIds.at(proc);
+      }
+      trg_interval.addSlot(sv);
+    }
+
+  }
+  if(json_array.size() > 0 && !trg_interval.smallViewVisible())
     trg_interval.setSmallViewVisible(true);
 }
 

@@ -385,6 +385,16 @@ void DocumentPlugin::register_node(
       set_destination(proc_inlets[i]->address(), node->inputs()[i]);
 
       inlets.insert({ proc_inlets[i], std::make_pair( node, node->inputs()[i] ) });
+
+      auto& port = node->inputs()[i];
+      if(auto vp = port->data.target<ossia::value_port>())
+      {
+        if(vp->is_event)
+        {
+          if(auto addr = port->address.target<ossia::net::parameter_base*>())
+            execState.register_parameter(**addr);
+        }
+      }
     }
 
     for(std::size_t i = 0; i < n_outlets; i++)

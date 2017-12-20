@@ -29,8 +29,8 @@ CreateState::CreateState(
         event,
     double stateY)
     : m_path{scenario}
-    , m_newState{getStrongId(scenario.states)}
     , m_createdName{RandomNameProvider::generateName<StateModel>()}
+    , m_newState{getStrongId(scenario.states)}
     , m_event{std::move(event)}
     , m_stateY{stateY}
 {

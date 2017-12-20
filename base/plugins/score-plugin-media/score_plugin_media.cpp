@@ -119,6 +119,7 @@ std::vector<std::unique_ptr<score::InterfaceListBase> > score_plugin_media::fact
 {
     return make_ptr_vector<score::InterfaceListBase,
             Media::Effect::EffectFactoryList,
+            Media::Effect::EffectUIFactoryList,
             Engine::Execution::EffectComponentFactoryList>();
 }
 

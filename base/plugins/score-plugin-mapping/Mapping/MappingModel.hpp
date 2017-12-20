@@ -81,11 +81,6 @@ signals:
 
 private:
   void init();
-  ProcessModel(
-      const ProcessModel& source,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
-
   //// ProcessModel ////
   Process::Inlets inlets() const override;
   Process::Outlets outlets() const override;

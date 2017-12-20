@@ -27,8 +27,6 @@ public:
   ::State::Message message() const;
   double point() const;
 
-  ProcessState* clone(QObject* parent) const override;
-
   std::vector<State::AddressAccessor> matchingAddresses() override;
   ::State::MessageList messages() const override;
   ::State::MessageList setMessages(

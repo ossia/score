@@ -33,11 +33,6 @@ class FaustEffectModel :
                 const Id<EffectModel>&,
                 QObject* parent);
 
-        FaustEffectModel(
-                const FaustEffectModel& source,
-                const Id<EffectModel>&,
-                QObject* parent);
-
         template<typename Impl>
         FaustEffectModel(
                 Impl& vis,

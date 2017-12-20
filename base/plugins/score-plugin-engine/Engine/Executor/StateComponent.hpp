@@ -5,6 +5,7 @@
 
 namespace ossia
 {
+class graph_node;
 class time_event;
 }
 namespace Scenario
@@ -37,6 +38,7 @@ public:
   void onDelete() const;
 private:
   std::shared_ptr<ossia::time_event> m_ev;
+  std::shared_ptr<ossia::graph_node> m_node;
   ossia::state m_state;
 };
 }

@@ -36,27 +36,6 @@ StateModel::StateModel(
   init();
 }
 
-StateModel::StateModel(
-    const StateModel& source,
-    const Id<StateModel>& id,
-    const score::CommandStackFacade& stack,
-    QObject* parent)
-    : Entity{source, id, Metadata<ObjectKey_k, StateModel>::get(), parent}
-    , m_stack{stack}
-    , m_eventId{source.eventId()}
-    , m_previousInterval{source.previousInterval()}
-    , m_nextInterval{source.nextInterval()}
-    , m_heightPercentage{source.heightPercentage()}
-    , m_messageItemModel{new MessageItemModel{m_stack, *this, this}}
-{
-  // FIXME Source has to be in the same document else it will crash.
-  // FIXME prune the messages from the prev / next processes data and rebuild
-  // it.
-  messages() = source.messages();
-
-  init();
-}
-
 void StateModel::init()
 {
   con(m_messageItemModel, &QAbstractItemModel::modelReset, this,

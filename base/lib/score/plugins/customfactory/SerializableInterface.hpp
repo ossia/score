@@ -154,9 +154,4 @@ auto deserialize_interface(
  * Should be used most of the time when deriving from an abstract model class.
  */
 #define MODEL_METADATA_IMPL(Model_T)                       \
-  SERIALIZABLE_MODEL_METADATA_IMPL(Model_T)                \
-  Model_T* clone(const id_type& newId, QObject* newParent) \
-      const final override                                 \
-  {                                                        \
-    return new Model_T{*this, newId, newParent};           \
-  }
+  SERIALIZABLE_MODEL_METADATA_IMPL(Model_T)

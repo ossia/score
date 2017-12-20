@@ -8,7 +8,7 @@
 #include <QVBoxLayout>
 
 
-namespace Process
+namespace Control
 {
 template<typename Info>
 class ControlCommand final : public score::Command
@@ -67,7 +67,7 @@ public:
       const ControlProcess<Info>& object,
       const score::DocumentContext& doc,
       QWidget* parent)
-      : InspectorWidgetDelegate_T<ControlProcess<Info>>{object, parent}
+      : Process::InspectorWidgetDelegate_T<ControlProcess<Info>>{object, parent}
     {
       auto vlay = new QVBoxLayout{this};
       vlay->setSpacing(2);
@@ -80,7 +80,7 @@ public:
         ossia::for_each_in_tuple(
               get_controls(Info::info),
               [&] (const auto& ctrl) {
-          auto inlet = static_cast<ControlInlet*>(object.inlets_ref()[InfoFunctions<Info>::control_start + i]);
+          auto inlet = static_cast<Process::ControlInlet*>(object.inlets_ref()[InfoFunctions<Info>::control_start + i]);
 
           auto lab = new TextLabel{ctrl.name, this};
           vlay->addWidget(lab);

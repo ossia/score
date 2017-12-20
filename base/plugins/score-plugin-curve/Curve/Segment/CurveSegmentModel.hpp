@@ -57,9 +57,6 @@ public:
     vis.writeTo(*this);
   }
 
-  virtual SegmentModel*
-  clone(const Id<SegmentModel>& id, QObject* parent) const = 0;
-
   virtual ~SegmentModel();
 
   virtual void updateData(int numInterp) const = 0; // Will interpolate.

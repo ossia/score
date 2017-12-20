@@ -44,7 +44,7 @@ private:
   Path<IntervalModel> m_target;
   ExpandMode m_mode{ExpandMode::GrowShrink};
 
-  QMap<Id<Process::ProcessModel>, Id<Process::ProcessModel>> m_processIds;
+  score::hash_map<Id<Process::ProcessModel>, Id<Process::ProcessModel>> m_processIds;
 };
 }
 }

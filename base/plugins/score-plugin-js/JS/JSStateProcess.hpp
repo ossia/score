@@ -12,16 +12,6 @@ class StateProcess : public Process::StateProcess
 public:
   explicit StateProcess(const Id<Process::StateProcess>& id, QObject* parent);
 
-  explicit StateProcess(
-      const StateProcess& source,
-      const Id<Process::StateProcess>& id,
-      QObject* parent)
-      : Process::StateProcess{id, Metadata<ObjectKey_k, StateProcess>::get(),
-                              parent}
-      , m_script{source.m_script}
-  {
-  }
-
   template <typename Impl>
   explicit StateProcess(Impl& vis, QObject* parent)
       : Process::StateProcess{vis, parent}

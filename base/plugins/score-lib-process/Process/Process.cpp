@@ -34,19 +34,6 @@ ProcessModel::~ProcessModel()
   emit identified_object_destroying(this);
 }
 
-ProcessModel::ProcessModel(
-    const ProcessModel& source,
-    const Id<ProcessModel>& id,
-    const QString& name,
-    QObject* parent)
-    : Entity{source, id, name, parent}
-    , m_duration{source.duration()}
-    , m_slotHeight{source.m_slotHeight}
-{
-  con(metadata(), &score::ModelMetadata::NameChanged,
-      this, [=] { prettyNameChanged(); });
-}
-
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
 {
   setDuration(newDuration);

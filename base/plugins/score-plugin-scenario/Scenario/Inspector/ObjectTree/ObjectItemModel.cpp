@@ -784,9 +784,13 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
   }
 }
 
-NeightborSelector::NeightborSelector(score::SelectionStack &s, ObjectWidget* objects) :
-  m_stack{s}, m_selectionDispatcher{s}, m_objects{objects} {}
+NeightborSelector::NeightborSelector(score::SelectionStack &s, ObjectWidget* objects)
+  : m_stack{s}
+  , m_objects{objects}
+  , m_selectionDispatcher{s}
+{
 
+}
 bool NeightborSelector::hasLeft() const
 {
   for ( const auto& obj : m_stack.currentSelection() )
@@ -820,7 +824,6 @@ bool NeightborSelector::hasRight() const
         return true;
     }
   }
-  return false;
   return false;
 }
 

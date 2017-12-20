@@ -2,7 +2,7 @@
 #include <array>
 #include <Engine/Node/Widgets.hpp>
 #include <ossia/detail/string_map.hpp>
-namespace Process
+namespace Control
 {
 namespace Widgets
 {
@@ -72,53 +72,53 @@ auto& waveformMap()
 }
 static constexpr auto WaveformChooser()
 {
-    return Process::make_enum(
+    return Control::make_enum(
                 "Waveform", 0U,
-                Process::array("Sin", "Triangle", "Saw", "Square", "Noise 1", "Noise 2", "Noise 3")
+                Control::array("Sin", "Triangle", "Saw", "Square", "Noise 1", "Noise 2", "Noise 3")
                 );
 }
 constexpr auto QuantificationChooser()
-{ return Process::ComboBox<float, std::size(notes)>("Quantification", 2, notes); }
+{ return Control::ComboBox<float, std::size(notes)>("Quantification", 2, notes); }
 
 constexpr auto MusicalDurationChooser()
-{ return Process::ComboBox<float, std::size(nonnull_notes)>("Duration", 2, nonnull_notes); }
+{ return Control::ComboBox<float, std::size(nonnull_notes)>("Duration", 2, nonnull_notes); }
 constexpr auto DurationChooser()
-{ return Process::ComboBox<float, std::size(durations)>("Duration", 2, durations); }
+{ return Control::ComboBox<float, std::size(durations)>("Duration", 2, durations); }
 constexpr auto FreqChooser()
-{ return Process::LogFloatSlider("Frequency", 1.f, 20000.f, 200.f); }
+{ return Control::LogFloatSlider("Frequency", 1.f, 20000.f, 200.f); }
 constexpr auto LFOFreqChooser()
-{ return Process::LogFloatSlider("Frequency", 0.01f, 100.f, 1.f); }
+{ return Control::LogFloatSlider("Frequency", 0.01f, 100.f, 1.f); }
 constexpr auto TimeSigChooser()
-{ return Process::TimeSignatureChooser("Sig.", "4/4"); }
+{ return Control::TimeSignatureChooser("Sig.", "4/4"); }
 constexpr auto TempoChooser()
-{ return Process::FloatSlider("Tempo", 20, 300, 120); }
+{ return Control::FloatSlider("Tempo", 20, 300, 120); }
 
 
 template<typename T>
 constexpr auto MidiSpinbox(const T& name)
 {
-    return Process::IntSpinBox{name, 0, 127, 64};
+    return Control::IntSpinBox{name, 0, 127, 64};
 }
 template<typename T>
 constexpr auto MidiChannel(const T& name)
 {
-    return Process::IntSpinBox{name, 1, 16, 1};
+    return Control::IntSpinBox{name, 1, 16, 1};
 }
 template<typename T>
 constexpr auto MidiSlider(const T& name)
 {
-    return Process::IntSlider{name, 0, 127, 64};
+    return Control::IntSlider{name, 0, 127, 64};
 }
 template<typename T>
 constexpr auto DefaultSlider(const T& name)
 {
-    return Process::FloatSlider{name, 0., 1., 0.5};
+    return Control::FloatSlider{name, 0., 1., 0.5};
 }
 
 template<typename T>
 constexpr auto OctaveSlider(const T& name, int neg_octaves, int octaves)
 {
-    return Process::IntSlider{name, 12 * neg_octaves, 12 * octaves, 0};
+    return Control::IntSlider{name, 12 * neg_octaves, 12 * octaves, 0};
 }
 }
 

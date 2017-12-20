@@ -4,7 +4,7 @@
 #include <string>
 #include <string_view>
 
-namespace Process
+namespace Control
 {
 using time_signature = std::pair<uint16_t, uint16_t>;
 inline ossia::optional<time_signature> get_time_signature(const std::string_view& v)

@@ -101,11 +101,6 @@ private:
   ProcessState* startStateData() const override;
   ProcessState* endStateData() const override;
 
-  ProcessModel(
-      const ProcessModel& source,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
-
   void setCurve_impl() override;
 
   double m_min{};

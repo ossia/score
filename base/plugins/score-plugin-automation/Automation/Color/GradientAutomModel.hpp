@@ -60,10 +60,6 @@ private:
   bool contentHasDuration() const override;
   TimeVal contentDuration() const override;
 
-  ProcessModel(
-      const ProcessModel& source,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
 
   boost::container::flat_map<double, QColor> m_colors;
 

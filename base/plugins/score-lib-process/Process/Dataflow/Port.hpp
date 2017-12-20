@@ -24,7 +24,6 @@ class SCORE_LIB_PROCESS_EXPORT Port
       PortType type{};
       bool hidden{};
 
-    virtual Port* clone(QObject* parent) const;
     void addCable(const Path<Process::Cable>& c);
     void removeCable(const Path<Process::Cable>& c);
 
@@ -47,7 +46,6 @@ class SCORE_LIB_PROCESS_EXPORT Port
     ~Port() override;
     Port(const Port&) = delete;
     Port(Id<Port> c, const QString& name, QObject* parent);
-    Port(Id<Port> c, const Port& other, QObject* parent);
 
 
     Port(DataStream::Deserializer& vis, QObject* parent);
@@ -68,9 +66,6 @@ class SCORE_LIB_PROCESS_EXPORT Inlet : public Port
     ~Inlet() override;
     Inlet(const Inlet&) = delete;
     Inlet(Id<Process::Port> c, QObject* parent);
-    Inlet(Id<Process::Port> c, const Inlet& other, QObject* parent);
-
-    Inlet* clone(QObject* parent) const override;
 
     Inlet(DataStream::Deserializer& vis, QObject* parent);
     Inlet(JSONObject::Deserializer& vis, QObject* parent);
@@ -80,7 +75,7 @@ class SCORE_LIB_PROCESS_EXPORT Inlet : public Port
   private:
 };
 
-class SCORE_LIB_PROCESS_EXPORT ControlInlet final : public Inlet
+class SCORE_LIB_PROCESS_EXPORT ControlInlet : public Inlet
 {
     Q_OBJECT
     Q_PROPERTY(ossia::value value READ value WRITE setValue NOTIFY valueChanged)
@@ -90,9 +85,7 @@ class SCORE_LIB_PROCESS_EXPORT ControlInlet final : public Inlet
     public:
       using Inlet::Inlet;
     ~ControlInlet() override;
-    ControlInlet* clone(QObject* parent) const override;
 
-    ControlInlet(Id<Port> c, const ControlInlet& other, QObject* parent);
     ControlInlet(DataStream::Deserializer& vis, QObject* parent);
     ControlInlet(JSONObject::Deserializer& vis, QObject* parent);
     ControlInlet(DataStream::Deserializer&& vis, QObject* parent);
@@ -150,9 +143,6 @@ class SCORE_LIB_PROCESS_EXPORT Outlet : public Port
     ~Outlet() override;
     Outlet(const Outlet&) = delete;
     Outlet(Id<Process::Port> c, QObject* parent);
-    Outlet(Id<Process::Port> c, const Outlet& other, QObject* parent);
-
-    Outlet* clone(QObject* parent) const override;
 
     Outlet(DataStream::Deserializer& vis, QObject* parent);
     Outlet(JSONObject::Deserializer& vis, QObject* parent);
@@ -181,9 +171,7 @@ class SCORE_LIB_PROCESS_EXPORT ControlOutlet final : public Outlet
     public:
       using Outlet::Outlet;
     ~ControlOutlet() override;
-    ControlOutlet* clone(QObject* parent) const override;
 
-    ControlOutlet(Id<Port> c, const ControlOutlet& other, QObject* parent);
     ControlOutlet(DataStream::Deserializer& vis, QObject* parent);
     ControlOutlet(JSONObject::Deserializer& vis, QObject* parent);
     ControlOutlet(DataStream::Deserializer&& vis, QObject* parent);
@@ -232,15 +220,6 @@ inline std::unique_ptr<ControlInlet> make_control_out(Args&&... args)
 template<typename... Args>
 inline std::unique_ptr<Outlet> make_outlet(Args&&... args)
 { return std::make_unique<Outlet>(std::forward<Args>(args)...); }
-
-inline std::unique_ptr<Inlet> clone_inlet(Inlet& source, QObject* parent)
-{ return std::make_unique<Inlet>(source.id(), source, parent); }
-inline std::unique_ptr<ControlInlet> clone_control(ControlInlet& source, QObject* parent)
-{ return std::make_unique<ControlInlet>(source.id(), source, parent); }
-inline std::unique_ptr<ControlOutlet> clone_control_out(ControlOutlet& source, QObject* parent)
-{ return std::make_unique<ControlOutlet>(source.id(), source, parent); }
-inline std::unique_ptr<Outlet> clone_outlet(Outlet& source, QObject* parent)
-{ return std::make_unique<Outlet>(source.id(), source, parent); }
 
 
 using Inlets = ossia::small_vector<Process::Inlet*, 4>;

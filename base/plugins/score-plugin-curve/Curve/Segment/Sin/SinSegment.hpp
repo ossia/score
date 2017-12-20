@@ -43,11 +43,6 @@ class SCORE_PLUGIN_CURVE_EXPORT PeriodicSegment final
     return static_concreteKey();
   }
   void serialize_impl(const VisitorVariant& vis) const final override;
-  PeriodicSegment* clone(const id_type& newId, QObject* newParent)
-      const final override
-  {
-    return new PeriodicSegment{*this, newId, newParent};
-  }
 
 public:
   using data_type = PeriodicSegmentData;

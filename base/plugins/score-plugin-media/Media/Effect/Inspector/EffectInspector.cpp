@@ -81,21 +81,21 @@ InspectorWidget::InspectorWidget(
 
   {
 #if defined(LILV_SHARED)
-    auto add_lv2 = new QPushButton{tr("Add (LV2)")};
-    connect(add_lv2, &QPushButton::pressed,
+    auto add = new QPushButton{tr("Add (LV2)")};
+    connect(add, &QPushButton::pressed,
             this, [&] { add_lv2(cur_pos()); });
 
-    lay->addWidget(add_lv2);
+    lay->addWidget(add);
 #endif
   }
 
 #if defined(HAS_VST2)
   {
-    auto add_vst = new QPushButton{tr("Add (VST 2)")};
-    connect(add_vst, &QPushButton::pressed,
+    auto add = new QPushButton{tr("Add (VST 2)")};
+    connect(add, &QPushButton::pressed,
             this, [&] { add_vst2(cur_pos()); });
 
-    lay->addWidget(add_vst);
+    lay->addWidget(add);
   }
 #endif
 

@@ -63,40 +63,6 @@ void IntervalModel::initConnections()
       .connect<IntervalModel, &IntervalModel::on_removingProcess>(this);
 }
 
-IntervalModel::IntervalModel(
-    const IntervalModel& source,
-    const Id<IntervalModel>& id,
-    QObject* parent)
-    : Entity{source, id, Metadata<ObjectKey_k, IntervalModel>::get(), parent}
-    , inlet{Process::clone_inlet(*source.inlet, this)}
-    , outlet{Process::clone_outlet(*source.outlet, this)}
-{
-  initConnections();
-  metadata().setInstanceName(*this);
-  // It is not necessary to save modelconsistency because it should be
-  // recomputed
-
-  m_smallView = source.m_smallView;
-  m_fullView = source.m_fullView;
-  m_startState = source.startState();
-  m_endState = source.endState();
-  duration = source.duration;
-
-  m_date = source.m_date;
-  m_heightPercentage = source.heightPercentage();
-  m_zoom = source.m_zoom;
-  m_center = source.m_center;
-  m_smallViewShown = source.m_smallViewShown;
-
-  // Clone the processes
-  for (const auto& process : source.processes)
-  {
-    auto newproc = process.clone(process.id(), this);
-    processes.add(newproc);
-    // We don't need to resize them since the new interval will have the same
-    // duration.
-  }
-}
 
 IntervalModel::IntervalModel(
     DataStream::Deserializer& vis,

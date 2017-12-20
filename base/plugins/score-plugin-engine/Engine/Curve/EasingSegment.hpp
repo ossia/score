@@ -21,12 +21,6 @@ public:
     return Metadata<ConcreteKey_k, EasingSegment>::get();
   }
 
-  EasingSegment*
-  clone(const id_type& newId, QObject* newParent) const final override
-  {
-    return new EasingSegment{*this, newId, newParent};
-  }
-
   void serialize_impl(const VisitorVariant& vis) const override
   {
   }

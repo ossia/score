@@ -29,23 +29,6 @@ ProcessModel::ProcessModel(
   }
 }
 
-ProcessModel::ProcessModel(
-    const ProcessModel& source,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent)
-    : Process::ProcessModel{source, id,
-                            Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-    , outlet{Process::clone_outlet(*source.outlet, this)}
-{
-  metadata().setInstanceName(*this);
-  m_device = source.device();
-  m_channel = source.channel();
-  for (Note& note : source.notes)
-  {
-    notes.add(note.clone(note.id(), this));
-  }
-}
-
 ProcessModel::~ProcessModel()
 {
 }

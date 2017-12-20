@@ -19,7 +19,7 @@ class InsertEffect final : public score::Command
     public:
         InsertEffect(
                 const Effect::ProcessModel& model,
-                const UuidKey<Effect::EffectFactory>& effectKind,
+                const UuidKey<Effect::EffectModel>& effectKind,
                 const QString& text,
                 std::size_t effectPos);
 
@@ -33,7 +33,7 @@ class InsertEffect final : public score::Command
     private:
         Path<Effect::ProcessModel> m_model;
         Id<Effect::EffectModel> m_id;
-        UuidKey<Effect::EffectFactory> m_effectKind;
+        UuidKey<Effect::EffectModel> m_effectKind;
         QString m_effect;
         quint64 m_pos{};
 };

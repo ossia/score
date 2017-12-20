@@ -23,12 +23,9 @@ class VSTNode final : public ossia::audio_fx_node
       fx->dispatch(opcode, index, value, ptr, opt);
     }
   public:
-    std::vector<ossia::value_port*> ctrl_ptrs;
-    ossia::value_port& control(int i)
-    {
-      return *ctrl_ptrs[i+2];
-    }
-    VSTNode(std::shared_ptr<AEffectWrapper>  dat, int sampleRate):
+    std::vector<std::pair<int, ossia::value_port*>> ctrl_ptrs;
+
+    VSTNode(std::shared_ptr<AEffectWrapper> dat, int sampleRate):
       fx{std::move(dat)}
     {
       m_inlets.reserve(fx->fx->numParams + 3);
@@ -39,14 +36,7 @@ class VSTNode final : public ossia::audio_fx_node
         m_inlets.push_back(ossia::make_inlet<ossia::audio_port>());
 
       m_inlets.push_back(ossia::make_inlet<ossia::value_port>()); // tempo
-      ctrl_ptrs[0] = m_inlets.back()->data.template target<ossia::value_port>();
       m_inlets.push_back(ossia::make_inlet<ossia::value_port>()); // time signature
-      ctrl_ptrs[1] = m_inlets.back()->data.template target<ossia::value_port>();
-      for(int i = 0; i < fx->fx->numParams; i++)
-      {
-        m_inlets.push_back(ossia::make_inlet<ossia::value_port>());
-        ctrl_ptrs[i+2] = m_inlets.back()->data.template target<ossia::value_port>();
-      }
 
       m_outlets.push_back(ossia::make_outlet<ossia::audio_port>());
 
@@ -113,31 +103,28 @@ class VSTNode final : public ossia::audio_fx_node
 
     void setControls()
     {
-      auto& tempo = ctrl_ptrs[0]->get_data();
+      auto& tempo = inputs()[1]->data.template target<ossia::value_port>()->get_data();
       if(!tempo.empty())
       {
         m_tempo = ossia::convert<double>(tempo.rbegin()->value);
       }
-      auto& ts = ctrl_ptrs[1]->get_data();
+      auto& ts = inputs()[2]->data.template target<ossia::value_port>()->get_data();
       if(!ts.empty())
       {
         auto str = ts.rbegin()->value.template target<std::string>();
         if(str)
         {
-          if(auto sig = Process::get_time_signature(*str))
+          if(auto sig = Control::get_time_signature(*str))
             m_sig = *sig;
         }
       }
-      for(int i = 0; i < fx->fx->numParams; i++)
+      for(auto p : ctrl_ptrs)
       {
-        auto& vec = control(i).get_data();
+        auto& vec = p.second->get_data();
         if(vec.empty())
-        {
           continue;
-        }
-
         if(auto t = last(vec).template target<float>())
-          fx->fx->setParameter(fx->fx, i, *t);
+          fx->fx->setParameter(fx->fx, p.first, *t);
       }
     }
 

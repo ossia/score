@@ -36,19 +36,6 @@ Model::Model(const Id<Model>& id, QObject* parent)
 {
 }
 
-Model* Model::clone(const Id<Model>& id, QObject* parent)
-{
-  auto cm = new Model{id, parent};
-  for (const auto& segment : m_segments)
-  {
-    auto seg = segment.clone(segment.id(), cm);
-    seg->setPrevious(segment.previous());
-    seg->setFollowing(segment.following());
-    cm->addSegment(seg);
-  }
-  return cm;
-}
-
 void Model::addSortedSegment(SegmentModel* m)
 {
   insertSegment(m);

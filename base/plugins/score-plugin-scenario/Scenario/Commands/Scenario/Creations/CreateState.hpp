@@ -53,9 +53,9 @@ protected:
 
 private:
   Path<Scenario::ProcessModel> m_path;
+  QString m_createdName;
   Id<StateModel> m_newState;
   Id<EventModel> m_event;
-  QString m_createdName;
   double m_stateY{};
 };
 }

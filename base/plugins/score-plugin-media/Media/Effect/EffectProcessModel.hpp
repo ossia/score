@@ -200,10 +200,6 @@ class ProcessModel final : public Process::ProcessModel
                 const Id<Process::ProcessModel>& id,
                 QObject* parent);
 
-        explicit ProcessModel(
-                const ProcessModel& source,
-                const Id<Process::ProcessModel>& id,
-                QObject* parent);
 
         ~ProcessModel() override;
 

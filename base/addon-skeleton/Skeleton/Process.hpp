@@ -28,10 +28,6 @@ class Model final
     ~Model();
 
   private:
-    Model(
-        const Model& source,
-        const Id<Process::ProcessModel>& id,
-        QObject* parent);
 
     QString prettyName() const override;
     void startExecution() override;

@@ -37,11 +37,6 @@ public:
     vis.writeTo(*this);
   }
 
-  CommentBlockModel(
-      const CommentBlockModel& source,
-      const Id<CommentBlockModel>& id,
-      QObject* parent);
-
   void setDate(const TimeVal& date);
   const TimeVal& date() const;
 

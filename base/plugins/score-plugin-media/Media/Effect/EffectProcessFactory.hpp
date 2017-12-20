@@ -25,32 +25,32 @@ namespace Effect
 {
 using ProcessFactory = Process::GenericProcessModelFactory<Effect::ProcessModel>;
 
-class View final : public Process::ILayerView
+class View final : public Control::ILayerView
 {
   public:
     struct ControlUi
     {
         Process::ControlInlet* inlet;
-        Process::RectItem* rect;
+        Control::RectItem* rect;
     };
 
     struct EffectUi
     {
         const EffectModel& effect;
-        Process::RectItem* root_item{};
-        Process::EffectItem* fx_item{};
+        Control::RectItem* root_item{};
+        QGraphicsItem* fx_item{};
         QGraphicsItem* title{};
         std::vector<ControlUi> widgets;
     };
 
     explicit View(QGraphicsItem* parent)
-      : Process::ILayerView{parent}
+      : Control::ILayerView{parent}
     {
     }
 
     QGraphicsItem* makeTitle(EffectModel& effect, const Effect::ProcessModel& object, const score::DocumentContext& doc)
     {
-      auto root = new Process::RectItem{};
+      auto root = new Control::RectItem{};
       root->setRect({0, 0, 170, 20});
       static const auto undock_off = QPixmap::fromImage(QImage(":/icons/undock_off.png").scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
       static const auto undock_on  = QPixmap::fromImage(QImage(":/icons/undock_on.png") .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
@@ -84,12 +84,12 @@ class View final : public Process::ILayerView
       return root;
     }
 
-    Process::EffectItem* makeDefaultItem(
+    Control::EffectItem* makeDefaultItem(
         EffectModel& effect, const Effect::ProcessModel& object,
         const score::DocumentContext& doc,
         EffectUi& fx_ui)
     {
-      auto item = new Process::EffectItem;
+      auto item = new Control::EffectItem;
       fx_ui.fx_item = item;
       inlet_cons.reserve(effect.inlets().size() + inlet_cons.size());
       for(auto& e : effect.inlets())
@@ -140,6 +140,7 @@ class View final : public Process::ILayerView
     void setup(const Effect::ProcessModel& object,
                const score::DocumentContext& doc)
     {
+      auto& fact = doc.app.interfaces<Media::Effect::EffectUIFactoryList>();
       auto items = childItems();
       effects.clear();
       for(const auto& con : inlet_cons)
@@ -154,7 +155,7 @@ class View final : public Process::ILayerView
       double pos_x = 0;
       for(EffectModel& effect : object.effects())
       {
-        auto root_item = new Process::RectItem(this);
+        auto root_item = new Control::RectItem(this);
         EffectUi fx_ui{effect, root_item, {}, {}, {}};
 
         // Title
@@ -162,7 +163,11 @@ class View final : public Process::ILayerView
         fx_ui.title->setParentItem(root_item);
 
         // Main item
-        fx_ui.fx_item = effect.makeItem(doc);
+        if(auto factory = fact.findDefaultFactory(effect))
+        {
+          fx_ui.fx_item = factory->makeItem(effect, doc, root_item);
+        }
+
         if(!fx_ui.fx_item)
         {
           fx_ui.fx_item = makeDefaultItem(effect, object, doc, fx_ui);
@@ -182,7 +187,7 @@ class View final : public Process::ILayerView
 
     void updateSize(const EffectUi& fx)
     {
-      safe_cast<Process::RectItem*>(fx.root_item)->setRect(fx.root_item->childrenBoundingRect());
+      safe_cast<Control::RectItem*>(fx.root_item)->setRect(fx.root_item->childrenBoundingRect());
     }
 
 
@@ -218,7 +223,7 @@ class View final : public Process::ILayerView
         EffectUi& fx_ui,
         const score::DocumentContext& doc)
     {
-      auto item = new Process::RectItem{fx_ui.fx_item};
+      auto item = new Control::RectItem{fx_ui.fx_item};
 
       double pos_y =
       (fx_ui.widgets.empty())
@@ -238,7 +243,7 @@ class View final : public Process::ILayerView
           static float getMax() { return 1.; }
       };
 
-      QGraphicsItem* widg = Process::FloatSlider::make_item(SliderInfo{}, inlet, doc, nullptr, this);
+      QGraphicsItem* widg = Control::FloatSlider::make_item(SliderInfo{}, inlet, doc, nullptr, this);
       widg->setParentItem(item);
       widg->setPos(15, lab->boundingRect().height());
 

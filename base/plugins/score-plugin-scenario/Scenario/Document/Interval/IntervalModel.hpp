@@ -59,12 +59,6 @@ public:
 
   ~IntervalModel();
 
-  // Copy
-  IntervalModel(
-      const IntervalModel& source,
-      const Id<IntervalModel>& id,
-      QObject* parent);
-
   // Serialization
   IntervalModel(DataStream::Deserializer& vis, QObject* parent);
   IntervalModel(JSONObject::Deserializer& vis, QObject* parent);

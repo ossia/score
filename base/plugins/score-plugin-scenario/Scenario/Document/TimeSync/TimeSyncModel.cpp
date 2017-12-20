@@ -28,18 +28,6 @@ TimeSyncModel::TimeSyncModel(
   metadata().setColor(ScenarioStyle::instance().TimenodeDefault);
 }
 
-TimeSyncModel::TimeSyncModel(
-    const TimeSyncModel& source, const Id<TimeSyncModel>& id, QObject* parent)
-    : Entity{source, id, Metadata<ObjectKey_k, TimeSyncModel>::get(), parent}
-    , m_extent{source.m_extent}
-    , m_date{source.m_date}
-    , m_expression{source.expression()}
-    , m_active{source.active()}
-    , m_events(source.m_events)
-{
-
-}
-
 void TimeSyncModel::addEvent(const Id<EventModel>& eventId)
 {
   m_events.push_back(eventId);

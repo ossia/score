@@ -27,19 +27,6 @@ ProcessModel::~ProcessModel()
 {
 }
 
-ProcessModel::ProcessModel(
-    const ProcessModel& source,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent)
-    : Process::ProcessModel{
-        source, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-    , outlet{Process::clone_outlet(*source.outlet, this)}
-    , m_colors{source.m_colors}
-    , m_tween{source.m_tween}
-{
-  metadata().setInstanceName(*this);
-}
-
 QString ProcessModel::prettyName() const
 {
   auto res = address().toString();

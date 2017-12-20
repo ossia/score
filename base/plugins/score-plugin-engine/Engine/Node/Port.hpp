@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <array>
 
-namespace Process
+namespace Control
 {
 
 enum class inlet_kind

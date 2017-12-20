@@ -39,7 +39,7 @@ void Clock::play_impl(
   m_paused = false;
 
   std::stringstream s;
-  auto& g = m_plug.execGraph->m_graph;
+  auto& g = m_plug.execGraph->impl();
   boost::write_graphviz(s, g, [&] (auto& out, const auto& v) {
     out << "[label=\"" << g[v]->label() << "\"]";
   },
@@ -60,21 +60,6 @@ void Clock::play_impl(
         m_plug.execState.register_device(d);
   }
   m_default.play(t);
-  for(auto& n : m_plug.execGraph->m_nodes)
-  {
-    for(auto& port : n.first->inputs())
-    {
-      if(auto vp = port->data.target<ossia::value_port>())
-      {
-        if(vp->is_event)
-        {
-          if(auto addr = port->address.target<ossia::net::parameter_base*>())
-            m_plug.execState.register_parameter(**addr);
-        }
-      }
-    }
-
-  }
 
   resume_impl(bs);
 }

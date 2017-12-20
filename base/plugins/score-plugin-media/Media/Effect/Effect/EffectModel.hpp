@@ -14,6 +14,9 @@ class QGraphicsItem;
 namespace Process
 {
 class Port;
+}
+namespace Control
+{
 struct RectItem;
 using EffectItem = RectItem;
 }
@@ -32,17 +35,12 @@ namespace Effect
  */
 class SCORE_PLUGIN_MEDIA_EXPORT EffectModel :
         public score::Entity<EffectModel>,
-        public score::SerializableInterface<EffectFactory>
+        public score::SerializableInterface<EffectModel>
 {
         Q_OBJECT
         SCORE_SERIALIZE_FRIENDS
     public:
         EffectModel(
-                const Id<EffectModel>&,
-                QObject* parent);
-
-        EffectModel(
-                const EffectModel& source,
                 const Id<EffectModel>&,
                 QObject* parent);
 
@@ -59,20 +57,11 @@ class SCORE_PLUGIN_MEDIA_EXPORT EffectModel :
 
         virtual ~EffectModel();
 
-        virtual EffectModel* clone(
-                const Id<EffectModel>& newId,
-                QObject* parent) const = 0;
-
         const Process::Inlets& inlets() const { return m_inlets; }
         const Process::Outlets& outlets() const { return m_outlets; }
 
-        virtual Process::EffectItem* makeItem(const score::DocumentContext& ctx);
-        virtual std::shared_ptr<ossia::audio_fx_node> makeNode(const Engine::Execution::Context &, QObject* ctx);
         virtual void showUI();
         virtual void hideUI();
-
-    signals:
-        void effectChanged() const;
 
   protected:
         Process::Inlets m_inlets;
@@ -82,7 +71,7 @@ class SCORE_PLUGIN_MEDIA_EXPORT EffectModel :
 }
 
 #define EFFECT_METADATA(Export, Model, Uuid, ObjectKey, PrettyName, Category, Tags) \
-    MODEL_METADATA(Export, Media::Effect::EffectFactory, Model, Uuid, ObjectKey, PrettyName) \
+    MODEL_METADATA(Export, Media::Effect::EffectModel, Model, Uuid, ObjectKey, PrettyName) \
   CATEGORY_METADATA(Export, Model, Category)                         \
   TAGS_METADATA(Export, Model, Tags)
 

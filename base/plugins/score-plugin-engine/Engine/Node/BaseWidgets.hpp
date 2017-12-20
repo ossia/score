@@ -4,7 +4,7 @@
 #include <QPushButton>
 #include <array>
 #include <score_plugin_engine_export.h>
-namespace Process
+namespace Control
 {
 struct SCORE_PLUGIN_ENGINE_EXPORT ToggleButton : public QPushButton
 {

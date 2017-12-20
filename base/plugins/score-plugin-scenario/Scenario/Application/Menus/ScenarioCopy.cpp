@@ -93,7 +93,7 @@ QJsonObject copySelected(const Scenario_T& sm, CategorisedScenario& cs, QObject*
   copiedTimeSyncs.reserve(cs.selectedTimeSyncs.size());
   for (const auto& tn : cs.selectedTimeSyncs)
   {
-    auto clone_tn = new TimeSyncModel(*tn, tn->id(), nullptr);
+    auto clone_tn = new TimeSyncModel(DataStreamWriter{score::marshall<DataStream>(*tn)}, nullptr);
     auto events = clone_tn->events();
     for (const auto& event : events)
     {
@@ -111,7 +111,7 @@ QJsonObject copySelected(const Scenario_T& sm, CategorisedScenario& cs, QObject*
   copiedEvents.reserve(cs.selectedEvents.size());
   for (const auto& ev : cs.selectedEvents)
   {
-    auto clone_ev = new EventModel(*ev, ev->id(), nullptr);
+    auto clone_ev = new EventModel(DataStreamWriter{score::marshall<DataStream>(*ev)}, nullptr);
     auto states = clone_ev->states();
     for (const auto& state : states)
     {
@@ -130,7 +130,7 @@ QJsonObject copySelected(const Scenario_T& sm, CategorisedScenario& cs, QObject*
   auto& stack = score::IDocument::documentContext(*parent).commandStack;
   for (const StateModel* st : cs.selectedStates)
   {
-    auto clone_st = new StateModel(*st, st->id(), stack, parent);
+    auto clone_st = new StateModel(DataStreamWriter{score::marshall<DataStream>(*st)}, stack, parent);
 
     // NOTE : we must not serialize the state with their previous / next
     // interval

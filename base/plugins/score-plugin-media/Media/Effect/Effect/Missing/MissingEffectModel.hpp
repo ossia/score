@@ -26,10 +26,6 @@ class MissingEffectModel :
                 const Id<EffectModel>&,
                 QObject* parent);
 
-        MissingEffectModel(
-                const MissingEffectModel& source,
-                const Id<EffectModel>&,
-                QObject* parent);
 
         template<typename Impl>
         MissingEffectModel(
@@ -40,9 +36,6 @@ class MissingEffectModel :
             vis.writeTo(*this);
         }
 
-        MissingEffectModel* clone(
-                const Id<EffectModel>& newId,
-                QObject* parent) const override;
 };
 }
 }

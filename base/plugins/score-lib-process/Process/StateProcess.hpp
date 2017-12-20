@@ -27,9 +27,6 @@ public:
 
   virtual ~StateProcess();
 
-  virtual StateProcess*
-  clone(const Id<StateProcess>& newId, QObject* newParent) const = 0;
-
   // A user-friendly text to show to the users
   virtual QString prettyName() const = 0;
   virtual QString prettyShortName() const = 0;

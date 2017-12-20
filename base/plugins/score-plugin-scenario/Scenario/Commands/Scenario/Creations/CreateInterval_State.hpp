@@ -67,10 +67,10 @@ protected:
   void deserializeImpl(DataStreamOutput&) override;
 
 private:
+  QString m_createdName;
   Id<StateModel> m_newState;
   CreateInterval m_command;
   Id<EventModel> m_endEvent;
-  QString m_createdName;
   double m_stateY{};
 };
 }

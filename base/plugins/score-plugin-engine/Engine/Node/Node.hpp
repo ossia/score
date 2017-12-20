@@ -8,7 +8,7 @@
 #include <tuple>
 #include <array>
 
-namespace Process
+namespace Control
 {
 
 template<typename T>

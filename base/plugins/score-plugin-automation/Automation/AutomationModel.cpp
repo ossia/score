@@ -100,24 +100,6 @@ ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent)
   init();
 }
 
-ProcessModel::ProcessModel(
-    const ProcessModel& source,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent)
-  : Curve::CurveProcessModel{source, id,
-                             Metadata<ObjectKey_k, ProcessModel>::get(),
-                             parent}
-    , outlet{Process::clone_outlet(*source.outlet, this)}
-    , m_min{source.min()}
-    , m_max{source.max()}
-    , m_startState{new ProcessState{*this, 0., this}}
-    , m_endState{new ProcessState{*this, 1., this}}
-    , m_tween{source.tween()}
-{
-  metadata().setInstanceName(*this);
-  setCurve(source.curve().clone(source.curve().id(), this));
-  init();
-}
 
 QString ProcessModel::prettyName() const
 {

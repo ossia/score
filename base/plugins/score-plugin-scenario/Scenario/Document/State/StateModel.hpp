@@ -74,13 +74,6 @@ public:
       const score::CommandStackFacade& stack,
       QObject* parent);
 
-  // Copy
-  StateModel(
-      const StateModel& source,
-      const Id<StateModel>&,
-      const score::CommandStackFacade& stack,
-      QObject* parent);
-
   // Load
   template <
       typename DeserializerVisitor,
