@@ -71,8 +71,6 @@ public:
     vis.writeTo(*this);
   }
 
-  Note* clone(const Id<Note>& id, QObject* parent);
-
   // Both are between 0 - 1, 1 being the process duration.
   double start() const;
   double duration() const;

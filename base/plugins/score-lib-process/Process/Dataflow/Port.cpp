@@ -16,21 +16,6 @@ Port::Port(Id<Port> c, const QString& name, QObject* parent)
 
 }
 
-Port::Port(Id<Port> c, const Port& other, QObject* parent)
-  : IdentifiedObject<Port>{c, Metadata<ObjectKey_k, Process::Port>::get(), parent}
-{
-  type = other.type;
-  hidden = other.hidden;
-  m_cables = other.m_cables;
-  m_customData = other.m_customData;
-  m_address = other.m_address;
-}
-
-Port* Port::clone(QObject* parent) const
-{
-  return new Port{id(), *this, parent};
-}
-
 Port::Port(DataStream::Deserializer& vis, QObject* parent): IdentifiedObject{vis, parent}
 {
   vis.writeTo(*this);
@@ -110,16 +95,6 @@ Inlet::Inlet(Id<Process::Port> c, QObject* parent)
 
 }
 
-Inlet::Inlet(Id<Process::Port> c, const Inlet& other, QObject* parent)
-  : Port{c, other, parent}
-{
-}
-
-Inlet* Inlet::clone(QObject* parent) const
-{
-  return new Inlet{id(), *this, parent};
-}
-
 Inlet::Inlet(DataStream::Deserializer& vis, QObject* parent): Port{vis, parent}
 {
   vis.writeTo(*this);
@@ -143,19 +118,6 @@ Inlet::Inlet(JSONObject::Deserializer&& vis, QObject* parent): Port{vis, parent}
 ControlInlet::~ControlInlet()
 {
 
-}
-
-ControlInlet::ControlInlet(Id<Port> c, const ControlInlet& other, QObject* parent):
-  Inlet{std::move(c), other, parent}
-{
-  m_value = other.m_value;
-  m_domain = other.m_domain;
-  m_ui = other.m_ui;
-}
-
-ControlInlet* ControlInlet::clone(QObject* parent) const
-{
-  return new ControlInlet{id(), *this, parent};
 }
 
 ControlInlet::ControlInlet(DataStream::Deserializer& vis, QObject* parent): Inlet{vis, parent}
@@ -189,17 +151,6 @@ Outlet::Outlet(Id<Process::Port> c, QObject* parent)
   : Port{std::move(c), QStringLiteral("Outlet"), parent}
 {
 
-}
-
-Outlet* Outlet::clone(QObject* parent) const
-{
-  return new Outlet{id(), *this, parent};
-}
-
-Outlet::Outlet(Id<Port> c, const Outlet& other, QObject* parent):
-  Port{std::move(c), other, parent}
-{
-  m_propagate = other.m_propagate;
 }
 
 Outlet::Outlet(DataStream::Deserializer& vis, QObject* parent): Port{vis, parent}
@@ -238,18 +189,6 @@ void Outlet::setPropagate(bool propagate)
 ControlOutlet::~ControlOutlet()
 {
 
-}
-
-ControlOutlet::ControlOutlet(Id<Port> c, const ControlOutlet& other, QObject* parent):
-  Outlet{std::move(c), other, parent}
-{
-  m_value = other.m_value;
-  m_domain = other.m_domain;
-}
-
-ControlOutlet* ControlOutlet::clone(QObject* parent) const
-{
-  return new ControlOutlet{id(), *this, parent};
 }
 
 ControlOutlet::ControlOutlet(DataStream::Deserializer& vis, QObject* parent): Outlet{vis, parent}

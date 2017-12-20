@@ -11,7 +11,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 
-namespace Process
+namespace Control
 {
 
 
@@ -59,7 +59,7 @@ struct UISetup
               [&] (const auto& ctrl) {
           auto item = new RectItem{&self};
           item->setPos(0, pos_y);
-          auto inlet = static_cast<ControlInlet*>(object.inlets_ref()[InfoFunctions<Info>::control_start + i]);
+          auto inlet = static_cast<Process::ControlInlet*>(object.inlets_ref()[InfoFunctions<Info>::control_start + i]);
 
           auto port = Dataflow::setupInlet(*inlet, doc, item, &self);
 
@@ -150,7 +150,7 @@ public:
           m_view, &ControlLayerView<Info>::askContextMenu, this,
           &ControlLayerPresenter::contextMenuRequested);
 
-    Process::UISetup::init<Info>(static_cast<const ControlProcess<Info>&>(model), *view, ctx);
+    Control::UISetup::init<Info>(static_cast<const ControlProcess<Info>&>(model), *view, ctx);
   }
 
   void setWidth(qreal val) override

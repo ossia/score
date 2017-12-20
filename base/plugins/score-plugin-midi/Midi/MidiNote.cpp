@@ -19,11 +19,6 @@ Note::Note(const Id<Note>& id, NoteData n, QObject* parent)
 {
 }
 
-Note* Note::clone(const Id<Note>& id, QObject* parent)
-{
-  return new Note{id, this->noteData(), parent};
-}
-
 double Note::start() const
 {
   return m_start;

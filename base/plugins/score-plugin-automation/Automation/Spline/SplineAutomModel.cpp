@@ -30,18 +30,6 @@ ProcessModel::~ProcessModel()
 {
 }
 
-ProcessModel::ProcessModel(
-    const ProcessModel& source,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent)
-    : Process::ProcessModel{
-        source, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-    , m_address(source.m_address)
-    , m_spline{source.m_spline}
-    , m_tween{source.m_tween}
-{
-}
-
 QString ProcessModel::prettyName() const
 {
   return address().toString();

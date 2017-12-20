@@ -44,7 +44,6 @@ class SCORE_LIB_PROCESS_EXPORT ProcessModel
     , public score::SerializableInterface<ProcessModel>
 {
   Q_OBJECT
-
   SCORE_SERIALIZE_FRIENDS
 public:
   ProcessModel(
@@ -57,9 +56,6 @@ public:
   ProcessModel(JSONObject::Deserializer& vis, QObject* parent);
 
   virtual ~ProcessModel();
-
-  virtual ProcessModel*
-  clone(const Id<Process::ProcessModel>& newId, QObject* newParent) const = 0;
 
   // A user-friendly text to show to the users
   virtual QString prettyName() const;
@@ -112,12 +108,6 @@ signals:
   void outletsChanged();
 
 protected:
-  // Clone
-  ProcessModel(
-      const ProcessModel& other,
-      const Id<ProcessModel>& id,
-      const QString& name,
-      QObject* parent);
 
   // Used to scale the process.
   // This should be commutative :

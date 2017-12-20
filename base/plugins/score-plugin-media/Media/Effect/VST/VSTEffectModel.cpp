@@ -30,6 +30,18 @@ namespace Media
 {
 namespace VST
 {
+class VSTControlInlet : public Process::ControlInlet
+{
+  public:
+    SCORE_SERIALIZE_FRIENDS
+    template<typename T>
+    VSTControlInlet(T&& vis, QObject* parent): ControlInlet{vis, parent}
+    {
+//      vis.writeTo(*this);
+    }
+
+    int fxNum{};
+};
 // Taken from VST API
 struct HostCanDos
 {
@@ -56,6 +68,7 @@ struct HostCanDos
 
 struct maker
 {
+    std::vector<int> controls;
     auto make_inlet(int i, QObject* parent) const
     {
       return new Process::Inlet(Id<Process::Port>(i), parent);
@@ -64,7 +77,10 @@ struct maker
     auto make_control(int i, QObject* parent) const
     {
       return new Process::ControlInlet{Id<Process::Port>{i}, parent};
-
+    }
+    auto make_vst_control(int ctrl_id, int i, QObject* parent) const
+    {
+      return new VSTControlInlet{Id<Process::Port>{i}, parent};
     }
     auto make_outlet(int i, QObject* parent) const
     {
@@ -75,6 +91,7 @@ struct maker
 struct datastream_maker
 {
     DataStreamWriter& out;
+    std::vector<int> controls;
     auto make_inlet(int i, QObject* parent) const
     {
       return new Process::Inlet(out, parent);
@@ -83,7 +100,10 @@ struct datastream_maker
     auto make_control(int i, QObject* parent) const
     {
       return new Process::ControlInlet{out, parent};
-
+    }
+    auto make_vst_control(int ctrl_id, int i, QObject* parent) const
+    {
+      return new VSTControlInlet{out, parent};
     }
     auto make_outlet(int i, QObject* parent) const
     {
@@ -95,6 +115,7 @@ struct json_maker
 {
     const QJsonArray& inlets;
     const QJsonArray& outlets;
+    std::vector<int> controls;
     auto make_inlet(int i, QObject* parent) const
     {
       return new Process::Inlet(JSONObjectWriter{inlets[i].toObject()}, parent);
@@ -103,7 +124,10 @@ struct json_maker
     auto make_control(int i, QObject* parent) const
     {
       return new Process::ControlInlet{JSONObjectWriter{inlets[i].toObject()}, parent};
-
+    }
+    auto make_vst_control(int ctrl_id, int i, QObject* parent) const
+    {
+      return new VSTControlInlet{JSONObjectWriter{inlets[i].toObject()}, parent};
     }
     auto make_outlet(int i, QObject* parent) const
     {
@@ -121,15 +145,6 @@ VSTEffectModel::VSTEffectModel(
   reload(maker{});
 }
 
-VSTEffectModel::VSTEffectModel(
-    const VSTEffectModel& source,
-    const Id<EffectModel>& id,
-    QObject* parent):
-  EffectModel{id, parent},
-  m_effectPath{source.effect()}
-{
-  reload(maker{});
-}
 VSTEffectModel::~VSTEffectModel()
 {
   closePlugin();
@@ -139,28 +154,6 @@ VSTEffectModel::~VSTEffectModel()
 QString VSTEffectModel::prettyName() const
 {
   return metadata().getLabel();
-}
-
-std::shared_ptr<ossia::audio_fx_node> VSTEffectModel::makeNode(const Engine::Execution::Context& ctx, QObject* )
-{
-  std::shared_ptr<ossia::audio_fx_node> node;
-
-  if(fx->fx->flags & effFlagsCanDoubleReplacing)
-  {
-    if(fx->fx->flags & effFlagsIsSynth)
-      node = Media::VST::make_vst_fx<true, true>(fx, ctx.plugin.execState.sampleRate);
-    else
-      node = Media::VST::make_vst_fx<true, false>(fx, ctx.plugin.execState.sampleRate);
-  }
-  else
-  {
-    if(fx->fx->flags & effFlagsIsSynth)
-      node = Media::VST::make_vst_fx<false, true>(fx, ctx.plugin.execState.sampleRate);
-    else
-      node = Media::VST::make_vst_fx<false, false>(fx, ctx.plugin.execState.sampleRate);
-  }
-
-  return node;
 }
 
 static auto HostCallback (AEffect* effect, VstInt32 opcode, VstInt32 index, VstIntPtr value, void* ptr, float opt)
@@ -179,15 +172,15 @@ static auto HostCallback (AEffect* effect, VstInt32 opcode, VstInt32 index, VstI
       break;
     }
     case audioMasterProcessEvents:
-    break;
+      break;
     case audioMasterIOChanged:
-    break;
+      break;
     case audioMasterSizeWindow:
-    break;
+      break;
     case audioMasterGetInputLatency:
-    break;
+      break;
     case audioMasterGetOutputLatency:
-    break;
+      break;
     case audioMasterIdle:
       effect->dispatcher(effect, effEditIdle, 0, 0, nullptr, 0);
       break;
@@ -214,9 +207,15 @@ static auto HostCallback (AEffect* effect, VstInt32 opcode, VstInt32 index, VstI
       auto vst = reinterpret_cast<VSTEffectModel*>(effect->resvd1);
       if(vst)
       {
-        auto inlet = static_cast<Process::ControlInlet*>(vst->inlets()[3 + index]);
-        inlet->setValue(opt);
-        inlet->setUiVisible(true);
+        auto ctrl_it = vst->controls.find(index);
+        if(ctrl_it != vst->controls.end())
+        {
+          ctrl_it->second->setValue(opt);
+        }
+        else
+        {
+          // TODO register control
+        }
       }
 
       break;
@@ -259,10 +258,10 @@ static auto HostCallback (AEffect* effect, VstInt32 opcode, VstInt32 index, VstI
     {
       static const std::set<std::string_view> supported{
         HostCanDos::canDoSendVstEvents,
-        HostCanDos::canDoSendVstMidiEvent,
-        HostCanDos::canDoSendVstTimeInfo,
-        HostCanDos::canDoSendVstMidiEventFlagIsRealtime,
-        HostCanDos::canDoHasCockosViewAsConfig
+            HostCanDos::canDoSendVstMidiEvent,
+            HostCanDos::canDoSendVstTimeInfo,
+            HostCanDos::canDoSendVstMidiEventFlagIsRealtime,
+            HostCanDos::canDoHasCockosViewAsConfig
       };
       if(supported.find(static_cast<const char*>(ptr)) != supported.end())
         result = 1;
@@ -400,18 +399,25 @@ void VSTEffectModel::reload(const T& port_factory)
   }
 
   // Tempo
-  m_inlets.push_back(port_factory.make_control(inlet_i++, this));
-  m_inlets[1]->type = Process::PortType::Message;
-  m_inlets[1]->setCustomData("Tempo");
-
-  // Signature
-  m_inlets.push_back(port_factory.make_control(inlet_i++, this));
-  m_inlets[2]->type = Process::PortType::Message;
-  m_inlets[2]->setCustomData("Time signature");
-
-  for(int i = 0; i < fx->fx->numParams; i++)
   {
-    auto p = port_factory.make_control(inlet_i++, this);
+    auto tempo = port_factory.make_control(inlet_i++, this);
+    m_inlets.push_back(tempo);
+    tempo->type = Process::PortType::Message;
+    tempo->setCustomData("Tempo");
+    tempo->setUiVisible(true);
+  }
+  {
+    // Signature
+    auto sig = port_factory.make_control(inlet_i++, this);
+    m_inlets.push_back(sig);
+    sig->type = Process::PortType::Message;
+    sig->setCustomData("Time signature");
+    sig->setUiVisible(true);
+  }
+
+  for(int i : port_factory.controls)
+  {
+    auto p = port_factory.make_vst_control(i, inlet_i++, this);
 
     // Metadata
     {
@@ -444,7 +450,7 @@ void VSTEffectModel::reload(const T& port_factory)
       }
 
       connect(p, &Process::ControlInlet::valueChanged,
-              this, [this,p,i] (const ossia::value& v){
+              this, [this,i] (const ossia::value& v){
         auto newval =  ossia::convert<float>(v);
         if(std::abs(newval - fx->getParameter(i)) > 0.0001)
           fx->setParameter(i, newval);
@@ -477,6 +483,7 @@ template <>
 void DataStreamReader::read(
     const Media::VST::VSTEffectModel& eff)
 {
+  /*
   m_stream << eff.effect();
 
   m_stream << *eff.m_inlets[0];
@@ -488,21 +495,25 @@ void DataStreamReader::read(
 
   // TODO save & reload program parameters
   insertDelimiter();
+  */
 }
 
 template <>
 void DataStreamWriter::write(
     Media::VST::VSTEffectModel& eff)
 {
+  /*
   m_stream >> eff.m_effectPath;
   eff.reload(Media::VST::datastream_maker{*this});
   checkDelimiter();
+  */
 }
 
 template <>
 void JSONObjectReader::read(
     const Media::VST::VSTEffectModel& eff)
 {
+  /*
   obj["Effect"] = eff.effect();
 
   QJsonArray inlets;
@@ -532,12 +543,14 @@ void JSONObjectReader::read(
       obj["Params"] = std::move(arr);
     }
   }
+  */
 }
 
 template <>
 void JSONObjectWriter::write(
     Media::VST::VSTEffectModel& eff)
 {
+  /*
   eff.m_effectPath = obj["Effect"].toString();
   eff.reload(Media::VST::json_maker{obj["Inlets"].toArray(), obj["Outlets"].toArray()});
   QPointer<Media::VST::VSTEffectModel> ptr = &eff;
@@ -575,4 +588,61 @@ void JSONObjectWriter::write(
         }
       }
     }});
+    */
+}
+
+Engine::Execution::VSTEffectComponent::VSTEffectComponent(
+    Media::VST::VSTEffectModel& proc,
+    const Engine::Execution::Context& ctx,
+    const Id<score::Component>& id,
+    QObject* parent)
+  : Engine::Execution::EffectComponent_T<Media::VST::VSTEffectModel>{proc, ctx, id, parent}
+{
+  AEffect& fx = *proc.fx->fx;
+  auto setup_controls = [&] (auto& node) {
+    node->ctrl_ptrs.reserve(proc.controls.size());
+    for(auto& ctrl : proc.controls)
+    {
+      auto inlet = ossia::make_inlet<ossia::value_port>();
+      node->ctrl_ptrs.push_back({ ctrl.second->fxNum, inlet->data.target<ossia::value_port>(), });
+      node->inputs().push_back(std::move(inlet));
+    }
+
+    connect(&proc, &Media::VST::VSTEffectModel::controlsChanged,
+            this, [=] {
+      system().executionQueue.enqueue([] {
+
+      });
+    });
+  };
+  if(fx.flags & effFlagsCanDoubleReplacing)
+  {
+    if(fx.flags & effFlagsIsSynth)
+    {
+      auto n = Media::VST::make_vst_fx<true, true>(proc.fx, ctx.plugin.execState.sampleRate);
+      setup_controls(n);
+      node = std::move(n);
+    }
+    else
+    {
+      auto n = Media::VST::make_vst_fx<true, false>(proc.fx, ctx.plugin.execState.sampleRate);
+      setup_controls(n);
+      node = std::move(n);
+    }
+  }
+  else
+  {
+    if(fx.flags & effFlagsIsSynth)
+    {
+      auto n = Media::VST::make_vst_fx<false, true>(proc.fx, ctx.plugin.execState.sampleRate);
+      setup_controls(n);
+      node = std::move(n);
+    }
+    else
+    {
+      auto n = Media::VST::make_vst_fx<false, false>(proc.fx, ctx.plugin.execState.sampleRate);
+      setup_controls(n);
+      node = std::move(n);
+    }
+  }
 }

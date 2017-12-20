@@ -37,11 +37,6 @@ class LV2EffectModel :
                 const Id<EffectModel>&,
                 QObject* parent);
 
-        LV2EffectModel(
-                const LV2EffectModel& source,
-                const Id<EffectModel>&,
-                QObject* parent);
-
         template<typename Impl>
         LV2EffectModel(
                 Impl& vis,
@@ -59,7 +54,6 @@ class LV2EffectModel :
         { m_effectPath = s; }
 
         QString prettyName() const override;
-        std::shared_ptr<ossia::audio_fx_node> makeNode(const Engine::Execution::Context &, QObject* ctx) override;
 
         const LilvPlugin* plugin{};
         LV2::EffectContext effectContext;
@@ -89,11 +83,7 @@ public:
       Media::LV2::LV2EffectModel& proc,
       const Engine::Execution::Context& ctx,
       const Id<score::Component>& id,
-      QObject* parent)
-    : Engine::Execution::EffectComponent_T<Media::LV2::LV2EffectModel>{proc, ctx, id, parent}
-  {
-    node = proc.makeNode(ctx, this);
-  }
+      QObject* parent);
 };
 using LV2EffectComponentFactory = Engine::Execution::EffectComponentFactory_T<LV2EffectComponent>;
 }

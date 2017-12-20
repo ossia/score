@@ -62,20 +62,6 @@ ProcessModel::~ProcessModel()
 {
 }
 
-ProcessModel::ProcessModel(
-    const ProcessModel& source,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent)
-    : Curve::CurveProcessModel{source, id,
-                               Metadata<ObjectKey_k, ProcessModel>::get(),
-                               parent}
-    , m_address(source.address())
-    , m_min{source.min()}
-    , m_max{source.max()}
-{
-  metadata().setInstanceName(*this);
-  setCurve(source.curve().clone(source.curve().id(), this));
-}
 
 QString ProcessModel::prettyName() const
 {

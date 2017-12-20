@@ -3,6 +3,7 @@
 #include <score/serialization/VisitorCommon.hpp>
 #include <score_plugin_media_export.h>
 
+class QGraphicsItem;
 namespace Media
 {
 namespace Effect
@@ -22,11 +23,11 @@ class EffectModel;
  *
  */
 class SCORE_PLUGIN_MEDIA_EXPORT EffectFactory :
-        public score::Interface<EffectFactory>
+        public score::Interface<EffectModel>
 {
         SCORE_INTERFACE("3ffe0073-dfe0-4a7f-862f-220380ebcf08")
     public:
-        virtual ~EffectFactory();
+        ~EffectFactory() override;
 
         virtual QString prettyName() const = 0; // VST, FaUST, etc...
         virtual QString category() const = 0; // VST, FaUST, etc...
@@ -69,7 +70,7 @@ class EffectFactory_T final :
         static auto static_concreteKey()
         { return Metadata<ConcreteKey_k, Model_T>::get(); }
     private:
-        UuidKey<Effect::EffectFactory> concreteKey() const noexcept override
+        UuidKey<Effect::EffectModel> concreteKey() const noexcept override
         { return Metadata<ConcreteKey_k, Model_T>::get(); }
 
         QString prettyName() const override
@@ -94,7 +95,6 @@ class EffectFactory_T final :
         }
 };
 
-
 /**
  * @brief The EffectFactoryList class
  *
@@ -110,7 +110,51 @@ class SCORE_PLUGIN_MEDIA_EXPORT EffectFactoryList final :
         object_type* loadMissing(
                 const VisitorVariant& vis,
                 QObject* parent) const;
+};
 
+class SCORE_PLUGIN_MEDIA_EXPORT EffectUIFactory
+    : public score::Interface<EffectModel>
+{
+  SCORE_INTERFACE("0b57b4c4-7da5-4032-9ac7-6fac34896e10")
+public:
+  ~EffectUIFactory() override;
+
+  virtual QGraphicsItem*
+  makeItem(const Effect::EffectModel& view, const score::DocumentContext& ctx, QGraphicsItem* parent) const = 0;
+
+  bool matches(const Effect::EffectModel& p) const;
+  virtual bool matches(const UuidKey<Effect::EffectModel>&) const = 0;
+};
+
+template<typename Model_T, typename View_T>
+class EffectUIFactory_T final :
+    public EffectUIFactory
+{
+  public:
+    virtual ~EffectUIFactory_T() = default;
+
+  private:
+    QGraphicsItem*
+    makeItem(const Effect::EffectModel& view, const score::DocumentContext& ctx, QGraphicsItem* parent) const final override
+    {
+      return new View_T{view, ctx, parent};
+    }
+
+    bool matches(const UuidKey<Effect::EffectModel>& p) const override
+    {
+      return p == Metadata<ConcreteKey_k, Model_T>::get();
+    }
+};
+
+class SCORE_PLUGIN_MEDIA_EXPORT EffectUIFactoryList final :
+        public score::InterfaceList<EffectUIFactory>
+{
+  public:
+    EffectUIFactory*
+    findDefaultFactory(const EffectModel& proc) const;
+
+    EffectUIFactory* findDefaultFactory(
+        const UuidKey<EffectModel>& proc) const;
 };
 }
 }

@@ -34,22 +34,6 @@ ProcessModel::ProcessModel(
     init();
 }
 
-ProcessModel::ProcessModel(
-        const ProcessModel& source,
-        const Id<Process::ProcessModel>& id,
-        QObject* parent):
-    Process::ProcessModel{
-        source,
-        id,
-        Metadata<ObjectKey_k, ProcessModel>::get(),
-        parent}
-  , outlet{Process::clone_outlet(*source.outlet, this)}
-{
-    setFile(source.m_file.name());
-    metadata().setInstanceName(*this);
-    init();
-}
-
 ProcessModel::~ProcessModel()
 {
 

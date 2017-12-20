@@ -42,11 +42,6 @@ ProcessState::Point ProcessState::point() const
   return m_point;
 }
 
-ProcessState* ProcessState::clone(QObject* parent) const
-{
-  return new ProcessState{process(), m_point, parent};
-}
-
 std::vector<State::AddressAccessor> ProcessState::matchingAddresses()
 {
   // TODO have a better check of "address validity"
@@ -221,25 +216,6 @@ ProcessState* ProcessModel::endStateData() const
   return m_endState;
 }
 
-ProcessModel::ProcessModel(
-    const ProcessModel& source, const Id<Process::ProcessModel>& id,
-    QObject* parent)
-    : Curve::CurveProcessModel{source, id,
-                               Metadata<ObjectKey_k, ProcessModel>::get(),
-                               parent}
-    , m_address(source.address())
-    , m_sourceUnit(source.m_sourceUnit)
-    , m_start{source.start()}
-    , m_end{source.end()}
-    , m_startState{new ProcessState{*this, ProcessState::Point::Start, this}}
-    , m_endState{new ProcessState{*this, ProcessState::Point::End, this}}
-    , m_tween{source.tween()}
-{
-  setCurve(source.curve().clone(source.curve().id(), this));
-  connect(m_curve, &Curve::Model::changed, this, &ProcessModel::curveChanged);
-  metadata().setInstanceName(*this);
-  // TODO instead make a copy constructor in CurveProcessModel
-}
 }
 
 

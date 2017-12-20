@@ -35,25 +35,28 @@ SCORE_PLUGIN_ENGINE_EXPORT void StateComponent::onSetup(
   m_ev = root;
   if(!m_state.empty())
   {
-    auto node = std::make_shared<ossia::state_node>(m_state);
+    m_node = std::make_shared<ossia::state_node>(m_state);
     m_ev->add_time_process(
           std::make_shared<ossia::node_process>(
-            node));
-    this->system().plugin.execGraph->add_node(node);
+            m_node));
+    system().plugin.register_node({}, {}, m_node);
   }
 }
 
 SCORE_PLUGIN_ENGINE_EXPORT void StateComponent::onDelete() const
 {
-  system().executionQueue.enqueue([gr=this->system().plugin.execGraph,ev=m_ev,st=m_state] {
-    auto& procs = ev->get_time_processes();
-    if(!procs.empty())
-    {
-      const auto& proc = (*procs.begin());
-      gr->remove_node(proc->node);
-      ev->remove_time_process(proc.get());
-    }
-  });
+  if(m_node)
+  {
+    system().plugin.unregister_node({}, {}, m_node);
+    system().executionQueue.enqueue([gr=this->system().plugin.execGraph,ev=m_ev,st=m_state] {
+      auto& procs = ev->get_time_processes();
+      if(!procs.empty())
+      {
+        const auto& proc = (*procs.begin());
+        ev->remove_time_process(proc.get());
+      }
+    });
+  }
 }
 
 }

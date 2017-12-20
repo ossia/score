@@ -26,11 +26,6 @@ public:
       const Id<Process::ProcessModel>& id,
       QObject* parent);
 
-  explicit ProcessModel(
-      const ProcessModel& source,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
-
   template <typename Impl>
   explicit ProcessModel(Impl& vis, QObject* parent)
       : Process::ProcessModel{vis, parent}

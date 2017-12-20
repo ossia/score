@@ -37,16 +37,6 @@ LV2EffectModel::LV2EffectModel(
   reload();
 }
 
-LV2EffectModel::LV2EffectModel(
-    const LV2EffectModel& source,
-    const Id<EffectModel>& id,
-    QObject* parent):
-  EffectModel{id, parent},
-  m_effectPath{source.effect()}
-{
-  reload();
-}
-
 QString LV2EffectModel::prettyName() const
 {
   return metadata().getLabel();
@@ -194,16 +184,6 @@ void LV2EffectModel::reload()
   }
 }
 
-std::shared_ptr<ossia::audio_fx_node> LV2EffectModel::makeNode(const Engine::Execution::Context & ctx, QObject*)
-{
-  auto& host = ctx.context().doc.app.applicationPlugin<Media::ApplicationPlugin>();
-  return std::make_shared<Media::LV2::LV2AudioEffect>(
-        Media::LV2::LV2Data{
-          host.lv2_host_context,
-          effectContext},
-        ctx.plugin.execState.sampleRate);
-}
-
 }
 }
 
@@ -235,4 +215,19 @@ void JSONObjectWriter::write(
     Media::LV2::LV2EffectModel& eff)
 {
   eff.m_effectPath = obj["Effect"].toString();
+}
+
+Engine::Execution::LV2EffectComponent::LV2EffectComponent(
+    Media::LV2::LV2EffectModel& proc,
+    const Engine::Execution::Context& ctx,
+    const Id<score::Component>& id,
+    QObject* parent)
+  : Engine::Execution::EffectComponent_T<Media::LV2::LV2EffectModel>{proc, ctx, id, parent}
+{
+  auto& host = ctx.context().doc.app.applicationPlugin<Media::ApplicationPlugin>();
+  node = std::make_shared<Media::LV2::LV2AudioEffect>(
+        Media::LV2::LV2Data{
+          host.lv2_host_context,
+          proc.effectContext},
+        ctx.plugin.execState.sampleRate);
 }

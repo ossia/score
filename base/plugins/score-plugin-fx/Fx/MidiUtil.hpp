@@ -181,9 +181,9 @@ struct Node
   using control_policy = Process::DefaultTick;
   static void run(
       const ossia::midi_port& midi_in,
-      const Process::timed_vec<std::string>& sc,
-      const Process::timed_vec<int>& base,
-      const Process::timed_vec<int>& transp,
+      const Control::timed_vec<std::string>& sc,
+      const Control::timed_vec<int>& base,
+      const Control::timed_vec<int>& transp,
       ossia::midi_port& midi_out,
       ossia::time_value prev_date,
       ossia::token_request tk,

@@ -37,7 +37,6 @@ public:
     vis.writeTo(*this);
   }
 
-  Model* clone(const Id<Model>&, QObject* parent);
 
   // These two will create points
   void addSegment(SegmentModel* m);

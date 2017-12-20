@@ -2,7 +2,7 @@
 #include <ossia/dataflow/graph_node.hpp>
 #include <Engine/Node/Node.hpp>
 #include <ossia/detail/algorithms.hpp>
-namespace Process
+namespace Control
 {
 
 template<typename... Args>
@@ -20,7 +20,7 @@ auto timestamp(const T& p)
 struct PreciseTick
 {
     template<typename TickFun, typename... Args>
-    void operator()(TickFun&& f, ossia::time_value prev_date, ossia::token_request req, const Process::timed_vec<Args>&... arg)
+    void operator()(TickFun&& f, ossia::time_value prev_date, ossia::token_request req, const Control::timed_vec<Args>&... arg)
     {
       auto iterators = std::make_tuple(arg.begin()...);
       const auto last_iterators = std::make_tuple(--arg.end()...);
@@ -101,7 +101,7 @@ struct PreciseTick
 struct DefaultTick
 {
     template<typename TickFun, typename... Args>
-    void operator()(TickFun&& f, const ossia::time_value& prev_date, const ossia::token_request& req, const Process::timed_vec<Args>&... arg)
+    void operator()(TickFun&& f, const ossia::time_value& prev_date, const ossia::token_request& req, const Control::timed_vec<Args>&... arg)
     {
       f(prev_date, req, arg...);
     }
@@ -110,7 +110,7 @@ struct DefaultTick
 struct LastTick
 {
     template<typename TickFun, typename... Args>
-    void operator()(TickFun&& f, const ossia::time_value& prev_date, const ossia::token_request& req, const Process::timed_vec<Args>&... arg)
+    void operator()(TickFun&& f, const ossia::time_value& prev_date, const ossia::token_request& req, const Control::timed_vec<Args>&... arg)
     {
       // TODO use largest date instead
       std::apply([&] (const auto&... it) { std::forward<TickFun>(f)(prev_date, req, it->second...); }, std::make_tuple(--arg.end()...));
@@ -122,7 +122,7 @@ struct LastTick
 struct FirstLastTick
 {
     template<typename TickFun, typename... Args>
-    void operator()(TickFun&& f, const ossia::time_value& prev_date, const ossia::token_request& req, const Process::timed_vec<Args>&... arg)
+    void operator()(TickFun&& f, const ossia::time_value& prev_date, const ossia::token_request& req, const Control::timed_vec<Args>&... arg)
     {
       // TODO use correct dates
       std::apply([&] (const auto&... it) { std::forward<TickFun>(f)(prev_date, req, it->second...); }, std::make_tuple({arg.begin(), --arg.end()}...));

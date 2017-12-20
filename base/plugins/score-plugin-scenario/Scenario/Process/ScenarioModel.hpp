@@ -207,15 +207,9 @@ private:
     fun(&ProcessModel::timeSyncs);
     fun(&ProcessModel::comments);
   }
-  ProcessModel(
-      const Scenario::ProcessModel& source,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
 
   Id<TimeSyncModel> m_startTimeSyncId{};
-
   Id<EventModel> m_startEventId{};
-
   Id<StateModel> m_startStateId{};
   // By default, creation in the void will make a interval
   // that goes to the startEvent and add a new state

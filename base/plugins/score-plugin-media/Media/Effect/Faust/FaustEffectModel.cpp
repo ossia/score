@@ -45,16 +45,6 @@ FaustEffectModel::FaustEffectModel(
     init();
 }
 
-FaustEffectModel::FaustEffectModel(
-        const FaustEffectModel& source,
-        const Id<EffectModel>& id,
-        QObject* parent):
-    EffectModel{id, parent}
-{
-    setText(source.text());
-    init();
-}
-
 void FaustEffectModel::setText(const QString& txt)
 {
     m_text = txt;
@@ -103,7 +93,6 @@ void FaustEffectModel::reload()
         qDebug() << "could not load effect";
     }
 
-    emit effectChanged();
 }
 
 void FaustEffectModel::showUI()

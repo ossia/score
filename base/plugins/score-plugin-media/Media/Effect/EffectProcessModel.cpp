@@ -28,25 +28,6 @@ ProcessModel::ProcessModel(
   outlet->type = Process::PortType::Audio;
 }
 
-ProcessModel::ProcessModel(
-    const ProcessModel& source,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent):
-  Process::ProcessModel{
-    source,
-    id,
-    Metadata<ObjectKey_k, ProcessModel>::get(),
-    parent}
-, inlet{Process::clone_inlet(*source.inlet, this)}
-, outlet{Process::clone_outlet(*source.outlet, this)}
-{
-  metadata().setInstanceName(*this);
-  for(const auto& fx : source.effects())
-  {
-    auto eff = fx.clone(fx.id(), this);
-    m_effects.add(eff);
-  }
-}
 
 ProcessModel::~ProcessModel()
 {

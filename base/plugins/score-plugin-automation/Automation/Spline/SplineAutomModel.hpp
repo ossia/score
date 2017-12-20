@@ -79,11 +79,6 @@ private:
   bool contentHasDuration() const override;
   TimeVal contentDuration() const override;
 
-  ProcessModel(
-      const ProcessModel& source,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
-
   State::AddressAccessor m_address;
   ossia::spline_data m_spline;
 

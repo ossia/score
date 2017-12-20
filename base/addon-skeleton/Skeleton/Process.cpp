@@ -12,15 +12,6 @@ Model::Model(
   metadata().setInstanceName(*this);
 }
 
-Model::Model(
-    const Model& source,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent):
-  Process::ProcessModel{source, id, "SkeletonProcess", parent}
-{
-
-}
-
 Model::~Model()
 {
 

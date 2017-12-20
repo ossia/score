@@ -60,22 +60,6 @@ ProcessModel::ProcessModel(
   metadata().setInstanceName(*this);
 }
 
-ProcessModel::ProcessModel(
-    const ProcessModel& source,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent):
-  Process::ProcessModel{
-    source,
-    id,
-    Metadata<ObjectKey_k, ProcessModel>::get(),
-    parent}
-, outlet{Process::clone_outlet(*source.outlet, this)}
-, m_startChannel{source.m_startChannel}
-, m_numChannel{source.m_numChannel}
-{
-  metadata().setInstanceName(*this);
-}
-
 ProcessModel::~ProcessModel()
 {
 

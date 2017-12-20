@@ -36,18 +36,6 @@ EventModel::EventModel(
   metadata().setColor(ScenarioStyle::instance().EventDefault);
 }
 
-EventModel::EventModel(
-    const EventModel& source, const Id<EventModel>& id, QObject* parent)
-    : Entity{source, id, Metadata<ObjectKey_k, EventModel>::get(), parent}
-    , m_timeSync{source.m_timeSync}
-    , m_states(source.m_states)
-    , m_condition{source.m_condition}
-    , m_extent{source.m_extent}
-    , m_date{source.m_date}
-    , m_offset{source.m_offset}
-{
-}
-
 VerticalExtent EventModel::extent() const
 {
   return m_extent;

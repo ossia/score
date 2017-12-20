@@ -45,9 +45,6 @@ public:
       const TimeVal& date,
       QObject* parent);
 
-  // Copy
-  EventModel(const EventModel& source, const Id<EventModel>&, QObject* parent);
-
   template <typename DeserializerVisitor>
   EventModel(DeserializerVisitor&& vis, QObject* parent) : Entity{vis, parent}
   {

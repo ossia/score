@@ -43,8 +43,6 @@ public:
   State::Message message() const;
   Point point() const;
 
-  ProcessState* clone(QObject* parent) const override;
-
   std::vector<State::AddressAccessor> matchingAddresses() override;
 
   ::State::MessageList messages() const override;
@@ -128,13 +126,7 @@ private:
 
   /// States
   ProcessState* startStateData() const override;
-
   ProcessState* endStateData() const override;
-
-  ProcessModel(
-      const ProcessModel& source,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
 
   ::State::AddressAccessor m_address;
   State::Unit m_sourceUnit;

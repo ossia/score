@@ -30,24 +30,24 @@ BaseScenarioContainer::BaseScenarioContainer(QObject* parentObject)
                                   {0.2, 0.8},
                                   TimeVal::zero(),
                                   m_parent};
-  m_startNode->metadata().setName("Sync.start");                                  
+  m_startNode->metadata().setName("Sync.start");
   m_endNode = new TimeSyncModel{Scenario::endId<TimeSyncModel>(),
                                 {0.2, 0.8},
                                 TimeVal::zero(),
                                 m_parent};
-  m_endNode->metadata().setName("Sync.end");                                  
+  m_endNode->metadata().setName("Sync.end");
   m_startEvent = new EventModel{Scenario::startId<EventModel>(),
                                 m_startNode->id(),
                                 {0.1, 0.15},
                                 TimeVal::zero(),
                                 m_parent};
-  m_startEvent->metadata().setName("Event.start");                             
+  m_startEvent->metadata().setName("Event.start");
   m_endEvent = new EventModel{Scenario::endId<EventModel>(),
                               m_endNode->id(),
                               {0.4, 0.6},
                               TimeVal::zero(),
                               m_parent};
-  m_endEvent->metadata().setName("Event.end"); 
+  m_endEvent->metadata().setName("Event.end");
   m_startState = new StateModel{Scenario::startId<StateModel>(),
                                 m_startEvent->id(), 0, stack, m_parent};
   m_startState->metadata().setName("State.start");
@@ -67,33 +67,6 @@ BaseScenarioContainer::BaseScenarioContainer(QObject* parentObject)
 
   SetNextInterval(*m_startState, *m_interval);
   SetPreviousInterval(*m_endState, *m_interval);
-}
-
-BaseScenarioContainer::BaseScenarioContainer(
-    const BaseScenarioContainer& source, QObject* parentObject)
-    : m_parent{parentObject}
-{
-  auto& stack = score::IDocument::documentContext(*m_parent).commandStack;
-  m_interval = new IntervalModel{*source.m_interval,
-                                     source.m_interval->id(), m_parent};
-
-  m_startNode = new TimeSyncModel{*source.m_startNode,
-                                  source.m_startNode->id(), m_parent};
-  m_endNode
-      = new TimeSyncModel{*source.m_endNode, source.m_endNode->id(), m_parent};
-
-  m_startEvent = new EventModel{*source.m_startEvent,
-                                source.m_startEvent->id(), m_parent};
-  m_endEvent
-      = new EventModel{*source.m_endEvent, source.m_endEvent->id(), m_parent};
-
-  m_startState = new StateModel{*source.m_startState,
-                                source.m_startState->id(), stack, m_parent};
-  m_endState = new StateModel{*source.m_endState, source.m_endState->id(),
-                              stack, m_parent};
-
-  SetPreviousInterval(*m_endState, *m_interval);
-  SetNextInterval(*m_startState, *m_interval);
 }
 
 BaseScenarioContainer::~BaseScenarioContainer()

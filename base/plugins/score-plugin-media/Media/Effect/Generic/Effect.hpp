@@ -6,13 +6,13 @@
 #include <Media/Effect/EffectExecutor.hpp>
 
 ////////// METADATA ////////////
-namespace Process
+namespace Control
 {
-template<typename Info, typename = Process::is_control>
+template<typename Info, typename = Control::is_control>
 class ControlEffect;
 }
 template <typename Info>
-struct Metadata<PrettyName_k, Process::ControlEffect<Info>>
+struct Metadata<PrettyName_k, Control::ControlEffect<Info>>
 {
     static Q_DECL_RELAXED_CONSTEXPR auto get()
     {
@@ -20,7 +20,7 @@ struct Metadata<PrettyName_k, Process::ControlEffect<Info>>
     }
 };
 template <typename Info>
-struct Metadata<Category_k, Process::ControlEffect<Info>>
+struct Metadata<Category_k, Control::ControlEffect<Info>>
 {
     static Q_DECL_RELAXED_CONSTEXPR auto get()
     {
@@ -28,7 +28,7 @@ struct Metadata<Category_k, Process::ControlEffect<Info>>
     }
 };
 template <typename Info>
-struct Metadata<Tags_k, Process::ControlEffect<Info>>
+struct Metadata<Tags_k, Control::ControlEffect<Info>>
 {
     static QStringList get()
     {
@@ -39,7 +39,7 @@ struct Metadata<Tags_k, Process::ControlEffect<Info>>
     }
 };
 template <typename Info>
-struct Metadata<ObjectKey_k, Process::ControlEffect<Info>>
+struct Metadata<ObjectKey_k, Control::ControlEffect<Info>>
 {
     static Q_DECL_RELAXED_CONSTEXPR auto get()
     {
@@ -47,7 +47,7 @@ struct Metadata<ObjectKey_k, Process::ControlEffect<Info>>
     }
 };
 template <typename Info>
-struct Metadata<ConcreteKey_k, Process::ControlEffect<Info>>
+struct Metadata<ConcreteKey_k, Control::ControlEffect<Info>>
 {
     static Q_DECL_RELAXED_CONSTEXPR UuidKey<Media::Effect::EffectFactory> get()
     {
@@ -56,16 +56,16 @@ struct Metadata<ConcreteKey_k, Process::ControlEffect<Info>>
 };
 
 
-namespace Process
+namespace Control
 {
 template<typename Info, typename>
 class ControlEffect final: public Media::Effect::EffectModel
 {
     SCORE_SERIALIZE_FRIENDS
     MODEL_METADATA_IMPL(ControlEffect<Info>)
-    friend struct TSerializer<DataStream, Process::ControlEffect<Info>>;
-    friend struct TSerializer<JSONObject, Process::ControlEffect<Info>>;
-    friend struct Process::PortSetup;
+    friend struct TSerializer<DataStream, Control::ControlEffect<Info>>;
+    friend struct TSerializer<JSONObject, Control::ControlEffect<Info>>;
+    friend struct Control::PortSetup;
   public:
 
     ossia::value control(std::size_t i) const
@@ -73,7 +73,7 @@ class ControlEffect final: public Media::Effect::EffectModel
       static_assert(InfoFunctions<Info>::control_count != 0);
       constexpr auto start = InfoFunctions<Info>::control_start;
 
-      return static_cast<ControlInlet*>(m_inlets[start + i])->value();
+      return static_cast<Process::ControlInlet*>(m_inlets[start + i])->value();
     }
 
     void setControl(std::size_t i, ossia::value v)
@@ -81,7 +81,7 @@ class ControlEffect final: public Media::Effect::EffectModel
       static_assert(InfoFunctions<Info>::control_count != 0);
       constexpr auto start = InfoFunctions<Info>::control_start;
 
-      static_cast<ControlInlet*>(m_inlets[start + i])->setValue(std::move(v));
+      static_cast<Process::ControlInlet*>(m_inlets[start + i])->setValue(std::move(v));
     }
 
     auto& inlets_ref() const { return m_inlets; }
@@ -94,23 +94,8 @@ class ControlEffect final: public Media::Effect::EffectModel
     {
       metadata().setInstanceName(*this);
 
-      Process::PortSetup::init<Info>(*this);
+      Control::PortSetup::init<Info>(*this);
     }
-
-    ControlEffect(
-        const ControlEffect& source,
-        const Id<Media::Effect::EffectModel>& id,
-        QObject* parent):
-      Media::Effect::EffectModel{
-        source,
-        id,
-        parent}
-    {
-      metadata().setInstanceName(*this);
-
-      Process::PortSetup::clone<Info>(*this, source);
-    }
-
 
     template<typename Impl>
     explicit ControlEffect(
@@ -130,25 +115,22 @@ class ControlEffect final: public Media::Effect::EffectModel
     {
       return Metadata<PrettyName_k, ControlEffect<Info>>::get();
     }
-
-    std::shared_ptr<ossia::audio_fx_node> makeNode(const Engine::Execution::Context& ctx, QObject* obj_ctx) override
-    {
-      auto node = std::make_shared<Process::ControlNode<Info>>();
-
-      setup_node<Info>(node, *this, ctx, this);
-
-      return node;
-    }
-
-    Process::EffectItem* makeItem(const score::DocumentContext& ctx) override
-    {
-      auto item = new Process::EffectItem{};
-      Process::UISetup::init<Info>(*this, *item, ctx);
-      return item;
-    }
-
 };
 
+template<typename Info>
+struct ControlEffectView:  public Control::EffectItem
+{
+  public:
+    ControlEffectView(ControlEffect<Info>& eff
+                      , const score::DocumentContext& ctx,
+                      QGraphicsItem* parent):
+      Control::EffectItem{parent}
+    {
+      Control::UISetup::init<Info>(eff, *this, ctx);
+    }
+};
+template<typename Info>
+using ControlEffectUIFactory = Media::Effect::EffectUIFactory_T<ControlEffect<Info>, ControlEffectView<Info>>;
 template<typename Info>
 class ControlEffectFactory final :
         public Media::Effect::EffectFactory
@@ -187,16 +169,16 @@ class ControlEffectFactory final :
 }
 
 template<typename Info>
-struct is_custom_serialized<Process::ControlEffect<Info>>: std::true_type { };
+struct is_custom_serialized<Control::ControlEffect<Info>>: std::true_type { };
 
 
 namespace score
 {
 
 template<typename Vis, typename Info>
-void serialize_dyn_impl(Vis& v, const Process::ControlEffect<Info>& t)
+void serialize_dyn_impl(Vis& v, const Control::ControlEffect<Info>& t)
 {
-  TSerializer<typename Vis::type, Process::ControlEffect<Info>>::readFrom(v, t);
+  TSerializer<typename Vis::type, Control::ControlEffect<Info>>::readFrom(v, t);
 }
 
 }
@@ -207,7 +189,7 @@ namespace Execution
 {
 template<typename Info>
 class ControlEffectComponent final
-    : public Engine::Execution::EffectComponent_T<Process::ControlEffect<Info>>
+    : public Engine::Execution::EffectComponent_T<Control::ControlEffect<Info>>
 {
   public:
     static Q_DECL_RELAXED_CONSTEXPR score::Component::Key static_key()
@@ -228,13 +210,15 @@ class ControlEffectComponent final
     static constexpr bool is_unique = true;
 
   ControlEffectComponent(
-      Process::ControlEffect<Info>& proc,
+      Control::ControlEffect<Info>& proc,
       const Engine::Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent)
-    : Engine::Execution::EffectComponent_T<Process::ControlEffect<Info>>{proc, ctx, id, parent}
+    : Engine::Execution::EffectComponent_T<Control::ControlEffect<Info>>{proc, ctx, id, parent}
   {
-    this->node = proc.makeNode(ctx, this);
+    auto node = std::make_shared<Control::ControlNode<Info>>();
+    Control::setup_node<Info>(node, proc, ctx, &proc);
+    this->node = node;
   }
 };
 

@@ -14,7 +14,7 @@ namespace Commands
 
 InsertEffect::InsertEffect(
         const Effect::ProcessModel& model,
-        const UuidKey<Effect::EffectFactory>& effectKind,
+        const UuidKey<Effect::EffectModel>& effectKind,
         const QString& text,
         std::size_t effectPos):
     m_model{model},
@@ -27,14 +27,10 @@ InsertEffect::InsertEffect(
 
 void InsertEffect::undo(const score::DocumentContext& ctx) const
 {
-  auto& fact_list = ctx.app.interfaces<Effect::EffectFactoryList>();
-  if(Effect::EffectFactory* fact = fact_list.get(m_effectKind))
-  {
-    auto& process = m_model.find(ctx);
-    if(ossia::find(process.effects(), m_id) != process.effects().end())
-      process.removeEffect(m_id);
-  }
-}
+  auto& process = m_model.find(ctx);
+  if(ossia::find(process.effects(), m_id) != process.effects().end())
+    process.removeEffect(m_id);
+ }
 
 void InsertEffect::redo(const score::DocumentContext& ctx) const
 {
@@ -73,7 +69,6 @@ RemoveEffect::RemoveEffect(
     m_id{effect.id()},
     m_savedEffect{score::marshall<DataStream>(effect)}
 {
-    auto& order = model.effects();
     m_pos = model.effectPosition(effect.id());
 }
 
@@ -120,7 +115,6 @@ MoveEffect::MoveEffect(
     m_id{id},
     m_newPos{new_pos}
 {
-  auto& order = effect.effects();
   m_oldPos = effect.effectPosition(m_id);
 }
 

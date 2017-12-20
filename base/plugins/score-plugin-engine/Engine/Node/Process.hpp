@@ -6,14 +6,14 @@
 #include <Process/ProcessFactory.hpp>
 
 ////////// METADATA ////////////
-namespace Process
+namespace Control
 {
 struct is_control {};
 template<typename Info, typename = is_control>
 class ControlProcess;
 }
 template <typename Info>
-struct Metadata<PrettyName_k, Process::ControlProcess<Info>>
+struct Metadata<PrettyName_k, Control::ControlProcess<Info>>
 {
     static Q_DECL_RELAXED_CONSTEXPR auto get()
     {
@@ -21,7 +21,7 @@ struct Metadata<PrettyName_k, Process::ControlProcess<Info>>
     }
 };
 template <typename Info>
-struct Metadata<Category_k, Process::ControlProcess<Info>>
+struct Metadata<Category_k, Control::ControlProcess<Info>>
 {
     static Q_DECL_RELAXED_CONSTEXPR auto get()
     {
@@ -29,7 +29,7 @@ struct Metadata<Category_k, Process::ControlProcess<Info>>
     }
 };
 template <typename Info>
-struct Metadata<Tags_k, Process::ControlProcess<Info>>
+struct Metadata<Tags_k, Control::ControlProcess<Info>>
 {
     static QStringList get()
     {
@@ -40,7 +40,7 @@ struct Metadata<Tags_k, Process::ControlProcess<Info>>
     }
 };
 template <typename Info>
-struct Metadata<ObjectKey_k, Process::ControlProcess<Info>>
+struct Metadata<ObjectKey_k, Control::ControlProcess<Info>>
 {
     static Q_DECL_RELAXED_CONSTEXPR auto get()
     {
@@ -48,7 +48,7 @@ struct Metadata<ObjectKey_k, Process::ControlProcess<Info>>
     }
 };
 template <typename Info>
-struct Metadata<ConcreteKey_k, Process::ControlProcess<Info>>
+struct Metadata<ConcreteKey_k, Control::ControlProcess<Info>>
 {
     static Q_DECL_RELAXED_CONSTEXPR UuidKey<Process::ProcessModel> get()
     {
@@ -57,7 +57,7 @@ struct Metadata<ConcreteKey_k, Process::ControlProcess<Info>>
 };
 
 
-namespace Process
+namespace Control
 {
 
 struct PortSetup
@@ -132,25 +132,6 @@ struct PortSetup
       }
     }
 
-    template<typename Info, typename T>
-    static void clone(T& self, const T& source)
-    {
-      auto& ins = self.m_inlets;
-      auto& outs = self.m_outlets;
-      for(std::size_t i = 0; i < InfoFunctions<Info>::control_start; i++)
-      {
-        ins.push_back(new Process::Inlet(source.m_inlets[i]->id(), *source.m_inlets[i], &self));
-      }
-      for(auto i = InfoFunctions<Info>::control_start; i < InfoFunctions<Info>::inlet_size; i++)
-      {
-        ins.push_back(new Process::ControlInlet(source.m_inlets[i]->id(), *source.m_inlets[i], &self));
-      }
-
-      for(std::size_t i = 0; i < InfoFunctions<Info>::outlet_size; i++)
-      {
-        outs.push_back(new Process::Outlet(source.m_outlets[i]->id(), *source.m_outlets[i], &self));
-      }
-    }
 };
 
 template<typename Info, typename>
@@ -158,9 +139,9 @@ class ControlProcess final: public Process::ProcessModel
 {
     SCORE_SERIALIZE_FRIENDS
     PROCESS_METADATA_IMPL(ControlProcess<Info>)
-    friend struct TSerializer<DataStream, Process::ControlProcess<Info>>;
-    friend struct TSerializer<JSONObject, Process::ControlProcess<Info>>;
-    friend struct Process::PortSetup;
+    friend struct TSerializer<DataStream, Control::ControlProcess<Info>>;
+    friend struct TSerializer<JSONObject, Control::ControlProcess<Info>>;
+    friend struct Control::PortSetup;
     Process::Inlets m_inlets;
     Process::Outlets m_outlets;
 
@@ -184,7 +165,7 @@ class ControlProcess final: public Process::ProcessModel
       static_assert(InfoFunctions<Info>::control_count != 0);
       constexpr auto start = InfoFunctions<Info>::control_start;
 
-      return static_cast<ControlInlet*>(m_inlets[start + i])->value();
+      return static_cast<Process::ControlInlet*>(m_inlets[start + i])->value();
     }
 
     void setControl(std::size_t i, ossia::value v)
@@ -192,7 +173,7 @@ class ControlProcess final: public Process::ProcessModel
       static_assert(InfoFunctions<Info>::control_count != 0);
       constexpr auto start = InfoFunctions<Info>::control_start;
 
-      static_cast<ControlInlet*>(m_inlets[start + i])->setValue(std::move(v));
+      static_cast<Process::ControlInlet*>(m_inlets[start + i])->setValue(std::move(v));
     }
 
     ControlProcess(
@@ -203,21 +184,7 @@ class ControlProcess final: public Process::ProcessModel
     {
       metadata().setInstanceName(*this);
 
-      Process::PortSetup::init<Info>(*this);
-    }
-
-    ControlProcess(
-        const ControlProcess& source,
-        const Id<Process::ProcessModel>& id,
-        QObject* parent):
-      Process::ProcessModel{
-        source,
-        id,
-        Metadata<ObjectKey_k, ProcessModel>::get(),
-        parent}
-    {
-      metadata().setInstanceName(*this);
-      Process::PortSetup::clone<Info>(*this, source);
+      Control::PortSetup::init<Info>(*this);
     }
 
 
@@ -238,18 +205,18 @@ class ControlProcess final: public Process::ProcessModel
 }
 
 template<typename Info>
-struct is_custom_serialized<Process::ControlProcess<Info>>: std::true_type { };
+struct is_custom_serialized<Control::ControlProcess<Info>>: std::true_type { };
 
 
 
 template <template<typename, typename> class Model, typename Info>
-struct TSerializer<DataStream, Model<Info, Process::is_control>>
+struct TSerializer<DataStream, Model<Info, Control::is_control>>
 {
-    using model_type = Model<Info, Process::is_control>;
+    using model_type = Model<Info, Control::is_control>;
     static void
     readFrom(DataStream::Serializer& s, const model_type& obj)
     {
-      using namespace Process;
+      using namespace Control;
       {
         for(std::size_t i = 0; i < InfoFunctions<Info>::control_start; i++)
         {
@@ -270,7 +237,7 @@ struct TSerializer<DataStream, Model<Info, Process::is_control>>
 
     static void writeTo(DataStream::Deserializer& s, model_type& obj)
     {
-      using namespace Process;
+      using namespace Control;
 
       for(std::size_t i = 0; i < InfoFunctions<Info>::control_start; i++)
       {
@@ -290,13 +257,13 @@ struct TSerializer<DataStream, Model<Info, Process::is_control>>
 };
 
 template <template<typename, typename> class Model, typename Info>
-struct TSerializer<JSONObject, Model<Info, Process::is_control>>
+struct TSerializer<JSONObject, Model<Info, Control::is_control>>
 {
-    using model_type = Model<Info, Process::is_control>;
+    using model_type = Model<Info, Control::is_control>;
     static void
     readFrom(JSONObject::Serializer& s, const model_type& obj)
     {
-      using namespace Process;
+      using namespace Control;
       {
         QJsonArray arr;
         for(std::size_t i = 0; i < InfoFunctions<Info>::control_start; i++)
@@ -315,7 +282,7 @@ struct TSerializer<JSONObject, Model<Info, Process::is_control>>
 
     static void writeTo(JSONObject::Deserializer& s, model_type& obj)
     {
-      using namespace Process;
+      using namespace Control;
 
       {
         auto inlets = s.obj["Inlets"].toArray();
@@ -346,9 +313,9 @@ namespace score
 {
 
 template<typename Vis, typename Info>
-void serialize_dyn_impl(Vis& v, const Process::ControlProcess<Info>& t)
+void serialize_dyn_impl(Vis& v, const Control::ControlProcess<Info>& t)
 {
-  TSerializer<typename Vis::type, Process::ControlProcess<Info>>::readFrom(v, t);
+  TSerializer<typename Vis::type, Control::ControlProcess<Info>>::readFrom(v, t);
 }
 }
 

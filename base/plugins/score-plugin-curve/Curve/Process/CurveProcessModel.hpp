@@ -34,22 +34,12 @@ public:
   {
   }
 
-  // Clone
-  CurveProcessModel(
-      const CurveProcessModel& other,
-      const Id<ProcessModel>& id,
-      const QString& name,
-      QObject* parent)
-      : Process::ProcessModel(other, id, name, parent)
-  {
-  }
-
   Model& curve() const
   {
     return *m_curve;
   }
 
-  virtual ~CurveProcessModel();
+  ~CurveProcessModel() override;
 
   void startExecution() final override
   {

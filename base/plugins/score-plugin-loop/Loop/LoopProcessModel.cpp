@@ -69,18 +69,6 @@ ProcessModel::ProcessModel(
   outlet->setPropagate(true);
 }
 
-ProcessModel::ProcessModel(
-    const Loop::ProcessModel& source,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent)
-    : Process::ProcessModel{source, id,
-                            Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-    , BaseScenarioContainer{source, this}
-    , inlet{Process::clone_inlet(*source.inlet, this)}
-    , outlet{Process::clone_outlet(*source.outlet, this)}
-{
-  metadata().setInstanceName(*this);
-}
 
 ProcessModel::~ProcessModel()
 {

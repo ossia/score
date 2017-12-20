@@ -25,8 +25,6 @@ public:
 
   virtual ~ProcessStateDataInterface();
 
-  virtual ProcessStateDataInterface* clone(QObject* parent) const = 0;
-
   /**
    * @brief matchingAddresses The addresses that correspond to this state.
    *

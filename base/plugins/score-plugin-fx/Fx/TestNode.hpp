@@ -71,7 +71,7 @@ struct SomeInfo
   static void run(
       const ossia::audio_port& p1,
       const ossia::audio_port& p2,
-      const Process::timed_vec<float>& o1,
+      const Control::timed_vec<float>& o1,
       ossia::midi_port& p,
       ossia::time_value prev_date,
       ossia::token_request tk,

@@ -100,8 +100,8 @@ struct Node
     }
     static void run(
         const ossia::midi_port& ip,
-        const Process::timed_vec<int>& num,
-        const Process::timed_vec<std::string>& chord,
+        const Control::timed_vec<int>& num,
+        const Control::timed_vec<std::string>& chord,
         ossia::midi_port& op,
         ossia::time_value prev_date,
         ossia::token_request tk,

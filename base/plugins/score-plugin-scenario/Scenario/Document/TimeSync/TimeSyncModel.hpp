@@ -49,11 +49,6 @@ public:
     vis.writeTo(*this);
   }
 
-  TimeSyncModel(
-      const TimeSyncModel& source,
-      const Id<TimeSyncModel>& id,
-      QObject* parent);
-
   // Data of the TimeSync
   const VerticalExtent& extent() const;
   void setExtent(const VerticalExtent& extent);

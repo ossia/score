@@ -29,10 +29,8 @@ public:
   };
   explicit BaseScenarioContainer(QObject* parentObject);
   explicit BaseScenarioContainer(no_init, QObject* parentObject);
-  explicit BaseScenarioContainer(
-      const BaseScenarioContainer&, QObject* parentObject);
 
-  virtual ~BaseScenarioContainer();
+  virtual ~BaseScenarioContainer() override;
 
   QObject& parentObject() const
   {

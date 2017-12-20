@@ -1,7 +1,7 @@
 #include "Widgets.hpp"
 #include "Layer.hpp"
 
-namespace Process
+namespace Control
 {
 
 const QPalette& transparentPalette()

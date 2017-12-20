@@ -11,7 +11,7 @@
 #include <ossia/dataflow/node_process.hpp>
 #include <readerwriterqueue.h>
 
-namespace Process
+namespace Control
 {
 
 template<typename T, typename = void>
@@ -372,14 +372,14 @@ void setup_node(const std::shared_ptr<Node_T> node_ptr
       constexpr const auto control_start = InfoFunctions<Info>::control_start;
       using control_type = typename std::tuple_element<idx, decltype(get_controls(Info::info))>::type;
       using control_value_type = typename control_type::type;
-      auto inlet = static_cast<ControlInlet*>(element.inlets_ref()[control_start + idx]);
+      auto inlet = static_cast<Process::ControlInlet*>(element.inlets_ref()[control_start + idx]);
 
       if constexpr(control_type::must_validate)
       {
         if(auto res = ctrl.fromValue(element.control(idx)))
           std::get<idx>(node.controls) = *res;
 
-        QObject::connect(inlet, &ControlInlet::valueChanged,
+        QObject::connect(inlet, &Process::ControlInlet::valueChanged,
                 parent, [&ctx,weak_node] (const ossia::value& val) {
           if(auto node = weak_node.lock())
           {
@@ -395,7 +395,7 @@ void setup_node(const std::shared_ptr<Node_T> node_ptr
       {
         std::get<idx>(node.controls) = ctrl.fromValue(element.control(idx));
 
-        QObject::connect(inlet, &ControlInlet::valueChanged,
+        QObject::connect(inlet, &Process::ControlInlet::valueChanged,
                 parent, [&ctx,weak_node] (const ossia::value& val) {
             if(auto node = weak_node.lock())
             {

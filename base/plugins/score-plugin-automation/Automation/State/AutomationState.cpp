@@ -85,11 +85,6 @@ double ProcessState::point() const
   return m_point;
 }
 
-ProcessState* ProcessState::clone(QObject* parent) const
-{
-  return new ProcessState{process(), m_point, parent};
-}
-
 ProcessModel& ProcessState::process() const
 {
   return static_cast<ProcessModel&>(ProcessStateDataInterface::process());

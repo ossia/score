@@ -66,11 +66,6 @@ private:
   bool contentHasDuration() const override;
   TimeVal contentDuration() const override;
 
-  ProcessModel(
-      const ProcessModel& source,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
-
   void setCurve_impl() override;
   State::Address m_address;
 
