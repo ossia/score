@@ -6,7 +6,7 @@
 #include <Engine/Node/Inspector.hpp>
 #include <Engine/Node/Layer.hpp>
 #include <Engine/Node/CommonWidgets.hpp>
-#include <Media/Effect/Generic/Effect.hpp>
+#include <Engine/Node/Effect.hpp>
 #include <brigand/algorithms/for_each.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #define make_uuid(text) score::uuids::string_generator::compute((text))
@@ -18,7 +18,15 @@ using ProcessFactory = Process::GenericProcessModelFactory<ControlProcess<Node>>
 template<typename Node>
 using ExecutorFactory = Engine::Execution::ProcessComponentFactory_T<Executor<Node>>;
 template<typename Node>
-using LayerFactory = ControlLayerFactory<ControlProcess<Node>>;
+using LayerFactory = ControlLayerFactory<Node>;
+
+template<typename Node>
+using EffectFactory = Process::EffectFactory_T<ControlEffect<Node>>;
+template<typename Node>
+using EffectExecutorFactory = Engine::Execution::EffectComponentFactory_T<Engine::Execution::ControlEffectComponent<Node>>;
+template<typename Node>
+using EffectUIFactory = Process::EffectUIFactory_T<ControlEffect<Node>, ControlEffectView<Node>>;
+
 
 template<typename... Args>
 struct create_types
@@ -39,7 +47,6 @@ std::vector<std::unique_ptr<score::InterfaceBase>> instantiate_fx(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key)
 {
-  using tl = brigand::list<Nodes...>;
   if(key == Engine::Execution::ProcessComponentFactory::static_interfaceKey())
   {
     return create_types<Nodes...>{}.template perform<Control::ExecutorFactory>();
@@ -48,13 +55,13 @@ std::vector<std::unique_ptr<score::InterfaceBase>> instantiate_fx(
   {
     return create_types<Nodes...>{}.template perform<Control::ProcessFactory>();
   }
-  else if(key == Media::Effect::EffectFactory::static_interfaceKey())
+  else if(key == Process::EffectFactory::static_interfaceKey())
   {
-    return create_types<Nodes...>{}.template perform<Control::ControlEffectFactory>();
+    return create_types<Nodes...>{}.template perform<Control::EffectFactory>();
   }
-  else if(key == Media::Effect::EffectUIFactory::static_interfaceKey())
+  else if(key == Process::EffectUIFactory::static_interfaceKey())
   {
-    return create_types<Nodes...>{}.template perform<Control::ControlEffectUIFactory>();
+    return create_types<Nodes...>{}.template perform<Control::EffectUIFactory>();
   }
   else if(key == Process::InspectorWidgetDelegateFactory::static_interfaceKey())
   {
@@ -66,8 +73,9 @@ std::vector<std::unique_ptr<score::InterfaceBase>> instantiate_fx(
   }
   else if(key == Engine::Execution::EffectComponentFactory::static_interfaceKey())
   {
-    return create_types<Nodes...>{}.template perform<Engine::Execution::ControlEffectComponentFactory>();
+    return create_types<Nodes...>{}.template perform<Control::EffectExecutorFactory>();
   }
+  return {};
 }
 }
 

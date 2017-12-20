@@ -28,7 +28,7 @@ EventComponent::EventComponent(
       this, [this] (const auto& expr)
   {
     auto exp_ptr = std::make_shared<ossia::expression_ptr>( this->makeExpression() );
-    this->system().executionQueue.enqueue(
+    this->in_exec(
           [e = m_ossia_event, exp_ptr]
     {
       e->set_expression(std::move(*exp_ptr));
@@ -38,7 +38,7 @@ EventComponent::EventComponent(
 
 void EventComponent::cleanup()
 {
-  system().executionQueue.enqueue([ev=m_ossia_event] {
+  in_exec([ev=m_ossia_event] {
     ev->cleanup();
   });
   m_ossia_event.reset();

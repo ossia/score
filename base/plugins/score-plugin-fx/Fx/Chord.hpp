@@ -32,18 +32,18 @@ struct Node
     };
 
     static const constexpr auto info =
-        Process::create_node()
+        Control::create_node()
         .midi_ins({{"in"}})
         .midi_outs({{"out"}})
-        .controls(Process::IntSlider{"Num. Notes", 1, 5, 3},
-                  Process::make_enum(
+        .controls(Control::IntSlider{"Num. Notes", 1, 5, 3},
+                  Control::make_enum(
                     "Chord",
                     0U,
-                    Process::array("Major", "Minor", "Sus2", "Sus4", "Dim", "Aug"))
+                    Control::array("Major", "Minor", "Sus2", "Sus4", "Dim", "Aug"))
                   )
         .state<State>()
         .build();
-    using control_policy = Process::DefaultTick;
+    using control_policy = Control::DefaultTick;
     // C C# D D# E F F# G G# A A# B
     // 1 .  . .  1 . .  1 .  1 .  .
     static const constexpr std::array<int, 5> major7{ 0, 4, 7, 9, 12 };
@@ -139,7 +139,5 @@ struct Node
       }
     }
 };
-
-using Factories = Process::Factories<Node>;
 }
 }

@@ -1,9 +1,7 @@
 #pragma once
-#include <Media/Effect/Effect/EffectModel.hpp>
+#include <Effect/EffectModel.hpp>
 
-namespace Media
-{
-namespace Effect
+namespace Process
 {
 
 template<typename EffectBase_T, typename Component_T>
@@ -27,11 +25,11 @@ class EffectComponentBase :
 };
 
 template<typename Component_T>
-using EffectComponent = EffectComponentBase<Effect::EffectModel, Component_T>;
+using EffectComponent = EffectComponentBase<Process::EffectModel, Component_T>;
 
 template<typename System_T>
 using GenericEffectComponent =
-    Effect::EffectComponent<score::GenericComponent<System_T>>;
+    Process::EffectComponent<score::GenericComponent<System_T>>;
 
 
 
@@ -45,7 +43,5 @@ class GenericEffectComponent_T : public EffectComponentBase_T
         const Effect_T& effect() const
         { return static_cast<const Effect_T&>(EffectComponentBase_T::effect()); }
 };
-
-}
 
 }

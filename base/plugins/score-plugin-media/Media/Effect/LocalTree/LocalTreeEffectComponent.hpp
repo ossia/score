@@ -1,8 +1,8 @@
 #pragma once
 /*
 #include <Engine/LocalTree/LocalTreeComponent.hpp>
-#include <Media/Effect/Effect/EffectModel.hpp>
-#include <Media/Effect/Effect/EffectComponent.hpp>
+#include <Effect/EffectModel.hpp>
+#include <Effect/EffectComponent.hpp>
 #include <score/model/ComponentFactory.hpp>
 #include <score/plugins/customfactory/ModelFactory.hpp>
 
@@ -22,7 +22,7 @@ class EffectComponent :
         static const constexpr bool is_unique = true;
         EffectComponent(
                 ossia::net::node_base& node,
-                Effect::EffectModel& proc,
+                Process::EffectModel& proc,
                 Engine::LocalTree::DocumentPlugin& doc,
                 const Id<score::Component>& id,
                 const QString& name,

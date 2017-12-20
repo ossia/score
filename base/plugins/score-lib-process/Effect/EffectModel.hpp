@@ -1,13 +1,11 @@
 #pragma once
 #include <Process/Dataflow/Port.hpp>
-#include <Media/Effect/Effect/EffectFactory.hpp>
 #include <score/model/Entity.hpp>
 
-#include <Engine/Executor/ExecutorContext.hpp>
 #include <score/model/Component.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/plugins/customfactory/SerializableInterface.hpp>
-#include <score_plugin_media_export.h>
+#include <score_lib_process_export.h>
 #include <ossia/dataflow/fx_node.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 class QGraphicsItem;
@@ -20,9 +18,7 @@ namespace Control
 struct RectItem;
 using EffectItem = RectItem;
 }
-namespace Media
-{
-namespace Effect
+namespace Process
 {
 /**
  * @brief The EffectModel class
@@ -33,7 +29,7 @@ namespace Effect
  * of FaustEffectModel could be a different effect (e.g.
  * reverb, distorsion, etc.)
  */
-class SCORE_PLUGIN_MEDIA_EXPORT EffectModel :
+class SCORE_LIB_PROCESS_EXPORT EffectModel :
         public score::Entity<EffectModel>,
         public score::SerializableInterface<EffectModel>
 {
@@ -47,10 +43,10 @@ class SCORE_PLUGIN_MEDIA_EXPORT EffectModel :
         template<typename Impl>
         EffectModel(
                 Impl& vis,
-                QObject* parent) :
+                QObject* parent):
             Entity{vis, parent}
         {
-            vis.writeTo(*this);
+          vis.writeTo(*this);
         }
 
         virtual QString prettyName() const = 0;
@@ -63,18 +59,22 @@ class SCORE_PLUGIN_MEDIA_EXPORT EffectModel :
         virtual void showUI();
         virtual void hideUI();
 
+        Process::Inlet* inlet(const Id<Process::Port>&) const;
+        Process::Outlet* outlet(const Id<Process::Port>&) const;
+  signals:
+    void controlAdded(const Id<Process::Port>&);
+
   protected:
         Process::Inlets m_inlets;
         Process::Outlets m_outlets;
 };
 }
-}
 
 #define EFFECT_METADATA(Export, Model, Uuid, ObjectKey, PrettyName, Category, Tags) \
-    MODEL_METADATA(Export, Media::Effect::EffectModel, Model, Uuid, ObjectKey, PrettyName) \
+    MODEL_METADATA(Export, Process::EffectModel, Model, Uuid, ObjectKey, PrettyName) \
   CATEGORY_METADATA(Export, Model, Category)                         \
   TAGS_METADATA(Export, Model, Tags)
 
-Q_DECLARE_METATYPE(Id<Media::Effect::EffectModel>)
+Q_DECLARE_METATYPE(Id<Process::EffectModel>)
 
-TR_TEXT_METADATA(, Media::Effect::EffectModel, PrettyName_k, "Effect")
+TR_TEXT_METADATA(, Process::EffectModel, PrettyName_k, "Effect")

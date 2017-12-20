@@ -1,5 +1,6 @@
 #pragma once
-#include <Media/Effect/Effect/EffectModel.hpp>
+#include <Effect/EffectModel.hpp>
+#include <Effect/EffectFactory.hpp>
 #include <lilv/lilvmm.hpp>
 #include <Media/Effect/LV2/LV2Context.hpp>
 #include <QJsonDocument>
@@ -26,7 +27,7 @@ namespace LV2
  * Cloning can be done with MakeCopyEffect.
  */
 class LV2EffectModel :
-        public Effect::EffectModel
+        public Process::EffectModel
 {
         Q_OBJECT
         SCORE_SERIALIZE_FRIENDS
@@ -62,7 +63,7 @@ class LV2EffectModel :
         QString m_effectPath;
         void readPlugin();
 };
-using LV2EffectFactory = Effect::EffectFactory_T<LV2EffectModel>;
+using LV2EffectFactory = Process::EffectFactory_T<LV2EffectModel>;
 }
 }
 

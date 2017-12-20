@@ -68,6 +68,10 @@ public:
   void register_node(
       const Process::Inlets& inlets, const Process::Outlets& outlets,
       const std::shared_ptr<ossia::graph_node>& node);
+  void register_inlet(
+      Process::Inlet& inlet,
+      const ossia::inlet_ptr& exec,
+      const std::shared_ptr<ossia::graph_node>& node);
   void unregister_node(
       const Process::Inlets& inlets, const Process::Outlets& outlets,
       const std::shared_ptr<ossia::graph_node>& node);

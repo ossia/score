@@ -87,7 +87,6 @@ void LV2EffectModel::readPlugin()
   for(int port_id : data.control_in_ports)
   {
     auto port = new Process::ControlInlet{Id<Process::Port>{in_id++}, this};
-    port->setUiVisible(true);
 
     port->setDomain(State::Domain{ossia::make_domain(fParamMin[port_id], fParamMax[port_id])});
     port->setValue(fParamInit[port_id]);

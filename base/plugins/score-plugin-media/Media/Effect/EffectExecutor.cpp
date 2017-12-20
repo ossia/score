@@ -40,7 +40,7 @@ static auto move_edges(ossia::outlet& old_out, std::shared_ptr<ossia::outlet> ne
 EffectComponent* EffectProcessComponentBase::make(
     const Id<score::Component>& id,
     EffectComponentFactory& factory,
-    Media::Effect::EffectModel& effect)
+    Process::EffectModel& effect)
 {
   const Engine::Execution::Context & ctx = system();
 
@@ -87,7 +87,7 @@ EffectComponent* EffectProcessComponentBase::make(
       {
         // there's an effect after
         reg(this_fx);
-        system().executionQueue.enqueue(
+        in_exec(
               [g=ctx.plugin.execGraph, n1=fx->node, n2=m_fxes[1].second.node()]
         {
           move_edges(*n2->inputs()[0], n1->inputs()[0], n1, *g);
@@ -135,7 +135,7 @@ EffectComponent* EffectProcessComponentBase::make(
         auto& old_last_comp = m_fxes[idx-1];
         if(old_last_comp.second)
         {
-          system().executionQueue.enqueue(
+          in_exec(
                 [g=ctx.plugin.execGraph, n1=old_last_comp.second.node(), n2=this_fx.node()]
           {
             move_edges(*n1->outputs()[0], n2->outputs()[0], n2, *g);
@@ -154,8 +154,10 @@ EffectComponent* EffectProcessComponentBase::make(
 
       // set as process node
       auto old = m_ossia_process->node;
-      m_ossia_process->node = fx->node;
-      emit nodeChanged(old, m_ossia_process->node);
+      in_exec([proc=m_ossia_process,node=fx->node] {
+        proc->node = node;
+      });
+      emit nodeChanged(old, fx->node);
     }
     else
     {
@@ -163,11 +165,10 @@ EffectComponent* EffectProcessComponentBase::make(
       reg(this_fx);
 
       // unlink before and after and link this one in-between
-
       auto& prev = m_fxes[idx-1];
       if(prev.second)
       {
-        system().executionQueue.enqueue(
+        in_exec(
               [g=ctx.plugin.execGraph, n1=prev.second.node(), n2=this_fx.node()] {
           auto& o_prev = n1->outputs()[0];
           if(!o_prev->targets.empty())
@@ -188,7 +189,7 @@ EffectComponent* EffectProcessComponentBase::make(
 
         if(next.second)
         {
-          system().executionQueue.enqueue(
+          in_exec(
                 [g=ctx.plugin.execGraph, n2=this_fx.node(), n3=next.second.node()] {
             auto& i_next = n3->inputs()[0];
             if(!i_next->sources.empty())
@@ -214,7 +215,7 @@ void EffectProcessComponentBase::added(EffectComponent& e)
 }
 
 std::function<void ()> EffectProcessComponentBase::removing(
-    const Media::Effect::EffectModel& e,
+    const Process::EffectModel& e,
     EffectComponent& c)
 {
   auto echain = std::dynamic_pointer_cast<effect_chain_process>(m_ossia_process);
@@ -227,7 +228,7 @@ std::function<void ()> EffectProcessComponentBase::removing(
   auto& this_fx = it->second;
 
   // Remove all the chaining
-  system().executionQueue.enqueue(
+  in_exec(
         [g=system().plugin.execGraph, n=this_fx.node(), echain] {
     ossia::remove_one(echain->nodes, n);
     n->clear();
@@ -270,6 +271,12 @@ std::function<void ()> EffectProcessComponentBase::removing(
           new_last.second.registeredOutlets[0] = process().outlet.get();
           qDebug() << "REGISTERING " << new_last.second.comp->effect().prettyName() <<  idx-1;
           reg(new_last.second);
+
+          auto old = m_ossia_process->node;
+          in_exec([proc=m_ossia_process,node=new_last.second.node()] {
+            proc->node = node;
+          });
+          emit nodeChanged(old, new_last.second.node());
         }
       }
     }
@@ -284,7 +291,7 @@ std::function<void ()> EffectProcessComponentBase::removing(
       auto& next = m_fxes[idx+1];
       if(prev.second && next.second)
       {
-        system().executionQueue.enqueue(
+        in_exec(
               [g=system().plugin.execGraph, n1=prev.second.node(), n2=next.second.node()] {
 
           auto edge = ossia::make_edge(
@@ -313,26 +320,6 @@ void EffectProcessComponent::cleanup() {
 
 EffectProcessComponentBase::~EffectProcessComponentBase()
 {
-}
-
-EffectComponentFactoryList::~EffectComponentFactoryList()
-{
-
-}
-
-EffectComponent::~EffectComponent()
-{
-
-}
-
-EffectComponentFactory::~EffectComponentFactory()
-{
-
-}
-
-void EffectComponentFactory::init(EffectComponent* comp) const
-{
-
 }
 
 EffectProcessComponent::~EffectProcessComponent()

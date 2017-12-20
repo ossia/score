@@ -1,117 +1,202 @@
 #pragma once
-#include <Media/Effect/Effect/EffectModel.hpp>
+#include <Effect/EffectModel.hpp>
+#include <Effect/EffectFactory.hpp>
 #include <QJsonDocument>
 #include <Media/Effect/VST/VSTLoader.hpp>
 #include <Media/Effect/EffectExecutor.hpp>
-namespace Media
-{
-namespace VST
+#include <Media/Effect/DefaultEffectItem.hpp>
+namespace Media::VST
 {
 class VSTEffectModel;
 }
-}
 EFFECT_METADATA(, Media::VST::VSTEffectModel, "BE8E6BD3-75F2-4102-8895-8A4EB4EA545A", "VST", "VST", "", {})
-namespace Media
+namespace Media::VST
 {
-  namespace VST
-  {
-  struct AEffectWrapper
-  {
-      AEffect* fx{};
-      VstTimeInfo info;
+class VSTControlInlet;
+struct AEffectWrapper
+{
+    AEffect* fx{};
+    VstTimeInfo info;
 
-      AEffectWrapper(AEffect* f): fx{f}
+    AEffectWrapper(AEffect* f): fx{f}
+    {
+
+    }
+
+    auto getParameter(VstInt32 index)
+    {
+      return fx->getParameter(fx, index);
+    }
+    auto setParameter(VstInt32 index, float p)
+    {
+      return fx->setParameter(fx, index, p);
+    }
+
+    auto dispatch(VstInt32 opcode, VstInt32 index = 0, VstIntPtr value = 0, void *ptr = nullptr, float opt = 0.0f)
+    {
+      return fx->dispatcher(fx, opcode, index, value, ptr, opt);
+    }
+
+    ~AEffectWrapper()
+    {
+      if(fx)
       {
-
+        fx->dispatcher(fx, effStopProcess, 0, 0, nullptr, 0.f);
+        fx->dispatcher(fx, effMainsChanged, 0, 0, nullptr, 0.f);
+        fx->dispatcher(fx, effClose, 0, 0, nullptr, 0.f);
       }
+    }
+};
 
-      auto getParameter(VstInt32 index)
-      {
-        return fx->getParameter(fx, index);
-      }
-      auto setParameter(VstInt32 index, float p)
-      {
-        return fx->setParameter(fx, index, p);
-      }
-
-      auto dispatch(VstInt32 opcode, VstInt32 index = 0, VstIntPtr value = 0, void *ptr = nullptr, float opt = 0.0f)
-      {
-        return fx->dispatcher(fx, opcode, index, value, ptr, opt);
-      }
-
-      ~AEffectWrapper()
-      {
-        if(fx)
-        {
-          fx->dispatcher(fx, effStopProcess, 0, 0, nullptr, 0.f);
-          fx->dispatcher(fx, effMainsChanged, 0, 0, nullptr, 0.f);
-          fx->dispatcher(fx, effClose, 0, 0, nullptr, 0.f);
-        }
-      }
-  };
-
-  class VSTControlInlet;
-  class VSTEffectModel :
-      public Effect::EffectModel
-  {
-      Q_OBJECT
-      SCORE_SERIALIZE_FRIENDS
-          public:
-        MODEL_METADATA_IMPL(VSTEffectModel)
-      VSTEffectModel(
-      const QString& name,
-        const Id<EffectModel>&,
-              QObject* parent);
+class VSTControlInlet;
+class VSTEffectModel :
+    public Process::EffectModel
+{
+    Q_OBJECT
+    SCORE_SERIALIZE_FRIENDS
+    public:
+      MODEL_METADATA_IMPL(VSTEffectModel)
+    VSTEffectModel(
+    const QString& name,
+      const Id<EffectModel>&,
+            QObject* parent);
 
 
-      ~VSTEffectModel() override;
-      template<typename Impl>
-      VSTEffectModel(
-            Impl& vis,
-            QObject* parent) :
-        EffectModel{vis, parent}
-      {
-        vis.writeTo(*this);
-      }
+    ~VSTEffectModel() override;
+    template<typename Impl>
+    VSTEffectModel(
+        Impl& vis,
+        QObject* parent) :
+      EffectModel{vis, parent}
+    {
+      init();
+      vis.writeTo(*this);
+    }
 
-      const QString& effect() const
-      { return m_effectPath; }
+    const QString& effect() const
+    { return m_effectPath; }
 
-      void setEffect(const QString& s)
-      { m_effectPath = s; }
+    void setEffect(const QString& s)
+    { m_effectPath = s; }
+    VSTControlInlet* getControl(const Id<Process::Port>& p);
+    QString prettyName() const override;
 
-      std::shared_ptr<AEffectWrapper> fx{};
-      VstIntPtr ui{};
+    std::shared_ptr<AEffectWrapper> fx{};
+    VstIntPtr ui{};
 
-      QString prettyName() const override;
-      std::unordered_map<int, VSTControlInlet*> controls;
+    std::unordered_map<int, VSTControlInlet*> controls;
 
-    signals:
-      void controlsChanged();
-    private:
-      template<typename T>
-      void reload(const T& port_factory);
-      void showUI() override;
-      void hideUI() override;
-      QString m_effectPath;
 
-      auto dispatch(VstInt32 opcode, VstInt32 index = 0, VstIntPtr value = 0, void *ptr = nullptr, float opt = 0.0f)
-      {
-        return fx->dispatch(opcode, index, value, ptr, opt);
-      }
+  signals:
+    void addControl(int idx, float v);
 
-      void closePlugin();
-  };
-  using VSTEffectFactory = Effect::EffectFactory_T<VSTEffectModel>;
+  private slots:
+    void on_addControl(int idx, float v);
+  private:
+    QString getString(AEffectOpcodes op, int param);
+    void init();
+    template<typename T>
+    void reload(const T& port_factory);
+    void showUI() override;
+    void hideUI() override;
+    QString m_effectPath;
 
-  }
+    auto dispatch(VstInt32 opcode, VstInt32 index = 0, VstIntPtr value = 0, void *ptr = nullptr, float opt = 0.0f)
+    {
+      return fx->dispatch(opcode, index, value, ptr, opt);
+    }
+
+    void closePlugin();
+};
+using VSTEffectFactory = Process::EffectFactory_T<VSTEffectModel>;
+
+class VSTEffectItem:
+    public Control::EffectItem
+{
+    Control::RectItem* rootItem{};
+  public:
+    VSTEffectItem(
+        const VSTEffectModel& effect, const score::DocumentContext& doc, Control::RectItem* root);
+
+    template<typename T>
+    void setupInlet(
+        T control,
+        Process::ControlInlet& inlet,
+        const score::DocumentContext& doc)
+    {
+      auto item = new Control::RectItem{this};
+
+      double pos_y = this->childrenBoundingRect().height();
+
+      auto port = Dataflow::setupInlet(inlet, doc, item, this);
+
+      auto lab = new Scenario::SimpleTextItem{item};
+      lab->setColor(ScenarioStyle::instance().EventDefault);
+      lab->setText(inlet.customData());
+      lab->setPos(15, 2);
+
+
+      QGraphicsItem* widg = T::make_item(control, inlet, doc, nullptr, this);
+      widg->setParentItem(item);
+      widg->setPos(15, lab->boundingRect().height());
+
+      auto h = std::max(20., (qreal)(widg->boundingRect().height() + lab->boundingRect().height() + 2.));
+
+      port->setPos(7., h / 2.);
+
+      item->setPos(0, pos_y);
+      item->setRect(QRectF{0., 0, 170., h});
+    }
+    void setupInlet(
+        const VSTEffectModel& fx,
+        VSTControlInlet& inlet,
+        const score::DocumentContext& doc);
+};
+
+class VSTGraphicsSlider
+    : public QObject
+    , public QGraphicsItem
+{
+    Q_OBJECT
+
+    double m_value{};
+    QRectF m_rect;
+    AEffect* fx{};
+    int num{};
+  private:
+    bool m_grab;
+  public:
+    VSTGraphicsSlider(AEffect* fx, int num, QGraphicsItem* parent);
+
+    void setRect(QRectF r);
+    void setValue(double v);
+    double value() const;
+
+    bool moving = false;
+  signals:
+    void valueChanged(double);
+    void sliderMoved();
+    void sliderReleased();
+
+  private:
+    void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+    QRectF boundingRect() const override;
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+    bool isInHandle(QPointF p);
+    double getHandleX() const;
+    QRectF sliderRect() const;
+    QRectF handleRect() const;
+};
+
+
+using VSTUIEffectFactory = Process::EffectUIFactory_T<VSTEffectModel, VSTEffectItem>;
 }
 
-namespace Engine
+namespace Engine::Execution
 {
-namespace Execution
-{
-class  VSTEffectComponent
+class VSTEffectComponent
     : public Engine::Execution::EffectComponent_T<Media::VST::VSTEffectModel>
 {
     Q_OBJECT
@@ -127,5 +212,4 @@ class  VSTEffectComponent
         QObject* parent);
 };
 using VSTEffectComponentFactory = Engine::Execution::EffectComponentFactory_T<VSTEffectComponent>;
-}
 }

@@ -72,21 +72,21 @@ constexpr scales_array make_scale(std::initializer_list<bool> notes)
 constexpr int get_scale(QLatin1String s)
 {
   using namespace std::literals;
-  if(Process::same(s, QLatin1String("all"))) return scale::all;
-  else if(Process::same(s, QLatin1String("ionian"))) return scale::ionian;
-  else if(Process::same(s, QLatin1String("dorian"))) return scale::dorian;
-  else if(Process::same(s, QLatin1String("phyrgian"))) return scale::phyrgian;
-  else if(Process::same(s, QLatin1String("lydian"))) return scale::lydian;
-  else if(Process::same(s, QLatin1String("mixolydian"))) return scale::mixolydian;
-  else if(Process::same(s, QLatin1String("aeolian"))) return scale::aeolian;
-  else if(Process::same(s, QLatin1String("locrian"))) return scale::locrian;
-  else if(Process::same(s, QLatin1String("I"))) return scale::I;
-  else if(Process::same(s, QLatin1String("II"))) return scale::II;
-  else if(Process::same(s, QLatin1String("III"))) return scale::III;
-  else if(Process::same(s, QLatin1String("IV"))) return scale::IV;
-  else if(Process::same(s, QLatin1String("V"))) return scale::V;
-  else if(Process::same(s, QLatin1String("VI"))) return scale::VI;
-  else if(Process::same(s, QLatin1String("VII"))) return scale::VII;
+  if(Control::same(s, QLatin1String("all"))) return scale::all;
+  else if(Control::same(s, QLatin1String("ionian"))) return scale::ionian;
+  else if(Control::same(s, QLatin1String("dorian"))) return scale::dorian;
+  else if(Control::same(s, QLatin1String("phyrgian"))) return scale::phyrgian;
+  else if(Control::same(s, QLatin1String("lydian"))) return scale::lydian;
+  else if(Control::same(s, QLatin1String("mixolydian"))) return scale::mixolydian;
+  else if(Control::same(s, QLatin1String("aeolian"))) return scale::aeolian;
+  else if(Control::same(s, QLatin1String("locrian"))) return scale::locrian;
+  else if(Control::same(s, QLatin1String("I"))) return scale::I;
+  else if(Control::same(s, QLatin1String("II"))) return scale::II;
+  else if(Control::same(s, QLatin1String("III"))) return scale::III;
+  else if(Control::same(s, QLatin1String("IV"))) return scale::IV;
+  else if(Control::same(s, QLatin1String("V"))) return scale::V;
+  else if(Control::same(s, QLatin1String("VI"))) return scale::VI;
+  else if(Control::same(s, QLatin1String("VII"))) return scale::VII;
   else return scale::all;
 }
 static Q_DECL_RELAXED_CONSTEXPR frozen::unordered_map<int, scales_array, scale::SCALES_MAX> scales{
@@ -165,20 +165,20 @@ struct Node
   };
 
   static const constexpr auto info =
-    Process::create_node()
+    Control::create_node()
   .midi_ins({{"in"}})
   .midi_outs({{"out"}})
-  .controls(Process::make_enum(
+  .controls(Control::make_enum(
                "Scale",
                0U,
-               Process::array("all", "ionian", "dorian", "phyrgian", "lydian", "mixolydian", "aeolian", "locrian",
+               Control::array("all", "ionian", "dorian", "phyrgian", "lydian", "mixolydian", "aeolian", "locrian",
                 "I", "II", "III", "IV", "V", "VI", "VII")),
-            Process::Widgets::OctaveSlider("Base", 0, 1),
-            Process::Widgets::OctaveSlider("Transpose", -1, 1)
+            Control::Widgets::OctaveSlider("Base", 0, 1),
+            Control::Widgets::OctaveSlider("Transpose", -1, 1)
   )
   .build();
 
-  using control_policy = Process::DefaultTick;
+  using control_policy = Control::DefaultTick;
   static void run(
       const ossia::midi_port& midi_in,
       const Control::timed_vec<std::string>& sc,
@@ -211,6 +211,5 @@ struct Node
     }
   }
 };
-using Factories = Process::Factories<Node>;
 }
 }

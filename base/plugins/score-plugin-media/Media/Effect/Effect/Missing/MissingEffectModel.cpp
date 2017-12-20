@@ -6,9 +6,9 @@ namespace Effect
 
 MissingEffectModel::MissingEffectModel(
         const QByteArray& MissingProgram,
-        const Id<EffectModel>& id,
+        const Id<Process::EffectModel>& id,
         QObject* parent):
-    EffectModel{id, parent}
+    Process::EffectModel{id, parent}
 {
     SCORE_TODO;
 }

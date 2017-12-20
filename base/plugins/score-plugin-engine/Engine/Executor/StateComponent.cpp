@@ -48,7 +48,7 @@ SCORE_PLUGIN_ENGINE_EXPORT void StateComponent::onDelete() const
   if(m_node)
   {
     system().plugin.unregister_node({}, {}, m_node);
-    system().executionQueue.enqueue([gr=this->system().plugin.execGraph,ev=m_ev,st=m_state] {
+    in_exec([gr=this->system().plugin.execGraph,ev=m_ev,st=m_state] {
       auto& procs = ev->get_time_processes();
       if(!procs.empty())
       {

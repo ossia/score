@@ -42,6 +42,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/BaseScenarioComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/EventComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ScenarioComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/EffectComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ProcessComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/StateProcessComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/StateComponent.hpp"
@@ -101,6 +102,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Executor.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Node.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/TickPolicy.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Effect.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_engine.hpp"
     )
@@ -132,6 +134,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ContextMenu/PlayFromIntervalInScenario.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ProcessComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/EffectComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/StateProcessComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/BaseScenarioComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/EventComponent.cpp"

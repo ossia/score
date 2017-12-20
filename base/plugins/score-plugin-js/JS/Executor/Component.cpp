@@ -92,7 +92,7 @@ Component::Component(
     auto val_inlet = node->m_valInlets[ctrl_idx];
     connect(ctrl, &Process::ControlInlet::valueChanged,
             this, [=] (const ossia::value& val) {
-      this->system().executionQueue.enqueue(js_control_updater{*val_inlet.first, val});
+      this->in_exec(js_control_updater{*val_inlet.first, val});
     });
   }
 
@@ -100,7 +100,7 @@ Component::Component(
   /*
   con(element, &JS::ProcessModel::scriptChanged,
       this, [=] (const QString& str) {
-    system().executionQueue.enqueue(
+    in_exec(
           [proc=std::dynamic_pointer_cast<js_node>(m_node),
           &str]
     { proc->setScript(str); });

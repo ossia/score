@@ -20,13 +20,13 @@ struct Node
   };
 
   static const constexpr auto info =
-      Process::create_node()
+      Control::create_node()
       .value_ins({{"in"}})
       .value_outs({{"out"}})
       .state<State>()
       .build();
 
-  using control_policy = Process::DefaultTick;
+  using control_policy = Control::DefaultTick;
   static void run(
       const ossia::value_port& p1,
       ossia::value_port& p2,
@@ -69,8 +69,6 @@ struct Node
     }
   }
 };
-
-using Factories = Process::Factories<Node>;
 }
 
 }

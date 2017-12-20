@@ -2,7 +2,7 @@
 #include <Engine/LocalTree/Scenario/ProcessComponent.hpp>
 #include <Engine/LocalTree/LocalTreeComponent.hpp>
 #include <Engine/LocalTree/NameProperty.hpp>
-#include <Media/Effect/Effect/EffectModel.hpp>
+#include <Effect/EffectModel.hpp>
 #include <Media/Effect/EffectProcessModel.hpp>
 #include <Media/Effect/Effect/Faust/FaustEffectModel.hpp>
 #include <Media/Effect/LocalTree/LocalTreeEffectComponent.hpp>
@@ -42,9 +42,9 @@ class EffectProcessComponentBase :
 
        EffectComponent* make(
                const Id<score::Component> & id,
-               Effect::EffectModel &process);
+               Process::EffectModel &process);
 
-       void removing(const Effect::EffectModel& cst, const EffectComponent& comp);
+       void removing(const Process::EffectModel& cst, const EffectComponent& comp);
 
        ~EffectProcessComponentBase();
 

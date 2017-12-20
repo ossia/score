@@ -1,6 +1,6 @@
 #pragma once
-#include <Media/Effect/Effect/EffectModel.hpp>
-#include <Media/Effect/Effect/EffectFactory.hpp>
+#include <Effect/EffectModel.hpp>
+#include <Effect/EffectFactory.hpp>
 #include <QJsonDocument>
 namespace Media
 {

@@ -17,12 +17,12 @@ struct Node
     };
 
     static const constexpr auto info =
-            Process::create_node()
+            Control::create_node()
             .value_outs({{"out"}})
-            .controls(Process::Widgets::MusicalDurationChooser(),
-                      Process::Widgets::LFOFreqChooser(),
-                      Process::ChooserToggle{"Quantify", {"Free", "Sync"}, false},
-                      Process::Widgets::TempoChooser()
+            .controls(Control::Widgets::MusicalDurationChooser(),
+                      Control::Widgets::LFOFreqChooser(),
+                      Control::ChooserToggle{"Quantify", {"Free", "Sync"}, false},
+                      Control::Widgets::TempoChooser()
                       )
             .build();
 
@@ -53,7 +53,7 @@ struct Node
         return val;
     }
 
-    using control_policy = Process::LastTick;
+    using control_policy = Control::LastTick;
     static void run(
             float quantif,
             float freq,
@@ -78,7 +78,5 @@ struct Node
         }
     }
 };
-
-using Factories = Process::Factories<Node>;
 }
 }

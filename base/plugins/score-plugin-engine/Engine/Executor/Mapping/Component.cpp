@@ -166,7 +166,7 @@ void Component::recompute()
 
   if (curve)
   {
-    system().executionQueue.enqueue(
+    in_exec(
           [proc=std::dynamic_pointer_cast<mapping_node>(OSSIAProcess().node)
           ,curve
           ,ossia_source_addr

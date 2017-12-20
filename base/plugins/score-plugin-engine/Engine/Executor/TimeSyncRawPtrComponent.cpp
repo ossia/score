@@ -38,7 +38,7 @@ TimeSyncRawPtrComponent::TimeSyncRawPtrComponent(
 
 void TimeSyncRawPtrComponent::cleanup()
 {
-  system().executionQueue.enqueue([ts=m_ossia_node] {
+  in_exec([ts=m_ossia_node] {
     ts->cleanup();
   });
   m_ossia_node = nullptr;
@@ -84,7 +84,7 @@ const Scenario::TimeSyncModel& TimeSyncRawPtrComponent::scoreTimeSync() const
 void TimeSyncRawPtrComponent::updateTrigger()
 {
   auto exp_ptr = std::make_shared<ossia::expression_ptr>( this->makeTrigger() );
-  this->system().executionQueue.enqueue(
+  this->in_exec(
         [e = m_ossia_node, exp_ptr]
   {
     bool old = e->is_observing_expression();
@@ -102,7 +102,7 @@ void TimeSyncRawPtrComponent::updateTrigger()
 
 void TimeSyncRawPtrComponent::on_GUITrigger()
 {
-  this->system().executionQueue.enqueue(
+  this->in_exec(
         [e = m_ossia_node]
   {
     e->trigger_request = true;
