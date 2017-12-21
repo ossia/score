@@ -46,7 +46,7 @@ Event::Event(
       auto res = exp_a->value();
       if(auto str = res.target<std::string>())
       {
-        if(State::parseExpression(*str) != cond)
+        if(::State::parseExpression(*str) != cond)
         {
           exp_a->push_value(std::move(newVal));
         }
