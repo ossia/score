@@ -21,7 +21,7 @@ case "$TRAVIS_OS_NAME" in
     sudo add-apt-repository --yes ppa:beineri/opt-qt592-trusty
 
     sudo apt-get update -qq
-    sudo apt-get install -qq --force-yes g++-7 binutils libasound-dev ninja-build gcovr lcov qt59-meta-minimal qt59svg qt59quickcontrols2 qt59websockets qt59serialport qt59multimedia libgl1-mesa-dev libavcodec-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev libportaudio-dev clang-5.0 lld-5.0
+    sudo apt-get install -qq --force-yes g++-7 binutils libasound-dev ninja-build gcovr lcov qt59-meta-minimal qt59svg qt59quickcontrols2 qt59websockets qt59serialport qt59multimedia libgl1-mesa-dev libavcodec-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev portaudio19-dev clang-5.0 lld-5.0
 
     wait wget || true
     (cd /opt; sudo tar xaf boost.tar.bz2; sudo mv boost_* boost ; sudo chmod -R a+rwx boost)
