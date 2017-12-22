@@ -42,8 +42,11 @@ void hide_vst2_editor(AEffect& effect)
   if(effect.resvd1)
   {
     auto container = reinterpret_cast<QWindow*>(reinterpret_cast<Media::VST::VSTEffectModel*>(effect.resvd1)->ui);
-    container->close();
-    container->deleteLater();
+    if(container)
+    {
+      container->close();
+      container->deleteLater();
+    }
     reinterpret_cast<Media::VST::VSTEffectModel*>(effect.resvd1)->ui = 0;
   }
 }
