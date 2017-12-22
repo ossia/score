@@ -128,30 +128,48 @@ auto deserialize_interface(
   return factories.loadMissing(des.toVariant(), std::forward<Args>(args)...);
 }
 
-/**
- * @macro SERIALIZABLE_MODEL_METADATA_IMPL Provides default implementations of methods of SerializableInterface.
- *
- * If the class is clonable, use MODEL_METADATA_IMPL.
- */
-#define SERIALIZABLE_MODEL_METADATA_IMPL(Model_T)                     \
-  static key_type static_concreteKey()                         \
-  {                                                                   \
-    return Metadata<ConcreteKey_k, Model_T>::get();            \
-  }                                                                   \
-  key_type concreteKey() const final override                  \
-  {                                                                   \
-    return static_concreteKey();                               \
-  }                                                                   \
-                                                                      \
-  void serialize_impl(const VisitorVariant& vis) const final override \
-  {                                                                   \
-    score::serialize_dyn(vis, *this);                                        \
+template <typename FactoryList_T, typename... Args>
+auto deserialize_interface(
+    const FactoryList_T& factories,
+    JSONObject::Deserializer&& des,
+    Args&&... args) -> typename FactoryList_T::object_type*
+{
+  // Deserialize the interface identifier
+  try
+  {
+    auto k = deserialize_key<
+        typename FactoryList_T::factory_type::ConcreteKey>(des);
+
+    // Get the factory
+    if (auto concrete_factory = factories.get(k))
+    {
+      // Create the object
+      return concrete_factory->load(
+          des.toVariant(), std::forward<Args>(args)...);
+    }
   }
+  catch (...)
+  {
+  }
+
+  // If the object could not be loaded, we try to load a "missing" verson of
+  // it.
+  return factories.loadMissing(des.toVariant(), std::forward<Args>(args)...);
+}
 
 /**
  * @macro MODEL_METADATA_IMPL Provides default implementations of methods of SerializableInterface.
- *
- * Should be used most of the time when deriving from an abstract model class.
  */
-#define MODEL_METADATA_IMPL(Model_T)                       \
-  SERIALIZABLE_MODEL_METADATA_IMPL(Model_T)
+#define MODEL_METADATA_IMPL(Model_T)                                  \
+  static key_type static_concreteKey()                                \
+  {                                                                   \
+    return Metadata<ConcreteKey_k, Model_T>::get();                   \
+  }                                                                   \
+  key_type concreteKey() const override                               \
+  {                                                                   \
+    return static_concreteKey();                                      \
+  }                                                                   \
+  void serialize_impl(const VisitorVariant& vis) const override       \
+  {                                                                   \
+    score::serialize_dyn(vis, *this);                                 \
+  }

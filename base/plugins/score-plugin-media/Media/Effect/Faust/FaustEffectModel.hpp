@@ -23,6 +23,7 @@ class FaustEffectModel :
     public Process::EffectModel
 {
     friend class FaustUI;
+    friend class FaustUpdateUI;
     Q_OBJECT
     SCORE_SERIALIZE_FRIENDS
     MODEL_METADATA_IMPL(FaustEffectModel)

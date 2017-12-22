@@ -20,7 +20,7 @@ class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final
   Q_OBJECT
   SCORE_SERIALIZE_FRIENDS
 
-  SERIALIZABLE_MODEL_METADATA_IMPL(DeviceDocumentPlugin)
+  MODEL_METADATA_IMPL(DeviceDocumentPlugin)
 public:
   explicit DeviceDocumentPlugin(
       const score::DocumentContext& ctx,
