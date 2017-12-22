@@ -101,6 +101,7 @@ public:
 signals:
   void finished();
 private:
+  mutable ExecutionCommandQueue m_execQueue;
   mutable ExecutionCommandQueue m_editionQueue;
   Context m_ctx;
   BaseScenarioElement m_base;
@@ -109,6 +110,9 @@ private:
   void on_cableRemoved(const Process::Cable& c);
   void connectCable(Process::Cable& cable);
   void on_finished();
+
+  void timerEvent(QTimerEvent* event) override;
+  int m_tid{};
 };
 }
 }

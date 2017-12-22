@@ -43,15 +43,16 @@ DefaultClockManager::makeDefaultCallback(
       double position,
       ossia::time_value date)
   {
-    auto currentTime = ctx.reverseTime(date);
+    ctx.editionQueue.enqueue([&score_cst,currentTime = ctx.reverseTime(date)] {
+      auto& cstdur = score_cst.duration;
+      const auto& maxdur = cstdur.maxDuration();
 
-    auto& cstdur = score_cst.duration;
-    const auto& maxdur = cstdur.maxDuration();
+      if (!maxdur.isInfinite())
+        cstdur.setPlayPercentage(currentTime / cstdur.maxDuration());
+      else
+        cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
+    });
 
-    if (!maxdur.isInfinite())
-      cstdur.setPlayPercentage(currentTime / cstdur.maxDuration());
-    else
-      cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
 
     // Run some commands if they have been submitted.
     ExecutionCommand c;
