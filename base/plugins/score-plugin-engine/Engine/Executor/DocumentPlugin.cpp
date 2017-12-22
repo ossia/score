@@ -35,13 +35,15 @@ DocumentPlugin::DocumentPlugin(
     , audioproto{new ossia::audio_protocol}
     , audio_dev{std::unique_ptr<ossia::net::protocol_base>(audioproto), "audio"}
     , midi_dev{std::make_unique<ossia::net::multiplex_protocol>(), "midi"}
+    , m_execQueue(1024)
+    , m_editionQueue(1024)
     , m_ctx{
           ctx, m_base,
           ctx.plugin<Explorer::DeviceDocumentPlugin>(),
           ctx.app.interfaces<ProcessComponentFactoryList>(),
           ctx.app.interfaces<StateProcessComponentFactoryList>(),
           {}, {},
-          m_editionQueue, *this
+          m_execQueue, m_editionQueue, *this
       }
     , m_base{m_ctx, this}
 {
@@ -191,6 +193,19 @@ void DocumentPlugin::on_finished()
   runtime_connections.clear();
 
   execGraph = std::make_shared<ossia::graph>();
+
+  if(m_tid != -1)
+  {
+    killTimer(m_tid);
+    m_tid = -1;
+  }
+}
+
+void DocumentPlugin::timerEvent(QTimerEvent* event)
+{
+  ExecutionCommand cmd;
+  while(m_editionQueue.try_dequeue(cmd))
+    cmd();
 }
 void DocumentPlugin::reload(Scenario::IntervalModel& cst)
 {
@@ -208,12 +223,12 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
   m_base.init(BaseScenarioRefContainer{cst, *parent});
 
   auto& model = context().doc.model<Scenario::ScenarioDocumentModel>();
-  //qDebug() << context().document.findChildren<Process::Node*>();
   for(auto& cable : model.cables)
   {
     connectCable(cable);
   }
 
+  m_tid = startTimer(32);
   runAllCommands();
 }
 
@@ -254,7 +269,7 @@ void DocumentPlugin::runAllCommands() const
   bool ok = false;
   ExecutionCommand com;
   do {
-    ok = m_editionQueue.try_dequeue(com);
+    ok = m_execQueue.try_dequeue(com);
     if(ok && com)
       com();
   } while(ok);
@@ -285,7 +300,7 @@ void DocumentPlugin::set_destination(
     {
       auto& qual = address.qualifiers.get();
 
-      m_editionQueue.enqueue([=] {
+      m_execQueue.enqueue([=] {
         port->address = p;
         if(ossia::value_port* dat = port->data.target<ossia::value_port>()) {
           if(qual.unit)
@@ -296,14 +311,14 @@ void DocumentPlugin::set_destination(
     }
     else
     {
-      m_editionQueue.enqueue([=] {
+      m_execQueue.enqueue([=] {
         port->address = ossia_addr;
       });
     }
   }
   else
   {
-    m_editionQueue.enqueue([=] {
+    m_execQueue.enqueue([=] {
       port->address = {};
       if(ossia::value_port* dat = port->data.target<ossia::value_port>()) {
         dat->type = {};
@@ -323,7 +338,7 @@ void DocumentPlugin::set_destination(
     {
       auto& qual = address.qualifiers.get();
 
-      m_editionQueue.enqueue([=] {
+      m_execQueue.enqueue([=] {
         port->address = p;
         if(ossia::value_port* dat = port->data.target<ossia::value_port>()) {
           if(qual.unit)
@@ -334,14 +349,14 @@ void DocumentPlugin::set_destination(
     }
     else
     {
-      m_editionQueue.enqueue([=] {
+      m_execQueue.enqueue([=] {
         port->address = ossia_addr;
       });
     }
   }
   else
   {
-    m_editionQueue.enqueue([=] {
+    m_execQueue.enqueue([=] {
       port->address = {};
       if(ossia::value_port* dat = port->data.target<ossia::value_port>()) {
         dat->type = {};
@@ -377,7 +392,7 @@ void DocumentPlugin::register_node(
 
       inlets.insert({ proc_inlets[i], std::make_pair( node, node->inputs()[i] ) });
 
-      m_editionQueue.enqueue([this,port=node->inputs()[i]] {
+      m_execQueue.enqueue([this,port=node->inputs()[i]] {
         execState.register_inlet(*port);
       });
     }
@@ -394,7 +409,7 @@ void DocumentPlugin::register_node(
       outlets.insert({ proc_outlets[i], std::make_pair( node, node->outputs()[i] ) });
     }
 
-    m_editionQueue.enqueue([=] {
+    m_execQueue.enqueue([=] {
       execGraph->add_node(std::move(node));
     });
   }
@@ -416,7 +431,7 @@ void DocumentPlugin::register_inlet(
 
     inlets.insert({ &proc_inlet, std::make_pair( node, port ) });
 
-    m_editionQueue.enqueue([this,port,node] {
+    m_execQueue.enqueue([this,port,node] {
       execState.register_inlet(*port);
       execGraph->add_node(std::move(node));
     });
@@ -428,7 +443,7 @@ void DocumentPlugin::unregister_node(
 {
   if(node)
   {
-    m_editionQueue.enqueue([=] {
+    m_execQueue.enqueue([=] {
       node->clear();
       execGraph->remove_node(node);
     });

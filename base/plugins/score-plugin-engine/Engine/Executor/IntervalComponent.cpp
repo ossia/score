@@ -117,10 +117,12 @@ void IntervalComponent::onSetup(
   // BaseScenario needs a special callback. It is given in DefaultClockManager.
   if (!parent_is_base_scenario)
   {
-    in_exec([self,ossia_cst] {
+    in_exec([self,ossia_cst,&edit=system().editionQueue] {
       ossia_cst->set_stateless_callback(
-            [self](double position, ossia::time_value date) {
-        emit self->sig_callback(position, date);
+            [self,&edit](double position, ossia::time_value date) {
+        edit.enqueue([self,position,date] {
+          self->slot_callback(position, date);
+        });
       });
     });
   }

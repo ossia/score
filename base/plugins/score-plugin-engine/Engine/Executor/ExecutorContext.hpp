@@ -39,7 +39,7 @@ class StateProcessComponentFactoryList;
 class BaseScenarioElement;
 
 using ExecutionCommand = std::function<void()>;
-using ExecutionCommandQueue = moodycamel::ReaderWriterQueue<ExecutionCommand>;
+using ExecutionCommandQueue = moodycamel::ReaderWriterQueue<ExecutionCommand, 1024>;
 
 //! Useful structures when creating the execution elements.
 struct SCORE_PLUGIN_ENGINE_EXPORT Context
@@ -66,6 +66,7 @@ struct SCORE_PLUGIN_ENGINE_EXPORT Context
 
   //! \see LiveModification
   ExecutionCommandQueue& executionQueue;
+  ExecutionCommandQueue& editionQueue;
   DocumentPlugin& plugin;
 
   auto& context() const { return *this; }
@@ -75,3 +76,4 @@ struct SCORE_PLUGIN_ENGINE_EXPORT Context
 }
 
 #define in_exec system().executionQueue.enqueue
+#define in_edit system().editionQueue.enqueue
