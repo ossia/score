@@ -54,7 +54,7 @@ EffectComponent* EffectProcessComponentBase::make(
     if(m_fxes.size() < (idx + 1))
       m_fxes.resize(idx + 1);
     m_fxes[idx] = std::make_pair(effect.id(), RegisteredEffect{fx, {}, {}});
-    static_cast<effect_chain_process*>(m_ossia_process.get())->nodes.push_back(fx->node);
+    static_cast<effect_chain_process*>(m_ossia_process.get())->add_node(fx->node);
 
     auto& this_fx = m_fxes[idx].second;
 

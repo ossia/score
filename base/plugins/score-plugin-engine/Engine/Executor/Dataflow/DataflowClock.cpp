@@ -14,6 +14,7 @@
 #include <Engine/Protocols/OSSIADevice.hpp>
 #include <ossia/dataflow/graph.hpp>
 #include <QPointer>
+#include <ossia/network/midi/midi_device.hpp>
 namespace Dataflow
 {
 Clock::Clock(
@@ -57,7 +58,12 @@ void Clock::play_impl(
   for(auto dev : context.devices.list().devices()) {
     if(auto od = dynamic_cast<Engine::Network::OSSIADevice*>(dev))
       if(auto d = od->getDevice())
-        m_plug.execState.register_device(d);
+      {
+        if(auto midi_dev = dynamic_cast<ossia::net::midi::midi_device*>(d))
+          m_plug.execState.register_device(midi_dev);
+        else
+          m_plug.execState.register_device(d);
+      }
   }
   m_default.play(t);
 

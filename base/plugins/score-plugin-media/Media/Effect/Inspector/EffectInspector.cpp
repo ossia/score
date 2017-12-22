@@ -160,7 +160,7 @@ void InspectorWidget::add_faust(std::size_t pos)
   m_dispatcher.submitCommand(
         new Commands::InsertEffect{
           process(),
-          FaustEffectFactory::static_concreteKey(),
+          Media::Faust::FaustEffectFactory::static_concreteKey(),
           "",
           pos});
 #endif

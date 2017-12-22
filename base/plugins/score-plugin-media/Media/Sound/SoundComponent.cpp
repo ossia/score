@@ -102,10 +102,10 @@ public:
 private:
   ossia::net::node_base* get_params(ossia::execution_state& e)
   {
-    auto dev = ossia::find_if(e.globalState, [] (const ossia::net::device_base* dev) {
+    auto dev = ossia::find_if(e.valueDevices, [] (const ossia::net::device_base* dev) {
       return dev->get_name() == "audio";
     });
-    if(dev != e.globalState.end())
+    if(dev != e.valueDevices.end())
     {
       auto in = ossia::net::find_node((*dev)->get_root_node(), "/in/main");
       return in;

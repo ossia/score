@@ -71,6 +71,19 @@ public:
   id_base_t(id_base_t&& other) : m_id{std::move(other.m_id)}
   {
   }
+  template<typename other>
+  id_base_t(const id_base_t<other, impl>& oid
+          , typename std::enable_if<std::is_base_of_v<tag, other>>::type* = 0)
+    : m_id{oid.val()}
+  {
+  }
+
+  template<typename other>
+  id_base_t(id_base_t&& oid
+            , typename std::enable_if<std::is_base_of_v<tag, other>>::type* = 0)
+    : m_id{oid.val()}
+  {
+  }
 
   id_base_t& operator=(const id_base_t& other)
   {
