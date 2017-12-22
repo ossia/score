@@ -22,6 +22,7 @@
 #include <aeffectx.h>
 #include <QTimer>
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/PortFactory.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <websocketpp/base64/base64.hpp>
 void show_vst2_editor(AEffect& effect, ERect rect);
@@ -29,19 +30,6 @@ void hide_vst2_editor(AEffect& effect);
 
 namespace Media::VST
 {
-class VSTControlInlet : public Process::ControlInlet
-{
-    SCORE_SERIALIZE_FRIENDS
-  public:
-    using Process::ControlInlet::ControlInlet;
-    template<typename T>
-    VSTControlInlet(T&& vis, QObject* parent): ControlInlet{vis, parent}
-    {
-//      vis.writeTo(*this);
-    }
-
-    int fxNum{};
-};
 // Taken from VST API
 struct HostCanDos
 {
@@ -60,78 +48,7 @@ struct HostCanDos
     static const constexpr auto canDoShellCategory = "shellCategory"; ///< 'shell' handling via uniqueID. If supported by the Host and the Plug-in has the category #kPlugCategShell
     static const constexpr auto canDoSendVstMidiEventFlagIsRealtime = "sendVstMidiEventFlagIsRealtime"; ///< Host supports flags for #VstMidiEvent
 
-
     static const constexpr auto canDoHasCockosViewAsConfig = "hasCockosViewAsConfig"; ///< Host supports flags for #VstMidiEvent
-
-};
-
-
-struct maker
-{
-    std::vector<int> controls;
-    auto make_inlet(int i, QObject* parent) const
-    {
-      return new Process::Inlet(Id<Process::Port>(i), parent);
-
-    }
-    auto make_control(int i, QObject* parent) const
-    {
-      return new Process::ControlInlet{Id<Process::Port>{i}, parent};
-    }
-    auto make_vst_control(int ctrl_id, int i, QObject* parent) const
-    {
-      return new VSTControlInlet{Id<Process::Port>{i}, parent};
-    }
-    auto make_outlet(int i, QObject* parent) const
-    {
-      return new Process::Outlet(Id<Process::Port>(i), parent);
-    }
-};
-
-struct datastream_maker
-{
-    DataStreamWriter& out;
-    std::vector<int> controls;
-    auto make_inlet(int i, QObject* parent) const
-    {
-      return new Process::Inlet(out, parent);
-
-    }
-    auto make_control(int i, QObject* parent) const
-    {
-      return new Process::ControlInlet{out, parent};
-    }
-    auto make_vst_control(int ctrl_id, int i, QObject* parent) const
-    {
-      return new VSTControlInlet{out, parent};
-    }
-    auto make_outlet(int i, QObject* parent) const
-    {
-      return new Process::Outlet(out, parent);
-    }
-};
-
-struct json_maker
-{
-    const QJsonArray& inlets;
-    const QJsonArray& outlets;
-    std::vector<int> controls;
-    auto make_inlet(int i, QObject* parent) const
-    {
-      return new Process::Inlet(JSONObjectWriter{inlets[i].toObject()}, parent);
-    }
-    auto make_control(int i, QObject* parent) const
-    {
-      return new Process::ControlInlet{JSONObjectWriter{inlets[i].toObject()}, parent};
-    }
-    auto make_vst_control(int ctrl_id, int i, QObject* parent) const
-    {
-      return new VSTControlInlet{JSONObjectWriter{inlets[i].toObject()}, parent};
-    }
-    auto make_outlet(int i, QObject* parent) const
-    {
-      return new Process::Outlet(JSONObjectWriter{outlets[i].toObject()}, parent);
-    }
 };
 
 VSTEffectModel::VSTEffectModel(
@@ -142,7 +59,7 @@ VSTEffectModel::VSTEffectModel(
   m_effectPath{path}
 {
   init();
-  reload(maker{});
+  create();
 }
 
 VSTEffectModel::~VSTEffectModel()
@@ -280,6 +197,7 @@ static auto HostCallback (AEffect* effect, VstInt32 opcode, VstInt32 index, VstI
         }
         else
         {
+          // TODO use a command;
           emit vst->addControl(index, opt);
         }
       }
@@ -377,7 +295,7 @@ void VSTEffectModel::showUI()
     connect(&ctx.coarseUpdateTimer, &QTimer::timeout,
             this, [=] {
       dispatch(effEditIdle);
-    });
+    }, Qt::UniqueConnection);
   }
 }
 
@@ -386,34 +304,30 @@ void VSTEffectModel::hideUI()
   hide_vst2_editor(*fx->fx);
 }
 
-template<typename T>
-void VSTEffectModel::reload(const T& port_factory)
+VSTModule* getPlugin(QString path)
 {
-  closePlugin();
-
-  auto path = m_effectPath.toStdString();
-
+  auto path_std = path.toStdString();
   VSTModule* plugin;
   auto& app = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
-  auto it = app.vst_modules.find(path);
+  auto it = app.vst_modules.find(path_std);
   if(it == app.vst_modules.end())
   {
-    if(path.empty())
-      return;
+    if(path.isEmpty())
+      return nullptr;
 
-    bool isFile = QFile(QUrl(m_effectPath).toString(QUrl::PreferLocalFile)).exists();
+    bool isFile = QFile(QUrl(path).toString(QUrl::PreferLocalFile)).exists();
     if(!isFile)
     {
-      qDebug() << "Invalid path: " << m_effectPath;
-      return;
+      qDebug() << "Invalid path: " << path;
+      return nullptr;
     }
 
     try {
-      plugin = new VSTModule{path};
-      app.vst_modules.insert({std::move(path), plugin});
+      plugin = new VSTModule{path_std};
+      app.vst_modules.insert({std::move(path_std), plugin});
     } catch(const std::runtime_error& e) {
       qDebug() << e.what();
-      return;
+      return nullptr;
     }
   }
   else
@@ -421,10 +335,12 @@ void VSTEffectModel::reload(const T& port_factory)
     plugin = it->second;
   }
 
-  if(!plugin)
-    return;
+  return plugin;
+}
 
-  auto main = plugin->getMain();
+void VSTEffectModel::initFx(VSTModule& plugin)
+{
+  auto main = plugin.getMain();
   if(!main) {
     qDebug() << "plugin has no main";
     return;
@@ -451,22 +367,34 @@ void VSTEffectModel::reload(const T& port_factory)
     else
       metadata().setLabel(QFileInfo(m_effectPath).baseName());
   }
+}
+
+void VSTEffectModel::create()
+{
+  SCORE_ASSERT(!fx);
+  VSTModule* plugin = getPlugin(m_effectPath);
+  if(!plugin)
+    return;
+
+  initFx(*plugin);
+  if(!fx)
+    return;
 
   int inlet_i = 0;
   if(fx->fx->flags & effFlagsIsSynth)
   {
-    m_inlets.push_back(port_factory.make_inlet(inlet_i++, this));
+    m_inlets.push_back(new Process::Inlet(Id<Process::Port>{inlet_i++}, this));
     m_inlets[0]->type = Process::PortType::Midi;
   }
   else
   {
-    m_inlets.push_back(port_factory.make_inlet(inlet_i++, this));
+    m_inlets.push_back(new Process::Inlet(Id<Process::Port>{inlet_i++}, this));
     m_inlets[0]->type = Process::PortType::Audio;
   }
 
   // Tempo
   {
-    auto tempo = port_factory.make_control(inlet_i++, this);
+    auto tempo = new Process::ControlInlet(Id<Process::Port>{inlet_i++}, this);
     m_inlets.push_back(tempo);
     tempo->type = Process::PortType::Message;
     tempo->setCustomData("Tempo");
@@ -475,21 +403,49 @@ void VSTEffectModel::reload(const T& port_factory)
   }
   {
     // Signature
-    auto sig = port_factory.make_control(inlet_i++, this);
+    auto sig = new Process::ControlInlet(Id<Process::Port>{inlet_i++}, this);
     m_inlets.push_back(sig);
     sig->type = Process::PortType::Message;
     sig->setCustomData("Time signature");
     sig->setValue("4/4");
   }
 
-  for(int i : port_factory.controls)
+  if(fx->fx->numParams < 10)
   {
-    on_addControl(i, fx->getParameter(i));
+    for(int i = 0; i < 10; i++)
+    {
+      on_addControl(i, fx->getParameter(i));
+    }
   }
 
-  m_outlets.push_back(port_factory.make_outlet(0, this));
+  m_outlets.push_back(new Process::Outlet(Id<Process::Port>{}, this));
   m_outlets[0]->type = Process::PortType::Audio;
   m_outlets[0]->setPropagate(true);
+}
+
+void VSTEffectModel::load()
+{
+  SCORE_ASSERT(!fx);
+  VSTModule* plugin = getPlugin(m_effectPath);
+  if(!plugin)
+    return;
+
+  initFx(*plugin);
+  if(!fx)
+    return;
+
+  for(int i = 3; i < m_inlets.size(); i++)
+  {
+    auto inlet = safe_cast<VSTControlInlet*>(m_inlets[i]);
+    int ctrl = inlet->fxNum;
+    connect(inlet, &Process::ControlInlet::valueChanged,
+            this, [this,ctrl] (const ossia::value& v) {
+      auto newval =  ossia::convert<float>(v);
+      if(std::abs(newval - fx->getParameter(ctrl)) > 0.0001)
+        fx->setParameter(ctrl, newval);
+    });
+    controls.insert({ctrl, inlet});
+  }
 }
 
 
@@ -718,46 +674,32 @@ template <>
 void DataStreamReader::read(
     const Media::VST::VSTEffectModel& eff)
 {
-  /*
+  readPorts(*this, eff.m_inlets, eff.m_outlets);
   m_stream << eff.effect();
-
-  m_stream << *eff.m_inlets[0];
-  for(int i = 1; i < eff.m_inlets.size(); i++)
-    m_stream << *static_cast<Process::ControlInlet*>(eff.m_inlets[i]);
-
-  for(auto v : eff.m_outlets)
-    m_stream << *v;
 
   // TODO save & reload program parameters
   insertDelimiter();
-  */
 }
 
 template <>
 void DataStreamWriter::write(
     Media::VST::VSTEffectModel& eff)
 {
-  /*
+  writePorts(*this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
+
   m_stream >> eff.m_effectPath;
-  eff.reload(Media::VST::datastream_maker{*this});
+  // TODO save & reload program parameters
+  eff.load();
   checkDelimiter();
-  */
 }
 
 template <>
 void JSONObjectReader::read(
     const Media::VST::VSTEffectModel& eff)
 {
-  /*
+  readPorts(obj, eff.m_inlets, eff.m_outlets);
   obj["Effect"] = eff.effect();
 
-  QJsonArray inlets;
-  inlets.append(toJsonObject(*eff.m_inlets[0]));
-  for(int i = 1; i < eff.m_inlets.size(); i++)
-    inlets.append(toJsonObject(*static_cast<Process::ControlInlet*>(eff.m_inlets[i])));
-
-  obj["Inlets"] = std::move(inlets);
-  obj["Outlets"] = toJsonArray(eff.m_outlets);
   if(eff.fx)
   {
     if(eff.fx->fx->flags & effFlagsProgramChunks)
@@ -778,16 +720,16 @@ void JSONObjectReader::read(
       obj["Params"] = std::move(arr);
     }
   }
-  */
 }
 
 template <>
 void JSONObjectWriter::write(
     Media::VST::VSTEffectModel& eff)
 {
-  /*
+  writePorts(obj, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
+
   eff.m_effectPath = obj["Effect"].toString();
-  eff.reload(Media::VST::json_maker{obj["Inlets"].toArray(), obj["Outlets"].toArray()});
+  eff.load();
   QPointer<Media::VST::VSTEffectModel> ptr = &eff;
   QTimer::singleShot(1000, [obj=this->obj,ptr] {
     if(!ptr)
@@ -805,8 +747,8 @@ void JSONObjectWriter::write(
 
           for(std::size_t i = 3; i < eff.inlets().size(); i++)
           {
-            static_cast<Process::ControlInlet*>(eff.inlets()[i])->setValue(
-                  eff.fx->getParameter(i-3));
+            auto inlet = safe_cast<Media::VST::VSTControlInlet*>(eff.inlets()[i]);
+            inlet->setValue(eff.fx->getParameter(inlet->fxNum));
           }
         }
       }
@@ -823,7 +765,6 @@ void JSONObjectWriter::write(
         }
       }
     }});
-    */
 }
 
 namespace Engine::Execution
@@ -894,4 +835,29 @@ VSTEffectComponent::VSTEffectComponent(
     }
   }
 }
+}
+
+
+template<>
+void DataStreamReader::read<Media::VST::VSTControlInlet>(const Media::VST::VSTControlInlet& p)
+{
+  read((Process::ControlInlet&)p);
+  m_stream << p.fxNum;
+}
+template<>
+void DataStreamWriter::write<Media::VST::VSTControlInlet>(Media::VST::VSTControlInlet& p)
+{
+  m_stream >> p.fxNum;
+}
+
+template<>
+void JSONObjectReader::read<Media::VST::VSTControlInlet>(const Media::VST::VSTControlInlet& p)
+{
+  read((Process::ControlInlet&)p);
+  obj["FxNum"] = p.fxNum;
+}
+template<>
+void JSONObjectWriter::write<Media::VST::VSTControlInlet>(Media::VST::VSTControlInlet& p)
+{
+  p.fxNum = obj["FxNum"].toInt();
 }

@@ -1,4 +1,5 @@
 #include "Port.hpp"
+#include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/Cable.hpp>
 #include <score/model/path/PathSerialization.hpp>
 
@@ -208,6 +209,20 @@ ControlOutlet::ControlOutlet(JSONObject::Deserializer&& vis, QObject* parent): O
   vis.writeTo(*this);
 }
 
+PortFactory::~PortFactory()
+{
+
+}
+
+Port*PortFactoryList::loadMissing(const VisitorVariant& vis, QObject* parent) const
+{
+  SCORE_ABORT;
+  return nullptr;
+}
+PortFactoryList::~PortFactoryList()
+{
+
+}
 
 }
 
@@ -287,7 +302,6 @@ template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::ControlInlet>(const Process::ControlInlet& p)
 {
   read((Process::Inlet&)p);
-
   obj[strings.Value] = toJsonObject(p.m_value);
   obj[strings.Domain] = toJsonObject(p.m_domain);
 }
@@ -316,7 +330,6 @@ template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::Outlet>(const Process::Outlet& p)
 {
   read((Process::Port&)p);
-
   obj["Propagate"] = p.m_propagate;
 }
 template<>
@@ -345,7 +358,6 @@ template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::ControlOutlet>(const Process::ControlOutlet& p)
 {
   read((Process::Outlet&)p);
-
   obj[strings.Value] = toJsonValue(p.m_value);
   obj[strings.Domain] = toJsonObject(p.m_domain);
 }
@@ -355,4 +367,5 @@ SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::ControlOutlet>(Pr
   p.m_value = fromJsonValue<ossia::value>(obj[strings.Value]);
   p.m_domain = fromJsonObject<State::Domain>(obj[strings.Domain].toObject());
 }
+
 

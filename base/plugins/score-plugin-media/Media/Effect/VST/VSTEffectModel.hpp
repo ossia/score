@@ -5,14 +5,45 @@
 #include <Media/Effect/VST/VSTLoader.hpp>
 #include <Media/Effect/EffectExecutor.hpp>
 #include <Media/Effect/DefaultEffectItem.hpp>
+#include <Process/Dataflow/PortFactory.hpp>
 namespace Media::VST
 {
 class VSTEffectModel;
+class VSTControlInlet;
 }
 EFFECT_METADATA(, Media::VST::VSTEffectModel, "BE8E6BD3-75F2-4102-8895-8A4EB4EA545A", "VST", "VST", "", {})
+UUID_METADATA(, Process::Port, Media::VST::VSTControlInlet, "e523bc44-8599-4a04-94c1-04ce0d1a692a")
+
 namespace Media::VST
 {
-class VSTControlInlet;
+class VSTControlInlet : public Process::ControlInlet
+{
+    SCORE_SERIALIZE_FRIENDS
+  public:
+      MODEL_METADATA_IMPL(VSTControlInlet)
+    using Process::ControlInlet::ControlInlet;
+
+    VSTControlInlet(DataStream::Deserializer& vis, QObject* parent): ControlInlet{vis, parent}
+    {
+      vis.writeTo(*this);
+    }
+    VSTControlInlet(JSONObject::Deserializer& vis, QObject* parent): ControlInlet{vis, parent}
+    {
+      vis.writeTo(*this);
+    }
+    VSTControlInlet(DataStream::Deserializer&& vis, QObject* parent): ControlInlet{vis, parent}
+    {
+      vis.writeTo(*this);
+    }
+    VSTControlInlet(JSONObject::Deserializer&& vis, QObject* parent): ControlInlet{vis, parent}
+    {
+      vis.writeTo(*this);
+    }
+
+    int fxNum{};
+};
+
+using VSTControlInletFactory = Process::PortFactory_T<VSTControlInlet>;
 struct AEffectWrapper
 {
     AEffect* fx{};
@@ -95,8 +126,8 @@ class VSTEffectModel :
   private:
     QString getString(AEffectOpcodes op, int param);
     void init();
-    template<typename T>
-    void reload(const T& port_factory);
+    void create();
+    void load();
     void showUI() override;
     void hideUI() override;
     QString m_effectPath;
@@ -107,6 +138,7 @@ class VSTEffectModel :
     }
 
     void closePlugin();
+    void initFx(VSTModule& plugin);
 };
 using VSTEffectFactory = Process::EffectFactory_T<VSTEffectModel>;
 

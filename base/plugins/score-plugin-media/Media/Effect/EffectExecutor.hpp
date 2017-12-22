@@ -15,15 +15,19 @@ namespace Execution
 struct effect_chain_process final :
     public ossia::time_process
 {
+    effect_chain_process()
+    {
+      m_lastDate = ossia::Zero;
+    }
     void
     state(ossia::time_value parent_date, double relative_position, ossia::time_value tick_offset, double speed) override
     {
-      m_lastDate = parent_date;
       const ossia::token_request tk{parent_date, relative_position, tick_offset, speed};
       for(auto& node : nodes)
       {
         node->requested_tokens.push_back(tk);
       }
+      m_lastDate = parent_date;
     }
 
     void add_node(std::shared_ptr<ossia::audio_fx_node> n)

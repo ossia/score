@@ -24,6 +24,7 @@ class LV2AudioEffect : public ossia::audio_fx_node
     LV2AudioEffect(LV2Data dat, int sampleRate):
       data{dat}
     {
+      data.host.global->sampleRate = sampleRate;
       const std::size_t audio_in_size = data.audio_in_ports.size();
       const std::size_t audio_out_size = data.audio_out_ports.size();
       const std::size_t control_in_size = data.control_in_ports.size();
@@ -98,7 +99,7 @@ class LV2AudioEffect : public ossia::audio_fx_node
 
       fInstance = lilv_plugin_instantiate(
                     data.effect.plugin.me,
-                    sampleRate,
+                    data.host.global->sampleRate,
                     data.host.features);
       data.effect.instance = fInstance;
 

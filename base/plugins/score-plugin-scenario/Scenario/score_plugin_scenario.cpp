@@ -63,6 +63,7 @@
 #include <score/plugins/customfactory/StringFactoryKeySerialization.hpp>
 #include <Scenario/Inspector/ObjectTree/ObjectItemModel.hpp>
 #include <Dataflow/Inspector/DataflowWidget.hpp>
+#include <Process/Dataflow/PortFactory.hpp>
 
 #include <score_plugin_scenario_commands_files.hpp>
 
@@ -124,6 +125,7 @@ score_plugin_scenario::factoryFamilies()
   using namespace Scenario::Command;
   return make_ptr_vector<score::InterfaceListBase,
       Process::ProcessFactoryList,
+      Process::PortFactoryList,
       Process::StateProcessList,
       Process::LayerFactoryList,
       MoveEventList,
@@ -172,7 +174,8 @@ score_plugin_scenario::factories(
       FW<Scenario::IntervalDropHandler, Scenario::DropProcessInInterval, Scenario::AutomationDropHandler>,
       FW<Inspector::InspectorWidgetFactory, ScenarioInspectorWidgetFactoryWrapper, Interpolation::StateInspectorFactory, ScenarioInspectorFactory, Interpolation::InspectorFactory, Dataflow::CableInspectorFactory>,
       FW<IntervalInspectorDelegateFactory, ScenarioIntervalInspectorDelegateFactory, BaseIntervalInspectorDelegateFactory>,
-      FW<score::ValidityChecker, ScenarioValidityChecker>
+      FW<score::ValidityChecker, ScenarioValidityChecker>,
+      FW<Process::PortFactory, Process::InletFactory, Process::ControlInletFactory, Process::OutletFactory, Process::ControlOutletFactory>
       //, FW<Dataflow::ProcessComponentFactory, Dataflow::ScenarioComponentFactory>
       >(ctx, key);
 }

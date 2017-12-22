@@ -85,6 +85,9 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
           , Media::Effect::LayerFactory
           , Media::Step::LayerFactory
             >,
+        FW<Process::PortFactory
+          , Media::VST::VSTControlInletFactory
+            >,
 
         FW<Engine::Execution::ProcessComponentFactory
           , Engine::Execution::SoundComponentFactory

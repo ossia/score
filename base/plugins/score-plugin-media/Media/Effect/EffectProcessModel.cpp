@@ -173,7 +173,7 @@ void JSONObjectWriter::write(Media::Effect::ProcessModel& proc)
     proc.outlet = Process::make_outlet(writer, &proc);
   }
 
-  QJsonArray fx_array = obj["Effects"].toArray();
+  const QJsonArray fx_array = obj["Effects"].toArray();
   auto& fxs = components.interfaces<Process::EffectFactoryList>();
   int i = 0;
   for(const auto& json_vref : fx_array)

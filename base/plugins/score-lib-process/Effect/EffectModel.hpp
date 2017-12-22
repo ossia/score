@@ -63,6 +63,7 @@ class SCORE_LIB_PROCESS_EXPORT EffectModel :
         Process::Outlet* outlet(const Id<Process::Port>&) const;
   signals:
     void controlAdded(const Id<Process::Port>&);
+    void controlRemoved(const Id<Process::Port>&);
 
   protected:
         Process::Inlets m_inlets;
