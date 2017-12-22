@@ -3,20 +3,19 @@
 #include <Media/Commands/MediaCommandFactory.hpp>
 #include <score/model/path/Path.hpp>
 
-namespace Audio
+namespace Media::Faust
 {
-namespace Effect {
 class FaustEffectModel;
 }
 
-namespace Commands
+namespace Media::Commands
 {
 class EditFaustEffect final : public score::Command
 {
            SCORE_COMMAND_DECL(Media::CommandFactoryName(), EditFaustEffect, "Edit Faust effect")
     public:
         EditFaustEffect(
-                const Effect::FaustEffectModel& model,
+                const Faust::FaustEffectModel& model,
                 const QString& text);
 
         void undo(const score::DocumentContext& ctx) const override;
@@ -27,9 +26,7 @@ class EditFaustEffect final : public score::Command
         void deserializeImpl(DataStreamOutput & s) override;
 
     private:
-        Path<Effect::FaustEffectModel> m_model;
+        Path<Faust::FaustEffectModel> m_model;
         QString m_old, m_new;
-
 };
-}
 }

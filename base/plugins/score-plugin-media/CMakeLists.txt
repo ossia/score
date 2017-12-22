@@ -13,7 +13,7 @@ endif()
 set(SCORE_AUDIO_PLUGINS 1)
 if(SCORE_AUDIO_PLUGINS)
   find_package(Lilv)
-#  find_package(Faust)
+  find_package(Faust)
 endif()
 
 # Files & main target
@@ -24,7 +24,7 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/CreateSoundBox.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/MediaCommandFactory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/CreateEffectAutomation.hpp"
-#    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/EditFaustEffect.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/EditFaustEffect.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/InsertEffect.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Inspector/AudioInspector.hpp"
@@ -76,7 +76,7 @@ set(SRCS
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/ChangeAudioFile.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/MediaCommandFactory.cpp"
-    #    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/EditFaustEffect.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/EditFaustEffect.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/InsertEffect.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Inspector/AudioInspector.cpp"
@@ -114,7 +114,7 @@ set(SRCS
 )
 
 
-if(TARGET Faust)
+if(Faust_FOUND)
     set(FAUST_HDRS
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Faust/FaustEffectModel.hpp"
         )

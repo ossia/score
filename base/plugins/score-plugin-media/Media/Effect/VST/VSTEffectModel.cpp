@@ -826,7 +826,9 @@ void JSONObjectWriter::write(
     */
 }
 
-Engine::Execution::VSTEffectComponent::VSTEffectComponent(
+namespace Engine::Execution
+{
+VSTEffectComponent::VSTEffectComponent(
     Media::VST::VSTEffectModel& proc,
     const Engine::Execution::Context& ctx,
     const Id<score::Component>& id,
@@ -891,4 +893,5 @@ Engine::Execution::VSTEffectComponent::VSTEffectComponent(
       node = std::move(n);
     }
   }
+}
 }

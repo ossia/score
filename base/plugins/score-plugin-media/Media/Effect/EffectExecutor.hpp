@@ -18,6 +18,7 @@ struct effect_chain_process final :
     void
     state(ossia::time_value parent_date, double relative_position, ossia::time_value tick_offset, double speed) override
     {
+      m_lastDate = parent_date;
       const ossia::token_request tk{parent_date, relative_position, tick_offset, speed};
       for(auto& node : nodes)
       {
@@ -25,6 +26,11 @@ struct effect_chain_process final :
       }
     }
 
+    void add_node(std::shared_ptr<ossia::audio_fx_node> n)
+    {
+      n->set_prev_date(this->m_lastDate);
+      nodes.push_back(std::move(n));
+    }
     void stop() override
     {
       for(auto& node : nodes)

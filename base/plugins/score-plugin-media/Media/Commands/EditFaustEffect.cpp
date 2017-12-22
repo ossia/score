@@ -2,14 +2,12 @@
 
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/model/path/PathSerialization.hpp>
-#include <Media/Effect/Effect/Faust/FaustEffectModel.hpp>
-namespace Audio
-{
-namespace Commands
+#include <Media/Effect/Faust/FaustEffectModel.hpp>
+namespace Media::Commands
 {
 
 EditFaustEffect::EditFaustEffect(
-        const Effect::FaustEffectModel& model,
+        const Faust::FaustEffectModel& model,
         const QString& text):
     m_model{model},
     m_old{model.text()},
@@ -37,5 +35,4 @@ void EditFaustEffect::deserializeImpl(DataStreamOutput& s)
     s >> m_model >> m_old >> m_new;
 }
 
-}
 }

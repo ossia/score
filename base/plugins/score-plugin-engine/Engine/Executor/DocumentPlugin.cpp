@@ -45,12 +45,7 @@ DocumentPlugin::DocumentPlugin(
       }
     , m_base{m_ctx, this}
 {
-  midi_ins.push_back(ossia::net::create_parameter<ossia::midi_generic_parameter>(midi_dev.get_root_node(), "/0/in"));
-
-  midi_outs.push_back(ossia::net::create_parameter<ossia::midi_generic_parameter>(midi_dev.get_root_node(), "/0/out"));
-
   execGraph = std::make_shared<ossia::graph>();
-  //audioproto->reload();
   audio_device = new Dataflow::AudioDevice(
     {Dataflow::AudioProtocolFactory::static_concreteKey(), "audio", {}},
     audio_dev);
@@ -186,10 +181,6 @@ void DocumentPlugin::on_finished()
   execGraph.reset();
 
   execState.clear();
-  execState.globalState.clear();
-  execState.messages.clear();
-  execState.mess_values.clear();
-
   for(auto& v : runtime_connections)
   {
     for(auto& con : v.second)
@@ -386,15 +377,9 @@ void DocumentPlugin::register_node(
 
       inlets.insert({ proc_inlets[i], std::make_pair( node, node->inputs()[i] ) });
 
-      auto& port = node->inputs()[i];
-      if(auto vp = port->data.target<ossia::value_port>())
-      {
-        if(vp->is_event)
-        {
-          if(auto addr = port->address.target<ossia::net::parameter_base*>())
-            execState.register_parameter(**addr);
-        }
-      }
+      m_editionQueue.enqueue([this,port=node->inputs()[i]] {
+        execState.register_inlet(*port);
+      });
     }
 
     for(std::size_t i = 0; i < n_outlets; i++)
@@ -410,7 +395,7 @@ void DocumentPlugin::register_node(
     }
 
     m_editionQueue.enqueue([=] {
-      execGraph->add_node(node);
+      execGraph->add_node(std::move(node));
     });
   }
 }
@@ -431,17 +416,9 @@ void DocumentPlugin::register_inlet(
 
     inlets.insert({ &proc_inlet, std::make_pair( node, port ) });
 
-    if(auto vp = port->data.target<ossia::value_port>())
-    {
-      if(vp->is_event)
-      {
-        if(auto addr = port->address.target<ossia::net::parameter_base*>())
-          execState.register_parameter(**addr);
-      }
-    }
-
-    m_editionQueue.enqueue([=] {
-      execGraph->add_node(node);
+    m_editionQueue.enqueue([this,port,node] {
+      execState.register_inlet(*port);
+      execGraph->add_node(std::move(node));
     });
   }
 }

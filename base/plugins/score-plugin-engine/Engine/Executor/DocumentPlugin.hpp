@@ -14,7 +14,6 @@
 
 namespace ossia {
 class audio_protocol;
-class midi_generic_parameter;
 }
 namespace score
 {
@@ -92,9 +91,6 @@ public:
   mutable ossia::net::generic_device audio_dev;
   mutable ossia::net::generic_device midi_dev;
   Dataflow::AudioDevice* audio_device{};
-
-  std::vector<ossia::midi_generic_parameter*> midi_ins;
-  std::vector<ossia::midi_generic_parameter*> midi_outs;
 
   score::hash_map<Process::Outlet*, std::pair<ossia::node_ptr, ossia::outlet_ptr>> outlets;
   score::hash_map<Process::Inlet*, std::pair<ossia::node_ptr, ossia::inlet_ptr>> inlets;

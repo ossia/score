@@ -47,12 +47,28 @@ class DefaultEffectItem:
       lab->setText(inlet.customData());
       lab->setPos(15, 2);
 
-      struct SliderInfo {
-          static float getMin() { return 0.; }
-          static float getMax() { return 1.; }
-      };
+      QGraphicsItem* widg{};
+      auto& dom = inlet.domain().get();
+      if(bool(dom))
+      {
+        auto min = dom.convert_min<float>();
+        auto max = dom.convert_max<float>();
+        struct {
+            float min, max;
+            float getMin() const { return min; }
+            float getMax() const { return max; }
+        } info{min, max};
+        widg = Control::FloatSlider::make_item(info, inlet, doc, nullptr, this);
+      }
+      else
+      {
+        struct SliderInfo {
+            static float getMin() { return 0.; }
+            static float getMax() { return 1.; }
+        };
+        widg = Control::FloatSlider::make_item(SliderInfo{}, inlet, doc, nullptr, this);
+      }
 
-      QGraphicsItem* widg = Control::FloatSlider::make_item(SliderInfo{}, inlet, doc, nullptr, this);
       widg->setParentItem(item);
       widg->setPos(15, lab->boundingRect().height());
 
