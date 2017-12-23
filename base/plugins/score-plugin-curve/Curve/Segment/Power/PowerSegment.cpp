@@ -121,7 +121,7 @@ QVariant PowerSegment::toSegmentSpecificData() const
 }
 
 template <typename Y>
-std::function<Y(double, Y, Y)> PowerSegment::makeFunction() const
+ossia::curve_segment<Y> PowerSegment::makeFunction() const
 {
   if (gamma == Curve::PowerSegmentData::linearGamma)
   {
@@ -136,20 +136,19 @@ std::function<Y(double, Y, Y)> PowerSegment::makeFunction() const
     };
   }
 }
-std::function<float(double, float, float)>
-PowerSegment::makeFloatFunction() const
+ossia::curve_segment<float> PowerSegment::makeFloatFunction() const
 {
-  return makeFunction<float>();
+  return ossia::curve_segment_linear<float>{};
 }
 
-std::function<int(double, int, int)> PowerSegment::makeIntFunction() const
+ossia::curve_segment<int> PowerSegment::makeIntFunction() const
 {
-  return makeFunction<int>();
+  return ossia::curve_segment_linear<int>{};
 }
 
-std::function<bool(double, bool, bool)> PowerSegment::makeBoolFunction() const
+ossia::curve_segment<bool> PowerSegment::makeBoolFunction() const
 {
-  return makeFunction<bool>();
+  return ossia::curve_segment_linear<bool>{};
 }
 
 optional<double> PowerSegment::verticalParameter() const

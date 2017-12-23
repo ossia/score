@@ -268,11 +268,8 @@ void DocumentPlugin::runAllCommands() const
 {
   bool ok = false;
   ExecutionCommand com;
-  do {
-    ok = m_execQueue.try_dequeue(com);
-    if(ok && com)
-      com();
-  } while(ok);
+  while(m_execQueue.try_dequeue(com))
+    com();
 }
 
 

@@ -24,7 +24,7 @@ struct js_control_updater
 {
     ValueInlet& control;
     ossia::value v;
-    void operator()() {
+    void operator()() const {
       control.setValue(v.apply(ossia::qt::ossia_to_qvariant{}));
     }
 };

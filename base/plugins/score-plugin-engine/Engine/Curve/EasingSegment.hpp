@@ -112,19 +112,19 @@ public:
   }
 
   template <typename Y>
-  std::function<Y(double, Y, Y)> makeFunction() const
+  ossia::curve_segment<Y> makeFunction() const
   {
     return ossia::curve_segment_ease<Y, Easing_T>{};
   }
-  std::function<float(double, float, float)> makeFloatFunction() const override
+  ossia::curve_segment<float> makeFloatFunction() const override
   {
     return makeFunction<float>();
   }
-  std::function<int(double, int, int)> makeIntFunction() const override
+  ossia::curve_segment<int> makeIntFunction() const override
   {
     return makeFunction<int>();
   }
-  std::function<bool(double, bool, bool)> makeBoolFunction() const override
+  ossia::curve_segment<bool> makeBoolFunction() const override
   {
     return makeFunction<bool>();
   }
