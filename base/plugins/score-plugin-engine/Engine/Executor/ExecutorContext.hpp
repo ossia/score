@@ -4,6 +4,7 @@
 #include <functional>
 #include <ossia/editor/scenario/time_value.hpp>
 #include <Process/TimeValue.hpp>
+#include <smallfun.hpp>
 
 namespace ossia
 {
@@ -38,7 +39,7 @@ class ProcessComponentFactoryList;
 class StateProcessComponentFactoryList;
 class BaseScenarioElement;
 
-using ExecutionCommand = std::function<void()>;
+using ExecutionCommand = smallfun::SmallFun<void(), 128>;
 using ExecutionCommandQueue = moodycamel::ReaderWriterQueue<ExecutionCommand, 1024>;
 
 //! Useful structures when creating the execution elements.

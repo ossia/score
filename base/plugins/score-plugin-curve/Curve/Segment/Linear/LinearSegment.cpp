@@ -54,18 +54,17 @@ QVariant LinearSegment::toSegmentSpecificData() const
   return QVariant::fromValue(data_type{});
 }
 
-std::function<float(double, float, float)>
-LinearSegment::makeFloatFunction() const
+ossia::curve_segment<float> LinearSegment::makeFloatFunction() const
 {
   return ossia::curve_segment_linear<float>{};
 }
 
-std::function<int(double, int, int)> LinearSegment::makeIntFunction() const
+ossia::curve_segment<int> LinearSegment::makeIntFunction() const
 {
   return ossia::curve_segment_linear<int>{};
 }
 
-std::function<bool(double, bool, bool)> LinearSegment::makeBoolFunction() const
+ossia::curve_segment<bool> LinearSegment::makeBoolFunction() const
 {
   return ossia::curve_segment_linear<bool>{};
 }

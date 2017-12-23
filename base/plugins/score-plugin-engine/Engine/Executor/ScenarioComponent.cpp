@@ -234,7 +234,7 @@ IntervalComponent* ScenarioComponentBase::make<IntervalComponent, Scenario::Inte
   // Create the time_interval
   auto dur = elt->makeDurations();
   auto ossia_cst = std::make_shared<ossia::time_interval>(
-        ScenarioIntervalCallback,
+        &ScenarioIntervalCallback,
         *ossia_sev->OSSIAEvent(),
         *ossia_eev->OSSIAEvent(),
         dur.defaultDuration,

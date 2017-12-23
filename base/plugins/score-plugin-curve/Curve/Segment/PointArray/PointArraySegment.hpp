@@ -117,31 +117,10 @@ public:
     return QVariant::fromValue(std::move(dat));
   }
 
-  template<typename T>
-  auto make_fun() const
-  {
-      return [pts=m_points] (double x, T s, T e) -> T {
-          auto it = pts.lower_bound(x);
-          if(it != pts.end())
-              return it->second;
-          return T{0};
-      };
-  }
-
   // This will throw if execution is attempted.
-  std::function<float(double, float, float)> makeFloatFunction() const override
-  {
-    return make_fun<float>();
-  }
-  std::function<int(double, int, int)> makeIntFunction() const override
-  {
-    return make_fun<int>();
-  }
-  std::function<bool(double, bool, bool)> makeBoolFunction() const override
-  {
-    return make_fun<bool>();
-  }
-
+  ossia::curve_segment<float> makeFloatFunction() const override { return {}; }
+  ossia::curve_segment<int> makeIntFunction() const override { return {}; }
+  ossia::curve_segment<bool> makeBoolFunction() const override { return {}; }
   void reset();
 
 signals:

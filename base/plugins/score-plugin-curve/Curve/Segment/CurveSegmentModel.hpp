@@ -17,6 +17,7 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
+#include <ossia/editor/curve/curve_segment.hpp>
 #include <score_plugin_curve_export.h>
 
 class QObject;
@@ -97,10 +98,10 @@ public:
   virtual optional<double> verticalParameter() const;
   virtual optional<double> horizontalParameter() const;
 
-  virtual std::function<float(double, float, float)>
+  virtual ossia::curve_segment<float>
   makeFloatFunction() const = 0;
-  virtual std::function<int(double, int, int)> makeIntFunction() const = 0;
-  virtual std::function<bool(double, bool, bool)> makeBoolFunction() const = 0;
+  virtual ossia::curve_segment<int> makeIntFunction() const = 0;
+  virtual ossia::curve_segment<bool> makeBoolFunction() const = 0;
 
   SegmentData toSegmentData() const
   {

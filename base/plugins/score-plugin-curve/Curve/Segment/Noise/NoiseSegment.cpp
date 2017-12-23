@@ -28,7 +28,7 @@ struct Noise
       return std::uniform_int_distribution<>{min, max}(gen);
     }
 
-    auto operator()(double val, T start, T end) {
+    auto operator()(double val, T start, T end) const {
       return (start < end)
           ? get_rand(start, end)
           : get_rand(end, start);
@@ -98,18 +98,20 @@ QVariant NoiseSegment::toSegmentSpecificData() const
   return QVariant::fromValue(data_type{});
 }
 
-std::function<float(double, float, float)>
+ossia::curve_segment<float>
 NoiseSegment::makeFloatFunction() const
 {
   return Noise<float>{};
 }
 
-std::function<int(double, int, int)> NoiseSegment::makeIntFunction() const
+
+ossia::curve_segment<int> NoiseSegment::makeIntFunction() const
 {
   return Noise<int>{};
 }
 
-std::function<bool(double, bool, bool)> NoiseSegment::makeBoolFunction() const
+
+ossia::curve_segment<bool> NoiseSegment::makeBoolFunction() const
 {
   return Noise<bool>{};
 }
