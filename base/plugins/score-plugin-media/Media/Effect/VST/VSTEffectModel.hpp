@@ -16,32 +16,50 @@ UUID_METADATA(, Process::Port, Media::VST::VSTControlInlet, "e523bc44-8599-4a04-
 
 namespace Media::VST
 {
-class VSTControlInlet : public Process::ControlInlet
+class VSTControlInlet : public Process::Inlet
 {
+    Q_OBJECT
     SCORE_SERIALIZE_FRIENDS
   public:
       MODEL_METADATA_IMPL(VSTControlInlet)
-    using Process::ControlInlet::ControlInlet;
+    using Process::Inlet::Inlet;
 
-    VSTControlInlet(DataStream::Deserializer& vis, QObject* parent): ControlInlet{vis, parent}
+    VSTControlInlet(DataStream::Deserializer& vis, QObject* parent): Inlet{vis, parent}
     {
       vis.writeTo(*this);
     }
-    VSTControlInlet(JSONObject::Deserializer& vis, QObject* parent): ControlInlet{vis, parent}
+    VSTControlInlet(JSONObject::Deserializer& vis, QObject* parent): Inlet{vis, parent}
     {
       vis.writeTo(*this);
     }
-    VSTControlInlet(DataStream::Deserializer&& vis, QObject* parent): ControlInlet{vis, parent}
+    VSTControlInlet(DataStream::Deserializer&& vis, QObject* parent): Inlet{vis, parent}
     {
       vis.writeTo(*this);
     }
-    VSTControlInlet(JSONObject::Deserializer&& vis, QObject* parent): ControlInlet{vis, parent}
+    VSTControlInlet(JSONObject::Deserializer&& vis, QObject* parent): Inlet{vis, parent}
     {
       vis.writeTo(*this);
     }
 
     int fxNum{};
+
+
+    float value() const { return m_value; }
+    void setValue(float v)
+    {
+      if(v != m_value)
+      {
+        m_value = v;
+        emit valueChanged(v);
+      }
+    }
+  signals:
+    void valueChanged(float);
+
+  private:
+    float m_value{};
 };
+
 
 using VSTControlInletFactory = Process::PortFactory_T<VSTControlInlet>;
 struct AEffectWrapper
@@ -79,12 +97,14 @@ struct AEffectWrapper
     }
 };
 
+class CreateVSTControl;
 class VSTControlInlet;
 class VSTEffectModel :
     public Process::EffectModel
 {
     Q_OBJECT
     SCORE_SERIALIZE_FRIENDS
+        friend class Media::VST::CreateVSTControl;
     public:
       MODEL_METADATA_IMPL(VSTEffectModel)
     VSTEffectModel(

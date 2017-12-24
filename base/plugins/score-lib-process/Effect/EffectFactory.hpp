@@ -6,7 +6,7 @@
 class QGraphicsItem;
 namespace Control
 {
-class RectItem;
+struct RectItem;
 }
 namespace Process
 {

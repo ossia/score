@@ -61,7 +61,7 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
   // TODO PlayDuration of base interval.
   // TODO PlayDuration of FullView
   auto main_interval = ossia::time_interval::create(
-      [](auto&&...) {},
+      {},
       *main_start_event,
       *main_end_event,
       m_ctx.time(element.interval().duration.defaultDuration()),

@@ -71,11 +71,11 @@ InspectorWidget::InspectorWidget(
   }
   {
 #if defined(HAS_FAUST)
-    m_add = new QPushButton{tr("Add (Faust)")};
-    connect(m_add, &QPushButton::pressed,
+    auto add = new QPushButton{tr("Add (Faust)")};
+    connect(add, &QPushButton::pressed,
             this, [&] { add_faust(cur_pos()); });
 
-    lay->addWidget(m_add);
+    lay->addWidget(add);
 #endif
   }
 

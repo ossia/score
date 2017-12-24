@@ -27,7 +27,6 @@ class InspectorWidget final :
     void add_faust(std::size_t pos);
     void recreate();
     QListWidget* m_list{};
-    QPushButton* m_add{};
     CommandDispatcher<> m_dispatcher;
     const score::DocumentContext& m_ctx;
     void addRequested(int pos);

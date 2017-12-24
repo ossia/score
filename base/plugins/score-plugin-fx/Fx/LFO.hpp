@@ -45,7 +45,6 @@ struct Node
               , Control::FloatSlider{"Phase", -1., 1., 0.}
               , Control::Widgets::WaveformChooser()
                 )
-      .state<State>()
       .build();
 
   static void run(

@@ -214,18 +214,23 @@ class SCORE_LIB_PROCESS_EXPORT ControlOutlet final : public Outlet
     State::Domain m_domain;
 };
 
-template<typename... Args>
-inline std::unique_ptr<Inlet> make_inlet(Args&&... args)
-{ return std::make_unique<Inlet>(std::forward<Args>(args)...); }
-template<typename... Args>
-inline std::unique_ptr<ControlInlet> make_control(Args&&... args)
-{ return std::make_unique<ControlInlet>(std::forward<Args>(args)...); }
-template<typename... Args>
-inline std::unique_ptr<ControlInlet> make_control_out(Args&&... args)
-{ return std::make_unique<ControlOutlet>(std::forward<Args>(args)...); }
-template<typename... Args>
-inline std::unique_ptr<Outlet> make_outlet(Args&&... args)
-{ return std::make_unique<Outlet>(std::forward<Args>(args)...); }
+inline std::unique_ptr<Inlet> make_inlet(const Id<Process::Port>& c, QObject* parent)
+{ return std::make_unique<Inlet>(c, parent); }
+
+inline std::unique_ptr<Outlet> make_outlet(const Id<Process::Port>& c, QObject* parent)
+{ return std::make_unique<Outlet>(c, parent); }
+
+SCORE_LIB_PROCESS_EXPORT
+std::unique_ptr<Inlet> make_inlet(DataStreamWriter& wr, QObject* parent);
+
+SCORE_LIB_PROCESS_EXPORT
+std::unique_ptr<Inlet> make_inlet(JSONObjectWriter& wr, QObject* parent);
+
+SCORE_LIB_PROCESS_EXPORT
+std::unique_ptr<Outlet> make_outlet(DataStreamWriter& wr, QObject* parent);
+
+SCORE_LIB_PROCESS_EXPORT
+std::unique_ptr<Outlet> make_outlet(JSONObjectWriter& wr, QObject* parent);
 
 
 using Inlets = ossia::small_vector<Process::Inlet*, 4>;

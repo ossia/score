@@ -102,6 +102,45 @@ auto deserialize_interface(
 template <typename FactoryList_T, typename... Args>
 auto deserialize_interface(
     const FactoryList_T& factories,
+    DataStream::Deserializer&& des,
+    Args&&... args) -> typename FactoryList_T::object_type*
+{
+  QByteArray b;
+  des.stream() >> b;
+  DataStream::Deserializer sub{b};
+
+  // Deserialize the interface identifier
+  try
+  {
+    SCORE_DEBUG_CHECK_DELIMITER2(sub);
+    auto k = deserialize_key<
+        typename FactoryList_T::factory_type::ConcreteKey>(sub);
+
+    SCORE_DEBUG_CHECK_DELIMITER2(sub);
+    // Get the factory
+    if (auto concrete_factory = factories.get(k))
+    {
+      // Create the object
+      auto obj = concrete_factory->load(
+          sub.toVariant(), std::forward<Args>(args)...);
+
+      SCORE_DEBUG_CHECK_DELIMITER2(sub);
+
+      return obj;
+    }
+  }
+  catch (...)
+  {
+  }
+
+  // If the object could not be loaded, we try to load a "missing" verson of
+  // it.
+  return factories.loadMissing(sub.toVariant(), std::forward<Args>(args)...);
+}
+
+template <typename FactoryList_T, typename... Args>
+auto deserialize_interface(
+    const FactoryList_T& factories,
     JSONObject::Deserializer& des,
     Args&&... args) -> typename FactoryList_T::object_type*
 {

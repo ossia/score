@@ -65,7 +65,6 @@ struct SomeInfo
       .value_ins()
       .value_outs()
       .controls(Control::FloatSlider{"foo", .0, 10., 5.})
-      .state<State>()
       .build();
   using control_policy = Control::DefaultTick;
   static void run(

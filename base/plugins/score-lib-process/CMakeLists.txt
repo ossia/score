@@ -96,3 +96,5 @@ target_compile_definitions(score_lib_process PUBLIC
 setup_score_library(score_lib_process)
 
 generate_export_header(score_lib_process)
+
+setup_score_tests(Tests)

@@ -39,7 +39,7 @@ DefaultClockManager::makeDefaultCallback(
 {
   auto& cst = bs.baseInterval();
   auto& ctx = this->context;
-  return [&ctx, &score_cst=cst.scoreInterval()](
+  return smallfun::SmallFun<void(double, ossia::time_value), 32>{[&ctx, &score_cst=cst.scoreInterval()](
       double position,
       ossia::time_value date)
   {
@@ -60,7 +60,7 @@ DefaultClockManager::makeDefaultCallback(
     {
       c();
     }
-  };
+  }};
 }
 
 void DefaultClockManager::prepareExecution(
