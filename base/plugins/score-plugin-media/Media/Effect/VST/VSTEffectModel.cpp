@@ -3,7 +3,7 @@
 #include <QUrl>
 #include <QFile>
 #include <QFileInfo>
-
+#include <Media/Commands/VSTCommands.hpp>
 #include <ModernMIDI/midi_message.h>
 #include <set>
 #include <iostream>
@@ -92,7 +92,6 @@ void VSTEffectModel::on_addControl(int i, float v)
               Id<Process::Port>(getStrongId(inlets()).val()), this};
   ctrl->hidden = true;
   ctrl->fxNum = i;
-  ctrl->setDomain(ossia::make_domain(0.f, 1.f));
   ctrl->setValue(v);
 
   // Metadata
@@ -109,9 +108,8 @@ void VSTEffectModel::on_addControl(int i, float v)
     ctrl->setCustomData(name);
   }
 
-  connect(ctrl, &Process::ControlInlet::valueChanged,
-          this, [this,i] (const ossia::value& v) {
-    auto newval =  ossia::convert<float>(v);
+  connect(ctrl, &VSTControlInlet::valueChanged,
+          this, [this,i] (float newval) {
     if(std::abs(newval - fx->getParameter(i)) > 0.0001)
       fx->setParameter(i, newval);
   });
@@ -434,13 +432,12 @@ void VSTEffectModel::load()
   if(!fx)
     return;
 
-  for(int i = 3; i < m_inlets.size(); i++)
+  for(std::size_t i = 3; i < m_inlets.size(); i++)
   {
     auto inlet = safe_cast<VSTControlInlet*>(m_inlets[i]);
     int ctrl = inlet->fxNum;
-    connect(inlet, &Process::ControlInlet::valueChanged,
-            this, [this,ctrl] (const ossia::value& v) {
-      auto newval =  ossia::convert<float>(v);
+    connect(inlet, &VSTControlInlet::valueChanged,
+            this, [this,ctrl] (float newval) {
       if(std::abs(newval - fx->getParameter(ctrl)) > 0.0001)
         fx->setParameter(ctrl, newval);
     });
@@ -595,7 +592,7 @@ struct VSTFloatSlider : Control::ControlInfo
       QObject::connect(sl, &VSTGraphicsSlider::sliderMoved,
                        context, [=,&inlet,&ctx] {
         sl->moving = true;
-        ctx.dispatcher.submitCommand<Control::SetControlValue>(inlet, sl->value());
+        ctx.dispatcher.submitCommand<SetVSTControl>(inlet, sl->value());
       });
       QObject::connect(sl, &VSTGraphicsSlider::sliderReleased,
                        context, [&ctx,sl] () {
@@ -603,10 +600,10 @@ struct VSTFloatSlider : Control::ControlInfo
         sl->moving = false;
       });
 
-      QObject::connect(&inlet, &Process::ControlInlet::valueChanged,
-                       sl, [=] (ossia::value val) {
+      QObject::connect(&inlet, &VSTControlInlet::valueChanged,
+                       sl, [=] (float val) {
         if(!sl->moving)
-          sl->setValue(ossia::convert<double>(val));
+          sl->setValue(val);
       });
 
       return sl;
@@ -841,7 +838,6 @@ VSTEffectComponent::VSTEffectComponent(
 template<>
 void DataStreamReader::read<Media::VST::VSTControlInlet>(const Media::VST::VSTControlInlet& p)
 {
-  read((Process::ControlInlet&)p);
   m_stream << p.fxNum;
 }
 template<>
@@ -853,7 +849,6 @@ void DataStreamWriter::write<Media::VST::VSTControlInlet>(Media::VST::VSTControl
 template<>
 void JSONObjectReader::read<Media::VST::VSTControlInlet>(const Media::VST::VSTControlInlet& p)
 {
-  read((Process::ControlInlet&)p);
   obj["FxNum"] = p.fxNum;
 }
 template<>

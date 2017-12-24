@@ -57,7 +57,7 @@ Component::Component(
 
   std::shared_ptr<ossia::loop> loop = std::make_shared<ossia::loop>(
       main_duration,
-      [](double, ossia::time_value) {},
+      ossia::time_interval::exec_callback{},
       [this, &element](ossia::time_event::status newStatus) {
 
         element.startEvent().setStatus(

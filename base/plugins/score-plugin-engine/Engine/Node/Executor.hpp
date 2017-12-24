@@ -205,9 +205,9 @@ public:
   // Expand three tuples and apply a function on the control tuple
   template<typename F, typename T1, typename T2, typename T3, std::size_t... N1, std::size_t... N2, std::size_t... N3, typename... Args>
   static constexpr auto invoke_impl(F&& f, T1&& a1, T2&& a2, T3&& a3,
-                                    std::index_sequence<N1...> n1,
-                                    std::index_sequence<N2...> n2,
-                                    std::index_sequence<N3...> n3,
+                                    const std::index_sequence<N1...>& n1,
+                                    const std::index_sequence<N2...>& n2,
+                                    const std::index_sequence<N3...>& n3,
                                     const ossia::time_value& prev_date,
                                     const ossia::token_request& tk,
                                     Args&&... rem)

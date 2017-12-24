@@ -2,18 +2,15 @@
 #include <Engine/Node/PdNode.hpp>
 #undef slots
 #include <frozen/unordered_map.h>
-namespace Nodes
+namespace Nodes::MidiUtil
 {
-
-namespace MidiUtil
-{
-
 enum scale: int8_t
 {
   all,
   ionian, dorian, phyrgian, lydian, mixolydian, aeolian, locrian,
 
   I, II, III, IV, V, VI, VII,
+  custom,
 
 
   SCALES_MAX // always at end, used for counting
@@ -87,11 +84,11 @@ constexpr int get_scale(QLatin1String s)
   else if(Control::same(s, QLatin1String("V"))) return scale::V;
   else if(Control::same(s, QLatin1String("VI"))) return scale::VI;
   else if(Control::same(s, QLatin1String("VII"))) return scale::VII;
-  else return scale::all;
+  else return scale::custom;
 }
 static Q_DECL_RELAXED_CONSTEXPR frozen::unordered_map<int, scales_array, scale::SCALES_MAX> scales{
-    //                                C   D   E F   G   A   B
-    { scale::all,        make_scale({ 1,1,1,1,1,1,1,1,1,1,1,1 })}
+  //                                C   D   E F   G   A   B
+  { scale::all,        make_scale({ 1,1,1,1,1,1,1,1,1,1,1,1 })}
   , { scale::ionian,     make_scale({ 1,0,1,0,1,1,0,1,0,1,0,1 })}
   , { scale::dorian,     make_scale({ 1,0,1,1,0,1,0,1,0,1,1,0 })}
   , { scale::phyrgian,   make_scale({ 1,1,0,1,0,1,0,1,1,0,1,0 })}
@@ -106,6 +103,7 @@ static Q_DECL_RELAXED_CONSTEXPR frozen::unordered_map<int, scales_array, scale::
   , { scale::V,          make_scale({ 0,0,1,0,0,0,0,1,0,0,0,1 })}
   , { scale::VI,         make_scale({ 1,0,0,0,1,0,0,0,0,1,0,0 })}
   , { scale::VII,        make_scale({ 0,0,1,0,0,1,0,0,0,0,0,1 })}
+  , { scale::custom,     make_scale({ 1,1,1,1,1,1,1,1,1,1,1,1 })}
 };
 
 static
@@ -155,61 +153,86 @@ optional<std::size_t> find_closest_index(const scale_array& arr, std::size_t i)
 
 struct Node
 {
-  struct Metadata
-  {
-    static const constexpr auto prettyName = "Midi scale";
-    static const constexpr auto objectKey = "MidiScale";
-    static const constexpr auto category = "Midi";
-    static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto uuid = make_uuid("06b33b83-bb67-4f7a-9980-f5d66e4266c5");
-  };
-
-  static const constexpr auto info =
-    Control::create_node()
-  .midi_ins({{"in"}})
-  .midi_outs({{"out"}})
-  .controls(Control::make_enum(
-               "Scale",
-               0U,
-               Control::array("all", "ionian", "dorian", "phyrgian", "lydian", "mixolydian", "aeolian", "locrian",
-                "I", "II", "III", "IV", "V", "VI", "VII")),
-            Control::Widgets::OctaveSlider("Base", 0, 1),
-            Control::Widgets::OctaveSlider("Transpose", -1, 1)
-  )
-  .build();
-
-  using control_policy = Control::DefaultTick;
-  static void run(
-      const ossia::midi_port& midi_in,
-      const Control::timed_vec<std::string>& sc,
-      const Control::timed_vec<int>& base,
-      const Control::timed_vec<int>& transp,
-      ossia::midi_port& midi_out,
-      ossia::time_value prev_date,
-      ossia::token_request tk,
-      ossia::execution_state& st)
-  {
-    const auto& cur_scale = get_scale(QLatin1String{sc.begin()->second.data(), (int)sc.begin()->second.size()});
-    const auto& scale = scales.at(cur_scale)[base.begin()->second];
-    for(const auto& msg : midi_in.messages)
+    struct Metadata
     {
-      if(msg.isNoteOnOrOff())
+        static const constexpr auto prettyName = "Midi scale";
+        static const constexpr auto objectKey = "MidiScale";
+        static const constexpr auto category = "Midi";
+        static const constexpr auto tags = std::array<const char*, 0>{};
+        static const constexpr auto uuid = make_uuid("06b33b83-bb67-4f7a-9980-f5d66e4266c5");
+    };
+
+    struct State
+    {
+      boost::container::flat_map<uint8_t, uint8_t> map;
+    };
+
+    static const constexpr auto info =
+        Control::create_node()
+        .midi_ins({{"in"}})
+        .midi_outs({{"out"}})
+        .controls(Control::make_enum(
+                    "Scale",
+                    0U,
+                    Control::array("all", "ionian", "dorian", "phyrgian", "lydian", "mixolydian", "aeolian", "locrian",
+                                   "I", "II", "III", "IV", "V", "VI", "VII")),
+                  Control::Widgets::OctaveSlider("Base", 0, 1),
+                  Control::Widgets::OctaveSlider("Transpose", -1, 1)
+                  )
+        .build();
+
+    static void exec(
+        const ossia::midi_port& midi_in,
+        const scale_array& scale,
+        int transp,
+        ossia::midi_port& midi_out)
+    {
+      for(const auto& msg : midi_in.messages)
       {
-        // map to scale
-        if(auto index = find_closest_index(scale, msg.data[1]))
+        if(msg.isNoteOnOrOff())
         {
-          // transpose
-          auto res = msg;
-          res.data[1] = (uint8_t)ossia::clamp(int(*index + transp.begin()->second), 0, 127);
-          midi_out.messages.push_back(res);
+          // map to scale
+          if(auto index = find_closest_index(scale, msg.data[1]))
+          {
+            // transpose
+            auto res = msg;
+            res.data[1] = (uint8_t)ossia::clamp(int(*index + transp), 0, 127);
+            midi_out.messages.push_back(res);
+          }
         }
+        else
+        {
+          midi_out.messages.push_back(msg);
+        }
+      }
+    }
+    using control_policy = Control::DefaultTick;
+    static void run(
+        const ossia::midi_port& midi_in,
+        const Control::timed_vec<std::string>& sc,
+        const Control::timed_vec<int>& base,
+        const Control::timed_vec<int>& transp,
+        ossia::midi_port& midi_out,
+        ossia::time_value prev_date,
+        ossia::token_request tk,
+        ossia::execution_state& st,
+        State& self)
+    {
+      QLatin1String scale{sc.begin()->second.data(), (int)sc.begin()->second.size()};
+      const auto cur_scale = get_scale(scale);
+      if(cur_scale != scale::custom)
+      {
+        exec(midi_in, scales.at(cur_scale)[base.begin()->second], transp.rbegin()->second, midi_out);
       }
       else
       {
-        midi_out.messages.push_back(msg);
+        scale_array arr{{}};
+        for(int i = 0; i < std::min((int)scale.size(), (int)arr.size()); i++)
+        {
+          arr[i] = (scale[i] == '1');
+        }
+        exec(midi_in, arr, transp.rbegin()->second, midi_out);
       }
     }
-  }
 };
-}
 }

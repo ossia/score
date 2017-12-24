@@ -26,6 +26,7 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/CreateEffectAutomation.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/EditFaustEffect.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/InsertEffect.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/VSTCommands.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Inspector/AudioInspector.hpp"
 

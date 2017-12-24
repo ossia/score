@@ -266,7 +266,6 @@ bool DocumentPlugin::isPlaying() const
 
 void DocumentPlugin::runAllCommands() const
 {
-  bool ok = false;
   ExecutionCommand com;
   while(m_execQueue.try_dequeue(com))
     com();

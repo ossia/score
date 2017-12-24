@@ -56,7 +56,6 @@ struct Node
                 Control::Widgets::MidiChannel("Channel"),
                 Control::Widgets::TempoChooser()
                 )
-      .state<State>()
       .build();
   using control_policy = Control::DefaultTick;
   struct val_visitor

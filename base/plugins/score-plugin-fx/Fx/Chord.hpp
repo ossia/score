@@ -24,8 +24,9 @@ struct Node
             std::string ch{};
             int notes{};
         };
-        std::map<uint8_t, std::vector<chord>> chords;
+        boost::container::flat_map<uint8_t, std::vector<chord>> chords;
     };
+
     enum Chord
     {
       I, II, III, IV, V, VI, VII
@@ -41,7 +42,6 @@ struct Node
                     0U,
                     Control::array("Major", "Minor", "Sus2", "Sus4", "Dim", "Aug"))
                   )
-        .state<State>()
         .build();
     using control_policy = Control::DefaultTick;
     // C C# D D# E F F# G G# A A# B

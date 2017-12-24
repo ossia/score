@@ -157,7 +157,7 @@ DataStreamWriter::write(Scenario::IntervalModel& interval)
   int32_t process_count;
   m_stream >> process_count;
 
-  auto& pl = components.interfaces<Process::ProcessFactoryList>();
+  static auto& pl = components.interfaces<Process::ProcessFactoryList>();
   for (; process_count-- > 0;)
   {
     auto proc = deserialize_interface(pl, *this, &interval);
@@ -232,8 +232,7 @@ JSONObjectWriter::write(Scenario::IntervalModel& interval)
     interval.outlet = Process::make_outlet(writer, &interval);
   }
 
-
-  auto& pl = components.interfaces<Process::ProcessFactoryList>();
+  static auto& pl = components.interfaces<Process::ProcessFactoryList>();
 
   QJsonArray process_array = obj[strings.Processes].toArray();
   for (const auto& json_vref : process_array)

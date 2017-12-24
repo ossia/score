@@ -23,7 +23,6 @@ struct Node
       Control::create_node()
       .value_ins({{"in"}})
       .value_outs({{"out"}})
-      .state<State>()
       .build();
 
   using control_policy = Control::DefaultTick;

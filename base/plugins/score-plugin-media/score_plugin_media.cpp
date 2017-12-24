@@ -46,6 +46,7 @@ score_plugin_media::~score_plugin_media()
 std::pair<const CommandGroupKey, CommandGeneratorMap> score_plugin_media::make_commands()
 {
     using namespace Media::Commands;
+    using namespace Media::VST;
     std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{Media::CommandFactoryName(), CommandGeneratorMap{}};
 
     using Types = TypeList<

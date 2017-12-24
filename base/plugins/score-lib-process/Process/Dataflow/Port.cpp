@@ -224,6 +224,34 @@ PortFactoryList::~PortFactoryList()
 
 }
 
+std::unique_ptr<Inlet> make_inlet(DataStreamWriter& wr, QObject* parent)
+{
+  static auto& il = score::AppComponents().interfaces<Process::PortFactoryList>();
+  auto ptr = deserialize_interface(il, wr, parent);
+  return std::unique_ptr<Process::Inlet>((Process::Inlet*) ptr);
+}
+
+std::unique_ptr<Inlet> make_inlet(JSONObjectWriter& wr, QObject* parent)
+{
+  static auto& il = score::AppComponents().interfaces<Process::PortFactoryList>();
+  auto ptr = deserialize_interface(il, wr, parent);
+  return std::unique_ptr<Process::Inlet>((Process::Inlet*) ptr);
+}
+
+std::unique_ptr<Outlet> make_outlet(DataStreamWriter& wr, QObject* parent)
+{
+  static auto& il = score::AppComponents().interfaces<Process::PortFactoryList>();
+  auto ptr = deserialize_interface(il, wr, parent);
+  return std::unique_ptr<Process::Outlet>((Process::Outlet*) ptr);
+}
+
+std::unique_ptr<Outlet> make_outlet(JSONObjectWriter& wr, QObject* parent)
+{
+  static auto& il = score::AppComponents().interfaces<Process::PortFactoryList>();
+  auto ptr = deserialize_interface(il, wr, parent);
+  return std::unique_ptr<Process::Outlet>((Process::Outlet*) ptr);
+}
+
 }
 
 
@@ -287,7 +315,7 @@ SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::Inlet>(Process::I
 template<>
 SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::ControlInlet>(const Process::ControlInlet& p)
 {
-  read((Process::Inlet&)p);
+  //read((Process::Inlet&)p);
   readFrom(p.m_value);
   readFrom(p.m_domain);
 }
@@ -301,7 +329,7 @@ SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::ControlInlet>(Pro
 template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::ControlInlet>(const Process::ControlInlet& p)
 {
-  read((Process::Inlet&)p);
+  //read((Process::Inlet&)p);
   obj[strings.Value] = toJsonObject(p.m_value);
   obj[strings.Domain] = toJsonObject(p.m_domain);
 }
@@ -343,7 +371,7 @@ SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::Outlet>(Process::
 template<>
 SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::ControlOutlet>(const Process::ControlOutlet& p)
 {
-  read((Process::Outlet&)p);
+  //read((Process::Outlet&)p);
   readFrom(p.m_value);
   readFrom(p.m_domain);
 }
@@ -357,7 +385,7 @@ SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::ControlOutlet>(Pr
 template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::ControlOutlet>(const Process::ControlOutlet& p)
 {
-  read((Process::Outlet&)p);
+  //read((Process::Outlet&)p);
   obj[strings.Value] = toJsonValue(p.m_value);
   obj[strings.Domain] = toJsonObject(p.m_domain);
 }

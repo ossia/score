@@ -96,12 +96,7 @@ struct NodeBuilder: Args...
         std::make_tuple(ctrls...), static_cast<Args>(*this)...
     };
   }
-  template<typename T>
-  constexpr auto state() const {
-    return NodeBuilder<StateWrapper<T>, Args...>{
-      StateWrapper<T>{}, static_cast<Args>(*this)...
-    };
-  }
+
   constexpr auto build() const {
 #if defined(_MSC_VER)
     return *this;
