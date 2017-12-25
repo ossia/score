@@ -64,9 +64,9 @@ public:
   std::unique_ptr<ClockManager>
   make(const Engine::Execution::Context& ctx) override;
 
-  std::function<ossia::time_value(const TimeVal&)>
+  time_function
   makeTimeFunction(const score::DocumentContext& ctx) const override;
-  std::function<TimeVal(const ossia::time_value&)>
+  reverse_time_function
   makeReverseTimeFunction(const score::DocumentContext& ctx) const override;
 };
 }

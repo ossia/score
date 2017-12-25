@@ -721,10 +721,10 @@ struct ComboBox: ControlInfo
 
 };
 
-template<typename ArrT>
+template<typename ArrT, bool Validate = true>
 struct Enum: ControlInfo
 {
-    static const constexpr bool must_validate = true;
+    static const constexpr bool must_validate = Validate;
     using type = std::string;
     const std::size_t init{};
     const ArrT values;
@@ -749,18 +749,28 @@ struct Enum: ControlInfo
     { return QString::fromStdString(str); }
 
 
-    optional<std::string> fromValue(const ossia::value& v) const
+    auto fromValue(const ossia::value& v) const
     {
-      auto t = v.target<std::string>();
-      if(t)
+      if constexpr(Validate)
       {
-        const auto& val = convert(*t, typename ArrT::value_type{});
-        if(auto it = ossia::find(values, val); it != values.end())
+        auto t = v.target<std::string>();
+        if(t)
         {
-          return *t;
+          const auto& val = convert(*t, typename ArrT::value_type{});
+          if(auto it = ossia::find(values, val); it != values.end())
+          {
+            return ossia::optional<std::string>{*t};
+          }
         }
+        return ossia::optional<std::string>{};
       }
-      return {};
+      else
+      {
+        auto t = v.target<std::string>();
+        if(t)
+          return *t;
+        return std::string{};
+      }
     }
     ossia::value toValue(std::string v) const { return ossia::value{std::move(v)}; }
 
@@ -943,7 +953,12 @@ struct TimeSignatureChooser: ControlInfo
 template<typename T1, typename T2>
 constexpr auto make_enum(const T1& t1, std::size_t s, const T2& t2)
 {
-  return Control::Enum<T2>(t1, s, t2);
+  return Control::Enum<T2, true>(t1, s, t2);
+}
+template<typename T1, typename T2>
+constexpr auto make_unvalidated_enum(const T1& t1, std::size_t s, const T2& t2)
+{
+  return Control::Enum<T2, false>(t1, s, t2);
 }
 /*
 template<std::size_t N1, std::size_t N2>

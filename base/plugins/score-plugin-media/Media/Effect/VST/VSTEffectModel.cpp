@@ -549,6 +549,8 @@ void VSTGraphicsSlider::paint(QPainter* painter, const QStyleOptionGraphicsItem*
   painter->setPen(grayPen);
   char str[256]{};
   fx->dispatcher(fx, effGetParamDisplay, num, 0, str, m_value);
+
+  qDebug() << m_value << num << str << fx->getParameter(fx, num);
   painter->drawText(srect.adjusted(6, -2, -6, -1),
                     QString::fromUtf8(str),
                     getHandleX() > srect.width() / 2 ? QTextOption() : QTextOption(Qt::AlignRight));

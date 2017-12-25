@@ -39,6 +39,9 @@ class ProcessComponentFactoryList;
 class StateProcessComponentFactoryList;
 class BaseScenarioElement;
 
+using time_function = smallfun::SmallFun<ossia::time_value(const TimeVal&)>;
+using reverse_time_function = smallfun::SmallFun<TimeVal(const ossia::time_value&)>;
+
 using ExecutionCommand = smallfun::SmallFun<void(), 128>;
 using ExecutionCommandQueue = moodycamel::ReaderWriterQueue<ExecutionCommand, 1024>;
 
@@ -62,8 +65,8 @@ struct SCORE_PLUGIN_ENGINE_EXPORT Context
    * For instance, milliseconds to microseconds
    * or milliseconds to samples
    */
-  std::function<ossia::time_value(const TimeVal&)> time;
-  std::function<TimeVal(const ossia::time_value&)> reverseTime;
+  Engine::Execution::time_function time;
+  Engine::Execution::reverse_time_function reverseTime;
 
   //! \see LiveModification
   ExecutionCommandQueue& executionQueue;

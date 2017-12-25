@@ -171,7 +171,7 @@ struct Node
         Control::create_node()
         .midi_ins({{"in"}})
         .midi_outs({{"out"}})
-        .controls(Control::make_enum(
+        .controls(Control::make_unvalidated_enum(
                     "Scale",
                     0U,
                     Control::array("all", "ionian", "dorian", "phyrgian", "lydian", "mixolydian", "aeolian", "locrian",
@@ -185,24 +185,49 @@ struct Node
         const ossia::midi_port& midi_in,
         const scale_array& scale,
         int transp,
-        ossia::midi_port& midi_out)
+        ossia::midi_port& midi_out,
+        State& self)
     {
       for(const auto& msg : midi_in.messages)
       {
-        if(msg.isNoteOnOrOff())
+        switch(msg.getMessageType())
         {
-          // map to scale
-          if(auto index = find_closest_index(scale, msg.data[1]))
+          case mm::MessageType::NOTE_ON:
           {
-            // transpose
-            auto res = msg;
-            res.data[1] = (uint8_t)ossia::clamp(int(*index + transp), 0, 127);
-            midi_out.messages.push_back(res);
+            // map to scale
+            if(auto index = find_closest_index(scale, msg.data[1]))
+            {
+              // transpose
+              auto res = msg;
+              res.data[1] = (uint8_t)ossia::clamp(int(*index + transp), 0, 127);
+              auto it = self.map.find(msg.data[1]);
+              if(it != self.map.end())
+              {
+                midi_out.messages.push_back(mm::MakeNoteOff(res.getChannel(), it->second, res.data[2]));
+                midi_out.messages.push_back(res);
+                it->second = res.data[1];
+              }
+              else
+              {
+                midi_out.messages.push_back(res);
+                self.map.insert(std::make_pair((uint8_t)msg.data[1], (uint8_t)res.data[1]));
+              }
+            }
+            break;
           }
-        }
-        else
-        {
-          midi_out.messages.push_back(msg);
+          case mm::MessageType::NOTE_OFF:
+          {
+            auto it = self.map.find(msg.data[1]);
+            if(it != self.map.end())
+            {
+              midi_out.messages.push_back(mm::MakeNoteOff(msg.getChannel(), it->second, msg.data[2]));
+              self.map.erase(it);
+            }
+            break;
+          }
+          default:
+            midi_out.messages.push_back(msg);
+            break;
         }
       }
     }
@@ -218,11 +243,12 @@ struct Node
         ossia::execution_state& st,
         State& self)
     {
-      QLatin1String scale{sc.begin()->second.data(), (int)sc.begin()->second.size()};
+      QLatin1String scale{sc.rbegin()->second.data(), (int)sc.rbegin()->second.size()};
+
       const auto cur_scale = get_scale(scale);
       if(cur_scale != scale::custom)
       {
-        exec(midi_in, scales.at(cur_scale)[base.begin()->second], transp.rbegin()->second, midi_out);
+        exec(midi_in, scales.at(cur_scale)[base.rbegin()->second], transp.rbegin()->second, midi_out, self);
       }
       else
       {
@@ -231,7 +257,7 @@ struct Node
         {
           arr[i] = (scale[i] == '1');
         }
-        exec(midi_in, arr, transp.rbegin()->second, midi_out);
+        exec(midi_in, arr, transp.rbegin()->second, midi_out, self);
       }
     }
 };

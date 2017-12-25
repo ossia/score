@@ -182,7 +182,7 @@ void DocumentPlugin::on_finished()
   execGraph->clear();
   execGraph.reset();
 
-  execState.clear();
+  execState.reset();
   for(auto& v : runtime_connections)
   {
     for(auto& con : v.second)
@@ -216,8 +216,27 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
   clear();
   auto& ctx = score::DocumentPlugin::context();
   auto& settings = ctx.app.settings<Engine::Execution::Settings::Model>();
+
   m_ctx.time = settings.makeTimeFunction(ctx);
   m_ctx.reverseTime = settings.makeReverseTimeFunction(ctx);
+
+  execState.samples_since_start = 0;
+  execState.start_date = std::chrono::high_resolution_clock::now();
+  execState.cur_date = execState.start_date;
+  execState.clear_devices();
+  execState.register_device(&midi_dev);
+  execState.register_device(&audio_dev);
+  for(auto dev : m_ctx.devices.list().devices()) {
+    if(auto od = dynamic_cast<Engine::Network::OSSIADevice*>(dev))
+      if(auto d = od->getDevice())
+      {
+        if(auto midi_dev = dynamic_cast<ossia::net::midi::midi_device*>(d))
+          execState.register_device(midi_dev);
+        else
+          execState.register_device(d);
+      }
+  }
+
   auto parent = dynamic_cast<Scenario::ScenarioInterface*>(cst.parent());
   SCORE_ASSERT(parent);
   m_base.init(BaseScenarioRefContainer{cst, *parent});

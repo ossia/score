@@ -34,9 +34,9 @@ public:
 
   std::unique_ptr<ClockManager>
   makeClock(const Engine::Execution::Context& ctx) const;
-  std::function<ossia::time_value(const TimeVal&)>
+  time_function
   makeTimeFunction(const score::DocumentContext&) const;
-  std::function<TimeVal(const ossia::time_value&)>
+  reverse_time_function
   makeReverseTimeFunction(const score::DocumentContext&) const;
 
   SCORE_SETTINGS_PARAMETER_HPP(int, Rate)

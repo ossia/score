@@ -1,6 +1,7 @@
 #pragma once
 #include <Engine/Node/Node.hpp>
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessMetadata.hpp>
 #include <Process/ProcessFactory.hpp>
@@ -216,15 +217,9 @@ struct TSerializer<DataStream, Model<Info, Control::is_control>>
     readFrom(DataStream::Serializer& s, const model_type& obj)
     {
       using namespace Control;
+      for (auto obj : obj.inlets_ref())
       {
-        for(std::size_t i = 0; i < InfoFunctions<Info>::control_start; i++)
-        {
-          s.stream() << *obj.inlets_ref()[i];
-        }
-        for(auto i = InfoFunctions<Info>::control_start; i < InfoFunctions<Info>::inlet_size; i++)
-        {
-          s.stream() << *static_cast<Process::ControlInlet*>(obj.inlets_ref()[i]);
-        }
+        s.stream() << *obj;
       }
 
       for (auto obj : obj.outlets_ref())
@@ -238,18 +233,15 @@ struct TSerializer<DataStream, Model<Info, Control::is_control>>
     {
       using namespace Control;
 
-      for(std::size_t i = 0; i < InfoFunctions<Info>::control_start; i++)
+      auto& pl = s.components.template interfaces<Process::PortFactoryList>();
+      for(std::size_t i = 0; i < InfoFunctions<Info>::inlet_size; i++)
       {
-        obj.m_inlets.push_back(new Process::Inlet(s, &obj));
-      }
-      for(auto i = InfoFunctions<Info>::control_start; i < InfoFunctions<Info>::inlet_size; i++)
-      {
-        obj.m_inlets.push_back(new Process::ControlInlet(s, &obj));
+        obj.m_inlets.push_back((Process::Inlet*)deserialize_interface(pl, s, &obj));
       }
 
       for(std::size_t i = 0; i < InfoFunctions<Info>::outlet_size; i++)
       {
-        obj.m_outlets.push_back(new Process::Outlet(s, &obj));
+        obj.m_outlets.push_back((Process::Outlet*)deserialize_interface(pl, s, &obj));
       }
       s.checkDelimiter();
     }
@@ -263,47 +255,26 @@ struct TSerializer<JSONObject, Model<Info, Control::is_control>>
     readFrom(JSONObject::Serializer& s, const model_type& obj)
     {
       using namespace Control;
-      {
-        QJsonArray arr;
-        for(std::size_t i = 0; i < InfoFunctions<Info>::control_start; i++)
-        {
-          arr.push_back(toJsonObject(*obj.inlets_ref()[i]));
-        }
-        for(auto i = InfoFunctions<Info>::control_start; i < InfoFunctions<Info>::inlet_size; i++)
-        {
-          arr.push_back(toJsonObject(*static_cast<Process::ControlInlet*>(obj.inlets_ref()[i])));
-        }
-        s.obj["Inlets"] = std::move(arr);
-      }
-
+      s.obj["Inlets"] = toJsonArray(obj.inlets_ref());
       s.obj["Outlets"] = toJsonArray(obj.outlets_ref());
     }
 
     static void writeTo(JSONObject::Deserializer& s, model_type& obj)
     {
       using namespace Control;
+      auto& pl = s.components.template interfaces<Process::PortFactoryList>();
 
+      auto inlets = s.obj["Inlets"].toArray();
+      auto outlets = s.obj["Outlets"].toArray();
+
+      for(std::size_t i = 0; i < InfoFunctions<Info>::inlet_size; i++)
       {
-        auto inlets = s.obj["Inlets"].toArray();
-
-        for(std::size_t i = 0; i < InfoFunctions<Info>::control_start; i++)
-        {
-          obj.m_inlets.push_back(new Process::Inlet(JSONObjectWriter{inlets[i].toObject()}, &obj));
-        }
-        for(auto i = InfoFunctions<Info>::control_start; i < InfoFunctions<Info>::inlet_size; i++)
-        {
-          obj.m_inlets.push_back(new Process::ControlInlet(JSONObjectWriter{inlets[i].toObject()}, &obj));
-          SCORE_ASSERT(obj.m_inlets.back()->hidden);
-        }
+        obj.m_inlets.push_back((Process::Inlet*)deserialize_interface(pl, JSONObjectWriter{inlets[i].toObject()}, &obj));
       }
 
-
+      for(std::size_t i = 0; i < InfoFunctions<Info>::outlet_size; i++)
       {
-        auto outlets = s.obj["Outlets"].toArray();
-        for(std::size_t i = 0; i < InfoFunctions<Info>::outlet_size; i++)
-        {
-          obj.m_outlets.push_back(new Process::Outlet(JSONObjectWriter{outlets[i].toObject()}, &obj));
-        }
+        obj.m_outlets.push_back((Process::Outlet*)deserialize_interface(pl, JSONObjectWriter{outlets[i].toObject()}, &obj));
       }
     }
 };

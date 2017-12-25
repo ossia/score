@@ -179,16 +179,27 @@ void ScenarioContextMenuManager::createSlotContextMenu(
     dialog->launchWindow();
     dialog->deleteLater();
   });
-  menu.addAction(addNewProcessInNewSlot);
 }
 
 void ScenarioContextMenuManager::createSlotContextMenu(
-    const score::DocumentContext& docContext,
+    const score::DocumentContext& ctx,
     QMenu& menu,
-    const FullViewIntervalPresenter& slotp,
+    const FullViewIntervalPresenter& pres,
     int slot_index)
 {
+  auto& interval = pres.model();
+  const FullSlot& slot = interval.fullView().at(slot_index);
+  auto duplProcessInNewSlot
+      = new QAction{tr("Duplicate process in new slot"), &menu};
+  QObject::connect(duplProcessInNewSlot, &QAction::triggered, [&] {
+    using cmd = Scenario::Command::DuplicateProcess;
+    QuietMacroCommandDispatcher<cmd> disp{ctx.commandStack};
 
+    cmd::create(disp, interval, interval.processes.at(slot.process));
+
+    disp.commit();
+  });
+  menu.addAction(duplProcessInNewSlot);
 }
 
 void ScenarioContextMenuManager::createLayerContextMenu(
@@ -206,13 +217,23 @@ void ScenarioContextMenuManager::createLayerContextMenu(
   if(auto small_view = dynamic_cast<TemporalIntervalPresenter*>(pres.parent()))
   {
     auto& context = pres.context().context;
-    //if (context.selectionStack.currentSelection().toList().isEmpty())
     {
       auto slotSubmenu = menu.addMenu(tr("Slot"));
       ScenarioContextMenuManager::createSlotContextMenu(
           context, *slotSubmenu, *small_view, small_view->indexOfSlot(pres));
       has_slot_menu = true;
     }
+  }
+  else if(auto full_view = dynamic_cast<FullViewIntervalPresenter*>(pres.parent()))
+  {
+    auto& context = pres.context().context;
+    {
+      auto slotSubmenu = menu.addMenu(tr("Slot"));
+      ScenarioContextMenuManager::createSlotContextMenu(
+          context, *slotSubmenu, *full_view, full_view->indexOfSlot(pres));
+      has_slot_menu = true;
+    }
+
   }
 
   // Then the process-specific part

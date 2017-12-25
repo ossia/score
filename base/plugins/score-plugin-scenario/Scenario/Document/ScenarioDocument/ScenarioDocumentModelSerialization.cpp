@@ -79,6 +79,5 @@ void JSONObjectWriter::write(Scenario::ScenarioDocumentModel& doc)
 void Scenario::ScenarioDocumentModel::serialize(
     const VisitorVariant& vis) const
 {
-
   serialize_dyn(vis, *this);
 }

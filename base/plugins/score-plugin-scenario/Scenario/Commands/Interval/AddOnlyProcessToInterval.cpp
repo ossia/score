@@ -94,5 +94,65 @@ void AddOnlyProcessToInterval::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_path >> m_processName >> m_createdProcessId;
 }
+
+
+
+
+DuplicateOnlyProcessToInterval::DuplicateOnlyProcessToInterval(
+    const IntervalModel& cst,
+    const Process::ProcessModel& process)
+    : DuplicateOnlyProcessToInterval{cst,
+                                 getStrongId(cst.processes),
+                                 process}
+{
+}
+
+DuplicateOnlyProcessToInterval::DuplicateOnlyProcessToInterval(
+    const IntervalModel& cst,
+    Id<Process::ProcessModel> processId,
+    const Process::ProcessModel& process)
+    : m_path{cst}
+    , m_processData{score::marshall<DataStream>(process)}
+    , m_createdProcessId{std::move(processId)}
+{
+}
+
+void DuplicateOnlyProcessToInterval::undo(const score::DocumentContext& ctx) const
+{
+  undo(m_path.find(ctx));
+}
+
+void DuplicateOnlyProcessToInterval::redo(const score::DocumentContext& ctx) const
+{
+  redo(m_path.find(ctx), ctx);
+}
+
+void DuplicateOnlyProcessToInterval::undo(IntervalModel& interval) const
+{
+  RemoveProcess(interval, m_createdProcessId);
+}
+
+Process::ProcessModel&
+DuplicateOnlyProcessToInterval::redo(IntervalModel& interval, const score::DocumentContext& ctx) const
+{
+  // Create process model
+  auto& pl = ctx.app.interfaces<Process::ProcessFactoryList>();
+  Process::ProcessModel* proc = deserialize_interface(pl, DataStream::Deserializer{m_processData}, &interval);
+  proc->setId(m_createdProcessId);
+
+  AddProcess(interval, proc);
+
+  return *proc;
+}
+
+void DuplicateOnlyProcessToInterval::serializeImpl(DataStreamInput& s) const
+{
+  s << m_path << m_processData << m_createdProcessId;
+}
+
+void DuplicateOnlyProcessToInterval::deserializeImpl(DataStreamOutput& s)
+{
+  s >> m_path >> m_processData >> m_createdProcessId;
+}
 }
 }

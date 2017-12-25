@@ -42,7 +42,7 @@ Model::makeClock(const Engine::Execution::Context& ctx) const
     return std::make_unique<Dataflow::Clock>(ctx);
 }
 
-std::function<ossia::time_value(const TimeVal&)>
+time_function
 Model::makeTimeFunction(const score::DocumentContext& ctx) const
 {
   auto it = m_clockFactories.find(m_Clock);
@@ -51,7 +51,7 @@ Model::makeTimeFunction(const score::DocumentContext& ctx) const
       : &score_to_ossia::defaultTime;
 }
 
-std::function<TimeVal(const ossia::time_value&)>
+reverse_time_function
 Model::makeReverseTimeFunction(const score::DocumentContext& ctx) const
 {
   auto it = m_clockFactories.find(m_Clock);
