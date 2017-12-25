@@ -237,7 +237,6 @@ std::function<void ()> EffectProcessComponentBase::removing(
 
   unreg(this_fx);
 
-  qDebug() << "REMOVING" << idx << e.prettyName() << m_fxes.size();
   if(idx == 0)
   {
     if(m_fxes.size() > 1)
@@ -251,7 +250,6 @@ std::function<void ()> EffectProcessComponentBase::removing(
         {
           new_first.second.registeredInlets = process().effects().at(new_first.first).inlets();
           new_first.second.registeredInlets[0] = process().inlet.get();
-          qDebug() << "REGISTERING" << idx <<  new_first.second.comp->effect().prettyName();
           reg(new_first.second);
         }
       }
@@ -269,7 +267,6 @@ std::function<void ()> EffectProcessComponentBase::removing(
         {
           new_last.second.registeredOutlets = process().effects().at(new_last.first).outlets();
           new_last.second.registeredOutlets[0] = process().outlet.get();
-          qDebug() << "REGISTERING " << new_last.second.comp->effect().prettyName() <<  idx-1;
           reg(new_last.second);
 
           auto old = m_ossia_process->node;
@@ -283,10 +280,8 @@ std::function<void ()> EffectProcessComponentBase::removing(
   }
   else
   {
-    qDebug() << "whatever 1";
     if(m_fxes.size() > (idx+1))
     {
-      qDebug() << "whatever 2";
       auto& prev = m_fxes[idx-1];
       auto& next = m_fxes[idx+1];
       if(prev.second && next.second)

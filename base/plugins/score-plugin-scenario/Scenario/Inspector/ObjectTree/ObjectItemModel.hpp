@@ -29,7 +29,7 @@ class ObjectItemModel final
 {
     Q_OBJECT
   public:
-    ObjectItemModel(QObject* parent);
+    ObjectItemModel(const score::DocumentContext& ctx, QObject* parent);
     void setSelected(QList<const IdentifiedObjectAbstract*> sel);
 
     QModelIndex index(int row, int column, const QModelIndex& parent) const override;
@@ -41,6 +41,8 @@ class ObjectItemModel final
 
     QVariant data(const QModelIndex& index, int role) const override;
     Qt::ItemFlags flags(const QModelIndex& index) const override;
+
+    bool setData(const QModelIndex& index, const QVariant& value, int role) override;
 
   signals:
     void changed();
@@ -67,7 +69,9 @@ class ObjectItemModel final
     QMetaObject::Connection m_con;
     mutable QMap<const QObject*, QPointer<const QObject>> m_aliveMap;
 
+    const score::DocumentContext& m_ctx;
     std::vector<QMetaObject::Connection> m_itemCon;
+
 };
 
 class ObjectWidget final: public QTreeView

@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/LayerPresenter.hpp>
 #include <ossia/detail/small_vector.hpp>
-#include <QTextLayout>
+#include <QGlyphRun>
 namespace Dataflow { class PortItem; }
 namespace Scenario
 {
@@ -20,7 +20,7 @@ class DefaultHeaderDelegate final
     void updatePorts();
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
     Process::LayerPresenter& presenter;
-    QTextLayout m_textcache;
+    QGlyphRun m_line;
     ossia::small_vector<Dataflow::PortItem*, 3> m_inPorts, m_outPorts;
 };
 }

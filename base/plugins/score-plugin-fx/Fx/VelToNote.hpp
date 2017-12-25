@@ -50,7 +50,7 @@ struct Node
                 Control::Widgets::DurationChooser(),
                 Control::Widgets::MidiSpinbox("Default pitch"),
                 Control::Widgets::MidiSpinbox("Default vel."),
-                Control::Widgets::OctaveSlider("Pitch shift", -3, 3),
+                Control::Widgets::OctaveSlider("Pitch shift", -5, 5),
                 Control::Widgets::OctaveSlider("Pitch random", 0, 2),
                 Control::Widgets::OctaveSlider("Vel. random", 0, 2),
                 Control::Widgets::MidiChannel("Channel"),
