@@ -33,12 +33,14 @@
 #include <score/application/ApplicationContext.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
 #include <Explorer/Panel/DeviceExplorerPanelDelegate.hpp>
+#include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 
 namespace Scenario
 {
 
-ObjectItemModel::ObjectItemModel(QObject* parent)
+ObjectItemModel::ObjectItemModel(const score::DocumentContext& ctx, QObject* parent)
   : QAbstractItemModel{parent}
+  , m_ctx{ctx}
 {
 }
 
@@ -517,11 +519,45 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
 
 Qt::ItemFlags ObjectItemModel::flags(const QModelIndex& index) const
 {
-  return QAbstractItemModel::flags(index);
-  Qt::ItemFlags f{};
+  Qt::ItemFlags f = QAbstractItemModel::flags(index);
   f |= Qt::ItemIsSelectable;
   f |= Qt::ItemIsEnabled;
+  f |= Qt::ItemIsEditable;
   return f;
+}
+
+bool ObjectItemModel::setData(const QModelIndex& index, const QVariant& value, int role)
+{
+  if(index.column() == 0)
+  {
+    auto sel = (QObject*)index.internalPointer();
+    if(!isAlive(sel))
+      return {};
+
+    CommandDispatcher<> disp{m_ctx.commandStack};
+
+    if(auto cst = dynamic_cast<Scenario::IntervalModel*>(sel))
+    {
+    }
+    else if(auto ev = dynamic_cast<Scenario::EventModel*>(sel))
+    {
+    }
+    else if(auto tn = dynamic_cast<Scenario::TimeSyncModel*>(sel))
+    {
+    }
+    else if(auto st = dynamic_cast<Scenario::StateModel*>(sel))
+    {
+    }
+    else if(auto stp = dynamic_cast<Process::StateProcess*>(sel))
+    {
+    }
+    else if(auto p = dynamic_cast<Process::ProcessModel*>(sel))
+    {
+      disp.submitCommand<Command::ChangeElementName<Process::ProcessModel>>(*p, value.toString());
+      return true;
+    }
+  }
+  return false;
 }
 
 SelectionStackWidget::SelectionStackWidget(
@@ -676,7 +712,7 @@ void ObjectPanelDelegate::setNewSelection(const Selection &sel)
 
 ObjectWidget::ObjectWidget(const score::DocumentContext& ctx, QWidget* par)
   : QTreeView{par}
-  , model{this}
+  , model{ctx, this}
   , m_ctx{ctx}
 {
   setModel(&model);
@@ -767,6 +803,12 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
       connect(deleteact, &QAction::triggered, this, [=] {
         CommandDispatcher<> c{m_ctx.commandStack};
         c.submitCommand<Scenario::Command::RemoveProcessFromInterval>(*(IntervalModel*)proc->parent(), proc->id());
+      });
+      auto duplicate = new QAction{tr("Duplicate"), m};
+      m->addAction(duplicate);
+      connect(duplicate, &QAction::triggered, this, [=] {
+        CommandDispatcher<> c{m_ctx.commandStack};
+        c.submitCommand<Scenario::Command::DuplicateOnlyProcessToInterval>(*(IntervalModel*)proc->parent(), *proc);
       });
     }
     else if(auto stp = dynamic_cast<Process::StateProcess*>(ptr))

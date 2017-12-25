@@ -20,9 +20,37 @@
 #include <score/widgets/SignalUtils.hpp>
 #include <QCheckBox>
 #include <QMenu>
+#include <QTextLayout>
 namespace Scenario
 {
 
+static QGlyphRun makeGlyphs(const char* glyph)
+{
+  QTextLayout lay;
+  lay.setFont(ScenarioStyle::instance().Medium8Pt);
+  lay.setCacheEnabled(true);
+
+  lay.setText(glyph);
+  lay.beginLayout();
+  QTextLine line = lay.createLine();
+  lay.endLayout();
+  line.setPosition(QPointF{0., 0.});
+
+  auto r = line.glyphRuns();
+  SCORE_ASSERT(r.size() >= 1);
+  return r[0];
+}
+
+static const QGlyphRun& fromGlyph()
+{
+  static const QGlyphRun gl{makeGlyphs("→")};
+  return gl;
+}
+static const QGlyphRun& toGlyph()
+{
+  static const QGlyphRun gl{makeGlyphs("←")};
+  return gl;
+}
 
 DefaultHeaderDelegate::DefaultHeaderDelegate(Process::LayerPresenter& p)
   : presenter{p}
@@ -30,8 +58,6 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(Process::LayerPresenter& p)
   con(presenter.model(), &Process::ProcessModel::prettyNameChanged,
       this, &DefaultHeaderDelegate::updateName);
   updateName();
-  m_textcache.setFont(ScenarioStyle::instance().Medium8Pt);
-  m_textcache.setCacheEnabled(true);
 
   con(p.model(), &Process::ProcessModel::inletsChanged,
       this, [=] { updatePorts(); });
@@ -42,13 +68,22 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(Process::LayerPresenter& p)
 
 void DefaultHeaderDelegate::updateName()
 {
-  m_textcache.setText(presenter.model().prettyName());
-  m_textcache.beginLayout();
+  QTextLayout lay;
+  lay.setFont(ScenarioStyle::instance().Medium8Pt);
+  lay.setCacheEnabled(true);
 
-  QTextLine line = m_textcache.createLine();
+  lay.setText(presenter.model().prettyName());
+  lay.beginLayout();
+  QTextLine line = lay.createLine();
+  lay.endLayout();
   line.setPosition(QPointF{0., 0.});
 
-  m_textcache.endLayout();
+  auto r = line.glyphRuns();
+
+  if(r.size() > 0)
+    m_line = std::move(r[0]);
+  else
+    m_line.clear();
 
   update();
 }
@@ -135,12 +170,9 @@ void DefaultHeaderDelegate::paint(QPainter* painter, const QStyleOptionGraphicsI
   if(boundingRect().width() > minPortWidth()) {
     painter->setRenderHint(QPainter::Antialiasing, true);
     painter->setPen(ScenarioStyle::instance().IntervalHeaderSeparator);
-    m_textcache.draw(painter, QPointF{8.,-3.});
-
-    painter->setPen(ScenarioStyle::instance().TimenodePen);
-    painter->setFont(ScenarioStyle::instance().Medium8Pt);
-    painter->drawText(QPointF{4, 18}, "→");
-    painter->drawText(QPointF{4, 27}, "←");
+    painter->drawGlyphRun(QPointF{8.,3.}, m_line);
+    painter->drawGlyphRun(QPointF{4., 10.}, fromGlyph());
+    painter->drawGlyphRun(QPointF{4., 20.}, toGlyph());
 
     painter->setRenderHint(QPainter::Antialiasing, false);
   }

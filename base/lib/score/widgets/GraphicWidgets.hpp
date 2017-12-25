@@ -11,7 +11,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsPixmapButton
     , public QGraphicsPixmapItem
 {
     Q_OBJECT
-    QPixmap m_pressed, m_released;
+    const QPixmap m_pressed, m_released;
   public:
     QGraphicsPixmapButton(QPixmap pressed, QPixmap released, QGraphicsItem* parent);
 
@@ -29,7 +29,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsPixmapToggle
     , public QGraphicsPixmapItem
 {
     Q_OBJECT
-    QPixmap m_pressed, m_released;
+    const QPixmap m_pressed, m_released;
     bool m_toggled{};
   public:
     QGraphicsPixmapToggle(QPixmap pressed, QPixmap released, QGraphicsItem* parent);

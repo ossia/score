@@ -186,6 +186,7 @@ struct Node
         const scale_array& scale,
         int transp,
         ossia::midi_port& midi_out,
+        const ossia::time_value& offset,
         State& self)
     {
       for(const auto& msg : midi_in.messages)
@@ -204,12 +205,15 @@ struct Node
               if(it != self.map.end())
               {
                 midi_out.messages.push_back(mm::MakeNoteOff(res.getChannel(), it->second, res.data[2]));
+                midi_out.messages.back().timestamp = offset;
                 midi_out.messages.push_back(res);
+                midi_out.messages.back().timestamp = offset + ossia::time_value{1};
                 it->second = res.data[1];
               }
               else
               {
                 midi_out.messages.push_back(res);
+                midi_out.messages.back().timestamp = offset;
                 self.map.insert(std::make_pair((uint8_t)msg.data[1], (uint8_t)res.data[1]));
               }
             }
@@ -221,6 +225,7 @@ struct Node
             if(it != self.map.end())
             {
               midi_out.messages.push_back(mm::MakeNoteOff(msg.getChannel(), it->second, msg.data[2]));
+              midi_out.messages.back().timestamp = offset;
               self.map.erase(it);
             }
             break;
@@ -248,16 +253,19 @@ struct Node
       const auto cur_scale = get_scale(scale);
       if(cur_scale != scale::custom)
       {
-        exec(midi_in, scales.at(cur_scale)[base.rbegin()->second], transp.rbegin()->second, midi_out, self);
+        exec(midi_in, scales.at(cur_scale)[base.rbegin()->second], transp.rbegin()->second, midi_out, tk.offset, self);
       }
       else
       {
         scale_array arr{{}};
-        for(int i = 0; i < std::min((int)scale.size(), (int)arr.size()); i++)
+        for(int oct = 0; oct < 10; oct++)
         {
-          arr[i] = (scale[i] == '1');
+          for(int i = 0; i < std::min((int)scale.size(), 12); i++)
+          {
+            arr[oct * 12 + i] = (scale[i] == '1');
+          }
         }
-        exec(midi_in, arr, transp.rbegin()->second, midi_out, self);
+        exec(midi_in, arr, transp.rbegin()->second, midi_out, tk.offset, self);
       }
     }
 };
