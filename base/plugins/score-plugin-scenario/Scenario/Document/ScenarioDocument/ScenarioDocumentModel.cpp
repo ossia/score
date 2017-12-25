@@ -113,8 +113,10 @@ void ScenarioDocumentModel::finishLoading()
   const auto& cbl = m_savedCables;
   for (const auto& json_vref : cbl)
   {
-    cables.add(new Process::Cable{
-                     JSONObject::Deserializer{json_vref.toObject()}, this});
+    auto cbl = new Process::Cable{JSONObject::Deserializer{json_vref.toObject()}, this};
+    cbl->source().find(m_context).addCable(*cbl);
+    cbl->sink().find(m_context).addCable(*cbl);
+    cables.add(cbl);
   }
   m_savedCables = QJsonArray{};
 }

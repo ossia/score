@@ -5,7 +5,7 @@
 
 #include <Process/TimeValue.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
-#include <functional>
+#include <smallfun.hpp>
 
 namespace Engine
 {
@@ -31,6 +31,9 @@ class BaseScenarioElement;
  * the clock drive mode, speed, etc.
  *
  */
+
+using time_function = smallfun::SmallFun<ossia::time_value(const TimeVal&)>;
+using reverse_time_function = smallfun::SmallFun<TimeVal(const ossia::time_value&)>;
 class SCORE_PLUGIN_ENGINE_EXPORT ClockManager
 {
 public:
@@ -65,9 +68,9 @@ public:
   virtual std::unique_ptr<ClockManager>
   make(const Engine::Execution::Context& ctx) = 0;
 
-  virtual std::function<ossia::time_value(const TimeVal&)>
+  virtual time_function
   makeTimeFunction(const score::DocumentContext& ctx) const = 0;
-  virtual std::function<TimeVal(const ossia::time_value&)>
+  virtual reverse_time_function
   makeReverseTimeFunction(const score::DocumentContext& ctx) const = 0;
 };
 

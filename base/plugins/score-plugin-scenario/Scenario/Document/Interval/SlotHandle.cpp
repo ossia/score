@@ -102,6 +102,7 @@ SlotHeader::SlotHeader(
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setFlag(ItemClipsToShape);
   this->setFlag(ItemClipsChildrenToShape);
+  this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
 
 int SlotHeader::slotIndex() const

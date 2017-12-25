@@ -86,7 +86,11 @@ public:
     }
     for(std::size_t i = 0; i < InfoFunctions<Info>::control_count; i++)
     {
-      m_inlets.push_back(ossia::make_inlet<ossia::value_port>());
+      auto inlt = ossia::make_inlet<ossia::value_port>();
+
+      inlt->data.target<ossia::value_port>()->is_event = true;
+
+      m_inlets.push_back(std::move(inlt));
     }
 
     for(std::size_t i = 0; i < InfoFunctions<Info>::audio_out_count; i++)

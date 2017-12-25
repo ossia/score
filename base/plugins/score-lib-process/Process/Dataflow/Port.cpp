@@ -259,14 +259,14 @@ template<>
 SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::Port>(const Process::Port& p)
 {
   insertDelimiter();
-  m_stream << p.type << p.hidden << p.m_customData << p.m_address << p.m_cables;
+  m_stream << p.type << p.hidden << p.m_customData << p.m_address;
   insertDelimiter();
 }
 template<>
 SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::Port>(Process::Port& p)
 {
   checkDelimiter();
-  m_stream >> p.type >> p.hidden >> p.m_customData >> p.m_address >> p.m_cables;
+  m_stream >> p.type >> p.hidden >> p.m_customData >> p.m_address;
   checkDelimiter();
 }
 
@@ -277,7 +277,6 @@ SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::Port>(const Proces
   obj["Hidden"] = (bool)p.hidden;
   obj["Custom"] = p.m_customData;
   obj["Address"] = toJsonObject(p.m_address);
-  obj["Cables"] = toJsonArray(p.m_cables);
 }
 template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::Port>(Process::Port& p)
@@ -286,7 +285,6 @@ SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::Port>(Process::Po
   p.hidden = obj["Hidden"].toBool();
   p.m_customData = obj["Custom"].toString();
   p.m_address = fromJsonObject<State::AddressAccessor>(obj["Address"]);
-  fromJsonArray(obj["Cables"].toArray(), p.m_cables);
 }
 
 

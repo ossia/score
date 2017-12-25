@@ -191,13 +191,13 @@ ControlClockFactory::make(const Engine::Execution::Context& ctx)
   return std::make_unique<ControlClock>(ctx);
 }
 
-std::function<ossia::time_value(const TimeVal&)>
+Engine::Execution::time_function
 ControlClockFactory::makeTimeFunction(const score::DocumentContext& ctx) const
 {
   return &score_to_ossia::defaultTime;
 }
 
-std::function<TimeVal (const ossia::time_value&)> ControlClockFactory::makeReverseTimeFunction(const score::DocumentContext& ctx) const
+Engine::Execution::reverse_time_function ControlClockFactory::makeReverseTimeFunction(const score::DocumentContext& ctx) const
 {
   return &ossia_to_score::defaultTime;
 }

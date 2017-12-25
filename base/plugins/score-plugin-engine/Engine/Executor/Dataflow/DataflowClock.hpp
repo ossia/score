@@ -50,9 +50,9 @@ class ClockFactory final : public Engine::Execution::ClockManagerFactory
         std::unique_ptr<Engine::Execution::ClockManager> make(
             const Engine::Execution::Context& ctx) override;
 
-        std::function<ossia::time_value(const TimeVal&)>
+        Engine::Execution::time_function
         makeTimeFunction(const score::DocumentContext& ctx) const override;
-        std::function<TimeVal(const ossia::time_value&)>
+        Engine::Execution::reverse_time_function
         makeReverseTimeFunction(const score::DocumentContext& ctx) const override;
 };
 }

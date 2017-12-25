@@ -48,23 +48,6 @@ void Clock::play_impl(
 
   std::cerr << s.str() << std::endl;
   m_cur = &bs;
-
-  m_plug.execState.samples_since_start = 0;
-  m_plug.execState.start_date = std::chrono::high_resolution_clock::now();
-  m_plug.execState.cur_date = m_plug.execState.start_date;
-  m_plug.execState.clear_devices();
-  m_plug.execState.register_device(&m_plug.midi_dev);
-  m_plug.execState.register_device(&m_plug.audio_dev);
-  for(auto dev : context.devices.list().devices()) {
-    if(auto od = dynamic_cast<Engine::Network::OSSIADevice*>(dev))
-      if(auto d = od->getDevice())
-      {
-        if(auto midi_dev = dynamic_cast<ossia::net::midi::midi_device*>(d))
-          m_plug.execState.register_device(midi_dev);
-        else
-          m_plug.execState.register_device(d);
-      }
-  }
   m_default.play(t);
 
   resume_impl(bs);
@@ -125,7 +108,7 @@ std::unique_ptr<Engine::Execution::ClockManager> ClockFactory::make(
   return std::make_unique<Clock>(ctx);
 }
 
-std::function<ossia::time_value (const TimeVal&)>
+Engine::Execution::time_function
 ClockFactory::makeTimeFunction(const score::DocumentContext& ctx) const
 {
   auto rate = ctx.plugin<Engine::Execution::DocumentPlugin>().audioProto().rate;
@@ -139,7 +122,7 @@ ClockFactory::makeTimeFunction(const score::DocumentContext& ctx) const
   };
 }
 
-std::function<TimeVal(const ossia::time_value&)>
+Engine::Execution::reverse_time_function
 ClockFactory::makeReverseTimeFunction(const score::DocumentContext& ctx) const
 {
   auto rate = ctx.plugin<Engine::Execution::DocumentPlugin>().audioProto().rate;
