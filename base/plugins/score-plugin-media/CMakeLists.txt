@@ -26,7 +26,6 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/CreateEffectAutomation.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/EditFaustEffect.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/InsertEffect.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/VSTCommands.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Inspector/AudioInspector.hpp"
 
@@ -142,11 +141,13 @@ if(TARGET Vst2SDK)
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTLoader.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTEffectModel.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTNode.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/VSTCommands.hpp"
         )
     set(VST_SRCS
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTLoader.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTEffectModel.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTNode.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/VSTCommands.cpp"
         )
 
     if(APPLE)

@@ -34,6 +34,8 @@
 #include <core/document/DocumentModel.hpp>
 #include <score_plugin_media_commands_files.hpp>
 
+namespace Media::VST { }
+
 score_plugin_media::score_plugin_media()
 {
 }
@@ -86,9 +88,12 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
           , Media::Effect::LayerFactory
           , Media::Step::LayerFactory
             >,
+
+    #if defined(HAS_VST2)
         FW<Process::PortFactory
           , Media::VST::VSTControlInletFactory
             >,
+    #endif
 
         FW<Engine::Execution::ProcessComponentFactory
           , Engine::Execution::SoundComponentFactory

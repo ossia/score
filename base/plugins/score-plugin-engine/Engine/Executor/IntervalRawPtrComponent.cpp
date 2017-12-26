@@ -118,12 +118,12 @@ void IntervalRawPtrComponent::onSetup(
   if (!parent_is_base_scenario)
   {
     in_exec([self,ossia_cst,&edit=system().editionQueue] {
-      ossia_cst->set_stateless_callback(
+      ossia_cst->set_stateless_callback(smallfun::SmallFun<void (double, ossia::time_value), 32>{
             [self,&edit](double position, ossia::time_value date) {
         edit.enqueue([self,position,date] {
           self->slot_callback(position, date);
         });
-      });
+      }});
     });
   }
 

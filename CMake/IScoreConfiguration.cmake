@@ -3,6 +3,7 @@ include(CheckCXXCompilerFlag)
 # Options
 CHECK_CXX_COMPILER_FLAG("-Wl,-z,defs" WL_ZDEFS_SUPPORTED)
 CHECK_CXX_COMPILER_FLAG("-fuse-ld=gold" GOLD_LINKER_SUPPORTED)
+CHECK_CXX_COMPILER_FLAG("-fuse-ld=lld" LLD_LINKER_SUPPORTED)
 
 
 option(SCORE_ENABLE_LTO "Enable link-time optimization. Won't work on Travis." OFF)

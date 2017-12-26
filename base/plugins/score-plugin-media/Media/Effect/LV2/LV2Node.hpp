@@ -223,7 +223,7 @@ class LV2AudioEffect : public ossia::audio_fx_node
       return {};
     }
 
-    void all_notes_off()
+    void all_notes_off() override
     {
       /*
           if(fMidiSource)

@@ -1,5 +1,6 @@
 #include "VSTEffectModel.hpp"
 
+#include <Media/Effect/VST/VSTLoader.hpp>
 #include <QUrl>
 #include <QFile>
 #include <QFileInfo>
