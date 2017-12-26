@@ -13,39 +13,16 @@ class SCORE_PLUGIN_MEDIA_EXPORT SetVSTControl final : public score::Command
         CommandFactoryName(), SetVSTControl, "Set a control")
 
 public:
-    SetVSTControl(const VSTControlInlet& obj, float newval)
-        : m_path{obj}
-        , m_old{obj.value()}
-        , m_new{newval}
-    {
-    }
+    SetVSTControl(const VSTControlInlet& obj, float newval);
+    virtual ~SetVSTControl();
 
-    virtual ~SetVSTControl() { }
-
-    void undo(const score::DocumentContext& ctx) const final override
-    {
-      m_path.find(ctx).setValue(m_old);
-    }
-
-    void redo(const score::DocumentContext& ctx) const final override
-    {
-      m_path.find(ctx).setValue(m_new);
-    }
-
-    void update(const VSTControlInlet& obj, float newval)
-    {
-      m_new = newval;
-    }
+    void undo(const score::DocumentContext& ctx) const final override;
+    void redo(const score::DocumentContext& ctx) const final override;
+    void update(const VSTControlInlet& obj, float newval);
 
 protected:
-    void serializeImpl(DataStreamInput& stream) const final override
-    {
-      stream << m_path << m_old << m_new;
-    }
-    void deserializeImpl(DataStreamOutput& stream) final override
-    {
-      stream >> m_path >> m_old >> m_new;
-    }
+    void serializeImpl(DataStreamInput& stream) const final override;
+    void deserializeImpl(DataStreamOutput& stream) final override;
 
   private:
     Path<VSTControlInlet> m_path;
