@@ -1,5 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
+#include "BaseScenarioComponent.hpp"
 #include <ossia/editor/state/state_element.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
@@ -14,7 +16,6 @@
 #include <score/document/DocumentInterface.hpp>
 #include <vector>
 
-#include "BaseScenarioComponent.hpp"
 #include <Engine/Executor/IntervalComponent.hpp>
 #include <Engine/Executor/EventComponent.hpp>
 #include <Engine/Executor/StateComponent.hpp>
@@ -51,11 +52,11 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
 
   auto main_start_event = *main_start_node->emplace(
       main_start_node->get_time_events().begin(),
-      [this](auto&&...) {},
+      [](auto&&...) {},
       ossia::expressions::make_expression_true());
   auto main_end_event = *main_end_node->emplace(
       main_end_node->get_time_events().begin(),
-      [this](auto&&...) {},
+      [](auto&&...) {},
       ossia::expressions::make_expression_true());
 
   // TODO PlayDuration of base interval.
