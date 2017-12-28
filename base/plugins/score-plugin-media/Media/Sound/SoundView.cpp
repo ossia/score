@@ -312,13 +312,13 @@ void WaveformComputer::on_recompute(const MediaFileHandle* pdata, ZoomRatio rati
       std::swap(m_curdata, m_prevdata);
       m_nextdensity = m_density;
       m_density = m_prevdensity;
-      QTimer::singleShot(0, [this,&data,ratio,density] {
+      QTimer::singleShot(0, [this,&data,ratio] {
         computeDataSet(data, 2. * ratio, &m_prevdensity, m_prevdata);
       });
       break;
     case RECOMPUTE_ALL:
       computeDataSet(data, ratio, &m_density, m_curdata);
-      QTimer::singleShot(0, [this,&data,ratio,density] {
+      QTimer::singleShot(0, [this,&data,ratio] {
         computeDataSet(data, 2. * ratio, &m_prevdensity, m_prevdata);
         computeDataSet(data, ratio / 2., &m_nextdensity, m_nextdata);
       });

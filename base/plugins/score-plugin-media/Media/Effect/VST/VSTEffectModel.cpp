@@ -20,7 +20,6 @@
 #include <Media/ApplicationPlugin.hpp>
 #include <Engine/Node/CommonWidgets.hpp>
 #include <Media/Effect/VST/VSTNode.hpp>
-#include <aeffectx.h>
 #include <QTimer>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
@@ -31,27 +30,6 @@ void hide_vst2_editor(AEffect& effect);
 
 namespace Media::VST
 {
-// Taken from VST API
-struct HostCanDos
-{
-    static const constexpr auto canDoSendVstEvents = "sendVstEvents"; ///< Host supports send of Vst events to plug-in
-    static const constexpr auto canDoSendVstMidiEvent = "sendVstMidiEvent"; ///< Host supports send of MIDI events to plug-in
-    static const constexpr auto canDoSendVstTimeInfo = "sendVstTimeInfo"; ///< Host supports send of VstTimeInfo to plug-in
-    static const constexpr auto canDoReceiveVstEvents = "receiveVstEvents"; ///< Host can receive Vst events from plug-in
-    static const constexpr auto canDoReceiveVstMidiEvent = "receiveVstMidiEvent"; ///< Host can receive MIDI events from plug-in
-    static const constexpr auto canDoReportConnectionChanges = "reportConnectionChanges"; ///< Host will indicates the plug-in when something change in plug-in�s routing/connections with #suspend/#resume/#setSpeakerArrangement
-    static const constexpr auto canDoAcceptIOChanges = "acceptIOChanges"; ///< Host supports #ioChanged ()
-    static const constexpr auto canDoSizeWindow = "sizeWindow"; ///< used by VSTGUI
-    static const constexpr auto canDoOffline = "offline"; ///< Host supports offline feature
-    static const constexpr auto canDoOpenFileSelector = "openFileSelector"; ///< Host supports function #openFileSelector ()
-    static const constexpr auto canDoCloseFileSelector = "closeFileSelector"; ///< Host supports function #closeFileSelector ()
-    static const constexpr auto canDoStartStopProcess = "startStopProcess"; ///< Host supports functions #startProcess () and #stopProcess ()
-    static const constexpr auto canDoShellCategory = "shellCategory"; ///< 'shell' handling via uniqueID. If supported by the Host and the Plug-in has the category #kPlugCategShell
-    static const constexpr auto canDoSendVstMidiEventFlagIsRealtime = "sendVstMidiEventFlagIsRealtime"; ///< Host supports flags for #VstMidiEvent
-
-    static const constexpr auto canDoHasCockosViewAsConfig = "hasCockosViewAsConfig"; ///< Host supports flags for #VstMidiEvent
-};
-
 VSTEffectModel::VSTEffectModel(
     const QString& path,
     const Id<EffectModel>& id,
@@ -138,9 +116,9 @@ QString VSTEffectModel::getString(AEffectOpcodes op, int param)
   return QString::fromUtf8(paramName);
 }
 
-static auto HostCallback (AEffect* effect, VstInt32 opcode, VstInt32 index, VstIntPtr value, void* ptr, float opt)
+static auto HostCallback (AEffect* effect, int32_t opcode, int32_t index, intptr_t value, void* ptr, float opt)
 {
-  VstIntPtr result = 0;
+  intptr_t result = 0;
 
   switch (opcode)
   {
@@ -149,7 +127,7 @@ static auto HostCallback (AEffect* effect, VstInt32 opcode, VstInt32 index, VstI
       auto vst = reinterpret_cast<VSTEffectModel*>(effect->resvd1);
       if(vst)
       {
-        result = reinterpret_cast<VstIntPtr>(&vst->fx->info);
+        result = reinterpret_cast<intptr_t>(&vst->fx->info);
       }
       break;
     }
@@ -354,7 +332,7 @@ void VSTEffectModel::initFx(VSTModule& plugin)
     return;
   }
 
-  fx->fx->resvd1 = reinterpret_cast<VstIntPtr>(this);
+  fx->fx->resvd1 = reinterpret_cast<intptr_t>(this);
 
   dispatch(effOpen);
 
@@ -552,7 +530,13 @@ void VSTGraphicsSlider::paint(QPainter* painter, const QStyleOptionGraphicsItem*
   char str[256]{};
   fx->dispatcher(fx, effGetParamDisplay, num, 0, str, m_value);
 
-  painter->drawText(srect.adjusted(6, -2, -6, -1),
+#if defined(__linux__)
+  static const auto dpi_adjust = widget->devicePixelRatioF() > 1 ? 0 : -2;
+#else
+  static const constexpr auto dpi_adjust = -2;
+#endif
+
+  painter->drawText(srect.adjusted(6, dpi_adjust, -6, 0),
                     QString::fromUtf8(str),
                     getHandleX() > srect.width() / 2 ? QTextOption() : QTextOption(Qt::AlignRight));
 

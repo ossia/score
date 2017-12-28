@@ -80,6 +80,9 @@ int main(int argc, char** argv)
 #endif
 
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+    QCoreApplication::setAttribute(Qt::AA_CompressHighFrequencyEvents);
+
     QLocale::setDefault(QLocale::C);
     setlocale(LC_ALL, "C");
 
@@ -97,8 +100,6 @@ int main(int argc, char** argv)
     fmt.setSwapInterval(0);
     QSurfaceFormat::setDefaultFormat(fmt);
 #endif
-
-    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
     QPixmapCache::setCacheLimit(819200);
     Application app(argc, argv);

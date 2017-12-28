@@ -1,7 +1,6 @@
 #include "EffectInspector.hpp"
 
 #include <Media/Commands/InsertEffect.hpp>
-#include <Media/Commands/EditFaustEffect.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <QPlainTextEdit>
 #include <QVBoxLayout>
@@ -14,6 +13,7 @@
 
 #if defined(HAS_FAUST)
 #include <Media/Effect/Faust/FaustEffectModel.hpp>
+#include <Media/Commands/EditFaustEffect.hpp>
 #endif
 
 #if defined(LILV_SHARED)

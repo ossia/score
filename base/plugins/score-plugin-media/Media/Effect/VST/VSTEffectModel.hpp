@@ -72,16 +72,16 @@ struct AEffectWrapper
 
     }
 
-    auto getParameter(VstInt32 index)
+    auto getParameter(int32_t index)
     {
       return fx->getParameter(fx, index);
     }
-    auto setParameter(VstInt32 index, float p)
+    auto setParameter(int32_t index, float p)
     {
       return fx->setParameter(fx, index, p);
     }
 
-    auto dispatch(VstInt32 opcode, VstInt32 index = 0, VstIntPtr value = 0, void *ptr = nullptr, float opt = 0.0f)
+    auto dispatch(int32_t opcode, int32_t index = 0, intptr_t value = 0, void *ptr = nullptr, float opt = 0.0f)
     {
       return fx->dispatcher(fx, opcode, index, value, ptr, opt);
     }
@@ -133,7 +133,7 @@ class VSTEffectModel :
     QString prettyName() const override;
 
     std::shared_ptr<AEffectWrapper> fx{};
-    VstIntPtr ui{};
+    intptr_t ui{};
 
     std::unordered_map<int, VSTControlInlet*> controls;
 
@@ -152,7 +152,7 @@ class VSTEffectModel :
     void hideUI() override;
     QString m_effectPath;
 
-    auto dispatch(VstInt32 opcode, VstInt32 index = 0, VstIntPtr value = 0, void *ptr = nullptr, float opt = 0.0f)
+    auto dispatch(int32_t opcode, int32_t index = 0, intptr_t value = 0, void *ptr = nullptr, float opt = 0.0f)
     {
       return fx->dispatch(opcode, index, value, ptr, opt);
     }

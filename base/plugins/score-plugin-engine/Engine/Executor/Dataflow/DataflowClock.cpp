@@ -6,7 +6,6 @@
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
 #include <Engine/Executor/BaseScenarioComponent.hpp>
 #include <Engine/Executor/IntervalComponent.hpp>
-#include <boost/graph/graphviz.hpp>
 #include <ossia/dataflow/audio_parameter.hpp>
 #include <ossia/dataflow/audio_protocol.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
@@ -39,14 +38,7 @@ void Clock::play_impl(
 {
   m_paused = false;
 
-  std::stringstream s;
-  auto& g = m_plug.execGraph->impl();
-  boost::write_graphviz(s, g, [&] (auto& out, const auto& v) {
-    out << "[label=\"" << g[v]->label() << "\"]";
-  },
-  [] (auto&&...) {});
-
-  std::cerr << s.str() << std::endl;
+  print_graph(m_plug.execGraph->impl(), std::cerr);
   m_cur = &bs;
   m_default.play(t);
 
@@ -69,7 +61,7 @@ void Clock::resume_impl(
   m_paused = false;
   m_default.resume();
   m_plug.audioProto().ui_tick = [&st=m_plug.execState,&g=m_plug.execGraph,itv=m_cur->baseInterval().OSSIAInterval()] (unsigned long frameCount) {
-    st.clear();
+    st.clear_local_state();
     st.get_new_values();
     st.samples_since_start += frameCount;
     st.cur_date = std::chrono::high_resolution_clock::now();
