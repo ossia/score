@@ -1,7 +1,5 @@
 
 #include <iostream>
-#include <aeffect.h>
-#include <aeffectx.h>
 #include <QWindow>
 
 #include <Media/Effect/VST/VSTEffectModel.hpp>
@@ -33,7 +31,7 @@ void show_vst2_editor(AEffect& effect, ERect rect)
 
   effect.dispatcher(&effect, effEditOpen, 0, 0, (void*)container->winId(), 0);
   container->show();setup_rect(container, width, height);
-  reinterpret_cast<Media::VST::VSTEffectModel*>(effect.resvd1)->ui = reinterpret_cast<VstIntPtr>(container);
+  reinterpret_cast<Media::VST::VSTEffectModel*>(effect.resvd1)->ui = reinterpret_cast<intptr_t>(container);
 }
 
 void hide_vst2_editor(AEffect& effect)

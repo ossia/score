@@ -18,7 +18,7 @@ class VSTNode final : public ossia::audio_fx_node
     double m_tempo{120};
     time_signature m_sig{4, 4};
 
-    void dispatch(VstInt32 opcode, VstInt32 index = 0, VstIntPtr value = 0, void *ptr = nullptr, float opt = 0.0f)
+    void dispatch(int32_t opcode, int32_t index = 0, intptr_t value = 0, void *ptr = nullptr, float opt = 0.0f)
     {
       fx->dispatch(opcode, index, value, ptr, opt);
     }
@@ -46,7 +46,7 @@ class VSTNode final : public ossia::audio_fx_node
       dispatch(effMainsChanged, 0, 1);
       dispatch(effStartProcess);
 
-      fx->fx->resvd2 = reinterpret_cast<VstIntPtr>(this);
+      fx->fx->resvd2 = reinterpret_cast<intptr_t>(this);
     }
 
     ~VSTNode()

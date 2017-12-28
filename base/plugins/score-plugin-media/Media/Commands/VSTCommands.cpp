@@ -1,8 +1,7 @@
 #include "VSTCommands.hpp"
-#include <Media/VST/VSTEffectModel.hpp>
+#include <Media/Effect/VST/VSTEffectModel.hpp>
 namespace Media::VST
 {
-
 SetVSTControl::SetVSTControl(const VSTControlInlet& obj, float newval)
 : m_path{obj}
 , m_old{obj.value()}

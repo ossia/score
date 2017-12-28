@@ -3,7 +3,7 @@
 //  https://github.com/Meach/ofxVstHost
 
 #include <string>
-#include "aeffectx.h"
+#include <Media/Effect/VST/vst-compat.hpp>
 
 namespace Media
 {

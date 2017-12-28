@@ -5,6 +5,7 @@
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
 #include <ossia/editor/scenario/time_sync.hpp>
+#include <ossia/dataflow/graph.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <Engine/score2OSSIA.hpp>
@@ -40,7 +41,6 @@
 #include <score/model/EntityMap.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
-#include <ossia/dataflow/graph.hpp>
 
 namespace Engine
 {

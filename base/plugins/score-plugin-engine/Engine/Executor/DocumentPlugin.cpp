@@ -220,10 +220,11 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
   m_ctx.time = settings.makeTimeFunction(ctx);
   m_ctx.reverseTime = settings.makeReverseTimeFunction(ctx);
 
+  execState.reset();
+
   execState.samples_since_start = 0;
   execState.start_date = std::chrono::high_resolution_clock::now();
   execState.cur_date = execState.start_date;
-  execState.clear_devices();
   execState.register_device(&midi_dev);
   execState.register_device(&audio_dev);
   for(auto dev : m_ctx.devices.list().devices()) {

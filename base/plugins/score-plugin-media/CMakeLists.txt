@@ -24,7 +24,6 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/CreateSoundBox.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/MediaCommandFactory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/CreateEffectAutomation.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/EditFaustEffect.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/InsertEffect.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Inspector/AudioInspector.hpp"
@@ -76,7 +75,6 @@ set(SRCS
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/ChangeAudioFile.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/MediaCommandFactory.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/EditFaustEffect.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/InsertEffect.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Inspector/AudioInspector.cpp"
@@ -117,9 +115,11 @@ set(SRCS
 if(Faust_FOUND)
     set(FAUST_HDRS
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Faust/FaustEffectModel.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/EditFaustEffect.hpp"
         )
     set(FAUST_SRCS
       "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Faust/FaustEffectModel.cpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/EditFaustEffect.cpp"
     )
 endif()
 
@@ -135,48 +135,45 @@ if(TARGET Lilv)
     )
 endif()
 
-find_package(Vst2SDK)
-if(TARGET Vst2SDK)
-    set(VST_HDRS
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTLoader.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTEffectModel.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTNode.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/VSTCommands.hpp"
-        )
-    set(VST_SRCS
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTLoader.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTEffectModel.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTNode.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/VSTCommands.cpp"
-        )
+set(VST_HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTLoader.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTEffectModel.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTNode.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/vst-compat.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/VSTCommands.hpp"
+  )
+set(VST_SRCS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTLoader.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTEffectModel.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTNode.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/VSTCommands.cpp"
+  )
 
-    if(APPLE)
-        set(VST_HDRS ${VST_HDRS}
-            "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/AppleUI/vstwindow.h"
-            )
-        set(VST_SRCS ${VST_SRCS}
-            "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/AppleUI/vstwindow.m"
-            "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/AppleUI/vst2x.mm"
-            )
-    elseif(UNIX)
-      set(VST_SRCS ${VST_SRCS}
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/LinuxUI/vst.cpp"
-        )
-    elseif(MSVC)
-      set(VST_SRCS ${VST_SRCS}
-        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/WinUI/vst.cpp"
-        )
-    endif()
+if(APPLE)
+  set(VST_HDRS ${VST_HDRS}
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/AppleUI/vstwindow.h"
+    )
+  set(VST_SRCS ${VST_SRCS}
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/AppleUI/vstwindow.m"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/AppleUI/vst2x.mm"
+    )
+elseif(UNIX)
+  set(VST_SRCS ${VST_SRCS}
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/LinuxUI/vst.cpp"
+    )
+elseif(MSVC)
+  set(VST_SRCS ${VST_SRCS}
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/WinUI/vst.cpp"
+    )
 endif()
 add_library(${PROJECT_NAME}
   ${SRCS} ${HDRS}
-  ${FAUST_SRCS} ${FAUST_HDRS}
   ${LV2_SRCS} ${LV2_HDRS}
   ${VST_SRCS} ${VST_HDRS}
   ${FAUST_HDRS} ${FAUST_SRCS}
 )
 
-score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
+score_generate_command_list_file(${PROJECT_NAME} "${HDRS};${FAUST_HDRS};${LV2_HDRS};${VST_HDRS}")
 target_link_libraries(${PROJECT_NAME} PUBLIC
                      Qt5::Core Qt5::Widgets Qt5::Multimedia
                      score_lib_base score_plugin_loop score_plugin_engine
@@ -218,13 +215,11 @@ if(APPLE)
         )
 endif()
 
-if(TARGET Vst2SDK)
-    target_link_libraries(${PROJECT_NAME} PRIVATE Vst2SDK)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_VST2)
-    if(UNIX AND NOT APPLE)
-      target_link_libraries(${PROJECT_NAME} PRIVATE dl)
-    endif()
+target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_VST2)
+if(UNIX AND NOT APPLE)
+  target_link_libraries(${PROJECT_NAME} PRIVATE dl)
 endif()
+
 if(TARGET Lilv)
     target_link_libraries(${PROJECT_NAME} PRIVATE Lilv)
     target_include_directories(${PROJECT_NAME} PRIVATE 3rdparty/readerwriterqueue)

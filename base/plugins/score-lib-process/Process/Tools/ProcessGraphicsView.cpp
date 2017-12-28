@@ -28,8 +28,8 @@ ProcessGraphicsView::ProcessGraphicsView(
 
   setOptimizationFlag(QGraphicsView::DontSavePainterState, true);
 #if !defined(SCORE_OPENGL)
- //setAttribute(Qt::WA_PaintOnScreen, true);
- //setAttribute(Qt::WA_OpaquePaintEvent, true);
+ setAttribute(Qt::WA_PaintOnScreen, true);
+ setAttribute(Qt::WA_OpaquePaintEvent, true);
 #endif
 
 #if defined(__APPLE__)
