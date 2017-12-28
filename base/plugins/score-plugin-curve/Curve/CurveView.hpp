@@ -33,6 +33,8 @@ public:
 
   void setSelectionArea(const QRectF&);
 
+  QPixmap pixmap();
+
 signals:
   void pressed(QPointF);
   void moved(QPointF);

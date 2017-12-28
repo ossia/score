@@ -63,23 +63,6 @@ void ScenarioContextMenuManager::createSlotContextMenu(
   const Slot& slot = interval.smallView().at(slot_index);
   SlotPath slot_path{interval, slot_index, Slot::SmallView};
 
-  // First changing the process in the current slot
-  auto processes_submenu = menu.addMenu(tr("Focus process in this slot"));
-  for (const Id<Process::ProcessModel>& proc : slot.processes)
-  {
-    auto& p = interval.processes.at(proc);
-    auto name = p.prettyName();
-    if(name.isEmpty())
-      name = p.prettyShortName();
-    QAction* procAct
-        = new QAction{name, processes_submenu};
-    QObject::connect(procAct, &QAction::triggered, [&,slot_path] () mutable {
-      PutLayerModelToFront cmd{std::move(slot_path), p.id()};
-      cmd.redo(ctx);
-    });
-    processes_submenu->addAction(procAct);
-  }
-
   // Then creation of a new slot with existing processes
   auto new_processes_submenu = menu.addMenu(tr("Show process in new slot"));
   for (const Id<Process::ProcessModel>& proc : slot.processes)
@@ -193,6 +176,36 @@ void ScenarioContextMenuManager::createSlotContextMenu(
 
 }
 
+void ScenarioContextMenuManager::createProcessSelectorContextMenu(
+    const score::DocumentContext& ctx,
+    QMenu& menu,
+    const TemporalIntervalPresenter& pres,
+    int slot_index)
+{
+  using namespace Scenario::Command;
+  // TODO see
+  // http://stackoverflow.com/questions/21443023/capturing-a-reference-by-reference-in-a-c11-lambda
+  auto& interval = pres.model();
+  const Slot& slot = interval.smallView().at(slot_index);
+  SlotPath slot_path{interval, slot_index, Slot::SmallView};
+
+  for (const Id<Process::ProcessModel>& proc : slot.processes)
+  {
+    auto& p = interval.processes.at(proc);
+    auto name = p.prettyName();
+    if(name.isEmpty())
+      name = p.prettyShortName();
+    QAction* procAct
+        = new QAction{name, &menu};
+    QObject::connect(procAct, &QAction::triggered, [&,slot_path] () mutable {
+      PutLayerModelToFront cmd{std::move(slot_path), p.id()};
+      cmd.redo(ctx);
+    });
+    menu.addAction(procAct);
+  }
+}
+
+
 void ScenarioContextMenuManager::createLayerContextMenu(
     QMenu& menu,
     QPoint pos,
@@ -226,6 +239,31 @@ void ScenarioContextMenuManager::createLayerContextMenu(
   else
   {
     pres.fillContextMenu(menu, pos, scenepos, lcmmgr);
+  }
+}
+
+void ScenarioContextMenuManager::createLayerContextMenuForProcess(
+    QMenu& menu,
+    QPoint pos,
+    QPointF scenepos,
+    const Process::LayerContextMenuManager& lcmmgr,
+    Process::LayerPresenter& pres)
+{
+  using namespace score;
+
+  bool has_slot_menu = false;
+
+  // Fill with slot actions
+  if(auto small_view = dynamic_cast<TemporalIntervalPresenter*>(pres.parent()))
+  {
+    auto& context = pres.context().context;
+    //if (context.selectionStack.currentSelection().toList().isEmpty())
+    {
+      // auto slotSubmenu = menu.addMenu(tr("Slot"));
+      ScenarioContextMenuManager::createProcessSelectorContextMenu(
+          context, menu, *small_view, small_view->indexOfSlot(pres));
+      has_slot_menu = true;
+    }
   }
 }
 }

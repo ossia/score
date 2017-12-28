@@ -2,6 +2,7 @@
 #include <QGraphicsItem>
 #include <QRect>
 #include <QtGlobal>
+#include <QGraphicsSceneDragDropEvent>
 #include <score_lib_process_export.h>
 
 class QPainter;
@@ -31,6 +32,10 @@ public:
 
   void setWidth(qreal width);
   qreal width() const;
+
+  virtual QPixmap pixmap();
+
+  void dragEnterEvent(QGraphicsSceneDragDropEvent *event) override;
 
 signals:
   void heightChanged();

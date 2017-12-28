@@ -787,7 +787,7 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
 }
 
 NeightborSelector::NeightborSelector(score::SelectionStack &s, ObjectWidget* objects) :
-  m_stack{s}, m_selectionDispatcher{s}, m_objects{objects} {}
+  m_stack{s}, m_objects{objects}, m_selectionDispatcher{s} {}
 
 bool NeightborSelector::hasLeft() const
 {

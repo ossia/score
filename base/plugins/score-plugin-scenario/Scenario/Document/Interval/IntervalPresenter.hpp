@@ -9,6 +9,8 @@
 #include <score_plugin_scenario_export.h>
 #include <nano_signal_slot.hpp>
 
+#include <Scenario/Document/Interval/SlotPresenter.hpp>
+
 namespace Process
 {
 struct ProcessPresenterContext;
@@ -71,6 +73,10 @@ public:
     return m_zoomRatio;
   }
 
+  const std::vector<SlotPresenter>& getSlots() const {
+    return m_slots;
+  }
+
   const Id<IntervalModel>& id() const;
 
   void on_minDurationChanged(const TimeVal&);
@@ -104,6 +110,7 @@ protected:
 
   void updateChildren();
   void updateBraces();
+  std::vector<SlotPresenter> m_slots;
 };
 
 template <typename T>

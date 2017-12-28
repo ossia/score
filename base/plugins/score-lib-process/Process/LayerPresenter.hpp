@@ -19,6 +19,7 @@ class SCORE_LIB_PROCESS_EXPORT GraphicsShapeItem : public QGraphicsItem
     using QGraphicsItem::QGraphicsItem;
     ~GraphicsShapeItem();
     void setSize(QSizeF sz);
+    virtual void on_zoomRatioChanged(ZoomRatio) = 0;
 
     QRectF boundingRect() const final override;
   private:
