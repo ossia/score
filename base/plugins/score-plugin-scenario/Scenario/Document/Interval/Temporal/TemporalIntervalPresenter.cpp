@@ -8,6 +8,7 @@
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
+#include <Scenario/Document/Interval/DefaultHeaderDelegate.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -36,44 +37,6 @@ class QString;
 
 namespace Scenario
 {
-class DefaultHeaderDelegate
-    : public QObject
-    , public Process::GraphicsShapeItem
-{
-public:
-    DefaultHeaderDelegate(Process::LayerPresenter& p): presenter{p}
-    {
-      con(presenter.model(), &Process::ProcessModel::prettyNameChanged,
-          this, &DefaultHeaderDelegate::updateName);
-      updateName();
-      m_textcache.setFont(ScenarioStyle::instance().Bold10Pt);
-      m_textcache.setCacheEnabled(true);
-    }
-
-    void updateName()
-    {
-      m_textcache.setText(presenter.model().prettyName());
-      m_textcache.beginLayout();
-
-      QTextLine line = m_textcache.createLine();
-      line.setPosition(QPointF{0., 0.});
-
-      m_textcache.endLayout();
-
-      update();
-    }
-
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
-    {
-      painter->setPen(ScenarioStyle::instance().IntervalHeaderSeparator);
-      m_textcache.draw(painter, QPointF{0., 0.});
-    }
-
-  private:
-    Process::LayerPresenter& presenter;
-    QTextLayout m_textcache;
-};
-
 TemporalIntervalPresenter::TemporalIntervalPresenter(
     const IntervalModel& interval,
     const Process::ProcessPresenterContext& ctx,
@@ -524,6 +487,7 @@ void TemporalIntervalPresenter::on_layerModelPutToFront(int slot, const Process:
           slt.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
           slt.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
           slt.headerDelegate->setPos(30, 0);
+          slt.headerDelegate->setSize(QSizeF{m_view->defaultWidth() - SlotHeader::handleWidth() - SlotHeader::menuWidth(), SlotHeader::headerHeight()});
         }
       }
       else
@@ -598,6 +562,7 @@ void TemporalIntervalPresenter::on_zoomRatioChanged(ZoomRatio val)
 
   for(const SlotPresenter& slot : m_slots)
   {
+    slot.headerDelegate->on_zoomRatioChanged(val);
     for(const LayerData& proc : slot.processes)
     {
       proc.presenter->on_zoomRatioChanged(val);
@@ -651,6 +616,30 @@ void TemporalIntervalPresenter::requestSlotMenu(int slot, QPoint pos, QPointF sp
                     .guiApplicationPlugin<ScenarioApplicationPlugin>()
                     .layerContextMenuRegistrar();
         ScenarioContextMenuManager::createLayerContextMenu(
+            *menu, pos, sp, reg, *p.presenter);
+        menu->exec(pos);
+        menu->close();
+        menu->deleteLater();
+        break;
+      }
+    }
+  }
+}
+
+void TemporalIntervalPresenter::requestProcessSelectorMenu(int slot, QPoint pos, QPointF sp) const
+{
+  if(const auto& proc = m_model.getSmallViewSlot(slot).frontProcess)
+  {
+    const SlotPresenter& slt = m_slots.at(slot);
+    for(auto& p : slt.processes)
+    {
+      if(p.model->id() == proc)
+      {
+        auto menu = new QMenu;
+        auto& reg = score::GUIAppContext()
+                    .guiApplicationPlugin<ScenarioApplicationPlugin>()
+                    .layerContextMenuRegistrar();
+        ScenarioContextMenuManager::createLayerContextMenuForProcess(
             *menu, pos, sp, reg, *p.presenter);
         menu->exec(pos);
         menu->close();
