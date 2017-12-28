@@ -2,13 +2,12 @@
 #include <ossia/dataflow/fx_node.hpp>
 #include <Media/Effect/LV2/LV2Context.hpp>
 #include <Media/Effect/LV2/lv2_atom_helpers.hpp>
+#include <unordered_map>
 
 namespace Media
 {
 namespace LV2
 {
-
-
 class LV2AudioEffect : public ossia::audio_fx_node
 {
   protected:
