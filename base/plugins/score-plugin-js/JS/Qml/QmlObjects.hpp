@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Dataflow/Port.hpp>
+#include <ModernMIDI/midi_message.h>
 #include <ossia/network/domain/domain.hpp>
 #include <State/Domain.hpp>
 #include <QObject>
@@ -375,8 +376,82 @@ class AudioOutlet: public Outlet
     QVector<QVector<double>> m_audio;
 };
 
+class MidiMessage
+{
+  Q_GADGET
+  Q_PROPERTY(QByteArray bytes MEMBER bytes)
+public:
+  QByteArray bytes;
+};
+
+class MidiInlet: public Inlet
+{
+  Q_OBJECT
+
+  public:
+    MidiInlet(QObject* parent = nullptr);
+    virtual ~MidiInlet() override;
+    template<typename T>
+    void setMidi(const T& arr)
+    {
+      m_midi.clear();
+      for(const mm::MidiMessage& mess : arr)
+      {
+        MidiMessage m;
+        for(auto byte : mess.data)
+          m.bytes.push_back(byte);
+        m_midi.push_back(m);
+      }
+    }
+
+    Q_INVOKABLE QVector<MidiMessage> messages() const {
+      return m_midi;
+    }
+
+    Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
+    {
+      auto p = new Process::Inlet(id, parent);
+      p->type = Process::PortType::Midi;
+      return p;
+    }
+  private:
+    QVector<MidiMessage> m_midi;
+};
+
+class MidiOutlet: public Outlet
+{
+  Q_OBJECT
+
+  public:
+    MidiOutlet(QObject* parent = nullptr);
+    virtual ~MidiOutlet() override;
+    Process::Outlet* make(Id<Process::Port>&& id, QObject* parent) override
+    {
+      auto p = new Process::Outlet(id, parent);
+      p->type = Process::PortType::Midi;
+      return p;
+    }
+
+    const QVector<MidiMessage>& midi() const;
+
+    Q_INVOKABLE void setMessages(QVector<MidiMessage> m)
+    {
+      m_midi = std::move(m);
+    }
+
+    Q_INVOKABLE void add(MidiMessage m)
+    {
+      m_midi.push_back(std::move(m));
+    }
+  private:
+    QVector<MidiMessage> m_midi;
+};
+
 }
 Q_DECLARE_METATYPE(JS::ValueInlet*)
 Q_DECLARE_METATYPE(JS::ValueOutlet*)
 Q_DECLARE_METATYPE(JS::AudioInlet*)
 Q_DECLARE_METATYPE(JS::AudioOutlet*)
+Q_DECLARE_METATYPE(JS::MidiMessage)
+Q_DECLARE_METATYPE(JS::MidiInlet*)
+Q_DECLARE_METATYPE(JS::MidiOutlet*)

@@ -42,7 +42,6 @@ Component::Component(
   m_ossia_process = proc;
 
   const auto& inlets = element.inlets();
-  auto& devices = ctx.devices.list();
   std::vector<int> control_indices;
   int i = 0;
   for(auto port : inlets)
@@ -61,6 +60,11 @@ Component::Component(
         node->inputs().push_back(ossia::make_inlet<ossia::audio_port>());
         break;
       }
+      case Process::PortType::Midi:
+      {
+        node->inputs().push_back(ossia::make_inlet<ossia::midi_port>());
+        break;
+      }
     }
     i++;
   }
@@ -77,6 +81,11 @@ Component::Component(
       case Process::PortType::Audio:
       {
         node->outputs().push_back(ossia::make_outlet<ossia::audio_port>());
+        break;
+      }
+      case Process::PortType::Midi:
+      {
+        node->outputs().push_back(ossia::make_outlet<ossia::midi_port>());
         break;
       }
     }
@@ -146,6 +155,11 @@ void js_node::setScript(const QString& val)
             m_audInlets.push_back({aud_in, inputs()[inlets_i]});
             inlets_i++;
           }
+          else if(auto mid_in = qobject_cast<MidiInlet*>(n))
+          {
+            m_midInlets.push_back({mid_in, inputs()[inlets_i]});
+            inlets_i++;
+          }
           else if(auto val_out = qobject_cast<ValueOutlet*>(n))
           {
             m_valOutlets.push_back({val_out, outputs()[outlets_i]});
@@ -154,6 +168,11 @@ void js_node::setScript(const QString& val)
           else if(auto aud_out = qobject_cast<AudioOutlet*>(n))
           {
             m_audOutlets.push_back({aud_out, outputs()[outlets_i]});
+            outlets_i++;
+          }
+          else if(auto mid_out = qobject_cast<MidiOutlet*>(n))
+          {
+            m_midOutlets.push_back({mid_out, outputs()[outlets_i]});
             outlets_i++;
           }
         }
@@ -199,6 +218,13 @@ void js_node::run(ossia::token_request t, ossia::execution_state&)
     }
   }
 
+  // Copy midi
+  for(int i = 0; i < m_midInlets.size(); i++)
+  {
+    auto& dat = m_midInlets[i].second->data.target<ossia::midi_port>()->messages;
+    m_midInlets[i].first->setMidi(dat);
+  }
+
   QMetaObject::invokeMethod(
         m_object, "onTick",
         Qt::DirectConnection,
@@ -212,6 +238,20 @@ void js_node::run(ossia::token_request t, ossia::execution_state&)
   {
     auto& dat = *m_valOutlets[i].second->data.target<ossia::value_port>();
     dat.add_raw_value(ossia::qt::qt_to_ossia{}(m_valOutlets[i].first->value()));
+  }
+
+  for(int i = 0; i < m_midOutlets.size(); i++)
+  {
+    auto& dat = *m_midOutlets[i].second->data.target<ossia::midi_port>();
+    for(const MidiMessage& mess : m_midOutlets[i].first->midi())
+    {
+      mm::MidiMessage m;
+      for(auto& data : mess.bytes)
+      {
+        m.data.push_back(data);
+      }
+      dat.messages.push_back(m);
+    }
   }
 
   for(int out = 0; out < m_audOutlets.size(); out++)

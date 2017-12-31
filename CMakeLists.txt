@@ -18,8 +18,8 @@ include("${SCORE_CONFIGURATION}")
 
 project(score LANGUAGES C CXX)
 
-cmake_minimum_required(VERSION 3.7 FATAL_ERROR)
-cmake_policy(VERSION 3.7)
+cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
+cmake_policy(VERSION 3.9)
 
 set(SCORE_VERSION_MAJOR 1)
 set(SCORE_VERSION_MINOR 0)

@@ -49,6 +49,8 @@ public:
   QList<std::pair<ValueOutlet*, ossia::outlet_ptr>> m_valOutlets;
   QList<std::pair<AudioInlet*, ossia::inlet_ptr>> m_audInlets;
   QList<std::pair<AudioOutlet*, ossia::outlet_ptr>> m_audOutlets;
+  QList<std::pair<MidiInlet*, ossia::inlet_ptr>> m_midInlets;
+  QList<std::pair<MidiOutlet*, ossia::outlet_ptr>> m_midOutlets;
   QObject* m_object{};
 };
 
