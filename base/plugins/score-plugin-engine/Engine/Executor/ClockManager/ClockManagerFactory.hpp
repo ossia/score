@@ -32,8 +32,8 @@ class BaseScenarioElement;
  *
  */
 
-using time_function = smallfun::SmallFun<ossia::time_value(const TimeVal&)>;
-using reverse_time_function = smallfun::SmallFun<TimeVal(const ossia::time_value&)>;
+using time_function = smallfun::function<ossia::time_value(const TimeVal&)>;
+using reverse_time_function = smallfun::function<TimeVal(const ossia::time_value&)>;
 class SCORE_PLUGIN_ENGINE_EXPORT ClockManager
 {
 public:

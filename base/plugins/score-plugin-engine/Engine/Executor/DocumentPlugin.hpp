@@ -84,7 +84,7 @@ public:
       const State::AddressAccessor& address,
       const ossia::outlet_ptr& );
 
-  std::shared_ptr<ossia::graph> execGraph;
+  std::shared_ptr<ossia::graph_interface> execGraph;
   ossia::execution_state execState;
 
   ossia::audio_protocol* audioproto{};

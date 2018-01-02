@@ -16,13 +16,13 @@
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
+#include <ossia/dataflow/graph/graph_interface.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
-#include <ossia/dataflow/graph.hpp>
 
 namespace Engine
 {
@@ -118,7 +118,7 @@ void IntervalComponent::onSetup(
   if (!parent_is_base_scenario)
   {
     in_exec([self,ossia_cst,&edit=system().editionQueue] {
-      ossia_cst->set_stateless_callback(smallfun::SmallFun<void (double, ossia::time_value), 32>{
+      ossia_cst->set_stateless_callback(smallfun::function<void (double, ossia::time_value), 32>{
             [self,&edit](double position, ossia::time_value date) {
         edit.enqueue([self,position,date] {
           self->slot_callback(position, date);
@@ -257,7 +257,7 @@ ProcessComponent* IntervalComponentBase::make(
         }
       });
 
-      std::weak_ptr<ossia::graph> g_weak = plug->system().plugin.execGraph;
+      std::weak_ptr<ossia::graph_interface> g_weak = plug->system().plugin.execGraph;
       std::weak_ptr<ossia::time_process> oproc_weak = oproc;
       connect(plug.get(), &ProcessComponent::nodeChanged,
               this, [this,cst_node,g_weak,oproc_weak,&proc] (auto old_node, auto new_node) {

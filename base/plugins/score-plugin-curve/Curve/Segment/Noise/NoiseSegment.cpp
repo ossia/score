@@ -28,6 +28,11 @@ struct Noise
       return std::uniform_int_distribution<>{min, max}(gen);
     }
 
+    auto operator()(double val, T start, T end) {
+      return (start < end)
+          ? get_rand(start, end)
+          : get_rand(end, start);
+    }
     auto operator()(double val, T start, T end) const {
       return (start < end)
           ? get_rand(start, end)

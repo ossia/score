@@ -5,7 +5,6 @@
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
 #include <ossia/editor/scenario/time_sync.hpp>
-#include <ossia/dataflow/graph.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <Engine/score2OSSIA.hpp>
@@ -41,6 +40,7 @@
 #include <score/model/EntityMap.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
+#include <ossia/dataflow/graph/graph_interface.hpp>
 
 namespace Engine
 {
@@ -234,7 +234,7 @@ IntervalComponent* ScenarioComponentBase::make<IntervalComponent, Scenario::Inte
   // Create the time_interval
   auto dur = elt->makeDurations();
   auto ossia_cst = std::make_shared<ossia::time_interval>(
-        smallfun::SmallFun<void(double, ossia::time_value), 32>{&ScenarioIntervalCallback},
+        smallfun::function<void(double, ossia::time_value), 32>{&ScenarioIntervalCallback},
         *ossia_sev->OSSIAEvent(),
         *ossia_eev->OSSIAEvent(),
         dur.defaultDuration,

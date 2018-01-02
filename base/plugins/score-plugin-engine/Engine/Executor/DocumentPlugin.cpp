@@ -21,7 +21,7 @@
 #include <score/actions/ActionManager.hpp>
 #include <Engine/score2OSSIA.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
-#include <ossia/dataflow/graph.hpp>
+#include <ossia/dataflow/graph/graph.hpp>
 namespace Engine
 {
 namespace Execution
@@ -316,25 +316,27 @@ void DocumentPlugin::set_destination(
     {
       auto& qual = address.qualifiers.get();
 
-      m_execQueue.enqueue([=] {
+      m_execQueue.enqueue([=,g=execGraph] {
         port->address = p;
         if(ossia::value_port* dat = port->data.target<ossia::value_port>()) {
           if(qual.unit)
             dat->type = qual.unit;
           dat->index = qual.accessors;
         }
+        g->mark_dirty();
       });
     }
     else
     {
-      m_execQueue.enqueue([=] {
+      m_execQueue.enqueue([=,g=execGraph] {
         port->address = ossia_addr;
+        g->mark_dirty();
       });
     }
   }
   else
   {
-    m_execQueue.enqueue([=] {
+    m_execQueue.enqueue([=,g=execGraph] {
       port->address = {};
       if(ossia::value_port* dat = port->data.target<ossia::value_port>()) {
         dat->type = {};
@@ -354,30 +356,33 @@ void DocumentPlugin::set_destination(
     {
       auto& qual = address.qualifiers.get();
 
-      m_execQueue.enqueue([=] {
+      m_execQueue.enqueue([=,g=execGraph] {
         port->address = p;
         if(ossia::value_port* dat = port->data.target<ossia::value_port>()) {
           if(qual.unit)
             dat->type = qual.unit;
           dat->index = qual.accessors;
         }
+        g->mark_dirty();
       });
     }
     else
     {
-      m_execQueue.enqueue([=] {
+      m_execQueue.enqueue([=,g=execGraph] {
         port->address = ossia_addr;
+        g->mark_dirty();
       });
     }
   }
   else
   {
-    m_execQueue.enqueue([=] {
+    m_execQueue.enqueue([=,g=execGraph] {
       port->address = {};
       if(ossia::value_port* dat = port->data.target<ossia::value_port>()) {
         dat->type = {};
         dat->index.clear();
       }
+      g->mark_dirty();
     });
   }
 }

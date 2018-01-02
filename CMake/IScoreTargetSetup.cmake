@@ -189,6 +189,7 @@ function(score_set_unix_compile_options theTarget)
     -Wextra
     -Wno-unused-parameter
     -Wno-unknown-pragmas
+    -Wno-four-char-constants
     -Wnon-virtual-dtor
     -pedantic
     -Woverloaded-virtual

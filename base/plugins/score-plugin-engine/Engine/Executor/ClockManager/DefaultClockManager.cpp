@@ -19,7 +19,7 @@
 #include <ossia/editor/scenario/clock.hpp>
 #include <ossia/editor/state/state_element.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
-#include <ossia/dataflow/graph.hpp>
+#include <ossia/dataflow/graph/graph.hpp>
 
 namespace Engine
 {
@@ -39,7 +39,7 @@ DefaultClockManager::makeDefaultCallback(
 {
   auto& cst = bs.baseInterval();
   auto& ctx = this->context;
-  return smallfun::SmallFun<void(double, ossia::time_value), 32>{[&ctx, &score_cst=cst.scoreInterval()](
+  return smallfun::function<void(double, ossia::time_value), 32>{[&ctx, &score_cst=cst.scoreInterval()](
       double position,
       ossia::time_value date)
   {
