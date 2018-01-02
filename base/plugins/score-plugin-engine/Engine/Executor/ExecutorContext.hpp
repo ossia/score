@@ -39,10 +39,10 @@ class ProcessComponentFactoryList;
 class StateProcessComponentFactoryList;
 class BaseScenarioElement;
 
-using time_function = smallfun::SmallFun<ossia::time_value(const TimeVal&)>;
-using reverse_time_function = smallfun::SmallFun<TimeVal(const ossia::time_value&)>;
+using time_function = smallfun::function<ossia::time_value(const TimeVal&)>;
+using reverse_time_function = smallfun::function<TimeVal(const ossia::time_value&)>;
 
-using ExecutionCommand = smallfun::SmallFun<void(), 128>;
+using ExecutionCommand = smallfun::function<void(), 128>;
 using ExecutionCommandQueue = moodycamel::ReaderWriterQueue<ExecutionCommand, 1024>;
 
 //! Useful structures when creating the execution elements.

@@ -11,7 +11,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Engine/Protocols/OSSIADevice.hpp>
-#include <ossia/dataflow/graph.hpp>
+#include <ossia/dataflow/graph/graph.hpp>
 #include <QPointer>
 #include <ossia/network/midi/midi_device.hpp>
 namespace Dataflow
@@ -38,7 +38,7 @@ void Clock::play_impl(
 {
   m_paused = false;
 
-  print_graph(m_plug.execGraph->impl(), std::cerr);
+  //print_graph(m_plug.execGraph->impl(), std::cerr);
   m_cur = &bs;
   m_default.play(t);
 

@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <core/document/Document.hpp>
 #include <score/document/DocumentInterface.hpp>
+#include <ossia/dataflow/graph/graph_interface.hpp>
 #include <vector>
 
 #include "Component.hpp"
@@ -27,7 +28,6 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
-#include <ossia/dataflow/graph.hpp>
 
 namespace Process
 {

@@ -44,7 +44,7 @@ bool AudioDevice::reconnect()
 
     auto& proto = static_cast<ossia::audio_protocol&>(m_dev.get_protocol());
     proto.rate = stgs.rate;
-    proto.bufferSize = 256;//stgs.bufferSize;
+    proto.bufferSize = stgs.bufferSize;
     proto.reload();
 
     setLogging_impl(isLogging());

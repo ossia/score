@@ -23,6 +23,8 @@ const score::sp<ModelClockParameter> Clock{
     ControlClockFactory::static_concreteKey()};
 const score::sp<ModelExecutionListeningParameter> ExecutionListening{
     QStringLiteral("score_plugin_engine/ExecListening"), true};
+const score::sp<ModelSchedulingParameter> Scheduling{
+    QStringLiteral("score_plugin_engine/Scheduling"), "Static Fixed"};
 
 static auto list()
 {

@@ -5,7 +5,6 @@
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
-#include <ossia/dataflow/graph.hpp>
 
 #include <ossia/dataflow/node_process.hpp>
 #include <ossia/dataflow/state_node.hpp>
