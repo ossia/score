@@ -38,7 +38,7 @@ void Clock::play_impl(
 {
   m_paused = false;
 
-  //print_graph(m_plug.execGraph->impl(), std::cerr);
+  ossia::print_graph(static_cast<ossia::graph*>(m_plug.execGraph.get())->impl(), std::cerr);
   m_cur = &bs;
   m_default.play(t);
 

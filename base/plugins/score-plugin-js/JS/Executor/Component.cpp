@@ -103,6 +103,7 @@ Component::Component(
             this, [=] (const ossia::value& val) {
       this->in_exec(js_control_updater{*val_inlet.first, val});
     });
+    js_control_updater{*val_inlet.first, ctrl->value()}();
   }
 
   ctx.plugin.register_node(element, node);
@@ -243,15 +244,17 @@ void js_node::run(ossia::token_request t, ossia::execution_state&)
   for(int i = 0; i < m_midOutlets.size(); i++)
   {
     auto& dat = *m_midOutlets[i].second->data.target<ossia::midi_port>();
-    for(const MidiMessage& mess : m_midOutlets[i].first->midi())
+    for(const auto& mess : m_midOutlets[i].first->midi())
     {
       mm::MidiMessage m;
-      for(auto& data : mess.bytes)
+      m.data.resize(mess.size());
+      for(int j = 0; j < mess.size(); j++)
       {
-        m.data.push_back(data);
+        m.data[j] = mess[j];
       }
-      dat.messages.push_back(m);
+      dat.messages.push_back(std::move(m));
     }
+    m_midOutlets[i].first->clear();
   }
 
   for(int out = 0; out < m_audOutlets.size(); out++)

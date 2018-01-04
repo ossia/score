@@ -31,6 +31,8 @@ score_plugin_js::score_plugin_js() : QObject{}
   qmlRegisterType<JS::Enum>("Score", 1, 0, "Enum");
   qmlRegisterType<JS::Toggle>("Score", 1, 0, "Toggle");
   qmlRegisterType<JS::LineEdit>("Score", 1, 0, "LineEdit");
+
+  qRegisterMetaType<QVector<JS::MidiMessage>>();
 }
 
 score_plugin_js::~score_plugin_js()

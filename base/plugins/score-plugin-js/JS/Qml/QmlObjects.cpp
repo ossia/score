@@ -70,7 +70,12 @@ MidiOutlet::MidiOutlet(QObject* parent): Outlet{parent} {}
 
 MidiOutlet::~MidiOutlet() { }
 
-const QVector<MidiMessage>& MidiOutlet::midi() const
+void MidiOutlet::clear()
+{
+  m_midi.clear();
+}
+
+const QVector<QVector<int>>& MidiOutlet::midi() const
 { return m_midi; }
 
 

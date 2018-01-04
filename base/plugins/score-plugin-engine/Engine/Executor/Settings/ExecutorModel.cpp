@@ -65,6 +65,7 @@ Model::makeReverseTimeFunction(const score::DocumentContext& ctx) const
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, Rate)
 SCORE_SETTINGS_PARAMETER_CPP(ClockManagerFactory::ConcreteKey, Model, Clock)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, ExecutionListening)
+SCORE_SETTINGS_PARAMETER_CPP(QString, Model, Scheduling)
 }
 }
 }
