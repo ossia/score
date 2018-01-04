@@ -397,14 +397,14 @@ class MidiInlet: public Inlet
       m_midi.clear();
       for(const mm::MidiMessage& mess : arr)
       {
-        MidiMessage m;
+        QVector<int> m;
         for(auto byte : mess.data)
-          m.bytes.push_back(byte);
-        m_midi.push_back(m);
+          m.push_back(byte);
+        m_midi.push_back(QVariant::fromValue(m));
       }
     }
 
-    Q_INVOKABLE QVector<MidiMessage> messages() const {
+    Q_INVOKABLE QVariantList messages() const {
       return m_midi;
     }
 
@@ -415,7 +415,7 @@ class MidiInlet: public Inlet
       return p;
     }
   private:
-    QVector<MidiMessage> m_midi;
+    QVariantList m_midi;
 };
 
 class MidiOutlet: public Outlet
@@ -432,19 +432,25 @@ class MidiOutlet: public Outlet
       return p;
     }
 
-    const QVector<MidiMessage>& midi() const;
+    void clear();
+    const QVector<QVector<int>>& midi() const;
 
-    Q_INVOKABLE void setMessages(QVector<MidiMessage> m)
+    Q_INVOKABLE void setMessages(const QVariantList m)
     {
-      m_midi = std::move(m);
+      m_midi.clear();
+      for(auto& v : m)
+      {
+        if(v.canConvert<QVector<int>>())
+          m_midi.push_back(v.value<QVector<int>>());
+      }
     }
 
-    Q_INVOKABLE void add(MidiMessage m)
+    Q_INVOKABLE void add(QVector<int> m)
     {
       m_midi.push_back(std::move(m));
     }
   private:
-    QVector<MidiMessage> m_midi;
+    QVector<QVector<int>> m_midi;
 };
 
 }
