@@ -106,6 +106,8 @@ QString ProcessModel::prettyName() const
   auto res = address().toString();
   if(!res.isEmpty())
     return res;
+
+  // TODO we could use the customData of the port the automation is connected to if any
   return "Automation";
 }
 

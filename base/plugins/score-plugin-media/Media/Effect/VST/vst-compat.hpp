@@ -7,15 +7,20 @@
 #include <cstring>
 #include <cstdint>
 
+constexpr int32_t operator "" _4c(const char * txt, std::size_t N)
+{
+  return (txt[0] << 24) | (txt[1] << 16) | (txt[2] << 8) | (txt[3] << 0);
+}
+
 extern "C"
 {
 static const constexpr auto kVstVersion = 2400;
-static const constexpr auto kEffectMagic = 'VstP';
-static const constexpr auto cMagic = 'CcnK';
-static const constexpr auto fMagic = 'FxCk';
-static const constexpr auto bankMagic = 'FxBk';
-static const constexpr auto chunkPresetMagic = 'FPCh';
-static const constexpr auto chunkBankMagic = 'FBCh';
+static const constexpr auto kEffectMagic = "VstP"_4c;
+static const constexpr auto cMagic = "CcnK"_4c;
+static const constexpr auto fMagic = "FxCk"_4c;
+static const constexpr auto bankMagic = "FxBk"_4c;
+static const constexpr auto chunkPresetMagic = "FPCh"_4c;
+static const constexpr auto chunkBankMagic = "FBCh"_4c;
 
 struct HostCanDos
 {

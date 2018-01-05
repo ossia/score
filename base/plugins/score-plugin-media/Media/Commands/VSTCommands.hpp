@@ -3,6 +3,11 @@
 #include <score/command/Command.hpp>
 #include <score_plugin_media_export.h>
 
+namespace Process
+{
+class Port;
+class Inlet;
+}
 namespace Media::VST
 {
 class VSTEffectModel;
@@ -48,6 +53,27 @@ protected:
     Path<VSTEffectModel> m_path;
     int m_fxNum{};
     float m_val{};
+};
+
+class SCORE_PLUGIN_MEDIA_EXPORT RemoveVSTControl final : public score::Command
+{
+    SCORE_COMMAND_DECL(
+        CommandFactoryName(), RemoveVSTControl, "Remove a control")
+
+public:
+    RemoveVSTControl(const VSTEffectModel& obj, Id<Process::Port> id);
+    virtual ~RemoveVSTControl();
+    void undo(const score::DocumentContext& ctx) const final override;
+    void redo(const score::DocumentContext& ctx) const final override;
+
+protected:
+    void serializeImpl(DataStreamInput& stream) const final override;
+    void deserializeImpl(DataStreamOutput& stream) final override;
+
+  private:
+    Path<VSTEffectModel> m_path;
+    Id<Process::Port> m_id;
+    QByteArray m_control;
 };
 
 }

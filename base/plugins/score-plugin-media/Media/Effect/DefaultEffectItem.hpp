@@ -24,7 +24,7 @@ class DefaultEffectItem:
 
       for(auto& e : effect.inlets())
       {
-        auto inlet = dynamic_cast<Process::ControlInlet*>(e);
+        auto inlet = qobject_cast<Process::ControlInlet*>(e);
         if(!inlet)
           continue;
 

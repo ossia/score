@@ -25,6 +25,16 @@
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <websocketpp/base64/base64.hpp>
+#include <Dataflow/Commands/CreateModulation.hpp>
+#include <Dataflow/Commands/EditConnection.hpp>
+#include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
+#include <Automation/AutomationModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <Automation/Commands/SetAutomationMax.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 void show_vst2_editor(AEffect& effect, ERect rect);
 void hide_vst2_editor(AEffect& effect);
 
@@ -49,6 +59,40 @@ VSTEffectModel::~VSTEffectModel()
 QString VSTEffectModel::prettyName() const
 {
   return metadata().getLabel();
+}
+
+void VSTEffectModel::removeControl(int fxNum)
+{
+  auto it = controls.find(fxNum);
+  SCORE_ASSERT(it != controls.end());
+  auto ctrl = it->second;
+  controls.erase(it);
+  for(auto it = m_inlets.begin(); it != m_inlets.end(); ++it)
+  {
+    if(*it == ctrl)
+    {
+      m_inlets.erase(it);
+      break;
+    }
+  }
+  emit controlRemoved(*ctrl);
+  delete ctrl;
+}
+
+void VSTEffectModel::removeControl(const Id<Process::Port>& id)
+{
+  auto it = ossia::find_if(m_inlets, [&] (const auto& inl) {
+    return inl->id() == id;
+  });
+
+  SCORE_ASSERT(it != m_inlets.end());
+  auto ctrl = safe_cast<VSTControlInlet*>(*it);
+
+  controls.erase(ctrl->fxNum);
+  m_inlets.erase(it);
+
+  emit controlRemoved(*ctrl);
+  delete ctrl;
 }
 
 VSTControlInlet* VSTEffectModel::getControl(const Id<Process::Port>& p)
@@ -87,8 +131,13 @@ void VSTEffectModel::on_addControl(int i, float v)
     ctrl->setCustomData(name);
   }
 
+  on_addControl_impl(ctrl);
+}
+
+void VSTEffectModel::on_addControl_impl(VSTControlInlet* ctrl)
+{
   connect(ctrl, &VSTControlInlet::valueChanged,
-          this, [this,i] (float newval) {
+          this, [this,i=ctrl->fxNum] (float newval) {
     if(std::abs(newval - fx->getParameter(i)) > 0.0001)
       fx->setParameter(i, newval);
   });
@@ -105,7 +154,7 @@ void VSTEffectModel::on_addControl(int i, float v)
     */
   }
   m_inlets.push_back(ctrl);
-  controls.insert({i, ctrl});
+  controls.insert({ctrl->fxNum, ctrl});
   emit controlAdded(ctrl->id());
 }
 
@@ -174,8 +223,10 @@ static auto HostCallback (AEffect* effect, int32_t opcode, int32_t index, intptr
         }
         else
         {
-          // TODO use a command;
-          emit vst->addControl(index, opt);
+          QMetaObject::invokeMethod(vst, [=] {
+            auto& ctx = score::IDocument::documentContext(*vst);
+            CommandDispatcher<> {ctx.commandStack}.submitCommand<CreateVSTControl>(*vst, index, opt);
+          }, Qt::QueuedConnection);
         }
       }
 
@@ -611,6 +662,27 @@ VSTEffectItem::VSTEffectItem(const VSTEffectModel& effect, const score::Document
     rootItem->setRect(rootItem->childrenBoundingRect());
   });
 
+  QObject::connect(
+        &effect, &Process::EffectModel::controlRemoved,
+        this, [&] (const Process::Port& port) {
+    auto inlet = qobject_cast<const VSTControlInlet*>(&port);
+    SCORE_ASSERT(inlet);
+    auto it = ossia::find_if(controlItems, [&] (auto p) { return p.first == inlet; });
+    if(it != controlItems.end())
+    {
+      double pos_y = it->second->pos().y();
+      delete it->second;
+      it = controlItems.erase(it);
+      for(; it != controlItems.end(); ++it)
+      {
+        auto rect = it->second;
+        rect->setPos(0, pos_y);
+        pos_y += rect->boundingRect().height();
+      }
+    }
+    rootItem->setRect(rootItem->childrenBoundingRect());
+  });
+
   {
     auto tempo = safe_cast<Process::ControlInlet*>(effect.inlets()[1]);
     setupInlet(TempoChooser(), *tempo, doc);
@@ -626,30 +698,88 @@ VSTEffectItem::VSTEffectItem(const VSTEffectModel& effect, const score::Document
   }
 }
 
+struct VSTControlPortItem final : public Dataflow::PortItem
+{
+  public:
+    using Dataflow::PortItem::PortItem;
+
+    void setupMenu(QMenu& menu, const score::DocumentContext& ctx) override
+    {
+      auto rm_act = menu.addAction(QObject::tr("Remove port"));
+      connect(rm_act, &QAction::triggered,
+              this, [this,&ctx] {
+        QTimer::singleShot(0, [&ctx, parent=port().parent(), id=port().id()] {
+          CommandDispatcher<> disp{ctx.commandStack};
+          disp.submitCommand<RemoveVSTControl>(*static_cast<VSTEffectModel*>(parent), id);
+        });
+      });
+    }
+    void on_createAutomation(const score::DocumentContext& ctx) override
+    {
+      QObject* obj = &port();
+      while(obj)
+      {
+        auto parent = obj->parent();
+        if(auto cst = qobject_cast<Scenario::IntervalModel*>(parent))
+        {
+          RedoMacroCommandDispatcher<Dataflow::CreateModulation> macro{ctx.commandStack};
+          auto make_cmd = new Scenario::Command::AddOnlyProcessToInterval{
+                          *cst,
+                          Metadata<ConcreteKey_k, Automation::ProcessModel>::get()};
+          macro.submitCommand(make_cmd);
+
+          auto lay_cmd = new Scenario::Command::AddLayerInNewSlot{*cst, make_cmd->processId()};
+          macro.submitCommand(lay_cmd);
+
+          auto& autom = safe_cast<Automation::ProcessModel&>(cst->processes.at(make_cmd->processId()));
+          macro.submitCommand(new Automation::SetMin{autom, 0.});
+          macro.submitCommand(new Automation::SetMax{autom, 1.});
+
+          auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
+          Process::CableData cd;
+          cd.type = Process::CableType::ImmediateStrict;
+          cd.source = *autom.outlet;
+          cd.sink = port();
+
+          macro.submitCommand(new Dataflow::CreateCable{plug, getStrongId(plug.cables), std::move(cd)});
+
+          macro.commit();
+          return;
+        }
+        else
+        {
+          obj = parent;
+        }
+      }
+    }
+};
+
 void VSTEffectItem::setupInlet(const VSTEffectModel& fx, VSTControlInlet& inlet, const score::DocumentContext& doc)
 {
-  auto item = new Control::RectItem{this};
+  auto rect = new Control::RectItem{this};
 
   double pos_y = this->childrenBoundingRect().height();
 
-  auto port = Dataflow::setupInlet(inlet, doc, item, this);
+  auto item = new VSTControlPortItem{inlet, rect};
+  Dataflow::setupSimpleInlet(item, inlet, doc, rect, this);
 
-  auto lab = new Scenario::SimpleTextItem{item};
+  auto lab = new Scenario::SimpleTextItem{rect};
   lab->setColor(ScenarioStyle::instance().EventDefault);
   lab->setText(inlet.customData());
   lab->setPos(15, 2);
 
 
   QGraphicsItem* widg = VSTFloatSlider::make_item(fx.fx->fx, inlet, doc, nullptr, this);
-  widg->setParentItem(item);
+  widg->setParentItem(rect);
   widg->setPos(15, lab->boundingRect().height());
 
   auto h = std::max(20., (qreal)(widg->boundingRect().height() + lab->boundingRect().height() + 2.));
 
-  port->setPos(7., h / 2.);
+  item->setPos(7., h / 2.);
 
-  item->setPos(0, pos_y);
-  item->setRect(QRectF{0., 0, 170., h});
+  rect->setPos(0, pos_y);
+  rect->setRect(QRectF{0., 0, 170., h});
+  controlItems.push_back({&inlet, rect});
 }
 
 }
@@ -783,6 +913,30 @@ VSTEffectComponent::VSTEffectComponent(
 
           n->ctrl_ptrs.push_back({num, inlet->data.target<ossia::value_port>()});
           n->inputs().push_back(inlet);
+        });
+      }
+    });
+    connect(&proc, &Media::VST::VSTEffectModel::controlRemoved,
+            this, [this,&proc,wp] (const Process::Port& port) {
+      if(auto n = wp.lock())
+      {
+        in_exec([n,num=static_cast<const Media::VST::VSTControlInlet&>(port).fxNum] {
+          auto it = ossia::find_if(n->ctrl_ptrs, [&] (auto& c) {
+            return c.first == num;
+          });
+          if(it != n->ctrl_ptrs.end())
+          {
+            auto port = it->second;
+            n->ctrl_ptrs.erase(it);
+            auto port_it = ossia::find_if(n->inputs(), [&] (auto& p) {
+              return p->data.target() == port;
+            });
+            if(port_it != n->inputs().end())
+            {
+              port->clear();
+              n->inputs().erase(port_it);
+            }
+          }
         });
       }
     });

@@ -48,21 +48,7 @@ CreateVSTControl::~CreateVSTControl() { }
 
 void CreateVSTControl::undo(const score::DocumentContext& ctx) const
 {
-  VSTEffectModel& obj = m_path.find(ctx);
-  auto it = obj.controls.find(m_fxNum);
-  SCORE_ASSERT(it != obj.controls.end());
-  auto ctrl = it->second;
-  obj.controls.erase(it);
-  for(auto it = obj.m_inlets.begin(); it != obj.m_inlets.end(); ++it)
-  {
-    if(*it == ctrl)
-    {
-      obj.m_inlets.erase(it);
-      break;
-    }
-  }
-  emit obj.controlRemoved(ctrl->id());
-  delete ctrl;
+  m_path.find(ctx).removeControl(m_fxNum);
 }
 
 void CreateVSTControl::redo(const score::DocumentContext& ctx) const
@@ -78,6 +64,40 @@ void CreateVSTControl::serializeImpl(DataStreamInput& stream) const
 void CreateVSTControl::deserializeImpl(DataStreamOutput& stream)
 {
   stream >> m_path >> m_fxNum >> m_val;
+}
+
+
+
+RemoveVSTControl::RemoveVSTControl(const VSTEffectModel& obj, Id<Process::Port> id)
+: m_path{obj}
+, m_id{std::move(id)}
+, m_control{score::marshall<DataStream>(*obj.inlet(m_id))}
+{
+}
+
+RemoveVSTControl::~RemoveVSTControl() { }
+
+void RemoveVSTControl::undo(const score::DocumentContext& ctx) const
+{
+  auto& vst = m_path.find(ctx);
+  DataStreamWriter wr{m_control};
+
+  vst.on_addControl_impl(qobject_cast<Media::VST::VSTControlInlet*>(Process::make_inlet(wr, &vst).release()));
+}
+
+void RemoveVSTControl::redo(const score::DocumentContext& ctx) const
+{
+  m_path.find(ctx).removeControl(m_id);
+}
+
+void RemoveVSTControl::serializeImpl(DataStreamInput& stream) const
+{
+  stream << m_path << m_id << m_control;
+}
+
+void RemoveVSTControl::deserializeImpl(DataStreamOutput& stream)
+{
+  stream >> m_path >> m_id >> m_control;
 }
 
 }

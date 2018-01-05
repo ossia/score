@@ -81,6 +81,11 @@ PortItem::~PortItem()
     g_ports.erase(it);
 }
 
+void PortItem::setupMenu(QMenu&, const score::DocumentContext& ctx)
+{
+
+}
+
 QRectF PortItem::boundingRect() const
 {
   return {-m_diam/2., -m_diam/2., m_diam, m_diam};
@@ -212,8 +217,8 @@ void PortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
 
   if(clickedPort && this != clickedPort)
   {
-    auto p1 = dynamic_cast<Process::Outlet*>(&m_port);
-    auto p2 = dynamic_cast<Process::Outlet*>(&clickedPort->m_port);
+    auto p1 = qobject_cast<Process::Outlet*>(&m_port);
+    auto p2 = qobject_cast<Process::Outlet*>(&clickedPort->m_port);
     if((p1 && !p2) || (!p1 && p2))
     {
       emit createCable(clickedPort, this);
@@ -365,7 +370,7 @@ class PortTooltip : public QWidget
       auto lay = new QFormLayout{this};
       lay->addRow(p.customData(), (QWidget*)nullptr);
       lay->addRow(tr("Address"), &m_edit);
-      if(auto outlet = dynamic_cast<Process::Outlet*>(&p))
+      if(auto outlet = qobject_cast<Process::Outlet*>(&p))
       {
         if(p.type == Process::PortType::Audio)
         {
@@ -447,8 +452,8 @@ void onCreateCable(const score::DocumentContext& ctx, Dataflow::PortItem* p1, Da
   if(!intersection_empty(port1.cables(), port2.cables()))
      return;
 
-  auto o1 = dynamic_cast<Process::Outlet*>(&port1);
-  auto o2 = dynamic_cast<Process::Outlet*>(&port2);
+  auto o1 = qobject_cast<Process::Outlet*>(&port1);
+  auto o2 = qobject_cast<Process::Outlet*>(&port2);
   if(bool(o1) == bool(o2)) // both outlets or both inlets
     return;
 
@@ -471,30 +476,48 @@ void onCreateCable(const score::DocumentContext& ctx, Dataflow::PortItem* p1, Da
         cd);
 }
 
-PortItem* setupInlet(Process::Inlet& port, const score::DocumentContext& ctx, QGraphicsItem* parent, QObject* context)
+SCORE_PLUGIN_SCENARIO_EXPORT
+void setupSimpleInlet(
+    PortItem* item,
+    Process::Inlet& port,
+    const score::DocumentContext& ctx,
+    QGraphicsItem* parent,
+    QObject* context)
 {
-  auto item = new Dataflow::PortItem{port, parent};
   QObject::connect(item, &Dataflow::PortItem::showPanel,
           context, [&] {
     auto panel = new PortDialog{ctx, port, nullptr};
     panel->exec();
     panel->deleteLater();
   });
-  QObject::connect(item, &Dataflow::PortItem::contextMenuRequested,
-          context, [&,item] (QPointF sp, QPoint p) {
-    auto menu = new QMenu{};
-    auto act = menu->addAction(QObject::tr("Create automation"));
-    QObject::connect(act, &QAction::triggered, item, [=,&ctx] {
-      emit item->on_createAutomation(ctx);
-    });
-    menu->exec(p);
-    menu->deleteLater();
-  });
   QObject::connect(
         item, &Dataflow::PortItem::createCable,
         context, [&] (Dataflow::PortItem* p1, Dataflow::PortItem* p2) {
     onCreateCable(ctx, p1, p2);
   });
+
+  if(port.type == Process::PortType::Message)
+  {
+    QObject::connect(item, &Dataflow::PortItem::contextMenuRequested,
+                     context, [&,item] (QPointF sp, QPoint p) {
+      auto menu = new QMenu{};
+      auto act = menu->addAction(QObject::tr("Create automation"));
+      QObject::connect(act, &QAction::triggered, item, [item,&ctx] {
+        item->on_createAutomation(ctx);
+      });
+      item->setupMenu(*menu, ctx);
+      menu->exec(p);
+      menu->deleteLater();
+    });
+  }
+}
+
+SCORE_PLUGIN_SCENARIO_EXPORT
+PortItem* setupInlet(Process::Inlet& port, const score::DocumentContext& ctx, QGraphicsItem* parent, QObject* context)
+{
+  auto item = new Dataflow::PortItem{port, parent};
+
+  setupSimpleInlet(item, port, ctx, parent, context);
 
   return item;
 }
@@ -514,7 +537,9 @@ PortItem* setupOutlet(Process::Outlet& port, const score::DocumentContext& ctx, 
 
 void PortItem::on_createAutomation(const score::DocumentContext& ctx)
 {
-  auto ctrl = dynamic_cast<Process::ControlInlet*>(&m_port);
+  if(m_port.type != Process::PortType::Message)
+    return;
+  auto ctrl = qobject_cast<Process::ControlInlet*>(&m_port);
   if(!ctrl)
     return;
 
@@ -522,7 +547,7 @@ void PortItem::on_createAutomation(const score::DocumentContext& ctx)
   while(obj)
   {
     auto parent = obj->parent();
-    if(auto cst = dynamic_cast<Scenario::IntervalModel*>(parent))
+    if(auto cst = qobject_cast<Scenario::IntervalModel*>(parent))
     {
       RedoMacroCommandDispatcher<Dataflow::CreateModulation> macro{ctx.commandStack};
       auto make_cmd = new Scenario::Command::AddOnlyProcessToInterval{
@@ -539,6 +564,7 @@ void PortItem::on_createAutomation(const score::DocumentContext& ctx)
 
       State::Unit unit = ctrl->address().qualifiers.get().unit;
       auto& autom = safe_cast<Automation::ProcessModel&>(cst->processes.at(make_cmd->processId()));
+      macro.submitCommand(new Automation::SetUnit{autom, unit});
       macro.submitCommand(new Automation::SetMin{autom, min});
       macro.submitCommand(new Automation::SetMax{autom, max});
 

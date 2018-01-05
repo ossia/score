@@ -8,7 +8,7 @@ namespace score { struct DocumentContext; }
 namespace Dataflow
 {
 class CableItem;
-class SCORE_PLUGIN_SCENARIO_EXPORT PortItem final
+class SCORE_PLUGIN_SCENARIO_EXPORT PortItem
     : public QObject
     , public QGraphicsItem
 {
@@ -23,7 +23,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT PortItem final
     using port_map = std::unordered_map<Process::Port*, Dataflow::PortItem*>;
     static port_map g_ports;
 
-    void on_createAutomation(const score::DocumentContext& m_context);
+    virtual void setupMenu(QMenu&, const score::DocumentContext& ctx);
+    virtual void on_createAutomation(const score::DocumentContext& m_context);
   signals:
     void showPanel();
     void createCable(PortItem* src, PortItem* snk);
@@ -52,6 +53,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT PortItem final
 
     double m_diam = 6.;
 };
+SCORE_PLUGIN_SCENARIO_EXPORT
+void setupSimpleInlet(PortItem* item, Process::Inlet& port, const score::DocumentContext& ctx, QGraphicsItem* parent, QObject* context);
 SCORE_PLUGIN_SCENARIO_EXPORT
 PortItem* setupInlet(Process::Inlet& port, const score::DocumentContext& ctx, QGraphicsItem* parent, QObject* context);
 SCORE_PLUGIN_SCENARIO_EXPORT
