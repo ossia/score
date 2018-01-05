@@ -23,7 +23,7 @@ class VSTNode final : public ossia::audio_fx_node
       fx->dispatch(opcode, index, value, ptr, opt);
     }
   public:
-    std::vector<std::pair<int, ossia::value_port*>> ctrl_ptrs;
+    ossia::small_vector<std::pair<int, ossia::value_port*>, 10> ctrl_ptrs;
 
     VSTNode(std::shared_ptr<AEffectWrapper> dat, int sampleRate):
       fx{std::move(dat)}

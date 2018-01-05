@@ -138,11 +138,15 @@ class VSTEffectModel :
     std::unordered_map<int, VSTControlInlet*> controls;
 
 
+    void removeControl(const Id<Process::Port>&);
+    void removeControl(int fxnum);
   signals:
     void addControl(int idx, float v);
 
-  private slots:
+  public slots:
     void on_addControl(int idx, float v);
+  public:
+    void on_addControl_impl(VSTControlInlet* inl);
   private:
     QString getString(AEffectOpcodes op, int param);
     void init();
@@ -166,6 +170,7 @@ class VSTEffectItem:
     public Control::EffectItem
 {
     Control::RectItem* rootItem{};
+    std::vector<std::pair<VSTControlInlet*, Control::RectItem*>> controlItems;
   public:
     VSTEffectItem(
         const VSTEffectModel& effect, const score::DocumentContext& doc, Control::RectItem* root);

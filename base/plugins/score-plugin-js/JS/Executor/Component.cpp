@@ -51,7 +51,7 @@ Component::Component(
       case Process::PortType::Message:
       {
         node->inputs().push_back(ossia::make_inlet<ossia::value_port>());
-        if(dynamic_cast<Process::ControlInlet*>(port))
+        if(qobject_cast<Process::ControlInlet*>(port))
           control_indices.push_back(i);
         break;
       }
