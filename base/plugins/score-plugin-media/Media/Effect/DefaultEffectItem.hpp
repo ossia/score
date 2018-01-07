@@ -36,7 +36,7 @@ class DefaultEffectItem:
         Process::ControlInlet& inlet,
         const score::DocumentContext& doc)
     {
-      auto item = new Control::RectItem{this};
+      auto item = new Control::EmptyRectItem{this};
 
       double pos_y = this->childrenBoundingRect().height();
 

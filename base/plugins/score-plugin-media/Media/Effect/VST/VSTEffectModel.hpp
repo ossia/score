@@ -167,10 +167,10 @@ class VSTEffectModel :
 using VSTEffectFactory = Process::EffectFactory_T<VSTEffectModel>;
 
 class VSTEffectItem:
-    public Control::EffectItem
+    public Control::EmptyRectItem
 {
     Control::RectItem* rootItem{};
-    std::vector<std::pair<VSTControlInlet*, Control::RectItem*>> controlItems;
+    std::vector<std::pair<VSTControlInlet*, Control::EmptyRectItem*>> controlItems;
   public:
     VSTEffectItem(
         const VSTEffectModel& effect, const score::DocumentContext& doc, Control::RectItem* root);
@@ -181,7 +181,7 @@ class VSTEffectItem:
         Process::ControlInlet& inlet,
         const score::DocumentContext& doc)
     {
-      auto item = new Control::RectItem{this};
+      auto item = new Control::EmptyRectItem{this};
 
       double pos_y = this->childrenBoundingRect().height();
 

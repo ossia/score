@@ -75,7 +75,7 @@ RemoveVSTControl::RemoveVSTControl(const VSTEffectModel& obj, Id<Process::Port> 
 {
   auto& inlet = *obj.inlet(m_id);
   m_control = score::marshall<DataStream>(inlet);
-  Dataflow::saveCables({&inlet}, score::IDocument::documentContext(obj));
+  m_cables = Dataflow::saveCables({&inlet}, score::IDocument::documentContext(obj));
 }
 
 RemoveVSTControl::~RemoveVSTControl() { }

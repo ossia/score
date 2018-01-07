@@ -30,16 +30,47 @@ class SCORE_PLUGIN_ENGINE_EXPORT ILayerView : public Process::LayerView
 
 struct SCORE_PLUGIN_ENGINE_EXPORT RectItem : public QObject, public QGraphicsItem
 {
-    QRectF m_rect{};
+    Q_OBJECT
 public:
-    using QGraphicsItem::QGraphicsItem;
-    void setRect(QRectF r);
+  using QGraphicsItem::QGraphicsItem;
+  void setRect(QRectF r);
+  void setHighlight(bool);
   QRectF boundingRect() const override;
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
-protected:
+signals:
+  void clicked();
+
+private:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+
+  QRectF m_rect{};
+  bool m_highlight{false};
+};
+
+struct SCORE_PLUGIN_ENGINE_EXPORT EmptyRectItem : public QObject, public QGraphicsItem
+{
+    Q_OBJECT
+public:
+  EmptyRectItem(QGraphicsItem* parent);
+  void setRect(QRectF r);
+  QRectF boundingRect() const override;
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+
+signals:
+  void clicked();
+
+private:
+  void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
+  void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  QRectF m_rect{};
 };
 
 struct UISetup
@@ -57,7 +88,7 @@ struct UISetup
         ossia::for_each_in_tuple(
               get_controls(Info::info),
               [&] (const auto& ctrl) {
-          auto item = new RectItem{&self};
+          auto item = new EmptyRectItem{&self};
           item->setPos(0, pos_y);
           auto inlet = static_cast<Process::ControlInlet*>(object.inlets_ref()[InfoFunctions<Info>::control_start + i]);
 

@@ -238,6 +238,9 @@ class ProcessModel final : public Process::ProcessModel
         void effectsChanged();
 
     private:
+        Selection selectableChildren() const override;
+        Selection selectedChildren() const override;
+        void setSelection(const Selection& s) const override;
         // The actual effect instances
         EntityList<Process::EffectModel> m_effects;
 };

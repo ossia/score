@@ -1,5 +1,4 @@
 #pragma once
-#include <QAudioDecoder>
 #include <vector>
 #include <QThread>
 #include <atomic>

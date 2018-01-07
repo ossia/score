@@ -650,7 +650,7 @@ struct VSTFloatSlider : Control::ControlInfo
 
 
 VSTEffectItem::VSTEffectItem(const VSTEffectModel& effect, const score::DocumentContext& doc, Control::RectItem* root):
-  Control::EffectItem{root}
+  Control::EmptyRectItem{root}
 {
   rootItem = root;
   using namespace Control::Widgets;
@@ -744,7 +744,7 @@ struct VSTControlPortItem final : public Dataflow::PortItem
 
 void VSTEffectItem::setupInlet(const VSTEffectModel& fx, VSTControlInlet& inlet, const score::DocumentContext& doc)
 {
-  auto rect = new Control::RectItem{this};
+  auto rect = new Control::EmptyRectItem{this};
 
   double pos_y = this->childrenBoundingRect().height();
 

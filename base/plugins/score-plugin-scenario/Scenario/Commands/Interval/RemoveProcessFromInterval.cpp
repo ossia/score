@@ -73,6 +73,8 @@ RemoveProcessFromInterval::RemoveProcessFromInterval(
   auto& proc = interval.processes.at(m_processId);
   s1.readFrom(proc);
 
+  m_cables = Dataflow::saveCables({&proc}, score::IDocument::documentContext(interval));
+
   m_smallView = interval.smallView();
   m_smallViewVisible = interval.smallViewVisible();
 }
@@ -93,12 +95,17 @@ void RemoveProcessFromInterval::undo(const score::DocumentContext& ctx) const
     return;
   }
 
+  Dataflow::restoreCables(m_cables, ctx);
+
   interval.replaceSmallView(m_smallView);
   interval.setSmallViewVisible(m_smallViewVisible);
+
 }
 
 void RemoveProcessFromInterval::redo(const score::DocumentContext& ctx) const
 {
+  Dataflow::removeCables(m_cables, ctx);
+
   auto& interval = m_path.find(ctx);
   // Find the slots that will be empty : we remove them.
   std::vector<int> slots_to_remove;
@@ -119,12 +126,12 @@ void RemoveProcessFromInterval::redo(const score::DocumentContext& ctx) const
 
 void RemoveProcessFromInterval::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path << m_processId << m_serializedProcessData << m_smallView << m_smallViewVisible;
+  s << m_path << m_processId << m_serializedProcessData << m_cables << m_smallView << m_smallViewVisible;
 }
 
 void RemoveProcessFromInterval::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_path >> m_processId >> m_serializedProcessData >> m_smallView >> m_smallViewVisible;
+  s >> m_path >> m_processId >> m_serializedProcessData >> m_cables >> m_smallView >> m_smallViewVisible;
 }
 }
 }

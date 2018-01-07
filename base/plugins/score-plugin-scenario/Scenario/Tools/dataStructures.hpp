@@ -13,6 +13,7 @@ needed
 #include <score/model/path/Path.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/tools/std/HashMap.hpp>
+#include <Dataflow/Commands/CableHelpers.hpp>
 #include <score_plugin_scenario_export.h>
 
 namespace Scenario
@@ -60,5 +61,7 @@ struct ElementsProperties
 {
   score::hash_map<Id<TimeSyncModel>, TimenodeProperties> timesyncs;
   score::hash_map<Id<IntervalModel>, IntervalProperties> intervals;
+
+  Dataflow::SerializedCables cables;
 };
 }

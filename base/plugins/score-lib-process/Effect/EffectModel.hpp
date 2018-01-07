@@ -8,6 +8,7 @@
 #include <score_lib_process_export.h>
 #include <ossia/dataflow/fx_node.hpp>
 #include <ossia/dataflow/graph_node.hpp>
+#include <score/selection/Selectable.hpp>
 class QGraphicsItem;
 namespace Process
 {
@@ -36,6 +37,7 @@ class SCORE_LIB_PROCESS_EXPORT EffectModel :
         Q_OBJECT
         SCORE_SERIALIZE_FRIENDS
     public:
+        Selectable selection;
         EffectModel(
                 const Id<EffectModel>&,
                 QObject* parent);

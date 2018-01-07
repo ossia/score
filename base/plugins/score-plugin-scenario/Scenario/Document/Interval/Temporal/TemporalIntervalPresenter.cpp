@@ -586,6 +586,7 @@ void TemporalIntervalPresenter::selectedSlot(int i) const
     auto proc = m_model.getSmallViewSlot(i).frontProcess;
     if(proc)
     {
+      m_context.focusDispatcher.focus(&m_slots[i].headerDelegate->presenter);
       disp.setAndCommit({&m_model.processes.at(*proc)});
     }
   }

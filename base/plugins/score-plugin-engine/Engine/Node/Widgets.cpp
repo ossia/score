@@ -21,6 +21,12 @@ ILayerView::~ILayerView()
 
 void RectItem::setRect(QRectF r) { prepareGeometryChange(); m_rect = r; }
 
+void RectItem::setHighlight(bool b)
+{
+  m_highlight = b;
+  update();
+}
+
 QRectF RectItem::boundingRect() const
 {
   return m_rect;
@@ -28,9 +34,10 @@ QRectF RectItem::boundingRect() const
 
 void RectItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
+  static const auto& style = ScenarioStyle::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
-  painter->setBrush(ScenarioStyle::instance().TransparentBrush);
-  painter->setPen(ScenarioStyle::instance().MinimapPen);
+  painter->setBrush(style.TransparentBrush);
+  painter->setPen(!m_highlight ? style.MinimapPen : style.MiniScenarioPen);
   painter->drawRoundedRect(m_rect, 5, 5);
   painter->setRenderHint(QPainter::Antialiasing, false);
 }
@@ -43,6 +50,58 @@ void RectItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 void RectItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
   this->setZValue(0);
+}
+void RectItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+}
+void RectItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+}
+void RectItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  emit clicked();
+  event->accept();
+}
+
+EmptyRectItem::EmptyRectItem(QGraphicsItem* parent):
+  QGraphicsItem{parent}
+{
+  this->setFlag(ItemHasNoContents, true);
+}
+void EmptyRectItem::setRect(QRectF r) { prepareGeometryChange(); m_rect = r; }
+
+QRectF EmptyRectItem::boundingRect() const
+{
+  return m_rect;
+}
+
+void EmptyRectItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+}
+
+void EmptyRectItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+{
+  this->setZValue(10);
+}
+
+void EmptyRectItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+{
+  this->setZValue(0);
+}
+void EmptyRectItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+}
+void EmptyRectItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+}
+void EmptyRectItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  emit clicked();
+  event->accept();
 }
 
 void ToggleButton::paintEvent(QPaintEvent* event)

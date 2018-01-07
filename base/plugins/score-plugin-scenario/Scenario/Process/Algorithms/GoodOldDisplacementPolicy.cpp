@@ -42,6 +42,7 @@ void GoodOldDisplacementPolicy::computeDisplacement(
   {
     const Id<TimeSyncModel>& firstTimeSyncMovedId = draggedElements.at(0);
     std::vector<Id<TimeSyncModel>> timeSyncsToTranslate;
+    QObjectList processesToSave;
 
     GoodOldDisplacementPolicy::getRelatedTimeSyncs(
         scenario, firstTimeSyncMovedId, timeSyncsToTranslate);
@@ -82,7 +83,6 @@ void GoodOldDisplacementPolicy::computeDisplacement(
           {
             auto curIntervalId = *optCurIntervalId;
             auto& curInterval = scenario.intervals.at(curIntervalId);
-
             // if timesync NOT already in element properties, create new
             // element properties and set old values
             auto cur_interval_it
@@ -95,6 +95,9 @@ void GoodOldDisplacementPolicy::computeDisplacement(
 
               cur_interval_it
                   = elementsProperties.intervals.emplace(curIntervalId, std::move(c)).first;
+
+              for(auto& proc : curInterval.processes)
+                processesToSave.append(&proc);
             }
 
             auto& curIntervalStartEvent
@@ -130,6 +133,11 @@ void GoodOldDisplacementPolicy::computeDisplacement(
           }
         }
       }
+    }
+
+    if(!processesToSave.empty())
+    {
+      elementsProperties.cables = Dataflow::saveCables(processesToSave, score::IDocument::documentContext(scenario));
     }
   }
 }

@@ -52,8 +52,6 @@ class SCORE_LIB_PROCESS_EXPORT Port
     score::Components& components()
     { return m_components; }
 
-    const QUuid& uuid() const { return m_uuid; }
-
   public slots:
     void setCustomData(const QString& customData);
     void setAddress(const State::AddressAccessor& address);
@@ -80,7 +78,6 @@ class SCORE_LIB_PROCESS_EXPORT Port
     QString m_customData;
     State::AddressAccessor m_address;
     score::Components m_components;
-    QUuid m_uuid;
 };
 
 class SCORE_LIB_PROCESS_EXPORT Inlet : public Port

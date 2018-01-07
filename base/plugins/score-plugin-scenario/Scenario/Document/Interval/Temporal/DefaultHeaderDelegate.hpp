@@ -16,10 +16,11 @@ class DefaultHeaderDelegate final
     void setSize(QSizeF sz) override;
 
     double minPortWidth() const;
+    Process::LayerPresenter& presenter;
   private:
     void updatePorts();
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
-    Process::LayerPresenter& presenter;
+
     QGlyphRun m_line;
     ossia::small_vector<Dataflow::PortItem*, 3> m_inPorts, m_outPorts;
 };

@@ -72,9 +72,6 @@ class SCORE_LIB_PROCESS_EXPORT Cable
     Path<Process::Outlet> source() const;
     Path<Process::Inlet> sink() const;
 
-    const QUuid& sourceUuid() const { return m_sourceUuid; }
-    const QUuid& sinkUuid() const { return m_sinkUuid; }
-
     void setType(CableType type);
 signals:
     void typeChanged(CableType type);
@@ -83,8 +80,6 @@ private:
     CableType m_type{};
     Path<Process::Outlet> m_source;
     Path<Process::Inlet> m_sink;
-    QUuid m_sourceUuid;
-    QUuid m_sinkUuid;
 };
 }
 

@@ -12,6 +12,7 @@
 #include <Scenario/Commands/Interval/SetRigidity.hpp>
 #include <Scenario/Commands/Event/SplitEvent.hpp>
 #include <Scenario/Commands/TimeSync/SplitTimeSync.hpp>
+#include <Dataflow/Commands/CableHelpers.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -59,6 +60,8 @@ private:
   std::vector<SetRigidity> m_cmds_set_rigidity;
   std::vector<SplitEvent> m_cmds_split_event;
   std::vector<SplitTimeSync> m_cmds_split_timesync;
+  Dataflow::SerializedCables m_cables;
+
 };
 }
 }

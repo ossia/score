@@ -68,6 +68,7 @@ void SelectionStack::push(const Selection& selection)
     }
 
     Foreach(s, [&](auto obj) {
+      // TODO we should erase connections once the selected objects aren't in the stack anymore.
       connect(
           obj, &IdentifiedObjectAbstract::identified_object_destroyed, this,
           &SelectionStack::prune, Qt::UniqueConnection);
