@@ -23,7 +23,6 @@
 #include <QFileInfo>
 #include <QStyle>
 #include <QDir>
-#include <QQuickStyle>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <algorithm>
 #include <vector>
@@ -46,6 +45,9 @@
 
 #include "score_git_info.hpp"
 
+#if __has_include(<QQuickStyle>)
+#include <QQuickStyle>
+#endif
 namespace score {
 class DocumentModel;
 
@@ -82,7 +84,9 @@ static void setQApplicationSettings(QApplication &m_app)
 
     qApp->setPalette(pal);
 
+#if __has_include(<QQuickStyle>)
     QQuickStyle::setStyle(":/desktopqqc2style/Desktop");
+#endif
 }
 
 }  // namespace score
@@ -138,7 +142,7 @@ const score::ApplicationComponents&Application::components() const
 {
   return m_presenter->applicationComponents();
 }
-
+#define SCORE_DEBUG
 
 void Application::init()
 {
@@ -153,7 +157,9 @@ void Application::init()
 
     this->setObjectName("Application");
     this->setParent(m_app);
+#if !defined(__EMSCRIPTEN__)
     m_app->addLibraryPath(m_app->applicationDirPath() + "/plugins");
+#endif
 #if defined(_MSC_VER)
     QDir::setCurrent(qApp->applicationDirPath());
 #endif

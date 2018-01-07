@@ -8,7 +8,10 @@ endif()
 score_common_setup()
 
 # Packages
-find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Qml)
+find_package(Qt5 5.3 COMPONENTS Core Widgets Qml)
+if(NOT TARGET Qt5::Qml)
+  return()
+endif()
 if(NOT TARGET score_plugin_engine)
   return()
 endif()

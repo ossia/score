@@ -39,6 +39,7 @@
 namespace Dataflow
 {
 PortItem::port_map PortItem::g_ports;
+PortItem* PortItem::clickedPort;
 PortItem::PortItem(Process::Port& p, QGraphicsItem* parent)
   : QGraphicsItem{parent}
   , m_port{p}
@@ -54,12 +55,12 @@ PortItem::PortItem(Process::Port& p, QGraphicsItem* parent)
   Path<Process::Port> path = p;
   for(auto c : CableItem::g_cables)
   {
-    if(c.first->source().unsafePath() == path.unsafePath())
+    if(c.first->source().unsafePath() == path.unsafePath() && c.first->sourceUuid() == p.uuid())
     {
       c.second->setSource(this);
       cables.push_back(c.second);
     }
-    else if(c.first->sink().unsafePath() == path.unsafePath())
+    else if(c.first->sink().unsafePath() == path.unsafePath() && c.first->sinkUuid() == p.uuid())
     {
       c.second->setTarget(this);
       cables.push_back(c.second);
@@ -116,7 +117,6 @@ void PortItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
   painter->setRenderHint(QPainter::Antialiasing, false);
 }
 
-static PortItem* clickedPort{};
 void PortItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   if(this->contains(event->pos()))
@@ -141,7 +141,7 @@ void PortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     QDrag* d{new QDrag{this}};
     QMimeData* m = new QMimeData;
     clickedPort = this;
-    m->setText("cable");
+    m->setData(score::mime::port(), {});
     d->setMimeData(m);
     d->exec();
     connect(d, &QDrag::destroyed, this, [] {
@@ -215,16 +215,18 @@ void PortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
   update();
   auto& mime = *event->mimeData();
 
-  if(clickedPort && this != clickedPort)
+  if(mime.formats().contains(score::mime::port()))
   {
-    auto p1 = qobject_cast<Process::Outlet*>(&m_port);
-    auto p2 = qobject_cast<Process::Outlet*>(&clickedPort->m_port);
-    if((p1 && !p2) || (!p1 && p2))
+    if(clickedPort && this != clickedPort)
     {
-      emit createCable(clickedPort, this);
+      auto p1 = qobject_cast<Process::Outlet*>(&m_port);
+      auto p2 = qobject_cast<Process::Outlet*>(&clickedPort->m_port);
+      if((p1 && !p2) || (!p1 && p2))
+      {
+        emit createCable(clickedPort, this);
+      }
     }
   }
-
   clickedPort = nullptr;
 
   auto& ctx = score::IDocument::documentContext(m_port);
@@ -464,11 +466,15 @@ void onCreateCable(const score::DocumentContext& ctx, Dataflow::PortItem* p1, Da
   {
     cd.source = port1;
     cd.sink = port2;
+    cd.sourceUuid = port1.uuid();
+    cd.sinkUuid = port2.uuid();
   }
   else
   {
     cd.source = port2;
     cd.sink = port1;
+    cd.sourceUuid = port2.uuid();
+    cd.sinkUuid = port1.uuid();
   }
   disp.submitCommand<Dataflow::CreateCable>(
         plug,
@@ -537,12 +543,6 @@ PortItem* setupOutlet(Process::Outlet& port, const score::DocumentContext& ctx, 
 
 void PortItem::on_createAutomation(const score::DocumentContext& ctx)
 {
-  if(m_port.type != Process::PortType::Message)
-    return;
-  auto ctrl = qobject_cast<Process::ControlInlet*>(&m_port);
-  if(!ctrl)
-    return;
-
   QObject* obj = &m_port;
   while(obj)
   {
@@ -550,32 +550,7 @@ void PortItem::on_createAutomation(const score::DocumentContext& ctx)
     if(auto cst = qobject_cast<Scenario::IntervalModel*>(parent))
     {
       RedoMacroCommandDispatcher<Dataflow::CreateModulation> macro{ctx.commandStack};
-      auto make_cmd = new Scenario::Command::AddOnlyProcessToInterval{
-                      *cst,
-                      Metadata<ConcreteKey_k, Automation::ProcessModel>::get()};
-      macro.submitCommand(make_cmd);
-
-      auto lay_cmd = new Scenario::Command::AddLayerInNewSlot{*cst, make_cmd->processId()};
-      macro.submitCommand(lay_cmd);
-
-      auto dom = ctrl->domain();
-      auto min = dom.get().convert_min<float>();
-      auto max = dom.get().convert_max<float>();
-
-      State::Unit unit = ctrl->address().qualifiers.get().unit;
-      auto& autom = safe_cast<Automation::ProcessModel&>(cst->processes.at(make_cmd->processId()));
-      macro.submitCommand(new Automation::SetUnit{autom, unit});
-      macro.submitCommand(new Automation::SetMin{autom, min});
-      macro.submitCommand(new Automation::SetMax{autom, max});
-
-      auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
-      Process::CableData cd;
-      cd.type = Process::CableType::ImmediateStrict;
-      cd.source = *autom.outlet;
-      cd.sink = m_port;
-
-      macro.submitCommand(new Dataflow::CreateCable{plug, getStrongId(plug.cables), std::move(cd)});
-
+      on_createAutomation(*cst, [&] (auto cmd) { macro.submitCommand(cmd); }, ctx);
       macro.commit();
       return;
     }
@@ -584,6 +559,45 @@ void PortItem::on_createAutomation(const score::DocumentContext& ctx)
       obj = parent;
     }
   }
+}
+
+bool PortItem::on_createAutomation(
+    Scenario::IntervalModel& cst,
+    std::function<void(score::Command*)> macro,
+    const score::DocumentContext& ctx)
+{
+  if(m_port.type != Process::PortType::Message)
+    return false;
+  auto ctrl = qobject_cast<Process::ControlInlet*>(&m_port);
+  if(!ctrl)
+    return false;
+
+  auto make_cmd = new Scenario::Command::AddOnlyProcessToInterval{
+                  cst,
+                  Metadata<ConcreteKey_k, Automation::ProcessModel>::get()};
+  macro(make_cmd);
+
+  auto lay_cmd = new Scenario::Command::AddLayerInNewSlot{cst, make_cmd->processId()};
+  macro(lay_cmd);
+
+  auto dom = ctrl->domain();
+  auto min = dom.get().convert_min<float>();
+  auto max = dom.get().convert_max<float>();
+
+  State::Unit unit = ctrl->address().qualifiers.get().unit;
+  auto& autom = safe_cast<Automation::ProcessModel&>(cst.processes.at(make_cmd->processId()));
+  macro(new Automation::SetUnit{autom, unit});
+  macro(new Automation::SetMin{autom, min});
+  macro(new Automation::SetMax{autom, max});
+
+  auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
+  Process::CableData cd;
+  cd.type = Process::CableType::ImmediateStrict;
+  cd.source = *autom.outlet;
+  cd.sink = m_port;
+
+  macro(new Dataflow::CreateCable{plug, getStrongId(plug.cables), std::move(cd)});
+  return true;
 }
 
 }

@@ -2,9 +2,10 @@
 #include <State/Address.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/IdentifiedObject.hpp>
+#include <score/selection/Selectable.hpp>
 #include <score_lib_process_export.h>
 #include <QPointer>
-#include <score/selection/Selectable.hpp>
+#include <QUuid>
 
 namespace ossia
 {
@@ -35,6 +36,7 @@ struct SCORE_LIB_PROCESS_EXPORT CableData
 {
     CableType type{};
     Path<Process::Port> source, sink;
+    QUuid sourceUuid, sinkUuid;
 
     SCORE_LIB_PROCESS_EXPORT
     friend bool operator==(const CableData& lhs, const CableData& rhs);
@@ -45,8 +47,8 @@ class SCORE_LIB_PROCESS_EXPORT Cable
 {
     Q_OBJECT
     Q_PROPERTY(CableType type READ type WRITE setType NOTIFY typeChanged)
-    Q_PROPERTY(Path<Process::Outlet> source READ source WRITE setSource NOTIFY sourceChanged)
-    Q_PROPERTY(Path<Process::Inlet> sink READ sink WRITE setSink NOTIFY sinkChanged)
+    Q_PROPERTY(Path<Process::Outlet> source READ source)
+    Q_PROPERTY(Path<Process::Inlet> sink READ sink)
   public:
     Selectable selection;
     Cable() = delete;
@@ -70,22 +72,22 @@ class SCORE_LIB_PROCESS_EXPORT Cable
     Path<Process::Outlet> source() const;
     Path<Process::Inlet> sink() const;
 
+    const QUuid& sourceUuid() const { return m_sourceUuid; }
+    const QUuid& sinkUuid() const { return m_sinkUuid; }
+
     void setType(CableType type);
-    void setSource(Path<Process::Outlet> source);
-    void setSink(Path<Process::Inlet> sink);
 signals:
     void typeChanged(CableType type);
-    void sourceChanged(Path<Process::Outlet> source);
-    void sinkChanged(Path<Process::Inlet> sink);
 
 private:
     CableType m_type{};
     Path<Process::Outlet> m_source;
     Path<Process::Inlet> m_sink;
+    QUuid m_sourceUuid;
+    QUuid m_sinkUuid;
 };
-
-
 }
+
 
 DEFAULT_MODEL_METADATA(Process::Cable, "Cable")
 

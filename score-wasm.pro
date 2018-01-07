@@ -1,12 +1,10 @@
-
 TARGET = i-score
 TEMPLATE = app
-CONFIG += c++14 object_parallel_to_source warn_off
+CONFIG += c++1z object_parallel_to_source warn_off
 
-QT+=core widgets gui multimedia network xml opengl websockets quick quickwidgets qml svg serialport quickcontrols2
-
+QT+=core widgets gui network xml svg websockets
 # cp *.h *.hpp from cmake
-INCLUDEPATH += $$PWD/base/lib \
+INCLUDEPATH += $$PWD/build-debug $$PWD/base/lib \
 $$PWD/API/3rdparty/asio/asio/include \
 $$PWD/API/3rdparty/brigand/include \
 $$PWD/API/3rdparty/chobo-shl/include \
@@ -67,7 +65,9 @@ include($$PWD/3rdparty/quazip/quazip/quazip.pri)
 SOURCES += \
     $$PWD/base/app/main.cpp \
     $$PWD/base/app/Application.cpp
-INCLUDEPATH += /opt/boost_1_64_0
+HEADERS += \
+    $$PWD/base/app/Application.hpp
+INCLUDEPATH += /opt/boost_1_66_0
 ios{
     LIBS += -lz
 

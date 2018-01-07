@@ -25,6 +25,8 @@ Cable::Cable(Id<Cable> c, const CableData& data, QObject* parent):
   m_type = data.type;
   m_source = data.source;
   m_sink = data.sink;
+  m_sourceUuid = data.sourceUuid;
+  m_sinkUuid = data.sinkUuid;
 }
 
 void Cable::update(const CableData& data)
@@ -32,6 +34,8 @@ void Cable::update(const CableData& data)
   m_type = data.type;
   m_source = data.source;
   m_sink = data.sink;
+  m_sourceUuid = data.sourceUuid;
+  m_sinkUuid = data.sinkUuid;
 }
 
 CableData Cable::toCableData() const
@@ -40,6 +44,8 @@ CableData Cable::toCableData() const
   c.type = m_type;
   c.source = m_source;
   c.sink = m_sink;
+  c.sourceUuid = m_sourceUuid;
+  c.sinkUuid = m_sinkUuid;
 
   return c;
 }
@@ -68,33 +74,17 @@ void Cable::setType(CableType type)
   emit typeChanged(m_type);
 }
 
-void Cable::setSource(Path<Process::Outlet> source)
-{
-  if (m_source == source)
-    return;
-  m_source = std::move(source);
-  emit sourceChanged(m_source);
-}
-
-void Cable::setSink(Path<Process::Inlet> sink)
-{
-  if (m_sink == sink)
-    return;
-  m_sink = std::move(sink);
-  emit sinkChanged(m_sink);
-}
-
 }
 template<>
 SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::CableData>(const Process::CableData& p)
 {
-  m_stream << p.type << p.source << p.sink;
+  m_stream << p.type << p.source << p.sink << p.sourceUuid << p.sinkUuid;
   insertDelimiter();
 }
 template<>
 SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write<Process::CableData>(Process::CableData& p)
 {
-  m_stream >> p.type >> p.source >> p.sink;
+  m_stream >> p.type >> p.source >> p.sink >> p.sourceUuid >> p.sinkUuid;
   checkDelimiter();
 }
 
@@ -104,6 +94,8 @@ SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::CableData>(const P
   obj["Type"] = (int)p.type;
   obj["Source"] = toJsonObject(p.source);
   obj["Sink"] = toJsonObject(p.sink);
+  obj["SourceUuid"] = p.sourceUuid.toString();
+  obj["SinkUuid"] = p.sinkUuid.toString();
 }
 template<>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::CableData>(Process::CableData& p)
@@ -111,6 +103,8 @@ SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write<Process::CableData>(Proces
   p.type = (Process::CableType) obj["Type"].toInt();
   p.source = fromJsonObject<Path<Process::Outlet>>(obj["Source"]);
   p.sink = fromJsonObject<Path<Process::Inlet>>(obj["Sink"]);
+  p.sourceUuid = QUuid::fromString(obj["SourceUuid"].toString());
+  p.sinkUuid = QUuid::fromString(obj["SinkUuid"].toString());
 }
 
 template<>

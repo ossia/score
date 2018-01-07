@@ -70,7 +70,7 @@ std::pair<score::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
     const std::vector<score::Addon>& availablePlugins)
 {
   using namespace score::PluginLoader;
-#if !defined(SCORE_STATIC_QT)
+#if !defined(SCORE_STATIC_QT) && QT_CONFIG(library)
   auto blacklist = pluginsBlacklist();
 
   // Check if it is blacklisted

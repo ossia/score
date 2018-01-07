@@ -714,43 +714,31 @@ struct VSTControlPortItem final : public Dataflow::PortItem
         });
       });
     }
-    void on_createAutomation(const score::DocumentContext& ctx) override
+    bool on_createAutomation(
+        Scenario::IntervalModel& cst,
+        std::function<void(score::Command*)> macro,
+        const score::DocumentContext& ctx) override
     {
-      QObject* obj = &port();
-      while(obj)
-      {
-        auto parent = obj->parent();
-        if(auto cst = qobject_cast<Scenario::IntervalModel*>(parent))
-        {
-          RedoMacroCommandDispatcher<Dataflow::CreateModulation> macro{ctx.commandStack};
-          auto make_cmd = new Scenario::Command::AddOnlyProcessToInterval{
-                          *cst,
-                          Metadata<ConcreteKey_k, Automation::ProcessModel>::get()};
-          macro.submitCommand(make_cmd);
+      auto make_cmd = new Scenario::Command::AddOnlyProcessToInterval{
+                      cst,
+                      Metadata<ConcreteKey_k, Automation::ProcessModel>::get()};
+      macro(make_cmd);
 
-          auto lay_cmd = new Scenario::Command::AddLayerInNewSlot{*cst, make_cmd->processId()};
-          macro.submitCommand(lay_cmd);
+      auto lay_cmd = new Scenario::Command::AddLayerInNewSlot{cst, make_cmd->processId()};
+      macro(lay_cmd);
 
-          auto& autom = safe_cast<Automation::ProcessModel&>(cst->processes.at(make_cmd->processId()));
-          macro.submitCommand(new Automation::SetMin{autom, 0.});
-          macro.submitCommand(new Automation::SetMax{autom, 1.});
+      auto& autom = safe_cast<Automation::ProcessModel&>(cst.processes.at(make_cmd->processId()));
+      macro(new Automation::SetMin{autom, 0.});
+      macro(new Automation::SetMax{autom, 1.});
 
-          auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
-          Process::CableData cd;
-          cd.type = Process::CableType::ImmediateStrict;
-          cd.source = *autom.outlet;
-          cd.sink = port();
+      auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
+      Process::CableData cd;
+      cd.type = Process::CableType::ImmediateStrict;
+      cd.source = *autom.outlet;
+      cd.sink = port();
 
-          macro.submitCommand(new Dataflow::CreateCable{plug, getStrongId(plug.cables), std::move(cd)});
-
-          macro.commit();
-          return;
-        }
-        else
-        {
-          obj = parent;
-        }
-      }
+      macro(new Dataflow::CreateCable{plug, getStrongId(plug.cables), std::move(cd)});
+      return true;
     }
 };
 
