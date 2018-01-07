@@ -11,7 +11,7 @@
 #include "ScenarioDocumentModel.hpp"
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
-
+#include <QJsonDocument>
 namespace score
 {
 class DocumentDelegateModel;
@@ -31,11 +31,7 @@ void DataStreamReader::read(
 {
   readFrom(*obj.m_baseScenario);
 
-  m_stream << (int32_t)obj.cables.size();
-  for (const auto& p : obj.cables)
-  {
-    readFrom(p);
-  }
+  m_stream << QJsonDocument(toJsonArray(obj.cables)).toBinaryData();
 
   insertDelimiter();
 }
@@ -45,13 +41,9 @@ template <>
 void DataStreamWriter::write(Scenario::ScenarioDocumentModel& obj)
 {
   obj.m_baseScenario = new Scenario::BaseScenario{*this, &obj};
-
-  int32_t cable_count;
-  m_stream >> cable_count;
-  for (; cable_count-- > 0;)
-  {
-    obj.cables.add(new Process::Cable{*this, &obj});
-  }
+  QByteArray arr;
+  m_stream >> arr;
+  obj.m_savedCables = QJsonDocument::fromBinaryData(arr).array();
 
   checkDelimiter();
 }
@@ -73,7 +65,6 @@ void JSONObjectWriter::write(Scenario::ScenarioDocumentModel& doc)
         JSONObject::Deserializer{obj["BaseScenario"].toObject()}, &doc);
 
   doc.m_savedCables = obj["Cables"].toArray();
-
 }
 
 void Scenario::ScenarioDocumentModel::serialize(

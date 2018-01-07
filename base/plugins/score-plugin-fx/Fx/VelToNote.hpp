@@ -1,24 +1,11 @@
 #pragma once
 #include <Engine/Node/PdNode.hpp>
+#include <Fx/Quantifier.hpp>
 #include <random>
 namespace Nodes
 {
 namespace PulseToNote
 {
-struct ratio
-{
-  int num{};
-  int denom{};
-
-  friend constexpr ratio operator+(const ratio& lhs, const ratio& rhs)
-  {
-    return {
-      lhs.num * rhs.denom + rhs.num * lhs.denom,
-               lhs.denom * rhs.denom
-    };
-  }
-};
-
 struct Node
 {
   struct Metadata
@@ -30,17 +17,8 @@ struct Node
     static const constexpr auto uuid = make_uuid("2c6493c3-5449-4e52-ae04-9aee3be5fb6a");
   };
 
-  struct Note { int pitch{}; int vel{}; };
-  struct NoteIn
-  {
-    Note note{};
-    ossia::time_value date{};
-  };
-  struct State
-  {
-    std::vector<NoteIn> to_start;
-    std::vector<NoteIn> running_notes;
-  };
+  using State = Quantifier::Node::State;
+  using Note = Quantifier::Node::Note;
 
   static const constexpr auto info =
       Control::create_node()
@@ -61,8 +39,8 @@ struct Node
   struct val_visitor
   {
     State& st;
-    int base_note{};
-    int base_vel{};
+    uint8_t base_note{};
+    uint8_t base_vel{};
 
     Note operator()()
     {
@@ -79,23 +57,23 @@ struct Node
     }
     Note operator()(float note)
     {
-      return {(int)note, base_vel};
+      return {(uint8_t)note, base_vel};
     }
     Note operator()(char note)
     {
-      return {note, base_vel};
+      return {(uint8_t)note, base_vel};
     }
     Note operator()(int note)
     {
-      return {note, base_vel};
+      return {(uint8_t)note, base_vel};
     }
     Note operator()(int note, int vel)
     {
-      return {note, vel};
+      return {(uint8_t)note, (uint8_t)vel};
     }
     Note operator()(int note, float vel)
     {
-      return {note, (int)(vel * 127.)};
+      return {(uint8_t)note, (uint8_t)(vel * 127.f)};
     }
     Note operator()(const std::vector<ossia::value>& v)
     {
@@ -179,8 +157,8 @@ struct Node
       if(rand_vel != 0)
         note.vel += std::uniform_int_distribution<int>(-rand_vel, rand_vel)(m);
 
-      note.pitch = ossia::clamp(note.pitch + shiftnote, 0, 127);
-      note.vel = ossia::clamp(note.vel, 0, 127);
+      note.pitch = ossia::clamp((int)note.pitch + shiftnote, 0, 127);
+      note.vel = ossia::clamp((int)note.vel, 0, 127);
 
 
       if(note.vel != 0)

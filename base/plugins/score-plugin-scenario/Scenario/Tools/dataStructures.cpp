@@ -149,7 +149,7 @@ template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(
     const Scenario::ElementsProperties& elementsProperties)
 {
-  m_stream << elementsProperties.timesyncs << elementsProperties.intervals;
+  m_stream << elementsProperties.timesyncs << elementsProperties.intervals << elementsProperties.cables;
 
   insertDelimiter();
 }
@@ -158,8 +158,7 @@ template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(
     Scenario::ElementsProperties& elementsProperties)
 {
-
-  m_stream >> elementsProperties.timesyncs >> elementsProperties.intervals;
+  m_stream >> elementsProperties.timesyncs >> elementsProperties.intervals >> elementsProperties.cables;
 
   checkDelimiter();
 }

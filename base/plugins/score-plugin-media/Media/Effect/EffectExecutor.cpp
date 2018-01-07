@@ -48,6 +48,11 @@ EffectComponent* EffectProcessComponentBase::make(
   if(fx)
   {
     SCORE_ASSERT(fx->node);
+    QObject::connect(&effect.selection, &Selectable::changed,
+            fx.get(), [this,n=fx->node] (bool ok) {
+      in_exec([=] { n->set_logging(ok); });
+    });
+
     auto idx_ = process().effectPosition(effect.id());
     SCORE_ASSERT(idx_ != -1);
     std::size_t idx = idx_;

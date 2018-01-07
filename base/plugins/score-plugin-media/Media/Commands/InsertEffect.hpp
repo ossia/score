@@ -1,5 +1,6 @@
 #pragma once
 #include <score/command/Command.hpp>
+#include <Dataflow/Commands/CableHelpers.hpp>
 #include <Media/Commands/MediaCommandFactory.hpp>
 #include <score/model/path/Path.hpp>
 
@@ -62,6 +63,7 @@ class RemoveEffect final : public score::Command
         Path<Effect::ProcessModel> m_model;
         Id<Process::EffectModel> m_id;
         QByteArray m_savedEffect;
+        Dataflow::SerializedCables m_cables;
         int m_pos{};
 };
 

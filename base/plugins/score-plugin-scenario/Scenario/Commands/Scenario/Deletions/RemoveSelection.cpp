@@ -157,6 +157,9 @@ RemoveSelection::RemoveSelection(
 
   auto purged = sel.toList().toSet().toList();
 
+  QObjectList l; l.reserve(purged.size()); for(auto p : purged) l.push_back((QObject*)p);
+  m_cables = Dataflow::saveCables(l, score::IDocument::documentContext(scenar));
+
   // Serialize ALL the things
   for (const auto& obj : purged)
   {
@@ -365,10 +368,13 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
   {
     updateEventExtent(ev.id(), scenar);
   }
+
+  Dataflow::restoreCables(m_cables, ctx);
 }
 
 void RemoveSelection::redo(const score::DocumentContext& ctx) const
 {
+  Dataflow::removeCables(m_cables, ctx);
   auto& scenar = m_path.find(ctx);
 
   for (const auto& cmd : m_cmds_set_rigidity)
@@ -462,6 +468,7 @@ void RemoveSelection::serializeImpl(DataStreamInput& s) const
   {
     s << cmd.serialize();
   }
+  s << m_cables;
 }
 
 void RemoveSelection::deserializeImpl(DataStreamOutput& s)
@@ -496,6 +503,7 @@ void RemoveSelection::deserializeImpl(DataStreamOutput& s)
     s >> a;
     m_cmds_split_timesync[i].deserialize(a);
   }
+  s >> m_cables;
 }
 }
 }

@@ -16,6 +16,7 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/tools/Metadata.hpp>
+#include <score/selection/Selectable.hpp>
 #include <score/model/Identifier.hpp>
 #include <score_lib_process_export.h>
 #include <ossia/detail/small_vector.hpp>
@@ -46,6 +47,7 @@ class SCORE_LIB_PROCESS_EXPORT ProcessModel
   Q_OBJECT
   SCORE_SERIALIZE_FRIENDS
 public:
+  Selectable selection;
   ProcessModel(
       TimeVal duration,
       const Id<ProcessModel>& id,

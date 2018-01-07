@@ -9,7 +9,6 @@ namespace Widgets
 
 static const constexpr std::array<std::pair<const char*, float>, 14> durations
 {{
-    {"None",  0.},
     {"Inf",  -1.},
     {"Whole", 1.},
     {"Half",  1./2.},
@@ -22,7 +21,8 @@ static const constexpr std::array<std::pair<const char*, float>, 14> durations
     {"Dotted 4th",   3./8.},
     {"Dotted 8th",   3./16.},
     {"Dotted 16th",  3./32.},
-    {"Dotted 32th",  3./64.}
+    {"Dotted 32th",  3./64.},
+    {"None",  0.}
 }};
 static const constexpr std::array<std::pair<const char*, float>, 13> notes
 {{

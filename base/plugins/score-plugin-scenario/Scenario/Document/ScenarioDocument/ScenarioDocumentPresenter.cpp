@@ -619,6 +619,7 @@ void ScenarioDocumentPresenter::setNewSelection(const Selection& s)
     if (process)
     {
       process->setSelection(Selection{});
+      process->selection.set(false);
       QObject::disconnect(cur_proc_connection);
     }
 
@@ -639,6 +640,7 @@ void ScenarioDocumentPresenter::setNewSelection(const Selection& s)
     if (process)
     {
       process->setSelection(Selection{});
+      process->selection.set(false);
       QObject::disconnect(cur_proc_connection);
     }
 
@@ -658,12 +660,23 @@ void ScenarioDocumentPresenter::setNewSelection(const Selection& s)
     if (process && newProc != process)
     {
       process->setSelection(Selection{});
+      process->selection.set(false);
       QObject::disconnect(cur_proc_connection);
     }
 
     if (newProc)
     {
-      newProc->setSelection(s);
+      if(newProc == *s.begin())
+      {
+        // the process itself is being selected
+        newProc->selection.set(true);
+      }
+      else
+      {
+        newProc->setSelection(s);
+        process->selection.set(false);
+        newProc->selection.set(true);
+      }
       cur_proc_connection = connect(newProc, &Process::ProcessModel::identified_object_destroying,
               this, [&] {
         m_selectionDispatcher.setAndCommit(Selection{});

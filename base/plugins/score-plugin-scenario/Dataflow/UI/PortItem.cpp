@@ -55,12 +55,12 @@ PortItem::PortItem(Process::Port& p, QGraphicsItem* parent)
   Path<Process::Port> path = p;
   for(auto c : CableItem::g_cables)
   {
-    if(c.first->source().unsafePath() == path.unsafePath() && c.first->sourceUuid() == p.uuid())
+    if(c.first->source().unsafePath() == path.unsafePath())
     {
       c.second->setSource(this);
       cables.push_back(c.second);
     }
-    else if(c.first->sink().unsafePath() == path.unsafePath() && c.first->sinkUuid() == p.uuid())
+    else if(c.first->sink().unsafePath() == path.unsafePath())
     {
       c.second->setTarget(this);
       cables.push_back(c.second);
@@ -466,15 +466,11 @@ void onCreateCable(const score::DocumentContext& ctx, Dataflow::PortItem* p1, Da
   {
     cd.source = port1;
     cd.sink = port2;
-    cd.sourceUuid = port1.uuid();
-    cd.sinkUuid = port2.uuid();
   }
   else
   {
     cd.source = port2;
     cd.sink = port1;
-    cd.sourceUuid = port2.uuid();
-    cd.sinkUuid = port1.uuid();
   }
   disp.submitCommand<Dataflow::CreateCable>(
         plug,

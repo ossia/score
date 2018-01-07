@@ -216,9 +216,7 @@ if(APPLE)
 endif()
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_VST2)
-if(UNIX AND NOT APPLE)
-  target_link_libraries(${PROJECT_NAME} PRIVATE dl)
-endif()
+target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_DL_LIBS})
 
 if(TARGET Lilv)
     target_link_libraries(${PROJECT_NAME} PRIVATE Lilv)

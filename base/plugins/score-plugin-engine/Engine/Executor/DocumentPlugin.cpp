@@ -22,6 +22,7 @@
 #include <Engine/score2OSSIA.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <ossia/dataflow/graph/graph.hpp>
+#include <spdlog/spdlog.h>
 namespace Engine
 {
 namespace Execution
@@ -47,7 +48,7 @@ DocumentPlugin::DocumentPlugin(
       }
     , m_base{m_ctx, this}
 {
-  execGraph = std::make_shared<ossia::graph>();
+  makeGraph();
   audio_device = new Dataflow::AudioDevice(
     {Dataflow::AudioProtocolFactory::static_concreteKey(), "audio", {}},
     audio_dev);
@@ -80,7 +81,6 @@ void DocumentPlugin::on_cableRemoved(const Process::Cable& c)
   auto it = m_cables.find(c.id());
   if(it != m_cables.end())
   {
-    qDebug() << "REmonvinfg" << bool(it->second);
     context().executionQueue.enqueue([cable=it->second,graph=execGraph] {
       graph->disconnect(cable);
     });
@@ -192,7 +192,7 @@ void DocumentPlugin::on_finished()
   }
   runtime_connections.clear();
 
-  execGraph = std::make_shared<ossia::graph>();
+  makeGraph();
 
   if(m_tid != -1)
   {
@@ -206,6 +206,13 @@ void DocumentPlugin::timerEvent(QTimerEvent* event)
   ExecutionCommand cmd;
   while(m_editionQueue.try_dequeue(cmd))
     cmd();
+}
+
+void DocumentPlugin::makeGraph()
+{
+  auto g = std::make_shared<ossia::graph>();
+  g->logger = spdlog::get("ossia");
+  execGraph = g;
 }
 void DocumentPlugin::reload(Scenario::IntervalModel& cst)
 {
@@ -260,7 +267,7 @@ void DocumentPlugin::clear()
     m_base.cleanup();
     runAllCommands();
     execGraph.reset();
-    execGraph = std::make_shared<ossia::graph>();
+    makeGraph();
   }
 }
 

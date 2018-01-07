@@ -108,11 +108,11 @@ void MoveEventMeta::update(
   }
   else
   {
-    m_moveEventImplementation =
-        score::AppContext().interfaces<MoveEventList>()
-            .get(score::AppContext(), MoveEventFactoryInterface::Strategy::MOVE)
-            .make(
-                scenar, eventId, newDate, mode, lock);
+    static const auto& appctx = score::AppContext();
+    static const auto& mevlist = appctx.interfaces<MoveEventList>();
+    m_moveEventImplementation = mevlist
+            .get(appctx, MoveEventFactoryInterface::Strategy::MOVE)
+            .make(scenar, eventId, newDate, mode, lock);
     m_lock = lock;
   }
   m_newY = y;
@@ -134,11 +134,11 @@ void MoveEventMeta::update(
   }
   else
   {
-    m_moveEventImplementation =
-        score::AppContext().interfaces<MoveEventList>()
-            .get(score::AppContext(), MoveEventFactoryInterface::Strategy::MOVE)
-            .make(
-                scenar, eventId, newDate, mode, lock);
+    static const auto& appctx = score::AppContext();
+    static const auto& mevlist = appctx.interfaces<MoveEventList>();
+    m_moveEventImplementation = mevlist
+            .get(appctx, MoveEventFactoryInterface::Strategy::MOVE)
+            .make(scenar, eventId, newDate, mode, lock);
     m_lock = lock;
   }
   m_newY = y;

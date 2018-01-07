@@ -5,6 +5,7 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
 #include <score/command/Command.hpp>
+#include <Dataflow/Commands/CableHelpers.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/tools/std/Optional.hpp>
@@ -38,6 +39,7 @@ protected:
 
 private:
   IntervalSaveData m_intervalSaveData;
+  Dataflow::SerializedCables m_cables;
 };
 }
 }

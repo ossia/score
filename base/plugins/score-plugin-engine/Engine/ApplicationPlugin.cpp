@@ -41,6 +41,7 @@
 #include <QAction>
 #include <QVariant>
 #include <QVector>
+#include <spdlog/spdlog.h>
 namespace Engine
 {
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
@@ -51,6 +52,7 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
     std::make_shared<OssiaLogger>()};
 
   ossia::context context{v};
+  ossia::logger().set_level(spdlog::level::trace);
   // Two parts :
   // One that maintains the devices for each document
   // (and disconnects / reconnects them when the current document changes)

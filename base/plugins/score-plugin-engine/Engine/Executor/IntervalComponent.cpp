@@ -37,26 +37,34 @@ IntervalComponentBase::IntervalComponentBase(
 {
   con(interval().duration,
       &Scenario::IntervalDurations::executionSpeedChanged, this,
-      [&](double sp) { m_ossia_interval->set_speed(sp); });
+      [&](double sp) {
+    if(m_ossia_interval)
+      in_exec([sp,cst = m_ossia_interval] {
+        cst->set_speed(sp);
+      });
+  });
 
   con(interval().duration,
       &Scenario::IntervalDurations::defaultDurationChanged, this,
       [&](TimeVal sp) {
-    in_exec([t=ctx.time(sp),cst = m_ossia_interval]
+    if(m_ossia_interval)
+      in_exec([t=ctx.time(sp),cst = m_ossia_interval]
       { cst->set_nominal_duration(t); });
   });
 
   con(interval().duration,
       &Scenario::IntervalDurations::minDurationChanged, this,
       [&](TimeVal sp) {
-    in_exec([t=ctx.time(sp),cst = m_ossia_interval]
+    if(m_ossia_interval)
+      in_exec([t=ctx.time(sp),cst = m_ossia_interval]
       { cst->set_min_duration(t); });
   });
 
   con(interval().duration,
       &Scenario::IntervalDurations::maxDurationChanged, this,
       [&](TimeVal sp) {
-    in_exec([t=ctx.time(sp),cst = m_ossia_interval]
+    if(m_ossia_interval)
+      in_exec([t=ctx.time(sp),cst = m_ossia_interval]
       { cst->set_max_duration(t); });
   });
 }
@@ -230,6 +238,17 @@ ProcessComponent* IntervalComponentBase::make(
       auto oproc = plug->OSSIAProcessPtr();
       auto cst = m_ossia_interval;
       auto cst_node = cst->node;
+
+      QObject::connect(&proc.selection, &Selectable::changed,
+                       plug.get(), [this,oproc] (bool ok) {
+        in_exec([=] {
+          if(const auto& n = oproc->node)
+            n->set_logging(ok);
+        });
+      });
+      if(oproc->node)
+        oproc->node->set_logging(proc.selection.get());
+
 
       in_exec(
             [cst=m_ossia_interval,oproc,g=plug->system().plugin.execGraph,propagated_outlets] {

@@ -23,6 +23,7 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
     auto& tn = scenario.timeSyncs.at(tn_id);
     const auto& intervalsBefore = Scenario::previousIntervals(tn, scenario);
     const auto& intervalsAfter = Scenario::nextIntervals(tn, scenario);
+    QObjectList processesToSave;
 
     // 1. Find the delta bounds.
     // We have to stop as soon as a interval would become too small.
@@ -34,6 +35,8 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
         if(it == elementsProperties.intervals.end())
         {
             auto& c = scenario.intervals.at(id);
+            for(auto& proc : c.processes)
+              processesToSave.append(&proc);
             if(c.duration.defaultDuration() < min)
                 min = c.duration.defaultDuration();
         }
@@ -51,6 +54,8 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
         if(it == elementsProperties.intervals.end())
         {
             auto& c = scenario.intervals.at(id);
+            for(auto& proc : c.processes)
+              processesToSave.append(&proc);
             if(c.duration.defaultDuration() < max)
                 max = c.duration.defaultDuration();
         }
@@ -60,6 +65,13 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
             if(c.oldDefault < max)
                 max = c.oldDefault;
         }
+    }
+
+    // Save cables
+
+    if(!processesToSave.empty())
+    {
+      elementsProperties.cables = Dataflow::saveCables(processesToSave, score::IDocument::documentContext(scenario));
     }
 
     // 2. Rescale deltaTime

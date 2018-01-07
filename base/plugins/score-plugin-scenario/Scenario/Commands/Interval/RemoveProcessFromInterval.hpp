@@ -9,7 +9,7 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <score/model/Identifier.hpp>
-
+#include <Dataflow/Commands/CableHelpers.hpp>
 struct DataStreamInput;
 struct DataStreamOutput;
 namespace Process
@@ -44,6 +44,7 @@ private:
   Path<IntervalModel> m_path;
   Id<Process::ProcessModel> m_processId;
   QByteArray m_serializedProcessData;
+  Dataflow::SerializedCables m_cables;
 
   Rack m_smallView;
   bool m_smallViewVisible{};

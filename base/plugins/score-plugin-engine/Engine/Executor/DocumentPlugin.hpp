@@ -113,6 +113,7 @@ private:
 
   void timerEvent(QTimerEvent* event) override;
   int m_tid{};
+  void makeGraph();
 };
 }
 }

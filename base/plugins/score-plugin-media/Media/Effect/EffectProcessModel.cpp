@@ -210,3 +210,28 @@ void JSONObjectWriter::write(Media::Effect::ProcessModel& proc)
   }
 }
 
+
+Selection Media::Effect::ProcessModel::selectableChildren() const
+{
+  Selection s;
+  for(auto& c : effects())
+    s.append(&c);
+  return s;
+}
+
+Selection Media::Effect::ProcessModel::selectedChildren() const
+{
+  Selection s;
+  for(Process::EffectModel& c : effects())
+    if(c.selection.get())
+      s.append(&c);
+  return s;
+}
+
+void Media::Effect::ProcessModel::setSelection(const Selection& s) const
+{
+  for(Process::EffectModel& c : effects())
+  {
+    c.selection.set(s.contains(&c));
+  }
+}

@@ -68,7 +68,13 @@ void InspectorPanelWidget::newItemsInspected(const Selection& objects)
     }
     else
     {
-      m_currentInspector = new Inspector::InspectorWidgetBase{*selectedObj.first(), doc, m_parent, tr("inspector gadget")};
+      QString name = "Inspector";
+      auto obj = selectedObj.first();
+      if(auto meta = obj->findChild<score::ModelMetadata*>(QString{}, Qt::FindDirectChildrenOnly))
+      {
+        name = meta->getName();
+      }
+      m_currentInspector = new Inspector::InspectorWidgetBase{*selectedObj.first(), doc, m_parent, name};
       m_layout->addWidget(m_currentInspector);
     }
   }

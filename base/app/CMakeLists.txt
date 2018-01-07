@@ -31,7 +31,10 @@ else()
 endif()
 
 
-target_link_libraries(${APPNAME} PUBLIC score_lib_base Qt5::QuickControls2)
+target_link_libraries(${APPNAME} PUBLIC score_lib_base)
+if(TARGET Qt5::QuickControls2)
+  target_link_libraries(${APPNAME} PUBLIC score_lib_base Qt5::QuickControls2)
+endif()
 if(APPLE)
     find_library(CFLIB CoreFoundation)
     target_link_libraries(${APPNAME} PRIVATE ${CFLIB})

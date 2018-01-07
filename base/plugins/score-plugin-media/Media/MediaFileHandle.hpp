@@ -1,6 +1,5 @@
 #pragma once
 #include <QFile>
-#include <QAudioDecoder>
 #include <array>
 #include <Media/AudioDecoder.hpp>
 #include <score_plugin_media_export.h>

@@ -35,7 +35,8 @@ score_plugin_fx::factories(
       Nodes::Chord::Node,
       Nodes::MidiUtil::Node,
       Nodes::Metro::Node,
-      Nodes::Envelope::Node>(ctx, key);
+      Nodes::Envelope::Node,
+      Nodes::Quantifier::Node>(ctx, key);
 }
 
 auto score_plugin_fx::required() const

@@ -142,7 +142,6 @@ const score::ApplicationComponents&Application::components() const
 {
   return m_presenter->applicationComponents();
 }
-#define SCORE_DEBUG
 
 void Application::init()
 {

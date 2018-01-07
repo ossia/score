@@ -20,7 +20,7 @@
 #include <score/widgets/GraphicWidgets.hpp>
 #include <Media/Commands/InsertEffect.hpp>
 #include <Effect/EffectFactory.hpp>
-
+#include <score/selection/SelectionDispatcher.hpp>
 namespace Media
 {
 namespace Effect
@@ -41,7 +41,7 @@ class View final : public Control::ILayerView
         const Process::EffectModel& effect;
         Control::RectItem* root_item{};
         QGraphicsItem* fx_item{};
-        QGraphicsItem* title{};
+        Control::RectItem* title{};
     };
 
     explicit View(QGraphicsItem* parent)
@@ -49,8 +49,11 @@ class View final : public Control::ILayerView
     {
     }
 
-    QGraphicsItem* makeTitle(Process::EffectModel& effect, const Effect::ProcessModel& object, const score::DocumentContext& doc)
+    Control::RectItem* makeTitle(Process::EffectModel& effect
+                             , const Effect::ProcessModel& object
+                             , const Process::LayerContext& ctx)
     {
+      auto& doc = ctx.context;
       auto root = new Control::RectItem{};
       root->setRect({0, 0, 170, 20});
       static const auto undock_off = QPixmap::fromImage(QImage(":/icons/undock_off.png").scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
@@ -79,15 +82,21 @@ class View final : public Control::ILayerView
 
       auto label = new Scenario::SimpleTextItem{root};
       label->setText(effect.prettyName());
-
       label->setPos({35, 4});
+
+      connect(root, &Control::RectItem::clicked,
+              this, [&] {
+        doc.focusDispatcher.focus(&ctx.presenter);
+        score::SelectionDispatcher{doc.selectionStack}.setAndCommit({&effect});
+      });
 
       return root;
     }
 
     void setup(const Effect::ProcessModel& object,
-               const score::DocumentContext& doc)
+               const Process::LayerContext& ctx)
     {
+      auto& doc = ctx.context;
       auto& fact = doc.app.interfaces<Process::EffectUIFactoryList>();
       auto items = childItems();
       effects.clear();
@@ -104,7 +113,8 @@ class View final : public Control::ILayerView
         EffectUi fx_ui{effect, root_item, {}, {}};
 
         // Title
-        fx_ui.title = makeTitle(effect, object, doc);
+        auto title = makeTitle(effect, object, ctx);
+        fx_ui.title = title;
         fx_ui.title->setParentItem(root_item);
 
         // Main item
@@ -126,6 +136,12 @@ class View final : public Control::ILayerView
         fx_ui.root_item->setRect({0., 0., 170., fx_ui.root_item->childrenBoundingRect().height() + 10.});
         fx_ui.root_item->setPos(pos_x, 0);
         pos_x += 5 + fx_ui.root_item->boundingRect().width();
+
+        connect(&effect.selection, &Selectable::changed, root_item, [=] (bool ok) {
+          root_item->setHighlight(ok);
+          title->setHighlight(ok);
+        });
+
       }
     }
 
@@ -217,10 +233,10 @@ class Presenter final : public Process::LayerPresenter
 
       connect(&static_cast<const Effect::ProcessModel&>(model), &Effect::ProcessModel::effectsChanged,
               this, [&] {
-        m_view->setup(static_cast<const Effect::ProcessModel&>(model), ctx);
+        m_view->setup(static_cast<const Effect::ProcessModel&>(model), m_context);
       });
 
-      m_view->setup(static_cast<const Effect::ProcessModel&>(model), ctx);
+      m_view->setup(static_cast<const Effect::ProcessModel&>(model), m_context);
     }
 
     void setWidth(qreal val) override
