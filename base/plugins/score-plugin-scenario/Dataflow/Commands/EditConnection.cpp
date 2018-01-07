@@ -100,7 +100,10 @@ RemoveCable::RemoveCable(
 void RemoveCable::undo(const score::DocumentContext& ctx) const
 {
   auto& model = m_model.find(ctx);
-  model.cables.add(new Process::Cable{m_cable, m_data, &model});
+  auto cbl = new Process::Cable{m_cable, m_data, &model};
+  model.cables.add(cbl);
+  cbl->source().find(ctx).addCable(*cbl);
+  cbl->sink().find(ctx).addCable(*cbl);
 }
 
 void RemoveCable::redo(const score::DocumentContext& ctx) const

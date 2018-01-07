@@ -13,6 +13,8 @@
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <ossia/network/value/value_traits.hpp>
+#include <Dataflow/UI/PortItem.hpp>
+#include <Dataflow/UI/PortItem.hpp>
 namespace Scenario
 {
 
@@ -71,13 +73,63 @@ bool DropProcessInScenario::drop(
     m.commit();
     return true;
   }
-  else
+
+  return false;
+}
+
+bool DropPortInScenario::drop(
+    const TemporalScenarioPresenter& pres, QPointF pos, const QMimeData* mime)
+{
+  if (mime->formats().contains(score::mime::port()))
   {
-    return false;
+    auto port = Dataflow::PortItem::clickedPort;
+    if(!port || port->port().type != Process::PortType::Message || qobject_cast<Process::Outlet*>(&port->port()))
+      return false;
+
+    RedoMacroCommandDispatcher<Scenario::Command::AddProcessInNewBoxMacro> m{
+        pres.context().context.commandStack};
+
+    // Create a box.
+    const Scenario::ProcessModel& scenar = pres.model();
+    Scenario::Point pt = pres.toScenarioPoint(pos);
+
+    // 5 seconds.
+    // TODO instead use a percentage of the currently displayed view
+    TimeVal t = std::chrono::seconds{5};
+
+    // Create the beginning
+    auto start_cmd = new Scenario::Command::CreateTimeSync_Event_State{
+        scenar, pt.date, pt.y};
+    m.submitCommand(start_cmd);
+
+    // Create a box with the duration of the longest song
+    auto box_cmd
+        = new Scenario::Command::CreateInterval_State_Event_TimeSync{
+            scenar, start_cmd->createdState(), pt.date + t, pt.y};
+    m.submitCommand(box_cmd);
+    auto& interval = scenar.interval(box_cmd->createdInterval());
+
+    // Create process
+    auto ok = port->on_createAutomation(interval, [&] (score::Command* cmd) {
+              m.submitCommand(cmd);
+    }, pres.context().context);
+    if(!ok)
+    {
+      m.rollback();
+      return false;
+    }
+
+    // Finally we show the newly created rack
+    auto show_cmd = new Scenario::Command::ShowRack{interval};
+    m.submitCommand(show_cmd);
+
+    m.commit();
+    return true;
   }
 
   return false;
 }
+
 
 bool DropProcessInInterval::drop(
     const IntervalModel& cst, const QMimeData* mime)

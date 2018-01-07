@@ -1,5 +1,6 @@
 #include "VSTCommands.hpp"
 #include <Media/Effect/VST/VSTEffectModel.hpp>
+
 namespace Media::VST
 {
 SetVSTControl::SetVSTControl(const VSTControlInlet& obj, float newval)
@@ -71,8 +72,10 @@ void CreateVSTControl::deserializeImpl(DataStreamOutput& stream)
 RemoveVSTControl::RemoveVSTControl(const VSTEffectModel& obj, Id<Process::Port> id)
 : m_path{obj}
 , m_id{std::move(id)}
-, m_control{score::marshall<DataStream>(*obj.inlet(m_id))}
 {
+  auto& inlet = *obj.inlet(m_id);
+  m_control = score::marshall<DataStream>(inlet);
+  Dataflow::saveCables({&inlet}, score::IDocument::documentContext(obj));
 }
 
 RemoveVSTControl::~RemoveVSTControl() { }
@@ -83,21 +86,25 @@ void RemoveVSTControl::undo(const score::DocumentContext& ctx) const
   DataStreamWriter wr{m_control};
 
   vst.on_addControl_impl(qobject_cast<Media::VST::VSTControlInlet*>(Process::make_inlet(wr, &vst).release()));
+
+  Dataflow::restoreCables(m_cables, ctx);
 }
 
 void RemoveVSTControl::redo(const score::DocumentContext& ctx) const
 {
+  Dataflow::removeCables(m_cables, ctx);
+
   m_path.find(ctx).removeControl(m_id);
 }
 
 void RemoveVSTControl::serializeImpl(DataStreamInput& stream) const
 {
-  stream << m_path << m_id << m_control;
+  stream << m_path << m_id << m_control << m_cables;
 }
 
 void RemoveVSTControl::deserializeImpl(DataStreamOutput& stream)
 {
-  stream >> m_path >> m_id >> m_control;
+  stream >> m_path >> m_id >> m_control >> m_cables;
 }
 
 }

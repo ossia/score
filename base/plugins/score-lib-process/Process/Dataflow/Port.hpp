@@ -4,12 +4,13 @@
 #include <score/model/IdentifiedObject.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
-#include <QPointer>
-#include <ossia/detail/small_vector.hpp>
 #include <score_lib_process_export.h>
-#include <ossia/network/value/value.hpp>
 #include <State/Domain.hpp>
 #include <score/plugins/customfactory/SerializableInterface.hpp>
+#include <ossia/network/value/value.hpp>
+#include <ossia/detail/small_vector.hpp>
+#include <QUuid>
+#include <QPointer>
 
 namespace Process
 {
@@ -46,6 +47,12 @@ class SCORE_LIB_PROCESS_EXPORT Port
     const State::AddressAccessor& address() const;
     const std::vector<Path<Cable>>& cables() const;
 
+    const score::Components& components() const
+    { return m_components; }
+    score::Components& components()
+    { return m_components; }
+
+    const QUuid& uuid() const { return m_uuid; }
 
   public slots:
     void setCustomData(const QString& customData);
@@ -72,6 +79,8 @@ class SCORE_LIB_PROCESS_EXPORT Port
     std::vector<Path<Cable>> m_cables;
     QString m_customData;
     State::AddressAccessor m_address;
+    score::Components m_components;
+    QUuid m_uuid;
 };
 
 class SCORE_LIB_PROCESS_EXPORT Inlet : public Port

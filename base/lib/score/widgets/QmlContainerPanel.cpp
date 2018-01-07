@@ -6,13 +6,13 @@
 #include <QDockWidget>
 #include <QIcon>
 #include <QObject>
-#include <QQmlContext>
-#include <QQmlEngine>
 #include <QString>
 #include <QToolButton>
 #include <QUrl>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <QQmlContext>
+#include <QQmlEngine>
 #include <QtQuickWidgets/QQuickWidget>
 
 #include <score/widgets/SetIcons.hpp>

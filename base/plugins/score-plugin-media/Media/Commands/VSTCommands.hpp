@@ -1,4 +1,5 @@
 #pragma once
+#include <Dataflow/Commands/CableHelpers.hpp>
 #include <Media/Commands/MediaCommandFactory.hpp>
 #include <score/command/Command.hpp>
 #include <score_plugin_media_export.h>
@@ -6,6 +7,7 @@
 namespace Process
 {
 class Port;
+class Cable;
 class Inlet;
 }
 namespace Media::VST
@@ -74,6 +76,7 @@ protected:
     Path<VSTEffectModel> m_path;
     Id<Process::Port> m_id;
     QByteArray m_control;
+    Dataflow::SerializedCables m_cables;
 };
 
 }

@@ -306,6 +306,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/CreateModulation.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/EditPort.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/EditConnection.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/CableHelpers.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Inspector/DataflowWidget.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/CableItem.hpp"
@@ -569,6 +570,7 @@ set(SRCS ${SRCS}
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/EditPort.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/EditConnection.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/CableHelpers.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Inspector/DataflowWidget.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/CableItem.cpp"

@@ -4,7 +4,7 @@ project(score_plugin_media LANGUAGES CXX)
 score_common_setup()
 
 # Packages
-find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Multimedia)
+find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:/opt/ffmpeg/lib/pkgconfig" )
 find_package(FFmpeg COMPONENTS  AVCODEC AVFORMAT AVUTIL SWRESAMPLE)
 if(NOT FFmpeg_FOUND)
@@ -175,7 +175,7 @@ add_library(${PROJECT_NAME}
 
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS};${FAUST_HDRS};${LV2_HDRS};${VST_HDRS}")
 target_link_libraries(${PROJECT_NAME} PUBLIC
-                     Qt5::Core Qt5::Widgets Qt5::Multimedia
+                     Qt5::Core Qt5::Widgets
                      score_lib_base score_plugin_loop score_plugin_engine
 )
 

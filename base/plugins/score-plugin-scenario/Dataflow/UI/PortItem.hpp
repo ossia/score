@@ -2,9 +2,11 @@
 #include <QGraphicsItem>
 #include <QObject>
 #include <unordered_map>
+#include <functional>
 #include <score_plugin_scenario_export.h>
 namespace Process { class Port; class Inlet; class Outlet; class ControlInlet; }
-namespace score { struct DocumentContext; }
+namespace score { struct DocumentContext; class Command; }
+namespace Scenario { class IntervalModel; }
 namespace Dataflow
 {
 class CableItem;
@@ -23,8 +25,15 @@ class SCORE_PLUGIN_SCENARIO_EXPORT PortItem
     using port_map = std::unordered_map<Process::Port*, Dataflow::PortItem*>;
     static port_map g_ports;
 
+    static PortItem* clickedPort;
+
     virtual void setupMenu(QMenu&, const score::DocumentContext& ctx);
-    virtual void on_createAutomation(const score::DocumentContext& m_context);
+    void on_createAutomation(const score::DocumentContext& m_context);
+    virtual bool on_createAutomation(
+        Scenario::IntervalModel& parent,
+        std::function<void(score::Command*)> macro,
+        const score::DocumentContext& m_context);
+
   signals:
     void showPanel();
     void createCable(PortItem* src, PortItem* snk);
@@ -60,4 +69,15 @@ PortItem* setupInlet(Process::Inlet& port, const score::DocumentContext& ctx, QG
 SCORE_PLUGIN_SCENARIO_EXPORT
 PortItem* setupOutlet(Process::Outlet& port, const score::DocumentContext& ctx, QGraphicsItem* parent, QObject* context);
 
+}
+
+namespace score
+{
+namespace mime
+{
+inline const constexpr char* port()
+{
+  return "application/x-score-port";
+}
+}
 }

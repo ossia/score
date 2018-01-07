@@ -88,6 +88,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/TimeSyncComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/StateComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/MetadataParameters.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/PortComponent.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Settings/LocalTreeModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Settings/LocalTreePresenter.hpp"
@@ -173,6 +174,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/TimeSyncComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/StateComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/MetadataParameters.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/PortComponent.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Settings/LocalTreeModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Settings/LocalTreePresenter.cpp"

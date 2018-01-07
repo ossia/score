@@ -170,7 +170,7 @@ score_plugin_scenario::factories(
       FW<score::SettingsDelegateFactory, Scenario::Settings::Factory>,
       FW<score::PanelDelegateFactory, Scenario::ObjectPanelDelegateFactory>,
 //      FW<score::PanelDelegateFactory, Scenario::PanelDelegateFactory>,
-      FW<Scenario::DropHandler, Scenario::MessageDropHandler, Scenario::DropProcessInScenario>,
+      FW<Scenario::DropHandler, Scenario::MessageDropHandler, Scenario::DropProcessInScenario, Scenario::DropPortInScenario>,
       FW<Scenario::IntervalDropHandler, Scenario::DropProcessInInterval, Scenario::AutomationDropHandler>,
       FW<Inspector::InspectorWidgetFactory, ScenarioInspectorWidgetFactoryWrapper, Interpolation::StateInspectorFactory, ScenarioInspectorFactory, Interpolation::InspectorFactory, Dataflow::CableInspectorFactory>,
       FW<IntervalInspectorDelegateFactory, ScenarioIntervalInspectorDelegateFactory, BaseIntervalInspectorDelegateFactory>,
