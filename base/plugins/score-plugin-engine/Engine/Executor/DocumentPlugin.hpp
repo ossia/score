@@ -53,7 +53,7 @@ public:
   {
     return m_ctx;
   }
-  ossia::audio_protocol& audioProto() { return *audioproto; }
+  ossia::audio_protocol& audioProto();
 
   void runAllCommands() const;
 
@@ -87,9 +87,6 @@ public:
   std::shared_ptr<ossia::graph_interface> execGraph;
   ossia::execution_state execState;
 
-  ossia::audio_protocol* audioproto{};
-  mutable ossia::net::generic_device audio_dev;
-  mutable ossia::net::generic_device midi_dev;
   Dataflow::AudioDevice* audio_device{};
 
   score::hash_map<Process::Outlet*, std::pair<ossia::node_ptr, ossia::outlet_ptr>> outlets;

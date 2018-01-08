@@ -38,7 +38,7 @@ public:
 
   void updateSettings(const Device::DeviceSettings& settings) final override;
 
-  void addAddress(const Device::FullAddressSettings& settings) final override;
+  void addAddress(const Device::FullAddressSettings& settings) override;
   void updateAddress(
       const State::Address& currentAddr,
       const Device::FullAddressSettings& address) final override;

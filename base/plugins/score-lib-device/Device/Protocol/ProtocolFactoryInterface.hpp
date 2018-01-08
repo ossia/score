@@ -13,6 +13,7 @@ namespace Device
 struct DeviceSettings;
 class DeviceInterface;
 class ProtocolSettingsWidget;
+class AddAddressDialog;
 class SCORE_LIB_DEVICE_EXPORT ProtocolFactory
     : public score::Interface<ProtocolFactory>
 {
@@ -32,6 +33,7 @@ public:
       const score::DocumentContext& ctx)
       = 0;
   virtual ProtocolSettingsWidget* makeSettingsWidget() = 0;
+  virtual AddAddressDialog* makeAddAddressDialog(const Device::DeviceSettings& dev, const score::DocumentContext& ctx, QWidget*) = 0;
   virtual const Device::DeviceSettings& defaultSettings() const = 0;
 
   // Save

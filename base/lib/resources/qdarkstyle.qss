@@ -154,6 +154,7 @@ QGroupBox::indicator:unchecked:disabled
     image: url(:/qss_icons/rc/checkbox_unchecked_disabled.png);
 }
 
+
 QRadioButton
 {
     spacing: 5px;
@@ -172,54 +173,47 @@ QRadioButton::indicator
     height: 21px;
 }
 
-QRadioButton::indicator:unchecked,
-QRadioButton::indicator:unchecked:hover
+QRadioButton::indicator:unchecked
 {
     image: url(:/qss_icons/rc/radio_unchecked.png);
 }
 
+
+QRadioButton::indicator:unchecked:hover,
 QRadioButton::indicator:unchecked:focus,
 QRadioButton::indicator:unchecked:pressed
 {
-  border: none;
-  outline: none;
+    border: none;
+    outline: none;
     image: url(:/qss_icons/rc/radio_unchecked_focus.png);
 }
 
-QRadioButton::indicator:checked,
-QRadioButton::indicator:checked:hover
+QRadioButton::indicator:checked
 {
-  border: none;
-  outline: none;
+    border: none;
+    outline: none;
     image: url(:/qss_icons/rc/radio_checked.png);
 }
 
+QRadioButton::indicator:checked:hover,
 QRadioButton::indicator:checked:focus,
-QRadioButton::indicator::menu-arrow:checked:pressed
+QRadioButton::indicator:checked:pressed
 {
-  border: none;
-  outline: none;
+    border: none;
+    outline: none;
     image: url(:/qss_icons/rc/radio_checked_focus.png);
-}
-
-QRadioButton::indicator:indeterminate,
-QRadioButton::indicator:indeterminate:hover,
-QRadioButton::indicator:indeterminate:pressed
-{
-        image: url(:/qss_icons/rc/radio_indeterminate.png);
 }
 
 QRadioButton::indicator:checked:disabled
 {
-  outline: none;
-  image: url(:/qss_icons/rc/radio_checked_disabled.png);
+    outline: none;
+    image: url(:/qss_icons/rc/radio_checked_disabled.png);
 }
 
 QRadioButton::indicator:unchecked:disabled
 {
     image: url(:/qss_icons/rc/radio_unchecked_disabled.png);
 }
-
 
 QMenuBar
 {

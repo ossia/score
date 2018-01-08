@@ -160,7 +160,7 @@ class SCORE_PLUGIN_ENGINE_EXPORT IntervalComponent final :
     const std::shared_ptr<ossia::time_interval>& OSSIAInterval() const { return IntervalComponentBase::OSSIAInterval(); }
 
     void init();
-    void cleanup(std::shared_ptr<IntervalComponent>);
+    void cleanup(const std::shared_ptr<IntervalComponent>&);
 
     //! To be called from the API edition thread
     void onSetup(std::shared_ptr<IntervalComponent>,

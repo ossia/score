@@ -10,4 +10,5 @@ int ProtocolFactory::visualPriority() const
 {
   return 0;
 }
+
 }

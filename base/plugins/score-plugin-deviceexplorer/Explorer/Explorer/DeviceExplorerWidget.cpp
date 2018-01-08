@@ -11,6 +11,7 @@
 #include <Explorer/Commands/Update/UpdateAddressSettings.hpp>
 #include <Explorer/Commands/Update/UpdateDeviceSettings.hpp>
 #include <Explorer/Explorer/AddressItemModel.hpp>
+#include <Device/Protocol/ProtocolList.hpp>
 #include <ossia-qt/js_utilities.hpp>
 #include <QAbstractProxyModel>
 #include <QAction>
@@ -1082,29 +1083,39 @@ void DeviceExplorerWidget::findUsage()
 
 void DeviceExplorerWidget::addAddress(InsertMode insert)
 {
-  AddressEditDialog dial{this};
-  auto code = static_cast<QDialog::DialogCode>(dial.exec());
+  SCORE_ASSERT(model());
+  QModelIndex index = proxyModel()->mapToSource(m_ntView->currentIndex());
+
+  // If the node is added in sibling mode, we check that no sibling have
+  // the same name
+  // Else we check that no child of the index has the same name.
+  auto& node = model()->nodeFromModelIndex(index);
+
+  // TODO not very elegant.
+  if (insert == InsertMode::AsSibling && node.is<Device::DeviceSettings>())
+  {
+    return;
+  }
+
+  auto parent_device = &node;
+  while(!parent_device->is<Device::DeviceSettings>())
+    parent_device = parent_device->parent();
+
+  auto& set = parent_device->get<Device::DeviceSettings>();
+  auto proto = m_protocolList.get(set.protocol);
+  if(!proto)
+    return;
+
+  QScopedPointer<Device::AddAddressDialog> dial{proto->makeAddAddressDialog(set, model()->deviceModel().context(), this)};
+
+  auto code = static_cast<QDialog::DialogCode>(dial->exec());
 
   if (code == QDialog::Accepted)
   {
-    SCORE_ASSERT(model());
-    QModelIndex index = proxyModel()->mapToSource(m_ntView->currentIndex());
-
-    // If the node is added in sibling mode, we check that no sibling have
-    // the same name
-    // Else we check that no child of the index has the same name.
-    auto& node = model()->nodeFromModelIndex(index);
-
-    // TODO not very elegant.
-    if (insert == InsertMode::AsSibling && node.is<Device::DeviceSettings>())
-    {
-      return;
-    }
-
     Device::Node* parent
         = (insert == InsertMode::AsChild) ? &node : node.parent();
 
-    auto stgs = dial.getSettings();
+    auto stgs = dial->getSettings();
     if (!model()->checkAddressInstantiatable(*parent, stgs))
       return;
 

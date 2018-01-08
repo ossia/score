@@ -91,7 +91,7 @@ void TimeRuler::paint(
     painter.setBrush(style.TimeRuler.getBrush());
     painter.drawPath(m_path);
 
-    painter.setFont(score::Skin::instance().MonoFont);
+    //painter.setFont(score::Skin::instance().MonoFont);
 
     for (const Mark& mark : m_marks)
     {

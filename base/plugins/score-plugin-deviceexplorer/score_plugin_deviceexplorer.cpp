@@ -17,14 +17,20 @@
 #include <Explorer/Listening/ListeningHandlerFactoryList.hpp>
 
 #include <score/serialization/AnySerialization.hpp>
-#include <brigand/brigand.hpp>
-namespace score
-{
+#include <ossia/dataflow/audio_protocol.hpp>
 
-class InterfaceListBase;
-class PanelFactory;
-} // namespace score
-
+struct audio_mapping_attr {
+    using type = ossia::audio_mapping;
+    static constexpr auto text() { return "audio-mapping"; }
+};
+struct audio_kind_attr {
+    using type = std::string;
+    static constexpr auto text() { return "audio-kind"; }
+};
+struct audio_channels_attr {
+    using type = int;
+    static constexpr auto text() { return "audio-channels"; }
+};
 score_plugin_deviceexplorer::score_plugin_deviceexplorer()
 {
   QMetaType::registerComparators<UuidKey<Device::ProtocolFactory>>();
@@ -50,7 +56,9 @@ score_plugin_deviceexplorer::score_plugin_deviceexplorer()
         , ossia::net::app_version_attribute
         , ossia::net::hidden_attribute
         , ossia::net::default_value_attribute
-
+        , audio_mapping_attr
+        , audio_kind_attr
+        , audio_channels_attr
         >(),
         [&] (auto arg) {
     using type = decltype(arg);

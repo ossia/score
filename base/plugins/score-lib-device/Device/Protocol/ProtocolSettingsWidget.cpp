@@ -5,4 +5,6 @@
 namespace Device
 {
 ProtocolSettingsWidget::~ProtocolSettingsWidget() = default;
+AddAddressDialog::~AddAddressDialog() = default;
+
 }

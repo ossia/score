@@ -9,6 +9,8 @@
 #include <Fx/Metro.hpp>
 #include <Fx/Envelope.hpp>
 #include <Fx/Chord.hpp>
+#include <Fx/MathGenerator.hpp>
+#include <Fx/MathMapping.hpp>
 
 #include <score/plugins/customfactory/FactorySetup.hpp>
 
@@ -36,7 +38,11 @@ score_plugin_fx::factories(
       Nodes::MidiUtil::Node,
       Nodes::Metro::Node,
       Nodes::Envelope::Node,
-      Nodes::Quantifier::Node>(ctx, key);
+      Nodes::Quantifier::Node,
+      Nodes::MathGenerator::Node,
+      Nodes::MathAudioGenerator::Node,
+      Nodes::MathMapping::Node
+      >(ctx, key);
 }
 
 auto score_plugin_fx::required() const

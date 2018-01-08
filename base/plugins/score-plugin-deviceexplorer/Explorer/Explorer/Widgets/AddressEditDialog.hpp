@@ -1,5 +1,6 @@
 #pragma once
 #include <Device/Address/AddressSettings.hpp>
+#include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <QDialog>
 #include <score/widgets/WidgetWrapper.hpp>
 
@@ -12,7 +13,7 @@ namespace Explorer
 {
 
 class AddressSettingsWidget;
-class AddressEditDialog final : public QDialog
+class AddressEditDialog final : public Device::AddAddressDialog
 {
   Q_OBJECT
 
@@ -25,7 +26,7 @@ public:
       const Device::AddressSettings& addr, QWidget* parent);
   ~AddressEditDialog();
 
-  Device::AddressSettings getSettings() const;
+  Device::AddressSettings getSettings() const override;
   static Device::AddressSettings makeDefaultSettings();
 
   void setCanRename(bool);

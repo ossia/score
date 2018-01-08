@@ -108,7 +108,7 @@ void ProcessModel::setScript(const QString& script)
     }
   }
 
-  int i = 0;
+  std::size_t i = 0;
   for(Process::Inlet* in : m_inlets)
   {
     if(i < oldInletAddresses.size())

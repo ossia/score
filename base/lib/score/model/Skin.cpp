@@ -59,8 +59,9 @@ Skin::Skin() noexcept
                    }))
 {
   this->startTimer(32, Qt::CoarseTimer);
-  MonoFont.setStyleHint(QFont::Monospace, QFont::PreferQuality);
-  MonoFont.setHintingPreference(QFont::PreferFullHinting);
+  SansFont.setStyleHint(QFont::SansSerif, QFont::PreferNoShaping);
+  MonoFont.setStyleHint(QFont::Monospace, (QFont::StyleStrategy)(QFont::PreferBitmap | QFont::NoSubpixelAntialias | QFont::ForceIntegerMetrics));
+  MonoFont.setHintingPreference(QFont::PreferVerticalHinting);
 }
 
 Skin& score::Skin::instance()

@@ -24,6 +24,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Local/LocalSpecificSettings.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Local/LocalProtocolFactory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSSIADevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/DefaultProtocolFactory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSC/OSCDevice.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSC/OSCProtocolFactory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSC/OSCProtocolSettingsWidget.hpp"

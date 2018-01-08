@@ -735,3 +735,22 @@ struct TSerializer<JSONValue, std::string>
   }
 };
 
+template <typename T, typename U>
+struct TSerializer<JSONValue, std::pair<T, U>>
+{
+  using type = std::pair<T, U>;
+  static void readFrom(JSONValue::Serializer& s, const type& obj)
+  {
+    QJsonArray arr;
+    arr.append(toJsonValue(obj.first));
+    arr.append(toJsonValue(obj.second));
+    s.val = std::move(arr);
+  }
+
+  static void writeTo(JSONValue::Deserializer& s, type& obj)
+  {
+    const auto arr = s.val.toArray();
+    obj.first = fromJsonValue<T>(arr[0]);
+    obj.second = fromJsonValue<U>(arr[1]);
+  }
+};

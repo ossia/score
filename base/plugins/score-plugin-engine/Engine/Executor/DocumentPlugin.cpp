@@ -33,9 +33,6 @@ DocumentPlugin::DocumentPlugin(
     QObject* parent)
     : score::DocumentPlugin{ctx, std::move(id),
                              "OSSIADocumentPlugin", parent}
-    , audioproto{new ossia::audio_protocol}
-    , audio_dev{std::unique_ptr<ossia::net::protocol_base>(audioproto), "audio"}
-    , midi_dev{std::make_unique<ossia::net::multiplex_protocol>(), "midi"}
     , m_execQueue(1024)
     , m_editionQueue(1024)
     , m_ctx{
@@ -49,11 +46,16 @@ DocumentPlugin::DocumentPlugin(
     , m_base{m_ctx, this}
 {
   makeGraph();
-  audio_device = new Dataflow::AudioDevice(
-    {Dataflow::AudioProtocolFactory::static_concreteKey(), "audio", {}},
-    audio_dev);
-
-  ctx.plugin<Explorer::DeviceDocumentPlugin>().list().setAudioDevice(audio_device);
+  auto& devs = ctx.plugin<Explorer::DeviceDocumentPlugin>();
+  if(auto dev = devs.list().audioDevice())
+  {
+    audio_device = static_cast<Dataflow::AudioDevice*>(dev);
+  }
+  else
+  {
+    audio_device = new Dataflow::AudioDevice({Dataflow::AudioProtocolFactory::static_concreteKey(), "audio", {}});
+    ctx.plugin<Explorer::DeviceDocumentPlugin>().list().setAudioDevice(audio_device);
+  }
 
   auto& model = ctx.model<Scenario::ScenarioDocumentModel>();
   model.cables.mutable_added.connect<DocumentPlugin, &DocumentPlugin::on_cableCreated>(*this);
@@ -167,7 +169,6 @@ DocumentPlugin::~DocumentPlugin()
     m_base.baseInterval().stop();
     clear();
   }
-  audioproto->stop();
 }
 
 void DocumentPlugin::on_finished()
@@ -232,8 +233,7 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
   execState.samples_since_start = 0;
   execState.start_date = std::chrono::high_resolution_clock::now();
   execState.cur_date = execState.start_date;
-  execState.register_device(&midi_dev);
-  execState.register_device(&audio_dev);
+  execState.register_device(audio_device->getDevice());
   for(auto dev : m_ctx.devices.list().devices()) {
     if(auto od = dynamic_cast<Engine::Network::OSSIADevice*>(dev))
       if(auto d = od->getDevice())
@@ -289,6 +289,11 @@ const BaseScenarioElement& DocumentPlugin::baseScenario() const
 bool DocumentPlugin::isPlaying() const
 {
   return m_base.active();
+}
+
+ossia::audio_protocol&DocumentPlugin::audioProto()
+{
+  return static_cast<ossia::audio_protocol&>(audio_device->getDevice()->get_protocol());
 }
 
 void DocumentPlugin::runAllCommands() const
