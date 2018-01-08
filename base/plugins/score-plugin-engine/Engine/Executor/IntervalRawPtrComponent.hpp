@@ -125,7 +125,7 @@ class SCORE_PLUGIN_ENGINE_EXPORT IntervalRawPtrComponent final :
     ossia::time_interval* OSSIAInterval() const { return IntervalRawPtrComponentBase::OSSIAInterval(); }
 
     void init();
-    void cleanup(std::shared_ptr<IntervalRawPtrComponent> self);
+    void cleanup(const std::shared_ptr<IntervalRawPtrComponent>& self);
 
     //! To be called from the API edition thread
     void onSetup(

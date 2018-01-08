@@ -1,5 +1,5 @@
 #pragma once
-#include <Device/Protocol/ProtocolFactoryInterface.hpp>
+#include <Engine/Protocols/DefaultProtocolFactory.hpp>
 #include <QString>
 #include <QVariant>
 
@@ -32,6 +32,7 @@ class MIDIProtocolFactory final : public Device::ProtocolFactory
   const Device::DeviceSettings& defaultSettings() const override;
 
   Device::ProtocolSettingsWidget* makeSettingsWidget() override;
+  Device::AddAddressDialog* makeAddAddressDialog(const Device::DeviceSettings& dev, const score::DocumentContext& ctx, QWidget* parent) override;
 
   QVariant
   makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;

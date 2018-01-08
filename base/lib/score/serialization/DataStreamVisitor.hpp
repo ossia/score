@@ -652,6 +652,20 @@ struct TSerializer<DataStream, boost::container::flat_set<T>>
   }
 };
 
+template <typename T, typename U>
+struct TSerializer<DataStream, std::pair<T, U>>
+{
+  using type = std::pair<T, U>;
+  static void readFrom(DataStream::Serializer& s, const type& obj)
+  {
+    s.stream() << obj.first << obj.second;
+  }
+
+  static void writeTo(DataStream::Deserializer& s, type& obj)
+  {
+    s.stream() >> obj.first >> obj.second;
+  }
+};
 
 Q_DECLARE_METATYPE(DataStreamReader*)
 Q_DECLARE_METATYPE(DataStreamWriter*)

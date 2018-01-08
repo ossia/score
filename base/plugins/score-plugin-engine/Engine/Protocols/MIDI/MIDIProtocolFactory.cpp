@@ -49,6 +49,11 @@ Device::ProtocolSettingsWidget* MIDIProtocolFactory::makeSettingsWidget()
   return new MIDIProtocolSettingsWidget;
 }
 
+Device::AddAddressDialog*MIDIProtocolFactory::makeAddAddressDialog(const Device::DeviceSettings& dev, const score::DocumentContext& ctx, QWidget* parent)
+{
+  return nullptr;
+}
+
 QVariant MIDIProtocolFactory::makeProtocolSpecificSettings(
     const VisitorVariant& visitor) const
 {

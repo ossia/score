@@ -1,5 +1,5 @@
 #pragma once
-#include <Device/Protocol/ProtocolFactoryInterface.hpp>
+#include <Engine/Protocols/DefaultProtocolFactory.hpp>
 #include <QString>
 #include <QVariant>
 
@@ -18,7 +18,7 @@ namespace Engine
 {
 namespace Network
 {
-class LocalProtocolFactory final : public Device::ProtocolFactory
+class LocalProtocolFactory final : public DefaultProtocolFactory
 {
   SCORE_CONCRETE("3fad3354-e103-4bc4-a34f-2d0cc4b02565")
 

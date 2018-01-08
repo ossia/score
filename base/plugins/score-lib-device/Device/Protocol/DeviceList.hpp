@@ -37,7 +37,8 @@ public:
 
   void setLocalDevice(DeviceInterface*);
   void setAudioDevice(DeviceInterface* dev) { m_audioDevice = dev; }
-  void setMidiDevice(DeviceInterface* dev) { m_midiDevice = dev; }
+  DeviceInterface* localDevice() const { return m_localDevice; }
+  DeviceInterface* audioDevice() const { return m_audioDevice; }
   const std::vector<DeviceInterface*>& devices() const;
 signals:
   void logInbound(const QString&) const;
@@ -46,7 +47,7 @@ signals:
 
 private:
   std::vector<DeviceInterface*> m_devices;
-  DeviceInterface* m_localDevice{}, *m_audioDevice{}, *m_midiDevice{};
+  DeviceInterface* m_localDevice{}, *m_audioDevice{};
   bool m_logging = false;
 };
 }

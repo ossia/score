@@ -500,6 +500,7 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
       {
         return tn->expression().toPrettyString();
       }
+      /*
       else if(auto st = dynamic_cast<Scenario::StateModel*>(sel))
       {
         return {};
@@ -512,6 +513,7 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
       {
         return {};
       }
+      */
     }
   }
   return {};
@@ -535,6 +537,8 @@ bool ObjectItemModel::setData(const QModelIndex& index, const QVariant& value, i
       return {};
 
     CommandDispatcher<> disp{m_ctx.commandStack};
+    // TODO
+    /*
 
     if(auto cst = dynamic_cast<Scenario::IntervalModel*>(sel))
     {
@@ -551,7 +555,7 @@ bool ObjectItemModel::setData(const QModelIndex& index, const QVariant& value, i
     else if(auto stp = dynamic_cast<Process::StateProcess*>(sel))
     {
     }
-    else if(auto p = dynamic_cast<Process::ProcessModel*>(sel))
+    else */if(auto p = dynamic_cast<Process::ProcessModel*>(sel))
     {
       disp.submitCommand<Command::ChangeElementName<Process::ProcessModel>>(*p, value.toString());
       return true;

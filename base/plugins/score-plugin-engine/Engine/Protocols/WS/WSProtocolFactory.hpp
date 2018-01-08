@@ -1,11 +1,11 @@
 #pragma once
-#include <Device/Protocol/ProtocolFactoryInterface.hpp>
+#include <Engine/Protocols/DefaultProtocolFactory.hpp>
 
 namespace Engine
 {
 namespace Network
 {
-class WSProtocolFactory final : public Device::ProtocolFactory
+class WSProtocolFactory final : public DefaultProtocolFactory
 {
   SCORE_CONCRETE("59e81303-af24-4559-b33d-1c6f59f0f017")
   // Implement with OSSIA::Device

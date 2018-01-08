@@ -4,6 +4,7 @@
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <ossia/dataflow/audio_protocol.hpp>
+#include <ossia/network/generic/generic_device.hpp>
 class QLineEdit;
 namespace Dataflow
 {
@@ -16,6 +17,11 @@ class AudioProtocolFactory final : public Device::ProtocolFactory
         const Device::DeviceSettings& settings,
         const score::DocumentContext& ctx) override;
     const Device::DeviceSettings& defaultSettings() const override;
+    Device::AddAddressDialog* makeAddAddressDialog(
+        const Device::DeviceSettings& dev,
+        const score::DocumentContext& ctx,
+        QWidget* parent) override;
+
 
     Device::ProtocolSettingsWidget* makeSettingsWidget() override;
 
@@ -34,9 +40,9 @@ class AudioDevice final : public Engine::Network::OSSIADevice
 {
     Q_OBJECT
   public:
-    AudioDevice(const Device::DeviceSettings& settings,
-                ossia::net::device_base& dev);
+    AudioDevice(const Device::DeviceSettings& settings);
 
+    void addAddress(const Device::FullAddressSettings& settings) override;
     bool reconnect() override;
     void recreate(const Device::Node& n) override;
     ossia::net::device_base* getDevice() const override
@@ -48,7 +54,8 @@ class AudioDevice final : public Engine::Network::OSSIADevice
     using Engine::Network::OSSIADevice::refresh;
     Device::Node refresh() override;
     void disconnect() override;
-    ossia::net::device_base& m_dev;
+    ossia::audio_protocol* m_protocol{};
+    mutable ossia::net::generic_device m_dev;
 };
 
 

@@ -12,6 +12,8 @@ add_library(
     "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Metro.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Envelope.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Quantifier.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Fx/MathGenerator.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Fx/MathMapping.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_fx.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_fx.cpp"

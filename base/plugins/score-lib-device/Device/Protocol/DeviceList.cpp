@@ -20,8 +20,6 @@ DeviceInterface& DeviceList::device(const QString& name) const
     return *m_localDevice;
   if (m_audioDevice && name == m_audioDevice->name())
     return *m_audioDevice;
-  if (m_midiDevice && name == m_midiDevice->name())
-    return *m_midiDevice;
 
   auto it = get_device_iterator_by_name(name, m_devices);
   SCORE_ASSERT(it != m_devices.cend());
@@ -40,8 +38,6 @@ DeviceInterface* DeviceList::findDevice(const QString& name) const
     return m_localDevice;
   if (m_audioDevice && name == m_audioDevice->name())
     return m_audioDevice;
-  if (m_midiDevice && name == m_midiDevice->name())
-    return m_midiDevice;
 
   auto it = get_device_iterator_by_name(name, m_devices);
   return it != m_devices.cend() ? *it : nullptr;
@@ -49,9 +45,17 @@ DeviceInterface* DeviceList::findDevice(const QString& name) const
 
 void DeviceList::addDevice(DeviceInterface* dev)
 {
-  if (dev == m_localDevice || dev == m_audioDevice || dev == m_midiDevice)
+  if (dev == m_localDevice || dev == m_audioDevice)
   {
     // ...
+  }
+  else if(dev->settings().protocol ==
+              UuidKey<Device::ProtocolFactory>{
+                score::uuids::string_generator::compute("2835e6da-9b55-4029-9802-e1c817acbdc1")})
+  {
+    // FIXME
+    // TODO dirty hack
+    m_audioDevice = dev;
   }
   else
   {
@@ -79,13 +83,6 @@ void DeviceList::removeDevice(const QString& name)
     auto vec = m_audioDevice->listening();
     for (const auto& elt : vec)
       m_audioDevice->setListening(elt, false);
-  }
-  else if(m_midiDevice && name == m_midiDevice->name())
-  {
-    m_midiDevice->setLogging(false);
-    auto vec = m_midiDevice->listening();
-    for (const auto& elt : vec)
-      m_midiDevice->setListening(elt, false);
   }
   else
   {
@@ -115,8 +112,6 @@ void DeviceList::setLogging(bool b)
     m_localDevice->setLogging(b);
   if (m_audioDevice)
     m_audioDevice->setLogging(b);
-  if (m_midiDevice)
-    m_midiDevice->setLogging(b);
 }
 
 void DeviceList::setLocalDevice(DeviceInterface* dev)
@@ -133,7 +128,5 @@ void DeviceList::apply(std::function<void(Device::DeviceInterface&)> fun)
     fun(*m_localDevice);
   if(m_audioDevice)
     fun(*m_audioDevice);
-  if(m_midiDevice)
-    fun(*m_midiDevice);
 }
 }

@@ -79,12 +79,14 @@ void IntervalRawPtrComponent::init()
   init_hierarchy();
 }
 
-void IntervalRawPtrComponent::cleanup(std::shared_ptr<IntervalRawPtrComponent> self)
+void IntervalRawPtrComponent::cleanup(const std::shared_ptr<IntervalRawPtrComponent>& self)
 {
   if(m_ossia_interval)
   {
-    in_exec([itv=m_ossia_interval, self] {
+    in_exec([itv=m_ossia_interval,self] {
+      // self has to be kept alive until next tick
       itv->set_callback(ossia::time_interval::exec_callback{});
+      itv->cleanup();
     });
     system().plugin.unregister_node(
         {interval().inlet.get()},
@@ -98,6 +100,7 @@ void IntervalRawPtrComponent::cleanup(std::shared_ptr<IntervalRawPtrComponent> s
   clear();
   m_processes.clear();
   m_ossia_interval = nullptr;
+  disconnect();
 }
 
 interval_duration_data IntervalRawPtrComponentBase::makeDurations() const
@@ -125,11 +128,13 @@ void IntervalRawPtrComponent::onSetup(
   // BaseScenario needs a special callback. It is given in DefaultClockManager.
   if (!parent_is_base_scenario)
   {
-    in_exec([self,ossia_cst,&edit=system().editionQueue] {
+    std::weak_ptr<IntervalRawPtrComponent> weak_self = self;
+    in_exec([weak_self,ossia_cst,&edit=system().editionQueue] {
       ossia_cst->set_stateless_callback(smallfun::function<void (double, ossia::time_value), 32>{
-            [self,&edit](double position, ossia::time_value date) {
-        edit.enqueue([self,position,date] {
-          self->slot_callback(position, date);
+            [weak_self,&edit](double position, ossia::time_value date) {
+        edit.enqueue([weak_self,position,date] {
+          if(auto self = weak_self.lock())
+            self->slot_callback(position, date);
         });
       }});
     });
@@ -234,9 +239,9 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
         if(outlets[i]->propagate())
           propagated_outlets.push_back(i);
       }
+
       auto oproc = plug->OSSIAProcessPtr();
       auto cst = m_ossia_interval;
-      auto cst_node = cst->node;
 
       QObject::connect(&proc.selection, &Selectable::changed,
                        plug.get(), [this,oproc] (bool ok) {
@@ -248,9 +253,14 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
       if(oproc->node)
         oproc->node->set_logging(proc.selection.get());
 
+      std::weak_ptr<ossia::time_process> oproc_weak = oproc;
+      std::weak_ptr<ossia::graph_interface> g_weak = plug->system().plugin.execGraph;
+      std::weak_ptr<ossia::graph_node> cst_node_weak = cst->node;
+
       in_exec(
-            [cst=m_ossia_interval,oproc,g=plug->system().plugin.execGraph,propagated_outlets] {
-        if(oproc)
+            [cst=m_ossia_interval,oproc_weak,g_weak,propagated_outlets] {
+        if(auto oproc = oproc_weak.lock())
+        if(auto g = g_weak.lock())
         {
           cst->add_time_process(oproc);
           if(oproc->node)
@@ -274,10 +284,10 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
         }
       });
 
-      std::weak_ptr<ossia::graph_interface> g_weak = plug->system().plugin.execGraph;
-      std::weak_ptr<ossia::time_process> oproc_weak = oproc;
+
       connect(plug.get(), &ProcessComponent::nodeChanged,
-              this, [this,cst_node,g_weak,oproc_weak,&proc] (auto old_node, auto new_node) {
+              this, [this,cst_node_weak,g_weak,oproc_weak,&proc] (auto old_node, auto new_node) {
+
         const auto& outlets = proc.outlets();
         std::vector<int> propagated_outlets;
         for(std::size_t i = 0; i < outlets.size(); i++)
@@ -287,32 +297,30 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
         }
 
         in_exec(
-              [cst_node,g_weak,oproc_weak,propagated_outlets] {
+              [cst_node_weak,g_weak,oproc_weak,propagated_outlets] {
+          if(auto cst_node = cst_node_weak.lock())
           if(auto g = g_weak.lock())
+          if(auto oproc = oproc_weak.lock())
+          if(oproc->node)
           {
-            if(auto oproc = oproc_weak.lock())
+            ossia::graph_node& n = *oproc->node;
+            for(int propagated : propagated_outlets)
             {
-              if(oproc->node)
+              const auto& outlet = n.outputs()[propagated]->data;
+              if(outlet.target<ossia::audio_port>())
               {
-                ossia::graph_node& n = *oproc->node;
-                for(int propagated : propagated_outlets)
-                {
-                  const auto& outlet = n.outputs()[propagated]->data;
-                  if(outlet.target<ossia::audio_port>())
-                  {
-                    auto cable = ossia::make_edge(
-                                   ossia::immediate_glutton_connection{}
-                                   , n.outputs()[propagated]
-                                   , cst_node->inputs()[0]
-                                   , oproc->node
-                                   , cst_node);
-                    g->connect(cable);
-                  }
-                }
+                auto cable = ossia::make_edge(
+                               ossia::immediate_glutton_connection{}
+                               , n.outputs()[propagated]
+                               , cst_node->inputs()[0]
+                               , oproc->node
+                               , cst_node);
+                g->connect(cable);
               }
             }
           }
         });
+
       });
     }
     return plug.get();
@@ -335,8 +343,8 @@ std::function<void ()> IntervalRawPtrComponentBase::removing(
   auto it = m_processes.find(e.id());
   if(it != m_processes.end())
   {
-    auto cp = c.shared_from_this();
-    in_exec([cstr=m_ossia_interval,c_ptr=c.shared_from_this()] {
+    auto c_ptr = c.shared_from_this();
+    in_exec([cstr=m_ossia_interval,c_ptr] {
       cstr->remove_time_process(c_ptr->OSSIAProcessPtr().get());
     });
     c.cleanup();
