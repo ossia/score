@@ -1,6 +1,7 @@
 #pragma once
 #include <Engine/Node/PdNode.hpp>
 #include <Fx/Quantifier.hpp>
+#include <ossia/detail/math.hpp>
 #include <random>
 namespace Nodes
 {
@@ -105,6 +106,10 @@ struct Node
     }
   };
 
+  static constexpr uint8_t midi_clamp(int num)
+  {
+    return (uint8_t)ossia::clamp(num, 0, 127);
+  }
   static void run(
       const ossia::value_port& p1,
       const Control::timed_vec<float>& startq,
@@ -136,8 +141,8 @@ struct Node
     auto start = startq.rbegin()->second;
     auto duration = dur.rbegin()->second;
     auto shiftnote = shift_note.rbegin()->second;
-    auto base_note = basenote.rbegin()->second;
-    auto base_vel = basevel.rbegin()->second;
+    auto base_note = midi_clamp(basenote.rbegin()->second);
+    auto base_vel = midi_clamp(basevel.rbegin()->second);
     auto rand_note = note_random.rbegin()->second;
     auto rand_vel = vel_random.rbegin()->second;
     auto chan = chan_vec.rbegin()->second;

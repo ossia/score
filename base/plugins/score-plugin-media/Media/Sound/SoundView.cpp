@@ -15,6 +15,7 @@ LayerView::LayerView(QGraphicsItem* parent):
   , m_cpt{new WaveformComputer{*this}}
 {
     setFlag(ItemClipsToShape, true);
+    this->setAcceptDrops(true);
     if(auto view = getView(*parent))
         connect(view->horizontalScrollBar(), &QScrollBar::valueChanged,
                 this, &Media::Sound::LayerView::scrollValueChanged);
@@ -120,10 +121,34 @@ void LayerView::on_newData()
   recompute(m_zoom);
 }
 
-void LayerView::mousePressEvent(QGraphicsSceneMouseEvent*)
+void LayerView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
-  emit pressed();
+  emit pressed(ev->scenePos());
 }
+
+void LayerView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
+{
+  event->accept();
+}
+
+void LayerView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
+{
+  event->accept();
+}
+
+void LayerView::dragMoveEvent(QGraphicsSceneDragDropEvent* event)
+{
+  event->accept();
+}
+
+void LayerView::dropEvent(QGraphicsSceneDragDropEvent* event)
+{
+  event->accept();
+
+  if (event->mimeData())
+    emit dropReceived(event->pos(), *event->mimeData());
+}
+
 
 
 

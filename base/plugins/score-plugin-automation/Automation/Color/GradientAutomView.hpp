@@ -18,9 +18,6 @@ class View : public Process::LayerView
     void setColor(double pos, QColor);
     void movePoint(double old, double cur);
     void removePoint(double pos);
-    void pressed();
-    void askContextMenu(const QPoint&, const QPointF&);
-    void doubleClicked(QPointF);
 
   private:
     void paint_impl(QPainter*) const override;

@@ -1,6 +1,9 @@
 #include "SoundPresenter.hpp"
 #include "SoundView.hpp"
 #include <score/document/DocumentContext.hpp>
+#include <Media/Sound/Drop/SoundDrop.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <Media/Commands/ChangeAudioFile.hpp>
 namespace Media
 {
 namespace Sound
@@ -31,6 +34,9 @@ LayerPresenter::LayerPresenter(
   connect(
         m_view, &LayerView::askContextMenu, this,
         &LayerPresenter::contextMenuRequested);
+  connect(
+        m_view, &LayerView::dropReceived, this,
+        &LayerPresenter::onDrop);
 }
 
 void LayerPresenter::setWidth(qreal val)
@@ -75,6 +81,17 @@ const ProcessModel& LayerPresenter::model() const
 const Id<Process::ProcessModel>& LayerPresenter::modelId() const
 {
   return m_layer.id();
+}
+
+void LayerPresenter::onDrop(const QPointF& p, const QMimeData& mime)
+{
+  DroppedAudioFiles drops{mime};
+  if(!drops.valid() || drops.files.size() != 1)
+  {
+    return;
+  }
+  CommandDispatcher<> disp{context().context.commandStack};
+  disp.submitCommand<Media::Commands::ChangeAudioFile>(model(), std::move(drops.files.front()));
 }
 }
 }

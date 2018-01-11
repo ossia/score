@@ -94,7 +94,7 @@ void View::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 
 void View::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
-  emit pressed();
+  emit pressed(ev->scenePos());
 
   ev->accept();
 }

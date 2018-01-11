@@ -17,10 +17,6 @@ public:
 
   void setSelectionArea(QRectF);
 
-signals:
-  void askContextMenu(const QPoint&, const QPointF&);
-  void pressed();
-
 protected:
   void paint_impl(QPainter*) const override;
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;

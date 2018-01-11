@@ -21,8 +21,6 @@ public:
   void setWidget(QWidget*);
 
 signals:
-  void pressed();
-  void askContextMenu(const QPoint&, const QPointF&);
   void contextMenuRequested(QPoint);
 
 private:

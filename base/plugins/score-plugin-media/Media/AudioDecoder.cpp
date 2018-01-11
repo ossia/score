@@ -552,6 +552,7 @@ void AudioDecoder::decode(const QString &path)
     info = *it;
   }
 
+  decoded = 0;
   sampleRate = info.rate;
   data.resize(info.channels);
   qDebug() << "CHANNELS" << info.channels << "LENGTH" << info.max_arr_length;
@@ -652,6 +653,7 @@ void AudioDecoder::decodeRemaining()
 }
 void AudioDecoder::on_startDecode(QString path)
 {
+  qDebug() << "decoding: " << path;
   try {
   const std::size_t channels = data.size();
 

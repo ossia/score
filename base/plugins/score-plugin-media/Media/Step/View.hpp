@@ -28,10 +28,7 @@ class View final : public Process::LayerView
     const Model* m_model{};
 
   signals:
-    void pressed();
-    void askContextMenu(const QPoint & t1, const QPointF & t2);
     void change(int, float);
-    void released();
 
   private:
     void paint_impl(QPainter* p) const override
@@ -98,7 +95,7 @@ class View final : public Process::LayerView
         return;
 
       ev->accept();
-      emit pressed();
+      emit pressed(ev->pos());
       std::size_t pos = std::size_t(ev->pos().x() / m_barWidth) % m_model->steps().size();
       if(pos < m_model->steps().size())
       {
@@ -123,7 +120,7 @@ class View final : public Process::LayerView
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* ev) override
     {
       ev->accept();
-      emit released();
+      emit released(ev->pos());
     }
 
     void contextMenuEvent(QGraphicsSceneContextMenuEvent* ev) override

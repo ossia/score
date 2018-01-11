@@ -188,7 +188,7 @@ class View final : public Control::ILayerView
       }
       else
       {
-        emit pressed();
+        emit pressed(ev->pos());
       }
       ev->accept();
     }

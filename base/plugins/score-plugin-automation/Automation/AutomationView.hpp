@@ -17,10 +17,7 @@ public:
   explicit LayerView(QGraphicsItem* parent);
   virtual ~LayerView();
 
-signals:
-  void dropReceived(const QMimeData& mime);
-
-protected:
+private:
   void paint_impl(QPainter* painter) const override;
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 

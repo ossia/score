@@ -104,7 +104,7 @@ void TemporalScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 void TemporalScenarioView::mouseDoubleClickEvent(
     QGraphicsSceneMouseEvent* event)
 {
-  emit doubleClick(event->pos());
+  emit doubleClicked(event->pos());
 
   event->accept();
 }
@@ -153,28 +153,28 @@ void TemporalScenarioView::keyReleaseEvent(QKeyEvent* event)
 
 void TemporalScenarioView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
-  emit dragEnter(event->pos(), event->mimeData());
+  emit dragEnter(event->pos(), *event->mimeData());
 
   event->accept();
 }
 
 void TemporalScenarioView::dragMoveEvent(QGraphicsSceneDragDropEvent* event)
 {
-  emit dragMove(event->pos(), event->mimeData());
+  emit dragMove(event->pos(), *event->mimeData());
 
   event->accept();
 }
 
 void TemporalScenarioView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 {
-  emit dragLeave(event->pos(), event->mimeData());
+  emit dragLeave(event->pos(), *event->mimeData());
 
   event->accept();
 }
 
 void TemporalScenarioView::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
-  emit dropReceived(event->pos(), event->mimeData());
+  emit dropReceived(event->pos(), *event->mimeData());
 
   event->accept();
 }

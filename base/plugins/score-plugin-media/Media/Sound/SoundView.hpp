@@ -72,15 +72,15 @@ class LayerView final : public Process::LayerView
     void setData(const MediaFileHandle& data);
     void recompute(ZoomRatio ratio);
 
-  signals:
-    void pressed();
-    void askContextMenu(QPoint, QPointF);
-
   private:
     void contextMenuEvent(
         QGraphicsSceneContextMenuEvent* event) override;
     void paint_impl(QPainter*) const override;
     void mousePressEvent(QGraphicsSceneMouseEvent*) override;
+    void dragEnterEvent(QGraphicsSceneDragDropEvent *event) override;
+    void dragLeaveEvent(QGraphicsSceneDragDropEvent *event) override;
+    void dragMoveEvent(QGraphicsSceneDragDropEvent *event) override;
+    void dropEvent(QGraphicsSceneDragDropEvent *event) override;
 
     void scrollValueChanged(int);
 

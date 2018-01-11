@@ -3,6 +3,7 @@
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Media/Sound/SoundModel.hpp>
 #include <Media/Sound/SoundLayer.hpp>
+class QMimeData;
 namespace Media
 {
 namespace Sound
@@ -34,6 +35,7 @@ class LayerPresenter final :
         const Id<Process::ProcessModel>& modelId() const override;
 
     private:
+        void onDrop(const QPointF& p, const QMimeData& mime);
         const ProcessModel& m_layer;
         LayerView* m_view{};
         ZoomRatio m_ratio{1};
