@@ -35,11 +35,6 @@ public:
   void drawDragLine(QPointF, QPointF);
   void stopDrawDragLine();
 signals:
-  void pressed(QPointF);
-  void released(QPointF);
-  void moved(QPointF);
-  void doubleClick(QPointF);
-
   void clearPressed();
   void escPressed();
 
@@ -47,11 +42,9 @@ signals:
   void keyReleased(int);
 
   // Screen pos, scene pos
-  void askContextMenu(const QPoint&, const QPointF&);
-  void dragEnter(const QPointF& pos, const QMimeData*);
-  void dragMove(const QPointF& pos, const QMimeData*);
-  void dragLeave(const QPointF& pos, const QMimeData*);
-  void dropReceived(const QPointF& pos, const QMimeData*);
+  void dragEnter(const QPointF& pos, const QMimeData&);
+  void dragMove(const QPointF& pos, const QMimeData&);
+  void dragLeave(const QPointF& pos, const QMimeData&);
 
 public slots:
   void lock()

@@ -11,14 +11,9 @@ public:
   explicit View(QGraphicsItem* parent);
   virtual ~View();
 
-
-signals:
-  void dropReceived(const QMimeData& mime);
-
-protected:
+private:
   void paint_impl(QPainter* painter) const override;
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
-private:
 };
 }

@@ -47,7 +47,7 @@ void View::mousePressEvent(QGraphicsSceneMouseEvent* ev)
   }
   else
   {
-    emit pressed();
+    emit pressed(ev->scenePos());
   }
   ev->accept();
 }

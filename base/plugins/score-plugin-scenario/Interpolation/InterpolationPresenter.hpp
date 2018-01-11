@@ -55,7 +55,7 @@ private:
     }
   }
 
-  void on_dropReceived(const QMimeData& mime)
+  void on_dropReceived(const QPointF&, const QMimeData& mime)
   {
     auto& autom = this->model();
     // TODO refactor with AddressEditWidget && AutomationPresenter

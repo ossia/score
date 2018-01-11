@@ -34,7 +34,7 @@ void LayerView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 
 void LayerView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
-  emit pressed();
+  emit pressed(ev->scenePos());
   ev->accept();
 }
 }

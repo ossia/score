@@ -7,7 +7,7 @@
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
-
+class QMimeData;
 namespace Process
 {
 class SCORE_LIB_PROCESS_EXPORT LayerView : public QObject,
@@ -35,6 +35,15 @@ public:
 signals:
   void heightChanged();
   void widthChanged();
+
+  void pressed(QPointF);
+  void released(QPointF);
+  void moved(QPointF);
+  void doubleClicked(QPointF);
+
+  // Screen pos, scene pos
+  void askContextMenu(const QPoint&, const QPointF&);
+  void dropReceived(const QPointF& pos, const QMimeData&);
 
 protected:
   virtual void paint_impl(QPainter*) const = 0;

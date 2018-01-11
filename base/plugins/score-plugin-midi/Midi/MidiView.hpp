@@ -15,9 +15,6 @@ public:
   ~View();
 
 signals:
-  void askContextMenu(const QPoint&, const QPointF&);
-  void pressed();
-  void doubleClicked(QPointF);
   void deleteRequested();
 
 private:

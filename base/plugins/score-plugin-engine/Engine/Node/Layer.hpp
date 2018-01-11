@@ -21,11 +21,6 @@ class SCORE_PLUGIN_ENGINE_EXPORT ILayerView : public Process::LayerView
   public:
     using Process::LayerView::LayerView;
     ~ILayerView();
-
-  signals:
-    void pressed();
-    void askContextMenu(const QPoint&, const QPointF&);
-    void contextMenuRequested(QPoint);
 };
 
 struct SCORE_PLUGIN_ENGINE_EXPORT RectItem : public QObject, public QGraphicsItem
@@ -138,7 +133,7 @@ class ControlLayerView final : public ILayerView
       }
       else
       {
-        emit pressed();
+        emit pressed(ev->scenePos());
       }
       ev->accept();
     }

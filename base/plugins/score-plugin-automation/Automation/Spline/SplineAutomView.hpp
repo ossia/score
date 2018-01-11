@@ -23,9 +23,6 @@ class View : public Process::LayerView
 
   signals:
     void changed();
-    void pressed();
-    void askContextMenu(const QPoint&, const QPointF&);
-    void doubleClicked(QPointF);
 
   private:
     void paint_impl(QPainter*) const override;

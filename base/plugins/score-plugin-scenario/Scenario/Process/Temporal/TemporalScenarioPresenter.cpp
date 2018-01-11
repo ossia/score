@@ -110,7 +110,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
         &TemporalScenarioPresenter::on_keyReleased);
 
   connect(
-        m_view, &TemporalScenarioView::doubleClick, this,
+        m_view, &TemporalScenarioView::doubleClicked, this,
         &TemporalScenarioPresenter::doubleClick);
 
   connect(
@@ -118,11 +118,11 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
         &TemporalScenarioPresenter::contextMenuRequested);
   connect(
         m_view, &TemporalScenarioView::dragEnter, this,
-        [=](const QPointF& pos, const QMimeData* mime) {
+        [=](const QPointF& pos, const QMimeData& mime) {
     try
     {
       m_context.context.app.interfaces<Scenario::DropHandlerList>()
-          .dragEnter(*this, pos, mime);
+          .dragEnter(*this, pos, &mime);
     }
     catch (std::exception& e)
     {
@@ -131,11 +131,11 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
   });
   connect(
         m_view, &TemporalScenarioView::dragMove, this,
-        [=](const QPointF& pos, const QMimeData* mime) {
+        [=](const QPointF& pos, const QMimeData& mime) {
     try
     {
       m_context.context.app.interfaces<Scenario::DropHandlerList>()
-          .dragMove(*this, pos, mime);
+          .dragMove(*this, pos, &mime);
     }
     catch (std::exception& e)
     {
@@ -144,11 +144,11 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
   });
   connect(
         m_view, &TemporalScenarioView::dragLeave, this,
-        [=](const QPointF& pos, const QMimeData* mime) {
+        [=](const QPointF& pos, const QMimeData& mime) {
     try
     {
       m_context.context.app.interfaces<Scenario::DropHandlerList>()
-          .dragLeave(*this, pos, mime);
+          .dragLeave(*this, pos, &mime);
     }
     catch (std::exception& e)
     {
@@ -157,11 +157,11 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
   });
   connect(
         m_view, &TemporalScenarioView::dropReceived, this,
-        [=](const QPointF& pos, const QMimeData* mime) {
+        [=](const QPointF& pos, const QMimeData& mime) {
     try
     {
       m_context.context.app.interfaces<Scenario::DropHandlerList>()
-          .drop(*this, pos, mime);
+          .drop(*this, pos, &mime);
     }
     catch (std::exception& e)
     {

@@ -33,6 +33,6 @@ void LayerView::paint_impl(QPainter* painter) const
 void LayerView::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
   if (event->mimeData())
-    emit dropReceived(*event->mimeData());
+    emit dropReceived(event->pos(), *event->mimeData());
 }
 }

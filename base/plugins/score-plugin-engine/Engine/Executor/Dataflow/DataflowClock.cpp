@@ -58,6 +58,7 @@ void Clock::pause_impl(
 }
 
 std::vector<double> m_tickDurations;
+/*
 struct cycle_count_bench
 {
     uint64_t rdtsc()
@@ -101,7 +102,6 @@ struct clock_count_bench
       m_tickDurations.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count());
     }
 };
-/*
 struct callgrind_bench
 {
     callgrind_bench()
