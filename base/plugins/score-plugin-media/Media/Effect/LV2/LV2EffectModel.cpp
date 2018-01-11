@@ -18,6 +18,8 @@
 #include <ossia/network/domain/domain.hpp>
 #include <Media/ApplicationPlugin.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
+
+#include <ossia/dataflow/execution_state.hpp>
 // TODO rename this file
 
 #include "LV2Context.hpp"
@@ -228,5 +230,5 @@ Engine::Execution::LV2EffectComponent::LV2EffectComponent(
         Media::LV2::LV2Data{
           host.lv2_host_context,
           proc.effectContext},
-        ctx.plugin.execState.sampleRate);
+        ctx.plugin.execState->sampleRate);
 }

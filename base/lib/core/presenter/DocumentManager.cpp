@@ -611,9 +611,12 @@ bool DocumentManager::updateJson(
 
 void DocumentManager::saveRecentFilesState()
 {
-  QSettings settings("OSSIA", "score");
-  settings.setValue("RecentFiles", m_recentFiles->saveState());
-  m_recentFiles->saveState();
+  if(m_recentFiles)
+  {
+    QSettings settings("OSSIA", "score");
+    settings.setValue("RecentFiles", m_recentFiles->saveState());
+    m_recentFiles->saveState();
+  }
 }
 
 SCORE_LIB_BASE_EXPORT

@@ -325,7 +325,7 @@ public:
     }
   }
 
-  std::string_view label() const override
+  std::string label() const override
   {
     return "Control";
   }

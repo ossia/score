@@ -45,14 +45,6 @@ struct Node
         return ossia::time_value{period * (1 + cur_date / period)};
     }
 
-    template<typename T>
-    static auto get_value_or(ossia::execution_state& st, std::string_view v, T val)
-    {
-        if(auto node = st.find_node(v))
-            return ossia::convert<T>(node->get_parameter()->value());
-        return val;
-    }
-
     using control_policy = Control::LastTick;
     static void run(
             float quantif,

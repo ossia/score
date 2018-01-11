@@ -1,5 +1,6 @@
 #pragma once
 #include <Engine/Node/PdNode.hpp>
+#include <ossia/dataflow/execution_state.hpp>
 #include <random>
 namespace Nodes
 {

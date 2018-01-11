@@ -12,6 +12,8 @@
 #include <Media/Effect/VST/VSTEffectModel.hpp>
 #include <Media/Effect/VST/VSTNode.hpp>
 #endif
+
+#include <ossia/dataflow/execution_state.hpp>
 namespace Engine
 {
 namespace Execution

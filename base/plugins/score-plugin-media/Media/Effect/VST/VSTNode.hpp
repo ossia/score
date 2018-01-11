@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/dataflow/graph_node.hpp>
+#include <ossia/dataflow/execution_state.hpp>
 #include <Media/Effect/VST/VSTEffectModel.hpp>
 #include <Engine/Node/Executor.hpp>
 #include <Engine/Node/TimeSignature.hpp>
@@ -56,7 +57,7 @@ class VSTNode final : public ossia::audio_fx_node
       dispatch(effMainsChanged, 0, 0);
     }
 
-    std::string_view label() const override
+    std::string label() const override
     {
       return "VST";
     }
@@ -194,7 +195,7 @@ class VSTNode final : public ossia::audio_fx_node
       auto& time_info = fx->info;
       time_info.samplePos = tk.date.impl;
       time_info.sampleRate = st.sampleRate;
-      time_info.nanoSeconds = std::chrono::duration_cast<std::chrono::nanoseconds>(st.cur_date - st.start_date).count();
+      time_info.nanoSeconds = st.cur_date - st.start_date;
       time_info.tempo = m_tempo;
       time_info.ppqPos = (tk.date.impl / st.sampleRate) * (60. / time_info.tempo);
       time_info.barStartPos = 0.;

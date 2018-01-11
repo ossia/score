@@ -33,76 +33,6 @@ namespace Mapping
 {
 namespace RecreateOnPlay
 {
-class mapping_node final :
-    public ossia::graph_node
-{
-  public:
-    mapping_node()
-    {
-      m_inlets.push_back(ossia::make_inlet<ossia::value_port>());
-      m_outlets.push_back(ossia::make_outlet<ossia::value_port>());
-    }
-
-    ~mapping_node() override
-    {
-
-    }
-
-    void set_driver(optional<ossia::destination> d)
-    {
-      if(d)
-      {
-        m_inlets.front()->address = &d->address();
-      }
-      else
-      {
-        m_inlets.front()->address = {};
-      }
-    }
-
-    void set_driven(optional<ossia::destination> d)
-    {
-      if(d)
-      {
-        m_outlets.front()->address = &d->address();
-      }
-      else
-      {
-        m_outlets.front()->address = {};
-      }
-    }
-
-    void set_behavior(const ossia::behavior& b)
-    {
-      m_drive = b;
-    }
-
-  private:
-    void run(ossia::token_request t, ossia::execution_state& e) override
-    {
-      if(!m_drive)
-        return;
-
-      auto& inlet = *m_inlets[0];
-      auto& outlet = *m_outlets[0];
-      ossia::value_port* ip = inlet.data.target<ossia::value_port>();
-      ossia::value_port* op = outlet.data.target<ossia::value_port>();
-
-      // TODO use correct unit / whatever ?
-      for(auto& tv : ip->get_data())
-      {
-        if(tv.value.valid())
-        {
-          ossia::tvalue newval = tv;
-          newval.value = ossia::apply(ossia::detail::mapper_compute_visitor{}, tv.value, m_drive.v);
-
-          op->add_raw_value(std::move(newval));
-        }
-      }
-    }
-
-    ossia::behavior m_drive;
-};
 Component::Component(
     ::Mapping::ProcessModel& element,
     const ::Engine::Execution::Context& ctx,
@@ -115,7 +45,7 @@ Component::Component(
                                                                    "MappingElement",
                                                                    parent}
 {
-  auto node = std::make_shared<mapping_node>();
+  auto node = std::make_shared<ossia::mapping_node>();
   m_ossia_process = std::make_shared<ossia::node_process>(node);
 
   con(element, &Mapping::ProcessModel::sourceAddressChanged,
@@ -167,7 +97,7 @@ void Component::recompute()
   if (curve)
   {
     in_exec(
-          [proc=std::dynamic_pointer_cast<mapping_node>(OSSIAProcess().node)
+          [proc=std::dynamic_pointer_cast<ossia::mapping_node>(OSSIAProcess().node)
           ,curve
           ,ossia_source_addr
           ,ossia_target_addr]

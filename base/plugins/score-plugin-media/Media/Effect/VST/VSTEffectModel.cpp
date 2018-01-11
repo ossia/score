@@ -35,6 +35,8 @@
 #include <Automation/Commands/SetAutomationMax.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+
+#include <ossia/dataflow/execution_state.hpp>
 void show_vst2_editor(AEffect& effect, ERect rect);
 void hide_vst2_editor(AEffect& effect);
 
@@ -691,7 +693,7 @@ VSTEffectItem::VSTEffectItem(const VSTEffectModel& effect, const score::Document
     auto sg = safe_cast<Process::ControlInlet*>(effect.inlets()[2]);
     setupInlet(TimeSigChooser(), *sg, doc);
   }
-  for(int i = 3; i < effect.inlets().size(); i++)
+  for(std::size_t i = 3; i < effect.inlets().size(); i++)
   {
     auto inlet = safe_cast<VSTControlInlet*>(effect.inlets()[i]);
     setupInlet(effect, *inlet, doc);
@@ -934,13 +936,13 @@ VSTEffectComponent::VSTEffectComponent(
   {
     if(fx.flags & effFlagsIsSynth)
     {
-      auto n = Media::VST::make_vst_fx<true, true>(proc.fx, ctx.plugin.execState.sampleRate);
+      auto n = Media::VST::make_vst_fx<true, true>(proc.fx, ctx.plugin.execState->sampleRate);
       setup_controls(n);
       node = std::move(n);
     }
     else
     {
-      auto n = Media::VST::make_vst_fx<true, false>(proc.fx, ctx.plugin.execState.sampleRate);
+      auto n = Media::VST::make_vst_fx<true, false>(proc.fx, ctx.plugin.execState->sampleRate);
       setup_controls(n);
       node = std::move(n);
     }
@@ -949,13 +951,13 @@ VSTEffectComponent::VSTEffectComponent(
   {
     if(fx.flags & effFlagsIsSynth)
     {
-      auto n = Media::VST::make_vst_fx<false, true>(proc.fx, ctx.plugin.execState.sampleRate);
+      auto n = Media::VST::make_vst_fx<false, true>(proc.fx, ctx.plugin.execState->sampleRate);
       setup_controls(n);
       node = std::move(n);
     }
     else
     {
-      auto n = Media::VST::make_vst_fx<false, false>(proc.fx, ctx.plugin.execState.sampleRate);
+      auto n = Media::VST::make_vst_fx<false, false>(proc.fx, ctx.plugin.execState->sampleRate);
       setup_controls(n);
       node = std::move(n);
     }

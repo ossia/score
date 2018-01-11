@@ -12,8 +12,10 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Engine/Protocols/OSSIADevice.hpp>
 #include <ossia/dataflow/graph/graph.hpp>
+#include <QFile>
 #include <QPointer>
-#include <ossia/network/midi/midi_device.hpp>
+#include <ossia/network/midi/midi_device.hpp>/*
+#include <valgrind/callgrind.h>*/
 namespace Dataflow
 {
 Clock::Clock(
@@ -38,7 +40,7 @@ void Clock::play_impl(
 {
   m_paused = false;
 
-  ossia::print_graph(static_cast<ossia::graph*>(m_plug.execGraph.get())->impl(), std::cerr);
+  m_plug.execGraph->print(std::cerr);
   m_cur = &bs;
   m_default.play(t);
 
@@ -49,22 +51,83 @@ void Clock::pause_impl(
     Engine::Execution::BaseScenarioElement& bs)
 {
   m_paused = true;
-  m_plug.audioProto().ui_tick = {};
+  m_plug.audioProto().ui_tick = [] (auto&&...) {};
   m_plug.audioProto().replace_tick = true;
   qDebug("pause");
   m_default.pause();
 }
 
+std::vector<double> m_tickDurations;
+struct cycle_count_bench
+{
+    uint64_t rdtsc()
+    {
+        unsigned int lo = 0;
+        unsigned int hi = 0;
+        __asm__ __volatile__ (
+            "lfence\n"
+            "rdtsc\n"
+            "lfence" : "=a"(lo), "=d"(hi)
+        );
+        return ((uint64_t)hi << 32) | lo;
+    }
+
+    uint64_t t0;
+
+    cycle_count_bench()
+      : t0{rdtsc()}
+    {
+    }
+
+    ~cycle_count_bench()
+    {
+      auto t1 = rdtsc();
+      m_tickDurations.push_back(t1 - t0);
+    }
+};
+
+struct clock_count_bench
+{
+    std::chrono::time_point<std::chrono::steady_clock> t0;
+
+    clock_count_bench()
+      : t0{std::chrono::steady_clock::now()}
+    {
+    }
+
+    ~clock_count_bench()
+    {
+      auto t1 = std::chrono::steady_clock::now();
+      m_tickDurations.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count());
+    }
+};
+/*
+struct callgrind_bench
+{
+    callgrind_bench()
+    {
+      CALLGRIND_START_INSTRUMENTATION;
+    }
+    ~callgrind_bench()
+    {
+      CALLGRIND_STOP_INSTRUMENTATION;
+    }
+};*/
+
 void Clock::resume_impl(
     Engine::Execution::BaseScenarioElement& bs)
 {
+  m_tickDurations.clear();
+  m_tickDurations.reserve(100000);
   m_paused = false;
   m_default.resume();
-  m_plug.audioProto().ui_tick = [&st=m_plug.execState,&g=m_plug.execGraph,itv=m_cur->baseInterval().OSSIAInterval()] (unsigned long frameCount) {
+  m_plug.audioProto().ui_tick = [&st=*m_plug.execState,&g=m_plug.execGraph,itv=m_cur->baseInterval().OSSIAInterval()] (unsigned long frameCount, double seconds) {
+
     st.clear_local_state();
     st.get_new_values();
     st.samples_since_start += frameCount;
-    st.cur_date = std::chrono::high_resolution_clock::now();
+    // we could run a syscall and call now() but that's a bit more costly.
+    st.cur_date = seconds * 1e9;
     itv->tick(ossia::time_value(frameCount));
     g->state(st);
     st.commit();
@@ -80,11 +143,18 @@ void Clock::stop_impl(
   m_paused = false;
   QPointer<Engine::Execution::DocumentPlugin> plug = &m_plug;
 
-  m_plug.audioProto().ui_tick = [=,&proto=m_plug.audioProto()] (unsigned long) {
+  m_plug.audioProto().ui_tick = [=,&proto=m_plug.audioProto()] (unsigned long, double) {
     emit plug->finished();
-    proto.ui_tick = { };
+    proto.ui_tick = [] (unsigned long, double) {};
     proto.replace_tick = true;
+    QFile f("/tmp/out.data");
+    QTextStream s(&f);
+    f.open(QIODevice::WriteOnly);
+    for(auto t : m_tickDurations)
+      s << t << "\n";
+
   };
+  //CALLGRIND_DUMP_STATS;
   m_plug.audioProto().replace_tick = true;
   m_default.stop();
 }
