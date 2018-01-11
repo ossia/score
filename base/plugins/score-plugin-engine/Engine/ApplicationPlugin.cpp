@@ -32,11 +32,13 @@
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/presenter/DocumentManager.hpp>
+#include <core/presenter/Presenter.hpp>
 #include <score/actions/ActionManager.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <vector>
 #include <Engine/OssiaLogger.hpp>
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
+#include <QApplication>
 
 #include <QAction>
 #include <QVariant>
@@ -372,6 +374,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     local_play_address->set_value(bool{false});
     local_play_address->set_access(ossia::access_mode::SET);
     local_play_address->add_callback([&](const ossia::value& v) {
+      QMetaObject::invokeMethod(this, [&] {
       if (auto val = v.target<bool>())
       {
         if (!appplug.playing() && *val)
@@ -407,6 +410,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
           }
         }
       }
+      }, Qt::QueuedConnection);
     });
   }
 
@@ -417,6 +421,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     local_stop_address->set_value(ossia::impulse{});
     local_stop_address->set_access(ossia::access_mode::SET);
     local_stop_address->add_callback([&](const ossia::value&) {
+      QMetaObject::invokeMethod(this, [&] {
       if(context.applicationSettings.gui)
       {
         auto& stop_action = appplug.context.actions.action<Actions::Stop>();
@@ -426,8 +431,35 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
       {
         this->on_stop();
       }
+      }, Qt::QueuedConnection);
     });
 
+  }
+  {
+    auto node = root.create_child("exit");
+    auto address = node->create_parameter(ossia::val_type::IMPULSE);
+    address->set_value(ossia::impulse{});
+    address->set_access(ossia::access_mode::SET);
+    address->add_callback([&](const ossia::value&) {
+      QMetaObject::invokeMethod(this, [&] {
+      if(context.applicationSettings.gui)
+      {
+        auto& stop_action = appplug.context.actions.action<Actions::Stop>();
+        stop_action.action()->trigger();
+      }
+      else
+      {
+        this->on_stop();
+      }
+
+
+      QTimer::singleShot(500, [] {
+        auto pres = qApp->findChild<score::Presenter*>();
+        pres->exit();
+        QTimer::singleShot(500, [] { QCoreApplication::quit(); });
+      });
+      }, Qt::QueuedConnection);
+    });
   }
 }
 

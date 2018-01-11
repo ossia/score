@@ -1,7 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <ossia/editor/automation/automation.hpp>
-#include <ossia/editor/automation/curve_value_visitor.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <QDebug>
 #include <QString>
@@ -83,77 +82,6 @@ struct range_position
     float position{0.5};
 };
 
-class automation_node final :
-    public ossia::graph_node
-{
-  public:
-    automation_node()
-    {
-      m_outlets.push_back(ossia::make_outlet<ossia::value_port>());
-    }
-
-    ~automation_node() override
-    {
-
-    }
-
-    void set_destination(optional<ossia::destination> d)
-    {
-      auto& port = *m_outlets.front();
-      auto& vp = *port.data.target<ossia::value_port>();
-      if(d)
-      {
-        port.address = &d->address();
-        vp.type = d->unit;
-        vp.index = d->index;
-      }
-      else
-      {
-        port.address = {};
-        vp.type = ossia::val_type::FLOAT;
-        vp.index = {};
-      }
-    }
-
-    void set_behavior(const ossia::behavior& b)
-    {
-      m_drive = b;
-    }
-
-    void reset_drive()
-    {
-      m_drive.reset();
-    }
-  private:
-    void run(ossia::token_request t, ossia::execution_state& e) override
-    {
-      if(!m_drive)
-        return;
-
-      auto& outlet = *m_outlets[0];
-      ossia::value_port* vp = outlet.data.target<ossia::value_port>();
-      //ossia::val_type type = ossia::underlying_type(vp->type);
-      //if(type == ossia::val_type::IMPULSE)
-      //  type = ossia::val_type::FLOAT;
-
-      vp->add_value(
-            ossia::apply(
-              ossia::detail::compute_value_visitor{t.position, ossia::val_type::FLOAT},
-              m_drive), t.date);
-    }
-
-    ossia::behavior m_drive;
-};
-
-class automation_process : public ossia::node_process
-{
-public:
-    using ossia::node_process::node_process;
-  void start() override
-  {
-      static_cast<automation_node*>(node.get())->reset_drive();
-  }
-};
 Component::Component(
     ::Automation::ProcessModel& element,
     const ::Engine::Execution::Context& ctx,
@@ -164,8 +92,8 @@ Component::Component(
         ctx,
         id, "Executor::AutomationComponent", parent}
 {
-  auto node = std::make_shared<automation_node>();
-  m_ossia_process = std::make_shared<automation_process>(node);
+  auto node = std::make_shared<ossia::automation_node>();
+  m_ossia_process = std::make_shared<ossia::automation_process>(node);
 
   con(element, &Automation::ProcessModel::minChanged,
       this, [this] (const auto&) { this->recompute(); });
@@ -205,7 +133,7 @@ void Component::recompute()
     if (curve)
     {
       in_exec(
-            [proc=std::dynamic_pointer_cast<automation_node>(OSSIAProcess().node)
+            [proc=std::dynamic_pointer_cast<ossia::automation_node>(OSSIAProcess().node)
             ,curve
             ,d_=d]
       {
@@ -222,7 +150,7 @@ void Component::recompute()
     if (curve)
     {
       in_exec(
-            [proc=std::dynamic_pointer_cast<automation_node>(OSSIAProcess().node)
+            [proc=std::dynamic_pointer_cast<ossia::automation_node>(OSSIAProcess().node)
             ,curve]
       {
         proc->set_destination({});

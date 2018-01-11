@@ -18,7 +18,7 @@ public:
   std::vector<float> values;
   ossia::time_value dur{};
 
-  std::string_view label() const override
+  std::string label() const override
   {
     return "Step";
   }

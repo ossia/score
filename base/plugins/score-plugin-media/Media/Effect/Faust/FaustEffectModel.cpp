@@ -13,6 +13,8 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <iostream>
 #include <Process/Dataflow/PortFactory.hpp>
+
+#include <ossia/dataflow/execution_state.hpp>
 namespace Media::Faust
 {
 
@@ -474,7 +476,7 @@ class faust_node : public ossia::audio_fx_node
       }
     }
 
-    std::string_view label() const override
+    std::string label() const override
     {
       return "Faust";
     }
@@ -492,7 +494,7 @@ Engine::Execution::FaustEffectComponent::FaustEffectComponent(
 {
   if(proc.faust_object)
   {
-    proc.faust_object->init(ctx.plugin.execState.sampleRate);
+    proc.faust_object->init(ctx.plugin.execState->sampleRate);
     auto node = std::make_shared<faust_node>(*proc.faust_object);
     this->node = node;
     for(int i = 1; i < proc.inlets().size(); i++)

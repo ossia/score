@@ -49,8 +49,9 @@ score_plugin_js::factories(
       FW<Process::LayerFactory, JS::LayerFactory>,
       FW<Process::StateProcessFactory, JS::StateProcessFactory>,
       FW<Inspector::InspectorWidgetFactory, JS::InspectorFactory, JS::StateInspectorFactory>,
-      FW<Engine::Execution::ProcessComponentFactory, JS::Executor::ComponentFactory>,
-      FW<Engine::Execution::StateProcessComponentFactory, JS::Executor::StateProcessComponentFactory>>(
+      FW<Engine::Execution::ProcessComponentFactory, JS::Executor::ComponentFactory>
+      // TODO , FW<Engine::Execution::StateProcessComponentFactory, JS::Executor::StateProcessComponentFactory>
+      >(
       ctx, key);
 }
 

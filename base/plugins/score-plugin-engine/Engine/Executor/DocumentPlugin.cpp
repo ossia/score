@@ -22,6 +22,7 @@
 #include <Engine/score2OSSIA.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <ossia/dataflow/graph/graph.hpp>
+#include <ossia/dataflow/graph/graph_static.hpp>
 #include <spdlog/spdlog.h>
 namespace Engine
 {
@@ -45,6 +46,7 @@ DocumentPlugin::DocumentPlugin(
       }
     , m_base{m_ctx, this}
 {
+  execState = std::make_unique<ossia::execution_state>();
   makeGraph();
   auto& devs = ctx.plugin<Explorer::DeviceDocumentPlugin>();
   if(auto dev = devs.list().audioDevice())
@@ -169,6 +171,13 @@ DocumentPlugin::~DocumentPlugin()
     m_base.baseInterval().stop();
     clear();
   }
+
+  if(auto devs = context().doc.findPlugin<Explorer::DeviceDocumentPlugin>())
+  {
+    devs->list().setAudioDevice(nullptr);
+    devs->updateProxy.removeDevice(audio_device->settings());
+  }
+  delete audio_device;
 }
 
 void DocumentPlugin::on_finished()
@@ -183,7 +192,7 @@ void DocumentPlugin::on_finished()
   execGraph->clear();
   execGraph.reset();
 
-  execState.reset();
+  execState->reset();
   for(auto& v : runtime_connections)
   {
     for(auto& con : v.second)
@@ -211,7 +220,7 @@ void DocumentPlugin::timerEvent(QTimerEvent* event)
 
 void DocumentPlugin::makeGraph()
 {
-  auto g = std::make_shared<ossia::graph>();
+  auto g = std::make_shared<ossia::tc_graph>();
   g->logger = spdlog::get("ossia");
   execGraph = g;
 }
@@ -228,20 +237,20 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
   m_ctx.time = settings.makeTimeFunction(ctx);
   m_ctx.reverseTime = settings.makeReverseTimeFunction(ctx);
 
-  execState.reset();
+  execState->reset();
 
-  execState.samples_since_start = 0;
-  execState.start_date = std::chrono::high_resolution_clock::now();
-  execState.cur_date = execState.start_date;
-  execState.register_device(audio_device->getDevice());
+  execState->samples_since_start = 0;
+  execState->start_date = 0; // TODO set it in the first callback
+  execState->cur_date = execState->start_date;
+  execState->register_device(audio_device->getDevice());
   for(auto dev : m_ctx.devices.list().devices()) {
     if(auto od = dynamic_cast<Engine::Network::OSSIADevice*>(dev))
       if(auto d = od->getDevice())
       {
         if(auto midi_dev = dynamic_cast<ossia::net::midi::midi_device*>(d))
-          execState.register_device(midi_dev);
+          execState->register_device(midi_dev);
         else
-          execState.register_device(d);
+          execState->register_device(d);
       }
   }
 
@@ -426,7 +435,7 @@ void DocumentPlugin::register_node(
       inlets.insert({ proc_inlets[i], std::make_pair( node, node->inputs()[i] ) });
 
       m_execQueue.enqueue([this,port=node->inputs()[i]] {
-        execState.register_inlet(*port);
+        execState->register_inlet(*port);
       });
     }
 
@@ -465,7 +474,7 @@ void DocumentPlugin::register_inlet(
     inlets.insert({ &proc_inlet, std::make_pair( node, port ) });
 
     m_execQueue.enqueue([this,port,node] {
-      execState.register_inlet(*port);
+      execState->register_inlet(*port);
       execGraph->add_node(std::move(node));
     });
   }

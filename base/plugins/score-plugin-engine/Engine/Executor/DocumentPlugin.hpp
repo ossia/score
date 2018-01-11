@@ -8,7 +8,6 @@
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/local/local.hpp>
 #include <ossia/dataflow/dataflow_fwd.hpp>
-#include <ossia/dataflow/execution_state.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <memory>
 
@@ -85,7 +84,7 @@ public:
       const ossia::outlet_ptr& );
 
   std::shared_ptr<ossia::graph_interface> execGraph;
-  ossia::execution_state execState;
+  std::unique_ptr<ossia::execution_state> execState;
 
   Dataflow::AudioDevice* audio_device{};
 
