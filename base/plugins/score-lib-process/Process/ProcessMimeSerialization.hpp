@@ -20,6 +20,7 @@ namespace Process
 struct ProcessData
 {
   UuidKey<Process::ProcessModel> key;
+  QString customData;
 };
 }
 template <>
@@ -31,6 +32,7 @@ struct Visitor<Reader<Mime<Process::ProcessData>>> : public MimeDataReader
     QJsonObject obj;
     obj["Type"] = "Process";
     obj["uuid"] = toJsonValue(lst.key.impl());
+    obj["Data"] = lst.customData;
     m_mime.setData(
         score::mime::processdata(),
         QJsonDocument(obj).toJson(QJsonDocument::Indented));
@@ -48,6 +50,7 @@ struct Visitor<Writer<Mime<Process::ProcessData>>> : public MimeDataWriter
               .object();
     Process::ProcessData p;
     p.key = fromJsonValue<score::uuid_t>(obj["uuid"]);
+    p.customData = obj["Data"].toString();
     return p;
   }
 };

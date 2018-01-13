@@ -1,6 +1,5 @@
 #pragma once
 #include <Process/Process.hpp>
-#include <Process/StateProcess.hpp>
 #include <score/model/Component.hpp>
 
 namespace Process
@@ -31,14 +30,6 @@ using ProcessComponent
 template <typename System_T>
 using GenericProcessComponent
     = Process::ProcessComponent<score::GenericComponent<System_T>>;
-
-template <typename Component_T>
-using StateProcessComponent
-    = ProcessComponentBase<Process::StateProcess, Component_T>;
-
-template <typename System_T>
-using GenericStateProcessComponent
-    = Process::StateProcessComponent<score::GenericComponent<System_T>>;
 
 template <typename ProcessComponentBase_T, typename Process_T>
 class GenericProcessComponent_T : public ProcessComponentBase_T

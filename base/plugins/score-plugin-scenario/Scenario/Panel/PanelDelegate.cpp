@@ -117,7 +117,7 @@ void PanelDelegate::on_focusedViewModelChanged(
                     .findDefaultFactory(
                         m_layerModel->concreteKey());
 
-    m_proxy = fact->makePanel(*m_layerModel, this);
+    m_proxy = fact->makePanel(*m_layerModel, *document(), this);
     if (m_proxy)
       m_widget->layout()->addWidget(m_proxy->widget());
   }

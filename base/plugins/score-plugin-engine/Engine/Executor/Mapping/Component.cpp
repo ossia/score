@@ -45,7 +45,7 @@ Component::Component(
                                                                    "MappingElement",
                                                                    parent}
 {
-  auto node = std::make_shared<ossia::mapping_node>();
+  node = std::make_shared<ossia::mapping_node>();
   m_ossia_process = std::make_shared<ossia::node_process>(node);
 
   con(element, &Mapping::ProcessModel::sourceAddressChanged,
@@ -65,7 +65,6 @@ Component::Component(
   con(element, &Mapping::ProcessModel::curveChanged,
       this, [this] () { this->recompute(); });
 
-  ctx.plugin.register_node(process(), node);
   recompute();
 }
 

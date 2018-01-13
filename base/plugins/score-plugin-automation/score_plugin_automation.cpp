@@ -36,30 +36,30 @@
 namespace Automation
 {
 using AutomationFactory
-    = Process::GenericProcessModelFactory<Automation::ProcessModel>;
+    = Process::ProcessFactory_T<Automation::ProcessModel>;
 using AutomationLayerFactory = Curve::
     CurveLayerFactory_T<Automation::ProcessModel, Automation::LayerPresenter, Automation::LayerView, Automation::Colors>;
 }
 namespace Gradient
 {
 using GradientFactory
-    = Process::GenericProcessModelFactory<Gradient::ProcessModel>;
+    = Process::ProcessFactory_T<Gradient::ProcessModel>;
 using GradientLayerFactory = Process::
-    GenericLayerFactory<Gradient::ProcessModel, Gradient::Presenter, Gradient::View, Process::GraphicsViewLayerPanelProxy>;
+    LayerFactory_T<Gradient::ProcessModel, Gradient::Presenter, Gradient::View, Process::GraphicsViewLayerPanelProxy>;
 }
 
 namespace Spline
 {
 using SplineFactory
-= Process::GenericProcessModelFactory<Spline::ProcessModel>;
+= Process::ProcessFactory_T<Spline::ProcessModel>;
 using SplineLayerFactory = Process::
-GenericLayerFactory<Spline::ProcessModel, Spline::Presenter, Spline::View, Process::GraphicsViewLayerPanelProxy>;
+LayerFactory_T<Spline::ProcessModel, Spline::Presenter, Spline::View, Process::GraphicsViewLayerPanelProxy>;
 }
 
 namespace Metronome
 {
 using MetronomeFactory
-    = Process::GenericProcessModelFactory<Metronome::ProcessModel>;
+    = Process::ProcessFactory_T<Metronome::ProcessModel>;
 using MetronomeLayerFactory = Curve::
     CurveLayerFactory_T<Metronome::ProcessModel, Metronome::LayerPresenter, Metronome::LayerView, Metronome::Colors>;
 }

@@ -30,29 +30,6 @@ namespace Scenario
 {
 class IntervalModel;
 
-UuidKey<Process::ProcessModel>
-ScenarioFactory::concreteKey() const noexcept
-{
-  return Metadata<ConcreteKey_k, Scenario::ProcessModel>::get();
-}
-
-QString ScenarioFactory::prettyName() const
-{
-  return Metadata<PrettyName_k, Scenario::ProcessModel>::get();
-}
-QString ScenarioFactory::category() const
-{
-  return Metadata<Category_k, Scenario::ProcessModel>::get();
-}
-
-Process::ProcessModel* ScenarioFactory::make(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent)
-{
-  return new Scenario::ProcessModel{duration, id, parent};
-}
-
 //////
 
 ScenarioTemporalLayerFactory::ScenarioTemporalLayerFactory(

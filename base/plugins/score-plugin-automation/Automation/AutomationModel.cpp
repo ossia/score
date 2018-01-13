@@ -29,18 +29,10 @@ class ProcessModel;
 class QObject;
 namespace Automation
 {
-Process::Inlets ProcessModel::inlets() const
-{
-  return {};
-}
-
-Process::Outlets ProcessModel::outlets() const
-{
-  return {outlet.get()};
-}
 
 void ProcessModel::init()
 {
+  m_outlets.push_back(outlet.get());
   connect(outlet.get(), &Process::Port::addressChanged,
           this, [=] (const State::AddressAccessor& arg) {
     emit addressChanged(arg);

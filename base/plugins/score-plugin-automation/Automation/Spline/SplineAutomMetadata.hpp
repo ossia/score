@@ -16,4 +16,5 @@ PROCESS_METADATA(
     "Spline",
     "Automation (XY)",
     "Automations",
-    (QStringList{"Curve", "Automation", "2D"}))
+    (QStringList{"Curve", "Automation", "2D"}),
+    Process::ProcessFlags::SupportsTemporal)

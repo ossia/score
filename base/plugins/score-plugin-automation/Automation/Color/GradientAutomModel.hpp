@@ -30,6 +30,12 @@ public:
       : Process::ProcessModel{vis, parent}
   {
     vis.writeTo(*this);
+    init();
+  }
+
+  void init()
+  {
+    m_outlets.push_back(outlet.get());
   }
 
   const State::AddressAccessor& address() const;
@@ -37,8 +43,6 @@ public:
   bool tween() const;
   void setTween(bool tween);
 
-  Process::Inlets inlets() const override;
-  Process::Outlets outlets() const override;
   QString prettyName() const override;
 
   using gradient_colors = boost::container::flat_map<double, QColor>;

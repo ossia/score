@@ -16,16 +16,6 @@
 
 namespace Mapping
 {
-Process::Inlets ProcessModel::inlets() const
-{
-  return {inlet.get()};
-}
-
-Process::Outlets ProcessModel::outlets() const
-{
-  return {outlet.get()};
-}
-
 ProcessModel::ProcessModel(
     const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
@@ -76,6 +66,8 @@ ProcessModel::~ProcessModel()
 
 void ProcessModel::init()
 {
+  m_inlets.push_back(inlet.get());
+  m_outlets.push_back(outlet.get());
 
   connect(inlet.get(), &Process::Port::addressChanged,
           this, [=] (const State::AddressAccessor& arg) {

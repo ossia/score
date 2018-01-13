@@ -30,6 +30,7 @@ SoundComponent::SoundComponent(
       id, "Executor::SoundComponent", parent}
 {
   auto node = std::make_shared<ossia::sound_node>();
+  this->node = node;
   m_ossia_process = std::make_shared<ossia::node_process>(node);
 
   con(element, &Media::Sound::ProcessModel::fileChanged,
@@ -50,7 +51,6 @@ SoundComponent::SoundComponent(
     { node->set_upmix(upmix); });
   });
   recompute();
-  ctx.plugin.register_node(process(), node);
 }
 
 void SoundComponent::recompute()
@@ -209,6 +209,7 @@ InputComponent::InputComponent(
       id, "Executor::InputComponent", parent}
 {
   auto node = std::make_shared<input_node>();
+  this->node = node;
   m_ossia_process = std::make_shared<ossia::node_process>(node);
   con(element, &Media::Input::ProcessModel::startChannelChanged,
       this, [=] {
@@ -223,8 +224,6 @@ InputComponent::InputComponent(
     { node->set_num_channel(num); });
   });
   recompute();
-
-  ctx.plugin.register_node(element, node);
 }
 
 void InputComponent::recompute()

@@ -7,7 +7,7 @@ namespace Media
 {
 namespace Input
 {
-using ProcessFactory = Process::GenericProcessModelFactory<Input::ProcessModel>;
+using ProcessFactory = Process::ProcessFactory_T<Input::ProcessModel>;
 using LayerFactory = Process::GenericDefaultLayerFactory<Input::ProcessModel>;
 }
 }

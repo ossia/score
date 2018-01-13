@@ -28,6 +28,7 @@
 #endif
 
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
+#include <Process/ProcessList.hpp>
 namespace Media
 {
 namespace Effect
@@ -52,11 +53,11 @@ InspectorWidget::InspectorWidget(
 
   connect(m_list, &QListWidget::itemDoubleClicked,
           this, [=] (QListWidgetItem* item) {
-    // Make a text dialog to edit faust program.
-    auto id = item->data(Qt::UserRole).value<Id<Process::EffectModel>>();
+    /* TODO
+    auto id = item->data(Qt::UserRole).value<Id<Process::ProcessModel>>();
     auto proc = &process().effects().at(id);
-    proc->hideUI();
     proc->showUI();
+    */
   }, Qt::QueuedConnection);
 
   m_list->setContextMenuPolicy(Qt::DefaultContextMenu);
@@ -109,13 +110,16 @@ InspectorWidget::InspectorWidget(
 
 void InspectorWidget::add_score(std::size_t pos)
 {
-  auto& base_fxs = m_ctx.app.interfaces<Process::EffectFactoryList>();
-  auto dialog = new Scenario::AddProcessDialog<Process::EffectFactoryList>(base_fxs, this);
+  auto& base_fxs = m_ctx.app.interfaces<Process::ProcessFactoryList>();
+  auto dialog = new Scenario::AddProcessDialog(
+                  base_fxs,
+                  Process::ProcessFlags::SupportsEffectChain,
+                  this);
 
 
-  dialog->on_okPressed = [&] (const auto& proc)  {
+  dialog->on_okPressed = [&] (const auto& proc, const QString& )  {
     m_dispatcher.submitCommand(
-          new Commands::InsertEffect{process(), proc, "", pos});
+          new Commands::InsertEffect{process(), proc, pos});
   };
   dialog->launchWindow();
   dialog->deleteLater();
@@ -146,9 +150,8 @@ void InspectorWidget::add_lv2(std::size_t pos)
   if(!res.isEmpty())
   {
     m_dispatcher.submitCommand(
-          new Commands::InsertEffect{
+          new Commands::InsertGenericEffect<LV2::LV2EffectModel>{
             process(),
-            Media::LV2::LV2EffectModel::static_concreteKey(),
             res,
             pos});
   }
@@ -158,10 +161,9 @@ void InspectorWidget::add_faust(std::size_t pos)
 {
 #if defined(HAS_FAUST)
   m_dispatcher.submitCommand(
-        new Commands::InsertEffect{
+        new Commands::InsertGenericEffect<Faust::FaustEffectModel>{
           process(),
-          Media::Faust::FaustEffectFactory::static_concreteKey(),
-          "",
+          "process = _;",
           pos});
 #endif
 }
@@ -184,9 +186,8 @@ void InspectorWidget::add_vst2(std::size_t pos)
   if(!res.isEmpty())
   {
     m_dispatcher.submitCommand(
-          new Commands::InsertEffect{
+          new Commands::InsertGenericEffect<VST::VSTEffectModel>{
             process(),
-            Media::VST::VSTEffectModel::static_concreteKey(),
             res, pos});
   }
 #endif

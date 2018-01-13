@@ -16,4 +16,5 @@ PROCESS_METADATA(
     "Metronome",
     "Metronome",
     "Automations",
-    (QStringList{"Curve", "Automation"}))
+    (QStringList{"Curve", "Automation"}),
+    Process::ProcessFlags::SupportsTemporal)

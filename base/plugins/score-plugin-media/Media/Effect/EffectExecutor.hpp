@@ -3,11 +3,9 @@
 #include <score/model/ComponentHierarchy.hpp>
 #include <score/plugins/customfactory/ModelFactory.hpp>
 #include <Media/Effect/EffectProcessModel.hpp>
-#include <Effect/EffectComponent.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
 #include <ossia/dataflow/node_process.hpp>
 #include <ossia/dataflow/fx_node.hpp>
-#include <Engine/Executor/EffectComponent.hpp>
 namespace Engine
 {
 namespace Execution
@@ -30,7 +28,7 @@ struct effect_chain_process final :
       m_lastDate = parent_date;
     }
 
-    void add_node(std::shared_ptr<ossia::audio_fx_node> n)
+    void add_node(std::shared_ptr<ossia::graph_node> n)
     {
       n->set_prev_date(this->m_lastDate);
       nodes.push_back(std::move(n));
@@ -42,7 +40,7 @@ struct effect_chain_process final :
         node->all_notes_off();
       }
     }
-    std::vector<std::shared_ptr<ossia::audio_fx_node>> nodes;
+    std::vector<std::shared_ptr<ossia::graph_node>> nodes;
 };
 
 class SCORE_PLUGIN_ENGINE_EXPORT EffectProcessComponentBase
@@ -52,9 +50,9 @@ class SCORE_PLUGIN_ENGINE_EXPORT EffectProcessComponentBase
   COMPONENT_METADATA("d638adb3-64da-4b6e-b84d-7c32684fa79d")
 public:
     using parent_t = Engine::Execution::Component;
-    using model_t = Process::EffectModel;
-    using component_t = EffectComponent;
-    using component_factory_list_t = EffectComponentFactoryList;
+    using model_t = Process::ProcessModel;
+    using component_t = ProcessComponent;
+    using component_factory_list_t = ProcessComponentFactoryList;
   EffectProcessComponentBase(
       Media::Effect::ProcessModel& element,
       const ::Engine::Execution::Context& ctx,
@@ -66,15 +64,15 @@ public:
   ~EffectProcessComponentBase() override;
 
 
-  EffectComponent* make(
+  ProcessComponent* make(
           const Id<score::Component> & id,
-          EffectComponentFactory& factory,
-          Process::EffectModel &process);
-  void added(EffectComponent& e);
+          ProcessComponentFactory& factory,
+          Process::ProcessModel &process);
+  void added(ProcessComponent& e);
 
   std::function<void()> removing(
-      const Process::EffectModel& e,
-      EffectComponent& c);
+      const Process::ProcessModel& e,
+      ProcessComponent& c);
   template <typename Component_T, typename Element, typename Fun>
   void removed(const Element& elt, const Component_T& comp, Fun f)
   {
@@ -86,7 +84,7 @@ public:
   auto& models() const
   {
     static_assert(
-        std::is_same<Models, Process::EffectModel>::value,
+        std::is_same<Models, Process::ProcessModel>::value,
         "Effect component must be passed Process::EffectModel as child.");
 
     return process().effects();
@@ -95,7 +93,7 @@ public:
 private:
   struct RegisteredEffect
   {
-      std::shared_ptr<EffectComponent> comp;
+      std::shared_ptr<ProcessComponent> comp;
 
       Process::Inlets registeredInlets;
       Process::Outlets registeredOutlets;
@@ -103,7 +101,7 @@ private:
       const auto& node() const { return comp->node; }
       operator bool() const { return bool(comp); }
   };
-  std::vector<std::pair<Id<Process::EffectModel>, RegisteredEffect>> m_fxes;
+  std::vector<std::pair<Id<Process::ProcessModel>, RegisteredEffect>> m_fxes;
 
 
   void unreg(const RegisteredEffect& fx);

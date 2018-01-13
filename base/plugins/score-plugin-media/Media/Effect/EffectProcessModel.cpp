@@ -1,5 +1,5 @@
 #include <Media/Effect/EffectProcessModel.hpp>
-#include <Effect/EffectModel.hpp>
+#include <Process/Process.hpp>
 #include <Effect/EffectFactory.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
@@ -7,6 +7,7 @@
 #include <score/tools/Clamp.hpp>
 #include <QFile>
 #include <Process/Dataflow/Port.hpp>
+#include <Process/ProcessList.hpp>
 
 namespace Media
 {
@@ -26,6 +27,7 @@ ProcessModel::ProcessModel(
 
   outlet->setPropagate(true);
   outlet->type = Process::PortType::Audio;
+  init();
 }
 
 
@@ -35,7 +37,7 @@ ProcessModel::~ProcessModel()
 }
 
 void ProcessModel::insertEffect(
-    Process::EffectModel* eff,
+    Process::ProcessModel* eff,
     int pos)
 {
   // Check that the effect order makes sense.
@@ -89,7 +91,7 @@ void ProcessModel::insertEffect(
   emit effectsChanged();
 }
 
-void ProcessModel::removeEffect(const Id<Process::EffectModel>& e)
+void ProcessModel::removeEffect(const Id<Process::ProcessModel>& e)
 {
   m_effects.remove(e);
   // TODO adjust and check ports
@@ -97,9 +99,13 @@ void ProcessModel::removeEffect(const Id<Process::EffectModel>& e)
   emit effectsChanged();
 }
 
-void ProcessModel::moveEffect(const Id<Process::EffectModel>& e, int new_pos)
+void ProcessModel::moveEffect(const Id<Process::ProcessModel>& e, int new_pos)
 {
-  new_pos = clamp(new_pos, 0, m_effects.size() - 1);
+  if(m_effects.size() == 0)
+    new_pos = 0;
+  else
+    new_pos = clamp(new_pos, 0, (int)m_effects.size() - 1);
+
   auto old_pos = effectPosition(e);
   if(old_pos != -1)
   {
@@ -108,7 +114,7 @@ void ProcessModel::moveEffect(const Id<Process::EffectModel>& e, int new_pos)
   }
 }
 
-int ProcessModel::effectPosition(const Id<Process::EffectModel>& e) const
+int ProcessModel::effectPosition(const Id<Process::ProcessModel>& e) const
 {
   return m_effects.index(e);
 }
@@ -140,7 +146,7 @@ void DataStreamWriter::write(Media::Effect::ProcessModel& proc)
   int32_t n = 0;
   m_stream >> n;
 
-  auto& fxs = components.interfaces<Process::EffectFactoryList>();
+  auto& fxs = components.interfaces<Process::ProcessFactoryList>();
   for(int i = 0; i < n ; i++)
   {
     auto fx = deserialize_interface(fxs, *this, &proc);
@@ -174,12 +180,12 @@ void JSONObjectWriter::write(Media::Effect::ProcessModel& proc)
   }
 
   const QJsonArray fx_array = obj["Effects"].toArray();
-  auto& fxs = components.interfaces<Process::EffectFactoryList>();
+  auto& fxs = components.interfaces<Process::ProcessFactoryList>();
   int i = 0;
   for(const auto& json_vref : fx_array)
   {
     JSONObject::Deserializer deserializer{json_vref.toObject()};
-    Process::EffectModel* fx = deserialize_interface(fxs, deserializer, &proc);
+    auto fx = deserialize_interface(fxs, deserializer, &proc);
     if(fx)
     {
       auto pos = i++;
@@ -222,7 +228,7 @@ Selection Media::Effect::ProcessModel::selectableChildren() const
 Selection Media::Effect::ProcessModel::selectedChildren() const
 {
   Selection s;
-  for(Process::EffectModel& c : effects())
+  for(auto& c : effects())
     if(c.selection.get())
       s.append(&c);
   return s;
@@ -230,7 +236,7 @@ Selection Media::Effect::ProcessModel::selectedChildren() const
 
 void Media::Effect::ProcessModel::setSelection(const Selection& s) const
 {
-  for(Process::EffectModel& c : effects())
+  for(auto& c : effects())
   {
     c.selection.set(s.contains(&c));
   }

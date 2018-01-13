@@ -6,7 +6,6 @@
 #include <Engine/Node/Inspector.hpp>
 #include <Engine/Node/Layer.hpp>
 #include <Engine/Node/CommonWidgets.hpp>
-#include <Engine/Node/Effect.hpp>
 #include <brigand/algorithms/for_each.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #define make_uuid(text) score::uuids::string_generator::compute((text))
@@ -14,19 +13,11 @@
 namespace Control
 {
 template<typename Node>
-using ProcessFactory = Process::GenericProcessModelFactory<ControlProcess<Node>>;
+using ProcessFactory = Process::ProcessFactory_T<ControlProcess<Node>>;
 template<typename Node>
 using ExecutorFactory = Engine::Execution::ProcessComponentFactory_T<Executor<Node>>;
 template<typename Node>
 using LayerFactory = ControlLayerFactory<Node>;
-
-template<typename Node>
-using EffectFactory = Process::EffectFactory_T<ControlEffect<Node>>;
-template<typename Node>
-using EffectExecutorFactory = Engine::Execution::EffectComponentFactory_T<Engine::Execution::ControlEffectComponent<Node>>;
-template<typename Node>
-using EffectUIFactory = Process::EffectUIFactory_T<ControlEffect<Node>, ControlEffectView<Node>>;
-
 
 template<typename... Args>
 struct create_types
@@ -55,14 +46,6 @@ std::vector<std::unique_ptr<score::InterfaceBase>> instantiate_fx(
   {
     return create_types<Nodes...>{}.template perform<Control::ProcessFactory>();
   }
-  else if(key == Process::EffectFactory::static_interfaceKey())
-  {
-    return create_types<Nodes...>{}.template perform<Control::EffectFactory>();
-  }
-  else if(key == Process::EffectUIFactory::static_interfaceKey())
-  {
-    return create_types<Nodes...>{}.template perform<Control::EffectUIFactory>();
-  }
   else if(key == Process::InspectorWidgetDelegateFactory::static_interfaceKey())
   {
     return create_types<Nodes...>{}.template perform<Control::InspectorFactory>();
@@ -70,10 +53,6 @@ std::vector<std::unique_ptr<score::InterfaceBase>> instantiate_fx(
   else if(key == Process::LayerFactory::static_interfaceKey())
   {
     return create_types<Nodes...>{}.template perform<Control::LayerFactory>();
-  }
-  else if(key == Engine::Execution::EffectComponentFactory::static_interfaceKey())
-  {
-    return create_types<Nodes...>{}.template perform<Control::EffectExecutorFactory>();
   }
   return {};
 }

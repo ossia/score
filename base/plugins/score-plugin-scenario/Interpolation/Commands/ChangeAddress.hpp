@@ -1,5 +1,5 @@
 #pragma once
-#include <Interpolation/Commands/CommandFactory.hpp>
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Interpolation/InterpolationProcess.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 

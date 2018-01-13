@@ -3,8 +3,6 @@
 #include "StateInspectorWidget.hpp"
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
-#include <Process/StateProcess.hpp>
-#include <Process/StateProcessFactoryList.hpp>
 #include <Scenario/Commands/Event/SplitEvent.hpp>
 #include <Scenario/Commands/State/AddStateProcess.hpp>
 #include <Scenario/Commands/State/RemoveStateProcess.hpp>

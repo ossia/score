@@ -62,6 +62,7 @@ ScenarioComponentBase::ScenarioComponentBase(
 
   // Setup of the OSSIA API Part
   m_ossia_process = std::make_shared<ossia::scenario>();
+  node = m_ossia_process->node;
   connect(this, &ScenarioComponentBase::sig_eventCallback,
           this, &ScenarioComponentBase::eventCallback, Qt::QueuedConnection);
 
@@ -90,7 +91,6 @@ void ScenarioComponent::init()
   // set-up the ports
   const Context& ctx = system();
   auto ossia_sc = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
-  ctx.plugin.register_node(process(), ossia_sc->node);
 
   ScenarioComponentHierarchy::init();
 

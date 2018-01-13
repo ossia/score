@@ -10,7 +10,6 @@
 #include <Media/Inspector/Factory.hpp>
 #include <Media/ApplicationPlugin.hpp>
 #include <Media/Effect/EffectProcessFactory.hpp>
-#include <Effect/EffectFactory.hpp>
 #include <Media/Effect/Inspector/EffectInspector.hpp>
 #include <Media/Effect/EffectExecutor.hpp>
 #include <Media/Sound/SoundComponent.hpp>
@@ -23,6 +22,9 @@
 #endif
 #if defined(HAS_VST2)
 #include <Media/Effect/VST/VSTEffectModel.hpp>
+#include <Media/Effect/VST/VSTWidgets.hpp>
+#include <Media/Effect/VST/VSTExecutor.hpp>
+#include <Media/Effect/VST/VSTControl.hpp>
 #endif
 #if defined(HAS_FAUST)
 #include <Media/Effect/Faust/FaustEffectModel.hpp>
@@ -75,6 +77,15 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
             , Media::Input::ProcessFactory
             , Media::Effect::ProcessFactory
             , Media::Step::ProcessFactory
+    #if defined(HAS_FAUST)
+               , Media::Faust::FaustEffectFactory
+    # endif
+    #if defined(LILV_SHARED)
+                , Media::LV2::LV2EffectFactory
+    #endif
+    #if defined(HAS_VST2)
+                , Media::VST::VSTEffectFactory
+    #endif
             >,
         FW<Inspector::InspectorWidgetFactory
             , Media::Sound::InspectorFactory
@@ -87,6 +98,15 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
           , Media::Input::LayerFactory
           , Media::Effect::LayerFactory
           , Media::Step::LayerFactory
+    #if defined(HAS_VST2)
+          , Media::VST::LayerFactory
+    #endif
+    #if defined(LILV_SHARED)
+          , Media::LV2::LayerFactory
+    #endif
+    #if defined(HAS_FAUST)
+          , Media::Faust::LayerFactory
+    #endif
             >,
 
     #if defined(HAS_VST2)
@@ -100,8 +120,6 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
           , Engine::Execution::InputComponentFactory
           , Engine::Execution::EffectProcessComponentFactory
           , Engine::Execution::StepComponentFactory
-        >,
-        FW<Engine::Execution::EffectComponentFactory
     #if defined(HAS_VST2)
         , Engine::Execution::VSTEffectComponentFactory
     #endif
@@ -112,38 +130,9 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
         , Engine::Execution::FaustEffectComponentFactory
     #endif
         >,
-        FW<Process::EffectFactory
-    #if defined(HAS_FAUST)
-               , Media::Faust::FaustEffectFactory
-    # endif
-    #if defined(LILV_SHARED)
-                , Media::LV2::LV2EffectFactory
-    #endif
-    #if defined(HAS_VST2)
-                , Media::VST::VSTEffectFactory
-    #endif
-                >,
-        FW<Process::EffectUIFactory
-    #if defined(HAS_FAUST)
-    # endif
-    #if defined(LILV_SHARED)
-    #endif
-    #if defined(HAS_VST2)
-                , Media::VST::VSTUIEffectFactory
-    #endif
-                >,
         FW<Scenario::DropHandler,
             Media::Sound::DropHandler>,
         FW<Scenario::IntervalDropHandler,
             Media::Sound::IntervalDropHandler>
     >(ctx, key);
 }
-
-std::vector<std::unique_ptr<score::InterfaceListBase> > score_plugin_media::factoryFamilies()
-{
-    return make_ptr_vector<score::InterfaceListBase,
-            Process::EffectFactoryList,
-            Process::EffectUIFactoryList,
-            Engine::Execution::EffectComponentFactoryList>();
-}
-

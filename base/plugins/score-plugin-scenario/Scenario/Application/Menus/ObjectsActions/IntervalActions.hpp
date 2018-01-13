@@ -28,7 +28,8 @@ public:
   void setupContextMenu(Process::LayerContextMenuManager& ctxm);
 
 private:
-  void addProcessInInterval(const UuidKey<Process::ProcessModel>&);
+  void addProcessInInterval(const UuidKey<Process::ProcessModel>&,
+                            const QString& data);
 
   void on_showRacks();
   void on_hideRacks();

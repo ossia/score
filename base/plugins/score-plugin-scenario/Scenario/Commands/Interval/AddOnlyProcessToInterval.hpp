@@ -32,11 +32,13 @@ class SCORE_PLUGIN_SCENARIO_EXPORT AddOnlyProcessToInterval final
 public:
   AddOnlyProcessToInterval(
       const IntervalModel& cst,
-      UuidKey<Process::ProcessModel> process);
+      UuidKey<Process::ProcessModel> process,
+      const QString& dat);
   AddOnlyProcessToInterval(
       const IntervalModel& cst,
       Id<Process::ProcessModel> idToUse,
-      UuidKey<Process::ProcessModel> process);
+      UuidKey<Process::ProcessModel> process,
+      const QString& dat);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
@@ -66,6 +68,7 @@ protected:
 private:
   Path<IntervalModel> m_path;
   UuidKey<Process::ProcessModel> m_processName;
+  QString m_data;
 
   Id<Process::ProcessModel> m_createdProcessId{};
 };

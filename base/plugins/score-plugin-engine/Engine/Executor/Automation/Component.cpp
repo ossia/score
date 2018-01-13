@@ -92,7 +92,7 @@ Component::Component(
         ctx,
         id, "Executor::AutomationComponent", parent}
 {
-  auto node = std::make_shared<ossia::automation_node>();
+  node = std::make_shared<ossia::automation_node>();
   m_ossia_process = std::make_shared<ossia::automation_process>(node);
 
   con(element, &Automation::ProcessModel::minChanged,
@@ -107,7 +107,6 @@ Component::Component(
   con(element, &Automation::ProcessModel::curveChanged,
       this, [this] () { this->recompute(); });
 
-  ctx.plugin.register_node(process(), OSSIAProcess().node);
   recompute();
 }
 

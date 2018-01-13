@@ -134,16 +134,16 @@ void ScenarioContextMenuManager::createSlotContextMenu(
 
   auto addNewProcessInExistingSlot
       = new QAction{tr("Add new process in this slot"), &menu};
-  QObject::connect(addNewProcessInExistingSlot, &QAction::triggered, [&, slot_path]() {
+  QObject::connect(addNewProcessInExistingSlot, &QAction::triggered, [&, slot_path] {
     auto& fact = ctx.app.interfaces<Process::ProcessFactoryList>();
-    auto dialog = new AddProcessDialog<Process::ProcessFactoryList>{fact, qApp->activeWindow()};
+    auto dialog = new AddProcessDialog{fact, Process::ProcessFlags::SupportsTemporal, qApp->activeWindow()};
 
-    dialog->on_okPressed = [&, slot_path] (const auto& proc) mutable {
+    dialog->on_okPressed = [&, slot_path] (const auto& proc, const QString& data) mutable {
       QuietMacroCommandDispatcher<Scenario::Command::CreateProcessInExistingSlot>
           disp{ctx.commandStack};
 
       auto cmd1 = new Scenario::Command::AddOnlyProcessToInterval(
-                    interval, proc);
+                    interval, proc, data);
       cmd1->redo(ctx);
       disp.submitCommand(cmd1);
 
@@ -165,13 +165,13 @@ void ScenarioContextMenuManager::createSlotContextMenu(
       = new QAction{tr("Add process in a new slot"), &menu};
   QObject::connect(addNewProcessInNewSlot, &QAction::triggered, [&]() {
     auto& fact = ctx.app.interfaces<Process::ProcessFactoryList>();
-    auto dialog = new AddProcessDialog<Process::ProcessFactoryList>{fact, qApp->activeWindow()};
+    auto dialog = new AddProcessDialog{fact, Process::ProcessFlags::SupportsTemporal, qApp->activeWindow()};
 
-    dialog->on_okPressed = [&](const auto& proc) {
+    dialog->on_okPressed = [&](const auto& proc, const QString& data) {
       using cmd = Scenario::Command::CreateProcessInNewSlot;
       QuietMacroCommandDispatcher<cmd> disp{ctx.commandStack};
 
-      cmd::create(disp, interval, proc);
+      cmd::create(disp, interval, proc, data);
 
       disp.commit();
     };

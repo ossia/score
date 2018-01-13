@@ -1,21 +1,21 @@
 #pragma once
-#include <Effect/EffectModel.hpp>
+#include <Process/Process.hpp>
 #include <Engine/Node/Layer.hpp>
 
 namespace Media::Effect
 {
 
 class DefaultEffectItem:
-    public Control::EffectItem
+    public score::RectItem
 {
-    Control::RectItem* rootItem{};
+    score::RectItem* rootItem{};
   public:
     DefaultEffectItem(
-        Process::EffectModel& effect, const score::DocumentContext& doc, Control::RectItem* root):
-      Control::EffectItem{root}
+        const Process::ProcessModel& effect, const score::DocumentContext& doc, score::RectItem* root):
+      score::RectItem{root}
     {
       QObject::connect(
-            &effect, &Process::EffectModel::controlAdded,
+            &effect, &Process::ProcessModel::controlAdded,
             this, [&] (const Id<Process::Port>& id) {
         auto inlet = safe_cast<Process::ControlInlet*>(effect.inlet(id));
         setupInlet(*inlet, doc);
@@ -36,7 +36,7 @@ class DefaultEffectItem:
         Process::ControlInlet& inlet,
         const score::DocumentContext& doc)
     {
-      auto item = new Control::EmptyRectItem{this};
+      auto item = new score::EmptyRectItem{this};
 
       double pos_y = this->childrenBoundingRect().height();
 

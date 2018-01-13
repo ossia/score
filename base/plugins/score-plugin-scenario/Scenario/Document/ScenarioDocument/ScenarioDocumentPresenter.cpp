@@ -674,7 +674,10 @@ void ScenarioDocumentPresenter::setNewSelection(const Selection& s)
       else
       {
         newProc->setSelection(s);
-        process->selection.set(false);
+        if(process)
+        {
+          process->selection.set(false);
+        }
         newProc->selection.set(true);
       }
       cur_proc_connection = connect(newProc, &Process::ProcessModel::identified_object_destroying,

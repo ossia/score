@@ -37,11 +37,6 @@
  * implementation.
  * * One that uses a QWidget for showing information (Process::WidgetLayer).
  *
- *
- * The class Process::StateProcessModel is similar, but instead of being
- * temporal,
- * it is instantaneous and goes into instances of Scenario::StateModel.
- *
  * This plug-in also contains :
  * * Styling information for the central view of score, with the
  * Process::ScenarioStyle class.

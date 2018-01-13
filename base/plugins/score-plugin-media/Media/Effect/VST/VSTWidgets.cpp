@@ -1,0 +1,313 @@
+#include "VSTWidgets.hpp"
+#include <Media/Effect/VST/VSTControl.hpp>
+#include <Dataflow/Commands/CreateModulation.hpp>
+#include <Dataflow/Commands/EditConnection.hpp>
+#include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
+#include <Automation/Commands/SetAutomationMax.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <Media/Commands/VSTCommands.hpp>
+#include <Engine/Node/CommonWidgets.hpp>
+#include <Automation/AutomationModel.hpp>
+#include <QAction>
+#include <QMenu>
+
+namespace Media::VST
+{
+
+
+VSTGraphicsSlider::VSTGraphicsSlider(AEffect* fx, int num, QGraphicsItem* parent):
+  QGraphicsItem{parent}
+{
+  this->fx = fx;
+  this->num = num;
+  this->setAcceptedMouseButtons(Qt::LeftButton);
+}
+
+void VSTGraphicsSlider::setRect(QRectF r)
+{
+  prepareGeometryChange();
+  m_rect = r;
+}
+
+void VSTGraphicsSlider::setValue(double v)
+{
+  m_value = ossia::clamp(v, 0., 1.);
+  update();
+}
+
+double VSTGraphicsSlider::value() const
+{
+  return m_value;
+}
+
+void VSTGraphicsSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+  if(isInHandle(event->pos()))
+  {
+    m_grab = true;
+  }
+
+  const auto srect = sliderRect();
+  double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+  if(curPos != m_value)
+  {
+    m_value = curPos;
+    emit valueChanged(m_value);
+    emit sliderMoved();
+    update();
+  }
+
+  event->accept();
+}
+
+void VSTGraphicsSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+  if(m_grab)
+  {
+    const auto srect = sliderRect();
+    double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+    if(curPos != m_value)
+    {
+      m_value = curPos;
+      emit valueChanged(m_value);
+      emit sliderMoved();
+      update();
+    }
+  }
+  event->accept();
+}
+
+void VSTGraphicsSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  if(m_grab)
+  {
+    double curPos = ossia::clamp(event->pos().x() / sliderRect().width(), 0., 1.);
+    if(curPos != m_value)
+    {
+      m_value = curPos;
+      emit valueChanged(m_value);
+      update();
+    }
+    emit sliderReleased();
+    m_grab = false;
+  }
+  event->accept();
+}
+
+QRectF VSTGraphicsSlider::boundingRect() const
+{
+  return m_rect;
+}
+
+void VSTGraphicsSlider::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+  const auto& skin = score::Skin::instance();
+  painter->setRenderHint(QPainter::Antialiasing, true);
+
+  static const QPen darkPen{skin.HalfDark.color()};
+  static const QPen grayPen{skin.Gray.color()};
+  painter->setPen(darkPen);
+  painter->setBrush(skin.Dark);
+
+  // Draw rect
+  const auto srect = sliderRect();
+  painter->drawRoundedRect(srect, 1, 1);
+
+  // Draw text
+  painter->setPen(grayPen);
+  char str[256]{};
+  fx->dispatcher(fx, effGetParamDisplay, num, 0, str, m_value);
+
+#if defined(__linux__)
+  static const auto dpi_adjust = widget->devicePixelRatioF() > 1 ? 0 : -2;
+#else
+  static const constexpr auto dpi_adjust = -2;
+#endif
+
+  painter->drawText(srect.adjusted(6, dpi_adjust, -6, 0),
+                    QString::fromUtf8(str),
+                    getHandleX() > srect.width() / 2 ? QTextOption() : QTextOption(Qt::AlignRight));
+
+  // Draw handle
+  painter->setBrush(skin.HalfLight);
+  painter->setRenderHint(QPainter::Antialiasing, false);
+  painter->drawRect(handleRect());
+}
+
+bool VSTGraphicsSlider::isInHandle(QPointF p)
+{
+  return handleRect().contains(p);
+}
+
+double VSTGraphicsSlider::getHandleX() const
+{
+  return 4 + sliderRect().width() * m_value;
+}
+
+QRectF VSTGraphicsSlider::sliderRect() const
+{
+  return m_rect.adjusted(4, 3, -4, -3);
+}
+
+QRectF VSTGraphicsSlider::handleRect() const
+{
+  return {getHandleX() - 4., 1., 8., m_rect.height() - 1};
+}
+
+
+
+struct VSTFloatSlider : Control::ControlInfo
+{
+    static QGraphicsItem* make_item(AEffect* fx, VSTControlInlet& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
+    {
+      auto sl = new VSTGraphicsSlider{fx, inlet.fxNum, nullptr};
+      sl->setRect({0., 0., 150., 15.});
+      sl->setValue(ossia::convert<double>(inlet.value()));
+
+      QObject::connect(sl, &VSTGraphicsSlider::sliderMoved,
+                       context, [=,&inlet,&ctx] {
+        sl->moving = true;
+        ctx.dispatcher.submitCommand<SetVSTControl>(inlet, sl->value());
+      });
+      QObject::connect(sl, &VSTGraphicsSlider::sliderReleased,
+                       context, [&ctx,sl] () {
+        ctx.dispatcher.commit();
+        sl->moving = false;
+      });
+
+      QObject::connect(&inlet, &VSTControlInlet::valueChanged,
+                       sl, [=] (float val) {
+        if(!sl->moving)
+          sl->setValue(val);
+      });
+
+      return sl;
+    }
+};
+
+
+VSTEffectItem::VSTEffectItem(const VSTEffectModel& effect, const score::DocumentContext& doc, score::RectItem* root):
+  score::EmptyRectItem{root}
+{
+  rootItem = root;
+  using namespace Control::Widgets;
+  QObject::connect(
+        &effect, &Process::ProcessModel::controlAdded,
+        this, [&] (const Id<Process::Port>& id) {
+    auto inlet = safe_cast<VSTControlInlet*>(effect.inlet(id));
+    setupInlet(effect, *inlet, doc);
+    rootItem->setRect(rootItem->childrenBoundingRect());
+  });
+
+  QObject::connect(
+        &effect, &Process::ProcessModel::controlRemoved,
+        this, [&] (const Process::Port& port) {
+    auto inlet = qobject_cast<const VSTControlInlet*>(&port);
+    SCORE_ASSERT(inlet);
+    auto it = ossia::find_if(controlItems, [&] (auto p) { return p.first == inlet; });
+    if(it != controlItems.end())
+    {
+      double pos_y = it->second->pos().y();
+      delete it->second;
+      it = controlItems.erase(it);
+      for(; it != controlItems.end(); ++it)
+      {
+        auto rect = it->second;
+        rect->setPos(0, pos_y);
+        pos_y += rect->boundingRect().height();
+      }
+    }
+    rootItem->setRect(rootItem->childrenBoundingRect());
+  });
+
+  {
+    auto tempo = safe_cast<Process::ControlInlet*>(effect.inlets()[1]);
+    setupInlet(TempoChooser(), *tempo, doc);
+  }
+  {
+    auto sg = safe_cast<Process::ControlInlet*>(effect.inlets()[2]);
+    setupInlet(TimeSigChooser(), *sg, doc);
+  }
+  for(std::size_t i = 3; i < effect.inlets().size(); i++)
+  {
+    auto inlet = safe_cast<VSTControlInlet*>(effect.inlets()[i]);
+    setupInlet(effect, *inlet, doc);
+  }
+}
+
+struct VSTControlPortItem final : public Dataflow::PortItem
+{
+  public:
+    using Dataflow::PortItem::PortItem;
+
+    void setupMenu(QMenu& menu, const score::DocumentContext& ctx) override
+    {
+      auto rm_act = menu.addAction(QObject::tr("Remove port"));
+      connect(rm_act, &QAction::triggered,
+              this, [this,&ctx] {
+        QTimer::singleShot(0, [&ctx, parent=port().parent(), id=port().id()] {
+          CommandDispatcher<> disp{ctx.commandStack};
+          disp.submitCommand<RemoveVSTControl>(*static_cast<VSTEffectModel*>(parent), id);
+        });
+      });
+    }
+    bool on_createAutomation(
+        Scenario::IntervalModel& cst,
+        std::function<void(score::Command*)> macro,
+        const score::DocumentContext& ctx) override
+    {
+      auto make_cmd = new Scenario::Command::AddOnlyProcessToInterval{
+                      cst,
+                      Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), {}};
+      macro(make_cmd);
+
+      auto lay_cmd = new Scenario::Command::AddLayerInNewSlot{cst, make_cmd->processId()};
+      macro(lay_cmd);
+
+      auto& autom = safe_cast<Automation::ProcessModel&>(cst.processes.at(make_cmd->processId()));
+      macro(new Automation::SetMin{autom, 0.});
+      macro(new Automation::SetMax{autom, 1.});
+
+      auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
+      Process::CableData cd;
+      cd.type = Process::CableType::ImmediateStrict;
+      cd.source = *autom.outlet;
+      cd.sink = port();
+
+      macro(new Dataflow::CreateCable{plug, getStrongId(plug.cables), std::move(cd)});
+      return true;
+    }
+};
+
+void VSTEffectItem::setupInlet(const VSTEffectModel& fx, VSTControlInlet& inlet, const score::DocumentContext& doc)
+{
+  auto rect = new score::EmptyRectItem{this};
+
+  double pos_y = this->childrenBoundingRect().height();
+
+  auto item = new VSTControlPortItem{inlet, rect};
+  Dataflow::setupSimpleInlet(item, inlet, doc, rect, this);
+
+  auto lab = new Scenario::SimpleTextItem{rect};
+  lab->setColor(ScenarioStyle::instance().EventDefault);
+  lab->setText(inlet.customData());
+  lab->setPos(15, 2);
+
+
+  QGraphicsItem* widg = VSTFloatSlider::make_item(fx.fx->fx, inlet, doc, nullptr, this);
+  widg->setParentItem(rect);
+  widg->setPos(15, lab->boundingRect().height());
+
+  auto h = std::max(20., (qreal)(widg->boundingRect().height() + lab->boundingRect().height() + 2.));
+
+  item->setPos(7., h / 2.);
+
+  rect->setPos(0, pos_y);
+  rect->setRect(QRectF{0., 0, 170., h});
+  controlItems.push_back({&inlet, rect});
+}
+}
+

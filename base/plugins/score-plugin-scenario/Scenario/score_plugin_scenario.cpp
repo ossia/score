@@ -27,11 +27,9 @@
 #include <State/Message.hpp>
 
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
-#include <Process/Inspector/ProcessInspectorWidgetDelegateFactoryList.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessList.hpp>
-#include <Process/StateProcessFactoryList.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
 #include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactory.hpp>
@@ -64,6 +62,7 @@
 #include <Scenario/Inspector/ObjectTree/ObjectItemModel.hpp>
 #include <Dataflow/Inspector/DataflowWidget.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
+#include <Effect/EffectFactory.hpp>
 
 #include <score_plugin_scenario_commands_files.hpp>
 
@@ -126,8 +125,8 @@ score_plugin_scenario::factoryFamilies()
   return make_ptr_vector<score::InterfaceListBase,
       Process::ProcessFactoryList,
       Process::PortFactoryList,
-      Process::StateProcessList,
       Process::LayerFactoryList,
+      Process::ProcessFactoryList,
       MoveEventList,
       CSPCoherencyCheckerList,
       IntervalInspectorDelegateFactoryList,

@@ -129,8 +129,8 @@ Component::Component(
         element, ctx, id, "MidiComponent", parent}
 {
   auto node = std::make_shared<midi_node>();
+  this->node = node;
   m_ossia_process = std::make_shared<midi_node_process>(node);
-  ctx.plugin.register_node(element, node);
 
   node->set_channel(element.channel());
   node->set_notes(element.notes);

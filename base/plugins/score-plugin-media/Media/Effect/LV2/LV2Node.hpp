@@ -8,7 +8,7 @@ namespace Media
 {
 namespace LV2
 {
-class LV2AudioEffect : public ossia::audio_fx_node
+class LV2AudioEffect : public ossia::graph_node
 {
   protected:
     LV2Data data;

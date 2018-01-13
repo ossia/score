@@ -6,7 +6,7 @@
 #include <score_lib_base_export.h>
 namespace score
 {
-class SCORE_LIB_BASE_EXPORT QGraphicsPixmapButton
+class SCORE_LIB_BASE_EXPORT QGraphicsPixmapButton final
     : public QObject
     , public QGraphicsPixmapItem
 {
@@ -24,7 +24,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsPixmapButton
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 };
 
-class SCORE_LIB_BASE_EXPORT QGraphicsPixmapToggle
+class SCORE_LIB_BASE_EXPORT QGraphicsPixmapToggle final
     : public QObject
     , public QGraphicsPixmapItem
 {
@@ -33,6 +33,8 @@ class SCORE_LIB_BASE_EXPORT QGraphicsPixmapToggle
     bool m_toggled{};
   public:
     QGraphicsPixmapToggle(QPixmap pressed, QPixmap released, QGraphicsItem* parent);
+
+    void toggle();
 
   signals:
     void toggled(bool);
@@ -43,7 +45,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsPixmapToggle
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 };
 
-class SCORE_LIB_BASE_EXPORT QGraphicsSlider
+class SCORE_LIB_BASE_EXPORT QGraphicsSlider final
     : public QObject
     , public QGraphicsItem
 {
@@ -80,7 +82,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsSlider
     QRectF handleRect() const;
 };
 
-class SCORE_LIB_BASE_EXPORT QGraphicsLogSlider
+class SCORE_LIB_BASE_EXPORT QGraphicsLogSlider final
     : public QObject
     , public QGraphicsItem
 {
@@ -117,7 +119,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsLogSlider
 
 };
 
-class SCORE_LIB_BASE_EXPORT QGraphicsIntSlider
+class SCORE_LIB_BASE_EXPORT QGraphicsIntSlider final
     : public QObject
     , public QGraphicsItem
 {
@@ -151,7 +153,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsIntSlider
     QRectF handleRect() const;
 };
 
-class SCORE_LIB_BASE_EXPORT QGraphicsComboSlider
+class SCORE_LIB_BASE_EXPORT QGraphicsComboSlider final
     : public QObject
     , public QGraphicsItem
 {

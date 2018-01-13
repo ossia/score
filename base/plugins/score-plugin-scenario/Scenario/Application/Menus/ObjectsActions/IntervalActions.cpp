@@ -71,9 +71,11 @@ IntervalActions::IntervalActions(ScenarioApplicationPlugin* parent)
       return;
 
     auto& fact = appContext.interfaces<Process::ProcessFactoryList>();
-    auto dialog = new AddProcessDialog<Process::ProcessFactoryList>{fact, qApp->activeWindow()};
+    auto dialog = new AddProcessDialog{
+                  fact, Process::ProcessFlags::SupportsTemporal,
+                  qApp->activeWindow()};
 
-    dialog->on_okPressed = [this] (auto k) { addProcessInInterval(k); };
+    dialog->on_okPressed = [this] (auto k, const QString& data) { addProcessInInterval(k, data); };
     dialog->launchWindow();
     dialog->deleteLater();
   });
@@ -192,7 +194,8 @@ void IntervalActions::setupContextMenu(
 }
 
 void IntervalActions::addProcessInInterval(
-    const UuidKey<Process::ProcessModel>& processName)
+    const UuidKey<Process::ProcessModel>& processName,
+    const QString& data)
 {
   auto selectedIntervals
       = selectedIntervalsInCurrentDocument(m_parent->context);
@@ -202,7 +205,7 @@ void IntervalActions::addProcessInInterval(
   auto cmd
       = new Scenario::Command::AddProcessToInterval(
           **selectedIntervals.begin(),
-          processName);
+          processName, data);
 
   emit dispatcher().submitCommand(cmd);
 }

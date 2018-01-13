@@ -17,7 +17,8 @@ PROCESS_METADATA(
         "Effects",
         "Effect chain",
         "Structure",
-        {}
+        {},
+        Process::ProcessFlags::SupportsTemporal
         )
 
 

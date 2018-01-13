@@ -1,52 +1,37 @@
 #include "VSTEffectModel.hpp"
+#include "VSTWidgets.hpp"
 
 #include <Media/Effect/VST/VSTLoader.hpp>
-#include <QUrl>
-#include <QFile>
-#include <QFileInfo>
-#include <Media/Commands/VSTCommands.hpp>
 #include <ModernMIDI/midi_message.h>
-#include <set>
-#include <iostream>
-#include <memory>
-#include <cmath>
-#include <unordered_map>
 #include <ossia/detail/math.hpp>
 #include <score/tools/Todo.hpp>
-#include <ossia/detail/logger.hpp>
-#include <ossia/dataflow/fx_node.hpp>
-#include <ossia/dataflow/graph_node.hpp>
-#include <ossia/network/domain/domain.hpp>
 #include <Media/ApplicationPlugin.hpp>
-#include <Engine/Node/CommonWidgets.hpp>
-#include <Media/Effect/VST/VSTNode.hpp>
 #include <QTimer>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <websocketpp/base64/base64.hpp>
-#include <Dataflow/Commands/CreateModulation.hpp>
-#include <Dataflow/Commands/EditConnection.hpp>
-#include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
-#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
-#include <Automation/AutomationModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <Automation/Commands/SetAutomationMax.hpp>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Media/Effect/VST/VSTControl.hpp>
+#include <Media/Commands/VSTCommands.hpp>
 
-#include <ossia/dataflow/execution_state.hpp>
-void show_vst2_editor(AEffect& effect, ERect rect);
-void hide_vst2_editor(AEffect& effect);
+#include <QUrl>
+#include <QFile>
+#include <QFileInfo>
+#include <set>
+#include <iostream>
+#include <memory>
+#include <cmath>
+#include <unordered_map>
 
 namespace Media::VST
 {
 VSTEffectModel::VSTEffectModel(
+    TimeVal t,
     const QString& path,
-    const Id<EffectModel>& id,
+    const Id<Process::ProcessModel>& id,
     QObject* parent):
-  EffectModel{id, parent},
+  ProcessModel{t, id, "VST", parent},
   m_effectPath{path}
 {
   init();
@@ -289,7 +274,11 @@ void VSTEffectModel::closePlugin()
 {
   if(fx)
   {
-    hideUI();
+    if(ui)
+    {
+      auto w = reinterpret_cast<VSTWindow*>(ui);
+      delete w; //hideUI();
+    }
     fx = nullptr;
   }
   qDeleteAll(m_inlets);
@@ -297,42 +286,6 @@ void VSTEffectModel::closePlugin()
   m_inlets.clear();
   m_outlets.clear();
   metadata().setLabel("Dead VST");
-}
-
-void VSTEffectModel::showUI()
-{
-  ERect* vstRect{};
-
-  dispatch(effEditGetRect, 0, 0, &vstRect, 0.0f);
-
-  int w{};
-  int h{};
-  if(vstRect)
-  {
-    w = vstRect->right - vstRect->left;
-    h = vstRect->bottom - vstRect->top;
-  }
-
-  if(w <= 1)
-    w = 640;
-  if(h <= 1)
-    h = 480;
-
-  bool had_ui = bool(ui);
-  show_vst2_editor(*fx->fx, *vstRect);
-  if(!had_ui && ui)
-  {
-    auto& ctx = score::IDocument::documentContext(*this);
-    connect(&ctx.coarseUpdateTimer, &QTimer::timeout,
-            this, [=] {
-      dispatch(effEditIdle);
-    }, Qt::UniqueConnection);
-  }
-}
-
-void VSTEffectModel::hideUI()
-{
-  hide_vst2_editor(*fx->fx);
 }
 
 VSTModule* getPlugin(QString path)
@@ -478,300 +431,6 @@ void VSTEffectModel::load()
   }
 }
 
-
-
-VSTGraphicsSlider::VSTGraphicsSlider(AEffect* fx, int num, QGraphicsItem* parent):
-  QGraphicsItem{parent}
-{
-  this->fx = fx;
-  this->num = num;
-  this->setAcceptedMouseButtons(Qt::LeftButton);
-}
-
-void VSTGraphicsSlider::setRect(QRectF r)
-{
-  prepareGeometryChange();
-  m_rect = r;
-}
-
-void VSTGraphicsSlider::setValue(double v)
-{
-  m_value = ossia::clamp(v, 0., 1.);
-  update();
-}
-
-double VSTGraphicsSlider::value() const
-{
-  return m_value;
-}
-
-void VSTGraphicsSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
-{
-  if(isInHandle(event->pos()))
-  {
-    m_grab = true;
-  }
-
-  const auto srect = sliderRect();
-  double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
-  if(curPos != m_value)
-  {
-    m_value = curPos;
-    emit valueChanged(m_value);
-    emit sliderMoved();
-    update();
-  }
-
-  event->accept();
-}
-
-void VSTGraphicsSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
-{
-  if(m_grab)
-  {
-    const auto srect = sliderRect();
-    double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
-    if(curPos != m_value)
-    {
-      m_value = curPos;
-      emit valueChanged(m_value);
-      emit sliderMoved();
-      update();
-    }
-  }
-  event->accept();
-}
-
-void VSTGraphicsSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
-{
-  if(m_grab)
-  {
-    double curPos = ossia::clamp(event->pos().x() / sliderRect().width(), 0., 1.);
-    if(curPos != m_value)
-    {
-      m_value = curPos;
-      emit valueChanged(m_value);
-      update();
-    }
-    emit sliderReleased();
-    m_grab = false;
-  }
-  event->accept();
-}
-
-QRectF VSTGraphicsSlider::boundingRect() const
-{
-  return m_rect;
-}
-
-void VSTGraphicsSlider::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
-{
-  const auto& skin = score::Skin::instance();
-  painter->setRenderHint(QPainter::Antialiasing, true);
-
-  static const QPen darkPen{skin.HalfDark.color()};
-  static const QPen grayPen{skin.Gray.color()};
-  painter->setPen(darkPen);
-  painter->setBrush(skin.Dark);
-
-  // Draw rect
-  const auto srect = sliderRect();
-  painter->drawRoundedRect(srect, 1, 1);
-
-  // Draw text
-  painter->setPen(grayPen);
-  char str[256]{};
-  fx->dispatcher(fx, effGetParamDisplay, num, 0, str, m_value);
-
-#if defined(__linux__)
-  static const auto dpi_adjust = widget->devicePixelRatioF() > 1 ? 0 : -2;
-#else
-  static const constexpr auto dpi_adjust = -2;
-#endif
-
-  painter->drawText(srect.adjusted(6, dpi_adjust, -6, 0),
-                    QString::fromUtf8(str),
-                    getHandleX() > srect.width() / 2 ? QTextOption() : QTextOption(Qt::AlignRight));
-
-  // Draw handle
-  painter->setBrush(skin.HalfLight);
-  painter->setRenderHint(QPainter::Antialiasing, false);
-  painter->drawRect(handleRect());
-}
-
-bool VSTGraphicsSlider::isInHandle(QPointF p)
-{
-  return handleRect().contains(p);
-}
-
-double VSTGraphicsSlider::getHandleX() const
-{
-  return 4 + sliderRect().width() * m_value;
-}
-
-QRectF VSTGraphicsSlider::sliderRect() const
-{
-  return m_rect.adjusted(4, 3, -4, -3);
-}
-
-QRectF VSTGraphicsSlider::handleRect() const
-{
-  return {getHandleX() - 4., 1., 8., m_rect.height() - 1};
-}
-
-
-
-struct VSTFloatSlider : Control::ControlInfo
-{
-    static QGraphicsItem* make_item(AEffect* fx, VSTControlInlet& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
-    {
-      auto sl = new VSTGraphicsSlider{fx, inlet.fxNum, nullptr};
-      sl->setRect({0., 0., 150., 15.});
-      sl->setValue(ossia::convert<double>(inlet.value()));
-
-      QObject::connect(sl, &VSTGraphicsSlider::sliderMoved,
-                       context, [=,&inlet,&ctx] {
-        sl->moving = true;
-        ctx.dispatcher.submitCommand<SetVSTControl>(inlet, sl->value());
-      });
-      QObject::connect(sl, &VSTGraphicsSlider::sliderReleased,
-                       context, [&ctx,sl] () {
-        ctx.dispatcher.commit();
-        sl->moving = false;
-      });
-
-      QObject::connect(&inlet, &VSTControlInlet::valueChanged,
-                       sl, [=] (float val) {
-        if(!sl->moving)
-          sl->setValue(val);
-      });
-
-      return sl;
-    }
-};
-
-
-VSTEffectItem::VSTEffectItem(const VSTEffectModel& effect, const score::DocumentContext& doc, Control::RectItem* root):
-  Control::EmptyRectItem{root}
-{
-  rootItem = root;
-  using namespace Control::Widgets;
-  QObject::connect(
-        &effect, &Process::EffectModel::controlAdded,
-        this, [&] (const Id<Process::Port>& id) {
-    auto inlet = safe_cast<VSTControlInlet*>(effect.inlet(id));
-    setupInlet(effect, *inlet, doc);
-    rootItem->setRect(rootItem->childrenBoundingRect());
-  });
-
-  QObject::connect(
-        &effect, &Process::EffectModel::controlRemoved,
-        this, [&] (const Process::Port& port) {
-    auto inlet = qobject_cast<const VSTControlInlet*>(&port);
-    SCORE_ASSERT(inlet);
-    auto it = ossia::find_if(controlItems, [&] (auto p) { return p.first == inlet; });
-    if(it != controlItems.end())
-    {
-      double pos_y = it->second->pos().y();
-      delete it->second;
-      it = controlItems.erase(it);
-      for(; it != controlItems.end(); ++it)
-      {
-        auto rect = it->second;
-        rect->setPos(0, pos_y);
-        pos_y += rect->boundingRect().height();
-      }
-    }
-    rootItem->setRect(rootItem->childrenBoundingRect());
-  });
-
-  {
-    auto tempo = safe_cast<Process::ControlInlet*>(effect.inlets()[1]);
-    setupInlet(TempoChooser(), *tempo, doc);
-  }
-  {
-    auto sg = safe_cast<Process::ControlInlet*>(effect.inlets()[2]);
-    setupInlet(TimeSigChooser(), *sg, doc);
-  }
-  for(std::size_t i = 3; i < effect.inlets().size(); i++)
-  {
-    auto inlet = safe_cast<VSTControlInlet*>(effect.inlets()[i]);
-    setupInlet(effect, *inlet, doc);
-  }
-}
-
-struct VSTControlPortItem final : public Dataflow::PortItem
-{
-  public:
-    using Dataflow::PortItem::PortItem;
-
-    void setupMenu(QMenu& menu, const score::DocumentContext& ctx) override
-    {
-      auto rm_act = menu.addAction(QObject::tr("Remove port"));
-      connect(rm_act, &QAction::triggered,
-              this, [this,&ctx] {
-        QTimer::singleShot(0, [&ctx, parent=port().parent(), id=port().id()] {
-          CommandDispatcher<> disp{ctx.commandStack};
-          disp.submitCommand<RemoveVSTControl>(*static_cast<VSTEffectModel*>(parent), id);
-        });
-      });
-    }
-    bool on_createAutomation(
-        Scenario::IntervalModel& cst,
-        std::function<void(score::Command*)> macro,
-        const score::DocumentContext& ctx) override
-    {
-      auto make_cmd = new Scenario::Command::AddOnlyProcessToInterval{
-                      cst,
-                      Metadata<ConcreteKey_k, Automation::ProcessModel>::get()};
-      macro(make_cmd);
-
-      auto lay_cmd = new Scenario::Command::AddLayerInNewSlot{cst, make_cmd->processId()};
-      macro(lay_cmd);
-
-      auto& autom = safe_cast<Automation::ProcessModel&>(cst.processes.at(make_cmd->processId()));
-      macro(new Automation::SetMin{autom, 0.});
-      macro(new Automation::SetMax{autom, 1.});
-
-      auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
-      Process::CableData cd;
-      cd.type = Process::CableType::ImmediateStrict;
-      cd.source = *autom.outlet;
-      cd.sink = port();
-
-      macro(new Dataflow::CreateCable{plug, getStrongId(plug.cables), std::move(cd)});
-      return true;
-    }
-};
-
-void VSTEffectItem::setupInlet(const VSTEffectModel& fx, VSTControlInlet& inlet, const score::DocumentContext& doc)
-{
-  auto rect = new Control::EmptyRectItem{this};
-
-  double pos_y = this->childrenBoundingRect().height();
-
-  auto item = new VSTControlPortItem{inlet, rect};
-  Dataflow::setupSimpleInlet(item, inlet, doc, rect, this);
-
-  auto lab = new Scenario::SimpleTextItem{rect};
-  lab->setColor(ScenarioStyle::instance().EventDefault);
-  lab->setText(inlet.customData());
-  lab->setPos(15, 2);
-
-
-  QGraphicsItem* widg = VSTFloatSlider::make_item(fx.fx->fx, inlet, doc, nullptr, this);
-  widg->setParentItem(rect);
-  widg->setPos(15, lab->boundingRect().height());
-
-  auto h = std::max(20., (qreal)(widg->boundingRect().height() + lab->boundingRect().height() + 2.));
-
-  item->setPos(7., h / 2.);
-
-  rect->setPos(0, pos_y);
-  rect->setRect(QRectF{0., 0, 170., h});
-  controlItems.push_back({&inlet, rect});
-}
-
 }
 
 template <>
@@ -871,99 +530,6 @@ void JSONObjectWriter::write(
     }});
 }
 
-namespace Engine::Execution
-{
-VSTEffectComponent::VSTEffectComponent(
-    Media::VST::VSTEffectModel& proc,
-    const Engine::Execution::Context& ctx,
-    const Id<score::Component>& id,
-    QObject* parent)
-  : Engine::Execution::EffectComponent_T<Media::VST::VSTEffectModel>{proc, ctx, id, parent}
-{
-  AEffect& fx = *proc.fx->fx;
-  auto setup_controls = [&] (auto& node) {
-    node->ctrl_ptrs.reserve(proc.controls.size());
-    for(auto& ctrl : proc.controls)
-    {
-      auto inlet = ossia::make_inlet<ossia::value_port>();
-      node->ctrl_ptrs.push_back({ctrl.second->fxNum, inlet->data.target<ossia::value_port>()});
-      node->inputs().push_back(std::move(inlet));
-    }
-
-    std::weak_ptr<std::remove_reference_t<decltype(*node)>> wp = node;
-    connect(&proc, &Media::VST::VSTEffectModel::controlAdded,
-            this, [this,&proc,wp] (const Id<Process::Port>& id) {
-      auto port = proc.getControl(id);
-      if(!port)
-        return;
-      if(auto n = wp.lock())
-      {
-        in_exec([n,num=port->fxNum] {
-          auto inlet = ossia::make_inlet<ossia::value_port>();
-
-          n->ctrl_ptrs.push_back({num, inlet->data.target<ossia::value_port>()});
-          n->inputs().push_back(inlet);
-        });
-      }
-    });
-    connect(&proc, &Media::VST::VSTEffectModel::controlRemoved,
-            this, [this,&proc,wp] (const Process::Port& port) {
-      if(auto n = wp.lock())
-      {
-        in_exec([n,num=static_cast<const Media::VST::VSTControlInlet&>(port).fxNum] {
-          auto it = ossia::find_if(n->ctrl_ptrs, [&] (auto& c) {
-            return c.first == num;
-          });
-          if(it != n->ctrl_ptrs.end())
-          {
-            auto port = it->second;
-            n->ctrl_ptrs.erase(it);
-            auto port_it = ossia::find_if(n->inputs(), [&] (auto& p) {
-              return p->data.target() == port;
-            });
-            if(port_it != n->inputs().end())
-            {
-              port->clear();
-              n->inputs().erase(port_it);
-            }
-          }
-        });
-      }
-    });
-  };
-
-  if(fx.flags & effFlagsCanDoubleReplacing)
-  {
-    if(fx.flags & effFlagsIsSynth)
-    {
-      auto n = Media::VST::make_vst_fx<true, true>(proc.fx, ctx.plugin.execState->sampleRate);
-      setup_controls(n);
-      node = std::move(n);
-    }
-    else
-    {
-      auto n = Media::VST::make_vst_fx<true, false>(proc.fx, ctx.plugin.execState->sampleRate);
-      setup_controls(n);
-      node = std::move(n);
-    }
-  }
-  else
-  {
-    if(fx.flags & effFlagsIsSynth)
-    {
-      auto n = Media::VST::make_vst_fx<false, true>(proc.fx, ctx.plugin.execState->sampleRate);
-      setup_controls(n);
-      node = std::move(n);
-    }
-    else
-    {
-      auto n = Media::VST::make_vst_fx<false, false>(proc.fx, ctx.plugin.execState->sampleRate);
-      setup_controls(n);
-      node = std::move(n);
-    }
-  }
-}
-}
 
 
 template<>

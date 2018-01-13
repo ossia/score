@@ -38,6 +38,7 @@ Component::Component(
          element, ctx, id, "JSComponent", parent}
 {
   std::shared_ptr<js_node> node = std::make_shared<js_node>("");
+  this->node = node;
   auto proc = std::make_shared<ossia::node_process>(node);
   m_ossia_process = proc;
 
@@ -106,7 +107,6 @@ Component::Component(
     js_control_updater{*val_inlet.first, ctrl->value()}();
   }
 
-  ctx.plugin.register_node(element, node);
   /*
   con(element, &JS::ProcessModel::scriptChanged,
       this, [=] (const QString& str) {

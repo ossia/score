@@ -95,7 +95,7 @@ ScenarioDocumentModel::ScenarioDocumentModel(
 
   AddOnlyProcessToInterval cmd1{
       m_baseScenario->interval(),
-      Metadata<ConcreteKey_k, Scenario::ProcessModel>::get()};
+      Metadata<ConcreteKey_k, Scenario::ProcessModel>::get(), QString{}};
   cmd1.redo(ctx);
   m_baseScenario->interval().processes.begin()->setSlotHeight(1500);
 

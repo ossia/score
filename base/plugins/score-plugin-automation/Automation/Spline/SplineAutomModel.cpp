@@ -24,6 +24,7 @@ ProcessModel::ProcessModel(
   m_spline.points.push_back({1.0, 1.0});
 
   metadata().setInstanceName(*this);
+  init();
 }
 
 ProcessModel::~ProcessModel()

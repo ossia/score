@@ -27,7 +27,7 @@ void EncapsulateInLoop(const Scenario::ProcessModel& scenar, const score::Comman
 
     auto create_loop = new AddProcessToInterval{
         source_itv,
-        Metadata<ConcreteKey_k, Loop::ProcessModel>::get()};
+                       Metadata<ConcreteKey_k, Loop::ProcessModel>::get(), {}};
     disp.submitCommand(create_loop);
 
     auto& loop = static_cast<Loop::ProcessModel&>(*source_itv.processes.begin());
@@ -50,7 +50,7 @@ void EncapsulateInLoop(const Scenario::ProcessModel& scenar, const score::Comman
 
     auto create_loop = new AddProcessToInterval{
         loop_parent_itv,
-        Metadata<ConcreteKey_k, Loop::ProcessModel>::get()};
+        Metadata<ConcreteKey_k, Loop::ProcessModel>::get(), {}};
     disp.submitCommand(create_loop);
 
     auto& loop = static_cast<Loop::ProcessModel&>(*loop_parent_itv.processes.begin());
@@ -59,7 +59,7 @@ void EncapsulateInLoop(const Scenario::ProcessModel& scenar, const score::Comman
     {
       // Add a sub-scenario
       auto create_scenar = new AddProcessToInterval{itv,
-          Metadata<ConcreteKey_k, Scenario::ProcessModel>::get()};
+          Metadata<ConcreteKey_k, Scenario::ProcessModel>::get(), {}};
       disp.submitCommand(create_scenar);
 
       auto& sub_scenar = static_cast<Scenario::ProcessModel&>(*itv.processes.begin());

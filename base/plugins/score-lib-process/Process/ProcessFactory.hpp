@@ -5,6 +5,7 @@
 #include <QString>
 #include <score/plugins/customfactory/FactoryInterface.hpp>
 #include <score/model/Identifier.hpp>
+#include <Process/ProcessMetadata.hpp>
 #include <score_lib_process_export.h>
 
 class QGraphicsItem;
@@ -14,6 +15,7 @@ namespace score
 {
 struct DocumentContext;
 struct RelativePath;
+class RectItem;
 }
 namespace Process
 {
@@ -24,12 +26,12 @@ class ProcessModel;
 class LayerPanelProxy;
 struct ProcessPresenterContext;
 
-/**
-     * @brief The ProcessFactory class
-     *
-     * Interface to make processes, like Scenario, Automation...
-     */
 
+/**
+ * @brief The ProcessFactory class
+ *
+ * Interface to make processes, like Scenario, Automation...
+ */
 class SCORE_LIB_PROCESS_EXPORT ProcessModelFactory
     : public score::Interface<ProcessModel>
 {
@@ -39,9 +41,12 @@ public:
 
   virtual QString prettyName() const = 0;
   virtual QString category() const = 0;
+  virtual ProcessFlags flags() const = 0;
+
+  virtual QString customConstructionData() const;
 
   virtual Process::ProcessModel*
-  make(const TimeVal& duration, const Id<ProcessModel>& id, QObject* parent)
+  make(const TimeVal& duration, const QString& data, const Id<ProcessModel>& id, QObject* parent)
       = 0;
 
   virtual Process::ProcessModel* load(const VisitorVariant&, QObject* parent)
@@ -55,9 +60,6 @@ class SCORE_LIB_PROCESS_EXPORT LayerFactory
 public:
   virtual ~LayerFactory();
 
-  // TODO Make it take a view name, too (cf. logical / temporal).
-  // Or make it be created by the ViewModel, and the View be created by the
-  // presenter.
   virtual Process::LayerPresenter* makeLayerPresenter(
       const Process::ProcessModel&,
       Process::LayerView*,
@@ -65,17 +67,21 @@ public:
       QObject* parent);
 
   virtual Process::LayerView*
-  makeLayerView(const Process::ProcessModel& view, QGraphicsItem* parent);
+  makeLayerView(const Process::ProcessModel&, QGraphicsItem* parent);
 
   virtual Process::MiniLayer*
-  makeMiniLayer(const Process::ProcessModel& view, QGraphicsItem* parent);
+  makeMiniLayer(const Process::ProcessModel&, QGraphicsItem* parent);
+
+  virtual QGraphicsItem*
+  makeItem(const Process::ProcessModel&, const score::DocumentContext& ctx, score::RectItem* parent) const;
 
   virtual Process::LayerPanelProxy*
-  makePanel(const ProcessModel& layer, QObject* parent);
+  makePanel(const ProcessModel&, const score::DocumentContext& ctx, QObject* parent);
+
+  virtual QWindow*
+  makeExternalUI(const Process::ProcessModel&, const score::DocumentContext& ctx, QWidget* parent);
 
   bool matches(const Process::ProcessModel& p) const;
   virtual bool matches(const UuidKey<Process::ProcessModel>&) const = 0;
-
-protected:
 };
 }

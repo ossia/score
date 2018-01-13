@@ -41,6 +41,14 @@ struct Metadata<Tags_k, Control::ControlProcess<Info>>
     }
 };
 template <typename Info>
+struct Metadata<Process::ProcessFlags_k, Control::ControlProcess<Info>>
+{
+    static Process::ProcessFlags get()
+    {
+      return Process::ProcessFlags::SupportsAll;
+    }
+};
+template <typename Info>
 struct Metadata<ObjectKey_k, Control::ControlProcess<Info>>
 {
     static Q_DECL_RELAXED_CONSTEXPR auto get()
@@ -112,7 +120,7 @@ struct PortSetup
         auto p = new Process::Outlet(Id<Process::Port>(outlet++), &self);
         p->type = Process::PortType::Audio;
         p->setCustomData(out.name);
-        if(outlet == 0)
+        if(outlet == 1)
           p->setPropagate(true);
         outs.push_back(p);
       }
@@ -142,24 +150,8 @@ class ControlProcess final: public Process::ProcessModel
     friend struct TSerializer<DataStream, Control::ControlProcess<Info>>;
     friend struct TSerializer<JSONObject, Control::ControlProcess<Info>>;
     friend struct Control::PortSetup;
-    Process::Inlets m_inlets;
-    Process::Outlets m_outlets;
-
-    Process::Inlets inlets() const final override
-    {
-      return m_inlets;
-    }
-
-    Process::Outlets outlets() const final override
-    {
-      return m_outlets;
-    }
 
   public:
-
-    const Process::Inlets& inlets_ref() const { return m_inlets; }
-    const Process::Outlets& outlets_ref() const { return m_outlets; }
-
     ossia::value control(std::size_t i) const
     {
       static_assert(InfoFunctions<Info>::control_count != 0);
@@ -217,12 +209,12 @@ struct TSerializer<DataStream, Model<Info, Control::is_control>>
     readFrom(DataStream::Serializer& s, const model_type& obj)
     {
       using namespace Control;
-      for (auto obj : obj.inlets_ref())
+      for (auto obj : obj.inlets())
       {
         s.stream() << *obj;
       }
 
-      for (auto obj : obj.outlets_ref())
+      for (auto obj : obj.outlets())
       {
         s.stream() << *obj;
       }
@@ -255,8 +247,8 @@ struct TSerializer<JSONObject, Model<Info, Control::is_control>>
     readFrom(JSONObject::Serializer& s, const model_type& obj)
     {
       using namespace Control;
-      s.obj["Inlets"] = toJsonArray(obj.inlets_ref());
-      s.obj["Outlets"] = toJsonArray(obj.outlets_ref());
+      s.obj["Inlets"] = toJsonArray(obj.inlets());
+      s.obj["Outlets"] = toJsonArray(obj.outlets());
     }
 
     static void writeTo(JSONObject::Deserializer& s, model_type& obj)

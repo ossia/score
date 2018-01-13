@@ -18,7 +18,7 @@ RecordData RecordAutomationCreationVisitor::makeCurve(float start_y)
   // about their generation.
   auto cmd_proc = new Scenario::Command::AddOnlyProcessToInterval{
       box.interval,
-      Metadata<ConcreteKey_k, Automation::ProcessModel>::get()};
+      Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), {}};
   cmd_proc->redo(recorder.context.context);
   auto& proc = box.interval.processes.at(cmd_proc->processId());
   auto& autom = static_cast<Automation::ProcessModel&>(proc);

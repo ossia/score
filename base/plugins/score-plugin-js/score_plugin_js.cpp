@@ -1,10 +1,8 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <JS/Executor/Component.hpp>
-#include <JS/Executor/StateComponent.hpp>
 #include <JS/Inspector/JSInspectorFactory.hpp>
 #include <JS/JSProcessFactory.hpp>
-#include <JS/JSStateProcess.hpp>
 #include <JS/Qml/QmlObjects.hpp>
 #include <score/tools/std/HashMap.hpp>
 
@@ -47,10 +45,8 @@ score_plugin_js::factories(
   return instantiate_factories<score::ApplicationContext,
       FW<Process::ProcessModelFactory, JS::ProcessFactory>,
       FW<Process::LayerFactory, JS::LayerFactory>,
-      FW<Process::StateProcessFactory, JS::StateProcessFactory>,
-      FW<Inspector::InspectorWidgetFactory, JS::InspectorFactory, JS::StateInspectorFactory>,
+      FW<Inspector::InspectorWidgetFactory, JS::InspectorFactory>,
       FW<Engine::Execution::ProcessComponentFactory, JS::Executor::ComponentFactory>
-      // TODO , FW<Engine::Execution::StateProcessComponentFactory, JS::Executor::StateProcessComponentFactory>
       >(
       ctx, key);
 }

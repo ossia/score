@@ -185,6 +185,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/OrderedToolbar.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/QGraphicsButton.hpp"
 #    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/QmlContainerPanel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/RectItem.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ReactiveLabel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/Separator.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SetIcons.hpp"
@@ -275,6 +276,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/GraphicsItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ClearLayout.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/DoubleSlider.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/RectItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SetIcons.cpp"
 # "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/QmlContainerPanel.cpp" # TODO MOVEME
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/Separator.cpp"

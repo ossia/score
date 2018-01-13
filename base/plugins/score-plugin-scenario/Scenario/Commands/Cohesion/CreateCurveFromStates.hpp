@@ -41,8 +41,7 @@ public:
       const IntervalModel& interval,
       const std::vector<SlotPath>& slotList,
       Id<Process::ProcessModel> procId)
-      : m_addProcessCmd{std::move(interval), std::move(procId),
-                        Metadata<ConcreteKey_k, ProcessModel_T>::get()}
+      : m_addProcessCmd{std::move(interval), std::move(procId), Metadata<ConcreteKey_k, ProcessModel_T>::get(), QString{}}
   {
     m_slotsCmd.reserve(slotList.size());
     for (const auto& elt : slotList)

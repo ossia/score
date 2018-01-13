@@ -3,7 +3,6 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
-#include <Process/StateProcess.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
@@ -11,8 +10,8 @@
 #include <Scenario/Commands/Interval/CreateProcessInNewSlot.hpp>
 #include <Scenario/Commands/Interval/RemoveProcessFromInterval.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Effect/EffectFactory.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Process/StateProcessFactoryList.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <QToolButton>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -49,11 +48,11 @@ void ObjectItemModel::setSelected(QList<const IdentifiedObjectAbstract*> objs)
   QList<const QObject*> root{};
   for(const QObject* sel : objs)
   {
-    if(auto cst = dynamic_cast<const Scenario::IntervalModel*>(sel))
+    if(auto cst = qobject_cast<const Scenario::IntervalModel*>(sel))
     {
       root.push_back(cst);
     }
-    else if(auto ev = dynamic_cast<const Scenario::EventModel*>(sel))
+    else if(auto ev = qobject_cast<const Scenario::EventModel*>(sel))
     {
       Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*ev);
       auto& parent_ts = Scenario::parentTimeSync(*ev, scenar);
@@ -62,11 +61,11 @@ void ObjectItemModel::setSelected(QList<const IdentifiedObjectAbstract*> objs)
       else
         root.push_back(ev);
     }
-    else if(auto ts = dynamic_cast<const Scenario::TimeSyncModel*>(sel))
+    else if(auto ts = qobject_cast<const Scenario::TimeSyncModel*>(sel))
     {
       root.push_back(ts);
     }
-    else if(auto st = dynamic_cast<const Scenario::StateModel*>(sel))
+    else if(auto st = qobject_cast<const Scenario::StateModel*>(sel))
     {
       Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*st);
       auto& parent_ev = Scenario::parentEvent(*st, scenar);
@@ -81,15 +80,17 @@ void ObjectItemModel::setSelected(QList<const IdentifiedObjectAbstract*> objs)
       else
         root.push_back(st);
     }
-    else if(auto stp = dynamic_cast<const Process::StateProcess*>(sel))
+    else if(auto proc = qobject_cast<const Process::ProcessModel*>(sel))
     {
-      auto state = static_cast<Scenario::StateModel*>(stp->parent());
-      Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*state);
-      root.push_back(&Scenario::parentTimeSync(*state, scenar));
-    }
-    else if(auto p = dynamic_cast<const Process::ProcessModel*>(sel))
-    {
-      root.push_back(p->parent());
+      if(auto state = qobject_cast<Scenario::StateModel*>(proc->parent()))
+      {
+        Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*state);
+        root.push_back(&Scenario::parentTimeSync(*state, scenar));
+      }
+      else if(auto itv = qobject_cast<Scenario::IntervalModel*>(proc->parent()))
+      {
+        root.push_back(itv);
+      }
     }
   }
 
@@ -115,7 +116,7 @@ void ObjectItemModel::setupConnections()
   for(auto obj : m_root)
   {
     m_aliveMap.insert(obj, obj);
-    if(auto cst = dynamic_cast<const Scenario::IntervalModel*>(obj))
+    if(auto cst = qobject_cast<const Scenario::IntervalModel*>(obj))
     {
       cst->processes.added.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
       cst->processes.removed.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
@@ -123,7 +124,7 @@ void ObjectItemModel::setupConnections()
       for(auto& proc : cst->processes)
         m_aliveMap.insert(&proc, &proc);
     }
-    else if (auto tn = dynamic_cast<const Scenario::TimeSyncModel*>(obj))
+    else if (auto tn = qobject_cast<const Scenario::TimeSyncModel*>(obj))
     {
       auto& scenar = Scenario::parentScenario(*tn);
       m_itemCon.push_back(connect(tn, &TimeSyncModel::newEvent, this, [=] { recompute(); }));
@@ -146,7 +147,7 @@ void ObjectItemModel::setupConnections()
         }
       }
     }
-    else if ( auto ev = dynamic_cast<const Scenario::EventModel*>(obj) )
+    else if ( auto ev = qobject_cast<const Scenario::EventModel*>(obj) )
     {
       auto& scenar = Scenario::parentScenario(*ev);
       auto& e = *ev;
@@ -163,7 +164,7 @@ void ObjectItemModel::setupConnections()
           m_aliveMap.insert(&sp, &sp);
       }
     }
-    else if ( auto st = dynamic_cast<const Scenario::StateModel*>(obj) )
+    else if ( auto st = qobject_cast<const Scenario::StateModel*>(obj) )
     {
       auto& s = *st;
       m_aliveMap.insert(&s, &s);
@@ -202,13 +203,13 @@ QModelIndex ObjectItemModel::index(int row, int column, const QModelIndex& paren
   auto sel = (QObject*)parent.internalPointer();
   if(isAlive(sel))
   {
-    if(auto cst = dynamic_cast<Scenario::IntervalModel*>(sel))
+    if(auto cst = qobject_cast<Scenario::IntervalModel*>(sel))
     {
       auto it = cst->processes.begin();
       std::advance(it, row);
       return createIndex(row, column, &*(it));
     }
-    else if(auto ev = dynamic_cast<Scenario::EventModel*>(sel))
+    else if(auto ev = qobject_cast<Scenario::EventModel*>(sel))
     {
       Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*ev);
       auto it = ev->states().begin();
@@ -217,7 +218,7 @@ QModelIndex ObjectItemModel::index(int row, int column, const QModelIndex& paren
       if(auto st = scenar.findState(*it))
         return createIndex(row, column, st);
     }
-    else if(auto tn = dynamic_cast<Scenario::TimeSyncModel*>(sel))
+    else if(auto tn = qobject_cast<Scenario::TimeSyncModel*>(sel))
     {
       Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*tn);
       auto it = tn->events().begin();
@@ -226,7 +227,7 @@ QModelIndex ObjectItemModel::index(int row, int column, const QModelIndex& paren
       if(auto ev = scenar.findEvent(*it))
         return createIndex(row, column, ev);
     }
-    else if(auto st = dynamic_cast<Scenario::StateModel*>(sel))
+    else if(auto st = qobject_cast<Scenario::StateModel*>(sel))
     {
       auto it = st->stateProcesses.begin();
       std::advance(it, row);
@@ -273,11 +274,11 @@ QModelIndex ObjectItemModel::parent(const QModelIndex& child) const
   if(!isAlive(sel))
     return QModelIndex{};
 
-  if(dynamic_cast<Scenario::IntervalModel*>(sel))
+  if(qobject_cast<Scenario::IntervalModel*>(sel))
   {
     return QModelIndex{};
   }
-  else if(auto ev = dynamic_cast<Scenario::EventModel*>(sel))
+  else if(auto ev = qobject_cast<Scenario::EventModel*>(sel))
   {
     Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*ev);
     auto& tn = Scenario::parentTimeSync(*ev, scenar);
@@ -287,11 +288,11 @@ QModelIndex ObjectItemModel::parent(const QModelIndex& child) const
     else
       return QModelIndex{};
   }
-  else if(dynamic_cast<Scenario::TimeSyncModel*>(sel))
+  else if(qobject_cast<Scenario::TimeSyncModel*>(sel))
   {
     return QModelIndex{};
   }
-  else if(auto st = dynamic_cast<Scenario::StateModel*>(sel))
+  else if(auto st = qobject_cast<Scenario::StateModel*>(sel))
   {
     Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*st);
     auto& tn = Scenario::parentTimeSync(*st, scenar);
@@ -303,27 +304,29 @@ QModelIndex ObjectItemModel::parent(const QModelIndex& child) const
     else
       return QModelIndex{};
   }
-  else if(auto stp = dynamic_cast<Process::StateProcess*>(sel))
+  else if(auto stp = qobject_cast<Process::ProcessModel*>(sel))
   {
-    auto state = static_cast<Scenario::StateModel*>(stp->parent());
-    Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*state);
-    auto& ev = Scenario::parentEvent(*state, scenar);
-    auto it = ossia::find(ev.states(), state->id());
-    SCORE_ASSERT(it != ev.states().end());
-    auto idx = std::distance(ev.states().begin(), it);
+    if(auto state = qobject_cast<Scenario::StateModel*>(stp->parent()))
+    {
+      Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*state);
+      auto& ev = Scenario::parentEvent(*state, scenar);
+      auto it = ossia::find(ev.states(), state->id());
+      SCORE_ASSERT(it != ev.states().end());
+      auto idx = std::distance(ev.states().begin(), it);
 
-    if (idx >= 0)
-      return createIndex(idx, 0, state);
-    else
-      return QModelIndex{};
-  }
-  else if(auto proc = dynamic_cast<Process::ProcessModel*>(sel))
-  {
-    auto idx = m_root.indexOf(proc->parent());
-    if (idx >= 0)
-      return createIndex(idx, 0, (void*)m_root[idx]);
-    else
-      return QModelIndex{};
+      if (idx >= 0)
+        return createIndex(idx, 0, state);
+      else
+        return QModelIndex{};
+    }
+    else if(auto cst = qobject_cast<Scenario::IntervalModel*>(stp->parent()))
+    {
+      auto idx = m_root.indexOf(cst);
+      if (idx >= 0)
+        return createIndex(idx, 0, (void*)m_root[idx]);
+      else
+        return QModelIndex{};
+    }
   }
 
   return QModelIndex{};
@@ -350,19 +353,19 @@ int ObjectItemModel::rowCount(const QModelIndex& parent) const
   auto sel = (QObject*)parent.internalPointer();
   if(isAlive(sel))
   {
-    if(auto cst = dynamic_cast<Scenario::IntervalModel*>(sel))
+    if(auto cst = qobject_cast<Scenario::IntervalModel*>(sel))
     {
       return cst->processes.size();
     }
-    else if(auto ev = dynamic_cast<Scenario::EventModel*>(sel))
+    else if(auto ev = qobject_cast<Scenario::EventModel*>(sel))
     {
       return ev->states().size();
     }
-    else if(auto ts = dynamic_cast<Scenario::TimeSyncModel*>(sel))
+    else if(auto ts = qobject_cast<Scenario::TimeSyncModel*>(sel))
     {
       return ts->events().size();
     }
-    else if(auto st = dynamic_cast<Scenario::StateModel*>(sel))
+    else if(auto st = qobject_cast<Scenario::StateModel*>(sel))
     {
       return st->stateProcesses.size();
     }
@@ -398,30 +401,30 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
   {
     if(role == Qt::DisplayRole)
     {
-      if(auto cst = dynamic_cast<Scenario::IntervalModel*>(sel))
+      if(auto cst = qobject_cast<Scenario::IntervalModel*>(sel))
       {
         return cst->metadata().getName();
       }
-      else if(auto ev = dynamic_cast<Scenario::EventModel*>(sel))
+      else if(auto ev = qobject_cast<Scenario::EventModel*>(sel))
       {
         return ev->metadata().getName();
       }
-      else if(auto tn = dynamic_cast<Scenario::TimeSyncModel*>(sel))
+      else if(auto tn = qobject_cast<Scenario::TimeSyncModel*>(sel))
       {
         return tn->metadata().getName();
       }
-      else if(auto st = dynamic_cast<Scenario::StateModel*>(sel))
+      else if(auto st = qobject_cast<Scenario::StateModel*>(sel))
       {
         return st->metadata().getName();
       }
-      else if(auto stp = dynamic_cast<Process::StateProcess*>(sel))
+      else if(auto stp = qobject_cast<Process::ProcessModel*>(sel))
       {
         auto name = stp->prettyName();
         if(name.isEmpty())
           name = stp->prettyShortName();
         return name;
       }
-      else if(auto p = dynamic_cast<Process::ProcessModel*>(sel))
+      else if(auto p = qobject_cast<Process::ProcessModel*>(sel))
       {
         auto name = p->prettyName();
         if(name.isEmpty())
@@ -431,12 +434,12 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
     }
     else if(role == Qt::DecorationRole)
     {
-      if(dynamic_cast<Scenario::IntervalModel*>(sel))
+      if(qobject_cast<Scenario::IntervalModel*>(sel))
       {
         static const QIcon icon(":/images/interval.svg");
         return icon;
       }
-      else if(auto ev = dynamic_cast<Scenario::EventModel*>(sel))
+      else if(auto ev = qobject_cast<Scenario::EventModel*>(sel))
       {
         if(ev->condition() == State::Expression{})
         {
@@ -449,7 +452,7 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
           return icon;
         }
       }
-      else if(auto tn = dynamic_cast<Scenario::TimeSyncModel*>(sel))
+      else if(auto tn = qobject_cast<Scenario::TimeSyncModel*>(sel))
       {
         if(!tn->active())
         {
@@ -462,7 +465,7 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
           return icon;
         }
       }
-      else if(auto st = dynamic_cast<Scenario::StateModel*>(sel))
+      else if(auto st = qobject_cast<Scenario::StateModel*>(sel))
       {
         if(st->messages().rootNode().hasChildren())
         {
@@ -475,12 +478,12 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
           return icon;
         }
       }
-      else if(dynamic_cast<Process::StateProcess*>(sel))
+      else if(qobject_cast<Process::ProcessModel*>(sel))
       {
         static const QIcon icon(":/images/process.svg");
         return icon;
       }
-      else if(dynamic_cast<Process::ProcessModel*>(sel))
+      else if(qobject_cast<Process::ProcessModel*>(sel))
       {
         static const QIcon icon(":/images/process.svg");
         return icon;
@@ -488,28 +491,28 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
     }
     else if(role == Qt::ToolTipRole)
     {
-      if(auto cst = dynamic_cast<Scenario::IntervalModel*>(sel))
+      if(auto cst = qobject_cast<Scenario::IntervalModel*>(sel))
       {
         return tr("Start : ") + cst->date().toString();
       }
-      else if(auto ev = dynamic_cast<Scenario::EventModel*>(sel))
+      else if(auto ev = qobject_cast<Scenario::EventModel*>(sel))
       {
         return ev->condition().toPrettyString();
       }
-      else if(auto tn = dynamic_cast<Scenario::TimeSyncModel*>(sel))
+      else if(auto tn = qobject_cast<Scenario::TimeSyncModel*>(sel))
       {
         return tn->expression().toPrettyString();
       }
       /*
-      else if(auto st = dynamic_cast<Scenario::StateModel*>(sel))
+      else if(auto st = qobject_cast<Scenario::StateModel*>(sel))
       {
         return {};
       }
-      else if(auto stp = dynamic_cast<Process::StateProcess*>(sel))
+      else if(auto stp = qobject_cast<Process::StateProcess*>(sel))
       {
         return {};
       }
-      else if(auto p = dynamic_cast<Process::ProcessModel*>(sel))
+      else if(auto p = qobject_cast<Process::ProcessModel*>(sel))
       {
         return {};
       }
@@ -540,22 +543,19 @@ bool ObjectItemModel::setData(const QModelIndex& index, const QVariant& value, i
     // TODO
     /*
 
-    if(auto cst = dynamic_cast<Scenario::IntervalModel*>(sel))
+    if(auto cst = qobject_cast<Scenario::IntervalModel*>(sel))
     {
     }
-    else if(auto ev = dynamic_cast<Scenario::EventModel*>(sel))
+    else if(auto ev = qobject_cast<Scenario::EventModel*>(sel))
     {
     }
-    else if(auto tn = dynamic_cast<Scenario::TimeSyncModel*>(sel))
+    else if(auto tn = qobject_cast<Scenario::TimeSyncModel*>(sel))
     {
     }
-    else if(auto st = dynamic_cast<Scenario::StateModel*>(sel))
+    else if(auto st = qobject_cast<Scenario::StateModel*>(sel))
     {
     }
-    else if(auto stp = dynamic_cast<Process::StateProcess*>(sel))
-    {
-    }
-    else */if(auto p = dynamic_cast<Process::ProcessModel*>(sel))
+    else */if(auto p = qobject_cast<Process::ProcessModel*>(sel))
     {
       disp.submitCommand<Command::ChangeElementName<Process::ProcessModel>>(*p, value.toString());
       return true;
@@ -691,19 +691,25 @@ void ObjectPanelDelegate::setNewSelection(const Selection &sel)
 
     auto selection = m_objects->selectionModel();
     m_objects->updatingSelection = true;
+    std::vector<QModelIndex> toSelect;
+    std::vector<QModelIndex> toDeselect;
     while(idx.isValid())
     {
       auto ptr = idx.internalPointer();
       if(cur_sel.contains((IdentifiedObjectAbstract*)ptr))
       {
-        selection->select(idx, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+        toSelect.push_back(idx);
       }
       else
       {
-        selection->select(idx, QItemSelectionModel::Deselect | QItemSelectionModel::Rows);
+        toDeselect.push_back(idx);
       }
       idx = m_objects->indexBelow(idx);
     }
+    for(auto& idx : toSelect)
+      selection->select(idx, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+    for(auto& idx : toDeselect)
+      selection->select(idx, QItemSelectionModel::Deselect | QItemSelectionModel::Rows);
     m_objects->updatingSelection = false;
 
     m_objects->header()->resizeSection(1, QHeaderView::Stretch);
@@ -761,19 +767,19 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
 
     QMenu* m = new QMenu{this};
 
-    if(auto cst = dynamic_cast<Scenario::IntervalModel*>(ptr))
+    if(auto cst = qobject_cast<Scenario::IntervalModel*>(ptr))
     {
       auto addproc = new QAction{tr("Add process"), m};
       m->addAction(addproc);
       connect(addproc, &QAction::triggered, this, [=] {
 
         auto& fact = m_ctx.app.interfaces<Process::ProcessFactoryList>();
-        auto dialog = new AddProcessDialog<Process::ProcessFactoryList>{fact, this};
-        dialog->on_okPressed = [&] (const auto& proc) {
+        auto dialog = new AddProcessDialog{fact, Process::ProcessFlags::SupportsTemporal, this};
+        dialog->on_okPressed = [&] (const auto& proc, QString dat) {
           using cmd = Scenario::Command::CreateProcessInNewSlot;
           QuietMacroCommandDispatcher<cmd> disp{m_ctx.commandStack};
 
-          cmd::create(disp, *cst, proc);
+          cmd::create(disp, *cst, proc, dat);
 
           disp.commit();
         };
@@ -782,16 +788,16 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
         dialog->deleteLater();
       });
     }
-    else if(auto state = dynamic_cast<Scenario::StateModel*>(ptr))
+    else if(auto state = qobject_cast<Scenario::StateModel*>(ptr))
     {
       auto addproc = new QAction{tr("Add process"), m};
       m->addAction(addproc);
       connect(addproc, &QAction::triggered, this, [=] {
 
-        auto& fact = m_ctx.app.interfaces<Process::StateProcessList>();
-        auto dialog = new AddProcessDialog<Process::StateProcessList>{fact, this};
+        auto& fact = m_ctx.app.interfaces<Process::ProcessFactoryList>();
+        auto dialog = new AddProcessDialog{fact, Process::ProcessFlags::SupportsState, this};
 
-        dialog->on_okPressed = [&] (const auto& proc) {
+        dialog->on_okPressed = [&] (const auto& proc, QString dat) {
           CommandDispatcher<> disp{m_ctx.commandStack};
           disp.submitCommand<Scenario::Command::AddStateProcessToState>(*state, proc);
         };
@@ -800,29 +806,32 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
         dialog->deleteLater();
       });
     }
-    else if(auto proc = dynamic_cast<Process::ProcessModel*>(ptr))
+    else if(auto proc = qobject_cast<Process::ProcessModel*>(ptr))
     {
-      auto deleteact = new QAction{tr("Remove"), m};
-      m->addAction(deleteact);
-      connect(deleteact, &QAction::triggered, this, [=] {
-        CommandDispatcher<> c{m_ctx.commandStack};
-        c.submitCommand<Scenario::Command::RemoveProcessFromInterval>(*(IntervalModel*)proc->parent(), proc->id());
-      });
-      auto duplicate = new QAction{tr("Duplicate"), m};
-      m->addAction(duplicate);
-      connect(duplicate, &QAction::triggered, this, [=] {
-        CommandDispatcher<> c{m_ctx.commandStack};
-        c.submitCommand<Scenario::Command::DuplicateOnlyProcessToInterval>(*(IntervalModel*)proc->parent(), *proc);
-      });
-    }
-    else if(auto stp = dynamic_cast<Process::StateProcess*>(ptr))
-    {
-      auto deleteact = new QAction{tr("Remove"), m};
-      m->addAction(deleteact);
-      connect(deleteact, &QAction::triggered, this, [=] {
-        CommandDispatcher<> c{m_ctx.commandStack};
-        c.submitCommand<Scenario::Command::RemoveStateProcess>(*(StateModel*)stp->parent(), stp->id());
-      });
+      if(auto state = qobject_cast<Scenario::StateModel*>(proc->parent()))
+      {
+        auto deleteact = new QAction{tr("Remove"), m};
+        m->addAction(deleteact);
+        connect(deleteact, &QAction::triggered, this, [=] {
+          CommandDispatcher<> c{m_ctx.commandStack};
+          c.submitCommand<Scenario::Command::RemoveStateProcess>(*state, proc->id());
+        });
+      }
+      else if(auto itv = qobject_cast<Scenario::IntervalModel*>(proc->parent()))
+      {
+        auto deleteact = new QAction{tr("Remove"), m};
+        m->addAction(deleteact);
+        connect(deleteact, &QAction::triggered, this, [=] {
+          CommandDispatcher<> c{m_ctx.commandStack};
+          c.submitCommand<Scenario::Command::RemoveProcessFromInterval>(*itv, proc->id());
+        });
+        auto duplicate = new QAction{tr("Duplicate"), m};
+        m->addAction(duplicate);
+        connect(duplicate, &QAction::triggered, this, [=] {
+          CommandDispatcher<> c{m_ctx.commandStack};
+          c.submitCommand<Scenario::Command::DuplicateOnlyProcessToInterval>(*itv, *proc);
+        });
+      }
     }
 
     m->exec(mapToGlobal(point));
@@ -841,12 +850,12 @@ bool NeightborSelector::hasLeft() const
 {
   for ( const auto& obj : m_stack.currentSelection() )
   {
-    if (dynamic_cast<const IntervalModel*>(obj.data()))
+    if (qobject_cast<const IntervalModel*>(obj.data()))
     {
       // Interval always have previous state
       return true;
     }
-    else if (auto state = dynamic_cast<const StateModel*>(obj.data()))
+    else if (auto state = qobject_cast<const StateModel*>(obj.data()))
     {
       if (state->previousInterval())
         return true;
@@ -859,12 +868,12 @@ bool NeightborSelector::hasRight() const
 {
   for ( const auto& obj : m_stack.currentSelection() )
   {
-    if (dynamic_cast<const IntervalModel*>(obj.data()))
+    if (qobject_cast<const IntervalModel*>(obj.data()))
     {
       // Interval always have previous state
       return true;
     }
-    else if (auto state = dynamic_cast<const StateModel*>(obj.data()))
+    else if (auto state = qobject_cast<const StateModel*>(obj.data()))
     {
       if (state->nextInterval())
         return true;
@@ -895,13 +904,13 @@ void NeightborSelector::selectRight()
 
   for ( const auto& obj : m_stack.currentSelection() )
   {
-    if (auto interval = dynamic_cast<const IntervalModel*>(obj.data()))
+    if (auto interval = qobject_cast<const IntervalModel*>(obj.data()))
     {
       // Interval always have previous state
       Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*interval);
       sel.append(&scenar.state(interval->endState()));
     }
-    else if (auto state = dynamic_cast<const StateModel*>(obj.data()))
+    else if (auto state = qobject_cast<const StateModel*>(obj.data()))
     {
       if (state->nextInterval())
       {
@@ -921,13 +930,13 @@ void NeightborSelector::selectLeft()
 
   for ( const auto& obj : m_stack.currentSelection() )
   {
-    if (auto interval = dynamic_cast<const IntervalModel*>(obj.data()))
+    if (auto interval = qobject_cast<const IntervalModel*>(obj.data()))
     {
       // Interval always have previous state
       Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*interval);
       sel.append(&scenar.state(interval->startState()));
     }
-    else if (auto state = dynamic_cast<const StateModel*>(obj.data()))
+    else if (auto state = qobject_cast<const StateModel*>(obj.data()))
     {
       if (state->previousInterval())
       {
@@ -1068,7 +1077,7 @@ void SearchWidget::search()
     // Serialize ALL the things
     for (const auto& obj : scenarioModel->children())
     {
-      if (auto state = dynamic_cast<const StateModel*>(obj))
+      if (auto state = qobject_cast<const StateModel*>(obj))
       {
         bool flag = false; // used to break loop at several point to avoid adding
                            // the same object severals time and to sped-up main loop
@@ -1113,19 +1122,19 @@ void SearchWidget::search()
           continue;
         add_if_contains(*state, stxt, sel);
       }
-      else if (auto event = dynamic_cast<const EventModel*>(obj))
+      else if (auto event = qobject_cast<const EventModel*>(obj))
       {
         add_if_contains(*event, stxt, sel);
       }
-      else if (auto ts = dynamic_cast<const TimeSyncModel*>(obj))
+      else if (auto ts = qobject_cast<const TimeSyncModel*>(obj))
       {
         add_if_contains(*ts, stxt, sel);
       }
-      else if (auto cmt = dynamic_cast<const CommentBlockModel*>(obj))
+      else if (auto cmt = qobject_cast<const CommentBlockModel*>(obj))
       {
         add_if_contains(*cmt, stxt, sel);
       }
-      else if (auto interval = dynamic_cast<const IntervalModel*>(obj))
+      else if (auto interval = qobject_cast<const IntervalModel*>(obj))
       {
         add_if_contains(*interval, stxt, sel);
       }

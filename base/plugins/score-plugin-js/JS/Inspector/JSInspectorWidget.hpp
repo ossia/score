@@ -1,6 +1,5 @@
 #pragma once
 #include <JS/JSProcessModel.hpp>
-#include <JS/JSStateProcess.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <QString>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -44,23 +43,5 @@ private:
   void on_textChange(const QString& newText);
   void updateControls(const score::DocumentContext& );
   QWidget* m_ctrlWidg{};
-};
-
-class StateInspectorWidget final
-    : public Process::StateProcessInspectorWidgetDelegate_T<JS::StateProcess>
-    , public JSWidgetBase
-{
-  Q_OBJECT
-  friend struct JSWidgetBase;
-public:
-  explicit StateInspectorWidget(
-      const JS::StateProcess& object,
-      const score::DocumentContext& context,
-      QWidget* parent);
-signals:
-  void pressed();
-private:
-  void on_textChange(const QString& newText);
-
 };
 }

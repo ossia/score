@@ -73,7 +73,6 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Remove.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/ReplaceDevice.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/UpdateAddresses.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Common/AddressSettings/AddressSettingsFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Common/AddressSettings/Widgets/AddressListSettingsWidget.cpp"

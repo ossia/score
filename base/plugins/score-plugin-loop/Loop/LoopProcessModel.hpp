@@ -34,8 +34,6 @@ class SCORE_PLUGIN_LOOP_EXPORT ProcessModel final
 public:
   std::unique_ptr<Process::Inlet> inlet;
   std::unique_ptr<Process::Outlet> outlet;
-  Process::Inlets inlets() const override;
-  Process::Outlets outlets() const override;
 
   explicit ProcessModel(
       const TimeVal& duration,
@@ -48,6 +46,13 @@ public:
       , BaseScenarioContainer{BaseScenarioContainer::no_init{}, this}
   {
     vis.writeTo(*this);
+    init();
+  }
+
+  void init()
+  {
+    m_inlets.push_back(inlet.get());
+    m_outlets.push_back(outlet.get());
   }
 
   using BaseScenarioContainer::event;

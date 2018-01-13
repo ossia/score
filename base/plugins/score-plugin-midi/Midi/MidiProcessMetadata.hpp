@@ -14,4 +14,5 @@ PROCESS_METADATA(
     "Midi",
     "Piano roll",
     "Midi",
-    {})
+    {},
+    Process::ProcessFlags::SupportsTemporal)

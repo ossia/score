@@ -25,7 +25,6 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/Component.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/JSAPIWrapper.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/ProcessScript.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/StateComponent.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Inspector/JSInspectorFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Inspector/JSInspectorWidget.hpp"
@@ -35,14 +34,11 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessMetadata.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessModel.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSStateProcess.hpp"
 )
 set(SRCS
-"${CMAKE_CURRENT_SOURCE_DIR}/JS/JSStateProcess.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessModelSerialization.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/StateComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/Component.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/JSAPIWrapper.cpp"
 

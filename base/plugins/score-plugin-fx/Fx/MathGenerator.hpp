@@ -1,7 +1,9 @@
 #pragma once
 #include <Engine/Node/PdNode.hpp>
+#include <ossia/dataflow/execution_state.hpp>
 #include <exprtk.hpp>
 #include <numeric>
+#include <ossia/detail/logger.hpp>
 namespace Nodes
 {
 template<typename State>
@@ -11,6 +13,10 @@ bool updateExpr(State& self, const std::string& expr)
   {
     self.cur_expr_txt = expr;
     self.ok = self.parser.compile(self.cur_expr_txt, self.expr);
+    if(!self.ok)
+    {
+      ossia::logger().error("Error while parsing: {}", self.parser.error());
+    }
   }
 
   return self.ok;
@@ -52,7 +58,7 @@ struct Node
     static const constexpr auto info =
             Control::create_node()
             .value_outs({{"out"}})
-            .controls(Control::LineEdit("Expression (ExprTK)", QLatin1Literal{"cos(t) + log(pos * 1 / dt)"}))
+            .controls(Control::LineEdit("Expression (ExprTK)", "cos(t) + log(pos * 1 / dt)"))
             .build();
 
     using control_policy = Control::LastTick;
@@ -117,7 +123,7 @@ struct Node
     static const constexpr auto info =
             Control::create_node()
             .audio_outs({{"out"}})
-            .controls(Control::LineEdit("Expression (ExprTK)", QLatin1Literal{"a * cos( 2 * pi * t * b / fs )"})
+            .controls(Control::LineEdit("Expression (ExprTK)", "a * cos( 2 * pi * t * b / fs )")
                       , Control::FloatSlider("Param (a)", 0., 1., 0.5)
                       , Control::FloatSlider("Param (b)", 0., 1., 0.5)
                       , Control::FloatSlider("Param (c)", 0., 1., 0.5)

@@ -1,7 +1,7 @@
 #pragma once
 #include <Engine/LocalTree/LocalTreeComponent.hpp>
 #include <Engine/LocalTree/LocalTreeDocumentPlugin.hpp>
-#include <Scenario/Document/Components/ProcessComponent.hpp>
+#include <Process/ProcessComponent.hpp>
 #include <score/model/Component.hpp>
 #include <score/model/ComponentFactory.hpp>
 #include <score/plugins/customfactory/ModelFactory.hpp>

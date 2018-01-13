@@ -23,7 +23,7 @@ class DeviceDocumentPlugin;
 namespace Process
 {
 class ProcessModel;
-class StateProcess;
+class ProcessModel;
 }
 
 namespace Engine
@@ -33,10 +33,7 @@ namespace Execution
 class DocumentPlugin;
 class ProcessComponent;
 class ProcessComponentFactory;
-class StateProcessComponent;
-class StateProcessComponentFactory;
 class ProcessComponentFactoryList;
-class StateProcessComponentFactoryList;
 class BaseScenarioElement;
 
 using time_function = smallfun::function<ossia::time_value(const TimeVal&)>;
@@ -58,7 +55,6 @@ struct SCORE_PLUGIN_ENGINE_EXPORT Context
   Engine::Execution::BaseScenarioElement& scenario;
   const Explorer::DeviceDocumentPlugin& devices;
   const Engine::Execution::ProcessComponentFactoryList& processes;
-  const Engine::Execution::StateProcessComponentFactoryList& stateProcesses;
 
   /** Used to map the "high-level" durations in score to low-level durations
    *

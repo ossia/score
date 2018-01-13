@@ -24,9 +24,6 @@ class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final : public Process::ProcessMode
         Q_PROPERTY(int upmixChannels READ upmixChannels WRITE setUpmixChannels NOTIFY upmixChannelsChanged)
         Q_PROPERTY(int startChannel READ startChannel WRITE setStartChannel NOTIFY startChannelChanged)
     public:
-        Process::Inlets inlets() const override;
-        Process::Outlets outlets() const override;
-
         explicit ProcessModel(
                 const TimeVal& duration,
                 const Id<Process::ProcessModel>& id,

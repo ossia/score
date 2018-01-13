@@ -17,7 +17,8 @@ PROCESS_METADATA(
         "Step",
         "Step sequencer",
         "Control",
-        {}
+        {},
+        Process::ProcessFlags::SupportsTemporal
         )
 
 

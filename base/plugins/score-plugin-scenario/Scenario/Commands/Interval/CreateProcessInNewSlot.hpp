@@ -25,10 +25,11 @@ class CreateProcessInNewSlot final : public score::AggregateCommand
   static void create(
       Dispatcher & disp,
       const Scenario::IntervalModel& interval,
-      UuidKey<Process::ProcessModel> proc)
+      UuidKey<Process::ProcessModel> proc,
+      const QString& dat)
   {
     auto cmd1 = new Scenario::Command::AddOnlyProcessToInterval(
-        interval, proc);
+        interval, proc, dat);
     cmd1->redo(disp.stack().context());
     disp.submitCommand(cmd1);
 

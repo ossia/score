@@ -212,12 +212,12 @@ TemporalIntervalPresenter::~TemporalIntervalPresenter()
 void TemporalIntervalPresenter::on_requestOverlayMenu(QPointF)
 {
   auto& fact = m_context.app.interfaces<Process::ProcessFactoryList>();
-  auto dialog = new AddProcessDialog<Process::ProcessFactoryList>{fact, QApplication::activeWindow()};
+  auto dialog = new AddProcessDialog{fact, Process::ProcessFlags::SupportsTemporal, QApplication::activeWindow()};
 
   dialog->on_okPressed =
-        [&] (const auto& key) {
+        [&] (const auto& key, QString dat) {
     auto cmd
-        = new Scenario::Command::AddProcessToInterval(this->model(), key);
+        = new Scenario::Command::AddProcessToInterval(this->model(), key, dat);
 
     CommandDispatcher<> d{m_context.commandStack};
     emit d.submitCommand(cmd);

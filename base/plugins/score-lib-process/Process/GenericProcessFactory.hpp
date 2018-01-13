@@ -9,10 +9,10 @@ struct default_t
 };
 
 template <typename Model_T>
-class GenericProcessModelFactory final : public Process::ProcessModelFactory
+class ProcessFactory_T final : public Process::ProcessModelFactory
 {
 public:
-  virtual ~GenericProcessModelFactory() = default;
+  virtual ~ProcessFactory_T() = default;
 
 private:
   UuidKey<Process::ProcessModel> concreteKey() const noexcept override
@@ -21,9 +21,12 @@ private:
   { return Metadata<PrettyName_k, Model_T>::get(); }
   QString category() const override
   { return Metadata<Category_k, Model_T>::get(); }
+  ProcessFlags flags() const override
+  { return Metadata<ProcessFlags_k, Model_T>::get(); }
 
   Model_T* make(
       const TimeVal& duration,
+      const QString& data,
       const Id<Process::ProcessModel>& id,
       QObject* parent) final override;
 
@@ -31,8 +34,9 @@ private:
 };
 
 template <typename Model_T>
-Model_T* GenericProcessModelFactory<Model_T>::make(
+Model_T* ProcessFactory_T<Model_T>::make(
     const TimeVal& duration,
+    const QString& data,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
 {
@@ -40,7 +44,7 @@ Model_T* GenericProcessModelFactory<Model_T>::make(
 }
 
 template <typename Model_T>
-Model_T* GenericProcessModelFactory<Model_T>::load(
+Model_T* ProcessFactory_T<Model_T>::load(
     const VisitorVariant& vis, QObject* parent)
 {
   return score::deserialize_dyn(vis, [&](auto&& deserializer) {
@@ -51,10 +55,10 @@ Model_T* GenericProcessModelFactory<Model_T>::load(
 template <
     typename Model_T, typename LayerPresenter_T,
     typename LayerView_T, typename LayerPanel_T>
-class GenericLayerFactory final : public Process::LayerFactory
+class LayerFactory_T final : public Process::LayerFactory
 {
 public:
-  virtual ~GenericLayerFactory() = default;
+  virtual ~LayerFactory_T() = default;
 
 private:
   UuidKey<Process::ProcessModel> concreteKey() const noexcept override
@@ -80,7 +84,7 @@ private:
   }
 
   LayerPanel_T* makePanel(
-      const Process::ProcessModel& viewmodel, QObject* parent) final override;
+      const Process::ProcessModel& viewmodel, const score::DocumentContext& ctx, QObject* parent) final override;
 
   bool matches(const UuidKey<Process::ProcessModel>& p) const override
   {
@@ -92,20 +96,20 @@ template <
     typename Model_T, typename LayerPresenter_T,
     typename LayerView_T, typename LayerPanel_T>
 LayerPanel_T*
-GenericLayerFactory<Model_T, LayerPresenter_T, LayerView_T, LayerPanel_T>::
-    makePanel(const Process::ProcessModel& viewmodel, QObject* parent)
+LayerFactory_T<Model_T, LayerPresenter_T, LayerView_T, LayerPanel_T>::
+    makePanel(const Process::ProcessModel& viewmodel, const score::DocumentContext& ctx, QObject* parent)
 {
   return new LayerPanel_T{static_cast<const Model_T&>(viewmodel), parent};
 }
 
 template <typename Model_T>
 class
-    GenericLayerFactory<Model_T, default_t, default_t, default_t>
+    LayerFactory_T<Model_T, default_t, default_t, default_t>
     : // final :
       public Process::LayerFactory
 {
 public:
-  virtual ~GenericLayerFactory() = default;
+  virtual ~LayerFactory_T() = default;
 
 private:
   UuidKey<Process::ProcessModel> concreteKey() const noexcept override
@@ -120,6 +124,6 @@ private:
 };
 
 template <typename Model_T>
-using GenericDefaultLayerFactory = GenericLayerFactory<
+using GenericDefaultLayerFactory = LayerFactory_T<
     Model_T, default_t, default_t, default_t>;
 }

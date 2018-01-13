@@ -34,22 +34,20 @@ namespace Command
 {
 AddOnlyProcessToInterval::AddOnlyProcessToInterval(
     const IntervalModel& cst,
-    UuidKey<Process::ProcessModel>
-        process)
-    : AddOnlyProcessToInterval{cst,
-                                 getStrongId(cst.processes),
-                                 process}
+    UuidKey<Process::ProcessModel> process,
+    const QString& dat)
+    : AddOnlyProcessToInterval{cst, getStrongId(cst.processes), process, dat}
 {
 }
 
 AddOnlyProcessToInterval::AddOnlyProcessToInterval(
     const IntervalModel& cst,
-    Id<Process::ProcessModel>
-        processId,
-    UuidKey<Process::ProcessModel>
-        process)
+    Id<Process::ProcessModel> processId,
+    UuidKey<Process::ProcessModel> process,
+    const QString& dat)
     : m_path{cst}
     , m_processName{process}
+    , m_data{dat}
     , m_createdProcessId{std::move(processId)}
 {
 }
@@ -78,6 +76,7 @@ AddOnlyProcessToInterval::redo(IntervalModel& interval, const score::DocumentCon
   SCORE_ASSERT(fac);
   auto proc = fac->make(
       interval.duration.defaultDuration(), // TODO should maybe be max ?
+                m_data,
       m_createdProcessId,
       &interval);
 
@@ -87,12 +86,12 @@ AddOnlyProcessToInterval::redo(IntervalModel& interval, const score::DocumentCon
 
 void AddOnlyProcessToInterval::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path << m_processName << m_createdProcessId;
+  s << m_path << m_processName << m_data << m_createdProcessId;
 }
 
 void AddOnlyProcessToInterval::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_path >> m_processName >> m_createdProcessId;
+  s >> m_path >> m_processName >> m_data >> m_createdProcessId;
 }
 
 

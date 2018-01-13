@@ -1,12 +1,4 @@
 #include "InsertEffect.hpp"
-
-#include <score/tools/IdentifierGeneration.hpp>
-#include <score/model/path/PathSerialization.hpp>
-#include <Media/Effect/EffectProcessModel.hpp>
-#include <Effect/EffectFactory.hpp>
-#include <score/application/ApplicationContext.hpp>
-#include <score/document/DocumentContext.hpp>
-
 namespace Media
 {
 namespace Commands
@@ -14,13 +6,11 @@ namespace Commands
 
 InsertEffect::InsertEffect(
     const Effect::ProcessModel& model,
-    const UuidKey<Process::EffectModel>& effectKind,
-    const QString& text,
+    const UuidKey<Process::ProcessModel>& effectKind,
     std::size_t effectPos):
   m_model{model},
   m_id{getStrongId(model.effects())},
   m_effectKind{effectKind},
-  m_effect{text},
   m_pos{effectPos}
 {
 }
@@ -35,11 +25,11 @@ void InsertEffect::undo(const score::DocumentContext& ctx) const
 void InsertEffect::redo(const score::DocumentContext& ctx) const
 {
   auto& process = m_model.find(ctx);
-  auto& fact_list = ctx.app.interfaces<Process::EffectFactoryList>();
+  auto& fact_list = ctx.app.interfaces<Process::ProcessFactoryList>();
 
   if(auto fact = fact_list.get(m_effectKind))
   {
-    auto model = fact->make(m_effect, m_id, &process);
+    auto model = fact->make(TimeVal::zero(), {}, m_id, &process);
     process.insertEffect(model, m_pos);
   }
   else
@@ -51,12 +41,12 @@ void InsertEffect::redo(const score::DocumentContext& ctx) const
 
 void InsertEffect::serializeImpl(DataStreamInput& s) const
 {
-  s << m_model << m_id << m_effectKind << m_effect << m_pos;
+  s << m_model << m_id << m_effectKind << m_pos;
 }
 
 void InsertEffect::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_model >> m_id >> m_effectKind >> m_effect >> m_pos;
+  s >> m_model >> m_id >> m_effectKind >> m_pos;
 }
 
 
@@ -64,7 +54,7 @@ void InsertEffect::deserializeImpl(DataStreamOutput& s)
 
 RemoveEffect::RemoveEffect(
     const Effect::ProcessModel& model,
-    const Process::EffectModel& effect):
+    const Process::ProcessModel& effect):
   m_model{model},
   m_id{effect.id()},
   m_savedEffect{score::marshall<DataStream>(effect)}
@@ -76,7 +66,7 @@ RemoveEffect::RemoveEffect(
 void RemoveEffect::undo(const score::DocumentContext& ctx) const
 {
   auto& process = m_model.find(ctx);
-  auto& fact_list = ctx.app.interfaces<Process::EffectFactoryList>();
+  auto& fact_list = ctx.app.interfaces<Process::ProcessFactoryList>();
 
   DataStream::Deserializer des{m_savedEffect};
   if(auto fx = deserialize_interface(fact_list, des, &process))
@@ -114,7 +104,7 @@ void RemoveEffect::deserializeImpl(DataStreamOutput& s)
 
 MoveEffect::MoveEffect(
     const Effect::ProcessModel& effect,
-    Id<Process::EffectModel> id,
+    Id<Process::ProcessModel> id,
     int new_pos):
   m_model{effect},
   m_id{id},

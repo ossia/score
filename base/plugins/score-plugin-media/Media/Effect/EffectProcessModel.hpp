@@ -4,8 +4,9 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 #include <Media/Effect/EffectProcessMetadata.hpp>
-#include <Effect/EffectModel.hpp>
+#include <Process/Process.hpp>
 #include <boost/iterator/indirect_iterator.hpp>
+#include <Process/Dataflow/Port.hpp>
 namespace Media
 {
 namespace Effect
@@ -210,26 +211,22 @@ class ProcessModel final : public Process::ProcessModel
             Process::ProcessModel{vis, parent}
         {
             vis.writeTo(*this);
+            init();
         }
 
-        const EntityList<Process::EffectModel>& effects() const
+        void init()
+        {
+          m_inlets.push_back(inlet.get());
+          m_outlets.push_back(outlet.get());
+        }
+        const EntityList<Process::ProcessModel>& effects() const
         { return m_effects; }
 
-        void insertEffect(Process::EffectModel* eff, int pos);
-        void removeEffect(const Id<Process::EffectModel>&);
-        void moveEffect(const Id<Process::EffectModel>&, int new_pos);
+        void insertEffect(Process::ProcessModel* eff, int pos);
+        void removeEffect(const Id<Process::ProcessModel>&);
+        void moveEffect(const Id<Process::ProcessModel>&, int new_pos);
 
-        int effectPosition(const Id<Process::EffectModel>& e) const;
-
-        Process::Inlets inlets() const override
-        {
-          return {inlet.get()};
-        }
-
-        Process::Outlets outlets() const override
-        {
-          return {outlet.get()};
-        }
+        int effectPosition(const Id<Process::ProcessModel>& e) const;
 
         std::unique_ptr<Process::Inlet> inlet{};
         std::unique_ptr<Process::Outlet> outlet{};
@@ -242,7 +239,7 @@ class ProcessModel final : public Process::ProcessModel
         Selection selectedChildren() const override;
         void setSelection(const Selection& s) const override;
         // The actual effect instances
-        EntityList<Process::EffectModel> m_effects;
+        EntityList<Process::ProcessModel> m_effects;
 };
 }
 }

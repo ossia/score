@@ -570,7 +570,7 @@ bool PortItem::on_createAutomation(
 
   auto make_cmd = new Scenario::Command::AddOnlyProcessToInterval{
                   cst,
-                  Metadata<ConcreteKey_k, Automation::ProcessModel>::get()};
+                  Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), QString{}};
   macro(make_cmd);
 
   auto lay_cmd = new Scenario::Command::AddLayerInNewSlot{cst, make_cmd->processId()};

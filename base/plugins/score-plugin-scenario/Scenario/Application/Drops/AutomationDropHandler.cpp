@@ -51,7 +51,7 @@ bool DropProcessInScenario::drop(
 
     // Create process
     auto process_cmd
-        = new Scenario::Command::AddOnlyProcessToInterval{interval, p.key};
+        = new Scenario::Command::AddOnlyProcessToInterval{interval, p.key, p.customData};
     m.submitCommand(process_cmd);
 
     // Create a new slot
@@ -141,7 +141,7 @@ bool DropProcessInInterval::drop(
 
     auto& doc = score::IDocument::documentContext(cst);
 
-    auto cmd = new Scenario::Command::AddProcessToInterval(cst, p.key);
+    auto cmd = new Scenario::Command::AddProcessToInterval(cst, p.key, p.customData);
     CommandDispatcher<> d{doc.commandStack};
     d.submitCommand(cmd);
     return true;
