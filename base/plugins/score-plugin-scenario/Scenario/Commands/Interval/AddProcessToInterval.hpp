@@ -50,7 +50,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT AddProcessToInterval final : public score::Co
   public:
   AddProcessToInterval(
       const IntervalModel& interval,
-      const UuidKey<Process::ProcessModel>& process);
+      const UuidKey<Process::ProcessModel>& process,
+      const QString& dat);
     ~AddProcessToInterval();
 
   void undo(const score::DocumentContext& ctx) const override;

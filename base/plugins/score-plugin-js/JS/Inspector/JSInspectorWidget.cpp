@@ -1,7 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <JS/JSProcessModel.hpp>
-#include <JS/JSStateProcess.hpp>
 #include <QLabel>
 #include <algorithm>
 
@@ -155,59 +154,4 @@ void InspectorWidget::on_textChange(const QString& newTxt)
   m_dispatcher.submitCommand(cmd);
 }
 
-StateInspectorWidget::StateInspectorWidget(
-    const JS::StateProcess& JSModel,
-    const score::DocumentContext& doc,
-    QWidget* parent)
-    : StateProcessInspectorWidgetDelegate_T{JSModel, parent}
-    , JSWidgetBase{doc.commandStack}
-{
-  setObjectName("JSInspectorWidget");
-  setParent(parent);
-  auto lay = new score::MarginLess<QVBoxLayout>{this};
-
-  this->init(this, JSModel);
-
-  lay->addWidget(m_edit);
-  lay->addWidget(m_errorLabel);
-
-  auto widg = new QWidget;
-  auto clay = new QFormLayout{widg};
-  lay->addWidget(widg);
-
-  for(auto ctrl : JSModel.findChildren<Process::ControlInlet*>("", Qt::FindDirectChildrenOnly))
-  {
-    if(auto fslider = qobject_cast<FloatSlider*>(ctrl))
-    {
-      clay->addRow(ctrl->customData(), Control::FloatSlider::make_widget(*fslider, *ctrl, doc, this, this));
-    }
-    else if(auto islider = qobject_cast<IntSlider*>(ctrl))
-    {
-      clay->addRow(ctrl->customData(), Control::IntSlider::make_widget(*islider, *ctrl, doc, this, this));
-    }
-    else if(auto toggle = qobject_cast<Toggle*>(ctrl))
-    {
-      clay->addRow(ctrl->customData(), Control::Toggle::make_widget(*toggle, *ctrl, doc, this, this));
-    }
-    else if(auto edit = qobject_cast<LineEdit*>(ctrl))
-    {
-      clay->addRow(ctrl->customData(), Control::LineEdit::make_widget(*edit, *ctrl, doc, this, this));
-    }
-    else if(auto en = qobject_cast<Enum*>(ctrl))
-    {
-      clay->addRow(ctrl->customData(), Control::Enum<QStringList>::make_widget(*en, *ctrl, doc, this, this));
-    }
-  }
-}
-
-
-void StateInspectorWidget::on_textChange(const QString& newTxt)
-{
-  if (newTxt == m_script)
-    return;
-
-  auto cmd = new JS::EditStateScript{process(), newTxt};
-
-  m_dispatcher.submitCommand(cmd);
-}
 }

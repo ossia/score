@@ -41,9 +41,6 @@ public:
 
   ~ProcessModel();
 
-  Process::Inlets inlets() const override { return m_inlets; }
-  Process::Outlets outlets() const override { return m_outlets; }
-
   QObject* m_dummyObject{};
 signals:
   void scriptError(int, const QString&);
@@ -52,8 +49,6 @@ signals:
 
 private:
   QString m_script;
-  Process::Inlets m_inlets;
-  Process::Outlets m_outlets;
   QQmlEngine m_dummyEngine;
   std::unique_ptr<QQmlComponent> m_dummyComponent;
 };

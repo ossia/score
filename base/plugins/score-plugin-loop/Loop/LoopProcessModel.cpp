@@ -25,18 +25,6 @@
 
 namespace Loop
 {
-
-Process::Inlets ProcessModel::inlets() const
-{
-  return {inlet.get()};
-}
-
-Process::Outlets ProcessModel::outlets() const
-{
-  return {outlet.get()};
-}
-
-
 ProcessModel::ProcessModel(
     const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
@@ -67,6 +55,7 @@ ProcessModel::ProcessModel(
   inlet->type = Process::PortType::Audio;
   outlet->type = Process::PortType::Audio;
   outlet->setPropagate(true);
+  init();
 }
 
 

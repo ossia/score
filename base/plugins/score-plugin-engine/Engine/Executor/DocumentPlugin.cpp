@@ -5,7 +5,6 @@
 #include "BaseScenarioComponent.hpp"
 #include "DocumentPlugin.hpp"
 #include <Engine/Executor/IntervalComponent.hpp>
-#include <Engine/Executor/StateProcessComponent.hpp>
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
@@ -40,7 +39,6 @@ DocumentPlugin::DocumentPlugin(
           ctx, m_base,
           ctx.plugin<Explorer::DeviceDocumentPlugin>(),
           ctx.app.interfaces<ProcessComponentFactoryList>(),
-          ctx.app.interfaces<StateProcessComponentFactoryList>(),
           {}, {},
           m_execQueue, m_editionQueue, *this
       }
@@ -422,7 +420,6 @@ void DocumentPlugin::register_node(
 
     auto& runtime_connection = runtime_connections[node];
 
-    runtime_connection.reserve(runtime_connection.size() + n_inlets + n_outlets);
     for(std::size_t i = 0; i < n_inlets; i++)
     {
       runtime_connection.push_back(connect(proc_inlets[i], &Process::Port::addressChanged,

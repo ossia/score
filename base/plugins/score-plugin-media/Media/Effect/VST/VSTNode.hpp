@@ -12,7 +12,7 @@ namespace VST
 {
 using time_signature = std::pair<uint16_t, uint16_t>;
 template<bool UseDouble, bool IsSynth>
-class VSTNode final : public ossia::audio_fx_node
+class VSTNode final : public ossia::graph_node
 {
   private:
     std::shared_ptr<AEffectWrapper> fx{};

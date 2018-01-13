@@ -29,10 +29,11 @@ static void createSoundProcesses(
 {
     for(auto&& file : drop.files)
     {
+      // TODO set file directly
         // Create sound process
         auto process_cmd = new Scenario::Command::AddOnlyProcessToInterval{
                     interval,
-                    Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get()};
+                    Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(), {}};
         m.submitCommand(process_cmd);
 
         // Set process file

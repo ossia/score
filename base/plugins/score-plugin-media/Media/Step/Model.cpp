@@ -21,21 +21,12 @@ Model::Model(
   m_min = -1.;
   m_max = 1.;
   metadata().setInstanceName(*this);
+  init();
 }
 
 Model::~Model()
 {
 
-}
-
-Process::Inlets Model::inlets() const
-{
-  return {};
-}
-
-Process::Outlets Model::outlets() const
-{
-  return {outlet.get()};
 }
 
 quint64 Model::stepCount() const { return m_stepCount; }

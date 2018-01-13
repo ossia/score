@@ -80,7 +80,7 @@ public:
         ossia::for_each_in_tuple(
               get_controls(Info::info),
               [&] (const auto& ctrl) {
-          auto inlet = static_cast<Process::ControlInlet*>(object.inlets_ref()[InfoFunctions<Info>::control_start + i]);
+          auto inlet = static_cast<Process::ControlInlet*>(object.inlets()[InfoFunctions<Info>::control_start + i]);
 
           auto lab = new TextLabel{ctrl.name, this};
           vlay->addWidget(lab);

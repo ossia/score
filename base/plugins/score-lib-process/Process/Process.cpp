@@ -5,6 +5,7 @@
 #include <stdexcept>
 
 #include "Process.hpp"
+#include <Process/Dataflow/Port.hpp>
 #include <ossia/detail/algorithms.hpp>
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
@@ -27,6 +28,7 @@ ProcessModel::ProcessModel(
 {
   con(metadata(), &score::ModelMetadata::NameChanged,
       this, [=] { prettyNameChanged(); });
+  //metadata().setInstanceName(*this);
 }
 
 ProcessModel::~ProcessModel()
@@ -154,6 +156,21 @@ void ProcessModel::setSelection(const Selection& s) const
 {
 }
 
+Process::Inlet* ProcessModel::inlet(const Id<Process::Port>& p) const
+{
+  for(auto e : m_inlets)
+    if(e->id() == p)
+      return e;
+  return nullptr;
+}
+
+Process::Outlet* ProcessModel::outlet(const Id<Process::Port>& p) const
+{
+  for(auto e : m_outlets)
+    if(e->id() == p)
+      return e;
+  return nullptr;
+}
 
 double ProcessModel::getSlotHeight() const
 {
@@ -166,14 +183,6 @@ void ProcessModel::setSlotHeight(double v)
   emit slotHeightChanged(v);
 }
 
-Inlets ProcessModel::inlets() const
-{
-  return {};
-}
-Outlets ProcessModel::outlets() const
-{
-  return {};
-}
 ProcessModel* parentProcess(QObject* obj)
 {
   while (obj && !dynamic_cast<ProcessModel*>(obj))

@@ -94,8 +94,11 @@ public:
   double getSlotHeight() const;
   void setSlotHeight(double);
 
-  virtual Inlets inlets() const;
-  virtual Outlets outlets() const;
+  const Process::Inlets& inlets() const { return m_inlets; }
+  const Process::Outlets& outlets() const { return m_outlets; }
+
+  Process::Inlet* inlet(const Id<Process::Port>&) const;
+  Process::Outlet* outlet(const Id<Process::Port>&) const;
 
 signals:
   // True if the execution is running.
@@ -109,6 +112,8 @@ signals:
   void inletsChanged();
   void outletsChanged();
 
+  void controlAdded(const Id<Process::Port>&);
+  void controlRemoved(const Process::Port&);
 protected:
 
   // Used to scale the process.
@@ -124,6 +129,8 @@ protected:
   // Does nothing if newDuration > currentDuration
   virtual void setDurationAndShrink(const TimeVal& newDuration);
 
+  Process::Inlets m_inlets;
+  Process::Outlets m_outlets;
 private:
   TimeVal m_duration;
   double m_slotHeight{}; //! Height in full view

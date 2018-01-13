@@ -140,6 +140,7 @@ Component::Component(
         id, "Executor::GradientComponent", parent}
 {
   auto node = std::make_shared<gradient_node>();
+  this->node = node;
   m_ossia_process = std::make_shared<gradient_process>(node);
 
 
@@ -161,8 +162,6 @@ Component::Component(
   });
   con(element, &Gradient::ProcessModel::gradientChanged,
       this, [this] { this->recompute(); });
-
-  ctx.plugin.register_node(process(), OSSIAProcess().node);
 
   recompute();
 }

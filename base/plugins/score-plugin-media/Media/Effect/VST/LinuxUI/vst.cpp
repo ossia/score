@@ -1,9 +1,12 @@
-
 #include <iostream>
 #include <QWindow>
 #include <Media/Effect/VST/VSTEffectModel.hpp>
+#include <Media/Effect/VST/VSTWidgets.hpp>
 #include <Media/Effect/VST/vst-compat.hpp>
-auto setup_rect(QWindow* container,  uint16_t width, uint16_t height)
+namespace Media::VST
+{
+static
+auto setup_rect(QWindow* container, int width, int height)
 {
   width = width / container->devicePixelRatio();
   height = height / container->devicePixelRatio();
@@ -16,38 +19,22 @@ auto setup_rect(QWindow* container,  uint16_t width, uint16_t height)
   container->setBaseSize({width, height});
 }
 
-void show_vst2_editor(AEffect& effect, ERect rect)
+VSTWindow::VSTWindow(AEffect& eff, ERect rect): effect{eff}
 {
   auto width = rect.right - rect.left;
   auto height = rect.bottom - rect.top;
 
-  auto container = reinterpret_cast<QWindow*>(reinterpret_cast<Media::VST::VSTEffectModel*>(effect.resvd1)->ui);
-  if(container)
-  {
-    effect.dispatcher(&effect, effEditOpen, 0, 0, (void*)container->winId(), 0);
-    container->show();
-    setup_rect(container, width, height);
-    return;
-  }
-  container = new QWindow;
-
-  effect.dispatcher(&effect, effEditOpen, 0, 0, (void*)container->winId(), 0);
-  container->show();
-  setup_rect(container, width, height);
-  reinterpret_cast<Media::VST::VSTEffectModel*>(effect.resvd1)->ui = reinterpret_cast<intptr_t>(container);
+  effect.dispatcher(&effect, effEditOpen, 0, 0, (void*)winId(), 0);
+  setup_rect(this, width, height);
+  reinterpret_cast<Media::VST::VSTEffectModel*>(effect.resvd1)->ui = reinterpret_cast<intptr_t>(this);
 }
 
-void hide_vst2_editor(AEffect& effect)
+VSTWindow::~VSTWindow()
 {
   effect.dispatcher(&effect, effEditClose, 0, 0, nullptr, 0);
   if(effect.resvd1)
   {
-    auto container = reinterpret_cast<QWindow*>(reinterpret_cast<Media::VST::VSTEffectModel*>(effect.resvd1)->ui);
-    if(container)
-    {
-      container->close();
-      container->deleteLater();
-    }
     reinterpret_cast<Media::VST::VSTEffectModel*>(effect.resvd1)->ui = 0;
   }
+}
 }

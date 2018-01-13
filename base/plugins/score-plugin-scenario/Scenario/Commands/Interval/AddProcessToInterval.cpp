@@ -6,10 +6,12 @@ namespace Command
 {
 AddProcessToInterval::AddProcessToInterval(
     const Scenario::IntervalModel& interval,
-    const UuidKey<Process::ProcessModel>& process)
+    const UuidKey<Process::ProcessModel>& process,
+    const QString& dat)
   : m_addProcessCommand{interval,
                         getStrongId(interval.processes),
-                        process}
+                        process,
+                        dat}
   , m_addedSlot{interval.smallView().empty()}
 {
 }

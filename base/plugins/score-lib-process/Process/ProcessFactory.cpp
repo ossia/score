@@ -2,7 +2,6 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ProcessFactory.hpp"
 #include "ProcessList.hpp"
-#include "StateProcessFactoryList.hpp"
 #include <Process/LayerModelPanelProxy.hpp>
 #include <Process/Process.hpp>
 #include <Process/LayerView.hpp>
@@ -15,7 +14,6 @@ ProcessModelFactory::~ProcessModelFactory() = default;
 LayerFactory::~LayerFactory() = default;
 ProcessFactoryList::~ProcessFactoryList() = default;
 LayerFactoryList::~LayerFactoryList() = default;
-StateProcessList::~StateProcessList() = default;
 
 class DefaultLayerView final : public LayerView
 {
@@ -90,10 +88,23 @@ Process::MiniLayer* LayerFactory::makeMiniLayer(
   return nullptr;
 }
 
+QGraphicsItem* LayerFactory::makeItem(
+    const ProcessModel&,
+    const score::DocumentContext& ctx,
+    score::RectItem* parent) const
+{
+  return nullptr;
+}
+
 LayerPanelProxy*
-LayerFactory::makePanel(const ProcessModel& layer, QObject* parent)
+LayerFactory::makePanel(const ProcessModel& layer, const score::DocumentContext& ctx, QObject* parent)
 {
   return new Process::GraphicsViewLayerPanelProxy{layer, parent};
+}
+
+QWindow* LayerFactory::makeExternalUI(const ProcessModel&, const score::DocumentContext& ctx, QWidget* parent)
+{
+  return nullptr;
 }
 
 bool LayerFactory::matches(const ProcessModel& p) const
@@ -109,13 +120,6 @@ bool LayerFactory::matches(
 
 ProcessFactoryList::object_type* ProcessFactoryList::loadMissing(
     const VisitorVariant& vis, QObject* parent) const
-{
-  SCORE_TODO;
-  return nullptr;
-}
-
-StateProcessList::object_type*
-StateProcessList::loadMissing(const VisitorVariant& vis, QObject* parent) const
 {
   SCORE_TODO;
   return nullptr;
@@ -137,4 +141,10 @@ LayerFactory* LayerFactoryList::findDefaultFactory(
   }
   return nullptr;
 }
+
+QString ProcessModelFactory::customConstructionData() const
+{
+  return {};
+}
+
 }

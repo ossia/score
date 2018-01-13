@@ -1,6 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Scenario/Document/State/StateModel.hpp>
+#include <Process/Process.hpp>
 
 #include <QJsonArray>
 #include <QJsonObject>
@@ -11,7 +12,7 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
-#include <Process/StateProcessFactoryList.hpp>
+#include <Process/ProcessList.hpp>
 
 #include <Process/State/MessageNode.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
@@ -72,7 +73,7 @@ DataStreamWriter::write(Scenario::StateModel& s)
   // Processes plugins
   int32_t process_count;
   m_stream >> process_count;
-  auto& pl = components.interfaces<Process::StateProcessList>();
+  auto& pl = components.interfaces<Process::ProcessFactoryList>();
   for (; process_count-- > 0;)
   {
     auto proc = deserialize_interface(pl, *this, &s);
@@ -120,7 +121,7 @@ JSONObjectWriter::write(Scenario::StateModel& s)
   s.messages() = fromJsonObject<Process::MessageNode>(obj[strings.Messages]);
 
   // Processes plugins
-  auto& pl = components.interfaces<Process::StateProcessList>();
+  auto& pl = components.interfaces<Process::ProcessFactoryList>();
 
   QJsonArray process_array = obj[strings.StateProcesses].toArray();
   for (const auto& json_vref : process_array)

@@ -102,7 +102,7 @@ Component::Component(
       });
 
   m_ossia_process = loop;
-  ctx.plugin.register_node(element, loop->node);
+  node = loop->node;
 
   // TODO also states in BasEelement
   // TODO put graphical settings somewhere.

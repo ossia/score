@@ -22,7 +22,7 @@ void EncapsulateInScenario(
 
   auto& itv = *e.interval;
   auto create_scenar = new AddProcessToInterval{itv,
-                                                Metadata<ConcreteKey_k, Scenario::ProcessModel>::get()};
+                       Metadata<ConcreteKey_k, Scenario::ProcessModel>::get(), QString{}};
   disp.submitCommand(create_scenar);
 
   // Resize the slot to fit the existing elements

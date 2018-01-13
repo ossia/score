@@ -26,6 +26,12 @@ public:
       : Process::ProcessModel{vis, parent}
   {
     vis.writeTo(*this);
+    init();
+  }
+
+  void init()
+  {
+    m_outlets.push_back(outlet.get());
   }
 
   ~ProcessModel() override;
@@ -37,9 +43,6 @@ public:
 
   void setChannel(int n);
   int channel() const;
-
-  Process::Inlets inlets() const override;
-  Process::Outlets outlets() const override;
 
   std::unique_ptr<Process::Outlet> outlet;
 signals:

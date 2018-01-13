@@ -83,7 +83,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Linear/LinearSegment.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Noise/NoiseSegment.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Power/PowerSegment.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/Sin/SinSegment.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Segment/PointArray/PointArraySegment.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/CommandObjects/MoveSegmentCommandObject.cpp"

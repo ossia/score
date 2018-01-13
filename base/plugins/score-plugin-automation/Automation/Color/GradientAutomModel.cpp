@@ -21,6 +21,7 @@ ProcessModel::ProcessModel(
   m_colors.insert(std::make_pair(0.8, QColor(Qt::white)));
 
   metadata().setInstanceName(*this);
+  init();
 }
 
 ProcessModel::~ProcessModel()
@@ -62,16 +63,6 @@ void ProcessModel::setTween(bool tween)
 
   m_tween = tween;
   emit tweenChanged(tween);
-}
-
-Process::Inlets ProcessModel::inlets() const
-{
-  return {};
-}
-
-Process::Outlets ProcessModel::outlets() const
-{
-  return {outlet.get()};
 }
 
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration)

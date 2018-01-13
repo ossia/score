@@ -28,10 +28,15 @@ ProcessComponent::ProcessComponent(
 
 void ProcessComponent::cleanup()
 {
-  this->system().plugin.unregister_node(process(), OSSIAProcess().node);
-  in_exec([proc=OSSIAProcessPtr()] {
-    proc->node.reset();
-  });
+  if(auto proc = OSSIAProcessPtr())
+  {
+    this->system().plugin.unregister_node(process(), proc->node);
+    in_exec([proc] {
+      proc->node.reset();
+    });
+  }
+  node.reset();
+  m_ossia_process.reset();
 }
 
 }

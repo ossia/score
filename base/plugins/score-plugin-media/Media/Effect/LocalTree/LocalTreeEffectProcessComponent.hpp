@@ -2,7 +2,7 @@
 #include <Engine/LocalTree/Scenario/ProcessComponent.hpp>
 #include <Engine/LocalTree/LocalTreeComponent.hpp>
 #include <Engine/LocalTree/NameProperty.hpp>
-#include <Effect/EffectModel.hpp>
+#include <Process/Process.hpp>
 #include <Media/Effect/EffectProcessModel.hpp>
 #include <Media/Effect/Effect/Faust/FaustEffectModel.hpp>
 #include <Media/Effect/LocalTree/LocalTreeEffectComponent.hpp>
@@ -21,7 +21,7 @@ namespace LocalTree
 {
 class EffectComponent;
 class EffectProcessComponent;
-class EffectFactoryList;
+class ProcessList;
 
 class EffectProcessComponentBase :
         public Engine::LocalTree::ProcessComponent_T<ProcessModel>

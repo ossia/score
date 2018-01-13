@@ -16,4 +16,5 @@ PROCESS_METADATA(
     "Gradient",
     "Automation (color)",
     "Automations",
-    (QStringList{"Curve", "Automation", "Color"}))
+    (QStringList{"Curve", "Automation", "Color"}),
+    Process::ProcessFlags::SupportsTemporal)

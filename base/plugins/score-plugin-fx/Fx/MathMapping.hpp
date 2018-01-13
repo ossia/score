@@ -41,7 +41,7 @@ struct Node
             Control::create_node()
             .value_ins({{"in"}})
             .value_outs({{"out"}})
-            .controls(Control::LineEdit("Expression (ExprTK)", QLatin1Literal{"cos(t) + log(pos * x / dt)"}))
+            .controls(Control::LineEdit("Expression (ExprTK)", "cos(t) + log(pos * x / dt)"))
             .build();
 
     using control_policy = Control::LastTick;
@@ -113,7 +113,7 @@ struct Node
             Control::create_node()
             .audio_ins({{"in"}})
             .audio_outs({{"out"}})
-            .controls(Control::LineEdit("Expression (ExprTK)", QLatin1Literal{"a * x"})
+            .controls(Control::LineEdit("Expression (ExprTK)", "a * x")
                       , Control::FloatSlider("Param (a)", 0., 1., 0.5)
                       , Control::FloatSlider("Param (b)", 0., 1., 0.5)
                       , Control::FloatSlider("Param (c)", 0., 1., 0.5)

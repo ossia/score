@@ -37,7 +37,7 @@ public:
   }
 
   Process::LayerPanelProxy*
-  makePanel(const Process::ProcessModel& layer, QObject* parent) override
+  makePanel(const Process::ProcessModel& layer, const score::DocumentContext& ctx, QObject* parent) override
   {
     return new CurvePanelProxy<Model_T>{
         safe_cast<const Model_T&>(layer), parent};

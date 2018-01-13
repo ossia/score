@@ -1,5 +1,5 @@
 #pragma once
-#include <Process/StateProcess.hpp>
+#include <Process/Process.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <score/model/Entity.hpp>
@@ -64,7 +64,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT StateModel final
 public:
   using ProcessVector = std::list<ProcessStateWrapper>;
 
-  score::EntityMap<Process::StateProcess> stateProcesses;
+  score::EntityMap<Process::ProcessModel> stateProcesses;
   Selectable selection;
 
   StateModel(

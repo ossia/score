@@ -23,13 +23,11 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/ChangeAudioFile.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/CreateSoundBox.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/MediaCommandFactory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/CreateEffectAutomation.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/InsertEffect.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Inspector/AudioInspector.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundFactory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundLayer.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundMetadata.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundPresenter.hpp"
@@ -42,12 +40,10 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Input/InputMetadata.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectProcessFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectProcessLayer.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectProcessMetadata.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectProcessModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/Widgets/EffectSlider.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/Widgets/EffectWidget.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/Widgets/EffectListWidget.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/Missing/MissingEffectModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Inspector/EffectInspector.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectExecutor.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/DefaultEffectItem.hpp"
@@ -89,19 +85,11 @@ set(SRCS
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectProcessModel.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/Widgets/EffectSlider.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/Widgets/EffectWidget.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/Widgets/EffectListWidget.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/Missing/MissingEffectModel.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Inspector/EffectInspector.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectExecutor.cpp"
 
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Commands.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Executor.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Inspector.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Model.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Presenter.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/View.cpp"
-
 
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/MediaFileHandle.cpp"
@@ -138,6 +126,9 @@ endif()
 set(VST_HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTLoader.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTEffectModel.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTWidgets.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTExecutor.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTControl.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTNode.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/vst-compat.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/VSTCommands.hpp"
@@ -145,7 +136,8 @@ set(VST_HDRS
 set(VST_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTLoader.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTEffectModel.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTNode.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTWidgets.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTExecutor.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/VSTCommands.cpp"
   )
 

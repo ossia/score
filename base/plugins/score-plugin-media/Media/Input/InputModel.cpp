@@ -8,17 +8,6 @@ namespace Media
 {
 namespace Input
 {
-
-Process::Inlets ProcessModel::inlets() const
-{
-  return {};
-}
-
-Process::Outlets ProcessModel::outlets() const
-{
-  return {outlet.get()};
-}
-
 int ProcessModel::startChannel() const
 {
   return m_startChannel;
@@ -58,6 +47,7 @@ ProcessModel::ProcessModel(
   outlet->type = Process::PortType::Audio;
 
   metadata().setInstanceName(*this);
+  init();
 }
 
 ProcessModel::~ProcessModel()

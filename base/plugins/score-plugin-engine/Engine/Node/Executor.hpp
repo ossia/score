@@ -31,7 +31,7 @@ struct has_control_policy<T, std::void_t<typename T::control_policy>> : std::tru
 
 template<typename Info>
 class ControlNode :
-    public ossia::audio_fx_node
+    public ossia::graph_node
     , public get_state<Info>::type
 {
 public:
@@ -354,7 +354,7 @@ struct control_updater
 
 
 template<typename Info, typename Node_T, typename Element_T>
-void setup_node(const std::shared_ptr<Node_T> node_ptr
+void setup_node(const std::shared_ptr<Node_T>& node_ptr
                 , Element_T& element
                 , const Engine::Execution::Context& ctx
                 , QObject* parent)
@@ -377,7 +377,7 @@ void setup_node(const std::shared_ptr<Node_T> node_ptr
       constexpr const auto control_start = InfoFunctions<Info>::control_start;
       using control_type = typename std::tuple_element<idx, decltype(get_controls(Info::info))>::type;
       using control_value_type = typename control_type::type;
-      auto inlet = static_cast<Process::ControlInlet*>(element.inlets_ref()[control_start + idx]);
+      auto inlet = static_cast<Process::ControlInlet*>(element.inlets()[control_start + idx]);
 
       if constexpr(control_type::must_validate)
       {
@@ -478,11 +478,10 @@ class Executor: public Engine::Execution::
                             id, "Executor::ControlProcess<Info>", parent}
     {
       auto node = std::make_shared<ControlNode<Info>>();
-      this->m_ossia_process = std::make_shared<ossia::node_process>(node);
+      this->node = node;
+      this->m_ossia_process = std::make_shared<ossia::node_process>(this->node);
 
       setup_node<Info>(node, element, ctx, this);
-
-      ctx.plugin.register_node(element, node);
     }
 
     ~Executor()

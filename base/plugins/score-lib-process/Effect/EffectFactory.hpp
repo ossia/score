@@ -1,167 +1,224 @@
 #pragma once
-#include <score/plugins/customfactory/FactoryInterface.hpp>
-#include <score/serialization/VisitorCommon.hpp>
-#include <score_lib_process_export.h>
+#include <Process/LayerModelPanelProxy.hpp>
+#include <Process/LayerView.hpp>
+#include <Process/Process.hpp>
+#include <Process/ProcessFactory.hpp>
+#include <Process/Process.hpp>
+#include <QGraphicsSceneEvent>
+#include <score/widgets/RectItem.hpp>
 
-class QGraphicsItem;
-namespace Control
-{
-struct RectItem;
-}
 namespace Process
 {
-class EffectModel;
-
-/**
- * @brief The EffectFactory class
- *
- * An abstract factory for the generation of plug-ins.
- * This is meant to be subclassed by factories of
- * categories of plug-ins.
- * For instance : VSTEffectFactory, FaustEffectFactory, etc.
- *
- * For now a QString is passed but according to the needs
- * of various plug-in APIs this may change.
- *
- */
-class SCORE_LIB_PROCESS_EXPORT EffectFactory :
-        public score::Interface<EffectModel>
+template <typename Model_T>
+class EffectProcessFactory_T final : public Process::ProcessModelFactory
 {
-        SCORE_INTERFACE("3ffe0073-dfe0-4a7f-862f-220380ebcf08")
-    public:
-        ~EffectFactory() override;
-
-        virtual QString prettyName() const = 0; // VST, FaUST, etc...
-        virtual QString category() const = 0; // VST, FaUST, etc...
-
-        /**
-         * @brief makeM Creates an effect model
-         * @param info Data used for the creation of the effect
-         * @param parent Parent object
-         * @return A valid effect instance if the info is correct, else nullptr.
-         */
-        virtual EffectModel* make(
-                const QString& info, // plugin name ? faust code ? dll location ?
-                const Id<EffectModel>&,
-                QObject* parent) const = 0;
-
-        /**
-         * @brief load Loads an effect model
-         * @param data Serialized data
-         * @param parent Parent object
-         * @return If the effect can be loaded, an instance,
-         * else a MissingEffectModel with the serialized data should be returned.
-         */
-        virtual EffectModel* load(
-                const VisitorVariant& data,
-                QObject* parent) const = 0;
-};
-
-/**
- * @brief The GenericEffectFactory class
- *
- * Should handle most cases
- */
-template<typename Model_T>
-class EffectFactory_T final :
-        public EffectFactory
-{
-    public:
-        virtual ~EffectFactory_T() = default;
-
-        static auto static_concreteKey()
-        { return Metadata<ConcreteKey_k, Model_T>::get(); }
-    private:
-        UuidKey<Process::EffectModel> concreteKey() const noexcept override
-        { return Metadata<ConcreteKey_k, Model_T>::get(); }
-
-        QString prettyName() const override
-        { return Metadata<PrettyName_k, Model_T>::get(); }
-        QString category() const override
-        { return Metadata<Category_k, Model_T>::get(); }
-
-        Model_T* make(
-                const QString& info, // plugin name ? faust code ? dll location ?
-                const Id<EffectModel>& id,
-                QObject* parent) const final override
-        {
-            return new Model_T{info, id, parent};
-        }
-
-        Model_T* load(
-                const VisitorVariant& vis,
-                QObject* parent) const final override
-        {
-            return score::deserialize_dyn(vis, [&] (auto&& deserializer)
-            { return new Model_T{deserializer, parent}; });
-        }
-};
-
-/**
- * @brief The EffectFactoryList class
- *
- * If a factory cannot be found at load time
- * (for instance AU plug-in on Windows),
- * a MissingEffectModel should be returned.
- */
-class SCORE_LIB_PROCESS_EXPORT EffectFactoryList final :
-        public score::InterfaceList<EffectFactory>
-{
-    public:
-        using object_type = Process::EffectModel;
-        object_type* loadMissing(
-                const VisitorVariant& vis,
-                QObject* parent) const;
-};
-
-class SCORE_LIB_PROCESS_EXPORT EffectUIFactory
-    : public score::Interface<EffectModel>
-{
-  SCORE_INTERFACE("0b57b4c4-7da5-4032-9ac7-6fac34896e10")
 public:
-  ~EffectUIFactory() override;
+  virtual ~EffectProcessFactory_T() = default;
 
-  virtual QGraphicsItem*
-  makeItem(const Process::EffectModel& view, const score::DocumentContext& ctx, Control::RectItem* parent) const = 0;
+private:
+  UuidKey<Process::ProcessModel> concreteKey() const noexcept override
+  { return Metadata<ConcreteKey_k, Model_T>::get(); }
+  QString prettyName() const override
+  { return Metadata<PrettyName_k, Model_T>::get(); }
+  QString category() const override
+  { return Metadata<Category_k, Model_T>::get(); }
+  ProcessFlags flags() const override
+  { return Metadata<ProcessFlags_k, Model_T>::get(); }
 
-  bool matches(const Process::EffectModel& p) const;
-  virtual bool matches(const UuidKey<Process::EffectModel>&) const = 0;
+  QString customConstructionData() const override;
+
+  Model_T* make(
+      const TimeVal& duration,
+      const QString& data,
+      const Id<Process::ProcessModel>& id,
+      QObject* parent) override
+  {
+    return new Model_T{duration, data, id, parent};
+  }
+
+  Model_T* load(const VisitorVariant& vis, QObject* parent) final override
+  {
+    return score::deserialize_dyn(vis, [&](auto&& deserializer) {
+      return new Model_T{deserializer, parent};
+    });
+  }
 };
 
-template<typename Model_T, typename View_T>
-class EffectUIFactory_T final :
-    public EffectUIFactory
+template <typename Model_T>
+QString EffectProcessFactory_T<Model_T>::customConstructionData() const
 {
-  public:
-    virtual ~EffectUIFactory_T() = default;
-
-  private:
-    QGraphicsItem*
-    makeItem(const Process::EffectModel& view, const score::DocumentContext& ctx, Control::RectItem* parent) const final override
-    {
-      return new View_T{safe_cast<const Model_T&>(view), ctx, parent};
-    }
-
-    bool matches(const UuidKey<Process::EffectModel>& p) const override
-    {
-      return p == Metadata<ConcreteKey_k, Model_T>::get();
-    }
-
-    UuidKey<EffectModel> concreteKey() const noexcept override
-    {
-      return Metadata<ConcreteKey_k, Model_T>::get();
-    }
-};
-
-class SCORE_LIB_PROCESS_EXPORT EffectUIFactoryList final :
-        public score::InterfaceList<EffectUIFactory>
-{
-  public:
-    EffectUIFactory*
-    findDefaultFactory(const EffectModel& proc) const;
-
-    EffectUIFactory* findDefaultFactory(
-        const UuidKey<EffectModel>& proc) const;
-};
+  static_assert(std::is_same<Model_T, void>::value, "can't be used like this");
+  return {};
 }
-Q_DECLARE_METATYPE(UuidKey<Process::EffectFactory>)
+
+class EffectLayerView final : public Process::LayerView
+{
+  public:
+  EffectLayerView(QGraphicsItem* parent)
+    : Process::LayerView{parent}
+  {
+
+  }
+  void paint_impl(QPainter*) const override
+  {
+
+  }
+  void mousePressEvent(QGraphicsSceneMouseEvent* ev) override
+  {
+    if(ev && ev->button() == Qt::RightButton)
+    {
+      emit askContextMenu(ev->screenPos(), ev->scenePos());
+    }
+    else
+    {
+      emit pressed(ev->scenePos());
+    }
+    ev->accept();
+  }
+
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* ev) override
+  {
+    ev->accept();
+  }
+
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* ev) override
+  {
+    ev->accept();
+  }
+
+  void contextMenuEvent(QGraphicsSceneContextMenuEvent* ev) override
+  {
+    emit askContextMenu(ev->screenPos(), ev->scenePos());
+    ev->accept();
+  }
+
+};
+
+class EffectLayerPresenter final : public Process::LayerPresenter
+{
+public:
+  EffectLayerPresenter(
+      const Process::ProcessModel& model,
+      EffectLayerView* view,
+      const Process::ProcessPresenterContext& ctx,
+      QObject* parent)
+    : LayerPresenter{ctx, parent}, m_layer{model}, m_view{view}
+  {
+    putToFront();
+    connect(view, &Process::LayerView::pressed, this, [&] {
+      m_context.context.focusDispatcher.focus(this);
+    });
+
+    connect(
+          m_view, &Process::LayerView::askContextMenu, this,
+          &Process::LayerPresenter::contextMenuRequested);
+  }
+  void setWidth(qreal val) override
+  {
+    m_view->setWidth(val);
+  }
+  void setHeight(qreal val) override
+  {
+    m_view->setHeight(val);
+  }
+
+  void putToFront() override
+  {
+    m_view->setVisible(true);
+  }
+
+  void putBehind() override
+  {
+    m_view->setVisible(false);
+  }
+
+  void on_zoomRatioChanged(ZoomRatio) override
+  {
+  }
+
+  void parentGeometryChanged() override
+  {
+  }
+
+  const Process::ProcessModel& model() const override
+  {
+    return m_layer;
+  }
+  const Id<Process::ProcessModel>& modelId() const override
+  {
+    return m_layer.id();
+  }
+
+private:
+  const Process::ProcessModel& m_layer;
+  EffectLayerView* m_view{};
+};
+
+template<typename Model_T, typename Item_T, typename ExtView_T = void>
+class EffectLayerFactory_T final : public Process::LayerFactory
+{
+public:
+  virtual ~EffectLayerFactory_T() = default;
+
+private:
+  UuidKey<Process::ProcessModel> concreteKey() const noexcept override
+  {
+    return Metadata<ConcreteKey_k, Model_T>::get();
+  }
+
+  LayerView* makeLayerView(
+      const Process::ProcessModel& viewmodel,
+      QGraphicsItem* parent) final override
+  {
+    return new EffectLayerView{parent};
+  }
+
+  LayerPresenter* makeLayerPresenter(
+      const Process::ProcessModel& lm,
+      Process::LayerView* v,
+      const Process::ProcessPresenterContext& context,
+      QObject* parent) final override
+  {
+    auto pres = new EffectLayerPresenter{
+          safe_cast<const Model_T&>(lm),
+          safe_cast<EffectLayerView*>(v), context, parent};
+
+    auto rect = new score::RectItem{v};
+    auto item = makeItem(lm, context, rect);
+    item->setParentItem(rect);
+    return pres;
+  }
+
+  QGraphicsItem* makeItem(
+      const Process::ProcessModel& proc,
+      const score::DocumentContext& ctx,
+      score::RectItem* parent) const override
+  {
+    return new Item_T{safe_cast<const Model_T&>(proc), ctx, parent};
+  }
+
+  QWindow*
+  makeExternalUI(const Process::ProcessModel& proc,
+                 const score::DocumentContext& ctx,
+                 QWidget* parent) override
+  {
+    if constexpr(!std::is_same_v<ExtView_T, void>)
+      return new ExtView_T{safe_cast<const Model_T&>(proc), ctx, parent};
+    else
+      return nullptr;
+  }
+
+  LayerPanelProxy* makePanel(
+      const Process::ProcessModel& viewmodel, const score::DocumentContext& ctx, QObject* parent) final override
+  {
+    return nullptr;
+    //return new Process::GraphicsViewLayerPanelProxy{layer, parent};
+  }
+
+  bool matches(const UuidKey<Process::ProcessModel>& p) const override
+  {
+    return p == Metadata<ConcreteKey_k, Model_T>::get();
+  }
+};
+
+}

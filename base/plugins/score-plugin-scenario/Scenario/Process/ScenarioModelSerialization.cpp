@@ -266,11 +266,3 @@ void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
 
   // Scenario::ScenarioValidityChecker::checkValidity(scenario);
 }
-
-Process::ProcessModel*
-Scenario::ScenarioFactory::load(const VisitorVariant& vis, QObject* parent)
-{
-  return score::deserialize_dyn(vis, [&](auto&& deserializer) {
-    return new Scenario::ProcessModel{deserializer, parent};
-  });
-}

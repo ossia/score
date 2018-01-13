@@ -34,8 +34,13 @@ public:
       : Process::ProcessModel{vis, parent}
   {
     vis.writeTo(*this);
+    init();
   }
 
+  void init()
+  {
+    // TODO m_outlets.push_back(outlet.get());
+  }
   State::AddressAccessor address() const;
   void setAddress(const State::AddressAccessor& arg);
   State::Unit unit() const;

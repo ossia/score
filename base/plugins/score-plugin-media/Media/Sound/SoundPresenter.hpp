@@ -2,7 +2,6 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Media/Sound/SoundModel.hpp>
-#include <Media/Sound/SoundLayer.hpp>
 class QMimeData;
 namespace Media
 {

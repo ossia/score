@@ -3,8 +3,9 @@
 #include <QByteArray>
 #include <QString>
 
+#include <Process/GenericProcessFactory.hpp>
 #include <Process/TimeValue.hpp>
-
+#include <Scenario/Process/ScenarioModel.hpp>
 namespace Process
 {
 class LayerPresenter;
@@ -20,19 +21,7 @@ namespace Scenario
 {
 class EditionSettings;
 
-class ScenarioFactory final : public Process::ProcessModelFactory
-{
-public:
-  UuidKey<Process::ProcessModel> concreteKey() const noexcept override;
-  QString prettyName() const override;
-  QString category() const override;
-  Process::ProcessModel* make(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent) override;
-
-  Process::ProcessModel* load(const VisitorVariant&, QObject* parent) override;
-};
+using ScenarioFactory = Process::ProcessFactory_T<Scenario::ProcessModel>;
 
 class ScenarioTemporalLayerFactory final : public Process::LayerFactory
 {

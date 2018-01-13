@@ -30,10 +30,11 @@ namespace Media
 namespace LV2
 {
 LV2EffectModel::LV2EffectModel(
+    TimeVal t,
     const QString& path,
-    const Id<EffectModel>& id,
+    const Id<Process::ProcessModel>& id,
     QObject* parent):
-  EffectModel{id, parent},
+  ProcessModel{t, id, "LV2Effect", parent},
   m_effectPath{path}
 {
   reload();
@@ -223,7 +224,7 @@ Engine::Execution::LV2EffectComponent::LV2EffectComponent(
     const Engine::Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
-  : Engine::Execution::EffectComponent_T<Media::LV2::LV2EffectModel>{proc, ctx, id, parent}
+  : ProcessComponent_T{proc, ctx, id, "LV2Component", parent}
 {
   auto& host = ctx.context().doc.app.applicationPlugin<Media::ApplicationPlugin>();
   node = std::make_shared<Media::LV2::LV2AudioEffect>(
@@ -231,4 +232,5 @@ Engine::Execution::LV2EffectComponent::LV2EffectComponent(
           host.lv2_host_context,
           proc.effectContext},
         ctx.plugin.execState->sampleRate);
+  m_ossia_process = std::make_shared<ossia::node_process>(node);
 }

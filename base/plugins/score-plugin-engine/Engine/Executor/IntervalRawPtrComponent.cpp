@@ -241,6 +241,9 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
       }
 
       auto oproc = plug->OSSIAProcessPtr();
+      if(auto& onode = plug->node)
+        ctx.plugin.register_node(proc, onode);
+
       auto cst = m_ossia_interval;
 
       QObject::connect(&proc.selection, &Selectable::changed,

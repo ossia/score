@@ -1,4 +1,5 @@
 #include "VSTCommands.hpp"
+#include <Media/Effect/VST/VSTControl.hpp>
 #include <Media/Effect/VST/VSTEffectModel.hpp>
 
 namespace Media::VST

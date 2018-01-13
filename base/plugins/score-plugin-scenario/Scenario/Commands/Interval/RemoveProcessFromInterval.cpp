@@ -85,15 +85,9 @@ void RemoveProcessFromInterval::undo(const score::DocumentContext& ctx) const
   DataStream::Deserializer s{m_serializedProcessData};
   auto& fact = ctx.app.interfaces<Process::ProcessFactoryList>();
   auto proc = deserialize_interface(fact, s, &interval);
-  if (proc)
-  {
-    AddProcess(interval, proc);
-  }
-  else
-  {
-    SCORE_TODO;
-    return;
-  }
+  SCORE_ASSERT (proc);
+  AddProcess(interval, proc);
+
 
   Dataflow::restoreCables(m_cables, ctx);
 

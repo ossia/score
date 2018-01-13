@@ -131,7 +131,6 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/CommentBlock/CommentBlockView.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/CommentBlock/TextItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Components/IntervalComponent.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Components/ProcessComponent.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Components/ScenarioComponent.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/IntervalDurations.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/IntervalHeader.hpp"
@@ -300,7 +299,6 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationPresenter.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/ChangeAddress.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/CommandFactory.hpp"
 
 
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/CreateModulation.hpp"
@@ -405,7 +403,6 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeSync/TriggerCommandFactory/BaseScenarioTriggerCommandFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeSync/SplitTimeSync.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeSync/SetTrigger.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/SetProcessDuration.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/ScenarioCommandFactory.cpp"
 
@@ -443,7 +440,6 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ProcessFocusManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ZoomPolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/Widgets/ProgressBar.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/Widgets/SceneGraduations.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioDocumentFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioDocumentModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.cpp"
@@ -563,7 +559,6 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/score_plugin_scenario.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/ChangeAddress.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/CommandFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationColors.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationProcess.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationView.cpp"

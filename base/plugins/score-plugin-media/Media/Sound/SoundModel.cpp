@@ -3,23 +3,10 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 
 #include <QFile>
-#include <Media/Sound/SoundLayer.hpp>
-
 namespace Media
 {
 namespace Sound
 {
-
-Process::Inlets ProcessModel::inlets() const
-{
-  return {};
-}
-
-Process::Outlets ProcessModel::outlets() const
-{
-  return {outlet.get()};
-}
-
 ProcessModel::ProcessModel(
         const TimeVal& duration,
         const Id<Process::ProcessModel>& id,
@@ -84,6 +71,7 @@ void ProcessModel::setStartChannel(int startChannel)
 
 void ProcessModel::init()
 {
+  m_outlets.push_back(outlet.get());
   connect(&m_file, &MediaFileHandle::mediaChanged,
           this, [=] {
     if(m_file.channels() == 1) {

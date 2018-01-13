@@ -27,6 +27,7 @@ ProcessModel::ProcessModel(
     n->setVelocity(i * 127. / 9.);
     notes.add(n);
   }
+  init();
 }
 
 ProcessModel::~ProcessModel()
@@ -53,16 +54,6 @@ void ProcessModel::setChannel(int n)
 int ProcessModel::channel() const
 {
   return m_channel;
-}
-
-Process::Inlets ProcessModel::inlets() const
-{
-  return {};
-}
-
-Process::Outlets ProcessModel::outlets() const
-{
-  return {outlet.get()};
 }
 
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration)

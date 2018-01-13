@@ -37,14 +37,14 @@ static auto move_edges(ossia::outlet& old_out, std::shared_ptr<ossia::outlet> ne
   }
 }
 
-EffectComponent* EffectProcessComponentBase::make(
+ProcessComponent* EffectProcessComponentBase::make(
     const Id<score::Component>& id,
-    EffectComponentFactory& factory,
-    Process::EffectModel& effect)
+    ProcessComponentFactory& factory,
+    Process::ProcessModel& effect)
 {
   const Engine::Execution::Context & ctx = system();
 
-  std::shared_ptr<EffectComponent> fx = factory.make(effect, system(), id, this);
+  std::shared_ptr<ProcessComponent> fx = factory.make(effect, system(), id, this);
   if(fx)
   {
     SCORE_ASSERT(fx->node);
@@ -214,14 +214,14 @@ EffectComponent* EffectProcessComponentBase::make(
   return fx.get();
 }
 
-void EffectProcessComponentBase::added(EffectComponent& e)
+void EffectProcessComponentBase::added(ProcessComponent& e)
 {
 
 }
 
 std::function<void ()> EffectProcessComponentBase::removing(
-    const Process::EffectModel& e,
-    EffectComponent& c)
+    const Process::ProcessModel& e,
+    ProcessComponent& c)
 {
   auto echain = std::dynamic_pointer_cast<effect_chain_process>(m_ossia_process);
 

@@ -28,15 +28,11 @@
 #include <Engine/Executor/ClockManager/ClockManagerFactory.hpp>
 #include <Engine/Executor/ClockManager/DefaultClockManager.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
-#include <Engine/Executor/Interpolation/InterpolationComponent.hpp>
 #include <Engine/Executor/Mapping/Component.hpp>
 #include <Engine/Executor/Loop/Component.hpp>
 #include <Engine/Executor/Automation/Component.hpp>
 #include <Engine/Executor/Automation/GradientComponent.hpp>
-#include <Engine/Executor/Automation/SplineComponent.hpp>
-#include <Engine/Executor/Automation/MetronomeComponent.hpp>
 #include <Engine/Executor/Settings/ExecutorFactory.hpp>
-#include <Engine/Executor/StateProcessComponent.hpp>
 #include <Engine/Listening/PlayListeningHandlerFactory.hpp>
 #include <Engine/LocalTree/Settings/LocalTreeFactory.hpp>
 #include <score/plugins/customfactory/FactorySetup.hpp>
@@ -92,7 +88,10 @@ score_plugin_engine::make_guiApplicationPlugin(
 std::vector<std::unique_ptr<score::InterfaceListBase>>
 score_plugin_engine::factoryFamilies()
 {
-  return make_ptr_vector<score::InterfaceListBase, Engine::LocalTree::ProcessComponentFactoryList, Engine::Execution::ProcessComponentFactoryList, Engine::Execution::StateProcessComponentFactoryList, Engine::Execution::ClockManagerFactoryList>();
+  return make_ptr_vector<score::InterfaceListBase
+      , Engine::LocalTree::ProcessComponentFactoryList
+      , Engine::Execution::ProcessComponentFactoryList
+      , Engine::Execution::ClockManagerFactoryList>();
 }
 
 std::vector<std::unique_ptr<score::InterfaceBase>>

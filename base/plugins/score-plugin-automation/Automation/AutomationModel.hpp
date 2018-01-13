@@ -88,8 +88,6 @@ private:
   void init();
 
   //// ProcessModel ////
-  Process::Inlets inlets() const override;
-  Process::Outlets outlets() const override;
   void setDurationAndScale(const TimeVal& newDuration) override;
   void setDurationAndGrow(const TimeVal& newDuration) override;
   void setDurationAndShrink(const TimeVal& newDuration) override;

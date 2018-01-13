@@ -37,7 +37,6 @@
 #include <Device/Protocol/DeviceList.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
-#include <Engine/Executor/StateProcessComponent.hpp>
 #include <Engine/LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <Engine/OSSIA2score.hpp>
 #include <Engine/Protocols/OSSIADevice.hpp>
@@ -386,6 +385,7 @@ SCORE_PLUGIN_ENGINE_EXPORT void state(
     }
   });
 
+  /* TODO
   for (auto& proc : score_state.stateProcesses)
   {
     auto fac = ctx.stateProcesses.factory(proc);
@@ -394,6 +394,7 @@ SCORE_PLUGIN_ENGINE_EXPORT void state(
       elts.add(fac->make(proc, ctx));
     }
   }
+  */
 }
 
 SCORE_PLUGIN_ENGINE_EXPORT ossia::state state(

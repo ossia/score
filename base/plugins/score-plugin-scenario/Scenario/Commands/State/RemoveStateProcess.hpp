@@ -8,8 +8,8 @@
 #include <score_plugin_scenario_export.h>
 namespace Process
 {
-class StateProcess;
-class StateProcessFactory;
+class ProcessModel;
+class ProcessFactory;
 }
 namespace Scenario
 {
@@ -27,7 +27,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT RemoveStateProcess final
 public:
   RemoveStateProcess(
       const Scenario::StateModel& state,
-      Id<Process::StateProcess> processId);
+      Id<Process::ProcessModel> processId);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
@@ -38,9 +38,10 @@ protected:
 
 private:
   Path<StateModel> m_path;
-  UuidKey<Process::StateProcessFactory> m_processUuid;
+  UuidKey<Process::ProcessModel> m_processUuid;
 
-  Id<Process::StateProcess> m_processId{};
+  Id<Process::ProcessModel> m_processId{};
+  QByteArray m_data;
 };
 }
 }

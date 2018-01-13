@@ -547,9 +547,9 @@ struct ChooserToggle: ControlInfo
 struct LineEdit: ControlInfo
 {
     static const constexpr bool must_validate = false;
-    template<std::size_t N>
-    constexpr LineEdit(const char (&name)[N], QLatin1Literal v1):
-      ControlInfo{name}, init{v1}
+    template<std::size_t N, std::size_t M>
+    constexpr LineEdit(const char (&name)[N], const char (&init)[M]):
+      ControlInfo{name}, init{init, M-1}
     {
     }
 

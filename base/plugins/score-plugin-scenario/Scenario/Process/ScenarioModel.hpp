@@ -31,8 +31,6 @@ class QEvent;
 
 namespace Scenario
 {
-
-class ScenarioFactory;
 /**
  * @brief The core hierarchical and temporal process of score
  */
@@ -44,20 +42,28 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
 
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Scenario::ProcessModel)
-  friend class ScenarioFactory;
   friend class ScenarioTemporalLayerFactory;
 
 public:
   std::unique_ptr<Process::Inlet> inlet;
   std::unique_ptr<Process::Outlet> outlet;
 
-  Process::Inlets inlets() const override;
-  Process::Outlets outlets() const override;
-
   ProcessModel(
       const TimeVal& duration,
       const Id<Process::ProcessModel>& id,
       QObject* parent);
+  template <typename Impl>
+  ProcessModel(Impl& vis, QObject* parent)
+      : Process::ProcessModel{vis, parent}
+  {
+    vis.writeTo(*this);
+    init();
+  }
+  void init()
+  {
+    m_inlets.push_back(inlet.get());
+    m_outlets.push_back(outlet.get());
+  }
   ~ProcessModel() override;
 
   //// ScenarioModel specifics ////
@@ -180,21 +186,11 @@ public:
 
 private:
   void setSelection(const Selection& s) const override;
-
-  template <typename Impl>
-  ProcessModel(Impl& vis, QObject* parent)
-      : Process::ProcessModel{vis, parent}
-  {
-    vis.writeTo(*this);
-  }
-
-  // To prevent warnings in Clang
   bool event(QEvent* e) override
   {
     return QObject::event(e);
   }
 
-private:
   bool contentHasDuration() const override;
   TimeVal contentDuration() const override;
 

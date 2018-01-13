@@ -166,10 +166,11 @@ public:
 };
 
 FaustEffectModel::FaustEffectModel(
+    TimeVal t,
     const QString& faustProgram,
-    const Id<EffectModel>& id,
+    const Id<Process::ProcessModel>& id,
     QObject* parent):
-  Process::EffectModel{id, parent}
+  Process::ProcessModel{t, id, "Faust", parent}
 {
   setText(faustProgram);
   init();
@@ -284,7 +285,7 @@ void FaustEffectModel::reload()
     faust_object->buildUserInterface(&ui);
   }
 }
-
+/*
 void FaustEffectModel::showUI()
 {
   FaustEditDialog edit{*this};
@@ -299,6 +300,7 @@ void FaustEffectModel::hideUI()
 {
 
 }
+*/
 }
 
 template <>
@@ -338,7 +340,7 @@ void JSONObjectWriter::write(
 namespace Engine::Execution
 {
 
-class faust_node : public ossia::audio_fx_node
+class faust_node : public ossia::graph_node
 {
     llvm_dsp* m_dsp{};
     struct FaustExecUI final: public PathBuilder, public UI
@@ -490,13 +492,14 @@ Engine::Execution::FaustEffectComponent::FaustEffectComponent(
     const Engine::Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
-  : Engine::Execution::EffectComponent_T<Media::Faust::FaustEffectModel>{proc, ctx, id, parent}
+  : ProcessComponent_T{proc, ctx, id, "FaustComponent", parent}
 {
   if(proc.faust_object)
   {
     proc.faust_object->init(ctx.plugin.execState->sampleRate);
     auto node = std::make_shared<faust_node>(*proc.faust_object);
     this->node = node;
+    m_ossia_process = std::make_shared<ossia::node_process>(node);
     for(int i = 1; i < proc.inlets().size(); i++)
     {
       auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);

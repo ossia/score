@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Process.hpp>
+#include <Process/ProcessComponent.hpp>
 #include <QObject>
 #include <Engine/Executor/Component.hpp>
 #include <score/model/ComponentFactory.hpp>
@@ -7,7 +8,6 @@
 
 #include <ossia/editor/scenario/time_process.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
-#include <Scenario/Document/Components/ProcessComponent.hpp>
 #include <score/plugins/customfactory/ModelFactory.hpp>
 #include <score_plugin_engine_export.h>
 
@@ -73,6 +73,7 @@ public:
     return *m_ossia_process;
   }
 
+  std::shared_ptr<ossia::graph_node> node;
   signals:
     void nodeChanged(ossia::node_ptr old_node, ossia::node_ptr new_node);
   protected:

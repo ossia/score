@@ -42,7 +42,7 @@ private:
   }
 
   Process::LayerPanelProxy* makePanel(
-      const Process::ProcessModel& viewmodel, QObject* parent) final override
+      const Process::ProcessModel& viewmodel, const score::DocumentContext& ctx, QObject* parent) final override
   {
     return new LayerPanelProxy<Model_T, Widget_T>{viewmodel, parent};
   }

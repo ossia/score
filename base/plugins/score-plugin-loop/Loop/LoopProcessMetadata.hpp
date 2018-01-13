@@ -17,5 +17,6 @@ PROCESS_METADATA(
     "Loop",
     "Loop",
     "Structure",
-    {})
+    {},
+    Process::ProcessFlags::SupportsTemporal)
 UNDO_NAME_METADATA(EMPTY_MACRO, Loop::ProcessModel, "Loop")

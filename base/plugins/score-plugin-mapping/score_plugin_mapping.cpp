@@ -23,7 +23,7 @@ namespace Mapping
 {
 
 using MappingFactory
-    = Process::GenericProcessModelFactory<Mapping::ProcessModel>;
+    = Process::ProcessFactory_T<Mapping::ProcessModel>;
 using MappingLayerFactory = Curve::
     CurveLayerFactory_T<Mapping::ProcessModel, Mapping::LayerPresenter, Mapping::LayerView, Mapping::Colors>;
 }

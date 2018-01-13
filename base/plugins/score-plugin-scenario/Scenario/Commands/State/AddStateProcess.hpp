@@ -11,8 +11,8 @@
 
 namespace Process
 {
-class StateProcess;
-class StateProcessFactory;
+class ProcessModel;
+class ProcessFactory;
 }
 namespace Scenario
 {
@@ -29,11 +29,11 @@ class SCORE_PLUGIN_SCENARIO_EXPORT AddStateProcessToState final
 public:
   AddStateProcessToState(
       const Scenario::StateModel& state,
-      UuidKey<Process::StateProcessFactory> process);
+      UuidKey<Process::ProcessModel> process);
   AddStateProcessToState(
       const Scenario::StateModel& state,
-      Id<Process::StateProcess> idToUse,
-      UuidKey<Process::StateProcessFactory> process);
+      Id<Process::ProcessModel> idToUse,
+      UuidKey<Process::ProcessModel> process);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
@@ -44,9 +44,9 @@ protected:
 
 private:
   Path<StateModel> m_path;
-  UuidKey<Process::StateProcessFactory> m_processName;
-
-  Id<Process::StateProcess> m_createdProcessId{};
+  UuidKey<Process::ProcessModel> m_processName;
+  QString m_data{};
+  Id<Process::ProcessModel> m_createdProcessId{};
 };
 }
 }

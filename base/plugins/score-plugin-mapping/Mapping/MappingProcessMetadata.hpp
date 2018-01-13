@@ -15,4 +15,5 @@ PROCESS_METADATA(
     "Mapping",
     "Mapping (float)",
     "Mappings",
-    (QStringList{"Curve", "Mapping"}))
+    (QStringList{"Curve", "Mapping"}),
+    Process::ProcessFlags::SupportsTemporal)

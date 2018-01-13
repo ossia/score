@@ -10,8 +10,8 @@ namespace Media
 {
 namespace Step
 {
-using ProcessFactory = Process::GenericProcessModelFactory<Step::Model>;
-using LayerFactory = Process::GenericLayerFactory<
+using ProcessFactory = Process::ProcessFactory_T<Step::Model>;
+using LayerFactory = Process::LayerFactory_T<
     Step::Model,
     Step::Presenter,
     Step::View,
