@@ -25,7 +25,7 @@
 #include <lv2/lv2plug.in/ns/ext/uri-map/uri-map.h>
 #include <lv2/lv2plug.in/ns/ext/urid/urid.h>
 #include <lv2/lv2plug.in/ns/ext/worker/worker.h>
-
+#include <flat_hash_map.hpp>
 #include <readerwriterqueue.h>
 
 #include <cstdio>
@@ -102,7 +102,8 @@ struct GlobalContext
     std::vector<LV2_Options_Option> options;
 
     LV2_URID urid_map_cur = 1;
-    urid_map_t urid_map;
+    ska::flat_hash_map<std::string, LV2_URID> urid_map_left;
+    ska::flat_hash_map<LV2_URID, std::string> urid_map_right;
 
     LV2_URID_Map map;
     LV2_URID_Unmap unmap;

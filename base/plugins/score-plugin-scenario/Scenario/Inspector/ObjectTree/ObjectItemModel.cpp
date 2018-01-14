@@ -52,32 +52,37 @@ void ObjectItemModel::setSelected(QList<const IdentifiedObjectAbstract*> objs)
     {
       root.push_back(cst);
     }
-    else if(auto ev = qobject_cast<const Scenario::EventModel*>(sel))
+    else if(auto ts = qobject_cast<const Scenario::TimeSyncModel*>(sel))
+    {
+      root.push_back(ts);
+    }
+  }
+
+
+  for(const QObject* sel : objs)
+  {
+    if(auto ev = qobject_cast<const Scenario::EventModel*>(sel))
     {
       Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*ev);
       auto& parent_ts = Scenario::parentTimeSync(*ev, scenar);
       if (parent_ts.events().size() > 1 || parent_ts.active())
         root.push_back(&parent_ts);
-      else
+      else if(!root.contains(&parent_ts))
         root.push_back(ev);
-    }
-    else if(auto ts = qobject_cast<const Scenario::TimeSyncModel*>(sel))
-    {
-      root.push_back(ts);
     }
     else if(auto st = qobject_cast<const Scenario::StateModel*>(sel))
     {
       Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*st);
       auto& parent_ev = Scenario::parentEvent(*st, scenar);
+      auto& parent_ts = Scenario::parentTimeSync(parent_ev, scenar);
       if (parent_ev.states().size() > 1 || parent_ev.condition() != State::Expression{})
       {
-        auto& parent_ts = Scenario::parentTimeSync(parent_ev, scenar);
         if (parent_ts.events().size() > 1 || parent_ts.active())
           root.push_back(&parent_ts);
-        else
+        else if(!root.contains(&parent_ev) && !root.contains(&parent_ts))
           root.push_back(&parent_ev);
       }
-      else
+      else if(!root.contains(&parent_ev) && !root.contains(&parent_ts))
         root.push_back(st);
     }
     else if(auto proc = qobject_cast<const Process::ProcessModel*>(sel))
@@ -205,34 +210,62 @@ QModelIndex ObjectItemModel::index(int row, int column, const QModelIndex& paren
   {
     if(auto cst = qobject_cast<Scenario::IntervalModel*>(sel))
     {
-      auto it = cst->processes.begin();
-      std::advance(it, row);
-      return createIndex(row, column, &*(it));
+      if(row < cst->processes.size())
+      {
+        auto it = cst->processes.begin();
+        std::advance(it, row);
+        return createIndex(row, column, &*(it));
+      }
+      else
+      {
+        qWarning("Interval: wrong size! ");
+      }
     }
     else if(auto ev = qobject_cast<Scenario::EventModel*>(sel))
     {
       Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*ev);
-      auto it = ev->states().begin();
-      std::advance(it, row);
+      if(row < ev->states().size())
+      {
+        auto it = ev->states().begin();
+        std::advance(it, row);
 
-      if(auto st = scenar.findState(*it))
-        return createIndex(row, column, st);
+        if(auto st = scenar.findState(*it))
+          return createIndex(row, column, st);
+      }
+      else
+      {
+        qWarning() << "Event: wrong size! " << row;
+      }
     }
     else if(auto tn = qobject_cast<Scenario::TimeSyncModel*>(sel))
     {
       Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*tn);
-      auto it = tn->events().begin();
-      std::advance(it, row);
+      if(row < tn->events().size())
+      {
+        auto it = tn->events().begin();
+        std::advance(it, row);
 
-      if(auto ev = scenar.findEvent(*it))
-        return createIndex(row, column, ev);
+        if(auto ev = scenar.findEvent(*it))
+          return createIndex(row, column, ev);
+      }
+      else
+      {
+        qWarning("TN: wrong size! ");
+      }
     }
     else if(auto st = qobject_cast<Scenario::StateModel*>(sel))
     {
-      auto it = st->stateProcesses.begin();
-      std::advance(it, row);
-      auto& proc = *it;
-      return createIndex(row, column, &proc);
+      if(row < st->stateProcesses.size())
+      {
+        auto it = st->stateProcesses.begin();
+        std::advance(it, row);
+        auto& proc = *it;
+        return createIndex(row, column, &proc);
+      }
+      else
+      {
+        qWarning() << "State: wrong size! " << row;
+      }
     }
     else
     {
@@ -284,7 +317,7 @@ QModelIndex ObjectItemModel::parent(const QModelIndex& child) const
     auto& tn = Scenario::parentTimeSync(*ev, scenar);
     auto idx = m_root.indexOf(&tn);
     if (idx >= 0)
-      return createIndex(0, 0, (void*)m_root[idx]);
+      return createIndex(idx, 0, (void*)m_root[idx]);
     else
       return QModelIndex{};
   }
@@ -374,8 +407,14 @@ int ObjectItemModel::rowCount(const QModelIndex& parent) const
       return 0;
     }
   }
-
-  return m_root.size();
+  else if(parent == QModelIndex())
+  {
+    return m_root.size();
+  }
+  else
+  {
+    return 0;
+  }
 }
 
 int ObjectItemModel::columnCount(const QModelIndex& parent) const
