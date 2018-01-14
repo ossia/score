@@ -27,7 +27,7 @@ static LV2_URID do_map(
     const char* val)
 {
   auto& c = *static_cast<LV2::GlobalContext*>(ptr);
-  auto& map = c.urid_map.left;
+  auto& map = c.urid_map_left;
 
   std::string v{val};
   auto it = map.find(v);
@@ -39,6 +39,7 @@ static LV2_URID do_map(
   {
     auto n = c.urid_map_cur;
     map.insert(std::make_pair(v, n));
+    c.urid_map_right.insert(std::make_pair(n, v));
     c.urid_map_cur++;
     return n;
   }
@@ -49,7 +50,7 @@ static const char* do_unmap(
     LV2_URID val)
 {
   auto& c = *static_cast<LV2::GlobalContext*>(ptr);
-  auto& map = c.urid_map.right;
+  auto& map = c.urid_map_right;
 
   auto it = map.find(val);
   if(it != map.end())

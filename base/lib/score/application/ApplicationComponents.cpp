@@ -14,7 +14,7 @@ namespace score
 ApplicationComponentsData::ApplicationComponentsData() = default;
 ApplicationComponentsData::~ApplicationComponentsData()
 {
-  for(auto& sub_map : commands) 
+  for(auto& sub_map : commands)
     for(auto& pr : sub_map.second)
       delete pr.second;
     /*
@@ -23,10 +23,14 @@ ApplicationComponentsData::~ApplicationComponentsData()
          delete elt;
      }*/
 
+
   for (auto& elt : guiAppPlugins)
   {
-    // TODO some have the presenter in parent,
-    // check that it won't cause crashes.
+    delete elt;
+  }
+
+  for (auto& elt : appPlugins)
+  {
     delete elt;
   }
 

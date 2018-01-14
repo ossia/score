@@ -61,5 +61,7 @@ IntervalSummaryWidget::IntervalSummaryWidget(
     }
     m_lay.addWidget(processList, 2, 1, 1, 6);
   }
+
+  this->setLayout(&m_lay);
 }
 }
