@@ -64,7 +64,7 @@ public:
     process().stopExecution();
   }
 
-  std::shared_ptr<ossia::time_process> OSSIAProcessPtr()
+  const std::shared_ptr<ossia::time_process>& OSSIAProcessPtr()
   {
     return m_ossia_process;
   }
