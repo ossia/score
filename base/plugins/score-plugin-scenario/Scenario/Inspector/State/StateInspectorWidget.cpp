@@ -51,6 +51,7 @@ class MessageListProxy final : public QAbstractProxyModel
 {
 
 public:
+  using QAbstractProxyModel::QAbstractProxyModel;
   MessageItemModel* source() const {
     return static_cast<MessageItemModel*>(sourceModel());
  }
@@ -222,7 +223,7 @@ void StateInspectorWidget::updateDisplayedValues()
       lv->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
       lv->verticalHeader()->setDefaultSectionSize(14);
 
-      auto proxy = new MessageListProxy{};
+      auto proxy = new MessageListProxy{this};
       proxy->setSourceModel(&m_model.messages());
       lv->setModel(proxy);
 
