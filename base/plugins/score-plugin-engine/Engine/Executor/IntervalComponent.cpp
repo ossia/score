@@ -227,8 +227,9 @@ ProcessComponent* IntervalComponentBase::make(
   {
     const Engine::Execution::Context& ctx = system();
     auto plug = fac.make(proc, ctx, id, nullptr);
-    if (plug)
+    if (plug && plug->OSSIAProcessPtr())
     {
+      auto oproc = plug->OSSIAProcessPtr();
       m_processes.emplace(proc.id(), plug);
 
       const auto& outlets = proc.outlets();
@@ -239,7 +240,6 @@ ProcessComponent* IntervalComponentBase::make(
           propagated_outlets.push_back(i);
       }
 
-      auto oproc = plug->OSSIAProcessPtr();
       if(auto& onode = plug->node)
         ctx.plugin.register_node(proc, onode);
 
