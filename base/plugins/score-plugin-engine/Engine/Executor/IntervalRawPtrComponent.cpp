@@ -325,8 +325,8 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
         });
 
       });
+      return plug.get();
     }
-    return plug.get();
   }
   catch (const std::exception& e)
   {

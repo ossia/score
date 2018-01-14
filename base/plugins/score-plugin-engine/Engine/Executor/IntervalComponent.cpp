@@ -324,8 +324,8 @@ ProcessComponent* IntervalComponentBase::make(
         });
 
       });
+      return plug.get();
     }
-    return plug.get();
   }
   catch (const std::exception& e)
   {
