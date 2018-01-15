@@ -11,7 +11,7 @@ ls $HOME/i-score/API/OSSIA/ossia-c/**/*.cpp | awk '{ print "#include \"" $1  "\"
 ls $HOME/i-score/API/OSSIA/ossia-qt/**/*.cpp | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
 ls $HOME/i-score/base/lib/**/*.cpp | grep -v Test | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
 ls $HOME/i-score/base/plugins/**/*.cpp | grep -v Test | grep -v ExpressionParser | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
-echo $SCORE_ROOT/**/mocs_compilation.cpp | sed 's/ /\n/g' | grep -v addon | while read -r file ; do
+echo $SCORE_ROOT/**/mocs_compilation.cpp  | sort | uniq | sed 's/ /\n/g' | grep -v addon | while read -r file ; do
   if grep some_compilers $file; then
     ;
   else
@@ -19,7 +19,6 @@ echo $SCORE_ROOT/**/mocs_compilation.cpp | sed 's/ /\n/g' | grep -v addon | whil
    fi
 done
 
-ls $SCORE_ROOT/**/mocs_compilation.cpp | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
 echo "$HOME/i-score/base/app/Application.cpp" | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
 echo "$HOME/i-score/API/3rdparty/ModernMIDI/ModernMIDI/midi_input.cpp" | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
 echo "$HOME/i-score/API/3rdparty/ModernMIDI/ModernMIDI/midi_output.cpp" | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
