@@ -46,7 +46,7 @@ public:
       QWidget* parent,
       QObject* parentObj);
 
-public slots:
+public Q_SLOTS:
   /*!
    * \brief newItemInspected load the view for the selected object
    *

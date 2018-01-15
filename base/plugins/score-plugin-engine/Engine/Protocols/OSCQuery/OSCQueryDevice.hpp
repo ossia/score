@@ -14,10 +14,10 @@ public:
   bool reconnect() override;
   void recreate(const Device::Node& n) override;
 
-signals:
+Q_SIGNALS:
   void sig_command();
   void sig_disconnect();
-private slots:
+private Q_SLOTS:
   void slot_command();
 };
 }

@@ -116,7 +116,7 @@ public:
   void setScriptingName(QString arg);
   void updateAsked();
 
-signals:
+Q_SIGNALS:
   void scriptingNameChanged(QString arg);
   void labelChanged(QString arg);
   void commentsChanged(QString arg);

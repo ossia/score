@@ -40,7 +40,7 @@ public:
   const std::vector<SlotPresenter>& getSlots() const {
     return m_slots;
   }
-signals:
+Q_SIGNALS:
   void intervalSelected(IntervalModel&);
 
 private:

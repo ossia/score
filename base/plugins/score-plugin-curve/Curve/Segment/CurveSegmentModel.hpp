@@ -114,7 +114,7 @@ public:
             toSegmentSpecificData()};
   }
 
-signals:
+Q_SIGNALS:
   void dataChanged();
   void previousChanged();
   void followingChanged();

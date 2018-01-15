@@ -32,10 +32,10 @@ class TestObject : public QObject
                     this, SLOT(appStarted()));
         }
 
-    signals:
+    Q_SIGNALS:
         void appStarting();
 
-    public slots:
+    public Q_SLOTS:
         void appStarted()
         {
             QDirIterator it("testdata/stacks/");

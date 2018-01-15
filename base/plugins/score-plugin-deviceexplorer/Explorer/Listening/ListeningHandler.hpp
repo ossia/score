@@ -31,7 +31,7 @@ public:
       = 0;
 
 
-signals:
+Q_SIGNALS:
   // Will stop everything from listening
   void stop();
 

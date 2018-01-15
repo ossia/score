@@ -32,7 +32,7 @@ public:
   void setWidth(qreal width);
   qreal width() const;
 
-signals:
+Q_SIGNALS:
   void heightChanged();
   void widthChanged();
 

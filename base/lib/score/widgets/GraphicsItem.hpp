@@ -1,6 +1,8 @@
 #pragma once
 #include <score_lib_base_export.h>
 #include <memory>
+#include <QPainterPath>
+#include <QList>
 class QGraphicsObject;
 class QGraphicsItem;
 class QGraphicsView;
@@ -61,3 +63,6 @@ struct graphics_item_ptr
     return impl;
   }
 };
+
+Q_DECLARE_METATYPE(QPainterPath)
+Q_DECLARE_METATYPE(QList<QPainterPath>)

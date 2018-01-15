@@ -35,10 +35,10 @@ public:
 
   LockMode lockMode() const;
 
-public slots:
+public Q_SLOTS:
   void setLockMode(LockMode lockMode);
 
-signals:
+Q_SIGNALS:
   void expandModeChanged(ExpandMode expandMode);
   void toolChanged(Scenario::Tool tool);
   void sequenceChanged(bool sequence);

@@ -25,7 +25,7 @@ class TestStatesCurve: public IscoreTestBase
             redo(new LoadDevice{pluginModel<DeviceDocumentPlugin>(), std::move(n)});
         }
 
-    private slots:
+    private Q_SLOTS:
         void testStatesChanges()
         {
             setupDevice();

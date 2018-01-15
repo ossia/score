@@ -67,7 +67,7 @@ public:
 
   virtual GraphicsShapeItem* makeSlotHeaderDelegate();
 
-signals:
+Q_SIGNALS:
   void contextMenuRequested(const QPoint&, const QPointF&);
 
 protected:

@@ -60,13 +60,13 @@ public:
   {
   }
 
-public slots:
+public Q_SLOTS:
   void initTestCase();
   void cleanupTestCase();
   void init();
   void cleanup();
 
-private slots:
+private Q_SLOTS:
   void stringListModel();
   void treeWidgetModel();
   void standardItemModel();
@@ -232,7 +232,7 @@ public:
         SLOT(checkPersistent()));
   }
 
-public slots:
+public Q_SLOTS:
 
   void storePersistent(const QModelIndex& parent)
   {

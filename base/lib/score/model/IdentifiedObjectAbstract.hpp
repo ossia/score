@@ -16,7 +16,7 @@ public:
   virtual int32_t id_val() const = 0;
   virtual ~IdentifiedObjectAbstract();
 
-signals:
+Q_SIGNALS:
   //! To be called by subclasses
   void identified_object_destroying(IdentifiedObjectAbstract*);
 

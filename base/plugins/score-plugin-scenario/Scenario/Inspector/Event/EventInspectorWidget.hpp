@@ -32,7 +32,7 @@ public:
       const score::DocumentContext& context,
       QWidget* parent = nullptr);
 
-signals:
+Q_SIGNALS:
   void expandEventSection(bool b);
 
 private:

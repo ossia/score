@@ -29,7 +29,7 @@ public:
 
   void handleDrop(const QMimeData* mime);
 
-signals:
+Q_SIGNALS:
   void pressed(const QPointF&);
   void moved(const QPointF&);
   void released(const QPointF&);

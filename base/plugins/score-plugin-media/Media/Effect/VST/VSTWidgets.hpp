@@ -70,7 +70,7 @@ class VSTGraphicsSlider
     double value() const;
 
     bool moving = false;
-  signals:
+  Q_SIGNALS:
     void valueChanged(double);
     void sliderMoved();
     void sliderReleased();

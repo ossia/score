@@ -14,7 +14,7 @@ public:
 
   ~View();
 
-signals:
+Q_SIGNALS:
   void deleteRequested();
 
 private:

@@ -19,7 +19,7 @@ public:
     emit editingFinished();
   }
 
-signals:
+Q_SIGNALS:
   void editingFinished();
 };
 }

@@ -33,7 +33,7 @@ public:
 
   void setSelectionArea(const QRectF&);
 
-signals:
+Q_SIGNALS:
   void pressed(QPointF);
   void moved(QPointF);
   void released(QPointF);

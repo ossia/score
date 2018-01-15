@@ -50,7 +50,7 @@ public:
   TemporalIntervalHeader* header() const;
 
   void requestSlotMenu(int slot, QPoint pos, QPointF sp) const override;
-signals:
+Q_SIGNALS:
   void intervalHoverEnter();
   void intervalHoverLeave();
 

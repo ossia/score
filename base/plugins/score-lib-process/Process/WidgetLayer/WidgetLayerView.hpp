@@ -20,7 +20,7 @@ public:
 
   void setWidget(QWidget*);
 
-signals:
+Q_SIGNALS:
   void contextMenuRequested(QPoint);
 
 private:

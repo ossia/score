@@ -52,11 +52,11 @@ class SCORE_LIB_PROCESS_EXPORT Port
     score::Components& components()
     { return m_components; }
 
-  public slots:
+  public Q_SLOTS:
     void setCustomData(const QString& customData);
     void setAddress(const State::AddressAccessor& address);
 
-  signals:
+  Q_SIGNALS:
     void cablesChanged();
     void customDataChanged(const QString& customData);
     void addressChanged(const State::AddressAccessor& address);
@@ -116,11 +116,11 @@ class SCORE_LIB_PROCESS_EXPORT ControlInlet : public Inlet
     const ossia::value& value() const { return m_value; }
     const State::Domain& domain() const { return m_domain; }
 
-  signals:
+  Q_SIGNALS:
     void valueChanged(const ossia::value& v);
     void domainChanged(const State::Domain& d);
 
-  public slots:
+  public Q_SLOTS:
     void setValue(const ossia::value& value)
     {
       if(value != m_value)
@@ -163,10 +163,10 @@ class SCORE_LIB_PROCESS_EXPORT Outlet : public Port
 
     bool propagate() const;
 
-  signals:
+  Q_SIGNALS:
     void propagateChanged(bool propagate);
 
-  public slots:
+  public Q_SLOTS:
     void setPropagate(bool propagate);
 
   private:
@@ -192,11 +192,11 @@ class SCORE_LIB_PROCESS_EXPORT ControlOutlet final : public Outlet
     const ossia::value& value() const { return m_value; }
     const State::Domain& domain() const { return m_domain; }
 
-  signals:
+  Q_SIGNALS:
     void valueChanged(const ossia::value& v);
     void domainChanged(const State::Domain& d);
 
-  public slots:
+  public Q_SLOTS:
     void setValue(const ossia::value& value)
     {
       if(value != m_value)

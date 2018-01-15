@@ -36,7 +36,7 @@ public:
   score::hash_map<State::Address, std::array<RecordData, 4>> vec4_records;
   score::hash_map<State::Address, std::vector<RecordData>> list_records;
 
-signals:
+Q_SIGNALS:
   void firstMessageReceived();
 
 private:

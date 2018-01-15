@@ -50,7 +50,7 @@ public:
   {
   }
 
-public slots:
+public Q_SLOTS:
   QJSValue value(QJSValue address);
   QJSValue clone(QJSValue address);
 

@@ -12,7 +12,7 @@ class NodeTest : public QObject
 {
   Q_OBJECT
 
-private slots:
+private Q_SLOTS:
   void NodeTest_1()
   {
     Device::Node root;

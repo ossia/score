@@ -38,7 +38,7 @@ public:
   void addNewTermAndFinish();
   void on_editFinished();
 
-signals:
+Q_SIGNALS:
   void editingFinished();
   void resetExpression();
 

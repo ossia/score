@@ -27,7 +27,7 @@ class View final : public Process::LayerView
     }
     const Model* m_model{};
 
-  signals:
+  Q_SIGNALS:
     void change(int, float);
 
   private:

@@ -88,7 +88,7 @@ public:
     return m_ctx;
   }
 
-signals:
+Q_SIGNALS:
   /**
    * @brief Emitted when a command was pushed on the stack
    * @param cmd the command that was pushed
@@ -123,7 +123,7 @@ signals:
   void sig_push();
   void sig_indexChanged();
 
-public slots:
+public Q_SLOTS:
   void setIndex(int index);
   void setIndexQuiet(int index);
 

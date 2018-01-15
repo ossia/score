@@ -129,7 +129,7 @@ public:
     scaleAllDurations(IntervalModel& cstr, const TimeVal& time);
   };
 
-  signals:
+  Q_SIGNALS:
   void defaultDurationChanged(const TimeVal& arg);
   void minDurationChanged(const TimeVal& arg);
   void maxDurationChanged(const TimeVal& arg);

@@ -19,7 +19,7 @@ public:
   void setMode(Mode);
   void setPlayWhileRecording(bool);
 
-signals:
+Q_SIGNALS:
   void simplificationRatioChanged(double);
   void simplifyChanged(bool);
   void modeChanged(Mode);

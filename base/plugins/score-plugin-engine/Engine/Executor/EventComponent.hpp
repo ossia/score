@@ -44,7 +44,7 @@ public:
     return m_score_event;
   }
 
-signals:
+Q_SIGNALS:
   void happened();
 
 private:

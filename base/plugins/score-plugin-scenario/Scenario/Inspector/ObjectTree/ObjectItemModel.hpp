@@ -44,7 +44,7 @@ class ObjectItemModel final
 
     bool setData(const QModelIndex& index, const QVariant& value, int role) override;
 
-  signals:
+  Q_SIGNALS:
     void changed();
 
   private:

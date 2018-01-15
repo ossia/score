@@ -15,7 +15,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsPixmapButton final
   public:
     QGraphicsPixmapButton(QPixmap pressed, QPixmap released, QGraphicsItem* parent);
 
-  signals:
+  Q_SIGNALS:
     void clicked();
 
   protected:
@@ -36,7 +36,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsPixmapToggle final
 
     void toggle();
 
-  signals:
+  Q_SIGNALS:
     void toggled(bool);
 
   protected:
@@ -65,7 +65,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsSlider final
     double value() const;
 
     bool moving = false;
-  signals:
+  Q_SIGNALS:
     void valueChanged(double);
     void sliderMoved();
     void sliderReleased();
@@ -101,7 +101,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsLogSlider final
     double value() const;
 
     bool moving = false;
-  signals:
+  Q_SIGNALS:
     void valueChanged(double);
     void sliderMoved();
     void sliderReleased();
@@ -136,7 +136,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsIntSlider final
     int value() const;
 
     bool moving = false;
-  signals:
+  Q_SIGNALS:
     void valueChanged(int);
     void sliderMoved();
     void sliderReleased();
@@ -183,7 +183,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsComboSlider final
     int value() const;
 
     bool moving = false;
-  signals:
+  Q_SIGNALS:
     void valueChanged(int);
     void sliderMoved();
     void sliderReleased();

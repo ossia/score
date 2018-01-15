@@ -15,7 +15,7 @@ class RemoveRackFromIntervalTest : public QObject
 {
   Q_OBJECT
 public:
-private slots:
+private Q_SLOTS:
   void test()
   {
     IntervalModel* interval = new IntervalModel{

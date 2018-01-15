@@ -55,7 +55,7 @@ public:
     return m_pluginModels;
   }
 
-signals:
+Q_SIGNALS:
   void pluginModelsChanged();
 
 private:

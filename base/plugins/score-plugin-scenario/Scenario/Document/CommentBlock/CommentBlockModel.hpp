@@ -46,7 +46,7 @@ public:
   const QString content() const;
   void setContent(const QString content);
 
-signals:
+Q_SIGNALS:
   void dateChanged(const TimeVal&);
   void heightPercentageChanged(bool);
   void contentChanged(QString);

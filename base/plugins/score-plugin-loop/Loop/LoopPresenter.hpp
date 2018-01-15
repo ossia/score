@@ -94,7 +94,7 @@ public:
       QPointF scenepos,
       const Process::LayerContextMenuManager&) override;
 
-signals:
+Q_SIGNALS:
   void pressed(QPointF);
   void moved(QPointF);
   void released(QPointF);

@@ -150,7 +150,7 @@ public:
   score::EntityMap<StateModel> states;
   score::EntityMap<CommentBlockModel> comments;
 
-signals:
+Q_SIGNALS:
   void stateMoved(const StateModel&);
   void eventMoved(const EventModel&);
   void intervalMoved(const IntervalModel&);
@@ -159,7 +159,7 @@ signals:
   void locked();
   void unlocked();
 
-public slots:
+public Q_SLOTS:
   void lock()
   {
     emit locked();

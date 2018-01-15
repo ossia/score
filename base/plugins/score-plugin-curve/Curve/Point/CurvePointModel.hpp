@@ -28,7 +28,7 @@ public:
   Curve::Point pos() const;
   void setPos(const Curve::Point& pos);
 
-signals:
+Q_SIGNALS:
   void posChanged();
 
 private:

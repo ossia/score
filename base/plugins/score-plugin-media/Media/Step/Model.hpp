@@ -51,14 +51,14 @@ class Model final : public Process::ProcessModel
   double min() const;
   double max() const;
 
-signals:
+Q_SIGNALS:
   void stepCountChanged(quint64);
   void stepDurationChanged(quint64);
   void stepsChanged();
   void minChanged(double);
   void maxChanged(double);
 
-public slots:
+public Q_SLOTS:
   void setStepCount(quint64 s);
   void setStepDuration(quint64 s);
   void setSteps(std::vector<float> v);

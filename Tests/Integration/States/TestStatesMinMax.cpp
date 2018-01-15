@@ -23,7 +23,7 @@ class TestStatesMinMax: public IscoreTestBase
             redo(new LoadDevice{pluginModel<DeviceDocumentPlugin>(), std::move(n)});
         }
 
-    private slots:
+    private Q_SLOTS:
         // TODO try with adding curve after state
         // TODO try with removing curve ?
         void testMinMaxChanges()

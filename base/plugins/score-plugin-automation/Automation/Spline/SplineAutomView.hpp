@@ -21,7 +21,7 @@ class View : public Process::LayerView
     const ossia::spline_data& spline() const
     { return m_spline; }
 
-  signals:
+  Q_SIGNALS:
     void changed();
 
   private:

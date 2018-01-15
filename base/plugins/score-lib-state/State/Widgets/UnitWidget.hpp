@@ -17,7 +17,7 @@ public:
   State::Unit unit() const;
   void setUnit(const State::Unit&);
 
-signals:
+Q_SIGNALS:
   void unitChanged(const State::Unit&);
 
 private:

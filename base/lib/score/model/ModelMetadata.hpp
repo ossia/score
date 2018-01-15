@@ -55,7 +55,7 @@ public:
   void setLabel(const QString&);
   void setExtendedMetadata(const QVariantMap&);
 
-signals:
+Q_SIGNALS:
   void NameChanged(const QString& arg);
   void CommentChanged(const QString& arg);
   void ColorChanged(ColorRef arg);

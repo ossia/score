@@ -85,7 +85,7 @@ public:
   DisplayedElementsModel displayedElements;
 
   IdContainer<Dataflow::CableItem, Process::Cable> cableItems;
-signals:
+Q_SIGNALS:
   void pressed(QPointF);
   void moved(QPointF);
   void released(QPointF);
@@ -93,7 +93,7 @@ signals:
 
   void setFocusedPresenter(QPointer<Process::LayerPresenter>);
 
-private slots:
+private Q_SLOTS:
   void on_windowSizeChanged(QSize);
   void on_viewReady();
 

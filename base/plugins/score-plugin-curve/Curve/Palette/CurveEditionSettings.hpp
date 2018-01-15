@@ -67,7 +67,7 @@ public:
   void setRemovePointBehaviour(Curve::RemovePointBehaviour removePointBehaviour);
   void setTool(Curve::Tool tool);
 
-signals:
+Q_SIGNALS:
   void lockBetweenPointsChanged(bool);
   void suppressOnOverlapChanged(bool);
   void stretchBothBoundsChanged(bool);

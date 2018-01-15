@@ -62,7 +62,7 @@ public:
     return m_model;
   }
 
-signals:
+Q_SIGNALS:
   void stateChanged();
   /**
    * @brief messagesChanged

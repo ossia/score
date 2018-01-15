@@ -26,7 +26,7 @@ public:
     emit changed();
   }
 
-signals:
+Q_SIGNALS:
   void changed();
 
 private:

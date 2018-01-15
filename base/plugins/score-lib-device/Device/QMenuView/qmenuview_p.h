@@ -58,7 +58,7 @@ public:
     QMenuView * _menu{};
     QAbstractItemModel * m_model{};
     QPersistentModelIndex m_root;
-public slots:
+public Q_SLOTS:
     void aboutToShow();
     void triggered(QAction *action);
     void hovered(QAction *action);

@@ -16,7 +16,7 @@ public:
   View();
 
   void setLocalTree(bool);
-signals:
+Q_SIGNALS:
   void localTreeChanged(bool);
 
 private:

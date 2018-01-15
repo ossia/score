@@ -28,7 +28,7 @@ public:
     return static_type();
   }
 
-signals:
+Q_SIGNALS:
   void pressed(QPointF);
 
   void dropReceived(const QPointF& pos, const QMimeData*);

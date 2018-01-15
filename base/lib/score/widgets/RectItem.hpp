@@ -14,7 +14,7 @@ public:
   QRectF boundingRect() const override;
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
-signals:
+Q_SIGNALS:
   void clicked();
 
 private:
@@ -37,7 +37,7 @@ public:
   QRectF boundingRect() const override;
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
-signals:
+Q_SIGNALS:
   void clicked();
 
 private:

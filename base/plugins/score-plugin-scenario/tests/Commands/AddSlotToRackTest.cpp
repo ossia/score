@@ -13,7 +13,7 @@ class AddSlotToRackTest : public QObject
 {
   Q_OBJECT
 
-private slots:
+private Q_SLOTS:
   void CreateSlotTest()
   {
     RackModel* rack = new RackModel{Id<RackModel>{0}, qApp};

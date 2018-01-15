@@ -17,7 +17,7 @@ using namespace Scenario::Command;
 class CreateEventAfterEventOnTimeSyncTest : public QObject
 {
   Q_OBJECT
-private slots:
+private Q_SLOTS:
   void CreateTest()
   {
     Scenario::ProcessModel* scenar = new ScenarioModel(

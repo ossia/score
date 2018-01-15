@@ -38,7 +38,7 @@ public:
   void setCreation(QDateTime creation);
   void setLastEdition(QDateTime lastEdition);
 
-signals:
+Q_SIGNALS:
   void fileNameChanged(QString fileName);
   void authorChanged(QString author);
   void creationChanged(QDateTime creation);

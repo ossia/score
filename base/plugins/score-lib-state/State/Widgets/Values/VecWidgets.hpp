@@ -18,7 +18,7 @@ struct SCORE_LIB_STATE_EXPORT VecEditBase : public QWidget
 public:
   using QWidget::QWidget;
 
-signals:
+Q_SIGNALS:
   void changed();
 };
 

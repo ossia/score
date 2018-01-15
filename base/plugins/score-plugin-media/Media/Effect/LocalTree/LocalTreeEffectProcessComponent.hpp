@@ -1,13 +1,13 @@
 #pragma once
+/*
 #include <Engine/LocalTree/Scenario/ProcessComponent.hpp>
 #include <Engine/LocalTree/LocalTreeComponent.hpp>
 #include <Engine/LocalTree/NameProperty.hpp>
 #include <Process/Process.hpp>
 #include <Media/Effect/EffectProcessModel.hpp>
-#include <Media/Effect/Effect/Faust/FaustEffectModel.hpp>
+#include <Media/Effect/Faust/FaustEffectModel.hpp>
 #include <Media/Effect/LocalTree/LocalTreeEffectComponent.hpp>
 
-#include <Media/MediaStreamEngine/Media/EffectComponent.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/model/ComponentHierarchy.hpp>
 
@@ -79,3 +79,4 @@ using EffectProcessComponentFactory = Engine::LocalTree::ProcessComponentFactory
 }
 }
 }
+*/

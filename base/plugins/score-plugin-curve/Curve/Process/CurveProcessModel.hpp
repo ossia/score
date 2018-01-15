@@ -73,7 +73,7 @@ public:
     m_curve->setSelection(s);
   }
 
-signals:
+Q_SIGNALS:
   void curveChanged();
 
 protected:

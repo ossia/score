@@ -123,7 +123,7 @@ private:
 
   QMetaObject::Connection m_addressCon;
 
-signals:
+Q_SIGNALS:
   void findAddresses(QStringList strlst);
 };
 }

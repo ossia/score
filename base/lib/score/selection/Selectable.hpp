@@ -35,7 +35,7 @@ public:
     }
   }
 
-signals:
+Q_SIGNALS:
   void set(bool) const;
   void changed(bool);
 

@@ -83,7 +83,7 @@ public:
   void loadPlugins(
       ApplicationRegistrar& registrar, const ApplicationContext& context);
 
-signals:
+Q_SIGNALS:
   void sig_play();
   void sig_stop();
   void sig_close();

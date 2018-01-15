@@ -55,7 +55,7 @@ public:
   void setStartPoint(TimeVal dur);
   void setPixelPerMillis(double factor);
 
-signals:
+Q_SIGNALS:
   void drag(QPointF, QPointF);
   void rescale();
 

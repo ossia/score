@@ -68,7 +68,7 @@ public:
   QRectF viewportRect() const;
   QRectF visibleSceneRect() const;
 
-signals:
+Q_SIGNALS:
   void elementsScaleChanged(double);
 
 private:

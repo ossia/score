@@ -23,7 +23,7 @@ public:
 
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent*) override;
-signals:
+Q_SIGNALS:
   void addressChanged(const Device::FullAddressAccessorSettings&);
 
 private:

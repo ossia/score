@@ -37,11 +37,11 @@ public:
 
   Selection currentSelection() const;
 
-signals:
+Q_SIGNALS:
   void pushNewSelection(const Selection& s);
   void currentSelectionChanged(const Selection&);
 
-private slots:
+private Q_SLOTS:
   void prune(IdentifiedObjectAbstract* p);
 
 private:

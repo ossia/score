@@ -13,7 +13,7 @@ public:
   explicit UndoListWidget(score::CommandStack& s);
   ~UndoListWidget();
 
-public slots:
+public Q_SLOTS:
   void on_stackChanged();
 
 private:

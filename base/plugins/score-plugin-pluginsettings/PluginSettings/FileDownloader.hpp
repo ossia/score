@@ -15,7 +15,7 @@ public:
   explicit FileDownloader(QUrl url);
   QByteArray downloadedData() const;
 
-signals:
+Q_SIGNALS:
   void downloaded(QByteArray);
 
 private:

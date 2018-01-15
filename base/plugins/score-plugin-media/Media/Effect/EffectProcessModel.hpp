@@ -91,7 +91,7 @@ public:
     return std::distance(m_list.begin(), it);
   }
 
-  // signals:
+  // Q_SIGNALS:
   mutable Nano::Signal<void(T&)> mutable_added;
   mutable Nano::Signal<void(const T&)> added;
   mutable Nano::Signal<void(const T&)> removing;
@@ -231,7 +231,7 @@ class ProcessModel final : public Process::ProcessModel
         std::unique_ptr<Process::Inlet> inlet{};
         std::unique_ptr<Process::Outlet> outlet{};
 
-    signals:
+    Q_SIGNALS:
         void effectsChanged();
 
     private:

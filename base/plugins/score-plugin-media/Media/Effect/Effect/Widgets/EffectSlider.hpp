@@ -26,7 +26,7 @@ class EffectSlider :
         double scaledValue;
         score::DoubleSlider* m_slider{};
 
-    signals:
+    Q_SIGNALS:
         void createAutomation(const State::Address&, double min, double max);
 
     private:

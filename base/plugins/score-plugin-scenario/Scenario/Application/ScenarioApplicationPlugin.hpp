@@ -71,7 +71,7 @@ public:
     return m_execution;
   }
 
-signals:
+Q_SIGNALS:
   void keyPressed(int);
   void keyReleased(int);
 

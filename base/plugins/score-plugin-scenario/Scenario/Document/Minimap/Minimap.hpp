@@ -32,7 +32,7 @@ class Minimap final
     void zoomOut();
     void zoom(double z);
 
-  signals:
+  Q_SIGNALS:
     void rescale();
     void visibleRectChanged(double l, double r);
 

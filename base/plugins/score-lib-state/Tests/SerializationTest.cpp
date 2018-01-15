@@ -15,7 +15,7 @@ class SerializationTest : public QObject
   score::testing::MockApplication m;
 
 public:
-private slots:
+private Q_SLOTS:
 
   void serializationTest()
   {

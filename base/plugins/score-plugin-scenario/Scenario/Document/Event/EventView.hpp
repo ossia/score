@@ -73,7 +73,7 @@ public:
   void setWidthScale(double);
   void changeToolTip(const QString&);
 
-signals:
+Q_SIGNALS:
   void eventHoverEnter();
   void eventHoverLeave();
 

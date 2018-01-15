@@ -40,14 +40,14 @@ public:
   void restoreLayout();
   void closeEvent(QCloseEvent*) override;
 
-signals:
+Q_SIGNALS:
   void activeDocumentChanged(const Id<DocumentModel>&);
   void closeRequested(const Id<DocumentModel>&);
 
   void ready();
   void sizeChanged(QSize);
 
-public slots:
+public Q_SLOTS:
   void on_fileNameChanged(DocumentView* d, const QString& newName);
 
 private:

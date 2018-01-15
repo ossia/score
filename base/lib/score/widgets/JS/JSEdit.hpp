@@ -89,7 +89,7 @@ public:
   void setError(int line);
   void clearError();
 
-signals:
+Q_SIGNALS:
   void editingFinished(QString);
   void focused();
 

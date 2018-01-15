@@ -69,7 +69,7 @@ public:
       emit splineChanged();
     }
   }
-signals:
+Q_SIGNALS:
   void addressChanged(const ::State::AddressAccessor&);
   void tweenChanged(bool tween);
   void unitChanged(const State::Unit&);

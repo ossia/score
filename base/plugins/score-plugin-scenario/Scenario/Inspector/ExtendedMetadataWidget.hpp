@@ -20,7 +20,7 @@ public:
 
   QVariantMap currentMap() const;
 
-signals:
+Q_SIGNALS:
   void dataChanged();
 
 private:

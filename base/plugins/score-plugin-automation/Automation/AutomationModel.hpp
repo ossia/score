@@ -77,7 +77,7 @@ public:
   QString prettyName() const override;
 
   std::unique_ptr<Process::Outlet> outlet;
-signals:
+Q_SIGNALS:
   void addressChanged(const ::State::AddressAccessor&);
   void minChanged(double);
   void maxChanged(double);

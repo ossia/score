@@ -69,8 +69,7 @@
 #include <State/Unit.hpp>
 #include <QPainterPath>
 #include <QList>
-Q_DECLARE_METATYPE(QPainterPath)
-Q_DECLARE_METATYPE(QList<QPainterPath>)
+#include <score/widgets/GraphicsItem.hpp>
 
 score_plugin_scenario::score_plugin_scenario()
 {

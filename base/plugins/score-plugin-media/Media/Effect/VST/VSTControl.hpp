@@ -41,7 +41,7 @@ class VSTControlInlet : public Process::Inlet
         emit valueChanged(v);
       }
     }
-  signals:
+  Q_SIGNALS:
     void valueChanged(float);
 
   private:

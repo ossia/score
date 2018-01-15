@@ -18,7 +18,7 @@ class IntervalModel;
 class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioExecution : public QObject
 {
   Q_OBJECT
-signals:
+Q_SIGNALS:
   //! Play a single state
   void playState(
       const Scenario::ScenarioInterface&, Id<Scenario::StateModel>) const;

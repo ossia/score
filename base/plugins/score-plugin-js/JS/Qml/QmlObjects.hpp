@@ -43,9 +43,9 @@ public:
     p->type = Process::PortType::Message;
     return p;
   }
-public slots:
+public Q_SLOTS:
   void setValue(QVariant value);
-signals:
+Q_SIGNALS:
   void valueChanged(QVariant value);
 };
 
@@ -73,12 +73,12 @@ class FloatSlider: public ValueInlet
       return p;
     }
 
-  signals:
+  Q_SIGNALS:
     void minChanged(qreal);
     void maxChanged(qreal);
     void initChanged(qreal);
 
-  public slots:
+  public Q_SLOTS:
     void setMin(qreal m)
     {
       if(m != m_min)
@@ -134,12 +134,12 @@ class IntSlider: public ValueInlet
       return p;
     }
 
-  signals:
+  Q_SIGNALS:
     void minChanged(int);
     void maxChanged(int);
     void initChanged(int);
 
-  public slots:
+  public Q_SLOTS:
     void setMin(int m)
     {
       if(m != m_min)
@@ -204,11 +204,11 @@ class Enum: public ValueInlet
       return {};
     }
 
-  signals:
+  Q_SIGNALS:
     void choicesChanged(QStringList);
     void indexChanged(int);
 
-  public slots:
+  public Q_SLOTS:
     void setChoices(const QStringList& m)
     {
       if(m != m_choices)
@@ -248,10 +248,10 @@ class Toggle: public ValueInlet
       return p;
     }
 
-  signals:
+  Q_SIGNALS:
     void checkedChanged(bool);
 
-  public slots:
+  public Q_SLOTS:
     void setChecked(bool m)
     {
       if(m != m_checked)
@@ -282,10 +282,10 @@ class LineEdit: public ValueInlet
       return p;
     }
 
-  signals:
+  Q_SIGNALS:
     void textChanged(QString);
 
-  public slots:
+  public Q_SLOTS:
     void setText(QString m)
     {
       if(m != m_text)
@@ -315,9 +315,9 @@ public:
     p->type = Process::PortType::Message;
     return p;
   }
-public slots:
+public Q_SLOTS:
   void setValue(QVariant value);
-signals:
+Q_SIGNALS:
   void valueChanged(QVariant value);
 };
 

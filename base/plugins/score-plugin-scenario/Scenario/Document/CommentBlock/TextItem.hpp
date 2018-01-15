@@ -14,7 +14,7 @@ class TextItem final : public QGraphicsTextItem
 public:
   TextItem(QString text, QGraphicsItem* parent);
 
-signals:
+Q_SIGNALS:
   void focusOut();
 
 protected:
@@ -57,7 +57,7 @@ class QGraphicsTextButton
       setText(std::move(text));
     }
 
-  signals:
+  Q_SIGNALS:
     void pressed();
 
   protected:
