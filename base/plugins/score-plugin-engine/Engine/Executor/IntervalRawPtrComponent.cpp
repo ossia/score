@@ -247,9 +247,9 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
       auto cst = m_ossia_interval;
 
       QObject::connect(&proc.selection, &Selectable::changed,
-                       plug.get(), [this,oproc] (bool ok) {
+                       plug.get(), [this,n = oproc->node] (bool ok) {
         in_exec([=] {
-          if(const auto& n = oproc->node)
+          if(n)
             n->set_logging(ok);
         });
       });

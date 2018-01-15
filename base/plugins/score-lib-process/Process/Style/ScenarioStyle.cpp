@@ -204,5 +204,8 @@ void ScenarioStyle::update(const score::Skin& skin)
   MidiPortPen = QPen{QBrush{QColor("#AAAAFF")}, 2.};
   AudioPortBrush = AudioPortPen.brush().color().darker();
   DataPortBrush = DataPortPen.brush().color().darker();
-  MidiPortBrush = MidiPortPen.brush().color().darker();;
+  MidiPortBrush = MidiPortPen.brush().color().darker();
+
+  GrayTextPen.setBrush(TimenodeDefault.getBrush());
+  GrayTextPen.setCosmetic(true);
 }

@@ -14,8 +14,11 @@
 #include <ossia/dataflow/graph/graph.hpp>
 #include <QFile>
 #include <QPointer>
-#include <ossia/network/midi/midi_device.hpp>/*
-#include <valgrind/callgrind.h>*/
+#include <ossia/network/midi/midi_device.hpp>
+
+#if defined(SCORE_BENCHMARK)
+#include <valgrind/callgrind.h>
+#endif
 namespace Dataflow
 {
 Clock::Clock(
@@ -57,8 +60,9 @@ void Clock::pause_impl(
   m_default.pause();
 }
 
+#if defined(SCORE_BENCHMARK)
 std::vector<double> m_tickDurations;
-/*
+
 struct cycle_count_bench
 {
     uint64_t rdtsc()
@@ -112,13 +116,16 @@ struct callgrind_bench
     {
       CALLGRIND_STOP_INSTRUMENTATION;
     }
-};*/
+};
+#endif
 
 void Clock::resume_impl(
     Engine::Execution::BaseScenarioElement& bs)
 {
+#if defined(SCORE_BENCHMARK)
   m_tickDurations.clear();
   m_tickDurations.reserve(100000);
+#endif
   m_paused = false;
   m_default.resume();
   m_plug.audioProto().ui_tick = [&st=*m_plug.execState,&g=m_plug.execGraph,itv=m_cur->baseInterval().OSSIAInterval()] (unsigned long frameCount, double seconds) {
@@ -126,6 +133,7 @@ void Clock::resume_impl(
     st.clear_local_state();
     st.get_new_values();
     st.samples_since_start += frameCount;
+    st.bufferSize = (int)frameCount;
     // we could run a syscall and call now() but that's a bit more costly.
     st.cur_date = seconds * 1e9;
     itv->tick(ossia::time_value(frameCount));
@@ -147,14 +155,20 @@ void Clock::stop_impl(
     emit plug->finished();
     proto.ui_tick = [] (unsigned long, double) {};
     proto.replace_tick = true;
+
+#if defined(SCORE_BENCHMARK)
     QFile f("/tmp/out.data");
     QTextStream s(&f);
     f.open(QIODevice::WriteOnly);
     for(auto t : m_tickDurations)
       s << t << "\n";
+#endif
 
   };
-  //CALLGRIND_DUMP_STATS;
+
+#if defined(SCORE_BENCHMARK)
+  CALLGRIND_DUMP_STATS;
+#endif
   m_plug.audioProto().replace_tick = true;
   m_default.stop();
 }
