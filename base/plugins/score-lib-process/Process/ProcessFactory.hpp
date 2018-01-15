@@ -78,7 +78,7 @@ public:
   virtual Process::LayerPanelProxy*
   makePanel(const ProcessModel&, const score::DocumentContext& ctx, QObject* parent);
 
-  virtual QWindow*
+  virtual QWidget*
   makeExternalUI(const Process::ProcessModel&, const score::DocumentContext& ctx, QWidget* parent);
 
   bool matches(const Process::ProcessModel& p) const;

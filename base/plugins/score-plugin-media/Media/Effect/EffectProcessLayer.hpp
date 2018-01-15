@@ -20,6 +20,8 @@
 #include <Media/Commands/InsertEffect.hpp>
 #include <Effect/EffectFactory.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
+#include <QWindow>
+
 namespace Media::Effect
 {
 
@@ -68,7 +70,7 @@ class View final : public Process::LayerView
             if(auto win = fact->makeExternalUI(effect, ctx.context, nullptr))
             {
               win->show();
-              auto c0 = connect(win, &QWindow::visibilityChanged, ui_btn, [=] (auto vis) {
+              auto c0 = connect(win->windowHandle(), &QWindow::visibilityChanged, ui_btn, [=] (auto vis) {
                 if(vis == QWindow::Hidden)
                 {
                   ui_btn->toggle();

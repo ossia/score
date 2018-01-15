@@ -155,18 +155,3 @@ class MoveEffect final : public score::Command
 };
 }
 }
-
-#if defined(HAS_VST2)
-#include <Media/Effect/VST/VSTEffectModel.hpp>
-SCORE_COMMAND_DECL_T(InsertGenericEffect<Media::VST::VSTEffectModel>)
-#endif
-
-#if defined(LILV_SHARED)
-#include <Media/Effect/LV2/LV2EffectModel.hpp>
-SCORE_COMMAND_DECL_T(InsertGenericEffect<Media::LV2::LV2EffectModel>)
-#endif
-
-#if defined(HAS_FAUST)
-#include <Media/Effect/Faust/FaustEffectModel.hpp>
-SCORE_COMMAND_DECL_T(InsertGenericEffect<Media::Faust::FaustEffectModel>)
-#endif
