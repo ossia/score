@@ -3,38 +3,43 @@
 #  find . -name '*.h' | sed 's/\.\//\/opt\/score-scan-build\//g' | xargs -n 1 dirname | sort | uniq | awk '{ print "    -I" $1 " \\" }'
 #  find . -name '*.hpp' | sed 's/\.\//\/opt\/score-scan-build\//g' | xargs -n 1 dirname | sort | uniq | awk '{ print "    -I" $1 " \\" }'
 #   ls | grep score | awk '{ print "    -I~/i-score/base/plugins/" $1 " \\" }'
-ls $HOME/i-score/base/lib/**/*.cpp | grep -v Test | awk '{ print "#include \"" $1  "\""} ' > /tmp/out.cpp
+ls $HOME/i-score/API/OSSIA/ossia/**/*.cpp | grep -v phidget | awk '{ print "#include \"" $1  "\""} ' > /tmp/out.cpp
+ls $HOME/i-score/API/OSSIA/ossia-c/**/*.cpp | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
+ls $HOME/i-score/API/OSSIA/ossia-qt/**/*.cpp | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
+ls $HOME/i-score/base/lib/**/*.cpp | grep -v Test | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
 ls $HOME/i-score/base/plugins/**/*.cpp | grep -v Test | grep -v ExpressionParser | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
 echo "$HOME/i-score/base/app/Application.cpp" | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
 
-scan-build \
-    -disable-checker deadcode.DeadStores \
-    -enable-checker core.DivideZero \
-    -enable-checker core.CallAndMessage \
-    -enable-checker core.DynamicTypePropagation \
-    -enable-checker alpha.clone.CloneChecker \
-    -enable-checker alpha.core.BoolAssignment \
-    -enable-checker alpha.core.CastSize \
-    -enable-checker alpha.core.CastToStruct \
-    -enable-checker alpha.core.IdenticalExpr \
-    -enable-checker alpha.core.SizeofPtr \
-    -enable-checker alpha.core.PointerArithm \
-    -enable-checker alpha.core.PointerSub \
-    -enable-checker alpha.core.SizeofPtr \
-    -enable-checker alpha.core.TestAfterDivZero \
-    -enable-checker alpha.cplusplus.IteratorRange \
-    -enable-checker alpha.cplusplus.MisusedMovedObject \
-    -enable-checker alpha.security.ArrayBoundV2 \
-    -enable-checker alpha.security.MallocOverflow \
-    -enable-checker alpha.security.ReturnPtrRange \
-    -enable-checker alpha.security.taint.TaintPropagation \
-    -enable-checker alpha.unix.SimpleStream \
-    -enable-checker alpha.unix.cstring.BufferOverlap \
-    -enable-checker alpha.unix.cstring.NotNullTerminated \
-    -enable-checker alpha.unix.cstring.OutOfBounds \
-    -enable-checker alpha.core.FixedAddr \
-    -enable-checker optin.performance.Padding \
-    -enable-checker security.insecureAPI.strcpy \
+# -enable-checker alpha.clone.CloneChecker \ too much false positive for now
+
+#~ scan-build \
+    #~ -disable-checker deadcode.DeadStores \
+    #~ -enable-checker core.DivideZero \
+    #~ -enable-checker core.CallAndMessage \
+    #~ -enable-checker core.DynamicTypePropagation \
+    #~ -enable-checker alpha.core.BoolAssignment \
+    #~ -enable-checker alpha.core.CastSize \
+    #~ -enable-checker alpha.core.CastToStruct \
+    #~ -enable-checker alpha.core.IdenticalExpr \
+    #~ -enable-checker alpha.core.SizeofPtr \
+    #~ -enable-checker alpha.core.PointerArithm \
+    #~ -enable-checker alpha.core.PointerSub \
+    #~ -enable-checker alpha.core.SizeofPtr \
+    #~ -enable-checker alpha.core.TestAfterDivZero \
+    #~ -enable-checker alpha.cplusplus.IteratorRange \
+    #~ -enable-checker alpha.cplusplus.MisusedMovedObject \
+    #~ -enable-checker alpha.security.ArrayBoundV2 \
+    #~ -enable-checker alpha.security.MallocOverflow \
+    #~ -enable-checker alpha.security.ReturnPtrRange \
+    #~ -enable-checker alpha.security.taint.TaintPropagation \
+    #~ -enable-checker alpha.unix.SimpleStream \
+    #~ -enable-checker alpha.unix.cstring.BufferOverlap \
+    #~ -enable-checker alpha.unix.cstring.NotNullTerminated \
+    #~ -enable-checker alpha.unix.cstring.OutOfBounds \
+    #~ -enable-checker alpha.core.FixedAddr \
+    #~ -enable-checker optin.performance.Padding \
+    #~ -enable-checker security.insecureAPI.strcpy \
+
     clang++ -O0 -fPIC -std=c++1z \
     -DASIO_STANDALONE=1 -DBOOST_MULTI_INDEX_ENABLE_INVARIANT_CHECKING \
     -DBOOST_MULTI_INDEX_ENABLE_SAFE_MODE -DQT_CORE_LIB \
@@ -54,6 +59,7 @@ scan-build \
     -I/usr/include/qt/QtGui \
     -I/usr/include/qt/QtWidgets \
     -I/usr/include/qt/QtNetwork \
+    -I/usr/include/qt/QtWebSockets \
     -I/usr/include/qt/QtSvg \
     -I/usr/include/qt/QtQml \
     -I/usr/include/qt/QtSerialPort \
@@ -74,6 +80,7 @@ scan-build \
     -I$HOME/i-score/API/3rdparty/ModernMIDI \
     -I$HOME/i-score/API/3rdparty/readerwriterqueue \
     -I$HOME/i-score/API/3rdparty/fmt \
+    -I$HOME/i-score/API/3rdparty/oscpack \
     -I$HOME/i-score/API/3rdparty/nano-signal-slot/include \
     -I$HOME/i-score/API/3rdparty/Servus/ \
     -I$HOME/i-score/API/3rdparty/pybind11/include \
