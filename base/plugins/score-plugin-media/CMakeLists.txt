@@ -87,6 +87,7 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/Widgets/EffectSlider.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Inspector/EffectInspector.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectExecutor.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/DefaultEffectItem.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Executor.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Model.cpp"

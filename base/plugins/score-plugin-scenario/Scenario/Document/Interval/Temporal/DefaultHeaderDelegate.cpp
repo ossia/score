@@ -71,6 +71,11 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(Process::LayerPresenter& p)
   updatePorts();
 }
 
+DefaultHeaderDelegate::~DefaultHeaderDelegate()
+{
+
+}
+
 void DefaultHeaderDelegate::updateName()
 {
   QTextLayout lay;
@@ -178,7 +183,7 @@ void DefaultHeaderDelegate::paint(QPainter* painter, const QStyleOptionGraphicsI
     painter->setRenderHint(QPainter::Antialiasing, true);
 
     painter->setPen(m_sel ? style.IntervalHeaderTextPen : style.GrayTextPen);
-    painter->drawGlyphRun(QPointF{8.,3.}, m_line);
+    painter->drawGlyphRun(QPointF{8.,1.}, m_line);
     painter->drawGlyphRun(QPointF{4., 10.}, fromGlyph());
     painter->drawGlyphRun(QPointF{4., 20.}, toGlyph());
 

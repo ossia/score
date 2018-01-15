@@ -11,6 +11,7 @@ class DefaultHeaderDelegate final
 {
   public:
     DefaultHeaderDelegate(Process::LayerPresenter& p);
+    ~DefaultHeaderDelegate() override;
 
     void updateName();
     void setSize(QSizeF sz) override;

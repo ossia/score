@@ -48,7 +48,7 @@ Process::GraphicsViewLayerPanelProxy::GraphicsViewLayerPanelProxy(
   m_view->show();
 
   // Setup the model
-  auto fact = score::AppComponents().interfaces<LayerFactoryList>().get(
+  auto fact = m_context.app.interfaces<LayerFactoryList>().get(
       m_layer.concreteKey());
 
   if (!fact)

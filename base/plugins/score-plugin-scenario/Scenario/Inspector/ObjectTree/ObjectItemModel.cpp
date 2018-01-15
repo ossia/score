@@ -210,7 +210,7 @@ QModelIndex ObjectItemModel::index(int row, int column, const QModelIndex& paren
   {
     if(auto cst = qobject_cast<Scenario::IntervalModel*>(sel))
     {
-      if(row < cst->processes.size())
+      if(row < (int)cst->processes.size())
       {
         auto it = cst->processes.begin();
         std::advance(it, row);
@@ -224,7 +224,7 @@ QModelIndex ObjectItemModel::index(int row, int column, const QModelIndex& paren
     else if(auto ev = qobject_cast<Scenario::EventModel*>(sel))
     {
       Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*ev);
-      if(row < ev->states().size())
+      if(row < (int)ev->states().size())
       {
         auto it = ev->states().begin();
         std::advance(it, row);
@@ -240,7 +240,7 @@ QModelIndex ObjectItemModel::index(int row, int column, const QModelIndex& paren
     else if(auto tn = qobject_cast<Scenario::TimeSyncModel*>(sel))
     {
       Scenario::ScenarioInterface& scenar = Scenario::parentScenario(*tn);
-      if(row < tn->events().size())
+      if(row < (int)tn->events().size())
       {
         auto it = tn->events().begin();
         std::advance(it, row);
@@ -255,7 +255,7 @@ QModelIndex ObjectItemModel::index(int row, int column, const QModelIndex& paren
     }
     else if(auto st = qobject_cast<Scenario::StateModel*>(sel))
     {
-      if(row < st->stateProcesses.size())
+      if(row < (int)st->stateProcesses.size())
       {
         auto it = st->stateProcesses.begin();
         std::advance(it, row);

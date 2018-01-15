@@ -17,7 +17,7 @@ class SCORE_LIB_PROCESS_EXPORT GraphicsShapeItem : public QGraphicsItem
 {
   public:
     using QGraphicsItem::QGraphicsItem;
-    ~GraphicsShapeItem();
+    ~GraphicsShapeItem() override;
     virtual void setSize(QSizeF sz);
 
     QRectF boundingRect() const final override;
@@ -34,7 +34,7 @@ public:
   {
   }
 
-  virtual ~LayerPresenter();
+  ~LayerPresenter() override;
 
   const Process::LayerContext& context() const
   {

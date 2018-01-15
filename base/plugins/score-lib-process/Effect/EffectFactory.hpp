@@ -4,7 +4,7 @@
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/Process.hpp>
-#include <QGraphicsSceneEvent>
+#include <Effect/EffectLayer.hpp>
 #include <score/widgets/RectItem.hpp>
 
 namespace Process
@@ -50,109 +50,6 @@ QString EffectProcessFactory_T<Model_T>::customConstructionData() const
   static_assert(std::is_same<Model_T, void>::value, "can't be used like this");
   return {};
 }
-
-class EffectLayerView final : public Process::LayerView
-{
-  public:
-  EffectLayerView(QGraphicsItem* parent)
-    : Process::LayerView{parent}
-  {
-
-  }
-  void paint_impl(QPainter*) const override
-  {
-
-  }
-  void mousePressEvent(QGraphicsSceneMouseEvent* ev) override
-  {
-    if(ev && ev->button() == Qt::RightButton)
-    {
-      emit askContextMenu(ev->screenPos(), ev->scenePos());
-    }
-    else
-    {
-      emit pressed(ev->scenePos());
-    }
-    ev->accept();
-  }
-
-  void mouseMoveEvent(QGraphicsSceneMouseEvent* ev) override
-  {
-    ev->accept();
-  }
-
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent* ev) override
-  {
-    ev->accept();
-  }
-
-  void contextMenuEvent(QGraphicsSceneContextMenuEvent* ev) override
-  {
-    emit askContextMenu(ev->screenPos(), ev->scenePos());
-    ev->accept();
-  }
-
-};
-
-class EffectLayerPresenter final : public Process::LayerPresenter
-{
-public:
-  EffectLayerPresenter(
-      const Process::ProcessModel& model,
-      EffectLayerView* view,
-      const Process::ProcessPresenterContext& ctx,
-      QObject* parent)
-    : LayerPresenter{ctx, parent}, m_layer{model}, m_view{view}
-  {
-    putToFront();
-    connect(view, &Process::LayerView::pressed, this, [&] {
-      m_context.context.focusDispatcher.focus(this);
-    });
-
-    connect(
-          m_view, &Process::LayerView::askContextMenu, this,
-          &Process::LayerPresenter::contextMenuRequested);
-  }
-  void setWidth(qreal val) override
-  {
-    m_view->setWidth(val);
-  }
-  void setHeight(qreal val) override
-  {
-    m_view->setHeight(val);
-  }
-
-  void putToFront() override
-  {
-    m_view->setVisible(true);
-  }
-
-  void putBehind() override
-  {
-    m_view->setVisible(false);
-  }
-
-  void on_zoomRatioChanged(ZoomRatio) override
-  {
-  }
-
-  void parentGeometryChanged() override
-  {
-  }
-
-  const Process::ProcessModel& model() const override
-  {
-    return m_layer;
-  }
-  const Id<Process::ProcessModel>& modelId() const override
-  {
-    return m_layer.id();
-  }
-
-private:
-  const Process::ProcessModel& m_layer;
-  EffectLayerView* m_view{};
-};
 
 template<typename Model_T, typename Item_T, typename ExtView_T = void>
 class EffectLayerFactory_T final : public Process::LayerFactory
