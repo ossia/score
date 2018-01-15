@@ -25,7 +25,7 @@ VSTWindow::VSTWindow(AEffect& eff, ERect rect): effect{eff}
   auto height = rect.bottom - rect.top;
 
   effect.dispatcher(&effect, effEditOpen, 0, 0, (void*)winId(), 0);
-  setup_rect(this, width, height);
+  setup_rect(this->windowHandle(), width, height);
   reinterpret_cast<Media::VST::VSTEffectModel*>(effect.resvd1)->ui = reinterpret_cast<intptr_t>(this);
 }
 

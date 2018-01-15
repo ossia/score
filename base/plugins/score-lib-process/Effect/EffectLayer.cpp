@@ -129,7 +129,7 @@ void EffectLayerPresenter::fillContextMenu(
         if(auto win = fact->makeExternalUI(m_layer, context().context, nullptr))
         {
           win->show();
-          auto c0 = connect(win, &QWindow::visibilityChanged, m_showUI, [=] (auto vis) {
+          auto c0 = connect(win->windowHandle(), &QWindow::visibilityChanged, m_showUI, [=] (auto vis) {
             if(vis == QWindow::Hidden)
             {
               m_showUI->toggle();
