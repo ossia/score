@@ -23,5 +23,6 @@ class DefaultHeaderDelegate final
 
     QGlyphRun m_line;
     ossia::small_vector<Dataflow::PortItem*, 3> m_inPorts, m_outPorts;
+    bool m_sel{};
 };
 }

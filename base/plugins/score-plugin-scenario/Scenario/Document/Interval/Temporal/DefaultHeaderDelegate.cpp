@@ -63,6 +63,11 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(Process::LayerPresenter& p)
       this, [=] { updatePorts(); });
   con(p.model(), &Process::ProcessModel::inletsChanged,
       this, [=] { updatePorts(); });
+  con(p.model().selection, &Selectable::changed,
+      this, [=] (bool b) {
+    m_sel = b;
+    update();
+  });
   updatePorts();
 }
 
@@ -168,8 +173,11 @@ void DefaultHeaderDelegate::updatePorts()
 void DefaultHeaderDelegate::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   if(boundingRect().width() > minPortWidth()) {
+    const auto& style = ScenarioStyle::instance();
+
     painter->setRenderHint(QPainter::Antialiasing, true);
-    painter->setPen(ScenarioStyle::instance().IntervalHeaderSeparator);
+
+    painter->setPen(m_sel ? style.IntervalHeaderTextPen : style.GrayTextPen);
     painter->drawGlyphRun(QPointF{8.,3.}, m_line);
     painter->drawGlyphRun(QPointF{4., 10.}, fromGlyph());
     painter->drawGlyphRun(QPointF{4., 20.}, toGlyph());

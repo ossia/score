@@ -144,6 +144,8 @@ struct SCORE_LIB_PROCESS_EXPORT ScenarioStyle
   QBrush DataPortBrush;
   QBrush MidiPortBrush;
 
+  QPen GrayTextPen;
+
   const QPen TransparentPen;
   const QBrush TransparentBrush;
   const QPen NoPen;
