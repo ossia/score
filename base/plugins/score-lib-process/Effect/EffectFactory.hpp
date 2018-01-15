@@ -94,7 +94,7 @@ private:
     return new Item_T{safe_cast<const Model_T&>(proc), ctx, parent};
   }
 
-  QWindow*
+  QWidget*
   makeExternalUI(const Process::ProcessModel& proc,
                  const score::DocumentContext& ctx,
                  QWidget* parent) override
