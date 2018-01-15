@@ -87,7 +87,7 @@ class VSTGraphicsSlider
     QRectF handleRect() const;
 };
 
-class VSTWindow: public QWindow
+class VSTWindow: public QDialog
 {
   public:
     static ERect getRect(AEffect& e)
