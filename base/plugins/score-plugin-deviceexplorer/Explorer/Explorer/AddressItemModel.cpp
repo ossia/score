@@ -458,7 +458,7 @@ class SliderValueWidget final
       m_slider.setValue(ossia::convert<int>(t));
     }
 
-  signals:
+  Q_SIGNALS:
     void changed(ossia::value);
 
   private:
@@ -504,7 +504,7 @@ class DoubleSliderValueWidget final
       m_edit.setValue(ossia::convert<float>(t));
     }
 
-  signals:
+  Q_SIGNALS:
     void changed(ossia::value);
 
   private:

@@ -22,7 +22,7 @@ public:
 
   virtual ~DocumentDelegatePresenter();
 
-public slots:
+public Q_SLOTS:
   virtual void setNewSelection(const Selection& s) = 0;
 
 protected:

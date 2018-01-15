@@ -48,7 +48,7 @@ public:
 
   void setModel(const PointModel* model);
 
-signals:
+Q_SIGNALS:
   void contextMenuRequested(const QPoint&, const QPointF&);
 
 protected:

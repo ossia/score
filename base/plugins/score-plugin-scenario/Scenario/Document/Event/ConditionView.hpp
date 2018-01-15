@@ -34,7 +34,7 @@ public:
   int type() const override
   { return static_type(); }
 
-signals:
+Q_SIGNALS:
   void pressed(QPointF);
 
 private:

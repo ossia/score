@@ -33,7 +33,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT PortWidget :
     QLineEdit localName;
     Explorer::AddressAccessorEditWidget accessor;
 
-  signals:
+  Q_SIGNALS:
     void removeMe();
 };
 

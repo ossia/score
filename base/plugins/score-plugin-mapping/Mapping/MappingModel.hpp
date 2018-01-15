@@ -70,7 +70,7 @@ public:
 
   std::unique_ptr<Process::Inlet> inlet;
   std::unique_ptr<Process::Outlet> outlet;
-signals:
+Q_SIGNALS:
   void sourceAddressChanged(const State::AddressAccessor& arg);
   void sourceMinChanged(double arg);
   void sourceMaxChanged(double arg);

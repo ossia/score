@@ -24,7 +24,7 @@ public:
 
   void setSequence(bool);
 
-signals:
+Q_SIGNALS:
   void skinChanged(const QString&);
   void zoomChanged(int);
   void slotHeightChanged(qreal);

@@ -24,7 +24,7 @@ public:
   void populateClocks(
       const std::map<QString, ClockManagerFactory::ConcreteKey>&);
 
-signals:
+Q_SIGNALS:
   void rateChanged(int);
   void executionListeningChanged(bool);
   void clockChanged(ClockManagerFactory::ConcreteKey);

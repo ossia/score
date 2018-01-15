@@ -59,7 +59,7 @@ void NoiseSegment::on_endChanged()
 }
 
 const constexpr std::size_t rand_N = 35;
-auto array_gen()
+std::array<double, rand_N> array_gen()
 {
   std::array<double, rand_N> arr{};
   int32_t seed = 1; // chosen by fair d20 dice roll.

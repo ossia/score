@@ -15,7 +15,7 @@ public:
   ossia::val_type get() const;
   void set(ossia::val_type t);
 
-signals:
+Q_SIGNALS:
   void changed(ossia::val_type);
 };
 }

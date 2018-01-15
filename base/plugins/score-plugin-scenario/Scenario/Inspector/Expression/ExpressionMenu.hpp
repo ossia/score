@@ -37,7 +37,7 @@ public:
   QAction* deleteAction{};
   QAction* editAction{};
 
-signals:
+Q_SIGNALS:
   void expressionChanged(QString);
 };
 }

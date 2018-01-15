@@ -41,7 +41,7 @@ struct SCORE_PLUGIN_MEDIA_EXPORT MediaFileHandle : public QObject
         bool empty() const
         { return channels() == 0 || samples() == 0; }
 
-    signals:
+    Q_SIGNALS:
         void mediaChanged();
     private:
         QString m_file;

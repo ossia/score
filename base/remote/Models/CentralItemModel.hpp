@@ -17,7 +17,7 @@ class CentralItemModel : public QObject
 public:
   explicit CentralItemModel(Context&, QObject *parent = 0);
 
-public slots:
+public Q_SLOTS:
   void on_itemCreated(QString data, qreal x, qreal y);
   void on_addressCreated(QString data, qreal x, qreal y);
 

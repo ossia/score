@@ -98,7 +98,7 @@ public:
 
   const StateModel& stateModel;
 
-signals:
+Q_SIGNALS:
   void userMessage(const State::Message&);
 
 private:

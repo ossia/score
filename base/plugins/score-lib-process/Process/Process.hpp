@@ -100,7 +100,7 @@ public:
   Process::Inlet* inlet(const Id<Process::Port>&) const;
   Process::Outlet* outlet(const Id<Process::Port>&) const;
 
-signals:
+Q_SIGNALS:
   // True if the execution is running.
   void execution(bool);
   void durationChanged(const TimeVal&);

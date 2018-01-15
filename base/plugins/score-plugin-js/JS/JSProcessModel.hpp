@@ -42,7 +42,7 @@ public:
   ~ProcessModel();
 
   QObject* m_dummyObject{};
-signals:
+Q_SIGNALS:
   void scriptError(int, const QString&);
   void scriptOk();
   void scriptChanged(const QString&);

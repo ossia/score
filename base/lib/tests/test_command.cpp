@@ -88,7 +88,7 @@ class TestCommand: public QObject
             m_model = new FakeModel{&m_globalParent};
         }
 
-    private slots:
+    private Q_SLOTS:
         void CommandTest()
         {
             QVERIFY(m_model->value == 0);

@@ -14,7 +14,7 @@ class View : public Process::LayerView
     void setDataWidth(double);
     double dataWidth() const { return m_dataWidth; }
 
-  signals:
+  Q_SIGNALS:
     void setColor(double pos, QColor);
     void movePoint(double old, double cur);
     void removePoint(double pos);

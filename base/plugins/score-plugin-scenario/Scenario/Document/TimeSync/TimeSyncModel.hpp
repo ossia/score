@@ -72,7 +72,7 @@ public:
   // To trigger by hand we have the triggered() signal.
   ExecutionStatusProperty executionStatus; // TODO serialize me ?
 
-signals:
+Q_SIGNALS:
   void extentChanged(const VerticalExtent&);
   void dateChanged(const TimeVal&);
 

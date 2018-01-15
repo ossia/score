@@ -26,7 +26,7 @@ void EffectLayerView::paint_impl(QPainter*) const
 
 void EffectLayerView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
-  if(ev && ev->button() == Qt::RightButton)
+  if(ev->button() == Qt::RightButton)
   {
     emit askContextMenu(ev->screenPos(), ev->scenePos());
   }

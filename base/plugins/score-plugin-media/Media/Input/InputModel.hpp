@@ -53,11 +53,11 @@ class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final :
     int startChannel() const;
     int numChannel() const;
 
-  public slots:
+  public Q_SLOTS:
     void setStartChannel(int startChannel);
     void setNumChannel(int numChannel);
 
-  signals:
+  Q_SIGNALS:
     void inputsChanged();
     void startChannelChanged(int startChannel);
     void numChannelChanged(int numChannel);

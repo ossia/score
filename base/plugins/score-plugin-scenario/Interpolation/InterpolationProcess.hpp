@@ -111,7 +111,7 @@ public:
     emit tweenChanged(tween);
   }
 
-signals:
+Q_SIGNALS:
   void addressChanged(const ::State::AddressAccessor&);
   void startChanged(const ossia::value&);
   void endChanged(const ossia::value&);

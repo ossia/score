@@ -86,7 +86,7 @@ public:
     return m_map.find(id);
   }
 
-  // signals:
+  // Q_SIGNALS:
   mutable Nano::Signal<void(T&)> mutable_added;
   mutable Nano::Signal<void(const T&)> added;
   mutable Nano::Signal<void(const T&)> removing;

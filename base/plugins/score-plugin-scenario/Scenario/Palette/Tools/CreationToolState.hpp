@@ -24,8 +24,6 @@
 #include <score/document/DocumentInterface.hpp>
 #include <score/statemachine/StateMachineTools.hpp>
 
-class EventPresenter;
-class TimeSyncPresenter;
 namespace Scenario
 {
 

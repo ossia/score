@@ -42,7 +42,7 @@ public:
   void on_displayedIntervalDurationChanged(TimeVal);
   void on_displayedIntervalHeightChanged(double);
 
-signals:
+Q_SIGNALS:
   void requestFocusedPresenterChange(Process::LayerPresenter*);
 
 private:

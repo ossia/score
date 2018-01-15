@@ -42,7 +42,7 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(bool, SnapshotOnCreate)
   SCORE_SETTINGS_PARAMETER_HPP(bool, AutoSequence)
 
-signals:
+Q_SIGNALS:
   void SkinChanged(const QString&);
 };
 

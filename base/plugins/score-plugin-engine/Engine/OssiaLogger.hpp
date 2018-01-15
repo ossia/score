@@ -31,7 +31,7 @@ public:
     {
     }
 
-signals:
+Q_SIGNALS:
     //! Used in Engine::PanelDelegate
     void l(Engine::level, const QString&);
 };

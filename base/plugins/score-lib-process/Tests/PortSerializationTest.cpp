@@ -25,7 +25,7 @@ public:
     pl.insert(std::make_unique<Process::ControlOutletFactory>());
   }
 
-private slots:
+private Q_SLOTS:
   void test_controlinlet_json_upcast()
   {
     Process::ControlInlet port{Id<Process::Port>{1234}, nullptr};

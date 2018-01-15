@@ -42,7 +42,7 @@ public:
 
   void updateOverlayPos();
   void setSelected(bool selected);
-signals:
+Q_SIGNALS:
   void intervalHoverEnter();
   void intervalHoverLeave();
   void dropReceived(const QPointF& pos, const QMimeData*);

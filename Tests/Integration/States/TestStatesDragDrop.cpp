@@ -23,7 +23,7 @@ class TestStatesDragDrop: public IscoreTestBase
             redo(new LoadDevice{pluginModel<DeviceDocumentPlugin>(), std::move(n)});
         }
 
-    private slots:
+    private Q_SLOTS:
         void testDragUndoRedo()
         {
             SCORE_TODO;

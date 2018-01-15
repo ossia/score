@@ -74,7 +74,7 @@ public:
 
   double lastPointPos() const;
 
-signals:
+Q_SIGNALS:
   void segmentAdded(const SegmentModel&);
   void segmentRemoved(const Id<SegmentModel>&); // dangerous if async
   void pointAdded(const PointModel&);

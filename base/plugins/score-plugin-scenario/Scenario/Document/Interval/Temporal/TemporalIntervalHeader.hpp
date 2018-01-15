@@ -23,7 +23,7 @@ class RackButton final : public QGraphicsObject
 
     void setUnrolled(bool b);
 
-  signals:
+  Q_SIGNALS:
     void clicked();
 
   private:
@@ -56,7 +56,7 @@ public:
     m_hasFocus = b;
     update();
   }
-signals:
+Q_SIGNALS:
   void doubleClicked();
 
   void intervalHoverEnter();

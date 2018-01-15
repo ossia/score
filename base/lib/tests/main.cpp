@@ -6,7 +6,7 @@
 class TestExample: public QObject
 {
         Q_OBJECT
-    private slots:
+    private Q_SLOTS:
         void SomeTest()
         {
             QVERIFY(1 < 2);

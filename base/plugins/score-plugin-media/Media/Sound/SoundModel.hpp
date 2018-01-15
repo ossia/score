@@ -55,7 +55,7 @@ class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final : public Process::ProcessMode
         void setStartChannel(int startChannel);
 
         std::unique_ptr<Process::Outlet> outlet;
-signals:
+Q_SIGNALS:
         void fileChanged();
         void upmixChannelsChanged(int upmixChannels);
         void startChannelChanged(int startChannel);

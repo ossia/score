@@ -37,7 +37,7 @@ public:
   void on_eventAdded(const Id<EventModel>& eventId);
   void handleDrop(const QPointF& pos, const QMimeData* mime);
 
-signals:
+Q_SIGNALS:
   void pressed(const QPointF&);
   void moved(const QPointF&);
   void released(const QPointF&);

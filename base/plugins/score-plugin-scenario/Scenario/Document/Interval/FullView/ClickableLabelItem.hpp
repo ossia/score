@@ -41,7 +41,7 @@ public:
   int index() const;
   void setIndex(int index);
 
-signals:
+Q_SIGNALS:
   void textChanged();
 
 protected:

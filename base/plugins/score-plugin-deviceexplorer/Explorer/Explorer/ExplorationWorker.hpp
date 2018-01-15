@@ -25,7 +25,7 @@ public:
 
   explicit ExplorationWorker(Device::DeviceInterface& dev);
 
-signals:
+Q_SIGNALS:
   void finished();
   void failed(QString);
 };

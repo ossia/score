@@ -52,7 +52,7 @@ public:
 
   QString prettyName() const override;
 
-signals:
+Q_SIGNALS:
   void addressChanged(const State::Address&);
   void minChanged(double);
   void maxChanged(double);

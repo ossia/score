@@ -26,11 +26,11 @@ public:
   ~ZeroconfBrowser();
   QAction* makeAction();
 
-signals:
+Q_SIGNALS:
   // ip, port, other data
   void sessionSelected(QString, QString, int, QMap<QString, QByteArray>);
 
-public slots:
+public Q_SLOTS:
   void accept();
   void reject();
 

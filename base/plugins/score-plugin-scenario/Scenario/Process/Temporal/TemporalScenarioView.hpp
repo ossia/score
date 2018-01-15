@@ -34,7 +34,7 @@ public:
 
   void drawDragLine(QPointF, QPointF);
   void stopDrawDragLine();
-signals:
+Q_SIGNALS:
   void clearPressed();
   void escPressed();
 
@@ -46,7 +46,7 @@ signals:
   void dragMove(const QPointF& pos, const QMimeData&);
   void dragLeave(const QPointF& pos, const QMimeData&);
 
-public slots:
+public Q_SLOTS:
   void lock()
   {
     m_lock = true;

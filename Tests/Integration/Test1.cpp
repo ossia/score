@@ -8,7 +8,7 @@ class Test1: public IscoreTestBase
     public:
         using IscoreTestBase::IscoreTestBase;
 
-    private slots:
+    private Q_SLOTS:
         void testGui()
         {
             const auto& baseconstraint = getBaseScenario().baseConstraint()->OSSIAConstraint();

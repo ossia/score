@@ -128,7 +128,7 @@ public:
     return m_rightBrace;
   }
 
-signals:
+Q_SIGNALS:
   void requestOverlayMenu(QPointF);
 
 protected:

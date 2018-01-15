@@ -145,10 +145,8 @@ BOOST_FUSION_ADAPT_STRUCT(State::Pulse, (State::Address, address))
 namespace
 {
 /// Address parsing.
-using namespace boost::fusion;
 namespace qi = boost::spirit::qi;
 
-using namespace boost::phoenix;
 using boost::spirit::qi::rule;
 
 template <typename Iterator>

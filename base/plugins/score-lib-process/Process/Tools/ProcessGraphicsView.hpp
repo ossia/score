@@ -20,7 +20,7 @@ public:
   ProcessGraphicsView(QGraphicsScene* scene, QWidget* parent);
 
   void scrollHorizontal(double dx);
-signals:
+Q_SIGNALS:
   void sizeChanged(const QSize&);
   void scrolled(int);
   void focusedOut();

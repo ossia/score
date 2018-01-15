@@ -131,7 +131,7 @@ public:
   const FullSlot* findFullViewSlot(int slot) const;
   const FullSlot& getFullViewSlot(int slot) const;
   FullSlot& getFullViewSlot(int slot);
-signals:
+Q_SIGNALS:
   void heightPercentageChanged(double);
 
   void dateChanged(const TimeVal&);

@@ -21,7 +21,7 @@ public:
   bool setup(const Box&, const RecordListening&) override;
   void stop() override;
 
-signals:
+Q_SIGNALS:
   void firstMessageReceived();
 
 private:

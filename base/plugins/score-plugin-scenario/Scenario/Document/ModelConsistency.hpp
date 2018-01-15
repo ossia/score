@@ -25,7 +25,7 @@ public:
   void setValid(bool arg);
   void setWarning(bool warning);
 
-signals:
+Q_SIGNALS:
   void validChanged(bool arg);
   void warningChanged(bool warning);
 };

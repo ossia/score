@@ -119,7 +119,7 @@ public:
 
   Nano::Signal<void(const State::Address&, const ossia::value&)> valueUpdated;
 
-signals:
+Q_SIGNALS:
   // These signals are emitted if a device changes from the inside
   void pathAdded(const State::Address&);
   void pathUpdated(

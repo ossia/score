@@ -61,7 +61,7 @@ public:
   void disable();
 
   void setTween(bool b);
-signals:
+Q_SIGNALS:
   void contextMenuRequested(const QPoint&, const QPointF&);
 
 protected:

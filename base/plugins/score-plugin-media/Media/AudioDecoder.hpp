@@ -35,12 +35,12 @@ class SCORE_PLUGIN_MEDIA_EXPORT AudioDecoder :
     std::size_t decoded{};
     AudioArray data;
 
-  signals:
+  Q_SIGNALS:
     void newData();
     void finishedDecoding();
 
     void startDecode(QString);
-  public slots:
+  public Q_SLOTS:
     void on_startDecode(QString);
 
   private:

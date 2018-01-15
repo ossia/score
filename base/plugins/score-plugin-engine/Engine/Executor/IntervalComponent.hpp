@@ -168,9 +168,9 @@ class SCORE_PLUGIN_ENGINE_EXPORT IntervalComponent final :
                  interval_duration_data dur,
                  bool parent_is_base_scenario);
 
-  signals:
+  Q_SIGNALS:
     void sig_callback(double position, ossia::time_value date);
-  public slots:
+  public Q_SLOTS:
     void slot_callback(double position, ossia::time_value date);
 };
 }

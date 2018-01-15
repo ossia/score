@@ -37,7 +37,7 @@ class EffectComponent :
 
         const auto& inAddresses() const { return m_inAddresses; }
         const auto& outAddresses() const { return m_outAddresses; }
-    signals:
+    Q_SIGNALS:
         void effectTreeChanged();
         void aboutToBeDestroyed();
 

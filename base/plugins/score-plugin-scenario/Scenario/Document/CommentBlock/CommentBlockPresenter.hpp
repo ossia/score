@@ -42,7 +42,7 @@ public:
   const TimeVal& date() const;
 
   void on_zoomRatioChanged(ZoomRatio newRatio);
-signals:
+Q_SIGNALS:
   void moved(const QPointF&);
   void released(const QPointF&);
   void selected();

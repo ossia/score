@@ -30,7 +30,7 @@ public:
       QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
-signals:
+Q_SIGNALS:
   void needRedraw();
   void intervalSelected(IntervalModel& cst);
 

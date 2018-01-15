@@ -93,7 +93,7 @@ public:
     return m_localRect;
   }
 
-signals:
+Q_SIGNALS:
   void contextMenuRequested(const QPoint&, const QPointF&);
 
 private:

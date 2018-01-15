@@ -112,7 +112,7 @@ public:
 
   std::function<void()> removing(const Scenario::StateModel& e, StateComponent& c);
 
-signals:
+Q_SIGNALS:
   void sig_eventCallback(std::shared_ptr<EventComponent>, ossia::time_event::status st);
 protected:
   void startIntervalExecution(const Id<Scenario::IntervalModel>&);

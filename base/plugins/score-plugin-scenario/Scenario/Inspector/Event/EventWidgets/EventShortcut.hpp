@@ -17,7 +17,7 @@ public:
   bool isChecked();
   QString eventName();
 
-signals:
+Q_SIGNALS:
   void eventSelected();
 
 private:

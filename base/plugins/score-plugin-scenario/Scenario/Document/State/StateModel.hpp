@@ -133,7 +133,7 @@ public:
     return !messages().rootNode().hasChild(0);
   }
 
-signals:
+Q_SIGNALS:
   void sig_statesUpdated();
   void heightPercentageChanged();
   void statusChanged(Scenario::ExecutionStatus);

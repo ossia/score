@@ -69,7 +69,7 @@ public:
     return m_kind;
   }
 
-  signals:
+  Q_SIGNALS:
   void nameChanged(QString name);
 
   void prettyNameChanged(QString prettyName);

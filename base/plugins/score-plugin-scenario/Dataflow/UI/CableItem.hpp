@@ -30,7 +30,7 @@ class CableItem
     using cable_map = std::unordered_map<Process::Cable*, Dataflow::CableItem*>;
     static cable_map g_cables;
 
-  signals:
+  Q_SIGNALS:
     void clicked();
     void removeRequested();
 

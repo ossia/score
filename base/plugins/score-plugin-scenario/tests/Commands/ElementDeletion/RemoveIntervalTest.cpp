@@ -17,7 +17,7 @@ using namespace Scenario::Command;
 class RemoveIntervalTest : public QObject
 {
   Q_OBJECT
-private slots:
+private Q_SLOTS:
   void removeFirstIntervalTest()
   {
     // create scenar and 1 event

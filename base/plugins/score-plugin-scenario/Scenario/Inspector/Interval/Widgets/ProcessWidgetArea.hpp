@@ -43,7 +43,7 @@ private:
   void dragMoveEvent(QDragMoveEvent* event) override;
   void dropEvent(QDropEvent* event) override;
 
-signals:
+Q_SIGNALS:
   void
   sig_handleSwap(QPointer<const Process::ProcessModel> cst, double center, double y);
   void sig_performSwap(
@@ -54,7 +54,7 @@ signals:
       QPointer<const Scenario::IntervalModel> cst,
       const Id<Process::ProcessModel>& id1);
 
-private slots:
+private Q_SLOTS:
   void performSwap(
       QPointer<const Scenario::IntervalModel> cst,
       const Id<Process::ProcessModel>& id1,

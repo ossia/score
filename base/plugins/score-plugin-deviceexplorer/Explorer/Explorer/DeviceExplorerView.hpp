@@ -33,11 +33,11 @@ public:
 
   bool hasProxy() const;
 
-signals:
+Q_SIGNALS:
   void selectionChanged();
   void created(QModelIndex parent, int start, int end);
 
-private slots:
+private Q_SLOTS:
   void selectionChanged(
       const QItemSelection& selected,
       const QItemSelection& deselected) override;

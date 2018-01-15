@@ -80,7 +80,7 @@ public:
 
   virtual void selectedSlot(int) const;
   virtual void requestSlotMenu(int slot, QPoint pos, QPointF sp) const = 0;
-signals:
+Q_SIGNALS:
   void pressed(QPointF) const;
   void moved(QPointF) const;
   void released(QPointF) const;

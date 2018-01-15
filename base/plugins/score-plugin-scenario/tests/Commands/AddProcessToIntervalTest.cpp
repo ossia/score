@@ -19,7 +19,7 @@ class AddProcessToIntervalTest : public QObject
 {
   Q_OBJECT
 
-private slots:
+private Q_SLOTS:
   void CreateCommandTest()
   {
     NamedObject* obj = new NamedObject{"obj", qApp};

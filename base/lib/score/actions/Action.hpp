@@ -277,7 +277,7 @@ struct SCORE_LIB_BASE_EXPORT CustomActionCondition : public QObject,
 public:
   using ActionCondition::ActionCondition;
 
-signals:
+Q_SIGNALS:
   void changed(bool);
 };
 

@@ -92,7 +92,7 @@ public:
 
   void setData(NoteData d);
 
-signals:
+Q_SIGNALS:
   void noteChanged();
 
 private:

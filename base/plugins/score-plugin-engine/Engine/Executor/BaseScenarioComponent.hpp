@@ -127,7 +127,7 @@ public:
   StateComponent& startState() const;
   StateComponent& endState() const;
 
-signals:
+Q_SIGNALS:
   void finished();
 
 private:

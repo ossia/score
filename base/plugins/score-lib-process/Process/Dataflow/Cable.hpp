@@ -73,7 +73,7 @@ class SCORE_LIB_PROCESS_EXPORT Cable
     Path<Process::Inlet> sink() const;
 
     void setType(CableType type);
-signals:
+Q_SIGNALS:
     void typeChanged(CableType type);
 
 private:

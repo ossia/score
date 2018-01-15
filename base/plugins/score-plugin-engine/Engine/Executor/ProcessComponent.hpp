@@ -74,7 +74,7 @@ public:
   }
 
   std::shared_ptr<ossia::graph_node> node;
-  signals:
+  Q_SIGNALS:
     void nodeChanged(ossia::node_ptr old_node, ossia::node_ptr new_node);
   protected:
     std::shared_ptr<ossia::time_process> m_ossia_process;

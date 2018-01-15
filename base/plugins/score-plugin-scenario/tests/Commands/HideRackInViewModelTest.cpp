@@ -31,7 +31,7 @@ class HideRackInViewModelTest : public QObject
 {
   Q_OBJECT
 public:
-private slots:
+private Q_SLOTS:
   void test()
   {
     CommandStack stack;

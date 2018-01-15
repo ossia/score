@@ -42,7 +42,7 @@ public:
 
   void focusNothing();
 
-signals:
+Q_SIGNALS:
   void sig_focusedPresenter(LayerPresenter*);
   void sig_defocusedPresenter(LayerPresenter*);
 

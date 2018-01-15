@@ -158,7 +158,7 @@ public:
 
   void drawDragLine(const Scenario::StateModel&, Scenario::Point) const;
   void stopDrawDragLine() const;
-signals:
+Q_SIGNALS:
   void linesExtremityScaled(int, int);
 
   void keyPressed(int);

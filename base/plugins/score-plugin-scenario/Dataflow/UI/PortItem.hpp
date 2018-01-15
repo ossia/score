@@ -34,7 +34,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT PortItem
         std::function<void(score::Command*)> macro,
         const score::DocumentContext& m_context);
 
-  signals:
+  Q_SIGNALS:
     void showPanel();
     void createCable(PortItem* src, PortItem* snk);
     void contextMenuRequested(QPointF scenepos, QPoint pos);

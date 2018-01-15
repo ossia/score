@@ -22,7 +22,7 @@ class SCORE_LIB_PROCESS_EXPORT FocusDispatcher : public QObject
 {
   Q_OBJECT
 
-signals:
+Q_SIGNALS:
   void focus(Scenario::ScenarioDocumentPresenter*);
   void focus(QPointer<Process::LayerPresenter>);
   void focus(Curve::Presenter*);

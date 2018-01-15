@@ -65,7 +65,7 @@ public:
   void setStatus(ExecutionStatus);
   void disableOverlay();
 
-signals:
+Q_SIGNALS:
   void dropReceived(const QMimeData*);
   void startCreateMode();
 

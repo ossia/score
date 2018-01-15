@@ -21,7 +21,7 @@ class RemoveProcessFromIntervalTest : public QObject
 {
   Q_OBJECT
 
-private slots:
+private Q_SLOTS:
   void DeleteCommandTest()
   {
     NamedObject* obj = new NamedObject("obj", qApp);

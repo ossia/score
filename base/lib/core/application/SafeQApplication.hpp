@@ -144,6 +144,6 @@ public:
   bool event(QEvent* ev) override;
 #endif
 
-signals:
+Q_SIGNALS:
   void fileOpened(const QString&);
 };

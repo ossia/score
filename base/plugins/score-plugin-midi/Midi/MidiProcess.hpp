@@ -45,7 +45,7 @@ public:
   int channel() const;
 
   std::unique_ptr<Process::Outlet> outlet;
-signals:
+Q_SIGNALS:
   void notesChanged();
   void deviceChanged(const QString&);
   void channelChanged(int);

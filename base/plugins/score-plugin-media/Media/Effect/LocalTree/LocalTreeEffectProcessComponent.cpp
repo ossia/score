@@ -1,3 +1,5 @@
+
+/*
 #include "LocalTreeEffectProcessComponent.hpp"
 #include <Engine/LocalTree/Scenario/MetadataParameters.hpp>
 #include <Media/Effect/EffectProcessModel.hpp>
@@ -40,3 +42,4 @@ EffectProcessComponentBase::~EffectProcessComponentBase()
 }
 }
 }
+*/

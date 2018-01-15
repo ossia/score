@@ -40,7 +40,7 @@ public:
     SliderUI();
 
     void setValue(double v) { m_value = v; update(); }
-signals:
+Q_SIGNALS:
     void valueChanged(double);
 
 private:
@@ -66,7 +66,7 @@ public:
     void setVolume(double v);
     void preparePlay();
 
-signals:
+Q_SIGNALS:
     void volumeChanged(double);
 
 private:

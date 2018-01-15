@@ -59,9 +59,9 @@ public:
   clock::time_point firstValueTime{};
   QTimer timer;
 
-signals:
+Q_SIGNALS:
   void startTimer();
-public slots:
+public Q_SLOTS:
   void on_startTimer()
   {
     timer.start();

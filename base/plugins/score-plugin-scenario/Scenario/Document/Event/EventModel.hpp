@@ -86,7 +86,7 @@ public:
   void setStatus(ExecutionStatus status, const Scenario::ScenarioInterface&);
   void setOffsetBehavior(OffsetBehavior);
 
-signals:
+Q_SIGNALS:
   void extentChanged(const VerticalExtent&);
   void dateChanged(const TimeVal&);
 

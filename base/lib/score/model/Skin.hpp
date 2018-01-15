@@ -69,7 +69,7 @@ public:
 
   QVector<QPair<QColor, QString>> getColors() const;
 
-signals:
+Q_SIGNALS:
   void changed();
 
 private:

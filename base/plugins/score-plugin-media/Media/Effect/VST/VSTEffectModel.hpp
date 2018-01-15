@@ -102,10 +102,10 @@ class VSTEffectModel :
 
     void removeControl(const Id<Process::Port>&);
     void removeControl(int fxnum);
-  signals:
+  Q_SIGNALS:
     void addControl(int idx, float v);
 
-  public slots:
+  public Q_SLOTS:
     void on_addControl(int idx, float v);
   public:
     void on_addControl_impl(VSTControlInlet* inl);

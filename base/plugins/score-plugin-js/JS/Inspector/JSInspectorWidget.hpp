@@ -37,7 +37,7 @@ public:
       const score::DocumentContext& context,
       QWidget* parent);
 
-signals:
+Q_SIGNALS:
   void pressed();
 private:
   void on_textChange(const QString& newText);

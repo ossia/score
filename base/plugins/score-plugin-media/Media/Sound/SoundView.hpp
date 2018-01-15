@@ -4,8 +4,7 @@
 #include <Process/TimeValue.hpp>
 #include <Media/MediaFileHandle.hpp>
 #include <Process/ZoomHelper.hpp>
-
-Q_DECLARE_METATYPE(QList<QPainterPath>)
+#include <score/widgets/GraphicsItem.hpp>
 namespace Media
 {
 namespace Sound
@@ -28,11 +27,11 @@ struct WaveformComputer : public QObject
     }
     void stop() { m_drawThread.quit(); m_drawThread.wait(); }
 
-  signals:
+  Q_SIGNALS:
     void recompute(const MediaFileHandle*, double);
     void ready(QList<QPainterPath>, QPainterPath, double z);
 
-  private slots:
+  private Q_SLOTS:
     void on_recompute(const MediaFileHandle* data, double ratio);
 
   private:

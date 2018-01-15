@@ -16,10 +16,10 @@ public:
       QGraphicsScene* s, quint16 port, QObject* parent = Q_NULLPTR);
   ~WebSocketView();
 
-signals:
+Q_SIGNALS:
   void closed();
 
-public slots:
+public Q_SLOTS:
   void onNewConnection();
   void processTextMessage(QString message);
   void processBinaryMessage(QByteArray message);

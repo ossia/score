@@ -79,7 +79,7 @@ class AddressValueWidget
     virtual ossia::value get() const = 0;
     virtual void set(ossia::value t) = 0;
 
-  signals:
+  Q_SIGNALS:
     void changed(ossia::value);
 };
 

@@ -44,7 +44,7 @@ public:
     return QSlider::value() / max;
   }
 
-signals:
+Q_SIGNALS:
   void valueChanged(double);
 };
 }

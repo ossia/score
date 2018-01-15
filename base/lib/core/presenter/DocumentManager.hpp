@@ -126,7 +126,7 @@ public:
 
   bool preparingNewDocument() const;
 
-signals:
+Q_SIGNALS:
   void documentChanged(score::Document*);
 
 private:

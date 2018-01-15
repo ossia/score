@@ -65,7 +65,7 @@ public:
   void enableAddButton(bool);
   void enableMenuButton(bool);
 
-signals:
+Q_SIGNALS:
   void editingFinished();
   void addTerm();
   void removeTerm(int index);

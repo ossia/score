@@ -94,7 +94,7 @@ public:
 
   score::hash_map<std::shared_ptr<ossia::graph_node>, std::vector<QMetaObject::Connection>> runtime_connections;
 
-signals:
+Q_SIGNALS:
   void finished();
 private:
   mutable ExecutionCommandQueue m_execQueue;

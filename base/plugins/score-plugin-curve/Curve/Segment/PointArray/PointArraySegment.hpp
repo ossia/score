@@ -123,7 +123,7 @@ public:
   ossia::curve_segment<bool> makeBoolFunction() const override { return {}; }
   void reset();
 
-signals:
+Q_SIGNALS:
   void minChanged(double);
   void maxChanged(double);
 

@@ -60,7 +60,7 @@ public:
   void removeAll();
   void showMenu(bool b);
 
-signals:
+Q_SIGNALS:
   void nameChanged(QString newName);
 
 private:

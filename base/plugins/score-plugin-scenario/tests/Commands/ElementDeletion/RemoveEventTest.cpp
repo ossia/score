@@ -15,7 +15,7 @@ using namespace Scenario::Command;
 class RemoveEventTest : public QObject
 {
   Q_OBJECT
-private slots:
+private Q_SLOTS:
   void RemoveEventAndTimeSyncTest()
   {
     // only one event on a timeSync

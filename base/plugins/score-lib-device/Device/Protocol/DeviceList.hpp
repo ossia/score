@@ -40,7 +40,7 @@ public:
   DeviceInterface* localDevice() const { return m_localDevice; }
   DeviceInterface* audioDevice() const { return m_audioDevice; }
   const std::vector<DeviceInterface*>& devices() const;
-signals:
+Q_SIGNALS:
   void logInbound(const QString&) const;
   void logOutbound(const QString&) const;
   void logError(const QString&) const;

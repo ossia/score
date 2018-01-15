@@ -78,7 +78,7 @@ class SCORE_LIB_DEVICE_EXPORT QMenuView final : public ClickableMenu
         virtual void postPopulated();
         void createMenu(const QModelIndex &parent, QMenu& parentMenu, QMenu *menu = nullptr);
 
-    signals:
+    Q_SIGNALS:
         void hovered(const QString &text) const;
         void triggered(const QModelIndex & index) const;
 

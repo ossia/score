@@ -51,7 +51,7 @@ public:
 
   std::unique_ptr<Process::Outlet> outlet;
 
-signals:
+Q_SIGNALS:
   void tweenChanged(bool tween);
   void gradientChanged();
 

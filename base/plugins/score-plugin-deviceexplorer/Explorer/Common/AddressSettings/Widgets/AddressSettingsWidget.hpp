@@ -63,7 +63,7 @@ class AccessModeComboBox final : public QComboBox
     ossia::access_mode get() const;
     void set(ossia::access_mode t);
 
-  signals:
+  Q_SIGNALS:
     void changed(ossia::access_mode);
 };
 
@@ -77,7 +77,7 @@ class BoundingModeComboBox final : public QComboBox
     ossia::bounding_mode get() const;
     void set(ossia::bounding_mode t);
 
-  signals:
+  Q_SIGNALS:
     void changed(ossia::bounding_mode);
 };
 
