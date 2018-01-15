@@ -4,7 +4,7 @@
 namespace score
 {
 
-struct SCORE_LIB_BASE_EXPORT RectItem : public QObject, public QGraphicsItem
+class SCORE_LIB_BASE_EXPORT RectItem : public QObject, public QGraphicsItem
 {
     Q_OBJECT
 public:
@@ -28,7 +28,7 @@ private:
   bool m_highlight{false};
 };
 
-struct SCORE_LIB_BASE_EXPORT EmptyRectItem : public QObject, public QGraphicsItem
+class SCORE_LIB_BASE_EXPORT EmptyRectItem : public QObject, public QGraphicsItem
 {
     Q_OBJECT
 public:

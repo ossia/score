@@ -105,6 +105,7 @@ if(Faust_FOUND)
     set(FAUST_HDRS
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Faust/FaustEffectModel.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/EditFaustEffect.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/InsertFaust.hpp"
         )
     set(FAUST_SRCS
       "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Faust/FaustEffectModel.cpp"
@@ -117,6 +118,7 @@ if(TARGET Lilv)
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2EffectModel.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/lv2_atom_helpers.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2Context.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/InsertLV2.hpp"
         )
     set(LV2_SRCS
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2EffectModel.cpp"
@@ -133,6 +135,7 @@ set(VST_HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTNode.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/vst-compat.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/VSTCommands.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/InsertVST.hpp"
   )
 set(VST_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTLoader.cpp"

@@ -102,7 +102,7 @@ LayerFactory::makePanel(const ProcessModel& layer, const score::DocumentContext&
   return new Process::GraphicsViewLayerPanelProxy{layer, parent};
 }
 
-QWindow* LayerFactory::makeExternalUI(const ProcessModel&, const score::DocumentContext& ctx, QWidget* parent)
+QWidget* LayerFactory::makeExternalUI(const ProcessModel&, const score::DocumentContext& ctx, QWidget* parent)
 {
   return nullptr;
 }
