@@ -103,6 +103,17 @@ private:
     return pres;
   }
 
+  QGraphicsItem* makeItem(
+      const Process::ProcessModel& proc,
+      const score::DocumentContext& ctx,
+      score::RectItem* parent) const override
+  {
+    auto rootItem = new score::EmptyRectItem{parent};
+    Control::UISetup::init<Info>(static_cast<const ControlProcess<Info>&>(proc), *rootItem, ctx);
+    rootItem->setRect(rootItem->childrenBoundingRect());
+    return rootItem;
+  }
+
   Process::LayerPanelProxy* makePanel(
       const Process::ProcessModel& viewmodel, const score::DocumentContext& ctx, QObject* parent) final override
   {

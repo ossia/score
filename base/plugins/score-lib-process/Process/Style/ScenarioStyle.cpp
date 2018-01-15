@@ -182,14 +182,17 @@ void ScenarioStyle::update(const score::Skin& skin)
   Medium7Pt.setPointSize(7);
   Medium7Pt.setStyleStrategy(QFont::NoAntialias);
   Medium7Pt.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
+  Medium7Pt.setKerning(false);
 
   Medium8Pt = skin.SansFont;
   Medium8Pt.setPointSize(8);
   Medium8Pt.setStyleStrategy(QFont::PreferBitmap);
+  Medium8Pt.setKerning(false);
 
   Medium12Pt = skin.SansFont;
   Medium12Pt.setPointSize(12);
   Medium12Pt.setStyleStrategy(QFont::NoAntialias);
+  Medium12Pt.setKerning(false);
 
   AudioCablePen = QPen{QBrush{QColor("#88996666")}, 3., Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
   DataCablePen = QPen{QBrush{QColor("#88669966")}, 3., Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};

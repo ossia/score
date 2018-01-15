@@ -59,7 +59,7 @@ void ProcessModel::insertEffect(
       return;
     }
   }
-  if(m_effects.size() > 0 && pos < m_effects.size())
+  if(m_effects.size() > 0 && pos < (int)m_effects.size())
   {
     if(outlets[0]->type != m_effects.at_pos(pos).inlets()[0]->type)
     {
@@ -79,7 +79,7 @@ void ProcessModel::insertEffect(
       emit inletsChanged();
     }
   }
-  if(pos == m_effects.size() - 1)
+  if(pos == (int)m_effects.size() - 1)
   {
     if(outlets[0]->type != this->outlet->type)
     {
@@ -116,7 +116,7 @@ void ProcessModel::moveEffect(const Id<Process::ProcessModel>& e, int new_pos)
 
 int ProcessModel::effectPosition(const Id<Process::ProcessModel>& e) const
 {
-  return m_effects.index(e);
+  return (int)m_effects.index(e);
 }
 
 }
@@ -128,7 +128,7 @@ void DataStreamReader::read(const Media::Effect::ProcessModel& proc)
 {
   m_stream << *proc.inlet << *proc.outlet;
 
-  int32_t n = proc.effects().size();
+  int32_t n = (int)proc.effects().size();
   m_stream << n;
   for(auto& eff : proc.effects())
   {

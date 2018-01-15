@@ -65,24 +65,25 @@ class View final : public Process::LayerView
           auto& facts = ctx.context.app.interfaces<Process::LayerFactoryList>();
           if(auto fact = facts.findDefaultFactory(effect))
           {
-            auto win = fact->makeExternalUI(effect, ctx.context, nullptr);
-            win->show();
-            auto c0 = connect(win, &QWindow::visibilityChanged, ui_btn, [=] (auto vis) {
-              if(vis == QWindow::Hidden)
-              {
-                ui_btn->toggle();
-                win->deleteLater();
-              }
-            });
+            if(auto win = fact->makeExternalUI(effect, ctx.context, nullptr))
+            {
+              win->show();
+              auto c0 = connect(win, &QWindow::visibilityChanged, ui_btn, [=] (auto vis) {
+                if(vis == QWindow::Hidden)
+                {
+                  ui_btn->toggle();
+                  win->deleteLater();
+                }
+              });
 
-            connect(ui_btn, &score::QGraphicsPixmapToggle::toggled,
-                    win, [=] (bool b) {
-              QObject::disconnect(c0);
-              win->close();
-              delete win;
-            });
+              connect(ui_btn, &score::QGraphicsPixmapToggle::toggled,
+                      win, [=] (bool b) {
+                QObject::disconnect(c0);
+                win->close();
+                delete win;
+              });
+            }
           }
-
         }
       });
       ui_btn->setPos({5, 4});

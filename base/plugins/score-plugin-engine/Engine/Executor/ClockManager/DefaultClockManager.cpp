@@ -71,7 +71,7 @@ void DefaultClockManager::prepareExecution(
 
   // Send the first state
   const auto& oc = comp.OSSIAInterval();
-  oc->get_start_event().tick(ossia::Zero);
+  oc->get_start_event().tick(ossia::Zero, 0., ossia::Zero);
   context.plugin.execGraph->state(*context.plugin.execState);
 
   oc->offset(context.time(t));
@@ -128,7 +128,7 @@ ControlClock::ControlClock(
       [=](ossia::clock::exec_status c) {
         if (c == ossia::clock::exec_status::STOPPED)
         {
-          context.scenario.endEvent().OSSIAEvent()->tick(ossia::Zero);
+          context.scenario.endEvent().OSSIAEvent()->tick(ossia::Zero, 0., ossia::Zero);
           context.plugin.execGraph->state(*context.plugin.execState);
           context.plugin.execState->commit();
 
