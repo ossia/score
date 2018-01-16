@@ -44,5 +44,6 @@ private:
   std::vector<NoteView*> m_notes;
 
   SingleOngoingCommandDispatcher<MoveNotes> m_ongoing;
+  ZoomRatio m_zr{};
 };
 }

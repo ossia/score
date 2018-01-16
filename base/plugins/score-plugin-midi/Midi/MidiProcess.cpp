@@ -18,7 +18,7 @@ ProcessModel::ProcessModel(
   metadata().setInstanceName(*this);
 
   m_device = "MidiDevice";
-  for (int i = 0; i < 10; i++)
+/*  for (int i = 0; i < 10; i++)
   {
     auto n = new Note{Id<Note>(i), this};
     n->setPitch(32 +  3 * i);
@@ -26,7 +26,7 @@ ProcessModel::ProcessModel(
     n->setDuration(0.1 + (9 - i) * 0.05);
     n->setVelocity(i * 127. / 9.);
     notes.add(n);
-  }
+  }*/
   init();
 }
 

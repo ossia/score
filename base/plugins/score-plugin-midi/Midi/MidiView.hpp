@@ -13,6 +13,8 @@ public:
   View(QGraphicsItem* parent);
 
   ~View();
+  double defaultWidth() const;
+  void setDefaultWidth(double w);
 
 Q_SIGNALS:
   void deleteRequested();
@@ -27,7 +29,8 @@ private:
   void keyPressEvent(QKeyEvent*) override;
 
   QPainterPath m_selectArea;
+  double m_defaultW; // Covers the [ 0; 1 ] area
 };
 
-NoteData noteAtPos(QPointF point, const QRectF& rect);
+NoteData noteAtPos(QPointF point, const QRectF& rect, double defW);
 }

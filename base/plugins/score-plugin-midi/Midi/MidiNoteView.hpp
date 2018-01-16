@@ -5,6 +5,7 @@
 
 namespace Midi
 {
+class View;
 class NoteView final : public QObject, public QGraphicsItem
 {
   Q_OBJECT
@@ -12,7 +13,7 @@ class NoteView final : public QObject, public QGraphicsItem
 public:
   const Note& note;
 
-  NoteView(const Note& n, QGraphicsItem* parent);
+  NoteView(const Note& n, View* parent);
 
   void setWidth(double w)
   {

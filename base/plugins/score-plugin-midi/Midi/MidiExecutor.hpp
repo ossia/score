@@ -30,6 +30,7 @@ namespace Executor
 class Component final
     : public ::Engine::Execution::
           ProcessComponent_T<Midi::ProcessModel, ossia::node_process>
+    , public Nano::Observer
 {
   COMPONENT_METADATA("6d5334a5-7b8c-45df-9805-11d1b4472cdf")
 public:
@@ -42,6 +43,8 @@ public:
   ~Component() override;
 
   private:
+  void on_noteAdded(const Midi::Note&);
+  void on_noteRemoved(const Midi::Note&);
 };
 
 using ComponentFactory

@@ -146,10 +146,15 @@ void CableItem::resize()
 void CableItem::check()
 {
   if(g_cables_enabled && m_p1 && m_p2 && m_p1->isVisible() && m_p2->isVisible()) {
+
     if(!isEnabled())
     {
       setVisible(true);
       setEnabled(true);
+    }
+    else if(!isVisible())
+    {
+      setVisible(true);
     }
     m_type = m_p1->port().type;
     resize();

@@ -22,6 +22,19 @@ View::~View()
 {
 }
 
+double View::defaultWidth() const
+{
+  return m_defaultW;
+}
+
+void View::setDefaultWidth(double w)
+{
+  m_defaultW = w;
+  update();
+  for(auto cld : childItems())
+    cld->update();
+}
+
 void View::paint_impl(QPainter* p) const
 {
   static const MidiStyle style;
@@ -79,7 +92,7 @@ void View::paint_impl(QPainter* p) const
 
   if (!m_selectArea.isEmpty())
   {
-    p->setCompositionMode(QPainter::CompositionMode_Xor);
+    //p->setCompositionMode(QPainter::CompositionMode_Xor);
     p->setBrush(style.transparentBrush);
     p->setPen(style.selectionPen);
     p->drawPath(m_selectArea);
@@ -133,14 +146,14 @@ void View::keyPressEvent(QKeyEvent* ev)
   ev->accept();
 }
 
-NoteData noteAtPos(QPointF point, const QRectF& rect)
+NoteData noteAtPos(QPointF point, const QRectF& rect, double defW)
 {
   NoteData n;
-  n.m_start = qBound(0., point.x() / rect.width(), 1.);
+  n.m_start = std::max(0., point.x() / defW);
   n.m_duration = 0.1;
   n.m_pitch = qBound(
       0,
-      int(127
+      1 + int(127
           - (qMin(rect.bottom(), qMax(point.y(), rect.top())) / rect.height())
                 * 127),
       127);

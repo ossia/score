@@ -5,10 +5,11 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 #include <Midi/MidiStyle.hpp>
+#include <Midi/MidiView.hpp>
 namespace Midi
 {
 
-NoteView::NoteView(const Note& n, QGraphicsItem* parent)
+NoteView::NoteView(const Note& n, View* parent)
     : QGraphicsItem{parent}, note{n}
 {
   this->setFlag(QGraphicsItem::ItemIsSelectable, true);
@@ -143,7 +144,7 @@ void NoteView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   if (m_scaling)
   {
-    emit noteScaled(m_width / parentItem()->boundingRect().width());
+    emit noteScaled(m_width / ((View*)parentItem())->defaultWidth());
     event->accept();
   }
   else
