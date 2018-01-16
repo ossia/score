@@ -131,7 +131,7 @@ void NoteView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   if (m_scaling)
   {
-    this->setWidth(event->pos().x());
+    this->setWidth(std::max(2., event->pos().x()));
     event->accept();
   }
   else

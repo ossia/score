@@ -151,20 +151,32 @@ void Presenter::setupNote(NoteView& v)
         0,
         127);
 
+    auto notes = selectedNotes();
+    auto it = ossia::find(notes, v.note.id());
+    if(it == notes.end())
+    {
+      notes = {v.note.id()};
+    }
+
     m_ongoing.submitCommand(
         m_layer,
-        selectedNotes(),
+        notes,
         note - v.note.pitch(),
         newPos.x() / m_view->defaultWidth() - v.note.start());
-
     m_ongoing.commit();
   });
 
   con(v, &NoteView::noteScaled, this, [&](double newScale) {
+    auto notes = selectedNotes();
+    auto it = ossia::find(notes, v.note.id());
+    if(it == notes.end())
+    {
+      notes = {v.note.id()};
+    }
 
     auto dt = newScale - v.note.duration();
     CommandDispatcher<>{context().context.commandStack}.submitCommand(
-        new ScaleNotes{m_layer, selectedNotes(), dt});
+        new ScaleNotes{m_layer, notes, dt});
   });
 }
 

@@ -23,6 +23,10 @@ class midi_node
     midi_node()
     {
       m_outlets.push_back(ossia::make_outlet<ossia::midi_port>());
+      m_notes.reserve(128);
+      m_orig_notes.reserve(128);
+      m_playingnotes.reserve(128);
+      m_toStop.reserve(64);
     }
 
     ~midi_node() override
@@ -40,9 +44,17 @@ class midi_node
         m_notes.insert(nd);
       }
     }
+
     void remove_note(NoteData nd)
     {
       m_orig_notes.erase(nd);
+      m_notes.erase(nd);
+      auto it = m_playingnotes.find(nd);
+      if(it != m_playingnotes.end())
+      {
+        m_toStop.insert(nd);
+        m_playingnotes.erase(it);
+      }
     }
 
     void update_note(NoteData oldNote, NoteData newNote)
@@ -50,7 +62,6 @@ class midi_node
       // OPTIMIZEME
       remove_note(oldNote);
       add_note(newNote);
-
     }
 
     void set_notes(note_set&& notes)
@@ -62,65 +73,80 @@ class midi_node
       m_notes.erase(m_notes.begin(), max_it);
     }
 
-    void reset()
-    {
-      m_notes = m_orig_notes;
-      m_playingnotes.clear();
-    }
+    bool mustStop{};
   private:
     void run(ossia::token_request t, ossia::execution_state& e) override
     {
       auto& outlet = *m_outlets[0];
       ossia::midi_port* mp = outlet.data.target<ossia::midi_port>();
 
-      if (t.date != m_prev_date)
+      if(mustStop)
       {
-        if (m_prev_date > t.date)
-          m_prev_date = 0;
+        for(auto& note : m_playingnotes)
+          mp->messages.push_back(mm::MakeNoteOff(m_channel, note.pitch(), note.velocity()));
 
-        auto diff = norm(t.date, m_prev_date) / (t.date / t.position);
-        m_prev_date = t.date;
-        auto cur_pos = t.position;
-        auto max_pos = cur_pos + diff;
+        m_notes = m_orig_notes;
+        m_playingnotes.clear();
 
-        // Look for all the messages
-        auto max_it = std::lower_bound(m_notes.begin(), m_notes.end(), max_pos + 1, NoteComparator{});
-        for(auto it = m_notes.begin(); it < max_it; )
+        mustStop = false;
+      }
+      else
+      {
+        if (t.date != m_prev_date)
         {
-          NoteData& note = *it;
-          auto start_time = note.start();
-          if (start_time >= cur_pos && start_time < max_pos)
-          {
-            // Send note_on
-            mp->messages.push_back(mm::MakeNoteOn(m_channel, note.pitch(), note.velocity()));
+          if (m_prev_date > t.date)
+            m_prev_date = 0;
 
-            m_playingnotes.insert(note);
-            it = m_notes.erase(it);
-            max_it = std::lower_bound(it, m_notes.end(), max_pos + 1, NoteComparator{});
+          auto diff = norm(t.date, m_prev_date) / (t.date / t.position);
+          m_prev_date = t.date;
+          auto cur_pos = t.position;
+          auto max_pos = cur_pos + diff;
+
+          // Look for all the messages
+          auto max_it = std::lower_bound(m_notes.begin(), m_notes.end(), max_pos + 1, NoteComparator{});
+          for(auto it = m_notes.begin(); it < max_it; )
+          {
+            NoteData& note = *it;
+            auto start_time = note.start();
+            if (start_time >= cur_pos && start_time < max_pos)
+            {
+              // Send note_on
+              mp->messages.push_back(mm::MakeNoteOn(m_channel, note.pitch(), note.velocity()));
+
+              m_playingnotes.insert(note);
+              it = m_notes.erase(it);
+              max_it = std::lower_bound(it, m_notes.end(), max_pos + 1, NoteComparator{});
+            }
+            else
+            {
+              ++it;
+            }
           }
-          else
-          {
-            ++it;
-          }
-        }
 
-        for(auto it = m_playingnotes.begin(); it != m_playingnotes.end(); )
-        {
-          NoteData& note = *it;
-          auto end_time = note.end();
-
-          if (end_time >= cur_pos && end_time < max_pos)
+          for(auto it = m_playingnotes.begin(); it != m_playingnotes.end(); )
           {
-            mp->messages.push_back(mm::MakeNoteOff(m_channel, note.pitch(), note.velocity()));
+            NoteData& note = *it;
+            auto end_time = note.end();
 
-            it = m_playingnotes.erase(it);
-          }
-          else
-          {
-            ++it;
+            if (end_time >= cur_pos && end_time < max_pos)
+            {
+              mp->messages.push_back(mm::MakeNoteOff(m_channel, note.pitch(), note.velocity()));
+
+              it = m_playingnotes.erase(it);
+            }
+            else
+            {
+              ++it;
+            }
           }
         }
       }
+
+      for(const NoteData& note : m_toStop)
+      {
+        mp->messages.push_back(mm::MakeNoteOff(m_channel, note.pitch(), note.velocity()));
+      }
+      m_toStop.clear();
 
       m_lastPos = t.position;
     }
@@ -128,6 +154,7 @@ class midi_node
     note_set m_notes;
     note_set m_orig_notes;
     note_set m_playingnotes;
+    note_set m_toStop;
 
     double m_lastPos{};
     int m_channel{};
@@ -140,7 +167,9 @@ class midi_node_process : public ossia::node_process
     using ossia::node_process::node_process;
   void stop() override
   {
-    static_cast<midi_node*>(node.get())->reset();
+    midi_node* n = static_cast<midi_node*>(node.get());
+    n->requested_tokens.push_back(ossia::token_request{});
+    n->mustStop = true;
   }
 };
 Component::Component(
