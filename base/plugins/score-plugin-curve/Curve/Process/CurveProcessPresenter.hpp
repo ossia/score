@@ -2,6 +2,7 @@
 #include <Curve/CurveModel.hpp>
 #include <Curve/CurvePresenter.hpp>
 #include <Curve/CurveView.hpp>
+#include <Process/LayerView.hpp>
 #include <Curve/Palette/CurvePalette.hpp>
 #include <Curve/Process/CurveProcessModel.hpp>
 
@@ -42,6 +43,10 @@ public:
   {
     con(m_layer, &CurveProcessModel::curveChanged, this,
         &CurveProcessPresenter::parentGeometryChanged);
+
+    connect(m_view.impl, &Process::LayerView::pressed, this, [&]() {
+      m_context.context.focusDispatcher.focus(this);
+    });
 
     con(
         m_curve, &Presenter::contextMenuRequested, this,

@@ -88,7 +88,7 @@ constexpr int get_scale(QLatin1String s)
 }
 static Q_DECL_RELAXED_CONSTEXPR frozen::unordered_map<int, scales_array, scale::SCALES_MAX-1> scales{
   //                                C   D   E F   G   A   B
-  { scale::all,        make_scale({ 1,1,1,1,1,1,1,1,1,1,1,1 })}
+    { scale::all,        make_scale({ 1,1,1,1,1,1,1,1,1,1,1,1 })}
   , { scale::ionian,     make_scale({ 1,0,1,0,1,1,0,1,0,1,0,1 })}
   , { scale::dorian,     make_scale({ 1,0,1,1,0,1,0,1,0,1,1,0 })}
   , { scale::phyrgian,   make_scale({ 1,1,0,1,0,1,0,1,1,0,1,0 })}
@@ -176,7 +176,7 @@ struct Node
                     Control::array("all", "ionian", "dorian", "phyrgian", "lydian", "mixolydian", "aeolian", "locrian",
                                    "I", "II", "III", "IV", "V", "VI", "VII")),
                   Control::Widgets::OctaveSlider("Base", 0, 1),
-                  Control::Widgets::OctaveSlider("Transpose", -1, 1)
+                  Control::Widgets::OctaveSlider("Transpose", -4, 4)
                   )
         .build();
 
