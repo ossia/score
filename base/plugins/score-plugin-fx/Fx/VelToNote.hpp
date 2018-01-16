@@ -26,6 +26,7 @@ struct Node
       .value_ins({{"in", true}})
       .midi_outs({{"out"}})
       .controls(Control::Widgets::QuantificationChooser(),
+                Control::FloatSlider{"Tightness", 0., 1., 0.8},
                 Control::Widgets::DurationChooser(),
                 Control::Widgets::MidiSpinbox("Default pitch"),
                 Control::Widgets::MidiSpinbox("Default vel."),
@@ -113,6 +114,7 @@ struct Node
   static void run(
       const ossia::value_port& p1,
       const Control::timed_vec<float>& startq,
+      const Control::timed_vec<float>& tightness,
       const Control::timed_vec<float>& dur,
       const Control::timed_vec<int>& basenote,
       const Control::timed_vec<int>& basevel,
@@ -128,6 +130,8 @@ struct Node
       State& self)
   {
     static std::mt19937 m;
+    // TODO : when arrays like [ 1, 25, 12, 37, 10, 40 ] are received
+    // send relevant chords
 
     // When a message is received, we have three cases :
     // 1. Just an impulse: use base note & base vel
@@ -139,6 +143,7 @@ struct Node
     // At the end, scan running_notes: if any is going to end in this buffer, end it too.
 
     auto start = startq.rbegin()->second;
+    auto precision = tightness.rbegin()->second;
     auto duration = dur.rbegin()->second;
     auto shiftnote = shift_note.rbegin()->second;
     auto base_note = midi_clamp(basenote.rbegin()->second);
@@ -192,7 +197,9 @@ struct Node
         {
           // Find next time that matches the requested quantification
           const auto start_q = whole_samples * start;
-          ossia::time_value next_date{int64_t(start_q * int64_t(1 + tk.date / start_q))};
+          auto perf_date = int64_t(start_q * int64_t(1 + tk.date / start_q));
+          auto actual_date = (1. - precision) * tk.date + precision * perf_date;
+          ossia::time_value next_date{actual_date};
           self.to_start.push_back({note, next_date});
         }
       }
