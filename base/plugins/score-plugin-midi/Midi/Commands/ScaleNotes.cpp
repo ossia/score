@@ -30,7 +30,7 @@ void ScaleNotes::redo(const score::DocumentContext& ctx) const
   for (auto& note : m_toScale)
   {
     auto& n = model.notes.at(note);
-    n.setDuration(n.duration() + m_delta);
+    n.setDuration(std::max(n.duration() + m_delta, 0.001));
   }
 }
 
