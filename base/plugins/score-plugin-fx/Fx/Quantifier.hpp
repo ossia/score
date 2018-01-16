@@ -34,6 +34,7 @@ struct Node
       .midi_ins({{"in"}})
       .midi_outs({{"out"}})
       .controls(Control::Widgets::QuantificationChooser(),
+                Control::FloatSlider{"Tightness", 0., 1., 0.8},
                 Control::Widgets::DurationChooser(),
                 Control::Widgets::TempoChooser()
                 )
@@ -43,6 +44,7 @@ struct Node
   static void run(
       const ossia::midi_port& p1,
       const Control::timed_vec<float>& startq,
+      const Control::timed_vec<float>& tightness,
       const Control::timed_vec<float>& dur,
       const Control::timed_vec<float>& tempo_vec,
       ossia::midi_port& p2,
@@ -53,19 +55,10 @@ struct Node
   {
     static std::mt19937 m;
 
-    // When a message is received, we have three cases :
-    // 1. Just an impulse: use base note & base vel
-    // 2. Just an int: it's the velocity, use base note
-    // 3. A tuple [int, int]: it's note and velocity
-
-    // Then once we have a pair [int, int] we randomize and we output a note on.
-
-    // At the end, scan running_notes: if any is going to end in this buffer, end it too.
-
     auto start = startq.rbegin()->second;
+    auto precision = tightness.rbegin()->second;
     auto duration = dur.rbegin()->second;
     auto tempo = tempo_vec.rbegin()->second;
-
 
     // how much time does a whole note last at this tempo given the current sr
     const auto whole_dur = 240.f / tempo; // in seconds
@@ -107,7 +100,9 @@ struct Node
         {
           // Find next time that matches the requested quantification
           const auto start_q = whole_samples * start;
-          ossia::time_value next_date{int64_t(start_q * int64_t(1 + tk.date / start_q))};
+          auto perf_date = int64_t(start_q * int64_t(1 + tk.date / start_q));
+          auto actual_date = (1. - precision) * tk.date + precision * perf_date;
+          ossia::time_value next_date{actual_date};
           self.to_start.push_back({note, next_date});
         }
       }
