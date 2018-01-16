@@ -33,6 +33,7 @@
 #include <score/plugins/panel/PanelDelegate.hpp>
 #include <Explorer/Panel/DeviceExplorerPanelDelegate.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 
 namespace Scenario
 {

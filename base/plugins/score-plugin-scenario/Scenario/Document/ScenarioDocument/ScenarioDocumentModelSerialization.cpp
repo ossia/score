@@ -31,7 +31,11 @@ void DataStreamReader::read(
 {
   readFrom(*obj.m_baseScenario);
 
-  m_stream << QJsonDocument(toJsonArray(obj.cables)).toBinaryData();
+  if(obj.cables.empty() && !obj.m_savedCables.empty())
+    m_stream << QJsonDocument(obj.m_savedCables).toBinaryData();
+  else
+    m_stream << QJsonDocument(toJsonArray(obj.cables)).toBinaryData();
+
 
   insertDelimiter();
 }
