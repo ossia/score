@@ -11,6 +11,7 @@
 #include <Fx/Chord.hpp>
 #include <Fx/MathGenerator.hpp>
 #include <Fx/MathMapping.hpp>
+#include <Fx/EmptyMapping.hpp>
 
 #include <score/plugins/customfactory/FactorySetup.hpp>
 
@@ -41,7 +42,10 @@ score_plugin_fx::factories(
       Nodes::Quantifier::Node,
       Nodes::MathGenerator::Node,
       Nodes::MathAudioGenerator::Node,
-      Nodes::MathMapping::Node
+      Nodes::MathMapping::Node,
+      Nodes::EmptyValueMapping::Node,
+      Nodes::EmptyMidiMapping::Node,
+      Nodes::EmptyAudioMapping::Node
       >(ctx, key);
 }
 

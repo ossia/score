@@ -32,6 +32,7 @@ Presenter::Presenter(
     , m_layer{layer}
     , m_view{view}
     , m_ongoing{ctx.commandStack}
+    , m_zr{1.}
 {
   putToFront();
 
@@ -57,7 +58,7 @@ Presenter::Presenter(
   connect(m_view, &View::doubleClicked, this, [&](QPointF pos) {
     CommandDispatcher<>{context().context.commandStack}.submitCommand(
         new AddNote{layer,
-                    noteAtPos(pos, m_view->boundingRect())});
+                    noteAtPos(pos, m_view->boundingRect(), m_view->defaultWidth())});
   });
 
   connect(m_view, &View::pressed, this, [&]() {
@@ -82,6 +83,7 @@ Presenter::Presenter(
 void Presenter::setWidth(qreal val)
 {
   m_view->setWidth(val);
+  m_view->setDefaultWidth(m_layer.duration().toPixels(m_zr));
   for (auto note : m_notes)
     updateNote(*note);
 }
@@ -103,8 +105,12 @@ void Presenter::putBehind()
   m_view->setEnabled(false);
 }
 
-void Presenter::on_zoomRatioChanged(ZoomRatio)
+void Presenter::on_zoomRatioChanged(ZoomRatio zr)
 {
+  m_zr = zr;
+  m_view->setDefaultWidth(m_layer.duration().toPixels(m_zr));
+  for (auto note : m_notes)
+    updateNote(*note);
 }
 
 void Presenter::parentGeometryChanged()
@@ -125,9 +131,9 @@ void Presenter::setupNote(NoteView& v)
 {
   const auto note_height = m_view->height() / 127.;
   v.setPos(
-      v.note.start() * m_view->width(),
+      v.note.start() * m_view->defaultWidth(),
       m_view->height() - v.note.pitch() * note_height);
-  v.setWidth(v.note.duration() * m_view->width());
+  v.setWidth(v.note.duration() * m_view->defaultWidth());
   v.setHeight(note_height);
 
   con(v.note, &Note::noteChanged, &v, [&] { updateNote(v); });
@@ -149,7 +155,7 @@ void Presenter::setupNote(NoteView& v)
         m_layer,
         selectedNotes(),
         note - v.note.pitch(),
-        newPos.x() / rect.width() - v.note.start());
+        newPos.x() / m_view->defaultWidth() - v.note.start());
 
     m_ongoing.commit();
   });
@@ -165,13 +171,13 @@ void Presenter::setupNote(NoteView& v)
 void Presenter::updateNote(NoteView& v)
 {
   const auto note_height = m_view->height() / 127.;
-  QPointF newPos{v.note.start() * m_view->width(),
+  QPointF newPos{v.note.start() * m_view->defaultWidth(),
                  m_view->height() - std::ceil(v.note.pitch() * note_height)};
 
   if (newPos != v.pos())
     v.setPos(newPos);
 
-  v.setWidth(v.note.duration() * m_view->width());
+  v.setWidth(v.note.duration() * m_view->defaultWidth());
   v.setHeight(note_height);
 }
 

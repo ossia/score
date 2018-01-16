@@ -70,16 +70,16 @@ InspectorWidget::InspectorWidget(
   m_chan->setMaximum(16);
 
   vlay->addRow(tr("Channel"), m_chan);
-  m_chan->setValue(model.channel() + 1);
+  m_chan->setValue(model.channel());
   con(model, &ProcessModel::channelChanged, this, [=](int n) {
-    if (m_chan->value() != n + 1)
-      m_chan->setValue(n + 1);
+    if (m_chan->value() != n)
+      m_chan->setValue(n);
   });
   connect(m_chan, SignalUtils::QSpinBox_valueChanged_int(), this, [&](int n) {
-    if (model.channel() != n - 1)
+    if (model.channel() != n)
     {
       CommandDispatcher<> d{doc.commandStack};
-      d.submitCommand(new SetChannel{model, n - 1});
+      d.submitCommand(new SetChannel{model, n});
     }
   });
 }

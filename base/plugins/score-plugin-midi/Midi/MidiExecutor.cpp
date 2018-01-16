@@ -19,6 +19,7 @@ class midi_node
     : public ossia::graph_node
 {
   public:
+    using note_set = boost::container::flat_multiset<NoteData, NoteComparator>;
     midi_node()
     {
       m_outlets.push_back(ossia::make_outlet<ossia::midi_port>());
@@ -31,13 +32,34 @@ class midi_node
 
     void set_channel(int c) { m_channel = c; }
 
-    void set_notes(const score::EntityMap<Note>& notes)
+    void add_note(NoteData nd)
     {
-      m_notes.clear();
-      m_notes.reserve(notes.size());
-      ossia::transform(notes, std::inserter(m_notes, m_notes.begin()),
-                       [] (const Note& n) { return n.noteData(); });
+      m_orig_notes.insert(nd);
+      if(nd.start() > m_lastPos)
+      {
+        m_notes.insert(nd);
+      }
+    }
+    void remove_note(NoteData nd)
+    {
+      m_orig_notes.erase(nd);
+    }
+
+    void update_note(NoteData oldNote, NoteData newNote)
+    {
+      // OPTIMIZEME
+      remove_note(oldNote);
+      add_note(newNote);
+
+    }
+
+    void set_notes(note_set&& notes)
+    {
+      m_notes = std::move(notes);
       m_orig_notes = m_notes;
+
+      auto max_it = std::lower_bound(m_notes.begin(), m_notes.end(), m_lastPos, NoteComparator{});
+      m_notes.erase(m_notes.begin(), max_it);
     }
 
     void reset()
@@ -99,13 +121,15 @@ class midi_node
           }
         }
       }
+
+      m_lastPos = t.position;
     }
 
-    using note_set = boost::container::flat_multiset<NoteData, NoteComparator>;
     note_set m_notes;
     note_set m_orig_notes;
     note_set m_playingnotes;
 
+    double m_lastPos{};
     int m_channel{};
 
 };
@@ -128,18 +152,70 @@ Component::Component(
       ProcessComponent_T<Midi::ProcessModel, ossia::node_process>{
         element, ctx, id, "MidiComponent", parent}
 {
-  auto node = std::make_shared<midi_node>();
-  this->node = node;
-  m_ossia_process = std::make_shared<midi_node_process>(node);
+  auto midi = std::make_shared<midi_node>();
+  this->node = midi;
+  m_ossia_process = std::make_shared<midi_node_process>(midi);
 
-  node->set_channel(element.channel());
-  node->set_notes(element.notes);
+  midi->set_channel(element.channel());
+  auto set_notes = [&,midi] {
+    midi_node::note_set notes;
+    notes.reserve(element.notes.size());
+    ossia::transform(element.notes, std::inserter(notes, notes.begin()),
+                     [] (const Note& n) { return n.noteData(); });
+
+    in_exec([n=std::move(notes), midi] () mutable {
+      midi->set_notes(std::move(n));
+    });
+  };
+  set_notes();
+
+  element.notes.added.connect<Component, &Component::on_noteAdded>(this);
+  element.notes.removing.connect<Component, &Component::on_noteRemoved>(this);
+
+  for(auto& note : element.notes)
+  {
+    QObject::connect(&note, &Note::noteChanged,
+            this, [&,midi,cur=note.noteData()] () mutable {
+      auto old = cur;
+      cur = note.noteData();
+      in_exec([old, cur, midi] {
+        midi->update_note(old, cur);
+      });
+    });
+  }
+  QObject::connect(
+        &element, &Midi::ProcessModel::notesChanged,
+        this, set_notes);
 }
 
 Component::~Component()
 {
 }
 
+void Component::on_noteAdded(const Note& n)
+{
+  auto midi = std::dynamic_pointer_cast<midi_node>(node);
+  in_exec([nd=n.noteData(), midi] {
+    midi->add_note(nd);
+  });
+
+  QObject::connect(&n, &Note::noteChanged,
+          this, [&,midi,cur=n.noteData()] () mutable {
+    auto old = cur;
+    cur = n.noteData();
+    in_exec([old, cur, midi] {
+      midi->update_note(old, cur);
+    });
+  });
+}
+
+void Component::on_noteRemoved(const Note& n)
+{
+  auto midi = std::dynamic_pointer_cast<midi_node>(node);
+  in_exec([nd=n.noteData(), midi] {
+    midi->remove_note(nd);
+  });
+}
 
 
 }
