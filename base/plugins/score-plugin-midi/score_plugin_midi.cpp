@@ -3,6 +3,7 @@
 #include "score_plugin_midi.hpp"
 #include <Midi/Inspector/MidiProcessInspector.hpp>
 #include <Midi/MidiExecutor.hpp>
+#include <Midi/MidiDrop.hpp>
 #include <Midi/MidiFactory.hpp>
 
 #include <score/plugins/customfactory/FactorySetup.hpp>
@@ -26,6 +27,7 @@ score_plugin_midi::factories(
       , FW<Process::ProcessModelFactory, Midi::ProcessFactory>
       , FW<Process::LayerFactory, Midi::LayerFactory>
       , FW<Engine::Execution::ProcessComponentFactory, Midi::Executor::ComponentFactory>
+      , FW<Scenario::DropHandler, Midi::DropMidiInSenario>
       , FW<Inspector::InspectorWidgetFactory, Midi::InspectorFactory>>(ctx, key);
 }
 

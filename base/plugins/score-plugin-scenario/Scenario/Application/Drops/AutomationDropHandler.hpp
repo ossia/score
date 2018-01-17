@@ -47,4 +47,5 @@ class AutomationDropHandler final : public IntervalDropHandler
   bool
   drop(const Scenario::IntervalModel&, const QMimeData* mime) override;
 };
+
 }

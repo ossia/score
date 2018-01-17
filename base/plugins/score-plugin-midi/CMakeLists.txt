@@ -28,6 +28,7 @@ set(HEADER_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiNote.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiPresenter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiView.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiDrop.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiNoteView.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiExecutor.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiStyle.hpp"
@@ -46,6 +47,7 @@ set(SOURCE_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiProcess.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiPresenter.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiView.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiDrop.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiNoteView.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiNote.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiExecutor.cpp"
@@ -55,7 +57,7 @@ set(SOURCE_FILES
 
 add_library(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES})
 score_generate_command_list_file(${PROJECT_NAME} "${HEADER_FILES}")
-target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_engine)
+target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_engine ModernMIDI)
 target_include_directories(${PROJECT_NAME} PRIVATE "${OSSIA_3RDPARTY_FOLDER}/GSL")
 
 setup_score_plugin(${PROJECT_NAME})

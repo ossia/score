@@ -26,6 +26,7 @@ class Outlet: public QObject
     virtual Process::Outlet* make(Id<Process::Port>&& id, QObject*) = 0;
 
 };
+// TODO instead use arrays
 class ValueInlet: public Inlet
 {
   Q_OBJECT

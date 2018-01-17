@@ -56,6 +56,7 @@ void ProcessModel::insertEffect(
     if(inlets[0]->type != m_effects.at_pos(pos - 1).outlets()[0]->type)
     {
       qDebug() << "invalid effect! (bad chaining before)";
+      delete eff;
       return;
     }
   }
@@ -64,6 +65,7 @@ void ProcessModel::insertEffect(
     if(outlets[0]->type != m_effects.at_pos(pos).inlets()[0]->type)
     {
       qDebug() << "invalid effect! (bad chaining after)";
+      delete eff;
       return;
     }
   }

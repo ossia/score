@@ -13,7 +13,7 @@ DefaultEffectItem::DefaultEffectItem(
         this, [&] (const Id<Process::Port>& id) {
     auto inlet = safe_cast<Process::ControlInlet*>(effect.inlet(id));
     setupInlet(*inlet, doc);
-    rootItem->setRect(rootItem->childrenBoundingRect());
+    this->setRect(this->childrenBoundingRect());
   });
 
   for(auto& e : effect.inlets())
@@ -24,6 +24,27 @@ DefaultEffectItem::DefaultEffectItem(
 
     setupInlet(*inlet,  doc);
   }
+
+  QObject::connect(&effect, &Process::ProcessModel::inletsChanged,
+                   this, [&] {
+    for(auto child : this->childItems())
+    {
+      this->scene()->removeItem(child);
+      delete child;
+    }
+
+    for(auto& e : effect.inlets())
+    {
+      auto inlet = qobject_cast<Process::ControlInlet*>(e);
+      if(!inlet)
+        continue;
+
+      setupInlet(*inlet,  doc);
+    }
+    this->setRect(this->childrenBoundingRect());
+  });
+
+  // TODO same for outlets if we have control outlets one day
 }
 
 void DefaultEffectItem::setupInlet(Process::ControlInlet& inlet, const score::DocumentContext& doc)
@@ -36,7 +57,10 @@ void DefaultEffectItem::setupInlet(Process::ControlInlet& inlet, const score::Do
 
   auto lab = new Scenario::SimpleTextItem{item};
   lab->setColor(ScenarioStyle::instance().EventDefault);
-  lab->setText(inlet.customData());
+  if(inlet.customData().isEmpty())
+    lab->setText(tr("Control"));
+  else
+    lab->setText(inlet.customData());
   lab->setPos(15, 2);
 
   QGraphicsItem* widg{};
