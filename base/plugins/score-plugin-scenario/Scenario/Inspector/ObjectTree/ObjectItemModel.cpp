@@ -816,7 +816,7 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
         auto& fact = m_ctx.app.interfaces<Process::ProcessFactoryList>();
         auto dialog = new AddProcessDialog{fact, Process::ProcessFlags::SupportsTemporal, this};
         dialog->on_okPressed = [&] (const auto& proc, QString dat) {
-          using cmd = Scenario::Command::CreateProcessInNewSlot;
+          using cmd = Scenario::Command::AddProcessInNewSlot;
           QuietMacroCommandDispatcher<cmd> disp{m_ctx.commandStack};
 
           cmd::create(disp, *cst, proc, dat);

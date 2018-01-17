@@ -173,7 +173,7 @@ void JSONObjectWriter::write(Midi::Note& n)
 template <>
 void DataStreamReader::read(const Midi::ProcessModel& proc)
 {
-  m_stream << *proc.outlet <<  proc.device() << proc.channel();
+  m_stream << *proc.outlet <<  proc.device() << proc.channel() << proc.m_range.first << proc.m_range.second;
 
   const auto& notes = proc.notes;
 
@@ -191,7 +191,7 @@ template <>
 void DataStreamWriter::write(Midi::ProcessModel& proc)
 {
   proc.outlet = Process::make_outlet(*this, &proc);
-  m_stream >> proc.m_device >> proc.m_channel;
+  m_stream >> proc.m_device >> proc.m_channel  >> proc.m_range.first >> proc.m_range.second;
   int n;
   m_stream >> n;
   for (int i = 0; i < n; i++)
@@ -208,6 +208,8 @@ void JSONObjectReader::read(const Midi::ProcessModel& proc)
   obj["Outlet"] = toJsonObject(*proc.outlet);
   obj["Device"] = proc.device();
   obj["Channel"] = proc.channel();
+  obj["Min"] = proc.range().first;
+  obj["Max"] = proc.range().second;
   obj["Notes"] = toJsonArray(proc.notes);
 }
 
@@ -221,6 +223,7 @@ void JSONObjectWriter::write(Midi::ProcessModel& proc)
   }
   proc.setDevice(obj["Device"].toString());
   proc.setChannel(obj["Channel"].toInt());
+  proc.setRange(obj["Min"].toInt(), obj["Max"].toInt());
 
   for (const auto& json_vref : obj["Notes"].toArray())
   {

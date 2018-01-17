@@ -16,4 +16,5 @@ PROCESS_METADATA(
     "Javascript",
     "Script",
     {},
-    Process::ProcessFlags::SupportsAll)
+    Process::ProcessFlags::SupportsAll |
+    Process::ProcessFlags::PutInNewSlot)

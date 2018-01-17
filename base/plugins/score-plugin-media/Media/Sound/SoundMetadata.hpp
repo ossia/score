@@ -18,7 +18,8 @@ PROCESS_METADATA(
         "Sound file",
         "Audio",
         {},
-        Process::ProcessFlags::SupportsTemporal
+        Process::ProcessFlags::SupportsTemporal |
+        Process::ProcessFlags::PutInNewSlot
         )
 
 

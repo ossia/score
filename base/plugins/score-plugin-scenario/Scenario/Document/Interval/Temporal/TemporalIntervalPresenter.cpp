@@ -5,6 +5,7 @@
 #include <QList>
 #include <QApplication>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
+#include <Scenario/Commands/Interval/CreateProcessInNewSlot.hpp>
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
@@ -216,11 +217,19 @@ void TemporalIntervalPresenter::on_requestOverlayMenu(QPointF)
 
   dialog->on_okPressed =
         [&] (const auto& key, QString dat) {
-    auto cmd
-        = new Scenario::Command::AddProcessToInterval(this->model(), key, dat);
+    using namespace Scenario::Command;
 
-    CommandDispatcher<> d{m_context.commandStack};
-    emit d.submitCommand(cmd);
+    if(fact.get(key)->flags() & Process::ProcessFlags::PutInNewSlot)
+    {
+      QuietMacroCommandDispatcher<AddProcessInNewSlot> d{m_context.commandStack};
+      AddProcessInNewSlot::create(d, this->model(), key, dat);
+      d.commit();
+    }
+    else
+    {
+      CommandDispatcher<> d{m_context.commandStack};
+      d.submitCommand<AddProcessToInterval>(this->model(), key, dat);
+    }
   };
 
   dialog->launchWindow();

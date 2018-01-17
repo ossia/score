@@ -14,10 +14,10 @@ namespace Scenario
 class IntervalModel;
 namespace Command
 {
-class CreateProcessInNewSlot final : public score::AggregateCommand
+class AddProcessInNewSlot final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), CreateProcessInNewSlot,
+      ScenarioCommandFactoryName(), AddProcessInNewSlot,
       "Create a process in a new slot")
 
   public:

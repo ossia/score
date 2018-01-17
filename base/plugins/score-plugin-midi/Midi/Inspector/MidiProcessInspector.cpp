@@ -109,16 +109,18 @@ InspectorWidget::InspectorWidget(
       m_max->setValue(max);
     });
 
-    connect(m_min, SignalUtils::QSpinBox_valueChanged_int(),
-            this, [=,&model,&doc] (int n) {
+    connect(m_min, &QSpinBox::editingFinished,
+            this, [=,&model,&doc] {
+      auto n = m_min->value();
       if (model.range().first != n)
       {
         CommandDispatcher<> d{doc.commandStack};
         d.submitCommand(new SetRange{model, n, m_max->value()});
       }
     });
-    connect(m_max, SignalUtils::QSpinBox_valueChanged_int(),
-            this, [=,&model,&doc] (int n) {
+    connect(m_max, &QSpinBox::editingFinished,
+            this, [=,&model,&doc] {
+      auto n = m_max->value();
       if (model.range().second != n)
       {
         CommandDispatcher<> d{doc.commandStack};
