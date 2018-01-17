@@ -10,6 +10,7 @@ struct MidiStyle
 
   const QBrush lightBrush = QColor::fromRgb(200, 200, 200);
   const QBrush darkBrush = QColor::fromRgb(170, 170, 170);
+  const QBrush darkerBrush = QColor::fromRgb(70, 70, 70);
   const QBrush transparentBrush{Qt::transparent};
   const QPen darkPen = [] {
     QPen p = QColor::fromRgb(150, 150, 150);

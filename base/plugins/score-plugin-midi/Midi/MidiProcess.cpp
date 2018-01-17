@@ -13,6 +13,7 @@ ProcessModel::ProcessModel(
                             Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
 {
+  m_range = {45, 65};
   outlet->type = Process::PortType::Midi;
 
   metadata().setInstanceName(*this);

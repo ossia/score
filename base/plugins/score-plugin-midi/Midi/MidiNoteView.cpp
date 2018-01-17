@@ -49,21 +49,22 @@ QVariant NoteView::itemChange(
   {
     case QGraphicsItem::ItemPositionChange:
     {
+      const auto [min, max] = ((View*) parentItem())->range();
       QPointF newPos = value.toPointF();
       QRectF rect = this->parentItem()->boundingRect();
       auto height = rect.height();
-      auto note_height = height / 127.;
+      auto note_height = height / (max - min);
 
       newPos.setX(qMin(rect.right(), qMax(newPos.x(), rect.left())));
       // Snap to grid : we round y to the closest multiple of 127
       int note = qBound(
-          0,
-          int(127
+          min,
+          int(max
               - (qMin(rect.bottom(), qMax(newPos.y(), rect.top())) / height)
-                    * 127),
-          127);
+                    * (max - min)),
+          max);
 
-      newPos.setY(height - note * note_height);
+      newPos.setY(height - (note - min) * note_height);
       return newPos;
     }
     case QGraphicsItem::ItemSelectedChange:

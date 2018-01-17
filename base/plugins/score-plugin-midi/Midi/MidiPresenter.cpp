@@ -38,8 +38,7 @@ Presenter::Presenter(
 
   auto& model = layer;
 
-  con(model, &ProcessModel::notesChanged, this, [&]() {
-
+  con(model, &ProcessModel::notesChanged, this, [&] {
     for (auto note : m_notes)
     {
       delete note;
@@ -52,13 +51,21 @@ Presenter::Presenter(
       on_noteAdded(note);
     }
   });
+
+  con(model, &ProcessModel::rangeChanged,
+      this, [=] (int min, int max) {
+    m_view->setRange(min, max);
+    for(auto note : m_notes)
+      updateNote(*note);
+  });
+  m_view->setRange(model.range().first, model.range().second);
   model.notes.added.connect<Presenter, &Presenter::on_noteAdded>(this);
   model.notes.removing.connect<Presenter, &Presenter::on_noteRemoving>(this);
 
   connect(m_view, &View::doubleClicked, this, [&](QPointF pos) {
     CommandDispatcher<>{context().context.commandStack}.submitCommand(
         new AddNote{layer,
-                    noteAtPos(pos, m_view->boundingRect(), m_view->defaultWidth())});
+                    m_view->noteAtPos(pos)});
   });
 
   connect(m_view, &View::pressed, this, [&]() {
@@ -129,27 +136,29 @@ const Id<Process::ProcessModel>& Presenter::modelId() const
 
 void Presenter::setupNote(NoteView& v)
 {
-  const auto note_height = m_view->height() / 127.;
+  const auto [min, max] = this->m_layer.range();
+  const auto note_height = m_view->height() / (max - min);
   v.setPos(
       v.note.start() * m_view->defaultWidth(),
-      m_view->height() - v.note.pitch() * note_height);
+      m_view->height() - (v.note.pitch() - min) * note_height);
   v.setWidth(v.note.duration() * m_view->defaultWidth());
   v.setHeight(note_height);
 
   con(v.note, &Note::noteChanged, &v, [&] { updateNote(v); });
 
   con(v, &NoteView::noteChangeFinished, this, [&] {
+    const auto [min, max] = this->m_layer.range();
     auto newPos = v.pos();
     auto rect = m_view->boundingRect();
     auto height = rect.height();
 
     // Snap to grid : we round y to the closest multiple of 127
     int note = ossia::clamp(
-        int(127
+        int(max
             - (qMin(rect.bottom(), qMax(newPos.y(), rect.top())) / height)
-                  * 127),
-        0,
-        127);
+                  * (max - min)),
+        min,
+        max);
 
     auto notes = selectedNotes();
     auto it = ossia::find(notes, v.note.id());
@@ -182,9 +191,10 @@ void Presenter::setupNote(NoteView& v)
 
 void Presenter::updateNote(NoteView& v)
 {
-  const auto note_height = m_view->height() / 127.;
+  const auto [min, max] = this->m_layer.range();
+  const auto note_height = m_view->height() / (max - min);
   QPointF newPos{v.note.start() * m_view->defaultWidth(),
-                 m_view->height() - std::ceil(v.note.pitch() * note_height)};
+                 m_view->height() - std::ceil((v.note.pitch() - min) * note_height)};
 
   if (newPos != v.pos())
     v.setPos(newPos);

@@ -35,6 +35,13 @@ void View::setDefaultWidth(double w)
     cld->update();
 }
 
+void View::setRange(int min, int max)
+{
+  m_min = min;
+  m_max = max;
+  update();
+}
+
 void View::paint_impl(QPainter* p) const
 {
   static const MidiStyle style;
@@ -43,56 +50,75 @@ void View::paint_impl(QPainter* p) const
   //    1 3   6 8 10
   //   0 2 4 5 7 9  11
   auto rect = boundingRect();
-  auto note_height = rect.height() / 127.;
+  auto note_height = rect.height() / (m_max - m_min);
+
+  p->setPen(style.darkerBrush.color());
+  p->setBrush(style.darkerBrush);
+  p->setPen(style.darkPen);
 
   if(note_height > 3)
   {
     p->setBrush(style.lightBrush);
-    for (int i = 0; i < 128; i++)
+    for (int i = 1; i < (m_max - m_min); i++)
     {
       switch (i % 12)
       {
-        case 0:
-        case 2:
-        case 4:
-        case 5:
-        case 7:
-        case 9:
-        case 11:
+        case 0: case 2: case 4: case 5: case 7: case 9: case 11:
         {
           p->drawRect(QRectF{0., rect.height() - note_height * i - 1, rect.width(), note_height});
           break;
         }
-
-        default:
-          break;
       }
     }
 
     p->setBrush(style.darkBrush);
-    for (int i = 0; i < 128; i++)
+    for (int i = 0; i < (m_max - m_min) + 1; i++)
     {
       switch (i % 12)
       {
-        case 1:
-        case 3:
-        case 6:
-        case 8:
-        case 10:
+        case 1: case 3: case 6: case 8: case 10:
         {
           p->drawRect(QRectF{0., rect.height() - note_height * i - 1, rect.width(), note_height});
           break;
         }
-        default:
-          break;
       }
     }
 
+    p->setPen(style.darkerBrush.color());
+    static constexpr const char* texts[]{ "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+    for (int i = 1; i < (m_max - m_min); i++)
+    {
+      switch (i % 12)
+      {
+        case 0: case 2: case 4: case 5: case 7: case 9: case 11:
+        {
+          p->drawText(
+                QRectF{2., rect.height() - note_height * i - 1, rect.width(), note_height},
+                texts[i%12],
+              QTextOption{Qt::AlignVCenter});
+          break;
+        }
+      }
+    }
+
+    for (int i = 0; i < (m_max - m_min) + 1; i++)
+    {
+      switch (i % 12)
+      {
+        case 1: case 3: case 6: case 8: case 10:
+        {
+          p->drawText(
+                QRectF{2., rect.height() - note_height * i - 1, rect.width(), note_height},
+                texts[i%12],
+              QTextOption{Qt::AlignVCenter});
+          break;
+        }
+      }
+    }
   }
 
   if (!m_selectArea.isEmpty())
   {
-    //p->setCompositionMode(QPainter::CompositionMode_Xor);
     p->setBrush(style.transparentBrush);
     p->setPen(style.selectionPen);
     p->drawPath(m_selectArea);
@@ -146,17 +172,19 @@ void View::keyPressEvent(QKeyEvent* ev)
   ev->accept();
 }
 
-NoteData noteAtPos(QPointF point, const QRectF& rect, double defW)
+NoteData View::noteAtPos(QPointF point) const
 {
+  const auto rect = boundingRect();
+
   NoteData n;
-  n.m_start = std::max(0., point.x() / defW);
+  n.m_start = std::max(0., point.x() / m_defaultW);
   n.m_duration = 0.1;
   n.m_pitch = qBound(
-      0,
-      1 + int(127
+      m_min,
+      1 + int(m_max
           - (qMin(rect.bottom(), qMax(point.y(), rect.top())) / rect.height())
-                * 127),
-      127);
+                * (m_max - m_min)),
+      m_max);
   n.m_velocity = 127.;
   return n;
 }

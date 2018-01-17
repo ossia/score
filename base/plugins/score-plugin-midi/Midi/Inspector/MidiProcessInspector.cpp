@@ -26,61 +26,106 @@ InspectorWidget::InspectorWidget(
   auto vlay = new score::MarginLess<QFormLayout>{this};
   auto plug = doc.findPlugin<Explorer::DeviceDocumentPlugin>();
 
-  m_devices = new QComboBox;
-  vlay->addRow(tr("Midi out"), m_devices);
-  for (auto& device : plug->rootNode())
+  ///// DEVICES /////
   {
-    Device::DeviceSettings set = device.get<Device::DeviceSettings>();
-    if (set.protocol
-        == Engine::Network::MIDIProtocolFactory::static_concreteKey())
+    m_devices = new QComboBox;
+    vlay->addRow(tr("Midi out"), m_devices);
+    for (auto& device : plug->rootNode())
     {
-      m_devices->addItem(set.name);
+      Device::DeviceSettings set = device.get<Device::DeviceSettings>();
+      if (set.protocol
+          == Engine::Network::MIDIProtocolFactory::static_concreteKey())
+      {
+        m_devices->addItem(set.name);
+      }
     }
-  }
 
-  con(model, &ProcessModel::deviceChanged, this, [=](const QString& dev) {
-    if (dev != m_devices->currentText())
+    con(model, &ProcessModel::deviceChanged, this, [=](const QString& dev) {
+      if (dev != m_devices->currentText())
+      {
+        m_devices->setCurrentText(dev);
+      }
+    });
+
+    if (m_devices->findText(model.device()) != -1)
     {
-      m_devices->setCurrentText(dev);
+      m_devices->setCurrentText(model.device());
     }
-  });
-
-  if (m_devices->findText(model.device()) != -1)
-  {
-    m_devices->setCurrentText(model.device());
-  }
-  else
-  {
-    m_devices->addItem(model.device());
-    QFont f;
-    f.setItalic(true);
-    m_devices->setItemData(m_devices->count() - 1, f, Qt::FontRole);
-    m_devices->setCurrentIndex(m_devices->count() - 1);
-  }
-
-  connect(
-      m_devices, SignalUtils::QComboBox_currentIndexChanged_int(), this,
-      [&](int idx) {
-        CommandDispatcher<> d{doc.commandStack};
-        d.submitCommand(new SetOutput{model, m_devices->itemText(idx)});
-      });
-
-  m_chan = new QSpinBox;
-  m_chan->setMinimum(1);
-  m_chan->setMaximum(16);
-
-  vlay->addRow(tr("Channel"), m_chan);
-  m_chan->setValue(model.channel());
-  con(model, &ProcessModel::channelChanged, this, [=](int n) {
-    if (m_chan->value() != n)
-      m_chan->setValue(n);
-  });
-  connect(m_chan, SignalUtils::QSpinBox_valueChanged_int(), this, [&](int n) {
-    if (model.channel() != n)
+    else
     {
+      m_devices->addItem(model.device());
+      QFont f;
+      f.setItalic(true);
+      m_devices->setItemData(m_devices->count() - 1, f, Qt::FontRole);
+      m_devices->setCurrentIndex(m_devices->count() - 1);
+    }
+
+    connect(
+          m_devices, SignalUtils::QComboBox_currentIndexChanged_int(), this,
+          [&](int idx) {
       CommandDispatcher<> d{doc.commandStack};
-      d.submitCommand(new SetChannel{model, n});
-    }
-  });
+      d.submitCommand(new SetOutput{model, m_devices->itemText(idx)});
+    });
+  }
+
+  ///// CHAN /////
+  {
+    m_chan = new QSpinBox;
+    m_chan->setMinimum(1);
+    m_chan->setMaximum(16);
+
+    vlay->addRow(tr("Channel"), m_chan);
+    m_chan->setValue(model.channel());
+    con(model, &ProcessModel::channelChanged, this, [=](int n) {
+      if (m_chan->value() != n)
+        m_chan->setValue(n);
+    });
+    connect(m_chan, SignalUtils::QSpinBox_valueChanged_int(), this, [&](int n) {
+      if (model.channel() != n)
+      {
+        CommandDispatcher<> d{doc.commandStack};
+        d.submitCommand(new SetChannel{model, n});
+      }
+    });
+  }
+
+  ///// RANGE /////
+  {
+    auto [min, max] = model.range();
+    m_min = new QSpinBox;
+    m_max = new QSpinBox;
+    m_min->setRange(0, 127);
+    m_max->setRange(0, 127);
+
+    m_min->setValue(min);
+    m_max->setValue(max);
+
+    vlay->addRow(tr("Min"), m_min);
+    vlay->addRow(tr("Max"), m_max);
+
+    con(model, &ProcessModel::rangeChanged,
+        this, [=] (int min, int max) {
+      m_min->setValue(min);
+      m_max->setValue(max);
+    });
+
+    connect(m_min, SignalUtils::QSpinBox_valueChanged_int(),
+            this, [=,&model,&doc] (int n) {
+      if (model.range().first != n)
+      {
+        CommandDispatcher<> d{doc.commandStack};
+        d.submitCommand(new SetRange{model, n, m_max->value()});
+      }
+    });
+    connect(m_max, SignalUtils::QSpinBox_valueChanged_int(),
+            this, [=,&model,&doc] (int n) {
+      if (model.range().second != n)
+      {
+        CommandDispatcher<> d{doc.commandStack};
+        d.submitCommand(new SetRange{model, m_min->value(), n});
+      }
+    });
+
+  }
 }
 }

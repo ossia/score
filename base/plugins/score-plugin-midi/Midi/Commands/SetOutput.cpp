@@ -56,4 +56,35 @@ void SetChannel::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_model >> m_old >> m_new;
 }
+
+
+
+SetRange::SetRange(const ProcessModel& model, int min, int max)
+    : m_model{model}
+    , m_oldmin{model.range().first}
+    , m_newmin{min}
+    , m_oldmax{model.range().second}
+    , m_newmax{max}
+{
+}
+
+void SetRange::undo(const score::DocumentContext& ctx) const
+{
+  m_model.find(ctx).setRange(m_oldmin, m_oldmax);
+}
+
+void SetRange::redo(const score::DocumentContext& ctx) const
+{
+  m_model.find(ctx).setRange(m_newmin, m_newmax);
+}
+
+void SetRange::serializeImpl(DataStreamInput& s) const
+{
+  s << m_model << m_oldmin << m_newmin << m_oldmax << m_newmax;
+}
+
+void SetRange::deserializeImpl(DataStreamOutput& s)
+{
+  s >> m_model >> m_oldmin >> m_newmin >> m_oldmax >> m_newmax;
+}
 }

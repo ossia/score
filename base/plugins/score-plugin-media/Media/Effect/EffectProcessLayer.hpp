@@ -53,11 +53,31 @@ class View final : public Process::LayerView
     {
       auto& doc = ctx.context;
       auto root = new score::RectItem{};
-      root->setRect({0, 0, 170, 20});
+      root->setRect({0, 0, 170, 40});
       static const auto undock_off = QPixmap::fromImage(QImage(":/icons/undock_off.png").scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
       static const auto undock_on  = QPixmap::fromImage(QImage(":/icons/undock_on.png") .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
       static const auto close_off  = QPixmap::fromImage(QImage(":/icons/close_off.png") .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
       static const auto close_on   = QPixmap::fromImage(QImage(":/icons/close_on.png")  .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+
+      qreal x = 10;
+      for(Process::Inlet* port : effect.inlets())
+      {
+        if(port->hidden)
+          continue;
+        auto item = Dataflow::setupInlet(*port, ctx.context, root, this);
+        item->setPos(x, 21.);
+        x += 10.;
+      }
+
+      x = 10;
+      for(Process::Outlet* port : effect.outlets())
+      {
+        if(port->hidden)
+          continue;
+        auto item = Dataflow::setupOutlet(*port, ctx.context, root, this);
+        item->setPos(x, 32.);
+        x += 10.;
+      }
 
       auto ui_btn = new score::QGraphicsPixmapToggle{undock_on, undock_off, root};
       connect(ui_btn, &score::QGraphicsPixmapToggle::toggled,
@@ -101,6 +121,7 @@ class View final : public Process::LayerView
 
       auto label = new Scenario::SimpleTextItem{root};
       label->setText(effect.prettyName());
+      label->setFont(ScenarioStyle::instance().Bold10Pt);
       label->setPos({35, 4});
 
       connect(root, &score::RectItem::clicked,
