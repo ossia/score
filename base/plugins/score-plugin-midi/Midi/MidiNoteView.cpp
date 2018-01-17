@@ -26,7 +26,7 @@ void NoteView::paint(
 
   painter->setBrush(this->isSelected() ? s.noteSelectedBaseBrush : s.noteBaseBrush);
   painter->setPen(s.noteBasePen);
-  painter->drawRect(boundingRect().adjusted(0., -1., 0., -1.));
+  painter->drawRect(boundingRect().adjusted(0., 0., 0., -1.));
 
   if(m_height > 6)
   {

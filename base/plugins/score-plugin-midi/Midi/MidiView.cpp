@@ -41,16 +41,36 @@ void View::setRange(int min, int max)
   m_max = max;
   update();
 }
+static const MidiStyle style;
 
 void View::paint_impl(QPainter* p) const
 {
-  static const MidiStyle style;
   p->setRenderHint(QPainter::Antialiasing, false);
   p->setPen(style.darkPen);
   //    1 3   6 8 10
   //   0 2 4 5 7 9  11
-  auto rect = boundingRect();
-  auto note_height = rect.height() / (m_max - m_min);
+  const auto rect = boundingRect();
+  const auto note_height = rect.height() / (m_max - m_min);
+
+  const auto for_white_notes = [&] (auto fun) {
+    for (int i = m_min + 1; i <= m_max; i++)
+      switch (i % 12)
+      {
+        case 0: case 2: case 4: case 5: case 7: case 9: case 11:
+          fun(i);
+          break;
+      }
+  };
+  const auto for_black_notes = [&] (auto fun) {
+    for (int i = m_min + 1; i <= m_max; i++)
+      switch (i % 12)
+      {
+        case 1: case 3: case 6: case 8: case 10:
+          fun(i);
+          break;
+      }
+  };
+
 
   p->setPen(style.darkerBrush.color());
   p->setBrush(style.darkerBrush);
@@ -58,62 +78,29 @@ void View::paint_impl(QPainter* p) const
 
   if(note_height > 3)
   {
+    const auto draw_bg = [&] (int i) {
+      p->drawRect(QRectF{0., rect.height() + note_height * (m_min - i) - 1, rect.width(), note_height});
+    };
+
     p->setBrush(style.lightBrush);
-    for (int i = 1; i < (m_max - m_min); i++)
-    {
-      switch (i % 12)
-      {
-        case 0: case 2: case 4: case 5: case 7: case 9: case 11:
-        {
-          p->drawRect(QRectF{0., rect.height() - note_height * i - 1, rect.width(), note_height});
-          break;
-        }
-      }
-    }
+    for_white_notes(draw_bg);
 
     p->setBrush(style.darkBrush);
-    for (int i = 0; i < (m_max - m_min) + 1; i++)
-    {
-      switch (i % 12)
-      {
-        case 1: case 3: case 6: case 8: case 10:
-        {
-          p->drawRect(QRectF{0., rect.height() - note_height * i - 1, rect.width(), note_height});
-          break;
-        }
-      }
-    }
+    for_black_notes(draw_bg);
 
-    p->setPen(style.darkerBrush.color());
-    static constexpr const char* texts[]{ "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
-    for (int i = 1; i < (m_max - m_min); i++)
+    if(note_height > 10)
     {
-      switch (i % 12)
-      {
-        case 0: case 2: case 4: case 5: case 7: case 9: case 11:
-        {
-          p->drawText(
-                QRectF{2., rect.height() - note_height * i - 1, rect.width(), note_height},
-                texts[i%12],
-              QTextOption{Qt::AlignVCenter});
-          break;
-        }
-      }
-    }
+      static constexpr const char* texts[]{ "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+      const auto draw_text = [&] (int i) {
+        p->drawText(
+              QRectF{2., rect.height() + note_height * (m_min - i ) - 1, rect.width(), note_height},
+              texts[i%12],
+            QTextOption{Qt::AlignVCenter});
+      };
 
-    for (int i = 0; i < (m_max - m_min) + 1; i++)
-    {
-      switch (i % 12)
-      {
-        case 1: case 3: case 6: case 8: case 10:
-        {
-          p->drawText(
-                QRectF{2., rect.height() - note_height * i - 1, rect.width(), note_height},
-                texts[i%12],
-              QTextOption{Qt::AlignVCenter});
-          break;
-        }
-      }
+      p->setPen(style.darkerBrush.color());
+      for_white_notes(draw_text);
+      for_black_notes(draw_text);
     }
   }
 
@@ -185,6 +172,7 @@ NoteData View::noteAtPos(QPointF point) const
           - (qMin(rect.bottom(), qMax(point.y(), rect.top())) / rect.height())
                 * (m_max - m_min)),
       m_max);
+  qDebug() << n.m_pitch;
   n.m_velocity = 127.;
   return n;
 }

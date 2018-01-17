@@ -27,7 +27,11 @@ struct MidiStyle
 
   const QBrush noteBaseBrush{QColor::fromRgb(200, 120, 20)};
   const QBrush noteSelectedBaseBrush{QColor::fromRgb(200, 120, 20).darker()};
-  const QPen noteBasePen{QColor::fromRgb(200, 120, 20).darker()};
+  const QPen noteBasePen = [] {
+    QPen p{QColor::fromRgb(200, 120, 20).darker()};
+    //p.setWidthF(0.8);
+    return p;
+  }();
   QPen paintedNote = [] {
       QPen pen{QColor{0, 0, 0}, 2, Qt::DashLine, Qt::SquareCap,
             Qt::BevelJoin};
