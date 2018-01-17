@@ -5,6 +5,7 @@
 #include <Midi/MidiPresenter.hpp>
 #include <Midi/MidiProcess.hpp>
 #include <Midi/MidiView.hpp>
+#include <Midi/MidiDrop.hpp>
 
 #include <Process/Focus/FocusDispatcher.hpp>
 
@@ -71,11 +72,12 @@ Presenter::Presenter(
   connect(m_view, &View::pressed, this, [&]() {
     m_context.context.focusDispatcher.focus(this);
   });
+  connect(m_view, &View::dropReceived,
+          this, &Presenter::on_drop);
 
   connect(m_view, &View::deleteRequested, this, [&] {
     CommandDispatcher<>{context().context.commandStack}.submitCommand(
         new RemoveNotes{m_layer, selectedNotes()});
-
   });
 
   connect(
@@ -219,6 +221,18 @@ void Presenter::on_noteRemoving(const Note& n)
     delete *it;
     m_notes.erase(it);
   }
+}
+
+void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
+{
+  auto res = Midi::MidiTrack::parse(md);
+  if(res.tracks.empty())
+    return;
+
+  auto& track = res.tracks[0];
+
+  CommandDispatcher<> disp{m_context.context.commandStack};
+  disp.submitCommand<Midi::ReplaceNotes>(m_layer, track.notes, track.min, track.max);
 }
 
 std::vector<Id<Note>> Presenter::selectedNotes() const

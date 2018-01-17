@@ -22,6 +22,7 @@ private:
 
 class SCORE_LIB_PROCESS_EXPORT EffectLayerPresenter final : public Process::LayerPresenter
 {
+    Q_OBJECT
 public:
   EffectLayerPresenter(
       const Process::ProcessModel& model,
@@ -44,6 +45,8 @@ public:
       QPointF scenepos,
       const Process::LayerContextMenuManager&) final override;
 
+  private slots:
+  void closeUI();
 private:
   const Process::ProcessModel& m_layer;
   EffectLayerView* m_view{};

@@ -12,10 +12,10 @@ class SCORE_PLUGIN_MIDI_EXPORT ProcessModel final
     : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
-  PROCESS_METADATA_IMPL(Midi::ProcessModel)
   Q_OBJECT
 
 public:
+    PROCESS_METADATA_IMPL(Midi::ProcessModel)
   explicit ProcessModel(
       const TimeVal& duration,
       const Id<Process::ProcessModel>& id,

@@ -94,17 +94,11 @@ VSTWindow::VSTWindow(AEffect& eff, ERect rect): effect{eff}
   container->update();
   effect.dispatcher(&effect, effEditTop, 0, 0, 0, 0);
 
-  reinterpret_cast<Media::VST::VSTEffectModel*>(effect.resvd1)->ui = reinterpret_cast<intptr_t>(container);
   [superview release];
   [pool release];
 }
 
 VSTWindow::~VSTWindow()
 {
-  effect.dispatcher(&effect, effEditClose, 0, 0, nullptr, 0);
-  if(effect.resvd1)
-  {
-    reinterpret_cast<Media::VST::VSTEffectModel*>(effect.resvd1)->ui = 0;
-  }
 }
 }

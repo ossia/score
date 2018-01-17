@@ -128,23 +128,41 @@ class View final : public Process::LayerView
         {
           auto& facts = ctx.context.app.interfaces<Process::LayerFactoryList>();
           if(auto fact = facts.findDefaultFactory(effect))
-          {
+          {/*
+            if(QWidget* win = fact->makeExternalUI(m_layer, context().context, nullptr))
+            {
+              const_cast<QWidget*&>(m_layer.externalUI) = win;
+              win->show();
+              connect(win, SIGNAL(uiClosing()), this, SLOT(closeUI()));
+
+              connect(m_showUI, &QAction::toggled,
+                      win, [=] (bool b) {
+                if(win)
+                  win->close();
+                delete win;
+                const_cast<QWidget*&>(m_layer.externalUI) = nullptr;
+              });
+            }*/
+
             if(auto win = fact->makeExternalUI(effect, ctx.context, nullptr))
             {
+              const_cast<QWidget*&>(effect.externalUI) = win;
               win->show();
-              auto c0 = connect(win->windowHandle(), &QWindow::visibilityChanged, ui_btn, [=] (auto vis) {
+              auto c0 = connect(win->windowHandle(), &QWindow::visibilityChanged, ui_btn, [=, &effect] (auto vis) {
                 if(vis == QWindow::Hidden)
                 {
                   ui_btn->toggle();
+                  const_cast<QWidget*&>(effect.externalUI) = nullptr;
                   win->deleteLater();
                 }
               });
 
               connect(ui_btn, &score::QGraphicsPixmapToggle::toggled,
-                      win, [=] (bool b) {
+                      win, [=, &effect] (bool b) {
                 QObject::disconnect(c0);
                 win->close();
                 delete win;
+                const_cast<QWidget*&>(effect.externalUI) = nullptr;
               });
             }
           }

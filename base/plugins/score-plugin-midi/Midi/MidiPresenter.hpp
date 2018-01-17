@@ -4,6 +4,7 @@
 #include <Process/LayerPresenter.hpp>
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <nano_observer.hpp>
+class QMimeData;
 namespace Midi
 {
 class NoteView;
@@ -36,6 +37,7 @@ private:
   void updateNote(NoteView&);
   void on_noteAdded(const Note&);
   void on_noteRemoving(const Note&);
+  void on_drop(const QPointF& pos, const QMimeData&);
 
   std::vector<Id<Note>> selectedNotes() const;
 

@@ -95,7 +95,6 @@ class VSTEffectModel :
     QString prettyName() const override;
 
     std::shared_ptr<AEffectWrapper> fx{};
-    intptr_t ui{};
 
     std::unordered_map<int, VSTControlInlet*> controls;
 

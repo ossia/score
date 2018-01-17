@@ -31,6 +31,7 @@ private:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent*) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent*) override;
   void keyPressEvent(QKeyEvent*) override;
+  void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
   QPainterPath m_selectArea;
   double m_defaultW; // Covers the [ 0; 1 ] area
