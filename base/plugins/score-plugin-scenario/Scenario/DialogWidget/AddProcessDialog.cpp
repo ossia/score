@@ -19,7 +19,10 @@ AddProcessDialog::AddProcessDialog(const Process::ProcessFactoryList& plist, Pro
   lay->addWidget(m_categories);
   m_processes = new QListWidget;
   lay->addWidget(m_processes);
-  auto buttonBox = new QDialogButtonBox{QDialogButtonBox::Ok | QDialogButtonBox::Cancel};
+  auto buttonBox = new QDialogButtonBox{};
+  auto add = new QPushButton{"+"};
+  buttonBox->addButton(add, QDialogButtonBox::ActionRole);
+  buttonBox->addButton(QDialogButtonBox::StandardButton::Close);
   buttonBox->setOrientation(Qt::Vertical);
   lay->addWidget(buttonBox);
 
@@ -42,10 +45,13 @@ AddProcessDialog::AddProcessDialog(const Process::ProcessFactoryList& plist, Pro
   };
   connect(m_processes, &QListWidget::itemDoubleClicked,
           this, accept_item);
+  connect(add, &QPushButton::clicked, [=] {
+    accept_item(m_processes->currentItem());
+  });
 
   connect(buttonBox, &QDialogButtonBox::accepted, this, [=] {
     accept_item(m_processes->currentItem());
-    QDialog::accept();
+    QDialog::close();
   });
 
   connect(buttonBox, &QDialogButtonBox::rejected,

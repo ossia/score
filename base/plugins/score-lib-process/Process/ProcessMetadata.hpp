@@ -10,12 +10,13 @@ class ProcessModel;
 class ProcessModelFactory;
 class LayerFactory;
 class EffectFactory;
-enum class ProcessFlags: int8_t
+enum ProcessFlags: int8_t
 {
   SupportsTemporal = 0x1,
   SupportsEffectChain = 0x2,
   SupportsState = 0x4,
   RequiresCustomData = 0x8,
+  PutInNewSlot = 0x16,
 
   SupportsLasting = SupportsTemporal | SupportsEffectChain,
   ExternalEffect = SupportsLasting | RequiresCustomData,
@@ -39,7 +40,7 @@ class ProcessFlags_k;
       PrettyName)                                                                           \
   CATEGORY_METADATA(Export, Model, Category)                                                \
   TAGS_METADATA(Export, Model, Tags)                                                        \
-  PROCESS_FLAGS_METADATA(Export, Model, Flags)
+  PROCESS_FLAGS_METADATA(Export, Model, (Process::ProcessFlags)(Flags))
 
 #define PROCESS_METADATA_IMPL(Model) \
   MODEL_METADATA_IMPL(Model) \

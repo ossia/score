@@ -168,7 +168,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
     auto dialog = new AddProcessDialog{fact, Process::ProcessFlags::SupportsTemporal, qApp->activeWindow()};
 
     dialog->on_okPressed = [&](const auto& proc, const QString& data) {
-      using cmd = Scenario::Command::CreateProcessInNewSlot;
+      using cmd = Scenario::Command::AddProcessInNewSlot;
       QuietMacroCommandDispatcher<cmd> disp{ctx.commandStack};
 
       cmd::create(disp, interval, proc, data);
