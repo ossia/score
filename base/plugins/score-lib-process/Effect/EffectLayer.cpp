@@ -118,37 +118,41 @@ void EffectLayerPresenter::fillContextMenu(
 {
   menu.addAction(m_showUI);
   m_showUI->setCheckable(true);
+  if(m_layer.externalUI)
+    m_showUI->setChecked(true);
+
   connect(m_showUI, &QAction::triggered,
           this, [=] {
-    auto b = m_showUI->isChecked();
-    if(b)
-    {
-      auto& facts = context().context.processList;
-      if(auto fact = facts.findDefaultFactory(m_layer))
-      {
-        if(auto win = fact->makeExternalUI(m_layer, context().context, nullptr))
-        {
-          win->show();
-          auto c0 = connect(win->windowHandle(), &QWindow::visibilityChanged, m_showUI, [=] (auto vis) {
-            if(vis == QWindow::Hidden)
-            {
-              m_showUI->toggle();
-              win->deleteLater();
-            }
-          });
+    if(!m_showUI->isChecked())
+      return;
 
-          connect(m_showUI, &QAction::toggled,
-                  win, [=] (bool b) {
-            QObject::disconnect(c0);
-            win->close();
-            delete win;
-          });
-        }
+    if(m_layer.externalUI)
+      return;
+
+    auto& facts = context().context.processList;
+    if(auto fact = facts.findDefaultFactory(m_layer))
+    {
+      if(QWidget* win = fact->makeExternalUI(m_layer, context().context, nullptr))
+      {
+        const_cast<QWidget*&>(m_layer.externalUI) = win;
+        win->show();
+        connect(win, SIGNAL(uiClosing()), this, SLOT(closeUI()));
+
+        connect(m_showUI, &QAction::toggled,
+                win, [=] (bool b) {
+          win->close();
+          delete win;
+          const_cast<QWidget*&>(m_layer.externalUI) = nullptr;
+        });
       }
     }
-
   });
+}
 
+void EffectLayerPresenter::closeUI()
+{
+  m_showUI->setChecked(false);
+  const_cast<QWidget*&>(m_layer.externalUI) = nullptr;
 }
 
 }

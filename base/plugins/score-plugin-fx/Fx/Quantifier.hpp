@@ -115,6 +115,8 @@ struct Node
       }
     }
 
+    // TODO : also handle the case where we're quite close from the *previous* accessible
+    // value, eg we played a bit late
     for(auto it = self.to_start.begin(); it != self.to_start.end(); )
     {
       auto& note = *it;

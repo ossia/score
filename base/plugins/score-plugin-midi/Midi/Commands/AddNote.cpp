@@ -33,4 +33,54 @@ void AddNote::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_model >> m_id >> m_note;
 }
+
+
+ReplaceNotes::ReplaceNotes(const ProcessModel& model, const std::vector<NoteData>& n, int min, int max)
+    : m_model{model}
+    , m_oldmin{model.range().first}
+    , m_oldmax{model.range().second}
+    , m_newmin{min}
+    , m_newmax{max}
+{
+  for(Note& note : model.notes)
+  {
+    m_old.push_back({note.id(), note.noteData()});
+  }
+
+  int i = 0;
+  for(auto& note : n)
+    m_new.push_back({Id<Midi::Note>{i++}, note});
+}
+
+void ReplaceNotes::undo(const score::DocumentContext& ctx) const
+{
+  auto& model = m_model.find(ctx);
+  model.notes.clear();
+
+  for(auto& note : m_old)
+    model.notes.add(new Note{note.first, note.second, &model});
+
+  model.setRange(m_oldmin, m_oldmax);
+}
+
+void ReplaceNotes::redo(const score::DocumentContext& ctx) const
+{
+  auto& model = m_model.find(ctx);
+  model.notes.clear();
+
+  for(auto& note : m_new)
+    model.notes.add(new Note{note.first, note.second, &model});
+
+  model.setRange(m_newmin, m_newmax);
+}
+
+void ReplaceNotes::serializeImpl(DataStreamInput& s) const
+{
+  s << m_model << m_old << m_new << m_oldmin << m_oldmax << m_newmin << m_newmax;
+}
+
+void ReplaceNotes::deserializeImpl(DataStreamOutput& s)
+{
+  s >> m_model >> m_old >> m_new >> m_oldmin >> m_oldmax >> m_newmin >> m_newmax;
+}
 }

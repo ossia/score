@@ -89,28 +89,9 @@ class VSTGraphicsSlider
 
 class VSTWindow: public QDialog
 {
+    Q_OBJECT
   public:
-    static ERect getRect(AEffect& e)
-    {
-      ERect* vstRect{};
-
-      e.dispatcher(&e, effEditGetRect, 0, 0, &vstRect, 0.f);
-
-      int w{};
-      int h{};
-      if(vstRect)
-      {
-        w = vstRect->right - vstRect->left;
-        h = vstRect->bottom - vstRect->top;
-      }
-
-      if(w <= 1)
-        w = 640;
-      if(h <= 1)
-        h = 480;
-
-      return *vstRect;
-    }
+    static ERect getRect(AEffect& e);
 
     VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx, QWidget* parent):
       VSTWindow{*e.fx->fx, getRect(*e.fx->fx)}
@@ -122,10 +103,14 @@ class VSTWindow: public QDialog
     }
 
     ~VSTWindow();
+  signals:
+    void uiClosing();
   private:
     VSTWindow(AEffect& effect, ERect rect);
+    void closeEvent(QCloseEvent* event);
 
     AEffect& effect;
+
 };
 
 using LayerFactory = Process::EffectLayerFactory_T<VSTEffectModel, VSTEffectItem, VSTWindow>;

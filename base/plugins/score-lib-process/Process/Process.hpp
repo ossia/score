@@ -100,6 +100,7 @@ public:
   Process::Inlet* inlet(const Id<Process::Port>&) const;
   Process::Outlet* outlet(const Id<Process::Port>&) const;
 
+  QWidget* externalUI{};
 Q_SIGNALS:
   // True if the execution is running.
   void execution(bool);

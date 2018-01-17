@@ -309,5 +309,37 @@ void VSTEffectItem::setupInlet(const VSTEffectModel& fx, VSTControlInlet& inlet,
   rect->setRect(QRectF{0., 0, 170., h});
   controlItems.push_back({&inlet, rect});
 }
+
+
+ERect VSTWindow::getRect(AEffect& e)
+{
+  ERect* vstRect{};
+
+  e.dispatcher(&e, effEditGetRect, 0, 0, &vstRect, 0.f);
+
+  int w{};
+  int h{};
+  if(vstRect)
+  {
+    w = vstRect->right - vstRect->left;
+    h = vstRect->bottom - vstRect->top;
+  }
+
+  if(w <= 1)
+    w = 640;
+  if(h <= 1)
+    h = 480;
+
+  return *vstRect;
+}
+
+void VSTWindow::closeEvent(QCloseEvent* event)
+{
+  qDebug() << "Closing !";
+  effect.dispatcher(&effect, effEditClose, 0, 0, nullptr, 0);
+  emit uiClosing();
+  QDialog::closeEvent(event);
+}
+
 }
 

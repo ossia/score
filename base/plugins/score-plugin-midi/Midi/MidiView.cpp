@@ -159,6 +159,12 @@ void View::keyPressEvent(QKeyEvent* ev)
   ev->accept();
 }
 
+void View::dropEvent(QGraphicsSceneDragDropEvent* event)
+{
+  emit dropReceived(event->pos(), *event->mimeData());
+  event->accept();
+}
+
 NoteData View::noteAtPos(QPointF point) const
 {
   const auto rect = boundingRect();
