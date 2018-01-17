@@ -179,6 +179,8 @@ void ScenarioContextMenuManager::createSlotContextMenu(
     dialog->launchWindow();
     dialog->deleteLater();
   });
+
+  menu.addAction(addNewProcessInNewSlot);
 }
 
 void ScenarioContextMenuManager::createSlotContextMenu(

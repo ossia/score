@@ -8,7 +8,6 @@ namespace Media::Effect
 class DefaultEffectItem:
     public score::RectItem
 {
-    score::RectItem* rootItem{};
   public:
     DefaultEffectItem(
         const Process::ProcessModel& effect,
@@ -18,6 +17,7 @@ class DefaultEffectItem:
     void setupInlet(
         Process::ControlInlet& inlet,
         const score::DocumentContext& doc);
+
 };
 
 

@@ -14,7 +14,6 @@
 #include <score/document/DocumentContext.hpp>
 #include <ossia/network/value/value_traits.hpp>
 #include <Dataflow/UI/PortItem.hpp>
-#include <Dataflow/UI/PortItem.hpp>
 namespace Scenario
 {
 
@@ -223,4 +222,5 @@ bool AutomationDropHandler::drop(
     return false;
   }
 }
+
 }

@@ -36,10 +36,26 @@ class View final : public Process::LayerView
 
     struct EffectUi
     {
+        EffectUi(const Process::ProcessModel& fx, score::RectItem* rt)
+          : effect{fx}
+          , root_item{rt}
+        {
+
+        }
+        ~EffectUi()
+        {
+          for(auto& con : cons)
+            QObject::disconnect(con);
+        }
         const Process::ProcessModel& effect;
         score::RectItem* root_item{};
         QGraphicsItem* fx_item{};
         score::RectItem* title{};
+        std::vector<Dataflow::PortItem*> inlets;
+        std::vector<Dataflow::PortItem*> outlets;
+
+        std::vector<QMetaObject::Connection> cons;
+
     };
 
     explicit View(QGraphicsItem* parent)
@@ -47,9 +63,48 @@ class View final : public Process::LayerView
     {
     }
 
+    void resetInlets(Process::ProcessModel& effect,
+                     const Process::LayerContext& ctx,
+                     QGraphicsItem* root,
+                     EffectUi& ui)
+    {
+      qDeleteAll(ui.inlets); ui.inlets.clear();
+      qreal x = 10;
+      for(Process::Inlet* port : effect.inlets())
+      {
+        if(port->hidden)
+          continue;
+        auto item = Dataflow::setupInlet(*port, ctx.context, root, this);
+        item->setPos(x, 21.);
+        ui.inlets.push_back(item);
+
+        x += 10.;
+      }
+    }
+
+    void resetOutlets(Process::ProcessModel& effect,
+                      const Process::LayerContext& ctx,
+                      QGraphicsItem* root,
+                      EffectUi& ui)
+    {
+      qDeleteAll(ui.outlets); ui.outlets.clear();
+      qreal x = 10;
+      for(Process::Outlet* port : effect.outlets())
+      {
+        if(port->hidden)
+          continue;
+        auto item = Dataflow::setupOutlet(*port, ctx.context, root, this);
+        item->setPos(x, 32.);
+        ui.outlets.push_back(item);
+
+        x += 10.;
+      }
+    }
+
     score::RectItem* makeTitle(Process::ProcessModel& effect
                              , const Effect::ProcessModel& object
-                             , const Process::LayerContext& ctx)
+                             , const Process::LayerContext& ctx
+                             , EffectUi& ui)
     {
       auto& doc = ctx.context;
       auto root = new score::RectItem{};
@@ -59,25 +114,12 @@ class View final : public Process::LayerView
       static const auto close_off  = QPixmap::fromImage(QImage(":/icons/close_off.png") .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
       static const auto close_on   = QPixmap::fromImage(QImage(":/icons/close_on.png")  .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
 
-      qreal x = 10;
-      for(Process::Inlet* port : effect.inlets())
-      {
-        if(port->hidden)
-          continue;
-        auto item = Dataflow::setupInlet(*port, ctx.context, root, this);
-        item->setPos(x, 21.);
-        x += 10.;
-      }
-
-      x = 10;
-      for(Process::Outlet* port : effect.outlets())
-      {
-        if(port->hidden)
-          continue;
-        auto item = Dataflow::setupOutlet(*port, ctx.context, root, this);
-        item->setPos(x, 32.);
-        x += 10.;
-      }
+      resetInlets(effect, ctx, root, ui);
+      resetOutlets(effect, ctx, root, ui);
+      ui.cons.push_back(con(effect, &Process::ProcessModel::inletsChanged,
+          this, [&,root] { resetInlets(effect, ctx, root, ui); }));
+      ui.cons.push_back(con(effect, &Process::ProcessModel::outletsChanged,
+          this, [&,root] { resetOutlets(effect, ctx, root, ui); }));
 
       auto ui_btn = new score::QGraphicsPixmapToggle{undock_on, undock_off, root};
       connect(ui_btn, &score::QGraphicsPixmapToggle::toggled,
@@ -150,10 +192,11 @@ class View final : public Process::LayerView
       for(auto& effect : object.effects())
       {
         auto root_item = new score::RectItem(this);
-        EffectUi fx_ui{effect, root_item, {}, {}};
+        std::shared_ptr<EffectUi> fx_ui_ = std::make_shared<EffectUi>(effect, root_item);
+        auto& fx_ui = *fx_ui_;
 
         // Title
-        auto title = makeTitle(effect, object, ctx);
+        auto title = makeTitle(effect, object, ctx, fx_ui);
         fx_ui.title = title;
         fx_ui.title->setParentItem(root_item);
 
@@ -171,7 +214,7 @@ class View final : public Process::LayerView
         fx_ui.fx_item->setParentItem(root_item);
         fx_ui.fx_item->setPos({0, fx_ui.title->boundingRect().height()});
         fx_ui.root_item->setRect(fx_ui.root_item->childrenBoundingRect());
-        effects.push_back(fx_ui);
+        effects.push_back(fx_ui_);
 
         fx_ui.root_item->setRect({0., 0., 170., fx_ui.root_item->childrenBoundingRect().height() + 10.});
         fx_ui.root_item->setPos(pos_x, 0);
@@ -181,39 +224,8 @@ class View final : public Process::LayerView
           root_item->setHighlight(ok);
           title->setHighlight(ok);
         });
-
       }
     }
-
-
-    void disableInlet(
-        Process::ControlInlet& inlet,
-        EffectUi& fx_ui,
-        const score::DocumentContext& doc)
-    {
-      /*
-      for(auto it = fx_ui.widgets.begin(); it != fx_ui.widgets.end(); )
-      {
-        if(it->inlet == &inlet)
-        {
-          this->scene()->removeItem(it->rect);
-          auto h = it->rect->boundingRect().height();
-          delete it->rect;
-          for(; it != fx_ui.widgets.end(); ++it)
-          {
-            auto pos = it->rect->pos();
-            pos.ry() -= h;
-            it->rect->setPos(pos);
-          }
-          break;
-        }
-        else
-        {
-          ++it;
-        }
-      }*/
-    }
-
 
   private:
     void paint_impl(QPainter*) const override
@@ -249,7 +261,7 @@ class View final : public Process::LayerView
       ev->accept();
     }
 
-    std::vector<EffectUi> effects;
+    std::vector<std::shared_ptr<EffectUi>> effects;
 };
 
 class Presenter final : public Process::LayerPresenter
