@@ -5,6 +5,7 @@
 #include <Engine/score2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <ossia-qt/js_utilities.hpp>
+#include <QEventLoop>
 #include <vector>
 
 #include "Component.hpp"
@@ -54,6 +55,8 @@ Component::Component(
         node->inputs().push_back(ossia::make_inlet<ossia::value_port>());
         if(qobject_cast<Process::ControlInlet*>(port))
           control_indices.push_back(i);
+        else
+          node->inputs().back()->data.target<ossia::value_port>()->is_event = true;
         break;
       }
       case Process::PortType::Audio:
@@ -186,6 +189,7 @@ void js_node::run(ossia::token_request t, ossia::execution_state&)
 {
   if(t.date == ossia::Zero)
     return;
+
   // Copy audio
   for(int i = 0; i < m_audInlets.size(); i++)
   {
@@ -206,11 +210,19 @@ void js_node::run(ossia::token_request t, ossia::execution_state&)
   // Copy values
   for(int i = 0; i < m_valInlets.size(); i++)
   {
-    auto& dat = m_valInlets[i].second->data.target<ossia::value_port>()->get_data();
+    auto& vp = *m_valInlets[i].second->data.target<ossia::value_port>();
+    auto& dat = vp.get_data();
 
     if(dat.empty())
     {
-      // Use control
+      if(vp.is_event)
+      {
+        m_valInlets[i].first->setValue(QVariant());
+      }
+      else
+      {
+        // Use control or same method as before
+      }
     }
 
     for(auto& val : dat)
@@ -238,7 +250,10 @@ void js_node::run(ossia::token_request t, ossia::execution_state&)
   for(int i = 0; i < m_valOutlets.size(); i++)
   {
     auto& dat = *m_valOutlets[i].second->data.target<ossia::value_port>();
-    dat.add_raw_value(ossia::qt::qt_to_ossia{}(m_valOutlets[i].first->value()));
+    const auto& v = m_valOutlets[i].first->value();
+    if(!v.isNull() && v.isValid())
+      dat.add_raw_value(ossia::qt::qt_to_ossia{}(v));
+    m_valOutlets[i].first->clear();
   }
 
   for(int i = 0; i < m_midOutlets.size(); i++)

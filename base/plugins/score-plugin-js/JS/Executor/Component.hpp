@@ -8,6 +8,7 @@
 #include <QString>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
+#include <QEventLoop>
 #include <memory>
 #include <JS/Qml/QmlObjects.hpp>
 #include <ossia/dataflow/node_process.hpp>
