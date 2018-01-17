@@ -381,6 +381,7 @@ void VSTEffectModel::create()
     auto tempo = new Process::ControlInlet(Id<Process::Port>{inlet_i++}, this);
     m_inlets.push_back(tempo);
     tempo->type = Process::PortType::Message;
+    tempo->hidden = true;
     tempo->setCustomData("Tempo");
     tempo->setValue(120.);
     tempo->setDomain(ossia::make_domain(20., 200.));
@@ -390,6 +391,7 @@ void VSTEffectModel::create()
     auto sig = new Process::ControlInlet(Id<Process::Port>{inlet_i++}, this);
     m_inlets.push_back(sig);
     sig->type = Process::PortType::Message;
+    sig->hidden = true;
     sig->setCustomData("Time signature");
     sig->setValue("4/4");
   }

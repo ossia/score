@@ -20,6 +20,8 @@ private:
 
   QComboBox* m_devices{};
   QSpinBox* m_chan{};
+  QSpinBox* m_min{};
+  QSpinBox* m_max{};
 };
 class InspectorFactory final
     : public Process::

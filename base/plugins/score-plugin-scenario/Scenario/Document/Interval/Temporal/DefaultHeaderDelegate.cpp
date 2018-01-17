@@ -153,7 +153,7 @@ void DefaultHeaderDelegate::updatePorts()
   const auto& ctx = presenter.context().context;
 
   qreal x = 16;
-  for(auto& port : presenter.model().inlets())
+  for(Process::Inlet* port : presenter.model().inlets())
   {
     if(port->hidden)
       continue;
@@ -164,7 +164,7 @@ void DefaultHeaderDelegate::updatePorts()
   }
 
   x = 16.;
-  for(auto& port : presenter.model().outlets())
+  for(Process::Outlet* port : presenter.model().outlets())
   {
     if(port->hidden)
       continue;

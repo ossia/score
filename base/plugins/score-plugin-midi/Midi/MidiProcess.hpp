@@ -44,11 +44,37 @@ public:
   void setChannel(int n);
   int channel() const;
 
+  std::pair<int, int> range() const
+  {
+    return m_range;
+  }
+
+  void setRange(int min, int max)
+  {
+    min = std::max(0, min);
+    max = std::min(127, max);
+    if(min >= max)
+    {
+      min = std::max(0, max - 7);
+      max = std::min(127, min + 14);
+    }
+
+    std::pair<int,int> range{min, max};
+    if(range != m_range)
+    {
+      m_range = range;
+      rangeChanged(min, max);
+    }
+  }
+
   std::unique_ptr<Process::Outlet> outlet;
+
 Q_SIGNALS:
   void notesChanged();
   void deviceChanged(const QString&);
   void channelChanged(int);
+
+  void rangeChanged(int, int);
 
 private:
   void setDurationAndScale(const TimeVal& newDuration) override;
@@ -57,6 +83,7 @@ private:
 
   QString m_device;
   int m_channel{1};
+  std::pair<int, int> m_range{0, 127};
 };
 
 }

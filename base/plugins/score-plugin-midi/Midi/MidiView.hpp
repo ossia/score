@@ -16,6 +16,10 @@ public:
   double defaultWidth() const;
   void setDefaultWidth(double w);
 
+  void setRange(int, int);
+  std::pair<int, int> range() const { return {m_min, m_max}; }
+  NoteData noteAtPos(QPointF point) const;
+
 Q_SIGNALS:
   void deleteRequested();
 
@@ -30,7 +34,6 @@ private:
 
   QPainterPath m_selectArea;
   double m_defaultW; // Covers the [ 0; 1 ] area
+  int m_min{0}, m_max{127};
 };
-
-NoteData noteAtPos(QPointF point, const QRectF& rect, double defW);
 }
