@@ -310,6 +310,10 @@ public:
   ValueOutlet(QObject* parent = nullptr);
   virtual ~ValueOutlet() override;
   QVariant value() const;
+  void clear()
+  {
+    m_value = QVariant{};
+  }
   Process::Outlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
     auto p = new Process::Outlet(id, parent);
