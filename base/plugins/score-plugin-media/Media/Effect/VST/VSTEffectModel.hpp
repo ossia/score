@@ -1,16 +1,15 @@
 #pragma once
 #include <Process/Process.hpp>
 #include <Effect/EffectFactory.hpp>
-#include <QJsonDocument>
 #include <Media/Effect/VST/VSTLoader.hpp>
 #include <Media/Effect/EffectExecutor.hpp>
 #include <Media/Effect/DefaultEffectItem.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Media/Effect/VST/VSTLoader.hpp>
 #include <Process/GenericProcessFactory.hpp>
-#include <QDialog>
+
 #include <QFileDialog>
-#include <QWindow>
+#include <QJsonDocument>
 namespace Media::VST
 {
 class VSTEffectModel;
