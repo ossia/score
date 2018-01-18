@@ -213,11 +213,12 @@ void js_node::run(ossia::token_request t, ossia::execution_state&)
     auto& vp = *m_valInlets[i].second->data.target<ossia::value_port>();
     auto& dat = vp.get_data();
 
+    m_valInlets[i].first->clear();
     if(dat.empty())
     {
       if(vp.is_event)
       {
-        m_valInlets[i].first->setValue(QVariant());
+        m_valInlets[i].first->setValue(QVariant{});
       }
       else
       {
@@ -227,7 +228,9 @@ void js_node::run(ossia::token_request t, ossia::execution_state&)
 
     for(auto& val : dat)
     {
-      m_valInlets[i].first->setValue(val.value.apply(ossia::qt::ossia_to_qvariant{}));
+      auto qvar = val.value.apply(ossia::qt::ossia_to_qvariant{});
+      m_valInlets[i].first->setValue(qvar);
+      m_valInlets[i].first->addValue(QVariant::fromValue(ValueMessage{(double)val.timestamp, std::move(qvar)}));
     }
   }
 
@@ -253,6 +256,10 @@ void js_node::run(ossia::token_request t, ossia::execution_state&)
     const auto& v = m_valOutlets[i].first->value();
     if(!v.isNull() && v.isValid())
       dat.add_raw_value(ossia::qt::qt_to_ossia{}(v));
+    for(auto& v : m_valOutlets[i].first->values)
+    {
+      dat.add_value(ossia::qt::qt_to_ossia{}(std::move(v.value)), v.timestamp);
+    }
     m_valOutlets[i].first->clear();
   }
 

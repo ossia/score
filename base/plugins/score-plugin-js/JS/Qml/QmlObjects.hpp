@@ -26,17 +26,29 @@ class Outlet: public QObject
     virtual Process::Outlet* make(Id<Process::Port>&& id, QObject*) = 0;
 
 };
-// TODO instead use arrays
+struct ValueMessage
+{
+    Q_GADGET
+    Q_PROPERTY(qreal timestamp MEMBER timestamp)
+    Q_PROPERTY(QVariant value MEMBER value)
+
+  public:
+    qreal timestamp;
+    QVariant value;
+};
 class ValueInlet: public Inlet
 {
   Q_OBJECT
-  Q_PROPERTY(QVariant value READ value WRITE setValue NOTIFY valueChanged)
+  Q_PROPERTY(QVariant value READ value)
+  Q_PROPERTY(QVariantList values READ values)
   QVariant m_value;
+  QVariantList m_values;
 
 public:
   ValueInlet(QObject* parent = nullptr);
   virtual ~ValueInlet() override;
   QVariant value() const;
+  QVariantList values() const { return m_values; }
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
@@ -44,10 +56,16 @@ public:
     p->type = Process::PortType::Message;
     return p;
   }
-public Q_SLOTS:
+
+  void clear()
+  {
+    m_values.clear();
+  }
   void setValue(QVariant value);
-Q_SIGNALS:
-  void valueChanged(QVariant value);
+  void addValue(QVariant&& val)
+  {
+    m_values.append(std::move(val));
+  }
 };
 
 
@@ -303,16 +321,19 @@ class LineEdit: public ValueInlet
 class ValueOutlet: public Outlet
 {
   Q_OBJECT
-  Q_PROPERTY(QVariant value READ value WRITE setValue NOTIFY valueChanged)
+  Q_PROPERTY(QVariant value READ value WRITE setValue)
   QVariant m_value;
 
 public:
+  std::vector<ValueMessage> values;
+
   ValueOutlet(QObject* parent = nullptr);
   virtual ~ValueOutlet() override;
   QVariant value() const;
   void clear()
   {
     m_value = QVariant{};
+    values.clear();
   }
   Process::Outlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
@@ -322,8 +343,7 @@ public:
   }
 public Q_SLOTS:
   void setValue(QVariant value);
-Q_SIGNALS:
-  void valueChanged(QVariant value);
+  void addValue(qreal timestamp, QVariant t);
 };
 
 class AudioInlet: public Inlet

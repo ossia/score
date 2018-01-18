@@ -178,7 +178,7 @@ NoteData View::noteAtPos(QPointF point) const
           - (qMin(rect.bottom(), qMax(point.y(), rect.top())) / rect.height())
                 * (m_max - m_min)),
       m_max);
-  qDebug() << n.m_pitch;
+
   n.m_velocity = 127.;
   return n;
 }
