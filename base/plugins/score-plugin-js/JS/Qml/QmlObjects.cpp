@@ -18,7 +18,6 @@ void ValueInlet::setValue(QVariant value)
     return;
 
   m_value = value;
-  emit valueChanged(m_value);
 }
 
 ValueOutlet::ValueOutlet(QObject* parent): Outlet{parent} {}
@@ -36,7 +35,11 @@ void ValueOutlet::setValue(QVariant value)
     return;
 
   m_value = value;
-  emit valueChanged(m_value);
+}
+
+void ValueOutlet::addValue(qreal timestamp, QVariant t)
+{
+  values.push_back({timestamp, std::move(t)});
 }
 
 AudioInlet::AudioInlet(QObject* parent): Inlet{parent} {}
