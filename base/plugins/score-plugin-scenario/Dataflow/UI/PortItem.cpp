@@ -38,6 +38,9 @@
 #include <ossia/editor/state/destination_qualifiers.hpp>
 namespace Dataflow
 {
+
+void onCreateCable(const score::DocumentContext& ctx, Dataflow::PortItem* p1, Dataflow::PortItem* p2);
+
 PortItem::port_map PortItem::g_ports;
 PortItem* PortItem::clickedPort;
 PortItem::PortItem(Process::Port& p, QGraphicsItem* parent)
@@ -154,6 +157,7 @@ void PortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   if(this->contains(event->pos()))
   {
+    event->accept();
     switch(event->button())
     {
       case Qt::LeftButton:
@@ -163,7 +167,6 @@ void PortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
         break;
     }
   }
-  event->accept();
 }
 
 void PortItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
@@ -215,21 +218,16 @@ void PortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
   update();
   auto& mime = *event->mimeData();
 
+  auto& ctx = score::IDocument::documentContext(m_port);
   if(mime.formats().contains(score::mime::port()))
   {
     if(clickedPort && this != clickedPort)
     {
-      auto p1 = qobject_cast<Process::Outlet*>(&m_port);
-      auto p2 = qobject_cast<Process::Outlet*>(&clickedPort->m_port);
-      if((p1 && !p2) || (!p1 && p2))
-      {
-        emit createCable(clickedPort, this);
-      }
+      onCreateCable(ctx, clickedPort, this);
     }
   }
   clickedPort = nullptr;
 
-  auto& ctx = score::IDocument::documentContext(m_port);
   CommandDispatcher<> disp{ctx.commandStack};
   if (mime.formats().contains(score::mime::addressettings()))
   {
@@ -454,24 +452,31 @@ void onCreateCable(const score::DocumentContext& ctx, Dataflow::PortItem* p1, Da
   if(!intersection_empty(port1.cables(), port2.cables()))
      return;
 
-  auto o1 = qobject_cast<Process::Outlet*>(&port1);
-  auto o2 = qobject_cast<Process::Outlet*>(&port2);
-  if(bool(o1) == bool(o2)) // both outlets or both inlets
-    return;
-
   if(port1.type != port2.type)
     return;
 
-  if(o1)
+  auto o1 = qobject_cast<Process::Outlet*>(&port1);
+  auto i2 = qobject_cast<Process::Inlet*>(&port2);
+  if(o1 && i2)
   {
     cd.source = port1;
     cd.sink = port2;
   }
   else
   {
-    cd.source = port2;
-    cd.sink = port1;
+    auto o2 = qobject_cast<Process::Outlet*>(&port2);
+    auto i1 = qobject_cast<Process::Inlet*>(&port1);
+    if(o2 && i1)
+    {
+      cd.source = port2;
+      cd.sink = port1;
+    }
+    else
+    {
+      return;
+    }
   }
+
   disp.submitCommand<Dataflow::CreateCable>(
         plug,
         getStrongId(plug.cables),
@@ -492,11 +497,6 @@ void setupSimpleInlet(
     panel->exec();
     panel->deleteLater();
   });
-  QObject::connect(
-        item, &Dataflow::PortItem::createCable,
-        context, [&] (Dataflow::PortItem* p1, Dataflow::PortItem* p2) {
-    onCreateCable(ctx, p1, p2);
-  });
 
   if(port.type == Process::PortType::Message)
   {
@@ -506,7 +506,7 @@ void setupSimpleInlet(
       auto act = menu->addAction(QObject::tr("Create automation"));
       QObject::connect(act, &QAction::triggered, item, [item,&ctx] {
         item->on_createAutomation(ctx);
-      });
+      }, Qt::QueuedConnection);
       item->setupMenu(*menu, ctx);
       menu->exec(p);
       menu->deleteLater();

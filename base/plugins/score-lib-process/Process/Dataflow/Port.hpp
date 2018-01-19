@@ -82,6 +82,7 @@ class SCORE_LIB_PROCESS_EXPORT Port
 
 class SCORE_LIB_PROCESS_EXPORT Inlet : public Port
 {
+    Q_OBJECT
   public:
     MODEL_METADATA_IMPL(Inlet)
     Inlet() = delete;

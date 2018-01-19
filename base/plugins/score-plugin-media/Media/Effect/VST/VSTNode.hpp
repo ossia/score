@@ -125,7 +125,9 @@ class VSTNode final : public ossia::graph_node
         if(vec.empty())
           continue;
         if(auto t = last(vec).template target<float>())
+        {
           fx->fx->setParameter(fx->fx, p.first, *t);
+        }
       }
     }
 
