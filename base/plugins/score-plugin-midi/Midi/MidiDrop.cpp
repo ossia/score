@@ -89,6 +89,7 @@ MidiTrack::MidiSong MidiTrack::parse(const QMimeData& mime)
   }
   else if(mime.formats().contains("text/uri-list"))
   {
+    qDebug() << mime.urls();
     if(mime.urls().empty())
       return {};
 
@@ -105,6 +106,7 @@ MidiTrack::MidiSong MidiTrack::parse(const QMimeData& mime)
       raw.push_back(v);
     }
     reader.parse(raw);
+
     if(reader.tracks.empty())
       return {};
 
@@ -133,16 +135,33 @@ MidiTrack::MidiSong MidiTrack::parse(const QMimeData& mime)
         {
           case mm::MessageType::NOTE_ON:
           {
-            NoteData note;
-            note.setStart(tick / total);
-            note.setPitch(ev->m->data[1]);
-            note.setVelocity(ev->m->data[2]);
-            if(note.pitch() < nv.min)
-              nv.min = note.pitch();
-            else if(note.pitch() > nv.max)
-              nv.max = note.pitch();
+            const auto pitch = ev->m->data[1];
+            const auto vel = ev->m->data[2];
 
-            notes.insert({note.pitch(), note});
+            if(vel > 0)
+            {
+              NoteData note;
+              note.setStart(tick / total);
+              note.setPitch(pitch);
+              note.setVelocity(vel);
+              if(note.pitch() < nv.min)
+                nv.min = note.pitch();
+              else if(note.pitch() > nv.max)
+                nv.max = note.pitch();
+
+              notes.insert({note.pitch(), note});
+            }
+            else
+            {
+              auto it = notes.find(pitch);
+              if(it != notes.end())
+              {
+                NoteData note = it->second;
+                note.setDuration(tick / total - note.start());
+                nv.notes.push_back(note);
+              }
+              notes.erase(pitch);
+            }
             break;
           }
           case mm::MessageType::NOTE_OFF:

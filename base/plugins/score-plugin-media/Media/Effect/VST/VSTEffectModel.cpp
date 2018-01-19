@@ -398,7 +398,7 @@ void VSTEffectModel::create()
 
   if(fx->fx->numParams < 10)
   {
-    for(int i = 0; i < 10; i++)
+    for(int i = 0; i < fx->fx->numParams; i++)
     {
       on_addControl(i, fx->getParameter(i));
     }

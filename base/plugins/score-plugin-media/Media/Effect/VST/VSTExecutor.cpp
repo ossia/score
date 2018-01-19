@@ -20,10 +20,13 @@ VSTEffectComponent::VSTEffectComponent(
   AEffect& fx = *proc.fx->fx;
   auto setup_controls = [&] (auto& node) {
     node->ctrl_ptrs.reserve(proc.controls.size());
-    for(auto& ctrl : proc.controls)
+    const auto& inlets = proc.inlets();
+    for(std::size_t i = 3; i < inlets.size(); i++)
     {
+      auto ctrl = safe_cast<Media::VST::VSTControlInlet*>(inlets[i]);
       auto inlet = ossia::make_inlet<ossia::value_port>();
-      node->ctrl_ptrs.push_back({ctrl.second->fxNum, inlet->data.target<ossia::value_port>()});
+
+      node->ctrl_ptrs.push_back({ctrl->fxNum, inlet->data.target<ossia::value_port>()});
       node->inputs().push_back(std::move(inlet));
     }
 
