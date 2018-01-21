@@ -21,8 +21,8 @@ TimeSyncModel::TimeSyncModel(
     const TimeVal& date,
     QObject* parent)
     : Entity{id, Metadata<ObjectKey_k, TimeSyncModel>::get(), parent}
-    , m_extent{extent}
     , m_date{date}
+    , m_extent{extent}
 {
   metadata().setInstanceName(*this);
   metadata().setColor(ScenarioStyle::instance().TimenodeDefault);
@@ -46,9 +46,10 @@ void TimeSyncModel::addEvent(const Id<EventModel>& eventId)
 
 bool TimeSyncModel::removeEvent(const Id<EventModel>& eventId)
 {
-  if (m_events.indexOf(eventId) >= 0)
+  auto it = ossia::find(m_events, eventId);
+  if (it != m_events.end())
   {
-    m_events.remove(m_events.indexOf(eventId));
+    m_events.erase(it);
     emit eventRemoved(eventId);
     return true;
   }
@@ -75,12 +76,12 @@ void TimeSyncModel::setDate(const TimeVal& date)
   emit dateChanged(m_date);
 }
 
-const QVector<Id<EventModel>>& TimeSyncModel::events() const
+const TimeSyncModel::EventIdVec& TimeSyncModel::events() const
 {
   return m_events;
 }
 
-void TimeSyncModel::setEvents(const QVector<Id<EventModel>>& events)
+void TimeSyncModel::setEvents(const TimeSyncModel::EventIdVec& events)
 {
   m_events = events;
 }

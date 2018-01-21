@@ -29,6 +29,8 @@ class SCORE_LIB_BASE_EXPORT QGraphicsPixmapToggle final
     , public QGraphicsPixmapItem
 {
     Q_OBJECT
+    Q_INTERFACES(QGraphicsItem)
+
     const QPixmap m_pressed, m_released;
     bool m_toggled{};
   public:
@@ -50,6 +52,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsSlider final
     , public QGraphicsItem
 {
     Q_OBJECT
+    Q_INTERFACES(QGraphicsItem)
 
     double m_value{};
     QRectF m_rect;
@@ -87,6 +90,8 @@ class SCORE_LIB_BASE_EXPORT QGraphicsLogSlider final
     , public QGraphicsItem
 {
     Q_OBJECT
+    Q_INTERFACES(QGraphicsItem)
+
     double m_value{};
     QRectF m_rect;
   public:
@@ -124,6 +129,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsIntSlider final
     , public QGraphicsItem
 {
     Q_OBJECT
+    Q_INTERFACES(QGraphicsItem)
     QRectF m_rect;
     int m_value{}, m_min{}, m_max{};
     bool m_grab;
@@ -158,6 +164,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsComboSlider final
     , public QGraphicsItem
 {
     Q_OBJECT
+    Q_INTERFACES(QGraphicsItem)
     QRectF m_rect;
   public:
     QStringList array;

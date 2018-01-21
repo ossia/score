@@ -46,6 +46,7 @@ public:
   ProcessStateWrapper(ProcessStateDataInterface* proc) : m_proc{proc}
   {
   }
+  ~ProcessStateWrapper() override;
 
   ProcessStateDataInterface& process() const
   {

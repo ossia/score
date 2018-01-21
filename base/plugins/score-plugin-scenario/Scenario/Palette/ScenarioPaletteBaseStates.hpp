@@ -63,10 +63,13 @@ public:
   SlotState(QState* parent) : QState{parent}
   {
   }
+  ~SlotState() override;
 
   SlotPath currentSlot;
 
   QPointF m_originalPoint;
   double m_originalHeight{};
 };
+
+
 }

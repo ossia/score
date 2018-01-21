@@ -12,6 +12,11 @@ public:
     this->setFlag(QGraphicsItem::ItemHasNoContents, true);
   }
 
+  ~BaseGraphicsObject() override
+  {
+
+  }
+
   QRectF boundingRect() const override
   {
     return {};

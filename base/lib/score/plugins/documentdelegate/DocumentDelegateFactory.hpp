@@ -26,7 +26,7 @@ class SCORE_LIB_BASE_EXPORT DocumentDelegateFactory
 {
   SCORE_INTERFACE("127ea824-f623-4f68-8deb-7c8c930a262b")
 public:
-  virtual ~DocumentDelegateFactory();
+  virtual ~DocumentDelegateFactory() override;
 
   virtual DocumentDelegateView*
   makeView(const score::GUIApplicationContext& ctx, QObject* parent)
@@ -57,6 +57,7 @@ public:
   DocumentDelegateList()
   {
   }
+  ~DocumentDelegateList();
 
   using object_type = DocumentDelegateModel;
 };

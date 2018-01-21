@@ -152,6 +152,7 @@ function(score_set_clang_compile_options theTarget)
         -Werror=return-stack-address
         -Wmissing-field-initializers
         -Wno-gnu-statement-expression
+        -Wweak-vtables
         -ftemplate-backtrace-limit=0
         "$<$<CONFIG:Debug>:-O0>"
         )

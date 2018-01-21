@@ -3,7 +3,7 @@
 #pragma warning(push, 0) // MSVC
 #pragma GCC system_header
 #pragma clang system_header
-//////
+//
 #include <QAbstractItemModel>
 #include <QAction>
 #include <QApplication>
@@ -60,6 +60,8 @@
 #include <utility>
 #include <vector>
 
+#include <ossia/detail/small_vector.hpp>
+#include <ossia/detail/string_map.hpp>
 #include <score/tools/std/Optional.hpp>
 
 

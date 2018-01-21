@@ -291,7 +291,8 @@ public:
         // Get the 1st event on the timesync.
         auto& scenar = stateMachine.model();
         auto& tn = scenar.timeSync(*this->clickedTimeSync);
-        const auto& ev_id = tn.events().first();
+        SCORE_ASSERT(!tn.events().empty());
+        const auto& ev_id = tn.events().front();
         auto date = this->currentPoint.date;
 
         if (!stateMachine.editionSettings().sequence())

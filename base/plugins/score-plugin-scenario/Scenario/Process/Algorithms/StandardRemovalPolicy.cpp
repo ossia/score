@@ -34,7 +34,7 @@ static void removeEventFromTimeSync(
     if (timeSync->removeEvent(eventId))
     {
       scenario.events.remove(eventId);
-      if (timeSync->events().isEmpty())
+      if (timeSync->events().empty())
       {
         // TODO transform this into a class with algorithms on timesyncs +
         // scenario, etc.
@@ -84,7 +84,7 @@ void StandardRemovalPolicy::removeEventStatesAndIntervals(
 {
   auto& ev = scenario.event(eventId);
 
-  auto states = ev.states().toStdVector();
+  auto states = ev.states();
   for (const auto& state : states)
   {
     auto it = scenario.states.find(state);

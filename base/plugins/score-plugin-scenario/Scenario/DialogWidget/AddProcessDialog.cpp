@@ -1,4 +1,8 @@
 #include "AddProcessDialog.hpp"
+#include <QPushButton>
+#include <QListWidget>
+#include <QHBoxLayout>
+#include <QDialogButtonBox>
 namespace Scenario
 {
 class ProcessItem : public QListWidgetItem
@@ -58,6 +62,11 @@ AddProcessDialog::AddProcessDialog(const Process::ProcessFactoryList& plist, Pro
           this, &QDialog::reject);
   setup();
   hide();
+}
+
+AddProcessDialog::~AddProcessDialog()
+{
+
 }
 
 void AddProcessDialog::launchWindow()

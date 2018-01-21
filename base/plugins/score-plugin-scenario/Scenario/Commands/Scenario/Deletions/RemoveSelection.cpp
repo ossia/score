@@ -92,7 +92,7 @@ RemoveSelection::RemoveSelection(
         }
 
         if (split){
-          for (int i = 1; i < ts->events().size(); i++)
+          for (std::size_t i = 1; i < ts->events().size(); i++)
           {
             QVector<Id<EventModel>> move_me{ts->events()[i]};
             m_cmds_split_timesync.emplace_back(*ts, move_me);

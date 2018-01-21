@@ -15,6 +15,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT PortItem
     , public QGraphicsItem
 {
     Q_OBJECT
+    Q_INTERFACES(QGraphicsItem)
     Process::Port& m_port;
   public:
     PortItem(Process::Port& p, QGraphicsItem* parent);

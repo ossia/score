@@ -17,8 +17,7 @@ class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
   PROCESS_METADATA_IMPL(Spline::ProcessModel)
 
   Q_OBJECT
-  Q_PROPERTY(State::AddressAccessor address READ address WRITE setAddress
-                 NOTIFY addressChanged)
+  Q_PROPERTY(State::AddressAccessor address READ address WRITE setAddress NOTIFY addressChanged)
   Q_PROPERTY(bool tween READ tween WRITE setTween NOTIFY tweenChanged)
   Q_PROPERTY(State::Unit unit READ unit WRITE setUnit NOTIFY unitChanged)
 

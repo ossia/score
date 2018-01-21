@@ -151,10 +151,10 @@ public:
   score::EntityMap<CommentBlockModel> comments;
 
 Q_SIGNALS:
-  void stateMoved(const StateModel&);
-  void eventMoved(const EventModel&);
-  void intervalMoved(const IntervalModel&);
-  void commentMoved(const CommentBlockModel&);
+  void stateMoved(const Scenario::StateModel&);
+  void eventMoved(const Scenario::EventModel&);
+  void intervalMoved(const Scenario::IntervalModel&);
+  void commentMoved(const Scenario::CommentBlockModel&);
 
   void locked();
   void unlocked();

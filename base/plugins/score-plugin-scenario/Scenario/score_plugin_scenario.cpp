@@ -93,6 +93,7 @@ score_plugin_scenario::score_plugin_scenario()
   qRegisterMetaType<Path<Scenario::IntervalModel>>();
   qRegisterMetaType<Id<Process::ProcessModel>>();
 
+  qRegisterMetaType<LockMode>();
   qRegisterMetaType<Scenario::OffsetBehavior>();
   qRegisterMetaTypeStreamOperators<Scenario::OffsetBehavior>();
 

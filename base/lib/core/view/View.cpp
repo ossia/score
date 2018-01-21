@@ -221,6 +221,7 @@ void View::on_fileNameChanged(DocumentView* d, const QString& newName)
 
 void View::changeEvent(QEvent* ev)
 {
+  if(m_presenter)
   if (ev->type() == QEvent::ActivationChange)
   {
     for(GUIApplicationPlugin* ctrl : m_presenter->applicationContext().guiApplicationPlugins())

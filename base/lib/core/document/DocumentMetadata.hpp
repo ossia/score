@@ -12,13 +12,10 @@ namespace score
 struct SCORE_LIB_BASE_EXPORT DocumentMetadata : public QObject
 {
   Q_OBJECT
-  Q_PROPERTY(
-      QString fileName READ fileName WRITE setFileName NOTIFY fileNameChanged)
+  Q_PROPERTY(QString fileName READ fileName WRITE setFileName NOTIFY fileNameChanged)
   Q_PROPERTY(QString author READ author WRITE setAuthor NOTIFY authorChanged)
-  Q_PROPERTY(QDateTime creation READ creation WRITE setCreation NOTIFY
-                 creationChanged)
-  Q_PROPERTY(QDateTime lastEdition READ lastEdition WRITE setLastEdition NOTIFY
-                 lastEditionChanged)
+  Q_PROPERTY(QDateTime creation READ creation WRITE setCreation NOTIFY creationChanged)
+  Q_PROPERTY(QDateTime lastEdition READ lastEdition WRITE setLastEdition NOTIFY lastEditionChanged)
 
   QString m_fileName{QObject::tr("Untitled")};
   QString m_author;

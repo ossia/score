@@ -15,6 +15,7 @@ public:
       : IntervalBrace{parentCstr, parent}
   {
   }
+  ~LeftBraceView() override;
 
   static constexpr int static_type()
   {
@@ -35,6 +36,7 @@ public:
   {
     this->setRotation(180);
   }
+  ~RightBraceView() override;
 
   static constexpr int static_type()
   {
@@ -45,4 +47,6 @@ public:
     return static_type();
   }
 };
+
+
 }

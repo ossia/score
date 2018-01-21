@@ -24,15 +24,10 @@ namespace Settings
 class SCORE_PLUGIN_CURVE_EXPORT Model : public score::SettingsDelegateModel
 {
   Q_OBJECT
-  Q_PROPERTY(
-      int SimplificationRatio READ getSimplificationRatio WRITE
-          setSimplificationRatio NOTIFY SimplificationRatioChanged FINAL)
-  Q_PROPERTY(bool Simplify READ getSimplify WRITE setSimplify NOTIFY
-                 SimplifyChanged FINAL)
-  Q_PROPERTY(Mode CurveMode READ getCurveMode WRITE setCurveMode NOTIFY
-                 CurveModeChanged FINAL)
-  Q_PROPERTY(bool PlayWhileRecording READ getPlayWhileRecording WRITE
-                 setPlayWhileRecording NOTIFY PlayWhileRecordingChanged FINAL)
+  Q_PROPERTY(int SimplificationRatio READ getSimplificationRatio WRITE setSimplificationRatio NOTIFY SimplificationRatioChanged FINAL)
+  Q_PROPERTY(bool Simplify READ getSimplify WRITE setSimplify NOTIFY SimplifyChanged FINAL)
+  Q_PROPERTY(Mode CurveMode READ getCurveMode WRITE setCurveMode NOTIFY CurveModeChanged FINAL)
+  Q_PROPERTY(bool PlayWhileRecording READ getPlayWhileRecording WRITE setPlayWhileRecording NOTIFY PlayWhileRecordingChanged FINAL)
 
 public:
   Model(QSettings& set, const score::ApplicationContext& ctx);

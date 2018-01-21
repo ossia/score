@@ -95,16 +95,17 @@ void Component::recompute()
 
   if (curve)
   {
-    in_exec(
-          [proc=std::dynamic_pointer_cast<ossia::mapping_node>(OSSIAProcess().node)
-          ,curve
-          ,ossia_source_addr
-          ,ossia_target_addr]
+    std::function<void()> v =
+        [proc=std::dynamic_pointer_cast<ossia::mapping_node>(OSSIAProcess().node)
+        ,curve
+        ,ossia_source_addr
+        ,ossia_target_addr]
     {
       proc->set_driver(std::move(ossia_source_addr));
       proc->set_driven(std::move(ossia_target_addr));
       proc->set_behavior(std::move(curve));
-    });
+    };
+    in_exec([fun = std::move(v)] { fun(); });
     return;
   }
 }

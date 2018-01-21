@@ -23,8 +23,7 @@ class SCORE_PLUGIN_ENGINE_EXPORT Model : public score::SettingsDelegateModel
 {
   Q_OBJECT
   Q_PROPERTY(int rate READ getRate WRITE setRate NOTIFY RateChanged)
-  Q_PROPERTY(ClockManagerFactory::ConcreteKey clock READ getClock WRITE
-                 setClock NOTIFY ClockChanged)
+  Q_PROPERTY(ClockManagerFactory::ConcreteKey clock READ getClock WRITE setClock NOTIFY ClockChanged)
   Q_PROPERTY(bool executionListening READ getExecutionListening WRITE setExecutionListening NOTIFY ExecutionListeningChanged)
 
   Q_PROPERTY(QString scheduling READ getScheduling WRITE setScheduling NOTIFY SchedulingChanged)

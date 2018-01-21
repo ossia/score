@@ -16,14 +16,104 @@
 #include <QJsonDocument>
 #include <QNetworkReply>
 #include <QStandardPaths>
-#if !defined(_MSC_VER)
-#include <quazip/JlCompress.h>
-#endif
+#include <QDir>
 #include <QMessageBox>
-class QObject;
+
+#include <miniz.c>
 
 namespace PluginSettings
 {
+
+namespace zip_helper
+{
+
+QString get_path(const QString& str)
+{
+    auto idx = str.lastIndexOf('/');
+    if(idx != -1)
+    {
+      return str.mid(0, idx);
+    }
+    return "";
+}
+
+QString slash_path(const QString& str)
+{
+    return {};
+}
+
+QString relative_path(const QString& base, const QString& filename)
+{
+    return filename;
+}
+
+QString combine_path(const QString& path, const QString& filename)
+{
+    return path + "/" + filename;
+}
+
+bool make_folder(const QString& str)
+{
+    QDir d;
+    return d.mkpath(str);
+}
+
+std::vector<QString> unzip(const QString& zipFile,
+                               const QString& path)
+{
+    std::vector<QString> files;
+    mz_zip_archive zip_archive;
+    memset(&zip_archive, 0, sizeof(zip_archive));
+
+    auto status = mz_zip_reader_init_file(&zip_archive, zipFile.toUtf8(), 0);
+    if (!status) return files;
+    int fileCount = (int)mz_zip_reader_get_num_files(&zip_archive);
+    if (fileCount == 0)
+    {
+        mz_zip_reader_end(&zip_archive);
+        return files;
+    }
+    mz_zip_archive_file_stat file_stat;
+    if (!mz_zip_reader_file_stat(&zip_archive, 0, &file_stat))
+    {
+        mz_zip_reader_end(&zip_archive);
+        return files;
+    }
+
+    // Get root folder
+    QString lastDir = "";
+    QString base = slash_path(get_path(file_stat.m_filename)); // path delim on end
+
+    // Get and print information about each file in the archive.
+    for (int i = 0; i < fileCount; i++)
+    {
+        if (!mz_zip_reader_file_stat(&zip_archive, i, &file_stat)) continue;
+        if (mz_zip_reader_is_file_a_directory(&zip_archive, i)) continue; // skip directories for now
+        QString fileName = relative_path(base, file_stat.m_filename); // make path relative
+        QString destFile = combine_path(path, fileName); // make full dest path
+        auto newDir = get_path(fileName); // get the file's path
+        if (newDir != lastDir)
+        {
+            if (!make_folder(combine_path(path, newDir))) // creates the directory
+            {
+                return files;
+            }
+        }
+
+        if (mz_zip_reader_extract_to_file(&zip_archive, i, destFile.toUtf8(), 0))
+        {
+            files.emplace_back(destFile);
+        }
+    }
+
+    // Close the archive, freeing any resources it was using
+    mz_zip_reader_end(&zip_archive);
+    return files;
+}
+
+}
+
+
 PluginSettingsView::PluginSettingsView()
 {
   m_progress->setMinimum(0);
@@ -138,7 +228,7 @@ PluginSettingsView::PluginSettingsView()
             auto dirname = "addons";
 #endif
 
-          auto res = JlCompress::extractDir(fi.absoluteFilePath(), dirname);
+          auto res = zip_helper::unzip(fi.absoluteFilePath(), dirname);
 
           dl->deleteLater();
           m_progress->setHidden(true);

@@ -3,6 +3,7 @@ TEMPLATE = app
 CONFIG += c++1z object_parallel_to_source warn_off
 
 QT+=core widgets gui network xml svg websockets
+DEFINES += __EMSCRIPTEN__
 # cp *.h *.hpp from cmake
 INCLUDEPATH += $$PWD/build-debug $$PWD/base/lib \
 $$PWD/API/3rdparty/asio/asio/include \
@@ -25,8 +26,7 @@ $$PWD/3rdparty/QRecentFilesMenu \
 $$PWD/3rdparty/QProgressIndicator \
 $$PWD/3rdparty/Qt-Color-Widgets \
 $$PWD/3rdparty/Qt-Color-Widgets/QtColorWidgets \
-$$PWD/3rdparty/quazip \
-$$PWD/3rdparty/quazip/quazip \
+$$PWD/3rdparty/miniz \
 $$PWD/API/OSSIA \
 $$PWD/API/3rdparty/spdlog/include \
 $$PWD/API/3rdparty/oscpack \
@@ -60,13 +60,15 @@ include($$PWD/score-srcs.pri)
 include($$PWD/3rdparty/QProgressIndicator/qprogressindicator.pri)
 include($$PWD/3rdparty/QRecentFilesMenu/QRecentFilesMenu.pri)
 include($$PWD/3rdparty/Qt-Color-Widgets/color_widgets.pri)
-include($$PWD/3rdparty/quazip/quazip/quazip.pri)
 
 SOURCES += \
     $$PWD/base/app/main.cpp \
     $$PWD/base/app/Application.cpp
+
 HEADERS += \
-    $$PWD/base/app/Application.hpp
+    $$PWD/base/app/Application.hpp \
+    $$PWD/3rdparty/miniz/miniz.h
+
 INCLUDEPATH += /opt/boost_1_66_0
 ios{
     LIBS += -lz

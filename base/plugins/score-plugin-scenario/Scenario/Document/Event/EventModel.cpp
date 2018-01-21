@@ -103,19 +103,18 @@ ExecutionStatus EventModel::status() const
 
 void EventModel::addState(const Id<StateModel>& ds)
 {
-  auto idx = m_states.indexOf(ds, 0);
-  if (idx != -1)
+  if (ossia::contains(m_states, ds))
     return;
-  m_states.append(ds);
+  m_states.push_back(ds);
   emit statesChanged();
 }
 
 void EventModel::removeState(const Id<StateModel>& ds)
 {
-  auto idx = m_states.indexOf(ds, 0);
-  if (idx != -1)
+  auto it = ossia::find(m_states, ds);
+  if (it != m_states.end())
   {
-    m_states.remove(idx);
+    m_states.erase(it);
     emit statesChanged();
   }
 }
@@ -126,7 +125,7 @@ void EventModel::clearStates()
   emit statesChanged();
 }
 
-const QVector<Id<StateModel>>& EventModel::states() const
+const EventModel::StateIdVec& EventModel::states() const
 {
   return m_states;
 }
