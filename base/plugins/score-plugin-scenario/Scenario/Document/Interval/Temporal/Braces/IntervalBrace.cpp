@@ -10,8 +10,17 @@
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/Interval/IntervalView.hpp>
 
-using namespace Scenario;
+namespace Scenario
+{
+LeftBraceView::~LeftBraceView()
+{
 
+}
+
+RightBraceView::~RightBraceView()
+{
+
+}
 IntervalBrace::IntervalBrace(
     const IntervalView& parentCstr, QGraphicsItem* parent)
     : QGraphicsItem(), m_parent{parentCstr}
@@ -80,4 +89,5 @@ void IntervalBrace::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 void IntervalBrace::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   m_parent.presenter().released(event->scenePos());
+}
 }

@@ -21,8 +21,7 @@ class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
   PROCESS_METADATA_IMPL(Metronome::ProcessModel)
 
   Q_OBJECT
-  Q_PROPERTY(State::Address address READ address WRITE setAddress
-                 NOTIFY addressChanged)
+  Q_PROPERTY(State::Address address READ address WRITE setAddress NOTIFY addressChanged)
   // Min and max to scale the curve with at execution
   Q_PROPERTY(double min READ min WRITE setMin NOTIFY minChanged)
   Q_PROPERTY(double max READ max WRITE setMax NOTIFY maxChanged)

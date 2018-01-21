@@ -8,14 +8,14 @@ namespace Scenario
 {
 
 // See ossia::time_event
-enum class OffsetBehavior
+enum class OffsetBehavior: int8_t
 {
   True,
   False,
   Expression
 };
 
-enum class ExecutionStatus
+enum class ExecutionStatus: int8_t
 {
   Waiting,
   Pending,

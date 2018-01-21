@@ -143,15 +143,15 @@ Q_SIGNALS:
 
   void smallViewVisibleChanged(bool fv);
 
-  void rackChanged(Slot::RackView fv);
-  void slotAdded(SlotId);
-  void slotRemoved(SlotId);
-  void slotResized(SlotId);
+  void rackChanged(Scenario::Slot::RackView fv);
+  void slotAdded(Scenario::SlotId);
+  void slotRemoved(Scenario::SlotId);
+  void slotResized(Scenario::SlotId);
   void slotsSwapped(int slot1, int slot2, Slot::RackView fv);
   void heightFinishedChanging();
 
-  void layerAdded(SlotId, Id<Process::ProcessModel>);
-  void layerRemoved(SlotId, Id<Process::ProcessModel>);
+  void layerAdded(Scenario::SlotId, Id<Process::ProcessModel>);
+  void layerRemoved(Scenario::SlotId, Id<Process::ProcessModel>);
   void frontLayerChanged(int, OptionalId<Process::ProcessModel>);
 
 private:

@@ -59,8 +59,10 @@ public:
   void addEvent(const Id<EventModel>&);
   bool removeEvent(const Id<EventModel>&);
   void clearEvents();
-  const QVector<Id<EventModel>>& events() const;
-  void setEvents(const QVector<Id<EventModel>>& events);
+
+  using EventIdVec = ossia::small_vector<Id<EventModel>, 2>;
+  const EventIdVec& events() const;
+  void setEvents(const TimeSyncModel::EventIdVec& events);
 
   State::Expression expression() const { return m_expression; }
   void setExpression(const State::Expression& expression);
@@ -68,16 +70,12 @@ public:
   bool active() const;
   void setActive(bool active);
 
-  // Note : this is for API -> UI communication.
-  // To trigger by hand we have the triggered() signal.
-  ExecutionStatusProperty executionStatus; // TODO serialize me ?
-
 Q_SIGNALS:
-  void extentChanged(const VerticalExtent&);
+  void extentChanged(const Scenario::VerticalExtent&);
   void dateChanged(const TimeVal&);
 
-  void newEvent(const Id<EventModel>& eventId);
-  void eventRemoved(const Id<EventModel>& eventId);
+  void newEvent(const Id<Scenario::EventModel>& eventId);
+  void eventRemoved(const Id<Scenario::EventModel>& eventId);
 
   void triggerChanged(const State::Expression&);
   void activeChanged();
@@ -85,14 +83,13 @@ Q_SIGNALS:
   void triggeredByGui() const;
 
 private:
-  VerticalExtent m_extent;
   TimeVal m_date{std::chrono::seconds{0}};
-
   State::Expression m_expression;
-  bool m_active{false};
 
-  // TODO small_vector<1>...
-  QVector<Id<EventModel>> m_events;
+  EventIdVec m_events;
+  VerticalExtent m_extent;
+
+  bool m_active{false};
 };
 }
 

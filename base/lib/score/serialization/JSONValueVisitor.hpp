@@ -332,7 +332,7 @@ T fromJsonValue(const QJsonValueRef& json)
 }
 
 template <template <typename U> class T, typename V>
-void fromJsonValueArray(const QJsonArray&& json_arr, T<Id<V>>& arr)
+void fromJsonValueArray(const QJsonArray& json_arr, T<Id<V>>& arr)
 {
   arr.reserve(json_arr.size());
   for (const auto& elt : json_arr)
@@ -341,8 +341,27 @@ void fromJsonValueArray(const QJsonArray&& json_arr, T<Id<V>>& arr)
   }
 }
 
+template <typename V, std::size_t N>
+void fromJsonValueArray(const QJsonArray& json_arr, ossia::small_vector<Id<V>, N>& arr)
+{
+  arr.reserve(json_arr.size());
+  for (const auto& elt : json_arr)
+  {
+    arr.push_back(fromJsonValue<Id<V>>(elt));
+  }
+}
+template <typename V, std::size_t N>
+void fromJsonValueArray(const QJsonArray& json_arr, ossia::static_vector<Id<V>, N>& arr)
+{
+    arr.reserve(json_arr.size());
+    for (const auto& elt : json_arr)
+    {
+        arr.push_back(fromJsonValue<Id<V>>(elt));
+    }
+}
+
 template <typename V>
-void fromJsonValueArray(const QJsonArray&& json_arr, std::vector<Id<V>>& arr)
+void fromJsonValueArray(const QJsonArray& json_arr, std::vector<Id<V>>& arr)
 {
   arr.reserve(json_arr.size());
   for (const auto& elt : json_arr)
@@ -351,7 +370,7 @@ void fromJsonValueArray(const QJsonArray&& json_arr, std::vector<Id<V>>& arr)
   }
 }
 template <typename V>
-void fromJsonValueArray(const QJsonArray&& json_arr, std::vector<Path<V>>& arr)
+void fromJsonValueArray(const QJsonArray& json_arr, std::vector<Path<V>>& arr)
 {
   arr.reserve(json_arr.size());
   for (const auto& elt : json_arr)
@@ -385,6 +404,19 @@ QJsonArray toJsonValueArray(const Container& c)
   QJsonArray arr;
 
   for (auto elt : c)
+  {
+    arr.push_back(elt);
+  }
+
+  return arr;
+}
+
+template <typename T, std::size_t N>
+QJsonArray toJsonValueArray(const ossia::small_vector<T, N>& c)
+{
+  QJsonArray arr;
+
+  for (const auto& elt : c)
   {
     arr.push_back(elt);
   }
@@ -698,8 +730,7 @@ QJsonArray toJsonArray(const std::array<optional<float>, N>& array)
 }
 
 template<std::size_t N>
-QJsonArray toJsonArray(
-    const std::array<boost::container::flat_set<float>, N>& array)
+QJsonArray toJsonArray(const std::array<boost::container::flat_set<float>, N>& array)
 {
   QJsonArray arr;
   for (auto& v : array)
@@ -709,6 +740,15 @@ QJsonArray toJsonArray(
       sub.push_back(val);
     arr.push_back(std::move(sub));
   }
+  return arr;
+}
+
+template<typename T, std::size_t N>
+QJsonArray toJsonArray(const ossia::small_vector<Id<T>, N>& array)
+{
+  QJsonArray arr;
+  for (auto& v : array)
+    arr.push_back(toJsonValue(v));
   return arr;
 }
 

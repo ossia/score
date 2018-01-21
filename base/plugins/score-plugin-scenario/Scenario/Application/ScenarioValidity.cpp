@@ -38,7 +38,7 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
   {
     auto ev = scenar.findEvent(state.eventId());
     SCORE_ASSERT(ev);
-    SCORE_ASSERT(ev->states().contains(state.id()));
+    SCORE_ASSERT(ossia::contains(ev->states(), state.id()));
 
     if (state.previousInterval())
     {
@@ -64,7 +64,7 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
   {
     auto tn = scenar.findTimeSync(event.timeSync());
     SCORE_ASSERT(tn);
-    SCORE_ASSERT(tn->events().contains(event.id()));
+    SCORE_ASSERT(ossia::contains(tn->events(), event.id()));
 
     // SCORE_ASSERT(!event.states().empty());
     for (auto& state : event.states())

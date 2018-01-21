@@ -56,7 +56,7 @@ echo "$HOME/i-score/API/3rdparty/ModernMIDI/third_party/rtmidi/RtMidi.cpp" | awk
     #~ -enable-checker optin.performance.Padding \
     #~ -enable-checker security.insecureAPI.strcpy \
 
-    clang++ -O0 -fPIC -std=c++1z \
+    clang++ -O3 -fPIC -march=native -std=c++1z \
     -DASIO_STANDALONE=1 -DBOOST_MULTI_INDEX_ENABLE_INVARIANT_CHECKING \
     -DBOOST_MULTI_INDEX_ENABLE_SAFE_MODE -DQT_CORE_LIB \
     -DQT_DISABLE_DEPRECATED_BEFORE=0x050800 -DQT_GUI_LIB \

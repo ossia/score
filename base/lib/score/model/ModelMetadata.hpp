@@ -18,16 +18,10 @@ class SCORE_LIB_BASE_EXPORT ModelMetadata : public QObject
 
   Q_OBJECT
   Q_PROPERTY(QString Name READ getName WRITE setName NOTIFY NameChanged)
-
-  Q_PROPERTY(
-      QString Comment READ getComment WRITE setComment NOTIFY CommentChanged)
-
+  Q_PROPERTY(QString Comment READ getComment WRITE setComment NOTIFY CommentChanged)
   Q_PROPERTY(ColorRef Color READ getColor WRITE setColor NOTIFY ColorChanged)
-
   Q_PROPERTY(QString Label READ getLabel WRITE setLabel NOTIFY LabelChanged)
-
-  Q_PROPERTY(QVariantMap ExtendedMetadata READ getExtendedMetadata WRITE
-                 setExtendedMetadata NOTIFY ExtendedMetadataChanged)
+  Q_PROPERTY(QVariantMap ExtendedMetadata READ getExtendedMetadata WRITE setExtendedMetadata NOTIFY ExtendedMetadataChanged)
 
 public:
   ModelMetadata();
@@ -58,7 +52,7 @@ public:
 Q_SIGNALS:
   void NameChanged(const QString& arg);
   void CommentChanged(const QString& arg);
-  void ColorChanged(ColorRef arg);
+  void ColorChanged(score::ColorRef arg);
   void LabelChanged(const QString& arg);
   void ExtendedMetadataChanged(const QVariantMap& arg);
   void metadataChanged();

@@ -77,7 +77,9 @@ void MessageRecorder::stop()
     return;
   }
 
-  Id<Scenario::StateModel> startState = m_createdProcess->startEvent().states().first();
+  auto& states = m_createdProcess->startEvent().states();
+  SCORE_ASSERT(!states.empty());
+  Id<Scenario::StateModel> startState = states.front();
   auto setStateCmd = new Scenario::Command::AddMessagesToState(m_createdProcess->state(startState), {m_records[0].m});
   setStateCmd->redo(context.context);
   context.dispatcher.submitCommand(setStateCmd);

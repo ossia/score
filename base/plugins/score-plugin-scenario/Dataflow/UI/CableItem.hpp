@@ -14,6 +14,7 @@ class CableItem
     , public QGraphicsItem
 {
     Q_OBJECT
+    Q_INTERFACES(QGraphicsItem)
 
   public:
     static bool g_cables_enabled;

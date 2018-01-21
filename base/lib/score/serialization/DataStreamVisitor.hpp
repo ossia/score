@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <type_traits>
 #include <vector>
+#include <ossia/detail/small_vector.hpp>
 #include <boost/container/flat_set.hpp>
 #include <score/serialization/VisitorTags.hpp>
 #include <score/tools/std/Optional.hpp>
@@ -80,7 +81,28 @@ struct DataStreamInput
 {
   QDataStream& stream;
 };
-
+#if (INTPTR_MAX == INT64_MAX)
+inline QDataStream& operator<<(QDataStream& s, uint64_t val)
+{
+  s << (quint64)val;
+  return s;
+}
+inline QDataStream& operator>>(QDataStream& s, uint64_t& val)
+{
+  s >> (quint64&)val;
+  return s;
+}
+inline QDataStream& operator<<(QDataStream& s, int64_t val)
+{
+  s << (qint64)val;
+  return s;
+}
+inline QDataStream& operator>>(QDataStream& s, int64_t& val)
+{
+  s >> (qint64&)val;
+  return s;
+}
+#endif
 template <typename T>
 DataStreamInput& operator<<(DataStreamInput& s, const T& obj)
 {
@@ -506,6 +528,58 @@ struct TSerializer<DataStream, std::array<T, N>>
   static void writeTo(DataStream::Deserializer& s, std::array<T, N>& arr)
   {
     for (std::size_t i = 0U; i < N; i++)
+      s.stream() >> arr[i];
+
+    SCORE_DEBUG_CHECK_DELIMITER2(s);
+  }
+};
+
+template <typename T, std::size_t N>
+struct TSerializer<DataStream, ossia::small_vector<T, N>>
+{
+  static void
+  readFrom(DataStream::Serializer& s, const ossia::small_vector<T, N>& arr)
+  {
+    s.stream() << (int32_t)arr.size();
+    for (std::size_t i = 0U; i < arr.size(); i++)
+      s.stream() << arr[i];
+
+    SCORE_DEBUG_INSERT_DELIMITER2(s);
+  }
+
+  static void writeTo(DataStream::Deserializer& s, ossia::small_vector<T, N>& arr)
+  {
+    int32_t sz;
+
+    s.stream() >> sz;
+    arr.resize(sz);
+    for (std::size_t i = 0U; i < sz; i++)
+      s.stream() >> arr[i];
+
+    SCORE_DEBUG_CHECK_DELIMITER2(s);
+  }
+};
+
+template <typename T, std::size_t N>
+struct TSerializer<DataStream, ossia::static_vector<T, N>>
+{
+  static void
+  readFrom(DataStream::Serializer& s, const ossia::static_vector<T, N>& arr)
+  {
+    s.stream() << (int32_t)arr.size();
+    for (std::size_t i = 0U; i < arr.size(); i++)
+      s.stream() << arr[i];
+
+    SCORE_DEBUG_INSERT_DELIMITER2(s);
+  }
+
+  static void writeTo(DataStream::Deserializer& s, ossia::static_vector<T, N>& arr)
+  {
+    int32_t sz;
+
+    s.stream() >> sz;
+    arr.resize(sz);
+    for (std::size_t i = 0U; i < sz; i++)
       s.stream() >> arr[i];
 
     SCORE_DEBUG_CHECK_DELIMITER2(s);

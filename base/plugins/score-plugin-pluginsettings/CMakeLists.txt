@@ -29,7 +29,6 @@ set(SOURCE_FILES
 add_library(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} PUBLIC
                         Qt5::Core Qt5::Widgets
-                        score_lib_base
-                        quazip)
+                        score_lib_base)
 
 setup_score_plugin(${PROJECT_NAME})

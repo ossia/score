@@ -111,4 +111,10 @@ void StateModel::setStatus(ExecutionStatus status)
   m_status.set(status);
   emit statusChanged(status);
 }
+
+ProcessStateWrapper::~ProcessStateWrapper()
+{
+
+}
+
 }

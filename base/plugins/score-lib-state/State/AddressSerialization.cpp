@@ -14,34 +14,6 @@
 
 #include "Address.hpp"
 
-/// AccessorVector ///
-template <>
-SCORE_LIB_STATE_EXPORT void
-DataStreamReader::read(const State::AccessorVector& a)
-{
-  int32_t n = a.size();
-  m_stream << n;
-  for (int32_t i = 0; i < n; i++)
-    m_stream << (int32_t)a[i];
-
-  insertDelimiter();
-}
-
-template <>
-SCORE_LIB_STATE_EXPORT void
-DataStreamWriter::write(State::AccessorVector& a)
-{
-  int32_t size;
-  m_stream >> size;
-  for (int i = 0; i < size; i++)
-  {
-    int32_t t;
-    m_stream >> t;
-    a.push_back(t);
-  }
-
-  checkDelimiter();
-}
 
 /// Address ///
 template <>
@@ -121,7 +93,7 @@ template <>
 SCORE_LIB_STATE_EXPORT void
 DataStreamReader::read(const State::DestinationQualifiers& a)
 {
-  readFrom(a.get());
+  m_stream << a.get();
 }
 
 template <>
@@ -135,7 +107,7 @@ template <>
 SCORE_LIB_STATE_EXPORT void
 DataStreamWriter::write(State::DestinationQualifiers& a)
 {
-  writeTo(a.get());
+  m_stream >> a.get();
 }
 
 template <>

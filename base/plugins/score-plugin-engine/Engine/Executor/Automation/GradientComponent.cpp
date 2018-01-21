@@ -113,10 +113,12 @@ class gradient_node : public ossia::graph_node
 
       return res;
     }
-    bool mustTween{};
+  public:
     optional<ossia::argb> tween;
   private:
     grad_type m_data;
+  public:
+    bool mustTween{};
 };
 
 class gradient_process : public ossia::node_process

@@ -177,7 +177,8 @@ std::list<Id<StateModel>> states(const TimeSyncModel& tn, const Scenario_T& scen
   for (const Id<EventModel>& event_id : tn.events())
   {
     const EventModel& event = scenario.event(event_id);
-    auto st = event.states().toList().toStdList();
+    std::list<Id<StateModel>> st{event.states().begin(), event.states().end()};
+
     stateList.splice(stateList.end(), st);
   }
 

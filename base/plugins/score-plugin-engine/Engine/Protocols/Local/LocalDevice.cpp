@@ -10,8 +10,10 @@
 #include <ossia/editor/state/state_element.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/local/local.hpp>
-#include <ossia/network/minuit/minuit.hpp>
+#include <ossia-config.hpp>
+#if defined(OSSIA_PROTOCOL_OSCQUERY)
 #include <ossia/network/oscquery/oscquery_server.hpp>
+#endif
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <Engine/OSSIA2score.hpp>
@@ -56,6 +58,7 @@ void LocalDevice::setRemoteSettings(const Device::DeviceSettings& settings)
   if (!m_proto)
     return;
 
+#if defined(OSSIA_PROTOCOL_OSCQUERY)
   try
   {
     m_proto->clear();
@@ -70,6 +73,7 @@ void LocalDevice::setRemoteSettings(const Device::DeviceSettings& settings)
   {
     qDebug() << "LocalDevice: could not expose score on port 6666";
   }
+#endif
 }
 
 void LocalDevice::disconnect()

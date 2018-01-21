@@ -132,7 +132,7 @@ loadPluginsInAllFolders(std::vector<score::Addon>& availablePlugins, QStringList
 {
   using namespace score::PluginLoader;
 
-#if !defined(SCORE_STATIC_QT)
+#if !defined(SCORE_STATIC_QT) && !defined(__EMSCRIPTEN__)
   // Load dynamic plug-ins
   for (const QString& pluginsFolder : pluginsDir() + additional)
   {

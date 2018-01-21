@@ -12,16 +12,11 @@ class SCORE_PLUGIN_SCENARIO_EXPORT Model final
 {
   Q_OBJECT
   Q_PROPERTY(QString Skin READ getSkin WRITE setSkin NOTIFY SkinChanged FINAL)
-  Q_PROPERTY(double GraphicZoom READ getGraphicZoom WRITE setGraphicZoom NOTIFY
-                 GraphicZoomChanged FINAL)
-  Q_PROPERTY(qreal SlotHeight READ getSlotHeight WRITE setSlotHeight NOTIFY
-                 SlotHeightChanged FINAL)
-  Q_PROPERTY(TimeVal DefaultDuration READ getDefaultDuration WRITE
-                 setDefaultDuration NOTIFY DefaultDurationChanged FINAL)
-  Q_PROPERTY(bool SnapshotOnCreate READ getSnapshotOnCreate WRITE
-                 setSnapshotOnCreate NOTIFY SnapshotOnCreateChanged FINAL)
-  Q_PROPERTY(bool AutoSequence READ getAutoSequence WRITE setAutoSequence
-                 NOTIFY AutoSequenceChanged FINAL)
+  Q_PROPERTY(double GraphicZoom READ getGraphicZoom WRITE setGraphicZoom NOTIFY GraphicZoomChanged FINAL)
+  Q_PROPERTY(qreal SlotHeight READ getSlotHeight WRITE setSlotHeight NOTIFY SlotHeightChanged FINAL)
+  Q_PROPERTY(TimeVal DefaultDuration READ getDefaultDuration WRITE setDefaultDuration NOTIFY DefaultDurationChanged FINAL)
+  Q_PROPERTY(bool SnapshotOnCreate READ getSnapshotOnCreate WRITE setSnapshotOnCreate NOTIFY SnapshotOnCreateChanged FINAL)
+  Q_PROPERTY(bool AutoSequence READ getAutoSequence WRITE setAutoSequence NOTIFY AutoSequenceChanged FINAL)
 
   QString m_Skin;
   double m_GraphicZoom{};

@@ -10,12 +10,6 @@
 [submodule "3rdparty/Qt-Color-Widgets"]
 	path = 3rdparty/Qt-Color-Widgets
 	url = https://github.com/jcelerier/Qt-Color-Widgets.git
-[submodule "3rdparty/quazip"]
-	path = 3rdparty/quazip
-	url = https://github.com/jcelerier/quazip
-[submodule "3rdparty/zlib"]
-	path = 3rdparty/zlib
-	url = https://github.com/madler/zlib
 [submodule "Documentation/Doxygen/doxygen-bootstrapped"]
 	path = Documentation/Doxygen/doxygen-bootstrapped
 	url = https://github.com/Velron/doxygen-bootstrapped

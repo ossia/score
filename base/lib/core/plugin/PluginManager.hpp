@@ -135,6 +135,10 @@ template<typename Registrar_T, typename Context_T>
 void loadPlugins(
     Registrar_T& registrar, const Context_T& context)
 {
+
+#define DO_DEBUG qDebug() << i++
+  int i = 0;
+  DO_DEBUG;
   // Here, the plug-ins that are effectively loaded.
   std::vector<score::Addon> availablePlugins;
 
@@ -148,15 +152,19 @@ void loadPlugins(
       addon.key = score_plug->key();
       addon.corePlugin = true;
       availablePlugins.push_back(std::move(addon));
+      qDebug() << typeid (score_plug).name() << addon.key.impl().data[0] <<  addon.key.impl().data[1] <<  addon.key.impl().data[2];
     }
   }
 
+  DO_DEBUG;
   loadPluginsInAllFolders(availablePlugins);
   loadAddonsInAllFolders(availablePlugins);
 
+  DO_DEBUG;
   // First bring in the plugin objects
   registrar.registerAddons(availablePlugins);
 
+  DO_DEBUG;
   // Here, it is important not to collapse all the for-loops
   // because for instance a ApplicationPlugin from plugin B might require the
   // factory
@@ -166,6 +174,7 @@ void loadPlugins(
   {
     auto facfam_interface
         = dynamic_cast<FactoryList_QtInterface*>(addon.plugin);
+    qDebug() << typeid (facfam_interface).name() << addon.key.impl().data[0] <<  addon.key.impl().data[1] <<  addon.key.impl().data[2];
 
     if (facfam_interface)
     {
@@ -176,6 +185,7 @@ void loadPlugins(
     }
   }
 
+  DO_DEBUG;
   // Load all the application context plugins.
   // We have to order them according to their dependencies
   PluginDependencyGraph graph{availablePlugins};
@@ -184,6 +194,7 @@ void loadPlugins(
   {
     registerPlugins(add, registrar, context);
   }
+  DO_DEBUG;
 }
 
 QStringList pluginsBlacklist();

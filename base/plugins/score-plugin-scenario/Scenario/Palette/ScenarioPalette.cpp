@@ -25,6 +25,10 @@
 
 namespace Scenario
 {
+SlotState::~SlotState()
+{
+
+}
 ToolPalette::ToolPalette(
     Process::LayerContext& lay, TemporalScenarioPresenter& presenter)
     : GraphicsSceneToolPalette{*presenter.view().scene()}

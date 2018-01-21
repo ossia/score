@@ -107,7 +107,7 @@ class VSTWindow: public QDialog
     void uiClosing();
   private:
     VSTWindow(AEffect& effect, ERect rect);
-    void closeEvent(QCloseEvent* event);
+    void closeEvent(QCloseEvent* event) override;
 
     AEffect& effect;
 

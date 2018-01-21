@@ -12,6 +12,7 @@ class ConditionView final
         , public QGraphicsItem
 {
     Q_OBJECT
+    Q_INTERFACES(QGraphicsItem)
 public:
   ConditionView(score::ColorRef color, QGraphicsItem* parent);
 

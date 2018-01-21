@@ -17,6 +17,7 @@ namespace Command
 class SerializableMoveEvent : public score::Command
 {
 public:
+  ~SerializableMoveEvent();
   virtual void update(
       Scenario::ProcessModel& scenario,
       const Id<EventModel>& eventId,

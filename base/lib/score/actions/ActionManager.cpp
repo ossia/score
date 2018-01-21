@@ -11,6 +11,11 @@ ActionManager::ActionManager()
   onDocumentChange(std::make_unique<EnableActionIfDocument>());
 }
 
+ActionManager::~ActionManager()
+{
+
+}
+
 void ActionManager::insert(Action val)
 {
   SCORE_ASSERT(m_container.find(val.key()) == m_container.end());

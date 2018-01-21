@@ -38,6 +38,7 @@ void disableAppRestore()
 #endif
 
 
+#include <QItemSelectionModel>
 #include <QSurfaceFormat>
 
 static void init_plugins()
@@ -77,6 +78,11 @@ int main(int argc, char** argv)
       :[result] "=r" (x) : :
   );
   printf("ARM FPSCR: %08x\n",x);
+#endif
+
+#if defined(__EMSCRIPTEN__)
+  qRegisterMetaType<Qt::ApplicationState>();
+  qRegisterMetaType<QItemSelection>();
 #endif
 
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);

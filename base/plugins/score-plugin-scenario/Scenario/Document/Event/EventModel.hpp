@@ -65,43 +65,35 @@ public:
   void addState(const Id<StateModel>& ds);
   void removeState(const Id<StateModel>& ds);
   void clearStates();
-  const QVector<Id<StateModel>>& states() const;
+  using StateIdVec = ossia::small_vector<Id<StateModel>, 2>;
+  const StateIdVec& states() const;
 
   // Other properties
   const State::Expression& condition() const;
   OffsetBehavior offsetBehavior() const;
-
   VerticalExtent extent() const;
-
   const TimeVal& date() const;
   void translate(const TimeVal& deltaTime);
-
   ExecutionStatus status() const;
 
   void setCondition(const State::Expression& arg);
-
-  void setExtent(const VerticalExtent& extent);
+  void setExtent(const Scenario::VerticalExtent& extent);
   void setDate(const TimeVal& date);
-
-  void setStatus(ExecutionStatus status, const Scenario::ScenarioInterface&);
-  void setOffsetBehavior(OffsetBehavior);
+  void setStatus(Scenario::ExecutionStatus status, const Scenario::ScenarioInterface&);
+  void setOffsetBehavior(Scenario::OffsetBehavior);
 
 Q_SIGNALS:
   void extentChanged(const VerticalExtent&);
   void dateChanged(const TimeVal&);
-
   void conditionChanged(const State::Expression&);
-
   void statesChanged();
-
   void statusChanged(Scenario::ExecutionStatus status);
-
   void offsetBehaviorChanged(OffsetBehavior);
 
 private:
   Id<TimeSyncModel> m_timeSync;
 
-  QVector<Id<StateModel>> m_states;
+  StateIdVec m_states;
 
   State::Expression m_condition;
 

@@ -20,6 +20,7 @@ class SCORE_LIB_BASE_EXPORT ActionManager : public QObject
 {
 public:
   ActionManager();
+  ~ActionManager();
 
   void insert(Action val);
 

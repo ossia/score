@@ -18,23 +18,16 @@ class IntervalModel;
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalDurations final : public QObject
 {
   // These dates are relative to the beginning of the interval.
-  Q_PROPERTY(TimeVal minDuration READ minDuration WRITE setMinDuration NOTIFY
-             minDurationChanged FINAL)
-  Q_PROPERTY(TimeVal maxDuration READ maxDuration WRITE setMaxDuration NOTIFY
-                 maxDurationChanged FINAL)
-  Q_PROPERTY(TimeVal guiDuration READ guiDuration WRITE setGuiDuration NOTIFY
-                 guiDurationChanged FINAL)
-  Q_PROPERTY(double playPercentage READ playPercentage WRITE setPlayPercentage
-             NOTIFY playPercentageChanged FINAL)
+  Q_PROPERTY(TimeVal minDuration READ minDuration WRITE setMinDuration NOTIFY minDurationChanged FINAL)
+  Q_PROPERTY(TimeVal maxDuration READ maxDuration WRITE setMaxDuration NOTIFY maxDurationChanged FINAL)
+  Q_PROPERTY(TimeVal guiDuration READ guiDuration WRITE setGuiDuration NOTIFY guiDurationChanged FINAL)
+  Q_PROPERTY(double playPercentage READ playPercentage WRITE setPlayPercentage NOTIFY playPercentageChanged FINAL)
 
   Q_PROPERTY(bool isRigid READ isRigid WRITE setRigid NOTIFY rigidityChanged FINAL)
-  Q_PROPERTY(
-      bool isMinNull READ isMinNull WRITE setMinNull NOTIFY minNullChanged FINAL)
-  Q_PROPERTY(bool isMaxInfinite READ isMaxInfinite WRITE setMaxInfinite NOTIFY
-                 maxInfiniteChanged FINAL)
+  Q_PROPERTY(bool isMinNull READ isMinNull WRITE setMinNull NOTIFY minNullChanged FINAL)
+  Q_PROPERTY(bool isMaxInfinite READ isMaxInfinite WRITE setMaxInfinite NOTIFY maxInfiniteChanged FINAL)
 
-  Q_PROPERTY(double executionSpeed READ executionSpeed WRITE setExecutionSpeed
-                 NOTIFY executionSpeedChanged FINAL)
+  Q_PROPERTY(double executionSpeed READ executionSpeed WRITE setExecutionSpeed NOTIFY executionSpeedChanged FINAL)
 
   SCORE_SERIALIZE_FRIENDS
 
@@ -99,7 +92,7 @@ public:
 
   void setDefaultDuration(const TimeVal& arg);
   void setMinDuration(const TimeVal& arg);
-  void setMaxDuration(const TimeVal& arg);  
+  void setMaxDuration(const TimeVal& arg);
   void setGuiDuration(TimeVal guiDuration);
 
   void setPlayPercentage(double arg);

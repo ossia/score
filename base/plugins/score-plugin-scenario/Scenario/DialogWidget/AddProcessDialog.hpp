@@ -1,18 +1,7 @@
 #pragma once
 #include <QDialog>
-#include <QHBoxLayout>
-#include <QDialogButtonBox>
-#include <QString>
-#include <QStringList>
-#include <algorithm>
-#include <utility>
-#include <vector>
-#include <set>
-#include <QListWidget>
-
-#include <score/plugins/customfactory/UuidKey.hpp>
-
 #include <Process/ProcessList.hpp>
+class QListWidget;
 namespace Scenario
 {
 class AddProcessDialog final : public QDialog
@@ -24,19 +13,20 @@ public:
       const Process::ProcessFactoryList& plist,
       Process::ProcessFlags acceptable,
       QWidget* parent);
+  ~AddProcessDialog();
 
   void launchWindow();
 
   std::function<void(Key, QString)> on_okPressed;
 
 private:
-  const Process::ProcessFactoryList& m_factoryList;
-  Process::ProcessFlags m_flags{};
-  QListWidget* m_categories{};
-  QListWidget* m_processes{};
-
   void updateProcesses(const QString& str);
   void setup();
+
+  const Process::ProcessFactoryList& m_factoryList;
+  QListWidget* m_categories{};
+  QListWidget* m_processes{};
+  Process::ProcessFlags m_flags{};
 };
 
 }

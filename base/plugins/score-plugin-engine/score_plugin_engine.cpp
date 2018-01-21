@@ -1,11 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
-#include <Engine/Protocols/Local/LocalProtocolFactory.hpp>
-#include <Engine/Protocols/Minuit/MinuitProtocolFactory.hpp>
-#include <Engine/Protocols/OSC/OSCProtocolFactory.hpp>
-#include <Engine/Protocols/OSCQuery/OSCQueryProtocolFactory.hpp>
-#include <Engine/Protocols/Serial/SerialProtocolFactory.hpp>
 
 #include <Engine/Protocols/Panel/MessagesPanel.hpp>
 
@@ -37,6 +32,17 @@
 #include <Engine/LocalTree/Settings/LocalTreeFactory.hpp>
 #include <score/plugins/customfactory/FactorySetup.hpp>
 
+#include <Engine/Protocols/Local/LocalProtocolFactory.hpp>
+#if defined(OSSIA_PROTOCOL_MINUIT)
+#include <Engine/Protocols/Minuit/MinuitProtocolFactory.hpp>
+#endif
+#if defined(OSSIA_PROTOCOL_OSC)
+#include <Engine/Protocols/OSC/OSCProtocolFactory.hpp>
+#endif
+
+#if defined(OSSIA_PROTOCOL_OSCQUERY)
+#include <Engine/Protocols/OSCQuery/OSCQueryProtocolFactory.hpp>
+#endif
 
 #if defined(OSSIA_PROTOCOL_MIDI)
 #include <Engine/Protocols/MIDI/MIDIProtocolFactory.hpp>
@@ -106,11 +112,18 @@ score_plugin_engine::factories(
 
   return instantiate_factories<
             score::ApplicationContext,
-            FW<Device::ProtocolFactory,
-                 Network::LocalProtocolFactory,
-                 Network::OSCProtocolFactory,
-                 Network::MinuitProtocolFactory,
-                 Network::OSCQueryProtocolFactory
+            FW<Device::ProtocolFactory
+                 , Network::LocalProtocolFactory
+
+        #if defined(OSSIA_PROTOCOL_OSC)
+                 , Network::OSCProtocolFactory
+        #endif
+        #if defined(OSSIA_PROTOCOL_MINUIT)
+                 , Network::MinuitProtocolFactory
+        #endif
+        #if defined(OSSIA_PROTOCOL_OSCQUERY)
+                 , Network::OSCQueryProtocolFactory
+        #endif
 #if defined(OSSIA_PROTOCOL_MIDI)
                  , Network::MIDIProtocolFactory
 #endif

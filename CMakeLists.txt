@@ -82,13 +82,10 @@ include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/brigand")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/hopscotch-map/src")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/readerwriterqueue")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/exprtk")
+include_directories(SYSTEM "${3RDPARTY_FOLDER}/miniz")
 add_subdirectory("${3RDPARTY_FOLDER}/Qt-Color-Widgets" )
 add_subdirectory("${3RDPARTY_FOLDER}/QProgressIndicator" )
 add_subdirectory("${3RDPARTY_FOLDER}/QRecentFilesMenu" )
-
-set(SKIP_INSTALL_ALL True) # For zlib to not install anything
-add_subdirectory("${3RDPARTY_FOLDER}/zlib" EXCLUDE_FROM_ALL)
-add_subdirectory("${3RDPARTY_FOLDER}/quazip" EXCLUDE_FROM_ALL)
 
 set(SCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins") # todo libraries, components ?
 set(SCORE_GLOBAL_COMPONENTS_LIST CACHE INTERNAL "List of components") # todo libraries, components ?
