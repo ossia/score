@@ -44,7 +44,7 @@ inline QGraphicsItem* wrapWidget(QWidget* widg)
   return wrap;
 }
 
-struct FloatSlider : ControlInfo
+struct FloatSlider final : ControlInfo
 {
     static const constexpr bool must_validate = false;
     using type = float;
@@ -141,7 +141,7 @@ struct FloatSlider : ControlInfo
     }
 };
 
-struct LogFloatSlider : ControlInfo
+struct LogFloatSlider final : ControlInfo
 {
     static const constexpr bool must_validate = false;
     using type = float;
@@ -246,7 +246,7 @@ struct LogFloatSlider : ControlInfo
     }
 };
 
-struct IntSlider: ControlInfo
+struct IntSlider final : ControlInfo
 {
     using type = int;
     const int min{};
@@ -341,7 +341,7 @@ struct IntSlider: ControlInfo
     }
 
 };
-struct IntSpinBox: ControlInfo
+struct IntSpinBox final : ControlInfo
 {
     static const constexpr bool must_validate = false;
     using type = int;
@@ -428,7 +428,7 @@ struct IntSpinBox: ControlInfo
     }
 
 };
-struct Toggle: ControlInfo
+struct Toggle final : ControlInfo
 {
     static const constexpr bool must_validate = false;
     template<std::size_t N>
@@ -482,7 +482,7 @@ struct Toggle: ControlInfo
 };
 
 
-struct ChooserToggle: ControlInfo
+struct ChooserToggle final : ControlInfo
 {
     static const constexpr bool must_validate = false;
     template<std::size_t N>
@@ -544,7 +544,7 @@ struct ChooserToggle: ControlInfo
       return wrapWidget(make_widget(slider, inlet, ctx, parent, context));
     }
 };
-struct LineEdit: ControlInfo
+struct LineEdit final : ControlInfo
 {
     static const constexpr bool must_validate = false;
     template<std::size_t N, std::size_t M>
@@ -596,20 +596,20 @@ struct LineEdit: ControlInfo
     }
 
 };
-struct RGBAEdit: ControlInfo
+struct RGBAEdit final : ControlInfo
 {
     static const constexpr bool must_validate = false;
     using type = std::array<float, 4>;
     std::array<float, 4> init{};
 };
-struct XYZEdit: ControlInfo
+struct XYZEdit final : ControlInfo
 {
     static const constexpr bool must_validate = false;
     using type = std::array<float, 3>;
     std::array<float, 3> init{};
 };
 template<typename T, std::size_t N>
-struct ComboBox: ControlInfo
+struct ComboBox final : ControlInfo
 {
     static const constexpr bool must_validate = false;
     using type = T;
@@ -722,7 +722,7 @@ struct ComboBox: ControlInfo
 };
 
 template<typename ArrT, bool Validate = true>
-struct Enum: ControlInfo
+struct Enum final: ControlInfo
 {
     static const constexpr bool must_validate = Validate;
     using type = std::string;
@@ -861,7 +861,7 @@ struct Enum: ControlInfo
     }
 };
 
-struct TimeSignatureChooser: ControlInfo
+struct TimeSignatureChooser final: ControlInfo
 {
     static const constexpr bool must_validate = true;
     using type = time_signature;

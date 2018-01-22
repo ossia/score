@@ -2,6 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MoveCommentBlock.hpp"
 
+#include <Process/TimeValueSerialization.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 

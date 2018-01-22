@@ -8,6 +8,7 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <ossia/editor/state/destination_qualifiers.hpp>
+#include <State/ValueSerialization.hpp>
 
 namespace Interpolation
 {

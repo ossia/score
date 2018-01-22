@@ -11,6 +11,7 @@
 #include <score/serialization/JSONVisitor.hpp>
 
 #include <Process/TimeValue.hpp>
+#include <Process/TimeValueSerialization.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <State/Expression.hpp>

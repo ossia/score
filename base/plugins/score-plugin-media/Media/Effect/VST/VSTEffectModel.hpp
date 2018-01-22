@@ -59,7 +59,7 @@ struct AEffectWrapper
 
 class CreateVSTControl;
 class VSTControlInlet;
-class VSTEffectModel :
+class VSTEffectModel final :
     public Process::ProcessModel
 {
     Q_OBJECT

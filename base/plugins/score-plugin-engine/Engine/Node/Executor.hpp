@@ -30,7 +30,7 @@ template<typename T>
 struct has_control_policy<T, std::void_t<typename T::control_policy>> : std::true_type { };
 
 template<typename Info>
-class ControlNode :
+class ControlNode final :
     public ossia::graph_node
     , public get_state<Info>::type
 {
@@ -447,7 +447,7 @@ void setup_node(const std::shared_ptr<Node_T>& node_ptr
 
 
 template<typename Info>
-class Executor: public Engine::Execution::
+class Executor final: public Engine::Execution::
     ProcessComponent_T<ControlProcess<Info>, ossia::node_process>
 {
   public:

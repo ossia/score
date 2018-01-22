@@ -3,11 +3,11 @@
 #include "CurveSegmentModel.hpp"
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
-#include <score/model/IdentifiedObject.hpp>
 
-class QObject;
-template class IdentifiedObject<Curve::SegmentModel>;
-template class score::SerializableInterface<Curve::SegmentModel>;
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+
+#include <score/model/IdentifiedObject.hpp>
 
 namespace Curve
 {
@@ -41,6 +41,18 @@ SegmentModel::SegmentModel(
     , m_start{s}
     , m_end{e}
 {
+}
+
+SegmentModel::SegmentModel(JSONObject::Deserializer& vis, QObject* parent)
+  : IdentifiedObject{vis, parent}
+{
+  vis.writeTo(*this);
+}
+
+SegmentModel::SegmentModel(DataStream::Deserializer& vis, QObject* parent)
+  : IdentifiedObject{vis, parent}
+{
+  vis.writeTo(*this);
 }
 
 SegmentModel::~SegmentModel()

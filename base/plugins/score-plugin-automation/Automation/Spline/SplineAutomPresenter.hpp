@@ -46,7 +46,7 @@ ossia::spline_data m_old, m_new;
 };
 
 class View;
-class Presenter : public Process::LayerPresenter
+class Presenter final : public Process::LayerPresenter
 {
   public:
     explicit Presenter(

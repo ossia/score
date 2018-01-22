@@ -42,7 +42,7 @@ struct SCORE_LIB_PROCESS_EXPORT CableData
     friend bool operator==(const CableData& lhs, const CableData& rhs);
 };
 
-class SCORE_LIB_PROCESS_EXPORT Cable
+class SCORE_LIB_PROCESS_EXPORT Cable final
     : public IdentifiedObject<Cable>
 {
     Q_OBJECT

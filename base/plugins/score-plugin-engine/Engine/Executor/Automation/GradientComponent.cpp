@@ -11,7 +11,7 @@ namespace Gradient
 {
 namespace RecreateOnPlay
 {
-class gradient_node : public ossia::graph_node
+class gradient_node final : public ossia::graph_node
 {
   public:
     using grad_type = boost::container::flat_map<double, ossia::hunter_lab>;
@@ -121,7 +121,7 @@ class gradient_node : public ossia::graph_node
     bool mustTween{};
 };
 
-class gradient_process : public ossia::node_process
+class gradient_process final : public ossia::node_process
 {
 public:
     using ossia::node_process::node_process;

@@ -2,6 +2,7 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <State/Value.hpp>
+#include <State/ValueSerialization.hpp>
 #include <Process/Dataflow/Port.hpp>
 
 

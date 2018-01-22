@@ -12,6 +12,7 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/model/path/Path.hpp>
+#include <Process/TimeValueSerialization.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/Identifier.hpp>
 

@@ -14,8 +14,11 @@ namespace Control
 {
 template<typename Node>
 using ProcessFactory = Process::ProcessFactory_T<ControlProcess<Node>>;
+
 template<typename Node>
-using ExecutorFactory = Engine::Execution::ProcessComponentFactory_T<Executor<Node>>;
+struct ExecutorFactory final: public Engine::Execution::ProcessComponentFactory_T<Executor<Node>>
+{ using Engine::Execution::ProcessComponentFactory_T<Executor<Node>>::ProcessComponentFactory_T; };
+
 template<typename Node>
 using LayerFactory = ControlLayerFactory<Node>;
 

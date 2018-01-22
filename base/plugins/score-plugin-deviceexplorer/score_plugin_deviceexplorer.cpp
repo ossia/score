@@ -17,6 +17,7 @@
 #include <Explorer/Listening/ListeningHandlerFactoryList.hpp>
 
 #include <score/serialization/AnySerialization.hpp>
+#include <State/ValueSerialization.hpp>
 #include <ossia/dataflow/audio_protocol.hpp>
 
 struct audio_mapping_attr {

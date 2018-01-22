@@ -29,7 +29,7 @@
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/model/path/PathSerialization.hpp>
-class QWidget;
+#include <Process/TimeValueSerialization.hpp>
 
 namespace Scenario
 {

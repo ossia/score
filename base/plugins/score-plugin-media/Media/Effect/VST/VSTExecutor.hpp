@@ -3,7 +3,7 @@
 
 namespace Engine::Execution
 {
-class VSTEffectComponent
+class VSTEffectComponent final
     : public Engine::Execution::ProcessComponent_T<Media::VST::VSTEffectModel, ossia::node_process>
 {
     Q_OBJECT

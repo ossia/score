@@ -34,11 +34,6 @@ using Deserializer = Visitor<Writer<T>>;
 template <typename Serializer_T, typename T, typename Enable = void>
 struct TSerializer;
 
-template <typename Serializer_T, typename T>
-struct AbstractSerializer;
-template <typename Serializer_T, typename T>
-struct ConcreteSerializer;
-
 using SerializationIdentifier = int;
 
 /**
@@ -73,6 +68,9 @@ using enable_if_deserializer = typename std::
   friend class ::JSONValueWriter;
 
 
+class DataStream;
+class JSONObject;
+class JSONValue;
 class DataStreamReader;
 class DataStreamWriter;
 class JSONObjectReader;

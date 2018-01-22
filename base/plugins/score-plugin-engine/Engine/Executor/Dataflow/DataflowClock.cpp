@@ -15,7 +15,7 @@
 #include <QFile>
 #include <QPointer>
 #include <ossia/network/midi/midi_device.hpp>
-
+#define SCORE_BENCHMARK 1
 #if defined(SCORE_BENCHMARK)
 #include <valgrind/callgrind.h>
 #endif
@@ -130,6 +130,9 @@ void Clock::resume_impl(
   m_default.resume();
   m_plug.audioProto().ui_tick = [&st=*m_plug.execState,&g=m_plug.execGraph,itv=m_cur->baseInterval().OSSIAInterval()] (unsigned long frameCount, double seconds) {
 
+#if defined(SCORE_BENCHMARK)
+    cycle_count_bench b{};
+#endif
     st.clear_local_state();
     st.get_new_values();
     st.samples_since_start += frameCount;

@@ -10,6 +10,7 @@
 
 #include <Process/ProcessList.hpp>
 #include <Process/TimeValue.hpp>
+#include <Process/TimeValueSerialization.hpp>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
 
 #include <score/plugins/customfactory/StringFactoryKey.hpp>

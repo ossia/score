@@ -19,6 +19,7 @@
 #include <Device/Address/IOType.hpp>
 #include <State/Value.hpp>
 #include <score/serialization/AnySerialization.hpp>
+#include <State/ValueSerialization.hpp>
 
 
 template <>

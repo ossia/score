@@ -15,7 +15,7 @@ namespace Midi
 {
 namespace Executor
 {
-class midi_node
+class midi_node final
     : public ossia::graph_node
 {
   public:
@@ -161,7 +161,7 @@ class midi_node
 
 };
 
-class midi_node_process : public ossia::node_process
+class midi_node_process final : public ossia::node_process
 {
   public:
     using ossia::node_process::node_process;

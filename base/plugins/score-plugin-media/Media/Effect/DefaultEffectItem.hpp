@@ -5,7 +5,7 @@
 namespace Media::Effect
 {
 
-class DefaultEffectItem:
+class DefaultEffectItem final:
     public score::RectItem
 {
   public:

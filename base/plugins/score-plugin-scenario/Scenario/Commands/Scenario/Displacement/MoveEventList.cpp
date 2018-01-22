@@ -2,6 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MoveEventList.hpp"
 #include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
+#include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
 #include <algorithm>
 #include <qiterator.h>
 #include <stdexcept>

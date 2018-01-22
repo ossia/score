@@ -380,7 +380,7 @@ void Presenter::modelReset()
 
   // 2. We add / remove new elements if necessary
   {
-    int diff_points = m_model.points().size() - points.size();
+    int64_t diff_points = m_model.points().size() - points.size();
     if (diff_points > 0)
     {
       points.reserve(points.size() + diff_points);
@@ -394,7 +394,7 @@ void Presenter::modelReset()
     }
     else if (diff_points < 0)
     {
-      int inv_diff_points = -diff_points;
+      int64_t inv_diff_points = -diff_points;
       for (; inv_diff_points-- > 0;)
       {
         deleteGraphicsItem(points[points.size() - inv_diff_points - 1]);
@@ -405,7 +405,7 @@ void Presenter::modelReset()
 
   // Same for segments
   {
-    int diff_segts = m_model.segments().size() - segments.size();
+    int64_t diff_segts = m_model.segments().size() - segments.size();
     if (diff_segts > 0)
     {
       segments.reserve(segments.size() + diff_segts);
@@ -419,7 +419,7 @@ void Presenter::modelReset()
     }
     else if (diff_segts < 0)
     {
-      int inv_diff_segts = -diff_segts;
+      int64_t inv_diff_segts = -diff_segts;
       for (; inv_diff_segts-- > 0;)
       {
         deleteGraphicsItem(segments[segments.size() - inv_diff_segts - 1]);

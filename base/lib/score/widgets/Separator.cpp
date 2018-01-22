@@ -5,7 +5,7 @@
 #include <QFrame>
 #include <QLayout>
 #include <score/widgets/MarginLess.hpp>
-
+#include <score/widgets/TextLabel.hpp>
 namespace score
 {
 HSeparator::HSeparator(QWidget* parent) : QWidget{parent}
@@ -36,4 +36,9 @@ VSeparator::VSeparator(QWidget* parent) : QWidget{parent}
 }
 
 VSeparator::~VSeparator() = default;
+
+}
+TextLabel::~TextLabel()
+{
+
 }

@@ -11,6 +11,7 @@
 
 #include "TimeSyncModel.hpp"
 #include <Process/TimeValue.hpp>
+#include <Process/TimeValueSerialization.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <State/Expression.hpp>
 #include <score/model/ModelMetadata.hpp>
@@ -19,14 +20,6 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/tree/TreeNode.hpp>
-
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
-template <typename model>
-class IdentifiedObject;
-
 
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void

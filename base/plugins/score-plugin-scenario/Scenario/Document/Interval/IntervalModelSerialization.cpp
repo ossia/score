@@ -10,10 +10,10 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <algorithm>
-#include <sys/types.h>
 
 #include <Process/ProcessList.hpp>
 #include <Process/TimeValue.hpp>
+#include <Process/TimeValueSerialization.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
@@ -23,23 +23,6 @@
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/PathSerialization.hpp>
-
-
-namespace Scenario
-{
-class StateModel;
-}
-template <typename T>
-class IdentifiedObject;
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
-
-// Note : comment gérer le cas d'un process shared model qui ne sait se
-// sérializer qu'en binaire, dans du json?
-// Faire passer l'info en base64 ?
-
 
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamReader::read(

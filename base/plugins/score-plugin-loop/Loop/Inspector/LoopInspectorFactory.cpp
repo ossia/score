@@ -30,6 +30,7 @@
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <Process/TimeValueSerialization.hpp>
 
 class InspectorWidgetBase;
 class QWidget;

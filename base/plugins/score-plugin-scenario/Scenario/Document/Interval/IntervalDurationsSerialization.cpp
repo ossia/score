@@ -5,15 +5,10 @@
 
 #include "IntervalDurations.hpp"
 #include <Process/TimeValue.hpp>
+#include <Process/TimeValueSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
-
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
-
 
 template <>
 void DataStreamReader::read(

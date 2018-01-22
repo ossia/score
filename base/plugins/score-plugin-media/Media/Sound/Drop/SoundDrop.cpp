@@ -12,6 +12,7 @@
 #include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
 #include <Scenario/Commands/Interval/Rack/AddSlotToRack.hpp>
 #include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
+#include <Process/TimeValueSerialization.hpp>
 
 #include <Loop/LoopProcessModel.hpp>
 #include <QMimeData>
@@ -71,7 +72,7 @@ DroppedAudioFiles::DroppedAudioFiles(const QMimeData &mime)
 
 TimeVal DroppedAudioFiles::dropMaxDuration() const
 {
-    return TimeVal::fromMsecs(maxDuration / 44.1);
+    return TimeVal::fromMsecs(maxDuration / 44.1); // TODO use settings Samplerate
 }
 
 bool DropHandler::drop(
