@@ -63,6 +63,7 @@
 #include <Dataflow/Inspector/DataflowWidget.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Effect/EffectFactory.hpp>
+#include <State/ValueSerialization.hpp>
 
 #include <score_plugin_scenario_commands_files.hpp>
 

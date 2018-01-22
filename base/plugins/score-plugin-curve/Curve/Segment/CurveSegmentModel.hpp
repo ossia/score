@@ -13,10 +13,6 @@
 
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/model/Identifier.hpp>
-
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONVisitor.hpp>
-
 #include <ossia/editor/curve/curve_segment.hpp>
 #include <score_plugin_curve_export.h>
 
@@ -46,17 +42,8 @@ public:
       const Id<SegmentModel>& id,
       QObject* parent);
 
-  SegmentModel(DataStream::Deserializer& vis, QObject* parent)
-      : IdentifiedObject{vis, parent}
-  {
-    vis.writeTo(*this);
-  }
-
-  SegmentModel(JSONObject::Deserializer& vis, QObject* parent)
-      : IdentifiedObject{vis, parent}
-  {
-    vis.writeTo(*this);
-  }
+  SegmentModel(DataStream::Deserializer& vis, QObject* parent);
+  SegmentModel(JSONObject::Deserializer& vis, QObject* parent);
 
   virtual ~SegmentModel();
 

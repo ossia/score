@@ -227,7 +227,7 @@ Engine::Execution::LV2EffectComponent::LV2EffectComponent(
   : ProcessComponent_T{proc, ctx, id, "LV2Component", parent}
 {
   auto& host = ctx.context().doc.app.applicationPlugin<Media::ApplicationPlugin>();
-  node = std::make_shared<Media::LV2::LV2AudioEffect>(
+  node = std::make_shared<Media::LV2::lv2_node>(
         Media::LV2::LV2Data{
           host.lv2_host_context,
           proc.effectContext},

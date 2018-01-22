@@ -8,7 +8,7 @@ namespace Media
 {
 namespace LV2
 {
-class LV2AudioEffect : public ossia::graph_node
+class lv2_node final : public ossia::graph_node
 {
   protected:
     LV2Data data;
@@ -20,7 +20,7 @@ class LV2AudioEffect : public ossia::graph_node
     LilvInstance* fInstance{};
 
   public:
-    LV2AudioEffect(LV2Data dat, int sampleRate):
+    lv2_node(LV2Data dat, int sampleRate):
       data{dat}
     {
       data.host.global->sampleRate = sampleRate;
@@ -299,7 +299,7 @@ class LV2AudioEffect : public ossia::graph_node
       }
     }
 
-    ~LV2AudioEffect()
+    ~lv2_node()
     {
       lilv_instance_deactivate(fInstance);
       //lilv_instance_free(fInstance);

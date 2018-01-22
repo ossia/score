@@ -1,4 +1,5 @@
 #include "MergeTimeSyncs.hpp"
+#include <Process/TimeValueSerialization.hpp>
 
 namespace Scenario
 {

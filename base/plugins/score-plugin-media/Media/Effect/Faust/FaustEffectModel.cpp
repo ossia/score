@@ -340,7 +340,7 @@ void JSONObjectWriter::write(
 namespace Engine::Execution
 {
 
-class faust_node : public ossia::graph_node
+class faust_node final : public ossia::graph_node
 {
     llvm_dsp* m_dsp{};
     struct FaustExecUI final: public PathBuilder, public UI

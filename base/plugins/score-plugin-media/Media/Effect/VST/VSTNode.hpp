@@ -12,7 +12,7 @@ namespace VST
 {
 using time_signature = std::pair<uint16_t, uint16_t>;
 template<bool UseDouble, bool IsSynth>
-class VSTNode final : public ossia::graph_node
+class vst_node final : public ossia::graph_node
 {
   private:
     std::shared_ptr<AEffectWrapper> fx{};
@@ -26,7 +26,7 @@ class VSTNode final : public ossia::graph_node
   public:
     ossia::small_vector<std::pair<int, ossia::value_port*>, 10> ctrl_ptrs;
 
-    VSTNode(std::shared_ptr<AEffectWrapper> dat, int sampleRate):
+    vst_node(std::shared_ptr<AEffectWrapper> dat, int sampleRate):
       fx{std::move(dat)}
     {
       m_inlets.reserve(10);
@@ -50,7 +50,7 @@ class VSTNode final : public ossia::graph_node
       fx->fx->resvd2 = reinterpret_cast<intptr_t>(this);
     }
 
-    ~VSTNode()
+    ~vst_node()
     {
       fx->fx->resvd2 = 0;
       dispatch(effStopProcess);
@@ -316,7 +316,7 @@ class VSTNode final : public ossia::graph_node
 };
 template<bool b1, bool b2, typename... Args>
 auto make_vst_fx(Args&... args) {
-  return std::make_shared<VSTNode<b1, b2>>(args...);
+  return std::make_shared<vst_node<b1, b2>>(args...);
 }
 
 }

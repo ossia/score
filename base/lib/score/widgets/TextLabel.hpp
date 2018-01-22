@@ -8,6 +8,8 @@ public:
     setup();
   }
 
+  ~TextLabel() override;
+
   TextLabel(QWidget* parent):
     QLabel(parent)
   {

@@ -8,6 +8,7 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <Process/TimeValueSerialization.hpp>
 
 namespace Scenario
 {

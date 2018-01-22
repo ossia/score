@@ -6,7 +6,7 @@
 namespace Media::VST
 {
 
-class VSTEffectItem:
+class VSTEffectItem final:
     public score::EmptyRectItem
 {
     score::RectItem* rootItem{};
@@ -50,7 +50,7 @@ class VSTEffectItem:
         const score::DocumentContext& doc);
 };
 
-class VSTGraphicsSlider
+class VSTGraphicsSlider final
     : public QObject
     , public QGraphicsItem
 {
@@ -87,7 +87,7 @@ class VSTGraphicsSlider
     QRectF handleRect() const;
 };
 
-class VSTWindow: public QDialog
+class VSTWindow final: public QDialog
 {
     Q_OBJECT
   public:

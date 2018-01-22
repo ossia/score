@@ -1,7 +1,6 @@
 #pragma once
 #include <QMetaType>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONValueVisitor.hpp>
+#include <score/serialization/VisitorInterface.hpp>
 
 #include <score_lib_state_export.h>
 #include <memory>
@@ -43,17 +42,15 @@ private:
 template <>
 struct SCORE_LIB_STATE_EXPORT TSerializer<DataStream, ossia::unit_t>
 {
-  static void readFrom(DataStream::Serializer& s, const ossia::unit_t& var);
-
-  static void writeTo(DataStream::Deserializer& s, ossia::unit_t& var);
+  static void readFrom(DataStreamReader& s, const ossia::unit_t& var);
+  static void writeTo(DataStreamWriter& s, ossia::unit_t& var);
 };
 
 template <>
 struct SCORE_LIB_STATE_EXPORT TSerializer<DataStream, State::Unit>
 {
-  static void readFrom(DataStream::Serializer& s, const State::Unit& var);
-
-  static void writeTo(DataStream::Deserializer& s, State::Unit& var);
+  static void readFrom(DataStreamReader& s, const State::Unit& var);
+  static void writeTo(DataStreamWriter& s, State::Unit& var);
 };
 
 template<>

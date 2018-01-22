@@ -12,6 +12,7 @@
 
 #include "CreateTimeSync_Event_State.hpp"
 #include <Process/TimeValue.hpp>
+#include <Process/TimeValueSerialization.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateEvent_State.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>

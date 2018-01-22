@@ -7,6 +7,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+#include <Process/TimeValueSerialization.hpp>
 
 namespace Scenario
 {

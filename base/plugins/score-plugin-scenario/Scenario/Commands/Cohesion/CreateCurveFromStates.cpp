@@ -24,6 +24,7 @@
 #include <score/model/EntityMap.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/Identifier.hpp>
+#include <State/ValueSerialization.hpp>
 
 namespace Scenario
 {

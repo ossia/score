@@ -9,6 +9,7 @@
 #include "Expression.hpp"
 #include "Relation.hpp"
 #include <score/serialization/JSONValueVisitor.hpp>
+#include <State/ValueSerialization.hpp>
 
 
 template <>

@@ -19,6 +19,7 @@
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/model/Identifier.hpp>
+#include <State/ValueSerialization.hpp>
 
 namespace Process
 {

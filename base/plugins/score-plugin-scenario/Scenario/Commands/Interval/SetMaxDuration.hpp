@@ -6,6 +6,7 @@
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <tests/helpers/ForwardDeclaration.hpp>
+#include <Process/TimeValueSerialization.hpp>
 
 namespace Scenario
 {

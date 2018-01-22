@@ -4,7 +4,7 @@
 namespace Media::VST
 {
 
-class VSTControlInlet : public Process::Inlet
+class VSTControlInlet final : public Process::Inlet
 {
     Q_OBJECT
     SCORE_SERIALIZE_FRIENDS

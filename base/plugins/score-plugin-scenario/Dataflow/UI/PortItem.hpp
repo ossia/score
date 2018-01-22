@@ -41,24 +41,24 @@ class SCORE_PLUGIN_SCENARIO_EXPORT PortItem
     void contextMenuRequested(QPointF scenepos, QPoint pos);
 
   private:
-    QRectF boundingRect() const override;
+    QRectF boundingRect() const final override;
     void paint(
         QPainter* painter,
         const QStyleOptionGraphicsItem* option,
-        QWidget* widget) override;
+        QWidget* widget) final override;
 
-    void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
-    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
-    void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
-    void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
-    void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
+    void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
+    void hoverEnterEvent(QGraphicsSceneHoverEvent* event) final override;
+    void hoverMoveEvent(QGraphicsSceneHoverEvent* event) final override;
+    void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) final override;
 
-    void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
-    void dragMoveEvent(QGraphicsSceneDragDropEvent* event) override;
-    void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;
-    void dropEvent(QGraphicsSceneDragDropEvent* event) override;
-    QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
+    void dragEnterEvent(QGraphicsSceneDragDropEvent* event) final override;
+    void dragMoveEvent(QGraphicsSceneDragDropEvent* event) final override;
+    void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) final override;
+    void dropEvent(QGraphicsSceneDragDropEvent* event) final override;
+    QVariant itemChange(GraphicsItemChange change, const QVariant &value) final override;
 
 
     double m_diam = 6.;

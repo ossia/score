@@ -4,7 +4,7 @@
 #include <ossia/editor/automation/tinysplinecpp.h>
 namespace Spline
 {
-class View : public Process::LayerView
+class View final : public Process::LayerView
 {
     Q_OBJECT
   public:

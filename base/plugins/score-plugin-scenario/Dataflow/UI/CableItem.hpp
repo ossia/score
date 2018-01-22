@@ -9,7 +9,7 @@
 namespace Dataflow
 {
 class PortItem;
-class CableItem
+class CableItem final
     : public QObject
     , public QGraphicsItem
 {
