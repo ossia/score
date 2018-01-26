@@ -23,7 +23,7 @@ TimeSyncComponent::TimeSyncComponent(
     const Engine::Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
-  :  Execution::Component{ctx, id, "Executor::Event", nullptr}
+  :  Execution::Component{ctx, id, "Executor::TimeSync", nullptr}
   , m_score_node{element}
 {
   con(m_score_node, &Scenario::TimeSyncModel::triggeredByGui,

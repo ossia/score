@@ -2,6 +2,8 @@
 #include <Process/LayerView.hpp>
 #include <Process/TimeValue.hpp>
 
+#include <nano_observer.hpp>
+
 namespace Scenario
 {
 class ProcessModel;

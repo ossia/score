@@ -5,6 +5,7 @@
 #include <Media/MediaFileHandle.hpp>
 #include <Process/ZoomHelper.hpp>
 #include <score/widgets/GraphicsItem.hpp>
+#include <QPointer>
 namespace Media
 {
 namespace Sound

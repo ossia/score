@@ -7,7 +7,8 @@
 #include <ossia/network/value/value.hpp>
 #include <ossia/detail/apply.hpp>
 #include <State/ValueConversion.hpp>
-
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
 namespace State
 {
 SCORE_LIB_STATE_EXPORT QDebug& operator<<(QDebug& s, const Value& m)

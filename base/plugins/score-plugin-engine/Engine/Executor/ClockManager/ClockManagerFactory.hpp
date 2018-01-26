@@ -6,7 +6,10 @@
 #include <Process/TimeValue.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
 #include <smallfun.hpp>
-
+namespace score
+{
+class DocumentContext;
+}
 namespace Engine
 {
 namespace Execution
