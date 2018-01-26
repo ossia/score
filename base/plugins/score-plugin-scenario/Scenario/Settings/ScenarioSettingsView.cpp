@@ -18,6 +18,9 @@
 #include <score/widgets/SignalUtils.hpp>
 #include <QTextEdit>
 #include <QSyntaxHighlighter>
+#include <QJsonObject>
+#include <score/serialization/JSONVisitor.hpp>
+#include <score/model/Skin.hpp>
 namespace Scenario
 {
 namespace Settings

@@ -74,7 +74,8 @@ void DefaultClockManager::prepareExecution(
   oc->get_start_event().tick(ossia::Zero, 0., ossia::Zero);
   context.plugin.execGraph->state(*context.plugin.execState);
 
-  oc->offset(context.time(t));
+  if(t != TimeVal::zero())
+    oc->offset(context.time(t));
 
   context.plugin.execState->commit();
 }

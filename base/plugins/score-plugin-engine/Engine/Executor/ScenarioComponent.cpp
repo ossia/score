@@ -353,10 +353,12 @@ TimeSyncComponent* ScenarioComponentBase::make<TimeSyncComponent, Scenario::Time
   if (tn.id() ==  Scenario::startId<Scenario::TimeSyncModel>())
   {
     ossia_tn = OSSIAProcess().get_start_time_sync();
+    qDebug() << "root" << tn.expression().toString();
   }
   else
   {
     ossia_tn = std::make_shared<ossia::time_sync>();
+    qDebug() << "non root" << tn.expression().toString();
     must_add = true;
   }
 

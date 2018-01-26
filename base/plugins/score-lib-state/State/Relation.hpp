@@ -4,7 +4,7 @@
 #include <State/Address.hpp>
 #include <State/Value.hpp>
 #include <ossia/editor/expression/operators.hpp>
-#include <eggs/variant/variant.hpp>
+#include <eggs/variant.hpp>
 
 namespace State
 {

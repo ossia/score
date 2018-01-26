@@ -15,6 +15,7 @@
 #include <fmt/format.h>
 #include <Process/TimeValue.hpp>
 #include <score/model/Skin.hpp>
+#include <ossia/detail/algorithms.hpp>
 
 class QStyleOptionGraphicsItem;
 class QWidget;

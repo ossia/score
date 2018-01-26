@@ -4,7 +4,6 @@
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <ossia/dataflow/audio_protocol.hpp>
-#include <ossia/network/generic/generic_device.hpp>
 class QLineEdit;
 namespace Dataflow
 {

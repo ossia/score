@@ -175,6 +175,7 @@ void StateView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 void StateView::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
   emit dropReceived(event->mimeData());
+  setDilatation(m_selected);
 }
 
 void StateView::setDilatation(bool val)
