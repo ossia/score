@@ -14,8 +14,8 @@ struct outlet;
 struct inlet;
 struct graph_edge;
 using node_ptr = std::shared_ptr<graph_node>;
-using outlet_ptr = std::shared_ptr<outlet>;
-using inlet_ptr = std::shared_ptr<inlet>;
+using outlet_ptr = outlet*;
+using inlet_ptr = inlet*;
 using edge_ptr = std::shared_ptr<graph_edge>;
 }
 namespace Dataflow

@@ -86,17 +86,15 @@ void TimeSyncComponent::updateTrigger()
   this->in_exec(
         [e = m_ossia_node, exp_ptr]
   {
-    bool old = e->is_observing_expression();
-    if(old)
+    bool was_observing = e->is_observing_expression();
+    if(was_observing)
       e->observe_expression(false);
 
     e->set_expression(std::move(*exp_ptr));
 
-    if(old)
+    if(was_observing)
       e->observe_expression(true);
-
   });
-
 }
 
 void TimeSyncComponent::on_GUITrigger()

@@ -216,7 +216,6 @@ PortFactory::~PortFactory()
 
 Port*PortFactoryList::loadMissing(const VisitorVariant& vis, QObject* parent) const
 {
-  SCORE_ABORT;
   return nullptr;
 }
 PortFactoryList::~PortFactoryList()

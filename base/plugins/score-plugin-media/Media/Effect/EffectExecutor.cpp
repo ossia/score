@@ -18,7 +18,8 @@ EffectProcessComponentBase::EffectProcessComponentBase(
   m_ossia_process = std::make_shared<effect_chain_process>();
 }
 
-static auto move_edges(ossia::inlet& old_in, std::shared_ptr<ossia::inlet> new_in, std::shared_ptr<ossia::graph_node> new_node, ossia::graph_interface& g)
+static auto move_edges(ossia::inlet& old_in, ossia::inlet_ptr new_in,
+                       std::shared_ptr<ossia::graph_node> new_node, ossia::graph_interface& g)
 {
   auto old_sources = old_in.sources;
   for(auto e : old_sources)
@@ -27,7 +28,8 @@ static auto move_edges(ossia::inlet& old_in, std::shared_ptr<ossia::inlet> new_i
     g.disconnect(e);
   }
 }
-static auto move_edges(ossia::outlet& old_out, std::shared_ptr<ossia::outlet> new_out, std::shared_ptr<ossia::graph_node> new_node, ossia::graph_interface& g)
+static auto move_edges(ossia::outlet& old_out, ossia::outlet_ptr new_out,
+                       std::shared_ptr<ossia::graph_node> new_node, ossia::graph_interface& g)
 {
   auto old_targets = old_out.targets;
   for(auto e : old_targets)
