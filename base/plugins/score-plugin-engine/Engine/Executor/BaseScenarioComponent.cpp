@@ -98,9 +98,9 @@ void BaseScenarioElement::cleanup()
   if(m_ossia_interval)
     m_ossia_interval->cleanup(m_ossia_interval);
   if(m_ossia_startState)
-    m_ossia_startState->cleanup();
+    m_ossia_startState->cleanup(m_ossia_startState);
   if(m_ossia_endState)
-    m_ossia_endState->cleanup();
+    m_ossia_endState->cleanup(m_ossia_startState);
   if(m_ossia_startEvent)
     m_ossia_startEvent->cleanup();
   if(m_ossia_endEvent)

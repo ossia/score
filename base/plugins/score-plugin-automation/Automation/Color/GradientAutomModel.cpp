@@ -104,6 +104,7 @@ template <>
 void DataStreamReader::read(
     const Gradient::ProcessModel& autom)
 {
+  m_stream << *autom.outlet;
   m_stream << autom.m_colors
            << autom.m_tween;
   insertDelimiter();
@@ -113,6 +114,7 @@ void DataStreamReader::read(
 template <>
 void DataStreamWriter::write(Gradient::ProcessModel& autom)
 {
+  autom.outlet = Process::make_outlet(*this, &autom);
   m_stream >> autom.m_colors
            >> autom.m_tween;
 
@@ -124,6 +126,7 @@ template <>
 void JSONObjectReader::read(
     const Gradient::ProcessModel& autom)
 {
+  obj["Outlet"] = toJsonObject(*autom.outlet);
   JSONValueReader v{}; v.readFrom(autom.m_colors);
   obj["Gradient"] = v.val;
   obj["Tween"] = autom.tween();
@@ -133,6 +136,14 @@ void JSONObjectReader::read(
 template <>
 void JSONObjectWriter::write(Gradient::ProcessModel& autom)
 {
+  JSONObjectWriter writer{obj["Outlet"].toObject()};
+  autom.outlet = Process::make_outlet(writer, &autom);
+  if(!autom.outlet)
+  {
+    autom.outlet = Process::make_outlet(Id<Process::Port>(0), &autom);
+    autom.outlet->type = Process::PortType::Message;
+  }
+
   autom.setTween(obj["Tween"].toBool());
   JSONValueWriter v{}; v.val = obj["Gradient"];
   v.writeTo(autom.m_colors);
