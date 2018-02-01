@@ -27,6 +27,11 @@ ApplicationRegistrar::ApplicationRegistrar(
 {
 }
 
+ApplicationRegistrar::~ApplicationRegistrar()
+{
+
+}
+
 SCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerAddons(std::vector<score::Addon> vec)
 {
@@ -81,6 +86,11 @@ GUIApplicationRegistrar::GUIApplicationRegistrar(
     , m_toolbarManager{t}
     , m_actionManager{a}
 {
+}
+
+GUIApplicationRegistrar::~GUIApplicationRegistrar()
+{
+
 }
 
 SCORE_LIB_BASE_EXPORT

@@ -7,6 +7,11 @@
 namespace score
 {
 
+EnableActionIfDocument::~EnableActionIfDocument()
+{
+
+}
+
 void EnableActionIfDocument::action(ActionManager& mgr, MaybeDocument doc)
 {
   setEnabled(mgr, bool(doc));
@@ -142,6 +147,26 @@ void Action::updateTexts()
   m_impl->setToolTip(clearText);
   m_impl->setWhatsThis(clearText);
   m_impl->setStatusTip(clearText);
+}
+
+DocumentActionCondition::~DocumentActionCondition()
+{
+
+}
+
+FocusActionCondition::~FocusActionCondition()
+{
+
+}
+
+SelectionActionCondition::~SelectionActionCondition()
+{
+
+}
+
+CustomActionCondition::~CustomActionCondition()
+{
+
 }
 
 }

@@ -8,7 +8,7 @@
 #include <smallfun.hpp>
 namespace score
 {
-class DocumentContext;
+struct DocumentContext;
 }
 namespace Engine
 {

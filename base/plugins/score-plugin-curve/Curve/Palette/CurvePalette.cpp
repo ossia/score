@@ -15,6 +15,11 @@ ToolPalette::ToolPalette(const score::DocumentContext& ctx, Presenter& pres)
 {
 }
 
+ToolPalette::~ToolPalette()
+{
+
+}
+
 Presenter& ToolPalette::presenter() const
 {
   return m_presenter;

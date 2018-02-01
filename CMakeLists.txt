@@ -62,7 +62,7 @@ if(MSVC)
   add_definitions(/D_HAS_AUTO_PTR_ETC=1 /D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS=1)
 else()
   set(CMAKE_CXX_STANDARD 17)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z")
 endif()
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/API" )
 

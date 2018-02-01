@@ -13,6 +13,7 @@ class PluginSettingsModel : public score::SettingsDelegateModel
 {
 public:
   PluginSettingsModel(QSettings& set, const score::ApplicationContext& ctx);
+  ~PluginSettingsModel();
 
   LocalPluginItemModel localPlugins;
   RemotePluginItemModel remotePlugins;

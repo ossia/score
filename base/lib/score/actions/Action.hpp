@@ -221,6 +221,7 @@ private:
 struct SCORE_LIB_BASE_EXPORT DocumentActionCondition : public ActionCondition
 {
   using ActionCondition::ActionCondition;
+  ~DocumentActionCondition();
 };
 
 /**
@@ -234,6 +235,8 @@ struct SCORE_LIB_BASE_EXPORT EnableActionIfDocument final
   EnableActionIfDocument() : DocumentActionCondition{static_key()}
   {
   }
+
+  ~EnableActionIfDocument();
 
   static StringKey<ActionCondition> static_key()
   {
@@ -251,6 +254,7 @@ struct SCORE_LIB_BASE_EXPORT EnableActionIfDocument final
 struct SCORE_LIB_BASE_EXPORT FocusActionCondition : public ActionCondition
 {
   using ActionCondition::ActionCondition;
+  ~FocusActionCondition();
 };
 
 /**
@@ -261,6 +265,7 @@ struct SCORE_LIB_BASE_EXPORT FocusActionCondition : public ActionCondition
 struct SCORE_LIB_BASE_EXPORT SelectionActionCondition : public ActionCondition
 {
   using ActionCondition::ActionCondition;
+  ~SelectionActionCondition();
 };
 
 /**
@@ -276,9 +281,10 @@ struct SCORE_LIB_BASE_EXPORT CustomActionCondition : public QObject,
 
 public:
   using ActionCondition::ActionCondition;
+  ~CustomActionCondition();
 
 Q_SIGNALS:
-  void changed(bool);
+    void changed(bool);
 };
 
 using ActionConditionKey = StringKey<score::ActionCondition>;

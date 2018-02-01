@@ -11,6 +11,11 @@ class QWidget;
 
 namespace Inspector
 {
+InspectorWidgetList::~InspectorWidgetList()
+{
+
+}
+
 QList<QWidget*> InspectorWidgetList::make(
     const score::DocumentContext& doc,
     QList<const IdentifiedObjectAbstract*>

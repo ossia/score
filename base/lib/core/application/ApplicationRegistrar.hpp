@@ -36,6 +36,7 @@ class SCORE_LIB_BASE_EXPORT ApplicationRegistrar
 public:
   ApplicationRegistrar(
       ApplicationComponentsData&);
+  ~ApplicationRegistrar();
 
   void registerAddons(std::vector<score::Addon> vec);
   void registerApplicationPlugin(ApplicationPlugin*);
@@ -68,6 +69,7 @@ public:
       MenuManager&,
       ToolbarManager&,
       ActionManager&);
+  ~GUIApplicationRegistrar();
 
   // Register data from plugins
   void registerGUIApplicationPlugin(GUIApplicationPlugin*);

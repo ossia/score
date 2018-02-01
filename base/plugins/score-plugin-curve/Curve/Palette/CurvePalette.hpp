@@ -29,6 +29,7 @@ class SCORE_PLUGIN_CURVE_EXPORT ToolPalette : public GraphicsSceneToolPalette
 {
 public:
   ToolPalette(const score::DocumentContext& ctx, Presenter& pres);
+  ~ToolPalette();
   Presenter& presenter() const;
 
   Curve::EditionSettings& editionSettings() const;

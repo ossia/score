@@ -53,6 +53,7 @@ class SCORE_LIB_BASE_EXPORT DocumentPluginFactoryList final
 {
 public:
   using object_type = DocumentPlugin;
+  ~DocumentPluginFactoryList();
   object_type* loadMissing(
       const VisitorVariant& vis,
       score::DocumentContext& doc,

@@ -17,6 +17,7 @@ class SCORE_LIB_INSPECTOR_EXPORT InspectorWidgetList final
     : public score::MatchingFactory<InspectorWidgetFactory>
 {
 public:
+  ~InspectorWidgetList();
   QList<QWidget*> make(
       const score::DocumentContext& doc,
       QList<const IdentifiedObjectAbstract*>

@@ -46,6 +46,8 @@ private:
 class SCORE_LIB_BASE_EXPORT ValidityCheckerList final
     : public InterfaceList<score::ValidityChecker>
 {
-  DocumentValidator make(const score::Document& ctx);
+  public:
+    ~ValidityCheckerList();
+    DocumentValidator make(const score::Document& ctx);
 };
 }

@@ -64,8 +64,8 @@ GetAddressesToRecordRecursive(Explorer::DeviceExplorerModel& explorer)
 {
   RecordListening recordListening;
 
-  auto parameters = GetParametersRecursive(
-      explorer.uniqueSelectedNodes(explorer.selectedIndexes()).parents);
+  auto nodes = explorer.uniqueSelectedNodes(explorer.selectedIndexes());
+  auto parameters = GetParametersRecursive(nodes.parents.empty() ? nodes.messages : nodes.parents);
 
   // First get the addresses to listen.
   for (auto node_ptr : parameters)

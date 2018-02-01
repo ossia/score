@@ -3,8 +3,21 @@ include(CheckCXXCompilerFlag)
 # Options
 CHECK_CXX_COMPILER_FLAG("-Wl,-z,defs" WL_ZDEFS_SUPPORTED)
 CHECK_CXX_COMPILER_FLAG("-fuse-ld=gold" GOLD_LINKER_SUPPORTED)
-CHECK_CXX_COMPILER_FLAG("-fuse-ld=lld" LLD_LINKER_SUPPORTED)
 
+if(UNIX AND NOT APPLE)
+    find_program(LSB_RELEASE lsb_release)
+    if(LSB_RELEASE)
+      execute_process(COMMAND ${LSB_RELEASE} -i
+          OUTPUT_VARIABLE RELEASE_CODENAME
+          OUTPUT_STRIP_TRAILING_WHITESPACE
+      )
+    endif()
+endif()
+
+# broken in ubuntu 17.10
+if(NOT "${RELEASE_CODENAME}" MATCHES "Ubuntu")
+  CHECK_CXX_COMPILER_FLAG("-fuse-ld=lld" LLD_LINKER_SUPPORTED)
+endif()
 
 option(SCORE_ENABLE_LTO "Enable link-time optimization. Won't work on Travis." OFF)
 option(SCORE_ENABLE_OPTIMIZE_CUSTOM "Enable -march=native." OFF)
