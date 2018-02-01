@@ -44,6 +44,8 @@ ProcessComponent* EffectProcessComponentBase::make(
     ProcessComponentFactory& factory,
     Process::ProcessModel& effect)
 {
+  if(process().badChaining())
+    return nullptr;
   const Engine::Execution::Context & ctx = system();
 
   std::shared_ptr<ProcessComponent> fx = factory.make(effect, system(), id, this);
@@ -225,8 +227,10 @@ std::function<void ()> EffectProcessComponentBase::removing(
     const Process::ProcessModel& e,
     ProcessComponent& c)
 {
-  auto echain = std::dynamic_pointer_cast<effect_chain_process>(m_ossia_process);
+  if(process().badChaining())
+    return {};
 
+  auto echain = std::dynamic_pointer_cast<effect_chain_process>(m_ossia_process);
 
   auto it = ossia::find_if(m_fxes, [&] (const auto& v) { return v.first == e.id(); });
   if(it == m_fxes.end())

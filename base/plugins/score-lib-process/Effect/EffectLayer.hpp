@@ -45,7 +45,7 @@ public:
       QPointF scenepos,
       const Process::LayerContextMenuManager&) final override;
 
-  private slots:
+private Q_SLOTS:
   void closeUI();
 private:
   const Process::ProcessModel& m_layer;

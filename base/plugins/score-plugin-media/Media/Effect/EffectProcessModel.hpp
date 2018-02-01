@@ -195,6 +195,7 @@ class ProcessModel final : public Process::ProcessModel
         PROCESS_METADATA_IMPL(Media::Effect::ProcessModel)
 
         Q_OBJECT
+        Q_PROPERTY(bool badChaining READ badChaining WRITE setBadChaining NOTIFY badChainingChanged)
     public:
         explicit ProcessModel(
                 const TimeVal& duration,
@@ -231,15 +232,34 @@ class ProcessModel final : public Process::ProcessModel
         std::unique_ptr<Process::Inlet> inlet{};
         std::unique_ptr<Process::Outlet> outlet{};
 
-    Q_SIGNALS:
+        void checkChaining();
+        bool badChaining() const
+        {
+          return m_badChaining;
+        }
+
+public Q_SLOTS:
+        void setBadChaining(bool badChaining)
+        {
+          if (m_badChaining == badChaining)
+            return;
+
+          m_badChaining = badChaining;
+          emit badChainingChanged(m_badChaining);
+        }
+
+Q_SIGNALS:
         void effectsChanged();
 
-    private:
+        void badChainingChanged(bool badChaining);
+
+private:
         Selection selectableChildren() const override;
         Selection selectedChildren() const override;
         void setSelection(const Selection& s) const override;
         // The actual effect instances
         EntityList<Process::ProcessModel> m_effects;
+        bool m_badChaining{false};
 };
 }
 }

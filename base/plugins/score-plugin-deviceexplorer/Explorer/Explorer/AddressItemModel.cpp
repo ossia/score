@@ -271,7 +271,7 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
           default:
           {
             int idx = index.row() - Rows::Count;
-            if(idx >= 0 && idx < m_settings.extendedAttributes.size())
+            if(idx >= 0 && idx < (int)m_settings.extendedAttributes.size())
             {
               auto it = m_settings.extendedAttributes.begin();
               std::advance(it, idx);
@@ -624,7 +624,7 @@ void AddressItemDelegate::setEditorData(QWidget* editor, const QModelIndex& inde
       if (auto cb = qobject_cast<State::TypeComboBox*>(editor))
       {
         auto cur = index.data(Qt::EditRole).toInt();
-        if(cur >= 0 && cur < State::convert::ValuePrettyTypesArray().size())
+        if(cur >= 0 && cur < (int)State::convert::ValuePrettyTypesArray().size())
           cb->set((ossia::val_type) cur);
         return;
       }
