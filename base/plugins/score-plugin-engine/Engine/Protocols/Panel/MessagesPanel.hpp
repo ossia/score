@@ -16,6 +16,7 @@ class MessagesPanelDelegate final : public QObject, public score::PanelDelegate
 public:
   MessagesPanelDelegate(const score::GUIApplicationContext& ctx);
 
+  void qtLog(const std::string& str);
 private:
   QWidget* widget() override;
 

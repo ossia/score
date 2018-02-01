@@ -24,5 +24,6 @@ class SCORE_LIB_BASE_EXPORT PanelDelegateFactoryList final
 {
 public:
   using object_type = PanelDelegate;
+  ~PanelDelegateFactoryList();
 };
 }

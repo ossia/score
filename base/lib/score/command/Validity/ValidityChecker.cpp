@@ -10,6 +10,11 @@ ValidityChecker::~ValidityChecker()
 {
 }
 
+ValidityCheckerList::~ValidityCheckerList()
+{
+
+}
+
 DocumentValidator ValidityCheckerList::make(const Document& ctx)
 {
   return DocumentValidator{*this, ctx};

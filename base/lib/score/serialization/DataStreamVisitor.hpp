@@ -81,7 +81,7 @@ struct DataStreamInput
 {
   QDataStream& stream;
 };
-#if (INTPTR_MAX == INT64_MAX)
+#if (INTPTR_MAX == INT64_MAX) && !defined(__APPLE__)
 inline QDataStream& operator<<(QDataStream& s, uint64_t val)
 {
   s << (quint64)val;

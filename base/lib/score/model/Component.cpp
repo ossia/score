@@ -79,6 +79,16 @@ bool DataStreamSerializedComponents::deserializeRemaining(
   return data.empty();
 }
 
+SerializableComponentFactory::~SerializableComponentFactory()
+{
+
+}
+
+SerializableComponentFactoryList::~SerializableComponentFactoryList()
+{
+
+}
+
 score::SerializableComponent*
 SerializableComponentFactoryList::loadMissing(
     const VisitorVariant& vis,

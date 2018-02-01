@@ -38,8 +38,11 @@ class BaseScenarioElement;
 
 using time_function = smallfun::function<ossia::time_value(const TimeVal&)>;
 using reverse_time_function = smallfun::function<TimeVal(const ossia::time_value&)>;
-
-using ExecutionCommand = smallfun::function<void(), 128>;
+#if defined(__APPLE__)
+using ExecutionCommand = smallfun::function<void(), 128, 2*sizeof(intptr_t)>;
+#else
+using ExecutionCommand = smallfun::function<void(), 128, sizeof(intptr_t)>;
+#endif
 using ExecutionCommandQueue = moodycamel::ReaderWriterQueue<ExecutionCommand, 1024>;
 
 //! Useful structures when creating the execution elements.

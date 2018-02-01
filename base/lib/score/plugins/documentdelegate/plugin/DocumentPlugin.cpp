@@ -26,6 +26,11 @@ DocumentPlugin::~DocumentPlugin() = default;
 SerializableDocumentPlugin::~SerializableDocumentPlugin() = default;
 DocumentPluginFactory::~DocumentPluginFactory() = default;
 
+DocumentPluginFactoryList::~DocumentPluginFactoryList()
+{
+
+}
+
 DocumentPluginFactoryList::object_type* DocumentPluginFactoryList::loadMissing(
     const VisitorVariant& vis, DocumentContext& doc, QObject* parent) const
 {

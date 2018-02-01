@@ -77,6 +77,7 @@ struct SCORE_LIB_BASE_EXPORT SerializableComponentFactory :
 {
   SCORE_INTERFACE("ffafadc2-0ce7-45d8-b673-d9238c37d018")
   public:
+    ~SerializableComponentFactory();
     virtual score::SerializableComponent* make(
               const Id<score::Component>& id,
               const score::DocumentContext& ctx,
@@ -92,6 +93,7 @@ struct SCORE_LIB_BASE_EXPORT SerializableComponentFactoryList :
     public score::InterfaceList<SerializableComponentFactory>
 {
   using object_type = score::SerializableComponent;
+  ~SerializableComponentFactoryList();
   score::SerializableComponent* loadMissing(
       const VisitorVariant& vis,
       const score::DocumentContext& ctx,
@@ -176,5 +178,6 @@ auto deserialize_component(score::Components& comps, Fun f)
 
 SCORE_LIB_BASE_EXPORT
 void deserializeRemainingComponents(score::Components& comps, QObject* obj);
+
 
 }

@@ -375,12 +375,13 @@ TimeSyncComponent* ScenarioComponentBase::make<TimeSyncComponent, Scenario::Time
   // Changing the running API structures
   if(must_add)
   {
-    m_ctx.executionQueue.enqueue(
-          [thisP=shared_from_this(),ossia_tn]
+    if(auto ossia_sc = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process))
     {
-      auto& sub = static_cast<ScenarioComponentBase&>(*thisP);
-      sub.OSSIAProcess().add_time_sync(ossia_tn);
-    });
+      m_ctx.executionQueue.enqueue(
+            [ossia_sc,ossia_tn] {
+        ossia_sc->add_time_sync(ossia_tn);
+      });
+    }
   }
 
   return elt.get();

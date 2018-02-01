@@ -30,7 +30,7 @@ struct SCORE_LIB_BASE_EXPORT ApplicationContext
   ApplicationContext(ApplicationContext&&) = delete;
   ApplicationContext& operator=(const ApplicationContext&) = delete;
 
-  virtual ~ApplicationContext();
+  ~ApplicationContext();
 
   /**
    * @brief Access a specific Settings model instance.

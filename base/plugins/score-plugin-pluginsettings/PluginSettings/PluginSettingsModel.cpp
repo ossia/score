@@ -23,4 +23,9 @@ PluginSettingsModel::PluginSettingsModel(
     , remoteSelection{&remotePlugins}
 {
 }
+
+PluginSettingsModel::~PluginSettingsModel()
+{
+
+}
 }

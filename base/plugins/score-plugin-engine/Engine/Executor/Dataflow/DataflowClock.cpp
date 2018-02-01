@@ -15,9 +15,11 @@
 #include <QFile>
 #include <QPointer>
 #include <ossia/network/midi/midi_device.hpp>
+#if __has_include(<valgrind/callgrind.h>)
 #define SCORE_BENCHMARK 1
 #if defined(SCORE_BENCHMARK)
 #include <valgrind/callgrind.h>
+#endif
 #endif
 namespace Dataflow
 {
