@@ -27,6 +27,7 @@ namespace Media::Effect
 
 class View final : public Process::LayerView
 {
+    bool m_invalid{};
   public:
     struct ControlUi
     {
@@ -58,6 +59,11 @@ class View final : public Process::LayerView
 
     };
 
+    void setInvalid(bool b)
+    {
+      m_invalid = b;
+      update();
+    }
     explicit View(QGraphicsItem* parent)
       : Process::LayerView{parent}
     {
@@ -246,9 +252,12 @@ class View final : public Process::LayerView
     }
 
   private:
-    void paint_impl(QPainter*) const override
+    void paint_impl(QPainter* p) const override
     {
-
+      if(m_invalid)
+      {
+        p->fillRect(boundingRect(), ScenarioStyle::instance().AudioPortBrush);
+      }
     }
     void mousePressEvent(QGraphicsSceneMouseEvent* ev) override
     {
@@ -301,9 +310,14 @@ class Presenter final : public Process::LayerPresenter
             m_view, &View::askContextMenu, this,
             &Presenter::contextMenuRequested);
 
-      connect(&static_cast<const Effect::ProcessModel&>(model), &Effect::ProcessModel::effectsChanged,
-              this, [&] {
+      auto& m = static_cast<const Effect::ProcessModel&>(model);
+      con(m, &Effect::ProcessModel::effectsChanged,
+          this, [&] {
         m_view->setup(static_cast<const Effect::ProcessModel&>(model), m_context);
+      });
+      con(m, &Effect::ProcessModel::badChainingChanged,
+          this, [&] (bool b) {
+        m_view->setInvalid(b);
       });
 
       m_view->setup(static_cast<const Effect::ProcessModel&>(model), m_context);

@@ -113,12 +113,27 @@ class SCORE_PLUGIN_ENGINE_EXPORT EffectProcessComponent final :
         public score::PolymorphicComponentHierarchy<EffectProcessComponentBase, false>
 {
     public:
-  template<typename... Args>
-  EffectProcessComponent(Args&&... args):
+  EffectProcessComponent(
+      Media::Effect::ProcessModel& element,
+      const ::Engine::Execution::Context& ctx,
+      const Id<score::Component>& id,
+      QObject* parent):
     score::PolymorphicComponentHierarchy<EffectProcessComponentBase, false>{
-      score::lazy_init_t{}, std::forward<Args>(args)...}
+      score::lazy_init_t{}, element, ctx, id, parent}
   {
-    init_hierarchy();
+    if(!element.badChaining())
+      init_hierarchy();
+
+    connect(&element, &Media::Effect::ProcessModel::badChainingChanged, this, [&] (bool b) {
+      if(b)
+      {
+        clear();
+      }
+      else
+      {
+        init_hierarchy();
+      }
+    });
   }
 
   void cleanup() override;

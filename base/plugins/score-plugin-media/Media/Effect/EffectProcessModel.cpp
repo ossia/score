@@ -40,14 +40,13 @@ void ProcessModel::insertEffect(
     Process::ProcessModel* eff,
     int pos)
 {
+  bool bad_effect = false;
   // Check that the effect order makes sense.
   const Process::Inlets& inlets = eff->inlets();
   const Process::Outlets& outlets = eff->outlets();
   if(inlets.empty() || outlets.empty())
   {
-    qDebug() << "invalid effect! no inlets or outlets";
-    delete eff;
-    return;
+    bad_effect = true;
   }
   clamp(pos, 0, int(m_effects.size()));
 
@@ -55,23 +54,22 @@ void ProcessModel::insertEffect(
   {
     if(inlets[0]->type != m_effects.at_pos(pos - 1).outlets()[0]->type)
     {
-      qDebug() << "invalid effect! (bad chaining before)";
-      delete eff;
-      return;
+      bad_effect = true;
     }
   }
   if(m_effects.size() > 0 && pos < (int)m_effects.size())
   {
     if(outlets[0]->type != m_effects.at_pos(pos).inlets()[0]->type)
     {
-      qDebug() << "invalid effect! (bad chaining after)";
-      delete eff;
-      return;
+      bad_effect = true;
     }
   }
 
   m_effects.insert_at(pos, eff);
-
+  connect(eff, &Process::ProcessModel::inletsChanged,
+          this, &ProcessModel::checkChaining);
+  connect(eff, &Process::ProcessModel::outletsChanged,
+          this, &ProcessModel::checkChaining);
 
   if(pos == 0)
   {
@@ -89,6 +87,8 @@ void ProcessModel::insertEffect(
       emit outletsChanged();
     }
   }
+
+  setBadChaining(bad_effect);
 
   emit effectsChanged();
 }
@@ -119,6 +119,58 @@ void ProcessModel::moveEffect(const Id<Process::ProcessModel>& e, int new_pos)
 int ProcessModel::effectPosition(const Id<Process::ProcessModel>& e) const
 {
   return (int)m_effects.index(e);
+}
+
+void ProcessModel::checkChaining()
+{
+  int pos = 0;
+  bool bad_effect = false;
+  for(auto& eff : m_effects)
+  {
+    const Process::Inlets& inlets = eff.inlets();
+    const Process::Outlets& outlets = eff.outlets();
+
+    if(inlets.empty() || outlets.empty())
+    {
+      bad_effect = true;
+    }
+    if(pos > 0)
+    {
+      if(inlets[0]->type != m_effects.at_pos(pos - 1).outlets()[0]->type)
+      {
+        bad_effect = true;
+      }
+    }
+    if(m_effects.size() > 0 && (pos + 1) < (int)m_effects.size())
+    {
+      if(outlets[0]->type != m_effects.at_pos(pos + 1).inlets()[0]->type)
+      {
+        bad_effect = true;
+      }
+    }
+
+    if(pos == 0)
+    {
+      if(inlets[0]->type != this->inlet->type)
+      {
+        this->inlet->type = inlets[0]->type;
+        emit inletsChanged();
+      }
+    }
+    if(pos == (int)m_effects.size() - 1)
+    {
+      if(outlets[0]->type != this->outlet->type)
+      {
+        this->outlet->type = outlets[0]->type;
+        emit outletsChanged();
+      }
+    }
+
+    pos++;
+  }
+
+  setBadChaining(bad_effect);
+
 }
 
 }
