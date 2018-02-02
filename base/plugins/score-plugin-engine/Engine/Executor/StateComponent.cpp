@@ -133,8 +133,8 @@ std::function<void ()> StateComponentBase::removing(
 
     return [=] { m_processes.erase(it); };
   }
-  return {};
 
+  return {};
 }
 
 StateComponent::~StateComponent()

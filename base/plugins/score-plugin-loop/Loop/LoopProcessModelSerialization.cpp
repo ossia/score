@@ -49,9 +49,20 @@ void JSONObjectWriter::write(Loop::ProcessModel& proc)
   {
     JSONObjectWriter writer{obj["Inlet"].toObject()};
     proc.inlet = Process::make_inlet(writer, &proc);
+    if(!proc.inlet)
+    {
+      proc.inlet = Process::make_inlet(Id<Process::Port>(0), &proc);
+      proc.inlet->type = Process::PortType::Audio;
+    }
   }
   {
     JSONObjectWriter writer{obj["Outlet"].toObject()};
     proc.outlet = Process::make_outlet(writer, &proc);
+
+    if(!proc.outlet)
+    {
+      proc.outlet = Process::make_outlet(Id<Process::Port>(0), &proc);
+      proc.outlet->type = Process::PortType::Audio;
+    }
   }
 }

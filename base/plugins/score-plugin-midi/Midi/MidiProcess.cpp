@@ -220,6 +220,12 @@ void JSONObjectWriter::write(Midi::ProcessModel& proc)
   {
     JSONObjectWriter writer{obj["Outlet"].toObject()};
     proc.outlet = Process::make_outlet(writer, &proc);
+    if(!proc.outlet)
+    {
+      proc.outlet = Process::make_outlet(Id<Process::Port>(0), &proc);
+      proc.outlet->type = Process::PortType::Midi;
+      proc.outlet->setAddress(fromJsonObject<State::AddressAccessor>(obj[strings.Address].toObject()));
+    }
   }
   proc.setDevice(obj["Device"].toString());
   proc.setChannel(obj["Channel"].toInt());

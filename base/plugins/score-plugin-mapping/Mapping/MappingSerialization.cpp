@@ -76,10 +76,22 @@ void JSONObjectWriter::write(Mapping::ProcessModel& autom)
   {
     JSONObjectWriter writer{obj["Inlet"].toObject()};
     autom.inlet = Process::make_inlet(writer, &autom);
+    if(!autom.inlet)
+    {
+      autom.inlet = Process::make_inlet(Id<Process::Port>(0), &autom);
+      autom.inlet->type = Process::PortType::Message;
+      autom.inlet->setAddress(fromJsonObject<State::AddressAccessor>(obj["SourceAddress"].toObject()));
+    }
   }
   {
     JSONObjectWriter writer{obj["Outlet"].toObject()};
     autom.outlet = Process::make_outlet(writer, &autom);
+    if(!autom.outlet)
+    {
+      autom.outlet = Process::make_outlet(Id<Process::Port>(0), &autom);
+      autom.outlet->type = Process::PortType::Message;
+      autom.outlet->setAddress(fromJsonObject<State::AddressAccessor>(obj["TargetAddress"].toObject()));
+    }
   }
 
   JSONObject::Deserializer curve_deser{obj["Curve"].toObject()};
