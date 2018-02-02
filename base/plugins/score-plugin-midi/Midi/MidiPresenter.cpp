@@ -225,14 +225,20 @@ void Presenter::on_noteRemoving(const Note& n)
 
 void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
 {
-  auto res = Midi::MidiTrack::parse(md);
-  if(res.tracks.empty())
+  auto song = Midi::MidiTrack::parse(md);
+  if(song.tracks.empty())
     return;
 
-  auto& track = res.tracks[0];
+  auto& track = song.tracks[0];
 
   CommandDispatcher<> disp{m_context.context.commandStack};
-  disp.submitCommand<Midi::ReplaceNotes>(m_layer, track.notes, track.min, track.max);
+  // Scale notes so that the durations are relative to the ratio of the song duration & constraint duration
+  for(auto& note : track.notes)
+  {
+    note.setStart(song.durationInMs * note.start() / m_layer.duration().msec());
+    note.setDuration(song.durationInMs * note.duration() / m_layer.duration().msec());
+  }
+  disp.submitCommand<Midi::ReplaceNotes>(m_layer, track.notes, track.min, track.max, m_layer.duration());
 }
 
 std::vector<Id<Note>> Presenter::selectedNotes() const

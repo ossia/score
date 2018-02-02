@@ -85,6 +85,7 @@ public:
   DisplayedElementsModel displayedElements;
 
   IdContainer<Dataflow::CableItem, Process::Cable> cableItems;
+  void setLargeView();
 Q_SIGNALS:
   void pressed(QPointF);
   void moved(QPointF);

@@ -99,6 +99,9 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
   con(view().view(), &ProcessGraphicsView::scrolled, this,
       &ScenarioDocumentPresenter::on_horizontalPositionChanged);
 
+  con(view(), &ScenarioDocumentView::setLargeView, this,
+      &ScenarioDocumentPresenter::setLargeView);
+
   connect(
       &m_scenarioPresenter,
       &DisplayedElementsPresenter::requestFocusedPresenterChange,
@@ -241,8 +244,35 @@ void ScenarioDocumentPresenter::on_timeRulerScrollEvent(
   view().view().scrollHorizontal(previous.x() - current.x());
 }
 
+void ScenarioDocumentPresenter::setLargeView()
+{
+  auto& c = displayedInterval();
+
+  auto visible_rect = view().visibleSceneRect();
+  auto t = TimeVal::fromMsecs(m_zoomRatio * visible_rect.width());
+  TimeVal min_time = (c.duration.isMaxInfinite() ? c.duration.defaultDuration() : c.duration.maxDuration());
+
+  for(Process::ProcessModel& proc : c.processes)
+  {
+    if(proc.contentHasDuration())
+    {
+      auto d = proc.contentDuration();
+      if(d > min_time)
+        min_time = d;
+    }
+  }
+
+  if(t > min_time) min_time = t;
+  if(c.duration.guiDuration() > min_time) min_time = c.duration.guiDuration();
+  min_time = min_time * 1.1;
+  c.duration.setGuiDuration(min_time);
+
+  updateMinimap();
+  view().minimap().setLargeView();
+
+}
 static bool window_size_set = false;
-void ScenarioDocumentPresenter::on_windowSizeChanged(QSize s)
+void ScenarioDocumentPresenter::on_windowSizeChanged(QSize)
 {
   if(m_zoomRatio == -1)
     return;
@@ -259,7 +289,19 @@ void ScenarioDocumentPresenter::on_windowSizeChanged(QSize s)
   if(visible_rect.width() > c.duration.guiDuration().toPixels(m_zoomRatio))
   {
     auto t = TimeVal::fromMsecs(m_zoomRatio * visible_rect.width());
-    c.duration.setGuiDuration(t);
+    TimeVal min_time = (c.duration.isMaxInfinite() ? c.duration.defaultDuration() : c.duration.maxDuration()) * 1.1;
+
+    for(Process::ProcessModel& proc : c.processes)
+    {
+      if(proc.contentHasDuration())
+      {
+        auto d = proc.contentDuration();
+        if(d > min_time)
+          min_time = d;
+      }
+    }
+
+    c.duration.setGuiDuration(min_time > t ? min_time : t);
   }
 
   updateMinimap();

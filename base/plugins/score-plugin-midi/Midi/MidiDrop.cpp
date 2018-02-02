@@ -59,7 +59,7 @@ bool DropMidiInSenario::drop(
     auto& proc = static_cast<Midi::ProcessModel&>(interval.processes.at(process_cmd->processId()));
 
     // Set midi data
-    auto set_data_cmd = new Midi::ReplaceNotes{proc, track.notes, track.min, track.max};
+    auto set_data_cmd = new Midi::ReplaceNotes{proc, track.notes, track.min, track.max, t};
     m.submitCommand(set_data_cmd);
 
     auto layer_cmd = new Scenario::Command::AddLayerModelToSlot{
