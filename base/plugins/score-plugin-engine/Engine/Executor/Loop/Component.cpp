@@ -201,6 +201,9 @@ void Component::stop()
 {
   ProcessComponent::stop();
   process().interval().duration.setPlayPercentage(0);
+  process().startEvent().setStatus(Scenario::ExecutionStatus::Editing, process());
+  process().endEvent().setStatus(Scenario::ExecutionStatus::Editing, process());
+
 }
 
 void Component::startIntervalExecution(const Id<Scenario::IntervalModel>&)

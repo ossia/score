@@ -19,12 +19,12 @@ class QWidget;
 #include <score/model/Identifier.hpp>
 namespace Curve
 {
-const qreal radius = 2.85;
-const QRectF ellipse{-radius, -radius, 2. * radius, 2. * radius};
-static const QPainterPath ellipsePath{[] {
+static const qreal radius = 2.85;
+static const QRectF ellipse{-radius, -radius, 2. * radius, 2. * radius};
+static const QPolygonF ellipsePath{[] {
     QPainterPath p;
     p.addEllipse(ellipse);
-    return p;
+    return p.simplified().toFillPolygon();
 }()};
 PointView::PointView(
     const PointModel* model, const Curve::Style& style, QGraphicsItem* parent)
@@ -79,7 +79,7 @@ void PointView::paint(
     painter->setBrush(m_style.BrushPointSelected);
   }
 
-  painter->drawPath(ellipsePath);
+  painter->drawPolygon(ellipsePath);
   painter->setRenderHint(QPainter::Antialiasing, false);
 }
 

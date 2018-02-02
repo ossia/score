@@ -87,6 +87,7 @@ void View::setRect(const QRectF& theRect)
 {
   prepareGeometryChange();
   m_rect = theRect;
+  setVisible(m_rect.width() > 5);
   update();
 }
 

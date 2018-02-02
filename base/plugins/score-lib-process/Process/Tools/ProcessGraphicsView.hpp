@@ -39,4 +39,6 @@ private:
 
   bool m_hZoom{false};
   bool m_vZoom{false};
+
+  std::chrono::steady_clock::time_point m_lastwheel;
 };

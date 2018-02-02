@@ -16,42 +16,42 @@ class QStyleOptionGraphicsItem;
 class QWidget;
 namespace Scenario
 {
-static const QPainterPath smallNonDilated{
+static const QPolygonF smallNonDilated{
 [] {
     QPainterPath p;
     p.addEllipse({0, 0}, StateView::pointRadius, StateView::pointRadius);
-    return p;
+    return p.simplified().toFillPolygon();
   }()
 };
-static const QPainterPath fullNonDilated{
+static const QPolygonF fullNonDilated{
   [] {
     QPainterPath p;
     p.addEllipse({0, 0}, StateView::fullRadius, StateView::fullRadius);
-    return p;
+    return p.simplified().toFillPolygon();
   }()
 };
-static const QPainterPath smallDilated{
+static const QPolygonF smallDilated{
 [] {
     QPainterPath p;
     p.addEllipse({0, 0},
                  StateView::pointRadius * StateView::dilated,
                  StateView::pointRadius * StateView::dilated);
-    return p;
+    return p.simplified().toFillPolygon();
   }()
 };
-static const QPainterPath fullDilated{
+static const QPolygonF fullDilated{
   [] {
     QPainterPath p;
     p.addEllipse({0, 0},
                  StateView::fullRadius * StateView::dilated,
                  StateView::fullRadius * StateView::dilated);
-    return p;
+    return p.simplified().toFillPolygon();
   }()
 };
 StateView::StateView(StatePresenter& pres, QGraphicsItem* parent)
     : QGraphicsItem(parent), m_presenter{pres}
 {
-  this->setCacheMode(QGraphicsItem::NoCache);
+  this->setCacheMode(QGraphicsItem::CacheMode::ItemCoordinateCache);
   this->setParentItem(parent);
 
   this->setCursor(QCursor(Qt::SizeAllCursor));
@@ -77,9 +77,9 @@ void StateView::paint(
   {
     painter->setBrush(skin.StateOutline.getBrush());
     if(m_dilated)
-      painter->drawPath(fullDilated);
+      painter->drawPolygon(fullDilated);
     else
-      painter->drawPath(fullNonDilated);
+      painter->drawPolygon(fullNonDilated);
   }
 
   skin.StateTemporalPointPen.setBrush(skin.StateTemporalPointBrush);
@@ -87,9 +87,9 @@ void StateView::paint(
   painter->setBrush(skin.StateTemporalPointBrush);
   painter->setPen(skin.StateTemporalPointPen);
   if(m_dilated)
-    painter->drawPath(smallDilated);
+    painter->drawPolygon(smallDilated);
   else
-    painter->drawPath(smallNonDilated);
+    painter->drawPolygon(smallNonDilated);
 
 #if defined(SCORE_SCENARIO_DEBUG_RECTS)
   painter->setBrush(Qt::NoBrush);

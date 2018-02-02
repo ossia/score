@@ -11,11 +11,13 @@
 #include <QScrollBar>
 #include <QWheelEvent>
 #include <qnamespace.h>
+#include <iostream>
 
 ProcessGraphicsView::ProcessGraphicsView(
     QGraphicsScene* scene, QWidget* parent)
     : QGraphicsView{scene, parent}
 {
+  m_lastwheel = std::chrono::steady_clock::now();
   setAlignment(Qt::AlignTop | Qt::AlignLeft);
   setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
   setRenderHints(
@@ -23,10 +25,11 @@ ProcessGraphicsView::ProcessGraphicsView(
       | QPainter::TextAntialiasing);
 
   setFrameStyle(0);
-  setCacheMode(QGraphicsView::CacheBackground);
+  //setCacheMode(QGraphicsView::CacheBackground);
   setDragMode(QGraphicsView::NoDrag);
 
   setOptimizationFlag(QGraphicsView::DontSavePainterState, true);
+  setOptimizationFlag(QGraphicsView::DontAdjustForAntialiasing, true);
 #if !defined(SCORE_OPENGL)
  setAttribute(Qt::WA_PaintOnScreen, true);
  setAttribute(Qt::WA_OpaquePaintEvent, true);
@@ -82,6 +85,12 @@ void ProcessGraphicsView::scrollContentsBy(int dx, int dy)
 
 void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
 {
+  auto t = std::chrono::steady_clock::now();
+  if(std::chrono::duration_cast<std::chrono::milliseconds>(t - m_lastwheel).count() < 16)
+  {
+    return;
+  }
+  m_lastwheel = t;
   QPoint d = event->angleDelta();
   QPointF delta = {d.x() / 8., d.y() / 8.};
   if (m_hZoom)
