@@ -209,15 +209,25 @@ JSONObjectWriter::write(Scenario::IntervalModel& interval)
   {
     JSONObjectWriter writer{obj["Inlet"].toObject()};
     interval.inlet = Process::make_inlet(writer, &interval);
+    if(!interval.inlet)
+    {
+      interval.inlet = Process::make_inlet(Id<Process::Port>(0), &interval);
+      interval.inlet->type = Process::PortType::Audio;
+    }
   }
   {
     JSONObjectWriter writer{obj["Outlet"].toObject()};
     interval.outlet = Process::make_outlet(writer, &interval);
+    if(!interval.outlet)
+    {
+      interval.outlet = Process::make_outlet(Id<Process::Port>(0), &interval);
+      interval.outlet->type = Process::PortType::Audio;
+    }
   }
 
   static auto& pl = components.interfaces<Process::ProcessFactoryList>();
 
-  QJsonArray process_array = obj[strings.Processes].toArray();
+  const QJsonArray process_array = obj[strings.Processes].toArray();
   for (const auto& json_vref : process_array)
   {
     JSONObject::Deserializer deserializer{json_vref.toObject()};

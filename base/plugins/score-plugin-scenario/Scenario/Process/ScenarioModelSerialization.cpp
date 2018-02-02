@@ -197,10 +197,21 @@ void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
   {
     JSONObjectWriter writer{obj["Inlet"].toObject()};
     scenario.inlet = Process::make_inlet(writer, &scenario);
+    if(!scenario.inlet)
+    {
+      scenario.inlet = Process::make_inlet(Id<Process::Port>(0), &scenario);
+      scenario.inlet->type = Process::PortType::Audio;
+    }
   }
   {
     JSONObjectWriter writer{obj["Outlet"].toObject()};
     scenario.outlet = Process::make_outlet(writer, &scenario);
+
+    if(!scenario.outlet)
+    {
+      scenario.outlet = Process::make_outlet(Id<Process::Port>(0), &scenario);
+      scenario.outlet->type = Process::PortType::Audio;
+    }
   }
 
   scenario.m_startTimeSyncId

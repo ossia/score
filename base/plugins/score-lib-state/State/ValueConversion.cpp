@@ -276,6 +276,7 @@ const QHash<QString, ossia::val_type> ValTypesMap{
     {QStringLiteral("Vec3f"), ossia::val_type::VEC3F},
     {QStringLiteral("Vec4f"), ossia::val_type::VEC4F},
     {QStringLiteral("List"), ossia::val_type::LIST},
+    {QStringLiteral("Tuple"), ossia::val_type::LIST},
     {QStringLiteral("None"), ossia::val_type::NONE}};
 
 static ossia::val_type which(const QString& val)
