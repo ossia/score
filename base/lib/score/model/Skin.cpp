@@ -59,7 +59,9 @@ Skin::Skin() noexcept
                    }))
 {
   this->startTimer(32, Qt::CoarseTimer);
+#if QT_VERSION >= QT_VERSION_CHECK(5,10,0)
   SansFont.setStyleHint(QFont::SansSerif, QFont::PreferNoShaping);
+#endif
   MonoFont.setStyleHint(QFont::Monospace, (QFont::StyleStrategy)(QFont::PreferBitmap | QFont::NoSubpixelAntialias | QFont::ForceIntegerMetrics));
   MonoFont.setHintingPreference(QFont::PreferVerticalHinting);
 }
