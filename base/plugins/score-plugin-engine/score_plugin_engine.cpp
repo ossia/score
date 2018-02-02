@@ -1,7 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
-
+#include <ossia-config.hpp>
 #include <Engine/Protocols/Panel/MessagesPanel.hpp>
 
 #include <QString>
@@ -167,7 +167,9 @@ score_plugin_engine::factories(
             FW<score::PanelDelegateFactory, Engine::MessagesPanelDelegateFactory>,
             FW<Engine::Execution::ClockManagerFactory
               , Engine::Execution::ControlClockFactory
+    #if defined(OSSIA_DATAFLOW)
               , Dataflow::ClockFactory
+    #endif
             >,
             FW<Curve::SegmentFactory,
                 Curve::SegmentFactory_T<Segment_backIn>,
