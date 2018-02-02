@@ -70,6 +70,7 @@ public:
 
 Q_SIGNALS:
   void elementsScaleChanged(double);
+  void setLargeView();
 
 private:
   QWidget* m_widget{};

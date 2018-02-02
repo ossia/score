@@ -190,7 +190,12 @@ Component::Component(
     midi_node::note_set notes;
     notes.reserve(element.notes.size());
     ossia::transform(element.notes, std::inserter(notes, notes.begin()),
-                     [] (const Note& n) { return n.noteData(); });
+                     [] (const Note& n) {
+      auto data = n.noteData();
+      if(data.start() < 0 && data.end() > 0 && data.start() > -0.01)
+        data.setStart(0.);
+      return data;
+    });
 
     in_exec([n=std::move(notes), midi] () mutable {
       midi->set_notes(std::move(n));
