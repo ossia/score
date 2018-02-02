@@ -15,6 +15,7 @@
 #include <ossia/editor/state/message.hpp>
 #include <ossia/editor/state/state.hpp>
 #include <JS/JSProcessModel.hpp>
+#include <ossia-qt/invoke.hpp>
 #include <QQmlComponent>
 
 namespace JS

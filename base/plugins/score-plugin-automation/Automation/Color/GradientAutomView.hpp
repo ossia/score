@@ -3,7 +3,7 @@
 #include <Automation/Color/GradientAutomModel.hpp>
 namespace Gradient
 {
-class View : public Process::LayerView
+class View final : public Process::LayerView
 {
     Q_OBJECT
   public:
