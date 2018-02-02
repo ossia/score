@@ -8,6 +8,7 @@
 #include <QMenu>
 #include <ossia/detail/logger.hpp>
 #include <Engine/OssiaLogger.hpp>
+#include <ossia-qt/invoke.hpp>
 #include <QFileInfo>
 #include <deque>
 //#include <boost/circular_buffer.hpp>
@@ -215,13 +216,13 @@ static const auto dark4 = QColor(Qt::darkBlue).darker();
 
 void MessagesPanelDelegate::qtLog(const std::string& str)
 {
-  QMetaObject::invokeMethod(this, [=] {
+  ossia::qt::run_async(this, [=] {
         if(m_itemModel && m_widget)
     {
       m_itemModel->push({QString::fromStdString(str), dark4});
       m_widget->scrollToBottom();
     }
-  }, Qt::QueuedConnection);
+  });
 }
 
 void MessagesPanelDelegate::setupConnections(Device::DeviceList& devices)

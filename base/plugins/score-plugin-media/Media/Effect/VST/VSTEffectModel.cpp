@@ -14,6 +14,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Media/Effect/VST/VSTControl.hpp>
 #include <Media/Commands/VSTCommands.hpp>
+#include <ossia-qt/invoke.hpp>
 
 #include <QUrl>
 #include <QFile>
@@ -210,10 +211,10 @@ static auto HostCallback (AEffect* effect, int32_t opcode, int32_t index, intptr
         }
         else
         {
-          QMetaObject::invokeMethod(vst, [=] {
+          ossia::qt::run_async(vst, [=] {
             auto& ctx = score::IDocument::documentContext(*vst);
             CommandDispatcher<> {ctx.commandStack}.submitCommand<CreateVSTControl>(*vst, index, opt);
-          }, Qt::QueuedConnection);
+          });
         }
       }
 
