@@ -246,7 +246,7 @@ void TemporalIntervalView::paint(
   }
 
   // Colors
-  auto defaultColor = this->intervalColor(skin);
+  const auto& defaultColor = this->intervalColor(skin);
 
   skin.IntervalSolidPen.setBrush(defaultColor);
   skin.IntervalDashPen.setBrush(defaultColor);

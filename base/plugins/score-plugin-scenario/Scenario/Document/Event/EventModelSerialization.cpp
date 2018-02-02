@@ -67,6 +67,8 @@ JSONObjectWriter::write(Scenario::EventModel& ev)
   fromJsonValueArray(obj[strings.States].toArray(), ev.m_states);
 
   fromJsonObject(obj[strings.Condition], ev.m_condition);
+  if(ev.m_condition == State::defaultTrueExpression())
+    ev.m_condition = State::Expression{};
 
   ev.m_extent = fromJsonValue<Scenario::VerticalExtent>(obj[strings.Extent]);
   ev.m_date = fromJsonValue<TimeVal>(obj[strings.Date]);

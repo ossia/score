@@ -32,9 +32,165 @@ FullViewIntervalView::FullViewIntervalView(
 
 void FullViewIntervalView::updatePaths()
 {
+  solidPath = QPainterPath{};
+  dashedPath = QPainterPath{};
+  playedSolidPath = QPainterPath{};
+  playedDashedPath = QPainterPath{};
+  waitingDashedPath = QPainterPath{};
+
+  const qreal min_w = minWidth();
+  const qreal max_w = maxWidth();
+  const qreal def_w = defaultWidth();
+  const qreal play_w = m_waiting ?  playWidth() : 0.;
+  const qreal gui_w = m_guiWidth;
+
+  // Paths
+  if(play_w <= 0.)
+  {
+    if (infinite())
+    {
+      if (min_w != 0.)
+      {
+        solidPath.lineTo(min_w, 0.);
+      }
+
+      // TODO end state should be hidden
+      dashedPath.moveTo(min_w, 0.);
+      dashedPath.lineTo(gui_w, 0.);
+    }
+    else if (min_w == max_w) // TODO rigid()
+    {
+      solidPath.lineTo(def_w, 0.);
+    }
+    else
+    {
+      if (min_w != 0.)
+      {
+        solidPath.lineTo(min_w, 0.);
+      }
+      dashedPath.moveTo(min_w, 0.);
+      dashedPath.lineTo(max_w, 0.);
+    }
+  }
+  else
+  {
+    if (infinite())
+    {
+      if (min_w != 0.)
+      {
+        playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
+        //if(play_w < min_w)
+        {
+          solidPath.lineTo(min_w, 0.);
+        }
+      }
+
+      if(play_w > min_w)
+      {
+        playedDashedPath.moveTo(min_w, 0.);
+        playedDashedPath.lineTo(std::min(def_w, play_w), 0.);
+
+        waitingDashedPath.moveTo(min_w, 0.);
+        waitingDashedPath.lineTo(def_w, 0.);
+      }
+      else
+      {
+        dashedPath.moveTo(min_w, 0.);
+        dashedPath.lineTo(gui_w, 0.);
+      }
+    }
+    else if (min_w == max_w) // TODO rigid()
+    {
+      playedSolidPath.lineTo(std::min(play_w, def_w), 0.);
+      //if(play_w < def_w)
+      {
+        solidPath.lineTo(def_w, 0.);
+      }
+    }
+    else
+    {
+      if (min_w != 0.)
+      {
+        playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
+        //if(play_w < min_w)
+        {
+          solidPath.lineTo(min_w, 0.);
+        }
+      }
+
+      if(play_w > min_w)
+      {
+        playedDashedPath.moveTo(min_w, 0.);
+        playedDashedPath.lineTo(play_w, 0.);
+
+        waitingDashedPath.moveTo(min_w, 0.);
+        waitingDashedPath.lineTo(max_w, 0.);
+      }
+      else
+      {
+        dashedPath.moveTo(min_w, 0.);
+        dashedPath.lineTo(max_w, 0.);
+      }
+    }
+  }
 }
+
+
 void FullViewIntervalView::updatePlayPaths()
 {
+  playedSolidPath = QPainterPath{};
+  playedDashedPath = QPainterPath{};
+  waitingDashedPath = QPainterPath{};
+
+  const qreal min_w = minWidth();
+  const qreal max_w = maxWidth();
+  const qreal def_w = defaultWidth();
+  const qreal play_w = playWidth();
+
+  // Paths
+  if(play_w <= 0.)
+  {
+    return;
+  }
+  else
+  {
+    if (infinite())
+    {
+      if (min_w != 0.)
+      {
+        playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
+      }
+
+      if(play_w > min_w)
+      {
+        playedDashedPath.moveTo(min_w, 0.);
+        playedDashedPath.lineTo(std::min(def_w, play_w), 0.);
+
+        waitingDashedPath.moveTo(min_w, 0.);
+        waitingDashedPath.lineTo(def_w, 0.);
+      }
+    }
+    else if (min_w == max_w) // TODO rigid()
+    {
+      playedSolidPath.lineTo(std::min(play_w, def_w), 0.);
+    }
+    else
+    {
+      if (min_w != 0.)
+      {
+        playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
+      }
+
+      if(play_w > min_w)
+      {
+        playedDashedPath.moveTo(min_w, 0.);
+        playedDashedPath.lineTo(play_w, 0.);
+
+        waitingDashedPath.moveTo(min_w, 0.);
+        waitingDashedPath.lineTo(max_w, 0.);
+      }
+    }
+  }
 }
 
 void FullViewIntervalView::updateOverlayPos()
@@ -53,67 +209,63 @@ QRectF FullViewIntervalView::boundingRect() const
 }
 
 void FullViewIntervalView::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* p, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
+  auto& painter = *p;
   auto& skin = ScenarioStyle::instance();
-  const qreal min_w = minWidth();
-  const qreal max_w = maxWidth();
-  const qreal def_w = defaultWidth();
-  const qreal play_w = playWidth();
+  painter.setRenderHint(QPainter::Antialiasing, false);
 
-  auto& p = *painter;
+  const auto& defaultColor = this->intervalColor(skin);
 
-  p.setRenderHint(QPainter::Antialiasing, false);
+  skin.IntervalSolidPen.setBrush(defaultColor);
+  skin.IntervalDashPen.setBrush(defaultColor);
 
-  QBrush c;
-  if (isSelected())
+  // Drawing
+  if (!solidPath.isEmpty())
   {
-    c = skin.IntervalSelected.getBrush();
-  }
-  else if (parentItem()->isSelected())
-  {
-    c = skin.IntervalFullViewParentSelected.getBrush();
-  }
-  else
-  {
-    c = skin.IntervalBase.getBrush();
+    painter.setPen(skin.IntervalSolidPen);
+    painter.drawPath(solidPath);
   }
 
-  skin.IntervalSolidPen.setBrush(c);
-
-  if (min_w == max_w)
+  if (!dashedPath.isEmpty())
   {
-    p.setPen(skin.IntervalSolidPen);
-    p.drawLine(QPointF{0., 0.}, QPointF{def_w, 0.});
-  }
-  else
-  {
-    // Then the dashed line
-    skin.IntervalDashPen.setBrush(c);
-    p.setPen(skin.IntervalDashPen);
-
-    p.fillRect(QRectF{def_w, (double)IntervalHeaderHeight, m_guiWidth, this->height() - IntervalHeaderHeight}, skin.SlotOverlay.getBrush());
-
-    p.drawLine(QPointF{min_w, 0.}, QPointF{infinite()? m_guiWidth : max_w, 0.});
-
-
-    painter->setPen(skin.FullViewIntervalHeaderSeparator);
-    p.drawLine(QPointF{def_w, (double)IntervalHeaderHeight}, QPointF{m_guiWidth, (double)IntervalHeaderHeight});
-
-    // First the line going from 0 to the min
-    p.setPen(skin.IntervalSolidPen);
-    p.drawLine(QPointF{0., 0.}, QPointF{min_w, 0.});
-
+    painter.setPen(skin.IntervalDashPen);
+    painter.drawPath(dashedPath);
+    skin.IntervalDashPen.setDashOffset(0);
   }
 
-  auto pw = playWidth();
-  if (pw != 0.)
+  if (!playedSolidPath.isEmpty())
   {
     skin.IntervalPlayPen.setBrush(skin.IntervalPlayFill.getBrush());
-    p.setPen(skin.IntervalPlayPen);
-    p.drawLine(QPointF{0., 0.}, QPointF{std::min(play_w, std::max(def_w, max_w)), 0.});
+
+    painter.setPen(skin.IntervalPlayPen);
+    painter.drawPath(playedSolidPath);
   }
 
+  if(!waitingDashedPath.isEmpty())
+  {
+    if(this->m_waiting)
+    {
+      skin.IntervalWaitingDashPen.setBrush(skin.IntervalWaitingDashFill.getBrush());
+      painter.setPen(skin.IntervalWaitingDashPen);
+      painter.drawPath(waitingDashedPath);
+    }
+  }
+
+  if (!playedDashedPath.isEmpty())
+  {
+    if(this->m_waiting)
+    {
+      skin.IntervalPlayDashPen.setBrush(skin.IntervalPlayDashFill.getBrush());
+    }
+    else
+    {
+      skin.IntervalPlayDashPen.setBrush(skin.IntervalPlayFill.getBrush());
+    }
+
+    painter.setPen(skin.IntervalPlayDashPen);
+    painter.drawPath(playedDashedPath);
+  }
 #if defined(SCORE_SCENARIO_DEBUG_RECTS)
   p.setPen(Qt::red);
   p.drawRect(boundingRect());

@@ -24,6 +24,7 @@ TimeSyncModel::TimeSyncModel(
     , m_date{date}
     , m_extent{extent}
 {
+  m_expression = State::defaultFalseExpression();
   metadata().setInstanceName(*this);
   metadata().setColor(ScenarioStyle::instance().TimenodeDefault);
 }

@@ -95,7 +95,7 @@ bool SegmentView::contains(const QPointF& pt) const
 void SegmentView::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  painter->setRenderHint(QPainter::RenderHint::Antialiasing, m_enabled);
+  painter->setRenderHint(QPainter::RenderHint::Antialiasing, m_enabled && m_rect.width() > 10);
   painter->strokePath(m_unstrokedShape, *m_pen);
   painter->setRenderHint(QPainter::RenderHint::Antialiasing, false);
 }

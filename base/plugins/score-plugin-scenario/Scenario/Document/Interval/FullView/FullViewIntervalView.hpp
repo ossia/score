@@ -35,5 +35,7 @@ public:
   void setSelected(bool selected);
 private:
   double m_guiWidth{};
+  QPainterPath solidPath, dashedPath, playedSolidPath, playedDashedPath, waitingDashedPath;
+
 };
 }
