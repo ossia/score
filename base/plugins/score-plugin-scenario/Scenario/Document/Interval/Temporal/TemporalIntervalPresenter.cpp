@@ -297,7 +297,7 @@ void TemporalIntervalPresenter::createSlot(int pos, const Slot& slt)
   {
     SlotPresenter p;
     p.header = new SlotHeader{*this, pos, m_view};
-    p.handle = new SlotHandle{*this, pos, m_handles, m_view};
+    p.handle = new SlotHandle{*this, pos, !m_handles, m_view};
 
     // p.view = new SlotView{};
     m_slots.insert(m_slots.begin() + pos, std::move(p));
