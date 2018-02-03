@@ -109,6 +109,8 @@ LayerPresenter::LayerPresenter(
         m_viewUpdater.updateTimeSync(*m_endNodePresenter);
       });
 
+  m_model.interval().processes.added.connect<LayerPresenter, &LayerPresenter::on_addProcess>(*this);
+  m_model.interval().processes.removed.connect<LayerPresenter, &LayerPresenter::on_removeProcess>(*this);
   connect(
       m_view, &LayerView::askContextMenu, this,
       &LayerPresenter::contextMenuRequested);
@@ -125,6 +127,18 @@ LayerPresenter::LayerPresenter(
   m_intervalPresenter->view()->unsetCursor();
 }
 
+void LayerPresenter::on_addProcess(const Process::ProcessModel& p)
+{
+  QTimer::singleShot(32, this, [=] {
+    setHeight(m_view->height());
+  });
+}
+void LayerPresenter::on_removeProcess(const Process::ProcessModel& p)
+{
+  QTimer::singleShot(32, this, [=] {
+    setHeight(m_view->height());
+  });
+}
 LayerPresenter::~LayerPresenter()
 {
   disconnect(
@@ -156,11 +170,11 @@ void LayerPresenter::setHeight(qreal height)
 {
   m_view->setHeight(height);
   auto& c = m_intervalPresenter->model();
-  auto max_height = height - 65.;
+  auto max_height = height - 85.;
   const auto N = c.smallView().size();
   for(std::size_t i = 0U; i < N; i++)
   {
-    const_cast<Scenario::IntervalModel&>(c).setSlotHeight(Scenario::SlotId{i, Scenario::Slot::SmallView}, max_height / N - 1);
+    const_cast<Scenario::IntervalModel&>(c).setSlotHeight(Scenario::SlotId{i, Scenario::Slot::SmallView}, max_height / N - 30);
   }
 }
 

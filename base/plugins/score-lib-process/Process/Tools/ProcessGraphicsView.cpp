@@ -90,6 +90,7 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
   {
     return;
   }
+
   m_lastwheel = t;
   QPoint d = event->angleDelta();
   QPointF delta = {d.x() / 8., d.y() / 8.};
@@ -103,8 +104,13 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
     emit verticalZoom(delta, mapToScene(event->pos()));
     return;
   }
-
-  QGraphicsView::wheelEvent(event);
+  struct MyWheelEvent : public QWheelEvent
+  {
+      MyWheelEvent(const QWheelEvent& other): QWheelEvent{other}
+      { p.ry() /= 4.; pixelD.ry() /= 4.; angleD /= 4.; qt4D /= 4.; }
+  };
+  MyWheelEvent e{*event};
+  QGraphicsView::wheelEvent(&e);
 }
 
 void ProcessGraphicsView::keyPressEvent(QKeyEvent* event)
