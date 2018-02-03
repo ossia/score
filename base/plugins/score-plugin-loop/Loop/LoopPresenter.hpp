@@ -48,8 +48,9 @@ void clearContentFromSelection(
 namespace Loop
 {
 class LayerPresenter final
-    : public Process::LayerPresenter,
-      public BaseScenarioPresenter<Loop::ProcessModel, Scenario::TemporalIntervalPresenter>
+    : public Process::LayerPresenter
+    , public BaseScenarioPresenter<Loop::ProcessModel, Scenario::TemporalIntervalPresenter>
+    , public Nano::Observer
 {
   Q_OBJECT
   friend class ViewUpdater;
@@ -80,6 +81,8 @@ public:
   void on_zoomRatioChanged(ZoomRatio) override;
   void parentGeometryChanged() override;
 
+  void on_addProcess(const Process::ProcessModel& p);
+  void on_removeProcess(const Process::ProcessModel& p);
   const Loop::ProcessModel& model() const override;
   const Id<Process::ProcessModel>& modelId() const override;
 

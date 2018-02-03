@@ -204,8 +204,22 @@ void IntervalView::updateOverlay()
 }
 void IntervalView::updateLabelPos()
 {
-  m_labelItem.setPos(
-        defaultWidth() / 2. - m_labelItem.boundingRect().width() / 2., -17);
+  const auto defW = defaultWidth();
+  const auto textW = m_labelItem.boundingRect().width();
+  const bool vis = m_labelItem.isVisible();
+  if(defW > textW && !vis)
+  {
+    m_labelItem.setVisible(true);
+    m_labelItem.setPos(defW / 2. - textW / 2., -17);
+  }
+  else if (defW <= textW && vis)
+  {
+    m_labelItem.setVisible(false);
+  }
+  else if(vis)
+  {
+    m_labelItem.setPos(defW / 2. - textW / 2., -17);
+  }
 }
 
 void IntervalView::updateCounterPos()

@@ -78,6 +78,9 @@ void TemporalIntervalHeader::paint(
       m_button->setUnrolled(false);
   }
 
+  if(m_width < 30)
+    return;
+
   // Header
   painter->setPen(skin.IntervalHeaderTextPen);
 

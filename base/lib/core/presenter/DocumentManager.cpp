@@ -438,7 +438,7 @@ Document* DocumentManager::loadFile(
       {
         auto json = QJsonDocument::fromJson(f.readAll());
         bool ok = checkAndUpdateJson(json, ctx);
-        if (ok)
+        if (true || ok)
         {
           doc = loadDocument(
               ctx, fileName, json.object(),

@@ -6,6 +6,7 @@
 #include <QPen>
 #include <cstddef>
 #include <vector>
+#include <ossia/detail/math.hpp>
 
 #include "CurveSegmentModel.hpp"
 #include "CurveSegmentView.hpp"
@@ -110,6 +111,7 @@ void SegmentView::setSelected(bool selected)
 void SegmentView::enable()
 {
   m_enabled = true;
+  updatePoints();
   updatePen();
   update();
 }
@@ -117,6 +119,7 @@ void SegmentView::enable()
 void SegmentView::disable()
 {
   m_enabled = false;
+  updatePoints();
   updatePen();
   update();
 }
@@ -153,7 +156,10 @@ void SegmentView::updatePoints()
     double startx = m_model->start().x() * m_rect.width() / len;
     double scalex = m_rect.width() / len;
 
-    m_model->updateData(std::min(75., std::max(m_rect.width(), 2.))); // Set the number of required points here.
+    if(m_enabled)
+      m_model->updateData(ossia::clamp(m_rect.width(), 2., 75.)); // Set the number of required points here.
+    else
+      m_model->updateData(ossia::clamp(m_rect.width(), 2., 10.)); // Set the number of required points here.
     const auto& pts = m_model->data();
 
     const auto rect_height = m_rect.height();

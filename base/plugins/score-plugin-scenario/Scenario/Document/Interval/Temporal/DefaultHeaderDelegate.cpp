@@ -43,12 +43,12 @@ static QGlyphRun makeGlyphs(const char* glyph)
 
 static const QGlyphRun& fromGlyph()
 {
-  static const QGlyphRun gl{makeGlyphs("→")};
+  static const QGlyphRun gl{makeGlyphs(">")};
   return gl;
 }
 static const QGlyphRun& toGlyph()
 {
-  static const QGlyphRun gl{makeGlyphs("←")};
+  static const QGlyphRun gl{makeGlyphs("<")};
   return gl;
 }
 

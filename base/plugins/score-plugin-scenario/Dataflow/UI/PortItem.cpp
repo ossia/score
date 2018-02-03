@@ -97,8 +97,8 @@ QRectF PortItem::boundingRect() const
 
 void PortItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  static const qreal smallRadius = 3;
-  static const qreal largeRadius = 4;
+  static const qreal smallRadius = 3.;
+  static const qreal largeRadius = 4.;
   static const QRectF smallEllipse{-smallRadius, -smallRadius, 2. * smallRadius, 2. * smallRadius};
   static const QPolygonF smallEllipsePath{[] {
       QPainterPath p;
@@ -131,7 +131,7 @@ void PortItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
       break;
   }
 
-  painter->drawPolygon(m_diam == 6. ? smallEllipse : largeEllipse);
+  painter->drawPolygon(m_diam == 6. ? smallEllipsePath : largeEllipsePath);
   painter->setRenderHint(QPainter::Antialiasing, false);
 }
 
