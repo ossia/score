@@ -135,35 +135,6 @@ struct FaustUpdateUI final : public PathBuilder, public UI
     { addHorizontalBargraph(label, zone, min, max); }
 };
 
-struct FaustEditDialog : public QDialog
-{
-    const FaustEffectModel& m_effect;
-
-    QPlainTextEdit* m_textedit{};
-  public:
-    FaustEditDialog(const FaustEffectModel& fx):
-      m_effect{fx}
-    {
-      auto lay = new QVBoxLayout;
-      this->setLayout(lay);
-
-      m_textedit = new QPlainTextEdit{m_effect.text()};
-
-      lay->addWidget(m_textedit);
-      auto bbox = new QDialogButtonBox{
-                  QDialogButtonBox::Ok | QDialogButtonBox::Cancel};
-      lay->addWidget(bbox);
-      connect(bbox, &QDialogButtonBox::accepted,
-              this, &QDialog::accept);
-      connect(bbox, &QDialogButtonBox::rejected,
-              this, &QDialog::reject);
-    }
-
-    QString text() const
-    {
-      return m_textedit->document()->toPlainText();
-    }
-};
 
 FaustEffectModel::FaustEffectModel(
     TimeVal t,
@@ -285,22 +256,35 @@ void FaustEffectModel::reload()
     faust_object->buildUserInterface(&ui);
   }
 }
-/*
-void FaustEffectModel::showUI()
+
+FaustEditDialog::FaustEditDialog(const FaustEffectModel& fx, const score::DocumentContext& ctx, QWidget* parent):
+  QDialog{parent}
+  , m_effect{fx}
 {
-  FaustEditDialog edit{*this};
-  auto res = edit.exec();
-  if(res)
-  {
-    CommandDispatcher<>{score::IDocument::documentContext(*this).commandStack}.submitCommand(new Media::Commands::EditFaustEffect{*this, edit.text()});
-  }
+  auto lay = new QVBoxLayout;
+  this->setLayout(lay);
+
+  m_textedit = new QPlainTextEdit{m_effect.text()};
+
+  lay->addWidget(m_textedit);
+  auto bbox = new QDialogButtonBox{
+      QDialogButtonBox::Ok | QDialogButtonBox::Close};
+  lay->addWidget(bbox);
+  connect(bbox, &QDialogButtonBox::accepted,
+          this, [&] {
+    CommandDispatcher<>{ctx.commandStack}.submitCommand(
+          new Media::Commands::EditFaustEffect{fx, text()});
+  });
+  connect(bbox, &QDialogButtonBox::rejected,
+          this, &QDialog::reject);
 }
 
-void FaustEffectModel::hideUI()
+QString FaustEditDialog::text() const
 {
-
+  return m_textedit->document()->toPlainText();
 }
-*/
+
+
 }
 
 template <>
@@ -513,5 +497,7 @@ Engine::Execution::FaustEffectComponent::FaustEffectComponent(
     }
   }
 }
+
+
 
 }

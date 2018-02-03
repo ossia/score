@@ -172,9 +172,11 @@ void LayerPresenter::setHeight(qreal height)
   auto& c = m_intervalPresenter->model();
   auto max_height = height - 85.;
   const auto N = c.smallView().size();
+  const auto slot_height = std::max(20., max_height / double(N) - 30.);
+  auto& itv = const_cast<Scenario::IntervalModel&>(c);
   for(std::size_t i = 0U; i < N; i++)
   {
-    const_cast<Scenario::IntervalModel&>(c).setSlotHeight(Scenario::SlotId{i, Scenario::Slot::SmallView}, max_height / N - 30);
+    itv.setSlotHeight(Scenario::SlotId{i, Scenario::Slot::SmallView}, slot_height);
   }
 }
 

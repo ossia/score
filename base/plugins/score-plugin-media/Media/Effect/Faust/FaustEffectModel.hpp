@@ -4,6 +4,7 @@
 #include <Media/Effect/DefaultEffectItem.hpp>
 #include <Media/Effect/EffectExecutor.hpp>
 #include <Process/GenericProcessFactory.hpp>
+#include <QDialog>
 
 class llvm_dsp_factory;
 class llvm_dsp;
@@ -74,11 +75,22 @@ inline QString EffectProcessFactory_T<Media::Faust::FaustEffectModel>::customCon
   return "process = _;";
 }
 }
-
+class QPlainTextEdit;
 namespace Media::Faust
 {
+struct FaustEditDialog : public QDialog
+{
+    const FaustEffectModel& m_effect;
+
+    QPlainTextEdit* m_textedit{};
+  public:
+    FaustEditDialog(const FaustEffectModel& e, const score::DocumentContext& ctx, QWidget* parent);
+
+    QString text() const;
+};
+
 using FaustEffectFactory = Process::EffectProcessFactory_T<FaustEffectModel>;
-using LayerFactory = Process::EffectLayerFactory_T<FaustEffectModel, Media::Effect::DefaultEffectItem>;
+using LayerFactory = Process::EffectLayerFactory_T<FaustEffectModel, Media::Effect::DefaultEffectItem, FaustEditDialog>;
 
 }
 
