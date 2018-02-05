@@ -123,7 +123,8 @@ JSONObjectWriter::write(Scenario::StateModel& s)
   // Processes plugins
   auto& pl = components.interfaces<Process::ProcessFactoryList>();
 
-  QJsonArray process_array = obj[strings.StateProcesses].toArray();
+  const QJsonArray process_array = obj[strings.StateProcesses].toArray();
+  qDebug() << process_array;
   for (const auto& json_vref : process_array)
   {
     JSONObject::Deserializer deserializer{json_vref.toObject()};

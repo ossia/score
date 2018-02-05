@@ -15,14 +15,33 @@ namespace Midi
 {
 namespace Executor
 {
-class midi_node final
-    : public ossia::graph_node
+struct note_data
 {
+    int64_t start{};
+    int64_t duration{};
+
+    midi_size_t pitch{};
+    midi_size_t velocity{};
+};
+struct note_comparator
+{
+  bool operator()(const note_data& lhs, const note_data& rhs) const
+  {
+    return lhs.start < rhs.start;
+  }
+  bool operator()(const note_data& lhs, int64_t rhs) const {
+    return lhs.start < rhs;
+  }
+};
+class midi_node final
+    : public ossia::nonowning_graph_node
+{
+    ossia::outlet midi_out{ossia::midi_port{}};
   public:
-    using note_set = boost::container::flat_multiset<NoteData, NoteComparator>;
+    using note_set = boost::container::flat_multiset<note_data, note_comparator>;
     midi_node()
     {
-      m_outlets.push_back(ossia::make_outlet<ossia::midi_port>());
+      m_outlets.push_back(&midi_out);
       m_notes.reserve(128);
       m_orig_notes.reserve(128);
       m_playingnotes.reserve(128);
@@ -36,16 +55,16 @@ class midi_node final
 
     void set_channel(int c) { m_channel = c; }
 
-    void add_note(NoteData nd)
+    void add_note(note_data nd)
     {
       m_orig_notes.insert(nd);
-      if(nd.start() > m_lastPos)
+      if(nd.start > m_lastPos)
       {
         m_notes.insert(nd);
       }
     }
 
-    void remove_note(NoteData nd)
+    void remove_note(note_data nd)
     {
       m_orig_notes.erase(nd);
       m_notes.erase(nd);
@@ -57,7 +76,7 @@ class midi_node final
       }
     }
 
-    void update_note(NoteData oldNote, NoteData newNote)
+    void update_note(note_data oldNote, note_data newNote)
     {
       // OPTIMIZEME
       remove_note(oldNote);
@@ -69,7 +88,7 @@ class midi_node final
       m_notes = std::move(notes);
       m_orig_notes = m_notes;
 
-      auto max_it = std::lower_bound(m_notes.begin(), m_notes.end(), m_lastPos, NoteComparator{});
+      auto max_it = std::lower_bound(m_notes.begin(), m_notes.end(), m_lastPos, note_comparator{});
       m_notes.erase(m_notes.begin(), max_it);
     }
 
@@ -77,13 +96,15 @@ class midi_node final
   private:
     void run(ossia::token_request t, ossia::execution_state& e) override
     {
-      auto& outlet = *m_outlets[0];
-      ossia::midi_port* mp = outlet.data.target<ossia::midi_port>();
+      ossia::midi_port* mp = midi_out.data.target<ossia::midi_port>();
 
       if(mustStop)
       {
         for(auto& note : m_playingnotes)
-          mp->messages.push_back(mm::MakeNoteOff(m_channel, note.pitch(), note.velocity()));
+        {
+          mp->messages.push_back(mm::MakeNoteOff(m_channel, note.pitch, note.velocity));
+          mp->messages.back().timestamp = t.offset;
+        }
 
         m_notes = m_orig_notes;
         m_playingnotes.clear();
@@ -92,45 +113,22 @@ class midi_node final
       }
       else
       {
-        if (t.date != m_prev_date)
+        if (t.date > m_prev_date)
         {
           if (m_prev_date > t.date)
             m_prev_date = 0;
 
-          auto diff = norm(t.date, m_prev_date) / (t.date / t.position);
-          m_prev_date = t.date;
-          auto cur_pos = t.position;
-          auto max_pos = cur_pos + diff;
-
-          // Look for all the messages
-          auto max_it = std::lower_bound(m_notes.begin(), m_notes.end(), max_pos + 1, NoteComparator{});
-          for(auto it = m_notes.begin(); it < max_it; )
-          {
-            NoteData& note = *it;
-            auto start_time = note.start();
-            if (start_time >= cur_pos && start_time < max_pos)
-            {
-              // Send note_on
-              mp->messages.push_back(mm::MakeNoteOn(m_channel, note.pitch(), note.velocity()));
-
-              m_playingnotes.insert(note);
-              it = m_notes.erase(it);
-              max_it = std::lower_bound(it, m_notes.end(), max_pos + 1, NoteComparator{});
-            }
-            else
-            {
-              ++it;
-            }
-          }
-
+          // First send note offs
           for(auto it = m_playingnotes.begin(); it != m_playingnotes.end(); )
           {
-            NoteData& note = *it;
-            auto end_time = note.end();
+            note_data& note = *it;
+            auto end_time = note.start + note.duration;
 
-            if (end_time >= cur_pos && end_time < max_pos)
+            if (end_time >= m_prev_date && end_time < t.date)
             {
-              mp->messages.push_back(mm::MakeNoteOff(m_channel, note.pitch(), note.velocity()));
+              mp->messages.push_back(mm::MakeNoteOff(m_channel, note.pitch, note.velocity));
+              mp->messages.back().timestamp = t.offset + (end_time - m_prev_date);
+
 
               it = m_playingnotes.erase(it);
             }
@@ -139,12 +137,38 @@ class midi_node final
               ++it;
             }
           }
+
+          // Look for all the messages
+          auto max_it = std::lower_bound(m_notes.begin(), m_notes.end(), t.date, note_comparator{});
+          for(auto it = m_notes.begin(); it < max_it; )
+          {
+            note_data& note = *it;
+            auto start_time = note.start;
+            if (start_time >= m_prev_date && start_time < t.date)
+            {
+              // Send note_on
+              mp->messages.push_back(mm::MakeNoteOn(m_channel, note.pitch, note.velocity));
+              mp->messages.back().timestamp = t.offset + (start_time - m_prev_date);
+
+              m_playingnotes.insert(note);
+              it = m_notes.erase(it);
+              max_it = std::lower_bound(it, m_notes.end(), t.date + int64_t{1}, note_comparator{});
+            }
+            else
+            {
+              ++it;
+            }
+          }
+
+
+          m_prev_date = t.date;
         }
       }
 
-      for(const NoteData& note : m_toStop)
+      for(const note_data& note : m_toStop)
       {
-        mp->messages.push_back(mm::MakeNoteOff(m_channel, note.pitch(), note.velocity()));
+        mp->messages.push_back(mm::MakeNoteOff(m_channel, note.pitch, note.velocity));
+        mp->messages.back().timestamp = t.offset;
       }
       m_toStop.clear();
 
@@ -190,14 +214,19 @@ Component::Component(
     midi_node::note_set notes;
     notes.reserve(element.notes.size());
     ossia::transform(element.notes, std::inserter(notes, notes.begin()),
-                     [] (const Note& n) {
+                     [&] (const Note& n) {
       auto data = n.noteData();
-      if(data.start() < 0 && data.end() > 0 && data.start() > -0.01)
+      if(data.start() < 0 && data.end() > 0)
+      {
         data.setStart(0.);
-      return data;
+        data.setDuration(data.duration() + data.start());
+      }
+      return to_note(data);
     });
 
-    in_exec([n=std::move(notes), midi] () mutable {
+    for(auto& note : notes)
+      std::cerr << note.start << " " << note.duration << "\n";
+     in_exec([n=std::move(notes), midi] () mutable {
       midi->set_notes(std::move(n));
     });
   };
@@ -209,9 +238,9 @@ Component::Component(
   for(auto& note : element.notes)
   {
     QObject::connect(&note, &Note::noteChanged,
-            this, [&,midi,cur=note.noteData()] () mutable {
+            this, [&,midi,cur=to_note(note.noteData())] () mutable {
       auto old = cur;
-      cur = note.noteData();
+      cur = to_note(note.noteData());
       in_exec([old, cur, midi] {
         midi->update_note(old, cur);
       });
@@ -229,14 +258,14 @@ Component::~Component()
 void Component::on_noteAdded(const Note& n)
 {
   auto midi = std::dynamic_pointer_cast<midi_node>(node);
-  in_exec([nd=n.noteData(), midi] {
+  in_exec([nd=to_note(n.noteData()), midi] {
     midi->add_note(nd);
   });
 
   QObject::connect(&n, &Note::noteChanged,
-          this, [&,midi,cur=n.noteData()] () mutable {
+          this, [&,midi,cur=to_note(n.noteData())] () mutable {
     auto old = cur;
-    cur = n.noteData();
+    cur = to_note(n.noteData());
     in_exec([old, cur, midi] {
       midi->update_note(old, cur);
     });
@@ -246,9 +275,14 @@ void Component::on_noteAdded(const Note& n)
 void Component::on_noteRemoved(const Note& n)
 {
   auto midi = std::dynamic_pointer_cast<midi_node>(node);
-  in_exec([nd=n.noteData(), midi] {
+  in_exec([nd=to_note(n.noteData()), midi] {
     midi->remove_note(nd);
   });
+}
+
+note_data Component::to_note(const NoteData& n) {
+  auto& cv_time = system().time;
+  return note_data{ cv_time(process().duration() * n.start()), cv_time(process().duration() * n.duration()), n.pitch(), n.velocity() };
 }
 
 

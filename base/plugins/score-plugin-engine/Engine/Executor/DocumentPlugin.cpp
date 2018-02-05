@@ -219,7 +219,7 @@ void DocumentPlugin::timerEvent(QTimerEvent* event)
 void DocumentPlugin::makeGraph()
 {
   auto g = std::make_shared<ossia::tc_graph>();
-  g->logger = spdlog::get("ossia");
+  g->logger = ossia::logger_ptr();
   execGraph = g;
 }
 void DocumentPlugin::reload(Scenario::IntervalModel& cst)

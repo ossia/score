@@ -51,12 +51,28 @@ public:
 
   void setRange(int min, int max)
   {
-    min = std::max(0, min);
-    max = std::min(127, max);
-    if(min >= max)
+    if(min == max)
     {
-      min = std::max(0, max - 7);
-      max = std::min(127, min + 14);
+      min = 127;
+      max = 0;
+
+      for(auto& note : notes)
+      {
+        if(note.pitch() < min)
+          min = note.pitch();
+        if(note.pitch() > max)
+          max = note.pitch();
+      }
+    }
+    else
+    {
+      min = std::max(0, min);
+      max = std::min(127, max);
+      if(min >= max)
+      {
+        min = std::max(0, max - 7);
+        max = std::min(127, min + 14);
+      }
     }
 
     std::pair<int,int> range{min, max};
