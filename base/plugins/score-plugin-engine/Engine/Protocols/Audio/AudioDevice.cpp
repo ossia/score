@@ -17,6 +17,9 @@
 #include <ossia/dataflow/audio_parameter.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#if __has_include(<pa_jack.h>)
+#include <pa_jack.h>
+#endif
 namespace Dataflow
 {
 AudioDevice::AudioDevice(
@@ -36,6 +39,9 @@ AudioDevice::AudioDevice(
   m_capas.canSerialize = false;
 
   reconnect();
+#if __has_include(<pa_jack.h>)
+    PaJack_SetClientName("i-score");
+#endif
 }
 
 void AudioDevice::addAddress(const Device::FullAddressSettings& settings)
@@ -87,6 +93,7 @@ bool AudioDevice::reconnect()
         = settings().deviceSpecificSettings.value<AudioSpecificSettings>();
 
     auto& proto = static_cast<ossia::audio_protocol&>(m_dev.get_protocol());
+
     proto.rate = stgs.rate;
     proto.bufferSize = stgs.bufferSize;
     proto.reload();

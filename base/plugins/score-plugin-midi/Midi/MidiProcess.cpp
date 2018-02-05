@@ -227,9 +227,6 @@ void JSONObjectWriter::write(Midi::ProcessModel& proc)
       proc.outlet->setAddress(fromJsonObject<State::AddressAccessor>(obj[strings.Address].toObject()));
     }
   }
-  proc.setDevice(obj["Device"].toString());
-  proc.setChannel(obj["Channel"].toInt());
-  proc.setRange(obj["Min"].toInt(), obj["Max"].toInt());
 
   for (const auto& json_vref : obj["Notes"].toArray())
   {
@@ -237,4 +234,9 @@ void JSONObjectWriter::write(Midi::ProcessModel& proc)
                                &proc};
     proc.notes.add(note);
   }
+
+  proc.setDevice(obj["Device"].toString());
+  proc.setChannel(obj["Channel"].toInt());
+  proc.setRange(obj["Min"].toInt(), obj["Max"].toInt());
+
 }

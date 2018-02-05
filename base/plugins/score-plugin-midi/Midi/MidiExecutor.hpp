@@ -26,7 +26,7 @@ namespace Midi
 class ProcessModel;
 namespace Executor
 {
-
+struct note_data;
 class Component final
     : public ::Engine::Execution::
           ProcessComponent_T<Midi::ProcessModel, ossia::node_process>
@@ -45,6 +45,9 @@ public:
   private:
   void on_noteAdded(const Midi::Note&);
   void on_noteRemoved(const Midi::Note&);
+
+  note_data to_note(const NoteData& n);
+
 };
 
 using ComponentFactory
