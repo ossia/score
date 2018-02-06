@@ -196,6 +196,16 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
         *sm, m_parent->currentDocument()->context().commandStack);
   });
 
+  // Duplicate
+  m_duplicate = new QAction{this};
+  connect(m_duplicate, &QAction::triggered, [this]() {
+    auto sm = focusedScenarioModel(m_parent->currentDocument()->context());
+    SCORE_ASSERT(sm);
+
+    Scenario::Duplicate(
+        *sm, m_parent->currentDocument()->context().commandStack);
+  });
+
   if(parent->context.mainWindow)
   {
     auto doc = parent->context.mainWindow->findChild<QWidget*>("Documents", Qt::FindDirectChildrenOnly);
@@ -258,6 +268,7 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   actions.add<Actions::MergeTimeSyncs>(m_mergeTimeSyncs);
   actions.add<Actions::MergeEvents>(m_mergeEvents);
   actions.add<Actions::Encapsulate>(m_encapsulate);
+  actions.add<Actions::Duplicate>(m_duplicate);
 
   scenariomodel_cond.add<Actions::RemoveElements>();
   scenariomodel_cond.add<Actions::MergeTimeSyncs>();
@@ -281,6 +292,7 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   object.menu()->addAction(m_mergeTimeSyncs);
   object.menu()->addAction(m_mergeEvents);
   object.menu()->addAction(m_encapsulate);
+  object.menu()->addAction(m_duplicate);
   m_eventActions.makeGUIElements(e);
   m_cstrActions.makeGUIElements(e);
   m_stateActions.makeGUIElements(e);
@@ -297,7 +309,6 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   scenariodocument_cond.add<Actions::SelectAll>();
   scenariodocument_cond.add<Actions::DeselectAll>();
   scenariodocument_cond.add<Actions::SelectTop>();
-
 }
 
 void ObjectMenuActions::setupContextMenu(
@@ -327,6 +338,7 @@ void ObjectMenuActions::setupContextMenu(
       objectMenu->addAction(m_cutContent);
       objectMenu->addAction(m_pasteContent);
       objectMenu->addAction(m_encapsulate);
+      objectMenu->addAction(m_duplicate);
     }
 
     auto pasteElements = new QAction{tr("Paste element(s)"), this};

@@ -127,7 +127,7 @@ public:
 
     updateEventExtent(m_eventId, scenario);
 
-    Dataflow::restoreCables(m_savedElementsProperties.cables, ctx);
+    //Dataflow::restoreCables(m_savedElementsProperties.cables, ctx);
   }
 
   void redo(const score::DocumentContext& ctx) const override

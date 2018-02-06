@@ -15,7 +15,7 @@
 #include <Process/ProcessList.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
-
+#include <score/tools/MapCopy.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
 
 namespace Scenario
@@ -159,9 +159,17 @@ public:
       // during this command.
 
       // 1. Clear the interval
-      // TODO Don't use a command since it serializes a ton of unused stuff.
-      Command::ClearInterval clear_cmd{curIntervalToUpdate};
-      clear_cmd.redo(ctx);
+      {
+        curIntervalToUpdate.clearSmallView();
+
+        // We make copies since the iterators might change.
+        // TODO check if this is still valid wrt boost::multi_index
+        auto processes = shallow_copy(curIntervalToUpdate.processes);
+        for (auto process : processes)
+        {
+          RemoveProcess(curIntervalToUpdate, process->id());
+        }
+      }
 
       // 2. Restore the rackes & processes.
       // Restore the interval. The saving is done in

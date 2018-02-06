@@ -190,4 +190,7 @@ EncapsData EncapsulateElements(
 void EncapsulateInScenario(
     const ProcessModel& scenar,
     const score::CommandStackFacade& stack);
+void Duplicate(
+    const ProcessModel& scenar,
+    const score::CommandStackFacade& stack);
 }
