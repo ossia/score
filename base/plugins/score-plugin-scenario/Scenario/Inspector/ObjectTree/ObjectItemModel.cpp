@@ -439,7 +439,7 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
 
   if(index.column() == 0)
   {
-    if(role == Qt::DisplayRole)
+    if(role == Qt::DisplayRole || role == Qt::EditRole)
     {
       if(auto cst = qobject_cast<Scenario::IntervalModel*>(sel))
       {
@@ -580,22 +580,28 @@ bool ObjectItemModel::setData(const QModelIndex& index, const QVariant& value, i
       return {};
 
     CommandDispatcher<> disp{m_ctx.commandStack};
-    // TODO
-    /*
 
     if(auto cst = qobject_cast<Scenario::IntervalModel*>(sel))
     {
+      disp.submitCommand<Command::ChangeElementName<Scenario::IntervalModel>>(*cst, value.toString());
+      return true;
     }
     else if(auto ev = qobject_cast<Scenario::EventModel*>(sel))
     {
+      disp.submitCommand<Command::ChangeElementName<Scenario::EventModel>>(*ev, value.toString());
+      return true;
     }
     else if(auto tn = qobject_cast<Scenario::TimeSyncModel*>(sel))
     {
+      disp.submitCommand<Command::ChangeElementName<Scenario::TimeSyncModel>>(*tn, value.toString());
+      return true;
     }
     else if(auto st = qobject_cast<Scenario::StateModel*>(sel))
     {
+      disp.submitCommand<Command::ChangeElementName<Scenario::StateModel>>(*st, value.toString());
+      return true;
     }
-    else */if(auto p = qobject_cast<Process::ProcessModel*>(sel))
+    else if(auto p = qobject_cast<Process::ProcessModel*>(sel))
     {
       disp.submitCommand<Command::ChangeElementName<Process::ProcessModel>>(*p, value.toString());
       return true;
