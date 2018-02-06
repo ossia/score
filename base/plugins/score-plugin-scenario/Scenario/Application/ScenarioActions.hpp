@@ -143,6 +143,8 @@ SCORE_DECLARE_ACTION(
 
 SCORE_DECLARE_ACTION(
     Encapsulate, "&Encapsulate", Scenario, Qt::SHIFT + Qt::CTRL + Qt::Key_E)
+SCORE_DECLARE_ACTION(
+    Duplicate, "&Duplicate", Scenario, Qt::ALT + Qt::Key_D)
 
 // Navigation
 SCORE_DECLARE_ACTION(MoveUp, "&Move up", Scenario, Qt::UpArrow)

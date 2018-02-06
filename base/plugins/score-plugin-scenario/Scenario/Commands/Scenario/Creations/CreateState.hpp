@@ -25,8 +25,12 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateState final
 public:
   CreateState(
       const Scenario::ProcessModel& scenario,
-      Id<EventModel>
-          event,
+      Id<EventModel> event,
+      double stateY);
+  CreateState(
+      const Scenario::ProcessModel& scenario,
+      Id<StateModel> newId,
+      Id<EventModel> event,
       double stateY);
 
   const Path<Scenario::ProcessModel>& scenarioPath() const

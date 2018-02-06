@@ -1,4 +1,7 @@
+#include "DuplicateInterval.hpp"
 #include "Encapsulate.hpp"
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 
 namespace Scenario
 {
@@ -44,6 +47,21 @@ void EncapsulateInScenario(
   }
 
   disp.commit();
+}
+
+
+void Duplicate(
+    const ProcessModel& scenar,
+    const score::CommandStackFacade& stack)
+{
+  using namespace Command;
+  CategorisedScenario cat{scenar};
+  if(cat.selectedIntervals.empty())
+    return;
+
+  auto cmd = new DuplicateInterval{scenar, *cat.selectedIntervals.front()};
+  CommandDispatcher<> d{stack};
+  d.submitCommand(cmd);
 }
 
 }

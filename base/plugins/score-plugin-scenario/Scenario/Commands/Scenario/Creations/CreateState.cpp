@@ -35,6 +35,18 @@ CreateState::CreateState(
     , m_stateY{stateY}
 {
 }
+CreateState::CreateState(
+    const Scenario::ProcessModel& scenario,
+    Id<StateModel> newId,
+    Id<EventModel> event,
+    double stateY)
+  : m_path{scenario}
+  , m_createdName{RandomNameProvider::generateName<StateModel>()}
+  , m_newState{newId}
+  , m_event{std::move(event)}
+  , m_stateY{stateY}
+{
+}
 
 void CreateState::undo(const score::DocumentContext& ctx) const
 {
