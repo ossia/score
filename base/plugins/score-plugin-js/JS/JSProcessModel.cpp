@@ -129,6 +129,7 @@ void ProcessModel::setScript(const QString& script)
           for(const auto& cbl : oldOutletCable[i])
             in->addCable(cbl);
         }
+        i++;
       }
       emit scriptChanged(script);
       emit inletsChanged();
