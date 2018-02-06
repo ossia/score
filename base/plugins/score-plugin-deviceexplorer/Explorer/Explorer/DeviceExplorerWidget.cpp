@@ -743,7 +743,8 @@ void DeviceExplorerWidget::refreshValue()
 
   auto expl = model();
 
-  for (auto index : m_ntView->selectedIndexes())
+  const auto& indices = m_ntView->selectedIndexes();
+  for (auto index : indices)
   {
     // Model checks
     index = sourceIndex(index);
