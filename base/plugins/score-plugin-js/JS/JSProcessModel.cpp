@@ -123,7 +123,7 @@ void ProcessModel::setScript(const QString& script)
       i = 0;
       for(Process::Outlet* in : m_outlets)
       {
-        if(i < oldInletAddresses.size())
+        if(i < oldOutletAddresses.size())
         {
           in->setAddress(oldOutletAddresses[i]);
           for(const auto& cbl : oldOutletCable[i])

@@ -27,7 +27,8 @@ DefaultEffectItem::DefaultEffectItem(
 
   QObject::connect(&effect, &Process::ProcessModel::inletsChanged,
                    this, [&] {
-    for(auto child : this->childItems())
+    const auto& c = this->childItems();
+    for(auto child : c)
     {
       this->scene()->removeItem(child);
       delete child;
