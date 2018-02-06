@@ -62,6 +62,8 @@ void DefaultEffectItem::setupInlet(Process::ControlInlet& inlet, const score::Do
     lab->setText(tr("Control"));
   else
     lab->setText(inlet.customData());
+  connect(&inlet, &Process::ControlInlet::customDataChanged,
+          item, [=] (const QString& txt){ lab->setText(txt); });
   lab->setPos(15, 2);
 
   QGraphicsItem* widg{};
