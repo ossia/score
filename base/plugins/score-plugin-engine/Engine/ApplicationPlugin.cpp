@@ -389,15 +389,15 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     local_play_address->set_value(bool{false});
     local_play_address->set_access(ossia::access_mode::SET);
     local_play_address->add_callback([&](const ossia::value& v) {
-      ossia::qt::run_async(this, [&] {
+      ossia::qt::run_async(this, [=] {
       if (auto val = v.target<bool>())
       {
-        if (!appplug.playing() && *val)
+        if (!playing() && *val)
         {
           // not playing, play requested
           if(context.applicationSettings.gui)
           {
-            auto& play_action = appplug.context.actions.action<Actions::Play>();
+            auto& play_action = context.actions.action<Actions::Play>();
             play_action.action()->trigger();
           }
           else
@@ -405,9 +405,9 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
             this->on_play(true);
           }
         }
-        else if (appplug.playing())
+        else if (playing())
         {
-          if (appplug.paused() == *val)
+          if (paused() == *val)
           {
             // paused, play requested
             // or playing, pause requested
@@ -415,7 +415,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
             if(context.applicationSettings.gui)
             {
               auto& play_action
-                  = appplug.context.actions.action<Actions::Play>();
+                  = context.actions.action<Actions::Play>();
               play_action.action()->trigger();
             }
             else
@@ -436,10 +436,10 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     local_stop_address->set_value(ossia::impulse{});
     local_stop_address->set_access(ossia::access_mode::SET);
     local_stop_address->add_callback([&](const ossia::value&) {
-      ossia::qt::run_async(this, [&] {
+      ossia::qt::run_async(this, [=] {
       if(context.applicationSettings.gui)
       {
-        auto& stop_action = appplug.context.actions.action<Actions::Stop>();
+        auto& stop_action = context.actions.action<Actions::Stop>();
         stop_action.action()->trigger();
       }
       else
@@ -456,10 +456,10 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     address->set_value(ossia::impulse{});
     address->set_access(ossia::access_mode::SET);
     address->add_callback([&](const ossia::value&) {
-      ossia::qt::run_async(this, [&] {
+      ossia::qt::run_async(this, [=] {
       if(context.applicationSettings.gui)
       {
-        auto& stop_action = appplug.context.actions.action<Actions::Stop>();
+        auto& stop_action = context.actions.action<Actions::Stop>();
         stop_action.action()->trigger();
       }
       else
