@@ -114,9 +114,20 @@ void ScenarioDocumentModel::finishLoading()
   for (const auto& json_vref : cbl)
   {
     auto cbl = new Process::Cable{JSONObject::Deserializer{json_vref.toObject()}, this};
-    cbl->source().find(m_context).addCable(*cbl);
-    cbl->sink().find(m_context).addCable(*cbl);
-    cables.add(cbl);
+    auto src = cbl->source().try_find(m_context);
+    auto snk = cbl->sink().try_find(m_context);
+    if(src && snk)
+    {
+      src->addCable(*cbl);
+      snk->addCable(*cbl);
+
+      cables.add(cbl);
+    }
+    else
+    {
+      qWarning() << "Could not find either source or sink for cable " << cbl->id() << src << snk;
+      delete cbl;
+    }
   }
   m_savedCables = QJsonArray{};
 }
