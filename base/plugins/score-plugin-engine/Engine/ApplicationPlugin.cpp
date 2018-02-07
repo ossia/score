@@ -70,6 +70,21 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
           play_action.action(), &QAction::triggered, this,
           [&](bool b) { on_play(b); }, Qt::QueuedConnection);
 
+    auto& play_glob_action = ctx.actions.action<Actions::PlayGlobal>();
+    connect(
+          play_glob_action.action(), &QAction::triggered, this,
+          [&](bool b) {
+      if (auto doc = currentDocument())
+      {
+        auto& mod = doc->model().modelDelegate();
+        auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&mod);
+        if(scenar)
+        {
+          on_play(scenar->baseInterval(), b, {}, TimeVal::zero());
+        }
+      }
+    }, Qt::QueuedConnection);
+
     auto& stop_action = ctx.actions.action<Actions::Stop>();
     connect(
           stop_action.action(), &QAction::triggered, this,

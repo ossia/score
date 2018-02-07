@@ -75,6 +75,7 @@ SCORE_DECLARE_ACTION(
 
 // Transport
 SCORE_DECLARE_ACTION(Play, "&Play", Scenario, Qt::Key_Space)
+SCORE_DECLARE_ACTION(PlayGlobal, "&Play (Global)", Scenario, Qt::Key_Shift + Qt::Key_Space)
 SCORE_DECLARE_ACTION(Stop, "&Stop", Scenario, Qt::Key_Return)
 SCORE_DECLARE_ACTION(GoToStart, "&Go to Start", Scenario, Qt::Key_Back)
 SCORE_DECLARE_ACTION(GoToEnd, "Go to &End", Scenario, Qt::Key_Forward)
