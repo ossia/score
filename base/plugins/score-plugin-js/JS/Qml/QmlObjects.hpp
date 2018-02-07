@@ -11,20 +11,56 @@ namespace JS
 class Inlet: public QObject
 {
     Q_OBJECT
-  public:
+  Q_PROPERTY(QString address READ address WRITE setAddress NOTIFY addressChanged)
+  QString m_address;
+
+public:
     using QObject::QObject;
     virtual ~Inlet() override;
     virtual Process::Inlet* make(Id<Process::Port>&& id, QObject*) = 0;
 
+  QString address() const
+  {
+    return m_address;
+  }
+public slots:
+  void setAddress(QString address)
+  {
+    if (m_address == address)
+      return;
+
+    m_address = address;
+    emit addressChanged(m_address);
+  }
+signals:
+  void addressChanged(QString address);
 };
 class Outlet: public QObject
 {
     Q_OBJECT
-  public:
+  Q_PROPERTY(QString address READ address WRITE setAddress NOTIFY addressChanged)
+  QString m_address;
+
+public:
     using QObject::QObject;
     virtual ~Outlet() override;
     virtual Process::Outlet* make(Id<Process::Port>&& id, QObject*) = 0;
 
+  QString address() const
+  {
+    return m_address;
+  }
+public slots:
+  void setAddress(QString address)
+  {
+    if (m_address == address)
+      return;
+
+    m_address = address;
+    emit addressChanged(m_address);
+  }
+signals:
+  void addressChanged(QString address);
 };
 struct ValueMessage
 {
