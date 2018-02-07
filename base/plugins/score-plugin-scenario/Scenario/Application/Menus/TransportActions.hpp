@@ -27,6 +27,7 @@ private:
   const score::GUIApplicationContext& m_context;
 
   QAction* m_play{};
+  QAction* m_playGlobal{};
   QAction* m_stop{};
   // QAction* m_goToStart{};
   // QAction* m_goToEnd{};
