@@ -5,7 +5,7 @@ score_common_setup()
 
 # Packages
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
-
+find_package(TBB)
 # Files & main target
 set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/CurveConversion.hpp"
@@ -285,4 +285,7 @@ target_link_libraries(${PROJECT_NAME}
           ossia
 )
 
+if(TARGET tbb)
+  target_link_libraries(${PROJECT_NAME} PRIVATE tbb)
+endif()
 setup_score_plugin(${PROJECT_NAME})

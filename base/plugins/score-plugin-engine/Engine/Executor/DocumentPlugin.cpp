@@ -23,6 +23,7 @@
 #include <ossia/dataflow/graph/graph.hpp>
 #include <ossia/dataflow/graph/graph_static.hpp>
 #include <spdlog/spdlog.h>
+#include <ossia/dataflow/graph/graph_parallel.hpp>
 namespace Engine
 {
 namespace Execution
@@ -218,7 +219,7 @@ void DocumentPlugin::timerEvent(QTimerEvent* event)
 
 void DocumentPlugin::makeGraph()
 {
-  auto g = std::make_shared<ossia::tc_graph>();
+  auto g = std::make_shared<ossia::parallel_tc_graph>();
   g->logger = ossia::logger_ptr();
   execGraph = g;
 }
