@@ -21,7 +21,11 @@
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/range/algorithm/copy.hpp>
 #include <ossia/detail/math.hpp>
-
+#include <QInputDialog>
+#include <QMenu>
+#include <QAction>
+#include <QApplication>
+#include <Process/Layer/LayerContextMenu.hpp>
 namespace Midi
 {
 Presenter::Presenter(
@@ -87,6 +91,28 @@ Presenter::Presenter(
   {
     on_noteAdded(note);
   }
+}
+
+
+void Presenter::fillContextMenu(
+    QMenu& menu,
+    QPoint pos,
+    QPointF scenepos,
+    const Process::LayerContextMenuManager& cm)
+{
+  auto& ctx = m_context.context;
+  auto& actions = ctx.app.actions;
+
+  auto act = menu.addAction(tr("Rescale midi"));
+  connect(act, &QAction::triggered, this, [&] {
+    bool ok = true;
+    double val = QInputDialog::getDouble(qApp->activeWindow(), tr("Rescale factor"), tr("Rescale factor"), 1.0, 0.0001, 100., 2, &ok);
+    if(!ok)
+      return;
+
+    CommandDispatcher<> c{context().context.commandStack};
+    c.submitCommand<RescaleMidi>(m_layer, val);
+  });
 }
 
 void Presenter::setWidth(qreal val)
