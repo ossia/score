@@ -25,7 +25,11 @@
 #include <QMenu>
 #include <QAction>
 #include <QApplication>
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <Process/Layer/LayerContextMenu.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
 namespace Midi
 {
 Presenter::Presenter(
@@ -112,6 +116,23 @@ void Presenter::fillContextMenu(
 
     CommandDispatcher<> c{context().context.commandStack};
     c.submitCommand<RescaleMidi>(m_layer, val);
+  });
+
+  auto act2 = menu.addAction(tr("Rescale all midi"));
+  connect(act2, &QAction::triggered, this, [&] {
+    bool ok = true;
+    double val = QInputDialog::getDouble(qApp->activeWindow(), tr("Rescale factor"), tr("Rescale factor"), 1.0, 0.0001, 100., 2, &ok);
+    if(!ok)
+      return;
+
+    MacroCommandDispatcher<RescaleAllMidi> disp{context().context.commandStack};
+    auto& doc = context().context.document.model();
+    auto midi = doc.findChildren<Midi::ProcessModel*>();
+    for(auto ptr : midi)
+    {
+      disp.submitCommand(new RescaleMidi{*ptr, val});
+    }
+    disp.commit();
   });
 }
 
