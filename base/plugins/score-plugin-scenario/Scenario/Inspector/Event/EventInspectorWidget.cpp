@@ -203,7 +203,7 @@ void EventInspectorWidget::on_conditionChanged()
   {
     auto cmd
         = new Scenario::Command::SetCondition{*m_model, std::move(cond)};
-    emit m_commandDispatcher.submitCommand(cmd);
+    m_commandDispatcher.submitCommand(cmd);
   }
 }
 void EventInspectorWidget::on_conditionReset()
@@ -212,7 +212,7 @@ void EventInspectorWidget::on_conditionReset()
     return;
   auto cmd
       = new Scenario::Command::SetCondition{*m_model, State::Expression{}};
-  emit m_commandDispatcher.submitCommand(cmd);
+  m_commandDispatcher.submitCommand(cmd);
 }
 
 QString EventInspectorWidget::tabName()

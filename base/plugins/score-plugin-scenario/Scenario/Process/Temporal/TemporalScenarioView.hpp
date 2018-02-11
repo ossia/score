@@ -61,7 +61,7 @@ public Q_SLOTS:
   void pressedAsked(const QPointF& p)
   {
     m_previousPoint = p;
-    emit pressed(p);
+    pressed(p);
   }
   void movedAsked(const QPointF& p);
 

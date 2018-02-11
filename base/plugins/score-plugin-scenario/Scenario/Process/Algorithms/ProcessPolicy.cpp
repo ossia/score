@@ -42,7 +42,7 @@ static void AddProcessBeforeState(
 
   prev_proc_fun(state->messages());
 
-  emit statemodel.sig_statesUpdated();
+  statemodel.sig_statesUpdated();
 }
 
 static void
@@ -69,7 +69,7 @@ AddProcessAfterState(StateModel& statemodel, const Process::ProcessModel& proc)
 
   next_proc_fun(state->messages());
 
-  emit statemodel.sig_statesUpdated();
+  statemodel.sig_statesUpdated();
 }
 
 static void RemoveProcessBeforeState(

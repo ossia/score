@@ -24,7 +24,7 @@ EventShortCut::EventShortCut(QString eventId, QWidget* parent)
   groupLay->addWidget(m_eventBtn);
   groupLay->addWidget(m_box);
 
-  connect(m_eventBtn, &QPushButton::clicked, [=]() { emit eventSelected(); });
+  connect(m_eventBtn, &QPushButton::clicked, [=]() { eventSelected(); });
 }
 
 bool EventShortCut::isChecked()

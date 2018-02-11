@@ -267,7 +267,7 @@ public Q_SLOTS:
   {
     // This method is called from rowsAboutToBeMoved. Persistent indexes should
     // be valid
-    foreach (const QModelIndex& idx, m_persistentProxyIndexes)
+    Q_FOREACH (const QModelIndex& idx, m_persistentProxyIndexes)
 
       if (!idx.isValid())
       {

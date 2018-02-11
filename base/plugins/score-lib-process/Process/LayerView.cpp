@@ -50,7 +50,7 @@ void LayerView::setHeight(qreal height)
 {
   prepareGeometryChange();
   m_height = height;
-  emit heightChanged();
+  heightChanged();
 }
 
 qreal LayerView::height() const
@@ -62,7 +62,7 @@ void LayerView::setWidth(qreal width)
 {
   prepareGeometryChange();
   m_width = width;
-  emit widthChanged();
+  widthChanged();
 }
 
 qreal LayerView::width() const

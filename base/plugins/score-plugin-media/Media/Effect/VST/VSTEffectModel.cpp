@@ -63,7 +63,7 @@ void VSTEffectModel::removeControl(int fxNum)
       break;
     }
   }
-  emit controlRemoved(*ctrl);
+  controlRemoved(*ctrl);
   delete ctrl;
 }
 
@@ -79,7 +79,7 @@ void VSTEffectModel::removeControl(const Id<Process::Port>& id)
   controls.erase(ctrl->fxNum);
   m_inlets.erase(it);
 
-  emit controlRemoved(*ctrl);
+  controlRemoved(*ctrl);
   delete ctrl;
 }
 
@@ -143,7 +143,7 @@ void VSTEffectModel::on_addControl_impl(VSTControlInlet* ctrl)
   }
   m_inlets.push_back(ctrl);
   controls.insert({ctrl->fxNum, ctrl});
-  emit controlAdded(ctrl->id());
+  controlAdded(ctrl->id());
 }
 
 QString VSTEffectModel::getString(AEffectOpcodes op, int param)

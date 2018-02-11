@@ -105,7 +105,7 @@ public:
       return;
 
     m_executionSpeed = executionSpeed;
-    emit executionSpeedChanged(executionSpeed);
+    executionSpeedChanged(executionSpeed);
   }
 
   void checkConsistency();

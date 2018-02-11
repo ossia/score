@@ -50,7 +50,7 @@ void IntervalDurations::setDefaultDuration(const TimeVal& arg)
   if (m_defaultDuration != arg)
   {
     m_defaultDuration = arg;
-    emit defaultDurationChanged(arg);
+    defaultDurationChanged(arg);
 
     if(m_guiDuration < m_defaultDuration)
       setGuiDuration(m_defaultDuration * 1.1);
@@ -64,7 +64,7 @@ void IntervalDurations::setMinDuration(const TimeVal& arg)
   if (m_minDuration != arg && !m_isMinNull)
   {
     m_minDuration = arg;
-    emit minDurationChanged(arg);
+    minDurationChanged(arg);
 
     checkConsistency();
   }
@@ -75,7 +75,7 @@ void IntervalDurations::setMaxDuration(const TimeVal& arg)
   if (m_maxDuration != arg)
   {
     m_maxDuration = arg;
-    emit maxDurationChanged(arg);
+    maxDurationChanged(arg);
 
     if(m_guiDuration < m_maxDuration && !m_maxDuration.isInfinite())
       setGuiDuration(m_maxDuration * 1.1);
@@ -90,7 +90,7 @@ void IntervalDurations::setGuiDuration(TimeVal guiDuration)
     return;
 
   m_guiDuration = guiDuration;
-  emit guiDurationChanged(guiDuration);
+  guiDurationChanged(guiDuration);
 }
 
 void IntervalDurations::setPlayPercentage(double arg)
@@ -103,7 +103,7 @@ void IntervalDurations::setPlayPercentage(double arg)
 
   if(m_defaultDuration * std::abs(old - m_playPercentage) > TimeVal{std::chrono::milliseconds(16)})
   {
-    emit playPercentageChanged(arg);
+    playPercentageChanged(arg);
   }
 }
 
@@ -113,7 +113,7 @@ void IntervalDurations::setRigid(bool arg)
     return;
 
   m_rigidity = arg;
-  emit rigidityChanged(arg);
+  rigidityChanged(arg);
 }
 
 void IntervalDurations::setMinNull(bool isMinNull)
@@ -122,8 +122,8 @@ void IntervalDurations::setMinNull(bool isMinNull)
     return;
 
   m_isMinNull = isMinNull;
-  emit minNullChanged(isMinNull);
-  emit minDurationChanged(minDuration());
+  minNullChanged(isMinNull);
+  minDurationChanged(minDuration());
 }
 
 void IntervalDurations::setMaxInfinite(bool isMaxInfinite)
@@ -132,8 +132,8 @@ void IntervalDurations::setMaxInfinite(bool isMaxInfinite)
     return;
 
   m_isMaxInfinite = isMaxInfinite;
-  emit maxInfiniteChanged(isMaxInfinite);
-  emit maxDurationChanged(maxDuration());
+  maxInfiniteChanged(isMaxInfinite);
+  maxDurationChanged(maxDuration());
 }
 
 SCORE_PLUGIN_SCENARIO_EXPORT void

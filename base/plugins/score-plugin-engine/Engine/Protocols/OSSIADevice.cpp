@@ -633,12 +633,12 @@ void OwningOSSIADevice::disconnect()
 
 void OSSIADevice::nodeCreated(const ossia::net::node_base& n)
 {
-  emit pathAdded(Engine::ossia_to_score::ToAddress(n));
+  pathAdded(Engine::ossia_to_score::ToAddress(n));
 }
 
 void OSSIADevice::nodeRemoving(const ossia::net::node_base& n)
 {
-  emit pathRemoved(Engine::ossia_to_score::ToAddress(n));
+  pathRemoved(Engine::ossia_to_score::ToAddress(n));
 }
 
 void OSSIADevice::nodeRenamed(
@@ -657,7 +657,7 @@ void OSSIADevice::nodeRenamed(
 
   renameListening_impl(currentAddress, as.name);
 
-  emit pathUpdated(currentAddress, as);
+  pathUpdated(currentAddress, as);
 }
 
 void OSSIADevice::addressCreated(const ossia::net::parameter_base& addr)
@@ -666,7 +666,7 @@ void OSSIADevice::addressCreated(const ossia::net::parameter_base& addr)
       = Engine::ossia_to_score::ToAddress(addr.get_node());
   Device::AddressSettings as
       = Engine::ossia_to_score::ToAddressSettings(addr.get_node());
-  emit pathUpdated(currentAddress, as);
+  pathUpdated(currentAddress, as);
 }
 
 void OSSIADevice::addressUpdated(const ossia::net::node_base& node, ossia::string_view key)
@@ -677,14 +677,14 @@ void OSSIADevice::addressUpdated(const ossia::net::node_base& node, ossia::strin
       = Engine::ossia_to_score::ToAddress(node);
   if(hidden)
   {
-    emit pathRemoved(currentAddress);
+    pathRemoved(currentAddress);
     return;
   }
 
   Device::AddressSettings as
       = Engine::ossia_to_score::ToAddressSettings(node);
 
-  emit pathUpdated(currentAddress, as);
+  pathUpdated(currentAddress, as);
 }
 
 void OSSIADevice::addressRemoved(const ossia::net::parameter_base& addr)
@@ -701,7 +701,7 @@ void OSSIADevice::addressRemoved(const ossia::net::parameter_base& addr)
       = Engine::ossia_to_score::ToAddress(node);
   Device::AddressSettings as;
   as.name = QString::fromStdString(node.get_name());
-  emit pathUpdated(currentAddress, as);
+  pathUpdated(currentAddress, as);
 }
 
 }

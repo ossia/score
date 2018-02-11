@@ -13,6 +13,7 @@
 
 namespace ossia {
 class audio_protocol;
+class graph_base;
 }
 namespace score
 {
@@ -83,7 +84,7 @@ public:
       const State::AddressAccessor& address,
       const ossia::outlet_ptr& );
 
-  std::shared_ptr<ossia::graph_interface> execGraph;
+  std::shared_ptr<ossia::graph_base> execGraph;
   std::unique_ptr<ossia::execution_state> execState;
 
   Dataflow::AudioDevice* audio_device{};

@@ -28,11 +28,11 @@ void EffectLayerView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
   if(ev->button() == Qt::RightButton)
   {
-    emit askContextMenu(ev->screenPos(), ev->scenePos());
+    askContextMenu(ev->screenPos(), ev->scenePos());
   }
   else
   {
-    emit pressed(ev->scenePos());
+    pressed(ev->scenePos());
   }
   ev->accept();
 }
@@ -49,7 +49,7 @@ void EffectLayerView::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
 
 void EffectLayerView::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
 {
-  emit askContextMenu(ev->screenPos(), ev->scenePos());
+  askContextMenu(ev->screenPos(), ev->scenePos());
   ev->accept();
 }
 

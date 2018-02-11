@@ -87,8 +87,8 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
 
   // Connections
 
-  connect(m_rmBtn, &QPushButton::clicked, this, [=]() { emit removeTerm(id); });
-  connect(m_addBtn, &QPushButton::clicked, this, [=]() { emit addTerm(); });
+  connect(m_rmBtn, &QPushButton::clicked, this, [=]() { removeTerm(id); });
+  connect(m_addBtn, &QPushButton::clicked, this, [=]() { addTerm(); });
 
   /// EDIT FINSHED
   connect(
@@ -270,7 +270,7 @@ void SimpleExpressionEditorWidget::on_editFinished()
   bool b = m_validator.validate(expr, i) == QValidator::State::Acceptable;
   m_ok->setVisible(!b);
   if (b)
-    emit editingFinished();
+    editingFinished();
 }
 
 void SimpleExpressionEditorWidget::on_comparatorChanged(int i)

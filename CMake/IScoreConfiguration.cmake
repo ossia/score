@@ -74,6 +74,7 @@ if(NACL)
 endif()
 
 add_definitions(-DQT_DISABLE_DEPRECATED_BEFORE=0x050800)
+add_definitions(-DQT_NO_KEYWORDS)
 if(SCORE_STATIC_QT)
   if(UNIX AND NOT APPLE)
     set(SCORE_STATIC_PLUGINS True)

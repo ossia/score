@@ -282,7 +282,7 @@ View::View() : m_widg{new QWidget}
   auto ls = new QPushButton{tr("Load skin")};
   connect(ls, &QPushButton::clicked, this, [=] {
       auto f = QFileDialog::getOpenFileName(nullptr, tr("Skin"), tr("*.json"));
-      emit skinChanged(f);
+      skinChanged(f);
   });
   lay->addWidget(ls);
   lay->addWidget(es);
@@ -318,7 +318,7 @@ View::View() : m_widg{new QWidget}
   m_defaultDur = new score::TimeSpinBox;
   connect(
       m_defaultDur, &score::TimeSpinBox::timeChanged, this,
-      [=](const QTime& t) { emit defaultDurationChanged(TimeVal{t}); });
+      [=](const QTime& t) { defaultDurationChanged(TimeVal{t}); });
   lay->addRow(tr("New score duration"), m_defaultDur);
 
   m_sequence = new QCheckBox{m_widg};

@@ -38,7 +38,7 @@ ProcessModel::~ProcessModel()
 void ProcessModel::setDevice(const QString& dev)
 {
   m_device = dev;
-  emit deviceChanged(m_device);
+  deviceChanged(m_device);
 }
 
 const QString&ProcessModel::device() const
@@ -49,7 +49,7 @@ const QString&ProcessModel::device() const
 void ProcessModel::setChannel(int n)
 {
   m_channel = clamp(n, 1, 16);
-  emit channelChanged(n);
+  channelChanged(n);
 }
 
 int ProcessModel::channel() const
@@ -60,7 +60,7 @@ int ProcessModel::channel() const
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
 {
   setDuration(newDuration);
-  emit notesChanged();
+  notesChanged();
 }
 
 void ProcessModel::setDurationAndGrow(const TimeVal& newDuration)
@@ -71,7 +71,7 @@ void ProcessModel::setDurationAndGrow(const TimeVal& newDuration)
     note.scale(ratio);
 
   setDuration(newDuration);
-  emit notesChanged();
+  notesChanged();
 }
 
 void ProcessModel::setDurationAndShrink(const TimeVal& newDuration)
@@ -97,7 +97,7 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration)
     notes.remove(note);
   }
   setDuration(newDuration);
-  emit notesChanged();
+  notesChanged();
 }
 }
 

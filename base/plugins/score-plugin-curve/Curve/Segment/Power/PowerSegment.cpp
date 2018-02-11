@@ -34,12 +34,12 @@ PowerSegment::PowerSegment(
 
 void PowerSegment::on_startChanged()
 {
-  emit dataChanged();
+  dataChanged();
 }
 
 void PowerSegment::on_endChanged()
 {
-  emit dataChanged();
+  dataChanged();
 }
 
 void PowerSegment::updateData(int numInterp) const
@@ -112,7 +112,7 @@ void PowerSegment::setVerticalParameter(double p)
   else
     gamma = (1 - p) * 6.;
 
-  emit dataChanged();
+  dataChanged();
 }
 
 QVariant PowerSegment::toSegmentSpecificData() const

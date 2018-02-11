@@ -1215,7 +1215,7 @@ void SearchWidget::dropEvent(QDropEvent* ev)
       return;
 
     m_lineEdit->setText(as.address.toString());
-    emit m_lineEdit->returnPressed();
+    m_lineEdit->returnPressed();
   }
   else if (mime.formats().contains(score::mime::nodelist()))
   {
@@ -1235,7 +1235,7 @@ void SearchWidget::dropEvent(QDropEvent* ev)
       as.address = nl.front().first;
 
       m_lineEdit->setText(as.address.toString());
-      emit m_lineEdit->returnPressed();
+      m_lineEdit->returnPressed();
     }
   }
   else if (mime.formats().contains(score::mime::messagelist()))
@@ -1245,7 +1245,7 @@ void SearchWidget::dropEvent(QDropEvent* ev)
     if (!ml.empty())
     {
       m_lineEdit->setText(ml[0].address.toString());
-      emit m_lineEdit->returnPressed();
+      m_lineEdit->returnPressed();
     }
   }
 }

@@ -63,7 +63,7 @@ class QGraphicsTextButton
   protected:
     void mousePressEvent(QGraphicsSceneMouseEvent* event) override
     {
-      emit pressed();
+      pressed();
       event->accept();
     }
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override

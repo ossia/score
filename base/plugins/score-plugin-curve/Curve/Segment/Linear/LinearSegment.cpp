@@ -23,12 +23,12 @@ LinearSegment::LinearSegment(
 
 void LinearSegment::on_startChanged()
 {
-  emit dataChanged();
+  dataChanged();
 }
 
 void LinearSegment::on_endChanged()
 {
-  emit dataChanged();
+  dataChanged();
 }
 
 void LinearSegment::updateData(int numInterp) const

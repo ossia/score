@@ -40,7 +40,7 @@
 #include <score/model/EntityMap.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
-#include <ossia/dataflow/graph/graph_interface.hpp>
+#include <ossia/dataflow/graph/graph_utils.hpp>
 
 namespace Engine
 {
@@ -315,7 +315,7 @@ EventComponent* ScenarioComponentBase::make<EventComponent, Scenario::EventModel
     {
       if(auto sc = thisP.lock())
       {
-        emit sc->sig_eventCallback(elt, st);
+        sc->sig_eventCallback(elt, st);
       }
     }
   };

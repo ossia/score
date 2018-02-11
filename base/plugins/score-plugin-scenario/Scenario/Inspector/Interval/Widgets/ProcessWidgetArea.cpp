@@ -84,7 +84,7 @@ void ProcessWidgetArea::dropEvent(QDropEvent* event)
   auto center = rect().center().y();
   auto y = event->pos().y();
 
-  emit handleSwap(path.try_find(m_disp.stack().context()), center, y);
+  handleSwap(path.try_find(m_disp.stack().context()), center, y);
 }
 
 void ProcessWidgetArea::performSwap(
@@ -116,7 +116,7 @@ void ProcessWidgetArea::handleSwap(
   if (y < center)
   {
     // Drop before this
-    emit sig_performSwap(cst, m_proc.id(), path->id());
+    sig_performSwap(cst, m_proc.id(), path->id());
   }
   else
   {
@@ -126,12 +126,12 @@ void ProcessWidgetArea::handleSwap(
     if (next_proc_it != cst->processes.end())
     {
       // Drop before next process
-      emit sig_performSwap(cst, next_proc_it->id(), path->id());
+      sig_performSwap(cst, next_proc_it->id(), path->id());
     }
     else
     {
       // Drop at end
-      emit sig_putAtEnd(cst, path->id());
+      sig_putAtEnd(cst, path->id());
     }
   }
 }

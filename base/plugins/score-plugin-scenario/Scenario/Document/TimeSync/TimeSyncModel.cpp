@@ -42,7 +42,7 @@ void TimeSyncModel::addEvent(const Id<EventModel>& eventId)
     theEvent.changeTimeSync(this->id());
   }
 
-  emit newEvent(eventId);
+  newEvent(eventId);
 }
 
 bool TimeSyncModel::removeEvent(const Id<EventModel>& eventId)
@@ -51,7 +51,7 @@ bool TimeSyncModel::removeEvent(const Id<EventModel>& eventId)
   if (it != m_events.end())
   {
     m_events.erase(it);
-    emit eventRemoved(eventId);
+    eventRemoved(eventId);
     return true;
   }
 
@@ -63,7 +63,7 @@ void TimeSyncModel::clearEvents()
   auto ev = m_events;
   m_events.clear();
   for(const auto& e : ev)
-    emit eventRemoved(e);
+    eventRemoved(e);
 }
 
 const TimeVal& TimeSyncModel::date() const
@@ -74,7 +74,7 @@ const TimeVal& TimeSyncModel::date() const
 void TimeSyncModel::setDate(const TimeVal& date)
 {
   m_date = date;
-  emit dateChanged(m_date);
+  dateChanged(m_date);
 }
 
 const TimeSyncModel::EventIdVec& TimeSyncModel::events() const
@@ -97,7 +97,7 @@ void TimeSyncModel::setExtent(const VerticalExtent& extent)
   if (extent != m_extent)
   {
     m_extent = extent;
-    emit extentChanged(m_extent);
+    extentChanged(m_extent);
   }
 }
 
@@ -106,7 +106,7 @@ void TimeSyncModel::setExpression(const State::Expression& expression)
   if (m_expression == expression)
     return;
   m_expression = expression;
-  emit triggerChanged(m_expression);
+  triggerChanged(m_expression);
 }
 
 bool TimeSyncModel::active() const
@@ -119,6 +119,6 @@ void TimeSyncModel::setActive(bool active)
   if (active == m_active)
     return;
   m_active = active;
-  emit activeChanged();
+  activeChanged();
 }
 }

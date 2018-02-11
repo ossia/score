@@ -15,19 +15,31 @@ namespace Execution
 {
 namespace Settings
 {
+#define SETTINGS_PRESENTER(Control)                                         \
+  do { con(v, &View:: Control ## Changed, this, [&](auto val) {             \
+    if (val != m.get ## Control())                                          \
+    {                                                                       \
+      m_disp.submitCommand<SetModel ## Control>(this->model(this), val);    \
+    }                                                                       \
+  });                                                                       \
+                                                                            \
+  con(m, &Model::Control ## Changed, &v, &View::set ## Control);            \
+  v.set ## Control(m.get ## Control()); } while(0)
+
 Presenter::Presenter(Model& m, View& v, QObject* parent)
     : score::SettingsDelegatePresenter{m, v, parent}
 {
-  // Execution rate
-  con(v, &View::rateChanged, this, [&](auto rate) {
-    if (rate != m.getRate())
-    {
-      m_disp.submitCommand<SetModelRate>(this->model(this), rate);
-    }
-  });
-
-  con(m, &Model::RateChanged, &v, &View::setRate);
-  v.setRate(m.getRate());
+  SETTINGS_PRESENTER(Scheduling);
+  SETTINGS_PRESENTER(Ordering);
+  SETTINGS_PRESENTER(Merging);
+  SETTINGS_PRESENTER(Commit);
+  SETTINGS_PRESENTER(Tick);
+  SETTINGS_PRESENTER(Parallel);
+  SETTINGS_PRESENTER(Rate);
+  SETTINGS_PRESENTER(Logging);
+  SETTINGS_PRESENTER(ExecutionListening);
+  SETTINGS_PRESENTER(Clock);
+  SETTINGS_PRESENTER(ScoreOrder);
 
   // Clock used
   std::map<QString, ClockManagerFactory::ConcreteKey> clockMap;
@@ -38,7 +50,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   }
   v.populateClocks(clockMap);
 
-  con(v, &View::clockChanged, this, [&](auto val) {
+  con(v, &View::ClockChanged, this, [&](auto val) {
     if (val != m.getClock())
     {
       m_disp.submitCommand<SetModelClock>(this->model(this), val);
@@ -48,7 +60,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   con(m, &Model::ClockChanged, &v, &View::setClock);
   v.setClock(m.getClock());
 
-  con(v, &View::executionListeningChanged, this, [&](auto val) {
+  con(v, &View::ExecutionListeningChanged, this, [&](auto val) {
       if (val != m.getExecutionListening())
       {
           m_disp.submitCommand<SetModelExecutionListening>(this->model(this), val);

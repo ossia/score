@@ -51,7 +51,7 @@ void RectItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 }
 void RectItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  emit clicked();
+  clicked();
   event->accept();
 }
 
@@ -90,7 +90,7 @@ void EmptyRectItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 }
 void EmptyRectItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  emit clicked();
+  clicked();
   event->accept();
 }
 }

@@ -91,7 +91,7 @@ TimeSyncView* TimeSyncPresenter::view() const
 
 void TimeSyncPresenter::on_eventAdded(const Id<EventModel>& eventId)
 {
-  emit eventAdded(eventId, m_model.id());
+  eventAdded(eventId, m_model.id());
 }
 
 void TimeSyncPresenter::handleDrop(const QPointF& pos, const QMimeData* mime)

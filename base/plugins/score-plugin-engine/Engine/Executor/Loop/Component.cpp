@@ -28,6 +28,7 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
+#include <ossia/dataflow/graph/graph_utils.hpp>
 
 namespace Process
 {

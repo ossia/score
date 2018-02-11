@@ -1079,7 +1079,7 @@ void DeviceExplorerWidget::findUsage()
     search_txt.push_back(address.address.toString());
 
   }
-  emit findAddresses(search_txt);
+  findAddresses(search_txt);
 }
 
 void DeviceExplorerWidget::addAddress(InsertMode insert)

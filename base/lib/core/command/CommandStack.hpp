@@ -157,13 +157,13 @@ public Q_SLOTS:
   void undo()
   {
     undoQuiet();
-    emit localUndo();
+    localUndo();
   }
 
   void redo()
   {
     redoQuiet();
-    emit localRedo();
+    localRedo();
   }
 
 public:
@@ -184,23 +184,23 @@ public:
     m_checker();
 
     if (pre_canUndo != canUndo())
-      emit canUndoChanged(canUndo());
+      canUndoChanged(canUndo());
 
     if (pre_canRedo != canRedo())
-      emit canRedoChanged(canRedo());
+      canRedoChanged(canRedo());
 
     if (canUndo())
-      emit undoTextChanged(m_undoable.top()->description());
+      undoTextChanged(m_undoable.top()->description());
     else
-      emit undoTextChanged("");
+      undoTextChanged("");
 
     if (canRedo())
-      emit redoTextChanged(m_redoable.top()->description());
+      redoTextChanged(m_redoable.top()->description());
     else
-      emit redoTextChanged("");
+      redoTextChanged("");
 
-    emit indexChanged(m_undoable.size() - 1);
-    emit stackChanged();
+    indexChanged(m_undoable.size() - 1);
+    stackChanged();
   }
 
   void setSavedIndex(int index);

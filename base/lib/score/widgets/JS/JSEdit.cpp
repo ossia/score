@@ -551,7 +551,7 @@ void SidebarWidget::mousePressEvent(QMouseEvent* event)
     int ys = event->pos().y();
     if (event->pos().x() > xofs)
     {
-      foreach (BlockInfo ln, lineNumbers)
+      Q_FOREACH (BlockInfo ln, lineNumbers)
         if (ln.position < ys && (ln.position + fh) > ys)
         {
           if (ln.foldable)
@@ -622,7 +622,7 @@ void SidebarWidget::paintEvent(QPaintEvent* event)
       iconPainter.end();
     }
 
-    foreach (BlockInfo ln, lineNumbers)
+    Q_FOREACH (BlockInfo ln, lineNumbers)
       if (ln.foldable)
       {
         if (ln.folded)
@@ -708,7 +708,7 @@ JSDocLayout::JSDocLayout(QTextDocument* doc) : QPlainTextDocumentLayout(doc)
 
 void JSDocLayout::forceUpdate()
 {
-  emit documentSizeChanged(documentSize());
+  documentSizeChanged(documentSize());
 }
 
 class JSEditPrivate
@@ -888,7 +888,7 @@ static int findClosingConstruct(const QTextBlock& block)
     return -1;
   const QTextDocument* doc = block.document();
   int offset = block.position();
-  foreach (int pos, blockData->bracketPositions)
+  Q_FOREACH (int pos, blockData->bracketPositions)
   {
     int absPos = offset + pos;
     if (doc->characterAt(absPos) == '{')
@@ -1022,7 +1022,7 @@ void JSEdit::keyPressEvent(QKeyEvent* e)
 {
   QPlainTextEdit::keyPressEvent(e);
   if(e->key() == Qt::Key_Space && e->modifiers() & Qt::KeyboardModifier::ControlModifier)
-    emit editingFinished(this->toPlainText());
+    editingFinished(this->toPlainText());
 
   e->accept();
 }
@@ -1120,7 +1120,7 @@ void JSEdit::updateSidebar(const QRect& rect, int d)
 void JSEdit::focusInEvent(QFocusEvent* event)
 {
   QPlainTextEdit::focusInEvent(event);
-  emit focused();
+  focused();
 }
 
 void JSEdit::updateSidebar()

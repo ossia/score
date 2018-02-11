@@ -38,7 +38,7 @@ class VSTControlInlet final : public Process::Inlet
       if(v != m_value)
       {
         m_value = v;
-        emit valueChanged(v);
+        valueChanged(v);
       }
     }
   Q_SIGNALS:

@@ -382,12 +382,12 @@ void TemporalScenarioPresenter::on_askUpdate()
 
 void TemporalScenarioPresenter::on_keyPressed(int k)
 {
-  emit keyPressed(k);
+  keyPressed(k);
 }
 
 void TemporalScenarioPresenter::on_keyReleased(int k)
 {
-  emit keyReleased(k);
+  keyReleased(k);
 }
 
 void TemporalScenarioPresenter::on_intervalExecutionTimer()

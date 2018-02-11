@@ -71,15 +71,15 @@ void ProcessModel::init()
 
   connect(inlet.get(), &Process::Port::addressChanged,
           this, [=] (const State::AddressAccessor& arg) {
-    emit sourceAddressChanged(arg);
-    emit prettyNameChanged();
-    emit m_curve->changed();
+    sourceAddressChanged(arg);
+    prettyNameChanged();
+    m_curve->changed();
   });
   connect(outlet.get(), &Process::Port::addressChanged,
           this, [=] (const State::AddressAccessor& arg) {
-    emit targetAddressChanged(arg);
-    emit prettyNameChanged();
-    emit m_curve->changed();
+    targetAddressChanged(arg);
+    prettyNameChanged();
+    m_curve->changed();
   });
 }
 
@@ -134,8 +134,8 @@ void ProcessModel::setSourceMin(double arg)
     return;
 
   m_sourceMin = arg;
-  emit sourceMinChanged(arg);
-  emit m_curve->changed();
+  sourceMinChanged(arg);
+  m_curve->changed();
 }
 
 void ProcessModel::setSourceMax(double arg)
@@ -144,8 +144,8 @@ void ProcessModel::setSourceMax(double arg)
     return;
 
   m_sourceMax = arg;
-  emit sourceMaxChanged(arg);
-  emit m_curve->changed();
+  sourceMaxChanged(arg);
+  m_curve->changed();
 }
 
 State::AddressAccessor ProcessModel::targetAddress() const
@@ -174,8 +174,8 @@ void ProcessModel::setTargetMin(double arg)
     return;
 
   m_targetMin = arg;
-  emit targetMinChanged(arg);
-  emit m_curve->changed();
+  targetMinChanged(arg);
+  m_curve->changed();
 }
 
 void ProcessModel::setTargetMax(double arg)
@@ -184,7 +184,7 @@ void ProcessModel::setTargetMax(double arg)
     return;
 
   m_targetMax = arg;
-  emit targetMaxChanged(arg);
-  emit m_curve->changed();
+  targetMaxChanged(arg);
+  m_curve->changed();
 }
 }

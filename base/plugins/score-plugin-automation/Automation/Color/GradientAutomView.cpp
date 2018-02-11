@@ -79,7 +79,7 @@ void View::mousePressEvent(QGraphicsSceneMouseEvent* event)
           {
             auto w = QColorDialog::getColor();
             if(w.isValid())
-              emit setColor(e.first, w);
+              setColor(e.first, w);
           }
           else
           {
@@ -89,7 +89,7 @@ void View::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
         else if(event->button() == Qt::RightButton)
         {
-          emit removePoint(e.first);
+          removePoint(e.first);
         }
         break;
       }
@@ -127,7 +127,7 @@ void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
       auto np = event->pos().x() / m_dataWidth;
 
       m_colors.insert(std::make_pair(np, col));
-      emit movePoint(*m_clicked, np);
+      movePoint(*m_clicked, np);
       update();
     }
   }
@@ -137,6 +137,6 @@ void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
 void View::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
-  emit doubleClicked(event->pos());
+  doubleClicked(event->pos());
 }
 }

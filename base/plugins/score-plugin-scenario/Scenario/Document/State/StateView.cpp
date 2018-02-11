@@ -142,17 +142,17 @@ void StateView::disableOverlay()
 void StateView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   if (event->button() == Qt::MouseButton::LeftButton)
-    emit m_presenter.pressed(event->scenePos());
+    m_presenter.pressed(event->scenePos());
 }
 
 void StateView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  emit m_presenter.moved(event->scenePos());
+  m_presenter.moved(event->scenePos());
 }
 
 void StateView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  emit m_presenter.released(event->scenePos());
+  m_presenter.released(event->scenePos());
 }
 
 void StateView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
@@ -174,7 +174,7 @@ void StateView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 
 void StateView::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
-  emit dropReceived(event->mimeData());
+  dropReceived(event->mimeData());
   setDilatation(m_selected);
 }
 
