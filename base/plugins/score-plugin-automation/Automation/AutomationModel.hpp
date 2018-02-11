@@ -71,7 +71,7 @@ public:
       return;
 
     m_tween = tween;
-    emit tweenChanged(tween);
+    tweenChanged(tween);
   }
 
   QString prettyName() const override;

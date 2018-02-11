@@ -148,7 +148,7 @@ void TemporalIntervalHeader::enableOverlay(bool b)
 void TemporalIntervalHeader::mouseDoubleClickEvent(
     QGraphicsSceneMouseEvent* event)
 {
-  emit doubleClicked();
+  doubleClicked();
 }
 
 void TemporalIntervalHeader::on_textChange()
@@ -177,13 +177,13 @@ void TemporalIntervalHeader::on_textChange()
 void TemporalIntervalHeader::hoverEnterEvent(QGraphicsSceneHoverEvent* h)
 {
   QGraphicsItem::hoverEnterEvent(h);
-  emit intervalHoverEnter();
+  intervalHoverEnter();
 }
 
 void TemporalIntervalHeader::hoverLeaveEvent(QGraphicsSceneHoverEvent* h)
 {
   QGraphicsItem::hoverLeaveEvent(h);
-  emit intervalHoverLeave();
+  intervalHoverLeave();
 }
 
 void TemporalIntervalHeader::dragEnterEvent(
@@ -202,7 +202,7 @@ void TemporalIntervalHeader::dragLeaveEvent(
 
 void TemporalIntervalHeader::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
-  emit dropReceived(event->pos(), event->mimeData());
+  dropReceived(event->pos(), event->mimeData());
 
   event->accept();
 }
@@ -272,7 +272,7 @@ void RackButton::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   event->accept();
   update();
-  emit clicked();
+  clicked();
 }
 
 void RackButton::mouseMoveEvent(QGraphicsSceneMouseEvent* event)

@@ -37,7 +37,7 @@ Port::Port(JSONObject::Deserializer&& vis, QObject* parent): IdentifiedObject{vi
 void Port::addCable(const Path<Cable> &c)
 {
   m_cables.push_back(c);
-  emit cablesChanged();
+  cablesChanged();
 }
 
 void Port::removeCable(const Path<Cable> &c)
@@ -46,7 +46,7 @@ void Port::removeCable(const Path<Cable> &c)
   if(it != m_cables.end())
   {
     m_cables.erase(it);
-    emit cablesChanged();
+    cablesChanged();
   }
 }
 
@@ -68,7 +68,7 @@ void Port::setCustomData(const QString &customData)
     return;
 
   m_customData = customData;
-  emit customDataChanged(m_customData);
+  customDataChanged(m_customData);
 }
 
 void Port::setAddress(const State::AddressAccessor &address)
@@ -77,7 +77,7 @@ void Port::setAddress(const State::AddressAccessor &address)
     return;
 
   m_address = address;
-  emit addressChanged(m_address);
+  addressChanged(m_address);
 }
 
 
@@ -182,7 +182,7 @@ void Outlet::setPropagate(bool propagate)
     return;
 
   m_propagate = propagate;
-  emit propagateChanged(m_propagate);
+  propagateChanged(m_propagate);
 }
 
 

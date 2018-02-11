@@ -125,7 +125,7 @@ void IntervalPresenter::selectedSlot(int) const {
 
 void IntervalPresenter::updateChildren()
 {
-  emit askUpdate();
+  askUpdate();
 
   m_view->update();
   m_header->update();

@@ -51,7 +51,7 @@ void Minimap::setHandles(double l, double r)
 void Minimap::modifyHandles(double l, double r)
 {
   setHandles(l, r);
-  emit visibleRectChanged(m_leftHandle, m_rightHandle);
+  visibleRectChanged(m_leftHandle, m_rightHandle);
 }
 
 void Minimap::setLargeView()
@@ -170,7 +170,7 @@ void Minimap::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
 
     QCursor::setPos(m_startPos);
 
-    emit visibleRectChanged(m_leftHandle, m_rightHandle);
+    visibleRectChanged(m_leftHandle, m_rightHandle);
 
     ev->accept();
     return;
@@ -208,7 +208,7 @@ void Minimap::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
 
 void Minimap::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* ev)
 {
-  emit rescale();
+  rescale();
   ev->accept();
 }
 

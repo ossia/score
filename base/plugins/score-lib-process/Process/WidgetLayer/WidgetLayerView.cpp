@@ -56,11 +56,11 @@ void View::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
   if(ev->button() == Qt::RightButton)
   {
-    emit askContextMenu(ev->screenPos(), ev->scenePos());
+    askContextMenu(ev->screenPos(), ev->scenePos());
   }
   else
   {
-    emit pressed(ev->scenePos());
+    pressed(ev->scenePos());
   }
   ev->accept();
 }
@@ -77,7 +77,7 @@ void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
 
 void View::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
 {
-  emit askContextMenu(ev->screenPos(), ev->scenePos());
+  askContextMenu(ev->screenPos(), ev->scenePos());
   ev->accept();
 }
 

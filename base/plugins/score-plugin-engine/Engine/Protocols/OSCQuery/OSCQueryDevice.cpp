@@ -47,13 +47,13 @@ bool OSCQueryDevice::reconnect()
     // FIXME they should be disabled upon manual disconnection
 
     ossia_settings->set_command_callback([=] {
-      emit sig_command();
+      sig_command();
     });
     ossia_settings->set_disconnect_callback([=] {
-      emit sig_disconnect();
+      sig_disconnect();
     });
     ossia_settings->set_fail_callback([=] {
-      emit sig_disconnect();
+      sig_disconnect();
     });
 
     m_dev = std::make_unique<ossia::net::generic_device>(

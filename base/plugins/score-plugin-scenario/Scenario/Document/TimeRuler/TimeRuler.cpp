@@ -177,7 +177,7 @@ void TimeRuler::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 
 void TimeRuler::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* ev)
 {
-  emit rescale();
+  rescale();
   ev->accept();
 }
 
@@ -275,7 +275,7 @@ QGlyphRun TimeRuler::getGlyphs(std::chrono::microseconds t)
 
 void TimeRuler::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
 {
-  emit drag(ev->lastScenePos(), ev->scenePos());
+  drag(ev->lastScenePos(), ev->scenePos());
   ev->accept();
 }
 

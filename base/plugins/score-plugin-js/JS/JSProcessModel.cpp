@@ -65,7 +65,7 @@ void ProcessModel::setScript(const QString& script)
     {
       const auto& err = errs.first();
       qDebug() << err.line() << err.toString();
-      emit scriptError(err.line(), err.toString());
+      scriptError(err.line(), err.toString());
     }
     else
     {
@@ -112,7 +112,7 @@ void ProcessModel::setScript(const QString& script)
           m_outlets.push_back(port);
         }
       }
-      emit scriptOk();
+      scriptOk();
 
       std::size_t i = 0;
       for(Process::Inlet* in : m_inlets)
@@ -138,9 +138,9 @@ void ProcessModel::setScript(const QString& script)
         }
         i++;
       }
-      emit scriptChanged(script);
-      emit inletsChanged();
-      emit outletsChanged();
+      scriptChanged(script);
+      inletsChanged();
+      outletsChanged();
 
     }
   }

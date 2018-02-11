@@ -96,7 +96,7 @@ ScenarioDocumentView::ScenarioDocumentView(
   largeView->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   largeView->setShortcut(tr("Ctrl+0"));
   connect(largeView, &QAction::triggered, this, [this] {
-    emit setLargeView();
+    setLargeView();
   }, Qt::QueuedConnection);
   con(m_timeRuler, &TimeRuler::rescale,
       largeView, &QAction::trigger);

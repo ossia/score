@@ -28,13 +28,13 @@ void LayerView::paint_impl(QPainter* p) const
 
 void LayerView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
-  emit askContextMenu(event->screenPos(), event->scenePos());
+  askContextMenu(event->screenPos(), event->scenePos());
   event->accept();
 }
 
 void LayerView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
-  emit pressed(ev->scenePos());
+  pressed(ev->scenePos());
   ev->accept();
 }
 }

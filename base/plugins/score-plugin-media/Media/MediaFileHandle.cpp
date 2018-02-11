@@ -24,7 +24,7 @@ void MediaFileHandle::load(
     for(std::size_t i = 0; i < m_decoder.data.size(); i++)
       m_data[i] = m_decoder.data[i].data();
 
-    emit mediaChanged();
+    mediaChanged();
   }
 }
 

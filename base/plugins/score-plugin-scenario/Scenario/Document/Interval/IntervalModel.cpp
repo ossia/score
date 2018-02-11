@@ -124,7 +124,7 @@ const TimeVal& IntervalModel::date() const
 void IntervalModel::setStartDate(const TimeVal& start)
 {
   m_date = start;
-  emit dateChanged(start);
+  dateChanged(start);
 }
 
 void IntervalModel::translate(const TimeVal& deltaTime)
@@ -176,7 +176,7 @@ void IntervalModel::setHeightPercentage(double arg)
   if (m_heightPercentage != arg)
   {
     m_heightPercentage = arg;
-    emit heightPercentageChanged(arg);
+    heightPercentageChanged(arg);
   }
 }
 
@@ -185,7 +185,7 @@ void IntervalModel::setExecutionState(IntervalExecutionState s)
   if (s != m_executionState)
   {
     m_executionState = s;
-    emit executionStateChanged(s);
+    executionStateChanged(s);
   }
 }
 
@@ -212,7 +212,7 @@ void IntervalModel::setMidTime(const TimeVal& value)
 void IntervalModel::setSmallViewVisible(bool v)
 {
   m_smallViewShown = v;
-  emit smallViewVisibleChanged(v);
+  smallViewVisibleChanged(v);
 }
 
 bool IntervalModel::smallViewVisible() const
@@ -223,25 +223,25 @@ bool IntervalModel::smallViewVisible() const
 void IntervalModel::clearSmallView()
 {
   m_smallView.clear();
-  emit rackChanged(Slot::SmallView);
+  rackChanged(Slot::SmallView);
 }
 
 void IntervalModel::clearFullView()
 {
   m_fullView.clear();
-  emit rackChanged(Slot::FullView);
+  rackChanged(Slot::FullView);
 }
 
 void IntervalModel::replaceSmallView(const Rack& other)
 {
   m_smallView = other;
-  emit rackChanged(Slot::SmallView);
+  rackChanged(Slot::SmallView);
 }
 
 void IntervalModel::replaceFullView(const FullRack& other)
 {
   m_fullView = other;
-  emit rackChanged(Slot::FullView);
+  rackChanged(Slot::FullView);
 }
 
 void IntervalModel::addLayer(int slot, Id<Process::ProcessModel> id)
@@ -250,7 +250,7 @@ void IntervalModel::addLayer(int slot, Id<Process::ProcessModel> id)
   SCORE_ASSERT(ossia::find(procs, id) == procs.end());
   procs.push_back(id);
 
-  emit layerAdded({slot, Slot::SmallView}, id);
+  layerAdded({slot, Slot::SmallView}, id);
 
   putLayerToFront(slot, id);
 }
@@ -263,7 +263,7 @@ void IntervalModel::removeLayer(int slot, Id<Process::ProcessModel> id)
 
   if(procs.size() < N)
   {
-    emit layerRemoved({slot, Slot::SmallView}, id);
+    layerRemoved({slot, Slot::SmallView}, id);
 
     if(!procs.empty())
       putLayerToFront(slot, procs.front());
@@ -275,20 +275,20 @@ void IntervalModel::removeLayer(int slot, Id<Process::ProcessModel> id)
 void IntervalModel::putLayerToFront(int slot, Id<Process::ProcessModel> id)
 {
   m_smallView.at(slot).frontProcess = id;
-  emit frontLayerChanged(slot, id);
+  frontLayerChanged(slot, id);
 }
 
 void IntervalModel::putLayerToFront(int slot, ossia::none_t)
 {
   m_smallView.at(slot).frontProcess = ossia::none;
-  emit frontLayerChanged(slot, ossia::none);
+  frontLayerChanged(slot, ossia::none);
 }
 
 void IntervalModel::addSlot(Slot s, int pos)
 {
   SCORE_ASSERT((int)m_smallView.size() >= pos);
   m_smallView.insert(m_smallView.begin() + pos, std::move(s));
-  emit slotAdded({pos, Slot::SmallView});
+  slotAdded({pos, Slot::SmallView});
 
   if(m_smallView.size() == 1)
     setSmallViewVisible(true);
@@ -303,7 +303,7 @@ void IntervalModel::removeSlot(int pos)
 {
   SCORE_ASSERT((int)m_smallView.size() >= pos);
   m_smallView.erase(m_smallView.begin() + pos);
-  emit slotRemoved({pos, Slot::SmallView});
+  slotRemoved({pos, Slot::SmallView});
 
   if(m_smallView.empty())
     setSmallViewVisible(false);
@@ -364,7 +364,7 @@ void IntervalModel::setSlotHeight(const SlotId& slot, double height)
     processes.at(m_fullView.at(slot.index).process).setSlotHeight(height);
   else
     getSmallViewSlot(slot.index).height = height;
-  emit slotResized(slot);
+  slotResized(slot);
 }
 
 void swap(Scenario::Slot& lhs, Scenario::Slot& rhs)
@@ -390,13 +390,13 @@ void IntervalModel::swapSlots(int pos1, int pos2, Slot::RackView v)
     SCORE_ASSERT((int)vec.size() > pos2);
     std::iter_swap(vec.begin() + pos1, vec.begin() + pos2);
   }
-  emit slotsSwapped(pos1, pos2, v);
+  slotsSwapped(pos1, pos2, v);
 }
 
 void IntervalModel::on_addProcess(const Process::ProcessModel& p)
 {
   m_fullView.push_back(FullSlot{p.id()});
-  emit slotAdded({m_fullView.size() - 1, Slot::FullView});
+  slotAdded({m_fullView.size() - 1, Slot::FullView});
 }
 
 void IntervalModel::on_removingProcess(const Process::ProcessModel& p)
@@ -414,7 +414,7 @@ void IntervalModel::on_removingProcess(const Process::ProcessModel& p)
   {
     int N = std::distance(m_fullView.begin(), it);
     m_fullView.erase(it);
-    emit slotRemoved(SlotId{N, Slot::FullView});
+    slotRemoved(SlotId{N, Slot::FullView});
   }
 }
 

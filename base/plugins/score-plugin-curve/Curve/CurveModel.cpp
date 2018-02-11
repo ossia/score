@@ -194,14 +194,14 @@ void Model::insertSegment(SegmentModel* m)
     }
   });
 
-  emit segmentAdded(*m);
+  segmentAdded(*m);
 }
 
 void Model::removeSegment(SegmentModel* m)
 {
   m_segments.remove(m->id());
 
-  emit segmentRemoved(m->id());
+  segmentRemoved(m->id());
 
   for (PointModel* pt : m_points)
   {
@@ -264,8 +264,8 @@ void Model::fromCurveData(const std::vector<SegmentData>& curve)
     addSortedSegment(createCurveSegment(csl, elt, this));
   }
   this->blockSignals(false);
-  emit curveReset();
-  emit changed();
+  curveReset();
+  changed();
 }
 
 Selection Model::selectedChildren() const
@@ -296,7 +296,7 @@ void Model::setSelection(const Selection& s)
 
 void Model::clear()
 {
-  emit cleared();
+  cleared();
 
   auto segs = shallow_copy(m_segments);
   m_segments.clear();
@@ -327,7 +327,7 @@ void Model::addPoint(PointModel* pt)
 {
   m_points.push_back(pt);
 
-  emit pointAdded(*pt);
+  pointAdded(*pt);
 }
 
 void Model::removePoint(PointModel* pt)
@@ -338,7 +338,7 @@ void Model::removePoint(PointModel* pt)
     m_points.erase(it);
   }
 
-  emit pointRemoved(pt->id());
+  pointRemoved(pt->id());
   delete pt;
 }
 

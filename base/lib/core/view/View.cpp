@@ -82,12 +82,12 @@ View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
         if(doc == m_documents.end())
           return;
 
-        emit activeDocumentChanged(doc->second->document().model().id());
+        activeDocumentChanged(doc->second->document().model().id());
       },
       Qt::QueuedConnection);
 
   connect(m_tabWidget, &QTabWidget::tabCloseRequested, this, [&](int index) {
-    emit closeRequested(m_documents.at(m_tabWidget->widget(index))
+    closeRequested(m_documents.at(m_tabWidget->widget(index))
                             ->document()
                             .model()
                             .id());
@@ -106,7 +106,7 @@ void View::addDocumentView(DocumentView* doc)
   m_tabWidget->addTab(widg, doc->document().metadata().fileName());
   m_tabWidget->setCurrentIndex(m_tabWidget->count() - 1);
   m_tabWidget->setTabsClosable(true);
-  emit sizeChanged(size());
+  sizeChanged(size());
 }
 
 void View::setupPanel(PanelDelegate* v)
@@ -236,7 +236,7 @@ void View::changeEvent(QEvent* ev)
 void View::resizeEvent(QResizeEvent* e)
 {
   QMainWindow::resizeEvent(e);
-  emit sizeChanged(e->size());
+  sizeChanged(e->size());
 }
 
 }

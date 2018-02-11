@@ -57,7 +57,7 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override
   {
     auto st = static_cast<StateView*>(parentItem());
-    emit st->startCreateMode();
+    st->startCreateMode();
     event->ignore();
   }
 

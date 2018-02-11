@@ -115,7 +115,7 @@ ProcessComponent* EffectProcessComponentBase::make(
         // set as process node
         auto old = m_ossia_process->node;
         m_ossia_process->node = fx->node;
-        emit nodeChanged(old, m_ossia_process->node);
+        nodeChanged(old, m_ossia_process->node);
       }
     }
     else if(idx == (process().effects().size() - 1))
@@ -166,7 +166,7 @@ ProcessComponent* EffectProcessComponentBase::make(
       in_exec([proc=m_ossia_process,node=fx->node] {
         proc->node = node;
       });
-      emit nodeChanged(old, fx->node);
+      nodeChanged(old, fx->node);
     }
     else
     {
@@ -284,7 +284,7 @@ std::function<void ()> EffectProcessComponentBase::removing(
           in_exec([proc=m_ossia_process,node=new_last.second.node()] {
             proc->node = node;
           });
-          emit nodeChanged(old, new_last.second.node());
+          nodeChanged(old, new_last.second.node());
         }
       }
     }

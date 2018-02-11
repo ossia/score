@@ -65,7 +65,7 @@ void Cable::setType(CableType type)
     return;
 
   m_type = type;
-  emit typeChanged(m_type);
+  typeChanged(m_type);
 }
 
 }

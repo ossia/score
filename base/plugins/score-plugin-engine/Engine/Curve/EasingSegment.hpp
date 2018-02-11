@@ -54,11 +54,11 @@ public:
 
   void on_startChanged() override
   {
-    emit dataChanged();
+    dataChanged();
   }
   void on_endChanged() override
   {
-    emit dataChanged();
+    dataChanged();
   }
 
   void updateData(int numInterp) const override

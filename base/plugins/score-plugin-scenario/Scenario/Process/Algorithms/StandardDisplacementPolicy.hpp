@@ -90,7 +90,7 @@ public:
         scaleMethod(process, defaultDuration);
       }
 
-      emit scenario.intervalMoved(curIntervalToUpdate);
+      scenario.intervalMoved(curIntervalToUpdate);
     }
   }
 
@@ -176,7 +176,7 @@ public:
       // GenericDisplacementPolicy.
       curIntervalPropertiesToUpdate.reload(curIntervalToUpdate);
 
-      emit scenario.intervalMoved(curIntervalToUpdate);
+      scenario.intervalMoved(curIntervalToUpdate);
     }
   }
 };

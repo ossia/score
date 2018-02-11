@@ -55,8 +55,8 @@ void VSTGraphicsSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
   if(curPos != m_value)
   {
     m_value = curPos;
-    emit valueChanged(m_value);
-    emit sliderMoved();
+    valueChanged(m_value);
+    sliderMoved();
     update();
   }
 
@@ -72,8 +72,8 @@ void VSTGraphicsSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     if(curPos != m_value)
     {
       m_value = curPos;
-      emit valueChanged(m_value);
-      emit sliderMoved();
+      valueChanged(m_value);
+      sliderMoved();
       update();
     }
   }
@@ -88,10 +88,10 @@ void VSTGraphicsSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     if(curPos != m_value)
     {
       m_value = curPos;
-      emit valueChanged(m_value);
+      valueChanged(m_value);
       update();
     }
-    emit sliderReleased();
+    sliderReleased();
     m_grab = false;
   }
   event->accept();
@@ -337,7 +337,7 @@ void VSTWindow::closeEvent(QCloseEvent* event)
 {
   qDebug() << "Closing !";
   effect.dispatcher(&effect, effEditClose, 0, 0, nullptr, 0);
-  emit uiClosing();
+  uiClosing();
   QDialog::closeEvent(event);
 }
 

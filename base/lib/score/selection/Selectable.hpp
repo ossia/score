@@ -31,7 +31,7 @@ public:
     if (m_val != v)
     {
       m_val = v;
-      emit changed(v);
+      changed(v);
     }
   }
 

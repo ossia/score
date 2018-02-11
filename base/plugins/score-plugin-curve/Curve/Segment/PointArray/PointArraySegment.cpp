@@ -47,12 +47,12 @@ PointArraySegment::PointArraySegment(
 
 void PointArraySegment::on_startChanged()
 {
-  emit dataChanged();
+  dataChanged();
 }
 
 void PointArraySegment::on_endChanged()
 {
-  emit dataChanged();
+  dataChanged();
 }
 
 void PointArraySegment::updateData(int numInterp) const
@@ -118,7 +118,7 @@ void PointArraySegment::addPoint(double x, double y)
   m_points[x] = y;
 
   m_valid = false;
-  emit dataChanged();
+  dataChanged();
 }
 
 void PointArraySegment::addPointUnscaled(double x, double y)
@@ -148,7 +148,7 @@ void PointArraySegment::addPointUnscaled(double x, double y)
   m_lastX = x;
 
   m_valid = false;
-  emit dataChanged();
+  dataChanged();
 }
 
 void PointArraySegment::simplify(double ratio)
@@ -246,6 +246,6 @@ void PointArraySegment::reset()
   max_y = 0;
   m_lastX = -1;
   m_points.clear();
-  emit dataChanged();
+  dataChanged();
 }
 }

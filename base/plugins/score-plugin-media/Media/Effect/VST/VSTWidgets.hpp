@@ -103,7 +103,7 @@ class VSTWindow final: public QDialog
     }
 
     ~VSTWindow();
-  signals:
+  Q_SIGNALS:
     void uiClosing();
   private:
     VSTWindow(AEffect& effect, ERect rect);

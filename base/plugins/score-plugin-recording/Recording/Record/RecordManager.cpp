@@ -234,7 +234,7 @@ void AutomationRecorder::messageCallback(
   }
   else
   {
-    emit firstMessageReceived();
+    firstMessageReceived();
     context.start();
     val.apply(RecordAutomationFirstCallbackVisitor{*this, addr});
   }
@@ -251,7 +251,7 @@ void AutomationRecorder::parameterCallback(
   }
   else
   {
-    emit firstMessageReceived();
+    firstMessageReceived();
     context.start();
     val.apply(RecordAutomationFirstCallbackVisitor{*this, addr});
   }

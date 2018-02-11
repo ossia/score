@@ -50,7 +50,7 @@ void Note::scale(double s)
   {
     m_start *= s;
     m_duration *= s;
-    emit noteChanged();
+    noteChanged();
   }
 }
 
@@ -59,7 +59,7 @@ void Note::setStart(double s)
   if (m_start != s)
   {
     m_start = s;
-    emit noteChanged();
+    noteChanged();
   }
 }
 
@@ -68,7 +68,7 @@ void Note::setDuration(double s)
   if (m_duration != s)
   {
     m_duration = s;
-    emit noteChanged();
+    noteChanged();
   }
 }
 
@@ -77,7 +77,7 @@ void Note::setPitch(midi_size_t s)
   if (m_pitch != s)
   {
     m_pitch = s;
-    emit noteChanged();
+    noteChanged();
   }
 }
 
@@ -86,7 +86,7 @@ void Note::setVelocity(midi_size_t s)
   if (m_velocity != s)
   {
     m_velocity = s;
-    emit noteChanged();
+    noteChanged();
   }
 }
 
@@ -102,6 +102,6 @@ void Note::setData(NoteData d)
   m_pitch = d.m_pitch;
   m_velocity = d.m_velocity;
 
-  emit noteChanged();
+  noteChanged();
 }
 }

@@ -87,7 +87,7 @@ void ZeroconfBrowser::accept()
 
   if(!ip.isEmpty() && port > 0)
   {
-    emit sessionSelected("manual", ip, port, {});
+    sessionSelected("manual", ip, port, {});
     m_dialog->close();
     return;
   }
@@ -141,7 +141,7 @@ void ZeroconfBrowser::accept()
 
   if (!ip.isEmpty() && port > 0)
   {
-    emit sessionSelected(name, ip, port, text);
+    sessionSelected(name, ip, port, text);
     m_dialog->close();
   }
 }

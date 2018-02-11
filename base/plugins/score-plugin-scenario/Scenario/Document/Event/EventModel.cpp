@@ -46,7 +46,7 @@ void EventModel::setExtent(const VerticalExtent& extent)
   if (extent != m_extent)
   {
     m_extent = extent;
-    emit extentChanged(m_extent);
+    extentChanged(m_extent);
   }
 }
 
@@ -60,7 +60,7 @@ void EventModel::setDate(const TimeVal& date)
   if (m_date != date)
   {
     m_date = date;
-    emit dateChanged(m_date);
+    dateChanged(m_date);
   }
 }
 
@@ -72,7 +72,7 @@ void EventModel::setStatus(
     return;
 
   m_status.set(status);
-  emit statusChanged(status);
+  statusChanged(status);
 
   for (auto& state : m_states)
   {
@@ -85,7 +85,7 @@ void EventModel::setOffsetBehavior(OffsetBehavior f)
   if (m_offset != f)
   {
     m_offset = f;
-    emit offsetBehaviorChanged(f);
+    offsetBehaviorChanged(f);
   }
 }
 
@@ -106,7 +106,7 @@ void EventModel::addState(const Id<StateModel>& ds)
   if (ossia::contains(m_states, ds))
     return;
   m_states.push_back(ds);
-  emit statesChanged();
+  statesChanged();
 }
 
 void EventModel::removeState(const Id<StateModel>& ds)
@@ -115,14 +115,14 @@ void EventModel::removeState(const Id<StateModel>& ds)
   if (it != m_states.end())
   {
     m_states.erase(it);
-    emit statesChanged();
+    statesChanged();
   }
 }
 
 void EventModel::clearStates()
 {
   m_states.clear();
-  emit statesChanged();
+  statesChanged();
 }
 
 const EventModel::StateIdVec& EventModel::states() const
@@ -145,7 +145,7 @@ void EventModel::setCondition(const State::Expression& arg)
   if (m_condition != arg)
   {
     m_condition = arg;
-    emit conditionChanged(arg);
+    conditionChanged(arg);
   }
 }
 }

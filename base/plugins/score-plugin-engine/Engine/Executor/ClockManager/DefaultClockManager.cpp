@@ -133,7 +133,7 @@ ControlClock::ControlClock(
           context.plugin.execGraph->state(*context.plugin.execState);
           context.plugin.execState->commit();
 
-          emit context.scenario.finished();
+          context.scenario.finished();
         }
       });
 }

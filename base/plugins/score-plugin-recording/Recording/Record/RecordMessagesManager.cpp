@@ -127,7 +127,7 @@ void MessageRecorder::on_valueUpdated(
   }
   else
   {
-    emit firstMessageReceived();
+    firstMessageReceived();
     context.start();
 
     m_records.push_back(RecordedMessage{

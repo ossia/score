@@ -226,7 +226,7 @@ void FaustEffectModel::reload()
 
     for(int i = ui.i; i < m_inlets.size(); i++)
     {
-      emit controlRemoved(*m_inlets[i]);
+      controlRemoved(*m_inlets[i]);
       delete m_inlets[i];
     }
     m_inlets.resize(ui.i);
@@ -240,7 +240,7 @@ void FaustEffectModel::reload()
     faust_object = obj;
     for(int i = 1; i < m_inlets.size(); i++)
     {
-      emit controlRemoved(*m_inlets[i]);
+      controlRemoved(*m_inlets[i]);
     }
     qDeleteAll(m_inlets);
     qDeleteAll(m_outlets);

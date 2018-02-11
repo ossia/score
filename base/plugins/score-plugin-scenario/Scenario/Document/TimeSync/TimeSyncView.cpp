@@ -120,16 +120,16 @@ void TimeSyncView::setLabel(const QString& s)
 void TimeSyncView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   if (event->button() == Qt::MouseButton::LeftButton)
-    emit m_presenter.pressed(event->scenePos());
+    m_presenter.pressed(event->scenePos());
 }
 
 void TimeSyncView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  emit m_presenter.moved(event->scenePos());
+  m_presenter.moved(event->scenePos());
 }
 
 void TimeSyncView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  emit m_presenter.released(event->scenePos());
+  m_presenter.released(event->scenePos());
 }
 }

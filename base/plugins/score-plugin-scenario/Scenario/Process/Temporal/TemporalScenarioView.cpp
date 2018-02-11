@@ -74,7 +74,7 @@ void TemporalScenarioView::movedAsked(const QPointF& p)
 {
   QRectF r = QRectF{m_previousPoint.x(), m_previousPoint.y(), 1, 1};
   ensureVisible(mapRectFromScene(r), 30, 30);
-  emit moved(p);
+  moved(p);
   m_previousPoint
       = p; // we use the last pos, because if not there's a larsen and crash
 }
@@ -82,21 +82,21 @@ void TemporalScenarioView::movedAsked(const QPointF& p)
 void TemporalScenarioView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   if (event->button() == Qt::LeftButton)
-    emit pressed(event->scenePos());
+    pressed(event->scenePos());
 
   event->accept();
 }
 
 void TemporalScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  emit moved(event->scenePos());
+  moved(event->scenePos());
 
   event->accept();
 }
 
 void TemporalScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  emit released(event->scenePos());
+  released(event->scenePos());
 
   event->accept();
 }
@@ -104,7 +104,7 @@ void TemporalScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 void TemporalScenarioView::mouseDoubleClickEvent(
     QGraphicsSceneMouseEvent* event)
 {
-  emit doubleClicked(event->pos());
+  doubleClicked(event->pos());
 
   event->accept();
 }
@@ -112,7 +112,7 @@ void TemporalScenarioView::mouseDoubleClickEvent(
 void TemporalScenarioView::contextMenuEvent(
     QGraphicsSceneContextMenuEvent* event)
 {
-  emit askContextMenu(event->screenPos(), event->scenePos());
+  askContextMenu(event->screenPos(), event->scenePos());
 
   event->accept();
 }
@@ -122,11 +122,11 @@ void TemporalScenarioView::keyPressEvent(QKeyEvent* event)
   QGraphicsItem::keyPressEvent(event);
   if (event->key() == Qt::Key_Escape)
   {
-    emit escPressed();
+    escPressed();
   }
   else if (event->key() == Qt::Key_Shift || event->key() == Qt::Key_Control || event->key() == Qt::Key_Alt)
   {
-    emit keyPressed(event->key());
+    keyPressed(event->key());
   }
 
   event->accept();
@@ -137,13 +137,13 @@ void TemporalScenarioView::keyReleaseEvent(QKeyEvent* event)
   QGraphicsItem::keyReleaseEvent(event);
   if (event->key() == Qt::Key_Shift || event->key() == Qt::Key_Control || event->key() == Qt::Key_Alt)
   {
-    emit keyReleased(event->key());
+    keyReleased(event->key());
   } /*
    else if( !event->isAutoRepeat())
    {
        if(event->key() == Qt::Key_C)
        {
-           emit keyReleased(event->key());
+           keyReleased(event->key());
        }
    }
    */
@@ -153,28 +153,28 @@ void TemporalScenarioView::keyReleaseEvent(QKeyEvent* event)
 
 void TemporalScenarioView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
-  emit dragEnter(event->pos(), *event->mimeData());
+  dragEnter(event->pos(), *event->mimeData());
 
   event->accept();
 }
 
 void TemporalScenarioView::dragMoveEvent(QGraphicsSceneDragDropEvent* event)
 {
-  emit dragMove(event->pos(), *event->mimeData());
+  dragMove(event->pos(), *event->mimeData());
 
   event->accept();
 }
 
 void TemporalScenarioView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 {
-  emit dragLeave(event->pos(), *event->mimeData());
+  dragLeave(event->pos(), *event->mimeData());
 
   event->accept();
 }
 
 void TemporalScenarioView::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
-  emit dropReceived(event->pos(), *event->mimeData());
+  dropReceived(event->pos(), *event->mimeData());
 
   event->accept();
 }

@@ -20,7 +20,7 @@ void Scenario::EditionSettings::setExpandMode(ExpandMode expandMode)
     return;
 
   m_expandMode = expandMode;
-  emit expandModeChanged(expandMode);
+  expandModeChanged(expandMode);
 }
 
 void Scenario::EditionSettings::setTool(Scenario::Tool tool)
@@ -39,7 +39,7 @@ void Scenario::EditionSettings::setTool(Scenario::Tool tool)
     }
 
     m_tool = tool;
-    emit toolChanged(tool);
+    toolChanged(tool);
   }
 }
 
@@ -54,7 +54,7 @@ void Scenario::EditionSettings::setSequence(bool sequence)
     return;
 
   m_sequence = sequence;
-  emit sequenceChanged(sequence);
+  sequenceChanged(sequence);
 }
 
 void Scenario::EditionSettings::setExecution(bool ex)
@@ -89,5 +89,5 @@ void Scenario::EditionSettings::setLockMode(LockMode lockMode)
     return;
 
   m_lockMode = lockMode;
-  emit lockModeChanged(m_lockMode);
+  lockModeChanged(m_lockMode);
 }

@@ -23,16 +23,16 @@ public:
   {
     return m_address;
   }
-public slots:
+public Q_SLOTS:
   void setAddress(QString address)
   {
     if (m_address == address)
       return;
 
     m_address = address;
-    emit addressChanged(m_address);
+    addressChanged(m_address);
   }
-signals:
+Q_SIGNALS:
   void addressChanged(QString address);
 };
 class Outlet: public QObject
@@ -50,16 +50,16 @@ public:
   {
     return m_address;
   }
-public slots:
+public Q_SLOTS:
   void setAddress(QString address)
   {
     if (m_address == address)
       return;
 
     m_address = address;
-    emit addressChanged(m_address);
+    addressChanged(m_address);
   }
-signals:
+Q_SIGNALS:
   void addressChanged(QString address);
 };
 struct ValueMessage
@@ -139,7 +139,7 @@ class FloatSlider: public ValueInlet
       if(m != m_min)
       {
         m_min = m;
-        emit minChanged(m);
+        minChanged(m);
       }
     }
 
@@ -148,7 +148,7 @@ class FloatSlider: public ValueInlet
       if(m != m_max)
       {
         m_max = m;
-        emit maxChanged(m);
+        maxChanged(m);
       }
     }
 
@@ -157,7 +157,7 @@ class FloatSlider: public ValueInlet
       if(m != m_init)
       {
         m_init = m;
-        emit initChanged(m);
+        initChanged(m);
       }
     }
   private:
@@ -200,7 +200,7 @@ class IntSlider: public ValueInlet
       if(m != m_min)
       {
         m_min = m;
-        emit minChanged(m);
+        minChanged(m);
       }
     }
 
@@ -209,7 +209,7 @@ class IntSlider: public ValueInlet
       if(m != m_max)
       {
         m_max = m;
-        emit maxChanged(m);
+        maxChanged(m);
       }
     }
 
@@ -218,7 +218,7 @@ class IntSlider: public ValueInlet
       if(m != m_init)
       {
         m_init = m;
-        emit initChanged(m);
+        initChanged(m);
       }
     }
   private:
@@ -269,7 +269,7 @@ class Enum: public ValueInlet
       if(m != m_choices)
       {
         m_choices = m;
-        emit choicesChanged(m);
+        choicesChanged(m);
       }
     }
 
@@ -278,7 +278,7 @@ class Enum: public ValueInlet
       if(m != m_index)
       {
         m_index = m;
-        emit indexChanged(m);
+        indexChanged(m);
       }
     }
 
@@ -312,7 +312,7 @@ class Toggle: public ValueInlet
       if(m != m_checked)
       {
         m_checked = m;
-        emit checkedChanged(m);
+        checkedChanged(m);
       }
     }
 
@@ -346,7 +346,7 @@ class LineEdit: public ValueInlet
       if(m != m_text)
       {
         m_text = m;
-        emit textChanged(m);
+        textChanged(m);
       }
     }
 

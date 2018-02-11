@@ -50,12 +50,12 @@ NoiseSegment::NoiseSegment(
 
 void NoiseSegment::on_startChanged()
 {
-  emit dataChanged();
+  dataChanged();
 }
 
 void NoiseSegment::on_endChanged()
 {
-  emit dataChanged();
+  dataChanged();
 }
 
 const constexpr std::size_t rand_N = 35;

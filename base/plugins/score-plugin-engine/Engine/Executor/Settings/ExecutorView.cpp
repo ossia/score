@@ -14,55 +14,100 @@ namespace Execution
 namespace Settings
 {
 
+#define SETTINGS_UI_COMBOBOX_SETUP(Text, Control, Values) \
+  m_ ## Control = new QComboBox{m_widg}; \
+  m_ ## Control->addItems(Values); \
+  lay->addRow(tr(Text), m_ ## Control); \
+  connect(m_ ## Control, SignalUtils::QComboBox_currentIndexChanged_int(), this, \
+  [this] (int i) { Control ## Changed( m_ ## Control->itemData(i).value<QString>() ); } );
+
+#define SETTINGS_UI_SPINBOX_SETUP(Text, Control) \
+  m_ ## Control = new QSpinBox{m_widg}; \
+  lay->addRow(tr(Text), m_ ## Control); \
+  connect(m_ ## Control, SignalUtils::QSpinBox_valueChanged_int(), \
+          this,  &View::Control ## Changed);
+
+#define SETTINGS_UI_TOGGLE_SETUP(Text, Control) \
+  m_ ## Control = new QCheckBox{m_widg}; \
+  lay->addRow(tr(Text), m_ ## Control); \
+  connect(m_ ## Control, &QCheckBox::toggled, \
+          this, &View::Control ## Changed);
+
+
+#define SETTINGS_UI_COMBOBOX_IMPL(Control)                       \
+  void View::set ## Control(QString val) {                       \
+    int idx = m_ ## Control->findData(QVariant::fromValue(val)); \
+    if(idx != -1 && idx != m_ ## Control->currentIndex())        \
+       m_ ## Control->setCurrentIndex(idx);                      \
+}
+
+#define SETTINGS_UI_SPINBOX_IMPL(Control)                        \
+  void View::set ## Control(int val) {                           \
+  int cur = m_ ## Control->value();                              \
+  if(cur != val)                                                 \
+    m_ ## Control->setValue(val);                                \
+}
+
+
+#define SETTINGS_UI_TOGGLE_IMPL(Control)                        \
+  void View::set ## Control(bool val) {                         \
+  bool cur = m_ ## Control->isChecked();                        \
+  if(cur != val)                                                \
+    m_ ## Control->setChecked(val);                             \
+}
+
 View::View() : m_widg{new QWidget}
 {
   auto lay = new QFormLayout;
   m_widg->setLayout(lay);
 
-  m_sb = new QSpinBox;
-  m_sb->setMinimum(1);
-  m_sb->setMaximum(1000);
-  lay->addRow(tr("Granularity"), m_sb);
+  SETTINGS_UI_COMBOBOX_SETUP("Tick policy", Tick, TickPolicies{});
+  SETTINGS_UI_COMBOBOX_SETUP("Scheduling policy", Scheduling, SchedulingPolicies{});
+  SETTINGS_UI_COMBOBOX_SETUP("Ordering policy", Ordering, OrderingPolicies{});
+  SETTINGS_UI_COMBOBOX_SETUP("Merging policy", Merging, MergingPolicies{});
+  SETTINGS_UI_COMBOBOX_SETUP("Commit policy", Commit, CommitPolicies{});
 
-  m_cb = new QComboBox;
-  lay->addRow(tr("Clock source"), m_cb);
+  SETTINGS_UI_TOGGLE_SETUP("Enable listening during execution", ExecutionListening);
+  SETTINGS_UI_TOGGLE_SETUP("Parallel", Parallel);
+  SETTINGS_UI_TOGGLE_SETUP("Use Score order", ScoreOrder);
+  SETTINGS_UI_TOGGLE_SETUP("Logging", Logging);
 
-  m_listening = new QCheckBox;
-  lay->addRow(tr("Enable listening during execution"), m_listening);
+
+  m_Clock = new QComboBox;
+  lay->addRow(tr("Clock source"), m_Clock);
 
   connect(
-      m_sb, SignalUtils::QSpinBox_valueChanged_int(), this,
-      &View::rateChanged);
-
-  connect(
-      m_cb, SignalUtils::QComboBox_currentIndexChanged_int(), this,
+      m_Clock, SignalUtils::QComboBox_currentIndexChanged_int(), this,
       [this](int i) {
-        emit clockChanged(
-            m_cb->itemData(i)
+        ClockChanged(
+            m_Clock->itemData(i)
                 .value<ClockManagerFactory::ConcreteKey>());
       });
 
-  connect(
-      m_listening, &QCheckBox::toggled, this,
-      &View::executionListeningChanged);
+
+  SETTINGS_UI_SPINBOX_SETUP("Rate (default clock only)", Rate);
 }
 
-void View::setRate(int val)
-{
-  if (val != m_sb->value())
-    m_sb->setValue(val);
-}
-void View::setExecutionListening(bool val)
-{
-  if (val != m_listening->isChecked())
-    m_listening->setChecked(val);
-}
+
+SETTINGS_UI_COMBOBOX_IMPL(Tick)
+SETTINGS_UI_COMBOBOX_IMPL(Scheduling)
+SETTINGS_UI_COMBOBOX_IMPL(Ordering)
+SETTINGS_UI_COMBOBOX_IMPL(Merging)
+SETTINGS_UI_COMBOBOX_IMPL(Commit)
+
+SETTINGS_UI_SPINBOX_IMPL(Rate)
+
+SETTINGS_UI_TOGGLE_IMPL(ExecutionListening)
+SETTINGS_UI_TOGGLE_IMPL(ScoreOrder)
+SETTINGS_UI_TOGGLE_IMPL(Parallel)
+SETTINGS_UI_TOGGLE_IMPL(Logging)
+
 
 void View::setClock(ClockManagerFactory::ConcreteKey k)
 {
-  int idx = m_cb->findData(QVariant::fromValue(k));
-  if (idx != m_cb->currentIndex())
-    m_cb->setCurrentIndex(idx);
+  int idx = m_Clock->findData(QVariant::fromValue(k));
+  if (idx != m_Clock->currentIndex())
+    m_Clock->setCurrentIndex(idx);
 }
 
 void View::populateClocks(
@@ -70,7 +115,7 @@ void View::populateClocks(
 {
   for (auto& elt : map)
   {
-    m_cb->addItem(elt.first, QVariant::fromValue(elt.second));
+    m_Clock->addItem(elt.first, QVariant::fromValue(elt.second));
   }
 }
 

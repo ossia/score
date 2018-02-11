@@ -151,9 +151,9 @@ void ProcessModel::setAddress(const State::AddressAccessor& arg)
   }
 
   m_address = arg;
-  emit addressChanged(arg);
-  emit prettyNameChanged();
-  emit m_curve->changed();
+  addressChanged(arg);
+  prettyNameChanged();
+  m_curve->changed();
 }
 
 void ProcessModel::setSourceUnit(const State::Unit& u)
@@ -167,8 +167,8 @@ void ProcessModel::setStart(ossia::value arg)
     return;
 
   m_start = arg;
-  emit startChanged(arg);
-  emit m_curve->changed();
+  startChanged(arg);
+  m_curve->changed();
 }
 
 void ProcessModel::setEnd(ossia::value arg)
@@ -177,8 +177,8 @@ void ProcessModel::setEnd(ossia::value arg)
     return;
 
   m_end = arg;
-  emit endChanged(arg);
-  emit m_curve->changed();
+  endChanged(arg);
+  m_curve->changed();
 }
 
 QString ProcessModel::prettyName() const

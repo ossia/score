@@ -35,10 +35,11 @@ class ProcessComponent;
 class ProcessComponentFactory;
 class ProcessComponentFactoryList;
 class BaseScenarioElement;
+namespace Settings { class Model; }
 
 using time_function = smallfun::function<ossia::time_value(const TimeVal&)>;
 using reverse_time_function = smallfun::function<TimeVal(const ossia::time_value&)>;
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined(__EMSCRIPTEN__)
 using ExecutionCommand = smallfun::function<void(), 128, 2*sizeof(intptr_t)>;
 #else
 using ExecutionCommand = smallfun::function<void(), 128, sizeof(intptr_t)>;
@@ -58,6 +59,7 @@ struct SCORE_PLUGIN_ENGINE_EXPORT Context
   Engine::Execution::BaseScenarioElement& scenario;
   const Explorer::DeviceDocumentPlugin& devices;
   const Engine::Execution::ProcessComponentFactoryList& processes;
+  const Engine::Execution::Settings::Model& settings;
 
   /** Used to map the "high-level" durations in score to low-level durations
    *

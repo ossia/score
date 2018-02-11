@@ -43,7 +43,7 @@ void DocumentModel::addPluginModel(DocumentPlugin* m)
 {
   m->setParent(this);
   m_pluginModels.push_back(m);
-  emit pluginModelsChanged();
+  pluginModelsChanged();
 }
 
 }
