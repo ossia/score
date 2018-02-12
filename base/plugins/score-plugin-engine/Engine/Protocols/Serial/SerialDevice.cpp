@@ -12,6 +12,7 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/Protocols/Serial/SerialSpecificSettings.hpp>
 
+#include <Explorer/DeviceList.hpp>
 namespace Engine
 {
 namespace Network
@@ -41,7 +42,7 @@ bool SerialDevice::reconnect()
 
     enableCallbacks();
 
-    setLogging_impl(isLogging());
+    setLogging_impl(Device::get_cur_logging(isLogging()));
   }
   catch (std::exception& e)
   {

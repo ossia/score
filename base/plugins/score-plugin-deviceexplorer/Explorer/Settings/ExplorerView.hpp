@@ -2,13 +2,8 @@
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 
 class QCheckBox;
-namespace Engine
+namespace Explorer::Settings
 {
-namespace LocalTree
-{
-namespace Settings
-{
-
 class View : public score::SettingsDelegateView
 {
   Q_OBJECT
@@ -19,12 +14,12 @@ public:
 Q_SIGNALS:
   void localTreeChanged(bool);
 
+  SETTINGS_UI_COMBOBOX_HPP(LogLevel)
+
 private:
   QWidget* getWidget() override;
   QWidget* m_widg{};
 
   QCheckBox* m_cb{};
 };
-}
-}
 }

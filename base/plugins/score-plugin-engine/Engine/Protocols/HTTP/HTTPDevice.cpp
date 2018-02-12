@@ -10,6 +10,7 @@
 #include <ossia-qt/http/http.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/Protocols/HTTP/HTTPSpecificSettings.hpp>
+#include <Explorer/DeviceList.hpp>
 
 namespace Engine
 {
@@ -41,7 +42,7 @@ bool HTTPDevice::reconnect()
         settings().name.toStdString());
 
     enableCallbacks();
-    setLogging_impl(isLogging());
+    setLogging_impl(Device::get_cur_logging(isLogging()));
   }
   catch (std::exception& e)
   {

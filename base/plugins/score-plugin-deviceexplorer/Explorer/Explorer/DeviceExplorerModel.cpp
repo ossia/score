@@ -35,7 +35,7 @@
 #include "Widgets/DeviceEditDialog.hpp" // TODO why here??!!
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/ItemModels/NodeBasedItemModel.hpp>
-#include <Device/Protocol/DeviceList.hpp>
+#include <Explorer/DeviceList.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <State/ValueConversion.hpp>

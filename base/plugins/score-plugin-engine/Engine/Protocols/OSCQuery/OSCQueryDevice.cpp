@@ -11,6 +11,7 @@
 #include <ossia/network/oscquery/oscquery_mirror.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/Protocols/OSCQuery/OSCQuerySpecificSettings.hpp>
+#include <Explorer/DeviceList.hpp>
 
 namespace Engine
 {
@@ -59,7 +60,7 @@ bool OSCQueryDevice::reconnect()
     m_dev = std::make_unique<ossia::net::generic_device>(
         std::move(ossia_settings), settings().name.toStdString());
 
-    setLogging_impl(isLogging());
+    setLogging_impl(Device::get_cur_logging(isLogging()));
 
     enableCallbacks();
   }

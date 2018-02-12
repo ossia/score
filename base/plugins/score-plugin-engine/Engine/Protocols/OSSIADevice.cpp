@@ -20,6 +20,7 @@
 #include <ossia/network/base/protocol.hpp>
 #include <ossia/network/common/network_logger.hpp>
 #include <ossia-qt/name_utils.hpp>
+#include <Explorer/DeviceList.hpp>
 
 namespace Engine
 {
@@ -267,27 +268,47 @@ struct out_sink final : public spdlog::sinks::sink
   }
 };
 }
-void OSSIADevice::setLogging_impl(bool b) const
+void OSSIADevice::setLogging_impl(DeviceLogging b) const
 {
   if (auto dev = getDevice())
   {
-    if (b)
+    switch (b)
     {
-      ossia::net::network_logger logger;
-      logger.inbound_logger = std::make_shared<spdlog::logger>(
-            "in_logger", std::make_shared<in_sink>(*this));
-      logger.outbound_logger = std::make_shared<spdlog::logger>(
-            "out_logger", std::make_shared<out_sink>(*this));
+      case DeviceLogging::LogNothing:
+      {
+        dev->get_protocol().set_logger({});
+        return;
+      }
+      case DeviceLogging::LogEverything:
+      {
+        ossia::net::network_logger logger;
+        logger.inbound_logger = std::make_shared<spdlog::logger>(
+              "in_logger", std::make_shared<in_sink>(*this));
+        logger.outbound_logger = std::make_shared<spdlog::logger>(
+              "out_logger", std::make_shared<out_sink>(*this));
 
-      logger.inbound_logger->set_pattern("%v");
-      logger.inbound_logger->set_level(spdlog::level::info);
-      logger.outbound_logger->set_pattern("%v");
-      logger.outbound_logger->set_level(spdlog::level::info);
-      dev->get_protocol().set_logger(std::move(logger));
-    }
-    else
-    {
-      dev->get_protocol().set_logger({});
+        logger.inbound_logger->set_pattern("%v");
+        logger.inbound_logger->set_level(spdlog::level::info);
+        logger.outbound_logger->set_pattern("%v");
+        logger.outbound_logger->set_level(spdlog::level::info);
+        dev->get_protocol().set_logger(std::move(logger));
+        break;
+      }
+      case DeviceLogging::LogUnfolded:
+      {
+        ossia::net::network_logger logger;
+        logger.inbound_listened_logger = std::make_shared<spdlog::logger>(
+              "in_logger", std::make_shared<in_sink>(*this));
+        logger.outbound_listened_logger = std::make_shared<spdlog::logger>(
+              "out_logger", std::make_shared<out_sink>(*this));
+
+        logger.inbound_listened_logger->set_pattern("%v");
+        logger.inbound_listened_logger->set_level(spdlog::level::info);
+        logger.outbound_listened_logger->set_pattern("%v");
+        logger.outbound_listened_logger->set_level(spdlog::level::info);
+        dev->get_protocol().set_logger(std::move(logger));
+        break;
+      }
     }
   }
 }
@@ -592,10 +613,13 @@ bool OSSIADevice::isLogging() const
   return m_logging;
 }
 
-void OSSIADevice::setLogging(bool b)
+void OSSIADevice::setLogging(DeviceLogging b)
 {
   if (!connected())
+  {
+    m_logging = b;
     return;
+  }
 
   if (b == m_logging)
     return;

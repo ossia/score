@@ -20,7 +20,7 @@
 #include <Device/Address/IOType.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
-#include <Device/Protocol/DeviceList.hpp>
+#include <Explorer/DeviceList.hpp>
 
 #include <Process/ExpandMode.hpp>
 #include <Process/Process.hpp>

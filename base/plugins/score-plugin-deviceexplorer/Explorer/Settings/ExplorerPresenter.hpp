@@ -1,11 +1,7 @@
 #pragma once
 #include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 
-namespace Engine
-{
-namespace LocalTree
-{
-namespace Settings
+namespace Explorer::Settings
 {
 class Model;
 class View;
@@ -20,6 +16,4 @@ private:
   QString settingsName() override;
   QIcon settingsIcon() override;
 };
-}
-}
 }

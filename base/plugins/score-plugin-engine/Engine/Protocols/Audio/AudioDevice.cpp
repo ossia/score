@@ -17,6 +17,8 @@
 #include <ossia/dataflow/audio_parameter.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+#include <Explorer/DeviceList.hpp>
 #if __has_include(<pa_jack.h>)
 #include <pa_jack.h>
 #endif
@@ -80,7 +82,7 @@ void AudioDevice::addAddress(const Device::FullAddressSettings& settings)
 void AudioDevice::disconnect()
 {
   // TODO handle listening ??
-  setLogging_impl(false);
+  setLogging_impl(Device::get_cur_logging(isLogging()));
 }
 
 bool AudioDevice::reconnect()
@@ -98,7 +100,7 @@ bool AudioDevice::reconnect()
     proto.bufferSize = stgs.bufferSize;
     proto.reload();
 
-    setLogging_impl(isLogging());
+    setLogging_impl(Device::get_cur_logging(isLogging()));
   }
   catch (std::exception& e)
   {

@@ -10,6 +10,7 @@
 #include <ossia-qt/websocket-generic-client/ws_generic_client.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/Protocols/WS/WSSpecificSettings.hpp>
+#include <Explorer/DeviceList.hpp>
 
 namespace Engine
 {
@@ -42,7 +43,7 @@ bool WSDevice::reconnect()
 
     enableCallbacks();
 
-    setLogging_impl(isLogging());
+    setLogging_impl(Device::get_cur_logging(isLogging()));
   }
   catch (std::exception& e)
   {

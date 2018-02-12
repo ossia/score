@@ -11,7 +11,7 @@
 #include <ossia/network/osc/osc.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/Protocols/OSC/OSCSpecificSettings.hpp>
-
+#include <Explorer/DeviceList.hpp>
 namespace Engine
 {
 namespace Network
@@ -38,7 +38,7 @@ bool OSCDevice::reconnect()
             stgs.host.toStdString(), stgs.inputPort, stgs.outputPort);
     m_dev = std::make_unique<ossia::net::generic_device>(
         std::move(ossia_settings), settings().name.toStdString());
-    setLogging_impl(isLogging());
+    setLogging_impl(Device::get_cur_logging(isLogging()));
   }
   catch (...)
   {

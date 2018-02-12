@@ -28,8 +28,9 @@ namespace Engine
 {
 namespace Network
 {
-
-class SCORE_PLUGIN_ENGINE_EXPORT OSSIADevice : public Device::DeviceInterface, public Nano::Observer
+using DeviceLogging = Device::DeviceLogging;
+class SCORE_PLUGIN_ENGINE_EXPORT OSSIADevice
+    : public Device::DeviceInterface, public Nano::Observer
 {
 public:
   virtual ~OSSIADevice();
@@ -62,7 +63,7 @@ public:
   void sendMessage(const State::Message& mess) final override;
 
   bool isLogging() const final override;
-  void setLogging(bool) final override;
+  void setLogging(DeviceLogging) final override;
 
   virtual ossia::net::device_base* getDevice() const = 0;
 
@@ -82,7 +83,7 @@ protected:
   void removeListening_impl(ossia::net::node_base& node, State::Address addr);
   void removeListening_impl(ossia::net::node_base& node, State::Address addr, std::vector<State::Address>&);
   void renameListening_impl(const State::Address& parent, const QString& newName);
-  void setLogging_impl(bool) const;
+  void setLogging_impl(DeviceLogging) const;
   void enableCallbacks();
   void disableCallbacks();
 
@@ -91,7 +92,7 @@ protected:
 
 
 private:
-  bool m_logging = false;
+  DeviceLogging m_logging = DeviceLogging::LogNothing;
   bool m_callbacksEnabled = false;
 };
 

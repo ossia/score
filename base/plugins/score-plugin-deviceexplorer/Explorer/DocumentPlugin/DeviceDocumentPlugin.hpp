@@ -1,6 +1,6 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
-#include <Device/Protocol/DeviceList.hpp>
+#include <Explorer/DeviceList.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPluginFactory.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>

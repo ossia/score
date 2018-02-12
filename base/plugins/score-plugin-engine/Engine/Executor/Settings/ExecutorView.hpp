@@ -10,22 +10,6 @@ namespace Execution
 {
 namespace Settings
 {
-
-#define SETTINGS_UI_COMBOBOX_HPP(Control)      \
-  public: void set ## Control(QString);        \
-  Q_SIGNALS: void Control ## Changed(QString); \
-  private: QComboBox* m_ ## Control{};
-
-#define SETTINGS_UI_TOGGLE_HPP(Control)        \
-  public: void set ## Control(bool);           \
-  Q_SIGNALS: void Control ## Changed(bool);    \
-  private: QCheckBox* m_ ## Control{};
-
-#define SETTINGS_UI_SPINBOX_HPP(Control)        \
-  public: void set ## Control(int);            \
-  Q_SIGNALS: void Control ## Changed(int);     \
-  private: QSpinBox* m_ ## Control{};
-
 class View : public score::SettingsDelegateView
 {
   Q_OBJECT

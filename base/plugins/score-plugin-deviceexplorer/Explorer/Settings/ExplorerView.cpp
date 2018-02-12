@@ -1,20 +1,18 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include "LocalTreeView.hpp"
+#include "ExplorerView.hpp"
+#include "ExplorerModel.hpp"
 #include <QCheckBox>
 #include <QFormLayout>
 #include <score/widgets/SignalUtils.hpp>
-
-namespace Engine
+namespace Explorer::Settings
 {
-namespace LocalTree
-{
-namespace Settings
-{
-
 View::View() : m_widg{new QWidget}
 {
   auto lay = new QFormLayout;
+  SETTINGS_UI_COMBOBOX_SETUP("Log level", LogLevel, DeviceLogLevel{});
+
+
   m_widg->setLayout(lay);
 
   m_cb = new QCheckBox;
@@ -33,6 +31,6 @@ QWidget* View::getWidget()
 {
   return m_widg;
 }
-}
-}
+
+SETTINGS_UI_COMBOBOX_IMPL(LogLevel)
 }
