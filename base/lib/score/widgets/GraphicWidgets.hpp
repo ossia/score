@@ -205,7 +205,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsComboSlider final
     double getHandleX() const;
     QRectF sliderRect() const;
     QRectF handleRect() const;
-
 };
+
 
 }

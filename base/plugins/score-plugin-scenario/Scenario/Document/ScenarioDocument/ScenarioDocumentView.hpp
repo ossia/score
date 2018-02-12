@@ -2,6 +2,7 @@
 #include <Scenario/Document/TimeRuler/TimeRulerGraphicsView.hpp>
 #include <Scenario/Document/Minimap/Minimap.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioScene.hpp>
+#include <Scenario/Document/ScenarioDocument/TimeBar.hpp>
 #include <score/widgets/GraphicsProxyObject.hpp>
 #include <Scenario/Document/TimeRuler/TimeRuler.hpp>
 
@@ -62,7 +63,9 @@ public:
     return m_timeRuler;
   }
 
-  Minimap& minimap()  { return m_minimap; }
+  Minimap& minimap() { return m_minimap; }
+
+  TimeBar& timeBar() { return m_bar; }
 
 
   QRectF viewportRect() const;
@@ -83,5 +86,7 @@ private:
   QGraphicsScene m_minimapScene;
   MinimapGraphicsView m_minimapView;
   Minimap m_minimap;
+
+  Scenario::TimeBar m_bar;
 };
 }

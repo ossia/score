@@ -150,7 +150,13 @@ void js_node::setScript(const QString& val)
         int outlets_i = 0;
         for(auto n : m_object->children())
         {
-          if(auto val_in = qobject_cast<ValueInlet*>(n))
+          if(auto ctrl_in = qobject_cast<ControlInlet*>(n))
+          {
+            m_ctrlInlets.push_back({ctrl_in, inputs()[inlets_i]});
+            m_ctrlInlets.back().second->data.target<ossia::value_port>()->is_event = false;
+            inlets_i++;
+          }
+          else if(auto val_in = qobject_cast<ValueInlet*>(n))
           {
             m_valInlets.push_back({val_in, inputs()[inlets_i]});
             inlets_i++;
@@ -232,6 +238,20 @@ void js_node::run(ossia::token_request t, ossia::execution_state&)
       auto qvar = val.value.apply(ossia::qt::ossia_to_qvariant{});
       m_valInlets[i].first->setValue(qvar);
       m_valInlets[i].first->addValue(QVariant::fromValue(ValueMessage{(double)val.timestamp, std::move(qvar)}));
+    }
+  }
+
+  // Copy controls
+  for(int i = 0; i < m_ctrlInlets.size(); i++)
+  {
+    auto& vp = *m_ctrlInlets[i].second->data.target<ossia::value_port>();
+    auto& dat = vp.get_data();
+
+    m_ctrlInlets[i].first->clear();
+    if(!dat.empty())
+    {
+      auto var = dat.back().value.apply(ossia::qt::ossia_to_qvariant{});
+      m_ctrlInlets[i].first->setValue(std::move(var));
     }
   }
 

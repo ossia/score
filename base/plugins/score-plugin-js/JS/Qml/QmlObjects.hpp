@@ -105,6 +105,32 @@ public:
 };
 
 
+class ControlInlet: public Inlet
+{
+  Q_OBJECT
+  Q_PROPERTY(QVariant value READ value)
+  QVariant m_value;
+
+public:
+  ControlInlet(QObject* parent = nullptr);
+  virtual ~ControlInlet() override;
+  QVariant value() const;
+
+  Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
+  {
+    auto p = new Process::Inlet(id, parent);
+    p->type = Process::PortType::Message;
+    return p;
+  }
+
+  void clear()
+  {
+    m_value = QVariant{};
+  }
+  void setValue(QVariant value);
+};
+
+
 class FloatSlider: public ValueInlet
 {
   Q_OBJECT

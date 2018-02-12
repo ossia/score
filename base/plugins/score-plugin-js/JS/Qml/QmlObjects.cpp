@@ -20,6 +20,23 @@ void ValueInlet::setValue(QVariant value)
   m_value = value;
 }
 
+ControlInlet::ControlInlet(QObject* parent): Inlet{parent} {}
+
+ControlInlet::~ControlInlet() {}
+
+QVariant ControlInlet::value() const
+{
+  return m_value;
+}
+
+void ControlInlet::setValue(QVariant value)
+{
+  if (m_value == value)
+    return;
+
+  m_value = value;
+}
+
 ValueOutlet::ValueOutlet(QObject* parent): Outlet{parent} {}
 
 ValueOutlet::~ValueOutlet() {}

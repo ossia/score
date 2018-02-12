@@ -3,6 +3,12 @@
 #include "ClockManagerFactory.hpp"
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
+#include <core/document/DocumentView.hpp>
+#include <Engine/Executor/BaseScenarioComponent.hpp>
+#include <Engine/Executor/IntervalComponent.hpp>
 namespace Engine
 {
 namespace Execution
@@ -15,6 +21,10 @@ void ClockManager::play(const TimeVal& t)
 {
   auto& bs = context.scenario;
   play_impl(t, bs);
+  auto view = static_cast<Scenario::ScenarioDocumentView*>(&context.doc.document.view()->viewDelegate());
+  view->timeBar().setVisible(true);
+  view->timeBar().playing = true;
+  view->timeBar().setInterval(&bs.baseInterval().interval());
 }
 
 void ClockManager::pause()
@@ -34,6 +44,11 @@ void ClockManager::stop()
   auto& bs = context.scenario;
   if(bs.active())
     stop_impl(bs);
+
+  auto view = static_cast<Scenario::ScenarioDocumentView*>(&context.doc.document.view()->viewDelegate());
+  view->timeBar().setVisible(false);
+  view->timeBar().playing = false;
+  view->timeBar().setInterval(nullptr);
 }
 
 bool ClockManager::paused() const
