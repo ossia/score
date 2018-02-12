@@ -282,14 +282,19 @@ struct VSTControlPortItem final : public Dataflow::PortItem
     }
 };
 
-void VSTEffectItem::setupInlet(const VSTEffectModel& fx, VSTControlInlet& inlet, const score::DocumentContext& doc)
+void VSTEffectItem::setupInlet(
+    const VSTEffectModel& fx,
+    VSTControlInlet& inlet,
+    const score::DocumentContext& doc)
 {
   auto rect = new score::EmptyRectItem{this};
 
   double pos_y = this->childrenBoundingRect().height();
 
-  auto item = new VSTControlPortItem{inlet, rect};
-  Dataflow::setupSimpleInlet(item, inlet, doc, rect, this);
+  auto port_item = new VSTControlPortItem{inlet, rect};
+  Dataflow::setupSimpleInlet(port_item, inlet, doc, rect, this);
+  static const auto close_off  = QPixmap::fromImage(QImage(":/icons/close_off.png") .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+  static const auto close_on   = QPixmap::fromImage(QImage(":/icons/close_on.png")  .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
 
   auto lab = new Scenario::SimpleTextItem{rect};
   lab->setColor(ScenarioStyle::instance().EventDefault);
@@ -303,7 +308,21 @@ void VSTEffectItem::setupInlet(const VSTEffectModel& fx, VSTControlInlet& inlet,
 
   auto h = std::max(20., (qreal)(widg->boundingRect().height() + lab->boundingRect().height() + 2.));
 
-  item->setPos(7., h / 2.);
+  port_item->setPos(7., 1.3 * h / 4.);
+
+  if(fx.fx->fx->numParams >= 10)
+  {
+    auto rm_item = new score::QGraphicsPixmapButton{close_on, close_off, rect};
+    connect(rm_item, &score::QGraphicsPixmapButton::clicked,
+            this, [&doc,&fx,id=inlet.id()] {
+      QTimer::singleShot(0, [&doc, &fx,id] {
+        CommandDispatcher<> disp{doc.commandStack};
+        disp.submitCommand<RemoveVSTControl>(fx, id);
+      });
+    });
+
+    rm_item->setPos(2., 2.3 * h / 4.);
+  }
 
   rect->setPos(0, pos_y);
   rect->setRect(QRectF{0., 0, 170., h});

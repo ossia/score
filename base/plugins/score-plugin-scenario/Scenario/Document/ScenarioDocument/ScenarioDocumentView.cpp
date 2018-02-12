@@ -57,6 +57,7 @@ ScenarioDocumentView::ScenarioDocumentView(
     , m_minimapScene{m_widget}
     , m_minimapView{&m_minimapScene}
     , m_minimap{&m_minimapView}
+    , m_bar{&m_baseObject}
 
 {
 #if defined(SCORE_WEBSOCKETS)
