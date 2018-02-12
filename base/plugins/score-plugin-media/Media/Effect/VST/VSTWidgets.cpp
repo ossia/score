@@ -336,7 +336,8 @@ ERect VSTWindow::getRect(AEffect& e)
 void VSTWindow::closeEvent(QCloseEvent* event)
 {
   qDebug() << "Closing !";
-  effect.dispatcher(&effect, effEditClose, 0, 0, nullptr, 0);
+  if(auto eff = effect.lock())
+    eff->fx->dispatcher(eff->fx, effEditClose, 0, 0, nullptr, 0);
   uiClosing();
   QDialog::closeEvent(event);
 }
