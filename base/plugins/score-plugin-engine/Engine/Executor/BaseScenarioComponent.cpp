@@ -83,6 +83,7 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
   m_ossia_interval = std::make_shared<IntervalComponent>(
       element.interval(), m_ctx, newId(element.interval()), this);
 
+
   m_ossia_startTimeSync->onSetup(main_start_node, m_ossia_startTimeSync->makeTrigger());
   m_ossia_endTimeSync->onSetup(main_end_node, m_ossia_endTimeSync->makeTrigger());
   m_ossia_startEvent->onSetup(main_start_event, m_ossia_startEvent->makeExpression(), (ossia::time_event::offset_behavior)element.startEvent().offsetBehavior());
@@ -91,6 +92,13 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
   m_ossia_endState->onSetup(main_end_event);
   m_ossia_interval->onSetup(m_ossia_interval, main_interval, m_ossia_interval->makeDurations(), true);
 
+  auto addr = *State::Address::fromString("audio:/out/main");
+  auto param = score_to_ossia::address(addr, m_ctx.devices.list());
+
+  auto node = main_interval->node;
+  m_ctx.executionQueue.enqueue([=] {
+    node->audio_out.address = param;
+  });
 }
 
 void BaseScenarioElement::cleanup()
