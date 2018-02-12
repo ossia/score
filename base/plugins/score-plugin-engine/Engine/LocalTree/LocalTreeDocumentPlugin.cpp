@@ -35,7 +35,7 @@
 #include <score/document/DocumentInterface.hpp>
 
 #include "Scenario/ScenarioComponent.hpp"
-#include <Engine/LocalTree/Settings/LocalTreeModel.hpp>
+#include <Explorer/Settings/ExplorerModel.hpp>
 #include <Engine/Protocols/Local/LocalProtocolFactory.hpp>
 #include <Engine/Protocols/Local/LocalSpecificSettings.hpp>
 #include <Engine/ApplicationPlugin.hpp>
@@ -64,13 +64,13 @@ Engine::LocalTree::DocumentPlugin::~DocumentPlugin()
 
 void Engine::LocalTree::DocumentPlugin::init()
 {
-  auto& set = m_context.app.settings<Settings::Model>();
+  auto& set = m_context.app.settings<Explorer::Settings::Model>();
   if (set.getLocalTree())
   {
     create();
   }
 
-  con(set, &Settings::Model::LocalTreeChanged, this,
+  con(set, &Explorer::Settings::Model::LocalTreeChanged, this,
       [=](bool b) {
         if (b)
           create();

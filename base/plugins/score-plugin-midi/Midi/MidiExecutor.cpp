@@ -3,7 +3,7 @@
 #include "MidiExecutor.hpp"
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/network/midi/detail/midi_impl.hpp>
-#include <Device/Protocol/DeviceList.hpp>
+#include <Explorer/DeviceList.hpp>
 #include <Engine/Protocols/OSSIADevice.hpp>
 #include <Engine/score2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>

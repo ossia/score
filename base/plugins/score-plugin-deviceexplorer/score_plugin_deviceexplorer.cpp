@@ -20,6 +20,7 @@
 #include <State/ValueSerialization.hpp>
 #include <ossia/dataflow/audio_protocol.hpp>
 
+#include <Explorer/Settings/ExplorerFactory.hpp>
 struct audio_mapping_attr {
     using type = ossia::audio_mapping;
     static constexpr auto text() { return "audio-mapping"; }
@@ -84,7 +85,10 @@ score_plugin_deviceexplorer::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {
-  return instantiate_factories<score::ApplicationContext, FW<score::DocumentPluginFactory, Explorer::DocumentPluginFactory>, FW<score::PanelDelegateFactory, Explorer::PanelDelegateFactory>>(
+  return instantiate_factories<score::ApplicationContext
+      , FW<score::DocumentPluginFactory, Explorer::DocumentPluginFactory>
+      , FW<score::PanelDelegateFactory, Explorer::PanelDelegateFactory>
+      , FW<score::SettingsDelegateFactory, Explorer::Settings::Factory>>(
       ctx, key);
 }
 

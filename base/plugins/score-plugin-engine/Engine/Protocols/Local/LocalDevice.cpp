@@ -19,6 +19,7 @@
 #include <Engine/OSSIA2score.hpp>
 #include <Engine/Protocols/Local/LocalSpecificSettings.hpp>
 #include <Engine/score2OSSIA.hpp>
+#include <Explorer/DeviceList.hpp>
 namespace Engine
 {
 namespace Network
@@ -40,7 +41,7 @@ LocalDevice::LocalDevice(
   auto& proto = dynamic_cast<ossia::net::multiplex_protocol&>(dev.get_protocol());
 
   m_proto = &proto;
-  setLogging_impl(isLogging());
+  setLogging_impl(Device::get_cur_logging(isLogging()));
 
   setRemoteSettings(settings);
 
@@ -79,7 +80,7 @@ void LocalDevice::setRemoteSettings(const Device::DeviceSettings& settings)
 void LocalDevice::disconnect()
 {
   // TODO handle listening ??
-  setLogging_impl(false);
+  setLogging_impl(Device::get_cur_logging(false));
 }
 
 bool LocalDevice::reconnect()

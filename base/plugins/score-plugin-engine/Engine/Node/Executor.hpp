@@ -2,7 +2,7 @@
 #include <Engine/Node/Process.hpp>
 #include <Engine/Node/TickPolicy.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Device/Protocol/DeviceList.hpp>
+#include <Explorer/DeviceList.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
 #include <Engine/score2OSSIA.hpp>
 #include <QTimer>
