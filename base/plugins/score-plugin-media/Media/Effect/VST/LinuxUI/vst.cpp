@@ -15,12 +15,12 @@ auto setup_rect(QWidget* container, int width, int height)
   container->setBaseSize({width, height});
 }
 
-VSTWindow::VSTWindow(AEffect& eff, ERect rect): effect{eff}
+VSTWindow::VSTWindow(std::shared_ptr<AEffectWrapper> eff, ERect rect): effect{eff}
 {
   auto width = rect.right - rect.left;
   auto height = rect.bottom - rect.top;
 
-  effect.dispatcher(&effect, effEditOpen, 0, 0, (void*)winId(), 0);
+  eff->fx->dispatcher(eff->fx, effEditOpen, 0, 0, (void*)winId(), 0);
   setup_rect(this, width, height);
 }
 
