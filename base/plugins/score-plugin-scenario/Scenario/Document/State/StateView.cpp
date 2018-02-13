@@ -7,7 +7,8 @@
 #include <QPainter>
 #include <QPen>
 #include <qnamespace.h>
-
+#include <QScreen>
+#include <QApplication>
 #include "StateMenuOverlay.hpp"
 #include "StatePresenter.hpp"
 #include "StateView.hpp"
@@ -48,10 +49,16 @@ static const QPolygonF fullDilated{
     return p.simplified().toFillPolygon();
   }()
 };
+const bool is_hidpi()
+{
+  static const bool res = (qApp->screens().front()->devicePixelRatio() > 1.5);
+  return res;
+}
 StateView::StateView(StatePresenter& pres, QGraphicsItem* parent)
     : QGraphicsItem(parent), m_presenter{pres}
 {
-  this->setCacheMode(QGraphicsItem::CacheMode::ItemCoordinateCache);
+  if(!is_hidpi())
+    this->setCacheMode(QGraphicsItem::CacheMode::ItemCoordinateCache);
   this->setParentItem(parent);
 
   this->setCursor(QCursor(Qt::SizeAllCursor));
