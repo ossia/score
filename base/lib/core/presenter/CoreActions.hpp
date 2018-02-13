@@ -15,6 +15,8 @@ SCORE_DECLARE_ACTION(Quit, "&Quit", Common, QKeySequence::Quit)
 
 SCORE_DECLARE_ACTION(
     OpenSettings, "&Settings", Common, QKeySequence::Preferences)
+SCORE_DECLARE_ACTION(
+    OpenProjectSettings, "&Project Settings", Common, QKeySequence::UnknownKey)
 
 SCORE_DECLARE_ACTION(
     RestoreLayout, "&Restore Layout", Common, QKeySequence::UnknownKey)

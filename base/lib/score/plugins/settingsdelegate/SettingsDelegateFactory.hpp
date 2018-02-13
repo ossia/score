@@ -1,15 +1,16 @@
 #pragma once
 #include <score/plugins/customfactory/FactoryFamily.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 #include <score_lib_base_export.h>
 
 class QSettings;
 namespace score
 {
 struct ApplicationContext;
+template<class Model>
 class SettingsPresenter;
-class SettingsDelegatePresenter;
-class SettingsDelegateModel;
-class SettingsDelegateView;
 
 /**
  * @brief The SettingsDelegateFactory class
@@ -23,20 +24,20 @@ class SCORE_LIB_BASE_EXPORT SettingsDelegateFactory
 
 public:
   virtual ~SettingsDelegateFactory();
-  SettingsDelegatePresenter* makePresenter(
+  GlobalSettingsPresenter* makePresenter(
       score::SettingsDelegateModel& m,
-      score::SettingsDelegateView& v,
+      score::GlobalSettingsView& v,
       QObject* parent);
 
-  virtual SettingsDelegateView* makeView() = 0;
+  virtual GlobalSettingsView* makeView() = 0;
 
   virtual std::unique_ptr<SettingsDelegateModel>
   makeModel(QSettings& settings, const score::ApplicationContext& ctx) = 0;
 
 protected:
-  virtual SettingsDelegatePresenter* makePresenter_impl(
+  virtual GlobalSettingsPresenter* makePresenter_impl(
       score::SettingsDelegateModel& m,
-      score::SettingsDelegateView& v,
+      score::GlobalSettingsView& v,
       QObject* parent)
       = 0;
 };
@@ -52,14 +53,14 @@ class SettingsDelegateFactory_T : public SettingsDelegateFactory
     return std::make_unique<Model_T>(settings, ctx);
   }
 
-  score::SettingsDelegateView* makeView() override
+  score::GlobalSettingsView* makeView() override
   {
     return new View_T;
   }
 
-  score::SettingsDelegatePresenter* makePresenter_impl(
+  score::GlobalSettingsPresenter* makePresenter_impl(
       score::SettingsDelegateModel& m,
-      score::SettingsDelegateView& v,
+      score::GlobalSettingsView& v,
       QObject* parent) override
   {
     return new Presenter_T{safe_cast<Model_T&>(m), safe_cast<View_T&>(v),

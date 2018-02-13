@@ -5,7 +5,7 @@ namespace Explorer::Settings
 {
 class Model;
 class View;
-class Presenter : public score::SettingsDelegatePresenter
+class Presenter : public score::GlobalSettingsPresenter
 {
 public:
   using model_type = Model;

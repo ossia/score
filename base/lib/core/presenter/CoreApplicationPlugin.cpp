@@ -67,6 +67,10 @@ void CoreApplicationPlugin::openSettings()
 {
   m_presenter.m_settings.view().exec();
 }
+void CoreApplicationPlugin::openProjectSettings()
+{
+  m_presenter.m_projectSettings.view().exec();
+}
 
 void CoreApplicationPlugin::about()
 {
@@ -265,6 +269,16 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
           this,
           &CoreApplicationPlugin::openSettings);
       e.actions.add<Actions::OpenSettings>(settings_act);
+      settings->addAction(settings_act);
+    }
+    {
+      auto settings_act = new QAction(m_presenter.view());
+      connect(
+          settings_act,
+          &QAction::triggered,
+          this,
+          &CoreApplicationPlugin::openProjectSettings);
+      e.actions.add<Actions::OpenProjectSettings>(settings_act);
       settings->addAction(settings_act);
     }
 

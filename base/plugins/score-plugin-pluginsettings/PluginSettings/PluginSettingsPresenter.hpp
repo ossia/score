@@ -2,28 +2,21 @@
 #include <QIcon>
 #include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 
-#include <QString>
 
-namespace score
-{
-class Command;
-class SettingsDelegateModel;
-class SettingsDelegateView;
-class SettingsPresenter;
-} // namespace score
+#include <QString>
 
 namespace PluginSettings
 {
 class BlacklistCommand;
 class PluginSettingsModel;
 class PluginSettingsView;
-class PluginSettingsPresenter : public score::SettingsDelegatePresenter
+class PluginSettingsPresenter : public score::GlobalSettingsPresenter
 {
   Q_OBJECT
 public:
   PluginSettingsPresenter(
       score::SettingsDelegateModel& model,
-      score::SettingsDelegateView& view,
+      score::GlobalSettingsView& view,
       QObject* parent);
 
 private:
