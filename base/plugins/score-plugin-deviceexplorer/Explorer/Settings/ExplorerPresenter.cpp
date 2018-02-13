@@ -12,7 +12,7 @@
 namespace Explorer::Settings
 {
 Presenter::Presenter(Model& m, View& v, QObject* parent)
-    : score::SettingsDelegatePresenter{m, v, parent}
+    : score::GlobalSettingsPresenter{m, v, parent}
 {
   SETTINGS_PRESENTER(LogLevel);
 

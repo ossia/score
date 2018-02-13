@@ -4,19 +4,23 @@
 
 namespace score
 {
+class SettingsDelegateModel;
+template<class Model>
 class SettingsDelegatePresenter;
 
+template<class Model>
 class SCORE_LIB_BASE_EXPORT SettingsDelegateView : public QObject
 {
 public:
+  using Presenter = SettingsDelegatePresenter<Model>;
   using QObject::QObject;
-  virtual ~SettingsDelegateView();
-  virtual void setPresenter(SettingsDelegatePresenter* presenter)
+  ~SettingsDelegateView() = default;
+  virtual void setPresenter(Presenter* presenter)
   {
     m_presenter = presenter;
   }
 
-  SettingsDelegatePresenter* getPresenter()
+  Presenter* getPresenter()
   {
     return m_presenter;
   }
@@ -25,8 +29,9 @@ public:
       = 0; // QML? ownership transfer ? ? ? what about "this" case ?
 
 protected:
-  SettingsDelegatePresenter* m_presenter{};
+  Presenter* m_presenter{};
 };
+using GlobalSettingsView = SettingsDelegateView<SettingsDelegateModel>;
 }
 
 

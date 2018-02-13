@@ -9,8 +9,8 @@ namespace score
 {
 SettingsDelegateFactory::~SettingsDelegateFactory() = default;
 
-SettingsDelegatePresenter* SettingsDelegateFactory::makePresenter(
-    SettingsDelegateModel& m, SettingsDelegateView& v, QObject* parent)
+GlobalSettingsPresenter* SettingsDelegateFactory::makePresenter(
+    SettingsDelegateModel& m, GlobalSettingsView& v, QObject* parent)
 {
   auto p = makePresenter_impl(m, v, parent);
   v.setPresenter(p);

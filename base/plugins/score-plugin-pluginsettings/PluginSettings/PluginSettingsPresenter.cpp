@@ -17,8 +17,6 @@
 namespace score
 {
 class SettingsDelegateModel;
-class SettingsDelegateView;
-class SettingsPresenter;
 } // namespace score
 
 namespace PluginSettings
@@ -26,9 +24,9 @@ namespace PluginSettings
 
 PluginSettingsPresenter::PluginSettingsPresenter(
     score::SettingsDelegateModel& model,
-    score::SettingsDelegateView& view,
+    score::GlobalSettingsView& view,
     QObject* parent)
-    : SettingsDelegatePresenter{model, view, parent}
+    : score::GlobalSettingsPresenter{model, view, parent}
 {
   auto& ps_model = static_cast<PluginSettingsModel&>(model);
   auto& ps_view = static_cast<PluginSettingsView&>(view);

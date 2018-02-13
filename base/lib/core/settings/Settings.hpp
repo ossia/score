@@ -8,8 +8,11 @@ namespace score
 class SettingsDelegateFactory;
 class SettingsDelegateModel;
 class SettingsModel;
+template<class Model>
 class SettingsPresenter;
+template<class Model>
 class SettingsView;
+class ProjectSettingsModel;
 
 struct ApplicationContext;
 } // namespace score
@@ -49,7 +52,7 @@ public:
       QSettings& s,
       const score::ApplicationContext& ctx,
       SettingsDelegateFactory& plugin);
-  SettingsView& view() const
+  SettingsView<SettingsDelegateModel>& view() const
   {
     return *m_settingsView;
   }
@@ -60,9 +63,40 @@ public:
   }
 
 private:
-  SettingsView* m_settingsView{};
-  SettingsPresenter* m_settingsPresenter{};
+  SettingsView<SettingsDelegateModel>* m_settingsView{};
+  SettingsPresenter<SettingsDelegateModel>* m_settingsPresenter{};
 
   std::vector<std::unique_ptr<SettingsDelegateModel>> m_settings;
+};
+
+
+class SCORE_LIB_BASE_EXPORT ProjectSettings final
+{
+public:
+  ProjectSettings();
+  ~ProjectSettings();
+
+  void setupView();
+
+  ProjectSettings(const ProjectSettings&) = delete;
+  ProjectSettings(ProjectSettings&&) = delete;
+  ProjectSettings& operator=(const ProjectSettings&) = delete;
+  ProjectSettings& operator=(ProjectSettings&&) = delete;
+
+  SettingsView<ProjectSettingsModel>& view() const
+  {
+    return *m_settingsView;
+  }
+
+  auto& settings() const
+  {
+    return m_settings;
+  }
+
+private:
+  SettingsView<ProjectSettingsModel>* m_settingsView{};
+  SettingsPresenter<ProjectSettingsModel>* m_settingsPresenter{};
+
+  std::vector<std::unique_ptr<ProjectSettingsModel>> m_settings;
 };
 }

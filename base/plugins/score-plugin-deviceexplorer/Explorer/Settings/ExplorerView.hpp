@@ -4,7 +4,7 @@
 class QCheckBox;
 namespace Explorer::Settings
 {
-class View : public score::SettingsDelegateView
+class View : public score::GlobalSettingsView
 {
   Q_OBJECT
 public:

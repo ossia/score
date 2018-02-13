@@ -5,6 +5,7 @@
 #include <core/plugin/PluginManager.hpp>
 
 #include <core/settings/Settings.hpp>
+#include <core/settings/Settings.hpp>
 #include <QApplication>
 #include <memory>
 
@@ -62,6 +63,7 @@ class Application final :
         // Base stuff.
         QCoreApplication* m_app;
         score::Settings m_settings; // Global settings
+        score::ProjectSettings m_projectSettings; // Per project
 
         // MVP
         score::View* m_view {};

@@ -4,5 +4,4 @@
 
 namespace score
 {
-SettingsDelegateView::~SettingsDelegateView() = default;
 }
