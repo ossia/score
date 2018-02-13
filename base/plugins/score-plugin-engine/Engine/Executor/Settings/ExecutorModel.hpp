@@ -3,7 +3,6 @@
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
 #include <Process/TimeValue.hpp>
-#include <QStringLiteral>
 #include <score_plugin_engine_export.h>
 namespace Engine
 {
