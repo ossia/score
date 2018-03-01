@@ -1,27 +1,28 @@
 #pragma once
 #include <QObject>
-#include <core/settings/SettingsPresenter.hpp>
 #include <score/command/Dispatchers/SettingsCommandDispatcher.hpp>
 #include <score_lib_base_export.h>
 
 namespace score
 {
-class SettingsDelegateModel;
+template<class Model>
 class SettingsDelegateView;
-class SettingsPresenter;
+class SettingsDelegateModel;
 
-class SCORE_LIB_BASE_EXPORT SettingsDelegatePresenter : public QObject
+template<class Model>
+class SettingsDelegatePresenter : public QObject
 {
 public:
+  using SView = score::SettingsDelegateView<Model>;
   SettingsDelegatePresenter(
-      SettingsDelegateModel& model,
-      SettingsDelegateView& view,
+      Model& model,
+      SView& view,
       QObject* parent)
       : QObject{parent}, m_model{model}, m_view{view}
   {
   }
 
-  virtual ~SettingsDelegatePresenter();
+  virtual ~SettingsDelegatePresenter() = default;
   void on_accept()
   {
     m_disp.commit();
@@ -48,9 +49,23 @@ public:
   }
 
 protected:
-  SettingsDelegateModel& m_model;
-  SettingsDelegateView& m_view;
+  Model& m_model;
+  SView& m_view;
 
   score::SettingsCommandDispatcher m_disp;
 };
+
+using GlobalSettingsPresenter = SettingsDelegatePresenter<SettingsDelegateModel>;
+using GlobalSettingsView = SettingsDelegateView<SettingsDelegateModel>;
 }
+
+#define SETTINGS_PRESENTER(Control)                                         \
+  do { con(v, &View:: Control ## Changed, this, [&](auto val) {             \
+    if (val != m.get ## Control())                                          \
+    {                                                                       \
+      m_disp.submitCommand<SetModel ## Control>(this->model(this), val);    \
+    }                                                                       \
+  });                                                                       \
+                                                                            \
+  con(m, &Model::Control ## Changed, &v, &View::set ## Control);            \
+  v.set ## Control(m.get ## Control()); } while(0)

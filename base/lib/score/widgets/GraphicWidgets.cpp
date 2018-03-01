@@ -26,7 +26,7 @@ void QGraphicsPixmapButton::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 void QGraphicsPixmapButton::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   setPixmap(m_released);
-  emit clicked();
+  clicked();
   event->accept();
 }
 
@@ -50,7 +50,7 @@ void QGraphicsPixmapToggle::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   m_toggled = !m_toggled;
   setPixmap(m_toggled ? m_pressed : m_released);
-  emit toggled(m_toggled);
+  toggled(m_toggled);
   event->accept();
 }
 
@@ -101,8 +101,8 @@ void QGraphicsSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
   if(curPos != m_value)
   {
     m_value = curPos;
-    emit valueChanged(m_value);
-    emit sliderMoved();
+    valueChanged(m_value);
+    sliderMoved();
     update();
   }
 
@@ -118,8 +118,8 @@ void QGraphicsSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     if(curPos != m_value)
     {
       m_value = curPos;
-      emit valueChanged(m_value);
-      emit sliderMoved();
+      valueChanged(m_value);
+      sliderMoved();
       update();
     }
   }
@@ -134,10 +134,10 @@ void QGraphicsSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     if(curPos != m_value)
     {
       m_value = curPos;
-      emit valueChanged(m_value);
+      valueChanged(m_value);
       update();
     }
-    emit sliderReleased();
+    sliderReleased();
     m_grab = false;
   }
   event->accept();
@@ -235,8 +235,8 @@ void QGraphicsLogSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
   if(curPos != m_value)
   {
     m_value = curPos;
-    emit valueChanged(m_value);
-    emit sliderMoved();
+    valueChanged(m_value);
+    sliderMoved();
     update();
   }
 
@@ -252,8 +252,8 @@ void QGraphicsLogSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     if(curPos != m_value)
     {
       m_value = curPos;
-      emit valueChanged(m_value);
-      emit sliderMoved();
+      valueChanged(m_value);
+      sliderMoved();
       update();
     }
   }
@@ -268,10 +268,10 @@ void QGraphicsLogSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     if(curPos != m_value)
     {
       m_value = curPos;
-      emit valueChanged(m_value);
+      valueChanged(m_value);
       update();
     }
-    emit sliderReleased();
+    sliderReleased();
     m_grab = false;
   }
   event->accept();
@@ -377,8 +377,8 @@ void QGraphicsIntSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
   if(res != m_value)
   {
     m_value = res;
-    emit valueChanged(m_value);
-    emit sliderMoved();
+    valueChanged(m_value);
+    sliderMoved();
     update();
   }
 
@@ -395,8 +395,8 @@ void QGraphicsIntSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     if(res != m_value)
     {
       m_value = res;
-      emit valueChanged(m_value);
-      emit sliderMoved();
+      valueChanged(m_value);
+      sliderMoved();
       update();
     }
   }
@@ -412,10 +412,10 @@ void QGraphicsIntSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     if(res != m_value)
     {
       m_value = res;
-      emit valueChanged(m_value);
+      valueChanged(m_value);
       update();
     }
-    emit sliderReleased();
+    sliderReleased();
     m_grab = false;
   }
   event->accept();
@@ -515,8 +515,8 @@ void QGraphicsComboSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
   if(res != m_value)
   {
     m_value = res;
-    emit valueChanged(m_value);
-    emit sliderMoved();
+    valueChanged(m_value);
+    sliderMoved();
     update();
   }
 
@@ -533,8 +533,8 @@ void QGraphicsComboSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     if(res != m_value)
     {
       m_value = res;
-      emit valueChanged(m_value);
-      emit sliderMoved();
+      valueChanged(m_value);
+      sliderMoved();
       update();
     }
   }
@@ -550,10 +550,10 @@ void QGraphicsComboSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     if(res != m_value)
     {
       m_value = res;
-      emit valueChanged(m_value);
+      valueChanged(m_value);
       update();
     }
-    emit sliderReleased();
+    sliderReleased();
     m_grab = false;
   }
   event->accept();

@@ -72,11 +72,11 @@ public:
 
   void on_startChanged() override
   {
-    emit dataChanged();
+    dataChanged();
   }
   void on_endChanged() override
   {
-    emit dataChanged();
+    dataChanged();
   }
 
   void updateData(int numInterp) const override
@@ -131,13 +131,13 @@ public:
   {
     // From -1; 1 to 0;1
     ampl = (p + 1) / 2.;
-    emit dataChanged();
+    dataChanged();
   }
   void setHorizontalParameter(double p) override
   {
     // From -1; 1 to 1; 15
     freq = (p + 1) * 7 + 1;
-    emit dataChanged();
+    dataChanged();
   }
 
   QVariant toSegmentSpecificData() const override

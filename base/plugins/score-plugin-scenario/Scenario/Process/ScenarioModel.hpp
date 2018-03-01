@@ -162,11 +162,11 @@ Q_SIGNALS:
 public Q_SLOTS:
   void lock()
   {
-    emit locked();
+    locked();
   }
   void unlock()
   {
-    emit unlocked();
+    unlocked();
   }
 
 private:

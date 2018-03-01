@@ -42,7 +42,7 @@ EffectComponent::~EffectComponent()
     {
         std::get<2>(tpl)->about_to_be_deleted.disconnect<EffectComponent, &EffectComponent::on_nodeDeleted>(this);
     }
-    emit aboutToBeDestroyed();
+    aboutToBeDestroyed();
 }
 
 void EffectComponent::recreate()
@@ -140,7 +140,7 @@ void EffectComponent::recreate()
         }
     }
 #endif
-    emit effectTreeChanged();
+    effectTreeChanged();
 
 }
 

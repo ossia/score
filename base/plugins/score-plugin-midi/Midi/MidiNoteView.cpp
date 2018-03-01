@@ -145,12 +145,12 @@ void NoteView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   if (m_scaling)
   {
-    emit noteScaled(m_width / ((View*)parentItem())->defaultWidth());
+    noteScaled(m_width / ((View*)parentItem())->defaultWidth());
     event->accept();
   }
   else
   {
-    emit noteChangeFinished();
+    noteChangeFinished();
     QGraphicsItem::mouseReleaseEvent(event);
   }
 }

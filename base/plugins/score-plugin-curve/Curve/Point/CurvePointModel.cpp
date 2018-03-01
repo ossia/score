@@ -30,7 +30,7 @@ Curve::Point PointModel::pos() const
 void PointModel::setPos(const Curve::Point& pos)
 {
   m_pos = pos;
-  emit posChanged();
+  posChanged();
 }
 
 const OptionalId<SegmentModel>& PointModel::previous() const

@@ -97,7 +97,7 @@ void QMenuViewPrivate::triggered(QAction* action)
   if (v.canConvert<QModelIndex>())
   {
     QModelIndex idx = qvariant_cast<QModelIndex>(v);
-    emit _menu->triggered(idx);
+    _menu->triggered(idx);
   }
 }
 
@@ -112,7 +112,7 @@ void QMenuViewPrivate::hovered(QAction* action)
 
     if (!hoveredString.isEmpty())
     {
-      emit _menu->hovered(hoveredString);
+      _menu->hovered(hoveredString);
     }
   }
 }

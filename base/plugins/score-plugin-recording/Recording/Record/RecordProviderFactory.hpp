@@ -32,7 +32,7 @@ public:
   void start()
   {
     firstValueTime = clock::now();
-    emit startTimer();
+    startTimer();
   }
 
   bool started() const

@@ -34,7 +34,7 @@
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Address/IOType.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
-#include <Device/Protocol/DeviceList.hpp>
+#include <Explorer/DeviceList.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
 #include <Engine/LocalTree/LocalTreeDocumentPlugin.hpp>

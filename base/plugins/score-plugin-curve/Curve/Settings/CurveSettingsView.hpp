@@ -8,7 +8,7 @@ namespace Curve
 namespace Settings
 {
 
-class View : public score::SettingsDelegateView
+class View : public score::GlobalSettingsView
 {
   Q_OBJECT
 public:

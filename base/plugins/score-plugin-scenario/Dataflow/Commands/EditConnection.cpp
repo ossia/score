@@ -108,11 +108,15 @@ void RemoveCable::undo(const score::DocumentContext& ctx) const
 
 void RemoveCable::redo(const score::DocumentContext& ctx) const
 {
-  auto& cable = m_model.find(ctx).cables.at(m_cable);
-
-  cable.source().find(ctx).removeCable(cable);
-  cable.sink().find(ctx).removeCable(cable);
-  m_model.find(ctx).cables.remove(m_cable);
+  auto& cables = m_model.find(ctx).cables;
+  auto cable_it = cables.find(m_cable);
+  if(cable_it != cables.end())
+  {
+    auto& cable = *cable_it;
+    cable.source().find(ctx).removeCable(cable);
+    cable.sink().find(ctx).removeCable(cable);
+    m_model.find(ctx).cables.remove(m_cable);
+  }
 }
 
 void RemoveCable::serializeImpl(DataStreamInput& s) const

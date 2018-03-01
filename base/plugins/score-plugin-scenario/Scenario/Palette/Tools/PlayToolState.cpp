@@ -40,7 +40,7 @@ void PlayToolState::on_pressed(
                     ? state.id()
                     : OptionalId<StateModel>{};
       if (id)
-        emit m_exec.playState(m_sm.model(), *id);
+        m_exec.playState(m_sm.model(), *id);
       break;
     }
     case IntervalView::static_type():
@@ -55,11 +55,11 @@ void PlayToolState::on_pressed(
       {
         if(QApplication::keyboardModifiers() & Qt::AltModifier)
         {
-          emit m_exec.playInterval(m_sm.model(), *id);
+          m_exec.playInterval(m_sm.model(), *id);
         }
         else
         {
-          emit m_exec.playFromIntervalAtDate(
+          m_exec.playFromIntervalAtDate(
                 m_sm.model(),
                 *id,
                 scenarioPoint.date);
@@ -69,7 +69,7 @@ void PlayToolState::on_pressed(
     }
       // TODO Play interval ? the code is already here.
     default:
-      emit m_exec.playAtDate(scenarioPoint.date);
+      m_exec.playAtDate(scenarioPoint.date);
       break;
   }
 }

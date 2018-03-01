@@ -29,7 +29,7 @@
 
 //  connect(m_lineEdit, &QLineEdit::editingFinished, [&]() {
 //    m_address = State::Address::fromString(m_lineEdit->text());
-//    emit addressChanged(m_address);
+//    addressChanged(m_address);
 //  });
 
 //  m_lineEdit->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -70,7 +70,7 @@
 //  connect(device_menu, &QMenuView::triggered, this, [&](const QModelIndex& m) {
 //    auto addr = Device::address(m_model.nodeFromModelIndex(m)).address;
 //    setAddress(addr);
-//    emit addressChanged(addr);
+//    addressChanged(addr);
 //  });
 
 //  device_menu->exec(m_lineEdit->mapToGlobal(p));
@@ -88,7 +88,7 @@
 //    if (!ml.empty())
 //    {
 //      setAddress(ml[0].address.address);
-//      emit addressChanged(ml[0].address.address);
+//      addressChanged(ml[0].address.address);
 //    }
 //  }
 //}

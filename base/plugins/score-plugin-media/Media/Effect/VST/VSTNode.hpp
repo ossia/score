@@ -82,7 +82,7 @@ class vst_node final : public ossia::graph_node
       events->events[0] = reinterpret_cast<VstEvent*>(&e);
 
       dispatch(effProcessEvents, 0, 0, events, 0.f);
-/*
+
       const auto nfloats = std::max(fx->fx->numInputs, fx->fx->numOutputs);
       if constexpr(UseDouble)
       {
@@ -90,7 +90,7 @@ class vst_node final : public ossia::graph_node
         double** c = (double**)alloca(sizeof(double*) * nfloats);
         for(int i = 0; i < nfloats; i++)
           c[i] = &f;
-        fx->fx->processDoubleReplacing(fx, c, c, 1);
+        fx->fx->processDoubleReplacing(fx->fx, c, c, 1);
       }
       else
       {
@@ -98,8 +98,8 @@ class vst_node final : public ossia::graph_node
         float** c = (float**)alloca(sizeof(float*) * nfloats);
         for(int i = 0; i < nfloats; i++)
           c[i] = &f;
-        fx->fx->processReplacing(fx, c, c, 1);
-      }*/
+        fx->fx->processReplacing(fx->fx, c, c, 1);
+      }
     }
 
     void setControls()

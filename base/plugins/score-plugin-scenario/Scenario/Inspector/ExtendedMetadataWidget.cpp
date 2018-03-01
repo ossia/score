@@ -33,7 +33,7 @@ ExtendedMetadataWidget::ExtendedMetadataWidget(
         if (!txt.isEmpty())
         {
           insertRow(txt, m_widgets.size());
-          emit dataChanged();
+          dataChanged();
         }
       },
       Qt::QueuedConnection);
@@ -98,7 +98,7 @@ void ExtendedMetadataWidget::insertRow(const QString& label, int row)
 void ExtendedMetadataWidget::on_rowChanged(int i)
 {
   // OPTIMIZEME
-  emit dataChanged();
+  dataChanged();
 }
 
 void ExtendedMetadataWidget::on_rowRemoved(int i)
@@ -111,7 +111,7 @@ void ExtendedMetadataWidget::on_rowRemoved(int i)
     items.second->deleteLater();
     m_widgets.erase(m_widgets.begin() + i);
   }
-  emit dataChanged();
+  dataChanged();
 }
 
 void ExtendedMetadataWidget::setup_impl(const QVariantMap& map)

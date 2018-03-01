@@ -85,7 +85,7 @@ protected:
     setCurve_impl();
 
     connect(m_curve, &Curve::Model::changed, this, &CurveProcessModel::curveChanged);
-    emit m_curve->changed();
+    m_curve->changed();
   }
 
   virtual void setCurve_impl()

@@ -1,6 +1,7 @@
 #pragma once
 #include <QLabel>
-class TextLabel final : public QLabel
+#include <score_lib_base_export.h>
+class SCORE_LIB_BASE_EXPORT TextLabel final : public QLabel
 {
 public:
   TextLabel()

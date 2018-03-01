@@ -67,5 +67,10 @@ bool PhidgetProtocolFactory::checkCompatibility(
 {
   return a.name != b.name;
 }
+
+Device::AddAddressDialog*PhidgetProtocolFactory::makeAddAddressDialog(const Device::DeviceSettings& dev, const score::DocumentContext& ctx, QWidget*)
+{
+  return nullptr;
+}
 }
 }

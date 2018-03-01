@@ -53,7 +53,7 @@ ClickableLabelItem::ClickableLabelItem(
       &metadata, &score::ModelMetadata::NameChanged, this,
       [&](const QString& name) {
         setText(name);
-        emit textChanged();
+        textChanged();
       });
 
   this->setFont(ScenarioStyle::instance().Bold12Pt);

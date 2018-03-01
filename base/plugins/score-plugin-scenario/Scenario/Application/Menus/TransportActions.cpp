@@ -32,12 +32,22 @@ TransportActions::TransportActions(
   if(!context.applicationSettings.gui)
     return;
   m_play = new QAction{tr("Play"), nullptr};
+  m_play->setCheckable(true);
   m_play->setObjectName("Play");
   m_play->setShortcut(Qt::Key_Space);
   m_play->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   m_play->setData(false);
   setIcons(
       m_play, QString(":/icons/play_on.png"), QString(":/icons/play_off.png"));
+
+  m_playGlobal = new QAction{tr("Play (Global)"), nullptr};
+  m_playGlobal->setCheckable(true);
+  m_playGlobal->setObjectName("Play (Global)");
+  m_playGlobal->setShortcut(Qt::Key_Shift + Qt::Key_Space);
+  m_playGlobal->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+  m_playGlobal->setData(false);
+  setIcons(
+      m_playGlobal, QString(":/icons/play_glob_on.png"), QString(":/icons/play_glob_off.png"));
 
   m_stop = new QAction{tr("Stop"), nullptr};
   m_stop->setObjectName("Stop");
@@ -70,10 +80,9 @@ TransportActions::TransportActions(
       setIcons(m_record, QString(":/icons/record_on.png"),
      QString(":/icons/record_off.png"));
   */
-  m_play->setCheckable(true);
   //    m_record->setCheckable(true);
 
-  connect(m_play, &QAction::toggled, this, [&](bool b) {
+  auto on_play = [&](bool b) {
     m_play->setText(b ? tr("Pause") : tr("Play"));
     m_play->setData(b); // True for "pause" state (i.e. currently playing),
                         // false for "play" state (i.e. currently paused)
@@ -82,9 +91,20 @@ TransportActions::TransportActions(
         b ? QString(":/icons/pause_on.png") : QString(":/icons/play_on.png"),
         b ? QString(":/icons/pause_off.png")
           : QString(":/icons/play_off.png"));
-  });
+
+    m_playGlobal->setText(b ? tr("Pause") : tr("Play (global)"));
+    m_playGlobal->setData(b);
+    setIcons(
+          m_playGlobal,
+          b ? QString(":/icons/pause_on.png") : QString(":/icons/play_glob_on.png"),
+          b ? QString(":/icons/pause_off.png")
+            : QString(":/icons/play_glob_off.png"));
+  };
+  connect(m_play, &QAction::toggled, this, on_play);
+  connect(m_playGlobal, &QAction::toggled, this, on_play);
   connect(m_stop, &QAction::triggered, this, [&] {
     m_play->blockSignals(true);
+    m_playGlobal->blockSignals(true);
     //        m_record->blockSignals(true);
 
     m_play->setChecked(false);
@@ -92,10 +112,15 @@ TransportActions::TransportActions(
     setIcons(
         m_play, QString(":/icons/play_on.png"),
         QString(":/icons/play_off.png"));
+    setIcons(
+          m_playGlobal, QString(":/icons/play_glob_on.png"),
+          QString(":/icons/play_glob_off.png"));
     m_play->setData(false);
+    m_playGlobal->setData(false);
     //        m_record->setChecked(false);
 
     m_play->blockSignals(false);
+    m_playGlobal->blockSignals(false);
     //        m_record->blockSignals(false);
   });
   /*
@@ -128,6 +153,7 @@ TransportActions::TransportActions(
   {
     auto obj = context.mainWindow->centralWidget();
     obj->addAction(m_play);
+    obj->addAction(m_playGlobal);
     obj->addAction(m_stop);
     obj->addAction(m_stopAndInit);
   }
@@ -146,6 +172,7 @@ void TransportActions::makeGUIElements(score::GUIElements& ref)
   {
     auto bar = new QToolBar{tr("Transport")};
     bar->addAction(m_play);
+    bar->addAction(m_playGlobal);
     bar->addAction(m_stop);
     bar->addAction(m_stopAndInit);
 
@@ -156,11 +183,13 @@ void TransportActions::makeGUIElements(score::GUIElements& ref)
   {
     auto& play = m_context.menus.get().at(score::Menus::Play());
     play.menu()->addAction(m_play);
+    play.menu()->addAction(m_playGlobal);
     play.menu()->addAction(m_stop);
     play.menu()->addAction(m_stopAndInit);
   }
 
   ref.actions.add<Actions::Play>(m_play);
+  ref.actions.add<Actions::PlayGlobal>(m_playGlobal);
   ref.actions.add<Actions::Stop>(m_stop);
   // ref.actions.add<Actions::GoToStart>(m_goToStart);
   // ref.actions.add<Actions::GoToEnd>(m_goToEnd);

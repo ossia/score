@@ -27,6 +27,11 @@ class PhidgetProtocolFactory final : public Device::ProtocolFactory
   bool checkCompatibility(
       const Device::DeviceSettings& a,
       const Device::DeviceSettings& b) const override;
+
+  Device::AddAddressDialog*makeAddAddressDialog(
+      const Device::DeviceSettings& dev,
+      const score::DocumentContext& ctx,
+      QWidget*) override;
 };
 }
 }

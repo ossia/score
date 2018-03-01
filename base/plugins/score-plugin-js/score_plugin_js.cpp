@@ -18,6 +18,7 @@
 
 score_plugin_js::score_plugin_js() : QObject{}
 {
+  qmlRegisterType<JS::ControlInlet>("Score", 1, 0, "ControlInlet");
   qmlRegisterType<JS::ValueInlet>("Score", 1, 0, "ValueInlet");
   qmlRegisterType<JS::ValueOutlet>("Score", 1, 0, "ValueOutlet");
   qmlRegisterType<JS::AudioInlet>("Score", 1, 0, "AudioInlet");

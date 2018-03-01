@@ -11,20 +11,56 @@ namespace JS
 class Inlet: public QObject
 {
     Q_OBJECT
-  public:
+  Q_PROPERTY(QString address READ address WRITE setAddress NOTIFY addressChanged)
+  QString m_address;
+
+public:
     using QObject::QObject;
     virtual ~Inlet() override;
     virtual Process::Inlet* make(Id<Process::Port>&& id, QObject*) = 0;
 
+  QString address() const
+  {
+    return m_address;
+  }
+public Q_SLOTS:
+  void setAddress(QString address)
+  {
+    if (m_address == address)
+      return;
+
+    m_address = address;
+    addressChanged(m_address);
+  }
+Q_SIGNALS:
+  void addressChanged(QString address);
 };
 class Outlet: public QObject
 {
     Q_OBJECT
-  public:
+  Q_PROPERTY(QString address READ address WRITE setAddress NOTIFY addressChanged)
+  QString m_address;
+
+public:
     using QObject::QObject;
     virtual ~Outlet() override;
     virtual Process::Outlet* make(Id<Process::Port>&& id, QObject*) = 0;
 
+  QString address() const
+  {
+    return m_address;
+  }
+public Q_SLOTS:
+  void setAddress(QString address)
+  {
+    if (m_address == address)
+      return;
+
+    m_address = address;
+    addressChanged(m_address);
+  }
+Q_SIGNALS:
+  void addressChanged(QString address);
 };
 struct ValueMessage
 {
@@ -69,6 +105,32 @@ public:
 };
 
 
+class ControlInlet: public Inlet
+{
+  Q_OBJECT
+  Q_PROPERTY(QVariant value READ value)
+  QVariant m_value;
+
+public:
+  ControlInlet(QObject* parent = nullptr);
+  virtual ~ControlInlet() override;
+  QVariant value() const;
+
+  Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
+  {
+    auto p = new Process::Inlet(id, parent);
+    p->type = Process::PortType::Message;
+    return p;
+  }
+
+  void clear()
+  {
+    m_value = QVariant{};
+  }
+  void setValue(QVariant value);
+};
+
+
 class FloatSlider: public ValueInlet
 {
   Q_OBJECT
@@ -103,7 +165,7 @@ class FloatSlider: public ValueInlet
       if(m != m_min)
       {
         m_min = m;
-        emit minChanged(m);
+        minChanged(m);
       }
     }
 
@@ -112,7 +174,7 @@ class FloatSlider: public ValueInlet
       if(m != m_max)
       {
         m_max = m;
-        emit maxChanged(m);
+        maxChanged(m);
       }
     }
 
@@ -121,7 +183,7 @@ class FloatSlider: public ValueInlet
       if(m != m_init)
       {
         m_init = m;
-        emit initChanged(m);
+        initChanged(m);
       }
     }
   private:
@@ -164,7 +226,7 @@ class IntSlider: public ValueInlet
       if(m != m_min)
       {
         m_min = m;
-        emit minChanged(m);
+        minChanged(m);
       }
     }
 
@@ -173,7 +235,7 @@ class IntSlider: public ValueInlet
       if(m != m_max)
       {
         m_max = m;
-        emit maxChanged(m);
+        maxChanged(m);
       }
     }
 
@@ -182,7 +244,7 @@ class IntSlider: public ValueInlet
       if(m != m_init)
       {
         m_init = m;
-        emit initChanged(m);
+        initChanged(m);
       }
     }
   private:
@@ -233,7 +295,7 @@ class Enum: public ValueInlet
       if(m != m_choices)
       {
         m_choices = m;
-        emit choicesChanged(m);
+        choicesChanged(m);
       }
     }
 
@@ -242,7 +304,7 @@ class Enum: public ValueInlet
       if(m != m_index)
       {
         m_index = m;
-        emit indexChanged(m);
+        indexChanged(m);
       }
     }
 
@@ -276,7 +338,7 @@ class Toggle: public ValueInlet
       if(m != m_checked)
       {
         m_checked = m;
-        emit checkedChanged(m);
+        checkedChanged(m);
       }
     }
 
@@ -310,7 +372,7 @@ class LineEdit: public ValueInlet
       if(m != m_text)
       {
         m_text = m;
-        emit textChanged(m);
+        textChanged(m);
       }
     }
 

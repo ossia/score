@@ -16,19 +16,43 @@ namespace Settings
 
 namespace Parameters
 {
-const score::sp<ModelRateParameter> Rate{
-    QStringLiteral("score_plugin_engine/ExecutionRate"), 50};
 const score::sp<ModelClockParameter> Clock{
     QStringLiteral("score_plugin_engine/Clock"),
     ControlClockFactory::static_concreteKey()};
+
+const score::sp<ModelRateParameter> Rate{
+  QStringLiteral("score_plugin_engine/Rate"), 50};
+
+const score::sp<ModelSchedulingParameter> Scheduling{
+    QStringLiteral("score_plugin_engine/Scheduling"), SchedulingPolicies{}.StaticTC};
+
+const score::sp<ModelOrderingParameter> Ordering{
+    QStringLiteral("score_plugin_engine/Ordering"), OrderingPolicies{}.CreationOrder};
+
+const score::sp<ModelMergingParameter> Merging{
+    QStringLiteral("score_plugin_engine/Merging"), MergingPolicies{}.Merge};
+
+const score::sp<ModelCommitParameter> Commit{
+    QStringLiteral("score_plugin_engine/Commit"), CommitPolicies{}.Merged};
+
+const score::sp<ModelTickParameter> Tick{
+  QStringLiteral("score_plugin_engine/Tick"), TickPolicies{}.Buffer};
+
+const score::sp<ModelParallelParameter> Parallel{
+    QStringLiteral("score_plugin_engine/Parallel"), true};
+
 const score::sp<ModelExecutionListeningParameter> ExecutionListening{
     QStringLiteral("score_plugin_engine/ExecListening"), true};
-const score::sp<ModelSchedulingParameter> Scheduling{
-    QStringLiteral("score_plugin_engine/Scheduling"), "Static Fixed"};
+
+const score::sp<ModelLoggingParameter> Logging{
+  QStringLiteral("score_plugin_engine/Logging"), true};
+
+const score::sp<ModelLoggingParameter> ScoreOrder{
+  QStringLiteral("score_plugin_engine/ScoreOrder"), false};
 
 static auto list()
 {
-  return std::tie(Rate, Clock, ExecutionListening);
+  return std::tie( Clock, Rate, Scheduling, Ordering, Merging, Commit, Tick, Parallel, ExecutionListening, Logging, ScoreOrder);
 }
 }
 
@@ -62,10 +86,17 @@ Model::makeReverseTimeFunction(const score::DocumentContext& ctx) const
                : &ossia_to_score::defaultTime;
 }
 
-SCORE_SETTINGS_PARAMETER_CPP(int, Model, Rate)
 SCORE_SETTINGS_PARAMETER_CPP(ClockManagerFactory::ConcreteKey, Model, Clock)
-SCORE_SETTINGS_PARAMETER_CPP(bool, Model, ExecutionListening)
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, Scheduling)
+SCORE_SETTINGS_PARAMETER_CPP(QString, Model, Ordering)
+SCORE_SETTINGS_PARAMETER_CPP(QString, Model, Merging)
+SCORE_SETTINGS_PARAMETER_CPP(QString, Model, Commit)
+SCORE_SETTINGS_PARAMETER_CPP(QString, Model, Tick)
+SCORE_SETTINGS_PARAMETER_CPP(int, Model, Rate)
+SCORE_SETTINGS_PARAMETER_CPP(bool, Model, Parallel)
+SCORE_SETTINGS_PARAMETER_CPP(bool, Model, ExecutionListening)
+SCORE_SETTINGS_PARAMETER_CPP(bool, Model, Logging)
+SCORE_SETTINGS_PARAMETER_CPP(bool, Model, ScoreOrder)
 }
 }
 }

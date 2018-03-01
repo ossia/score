@@ -19,7 +19,6 @@ set(HEADERS
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Node/DeviceNode.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Node/NodeListMimeSerialization.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Protocol/DeviceInterface.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Device/Protocol/DeviceList.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Protocol/DeviceSettings.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Protocol/ProtocolFactoryInterface.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Protocol/ProtocolList.hpp"
@@ -41,7 +40,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Protocol/DeviceInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Protocol/DeviceSettingsSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Protocol/ProtocolFactoryInterface.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Device/Protocol/DeviceList.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Protocol/ProtocolSettingsWidget.cpp"
 
 

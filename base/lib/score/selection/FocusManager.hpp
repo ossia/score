@@ -17,13 +17,13 @@ public:
   void set(QPointer<const T> obj)
   {
     m_obj = obj.data();
-    emit changed();
+    changed();
   }
 
   void set(std::nullptr_t)
   {
     m_obj.clear();
-    emit changed();
+    changed();
   }
 
 Q_SIGNALS:

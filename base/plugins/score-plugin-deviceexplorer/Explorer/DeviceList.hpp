@@ -6,6 +6,7 @@
 #include <vector>
 
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <score_plugin_deviceexplorer_export.h>
 
 namespace Device
 {
@@ -19,7 +20,7 @@ namespace Device
  * This is not the case for the local device, which is owned
  * by LocalTreeDocumentPlugin
  */
-class SCORE_LIB_DEVICE_EXPORT DeviceList : public QObject
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceList : public QObject
 {
   Q_OBJECT
 public:
@@ -32,7 +33,6 @@ public:
   void removeDevice(const QString& name);
 
   void apply(std::function<void(Device::DeviceInterface&)>);
-
   void setLogging(bool);
 
   void setLocalDevice(DeviceInterface*);
@@ -50,4 +50,7 @@ private:
   DeviceInterface* m_localDevice{}, *m_audioDevice{};
   bool m_logging = false;
 };
+
+SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceLogging get_cur_logging(bool b)
+;
 }

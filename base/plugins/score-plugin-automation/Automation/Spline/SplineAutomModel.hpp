@@ -55,7 +55,7 @@ public:
       return;
 
     m_tween = tween;
-    emit tweenChanged(tween);
+    tweenChanged(tween);
   }
 
   QString prettyName() const override;
@@ -65,7 +65,7 @@ public:
     if(m_spline != c)
     {
       m_spline = c;
-      emit splineChanged();
+      splineChanged();
     }
   }
 Q_SIGNALS:

@@ -45,7 +45,7 @@ void Model::setStepCount(quint64 s)
   {
     m_stepCount = s;
     m_steps.resize(s);
-    emit stepCountChanged(s);
+    stepCountChanged(s);
   }
 }
 
@@ -54,7 +54,7 @@ void Model::setStepDuration(quint64 s)
   if(s != m_stepDuration)
   {
     m_stepDuration = s;
-    emit stepDurationChanged(s);
+    stepDurationChanged(s);
   }
 }
 
@@ -63,7 +63,7 @@ void Model::setSteps(std::vector<float> v)
   if(m_steps != v)
   {
     m_steps = std::move(v);
-    emit stepsChanged();
+    stepsChanged();
   }
 }
 
@@ -72,7 +72,7 @@ void Model::setMin(double v)
   if(m_min != v)
   {
     m_min = v;
-    emit minChanged(v);
+    minChanged(v);
   }
 }
 
@@ -81,7 +81,7 @@ void Model::setMax(double v)
   if(m_max != v)
   {
     m_max = v;
-    emit maxChanged(v);
+    maxChanged(v);
   }
 }
 

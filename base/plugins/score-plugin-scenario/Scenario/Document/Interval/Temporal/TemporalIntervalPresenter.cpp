@@ -262,7 +262,7 @@ void TemporalIntervalPresenter::updateHeight()
   }
 
   updateChildren();
-  emit heightChanged();
+  heightChanged();
 
 }
 

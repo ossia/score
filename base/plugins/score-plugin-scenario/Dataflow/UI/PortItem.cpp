@@ -142,7 +142,7 @@ void PortItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
     switch(event->button())
     {
       case Qt::RightButton:
-        emit contextMenuRequested(event->scenePos(), event->screenPos());
+        contextMenuRequested(event->scenePos(), event->screenPos());
         break;
       default:
         break;
@@ -176,7 +176,7 @@ void PortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     switch(event->button())
     {
       case Qt::LeftButton:
-        emit showPanel();
+        showPanel();
         break;
       default:
         break;

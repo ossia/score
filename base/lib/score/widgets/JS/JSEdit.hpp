@@ -112,7 +112,7 @@ protected:
   void keyPressEvent(QKeyEvent* e) override;
   void focusOutEvent(QFocusEvent* event) override
   {
-    emit editingFinished(this->toPlainText());
+    editingFinished(this->toPlainText());
     event->ignore();
   }
 

@@ -56,7 +56,16 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/MessageEditDialog.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/MessageListEditor.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/MessageWidget.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Settings/ExplorerModel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Settings/ExplorerPresenter.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Settings/ExplorerView.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Settings/ExplorerFactory.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DeviceList.hpp"
+
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_deviceexplorer.hpp"
+
 )
 
 
@@ -109,6 +118,12 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Listening/DefaultListeningHandler.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Listening/DefaultListeningHandlerFactory.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Settings/ExplorerModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Settings/ExplorerPresenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Settings/ExplorerView.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DeviceList.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_deviceexplorer.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorerApplicationPlugin.cpp"

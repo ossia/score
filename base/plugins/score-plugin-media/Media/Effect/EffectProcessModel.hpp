@@ -245,7 +245,7 @@ public Q_SLOTS:
             return;
 
           m_badChaining = badChaining;
-          emit badChainingChanged(m_badChaining);
+          badChainingChanged(m_badChaining);
         }
 
 Q_SIGNALS:

@@ -35,10 +35,10 @@ void ProcessModel::init()
   m_outlets.push_back(outlet.get());
   connect(outlet.get(), &Process::Port::addressChanged,
           this, [=] (const State::AddressAccessor& arg) {
-    emit addressChanged(arg);
-    emit prettyNameChanged();
-    emit unitChanged(arg.qualifiers.get().unit);
-    emit m_curve->changed();
+    addressChanged(arg);
+    prettyNameChanged();
+    unitChanged(arg.qualifiers.get().unit);
+    m_curve->changed();
   });
 }
 
@@ -235,8 +235,8 @@ void ProcessModel::setMin(double arg)
     return;
 
   m_min = arg;
-  emit minChanged(arg);
-  emit m_curve->changed();
+  minChanged(arg);
+  m_curve->changed();
 }
 
 void ProcessModel::setMax(double arg)
@@ -245,8 +245,8 @@ void ProcessModel::setMax(double arg)
     return;
 
   m_max = arg;
-  emit maxChanged(arg);
-  emit m_curve->changed();
+  maxChanged(arg);
+  m_curve->changed();
 }
 
 State::Unit ProcessModel::unit() const
@@ -261,8 +261,8 @@ void ProcessModel::setUnit(const State::Unit& u)
     auto addr = outlet->address();
     addr.qualifiers.get().unit = u;
     outlet->setAddress(addr);
-    emit prettyNameChanged();
-    emit unitChanged(u);
+    prettyNameChanged();
+    unitChanged(u);
   }
 }
 }

@@ -116,7 +116,7 @@ void ExpressionEditorWidget::on_editFinished()
     return;
 
   m_expression = ex;
-  emit editingFinished();
+  editingFinished();
 }
 
 void ExpressionEditorWidget::exploreExpression(State::Expression expr)
@@ -246,7 +246,7 @@ void ExpressionEditorWidget::removeTerm(int index)
   else if (m_relations.size() == 1)
   {
     // We just clear the expression
-    emit resetExpression();
+    resetExpression();
     m_relations[0]->enableRemoveButton(false);
   }
   m_relations.back()->enableAddButton(true);

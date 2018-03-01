@@ -189,7 +189,7 @@ QPainterPath CableItem::shape() const
 
 void CableItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  emit clicked();
+  clicked();
   event->accept();
 }
 
@@ -209,7 +209,7 @@ void CableItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
   auto act = m->addAction(tr("Remove"));
   connect(act, &QAction::triggered,
           this, [=] {
-    emit removeRequested();
+    removeRequested();
   });
   m->exec(event->screenPos());
   m->deleteLater();

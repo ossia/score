@@ -7,6 +7,9 @@
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 
+#include <score/plugins/ProjectSettings/ProjectSettingsModel.hpp>
+#include <score/plugins/ProjectSettings/ProjectSettingsPresenter.hpp>
+#include <score/plugins/ProjectSettings/ProjectSettingsView.hpp>
 namespace score
 {
 Settings::Settings()
@@ -26,8 +29,8 @@ Settings::~Settings()
 
 void Settings::setupView()
 {
-  m_settingsView = new SettingsView(nullptr);
-  m_settingsPresenter = new SettingsPresenter(m_settingsView, nullptr);
+  m_settingsView = new SettingsView<SettingsDelegateModel>(nullptr);
+  m_settingsPresenter = new SettingsPresenter<SettingsDelegateModel>(m_settingsView, nullptr);
 }
 
 void Settings::setupSettingsPlugin(
@@ -61,4 +64,27 @@ void Settings::setupSettingsPlugin(
     }
   }
 }
+
+
+ProjectSettings::ProjectSettings()
+{
+}
+
+ProjectSettings::~ProjectSettings()
+{
+  if(m_settingsView)
+    m_settingsView->deleteLater();
+  for (auto& ptr : m_settings)
+  {
+    auto p = ptr.release();
+    p->deleteLater();
+  }
+}
+
+void ProjectSettings::setupView()
+{
+  m_settingsView = new SettingsView<ProjectSettingsModel>(nullptr);
+  m_settingsPresenter = new SettingsPresenter<ProjectSettingsModel>(m_settingsView, nullptr);
+}
+
 }

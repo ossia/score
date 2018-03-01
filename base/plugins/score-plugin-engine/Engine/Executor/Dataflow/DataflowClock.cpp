@@ -15,12 +15,8 @@
 #include <QFile>
 #include <QPointer>
 #include <ossia/network/midi/midi_device.hpp>
-#if __has_include(<valgrind/callgrind.h>)
-#define SCORE_BENCHMARK 1
-#if defined(SCORE_BENCHMARK)
-#include <valgrind/callgrind.h>
-#endif
-#endif
+#include <ossia/dataflow/graph/tick_methods.hpp>
+#include <Engine/Executor/Settings/ExecutorModel.hpp>
 namespace Dataflow
 {
 Clock::Clock(
@@ -62,89 +58,75 @@ void Clock::pause_impl(
   m_default.pause();
 }
 
-#if defined(SCORE_BENCHMARK)
-std::vector<double> m_tickDurations;
-
-struct cycle_count_bench
+template<typename... Args>
+smallfun::function<void(unsigned long, double), 128> make_ui_tick(const Engine::Execution::Settings::Model& settings, Args&&... args)
 {
-    uint64_t rdtsc()
-    {
-        unsigned int lo = 0;
-        unsigned int hi = 0;
-        __asm__ __volatile__ (
-            "lfence\n"
-            "rdtsc\n"
-            "lfence" : "=a"(lo), "=d"(hi)
-        );
-        return ((uint64_t)hi << 32) | lo;
-    }
+  using namespace Engine::Execution::Settings;
+  auto tick = settings.getTick();
+  auto commit = settings.getCommit();
 
-    uint64_t t0;
-
-    cycle_count_bench()
-      : t0{rdtsc()}
-    {
-    }
-
-    ~cycle_count_bench()
-    {
-      auto t1 = rdtsc();
-      m_tickDurations.push_back(t1 - t0);
-    }
-};
-
-struct clock_count_bench
-{
-    std::chrono::time_point<std::chrono::steady_clock> t0;
-
-    clock_count_bench()
-      : t0{std::chrono::steady_clock::now()}
-    {
-    }
-
-    ~clock_count_bench()
-    {
-      auto t1 = std::chrono::steady_clock::now();
-      m_tickDurations.push_back(std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count());
-    }
-};
-struct callgrind_bench
-{
-    callgrind_bench()
-    {
-      CALLGRIND_START_INSTRUMENTATION;
-    }
-    ~callgrind_bench()
-    {
-      CALLGRIND_STOP_INSTRUMENTATION;
-    }
-};
-#endif
+  if(commit == CommitPolicies{}.Default)
+  {
+    static constexpr const auto commit_policy = &ossia::execution_state::commit;
+    if(tick == TickPolicies{}.Buffer)
+      return ossia::buffer_tick<commit_policy>{args...};
+    else if(tick == TickPolicies{}.Precise)
+      return ossia::precise_score_tick<commit_policy>{args...};
+    else if(tick == TickPolicies{}.ScoreAccurate)
+      return ossia::split_score_tick<commit_policy>{args...};
+    else
+      return ossia::buffer_tick<commit_policy>{args...};
+  }
+  else if(commit == CommitPolicies{}.Ordered)
+  {
+    static constexpr const auto commit_policy = &ossia::execution_state::commit_ordered;
+    if(tick == TickPolicies{}.Buffer)
+      return ossia::buffer_tick<commit_policy>{args...};
+    else if(tick == TickPolicies{}.Precise)
+      return ossia::precise_score_tick<commit_policy>{args...};
+    else if(tick == TickPolicies{}.ScoreAccurate)
+      return ossia::split_score_tick<commit_policy>{args...};
+    else
+      return ossia::buffer_tick<commit_policy>{args...};
+  }
+  else if(commit == CommitPolicies{}.Priorized)
+  {
+    static constexpr const auto commit_policy = &ossia::execution_state::commit_priorized;
+    if(tick == TickPolicies{}.Buffer)
+      return ossia::buffer_tick<commit_policy>{args...};
+    else if(tick == TickPolicies{}.Precise)
+      return ossia::precise_score_tick<commit_policy>{args...};
+    else if(tick == TickPolicies{}.ScoreAccurate)
+      return ossia::split_score_tick<commit_policy>{args...};
+    else
+      return ossia::buffer_tick<commit_policy>{args...};
+  }
+  else if(commit == CommitPolicies{}.Merged)
+  {
+    static constexpr const auto commit_policy = &ossia::execution_state::commit_merged;
+    if(tick == TickPolicies{}.Buffer)
+      return ossia::buffer_tick<commit_policy>{args...};
+    else if(tick == TickPolicies{}.Precise)
+      return ossia::precise_score_tick<commit_policy>{args...};
+    else if(tick == TickPolicies{}.ScoreAccurate)
+      return ossia::split_score_tick<commit_policy>{args...};
+    else
+      return ossia::buffer_tick<commit_policy>{args...};
+  }
+  return ossia::buffer_tick<&ossia::execution_state::commit>{args...};
+}
 
 void Clock::resume_impl(
     Engine::Execution::BaseScenarioElement& bs)
 {
-#if defined(SCORE_BENCHMARK)
-  m_tickDurations.clear();
-  m_tickDurations.reserve(100000);
-#endif
   m_paused = false;
   m_default.resume();
-  m_plug.audioProto().ui_tick = [&st=*m_plug.execState,&g=m_plug.execGraph,itv=m_cur->baseInterval().OSSIAInterval()] (unsigned long frameCount, double seconds) {
+  auto tick = m_plug.context().settings.getTick();
 
-#if defined(SCORE_BENCHMARK)
-    cycle_count_bench b{};
-#endif
-    st.clear_local_state();
-    st.get_new_values();
-    st.samples_since_start += frameCount;
-    st.bufferSize = (int)frameCount;
-    // we could run a syscall and call now() but that's a bit more costly.
-    st.cur_date = seconds * 1e9;
-    itv->tick(ossia::time_value(frameCount));
-    g->state(st);
-    st.commit();
-  };
+  // sorry padre for I have sinned
+  m_plug.audioProto().ui_tick = make_ui_tick(
+                                  m_plug.context().settings,
+                                  *m_plug.execState, *m_plug.execGraph, *m_cur->baseInterval().OSSIAInterval());
 
   m_plug.audioProto().replace_tick = true;
   qDebug("resume");
@@ -157,16 +139,11 @@ void Clock::stop_impl(
   QPointer<Engine::Execution::DocumentPlugin> plug = &m_plug;
 
   m_plug.audioProto().ui_tick = [=,&proto=m_plug.audioProto()] (unsigned long, double) {
-    emit plug->finished();
+    plug->finished();
     proto.ui_tick = [] (unsigned long, double) {};
     proto.replace_tick = true;
 
 #if defined(SCORE_BENCHMARK)
-    QFile f("/tmp/out.data");
-    QTextStream s(&f);
-    f.open(QIODevice::WriteOnly);
-    for(auto t : m_tickDurations)
-      s << t << "\n";
 #endif
 
   };

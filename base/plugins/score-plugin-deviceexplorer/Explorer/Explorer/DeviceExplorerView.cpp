@@ -228,7 +228,7 @@ void DeviceExplorerView::columnVisibilityChanged(bool shown)
 void DeviceExplorerView::rowsInserted(const QModelIndex& parent, int start, int end)
 {
   QTreeView::rowsInserted(parent, start, end);
-  emit created(parent, start, end);
+  created(parent, start, end);
 }
 
 void DeviceExplorerView::headerMenuRequested(const QPoint& pos)
@@ -254,7 +254,7 @@ void DeviceExplorerView::selectionChanged(
 
     QModelIndexList l = selectedIndexes();
     QModelIndexList l0;
-    foreach (const QModelIndex &index, l) {
+    Q_FOREACH (const QModelIndex &index, l) {
     if (index.column() == (int)Explorer::Column::Name) {
 
       if (!index.isValid())
@@ -272,7 +272,7 @@ void DeviceExplorerView::selectionChanged(
   }
   */
 
-  emit selectionChanged();
+  selectionChanged();
 }
 
 QModelIndexList DeviceExplorerView::selectedIndexes() const
@@ -285,7 +285,7 @@ QModelIndexList DeviceExplorerView::selectedIndexes() const
   QModelIndexList l = QTreeView::selectedIndexes();
 
   QModelIndexList l0;
-  foreach (const QModelIndex& index, l)
+  Q_FOREACH (const QModelIndex& index, l)
   {
     if (index.column() == col)
     {

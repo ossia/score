@@ -11,7 +11,7 @@
 #include <Curve/CurveModel.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
-#include <Device/Protocol/DeviceList.hpp>
+#include <Explorer/DeviceList.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 
 #include <ossia/editor/curve/curve.hpp>

@@ -128,7 +128,7 @@ EffectSlider::EffectSlider(Process::ControlInlet& fx, bool is_output, QWidget* p
     {
       auto min = dom.convert_min<double>();
       auto max = dom.convert_max<double>();
-      emit createAutomation(std::move(*addr), min, max);
+      createAutomation(std::move(*addr), min, max);
     }*/
   });
   // TODO show tooltip with current value

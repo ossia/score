@@ -183,7 +183,7 @@ void Application::init()
       m_view = new score::View{this};
     }
 
-    m_presenter = new score::Presenter{m_applicationSettings, m_settings, m_view, this};
+    m_presenter = new score::Presenter{m_applicationSettings, m_settings, m_projectSettings, m_view, this};
 
     // Plugins
     loadPluginData();

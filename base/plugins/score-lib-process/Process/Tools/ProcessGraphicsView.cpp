@@ -71,7 +71,7 @@ void ProcessGraphicsView::scrollHorizontal(double dx)
 void ProcessGraphicsView::resizeEvent(QResizeEvent* ev)
 {
   QGraphicsView::resizeEvent(ev);
-  emit sizeChanged(size());
+  sizeChanged(size());
 }
 
 void ProcessGraphicsView::scrollContentsBy(int dx, int dy)
@@ -80,7 +80,7 @@ void ProcessGraphicsView::scrollContentsBy(int dx, int dy)
 
   this->scene()->update();
   if(dx != 0)
-    emit scrolled(dx);
+    scrolled(dx);
 }
 
 void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
@@ -96,12 +96,12 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
   QPointF delta = {d.x() / 8., d.y() / 8.};
   if (m_hZoom)
   {
-    emit horizontalZoom(delta, mapToScene(event->pos()));
+    horizontalZoom(delta, mapToScene(event->pos()));
     return;
   }
   else if(m_vZoom)
   {
-    emit verticalZoom(delta, mapToScene(event->pos()));
+    verticalZoom(delta, mapToScene(event->pos()));
     return;
   }
   struct MyWheelEvent : public QWheelEvent
@@ -141,7 +141,7 @@ void ProcessGraphicsView::focusOutEvent(QFocusEvent* event)
 {
   m_hZoom = false;
   m_vZoom = false;
-  emit focusedOut();
+  focusedOut();
   event->ignore();
 
   QGraphicsView::focusOutEvent(event);
@@ -151,6 +151,6 @@ void ProcessGraphicsView::leaveEvent(QEvent* event)
 {
   m_hZoom = false;
   m_vZoom = false;
-  emit focusedOut();
+  focusedOut();
   QGraphicsView::leaveEvent(event);
 }

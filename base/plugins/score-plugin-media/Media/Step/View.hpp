@@ -95,11 +95,11 @@ class View final : public Process::LayerView
         return;
 
       ev->accept();
-      emit pressed(ev->pos());
+      pressed(ev->pos());
       std::size_t pos = std::size_t(ev->pos().x() / m_barWidth) % m_model->steps().size();
       if(pos < m_model->steps().size())
       {
-        emit change(pos, ev->pos().y() / boundingRect().height());
+        change(pos, ev->pos().y() / boundingRect().height());
       }
     }
 
@@ -113,19 +113,19 @@ class View final : public Process::LayerView
       std::size_t pos = std::size_t(ev->pos().x() / m_barWidth) % m_model->steps().size();
       if(pos < m_model->steps().size())
       {
-        emit change(pos, ev->pos().y() / boundingRect().height());
+        change(pos, ev->pos().y() / boundingRect().height());
       }
     }
 
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* ev) override
     {
       ev->accept();
-      emit released(ev->pos());
+      released(ev->pos());
     }
 
     void contextMenuEvent(QGraphicsSceneContextMenuEvent* ev) override
     {
-      emit askContextMenu(ev->screenPos(), ev->scenePos());
+      askContextMenu(ev->screenPos(), ev->scenePos());
       ev->accept();
     }
 

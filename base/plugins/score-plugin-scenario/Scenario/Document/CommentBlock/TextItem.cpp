@@ -18,7 +18,7 @@ TextItem::TextItem(QString text, QGraphicsItem* parent)
 
 void TextItem::focusOutEvent(QFocusEvent* event)
 {
-  emit focusOut();
+  focusOut();
 }
 
 SimpleTextItem::SimpleTextItem(QGraphicsItem* p): QGraphicsItem{p}

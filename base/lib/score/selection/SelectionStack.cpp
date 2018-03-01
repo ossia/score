@@ -37,7 +37,7 @@ void SelectionStack::clear()
   m_unselectable.clear();
   m_reselectable.clear();
   m_unselectable.push(Selection{});
-  emit currentSelectionChanged(m_unselectable.top());
+  currentSelectionChanged(m_unselectable.top());
 }
 
 void SelectionStack::clearAllButLast()
@@ -82,7 +82,7 @@ void SelectionStack::push(const Selection& selection)
     }
     m_reselectable.clear();
 
-    emit currentSelectionChanged(s);
+    currentSelectionChanged(s);
   }
 }
 
@@ -93,14 +93,14 @@ void SelectionStack::unselect()
   if (m_unselectable.empty())
     m_unselectable.push(Selection{});
 
-  emit currentSelectionChanged(m_unselectable.top());
+  currentSelectionChanged(m_unselectable.top());
 }
 
 void SelectionStack::reselect()
 {
   m_unselectable.push(m_reselectable.pop());
 
-  emit currentSelectionChanged(m_unselectable.top());
+  currentSelectionChanged(m_unselectable.top());
 }
 
 void SelectionStack::deselect()
@@ -178,6 +178,6 @@ void SelectionStack::prune(IdentifiedObjectAbstract* p)
   if (m_unselectable.size() == 0)
     m_unselectable.push(Selection{});
 
-  emit currentSelectionChanged(m_unselectable.top());
+  currentSelectionChanged(m_unselectable.top());
 }
 }

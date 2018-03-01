@@ -2,14 +2,14 @@
 #include <QObject>
 #include <score/command/SettingsCommand.hpp>
 #include <score_lib_base_export.h>
-
+#include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 namespace score
 {
-class ProjectSettingsPresenter;
-class SCORE_LIB_BASE_EXPORT ProjectSettingsModel : public QObject
+class SCORE_LIB_BASE_EXPORT ProjectSettingsModel
+    : public SerializableDocumentPlugin
 {
 public:
-  using QObject::QObject;
+  using SerializableDocumentPlugin::SerializableDocumentPlugin;
   virtual ~ProjectSettingsModel();
 };
 }

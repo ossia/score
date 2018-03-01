@@ -33,7 +33,7 @@ ProcessModel::ProcessModel(
 
 ProcessModel::~ProcessModel()
 {
-  emit identified_object_destroying(this);
+  identified_object_destroying(this);
 }
 
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
@@ -112,7 +112,7 @@ TimeVal ProcessModel::contentDuration() const
 void ProcessModel::setDuration(const TimeVal& other)
 {
   m_duration = other;
-  emit durationChanged(m_duration);
+  durationChanged(m_duration);
 }
 
 const TimeVal& ProcessModel::duration() const
@@ -180,7 +180,7 @@ double ProcessModel::getSlotHeight() const
 void ProcessModel::setSlotHeight(double v)
 {
   m_slotHeight = v;
-  emit slotHeightChanged(v);
+  slotHeightChanged(v);
 }
 
 ProcessModel* parentProcess(QObject* obj)

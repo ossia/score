@@ -15,7 +15,7 @@ bool SafeQApplication::event(QEvent *ev)
     case QEvent::FileOpen:
     {
         auto loadString = static_cast<QFileOpenEvent*>(ev)->file();
-        emit fileOpened(loadString);
+        fileOpened(loadString);
         eaten = true;
         break;
     }

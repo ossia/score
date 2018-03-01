@@ -125,7 +125,7 @@ void Skin::load(const QJsonObject& obj)
   SCORE_CONVERT_COLOR(Pulse1);
   SCORE_CONVERT_COLOR(Pulse2);
 
-  emit changed();
+  changed();
 }
 
 #define SCORE_MAKE_PAIR_COLOR(Col) \

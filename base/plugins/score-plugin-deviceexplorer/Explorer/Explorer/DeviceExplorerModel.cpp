@@ -35,7 +35,7 @@
 #include "Widgets/DeviceEditDialog.hpp" // TODO why here??!!
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/ItemModels/NodeBasedItemModel.hpp>
-#include <Device/Protocol/DeviceList.hpp>
+#include <Explorer/DeviceList.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <State/ValueConversion.hpp>
@@ -151,7 +151,7 @@ void DeviceExplorerModel::updateDevice(
       n->set(dev);
 
       QModelIndex index = createIndex(i, 0, n->parent());
-      emit dataChanged(index, index);
+      dataChanged(index, index);
       return;
     }
   }
@@ -203,9 +203,9 @@ void DeviceExplorerModel::updateAddress(
 
   node->set(addressSettings);
 
-  emit nodeChanged(node);
+  nodeChanged(node);
 
-  emit dataChanged(
+  dataChanged(
       modelIndexFromNode(*node, 0),
       modelIndexFromNode(*node, (int)Column::Count - 1));
 }
@@ -221,7 +221,7 @@ void DeviceExplorerModel::updateValue(
 
   QModelIndex nodeIndex = modelIndexFromNode(*n, 1);
 
-  emit dataChanged(nodeIndex, nodeIndex);
+  dataChanged(nodeIndex, nodeIndex);
 }
 
 bool DeviceExplorerModel::checkDeviceInstantiatable(Device::DeviceSettings& n)
@@ -431,7 +431,7 @@ Qt::ItemFlags DeviceExplorerModel::flags(const QModelIndex& index) const
 
 /*
   return false if no change was made.
-  emit dataChanged() & return true if a change is made.
+  dataChanged() & return true if a change is made.
 
   Note: this is the function that gets called when the user changes the value
   in the tree.
@@ -556,7 +556,7 @@ void DeviceExplorerModel::editData(
     }
   }
 
-  emit dataChanged(changedTopLeft, changedBottomRight);
+  dataChanged(changedTopLeft, changedBottomRight);
 }
 
 QModelIndex DeviceExplorerModel::bottomIndex(const QModelIndex& index) const
@@ -862,7 +862,7 @@ void DeviceExplorerModel::debug_printPath(const Device::NodePath& path)
 void DeviceExplorerModel::debug_printIndexes(const QModelIndexList& indexes)
 {
   std::cerr << "indexes: " << indexes.size() << " nodes: \n";
-  foreach (const QModelIndex& index, indexes)
+  Q_FOREACH (const QModelIndex& index, indexes)
   {
     if (index.isValid())
     {

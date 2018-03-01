@@ -146,33 +146,33 @@ void EventView::changeToolTip(const QString& c)
 void EventView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   if (event->button() == Qt::MouseButton::LeftButton)
-    emit m_presenter.pressed(event->scenePos());
+    m_presenter.pressed(event->scenePos());
 }
 
 void EventView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  emit m_presenter.moved(event->scenePos());
+  m_presenter.moved(event->scenePos());
 }
 
 void EventView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  emit m_presenter.released(event->scenePos());
+  m_presenter.released(event->scenePos());
 }
 
 void EventView::hoverEnterEvent(QGraphicsSceneHoverEvent* h)
 {
   QGraphicsItem::hoverEnterEvent(h);
-  emit eventHoverEnter();
+  eventHoverEnter();
 }
 
 void EventView::hoverLeaveEvent(QGraphicsSceneHoverEvent* h)
 {
   QGraphicsItem::hoverLeaveEvent(h);
-  emit eventHoverLeave();
+  eventHoverLeave();
 }
 
 void EventView::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
-  emit dropReceived(event->scenePos(), event->mimeData());
+  dropReceived(event->scenePos(), event->mimeData());
 }
 }

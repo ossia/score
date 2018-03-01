@@ -347,6 +347,6 @@ void FullViewIntervalPresenter::updateHeight()
   m_view->setHeight(rackHeight() + IntervalHeader::headerHeight());
 
   updateChildren();
-  emit heightChanged();
+  heightChanged();
 }
 }

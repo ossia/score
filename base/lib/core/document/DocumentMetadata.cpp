@@ -33,7 +33,7 @@ void DocumentMetadata::setFileName(QString fileName)
     return;
 
   m_fileName = fileName;
-  emit fileNameChanged(fileName);
+  fileNameChanged(fileName);
 }
 
 void DocumentMetadata::setAuthor(QString author)
@@ -42,7 +42,7 @@ void DocumentMetadata::setAuthor(QString author)
     return;
 
   m_author = author;
-  emit authorChanged(author);
+  authorChanged(author);
 }
 
 void DocumentMetadata::setCreation(QDateTime creation)
@@ -51,7 +51,7 @@ void DocumentMetadata::setCreation(QDateTime creation)
     return;
 
   m_creation = creation;
-  emit creationChanged(creation);
+  creationChanged(creation);
 }
 
 void DocumentMetadata::setLastEdition(QDateTime lastEdition)
@@ -60,6 +60,6 @@ void DocumentMetadata::setLastEdition(QDateTime lastEdition)
     return;
 
   m_lastEdition = lastEdition;
-  emit lastEditionChanged(lastEdition);
+  lastEditionChanged(lastEdition);
 }
 }

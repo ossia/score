@@ -13,7 +13,7 @@ class QObject;
 namespace PluginSettings
 {
 class PluginSettingsPresenter;
-class PluginSettingsView : public score::SettingsDelegateView
+class PluginSettingsView : public score::GlobalSettingsView
 {
   Q_OBJECT
 public:

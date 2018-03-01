@@ -74,7 +74,7 @@ struct Node
 
       Note note{in[1], in[2], (uint8_t)in.getChannel()};
 
-      if(note.vel != 0)
+      if(in.getMessageType() == mm::MessageType::NOTE_ON && note.vel != 0)
       {
         if(start == 0.f) // No quantification, start directly
         {

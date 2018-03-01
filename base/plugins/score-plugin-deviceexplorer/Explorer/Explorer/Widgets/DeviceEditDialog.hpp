@@ -35,7 +35,7 @@ public:
   // the user if he has to edit the device again.
   void setEditingInvalidState(bool);
 
-protected slots:
+protected Q_SLOTS:
 
   void updateProtocolWidget();
 

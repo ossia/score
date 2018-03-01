@@ -3,9 +3,15 @@
 #include <score_lib_base_export.h>
 namespace score
 {
-class ProjectSettingsPresenter;
+template<class Model>
+class SettingsDelegatePresenter;
+template<class Model>
+class SettingsDelegateView;
+
 class ProjectSettingsModel;
-class ProjectSettingsView;
+
+using ProjectSettingsPresenter = SettingsDelegatePresenter<ProjectSettingsModel>;
+using ProjectSettingsView = SettingsDelegateView<ProjectSettingsModel>;
 
 /**
  * @brief The ProjectSettingsFactory class
@@ -24,7 +30,6 @@ public:
       score::ProjectSettingsView& v,
       QObject* parent);
   virtual ProjectSettingsView* makeView() = 0;
-  virtual ProjectSettingsModel* makeModel() = 0;
 
 protected:
   virtual ProjectSettingsPresenter* makePresenter_impl(

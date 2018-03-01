@@ -69,7 +69,7 @@ void CreateAutomationFromStates::redo(const score::DocumentContext& ctx) const
 
   autom.curve().addSegment(segment);
 
-  emit autom.curve().changed();
+  autom.curve().changed();
 
   for (const auto& cmd : m_slotsCmd)
     cmd.redo(ctx);

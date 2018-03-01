@@ -75,10 +75,18 @@ void removeCables(const SerializedCables& cables, const score::DocumentContext& 
 
   for(const auto& cid : cables)
   {
-    auto& cable = doc.cables.at(cid.first);
-    cable.source().find(ctx).removeCable(cable);
-    cable.sink().find(ctx).removeCable(cable);
-    doc.cables.remove(cid.first);
+    auto cable_it = doc.cables.find(cid.first);
+    if(cable_it != doc.cables.end())
+    {
+      auto& cable = *cable_it;
+      cable.source().find(ctx).removeCable(cable);
+      cable.sink().find(ctx).removeCable(cable);
+      doc.cables.remove(cid.first);
+    }
+    else
+    {
+      qWarning() << "cable " << cid.first << "not found";
+    }
   }
 }
 
@@ -88,11 +96,18 @@ void restoreCables(const SerializedCables& cables, const score::DocumentContext&
 
   for(const auto& cid : cables)
   {
-    auto cbl = new Process::Cable{cid.first, cid.second, &doc};
+    if(doc.cables.find(cid.first) == doc.cables.end())
+    {
+      auto cbl = new Process::Cable{cid.first, cid.second, &doc};
+      doc.cables.add(cbl);
+      cbl->source().find(ctx).addCable(*cbl);
+      cbl->sink().find(ctx).addCable(*cbl);
+    }
+    else
+    {
+      qDebug() << "Warning: trying to add existing cable " << cid.first;
+    }
 
-    doc.cables.add(cbl);
-    cbl->source().find(ctx).addCable(*cbl);
-    cbl->sink().find(ctx).addCable(*cbl);
   }
 }
 }
