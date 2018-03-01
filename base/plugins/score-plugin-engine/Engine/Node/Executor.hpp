@@ -124,7 +124,48 @@ public:
   }
 
 
+#if defined(_MSC_VER)
+#define MSVC_CONSTEXPR 
+#else
+#define MSVC_CONSTEXPR constexpr
+#endif
 
+template<bool Validate, std::size_t N>
+struct apply_control;
+
+template<std::size_t N>
+struct apply_control<true, N>
+{
+    template<typename Vec, typename Vp>
+    void operator()(Vec& vec, ControlNode& self, const Vp& vp)
+    {
+        constexpr const auto ctrls = get_controls(Info::info);
+        MSVC_CONSTEXPR const auto& ctrl = std::get<N>(ctrls);
+        for (auto& v : vp)
+        {
+            if (auto res = ctrl.fromValue(v.value))
+            {
+                vec[int64_t{ v.timestamp }] = *std::move(res);
+                self.controls_changed.set(N);
+            }
+        }
+    }
+};
+template<std::size_t N>
+struct apply_control<false, N>
+{
+    template<typename Vec, typename Vp>
+    void operator()(Vec& vec, ControlNode& self, const Vp& vp)
+    {
+        constexpr const auto ctrls = get_controls(Info::info);
+        MSVC_CONSTEXPR const auto& ctrl = std::get<N>(ctrls);
+        for (auto& v : vp)
+        {
+            vec[int64_t{ v.timestamp }] = ctrl.fromValue(v.value);
+            self.controls_changed.set(N);
+        }
+    }
+};
   template<std::size_t N>
   static constexpr auto get_control_accessor()
   {
@@ -134,7 +175,7 @@ public:
       static_assert(N < info::control_count);
 
       constexpr const auto ctrls = get_controls(Info::info);
-      constexpr const auto ctrl = std::get<N>(ctrls);
+      MSVC_CONSTEXPR const auto& ctrl = std::get<N>(ctrls);
       using control_type = typename std::tuple_element<N, decltype(get_controls(Info::info))>::type;
       using val_type = typename control_type::type;
 
@@ -147,25 +188,7 @@ public:
       vec.insert(std::make_pair(int64_t{0}, std::get<N>(self.controls)));
 
       // copy all the values... values arrived later replace previous ones
-      if constexpr(control_type::must_validate)
-      {
-        for(auto& v : vp)
-        {
-          if(auto res = ctrl.fromValue(v.value))
-          {
-            vec[int64_t{v.timestamp}] = *std::move(res);
-            self.controls_changed.set(N);
-          }
-        }
-      }
-      else
-      {
-        for(auto& v : vp)
-        {
-          vec[int64_t{v.timestamp}] = ctrl.fromValue(v.value);
-          self.controls_changed.set(N);
-        }
-      }
+      apply_control<control_type::must_validate, N>{}(vec, self, vp);
 
       // the last value will be the first for the next tick
       std::get<N>(self.controls) = vec.rbegin()->second;
@@ -244,7 +267,6 @@ public:
 
   void run(ossia::token_request tk, ossia::execution_state& st) override
   {
-#if !defined(_MSC_VER)
     using inlets_indices = std::make_index_sequence<info::control_start>;
     using controls_indices = std::make_index_sequence<info::control_count>;
     using outlets_indices = std::make_index_sequence<info::outlet_size>;
@@ -314,7 +336,6 @@ public:
       cqueue.try_enqueue(controls);
       controls_changed.reset();
     }
-#endif
   }
 
   void all_notes_off() override
@@ -373,7 +394,7 @@ void setup_node(const std::shared_ptr<Node_T>& node_ptr
       constexpr auto idx = idx_t.value;
 
       constexpr const auto ctrls = get_controls(Info::info);
-      constexpr const auto ctrl = std::get<idx>(ctrls);
+      MSVC_CONSTEXPR const auto ctrl = std::get<idx>(ctrls);
       constexpr const auto control_start = InfoFunctions<Info>::control_start;
       using control_type = typename std::tuple_element<idx, decltype(get_controls(Info::info))>::type;
       using control_value_type = typename control_type::type;
@@ -385,11 +406,12 @@ void setup_node(const std::shared_ptr<Node_T>& node_ptr
           std::get<idx>(node.controls) = *res;
 
         QObject::connect(inlet, &Process::ControlInlet::valueChanged,
-                parent, [&ctx,weak_node] (const ossia::value& val) {
+                parent, [idx_t,&ctx,weak_node] (const ossia::value& val) {
+          constexpr auto idx = idx_t.value;
           if(auto node = weak_node.lock())
           {
             constexpr const auto ctrls = get_controls(Info::info);
-            constexpr const auto ctrl = std::get<idx>(ctrls);
+            MSVC_CONSTEXPR const auto ctrl = std::get<idx>(ctrls);
             if(auto v = ctrl.fromValue(val))
               ctx.executionQueue.enqueue(
                     control_updater<control_value_type>{std::get<idx>(node->controls), std::move(*v)});
@@ -401,11 +423,12 @@ void setup_node(const std::shared_ptr<Node_T>& node_ptr
         std::get<idx>(node.controls) = ctrl.fromValue(element.control(idx));
 
         QObject::connect(inlet, &Process::ControlInlet::valueChanged,
-                parent, [&ctx,weak_node] (const ossia::value& val) {
+                parent, [=,&ctx,weak_node] (const ossia::value& val) {
+            constexpr auto idx = idx_t.value;
             if(auto node = weak_node.lock())
             {
               constexpr const auto ctrls = get_controls(Info::info);
-              constexpr const auto ctrl = std::get<idx>(ctrls);
+              MSVC_CONSTEXPR const auto ctrl = std::get<idx>(ctrls);
               ctx.executionQueue.enqueue(
                 control_updater<control_value_type>{
                   std::get<idx>(node->controls),
@@ -429,12 +452,13 @@ void setup_node(const std::shared_ptr<Node_T>& node_ptr
         }
         if(ok)
         {
-          ossia::for_each_in_range<control_count>([&] (auto idx_t) {
-            constexpr auto idx = idx_t.value;
+          constexpr const auto control_count = InfoFunctions<Info>::control_count;
+          ossia::for_each_in_range<control_count>([&] (auto idx_t2) {
+            constexpr auto idx2 = idx_t2.value;
             constexpr const auto ctrls = get_controls(Info::info);
-            constexpr const auto ctrl = std::get<idx>(ctrls);
+            MSVC_CONSTEXPR const auto ctrl = std::get<idx2>(ctrls);
 
-            element.setControl(idx, ctrl.toValue(std::get<idx>(arr)));
+            element.setControl(idx2, ctrl.toValue(std::get<idx2>(arr)));
           });
         }
       }

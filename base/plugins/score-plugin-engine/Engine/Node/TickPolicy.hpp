@@ -5,8 +5,8 @@
 namespace Control
 {
 
-template<typename... Args>
-auto timestamp(const std::pair<Args...>& p)
+template<typename T, typename U>
+auto timestamp(const std::pair<T, U>& p)
 {
   return p.first;
 }
