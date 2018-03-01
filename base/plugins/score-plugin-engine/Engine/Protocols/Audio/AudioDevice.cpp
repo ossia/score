@@ -17,7 +17,7 @@
 #include <ossia/dataflow/audio_parameter.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#if __has_include(<pa_jack.h>)
+#if __has_include(<pa_jack.h>) && !defined(_MSC_VER)
 #include <pa_jack.h>
 #endif
 namespace Dataflow
@@ -39,7 +39,7 @@ AudioDevice::AudioDevice(
   m_capas.canSerialize = false;
 
   reconnect();
-#if __has_include(<pa_jack.h>)
+#if __has_include(<pa_jack.h>) && !defined(_MSC_VER)
     PaJack_SetClientName("i-score");
 #endif
 }

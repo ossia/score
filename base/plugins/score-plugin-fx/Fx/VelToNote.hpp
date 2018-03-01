@@ -26,7 +26,7 @@ struct Node
       .value_ins({{"in", true}})
       .midi_outs({{"out"}})
       .controls(Control::Widgets::QuantificationChooser(),
-                Control::FloatSlider{"Tightness", 0., 1., 0.8},
+                Control::FloatSlider{"Tightness", 0.f, 1.f, 0.8f},
                 Control::Widgets::DurationChooser(),
                 Control::Widgets::MidiSpinbox("Default pitch"),
                 Control::Widgets::MidiSpinbox("Default vel."),
