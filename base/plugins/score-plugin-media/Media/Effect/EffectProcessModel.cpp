@@ -76,7 +76,7 @@ void ProcessModel::insertEffect(
     if(inlets[0]->type != this->inlet->type)
     {
       this->inlet->type = inlets[0]->type;
-      emit inletsChanged();
+      inletsChanged();
     }
   }
   if(pos == (int)m_effects.size() - 1)
@@ -84,13 +84,13 @@ void ProcessModel::insertEffect(
     if(outlets[0]->type != this->outlet->type)
     {
       this->outlet->type = outlets[0]->type;
-      emit outletsChanged();
+      outletsChanged();
     }
   }
 
   setBadChaining(bad_effect);
 
-  emit effectsChanged();
+  effectsChanged();
 }
 
 void ProcessModel::removeEffect(const Id<Process::ProcessModel>& e)
@@ -98,7 +98,7 @@ void ProcessModel::removeEffect(const Id<Process::ProcessModel>& e)
   m_effects.remove(e);
   // TODO adjust and check ports
   // TODO introduce a dummy effect if the ports don't match
-  emit effectsChanged();
+  effectsChanged();
 }
 
 void ProcessModel::moveEffect(const Id<Process::ProcessModel>& e, int new_pos)
@@ -112,7 +112,7 @@ void ProcessModel::moveEffect(const Id<Process::ProcessModel>& e, int new_pos)
   if(old_pos != -1)
   {
     m_effects.move(e, new_pos);
-    emit effectsChanged();
+    effectsChanged();
   }
 }
 
@@ -154,7 +154,7 @@ void ProcessModel::checkChaining()
       if(inlets[0]->type != this->inlet->type)
       {
         this->inlet->type = inlets[0]->type;
-        emit inletsChanged();
+        inletsChanged();
       }
     }
     if(pos == (int)m_effects.size() - 1)
@@ -162,7 +162,7 @@ void ProcessModel::checkChaining()
       if(outlets[0]->type != this->outlet->type)
       {
         this->outlet->type = outlets[0]->type;
-        emit outletsChanged();
+        outletsChanged();
       }
     }
 
@@ -251,7 +251,7 @@ void JSONObjectWriter::write(Media::Effect::ProcessModel& proc)
         if(fx->inlets()[0]->type != proc.inlet->type)
         {
           proc.inlet->type = fx->inlets()[0]->type;
-          emit proc.inletsChanged();
+          proc.inletsChanged();
         }
       }
       if(pos == proc.m_effects.size() - 1)
@@ -259,11 +259,11 @@ void JSONObjectWriter::write(Media::Effect::ProcessModel& proc)
         if(fx->outlets()[0]->type != proc.outlet->type)
         {
           proc.outlet->type = fx->outlets()[0]->type;
-          emit proc.outletsChanged();
+          proc.outletsChanged();
         }
       }
 
-      emit proc.effectsChanged();
+      proc.effectsChanged();
     }
     else
       SCORE_TODO;

@@ -332,7 +332,7 @@ void ModelMoveCommand::doCommand()
       }
     }
 
-    foreach (const qint64 id, l)
+    Q_FOREACH (const qint64 id, l)
     {
       m_model->m_childItems[destParent.internalId()][column].insert(d++, id);
     }
@@ -417,7 +417,7 @@ void ModelChangeChildrenLayoutsCommand::doCommand()
   parents << parent1;
   parents << parent2;
 
-  emit m_model->layoutAboutToBeChanged(parents);
+  m_model->layoutAboutToBeChanged(parents);
 
   int rowSize1 = -1;
   int rowSize2 = -1;
@@ -443,7 +443,7 @@ void ModelChangeChildrenLayoutsCommand::doCommand()
   // around as QPersistentModelIndex instances, and we query idx.parent() in
   // the loop.
   QModelIndexList persistent = m_model->persistentIndexList();
-  foreach (const QModelIndex& parent, parents)
+  Q_FOREACH (const QModelIndex& parent, parents)
   {
     int idx = persistent.indexOf(parent);
 
@@ -453,7 +453,7 @@ void ModelChangeChildrenLayoutsCommand::doCommand()
     }
   }
 
-  foreach (const QModelIndex& idx, persistent)
+  Q_FOREACH (const QModelIndex& idx, persistent)
   {
     if (idx.parent() == parent1)
     {
@@ -486,5 +486,5 @@ void ModelChangeChildrenLayoutsCommand::doCommand()
     }
   }
 
-  emit m_model->layoutChanged(parents);
+  m_model->layoutChanged(parents);
 }

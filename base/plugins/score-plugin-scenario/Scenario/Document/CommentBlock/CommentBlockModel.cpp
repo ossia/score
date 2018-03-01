@@ -22,7 +22,7 @@ void CommentBlockModel::setDate(const TimeVal& date)
   if (date != m_date)
   {
     m_date = date;
-    emit dateChanged(m_date);
+    dateChanged(m_date);
   }
 }
 
@@ -41,7 +41,7 @@ void CommentBlockModel::setHeightPercentage(double y)
   if (y != m_yposition)
   {
     m_yposition = y;
-    emit heightPercentageChanged(y);
+    heightPercentageChanged(y);
   }
 }
 
@@ -55,6 +55,6 @@ void CommentBlockModel::setContent(const QString content)
   if (m_HTMLcontent == content)
     return;
   m_HTMLcontent = content;
-  emit contentChanged(m_HTMLcontent);
+  contentChanged(m_HTMLcontent);
 }
 }

@@ -103,7 +103,7 @@ void CommandStack::setIndexQuiet(int index)
       redoQuiet();
   }
 
-  emit sig_indexChanged();
+  sig_indexChanged();
 }
 
 void CommandStack::setIndex(int index)
@@ -111,7 +111,7 @@ void CommandStack::setIndex(int index)
   if (index != currentIndex())
   {
     setIndexQuiet(index);
-    emit localIndexChanged(index);
+    localIndexChanged(index);
   }
 }
 
@@ -122,7 +122,7 @@ void CommandStack::undoQuiet()
     cmd->undo(m_ctx);
     m_redoable.push(cmd);
 
-    emit sig_undo();
+    sig_undo();
   });
 }
 
@@ -134,7 +134,7 @@ void CommandStack::redoQuiet()
 
     m_undoable.push(cmd);
 
-    emit sig_redo();
+    sig_redo();
   });
 }
 
@@ -146,7 +146,7 @@ void CommandStack::redoAndPush(Command* cmd)
 
 void CommandStack::push(Command* cmd)
 {
-  emit localCommand(cmd);
+  localCommand(cmd);
   updateStack([&]() {
     // We lose the state we saved
     if (currentIndex() < m_savedIndex)
@@ -161,7 +161,7 @@ void CommandStack::push(Command* cmd)
       m_redoable.clear();
     }
 
-    emit sig_push();
+    sig_push();
   });
 }
 
@@ -187,7 +187,7 @@ void CommandStack::pushQuiet(Command* cmd)
       m_redoable.clear();
     }
 
-    emit sig_push();
+    sig_push();
   });
 }
 

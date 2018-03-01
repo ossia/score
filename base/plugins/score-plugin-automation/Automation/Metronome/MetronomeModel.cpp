@@ -183,9 +183,9 @@ void ProcessModel::setAddress(const State::Address& arg)
   }
 
   m_address = arg;
-  emit addressChanged(arg);
-  emit prettyNameChanged();
-  emit m_curve->changed();
+  addressChanged(arg);
+  prettyNameChanged();
+  m_curve->changed();
 }
 
 void ProcessModel::setMin(double arg)
@@ -194,8 +194,8 @@ void ProcessModel::setMin(double arg)
     return;
 
   m_min = arg;
-  emit minChanged(arg);
-  emit m_curve->changed();
+  minChanged(arg);
+  m_curve->changed();
 }
 
 void ProcessModel::setMax(double arg)
@@ -204,8 +204,8 @@ void ProcessModel::setMax(double arg)
     return;
 
   m_max = arg;
-  emit maxChanged(arg);
-  emit m_curve->changed();
+  maxChanged(arg);
+  m_curve->changed();
 }
 
 }

@@ -46,6 +46,7 @@ public:
   void run(ossia::token_request t, ossia::execution_state&) override;
 
   QQmlEngine m_engine;
+  QList<std::pair<ControlInlet*, ossia::inlet_ptr>> m_ctrlInlets;
   QList<std::pair<ValueInlet*, ossia::inlet_ptr>> m_valInlets;
   QList<std::pair<ValueOutlet*, ossia::outlet_ptr>> m_valOutlets;
   QList<std::pair<AudioInlet*, ossia::inlet_ptr>> m_audInlets;

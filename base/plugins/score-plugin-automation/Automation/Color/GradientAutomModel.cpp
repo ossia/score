@@ -42,7 +42,7 @@ void ProcessModel::setGradient(const ProcessModel::gradient_colors& c) {
   if(m_colors != c)
     {
       m_colors = c;
-      emit gradientChanged();
+      gradientChanged();
     }
 }
 
@@ -62,7 +62,7 @@ void ProcessModel::setTween(bool tween)
     return;
 
   m_tween = tween;
-  emit tweenChanged(tween);
+  tweenChanged(tween);
 }
 
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration)

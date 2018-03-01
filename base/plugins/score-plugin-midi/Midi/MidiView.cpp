@@ -114,13 +114,13 @@ void View::paint_impl(QPainter* p) const
 
 void View::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
-  emit askContextMenu(event->screenPos(), event->scenePos());
+  askContextMenu(event->screenPos(), event->scenePos());
   event->accept();
 }
 
 void View::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
-  emit pressed(ev->scenePos());
+  pressed(ev->scenePos());
 
   ev->accept();
 }
@@ -145,7 +145,7 @@ void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
 
 void View::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* ev)
 {
-  emit doubleClicked(ev->pos());
+  doubleClicked(ev->pos());
   ev->accept();
 }
 
@@ -153,7 +153,7 @@ void View::keyPressEvent(QKeyEvent* ev)
 {
   if (ev->key() == Qt::Key_Backspace || ev->key() == Qt::Key_Delete)
   {
-    emit deleteRequested();
+    deleteRequested();
   }
 
   ev->accept();
@@ -161,7 +161,7 @@ void View::keyPressEvent(QKeyEvent* ev)
 
 void View::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
-  emit dropReceived(event->pos(), *event->mimeData());
+  dropReceived(event->pos(), *event->mimeData());
   event->accept();
 }
 

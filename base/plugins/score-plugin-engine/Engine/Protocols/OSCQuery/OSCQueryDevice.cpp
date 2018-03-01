@@ -11,6 +11,7 @@
 #include <ossia/network/oscquery/oscquery_mirror.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/Protocols/OSCQuery/OSCQuerySpecificSettings.hpp>
+#include <Explorer/DeviceList.hpp>
 
 namespace Engine
 {
@@ -47,19 +48,19 @@ bool OSCQueryDevice::reconnect()
     // FIXME they should be disabled upon manual disconnection
 
     ossia_settings->set_command_callback([=] {
-      emit sig_command();
+      sig_command();
     });
     ossia_settings->set_disconnect_callback([=] {
-      emit sig_disconnect();
+      sig_disconnect();
     });
     ossia_settings->set_fail_callback([=] {
-      emit sig_disconnect();
+      sig_disconnect();
     });
 
     m_dev = std::make_unique<ossia::net::generic_device>(
         std::move(ossia_settings), settings().name.toStdString());
 
-    setLogging_impl(isLogging());
+    setLogging_impl(Device::get_cur_logging(isLogging()));
 
     enableCallbacks();
   }

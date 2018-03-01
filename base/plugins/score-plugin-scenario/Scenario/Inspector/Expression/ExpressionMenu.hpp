@@ -29,7 +29,7 @@ public:
           f().toString(),
           &ok);
       if (ok)
-        emit expressionChanged(std::move(str));
+        expressionChanged(std::move(str));
     });
   }
 

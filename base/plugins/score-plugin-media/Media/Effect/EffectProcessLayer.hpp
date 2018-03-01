@@ -263,11 +263,11 @@ class View final : public Process::LayerView
     {
       if(ev && ev->button() == Qt::RightButton)
       {
-        emit askContextMenu(ev->screenPos(), ev->scenePos());
+        askContextMenu(ev->screenPos(), ev->scenePos());
       }
       else
       {
-        emit pressed(ev->pos());
+        pressed(ev->pos());
       }
       ev->accept();
     }
@@ -284,7 +284,7 @@ class View final : public Process::LayerView
 
     void contextMenuEvent(QGraphicsSceneContextMenuEvent* ev) override
     {
-      emit askContextMenu(ev->screenPos(), ev->scenePos());
+      askContextMenu(ev->screenPos(), ev->scenePos());
       ev->accept();
     }
 

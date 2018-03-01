@@ -49,11 +49,13 @@ namespace score
 Presenter::Presenter(
     const score::ApplicationSettings& app,
     const score::Settings& set,
+    const score::ProjectSettings& pset,
     View* view,
     QObject* arg_parent)
     : QObject{arg_parent}
     , m_view{view}
     , m_settings{set}
+    , m_projectSettings{pset}
     , m_docManager{view, this}
     , m_components{}
     , m_components_readonly{m_components}

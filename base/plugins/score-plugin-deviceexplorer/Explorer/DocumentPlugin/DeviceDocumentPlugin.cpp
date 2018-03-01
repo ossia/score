@@ -17,7 +17,7 @@
 #include "DeviceDocumentPlugin.hpp"
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
-#include <Device/Protocol/DeviceList.hpp>
+#include <Explorer/DeviceList.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPluginFactory.hpp>

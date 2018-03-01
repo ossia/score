@@ -16,7 +16,7 @@ public:
   void leaveEvent(QEvent* ev) override
   {
     QTextEdit::leaveEvent(ev);
-    emit editingFinished();
+    editingFinished();
   }
 
 Q_SIGNALS:

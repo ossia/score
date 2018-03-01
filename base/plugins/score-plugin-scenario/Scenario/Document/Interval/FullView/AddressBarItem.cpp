@@ -57,7 +57,7 @@ void AddressBarItem::setTargetObject(ObjectPath&& path)
 
     auto lab = new ClickableLabelItem{
         thisObj.metadata(),
-        [&](ClickableLabelItem*) { emit intervalSelected(thisObj); },
+        [&](ClickableLabelItem*) { intervalSelected(thisObj); },
         txt, this};
 
     lab->setIndex(i);
@@ -102,6 +102,6 @@ void AddressBarItem::redraw()
     currentWidth += 10. + obj->boundingRect().width();
   }
 
-  emit needRedraw();
+  needRedraw();
 }
 }

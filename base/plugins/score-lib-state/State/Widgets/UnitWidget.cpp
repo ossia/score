@@ -45,7 +45,7 @@ UnitWidget::UnitWidget(QWidget* parent) : QWidget{parent}
   connect(
       m_unit, SignalUtils::QComboBox_currentIndexChanged_int(), this,
       [=](int i) {
-        emit unitChanged(m_unit->itemData(i).value<State::Unit>());
+        unitChanged(m_unit->itemData(i).value<State::Unit>());
       });
 }
 
@@ -118,12 +118,12 @@ void UnitWidget::on_dataspaceChanged(const State::Unit& unit)
           d.v);
     }
 
-    emit unitChanged(m_unit->currentData().value<State::Unit>());
+    unitChanged(m_unit->currentData().value<State::Unit>());
   }
   else
   {
     // No unit
-    emit unitChanged({});
+    unitChanged({});
   }
 }
 }

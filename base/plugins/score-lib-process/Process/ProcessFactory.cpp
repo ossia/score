@@ -10,10 +10,25 @@
 
 namespace Process
 {
-ProcessModelFactory::~ProcessModelFactory() = default;
-LayerFactory::~LayerFactory() = default;
-ProcessFactoryList::~ProcessFactoryList() = default;
-LayerFactoryList::~LayerFactoryList() = default;
+ProcessModelFactory::~ProcessModelFactory() 
+{
+  
+}
+
+LayerFactory::~LayerFactory()
+{
+  
+}
+
+ProcessFactoryList::~ProcessFactoryList()
+{
+  
+}
+
+LayerFactoryList::~LayerFactoryList()
+{
+  
+}
 
 class DefaultLayerView final : public LayerView
 {

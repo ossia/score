@@ -60,7 +60,7 @@ protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override
   {
     auto cst = static_cast<IntervalView*>(parentItem());
-    emit cst->requestOverlayMenu(event->pos());
+    cst->requestOverlayMenu(event->pos());
     event->accept();
   }
 };

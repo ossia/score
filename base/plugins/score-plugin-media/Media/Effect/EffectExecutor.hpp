@@ -43,7 +43,7 @@ struct effect_chain_process final :
     std::vector<std::shared_ptr<ossia::graph_node>> nodes;
 };
 
-class SCORE_PLUGIN_ENGINE_EXPORT EffectProcessComponentBase
+class SCORE_PLUGIN_MEDIA_EXPORT EffectProcessComponentBase
     : public ::Engine::Execution::
     ProcessComponent_T<Media::Effect::ProcessModel, effect_chain_process>
 {
@@ -109,7 +109,7 @@ private:
 };
 
 
-class SCORE_PLUGIN_ENGINE_EXPORT EffectProcessComponent final :
+class SCORE_PLUGIN_MEDIA_EXPORT EffectProcessComponent final :
         public score::PolymorphicComponentHierarchy<EffectProcessComponentBase, false>
 {
     public:

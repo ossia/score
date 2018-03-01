@@ -217,6 +217,6 @@ void SegmentView::updatePen()
 
 void SegmentView::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
 {
-  emit contextMenuRequested(ev->screenPos(), ev->scenePos());
+  contextMenuRequested(ev->screenPos(), ev->scenePos());
 }
 }

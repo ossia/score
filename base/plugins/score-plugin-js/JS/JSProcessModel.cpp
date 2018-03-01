@@ -14,6 +14,7 @@
 #include "JSProcessModel.hpp"
 #include <score/document/DocumentInterface.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+#include <State/Expression.hpp>
 
 #include <score/model/Identifier.hpp>
 
@@ -64,7 +65,7 @@ void ProcessModel::setScript(const QString& script)
     {
       const auto& err = errs.first();
       qDebug() << err.line() << err.toString();
-      emit scriptError(err.line(), err.toString());
+      scriptError(err.line(), err.toString());
     }
     else
     {
@@ -94,6 +95,8 @@ void ProcessModel::setScript(const QString& script)
         for(auto n : cld_inlet) {
           auto port = n->make(Id<Process::Port>(i++), this);
           port->setCustomData(n->objectName());
+          if(auto addr = State::parseAddressAccessor(n->address()))
+            port->setAddress(std::move(*addr));
           m_inlets.push_back(port);
         }
       }
@@ -104,36 +107,40 @@ void ProcessModel::setScript(const QString& script)
         for(auto n : cld_outlet) {
           auto port = n->make(Id<Process::Port>(i++), this);
           port->setCustomData(n->objectName());
+          if(auto addr = State::parseAddressAccessor(n->address()))
+            port->setAddress(std::move(*addr));
           m_outlets.push_back(port);
         }
       }
-      emit scriptOk();
+      scriptOk();
 
       std::size_t i = 0;
       for(Process::Inlet* in : m_inlets)
       {
         if(i < oldInletAddresses.size())
         {
-          in->setAddress(oldInletAddresses[i]);
+          if(!oldInletAddresses[i].address.device.isEmpty())
+            in->setAddress(oldInletAddresses[i]);
           for(const auto& cbl : oldInletCable[i])
             in->addCable(cbl);
         }
         i++;
       }
       i = 0;
-      for(Process::Outlet* in : m_outlets)
+      for(Process::Outlet* out : m_outlets)
       {
         if(i < oldOutletAddresses.size())
         {
-          in->setAddress(oldOutletAddresses[i]);
+          if(!oldOutletAddresses[i].address.device.isEmpty())
+            out->setAddress(oldOutletAddresses[i]);
           for(const auto& cbl : oldOutletCable[i])
-            in->addCable(cbl);
+            out->addCable(cbl);
         }
         i++;
       }
-      emit scriptChanged(script);
-      emit inletsChanged();
-      emit outletsChanged();
+      scriptChanged(script);
+      inletsChanged();
+      outletsChanged();
 
     }
   }

@@ -33,7 +33,7 @@ QSize sizeHint(NSView* m_view) {
 }
 
 
-VSTWindow::VSTWindow(AEffect& eff, ERect rect): effect{eff}
+VSTWindow::VSTWindow(std::shared_ptr<AEffectWrapper> eff, ERect rect): effect{eff}
 {
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
@@ -44,11 +44,11 @@ VSTWindow::VSTWindow(AEffect& eff, ERect rect): effect{eff}
   setWindowFlag(Qt::WindowMaximizeButtonHint, false);
   id superview = [[::NSView alloc] initWithFrame: NSMakeRect(rect.top, rect.left, rect.right, rect.bottom)];
 
-  effect.dispatcher(&effect, effEditOpen, 0, 0, (void*)superview, 0);
+  eff->fx->dispatcher(eff->fx, effEditOpen, 0, 0, (void*)superview, 0);
 
   ERect* vstRect{};
 
-  effect.dispatcher(&effect, effEditGetRect, 0, 0, &vstRect, 0.0f);
+  eff->fx->dispatcher(eff->fx, effEditGetRect, 0, 0, &vstRect, 0.0f);
   if(vstRect)
   {
     rect = *vstRect;
@@ -92,7 +92,7 @@ VSTWindow::VSTWindow(AEffect& eff, ERect rect): effect{eff}
   show();
   container->setVisible(true);
   container->update();
-  effect.dispatcher(&effect, effEditTop, 0, 0, 0, 0);
+  eff->fx->dispatcher(eff->fx, effEditTop, 0, 0, 0, 0);
 
   [superview release];
   [pool release];

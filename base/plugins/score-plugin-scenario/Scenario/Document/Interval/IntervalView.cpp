@@ -144,18 +144,18 @@ void IntervalView::mousePressEvent(QGraphicsSceneMouseEvent* event)
       setGripCursor();
     else
       unsetCursor();
-    emit m_presenter.pressed(event->scenePos());
+    m_presenter.pressed(event->scenePos());
   }
 }
 
 void IntervalView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  emit m_presenter.moved(event->scenePos());
+  m_presenter.moved(event->scenePos());
 }
 
 void IntervalView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  emit m_presenter.released(event->scenePos());
+  m_presenter.released(event->scenePos());
   if(event->pos().y() < 4)
     setUngripCursor();
   else

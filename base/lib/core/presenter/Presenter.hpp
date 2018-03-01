@@ -3,6 +3,7 @@
 #include <score/application/GUIApplicationContext.hpp>
 
 #include <core/presenter/DocumentManager.hpp>
+#include <core/settings/Settings.hpp>
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/MenuManager.hpp>
 #include <score/actions/ToolbarManager.hpp>
@@ -37,6 +38,7 @@ public:
   Presenter(
       const score::ApplicationSettings& app,
       const score::Settings& set,
+      const score::ProjectSettings& pset,
       score::View* view,
       QObject* parent);
 
@@ -86,6 +88,7 @@ private:
   void setupMenus();
   View* m_view{};
   const Settings& m_settings;
+  const ProjectSettings& m_projectSettings;
 
   DocumentManager m_docManager;
   ApplicationComponentsData m_components;

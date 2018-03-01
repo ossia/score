@@ -5,5 +5,5 @@
 IdentifiedObjectAbstract::~IdentifiedObjectAbstract()
 {
   static_assert(is_template<score::hash_map<int, float>>::value, "");
-  emit identified_object_destroyed(this);
+  identified_object_destroyed(this);
 }

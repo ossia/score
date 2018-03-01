@@ -7,7 +7,7 @@ namespace Engine
 namespace Execution
 {
 
-class OSSIA_EXPORT step_node final :
+class SCORE_PLUGIN_MEDIA_EXPORT step_node final :
     public ossia::graph_node
 {
 public:

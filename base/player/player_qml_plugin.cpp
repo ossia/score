@@ -95,7 +95,7 @@ void QMLPlayer::setPort(int p)
   {
     m_port = p;
     m_player.sig_setPort(p);
-    emit portChanged(p);
+    portChanged(p);
   }
 }
 

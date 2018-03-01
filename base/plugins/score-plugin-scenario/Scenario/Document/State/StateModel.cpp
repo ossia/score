@@ -60,12 +60,12 @@ void StateModel::setHeightPercentage(double y)
   if (m_heightPercentage == y)
     return;
   m_heightPercentage = y;
-  emit heightPercentageChanged();
+  heightPercentageChanged();
 }
 
 void StateModel::statesUpdated_slt()
 {
-  emit sig_statesUpdated();
+  sig_statesUpdated();
 }
 
 const Id<EventModel>& StateModel::eventId() const
@@ -109,7 +109,7 @@ void StateModel::setStatus(ExecutionStatus status)
     return;
 
   m_status.set(status);
-  emit statusChanged(status);
+  statusChanged(status);
 }
 
 ProcessStateWrapper::~ProcessStateWrapper()

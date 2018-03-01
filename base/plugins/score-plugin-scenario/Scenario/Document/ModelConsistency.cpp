@@ -35,7 +35,7 @@ void ModelConsistency::setValid(bool arg)
     return;
 
   m_valid = arg;
-  emit validChanged(arg);
+  validChanged(arg);
 }
 
 void ModelConsistency::setWarning(bool warning)
@@ -44,6 +44,6 @@ void ModelConsistency::setWarning(bool warning)
     return;
 
   m_warning = warning;
-  emit warningChanged(warning);
+  warningChanged(warning);
 }
 }

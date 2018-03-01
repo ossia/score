@@ -14,7 +14,7 @@ namespace Scenario
 namespace Settings
 {
 Presenter::Presenter(Model& m, View& v, QObject* parent)
-    : score::SettingsDelegatePresenter{m, v, parent}
+    : score::GlobalSettingsPresenter{m, v, parent}
 {
   con(v, &View::skinChanged, this, [&](const auto& val) {
     if (val != m.getSkin())

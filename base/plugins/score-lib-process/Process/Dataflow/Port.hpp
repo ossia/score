@@ -127,7 +127,7 @@ class SCORE_LIB_PROCESS_EXPORT ControlInlet : public Inlet
       if(value != m_value)
       {
         m_value = value;
-        emit valueChanged(value);
+        valueChanged(value);
       }
     }
 
@@ -136,7 +136,7 @@ class SCORE_LIB_PROCESS_EXPORT ControlInlet : public Inlet
       if(m_domain != d)
       {
         m_domain = d;
-        emit domainChanged(d);
+        domainChanged(d);
       }
     }
   private:
@@ -203,7 +203,7 @@ class SCORE_LIB_PROCESS_EXPORT ControlOutlet final : public Outlet
       if(value != m_value)
       {
         m_value = value;
-        emit valueChanged(value);
+        valueChanged(value);
       }
     }
 
@@ -212,7 +212,7 @@ class SCORE_LIB_PROCESS_EXPORT ControlOutlet final : public Outlet
       if(m_domain != d)
       {
         m_domain = d;
-        emit domainChanged(d);
+        domainChanged(d);
       }
     }
 

@@ -31,7 +31,7 @@ void ProcessModel::setFile(const QString &file)
     if(file != m_file.name())
     {
         m_file.load(file, score::IDocument::documentContext(*this));
-        emit fileChanged();
+        fileChanged();
     }
 }
 
@@ -57,7 +57,7 @@ void ProcessModel::setUpmixChannels(int upmixChannels)
     return;
 
   m_upmixChannels = upmixChannels;
-  emit upmixChannelsChanged(m_upmixChannels);
+  upmixChannelsChanged(m_upmixChannels);
 }
 
 void ProcessModel::setStartChannel(int startChannel)
@@ -66,7 +66,7 @@ void ProcessModel::setStartChannel(int startChannel)
     return;
 
   m_startChannel = startChannel;
-  emit startChannelChanged(m_startChannel);
+  startChannelChanged(m_startChannel);
 }
 
 void ProcessModel::init()
@@ -77,7 +77,7 @@ void ProcessModel::init()
     if(m_file.channels() == 1) {
       setUpmixChannels(2);
     }
-    emit fileChanged();
+    fileChanged();
   });
 }
 

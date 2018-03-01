@@ -79,7 +79,7 @@ void CommentBlockView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void CommentBlockView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  emit m_presenter.moved(event->scenePos() - m_clickedPoint);
+  m_presenter.moved(event->scenePos() - m_clickedPoint);
 }
 
 void CommentBlockView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
@@ -87,9 +87,9 @@ void CommentBlockView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   auto p = event->scenePos();
   auto d = (m_clickedScenePoint - p).manhattanLength();
   if (std::abs(d) < 5)
-    emit m_presenter.selected();
+    m_presenter.selected();
 
-  emit m_presenter.released(event->scenePos());
+  m_presenter.released(event->scenePos());
 }
 
 void CommentBlockView::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* evt)
@@ -116,6 +116,6 @@ void CommentBlockView::focusOut()
   c.clearSelection();
   m_textItem->setTextCursor(c);
   clearFocus();
-  emit m_presenter.editFinished(m_textItem->toHtml());
+  m_presenter.editFinished(m_textItem->toHtml());
 }
 }

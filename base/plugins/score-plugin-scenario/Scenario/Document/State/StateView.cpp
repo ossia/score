@@ -7,7 +7,8 @@
 #include <QPainter>
 #include <QPen>
 #include <qnamespace.h>
-
+#include <QScreen>
+#include <QApplication>
 #include "StateMenuOverlay.hpp"
 #include "StatePresenter.hpp"
 #include "StateView.hpp"
@@ -48,10 +49,16 @@ static const QPolygonF fullDilated{
     return p.simplified().toFillPolygon();
   }()
 };
+const bool is_hidpi()
+{
+  static const bool res = (qApp->screens().front()->devicePixelRatio() > 1.5);
+  return res;
+}
 StateView::StateView(StatePresenter& pres, QGraphicsItem* parent)
     : QGraphicsItem(parent), m_presenter{pres}
 {
-  this->setCacheMode(QGraphicsItem::CacheMode::ItemCoordinateCache);
+  if(!is_hidpi())
+    this->setCacheMode(QGraphicsItem::CacheMode::ItemCoordinateCache);
   this->setParentItem(parent);
 
   this->setCursor(QCursor(Qt::SizeAllCursor));
@@ -142,17 +149,17 @@ void StateView::disableOverlay()
 void StateView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   if (event->button() == Qt::MouseButton::LeftButton)
-    emit m_presenter.pressed(event->scenePos());
+    m_presenter.pressed(event->scenePos());
 }
 
 void StateView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  emit m_presenter.moved(event->scenePos());
+  m_presenter.moved(event->scenePos());
 }
 
 void StateView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  emit m_presenter.released(event->scenePos());
+  m_presenter.released(event->scenePos());
 }
 
 void StateView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
@@ -174,7 +181,7 @@ void StateView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 
 void StateView::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
-  emit dropReceived(event->mimeData());
+  dropReceived(event->mimeData());
   setDilatation(m_selected);
 }
 

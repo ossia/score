@@ -3,7 +3,7 @@
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <QDialog>
 #include <score/widgets/WidgetWrapper.hpp>
-
+#include <score_plugin_deviceexplorer_export.h>
 class QComboBox;
 class QFormLayout;
 class QLineEdit;
@@ -13,7 +13,7 @@ namespace Explorer
 {
 
 class AddressSettingsWidget;
-class AddressEditDialog final : public Device::AddAddressDialog
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressEditDialog final : public Device::AddAddressDialog
 {
   Q_OBJECT
 

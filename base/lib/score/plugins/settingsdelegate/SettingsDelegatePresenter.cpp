@@ -4,5 +4,4 @@
 
 namespace score
 {
-SettingsDelegatePresenter::~SettingsDelegatePresenter() = default;
 }

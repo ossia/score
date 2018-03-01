@@ -41,7 +41,7 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
             *res, model, 0., 1.);
     }
 
-    emit addressChanged(m_address);
+    addressChanged(m_address);
   });
 
   m_lineEdit->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -96,7 +96,7 @@ void AddressAccessorEditWidget::customContextMenuEvent(const QPoint& p)
           makeFullAddressAccessorSettings(
             m_model.nodeFromModelIndex(m), m_model));
 
-    emit addressChanged(m_address);
+    addressChanged(m_address);
   });
 
   device_menu->exec(m_lineEdit->mapToGlobal(p));
@@ -117,7 +117,7 @@ void AddressAccessorEditWidget::dropEvent(QDropEvent* ev)
       return;
 
     setFullAddress(Device::FullAddressAccessorSettings{std::move(as)});
-    emit addressChanged(m_address);
+    addressChanged(m_address);
   }
   else if (mime.formats().contains(score::mime::nodelist()))
   {
@@ -137,7 +137,7 @@ void AddressAccessorEditWidget::dropEvent(QDropEvent* ev)
       as.address = nl.front().first;
 
       setFullAddress(Device::FullAddressAccessorSettings{std::move(as)});
-      emit addressChanged(m_address);
+      addressChanged(m_address);
     }
   }
   else if (mime.formats().contains(score::mime::messagelist()))
@@ -148,7 +148,7 @@ void AddressAccessorEditWidget::dropEvent(QDropEvent* ev)
     {
       // TODO if multiple addresses are selected we could instead show a selection dialog.
       setAddress(ml[0].address);
-      emit addressChanged(m_address);
+      addressChanged(m_address);
     }
   }
 }

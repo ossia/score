@@ -81,7 +81,7 @@ void Model::setSkin(const QString& skin)
 
   QSettings s;
   s.setValue(Parameters::Skin.key, m_Skin);
-  emit SkinChanged(skin);
+  SkinChanged(skin);
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(double, Model, GraphicZoom)
@@ -104,7 +104,7 @@ SCORE_SETTINGS_PARAMETER_CPP(bool, Model, AutoSequence)
 
     QSettings s;
     s.setValue(Parameters::DefaultDuration.key, QVariant::fromValue(m_DefaultDuration));
-    emit DefaultDurationChanged(val);
+    DefaultDurationChanged(val);
   }
 }
 }

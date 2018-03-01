@@ -543,7 +543,7 @@ void AudioDecoder::decode(const QString &path)
     catch (...)
     {
       qDebug("Cannot decode without info");
-      emit finishedDecoding();
+      finishedDecoding();
       return;
     }
   }
@@ -566,7 +566,7 @@ void AudioDecoder::decode(const QString &path)
 
   this->moveToThread(&m_decodeThread);
   m_decodeThread.start();
-  emit startDecode(path);
+  startDecode(path);
 }
 
 ossia::optional<std::pair<AudioInfo, AudioArray>> AudioDecoder::decode_synchronous(
@@ -748,7 +748,7 @@ void AudioDecoder::on_startDecode(QString path)
             update++;
             if((update % 512) == 0)
             {
-              emit newData();
+              newData();
             }
           }
 
@@ -799,7 +799,7 @@ void AudioDecoder::on_startDecode(QString path)
     qDebug() << "Decoder error: " << e.what();
   }
 
-  emit finishedDecoding();
+  finishedDecoding();
   m_decodeThread.quit();
 
   return;

@@ -38,6 +38,9 @@ struct SCORE_LIB_DEVICE_EXPORT DeviceCapas
   bool hasCallbacks{true};
 };
 
+enum DeviceLogging: int8_t {
+  LogNothing, LogUnfolded, LogEverything
+};
 class SCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
 {
   Q_OBJECT
@@ -107,7 +110,7 @@ public:
   virtual Device::Node getNodeWithoutChildren(const State::Address&) = 0;
 
   virtual bool isLogging() const = 0;
-  virtual void setLogging(bool) = 0;
+  virtual void setLogging(DeviceLogging) = 0;
 
   virtual bool isLearning() const
   {

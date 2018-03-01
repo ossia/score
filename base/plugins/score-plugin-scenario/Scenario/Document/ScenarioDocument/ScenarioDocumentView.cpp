@@ -57,6 +57,7 @@ ScenarioDocumentView::ScenarioDocumentView(
     , m_minimapScene{m_widget}
     , m_minimapView{&m_minimapScene}
     , m_minimap{&m_minimapView}
+    , m_bar{&m_baseObject}
 
 {
 #if defined(SCORE_WEBSOCKETS)
@@ -96,7 +97,7 @@ ScenarioDocumentView::ScenarioDocumentView(
   largeView->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   largeView->setShortcut(tr("Ctrl+0"));
   connect(largeView, &QAction::triggered, this, [this] {
-    emit setLargeView();
+    setLargeView();
   }, Qt::QueuedConnection);
   con(m_timeRuler, &TimeRuler::rescale,
       largeView, &QAction::trigger);

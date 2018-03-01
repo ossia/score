@@ -101,6 +101,6 @@ void PointView::disable()
 
 void PointView::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
 {
-  emit contextMenuRequested(ev->screenPos(), ev->scenePos());
+  contextMenuRequested(ev->screenPos(), ev->scenePos());
 }
 }

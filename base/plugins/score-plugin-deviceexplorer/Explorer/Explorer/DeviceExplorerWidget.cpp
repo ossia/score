@@ -57,7 +57,7 @@
 #include <ossia/detail/algorithms.hpp>
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
-#include <Device/Protocol/DeviceList.hpp>
+#include <Explorer/DeviceList.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
@@ -722,6 +722,8 @@ void DeviceExplorerWidget::refresh()
     if (!dev.capabilities().canRefreshTree)
       return;
 
+    if(!dev.connected())
+      return;
     auto wrkr = make_worker(
         [=](Device::Node&& node) {
           auto cmd = new Explorer::Command::ReplaceDevice{
@@ -759,6 +761,8 @@ void DeviceExplorerWidget::refreshValue()
     auto addr = Device::address(*node);
     auto& dev = model()->deviceModel().list().device(addr.address.device);
     if (!dev.capabilities().canRefreshValue)
+      return;
+    if(!dev.connected())
       return;
 
     // Getting the new values
@@ -1079,7 +1083,7 @@ void DeviceExplorerWidget::findUsage()
     search_txt.push_back(address.address.toString());
 
   }
-  emit findAddresses(search_txt);
+  findAddresses(search_txt);
 }
 
 void DeviceExplorerWidget::addAddress(InsertMode insert)

@@ -1,10 +1,11 @@
 #pragma once
 #include <QDialog>
 #include <Process/ProcessList.hpp>
+#include <score_plugin_scenario_export.h>
 class QListWidget;
 namespace Scenario
 {
-class AddProcessDialog final : public QDialog
+class SCORE_PLUGIN_SCENARIO_EXPORT AddProcessDialog final : public QDialog
 {
 public:
     using Key = typename Process::ProcessFactoryList::key_type;

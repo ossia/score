@@ -68,7 +68,7 @@ void LayerView::recompute(ZoomRatio ratio)
 
 void LayerView::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
 {
-  emit askContextMenu(event->screenPos(), event->scenePos());
+  askContextMenu(event->screenPos(), event->scenePos());
 
   event->accept();
 }
@@ -123,7 +123,7 @@ void LayerView::on_newData()
 
 void LayerView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
-  emit pressed(ev->scenePos());
+  pressed(ev->scenePos());
 }
 
 void LayerView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
@@ -146,7 +146,7 @@ void LayerView::dropEvent(QGraphicsSceneDragDropEvent* event)
   event->accept();
 
   if (event->mimeData())
-    emit dropReceived(event->pos(), *event->mimeData());
+    dropReceived(event->pos(), *event->mimeData());
 }
 
 
@@ -300,7 +300,7 @@ void WaveformComputer::drawWaveForms(const MediaFileHandle& data, ZoomRatio rati
     paths.push_back(std::move(path));
   }
 
-  emit ready(std::move(paths), std::move(channels), ratio);
+  ready(std::move(paths), std::move(channels), ratio);
 }
 
 

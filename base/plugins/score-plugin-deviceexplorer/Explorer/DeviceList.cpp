@@ -3,7 +3,8 @@
 #include "DeviceList.hpp"
 #include <ossia/detail/algorithms.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
-
+#include <score/application/GUIApplicationContext.hpp>
+#include <Explorer/Settings/ExplorerModel.hpp>
 namespace Device
 {
 template <typename TheList>
@@ -65,21 +66,21 @@ void DeviceList::addDevice(DeviceInterface* dev)
   connect(dev, &DeviceInterface::logInbound, this, &DeviceList::logInbound);
   connect(dev, &DeviceInterface::logOutbound, this, &DeviceList::logOutbound);
 
-  dev->setLogging(m_logging);
+  dev->setLogging(get_cur_logging(m_logging));
 }
 
 void DeviceList::removeDevice(const QString& name)
 {
   if (m_localDevice && name == m_localDevice->name())
   {
-    m_localDevice->setLogging(false);
+    m_localDevice->setLogging(get_cur_logging(false));
     auto vec = m_localDevice->listening();
     for (const auto& elt : vec)
       m_localDevice->setListening(elt, false);
   }
   else if(m_audioDevice && name == m_audioDevice->name())
   {
-    m_audioDevice->setLogging(false);
+    m_audioDevice->setLogging(get_cur_logging(false));
     auto vec = m_audioDevice->listening();
     for (const auto& elt : vec)
       m_audioDevice->setListening(elt, false);
@@ -106,12 +107,12 @@ void DeviceList::setLogging(bool b)
   m_logging = b;
 
   for (DeviceInterface* dev : m_devices)
-    dev->setLogging(b);
+    dev->setLogging(get_cur_logging(b));
 
   if (m_localDevice)
-    m_localDevice->setLogging(b);
+    m_localDevice->setLogging(get_cur_logging(b));
   if (m_audioDevice)
-    m_audioDevice->setLogging(b);
+    m_audioDevice->setLogging(get_cur_logging(b));
 }
 
 void DeviceList::setLocalDevice(DeviceInterface* dev)
@@ -129,4 +130,22 @@ void DeviceList::apply(std::function<void(Device::DeviceInterface&)> fun)
   if(m_audioDevice)
     fun(*m_audioDevice);
 }
+
+DeviceLogging get_cur_logging(bool b)
+{
+  if(b)
+  {
+    static const Explorer::Settings::DeviceLogLevel ll;
+    auto& app = score::GUIAppContext().settings<Explorer::Settings::Model>();
+    auto log = app.getLogLevel();
+    if(log == ll.logNothing)
+      return LogNothing;
+    if(log == ll.logEverything)
+      return LogEverything;
+    if(log == ll.logUnfolded)
+      return LogUnfolded;
+  }
+  return LogNothing;
+}
+
 }

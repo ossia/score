@@ -16,7 +16,7 @@ void EditionSettings::setLockBetweenPoints(bool lockBetweenPoints)
     return;
 
   m_lockBetweenPoints = lockBetweenPoints;
-  emit lockBetweenPointsChanged(lockBetweenPoints);
+  lockBetweenPointsChanged(lockBetweenPoints);
 }
 
 bool EditionSettings::suppressOnOverlap() const
@@ -40,7 +40,7 @@ void EditionSettings::setSuppressOnOverlap(bool suppressOnOverlap)
     return;
 
   m_suppressOnOverlap = suppressOnOverlap;
-  emit suppressOnOverlapChanged(suppressOnOverlap);
+  suppressOnOverlapChanged(suppressOnOverlap);
 }
 
 void EditionSettings::setStretchBothBounds(bool stretchBothBounds)
@@ -49,7 +49,7 @@ void EditionSettings::setStretchBothBounds(bool stretchBothBounds)
     return;
 
   m_stretchBothBounds = stretchBothBounds;
-  emit stretchBothBoundsChanged(stretchBothBounds);
+  stretchBothBoundsChanged(stretchBothBounds);
 }
 
 void EditionSettings::setAddPointBehaviour(
@@ -59,7 +59,7 @@ void EditionSettings::setAddPointBehaviour(
     return;
 
   m_addPointBehaviour = AddPointBehaviour;
-  emit addPointBehaviourChanged(AddPointBehaviour);
+  addPointBehaviourChanged(AddPointBehaviour);
 }
 
 void EditionSettings::setTool(Tool tool)
@@ -68,7 +68,7 @@ void EditionSettings::setTool(Tool tool)
     return;
 
   m_tool = tool;
-  emit toolChanged(tool);
+  toolChanged(tool);
 }
 
 RemovePointBehaviour EditionSettings::removePointBehaviour() const
@@ -83,7 +83,7 @@ void EditionSettings::setRemovePointBehaviour(
     return;
 
   m_removePointBehaviour = removePointBehaviour;
-  emit removePointBehaviourChanged(removePointBehaviour);
+  removePointBehaviourChanged(removePointBehaviour);
 }
 
 Tool EditionSettings::tool() const

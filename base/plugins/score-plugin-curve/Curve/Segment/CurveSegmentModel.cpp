@@ -64,7 +64,7 @@ void SegmentModel::setPrevious(const OptionalId<SegmentModel>& previous)
   if (previous != m_previous)
   {
     m_previous = previous;
-    emit previousChanged();
+    previousChanged();
   }
 }
 
@@ -77,7 +77,7 @@ void SegmentModel::setFollowing(const OptionalId<SegmentModel>& following)
   if (following != m_following)
   {
     m_following = following;
-    emit followingChanged();
+    followingChanged();
   }
 }
 
@@ -103,7 +103,7 @@ void SegmentModel::setStart(const Curve::Point& pt)
     m_valid = false;
     on_startChanged();
 
-    emit startChanged();
+    startChanged();
   }
 }
 
@@ -115,7 +115,7 @@ void SegmentModel::setEnd(const Curve::Point& pt)
     m_valid = false;
     on_endChanged();
 
-    emit endChanged();
+    endChanged();
   }
 }
 }

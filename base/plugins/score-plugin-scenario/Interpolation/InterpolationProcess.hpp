@@ -108,7 +108,7 @@ public:
       return;
 
     m_tween = tween;
-    emit tweenChanged(tween);
+    tweenChanged(tween);
   }
 
 Q_SIGNALS:

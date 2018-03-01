@@ -24,7 +24,7 @@ void ProcessModel::setStartChannel(int startChannel)
     return;
 
   m_startChannel = startChannel;
-  emit startChannelChanged(m_startChannel);
+  startChannelChanged(m_startChannel);
 }
 
 void ProcessModel::setNumChannel(int numChannel)
@@ -33,7 +33,7 @@ void ProcessModel::setNumChannel(int numChannel)
     return;
 
   m_numChannel = numChannel;
-  emit numChannelChanged(m_numChannel);
+  numChannelChanged(m_numChannel);
 }
 
 ProcessModel::ProcessModel(

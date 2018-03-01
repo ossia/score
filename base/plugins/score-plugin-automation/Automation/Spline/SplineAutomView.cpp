@@ -148,7 +148,7 @@ void View::mouseReleaseEvent(QGraphicsSceneMouseEvent *e)
 {
   if (m_clicked)
   {
-    emit changed();
+    changed();
     m_clicked = ossia::none;
   }
   e->accept();
@@ -174,7 +174,7 @@ void View::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
   m_spline.points.insert(m_spline.points.begin() + splitIndex + 1, newPos);
 
   updateSpline();
-  emit changed();
+  changed();
   update();
 }
 

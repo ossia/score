@@ -96,6 +96,6 @@ void ConditionView::changeHeight(qreal newH)
 void ConditionView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
     if (event->button() == Qt::MouseButton::LeftButton)
-      emit pressed(event->scenePos());
+      pressed(event->scenePos());
 }
 }

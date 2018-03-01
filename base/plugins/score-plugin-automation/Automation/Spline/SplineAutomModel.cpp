@@ -75,8 +75,8 @@ void ProcessModel::setAddress(const ::State::AddressAccessor& arg)
   }
 
   m_address = arg;
-  emit addressChanged(arg);
-  emit unitChanged(arg.qualifiers.get().unit);
+  addressChanged(arg);
+  unitChanged(arg.qualifiers.get().unit);
 }
 
 State::Unit ProcessModel::unit() const
@@ -89,8 +89,8 @@ void ProcessModel::setUnit(const State::Unit& u)
   if (u != unit())
   {
     m_address.qualifiers.get().unit = u;
-    emit addressChanged(m_address);
-    emit unitChanged(u);
+    addressChanged(m_address);
+    unitChanged(u);
   }
 }
 }

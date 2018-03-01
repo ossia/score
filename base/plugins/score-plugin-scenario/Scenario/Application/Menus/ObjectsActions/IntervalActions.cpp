@@ -207,7 +207,7 @@ void IntervalActions::addProcessInInterval(
           **selectedIntervals.begin(),
           processName, data);
 
-  emit dispatcher().submitCommand(cmd);
+  dispatcher().submitCommand(cmd);
 }
 
 void IntervalActions::on_showRacks()

@@ -102,5 +102,5 @@ private:
                                                                      \
     QSettings s;                                                     \
     s.setValue(Parameters::Name.key, QVariant::fromValue(m_##Name)); \
-    emit Name##Changed(val);                                         \
+    Name##Changed(val);                                         \
   }

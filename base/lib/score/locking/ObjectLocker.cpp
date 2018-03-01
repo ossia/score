@@ -51,7 +51,7 @@ void ObjectLocker::lock_impl()
   QByteArray arr;
   DataStream::Serializer ser {&arr};
   ser.readFrom(m_lockedObject);
-  emit lock(arr);
+  lock(arr);
   */
 }
 
@@ -61,7 +61,7 @@ void ObjectLocker::unlock_impl()
   QByteArray arr;
   DataStream::Serializer ser {&arr};
   ser.readFrom(m_lockedObject);
-  emit unlock(arr);
+  unlock(arr);
   m_lockedObject = ObjectPath();
   */
 }
@@ -88,13 +88,13 @@ LockHelper::~LockHelper()
 
 void LockHelper::lock()
 {
-  emit m_locker.lock(m_serializedPath);
+  m_locker.lock(m_serializedPath);
   m_locked = true;
 }
 
 void LockHelper::unlock()
 {
-  emit m_locker.unlock(m_serializedPath);
+  m_locker.unlock(m_serializedPath);
   m_locked = false;
 }
 }

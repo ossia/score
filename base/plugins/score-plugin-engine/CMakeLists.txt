@@ -5,7 +5,7 @@ score_common_setup()
 
 # Packages
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
-
+find_package(TBB)
 # Files & main target
 set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/CurveConversion.hpp"
@@ -85,11 +85,6 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/StateComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/MetadataParameters.hpp"
 
-    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Settings/LocalTreeModel.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Settings/LocalTreePresenter.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Settings/LocalTreeView.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Settings/LocalTreeFactory.hpp"
-
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/PdNode.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Widgets.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Process.hpp"
@@ -163,10 +158,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/TimeSyncComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/StateComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/MetadataParameters.cpp"
-
-"${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Settings/LocalTreeModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Settings/LocalTreePresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Settings/LocalTreeView.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/score2OSSIA.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Widgets.cpp"
@@ -285,4 +276,7 @@ target_link_libraries(${PROJECT_NAME}
           ossia
 )
 
+if(TARGET tbb)
+  target_link_libraries(${PROJECT_NAME} PRIVATE tbb)
+endif()
 setup_score_plugin(${PROJECT_NAME})

@@ -1,6 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
+#include <ossia/detail/config.hpp>
 #include <QBrush>
 #include <QGraphicsSceneEvent>
 #include <QPainter>
@@ -177,7 +178,7 @@ void TimeRuler::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 
 void TimeRuler::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* ev)
 {
-  emit rescale();
+  rescale();
   ev->accept();
 }
 
@@ -275,7 +276,7 @@ QGlyphRun TimeRuler::getGlyphs(std::chrono::microseconds t)
 
 void TimeRuler::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
 {
-  emit drag(ev->lastScenePos(), ev->scenePos());
+  drag(ev->lastScenePos(), ev->scenePos());
   ev->accept();
 }
 

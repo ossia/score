@@ -38,5 +38,6 @@ private:
   void saveStack();
 
   GUIElements makeGUIElements() override;
+  void openProjectSettings();
 };
 }

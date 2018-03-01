@@ -43,44 +43,44 @@ void View::setSelectionArea(const QRectF& rect)
 void View::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   if (event->button() == Qt::LeftButton)
-    emit pressed(event->scenePos());
+    pressed(event->scenePos());
   event->accept();
 }
 
 void View::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
   if (event->button() == Qt::LeftButton)
-    emit doubleClick(event->scenePos());
+    doubleClick(event->scenePos());
   event->accept();
 }
 
 void View::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  emit moved(event->scenePos());
+  moved(event->scenePos());
   event->accept();
 }
 
 void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  emit released(event->scenePos());
+  released(event->scenePos());
   event->accept();
 }
 
 void View::keyPressEvent(QKeyEvent* ev)
 {
-  emit keyPressed(ev->key());
+  keyPressed(ev->key());
   ev->accept();
 }
 
 void View::keyReleaseEvent(QKeyEvent* ev)
 {
-  emit keyReleased(ev->key());
+  keyReleased(ev->key());
   ev->accept();
 }
 
 void View::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
 {
-  emit contextMenuRequested(ev->screenPos(), ev->scenePos());
+  contextMenuRequested(ev->screenPos(), ev->scenePos());
 }
 
 void View::setRect(const QRectF& theRect)

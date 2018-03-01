@@ -42,7 +42,7 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
 
   m_sectionTitle.setObjectName("SectionTitle");
   con(m_sectionTitle, &QLineEdit::editingFinished, this, [=]() {
-    emit nameChanged(m_sectionTitle.text());
+    nameChanged(m_sectionTitle.text());
   });
   if (editable)
     m_buttonTitle.hide();

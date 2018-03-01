@@ -96,8 +96,8 @@ void ModelMetadata::setName(const QString& arg)
     ossia::net::sanitize_name(m_scriptingName);
   }
 
-  emit NameChanged(arg);
-  emit metadataChanged();
+  NameChanged(arg);
+  metadataChanged();
 }
 
 void ModelMetadata::setComment(const QString& arg)
@@ -108,8 +108,8 @@ void ModelMetadata::setComment(const QString& arg)
   }
 
   m_comment = arg;
-  emit CommentChanged(arg);
-  emit metadataChanged();
+  CommentChanged(arg);
+  metadataChanged();
 }
 
 void ModelMetadata::setColor(ColorRef arg)
@@ -120,8 +120,8 @@ void ModelMetadata::setColor(ColorRef arg)
   }
 
   m_color = arg;
-  emit ColorChanged(arg);
-  emit metadataChanged();
+  ColorChanged(arg);
+  metadataChanged();
 }
 
 void ModelMetadata::setLabel(const QString& arg)
@@ -132,8 +132,8 @@ void ModelMetadata::setLabel(const QString& arg)
   }
 
   m_label = arg;
-  emit LabelChanged(arg);
-  emit metadataChanged();
+  LabelChanged(arg);
+  metadataChanged();
 }
 
 void ModelMetadata::setExtendedMetadata(const QVariantMap& arg)
@@ -144,8 +144,8 @@ void ModelMetadata::setExtendedMetadata(const QVariantMap& arg)
   }
 
   m_extendedMetadata = arg;
-  emit ExtendedMetadataChanged(arg);
-  emit metadataChanged();
+  ExtendedMetadataChanged(arg);
+  metadataChanged();
 }
 }
 

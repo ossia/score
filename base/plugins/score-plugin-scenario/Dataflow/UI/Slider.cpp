@@ -69,7 +69,7 @@ Slider::Slider(const score::DocumentContext& doc, Id<Process::Node> c, QObject* 
 void Slider::setVolume(double v)
 {
     m_volume = v;
-    emit volumeChanged(v);
+    volumeChanged(v);
 }
 
 void Slider::preparePlay()

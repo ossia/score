@@ -146,6 +146,13 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
     app.editionSettings().setExpandMode(ExpandMode::GrowShrink);
   }, Qt::QueuedConnection);
 
+  con(m_context.coarseUpdateTimer, &QTimer::timeout,
+      this, [&] {
+    auto pctg = displayedInterval().duration.playPercentage();
+    auto& itv = *presenters().intervalPresenter()->view();
+    view().timeBar().setPos(pctg * itv.defaultWidth() + itv.pos().x(), 0);
+  });
+
   setDisplayedInterval(model().baseInterval());
 
   model().cables.mutable_added.connect<ScenarioDocumentPresenter, &ScenarioDocumentPresenter::on_cableAdded>(*this);
@@ -606,6 +613,9 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel& interval)
 
   on_viewReady();
   updateMinimap();
+  view().timeBar().setVisible(
+        view().timeBar().playing &&
+        (&m_scenarioPresenter.intervalPresenter()->model() == view().timeBar().interval()));
 }
 
 

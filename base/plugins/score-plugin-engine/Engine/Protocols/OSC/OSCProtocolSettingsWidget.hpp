@@ -22,7 +22,7 @@ public:
 
   void setSettings(const Device::DeviceSettings& settings) override;
 
-protected slots:
+protected Q_SLOTS:
   void openFileDialog();
 
 protected:

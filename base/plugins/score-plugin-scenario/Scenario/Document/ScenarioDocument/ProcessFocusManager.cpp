@@ -28,7 +28,7 @@ void ProcessFocusManager::focus(QPointer<Process::LayerPresenter> p)
   }
   if (m_currentModel)
   {
-    emit sig_defocusedViewModel(m_currentModel);
+    sig_defocusedViewModel(m_currentModel);
   }
 
   m_currentPresenter = p;
@@ -37,7 +37,7 @@ void ProcessFocusManager::focus(QPointer<Process::LayerPresenter> p)
   {
     m_currentModel = &m_currentPresenter->model();
 
-    emit sig_focusedViewModel(m_currentModel);
+    sig_focusedViewModel(m_currentModel);
 
     m_deathConnection = connect(
         m_currentModel,
@@ -59,13 +59,13 @@ void ProcessFocusManager::focus(QPointer<Process::LayerPresenter> p)
 void ProcessFocusManager::focus(Scenario::ScenarioDocumentPresenter*)
 {
   focusNothing();
-  emit sig_focusedRoot();
+  sig_focusedRoot();
 }
 
 void ProcessFocusManager::focusNothing()
 {
   if (m_currentModel)
-    emit sig_defocusedViewModel(m_currentModel);
+    sig_defocusedViewModel(m_currentModel);
   if (m_currentPresenter)
     defocusPresenter(m_currentPresenter);
 
@@ -78,7 +78,7 @@ void ProcessFocusManager::focusNothing()
 void ProcessFocusManager::focusPresenter(LayerPresenter* p)
 {
   p->setFocus(true);
-  emit sig_focusedPresenter(p);
+  sig_focusedPresenter(p);
 }
 
 void ProcessFocusManager::defocusPresenter(LayerPresenter* p)
@@ -87,6 +87,6 @@ void ProcessFocusManager::defocusPresenter(LayerPresenter* p)
   if(p->model().selection.get())
     p->model().selection.set(false);
   m_deathConnection = QMetaObject::Connection{};
-  emit sig_defocusedPresenter(p);
+  sig_defocusedPresenter(p);
 }
 }

@@ -81,7 +81,7 @@ ProcessModel::~ProcessModel()
   events.clear();
   timeSyncs.clear();
 
-  emit identified_object_destroying(this);
+  identified_object_destroying(this);
 }
 
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
@@ -98,7 +98,7 @@ void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
   for (auto& event : events)
   {
     event.setDate(event.date() * scale);
-    emit eventMoved(event);
+    eventMoved(event);
   }
   for (auto& cmt : comments)
   {
@@ -118,7 +118,7 @@ void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
       process.setParentDuration(ExpandMode::Scale, newdur);
     }
 
-    emit intervalMoved(interval);
+    intervalMoved(interval);
   }
 
   this->setDuration(newDuration);

@@ -314,7 +314,7 @@ void TemporalIntervalView::hoverEnterEvent(QGraphicsSceneHoverEvent* h)
     unsetCursor();
 
   updateOverlay();
-  emit intervalHoverEnter();
+  intervalHoverEnter();
 }
 
 void TemporalIntervalView::hoverLeaveEvent(QGraphicsSceneHoverEvent* h)
@@ -322,7 +322,7 @@ void TemporalIntervalView::hoverLeaveEvent(QGraphicsSceneHoverEvent* h)
   QGraphicsItem::hoverLeaveEvent(h);
   unsetCursor();
   updateOverlay();
-  emit intervalHoverLeave();
+  intervalHoverLeave();
 }
 
 void TemporalIntervalView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
@@ -341,7 +341,7 @@ void TemporalIntervalView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 
 void TemporalIntervalView::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
-  emit dropReceived(event->pos(), event->mimeData());
+  dropReceived(event->pos(), event->mimeData());
 
   event->accept();
 }

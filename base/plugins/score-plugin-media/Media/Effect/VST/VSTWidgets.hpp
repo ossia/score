@@ -94,22 +94,23 @@ class VSTWindow final: public QDialog
     static ERect getRect(AEffect& e);
 
     VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx, QWidget* parent):
-      VSTWindow{*e.fx->fx, getRect(*e.fx->fx)}
+      VSTWindow{e.fx, getRect(*e.fx->fx)}
     {
       connect(&ctx.coarseUpdateTimer, &QTimer::timeout,
               this, [=] {
-        effect.dispatcher(&effect, effEditIdle, 0, 0, nullptr, 0);
+        if(auto eff = effect.lock())
+          eff->fx->dispatcher(eff->fx, effEditIdle, 0, 0, nullptr, 0);
       }, Qt::UniqueConnection);
     }
 
     ~VSTWindow();
-  signals:
+  Q_SIGNALS:
     void uiClosing();
   private:
-    VSTWindow(AEffect& effect, ERect rect);
+    VSTWindow(std::shared_ptr<AEffectWrapper> effect, ERect rect);
     void closeEvent(QCloseEvent* event) override;
 
-    AEffect& effect;
+    std::weak_ptr<AEffectWrapper> effect;
 
 };
 

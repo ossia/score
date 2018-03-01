@@ -111,20 +111,20 @@ MetadataWidget::MetadataWidget(
   });
 
   con(m_scriptingNameLine, &QLineEdit::editingFinished, [=]() {
-    emit scriptingNameChanged(m_scriptingNameLine.text());
+    scriptingNameChanged(m_scriptingNameLine.text());
   });
 
   con(m_labelLine, &QLineEdit::editingFinished, [=]() {
-    emit labelChanged(m_labelLine.text());
+    labelChanged(m_labelLine.text());
   });
 
   con(m_comments, &CommentEdit::editingFinished, [=]() {
-    emit commentsChanged(m_comments.toPlainText());
+    commentsChanged(m_comments.toPlainText());
   });
 
   con(
       m_meta, &ExtendedMetadataWidget::dataChanged, this,
-      [=]() { emit extendedMetadataChanged(m_meta.currentMap()); },
+      [=]() { extendedMetadataChanged(m_meta.currentMap()); },
       Qt::QueuedConnection);
 
   {
@@ -147,7 +147,7 @@ MetadataWidget::MetadataWidget(
             auto col_1 = colors.at(idx).second;
             auto col = score::ColorRef::ColorFromString(col_1);
             if (col)
-              emit colorChanged(*col);
+              colorChanged(*col);
           }
 
         });
@@ -188,7 +188,7 @@ void MetadataWidget::setScriptingName(QString arg)
   }
 
   m_scriptingNameLine.setText(arg);
-  emit scriptingNameChanged(arg);
+  scriptingNameChanged(arg);
 }
 
 void MetadataWidget::updateAsked()

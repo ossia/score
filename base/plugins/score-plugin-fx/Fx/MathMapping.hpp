@@ -22,6 +22,9 @@ struct Node
           syms.add_variable("t", cur_time);
           syms.add_variable("dt", cur_deltatime);
           syms.add_variable("pos", cur_pos);
+          syms.add_variable("a", p1);
+          syms.add_variable("b", p2);
+          syms.add_variable("c", p3);
           syms.add_constants();
 
           expr.register_symbol_table(syms);
@@ -30,6 +33,7 @@ struct Node
         double cur_time{};
         double cur_deltatime{};
         double cur_pos{};
+        double p1{}, p2{}, p3{};
         exprtk::symbol_table<double> syms;
         exprtk::expression<double> expr;
         exprtk::parser<double> parser;
@@ -41,13 +45,17 @@ struct Node
             Control::create_node()
             .value_ins({{"in"}})
             .value_outs({{"out"}})
-            .controls(Control::LineEdit("Expression (ExprTK)", "cos(t) + log(pos * x / dt)"))
+            .controls(Control::LineEdit("Expression (ExprTK)", "cos(t) + log(pos * x / dt)")
+                      , Control::FloatSlider("Param (a)", 0., 1., 0.5)
+                      , Control::FloatSlider("Param (b)", 0., 1., 0.5)
+                      , Control::FloatSlider("Param (c)", 0., 1., 0.5))
             .build();
 
     using control_policy = Control::LastTick;
     static void run(
             const ossia::value_port& input,
             const std::string& expr,
+            float a, float b, float c,
             ossia::value_port& output,
             ossia::time_value prev_date,
             ossia::token_request tk,
@@ -63,6 +71,9 @@ struct Node
         self.cur_time = tk.date.impl;
         self.cur_deltatime = tk.date.impl - prev_date.impl;
         self.cur_pos = tk.position;
+        self.p1 = a;
+        self.p2 = b;
+        self.p3 = c;
 
         auto res = self.expr.value();
         output.add_value(res, v.timestamp);

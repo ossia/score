@@ -57,7 +57,7 @@ protected:
   Scenario_T& m_scenario;
 };
 
-class SlotState : public QState
+class SCORE_PLUGIN_SCENARIO_EXPORT SlotState : public QState
 {
 public:
   SlotState(QState* parent) : QState{parent}

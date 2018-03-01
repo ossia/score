@@ -25,7 +25,7 @@ public:
     setMaximum(max+1);
 
     connect(this, &QSlider::valueChanged, this, [&](int val) {
-      emit valueChanged(double(val) / max);
+      valueChanged(double(val) / max);
     });
   }
 
