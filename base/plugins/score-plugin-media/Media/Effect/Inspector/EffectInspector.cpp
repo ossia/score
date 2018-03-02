@@ -171,17 +171,7 @@ void InspectorWidget::add_faust(std::size_t pos)
 void InspectorWidget::add_vst2(std::size_t pos)
 {
 #if defined(HAS_VST2)
-
-  QString defaultPath;
-#if defined(__APPLE__)
-  defaultPath = "/Library/Audio/Plug-Ins/VST";
-#elif defined(__linux__)
-  defaultPath = "/usr/lib/vst";
-#endif
-  auto res = QFileDialog::getOpenFileName(
-               this,
-               tr("Select a VST plug-in"), defaultPath,
-               "VST (*.dll *.so *.vst *.dylib)");
+  auto res = VST::VSTEffectFactory{}.customConstructionData();
 
   if(!res.isEmpty())
   {
