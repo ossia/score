@@ -847,8 +847,8 @@ struct Enum final : EnumBase<ArrT>
       auto t = v.target<std::string>();
       if(t)
       {
-        const auto& val = convert(*t, typename ArrT::value_type{});
-        if(auto it = ossia::find(values, val); it != values.end())
+        const auto& val = ossia::convert(*t, typename ArrT::value_type{});
+        if(auto it = ossia::find(this->values, val); it != this->values.end())
         {
           return ossia::optional<std::string>{*t};
         }

@@ -125,7 +125,7 @@ public:
 
 
 #if defined(_MSC_VER)
-#define MSVC_CONSTEXPR 
+#define MSVC_CONSTEXPR
 #else
 #define MSVC_CONSTEXPR constexpr
 #endif
@@ -140,7 +140,7 @@ struct apply_control<true, N>
     void operator()(Vec& vec, ControlNode& self, const Vp& vp)
     {
         constexpr const auto ctrls = get_controls(Info::info);
-        MSVC_CONSTEXPR const auto& ctrl = std::get<N>(ctrls);
+        MSVC_CONSTEXPR auto ctrl = std::get<N>(ctrls);
         for (auto& v : vp)
         {
             if (auto res = ctrl.fromValue(v.value))
@@ -158,7 +158,7 @@ struct apply_control<false, N>
     void operator()(Vec& vec, ControlNode& self, const Vp& vp)
     {
         constexpr const auto ctrls = get_controls(Info::info);
-        MSVC_CONSTEXPR const auto& ctrl = std::get<N>(ctrls);
+        MSVC_CONSTEXPR auto ctrl = std::get<N>(ctrls);
         for (auto& v : vp)
         {
             vec[int64_t{ v.timestamp }] = ctrl.fromValue(v.value);
@@ -174,8 +174,6 @@ struct apply_control<false, N>
       static_assert(info::control_count > 0);
       static_assert(N < info::control_count);
 
-      constexpr const auto ctrls = get_controls(Info::info);
-      MSVC_CONSTEXPR const auto& ctrl = std::get<N>(ctrls);
       using control_type = typename std::tuple_element<N, decltype(get_controls(Info::info))>::type;
       using val_type = typename control_type::type;
 
@@ -391,7 +389,7 @@ void setup_node(const std::shared_ptr<Node_T>& node_ptr
     //
     // And update the node when the UI changes
     ossia::for_each_in_range<control_count>([&] (auto idx_t) {
-      constexpr auto idx = idx_t.value;
+      constexpr int idx = decltype(idx_t)::value;
 
       constexpr const auto ctrls = get_controls(Info::info);
       MSVC_CONSTEXPR const auto ctrl = std::get<idx>(ctrls);
@@ -423,7 +421,7 @@ void setup_node(const std::shared_ptr<Node_T>& node_ptr
         std::get<idx>(node.controls) = ctrl.fromValue(element.control(idx));
 
         QObject::connect(inlet, &Process::ControlInlet::valueChanged,
-                parent, [=,&ctx,weak_node] (const ossia::value& val) {
+                parent, [=,&ctx] (const ossia::value& val) {
             constexpr auto idx = idx_t.value;
             if(auto node = weak_node.lock())
             {

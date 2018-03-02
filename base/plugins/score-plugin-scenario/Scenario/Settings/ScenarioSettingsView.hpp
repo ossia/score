@@ -23,6 +23,7 @@ public:
   void setDefaultDuration(const TimeVal& t);
 
   void setSequence(bool);
+  SETTINGS_UI_TOGGLE_HPP(TimeBar)
 
 Q_SIGNALS:
   void skinChanged(const QString&);
@@ -40,7 +41,7 @@ private:
   QSpinBox* m_zoomSpinBox{};
   QSpinBox* m_slotHeightBox{};
   score::TimeSpinBox* m_defaultDur{};
-  
+
   QCheckBox* m_sequence{};
 };
 }
