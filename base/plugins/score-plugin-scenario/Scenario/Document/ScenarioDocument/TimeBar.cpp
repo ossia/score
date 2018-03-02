@@ -12,13 +12,14 @@ TimeBar::TimeBar(QGraphicsItem* parent)
 
 QRectF TimeBar::boundingRect() const
 {
-  return { 0, 0, 1.5, 2000 };
+  return { 0, 0, 1, 2000 };
 }
 
 void TimeBar::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  static const auto& brush = ScenarioStyle::instance().SelectedDataCablePen.brush();
-  painter->fillRect(boundingRect(), brush);
+  static const auto& pen = ScenarioStyle::instance().SelectedDataCablePen;
+  painter->setPen(pen);
+  painter->drawLine(boundingRect().topLeft(), boundingRect().bottomLeft());
 }
 
 }

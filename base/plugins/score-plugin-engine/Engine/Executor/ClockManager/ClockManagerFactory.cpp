@@ -6,6 +6,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <core/document/DocumentView.hpp>
 #include <Engine/Executor/BaseScenarioComponent.hpp>
 #include <Engine/Executor/IntervalComponent.hpp>
@@ -22,7 +23,7 @@ void ClockManager::play(const TimeVal& t)
   auto& bs = context.scenario;
   play_impl(t, bs);
   auto view = static_cast<Scenario::ScenarioDocumentView*>(&context.doc.document.view()->viewDelegate());
-  view->timeBar().setVisible(true);
+  view->timeBar().setVisible(context.doc.app.settings<Scenario::Settings::Model>().getTimeBar());
   view->timeBar().playing = true;
   view->timeBar().setInterval(&bs.baseInterval().interval());
 }

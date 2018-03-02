@@ -1,6 +1,6 @@
 #pragma once
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
-
+#include <score_plugin_deviceexplorer_export.h>
 namespace Explorer::Settings
 {
 struct DeviceLogLevel
@@ -14,7 +14,8 @@ struct DeviceLogLevel
 
 };
 
-class Model : public score::SettingsDelegateModel
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT Model 
+    : public score::SettingsDelegateModel
 {
   Q_OBJECT
   Q_PROPERTY(bool LocalTree READ getLocalTree WRITE setLocalTree NOTIFY LocalTreeChanged)

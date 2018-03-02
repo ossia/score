@@ -6,6 +6,7 @@ namespace Scenario
 class IntervalModel;
 class TimeBar : public QGraphicsItem
 {
+    IntervalModel* m_interval{};
 public:
   TimeBar(QGraphicsItem* parent);
 
@@ -16,8 +17,6 @@ public:
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 
   bool playing = false;
-private:
-  IntervalModel* m_interval{};
 };
 
 }

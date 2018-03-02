@@ -2,6 +2,9 @@
 #include <QWidget>
 #include <score_lib_base_export.h>
 
+class QComboBox;
+class QCheckBox;
+class QSpinBox;
 namespace score
 {
 class SettingsDelegateModel;
@@ -9,7 +12,7 @@ template<class Model>
 class SettingsDelegatePresenter;
 
 template<class Model>
-class SCORE_LIB_BASE_EXPORT SettingsDelegateView : public QObject
+class SettingsDelegateView : public QObject
 {
 public:
   using Presenter = SettingsDelegatePresenter<Model>;

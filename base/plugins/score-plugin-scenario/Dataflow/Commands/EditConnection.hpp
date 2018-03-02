@@ -6,7 +6,7 @@
 
 namespace Dataflow
 {
-class CreateCable final : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT CreateCable final : public score::Command
 {
   SCORE_COMMAND_DECL(Scenario::Command::ScenarioCommandFactoryName(), CreateCable, "Create cable")
 

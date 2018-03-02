@@ -92,7 +92,7 @@ namespace Execution
 
 // TODO have a process that does reset it on start & stop.
 // necessary for the looping to work correctly.
-class OSSIA_EXPORT input_node final :
+class SCORE_PLUGIN_MEDIA_EXPORT input_node final :
     public ossia::graph_node
 {
 public:

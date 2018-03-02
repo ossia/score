@@ -81,7 +81,8 @@ std::pair<score::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
 
 #if defined(_MSC_VER)
   QDir score_dir = QDir::current();
-  QPluginLoader loader{score_dir.relativeFilePath(fileName)};
+  qDebug() << "Loading: " << fileName << score_dir.relativeFilePath(fileName);
+  QPluginLoader loader{ fileName };//score_dir.relativeFilePath(fileName)};
 #else
   QPluginLoader loader{fileName};
 #endif

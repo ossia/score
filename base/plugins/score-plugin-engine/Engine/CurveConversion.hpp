@@ -52,35 +52,11 @@ std::shared_ptr<ossia::curve<X_T, Y_T>> curve(
 
   for (auto score_segment : segments)
   {
-    auto end = score_segment->end();
-#if defined(_MSC_VER)
-    if (std::is_same<Y_T, int>::value)
-    {
+      auto end = score_segment->end();
       curve->add_point(
-          score_segment->makeIntFunction(),
-          scale_x(end.x()),
-          scale_y(end.y()));
-    }
-    else if (std::is_same<Y_T, float>::value)
-    {
-      curve->add_point(
-          score_segment->makeFloatFunction(),
-          scale_x(end.x()),
-          scale_y(end.y()));
-    }
-    else if (std::is_same<Y_T, bool>::value)
-    {
-      curve->add_point(
-          score_segment->makeBoolFunction(),
-          scale_x(end.x()),
-          scale_y(end.y()));
-    }
-#else
-    curve->add_point(
         (score_segment->*CurveTraits<Y_T>::fun)(),
         scale_x(end.x()),
         scale_y(end.y()));
-#endif
   }
 
   if (tween)
@@ -118,33 +94,12 @@ std::shared_ptr<ossia::curve_abstract> scalable_curve(
   for (auto score_segment : segments)
   {
     auto end = score_segment->end();
-#if defined(_MSC_VER)
-    if (std::is_same<Y_T, int>::value)
-    {
-      curve->add_point(
-          score_segment->makeIntFunction(),
-          scale_x(end.x()), end.y());
-    }
-    else if (std::is_same<Y_T, float>::value)
-    {
-      curve->add_point(
-          score_segment->makeFloatFunction(),
-            scale_x(end.x()), end.y());
-    }
-    else if (std::is_same<Y_T, bool>::value)
-    {
-      curve->add_point(
-          score_segment->makeBoolFunction(),
-            scale_x(end.x()), end.y());
-    }
-#else
     curve->add_point(
         (score_segment->*CurveTraits<Y_T>::fun)(),
           scale_x(end.x()), end.y());
-#endif
   }
 
-  return curve;
+  return curve; 
 }
 }
 }

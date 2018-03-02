@@ -122,11 +122,13 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
       this, SIGNAL(setFocusedPresenter(QPointer<Process::LayerPresenter>)),
       Qt::QueuedConnection);
 
-  con(ctx.app.settings<Settings::Model>(),
-      &Settings::Model::GraphicZoomChanged, this, [&](double d) {
+  auto& set = ctx.app.settings<Settings::Model>();
+  con(set, &Settings::Model::GraphicZoomChanged, this, [&](double d) {
         auto& skin = ScenarioStyle::instance();
         skin.setIntervalWidth(d);
       });
+  con(set, &Settings::Model::TimeBarChanged,
+      this, &ScenarioDocumentPresenter::updateTimeBar);
 
 
   // Help for the FocusDispatcher.
@@ -493,6 +495,14 @@ const Process::ProcessPresenterContext&ScenarioDocumentPresenter::context() cons
   return m_context;
 }
 
+void ScenarioDocumentPresenter::updateTimeBar()
+{
+  auto& set = m_context.app.settings<Settings::Model>();
+  view().timeBar().setVisible(
+        view().timeBar().playing && set.getTimeBar() &&
+        (&m_scenarioPresenter.intervalPresenter()->model() == view().timeBar().interval()));
+}
+
 void ScenarioDocumentPresenter::updateMinimap()
 {
   if(m_zoomRatio == -1)
@@ -613,9 +623,7 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel& interval)
 
   on_viewReady();
   updateMinimap();
-  view().timeBar().setVisible(
-        view().timeBar().playing &&
-        (&m_scenarioPresenter.intervalPresenter()->model() == view().timeBar().interval()));
+
 }
 
 
