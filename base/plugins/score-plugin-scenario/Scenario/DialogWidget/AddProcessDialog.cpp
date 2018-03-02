@@ -44,8 +44,13 @@ AddProcessDialog::AddProcessDialog(const Process::ProcessFactoryList& plist, Pro
       if((int)fact->flags() & (int)Process::ProcessFlags::RequiresCustomData)
       {
         dat = fact->customConstructionData();
+        if(!dat.isEmpty())
+          on_okPressed(k, dat);
       }
-      on_okPressed(k, dat);
+      else
+      {
+        on_okPressed(k, dat);
+      }
     }
   };
   connect(m_processes, &QListWidget::itemDoubleClicked,
