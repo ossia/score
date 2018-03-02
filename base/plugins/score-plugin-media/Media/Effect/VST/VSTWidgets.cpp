@@ -309,8 +309,8 @@ ERect VSTWindow::getRect(AEffect& e)
 
   e.dispatcher(&e, effEditGetRect, 0, 0, &vstRect, 0.f);
 
-  int w{};
-  int h{};
+  int16_t w{};
+  int16_t h{};
   if(vstRect)
   {
     w = vstRect->right - vstRect->left;

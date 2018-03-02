@@ -148,12 +148,12 @@ struct Node
         if(!updateExpr(self, expr))
           return;
 
-        if(input.samples.empty() || input.samples[0].size() < tk.offset + count)
+        if(input.samples.empty() || (int64_t)input.samples[0].size() < tk.offset + count)
           return;
 
         output.samples.resize(1);
         auto& out = output.samples[0];
-        if(out.size() < tk.offset + count)
+        if((int64_t)out.size() < tk.offset + count)
           out.resize(tk.offset + count);
 
         self.p1 = a;

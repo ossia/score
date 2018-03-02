@@ -159,7 +159,7 @@ struct Node
 
         output.samples.resize(1);
         auto& cur = output.samples[0];
-        if(cur.size() < tk.offset + count)
+        if((int64_t)cur.size() < tk.offset + count)
           cur.resize(tk.offset + count);
 
         self.p1 = a;

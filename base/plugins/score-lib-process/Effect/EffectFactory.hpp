@@ -98,6 +98,7 @@ private:
                  const score::DocumentContext& ctx,
                  QWidget* parent) override
   {
+    (void) parent;
     try
     {
       if constexpr(!std::is_same_v<ExtView_T, void>)
