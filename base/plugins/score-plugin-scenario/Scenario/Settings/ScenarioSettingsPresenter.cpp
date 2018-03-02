@@ -63,6 +63,9 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   });
   con(m, &Model::AutoSequenceChanged, this, [&](bool b) { v.setSequence(b); });
   v.setSequence(m.getAutoSequence());
+
+
+  SETTINGS_PRESENTER(TimeBar);
 }
 
 QString Presenter::settingsName()

@@ -25,12 +25,14 @@ const score::sp<ModelSnapshotOnCreateParameter> SnapshotOnCreate{
     QStringLiteral("Scenario/SnapshotOnCreate"), false};
 const score::sp<ModelAutoSequenceParameter> AutoSequence{
     QStringLiteral("Scenario/AutoSequence"), true};
+const score::sp<ModelTimeBarParameter> TimeBar{
+  QStringLiteral("Scenario/TimeBar"), true};
 
 static auto list()
 {
   return std::tie(
       Skin, GraphicZoom, SlotHeight, DefaultDuration, SnapshotOnCreate,
-      AutoSequence);
+      AutoSequence, TimeBar);
 }
 }
 
@@ -88,6 +90,7 @@ SCORE_SETTINGS_PARAMETER_CPP(double, Model, GraphicZoom)
 SCORE_SETTINGS_PARAMETER_CPP(qreal, Model, SlotHeight)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, SnapshotOnCreate)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, AutoSequence)
+SCORE_SETTINGS_PARAMETER_CPP(bool, Model, TimeBar)
 
   TimeVal Model::getDefaultDuration() const
   {
