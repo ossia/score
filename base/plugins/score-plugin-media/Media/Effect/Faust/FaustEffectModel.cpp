@@ -66,7 +66,7 @@ struct FaustUI final : public PathBuilder, public UI
 struct FaustUpdateUI final : public PathBuilder, public UI
 {
     FaustEffectModel& fx;
-    int i = 1;
+    std::size_t i = 1;
 
     FaustUpdateUI(FaustEffectModel& sfx): fx{sfx} { }
 
@@ -195,8 +195,7 @@ void FaustEffectModel::reload()
   }
 
   std::string err;
-  int argc{};
-  char** argv{};
+
   auto fac = createDSPFactoryFromString(
                "score", fx_text.toStdString(),
                0, nullptr, "", err, -1);
@@ -224,7 +223,7 @@ void FaustEffectModel::reload()
     FaustUpdateUI ui{*this};
     faust_object->buildUserInterface(&ui);
 
-    for(int i = ui.i; i < m_inlets.size(); i++)
+    for(std::size_t i = ui.i; i < m_inlets.size(); i++)
     {
       controlRemoved(*m_inlets[i]);
       delete m_inlets[i];
@@ -238,7 +237,7 @@ void FaustEffectModel::reload()
 
     faust_factory = fac;
     faust_object = obj;
-    for(int i = 1; i < m_inlets.size(); i++)
+    for(std::size_t i = 1; i < m_inlets.size(); i++)
     {
       controlRemoved(*m_inlets[i]);
     }
@@ -379,9 +378,9 @@ class faust_node final : public ossia::graph_node
 
     void run(ossia::token_request tk, ossia::execution_state&) override
     {
-      auto d = tk.date - this->m_prev_date;
-      if(d > 0)
+      if(tk.date > this->m_prev_date)
       {
+        std::size_t d = tk.date - this->m_prev_date;
         for(auto ctrl : controls)
         {
           auto& dat = ctrl.first->get_data();
@@ -394,8 +393,8 @@ class faust_node final : public ossia::graph_node
         auto& audio_in = *m_inlets[0]->data.target<ossia::audio_port>();
         auto& audio_out = *m_outlets[0]->data.target<ossia::audio_port>();
 
-        const auto n_in = m_dsp->getNumInputs();
-        const auto n_out = m_dsp->getNumOutputs();
+        const std::size_t n_in = m_dsp->getNumInputs();
+        const std::size_t n_out = m_dsp->getNumOutputs();
 
         float* inputs_ = (float*)alloca(n_in * d * sizeof(float));
         float* outputs_ = (float*)alloca(n_out * d * sizeof(float));
@@ -405,7 +404,7 @@ class faust_node final : public ossia::graph_node
 
         // Copy inputs
         // TODO offset !!!
-        for(int i = 0; i < n_in; i++)
+        for(std::size_t i = 0; i < n_in; i++)
         {
           input_n[i] = inputs_ + i * d;
           if(audio_in.samples.size() > i)
@@ -433,10 +432,10 @@ class faust_node final : public ossia::graph_node
           }
         }
 
-        for(int i = 0; i < n_out; i++)
+        for(std::size_t i = 0; i < n_out; i++)
         {
           output_n[i] = outputs_ + i * d;
-          for(int j = 0; j < d; j++)
+          for(std::size_t j = 0; j < d; j++)
           {
             output_n[i][j] = 0.f;
           }
@@ -444,10 +443,10 @@ class faust_node final : public ossia::graph_node
         m_dsp->compute(d, input_n, output_n);
 
         audio_out.samples.resize(n_out);
-        for(int i = 0; i < n_out; i++)
+        for(std::size_t i = 0; i < n_out; i++)
         {
           audio_out.samples[i].resize(d);
-          for(int j = 0; j < d; j++)
+          for(std::size_t j = 0; j < d; j++)
           {
             audio_out.samples[i][j] = (double)output_n[i][j];
           }
@@ -484,7 +483,7 @@ Engine::Execution::FaustEffectComponent::FaustEffectComponent(
     auto node = std::make_shared<faust_node>(*proc.faust_object);
     this->node = node;
     m_ossia_process = std::make_shared<ossia::node_process>(node);
-    for(int i = 1; i < proc.inlets().size(); i++)
+    for(std::size_t i = 1; i < proc.inlets().size(); i++)
     {
       auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
       *node->controls[i-1].second = ossia::convert<double>(inlet->value());

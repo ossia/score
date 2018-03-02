@@ -120,9 +120,6 @@ double IntervalPresenter::on_playPercentageChanged(double t)
     return m_view->setPlayWidth(m_view->defaultWidth() * t);
 }
 
-void IntervalPresenter::selectedSlot(int) const {
-}
-
 void IntervalPresenter::updateChildren()
 {
   askUpdate();

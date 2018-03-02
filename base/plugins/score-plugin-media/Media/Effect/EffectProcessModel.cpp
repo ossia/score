@@ -134,24 +134,34 @@ void ProcessModel::checkChaining()
     {
       bad_effect = true;
     }
+
     if(pos > 0)
     {
-      if(inlets[0]->type != m_effects.at_pos(pos - 1).outlets()[0]->type)
+      auto& prev_outlets = m_effects.at_pos(pos - 1).outlets();
+      if(!inlets.empty() && !prev_outlets.empty())
       {
-        bad_effect = true;
+        if(inlets[0]->type != prev_outlets[0]->type)
+        {
+          bad_effect = true;
+        }
       }
+
     }
     if(m_effects.size() > 0 && (pos + 1) < (int)m_effects.size())
     {
-      if(outlets[0]->type != m_effects.at_pos(pos + 1).inlets()[0]->type)
+      auto& next_inlets = m_effects.at_pos(pos + 1).inlets();
+      if(!outlets.empty() && !next_inlets.empty())
       {
-        bad_effect = true;
+        if(outlets[0]->type != next_inlets[0]->type)
+        {
+          bad_effect = true;
+        }
       }
     }
 
     if(pos == 0)
     {
-      if(inlets[0]->type != this->inlet->type)
+      if(!inlets.empty() && inlets[0]->type != this->inlet->type)
       {
         this->inlet->type = inlets[0]->type;
         inletsChanged();
@@ -159,7 +169,7 @@ void ProcessModel::checkChaining()
     }
     if(pos == (int)m_effects.size() - 1)
     {
-      if(outlets[0]->type != this->outlet->type)
+      if(!outlets.empty() && outlets[0]->type != this->outlet->type)
       {
         this->outlet->type = outlets[0]->type;
         outletsChanged();
@@ -242,7 +252,7 @@ void JSONObjectWriter::write(Media::Effect::ProcessModel& proc)
     auto fx = deserialize_interface(fxs, deserializer, &proc);
     if(fx)
     {
-      auto pos = i++;
+      std::size_t pos = i++;
 
       proc.m_effects.add(fx);
 

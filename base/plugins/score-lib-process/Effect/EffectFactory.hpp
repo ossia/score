@@ -98,10 +98,12 @@ private:
                  const score::DocumentContext& ctx,
                  QWidget* parent) override
   {
-    if constexpr(!std::is_same_v<ExtView_T, void>)
-      return new ExtView_T{safe_cast<const Model_T&>(proc), ctx, parent};
-    else
-      return nullptr;
+    try
+    {
+      if constexpr(!std::is_same_v<ExtView_T, void>)
+        return new ExtView_T{safe_cast<const Model_T&>(proc), ctx, parent};
+    } catch(...) { }
+    return nullptr;
   }
 
   LayerPanelProxy* makePanel(

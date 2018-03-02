@@ -161,16 +161,41 @@ void SlotHeader::paint(
     painter->drawRect(QRectF{0., 0., m_width, headerHeight() - 1});
 
     // Menu
-    const double centerX = m_width - 8.;
-    const double centerY = 7.5;
-    double r = 4.5;
-    painter->setBrush(style.MinimapBrush);
-    painter->drawEllipse(QPointF{centerX, centerY}, r, r);
-    r -= 1.;
-    painter->setRenderHint(QPainter::Antialiasing, false);
-    painter->setPen(style.TimeRulerSmallPen);
-    painter->drawLine(QPointF{centerX, centerY - r}, QPointF{centerX, centerY + r});
-    painter->drawLine(QPointF{centerX - r, centerY }, QPointF{centerX + r, centerY });
+    {
+      auto view = getView(*this);
+      if(!view)
+          return;
+
+      double r = 4.5;
+
+      const double leftXinView
+          = view->mapFromScene(mapToScene(QPointF{(m_width - 8.) - r, 0.})).x();
+      const double rightXinView = leftXinView + 2. * r;
+
+      double centerX = m_width - 8.;
+      const double centerY = 7.5;
+
+      const constexpr double min_x = 10.;
+      const double max_x = view->width() - 30.;
+      if(leftXinView <= min_x)
+      {
+        centerX += (-leftXinView + min_x);
+      }
+      else if(rightXinView >= max_x)
+      {
+        centerX += (-rightXinView + max_x);
+      }
+      centerX = std::max(centerX, 5.);
+
+      painter->setBrush(style.MinimapBrush);
+      painter->drawEllipse(QPointF{centerX, centerY}, r, r);
+      r -= 1.;
+      painter->setRenderHint(QPainter::Antialiasing, false);
+      painter->setPen(style.TimeRulerSmallPen);
+      painter->drawLine(QPointF{centerX, centerY - r}, QPointF{centerX, centerY + r});
+      painter->drawLine(QPointF{centerX - r, centerY }, QPointF{centerX + r, centerY });
+      m_menupos = centerX;
+    }
   }
   else
   {
@@ -196,7 +221,7 @@ void SlotHeader::mousePressEvent(QGraphicsSceneMouseEvent* event)
   if(xpos >= 0 && xpos < 16)
   {
   }
-  else if(xpos >= m_width - 16)
+  else if(xpos >= m_menupos - 4 && xpos < m_menupos + 4)
   {
     // menu
     m_presenter.requestSlotMenu(m_slotIndex, event->screenPos(), event->scenePos());

@@ -202,7 +202,7 @@ void DocumentPlugin::on_finished()
   }
   runtime_connections.clear();
 
-  makeGraph();
+  execGraph.reset();
 
   if(m_tid != -1)
   {
@@ -322,7 +322,8 @@ std::shared_ptr<ossia::graph_base> make_parallel_graph(const Engine::Execution::
 
     auto g = std::make_shared<graph_type>();
 
-    if(log) g->update_fun.logger = ossia::logger_ptr();
+    if(log)
+      g->update_fun.logger = ossia::logger_ptr();
 
     return g;
   }
@@ -334,7 +335,8 @@ std::shared_ptr<ossia::graph_base> make_parallel_graph(const Engine::Execution::
 
     auto g = std::make_shared<graph_type>();
 
-    if(log) g->update_fun.logger = ossia::logger_ptr();
+    if(log)
+      g->update_fun.logger = ossia::logger_ptr();
 
     return g;
   }
@@ -362,19 +364,19 @@ void DocumentPlugin::makeGraph()
   // il manque le cas "default score order"
   // il manque le log pour dynamic
 
+  execGraph.reset();
+
 #if defined(OSSIA_PARALLEL)
   if(m_ctx.settings.getParallel())
   {
     execGraph = make_parallel_graph(m_ctx.settings);
   }
+#endif
 
   if(!execGraph)
   {
     execGraph = make_graph(m_ctx.settings);
   }
-#else
-  execGraph = make_graph(m_ctx.settings);
-#endif
 }
 void DocumentPlugin::reload(Scenario::IntervalModel& cst)
 {
@@ -389,6 +391,7 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
   m_ctx.time = settings.makeTimeFunction(ctx);
   m_ctx.reverseTime = settings.makeReverseTimeFunction(ctx);
 
+  makeGraph();
   execState->reset();
 
   execState->samples_since_start = 0;
@@ -428,7 +431,6 @@ void DocumentPlugin::clear()
     m_base.cleanup();
     runAllCommands();
     execGraph.reset();
-    makeGraph();
   }
 }
 
