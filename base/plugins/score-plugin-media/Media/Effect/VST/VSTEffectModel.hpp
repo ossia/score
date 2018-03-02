@@ -139,7 +139,7 @@ inline QString EffectProcessFactory_T<Media::VST::VSTEffectModel>::customConstru
   auto res = QFileDialog::getOpenFileName(
                nullptr,
                QObject::tr("Select a VST plug-in"), defaultPath,
-               "VST (*.dll *.so *.vst *.dylib)");
+               "VST (*.dll *.so *.vst *.dylib *.component)", nullptr, QFileDialog::DontResolveSymlinks);
 
   return res;
 }
