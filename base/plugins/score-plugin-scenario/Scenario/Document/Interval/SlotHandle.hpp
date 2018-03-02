@@ -96,12 +96,14 @@ class SlotHeader final : public QGraphicsItem
 
     void setWidth(qreal width);
 
+
   private:
     void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
     const IntervalPresenter& m_presenter;
     qreal m_width{};
+    double m_menupos{};
     int m_slotIndex{};
     bool m_mini{false};
 };

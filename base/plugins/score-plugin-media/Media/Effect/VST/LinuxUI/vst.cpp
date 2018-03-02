@@ -15,13 +15,36 @@ auto setup_rect(QWidget* container, int width, int height)
   container->setBaseSize({width, height});
 }
 
-VSTWindow::VSTWindow(std::shared_ptr<AEffectWrapper> eff, ERect rect): effect{eff}
+VSTWindow::VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx)
 {
-  auto width = rect.right - rect.left;
-  auto height = rect.bottom - rect.top;
+  if(!e.fx)
+    throw std::runtime_error("Cannot create UI");
+  effect = e.fx;
+  AEffect& fx = *e.fx->fx;
+  if(hasUI(fx))
+  {
+    auto rect = getRect(fx);
+    auto width = rect.right - rect.left;
+    auto height = rect.bottom - rect.top;
 
-  eff->fx->dispatcher(eff->fx, effEditOpen, 0, 0, (void*)winId(), 0);
-  setup_rect(this, width, height);
+    fx.dispatcher(&fx, effEditOpen, 0, 0, (void*)winId(), 0);
+    setup_rect(this, width, height);
+  }
+  else
+  {
+    auto widg = new QGraphicsScene{this};
+    auto lay = new QHBoxLayout{this};
+    auto v = new QGraphicsView{this};
+    lay->addWidget(v);
+    m_defaultWidg = v;
+
+    qDebug() << e.controls.size();
+    for(auto& inlet : e.controls)
+    {
+      auto sl = VSTFloatSlider::make_item(&fx, *inlet.second, ctx, nullptr, this);
+      widg->addItem(sl);
+    }
+  }
 }
 
 VSTWindow::~VSTWindow()

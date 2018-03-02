@@ -39,7 +39,7 @@ bool PhidgetDevice::reconnect()
 
   try
   {
-    const auto& stgs = settings().deviceSpecificSettings.value<PhidgetSpecificSettings>();
+    //const auto& stgs = settings().deviceSpecificSettings.value<PhidgetSpecificSettings>();
 
     m_dev = std::make_unique<ossia::phidget_device>(settings().name.toStdString());
     static_cast<ossia::phidget_protocol&>(m_dev->get_protocol())

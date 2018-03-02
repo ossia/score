@@ -294,6 +294,16 @@ void FullViewIntervalPresenter::updateScaling()
   updateHeight();
 }
 
+void FullViewIntervalPresenter::selectedSlot(int i) const
+{
+  score::SelectionDispatcher disp{m_context.selectionStack};
+  SCORE_ASSERT(size_t(i) < m_slots.size());
+  auto& slot = m_slots[i];
+
+  m_context.focusDispatcher.focus(&m_slots[i].headerDelegate->presenter);
+  disp.setAndCommit({slot.process.model});
+}
+
 void FullViewIntervalPresenter::on_defaultDurationChanged(const TimeVal& val)
 {
   const auto w = val.toPixels(m_zoomRatio);

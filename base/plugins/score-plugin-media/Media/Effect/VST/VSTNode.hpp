@@ -140,6 +140,12 @@ class vst_node final : public ossia::graph_node
       // copy midi data
       auto& ip = m_inlets[0]->data.template target<ossia::midi_port>()->messages;
       const auto n_mess = ip.size();
+      if(n_mess == 0)
+      {
+        f();
+        return;
+      }
+
       // -2 since two are already available ?
       VstEvents* events = (VstEvents*)alloca(sizeof(VstEvents) + sizeof(void*) * n_mess);
       events->numEvents = n_mess;

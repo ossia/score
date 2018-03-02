@@ -23,6 +23,7 @@ VSTGraphicsSlider::VSTGraphicsSlider(AEffect* fx, int num, QGraphicsItem* parent
 {
   this->fx = fx;
   this->num = num;
+  this->m_value = fx->getParameter(fx, num);
   this->setAcceptedMouseButtons(Qt::LeftButton);
 }
 
@@ -157,38 +158,6 @@ QRectF VSTGraphicsSlider::handleRect() const
   return {getHandleX() - 4., 1., 8., m_rect.height() - 1};
 }
 
-
-
-struct VSTFloatSlider : Control::ControlInfo
-{
-    static QGraphicsItem* make_item(AEffect* fx, VSTControlInlet& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
-    {
-      auto sl = new VSTGraphicsSlider{fx, inlet.fxNum, nullptr};
-      sl->setRect({0., 0., 150., 15.});
-      sl->setValue(ossia::convert<double>(inlet.value()));
-
-      QObject::connect(sl, &VSTGraphicsSlider::sliderMoved,
-                       context, [=,&inlet,&ctx] {
-        sl->moving = true;
-        ctx.dispatcher.submitCommand<SetVSTControl>(inlet, sl->value());
-      });
-      QObject::connect(sl, &VSTGraphicsSlider::sliderReleased,
-                       context, [&ctx,sl] () {
-        ctx.dispatcher.commit();
-        sl->moving = false;
-      });
-
-      QObject::connect(&inlet, &VSTControlInlet::valueChanged,
-                       sl, [=] (float val) {
-        if(!sl->moving)
-          sl->setValue(val);
-      });
-
-      return sl;
-    }
-};
-
-
 VSTEffectItem::VSTEffectItem(const VSTEffectModel& effect, const score::DocumentContext& doc, score::RectItem* root):
   score::EmptyRectItem{root}
 {
@@ -302,27 +271,31 @@ void VSTEffectItem::setupInlet(
   lab->setPos(15, 2);
 
 
-  QGraphicsItem* widg = VSTFloatSlider::make_item(fx.fx->fx, inlet, doc, nullptr, this);
-  widg->setParentItem(rect);
-  widg->setPos(15, lab->boundingRect().height());
+  double h = 20.;
+  if(fx.fx)
+  {
+    QGraphicsItem* widg = VSTFloatSlider::make_item(fx.fx->fx, inlet, doc, nullptr, this);
+    widg->setParentItem(rect);
+    widg->setPos(15, lab->boundingRect().height());
 
-  auto h = std::max(20., (qreal)(widg->boundingRect().height() + lab->boundingRect().height() + 2.));
+    h = std::max(20., (qreal)(widg->boundingRect().height() + lab->boundingRect().height() + 2.));
+
+    if(fx.fx->fx->numParams >= 10)
+    {
+      auto rm_item = new score::QGraphicsPixmapButton{close_on, close_off, rect};
+      connect(rm_item, &score::QGraphicsPixmapButton::clicked,
+              this, [&doc,&fx,id=inlet.id()] {
+        QTimer::singleShot(0, [&doc, &fx,id] {
+          CommandDispatcher<> disp{doc.commandStack};
+          disp.submitCommand<RemoveVSTControl>(fx, id);
+        });
+      });
+
+      rm_item->setPos(2., 2.3 * h / 4.);
+    }
+  }
 
   port_item->setPos(7., 1.3 * h / 4.);
-
-  if(fx.fx->fx->numParams >= 10)
-  {
-    auto rm_item = new score::QGraphicsPixmapButton{close_on, close_off, rect};
-    connect(rm_item, &score::QGraphicsPixmapButton::clicked,
-            this, [&doc,&fx,id=inlet.id()] {
-      QTimer::singleShot(0, [&doc, &fx,id] {
-        CommandDispatcher<> disp{doc.commandStack};
-        disp.submitCommand<RemoveVSTControl>(fx, id);
-      });
-    });
-
-    rm_item->setPos(2., 2.3 * h / 4.);
-  }
 
   rect->setPos(0, pos_y);
   rect->setRect(QRectF{0., 0, 170., h});
@@ -349,7 +322,15 @@ ERect VSTWindow::getRect(AEffect& e)
   if(h <= 1)
     h = 480;
 
-  return *vstRect;
+  if(vstRect)
+    return *vstRect;
+  else
+    return ERect{0,0,w,h};
+}
+
+bool VSTWindow::hasUI(AEffect& e)
+{
+  return e.flags & VstAEffectFlags::effFlagsHasEditor;
 }
 
 void VSTWindow::closeEvent(QCloseEvent* event)
@@ -359,6 +340,39 @@ void VSTWindow::closeEvent(QCloseEvent* event)
     eff->fx->dispatcher(eff->fx, effEditClose, 0, 0, nullptr, 0);
   uiClosing();
   QDialog::closeEvent(event);
+}
+
+
+
+QGraphicsItem* VSTFloatSlider::make_item(
+    AEffect* fx,
+    VSTControlInlet& inlet,
+    const score::DocumentContext& ctx,
+    QWidget* parent,
+    QObject* context)
+{
+  auto sl = new VSTGraphicsSlider{fx, inlet.fxNum, nullptr};
+  sl->setRect({0., 0., 150., 15.});
+  sl->setValue(ossia::convert<double>(inlet.value()));
+
+  QObject::connect(sl, &VSTGraphicsSlider::sliderMoved,
+                   context, [=,&inlet,&ctx] {
+    sl->moving = true;
+    ctx.dispatcher.submitCommand<SetVSTControl>(inlet, sl->value());
+  });
+  QObject::connect(sl, &VSTGraphicsSlider::sliderReleased,
+                   context, [&ctx,sl] () {
+    ctx.dispatcher.commit();
+    sl->moving = false;
+  });
+
+  QObject::connect(&inlet, &VSTControlInlet::valueChanged,
+                   sl, [=] (float val) {
+    if(!sl->moving)
+      sl->setValue(val);
+  });
+
+  return sl;
 }
 
 }

@@ -46,9 +46,10 @@ Q_SIGNALS:
 private:
   void requestSlotMenu(int slot, QPoint pos, QPointF sp) const override;
   void updateScaling() override;
+  void selectedSlot(int) const override;
+
   void on_defaultDurationChanged(const TimeVal&);
   void on_guiDurationChanged(const TimeVal&);
-
   void createSlot(int pos, const FullSlot& slt);
   void updateProcessShape(int slot);
   void updateProcessShape(const LayerData& layer, const SlotPresenter& pres);

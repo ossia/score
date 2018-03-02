@@ -121,7 +121,7 @@ RemoveSelection::RemoveSelection(
           }
         }
         if (split){
-          for (int i = 1; i < ev->states().size(); i++)
+          for (std::size_t i = 1; i < ev->states().size(); i++)
           {
             QVector<Id<StateModel>> move_me{ev->states()[i]};
             m_cmds_split_event.emplace_back(scenar, ev->id(), move_me);

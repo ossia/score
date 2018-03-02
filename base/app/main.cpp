@@ -37,6 +37,9 @@ void disableAppRestore()
   #endif
 #endif
 
+#if defined(__linux__)
+#include <X11/Xlib.h>
+#endif
 
 #include <QItemSelectionModel>
 #include <QSurfaceFormat>
@@ -58,6 +61,13 @@ static void init_plugins()
 #endif
 int main(int argc, char** argv)
 {
+#if defined(__linux__)
+  if (! XInitThreads())
+  {
+    qDebug() << "Failed to initialise xlib thread support.";
+  }
+#endif
+
 #if defined(_MSC_VER)
   auto path = qgetenv("PATH");
   path += ";" + QCoreApplication::applicationDirPath();

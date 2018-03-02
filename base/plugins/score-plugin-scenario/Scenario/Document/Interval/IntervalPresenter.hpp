@@ -78,16 +78,14 @@ public:
 
   double on_playPercentageChanged(double t);
 
-  virtual void selectedSlot(int) const;
+  virtual void selectedSlot(int) const = 0;
   virtual void requestSlotMenu(int slot, QPoint pos, QPointF sp) const = 0;
+
+
 Q_SIGNALS:
   void pressed(QPointF) const;
   void moved(QPointF) const;
   void released(QPointF) const;
-
-  void slotHandlePressed(QPointF) const;
-  void slotHandleMoved(QPointF) const;
-  void slotHandleReleased(QPointF) const;
 
   void askUpdate();
   void heightChanged();           // The vertical size

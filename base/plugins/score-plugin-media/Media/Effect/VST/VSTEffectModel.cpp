@@ -397,7 +397,7 @@ void VSTEffectModel::create()
     sig->setValue("4/4");
   }
 
-  if(fx->fx->numParams < 10)
+  if(fx->fx->numParams < 10 || !(fx->fx->flags & VstAEffectFlags::effFlagsHasEditor))
   {
     for(int i = 0; i < fx->fx->numParams; i++)
     {

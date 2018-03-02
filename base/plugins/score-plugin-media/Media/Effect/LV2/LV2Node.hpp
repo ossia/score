@@ -167,7 +167,7 @@ class lv2_node final : public ossia::graph_node
 
     void GetControlParamImpl(long param, char* label, float* min, float* max, float* init, std::vector<int>& v)
     {
-      if(param >= 0 && param < v.size())
+      if(param >= 0 && param < (int64_t)v.size())
       {
         auto port_i = v[param];
         Lilv::Port p = data.effect.plugin.get_port_by_index(port_i);

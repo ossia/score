@@ -49,7 +49,7 @@ static const QPolygonF fullDilated{
     return p.simplified().toFillPolygon();
   }()
 };
-const bool is_hidpi()
+bool is_hidpi()
 {
   static const bool res = (qApp->screens().front()->devicePixelRatio() > 1.5);
   return res;

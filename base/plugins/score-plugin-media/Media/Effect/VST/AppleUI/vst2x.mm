@@ -33,8 +33,14 @@ QSize sizeHint(NSView* m_view) {
 }
 
 
-VSTWindow::VSTWindow(std::shared_ptr<AEffectWrapper> eff, ERect rect): effect{eff}
+VSTWindow::VSTWindow(const VSTEffectModel& e)
 {
+  if(!e.fx)
+    throw std::runtime_error("Cannot create UI");
+  auto& eff = e.fx;
+  auto rect = getRect(*e.fx->fx);
+  effect = e.fx;
+
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
   qDebug() << rect.top << rect.left;

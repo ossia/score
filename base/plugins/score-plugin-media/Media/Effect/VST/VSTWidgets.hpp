@@ -87,30 +87,40 @@ class VSTGraphicsSlider final
     QRectF handleRect() const;
 };
 
+struct VSTFloatSlider : Control::ControlInfo
+{
+    static QGraphicsItem* make_item(AEffect* fx, VSTControlInlet& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context);
+};
+
 class VSTWindow final: public QDialog
 {
     Q_OBJECT
   public:
     static ERect getRect(AEffect& e);
+    static bool hasUI(AEffect& e);
 
     VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx, QWidget* parent):
-      VSTWindow{e.fx, getRect(*e.fx->fx)}
+      VSTWindow{e, ctx}
     {
-      connect(&ctx.coarseUpdateTimer, &QTimer::timeout,
-              this, [=] {
-        if(auto eff = effect.lock())
-          eff->fx->dispatcher(eff->fx, effEditIdle, 0, 0, nullptr, 0);
-      }, Qt::UniqueConnection);
+      if(!m_defaultWidg)
+      {
+        connect(&ctx.coarseUpdateTimer, &QTimer::timeout,
+                this, [=] {
+          if(auto eff = effect.lock())
+            eff->fx->dispatcher(eff->fx, effEditIdle, 0, 0, nullptr, 0);
+        }, Qt::UniqueConnection);
+      }
     }
 
     ~VSTWindow();
   Q_SIGNALS:
     void uiClosing();
   private:
-    VSTWindow(std::shared_ptr<AEffectWrapper> effect, ERect rect);
+    VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx);
     void closeEvent(QCloseEvent* event) override;
 
     std::weak_ptr<AEffectWrapper> effect;
+    QWidget* m_defaultWidg{};
 
 };
 

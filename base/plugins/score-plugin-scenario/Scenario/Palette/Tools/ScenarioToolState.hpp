@@ -146,6 +146,22 @@ protected:
       return ossia::none;
     }
   }
+  optional<SlotPath> itemToIntervalFromHeader(const QGraphicsItem* pressedItem) const
+  {
+    auto handle = static_cast<const SlotHeader*>(pressedItem);
+    const auto& cst = handle->presenter().model();
+
+    if(cst.parent() == &this->m_palette.model())
+    {
+      auto fv = isInFullView(cst) ?
+            Slot::FullView : Slot::SmallView;
+      return SlotPath{cst, handle->slotIndex(), fv};
+    }
+    else
+    {
+      return ossia::none;
+    }
+  }
 
   template <
       typename EventFun,
