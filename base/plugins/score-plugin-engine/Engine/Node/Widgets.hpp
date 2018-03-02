@@ -721,10 +721,9 @@ struct ComboBox final : ControlInfo
 
 };
 
-template<typename ArrT, bool Validate = true>
-struct Enum final: ControlInfo
+template<typename ArrT>
+struct EnumBase : ControlInfo
 {
-    static const constexpr bool must_validate = Validate;
     using type = std::string;
     const std::size_t init{};
     const ArrT values;
@@ -732,7 +731,7 @@ struct Enum final: ControlInfo
     const auto& getValues() const { return values; }
 
     template<std::size_t N1>
-    constexpr Enum(const char (&name)[N1], std::size_t i, const ArrT& v)
+    constexpr EnumBase(const char (&name)[N1], std::size_t i, const ArrT& v)
       : ControlInfo{name}
       , init{i}
       , values{v}
@@ -748,30 +747,6 @@ struct Enum final: ControlInfo
     static auto convert(const std::string& str, const QString&)
     { return QString::fromStdString(str); }
 
-
-    auto fromValue(const ossia::value& v) const
-    {
-      if constexpr(Validate)
-      {
-        auto t = v.target<std::string>();
-        if(t)
-        {
-          const auto& val = convert(*t, typename ArrT::value_type{});
-          if(auto it = ossia::find(values, val); it != values.end())
-          {
-            return ossia::optional<std::string>{*t};
-          }
-        }
-        return ossia::optional<std::string>{};
-      }
-      else
-      {
-        auto t = v.target<std::string>();
-        if(t)
-          return *t;
-        return std::string{};
-      }
-    }
     ossia::value toValue(std::string v) const { return ossia::value{std::move(v)}; }
 
     auto create_inlet(Id<Process::Port> id, QObject* parent) const
@@ -858,6 +833,41 @@ struct Enum final: ControlInfo
       });
 
       return sl;
+    }
+};
+
+
+template<typename ArrT>
+struct Enum final : EnumBase<ArrT>
+{
+    using EnumBase<ArrT>::EnumBase;
+    static const constexpr bool must_validate = true;
+    auto fromValue(const ossia::value& v) const
+    {
+      auto t = v.target<std::string>();
+      if(t)
+      {
+        const auto& val = ossia::convert(*t, typename ArrT::value_type{});
+        if(auto it = ossia::find(this->values, val); it != this->values.end())
+        {
+          return ossia::optional<std::string>{*t};
+        }
+      }
+      return ossia::optional<std::string>{};
+    }
+};
+
+template<typename ArrT>
+struct UnvalidatedEnum final : EnumBase<ArrT>
+{
+    using EnumBase<ArrT>::EnumBase;
+    static const constexpr bool must_validate = false;
+    auto fromValue(const ossia::value& v) const
+    {
+      auto t = v.target<std::string>();
+      if(t)
+        return *t;
+      return std::string{};
     }
 };
 
@@ -953,12 +963,12 @@ struct TimeSignatureChooser final: ControlInfo
 template<typename T1, typename T2>
 constexpr auto make_enum(const T1& t1, std::size_t s, const T2& t2)
 {
-  return Control::Enum<T2, true>(t1, s, t2);
+  return Control::Enum<T2>(t1, s, t2);
 }
 template<typename T1, typename T2>
 constexpr auto make_unvalidated_enum(const T1& t1, std::size_t s, const T2& t2)
 {
-  return Control::Enum<T2, false>(t1, s, t2);
+  return Control::UnvalidatedEnum<T2>(t1, s, t2);
 }
 /*
 template<std::size_t N1, std::size_t N2>

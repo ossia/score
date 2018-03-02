@@ -69,7 +69,7 @@ private:
   bool m_addedSlot{};
 };
 
-class AddProcessInNewBoxMacro final : public score::AggregateCommand
+class SCORE_PLUGIN_SCENARIO_EXPORT AddProcessInNewBoxMacro final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), AddProcessInNewBoxMacro,

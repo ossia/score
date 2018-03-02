@@ -3,6 +3,7 @@
 #include <QListWidget>
 #include <QHBoxLayout>
 #include <QDialogButtonBox>
+#include <set>
 namespace Scenario
 {
 class ProcessItem : public QListWidgetItem
@@ -90,7 +91,7 @@ void AddProcessDialog::updateProcesses(const QString& str)
 
 void AddProcessDialog::setup()
 {
-  std::set<QString> categories;
+  std::set<QString, std::less<>> categories;
   for (const auto& factory : m_factoryList)
   {
     auto cat = factory.category();

@@ -4,6 +4,7 @@
 #include <score/model/ComponentHierarchy.hpp>
 #include <Process/Process.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/Components/IntervalComponent.hpp>
 
 namespace ossia
@@ -58,8 +59,18 @@ public:
     if(f)
       f();
   }
+  template <typename Models>
+  auto& models() const
+  {
+    static_assert(
+        std::is_same<Models, Process::ProcessModel>::value,
+        "State component must be passed Process::ProcessModel as child.");
+
+    return m_model.stateProcesses;
+  }
 
 protected:
+  const Scenario::StateModel& m_model;
   std::shared_ptr<ossia::time_event> m_ev;
   std::shared_ptr<ossia::graph_node> m_node;
   ossia::state m_state;

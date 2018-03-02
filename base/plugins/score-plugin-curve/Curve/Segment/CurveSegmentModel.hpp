@@ -28,8 +28,7 @@ class SCORE_PLUGIN_CURVE_EXPORT SegmentModel
 
   SCORE_SERIALIZE_FRIENDS
 public:
-  using data_vector = std::
-      vector<QPointF, boost::alignment::aligned_allocator_adaptor<std::allocator<QPointF>, 32>>;
+  using data_vector = std::vector<QPointF, boost::alignment::aligned_allocator_adaptor<std::allocator<QPointF>, 32>>;
   Selectable selection;
   SegmentModel(const Id<SegmentModel>& id, QObject* parent);
   SegmentModel(const SegmentData& id, QObject* parent);

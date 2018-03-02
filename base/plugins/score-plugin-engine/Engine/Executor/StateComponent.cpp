@@ -19,6 +19,7 @@ StateComponentBase::StateComponentBase(
     const Id<score::Component>& id,
     QObject* parent)
   : Execution::Component{ctx, id, "Executor::State", nullptr}
+  , m_model{element}
   , m_state{Engine::score_to_ossia::state(element, ctx)}
 {
 }

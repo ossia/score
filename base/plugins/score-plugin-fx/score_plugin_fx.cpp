@@ -31,6 +31,7 @@ score_plugin_fx::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {
+#if !defined(_MSC_VER)
   return Control::instantiate_fx<
       Nodes::Direction::Node,
       Nodes::PulseToNote::Node,
@@ -47,6 +48,9 @@ score_plugin_fx::factories(
       Nodes::EmptyMidiMapping::Node,
       Nodes::EmptyAudioMapping::Node
       >(ctx, key);
+#else 
+    return {};
+#endif
 }
 
 auto score_plugin_fx::required() const

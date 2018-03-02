@@ -21,7 +21,6 @@
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 #include <score/actions/Menu.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
-#include <score/widgets/QmlContainerPanel.hpp>
 #include <score_git_info.hpp>
 #include <iterator>
 #include <qcoreevent.h>

@@ -152,8 +152,8 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
                   OUTPUT_VARIABLE GCC_VERSION)
 
-  if (GCC_VERSION VERSION_LESS 5.1)
-    message(FATAL_ERROR "score requires at least g++-5.1 to build. ")
+  if (GCC_VERSION VERSION_LESS 7.2)
+    message(FATAL_ERROR "score requires at least g++-7.2 to build. ")
   endif()
 endif()
 

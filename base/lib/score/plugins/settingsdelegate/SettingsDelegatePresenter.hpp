@@ -10,7 +10,7 @@ class SettingsDelegateView;
 class SettingsDelegateModel;
 
 template<class Model>
-class SCORE_LIB_BASE_EXPORT SettingsDelegatePresenter : public QObject
+class SettingsDelegatePresenter : public QObject
 {
 public:
   using SView = score::SettingsDelegateView<Model>;

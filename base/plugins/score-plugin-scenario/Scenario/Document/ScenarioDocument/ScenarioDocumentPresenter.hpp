@@ -99,6 +99,7 @@ private Q_SLOTS:
   void on_viewReady();
 
 private:
+  void updateTimeBar();
   void on_cableAdded(Process::Cable& c);
 
   void on_cableRemoving(const Process::Cable& c);

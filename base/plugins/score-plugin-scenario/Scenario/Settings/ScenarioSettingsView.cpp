@@ -324,7 +324,11 @@ View::View() : m_widg{new QWidget}
   m_sequence = new QCheckBox{m_widg};
   connect(m_sequence, &QCheckBox::toggled, this, &View::sequenceChanged);
   lay->addRow(tr("Auto-Sequence"), m_sequence);
+
+  SETTINGS_UI_TOGGLE_SETUP("Time Bar", TimeBar);
 }
+
+SETTINGS_UI_TOGGLE_IMPL(TimeBar)
 
 void View::setSkin(const QString& val)
 {

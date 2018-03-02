@@ -114,6 +114,7 @@ public:
         SCORE_BREAKPOINT;
         std::terminate();
     }
+    fflush(out_file);
   }
 #else
   void inform(const QString& str)

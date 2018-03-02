@@ -4,6 +4,7 @@
 #include <Process/TimeValueSerialization.hpp>
 #include <QDataStream>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/model/path/PathSerialization.hpp>
