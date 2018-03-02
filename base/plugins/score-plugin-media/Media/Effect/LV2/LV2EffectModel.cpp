@@ -57,8 +57,8 @@ void LV2EffectModel::readPlugin()
   const std::size_t out_size = data.control_out_ports.size();
   const std::size_t midi_in_size = data.midi_in_ports.size();
   const std::size_t midi_out_size = data.midi_out_ports.size();
-  const std::size_t cv_size = data.cv_ports.size();
-  const std::size_t other_size = data.control_other_ports.size();
+  //const std::size_t cv_size = data.cv_ports.size();
+  //const std::size_t other_size = data.control_other_ports.size();
   const std::size_t num_ports = data.effect.plugin.get_num_ports();
 
   qDebug() << "in\t" << in_size << "\n"
