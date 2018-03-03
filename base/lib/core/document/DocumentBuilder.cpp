@@ -4,6 +4,7 @@
 #include <QMessageBox>
 #include <QObject>
 #include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentBackupManager.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/View.hpp>
@@ -20,6 +21,7 @@
 
 #include <score/tools/RandomNameProvider.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/plugins/ProjectSettings/ProjectSettingsFactory.hpp>
 
 namespace score
 {
@@ -38,6 +40,12 @@ Document* DocumentBuilder::newDocument(
   auto doc
       = new Document{docName, id, doctype, m_parentView, m_parentPresenter};
 
+  for(auto& projectsettings : ctx.interfaces<DocumentPluginFactoryList>())
+  {
+    if(auto fact = dynamic_cast<ProjectSettingsFactory*>(&projectsettings))
+      doc->model().addPluginModel(fact->makeModel(doc->context(), getStrongId(doc->model().pluginModels()), &doc->model()));
+  }
+
   m_backupManager = new DocumentBackupManager{*doc};
   for (auto& appPlug : ctx.guiApplicationPlugins())
   {
@@ -48,6 +56,7 @@ Document* DocumentBuilder::newDocument(
   {
     appPlug->on_createdDocument(*doc);
   }
+
   // First save
   m_backupManager->saveModelData(doc->saveAsByteArray());
   setBackupManager(doc);

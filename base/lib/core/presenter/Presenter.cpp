@@ -49,7 +49,7 @@ namespace score
 Presenter::Presenter(
     const score::ApplicationSettings& app,
     const score::Settings& set,
-    const score::ProjectSettings& pset,
+    score::ProjectSettings& pset,
     View* view,
     QObject* arg_parent)
     : QObject{arg_parent}

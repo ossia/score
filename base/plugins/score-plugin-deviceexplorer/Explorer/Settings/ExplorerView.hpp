@@ -1,6 +1,6 @@
 #pragma once
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
-
+#include <score/plugins/ProjectSettings/ProjectSettingsView.hpp>
 class QCheckBox;
 namespace Explorer::Settings
 {
@@ -21,5 +21,23 @@ private:
   QWidget* m_widg{};
 
   QCheckBox* m_cb{};
+};
+}
+
+namespace Explorer::ProjectSettings
+{
+class View : public score::ProjectSettingsView
+{
+  Q_OBJECT
+public:
+  View();
+
+  SETTINGS_UI_TOGGLE_HPP(ReconnectOnStart)
+  SETTINGS_UI_TOGGLE_HPP(RefreshOnStart)
+
+private:
+  QWidget* getWidget() override;
+  QWidget* m_widg{};
+
 };
 }

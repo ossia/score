@@ -642,4 +642,16 @@ Id<score::DocumentModel> getStrongId(const std::vector<score::Document*>& v)
   return Id<score::DocumentModel>{
       score::random_id_generator::getNextId(ids)};
 }
+Id<score::DocumentPlugin> getStrongId(const std::vector<score::DocumentPlugin*>& v)
+{
+  using namespace std;
+  vector<int32_t> ids(v.size()); // Map reduce
+
+  transform(v.begin(), v.end(), ids.begin(), [](const auto elt) {
+    return elt->id().val();
+  });
+
+  return Id<score::DocumentPlugin>{
+      score::random_id_generator::getNextId(ids)};
+}
 }

@@ -205,7 +205,7 @@ void FullViewIntervalView::setSelected(bool selected)
 }
 QRectF FullViewIntervalView::boundingRect() const
 {
-  return {0, 0, qreal(std::max(defaultWidth(), m_guiWidth)) + 3, qreal(intervalAndRackHeight()) + 3};
+  return {0, -3, qreal(std::max(defaultWidth(), m_guiWidth)) + 3, qreal(intervalAndRackHeight()) + 6};
 }
 
 void FullViewIntervalView::paint(
