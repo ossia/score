@@ -7,9 +7,15 @@
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 
+#include <score/plugins/ProjectSettings/ProjectSettingsFactory.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsModel.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsPresenter.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsView.hpp>
+
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+
 namespace score
 {
 Settings::Settings()
@@ -74,17 +80,50 @@ ProjectSettings::~ProjectSettings()
 {
   if(m_settingsView)
     m_settingsView->deleteLater();
-  for (auto& ptr : m_settings)
-  {
-    auto p = ptr.release();
-    p->deleteLater();
-  }
 }
 
 void ProjectSettings::setupView()
 {
   m_settingsView = new SettingsView<ProjectSettingsModel>(nullptr);
   m_settingsPresenter = new SettingsPresenter<ProjectSettingsModel>(m_settingsView, nullptr);
+}
+
+void ProjectSettings::setup(const DocumentContext& ctx)
+{
+    m_settings.clear();
+    setupView();
+
+    for(auto& plug : ctx.document.model().pluginModels())
+    {
+        if(auto p = dynamic_cast<ProjectSettingsModel*>(plug))
+        {
+            m_settings.push_back(p);
+
+            if(m_settingsView)
+            {
+              auto plug = ctx.app.interfaces<DocumentPluginFactoryList>().get(p->concreteKey().impl());
+              if(!plug)
+                continue;
+              auto& plugin = *static_cast<ProjectSettingsFactory*>(plug);
+
+              auto view = plugin.makeView();
+              if (!view)
+                return;
+
+              auto pres = plugin.makePresenter(*p, *view, m_settingsPresenter);
+              if (pres)
+              {
+                // Ownership transfer
+                m_settingsPresenter->addSettingsPresenter(pres);
+                m_settingsView->addSettingsView(view);
+              }
+              else
+              {
+                delete view;
+              }
+            }
+        }
+    }
 }
 
 }

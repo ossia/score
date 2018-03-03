@@ -14,6 +14,7 @@ template<class Model>
 class SettingsView;
 class ProjectSettingsModel;
 
+struct DocumentContext;
 struct ApplicationContext;
 } // namespace score
 
@@ -93,10 +94,12 @@ public:
     return m_settings;
   }
 
+  void setup(const score::DocumentContext& ctx);
+
 private:
   SettingsView<ProjectSettingsModel>* m_settingsView{};
   SettingsPresenter<ProjectSettingsModel>* m_settingsPresenter{};
 
-  std::vector<std::unique_ptr<ProjectSettingsModel>> m_settings;
+  std::vector<ProjectSettingsModel*> m_settings;
 };
 }

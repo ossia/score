@@ -33,7 +33,7 @@ QSize sizeHint(NSView* m_view) {
 }
 
 
-VSTWindow::VSTWindow(const VSTEffectModel& e)
+VSTWindow::VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx)
 {
   if(!e.fx)
     throw std::runtime_error("Cannot create UI");

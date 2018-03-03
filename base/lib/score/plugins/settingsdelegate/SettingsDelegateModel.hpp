@@ -104,3 +104,18 @@ private:
     s.setValue(Parameters::Name.key, QVariant::fromValue(m_##Name)); \
     Name##Changed(val);                                         \
   }
+
+#define SCORE_PROJECTSETTINGS_PARAMETER_CPP(Type, ModelType, Name)   \
+  Type ModelType::get##Name() const                                  \
+  {                                                                  \
+    return m_##Name;                                                 \
+  }                                                                  \
+                                                                     \
+  void ModelType::set##Name(Type val)                                \
+  {                                                                  \
+    if (val == m_##Name)                                             \
+      return;                                                        \
+                                                                     \
+    m_##Name = val;                                                  \
+    Name##Changed(val);                                              \
+  }
