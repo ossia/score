@@ -541,7 +541,7 @@ struct TSerializer<DataStream, ossia::small_vector<T, N>>
   readFrom(DataStream::Serializer& s, const ossia::small_vector<T, N>& arr)
   {
     s.stream() << (int32_t)arr.size();
-    for (std::size_t i = 0U; i < arr.size(); i++)
+    for (int32_t i = 0U; i < arr.size(); i++)
       s.stream() << arr[i];
 
     SCORE_DEBUG_INSERT_DELIMITER2(s);
@@ -553,7 +553,7 @@ struct TSerializer<DataStream, ossia::small_vector<T, N>>
 
     s.stream() >> sz;
     arr.resize(sz);
-    for (std::size_t i = 0U; i < sz; i++)
+    for (int32_t i = 0; i < sz; i++)
       s.stream() >> arr[i];
 
     SCORE_DEBUG_CHECK_DELIMITER2(s);
@@ -567,7 +567,7 @@ struct TSerializer<DataStream, ossia::static_vector<T, N>>
   readFrom(DataStream::Serializer& s, const ossia::static_vector<T, N>& arr)
   {
     s.stream() << (int32_t)arr.size();
-    for (std::size_t i = 0U; i < arr.size(); i++)
+    for (int32_t i = 0U; i < arr.size(); i++)
       s.stream() << arr[i];
 
     SCORE_DEBUG_INSERT_DELIMITER2(s);
@@ -579,7 +579,7 @@ struct TSerializer<DataStream, ossia::static_vector<T, N>>
 
     s.stream() >> sz;
     arr.resize(sz);
-    for (std::size_t i = 0U; i < sz; i++)
+    for (int32_t i = 0U; i < sz; i++)
       s.stream() >> arr[i];
 
     SCORE_DEBUG_CHECK_DELIMITER2(s);
@@ -610,7 +610,7 @@ struct
 
     vec.clear();
     vec.resize(n);
-    for (int i = 0; i < n; i++)
+    for (int32_t i = 0; i < n; i++)
     {
       s.writeTo(vec[i]);
     }
@@ -643,7 +643,7 @@ struct
 
     vec.clear();
     vec.resize(n);
-    for (int i = 0; i < n; i++)
+    for (int32_t i = 0; i < n; i++)
     {
       s.stream() >> vec[i];
     }
@@ -692,7 +692,7 @@ struct TSerializer<DataStream, score::hash_map<T, U>>
     auto& st = s.stream();
     int32_t n;
     st >> n;
-    for(int i = 0; i < n; i++)
+    for(int32_t i = 0; i < n; i++)
     {
       T key;
       U value;
