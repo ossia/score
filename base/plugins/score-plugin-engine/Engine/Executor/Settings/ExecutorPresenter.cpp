@@ -26,6 +26,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   SETTINGS_PRESENTER(Parallel);
   SETTINGS_PRESENTER(Rate);
   SETTINGS_PRESENTER(Logging);
+  SETTINGS_PRESENTER(Bench);
   SETTINGS_PRESENTER(ExecutionListening);
   SETTINGS_PRESENTER(Clock);
   SETTINGS_PRESENTER(ScoreOrder);

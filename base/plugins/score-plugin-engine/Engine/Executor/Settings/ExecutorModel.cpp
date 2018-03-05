@@ -47,12 +47,15 @@ const score::sp<ModelExecutionListeningParameter> ExecutionListening{
 const score::sp<ModelLoggingParameter> Logging{
   QStringLiteral("score_plugin_engine/Logging"), true};
 
+const score::sp<ModelLoggingParameter> Bench{
+  QStringLiteral("score_plugin_engine/Bench"), true};
+
 const score::sp<ModelLoggingParameter> ScoreOrder{
   QStringLiteral("score_plugin_engine/ScoreOrder"), false};
 
 static auto list()
 {
-  return std::tie( Clock, Rate, Scheduling, Ordering, Merging, Commit, Tick, Parallel, ExecutionListening, Logging, ScoreOrder);
+  return std::tie( Clock, Rate, Scheduling, Ordering, Merging, Commit, Tick, Parallel, ExecutionListening, Logging, Bench, ScoreOrder);
 }
 }
 
@@ -96,6 +99,7 @@ SCORE_SETTINGS_PARAMETER_CPP(int, Model, Rate)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, Parallel)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, ExecutionListening)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, Logging)
+SCORE_SETTINGS_PARAMETER_CPP(bool, Model, Bench)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, ScoreOrder)
 }
 }

@@ -21,8 +21,9 @@
 #include <Engine/score2OSSIA.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
+#include <ossia/dataflow/graph/graph_static.hpp>
 #include <ossia/dataflow/execution_state.hpp>
-#include <spdlog/spdlog.h>
+#include <ossia/detail/logger.hpp>
 namespace Engine
 {
 namespace Execution
@@ -70,6 +71,8 @@ DocumentPlugin::DocumentPlugin(
 
   connect(this, &DocumentPlugin::finished,
           this, &DocumentPlugin::on_finished, Qt::QueuedConnection);
+  connect(this, &DocumentPlugin::sig_bench,
+          this, &DocumentPlugin::slot_bench);
 }
 
 void DocumentPlugin::on_cableCreated(Process::Cable& c)
@@ -188,6 +191,7 @@ void DocumentPlugin::on_finished()
   inlets.clear();
   outlets.clear();
   m_cables.clear();
+  proc_map.clear();
   execGraph->clear();
   execGraph.reset();
 
@@ -235,7 +239,13 @@ void DocumentPlugin::makeGraph()
   execGraph.reset();
   ossia::graph_setup_options opt;
   opt.parallel = m_ctx.settings.getParallel();
-  opt.log = m_ctx.settings.getLogging();
+  if(m_ctx.settings.getLogging())
+    opt.log = ossia::logger_ptr();
+  if(m_ctx.settings.getBench())
+    opt.bench = ossia::bench_ptr();
+
+  ossia::bench_ptr()->clear();
+
   if(sched == sched_t.StaticFixed) opt.scheduling = ossia::graph_setup_options::StaticFixed;
   else if(sched == sched_t.StaticBFS) opt.scheduling = ossia::graph_setup_options::StaticBFS;
   else if(sched == sched_t.StaticTC) opt.scheduling = ossia::graph_setup_options::StaticTC;
@@ -337,12 +347,14 @@ void DocumentPlugin::register_node(
     const std::shared_ptr<ossia::graph_node>& node)
 {
   register_node(proc.inlets(), proc.outlets(), node);
+  proc_map[node.get()] = &proc;
 }
 void DocumentPlugin::unregister_node(
     const Process::ProcessModel& proc,
     const std::shared_ptr<ossia::graph_node>& node)
 {
   unregister_node(proc.inlets(), proc.outlets(), node);
+  proc_map.erase(node.get());
 }
 
 void DocumentPlugin::set_destination(
@@ -425,6 +437,26 @@ void DocumentPlugin::set_destination(
       g->mark_dirty();
     });
   }
+}
+
+void DocumentPlugin::slot_bench(ossia::bench_map b, int64_t ns)
+{
+  for(auto p : b)
+  {
+    if(p.second)
+    {
+      auto proc = proc_map.find(p.first);
+      if(proc != proc_map.end())
+      {
+        if(proc->second)
+        {
+          const_cast<Process::ProcessModel*>(proc->second)->benchmark(100. * *p.second / (double)ns);
+        }
+      }
+      //qDebug() << proc_map[p.first] << *p.second << 100. * *p.second / (double)ns;
+    }
+  }
+
 }
 
 void DocumentPlugin::register_node(
@@ -513,6 +545,8 @@ void DocumentPlugin::unregister_node(
       QObject::disconnect(con);
     }
     runtime_connections.erase(node);
+
+    proc_map.erase(node.get());
   }
 
   for(auto ptr : proc_inlets)

@@ -29,6 +29,7 @@ View::View() : m_widg{new QWidget}
   SETTINGS_UI_TOGGLE_SETUP("Parallel", Parallel);
   SETTINGS_UI_TOGGLE_SETUP("Use Score order", ScoreOrder);
   SETTINGS_UI_TOGGLE_SETUP("Logging", Logging);
+  SETTINGS_UI_TOGGLE_SETUP("Benchmark", Bench);
 
 
   m_Clock = new QComboBox;
@@ -59,6 +60,7 @@ SETTINGS_UI_TOGGLE_IMPL(ExecutionListening)
 SETTINGS_UI_TOGGLE_IMPL(ScoreOrder)
 SETTINGS_UI_TOGGLE_IMPL(Parallel)
 SETTINGS_UI_TOGGLE_IMPL(Logging)
+SETTINGS_UI_TOGGLE_IMPL(Bench)
 
 
 void View::setClock(ClockManagerFactory::ConcreteKey k)

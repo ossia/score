@@ -16,6 +16,7 @@
 #include <ossia/network/midi/midi_device.hpp>
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
+#include <ossia/dataflow/graph/graph_static.hpp>
 namespace Dataflow
 {
 Clock::Clock(
@@ -84,11 +85,45 @@ void Clock::resume_impl(
     opt.commit = ossia::tick_setup_options::Merged;
 
 
-  m_plug.audioProto().ui_tick = ossia::make_tick(
-                                  opt,
-                                  *m_plug.execState,
-                                  *m_plug.execGraph,
-                                  *m_cur->baseInterval().OSSIAInterval());
+  if(m_plug.context().settings.getBench())
+  {
+    auto tick = ossia::make_tick(opt,
+                                 *m_plug.execState,
+                                 *m_plug.execGraph,
+                                 *m_cur->baseInterval().OSSIAInterval());
+
+    m_plug.audioProto().ui_tick =
+        [tick, plug=&m_plug] (auto&&... args) {
+      static int i = 0;
+      if(i % 40 == 0)
+      {
+        auto t0 = std::chrono::steady_clock::now();
+        tick(args...);
+        auto t1 = std::chrono::steady_clock::now();
+        auto total = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
+
+        plug->slot_bench(*ossia::bench_ptr(), total);
+        for(auto& p : *ossia::bench_ptr())
+        {
+          p.second.reset();
+        }
+      }
+      else
+      {
+        tick(args...);
+      }
+
+      i++;
+    };
+  }
+  else
+  {
+    m_plug.audioProto().ui_tick = ossia::make_tick(
+                                    opt,
+                                    *m_plug.execState,
+                                    *m_plug.execGraph,
+                                    *m_cur->baseInterval().OSSIAInterval());
+  }
 
   m_plug.audioProto().replace_tick = true;
   qDebug("resume");
