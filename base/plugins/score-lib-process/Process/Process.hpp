@@ -115,6 +115,8 @@ Q_SIGNALS:
 
   void controlAdded(const Id<Process::Port>&);
   void controlRemoved(const Process::Port&);
+
+  void benchmark(double);
 protected:
 
   // Used to scale the process.

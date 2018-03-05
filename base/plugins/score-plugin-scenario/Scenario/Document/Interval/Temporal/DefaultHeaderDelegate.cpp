@@ -63,6 +63,8 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(Process::LayerPresenter& p)
       this, [=] { updatePorts(); });
   con(p.model(), &Process::ProcessModel::inletsChanged,
       this, [=] { updatePorts(); });
+  con(p.model(), &Process::ProcessModel::benchmark,
+      this, [=] (double d) { updateBench(d); });
   con(p.model().selection, &Selectable::changed,
       this, [=] (bool b) {
     m_sel = b;
@@ -74,6 +76,28 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(Process::LayerPresenter& p)
 DefaultHeaderDelegate::~DefaultHeaderDelegate()
 {
 
+}
+
+void DefaultHeaderDelegate::updateBench(double d)
+{
+  QTextLayout lay;
+  lay.setFont(ScenarioStyle::instance().Medium8Pt);
+  lay.setCacheEnabled(false);
+
+  lay.setText(QString::number(d, 'g', 3));
+  lay.beginLayout();
+  QTextLine line = lay.createLine();
+  lay.endLayout();
+  line.setPosition(QPointF{0., 0.});
+
+  auto r = line.glyphRuns();
+
+  if(r.size() > 0)
+    m_bench = std::move(r[0]);
+  else
+    m_bench.clear();
+
+  update();
 }
 
 void DefaultHeaderDelegate::updateName()
@@ -177,13 +201,15 @@ void DefaultHeaderDelegate::updatePorts()
 
 void DefaultHeaderDelegate::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  if(boundingRect().width() > minPortWidth()) {
+  const auto w = boundingRect().width();
+  if(w > minPortWidth()) {
     const auto& style = ScenarioStyle::instance();
 
     painter->setRenderHint(QPainter::Antialiasing, true);
 
     painter->setPen(m_sel ? style.IntervalHeaderTextPen : style.GrayTextPen);
     painter->drawGlyphRun(QPointF{8.,1.}, m_line);
+    painter->drawGlyphRun(QPointF{w - 32.,1.}, m_bench);
     painter->drawGlyphRun(QPointF{4., 10.}, fromGlyph());
     painter->drawGlyphRun(QPointF{4., 20.}, toGlyph());
 

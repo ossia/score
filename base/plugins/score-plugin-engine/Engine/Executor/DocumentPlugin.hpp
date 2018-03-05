@@ -10,10 +10,12 @@
 #include <ossia/dataflow/dataflow_fwd.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <memory>
+#include <ossia/dataflow/bench_map.hpp>
 
 namespace ossia {
 class audio_protocol;
 class graph_base;
+struct bench_map;
 }
 namespace score
 {
@@ -97,7 +99,14 @@ public:
 
 Q_SIGNALS:
   void finished();
+  void sig_bench(ossia::bench_map, int64_t ns);
+public Q_SLOTS:
+  void slot_bench(ossia::bench_map, int64_t ns);
+
 private:
+
+  score::hash_map<const ossia::graph_node*, const Process::ProcessModel*> proc_map;
+
   mutable ExecutionCommandQueue m_execQueue;
   mutable ExecutionCommandQueue m_editionQueue;
   Context m_ctx;

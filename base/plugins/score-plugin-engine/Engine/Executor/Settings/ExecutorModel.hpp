@@ -71,6 +71,7 @@ class SCORE_PLUGIN_ENGINE_EXPORT Model : public score::SettingsDelegateModel
     Q_PROPERTY(bool parallel READ getParallel WRITE setParallel NOTIFY ParallelChanged)
     Q_PROPERTY(bool executionListening READ getExecutionListening WRITE setExecutionListening NOTIFY ExecutionListeningChanged)
     Q_PROPERTY(bool logging READ getLogging WRITE setLogging NOTIFY LoggingChanged)
+    Q_PROPERTY(bool bench READ getBench WRITE setBench NOTIFY BenchChanged)
     Q_PROPERTY(bool scoreOrder READ getScoreOrder WRITE setScoreOrder NOTIFY ScoreOrderChanged)
 
     ClockManagerFactory::ConcreteKey m_Clock;
@@ -83,6 +84,7 @@ class SCORE_PLUGIN_ENGINE_EXPORT Model : public score::SettingsDelegateModel
     bool m_Parallel{};
     bool m_ExecutionListening{};
     bool m_Logging{};
+    bool m_Bench{};
     bool m_ScoreOrder{};
 
     const ClockManagerFactoryList& m_clockFactories;
@@ -112,6 +114,7 @@ class SCORE_PLUGIN_ENGINE_EXPORT Model : public score::SettingsDelegateModel
     SCORE_SETTINGS_PARAMETER_HPP(bool, Parallel)
     SCORE_SETTINGS_PARAMETER_HPP(bool, ExecutionListening)
     SCORE_SETTINGS_PARAMETER_HPP(bool, Logging)
+    SCORE_SETTINGS_PARAMETER_HPP(bool, Bench)
     SCORE_SETTINGS_PARAMETER_HPP(bool, ScoreOrder)
 };
 
@@ -125,6 +128,7 @@ SCORE_SETTINGS_PARAMETER(Model, Rate)
 SCORE_SETTINGS_PARAMETER(Model, Parallel)
 SCORE_SETTINGS_PARAMETER(Model, ExecutionListening)
 SCORE_SETTINGS_PARAMETER(Model, Logging)
+SCORE_SETTINGS_PARAMETER(Model, Bench)
 SCORE_SETTINGS_PARAMETER(Model, ScoreOrder)
 }
 }
