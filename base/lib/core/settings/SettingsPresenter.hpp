@@ -32,7 +32,7 @@ public:
   }
 
 
-  void addSettingsPresenter(GlobalSettingsPresenter* presenter)
+  void addSettingsPresenter(SettingsDelegatePresenter<Model>* presenter)
   {
     SCORE_ASSERT(ossia::find(m_pluginPresenters, presenter) == m_pluginPresenters.end());
 
@@ -55,6 +55,6 @@ private:
   }
   Sv* m_view;
 
-  std::vector<GlobalSettingsPresenter*> m_pluginPresenters;
+  std::vector<SettingsDelegatePresenter<Model>*> m_pluginPresenters;
 };
 }

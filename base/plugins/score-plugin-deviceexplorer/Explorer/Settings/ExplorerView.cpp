@@ -34,3 +34,23 @@ QWidget* View::getWidget()
 
 SETTINGS_UI_COMBOBOX_IMPL(LogLevel)
 }
+
+
+namespace Explorer::ProjectSettings
+{
+View::View() : m_widg{new QWidget}
+{
+  auto lay = new QFormLayout;
+  m_widg->setLayout(lay);
+  SETTINGS_UI_TOGGLE_SETUP("Refresh on start", RefreshOnStart);
+  SETTINGS_UI_TOGGLE_SETUP("Reconnect on start", ReconnectOnStart);
+}
+
+QWidget* View::getWidget()
+{
+  return m_widg;
+}
+
+SETTINGS_UI_TOGGLE_IMPL(RefreshOnStart)
+SETTINGS_UI_TOGGLE_IMPL(ReconnectOnStart)
+}

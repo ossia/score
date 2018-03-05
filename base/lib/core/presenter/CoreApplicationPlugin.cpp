@@ -69,7 +69,12 @@ void CoreApplicationPlugin::openSettings()
 }
 void CoreApplicationPlugin::openProjectSettings()
 {
-  m_presenter.m_projectSettings.view().exec();
+  auto doc = m_presenter.documentManager().currentDocument();
+  if(doc)
+  {
+    m_presenter.m_projectSettings.setup(doc->context());
+    m_presenter.m_projectSettings.view().exec();
+  }
 }
 
 void CoreApplicationPlugin::about()

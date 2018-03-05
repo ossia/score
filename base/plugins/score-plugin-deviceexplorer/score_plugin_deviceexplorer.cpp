@@ -86,9 +86,10 @@ score_plugin_deviceexplorer::factories(
     const score::InterfaceKey& key) const
 {
   return instantiate_factories<score::ApplicationContext
-      , FW<score::DocumentPluginFactory, Explorer::DocumentPluginFactory>
+      , FW<score::DocumentPluginFactory, Explorer::DocumentPluginFactory, Explorer::ProjectSettings::Factory>
       , FW<score::PanelDelegateFactory, Explorer::PanelDelegateFactory>
-      , FW<score::SettingsDelegateFactory, Explorer::Settings::Factory>>(
+      , FW<score::SettingsDelegateFactory, Explorer::Settings::Factory>
+  >(
       ctx, key);
 }
 
