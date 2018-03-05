@@ -64,6 +64,8 @@ class vst_node final : public ossia::graph_node
 
     void all_notes_off() override
     {
+      if constexpr(IsSynth)
+      {
       // copy midi data
       VstEvents* events = (VstEvents*)alloca(sizeof(VstEvents));
       events->numEvents = 1;
@@ -84,21 +86,19 @@ class vst_node final : public ossia::graph_node
       dispatch(effProcessEvents, 0, 0, events, 0.f);
 
       const auto nfloats = std::max(fx->fx->numInputs, fx->fx->numOutputs);
-      if constexpr(UseDouble)
-      {
-        double f;
-        double** c = (double**)alloca(sizeof(double*) * nfloats);
-        for(int i = 0; i < nfloats; i++)
-          c[i] = &f;
-        fx->fx->processDoubleReplacing(fx->fx, c, c, 1);
-      }
-      else
-      {
-        float f{};
-        float** c = (float**)alloca(sizeof(float*) * nfloats);
-        for(int i = 0; i < nfloats; i++)
-          c[i] = &f;
-        fx->fx->processReplacing(fx->fx, c, c, 1);
+      int samples = 64;
+      float dummy[64];
+
+      for(auto& vec : float_v)
+        vec.resize(samples);
+
+      float** output = (float**)alloca(sizeof(float*) * std::max(2, this->fx->fx->numOutputs));
+      output[0] = float_v[0].data();
+      output[1] = float_v[1].data();
+      for(int i = 2; i < this->fx->fx->numOutputs; i++)
+        output[i] = dummy;
+
+      fx->fx->processReplacing(fx->fx, output, output, samples);
       }
     }
 

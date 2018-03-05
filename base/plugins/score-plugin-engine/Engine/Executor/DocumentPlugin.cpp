@@ -639,8 +639,8 @@ void DocumentPlugin::unregister_node(
   if(node)
   {
     m_execQueue.enqueue([=] {
-      node->clear();
       execGraph->remove_node(node);
+      node->clear();
     });
 
     for(const auto& con : runtime_connections[node])
