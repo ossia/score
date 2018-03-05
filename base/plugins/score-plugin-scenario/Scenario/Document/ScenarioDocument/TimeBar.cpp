@@ -1,5 +1,7 @@
 #include "TimeBar.hpp"
 #include <Process/Style/ScenarioStyle.hpp>
+#include <QApplication>
+#include <QScreen>
 namespace Scenario
 {
 
@@ -7,17 +9,20 @@ TimeBar::TimeBar(QGraphicsItem* parent)
   : QGraphicsItem{parent}
 {
   setVisible(false);
+  setFlag(QGraphicsItem::ItemIgnoresTransformations);
   setZValue(100000);
 }
 
 QRectF TimeBar::boundingRect() const
 {
-  return { 0, 0, 1, 2000 };
+  static const qreal height = 10. * qApp->screens().front()->availableSize().height();
+  return { 0, 0, 1, height };
 }
 
 void TimeBar::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  static const auto& pen = ScenarioStyle::instance().SelectedDataCablePen;
+  static const QPen pen(QBrush(Qt::gray), 0);
+
   painter->setPen(pen);
   painter->drawLine(boundingRect().topLeft(), boundingRect().bottomLeft());
 }

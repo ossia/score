@@ -156,4 +156,5 @@ private:
 };
 
 Id<score::DocumentModel> getStrongId(const std::vector<score::Document*>& v);
+Id<score::DocumentPlugin> getStrongId(const std::vector<score::DocumentPlugin*>& v);
 }

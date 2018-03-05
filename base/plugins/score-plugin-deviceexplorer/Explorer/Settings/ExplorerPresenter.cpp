@@ -37,3 +37,24 @@ QIcon Presenter::settingsIcon()
   return QApplication::style()->standardIcon(QStyle::SP_MediaPlay);
 }
 }
+
+
+namespace Explorer::ProjectSettings
+{
+Presenter::Presenter(Model& m, View& v, QObject* parent)
+    : score::ProjectSettingsPresenter{m, v, parent}
+{
+  SETTINGS_PRESENTER(RefreshOnStart);
+  SETTINGS_PRESENTER(ReconnectOnStart);
+}
+
+QString Presenter::settingsName()
+{
+  return tr("Device Explorer");
+}
+
+QIcon Presenter::settingsIcon()
+{
+  return QApplication::style()->standardIcon(QStyle::SP_MediaPlay);
+}
+}
