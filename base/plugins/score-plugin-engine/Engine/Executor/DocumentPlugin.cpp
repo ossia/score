@@ -20,10 +20,9 @@
 #include <score/actions/ActionManager.hpp>
 #include <Engine/score2OSSIA.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
-#include <ossia/dataflow/graph/graph.hpp>
-#include <ossia/dataflow/graph/graph_static.hpp>
+#include <ossia/dataflow/graph/graph_interface.hpp>
+#include <ossia/dataflow/execution_state.hpp>
 #include <spdlog/spdlog.h>
-#include <ossia/dataflow/graph/graph_parallel.hpp>
 namespace Engine
 {
 namespace Execution
@@ -218,165 +217,31 @@ void DocumentPlugin::timerEvent(QTimerEvent* event)
     cmd();
 }
 
-std::shared_ptr<ossia::graph_base> make_graph(const Engine::Execution::Settings::Model& settings)
-{
-  using namespace ossia;
-  static const Engine::Execution::Settings::SchedulingPolicies sched_t;
-  static const Engine::Execution::Settings::OrderingPolicies order_t;
-  static const Engine::Execution::Settings::MergingPolicies merge_t;
-
-  auto sched = settings.getScheduling();
-  bool log = settings.getLogging();
-
-  if(log)
-  {
-    using exec_t = static_exec_logger;
-    if(sched == sched_t.Dynamic)
-    {
-      return std::make_shared<ossia::graph>();
-    }
-    else if(sched == sched_t.StaticBFS)
-    {
-      using graph_type = graph_static<
-          bfs_update
-        , exec_t>;
-
-      auto g = std::make_shared<graph_type>();
-      g->tick_fun.logger = ossia::logger_ptr();
-      return g;
-    }
-    else if(sched == sched_t.StaticFixed)
-    {
-      using graph_type = graph_static<
-          simple_update
-        , exec_t>;
-
-      auto g = std::make_shared<graph_type>();
-      g->tick_fun.logger = ossia::logger_ptr();
-      return g;
-    }
-    else // if(sched == sched_t.StaticTC)
-    {
-      using graph_type = graph_static<
-          tc_update<fast_tc>
-        , exec_t>;
-
-      auto g = std::make_shared<graph_type>();
-      g->tick_fun.logger = ossia::logger_ptr();
-      return g;
-    }
-  }
-  else
-  {
-    using exec_t = static_exec;
-    if(sched == sched_t.Dynamic)
-    {
-      using graph_type = ossia::graph;
-
-      return std::make_shared<graph_type>();
-    }
-    else if(sched == sched_t.StaticBFS)
-    {
-      using graph_type = graph_static<
-          bfs_update
-        , exec_t>;
-
-      return std::make_shared<graph_type>();
-    }
-    else if(sched == sched_t.StaticFixed)
-    {
-      using graph_type = graph_static<
-          simple_update
-        , exec_t>;
-
-      return std::make_shared<graph_type>();
-    }
-    else //if(sched == sched_t.StaticTC)
-    {
-      using graph_type = graph_static<
-          tc_update<fast_tc>
-        , exec_t>;
-
-      return std::make_shared<graph_type>();
-    }
-  }
-
-}
-
-std::shared_ptr<ossia::graph_base> make_parallel_graph(const Engine::Execution::Settings::Model& settings)
-{
-  using namespace ossia;
-#if defined(OSSIA_PARALLEL)
-  static const Engine::Execution::Settings::SchedulingPolicies sched_t;
-  static const Engine::Execution::Settings::OrderingPolicies order_t;
-  static const Engine::Execution::Settings::MergingPolicies merge_t;
-
-  auto sched = settings.getScheduling();
-  bool log = settings.getLogging();
-
-  if(sched == sched_t.StaticBFS)
-  {
-    using graph_type = graph_static<
-        parallel_update<bfs_update>
-      , parallel_exec>;
-
-    auto g = std::make_shared<graph_type>();
-
-    if(log)
-      g->update_fun.logger = ossia::logger_ptr();
-
-    return g;
-  }
-  else if(sched == sched_t.StaticTC)
-  {
-    using graph_type = graph_static<
-        parallel_update<tc_update<fast_tc>>
-      , parallel_exec>;
-
-    auto g = std::make_shared<graph_type>();
-
-    if(log)
-      g->update_fun.logger = ossia::logger_ptr();
-
-    return g;
-  }
-  else if(sched == sched_t.StaticFixed)
-  {
-    using graph_type = graph_static<
-        parallel_update<simple_update>
-      , parallel_exec>;
-
-    auto g = std::make_shared<graph_type>();
-
-    if(log) g->update_fun.logger = ossia::logger_ptr();
-
-    return g;
-  }
-#endif
-  return {};
-}
 void DocumentPlugin::makeGraph()
 {
   using namespace ossia;
+  static const Engine::Execution::Settings::SchedulingPolicies sched_t;
+  static const Engine::Execution::Settings::OrderingPolicies order_t;
+  static const Engine::Execution::Settings::MergingPolicies merge_t;
 
   // note: cas qui n'ont pas de sens: dynamic avec les cas ou on append les valeurs.
   // parallel avec dynamic
   // il manque le cas "default score order"
   // il manque le log pour dynamic
 
+  auto sched = m_ctx.settings.getScheduling();
+
+
   execGraph.reset();
+  ossia::graph_setup_options opt;
+  opt.parallel = m_ctx.settings.getParallel();
+  opt.log = m_ctx.settings.getLogging();
+  if(sched == sched_t.StaticFixed) opt.scheduling = ossia::graph_setup_options::StaticFixed;
+  else if(sched == sched_t.StaticBFS) opt.scheduling = ossia::graph_setup_options::StaticBFS;
+  else if(sched == sched_t.StaticTC) opt.scheduling = ossia::graph_setup_options::StaticTC;
+  else if(sched == sched_t.Dynamic) opt.scheduling = ossia::graph_setup_options::Dynamic;
 
-#if defined(OSSIA_PARALLEL)
-  if(m_ctx.settings.getParallel())
-  {
-    execGraph = make_parallel_graph(m_ctx.settings);
-  }
-#endif
-
-  if(!execGraph)
-  {
-    execGraph = make_graph(m_ctx.settings);
-  }
+  execGraph = ossia::make_graph(opt);
 }
 void DocumentPlugin::reload(Scenario::IntervalModel& cst)
 {

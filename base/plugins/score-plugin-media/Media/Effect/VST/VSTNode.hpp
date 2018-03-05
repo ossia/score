@@ -66,39 +66,43 @@ class vst_node final : public ossia::graph_node
     {
       if constexpr(IsSynth)
       {
-      // copy midi data
-      VstEvents* events = (VstEvents*)alloca(sizeof(VstEvents));
-      events->numEvents = 1;
+        // copy midi data
+        VstEvents* events = (VstEvents*)alloca(sizeof(VstEvents) + sizeof(void*) * 16);
+        events->numEvents = 16;
 
-      VstMidiEvent e;
-      std::memset(&e, 0, sizeof(VstMidiEvent));
+        VstMidiEvent ev[16] = {};
+        //std::memset(&e, 0, sizeof(VstMidiEvent));
 
-      e.type = kVstMidiType;
-      e.byteSize = sizeof(VstMidiEvent);
-      // TODO do it for all channel
-      e.midiData[0] = (char)(uint8_t)176;
-      e.midiData[1] = (char)(uint8_t)123;
-      e.midiData[2] = 0;
-      e.midiData[3] = 0;
 
-      events->events[0] = reinterpret_cast<VstEvent*>(&e);
+        for(int i = 0; i < 16; i++)
+        {
+          auto& e = ev[i];
+          e.type = kVstMidiType;
+          e.byteSize = sizeof(VstMidiEvent);
 
-      dispatch(effProcessEvents, 0, 0, events, 0.f);
+          e.midiData[0] = (char)(uint8_t)176;
+          e.midiData[1] = (char)(uint8_t)123;
+          e.midiData[2] = 0;
+          e.midiData[3] = 0;
 
-      const auto nfloats = std::max(fx->fx->numInputs, fx->fx->numOutputs);
-      int samples = 64;
-      float dummy[64];
+          events->events[i] = reinterpret_cast<VstEvent*>(&e);
+        }
 
-      for(auto& vec : float_v)
-        vec.resize(samples);
+        dispatch(effProcessEvents, 0, 0, events, 0.f);
 
-      float** output = (float**)alloca(sizeof(float*) * std::max(2, this->fx->fx->numOutputs));
-      output[0] = float_v[0].data();
-      output[1] = float_v[1].data();
-      for(int i = 2; i < this->fx->fx->numOutputs; i++)
-        output[i] = dummy;
+        constexpr int samples = 64;
+        float dummy[samples];
 
-      fx->fx->processReplacing(fx->fx, output, output, samples);
+        for(auto& vec : float_v)
+          vec.resize(samples);
+
+        float** output = (float**)alloca(sizeof(float*) * std::max(2, this->fx->fx->numOutputs));
+        output[0] = float_v[0].data();
+        output[1] = float_v[1].data();
+        for(int i = 2; i < this->fx->fx->numOutputs; i++)
+          output[i] = dummy;
+
+        fx->fx->processReplacing(fx->fx, output, output, samples);
       }
     }
 
