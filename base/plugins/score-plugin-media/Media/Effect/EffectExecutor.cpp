@@ -1,5 +1,5 @@
 #include "EffectExecutor.hpp"
-#include <ossia/dataflow/graph/graph.hpp>
+#include <ossia/dataflow/graph/graph_interface.hpp>
 namespace Engine
 {
 namespace Execution

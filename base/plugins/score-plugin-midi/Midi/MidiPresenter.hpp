@@ -47,6 +47,6 @@ private:
 
   SingleOngoingCommandDispatcher<MoveNotes> m_ongoing;
   ZoomRatio m_zr{};
-  void fillContextMenu(QMenu& menu, QPoint pos, QPointF scenepos, const Process::LayerContextMenuManager& cm);
+  void fillContextMenu(QMenu& menu, QPoint pos, QPointF scenepos, const Process::LayerContextMenuManager& cm) override;
 };
 }

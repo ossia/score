@@ -105,7 +105,6 @@ void Presenter::fillContextMenu(
     const Process::LayerContextMenuManager& cm)
 {
   auto& ctx = m_context.context;
-  auto& actions = ctx.app.actions;
 
   auto act = menu.addAction(tr("Rescale midi"));
   connect(act, &QAction::triggered, this, [&] {

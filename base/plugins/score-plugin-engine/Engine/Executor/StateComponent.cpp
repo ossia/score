@@ -93,7 +93,7 @@ ProcessComponent*StateComponentBase::make(
         oproc->node->set_logging(proc.selection.get());
 
       std::weak_ptr<ossia::time_process> oproc_weak = oproc;
-      std::weak_ptr<ossia::graph_base> g_weak = plug->system().plugin.execGraph;
+      std::weak_ptr<ossia::graph_interface> g_weak = plug->system().plugin.execGraph;
 
       in_exec(
             [cst=m_ev,oproc_weak,g_weak,propagated_outlets] {

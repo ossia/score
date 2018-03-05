@@ -11,12 +11,11 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Engine/Protocols/OSSIADevice.hpp>
-#include <ossia/dataflow/graph/graph.hpp>
 #include <QFile>
 #include <QPointer>
 #include <ossia/network/midi/midi_device.hpp>
-#include <ossia/dataflow/graph/tick_methods.hpp>
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
+#include <ossia/dataflow/graph/graph_interface.hpp>
 namespace Dataflow
 {
 Clock::Clock(
@@ -58,63 +57,6 @@ void Clock::pause_impl(
   m_default.pause();
 }
 
-template<typename... Args>
-smallfun::function<void(unsigned long, double), 128> make_ui_tick(const Engine::Execution::Settings::Model& settings, Args&&... args)
-{
-  using namespace Engine::Execution::Settings;
-  auto tick = settings.getTick();
-  auto commit = settings.getCommit();
-
-  if(commit == CommitPolicies{}.Default)
-  {
-    static constexpr const auto commit_policy = &ossia::execution_state::commit;
-    if(tick == TickPolicies{}.Buffer)
-      return ossia::buffer_tick<commit_policy>{args...};
-    else if(tick == TickPolicies{}.Precise)
-      return ossia::precise_score_tick<commit_policy>{args...};
-    else if(tick == TickPolicies{}.ScoreAccurate)
-      return ossia::split_score_tick<commit_policy>{args...};
-    else
-      return ossia::buffer_tick<commit_policy>{args...};
-  }
-  else if(commit == CommitPolicies{}.Ordered)
-  {
-    static constexpr const auto commit_policy = &ossia::execution_state::commit_ordered;
-    if(tick == TickPolicies{}.Buffer)
-      return ossia::buffer_tick<commit_policy>{args...};
-    else if(tick == TickPolicies{}.Precise)
-      return ossia::precise_score_tick<commit_policy>{args...};
-    else if(tick == TickPolicies{}.ScoreAccurate)
-      return ossia::split_score_tick<commit_policy>{args...};
-    else
-      return ossia::buffer_tick<commit_policy>{args...};
-  }
-  else if(commit == CommitPolicies{}.Priorized)
-  {
-    static constexpr const auto commit_policy = &ossia::execution_state::commit_priorized;
-    if(tick == TickPolicies{}.Buffer)
-      return ossia::buffer_tick<commit_policy>{args...};
-    else if(tick == TickPolicies{}.Precise)
-      return ossia::precise_score_tick<commit_policy>{args...};
-    else if(tick == TickPolicies{}.ScoreAccurate)
-      return ossia::split_score_tick<commit_policy>{args...};
-    else
-      return ossia::buffer_tick<commit_policy>{args...};
-  }
-  else if(commit == CommitPolicies{}.Merged)
-  {
-    static constexpr const auto commit_policy = &ossia::execution_state::commit_merged;
-    if(tick == TickPolicies{}.Buffer)
-      return ossia::buffer_tick<commit_policy>{args...};
-    else if(tick == TickPolicies{}.Precise)
-      return ossia::precise_score_tick<commit_policy>{args...};
-    else if(tick == TickPolicies{}.ScoreAccurate)
-      return ossia::split_score_tick<commit_policy>{args...};
-    else
-      return ossia::buffer_tick<commit_policy>{args...};
-  }
-  return ossia::buffer_tick<&ossia::execution_state::commit>{args...};
-}
 
 void Clock::resume_impl(
     Engine::Execution::BaseScenarioElement& bs)
@@ -122,11 +64,31 @@ void Clock::resume_impl(
   m_paused = false;
   m_default.resume();
   auto tick = m_plug.context().settings.getTick();
+  auto commit = m_plug.context().settings.getCommit();
 
-  // sorry padre for I have sinned
-  m_plug.audioProto().ui_tick = make_ui_tick(
-                                  m_plug.context().settings,
-                                  *m_plug.execState, *m_plug.execGraph, *m_cur->baseInterval().OSSIAInterval());
+  ossia::tick_setup_options opt;
+  if(tick == Engine::Execution::Settings::TickPolicies{}.Buffer)
+    opt.tick = ossia::tick_setup_options::Buffer;
+  else if(tick == Engine::Execution::Settings::TickPolicies{}.ScoreAccurate)
+    opt.tick = ossia::tick_setup_options::ScoreAccurate;
+  else if(tick == Engine::Execution::Settings::TickPolicies{}.Precise)
+    opt.tick = ossia::tick_setup_options::Precise;
+
+  if(commit == Engine::Execution::Settings::CommitPolicies{}.Default)
+    opt.commit = ossia::tick_setup_options::Default;
+  else if(commit == Engine::Execution::Settings::CommitPolicies{}.Ordered)
+    opt.commit = ossia::tick_setup_options::Ordered;
+  else if(commit == Engine::Execution::Settings::CommitPolicies{}.Priorized)
+    opt.commit = ossia::tick_setup_options::Priorized;
+  else if(commit == Engine::Execution::Settings::CommitPolicies{}.Merged)
+    opt.commit = ossia::tick_setup_options::Merged;
+
+
+  m_plug.audioProto().ui_tick = ossia::make_tick(
+                                  opt,
+                                  *m_plug.execState,
+                                  *m_plug.execGraph,
+                                  *m_cur->baseInterval().OSSIAInterval());
 
   m_plug.audioProto().replace_tick = true;
   qDebug("resume");
