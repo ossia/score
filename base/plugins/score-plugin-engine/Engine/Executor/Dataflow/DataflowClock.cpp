@@ -84,7 +84,6 @@ void Clock::resume_impl(
   else if(commit == Engine::Execution::Settings::CommitPolicies{}.Merged)
     opt.commit = ossia::tick_setup_options::Merged;
 
-
   if(m_plug.context().settings.getBench())
   {
     auto tick = ossia::make_tick(opt,
@@ -95,8 +94,9 @@ void Clock::resume_impl(
     m_plug.audioProto().ui_tick =
         [tick, plug=&m_plug] (auto&&... args) {
       static int i = 0;
-      if(i % 40 == 0)
+      if(i % 50 == 0)
       {
+        ossia::bench_ptr()->measure = true;
         auto t0 = std::chrono::steady_clock::now();
         tick(args...);
         auto t1 = std::chrono::steady_clock::now();
@@ -105,11 +105,12 @@ void Clock::resume_impl(
         plug->slot_bench(*ossia::bench_ptr(), total);
         for(auto& p : *ossia::bench_ptr())
         {
-          p.second.reset();
+          p.second = {};
         }
       }
       else
       {
+        ossia::bench_ptr()->measure = false;
         tick(args...);
       }
 
