@@ -30,7 +30,6 @@ PhidgetDevice::PhidgetDevice(const Device::DeviceSettings& settings)
           this, &PhidgetDevice::slot_command, Qt::QueuedConnection);
 
   reconnect();
-
 }
 
 bool PhidgetDevice::reconnect()
@@ -41,7 +40,7 @@ bool PhidgetDevice::reconnect()
   {
     //const auto& stgs = settings().deviceSpecificSettings.value<PhidgetSpecificSettings>();
 
-    m_dev = std::make_unique<ossia::phidget_device>(settings().name.toStdString());
+    m_dev = std::make_unique<ossia::net::generic_device>(std::make_unique<ossia::phidget_protocol>(), settings().name.toStdString());
     static_cast<ossia::phidget_protocol&>(m_dev->get_protocol())
         .set_command_callback([=] { sig_command(); });
 
