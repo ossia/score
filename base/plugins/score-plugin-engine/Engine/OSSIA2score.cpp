@@ -25,7 +25,6 @@ namespace ossia_to_score
 Device::AddressSettings ToAddressSettings(const ossia::net::node_base& node)
 {
   Device::AddressSettings s;
-
   const auto& addr = node.get_parameter();
 
   if (addr)
@@ -33,7 +32,7 @@ Device::AddressSettings ToAddressSettings(const ossia::net::node_base& node)
     addr->request_value();
 
     s.name = QString::fromStdString(node.get_name());
-    s.ioType = addr->get_access();
+    s.ioType = ossia::access_mode::BI;//addr->get_access();
     s.clipMode = addr->get_bounding();
     s.repetitionFilter = addr->get_repetition_filter();
     s.unit = addr->get_unit();

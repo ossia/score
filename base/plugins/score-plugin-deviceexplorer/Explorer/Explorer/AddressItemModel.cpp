@@ -33,6 +33,7 @@ void AddressItemModel::setState(
   m_model = model;
   m_path = nodepath;
   m_settings = s;
+
   endResetModel();
 }
 
@@ -303,7 +304,7 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
           case Rows::Unit:
           { return QString::fromStdString(ossia::get_pretty_unit_text(m_settings.unit.get())); }
           case Rows::Access:
-          { return m_settings.ioType ? Device::AccessModeText()[*m_settings.ioType] : tr("None"); }
+          { return bool(m_settings.ioType) ? Device::AccessModeText()[*m_settings.ioType] : tr("None"); }
           case Rows::Bounding:
           { return Device::ClipModePrettyStringMap()[m_settings.clipMode]; }
           case Rows::Repetition:
@@ -346,7 +347,7 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
       switch(index.row())
       {
         case Rows::Type: return (int)m_settings.value.getType();
-        case Rows::Access: return (int)*m_settings.ioType;
+        case Rows::Access: return m_settings.ioType ? (int)*m_settings.ioType : -1;
         case Rows::Bounding: return (int)m_settings.clipMode;
         case Rows::Unit: return QVariant::fromValue(m_settings.unit);
         case Rows::Value: return QVariant::fromValue(m_settings.value);

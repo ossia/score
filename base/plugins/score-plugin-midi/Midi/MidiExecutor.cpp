@@ -225,7 +225,6 @@ Component::Component(
     });
 
     for(auto& note : notes)
-      std::cerr << note.start << " " << note.duration << "\n";
      in_exec([n=std::move(notes), midi] () mutable {
       midi->set_notes(std::move(n));
     });
