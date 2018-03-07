@@ -17,6 +17,9 @@ public:
   private Q_SLOTS:
     void slot_command();
 
+  private:
+    void timerEvent(QTimerEvent* event) override;
+    int m_timer{-1};
 };
 }
 }
