@@ -12,6 +12,7 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/Protocols/Phidgets/PhidgetsSpecificSettings.hpp>
 #include <Explorer/DeviceList.hpp>
+#include <QTimer>
 
 namespace Engine
 {
@@ -34,6 +35,11 @@ PhidgetDevice::PhidgetDevice(const Device::DeviceSettings& settings)
 
 bool PhidgetDevice::reconnect()
 {
+  if(m_timer != -1)
+  {
+    killTimer(m_timer);
+    m_timer = -1;
+  }
   disconnect();
 
   try
@@ -41,10 +47,23 @@ bool PhidgetDevice::reconnect()
     //const auto& stgs = settings().deviceSpecificSettings.value<PhidgetSpecificSettings>();
 
     m_dev = std::make_unique<ossia::net::generic_device>(std::make_unique<ossia::phidget_protocol>(), settings().name.toStdString());
-    static_cast<ossia::phidget_protocol&>(m_dev->get_protocol())
-        .set_command_callback([=] { sig_command(); });
-
     enableCallbacks();
+    m_timer = startTimer(200);
+    /*
+    QTimer::singleShot(5000, [=] {
+
+      if(m_dev)
+      {
+        auto proto = dynamic_cast<ossia::phidget_protocol*>(&m_dev->get_protocol());
+        proto->run_commands();
+
+        static_cast<ossia::phidget_protocol&>(m_dev->get_protocol())
+            .set_command_callback([=] { sig_command(); });
+      }
+
+    });
+    */
+
 
     setLogging_impl(Device::get_cur_logging(isLogging()));
   }
@@ -68,5 +87,16 @@ void PhidgetDevice::slot_command()
     proto->run_commands();
   }
 }
+
+void PhidgetDevice::timerEvent(QTimerEvent* event)
+{
+  if(m_dev)
+  {
+    auto proto = dynamic_cast<ossia::phidget_protocol*>(&m_dev->get_protocol());
+    proto->run_command();
+  }
+}
+
 }
 }
+
