@@ -132,7 +132,6 @@ class lv2_node final : public ossia::graph_node
       for(std::size_t i = 0; i < control_in_size; i++)
       {
         auto port_i = data.control_in_ports[i];
-        std::cerr << port_i << ": " << fParamMin[port_i] << " " << fParamMax[port_i] << std::endl;
         fInControls[i] = fParamInit[port_i];
         lilv_instance_connect_port(fInstance, port_i, &fInControls[i]);
       }

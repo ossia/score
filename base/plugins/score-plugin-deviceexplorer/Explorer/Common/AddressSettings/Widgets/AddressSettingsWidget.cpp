@@ -151,6 +151,7 @@ void AddressSettingsWidget::setCommonSettings(
 {
   if (!m_none_type)
   {
+    SCORE_ASSERT(settings.ioType);
     const int ioTypeIndex = m_ioTypeCBox->findData((int)*settings.ioType);
     SCORE_ASSERT(ioTypeIndex != -1);
     m_ioTypeCBox->setCurrentIndex(ioTypeIndex);

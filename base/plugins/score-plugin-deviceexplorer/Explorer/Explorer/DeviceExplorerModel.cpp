@@ -190,7 +190,7 @@ void DeviceExplorerModel::addNode(
 
   beginInsertRows(parentIndex, row, row);
 
-  parentNode->emplace(parentNode->begin() + row, std::move(child));
+  auto& res = parentNode->emplace(parentNode->begin() + row, std::move(child));
 
   endInsertRows();
 }
