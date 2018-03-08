@@ -1,4 +1,5 @@
 #pragma once
+#include <QGraphicsItem>
 #include <QGraphicsSvgItem>
 #include <QRect>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
