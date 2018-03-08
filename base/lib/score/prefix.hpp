@@ -4,7 +4,7 @@
 #pragma GCC system_header
 #pragma clang system_header
 
-///////
+////////
 #include <QAbstractItemModel>
 #include <QAction>
 #include <QApplication>
@@ -56,7 +56,6 @@
 #include <numeric>
 #include <stdexcept>
 #include <string>
-#include <tuple>
 #include <typeinfo>
 #include <utility>
 #include <vector>
@@ -72,7 +71,8 @@
 
 #include <score/command/AggregateCommand.hpp>
 
-#include <score/model/IdentifiedObjectMap.hpp>
+#include <score/model/Entity.hpp>
+#include <score/model/EntityMap.hpp>
 #include <score/model/path/Path.hpp>
 
 #include <score/model/tree/TreeNode.hpp>
@@ -82,4 +82,5 @@
 #include <score/selection/Selection.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 
+#include <wobjectimpl.h>
 #endif

@@ -6,6 +6,8 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <ossia-qt/js_utilities.hpp>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(score::ModelMetadata)
 namespace score
 {
 ModelMetadata::ModelMetadata()

@@ -1,5 +1,6 @@
 #pragma once
 #include <QObject>
+#include <wobjectdefs.h>
 #include <score_lib_base_export.h>
 
 /**
@@ -9,7 +10,7 @@
  */
 class SCORE_LIB_BASE_EXPORT Selectable final : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(Selectable)
 public:
   Selectable()
   {
@@ -35,9 +36,8 @@ public:
     }
   }
 
-Q_SIGNALS:
-  void set(bool) const;
-  void changed(bool);
+  void set(bool b) const W_SIGNAL(set, b)
+  void changed(bool b) W_SIGNAL(changed, b)
 
 private:
   bool m_val{};

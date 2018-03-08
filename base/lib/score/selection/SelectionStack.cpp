@@ -9,7 +9,12 @@
 #include <score/model/IdentifiedObjectAbstract.hpp>
 #include <score/tools/Todo.hpp>
 #include <qnamespace.h>
-
+#include <score/selection/FocusManager.hpp>
+#include <score/selection/Selectable.hpp>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(score::SelectionStack)
+W_OBJECT_IMPL(Selectable)
+W_OBJECT_IMPL(score::FocusManager)
 namespace score
 {
 SelectionStack::SelectionStack()

@@ -2,6 +2,7 @@
 #include <QColor>
 #include <QObject>
 #include <QString>
+#include <wobjectdefs.h>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/model/ColorReference.hpp>
 #include <score/tools/Metadata.hpp>
@@ -16,12 +17,7 @@ class SCORE_LIB_BASE_EXPORT ModelMetadata : public QObject
 {
   SCORE_SERIALIZE_FRIENDS
 
-  Q_OBJECT
-  Q_PROPERTY(QString Name READ getName WRITE setName NOTIFY NameChanged)
-  Q_PROPERTY(QString Comment READ getComment WRITE setComment NOTIFY CommentChanged)
-  Q_PROPERTY(ColorRef Color READ getColor WRITE setColor NOTIFY ColorChanged)
-  Q_PROPERTY(QString Label READ getLabel WRITE setLabel NOTIFY LabelChanged)
-  Q_PROPERTY(QVariantMap ExtendedMetadata READ getExtendedMetadata WRITE setExtendedMetadata NOTIFY ExtendedMetadataChanged)
+  W_OBJECT(ModelMetadata)
 
 public:
   ModelMetadata();
@@ -49,13 +45,18 @@ public:
   void setLabel(const QString&);
   void setExtendedMetadata(const QVariantMap&);
 
-Q_SIGNALS:
-  void NameChanged(const QString& arg);
-  void CommentChanged(const QString& arg);
-  void ColorChanged(score::ColorRef arg);
-  void LabelChanged(const QString& arg);
-  void ExtendedMetadataChanged(const QVariantMap& arg);
-  void metadataChanged();
+  void NameChanged(const QString& arg) W_SIGNAL(NameChanged, arg)
+  void CommentChanged(const QString& arg) W_SIGNAL(CommentChanged, arg)
+  void ColorChanged(score::ColorRef arg) W_SIGNAL(ColorChanged, arg)
+  void LabelChanged(const QString& arg) W_SIGNAL(LabelChanged, arg)
+  void ExtendedMetadataChanged(const QVariantMap& arg) W_SIGNAL(ExtendedMetadataChanged, arg)
+  void metadataChanged() W_SIGNAL(metadataChanged)
+
+  W_PROPERTY(QString, Name READ getName WRITE setName NOTIFY NameChanged, W_Final)
+  W_PROPERTY(QString, Comment READ getComment WRITE setComment NOTIFY CommentChanged, W_Final)
+  W_PROPERTY(ColorRef, Color READ getColor WRITE setColor NOTIFY ColorChanged, W_Final)
+  W_PROPERTY(QString, Label READ getLabel WRITE setLabel NOTIFY LabelChanged, W_Final)
+  W_PROPERTY(QVariantMap, ExtendedMetadata READ getExtendedMetadata WRITE setExtendedMetadata NOTIFY ExtendedMetadataChanged, W_Final)
 
 private:
   QString m_scriptingName;
@@ -72,3 +73,4 @@ SCORE_PARAMETER_TYPE(ModelMetadata, Label)
 SCORE_PARAMETER_TYPE(ModelMetadata, ExtendedMetadata)
 }
 Q_DECLARE_METATYPE(score::ModelMetadata)
+W_REGISTER_ARGTYPE(score::ColorRef)

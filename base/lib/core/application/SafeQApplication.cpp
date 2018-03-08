@@ -2,6 +2,8 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SafeQApplication.hpp"
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(SafeQApplication)
 SafeQApplication::~SafeQApplication()
 {
 }

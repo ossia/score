@@ -2,6 +2,7 @@
 #include <QApplication>
 #include <QFileInfo>
 #include <QMessageBox>
+#include <wobjectdefs.h>
 #include <cstdio>
 
 #ifdef __APPLE__
@@ -45,7 +46,7 @@ private:
  */
 class SCORE_LIB_BASE_EXPORT SafeQApplication final : public QApplication
 {
-  Q_OBJECT
+  W_OBJECT(SafeQApplication)
 public:
   SafeQApplication(int& argc, char** argv) : QApplication{argc, argv}
   {
@@ -145,6 +146,6 @@ public:
   bool event(QEvent* ev) override;
 #endif
 
-Q_SIGNALS:
-  void fileOpened(const QString&);
+  void fileOpened(const QString& opened)
+  W_SIGNAL(fileOpened, opened)
 };

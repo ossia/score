@@ -1,4 +1,5 @@
 #pragma once
+#include <wobjectdefs.h>
 #include <ossia/detail/algorithms.hpp>
 #include <score/plugins/customfactory/UuidKey.hpp>
 #include <score/model/EntityMap.hpp>
@@ -15,7 +16,7 @@ struct lazy_init_t { };
 class SCORE_LIB_BASE_EXPORT Component
     : public IdentifiedObject<score::Component>
 {
-  Q_OBJECT
+  W_OBJECT(Component)
 public:
   using IdentifiedObject<score::Component>::IdentifiedObject;
   using Key = UuidKey<score::Component>;

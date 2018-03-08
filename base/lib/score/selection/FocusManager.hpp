@@ -6,7 +6,7 @@ namespace score
 {
 struct SCORE_LIB_BASE_EXPORT FocusManager : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(FocusManager)
 public:
   const IdentifiedObjectAbstract* get()
   {
@@ -26,8 +26,8 @@ public:
     changed();
   }
 
-Q_SIGNALS:
-  void changed();
+  void changed()
+  W_SIGNAL(changed)
 
 private:
   QPointer<const IdentifiedObjectAbstract> m_obj{};

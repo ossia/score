@@ -10,6 +10,8 @@
 class QObject;
 #include <score/model/Identifier.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(score::DocumentModel)
 namespace score
 {
 DocumentModel::DocumentModel(

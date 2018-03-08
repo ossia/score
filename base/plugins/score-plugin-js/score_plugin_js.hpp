@@ -18,7 +18,6 @@ class score_plugin_js final : public QObject,
                                public score::CommandFactory_QtInterface
 {
   Q_OBJECT
-  Q_PLUGIN_METADATA(IID FactoryInterface_QtInterface_iid)
   Q_INTERFACES(score::Plugin_QtInterface score::FactoryInterface_QtInterface
                    score::CommandFactory_QtInterface)
   SCORE_PLUGIN_METADATA(1, "0eb1db4b-a532-4961-ba1c-d9edbf08ef07")

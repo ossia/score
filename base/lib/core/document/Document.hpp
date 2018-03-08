@@ -1,4 +1,5 @@
 #pragma once
+#include <wobjectdefs.h>
 #include <core/command/CommandStack.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/locking/ObjectLocker.hpp>
@@ -41,7 +42,7 @@ class DocumentView;
  */
 class SCORE_LIB_BASE_EXPORT Document final : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(Document)
   friend class DocumentBuilder;
   friend struct DocumentContext;
 

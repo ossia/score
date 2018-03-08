@@ -1,4 +1,5 @@
 #pragma once
+#include <wobjectdefs.h>
 #include <QDateTime>
 #include <QObject>
 #include <QString>
@@ -11,7 +12,7 @@ namespace score
  */
 struct SCORE_LIB_BASE_EXPORT DocumentMetadata : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(DocumentMetadata)
   Q_PROPERTY(QString fileName READ fileName WRITE setFileName NOTIFY fileNameChanged)
   Q_PROPERTY(QString author READ author WRITE setAuthor NOTIFY authorChanged)
   Q_PROPERTY(QDateTime creation READ creation WRITE setCreation NOTIFY creationChanged)
@@ -35,10 +36,13 @@ public:
   void setCreation(QDateTime creation);
   void setLastEdition(QDateTime lastEdition);
 
-Q_SIGNALS:
-  void fileNameChanged(QString fileName);
-  void authorChanged(QString author);
-  void creationChanged(QDateTime creation);
-  void lastEditionChanged(QDateTime lastEdition);
+  void fileNameChanged(QString fileName)
+  W_SIGNAL(fileNameChanged, fileName)
+  void authorChanged(QString author)
+  W_SIGNAL(authorChanged, author)
+  void creationChanged(QDateTime creation)
+  W_SIGNAL(creationChanged, creation)
+  void lastEditionChanged(QDateTime lastEdition)
+  W_SIGNAL(lastEditionChanged, lastEdition)
 };
 }

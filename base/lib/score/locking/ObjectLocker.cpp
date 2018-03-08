@@ -7,6 +7,8 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/model/path/ObjectPath.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(score::ObjectLocker)
 namespace score
 {
 
