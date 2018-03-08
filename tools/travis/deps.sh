@@ -33,7 +33,7 @@ case "$TRAVIS_OS_NAME" in
     set +e
 
     brew update
-    ARCHIVE=homebrew-cache.tar.xz
+    ARCHIVE=homebrew-cache.txz
     brew install gnu-tar xz
 
     wget -nv https://github.com/OSSIA/score-sdk/releases/download/sdk8/$ARCHIVE -O $ARCHIVE
