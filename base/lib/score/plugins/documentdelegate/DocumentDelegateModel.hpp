@@ -10,7 +10,7 @@ namespace score
 class SCORE_LIB_BASE_EXPORT DocumentDelegateModel
     : public IdentifiedObject<DocumentDelegateModel>
 {
-  Q_OBJECT
+  W_OBJECT(DocumentDelegateModel)
 public:
   using IdentifiedObject<DocumentDelegateModel>::IdentifiedObject;
   virtual ~DocumentDelegateModel();

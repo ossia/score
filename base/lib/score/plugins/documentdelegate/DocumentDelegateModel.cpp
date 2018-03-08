@@ -2,8 +2,8 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DocumentDelegateModel.hpp"
 
-template class IdentifiedObject<score::DocumentDelegateModel>;
-
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(score::DocumentDelegateModel)
 namespace score
 {
 DocumentDelegateModel::~DocumentDelegateModel()

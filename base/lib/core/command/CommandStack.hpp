@@ -1,5 +1,6 @@
 #pragma once
 #include <QObject>
+#include <wobjectdefs.h>
 #include <score/command/Command.hpp>
 #include <score/command/Validity/ValidityChecker.hpp>
 
@@ -22,7 +23,7 @@ class Document;
  */
 class SCORE_LIB_BASE_EXPORT CommandStack final : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(CommandStack)
 
   friend class CommandBackupFile;
   friend struct CommandStackBackup;
@@ -88,48 +89,64 @@ public:
     return m_ctx;
   }
 
-Q_SIGNALS:
   /**
    * @brief Emitted when a command was pushed on the stack
    * @param cmd the command that was pushed
    */
-  void localCommand(score::Command* cmd);
+  void localCommand(score::Command* cmd)
+  W_SIGNAL(localCommand, cmd)
 
   /**
    * @brief Emitted when the user calls "Undo"
    */
-  void localUndo();
+  void localUndo()
+  W_SIGNAL(localUndo)
 
   /**
    * @brief Emitted when the user calls "Redo"
    */
-  void localRedo();
+  void localRedo()
+  W_SIGNAL(localRedo)
 
-  void localIndexChanged(int);
+  void localIndexChanged(int v)
+  W_SIGNAL(localIndexChanged, v)
 
-  void canUndoChanged(bool);
-  void canRedoChanged(bool);
+  void canUndoChanged(bool b)
+  W_SIGNAL(canUndoChanged, b)
+  void canRedoChanged(bool b)
+  W_SIGNAL(canRedoChanged, b)
 
-  void undoTextChanged(QString);
-  void redoTextChanged(QString);
+  void undoTextChanged(QString b)
+  W_SIGNAL(undoTextChanged, b)
+  void redoTextChanged(QString b)
+  W_SIGNAL(redoTextChanged, b)
 
-  void indexChanged(int);
-  void stackChanged();
+  void indexChanged(int b)
+  W_SIGNAL(indexChanged, b)
+  void stackChanged()
+  W_SIGNAL(stackChanged)
 
   // These signals are low-level and are sent on each operation that affects
   // the stacks
-  void sig_undo();
-  void sig_redo();
-  void sig_push();
-  void sig_indexChanged();
+  void sig_undo()
+  W_SIGNAL(sig_undo)
+  void sig_redo()
+  W_SIGNAL(sig_redo)
+  void sig_push()
+  W_SIGNAL(sig_push)
+  void sig_indexChanged()
+  W_SIGNAL(sig_indexChanged)
 
-public Q_SLOTS:
   void setIndex(int index);
+  W_INVOKABLE(setIndex)
   void setIndexQuiet(int index);
+  W_INVOKABLE(setIndexQuiet)
 
   // These ones do not send signals
   void undoQuiet();
+  W_INVOKABLE(undoQuiet)
   void redoQuiet();
+  W_INVOKABLE(redoQuiet)
 
   /**
    * @brief push Pushes a command on the stack
@@ -138,6 +155,7 @@ public Q_SLOTS:
    * Calls cmd::redo()
    */
   void redoAndPush(score::Command* cmd);
+  W_INVOKABLE(redoAndPush)
 
   /**
    * @brief quietPush Pushes a command on the stack
@@ -146,25 +164,30 @@ public Q_SLOTS:
    * Does NOT call cmd::redo()
    */
   void push(score::Command* cmd);
+  W_INVOKABLE(push)
 
   /**
    * @brief pushAndEmit Pushes a command on the stack and emit relevant signals
    * @param cmd The command
    */
   void redoAndPushQuiet(score::Command* cmd);
+  W_INVOKABLE(redoAndPushQuiet)
   void pushQuiet(score::Command* cmd);
+  W_INVOKABLE(pushQuiet)
 
   void undo()
   {
     undoQuiet();
     localUndo();
   }
+  W_INVOKABLE(undo)
 
   void redo()
   {
     redoQuiet();
     localRedo();
   }
+  W_INVOKABLE(redo)
 
 public:
   template <typename Callable>
@@ -215,3 +238,4 @@ private:
   const score::DocumentContext& m_ctx;
 };
 }
+W_REGISTER_ARGTYPE(score::Command*)

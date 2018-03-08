@@ -169,7 +169,6 @@ class score_plugin_engine final
       public score::Plugin_QtInterface
 {
   Q_OBJECT
-  Q_PLUGIN_METADATA(IID ApplicationPlugin_QtInterface_iid)
   Q_INTERFACES(
       score::ApplicationPlugin_QtInterface
           score::FactoryList_QtInterface score::FactoryInterface_QtInterface

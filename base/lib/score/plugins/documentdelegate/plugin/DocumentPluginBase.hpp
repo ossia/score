@@ -21,7 +21,7 @@ namespace score
 class SCORE_LIB_BASE_EXPORT DocumentPlugin
     : public IdentifiedObject<DocumentPlugin>
 {
-  Q_OBJECT
+  W_OBJECT(DocumentPlugin)
 public:
   DocumentPlugin(
       const score::DocumentContext&,

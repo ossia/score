@@ -33,7 +33,6 @@ class score_plugin_recording final
       public score::FactoryInterface_QtInterface
 {
   Q_OBJECT
-  Q_PLUGIN_METADATA(IID ApplicationPlugin_QtInterface_iid)
   Q_INTERFACES(score::Plugin_QtInterface
                    score::ApplicationPlugin_QtInterface
                        score::CommandFactory_QtInterface

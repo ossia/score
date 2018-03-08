@@ -21,6 +21,8 @@ class QWidget;
 class Selection;
 #include <score/model/Identifier.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(score::Document)
 namespace score
 {
 DocumentContext DocumentContext::fromDocument(Document& d)

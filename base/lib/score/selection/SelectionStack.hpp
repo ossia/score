@@ -1,5 +1,6 @@
 #pragma once
 #include <QObject>
+#include <wobjectdefs.h>
 #include <QStack>
 #include <score/selection/Selection.hpp>
 
@@ -17,7 +18,7 @@ namespace score
  */
 class SCORE_LIB_BASE_EXPORT SelectionStack final : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(SelectionStack)
 public:
   SelectionStack();
 
@@ -37,12 +38,13 @@ public:
 
   Selection currentSelection() const;
 
-Q_SIGNALS:
-  void pushNewSelection(const Selection& s);
-  void currentSelectionChanged(const Selection&);
+  void pushNewSelection(const Selection& s)
+  W_SIGNAL(pushNewSelection, s)
+  void currentSelectionChanged(const Selection& s)
+  W_SIGNAL(currentSelectionChanged, s)
 
-private Q_SLOTS:
   void prune(IdentifiedObjectAbstract* p);
+  W_INVOKABLE(prune)
 
 private:
   // Select new objects
@@ -53,3 +55,4 @@ private:
   QStack<Selection> m_reselectable;
 };
 }
+W_REGISTER_ARGTYPE(Selection)

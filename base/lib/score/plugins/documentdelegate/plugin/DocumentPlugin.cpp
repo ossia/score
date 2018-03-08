@@ -2,7 +2,8 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DocumentPlugin.hpp"
 
-class QObject;
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(score::DocumentPlugin)
 namespace score
 {
 class Document;

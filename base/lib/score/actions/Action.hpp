@@ -277,14 +277,14 @@ struct SCORE_LIB_BASE_EXPORT SelectionActionCondition : public ActionCondition
 struct SCORE_LIB_BASE_EXPORT CustomActionCondition : public QObject,
                                                       public ActionCondition
 {
-  Q_OBJECT
+  W_OBJECT(CustomActionCondition)
 
 public:
   using ActionCondition::ActionCondition;
   ~CustomActionCondition();
 
-Q_SIGNALS:
-    void changed(bool);
+  void changed(bool b)
+  W_SIGNAL(changed, b)
 };
 
 using ActionConditionKey = StringKey<score::ActionCondition>;

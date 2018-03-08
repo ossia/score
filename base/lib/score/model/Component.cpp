@@ -3,6 +3,8 @@
 #include "Component.hpp"
 #include "ComponentSerialization.hpp"
 #include <score/document/DocumentContext.hpp>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(score::Component)
 namespace score
 {
 Component::~Component() = default;

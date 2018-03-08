@@ -4,6 +4,9 @@
 #include <core/presenter/DocumentManager.hpp>
 #include <score/actions/ActionManager.hpp>
 #include <score/selection/SelectionStack.hpp>
+
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(score::CustomActionCondition)
 namespace score
 {
 

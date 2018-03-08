@@ -8,6 +8,9 @@
 #include <score/command/Command.hpp>
 #include <score/command/Validity/ValidityChecker.hpp>
 #include <score/document/DocumentContext.hpp>
+
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(score::CommandStack)
 namespace score
 {
 CommandStack::CommandStack(const score::Document& ctx, QObject* parent)

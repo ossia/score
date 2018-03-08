@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <iterator>
 #include <vector>
-
+#include <wobjectdefs.h>
 class QObject;
 #include <score/model/Identifier.hpp>
 
@@ -29,7 +29,7 @@ struct ApplicationContext;
 class SCORE_LIB_BASE_EXPORT DocumentModel final
     : public IdentifiedObject<DocumentModel>
 {
-  Q_OBJECT
+  W_OBJECT(DocumentModel)
 public:
   DocumentModel(
       const Id<DocumentModel>& id,
@@ -55,8 +55,8 @@ public:
     return m_pluginModels;
   }
 
-Q_SIGNALS:
-  void pluginModelsChanged();
+  void pluginModelsChanged()
+  W_SIGNAL(pluginModelsChanged)
 
 private:
   void loadDocumentAsJson(
