@@ -39,11 +39,9 @@ case "$TRAVIS_OS_NAME" in
     wget -nv https://github.com/OSSIA/score-sdk/releases/download/sdk8/$ARCHIVE -O $ARCHIVE
     gtar xhaf $ARCHIVE --directory /usr/local/Cellar
     brew unlink cmake
-    brew link --force boost ninja qt5
+    brew link --force boost ninja qt5 cmake
     brew install portaudio
 
-    wget -nv https://cmake.org/files/v3.10/cmake-3.10.1-Darwin-x86_64.tar.gz
-    gtar xaf cmake-3.10.1-Linux-x86_64.tar.gz --directory /tmp
     set -e
   ;;
 esac
