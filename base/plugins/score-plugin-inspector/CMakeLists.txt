@@ -20,4 +20,5 @@ set(SRCS
 add_library(${PROJECT_NAME} ${HDRS} ${SRCS})
 target_link_libraries(${PROJECT_NAME} PUBLIC score_lib_inspector)
 
+score_moc_headers(${PROJECT_NAME} "${HDRS}")
 setup_score_plugin(score_plugin_inspector)

@@ -78,6 +78,7 @@ if(IOS)
 
 endif()
 
+score_moc_headers("${APPNAME}" "${CMAKE_CURRENT_SOURCE_DIR}/Application.hpp")
 setup_score_common_exe_features(${APPNAME})
 
 install(

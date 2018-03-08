@@ -24,5 +24,5 @@ set(SRCS
 
 add_library(${PROJECT_NAME} ${HDRS} ${SRCS})
 target_link_libraries(${PROJECT_NAME} PUBLIC Qt5::Core Qt5::Widgets score_lib_base)
-
+score_moc_headers(${PROJECT_NAME} "${HDRS}")
 setup_score_library(score_lib_inspector)

@@ -243,29 +243,36 @@ add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 
 if(OSSIA_PROTOCOL_MIDI)
     target_sources(${PROJECT_NAME} PRIVATE ${MIDI_HDRS} ${MIDI_SRCS})
+    score_moc_headers(${PROJECT_NAME} "${MIDI_HDRS}")
 endif()
 
 if(OSSIA_PROTOCOL_HTTP)
     target_sources(${PROJECT_NAME} PRIVATE ${HTTP_HDRS} ${HTTP_SRCS})
+    score_moc_headers(${PROJECT_NAME} "${HTTP_HDRS}")
 endif()
 
 if(OSSIA_PROTOCOL_WEBSOCKETS)
     target_sources(${PROJECT_NAME} PRIVATE ${WS_HDRS} ${WS_SRCS})
+    score_moc_headers(${PROJECT_NAME} "${WS_HDRS}")
 endif()
 
 if(OSSIA_PROTOCOL_SERIAL)
     target_sources(${PROJECT_NAME} PRIVATE ${SERIAL_HDRS} ${SERIAL_SRCS})
+    score_moc_headers(${PROJECT_NAME} "${SERIAL_HDRS}")
     find_package(Qt5 5.7 REQUIRED COMPONENTS SerialPort)
     target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::SerialPort)
 endif()
 
 if(OSSIA_PROTOCOL_PHIDGETS)
     target_sources(${PROJECT_NAME} PRIVATE ${PHIDGETS_HDRS} ${PHIDGETS_SRCS})
+    score_moc_headers(${PROJECT_NAME} "${PHIDGETS_HDRS}")
 endif()
 if(OSSIA_DATAFLOW)
     target_sources(${PROJECT_NAME} PRIVATE ${AUDIO_HDRS} ${AUDIO_SRCS})
+    score_moc_headers(${PROJECT_NAME} "${AUDIO_HDRS}")
 endif()
 
+score_moc_headers(${PROJECT_NAME} "${HDRS}")
 target_link_libraries(${PROJECT_NAME}
         PUBLIC
           Qt5::Core Qt5::Widgets

@@ -13,7 +13,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/State/MessageSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Address.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/State/Domain.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/State/Domain.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Value.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/ValueConversion.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Relation.cpp"
@@ -37,7 +37,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/score_lib_state.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/Address.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/DomainSerializationImpl.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/State/Domain.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/Domain.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/Expression.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/Message.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/MessageListSerialization.hpp"
@@ -66,7 +66,7 @@ set(HDRS
 add_library(${PROJECT_NAME} ${HDRS} ${SRCS})
 target_link_libraries(${PROJECT_NAME} PUBLIC
     Qt5::Core Qt5::Widgets score_lib_base)
-
+score_moc_headers(${PROJECT_NAME} "${HDRS}")
 setup_score_library(${PROJECT_NAME})
 
 #setup_score_tests(Tests)

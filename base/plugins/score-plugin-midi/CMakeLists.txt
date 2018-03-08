@@ -60,4 +60,5 @@ score_generate_command_list_file(${PROJECT_NAME} "${HEADER_FILES}")
 target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_engine ModernMIDI)
 target_include_directories(${PROJECT_NAME} PRIVATE "${OSSIA_3RDPARTY_FOLDER}/GSL")
 
+score_moc_headers(${PROJECT_NAME} "${HEADER_FILES}")
 setup_score_plugin(${PROJECT_NAME})
