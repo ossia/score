@@ -577,6 +577,8 @@ set(SRCS ${SRCS}
 )
 
 add_library(score_plugin_scenario ${SRCS} ${HDRS} ${QRCS})
+
+score_moc_headers(${PROJECT_NAME} "${HDRS}")
 score_generate_command_list_file(score_plugin_scenario "${HDRS}")
 
 target_link_libraries(score_plugin_scenario

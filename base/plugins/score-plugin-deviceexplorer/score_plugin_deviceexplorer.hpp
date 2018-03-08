@@ -29,6 +29,7 @@ class score_plugin_deviceexplorer final
       public score::CommandFactory_QtInterface
 {
   Q_OBJECT
+  Q_PLUGIN_METADATA(IID Plugin_QtInterface_iid)
   Q_INTERFACES(score::Plugin_QtInterface score::FactoryList_QtInterface
                    score::FactoryInterface_QtInterface
                        score::ApplicationPlugin_QtInterface

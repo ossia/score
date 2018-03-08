@@ -19,6 +19,7 @@ class score_plugin_loop final : public QObject,
                                  public score::ApplicationPlugin_QtInterface
 {
   Q_OBJECT
+  Q_PLUGIN_METADATA(IID Plugin_QtInterface_iid)
   Q_INTERFACES(score::Plugin_QtInterface
                score::FactoryInterface_QtInterface
                score::CommandFactory_QtInterface

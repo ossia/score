@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(score_plugin_deviceexplorer LANGUAGES CXX)
+project(score_lib_device LANGUAGES CXX)
 
 score_common_setup()
 
@@ -52,7 +52,7 @@ set(SRCS
 )
 
 add_library(score_lib_device ${SRCS} ${HEADERS})
-
+score_moc_headers(${PROJECT_NAME} "${HEADERS}")
 target_link_libraries(score_lib_device
     PUBLIC Qt5::Core Qt5::Widgets score_lib_base score_lib_state
     PRIVATE Qt5::Xml)

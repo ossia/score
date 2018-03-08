@@ -18,6 +18,7 @@ class score_plugin_mapping : public QObject,
                               public score::CommandFactory_QtInterface
 {
   Q_OBJECT
+  Q_PLUGIN_METADATA(IID Plugin_QtInterface_iid)
   Q_INTERFACES(score::Plugin_QtInterface score::FactoryInterface_QtInterface
                    score::CommandFactory_QtInterface)
 

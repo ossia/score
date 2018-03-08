@@ -169,6 +169,7 @@ add_library(${PROJECT_NAME}
   ${FAUST_HDRS} ${FAUST_SRCS}
 )
 
+score_moc_headers(${PROJECT_NAME} "${HDRS};${LV2_HDRS};${VST_HDRS};${FAUST_HDRS}")
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS};${FAUST_HDRS};${LV2_HDRS};${VST_HDRS}")
 target_link_libraries(${PROJECT_NAME} PUBLIC
                      Qt5::Core Qt5::Widgets

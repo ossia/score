@@ -316,7 +316,7 @@ set(SRCS
 )
 
 add_library(score_lib_base ${SRCS} ${HEADERS} ${QRCS})
-
+score_moc_headers(${PROJECT_NAME} "${HEADERS}")
 target_link_libraries(score_lib_base
         PUBLIC Qt5::Core Qt5::Widgets ossia # Qt5::Qml Qt5::QuickWidgets
     PRIVATE Qt5::Svg QRecentFilesMenu)

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(score_plugin_scenario LANGUAGES CXX)
+project(score_lib_process LANGUAGES CXX)
 score_common_setup()
 
 # Packages
@@ -79,7 +79,7 @@ set(PROCESS_SRCS
 add_library(score_lib_process ${PROCESS_HDRS} ${PROCESS_SRCS}  )
 target_link_libraries(score_lib_process  PUBLIC
     Qt5::Core Qt5::Widgets score_lib_base score_lib_state score_lib_inspector)
-
+score_moc_headers(${PROJECT_NAME} "${PROCESS_HDRS}")
 target_compile_definitions(score_lib_process PUBLIC
     $<$<BOOL:${DEFINE_SCORE_SCENARIO_DEBUG_RECTS}>:SCORE_SCENARIO_DEBUG_RECTS>)
 
