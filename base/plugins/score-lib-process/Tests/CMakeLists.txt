@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 project(ProcessTests)
 
 enable_testing()
+set(CMAKE_AUTOMOC ON)
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Test)
 
 function(addProcessTest TESTNAME TESTSRCS)

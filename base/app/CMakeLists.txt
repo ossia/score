@@ -4,6 +4,7 @@ project(score_app LANGUAGES CXX)
 score_common_setup()
 enable_testing()
 set(APPNAME "score")
+set(CMAKE_POSITION_INDEPENDENT_CODE 1)
 # TODO strip symbols after deployment build
 
 find_package(Qt5 5.7 COMPONENTS QuickControls2)
@@ -30,6 +31,7 @@ else()
     add_executable(${APPNAME} WIN32 ${SRCS})
 endif()
 
+score_moc_headers("${APPNAME}" "${CMAKE_CURRENT_SOURCE_DIR}/Application.hpp")
 
 target_link_libraries(${APPNAME} PUBLIC score_lib_base)
 if(TARGET Qt5::QuickControls2)
@@ -78,7 +80,6 @@ if(IOS)
 
 endif()
 
-score_moc_headers("${APPNAME}" "${CMAKE_CURRENT_SOURCE_DIR}/Application.hpp")
 setup_score_common_exe_features(${APPNAME})
 
 install(
