@@ -9,7 +9,7 @@ fi
 # Install the deps
 case "$TRAVIS_OS_NAME" in
   linux)
-    sudo wget https://github.com/OSSIA/score-sdk/releases/download/sdk7/boost.tar.bz2 -O /opt/boost.tar.bz2 &
+    sudo wget https://github.com/OSSIA/score-sdk/releases/download/sdk8/boost.tar.bz2 -O /opt/boost.tar.bz2 &
 
       wget -nv https://cmake.org/files/v3.10/cmake-3.10.1-Linux-x86_64.tar.gz -O cmake-linux.tgz &
 
