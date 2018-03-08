@@ -10,8 +10,7 @@ case "$TRAVIS_OS_NAME" in
   export CMAKE_BIN=$(readlink -f "$(find cmake/bin -name cmake -type f )")
   ;;
   osx)
-  export PATH=/tmp/CMake.app/Contents/bin:$PATH
-  export CMAKE_BIN=$(find /tmp/cmake-* -regex .*bin/cmake)
+  export CMAKE_BIN=/tmp/cmake-*x86_64/CMake.app/Contents/bin/cmake
   ;;
 esac
 export CTEST_OUTPUT_ON_FAILURE=1
