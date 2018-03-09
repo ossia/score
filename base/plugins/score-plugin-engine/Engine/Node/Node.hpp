@@ -41,11 +41,6 @@ using ValueOuts = std::array<ValueOutInfo, N>;
 template<std::size_t N>
 using Controls = std::array<ControlInfo, N>;
 
-template<typename T>
-struct StateWrapper
-{
-    using state_type = T;
-};
 template<typename... Args>
 struct NodeBuilder: Args...
 {
@@ -119,46 +114,119 @@ struct dummy_container {
     static constexpr auto end() { return (T*)nullptr; }
     static constexpr std::size_t size() { return 0; }
 };
+template <typename T, typename = int>
+struct has_info : std::false_type { };
 
+template <typename T>
+struct has_info <
+      T
+    , decltype((void) T::info, 0)
+> : std::true_type { };
 
 template<typename PortType, typename T>
-static constexpr auto get_ports(const T& t)
+struct get_ports
 {
-  using index = brigand::index_if<T, is_port<PortType, brigand::_1>>;
-
-  if constexpr(!std::is_same<index, brigand::no_such_type_>::value)
-  {
-    using array_type = brigand::at<T, index>;
-
-    return std::get<array_type>(t);
-  }
-  else
-  {
-    return dummy_container<PortType>{};
-  }
-}
-
+    constexpr auto operator()()
+    {
+      if constexpr(has_info<T>::value)
+      {
+        using index = brigand::index_if<decltype(T::info), is_port<PortType, brigand::_1>>;
+      
+        if constexpr(!std::is_same<index, brigand::no_such_type_>::value)
+        {
+          using array_type = brigand::at<decltype(T::info), index>;
+      
+          return std::get<array_type>(T::info);
+        }
+        else
+        {
+          return dummy_container<PortType>{};
+        }
+      }
+      else
+      {
+        return msvc();        
+      }
+    }
+    
+    constexpr auto msvc()
+    {
+      if constexpr(std::is_same<PortType, ValueInInfo>::value)
+      {
+        return T::Metadata::value_ins;
+      }
+      else if constexpr(std::is_same<PortType, ValueOutInfo>::value)
+      {
+        return T::Metadata::value_outs;
+      }
+      
+      else if constexpr(std::is_same<PortType, MidiInInfo>::value)
+      {
+        return T::Metadata::midi_ins;
+      }
+      else if constexpr(std::is_same<PortType, MidiOutInfo>::value)
+      {
+        return T::Metadata::midi_outs;
+      }
+      
+      else if constexpr(std::is_same<PortType, AudioInInfo>::value)
+      {
+        return T::Metadata::audio_ins;
+      }
+      else if constexpr(std::is_same<PortType, AudioOutInfo>::value)
+      {
+        return T::Metadata::audio_outs;
+      }
+      
+      else if constexpr(std::is_same<PortType, AddressInInfo>::value)
+      {
+        return T::Metadata::address_ins;
+      }
+      
+      else if constexpr(std::is_same<PortType, ControlInfo>::value)
+      {
+        return T::Metadata::controls;
+      }
+      
+      else
+      {
+        return dummy_container<PortType>{};
+      }
+    }
+};
 template<typename...>
 struct is_controls : std::false_type {};
 template<typename... Args>
 struct is_controls <std::tuple<Args...>> : std::true_type {};
 
 template<typename T>
-static constexpr auto get_controls(const T& t)
+struct get_controls
 {
-  using index = brigand::index_if<T, is_controls<brigand::_1>>;
+    constexpr auto operator()()
+    {
+      if constexpr(has_info<T>::value)
+      {
+        using index = brigand::index_if<decltype(T::info), is_controls<brigand::_1>>;
+      
+        if constexpr(!std::is_same<index, brigand::no_such_type_>::value)
+        {
+          using tuple_type = brigand::at<decltype(T::info), index>;
+      
+          return std::get<tuple_type>(T::info);
+        }
+        else
+        {
+          return std::tuple<>{};
+        }
+      }
+      else
+      {
+        using type = typename T::Metadata;
+        return type::controls;
+      }
+    }
+};
 
-  if constexpr(!std::is_same<index, brigand::no_such_type_>::value)
-  {
-    using tuple_type = brigand::at<T, index>;
-
-    return std::get<tuple_type>(t);
-  }
-  else
-  {
-    return std::tuple<>{};
-  }
-}
 
 struct dummy_t { };
 
@@ -191,28 +259,28 @@ struct get_control_type
 {
     using type = typename T::type;
 };
-template<typename Info>
+template<typename Node_T>
 struct InfoFunctions
 {
-  using controls_type = decltype(get_controls(Info::info));
+  using controls_type = decltype(get_controls<Node_T>{}());
   using controls_values_type = brigand::transform<controls_type, get_control_type<brigand::_1>>;
 
   static constexpr auto audio_in_count =
-      get_ports<AudioInInfo>(Info::info).size();
+      get_ports<AudioInInfo, Node_T>{}().size();
   static constexpr auto audio_out_count =
-      get_ports<AudioOutInfo>(Info::info).size();
+      get_ports<AudioOutInfo, Node_T>{}().size();
   static constexpr auto midi_in_count =
-      get_ports<MidiInInfo>(Info::info).size();
+      get_ports<MidiInInfo, Node_T>{}().size();
   static constexpr auto midi_out_count =
-      get_ports<MidiOutInfo>(Info::info).size();
+      get_ports<MidiOutInfo, Node_T>{}().size();
   static constexpr auto value_in_count =
-      get_ports<ValueInInfo>(Info::info).size();
+      get_ports<ValueInInfo, Node_T>{}().size();
   static constexpr auto value_out_count =
-      get_ports<ValueOutInfo>(Info::info).size();
+      get_ports<ValueOutInfo, Node_T>{}().size();
   static constexpr auto control_count =
       std::tuple_size<controls_type>::value;
   static constexpr auto address_in_count =
-      get_ports<AddressInInfo>(Info::info).size();
+      get_ports<AddressInInfo, Node_T>{}().size();
 
   static constexpr auto categorize_inlet(std::size_t i)
   {

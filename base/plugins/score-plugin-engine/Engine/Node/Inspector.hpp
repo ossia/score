@@ -78,7 +78,7 @@ public:
       {
         std::size_t i = 0;
         ossia::for_each_in_tuple(
-              get_controls(Info::info),
+              get_controls<Info>{}(),
               [&] (const auto& ctrl) {
           auto inlet = static_cast<Process::ControlInlet*>(object.inlets()[InfoFunctions<Info>::control_start + i]);
 

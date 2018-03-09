@@ -8,13 +8,24 @@ namespace Chord
 {
 struct Node
 {
-    struct Metadata
+    struct Metadata : Control::Meta_base 
     {
         static const constexpr auto prettyName = "Chord";
         static const constexpr auto objectKey = "Chord";
         static const constexpr auto category = "Midi";
         static const constexpr auto tags = std::array<const char*, 0>{};
         static const constexpr auto uuid = make_uuid("F0904279-EA26-48DB-B0DF-F68FE3091DA1");
+    
+        static const constexpr auto midi_ins  = Control::MidiIns<1>{{"in"}};
+        static const constexpr auto midi_outs = Control::MidiOuts<1>{{"out"}};
+        static const constexpr auto controls = 
+            std::make_tuple(
+              Control::IntSlider{"Num. Notes", 1, 5, 3},
+              Control::make_enum(
+                "Chord",
+                0U,
+                Control::array("Major", "Minor", "Sus2", "Sus4", "Dim", "Aug"))
+              );
     };
 
     struct State
@@ -32,17 +43,6 @@ struct Node
       I, II, III, IV, V, VI, VII
     };
 
-    static const constexpr auto info =
-        Control::create_node()
-        .midi_ins({{"in"}})
-        .midi_outs({{"out"}})
-        .controls(Control::IntSlider{"Num. Notes", 1, 5, 3},
-                  Control::make_enum(
-                    "Chord",
-                    0U,
-                    Control::array("Major", "Minor", "Sus2", "Sus4", "Dim", "Aug"))
-                  )
-        .build();
     using control_policy = Control::DefaultTick;
     // C C# D D# E F F# G G# A A# B
     // 1 .  . .  1 . .  1 .  1 .  .

@@ -11,6 +11,7 @@
 #include <Media/Commands/VSTCommands.hpp>
 #include <Engine/Node/CommonWidgets.hpp>
 #include <Automation/AutomationModel.hpp>
+#include <Dataflow/UI/PortItem.hpp>
 #include <QAction>
 #include <QMenu>
 

@@ -29,7 +29,7 @@ struct UISetup
         std::size_t i = 0;
         double pos_y = 0.;
         ossia::for_each_in_tuple(
-              get_controls(Info::info),
+              get_controls<Info>{}(),
               [&] (const auto& ctrl) {
           auto item = new score::EmptyRectItem{&self};
           item->setPos(0, pos_y);

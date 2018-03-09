@@ -2,7 +2,6 @@
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <Media/Effect/VST/VSTEffectModel.hpp>
-#include <Engine/Node/Executor.hpp>
 #include <Engine/Node/TimeSignature.hpp>
 #include <ossia/dataflow/fx_node.hpp>
 

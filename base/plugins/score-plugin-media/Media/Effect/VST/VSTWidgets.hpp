@@ -1,7 +1,10 @@
 #pragma once
 #include <Media/Effect/VST/VSTEffectModel.hpp>
-
+#include <Engine/Node/Widgets.hpp>
 #include <QTimer>
+#include <Scenario/Document/CommentBlock/TextItem.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
+#include <QDialog>
 
 namespace Media::VST
 {
