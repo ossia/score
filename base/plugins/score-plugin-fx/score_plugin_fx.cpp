@@ -56,30 +56,11 @@ score_plugin_fx::factories(
 #else
   
   return Control::instantiate_fx<
-      
       Nodes::PulseToNote::Node,
       Nodes::Direction::Node,
       Nodes::Chord::Node,
       Nodes::Quantifier::Node
       >(ctx, key);
-  /*
-  static_assert(Control::has_state_t<Nodes::Quantifier::Node>::value);
-  //constexpr auto tutu = Nodes::Quantifier::Node::info;
-  Control::ControlProcess<Nodes::Quantifier::Node>* n;
-  new Control::ControlProcess<Nodes::Quantifier::Node>{TimeVal{}, Id<Process::ProcessModel>{}, nullptr};
-  //Process::ProcessFactory_T<Control::ControlProcess<Nodes::Quantifier::Node>> factory;
-  //Control::ControlLayerFactory<Nodes::Quantifier::Node> layer;
-  //Control::InspectorFactory<Nodes::Quantifier::Node> inspector;
-  //Control::ExecutorFactory<Nodes::Direction::Node> executor;
-  //Control::ControlProcess<Nodes::Quantifier::Node>* n;
-  Engine::Execution::Context* ctx2;
-  //Control::Executor<Nodes::Direction::Node> exec(*n, *ctx2, Id<score::Component>{}, {});
-  std::shared_ptr<Control::ControlNode<Nodes::Quantifier::Node>> ctl;
-  
-  
-  Control::setup_node2<Nodes::Quantifier::Node>(ctl, *n, *ctx2, nullptr);
-  return {};
-  */
 #endif
 }
 
