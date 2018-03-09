@@ -86,7 +86,7 @@ constexpr int get_scale(QLatin1String s)
   else if(Control::same(s, QLatin1String("VII"))) return scale::VII;
   else return scale::custom;
 }
-static Q_DECL_RELAXED_CONSTEXPR frozen::unordered_map<int, scales_array, scale::SCALES_MAX-1> scales{
+static MSVC_CONSTEXPR frozen::unordered_map<int, scales_array, scale::SCALES_MAX-1> scales{
   //                                C   D   E F   G   A   B
     { scale::all,        make_scale({ 1,1,1,1,1,1,1,1,1,1,1,1 })}
   , { scale::ionian,     make_scale({ 1,0,1,0,1,1,0,1,0,1,0,1 })}

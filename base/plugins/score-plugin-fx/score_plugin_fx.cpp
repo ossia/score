@@ -1,8 +1,9 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "score_plugin_fx.hpp"
+#if !defined(INCOMPETENT_COMPILER)
+#include <Fx/Quantifier.hpp>
 #include <Fx/AngleNode.hpp>
-#include <Fx/MidiUtil.hpp>
 #include <Fx/TestNode.hpp>
 #include <Fx/VelToNote.hpp>
 #include <Fx/LFO.hpp>
@@ -12,7 +13,8 @@
 #include <Fx/MathGenerator.hpp>
 #include <Fx/MathMapping.hpp>
 #include <Fx/EmptyMapping.hpp>
-
+#include <Fx/MidiUtil.hpp>
+#endif
 #include <score/plugins/customfactory/FactorySetup.hpp>
 
 #include <score_plugin_engine.hpp>
@@ -31,7 +33,7 @@ score_plugin_fx::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {
-#if !defined(_MSC_VER)
+#if !defined(INCOMPETENT_COMPILER)
   return Control::instantiate_fx<
       Nodes::Direction::Node,
       Nodes::PulseToNote::Node,
@@ -48,8 +50,8 @@ score_plugin_fx::factories(
       Nodes::EmptyMidiMapping::Node,
       Nodes::EmptyAudioMapping::Node
       >(ctx, key);
-#else 
-    return {};
+#else
+  return {};
 #endif
 }
 

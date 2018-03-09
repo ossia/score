@@ -26,4 +26,7 @@ add_library(
 
 score_moc_headers(${PROJECT_NAME} "${HDRS}")
 target_link_libraries(score_plugin_fx PUBLIC score_plugin_engine score_plugin_media)
+if(MSVC)
+  target_compile_definitions(score_plugin_fx PRIVATE INCOMPETENT_COMPILER)
+endif()
 setup_score_plugin(score_plugin_fx)
