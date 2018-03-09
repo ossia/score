@@ -125,7 +125,7 @@ public:
 
 
 #if defined(_MSC_VER)
-#define MSVC_CONSTEXPR
+#define MSVC_CONSTEXPR const
 #else
 #define MSVC_CONSTEXPR constexpr
 #endif
