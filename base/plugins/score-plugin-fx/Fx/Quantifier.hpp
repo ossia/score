@@ -2,19 +2,29 @@
 #include <Engine/Node/PdNode.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <random>
+
 namespace Nodes
 {
 namespace Quantifier
 {
 struct Node
 {
-  struct Metadata
+  struct Metadata : Control::Meta_base 
   {
     static const constexpr auto prettyName = "Quantifier";
     static const constexpr auto objectKey = "Quantifier";
     static const constexpr auto category = "Midi";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto uuid = make_uuid("b8e2e5ad-17e4-43de-8d79-660a29d5c4f4");
+    
+    static const constexpr auto midi_ins  = Control::MidiIns<1>{{"in"}};
+    static const constexpr auto midi_outs = Control::MidiOuts<1>{{"out"}};
+    static const constexpr auto controls = std::make_tuple(
+      Control::Widgets::QuantificationChooser(),
+      Control::FloatSlider{"Tightness", 0.f, 1.f, 0.8f},
+      Control::Widgets::DurationChooser(),
+      Control::Widgets::TempoChooser()
+    );
   };
 
   struct Note { uint8_t pitch{}; uint8_t vel{}; uint8_t chan{}; };
@@ -28,17 +38,7 @@ struct Node
     std::vector<NoteIn> to_start;
     std::vector<NoteIn> running_notes;
   };
-
-  static const constexpr auto info =
-      Control::create_node()
-      .midi_ins({{"in"}})
-      .midi_outs({{"out"}})
-      .controls(Control::Widgets::QuantificationChooser(),
-                Control::FloatSlider{"Tightness", 0.f, 1.f, 0.8f},
-                Control::Widgets::DurationChooser(),
-                Control::Widgets::TempoChooser()
-                )
-      .build();
+  
   using control_policy = Control::DefaultTick;
 
   static void run(

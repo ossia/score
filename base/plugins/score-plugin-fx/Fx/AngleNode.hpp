@@ -6,24 +6,22 @@ namespace Direction
 {
 struct Node
 {
-  struct Metadata
+  struct Metadata: Control::Meta_base
   {
     static const constexpr auto prettyName = "Angle mapper";
     static const constexpr auto objectKey = "AngleMapper";
     static const constexpr auto category = "Mappings";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto uuid = make_uuid("9b0e21ba-965a-4aa4-beeb-60cc5128c418");
+    
+    static const constexpr auto value_ins = Control::ValueIns<1>{{"in"}};
+    static const constexpr auto value_outs = Control::ValueOuts<1>{{"out"}}; 
   };
+  
   struct State
   {
     ossia::value prev_value{};
   };
-
-  static const constexpr auto info =
-      Control::create_node()
-      .value_ins({{"in"}})
-      .value_outs({{"out"}})
-      .build();
 
   using control_policy = Control::DefaultTick;
   static void run(

@@ -71,41 +71,41 @@ namespace Control
 
 struct PortSetup
 {
-    template<typename Info, typename T>
+    template<typename Node_T, typename T>
     static void init(T& self)
     {
       auto& ins = self.m_inlets;
       auto& outs = self.m_outlets;
       int inlet = 0;
-      for(const auto& in : get_ports<AudioInInfo>(Info::info))
+      for(const auto& in : get_ports<AudioInInfo, Node_T>{}())
       {
         auto p = new Process::Inlet(Id<Process::Port>(inlet++), &self);
         p->type = Process::PortType::Audio;
         p->setCustomData(in.name);
         ins.push_back(p);
       }
-      for(const auto& in : get_ports<MidiInInfo>(Info::info))
+      for(const auto& in : get_ports<MidiInInfo, Node_T>{}())
       {
         auto p = new Process::Inlet(Id<Process::Port>(inlet++), &self);
         p->type = Process::PortType::Midi;
         p->setCustomData(in.name);
         ins.push_back(p);
       }
-      for(const auto& in : get_ports<ValueInInfo>(Info::info))
+      for(const auto& in : get_ports<ValueInInfo, Node_T>{}())
       {
         auto p = new Process::Inlet(Id<Process::Port>(inlet++), &self);
         p->type = Process::PortType::Message;
         p->setCustomData(in.name);
         ins.push_back(p);
       }
-      for(const auto& in : get_ports<AddressInInfo>(Info::info))
+      for(const auto& in : get_ports<AddressInInfo, Node_T>{}())
       {
         auto p = new Process::Inlet(Id<Process::Port>(inlet++), &self);
         p->type = Process::PortType::Message;
         p->setCustomData(in.name);
         ins.push_back(p);
       }
-      ossia::for_each_in_tuple(get_controls(Info::info),
+      ossia::for_each_in_tuple(get_controls<Node_T>{}(),
                                [&] (const auto& ctrl) {
         if(auto p = ctrl.create_inlet(Id<Process::Port>(inlet++), &self))
         {
@@ -115,7 +115,7 @@ struct PortSetup
       });
 
       int outlet = 0;
-      for(const auto& out : get_ports<AudioOutInfo>(Info::info))
+      for(const auto& out : get_ports<AudioOutInfo, Node_T>{}())
       {
         auto p = new Process::Outlet(Id<Process::Port>(outlet++), &self);
         p->type = Process::PortType::Audio;
@@ -124,14 +124,14 @@ struct PortSetup
           p->setPropagate(true);
         outs.push_back(p);
       }
-      for(const auto& out : get_ports<MidiOutInfo>(Info::info))
+      for(const auto& out : get_ports<MidiOutInfo, Node_T>{}())
       {
         auto p = new Process::Outlet(Id<Process::Port>(outlet++), &self);
         p->type = Process::PortType::Midi;
         p->setCustomData(out.name);
         outs.push_back(p);
       }
-      for(const auto& out : get_ports<ValueOutInfo>(Info::info))
+      for(const auto& out : get_ports<ValueOutInfo, Node_T>{}())
       {
         auto p = new Process::Outlet(Id<Process::Port>(outlet++), &self);
         p->type = Process::PortType::Message;

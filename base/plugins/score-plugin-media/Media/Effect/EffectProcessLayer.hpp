@@ -4,9 +4,6 @@
 #include <Media/Effect/DefaultEffectItem.hpp>
 #include <Media/Effect/EffectProcessModel.hpp>
 #include <Media/Effect/EffectProcessMetadata.hpp>
-#include <Engine/Node/Layer.hpp>
-#include <Engine/Node/Process.hpp>
-#include <Engine/Node/Widgets.hpp>
 #include <Process/LayerView.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
@@ -20,6 +17,7 @@
 #include <Media/Commands/InsertEffect.hpp>
 #include <Effect/EffectFactory.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
+#include <score/widgets/RectItem.hpp>
 #include <QWindow>
 
 namespace Media::Effect

@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/Process.hpp>
-#include <Engine/Node/Layer.hpp>
+#include <Process/Dataflow/Port.hpp>
+#include <score/widgets/RectItem.hpp>
 
 namespace Media::Effect
 {

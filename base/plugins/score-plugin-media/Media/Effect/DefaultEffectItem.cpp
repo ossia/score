@@ -1,5 +1,9 @@
 #include "DefaultEffectItem.hpp"
-
+#include <QGraphicsScene>
+#include <Dataflow/UI/PortItem.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
+#include <Engine/Node/Widgets.hpp>
+#include <Scenario/Document/CommentBlock/TextItem.hpp>
 namespace Media::Effect
 {
 DefaultEffectItem::DefaultEffectItem(

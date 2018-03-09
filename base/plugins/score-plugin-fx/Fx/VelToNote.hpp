@@ -9,34 +9,34 @@ namespace PulseToNote
 {
 struct Node
 {
-  struct Metadata
+  struct Metadata: Control::Meta_base
   {
     static const constexpr auto prettyName = "Pulse to Note";
     static const constexpr auto objectKey = "VelToNote";
     static const constexpr auto category = "Midi";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto uuid = make_uuid("2c6493c3-5449-4e52-ae04-9aee3be5fb6a");
+  
+    static const constexpr auto value_ins  = Control::ValueIns<1>{Control::ValueInInfo{"in", true}};
+    static const constexpr auto midi_outs = Control::MidiOuts<1>{{"out"}};
+    static const constexpr auto controls = 
+        std::make_tuple(
+          Control::Widgets::QuantificationChooser(),
+          Control::FloatSlider{"Tightness", 0.f, 1.f, 0.8f},
+          Control::Widgets::DurationChooser(),
+          Control::Widgets::MidiSpinbox("Default pitch"),
+          Control::Widgets::MidiSpinbox("Default vel."),
+          Control::Widgets::OctaveSlider("Pitch shift", -5, 5),
+          Control::Widgets::OctaveSlider("Pitch random", 0, 2),
+          Control::Widgets::OctaveSlider("Vel. random", 0, 2),
+          Control::Widgets::MidiChannel("Channel"),
+          Control::Widgets::TempoChooser()
+          );
   };
 
   using State = Quantifier::Node::State;
   using Note = Quantifier::Node::Note;
 
-  static const constexpr auto info =
-      Control::create_node()
-      .value_ins({{"in", true}})
-      .midi_outs({{"out"}})
-      .controls(Control::Widgets::QuantificationChooser(),
-                Control::FloatSlider{"Tightness", 0.f, 1.f, 0.8f},
-                Control::Widgets::DurationChooser(),
-                Control::Widgets::MidiSpinbox("Default pitch"),
-                Control::Widgets::MidiSpinbox("Default vel."),
-                Control::Widgets::OctaveSlider("Pitch shift", -5, 5),
-                Control::Widgets::OctaveSlider("Pitch random", 0, 2),
-                Control::Widgets::OctaveSlider("Vel. random", 0, 2),
-                Control::Widgets::MidiChannel("Channel"),
-                Control::Widgets::TempoChooser()
-                )
-      .build();
   using control_policy = Control::DefaultTick;
   struct val_visitor
   {
