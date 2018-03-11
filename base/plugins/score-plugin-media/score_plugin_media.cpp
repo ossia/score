@@ -12,6 +12,7 @@
 #include <Media/Effect/EffectProcessFactory.hpp>
 #include <Media/Effect/Inspector/EffectInspector.hpp>
 #include <Media/Effect/EffectExecutor.hpp>
+#include <Media/Effect/Settings/Factory.hpp>
 #include <Media/Sound/SoundComponent.hpp>
 #include <Media/Step/Factory.hpp>
 #include <Media/Step/Executor.hpp>
@@ -35,6 +36,7 @@
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <score_plugin_media_commands_files.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 
 namespace Media::VST { }
 
@@ -133,6 +135,8 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
         FW<Scenario::DropHandler,
             Media::Sound::DropHandler>,
         FW<Scenario::IntervalDropHandler,
-            Media::Sound::IntervalDropHandler>
+            Media::Sound::IntervalDropHandler>,
+        FW<score::SettingsDelegateFactory
+          , Media::Settings::Factory>
     >(ctx, key);
 }

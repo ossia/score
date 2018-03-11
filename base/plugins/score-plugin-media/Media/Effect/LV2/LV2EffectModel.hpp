@@ -7,8 +7,6 @@
 #include <Media/Effect/DefaultEffectItem.hpp>
 #include <Media/Effect/EffectExecutor.hpp>
 #include <Process/GenericProcessFactory.hpp>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
-#include <Media/ApplicationPlugin.hpp>
 #include <QInputDialog>
 
 namespace Media::LV2
@@ -67,27 +65,7 @@ class LV2EffectModel :
 namespace Process
 {
 template<>
-inline QString EffectProcessFactory_T<Media::LV2::LV2EffectModel>::customConstructionData() const
-{
-  auto& world = score::AppComponents().applicationPlugin<Media::ApplicationPlugin>().lilv;
-
-  auto plugs = world.get_all_plugins();
-
-  QStringList items;
-
-  auto it = plugs.begin();
-  while(!plugs.is_end(it))
-  {
-    auto plug = plugs.get(it);
-    items.push_back(plug.get_name().as_string());
-    it = plugs.next(it);
-  }
-
-  return QInputDialog::getItem(
-               nullptr,
-               QObject::tr("Select a plug-in"), QObject::tr("Select a LV2 plug-in"),
-               items, 0, false);
-}
+QString EffectProcessFactory_T<Media::LV2::LV2EffectModel>::customConstructionData() const;
 }
 
 namespace Media::LV2

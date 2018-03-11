@@ -14,14 +14,14 @@ namespace Control
 {
 struct Meta_base
 {
-    static const constexpr Control::dummy_container<Control::ValueInInfo> value_ins;
-    static const constexpr Control::dummy_container<Control::ValueOutInfo> value_outs;
-    static const constexpr Control::dummy_container<Control::AudioInInfo> audio_ins;
-    static const constexpr Control::dummy_container<Control::AudioOutInfo> audio_outs;
-    static const constexpr Control::dummy_container<Control::MidiInInfo> midi_ins;
-    static const constexpr Control::dummy_container<Control::MidiOutInfo> midi_outs;
-    static const constexpr Control::dummy_container<Control::AddressInInfo> address_ins;
-    static const constexpr std::tuple<> controls;
+    static const constexpr Control::dummy_container<Control::ValueInInfo> value_ins{};
+    static const constexpr Control::dummy_container<Control::ValueOutInfo> value_outs{};
+    static const constexpr Control::dummy_container<Control::AudioInInfo> audio_ins{};
+    static const constexpr Control::dummy_container<Control::AudioOutInfo> audio_outs{};
+    static const constexpr Control::dummy_container<Control::MidiInInfo> midi_ins{};
+    static const constexpr Control::dummy_container<Control::MidiOutInfo> midi_outs{};
+    static const constexpr Control::dummy_container<Control::AddressInInfo> address_ins{};
+    static const constexpr std::tuple<> controls{};
 };
 template<typename Node>
 using ProcessFactory = Process::ProcessFactory_T<ControlProcess<Node>>;

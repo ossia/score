@@ -47,6 +47,10 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Inspector/EffectInspector.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectExecutor.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/DefaultEffectItem.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/Model.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/Presenter.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/View.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/Factory.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Commands.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Metadata.hpp"
@@ -88,6 +92,9 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Inspector/EffectInspector.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectExecutor.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/DefaultEffectItem.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/Model.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/Presenter.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/View.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Executor.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Model.cpp"

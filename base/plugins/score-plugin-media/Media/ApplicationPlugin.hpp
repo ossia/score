@@ -22,7 +22,8 @@ class ApplicationPlugin : public QObject, public score::ApplicationPlugin
         Q_OBJECT
     public:
         ApplicationPlugin(const score::ApplicationContext& app);
-        ~ApplicationPlugin();
+        void initialize() override;
+        ~ApplicationPlugin() override;
 
 #if defined(LILV_SHARED) // TODO instead add a proper preprocessor macro that also works in static case
     public:
@@ -33,7 +34,16 @@ class ApplicationPlugin : public QObject, public score::ApplicationPlugin
 
 #if defined(HAS_VST2)
   public:
-        std::unordered_map<std::string, Media::VST::VSTModule*> vst_modules;
+        void rescanVSTs(const QStringList& );
+        struct vst_info
+        {
+            QString path;
+            QString prettyName;
+            int32_t uniqueID{};
+            bool isSynth{};
+        };
+        std::vector<vst_info> vst_infos;
+        std::unordered_map<int32_t, Media::VST::VSTModule*> vst_modules;
 #endif
 };
 

@@ -227,10 +227,10 @@ struct apply_control<false, N>
   }
 
   /////////////////
-  
+
   template<typename T1, typename T3, typename Seq1, typename Seq3>
   struct forwarder;
-  
+
   template<typename T1, typename T3, std::size_t... N1, std::size_t... N3>
   struct forwarder<T1, T3, std::index_sequence<N1...>, std::index_sequence<N3...>>
   {
@@ -247,14 +247,14 @@ struct apply_control<false, N>
               std::forward<Args>(args)...,
               std::get<N3>(std::forward<T3>(a3))...,
               sub_prev_date, sub_tk, st);
-        
+
       }
-      
+
   };
-  
+
   template<typename T1, typename T3, typename State, typename Seq1, typename Seq3>
   struct forwarder_state;
-  
+
   template<typename T1, typename T3, typename State, std::size_t... N1, std::size_t... N3>
   struct forwarder_state<T1, T3, State, std::index_sequence<N1...>, std::index_sequence<N3...>>
   {
@@ -272,9 +272,9 @@ struct apply_control<false, N>
               std::forward<Args>(args)...,
               std::get<N3>(std::forward<T3>(a3))...,
               sub_prev_date, sub_tk, st, s);
-        
+
       }
-      
+
   };
   // Expand three tuples and apply a function on the control tuple
   template<typename F, typename T1, typename T2, typename T3, std::size_t... N1, std::size_t... N2, std::size_t... N3>
@@ -288,7 +288,7 @@ struct apply_control<false, N>
   {
     f(forwarder<T1, T3, std::index_sequence<N1...>, std::index_sequence<N3...>>{a1, a3, st}, prev_date, tk, std::get<N2>(std::forward<T2>(a2))...);
   }
-  
+
   // Expand three tuples and apply a function on the control tuple
   template<typename F, typename T1, typename T2, typename T3, std::size_t... N1, std::size_t... N2, std::size_t... N3, typename State>
   static constexpr auto invoke_impl(F&& f, T1&& a1, T2&& a2, T3&& a3,
@@ -432,7 +432,7 @@ struct setup_Impl0
     const Engine::Execution::Context& ctx;
     const std::shared_ptr<Node_T>& node_ptr;
     QObject* parent;
-    
+
     template<typename Idx_T>
     struct con_validated
     {
@@ -451,11 +451,11 @@ struct setup_Impl0
             if (auto v = ctrl.fromValue(val))
               ctx.executionQueue.enqueue(
                     control_updater<control_value_type>{std::get<idx>(node->controls), std::move(*v)});
-          }     
+          }
         }
     };
 
-    
+
     template<typename Idx_T>
     struct con_unvalidated
     {
@@ -475,41 +475,40 @@ struct setup_Impl0
                   control_updater<control_value_type>{
                     std::get<idx>(node->controls),
                     ctrl.fromValue(val)});
-          }          
+          }
         }
     };
-    
+
     template<typename T>
-    void operator()(T) 
+    void operator()(T)
     {
       using Info = Info_T;
       constexpr int idx = T::value;
-      
+
       constexpr const auto ctrl = std::get<idx>(get_controls<Info_T>{}());
       constexpr const auto control_start = InfoFunctions<Info>::control_start;
       using control_type = typename std::tuple_element<idx, decltype(get_controls<Info_T>{}())>::type;
-      using control_value_type = typename control_type::type;
       auto inlet = static_cast<Process::ControlInlet*>(element.inlets()[control_start + idx]);
-      
+
       auto& node = *node_ptr;
       std::weak_ptr<Node_T> weak_node = node_ptr;
-      
+
       if constexpr(control_type::must_validate)
       {
         if (auto res = ctrl.fromValue(element.control(idx)))
           std::get<idx>(node.controls) = *res;
-        
+
         QObject::connect(inlet, &Process::ControlInlet::valueChanged,
                          parent, con_validated<T>{ctx, weak_node});
       }
       else
       {
         std::get<idx>(node.controls) = ctrl.fromValue(element.control(idx));
-        
+
         QObject::connect(inlet, &Process::ControlInlet::valueChanged,
                          parent, con_unvalidated<T>{ctx, weak_node});
       }
-      
+
     }
 };
 
@@ -518,13 +517,13 @@ struct setup_Impl1
 {
     typename Node_T::controls_values_type& arr;
     Element& element;
-    
+
     template<typename T>
     void operator()(T) {
       constexpr const auto ctrl = std::get<T::value>(get_controls<Info>{}());
-      
+
       element.setControl(T::value, ctrl.toValue(std::get<T::value>(arr)));
-    }  
+    }
 };
 
 template<typename Info, typename Node_T, typename Element_T>
@@ -534,16 +533,16 @@ void setup_node(const std::shared_ptr<Node_T>& node_ptr
                  , QObject* parent)
 {
   constexpr const auto control_count = InfoFunctions<Info>::control_count;
-  
+
+  (void) parent;
   if constexpr(control_count > 0)
   {
     // Initialize all the controls in the node with the current value.
     //
     // And update the node when the UI changes
     ossia::for_each_in_range<control_count>(setup_Impl0<Info, Node_T, Element_T>{element, ctx, node_ptr, parent});
-    
+
     // Update the value in the UI
-    auto& node = *node_ptr;
     std::weak_ptr<Node_T> weak_node = node_ptr;
     con(ctx.doc.coarseUpdateTimer, &QTimer::timeout,
         parent, [weak_node,&element] {
@@ -558,9 +557,9 @@ void setup_node(const std::shared_ptr<Node_T>& node_ptr
         if(ok)
         {
           constexpr const auto control_count = InfoFunctions<Info>::control_count;
-          
+
           ossia::for_each_in_range<control_count>(setup_Impl1<Info, Element_T, Node_T>{arr, element});
-          
+
         }
       }
     }, Qt::QueuedConnection);

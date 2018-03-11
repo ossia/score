@@ -7,7 +7,7 @@
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Media/Effect/VST/VSTLoader.hpp>
 #include <Process/GenericProcessFactory.hpp>
-
+#include <QStringLiteral>
 #include <QFileDialog>
 #include <QJsonDocument>
 namespace Media::VST
@@ -85,11 +85,6 @@ class VSTEffectModel final :
       vis.writeTo(*this);
     }
 
-    const QString& effect() const
-    { return m_effectPath; }
-
-    void setEffect(const QString& s)
-    { m_effectPath = s; }
     VSTControlInlet* getControl(const Id<Process::Port>& p);
     QString prettyName() const override;
 
@@ -112,7 +107,7 @@ class VSTEffectModel final :
     void init();
     void create();
     void load();
-    QString m_effectPath;
+    int32_t m_effectId{};
 
     auto dispatch(int32_t opcode, int32_t index = 0, intptr_t value = 0, void *ptr = nullptr, float opt = 0.0f)
     {
@@ -120,29 +115,32 @@ class VSTEffectModel final :
     }
 
     void closePlugin();
-    void initFx(VSTModule& plugin);
+    void initFx();
 };
 
+//VSTModule* getPlugin(QString path);
+AEffect* getPluginInstance(int32_t id);
+intptr_t vst_host_callback (AEffect* effect, int32_t opcode, int32_t index, intptr_t value, void* ptr, float opt);
+
+#if defined(__APPLE__)
+  static const constexpr auto default_path = "/Library/Audio/Plug-Ins/VST";
+  static const constexpr auto default_filter = "*.vst *.dylib *.component";
+#elif defined(__linux__)
+  static const constexpr auto default_path{"/usr/lib/vst"};
+  static const constexpr auto default_filter = "*.so";
+#elif defined(_WIN32)
+  static const constexpr auto default_path = "c:\\vst";
+  static const constexpr auto default_filter = "*.dll";
+#else
+static const constexpr auto default_path = "";
+static const constexpr auto default_filter = "";
+#endif
 }
 
 namespace Process
 {
 template<>
-inline QString EffectProcessFactory_T<Media::VST::VSTEffectModel>::customConstructionData() const
-{
-  QString defaultPath;
-#if defined(__APPLE__)
-  defaultPath = "/Library/Audio/Plug-Ins/VST";
-#elif defined(__linux__)
-  defaultPath = "/usr/lib/vst";
-#endif
-  auto res = QFileDialog::getOpenFileName(
-               nullptr,
-               QObject::tr("Select a VST plug-in"), defaultPath,
-               "VST (*.dll *.so *.vst *.dylib *.component)", nullptr, QFileDialog::DontResolveSymlinks);
-
-  return res;
-}
+QString EffectProcessFactory_T<Media::VST::VSTEffectModel>::customConstructionData() const;
 }
 
 namespace Media::VST {
