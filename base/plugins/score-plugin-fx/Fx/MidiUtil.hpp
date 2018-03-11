@@ -8,11 +8,11 @@ enum scale: int8_t
 {
   all,
   ionian, dorian, phyrgian, lydian, mixolydian, aeolian, locrian,
-
+  
   I, II, III, IV, V, VI, VII,
   custom,
-
-
+  
+  
   SCALES_MAX // always at end, used for counting
 };
 
@@ -57,7 +57,7 @@ constexpr scales_array make_scale(std::initializer_list<bool> notes)
       }
     }
   }
-
+  
   for(std::size_t octave = 1; octave < 12; octave++)
   {
     r[octave] = r[0];
@@ -88,7 +88,7 @@ constexpr int get_scale(QLatin1String s)
 }
 static MSVC_CONSTEXPR frozen::unordered_map<int, scales_array, scale::SCALES_MAX-1> scales{
   //                                C   D   E F   G   A   B
-    { scale::all,        make_scale({ 1,1,1,1,1,1,1,1,1,1,1,1 })}
+  { scale::all,        make_scale({ 1,1,1,1,1,1,1,1,1,1,1,1 })}
   , { scale::ionian,     make_scale({ 1,0,1,0,1,1,0,1,0,1,0,1 })}
   , { scale::dorian,     make_scale({ 1,0,1,1,0,1,0,1,0,1,1,0 })}
   , { scale::phyrgian,   make_scale({ 1,1,0,1,0,1,0,1,1,0,1,0 })}
@@ -110,7 +110,7 @@ optional<std::size_t> find_closest_index(const scale_array& arr, std::size_t i)
 {
   if(arr[i] == 1)
     return i;
-
+  
   switch(i)
   {
     case 0:
@@ -121,7 +121,7 @@ optional<std::size_t> find_closest_index(const scale_array& arr, std::size_t i)
           return i;
       }
       break;
-
+      
     case 12:
       while(i != 0)
       {
@@ -130,7 +130,7 @@ optional<std::size_t> find_closest_index(const scale_array& arr, std::size_t i)
           return i;
       }
       break;
-
+      
     default:
     {
       std::size_t r = 0;
@@ -142,44 +142,43 @@ optional<std::size_t> find_closest_index(const scale_array& arr, std::size_t i)
           return i - r;
         r++;
       }
-
+      
       break;
     }
   }
-
+  
   return ossia::none;
 }
 
 struct Node
 {
-    struct Metadata
+    struct Metadata: Control::Meta_base
     {
         static const constexpr auto prettyName = "Midi scale";
         static const constexpr auto objectKey = "MidiScale";
         static const constexpr auto category = "Midi";
         static const constexpr auto tags = std::array<const char*, 0>{};
         static const constexpr auto uuid = make_uuid("06b33b83-bb67-4f7a-9980-f5d66e4266c5");
+        
+        
+        static const constexpr auto midi_ins  = Control::MidiIns<1>{{"in"}};
+        static const constexpr auto midi_outs = Control::MidiOuts<1>{{"out"}};
+        static const constexpr auto controls = 
+            std::make_tuple(
+              Control::make_unvalidated_enum(
+                "Scale",
+                0U,
+                Control::array("all", "ionian", "dorian", "phyrgian", "lydian", "mixolydian", "aeolian", "locrian",
+                               "I", "II", "III", "IV", "V", "VI", "VII")),
+              Control::Widgets::OctaveSlider("Base", 0, 1),
+              Control::Widgets::OctaveSlider("Transpose", -4, 4));
     };
-
+    
     struct State
     {
-      boost::container::flat_map<uint8_t, uint8_t> map;
+        boost::container::flat_map<uint8_t, uint8_t> map;
     };
-
-    static const constexpr auto info =
-        Control::create_node()
-        .midi_ins({{"in"}})
-        .midi_outs({{"out"}})
-        .controls(Control::make_unvalidated_enum(
-                    "Scale",
-                    0U,
-                    Control::array("all", "ionian", "dorian", "phyrgian", "lydian", "mixolydian", "aeolian", "locrian",
-                                   "I", "II", "III", "IV", "V", "VI", "VII")),
-                  Control::Widgets::OctaveSlider("Base", 0, 1),
-                  Control::Widgets::OctaveSlider("Transpose", -4, 4)
-                  )
-        .build();
-
+    
     static void exec(
         const ossia::midi_port& midi_in,
         const scale_array& scale,
@@ -248,7 +247,7 @@ struct Node
         State& self)
     {
       QLatin1String scale{sc.rbegin()->second.data(), (int)sc.rbegin()->second.size()};
-
+      
       const auto cur_scale = get_scale(scale);
       if(cur_scale != scale::custom)
       {

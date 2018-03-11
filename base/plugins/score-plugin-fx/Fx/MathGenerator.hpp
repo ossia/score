@@ -26,13 +26,21 @@ namespace MathGenerator
 {
 struct Node
 {
-    struct Metadata
+    struct Metadata: Control::Meta_base
     {
         static const constexpr auto prettyName = "Value Generator";
         static const constexpr auto objectKey = "MathGenerator";
         static const constexpr auto category = "Control";
         static const constexpr auto tags = std::array<const char*, 0>{};
         static const constexpr auto uuid = make_uuid("d757bd0d-c0a1-4aec-bf72-945b722ab85b");
+        
+        static const constexpr auto value_outs = Control::ValueOuts<1>{{"out"}};         
+        
+        static const constexpr auto controls = 
+            std::make_tuple(Control::LineEdit("Expression (ExprTK)", "cos(t) + log(pos * 1 / dt)")
+                            , Control::FloatSlider("Param (a)", 0., 1., 0.5)
+                            , Control::FloatSlider("Param (b)", 0., 1., 0.5)
+                            , Control::FloatSlider("Param (c)", 0., 1., 0.5));
     };
     struct State
     {
@@ -58,15 +66,6 @@ struct Node
         std::string cur_expr_txt;
         bool ok = false;
     };
-
-    static const constexpr auto info =
-            Control::create_node()
-            .value_outs({{"out"}})
-            .controls(Control::LineEdit("Expression (ExprTK)", "cos(t) + log(pos * 1 / dt)")
-                      , Control::FloatSlider("Param (a)", 0., 1., 0.5)
-                      , Control::FloatSlider("Param (b)", 0., 1., 0.5)
-                      , Control::FloatSlider("Param (c)", 0., 1., 0.5))
-            .build();
 
     using control_policy = Control::LastTick;
     static void run(
@@ -99,13 +98,22 @@ namespace MathAudioGenerator
 {
 struct Node
 {
-    struct Metadata
+    struct Metadata: Control::Meta_base
     {
         static const constexpr auto prettyName = "Audio Generator";
         static const constexpr auto objectKey = "MathAudioGenerator";
         static const constexpr auto category = "Audio";
         static const constexpr auto tags = std::array<const char*, 0>{};
         static const constexpr auto uuid = make_uuid("eae294b3-afeb-4fba-bbe4-337998d3748a");
+        
+        static const constexpr auto audio_outs = Control::AudioOuts<1>{{"out"}};         
+        
+        static const constexpr auto controls = 
+            std::make_tuple(Control::LineEdit("Expression (ExprTK)", "a * cos( 2 * pi * t * b / fs )")
+                            , Control::FloatSlider("Param (a)", 0., 1., 0.5)
+                            , Control::FloatSlider("Param (b)", 0., 1., 0.5)
+                            , Control::FloatSlider("Param (c)", 0., 1., 0.5)
+                            );
     };
 
     struct State
@@ -130,16 +138,6 @@ struct Node
         std::string cur_expr_txt;
         bool ok = false;
     };
-
-    static const constexpr auto info =
-            Control::create_node()
-            .audio_outs({{"out"}})
-            .controls(Control::LineEdit("Expression (ExprTK)", "a * cos( 2 * pi * t * b / fs )")
-                      , Control::FloatSlider("Param (a)", 0., 1., 0.5)
-                      , Control::FloatSlider("Param (b)", 0., 1., 0.5)
-                      , Control::FloatSlider("Param (c)", 0., 1., 0.5)
-                      )
-            .build();
 
     using control_policy = Control::LastTick;
     static void run(

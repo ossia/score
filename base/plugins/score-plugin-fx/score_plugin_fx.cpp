@@ -5,7 +5,6 @@
 #include <Fx/Quantifier.hpp>
 #include <Fx/Chord.hpp>
 #include <Fx/VelToNote.hpp>
-#if !defined(INCOMPETENT_COMPILER)
 #include <Fx/TestNode.hpp>
 #include <Fx/LFO.hpp>
 #include <Fx/Metro.hpp>
@@ -14,7 +13,6 @@
 #include <Fx/MathMapping.hpp>
 #include <Fx/EmptyMapping.hpp>
 #include <Fx/MidiUtil.hpp>
-#endif
 #include <score/plugins/customfactory/FactorySetup.hpp>
 
 #include <score_plugin_engine.hpp>
@@ -37,9 +35,8 @@ score_plugin_fx::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {
-#if !defined(INCOMPETENT_COMPILER)
   return Control::instantiate_fx<
-      Nodes::PulseToNote::Node
+      Nodes::PulseToNote::Node,
       Nodes::LFO::Node, 
       Nodes::Chord::Node, 
       Nodes::MidiUtil::Node,
@@ -53,15 +50,6 @@ score_plugin_fx::factories(
       Nodes::EmptyMidiMapping::Node,
       Nodes::EmptyAudioMapping::Node
       >(ctx, key);
-#else
-  
-  return Control::instantiate_fx<
-      Nodes::PulseToNote::Node,
-      Nodes::Direction::Node,
-      Nodes::Chord::Node,
-      Nodes::Quantifier::Node
-      >(ctx, key);
-#endif
 }
 
 auto score_plugin_fx::required() const
