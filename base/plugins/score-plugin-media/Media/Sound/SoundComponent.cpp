@@ -6,7 +6,6 @@
 #include <Media/Effect/LV2/LV2EffectModel.hpp>
 #include <Media/Effect/LV2/LV2Node.hpp>
 #endif
-#include <Media/ApplicationPlugin.hpp>
 
 #if defined(HAS_VST2)
 #include <Media/Effect/VST/VSTEffectModel.hpp>

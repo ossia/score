@@ -5,6 +5,7 @@
 #include <Scenario/Document/CommentBlock/TextItem.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <QDialog>
+#include <Dataflow/UI/PortItem.hpp>
 
 namespace Media::VST
 {
@@ -58,6 +59,7 @@ class VSTGraphicsSlider final
     , public QGraphicsItem
 {
     Q_OBJECT
+    Q_INTERFACES(QGraphicsItem)
 
     double m_value{};
     QRectF m_rect;

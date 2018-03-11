@@ -25,6 +25,26 @@
 #include <cmath>
 #include <unordered_map>
 
+#include <QInputDialog>
+namespace Process
+{
+template<>
+QString EffectProcessFactory_T<Media::VST::VSTEffectModel>::customConstructionData() const
+{
+  auto& app = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
+  QStringList vsts; vsts.reserve(app.vst_infos.size());
+  QMap<QString, int32_t> ids;
+  for(auto& i : app.vst_infos)
+  {
+    vsts.push_back(i.prettyName);
+    ids.insert(i.prettyName, i.uniqueID);
+  }
+  auto res = QInputDialog::getItem(nullptr, QObject::tr("Select a VST plug-in"), QObject::tr("VST plug-in"), vsts);
+  if(res != -1)
+    return QString::number(ids[res]);
+  return {};
+}
+}
 namespace Media::VST
 {
 VSTEffectModel::VSTEffectModel(
@@ -33,7 +53,7 @@ VSTEffectModel::VSTEffectModel(
     const Id<Process::ProcessModel>& id,
     QObject* parent):
   ProcessModel{t, id, "VST", parent},
-  m_effectPath{path}
+  m_effectId{path.toInt()}
 {
   init();
   create();
@@ -153,7 +173,7 @@ QString VSTEffectModel::getString(AEffectOpcodes op, int param)
   return QString::fromUtf8(paramName);
 }
 
-static auto HostCallback (AEffect* effect, int32_t opcode, int32_t index, intptr_t value, void* ptr, float opt)
+intptr_t vst_host_callback (AEffect* effect, int32_t opcode, int32_t index, intptr_t value, void* ptr, float opt)
 {
   intptr_t result = 0;
 
@@ -289,49 +309,99 @@ void VSTEffectModel::closePlugin()
   metadata().setLabel("Dead VST");
 }
 
+AEffect* getPluginInstance(int32_t id)
+{
+  auto& app = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
+
+  auto info_it = ossia::find_if(
+              app.vst_infos,
+              [&] (const Media::ApplicationPlugin::vst_info& i) {
+    return i.uniqueID == id;
+  });
+  if(info_it != app.vst_infos.end())
+  {
+    auto it = app.vst_modules.find(info_it->uniqueID);
+    if(it != app.vst_modules.end())
+    {
+      if (auto m = it->second->getMain())
+      {
+        return m(vst_host_callback);
+      }
+    }
+    else
+    {
+      auto plugin = new Media::VST::VSTModule{info_it->path.toStdString()};
+
+      if (auto m = plugin->getMain())
+      {
+        if (auto p = (AEffect*)m(Media::VST::vst_host_callback))
+        {
+          app.vst_modules.insert({p->uniqueID, plugin});
+          return p;
+        }
+      }
+
+      delete plugin;
+    }
+  }
+
+  return nullptr;
+}
+/*
 VSTModule* getPlugin(QString path)
 {
   auto path_std = path.toStdString();
   VSTModule* plugin;
   auto& app = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
-  auto it = app.vst_modules.find(path_std);
-  if(it == app.vst_modules.end())
   {
-    if(path.isEmpty())
-      return nullptr;
-
-    bool isFile = QFile(QUrl(path).toString(QUrl::PreferLocalFile)).exists();
-    if(!isFile)
+    auto info_it = ossia::find_if(
+                app.vst_infos,
+                [&] (const Media::ApplicationPlugin::vst_info& i) {
+      return i.path == path;
+    });
+    if(info_it != app.vst_infos.end())
     {
-      qDebug() << "Invalid path: " << path;
-      return nullptr;
-    }
+      auto it = app.vst_modules.find(info_it->uniqueID);
 
-    try {
-      plugin = new VSTModule{path_std};
-      app.vst_modules.insert({std::move(path_std), plugin});
-    } catch(const std::runtime_error& e) {
-      qDebug() << e.what();
-      return nullptr;
+    }
+    else
+    {
+      auto it = app.vst_modules.find(info_it->uniqueID);
+      if(it == app.vst_modules.end())
+      {
+        if(path.isEmpty())
+          return nullptr;
+
+        bool isFile = QFile(QUrl(path).toString(QUrl::PreferLocalFile)).exists();
+        if(!isFile)
+        {
+          qDebug() << "Invalid path: " << path;
+          return nullptr;
+        }
+
+        try {
+          plugin = new VSTModule{path_std};
+          app.vst_modules.insert({std::move(path_std), plugin});
+        } catch(const std::runtime_error& e) {
+          qDebug() << e.what();
+          return nullptr;
+        }
+      }
+      else
+      {
+        plugin = it->second;
+      }
+
+
     }
   }
-  else
-  {
-    plugin = it->second;
-  }
-
   return plugin;
 }
+      */
 
-void VSTEffectModel::initFx(VSTModule& plugin)
+void VSTEffectModel::initFx()
 {
-  auto main = plugin.getMain();
-  if(!main) {
-    qDebug() << "plugin has no main";
-    return;
-  }
-
-  fx = std::make_shared<AEffectWrapper>(main(HostCallback));
+  fx = std::make_shared<AEffectWrapper>(getPluginInstance(m_effectId));
   if(!fx->fx)
   {
     qDebug() << "plugin was not created";
@@ -343,25 +413,17 @@ void VSTEffectModel::initFx(VSTModule& plugin)
 
   dispatch(effOpen);
 
-  {
-    char buf[256] = {0};
-    dispatch(effGetProductString, 0, 0, buf);
-    QString s = buf;
-    if(!s.isEmpty())
-      metadata().setLabel(s);
-    else
-      metadata().setLabel(QFileInfo(m_effectPath).baseName());
-  }
+  auto& app = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
+  auto it = ossia::find_if(app.vst_infos, [=] (auto& i) { return i.uniqueID == fx->fx->uniqueID; });
+  SCORE_ASSERT(it != app.vst_infos.end());
+  metadata().setLabel(it->prettyName);
 }
 
 void VSTEffectModel::create()
 {
   SCORE_ASSERT(!fx);
-  VSTModule* plugin = getPlugin(m_effectPath);
-  if(!plugin)
-    return;
 
-  initFx(*plugin);
+  initFx();
   if(!fx)
     return;
 
@@ -413,11 +475,7 @@ void VSTEffectModel::create()
 void VSTEffectModel::load()
 {
   SCORE_ASSERT(!fx);
-  VSTModule* plugin = getPlugin(m_effectPath);
-  if(!plugin)
-    return;
-
-  initFx(*plugin);
+  initFx();
   if(!fx)
     return;
 
@@ -441,7 +499,7 @@ void DataStreamReader::read(
     const Media::VST::VSTEffectModel& eff)
 {
   readPorts(*this, eff.m_inlets, eff.m_outlets);
-  m_stream << eff.effect();
+  m_stream << eff.m_effectId;
 
   // TODO save & reload program parameters
   insertDelimiter();
@@ -453,7 +511,7 @@ void DataStreamWriter::write(
 {
   writePorts(*this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
 
-  m_stream >> eff.m_effectPath;
+  m_stream >> eff.m_effectId;
   // TODO save & reload program parameters
   eff.load();
   checkDelimiter();
@@ -464,7 +522,7 @@ void JSONObjectReader::read(
     const Media::VST::VSTEffectModel& eff)
 {
   readPorts(obj, eff.m_inlets, eff.m_outlets);
-  obj["Effect"] = eff.effect();
+  obj["EffectId"] = eff.m_effectId;
 
   if(eff.fx)
   {
@@ -494,7 +552,25 @@ void JSONObjectWriter::write(
 {
   writePorts(obj, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
 
-  eff.m_effectPath = obj["Effect"].toString();
+  auto it = obj.find("EffectId");
+  if(it != obj.end())
+  {
+    eff.m_effectId = it->toInt();
+  }
+  else
+  {
+    auto str = obj["Effect"].toString();
+
+    auto& app = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
+    auto it = ossia::find_if(app.vst_infos, [&] (const auto& i) {
+      return i.path == str;
+    });
+    if(it != app.vst_infos.end())
+    {
+      eff.m_effectId = it->uniqueID;
+    }
+  }
+
   eff.load();
   QPointer<Media::VST::VSTEffectModel> ptr = &eff;
   QTimer::singleShot(1000, [obj=this->obj,ptr] {
@@ -556,3 +632,4 @@ void JSONObjectWriter::write<Media::VST::VSTControlInlet>(Media::VST::VSTControl
 {
   p.fxNum = obj["FxNum"].toInt();
 }
+
