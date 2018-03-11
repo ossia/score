@@ -82,11 +82,29 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
 {
   // 1. List all plug-ins in new paths
   QSet<QString> newPlugins;
-  for(auto dir : paths)
+  for(QString dir : paths)
   {
+#if defined(__APPLE__)
+    {
+      QDirIterator it(dir, QStringList{"*.vst", "*.component"}, QDir::AllEntries, QDirIterator::Subdirectories);
+
+      while (it.hasNext())
+        newPlugins.insert(it.next());
+    }
+    {
+      QDirIterator it(dir, QStringList{"*.dylib"}, QDir::Files, QDirIterator::Subdirectories);
+      while (it.hasNext())
+      {
+        auto path = it.next();
+        if(!path.contains(".vst") && !path.contains(".component"))
+          newPlugins.insert(path);
+      }
+    }
+#else
     QDirIterator it(dir, QStringList{Media::VST::default_filter}, QDir::Files, QDirIterator::Subdirectories);
     while (it.hasNext())
       newPlugins.insert(it.next());
+#endif
   }
 
 
@@ -137,13 +155,34 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
           i.path = path;
           i.uniqueID = p->uniqueID;
           {
+            /*
             char buf[256] = {0};
-            p->dispatcher(p, effGetProductString, 0, 0, buf, 0.f);
+            p->dispatcher(p, effGetEffectName, 0, 0, buf, 0.f);
             QString s = buf;
+            qDebug() << path;
+            qDebug() << "effGetEffectName: " << s;
+
+            p->dispatcher(p, effGetProductString, 0, 0, buf, 0.f);
+            s = buf;
+            qDebug() << "effGetProductString: " << s;
+
+            p->dispatcher(p, effGetVstVersion, 0, 0, buf, 0.f);
+            s = buf;
+            qDebug() << "effGetProductString: " << s;
+
+            p->dispatcher(p, effGetVendorString, 0, 0, buf, 0.f);
+            s = buf;
+            qDebug() << "effGetVendorString: " << s;
+
+            p->dispatcher(p, effGetVendorVersion, 0, 0, buf, 0.f);
+            s = buf;
+            qDebug() << "effGetVendorVersion: " << s;
             if(!s.isEmpty())
               i.prettyName = s;
             else
-              i.prettyName = QFileInfo(path).baseName();
+            */
+            // Only way to get a separation between Kontakt 5 / Kontakt 5 (8 out) / Kontakt 5 (16 out),  etc...
+            i.prettyName = QFileInfo(path).baseName();
           }
 
           i.isSynth = p->flags & effFlagsIsSynth;
