@@ -7,20 +7,18 @@ namespace Envelope
 {
 struct Node
 {
-  struct Metadata
+  struct Metadata: Control::Meta_base
   {
     static const constexpr auto prettyName = "Envelope";
     static const constexpr auto objectKey = "Envelope";
     static const constexpr auto category = "Audio";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto uuid = make_uuid("95F44151-13EF-4537-8189-0CC243341269");
+    
+    static const constexpr auto audio_ins  = Control::AudioIns<1>{{"in"}};
+    static const constexpr auto value_outs = Control::ValueOuts<2>{Control::ValueOutInfo{"rms"}, Control::ValueOutInfo{"peak"}};
   };
 
-  static const constexpr auto info =
-      Control::create_node()
-      .audio_ins({{"audio"}})
-      .value_outs({{"rms"}, {"peak"}})
-      .build();
   using control_policy = Control::DefaultTick;
   static auto get(const ossia::audio_channel& chan)
   {

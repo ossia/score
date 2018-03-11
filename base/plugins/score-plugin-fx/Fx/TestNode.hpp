@@ -1,11 +1,11 @@
 #pragma once
 #include <Engine/Node/PdNode.hpp>
 
+/*
 namespace Control
 {
 static inline constexpr void test_nodes()
 {
-  /*
   constexpr NodeBuilder<> n{};
   constexpr auto res =
   n.audio_ins({{"foo"}, {"bar"}})
@@ -34,7 +34,7 @@ static inline constexpr void test_nodes()
   constexpr auto ports = get_ports<AudioOutInfo>(bld.v);
   constexpr auto port = ports[0];
   constexpr auto name = port.name;
-  static_assert(name[0] == 'm');*/
+  static_assert(name[0] == 'm');
 }
 }
 
@@ -79,4 +79,4 @@ struct SomeInfo
   {
   }
 };
-}
+}*/

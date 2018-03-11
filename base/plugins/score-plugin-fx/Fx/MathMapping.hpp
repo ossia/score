@@ -6,13 +6,22 @@ namespace MathMapping
 {
 struct Node
 {
-    struct Metadata
+    struct Metadata: Control::Meta_base
     {
         static const constexpr auto prettyName = "Custom Mapping (Value)";
         static const constexpr auto objectKey = "MathMapping";
         static const constexpr auto category = "Control";
         static const constexpr auto tags = std::array<const char*, 0>{};
         static const constexpr auto uuid = make_uuid("ae84e8b6-74ff-4259-aeeb-305d95cdfcab");
+        
+        static const constexpr auto value_ins = Control::ValueIns<1>{{"in"}};     
+        static const constexpr auto value_outs = Control::ValueOuts<1>{{"out"}}; 
+        
+        static const constexpr auto controls = 
+            std::make_tuple(Control::LineEdit("Expression (ExprTK)", "cos(t) + log(pos * x / dt)")
+                            , Control::FloatSlider("Param (a)", 0., 1., 0.5)
+                            , Control::FloatSlider("Param (b)", 0., 1., 0.5)
+                            , Control::FloatSlider("Param (c)", 0., 1., 0.5));
     };
     struct State
     {
@@ -40,16 +49,6 @@ struct Node
         std::string cur_expr_txt;
         bool ok = false;
     };
-
-    static const constexpr auto info =
-            Control::create_node()
-            .value_ins({{"in"}})
-            .value_outs({{"out"}})
-            .controls(Control::LineEdit("Expression (ExprTK)", "cos(t) + log(pos * x / dt)")
-                      , Control::FloatSlider("Param (a)", 0., 1., 0.5)
-                      , Control::FloatSlider("Param (b)", 0., 1., 0.5)
-                      , Control::FloatSlider("Param (c)", 0., 1., 0.5))
-            .build();
 
     using control_policy = Control::LastTick;
     static void run(
@@ -86,13 +85,22 @@ namespace MathAudioFilter
 {
 struct Node
 {
-    struct Metadata
+    struct Metadata: Control::Meta_base
     {
         static const constexpr auto prettyName = "Audio Filter";
         static const constexpr auto objectKey = "MathAudioFilter";
         static const constexpr auto category = "Audio";
         static const constexpr auto tags = std::array<const char*, 0>{};
         static const constexpr auto uuid = make_uuid("13e1f4b0-1c2c-40e6-93ad-dfc91aac5335");
+    
+        static const constexpr auto audio_ins = Control::AudioIns<1>{{"in"}};     
+        static const constexpr auto audio_outs = Control::AudioOuts<1>{{"out"}}; 
+        
+        static const constexpr auto controls = 
+            std::make_tuple(Control::LineEdit("Expression (ExprTK)", "a * x")
+                            , Control::FloatSlider("Param (a)", 0., 1., 0.5)
+                            , Control::FloatSlider("Param (b)", 0., 1., 0.5)
+                            , Control::FloatSlider("Param (c)", 0., 1., 0.5));
     };
 
     struct State
@@ -119,18 +127,7 @@ struct Node
         std::string cur_expr_txt;
         bool ok = false;
     };
-
-    static const constexpr auto info =
-            Control::create_node()
-            .audio_ins({{"in"}})
-            .audio_outs({{"out"}})
-            .controls(Control::LineEdit("Expression (ExprTK)", "a * x")
-                      , Control::FloatSlider("Param (a)", 0., 1., 0.5)
-                      , Control::FloatSlider("Param (b)", 0., 1., 0.5)
-                      , Control::FloatSlider("Param (c)", 0., 1., 0.5)
-                      )
-            .build();
-
+    
     using control_policy = Control::LastTick;
     static void run(
             const ossia::audio_port& input,

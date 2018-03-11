@@ -17,13 +17,24 @@ namespace LFO
 {
 struct Node
 {
-  struct Metadata
+    struct Metadata: Control::Meta_base
   {
     static const constexpr auto prettyName = "LFO";
     static const constexpr auto objectKey = "LFO";
     static const constexpr auto category = "Control";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto uuid = make_uuid("0697b807-f588-49b5-926c-f97701edd0d8");
+  
+    static const constexpr auto value_outs  = Control::ValueOuts<1>{Control::ValueOutInfo{"out"}};
+    
+    static const constexpr auto controls = 
+        std::make_tuple(Control::Widgets::LFOFreqChooser()
+                        , Control::FloatSlider{"Coarse intens.", 0., 1000., 0.}
+                        , Control::FloatSlider{"Fine intens.", 0., 1., 1.}
+                        , Control::FloatSlider{"Offset.", -1000., 1000., 0.}
+                        , Control::FloatSlider{"Jitter", 0., 1., 0.}
+                        , Control::FloatSlider{"Phase", -1., 1., 0.}
+                        , Control::Widgets::WaveformChooser());
   };
 
   // Idea: save internal state for rewind... ? -> require Copyable
@@ -32,20 +43,7 @@ struct Node
       int64_t phase{};
   };
 
-
   using control_policy = Control::PreciseTick;
-  static const constexpr auto info =
-      Control::create_node()
-      .value_outs({{"out"}})
-      .controls(Control::Widgets::LFOFreqChooser()
-              , Control::FloatSlider{"Coarse intens.", 0., 1000., 0.}
-              , Control::FloatSlider{"Fine intens.", 0., 1., 1.}
-              , Control::FloatSlider{"Offset.", -1000., 1000., 0.}
-              , Control::FloatSlider{"Jitter", 0., 1., 0.}
-              , Control::FloatSlider{"Phase", -1., 1., 0.}
-              , Control::Widgets::WaveformChooser()
-                )
-      .build();
 
   static void run(
       float freq, float coarse, float fine, float offset, float jitter, float phase,

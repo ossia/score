@@ -366,7 +366,7 @@ struct apply_control<false, N>
                 [&] (auto&&... c) {
             apply_outlet_impl(
                   [&] (auto&&... o) {
-              invoke(typename Info::control_policy{}, std::tie(i(inlets)...), std::tie(c(inlets, *this)...), std::tie(o(outlets)...), m_prev_date, tk, st);
+              invoke(typename Node_T::control_policy{}, std::tie(i(inlets)...), std::tie(c(inlets, *this)...), std::tie(o(outlets)...), m_prev_date, tk, st);
             }, outlets_indices{});
           }, controls_indices{});
         }, inlets_indices{});
@@ -377,7 +377,7 @@ struct apply_control<false, N>
               [&] (auto&&... i) {
           apply_outlet_impl(
                 [&] (auto&&... o) {
-            Info::run(i(inlets)..., o(outlets)..., m_prev_date, tk, st);
+            Node_T::run(i(inlets)..., o(outlets)..., m_prev_date, tk, st);
           }, outlets_indices{});
         }, inlets_indices{});
       }

@@ -7,24 +7,22 @@ namespace Metro
 {
 struct Node
 {
-    struct Metadata
+    struct Metadata: Control::Meta_base
     {
         static const constexpr auto prettyName = "Metro";
         static const constexpr auto objectKey = "Metro";
         static const constexpr auto category = "Control";
         static const constexpr auto tags = std::array<const char*, 0>{};
         static const constexpr auto uuid = make_uuid("50439197-521E-4ED0-A3B7-EDD8DEAEAC93");
+        
+        static const constexpr auto value_outs = Control::ValueOuts<1>{{"out"}};    
+        
+        static const constexpr auto controls = 
+            std::make_tuple(Control::Widgets::MusicalDurationChooser(),
+                            Control::Widgets::LFOFreqChooser(),
+                            Control::ChooserToggle{"Quantify", {"Free", "Sync"}, false},
+                            Control::Widgets::TempoChooser());
     };
-
-    static const constexpr auto info =
-            Control::create_node()
-            .value_outs({{"out"}})
-            .controls(Control::Widgets::MusicalDurationChooser(),
-                      Control::Widgets::LFOFreqChooser(),
-                      Control::ChooserToggle{"Quantify", {"Free", "Sync"}, false},
-                      Control::Widgets::TempoChooser()
-                      )
-            .build();
 
     static constexpr int64_t get_period(bool use_tempo, double quantif, double freq, double tempo, int sr)
     {
