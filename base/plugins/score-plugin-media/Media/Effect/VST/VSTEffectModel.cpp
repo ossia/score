@@ -39,8 +39,10 @@ QString EffectProcessFactory_T<Media::VST::VSTEffectModel>::customConstructionDa
     vsts.push_back(i.prettyName);
     ids.insert(i.prettyName, i.uniqueID);
   }
-  auto res = QInputDialog::getItem(nullptr, QObject::tr("Select a VST plug-in"), QObject::tr("VST plug-in"), vsts);
-  if(res != -1)
+  ossia::sort(vsts);
+  bool ok = false;
+  auto res = QInputDialog::getItem(nullptr, QObject::tr("Select a VST plug-in"), QObject::tr("VST plug-in"), vsts, 0, false, &ok);
+  if(ok)
     return QString::number(ids[res]);
   return {};
 }

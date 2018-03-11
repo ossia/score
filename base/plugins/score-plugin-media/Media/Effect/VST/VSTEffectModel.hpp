@@ -10,6 +10,7 @@
 #include <QStringLiteral>
 #include <QFileDialog>
 #include <QJsonDocument>
+#include <unordered_map>
 namespace Media::VST
 {
 class VSTEffectModel;
