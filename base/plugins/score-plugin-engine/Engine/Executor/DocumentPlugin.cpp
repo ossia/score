@@ -192,7 +192,8 @@ void DocumentPlugin::on_finished()
   outlets.clear();
   m_cables.clear();
   proc_map.clear();
-  execGraph->clear();
+  if(execGraph)
+    execGraph->clear();
   execGraph.reset();
 
   execState->reset();
@@ -205,7 +206,6 @@ void DocumentPlugin::on_finished()
   }
   runtime_connections.clear();
 
-  execGraph.reset();
 
   if(m_tid != -1)
   {
@@ -236,6 +236,8 @@ void DocumentPlugin::makeGraph()
   auto sched = m_ctx.settings.getScheduling();
 
 
+  if(execGraph)
+    execGraph->clear();
   execGraph.reset();
   ossia::graph_setup_options opt;
   opt.parallel = m_ctx.settings.getParallel();
@@ -305,6 +307,8 @@ void DocumentPlugin::clear()
     runAllCommands();
     m_base.cleanup();
     runAllCommands();
+    if(execGraph)
+      execGraph->clear();
     execGraph.reset();
   }
 }
