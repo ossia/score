@@ -32,6 +32,7 @@ using DeviceLogging = Device::DeviceLogging;
 class SCORE_PLUGIN_ENGINE_EXPORT OSSIADevice
     : public Device::DeviceInterface, public Nano::Observer
 {
+    Q_OBJECT
 public:
   virtual ~OSSIADevice();
   void disconnect() override;

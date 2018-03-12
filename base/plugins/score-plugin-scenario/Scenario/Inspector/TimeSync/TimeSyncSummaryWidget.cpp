@@ -18,6 +18,7 @@ TimeSyncSummaryWidget::TimeSyncSummaryWidget(
     const score::DocumentContext& doc,
     QWidget* parent)
     : QWidget(parent)
+    , sync{object}
     , m_selectionDispatcher{doc.selectionStack}
     , m_lay{this}
 {
@@ -34,5 +35,10 @@ TimeSyncSummaryWidget::TimeSyncSummaryWidget(
     cond->setWordWrap(true);
     m_lay.addWidget(cond, 1, 1, 1, 6);
   }
+}
+
+TimeSyncSummaryWidget::~TimeSyncSummaryWidget()
+{
+
 }
 }

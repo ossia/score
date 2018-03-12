@@ -20,6 +20,7 @@ EventSummaryWidget::EventSummaryWidget(
     const EventModel& object, const score::DocumentContext& doc,
     QWidget* parent)
     : QWidget{parent}
+    , event{object}
     , m_selectionDispatcher{
           new score::SelectionDispatcher{doc.selectionStack}}
 {
@@ -38,5 +39,10 @@ EventSummaryWidget::EventSummaryWidget(
     cond->setWordWrap(true);
     mainLay->addWidget(cond, 1, 1, 1, 6);
   }
+}
+
+EventSummaryWidget::~EventSummaryWidget()
+{
+
 }
 }

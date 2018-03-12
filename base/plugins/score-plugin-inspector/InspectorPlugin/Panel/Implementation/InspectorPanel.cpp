@@ -50,6 +50,9 @@ void InspectorPanelWidget::newItemsInspected(const Selection& objects)
 
   if (m_currentInspector)
   {
+    if(m_list.update(m_currentInspector, selectedObj))
+      return;
+
     m_layout->removeWidget(m_currentInspector);
     m_currentInspector->deleteLater();
     m_currentInspector = nullptr;
@@ -78,8 +81,6 @@ void InspectorPanelWidget::newItemsInspected(const Selection& objects)
       m_layout->addWidget(m_currentInspector);
     }
   }
-
-  m_currentSel = objects.toList();
 }
 
 }

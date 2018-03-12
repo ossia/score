@@ -164,7 +164,8 @@ void DeviceExplorerWidget::buildGUI()
 
   m_addressModel = new AddressItemModel{this};
   m_addressView = new QTableView{this};
-  m_addressView->setItemDelegate(new AddressItemDelegate);
+  auto delegate= new AddressItemDelegate{m_addressView};
+  m_addressView->setItemDelegate(delegate);
   m_addressView->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
   m_addressView->setMinimumHeight(100);
 

@@ -2,7 +2,6 @@
 #include <ossia/dataflow/fx_node.hpp>
 #include <Media/Effect/LV2/LV2Context.hpp>
 #include <Media/Effect/LV2/lv2_atom_helpers.hpp>
-#include <unordered_map>
 
 namespace Media
 {
@@ -13,7 +12,6 @@ class lv2_node final : public ossia::graph_node
   protected:
     LV2Data data;
     std::vector<float> fInControls, fOutControls, fParamMin, fParamMax, fParamInit, fOtherControls;
-    std::unordered_map<std::string, int> fLabelsMap;
     std::vector<std::vector<float>> fCVs;
     std::vector<AtomBuffer> fMidiIns, fMidiOuts;
 
@@ -88,13 +86,6 @@ class lv2_node final : public ossia::graph_node
       fParamInit.resize(num_ports);
 
       data.effect.plugin.get_port_ranges_float(fParamMin.data(), fParamMax.data(), fParamInit.data());
-
-      for(std::size_t i = 0; i < control_in_size; i++)
-      {
-        Lilv::Port p{data.effect.plugin.get_port_by_index(data.control_in_ports[i])};
-        Lilv::Node n = p.get_name();
-        fLabelsMap.emplace(n.as_string(), i);
-      }
 
       fInstance = lilv_plugin_instantiate(
                     data.effect.plugin.me,
@@ -193,27 +184,12 @@ class lv2_node final : public ossia::graph_node
       }
     }
 
-    void SetControlValue(const char* label, float value)
-    {
-      auto it = fLabelsMap.find(label);
-      if(it != fLabelsMap.end())
-        SetControlValue(it->second, value);
-    }
-
     float GetControlValue(long param)
     {
       if(param >= 0 && param < (int64_t)data.control_in_ports.size())
         return fInControls[param];
       return {};
     }
-    float GetControlValue(const char* label)
-    {
-      auto it = fLabelsMap.find(label);
-      if(it != fLabelsMap.end())
-        return GetControlValue(it->second);
-      return {};
-    }
-
     float GetControlOutValue(long param)
     {
       if(param >= 0 && param < (int64_t)data.control_out_ports.size())

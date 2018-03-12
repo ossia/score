@@ -7,10 +7,8 @@
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Media/Effect/VST/VSTLoader.hpp>
 #include <Process/GenericProcessFactory.hpp>
-#include <QStringLiteral>
 #include <QFileDialog>
 #include <QJsonDocument>
-#include <unordered_map>
 namespace Media::VST
 {
 class VSTEffectModel;
@@ -91,7 +89,7 @@ class VSTEffectModel final :
 
     std::shared_ptr<AEffectWrapper> fx{};
 
-    std::unordered_map<int, VSTControlInlet*> controls;
+    ossia::fast_hash_map<int, VSTControlInlet*> controls;
 
 
     void removeControl(const Id<Process::Port>&);

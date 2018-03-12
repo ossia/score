@@ -4,7 +4,7 @@
 namespace Scenario
 {
 class IntervalModel;
-class TimeBar : public QGraphicsItem
+class TimeBar final : public QGraphicsItem
 {
     IntervalModel* m_interval{};
 public:

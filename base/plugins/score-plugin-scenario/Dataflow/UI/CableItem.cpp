@@ -11,7 +11,6 @@
 #include <QFormLayout>
 namespace Dataflow
 {
-CableItem::cable_map CableItem::g_cables;
 bool CableItem::g_cables_enabled = true;
 
 CableItem::CableItem(Process::Cable& c, const score::DocumentContext& ctx, QGraphicsItem* parent):
@@ -23,16 +22,17 @@ CableItem::CableItem(Process::Cable& c, const score::DocumentContext& ctx, QGrap
 , a4{int8_t(abs(qrand()) % 40 - 20)}
 {
   this->setCursor(Qt::CrossCursor);
-  g_cables.insert({&c, this});
+  g_cables().insert({&c, this});
 
   con(c.selection, &Selectable::changed, this, [=](bool b) {
     update();
   });
 
+  auto& p = PortItem::g_ports();
   if(auto src_port = c.source().try_find(ctx))
   {
-    auto src = PortItem::g_ports.find(src_port);
-    if(src != PortItem::g_ports.end())
+    auto src = p.find(src_port);
+    if(src != p.end())
     {
       m_p1 = src->second;
       m_p1->cables.push_back(this);
@@ -41,8 +41,8 @@ CableItem::CableItem(Process::Cable& c, const score::DocumentContext& ctx, QGrap
 
   if(auto snk_port = c.sink().try_find(ctx))
   {
-    auto snk = PortItem::g_ports.find(snk_port);
-    if(snk != PortItem::g_ports.end())
+    auto snk = p.find(snk_port);
+    if(snk != p.end())
     {
       m_p2 = snk->second;
       m_p2->cables.push_back(this);
@@ -63,9 +63,10 @@ CableItem::~CableItem()
     boost::remove_erase(m_p2->cables, this);
   }
 
-  auto it = g_cables.find(&m_cable);
-  if(it != g_cables.end())
-    g_cables.erase(it);
+  auto& c = g_cables();
+  auto it = c.find(&m_cable);
+  if(it != c.end())
+    c.erase(it);
 }
 
 QRectF CableItem::boundingRect() const
@@ -173,6 +174,12 @@ PortItem*CableItem::target() const { return m_p2; }
 void CableItem::setSource(PortItem* p) { m_p1 = p; check(); }
 
 void CableItem::setTarget(PortItem* p) { m_p2 = p; check(); }
+
+CableItem::cable_map&CableItem::g_cables()
+{
+  static cable_map c;
+  return c;
+}
 
 QPainterPath CableItem::shape() const
 {

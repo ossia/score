@@ -737,32 +737,29 @@ void ObjectPanelDelegate::setNewSelection(const Selection &sel)
 
     auto selection = m_objects->selectionModel();
     m_objects->updatingSelection = true;
-    std::vector<QModelIndex> toSelect;
-    std::vector<QModelIndex> toDeselect;
+
+    QItemSelection toSelect, toDeselect;
     while(idx.isValid())
     {
       auto ptr = idx.internalPointer();
       if(cur_sel.contains((IdentifiedObjectAbstract*)ptr))
       {
-        toSelect.push_back(idx);
+        toSelect.append(QItemSelectionRange{idx, idx});
       }
       else
       {
-        toDeselect.push_back(idx);
+        toDeselect.append(QItemSelectionRange{idx, idx});
       }
       idx = m_objects->indexBelow(idx);
     }
-    for(auto& idx : toSelect)
-      selection->select(idx, QItemSelectionModel::Select | QItemSelectionModel::Rows);
-    for(auto& idx : toDeselect)
-      selection->select(idx, QItemSelectionModel::Deselect | QItemSelectionModel::Rows);
+    selection->select(toSelect, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+    selection->select(toDeselect, QItemSelectionModel::Deselect | QItemSelectionModel::Rows);
     m_objects->updatingSelection = false;
 
     m_objects->header()->resizeSection(1, QHeaderView::Stretch);
     m_objects->header()->resizeSection(0, QHeaderView::ResizeToContents);
     if(m_objects->header()->sectionSize(0) < 140)
       m_objects->header()->resizeSection(0, 140);
-
   }
 }
 

@@ -10,7 +10,6 @@
 #include <iostream>
 #include <memory>
 #include <cmath>
-#include <unordered_map>
 #include <ossia/detail/math.hpp>
 #include <score/tools/Todo.hpp>
 #include <ossia/detail/logger.hpp>

@@ -97,7 +97,7 @@ using LayerFactory = Process::EffectLayerFactory_T<FaustEffectModel, Media::Effe
 
 namespace Engine::Execution
 {
-class FaustEffectComponent
+class FaustEffectComponent final
     : public Engine::Execution::ProcessComponent_T<Media::Faust::FaustEffectModel, ossia::node_process>
 {
     Q_OBJECT

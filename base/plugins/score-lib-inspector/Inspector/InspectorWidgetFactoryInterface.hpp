@@ -3,7 +3,7 @@
 #include <QString>
 #include <score/plugins/customfactory/FactoryInterface.hpp>
 #include <score_lib_inspector_export.h>
-
+class IdentifiedObjectAbstract;
 namespace score
 {
 struct DocumentContext;
@@ -42,6 +42,10 @@ public:
       const QList<const QObject*>& sourceElement,
       const score::DocumentContext& doc,
       QWidget* parent) const = 0;
+
+  virtual bool update(
+      QWidget* cur,
+      const QList<const IdentifiedObjectAbstract*>& obj) const;
 
   virtual bool matches(const QList<const QObject*>& objects) const = 0;
 };

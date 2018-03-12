@@ -41,7 +41,6 @@ namespace Dataflow
 
 void onCreateCable(const score::DocumentContext& ctx, Dataflow::PortItem* p1, Dataflow::PortItem* p2);
 
-PortItem::port_map PortItem::g_ports;
 PortItem* PortItem::clickedPort;
 PortItem::PortItem(Process::Port& p, QGraphicsItem* parent)
   : QGraphicsItem{parent}
@@ -53,10 +52,10 @@ PortItem::PortItem(Process::Port& p, QGraphicsItem* parent)
   this->setFlag(QGraphicsItem::ItemSendsScenePositionChanges, true);
   this->setToolTip(p.customData());
 
-  g_ports.insert({&p, this});
+  g_ports().insert({&p, this});
 
   Path<Process::Port> path = p;
-  for(auto c : CableItem::g_cables)
+  for(auto c : CableItem::g_cables())
   {
     if(c.first->source().unsafePath() == path.unsafePath())
     {
@@ -80,9 +79,15 @@ PortItem::~PortItem()
     if(cable->target() == this)
       cable->setTarget(nullptr);
   }
-  auto it = g_ports.find(&m_port);
-  if(it != g_ports.end())
-    g_ports.erase(it);
+  auto& p = g_ports();
+  auto it = p.find(&m_port);
+  if(it != p.end())
+    p.erase(it);
+}
+
+PortItem::port_map& PortItem::g_ports() {
+  static port_map g;
+  return g;
 }
 
 void PortItem::setupMenu(QMenu&, const score::DocumentContext& ctx)

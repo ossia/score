@@ -16,10 +16,21 @@ InspectorWidgetList::~InspectorWidgetList()
 
 }
 
+bool InspectorWidgetList::update(
+    QWidget* cur,
+    const QList<const IdentifiedObjectAbstract*>& models) const
+{
+  for (const InspectorWidgetFactory& factory : *this)
+  {
+    if(factory.update(cur, models))
+      return true;
+  }
+  return false;
+}
+
 QList<QWidget*> InspectorWidgetList::make(
     const score::DocumentContext& doc,
-    QList<const IdentifiedObjectAbstract*>
-        models,
+    const QList<const IdentifiedObjectAbstract*>& models,
     QWidget* parent) const
 {
   QList<QWidget*> widgs;

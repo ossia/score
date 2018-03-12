@@ -16,13 +16,15 @@ namespace Scenario
 {
 class TimeSyncModel;
 
-class TimeSyncSummaryWidget : public QWidget
+class TimeSyncSummaryWidget final : public QWidget
 {
 public:
   explicit TimeSyncSummaryWidget(
       const TimeSyncModel&, const score::DocumentContext& doc,
       QWidget* parent = nullptr);
+    ~TimeSyncSummaryWidget() override;
 
+  const TimeSyncModel& sync;
 private:
   score::SelectionDispatcher m_selectionDispatcher;
   score::MarginLess<QGridLayout> m_lay;

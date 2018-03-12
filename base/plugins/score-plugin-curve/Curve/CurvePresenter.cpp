@@ -515,7 +515,7 @@ void Presenter::removeSelection()
   // will be deleted, too.
   for (const auto& elt : m_model.selectedChildren())
   {
-    if (auto point = dynamic_cast<const PointModel*>(elt.data()))
+    if (auto point = qobject_cast<const PointModel*>(elt.data()))
     {
       if (point->previous() && point->following())
       {
@@ -525,7 +525,7 @@ void Presenter::removeSelection()
     }
 
     /*
-    if(auto segmt = dynamic_cast<const SegmentModel*>(elt.data()))
+    if(auto segmt = qobject_cast<const SegmentModel*>(elt.data()))
     {
         segmentsToDelete.insert(segmt->id());
     }

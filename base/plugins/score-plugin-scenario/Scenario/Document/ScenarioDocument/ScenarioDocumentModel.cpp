@@ -101,7 +101,7 @@ ScenarioDocumentModel::ScenarioDocumentModel(
 
   // Select the first state
   score::SelectionDispatcher d{ctx.selectionStack};
-  auto scenar = dynamic_cast<Scenario::ProcessModel*>(
+  auto scenar = qobject_cast<Scenario::ProcessModel*>(
       &*m_baseScenario->interval().processes.begin());
   if (scenar)
     d.setAndCommit({&scenar->startEvent()});

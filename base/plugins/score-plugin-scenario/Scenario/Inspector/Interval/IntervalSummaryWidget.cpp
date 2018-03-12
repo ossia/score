@@ -20,6 +20,7 @@ IntervalSummaryWidget::IntervalSummaryWidget(
     const score::DocumentContext& doc,
     QWidget* parent)
     : QWidget(parent)
+    , interval{object}
     , m_selectionDispatcher{doc.selectionStack}
 {
   auto eventBtn
@@ -63,5 +64,10 @@ IntervalSummaryWidget::IntervalSummaryWidget(
   }
 
   this->setLayout(&m_lay);
+}
+
+IntervalSummaryWidget::~IntervalSummaryWidget()
+{
+
 }
 }
