@@ -23,6 +23,8 @@ public:
   {
     return m_address;
   }
+  
+  virtual bool is_control() const { return false; }
 public Q_SLOTS:
   void setAddress(QString address)
   {
@@ -130,7 +132,6 @@ public:
   void setValue(QVariant value);
 };
 
-
 class FloatSlider: public ValueInlet
 {
   Q_OBJECT
@@ -144,6 +145,7 @@ class FloatSlider: public ValueInlet
     qreal getMin() const { return m_min; }
     qreal getMax() const { return m_max; }
     qreal init() const { return m_init; }
+    bool is_control() const override { return true; }
 
     Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
     {
@@ -205,6 +207,7 @@ class IntSlider: public ValueInlet
     int getMin() const { return m_min; }
     int getMax() const { return m_max; }
     int init() const { return m_init; }
+    bool is_control() const override { return true; }
 
     Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
     {
@@ -265,6 +268,7 @@ class Enum: public ValueInlet
     virtual ~Enum() override;
     int index() const { return m_index; }
     QStringList choices() const { return m_choices; }
+    bool is_control() const override { return true; }
 
     Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
     {
@@ -321,6 +325,7 @@ class Toggle: public ValueInlet
     using ValueInlet::ValueInlet;
     virtual ~Toggle() override;
     bool checked() const { return m_checked; }
+    bool is_control() const override { return true; }
     Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
     {
       auto p = new Process::ControlInlet(id, parent);
@@ -355,6 +360,7 @@ class LineEdit: public ValueInlet
     using ValueInlet::ValueInlet;
     virtual ~LineEdit() override;
     QString text() const { return m_text; }
+    bool is_control() const override { return true; }
     Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
     {
       auto p = new Process::ControlInlet(id, parent);

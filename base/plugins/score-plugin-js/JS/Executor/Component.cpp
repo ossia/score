@@ -44,72 +44,47 @@ Component::Component(
   auto proc = std::make_shared<ossia::node_process>(node);
   m_ossia_process = proc;
 
-  const auto& inlets = element.inlets();
-  std::vector<int> control_indices;
-  int i = 0;
-  for(auto port : inlets)
-  {
-    switch(port->type)
-    {
-      case Process::PortType::Message:
-      {
-        node->inputs().push_back(ossia::make_inlet<ossia::value_port>());
-        if(qobject_cast<Process::ControlInlet*>(port))
-          control_indices.push_back(i);
-        else
-          node->inputs().back()->data.target<ossia::value_port>()->is_event = true;
-        break;
-      }
-      case Process::PortType::Audio:
-      {
-        node->inputs().push_back(ossia::make_inlet<ossia::audio_port>());
-        break;
-      }
-      case Process::PortType::Midi:
-      {
-        node->inputs().push_back(ossia::make_inlet<ossia::midi_port>());
-        break;
-      }
-    }
-    i++;
-  }
-
-  for(auto port : element.outlets())
-  {
-    switch(port->type)
-    {
-      case Process::PortType::Message:
-      {
-        node->outputs().push_back(ossia::make_outlet<ossia::value_port>());
-        break;
-      }
-      case Process::PortType::Audio:
-      {
-        node->outputs().push_back(ossia::make_outlet<ossia::audio_port>());
-        break;
-      }
-      case Process::PortType::Midi:
-      {
-        node->outputs().push_back(ossia::make_outlet<ossia::midi_port>());
-        break;
-      }
-    }
-  }
-
   node->setScript(element.script());
-
+  if(!node->m_object)
+    throw std::runtime_error{"Invalid JS"};
+  
+  
+  const auto& inlets = element.inlets();
+  int inl = 0;
+  for(auto n : node->m_object->children())
+  {
+    if(auto val_in = qobject_cast<Inlet*>(n))
+    {
+      if(val_in->is_control())
+      {
+        auto val_inlet = qobject_cast<ValueInlet*>(val_in);
+        SCORE_ASSERT(val_inlet);
+        SCORE_ASSERT(inlets.size() > inl);
+        auto port = inlets[inl];
+        auto ctrl = qobject_cast<Process::ControlInlet*>(port);
+        SCORE_ASSERT(ctrl);
+        connect(ctrl, &Process::ControlInlet::valueChanged,
+                this, [=] (const ossia::value& val) {
+          this->in_exec(js_control_updater{*val_inlet, val});
+        });
+        js_control_updater{*val_inlet, ctrl->value()}();
+      }
+      inl++;
+    }
+  }
   // Set-up controls
+  /*
   for(auto ctrl_idx : control_indices)
   {
-    auto port = inlets[ctrl_idx];
+    auto port = inlets[ctrl_idx.first];
     auto ctrl = static_cast<Process::ControlInlet*>(port);
-    auto val_inlet = node->m_valInlets[ctrl_idx];
+    auto val_inlet = node->m_ctrlInlets[ctrl_idx.second].first;
     connect(ctrl, &Process::ControlInlet::valueChanged,
             this, [=] (const ossia::value& val) {
-      this->in_exec(js_control_updater{*val_inlet.first, val});
+      this->in_exec(js_control_updater{*val_inlet, val});
     });
-    js_control_updater{*val_inlet.first, ctrl->value()}();
-  }
+    js_control_updater{*val_inlet, ctrl->value()}();
+  }*/
 
   /*
   con(element, &JS::ProcessModel::scriptChanged,
@@ -146,45 +121,50 @@ void js_node::setScript(const QString& val)
       if(m_object)
       {
         m_object->setParent(&m_engine);
-        int inlets_i = 0;
-        int outlets_i = 0;
+        
         for(auto n : m_object->children())
         {
           if(auto ctrl_in = qobject_cast<ControlInlet*>(n))
           {
-            m_ctrlInlets.push_back({ctrl_in, inputs()[inlets_i]});
+            inputs().push_back(ossia::make_inlet<ossia::value_port>());
+            m_ctrlInlets.push_back({ctrl_in, inputs().back()});
             m_ctrlInlets.back().second->data.target<ossia::value_port>()->is_event = false;
-            inlets_i++;
           }
           else if(auto val_in = qobject_cast<ValueInlet*>(n))
           {
-            m_valInlets.push_back({val_in, inputs()[inlets_i]});
-            inlets_i++;
+            inputs().push_back(ossia::make_inlet<ossia::value_port>());
+            
+            if(!val_in->is_control())
+            {
+              inputs().back()->data.target<ossia::value_port>()->is_event = true;
+            }
+            
+            m_valInlets.push_back({val_in, inputs().back()});
           }
           else if(auto aud_in = qobject_cast<AudioInlet*>(n))
           {
-            m_audInlets.push_back({aud_in, inputs()[inlets_i]});
-            inlets_i++;
+            inputs().push_back(ossia::make_inlet<ossia::audio_port>());
+            m_audInlets.push_back({aud_in, inputs().back()});
           }
           else if(auto mid_in = qobject_cast<MidiInlet*>(n))
           {
-            m_midInlets.push_back({mid_in, inputs()[inlets_i]});
-            inlets_i++;
+            inputs().push_back(ossia::make_inlet<ossia::midi_port>());
+            m_midInlets.push_back({mid_in, inputs().back()});
           }
           else if(auto val_out = qobject_cast<ValueOutlet*>(n))
           {
-            m_valOutlets.push_back({val_out, outputs()[outlets_i]});
-            outlets_i++;
+            outputs().push_back(ossia::make_outlet<ossia::value_port>());            
+            m_valOutlets.push_back({val_out, outputs().back()});
           }
           else if(auto aud_out = qobject_cast<AudioOutlet*>(n))
           {
-            m_audOutlets.push_back({aud_out, outputs()[outlets_i]});
-            outlets_i++;
+            outputs().push_back(ossia::make_outlet<ossia::audio_port>());
+            m_audOutlets.push_back({aud_out, outputs().back()});
           }
           else if(auto mid_out = qobject_cast<MidiOutlet*>(n))
           {
-            m_midOutlets.push_back({mid_out, outputs()[outlets_i]});
-            outlets_i++;
+            outputs().push_back(ossia::make_outlet<ossia::midi_port>());
+            m_midOutlets.push_back({mid_out, outputs().back()});
           }
         }
       }

@@ -123,10 +123,15 @@ public:
       const Id<score::Component>& id,
       QObject* parent) const final override
   {
-    auto comp = std::make_shared<ProcessComponent_T>(static_cast<model_type&>(proc), ctx, id,
-                                  parent);
-    this->init(comp.get());
-    return comp;
+    try { 
+      auto comp = std::make_shared<ProcessComponent_T>(
+                    static_cast<model_type&>(proc), ctx, id, parent);
+      this->init(comp.get());
+      return comp;
+    } 
+    catch(...) { 
+      return {};
+    }
   }
 };
 
