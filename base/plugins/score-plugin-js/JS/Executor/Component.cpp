@@ -47,8 +47,8 @@ Component::Component(
   node->setScript(element.script());
   if(!node->m_object)
     throw std::runtime_error{"Invalid JS"};
-  
-  
+
+
   const auto& inlets = element.inlets();
   int inl = 0;
   for(auto n : node->m_object->children())
@@ -59,7 +59,7 @@ Component::Component(
       {
         auto val_inlet = qobject_cast<ValueInlet*>(val_in);
         SCORE_ASSERT(val_inlet);
-        SCORE_ASSERT(inlets.size() > inl);
+        SCORE_ASSERT((int)inlets.size() > inl);
         auto port = inlets[inl];
         auto ctrl = qobject_cast<Process::ControlInlet*>(port);
         SCORE_ASSERT(ctrl);
@@ -121,7 +121,7 @@ void js_node::setScript(const QString& val)
       if(m_object)
       {
         m_object->setParent(&m_engine);
-        
+
         for(auto n : m_object->children())
         {
           if(auto ctrl_in = qobject_cast<ControlInlet*>(n))
@@ -133,12 +133,12 @@ void js_node::setScript(const QString& val)
           else if(auto val_in = qobject_cast<ValueInlet*>(n))
           {
             inputs().push_back(ossia::make_inlet<ossia::value_port>());
-            
+
             if(!val_in->is_control())
             {
               inputs().back()->data.target<ossia::value_port>()->is_event = true;
             }
-            
+
             m_valInlets.push_back({val_in, inputs().back()});
           }
           else if(auto aud_in = qobject_cast<AudioInlet*>(n))
@@ -153,7 +153,7 @@ void js_node::setScript(const QString& val)
           }
           else if(auto val_out = qobject_cast<ValueOutlet*>(n))
           {
-            outputs().push_back(ossia::make_outlet<ossia::value_port>());            
+            outputs().push_back(ossia::make_outlet<ossia::value_port>());
             m_valOutlets.push_back({val_out, outputs().back()});
           }
           else if(auto aud_out = qobject_cast<AudioOutlet*>(n))

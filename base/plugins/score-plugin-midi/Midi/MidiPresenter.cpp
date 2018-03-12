@@ -104,8 +104,6 @@ void Presenter::fillContextMenu(
     QPointF scenepos,
     const Process::LayerContextMenuManager& cm)
 {
-  auto& ctx = m_context.context;
-
   auto act = menu.addAction(tr("Rescale midi"));
   connect(act, &QAction::triggered, this, [&] {
     bool ok = true;
