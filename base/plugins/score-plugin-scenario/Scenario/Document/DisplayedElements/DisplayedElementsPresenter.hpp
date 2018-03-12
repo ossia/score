@@ -3,6 +3,7 @@
 #include <Process/ZoomHelper.hpp>
 #include <QObject>
 #include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
 
 #include <vector>
 
@@ -17,7 +18,6 @@ namespace Scenario
 class FullViewIntervalPresenter;
 class ScenarioDocumentPresenter;
 class IntervalModel;
-class DisplayedElementsModel;
 // Contains the elements that are shown (not necessarily the ones in
 // BaseScenarioModel)
 class SCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsPresenter final

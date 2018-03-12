@@ -311,6 +311,44 @@ void VSTEffectModel::closePlugin()
   metadata().setLabel("Dead VST");
 }
 
+AEffect* getPluginInstance(const QString& name)
+{
+  auto& app = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
+
+  auto info_it = ossia::find_if(
+              app.vst_infos,
+              [&] (const Media::ApplicationPlugin::vst_info& i) {
+    return i.prettyName == name;
+  });
+  if(info_it != app.vst_infos.end())
+  {
+    auto it = app.vst_modules.find(info_it->uniqueID);
+    if(it != app.vst_modules.end())
+    {
+      if (auto m = it->second->getMain())
+      {
+        return m(vst_host_callback);
+      }
+    }
+    else
+    {
+      auto plugin = new Media::VST::VSTModule{info_it->path.toStdString()};
+
+      if (auto m = plugin->getMain())
+      {
+        if (auto p = (AEffect*)m(Media::VST::vst_host_callback))
+        {
+          app.vst_modules.insert({p->uniqueID, plugin});
+          return p;
+        }
+      }
+
+      delete plugin;
+    }
+  }
+
+  return nullptr;
+}
 AEffect* getPluginInstance(int32_t id)
 {
   auto& app = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
@@ -406,9 +444,13 @@ void VSTEffectModel::initFx()
   fx = std::make_shared<AEffectWrapper>(getPluginInstance(m_effectId));
   if(!fx->fx)
   {
-    qDebug() << "plugin was not created";
-    fx.reset();
-    return;
+    fx = std::make_shared<AEffectWrapper>(getPluginInstance(metadata().getLabel()));
+    if(!fx->fx)
+    {
+      qDebug() << "plugin was not created";
+      fx.reset();
+      return;
+    }
   }
 
   fx->fx->resvd1 = reinterpret_cast<intptr_t>(this);

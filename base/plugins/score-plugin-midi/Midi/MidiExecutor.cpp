@@ -224,8 +224,7 @@ Component::Component(
       return to_note(data);
     });
 
-    for(auto& note : notes)
-     in_exec([n=std::move(notes), midi] () mutable {
+    in_exec([n=std::move(notes), midi] () mutable {
       midi->set_notes(std::move(n));
     });
   };

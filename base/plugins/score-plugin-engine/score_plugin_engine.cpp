@@ -2,6 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
 #include <ossia-config.hpp>
+#include <ossia/network/base/device.hpp>
 #include <Engine/Protocols/Panel/MessagesPanel.hpp>
 
 #include <QString>

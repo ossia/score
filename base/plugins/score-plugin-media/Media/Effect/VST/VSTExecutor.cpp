@@ -17,6 +17,9 @@ VSTEffectComponent::VSTEffectComponent(
     QObject* parent)
   : ProcessComponent_T{proc, ctx, id, "VSTComponent", parent}
 {
+  if(!proc.fx || !proc.fx->fx)
+    throw std::runtime_error("Unable to load VST");
+  
   AEffect& fx = *proc.fx->fx;
   auto setup_controls = [&] (auto& node) {
     node->ctrl_ptrs.reserve(proc.controls.size());
