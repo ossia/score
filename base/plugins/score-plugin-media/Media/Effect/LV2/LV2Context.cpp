@@ -249,7 +249,7 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx):
   }
 
   const auto numports = effect.plugin.get_num_ports();
-  for(int32_t i = 0; i < numports; i++)
+  for(std::size_t i = 0; i < numports; i++)
   {
     Lilv::Port port = effect.plugin.get_port_by_index(i);
 

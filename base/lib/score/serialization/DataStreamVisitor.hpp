@@ -541,7 +541,7 @@ struct TSerializer<DataStream, ossia::small_vector<T, N>>
   readFrom(DataStream::Serializer& s, const ossia::small_vector<T, N>& arr)
   {
     s.stream() << (int32_t)arr.size();
-    for (int32_t i = 0U; i < arr.size(); i++)
+    for (std::size_t i = 0U; i < arr.size(); i++)
       s.stream() << arr[i];
 
     SCORE_DEBUG_INSERT_DELIMITER2(s);
