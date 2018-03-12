@@ -99,12 +99,11 @@ void ScenarioContextMenuManager::createSlotContextMenu(
   }
 
   // Then removal of slot
-  auto removeSlotAct = new QAction{tr("Remove this slot"), nullptr};
+  auto removeSlotAct = menu.addAction(tr("Remove this slot"));
   QObject::connect(removeSlotAct, &QAction::triggered, [&,slot_path]() {
     auto cmd = new Scenario::Command::RemoveSlotFromRack{slot_path, slot_path.find(ctx)};
     CommandDispatcher<>{ctx.commandStack}.submitCommand(cmd);
   });
-  menu.addAction(removeSlotAct);
 
   menu.addSeparator();
 

@@ -185,7 +185,7 @@ void ProcessModel::setSlotHeight(double v)
 
 ProcessModel* parentProcess(QObject* obj)
 {
-  while (obj && !dynamic_cast<ProcessModel*>(obj))
+  while (obj && !qobject_cast<ProcessModel*>(obj))
   {
     obj = obj->parent();
   }
@@ -197,7 +197,7 @@ ProcessModel* parentProcess(QObject* obj)
 
 const ProcessModel* parentProcess(const QObject* obj)
 {
-  while (obj && !dynamic_cast<const ProcessModel*>(obj))
+  while (obj && !qobject_cast<const ProcessModel*>(obj))
   {
     obj = obj->parent();
   }

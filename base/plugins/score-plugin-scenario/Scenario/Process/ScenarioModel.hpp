@@ -232,7 +232,7 @@ QList<const T*> filterSelectionByType(const Container& sel)
   for (auto obj : sel)
   {
     // TODO replace with a virtual Element::type() which will be faster.
-    if (auto casted_obj = dynamic_cast<const T*>(obj.data()))
+    if (auto casted_obj = qobject_cast<const T*>(obj.data()))
     {
       if (casted_obj->selection.get())
       {

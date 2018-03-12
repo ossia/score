@@ -16,6 +16,11 @@
 
 namespace Scenario
 {
+ScenarioInspectorWidgetFactoryWrapper::~ScenarioInspectorWidgetFactoryWrapper()
+{
+
+}
+
 QWidget*
 ScenarioInspectorWidgetFactoryWrapper::make(
     const QList<const QObject*>& sourceElements,
@@ -36,7 +41,7 @@ ScenarioInspectorWidgetFactoryWrapper::make(
 
   for (auto elt : sourceElements)
   {
-    if (auto st = dynamic_cast<const StateModel*>(elt))
+    if (auto st = qobject_cast<const StateModel*>(elt))
     {
       if (auto ev = scenar->findEvent(st->eventId()))
       {
@@ -48,7 +53,7 @@ ScenarioInspectorWidgetFactoryWrapper::make(
         timesyncs.insert(tn);
       }
     }
-    else if (auto ev = dynamic_cast<const EventModel*>(elt))
+    else if (auto ev = qobject_cast<const EventModel*>(elt))
     {
       auto tn = scenar->findTimeSync(ev->timeSync());
       if (!tn)
@@ -56,11 +61,11 @@ ScenarioInspectorWidgetFactoryWrapper::make(
       events.insert(ev);
       timesyncs.insert(tn);
     }
-    else if (auto tn = dynamic_cast<const TimeSyncModel*>(elt))
+    else if (auto tn = qobject_cast<const TimeSyncModel*>(elt))
     {
       timesyncs.insert(tn);
     }
-    else if (auto cstr = dynamic_cast<const IntervalModel*>(elt))
+    else if (auto cstr = qobject_cast<const IntervalModel*>(elt))
     {
       intervals.insert(cstr);
     }
@@ -82,7 +87,26 @@ ScenarioInspectorWidgetFactoryWrapper::make(
   return new SummaryInspectorWidget{
       abstr, intervals, timesyncs, events, states, doc, parent}; // the default InspectorWidgetBase need
                                        // an only IdentifiedObject : this will
-                                       // be "abstr"
+// be "abstr"
+}
+
+bool ScenarioInspectorWidgetFactoryWrapper::update(
+    QWidget* cur,
+    const QList<const IdentifiedObjectAbstract*>& obj) const
+{
+  if(obj.size() <= 1)
+    return false;
+
+  auto w = qobject_cast<SummaryInspectorWidget*>(cur);
+  if(!w)
+    return false;
+
+  auto& ctx = score::IDocument::documentContext(*obj.front());
+  if(&ctx != &w->context())
+    return false;
+
+  w->update(obj);
+  return true;
 }
 
 bool ScenarioInspectorWidgetFactoryWrapper::matches(

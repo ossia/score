@@ -64,6 +64,5 @@ private:
 
   const Inspector::InspectorWidgetList& m_list;
   score::SelectionDispatcher m_selectionDispatcher;
-  QList<const IdentifiedObjectAbstract*> m_currentSel;
 };
 }

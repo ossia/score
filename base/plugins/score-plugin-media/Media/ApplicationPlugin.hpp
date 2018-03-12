@@ -1,6 +1,5 @@
 #pragma once
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
-#include <unordered_map>
 #if defined(LILV_SHARED) // TODO instead add a proper preprocessor macro that also works in static case
 #include <lilv/lilvmm.hpp>
 #include <Media/Effect/LV2/LV2Context.hpp>
@@ -10,6 +9,7 @@
 #include <Media/Effect/VST/VSTLoader.hpp>
 #endif
 
+#include <ossia/detail/hash_map.hpp>
 namespace Media
 {
 namespace LV2
@@ -43,7 +43,7 @@ class ApplicationPlugin : public QObject, public score::ApplicationPlugin
             bool isSynth{};
         };
         std::vector<vst_info> vst_infos;
-        std::unordered_map<int32_t, Media::VST::VSTModule*> vst_modules;
+        ossia::fast_hash_map<int32_t, Media::VST::VSTModule*> vst_modules;
 #endif
 };
 

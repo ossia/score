@@ -5,7 +5,7 @@
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/Port.hpp>
 
-#include <unordered_map>
+#include <ossia/detail/ptr_set.hpp>
 namespace Dataflow
 {
 class PortItem;
@@ -28,8 +28,8 @@ class CableItem final
     void setSource(PortItem* p);
     void setTarget(PortItem* p);
 
-    using cable_map = std::unordered_map<Process::Cable*, Dataflow::CableItem*>;
-    static cable_map g_cables;
+    using cable_map = ossia::ptr_map<Process::Cable*, Dataflow::CableItem*>;
+    static cable_map& g_cables();
 
   Q_SIGNALS:
     void clicked();

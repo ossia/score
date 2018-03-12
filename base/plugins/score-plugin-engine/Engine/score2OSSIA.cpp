@@ -320,7 +320,7 @@ ossia::net::parameter_base* address(
     if (dev.connected())
     {
       if (auto casted_dev
-          = dynamic_cast<const Engine::Network::OSSIADevice*>(&dev))
+          = qobject_cast<const Engine::Network::OSSIADevice*>(&dev))
       {
         auto ossia_dev = casted_dev->getDevice();
         if (ossia_dev)
@@ -420,7 +420,7 @@ static ossia::destination expressionAddress(
   }
 
   if (auto casted_dev
-      = dynamic_cast<const Engine::Network::OSSIADevice*>(&device))
+      = qobject_cast<const Engine::Network::OSSIADevice*>(&device))
   {
     auto dev = casted_dev->getDevice();
     if (!dev)
@@ -585,7 +585,7 @@ trigger_expression(const State::Expression& e, const Device::DeviceList& list)
 ossia::net::node_base*
 findAddress(const Device::DeviceList& devs, const State::Address& addr)
 {
-  auto dev_p = dynamic_cast<Engine::Network::OSSIADevice*>(
+  auto dev_p = qobject_cast<Engine::Network::OSSIADevice*>(
         devs.findDevice(addr.device));
   if (dev_p)
   {

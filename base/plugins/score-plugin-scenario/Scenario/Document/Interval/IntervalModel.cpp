@@ -424,7 +424,7 @@ bool isInFullView(const IntervalModel& cstr)
   auto& doc = score::IDocument::documentContext(cstr);
   if(auto pres = doc.document.presenter())
   {
-    auto sub = dynamic_cast<Scenario::ScenarioDocumentPresenter*>(pres->presenterDelegate());
+    auto sub = qobject_cast<Scenario::ScenarioDocumentPresenter*>(pres->presenterDelegate());
     if(sub)
       return &sub->displayedElements.interval() == &cstr;
     return false;

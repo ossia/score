@@ -1,9 +1,9 @@
 #pragma once
 #include <QGraphicsItem>
 #include <QObject>
-#include <unordered_map>
 #include <functional>
 #include <score_plugin_scenario_export.h>
+#include <ossia/detail/ptr_set.hpp>
 namespace Process { class Port; class Inlet; class Outlet; class ControlInlet; }
 namespace score { struct DocumentContext; class Command; }
 namespace Scenario { class IntervalModel; }
@@ -23,8 +23,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT PortItem
     Process::Port& port() const { return m_port; }
     std::vector<QPointer<CableItem>> cables;
 
-    using port_map = std::unordered_map<Process::Port*, Dataflow::PortItem*>;
-    static port_map g_ports;
+    using port_map = ossia::ptr_map<Process::Port*, Dataflow::PortItem*>;
+    static port_map& g_ports();
 
     static PortItem* clickedPort;
 

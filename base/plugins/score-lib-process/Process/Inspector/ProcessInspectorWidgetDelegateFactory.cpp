@@ -15,7 +15,7 @@ QWidget*InspectorWidgetDelegateFactory::make(
     return nullptr;
 
   auto obj = objects.first();
-  if(auto p = dynamic_cast<const Process::ProcessModel*>(obj))
+  if(auto p = qobject_cast<const Process::ProcessModel*>(obj))
   {
     return make_process(*p, doc, parent);
   }
@@ -29,7 +29,7 @@ bool InspectorWidgetDelegateFactory::matches(
     return false;
 
   auto obj = objects.first();
-  if(auto p = dynamic_cast<const Process::ProcessModel*>(obj))
+  if(auto p = qobject_cast<const Process::ProcessModel*>(obj))
   {
     return matches_process(*p);
   }

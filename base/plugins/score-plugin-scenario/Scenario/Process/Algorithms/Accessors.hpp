@@ -3,7 +3,7 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-
+#include <Scenario/Process/ScenarioModel.hpp>
 // Intervals
 namespace Scenario
 {
@@ -200,6 +200,10 @@ inline const TimeVal& date(const IntervalModel& e, const Scenario_T& scenario)
 template <typename Element_T>
 Scenario::ScenarioInterface& parentScenario(Element_T&& e)
 {
+  auto s = qobject_cast<Scenario::ProcessModel*>(e.parent());
+  if(s)
+    return *s;
+
   return *dynamic_cast<Scenario::ScenarioInterface*>(e.parent());
 }
 }

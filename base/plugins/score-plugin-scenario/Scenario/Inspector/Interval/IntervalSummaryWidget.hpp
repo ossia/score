@@ -13,13 +13,15 @@ struct DocumentContext;
 namespace Scenario
 {
 class IntervalModel;
-class IntervalSummaryWidget : public QWidget
+class IntervalSummaryWidget final : public QWidget
 {
 public:
   explicit IntervalSummaryWidget(
       const IntervalModel& object, const score::DocumentContext& doc,
       QWidget* parent = nullptr);
+    ~IntervalSummaryWidget();
 
+    const IntervalModel& interval;
 private:
   score::SelectionDispatcher m_selectionDispatcher;
   score::MarginLess<QGridLayout> m_lay;

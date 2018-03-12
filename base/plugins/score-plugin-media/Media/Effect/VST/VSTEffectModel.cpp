@@ -23,7 +23,6 @@
 #include <iostream>
 #include <memory>
 #include <cmath>
-#include <unordered_map>
 
 #include <QInputDialog>
 namespace Process
