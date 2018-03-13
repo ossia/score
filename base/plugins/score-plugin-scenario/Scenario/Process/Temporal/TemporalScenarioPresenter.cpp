@@ -19,6 +19,11 @@
 class MessageItemModel;
 class QMenu;
 
+template SCORE_PLUGIN_SCENARIO_EXPORT class IdContainer<Scenario::StatePresenter, Scenario::StateModel, void>;
+template SCORE_PLUGIN_SCENARIO_EXPORT class IdContainer<Scenario::EventPresenter, Scenario::EventModel, void>;
+template SCORE_PLUGIN_SCENARIO_EXPORT class IdContainer<Scenario::TimeSyncPresenter, Scenario::TimeSyncModel, void>;
+template SCORE_PLUGIN_SCENARIO_EXPORT class IdContainer<Scenario::TemporalIntervalPresenter, Scenario::IntervalModel, void>;
+template SCORE_PLUGIN_SCENARIO_EXPORT class IdContainer<Scenario::CommentBlockPresenter, Scenario::CommentBlockModel, void>;
 namespace Scenario
 {
 struct VerticalExtent;
@@ -263,6 +268,26 @@ void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
   {
     comment.on_zoomRatioChanged(m_zoomRatio);
   }
+}
+
+TimeSyncPresenter& TemporalScenarioPresenter::timeSync(const Id<TimeSyncModel>& id) const
+{
+  return m_timeSyncs.at(id);
+}
+
+IntervalPresenter& TemporalScenarioPresenter::interval(const Id<IntervalModel>& id) const
+{
+  return m_intervals.at(id);
+}
+
+StatePresenter& TemporalScenarioPresenter::state(const Id<StateModel>& id) const
+{
+  return m_states.at(id);
+}
+
+EventPresenter& TemporalScenarioPresenter::event(const Id<EventModel>& id) const
+{
+  return m_events.at(id);
 }
 
 void TemporalScenarioPresenter::fillContextMenu(

@@ -4,6 +4,9 @@
 #include <score/plugins/customfactory/UuidKey.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/tools/std/HashMap.hpp>
+#include <QByteArray>
+#include <QJsonObject>
+#include <utility>
 namespace score
 {
 struct lazy_init_t { };
@@ -108,6 +111,8 @@ class SerializableComponent;
 using DataStreamComponents = score::hash_map<UuidKey<score::SerializableComponent>, QByteArray>;
 using JSONComponents = score::hash_map<UuidKey<score::SerializableComponent>, QJsonObject>;
 }
+extern template class tsl::hopscotch_map<UuidKey<score::SerializableComponent>, QByteArray>;
+extern template class tsl::hopscotch_map<UuidKey<score::SerializableComponent>, QJsonObject>;
 
 /**
  * \macro ABSTRACT_COMPONENT_METADATA
@@ -172,3 +177,4 @@ public:                                                       \
   }                                                           \
                                                               \
 private:
+

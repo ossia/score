@@ -26,6 +26,8 @@
 #include <score/model/ModelMetadata.hpp>
 #include <score/tools/Todo.hpp>
 #include <boost/range/algorithm_ext/erase.hpp>
+
+template SCORE_PLUGIN_SCENARIO_EXPORT class score::EntityMap<Process::ProcessModel>;
 namespace Scenario
 {
 

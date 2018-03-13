@@ -15,6 +15,11 @@ UndoPanelDelegate::UndoPanelDelegate(const GUIApplicationContext& ctx)
   m_widget->setObjectName("HistoryExplorer");
 }
 
+UndoPanelDelegate::~UndoPanelDelegate()
+{
+
+}
+
 QWidget* UndoPanelDelegate::widget()
 {
   return m_widget;

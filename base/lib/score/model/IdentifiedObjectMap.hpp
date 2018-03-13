@@ -123,6 +123,11 @@ public:
     return boost::make_indirect_iterator(
         this->m_map.template get<1>().begin());
   }
+  auto rbegin() const
+  {
+    return boost::make_indirect_iterator(
+        this->m_map.template get<1>().rbegin());
+  }
   auto cbegin() const
   {
     return boost::make_indirect_iterator(
@@ -131,6 +136,10 @@ public:
   auto end() const
   {
     return boost::make_indirect_iterator(this->m_map.template get<1>().end());
+  }
+  auto rend() const
+  {
+    return boost::make_indirect_iterator(this->m_map.template get<1>().rend());
   }
   auto cend() const
   {
@@ -254,11 +263,19 @@ public:
   {
     return boost::make_indirect_iterator(this->m_map.begin());
   }
+  auto rbegin() const
+  {
+    return boost::make_indirect_iterator(this->m_map.begin());
+  }
   auto cbegin() const
   {
     return boost::make_indirect_iterator(this->m_map.cbegin());
   }
   auto end() const
+  {
+    return boost::make_indirect_iterator(this->m_map.end());
+  }
+  auto rend() const
   {
     return boost::make_indirect_iterator(this->m_map.end());
   }

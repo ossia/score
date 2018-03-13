@@ -24,7 +24,6 @@ StateComponentBase::StateComponentBase(
 {
 }
 
-
 void StateComponentBase::onSetup(
     const std::shared_ptr<ossia::time_event>& root)
 {
@@ -70,7 +69,7 @@ ProcessComponent*StateComponentBase::make(
       m_processes.emplace(proc.id(), plug);
 
       const auto& outlets = proc.outlets();
-      std::vector<int> propagated_outlets;
+      std::vector<std::size_t> propagated_outlets;
       for(std::size_t i = 0; i < outlets.size(); i++)
       {
         if(outlets[i]->propagate())

@@ -25,7 +25,7 @@ struct PluginDependencyGraph
   struct GraphVertex
   {
     GraphVertex(): addon{} { }
-    GraphVertex(const score::Addon* add): addon{add} { }
+    explicit GraphVertex(const score::Addon* add): addon{add} { }
     const score::Addon* addon{};
   };
 
@@ -36,12 +36,12 @@ struct PluginDependencyGraph
     GraphVertex>;
 
 public:
-  PluginDependencyGraph(const std::vector<score::Addon>& addons)
+  explicit PluginDependencyGraph(const std::vector<score::Addon>& addons)
   {
     if(addons.empty())
       return;
 
-    score::hash_map<PluginKey, int32_t> keys;
+    score::hash_map<PluginKey, int64_t> keys;
     std::vector<const score::Addon*> not_loaded;
 
     // First add all the vertices to the graph

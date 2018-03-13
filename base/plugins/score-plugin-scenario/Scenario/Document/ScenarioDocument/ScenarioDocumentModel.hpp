@@ -62,3 +62,4 @@ private:
   QJsonArray m_savedCables;
 };
 }
+extern template class score::EntityMap<Process::Cable>;

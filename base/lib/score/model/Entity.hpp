@@ -131,4 +131,3 @@ struct TSerializer<JSONObject, score::Entity<T>>
 
   }
 };
-

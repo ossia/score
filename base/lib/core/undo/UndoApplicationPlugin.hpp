@@ -25,8 +25,8 @@ class SCORE_LIB_BASE_EXPORT UndoApplicationPlugin final
     : public score::GUIApplicationPlugin
 {
 public:
-  UndoApplicationPlugin(const score::GUIApplicationContext& app);
-  ~UndoApplicationPlugin();
+  explicit UndoApplicationPlugin(const score::GUIApplicationContext& app);
+  ~UndoApplicationPlugin() override;
 
 private:
   void on_documentChanged(

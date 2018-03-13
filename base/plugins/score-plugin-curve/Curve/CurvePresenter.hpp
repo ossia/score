@@ -140,3 +140,5 @@ private:
   bool m_boundedMove = true;
 };
 }
+extern template class IdContainer<Curve::PointView, Curve::PointModel>;
+extern template class IdContainer<Curve::SegmentView, Curve::SegmentModel>;

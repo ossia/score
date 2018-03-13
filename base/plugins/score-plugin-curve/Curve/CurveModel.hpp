@@ -5,7 +5,7 @@
 #include <score/tools/std/Optional.hpp>
 #include <vector>
 
-#include "Segment/CurveSegmentModel.hpp"
+#include <Curve/Segment/CurveSegmentModel.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 
 class DataStream;
@@ -14,6 +14,8 @@ class QObject;
 #include <score/model/Identifier.hpp>
 #include <score_plugin_curve_export.h>
 
+
+extern template class IdContainer<Curve::SegmentModel>;
 namespace ossia
 {
 struct domain;

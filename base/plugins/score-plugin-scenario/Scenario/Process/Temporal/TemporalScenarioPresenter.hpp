@@ -33,14 +33,16 @@ namespace score
 struct DocumentContext;
 } // namespace score
 
-namespace score
-{
-}
 namespace Process
 {
 class LayerView;
 }
 
+extern template class IdContainer<Scenario::StatePresenter, Scenario::StateModel>;
+extern template class IdContainer<Scenario::EventPresenter, Scenario::EventModel>;
+extern template class IdContainer<Scenario::TimeSyncPresenter, Scenario::TimeSyncModel>;
+extern template class IdContainer<Scenario::TemporalIntervalPresenter, Scenario::IntervalModel>;
+extern template class IdContainer<Scenario::CommentBlockPresenter, Scenario::CommentBlockModel>;
 namespace Scenario
 {
 
@@ -86,22 +88,10 @@ public:
 
   void on_zoomRatioChanged(ZoomRatio val) override;
 
-  const auto& event(const Id<EventModel>& id) const
-  {
-    return m_events.at(id);
-  }
-  const auto& timeSync(const Id<TimeSyncModel>& id) const
-  {
-    return m_timeSyncs.at(id);
-  }
-  const auto& interval(const Id<IntervalModel>& id) const
-  {
-    return m_intervals.at(id);
-  }
-  const auto& state(const Id<StateModel>& id) const
-  {
-    return m_states.at(id);
-  }
+  EventPresenter& event(const Id<EventModel>& id) const;
+  TimeSyncPresenter& timeSync(const Id<TimeSyncModel>& id) const;
+  IntervalPresenter& interval(const Id<IntervalModel>& id) const;
+  StatePresenter& state(const Id<StateModel>& id) const;
   const auto& comment(const Id<CommentBlockModel>& id) const
   {
     return m_comments.at(id);

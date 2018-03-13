@@ -7,6 +7,10 @@
 namespace Process { class Port; class Inlet; class Outlet; class ControlInlet; }
 namespace score { struct DocumentContext; class Command; }
 namespace Scenario { class IntervalModel; }
+namespace Dataflow {
+  class PortItem;
+}
+extern template class tsl::hopscotch_map<Process::Port*, Dataflow::PortItem*, ossia::EgurHash<std::remove_pointer_t<Process::Port*>>>;
 namespace Dataflow
 {
 class CableItem;

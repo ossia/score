@@ -6,7 +6,7 @@
 #include <Scenario/Document/Interval/ExecutionState.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Document/ModelConsistency.hpp>
-#include <score/model/Entity.hpp>
+#include <score/model/EntityImpl.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/tools/Metadata.hpp>
 #include <score/tools/std/Optional.hpp>
@@ -25,6 +25,7 @@
 class DataStream;
 class JSONObject;
 
+extern template class score::EntityMap<Process::ProcessModel>;
 namespace Scenario
 {
 class StateModel;

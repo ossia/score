@@ -50,6 +50,9 @@
 #include <score/model/Identifier.hpp>
 #include <score/tools/Todo.hpp>
 
+template SCORE_PLUGIN_CURVE_EXPORT class IdContainer<Curve::PointView, Curve::PointModel>;
+template SCORE_PLUGIN_CURVE_EXPORT class IdContainer<Curve::SegmentView, Curve::SegmentModel>;
+
 namespace Curve
 {
 struct Style;

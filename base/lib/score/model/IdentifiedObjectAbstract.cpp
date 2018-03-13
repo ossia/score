@@ -7,6 +7,5 @@
 W_OBJECT_IMPL(IdentifiedObjectAbstract)
 IdentifiedObjectAbstract::~IdentifiedObjectAbstract()
 {
-  static_assert(is_template<score::hash_map<int, float>>::value, "");
   identified_object_destroyed(this);
 }
