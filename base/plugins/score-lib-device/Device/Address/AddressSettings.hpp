@@ -13,20 +13,8 @@
 #include <ossia/network/common/parameter_properties.hpp>
 #include <score_lib_device_export.h>
 
-template <typename T>
-class TreeNode;
 namespace Device
 {
-class DeviceExplorerNode;
-
-/** A data-only tree of nodes.
- *
- * By opposition to ossia::net::node_base, these nodes
- * contain pure data, no callbacks or complicated data structures.
- * They can be serialized very easily and are used as the data model of
- * Explorer::DeviceExplorerModel, as well as for serialization of devices.
- */
-using Node = TreeNode<DeviceExplorerNode>;
 
 using RepetitionFilter = bool;
 struct SCORE_LIB_DEVICE_EXPORT AddressSettingsCommon
@@ -98,8 +86,6 @@ struct SCORE_LIB_DEVICE_EXPORT FullAddressSettings
   static FullAddressSettings
   make(const State::Message& mess) noexcept;
 
-  static FullAddressSettings
-  make(const Device::Node& node) noexcept;
   // Specializations are in FullAddressSettings.cpp
 };
 

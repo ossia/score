@@ -593,6 +593,20 @@ void DeviceExplorerWidget::updateActions()
   }
 }
 
+
+Device::FullAddressSettings make(const Device::Node& node)
+{
+  SCORE_ASSERT(node.is<Device::AddressSettings>());
+  auto& other = node.get<Device::AddressSettings>();
+
+  Device::FullAddressSettings as;
+  static_cast<Device::AddressSettingsCommon&>(as) = other;
+  as.address = Device::address(node).address;
+
+  return as;
+}
+
+
 void DeviceExplorerWidget::updateAddressView()
 {
   auto indexes = m_ntView->selectedIndexes();
@@ -609,7 +623,7 @@ void DeviceExplorerWidget::updateAddressView()
     m_addressModel->setState(
           model(),
           Device::NodePath(n),
-          Device::FullAddressSettings::make(n));
+          make(n));
   }
   else
   {

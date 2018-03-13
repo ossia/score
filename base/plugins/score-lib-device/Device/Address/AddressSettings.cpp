@@ -189,19 +189,6 @@ FullAddressSettings::make(const State::Message& mess) noexcept
   return as;
 }
 
-SCORE_LIB_DEVICE_EXPORT FullAddressSettings
-FullAddressSettings::make(const Node& node) noexcept
-{
-  SCORE_ASSERT(node.is<Device::AddressSettings>());
-  auto& other = node.get<Device::AddressSettings>();
-
-  FullAddressSettings as;
-  static_cast<AddressSettingsCommon&>(as) = other;
-  as.address = Device::address(node).address;
-
-  return as;
-}
-
 FullAddressAccessorSettings::FullAddressAccessorSettings(
     const State::AddressAccessor& addr, const AddressSettingsCommon& f) noexcept
     : value{f.value}

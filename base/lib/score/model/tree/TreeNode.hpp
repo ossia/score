@@ -207,14 +207,6 @@ public:
     m_children.resize(s);
   }
 
-  void swapChildren(int oldIndex, int newIndex)
-  {
-    SCORE_ASSERT(oldIndex < m_children.size());
-    SCORE_ASSERT(newIndex < m_children.size());
-
-    m_children.swap(oldIndex, newIndex);
-  }
-
   auto erase(const_iterator it)
   {
     return m_children.erase(it);

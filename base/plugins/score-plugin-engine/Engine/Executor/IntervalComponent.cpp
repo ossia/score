@@ -318,7 +318,7 @@ ProcessComponent* IntervalComponentBase::make(
           if(oproc->node)
           {
             ossia::graph_node& n = *oproc->node;
-            for(int propagated : propagated_outlets)
+            for(std::size_t propagated : propagated_outlets)
             {
               const auto& outlet = n.outputs()[propagated]->data;
               if(outlet.target<ossia::audio_port>())

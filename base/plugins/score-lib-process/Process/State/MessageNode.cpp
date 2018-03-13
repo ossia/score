@@ -9,7 +9,30 @@
 
 #include <QStringBuilder>
 #include <algorithm>
+namespace Process
+{
 
+bool operator==(const Process::ProcessStateData& lhs, const Process::ProcessStateData& rhs)
+{
+  return
+      lhs.process == rhs.process && lhs.value == rhs.value
+      ;
+}
+
+bool operator==(const Process::StateNodeData& lhs, const Process::StateNodeData& rhs)
+{
+  return
+      lhs.name.name == rhs.name.name &&
+      lhs.name.qualifiers == rhs.name.qualifiers &&
+      lhs.values.previousProcessValues == rhs.values.previousProcessValues &&
+      lhs.values.followingProcessValues == rhs.values.followingProcessValues &&
+      lhs.values.priorities == rhs.values.priorities &&
+      lhs.values.userValue == rhs.values.userValue
+      ;
+}
+
+}
+template class SCORE_LIB_PROCESS_EXPORT TreeNode<Process::StateNodeData>;
 namespace Process
 {
 

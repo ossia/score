@@ -60,8 +60,16 @@ public:
   bool isEditable() const;
 };
 
+/** A data-only tree of nodes.
+ *
+ * By opposition to ossia::net::node_base, these nodes
+ * contain pure data, no callbacks or complicated data structures.
+ * They can be serialized very easily and are used as the data model of
+ * Explorer::DeviceExplorerModel, as well as for serialization of devices.
+ */
 using Node = TreeNode<DeviceExplorerNode>;
 using NodePath = TreePath<Device::Node>;
+
 
 // TODO reflist may be a better name.
 using FreeNode = std::pair<State::Address, Device::Node>;
@@ -209,3 +217,6 @@ Node_T* try_getNodeFromAddress(Node_T& root, const State::Address& addr)
   return try_getNodeFromString(*dev, addr.path);
 }
 }
+
+extern template class TreeNode<Device::DeviceExplorerNode>;
+extern template class boost::container::stable_vector<Device::Node>;
