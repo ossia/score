@@ -15,6 +15,8 @@
 #include <score/tools/Todo.hpp>
 #include <score/model/tree/TreeNode.hpp>
 
+template class SCORE_LIB_DEVICE_EXPORT boost::container::stable_vector<Device::Node>;
+template class SCORE_LIB_DEVICE_EXPORT TreeNode<Device::DeviceExplorerNode>;
 namespace Device
 {
 const QString& DeviceExplorerNode::displayName() const

@@ -87,8 +87,6 @@ QVariant convert(const ossia::value& val)
 }
 namespace Device
 {
-// TODO boost::visitor ?
-
 QVariant nameColumnData(const Device::Node& node, int role)
 {
   static const QFont& italicFont{[]() {

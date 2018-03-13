@@ -5,7 +5,7 @@
 #include <score/model/tree/InvisibleRootNode.hpp>
 #include <score/model/tree/VariantBasedNode.hpp>
 #include <ossia/editor/expression/operators.hpp>
-
+#include <score/model/tree/TreeNode.hpp>
 #include <QString>
 #include <algorithm>
 #include <cstddef>
@@ -64,123 +64,36 @@ class SCORE_LIB_STATE_EXPORT TreeNode<State::ExprData> final
 
   friend bool operator!=(
       const TreeNode<State::ExprData>& lhs,
-      const TreeNode<State::ExprData>& rhs)
-  {
-    return !(lhs == rhs);
-  }
+      const TreeNode<State::ExprData>& rhs);
 
   friend bool operator==(
       const TreeNode<State::ExprData>& lhs,
-      const TreeNode<State::ExprData>& rhs)
-  {
-    const auto& ltd = static_cast<const State::ExprData&>(lhs);
-    const auto& rtd = static_cast<const State::ExprData&>(rhs);
-
-    bool b = (ltd == rtd) && (lhs.m_children.size() == rhs.m_children.size());
-    if (!b)
-      return false;
-
-    for (std::size_t i = 0; i < lhs.m_children.size(); i++)
-    {
-      if (lhs.m_children[i] != rhs.m_children[i])
-        return false;
-    }
-
-    return true;
-  }
+      const TreeNode<State::ExprData>& rhs);
 
 public:
   QString toString() const;
   QString toPrettyString() const;
 
-  using iterator = typename std::vector<TreeNode>::iterator;
-  using const_iterator = typename std::vector<TreeNode>::const_iterator;
+  using iterator = typename boost::container::stable_vector<TreeNode>::iterator;
+  using const_iterator = typename boost::container::stable_vector<TreeNode>::const_iterator;
 
-  auto begin()
-  {
-    return m_children.begin();
-  }
-  auto begin() const
-  {
-    return m_children.cbegin();
-  }
-  auto cbegin() const
-  {
-    return m_children.cbegin();
-  }
-  auto& front()
-  {
-    return m_children.front();
-  }
+  iterator begin();
+  const_iterator begin() const;
+  const_iterator cbegin() const;
+  TreeNode<State::ExprData>& front();
 
-  auto end()
-  {
-    return m_children.end();
-  }
-  auto end() const
-  {
-    return m_children.cend();
-  }
-  auto cend() const
-  {
-    return m_children.cend();
-  }
-  auto& back()
-  {
-    return m_children.back();
-  }
+  iterator end();
+  const_iterator end() const;
+  const_iterator cend() const;
+  TreeNode<State::ExprData>& back();
 
-  TreeNode() = default;
+  TreeNode();
 
   // The parent has to be set afterwards.
-  TreeNode(const TreeNode& other)
-      : State::ExprData{static_cast<const State::ExprData&>(other)}
-      , m_children(other.m_children)
-  {
-    setParent(other.m_parent);
-    for (auto& child : m_children)
-      child.setParent(this);
-  }
-
-  TreeNode(TreeNode&& other)
-      : State::ExprData{std::move(
-            static_cast<State::ExprData&&>(std::move(other)))}
-      , m_children(std::move(other.m_children))
-  {
-    setParent(other.m_parent);
-    for (auto& child : m_children)
-      child.setParent(this);
-  }
-
-  TreeNode& operator=(const TreeNode& source)
-  {
-    static_cast<State::ExprData&>(*this)
-        = static_cast<const State::ExprData&>(source);
-    setParent(source.m_parent);
-
-    m_children = source.m_children;
-    for (auto& child : m_children)
-    {
-      child.setParent(this);
-    }
-
-    return *this;
-  }
-
-  TreeNode& operator=(TreeNode&& source)
-  {
-    static_cast<State::ExprData&>(*this)
-        = static_cast<State::ExprData&&>(source);
-    setParent(source.m_parent);
-
-    m_children = std::move(source.m_children);
-    for (auto& child : m_children)
-    {
-      child.setParent(this);
-    }
-
-    return *this;
-  }
+  TreeNode(const TreeNode<State::ExprData>& other);
+  TreeNode(TreeNode<State::ExprData>&& other);
+  TreeNode<State::ExprData>& operator=(const TreeNode<State::ExprData>& source);
+  TreeNode<State::ExprData>& operator=(TreeNode<State::ExprData>&& source);
 
   TreeNode(State::ExprData data, TreeNode* parent)
       : State::ExprData(std::move(data))
@@ -189,27 +102,9 @@ public:
   }
 
   // Clone
-  explicit TreeNode(TreeNode source, TreeNode* parent)
-      : TreeNode{std::move(source)}
-  {
-    setParent(parent);
-  }
-
-  void push_back(const TreeNode& child)
-  {
-    m_children.push_back(child);
-
-    auto& cld = m_children.back();
-    cld.setParent(this);
-  }
-
-  void push_back(TreeNode&& child)
-  {
-    m_children.push_back(std::move(child));
-
-    auto& cld = m_children.back();
-    cld.setParent(this);
-  }
+  explicit TreeNode(TreeNode source, TreeNode* parent);
+  void push_back(const TreeNode& child);
+  void push_back(TreeNode&& child);
 
   // OPTIMIZEME : the last arg will be this. Is it possible to optimize that ?
   template <typename... Args>
@@ -230,75 +125,28 @@ public:
     return n;
   }
 
-  TreeNode* parent() const
-  {
-    return m_parent;
-  }
-
-  bool hasChild(std::size_t index) const
-  {
-    return m_children.size() > index;
-  }
-
-  TreeNode& childAt(int index)
-  {
-    SCORE_ASSERT(hasChild(index));
-    return m_children.at(index);
-  }
-
-  const TreeNode& childAt(int index) const
-  {
-    SCORE_ASSERT(hasChild(index));
-    return m_children.at(index);
-  }
+  TreeNode* parent() const;
+  bool hasChild(std::size_t index) const;
+  TreeNode& childAt(int index);
+  const TreeNode& childAt(int index) const;
 
   // returns -1 if not found
-  int indexOfChild(const TreeNode* child) const
-  {
-    for (std::size_t i = 0U; i < m_children.size(); i++)
-      if (child == &m_children[i])
-        return i;
+  int indexOfChild(const TreeNode* child) const;
+  int childCount() const;
+  bool hasChildren() const;
 
-    return -1;
-  }
-
-  int childCount() const
-  {
-    return m_children.size();
-  }
-
-  bool hasChildren() const
-  {
-    return !m_children.empty();
-  }
-
-  auto& children()
-  {
-    return m_children;
-  }
-  const auto& children() const
-  {
-    return m_children;
-  }
+  boost::container::stable_vector<TreeNode>& children();
+  const boost::container::stable_vector<TreeNode>& children() const;
 
   // Won't delete the child!
-  void removeChild(const_iterator it)
-  {
-    m_children.erase(it);
-  }
-
-  void setParent(TreeNode* parent)
-  {
-    SCORE_ASSERT(
-        !m_parent || (m_parent && !m_parent->is<State::Relation>())
-        || (m_parent && !m_parent->is<State::Pulse>()));
-    m_parent = parent;
-  }
+  void removeChild(const_iterator it);
+  void setParent(TreeNode* parent);
 
 protected:
   TreeNode<State::ExprData>* m_parent{};
-  std::vector<TreeNode> m_children;
+  boost::container::stable_vector<TreeNode> m_children;
 };
+extern template class boost::container::stable_vector<State::ExprData>;
 
 namespace State
 {

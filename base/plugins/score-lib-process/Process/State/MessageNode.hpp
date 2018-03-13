@@ -66,6 +66,7 @@ struct SCORE_LIB_PROCESS_EXPORT StateNodeData
   State::OptionalValue value() const;
 };
 
+
 SCORE_LIB_PROCESS_EXPORT QDebug
 operator<<(QDebug d, const ProcessStateData& mess);
 SCORE_LIB_PROCESS_EXPORT QDebug
@@ -88,3 +89,5 @@ SCORE_LIB_PROCESS_EXPORT State::MessageList flatten(const MessageNode&);
 SCORE_LIB_PROCESS_EXPORT State::MessageList
 getUserMessages(const MessageNode&);
 }
+
+extern template class TreeNode<Process::StateNodeData>;
