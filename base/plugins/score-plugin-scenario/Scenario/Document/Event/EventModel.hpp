@@ -6,7 +6,7 @@
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <State/Expression.hpp>
 #include <score/model/Component.hpp>
-#include <score/model/Entity.hpp>
+#include <score/model/EntityImpl.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/tools/Metadata.hpp>

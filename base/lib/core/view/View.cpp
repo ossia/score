@@ -40,7 +40,10 @@ struct PanelComparator
            < rhs.first->defaultPanelStatus().priority;
   }
 };
+View::~View()
+{
 
+}
 View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
 {
   setObjectName("View");

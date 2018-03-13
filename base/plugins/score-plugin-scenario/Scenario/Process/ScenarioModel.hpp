@@ -307,3 +307,10 @@ struct ElementTraits<Scenario::ProcessModel, StateModel>
 }
 DESCRIPTION_METADATA(
     SCORE_PLUGIN_SCENARIO_EXPORT, Scenario::ProcessModel, "Scenario")
+
+
+extern template class score::EntityMap<Scenario::IntervalModel>;
+extern template class score::EntityMap<Scenario::EventModel>;
+extern template class score::EntityMap<Scenario::TimeSyncModel>;
+extern template class score::EntityMap<Scenario::StateModel>;
+extern template class score::EntityMap<Scenario::CommentBlockModel>;

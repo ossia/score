@@ -60,7 +60,7 @@ public:
       f();
   }
   template <typename Models>
-  auto& models() const
+  const score::EntityMap<Process::ProcessModel>& models() const
   {
     static_assert(
         std::is_same<Models, Process::ProcessModel>::value,
@@ -69,6 +69,10 @@ public:
     return m_model.stateProcesses;
   }
 
+  const score::hash_map<Id<Process::ProcessModel>, std::shared_ptr<ProcessComponent>>& processes() const
+  { return m_processes; }
+  const Scenario::StateModel& state() const { return m_model; }
+  const std::shared_ptr<ossia::graph_node>& node() const { return m_node; }
 protected:
   const Scenario::StateModel& m_model;
   std::shared_ptr<ossia::time_event> m_ev;

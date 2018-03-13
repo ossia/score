@@ -29,7 +29,8 @@ class SCORE_LIB_BASE_EXPORT View final : public QMainWindow
 {
   Q_OBJECT
 public:
-  View(QObject* parent);
+  explicit View(QObject* parent);
+  ~View() override;
 
   void setPresenter(Presenter*);
 

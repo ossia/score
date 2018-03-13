@@ -4,7 +4,7 @@
 #include <Process/TimeValue.hpp>
 #include <QByteArray>
 #include <QString>
-#include <score/model/Entity.hpp>
+#include <score/model/EntityImpl.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 #include <vector>

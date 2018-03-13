@@ -16,7 +16,6 @@
 #include <sys/types.h>
 #include <typeinfo>
 
-#include <boost/range.hpp>
 #include <score/model/IdentifiedObjectAbstract.hpp>
 
 #include <ossia/detail/algorithms.hpp>

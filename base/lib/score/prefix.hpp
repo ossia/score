@@ -4,7 +4,7 @@
 #pragma GCC system_header
 #pragma clang system_header
 
-////////
+///
 #include <QAbstractItemModel>
 #include <QAction>
 #include <QApplication>
@@ -71,8 +71,7 @@
 
 #include <score/command/AggregateCommand.hpp>
 
-#include <score/model/Entity.hpp>
-#include <score/model/EntityMap.hpp>
+#include <score/model/EntityImpl.hpp>
 #include <score/model/path/Path.hpp>
 
 #include <score/model/tree/TreeNode.hpp>

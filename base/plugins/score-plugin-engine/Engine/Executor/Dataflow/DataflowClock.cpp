@@ -16,7 +16,6 @@
 #include <ossia/network/midi/midi_device.hpp>
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
-#include <ossia/dataflow/graph/graph_static.hpp>
 namespace Dataflow
 {
 Clock::Clock(

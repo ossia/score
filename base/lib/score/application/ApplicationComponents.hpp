@@ -40,8 +40,7 @@ struct SCORE_LIB_BASE_EXPORT ApplicationComponentsData
   std::vector<ApplicationPlugin*> appPlugins;
   std::vector<GUIApplicationPlugin*> guiAppPlugins;
 
-  score::hash_map<score::InterfaceKey, std::unique_ptr<InterfaceListBase>>
-          factories;
+  score::hash_map<score::InterfaceKey, std::unique_ptr<InterfaceListBase>> factories;
   score::hash_map<CommandGroupKey, CommandGeneratorMap> commands;
   std::vector<std::unique_ptr<PanelDelegate>> panels;
 };

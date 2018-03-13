@@ -11,7 +11,7 @@ class UndoListWidget final : public QListWidget
   Q_OBJECT
 public:
   explicit UndoListWidget(score::CommandStack& s);
-  ~UndoListWidget();
+  ~UndoListWidget() override;
 
 public Q_SLOTS:
   void on_stackChanged();

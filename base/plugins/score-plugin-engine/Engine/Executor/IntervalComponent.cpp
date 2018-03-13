@@ -16,7 +16,6 @@
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
-#include <ossia/dataflow/graph/graph_interface.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
@@ -24,7 +23,7 @@
 #include <score/model/Identifier.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <ossia/dataflow/graph/graph_utils.hpp>
-
+#include <Engine/Executor/Settings/ExecutorModel.hpp>
 namespace Engine
 {
 namespace Execution
@@ -68,6 +67,7 @@ IntervalComponentBase::IntervalComponentBase(
       in_exec([t=ctx.time(sp),cst = m_ossia_interval]
       { cst->set_max_duration(t); });
   });
+
 }
 
 IntervalComponent::~IntervalComponent()
@@ -77,6 +77,55 @@ IntervalComponent::~IntervalComponent()
 void IntervalComponent::init()
 {
   init_hierarchy();
+
+  if(context().doc.app.settings<Settings::Model>().getScoreOrder())
+  {
+    std::vector<ossia::edge_ptr> edges_to_add;
+    edges_to_add.reserve(m_processes.size());
+
+    std::shared_ptr<ossia::graph_node> prev_node;
+    for(auto& proc : m_processes)
+    {
+      auto& node = proc.second->OSSIAProcess().node;
+      SCORE_ASSERT(node);
+      if(prev_node)
+      {
+
+        edges_to_add.push_back(
+              ossia::make_edge(
+                ossia::dependency_connection{}
+                , ossia::outlet_ptr{}
+                , ossia::inlet_ptr{}
+                , prev_node
+                , node));
+      }
+
+      prev_node = node;
+    }
+    if(prev_node)
+    {
+      edges_to_add.push_back(
+            ossia::make_edge(
+              ossia::dependency_connection{}
+              , ossia::outlet_ptr{}
+              , ossia::inlet_ptr{}
+              , prev_node
+              , m_ossia_interval->node));
+
+      std::weak_ptr<ossia::graph_interface> g_weak = context().plugin.execGraph;
+
+      in_exec(
+            [edges=std::move(edges_to_add),g_weak] {
+        if(auto g = g_weak.lock())
+        {
+          for(auto& c : edges)
+          {
+            g->connect(std::move(c));
+          }
+        }
+      });
+    }
+  }
 }
 
 void IntervalComponent::cleanup(const std::shared_ptr<IntervalComponent>& self)
@@ -234,7 +283,7 @@ ProcessComponent* IntervalComponentBase::make(
       m_processes.emplace(proc.id(), plug);
 
       const auto& outlets = proc.outlets();
-      std::vector<int> propagated_outlets;
+      std::vector<std::size_t> propagated_outlets;
       for(std::size_t i = 0; i < outlets.size(); i++)
       {
         if(outlets[i]->propagate())

@@ -48,7 +48,8 @@
 #include <score/model/path/ObjectPath.hpp>
 #include <score/tools/Todo.hpp>
 #include <ossia/detail/math.hpp>
-
+template class SCORE_PLUGIN_SCENARIO_EXPORT tsl::hopscotch_map<Process::Cable*, Dataflow::CableItem*, ossia::EgurHash<std::remove_pointer_t<Process::Cable*>>>;
+template class SCORE_PLUGIN_SCENARIO_EXPORT tsl::hopscotch_map<Process::Port*, Dataflow::PortItem*, ossia::EgurHash<std::remove_pointer_t<Process::Port*>>>;
 namespace Scenario
 {
 const ScenarioDocumentModel& ScenarioDocumentPresenter::model() const

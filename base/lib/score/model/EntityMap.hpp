@@ -41,6 +41,10 @@ public:
   {
     return m_map.begin();
   }
+  auto rbegin() const
+  {
+    return m_map.rbegin();
+  }
   auto cbegin() const
   {
     return m_map.cbegin();
@@ -48,6 +52,10 @@ public:
   auto end() const
   {
     return m_map.end();
+  }
+  auto rend() const
+  {
+    return m_map.rend();
   }
   auto cend() const
   {

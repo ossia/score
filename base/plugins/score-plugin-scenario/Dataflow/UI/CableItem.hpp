@@ -6,6 +6,10 @@
 #include <Process/Dataflow/Port.hpp>
 
 #include <ossia/detail/ptr_set.hpp>
+namespace Dataflow {
+  class CableItem;
+}
+extern template class tsl::hopscotch_map<Process::Cable*, Dataflow::CableItem*, ossia::EgurHash<std::remove_pointer_t<Process::Cable*>>>;
 namespace Dataflow
 {
 class PortItem;

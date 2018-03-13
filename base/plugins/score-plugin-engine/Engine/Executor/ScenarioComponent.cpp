@@ -41,7 +41,7 @@
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <ossia/dataflow/graph/graph_utils.hpp>
-
+#include <Engine/Executor/Settings/ExecutorModel.hpp>
 namespace Engine
 {
 namespace Execution
@@ -65,11 +65,6 @@ ScenarioComponentBase::ScenarioComponentBase(
   node = m_ossia_process->node;
   connect(this, &ScenarioComponentBase::sig_eventCallback,
           this, &ScenarioComponentBase::eventCallback, Qt::QueuedConnection);
-
-  // Note : the hierarchical scenario shall create the time syncs first.
-  // A better way would be :
-  // * Either to not have a dependency ordering, which would require two passes
-  // * Or to have the HierarchicalScenario take a variadic amount of stuff and init them in the right order.
 }
 
 ScenarioComponentBase::~ScenarioComponentBase()
@@ -103,6 +98,104 @@ void ScenarioComponent::init()
       m_properties.timesyncs[Id<Scenario::TimeSyncModel>(0)].date = 0;
       m_checker->computeDisplacement(m_pastTn, m_properties);
     }
+  }
+
+  if(ctx.doc.app.settings<Settings::Model>().getScoreOrder())
+  {
+    std::vector<ossia::edge_ptr> edges_to_add;
+    edges_to_add.reserve(m_ossia_intervals.size() * 2);
+
+    for(auto& state : m_ossia_states)
+    {
+      // Add link between previous interval and state & first state process
+      // And between state's last process and interval's first process
+      auto& state_model = state.second->state();
+      auto prev = state_model.previousInterval();
+      auto next = state_model.nextInterval();
+      auto& state_procs = state.second->processes();
+      std::shared_ptr<ossia::graph_node> state_first_node, state_last_node;
+
+      if(state.second->node())
+      {
+        state_first_node = state.second->node();
+
+        if(state_procs.empty())
+          state_last_node = state.second->node();
+      }
+
+      if(!state_procs.empty())
+      {
+        if(!state_first_node)
+        {
+          state_first_node = state_procs.at(state_model.stateProcesses.begin()->id())->OSSIAProcess().node;
+        }
+
+        state_last_node = state_procs.at(state_model.stateProcesses.rbegin()->id())->OSSIAProcess().node;
+      }
+
+      if(!state_first_node || !state_last_node)
+        continue;
+
+      if(prev)
+      {
+        auto prev_itv = m_ossia_intervals.at(*prev);
+        SCORE_ASSERT(prev_itv->OSSIAInterval()->node);
+
+        edges_to_add.push_back(
+              ossia::make_edge(
+                ossia::dependency_connection{}
+                , ossia::outlet_ptr{}
+                , ossia::inlet_ptr{}
+                , prev_itv->OSSIAInterval()->node
+                , state_first_node));
+      }
+
+      if(next)
+      {
+        auto next_itv = m_ossia_intervals.at(*next);
+        SCORE_ASSERT(next_itv->OSSIAInterval()->node);
+        if(!next_itv->processes().empty())
+        {
+          auto proc = next_itv->processes().at(next_itv->interval().processes.begin()->id());
+          if(auto ossia_proc = proc->OSSIAProcessPtr())
+          {
+            if(auto node = ossia_proc->node)
+            {
+              edges_to_add.push_back(
+                    ossia::make_edge(
+                      ossia::dependency_connection{}
+                      , ossia::outlet_ptr{}
+                      , ossia::inlet_ptr{}
+                      , state_last_node
+                      , node));
+            }
+          }
+        }
+        else
+        {
+          edges_to_add.push_back(
+                ossia::make_edge(
+                  ossia::dependency_connection{}
+                  , ossia::outlet_ptr{}
+                  , ossia::inlet_ptr{}
+                  , state_last_node
+                  , next_itv->OSSIAInterval()->node));
+        }
+      }
+    }
+
+    std::weak_ptr<ossia::graph_interface> g_weak = ctx.plugin.execGraph;
+
+    in_exec(
+          [edges=std::move(edges_to_add),g_weak] {
+      if(auto g = g_weak.lock())
+      {
+        for(auto& c : edges)
+        {
+          g->connect(std::move(c));
+        }
+      }
+    });
   }
 }
 

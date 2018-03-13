@@ -7,7 +7,8 @@ class UndoListWidget;
 class UndoPanelDelegate final : public score::PanelDelegate
 {
 public:
-  UndoPanelDelegate(const score::GUIApplicationContext& ctx);
+  explicit UndoPanelDelegate(const score::GUIApplicationContext& ctx);
+  ~UndoPanelDelegate() override;
 
 private:
   QWidget* widget() override;

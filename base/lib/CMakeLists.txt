@@ -81,6 +81,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/Entity.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/EntityBase.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/EntityMap.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/model/EntityImpl.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/HierarchicalModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/IdentifiedObject.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/IdentifiedObjectAbstract.hpp"

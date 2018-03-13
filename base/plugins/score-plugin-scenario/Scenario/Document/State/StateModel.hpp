@@ -2,9 +2,8 @@
 #include <Process/Process.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <score/model/Entity.hpp>
 #include <score/selection/Selectable.hpp>
-#include <score/model/EntityMap.hpp>
+#include <score/model/EntityImpl.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/tools/Metadata.hpp>
 #include <score/model/Identifier.hpp>
@@ -32,6 +31,7 @@ namespace score
 class CommandStackFacade;
 }
 
+extern template class score::EntityMap<Process::ProcessModel>;
 namespace Scenario
 {
 class EventModel;
