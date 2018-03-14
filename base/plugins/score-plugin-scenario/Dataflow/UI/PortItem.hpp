@@ -2,6 +2,9 @@
 #include <QGraphicsItem>
 #include <QObject>
 #include <functional>
+#if defined(_MSC_VER)
+#include <Process/Dataflow/Port.hpp>
+#endif
 #include <score_plugin_scenario_export.h>
 #include <ossia/detail/ptr_set.hpp>
 namespace Process { class Port; class Inlet; class Outlet; class ControlInlet; }
@@ -10,7 +13,7 @@ namespace Scenario { class IntervalModel; }
 namespace Dataflow {
   class PortItem;
 }
-extern template class tsl::hopscotch_map<Process::Port*, Dataflow::PortItem*, ossia::EgurHash<std::remove_pointer_t<Process::Port*>>>;
+extern template class tsl::hopscotch_map<Process::Port*, Dataflow::PortItem*, ossia::EgurHash<Process::Port*>>;
 namespace Dataflow
 {
 class CableItem;

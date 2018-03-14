@@ -58,7 +58,7 @@ struct Node
         {
             const auto period = get_period(val, quantif, freq, tempo, st.sampleRate);
             const auto next = next_date(prev_date, period);
-            if(next < tk.date)
+            if(next.impl < tk.date.impl)
             {
                 ossia::tvalue t;
                 t.value = ossia::impulse{};

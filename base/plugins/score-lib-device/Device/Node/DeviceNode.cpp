@@ -19,6 +19,10 @@ template class SCORE_LIB_DEVICE_EXPORT boost::container::stable_vector<Device::N
 template class SCORE_LIB_DEVICE_EXPORT TreeNode<Device::DeviceExplorerNode>;
 namespace Device
 {
+bool operator<(const Device::Node& lhs, const Device::Node& rhs)
+{
+  return false;
+}
 const QString& DeviceExplorerNode::displayName() const
 {
   struct
