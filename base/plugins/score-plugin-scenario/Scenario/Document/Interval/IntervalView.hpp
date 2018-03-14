@@ -143,6 +143,8 @@ protected:
   IntervalMenuOverlay* m_overlay{};
 
   IntervalPresenter& m_presenter;
+  QPainterPath solidPath, dashedPath, playedSolidPath, playedDashedPath, waitingDashedPath;
+
   double m_defaultWidth{};
   double m_maxWidth{};
   double m_minWidth{};

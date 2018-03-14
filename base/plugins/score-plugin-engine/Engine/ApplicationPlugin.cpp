@@ -44,6 +44,7 @@
 #include <QVariant>
 #include <QVector>
 #include <spdlog/spdlog.h>
+#include <Loop/LoopProcessModel.hpp>
 namespace Engine
 {
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
@@ -321,6 +322,42 @@ void ApplicationPlugin::on_stop()
       if (explorer)
         explorer->deviceModel().listening().restore();
     }
+
+    QTimer::singleShot(50, this, [this] {
+      auto doc = currentDocument();
+      if(!doc)
+        return;
+      auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(
+          &doc->model().modelDelegate());
+      if(!scenar)
+        return;
+      scenar->baseInterval().reset();
+      scenar->baseInterval().executionFinished();
+      auto procs = doc->findChildren<Scenario::ProcessModel*>();
+      for(Scenario::ProcessModel* e : procs)
+      {
+        for(auto& itv : e->intervals)
+        {
+          itv.reset();
+          itv.executionFinished();
+        }
+        for(auto& ev : e->events)
+        {
+          ev.setStatus(Scenario::ExecutionStatus::Editing, *e);
+        }
+      }
+
+      auto loops = doc->findChildren<Loop::ProcessModel*>();
+      for(Loop::ProcessModel* lp : loops)
+      {
+        lp->interval().reset();
+        lp->interval().executionFinished();
+        lp->startEvent().setStatus(Scenario::ExecutionStatus::Editing, *lp);
+        lp->endEvent().setStatus(Scenario::ExecutionStatus::Editing, *lp);
+        lp->startState().setStatus(Scenario::ExecutionStatus::Editing);
+        lp->endState().setStatus(Scenario::ExecutionStatus::Editing);
+      }
+    } );
   }
 }
 

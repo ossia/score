@@ -33,10 +33,16 @@ QString EffectProcessFactory_T<Media::VST::VSTEffectModel>::customConstructionDa
   auto& app = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
   QStringList vsts; vsts.reserve(app.vst_infos.size());
   QMap<QString, int32_t> ids;
-  for(auto& i : app.vst_infos)
+  for(Media::ApplicationPlugin::vst_info& i : app.vst_infos)
   {
-    vsts.push_back(i.prettyName);
-    ids.insert(i.prettyName, i.uniqueID);
+    if(i.isValid)
+    {
+      auto name = i.prettyName;
+      if(i.isSynth)
+        name = "♪ " + name;
+      vsts.push_back(name);
+      ids.insert(name, i.uniqueID);
+    }
   }
   ossia::sort(vsts);
   bool ok = false;

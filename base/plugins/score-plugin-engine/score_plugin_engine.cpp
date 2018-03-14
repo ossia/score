@@ -63,6 +63,7 @@
 #include <Engine/Protocols/Audio/AudioDevice.hpp>
 #include <Engine/Executor/Dataflow/DataflowClock.hpp>
 #endif
+#include <Engine/Executor/Dataflow/ManualClock.hpp>
 
 #include <Scenario/score_plugin_scenario.hpp>
 #include <score_plugin_deviceexplorer.hpp>
@@ -169,6 +170,7 @@ score_plugin_engine::factories(
     #if defined(OSSIA_DATAFLOW)
               , Dataflow::ClockFactory
     #endif
+              , Engine::ManualClock::ClockFactory
             >,
             FW<Curve::SegmentFactory,
                 Curve::SegmentFactory_T<Segment_backIn>,

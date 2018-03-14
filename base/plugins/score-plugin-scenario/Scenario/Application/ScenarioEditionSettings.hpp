@@ -8,15 +8,15 @@ namespace Scenario
 class SCORE_PLUGIN_SCENARIO_EXPORT EditionSettings final : public QObject
 {
   Q_OBJECT
-  Q_PROPERTY(ExpandMode expandMode READ expandMode WRITE setExpandMode NOTIFY
-                 expandModeChanged)
+  Q_PROPERTY(ExpandMode expandMode READ expandMode WRITE setExpandMode NOTIFY expandModeChanged)
   Q_PROPERTY(LockMode lockMode READ lockMode WRITE setLockMode NOTIFY lockModeChanged)
   Q_PROPERTY(Scenario::Tool tool READ tool WRITE setTool NOTIFY toolChanged)
-  Q_PROPERTY(
-      bool sequence READ sequence WRITE setSequence NOTIFY sequenceChanged)
+  Q_PROPERTY(bool sequence READ sequence WRITE setSequence NOTIFY sequenceChanged)
 
   ExpandMode m_expandMode{ExpandMode::Scale};
   Scenario::Tool m_tool{Scenario::Tool::Select};
+  Scenario::Tool m_previousTool{Scenario::Tool::Select};
+  LockMode m_lockMode{};
   bool m_sequence{false};
   bool m_execution{false};
 
@@ -45,8 +45,5 @@ Q_SIGNALS:
 
   void lockModeChanged(LockMode lockMode);
 
-private:
-  Scenario::Tool m_previousTool{Scenario::Tool::Select};
-  LockMode m_lockMode;
 };
 }

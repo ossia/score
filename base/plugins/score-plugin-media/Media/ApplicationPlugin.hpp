@@ -41,6 +41,7 @@ class ApplicationPlugin : public QObject, public score::ApplicationPlugin
             QString prettyName;
             int32_t uniqueID{};
             bool isSynth{};
+            bool isValid{};
         };
         std::vector<vst_info> vst_infos;
         ossia::fast_hash_map<int32_t, Media::VST::VSTModule*> vst_modules;

@@ -3,7 +3,7 @@
 
 namespace Scenario
 {
-enum class Tool
+enum class Tool: int8_t
 {
   Disabled,
   Create,

@@ -50,6 +50,7 @@ void IntervalView::setInfinite(bool infinite)
 
     m_infinite = infinite;
     updatePaths();
+    updatePlayPaths();
     update();
   }
 }
@@ -67,6 +68,7 @@ void IntervalView::setDefaultWidth(double width)
     prepareGeometryChange();
     m_defaultWidth = width;
     updatePaths();
+    updatePlayPaths();
     update();
   }
 }
@@ -83,6 +85,7 @@ void IntervalView::setMaxWidth(bool infinite, double max)
       m_maxWidth = max;
     }
     updatePaths();
+    updatePlayPaths();
     update();
   }
 }
@@ -94,6 +97,7 @@ void IntervalView::setMinWidth(double min)
     prepareGeometryChange();
     m_minWidth = min;
     updatePaths();
+    updatePlayPaths();
     update();
   }
 }
@@ -105,6 +109,7 @@ void IntervalView::setHeight(double height)
     prepareGeometryChange();
     m_height = height;
     updatePaths();
+    updatePlayPaths();
     update();
   }
 }
@@ -112,7 +117,7 @@ void IntervalView::setHeight(double height)
 double IntervalView::setPlayWidth(double width)
 {
   const auto v = std::abs(m_playWidth - width);
-  if(v > 1.)
+  if(v > 1. || (width > 0 && (playedSolidPath.isEmpty() || playedDashedPath.isEmpty())))
   {
     m_playWidth = width;
     updatePlayPaths();

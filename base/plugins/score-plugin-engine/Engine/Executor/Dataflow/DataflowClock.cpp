@@ -5,15 +5,12 @@
 #include <Engine/Executor/IntervalComponent.hpp>
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
 #include <Engine/Executor/BaseScenarioComponent.hpp>
-#include <Engine/Executor/IntervalComponent.hpp>
 #include <ossia/dataflow/audio_parameter.hpp>
 #include <ossia/dataflow/audio_protocol.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Engine/Protocols/OSSIADevice.hpp>
-#include <QFile>
 #include <QPointer>
-#include <ossia/network/midi/midi_device.hpp>
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
 namespace Dataflow

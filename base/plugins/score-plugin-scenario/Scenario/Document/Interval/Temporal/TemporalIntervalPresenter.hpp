@@ -36,7 +36,7 @@ public:
       QGraphicsItem* parentobject,
       QObject* parent);
 
-  virtual ~TemporalIntervalPresenter();
+  ~TemporalIntervalPresenter() override;
 
   void updateScaling() override;
   void updateHeight();

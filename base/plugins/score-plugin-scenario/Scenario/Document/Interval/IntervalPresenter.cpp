@@ -59,6 +59,10 @@ IntervalPresenter::IntervalPresenter(
   con(interval, &IntervalModel::executionStopped,
       this, [=] {
     m_view->setExecuting(false);
+  }, Qt::QueuedConnection);
+  con(interval, &IntervalModel::executionFinished,
+      this, [=] {
+    m_view->setExecuting(false);
     m_view->setPlayWidth(0.);
     m_view->updatePaths();
     m_view->update();
