@@ -146,6 +146,7 @@ protected:
   TreeNode<State::ExprData>* m_parent{};
   boost::container::stable_vector<TreeNode> m_children;
 };
+bool operator<(const State::ExprData& lhs, const State::ExprData& rhs);
 extern template class boost::container::stable_vector<State::ExprData>;
 
 namespace State

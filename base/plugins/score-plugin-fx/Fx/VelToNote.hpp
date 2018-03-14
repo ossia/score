@@ -216,7 +216,7 @@ struct Node
     for(auto it = self.to_start.begin(); it != self.to_start.end(); )
     {
       auto& note = *it;
-      if(note.date > prev_date && note.date < tk.date)
+      if(note.date > prev_date && note.date.impl < tk.date.impl)
       {
         auto no = mm::MakeNoteOn(chan, note.note.pitch, note.note.vel);
         no.timestamp = note.date - prev_date;
@@ -246,7 +246,7 @@ struct Node
     for(auto it = self.running_notes.begin(); it != self.running_notes.end(); )
     {
       auto& note = *it;
-      if(note.date > prev_date && note.date < tk.date)
+      if(note.date > prev_date && note.date.impl < tk.date.impl)
       {
         auto noff = mm::MakeNoteOff(chan, note.note.pitch, note.note.vel);
         noff.timestamp = note.date - prev_date;

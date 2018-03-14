@@ -6,7 +6,7 @@
 
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/model/tree/TreeNode.hpp>
-
+#include <Process/Process.hpp>
 #include <QStringBuilder>
 #include <algorithm>
 namespace Process

@@ -4,6 +4,13 @@
 #include <QStringBuilder>
 #include "Expression.hpp"
 #include <State/Relation.hpp>
+namespace State
+{
+bool operator<(const State::ExprData& lhs, const State::ExprData& rhs)
+{
+  return false;
+}
+}
 template SCORE_LIB_STATE_EXPORT class boost::container::stable_vector<State::ExprData>;
 QString State::ExprData::toString() const
 {

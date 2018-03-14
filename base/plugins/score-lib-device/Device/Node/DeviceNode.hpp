@@ -216,6 +216,9 @@ Node_T* try_getNodeFromAddress(Node_T& root, const State::Address& addr)
 
   return try_getNodeFromString(*dev, addr.path);
 }
+
+bool operator<(const Device::Node& lhs, const Device::Node& rhs);
+
 }
 
 extern template class TreeNode<Device::DeviceExplorerNode>;
