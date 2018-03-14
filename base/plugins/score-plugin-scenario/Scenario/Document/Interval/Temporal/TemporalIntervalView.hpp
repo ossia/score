@@ -24,6 +24,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT TemporalIntervalView final
 public:
   TemporalIntervalView(
       TemporalIntervalPresenter& presenter, QGraphicsItem* parent);
+  ~TemporalIntervalView() override;
 
   QRectF boundingRect() const override;
 
@@ -56,8 +57,6 @@ private:
 
   void updatePaths() final override;
   void updatePlayPaths() final override;
-
-  QPainterPath solidPath, dashedPath, playedSolidPath, playedDashedPath, waitingDashedPath;
 
 };
 }

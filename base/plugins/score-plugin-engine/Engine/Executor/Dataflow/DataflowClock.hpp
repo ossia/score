@@ -19,14 +19,9 @@ class Clock final
     public:
         Clock(const Engine::Execution::Context& ctx);
 
-        ~Clock();
+        ~Clock() override;
 
     private:
-        void on_cableCreated(Process::Cable& c);
-        void on_cableRemoved(const Process::Cable& c);
-
-        void connectCable(Process::Cable& cable);
-
         // Clock interface
         void play_impl(
                 const TimeVal& t,

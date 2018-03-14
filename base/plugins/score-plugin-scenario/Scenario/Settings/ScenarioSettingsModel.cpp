@@ -99,7 +99,7 @@ SCORE_SETTINGS_PARAMETER_CPP(bool, Model, TimeBar)
 
   void Model::setDefaultDuration(TimeVal val)
   {
-    val = std::max(val, TimeVal{std::chrono::seconds{10}});
+    val = std::max(val, TimeVal{std::chrono::milliseconds{100}});
     if (val == m_DefaultDuration)
       return;
 

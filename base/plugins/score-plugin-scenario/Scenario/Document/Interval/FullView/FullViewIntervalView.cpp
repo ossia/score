@@ -30,6 +30,11 @@ FullViewIntervalView::FullViewIntervalView(
   this->setZValue(1);
 }
 
+FullViewIntervalView::~FullViewIntervalView()
+{
+
+}
+
 void FullViewIntervalView::updatePaths()
 {
   solidPath = QPainterPath{};

@@ -213,11 +213,6 @@ void ScenarioComponentBase::stop()
   }
   m_executingIntervals.clear();
   ProcessComponent::stop();
-
-  for(Scenario::EventModel& e : process().events)
-  {
-    e.setStatus(Scenario::ExecutionStatus::Editing, process());
-  }
 }
 
 std::function<void ()> ScenarioComponentBase::removing(

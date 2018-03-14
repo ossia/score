@@ -18,7 +18,7 @@ public:
   FullViewIntervalView(
       FullViewIntervalPresenter& presenter, QGraphicsItem* parent);
 
-  virtual ~FullViewIntervalView() = default;
+  ~FullViewIntervalView() override;
 
   void updatePaths() final override;
   void updatePlayPaths() final override;
@@ -35,7 +35,6 @@ public:
   void setSelected(bool selected);
 private:
   double m_guiWidth{};
-  QPainterPath solidPath, dashedPath, playedSolidPath, playedDashedPath, waitingDashedPath;
 
 };
 }

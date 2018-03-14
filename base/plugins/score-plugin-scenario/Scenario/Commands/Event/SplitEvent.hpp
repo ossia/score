@@ -28,10 +28,13 @@ class SplitEvent final : public score::Command
 public:
   SplitEvent(
       const Scenario::ProcessModel& scenario,
-      Id<EventModel>
-          event,
-      QVector<Id<StateModel>>
-          movingstates);
+      Id<EventModel> event,
+      QVector<Id<StateModel>> movingstates);
+  SplitEvent(
+      const Scenario::ProcessModel& scenario,
+      Id<EventModel> event,
+      Id<EventModel> new_event,
+      QVector<Id<StateModel>> movingstates);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

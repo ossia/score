@@ -28,10 +28,8 @@ namespace Command
 {
 SplitEvent::SplitEvent(
     const Scenario::ProcessModel& scenario,
-    Id<EventModel>
-        event,
-    QVector<Id<StateModel>>
-        movingstates)
+    Id<EventModel> event,
+    QVector<Id<StateModel>> movingstates)
     : m_scenarioPath{scenario}
     , m_originalEvent{std::move(event)}
     , m_newEvent{getStrongId(scenario.events)}
@@ -40,6 +38,18 @@ SplitEvent::SplitEvent(
 {
 }
 
+SplitEvent::SplitEvent(
+    const Scenario::ProcessModel& scenario,
+    Id<EventModel> event,
+    Id<EventModel> new_event,
+    QVector<Id<StateModel>> movingstates)
+    : m_scenarioPath{scenario}
+    , m_originalEvent{std::move(event)}
+    , m_newEvent{new_event}
+    , m_createdName{RandomNameProvider::generateName<EventModel>()}
+    , m_movingStates{std::move(movingstates)}
+{
+}
 void SplitEvent::undo(const score::DocumentContext& ctx) const
 {
   auto& scenar = m_scenarioPath.find(ctx);

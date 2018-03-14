@@ -151,7 +151,7 @@ void IntervalModel::startExecution()
 }
 void IntervalModel::stopExecution()
 {
-  duration.setPlayPercentage(0);
+  //duration.setPlayPercentage(0);
   duration.setExecutionSpeed(1.0);
   for (Process::ProcessModel& proc : processes)
   {

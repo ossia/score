@@ -25,19 +25,6 @@
 #include <score/model/Identifier.hpp>
 #include <score/widgets/GraphicsItem.hpp>
 
-class QEvent;
-class QMenu;
-class QMimeData;
-namespace score
-{
-struct DocumentContext;
-} // namespace score
-
-namespace Process
-{
-class LayerView;
-}
-
 extern template class IdContainer<Scenario::StatePresenter, Scenario::StateModel>;
 extern template class IdContainer<Scenario::EventPresenter, Scenario::EventModel>;
 extern template class IdContainer<Scenario::TimeSyncPresenter, Scenario::TimeSyncModel>;

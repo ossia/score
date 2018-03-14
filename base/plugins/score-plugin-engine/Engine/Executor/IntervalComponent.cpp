@@ -245,7 +245,6 @@ void IntervalComponentBase::stop()
   }
   interval().reset();
 
-  interval().duration.setPlayPercentage(0);
   executionStopped();
 }
 

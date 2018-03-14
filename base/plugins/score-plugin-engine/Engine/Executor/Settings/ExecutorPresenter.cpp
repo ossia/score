@@ -28,7 +28,6 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   SETTINGS_PRESENTER(Logging);
   SETTINGS_PRESENTER(Bench);
   SETTINGS_PRESENTER(ExecutionListening);
-  SETTINGS_PRESENTER(Clock);
   SETTINGS_PRESENTER(ScoreOrder);
 
   // Clock used
@@ -41,7 +40,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   v.populateClocks(clockMap);
 
   con(v, &View::ClockChanged, this, [&](auto val) {
-    if (val != m.getClock())
+    if (val.impl().data != m.getClock().impl().data)
     {
       m_disp.submitCommand<SetModelClock>(this->model(this), val);
     }

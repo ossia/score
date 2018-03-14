@@ -106,28 +106,27 @@ ScenarioStyle::ScenarioStyle() noexcept
 
 void ScenarioStyle::update(const score::Skin& skin)
 {
-  IntervalSolidPen = QPen{QBrush{Qt::black}, 3, Qt::SolidLine, Qt::SquareCap,
-                            Qt::RoundJoin};
+  IntervalSolidPen = QPen{QBrush{Qt::black}, 3, Qt::SolidLine, Qt::FlatCap,
+                            Qt::MiterJoin};
   IntervalDashPen = [] {
-    QPen pen{QBrush{Qt::black}, 3, Qt::CustomDashLine, Qt::SquareCap,
-             Qt::RoundJoin};
+    QPen pen{QBrush{Qt::black}, 3, Qt::CustomDashLine, Qt::FlatCap,
+             Qt::MiterJoin};
 
     pen.setDashPattern({2., 4.});
     return pen;
   }();
   IntervalRackPen
-      = QPen{Qt::black, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
-  IntervalPlayPen
-      = QPen{Qt::black, 4, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+      = QPen{Qt::black, 2, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin};
+  IntervalPlayPen = IntervalSolidPen;
   IntervalPlayDashPen = IntervalDashPen;
   IntervalWaitingDashPen = IntervalDashPen;
   IntervalHeaderSeparator
-      = QPen{IntervalHeaderSideBorder.getBrush(), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+      = QPen{IntervalHeaderSideBorder.getBrush(), 2, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin};
   FullViewIntervalHeaderSeparator
-      = QPen{IntervalHeaderSideBorder.getBrush(), 2, Qt::DashLine, Qt::RoundCap, Qt::RoundJoin};
+      = QPen{IntervalHeaderSideBorder.getBrush(), 2, Qt::DashLine, Qt::FlatCap, Qt::MiterJoin};
 
   IntervalBrace
-      = QPen{IntervalBase.getBrush(), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+      = QPen{IntervalBase.getBrush(), 2, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin};
   IntervalBraceSelected = IntervalBrace;
   IntervalBraceSelected.setBrush(IntervalSelected.getBrush());
   IntervalBraceWarning = IntervalBrace;
@@ -180,18 +179,18 @@ void ScenarioStyle::update(const score::Skin& skin)
 
   Medium7Pt = skin.SansFont;
   Medium7Pt.setPointSize(7);
-  Medium7Pt.setStyleStrategy(QFont::NoAntialias);
-  Medium7Pt.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
+  //Medium7Pt.setStyleStrategy(QFont::NoAntialias);
+  //Medium7Pt.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
   Medium7Pt.setKerning(false);
 
   Medium8Pt = skin.SansFont;
   Medium8Pt.setPointSize(8);
-  Medium8Pt.setStyleStrategy(QFont::PreferBitmap);
+  //Medium8Pt.setStyleStrategy(QFont::PreferBitmap);
   Medium8Pt.setKerning(false);
 
   Medium12Pt = skin.SansFont;
   Medium12Pt.setPointSize(12);
-  Medium12Pt.setStyleStrategy(QFont::NoAntialias);
+  //Medium12Pt.setStyleStrategy(QFont::NoAntialias);
   Medium12Pt.setKerning(false);
 
   AudioCablePen = QPen{QBrush{QColor("#88996666")}, 3., Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};

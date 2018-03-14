@@ -125,6 +125,16 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
   }
 
   // 3. Add remaining plug-ins
+  auto add_invalid = [=] (const QString& path)
+  {
+    vst_info i;
+    i.path = path;
+    i.prettyName = "invalid";
+    i.uniqueID = -1;
+    i.isSynth = false;
+    vst_infos.push_back(i);
+  };
+
   for(const QString& path : newPlugins)
   {
     SCORE_ASSERT(!path.isEmpty());
@@ -195,11 +205,13 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
 
       if(!ok)
       {
+        add_invalid(path);
         delete plugin;
       }
 
 
     } catch(const std::runtime_error& e) {
+      add_invalid(path);
       qDebug() << e.what();
       continue;
     }

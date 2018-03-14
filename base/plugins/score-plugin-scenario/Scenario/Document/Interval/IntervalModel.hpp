@@ -141,6 +141,7 @@ Q_SIGNALS:
   void executionStateChanged(Scenario::IntervalExecutionState);
   void executionStarted();
   void executionStopped();
+  void executionFinished();
 
   void smallViewVisibleChanged(bool fv);
 

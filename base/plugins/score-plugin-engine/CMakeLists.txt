@@ -233,6 +233,7 @@ set(PHIDGETS_SRCS
 set(AUDIO_HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Audio/AudioDevice.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Dataflow/DataflowClock.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Dataflow/ManualClock.hpp"
 )
 set(AUDIO_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Audio/AudioDevice.cpp"

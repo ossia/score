@@ -17,36 +17,36 @@ class QStyleOptionGraphicsItem;
 class QWidget;
 namespace Scenario
 {
-static const QPolygonF smallNonDilated{
+static const QPainterPath smallNonDilated{
 [] {
     QPainterPath p;
     p.addEllipse({0, 0}, StateView::pointRadius, StateView::pointRadius);
-    return p.simplified().toFillPolygon();
+    return p; //return p.simplified().toFillPolygon();
   }()
 };
-static const QPolygonF fullNonDilated{
+static const QPainterPath fullNonDilated{
   [] {
     QPainterPath p;
     p.addEllipse({0, 0}, StateView::fullRadius, StateView::fullRadius);
-    return p.simplified().toFillPolygon();
+    return p; //return p.simplified().toFillPolygon();
   }()
 };
-static const QPolygonF smallDilated{
+static const QPainterPath smallDilated{
 [] {
     QPainterPath p;
     p.addEllipse({0, 0},
                  StateView::pointRadius * StateView::dilated,
                  StateView::pointRadius * StateView::dilated);
-    return p.simplified().toFillPolygon();
+    return p; //return p.simplified().toFillPolygon();
   }()
 };
-static const QPolygonF fullDilated{
+static const QPainterPath fullDilated{
   [] {
     QPainterPath p;
     p.addEllipse({0, 0},
                  StateView::fullRadius * StateView::dilated,
                  StateView::fullRadius * StateView::dilated);
-    return p.simplified().toFillPolygon();
+    return p; //return p.simplified().toFillPolygon();
   }()
 };
 bool is_hidpi()
@@ -84,9 +84,9 @@ void StateView::paint(
   {
     painter->setBrush(skin.StateOutline.getBrush());
     if(m_dilated)
-      painter->drawPolygon(fullDilated);
+      painter->drawPath(fullDilated);
     else
-      painter->drawPolygon(fullNonDilated);
+      painter->drawPath(fullNonDilated);
   }
 
   skin.StateTemporalPointPen.setBrush(skin.StateTemporalPointBrush);
@@ -94,9 +94,9 @@ void StateView::paint(
   painter->setBrush(skin.StateTemporalPointBrush);
   painter->setPen(skin.StateTemporalPointPen);
   if(m_dilated)
-    painter->drawPolygon(smallDilated);
+    painter->drawPath(smallDilated);
   else
-    painter->drawPolygon(smallNonDilated);
+    painter->drawPath(smallNonDilated);
 
 #if defined(SCORE_SCENARIO_DEBUG_RECTS)
   painter->setBrush(Qt::NoBrush);

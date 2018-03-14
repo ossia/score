@@ -38,6 +38,11 @@ TemporalIntervalView::TemporalIntervalView(
   this->setZValue(ZPos::Interval);
 }
 
+TemporalIntervalView::~TemporalIntervalView()
+{
+
+}
+
 QRectF TemporalIntervalView::boundingRect() const
 {
   qreal x = std::min(0., minWidth());
@@ -271,6 +276,11 @@ void TemporalIntervalView::paint(
 
     painter.setPen(skin.IntervalPlayPen);
     painter.drawPath(playedSolidPath);
+  }
+  else
+  {
+
+    qDebug() << " no solid played path" << playedSolidPath.boundingRect();
   }
 
   if(!waitingDashedPath.isEmpty())
