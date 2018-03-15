@@ -132,6 +132,7 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
     i.prettyName = "invalid";
     i.uniqueID = -1;
     i.isSynth = false;
+    i.isValid = false;
     vst_infos.push_back(i);
   };
 
@@ -196,6 +197,7 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
           }
 
           i.isSynth = p->flags & effFlagsIsSynth;
+          i.isValid = true;
           vst_infos.push_back(std::move(i));
 
           vst_modules.insert({p->uniqueID, plugin});
