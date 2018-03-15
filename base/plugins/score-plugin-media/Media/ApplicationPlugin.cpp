@@ -9,6 +9,7 @@
 #endif
 #include <QFileInfo>
 #include <QDirIterator>
+/*
 template<>
 void JSONObjectReader::read<Media::ApplicationPlugin::vst_info>(const Media::ApplicationPlugin::vst_info& p)
 {
@@ -25,16 +26,16 @@ void JSONObjectWriter::write<Media::ApplicationPlugin::vst_info>(Media::Applicat
   p.uniqueID = obj["UID"].toInt();
   p.isSynth = obj["Synth"].toBool();
 }
-
+*/
 template<>
 void DataStreamReader::read<Media::ApplicationPlugin::vst_info>(const Media::ApplicationPlugin::vst_info& p)
 {
-  m_stream << p.path << p.prettyName << p.uniqueID << p.isSynth;
+  m_stream << p.path << p.prettyName << p.uniqueID << p.isSynth << p.isValid;
 }
 template<>
 void DataStreamWriter::write<Media::ApplicationPlugin::vst_info>(Media::ApplicationPlugin::vst_info& p)
 {
-  m_stream >> p.path >> p.prettyName >> p.uniqueID >> p.isSynth;
+  m_stream >> p.path >> p.prettyName >> p.uniqueID >> p.isSynth >> p.isValid;
 }
 
 Q_DECLARE_METATYPE(Media::ApplicationPlugin::vst_info)
