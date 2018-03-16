@@ -35,5 +35,7 @@ class score_plugin_media final:
 
         score::ApplicationPlugin*
         make_applicationPlugin(const score::ApplicationContext& app) override;
+        score::GUIApplicationPlugin*
+        make_guiApplicationPlugin(const score::GUIApplicationContext& app) override;
 
 };

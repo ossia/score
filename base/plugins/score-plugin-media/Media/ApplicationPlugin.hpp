@@ -48,4 +48,12 @@ class ApplicationPlugin : public QObject, public score::ApplicationPlugin
 #endif
 };
 
+class GUIApplicationPlugin
+    : public QObject
+    , public score::GUIApplicationPlugin
+{
+  public:
+    GUIApplicationPlugin(const score::GUIApplicationContext& app);
+    void initialize() override;
+};
 }

@@ -9,6 +9,14 @@
 #endif
 #include <QFileInfo>
 #include <QDirIterator>
+
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+#include <Engine/Protocols/OSSIADevice.hpp>
+
+#include <ossia/dataflow/audio_protocol.hpp>
+
+#include <Engine/Protocols/Audio/AudioDevice.hpp>
 /*
 template<>
 void JSONObjectReader::read<Media::ApplicationPlugin::vst_info>(const Media::ApplicationPlugin::vst_info& p)
@@ -234,4 +242,15 @@ ApplicationPlugin::~ApplicationPlugin()
     }
 #endif
 }
+
+GUIApplicationPlugin::GUIApplicationPlugin(const score::GUIApplicationContext& app):
+  score::GUIApplicationPlugin{app}
+{
+
+}
+
+void GUIApplicationPlugin::initialize()
+{
+}
+
 }

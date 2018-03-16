@@ -3,9 +3,6 @@ namespace Media::Settings
 {
 namespace Parameters
 {
-const score::sp<ModelCardParameter> Card{QStringLiteral("Audio/Card"), ""};
-const score::sp<ModelBufferSizeParameter> BufferSize{QStringLiteral("Audio/BufferSize"), 512};
-const score::sp<ModelRateParameter> Rate{QStringLiteral("Audio/SamplingRate"), 44100};
 
 const score::sp<ModelVstPathsParameter> VstPaths{
   QStringLiteral("Effect/VstPaths"),
@@ -19,7 +16,7 @@ const score::sp<ModelVstPathsParameter> VstPaths{
 };
 static auto list()
 {
-  return std::tie(Rate, Card, BufferSize, VstPaths);
+  return std::tie( VstPaths);
 }
 }
 
@@ -29,8 +26,5 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(QStringList, Model, VstPaths)
-SCORE_SETTINGS_PARAMETER_CPP(QString, Model, Card)
-SCORE_SETTINGS_PARAMETER_CPP(int, Model, BufferSize)
-SCORE_SETTINGS_PARAMETER_CPP(int, Model, Rate)
 }
 

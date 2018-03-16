@@ -95,5 +95,6 @@ private:
 
   std::unique_ptr<Engine::Execution::ClockManager> m_clock;
   bool m_playing{false}, m_paused{false};
+  void initialize() override;
 };
 }

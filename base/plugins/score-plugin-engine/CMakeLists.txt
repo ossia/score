@@ -30,6 +30,11 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSC/OSCProtocolSettingsWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSC/OSCSpecificSettings.hpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Settings/Model.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Settings/Presenter.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Settings/View.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Settings/Factory.hpp"
+
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Panel/MessagesPanel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Curve/EasingSegment.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/ApplicationPlugin.hpp"
@@ -114,6 +119,11 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSC/OSCDevice.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSC/OSCProtocolFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/OSSIADevice.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Settings/Model.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Settings/Presenter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Settings/View.cpp"
+
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Panel/MessagesPanel.cpp"
 

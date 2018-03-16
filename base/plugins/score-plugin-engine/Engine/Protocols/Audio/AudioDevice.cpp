@@ -18,6 +18,7 @@
 #include <score/widgets/SignalUtils.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/DeviceList.hpp>
+#include <Engine/Protocols/Settings/Model.hpp>
 #if __has_include(<pa_jack.h>) && !defined(_MSC_VER)
 #include <pa_jack.h>
 #endif
@@ -90,13 +91,17 @@ bool AudioDevice::reconnect()
 
   try
   {
-    AudioSpecificSettings stgs
-        = settings().deviceSpecificSettings.value<AudioSpecificSettings>();
+    //AudioSpecificSettings stgs
+    //    = settings().deviceSpecificSettings.value<AudioSpecificSettings>();
 
+    auto& set = score::AppContext().settings<Audio::Settings::Model>();
     auto& proto = static_cast<ossia::audio_protocol&>(m_dev.get_protocol());
 
-    proto.rate = stgs.rate;
-    proto.bufferSize = stgs.bufferSize;
+    proto.rate = set.getRate();
+    proto.bufferSize = set.getBufferSize();
+    proto.card_in = set.getCardIn().toStdString();
+    proto.card_out = set.getCardOut().toStdString();
+
     proto.reload();
 
     setLogging_impl(Device::get_cur_logging(isLogging()));

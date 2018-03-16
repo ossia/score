@@ -29,6 +29,7 @@
 #include <Engine/Executor/Automation/Component.hpp>
 #include <Engine/Executor/Automation/GradientComponent.hpp>
 #include <Engine/Executor/Settings/ExecutorFactory.hpp>
+#include <Engine/Protocols/Settings/Factory.hpp>
 #include <Engine/Listening/PlayListeningHandlerFactory.hpp>
 #include <score/plugins/customfactory/FactorySetup.hpp>
 
@@ -157,7 +158,9 @@ score_plugin_engine::factories(
             FW<Explorer::ListeningHandlerFactory,
                  Engine::Execution::PlayListeningHandlerFactory>,
             FW<score::SettingsDelegateFactory,
-                 Engine::Execution::Settings::Factory>,
+                 Engine::Execution::Settings::Factory,
+                 Audio::Settings::Factory
+      >,
             FW<Engine::LocalTree::ProcessComponentFactory,
                  Engine::LocalTree::ScenarioComponentFactory,
                  Engine::LocalTree::LoopComponentFactory,
