@@ -45,6 +45,10 @@
 #include <QVector>
 #include <spdlog/spdlog.h>
 #include <Loop/LoopProcessModel.hpp>
+#include <ossia/dataflow/audio_protocol.hpp>
+SCORE_DECLARE_ACTION(RestartAudio, "Restart Audio", Common, QKeySequence::UnknownKey)
+
+
 namespace Engine
 {
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
@@ -126,6 +130,37 @@ bool ApplicationPlugin::handleStartup()
   }
 
   return false;
+}
+
+score::GUIElements ApplicationPlugin::makeGUIElements()
+{
+  GUIElements e;
+  auto& toolbars = e.toolbars;
+
+  toolbars.reserve(1);
+
+  auto act = new QAction{tr("Restart Audio"), this};
+  {
+    auto bar = new QToolBar;
+    bar->addAction(act);
+    toolbars.emplace_back(bar, StringKey<score::Toolbar>("Audio"), 0, 0);
+  }
+
+  e.actions.container.reserve(2);
+  e.actions.add<Actions::RestartAudio>(act);
+
+  connect(act, &QAction::triggered, this, [=] {
+    if(auto doc = currentDocument()) {
+      auto dev = doc->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
+      if(!dev)
+        return;
+      auto d = static_cast<Engine::Network::OSSIADevice*>(dev);
+      auto& audio = static_cast<ossia::audio_protocol&>(d->getDevice()->get_protocol());
+      audio.reload();
+    }
+  });
+
+  return e;
 }
 
 void ApplicationPlugin::on_initDocument(score::Document& doc)

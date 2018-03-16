@@ -54,6 +54,7 @@ public:
   ~ApplicationPlugin();
 
   bool handleStartup() override;
+  score::GUIElements makeGUIElements() override;
 
   void on_initDocument(score::Document& doc) override;
   void on_createdDocument(score::Document& doc) override;

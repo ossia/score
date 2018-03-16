@@ -14,6 +14,9 @@ View::View() : m_widg{new QWidget}
 {
   auto lay = new QFormLayout;
 
+  SETTINGS_UI_NUM_COMBOBOX_SETUP("Rate", Rate, (std::vector<int>{44100, 48000, 88200, 96000}));
+  SETTINGS_UI_NUM_COMBOBOX_SETUP("BufferSize", BufferSize, (std::vector<int>{64, 128, 256, 512}));
+  SETTINGS_UI_COMBOBOX_SETUP("Device", Card, {});
   m_widg->setLayout(lay);
 
   m_VstPaths = new QListWidget;
@@ -70,5 +73,7 @@ QWidget* View::getWidget()
 {
   return m_widg;
 }
-
+SETTINGS_UI_NUM_COMBOBOX_IMPL(Rate)
+SETTINGS_UI_NUM_COMBOBOX_IMPL(BufferSize)
+SETTINGS_UI_COMBOBOX_IMPL(Card)
 }
