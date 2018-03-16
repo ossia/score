@@ -43,6 +43,11 @@ using GlobalSettingsView = SettingsDelegateView<SettingsDelegateModel>;
   Q_SIGNALS: void Control ## Changed(QString); \
   private: QComboBox* m_ ## Control{};
 
+#define SETTINGS_UI_NUM_COMBOBOX_HPP(Control)      \
+  public: void set ## Control(int);        \
+  Q_SIGNALS: void Control ## Changed(int); \
+  private: QComboBox* m_ ## Control{};
+
 #define SETTINGS_UI_TOGGLE_HPP(Control)        \
   public: void set ## Control(bool);           \
   Q_SIGNALS: void Control ## Changed(bool);    \
@@ -64,6 +69,13 @@ using GlobalSettingsView = SettingsDelegateView<SettingsDelegateModel>;
   connect(m_ ## Control, SignalUtils::QComboBox_currentIndexChanged_int(), this, \
   [this] (int i) { Control ## Changed( m_ ## Control->itemText(i) ); } );
 
+#define SETTINGS_UI_NUM_COMBOBOX_SETUP(Text, Control, Values) \
+  m_ ## Control = new QComboBox{m_widg}; \
+  for(auto v : Values)  m_ ## Control->addItem(QString::number(v)); \
+  lay->addRow(tr(Text), m_ ## Control); \
+  connect(m_ ## Control, SignalUtils::QComboBox_currentIndexChanged_int(), this, \
+  [this] (int i) { Control ## Changed( m_ ## Control->itemText(i).toInt() ); } );
+
 #define SETTINGS_UI_SPINBOX_SETUP(Text, Control) \
   m_ ## Control = new QSpinBox{m_widg}; \
   lay->addRow(tr(Text), m_ ## Control); \
@@ -83,6 +95,18 @@ using GlobalSettingsView = SettingsDelegateView<SettingsDelegateModel>;
     if(idx != -1 && idx != m_ ## Control->currentIndex())        \
        m_ ## Control->setCurrentIndex(idx);                      \
   else { idx = m_ ## Control->findText(val);                     \
+         if (idx != -1 && idx != m_ ## Control->currentIndex())  \
+            m_ ## Control->setCurrentIndex(idx);                 \
+  }                                                              \
+}
+
+
+#define SETTINGS_UI_NUM_COMBOBOX_IMPL(Control)                       \
+  void View::set ## Control(int val) {                       \
+    int idx = m_ ## Control->findData(QVariant::fromValue(val)); \
+    if(idx != -1 && idx != m_ ## Control->currentIndex())        \
+       m_ ## Control->setCurrentIndex(idx);                      \
+  else { idx = m_ ## Control->findText(QString::number(val));                     \
          if (idx != -1 && idx != m_ ## Control->currentIndex())  \
             m_ ## Control->setCurrentIndex(idx);                 \
   }                                                              \

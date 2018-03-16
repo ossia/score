@@ -14,6 +14,9 @@ namespace Media::Settings
 Presenter::Presenter(Model& m, View& v, QObject* parent)
     : score::GlobalSettingsPresenter{m, v, parent}
 {
+  SETTINGS_PRESENTER(Card);
+  SETTINGS_PRESENTER(BufferSize);
+  SETTINGS_PRESENTER(Rate);
   SETTINGS_PRESENTER(VstPaths);
 }
 
