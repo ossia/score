@@ -35,9 +35,11 @@
 #include <core/presenter/Presenter.hpp>
 #include <score/actions/ActionManager.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+#include <Engine/Protocols/Audio/AudioDevice.hpp>
 #include <vector>
 #include <Engine/OssiaLogger.hpp>
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
+#include <Engine/Protocols/Settings/Model.hpp>
 #include <QApplication>
 #include <ossia-qt/invoke.hpp>
 #include <QAction>
@@ -132,6 +134,51 @@ bool ApplicationPlugin::handleStartup()
   return false;
 }
 
+void ApplicationPlugin::initialize()
+{
+
+  auto& set = context.settings<Audio::Settings::Model>();
+  con(set, &Audio::Settings::Model::BufferSizeChanged, this, [=] (int sz) {
+    if(auto doc = this->currentDocument()) {
+      auto dev = doc->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
+      if(!dev)
+        return;
+      auto& d = *dynamic_cast<Dataflow::AudioDevice*>(dev);
+      d.reconnect();
+    }
+  });
+
+  con(set, &Audio::Settings::Model::RateChanged, this, [=] (int sz) {
+    if(auto doc = this->currentDocument()) {
+      auto dev = doc->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
+      if(!dev)
+        return;
+      auto& d = *dynamic_cast<Dataflow::AudioDevice*>(dev);
+      d.reconnect();
+    }
+  });
+
+  con(set, &Audio::Settings::Model::CardInChanged, this, [=] (const QString& card) {
+    if(auto doc = this->currentDocument()) {
+      auto dev = doc->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
+      if(!dev)
+        return;
+      auto& d = *dynamic_cast<Dataflow::AudioDevice*>(dev);
+      d.reconnect();
+    }
+  });
+
+  con(set, &Audio::Settings::Model::CardOutChanged, this, [=] (const QString& card) {
+    if(auto doc = this->currentDocument()) {
+      auto dev = doc->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
+      if(!dev)
+        return;
+      auto& d = *dynamic_cast<Dataflow::AudioDevice*>(dev);
+      d.reconnect();
+    }
+  });
+
+}
 score::GUIElements ApplicationPlugin::makeGUIElements()
 {
   GUIElements e;
@@ -154,9 +201,8 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
       auto dev = doc->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
       if(!dev)
         return;
-      auto d = static_cast<Engine::Network::OSSIADevice*>(dev);
-      auto& audio = static_cast<ossia::audio_protocol&>(d->getDevice()->get_protocol());
-      audio.reload();
+      auto& d = *static_cast<Dataflow::AudioDevice*>(dev);
+      d.reconnect();
     }
   });
 

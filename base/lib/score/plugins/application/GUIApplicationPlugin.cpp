@@ -45,6 +45,10 @@ GUIElements GUIApplicationPlugin::makeGUIElements()
   return {};
 }
 
+void GUIApplicationPlugin::initialize()
+{
+}
+
 Document* GUIApplicationPlugin::currentDocument() const
 {
   return context.documents.currentDocument();

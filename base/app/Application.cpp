@@ -149,7 +149,7 @@ void Application::init()
   QSplashScreen* splash{};
   if(m_applicationSettings.gui)
   {
-    splash = new QSplashScreen{QPixmap{":/score.png"}, Qt::FramelessWindowHint};
+    splash = new QSplashScreen{QPixmap{":/splash.png"}, Qt::FramelessWindowHint};
     splash->show();
   }
 #endif

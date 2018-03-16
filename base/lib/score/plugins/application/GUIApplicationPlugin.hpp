@@ -109,6 +109,14 @@ public:
   const GUIApplicationContext& context;
 
   /**
+   * @brief initialize
+   *
+   * This method will be called once every class has been loaded
+   * from every plug-in.
+   */
+  virtual void initialize();
+
+  /**
    * @brief currentDocument
    * @return Shortcut to get the active (visible) document.
    */

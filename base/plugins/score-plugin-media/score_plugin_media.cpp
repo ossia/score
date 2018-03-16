@@ -68,6 +68,11 @@ score::ApplicationPlugin*score_plugin_media::make_applicationPlugin(const score:
   return new Media::ApplicationPlugin{app};
 }
 
+score::GUIApplicationPlugin* score_plugin_media::make_guiApplicationPlugin(const score::GUIApplicationContext& app)
+{
+  return new Media::GUIApplicationPlugin{app};
+}
+
 std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories(
         const score::ApplicationContext& ctx,
         const score::InterfaceKey& key) const

@@ -98,6 +98,12 @@ DO_DEBUG;
       qDebug() << typeid(app_plug).name();
     app_plug->initialize();
   }
+  for (score::GUIApplicationPlugin* app_plug :
+       ctx.guiApplicationPlugins())
+  {
+      qDebug() << typeid(app_plug).name();
+    app_plug->initialize();
+  }
 DO_DEBUG;
   if(presenter.view())
   {
