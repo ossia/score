@@ -9,7 +9,8 @@
 #include <ossia/dataflow/node_process.hpp>
 #include <Media/Effect/Faust/FaustUtils.hpp>
 #include <ossia/dataflow/execution_state.hpp>
-
+#include <Process/Dataflow/PortFactory.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
 #include <faust/gui/GUI.h>
 namespace FaustDSP
 {
@@ -46,7 +47,7 @@ struct Metadata<Process::ProcessFlags_k, FaustDSP::Fx<DSP>>
 namespace FaustDSP
 {
 template<typename T>
-struct Wrap : UI
+struct Wrap final : UI
 {
     template<typename... Args>
     Wrap(Args&&... args): t{args...} { }
@@ -92,7 +93,15 @@ class Fx final: public Process::ProcessModel
        QObject* parent):
       Process::ProcessModel{t, id, Metadata<ObjectKey_k, Fx>::get(), parent}
     {
+      m_inlets.push_back(new Process::Inlet{getStrongId(m_inlets), this});
+      m_inlets.back()->type = Process::PortType::Audio;
+      m_outlets.push_back(new Process::Outlet{getStrongId(m_outlets), this});
+      m_outlets.back()->type = Process::PortType::Audio;
+      m_outlets.back()->setPropagate(true);
 
+      Wrap<Media::Faust::UI<decltype(*this)>> ui{*this};
+      DSP d;
+      d.buildUserInterface(&ui);
     }
 
     ~Fx() override
@@ -113,6 +122,8 @@ class Fx final: public Process::ProcessModel
 
     Process::Inlets& inlets() { return m_inlets; }
     Process::Outlets& outlets() { return m_outlets; }
+    const Process::Inlets& inlets() const { return m_inlets; }
+    const Process::Outlets& outlets() const { return m_outlets; }
 
 };
 
@@ -139,87 +150,7 @@ class Executor final
 
         void run(ossia::token_request tk, ossia::execution_state&) override
         {
-          if(tk.date > this->m_prev_date)
-          {
-            std::size_t d = tk.date - this->m_prev_date;
-            for(auto ctrl : controls)
-            {
-              auto& dat = ctrl.first->get_data();
-              if(!dat.empty())
-              {
-                *ctrl.second = ossia::convert<float>(dat.back().value);
-              }
-            }
-
-            auto& audio_in = *m_inlets[0]->data.template target<ossia::audio_port>();
-            auto& audio_out = *m_outlets[0]->data.template target<ossia::audio_port>();
-
-            const std::size_t n_in = dsp.getNumInputs();
-            const std::size_t n_out = dsp.getNumOutputs();
-
-            float* inputs_ = (float*)alloca(n_in * d * sizeof(float));
-            float* outputs_ = (float*)alloca(n_out * d * sizeof(float));
-
-            float** input_n = (float**)alloca(sizeof(float*) * n_in);
-            float** output_n = (float**)alloca(sizeof(float*) * n_out);
-
-            // Copy inputs
-            // TODO offset !!!
-            for(std::size_t i = 0; i < n_in; i++)
-            {
-              input_n[i] = inputs_ + i * d;
-              if(audio_in.samples.size() > i)
-              {
-                auto num_samples = std::min((std::size_t)d, (std::size_t)audio_in.samples[i].size());
-                for(std::size_t j = 0; j < num_samples; j++)
-                {
-                  input_n[i][j] = (float)audio_in.samples[i][j];
-                }
-
-                if(d > audio_in.samples[i].size())
-                {
-                  for(std::size_t j = audio_in.samples[i].size(); j < d; j++)
-                  {
-                    input_n[i][j] = 0.f;
-                  }
-                }
-              }
-              else
-              {
-                for(std::size_t j = 0; j < d; j++)
-                {
-                  input_n[i][j] = 0.f;
-                }
-              }
-            }
-
-            for(std::size_t i = 0; i < n_out; i++)
-            {
-              output_n[i] = outputs_ + i * d;
-              for(std::size_t j = 0; j < d; j++)
-              {
-                output_n[i][j] = 0.f;
-              }
-            }
-            dsp.compute(d, input_n, output_n);
-
-            audio_out.samples.resize(n_out);
-            for(std::size_t i = 0; i < n_out; i++)
-            {
-              audio_out.samples[i].resize(d);
-              for(std::size_t j = 0; j < d; j++)
-              {
-                audio_out.samples[i][j] = (double)output_n[i][j];
-              }
-            }
-
-            // TODO handle multichannel cleanly
-            if(n_out == 1)
-            {
-              audio_out.samples.resize(2);
-              audio_out.samples[1] = audio_out.samples[0];
-            }
-          }
+          Media::Faust::faust_exec(*this, dsp, tk);
         }
 
         std::string label() const override
@@ -259,21 +190,79 @@ class Executor final
       this->node = node;
       this->m_ossia_process = std::make_shared<ossia::node_process>(node);
       node->dsp.instanceInit(ctx.plugin.execState->sampleRate);
-      //      for(std::size_t i = 1; i < proc.inlets().size(); i++)
-      //      {
-      //        auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
-      //        *node->controls[i-1].second = ossia::convert<double>(inlet->value());
-      //        auto inl = this->node->inputs()[i];
-      //        connect(inlet, &Process::ControlInlet::valueChanged,
-      //                this, [this, inl] (const ossia::value& v) {
-      //          this->system().executionQueue.enqueue([inl,val=v] () mutable {
-      //            inl->data.template target<ossia::value_port>()->add_value(std::move(val), 0);
-      //          });
-      //        });
-      //      }
+
+      for(std::size_t i = 1; i < proc.inlets().size(); i++)
+      {
+        auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
+        *node->controls[i-1].second = ossia::convert<double>(inlet->value());
+        auto inl = this->node->inputs()[i];
+        QObject::connect(inlet, &Process::ControlInlet::valueChanged,
+                this, [this, inl] (const ossia::value& v) {
+          this->system().executionQueue.enqueue([inl,val=v] () mutable {
+            inl->data.template target<ossia::value_port>()->add_value(std::move(val), 0);
+          });
+        });
+      }
 
     }
 };
+}
+
+template<typename DSP>
+struct is_custom_serialized<FaustDSP::Fx<DSP>>: std::true_type { };
+
+
+
+template <typename DSP>
+struct TSerializer<DataStream, FaustDSP::Fx<DSP>>
+{
+    using model_type = FaustDSP::Fx<DSP>;
+    static void
+    readFrom(DataStream::Serializer& s, const model_type& eff)
+    {
+      readPorts(s, eff.inlets(), eff.outlets());
+      s.insertDelimiter();
+    }
+
+    static void writeTo(DataStream::Deserializer& s, model_type& eff)
+    {
+      writePorts(s
+                 , s.components.interfaces<Process::PortFactoryList>()
+                 , eff.inlets()
+                 , eff.outlets()
+                 , &eff);
+
+      s.checkDelimiter();
+    }
+};
+
+template <typename DSP>
+struct TSerializer<JSONObject, FaustDSP::Fx<DSP>>
+{
+    using model_type = FaustDSP::Fx<DSP> ;
+    static void
+    readFrom(JSONObject::Serializer& s, const model_type& eff)
+    {
+      readPorts(s.obj, eff.inlets(), eff.outlets());
+    }
+
+    static void writeTo(JSONObject::Deserializer& s, model_type& eff)
+    {
+      writePorts(s.obj
+                 , s.components.interfaces<Process::PortFactoryList>()
+                 , eff.inlets()
+                 , eff.outlets()
+                 , &eff);
+    }
+};
+
+namespace score
+{
+template<typename Vis, typename DSP>
+void serialize_dyn_impl(Vis& v, const FaustDSP::Fx<DSP>& t)
+{
+  TSerializer<typename Vis::type, FaustDSP::Fx<DSP>>::readFrom(v, t);
+}
 }
 
 namespace FaustDSP

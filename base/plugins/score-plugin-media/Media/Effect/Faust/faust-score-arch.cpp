@@ -70,7 +70,8 @@ struct Metadata<ConcreteKey_k, FaustDSP::Fx<mydsp>>
   }
 };
 
-class score_faust_plugin final :
+
+class score_faust_==FAUST_NAME== final :
     public QObject,
     public score::Plugin_QtInterface,
     public score::FactoryInterface_QtInterface
@@ -85,7 +86,7 @@ class score_faust_plugin final :
   SCORE_PLUGIN_METADATA(1, "==UUID==")
 
   public:
-    virtual ~score_faust_plugin();
+    virtual ~score_faust_==FAUST_NAME==();
 
 private:
   // Defined in FactoryInterface_QtInterface
@@ -103,7 +104,7 @@ private:
   }
 };
 
-score_faust_plugin::~score_faust_plugin()
+score_faust_==FAUST_NAME==::~score_faust_==FAUST_NAME==()
 {
 
 }

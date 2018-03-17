@@ -23,8 +23,8 @@ FaustEffectModel::FaustEffectModel(
     QObject* parent):
   Process::ProcessModel{t, id, "Faust", parent}
 {
-  setText(faustProgram);
   init();
+  /*
   setText(R"__(
           import("stdfaust.lib");
 
@@ -32,6 +32,8 @@ FaustEffectModel::FaustEffectModel(
           osc(f)      = phasor(f) * 6.28318530718 : sin;
           process     = osc(hslider("freq", 440, 20, 20000, 1)) * hslider("level", 0, 0, 1, 0.01);
           )__");
+  */
+  setText(faustProgram);
 }
 
 FaustEffectModel::~FaustEffectModel()
@@ -133,10 +135,12 @@ void FaustEffectModel::reload()
     m_inlets.clear();
     m_outlets.clear();
 
-    m_inlets.push_back(new Process::Inlet{getStrongId(inlets()), this});
+    m_inlets.push_back(new Process::Inlet{getStrongId(m_inlets), this});
     m_inlets.back()->type = Process::PortType::Audio;
-    m_outlets.push_back(new Process::Outlet{getStrongId(inlets()), this});
+    m_outlets.push_back(new Process::Outlet{getStrongId(m_outlets), this});
     m_outlets.back()->type = Process::PortType::Audio;
+    m_outlets.back()->setPropagate(true);
+
 
     Faust::UI<decltype(*this)> ui{*this};
     buildUserInterfaceCDSPInstance(faust_object, &ui.glue);
@@ -226,87 +230,15 @@ class faust_node final : public ossia::graph_node
 
     void run(ossia::token_request tk, ossia::execution_state&) override
     {
-      if(tk.date > this->m_prev_date)
+      struct dsp_wrap
       {
-        std::size_t d = tk.date - this->m_prev_date;
-        for(auto ctrl : controls)
-        {
-          auto& dat = ctrl.first->get_data();
-          if(!dat.empty())
-          {
-            *ctrl.second = ossia::convert<float>(dat.back().value);
-          }
-        }
-
-        auto& audio_in = *m_inlets[0]->data.target<ossia::audio_port>();
-        auto& audio_out = *m_outlets[0]->data.target<ossia::audio_port>();
-
-        const std::size_t n_in = getNumInputsCDSPInstance(m_dsp);
-        const std::size_t n_out = getNumOutputsCDSPInstance(m_dsp);
-
-        float* inputs_ = (float*)alloca(n_in * d * sizeof(float));
-        float* outputs_ = (float*)alloca(n_out * d * sizeof(float));
-
-        float** input_n = (float**)alloca(sizeof(float*) * n_in);
-        float** output_n = (float**)alloca(sizeof(float*) * n_out);
-
-        // Copy inputs
-        // TODO offset !!!
-        for(std::size_t i = 0; i < n_in; i++)
-        {
-          input_n[i] = inputs_ + i * d;
-          if(audio_in.samples.size() > i)
-          {
-            auto num_samples = std::min((std::size_t)d, (std::size_t)audio_in.samples[i].size());
-            for(std::size_t j = 0; j < num_samples; j++)
-            {
-              input_n[i][j] = (float)audio_in.samples[i][j];
-            }
-
-            if(d > audio_in.samples[i].size())
-            {
-              for(std::size_t j = audio_in.samples[i].size(); j < d; j++)
-              {
-                input_n[i][j] = 0.f;
-              }
-            }
-          }
-          else
-          {
-            for(std::size_t j = 0; j < d; j++)
-            {
-              input_n[i][j] = 0.f;
-            }
-          }
-        }
-
-        for(std::size_t i = 0; i < n_out; i++)
-        {
-          output_n[i] = outputs_ + i * d;
-          for(std::size_t j = 0; j < d; j++)
-          {
-            output_n[i][j] = 0.f;
-          }
-        }
-        computeCDSPInstance(m_dsp, d, input_n, output_n);
-
-        audio_out.samples.resize(n_out);
-        for(std::size_t i = 0; i < n_out; i++)
-        {
-          audio_out.samples[i].resize(d);
-          for(std::size_t j = 0; j < d; j++)
-          {
-            audio_out.samples[i][j] = (double)output_n[i][j];
-          }
-        }
-
-        // TODO handle multichannel cleanly
-        if(n_out == 1)
-        {
-          audio_out.samples.resize(2);
-          audio_out.samples[1] = audio_out.samples[0];
-        }
-      }
+          llvm_dsp* dsp;
+          int getNumInputs() const { return getNumInputsCDSPInstance(dsp); }
+          int getNumOutputs() const { return getNumOutputsCDSPInstance(dsp); }
+          void compute(int n, FAUSTFLOAT** i, FAUSTFLOAT**o)
+          { computeCDSPInstance(dsp, n, i, o); }
+      } d{m_dsp};
+      Media::Faust::faust_exec(*this, d, tk);
     }
 
     std::string label() const override

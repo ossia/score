@@ -273,7 +273,6 @@ struct TSerializer<JSONObject, Model<Info, Control::is_control>>
 
 namespace score
 {
-
 template<typename Vis, typename Info>
 void serialize_dyn_impl(Vis& v, const Control::ControlProcess<Info>& t)
 {
