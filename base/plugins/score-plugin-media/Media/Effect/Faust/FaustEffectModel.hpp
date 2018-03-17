@@ -56,6 +56,9 @@ class FaustEffectModel :
     QString prettyName() const override;
     void setText(const QString& txt);
 
+    Process::Inlets& inlets() { return m_inlets; }
+    Process::Outlets& outlets() { return m_outlets; }
+
     llvm_dsp_factory* faust_factory{};
     llvm_dsp* faust_object{};
   private:

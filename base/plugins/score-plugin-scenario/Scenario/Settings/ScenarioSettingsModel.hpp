@@ -22,7 +22,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT Model final
   QString m_Skin;
   double m_GraphicZoom{};
   qreal m_SlotHeight{};
-  TimeVal m_DefaultDuration{};
+  TimeVal m_DefaultDuration{std::chrono::seconds{30}};
   bool m_SnapshotOnCreate{};
   bool m_AutoSequence{};
   bool m_TimeBar{};

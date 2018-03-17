@@ -5,7 +5,7 @@
 #include <core/application/ApplicationRegistrar.hpp>
 #include <core/settings/Settings.hpp>
 #include <core/presenter/Presenter.hpp>
-#include <core/view/View.hpp>
+#include <core/view/Window.hpp>
 #include <core/plugin/PluginManager.hpp>
 #include <core/undo/UndoApplicationPlugin.hpp>
 #include <core/undo/Panel/UndoPanelFactory.hpp>

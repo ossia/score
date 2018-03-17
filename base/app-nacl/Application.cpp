@@ -9,7 +9,7 @@
 #include <core/undo/Panel/UndoPanelFactory.hpp>
 #include <core/presenter/CoreApplicationPlugin.hpp>
 #include <core/undo/UndoApplicationPlugin.hpp>
-#include <core/view/View.hpp>
+#include <core/view/Window.hpp>
 #include <QByteArray>
 #include <QCoreApplication>
 #include <QFile>

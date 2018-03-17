@@ -110,6 +110,8 @@ set(SRCS
 
 if(Faust_FOUND)
     set(FAUST_HDRS
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Faust/FaustDSPWrapper.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Faust/FaustUtils.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Faust/FaustEffectModel.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/EditFaustEffect.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/InsertFaust.hpp"
