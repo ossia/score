@@ -25,6 +25,7 @@ View::View() : m_widg{new QWidget}
 
   QStringList raw_cards_out, cards_out;
   std::vector<int> indices_out;
+#if __has_include(<portaudio.h>)
   Pa_Initialize();
 
   for(int i = 0; i < Pa_GetHostApiCount(); i++)
@@ -75,6 +76,7 @@ View::View() : m_widg{new QWidget}
   Pa_Terminate();
   qDebug() << cards_in << cards_out;
 
+#endif
   m_CardIn = new QComboBox{m_widg};
   for(int i = 0; i < cards_in.size(); i++)
     m_CardIn->addItem(cards_in[i], indices_in[i]);
@@ -91,7 +93,6 @@ View::View() : m_widg{new QWidget}
           [=] (int i) {
     CardOutChanged( raw_cards_out[i] );
   } );
-
   m_widg->setLayout(lay);
 
 }

@@ -6,8 +6,7 @@
 #include <Process/GenericProcessFactory.hpp>
 #include <QDialog>
 
-class llvm_dsp_factory;
-class llvm_dsp;
+#include <faust/dsp/llvm-c-dsp.h>
 namespace Media::Faust
 {
 class FaustEffectModel;
