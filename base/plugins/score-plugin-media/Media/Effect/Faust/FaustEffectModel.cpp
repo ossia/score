@@ -6,42 +6,79 @@
 #include <Media/Commands/EditFaustEffect.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <faust/dsp/llvm-dsp.h>
-#include <faust/gui/UI.h>
-#include <faust/gui/PathBuilder.h>
 #include <ossia/network/domain/domain.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <iostream>
 #include <Process/Dataflow/PortFactory.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
+
+template<typename T>
+struct setup_ui : UIGlue
+{
+    setup_ui(T& self)
+    {
+      uiInterface = &self;
+      
+      openTabBox = [] (void* self, const char* arg1)
+      { return reinterpret_cast<T*>(self)->openTabBox(arg1); };
+      openHorizontalBox = [] (void* self, const char* arg1)
+      { return reinterpret_cast<T*>(self)->openHorizontalBox(arg1); };
+      openVerticalBox = [] (void* self, const char* arg1)
+      { return reinterpret_cast<T*>(self)->openVerticalBox(arg1); };
+      closeBox = [] (void* self)
+      { return reinterpret_cast<T*>(self)->closeBox(); };
+      addButton = [] (void* self, const char* label, FAUSTFLOAT* zone)
+      { return reinterpret_cast<T*>(self)->addButton(label, zone); };
+      addCheckButton = [] (void* self, const char* label, FAUSTFLOAT* zone)
+      { return reinterpret_cast<T*>(self)->addCheckButton(label, zone); };
+      addVerticalSlider = [] (void* self,const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+      { return reinterpret_cast<T*>(self)->addVerticalSlider(label, zone, init, min, max, step); };
+      addHorizontalSlider = [] (void* self,const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+      { return reinterpret_cast<T*>(self)->addHorizontalSlider(label, zone, init, min, max, step); };
+      addNumEntry = [] (void* self,const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+      { return reinterpret_cast<T*>(self)->addNumEntry(label, zone, init, min, max, step); };
+      addHorizontalBargraph = [] (void* self,const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+      { return reinterpret_cast<T*>(self)->addHorizontalBargraph(label, zone, min, max); };
+      addVerticalBargraph = [] (void* self,const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+      { return reinterpret_cast<T*>(self)->addVerticalBargraph(label, zone, min, max); };
+      addSoundFile = [] (void* self,const char* label, const char* filename, Soundfile** sf_zone)
+      { return reinterpret_cast<T*>(self)->addSoundfile(label, filename, sf_zone); };
+      declare = [] (void* self,FAUSTFLOAT* zone, const char* key, const char* val)
+      { return reinterpret_cast<T*>(self)->declare(zone, key, val); };
+      
+#undef FAUST_WRAP_UI
+    }
+};
+
 namespace Media::Faust
 {
 
-struct FaustUI final : public PathBuilder, public UI
+struct FaustUI final 
 {
     FaustEffectModel& fx;
+    setup_ui<FaustUI> glue{*this};
 
     FaustUI(FaustEffectModel& sfx): fx{sfx} { }
 
-    void openTabBox(const char* label) override { }
-    void openHorizontalBox(const char* label) override { }
-    void openVerticalBox(const char* label) override { }
-    void closeBox() override { }
-    void declare(FAUSTFLOAT* zone, const char* key, const char* val) override { }
-    void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) override { }
+    void openTabBox(const char* label) { }
+    void openHorizontalBox(const char* label) { }
+    void openVerticalBox(const char* label) { }
+    void closeBox() { }
+    void declare(FAUSTFLOAT* zone, const char* key, const char* val) { }
+    void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) { }
 
-    void addButton(const char* label, FAUSTFLOAT* zone) override
+    void addButton(const char* label, FAUSTFLOAT* zone)
     {
       auto inl = new Process::ControlInlet{getStrongId(fx.inlets()), &fx};
       inl->setCustomData(label);
       fx.m_inlets.push_back(inl);
     }
 
-    void addCheckButton(const char* label, FAUSTFLOAT* zone) override
+    void addCheckButton(const char* label, FAUSTFLOAT* zone)
     { addButton(label, zone); }
 
-    void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
+    void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
       auto inl = new Process::ControlInlet{getStrongId(fx.inlets()), &fx};
       inl->setCustomData(label);
@@ -50,34 +87,35 @@ struct FaustUI final : public PathBuilder, public UI
       fx.m_inlets.push_back(inl);
     }
 
-    void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
+    void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     { addVerticalSlider(label, zone, init, min, max, step); }
 
-    void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
+    void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     { addVerticalSlider(label, zone, init, min, max, step); }
 
-    void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) override
+    void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     { }
 
-    void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) override
+    void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     { addHorizontalBargraph(label, zone, min, max); }
 };
 
-struct FaustUpdateUI final : public PathBuilder, public UI
+struct FaustUpdateUI final
 {
     FaustEffectModel& fx;
     std::size_t i = 1;
+    setup_ui<FaustUpdateUI> glue{*this};
 
     FaustUpdateUI(FaustEffectModel& sfx): fx{sfx} { }
 
-    void openTabBox(const char* label) override { }
-    void openHorizontalBox(const char* label) override { }
-    void openVerticalBox(const char* label) override { }
-    void closeBox() override { }
-    void declare(FAUSTFLOAT* zone, const char* key, const char* val) override { }
-    void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) override { }
+    void openTabBox(const char* label) { }
+    void openHorizontalBox(const char* label) { }
+    void openVerticalBox(const char* label) { }
+    void closeBox() { }
+    void declare(FAUSTFLOAT* zone, const char* key, const char* val) { }
+    void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) { }
 
-    void addButton(const char* label, FAUSTFLOAT* zone) override
+    void addButton(const char* label, FAUSTFLOAT* zone)
     {
       Process::ControlInlet* inlet{};
       if(i < fx.m_inlets.size())
@@ -97,10 +135,10 @@ struct FaustUpdateUI final : public PathBuilder, public UI
       i++;
     }
 
-    void addCheckButton(const char* label, FAUSTFLOAT* zone) override
+    void addCheckButton(const char* label, FAUSTFLOAT* zone)
     { addButton(label, zone); }
 
-    void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
+    void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
       Process::ControlInlet* inlet{};
       if(i < fx.m_inlets.size())
@@ -122,16 +160,16 @@ struct FaustUpdateUI final : public PathBuilder, public UI
       i++;
     }
 
-    void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
+    void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     { addVerticalSlider(label, zone, init, min, max, step); }
 
-    void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
+    void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     { addVerticalSlider(label, zone, init, min, max, step); }
 
-    void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) override
+    void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     { }
 
-    void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) override
+    void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     { addHorizontalBargraph(label, zone, min, max); }
 };
 
@@ -194,34 +232,41 @@ void FaustEffectModel::reload()
     return;
   }
 
-  std::string err;
+  char err[1024];
 
-  auto fac = createDSPFactoryFromString(
-               "score", fx_text.toStdString(),
-               0, nullptr, "", err, -1);
+  const char* triple = 
+    #if defined(_MSC_VER)
+     "x86_64-pc-windows-msvc"
+    #else
+      ""
+    #endif
+  ;
+  auto fac = createCDSPFactoryFromString(
+               "score", fx_text.toStdString().c_str(),
+               0, nullptr, triple, err, -1);
 
-  if(!err.empty())
-    qDebug() << "Faust error: " << err.c_str();
+  if(err[0] != 0)
+    qDebug() << "Faust error: " << err;
   if(!fac)
   {
     // TODO mark as invalid, like JS
     return;
   }
 
-  auto obj = fac->createDSPInstance();
+  auto obj = createCDSPInstance(fac);
   if(!obj)
     return;
 
   if(faust_factory && faust_object)
   {
-    delete faust_object; // TODO not thread-safe wrt exec thread
-    deleteDSPFactory(faust_factory);
+    deleteCDSPInstance(faust_object); // TODO not thread-safe wrt exec thread
+    deleteCDSPFactory(faust_factory);
 
     faust_factory = fac;
     faust_object = obj;
     // Try to reuse controls
     FaustUpdateUI ui{*this};
-    faust_object->buildUserInterface(&ui);
+    buildUserInterfaceCDSPInstance(faust_object, &ui.glue);
 
     for(std::size_t i = ui.i; i < m_inlets.size(); i++)
     {
@@ -233,7 +278,7 @@ void FaustEffectModel::reload()
   else
   {
     if(faust_factory)
-      deleteDSPFactory(faust_factory);
+      deleteCDSPFactory(faust_factory);
 
     faust_factory = fac;
     faust_object = obj;
@@ -252,7 +297,7 @@ void FaustEffectModel::reload()
     m_outlets.back()->type = Process::PortType::Audio;
 
     FaustUI ui{*this};
-    faust_object->buildUserInterface(&ui);
+    buildUserInterfaceCDSPInstance(faust_object, &ui.glue);
   }
 }
 
@@ -326,44 +371,45 @@ namespace Engine::Execution
 class faust_node final : public ossia::graph_node
 {
     llvm_dsp* m_dsp{};
-    struct FaustExecUI final: public PathBuilder, public UI
+    struct FaustExecUI final
     {
         faust_node& fx;
+        setup_ui<FaustExecUI> glue{*this};
         FaustExecUI(faust_node& n): fx{n} { }
 
-        void addButton(const char* label, FAUSTFLOAT* zone) override
+        void addButton(const char* label, FAUSTFLOAT* zone)
         {
           fx.inputs().push_back(ossia::make_inlet<ossia::value_port>());
           fx.controls.push_back({fx.inputs().back()->data.target<ossia::value_port>(), zone});
         }
 
-        void addCheckButton(const char* label, FAUSTFLOAT* zone) override
+        void addCheckButton(const char* label, FAUSTFLOAT* zone)
         { addButton(label, zone); }
 
-        void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
+        void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
           fx.inputs().push_back(ossia::make_inlet<ossia::value_port>());
           fx.controls.push_back({fx.inputs().back()->data.target<ossia::value_port>(), zone});
         }
 
-        void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
+        void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         { addVerticalSlider(label, zone, init, min, max, step); }
 
-        void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
+        void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         { addVerticalSlider(label, zone, init, min, max, step); }
 
-        void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) override
+        void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         { fx.outputs().push_back(ossia::make_outlet<ossia::value_port>()); }
 
-        void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) override
+        void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         { addHorizontalBargraph(label, zone, min, max); }
 
-        void openTabBox(const char* label) override { }
-        void openHorizontalBox(const char* label) override { }
-        void openVerticalBox(const char* label) override { }
-        void closeBox() override { }
-        void declare(FAUSTFLOAT* zone, const char* key, const char* val) override { }
-        void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) override { }
+        void openTabBox(const char* label) { }
+        void openHorizontalBox(const char* label) { }
+        void openVerticalBox(const char* label) { }
+        void closeBox() { }
+        void declare(FAUSTFLOAT* zone, const char* key, const char* val) { }
+        void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) { }
     };
   public:
     ossia::small_vector<std::pair<ossia::value_port*, FAUSTFLOAT*>, 8> controls;
@@ -373,7 +419,7 @@ class faust_node final : public ossia::graph_node
       m_inlets.push_back(ossia::make_inlet<ossia::audio_port>());
       m_outlets.push_back(ossia::make_outlet<ossia::audio_port>());
       FaustExecUI ex{*this};
-      m_dsp->buildUserInterface(&ex);
+      buildUserInterfaceCDSPInstance(m_dsp, &ex.glue);
     }
 
     void run(ossia::token_request tk, ossia::execution_state&) override
@@ -393,8 +439,8 @@ class faust_node final : public ossia::graph_node
         auto& audio_in = *m_inlets[0]->data.target<ossia::audio_port>();
         auto& audio_out = *m_outlets[0]->data.target<ossia::audio_port>();
 
-        const std::size_t n_in = m_dsp->getNumInputs();
-        const std::size_t n_out = m_dsp->getNumOutputs();
+        const std::size_t n_in = getNumInputsCDSPInstance(m_dsp);
+        const std::size_t n_out = getNumOutputsCDSPInstance(m_dsp);
 
         float* inputs_ = (float*)alloca(n_in * d * sizeof(float));
         float* outputs_ = (float*)alloca(n_out * d * sizeof(float));
@@ -440,7 +486,7 @@ class faust_node final : public ossia::graph_node
             output_n[i][j] = 0.f;
           }
         }
-        m_dsp->compute(d, input_n, output_n);
+        computeCDSPInstance(m_dsp, d, input_n, output_n);
 
         audio_out.samples.resize(n_out);
         for(std::size_t i = 0; i < n_out; i++)
@@ -479,7 +525,7 @@ Engine::Execution::FaustEffectComponent::FaustEffectComponent(
 {
   if(proc.faust_object)
   {
-    proc.faust_object->init(ctx.plugin.execState->sampleRate);
+    initCDSPInstance(proc.faust_object, ctx.plugin.execState->sampleRate);
     auto node = std::make_shared<faust_node>(*proc.faust_object);
     this->node = node;
     m_ossia_process = std::make_shared<ossia::node_process>(node);
@@ -487,10 +533,11 @@ Engine::Execution::FaustEffectComponent::FaustEffectComponent(
     {
       auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
       *node->controls[i-1].second = ossia::convert<double>(inlet->value());
+      auto inl = this->node->inputs()[i];
       connect(inlet, &Process::ControlInlet::valueChanged,
-              this, [=] (const ossia::value& v) {
-        system().executionQueue.enqueue([inlet=this->node->inputs()[i],val=v] () mutable {
-          inlet->data.target<ossia::value_port>()->add_value(std::move(val), 0);
+              this, [this, inl] (const ossia::value& v) {
+        system().executionQueue.enqueue([inl,val=v] () mutable {
+          inl->data.target<ossia::value_port>()->add_value(std::move(val), 0);
         });
       });
     }

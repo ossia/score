@@ -6,13 +6,17 @@ find_path(
       /opt/lib/faust/architecture/
       /usr/lib/faust/architecture/
       /usr/local/lib/faust/architecture/
+      c:/faust/architecture
       "${FAUST_INCLUDE_DIR_HINT}"
     )
 
 set(FAUST_NAMES ${FAUST_NAMES} libfaust.so libfaust.dylib faust.dll faust libfaust)
 find_library(FAUST_LIBRARY
     NAMES ${FAUST_NAMES}
-    HINTS "${FAUST_LIB_DIR_HINT}")
+    HINTS
+      c:/faust
+      "${FAUST_LIB_DIR_HINT}"
+)
 
 if(FAUST_INCLUDE_DIR AND FAUST_LIBRARY)
   set(FAUST_FOUND TRUE)
@@ -31,7 +35,7 @@ if(FAUST_FOUND)
         # This is a static build of faust, hence
         # we have to add all the LLVM flags...
 
-        find_program(LLVM_CONFIG llvm-config HINTS /usr/bin /usr/local/bin /usr/local/opt/llvm/bin)
+        find_program(LLVM_CONFIG llvm-config HINTS /usr/bin /usr/local/bin /usr/local/opt/llvm/bin c:/llvm/bin)
         if(NOT LLVM_CONFIG)
             message(FATAL_ERROR "Using a static Faust library requires LLVM tooling to be present in the path")
         endif()
@@ -43,9 +47,14 @@ if(FAUST_FOUND)
 
         set(LLVM_VERSION LLVM_${LLVM_VERSION_MAJOR}${LLVM_VERSION_MINOR})
 
-        find_package(OpenSSL REQUIRED)
-        set(FAUST_LIBRARIES ${FAUST_LIBRARIES} dl ${OPENSSL_LIBRARIES} curses z ${LLVM_LDFLAGS} ${LLVM_LIBS} )
-
+        if(NOT MSVC)
+          find_package(OpenSSL REQUIRED)
+          set(FAUST_LIBRARIES ${FAUST_LIBRARIES} ${CMAKE_DL_LIBS} ${OPENSSL_LIBRARIES} curses z ${LLVM_LDFLAGS} ${LLVM_LIBS} )
+        else()
+          string(REGEX REPLACE " " ";" LLVM_LIBS ${LLVM_LIBS})
+          # set(FAUST_LIBRARIES ${FAUST_LIBRARIES} ${LLVM_LDFLAGS} ${LLVM_LIBS} )
+          set(FAUST_LIBRARIES ${FAUST_LIBRARIES} )
+        endif()
     endif()
 else()
     set(FAUST_LIBRARIES)
