@@ -2,6 +2,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <ossia/network/domain/domain.hpp>
 #include <faust/dsp/llvm-c-dsp.h>
+#include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/port.hpp>
 
 namespace Media
@@ -139,6 +140,7 @@ struct UpdateUI
         inlet->setCustomData(label);
         inlet->setDomain(ossia::make_domain(min, max));
         inlet->setValue(init);
+        inlet->hidden = true;
       }
       else
       {
@@ -146,6 +148,7 @@ struct UpdateUI
         inlet->setCustomData(label);
         inlet->setDomain(ossia::make_domain(min, max));
         inlet->setValue(init);
+        inlet->hidden = true;
         fx.inlets().push_back(inlet);
         fx.controlAdded(inlet->id());
       }
@@ -208,6 +211,93 @@ struct ExecUI final
     void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) { }
 };
 
+
+template<typename Node, typename Dsp>
+void faust_exec(Node& self, Dsp& dsp, const ossia::token_request& tk)
+{
+  if(tk.date > self.prev_date())
+  {
+    std::size_t d = tk.date - self.prev_date();
+    for(auto ctrl : self.controls)
+    {
+      auto& dat = ctrl.first->get_data();
+      if(!dat.empty())
+      {
+        *ctrl.second = ossia::convert<float>(dat.back().value);
+      }
+    }
+
+    auto& audio_in = *self.inputs()[0]->data.template target<ossia::audio_port>();
+    auto& audio_out = *self.outputs()[0]->data.template target<ossia::audio_port>();
+
+    const std::size_t n_in = dsp.getNumInputs();
+    const std::size_t n_out = dsp.getNumOutputs();
+
+    float* inputs_ = (float*)alloca(n_in * d * sizeof(float));
+    float* outputs_ = (float*)alloca(n_out * d * sizeof(float));
+
+    float** input_n = (float**)alloca(sizeof(float*) * n_in);
+    float** output_n = (float**)alloca(sizeof(float*) * n_out);
+
+    // Copy inputs
+    // TODO offset !!!
+    for(std::size_t i = 0; i < n_in; i++)
+    {
+      input_n[i] = inputs_ + i * d;
+      if(audio_in.samples.size() > i)
+      {
+        auto num_samples = std::min((std::size_t)d, (std::size_t)audio_in.samples[i].size());
+        for(std::size_t j = 0; j < num_samples; j++)
+        {
+          input_n[i][j] = (float)audio_in.samples[i][j];
+        }
+
+        if(d > audio_in.samples[i].size())
+        {
+          for(std::size_t j = audio_in.samples[i].size(); j < d; j++)
+          {
+            input_n[i][j] = 0.f;
+          }
+        }
+      }
+      else
+      {
+        for(std::size_t j = 0; j < d; j++)
+        {
+          input_n[i][j] = 0.f;
+        }
+      }
+    }
+
+    for(std::size_t i = 0; i < n_out; i++)
+    {
+      output_n[i] = outputs_ + i * d;
+      for(std::size_t j = 0; j < d; j++)
+      {
+        output_n[i][j] = 0.f;
+      }
+    }
+
+    dsp.compute(d, input_n, output_n);
+
+    audio_out.samples.resize(n_out);
+    for(std::size_t i = 0; i < n_out; i++)
+    {
+      audio_out.samples[i].resize(d);
+      for(std::size_t j = 0; j < d; j++)
+      {
+        audio_out.samples[i][j] = (double)output_n[i][j];
+      }
+    }
+
+    // TODO handle multichannel cleanly
+    if(n_out == 1)
+    {
+      audio_out.samples.resize(2);
+      audio_out.samples[1] = audio_out.samples[0];
+    }
+  }
+}
 }
 
 
