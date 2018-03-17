@@ -41,7 +41,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/UndoPanelFactory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/Widgets/UndoListWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/UndoApplicationPlugin.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/core/view/View.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/core/view/Window.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/score/actions/Action.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/actions/ActionManager.hpp"
@@ -312,7 +312,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/UndoPanelDelegate.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/UndoPanelFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/UndoApplicationPlugin.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/core/view/View.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/core/view/Window.cpp"
 
 )
 

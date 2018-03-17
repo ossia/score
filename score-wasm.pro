@@ -1,6 +1,6 @@
 TARGET = i-score
 TEMPLATE = app
-CONFIG += c++1z object_parallel_to_source warn_off
+CONFIG += c++1z object_parallel_to_source warn_off debug
 
 QT+=core widgets gui network xml svg websockets
 DEFINES += __EMSCRIPTEN__
@@ -21,6 +21,7 @@ $$PWD/API/3rdparty/websocketpp \
 $$PWD/API/3rdparty/GSL/include \
 $$PWD/API/3rdparty/bitset2 \
 $$PWD/API/3rdparty/flat_hash_map \
+$$PWD/API/3rdparty/verdigris/src \
 $$PWD/API/3rdparty/SmallFunction/smallfun/include \
 $$PWD/3rdparty/QRecentFilesMenu \
 $$PWD/3rdparty/QProgressIndicator \

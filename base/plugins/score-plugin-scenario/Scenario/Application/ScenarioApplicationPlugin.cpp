@@ -69,7 +69,7 @@
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <algorithm>
 #include <core/presenter/Presenter.hpp>
-#include <core/view/View.hpp>
+#include <core/view/Window.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <core/application/ApplicationSettings.hpp>
 

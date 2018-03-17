@@ -7,7 +7,7 @@
 #include <core/settings/Settings.hpp>
 #include <core/undo/Panel/UndoPanelFactory.hpp>
 #include <core/undo/UndoApplicationPlugin.hpp>
-#include <core/view/View.hpp>
+#include <core/view/Window.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>

@@ -11,7 +11,7 @@
 #include <core/document/DocumentBackups.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/presenter/Presenter.hpp>
-#include <core/view/View.hpp>
+#include <core/view/Window.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
 #include <score/tools/IdentifierGeneration.hpp>

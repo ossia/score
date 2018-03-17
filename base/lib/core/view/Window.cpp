@@ -16,7 +16,7 @@
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentView.hpp>
 #include <core/presenter/Presenter.hpp>
-#include <core/view/View.hpp>
+#include <core/view/Window.hpp>
 
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 #include <score/actions/Menu.hpp>

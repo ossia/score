@@ -8,7 +8,7 @@
 #include <core/presenter/CoreActions.hpp>
 #include <core/settings/Settings.hpp>
 #include <core/settings/SettingsView.hpp>
-#include <core/view/View.hpp>
+#include <core/view/Window.hpp>
 #include <score/actions/Menu.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 namespace score

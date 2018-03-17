@@ -6,7 +6,7 @@
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QObject>
-#include <core/view/View.hpp>
+#include <core/view/Window.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/Optional.hpp>
