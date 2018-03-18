@@ -270,25 +270,52 @@ View::View() : m_widg{new QWidget}
   m_widg->setLayout(lay);
 
   // SKIN
-  m_skin = new QComboBox;
-  m_skin->addItems({"Default", "Dark", "IEEE"});
-  lay->addRow(tr("Skin"), m_skin);
-  auto es = new QPushButton{tr("Edit skin")};
-  connect(es, &QPushButton::clicked, this, []
   {
+    m_skin = new QComboBox;
+    m_skin->addItems({"Default", "Dark", "IEEE"});
+    lay->addRow(tr("Skin"), m_skin);
+    auto es = new QPushButton{tr("Edit skin")};
+    connect(es, &QPushButton::clicked, this, []
+    {
       ThemeDialog d{nullptr};
       d.exec();
-  });
-  auto ls = new QPushButton{tr("Load skin")};
-  connect(ls, &QPushButton::clicked, this, [=] {
+    });
+    auto ls = new QPushButton{tr("Load skin")};
+    connect(ls, &QPushButton::clicked, this, [=] {
       auto f = QFileDialog::getOpenFileName(nullptr, tr("Skin"), tr("*.json"));
-      skinChanged(f);
-  });
-  lay->addWidget(ls);
-  lay->addWidget(es);
+      SkinChanged(f);
+    });
+    lay->addWidget(ls);
+    lay->addWidget(es);
 
-  connect(m_skin, &QComboBox::currentTextChanged, this, &View::skinChanged);
+    connect(m_skin, &QComboBox::currentTextChanged, this, &View::SkinChanged);
+  }
 
+  {
+    auto subw = new QWidget;
+    auto sublay = new QHBoxLayout{subw};
+    m_editor = new QLineEdit{};
+    auto btn = new QPushButton{tr("Browse..."), m_widg};
+    connect(btn, &QPushButton::pressed,
+            this, [=] {
+      auto file = QFileDialog::getOpenFileName(subw, tr("Default editor"));
+      if(!file.isEmpty())
+      {
+        m_editor->setText(file);
+        DefaultEditorChanged(file);
+      }
+    });
+
+    connect(m_editor, &QLineEdit::editingFinished,
+            this, [=] {
+      DefaultEditorChanged(m_editor->text());
+    });
+    sublay->addWidget(m_editor);
+    sublay->addWidget(btn);
+
+    lay->addRow(tr("Default editor"), subw);
+
+  }
   // ZOOM
   m_zoomSpinBox = new QSpinBox;
   m_zoomSpinBox->setMinimum(50);
@@ -310,7 +337,7 @@ View::View() : m_widg{new QWidget}
   connect(
       m_slotHeightBox,
       static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
-      &View::slotHeightChanged);
+      &View::SlotHeightChanged);
 
   lay->addRow(tr("Default Slot Height"), m_slotHeightBox);
 
@@ -318,11 +345,11 @@ View::View() : m_widg{new QWidget}
   m_defaultDur = new score::TimeSpinBox;
   connect(
       m_defaultDur, &score::TimeSpinBox::timeChanged, this,
-      [=](const QTime& t) { defaultDurationChanged(TimeVal{t}); });
+      [=](const QTime& t) { DefaultDurationChanged(TimeVal{t}); });
   lay->addRow(tr("New score duration"), m_defaultDur);
 
   m_sequence = new QCheckBox{m_widg};
-  connect(m_sequence, &QCheckBox::toggled, this, &View::sequenceChanged);
+  connect(m_sequence, &QCheckBox::toggled, this, &View::AutoSequenceChanged);
   lay->addRow(tr("Auto-Sequence"), m_sequence);
 
   SETTINGS_UI_TOGGLE_SETUP("Time Bar", TimeBar);
@@ -342,6 +369,11 @@ void View::setSkin(const QString& val)
   }
 }
 
+void View::setDefaultEditor(QString val)
+{
+  if (val != m_editor->text())
+    m_editor->setText(val);
+}
 void View::setZoom(const int val)
 {
   if (val != m_zoomSpinBox->value())
@@ -361,7 +393,7 @@ void View::setSlotHeight(const double val)
     m_slotHeightBox->setValue(val);
 }
 
-void View::setSequence(const bool val)
+void View::setAutoSequence(const bool val)
 {
   if (val != m_sequence->checkState())
     m_sequence->setChecked(val);

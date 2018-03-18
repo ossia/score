@@ -93,7 +93,7 @@ InspectorWidget::InspectorWidget(
 
   updateControls(doc);
 
-  con(JSModel, &JS::ProcessModel::scriptChanged,
+  con(JSModel, &JS::ProcessModel::qmlDataChanged,
       this, [&] { updateControls(doc); });
 }
 void InspectorWidget::updateControls(const score::DocumentContext& doc)

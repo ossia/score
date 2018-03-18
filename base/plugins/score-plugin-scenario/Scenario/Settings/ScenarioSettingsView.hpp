@@ -21,23 +21,26 @@ public:
   void setZoom(const int); // zoom percentage
   void setSlotHeight(const qreal);
   void setDefaultDuration(const TimeVal& t);
-
-  void setSequence(bool);
+  void setAutoSequence(bool);
+  void setDefaultEditor(QString);
   SETTINGS_UI_TOGGLE_HPP(TimeBar)
 
 Q_SIGNALS:
-  void skinChanged(const QString&);
-  void zoomChanged(int);
-  void slotHeightChanged(qreal);
-  void defaultDurationChanged(const TimeVal& t);
+  void SkinChanged(const QString&);
+  void DefaultEditorChanged(QString);
 
-  void sequenceChanged(bool);
+  void zoomChanged(int);
+  void SlotHeightChanged(qreal);
+  void DefaultDurationChanged(const TimeVal& t);
+
+  void AutoSequenceChanged(bool);
 
 private:
   QWidget* getWidget() override;
   QWidget* m_widg{};
 
   QComboBox* m_skin{};
+  QLineEdit* m_editor{};
   QSpinBox* m_zoomSpinBox{};
   QSpinBox* m_slotHeightBox{};
   score::TimeSpinBox* m_defaultDur{};
