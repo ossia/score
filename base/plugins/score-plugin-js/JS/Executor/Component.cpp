@@ -44,7 +44,7 @@ Component::Component(
   auto proc = std::make_shared<ossia::node_process>(node);
   m_ossia_process = proc;
 
-  node->setScript(element.script());
+  node->setScript(element.qmlData());
   if(!node->m_object)
     throw std::runtime_error{"Invalid JS"};
 
@@ -72,20 +72,6 @@ Component::Component(
       inl++;
     }
   }
-  // Set-up controls
-  /*
-  for(auto ctrl_idx : control_indices)
-  {
-    auto port = inlets[ctrl_idx.first];
-    auto ctrl = static_cast<Process::ControlInlet*>(port);
-    auto val_inlet = node->m_ctrlInlets[ctrl_idx.second].first;
-    connect(ctrl, &Process::ControlInlet::valueChanged,
-            this, [=] (const ossia::value& val) {
-      this->in_exec(js_control_updater{*val_inlet, val});
-    });
-    js_control_updater{*val_inlet, ctrl->value()}();
-  }*/
-
   /*
   con(element, &JS::ProcessModel::scriptChanged,
       this, [=] (const QString& str) {

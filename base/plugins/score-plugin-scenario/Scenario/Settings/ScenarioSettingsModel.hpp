@@ -12,6 +12,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT Model final
 {
   Q_OBJECT
   Q_PROPERTY(QString Skin READ getSkin WRITE setSkin NOTIFY SkinChanged FINAL)
+  Q_PROPERTY(QString DefaultEditor READ getDefaultEditor WRITE setDefaultEditor NOTIFY DefaultEditorChanged FINAL)
   Q_PROPERTY(double GraphicZoom READ getGraphicZoom WRITE setGraphicZoom NOTIFY GraphicZoomChanged FINAL)
   Q_PROPERTY(qreal SlotHeight READ getSlotHeight WRITE setSlotHeight NOTIFY SlotHeightChanged FINAL)
   Q_PROPERTY(TimeVal DefaultDuration READ getDefaultDuration WRITE setDefaultDuration NOTIFY DefaultDurationChanged FINAL)
@@ -20,6 +21,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT Model final
   Q_PROPERTY(bool TimeBar READ getTimeBar WRITE setTimeBar NOTIFY TimeBarChanged FINAL)
 
   QString m_Skin;
+  QString m_DefaultEditor;
   double m_GraphicZoom{};
   qreal m_SlotHeight{};
   TimeVal m_DefaultDuration{std::chrono::seconds{30}};
@@ -33,6 +35,7 @@ public:
   QString getSkin() const;
   void setSkin(const QString&);
 
+  SCORE_SETTINGS_PARAMETER_HPP(QString, DefaultEditor)
   SCORE_SETTINGS_PARAMETER_HPP(double, GraphicZoom)
   SCORE_SETTINGS_PARAMETER_HPP(qreal, SlotHeight)
   SCORE_SETTINGS_PARAMETER_HPP(TimeVal, DefaultDuration)
@@ -44,6 +47,7 @@ Q_SIGNALS:
   void SkinChanged(const QString&);
 };
 
+SCORE_SETTINGS_PARAMETER(Model, DefaultEditor)
 SCORE_SETTINGS_PARAMETER(Model, Skin)
 SCORE_SETTINGS_PARAMETER(Model, GraphicZoom)
 SCORE_SETTINGS_PARAMETER(Model, SlotHeight)

@@ -2,6 +2,7 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioSettingsModel.hpp"
 #include <QFile>
+#include <QFileInfo>
 #include <QJsonDocument>
 #include <QSettings>
 #include <score/model/Skin.hpp>
@@ -13,8 +14,8 @@ namespace Settings
 {
 namespace Parameters
 {
-const score::sp<ModelSkinParameter> Skin{QStringLiteral("Skin/Skin"),
-                                          "Default"};
+const score::sp<ModelSkinParameter> Skin{QStringLiteral("Skin/Skin"), "Default"};
+const score::sp<ModelDefaultEditorParameter> DefaultEditor{QStringLiteral("Skin/DefaultEditor"), ""};
 const score::sp<ModelGraphicZoomParameter> GraphicZoom{
     QStringLiteral("Skin/Zoom"), 1};
 const score::sp<ModelSlotHeightParameter> SlotHeight{
@@ -31,7 +32,7 @@ const score::sp<ModelTimeBarParameter> TimeBar{
 static auto list()
 {
   return std::tie(
-      Skin, GraphicZoom, SlotHeight, DefaultDuration, SnapshotOnCreate,
+      Skin, DefaultEditor, GraphicZoom, SlotHeight, DefaultDuration, SnapshotOnCreate,
       AutoSequence, TimeBar);
 }
 }
@@ -86,28 +87,45 @@ void Model::setSkin(const QString& skin)
   SkinChanged(skin);
 }
 
+QString Model::getDefaultEditor() const
+{
+  return m_DefaultEditor;
+}
+
+void Model::setDefaultEditor(QString val)
+{
+  if (val == m_DefaultEditor)
+    return;
+
+  m_DefaultEditor = val;
+
+  QSettings s;
+  s.setValue(Parameters::DefaultEditor.key, QVariant::fromValue(m_DefaultEditor));
+  DefaultEditorChanged(val);
+}
+
+TimeVal Model::getDefaultDuration() const
+{
+  return m_DefaultDuration;
+}
+
+void Model::setDefaultDuration(TimeVal val)
+{
+  val = std::max(val, TimeVal{std::chrono::milliseconds{100}});
+  if (val == m_DefaultDuration)
+    return;
+
+  m_DefaultDuration = val;
+
+  QSettings s;
+  s.setValue(Parameters::DefaultDuration.key, QVariant::fromValue(m_DefaultDuration));
+  DefaultDurationChanged(val);
+}
+
 SCORE_SETTINGS_PARAMETER_CPP(double, Model, GraphicZoom)
 SCORE_SETTINGS_PARAMETER_CPP(qreal, Model, SlotHeight)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, SnapshotOnCreate)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, AutoSequence)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, TimeBar)
-
-  TimeVal Model::getDefaultDuration() const
-  {
-    return m_DefaultDuration;
-  }
-
-  void Model::setDefaultDuration(TimeVal val)
-  {
-    val = std::max(val, TimeVal{std::chrono::milliseconds{100}});
-    if (val == m_DefaultDuration)
-      return;
-
-    m_DefaultDuration = val;
-
-    QSettings s;
-    s.setValue(Parameters::DefaultDuration.key, QVariant::fromValue(m_DefaultDuration));
-    DefaultDurationChanged(val);
-  }
 }
 }

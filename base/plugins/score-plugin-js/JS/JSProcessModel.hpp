@@ -1,18 +1,10 @@
 #pragma once
 #include <JS/JSProcessMetadata.hpp>
 #include <Process/Process.hpp>
-#include <QByteArray>
 #include <QQmlEngine>
 #include <QQmlComponent>
-#include <QString>
+#include <QFileSystemWatcher>
 #include <memory>
-
-#include <Process/TimeValue.hpp>
-#include <score/selection/Selection.hpp>
-#include <score/serialization/VisitorInterface.hpp>
-#include <score/model/Identifier.hpp>
-#include <QJSValue>
-#include <QVariantMap>
 namespace JS
 {
 class ProcessModel final : public Process::ProcessModel
@@ -34,12 +26,17 @@ public:
   }
 
   void setScript(const QString& script);
+  void setQmlData(const QByteArray&);
   const QString& script() const
   {
     return m_script;
   }
+  const QString& qmlData() const
+  {
+    return m_qmlData;
+  }
 
-  ~ProcessModel();
+  ~ProcessModel() override;
 
   QObject* m_dummyObject{};
 Q_SIGNALS:
@@ -47,9 +44,12 @@ Q_SIGNALS:
   void scriptOk();
   void scriptChanged(const QString&);
 
+  void qmlDataChanged(const QString&);
+
 private:
-  QString m_script;
+  QString m_script, m_qmlData;
   QQmlEngine m_dummyEngine;
   std::unique_ptr<QQmlComponent> m_dummyComponent;
+  std::unique_ptr<QFileSystemWatcher> m_watch;
 };
 }
