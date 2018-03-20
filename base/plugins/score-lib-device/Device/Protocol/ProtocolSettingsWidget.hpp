@@ -25,11 +25,11 @@ public:
   virtual void setSettings(const Device::DeviceSettings& settings) = 0;
 };
 
-class SCORE_LIB_DEVICE_EXPORT AddAddressDialog : public QDialog
+class SCORE_LIB_DEVICE_EXPORT AddressDialog : public QDialog
 {
   public:
     using QDialog::QDialog;
-    virtual ~AddAddressDialog();
+    virtual ~AddressDialog();
     virtual Device::AddressSettings getSettings() const = 0;
 };
 }

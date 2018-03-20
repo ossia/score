@@ -16,10 +16,15 @@ class AudioProtocolFactory final : public Device::ProtocolFactory
         const Device::DeviceSettings& settings,
         const score::DocumentContext& ctx) override;
     const Device::DeviceSettings& defaultSettings() const override;
-    Device::AddAddressDialog* makeAddAddressDialog(
-        const Device::DeviceSettings& dev,
+    Device::AddressDialog* makeAddAddressDialog(
+        const Device::DeviceInterface& dev,
         const score::DocumentContext& ctx,
         QWidget* parent) override;
+    Device::AddressDialog* makeEditAddressDialog(
+        const Device::AddressSettings&,
+        const Device::DeviceInterface& dev,
+        const score::DocumentContext& ctx,
+        QWidget*) override;
 
 
     Device::ProtocolSettingsWidget* makeSettingsWidget() override;

@@ -21,6 +21,7 @@ class QTableView;
 namespace Device
 {
 class ProtocolFactoryList;
+class AddressDialog;
 }
 
 namespace Explorer

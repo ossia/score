@@ -122,10 +122,10 @@ MidiTrack::MidiSong MidiTrack::parse(const QMimeData& mime)
       double beat_dur = 60. / m.tempo; // in seconds
       m.durationInMs = 1000. * beat_dur * num_beats;
     }
-    for(auto& t : reader.tracks)
+    for(const mm::MidiTrack& t : reader.tracks)
     {
       MidiTrack nv;
-      for(auto& ev : t)
+      for(const std::shared_ptr<mm::TrackEvent>& ev : t)
       {
         if(reader.useAbsoluteTicks)
           tick = ev->tick;
@@ -177,7 +177,21 @@ MidiTrack::MidiSong MidiTrack::parse(const QMimeData& mime)
             break;
           }
           default:
+          {
+            if(ev->m->isMetaEvent())
+            {
+              auto ev_t = ev->m->getMetaEventSubtype();
+              switch(ev_t)
+              {
+                case mm::MetaEventType::TEMPO_CHANGE:
+                {
+                  qDebug() << ev->m->data[0];
+                }
+              }
+
+            }
             break;
+          }
         }
       }
       tick = 0;
