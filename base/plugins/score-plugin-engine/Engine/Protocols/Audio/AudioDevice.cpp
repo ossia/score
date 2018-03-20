@@ -37,8 +37,6 @@ AudioDevice::AudioDevice(
   m_capas.hasCallbacks = false;
   m_capas.canListen = false;
   m_capas.canSerialize = true;
-
-  reconnect();
 }
 
 void AudioDevice::addAddress(const Device::FullAddressSettings& settings)
