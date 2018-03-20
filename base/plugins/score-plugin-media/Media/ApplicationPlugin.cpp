@@ -14,7 +14,7 @@
 
 #include <Engine/Protocols/OSSIADevice.hpp>
 
-#include <ossia/dataflow/audio_protocol.hpp>
+#include <ossia/audio/audio_protocol.hpp>
 
 #include <Engine/Protocols/Audio/AudioDevice.hpp>
 /*

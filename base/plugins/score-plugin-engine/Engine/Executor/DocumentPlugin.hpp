@@ -89,7 +89,7 @@ public:
   std::shared_ptr<ossia::graph_interface> execGraph;
   std::unique_ptr<ossia::execution_state> execState;
 
-  Dataflow::AudioDevice* audio_device{};
+  QPointer<Dataflow::AudioDevice> audio_device{};
 
   score::hash_map<Process::Outlet*, std::pair<ossia::node_ptr, ossia::outlet_ptr>> outlets;
   score::hash_map<Process::Inlet*, std::pair<ossia::node_ptr, ossia::inlet_ptr>> inlets;

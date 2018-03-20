@@ -5,8 +5,8 @@
 #include <Engine/Executor/IntervalComponent.hpp>
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
 #include <Engine/Executor/BaseScenarioComponent.hpp>
-#include <ossia/dataflow/audio_parameter.hpp>
-#include <ossia/dataflow/audio_protocol.hpp>
+#include <ossia/audio/audio_parameter.hpp>
+#include <ossia/audio/audio_protocol.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Engine/Protocols/OSSIADevice.hpp>

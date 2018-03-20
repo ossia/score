@@ -14,14 +14,12 @@
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/ApplicationPlugin.hpp>
 #include <Engine/score2OSSIA.hpp>
-#include <ossia/dataflow/audio_parameter.hpp>
+#include <ossia/audio/audio_parameter.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/DeviceList.hpp>
 #include <Engine/Protocols/Settings/Model.hpp>
-#if __has_include(<pa_jack.h>) && !defined(_MSC_VER)
-#include <pa_jack.h>
-#endif
+
 namespace Dataflow
 {
 AudioDevice::AudioDevice(
@@ -38,12 +36,9 @@ AudioDevice::AudioDevice(
   m_capas.canRefreshValue = false;
   m_capas.hasCallbacks = false;
   m_capas.canListen = false;
-  m_capas.canSerialize = false;
+  m_capas.canSerialize = true;
 
   reconnect();
-#if __has_include(<pa_jack.h>) && !defined(_MSC_VER)
-    PaJack_SetClientName("i-score");
-#endif
 }
 
 void AudioDevice::addAddress(const Device::FullAddressSettings& settings)
@@ -91,9 +86,6 @@ bool AudioDevice::reconnect()
 
   try
   {
-    //AudioSpecificSettings stgs
-    //    = settings().deviceSpecificSettings.value<AudioSpecificSettings>();
-
     auto& set = score::AppContext().settings<Audio::Settings::Model>();
     auto& proto = static_cast<ossia::audio_protocol&>(m_dev.get_protocol());
 
@@ -102,7 +94,10 @@ bool AudioDevice::reconnect()
     proto.card_in = set.getCardIn().toStdString();
     proto.card_out = set.getCardOut().toStdString();
 
-    proto.reload();
+    auto& engine = score::GUIAppContext().guiApplicationPlugin<Engine::ApplicationPlugin>().audio;
+    if(!engine)
+      return false;
+    engine->reload(&proto);
 
     setLogging_impl(Device::get_cur_logging(isLogging()));
   }
@@ -165,12 +160,11 @@ const Device::DeviceSettings& AudioProtocolFactory::defaultSettings() const
     Device::DeviceSettings s;
     s.protocol = concreteKey();
     s.name = "Audio";
-    AudioSpecificSettings specif;
-    s.deviceSpecificSettings = QVariant::fromValue(specif);
     return s;
   }();
   return settings;
 }
+
 class AudioAddressDialog final : public Device::AddAddressDialog
 {
   public:
@@ -364,13 +358,12 @@ Device::ProtocolSettingsWidget* AudioProtocolFactory::makeSettingsWidget()
 QVariant AudioProtocolFactory::makeProtocolSpecificSettings(
     const VisitorVariant& visitor) const
 {
-  return makeProtocolSpecificSettings_T<AudioSpecificSettings>(visitor);
+  return {};
 }
 
 void AudioProtocolFactory::serializeProtocolSpecificSettings(
     const QVariant& data, const VisitorVariant& visitor) const
 {
-  serializeProtocolSpecificSettings_T<AudioSpecificSettings>(data, visitor);
 }
 
 bool AudioProtocolFactory::checkCompatibility(
@@ -395,20 +388,13 @@ AudioSettingsWidget::AudioSettingsWidget(QWidget* parent)
 
 void AudioSettingsWidget::setDefaults()
 {
-  m_deviceNameEdit->setText("audio");
+  m_deviceNameEdit->setText("scoreaudio");
 }
 
 Device::DeviceSettings AudioSettingsWidget::getSettings() const
 {
   Device::DeviceSettings s;
   s.name = m_deviceNameEdit->text();
-
-  AudioSpecificSettings audio;
-  audio.card = "default";
-  audio.rate = 44100;
-  audio.bufferSize = 64;
-
-  s.deviceSpecificSettings = QVariant::fromValue(audio);
   return s;
 }
 
@@ -416,52 +402,6 @@ void AudioSettingsWidget::setSettings(
     const Device::DeviceSettings& settings)
 {
   m_deviceNameEdit->setText(settings.name);
-  AudioSpecificSettings audio;
-  if (settings.deviceSpecificSettings
-      .canConvert<AudioSpecificSettings>())
-  {
-    audio = settings.deviceSpecificSettings
-            .value<AudioSpecificSettings>();
-  }
 }
 
 }
-
-
-template <>
-void DataStreamReader::read(
-    const Dataflow::AudioSpecificSettings& n)
-{
-  m_stream << n.card << n.bufferSize << n.rate;
-  insertDelimiter();
-}
-
-
-template <>
-void DataStreamWriter::write(
-    Dataflow::AudioSpecificSettings& n)
-{
-  m_stream >> n.card >> n.bufferSize >> n.rate;
-  checkDelimiter();
-}
-
-
-template <>
-void JSONObjectReader::read(
-    const Dataflow::AudioSpecificSettings& n)
-{
-  obj["Card"] = n.card;
-  obj["BufferSize"] = n.bufferSize;
-  obj["Rate"] = n.rate;
-}
-
-
-template <>
-void JSONObjectWriter::write(
-    Dataflow::AudioSpecificSettings& n)
-{
-  n.card = obj["Card"].toString();
-  n.bufferSize = obj["BufferSize"].toInt();
-  n.rate = obj["Rate"].toInt();
-}
-

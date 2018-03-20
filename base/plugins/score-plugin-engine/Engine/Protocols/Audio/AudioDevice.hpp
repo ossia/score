@@ -3,7 +3,7 @@
 #include <Engine/Protocols/OSSIADevice.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
-#include <ossia/dataflow/audio_protocol.hpp>
+#include <ossia/audio/audio_protocol.hpp>
 class QLineEdit;
 namespace Dataflow
 {
@@ -73,11 +73,4 @@ class AudioSettingsWidget final
     QLineEdit* m_deviceNameEdit{};
 };
 
-struct AudioSpecificSettings
-{
-    QString card;
-    int rate{44100};
-    int bufferSize{64};
-};
 }
-Q_DECLARE_METATYPE(Dataflow::AudioSpecificSettings)

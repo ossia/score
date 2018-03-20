@@ -47,7 +47,7 @@
 #include <QVector>
 #include <spdlog/spdlog.h>
 #include <Loop/LoopProcessModel.hpp>
-#include <ossia/dataflow/audio_protocol.hpp>
+#include <ossia/audio/audio_protocol.hpp>
 SCORE_DECLARE_ACTION(RestartAudio, "Restart Audio", Common, QKeySequence::UnknownKey)
 
 
@@ -136,8 +136,22 @@ bool ApplicationPlugin::handleStartup()
 
 void ApplicationPlugin::initialize()
 {
-
   auto& set = context.settings<Audio::Settings::Model>();
+
+
+  con(set, &Audio::Settings::Model::DriverChanged, this, [=] (const QString& card) {
+    if(auto doc = this->currentDocument()) {
+      auto dev = doc->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
+      if(!dev)
+        return;
+      auto& d = *dynamic_cast<Dataflow::AudioDevice*>(dev);
+      if(audio)
+        audio->stop();
+      audio.reset(ossia::make_audio_engine(card.toStdString()));
+      d.reconnect();
+    }
+  });
+
   con(set, &Audio::Settings::Model::BufferSizeChanged, this, [=] (int sz) {
     if(auto doc = this->currentDocument()) {
       auto dev = doc->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
@@ -178,6 +192,7 @@ void ApplicationPlugin::initialize()
     }
   });
 
+  audio.reset(ossia::make_audio_engine(set.getDriver().toStdString()));
 }
 score::GUIElements ApplicationPlugin::makeGUIElements()
 {
