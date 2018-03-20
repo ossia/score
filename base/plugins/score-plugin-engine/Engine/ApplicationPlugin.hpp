@@ -53,7 +53,7 @@ class SCORE_PLUGIN_ENGINE_EXPORT ApplicationPlugin final
 {
 public:
   ApplicationPlugin(const score::GUIApplicationContext& app);
-  ~ApplicationPlugin();
+  ~ApplicationPlugin() override;
 
   bool handleStartup() override;
   score::GUIElements makeGUIElements() override;
@@ -86,7 +86,7 @@ public:
 
   void on_stop();
 
-  std::unique_ptr<ossia::audio_engine> audio{};
+  std::unique_ptr<ossia::audio_engine> audio;
 private:
   void on_init();
 
