@@ -294,7 +294,4 @@ target_link_libraries(${PROJECT_NAME}
           ossia
 )
 
-if(TARGET tbb)
-  target_link_libraries(${PROJECT_NAME} PRIVATE tbb)
-endif()
 setup_score_plugin(${PROJECT_NAME})
