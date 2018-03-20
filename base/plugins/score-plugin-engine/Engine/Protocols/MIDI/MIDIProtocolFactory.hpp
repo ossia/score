@@ -32,8 +32,13 @@ class MIDIProtocolFactory final : public Device::ProtocolFactory
   const Device::DeviceSettings& defaultSettings() const override;
 
   Device::ProtocolSettingsWidget* makeSettingsWidget() override;
-  Device::AddAddressDialog* makeAddAddressDialog(const Device::DeviceSettings& dev, const score::DocumentContext& ctx, QWidget* parent) override;
+  Device::AddressDialog* makeAddAddressDialog(const Device::DeviceInterface& dev, const score::DocumentContext& ctx, QWidget* parent) override;
 
+  Device::AddressDialog* makeEditAddressDialog(
+      const Device::AddressSettings&,
+      const Device::DeviceInterface& dev,
+      const score::DocumentContext& ctx,
+      QWidget*) override;
   QVariant
   makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
 

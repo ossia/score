@@ -161,6 +161,12 @@ void Application::init()
 #endif
 #if defined(_MSC_VER)
     QDir::setCurrent(qApp->applicationDirPath());
+    auto path = qgetenv("PATH");
+    path += ";" + QCoreApplication::applicationDirPath();
+    path += ";" + QCoreApplication::applicationDirPath() + "/plugins";
+    qputenv("PATH", path);
+    SetDllDirectory(QCoreApplication::applicationDirPath().toLocal8Bit());
+    SetDllDirectory((QCoreApplication::applicationDirPath() + "/plugins").toLocal8Bit());
 #endif
     {
       QCoreApplication::setOrganizationName("OSSIA");

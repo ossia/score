@@ -13,7 +13,7 @@ namespace Explorer
 {
 
 class AddressSettingsWidget;
-class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressEditDialog final : public Device::AddAddressDialog
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressEditDialog final : public Device::AddressDialog
 {
   Q_OBJECT
 

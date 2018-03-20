@@ -11,9 +11,10 @@ struct VisitorVariant;
 namespace Device
 {
 struct DeviceSettings;
+struct AddressSettings;
 class DeviceInterface;
 class ProtocolSettingsWidget;
-class AddAddressDialog;
+class AddressDialog;
 class SCORE_LIB_DEVICE_EXPORT ProtocolFactory
     : public score::Interface<ProtocolFactory>
 {
@@ -32,8 +33,19 @@ public:
       const Device::DeviceSettings& settings,
       const score::DocumentContext& ctx)
       = 0;
+
   virtual ProtocolSettingsWidget* makeSettingsWidget() = 0;
-  virtual AddAddressDialog* makeAddAddressDialog(const Device::DeviceSettings& dev, const score::DocumentContext& ctx, QWidget*) = 0;
+
+  virtual AddressDialog* makeAddAddressDialog(
+      const Device::DeviceInterface& dev,
+      const score::DocumentContext& ctx,
+      QWidget*) = 0;
+  virtual AddressDialog* makeEditAddressDialog(
+      const Device::AddressSettings&,
+      const Device::DeviceInterface& dev,
+      const score::DocumentContext& ctx,
+      QWidget*) = 0;
+
   virtual const Device::DeviceSettings& defaultSettings() const = 0;
 
   // Save

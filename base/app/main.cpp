@@ -68,14 +68,6 @@ int main(int argc, char** argv)
   }
 #endif
 
-#if defined(_MSC_VER)
-  auto path = qgetenv("PATH");
-  path += ";" + QCoreApplication::applicationDirPath();
-  path += ";" + QCoreApplication::applicationDirPath() + "/plugins";
-  qputenv("PATH", path);
-  SetDllDirectory(QCoreApplication::applicationDirPath().toLocal8Bit());
-  SetDllDirectory((QCoreApplication::applicationDirPath() + "/plugins").toLocal8Bit());
-#endif
 #if defined(__APPLE__)
     auto pool = mac_init_pool();
     disableAppRestore();

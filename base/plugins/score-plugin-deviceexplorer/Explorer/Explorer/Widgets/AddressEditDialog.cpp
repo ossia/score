@@ -38,7 +38,7 @@ AddressEditDialog::AddressEditDialog(QWidget* parent)
 
 AddressEditDialog::AddressEditDialog(
     const Device::AddressSettings& addr, QWidget* parent)
-    : Device::AddAddressDialog{parent}, m_originalSettings{addr}
+    : Device::AddressDialog{parent}, m_originalSettings{addr}
 {
   this->setMinimumWidth(500);
   m_layout = new QFormLayout;

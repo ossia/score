@@ -79,6 +79,19 @@
 #include <QListWidget>
 namespace Explorer
 {
+static const Device::DeviceSettings* getDevice(const Device::Node& n)
+{
+  if(n.is<Device::AddressSettings>())
+  {
+    const Device::Node* p = &n;
+    while((p = p->parent()))
+    {
+      if(p->is<Device::DeviceSettings>())
+        return &p->get<Device::DeviceSettings>();
+    }
+  }
+  return nullptr;
+}
 
 class LearnDialog final : public QDialog
 {
@@ -646,19 +659,6 @@ DeviceExplorerFilterProxyModel* DeviceExplorerWidget::proxyModel()
   return m_proxyModel;
 }
 
-QString getDevice(const Device::Node& n)
-{
-  if(n.is<Device::AddressSettings>())
-  {
-    const Device::Node* p = &n;
-    while((p = p->parent()))
-    {
-      if(p->is<Device::DeviceSettings>())
-        return p->get<Device::DeviceSettings>().name;
-    }
-  }
-  return {};
-}
 
 void DeviceExplorerWidget::edit()
 {
@@ -688,25 +688,31 @@ void DeviceExplorerWidget::edit()
   else
   {
     auto before = select.get<Device::AddressSettings>();
-    auto devname = getDevice(select);
-    auto dev = model()->deviceModel().list().findDevice(devname);
-    bool canRename = true;
-    bool canEdit = true;
-    if(dev)
-    {
-      canRename = dev->capabilities().canRenameNode;
-      canEdit = dev->capabilities().canSetProperties;
-    }
 
-    AddressEditDialog dial{before, this};
-    dial.setCanRename(canRename);
-    dial.setCanEditProperties(canEdit);
+    if(!model())
+      return;
 
-    auto code = static_cast<QDialog::DialogCode>(dial.exec());
+    auto dev_s = getDevice(select);
+    if(!dev_s)
+      return;
+    auto proto = m_protocolList.get(dev_s->protocol);
+    if(!proto)
+      return;
+    auto dev = model()->deviceModel().list().findDevice(dev_s->name);
+    if(!dev)
+      return;
+
+    QScopedPointer<Device::AddressDialog> dial{
+        proto->makeEditAddressDialog(before, *dev, model()->deviceModel().context(), this)};
+
+    if(!dial)
+      return;
+
+    auto code = static_cast<QDialog::DialogCode>(dial->exec());
 
     if (code == QDialog::Accepted)
     {
-      auto stgs = dial.getSettings();
+      auto stgs = dial->getSettings();
       // TODO do like for DeviceSettings
       if (!model()->checkAddressEditable(*select.parent(), before, stgs))
         return;
@@ -1117,16 +1123,21 @@ void DeviceExplorerWidget::addAddress(InsertMode insert)
     return;
   }
 
-  auto parent_device = &node;
-  while(!parent_device->is<Device::DeviceSettings>())
-    parent_device = parent_device->parent();
-
-  auto& set = parent_device->get<Device::DeviceSettings>();
-  auto proto = m_protocolList.get(set.protocol);
+  auto dev_s = getDevice(node);
+  if(!dev_s)
+    return;
+  auto proto = m_protocolList.get(dev_s->protocol);
   if(!proto)
     return;
+  auto dev = model()->deviceModel().list().findDevice(dev_s->name);
+  if(!dev)
+    return;
 
-  QScopedPointer<Device::AddAddressDialog> dial{proto->makeAddAddressDialog(set, model()->deviceModel().context(), this)};
+  QScopedPointer<Device::AddressDialog> dial{
+      proto->makeAddAddressDialog(*dev, model()->deviceModel().context(), this)};
+
+  if(!dial)
+    return;
 
   auto code = static_cast<QDialog::DialogCode>(dial->exec());
 

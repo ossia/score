@@ -604,7 +604,7 @@ struct
   static void writeTo(JSONValue::Deserializer& s, std::vector<T>& vec)
   {
     const QJsonArray arr = s.val.toArray();
-    vec.resize(arr.size());
+    vec.reserve(arr.size());
     for(const auto& e : arr)
       vec.push_back(fromJsonValue<T>(e));
   }
