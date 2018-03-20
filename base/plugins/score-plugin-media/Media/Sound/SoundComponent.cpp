@@ -1,5 +1,5 @@
 #include "SoundComponent.hpp"
-#include <ossia/dataflow/audio_parameter.hpp>
+#include <ossia/audio/audio_parameter.hpp>
 #include <Engine/score2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #if defined(LILV_SHARED)

@@ -17,8 +17,11 @@ View::View() : m_widg{new QWidget}
 {
   auto lay = new QFormLayout;
 
+  SETTINGS_UI_COMBOBOX_SETUP("Driver", Driver, (QStringList{"PortAudio", "JACK"/*, "SDL"*/}));
   SETTINGS_UI_NUM_COMBOBOX_SETUP("Rate", Rate, (std::vector<int>{44100, 48000, 88200, 96000}));
   SETTINGS_UI_NUM_COMBOBOX_SETUP("BufferSize", BufferSize, (std::vector<int>{64, 128, 256, 512}));
+  SETTINGS_UI_SPINBOX_SETUP("Default Ins\n(JACK)", DefaultIn);
+  SETTINGS_UI_SPINBOX_SETUP("Default Outs\n(JACK)", DefaultOut);
 
   QStringList raw_cards_in, cards_in;
   std::vector<int> indices_in;
@@ -80,7 +83,7 @@ View::View() : m_widg{new QWidget}
   m_CardIn = new QComboBox{m_widg};
   for(int i = 0; i < cards_in.size(); i++)
     m_CardIn->addItem(cards_in[i], indices_in[i]);
-  lay->addRow(tr("Device"), m_CardIn);
+  lay->addRow(tr("Device In\n(PortAudio)"), m_CardIn);
   connect(m_CardIn, SignalUtils::QComboBox_currentIndexChanged_int(), this,
           [=] (int i) {
     CardInChanged( raw_cards_in[i] );
@@ -88,7 +91,7 @@ View::View() : m_widg{new QWidget}
   m_CardOut = new QComboBox{m_widg};
   for(int i = 0; i < cards_out.size(); i++)
     m_CardOut->addItem(cards_out[i], indices_out[i]);
-  lay->addRow(tr("Device"), m_CardOut);
+  lay->addRow(tr("Device Out\n(PortAudio)"), m_CardOut);
   connect(m_CardOut, SignalUtils::QComboBox_currentIndexChanged_int(), this,
           [=] (int i) {
     CardOutChanged( raw_cards_out[i] );
@@ -101,8 +104,12 @@ QWidget* View::getWidget()
 {
   return m_widg;
 }
+SETTINGS_UI_COMBOBOX_IMPL(Driver)
 SETTINGS_UI_NUM_COMBOBOX_IMPL(Rate)
 SETTINGS_UI_NUM_COMBOBOX_IMPL(BufferSize)
+SETTINGS_UI_SPINBOX_IMPL(DefaultIn)
+SETTINGS_UI_SPINBOX_IMPL(DefaultOut)
+
 void View::setCardIn(QString val) {
   int idx = m_CardIn->findData(QVariant::fromValue(val));
   if(idx != -1 && idx != m_CardIn->currentIndex())

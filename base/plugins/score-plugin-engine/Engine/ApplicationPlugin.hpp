@@ -8,6 +8,8 @@
 #include <Engine/Executor/ContextMenu/PlayContextMenu.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score_plugin_engine_export.h>
+namespace ossia
+{ class audio_engine; }
 namespace score
 {
 
@@ -83,6 +85,8 @@ public:
   }
 
   void on_stop();
+
+  std::unique_ptr<ossia::audio_engine> audio{};
 private:
   void on_init();
 

@@ -14,10 +14,13 @@ namespace Audio::Settings
 Presenter::Presenter(Model& m, View& v, QObject* parent)
     : score::GlobalSettingsPresenter{m, v, parent}
 {
+  SETTINGS_PRESENTER(Driver);
   SETTINGS_PRESENTER(CardIn);
   SETTINGS_PRESENTER(CardOut);
   SETTINGS_PRESENTER(BufferSize);
   SETTINGS_PRESENTER(Rate);
+  SETTINGS_PRESENTER(DefaultIn);
+  SETTINGS_PRESENTER(DefaultOut);
 }
 
 QString Presenter::settingsName()

@@ -164,12 +164,18 @@ void DeviceDocumentPlugin::setConnection(bool b)
                        == dev.settings().name;
               });
 
-        SCORE_ASSERT(it != m_rootNode.cend());
-
-        for (const auto& nodes : *it)
+        if(it != m_rootNode.cend())
         {
-          dev.addNode(nodes);
+          for (const auto& nodes : *it)
+          {
+            dev.addNode(nodes);
+          }
         }
+        else
+        {
+          qDebug() << "Could not save device";
+        }
+
       }
     });
   }

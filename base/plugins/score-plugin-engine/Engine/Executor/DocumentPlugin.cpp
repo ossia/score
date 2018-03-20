@@ -14,7 +14,7 @@
 
 #include <Engine/Protocols/Audio/AudioDevice.hpp>
 #include <Engine/ApplicationPlugin.hpp>
-#include <ossia/dataflow/audio_protocol.hpp>
+#include <ossia/audio/audio_protocol.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/dataflow/port.hpp>
 #include <score/actions/ActionManager.hpp>
@@ -179,7 +179,8 @@ DocumentPlugin::~DocumentPlugin()
     devs->list().setAudioDevice(nullptr);
     devs->updateProxy.removeDevice(audio_device->settings());
   }
-  delete audio_device;
+  if(audio_device)
+    delete audio_device;
 }
 
 void DocumentPlugin::on_finished()
