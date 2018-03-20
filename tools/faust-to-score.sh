@@ -1,6 +1,11 @@
-#!/bin/bash
+#!/bin/bash -eux
 
-FAUST_SRC=/home/jcelerier/travail/faust/examples/old/freeverb.dsp
+if [[ "$1" == "" ]]; 
+	then
+	exit 1
+fi
+
+FAUST_SRC=$1
 FAUST_ARCH=/home/jcelerier/i-score/base/plugins/score-plugin-media/Media/Effect/Faust/faust-score-arch.cpp
 faust -a "$FAUST_ARCH" "$FAUST_SRC" -o /tmp/__score_faust_source.cpp
 
