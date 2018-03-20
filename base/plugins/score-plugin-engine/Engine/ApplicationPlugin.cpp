@@ -391,6 +391,10 @@ void ApplicationPlugin::on_record(::TimeVal t)
 
 void ApplicationPlugin::on_stop()
 {
+  if(audio)
+  {
+    audio->reload(nullptr);
+  }
   m_playing = false;
   m_paused = false;
 

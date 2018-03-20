@@ -263,14 +263,22 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
     m_base.baseInterval().stop();
   }
   clear();
-  auto& ctx = score::DocumentPlugin::context();
+
+  auto& ctx = m_ctx.doc;
   auto& settings = ctx.app.settings<Engine::Execution::Settings::Model>();
+  auto& app = ctx.app.guiApplicationPlugin<Engine::ApplicationPlugin>();
 
   m_ctx.time = settings.makeTimeFunction(ctx);
   m_ctx.reverseTime = settings.makeReverseTimeFunction(ctx);
 
   makeGraph();
   execState->reset();
+
+  if(app.audio && audio_device)
+  {
+    audioProto().stop();
+    app.audio->reload(&audioProto());
+  }
 
   execState->samples_since_start = 0;
   execState->start_date = 0; // TODO set it in the first callback
