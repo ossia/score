@@ -118,15 +118,29 @@ class VSTWindow final: public QDialog
     }
 
     ~VSTWindow();
+    void resize(int w, int h);
   Q_SIGNALS:
     void uiClosing();
+
   private:
+    static auto setup_rect(QWidget* container, int width, int height)
+    {
+      width = width / container->devicePixelRatio();
+      height = height / container->devicePixelRatio();
+      container->setMinimumHeight(height);
+      container->setMaximumHeight(height);
+      container->setMinimumWidth(width);
+      container->setMaximumWidth(width);
+      container->setBaseSize({width, height});
+    }
+
     VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx);
+
+    void resizeEvent(QResizeEvent* event) override;
     void closeEvent(QCloseEvent* event) override;
 
     std::weak_ptr<AEffectWrapper> effect;
     QWidget* m_defaultWidg{};
-
 };
 
 using LayerFactory = Process::EffectLayerFactory_T<VSTEffectModel, VSTEffectItem, VSTWindow>;

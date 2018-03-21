@@ -2,6 +2,7 @@
 #include <QObject>
 #include <QMetaType>
 #include <ossia/detail/logger.hpp>
+#include <iostream>
 
 namespace Engine
 {
@@ -24,7 +25,8 @@ public:
     }
     void log(const spdlog::details::log_msg& msg) override
     {
-        l(msg.level, QString::fromUtf8(msg.formatted.data(), msg.formatted.size()));
+      std::cerr << msg.formatted.str() << std::endl;
+      l(msg.level, QString::fromUtf8(msg.formatted.data(), msg.formatted.size()));
     }
 
     void flush() override

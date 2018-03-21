@@ -374,6 +374,9 @@ void DocumentPlugin::set_destination(
     const State::AddressAccessor& address,
     const ossia::inlet_ptr& port)
 {
+  if(address.address.device.isEmpty())
+    return;
+
   if(auto ossia_addr = Engine::score_to_ossia::findAddress(context().devices.list(), address.address))
   {
     auto p = ossia_addr->get_parameter();
