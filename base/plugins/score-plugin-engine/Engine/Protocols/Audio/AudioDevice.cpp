@@ -11,6 +11,7 @@
 #include <QRadioButton>
 #include <QButtonGroup>
 #include <QHeaderView>
+#include <QCoreApplication>
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/ApplicationPlugin.hpp>
 #include <Engine/score2OSSIA.hpp>
@@ -253,6 +254,7 @@ class AudioAddressDialog final : public Device::AddressDialog
 
         updateType(m_type.currentIndex());
       }
+      QCoreApplication::processEvents();
       {
         auto it = addr.extendedAttributes.find("audio-mapping");
         if(it == addr.extendedAttributes.end())
