@@ -32,6 +32,17 @@ QSize sizeHint(NSView* m_view) {
 
 }
 
+void VSTWindow::setup_rect(QWidget* container, int width, int height)
+{
+  width = width / container->devicePixelRatio();
+  height = height / container->devicePixelRatio();
+  container->setFixedSize(width, height);
+  auto c = container->findChild<QMacCocoaViewContainer*>();
+  if(c)
+  {
+    c->setFixedSize(width, height);
+  }
+}
 
 VSTWindow::VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx)
 {
@@ -43,7 +54,6 @@ VSTWindow::VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx)
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-  qDebug() << rect.top << rect.left;
 
   setWindowFlags(Qt::Window | Qt::WindowCloseButtonHint);
   setWindowFlag(Qt::WindowMinimizeButtonHint, false);
@@ -62,11 +72,12 @@ VSTWindow::VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx)
 
   auto width = rect.right - rect.left;
   auto height = rect.bottom - rect.top;
+  qDebug() << rect.top << rect.left << rect.bottom << rect.right << width << height;
 
   auto container = new QMacCocoaViewContainer{superview, this};
 
   NSRect frame = NSMakeRect(rect.left, rect.top,
-                            rect.right, rect.bottom);
+                            width, height);
 
   [superview setFrame:frame];
   container->resize(width, height);
