@@ -326,7 +326,7 @@ ERect VSTWindow::getRect(AEffect& e)
     h = 480;
 
   if(vstRect)
-    return *vstRect;
+    return ERect{vstRect->top, vstRect->left, vstRect->bottom, vstRect->right};
   else
     return ERect{0,0,w,h};
 }
@@ -349,15 +349,14 @@ void VSTWindow::closeEvent(QCloseEvent* event)
 
 void VSTWindow::resizeEvent(QResizeEvent* event)
 {
-  setup_rect(this, event->size().width(), event->size().height());
+  //setup_rect(this, event->size().width(), event->size().height());
+  QDialog::resizeEvent(event);
 }
 
 void VSTWindow::resize(int w, int h)
 {
   setup_rect(this, w, h);
-
 }
-
 
 QGraphicsItem* VSTFloatSlider::make_item(
     AEffect* fx,

@@ -123,16 +123,7 @@ class VSTWindow final: public QDialog
     void uiClosing();
 
   private:
-    static auto setup_rect(QWidget* container, int width, int height)
-    {
-      width = width / container->devicePixelRatio();
-      height = height / container->devicePixelRatio();
-      container->setMinimumHeight(height);
-      container->setMaximumHeight(height);
-      container->setMinimumWidth(width);
-      container->setMaximumWidth(width);
-      container->setBaseSize({width, height});
-    }
+    static void setup_rect(QWidget* container, int width, int height);
 
     VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx);
 

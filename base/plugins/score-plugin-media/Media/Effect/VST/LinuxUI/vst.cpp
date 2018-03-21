@@ -3,6 +3,17 @@
 #include <Media/Effect/VST/vst-compat.hpp>
 namespace Media::VST
 {
+void VSTWindow::setup_rect(QWidget* container, int width, int height)
+{
+  width = width / container->devicePixelRatio();
+  height = height / container->devicePixelRatio();
+  container->setMinimumHeight(height);
+  container->setMaximumHeight(height);
+  container->setMinimumWidth(width);
+  container->setMaximumWidth(width);
+  container->setBaseSize({width, height});
+}
+
 VSTWindow::VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx)
 {
   if(!e.fx)
