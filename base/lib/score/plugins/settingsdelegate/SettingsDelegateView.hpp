@@ -5,6 +5,7 @@
 class QComboBox;
 class QCheckBox;
 class QSpinBox;
+class QDoubleSpinBox;
 namespace score
 {
 class SettingsDelegateModel;
@@ -58,6 +59,11 @@ using GlobalSettingsView = SettingsDelegateView<SettingsDelegateModel>;
   Q_SIGNALS: void Control ## Changed(int);     \
   private: QSpinBox* m_ ## Control{};
 
+#define SETTINGS_UI_DOUBLE_SPINBOX_HPP(Control)        \
+  public: void set ## Control(double);            \
+  Q_SIGNALS: void Control ## Changed(double);     \
+  private: QDoubleSpinBox* m_ ## Control{};
+
 
 
 
@@ -82,6 +88,12 @@ using GlobalSettingsView = SettingsDelegateView<SettingsDelegateModel>;
   connect(m_ ## Control, SignalUtils::QSpinBox_valueChanged_int(), \
           this,  &View::Control ## Changed);
 
+#define SETTINGS_UI_DOUBLE_SPINBOX_SETUP(Text, Control) \
+  m_ ## Control = new QDoubleSpinBox{m_widg}; \
+  lay->addRow(tr(Text), m_ ## Control); \
+  connect(m_ ## Control, SignalUtils::QDoubleSpinBox_valueChanged_double(), \
+          this,  &View::Control ## Changed);
+
 #define SETTINGS_UI_TOGGLE_SETUP(Text, Control) \
   m_ ## Control = new QCheckBox{m_widg}; \
   lay->addRow(tr(Text), m_ ## Control); \
@@ -101,12 +113,12 @@ using GlobalSettingsView = SettingsDelegateView<SettingsDelegateModel>;
 }
 
 
-#define SETTINGS_UI_NUM_COMBOBOX_IMPL(Control)                       \
-  void View::set ## Control(int val) {                       \
+#define SETTINGS_UI_NUM_COMBOBOX_IMPL(Control)                   \
+  void View::set ## Control(int val) {                           \
     int idx = m_ ## Control->findData(QVariant::fromValue(val)); \
     if(idx != -1 && idx != m_ ## Control->currentIndex())        \
        m_ ## Control->setCurrentIndex(idx);                      \
-  else { idx = m_ ## Control->findText(QString::number(val));                     \
+  else { idx = m_ ## Control->findText(QString::number(val));    \
          if (idx != -1 && idx != m_ ## Control->currentIndex())  \
             m_ ## Control->setCurrentIndex(idx);                 \
   }                                                              \
@@ -119,11 +131,18 @@ using GlobalSettingsView = SettingsDelegateView<SettingsDelegateModel>;
     m_ ## Control->setValue(val);                                \
 }
 
+#define SETTINGS_UI_DOUBLE_SPINBOX_IMPL(Control)                 \
+  void View::set ## Control(double val) {                        \
+  int cur = m_ ## Control->value();                              \
+  if(cur != val)                                                 \
+    m_ ## Control->setValue(val);                                \
+}
 
-#define SETTINGS_UI_TOGGLE_IMPL(Control)                        \
-  void View::set ## Control(bool val) {                         \
-  bool cur = m_ ## Control->isChecked();                        \
-  if(cur != val)                                                \
-    m_ ## Control->setChecked(val);                             \
+
+#define SETTINGS_UI_TOGGLE_IMPL(Control)                         \
+  void View::set ## Control(bool val) {                          \
+  bool cur = m_ ## Control->isChecked();                         \
+  if(cur != val)                                                 \
+    m_ ## Control->setChecked(val);                              \
 }
 

@@ -32,6 +32,7 @@ class View : public score::ProjectSettingsView
 public:
   View();
 
+  SETTINGS_UI_DOUBLE_SPINBOX_HPP(MidiImportRatio)
   SETTINGS_UI_TOGGLE_HPP(ReconnectOnStart)
   SETTINGS_UI_TOGGLE_HPP(RefreshOnStart)
 

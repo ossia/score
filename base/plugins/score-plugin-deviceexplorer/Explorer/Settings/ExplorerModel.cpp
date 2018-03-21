@@ -37,6 +37,7 @@ Model::Model(const score::DocumentContext& ctx,
 {
 }
 
+SCORE_PROJECTSETTINGS_PARAMETER_CPP(qreal, Model, MidiImportRatio)
 SCORE_PROJECTSETTINGS_PARAMETER_CPP(bool, Model, RefreshOnStart)
 SCORE_PROJECTSETTINGS_PARAMETER_CPP(bool, Model, ReconnectOnStart)
 }
@@ -44,13 +45,13 @@ SCORE_PROJECTSETTINGS_PARAMETER_CPP(bool, Model, ReconnectOnStart)
 template <>
 void DataStreamReader::read(const Explorer::ProjectSettings::Model& model)
 {
-  m_stream << model.m_RefreshOnStart << model.m_ReconnectOnStart;
+  m_stream << model.m_MidiImportRatio << model.m_RefreshOnStart << model.m_ReconnectOnStart;
 }
 
 template <>
 void DataStreamWriter::write(Explorer::ProjectSettings::Model& model)
 {
-  m_stream >> model.m_RefreshOnStart >> model.m_ReconnectOnStart;
+  m_stream >> model.m_MidiImportRatio >> model.m_RefreshOnStart >> model.m_ReconnectOnStart;
 }
 
 template <>
@@ -58,6 +59,7 @@ void JSONObjectReader::read(const Explorer::ProjectSettings::Model& model)
 {
   obj["Refresh"] = model.m_RefreshOnStart;
   obj["Reconnect"] = model.m_ReconnectOnStart;
+  obj["MidiRatio"] = model.m_MidiImportRatio;
 }
 
 template <>
@@ -65,4 +67,5 @@ void JSONObjectWriter::write(Explorer::ProjectSettings::Model& model)
 {
   model.m_RefreshOnStart = obj["Refresh"].toBool();
   model.m_ReconnectOnStart = obj["Reconnect"].toBool();
+  model.m_MidiImportRatio = obj["MidiRatio"].toDouble();
 }

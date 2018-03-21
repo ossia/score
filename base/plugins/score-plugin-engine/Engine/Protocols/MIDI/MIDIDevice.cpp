@@ -23,8 +23,6 @@ MIDIDevice::MIDIDevice(const Device::DeviceSettings& settings)
   m_capas.hasCallbacks = false;
   m_capas.canRenameNode = false;
   m_capas.canSetProperties = false;
-
-  reconnect();
 }
 
 bool MIDIDevice::reconnect()

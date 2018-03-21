@@ -20,6 +20,7 @@
 #include <score/actions/ActionManager.hpp>
 #include <Engine/score2OSSIA.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
+#include <Engine/Protocols/Settings/Model.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph/graph_static.hpp>
 #include <ossia/dataflow/execution_state.hpp>
@@ -266,6 +267,7 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
 
   auto& ctx = m_ctx.doc;
   auto& settings = ctx.app.settings<Engine::Execution::Settings::Model>();
+  auto& audiosettings = ctx.app.settings<Audio::Settings::Model>();
   auto& app = ctx.app.guiApplicationPlugin<Engine::ApplicationPlugin>();
 
   m_ctx.time = settings.makeTimeFunction(ctx);
@@ -280,6 +282,8 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
     app.audio->reload(&audioProto());
   }
 
+  execState->bufferSize = audiosettings.getBufferSize();
+  execState->sampleRate = audiosettings.getRate();
   execState->samples_since_start = 0;
   execState->start_date = 0; // TODO set it in the first callback
   execState->cur_date = execState->start_date;

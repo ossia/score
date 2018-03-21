@@ -42,8 +42,9 @@ View::View() : m_widg{new QWidget}
 {
   auto lay = new QFormLayout;
   m_widg->setLayout(lay);
-  SETTINGS_UI_TOGGLE_SETUP("Refresh on start", RefreshOnStart);
-  SETTINGS_UI_TOGGLE_SETUP("Reconnect on start", ReconnectOnStart);
+  SETTINGS_UI_DOUBLE_SPINBOX_SETUP("Midi Import Ratio", MidiImportRatio);
+  SETTINGS_UI_TOGGLE_SETUP("Refresh on load", RefreshOnStart);
+  SETTINGS_UI_TOGGLE_SETUP("Reconnect on load", ReconnectOnStart);
 }
 
 QWidget* View::getWidget()
@@ -51,6 +52,7 @@ QWidget* View::getWidget()
   return m_widg;
 }
 
+SETTINGS_UI_DOUBLE_SPINBOX_IMPL(MidiImportRatio)
 SETTINGS_UI_TOGGLE_IMPL(RefreshOnStart)
 SETTINGS_UI_TOGGLE_IMPL(ReconnectOnStart)
 }

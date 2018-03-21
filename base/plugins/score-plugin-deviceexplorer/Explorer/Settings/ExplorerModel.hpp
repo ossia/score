@@ -14,7 +14,7 @@ struct DeviceLogLevel
   }
 };
 
-class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT Model 
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT Model
     : public score::SettingsDelegateModel
 {
   Q_OBJECT
@@ -55,6 +55,8 @@ class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT Model
 
   Q_PROPERTY(bool RefreshOnStart READ getRefreshOnStart WRITE setRefreshOnStart NOTIFY RefreshOnStartChanged)
   Q_PROPERTY(bool ReconnectOnStart READ getReconnectOnStart WRITE setReconnectOnStart NOTIFY ReconnectOnStartChanged)
+  Q_PROPERTY(qreal MidiImportRatio READ getMidiImportRatio WRITE setMidiImportRatio NOTIFY MidiImportRatioChanged)
+  qreal m_MidiImportRatio = 1.;
   bool m_RefreshOnStart = false;
   bool m_ReconnectOnStart = false;
 
@@ -73,10 +75,12 @@ public:
     vis.writeTo(*this);
   }
 
+  SCORE_SETTINGS_PARAMETER_HPP(qreal, MidiImportRatio)
   SCORE_SETTINGS_PARAMETER_HPP(bool, RefreshOnStart)
   SCORE_SETTINGS_PARAMETER_HPP(bool, ReconnectOnStart)
 };
 
+SCORE_SETTINGS_PARAMETER(Model, MidiImportRatio)
 SCORE_SETTINGS_PARAMETER(Model, RefreshOnStart)
 SCORE_SETTINGS_PARAMETER(Model, ReconnectOnStart)
 
