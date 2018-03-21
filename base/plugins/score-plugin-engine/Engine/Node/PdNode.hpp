@@ -70,5 +70,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> instantiate_fx(
   }
   return {};
 }
+
+struct Note { uint8_t pitch{}; uint8_t vel{}; uint8_t chan{}; };
 }
 

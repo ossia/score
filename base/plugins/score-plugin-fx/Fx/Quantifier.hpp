@@ -7,16 +7,17 @@ namespace Nodes
 {
 namespace Quantifier
 {
+using Note = Control::Note;
 struct Node
 {
-  struct Metadata : Control::Meta_base 
+  struct Metadata : Control::Meta_base
   {
     static const constexpr auto prettyName = "Quantifier";
     static const constexpr auto objectKey = "Quantifier";
     static const constexpr auto category = "Midi";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto uuid = make_uuid("b8e2e5ad-17e4-43de-8d79-660a29d5c4f4");
-    
+
     static const constexpr auto midi_ins  = Control::MidiIns<1>{{"in"}};
     static const constexpr auto midi_outs = Control::MidiOuts<1>{{"out"}};
     static const constexpr auto controls = std::make_tuple(
@@ -27,7 +28,6 @@ struct Node
     );
   };
 
-  struct Note { uint8_t pitch{}; uint8_t vel{}; uint8_t chan{}; };
   struct NoteIn
   {
     Note note{};
@@ -38,7 +38,7 @@ struct Node
     std::vector<NoteIn> to_start;
     std::vector<NoteIn> running_notes;
   };
-  
+
   using control_policy = Control::DefaultTick;
 
   static void run(
