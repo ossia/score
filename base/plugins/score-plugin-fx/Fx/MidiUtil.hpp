@@ -4,15 +4,16 @@
 #include <frozen/unordered_map.h>
 namespace Nodes::MidiUtil
 {
+using Note = Control::Note;
 enum scale: int8_t
 {
   all,
   ionian, dorian, phyrgian, lydian, mixolydian, aeolian, locrian,
-  
+
   I, II, III, IV, V, VI, VII,
   custom,
-  
-  
+
+
   SCALES_MAX // always at end, used for counting
 };
 
@@ -25,11 +26,11 @@ constexpr void constexpr_swap(T& a, T& b)
   b = tmp;
 }
 
-template <typename T>
-constexpr void constexpr_rotate(T first, T middle, T last)
+template <typename Iterator>
+constexpr void constexpr_rotate(Iterator first, Iterator middle, Iterator last)
 {
   using namespace std;
-  T next = middle;
+  Iterator next = middle;
   while (first != next)
   {
     constexpr_swap(*first++,*next++);
@@ -57,7 +58,7 @@ constexpr scales_array make_scale(std::initializer_list<bool> notes)
       }
     }
   }
-  
+
   for(std::size_t octave = 1; octave < 12; octave++)
   {
     r[octave] = r[0];
@@ -87,8 +88,8 @@ constexpr int get_scale(QLatin1String s)
   else return scale::custom;
 }
 static MSVC_CONSTEXPR frozen::unordered_map<int, scales_array, scale::SCALES_MAX-1> scales{
-  //                                C   D   E F   G   A   B
-  { scale::all,        make_scale({ 1,1,1,1,1,1,1,1,1,1,1,1 })}
+    //                                C   D   E F   G   A   B
+    { scale::all,        make_scale({ 1,1,1,1,1,1,1,1,1,1,1,1 })}
   , { scale::ionian,     make_scale({ 1,0,1,0,1,1,0,1,0,1,0,1 })}
   , { scale::dorian,     make_scale({ 1,0,1,1,0,1,0,1,0,1,1,0 })}
   , { scale::phyrgian,   make_scale({ 1,1,0,1,0,1,0,1,1,0,1,0 })}
@@ -110,7 +111,7 @@ optional<std::size_t> find_closest_index(const scale_array& arr, std::size_t i)
 {
   if(arr[i] == 1)
     return i;
-  
+
   switch(i)
   {
     case 0:
@@ -121,7 +122,7 @@ optional<std::size_t> find_closest_index(const scale_array& arr, std::size_t i)
           return i;
       }
       break;
-      
+
     case 12:
       while(i != 0)
       {
@@ -130,7 +131,7 @@ optional<std::size_t> find_closest_index(const scale_array& arr, std::size_t i)
           return i;
       }
       break;
-      
+
     default:
     {
       std::size_t r = 0;
@@ -142,11 +143,11 @@ optional<std::size_t> find_closest_index(const scale_array& arr, std::size_t i)
           return i - r;
         r++;
       }
-      
+
       break;
     }
   }
-  
+
   return ossia::none;
 }
 
@@ -159,11 +160,11 @@ struct Node
         static const constexpr auto category = "Midi";
         static const constexpr auto tags = std::array<const char*, 0>{};
         static const constexpr auto uuid = make_uuid("06b33b83-bb67-4f7a-9980-f5d66e4266c5");
-        
-        
+
+
         static const constexpr auto midi_ins  = Control::MidiIns<1>{{"in"}};
         static const constexpr auto midi_outs = Control::MidiOuts<1>{{"out"}};
-        static const constexpr auto controls = 
+        static const constexpr auto controls =
             std::make_tuple(
               Control::make_unvalidated_enum(
                 "Scale",
@@ -173,12 +174,15 @@ struct Node
               Control::Widgets::OctaveSlider("Base", 0, 1),
               Control::Widgets::OctaveSlider("Transpose", -4, 4));
     };
-    
+
     struct State
     {
-        boost::container::flat_map<uint8_t, uint8_t> map;
+        boost::container::flat_map<uint8_t, Note> map;
+        std::string scale{};
+        int base{};
+        int transpose{};
     };
-    
+
     static void exec(
         const ossia::midi_port& midi_in,
         const scale_array& scale,
@@ -199,20 +203,21 @@ struct Node
               // transpose
               auto res = msg;
               res.data[1] = (uint8_t)ossia::clamp(int(*index + transp), 0, 127);
+              Note note{(uint8_t)res.data[1], (uint8_t)res.data[2], (uint8_t)res.getChannel()};
               auto it = self.map.find(msg.data[1]);
               if(it != self.map.end())
               {
-                midi_out.messages.push_back(mm::MakeNoteOff(res.getChannel(), it->second, res.data[2]));
+                midi_out.messages.push_back(mm::MakeNoteOff(res.getChannel(), it->second.pitch, res.data[2]));
                 midi_out.messages.back().timestamp = offset;
                 midi_out.messages.push_back(res);
                 midi_out.messages.back().timestamp = offset + ossia::time_value{1};
-                it->second = res.data[1];
+                it->second = note;
               }
               else
               {
                 midi_out.messages.push_back(res);
                 midi_out.messages.back().timestamp = offset;
-                self.map.insert(std::make_pair((uint8_t)msg.data[1], (uint8_t)res.data[1]));
+                self.map.insert(std::make_pair((uint8_t)msg.data[1], note));
               }
             }
             break;
@@ -222,7 +227,7 @@ struct Node
             auto it = self.map.find(msg.data[1]);
             if(it != self.map.end())
             {
-              midi_out.messages.push_back(mm::MakeNoteOff(msg.getChannel(), it->second, msg.data[2]));
+              midi_out.messages.push_back(mm::MakeNoteOff(msg.getChannel(), it->second.pitch, msg.data[2]));
               midi_out.messages.back().timestamp = offset;
               self.map.erase(it);
             }
@@ -234,6 +239,32 @@ struct Node
         }
       }
     }
+
+    static void update(
+        const ossia::midi_port& midi_in,
+        const scale_array& scale,
+        int transp,
+        ossia::midi_port& midi_out,
+        const ossia::time_value& offset,
+        State& self)
+    {
+      for(auto& notes : self.map)
+      {
+        Note& note = notes.second;
+        if(auto index = find_closest_index(scale, notes.first))
+        {
+          if((*index + transp) != note.pitch)
+          {
+            midi_out.messages.push_back(mm::MakeNoteOff(note.chan, note.pitch, note.vel));
+            note.pitch = *index + transp;
+            midi_out.messages.back().timestamp = offset;
+            midi_out.messages.push_back(mm::MakeNoteOn(note.chan, note.pitch, note.vel));
+            midi_out.messages.back().timestamp = offset + ossia::time_value{1};
+          }
+        }
+      }
+    }
+
     using control_policy = Control::DefaultTick;
     static void run(
         const ossia::midi_port& midi_in,
@@ -246,25 +277,42 @@ struct Node
         ossia::execution_state& st,
         State& self)
     {
-      QLatin1String scale{sc.rbegin()->second.data(), (int)sc.rbegin()->second.size()};
-      
-      const auto cur_scale = get_scale(scale);
-      if(cur_scale != scale::custom)
-      {
-        exec(midi_in, scales.at(cur_scale)[base.rbegin()->second], transp.rbegin()->second, midi_out, tk.offset, self);
-      }
-      else
-      {
-        scale_array arr{{}};
-        for(int oct = 0; oct < 10; oct++)
+      const auto& new_scale = sc.rbegin()->second;
+      const int new_base = base.rbegin()->second;
+      const int new_transpose = transp.rbegin()->second;
+      QLatin1String scale{new_scale.data(), (int)new_scale.size()};
+
+      const auto new_scale_idx = get_scale(scale);
+
+      auto apply = [&] (auto f) {
+        if(new_scale_idx != scale::custom)
         {
-          for(int i = 0; i < std::min((int)scale.size(), 12); i++)
-          {
-            arr[oct * 12 + i] = (scale[i] == '1');
-          }
+          f(midi_in, scales.at(new_scale_idx)[new_base], new_transpose, midi_out, tk.offset, self);
         }
-        exec(midi_in, arr, transp.rbegin()->second, midi_out, tk.offset, self);
+        else
+        {
+          scale_array arr{{}};
+          for(int oct = 0; oct < 10; oct++)
+          {
+            for(int i = 0; i < std::min((int)scale.size(), 12); i++)
+            {
+              arr[oct * 12 + i] = (scale[i] == '1');
+            }
+          }
+          f(midi_in, arr, new_transpose, midi_out, tk.offset, self);
+        }
+      };
+
+      if(!self.map.empty() && (new_scale != self.scale || new_base != self.base || new_transpose != self.transpose))
+      {
+        apply(update);
       }
+
+      apply(exec);
+
+      self.scale = new_scale;
+      self.base = new_base;
+      self.transpose = new_transpose;
     }
 };
 }

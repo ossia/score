@@ -279,8 +279,7 @@ void TemporalIntervalView::paint(
   }
   else
   {
-
-    qDebug() << " no solid played path" << playedSolidPath.boundingRect();
+    //qDebug() << " no solid played path" << playedSolidPath.boundingRect();
   }
 
   if(!waitingDashedPath.isEmpty())
