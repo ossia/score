@@ -46,6 +46,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
 {
   SETTINGS_PRESENTER(RefreshOnStart);
   SETTINGS_PRESENTER(ReconnectOnStart);
+  SETTINGS_PRESENTER(MidiImportRatio);
 }
 
 QString Presenter::settingsName()

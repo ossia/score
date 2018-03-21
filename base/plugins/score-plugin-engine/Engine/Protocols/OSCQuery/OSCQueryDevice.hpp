@@ -13,6 +13,7 @@ public:
   OSCQueryDevice(const Device::DeviceSettings& settings);
 
   bool reconnect() override;
+  void disconnect() override;
   void recreate(const Device::Node& n) override;
 
 Q_SIGNALS:

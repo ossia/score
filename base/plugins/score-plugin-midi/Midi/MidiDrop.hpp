@@ -30,7 +30,7 @@ struct MidiTrack
 
         double durationInMs{};
     };
-    static MidiSong parse(const QMimeData& dat);
+    static MidiSong parse(const QMimeData& dat, const score::DocumentContext& ctx);
 };
 
 }

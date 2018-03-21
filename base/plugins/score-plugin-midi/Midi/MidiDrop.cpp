@@ -12,13 +12,14 @@
 #include <Midi/MidiProcess.hpp>
 #include <Midi/Commands/AddNote.hpp>
 #include <Midi/Commands/SetOutput.hpp>
+#include <Explorer/Settings/ExplorerModel.hpp>
 namespace Midi
 {
 
 bool DropMidiInSenario::drop(
     const Scenario::TemporalScenarioPresenter& pres, QPointF pos, const QMimeData* mime)
 {
-  auto song = MidiTrack::parse(*mime);
+  auto song = MidiTrack::parse(*mime, pres.context().context);
   if(song.tracks.empty())
     return false;
 
@@ -78,8 +79,14 @@ bool DropMidiInSenario::drop(
   return false;
 }
 
-MidiTrack::MidiSong MidiTrack::parse(const QMimeData& mime)
+MidiTrack::MidiSong MidiTrack::parse(const QMimeData& mime, const score::DocumentContext& ctx)
 {
+  double delta = 1.;
+  auto p = ctx.findPlugin<Explorer::ProjectSettings::Model>();
+  if(p)
+  {
+    delta = p->getMidiImportRatio();
+  }
   MidiSong m;
   if (mime.formats().contains("audio/midi") || mime.formats().contains("audio/x-midi"))
   {
@@ -141,7 +148,7 @@ MidiTrack::MidiSong MidiTrack::parse(const QMimeData& mime)
             if(vel > 0)
             {
               NoteData note;
-              note.setStart(tick / total);
+              note.setStart(delta * (tick / total));
               note.setPitch(pitch);
               note.setVelocity(vel);
               if(note.pitch() < nv.min)
@@ -157,7 +164,7 @@ MidiTrack::MidiSong MidiTrack::parse(const QMimeData& mime)
               if(it != notes.end())
               {
                 NoteData note = it->second;
-                note.setDuration(tick / total - note.start());
+                note.setDuration(delta * (tick / total - note.start()));
                 nv.notes.push_back(note);
               }
               notes.erase(pitch);
@@ -170,7 +177,7 @@ MidiTrack::MidiSong MidiTrack::parse(const QMimeData& mime)
             if(it != notes.end())
             {
               NoteData note = it->second;
-              note.setDuration(tick / total - note.start());
+              note.setDuration(delta * (tick / total - note.start()));
               nv.notes.push_back(note);
             }
             notes.erase(ev->m->data[1]);

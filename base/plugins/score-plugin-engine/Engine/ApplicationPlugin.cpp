@@ -48,6 +48,7 @@
 #include <spdlog/spdlog.h>
 #include <Loop/LoopProcessModel.hpp>
 #include <ossia/audio/audio_protocol.hpp>
+#include <Explorer/Settings/ExplorerModel.hpp>
 SCORE_DECLARE_ACTION(RestartAudio, "Restart Audio", Common, QKeySequence::UnknownKey)
 
 
@@ -135,6 +136,28 @@ bool ApplicationPlugin::handleStartup()
   return false;
 }
 
+ossia::audio_engine* make_engine()
+{
+  auto& set = score::AppContext().settings<Audio::Settings::Model>();
+  auto driver = set.getDriver();
+  auto ins = set.getDefaultIn(); auto old_ins = ins;
+  auto outs = set.getDefaultOut(); auto old_outs = outs;
+  auto rate = set.getRate(); auto old_rate = rate;
+  auto bs = set.getBufferSize(); auto old_bs = bs;
+
+  auto eng = ossia::make_audio_engine(driver.toStdString(), "score",  ins, outs, rate, bs);
+
+  if(ins != old_ins)
+    set.setDefaultIn(ins);
+  if(outs != old_outs)
+    set.setDefaultOut(outs);
+  if(bs != old_bs)
+    set.setBufferSize(bs);
+  if(rate != old_rate)
+    set.setRate(rate);
+
+  return eng;
+}
 void ApplicationPlugin::initialize()
 {
   auto& set = context.settings<Audio::Settings::Model>();
@@ -148,11 +171,11 @@ void ApplicationPlugin::initialize()
       auto& d = *dynamic_cast<Dataflow::AudioDevice*>(dev);
       if(audio)
         audio->stop();
-      audio.reset(ossia::make_audio_engine(card.toStdString()));
+      audio.reset(make_engine());
       d.reconnect();
     }
   });
-
+/*
   con(set, &Audio::Settings::Model::BufferSizeChanged, this, [=] (int sz) {
     if(auto doc = this->currentDocument()) {
       auto dev = doc->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
@@ -192,8 +215,8 @@ void ApplicationPlugin::initialize()
       d.reconnect();
     }
   });
-
-  audio.reset(ossia::make_audio_engine(set.getDriver().toStdString()));
+*/
+  audio.reset(make_engine());
 }
 score::GUIElements ApplicationPlugin::makeGUIElements()
 {
@@ -213,6 +236,11 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
   e.actions.add<Actions::RestartAudio>(act);
 
   connect(act, &QAction::triggered, this, [=] {
+    if(audio)
+      audio->stop();
+
+    audio.reset(make_engine());
+
     if(auto doc = currentDocument()) {
       auto dev = doc->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
       if(!dev)
@@ -264,6 +292,49 @@ void ApplicationPlugin::on_documentChanged(
     auto& doc_plugin = newdoc->context().plugin<DeviceDocumentPlugin>();
     doc_plugin.setConnection(true);
     */
+
+    auto& doc_plugin = newdoc->context().plugin<Explorer::DeviceDocumentPlugin>();
+    auto* set = newdoc->context().findPlugin<Explorer::ProjectSettings::Model>();
+    if(set)
+    {
+      if(set->getReconnectOnStart())
+      {
+
+        auto& list = doc_plugin.list();
+        list.apply([&] (Device::DeviceInterface& dev) {
+          if(&dev != list.audioDevice() && &dev != list.localDevice())
+            dev.reconnect();
+        });
+
+        if(set->getRefreshOnStart())
+        {
+          list.apply([&] (Device::DeviceInterface& dev) {
+            if(&dev != list.audioDevice() && &dev != list.localDevice())
+            if(dev.connected())
+            {
+              auto old_name = dev.name();
+              auto new_node = dev.refresh();
+
+              auto& explorer = doc_plugin.explorer();
+              const auto& cld = explorer.rootNode().children();
+              for (auto it = cld.begin(); it != cld.end(); ++it)
+              {
+                auto ds = it->get<Device::DeviceSettings>();
+                if (ds.name == old_name)
+                {
+                  explorer.removeNode(it);
+                  break;
+                }
+              }
+
+              explorer.addDevice(std::move(new_node));
+            }
+          });
+
+        }
+      }
+
+    }
   }
 }
 

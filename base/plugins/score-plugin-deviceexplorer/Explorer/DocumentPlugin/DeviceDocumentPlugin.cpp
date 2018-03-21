@@ -133,7 +133,6 @@ DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node& node)
     {
       // In this case we instead explore the actual
       // device node.
-      newdev->reconnect();
       return newdev->refresh();
     }
   }
@@ -198,6 +197,7 @@ ListeningHandler& DeviceDocumentPlugin::listening() const
 
 void DeviceDocumentPlugin::initDevice(Device::DeviceInterface& newdev)
 {
+  newdev.reconnect();
   newdev.valueUpdated
       .connect<DeviceDocumentPlugin, &DeviceDocumentPlugin::on_valueUpdated>(
           *this);

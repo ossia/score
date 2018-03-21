@@ -746,7 +746,7 @@ void DeviceExplorerWidget::refresh()
     if(!dev.connected())
       return;
     auto wrkr = make_worker(
-        [=](Device::Node&& node) {
+        [=] (Device::Node&& node) {
           auto cmd = new Explorer::Command::ReplaceDevice{
               m->deviceModel(), m_ntView->selectedIndex().row(),
               std::move(node)};

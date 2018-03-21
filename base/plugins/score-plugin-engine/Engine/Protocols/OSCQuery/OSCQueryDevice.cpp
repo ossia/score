@@ -28,9 +28,19 @@ OSCQueryDevice::OSCQueryDevice(const Device::DeviceSettings& settings)
           this, &OSCQueryDevice::slot_command, Qt::QueuedConnection);
   connect(this, &OSCQueryDevice::sig_disconnect,
           this, &OSCQueryDevice::disconnect, Qt::QueuedConnection);
-  reconnect();
 }
 
+void OSCQueryDevice::disconnect()
+{
+  if(m_dev)
+  {
+    auto proto = static_cast<ossia::oscquery::oscquery_mirror_protocol*>(&m_dev->get_protocol());
+    proto->set_disconnect_callback([=] { });
+    proto->set_fail_callback([=] { });
+  }
+
+  OwningOSSIADevice::disconnect();
+}
 bool OSCQueryDevice::reconnect()
 {
   disconnect();

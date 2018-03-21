@@ -49,7 +49,7 @@ install(FILES
   "${QT_DLL_DIR}/Qt5Svg${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5Qml${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5WebSockets${DEBUG_CHAR}.dll"
-  "${QT_DLL_DIR}/Qt5Multimedia${DEBUG_CHAR}.dll"
+#  "${QT_DLL_DIR}/Qt5Multimedia${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5SerialPort${DEBUG_CHAR}.dll"
 #  "${QT_DLL_DIR}/Qt5Test${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5Quick${DEBUG_CHAR}.dll"
@@ -72,15 +72,21 @@ set(QT_QML_PLUGINS_DIR "${QT_DLL_DIR}/../qml")
 set(plugin_dest_dir "${SCORE_BIN_INSTALL_DIR}/plugins")
 
 if(WIN32)
-install(FILES "c:/faust/faust.dll" DESTINATION "${SCORE_BIN_INSTALL_DIR}")
+  install(FILES "c:/faust/faust.dll" DESTINATION "${SCORE_BIN_INSTALL_DIR}")
+  install(FILES "c:/tbb/bin/tbb.dll" DESTINATION "${SCORE_BIN_INSTALL_DIR}")
 endif()
 install(FILES "${QT_PLUGINS_DIR}/platforms/qwindows${DEBUG_CHAR}.dll" DESTINATION "${plugin_dest_dir}/platforms")
 install(FILES "${QT_PLUGINS_DIR}/imageformats/qsvg${DEBUG_CHAR}.dll" DESTINATION "${plugin_dest_dir}/imagesformats")
-install(FILES "${QT_PLUGINS_DIR}/mediaservice/dsengine${DEBUG_CHAR}.dll" DESTINATION "${plugin_dest_dir}/mediaservice")
-install(FILES "${QT_PLUGINS_DIR}/mediaservice/qtmedia_audioengine${DEBUG_CHAR}.dll" DESTINATION "${plugin_dest_dir}/mediaservice")
-install(FILES "${QT_PLUGINS_DIR}/mediaservice/wmfengine${DEBUG_CHAR}.dll" DESTINATION "${plugin_dest_dir}/mediaservice")
 install(FILES "${QT_PLUGINS_DIR}/iconengines/qsvgicon${DEBUG_CHAR}.dll" DESTINATION "${plugin_dest_dir}/iconengines")
-install(DIRECTORY "${QT_QML_PLUGINS_DIR}/QtQuick" "${QT_QML_PLUGINS_DIR}/QtQuick.2" DESTINATION "${SCORE_BIN_INSTALL_DIR}/qml")
+install(
+  DIRECTORY
+    "${QT_QML_PLUGINS_DIR}/QtQuick"
+    "${QT_QML_PLUGINS_DIR}/QtQuick.2"
+  DESTINATION
+    "${SCORE_BIN_INSTALL_DIR}/qml"
+  PATTERN
+    .qmlc EXCLUDE
+ )
 
 install(CODE "
     file(GLOB_RECURSE DLLS_TO_REMOVE \"*.dll\")
@@ -104,15 +110,15 @@ set(CPACK_PACKAGE_ICON "${SCORE_ROOT_SOURCE_DIR}\\\\base\\\\lib\\\\resources\\\\
 set(CPACK_NSIS_MUI_ICON "${CPACK_PACKAGE_ICON}")
 set(CPACK_NSIS_MUI_UNIICON "${CPACK_PACKAGE_ICON}")
 
-set(CPACK_NSIS_HELP_LINK "http:\\\\\\\\www.i-score.org")
-set(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\www.i-score.org")
-set(CPACK_NSIS_CONTACT "score-devs@lists.sourceforge.net")
+set(CPACK_NSIS_HELP_LINK "https:\\\\\\\\ossia.io")
+set(CPACK_NSIS_URL_INFO_ABOUT "https:\\\\\\\\ossia.io")
+set(CPACK_NSIS_CONTACT "https:\\\\\\\\gitter.im\\\\OSSIA\\\\score")
 
 set(CPACK_NSIS_COMPRESSOR "/SOLID lzma")
 
 set(CPACK_NSIS_MENU_LINKS
     "bin/score.exe" "Score"
-    "http://www.i-score.org" "Score website"
+    "https://ossia.io" "Score website"
     )
 
 

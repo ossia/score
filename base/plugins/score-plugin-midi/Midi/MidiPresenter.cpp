@@ -269,7 +269,7 @@ void Presenter::on_noteRemoving(const Note& n)
 
 void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
 {
-  auto song = Midi::MidiTrack::parse(md);
+  auto song = Midi::MidiTrack::parse(md, context().context);
   if(song.tracks.empty())
     return;
 

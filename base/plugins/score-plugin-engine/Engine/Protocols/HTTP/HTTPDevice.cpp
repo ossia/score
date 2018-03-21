@@ -25,7 +25,6 @@ HTTPDevice::HTTPDevice(const Device::DeviceSettings& settings)
   m_capas.canRenameNode = false;
   m_capas.canSetProperties = false;
   m_capas.canSerialize = false;
-  reconnect();
 }
 
 bool HTTPDevice::reconnect()
