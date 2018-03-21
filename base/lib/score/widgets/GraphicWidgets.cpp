@@ -163,8 +163,15 @@ void QGraphicsSlider::paint(QPainter* painter, const QStyleOptionGraphicsItem* o
   painter->drawRoundedRect(srect, 1, 1);
 
   // Draw text
+#if defined(__linux__)
+  static const auto dpi_adjust = widget->devicePixelRatioF() > 1 ? 0 : -2;
+#elif defined(_MSC_VER)
+  static const constexpr auto dpi_adjust = -4;
+#else
+  static const constexpr auto dpi_adjust = -2;
+#endif
   painter->setPen(grayPen);
-  painter->drawText(srect.adjusted(6, -2, -6, -1),
+  painter->drawText(srect.adjusted(6, dpi_adjust, -6, 0),
                     QString::number(min + value() * (max - min), 'f', 3),
                     getHandleX() > srect.width() / 2 ? QTextOption() : QTextOption(Qt::AlignRight));
 

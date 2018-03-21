@@ -17,24 +17,7 @@
 #include <ossia/audio/audio_protocol.hpp>
 
 #include <Engine/Protocols/Audio/AudioDevice.hpp>
-/*
-template<>
-void JSONObjectReader::read<Media::ApplicationPlugin::vst_info>(const Media::ApplicationPlugin::vst_info& p)
-{
-  obj["Path"] = p.path;
-  obj["PrettyName"] = p.prettyName;
-  obj["UID"] = p.uniqueID;
-  obj["Synth"] = p.isSynth;
-}
-template<>
-void JSONObjectWriter::write<Media::ApplicationPlugin::vst_info>(Media::ApplicationPlugin::vst_info& p)
-{
-  p.path = obj["Path"].toString();
-  p.prettyName = obj["PrettyName"].toString();
-  p.uniqueID = obj["UID"].toInt();
-  p.isSynth = obj["Synth"].toBool();
-}
-*/
+
 template<>
 void DataStreamReader::read<Media::ApplicationPlugin::vst_info>(const Media::ApplicationPlugin::vst_info& p)
 {
@@ -116,7 +99,6 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
 #endif
   }
 
-
   // 2. Remove plug-ins not in these paths
   for(auto it = vst_infos.begin(); it != vst_infos.end(); )
   {
@@ -147,6 +129,7 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
 
   for(const QString& path : newPlugins)
   {
+    qDebug() << "Loading VST " << path;
     SCORE_ASSERT(!path.isEmpty());
     bool isFile = QFile(QUrl(path).toString(QUrl::PreferLocalFile)).exists();
     if(!isFile)
@@ -175,7 +158,7 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
           i.path = path;
           i.uniqueID = p->uniqueID;
           {
-            /*
+/*
             char buf[256] = {0};
             p->dispatcher(p, effGetEffectName, 0, 0, buf, 0.f);
             QString s = buf;
@@ -197,10 +180,7 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
             p->dispatcher(p, effGetVendorVersion, 0, 0, buf, 0.f);
             s = buf;
             qDebug() << "effGetVendorVersion: " << s;
-            if(!s.isEmpty())
-              i.prettyName = s;
-            else
-            */
+*/
             // Only way to get a separation between Kontakt 5 / Kontakt 5 (8 out) / Kontakt 5 (16 out),  etc...
             i.prettyName = QFileInfo(path).baseName();
           }

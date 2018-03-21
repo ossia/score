@@ -125,6 +125,8 @@ void VSTGraphicsSlider::paint(QPainter* painter, const QStyleOptionGraphicsItem*
 
 #if defined(__linux__)
   static const auto dpi_adjust = widget->devicePixelRatioF() > 1 ? 0 : -2;
+#elif defined(_MSC_VER)
+  static const constexpr auto dpi_adjust = -4;
 #else
   static const constexpr auto dpi_adjust = -2;
 #endif
@@ -337,12 +339,24 @@ bool VSTWindow::hasUI(AEffect& e)
 void VSTWindow::closeEvent(QCloseEvent* event)
 {
   qDebug() << "Closing !";
+  QPointer<VSTWindow> p(this);
   if(auto eff = effect.lock())
     eff->fx->dispatcher(eff->fx, effEditClose, 0, 0, nullptr, 0);
   uiClosing();
-  QDialog::closeEvent(event);
+  if(p)
+    QDialog::closeEvent(event);
 }
 
+void VSTWindow::resizeEvent(QResizeEvent* event)
+{
+  setup_rect(this, event->size().width(), event->size().height());
+}
+
+void VSTWindow::resize(int w, int h)
+{
+  setup_rect(this, w, h);
+
+}
 
 
 QGraphicsItem* VSTFloatSlider::make_item(

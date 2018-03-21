@@ -184,93 +184,109 @@ intptr_t vst_host_callback (AEffect* effect, int32_t opcode, int32_t index, intp
 {
   intptr_t result = 0;
 
+  if(effect)
+  {
+    switch (opcode)
+    {
+      case audioMasterGetTime:
+      {
+        auto vst = reinterpret_cast<VSTEffectModel*>(effect->resvd1);
+        if(vst)
+        {
+          result = reinterpret_cast<intptr_t>(&vst->fx->info);
+        }
+        break;
+      }
+      case audioMasterSizeWindow:
+      {
+        auto vst = reinterpret_cast<VSTEffectModel*>(effect->resvd1);
+        if(vst && vst->externalUI)
+        {
+          ((VSTWindow*)vst->externalUI)->resize(index, value);
+        }
+        result = 1;
+        break;
+      }
+      case audioMasterNeedIdle:
+        break;
+
+      case audioMasterIdle:
+        effect->dispatcher(effect, effEditIdle, 0, 0, nullptr, 0);
+        break;
+
+      case audioMasterCurrentId:
+        result = effect->uniqueID;
+        break;
+
+      case audioMasterAutomate:
+      {
+        auto vst = reinterpret_cast<VSTEffectModel*>(effect->resvd1);
+        if(vst)
+        {
+          auto ctrl_it = vst->controls.find(index);
+          if(ctrl_it != vst->controls.end())
+          {
+            ctrl_it->second->setValue(opt);
+          }
+          else
+          {
+            ossia::qt::run_async(vst, [=] {
+              auto& ctx = score::IDocument::documentContext(*vst);
+              CommandDispatcher<> {ctx.commandStack}.submitCommand<CreateVSTControl>(*vst, index, opt);
+            });
+          }
+        }
+
+        break;
+      }
+    }
+  }
+
   switch (opcode)
   {
-    case audioMasterGetTime:
-    {
-      auto vst = reinterpret_cast<VSTEffectModel*>(effect->resvd1);
-      if(vst)
-      {
-        result = reinterpret_cast<intptr_t>(&vst->fx->info);
-      }
-      break;
-    }
     case audioMasterProcessEvents:
       break;
     case audioMasterIOChanged:
       break;
     case audioMasterSizeWindow:
+      result = 1;
       break;
     case audioMasterGetInputLatency:
       break;
     case audioMasterGetOutputLatency:
       break;
-    case audioMasterIdle:
-      effect->dispatcher(effect, effEditIdle, 0, 0, nullptr, 0);
-      break;
     case audioMasterVersion :
       result = kVstVersion;
       break;
-
-    case audioMasterCurrentId:
-      result = effect->uniqueID;
-      break;
-
     case audioMasterGetSampleRate:
+      return 44100;
       break;
-
     case audioMasterGetBlockSize:
+      return 64;
       break;
-
     case audioMasterGetCurrentProcessLevel:
       result = kVstProcessLevelUnknown;
       break;
-
-    case audioMasterAutomate:
-    {
-      auto vst = reinterpret_cast<VSTEffectModel*>(effect->resvd1);
-      if(vst)
-      {
-        auto ctrl_it = vst->controls.find(index);
-        if(ctrl_it != vst->controls.end())
-        {
-          ctrl_it->second->setValue(opt);
-        }
-        else
-        {
-          ossia::qt::run_async(vst, [=] {
-            auto& ctx = score::IDocument::documentContext(*vst);
-            CommandDispatcher<> {ctx.commandStack}.submitCommand<CreateVSTControl>(*vst, index, opt);
-          });
-        }
-      }
-
-      break;
-    }
     case audioMasterGetAutomationState:
       result = kVstAutomationUnsupported;
       break;
-
     case audioMasterGetLanguage:
       result = kVstLangEnglish;
       break;
-
     case audioMasterGetVendorVersion:
       result = 1;
       break;
-
     case audioMasterGetVendorString:
       std::copy_n("ossia", 6, static_cast<char*>(ptr));
       result = 1;
       break;
-
     case audioMasterGetProductString:
       std::copy_n("score", 6, static_cast<char*>(ptr));
       result = 1;
       break;
-
     case audioMasterUpdateDisplay:
       // TODO update all values
+      result = 1;
       break;
     case audioMasterBeginEdit:
       break;
@@ -281,7 +297,6 @@ intptr_t vst_host_callback (AEffect* effect, int32_t opcode, int32_t index, intp
       break;
     case audioMasterCloseFileSelector:
       break;
-
     case audioMasterCanDo:
     {
       static const std::set<std::string_view> supported{
@@ -289,6 +304,7 @@ intptr_t vst_host_callback (AEffect* effect, int32_t opcode, int32_t index, intp
             HostCanDos::canDoSendVstMidiEvent,
             HostCanDos::canDoSendVstTimeInfo,
             HostCanDos::canDoSendVstMidiEventFlagIsRealtime,
+            HostCanDos::canDoSizeWindow,
             HostCanDos::canDoHasCockosViewAsConfig
       };
       if(supported.find(static_cast<const char*>(ptr)) != supported.end())
@@ -298,6 +314,7 @@ intptr_t vst_host_callback (AEffect* effect, int32_t opcode, int32_t index, intp
   }
   return result;
 }
+
 void VSTEffectModel::closePlugin()
 {
   if(fx)
@@ -392,57 +409,6 @@ AEffect* getPluginInstance(int32_t id)
 
   return nullptr;
 }
-/*
-VSTModule* getPlugin(QString path)
-{
-  auto path_std = path.toStdString();
-  VSTModule* plugin;
-  auto& app = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
-  {
-    auto info_it = ossia::find_if(
-                app.vst_infos,
-                [&] (const Media::ApplicationPlugin::vst_info& i) {
-      return i.path == path;
-    });
-    if(info_it != app.vst_infos.end())
-    {
-      auto it = app.vst_modules.find(info_it->uniqueID);
-
-    }
-    else
-    {
-      auto it = app.vst_modules.find(info_it->uniqueID);
-      if(it == app.vst_modules.end())
-      {
-        if(path.isEmpty())
-          return nullptr;
-
-        bool isFile = QFile(QUrl(path).toString(QUrl::PreferLocalFile)).exists();
-        if(!isFile)
-        {
-          qDebug() << "Invalid path: " << path;
-          return nullptr;
-        }
-
-        try {
-          plugin = new VSTModule{path_std};
-          app.vst_modules.insert({std::move(path_std), plugin});
-        } catch(const std::runtime_error& e) {
-          qDebug() << e.what();
-          return nullptr;
-        }
-      }
-      else
-      {
-        plugin = it->second;
-      }
-
-
-    }
-  }
-  return plugin;
-}
-      */
 
 void VSTEffectModel::initFx()
 {
