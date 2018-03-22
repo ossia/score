@@ -1,4 +1,5 @@
 #include "GraphicWidgets.hpp"
+#include <QWidget>
 #include <QDebug>
 #include <score/model/Skin.hpp>
 namespace score

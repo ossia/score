@@ -232,7 +232,7 @@ public:
       child.visit(f);
     }
   }
-
+/*
   bool operator==(const TreeNode& other) const
   {
     const auto N = other.m_children.size();
@@ -241,13 +241,14 @@ public:
 
     bool ok = (static_cast<const DataType&>(*this) == static_cast<const DataType&>(other));
 
-    for(int i = 0; i < N; i++)
+    for(std::size_t i = 0; i < N; i++)
     {
       ok &= (m_children[i] == other.m_children[i]);
     }
 
     return ok;
   }
+  */
 };
 
 template <typename T>

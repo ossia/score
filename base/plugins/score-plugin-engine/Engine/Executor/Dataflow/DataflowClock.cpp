@@ -12,6 +12,7 @@
 #include <Engine/Protocols/OSSIADevice.hpp>
 #include <QPointer>
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
+#include <Engine/Protocols/Settings/Model.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
 namespace Dataflow
 {
@@ -163,7 +164,7 @@ std::unique_ptr<Engine::Execution::ClockManager> ClockFactory::make(
 Engine::Execution::time_function
 ClockFactory::makeTimeFunction(const score::DocumentContext& ctx) const
 {
-  auto rate = ctx.plugin<Engine::Execution::DocumentPlugin>().audioProto().rate;
+  auto rate = ctx.app.settings<Audio::Settings::Model>().getRate();
   return [=] (const TimeVal& v) -> ossia::time_value {
     // Go from milliseconds to samples
     // 1000 ms = sr samples
@@ -177,7 +178,7 @@ ClockFactory::makeTimeFunction(const score::DocumentContext& ctx) const
 Engine::Execution::reverse_time_function
 ClockFactory::makeReverseTimeFunction(const score::DocumentContext& ctx) const
 {
-  auto rate = ctx.plugin<Engine::Execution::DocumentPlugin>().audioProto().rate;
+  auto rate = ctx.app.settings<Audio::Settings::Model>().getRate();
   return [=] (const ossia::time_value& v) -> TimeVal {
     return v.infinite()
         ? TimeVal{PositiveInfinity{}}

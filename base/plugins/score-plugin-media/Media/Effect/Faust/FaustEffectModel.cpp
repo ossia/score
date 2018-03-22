@@ -44,6 +44,8 @@ FaustEffectModel::~FaustEffectModel()
 void FaustEffectModel::setText(const QString& txt)
 {
   m_text = txt;
+  if(m_text.isEmpty())
+    m_text = "process = _;";
   reload();
 }
 
@@ -76,7 +78,7 @@ void FaustEffectModel::reload()
     return;
   }
 
-  char err[1024];
+  char err[4096] = {};
 
   const char* triple =
     #if defined(_MSC_VER)
@@ -85,9 +87,13 @@ void FaustEffectModel::reload()
       ""
     #endif
   ;
+  auto str = fx_text.toStdString();
+  int argc = 0;
+  const char* argv[1]{};
+
   auto fac = createCDSPFactoryFromString(
-               "score", fx_text.toStdString().c_str(),
-               0, nullptr, triple, err, -1);
+               "score", str.c_str(),
+               argc, argv, triple, err, -1);
 
   if(err[0] != 0)
     qDebug() << "Faust error: " << err;
@@ -151,14 +157,14 @@ FaustEditDialog::FaustEditDialog(const FaustEffectModel& fx, const score::Docume
   QDialog{parent}
   , m_effect{fx}
 {
-  auto lay = new QVBoxLayout;
+  auto lay = new QVBoxLayout{this};
   this->setLayout(lay);
 
-  m_textedit = new QPlainTextEdit{m_effect.text()};
+  m_textedit = new QPlainTextEdit{m_effect.text(), this};
 
   lay->addWidget(m_textedit);
   auto bbox = new QDialogButtonBox{
-      QDialogButtonBox::Ok | QDialogButtonBox::Close};
+      QDialogButtonBox::Ok | QDialogButtonBox::Close, this};
   lay->addWidget(bbox);
   connect(bbox, &QDialogButtonBox::accepted,
           this, [&] {

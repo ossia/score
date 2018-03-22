@@ -140,12 +140,17 @@ ossia::audio_engine* make_engine()
 {
   auto& set = score::AppContext().settings<Audio::Settings::Model>();
   auto driver = set.getDriver();
+  auto req_in = set.getCardIn();
+  auto req_out = set.getCardOut();
   auto ins = set.getDefaultIn(); auto old_ins = ins;
   auto outs = set.getDefaultOut(); auto old_outs = outs;
   auto rate = set.getRate(); auto old_rate = rate;
   auto bs = set.getBufferSize(); auto old_bs = bs;
 
-  auto eng = ossia::make_audio_engine(driver.toStdString(), "score",  ins, outs, rate, bs);
+  auto eng = ossia::make_audio_engine(
+               driver.toStdString(), "score",
+               req_in.toStdString(), req_out.toStdString(),
+               ins, outs, rate, bs);
 
   if(ins != old_ins)
     set.setDefaultIn(ins);
