@@ -56,7 +56,7 @@ void EffectLayerView::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
 EffectLayerPresenter::EffectLayerPresenter(const ProcessModel& model, EffectLayerView* view, const ProcessPresenterContext& ctx, QObject* parent)
   : LayerPresenter{ctx, parent}, m_layer{model}, m_view{view}
 {
-  m_showUI = new QAction{tr("Show")};
+  m_showUI = new QAction{tr("Show"), this};
   m_showUI->setCheckable(true);
   putToFront();
   connect(view, &Process::LayerView::pressed, this, [&] {

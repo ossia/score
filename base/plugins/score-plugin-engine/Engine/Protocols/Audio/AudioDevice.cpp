@@ -85,13 +85,7 @@ bool AudioDevice::reconnect()
 
   try
   {
-    auto& set = score::AppContext().settings<Audio::Settings::Model>();
     auto& proto = static_cast<ossia::audio_protocol&>(m_dev.get_protocol());
-
-    proto.rate = set.getRate();
-    proto.bufferSize = set.getBufferSize();
-    proto.card_in = set.getCardIn().toStdString();
-    proto.card_out = set.getCardOut().toStdString();
 
     auto& engine = score::GUIAppContext().guiApplicationPlugin<Engine::ApplicationPlugin>().audio;
     if(!engine)
@@ -265,7 +259,7 @@ class AudioAddressDialog final : public Device::AddressDialog
         {
           for(std::size_t j = 0; j < mpng.size(); j++)
           {
-            if(mpng[j] == i && j < m_checkboxes[i].size())
+            if(mpng[j] == (int)i && j < m_checkboxes[i].size())
             {
               m_checkboxes[i][j]->setChecked(true);
             }
