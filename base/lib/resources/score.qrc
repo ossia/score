@@ -233,6 +233,7 @@
         <file>icons/play_glob_off.png</file>
         <file>icons/play_glob_on.png</file>
         <file>splash.png</file>
+        <file>splash@2x.png</file>
     </qresource>
     <qresource prefix="/qss_icons">
         <file>rc/up_arrow_disabled.png</file>
