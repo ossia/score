@@ -23,6 +23,8 @@
 #include <QFileInfo>
 #include <QStyle>
 #include <QDir>
+#include <QPainter>
+#include <QScreen>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <algorithm>
 #include <vector>
@@ -53,84 +55,84 @@ class DocumentModel;
 
 static void setQApplicationSettings(QApplication &m_app)
 {
-    QFontDatabase::addApplicationFont(":/APCCourierBold.otf"); // APCCourier-Bold
-    QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf"); // Ubuntu
+  QFontDatabase::addApplicationFont(":/APCCourierBold.otf"); // APCCourier-Bold
+  QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf"); // Ubuntu
 
 
-    QFile stylesheet_file{":/qdarkstyle/qdarkstyle.qss"};
-    stylesheet_file.open(QFile::ReadOnly);
-    QString stylesheet = QLatin1String(stylesheet_file.readAll());
+  QFile stylesheet_file{":/qdarkstyle/qdarkstyle.qss"};
+  stylesheet_file.open(QFile::ReadOnly);
+  QString stylesheet = QLatin1String(stylesheet_file.readAll());
 
-    qApp->setStyle(QStyleFactory::create("Fusion"));
-    qApp->setStyleSheet(stylesheet);
+  qApp->setStyle(QStyleFactory::create("Fusion"));
+  qApp->setStyleSheet(stylesheet);
 
-    auto pal = qApp->palette();
-    pal.setBrush(QPalette::Background, QColor("#001A2024"));
-    pal.setBrush(QPalette::Base, QColor("#12171A")); // lineedit bg
-    pal.setBrush(QPalette::Button, QColor("#12171A")); // lineedit bg
-    pal.setBrush(QPalette::AlternateBase, QColor("#1f2a30")); // alternate bg
-    pal.setBrush(QPalette::Highlight, QColor("#3d8ec9")); // tableview bg
-    pal.setBrush(QPalette::WindowText, QColor("silver")); // color
-    pal.setBrush(QPalette::Text, QColor("silver")); // color
-    pal.setBrush(QPalette::ButtonText, QColor("silver")); // color
-    pal.setBrush(QPalette::Light, QColor("#666666"));
-    pal.setBrush(QPalette::Midlight, QColor("#666666"));
-    pal.setBrush(QPalette::Mid, QColor("#666666"));
-    pal.setBrush(QPalette::Dark, QColor("#666666"));
-    pal.setBrush(QPalette::Shadow, QColor("#666666"));
+  auto pal = qApp->palette();
+  pal.setBrush(QPalette::Background, QColor("#001A2024"));
+  pal.setBrush(QPalette::Base, QColor("#12171A")); // lineedit bg
+  pal.setBrush(QPalette::Button, QColor("#12171A")); // lineedit bg
+  pal.setBrush(QPalette::AlternateBase, QColor("#1f2a30")); // alternate bg
+  pal.setBrush(QPalette::Highlight, QColor("#3d8ec9")); // tableview bg
+  pal.setBrush(QPalette::WindowText, QColor("silver")); // color
+  pal.setBrush(QPalette::Text, QColor("silver")); // color
+  pal.setBrush(QPalette::ButtonText, QColor("silver")); // color
+  pal.setBrush(QPalette::Light, QColor("#666666"));
+  pal.setBrush(QPalette::Midlight, QColor("#666666"));
+  pal.setBrush(QPalette::Mid, QColor("#666666"));
+  pal.setBrush(QPalette::Dark, QColor("#666666"));
+  pal.setBrush(QPalette::Shadow, QColor("#666666"));
 
-    QFont f("Ubuntu-R", 9);
-    qApp->setFont(f);
+  QFont f("Ubuntu-R", 9);
+  qApp->setFont(f);
 
-    qApp->setPalette(pal);
+  qApp->setPalette(pal);
 
 #if __has_include(<QQuickStyle>)
-    QQuickStyle::setStyle(":/desktopqqc2style/Desktop");
+  QQuickStyle::setStyle(":/desktopqqc2style/Desktop");
 #endif
 }
 
 }  // namespace score
 
 Application::Application(int& argc, char** argv) :
-    QObject {nullptr}
+  QObject {nullptr}
 {
-    m_instance = this;
+  m_instance = this;
 
-    QStringList l;
-    for(int i = 0; i < argc; i++)
-      l.append(QString::fromUtf8(argv[i]));
-    m_applicationSettings.parse(l);
+  QStringList l;
+  for(int i = 0; i < argc; i++)
+    l.append(QString::fromUtf8(argv[i]));
+  m_applicationSettings.parse(l);
 
-    if(m_applicationSettings.gui)
-      m_app = new SafeQApplication{argc, argv};
-    else
-      m_app = new QCoreApplication{argc, argv};
+  if(m_applicationSettings.gui)
+    m_app = new SafeQApplication{argc, argv};
+  else
+    m_app = new QCoreApplication{argc, argv};
 }
 
 Application::Application(
-        const score::ApplicationSettings& appSettings,
-        int& argc,
-        char** argv) :
-    QObject {nullptr},
-    m_applicationSettings(appSettings)
+    const score::ApplicationSettings& appSettings,
+    int& argc,
+    char** argv) :
+  QObject {nullptr},
+  m_applicationSettings(appSettings)
 {
-    m_instance = this;
-    if(m_applicationSettings.gui)
-      m_app = new SafeQApplication{argc, argv};
-    else
-      m_app = new QCoreApplication{argc, argv};
+  m_instance = this;
+  if(m_applicationSettings.gui)
+    m_app = new SafeQApplication{argc, argv};
+  else
+    m_app = new QCoreApplication{argc, argv};
 }
 
 
 Application::~Application()
 {
-    this->setParent(nullptr);
-    delete m_view;
-    delete m_presenter;
+  this->setParent(nullptr);
+  delete m_view;
+  delete m_presenter;
 
-    score::DocumentBackups::clear();
-    QCoreApplication::processEvents();
-    delete m_app;
+  score::DocumentBackups::clear();
+  QCoreApplication::processEvents();
+  delete m_app;
 }
 
 const score::GUIApplicationContext& Application::context() const
@@ -143,145 +145,178 @@ const score::ApplicationComponents&Application::components() const
   return m_presenter->applicationComponents();
 }
 
+static QPixmap writeVersionName()
+{
+  QPixmap pixmap;
+  if(auto screen = qApp->primaryScreen())
+  {
+    if(screen->devicePixelRatio() >= 2.0)
+    {
+      pixmap.load(":/splash@2x.png");
+    }
+    else
+    {
+      pixmap.load(":/splash.png");
+    }
+  }
+
+  QPainter painter;
+  if (!painter.begin(&pixmap)){
+    return pixmap;
+  }
+
+  painter.setPen(QPen(QColor("#0092CF")));
+  painter.setFont(QFont(":/Ubuntu-R.ttf",21, QFont::Light));
+  painter.drawText(QPointF(270,265), QCoreApplication::applicationVersion());
+  painter.end();
+
+  return pixmap;
+}
+
 void Application::init()
 {
-#if !defined(SCORE_DEBUG) && !defined(__EMSCRIPTEN__)
+  {
+    QCoreApplication::setOrganizationName("OSSIA");
+    QCoreApplication::setOrganizationDomain("ossia.io");
+    QCoreApplication::setApplicationName("score");
+    QCoreApplication::setApplicationVersion(
+          QString("%1.%2.%3-%4")
+          .arg(SCORE_VERSION_MAJOR)
+          .arg(SCORE_VERSION_MINOR)
+          .arg(SCORE_VERSION_PATCH)
+          .arg(SCORE_VERSION_EXTRA)
+          );
+  }
+
+#if 1 || !defined(SCORE_DEBUG) && !defined(__EMSCRIPTEN__)
+#define SCORE_SPLASH_SCREEN 1
+#endif
+#if defined(SCORE_SPLASH_SCREEN)
   QSplashScreen* splash{};
   if(m_applicationSettings.gui)
   {
-    splash = new QSplashScreen{QPixmap{":/splash.png"}, Qt::FramelessWindowHint};
+    splash = new QSplashScreen{writeVersionName(), Qt::FramelessWindowHint};
     splash->show();
   }
 #endif
 
-    this->setObjectName("Application");
-    this->setParent(m_app);
+  this->setObjectName("Application");
+  this->setParent(m_app);
 #if !defined(__EMSCRIPTEN__)
-    m_app->addLibraryPath(m_app->applicationDirPath() + "/plugins");
+  m_app->addLibraryPath(m_app->applicationDirPath() + "/plugins");
 #endif
 #if defined(_MSC_VER)
-    QDir::setCurrent(qApp->applicationDirPath());
-    auto path = qgetenv("PATH");
-    path += ";" + QCoreApplication::applicationDirPath();
-    path += ";" + QCoreApplication::applicationDirPath() + "/plugins";
-    qputenv("PATH", path);
-    SetDllDirectory(QCoreApplication::applicationDirPath().toLocal8Bit());
-    SetDllDirectory((QCoreApplication::applicationDirPath() + "/plugins").toLocal8Bit());
+  QDir::setCurrent(qApp->applicationDirPath());
+  auto path = qgetenv("PATH");
+  path += ";" + QCoreApplication::applicationDirPath();
+  path += ";" + QCoreApplication::applicationDirPath() + "/plugins";
+  qputenv("PATH", path);
+  SetDllDirectory(QCoreApplication::applicationDirPath().toLocal8Bit());
+  SetDllDirectory((QCoreApplication::applicationDirPath() + "/plugins").toLocal8Bit());
 #endif
+
+
+  // MVP
+  if(m_applicationSettings.gui)
+  {
+    score::setQApplicationSettings(*qApp);
+    m_settings.setupView();
+    m_projectSettings.setupView();
+    m_view = new score::View{this};
+  }
+
+  m_presenter = new score::Presenter{m_applicationSettings, m_settings, m_projectSettings, m_view, this};
+
+  // Plugins
+  loadPluginData();
+
+  // View
+  if(m_applicationSettings.gui)
+  {
+    m_view->show();
+
+#if defined(SCORE_SPLASH_SCREEN)
+    if(splash)
     {
-      QCoreApplication::setOrganizationName("OSSIA");
-      QCoreApplication::setOrganizationDomain("ossia.io");
-      QCoreApplication::setApplicationName("score");
-      QCoreApplication::setApplicationVersion(
-                  QString("%1.%2.%3-%4")
-                  .arg(SCORE_VERSION_MAJOR)
-                  .arg(SCORE_VERSION_MINOR)
-                  .arg(SCORE_VERSION_PATCH)
-                  .arg(SCORE_VERSION_EXTRA)
-                  );
+      splash->finish(m_view);
+      splash->deleteLater();
     }
-
-    // MVP
-    if(m_applicationSettings.gui)
-    {
-      score::setQApplicationSettings(*qApp);
-      m_settings.setupView();
-      m_projectSettings.setupView();
-      m_view = new score::View{this};
-    }
-
-    m_presenter = new score::Presenter{m_applicationSettings, m_settings, m_projectSettings, m_view, this};
-
-    // Plugins
-    loadPluginData();
-
-    // View
-    if(m_applicationSettings.gui)
-    {
-        m_view->show();
-
-#if !defined(SCORE_DEBUG) && !defined(__EMSCRIPTEN__)
-        if(splash)
-        {
-          splash->finish(m_view);
-          splash->deleteLater();
-        }
 #endif
-    }
+  }
 
-    initDocuments();
+  initDocuments();
 
-    if(m_applicationSettings.gui)
-    {
-        m_view->sizeChanged(m_view->size());
-        m_view->ready();
-    }
+  if(m_applicationSettings.gui)
+  {
+    m_view->sizeChanged(m_view->size());
+    m_view->ready();
+  }
 }
 
 void Application::initDocuments()
 {
-    qDebug() << "void Application::initDocuments()";
-    int i = 0;
+  qDebug() << "void Application::initDocuments()";
+  int i = 0;
 #define DO_DEBUG qDebug() << i++
-    DO_DEBUG;
-    auto& ctx = m_presenter->applicationContext();
-    if(!m_applicationSettings.loadList.empty())
+  DO_DEBUG;
+  auto& ctx = m_presenter->applicationContext();
+  if(!m_applicationSettings.loadList.empty())
+  {
+    for(const auto& doc : m_applicationSettings.loadList)
+      m_presenter->documentManager().loadFile(ctx, doc);
+  }
+  DO_DEBUG;
+  // The plug-ins have the ability to override the boot process.
+  for(auto plug : ctx.guiApplicationPlugins())
+  {
+    if(plug->handleStartup())
     {
-        for(const auto& doc : m_applicationSettings.loadList)
-            m_presenter->documentManager().loadFile(ctx, doc);
+      return;
     }
-DO_DEBUG;
-    // The plug-ins have the ability to override the boot process.
-    for(auto plug : ctx.guiApplicationPlugins())
-    {
-        if(plug->handleStartup())
-        {
-            return;
-        }
-    }
-    DO_DEBUG;
+  }
+  DO_DEBUG;
 
-    if(auto sqa = dynamic_cast<SafeQApplication*>(m_app))
+  if(auto sqa = dynamic_cast<SafeQApplication*>(m_app))
+  {
+    connect(sqa, &SafeQApplication::fileOpened,
+            this, [&] (const QString& file) {
+      m_presenter->documentManager().loadFile(ctx, file);
+    });
+  }
+  DO_DEBUG;
+  // Try to reload if there was a crash
+  if(m_applicationSettings.tryToRestore && score::DocumentBackups::canRestoreDocuments())
+  {
+    m_presenter->documentManager().restoreDocuments(ctx);
+  }
+  DO_DEBUG;
+  // If nothing was reloaded, open a normal document
+  if(m_presenter->documentManager().documents().empty())
+  {
+    auto& documentKinds = m_presenter->applicationComponents().interfaces<score::DocumentDelegateList>();
+    if(!documentKinds.empty() && m_presenter->documentManager().documents().empty())
     {
-      connect(sqa, &SafeQApplication::fileOpened,
-              this, [&] (const QString& file) {
-        m_presenter->documentManager().loadFile(ctx, file);
-      });
+      m_presenter->documentManager().newDocument(
+            ctx,
+            Id<score::DocumentModel>{score::random_id_generator::getRandomId()},
+            *m_presenter->applicationComponents().interfaces<score::DocumentDelegateList>().begin());
     }
-DO_DEBUG;
-    // Try to reload if there was a crash
-    if(m_applicationSettings.tryToRestore && score::DocumentBackups::canRestoreDocuments())
-    {
-        m_presenter->documentManager().restoreDocuments(ctx);
-    }
-DO_DEBUG;
-    // If nothing was reloaded, open a normal document
-    if(m_presenter->documentManager().documents().empty())
-    {
-        auto& documentKinds = m_presenter->applicationComponents().interfaces<score::DocumentDelegateList>();
-        if(!documentKinds.empty() && m_presenter->documentManager().documents().empty())
-        {
-            m_presenter->documentManager().newDocument(
-                        ctx,
-                        Id<score::DocumentModel>{score::random_id_generator::getRandomId()},
-                        *m_presenter->applicationComponents().interfaces<score::DocumentDelegateList>().begin());
-        }
-    }
-    DO_DEBUG;
+  }
+  DO_DEBUG;
 
 }
 
 void Application::loadPluginData()
 {
-    auto& ctx = m_presenter->applicationContext();
-    score::GUIApplicationRegistrar registrar{
-        m_presenter->components(),
-                ctx,
-                m_presenter->menuManager(),
-                m_presenter->toolbarManager(),
-                m_presenter->actionManager()};
+  auto& ctx = m_presenter->applicationContext();
+  score::GUIApplicationRegistrar registrar{
+    m_presenter->components(),
+        ctx,
+        m_presenter->menuManager(),
+        m_presenter->toolbarManager(),
+        m_presenter->actionManager()};
 
-    GUIApplicationInterface::loadPluginData(ctx, registrar, m_settings, *m_presenter);
+  GUIApplicationInterface::loadPluginData(ctx, registrar, m_settings, *m_presenter);
 }
 
 int Application::exec()
