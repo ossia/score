@@ -51,19 +51,6 @@ void FaustEffectModel::setText(const QString& txt)
 
 void FaustEffectModel::init()
 {
-  // We have to reload the faust FX whenever
-  // some soundcard settings changes
-  /*
-    auto& ctx = score::AppComponents().applicationPlugin<Media::MediaStreamEngine::ApplicationPlugin>();
-    con(ctx, &MediaStreamEngine::ApplicationPlugin::audioEngineRestarting,
-        this, [this] () {
-        saveParams();
-    });
-    con(ctx, &MediaStreamEngine::ApplicationPlugin::audioEngineRestarted,
-            this, [this] () {
-        reload();
-    });
-    */
 }
 
 QString FaustEffectModel::prettyName() const

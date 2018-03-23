@@ -61,6 +61,15 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Presenter.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/View.hpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Merger/Commands.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Merger/Metadata.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Merger/Executor.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Merger/Factory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Merger/Inspector.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Merger/Model.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Merger/Presenter.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Merger/View.hpp"
+
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/MediaFileHandle.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioDecoder.hpp"
@@ -98,6 +107,9 @@ set(SRCS
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Executor.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Step/Model.cpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Merger/Executor.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Merger/Model.cpp"
 
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/MediaFileHandle.cpp"
