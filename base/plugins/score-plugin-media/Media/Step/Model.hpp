@@ -42,7 +42,7 @@ class Model final : public Process::ProcessModel
   {
     m_outlets.push_back(outlet.get());
   }
-  std::vector<std::unique_ptr<Process::Inlet>> inlet;
+
   std::unique_ptr<Process::Outlet> outlet;
 
   quint64 stepCount() const;

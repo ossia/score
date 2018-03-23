@@ -93,14 +93,15 @@ class Fx final: public Process::ProcessModel
        QObject* parent):
       Process::ProcessModel{t, id, Metadata<ObjectKey_k, Fx>::get(), parent}
     {
+      Wrap<Media::Faust::UI<decltype(*this)>> ui{*this};
+      DSP d;
+
       m_inlets.push_back(new Process::Inlet{getStrongId(m_inlets), this});
       m_inlets.back()->type = Process::PortType::Audio;
       m_outlets.push_back(new Process::Outlet{getStrongId(m_outlets), this});
       m_outlets.back()->type = Process::PortType::Audio;
       m_outlets.back()->setPropagate(true);
 
-      Wrap<Media::Faust::UI<decltype(*this)>> ui{*this};
-      DSP d;
       d.buildUserInterface(&ui);
     }
 
@@ -203,7 +204,6 @@ class Executor final
           });
         });
       }
-
     }
 };
 }

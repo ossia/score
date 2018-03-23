@@ -18,6 +18,10 @@
 #include <Media/Step/Executor.hpp>
 #include <Media/Step/Inspector.hpp>
 
+#include <Media/Merger/Factory.hpp>
+#include <Media/Merger/Executor.hpp>
+#include <Media/Merger/Inspector.hpp>
+
 #if defined(LILV_SHARED)
 #include <Media/Effect/LV2/LV2EffectModel.hpp>
 #endif
@@ -84,6 +88,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
             , Media::Input::ProcessFactory
             , Media::Effect::ProcessFactory
             , Media::Step::ProcessFactory
+            , Media::Merger::ProcessFactory
     #if defined(HAS_FAUST)
                , Media::Faust::FaustEffectFactory
     # endif
@@ -99,12 +104,14 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
             , Media::Input::InspectorFactory
             , Media::Effect::InspectorFactory
             , Media::Step::InspectorFactory
+            , Media::Merger::InspectorFactory
             >,
         FW<Process::LayerFactory
           , Media::Sound::LayerFactory
           , Media::Input::LayerFactory
           , Media::Effect::LayerFactory
           , Media::Step::LayerFactory
+          , Media::Merger::LayerFactory
     #if defined(HAS_VST2)
           , Media::VST::LayerFactory
     #endif
@@ -127,6 +134,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
           , Engine::Execution::InputComponentFactory
           , Engine::Execution::EffectProcessComponentFactory
           , Engine::Execution::StepComponentFactory
+          , Engine::Execution::MergerComponentFactory
     #if defined(HAS_VST2)
         , Engine::Execution::VSTEffectComponentFactory
     #endif
