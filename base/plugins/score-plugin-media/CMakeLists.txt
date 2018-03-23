@@ -13,7 +13,9 @@ endif()
 set(SCORE_AUDIO_PLUGINS 1)
 if(SCORE_AUDIO_PLUGINS)
   find_package(Lilv)
-  find_package(Faust)
+  if(NOT MSVC)
+    find_package(Faust)
+  endif()
 endif()
 
 # Files & main target
