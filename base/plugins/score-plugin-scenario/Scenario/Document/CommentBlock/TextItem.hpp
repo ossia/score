@@ -42,7 +42,7 @@ private:
   score::ColorRef m_color;
   QFont m_font;
   QString m_string;
-  ossia::optional<QGlyphRun> m_line;
+  QImage m_line;
 };
 
 class QGraphicsTextButton

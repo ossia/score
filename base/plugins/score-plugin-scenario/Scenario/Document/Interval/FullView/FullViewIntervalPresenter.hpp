@@ -3,19 +3,20 @@
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/Interval/SlotHandle.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
-#include <Scenario/Document/Interval/Temporal/DefaultHeaderDelegate.hpp>
 #include <Scenario/Document/Interval/FullView/FullViewIntervalView.hpp>
 
 namespace Scenario
 {
 class SlotView;
 class SlotHandle;
+class DefaultHeaderDelegate;
 class SCORE_PLUGIN_SCENARIO_EXPORT FullViewIntervalPresenter final
     : public IntervalPresenter
 {
   Q_OBJECT
 
 public:
+
   struct SlotPresenter
   {
     SlotHeader* header{};

@@ -39,7 +39,6 @@
 
 #include <score/model/path/ObjectIdentifier.hpp>
 #include <score/model/Identifier.hpp>
-#include <score/plugins/panel/PanelDelegate.hpp>
 #include <score/command/Validity/ValidityChecker.hpp>
 
 #include <core/document/DocumentModel.hpp>

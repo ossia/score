@@ -66,6 +66,8 @@ std::vector<score::RestorableDocument>
 score::DocumentBackups::restorableDocuments()
 {
   std::vector<score::RestorableDocument> arr;
+
+#if !defined(__EMSCRIPTEN__)
   QSettings s{score::OpenDocumentsFile::path(), QSettings::IniFormat};
 
   auto docs = s.value("score/docs");
@@ -81,12 +83,13 @@ score::DocumentBackups::restorableDocuments()
 
   s.setValue("score/docs", QMap<QString, QVariant>{});
   s.sync();
-
+#endif
   return arr;
 }
 
 SCORE_LIB_BASE_EXPORT void score::DocumentBackups::clear()
 {
+#if !defined(__EMSCRIPTEN__)
   if (OpenDocumentsFile::exists())
   {
     // Remove all the tmp files
@@ -104,4 +107,5 @@ SCORE_LIB_BASE_EXPORT void score::DocumentBackups::clear()
     // Remove the file containing the map
     QFile{OpenDocumentsFile::path()}.remove();
   }
+#endif
 }

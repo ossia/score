@@ -163,6 +163,7 @@ void js_node::run(ossia::token_request t, ossia::execution_state&)
   if(t.date == ossia::Zero)
     return;
 
+  QEventLoop e;
   // Copy audio
   for(int i = 0; i < m_audInlets.size(); i++)
   {
@@ -279,6 +280,9 @@ void js_node::run(ossia::token_request t, ossia::execution_state&)
         snk[chan][j + int64_t(t.offset)] = src[chan][j];
     }
   }
+
+  e.processEvents();
+  m_engine.collectGarbage();
 }
 
 }
