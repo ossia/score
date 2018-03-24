@@ -5,7 +5,9 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QTextLayout>
 #include <QPainter>
+#include <QGraphicsView>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <score/widgets/GraphicsItem.hpp>
 namespace Scenario
 {
 
@@ -80,7 +82,11 @@ void SimpleTextItem::updateImpl()
 
     if(r.size() > 0)
     {
-      m_line = QImage(r[0].boundingRect().width(), r[0].boundingRect().height(), QImage::Format_ARGB32_Premultiplied);
+      double ratio = 1.;
+      if(auto v = getView(*this))
+        ratio = v->devicePixelRatioF();
+      m_line = QImage(m_rect.width() * ratio, m_rect.height() * ratio, QImage::Format_ARGB32_Premultiplied);
+      m_line.setDevicePixelRatio(ratio);
       m_line.fill(Qt::transparent);
 
       QPainter p{&m_line};
