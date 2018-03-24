@@ -43,12 +43,15 @@
 #include <QApplication>
 #include <ossia-qt/invoke.hpp>
 #include <QAction>
+#include <QSlider>
 #include <QVariant>
 #include <QVector>
 #include <spdlog/spdlog.h>
 #include <Loop/LoopProcessModel.hpp>
 #include <ossia/audio/audio_protocol.hpp>
 #include <Explorer/Settings/ExplorerModel.hpp>
+#include <score/widgets/DoubleSlider.hpp>
+#include <ossia/dataflow/execution_state.hpp>
 SCORE_DECLARE_ACTION(RestartAudio, "Restart Audio", Common, QKeySequence::UnknownKey)
 
 
@@ -136,7 +139,7 @@ bool ApplicationPlugin::handleStartup()
   return false;
 }
 
-ossia::audio_engine* make_engine()
+static std::unique_ptr<ossia::audio_engine> make_engine()
 {
   auto& set = score::AppContext().settings<Audio::Settings::Model>();
   auto driver = set.getDriver();
@@ -161,7 +164,7 @@ ossia::audio_engine* make_engine()
   if(rate != old_rate)
     set.setRate(rate);
 
-  return eng;
+  return std::unique_ptr<ossia::audio_engine>{eng};
 }
 void ApplicationPlugin::initialize()
 {
@@ -176,7 +179,7 @@ void ApplicationPlugin::initialize()
       auto& d = *dynamic_cast<Dataflow::AudioDevice*>(dev);
       if(audio)
         audio->stop();
-      audio.reset(make_engine());
+      audio = make_engine();
       d.reconnect();
     }
   });
@@ -221,7 +224,7 @@ void ApplicationPlugin::initialize()
     }
   });
 */
-  audio.reset(make_engine());
+  audio = make_engine();
 }
 score::GUIElements ApplicationPlugin::makeGUIElements()
 {
@@ -234,6 +237,32 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
   {
     auto bar = new QToolBar;
     bar->addAction(act);
+    auto sl = new score::DoubleSlider{bar};
+    sl->setValue(0.5);
+    bar->addWidget(sl);
+    connect(sl, &score::DoubleSlider::valueChanged,
+            this, [=] (double v) {
+      if(m_clock)
+      {
+        if(auto& st = m_clock->context.plugin.execState) {
+          for(auto& dev : st->audioDevices)
+          {
+            auto root = ossia::net::find_node(dev->get_root_node(), "/out/main");
+            if(root)
+            {
+              if(auto p = root->get_parameter())
+              {
+                auto audio_p = static_cast<ossia::audio_parameter*>(p);
+                audio_p->push_value(v);
+              }
+            }
+          }
+        }
+      }
+
+
+    });
+
     toolbars.emplace_back(bar, StringKey<score::Toolbar>("Audio"), 0, 0);
   }
 
@@ -244,7 +273,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     if(audio)
       audio->stop();
 
-    audio.reset(make_engine());
+    audio = make_engine();
 
     if(auto doc = currentDocument()) {
       auto dev = doc->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
