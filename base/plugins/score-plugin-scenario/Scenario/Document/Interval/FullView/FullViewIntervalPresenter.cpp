@@ -10,6 +10,7 @@
 #include <score/document/DocumentInterface.hpp>
 #include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Document/Interval/Temporal/DefaultHeaderDelegate.hpp>
 
 #include <Scenario/Document/Interval/SlotHandle.hpp>
 #include <Process/LayerView.hpp>

@@ -4,13 +4,8 @@
 #include <QObject>
 #include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
-
+#include <Process/LayerPresenter.hpp>
 #include <vector>
-
-namespace Process
-{
-class LayerPresenter;
-}
 
 class BaseGraphicsObject;
 namespace Scenario

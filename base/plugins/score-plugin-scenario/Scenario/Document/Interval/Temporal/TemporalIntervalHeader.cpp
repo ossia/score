@@ -117,10 +117,16 @@ void TemporalIntervalHeader::paint(
   {
     m_previous_x = x;
   }
+  const auto p = QPointF{m_previous_x,
+           (IntervalHeader::headerHeight() - m_textRectCache.height()) / 2.};
 
+  painter->drawImage(p, m_line);
+
+/*
   painter->drawGlyphRun({m_previous_x,
                          (IntervalHeader::headerHeight() - m_textRectCache.height()) / 2.},
                         *m_line);
+*/
 }
 
 void TemporalIntervalHeader::updateButtons()
@@ -156,6 +162,8 @@ void TemporalIntervalHeader::on_textChange()
   const auto& font = ScenarioStyle::instance().Bold12Pt;
   if(m_text.isEmpty())
   {
+    m_textRectCache = {};
+    m_line = QImage{};
     return;
   }
   else
@@ -166,11 +174,17 @@ void TemporalIntervalHeader::on_textChange()
     layout.endLayout();
 
     m_textRectCache = line.naturalTextRect();
+    m_line = QImage{};
     auto r = line.glyphRuns();
     if(r.size() > 0)
-      m_line = std::move(r[0]);
-    else
-      m_line = ossia::none;
+    {
+      m_line = QImage(m_textRectCache.width(), m_textRectCache.height(), QImage::Format_ARGB32_Premultiplied);
+      m_line.fill(Qt::transparent);
+
+      QPainter p{&m_line};
+      p.setPen(ScenarioStyle::instance().IntervalHeaderTextPen);
+      p.drawGlyphRun(QPointF{0, 0}, r[0]);
+    }
   }
 }
 

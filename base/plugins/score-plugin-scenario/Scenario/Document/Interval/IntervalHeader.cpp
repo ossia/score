@@ -8,11 +8,20 @@
 class QGraphicsSceneMouseEvent;
 namespace Scenario
 {
+static const QCursor& openCursor() {
+  static const QCursor c{Qt::OpenHandCursor};
+  return c;
+}
+static const QCursor& closedCursor() {
+  static const QCursor c{Qt::ClosedHandCursor};
+  return c;
+}
 void IntervalHeader::setWidth(double width)
 {
   prepareGeometryChange();
   m_width = width;
-  this->setCursor(QCursor(Qt::OpenHandCursor));
+  if(this->cursor() != openCursor())
+    this->setCursor(openCursor());
   update();
 }
 
@@ -25,7 +34,8 @@ void IntervalHeader::setText(const QString& text)
 
 void IntervalHeader::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  this->setCursor(QCursor(Qt::ClosedHandCursor));
+  if(this->cursor() != closedCursor())
+    this->setCursor(closedCursor());
   m_view->mousePressEvent(event);
 }
 
@@ -36,7 +46,8 @@ void IntervalHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 void IntervalHeader::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  this->setCursor(QCursor(Qt::OpenHandCursor));
+  if(this->cursor() != openCursor())
+    this->setCursor(openCursor());
   m_view->mouseReleaseEvent(event);
 }
 }

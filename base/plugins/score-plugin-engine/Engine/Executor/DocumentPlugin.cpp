@@ -22,7 +22,6 @@
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Engine/Protocols/Settings/Model.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
-#include <ossia/dataflow/graph/graph_static.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/detail/logger.hpp>
 namespace Engine

@@ -23,13 +23,12 @@
 #include <QTextLayout>
 namespace Scenario
 {
-
-static QGlyphRun makeGlyphs(const char* glyph)
+static QImage makeGlyphs(const QString& glyph, const QPen& pen)
 {
+  QImage path;
+
   QTextLayout lay;
   lay.setFont(ScenarioStyle::instance().Medium8Pt);
-  lay.setCacheEnabled(true);
-
   lay.setText(glyph);
   lay.beginLayout();
   QTextLine line = lay.createLine();
@@ -37,18 +36,37 @@ static QGlyphRun makeGlyphs(const char* glyph)
   line.setPosition(QPointF{0., 0.});
 
   auto r = line.glyphRuns();
-  SCORE_ASSERT(r.size() >= 1);
-  return r[0];
+  if(r.size() >= 1)
+  {
+    path = QImage(r[0].boundingRect().width(), r[0].boundingRect().height(), QImage::Format_ARGB32_Premultiplied);
+    path.fill(Qt::transparent);
+
+    QPainter p{&path};
+    p.setPen(pen);
+    p.drawGlyphRun(QPointF{0, 0}, r[0]);
+  }
+
+  return path;
 }
 
-static const QGlyphRun& fromGlyph()
+static QImage& fromGlyphGray()
 {
-  static const QGlyphRun gl{makeGlyphs(">")};
+  static QImage gl{makeGlyphs(">", ScenarioStyle::instance().GrayTextPen)};
   return gl;
 }
-static const QGlyphRun& toGlyph()
+static QImage& toGlyphGray()
 {
-  static const QGlyphRun gl{makeGlyphs("<")};
+  static QImage gl{makeGlyphs("<", ScenarioStyle::instance().GrayTextPen)};
+  return gl;
+}
+static QImage& fromGlyphWhite()
+{
+  static QImage gl{makeGlyphs(">", ScenarioStyle::instance().IntervalHeaderTextPen)};
+  return gl;
+}
+static QImage& toGlyphWhite()
+{
+  static QImage gl{makeGlyphs("<", ScenarioStyle::instance().IntervalHeaderTextPen)};
   return gl;
 }
 
@@ -68,6 +86,7 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(Process::LayerPresenter& p)
   con(p.model().selection, &Selectable::changed,
       this, [=] (bool b) {
     m_sel = b;
+    updateName();
     update();
   });
   updatePorts();
@@ -80,45 +99,15 @@ DefaultHeaderDelegate::~DefaultHeaderDelegate()
 
 void DefaultHeaderDelegate::updateBench(double d)
 {
-  QTextLayout lay;
-  lay.setFont(ScenarioStyle::instance().Medium8Pt);
-  lay.setCacheEnabled(false);
-
-  lay.setText(QString::number(d, 'g', 3));
-  lay.beginLayout();
-  QTextLine line = lay.createLine();
-  lay.endLayout();
-  line.setPosition(QPointF{0., 0.});
-
-  auto r = line.glyphRuns();
-
-  if(r.size() > 0)
-    m_bench = std::move(r[0]);
-  else
-    m_bench.clear();
-
+  const auto& style = ScenarioStyle::instance();
+  m_bench = makeGlyphs(QString::number(d, 'g', 3), m_sel ? style.IntervalHeaderTextPen : style.GrayTextPen);
   update();
 }
 
 void DefaultHeaderDelegate::updateName()
 {
-  QTextLayout lay;
-  lay.setFont(ScenarioStyle::instance().Medium8Pt);
-  lay.setCacheEnabled(true);
-
-  lay.setText(presenter.model().prettyName());
-  lay.beginLayout();
-  QTextLine line = lay.createLine();
-  lay.endLayout();
-  line.setPosition(QPointF{0., 0.});
-
-  auto r = line.glyphRuns();
-
-  if(r.size() > 0)
-    m_line = std::move(r[0]);
-  else
-    m_line.clear();
-
+  const auto& style = ScenarioStyle::instance();
+  m_line = makeGlyphs(presenter.model().prettyName(), m_sel ? style.IntervalHeaderTextPen : style.GrayTextPen);
   update();
 }
 
@@ -203,17 +192,18 @@ void DefaultHeaderDelegate::paint(QPainter* painter, const QStyleOptionGraphicsI
 {
   const auto w = boundingRect().width();
   if(w > minPortWidth()) {
-    const auto& style = ScenarioStyle::instance();
-
-    painter->setRenderHint(QPainter::Antialiasing, true);
-
-    painter->setPen(m_sel ? style.IntervalHeaderTextPen : style.GrayTextPen);
-    painter->drawGlyphRun(QPointF{8.,1.}, m_line);
-    painter->drawGlyphRun(QPointF{w - 32.,1.}, m_bench);
-    painter->drawGlyphRun(QPointF{4., 10.}, fromGlyph());
-    painter->drawGlyphRun(QPointF{4., 20.}, toGlyph());
-
-    painter->setRenderHint(QPainter::Antialiasing, false);
+    painter->drawImage(QPointF{8.,1.}, m_line);
+    painter->drawImage(QPointF{w - 32.,1.}, m_bench);
+    if(m_sel)
+    {
+      painter->drawImage(QPointF{4., 10.}, fromGlyphWhite());
+      painter->drawImage(QPointF{4., 20.}, toGlyphWhite());
+    }
+    else
+    {
+      painter->drawImage(QPointF{4., 10.}, fromGlyphGray());
+      painter->drawImage(QPointF{4., 20.}, toGlyphGray());
+    }
   }
 }
 

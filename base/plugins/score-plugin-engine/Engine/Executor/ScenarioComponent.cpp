@@ -40,7 +40,7 @@
 #include <score/model/EntityMap.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
-#include <ossia/dataflow/graph/graph_utils.hpp>
+#include <ossia/dataflow/graph/graph_interface.hpp>
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
 namespace Engine
 {

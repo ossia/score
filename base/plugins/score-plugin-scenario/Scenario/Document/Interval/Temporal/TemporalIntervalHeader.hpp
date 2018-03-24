@@ -77,7 +77,8 @@ private:
   qreal m_previous_x{};
 
   QRectF m_textRectCache;
-  ossia::optional<QGlyphRun> m_line;
+  //ossia::optional<QGlyphRun> m_line;
+  QImage m_line;
   RackButton* m_button{};
   TemporalIntervalPresenter& m_presenter;
   bool m_hasFocus{};

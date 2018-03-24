@@ -99,12 +99,13 @@ void DocumentManager::init(const score::GUIApplicationContext& ctx)
 
     m_recentFiles = new QRecentFilesMenu{tr("Recent files"), nullptr};
 
+#if !defined(__EMSCRIPTEN__)
     QSettings settings("OSSIA", "score");
     m_recentFiles->restoreState(settings.value("RecentFiles").toByteArray());
-
     connect(
           m_recentFiles, &QRecentFilesMenu::recentFileTriggered, this,
           [&](const QString& f) { loadFile(ctx, f); });
+#endif
   }
 }
 
@@ -611,12 +612,14 @@ bool DocumentManager::updateJson(
 
 void DocumentManager::saveRecentFilesState()
 {
+#if !defined(__EMSCRIPTEN__)
   if(m_recentFiles)
   {
     QSettings settings("OSSIA", "score");
     settings.setValue("RecentFiles", m_recentFiles->saveState());
     m_recentFiles->saveState();
   }
+#endif
 }
 
 SCORE_LIB_BASE_EXPORT

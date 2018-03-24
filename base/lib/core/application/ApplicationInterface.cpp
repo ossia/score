@@ -14,6 +14,7 @@
 #include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsFactory.hpp>
 #include <score/model/ComponentSerialization.hpp>
+#include <QModelIndex>
 namespace score
 {
 ApplicationInterface* ApplicationInterface::m_instance;
@@ -21,6 +22,7 @@ ApplicationInterface::~ApplicationInterface() = default;
 
 ApplicationInterface::ApplicationInterface()
 {
+  qRegisterMetaType<QModelIndex>();
   qRegisterMetaType<ObjectIdentifierVector>("ObjectIdentifierVector");
   qRegisterMetaType<Selection>("Selection");
   qRegisterMetaType<Id<score::DocumentModel>>("Id<DocumentModel>");
@@ -105,6 +107,7 @@ DO_DEBUG;
     app_plug->initialize();
   }
 DO_DEBUG;
+#if !defined(__EMSCRIPTEN__)
   if(presenter.view())
   {
     for (auto& panel_fac :
@@ -118,6 +121,7 @@ DO_DEBUG;
       presenter.view()->setupPanel(panel.get());
     }
   }
+#endif
   DO_DEBUG;
 }
 

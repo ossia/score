@@ -201,6 +201,19 @@ TemporalIntervalPresenter::~TemporalIntervalPresenter()
   {
     auto sc = view->scene();
 
+    for(auto& slt : m_slots)
+    {
+      if(slt.header)
+      {
+        sc->removeItem(slt.header);
+        delete slt.header;
+      }
+      if(slt.handle)
+      {
+        sc->removeItem(slt.handle);
+        delete slt.handle;
+      }
+    }
     if (sc && sc->items().contains(view))
     {
       sc->removeItem(view);

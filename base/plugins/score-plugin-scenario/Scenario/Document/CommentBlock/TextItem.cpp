@@ -34,13 +34,9 @@ QRectF SimpleTextItem::boundingRect() const
 void SimpleTextItem::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  if(m_line)
+  if(!m_string.isEmpty())
   {
-    auto& skin = ScenarioStyle::instance();
-    skin.TextItemPen.setBrush(m_color.getBrush());
-    painter->setPen(skin.TextItemPen);
-    painter->setBrush(skin.NoBrush);
-    painter->drawGlyphRun({0, 0}, *m_line);
+    painter->drawImage(QPointF{0, 0}, m_line);
   }
 }
 
@@ -60,7 +56,7 @@ void SimpleTextItem::setText(QString s)
 void SimpleTextItem::setColor(score::ColorRef c)
 {
   m_color = c;
-  update();
+  updateImpl();
 }
 
 void SimpleTextItem::updateImpl()
@@ -70,7 +66,7 @@ void SimpleTextItem::updateImpl()
   if(m_string.isEmpty())
   {
     m_rect = QRectF{};
-    m_line = ossia::none;
+    m_line = QImage{};
   }
   else
   {
@@ -81,10 +77,20 @@ void SimpleTextItem::updateImpl()
 
     m_rect = line.naturalTextRect();
     auto r = line.glyphRuns();
+
     if(r.size() > 0)
-      m_line = std::move(r[0]);
-    else
-      m_line = ossia::none;
+    {
+      m_line = QImage(r[0].boundingRect().width(), r[0].boundingRect().height(), QImage::Format_ARGB32_Premultiplied);
+      m_line.fill(Qt::transparent);
+
+      QPainter p{&m_line};
+      auto& skin = ScenarioStyle::instance();
+      skin.TextItemPen.setBrush(m_color.getBrush());
+
+      p.setPen(skin.TextItemPen);
+      p.setBrush(skin.NoBrush);
+      p.drawGlyphRun(QPointF{0, 0}, r[0]);
+    }
   }
 
   update();

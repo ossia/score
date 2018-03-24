@@ -12,6 +12,7 @@ PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
     : score::PanelDelegate{ctx}
     , m_widget{new DeviceExplorerWidget{
           ctx.interfaces<Device::ProtocolFactoryList>(), nullptr}}
+
 {
 }
 
@@ -32,6 +33,7 @@ const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
 void PanelDelegate::on_modelChanged(
     score::MaybeDocument oldm, score::MaybeDocument newm)
 {
+#if !defined(__EMSCRIPTEN__)
   // DeviceExplorerModel ownership goes to document plugin
   if (oldm)
   {
@@ -49,5 +51,6 @@ void PanelDelegate::on_modelChanged(
   {
     m_widget->setModel(nullptr);
   }
+#endif
 }
 }
