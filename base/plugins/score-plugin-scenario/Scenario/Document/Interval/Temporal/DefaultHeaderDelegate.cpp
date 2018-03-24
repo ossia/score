@@ -8,6 +8,7 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <Dataflow/UI/PortItem.hpp>
 #include <Process/Process.hpp>
+#include <score/widgets/GraphicsItem.hpp>
 #include <Explorer/Widgets/AddressAccessorEditWidget.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Dataflow/Commands/EditPort.hpp>
@@ -20,6 +21,7 @@
 #include <score/widgets/SignalUtils.hpp>
 #include <QCheckBox>
 #include <QMenu>
+#include <QApplication>
 #include <QTextLayout>
 namespace Scenario
 {
@@ -38,7 +40,10 @@ static QImage makeGlyphs(const QString& glyph, const QPen& pen)
   auto r = line.glyphRuns();
   if(r.size() >= 1)
   {
-    path = QImage(r[0].boundingRect().width(), r[0].boundingRect().height(), QImage::Format_ARGB32_Premultiplied);
+    auto rect = line.naturalTextRect();
+    double ratio = qApp->devicePixelRatio();
+    path = QImage(rect.width() * ratio, rect.height() * ratio, QImage::Format_ARGB32_Premultiplied);
+    path.setDevicePixelRatio(ratio);
     path.fill(Qt::transparent);
 
     QPainter p{&path};

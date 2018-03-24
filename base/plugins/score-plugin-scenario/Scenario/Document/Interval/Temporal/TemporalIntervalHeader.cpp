@@ -178,7 +178,11 @@ void TemporalIntervalHeader::on_textChange()
     auto r = line.glyphRuns();
     if(r.size() > 0)
     {
-      m_line = QImage(m_textRectCache.width(), m_textRectCache.height(), QImage::Format_ARGB32_Premultiplied);
+      double ratio = 1.;
+      if(auto v = getView(*this))
+        ratio = v->devicePixelRatioF();
+      m_line = QImage(m_textRectCache.width() * ratio, m_textRectCache.height() * ratio, QImage::Format_ARGB32_Premultiplied);
+      m_line.setDevicePixelRatio(ratio);
       m_line.fill(Qt::transparent);
 
       QPainter p{&m_line};
