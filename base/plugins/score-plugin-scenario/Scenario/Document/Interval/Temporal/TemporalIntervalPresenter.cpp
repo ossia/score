@@ -199,24 +199,25 @@ TemporalIntervalPresenter::~TemporalIntervalPresenter()
   // TODO deleteGraphicsObject
   if (view)
   {
-    auto sc = view->scene();
-
-    for(auto& slt : m_slots)
+    if(auto sc = view->scene())
     {
-      if(slt.header)
+      for(auto& slt : m_slots)
       {
-        sc->removeItem(slt.header);
-        delete slt.header;
+        if(slt.header)
+        {
+          sc->removeItem(slt.header);
+          delete slt.header;
+        }
+        if(slt.handle)
+        {
+          sc->removeItem(slt.handle);
+          delete slt.handle;
+        }
       }
-      if(slt.handle)
+      if (sc->items().contains(view))
       {
-        sc->removeItem(slt.handle);
-        delete slt.handle;
+        sc->removeItem(view);
       }
-    }
-    if (sc && sc->items().contains(view))
-    {
-      sc->removeItem(view);
     }
 
     view->deleteLater();

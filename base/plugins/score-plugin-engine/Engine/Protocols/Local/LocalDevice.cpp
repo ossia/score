@@ -68,7 +68,9 @@ void LocalDevice::setRemoteSettings(const Device::DeviceSettings& settings)
     set.wsPort = 9999;
     set.oscPort = 6666;
 
+    try {
     m_proto->expose_to(std::make_unique<ossia::oscquery::oscquery_server_protocol>(set.oscPort, set.wsPort));
+    } catch(...) { }
   }
   catch (...)
   {
