@@ -37,6 +37,7 @@ LayerView::LayerView(QGraphicsItem* parent):
 LayerView::~LayerView()
 {
   m_cpt->stop();
+  m_cpt->moveToThread(this->thread());
   m_cpt->deleteLater();
 }
 

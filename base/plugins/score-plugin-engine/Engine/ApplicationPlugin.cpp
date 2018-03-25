@@ -51,6 +51,7 @@
 #include <ossia/audio/audio_protocol.hpp>
 #include <Explorer/Settings/ExplorerModel.hpp>
 #include <score/widgets/DoubleSlider.hpp>
+#include <score/widgets/SetIcons.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 SCORE_DECLARE_ACTION(RestartAudio, "Restart Audio", Common, QKeySequence::UnknownKey)
 
@@ -180,6 +181,7 @@ void ApplicationPlugin::initialize()
       if(audio)
         audio->stop();
       audio = make_engine();
+      m_audioEngineAct->setChecked(bool(audio));
       d.reconnect();
     }
   });
@@ -225,6 +227,7 @@ void ApplicationPlugin::initialize()
   });
 */
   audio = make_engine();
+  m_audioEngineAct->setChecked(bool(audio));
 }
 score::GUIElements ApplicationPlugin::makeGUIElements()
 {
@@ -233,10 +236,16 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
 
   toolbars.reserve(1);
 
-  auto act = new QAction{tr("Restart Audio"), this};
+  m_audioEngineAct = new QAction{tr("Restart Audio"), this};
+  m_audioEngineAct->setCheckable(true);
+  m_audioEngineAct->setChecked(bool(audio));
+
+  setIcons(
+      m_audioEngineAct, QString(":/icons/engine_on.png"),
+      QString(":/icons/engine_off.png"));
   {
     auto bar = new QToolBar;
-    bar->addAction(act);
+    bar->addAction(m_audioEngineAct);
     auto sl = new score::DoubleSlider{bar};
     sl->setValue(0.5);
     bar->addWidget(sl);
@@ -259,21 +268,25 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
           }
         }
       }
-
-
     });
 
     toolbars.emplace_back(bar, StringKey<score::Toolbar>("Audio"), 0, 0);
   }
 
   e.actions.container.reserve(2);
-  e.actions.add<Actions::RestartAudio>(act);
+  e.actions.add<Actions::RestartAudio>(m_audioEngineAct);
 
-  connect(act, &QAction::triggered, this, [=] {
+  connect(m_audioEngineAct, &QAction::triggered, this, [=] (bool k) {
     if(audio)
+    {
       audio->stop();
-
-    audio = make_engine();
+      audio.reset();
+    }
+    else
+    {
+      audio = make_engine();
+    }
+    m_audioEngineAct->setChecked(bool(audio));
 
     if(auto doc = currentDocument()) {
       auto dev = doc->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
