@@ -64,6 +64,7 @@ struct UI
     {
       auto inl = new Process::ControlInlet{getStrongId(fx.inlets()), &fx};
       inl->setCustomData(label);
+      inl->hidden = true;
       fx.inlets().push_back(inl);
     }
 
@@ -76,6 +77,7 @@ struct UI
       inl->setCustomData(label);
       inl->setDomain(ossia::make_domain(min, max));
       inl->setValue(init);
+      inl->hidden = true;
       fx.inlets().push_back(inl);
     }
 
@@ -116,12 +118,14 @@ struct UpdateUI
         inlet = static_cast<Process::ControlInlet*>(fx.inlets()[i]);
         inlet->setCustomData(label);
         inlet->setDomain(ossia::make_domain(false, true));
+        inlet->hidden = true;
       }
       else
       {
         inlet = new Process::ControlInlet{getStrongId(fx.inlets()), &fx};
         inlet->setCustomData(label);
         inlet->setDomain(ossia::make_domain(false, true));
+        inlet->hidden = true;
         fx.inlets().push_back(inlet);
         fx.controlAdded(inlet->id());
       }

@@ -180,10 +180,22 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
   });
   con(m_model, &IntervalModel::frontLayerChanged,
       this, [=] (int pos, OptionalId<Process::ProcessModel> proc) {
-
     if(proc)
+    {
       on_layerModelPutToFront(pos, m_model.processes.at(*proc));
-    // TODO else
+    }
+    else
+    {
+      if(pos < m_slots.size())
+      {
+        auto& slt = m_slots[pos];
+        if(slt.headerDelegate)
+        {
+          deleteGraphicsItem(slt.headerDelegate);
+          slt.headerDelegate = nullptr;
+        }
+      }
+    }
   });
 
   m_model.processes.added.connect<TemporalIntervalPresenter, &TemporalIntervalPresenter::on_processesChanged>(this);

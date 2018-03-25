@@ -96,6 +96,8 @@ void FaustEffectModel::reload()
 
   if(faust_factory && faust_object)
   {
+    // updating an existing DSP
+
     deleteCDSPInstance(faust_object); // TODO not thread-safe wrt exec thread
     deleteCDSPFactory(faust_factory);
 
@@ -112,8 +114,20 @@ void FaustEffectModel::reload()
     }
     m_inlets.resize(ui.i);
   }
+  else if(!m_inlets.empty() && !m_outlets.empty() && !faust_factory && !faust_object)
+  {
+    // loading
+
+    faust_factory = fac;
+    faust_object = obj;
+    // Try to reuse controls
+    Faust::UpdateUI<decltype(*this)> ui{*this};
+    buildUserInterfaceCDSPInstance(faust_object, &ui.glue);
+  }
   else
   {
+    // creating a new dsp
+
     if(faust_factory)
       deleteCDSPFactory(faust_factory);
 
@@ -144,6 +158,7 @@ FaustEditDialog::FaustEditDialog(const FaustEffectModel& fx, const score::Docume
   QDialog{parent}
   , m_effect{fx}
 {
+  this->setWindowFlag(Qt::WindowCloseButtonHint, false);
   auto lay = new QVBoxLayout{this};
   this->setLayout(lay);
 
@@ -201,6 +216,7 @@ void JSONObjectWriter::write(
     Media::Faust::FaustEffectModel& eff)
 {
   writePorts(obj, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
+  eff.m_text = obj["Text"].toString();
   eff.reload();
 }
 

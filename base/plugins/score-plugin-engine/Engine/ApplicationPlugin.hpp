@@ -98,6 +98,7 @@ private:
   Engine::Execution::PlayContextMenu m_playActions;
 
   std::unique_ptr<Engine::Execution::ClockManager> m_clock;
+  QAction* m_audioEngineAct{};
   bool m_playing{false}, m_paused{false};
   void initialize() override;
 };
