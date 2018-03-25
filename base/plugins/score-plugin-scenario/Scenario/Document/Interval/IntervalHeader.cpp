@@ -20,7 +20,7 @@ void IntervalHeader::setWidth(double width)
 {
   prepareGeometryChange();
   m_width = width;
-  if(this->cursor() != openCursor())
+  if(this->cursor().shape() != openCursor().shape())
     this->setCursor(openCursor());
   update();
 }
@@ -34,7 +34,7 @@ void IntervalHeader::setText(const QString& text)
 
 void IntervalHeader::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(this->cursor() != closedCursor())
+  if(this->cursor().shape() != closedCursor().shape())
     this->setCursor(closedCursor());
   m_view->mousePressEvent(event);
 }
@@ -46,7 +46,7 @@ void IntervalHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 void IntervalHeader::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(this->cursor() != openCursor())
+  if(this->cursor().shape() != openCursor().shape())
     this->setCursor(openCursor());
   m_view->mouseReleaseEvent(event);
 }
