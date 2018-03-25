@@ -146,7 +146,7 @@ const score::ApplicationComponents&Application::components() const
 
 static QPixmap writeVersionName()
 {
-  QPixmap pixmap;
+  QImage pixmap;
   if(auto screen = qApp->primaryScreen())
   {
     if(screen->devicePixelRatio() >= 2.0)
@@ -160,16 +160,22 @@ static QPixmap writeVersionName()
   }
 
   QPainter painter;
-  if (!painter.begin(&pixmap)){
-    return pixmap;
+  if (!painter.begin(&pixmap)) {
+    return QPixmap::fromImage(pixmap);
   }
 
+  painter.setRenderHint(QPainter::Antialiasing, true);
+  painter.setRenderHint(QPainter::TextAntialiasing, true);
+  painter.setRenderHint(QPainter::HighQualityAntialiasing, true);
   painter.setPen(QPen(QColor("#0092CF")));
-  painter.setFont(QFont(":/Ubuntu-R.ttf",21, QFont::Light));
+  QFont f(":/Ubuntu-R.ttf",8, QFont::Light);
+  f.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
+  f.setStyleStrategy(QFont::PreferAntialias);
+  painter.setFont(f);
   painter.drawText(QPointF(270,265), QCoreApplication::applicationVersion());
   painter.end();
 
-  return pixmap;
+  return QPixmap::fromImage(pixmap);
 }
 
 void Application::init()

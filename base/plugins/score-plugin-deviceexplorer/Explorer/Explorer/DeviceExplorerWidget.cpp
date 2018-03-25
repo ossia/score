@@ -90,6 +90,10 @@ static const Device::DeviceSettings* getDevice(const Device::Node& n)
         return &p->get<Device::DeviceSettings>();
     }
   }
+  else if(n.is<Device::DeviceSettings>())
+  {
+    return &n.get<Device::DeviceSettings>();
+  }
   return nullptr;
 }
 
