@@ -6,6 +6,12 @@
 #include <QGraphicsSceneContextMenuEvent>
 #include <QTimer>
 #include <score/widgets/GraphicsItem.hpp>
+
+#if defined(__AVX2__) && __has_include(<immintrin.h>)
+#include <immintrin.h>
+#elif defined(__SSE2__) && __has_include(<xmmintrin.h>)
+#include <xmmintrin.h>
+#endif
 namespace Media
 {
 namespace Sound
@@ -191,7 +197,6 @@ WaveformComputer::action WaveformComputer::compareDensity(const double density) 
   return KEEP_CUR;
 }
 
-
 void WaveformComputer::computeDataSet(
     const MediaFileHandle& data,
     ZoomRatio ratio,
@@ -231,10 +236,26 @@ void WaveformComputer::computeDataSet(
       }
     }
 
-    for(int i = 0; i < npoints; i++)
+    int i = 0;
+#if defined(__AVX512__)
     {
-      rmsv[i] = std::sqrt(rmsv[i] * one_over_dens);
+      for(; i < npoints - 8; i += 8)
+      {
+        __m256 X = _mm256_mul_ps(_mm256_load_ps(&rmsv[i]), _mm256_set1_ps(one_over_dens));
+        _mm256_store_ps(&rmsv[i], _mm256_mul_ps(_mm256_rsqrt14_ps(X), X));
+      }
     }
+#elif defined(__SSE2__)
+    {
+      for(; i < npoints - 4; i += 4)
+      {
+        __m128 X = _mm_mul_ps(_mm_load_ps(&rmsv[i]), _mm_set1_ps(one_over_dens));
+        _mm_store_ps(&rmsv[i], _mm_mul_ps(X, _mm_rsqrt_ps(X)));
+      }
+    }
+#endif
+    for(; i < npoints ; i ++)
+      rmsv[i] = std::sqrt(rmsv[i] * one_over_dens);
   }
 }
 
