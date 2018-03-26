@@ -8,6 +8,7 @@
 #include <QKeyEvent>
 #include <QPainter>
 #include <Midi/MidiStyle.hpp>
+#include <score/widgets/GraphicsItem.hpp>
 namespace Midi
 {
 
@@ -76,31 +77,54 @@ void View::paint_impl(QPainter* p) const
   p->setBrush(style.darkerBrush);
   p->setPen(style.darkPen);
 
-  if(note_height > 3)
+  if(note_height > 5)
   {
-    const auto draw_bg = [&] (int i) {
-      p->drawRect(QRectF{0., rect.height() + note_height * (m_min - i) - 1, rect.width(), note_height});
-    };
-
-    p->setBrush(style.lightBrush);
-    for_white_notes(draw_bg);
-
-    p->setBrush(style.darkBrush);
-    for_black_notes(draw_bg);
-
-    if(note_height > 10)
+    if(auto v = getView((QGraphicsItem&)*this))
     {
-      static constexpr const char* texts[]{ "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
-      const auto draw_text = [&] (int i) {
-        p->drawText(
-              QRectF{2., rect.height() + note_height * (m_min - i ) - 1, rect.width(), note_height},
-              texts[i%12],
-            QTextOption{Qt::AlignVCenter});
-      };
+      const auto view_left = v->mapToScene(0, 0);
+      const auto view_right = v->mapToScene(v->width(), 0);
+      const auto left = std::max(0., this->mapFromScene(view_left).x()) + 150;
+      const auto right = std::min(rect.width(), this->mapFromScene(view_right).x()) - 150;
+      //qDebug() << v->mapToScene(0, 0) << v->mapToScene(v->width(), 0) << left << right;
 
-      p->setPen(style.darkerBrush.color());
-      for_white_notes(draw_text);
-      for_black_notes(draw_text);
+      {
+        QRectF* white_rects = (QRectF*) alloca((sizeof(QRectF) * m_max - m_min));
+        int max_white = 0;
+        const auto draw_bg_white = [&] (int i) {
+          white_rects[max_white++] = QRectF{left, rect.height() + note_height * (m_min - i) - 1, right - left, note_height};
+        };
+        for_white_notes(draw_bg_white);
+        p->setBrush(style.lightBrush);
+        p->drawRects(white_rects, max_white);
+      }
+
+      {
+        QRectF* black_rects = (QRectF*) alloca((sizeof(QRectF) * m_max - m_min));
+        int max_black = 0;
+        const auto draw_bg_black = [&] (int i) {
+          black_rects[max_black++] = QRectF{left, rect.height() + note_height * (m_min - i) - 1, right - left, note_height};
+        };
+        for_black_notes(draw_bg_black);
+
+        p->setBrush(style.darkBrush);
+        p->drawRects(black_rects, max_black);
+      }
+
+
+      if(note_height > 10)
+      {
+        static constexpr const char* texts[]{ "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+        const auto draw_text = [&] (int i) {
+          p->drawText(
+                QRectF{2., rect.height() + note_height * (m_min - i ) - 1, rect.width(), note_height},
+                texts[i%12],
+              QTextOption{Qt::AlignVCenter});
+        };
+
+        p->setPen(style.darkerBrush.color());
+        for_white_notes(draw_text);
+        for_black_notes(draw_text);
+      }
     }
   }
 
