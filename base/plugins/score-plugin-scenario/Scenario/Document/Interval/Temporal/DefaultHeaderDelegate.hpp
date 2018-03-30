@@ -18,7 +18,7 @@ class DefaultHeaderDelegate final
     void setSize(QSizeF sz) override;
 
     double minPortWidth() const;
-    Process::LayerPresenter& presenter;
+    QPointer<Process::LayerPresenter> presenter;
   private:
     void updatePorts();
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;

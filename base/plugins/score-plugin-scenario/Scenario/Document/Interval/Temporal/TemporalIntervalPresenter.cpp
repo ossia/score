@@ -317,7 +317,7 @@ void TemporalIntervalPresenter::on_rackVisibleChanged(bool b)
   on_rackChanged();
 }
 
-void TemporalIntervalPresenter::createSlot(int pos, const Slot& slt)
+void TemporalIntervalPresenter::createSlot(int pos, const Slot& aSlt)
 {
   if(m_model.smallViewVisible())
   {
@@ -328,9 +328,21 @@ void TemporalIntervalPresenter::createSlot(int pos, const Slot& slt)
     // p.view = new SlotView{};
     m_slots.insert(m_slots.begin() + pos, std::move(p));
 
-    for(const auto& process : slt.processes)
+    // FIXME: due to a crash with slots with invalid processes being serialized.
+    // fix the model !!
+    auto& slt = const_cast<Slot&>(aSlt);
+    for(auto it = slt.processes.begin() ; it != slt.processes.end(); )
     {
-      createLayer(pos, m_model.processes.at(process));
+      auto pit = m_model.processes.find(*it);
+      if(pit != m_model.processes.end())
+      {
+        createLayer(pos, *pit);
+        ++it;
+      }
+      else
+      {
+        it = slt.processes.erase(it);
+      }
     }
 
     updatePositions();
@@ -621,7 +633,7 @@ void TemporalIntervalPresenter::selectedSlot(int i) const
     auto proc = m_model.getSmallViewSlot(i).frontProcess;
     if(proc)
     {
-      m_context.focusDispatcher.focus(&m_slots[i].headerDelegate->presenter);
+      m_context.focusDispatcher.focus(m_slots[i].headerDelegate->presenter);
       disp.setAndCommit({&m_model.processes.at(*proc)});
     }
   }
