@@ -76,9 +76,9 @@ static QImage& toGlyphWhite()
 }
 
 DefaultHeaderDelegate::DefaultHeaderDelegate(Process::LayerPresenter& p)
-  : presenter{p}
+  : presenter{&p}
 {
-  con(presenter.model(), &Process::ProcessModel::prettyNameChanged,
+  con(presenter->model(), &Process::ProcessModel::prettyNameChanged,
       this, &DefaultHeaderDelegate::updateName);
   updateName();
 
@@ -111,9 +111,12 @@ void DefaultHeaderDelegate::updateBench(double d)
 
 void DefaultHeaderDelegate::updateName()
 {
-  const auto& style = ScenarioStyle::instance();
-  m_line = makeGlyphs(presenter.model().prettyName(), m_sel ? style.IntervalHeaderTextPen : style.GrayTextPen);
-  update();
+  if(presenter)
+  {
+    const auto& style = ScenarioStyle::instance();
+    m_line = makeGlyphs(presenter->model().prettyName(), m_sel ? style.IntervalHeaderTextPen : style.GrayTextPen);
+    update();
+  }
 }
 
 void DefaultHeaderDelegate::setSize(QSizeF sz)
@@ -164,14 +167,16 @@ double DefaultHeaderDelegate::minPortWidth() const
 
 void DefaultHeaderDelegate::updatePorts()
 {
+  if(!presenter)
+    return;
   qDeleteAll(m_inPorts);
   m_inPorts.clear();
   qDeleteAll(m_outPorts);
   m_outPorts.clear();
-  const auto& ctx = presenter.context().context;
+  const auto& ctx = presenter->context().context;
 
   qreal x = 16;
-  for(Process::Inlet* port : presenter.model().inlets())
+  for(Process::Inlet* port : presenter->model().inlets())
   {
     if(port->hidden)
       continue;
@@ -182,7 +187,7 @@ void DefaultHeaderDelegate::updatePorts()
   }
 
   x = 16.;
-  for(Process::Outlet* port : presenter.model().outlets())
+  for(Process::Outlet* port : presenter->model().outlets())
   {
     if(port->hidden)
       continue;
