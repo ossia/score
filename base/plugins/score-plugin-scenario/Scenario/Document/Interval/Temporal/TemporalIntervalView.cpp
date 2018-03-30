@@ -253,18 +253,18 @@ void TemporalIntervalView::paint(
   // Colors
   const auto& defaultColor = this->intervalColor(skin);
 
-  skin.IntervalSolidPen.setBrush(defaultColor);
-  skin.IntervalDashPen.setBrush(defaultColor);
 
   // Drawing
   if (!solidPath.isEmpty())
   {
+    skin.IntervalSolidPen.setBrush(defaultColor);
     painter.setPen(skin.IntervalSolidPen);
     painter.drawPath(solidPath);
   }
 
   if (!dashedPath.isEmpty())
   {
+    skin.IntervalDashPen.setBrush(defaultColor);
     painter.setPen(skin.IntervalDashPen);
     painter.drawPath(dashedPath);
     skin.IntervalDashPen.setDashOffset(0);
