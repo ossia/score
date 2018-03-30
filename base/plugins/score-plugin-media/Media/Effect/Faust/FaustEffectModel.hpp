@@ -16,11 +16,6 @@ PROCESS_METADATA(, Media::Faust::FaustEffectModel, "5354c61a-1649-4f59-b952-5c2f
 DESCRIPTION_METADATA(, Media::Faust::FaustEffectModel, "Faust")
 namespace Media::Faust
 {
-/** Faust effect model.
- * Should contain an effect, maybe instantiated with
- * LibMediaStream's MakeFaustMediaEffect
- * Cloning can be done with MakeCopyEffect.
- */
 class FaustEffectModel :
     public Process::ProcessModel
 {

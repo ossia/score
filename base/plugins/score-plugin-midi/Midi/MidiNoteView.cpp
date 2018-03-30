@@ -22,13 +22,14 @@ void NoteView::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   static MidiStyle s;
+
   painter->setRenderHint(QPainter::Antialiasing, false);
 
   painter->setBrush(this->isSelected() ? s.noteSelectedBaseBrush : s.noteBaseBrush);
   painter->setPen(s.noteBasePen);
   painter->drawRect(boundingRect().adjusted(0., 0., 0., -1.));
 
-  if(m_height > 6)
+  if(m_height > 8)
   {
     auto orange = s.noteBaseBrush.color();
     orange.setHslF(
