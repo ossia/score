@@ -301,7 +301,7 @@ void FullViewIntervalPresenter::selectedSlot(int i) const
   SCORE_ASSERT(size_t(i) < m_slots.size());
   auto& slot = m_slots[i];
 
-  m_context.focusDispatcher.focus(&m_slots[i].headerDelegate->presenter);
+  m_context.focusDispatcher.focus(m_slots[i].headerDelegate->presenter);
   disp.setAndCommit({slot.process.model});
 }
 
