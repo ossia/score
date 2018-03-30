@@ -83,8 +83,8 @@ void View::paint_impl(QPainter* p) const
     {
       const auto view_left = v->mapToScene(0, 0);
       const auto view_right = v->mapToScene(v->width(), 0);
-      const auto left = std::max(0., this->mapFromScene(view_left).x()) + 150;
-      const auto right = std::min(rect.width(), this->mapFromScene(view_right).x()) - 150;
+      const auto left = std::max(0., this->mapFromScene(view_left).x()) ;
+      const auto right = std::min(rect.width(), this->mapFromScene(view_right).x()) ;
       //qDebug() << v->mapToScene(0, 0) << v->mapToScene(v->width(), 0) << left << right;
 
       {
