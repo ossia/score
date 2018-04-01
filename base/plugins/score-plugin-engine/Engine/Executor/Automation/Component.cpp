@@ -92,8 +92,8 @@ Component::Component(
         ctx,
         id, "Executor::AutomationComponent", parent}
 {
-  node = std::make_shared<ossia::automation_node>();
-  m_ossia_process = std::make_shared<ossia::automation_process>(node);
+  node = std::make_shared<ossia::nodes::automation>();
+  m_ossia_process = std::make_shared<ossia::nodes::automation_process>(node);
 
   con(element, &Automation::ProcessModel::minChanged,
       this, [this] (const auto&) { this->recompute(); });
@@ -132,7 +132,7 @@ void Component::recompute()
     if (curve)
     {
       in_exec(
-            [proc=std::dynamic_pointer_cast<ossia::automation_node>(OSSIAProcess().node)
+            [proc=std::dynamic_pointer_cast<ossia::nodes::automation>(OSSIAProcess().node)
             ,curve
             ,d_=d]
       {
@@ -149,7 +149,7 @@ void Component::recompute()
     if (curve)
     {
       in_exec(
-            [proc=std::dynamic_pointer_cast<ossia::automation_node>(OSSIAProcess().node)
+            [proc=std::dynamic_pointer_cast<ossia::nodes::automation>(OSSIAProcess().node)
             ,curve]
       {
         proc->set_destination({});

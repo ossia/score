@@ -12,6 +12,8 @@
 #include <Process/Dataflow/PortFactory.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
+#include <ossia/dataflow/nodes/faust/faust_node.hpp>
+
 
 namespace Media::Faust
 {
@@ -223,42 +225,6 @@ void JSONObjectWriter::write(
 namespace Engine::Execution
 {
 
-class faust_node final : public ossia::graph_node
-{
-    llvm_dsp* m_dsp{};
-  public:
-    ossia::small_vector<std::pair<ossia::value_port*, FAUSTFLOAT*>, 8> controls;
-    faust_node(llvm_dsp& dsp):
-      m_dsp{&dsp}
-    {
-      m_inlets.push_back(ossia::make_inlet<ossia::audio_port>());
-      m_outlets.push_back(ossia::make_outlet<ossia::audio_port>());
-      Media::Faust::ExecUI<faust_node> ex{*this};
-      buildUserInterfaceCDSPInstance(m_dsp, &ex.glue);
-    }
-
-    void run(ossia::token_request tk, ossia::execution_state&) override
-    {
-      struct dsp_wrap
-      {
-          llvm_dsp* dsp;
-          int getNumInputs() const { return getNumInputsCDSPInstance(dsp); }
-          int getNumOutputs() const { return getNumOutputsCDSPInstance(dsp); }
-          void compute(int n, FAUSTFLOAT** i, FAUSTFLOAT**o)
-          { computeCDSPInstance(dsp, n, i, o); }
-      } d{m_dsp};
-      Media::Faust::faust_exec(*this, d, tk);
-    }
-
-    std::string label() const override
-    {
-      return "Faust";
-    }
-
-    void all_notes_off() override
-    {
-    }
-};
 Engine::Execution::FaustEffectComponent::FaustEffectComponent(
     Media::Faust::FaustEffectModel& proc,
     const Engine::Execution::Context& ctx,
@@ -269,7 +235,7 @@ Engine::Execution::FaustEffectComponent::FaustEffectComponent(
   if(proc.faust_object)
   {
     initCDSPInstance(proc.faust_object, ctx.plugin.execState->sampleRate);
-    auto node = std::make_shared<faust_node>(*proc.faust_object);
+    auto node = std::make_shared<ossia::nodes::faust>(*proc.faust_object);
     this->node = node;
     m_ossia_process = std::make_shared<ossia::node_process>(node);
     for(std::size_t i = 1; i < proc.inlets().size(); i++)

@@ -67,7 +67,7 @@ struct FloatSlider final : ControlInfo
       p->type = Process::PortType::Message;
       p->setValue(init);
       p->setDomain(ossia::make_domain(min, max));
-      p->setCustomData(name);
+      p->setCustomData(QString::fromUtf8(name.data(), name.size()));
       return p;
     }
 
@@ -164,7 +164,7 @@ struct LogFloatSlider final : ControlInfo
       p->type = Process::PortType::Message;
       p->setValue(init);
       p->setDomain(ossia::make_domain(min, max));
-      p->setCustomData(name);
+      p->setCustomData(QString::fromUtf8(name.data(), name.size()));
       return p;
     }
 
@@ -275,7 +275,7 @@ struct IntSlider final : ControlInfo
       p->type = Process::PortType::Message;
       p->setValue(init);
       p->setDomain(ossia::make_domain(min, max));
-      p->setCustomData(name);
+      p->setCustomData(QString::fromUtf8(name.data(), name.size()));
       return p;
     }
 
@@ -370,7 +370,7 @@ struct IntSpinBox final : ControlInfo
       p->type = Process::PortType::Message;
       p->setValue(init);
       p->setDomain(ossia::make_domain(min, max));
-      p->setCustomData(name);
+      p->setCustomData(QString::fromUtf8(name.data(), name.size()));
       return p;
     }
 
@@ -444,7 +444,7 @@ struct Toggle final : ControlInfo
       auto p = new Process::ControlInlet(id, parent);
       p->type = Process::PortType::Message;
       p->setValue(init);
-      p->setCustomData(name);
+      p->setCustomData(QString::fromUtf8(name.data(), name.size()));
       return p;
     }
 
@@ -505,7 +505,7 @@ struct ChooserToggle final : ControlInfo
       auto p = new Process::ControlInlet(id, parent);
       p->type = Process::PortType::Message;
       p->setValue(init);
-      p->setCustomData(name);
+      p->setCustomData(QString::fromUtf8(name.data(), name.size()));
       return p;
     }
 
@@ -566,7 +566,7 @@ struct LineEdit final : ControlInfo
       auto p = new Process::ControlInlet(id, parent);
       p->type = Process::PortType::Message;
       p->setValue(std::string(init.latin1(), init.size()));
-      p->setCustomData(name);
+      p->setCustomData(QString::fromUtf8(name.data(), name.size()));
       return p;
     }
 
@@ -629,7 +629,7 @@ struct ComboBox final : ControlInfo
       auto p = new Process::ControlInlet(id, parent);
       p->type = Process::PortType::Message;
       p->setValue(values[init].second);
-      p->setCustomData(name);
+      p->setCustomData(QString::fromUtf8(name.data(), name.size()));
       return p;
     }
 
@@ -754,7 +754,7 @@ struct EnumBase : ControlInfo
       auto p = new Process::ControlInlet(id, parent);
       p->type = Process::PortType::Message;
       p->setValue(std::string(values[init]));
-      p->setCustomData(name);
+      p->setCustomData(QString::fromUtf8(name.data(), name.size()));
       return p;
     }
 
@@ -904,7 +904,7 @@ struct TimeSignatureChooser final: ControlInfo
       auto p = new Process::ControlInlet(id, parent);
       p->type = Process::PortType::Message;
       p->setValue(std::string{init});
-      p->setCustomData(name);
+      p->setCustomData(QString::fromUtf8(name.data(), name.size()));
       return p;
     }
 

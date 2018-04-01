@@ -24,16 +24,16 @@ struct UISetup
         View& self,
         const score::DocumentContext& doc)
     {
-      if constexpr(InfoFunctions<Info>::control_count > 0)
+      if constexpr(ossia::safe_nodes::info_functions<Info>::control_count > 0)
       {
         std::size_t i = 0;
         double pos_y = 0.;
         ossia::for_each_in_tuple(
-              get_controls<Info>{}(),
+              ossia::safe_nodes::get_controls<Info>{}(),
               [&] (const auto& ctrl) {
           auto item = new score::EmptyRectItem{&self};
           item->setPos(0, pos_y);
-          auto inlet = static_cast<Process::ControlInlet*>(object.inlets()[InfoFunctions<Info>::control_start + i]);
+          auto inlet = static_cast<Process::ControlInlet*>(object.inlets()[ossia::safe_nodes::info_functions<Info>::control_start + i]);
 
           auto port = Dataflow::setupInlet(*inlet, doc, item, &self);
 

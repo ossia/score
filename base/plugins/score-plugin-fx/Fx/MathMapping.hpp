@@ -14,8 +14,8 @@ struct Node
         static const constexpr auto tags = std::array<const char*, 0>{};
         static const constexpr auto uuid = make_uuid("ae84e8b6-74ff-4259-aeeb-305d95cdfcab");
         
-        static const constexpr auto value_ins = Control::ValueIns<1>{{"in"}};     
-        static const constexpr auto value_outs = Control::ValueOuts<1>{{"out"}}; 
+        static const constexpr auto value_ins = ossia::safe_nodes::value_ins<1>{{"in"}};     
+        static const constexpr auto value_outs = ossia::safe_nodes::value_outs<1>{{"out"}}; 
         
         static const constexpr auto controls = 
             std::make_tuple(Control::LineEdit("Expression (ExprTK)", "cos(t) + log(pos * x / dt)")
@@ -50,7 +50,7 @@ struct Node
         bool ok = false;
     };
 
-    using control_policy = Control::LastTick;
+    using control_policy = ossia::safe_nodes::last_tick;
     static void run(
             const ossia::value_port& input,
             const std::string& expr,
@@ -93,8 +93,8 @@ struct Node
         static const constexpr auto tags = std::array<const char*, 0>{};
         static const constexpr auto uuid = make_uuid("13e1f4b0-1c2c-40e6-93ad-dfc91aac5335");
     
-        static const constexpr auto audio_ins = Control::AudioIns<1>{{"in"}};     
-        static const constexpr auto audio_outs = Control::AudioOuts<1>{{"out"}}; 
+        static const constexpr auto audio_ins = ossia::safe_nodes::audio_ins<1>{{"in"}};     
+        static const constexpr auto audio_outs = ossia::safe_nodes::audio_outs<1>{{"out"}}; 
         
         static const constexpr auto controls = 
             std::make_tuple(Control::LineEdit("Expression (ExprTK)", "a * x")
@@ -128,7 +128,7 @@ struct Node
         bool ok = false;
     };
     
-    using control_policy = Control::LastTick;
+    using control_policy = ossia::safe_nodes::last_tick;
     static void run(
             const ossia::audio_port& input,
             const std::string& expr,

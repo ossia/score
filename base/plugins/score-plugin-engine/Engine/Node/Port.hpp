@@ -1,78 +1,17 @@
 #pragma once
-
-#include <QString>
-#include <cstdint>
-#include <array>
+#include <ossia/dataflow/safe_nodes/port.hpp>
 
 namespace Control
 {
+using inlet_kind = ossia::safe_nodes::inlet_kind;
+using outlet_kind = ossia::safe_nodes::outlet_kind;
 
-enum class inlet_kind
-{
-  audio_in, midi_in, value_in, address_in, control_in
-};
-enum class outlet_kind
-{
-  audio_out, midi_out, value_out
-};
-struct AddressInInfo {
-  const QLatin1String name;
-
-  template<std::size_t N>
-  constexpr AddressInInfo(const char (&name)[N]): name{name, N} { }
-};
-struct AudioInInfo {
-  const QLatin1String name;
-
-  template<std::size_t N>
-  constexpr AudioInInfo(const char (&name)[N]): name{name, N} { }
-};
-struct AudioOutInfo {
-  const QLatin1String name;
-
-  template<std::size_t N>
-  constexpr AudioOutInfo(const char (&name)[N]): name{name, N} { }
-};
-struct ValueInInfo {
-  const QLatin1String name;
-  const bool is_event{true};
-
-  template<std::size_t N>
-  constexpr ValueInInfo(const char (&name)[N]): name{name, N} { }
-
-  template<std::size_t N>
-  constexpr ValueInInfo(const char (&name)[N], bool b): name{name, N}, is_event{b} { }
-};
-struct ValueOutInfo {
-  const QLatin1String name;
-
-  template<std::size_t N>
-  constexpr ValueOutInfo(const char (&name)[N]): name{name, N} { }
-};
-struct MidiInInfo {
-  const QLatin1String name;
-
-  template<std::size_t N>
-  constexpr MidiInInfo(const char (&name)[N]): name{name, N} { }
-};
-struct MidiOutInfo {
-  const QLatin1String name;
-
-  template<std::size_t N>
-  constexpr MidiOutInfo(const char (&name)[N]): name{name, N} { }
-};
-struct ControlInfo {
-  const QLatin1String name;
-
-  template<std::size_t N>
-  constexpr ControlInfo(const char (&name)[N]):
-    name{name, N}
-  {
-  }
-};
-template<typename... Args>
-constexpr std::array<const char*, sizeof...(Args)> array(Args&&... args)
-{
-  return {args...};
-}
+using AddressInInfo = ossia::safe_nodes::address_in;
+using AudioInInfo = ossia::safe_nodes::audio_in;
+using AudioOutInfo = ossia::safe_nodes::audio_out;
+using ValueInInfo = ossia::safe_nodes::value_in;
+using ValueOutInfo = ossia::safe_nodes::value_out;
+using MidiInInfo = ossia::safe_nodes::midi_in;
+using MidiOutInfo = ossia::safe_nodes::midi_out;
+using ControlInfo = ossia::safe_nodes::control_in;
 }

@@ -8,23 +8,23 @@ namespace Chord
 {
 struct Node
 {
-    struct Metadata : Control::Meta_base 
+    struct Metadata : Control::Meta_base
     {
         static const constexpr auto prettyName = "Chord";
         static const constexpr auto objectKey = "Chord";
         static const constexpr auto category = "Midi";
         static const constexpr auto tags = std::array<const char*, 0>{};
         static const constexpr auto uuid = make_uuid("F0904279-EA26-48DB-B0DF-F68FE3091DA1");
-    
-        static const constexpr auto midi_ins  = Control::MidiIns<1>{{"in"}};
-        static const constexpr auto midi_outs = Control::MidiOuts<1>{{"out"}};
-        static const constexpr auto controls = 
+
+        static const constexpr auto midi_ins  = ossia::safe_nodes::midi_ins<1>{{"in"}};
+        static const constexpr auto midi_outs = ossia::safe_nodes::midi_outs<1>{{"out"}};
+        static const constexpr auto controls =
             std::make_tuple(
               Control::IntSlider{"Num. Notes", 1, 5, 3},
               Control::make_enum(
                 "Chord",
                 0U,
-                Control::array("Major", "Minor", "Sus2", "Sus4", "Dim", "Aug"))
+                ossia::make_array("Major", "Minor", "Sus2", "Sus4", "Dim", "Aug"))
               );
     };
 
@@ -43,7 +43,7 @@ struct Node
       I, II, III, IV, V, VI, VII
     };
 
-    using control_policy = Control::DefaultTick;
+    using control_policy = ossia::safe_nodes::default_tick;
     // C C# D D# E F F# G G# A A# B
     // 1 .  . .  1 . .  1 .  1 .  .
     static const constexpr std::array<int, 5> major7{ 0, 4, 7, 9, 12 };
@@ -100,8 +100,8 @@ struct Node
     }
     static void run(
         const ossia::midi_port& ip,
-        const Control::timed_vec<int>& num,
-        const Control::timed_vec<std::string>& chord,
+        const ossia::safe_nodes::timed_vec<int>& num,
+        const ossia::safe_nodes::timed_vec<std::string>& chord,
         ossia::midi_port& op,
         ossia::time_value prev_date,
         ossia::token_request tk,

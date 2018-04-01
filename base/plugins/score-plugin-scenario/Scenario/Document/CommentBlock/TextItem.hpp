@@ -34,6 +34,7 @@ public:
 
   void setFont(QFont f);
   void setText(QString s);
+  void setText(std::string_view s);
   void setColor(score::ColorRef c);
 
 private:

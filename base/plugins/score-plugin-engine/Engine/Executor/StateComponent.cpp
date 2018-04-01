@@ -7,7 +7,7 @@
 #include <ossia/editor/scenario/time_event.hpp>
 
 #include <ossia/dataflow/node_process.hpp>
-#include <ossia/dataflow/state_node.hpp>
+#include <ossia/dataflow/nodes/state.hpp>
 
 namespace Engine
 {
@@ -30,7 +30,7 @@ void StateComponentBase::onSetup(
   m_ev = root;
   if(!m_state.empty())
   {
-    m_node = std::make_shared<ossia::state_node>(m_state);
+    m_node = std::make_shared<ossia::nodes::state>(m_state);
     m_ev->add_time_process(
           std::make_shared<ossia::node_process>(
             m_node));

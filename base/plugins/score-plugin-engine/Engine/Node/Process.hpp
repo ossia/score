@@ -77,35 +77,35 @@ struct PortSetup
       auto& ins = self.m_inlets;
       auto& outs = self.m_outlets;
       int inlet = 0;
-      for(const auto& in : get_ports<AudioInInfo, Node_T>{}())
+      for(const auto& in : ossia::safe_nodes::get_ports<ossia::safe_nodes::audio_in, Node_T>{}())
       {
         auto p = new Process::Inlet(Id<Process::Port>(inlet++), &self);
         p->type = Process::PortType::Audio;
-        p->setCustomData(in.name);
+        p->setCustomData(QString::fromUtf8(in.name.data(), in.name.size()));
         ins.push_back(p);
       }
-      for(const auto& in : get_ports<MidiInInfo, Node_T>{}())
+      for(const auto& in : ossia::safe_nodes::get_ports<ossia::safe_nodes::midi_in, Node_T>{}())
       {
         auto p = new Process::Inlet(Id<Process::Port>(inlet++), &self);
         p->type = Process::PortType::Midi;
-        p->setCustomData(in.name);
+        p->setCustomData(QString::fromUtf8(in.name.data(), in.name.size()));
         ins.push_back(p);
       }
-      for(const auto& in : get_ports<ValueInInfo, Node_T>{}())
+      for(const auto& in : ossia::safe_nodes::get_ports<ossia::safe_nodes::value_in, Node_T>{}())
       {
         auto p = new Process::Inlet(Id<Process::Port>(inlet++), &self);
         p->type = Process::PortType::Message;
-        p->setCustomData(in.name);
+        p->setCustomData(QString::fromUtf8(in.name.data(), in.name.size()));
         ins.push_back(p);
       }
-      for(const auto& in : get_ports<AddressInInfo, Node_T>{}())
+      for(const auto& in : ossia::safe_nodes::get_ports<ossia::safe_nodes::address_in, Node_T>{}())
       {
         auto p = new Process::Inlet(Id<Process::Port>(inlet++), &self);
         p->type = Process::PortType::Message;
-        p->setCustomData(in.name);
+        p->setCustomData(QString::fromUtf8(in.name.data(), in.name.size()));
         ins.push_back(p);
       }
-      ossia::for_each_in_tuple(get_controls<Node_T>{}(),
+      ossia::for_each_in_tuple(ossia::safe_nodes::get_controls<Node_T>{}(),
                                [&] (const auto& ctrl) {
         if(auto p = ctrl.create_inlet(Id<Process::Port>(inlet++), &self))
         {
@@ -115,27 +115,27 @@ struct PortSetup
       });
 
       int outlet = 0;
-      for(const auto& out : get_ports<AudioOutInfo, Node_T>{}())
+      for(const auto& out : ossia::safe_nodes::get_ports<ossia::safe_nodes::audio_out, Node_T>{}())
       {
         auto p = new Process::Outlet(Id<Process::Port>(outlet++), &self);
         p->type = Process::PortType::Audio;
-        p->setCustomData(out.name);
+        p->setCustomData(QString::fromUtf8(out.name.data(), out.name.size()));
         if(outlet == 1)
           p->setPropagate(true);
         outs.push_back(p);
       }
-      for(const auto& out : get_ports<MidiOutInfo, Node_T>{}())
+      for(const auto& out : ossia::safe_nodes::get_ports<ossia::safe_nodes::midi_out, Node_T>{}())
       {
         auto p = new Process::Outlet(Id<Process::Port>(outlet++), &self);
         p->type = Process::PortType::Midi;
-        p->setCustomData(out.name);
+        p->setCustomData(QString::fromUtf8(out.name.data(), out.name.size()));
         outs.push_back(p);
       }
-      for(const auto& out : get_ports<ValueOutInfo, Node_T>{}())
+      for(const auto& out : ossia::safe_nodes::get_ports<ossia::safe_nodes::value_out, Node_T>{}())
       {
         auto p = new Process::Outlet(Id<Process::Port>(outlet++), &self);
         p->type = Process::PortType::Message;
-        p->setCustomData(out.name);
+        p->setCustomData(QString::fromUtf8(out.name.data(), out.name.size()));
         outs.push_back(p);
       }
     }
@@ -154,16 +154,16 @@ class ControlProcess final: public Process::ProcessModel
   public:
     ossia::value control(std::size_t i) const
     {
-      static_assert(InfoFunctions<Info>::control_count != 0);
-      constexpr auto start = InfoFunctions<Info>::control_start;
+      static_assert(ossia::safe_nodes::info_functions<Info>::control_count != 0);
+      constexpr auto start = ossia::safe_nodes::info_functions<Info>::control_start;
 
       return static_cast<Process::ControlInlet*>(m_inlets[start + i])->value();
     }
 
     void setControl(std::size_t i, ossia::value v)
     {
-      static_assert(InfoFunctions<Info>::control_count != 0);
-      constexpr auto start = InfoFunctions<Info>::control_start;
+      static_assert(ossia::safe_nodes::info_functions<Info>::control_count != 0);
+      constexpr auto start = ossia::safe_nodes::info_functions<Info>::control_start;
 
       static_cast<Process::ControlInlet*>(m_inlets[start + i])->setValue(std::move(v));
     }
@@ -226,12 +226,12 @@ struct TSerializer<DataStream, Model<Info, Control::is_control>>
       using namespace Control;
 
       auto& pl = s.components.template interfaces<Process::PortFactoryList>();
-      for(std::size_t i = 0; i < InfoFunctions<Info>::inlet_size; i++)
+      for(std::size_t i = 0; i < ossia::safe_nodes::info_functions<Info>::inlet_size; i++)
       {
         obj.m_inlets.push_back((Process::Inlet*)deserialize_interface(pl, s, &obj));
       }
 
-      for(std::size_t i = 0; i < InfoFunctions<Info>::outlet_size; i++)
+      for(std::size_t i = 0; i < ossia::safe_nodes::info_functions<Info>::outlet_size; i++)
       {
         obj.m_outlets.push_back((Process::Outlet*)deserialize_interface(pl, s, &obj));
       }
@@ -259,12 +259,12 @@ struct TSerializer<JSONObject, Model<Info, Control::is_control>>
       auto inlets = s.obj["Inlets"].toArray();
       auto outlets = s.obj["Outlets"].toArray();
 
-      for(std::size_t i = 0; i < InfoFunctions<Info>::inlet_size; i++)
+      for(std::size_t i = 0; i < ossia::safe_nodes::info_functions<Info>::inlet_size; i++)
       {
         obj.m_inlets.push_back((Process::Inlet*)deserialize_interface(pl, JSONObjectWriter{inlets[i].toObject()}, &obj));
       }
 
-      for(std::size_t i = 0; i < InfoFunctions<Info>::outlet_size; i++)
+      for(std::size_t i = 0; i < ossia::safe_nodes::info_functions<Info>::outlet_size; i++)
       {
         obj.m_outlets.push_back((Process::Outlet*)deserialize_interface(pl, JSONObjectWriter{outlets[i].toObject()}, &obj));
       }

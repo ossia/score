@@ -28,6 +28,7 @@
 #include <core/document/Document.hpp>
 #include <ossia/dataflow/node_process.hpp>
 #include <ossia/misc_visitors.hpp>
+#include <ossia/dataflow/nodes/mapping.hpp>
 
 namespace Mapping
 {
@@ -45,7 +46,7 @@ Component::Component(
                                                                    "MappingElement",
                                                                    parent}
 {
-  node = std::make_shared<ossia::mapping_node>();
+  node = std::make_shared<ossia::nodes::mapping>();
   m_ossia_process = std::make_shared<ossia::node_process>(node);
 
   con(element, &Mapping::ProcessModel::sourceAddressChanged,
@@ -96,7 +97,7 @@ void Component::recompute()
   if (curve)
   {
     std::function<void()> v =
-        [proc=std::dynamic_pointer_cast<ossia::mapping_node>(OSSIAProcess().node)
+        [proc=std::dynamic_pointer_cast<ossia::nodes::mapping>(OSSIAProcess().node)
         ,curve
         ,ossia_source_addr
         ,ossia_target_addr]

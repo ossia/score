@@ -55,6 +55,13 @@ void SimpleTextItem::setText(QString s)
   updateImpl();
 }
 
+void SimpleTextItem::setText(std::string_view s)
+{
+  m_string = QString::fromUtf8(s.data(), s.size());
+  updateImpl();
+
+}
+
 void SimpleTextItem::setColor(score::ColorRef c)
 {
   m_color = c;

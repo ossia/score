@@ -69,20 +69,21 @@ public:
       QWidget* parent)
       : Process::InspectorWidgetDelegate_T<ControlProcess<Info>>{object, parent}
     {
+      using namespace ossia::safe_nodes;
       auto vlay = new QVBoxLayout{this};
       vlay->setSpacing(2);
       vlay->setMargin(2);
       vlay->setContentsMargins(0, 0, 0, 0);
 
-      if constexpr(InfoFunctions<Info>::control_count > 0)
+      if constexpr(info_functions<Info>::control_count > 0)
       {
         std::size_t i = 0;
         ossia::for_each_in_tuple(
               get_controls<Info>{}(),
               [&] (const auto& ctrl) {
-          auto inlet = static_cast<Process::ControlInlet*>(object.inlets()[InfoFunctions<Info>::control_start + i]);
+          auto inlet = static_cast<Process::ControlInlet*>(object.inlets()[info_functions<Info>::control_start + i]);
 
-          auto lab = new TextLabel{ctrl.name, this};
+          auto lab = new TextLabel{QString::fromUtf8(ctrl.name.data(), ctrl.name.size()), this};
           vlay->addWidget(lab);
 
           auto widg = ctrl.make_widget(ctrl, *inlet, doc, this, this);

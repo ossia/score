@@ -9,6 +9,7 @@
 #include <tuple>
 #include <bitset>
 #include <random>
+#include <ossia/dataflow/execution_state.hpp>
 namespace Nodes
 {
 
@@ -24,10 +25,10 @@ struct Node
     static const constexpr auto category = "Control";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto uuid = make_uuid("0697b807-f588-49b5-926c-f97701edd0d8");
-  
-    static const constexpr auto value_outs  = Control::ValueOuts<1>{Control::ValueOutInfo{"out"}};
-    
-    static const constexpr auto controls = 
+
+    static const constexpr auto value_outs  = ossia::safe_nodes::value_outs<1>{Control::ValueOutInfo{"out"}};
+
+    static const constexpr auto controls =
         std::make_tuple(Control::Widgets::LFOFreqChooser()
                         , Control::FloatSlider{"Coarse intens.", 0., 1000., 0.}
                         , Control::FloatSlider{"Fine intens.", 0., 1., 1.}
@@ -43,7 +44,7 @@ struct Node
       int64_t phase{};
   };
 
-  using control_policy = Control::PreciseTick;
+  using control_policy = ossia::safe_nodes::precise_tick;
 
   static void run(
       float freq, float coarse, float fine, float offset, float jitter, float phase,

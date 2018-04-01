@@ -24,8 +24,6 @@ namespace Engine
 namespace Execution
 {
 struct Context;
-class IntervalComponent;
-
 template <typename T>
 class InvalidProcessException : public std::runtime_error
 {
@@ -99,7 +97,7 @@ class SCORE_PLUGIN_ENGINE_EXPORT ProcessComponentFactory
 {
   SCORE_ABSTRACT_COMPONENT_FACTORY(Engine::Execution::ProcessComponent)
 public:
-  virtual ~ProcessComponentFactory();
+  virtual ~ProcessComponentFactory() override;
   virtual std::shared_ptr<ProcessComponent> make(
       Process::ProcessModel& proc,
       const Context& ctx,
@@ -123,13 +121,13 @@ public:
       const Id<score::Component>& id,
       QObject* parent) const final override
   {
-    try { 
+    try {
       auto comp = std::make_shared<ProcessComponent_T>(
                     static_cast<model_type&>(proc), ctx, id, parent);
       this->init(comp.get());
       return comp;
-    } 
-    catch(...) { 
+    }
+    catch(...) {
       return {};
     }
   }
