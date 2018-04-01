@@ -105,6 +105,11 @@ int main(int argc, char** argv)
     init_plugins();
 
 #undef SCORE_OPENGL
+    QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
+    fmt.setMajorVersion(4);
+    fmt.setMinorVersion(1);
+    fmt.setSamples(1);
+    fmt.setDefaultFormat(fmt);
 #if defined(SCORE_OPENGL)
     QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
 #if defined(__APPLE__)
