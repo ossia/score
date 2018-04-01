@@ -74,7 +74,7 @@ static constexpr auto WaveformChooser()
 {
     return Control::make_enum(
                 "Waveform", 0U,
-                Control::array("Sin", "Triangle", "Saw", "Square", "Noise 1", "Noise 2", "Noise 3")
+                ossia::make_array("Sin", "Triangle", "Saw", "Square", "Noise 1", "Noise 2", "Noise 3")
                 );
 }
 constexpr auto QuantificationChooser()

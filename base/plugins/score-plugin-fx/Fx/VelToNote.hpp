@@ -17,8 +17,8 @@ struct Node
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto uuid = make_uuid("2c6493c3-5449-4e52-ae04-9aee3be5fb6a");
 
-    static const constexpr auto value_ins  = Control::ValueIns<1>{Control::ValueInInfo{"in", true}};
-    static const constexpr auto midi_outs = Control::MidiOuts<1>{{"out"}};
+    static const constexpr auto value_ins  = ossia::safe_nodes::value_ins<1>{Control::ValueInInfo{"in", true}};
+    static const constexpr auto midi_outs = ossia::safe_nodes::midi_outs<1>{{"out"}};
     static const constexpr auto controls =
         std::make_tuple(
           Control::Widgets::QuantificationChooser(),
@@ -37,7 +37,7 @@ struct Node
   using State = Quantifier::Node::State;
   using Note = Control::Note;
 
-  using control_policy = Control::DefaultTick;
+  using control_policy = ossia::safe_nodes::default_tick;
   struct val_visitor
   {
     State& st;
@@ -113,16 +113,16 @@ struct Node
   }
   static void run(
       const ossia::value_port& p1,
-      const Control::timed_vec<float>& startq,
-      const Control::timed_vec<float>& tightness,
-      const Control::timed_vec<float>& dur,
-      const Control::timed_vec<int>& basenote,
-      const Control::timed_vec<int>& basevel,
-      const Control::timed_vec<int>& shift_note,
-      const Control::timed_vec<int>& note_random,
-      const Control::timed_vec<int>& vel_random,
-      const Control::timed_vec<int>& chan_vec,
-      const Control::timed_vec<float>& tempo_vec,
+      const ossia::safe_nodes::timed_vec<float>& startq,
+      const ossia::safe_nodes::timed_vec<float>& tightness,
+      const ossia::safe_nodes::timed_vec<float>& dur,
+      const ossia::safe_nodes::timed_vec<int>& basenote,
+      const ossia::safe_nodes::timed_vec<int>& basevel,
+      const ossia::safe_nodes::timed_vec<int>& shift_note,
+      const ossia::safe_nodes::timed_vec<int>& note_random,
+      const ossia::safe_nodes::timed_vec<int>& vel_random,
+      const ossia::safe_nodes::timed_vec<int>& chan_vec,
+      const ossia::safe_nodes::timed_vec<float>& tempo_vec,
       ossia::midi_port& p2,
       ossia::time_value prev_date,
       ossia::token_request tk,

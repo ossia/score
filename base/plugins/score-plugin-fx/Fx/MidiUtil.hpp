@@ -67,24 +67,24 @@ constexpr scales_array make_scale(std::initializer_list<bool> notes)
   return r;
 }
 
-constexpr int get_scale(QLatin1String s)
+constexpr int get_scale(std::string_view s)
 {
   using namespace std::literals;
-  if(Control::same(s, QLatin1String("all"))) return scale::all;
-  else if(Control::same(s, QLatin1String("ionian"))) return scale::ionian;
-  else if(Control::same(s, QLatin1String("dorian"))) return scale::dorian;
-  else if(Control::same(s, QLatin1String("phyrgian"))) return scale::phyrgian;
-  else if(Control::same(s, QLatin1String("lydian"))) return scale::lydian;
-  else if(Control::same(s, QLatin1String("mixolydian"))) return scale::mixolydian;
-  else if(Control::same(s, QLatin1String("aeolian"))) return scale::aeolian;
-  else if(Control::same(s, QLatin1String("locrian"))) return scale::locrian;
-  else if(Control::same(s, QLatin1String("I"))) return scale::I;
-  else if(Control::same(s, QLatin1String("II"))) return scale::II;
-  else if(Control::same(s, QLatin1String("III"))) return scale::III;
-  else if(Control::same(s, QLatin1String("IV"))) return scale::IV;
-  else if(Control::same(s, QLatin1String("V"))) return scale::V;
-  else if(Control::same(s, QLatin1String("VI"))) return scale::VI;
-  else if(Control::same(s, QLatin1String("VII"))) return scale::VII;
+  if(s == std::string_view("all")) return scale::all;
+  else if(s == std::string_view("ionian")) return scale::ionian;
+  else if(s == std::string_view("dorian")) return scale::dorian;
+  else if(s == std::string_view("phyrgian")) return scale::phyrgian;
+  else if(s == std::string_view("lydian")) return scale::lydian;
+  else if(s == std::string_view("mixolydian")) return scale::mixolydian;
+  else if(s == std::string_view("aeolian")) return scale::aeolian;
+  else if(s == std::string_view("locrian")) return scale::locrian;
+  else if(s == std::string_view("I")) return scale::I;
+  else if(s == std::string_view("II")) return scale::II;
+  else if(s == std::string_view("III")) return scale::III;
+  else if(s == std::string_view("IV")) return scale::IV;
+  else if(s == std::string_view("V")) return scale::V;
+  else if(s == std::string_view("VI")) return scale::VI;
+  else if(s == std::string_view("VII")) return scale::VII;
   else return scale::custom;
 }
 static MSVC_CONSTEXPR frozen::unordered_map<int, scales_array, scale::SCALES_MAX-1> scales{
@@ -162,14 +162,14 @@ struct Node
         static const constexpr auto uuid = make_uuid("06b33b83-bb67-4f7a-9980-f5d66e4266c5");
 
 
-        static const constexpr auto midi_ins  = Control::MidiIns<1>{{"in"}};
-        static const constexpr auto midi_outs = Control::MidiOuts<1>{{"out"}};
+        static const constexpr auto midi_ins  = ossia::safe_nodes::midi_ins<1>{{"in"}};
+        static const constexpr auto midi_outs = ossia::safe_nodes::midi_outs<1>{{"out"}};
         static const constexpr auto controls =
             std::make_tuple(
               Control::make_unvalidated_enum(
                 "Scale",
                 0U,
-                Control::array("all", "ionian", "dorian", "phyrgian", "lydian", "mixolydian", "aeolian", "locrian",
+                ossia::make_array("all", "ionian", "dorian", "phyrgian", "lydian", "mixolydian", "aeolian", "locrian",
                                "I", "II", "III", "IV", "V", "VI", "VII")),
               Control::Widgets::OctaveSlider("Base", 0, 1),
               Control::Widgets::OctaveSlider("Transpose", -4, 4));
@@ -265,12 +265,12 @@ struct Node
       }
     }
 
-    using control_policy = Control::DefaultTick;
+    using control_policy = ossia::safe_nodes::default_tick;
     static void run(
         const ossia::midi_port& midi_in,
-        const Control::timed_vec<std::string>& sc,
-        const Control::timed_vec<int>& base,
-        const Control::timed_vec<int>& transp,
+        const ossia::safe_nodes::timed_vec<std::string>& sc,
+        const ossia::safe_nodes::timed_vec<int>& base,
+        const ossia::safe_nodes::timed_vec<int>& transp,
         ossia::midi_port& midi_out,
         ossia::time_value prev_date,
         ossia::token_request tk,
@@ -280,7 +280,7 @@ struct Node
       const auto& new_scale = sc.rbegin()->second;
       const int new_base = base.rbegin()->second;
       const int new_transpose = transp.rbegin()->second;
-      QLatin1String scale{new_scale.data(), (int)new_scale.size()};
+      std::string_view scale{new_scale.data(), new_scale.size()};
 
       const auto new_scale_idx = get_scale(scale);
 

@@ -18,8 +18,8 @@ struct Node
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto uuid = make_uuid("b8e2e5ad-17e4-43de-8d79-660a29d5c4f4");
 
-    static const constexpr auto midi_ins  = Control::MidiIns<1>{{"in"}};
-    static const constexpr auto midi_outs = Control::MidiOuts<1>{{"out"}};
+    static const constexpr auto midi_ins  = ossia::safe_nodes::midi_ins<1>{{"in"}};
+    static const constexpr auto midi_outs = ossia::safe_nodes::midi_outs<1>{{"out"}};
     static const constexpr auto controls = std::make_tuple(
       Control::Widgets::QuantificationChooser(),
       Control::FloatSlider{"Tightness", 0.f, 1.f, 0.8f},
@@ -39,14 +39,14 @@ struct Node
     std::vector<NoteIn> running_notes;
   };
 
-  using control_policy = Control::DefaultTick;
+  using control_policy = ossia::safe_nodes::default_tick;
 
   static void run(
       const ossia::midi_port& p1,
-      const Control::timed_vec<float>& startq,
-      const Control::timed_vec<float>& tightness,
-      const Control::timed_vec<float>& dur,
-      const Control::timed_vec<float>& tempo_vec,
+      const ossia::safe_nodes::timed_vec<float>& startq,
+      const ossia::safe_nodes::timed_vec<float>& tightness,
+      const ossia::safe_nodes::timed_vec<float>& dur,
+      const ossia::safe_nodes::timed_vec<float>& tempo_vec,
       ossia::midi_port& p2,
       ossia::time_value prev_date,
       ossia::token_request tk,

@@ -15,7 +15,7 @@ struct Node
         static const constexpr auto tags = std::array<const char*, 0>{};
         static const constexpr auto uuid = make_uuid("50439197-521E-4ED0-A3B7-EDD8DEAEAC93");
         
-        static const constexpr auto value_outs = Control::ValueOuts<1>{{"out"}};    
+        static const constexpr auto value_outs = ossia::safe_nodes::value_outs<1>{{"out"}};    
         
         static const constexpr auto controls = 
             std::make_tuple(Control::Widgets::MusicalDurationChooser(),
@@ -43,7 +43,7 @@ struct Node
         return ossia::time_value{period * (1 + cur_date / period)};
     }
 
-    using control_policy = Control::LastTick;
+    using control_policy = ossia::safe_nodes::last_tick;
     static void run(
             float quantif,
             float freq,
