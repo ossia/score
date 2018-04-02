@@ -1,7 +1,5 @@
 #pragma once
 #include <Engine/Executor/ProcessComponent.hpp>
-
-#include <ossia/editor/mapper/mapper.hpp>
 #include <ossia/network/value/value.hpp>
 #include <Mapping/MappingModel.hpp>
 #include <QPointer>

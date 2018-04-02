@@ -8,41 +8,15 @@
 #include <Engine/Executor/IntervalComponent.hpp>
 #include <Engine/Executor/EventComponent.hpp>
 #include <Engine/Executor/ScenarioComponent.hpp>
-#include <Engine/Executor/StateComponent.hpp>
 #include <Engine/ApplicationPlugin.hpp>
 #include <Engine/score2OSSIA.hpp>
-#include <Engine/Executor/BaseScenarioComponent.hpp>
 
 #include <Engine/Executor/ContextMenu/PlayFromIntervalInScenario.hpp>
-#include <Process/TimeValue.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Application/ScenarioRecordInitData.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Application/ScenarioRecordInitData.hpp>
 
 #include <core/presenter/DocumentManager.hpp>
-#include <score/actions/Menu.hpp>
-#include <score/model/EntityMap.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <ossia/editor/state/state.hpp>
-#include <ossia/editor/scenario/time_event.hpp>
-
-#include <qnamespace.h>
-#include <QAction>
-#include <QList>
-#include <QMenu>
-#include <QRect>
-#include <QString>
-#include <QVariant>
-#include <algorithm>
-#include <map>
-#include <memory>
-
 
 namespace Engine
 {

@@ -2,36 +2,11 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <ossia/dataflow/nodes/automation.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <QDebug>
-#include <QString>
-#include <algorithm>
-#include <vector>
-
 #include "Component.hpp"
-#include <Curve/CurveModel.hpp>
-#include <Curve/Segment/CurveSegmentData.hpp>
-#include <Device/Protocol/DeviceInterface.hpp>
-#include <Explorer/DeviceList.hpp>
-#include <Device/Protocol/DeviceSettings.hpp>
-
-#include <ossia/editor/curve/curve.hpp>
-#include <ossia/editor/curve/curve_segment.hpp>
-#include <ossia/network/value/value.hpp>
-#include <ossia/network/base/parameter.hpp>
-#include <ossia/network/base/node.hpp>
-#include <ossia/network/base/device.hpp>
 #include <Engine/CurveConversion.hpp>
-#include <Engine/Executor/ProcessComponent.hpp>
 #include <Engine/Protocols/OSSIADevice.hpp>
 #include <Engine/score2OSSIA.hpp>
-#include <State/Address.hpp>
-#include <score/document/DocumentInterface.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
-
 #include <ossia/network/dataspace/dataspace_visitors.hpp> // temporary
-#include <Engine/Executor/DocumentPlugin.hpp>
-#include <Engine/Executor/ExecutorContext.hpp>
-#include <ossia/dataflow/node_process.hpp>
 namespace Automation
 {
 namespace RecreateOnPlay

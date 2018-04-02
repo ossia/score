@@ -1,32 +1,13 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Component.hpp"
-#include <ossia/editor/mapper/mapper.hpp>
 #include <ossia/editor/mapper/detail/mapper_visitor.hpp>
-#include <ossia/editor/state/message.hpp>
-#include <ossia/editor/state/state.hpp>
-#include <ossia/network/value/value.hpp>
-#include <ossia/network/base/node.hpp>
-#include <ossia/network/base/device.hpp>
 
 #include <Engine/Executor/IntervalComponent.hpp>
 #include <Engine/Protocols/OSSIADevice.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <core/document/Document.hpp>
-#include <score/document/DocumentInterface.hpp>
-
-#include <Curve/CurveModel.hpp>
-
-#include <ossia/editor/curve/curve.hpp>
-#include <ossia/editor/curve/curve_segment.hpp>
-#include <ossia/network/base/parameter.hpp>
 #include <Engine/CurveConversion.hpp>
-#include <Engine/Executor/DocumentPlugin.hpp>
-#include <Engine/Executor/ExecutorContext.hpp>
 #include <Engine/score2OSSIA.hpp>
-#include <core/document/Document.hpp>
-#include <ossia/dataflow/node_process.hpp>
-#include <ossia/misc_visitors.hpp>
 #include <ossia/dataflow/nodes/mapping.hpp>
 
 namespace Mapping

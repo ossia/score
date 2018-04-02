@@ -9,37 +9,15 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <algorithm>
-#include <core/document/Document.hpp>
-#include <score/document/DocumentInterface.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
-#include <vector>
 
 #include "Component.hpp"
 #include <ossia/editor/loop/loop.hpp>
-#include <ossia/editor/scenario/time_value.hpp>
-#include <ossia/editor/state/state.hpp>
 #include <Engine/Executor/IntervalRawPtrComponent.hpp>
 #include <Engine/Executor/EventComponent.hpp>
-#include <Engine/Executor/ProcessComponent.hpp>
 #include <Engine/Executor/StateComponent.hpp>
 #include <Engine/Executor/TimeSyncRawPtrComponent.hpp>
-#include <Scenario/Document/Interval/IntervalDurations.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <Engine/Executor/DocumentPlugin.hpp>
-#include <Engine/Executor/ExecutorContext.hpp>
 #include <ossia/dataflow/graph/graph_utils.hpp>
-
-namespace Process
-{
-class ProcessModel;
-}
-class QObject;
-namespace ossia
-{
-class time_process;
-} // namespace OSSIA
-#include <score/model/Identifier.hpp>
 
 namespace Loop
 {

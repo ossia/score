@@ -31,13 +31,14 @@ public:
       const TimeVal& duration,
       const Id<Process::ProcessModel>& id,
       QObject* parent);
-  ~ProcessModel();
+  ~ProcessModel() override;
 
   template <typename Impl>
   ProcessModel(Impl& vis, QObject* parent)
       : CurveProcessModel{vis, parent}
   {
     vis.writeTo(*this);
+    init();
   }
 
   State::Address address() const;
@@ -51,6 +52,9 @@ public:
 
   QString prettyName() const override;
 
+  std::unique_ptr<Process::Outlet> outlet;
+
+  void init();
 Q_SIGNALS:
   void addressChanged(const State::Address&);
   void minChanged(double);
@@ -66,7 +70,6 @@ private:
   TimeVal contentDuration() const override;
 
   void setCurve_impl() override;
-  State::Address m_address;
 
   double m_min{};
   double m_max{};

@@ -1,17 +1,11 @@
 #include "DataflowClock.hpp"
-#include <Engine/Executor/ExecutorContext.hpp>
-#include <Engine/Executor/DocumentPlugin.hpp>
-#include <Engine/Executor/BaseScenarioComponent.hpp>
 #include <Engine/Executor/IntervalComponent.hpp>
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
-#include <Engine/Executor/BaseScenarioComponent.hpp>
 #include <ossia/audio/audio_parameter.hpp>
 #include <ossia/audio/audio_protocol.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Engine/Protocols/OSSIADevice.hpp>
-#include <QPointer>
-#include <Engine/Executor/Settings/ExecutorModel.hpp>
 #include <Engine/Protocols/Settings/Model.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
 namespace Dataflow

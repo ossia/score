@@ -176,13 +176,9 @@ if(APPLE)
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/AppleUI/vstwindow.m"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/AppleUI/vst2x.mm"
     )
-elseif(UNIX)
+else()
   set(VST_SRCS ${VST_SRCS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/LinuxUI/vst.cpp"
-    )
-elseif(MSVC)
-  set(VST_SRCS ${VST_SRCS}
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/WinUI/vst.cpp"
     )
 endif()
 add_library(${PROJECT_NAME}

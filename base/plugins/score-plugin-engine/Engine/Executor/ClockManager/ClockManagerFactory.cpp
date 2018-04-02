@@ -2,13 +2,11 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ClockManagerFactory.hpp"
 #include <Engine/Executor/DocumentPlugin.hpp>
-#include <Engine/Executor/ExecutorContext.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <core/document/DocumentView.hpp>
-#include <Engine/Executor/BaseScenarioComponent.hpp>
 #include <Engine/Executor/IntervalComponent.hpp>
 namespace Engine
 {

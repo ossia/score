@@ -26,7 +26,7 @@ public:
       const TimeVal& duration,
       const Id<Process::ProcessModel>& id,
       QObject* parent);
-  ~ProcessModel();
+  ~ProcessModel() override;
 
   template <typename Impl>
   ProcessModel(Impl& vis, QObject* parent)
@@ -36,10 +36,7 @@ public:
     init();
   }
 
-  void init()
-  {
-    // TODO m_outlets.push_back(outlet.get());
-  }
+  void init();
   State::AddressAccessor address() const;
   void setAddress(const State::AddressAccessor& arg);
   State::Unit unit() const;
@@ -68,6 +65,9 @@ public:
       splineChanged();
     }
   }
+
+  std::unique_ptr<Process::Outlet> outlet;
+
 Q_SIGNALS:
   void addressChanged(const ::State::AddressAccessor&);
   void tweenChanged(bool tween);
@@ -83,7 +83,6 @@ private:
   bool contentHasDuration() const override;
   TimeVal contentDuration() const override;
 
-  State::AddressAccessor m_address;
   ossia::nodes::spline_data m_spline;
 
   bool m_tween = false;

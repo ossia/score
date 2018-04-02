@@ -7,7 +7,6 @@
 #include <QApplication>
 #include <QBoxLayout>
 #include <QBrush>
-#include <QFile>
 #include <QFlags>
 #include <QGraphicsScene>
 #include <QGraphicsView>

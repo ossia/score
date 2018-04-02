@@ -30,6 +30,7 @@
 #include <State/Address.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+#include <Process/Dataflow/Port.hpp>
 
 namespace Process
 {
@@ -44,7 +45,9 @@ ProcessModel::ProcessModel(
     QObject* parent)
     : CurveProcessModel{duration, id,
                         Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
 {
+  outlet->type = Process::PortType::Message;
   // Named shall be enough ?
   setCurve(new Curve::Model{Id<Curve::Model>(45345), this});
 
@@ -55,6 +58,7 @@ ProcessModel::ProcessModel(
 
   m_curve->addSegment(s1);
 
+  init();
   metadata().setInstanceName(*this);
 }
 
@@ -66,6 +70,17 @@ ProcessModel::~ProcessModel()
 QString ProcessModel::prettyName() const
 {
   return address().toString();
+}
+
+void ProcessModel::init()
+{
+  m_outlets.push_back(outlet.get());
+  connect(outlet.get(), &Process::Port::addressChanged,
+          this, [=] (const State::AddressAccessor& arg) {
+    addressChanged(arg.address);
+    prettyNameChanged();
+    m_curve->changed();
+  });
 }
 
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
@@ -162,7 +177,7 @@ void ProcessModel::setCurve_impl()
 
 State::Address ProcessModel::address() const
 {
-  return m_address;
+  return outlet->address().address;
 }
 
 double ProcessModel::min() const
@@ -177,15 +192,7 @@ double ProcessModel::max() const
 
 void ProcessModel::setAddress(const State::Address& arg)
 {
-  if (m_address == arg)
-  {
-    return;
-  }
-
-  m_address = arg;
-  addressChanged(arg);
-  prettyNameChanged();
-  m_curve->changed();
+  outlet->setAddress(State::AddressAccessor{arg});
 }
 
 void ProcessModel::setMin(double arg)
@@ -215,9 +222,9 @@ template <>
 void DataStreamReader::read(
     const Metronome::ProcessModel& autom)
 {
+  State::Address address;
   readFrom(autom.curve());
 
-  m_stream << autom.address();
   m_stream << autom.min();
   m_stream << autom.max();
 
@@ -228,14 +235,13 @@ void DataStreamReader::read(
 template <>
 void DataStreamWriter::write(Metronome::ProcessModel& autom)
 {
+  autom.outlet = Process::make_outlet(*this, &autom);
   autom.setCurve(new Curve::Model{*this, &autom});
 
-  State::Address address;
   double min, max;
 
-  m_stream >> address >> min >> max;
+  m_stream >> min >> max;
 
-  autom.setAddress(address);
   autom.setMin(min);
   autom.setMax(max);
 
@@ -247,8 +253,8 @@ template <>
 void JSONObjectReader::read(
     const Metronome::ProcessModel& autom)
 {
+  obj["Outlet"] = toJsonObject(*autom.outlet);
   obj["Curve"] = toJsonObject(autom.curve());
-  obj[strings.Address] = toJsonObject(autom.address());
   obj[strings.Min] = autom.min();
   obj[strings.Max] = autom.max();
 }
@@ -257,11 +263,18 @@ void JSONObjectReader::read(
 template <>
 void JSONObjectWriter::write(Metronome::ProcessModel& autom)
 {
+  JSONObjectWriter writer{obj["Outlet"].toObject()};
+  autom.outlet = Process::make_outlet(writer, &autom);
+  if(!autom.outlet)
+  {
+    autom.outlet = Process::make_outlet(Id<Process::Port>(0), &autom);
+    autom.outlet->type = Process::PortType::Message;
+    autom.outlet->setAddress(fromJsonObject<State::AddressAccessor>(obj[strings.Address].toObject()));
+  }
+
   JSONObject::Deserializer curve_deser{obj["Curve"].toObject()};
   autom.setCurve(new Curve::Model{curve_deser, &autom});
 
-  autom.setAddress(
-      fromJsonObject<State::Address>(obj[strings.Address].toObject()));
   autom.setMin(obj[strings.Min].toDouble());
   autom.setMax(obj[strings.Max].toDouble());
 }
