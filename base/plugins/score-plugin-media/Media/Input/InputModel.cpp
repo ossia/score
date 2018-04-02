@@ -1,6 +1,5 @@
 #include <Media/Input/InputModel.hpp>
 
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <QFile>
 #include <Process/Dataflow/Port.hpp>
 

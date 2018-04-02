@@ -4,7 +4,6 @@
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <Engine/score2OSSIA.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <ossia/dataflow/nodes/gradient.hpp>
 namespace Gradient
 {

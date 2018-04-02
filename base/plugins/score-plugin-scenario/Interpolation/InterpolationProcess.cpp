@@ -4,7 +4,6 @@
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <State/ValueSerialization.hpp>
 
 namespace Interpolation

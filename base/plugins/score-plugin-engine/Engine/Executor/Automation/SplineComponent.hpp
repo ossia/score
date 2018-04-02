@@ -1,7 +1,6 @@
 #pragma once
-#include <Automation/Color/GradientAutomModel.hpp>
+#include <Automation/Spline/SplineAutomModel.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
-#include <memory>
 #include <ossia/dataflow/node_process.hpp>
 
 namespace Device
@@ -9,18 +8,18 @@ namespace Device
 class DeviceList;
 }
 
-namespace Gradient
+namespace Spline
 {
 namespace RecreateOnPlay
 {
 class Component final
     : public ::Engine::Execution::
-    ProcessComponent_T<Gradient::ProcessModel, ossia::node_process>
+    ProcessComponent_T<Spline::ProcessModel, ossia::node_process>
 {
-    COMPONENT_METADATA("45467316-6c07-47f9-9d68-9a9de0360402")
+    COMPONENT_METADATA("6b5b4706-6ae7-46ab-b06a-bece7e03e6f7")
     public:
       Component(
-        Gradient::ProcessModel& element,
+        Spline::ProcessModel& element,
         const ::Engine::Execution::Context& ctx,
         const Id<score::Component>& id,
         QObject* parent);
@@ -38,4 +37,4 @@ using ComponentFactory
 
 SCORE_CONCRETE_COMPONENT_FACTORY(
     Engine::Execution::ProcessComponentFactory,
-    Gradient::RecreateOnPlay::ComponentFactory)
+    Spline::RecreateOnPlay::ComponentFactory)

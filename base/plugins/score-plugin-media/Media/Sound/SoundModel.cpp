@@ -1,7 +1,5 @@
 #include <Media/Sound/SoundModel.hpp>
 
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-
 #include <QFile>
 namespace Media
 {

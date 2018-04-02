@@ -10,7 +10,6 @@
 #include <Process/Process.hpp>
 #include <score/widgets/GraphicsItem.hpp>
 #include <Explorer/Widgets/AddressAccessorEditWidget.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Dataflow/Commands/EditPort.hpp>
 #include <QFormLayout>
 #include <QGraphicsProxyWidget>

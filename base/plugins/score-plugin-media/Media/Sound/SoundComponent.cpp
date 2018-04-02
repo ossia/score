@@ -1,6 +1,5 @@
 #include "SoundComponent.hpp"
 #include <Engine/score2OSSIA.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <ossia/dataflow/nodes/sound.hpp>
 #include <ossia/dataflow/nodes/input.hpp>
 #include <ossia/dataflow/execution_state.hpp>

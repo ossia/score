@@ -10,7 +10,7 @@ class View final : public Process::LayerView
   public:
     View(QGraphicsItem* parent);
 
-    void setSpline(ossia::spline_data d)
+    void setSpline(ossia::nodes::spline_data d)
     {
       if(d != m_spline)
         m_spline = std::move(d);
@@ -18,7 +18,7 @@ class View final : public Process::LayerView
       update();
     }
 
-    const ossia::spline_data& spline() const
+    const ossia::nodes::spline_data& spline() const
     { return m_spline; }
 
   Q_SIGNALS:
@@ -41,9 +41,9 @@ class View final : public Process::LayerView
       return QPointF(point.x() * width(),
                      height() - point.y() * height());
     }
-    ossia::spline_point mapFromCanvas(const QPointF &point) const;
+    ossia::nodes::spline_point mapFromCanvas(const QPointF &point) const;
 
-    ossia::spline_data m_spline;
+    ossia::nodes::spline_data m_spline;
     tinyspline::BSpline m_spl;
     optional<std::size_t> m_clicked;
 };

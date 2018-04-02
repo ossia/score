@@ -4,7 +4,7 @@
 #include <State/Address.hpp>
 #include <State/Unit.hpp>
 #include <boost/container/flat_map.hpp>
-#include <ossia/editor/automation/spline.hpp>
+#include <ossia/dataflow/nodes/spline.hpp>
 #include <score_plugin_automation_export.h>
 
 namespace Spline
@@ -60,8 +60,8 @@ public:
 
   QString prettyName() const override;
 
-  const ossia::spline_data& spline() const { return m_spline; }
-  void setSpline(const ossia::spline_data& c) {
+  const ossia::nodes::spline_data& spline() const { return m_spline; }
+  void setSpline(const ossia::nodes::spline_data& c) {
     if(m_spline != c)
     {
       m_spline = c;
@@ -84,7 +84,7 @@ private:
   TimeVal contentDuration() const override;
 
   State::AddressAccessor m_address;
-  ossia::spline_data m_spline;
+  ossia::nodes::spline_data m_spline;
 
   bool m_tween = false;
 };

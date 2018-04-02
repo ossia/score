@@ -1,6 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <ossia/editor/automation/automation.hpp>
+#include <ossia/dataflow/nodes/automation.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <QDebug>
 #include <QString>
@@ -136,7 +136,6 @@ void Component::recompute()
             ,curve
             ,d_=d]
       {
-        proc->set_destination(std::move(d_));
         proc->set_behavior(curve);
       });
       return;
@@ -152,7 +151,6 @@ void Component::recompute()
             [proc=std::dynamic_pointer_cast<ossia::nodes::automation>(OSSIAProcess().node)
             ,curve]
       {
-        proc->set_destination({});
         proc->set_behavior(curve);
       });
       return;
