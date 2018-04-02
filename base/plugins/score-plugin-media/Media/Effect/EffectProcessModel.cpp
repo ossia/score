@@ -2,8 +2,6 @@
 #include <Process/Process.hpp>
 #include <Effect/EffectFactory.hpp>
 
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-
 #include <score/tools/Clamp.hpp>
 #include <QFile>
 #include <Process/Dataflow/Port.hpp>

@@ -24,7 +24,6 @@
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <Engine/score2OSSIA.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/Document.hpp>
 #include <ossia/dataflow/node_process.hpp>
 #include <ossia/misc_visitors.hpp>

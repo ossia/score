@@ -24,9 +24,9 @@ View::View(QGraphicsItem* parent)
 
 
 
-ossia::spline_point View::mapFromCanvas(const QPointF& point) const
+ossia::nodes::spline_point View::mapFromCanvas(const QPointF& point) const
 {
-  return ossia::spline_point{
+  return ossia::nodes::spline_point{
         (double)point.x() / width() ,
         1. - point.y() / height()};
 }
@@ -46,12 +46,12 @@ void View::paint_impl(QPainter* p) const
 
   QPainterPath path;
   auto p0 = m_spl.evaluate(0).result();
-  path.moveTo(mapToCanvas(ossia::spline_point{p0[0], p0[1]}));
+  path.moveTo(mapToCanvas(ossia::nodes::spline_point{p0[0], p0[1]}));
   const constexpr auto N = 500;
   for (std::size_t i = 1U; i < N; i++)
   {
     auto pt = m_spl.evaluate(double(i) / N).result();
-    path.lineTo(mapToCanvas(ossia::spline_point{pt[0], pt[1]}));
+    path.lineTo(mapToCanvas(ossia::nodes::spline_point{pt[0], pt[1]}));
   }
   painter.strokePath(path, segmt);
 

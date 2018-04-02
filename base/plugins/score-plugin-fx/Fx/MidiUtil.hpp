@@ -67,24 +67,38 @@ constexpr scales_array make_scale(std::initializer_list<bool> notes)
   return r;
 }
 
+constexpr bool is_same(std::string_view lhs, std::string_view rhs)
+{
+  if(lhs.size() == rhs.size())
+  {
+    for(std::size_t i = 0; i < lhs.size(); i++)
+    {
+      if(lhs[i] != rhs[i])
+        return false;
+    }
+    return true;
+  }
+  return false;
+}
+
 constexpr int get_scale(std::string_view s)
 {
   using namespace std::literals;
-  if(s == std::string_view("all")) return scale::all;
-  else if(s == std::string_view("ionian")) return scale::ionian;
-  else if(s == std::string_view("dorian")) return scale::dorian;
-  else if(s == std::string_view("phyrgian")) return scale::phyrgian;
-  else if(s == std::string_view("lydian")) return scale::lydian;
-  else if(s == std::string_view("mixolydian")) return scale::mixolydian;
-  else if(s == std::string_view("aeolian")) return scale::aeolian;
-  else if(s == std::string_view("locrian")) return scale::locrian;
-  else if(s == std::string_view("I")) return scale::I;
-  else if(s == std::string_view("II")) return scale::II;
-  else if(s == std::string_view("III")) return scale::III;
-  else if(s == std::string_view("IV")) return scale::IV;
-  else if(s == std::string_view("V")) return scale::V;
-  else if(s == std::string_view("VI")) return scale::VI;
-  else if(s == std::string_view("VII")) return scale::VII;
+  if     (is_same(s, std::string_view("all"))) return scale::all;
+  else if(is_same(s, std::string_view("ionian"))) return scale::ionian;
+  else if(is_same(s, std::string_view("dorian"))) return scale::dorian;
+  else if(is_same(s, std::string_view("phyrgian"))) return scale::phyrgian;
+  else if(is_same(s, std::string_view("lydian"))) return scale::lydian;
+  else if(is_same(s, std::string_view("mixolydian"))) return scale::mixolydian;
+  else if(is_same(s, std::string_view("aeolian"))) return scale::aeolian;
+  else if(is_same(s, std::string_view("locrian"))) return scale::locrian;
+  else if(is_same(s, std::string_view("I"))) return scale::I;
+  else if(is_same(s, std::string_view("II"))) return scale::II;
+  else if(is_same(s, std::string_view("III"))) return scale::III;
+  else if(is_same(s, std::string_view("IV"))) return scale::IV;
+  else if(is_same(s, std::string_view("V"))) return scale::V;
+  else if(is_same(s, std::string_view("VI"))) return scale::VI;
+  else if(is_same(s, std::string_view("VII"))) return scale::VII;
   else return scale::custom;
 }
 static MSVC_CONSTEXPR frozen::unordered_map<int, scales_array, scale::SCALES_MAX-1> scales{

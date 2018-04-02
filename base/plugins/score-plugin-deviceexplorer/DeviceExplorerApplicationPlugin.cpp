@@ -7,7 +7,6 @@
 #include <vector>
 
 #include "DeviceExplorerApplicationPlugin.hpp"
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
