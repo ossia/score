@@ -2,8 +2,6 @@
 #include <eggs/variant.hpp>
 #include <QApplication>
 #include <QTimer>
-#include <QFile>
-#include <QFileInfo>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,13 +25,13 @@ constexpr float convert_sample(SampleFormat i);
 template<>
 constexpr float convert_sample<int16_t, 16>(int16_t i)
 {
-  return (i + .5) / (0x7FFF + .5);
+  return (i + .5f) / (0x7FFF + .5f);
 }
 
 template<>
 constexpr float convert_sample<int32_t, 24>(int32_t i)
 {
-  return ((int32_t)i >> 8) / ((float)std::numeric_limits<int32_t>::max() / 256.);
+  return ((int32_t)i >> 8) / ((float)std::numeric_limits<int32_t>::max() / 256.f);
 }
 
 template<>

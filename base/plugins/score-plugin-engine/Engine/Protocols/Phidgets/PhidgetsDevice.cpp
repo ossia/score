@@ -8,7 +8,6 @@
 #include <ossia/network/generic/generic_parameter.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/phidgets/phidgets_protocol.hpp>
-#include <ossia/network/phidgets/phidgets_device.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/Protocols/Phidgets/PhidgetsSpecificSettings.hpp>
 #include <Explorer/DeviceList.hpp>

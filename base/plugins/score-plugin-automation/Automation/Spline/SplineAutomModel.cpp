@@ -3,6 +3,7 @@
 #include <Automation/Spline/SplineAutomModel.hpp>
 #include <Automation/Spline/SplineAutomPresenter.hpp>
 #include <ossia/editor/state/destination_qualifiers.hpp>
+#include <Process/Dataflow/Port.hpp>
 #include <QColor>
 namespace Spline
 {
@@ -12,7 +13,9 @@ ProcessModel::ProcessModel(
     QObject* parent)
     : Process::ProcessModel{duration, id,
                         Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
 {
+  outlet->type = Process::PortType::Message;
   m_spline.points.push_back({0., 0.});
 
   m_spline.points.push_back({0.4, 0.075});
@@ -23,12 +26,23 @@ ProcessModel::ProcessModel(
   m_spline.points.push_back({0.7,0.9});
   m_spline.points.push_back({1.0, 1.0});
 
-  metadata().setInstanceName(*this);
   init();
+  metadata().setInstanceName(*this);
 }
 
 ProcessModel::~ProcessModel()
 {
+}
+
+void ProcessModel::init()
+{
+  m_outlets.push_back(outlet.get());
+  connect(outlet.get(), &Process::Port::addressChanged,
+          this, [=] (const State::AddressAccessor& arg) {
+    addressChanged(arg);
+    prettyNameChanged();
+    unitChanged(arg.qualifiers.get().unit);
+  });
 }
 
 QString ProcessModel::prettyName() const
@@ -64,32 +78,27 @@ TimeVal ProcessModel::contentDuration() const
 
 ::State::AddressAccessor ProcessModel::address() const
 {
-  return m_address;
+  return outlet->address();
 }
 
 void ProcessModel::setAddress(const ::State::AddressAccessor& arg)
 {
-  if (m_address == arg)
-  {
-    return;
-  }
-
-  m_address = arg;
-  addressChanged(arg);
-  unitChanged(arg.qualifiers.get().unit);
+  outlet->setAddress(arg);
 }
 
 State::Unit ProcessModel::unit() const
 {
-  return m_address.qualifiers.get().unit;
+  return outlet->address().qualifiers.get().unit;
 }
 
 void ProcessModel::setUnit(const State::Unit& u)
 {
   if (u != unit())
   {
-    m_address.qualifiers.get().unit = u;
-    addressChanged(m_address);
+    auto addr = outlet->address();
+    addr.qualifiers.get().unit = u;
+    outlet->setAddress(addr);
+    prettyNameChanged();
     unitChanged(u);
   }
 }
@@ -160,7 +169,7 @@ void JSONValueWriter::write(
 template <>
 void DataStreamReader::read(const Spline::ProcessModel& autom)
 {
-  m_stream << autom.m_address
+  m_stream << *autom.outlet
            << autom.m_spline
            << autom.m_tween;
 
@@ -169,8 +178,8 @@ void DataStreamReader::read(const Spline::ProcessModel& autom)
 template <>
 void DataStreamWriter::write(Spline::ProcessModel& autom)
 {
-  m_stream >> autom.m_address
-           >> autom.m_spline
+  autom.outlet = Process::make_outlet(*this, &autom);
+  m_stream >> autom.m_spline
            >> autom.m_tween;
 
   checkDelimiter();
@@ -181,7 +190,7 @@ template <>
 void JSONObjectReader::read(
     const Spline::ProcessModel& autom)
 {
-  obj[strings.Address] = toJsonObject(autom.address());
+  obj["Outlet"] = toJsonObject(*autom.outlet);
   JSONValueReader v{}; v.readFrom(autom.m_spline);
   obj["Spline"] = v.val;
   obj["Tween"] = autom.tween();
@@ -191,8 +200,15 @@ void JSONObjectReader::read(
 template <>
 void JSONObjectWriter::write(Spline::ProcessModel& autom)
 {
-  autom.setAddress(
-      fromJsonObject<State::AddressAccessor>(obj[strings.Address]));
+  JSONObjectWriter writer{obj["Outlet"].toObject()};
+  autom.outlet = Process::make_outlet(writer, &autom);
+  if(!autom.outlet)
+  {
+    autom.outlet = Process::make_outlet(Id<Process::Port>(0), &autom);
+    autom.outlet->type = Process::PortType::Message;
+    autom.outlet->setAddress(fromJsonObject<State::AddressAccessor>(obj[strings.Address].toObject()));
+  }
+
   autom.setTween(obj["Tween"].toBool());
   JSONValueWriter v{}; v.val = obj["Spline"];
   v.writeTo(autom.m_spline);

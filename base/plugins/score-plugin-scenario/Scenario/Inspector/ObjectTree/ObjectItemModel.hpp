@@ -7,7 +7,6 @@
 #include <score/widgets/MarginLess.hpp>
 
 #include <QAbstractItemModel>
-#include <QFile>
 #include <QTreeView>
 #include <QVBoxLayout>
 #include <QHeaderView>

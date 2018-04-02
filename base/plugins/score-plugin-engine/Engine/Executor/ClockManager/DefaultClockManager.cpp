@@ -3,22 +3,13 @@
 #include <ossia/editor/state/state_element.hpp>
 #include "DefaultClockManager.hpp"
 
-#include <ossia/editor/state/state_element.hpp>
 #include <Engine/Executor/BaseScenarioComponent.hpp>
 #include <Engine/Executor/IntervalComponent.hpp>
 #include <Engine/Executor/EventComponent.hpp>
-#include <Engine/Executor/DocumentPlugin.hpp>
-#include <Engine/Executor/ExecutorContext.hpp>
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
 #include <Engine/OSSIA2score.hpp>
 #include <Engine/score2OSSIA.hpp>
 
-#include <Scenario/Document/Interval/IntervalDurations.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-
-#include <ossia/editor/scenario/clock.hpp>
-#include <ossia/editor/state/state_element.hpp>
-#include <ossia/editor/scenario/time_event.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
 

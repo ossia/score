@@ -1,6 +1,4 @@
 #include <Media/Input/InputModel.hpp>
-
-#include <QFile>
 #include <Process/Dataflow/Port.hpp>
 
 namespace Media
