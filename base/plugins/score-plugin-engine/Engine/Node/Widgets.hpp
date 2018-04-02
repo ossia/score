@@ -44,7 +44,7 @@ inline QGraphicsItem* wrapWidget(QWidget* widg)
   return wrap;
 }
 
-struct FloatSlider final : ControlInfo
+struct FloatSlider final : ossia::safe_nodes::control_in
 {
     static const constexpr bool must_validate = false;
     using type = float;
@@ -54,7 +54,7 @@ struct FloatSlider final : ControlInfo
 
     template<std::size_t N>
     constexpr FloatSlider(const char (&name)[N], float v1, float v2, float v3):
-      ControlInfo{name}, min{v1}, max{v2}, init{v3}
+      ossia::safe_nodes::control_in{name}, min{v1}, max{v2}, init{v3}
     {
     }
 
@@ -141,7 +141,7 @@ struct FloatSlider final : ControlInfo
     }
 };
 
-struct LogFloatSlider final : ControlInfo
+struct LogFloatSlider final : ossia::safe_nodes::control_in
 {
     static const constexpr bool must_validate = false;
     using type = float;
@@ -151,7 +151,7 @@ struct LogFloatSlider final : ControlInfo
 
     template<std::size_t N>
     constexpr LogFloatSlider(const char (&name)[N], float v1, float v2, float v3):
-      ControlInfo{name}, min{v1}, max{v2}, init{v3}
+      ossia::safe_nodes::control_in{name}, min{v1}, max{v2}, init{v3}
     {
     }
 
@@ -246,7 +246,7 @@ struct LogFloatSlider final : ControlInfo
     }
 };
 
-struct IntSlider final : ControlInfo
+struct IntSlider final : ossia::safe_nodes::control_in
 {
     using type = int;
     const int min{};
@@ -256,7 +256,7 @@ struct IntSlider final : ControlInfo
     static const constexpr bool must_validate = false;
     template<std::size_t N>
     constexpr IntSlider(const char (&name)[N], int v1, int v2, int v3):
-      ControlInfo{name}, min{v1}, max{v2}, init{v3}
+      ossia::safe_nodes::control_in{name}, min{v1}, max{v2}, init{v3}
     {
     }
 
@@ -341,7 +341,7 @@ struct IntSlider final : ControlInfo
     }
 
 };
-struct IntSpinBox final : ControlInfo
+struct IntSpinBox final : ossia::safe_nodes::control_in
 {
     static const constexpr bool must_validate = false;
     using type = int;
@@ -357,7 +357,7 @@ struct IntSpinBox final : ControlInfo
 
     template<std::size_t N>
     constexpr IntSpinBox(const char (&name)[N], int v1, int v2, int v3):
-      ControlInfo{name}, min{v1}, max{v2}, init{v3}
+      ossia::safe_nodes::control_in{name}, min{v1}, max{v2}, init{v3}
     {
     }
 
@@ -428,12 +428,12 @@ struct IntSpinBox final : ControlInfo
     }
 
 };
-struct Toggle final : ControlInfo
+struct Toggle final : ossia::safe_nodes::control_in
 {
     static const constexpr bool must_validate = false;
     template<std::size_t N>
     constexpr Toggle(const char (&name)[N], bool v1):
-      ControlInfo{name}, init{v1}
+      ossia::safe_nodes::control_in{name}, init{v1}
     {
     }
 
@@ -482,12 +482,12 @@ struct Toggle final : ControlInfo
 };
 
 
-struct ChooserToggle final : ControlInfo
+struct ChooserToggle final : ossia::safe_nodes::control_in
 {
     static const constexpr bool must_validate = false;
     template<std::size_t N>
     constexpr ChooserToggle(const char (&name)[N], std::array<const char*, 2> alt, bool v1):
-      ControlInfo{name}, alternatives{alt}, init{v1}
+      ossia::safe_nodes::control_in{name}, alternatives{alt}, init{v1}
     {
     }
     using type = bool;
@@ -544,12 +544,12 @@ struct ChooserToggle final : ControlInfo
       return wrapWidget(make_widget(slider, inlet, ctx, parent, context));
     }
 };
-struct LineEdit final : ControlInfo
+struct LineEdit final : ossia::safe_nodes::control_in
 {
     static const constexpr bool must_validate = false;
     template<std::size_t N, std::size_t M>
     constexpr LineEdit(const char (&name)[N], const char (&init)[M]):
-      ControlInfo{name}, init{init, M-1}
+      ossia::safe_nodes::control_in{name}, init{init, M-1}
     {
     }
 
@@ -596,20 +596,20 @@ struct LineEdit final : ControlInfo
     }
 
 };
-struct RGBAEdit final : ControlInfo
+struct RGBAEdit final : ossia::safe_nodes::control_in
 {
     static const constexpr bool must_validate = false;
     using type = std::array<float, 4>;
     std::array<float, 4> init{};
 };
-struct XYZEdit final : ControlInfo
+struct XYZEdit final : ossia::safe_nodes::control_in
 {
     static const constexpr bool must_validate = false;
     using type = std::array<float, 3>;
     std::array<float, 3> init{};
 };
 template<typename T, std::size_t N>
-struct ComboBox final : ControlInfo
+struct ComboBox final : ossia::safe_nodes::control_in
 {
     static const constexpr bool must_validate = false;
     using type = T;
@@ -618,7 +618,7 @@ struct ComboBox final : ControlInfo
 
     template<std::size_t M, typename Arr>
     constexpr ComboBox(const char (&name)[M], std::size_t in, Arr arr):
-      ControlInfo{name}, init{in}, values{arr}
+      ossia::safe_nodes::control_in{name}, init{in}, values{arr}
     {
     }
 
@@ -722,7 +722,7 @@ struct ComboBox final : ControlInfo
 };
 
 template<typename ArrT>
-struct EnumBase : ControlInfo
+struct EnumBase : ossia::safe_nodes::control_in
 {
     using type = std::string;
     const std::size_t init{};
@@ -732,7 +732,7 @@ struct EnumBase : ControlInfo
 
     template<std::size_t N1>
     constexpr EnumBase(const char (&name)[N1], std::size_t i, const ArrT& v)
-      : ControlInfo{name}
+      : ossia::safe_nodes::control_in{name}
       , init{i}
       , values{v}
     {
@@ -871,14 +871,14 @@ struct UnvalidatedEnum final : EnumBase<ArrT>
     }
 };
 
-struct TimeSignatureChooser final: ControlInfo
+struct TimeSignatureChooser final: ossia::safe_nodes::control_in
 {
     static const constexpr bool must_validate = true;
     using type = time_signature;
     const std::string_view init;
     template<std::size_t M>
     constexpr TimeSignatureChooser(const char (&name)[M], std::string_view in):
-      ControlInfo{name}, init{in}
+      ossia::safe_nodes::control_in{name}, init{in}
     {
     }
 

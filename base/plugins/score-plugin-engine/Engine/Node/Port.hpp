@@ -1,6 +1,6 @@
 #pragma once
 #include <ossia/dataflow/safe_nodes/port.hpp>
-
+/*
 namespace Control
 {
 using inlet_kind = ossia::safe_nodes::inlet_kind;
@@ -15,3 +15,4 @@ using MidiInInfo = ossia::safe_nodes::midi_in;
 using MidiOutInfo = ossia::safe_nodes::midi_out;
 using ControlInfo = ossia::safe_nodes::control_in;
 }
+*/

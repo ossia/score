@@ -92,7 +92,7 @@ class VSTGraphicsSlider final
     QRectF handleRect() const;
 };
 
-struct VSTFloatSlider : Control::ControlInfo
+struct VSTFloatSlider : ossia::safe_nodes::control_in
 {
     static QGraphicsItem* make_item(AEffect* fx, VSTControlInlet& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context);
 };
