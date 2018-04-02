@@ -1,5 +1,5 @@
 #pragma once
-#include <Engine/Node/Node.hpp>
+#include <ossia/dataflow/safe_nodes/node.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Process.hpp>

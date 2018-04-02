@@ -17,7 +17,7 @@ struct Node
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto uuid = make_uuid("2c6493c3-5449-4e52-ae04-9aee3be5fb6a");
 
-    static const constexpr auto value_ins  = ossia::safe_nodes::value_ins<1>{Control::ValueInInfo{"in", true}};
+    static const constexpr auto value_ins  = ossia::safe_nodes::value_ins<1>{value_in{"in", true}};
     static const constexpr auto midi_outs = ossia::safe_nodes::midi_outs<1>{{"out"}};
     static const constexpr auto controls =
         std::make_tuple(

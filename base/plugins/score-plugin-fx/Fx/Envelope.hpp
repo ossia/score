@@ -16,7 +16,7 @@ struct Node
     static const constexpr auto uuid = make_uuid("95F44151-13EF-4537-8189-0CC243341269");
 
     static const constexpr auto audio_ins  = ossia::safe_nodes::audio_ins<1>{{"in"}};
-    static const constexpr auto value_outs = ossia::safe_nodes::value_outs<2>{Control::ValueOutInfo{"rms"}, Control::ValueOutInfo{"peak"}};
+    static const constexpr auto value_outs = ossia::safe_nodes::value_outs<2>{value_out{"rms"}, value_out{"peak"}};
   };
 
   using control_policy = ossia::safe_nodes::default_tick;

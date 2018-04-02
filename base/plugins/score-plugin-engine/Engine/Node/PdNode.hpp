@@ -1,6 +1,6 @@
 #pragma once
 #include <Engine/Node/Widgets.hpp>
-#include <Engine/Node/Node.hpp>
+#include <ossia/dataflow/safe_nodes/node.hpp>
 #include <Engine/Node/Process.hpp>
 #include <Engine/Node/Executor.hpp>
 #include <Engine/Node/Inspector.hpp>
@@ -12,17 +12,7 @@
 
 namespace Control
 {
-struct Meta_base
-{
-    static const constexpr ossia::safe_nodes::dummy_container<ossia::safe_nodes::value_in> value_ins{};
-    static const constexpr ossia::safe_nodes::dummy_container<ossia::safe_nodes::value_out> value_outs{};
-    static const constexpr ossia::safe_nodes::dummy_container<ossia::safe_nodes::audio_in> audio_ins{};
-    static const constexpr ossia::safe_nodes::dummy_container<ossia::safe_nodes::audio_out> audio_outs{};
-    static const constexpr ossia::safe_nodes::dummy_container<ossia::safe_nodes::midi_in> midi_ins{};
-    static const constexpr ossia::safe_nodes::dummy_container<ossia::safe_nodes::midi_out> midi_outs{};
-    static const constexpr ossia::safe_nodes::dummy_container<ossia::safe_nodes::address_in> address_ins{};
-    static const constexpr std::tuple<> controls{};
-};
+using Meta_base = ossia::safe_nodes::base_metadata;
 template<typename Node>
 using ProcessFactory = Process::ProcessFactory_T<ControlProcess<Node>>;
 
