@@ -40,6 +40,7 @@ private:
   QJsonObject copySelectedElementsToJson();
   QJsonObject cutSelectedElementsToJson();
   void pasteElements(const QJsonObject& obj, const Scenario::Point& origin);
+  void pasteElementsAfter(const QJsonObject& obj, const Scenario::Point& origin, const Selection& sel);
   void writeJsonToSelectedElements(const QJsonObject& obj);
 
   ScenarioDocumentModel* getScenarioDocModel() const;
@@ -55,6 +56,7 @@ private:
   QAction* m_cutContent{};
   QAction* m_pasteContent{};
   QAction* m_pasteElements{};
+  QAction* m_pasteElementsAfter{};
   QAction* m_elementsToJson{};
   QAction* m_mergeTimeSyncs{};
   QAction* m_mergeEvents{};

@@ -233,31 +233,31 @@ const QVector<Id<IntervalModel>> intervalsBeforeTimeSync(
 
 const StateModel* furthestSelectedState(const Scenario::ProcessModel& scenar)
 {
-  const StateModel* furthest_state{};
+  const StateModel* furthest{};
   {
     TimeVal max_t = TimeVal::zero();
     double max_y = 0;
-    for (StateModel& state : scenar.states)
+    for (StateModel& elt : scenar.states)
     {
-      if (state.selection.get())
+      if (elt.selection.get())
       {
-        auto date = scenar.events.at(state.eventId()).date();
-        if (!furthest_state || date > max_t)
+        auto date = scenar.events.at(elt.eventId()).date();
+        if (!furthest || date > max_t)
         {
           max_t = date;
-          max_y = state.heightPercentage();
-          furthest_state = &state;
+          max_y = elt.heightPercentage();
+          furthest = &elt;
         }
-        else if (date == max_t && state.heightPercentage() > max_y)
+        else if (date == max_t && elt.heightPercentage() > max_y)
         {
-          max_y = state.heightPercentage();
-          furthest_state = &state;
+          max_y = elt.heightPercentage();
+          furthest = &elt;
         }
       }
     }
-    if (furthest_state)
+    if (furthest)
     {
-      return furthest_state;
+      return furthest;
     }
   }
 
@@ -292,6 +292,62 @@ const StateModel* furthestSelectedState(const Scenario::ProcessModel& scenar)
   }
 
   return nullptr;
+}
+
+const EventModel* furthestSelectedEvent(const Scenario::ProcessModel& scenar)
+{
+  const EventModel* furthest{};
+  {
+    TimeVal max_t = TimeVal::zero();
+    double max_y = 0;
+    for (EventModel& elt : scenar.events)
+    {
+      if (elt.selection.get())
+      {
+        auto date = elt.date();
+        if (!furthest || date > max_t)
+        {
+          max_t = date;
+          max_y = elt.extent().bottom();
+          furthest = &elt;
+        }
+        else if (date == max_t && elt.extent().bottom() > max_y)
+        {
+          max_y = elt.extent().bottom();
+          furthest = &elt;
+        }
+      }
+    }
+  }
+  return furthest;
+}
+
+const TimeSyncModel* furthestSelectedSync(const Scenario::ProcessModel& scenar)
+{
+  const TimeSyncModel* furthest{};
+  {
+    TimeVal max_t = TimeVal::zero();
+    double max_y = 0;
+    for (TimeSyncModel& elt : scenar.timeSyncs)
+    {
+      if (elt.selection.get())
+      {
+        auto date = elt.date();
+        if (!furthest || date > max_t)
+        {
+          max_t = date;
+          max_y = elt.extent().bottom();
+          furthest = &elt;
+        }
+        else if (date == max_t && elt.extent().bottom() > max_y)
+        {
+          max_y = elt.extent().bottom();
+          furthest = &elt;
+        }
+      }
+    }
+  }
+  return furthest;
 }
 
 const StateModel* furthestSelectedStateWithoutFollowingInterval(
@@ -376,6 +432,32 @@ TimeVal ProcessModel::contentDuration() const
       max_tn_pos = t.date();
   }
   return max_tn_pos;
+}
+
+const TimeSyncModel*furthestHierarchicallySelectedTimeSync(const ProcessModel& scenario)
+{
+  const Scenario::TimeSyncModel* attach_sync{};
+
+  if(auto furthestState = furthestSelectedState(scenario))
+  {
+    attach_sync = &Scenario::parentTimeSync(*furthestState, scenario);
+  }
+  else
+  {
+    if(auto furthestEvent = furthestSelectedEvent(scenario))
+    {
+      attach_sync = &Scenario::parentTimeSync(*furthestEvent, scenario);
+    }
+    else
+    {
+      attach_sync = furthestSelectedSync(scenario);
+    }
+  }
+
+  if(!attach_sync)
+    attach_sync = &scenario.startTimeSync();
+
+  return attach_sync;
 }
 
 }
