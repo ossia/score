@@ -8,6 +8,7 @@
 #include <Fx/TestNode.hpp>
 #include <Fx/LFO.hpp>
 #include <Fx/Metro.hpp>
+#include <Fx/ClassicalBeat.hpp>
 #include <Fx/Envelope.hpp>
 #include <Fx/MathGenerator.hpp>
 #include <Fx/MathMapping.hpp>
@@ -23,7 +24,7 @@ namespace Control
 }
 score_plugin_fx::score_plugin_fx() : QObject{}
 {
-  
+
 }
 
 score_plugin_fx::~score_plugin_fx()
@@ -37,8 +38,9 @@ score_plugin_fx::factories(
 {
   return Control::instantiate_fx<
       Nodes::PulseToNote::Node,
-      Nodes::LFO::Node, 
-      Nodes::Chord::Node, 
+      Nodes::ClassicalBeat::Node,
+      Nodes::LFO::Node,
+      Nodes::Chord::Node,
       Nodes::MidiUtil::Node,
       Nodes::Metro::Node,
       Nodes::Envelope::Node,
