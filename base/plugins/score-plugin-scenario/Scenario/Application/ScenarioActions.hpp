@@ -105,6 +105,8 @@ SCORE_DECLARE_ACTION(
 SCORE_DECLARE_ACTION(
     PasteElements, "&Paste (elements)", Scenario, QKeySequence::Paste)
 SCORE_DECLARE_ACTION(
+    PasteElementsAfter, "&Paste (after)", Scenario, QKeySequence::UnknownKey)
+SCORE_DECLARE_ACTION(
     ElementsToJson, "Convert to &JSON", Scenario, QKeySequence::UnknownKey)
 
 // Event

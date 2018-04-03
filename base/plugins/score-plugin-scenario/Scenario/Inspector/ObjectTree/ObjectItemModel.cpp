@@ -138,18 +138,22 @@ void ObjectItemModel::setupConnections()
 
       for(const auto& ev : tn->events())
       {
-        auto& e = scenar.event(ev);
-        m_aliveMap.insert(&e, &e);
-        m_itemCon.push_back(con(e, &EventModel::statesChanged, this, [=] { recompute(); }));
-        for(const auto& st : e.states())
+        if(auto* eptr = scenar.findEvent(ev))
         {
-          auto& s = scenar.state(st);
-          m_aliveMap.insert(&s, &s);
-          s.stateProcesses.added.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
-          s.stateProcesses.removed.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
+          m_aliveMap.insert(eptr, eptr);
+          m_itemCon.push_back(connect(eptr, &EventModel::statesChanged, this, [=] { recompute(); }));
+          for(const auto& st : eptr->states())
+          {
+            if(auto* sptr = scenar.findState(st))
+            {
+              m_aliveMap.insert(sptr, sptr);
+              sptr->stateProcesses.added.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
+              sptr->stateProcesses.removed.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
 
-          for(const auto& sp : s.stateProcesses)
-            m_aliveMap.insert(&sp, &sp);
+              for(const auto& sp : sptr->stateProcesses)
+                m_aliveMap.insert(&sp, &sp);
+            }
+          }
         }
       }
     }
@@ -159,15 +163,18 @@ void ObjectItemModel::setupConnections()
       auto& e = *ev;
       m_aliveMap.insert(&e, &e);
       m_itemCon.push_back(con(e, &EventModel::statesChanged, this, [=] { recompute(); }));
+
       for(const auto& st : e.states())
       {
-        auto& s = scenar.state(st);
-        m_aliveMap.insert(&s, &s);
-        s.stateProcesses.added.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
-        s.stateProcesses.removed.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
+        if(auto* sptr = scenar.findState(st))
+        {
+          m_aliveMap.insert(sptr, sptr);
+          sptr->stateProcesses.added.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
+          sptr->stateProcesses.removed.connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
 
-        for(const auto& sp : s.stateProcesses)
-          m_aliveMap.insert(&sp, &sp);
+          for(const auto& sp : sptr->stateProcesses)
+            m_aliveMap.insert(&sp, &sp);
+        }
       }
     }
     else if ( auto st = qobject_cast<const Scenario::StateModel*>(obj) )

@@ -110,7 +110,7 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
   m_cutContent = new QAction{tr("Cut"), this};
   m_cutContent->setShortcut(QKeySequence::Cut);
   m_cutContent->setShortcutContext(Qt::ApplicationShortcut);
-  connect(m_cutContent, &QAction::triggered, [this]() {
+  connect(m_cutContent, &QAction::triggered, [this] {
     auto obj = cutSelectedElementsToJson();
     if (obj.empty())
       return;
@@ -121,7 +121,7 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
 
   m_pasteContent = new QAction{tr("Paste content"), this};
   m_pasteContent->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-  connect(m_pasteContent, &QAction::triggered, [this]() {
+  connect(m_pasteContent, &QAction::triggered, [this] {
     writeJsonToSelectedElements(
         QJsonDocument::fromJson(QApplication::clipboard()->text().toUtf8())
             .object());
@@ -130,7 +130,7 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
   m_pasteElements = new QAction{tr("Paste elements"), this};
   m_pasteElements->setShortcut(QKeySequence::Paste);
   m_pasteElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-  connect(m_pasteElements, &QAction::triggered, [this]() {
+  connect(m_pasteElements, &QAction::triggered, [this] {
     auto pres = m_parent->focusedPresenter();
     if (!pres)
       return;
@@ -154,6 +154,33 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
         QJsonDocument::fromJson(QApplication::clipboard()->text().toUtf8())
             .object(),
         pt);
+  });
+
+  m_pasteElementsAfter = new QAction{tr("Paste (after)"), this};
+  connect(m_pasteElementsAfter, &QAction::triggered, [this] {
+    auto pres = m_parent->focusedPresenter();
+    if (!pres)
+      return;
+    auto views = pres->view().scene()->views();
+    if (views.empty())
+      return;
+
+    auto view = views.front();
+
+    QPoint pos = QCursor::pos();
+
+    auto scene_pt = view->mapToScene(view->mapFromGlobal(pos));
+    TemporalScenarioView& sv = pres->view();
+    auto sv_pt = sv.mapFromScene(scene_pt);
+    if (!sv.contains(sv_pt))
+    {
+      sv_pt = sv.mapToScene(sv.boundingRect().center());
+    }
+    auto pt = pres->toScenarioPoint(sv_pt);
+    pasteElementsAfter(
+        QJsonDocument::fromJson(QApplication::clipboard()->text().toUtf8())
+            .object(),
+        pt, pres->context().context.selectionStack.currentSelection());
   });
 
   // DISPLAY JSON
@@ -264,6 +291,7 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   actions.add<Actions::CutContent>(m_cutContent);
   actions.add<Actions::PasteContent>(m_pasteContent);
   actions.add<Actions::PasteElements>(m_pasteElements);
+  actions.add<Actions::PasteElementsAfter>(m_pasteElementsAfter);
   actions.add<Actions::ElementsToJson>(m_elementsToJson);
   actions.add<Actions::MergeTimeSyncs>(m_mergeTimeSyncs);
   actions.add<Actions::MergeEvents>(m_mergeEvents);
@@ -288,6 +316,7 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   object.menu()->addAction(m_cutContent);
   object.menu()->addAction(m_pasteContent);
   object.menu()->addAction(m_pasteElements);
+  object.menu()->addAction(m_pasteElementsAfter);
   object.menu()->addSeparator();
   object.menu()->addAction(m_mergeTimeSyncs);
   object.menu()->addAction(m_mergeEvents);
@@ -351,6 +380,8 @@ void ObjectMenuActions::setupContextMenu(
           scenario.toScenarioPoint(scenario.view().mapFromScene(scenePoint)));
     });
     menu.addAction(pasteElements);
+
+    menu.addAction(m_pasteElementsAfter);
   });
 
   // Used for base scenario, loops, etc.
@@ -436,6 +467,22 @@ void ObjectMenuActions::pasteElements(
   auto& sm = static_cast<const Scenario::ProcessModel&>(pres->model());
   // TODO check json validity
   auto cmd = new Command::ScenarioPasteElements(sm, obj, origin);
+
+  dispatcher().submitCommand(cmd);
+}
+
+void ObjectMenuActions::pasteElementsAfter(
+    const QJsonObject& obj, const Scenario::Point& origin, const Selection& sel)
+{
+  // TODO check for unnecessary uses of focusedProcessModel after
+  // focusedPresenter.
+  auto pres = m_parent->focusedPresenter();
+  if (!pres)
+    return;
+
+  auto& sm = static_cast<const Scenario::ProcessModel&>(pres->model());
+  // TODO check json validity
+  auto cmd = new Command::ScenarioPasteElementsAfter{sm, obj};
 
   dispatcher().submitCommand(cmd);
 }
