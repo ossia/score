@@ -145,13 +145,13 @@ class Executor final
         {
           m_inlets.push_back(ossia::make_inlet<ossia::audio_port>());
           m_outlets.push_back(ossia::make_outlet<ossia::audio_port>());
-          Wrap<Media::Faust::ExecUI<exec_node>> ex{*this};
+          Wrap<ossia::nodes::faust_exec_ui<exec_node>> ex{*this};
           dsp.buildUserInterface(&ex);
         }
 
         void run(ossia::token_request tk, ossia::execution_state&) override
         {
-          Media::Faust::faust_exec(*this, dsp, tk);
+          ossia::nodes::faust_exec(*this, dsp, tk);
         }
 
         std::string label() const override
