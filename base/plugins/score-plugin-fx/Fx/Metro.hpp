@@ -1,5 +1,6 @@
 #pragma once
 #include <Engine/Node/PdNode.hpp>
+#include <ossia/dataflow/execution_state.hpp>
 #include <numeric>
 namespace Nodes
 {
@@ -14,10 +15,10 @@ struct Node
         static const constexpr auto category = "Control";
         static const constexpr auto tags = std::array<const char*, 0>{};
         static const constexpr auto uuid = make_uuid("50439197-521E-4ED0-A3B7-EDD8DEAEAC93");
-        
-        static const constexpr auto value_outs = ossia::safe_nodes::value_outs<1>{{"out"}};    
-        
-        static const constexpr auto controls = 
+
+        static const constexpr auto value_outs = ossia::safe_nodes::value_outs<1>{{"out"}};
+
+        static const constexpr auto controls =
             std::make_tuple(Control::Widgets::MusicalDurationChooser(),
                             Control::Widgets::LFOFreqChooser(),
                             Control::ChooserToggle{"Quantify", {"Free", "Sync"}, false},

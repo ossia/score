@@ -3,6 +3,7 @@ project(score_plugin_fx LANGUAGES CXX)
 
 set(HDRS
 
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/ClassicalBeat.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/TestNode.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/MidiUtil.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/AngleNode.hpp"
