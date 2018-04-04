@@ -84,6 +84,13 @@ void Clock::resume_impl(
 
     m_plug.audioProto().ui_tick =
         [tick, plug=&m_plug] (auto&&... args) {
+      // Run some commands if they have been submitted.
+      Engine::Execution::ExecutionCommand c;
+      while(plug->context().executionQueue.try_dequeue(c))
+      {
+        c();
+      }
+
       static int i = 0;
       if(i % 50 == 0)
       {
@@ -110,11 +117,23 @@ void Clock::resume_impl(
   }
   else
   {
-    m_plug.audioProto().ui_tick = ossia::make_tick(
-                                    opt,
-                                    *m_plug.execState,
-                                    *m_plug.execGraph,
-                                    *m_cur->baseInterval().OSSIAInterval());
+    auto tick =
+        ossia::make_tick(opt,
+                         *m_plug.execState,
+                         *m_plug.execGraph,
+                         *m_cur->baseInterval().OSSIAInterval());
+
+    m_plug.audioProto().ui_tick = [tick, plug=&m_plug] (auto&&... args) {
+
+      // Run some commands if they have been submitted.
+      Engine::Execution::ExecutionCommand c;
+      while(plug->context().executionQueue.try_dequeue(c))
+      {
+        c();
+      }
+
+      tick(args...);
+    };
   }
 
   m_plug.audioProto().replace_tick = true;

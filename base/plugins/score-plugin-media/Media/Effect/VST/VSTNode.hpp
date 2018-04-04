@@ -224,6 +224,7 @@ class vst_node final : public ossia::graph_node
       if(tk.date > m_prev_date)
       {
         const std::size_t samples = tk.date - m_prev_date;
+        std::cerr << tk.date.impl << " - " << m_prev_date.impl << " = " << samples << std::endl;
         setControls();
         setupTimeInfo(tk, st);
 

@@ -41,6 +41,8 @@ Q_SIGNALS:
   //! "Play from here" algorithm.
   void playAtDate(const TimeVal&) const;
 
+  void transport(const TimeVal&) const;
+
   //! Request an automation recording from a given point.
   void startRecording(Scenario::ProcessModel&, Scenario::Point) const;
 

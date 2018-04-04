@@ -19,10 +19,6 @@ public:
 
   virtual ~DefaultClockManager();
 
-  //! Creates an execution callback for the root ossia::time_interval
-  ossia::time_interval::exec_callback
-  makeDefaultCallback(Engine::Execution::BaseScenarioElement&);
-
   void prepareExecution(
       const TimeVal& t, BaseScenarioElement& bs);
 private:

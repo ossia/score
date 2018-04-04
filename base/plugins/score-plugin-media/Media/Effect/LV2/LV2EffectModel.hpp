@@ -5,7 +5,8 @@
 #include <Media/Effect/LV2/LV2Context.hpp>
 #include <QJsonDocument>
 #include <Media/Effect/DefaultEffectItem.hpp>
-#include <Media/Effect/EffectExecutor.hpp>
+#include <Engine/Executor/ProcessComponent.hpp>
+#include <ossia/dataflow/node_process.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <QInputDialog>
 

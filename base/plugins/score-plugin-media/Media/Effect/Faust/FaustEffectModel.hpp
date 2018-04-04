@@ -2,9 +2,10 @@
 #include <Process/Process.hpp>
 #include <Effect/EffectFactory.hpp>
 #include <Media/Effect/DefaultEffectItem.hpp>
-#include <Media/Effect/EffectExecutor.hpp>
 #include <Process/GenericProcessFactory.hpp>
+#include <ossia/dataflow/node_process.hpp>
 #include <QDialog>
+#include <Engine/Executor/ProcessComponent.hpp>
 
 #include <faust/dsp/llvm-c-dsp.h>
 namespace Media::Faust

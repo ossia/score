@@ -101,5 +101,6 @@ private:
   QAction* m_audioEngineAct{};
   bool m_playing{false}, m_paused{false};
   void initialize() override;
+  void on_transport(TimeVal t);
 };
 }

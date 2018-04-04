@@ -1,5 +1,7 @@
 #pragma once
 #include <Media/Effect/VST/VSTEffectModel.hpp>
+#include <Engine/Executor/ProcessComponent.hpp>
+#include <ossia/dataflow/node_process.hpp>
 
 namespace Engine::Execution
 {

@@ -4,48 +4,16 @@
 #include <score/plugins/customfactory/ModelFactory.hpp>
 #include <Media/Effect/EffectProcessModel.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
-#include <ossia/dataflow/node_process.hpp>
+#include <ossia/dataflow/node_chain_process.hpp>
 #include <ossia/dataflow/fx_node.hpp>
 namespace Engine
 {
 namespace Execution
 {
-struct effect_chain_process final :
-    public ossia::time_process
-{
-    effect_chain_process()
-    {
-      m_lastDate = ossia::Zero;
-    }
-    void
-    state(ossia::time_value parent_date, double relative_position, ossia::time_value tick_offset, double speed) override
-    {
-      const ossia::token_request tk{parent_date, relative_position, tick_offset, speed};
-      for(auto& node : nodes)
-      {
-        node->requested_tokens.push_back(tk);
-      }
-      m_lastDate = parent_date;
-    }
-
-    void add_node(std::shared_ptr<ossia::graph_node> n)
-    {
-      n->set_prev_date(this->m_lastDate);
-      nodes.push_back(std::move(n));
-    }
-    void stop() override
-    {
-      for(auto& node : nodes)
-      {
-        node->all_notes_off();
-      }
-    }
-    std::vector<std::shared_ptr<ossia::graph_node>> nodes;
-};
 
 class SCORE_PLUGIN_MEDIA_EXPORT EffectProcessComponentBase
     : public ::Engine::Execution::
-    ProcessComponent_T<Media::Effect::ProcessModel, effect_chain_process>
+    ProcessComponent_T<Media::Effect::ProcessModel, ossia::node_chain_process>
 {
   COMPONENT_METADATA("d638adb3-64da-4b6e-b84d-7c32684fa79d")
 public:
@@ -62,7 +30,6 @@ public:
   void recompute();
 
   ~EffectProcessComponentBase() override;
-
 
   ProcessComponent* make(
           const Id<score::Component> & id,
@@ -124,7 +91,8 @@ class SCORE_PLUGIN_MEDIA_EXPORT EffectProcessComponent final :
     if(!element.badChaining())
       init_hierarchy();
 
-    connect(&element, &Media::Effect::ProcessModel::badChainingChanged, this, [&] (bool b) {
+    connect(&element, &Media::Effect::ProcessModel::badChainingChanged,
+            this, [&] (bool b) {
       if(b)
       {
         clear();
