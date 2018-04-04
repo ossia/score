@@ -876,9 +876,9 @@ struct TimeSignatureChooser final: ossia::safe_nodes::control_in
     static const constexpr bool must_validate = true;
     using type = time_signature;
     const std::string_view init;
-    template<std::size_t M>
-    constexpr TimeSignatureChooser(const char (&name)[M], std::string_view in):
-      ossia::safe_nodes::control_in{name}, init{in}
+    template<std::size_t M, std::size_t N>
+    constexpr TimeSignatureChooser(const char (&name)[M], const char (&in)[N]):
+      ossia::safe_nodes::control_in{name}, init{in, N}
     {
     }
 
