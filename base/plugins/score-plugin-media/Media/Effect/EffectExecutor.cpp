@@ -10,12 +10,12 @@ EffectProcessComponentBase::EffectProcessComponentBase(
     const Engine::Execution::Context &ctx,
     const Id<score::Component> &id,
     QObject *parent)
-  : Engine::Execution::ProcessComponent_T<Media::Effect::ProcessModel, effect_chain_process>{
+  : Engine::Execution::ProcessComponent_T<Media::Effect::ProcessModel, ossia::node_chain_process>{
       element,
       ctx,
       id, "Executor::EffectComponent", parent}
 {
-  m_ossia_process = std::make_shared<effect_chain_process>();
+  m_ossia_process = std::make_shared<ossia::node_chain_process>();
 }
 
 static auto move_edges(ossia::inlet& old_in, ossia::inlet_ptr new_in,
@@ -63,7 +63,7 @@ ProcessComponent* EffectProcessComponentBase::make(
     if(m_fxes.size() < (idx + 1))
       m_fxes.resize(idx + 1);
     m_fxes[idx] = std::make_pair(effect.id(), RegisteredEffect{fx, {}, {}});
-    static_cast<effect_chain_process*>(m_ossia_process.get())->add_node(fx->node);
+    static_cast<ossia::node_chain_process*>(m_ossia_process.get())->add_node(fx->node);
 
     auto& this_fx = m_fxes[idx].second;
 
@@ -230,7 +230,7 @@ std::function<void ()> EffectProcessComponentBase::removing(
   if(process().badChaining())
     return {};
 
-  auto echain = std::dynamic_pointer_cast<effect_chain_process>(m_ossia_process);
+  auto echain = std::dynamic_pointer_cast<ossia::node_chain_process>(m_ossia_process);
 
   auto it = ossia::find_if(m_fxes, [&] (const auto& v) { return v.first == e.id(); });
   if(it == m_fxes.end())

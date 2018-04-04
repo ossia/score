@@ -282,12 +282,12 @@ class lv2_node final : public ossia::graph_node
 
     void run(ossia::token_request tk, ossia::execution_state&) override
     {
-      if(tk.date > m_prev_date)
+      if(tk.date > prev_date())
       {
         data.host.current = &data.effect;
         preProcess();
 
-        const std::size_t samples = tk.date - m_prev_date;
+        const std::size_t samples = tk.date - prev_date();
         const auto audio_ins = data.audio_in_ports.size();
         const auto audio_outs = data.audio_out_ports.size();
         std::vector<std::vector<float>> in_vec;

@@ -21,38 +21,6 @@ DefaultClockManager::~DefaultClockManager() = default;
 DefaultClockManager::DefaultClockManager(const Context& ctx)
     : ClockManager{ctx}
 {
-  auto& bs = ctx.scenario;
-  ossia::time_interval& ossia_cst = *bs.baseInterval().OSSIAInterval();
-  ossia_cst.set_callback(makeDefaultCallback(bs));
-}
-ossia::time_interval::exec_callback
-DefaultClockManager::makeDefaultCallback(
-    Engine::Execution::BaseScenarioElement& bs)
-{
-  auto& cst = bs.baseInterval();
-  auto& ctx = this->context;
-  return smallfun::function<void(double, ossia::time_value), 32>{[&ctx, &score_cst=cst.scoreInterval()](
-      double position,
-      ossia::time_value date)
-  {
-    ctx.editionQueue.enqueue([&score_cst,currentTime = ctx.reverseTime(date)] {
-      auto& cstdur = score_cst.duration;
-      const auto& maxdur = cstdur.maxDuration();
-
-      if (!maxdur.isInfinite())
-        cstdur.setPlayPercentage(currentTime / cstdur.maxDuration());
-      else
-        cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
-    });
-
-
-    // Run some commands if they have been submitted.
-    ExecutionCommand c;
-    while(ctx.executionQueue.try_dequeue(c))
-    {
-      c();
-    }
-  }};
 }
 
 void DefaultClockManager::prepareExecution(

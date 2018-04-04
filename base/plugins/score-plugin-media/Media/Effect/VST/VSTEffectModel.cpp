@@ -14,6 +14,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Media/Effect/VST/VSTControl.hpp>
 #include <Media/Commands/VSTCommands.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
 #include <ossia-qt/invoke.hpp>
 
 #include <QUrl>

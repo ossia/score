@@ -329,7 +329,7 @@ IntervalComponent* ScenarioComponentBase::make<IntervalComponent, Scenario::Inte
         dur.minDuration,
         dur.maxDuration);
 
-  elt->onSetup(elt, ossia_cst, dur, false);
+  elt->onSetup(elt, ossia_cst, dur);
 
 
   // The adding of the time_interval has to be done in the edition thread.

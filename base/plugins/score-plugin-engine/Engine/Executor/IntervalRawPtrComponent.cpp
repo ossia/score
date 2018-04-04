@@ -165,8 +165,7 @@ interval_duration_data IntervalRawPtrComponentBase::makeDurations() const
 void IntervalRawPtrComponent::onSetup(
     std::shared_ptr<IntervalRawPtrComponent> self,
     ossia::time_interval* ossia_cst,
-    interval_duration_data dur,
-    bool parent_is_base_scenario)
+    interval_duration_data dur)
 {
   m_ossia_interval = ossia_cst;
 
@@ -174,20 +173,16 @@ void IntervalRawPtrComponent::onSetup(
   m_ossia_interval->set_max_duration(dur.maxDuration);
   m_ossia_interval->set_speed(dur.speed);
 
-  // BaseScenario needs a special callback. It is given in DefaultClockManager.
-  if (!parent_is_base_scenario)
-  {
-    std::weak_ptr<IntervalRawPtrComponent> weak_self = self;
-    in_exec([weak_self,ossia_cst,&edit=system().editionQueue] {
-      ossia_cst->set_stateless_callback(smallfun::function<void (double, ossia::time_value), 32>{
-            [weak_self,&edit](double position, ossia::time_value date) {
-        edit.enqueue([weak_self,position,date] {
-          if(auto self = weak_self.lock())
-            self->slot_callback(position, date);
-        });
-      }});
-    });
-  }
+  std::weak_ptr<IntervalRawPtrComponent> weak_self = self;
+  in_exec([weak_self,ossia_cst,&edit=system().editionQueue] {
+    ossia_cst->set_stateless_callback(smallfun::function<void (double, ossia::time_value), 32>{
+          [weak_self,&edit](double position, ossia::time_value date) {
+      edit.enqueue([weak_self,position,date] {
+        if(auto self = weak_self.lock())
+          self->slot_callback(position, date);
+      });
+    }});
+  });
 
   // set-up the interval ports
   system().plugin.register_node(

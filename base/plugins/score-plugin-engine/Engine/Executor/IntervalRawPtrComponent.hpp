@@ -131,8 +131,7 @@ class SCORE_PLUGIN_ENGINE_EXPORT IntervalRawPtrComponent final :
     void onSetup(
         std::shared_ptr<IntervalRawPtrComponent> self,
         ossia::time_interval* ossia_cst,
-        interval_duration_data dur,
-        bool parent_is_base_scenario);
+        interval_duration_data dur);
   Q_SIGNALS:
     void sig_callback(double position, ossia::time_value date);
   public Q_SLOTS:

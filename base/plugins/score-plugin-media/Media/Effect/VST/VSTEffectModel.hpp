@@ -2,11 +2,11 @@
 #include <Process/Process.hpp>
 #include <Effect/EffectFactory.hpp>
 #include <Media/Effect/VST/VSTLoader.hpp>
-#include <Media/Effect/EffectExecutor.hpp>
 #include <Media/Effect/DefaultEffectItem.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Media/Effect/VST/VSTLoader.hpp>
 #include <Process/GenericProcessFactory.hpp>
+#include <ossia/detail/hash_map.hpp>
 #include <QFileDialog>
 #include <QJsonDocument>
 namespace Media::VST

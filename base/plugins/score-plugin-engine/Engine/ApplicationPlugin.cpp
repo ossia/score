@@ -111,8 +111,15 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
     auto& ctrl = ctx.guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
     con(ctrl.execution(), &Scenario::ScenarioExecution::playAtDate, this,
         [ =, act = play_action.action() ](const TimeVal& t) {
-      on_play(true, t);
-      act->trigger();
+      if(m_clock)
+      {
+        on_transport(t);
+      }
+      else
+      {
+        on_play(true, t);
+        act->trigger();
+      }
     });
 
     m_playActions.setupContextMenu(ctrl.layerContextMenuRegistrar());
@@ -414,6 +421,20 @@ void ApplicationPlugin::on_play(bool b, ::TimeVal t)
   }
 }
 
+void ApplicationPlugin::on_transport(TimeVal t)
+{
+  if(!m_clock)
+    return;
+
+  auto itv = m_clock->context.scenario.baseInterval().OSSIAInterval();
+  if(!itv)
+    return;
+
+  m_clock->context.executionQueue.enqueue([itv,time=m_clock->context.time(t)] {
+    itv->transport(time);
+  });
+}
+
 void ApplicationPlugin::on_play(
     Scenario::IntervalModel& cst, bool b,
     std::function<void(const Engine::Execution::Context&)> setup_fun,
@@ -681,6 +702,20 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
           }
         }
       }
+      });
+    });
+  }
+
+  {
+    auto local_transport_node = root.create_child("transport");
+    auto local_transport_address
+        = local_transport_node->create_parameter(ossia::val_type::FLOAT);
+    local_transport_address->set_value(bool{false});
+    local_transport_address->set_access(ossia::access_mode::SET);
+    local_transport_address->set_unit(ossia::millisecond_u{});
+    local_transport_address->add_callback([&](const ossia::value& v) {
+      ossia::qt::run_async(this, [=] {
+        on_transport(TimeVal::fromMsecs(ossia::convert<float>(v)));
       });
     });
   }

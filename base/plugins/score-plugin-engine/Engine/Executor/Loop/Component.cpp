@@ -115,7 +115,7 @@ Component::Component(
   m_ossia_endEvent->onSetup(main_end_event, m_ossia_endEvent->makeExpression(), (ossia::time_event::offset_behavior)element.endEvent().offsetBehavior());
   m_ossia_startState->onSetup(main_start_event);
   m_ossia_endState->onSetup(main_end_event);
-  m_ossia_interval->onSetup(m_ossia_interval, &loop->get_time_interval(), m_ossia_interval->makeDurations(), false);
+  m_ossia_interval->onSetup(m_ossia_interval, &loop->get_time_interval(), m_ossia_interval->makeDurations());
 
   auto cable = ossia::make_edge(
                  ossia::immediate_glutton_connection{}
