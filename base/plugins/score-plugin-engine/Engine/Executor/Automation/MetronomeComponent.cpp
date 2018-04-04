@@ -60,8 +60,6 @@ Component::on_curveChanged()
 }
 void Component::recompute()
 {
-  const Engine::Execution::Context& s = this->system();
-
   auto curve = on_curveChanged();
 
   if (curve)

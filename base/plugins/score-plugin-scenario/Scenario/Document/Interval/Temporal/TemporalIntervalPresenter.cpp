@@ -186,7 +186,7 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
     }
     else
     {
-      if(pos < m_slots.size())
+      if(pos < (int)m_slots.size())
       {
         auto& slt = m_slots[pos];
         if(slt.headerDelegate)

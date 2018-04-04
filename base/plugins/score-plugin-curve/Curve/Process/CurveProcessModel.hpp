@@ -41,18 +41,6 @@ public:
 
   ~CurveProcessModel() override;
 
-  void startExecution() final override
-  {
-  }
-
-  void stopExecution() final override
-  {
-  }
-
-  void reset() final override
-  {
-  }
-
   Selection selectableChildren() const final override
   {
     Selection s;

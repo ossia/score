@@ -67,7 +67,7 @@ public:
   Selection selectedChildren() const override;
   void setSelection(const Selection& s) const override;
 
-  ~ProcessModel();
+  ~ProcessModel() override;
 };
 
 SCORE_PLUGIN_LOOP_EXPORT const QVector<Id<Scenario::IntervalModel>>
