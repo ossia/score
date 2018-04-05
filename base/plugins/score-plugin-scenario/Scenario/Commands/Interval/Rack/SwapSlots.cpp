@@ -14,8 +14,9 @@ namespace Scenario
 namespace Command
 {
 SwapSlots::SwapSlots(
-    Path<IntervalModel>&& rack, int first, int second)
+    Path<IntervalModel>&& rack, Slot::RackView v, int first, int second)
     : m_path{std::move(rack)}
+    , m_view{v}
     , m_first{std::move(first)}
     , m_second{std::move(second)}
 {
@@ -29,17 +30,17 @@ void SwapSlots::undo(const score::DocumentContext& ctx) const
 void SwapSlots::redo(const score::DocumentContext& ctx) const
 {
   auto& cst = m_path.find(ctx);
-  cst.swapSlots(m_first, m_second, Slot::SmallView);
+  cst.swapSlots(m_first, m_second, m_view);
 }
 
 void SwapSlots::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path << m_first << m_second;
+  s << m_path << m_view << m_first << m_second;
 }
 
 void SwapSlots::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_path >> m_first >> m_second;
+  s >> m_path >> m_view >> m_first >> m_second;
 }
 }
 }

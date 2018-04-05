@@ -11,6 +11,7 @@
 #include <Scenario/Commands/Interval/CreateProcessInNewSlot.hpp>
 #include <Scenario/Commands/Interval/Rack/AddSlotToRack.hpp>
 #include <Scenario/Commands/Interval/Rack/RemoveSlotFromRack.hpp>
+#include <Scenario/Commands/Interval/Rack/SwapSlots.hpp>
 #include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateCommentBlock.hpp>
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
@@ -201,6 +202,26 @@ void ScenarioContextMenuManager::createSlotContextMenu(
     disp.commit();
   });
   menu.addAction(duplProcessInNewSlot);
+
+  if(slot_index > 0)
+  {
+    auto move_upwards = new QAction{tr("Move upwards"), &menu};
+    QObject::connect(move_upwards, &QAction::triggered, [=,&ctx,&interval] {
+      CommandDispatcher<> disp{ctx.commandStack};
+      disp.submitCommand<Command::SwapSlots>(interval, Slot::FullView, slot_index, slot_index - 1);
+    });
+    menu.addAction(move_upwards);
+  }
+
+  if(slot_index < interval.fullView().size() - 1)
+  {
+    auto move_downwards = new QAction{tr("Move downwards"), &menu};
+    QObject::connect(move_downwards, &QAction::triggered, [=,&ctx,&interval] {
+      CommandDispatcher<> disp{ctx.commandStack};
+      disp.submitCommand<Command::SwapSlots>(interval, Slot::FullView, slot_index, slot_index + 1);
+    });
+    menu.addAction(move_downwards);
+  }
 }
 
 void ScenarioContextMenuManager::createLayerContextMenu(
