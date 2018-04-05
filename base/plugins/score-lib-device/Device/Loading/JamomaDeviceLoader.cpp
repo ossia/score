@@ -3,20 +3,9 @@
 #include "JamomaDeviceLoader.hpp"
 #include <QFile>
 #include <QJsonDocument>
+#include <score/tools/std/StringHash.hpp>
 #include <qdom.h>
 #include <ossia/network/domain/domain.hpp>
-
-namespace std {
-template<>
-struct hash<QString>
-{
-public:
-  auto operator()(const QString& s) const
-  {
-    return qHash(s);
-  }
-};
-}
 
 namespace Device
 {
