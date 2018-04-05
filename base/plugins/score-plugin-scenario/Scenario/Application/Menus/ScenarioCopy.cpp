@@ -5,6 +5,7 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QList>
+#include <Process/Dataflow/Cable.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
@@ -22,6 +23,7 @@
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
+#include <ossia/detail/ptr_set.hpp>
 namespace Scenario
 {
 template <typename Selected_T>
@@ -42,6 +44,7 @@ static auto arrayToJson(Selected_T&& selected)
 template <typename Scenario_T>
 QJsonObject copySelected(const Scenario_T& sm, CategorisedScenario& cs, QObject* parent)
 {
+  auto& ctx = score::IDocument::documentContext(*parent);
   for (const IntervalModel* interval : cs.selectedIntervals)
   {
     auto start_it
@@ -144,11 +147,46 @@ QJsonObject copySelected(const Scenario_T& sm, CategorisedScenario& cs, QObject*
     copiedStates.push_back(clone_st);
   }
 
+  // For every cable, if both ends are in one of the elements or child elements
+  // currently selected, we copy them.
+  // Note: ids / cable paths have to be updated of course.
+  std::vector<Process::Cable*> copiedCables;
+  ossia::ptr_set<Process::Inlet*> ins;
+  ossia::ptr_set<Process::Outlet*> outs;
+  for(auto itv : cs.selectedIntervals)
+  {
+    auto child_ins = itv->findChildren<Process::Inlet*>();
+    ins.insert(child_ins.begin(), child_ins.end());
+    auto child_outs = itv->findChildren<Process::Outlet*>();
+    outs.insert(child_outs.begin(), child_outs.end());
+  }
+
+  // FIXME it can't get any slower
+  for(auto inl : ins)
+  {
+    for(const auto& c_inl : inl->cables())
+    {
+      for(auto outl : outs)
+      {
+        for(const auto& c_out : outl->cables())
+        {
+          if(c_out == c_inl)
+          {
+            if(Process::Cable* c = c_out.try_find(ctx))
+              copiedCables.push_back(c);
+          }
+        }
+      }
+    }
+  }
+
+
   QJsonObject base;
   base["Intervals"] = arrayToJson(cs.selectedIntervals);
   base["Events"] = arrayToJson(copiedEvents);
   base["TimeNodes"] = arrayToJson(copiedTimeSyncs);
   base["States"] = arrayToJson(copiedStates);
+  base["Cables"] = arrayToJson(copiedCables);
 
   for (auto elt : copiedTimeSyncs)
     delete elt;
