@@ -65,55 +65,49 @@ void ProcessModel::setScript(const QString& script)
   auto path = score::locateFilePath(trimmed, score::IDocument::documentContext(*this));
   if(QFileInfo{path}.exists())
   {
-    QFile f(path);
-    if(f.open(QIODevice::ReadOnly))
-    {
-      data = f.readAll().trimmed();
-      if(data.startsWith("import"))
-      {
-        m_watch = std::make_unique<QFileSystemWatcher>(QStringList{trimmed});
-        connect(m_watch.get(), &QFileSystemWatcher::fileChanged,
-                this, [=] (const QString& path) {
+    m_watch = std::make_unique<QFileSystemWatcher>(QStringList{trimmed});
+    connect(m_watch.get(), &QFileSystemWatcher::fileChanged,
+            this, [=] (const QString& path) {
 
-          // Note: https://stackoverflow.com/questions/18300376/qt-qfilesystemwatcher-signal-filechanged-gets-emited-only-once
-          QFile f(path);
-          if(f.open(QIODevice::ReadOnly))
-          {
-            setQmlData(f.readAll().trimmed());
-            m_watch->addPath(path);
-          }
-          else
-          {
-            QTimer::singleShot(20, this, [this, path] {
-              m_watch->addPath(path);
-              QFile f(path);
-              if(f.open(QIODevice::ReadOnly))
-              {
-                setQmlData(f.readAll().trimmed());
-                m_watch->addPath(path);
-              }
-            });
-          }
-        });
-      }
-    }
+      // Note: https://stackoverflow.com/questions/18300376/qt-qfilesystemwatcher-signal-filechanged-gets-emited-only-once
+      QTimer::singleShot(20, this, [this, path] {
+        m_watch->addPath(path);
+        QFile f(path);
+        if(f.open(QIODevice::ReadOnly))
+        {
+          setQmlData(path.toUtf8(), true);
+          m_watch->addPath(path);
+        }
+      });
+    });
+
+    setQmlData(path.toUtf8(), true);
   }
-
-  setQmlData(data);
+  else
+  {
+    setQmlData(data, false);
+  }
 }
 
-void ProcessModel::setQmlData(const QByteArray& data)
+void ProcessModel::setQmlData(const QByteArray& data, bool isFile)
 {
-  if(!data.startsWith("import"))
+  if(!isFile && !data.startsWith("import"))
     return;
 
   m_qmlData = data;
   delete m_dummyObject;
   m_dummyObject = nullptr;
   m_dummyComponent.reset();
-  m_dummyComponent = std::make_unique<QQmlComponent>(&m_dummyEngine);
+  if(isFile)
+  {
+    m_dummyComponent = std::make_unique<QQmlComponent>(&m_dummyEngine, QUrl::fromLocalFile(data));
+  }
+  else
+  {
+    m_dummyComponent = std::make_unique<QQmlComponent>(&m_dummyEngine);
+    m_dummyComponent->setData(data, QUrl());
+  }
 
-  m_dummyComponent->setData(data, QUrl());
   const auto& errs = m_dummyComponent->errors();
   if(!errs.empty())
   {

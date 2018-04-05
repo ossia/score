@@ -81,6 +81,12 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
       on_rackChanged();
   });
 
+  con(m_model, &IntervalModel::slotsSwapped,
+      this, [=] (int i, int j, Slot::RackView v){
+    if(v == Slot::FullView)
+      on_rackChanged();
+  });
+
   con(m_model, &IntervalModel::slotResized,
           this, [this] (const SlotId& s) {
     if(s.fullView())

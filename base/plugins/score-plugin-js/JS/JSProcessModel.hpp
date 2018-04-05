@@ -26,7 +26,7 @@ public:
   }
 
   void setScript(const QString& script);
-  void setQmlData(const QByteArray&);
+  void setQmlData(const QByteArray&, bool isFile);
   const QString& script() const
   {
     return m_script;
