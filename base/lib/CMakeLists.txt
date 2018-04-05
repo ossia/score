@@ -175,6 +175,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/OwningVector.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/Pointer.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/String.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/StringHash.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ClearLayout.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/CommandSpinBox.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/DoubleSlider.hpp"

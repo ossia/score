@@ -17,11 +17,33 @@
 #include <JS/JSProcessModel.hpp>
 #include <ossia-qt/invoke.hpp>
 #include <QQmlComponent>
+#include <QQmlContext>
 
 namespace JS
 {
 namespace Executor
 {
+class js_node final : public ossia::graph_node
+{
+public:
+  js_node(ossia::execution_state& st, const QString& val);
+
+  void setScript(const QString& val);
+
+  void run(ossia::token_request t, ossia::execution_state&) override;
+
+  QQmlEngine m_engine;
+  QList<std::pair<ControlInlet*, ossia::inlet_ptr>> m_ctrlInlets;
+  QList<std::pair<ValueInlet*, ossia::inlet_ptr>> m_valInlets;
+  QList<std::pair<ValueOutlet*, ossia::outlet_ptr>> m_valOutlets;
+  QList<std::pair<AudioInlet*, ossia::inlet_ptr>> m_audInlets;
+  QList<std::pair<AudioOutlet*, ossia::outlet_ptr>> m_audOutlets;
+  QList<std::pair<MidiInlet*, ossia::inlet_ptr>> m_midInlets;
+  QList<std::pair<MidiOutlet*, ossia::outlet_ptr>> m_midOutlets;
+  QObject* m_object{};
+};
+
+
 struct js_control_updater
 {
     ValueInlet& control;
@@ -39,7 +61,7 @@ Component::Component(
       ProcessComponent_T<JS::ProcessModel, ossia::node_process>{
          element, ctx, id, "JSComponent", parent}
 {
-  std::shared_ptr<js_node> node = std::make_shared<js_node>("");
+  std::shared_ptr<js_node> node = std::make_shared<js_node>(*ctx.plugin.execState, "");
   this->node = node;
   auto proc = std::make_shared<ossia::node_process>(node);
   m_ossia_process = proc;
@@ -85,6 +107,12 @@ Component::Component(
 
 Component::~Component()
 {
+}
+
+js_node::js_node(ossia::execution_state& st, const QString& val)
+{
+  m_engine.rootContext()->setContextProperty("Device", new ExecStateWrapper{m_engine, st});
+  setScript(val);
 }
 
 void js_node::setScript(const QString& val)

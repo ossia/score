@@ -18,6 +18,7 @@
 #include <State/Expression.hpp>
 
 #include <score/model/Identifier.hpp>
+#include <score/tools/File.hpp>
 
 namespace JS
 {
@@ -61,9 +62,10 @@ void ProcessModel::setScript(const QString& script)
 
   QByteArray data = trimmed.toUtf8();
 
-  if(QFileInfo{trimmed}.exists())
+  auto path = score::locateFilePath(trimmed, score::IDocument::documentContext(*this));
+  if(QFileInfo{path}.exists())
   {
-    QFile f(trimmed);
+    QFile f(path);
     if(f.open(QIODevice::ReadOnly))
     {
       data = f.readAll().trimmed();
