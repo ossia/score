@@ -57,17 +57,22 @@ void AudioDevice::addAddress(const Device::FullAddressSettings& settings)
     if(kind == "in")
     {
       auto chans = ossia::any_cast<ossia::audio_mapping>(settings.extendedAttributes.at("audio-mapping"));
-      node->set_parameter(std::make_unique<ossia::mapped_audio_parameter>(false, chans, *node));
+      if(!node->get_parameter())
+        node->set_parameter(std::make_unique<ossia::mapped_audio_parameter>(false, chans, *node));
+
+      // TODO update
     }
     else if(kind == "out")
     {
       auto chans = ossia::any_cast<ossia::audio_mapping>(settings.extendedAttributes.at("audio-mapping"));
-      node->set_parameter(std::make_unique<ossia::mapped_audio_parameter>(true, chans, *node));
+      if(!node->get_parameter())
+        node->set_parameter(std::make_unique<ossia::mapped_audio_parameter>(true, chans, *node));
     }
     else if(kind == "virtual")
     {
       auto chans = ossia::any_cast<int>(settings.extendedAttributes.at("audio-channels"));
-      node->set_parameter(std::make_unique<ossia::virtual_audio_parameter>(chans, *node));
+      if(!node->get_parameter())
+        node->set_parameter(std::make_unique<ossia::virtual_audio_parameter>(chans, *node));
     }
   }
 }
