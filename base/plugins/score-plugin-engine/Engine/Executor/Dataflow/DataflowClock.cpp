@@ -43,9 +43,7 @@ void Clock::pause_impl(
     Engine::Execution::BaseScenarioElement& bs)
 {
   m_paused = true;
-  m_plug.audioProto().ui_tick = [] (auto&&...) {};
-  m_plug.audioProto().replace_tick = true;
-  qDebug("pause");
+  m_plug.audioProto().set_tick([] (auto&&...) {});
   m_default.pause();
 }
 
@@ -82,7 +80,7 @@ void Clock::resume_impl(
                                  *m_plug.execGraph,
                                  *m_cur->baseInterval().OSSIAInterval());
 
-    m_plug.audioProto().ui_tick =
+    m_plug.audioProto().set_tick(
         [tick, plug=&m_plug] (auto&&... args) {
       // Run some commands if they have been submitted.
       Engine::Execution::ExecutionCommand c;
@@ -113,7 +111,7 @@ void Clock::resume_impl(
       }
 
       i++;
-    };
+    });
   }
   else
   {
@@ -123,7 +121,7 @@ void Clock::resume_impl(
                          *m_plug.execGraph,
                          *m_cur->baseInterval().OSSIAInterval());
 
-    m_plug.audioProto().ui_tick = [tick, plug=&m_plug] (auto&&... args) {
+    m_plug.audioProto().set_tick([tick, plug=&m_plug] (auto&&... args) {
 
       // Run some commands if they have been submitted.
       Engine::Execution::ExecutionCommand c;
@@ -133,33 +131,18 @@ void Clock::resume_impl(
       }
 
       tick(args...);
-    };
+    });
   }
-
-  m_plug.audioProto().replace_tick = true;
-  qDebug("resume");
 }
 
 void Clock::stop_impl(
     Engine::Execution::BaseScenarioElement& bs)
 {
   m_paused = false;
-  QPointer<Engine::Execution::DocumentPlugin> plug = &m_plug;
+  m_plug.finished();
 
-  m_plug.audioProto().ui_tick = [=,&proto=m_plug.audioProto()] (unsigned long, double) {
-    plug->finished();
-    proto.ui_tick = [] (unsigned long, double) {};
-    proto.replace_tick = true;
-
-#if defined(SCORE_BENCHMARK)
-#endif
-
-  };
-
-#if defined(SCORE_BENCHMARK)
-  CALLGRIND_DUMP_STATS;
-#endif
-  m_plug.audioProto().replace_tick = true;
+  auto& proto = m_plug.audioProto();
+  proto.set_tick([] (unsigned long, double) {});
   m_default.stop();
 }
 
