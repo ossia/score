@@ -184,17 +184,8 @@ DocumentPlugin::~DocumentPlugin()
 
 void DocumentPlugin::on_finished()
 {
-  runAllCommands();
-  m_base.cleanup();
-  runAllCommands();
 
-  inlets.clear();
-  outlets.clear();
-  m_cables.clear();
-  proc_map.clear();
-  if(execGraph)
-    execGraph->clear();
-  execGraph.reset();
+  clear();
 
   execState = std::make_unique<ossia::execution_state>();
 
@@ -316,11 +307,19 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
 
 void DocumentPlugin::clear()
 {
+  inlets.clear();
+  outlets.clear();
+  m_cables.clear();
+  proc_map.clear();
+
   if(m_base.active())
   {
     runAllCommands();
+    runAllCommands();
     m_base.cleanup();
     runAllCommands();
+    runAllCommands();
+
     if(execGraph)
       execGraph->clear();
     execGraph.reset();
@@ -522,8 +521,10 @@ void DocumentPlugin::register_node(
       outlets.insert({ proc_outlets[i], std::make_pair( node, node->outputs()[i] ) });
     }
 
-    m_execQueue.enqueue([=] {
-      execGraph->add_node(std::move(node));
+    std::weak_ptr<ossia::graph_interface> wg = execGraph;
+    m_execQueue.enqueue([wg, node=std::move(node)] () mutable {
+      if(auto g = wg.lock())
+        g->add_node(std::move(node));
     });
   }
 }
@@ -544,9 +545,13 @@ void DocumentPlugin::register_inlet(
 
     inlets.insert({ &proc_inlet, std::make_pair( node, port ) });
 
-    m_execQueue.enqueue([this,port,node] {
-      execState->register_inlet(*port);
-      execGraph->add_node(std::move(node));
+    std::weak_ptr<ossia::graph_interface> wg = execGraph;
+    std::weak_ptr<ossia::execution_state> ws = execState;
+    m_execQueue.enqueue([wg,ws,port,node] {
+      if(auto state = ws.lock())
+        state->register_inlet(*port);
+      if(auto g = wg.lock())
+        g->add_node(std::move(node));
     });
   }
 }
@@ -556,8 +561,10 @@ void DocumentPlugin::unregister_node(
 {
   if(node)
   {
-    m_execQueue.enqueue([=] {
-      execGraph->remove_node(node);
+    std::weak_ptr<ossia::graph_interface> wg = execGraph;
+    m_execQueue.enqueue([wg,node] {
+      if(auto g = wg.lock())
+        g->remove_node(node);
       node->clear();
     });
 
