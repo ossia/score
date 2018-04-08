@@ -46,7 +46,6 @@ DocumentPlugin::DocumentPlugin(
       }
     , m_base{m_ctx, this}
 {
-  execState = std::make_unique<ossia::execution_state>();
   makeGraph();
   auto& devs = ctx.plugin<Explorer::DeviceDocumentPlugin>();
   if(auto dev = devs.list().audioDevice())
@@ -197,7 +196,8 @@ void DocumentPlugin::on_finished()
     execGraph->clear();
   execGraph.reset();
 
-  execState->reset();
+  execState = std::make_unique<ossia::execution_state>();
+
   for(auto& v : runtime_connections)
   {
     for(auto& con : v.second)
@@ -240,6 +240,9 @@ void DocumentPlugin::makeGraph()
   if(execGraph)
     execGraph->clear();
   execGraph.reset();
+
+  execState = std::make_unique<ossia::execution_state>();
+
   ossia::graph_setup_options opt;
   opt.parallel = m_ctx.settings.getParallel();
   if(m_ctx.settings.getLogging())
@@ -273,7 +276,6 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
   m_ctx.reverseTime = settings.makeReverseTimeFunction(ctx);
 
   makeGraph();
-  execState->reset();
 
   if(app.audio && audio_device)
   {
