@@ -87,7 +87,7 @@ public:
       const ossia::outlet_ptr& );
 
   std::shared_ptr<ossia::graph_interface> execGraph;
-  std::unique_ptr<ossia::execution_state> execState;
+  std::shared_ptr<ossia::execution_state> execState;
 
   QPointer<Dataflow::AudioDevice> audio_device{};
 
