@@ -45,6 +45,7 @@ class AudioDevice final : public Engine::Network::OSSIADevice
     Q_OBJECT
   public:
     AudioDevice(const Device::DeviceSettings& settings);
+    ~AudioDevice();
 
     void addAddress(const Device::FullAddressSettings& settings) override;
     bool reconnect() override;
