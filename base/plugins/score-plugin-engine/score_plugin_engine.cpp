@@ -9,6 +9,7 @@
 
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Engine/ApplicationPlugin.hpp>
+#include <Engine/AudioPanel.hpp>
 
 #include "score_plugin_engine.hpp"
 #include <Engine/Executor/ProcessComponent.hpp>
@@ -169,7 +170,10 @@ score_plugin_engine::factories(
                  Engine::LocalTree::AutomationComponentFactory,
                  Engine::LocalTree::MappingComponentFactory
             >,
-            FW<score::PanelDelegateFactory, Engine::MessagesPanelDelegateFactory>,
+            FW<score::PanelDelegateFactory
+              , Engine::MessagesPanelDelegateFactory
+              , Audio::PanelDelegateFactory
+            >,
             FW<Engine::Execution::ClockManagerFactory
               , Engine::Execution::ControlClockFactory
     #if defined(OSSIA_DATAFLOW)

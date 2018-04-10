@@ -330,6 +330,12 @@ AudioDecoder::AudioDecoder()
           this, &AudioDecoder::on_startDecode, Qt::QueuedConnection);
 }
 
+AudioDecoder::~AudioDecoder()
+{
+  m_decodeThread.exit();
+  while(m_decodeThread.isRunning()) ;
+}
+
 struct AVCodecContext_Free {
     void operator()(AVCodecContext* ctx)
     { avcodec_free_context(&ctx); }

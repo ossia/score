@@ -40,6 +40,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT IntervalModel final
   friend struct IntervalSaveData;
   friend struct SlotPath;
   Q_PROPERTY(double heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY heightPercentageChanged)
+  Q_PROPERTY(double muted READ muted WRITE setMuted NOTIFY mutedChanged)
 
 public:
   std::unique_ptr<Process::Inlet> inlet;
@@ -132,6 +133,10 @@ public:
   const FullSlot* findFullViewSlot(int slot) const;
   const FullSlot& getFullViewSlot(int slot) const;
   FullSlot& getFullViewSlot(int slot);
+
+  bool muted() const { return m_muted; }
+  void setMuted(bool m);
+
 Q_SIGNALS:
   void heightPercentageChanged(double);
 
@@ -156,6 +161,8 @@ Q_SIGNALS:
   void layerRemoved(Scenario::SlotId, Id<Process::ProcessModel>);
   void frontLayerChanged(int, OptionalId<Process::ProcessModel>);
 
+  void mutedChanged(bool);
+
 private:
   void on_addProcess(const Process::ProcessModel&);
   void on_removingProcess(const Process::ProcessModel&);
@@ -177,6 +184,7 @@ private:
   TimeVal m_center{};
   IntervalExecutionState m_executionState{};
   bool m_smallViewShown{};
+  bool m_muted{};
 
 
 };

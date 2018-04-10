@@ -53,22 +53,23 @@ bool OSCQueryDevice::reconnect()
     auto ossia_settings
         = std::make_unique<ossia::oscquery::oscquery_mirror_protocol>(
             stgs.host.toStdString());
+    auto& p = *ossia_settings;
 
     // run the commands in the Qt event loop
     // FIXME they should be disabled upon manual disconnection
 
-    ossia_settings->set_command_callback([=] {
-      sig_command();
-    });
-    ossia_settings->set_disconnect_callback([=] {
-      sig_disconnect();
-    });
-    ossia_settings->set_fail_callback([=] {
-      sig_disconnect();
-    });
-
     m_dev = std::make_unique<ossia::net::generic_device>(
         std::move(ossia_settings), settings().name.toStdString());
+
+    p.set_command_callback([=] {
+      sig_command();
+    });
+    p.set_disconnect_callback([=] {
+      sig_disconnect();
+    });
+    p.set_fail_callback([=] {
+      sig_disconnect();
+    });
 
     setLogging_impl(Device::get_cur_logging(isLogging()));
 

@@ -5,6 +5,7 @@
 #include <Scenario/Document/Interval/IntervalHeader.hpp>
 #include <ossia/detail/optional.hpp>
 #include <QGlyphRun>
+#include <score/widgets/GraphicWidgets.hpp>
 #include <qnamespace.h>
 
 class QGraphicsSceneMouseEvent;
@@ -37,7 +38,6 @@ class RackButton final : public QGraphicsObject
 
     bool m_unroll{false};
 };
-
 
 class TemporalIntervalHeader final : public IntervalHeader
 {
@@ -80,6 +80,7 @@ private:
   //ossia::optional<QGlyphRun> m_line;
   QImage m_line;
   RackButton* m_button{};
+  score::QGraphicsPixmapToggle* m_mute{};
   TemporalIntervalPresenter& m_presenter;
   bool m_hasFocus{};
 };
