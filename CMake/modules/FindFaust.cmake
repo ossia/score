@@ -47,7 +47,7 @@ if(FAUST_FOUND)
 
         set(LLVM_VERSION LLVM_${LLVM_VERSION_MAJOR}${LLVM_VERSION_MINOR})
 
-        if(0)
+        if(NOT MSVC)
           find_package(OpenSSL REQUIRED)
           set(FAUST_LIBRARIES ${FAUST_LIBRARIES} ${CMAKE_DL_LIBS} ${OPENSSL_LIBRARIES} curses z ${LLVM_LDFLAGS} ${LLVM_LIBS} )
         else()
