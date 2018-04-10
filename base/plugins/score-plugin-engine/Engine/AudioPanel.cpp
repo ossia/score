@@ -15,7 +15,7 @@
 #include <QScrollArea>
 namespace Audio
 {
-class AudioSlider : public QWidget
+class AudioSlider : public QWidget, public Nano::Observer
 {
   public:
     score::MarginLess<QVBoxLayout> lay;
