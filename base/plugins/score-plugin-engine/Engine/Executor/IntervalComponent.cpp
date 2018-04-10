@@ -1,6 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <ossia/editor/state/state_element.hpp>
+#include <ossia/editor/scenario/scenario.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <Automation/AutomationModel.hpp>
 #include <Engine/OSSIA2score.hpp>
@@ -8,6 +9,7 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <utility>
+#include <ossia/editor/loop/loop.hpp>
 
 #include "IntervalComponent.hpp"
 #include "Loop/LoopProcessModel.hpp"
@@ -74,9 +76,55 @@ IntervalComponent::~IntervalComponent()
 {
 }
 
+struct mute_rec
+{
+    bool muted{};
+    void operator()(ossia::time_interval& itv)
+    {
+      itv.node->set_mute(muted);
+      for(auto proc : itv.get_time_processes())
+      {
+        if(auto scenar = dynamic_cast<ossia::scenario*>(proc.get()))
+          (*this)(*scenar);
+
+        else if(auto loop = dynamic_cast<ossia::loop*>(proc.get()))
+          (*this)(*loop);
+
+        else
+          (*this)(*proc);
+      }
+    }
+
+    void operator()(ossia::time_process& proc)
+    {
+      proc.mute(muted);
+    }
+
+    void operator()(ossia::scenario& proc)
+    {
+      proc.mute(muted);
+      for(auto& itv : proc.get_time_intervals())
+      {
+        (*this)(*itv);
+      }
+    }
+    void operator()(ossia::loop& proc)
+    {
+      proc.mute(muted);
+      (*this)(proc.get_time_interval());
+    }
+};
 void IntervalComponent::init()
 {
   init_hierarchy();
+  mute_rec{interval().muted()}(*OSSIAInterval());
+
+  con(interval(), &Scenario::IntervalModel::mutedChanged,
+      this, [=] (bool b) {
+    in_exec([b,itv=OSSIAInterval()] {
+      mute_rec{b}(*itv);
+    });
+  });
 
   if(context().doc.app.settings<Settings::Model>().getScoreOrder())
   {

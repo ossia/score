@@ -115,44 +115,58 @@ void NoteView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
   QGraphicsItem::hoverEnterEvent(event);
 }
 
+bool NoteView::canEdit() const
+{
+  return boundingRect().height() > 5;
+}
+
 void NoteView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (event->pos().x() >= this->boundingRect().width() - 2)
+  if(canEdit())
   {
-    m_scaling = true;
-    event->accept();
-  }
-  else
-  {
-    m_scaling = false;
-    QGraphicsItem::mousePressEvent(event);
+    if (event->pos().x() >= this->boundingRect().width() - 2)
+    {
+      m_scaling = true;
+      event->accept();
+    }
+    else
+    {
+      m_scaling = false;
+      QGraphicsItem::mousePressEvent(event);
+    }
   }
 }
 
 void NoteView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (m_scaling)
+  if(canEdit())
   {
-    this->setWidth(std::max(2., event->pos().x()));
-    event->accept();
-  }
-  else
-  {
-    QGraphicsItem::mouseMoveEvent(event);
+    if (m_scaling)
+    {
+      this->setWidth(std::max(2., event->pos().x()));
+      event->accept();
+    }
+    else
+    {
+      QGraphicsItem::mouseMoveEvent(event);
+    }
   }
 }
 
 void NoteView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (m_scaling)
+  if(canEdit())
   {
-    noteScaled(m_width / ((View*)parentItem())->defaultWidth());
-    event->accept();
-  }
-  else
-  {
-    noteChangeFinished();
-    QGraphicsItem::mouseReleaseEvent(event);
+    if (m_scaling)
+    {
+      noteScaled(m_width / ((View*)parentItem())->defaultWidth());
+      event->accept();
+    }
+    else
+    {
+      noteChangeFinished();
+      QGraphicsItem::mouseReleaseEvent(event);
+    }
   }
 }
 }

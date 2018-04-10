@@ -25,6 +25,7 @@ class SCORE_PLUGIN_MEDIA_EXPORT AudioDecoder :
 
   public:
     AudioDecoder();
+    ~AudioDecoder();
     ossia::optional<AudioInfo> probe(const QString& path);
     void decode(const QString& path);
 

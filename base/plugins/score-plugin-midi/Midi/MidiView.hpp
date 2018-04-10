@@ -24,6 +24,7 @@ Q_SIGNALS:
   void deleteRequested();
 
 private:
+  bool canEdit() const;
   void paint_impl(QPainter*) const override;
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
   void mousePressEvent(QGraphicsSceneMouseEvent*) override;

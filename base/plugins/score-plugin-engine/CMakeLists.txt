@@ -101,6 +101,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Node.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/TickPolicy.hpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/AudioPanel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_engine.hpp"
     )
 set(SRCS
@@ -174,6 +175,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Scenario/MetadataParameters.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/score2OSSIA.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/AudioPanel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Widgets.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_engine.cpp"

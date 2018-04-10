@@ -221,7 +221,7 @@ class vst_node final : public ossia::graph_node
     }
     void run(ossia::token_request tk, ossia::execution_state& st) override
     {
-      if(tk.date > m_prev_date)
+      if(!muted() && tk.date > m_prev_date)
       {
         const std::size_t samples = tk.date - m_prev_date;
         setControls();

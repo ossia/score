@@ -706,6 +706,70 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     });
   }
 
+
+  {
+    auto local_play_node = root.create_child("global_play");
+    auto local_play_address
+        = local_play_node->create_parameter(ossia::val_type::BOOL);
+    local_play_address->set_value(bool{false});
+    local_play_address->set_access(ossia::access_mode::SET);
+    local_play_address->add_callback([&](const ossia::value& v) {
+      ossia::qt::run_async(this, [=] {
+      if (auto val = v.target<bool>())
+      {
+        if (!playing() && *val)
+        {
+          // not playing, play requested
+          if(context.applicationSettings.gui)
+          {
+            auto& play_action = context.actions.action<Actions::PlayGlobal>();
+            play_action.action()->trigger();
+          }
+          else
+          {
+            if (auto doc = currentDocument())
+            {
+              auto& mod = doc->model().modelDelegate();
+              auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&mod);
+              if(scenar)
+              {
+                on_play(scenar->baseInterval(), true, {}, TimeVal{});
+              }
+            }
+          }
+        }
+        else if (playing())
+        {
+          if (paused() == *val)
+          {
+            // paused, play requested
+            // or playing, pause requested
+
+            if(context.applicationSettings.gui)
+            {
+              auto& play_action
+                  = context.actions.action<Actions::PlayGlobal>();
+              play_action.action()->trigger();
+            }
+            else
+            {
+              if (auto doc = currentDocument())
+              {
+                auto& mod = doc->model().modelDelegate();
+                auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&mod);
+                if(scenar)
+                {
+                  on_play(scenar->baseInterval(), true, {}, TimeVal{});
+                }
+              }
+            }
+          }
+        }
+      }
+      });
+    });
+  }
+
   {
     auto local_transport_node = root.create_child("transport");
     auto local_transport_address

@@ -350,6 +350,15 @@ FullSlot& IntervalModel::getFullViewSlot(int slot)
   return m_fullView.at(slot);
 }
 
+void IntervalModel::setMuted(bool m)
+{
+  if(m != m_muted)
+  {
+    m_muted = m;
+    mutedChanged(m);
+  }
+}
+
 double IntervalModel::getSlotHeight(const SlotId& slot) const
 {
   if(slot.fullView())

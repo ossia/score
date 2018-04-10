@@ -47,6 +47,12 @@ void QGraphicsPixmapToggle::toggle()
   setPixmap(m_toggled ? m_pressed : m_released);
 }
 
+void QGraphicsPixmapToggle::setState(bool toggled)
+{
+  m_toggled = toggled;
+  setPixmap(m_toggled ? m_pressed : m_released);
+}
+
 void QGraphicsPixmapToggle::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   m_toggled = !m_toggled;

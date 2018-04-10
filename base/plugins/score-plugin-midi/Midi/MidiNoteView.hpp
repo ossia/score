@@ -42,6 +42,7 @@ Q_SIGNALS:
   void noteScaled(double);
 
 private:
+  bool canEdit() const;
   QVariant
   itemChange(GraphicsItemChange change, const QVariant& value) override;
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
@@ -56,4 +57,5 @@ private:
 
   bool m_scaling = false;
 };
+
 }

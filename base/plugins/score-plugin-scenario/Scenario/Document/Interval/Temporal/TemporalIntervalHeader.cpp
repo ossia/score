@@ -133,6 +133,8 @@ void TemporalIntervalHeader::updateButtons()
 {
   if(m_button)
     m_button->setPos(15, 5);
+  if(m_mute)
+    m_mute->setPos(30, 5);
 }
 
 void TemporalIntervalHeader::enableOverlay(bool b)
@@ -142,12 +144,26 @@ void TemporalIntervalHeader::enableOverlay(bool b)
     m_button = new RackButton{this};
     connect(m_button, &RackButton::clicked, &m_presenter,
             [=] { ((TemporalIntervalPresenter&)m_presenter).changeRackState(); });
+
+    static const auto pix_unmuted = QPixmap::fromImage(QImage(":/icons/engine_on.png").scaled(20, 20, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+    static const auto pix_muted  = QPixmap::fromImage(QImage(":/icons/engine_off.png") .scaled(20, 20, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+
+    m_mute = new score::QGraphicsPixmapToggle{pix_muted, pix_unmuted, this};
+    if(m_presenter.model().muted())
+      m_mute->toggle();
+    connect(m_mute, &score::QGraphicsPixmapToggle::toggled, &m_presenter,
+            [=] (bool b) { ((IntervalModel&)m_presenter.model()).setMuted(b); });
+    con(m_presenter.model(), &IntervalModel::mutedChanged, m_mute,
+            [=] (bool b) { m_mute->setState(b); });
     updateButtons();
   }
   else
   {
     delete m_button;
     m_button = nullptr;
+
+    delete m_mute;
+    m_mute = nullptr;
   }
 }
 

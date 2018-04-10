@@ -44,6 +44,13 @@ void View::setRange(int min, int max)
 }
 static const MidiStyle style;
 
+bool View::canEdit() const
+{
+  const auto rect = boundingRect();
+  const auto note_height = rect.height() / (m_max - m_min);
+  return note_height > 5;
+}
+
 void View::paint_impl(QPainter* p) const
 {
   p->setRenderHint(QPainter::Antialiasing, false);
@@ -77,7 +84,7 @@ void View::paint_impl(QPainter* p) const
   p->setBrush(style.darkerBrush);
   p->setPen(style.darkPen);
 
-  if(note_height > 5)
+  if(canEdit())
   {
     if(auto v = getView((QGraphicsItem&)*this))
     {
@@ -144,32 +151,43 @@ void View::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 
 void View::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
-  pressed(ev->scenePos());
-
+  if(canEdit())
+  {
+    pressed(ev->scenePos());
+  }
   ev->accept();
 }
 
 void View::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
 {
-  QPainterPath p;
-  p.addRect(QRectF{ev->buttonDownPos(Qt::LeftButton), ev->pos()});
-  this->scene()->setSelectionArea(mapToScene(p));
+  if(canEdit())
+  {
+    QPainterPath p;
+    p.addRect(QRectF{ev->buttonDownPos(Qt::LeftButton), ev->pos()});
+    this->scene()->setSelectionArea(mapToScene(p));
 
-  m_selectArea = p;
-  update();
+    m_selectArea = p;
+    update();
+  }
   ev->accept();
 }
 
 void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
 {
-  m_selectArea = {};
-  update();
+  if(canEdit())
+  {
+    m_selectArea = {};
+    update();
+  }
   ev->accept();
 }
 
 void View::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* ev)
 {
-  doubleClicked(ev->pos());
+  if(canEdit())
+  {
+    doubleClicked(ev->pos());
+  }
   ev->accept();
 }
 
