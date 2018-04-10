@@ -84,20 +84,20 @@ struct mute_rec
       itv.node->set_mute(muted);
       for(auto proc : itv.get_time_processes())
       {
-        if(auto scenar = dynamic_cast<ossia::scenario*>(proc.get()))
-          (*this)(*scenar);
-
-        else if(auto loop = dynamic_cast<ossia::loop*>(proc.get()))
-          (*this)(*loop);
-
-        else
-          (*this)(*proc);
+         (*this)(*proc);
       }
     }
 
     void operator()(ossia::time_process& proc)
     {
       proc.mute(muted);
+
+      if(auto scenar = dynamic_cast<ossia::scenario*>(&proc))
+        (*this)(*scenar);
+
+      else if(auto loop = dynamic_cast<ossia::loop*>(&proc))
+        (*this)(*loop);
+
     }
 
     void operator()(ossia::scenario& proc)
@@ -116,8 +116,9 @@ struct mute_rec
 };
 void IntervalComponent::init()
 {
+  if(interval().muted())
+    mute_rec{true}(*OSSIAInterval());
   init_hierarchy();
-  mute_rec{interval().muted()}(*OSSIAInterval());
 
   con(interval(), &Scenario::IntervalModel::mutedChanged,
       this, [=] (bool b) {
@@ -334,6 +335,9 @@ ProcessComponent* IntervalComponentBase::make(
 
       if(auto& onode = plug->node)
         ctx.plugin.register_node(proc, onode);
+
+      if(interval().muted())
+        mute_rec{true}(*proc);
 
       auto cst = m_ossia_interval;
 
