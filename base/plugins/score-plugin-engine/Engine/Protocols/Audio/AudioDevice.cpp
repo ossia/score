@@ -40,6 +40,11 @@ AudioDevice::AudioDevice(
   m_capas.canSerialize = true;
 }
 
+AudioDevice::~AudioDevice()
+{
+
+}
+
 void AudioDevice::addAddress(const Device::FullAddressSettings& settings)
 {
   using namespace ossia;
