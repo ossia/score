@@ -337,7 +337,7 @@ ProcessComponent* IntervalComponentBase::make(
         ctx.plugin.register_node(proc, onode);
 
       if(interval().muted())
-        mute_rec{true}(*proc);
+        mute_rec{true}(*oproc);
 
       auto cst = m_ossia_interval;
 
