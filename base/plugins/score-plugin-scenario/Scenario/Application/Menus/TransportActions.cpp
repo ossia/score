@@ -100,22 +100,33 @@ TransportActions::TransportActions(
           b ? QString(":/icons/pause_off.png")
             : QString(":/icons/play_glob_off.png"));
   };
-  connect(m_play, &QAction::toggled, this, on_play);
-  connect(m_playGlobal, &QAction::toggled, this, on_play);
+  connect(m_play, &QAction::toggled, this, [=] (bool b) {
+    on_play(b);
+    m_playGlobal->setEnabled(false);
+  });
+  connect(m_playGlobal, &QAction::toggled, this, [=] (bool b) {
+    on_play(b);
+    m_play->setEnabled(false);
+  });
   connect(m_stop, &QAction::triggered, this, [&] {
     m_play->blockSignals(true);
     m_playGlobal->blockSignals(true);
     //        m_record->blockSignals(true);
 
+    m_play->setEnabled(true);
     m_play->setChecked(false);
     m_play->setText(tr("Play"));
     setIcons(
         m_play, QString(":/icons/play_on.png"),
         QString(":/icons/play_off.png"));
+    m_play->setData(false);
+
+    m_playGlobal->setEnabled(true);
+    m_playGlobal->setChecked(false);
+    m_play->setText(tr("Play (global)"));
     setIcons(
           m_playGlobal, QString(":/icons/play_glob_on.png"),
           QString(":/icons/play_glob_off.png"));
-    m_play->setData(false);
     m_playGlobal->setData(false);
     //        m_record->setChecked(false);
 
