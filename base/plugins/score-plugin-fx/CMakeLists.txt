@@ -10,6 +10,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/VelToNote.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/LFO.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Chord.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Gain.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Metro.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Envelope.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Quantifier.hpp"

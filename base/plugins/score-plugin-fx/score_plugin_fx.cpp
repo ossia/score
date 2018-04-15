@@ -7,6 +7,7 @@
 #include <Fx/VelToNote.hpp>
 #include <Fx/TestNode.hpp>
 #include <Fx/LFO.hpp>
+#include <Fx/Gain.hpp>
 #include <Fx/Metro.hpp>
 #include <Fx/ClassicalBeat.hpp>
 #include <Fx/Envelope.hpp>
@@ -42,6 +43,7 @@ score_plugin_fx::factories(
       Nodes::LFO::Node,
       Nodes::Chord::Node,
       Nodes::MidiUtil::Node,
+      Nodes::Gain::Node,
       Nodes::Metro::Node,
       Nodes::Envelope::Node,
       Nodes::Quantifier::Node,
