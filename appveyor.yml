@@ -1,6 +1,6 @@
 environment:
-  QTDIR: C:/Qt/5.10.0/msvc2017_64
-  BOOST_ROOT: c:/Libraries/boost_1_65_1
+  QTDIR: C:/Qt/5.10.1/msvc2017_64
+  BOOST_ROOT: c:/Libraries/boost_1_66_0
 
 configuration: Release
 

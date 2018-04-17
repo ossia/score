@@ -896,6 +896,7 @@ NeightborSelector::NeightborSelector(score::SelectionStack &s, ObjectWidget* obj
 {
 
 }
+
 bool NeightborSelector::hasLeft() const
 {
   for ( const auto& obj : m_stack.currentSelection() )

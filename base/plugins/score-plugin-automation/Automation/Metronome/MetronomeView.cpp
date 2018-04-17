@@ -35,4 +35,12 @@ void LayerView::dropEvent(QGraphicsSceneDragDropEvent* event)
   if (event->mimeData())
     dropReceived(event->pos(), *event->mimeData());
 }
+
+QPixmap LayerView::pixmap()
+{
+  if (m_curveView)
+    return m_curveView->pixmap();
+  else
+    return QPixmap();
+}
 }

@@ -160,7 +160,10 @@ void DisplayedElementsPresenter::showInterval()
   auto& rack = m_intervalPresenter->getSlots();
   if (!rack.empty())
   {
-    requestFocusedPresenterChange(rack.front().process.presenter);
+    auto& procs = rack.front().processes;
+    if(!procs.empty())
+      requestFocusedPresenterChange(procs.front().presenter);
+    // TODO else ??
   }
 
   m_intervalPresenter->updateHeight();

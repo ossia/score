@@ -2,6 +2,7 @@
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/Interval/SlotHandle.hpp>
+#include <Scenario/Document/Interval/SlotPresenter.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <Scenario/Document/Interval/FullView/FullViewIntervalView.hpp>
 
@@ -16,14 +17,6 @@ class SCORE_PLUGIN_SCENARIO_EXPORT FullViewIntervalPresenter final
   Q_OBJECT
 
 public:
-
-  struct SlotPresenter
-  {
-    SlotHeader* header{};
-    DefaultHeaderDelegate* headerDelegate{};
-    SlotHandle* handle{};
-    LayerData process;
-  };
   using view_type = FullViewIntervalView;
 
   FullViewIntervalPresenter(
@@ -61,8 +54,5 @@ private:
 
   double rackHeight() const;
   void on_rackChanged();
-
-
-  std::vector<SlotPresenter> m_slots;
 };
 }
