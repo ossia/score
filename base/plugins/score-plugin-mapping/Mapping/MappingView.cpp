@@ -24,4 +24,12 @@ LayerView::LayerView(QGraphicsItem* parent) : Process::LayerView{parent}
 void LayerView::paint_impl(QPainter* painter) const
 {
 }
+
+QPixmap LayerView::pixmap()
+{
+  if (m_curveView)
+    return m_curveView->pixmap();
+  else
+    return QPixmap();
+}
 }

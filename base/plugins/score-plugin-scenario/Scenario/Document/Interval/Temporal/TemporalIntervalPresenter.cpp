@@ -9,6 +9,7 @@
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
+#include <Scenario/Document/Interval/DefaultHeaderDelegate.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -35,7 +36,6 @@
 
 namespace Scenario
 {
-
 TemporalIntervalPresenter::TemporalIntervalPresenter(
     const IntervalModel& interval,
     const Process::ProcessPresenterContext& ctx,
@@ -532,6 +532,9 @@ void TemporalIntervalPresenter::on_layerModelPutToFront(int slot, const Process:
         slt.headerDelegate->setPos(30, 0);
 
         setHeaderWidth(slt, m_model.duration.defaultDuration().toPixels(m_zoomRatio));
+
+          //slt.headerDelegate->setSize(QSizeF{m_view->defaultWidth() - SlotHeader::handleWidth() - SlotHeader::menuWidth(), SlotHeader::headerHeight()});
+
       }
       else
       {
@@ -605,6 +608,7 @@ void TemporalIntervalPresenter::on_zoomRatioChanged(ZoomRatio val)
 
   for(const SlotPresenter& slot : m_slots)
   {
+    slot.headerDelegate->on_zoomRatioChanged(val);
     for(const LayerData& proc : slot.processes)
     {
       proc.presenter->on_zoomRatioChanged(val);
@@ -677,18 +681,24 @@ void TemporalIntervalPresenter::setHeaderWidth(const SlotPresenter& slot, double
 
   if(slot.headerDelegate)
   {
-    auto pw = slot.headerDelegate->minPortWidth();
-    if(w - SlotHeader::handleWidth() - SlotHeader::menuWidth() >= pw) {
-      slot.header->setMini(false);
+    switch(slot.headerDelegate->shape(w))
+    {
+      case Process::HeaderDelegate::Shape::MaxiShape:
+      {
+        slot.header->setMini(false);
 
-      slot.headerDelegate->setSize(QSizeF{std::max(0., w - SlotHeader::handleWidth() - SlotHeader::menuWidth()), SlotHeader::headerHeight()});
-      slot.headerDelegate->setX(30);
-    }
-    else {
-      slot.header->setMini(true);
+        slot.headerDelegate->setSize(QSizeF{std::max(0., w - SlotHeader::handleWidth() - SlotHeader::menuWidth()), SlotHeader::headerHeight()});
+        slot.headerDelegate->setX(30);
+        break;
+      }
+      case Process::HeaderDelegate::Shape::MiniShape:
+      {
+        slot.header->setMini(true);
 
-      slot.headerDelegate->setSize(QSizeF{w, SlotHeader::headerHeight()});
-      slot.headerDelegate->setX(0);
+        slot.headerDelegate->setSize(QSizeF{w, SlotHeader::headerHeight()});
+        slot.headerDelegate->setX(0);
+        break;
+      }
     }
   }
   else
@@ -696,6 +706,31 @@ void TemporalIntervalPresenter::setHeaderWidth(const SlotPresenter& slot, double
     slot.header->setMini(false);
   }
 }
+
+void TemporalIntervalPresenter::requestProcessSelectorMenu(int slot, QPoint pos, QPointF sp) const
+{
+  if(const auto& proc = m_model.getSmallViewSlot(slot).frontProcess)
+  {
+    const SlotPresenter& slt = m_slots.at(slot);
+    for(auto& p : slt.processes)
+    {
+      if(p.model->id() == proc)
+      {
+        auto menu = new QMenu;
+        auto& reg = score::GUIAppContext()
+                    .guiApplicationPlugin<ScenarioApplicationPlugin>()
+                    .layerContextMenuRegistrar();
+        ScenarioContextMenuManager::createLayerContextMenuForProcess(
+            *menu, pos, sp, reg, *p.presenter);
+        menu->exec(pos);
+        menu->close();
+        menu->deleteLater();
+        break;
+      }
+    }
+  }
+}
+
 void TemporalIntervalPresenter::on_defaultDurationChanged(const TimeVal& val)
 {
   const auto w = val.toPixels(m_zoomRatio);

@@ -22,6 +22,7 @@
 #include <QMenu>
 #include <QApplication>
 #include <QTextLayout>
+#include <Scenario/Document/Interval/SlotHeader.hpp>
 namespace Scenario
 {
 static QImage makeGlyphs(const QString& glyph, const QPen& pen)
@@ -74,8 +75,8 @@ static QImage& toGlyphWhite()
   return gl;
 }
 
-DefaultHeaderDelegate::DefaultHeaderDelegate(Process::LayerPresenter& p)
-  : presenter{&p}
+DefaultHeaderDelegate::DefaultHeaderDelegate(Process::LayerPresenter& p):
+  HeaderDelegate{p}
 {
   con(presenter->model(), &Process::ProcessModel::prettyNameChanged,
       this, &DefaultHeaderDelegate::updateName);
@@ -83,7 +84,7 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(Process::LayerPresenter& p)
 
   con(p.model(), &Process::ProcessModel::inletsChanged,
       this, [=] { updatePorts(); });
-  con(p.model(), &Process::ProcessModel::inletsChanged,
+  con(p.model(), &Process::ProcessModel::outletsChanged,
       this, [=] { updatePorts(); });
   con(p.model(), &Process::ProcessModel::benchmark,
       this, [=] (double d) { updateBench(d); });
@@ -99,6 +100,17 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(Process::LayerPresenter& p)
 DefaultHeaderDelegate::~DefaultHeaderDelegate()
 {
 
+}
+
+Process::HeaderDelegate::Shape DefaultHeaderDelegate::headerShape(double w) const
+{
+  auto pw = minPortWidth();
+  if(w - SlotHeader::handleWidth() - SlotHeader::menuWidth() >= pw) {
+    return MaxiShape;
+  }
+  else {
+    return MiniShape;
+  }
 }
 
 void DefaultHeaderDelegate::updateBench(double d)

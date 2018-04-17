@@ -21,7 +21,7 @@ class SCORE_PLUGIN_CURVE_EXPORT View final : public QObject,
   Q_INTERFACES(QGraphicsItem)
 public:
   explicit View(QGraphicsItem* parent);
-  virtual ~View();
+  ~View() override;
 
   void setRect(const QRectF& theRect);
   QRectF boundingRect() const override;
@@ -32,6 +32,7 @@ public:
       QWidget* widget) override;
 
   void setSelectionArea(const QRectF&);
+  QPixmap pixmap();
 
 Q_SIGNALS:
   void pressed(QPointF);
