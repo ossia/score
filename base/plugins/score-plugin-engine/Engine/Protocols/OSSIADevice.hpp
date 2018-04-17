@@ -14,6 +14,9 @@
 #include <score/tools/std/HashMap.hpp>
 #include <utility>
 #include <vector>
+#if defined(_MSC_VER)
+#include <ossia/network/base/device.hpp>
+#endif
 namespace ossia
 {
 namespace net

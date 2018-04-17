@@ -42,7 +42,7 @@ struct Node
       std::size_t j = 0;
 
 #if defined(__AVX2__) && __has_include(<immintrin.h>)
-      {
+      if(samples > 4) {
         const auto gain = _mm256_set1_pd(g);
         for(; j < samples - 4; j += 4)
         {
