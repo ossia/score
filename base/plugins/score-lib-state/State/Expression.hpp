@@ -62,10 +62,12 @@ class SCORE_LIB_STATE_EXPORT TreeNode<State::ExprData> final
   friend struct TSerializer<DataStream, TreeNode<State::ExprData>>;
   friend struct TSerializer<JSONObject, void, TreeNode<State::ExprData>>;
 
+  SCORE_LIB_STATE_EXPORT
   friend bool operator!=(
       const TreeNode<State::ExprData>& lhs,
       const TreeNode<State::ExprData>& rhs);
 
+  SCORE_LIB_STATE_EXPORT
   friend bool operator==(
       const TreeNode<State::ExprData>& lhs,
       const TreeNode<State::ExprData>& rhs);

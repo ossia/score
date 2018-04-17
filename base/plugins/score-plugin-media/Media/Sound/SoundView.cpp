@@ -239,7 +239,7 @@ void WaveformComputer::computeDataSet(
 
     int i = 0;
 #if defined(__AVX512__)
-    {
+    if(npoints > 8) {
       for(; i < npoints - 8; i += 8)
       {
         __m256 X = _mm256_mul_ps(_mm256_load_ps(&rmsv[i]), _mm256_set1_ps(one_over_dens));
@@ -247,7 +247,7 @@ void WaveformComputer::computeDataSet(
       }
     }
 #elif defined(__SSE2__)
-    {
+    if(npoints > 4) {
       for(; i < npoints - 4; i += 4)
       {
         __m128 X = _mm_mul_ps(_mm_load_ps(&rmsv[i]), _mm_set1_ps(one_over_dens));
@@ -255,6 +255,7 @@ void WaveformComputer::computeDataSet(
       }
     }
 #endif
+
     for(; i < npoints ; i ++)
       rmsv[i] = std::sqrt(rmsv[i] * one_over_dens);
   }

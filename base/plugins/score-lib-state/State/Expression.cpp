@@ -179,6 +179,7 @@ bool State::isEmptyExpression(const QString& cond)
   return cond.isEmpty();
 }
 
+SCORE_LIB_STATE_EXPORT
 bool operator==(const TreeNode<State::ExprData>& lhs, const TreeNode<State::ExprData>& rhs)
 {
   const auto& ltd = static_cast<const State::ExprData&>(lhs);
@@ -197,6 +198,7 @@ bool operator==(const TreeNode<State::ExprData>& lhs, const TreeNode<State::Expr
   return true;
 }
 
+SCORE_LIB_STATE_EXPORT
 bool operator!=(const TreeNode<State::ExprData>& lhs, const TreeNode<State::ExprData>& rhs)
 {
   return !(lhs == rhs);
