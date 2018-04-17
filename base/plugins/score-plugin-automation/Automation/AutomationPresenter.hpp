@@ -8,6 +8,7 @@
 #include <Automation/Commands/ChangeAddress.hpp>
 #include <Process/ProcessContext.hpp>
 #include <State/MessageListSerialization.hpp>
+#include <Process/ProcessMimeSerialization.hpp>
 
 namespace Automation
 {
@@ -91,6 +92,10 @@ private:
 
       CommandDispatcher<> disp{context().context.commandStack};
       disp.submitCommand(new ChangeAddress{autom, newAddr});
+    }
+    else if (mime.formats().contains(score::mime::layerdata()))
+    {
+
     }
   }
 };

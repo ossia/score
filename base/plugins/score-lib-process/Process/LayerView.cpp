@@ -1,7 +1,10 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Process/ProcessMimeSerialization.hpp>
 #include <QPainter>
+#include <QGraphicsSceneDragDropEvent>
+#include <QMimeData>
 
 #include "LayerView.hpp"
 
@@ -17,6 +20,7 @@ LayerView::LayerView(QGraphicsItem* parent) : QGraphicsItem{parent}
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setFlag(ItemClipsChildrenToShape, true);
   this->setAcceptHoverEvents(true);
+  this->setAcceptDrops(true);
 }
 
 void LayerView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
@@ -70,6 +74,44 @@ qreal LayerView::width() const
   return m_width;
 }
 
+QPixmap LayerView::pixmap()
+{
+    // Retrieve the bounding rect
+    QRect rect = boundingRect().toRect();
+    if (rect.isNull() || !rect.isValid()) {
+        return QPixmap();
+    }
+
+    // Create the pixmap
+    QPixmap pixmap(rect.size());
+    pixmap.fill(Qt::transparent);
+
+    // Render
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.setRenderHint(QPainter::TextAntialiasing, true);
+    painter.translate(-rect.topLeft());
+    paint(&painter, nullptr, nullptr);
+    for (QGraphicsItem* child : childItems()) {
+        painter.save();
+        painter.translate(child->mapToParent(pos()));
+        child->paint(&painter, nullptr, nullptr);
+        painter.restore();
+    }
+
+    painter.end();
+
+    return pixmap;
+}
+
+void LayerView::dragEnterEvent(QGraphicsSceneDragDropEvent *event)
+{
+  const auto& formats = event->mimeData()->formats();
+  if (formats.contains(score::mime::layerdata()))
+  {
+    event->accept();
+  }
+}
 
 MiniLayer::MiniLayer(QGraphicsItem* parent) : QGraphicsItem{parent}
 {

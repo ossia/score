@@ -2,6 +2,7 @@
 #include <QGraphicsItem>
 #include <QRect>
 #include <QtGlobal>
+#include <QGraphicsSceneDragDropEvent>
 #include <score_lib_process_export.h>
 
 class QPainter;
@@ -18,7 +19,7 @@ class SCORE_LIB_PROCESS_EXPORT LayerView : public QObject,
 public:
   LayerView(QGraphicsItem* parent);
 
-  virtual ~LayerView();
+  virtual ~LayerView() override;
 
   QRectF boundingRect() const final override;
   void paint(
@@ -31,6 +32,10 @@ public:
 
   void setWidth(qreal width);
   qreal width() const;
+
+  virtual QPixmap pixmap();
+
+  void dragEnterEvent(QGraphicsSceneDragDropEvent *event) override;
 
 Q_SIGNALS:
   void heightChanged();
