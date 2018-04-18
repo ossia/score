@@ -10,24 +10,24 @@
 
 namespace Process
 {
-ProcessModelFactory::~ProcessModelFactory() 
+ProcessModelFactory::~ProcessModelFactory()
 {
-  
+
 }
 
 LayerFactory::~LayerFactory()
 {
-  
+
 }
 
 ProcessFactoryList::~ProcessFactoryList()
 {
-  
+
 }
 
 LayerFactoryList::~LayerFactoryList()
 {
-  
+
 }
 
 class DefaultLayerView final : public LayerView
@@ -65,7 +65,7 @@ class DefaultLayerPresenter final : public LayerPresenter
                   this, [=] (auto t) { vi->m_txt = t; vi->update();});
       }
 
-      ~DefaultLayerPresenter()
+      ~DefaultLayerPresenter() override
       {
 
       }
@@ -86,19 +86,19 @@ LayerPresenter *LayerFactory::makeLayerPresenter(
         const ProcessModel& m,
         LayerView * v,
         const ProcessPresenterContext &context,
-        QObject *parent)
+        QObject *parent) const
 {
     return new DefaultLayerPresenter{m, v, context, parent};
 }
 
-LayerView *LayerFactory::makeLayerView(const ProcessModel &view, QGraphicsItem *parent)
+LayerView *LayerFactory::makeLayerView(const ProcessModel &view, QGraphicsItem *parent) const
 {
   return new DefaultLayerView{parent};
 }
 
 Process::MiniLayer* LayerFactory::makeMiniLayer(
     const ProcessModel& view,
-    QGraphicsItem* parent)
+    QGraphicsItem* parent) const
 {
   return nullptr;
 }
@@ -111,13 +111,18 @@ QGraphicsItem* LayerFactory::makeItem(
   return nullptr;
 }
 
+HeaderDelegate* LayerFactory::makeHeaderDelegate(const LayerPresenter& pres) const
+{
+  return nullptr;
+}
+
 LayerPanelProxy*
-LayerFactory::makePanel(const ProcessModel& layer, const score::DocumentContext& ctx, QObject* parent)
+LayerFactory::makePanel(const ProcessModel& layer, const score::DocumentContext& ctx, QObject* parent) const
 {
   return new Process::GraphicsViewLayerPanelProxy{layer, parent};
 }
 
-QWidget* LayerFactory::makeExternalUI(const ProcessModel&, const score::DocumentContext& ctx, QWidget* parent)
+QWidget* LayerFactory::makeExternalUI(const ProcessModel&, const score::DocumentContext& ctx, QWidget* parent) const
 {
   return nullptr;
 }

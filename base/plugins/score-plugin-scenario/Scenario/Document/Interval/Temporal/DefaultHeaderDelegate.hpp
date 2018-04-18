@@ -1,31 +1,7 @@
 #pragma once
-#include <Process/LayerPresenter.hpp>
+#include <Process/HeaderDelegate.hpp>
 #include <ossia/detail/small_vector.hpp>
-#include <QGlyphRun>
 namespace Dataflow { class PortItem; }
-namespace Process
-{
-class HeaderDelegate
-    : public QObject
-    , public Process::GraphicsShapeItem
-{
-  public:
-    HeaderDelegate(Process::LayerPresenter& p)
-      : presenter{&p}
-    {
-
-    }
-    ~HeaderDelegate() override
-    {
-
-    }
-
-    enum Shape { MiniShape, MaxiShape };
-    virtual Shape headerShape(double w) const = 0;
-
-    QPointer<Process::LayerPresenter> presenter;
-};
-}
 namespace Scenario
 {
 class DefaultHeaderDelegate final

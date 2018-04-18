@@ -70,9 +70,4 @@ HEADERS += \
     $$PWD/base/app/Application.hpp \
     $$PWD/3rdparty/miniz/miniz.h
 
-INCLUDEPATH += /opt/boost_1_66_0
-ios{
-    LIBS += -lz
-
-    QMAKE_INFO_PLIST = $$PWD/base/app/Info.plist.ios
-}
+INCLUDEPATH += /opt/boost_1_67_0

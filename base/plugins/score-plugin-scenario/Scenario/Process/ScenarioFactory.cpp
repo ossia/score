@@ -39,7 +39,7 @@ ScenarioTemporalLayerFactory::ScenarioTemporalLayerFactory(
 }
 
 Process::LayerView* ScenarioTemporalLayerFactory::makeLayerView(
-    const Process::ProcessModel& p, QGraphicsItem* parent)
+    const Process::ProcessModel& p, QGraphicsItem* parent) const
 {
   if (dynamic_cast<const Scenario::ProcessModel*>(&p))
     return new TemporalScenarioView{parent};
@@ -49,7 +49,7 @@ Process::LayerView* ScenarioTemporalLayerFactory::makeLayerView(
 
 Process::MiniLayer* ScenarioTemporalLayerFactory::makeMiniLayer(
     const Process::ProcessModel& p,
-    QGraphicsItem* parent)
+    QGraphicsItem* parent) const
 {
   if (auto s = dynamic_cast<const Scenario::ProcessModel*>(&p))
     return new MiniScenarioView{*s, parent};
@@ -73,7 +73,7 @@ Process::LayerPresenter* ScenarioTemporalLayerFactory::makeLayerPresenter(
     const Process::ProcessModel& lm,
     Process::LayerView* view,
     const Process::ProcessPresenterContext& context,
-    QObject* parent)
+    QObject* parent) const
 {
   if (auto vm = dynamic_cast<const Scenario::ProcessModel*>(&lm))
   {

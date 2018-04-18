@@ -68,7 +68,7 @@ private:
 
   LayerView_T* makeLayerView(
       const Process::ProcessModel& viewmodel,
-      QGraphicsItem* parent) final override
+      QGraphicsItem* parent) const final override
   {
     return new LayerView_T{parent};
   }
@@ -77,14 +77,14 @@ private:
       const Process::ProcessModel& lm,
       Process::LayerView* v,
       const Process::ProcessPresenterContext& context,
-      QObject* parent) final override
+      QObject* parent) const final override
   {
     return new LayerPresenter_T{safe_cast<const Model_T&>(lm),
                                 safe_cast<LayerView_T*>(v), context, parent};
   }
 
   LayerPanel_T* makePanel(
-      const Process::ProcessModel& viewmodel, const score::DocumentContext& ctx, QObject* parent) final override;
+      const Process::ProcessModel& viewmodel, const score::DocumentContext& ctx, QObject* parent) const final override;
 
   bool matches(const UuidKey<Process::ProcessModel>& p) const override
   {
@@ -97,7 +97,7 @@ template <
     typename LayerView_T, typename LayerPanel_T>
 LayerPanel_T*
 LayerFactory_T<Model_T, LayerPresenter_T, LayerView_T, LayerPanel_T>::
-    makePanel(const Process::ProcessModel& viewmodel, const score::DocumentContext& ctx, QObject* parent)
+    makePanel(const Process::ProcessModel& viewmodel, const score::DocumentContext& ctx, QObject* parent) const
 {
   return new LayerPanel_T{static_cast<const Model_T&>(viewmodel), parent};
 }
