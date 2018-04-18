@@ -1,8 +1,5 @@
 #pragma once
-
 #include <Process/TimeValue.hpp>
-#include <QByteArray>
-#include <QString>
 #include <score/plugins/customfactory/FactoryInterface.hpp>
 #include <score/model/Identifier.hpp>
 #include <Process/ProcessMetadata.hpp>
@@ -20,6 +17,7 @@ class RectItem;
 namespace Process
 {
 class LayerPresenter;
+class HeaderDelegate;
 class LayerView;
 class MiniLayer;
 class ProcessModel;
@@ -37,7 +35,7 @@ class SCORE_LIB_PROCESS_EXPORT ProcessModelFactory
 {
   SCORE_INTERFACE("507ae654-f3b8-4aae-afc3-7ab8e1a3a86f")
 public:
-  virtual ~ProcessModelFactory();
+  ~ProcessModelFactory() override;
 
   virtual QString prettyName() const = 0;
   virtual QString category() const = 0;
@@ -58,28 +56,31 @@ class SCORE_LIB_PROCESS_EXPORT LayerFactory
 {
   SCORE_INTERFACE("aeee61e4-89aa-42ec-aa33-bf4522ed710b")
 public:
-  virtual ~LayerFactory();
+  ~LayerFactory() override;
 
   virtual Process::LayerPresenter* makeLayerPresenter(
       const Process::ProcessModel&,
       Process::LayerView*,
       const Process::ProcessPresenterContext& context,
-      QObject* parent);
+      QObject* parent) const;
 
   virtual Process::LayerView*
-  makeLayerView(const Process::ProcessModel&, QGraphicsItem* parent);
+  makeLayerView(const Process::ProcessModel&, QGraphicsItem* parent) const;
 
   virtual Process::MiniLayer*
-  makeMiniLayer(const Process::ProcessModel&, QGraphicsItem* parent);
+  makeMiniLayer(const Process::ProcessModel&, QGraphicsItem* parent) const;
 
   virtual QGraphicsItem*
   makeItem(const Process::ProcessModel&, const score::DocumentContext& ctx, score::RectItem* parent) const;
 
   virtual Process::LayerPanelProxy*
-  makePanel(const ProcessModel&, const score::DocumentContext& ctx, QObject* parent);
+  makePanel(const ProcessModel&, const score::DocumentContext& ctx, QObject* parent) const;
 
   virtual QWidget*
-  makeExternalUI(const Process::ProcessModel&, const score::DocumentContext& ctx, QWidget* parent);
+  makeExternalUI(const Process::ProcessModel&, const score::DocumentContext& ctx, QWidget* parent) const;
+
+  virtual HeaderDelegate*
+  makeHeaderDelegate(const Process::LayerPresenter& pres) const;
 
   bool matches(const Process::ProcessModel& p) const;
   virtual bool matches(const UuidKey<Process::ProcessModel>&) const = 0;

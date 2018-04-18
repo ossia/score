@@ -15,7 +15,6 @@ class ProcessModel;
 class QGraphicsItem;
 class QObject;
 struct VisitorVariant;
-#include <score/model/Identifier.hpp>
 
 namespace Scenario
 {
@@ -32,13 +31,13 @@ public:
       const Process::ProcessModel&,
       Process::LayerView*,
       const Process::ProcessPresenterContext& context,
-      QObject* parent) override;
+      QObject* parent) const override;
 
   Process::LayerView* makeLayerView(
-      const Process::ProcessModel& viewmodel, QGraphicsItem* parent) override;
+      const Process::ProcessModel& viewmodel, QGraphicsItem* parent) const override;
 
   Process::MiniLayer*
-  makeMiniLayer(const Process::ProcessModel& view, QGraphicsItem* parent) override;
+  makeMiniLayer(const Process::ProcessModel& view, QGraphicsItem* parent) const override;
 
   bool matches(const UuidKey<Process::ProcessModel>& p) const override;
   UuidKey<Process::ProcessModel> concreteKey() const noexcept override;

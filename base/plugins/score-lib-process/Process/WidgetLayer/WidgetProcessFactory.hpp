@@ -25,7 +25,7 @@ private:
 
   View* makeLayerView(
       const Process::ProcessModel&,
-      QGraphicsItem* parent) final override
+      QGraphicsItem* parent) const final override
   {
     return new View{parent};
   }
@@ -34,7 +34,7 @@ private:
       const Process::ProcessModel& lm,
       Process::LayerView* v,
       const Process::ProcessPresenterContext& context,
-      QObject* parent) final override
+      QObject* parent) const final override
   {
     return new Presenter<Model_T, Widget_T>{safe_cast<const Model_T&>(lm),
                                             safe_cast<View*>(v), context,
@@ -42,7 +42,7 @@ private:
   }
 
   Process::LayerPanelProxy* makePanel(
-      const Process::ProcessModel& viewmodel, const score::DocumentContext& ctx, QObject* parent) final override
+      const Process::ProcessModel& viewmodel, const score::DocumentContext& ctx, QObject* parent) const final override
   {
     return new LayerPanelProxy<Model_T, Widget_T>{viewmodel, parent};
   }
