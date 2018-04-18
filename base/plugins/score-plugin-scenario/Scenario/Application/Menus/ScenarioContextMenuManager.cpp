@@ -196,7 +196,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
     menu.addAction(move_upwards);
   }
 
-  if(slot_index < interval.fullView().size() - 1)
+  if(slot_index < int(interval.fullView().size()) - 1)
   {
     auto move_downwards = new QAction{tr("Move downwards"), &menu};
     QObject::connect(move_downwards, &QAction::triggered, [=,&ctx,&interval] {
@@ -292,8 +292,6 @@ void ScenarioContextMenuManager::createLayerContextMenuForProcess(
 {
   using namespace score;
 
-  bool has_slot_menu = false;
-
   // Fill with slot actions
   if(auto small_view = dynamic_cast<TemporalIntervalPresenter*>(pres.parent()))
   {
@@ -303,7 +301,7 @@ void ScenarioContextMenuManager::createLayerContextMenuForProcess(
       // auto slotSubmenu = menu.addMenu(tr("Slot"));
       ScenarioContextMenuManager::createProcessSelectorContextMenu(
           context, menu, *small_view, small_view->indexOfSlot(pres));
-      has_slot_menu = true;
+
     }
   }
 }

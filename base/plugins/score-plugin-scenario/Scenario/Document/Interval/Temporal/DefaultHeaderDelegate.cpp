@@ -106,10 +106,10 @@ Process::HeaderDelegate::Shape DefaultHeaderDelegate::headerShape(double w) cons
 {
   auto pw = minPortWidth();
   if(w - SlotHeader::handleWidth() - SlotHeader::menuWidth() >= pw) {
-    return MaxiShape;
+    return Process::HeaderDelegate::Shape::MaxiShape;
   }
   else {
-    return MiniShape;
+    return Process::HeaderDelegate::Shape::MiniShape;
   }
 }
 

@@ -1,17 +1,22 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "LayerView.hpp"
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
-#include <QPainter>
+#include <Process/HeaderDelegate.hpp>
 #include <QGraphicsSceneDragDropEvent>
+#include <QPainter>
 #include <QMimeData>
-
-#include "LayerView.hpp"
 
 class QStyleOptionGraphicsItem;
 class QWidget;
 namespace Process
 {
+HeaderDelegate::~HeaderDelegate()
+{
+
+}
+
 LayerView::~LayerView() = default;
 MiniLayer::~MiniLayer() = default;
 

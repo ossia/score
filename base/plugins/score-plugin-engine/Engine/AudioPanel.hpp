@@ -3,6 +3,7 @@
 #include <score/plugins/panel/PanelDelegateFactory.hpp>
 #include <score_plugin_deviceexplorer_export.h>
 
+namespace Dataflow { class PortItem; }
 namespace Audio
 {
 class AudioPanel;

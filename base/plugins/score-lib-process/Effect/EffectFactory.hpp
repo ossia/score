@@ -64,7 +64,7 @@ private:
 
   LayerView* makeLayerView(
       const Process::ProcessModel& viewmodel,
-      QGraphicsItem* parent) final override
+      QGraphicsItem* parent) const final override
   {
     return new EffectLayerView{parent};
   }
@@ -73,7 +73,7 @@ private:
       const Process::ProcessModel& lm,
       Process::LayerView* v,
       const Process::ProcessPresenterContext& context,
-      QObject* parent) final override
+      QObject* parent) const final override
   {
     auto pres = new EffectLayerPresenter{
           safe_cast<const Model_T&>(lm),
@@ -96,7 +96,7 @@ private:
   QWidget*
   makeExternalUI(const Process::ProcessModel& proc,
                  const score::DocumentContext& ctx,
-                 QWidget* parent) override
+                 QWidget* parent) const final override
   {
     (void) parent;
     try
@@ -108,7 +108,7 @@ private:
   }
 
   LayerPanelProxy* makePanel(
-      const Process::ProcessModel& viewmodel, const score::DocumentContext& ctx, QObject* parent) final override
+      const Process::ProcessModel& viewmodel, const score::DocumentContext& ctx, QObject* parent) const final override
   {
     return nullptr;
     //return new Process::GraphicsViewLayerPanelProxy{layer, parent};
