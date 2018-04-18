@@ -192,8 +192,10 @@ MidiTrack::MidiSong MidiTrack::parse(const QMimeData& mime, const score::Documen
               {
                 case mm::MetaEventType::TEMPO_CHANGE:
                 {
-                  qDebug() << ev->m->data[0];
+                  qDebug() << "TEMPO_CHANGE" << ev->m->data[0];
                 }
+                default:
+                  break;
               }
 
             }

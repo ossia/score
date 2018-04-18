@@ -24,7 +24,7 @@ class SlotHeader final : public QGraphicsItem
     void setSlotIndex(int);
     static constexpr double headerHeight()
     {
-      return 16.;
+      return 32.;
     }
     static constexpr double handleWidth()
     {

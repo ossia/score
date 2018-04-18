@@ -20,7 +20,7 @@ public:
 
   LayerView_T* makeLayerView(
       const Process::ProcessModel& viewmodel,
-      QGraphicsItem* parent) final override
+      QGraphicsItem* parent) const final override
   {
     return new LayerView_T{parent};
   }
@@ -29,7 +29,7 @@ public:
       const Process::ProcessModel& lm,
       Process::LayerView* v,
       const Process::ProcessPresenterContext& context,
-      QObject* parent) final override
+      QObject* parent) const final override
   {
     return new LayerPresenter_T{m_colors.style(),
                                 safe_cast<const Model_T&>(lm),
@@ -37,7 +37,7 @@ public:
   }
 
   Process::LayerPanelProxy*
-  makePanel(const Process::ProcessModel& layer, const score::DocumentContext& ctx, QObject* parent) override
+  makePanel(const Process::ProcessModel& layer, const score::DocumentContext& ctx, QObject* parent) const override
   {
     return new CurvePanelProxy<Model_T>{
         safe_cast<const Model_T&>(layer), parent};

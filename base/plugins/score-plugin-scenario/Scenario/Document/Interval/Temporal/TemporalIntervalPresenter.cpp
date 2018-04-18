@@ -681,7 +681,7 @@ void TemporalIntervalPresenter::setHeaderWidth(const SlotPresenter& slot, double
 
   if(slot.headerDelegate)
   {
-    switch(slot.headerDelegate->shape(w))
+    switch(slot.headerDelegate->headerShape(w))
     {
       case Process::HeaderDelegate::Shape::MaxiShape:
       {

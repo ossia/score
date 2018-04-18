@@ -1,3 +1,5 @@
+wasm-release
+make-build
 cmake-build-debug
 cmake-debug
 3rdparty/VST3 SDK

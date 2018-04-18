@@ -79,7 +79,7 @@ private:
 
   Process::LayerView* makeLayerView(
       const Process::ProcessModel& proc,
-      QGraphicsItem* parent) final override
+      QGraphicsItem* parent) const final override
   {
     return new Process::EffectLayerView{parent};
   }
@@ -88,7 +88,7 @@ private:
       const Process::ProcessModel& lm,
       Process::LayerView* v,
       const Process::ProcessPresenterContext& context,
-      QObject* parent) final override
+      QObject* parent) const final override
   {
     auto& proc = safe_cast<const ControlProcess<Info>&>(lm);
     auto view = safe_cast<Process::EffectLayerView*>(v);
@@ -106,7 +106,7 @@ private:
   QGraphicsItem* makeItem(
       const Process::ProcessModel& proc,
       const score::DocumentContext& ctx,
-      score::RectItem* parent) const override
+      score::RectItem* parent) const final override
   {
     auto rootItem = new score::EmptyRectItem{parent};
     Control::UISetup::init<Info>(static_cast<const ControlProcess<Info>&>(proc), *rootItem, ctx);
@@ -115,7 +115,7 @@ private:
   }
 
   Process::LayerPanelProxy* makePanel(
-      const Process::ProcessModel& viewmodel, const score::DocumentContext& ctx, QObject* parent) final override
+      const Process::ProcessModel& viewmodel, const score::DocumentContext& ctx, QObject* parent) const final override
   {
     return nullptr;
   }
