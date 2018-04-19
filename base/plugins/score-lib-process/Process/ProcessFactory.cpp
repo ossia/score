@@ -2,15 +2,14 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ProcessFactory.hpp"
 
-#include "ProcessList.hpp"
-
+#include <Process/ProcessList.hpp>
+#include <Process/HeaderDelegate.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
 #include <Process/Process.hpp>
 #include <QPainter>
 #include <QTextOption>
 #include <score/model/path/PathSerialization.hpp>
-#include <score/model/path/RelativePath.hpp>
 
 namespace Process
 {
@@ -139,7 +138,7 @@ QGraphicsItem* LayerFactory::makeItem(
 HeaderDelegate*
 LayerFactory::makeHeaderDelegate(const LayerPresenter& pres) const
 {
-  return nullptr;
+  return new DefaultHeaderDelegate{pres};
 }
 
 QWidget* LayerFactory::makeExternalUI(

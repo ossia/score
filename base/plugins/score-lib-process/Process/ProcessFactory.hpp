@@ -11,7 +11,6 @@ struct VisitorVariant;
 namespace score
 {
 struct DocumentContext;
-struct RelativePath;
 class RectItem;
 }
 namespace Process

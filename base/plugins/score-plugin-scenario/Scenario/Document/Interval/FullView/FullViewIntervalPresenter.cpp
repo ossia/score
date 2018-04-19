@@ -131,7 +131,7 @@ void FullViewIntervalPresenter::createSlot(int pos, const FullSlot& slt)
   proc_pres->on_zoomRatioChanged(m_zoomRatio);
   proc_pres->setFullView();
 
-  p.headerDelegate = new Process::DefaultHeaderDelegate{*proc_pres};
+  p.headerDelegate = factory->makeHeaderDelegate(*proc_pres);
   p.headerDelegate->setParentItem(p.header);
   p.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
   p.headerDelegate->setFlag(

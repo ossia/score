@@ -102,9 +102,9 @@ private:
   makeHeaderDelegate(const Process::LayerPresenter& pres) const override
   {
     if constexpr (std::is_same_v<HeaderDelegate_T, default_t>)
-      return nullptr;
+      return LayerFactory::makeHeaderDelegate(pres);
     else
-      return new HeaderDelegate_T{pres};
+      return new HeaderDelegate_T{*safe_cast<const LayerPresenter_T*>(&pres)};
   }
 };
 

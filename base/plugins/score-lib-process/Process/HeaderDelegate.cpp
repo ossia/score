@@ -10,7 +10,7 @@
 #include <QTextLine>
 namespace Process
 {
-static QImage makeGlyphs(const QString& glyph, const QPen& pen)
+QImage makeGlyphs(const QString& glyph, const QPen& pen)
 {
   QImage path;
 
@@ -88,10 +88,10 @@ static const QImage& toGlyphWhite()
   return gl;
 }
 
-DefaultHeaderDelegate::DefaultHeaderDelegate(Process::LayerPresenter& p)
+DefaultHeaderDelegate::DefaultHeaderDelegate(const Process::LayerPresenter& p)
     : HeaderDelegate{p}
 {
-  con(presenter->model(), &Process::ProcessModel::prettyNameChanged, this,
+  con(p.model(), &Process::ProcessModel::prettyNameChanged, this,
       &DefaultHeaderDelegate::updateName);
   updateName();
 

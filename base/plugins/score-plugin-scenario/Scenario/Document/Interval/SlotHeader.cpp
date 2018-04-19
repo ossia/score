@@ -57,9 +57,8 @@ void SlotHeader::paint(
     // Grip
     static const std::array<QRectF, 6> rects{[] {
       std::array<QRectF, 6> rects;
-      double x = 4;
-      for (int i = 0; i < 6; i++)
-        rects[i] = {x += 2, (i % 2 == 0 ? 9. : 5.), 0.1, 0.1};
+      for (int i = 0; i < 3; i++)
+        rects[i] = {6., 5 + 3. * i, 0.1, 0.1};
       return rects;
     }()};
     painter->drawRects(rects.data(), 6);

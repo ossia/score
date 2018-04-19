@@ -528,9 +528,9 @@ void TemporalIntervalPresenter::on_layerModelPutToFront(
     {
       if (elt.model->id() == proc.id())
       {
+        auto factory = m_context.processList.findDefaultFactory(elt.model->concreteKey());
         elt.presenter->putToFront();
-        slt.headerDelegate
-            = new Process::DefaultHeaderDelegate{*elt.presenter};
+        slt.headerDelegate = factory->makeHeaderDelegate(*elt.presenter);
         slt.headerDelegate->setParentItem(slt.header);
         slt.headerDelegate->setFlag(
             QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);

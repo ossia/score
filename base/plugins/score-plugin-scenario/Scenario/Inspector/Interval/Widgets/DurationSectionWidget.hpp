@@ -31,6 +31,6 @@ public:
 
 private:
   EditionGrid* m_editingWidget{};
-  PlayGrid* m_playingWidget{};
+  //PlayGrid* m_playingWidget{};
 };
 }

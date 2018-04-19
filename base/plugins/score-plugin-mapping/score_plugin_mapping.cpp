@@ -12,6 +12,7 @@
 #include <Mapping/MappingProcessMetadata.hpp>
 #include <Mapping/MappingView.hpp>
 #include <Process/GenericProcessFactory.hpp>
+#include <Process/HeaderDelegate.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <score/plugins/customfactory/FactorySetup.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
@@ -24,7 +25,8 @@ using MappingLayerFactory = Curve::CurveLayerFactory_T<
     Mapping::ProcessModel,
     Mapping::LayerPresenter,
     Mapping::LayerView,
-    Mapping::Colors>;
+    Mapping::Colors,
+    Process::DefaultHeaderDelegate>;
 }
 
 #include <score_plugin_mapping_commands_files.hpp>
