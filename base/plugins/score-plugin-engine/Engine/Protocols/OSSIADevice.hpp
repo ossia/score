@@ -1,21 +1,21 @@
 #pragma once
 #include <ossia/detail/callback_container.hpp>
 #include <ossia/network/base/value_callback.hpp>
+
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
-#include <State/Address.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <score_plugin_engine_export.h>
-
-#include <nano_observer.hpp>
 #include <QString>
+#include <State/Address.hpp>
 #include <functional>
 #include <memory>
+#include <nano_observer.hpp>
 #include <score/tools/std/HashMap.hpp>
+#include <score/tools/std/Optional.hpp>
+#include <score_plugin_engine_export.h>
 #include <utility>
 #include <vector>
 #if defined(_MSC_VER)
-#include <ossia/network/base/device.hpp>
+#  include <ossia/network/base/device.hpp>
 #endif
 namespace ossia
 {
@@ -33,9 +33,10 @@ namespace Network
 {
 using DeviceLogging = Device::DeviceLogging;
 class SCORE_PLUGIN_ENGINE_EXPORT OSSIADevice
-    : public Device::DeviceInterface, public Nano::Observer
+    : public Device::DeviceInterface
+    , public Nano::Observer
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
   virtual ~OSSIADevice();
   void disconnect() override;
@@ -81,19 +82,24 @@ public:
 protected:
   using DeviceInterface::DeviceInterface;
 
-  using callback_pair = std::pair<ossia::net::parameter_base*, ossia::callback_container<ossia::value_callback>::iterator>;
+  using callback_pair = std::pair<
+      ossia::net::parameter_base*,
+      ossia::callback_container<ossia::value_callback>::iterator>;
   score::hash_map<State::Address, callback_pair> m_callbacks;
 
   void removeListening_impl(ossia::net::node_base& node, State::Address addr);
-  void removeListening_impl(ossia::net::node_base& node, State::Address addr, std::vector<State::Address>&);
-  void renameListening_impl(const State::Address& parent, const QString& newName);
+  void removeListening_impl(
+      ossia::net::node_base& node,
+      State::Address addr,
+      std::vector<State::Address>&);
+  void
+  renameListening_impl(const State::Address& parent, const QString& newName);
   void setLogging_impl(DeviceLogging) const;
   void enableCallbacks();
   void disableCallbacks();
 
   // Refresh without handling callbacks
   Device::Node simple_refresh();
-
 
 private:
   DeviceLogging m_logging = DeviceLogging::LogNothing;
@@ -120,6 +126,5 @@ protected:
   std::unique_ptr<ossia::net::device_base> m_dev;
   bool m_owned{true};
 };
-
 }
 }

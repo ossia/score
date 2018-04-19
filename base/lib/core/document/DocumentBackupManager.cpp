@@ -1,19 +1,19 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "DocumentBackupManager.hpp"
+
+#include "Document.hpp"
+
 #include <QFile>
 #include <QMap>
 #include <QSettings>
 #include <QStringList>
 #include <QVariant>
+#include <core/application/CommandBackupFile.hpp>
 #include <core/application/OpenDocumentsFile.hpp>
 
-#include "Document.hpp"
-#include "DocumentBackupManager.hpp"
-#include <core/application/CommandBackupFile.hpp>
-
 score::DocumentBackupManager::DocumentBackupManager(score::Document& doc)
-    : QObject{&doc}
-    , m_doc{doc}
+    : QObject{&doc}, m_doc{doc}
 {
   m_modelFile.open();
 
@@ -60,7 +60,8 @@ void score::DocumentBackupManager::updateBackupData()
   auto existing_files = s.value("score/docs").toMap();
   existing_files.insert(
       crashDataFile().fileName(),
-      QVariant::fromValue(qMakePair(m_doc.metadata().fileName(), crashCommandFile().fileName())));
+      QVariant::fromValue(qMakePair(
+          m_doc.metadata().fileName(), crashCommandFile().fileName())));
   s.setValue("score/docs", existing_files);
 #endif
 }

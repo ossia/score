@@ -1,370 +1,394 @@
 #pragma once
 
-#include <Process/WidgetLayer/WidgetProcessFactory.hpp>
-#include <Media/Effect/DefaultEffectItem.hpp>
-#include <Media/Effect/EffectProcessModel.hpp>
-#include <Media/Effect/EffectProcessMetadata.hpp>
-#include <Process/LayerView.hpp>
-#include <Process/LayerPresenter.hpp>
-#include <Process/Style/ScenarioStyle.hpp>
-#include <Process/Focus/FocusDispatcher.hpp>
 #include <Dataflow/UI/PortItem.hpp>
-#include <Scenario/Document/CommentBlock/TextItem.hpp>
+#include <Effect/EffectFactory.hpp>
+#include <Media/Commands/InsertEffect.hpp>
+#include <Media/Effect/DefaultEffectItem.hpp>
+#include <Media/Effect/EffectProcessMetadata.hpp>
+#include <Media/Effect/EffectProcessModel.hpp>
+#include <Process/Focus/FocusDispatcher.hpp>
+#include <Process/LayerPresenter.hpp>
+#include <Process/LayerView.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
+#include <Process/WidgetLayer/WidgetProcessFactory.hpp>
 #include <QGraphicsProxyWidget>
+#include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
-#include <score/widgets/GraphicWidgets.hpp>
-#include <Media/Commands/InsertEffect.hpp>
-#include <Effect/EffectFactory.hpp>
-#include <score/selection/SelectionDispatcher.hpp>
-#include <score/widgets/RectItem.hpp>
-#include <QGraphicsScene>
 #include <QWindow>
+#include <Scenario/Document/CommentBlock/TextItem.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
+#include <score/widgets/GraphicWidgets.hpp>
+#include <score/widgets/RectItem.hpp>
 
 namespace Media::Effect
 {
 
 class View final : public Process::LayerView
 {
-    bool m_invalid{};
-  public:
-    struct ControlUi
-    {
-        Process::ControlInlet* inlet;
-        score::RectItem* rect;
-    };
+  bool m_invalid{};
 
-    struct EffectUi
-    {
-        EffectUi(const Process::ProcessModel& fx, score::RectItem* rt)
-          : effect{fx}
-          , root_item{rt}
-        {
+public:
+  struct ControlUi
+  {
+    Process::ControlInlet* inlet;
+    score::RectItem* rect;
+  };
 
-        }
-        ~EffectUi()
-        {
-          for(auto& con : cons)
-            QObject::disconnect(con);
-        }
-        const Process::ProcessModel& effect;
-        score::RectItem* root_item{};
-        QGraphicsItem* fx_item{};
-        score::RectItem* title{};
-        std::vector<Dataflow::PortItem*> inlets;
-        std::vector<Dataflow::PortItem*> outlets;
-
-        std::vector<QMetaObject::Connection> cons;
-
-    };
-
-    void setInvalid(bool b)
-    {
-      m_invalid = b;
-      update();
-    }
-    explicit View(QGraphicsItem* parent)
-      : Process::LayerView{parent}
+  struct EffectUi
+  {
+    EffectUi(const Process::ProcessModel& fx, score::RectItem* rt)
+        : effect{fx}, root_item{rt}
     {
     }
-
-    void resetInlets(Process::ProcessModel& effect,
-                     const Process::LayerContext& ctx,
-                     QGraphicsItem* root,
-                     EffectUi& ui)
+    ~EffectUi()
     {
-      qDeleteAll(ui.inlets); ui.inlets.clear();
-      qreal x = 10;
-      auto& portFactory = score::AppContext().interfaces<Process::PortFactoryList>();
-      for(Process::Inlet* port : effect.inlets())
-      {
-        if(port->hidden)
-          continue;
-        Process::PortFactory* fact = portFactory.get(port->concreteKey());
-        auto item = fact->makeItem(*port, ctx.context, root, this);
-        item->setPos(x, 21.);
-        ui.inlets.push_back(item);
-
-        x += 10.;
-      }
+      for (auto& con : cons)
+        QObject::disconnect(con);
     }
+    const Process::ProcessModel& effect;
+    score::RectItem* root_item{};
+    QGraphicsItem* fx_item{};
+    score::RectItem* title{};
+    std::vector<Dataflow::PortItem*> inlets;
+    std::vector<Dataflow::PortItem*> outlets;
 
-    void resetOutlets(Process::ProcessModel& effect,
-                      const Process::LayerContext& ctx,
-                      QGraphicsItem* root,
-                      EffectUi& ui)
+    std::vector<QMetaObject::Connection> cons;
+  };
+
+  void setInvalid(bool b)
+  {
+    m_invalid = b;
+    update();
+  }
+  explicit View(QGraphicsItem* parent) : Process::LayerView{parent}
+  {
+  }
+
+  void resetInlets(
+      Process::ProcessModel& effect,
+      const Process::LayerContext& ctx,
+      QGraphicsItem* root,
+      EffectUi& ui)
+  {
+    qDeleteAll(ui.inlets);
+    ui.inlets.clear();
+    qreal x = 10;
+    auto& portFactory
+        = score::AppContext().interfaces<Process::PortFactoryList>();
+    for (Process::Inlet* port : effect.inlets())
     {
-      qDeleteAll(ui.outlets); ui.outlets.clear();
-      qreal x = 10;
-      auto& portFactory = score::AppContext().interfaces<Process::PortFactoryList>();
-      for(Process::Outlet* port : effect.outlets())
-      {
-        if(port->hidden)
-          continue;
-        Process::PortFactory* fact = portFactory.get(port->concreteKey());
-        auto item = fact->makeItem(*port, ctx.context, root, this);
-        item->setPos(x, 32.);
-        ui.outlets.push_back(item);
+      if (port->hidden)
+        continue;
+      Process::PortFactory* fact = portFactory.get(port->concreteKey());
+      auto item = fact->makeItem(*port, ctx.context, root, this);
+      item->setPos(x, 21.);
+      ui.inlets.push_back(item);
 
-        x += 10.;
-      }
+      x += 10.;
     }
+  }
 
-    score::RectItem* makeTitle(Process::ProcessModel& effect
-                             , const Effect::ProcessModel& object
-                             , const Process::LayerContext& ctx
-                             , EffectUi& ui)
+  void resetOutlets(
+      Process::ProcessModel& effect,
+      const Process::LayerContext& ctx,
+      QGraphicsItem* root,
+      EffectUi& ui)
+  {
+    qDeleteAll(ui.outlets);
+    ui.outlets.clear();
+    qreal x = 10;
+    auto& portFactory
+        = score::AppContext().interfaces<Process::PortFactoryList>();
+    for (Process::Outlet* port : effect.outlets())
     {
-      auto& doc = ctx.context;
-      auto root = new score::RectItem{};
-      root->setRect({0, 0, 170, 40});
-      static const auto undock_off = QPixmap::fromImage(QImage(":/icons/undock_off.png").scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-      static const auto undock_on  = QPixmap::fromImage(QImage(":/icons/undock_on.png") .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-      static const auto close_off  = QPixmap::fromImage(QImage(":/icons/close_off.png") .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-      static const auto close_on   = QPixmap::fromImage(QImage(":/icons/close_on.png")  .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+      if (port->hidden)
+        continue;
+      Process::PortFactory* fact = portFactory.get(port->concreteKey());
+      auto item = fact->makeItem(*port, ctx.context, root, this);
+      item->setPos(x, 32.);
+      ui.outlets.push_back(item);
 
-      resetInlets(effect, ctx, root, ui);
-      resetOutlets(effect, ctx, root, ui);
-      ui.cons.push_back(con(effect, &Process::ProcessModel::inletsChanged,
-          this, [&,root] { resetInlets(effect, ctx, root, ui); }));
-      ui.cons.push_back(con(effect, &Process::ProcessModel::outletsChanged,
-          this, [&,root] { resetOutlets(effect, ctx, root, ui); }));
+      x += 10.;
+    }
+  }
 
-      auto ui_btn = new score::QGraphicsPixmapToggle{undock_on, undock_off, root};
-      connect(ui_btn, &score::QGraphicsPixmapToggle::toggled,
-              this, [=,&effect] (bool b) {
-        if(b)
-        {
-          auto& facts = ctx.context.app.interfaces<Process::LayerFactoryList>();
-          if(auto fact = facts.findDefaultFactory(effect))
-          {/*
-            if(QWidget* win = fact->makeExternalUI(m_layer, context().context, nullptr))
-            {
-              const_cast<QWidget*&>(m_layer.externalUI) = win;
-              win->show();
-              connect(win, SIGNAL(uiClosing()), this, SLOT(closeUI()));
+  score::RectItem* makeTitle(
+      Process::ProcessModel& effect,
+      const Effect::ProcessModel& object,
+      const Process::LayerContext& ctx,
+      EffectUi& ui)
+  {
+    auto& doc = ctx.context;
+    auto root = new score::RectItem{};
+    root->setRect({0, 0, 170, 40});
+    static const auto undock_off = QPixmap::fromImage(
+        QImage(":/icons/undock_off.png")
+            .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+    static const auto undock_on = QPixmap::fromImage(
+        QImage(":/icons/undock_on.png")
+            .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+    static const auto close_off = QPixmap::fromImage(
+        QImage(":/icons/close_off.png")
+            .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+    static const auto close_on = QPixmap::fromImage(
+        QImage(":/icons/close_on.png")
+            .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
 
-              connect(m_showUI, &QAction::toggled,
-                      win, [=] (bool b) {
-                if(win)
-                  win->close();
-                delete win;
-                const_cast<QWidget*&>(m_layer.externalUI) = nullptr;
-              });
-            }*/
+    resetInlets(effect, ctx, root, ui);
+    resetOutlets(effect, ctx, root, ui);
+    ui.cons.push_back(
+        con(effect, &Process::ProcessModel::inletsChanged, this,
+            [&, root] { resetInlets(effect, ctx, root, ui); }));
+    ui.cons.push_back(
+        con(effect, &Process::ProcessModel::outletsChanged, this,
+            [&, root] { resetOutlets(effect, ctx, root, ui); }));
 
-            if(auto win = fact->makeExternalUI(effect, ctx.context, nullptr))
-            {
-              const_cast<QWidget*&>(effect.externalUI) = win;
-              win->show();
-              auto c0 = connect(win->windowHandle(), &QWindow::visibilityChanged, ui_btn, [=, &effect] (auto vis) {
-                if(vis == QWindow::Hidden)
-                {
-                  ui_btn->toggle();
-                  const_cast<QWidget*&>(effect.externalUI) = nullptr;
-                  win->deleteLater();
-                }
-              });
+    auto ui_btn
+        = new score::QGraphicsPixmapToggle{undock_on, undock_off, root};
+    connect(
+        ui_btn, &score::QGraphicsPixmapToggle::toggled, this,
+        [=, &effect](bool b) {
+          if (b)
+          {
+            auto& facts
+                = ctx.context.app.interfaces<Process::LayerFactoryList>();
+            if (auto fact = facts.findDefaultFactory(effect))
+            { /*
+               if(QWidget* win = fact->makeExternalUI(m_layer,
+               context().context, nullptr))
+               {
+                 const_cast<QWidget*&>(m_layer.externalUI) = win;
+                 win->show();
+                 connect(win, SIGNAL(uiClosing()), this, SLOT(closeUI()));
 
-              connect(ui_btn, &score::QGraphicsPixmapToggle::toggled,
-                      win, [=, &effect] (bool b) {
-                QObject::disconnect(c0);
-                win->close();
-                delete win;
-                const_cast<QWidget*&>(effect.externalUI) = nullptr;
-              });
+                 connect(m_showUI, &QAction::toggled,
+                         win, [=] (bool b) {
+                   if(win)
+                     win->close();
+                   delete win;
+                   const_cast<QWidget*&>(m_layer.externalUI) = nullptr;
+                 });
+               }*/
+
+              if (auto win
+                  = fact->makeExternalUI(effect, ctx.context, nullptr))
+              {
+                const_cast<QWidget*&>(effect.externalUI) = win;
+                win->show();
+                auto c0 = connect(
+                    win->windowHandle(), &QWindow::visibilityChanged, ui_btn,
+                    [=, &effect](auto vis) {
+                      if (vis == QWindow::Hidden)
+                      {
+                        ui_btn->toggle();
+                        const_cast<QWidget*&>(effect.externalUI) = nullptr;
+                        win->deleteLater();
+                      }
+                    });
+
+                connect(
+                    ui_btn, &score::QGraphicsPixmapToggle::toggled, win,
+                    [=, &effect](bool b) {
+                      QObject::disconnect(c0);
+                      win->close();
+                      delete win;
+                      const_cast<QWidget*&>(effect.externalUI) = nullptr;
+                    });
+              }
             }
           }
-        }
-      });
-      ui_btn->setPos({5, 4});
-
-      auto rm_btn = new score::QGraphicsPixmapButton{close_on, close_off, root};
-      connect(rm_btn, &score::QGraphicsPixmapButton::clicked,
-              this, [&] () {
-        auto cmd = new Commands::RemoveEffect{object, effect};
-        CommandDispatcher<> disp{doc.commandStack}; disp.submitCommand(cmd);
-      }, Qt::QueuedConnection);
-
-      rm_btn->setPos({20, 4});
-
-      auto label = new Scenario::SimpleTextItem{root};
-      label->setText(effect.prettyName());
-      label->setFont(ScenarioStyle::instance().Bold10Pt);
-      label->setPos({35, 4});
-
-      connect(root, &score::RectItem::clicked,
-              this, [&] {
-        doc.focusDispatcher.focus(&ctx.presenter);
-        score::SelectionDispatcher{doc.selectionStack}.setAndCommit({&effect});
-      });
-
-      return root;
-    }
-
-    void setup(const Effect::ProcessModel& object,
-               const Process::LayerContext& ctx)
-    {
-      auto& doc = ctx.context;
-      auto& fact = doc.app.interfaces<Process::LayerFactoryList>();
-      auto items = childItems();
-      effects.clear();
-      for(auto item : items)
-      {
-        this->scene()->removeItem(item);
-        delete item;
-      }
-
-      double pos_x = 0;
-      for(auto& effect : object.effects())
-      {
-        auto root_item = new score::RectItem(this);
-        std::shared_ptr<EffectUi> fx_ui_ = std::make_shared<EffectUi>(effect, root_item);
-        auto& fx_ui = *fx_ui_;
-
-        // Title
-        auto title = makeTitle(effect, object, ctx, fx_ui);
-        fx_ui.title = title;
-        fx_ui.title->setParentItem(root_item);
-
-        // Main item
-        if(auto factory = fact.findDefaultFactory(effect))
-        {
-          fx_ui.fx_item = factory->makeItem(effect, doc, root_item);
-        }
-
-        if(!fx_ui.fx_item)
-        {
-          fx_ui.fx_item = new DefaultEffectItem{effect, doc, root_item};
-        }
-
-        fx_ui.fx_item->setParentItem(root_item);
-        fx_ui.fx_item->setPos({0, fx_ui.title->boundingRect().height()});
-        fx_ui.root_item->setRect(fx_ui.root_item->childrenBoundingRect());
-        effects.push_back(fx_ui_);
-
-        fx_ui.root_item->setRect({0., 0., 170., fx_ui.root_item->childrenBoundingRect().height() + 10.});
-        fx_ui.root_item->setPos(pos_x, 0);
-        pos_x += 5 + fx_ui.root_item->boundingRect().width();
-
-        connect(&effect.selection, &Selectable::changed, root_item, [=] (bool ok) {
-          root_item->setHighlight(ok);
-          title->setHighlight(ok);
         });
-      }
+    ui_btn->setPos({5, 4});
+
+    auto rm_btn = new score::QGraphicsPixmapButton{close_on, close_off, root};
+    connect(
+        rm_btn, &score::QGraphicsPixmapButton::clicked, this,
+        [&]() {
+          auto cmd = new Commands::RemoveEffect{object, effect};
+          CommandDispatcher<> disp{doc.commandStack};
+          disp.submitCommand(cmd);
+        },
+        Qt::QueuedConnection);
+
+    rm_btn->setPos({20, 4});
+
+    auto label = new Scenario::SimpleTextItem{root};
+    label->setText(effect.prettyName());
+    label->setFont(ScenarioStyle::instance().Bold10Pt);
+    label->setPos({35, 4});
+
+    connect(root, &score::RectItem::clicked, this, [&] {
+      doc.focusDispatcher.focus(&ctx.presenter);
+      score::SelectionDispatcher{doc.selectionStack}.setAndCommit({&effect});
+    });
+
+    return root;
+  }
+
+  void
+  setup(const Effect::ProcessModel& object, const Process::LayerContext& ctx)
+  {
+    auto& doc = ctx.context;
+    auto& fact = doc.app.interfaces<Process::LayerFactoryList>();
+    auto items = childItems();
+    effects.clear();
+    for (auto item : items)
+    {
+      this->scene()->removeItem(item);
+      delete item;
     }
 
-  private:
-    void paint_impl(QPainter* p) const override
+    double pos_x = 0;
+    for (auto& effect : object.effects())
     {
-      if(m_invalid)
+      auto root_item = new score::RectItem(this);
+      std::shared_ptr<EffectUi> fx_ui_
+          = std::make_shared<EffectUi>(effect, root_item);
+      auto& fx_ui = *fx_ui_;
+
+      // Title
+      auto title = makeTitle(effect, object, ctx, fx_ui);
+      fx_ui.title = title;
+      fx_ui.title->setParentItem(root_item);
+
+      // Main item
+      if (auto factory = fact.findDefaultFactory(effect))
       {
-        p->fillRect(boundingRect(), ScenarioStyle::instance().AudioPortBrush);
+        fx_ui.fx_item = factory->makeItem(effect, doc, root_item);
       }
-    }
-    void mousePressEvent(QGraphicsSceneMouseEvent* ev) override
-    {
-      if(ev && ev->button() == Qt::RightButton)
+
+      if (!fx_ui.fx_item)
       {
-        askContextMenu(ev->screenPos(), ev->scenePos());
+        fx_ui.fx_item = new DefaultEffectItem{effect, doc, root_item};
       }
-      else
-      {
-        pressed(ev->pos());
-      }
-      ev->accept();
-    }
 
-    void mouseMoveEvent(QGraphicsSceneMouseEvent* ev) override
+      fx_ui.fx_item->setParentItem(root_item);
+      fx_ui.fx_item->setPos({0, fx_ui.title->boundingRect().height()});
+      fx_ui.root_item->setRect(fx_ui.root_item->childrenBoundingRect());
+      effects.push_back(fx_ui_);
+
+      fx_ui.root_item->setRect(
+          {0., 0., 170.,
+           fx_ui.root_item->childrenBoundingRect().height() + 10.});
+      fx_ui.root_item->setPos(pos_x, 0);
+      pos_x += 5 + fx_ui.root_item->boundingRect().width();
+
+      connect(
+          &effect.selection, &Selectable::changed, root_item, [=](bool ok) {
+            root_item->setHighlight(ok);
+            title->setHighlight(ok);
+          });
+    }
+  }
+
+private:
+  void paint_impl(QPainter* p) const override
+  {
+    if (m_invalid)
     {
-      ev->accept();
+      p->fillRect(boundingRect(), ScenarioStyle::instance().AudioPortBrush);
     }
-
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent* ev) override
-    {
-      ev->accept();
-    }
-
-    void contextMenuEvent(QGraphicsSceneContextMenuEvent* ev) override
+  }
+  void mousePressEvent(QGraphicsSceneMouseEvent* ev) override
+  {
+    if (ev && ev->button() == Qt::RightButton)
     {
       askContextMenu(ev->screenPos(), ev->scenePos());
-      ev->accept();
     }
+    else
+    {
+      pressed(ev->pos());
+    }
+    ev->accept();
+  }
 
-    std::vector<std::shared_ptr<EffectUi>> effects;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* ev) override
+  {
+    ev->accept();
+  }
+
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* ev) override
+  {
+    ev->accept();
+  }
+
+  void contextMenuEvent(QGraphicsSceneContextMenuEvent* ev) override
+  {
+    askContextMenu(ev->screenPos(), ev->scenePos());
+    ev->accept();
+  }
+
+  std::vector<std::shared_ptr<EffectUi>> effects;
 };
 
 class Presenter final : public Process::LayerPresenter
 {
-  public:
-    explicit Presenter(
-        const Process::ProcessModel& model,
-        View* view,
-        const Process::ProcessPresenterContext& ctx,
-        QObject* parent)
+public:
+  explicit Presenter(
+      const Process::ProcessModel& model,
+      View* view,
+      const Process::ProcessPresenterContext& ctx,
+      QObject* parent)
       : LayerPresenter{ctx, parent}, m_layer{model}, m_view{view}
-    {
-      putToFront();
-      connect(view, &View::pressed, this, [&] {
-        m_context.context.focusDispatcher.focus(this);
-      });
+  {
+    putToFront();
+    connect(view, &View::pressed, this, [&] {
+      m_context.context.focusDispatcher.focus(this);
+    });
 
-      connect(
-            m_view, &View::askContextMenu, this,
-            &Presenter::contextMenuRequested);
+    connect(
+        m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
 
-      auto& m = static_cast<const Effect::ProcessModel&>(model);
-      con(m, &Effect::ProcessModel::effectsChanged,
-          this, [&] {
-        m_view->setup(static_cast<const Effect::ProcessModel&>(model), m_context);
-      });
-      con(m, &Effect::ProcessModel::badChainingChanged,
-          this, [&] (bool b) {
-        m_view->setInvalid(b);
-      });
+    auto& m = static_cast<const Effect::ProcessModel&>(model);
+    con(m, &Effect::ProcessModel::effectsChanged, this, [&] {
+      m_view->setup(
+          static_cast<const Effect::ProcessModel&>(model), m_context);
+    });
+    con(m, &Effect::ProcessModel::badChainingChanged, this,
+        [&](bool b) { m_view->setInvalid(b); });
 
-      m_view->setup(static_cast<const Effect::ProcessModel&>(model), m_context);
-    }
+    m_view->setup(static_cast<const Effect::ProcessModel&>(model), m_context);
+  }
 
-    void setWidth(qreal val) override
-    {
-      m_view->setWidth(val);
-    }
-    void setHeight(qreal val) override
-    {
-      m_view->setHeight(val);
-    }
+  void setWidth(qreal val) override
+  {
+    m_view->setWidth(val);
+  }
+  void setHeight(qreal val) override
+  {
+    m_view->setHeight(val);
+  }
 
-    void putToFront() override
-    {
-      m_view->setVisible(true);
-    }
+  void putToFront() override
+  {
+    m_view->setVisible(true);
+  }
 
-    void putBehind() override
-    {
-      m_view->setVisible(false);
-    }
+  void putBehind() override
+  {
+    m_view->setVisible(false);
+  }
 
-    void on_zoomRatioChanged(ZoomRatio) override
-    {
-    }
+  void on_zoomRatioChanged(ZoomRatio) override
+  {
+  }
 
-    void parentGeometryChanged() override
-    {
-    }
+  void parentGeometryChanged() override
+  {
+  }
 
-    const Process::ProcessModel& model() const override
-    {
-      return m_layer;
-    }
-    const Id<Process::ProcessModel>& modelId() const override
-    {
-      return m_layer.id();
-    }
+  const Process::ProcessModel& model() const override
+  {
+    return m_layer;
+  }
+  const Id<Process::ProcessModel>& modelId() const override
+  {
+    return m_layer.id();
+  }
 
-  private:
-    const Process::ProcessModel& m_layer;
-    View* m_view{};
+private:
+  const Process::ProcessModel& m_layer;
+  View* m_view{};
 };
-
 }

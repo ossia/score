@@ -2,11 +2,8 @@
 #include <boost/optional.hpp>
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/CommandStackFacade.hpp>
-#include <score/selection/FocusManager.hpp>
-#include <score/document/DocumentInterface.hpp>
-#include <score/application/GUIApplicationContext.hpp>
-#include <score/command/CommandStackFacade.hpp>
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
+#include <score/document/DocumentInterface.hpp>
 #include <score/selection/FocusManager.hpp>
 class IdentifiedObjectAbstract;
 namespace score
@@ -35,7 +32,7 @@ struct SCORE_LIB_BASE_EXPORT DocumentContext
 
   const std::vector<DocumentPlugin*>& pluginModels() const;
 
-  template<typename T>
+  template <typename T>
   T& model() const
   {
     return IDocument::modelDelegate<T>(document);

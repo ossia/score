@@ -3,7 +3,8 @@
 #include <type_traits>
 
 /**
- * @brief Create a vector filled with pointers to new instances of the template arguments
+ * @brief Create a vector filled with pointers to new instances of the template
+ * arguments
  */
 template <typename Base_T, typename... Args>
 struct GenericFactoryInserter
@@ -54,9 +55,9 @@ struct ContextualGenericFactoryFiller
 {
   const Context_T& context;
   std::vector<std::unique_ptr<Base_T>>& vec;
-  ContextualGenericFactoryFiller(const Context_T& ctx, std::vector<std::unique_ptr<Base_T>>& v) noexcept :
-    context{ctx},
-    vec{v}
+  ContextualGenericFactoryFiller(
+      const Context_T& ctx, std::vector<std::unique_ptr<Base_T>>& v) noexcept
+      : context{ctx}, vec{v}
   {
     vec.reserve(sizeof...(Args));
     for_each_type<TypeList<Args...>>(*this);
@@ -70,14 +71,17 @@ struct ContextualGenericFactoryFiller
 };
 
 template <typename Context_T, typename Base_T, typename... Args>
-void fill_ptr_vector(const Context_T& context, std::vector<std::unique_ptr<Base_T>>& vec) noexcept
+void fill_ptr_vector(
+    const Context_T& context,
+    std::vector<std::unique_ptr<Base_T>>& vec) noexcept
 {
   ContextualGenericFactoryFiller<Context_T, Base_T, Args...>{context, vec};
 }
 
 /**
  * \class FW_T
- * \brief Used to group base classes and concrete classes in a single argument list.
+ * \brief Used to group base classes and concrete classes in a single argument
+ * list.
  */
 template <typename Factory_T, typename... Types_T>
 struct FW_T
@@ -104,9 +108,9 @@ struct FW_T
         "A type is not child of the parent.");
     if (matcher.fact == Factory_T::static_interfaceKey())
     {
-      fill_ptr_vector<std::remove_const_t<std::remove_reference_t<decltype(matcher.ctx)>>,
-                      score::InterfaceBase,
-                      Types_T...>(matcher.ctx, matcher.vec);
+      fill_ptr_vector<
+          std::remove_const_t<std::remove_reference_t<decltype(matcher.ctx)>>,
+          score::InterfaceBase, Types_T...>(matcher.ctx, matcher.vec);
       return true;
     }
 
@@ -127,7 +131,7 @@ namespace score
 struct ApplicationContext;
 }
 
-template<typename Context_T>
+template <typename Context_T>
 struct FactoryMatcher
 {
   const Context_T& ctx;
@@ -141,9 +145,9 @@ struct FactoryMatcher
   }
 };
 
-
 /**
- * @brief instantiate_factories Given a type list of factories, instantiate the ones corresponding to the key
+ * @brief instantiate_factories Given a type list of factories, instantiate the
+ * ones corresponding to the key
  *
  * e.g.
  * \code

@@ -1,7 +1,7 @@
 BreakBeforeInheritanceComma: true
 
-IndentPPDirectives: true
-IncludeBlocks: true
+IndentPPDirectives: AfterHash
+IncludeBlocks: Regroup
 
 BasedOnStyle: WebKit
 AccessModifierOffset: -2

@@ -1,26 +1,24 @@
 #pragma once
 
 #include <QColor>
+#include <QFormLayout>
 #include <QLineEdit>
 #include <QPixmap>
 #include <QString>
 #include <QToolButton>
-#include <QFormLayout>
 #include <QVBoxLayout>
 #include <QWidget>
-#include <Scenario/Inspector/CommentEdit.hpp>
-#include <Scenario/Inspector/ExtendedMetadataWidget.hpp>
-
 #include <Scenario/Commands/Metadata/ChangeElementColor.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementComments.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementLabel.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 #include <Scenario/Commands/Metadata/SetExtendedMetadata.hpp>
+#include <Scenario/Inspector/CommentEdit.hpp>
+#include <Scenario/Inspector/ExtendedMetadataWidget.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/model/IdentifiedObject.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
-
-#include <score/model/IdentifiedObject.hpp>
 
 namespace score
 {
@@ -68,17 +66,16 @@ public:
         [&](const QString& newName) {
           if (newName != model.metadata().getName())
           {
-            if(!newName.isEmpty())
+            if (!newName.isEmpty())
             {
               m_commandDispatcher.submitCommand(
                   new ChangeElementName<T>{model, newName});
             }
             else
             {
-              m_commandDispatcher.submitCommand(
-                  new ChangeElementName<T>{
-                      model, QString("%1.0").arg(Metadata<PrettyName_k, T>::get())
-                  });
+              m_commandDispatcher.submitCommand(new ChangeElementName<T>{
+                  model,
+                  QString("%1.0").arg(Metadata<PrettyName_k, T>::get())});
             }
           }
         });

@@ -1,6 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "RandomNameProvider.hpp"
+
 #include <QByteArray>
 #include <QFile>
 #include <QFlags>
@@ -39,8 +40,7 @@ QString RandomNameProvider::generateRandomName()
          + QString::number(
                std::abs(score::random_id_generator::getRandomId() % 99))
          + words.at(std::abs(
-               score::random_id_generator::getRandomId()
-               % (words.size() - 1)))
+               score::random_id_generator::getRandomId() % (words.size() - 1)))
          + QString::number(
                std::abs(score::random_id_generator::getRandomId() % 99));
 }

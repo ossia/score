@@ -3,7 +3,6 @@
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <QLabel>
 
-
 namespace Automation
 {
 class ProcessState;

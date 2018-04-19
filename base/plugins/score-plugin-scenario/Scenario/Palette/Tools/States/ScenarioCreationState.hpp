@@ -1,22 +1,19 @@
 #pragma once
-#include <Scenario/Commands/Scenario/Creations/CreationMetaCommand.hpp>
-#include <Scenario/Palette/ScenarioPaletteBaseStates.hpp>
-#include <Scenario/Palette/ScenarioPaletteBaseTransitions.hpp>
-#include <Scenario/Palette/Tools/ScenarioRollbackStrategy.hpp>
-#include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
-
-#include <Scenario/Tools/elementFindingHelper.hpp>
-
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateInterval.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateInterval_State.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event_TimeSync.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateSequence.hpp>
-
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreationMetaCommand.hpp>
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
+#include <Scenario/Palette/ScenarioPaletteBaseStates.hpp>
+#include <Scenario/Palette/ScenarioPaletteBaseTransitions.hpp>
+#include <Scenario/Palette/Tools/ScenarioRollbackStrategy.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
+#include <Scenario/Tools/elementFindingHelper.hpp>
+#include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 
@@ -85,8 +82,7 @@ protected:
           < getDate(m_parentSM.model(), *this->hoveredState))
       {
         auto cmd = new Scenario::Command::CreateInterval{
-            this->m_scenario, originalState,
-            *this->hoveredState};
+            this->m_scenario, originalState, *this->hoveredState};
 
         m_dispatcher.submitCommand(cmd);
 
@@ -105,8 +101,8 @@ protected:
           < getDate(m_parentSM.model(), *this->hoveredEvent))
       {
         auto cmd = new Scenario::Command::CreateInterval_State{
-            this->m_scenario, originalState,
-            *this->hoveredEvent, this->currentPoint.y};
+            this->m_scenario, originalState, *this->hoveredEvent,
+            this->currentPoint.y};
 
         m_dispatcher.submitCommand(cmd);
 
@@ -159,11 +155,9 @@ protected:
 
       // This
       auto cmd = Scenario::Command::CreateSequence::make(
-          this->m_parentSM.context().context,
-          this->m_parentSM.model(),
+          this->m_parentSM.context().context, this->m_parentSM.model(),
           originalState, // Put there in createInitialState
-          this->currentPoint.date,
-          this->currentPoint.y);
+          this->currentPoint.date, this->currentPoint.y);
 
       m_dispatcher.submitCommandQuiet(cmd);
 
@@ -228,12 +222,14 @@ protected:
         .template commit<Scenario::Command::CreationMetaCommand>();
     // Select all the created elements
     Selection s;
-    if(!this->createdStates.empty())
+    if (!this->createdStates.empty())
       s.append(&m_parentSM.model().states.at(this->createdStates.back()));
-    if(!this->createdIntervals.empty())
-      s.append(&m_parentSM.model().intervals.at(this->createdIntervals.back()));
+    if (!this->createdIntervals.empty())
+      s.append(
+          &m_parentSM.model().intervals.at(this->createdIntervals.back()));
 
-    score::SelectionDispatcher d{this->m_parentSM.context().context.selectionStack};
+    score::SelectionDispatcher d{
+        this->m_parentSM.context().context.selectionStack};
     d.setAndCommit(s);
     this->clearCreatedIds();
     this->m_parentSM.editionSettings().setSequence(false);

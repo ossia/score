@@ -1,16 +1,8 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Curve/Commands/UpdateCurve.hpp>
-
-#include <QPoint>
-#include <algorithm>
-#include <boost/multi_index/detail/hash_index_iterator.hpp>
-#include <boost/multi_index/hashed_index.hpp>
-#include <boost/operators.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <vector>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MovePointCommandObject.hpp"
+
+#include <Curve/Commands/UpdateCurve.hpp>
 #include <Curve/CurveModel.hpp>
 #include <Curve/CurvePresenter.hpp>
 #include <Curve/Palette/CommandObjects/CurveCommandObjectBase.hpp>
@@ -18,8 +10,15 @@
 #include <Curve/Palette/CurvePaletteBaseStates.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Point/CurvePointModel.hpp>
+#include <QPoint>
+#include <algorithm>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/operators.hpp>
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/tools/std/Optional.hpp>
+#include <vector>
 
 namespace score
 {
@@ -45,8 +44,7 @@ void MovePointCommandObject::on_press()
   // Firts we take the exact position of the point we clicked.
   auto clickedCurvePoint_it = std::find_if(
       m_presenter->model().points().begin(),
-      m_presenter->model().points().end(),
-      [&](PointModel* pt) {
+      m_presenter->model().points().end(), [&](PointModel* pt) {
         return pt->previous() == m_state->clickedPointId.previous
                && pt->following() == m_state->clickedPointId.following;
       });
@@ -182,8 +180,7 @@ void MovePointCommandObject::handleSuppressOnOverlap(CurveSegmentMap& segments)
         else if (m_state->clickedPointId.previous)
         {
           // We also set the following to the current segment if available.
-          auto seg_it
-              = segments_by_id.find(*m_state->clickedPointId.previous);
+          auto seg_it = segments_by_id.find(*m_state->clickedPointId.previous);
           segments_by_id.modify(
               seg_it, [&](auto& seg) { seg.following = segment.id; });
         }

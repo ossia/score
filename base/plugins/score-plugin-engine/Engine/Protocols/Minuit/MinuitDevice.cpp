@@ -1,16 +1,17 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QString>
-#include <QVariant>
-#include <memory>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MinuitDevice.hpp"
-#include <ossia/network/generic/generic_parameter.hpp>
+
 #include <ossia/network/generic/generic_device.hpp>
+#include <ossia/network/generic/generic_parameter.hpp>
 #include <ossia/network/minuit/minuit.hpp>
+
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/Protocols/Minuit/MinuitSpecificSettings.hpp>
 #include <Explorer/DeviceList.hpp>
+#include <QString>
+#include <QVariant>
+#include <memory>
 
 namespace Engine
 {
@@ -36,10 +37,8 @@ bool MinuitDevice::reconnect()
 
     std::unique_ptr<ossia::net::protocol_base> ossia_settings
         = std::make_unique<ossia::net::minuit_protocol>(
-            stgs.localName.toStdString(),
-            stgs.host.toStdString(),
-            stgs.inputPort,
-            stgs.outputPort);
+            stgs.localName.toStdString(), stgs.host.toStdString(),
+            stgs.inputPort, stgs.outputPort);
 
     m_dev = std::make_unique<ossia::net::generic_device>(
         std::move(ossia_settings), settings().name.toStdString());
@@ -60,11 +59,10 @@ bool MinuitDevice::reconnect()
 
 void MinuitDevice::recreate(const Device::Node& n)
 {
-  for(auto& child : n)
+  for (auto& child : n)
   {
     addNode(child);
   }
 }
-
 }
 }

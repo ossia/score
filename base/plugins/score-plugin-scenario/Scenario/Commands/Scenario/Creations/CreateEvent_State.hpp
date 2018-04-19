@@ -1,12 +1,12 @@
 #pragma once
-#include <QString>
-#include <score/command/Command.hpp>
-#include <score/tools/std/Optional.hpp>
-
 #include "CreateState.hpp"
+
+#include <QString>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <score/model/path/Path.hpp>
+#include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/model/path/Path.hpp>
+#include <score/tools/std/Optional.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -29,8 +29,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateEvent_State final
 public:
   CreateEvent_State(
       const Scenario::ProcessModel& scenario,
-      Id<TimeSyncModel>
-          timeSync,
+      Id<TimeSyncModel> timeSync,
       double stateY);
 
   const Path<Scenario::ProcessModel>& scenarioPath() const

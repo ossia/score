@@ -1,16 +1,12 @@
 #include <Dataflow/Commands/EditPort.hpp>
-#include <score/model/path/PathSerialization.hpp>
-
 #include <Process/Dataflow/Port.hpp>
+#include <score/model/path/PathSerialization.hpp>
 namespace Dataflow
 {
 
 ChangePortAddress::ChangePortAddress(
-    const Process::Port& p,
-    State::AddressAccessor addr)
-  : m_model{p}
-  , m_old{p.address()}
-  , m_new{std::move(addr)}
+    const Process::Port& p, State::AddressAccessor addr)
+    : m_model{p}, m_old{p.address()}, m_new{std::move(addr)}
 {
 }
 

@@ -7,14 +7,15 @@ namespace score
  * @brief Base class for commands to be used with the Settings system.
  *
  * It should not be necessary to use these classes in user code.
- * Instead, use the macro \ref SCORE_SETTINGS_COMMAND or \ref SCORE_SETTINGS_DEFERRED_COMMAND
+ * Instead, use the macro \ref SCORE_SETTINGS_COMMAND or \ref
+ * SCORE_SETTINGS_DEFERRED_COMMAND
  */
 class SCORE_LIB_BASE_EXPORT SettingsCommandBase
 {
-    public:
-        virtual ~SettingsCommandBase();
-        virtual void undo() const = 0;
-        virtual void redo() const = 0;
+public:
+  virtual ~SettingsCommandBase();
+  virtual void undo() const = 0;
+  virtual void redo() const = 0;
 };
 
 template <typename T>
@@ -65,13 +66,13 @@ private:
  * \brief Content of a Settings command.
  */
 #define SCORE_SETTINGS_COMMAND_DECL(name)                     \
-public:                                                        \
+public:                                                       \
   using score::SettingsCommand<parameter_t>::SettingsCommand; \
-  name() = default;                                            \
-  static const CommandKey& static_key()                 \
-  {                                                            \
-    static const CommandKey var{#name};                 \
-    return var;                                                \
-  }                                                            \
-                                                               \
+  name() = default;                                           \
+  static const CommandKey& static_key()                       \
+  {                                                           \
+    static const CommandKey var{#name};                       \
+    return var;                                               \
+  }                                                           \
+                                                              \
 private:

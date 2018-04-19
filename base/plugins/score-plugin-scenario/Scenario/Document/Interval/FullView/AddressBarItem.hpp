@@ -2,7 +2,6 @@
 #include <QGraphicsItem>
 #include <QList>
 #include <QRect>
-
 #include <score/model/path/ObjectPath.hpp>
 
 class QPainter;
@@ -13,21 +12,22 @@ namespace Scenario
 {
 class IntervalModel;
 class ClickableLabelItem;
-class AddressBarItem final : public QObject, public QGraphicsItem
+class AddressBarItem final
+    : public QObject
+    , public QGraphicsItem
 {
   Q_OBJECT
   Q_INTERFACES(QGraphicsItem)
 public:
-  AddressBarItem(
-      const score::DocumentContext& ctx,
-      QGraphicsItem* parent);
+  AddressBarItem(const score::DocumentContext& ctx, QGraphicsItem* parent);
 
   double width() const;
   void setTargetObject(ObjectPath&&);
 
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
 Q_SIGNALS:

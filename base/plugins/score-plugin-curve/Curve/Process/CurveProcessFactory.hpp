@@ -10,10 +10,13 @@ namespace Curve
 {
 class EditionSettings;
 template <
-    typename Model_T, typename LayerPresenter_T,
-    typename LayerView_T, typename CurveColors_T>
-class CurveLayerFactory_T final : public Process::LayerFactory,
-                                  public StyleInterface
+    typename Model_T,
+    typename LayerPresenter_T,
+    typename LayerView_T,
+    typename CurveColors_T>
+class CurveLayerFactory_T final
+    : public Process::LayerFactory
+    , public StyleInterface
 {
 public:
   virtual ~CurveLayerFactory_T() = default;

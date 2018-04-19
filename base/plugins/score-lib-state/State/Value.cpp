@@ -1,11 +1,14 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Value.hpp"
+
 #include "Unit.hpp"
+
+#include <ossia/detail/apply.hpp>
 #include <ossia/network/dataspace/dataspace.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 #include <ossia/network/value/value.hpp>
-#include <ossia/detail/apply.hpp>
+
 #include <State/ValueConversion.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
@@ -119,29 +122,25 @@ void TSerializer<DataStream, ossia::unit_t>::writeTo(
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void
-DataStreamReader::read(const State::Unit& var)
+SCORE_LIB_STATE_EXPORT void DataStreamReader::read(const State::Unit& var)
 {
   TSerializer<DataStream, ossia::unit_t>::readFrom(*this, var.get());
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void
-DataStreamWriter::write(State::Unit& var)
+SCORE_LIB_STATE_EXPORT void DataStreamWriter::write(State::Unit& var)
 {
   TSerializer<DataStream, ossia::unit_t>::writeTo(*this, var.get());
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void
-DataStreamReader::read(const ossia::unit_t& var)
+SCORE_LIB_STATE_EXPORT void DataStreamReader::read(const ossia::unit_t& var)
 {
   TSerializer<DataStream, ossia::unit_t>::readFrom(*this, var);
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void
-DataStreamWriter::write(ossia::unit_t& var)
+SCORE_LIB_STATE_EXPORT void DataStreamWriter::write(ossia::unit_t& var)
 {
   TSerializer<DataStream, ossia::unit_t>::writeTo(*this, var);
 }

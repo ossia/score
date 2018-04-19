@@ -16,9 +16,10 @@ namespace Recording
 struct RecordContext;
 // TODO for some reason we have to undo redo
 // to be able to send the curve at execution. Investigate why.
-class AutomationRecorder : public QObject,
-                           public RecordProvider,
-                           public Nano::Observer
+class AutomationRecorder
+    : public QObject
+    , public RecordProvider
+    , public Nano::Observer
 {
   Q_OBJECT
 public:

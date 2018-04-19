@@ -16,7 +16,8 @@ class ProcessWidgetArea final : public Inspector::InspectorSectionWidget
 public:
   template <typename... Args>
   ProcessWidgetArea(
-      const Process::ProcessModel& proc, CommandDispatcher<>& disp,
+      const Process::ProcessModel& proc,
+      CommandDispatcher<>& disp,
       Args&&... args)
       : InspectorSectionWidget{std::forward<Args>(args)...}
       , m_proc{proc}
@@ -44,8 +45,8 @@ private:
   void dropEvent(QDropEvent* event) override;
 
 Q_SIGNALS:
-  void
-  sig_handleSwap(QPointer<const Process::ProcessModel> cst, double center, double y);
+  void sig_handleSwap(
+      QPointer<const Process::ProcessModel> cst, double center, double y);
   void sig_performSwap(
       QPointer<const Scenario::IntervalModel> cst,
       const Id<Process::ProcessModel>& id1,
@@ -64,8 +65,7 @@ private Q_SLOTS:
       const Id<Process::ProcessModel>& id1);
 
   void handleSwap(
-      QPointer<const Process::ProcessModel> cst,
-      double center, double y);
+      QPointer<const Process::ProcessModel> cst, double center, double y);
 
 private:
   const Process::ProcessModel& m_proc;

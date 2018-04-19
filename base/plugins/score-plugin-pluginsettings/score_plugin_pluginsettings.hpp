@@ -3,9 +3,9 @@
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
 class score_plugin_pluginsettings
-    : public QObject,
-      public score::Plugin_QtInterface,
-      public score::FactoryInterface_QtInterface
+    : public QObject
+    , public score::Plugin_QtInterface
+    , public score::FactoryInterface_QtInterface
 {
   Q_OBJECT
   Q_PLUGIN_METADATA(IID Plugin_QtInterface_iid)

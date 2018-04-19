@@ -2,17 +2,17 @@
 #include <QGraphicsItem>
 #include <QPainterPath>
 #include <QRect>
-#include <score/model/ColorReference.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+#include <score/model/ColorReference.hpp>
 
 namespace Scenario
 {
 class ConditionView final
-        : public QObject
-        , public QGraphicsItem
+    : public QObject
+    , public QGraphicsItem
 {
-    Q_OBJECT
-    Q_INTERFACES(QGraphicsItem)
+  Q_OBJECT
+  Q_INTERFACES(QGraphicsItem)
 public:
   ConditionView(score::ColorRef color, QGraphicsItem* parent);
 
@@ -31,9 +31,13 @@ public:
   }
 
   static constexpr int static_type()
-  { return QGraphicsItem::UserType + ItemType::Condition; }
+  {
+    return QGraphicsItem::UserType + ItemType::Condition;
+  }
   int type() const override
-  { return static_type(); }
+  {
+    return static_type();
+  }
 
 Q_SIGNALS:
   void pressed(QPointF);

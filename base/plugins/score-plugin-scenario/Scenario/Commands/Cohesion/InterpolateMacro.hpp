@@ -1,12 +1,11 @@
 #pragma once
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <score/command/AggregateCommand.hpp>
+#include <ossia/detail/algorithms.hpp>
 
 #include <Scenario/Commands/Interval/Rack/AddSlotToRack.hpp>
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
-
-#include <ossia/detail/algorithms.hpp>
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <score/command/AggregateCommand.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
 namespace Scenario
@@ -28,7 +27,8 @@ class AddMultipleProcessesToIntervalMacro final
     : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), AddMultipleProcessesToIntervalMacro,
+      ScenarioCommandFactoryName(),
+      AddMultipleProcessesToIntervalMacro,
       "Add processes to interval")
 
 public:
@@ -55,7 +55,7 @@ public:
   AddMultipleProcessesToIntervalMacro(const IntervalModel& interval)
   {
     // If no slot : create slot
-    if(interval.smallView().empty())
+    if (interval.smallView().empty())
     {
       auto cmd_slot = new Scenario::Command::AddSlotToRack{interval};
       addCommand(cmd_slot);
@@ -70,10 +70,9 @@ public:
 };
 
 inline AddMultipleProcessesToIntervalMacro*
-    makeAddProcessMacro(const IntervalModel& interval, int num_processes)
+makeAddProcessMacro(const IntervalModel& interval, int num_processes)
 {
-  return new AddMultipleProcessesToIntervalMacro{
-      interval};
+  return new AddMultipleProcessesToIntervalMacro{interval};
 }
 }
 }

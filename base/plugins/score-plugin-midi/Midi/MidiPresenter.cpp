@@ -1,35 +1,31 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
-#include <Midi/MidiNoteView.hpp>
-#include <Midi/MidiPresenter.hpp>
-#include <Midi/MidiProcess.hpp>
-#include <Midi/MidiView.hpp>
-#include <Midi/MidiDrop.hpp>
-
-#include <Process/Focus/FocusDispatcher.hpp>
-
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <score/document/DocumentInterface.hpp>
+#include <ossia/detail/math.hpp>
 
 #include <Midi/Commands/AddNote.hpp>
 #include <Midi/Commands/RemoveNotes.hpp>
 #include <Midi/Commands/ScaleNotes.hpp>
-
+#include <Midi/MidiDrop.hpp>
+#include <Midi/MidiNoteView.hpp>
+#include <Midi/MidiPresenter.hpp>
+#include <Midi/MidiProcess.hpp>
+#include <Midi/MidiView.hpp>
+#include <Process/Focus/FocusDispatcher.hpp>
+#include <Process/Layer/LayerContextMenu.hpp>
+#include <QAction>
+#include <QApplication>
+#include <QInputDialog>
+#include <QMenu>
 #include <boost/range/adaptor/filtered.hpp>
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/range/algorithm/copy.hpp>
-#include <ossia/detail/math.hpp>
-#include <QInputDialog>
-#include <QMenu>
-#include <QAction>
-#include <QApplication>
-#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <Process/Layer/LayerContextMenu.hpp>
-#include <score/document/DocumentContext.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/document/DocumentInterface.hpp>
 namespace Midi
 {
 Presenter::Presenter(
@@ -61,10 +57,9 @@ Presenter::Presenter(
     }
   });
 
-  con(model, &ProcessModel::rangeChanged,
-      this, [=] (int min, int max) {
+  con(model, &ProcessModel::rangeChanged, this, [=](int min, int max) {
     m_view->setRange(min, max);
-    for(auto note : m_notes)
+    for (auto note : m_notes)
       updateNote(*note);
   });
   m_view->setRange(model.range().first, model.range().second);
@@ -73,15 +68,13 @@ Presenter::Presenter(
 
   connect(m_view, &View::doubleClicked, this, [&](QPointF pos) {
     CommandDispatcher<>{context().context.commandStack}.submitCommand(
-        new AddNote{layer,
-                    m_view->noteAtPos(pos)});
+        new AddNote{layer, m_view->noteAtPos(pos)});
   });
 
   connect(m_view, &View::pressed, this, [&]() {
     m_context.context.focusDispatcher.focus(this);
   });
-  connect(m_view, &View::dropReceived,
-          this, &Presenter::on_drop);
+  connect(m_view, &View::dropReceived, this, &Presenter::on_drop);
 
   connect(m_view, &View::deleteRequested, this, [&] {
     CommandDispatcher<>{context().context.commandStack}.submitCommand(
@@ -97,7 +90,6 @@ Presenter::Presenter(
   }
 }
 
-
 void Presenter::fillContextMenu(
     QMenu& menu,
     QPoint pos,
@@ -107,8 +99,10 @@ void Presenter::fillContextMenu(
   auto act = menu.addAction(tr("Rescale midi"));
   connect(act, &QAction::triggered, this, [&] {
     bool ok = true;
-    double val = QInputDialog::getDouble(qApp->activeWindow(), tr("Rescale factor"), tr("Rescale factor"), 1.0, 0.0001, 100., 2, &ok);
-    if(!ok)
+    double val = QInputDialog::getDouble(
+        qApp->activeWindow(), tr("Rescale factor"), tr("Rescale factor"), 1.0,
+        0.0001, 100., 2, &ok);
+    if (!ok)
       return;
 
     CommandDispatcher<> c{context().context.commandStack};
@@ -118,14 +112,17 @@ void Presenter::fillContextMenu(
   auto act2 = menu.addAction(tr("Rescale all midi"));
   connect(act2, &QAction::triggered, this, [&] {
     bool ok = true;
-    double val = QInputDialog::getDouble(qApp->activeWindow(), tr("Rescale factor"), tr("Rescale factor"), 1.0, 0.0001, 100., 2, &ok);
-    if(!ok)
+    double val = QInputDialog::getDouble(
+        qApp->activeWindow(), tr("Rescale factor"), tr("Rescale factor"), 1.0,
+        0.0001, 100., 2, &ok);
+    if (!ok)
       return;
 
-    MacroCommandDispatcher<RescaleAllMidi> disp{context().context.commandStack};
+    MacroCommandDispatcher<RescaleAllMidi> disp{
+        context().context.commandStack};
     auto& doc = context().context.document.model();
     auto midi = doc.findChildren<Midi::ProcessModel*>();
-    for(auto ptr : midi)
+    for (auto ptr : midi)
     {
       disp.submitCommand(new RescaleMidi{*ptr, val});
     }
@@ -203,20 +200,17 @@ void Presenter::setupNote(NoteView& v)
         int(max
             - (qMin(rect.bottom(), qMax(newPos.y(), rect.top())) / height)
                   * (max - min)),
-        min,
-        max);
+        min, max);
 
     auto notes = selectedNotes();
     auto it = ossia::find(notes, v.note.id());
-    if(it == notes.end())
+    if (it == notes.end())
     {
       notes = {v.note.id()};
     }
 
     m_ongoing.submitCommand(
-        m_layer,
-        notes,
-        note - v.note.pitch(),
+        m_layer, notes, note - v.note.pitch(),
         newPos.x() / m_view->defaultWidth() - v.note.start());
     m_ongoing.commit();
   });
@@ -224,7 +218,7 @@ void Presenter::setupNote(NoteView& v)
   con(v, &NoteView::noteScaled, this, [&](double newScale) {
     auto notes = selectedNotes();
     auto it = ossia::find(notes, v.note.id());
-    if(it == notes.end())
+    if (it == notes.end())
     {
       notes = {v.note.id()};
     }
@@ -240,7 +234,8 @@ void Presenter::updateNote(NoteView& v)
   const auto [min, max] = this->m_layer.range();
   const auto note_height = m_view->height() / (max - min);
   QPointF newPos{v.note.start() * m_view->defaultWidth(),
-                 m_view->height() - std::ceil((v.note.pitch() - min) * note_height)};
+                 m_view->height()
+                     - std::ceil((v.note.pitch() - min) * note_height)};
 
   if (newPos != v.pos())
     v.setPos(newPos);
@@ -270,19 +265,23 @@ void Presenter::on_noteRemoving(const Note& n)
 void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
 {
   auto song = Midi::MidiTrack::parse(md, context().context);
-  if(song.tracks.empty())
+  if (song.tracks.empty())
     return;
 
   auto& track = song.tracks[0];
 
   CommandDispatcher<> disp{m_context.context.commandStack};
-  // Scale notes so that the durations are relative to the ratio of the song duration & constraint duration
-  for(auto& note : track.notes)
+  // Scale notes so that the durations are relative to the ratio of the song
+  // duration & constraint duration
+  for (auto& note : track.notes)
   {
-    note.setStart(song.durationInMs * note.start() / m_layer.duration().msec());
-    note.setDuration(song.durationInMs * note.duration() / m_layer.duration().msec());
+    note.setStart(
+        song.durationInMs * note.start() / m_layer.duration().msec());
+    note.setDuration(
+        song.durationInMs * note.duration() / m_layer.duration().msec());
   }
-  disp.submitCommand<Midi::ReplaceNotes>(m_layer, track.notes, track.min, track.max, m_layer.duration());
+  disp.submitCommand<Midi::ReplaceNotes>(
+      m_layer, track.notes, track.min, track.max, m_layer.duration());
 }
 
 std::vector<Id<Note>> Presenter::selectedNotes() const

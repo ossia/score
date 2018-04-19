@@ -10,8 +10,7 @@ class DocumentDelegateModel;
 class DocumentDelegateView;
 class DocumentPresenter;
 
-class SCORE_LIB_BASE_EXPORT DocumentDelegatePresenter
-    : public QObject
+class SCORE_LIB_BASE_EXPORT DocumentDelegatePresenter : public QObject
 {
   Q_OBJECT
 public:

@@ -1,13 +1,12 @@
 #pragma once
+#include <Curve/Palette/CurvePoint.hpp>
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index_container.hpp>
-
-#include <Curve/Palette/CurvePoint.hpp>
-#include <score/plugins/customfactory/UuidKey.hpp>
 #include <score/model/IdentifiedObject.hpp>
+#include <score/plugins/customfactory/UuidKey.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
 namespace Curve
@@ -71,12 +70,9 @@ struct SegmentData
       Id<SegmentModel> i,
       Curve::Point s,
       Curve::Point e,
-      OptionalId<SegmentModel>
-          prev,
-      OptionalId<SegmentModel>
-          foll,
-      const UuidKey<Curve::SegmentFactory>&
-          t,
+      OptionalId<SegmentModel> prev,
+      OptionalId<SegmentModel> foll,
+      const UuidKey<Curve::SegmentFactory>& t,
       QVariant data)
       : id(std::move(i))
       , start(s)
@@ -168,17 +164,11 @@ public:
 namespace bmi = boost::multi_index;
 using CurveSegmentMap = bmi::multi_index_container<
     SegmentData,
-    bmi::indexed_by<
-        bmi::hashed_unique<
-            bmi::member<
-                SegmentData,
-                Id<SegmentModel>,
-                &SegmentData::id
-            >, CurveDataHash
+    bmi::indexed_by<bmi::hashed_unique<
+        bmi::member<SegmentData, Id<SegmentModel>, &SegmentData::id>,
+        CurveDataHash
 
-        >
-    >
->;
+        >>>;
 /*
 class CurveSegmentCachingMap : private CurveSegmentMap
 {
@@ -200,8 +190,13 @@ class CurveSegmentCachingMap : private CurveSegmentMap
         }
 };
 */
-using CurveSegmentOrderedMap = bmi::
-    multi_index_container<SegmentData, bmi::indexed_by<bmi::hashed_unique<bmi::member<SegmentData, Id<SegmentModel>, &SegmentData::id>, CurveDataHash>, bmi::ordered_unique<bmi::identity<SegmentData>>>>;
+using CurveSegmentOrderedMap = bmi::multi_index_container<
+    SegmentData,
+    bmi::indexed_by<
+        bmi::hashed_unique<
+            bmi::member<SegmentData, Id<SegmentModel>, &SegmentData::id>,
+            CurveDataHash>,
+        bmi::ordered_unique<bmi::identity<SegmentData>>>>;
 
 enum Segments
 {
@@ -214,7 +209,7 @@ Q_DECLARE_METATYPE(Curve::SegmentData)
 
 #define CURVE_SEGMENT_FACTORY_METADATA(Export, Model, Uuid) \
   template <>                                               \
-  struct Export Metadata<ConcreteKey_k, Model>       \
+  struct Export Metadata<ConcreteKey_k, Model>              \
   {                                                         \
     static const auto& get()                                \
     {                                                       \
@@ -223,22 +218,23 @@ Q_DECLARE_METATYPE(Curve::SegmentData)
     }                                                       \
   };
 
-#define CURVE_SEGMENT_METADATA(Export, Model, Uuid, ObjectKey, PrettyName, Category) \
-  OBJECTKEY_METADATA(Export, Model, ObjectKey)                             \
-  CURVE_SEGMENT_FACTORY_METADATA(Export, Model, Uuid)                      \
-  template <>                                                              \
-  struct Export Metadata<PrettyName_k, Model>                              \
-  {                                                                        \
-    static auto get()                                                      \
-    {                                                                      \
-      return QObject::tr(PrettyName);                                      \
-    }                                                                      \
-  };                                                                       \
-  template <>                                                              \
-  struct Export Metadata<Curve::Category_k, Model>                         \
-  {                                                                        \
-    static auto get()                                                      \
-    {                                                                      \
-      return QObject::tr(Category);                                        \
-    }                                                                      \
+#define CURVE_SEGMENT_METADATA(                           \
+    Export, Model, Uuid, ObjectKey, PrettyName, Category) \
+  OBJECTKEY_METADATA(Export, Model, ObjectKey)            \
+  CURVE_SEGMENT_FACTORY_METADATA(Export, Model, Uuid)     \
+  template <>                                             \
+  struct Export Metadata<PrettyName_k, Model>             \
+  {                                                       \
+    static auto get()                                     \
+    {                                                     \
+      return QObject::tr(PrettyName);                     \
+    }                                                     \
+  };                                                      \
+  template <>                                             \
+  struct Export Metadata<Curve::Category_k, Model>        \
+  {                                                       \
+    static auto get()                                     \
+    {                                                     \
+      return QObject::tr(Category);                       \
+    }                                                     \
   };

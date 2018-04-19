@@ -46,7 +46,7 @@ private Q_SLOTS:
   void columnVisibilityChanged(bool shown);
 
 private:
-  void rowsInserted(const QModelIndex &parent, int start, int end) override;
+  void rowsInserted(const QModelIndex& parent, int start, int end) override;
   void saveSettings();
   void restoreSettings();
   void setInitialColumnsSizes();

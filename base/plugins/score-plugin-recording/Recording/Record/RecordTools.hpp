@@ -3,16 +3,14 @@
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <Process/TimeValue.hpp>
+#include <QObject>
+#include <QTimer>
 #include <Recording/Commands/Record.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
 #include <State/Address.hpp>
-
-#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
-
-#include <QObject>
-#include <QTimer>
 #include <chrono>
 #include <memory>
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/tools/std/HashMap.hpp>
 #include <vector>
 
@@ -55,8 +53,10 @@ struct RecordContext;
  * All the susb-vectors are assumed to be non-empty.
  */
 using RecordListening = std::vector<std::vector<Device::Node*>>;
-using RecordCommandDispatcher
-    = GenericMacroCommandDispatcher<Recording::Record, RedoStrategy::Quiet, SendStrategy::UndoRedo>;
+using RecordCommandDispatcher = GenericMacroCommandDispatcher<
+    Recording::Record,
+    RedoStrategy::Quiet,
+    SendStrategy::UndoRedo>;
 
 struct Box
 {

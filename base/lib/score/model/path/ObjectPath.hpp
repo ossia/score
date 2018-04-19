@@ -30,7 +30,7 @@ class QObject;
  * @endcode
  *
  * Note : this class is mostly superseded by Path<T> which adds type-safety.
-*/
+ */
 class SCORE_LIB_BASE_EXPORT ObjectPath
 {
   friend ObjectIdentifierVector::iterator begin(ObjectPath& path)
@@ -113,7 +113,8 @@ public:
     }
     else // Load it by hand
     {
-      auto ptr = safe_cast<typename std::remove_const<T>::type*>(find_impl(ctx));
+      auto ptr
+          = safe_cast<typename std::remove_const<T>::type*>(find_impl(ctx));
       m_cache = ptr;
       return *ptr;
     }
@@ -177,12 +178,12 @@ Q_DECLARE_METATYPE(ObjectPath)
 
 namespace boost
 {
-template<>
+template <>
 struct SCORE_LIB_BASE_EXPORT hash<ObjectIdentifier>
 {
   std::size_t operator()(const ObjectIdentifier& path) const;
 };
-template<>
+template <>
 struct SCORE_LIB_BASE_EXPORT hash<ObjectPath>
 {
   std::size_t operator()(const ObjectPath& path) const;

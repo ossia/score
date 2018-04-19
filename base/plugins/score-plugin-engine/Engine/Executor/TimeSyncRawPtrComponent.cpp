@@ -1,19 +1,21 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <ossia/editor/scenario/time_sync.hpp>
-#include <Engine/score2OSSIA.hpp>
-#include <QDebug>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Engine/Executor/ExecutorContext.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <exception>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "TimeSyncRawPtrComponent.hpp"
 
 #include "IntervalComponent.hpp"
 #include "ScenarioComponent.hpp"
-#include "TimeSyncRawPtrComponent.hpp"
-#include <ossia/editor/expression/expression.hpp>
-#include <ossia/editor/state/state.hpp>
+
 #include <ossia/detail/logger.hpp>
+#include <ossia/editor/expression/expression.hpp>
+#include <ossia/editor/scenario/time_sync.hpp>
+#include <ossia/editor/state/state.hpp>
+
+#include <Engine/Executor/ExecutorContext.hpp>
+#include <Engine/score2OSSIA.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <QDebug>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <exception>
 
 namespace Engine
 {
@@ -24,23 +26,21 @@ TimeSyncRawPtrComponent::TimeSyncRawPtrComponent(
     const Engine::Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
-  :  Execution::Component{ctx, id, "Executor::Event", nullptr}
-  , m_score_node{element}
+    : Execution::Component{ctx, id, "Executor::Event", nullptr}
+    , m_score_node{element}
 {
-  con(m_score_node, &Scenario::TimeSyncModel::triggeredByGui,
-      this, &TimeSyncRawPtrComponent::on_GUITrigger);
+  con(m_score_node, &Scenario::TimeSyncModel::triggeredByGui, this,
+      &TimeSyncRawPtrComponent::on_GUITrigger);
 
-  con(m_score_node, &Scenario::TimeSyncModel::activeChanged,
-      this, &TimeSyncRawPtrComponent::updateTrigger);
-  con(m_score_node, &Scenario::TimeSyncModel::triggerChanged,
-      this, [this] (const State::Expression& expr) { this->updateTrigger(); });
+  con(m_score_node, &Scenario::TimeSyncModel::activeChanged, this,
+      &TimeSyncRawPtrComponent::updateTrigger);
+  con(m_score_node, &Scenario::TimeSyncModel::triggerChanged, this,
+      [this](const State::Expression& expr) { this->updateTrigger(); });
 }
 
 void TimeSyncRawPtrComponent::cleanup()
 {
-  in_exec([ts=m_ossia_node] {
-    ts->cleanup();
-  });
+  in_exec([ts = m_ossia_node] { ts->cleanup(); });
   m_ossia_node = nullptr;
 }
 
@@ -52,7 +52,7 @@ ossia::expression_ptr TimeSyncRawPtrComponent::makeTrigger() const
     try
     {
       return Engine::score_to_ossia::trigger_expression(
-            element.expression(), system().devices.list());
+          element.expression(), system().devices.list());
     }
     catch (std::exception& e)
     {
@@ -64,8 +64,7 @@ ossia::expression_ptr TimeSyncRawPtrComponent::makeTrigger() const
 }
 
 void TimeSyncRawPtrComponent::onSetup(
-    ossia::time_sync* ptr,
-    ossia::expression_ptr exp)
+    ossia::time_sync* ptr, ossia::expression_ptr exp)
 {
   m_ossia_node = ptr;
   m_ossia_node->set_expression(std::move(exp));
@@ -83,30 +82,22 @@ const Scenario::TimeSyncModel& TimeSyncRawPtrComponent::scoreTimeSync() const
 
 void TimeSyncRawPtrComponent::updateTrigger()
 {
-  auto exp_ptr = std::make_shared<ossia::expression_ptr>( this->makeTrigger() );
-  this->in_exec(
-        [e = m_ossia_node, exp_ptr]
-  {
+  auto exp_ptr = std::make_shared<ossia::expression_ptr>(this->makeTrigger());
+  this->in_exec([e = m_ossia_node, exp_ptr] {
     bool old = e->is_observing_expression();
-    if(old)
+    if (old)
       e->observe_expression(false);
 
     e->set_expression(std::move(*exp_ptr));
 
-    if(old)
+    if (old)
       e->observe_expression(true);
-
   });
-
 }
 
 void TimeSyncRawPtrComponent::on_GUITrigger()
 {
-  this->in_exec(
-        [e = m_ossia_node]
-  {
-    e->trigger_request = true;
-  });
+  this->in_exec([e = m_ossia_node] { e->trigger_request = true; });
 }
 }
 }

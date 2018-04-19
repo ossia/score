@@ -1,11 +1,11 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "EditScript.hpp"
+
 #include <JS/JSProcessModel.hpp>
 #include <algorithm>
-
-#include "EditScript.hpp"
-#include <score/serialization/DataStreamVisitor.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 namespace JS
 {
 EditScript::EditScript(const ProcessModel& model, const QString& text)

@@ -1,20 +1,20 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "RemoveStateProcess.hpp"
+
 #include <Process/ProcessList.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <score/model/path/PathSerialization.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/model/path/PathSerialization.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
 namespace Scenario
 {
 namespace Command
 {
 
 RemoveStateProcess::RemoveStateProcess(
-    const Scenario::StateModel& state,
-    Id<Process::ProcessModel> processId)
+    const Scenario::StateModel& state, Id<Process::ProcessModel> processId)
     : m_path{state}, m_processId{std::move(processId)}
 {
   auto& p = state.stateProcesses.at(m_processId);
@@ -30,7 +30,7 @@ void RemoveStateProcess::undo(const score::DocumentContext& ctx) const
   auto& fact = ctx.app.interfaces<Process::ProcessFactoryList>();
 
   auto proc = deserialize_interface(fact, s, &state);
-  SCORE_ASSERT (proc);
+  SCORE_ASSERT(proc);
   state.stateProcesses.add(proc);
 }
 

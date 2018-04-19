@@ -1,10 +1,10 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SetCommentText.hpp"
 
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 
 namespace Scenario
 {
@@ -16,7 +16,6 @@ SetCommentText::SetCommentText(
     , m_newComment{std::move(newComment)}
     , m_oldComment{model.content()}
 {
-
 }
 
 void SetCommentText::undo(const score::DocumentContext& ctx) const

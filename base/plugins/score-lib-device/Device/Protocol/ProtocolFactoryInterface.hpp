@@ -3,7 +3,6 @@
 #include <QVariant>
 #include <score/plugins/customfactory/FactoryInterface.hpp>
 #include <score/serialization/VisitorCommon.hpp>
-
 #include <score_lib_device_export.h>
 
 struct VisitorVariant;
@@ -39,12 +38,14 @@ public:
   virtual AddressDialog* makeAddAddressDialog(
       const Device::DeviceInterface& dev,
       const score::DocumentContext& ctx,
-      QWidget*) = 0;
+      QWidget*)
+      = 0;
   virtual AddressDialog* makeEditAddressDialog(
       const Device::AddressSettings&,
       const Device::DeviceInterface& dev,
       const score::DocumentContext& ctx,
-      QWidget*) = 0;
+      QWidget*)
+      = 0;
 
   virtual const Device::DeviceSettings& defaultSettings() const = 0;
 

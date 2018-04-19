@@ -1,17 +1,17 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "ScenarioDocumentModel.hpp"
+
 #include <Process/Dataflow/Cable.hpp>
+#include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
 #include <algorithm>
-#include <score/serialization/VisitorCommon.hpp>
-
-#include "ScenarioDocumentModel.hpp"
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
-#include <QJsonDocument>
+#include <score/serialization/VisitorCommon.hpp>
 namespace score
 {
 class DocumentDelegateModel;
@@ -24,22 +24,18 @@ class Writer;
 template <typename model>
 class IdentifiedObject;
 
-
 template <>
-void DataStreamReader::read(
-    const Scenario::ScenarioDocumentModel& obj)
+void DataStreamReader::read(const Scenario::ScenarioDocumentModel& obj)
 {
   readFrom(*obj.m_baseScenario);
 
-  if(obj.cables.empty() && !obj.m_savedCables.empty())
+  if (obj.cables.empty() && !obj.m_savedCables.empty())
     m_stream << QJsonDocument(obj.m_savedCables).toBinaryData();
   else
     m_stream << QJsonDocument(toJsonArray(obj.cables)).toBinaryData();
 
-
   insertDelimiter();
 }
-
 
 template <>
 void DataStreamWriter::write(Scenario::ScenarioDocumentModel& obj)
@@ -52,21 +48,18 @@ void DataStreamWriter::write(Scenario::ScenarioDocumentModel& obj)
   checkDelimiter();
 }
 
-
 template <>
-void JSONObjectReader::read(
-    const Scenario::ScenarioDocumentModel& doc)
+void JSONObjectReader::read(const Scenario::ScenarioDocumentModel& doc)
 {
   obj["BaseScenario"] = toJsonObject(*doc.m_baseScenario);
   obj["Cables"] = toJsonArray(doc.cables);
 }
 
-
 template <>
 void JSONObjectWriter::write(Scenario::ScenarioDocumentModel& doc)
 {
   doc.m_baseScenario = new Scenario::BaseScenario(
-        JSONObject::Deserializer{obj["BaseScenario"].toObject()}, &doc);
+      JSONObject::Deserializer{obj["BaseScenario"].toObject()}, &doc);
 
   doc.m_savedCables = obj["Cables"].toArray();
 }

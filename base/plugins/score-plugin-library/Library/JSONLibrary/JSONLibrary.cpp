@@ -1,13 +1,13 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "JSONLibrary.hpp"
+
+#include <Explorer/Explorer/DeviceExplorerMimeTypes.hpp>
+#include <Process/ProcessMimeSerialization.hpp>
 #include <QDebug>
 #include <QJsonDocument>
 #include <QMap>
 #include <QMimeData>
-
-#include <Explorer/Explorer/DeviceExplorerMimeTypes.hpp>
-#include <Process/ProcessMimeSerialization.hpp>
 #include <State/MessageListSerialization.hpp>
 #include <State/StateMimeTypes.hpp>
 #include <iostream>
@@ -155,8 +155,7 @@ bool JSONModel::moveRows(
 }
 
 // TODO refactor with device explorer
-static const QString MimeTypeScenarioData
-    = "application/x-score-scenariodata";
+static const QString MimeTypeScenarioData = "application/x-score-scenariodata";
 static const QMap<Category, QString> mimeTypeMap{
     {Category::StateNode, score::mime::state()},
     {Category::MessageList, score::mime::messagelist()},
@@ -173,7 +172,7 @@ static const QMap<Category, QString>& categoryMimeTypeMap()
 QStringList JSONModel::mimeTypes() const
 {
   return {score::mime::state(),  score::mime::messagelist(),
-          MimeTypeScenarioData,   score::mime::processdata(),
+          MimeTypeScenarioData,  score::mime::processdata(),
           score::mime::device(), score::mime::address()};
 }
 
@@ -193,7 +192,10 @@ QMimeData* JSONModel::mimeData(const QModelIndexList& indexes) const
 }
 
 bool JSONModel::canDropMimeData(
-    const QMimeData* data, Qt::DropAction action, int row, int column,
+    const QMimeData* data,
+    Qt::DropAction action,
+    int row,
+    int column,
     const QModelIndex& parent) const
 {
   for (auto& elt : data->formats())

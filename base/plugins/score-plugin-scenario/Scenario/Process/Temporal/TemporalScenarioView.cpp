@@ -1,5 +1,8 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "TemporalScenarioView.hpp"
+
+#include <Process/LayerView.hpp>
 #include <QColor>
 #include <QCursor>
 #include <QEvent>
@@ -10,15 +13,13 @@
 #include <QPainter>
 #include <QPen>
 #include <qnamespace.h>
-
-#include "TemporalScenarioView.hpp"
-#include <Process/LayerView.hpp>
 namespace Scenario
 {
 TemporalScenarioView::TemporalScenarioView(QGraphicsItem* parent)
     : LayerView{parent}
 {
-  this->setFlags(ItemIsSelectable | ItemIsFocusable | ItemClipsChildrenToShape);
+  this->setFlags(
+      ItemIsSelectable | ItemIsFocusable | ItemClipsChildrenToShape);
   setAcceptDrops(true);
 
   this->setZValue(1);
@@ -45,7 +46,7 @@ void TemporalScenarioView::paint_impl(QPainter* painter) const
         QPainter::CompositionMode::CompositionMode_SourceOver);
   }
 
-  if(m_dragLine)
+  if (m_dragLine)
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
     const QRectF& rec = *m_dragLine;
@@ -62,7 +63,6 @@ void TemporalScenarioView::drawDragLine(QPointF left, QPointF right)
   m_dragLine = QRectF(left, right);
   update();
 }
-
 
 void TemporalScenarioView::stopDrawDragLine()
 {
@@ -124,7 +124,9 @@ void TemporalScenarioView::keyPressEvent(QKeyEvent* event)
   {
     escPressed();
   }
-  else if (event->key() == Qt::Key_Shift || event->key() == Qt::Key_Control || event->key() == Qt::Key_Alt)
+  else if (
+      event->key() == Qt::Key_Shift || event->key() == Qt::Key_Control
+      || event->key() == Qt::Key_Alt)
   {
     keyPressed(event->key());
   }
@@ -135,7 +137,8 @@ void TemporalScenarioView::keyPressEvent(QKeyEvent* event)
 void TemporalScenarioView::keyReleaseEvent(QKeyEvent* event)
 {
   QGraphicsItem::keyReleaseEvent(event);
-  if (event->key() == Qt::Key_Shift || event->key() == Qt::Key_Control || event->key() == Qt::Key_Alt)
+  if (event->key() == Qt::Key_Shift || event->key() == Qt::Key_Control
+      || event->key() == Qt::Key_Alt)
   {
     keyReleased(event->key());
   } /*

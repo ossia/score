@@ -1,6 +1,7 @@
 #pragma once
-#include <Engine/Executor/Component.hpp>
 #include <ossia/editor/expression/expression.hpp>
+
+#include <Engine/Executor/Component.hpp>
 namespace ossia
 {
 class time_sync;
@@ -15,8 +16,8 @@ namespace Engine
 {
 namespace Execution
 {
-class SCORE_PLUGIN_ENGINE_EXPORT TimeSyncComponent final :
-    public Execution::Component
+class SCORE_PLUGIN_ENGINE_EXPORT TimeSyncComponent final
+    : public Execution::Component
 {
   COMMON_COMPONENT_METADATA("eca86942-002e-4af5-ad3d-cb1615e0552c")
 public:
@@ -33,8 +34,8 @@ public:
   ossia::expression_ptr makeTrigger() const;
 
   //! To be called from the API edition queue
-  void onSetup(std::shared_ptr<ossia::time_sync> ptr,
-               ossia::expression_ptr exp);
+  void
+  onSetup(std::shared_ptr<ossia::time_sync> ptr, ossia::expression_ptr exp);
 
   std::shared_ptr<ossia::time_sync> OSSIATimeSync() const;
   const Scenario::TimeSyncModel& scoreTimeSync() const;
@@ -45,6 +46,5 @@ private:
   std::shared_ptr<ossia::time_sync> m_ossia_node;
   const Scenario::TimeSyncModel& m_score_node;
 };
-
 }
 }

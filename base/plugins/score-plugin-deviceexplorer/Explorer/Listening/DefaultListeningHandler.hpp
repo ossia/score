@@ -18,10 +18,7 @@ private:
       bool b) override;
 
   void setListening(
-      Device::DeviceInterface& dev,
-      const Device::Node& addr,
-      bool b) override;
-
+      Device::DeviceInterface& dev, const Device::Node& addr, bool b) override;
 
   void addToListening(
       Device::DeviceInterface& dev,

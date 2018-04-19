@@ -1,18 +1,20 @@
 #pragma once
 #include "BaseScenarioComponent.hpp"
 
+#include <ossia/dataflow/bench_map.hpp>
+#include <ossia/dataflow/dataflow_fwd.hpp>
+#include <ossia/network/generic/generic_device.hpp>
+#include <ossia/network/local/local.hpp>
+
 #include <Engine/Executor/ExecutorContext.hpp>
+#include <Process/Dataflow/Port.hpp>
+#include <memory>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/tools/Metadata.hpp>
 #include <score_plugin_engine_export.h>
-#include <ossia/network/generic/generic_device.hpp>
-#include <ossia/network/local/local.hpp>
-#include <ossia/dataflow/dataflow_fwd.hpp>
-#include <Process/Dataflow/Port.hpp>
-#include <memory>
-#include <ossia/dataflow/bench_map.hpp>
 
-namespace ossia {
+namespace ossia
+{
 class audio_protocol;
 struct graph_base;
 struct bench_map;
@@ -37,10 +39,12 @@ namespace Execution
 class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final
     : public score::DocumentPlugin
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
   DocumentPlugin(
-      const score::DocumentContext& ctx, Id<score::DocumentPlugin>, QObject* parent);
+      const score::DocumentContext& ctx,
+      Id<score::DocumentPlugin>,
+      QObject* parent);
 
   ~DocumentPlugin();
   void reload(Scenario::IntervalModel& doc);
@@ -59,7 +63,6 @@ public:
 
   void runAllCommands() const;
 
-
   void register_node(
       const Process::ProcessModel& proc,
       const std::shared_ptr<ossia::graph_node>& node);
@@ -67,35 +70,44 @@ public:
       const Process::ProcessModel& proc,
       const std::shared_ptr<ossia::graph_node>& node);
   void register_node(
-      const Process::Inlets& inlets, const Process::Outlets& outlets,
+      const Process::Inlets& inlets,
+      const Process::Outlets& outlets,
       const std::shared_ptr<ossia::graph_node>& node);
   void register_inlet(
       Process::Inlet& inlet,
       const ossia::inlet_ptr& exec,
       const std::shared_ptr<ossia::graph_node>& node);
   void unregister_node(
-      const Process::Inlets& inlets, const Process::Outlets& outlets,
+      const Process::Inlets& inlets,
+      const Process::Outlets& outlets,
       const std::shared_ptr<ossia::graph_node>& node);
   void unregister_node_soft(
-      const Process::Inlets& inlets, const Process::Outlets& outlets,
+      const Process::Inlets& inlets,
+      const Process::Outlets& outlets,
       const std::shared_ptr<ossia::graph_node>& node);
   void set_destination(
-      const State::AddressAccessor& address,
-      const ossia::inlet_ptr& );
+      const State::AddressAccessor& address, const ossia::inlet_ptr&);
   void set_destination(
-      const State::AddressAccessor& address,
-      const ossia::outlet_ptr& );
+      const State::AddressAccessor& address, const ossia::outlet_ptr&);
 
   std::shared_ptr<ossia::graph_interface> execGraph;
   std::shared_ptr<ossia::execution_state> execState;
 
   QPointer<Dataflow::AudioDevice> audio_device{};
 
-  score::hash_map<Process::Outlet*, std::pair<ossia::node_ptr, ossia::outlet_ptr>> outlets;
-  score::hash_map<Process::Inlet*, std::pair<ossia::node_ptr, ossia::inlet_ptr>> inlets;
-  score::hash_map<Id<Process::Cable>, std::shared_ptr<ossia::graph_edge>> m_cables;
+  score::
+      hash_map<Process::Outlet*, std::pair<ossia::node_ptr, ossia::outlet_ptr>>
+          outlets;
+  score::
+      hash_map<Process::Inlet*, std::pair<ossia::node_ptr, ossia::inlet_ptr>>
+          inlets;
+  score::hash_map<Id<Process::Cable>, std::shared_ptr<ossia::graph_edge>>
+      m_cables;
 
-  score::hash_map<std::shared_ptr<ossia::graph_node>, std::vector<QMetaObject::Connection>> runtime_connections;
+  score::hash_map<
+      std::shared_ptr<ossia::graph_node>,
+      std::vector<QMetaObject::Connection>>
+      runtime_connections;
 
 Q_SIGNALS:
   void finished();
@@ -104,8 +116,8 @@ public Q_SLOTS:
   void slot_bench(ossia::bench_map, int64_t ns);
 
 private:
-
-  score::hash_map<const ossia::graph_node*, const Process::ProcessModel*> proc_map;
+  score::hash_map<const ossia::graph_node*, const Process::ProcessModel*>
+      proc_map;
 
   mutable ExecutionCommandQueue m_execQueue;
   mutable ExecutionCommandQueue m_editionQueue;

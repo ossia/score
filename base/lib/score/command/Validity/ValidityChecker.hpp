@@ -10,8 +10,9 @@ struct DocumentContext;
 /**
  * @brief Implement validation checks on the document.
  *
- * This is useful for debugging, to check that an action did not break some core invariant of the software.
- * Such checks are called in CommandStack::updateStack.
+ * This is useful for debugging, to check that an action did not break some
+ * core invariant of the software. Such checks are called in
+ * CommandStack::updateStack.
  *
  * @todo Do these checks when loading something.
  */
@@ -46,8 +47,8 @@ private:
 class SCORE_LIB_BASE_EXPORT ValidityCheckerList final
     : public InterfaceList<score::ValidityChecker>
 {
-  public:
-    ~ValidityCheckerList();
-    DocumentValidator make(const score::Document& ctx);
+public:
+  ~ValidityCheckerList();
+  DocumentValidator make(const score::Document& ctx);
 };
 }

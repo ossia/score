@@ -1,34 +1,30 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "AutomationModel.hpp"
+
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
+
+#include <Curve/CurveModel.hpp>
+#include <Process/Dataflow/Port.hpp>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <State/Address.hpp>
 #include <algorithm>
 #include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONVisitor.hpp>
-
-#include "AutomationModel.hpp"
-#include <ossia/network/dataspace/dataspace_visitors.hpp>
-#include <Process/Dataflow/Port.hpp>
-#include <Curve/CurveModel.hpp>
-#include <State/Address.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 
 template <>
-void DataStreamReader::read(
-    const Automation::ProcessModel& autom)
+void DataStreamReader::read(const Automation::ProcessModel& autom)
 {
   m_stream << *autom.outlet;
   readFrom(autom.curve());
 
-  m_stream
-      << autom.min()
-      << autom.max()
-      << autom.tween();
+  m_stream << autom.min() << autom.max() << autom.tween();
 
   insertDelimiter();
 }
-
 
 template <>
 void DataStreamWriter::write(Automation::ProcessModel& autom)
@@ -49,10 +45,8 @@ void DataStreamWriter::write(Automation::ProcessModel& autom)
   checkDelimiter();
 }
 
-
 template <>
-void JSONObjectReader::read(
-    const Automation::ProcessModel& autom)
+void JSONObjectReader::read(const Automation::ProcessModel& autom)
 {
   obj["Outlet"] = toJsonObject(*autom.outlet);
   obj["Curve"] = toJsonObject(autom.curve());
@@ -61,17 +55,17 @@ void JSONObjectReader::read(
   obj["Tween"] = autom.tween();
 }
 
-
 template <>
 void JSONObjectWriter::write(Automation::ProcessModel& autom)
 {
   JSONObjectWriter writer{obj["Outlet"].toObject()};
   autom.outlet = Process::make_outlet(writer, &autom);
-  if(!autom.outlet)
+  if (!autom.outlet)
   {
     autom.outlet = Process::make_outlet(Id<Process::Port>(0), &autom);
     autom.outlet->type = Process::PortType::Message;
-    autom.outlet->setAddress(fromJsonObject<State::AddressAccessor>(obj[strings.Address].toObject()));
+    autom.outlet->setAddress(fromJsonObject<State::AddressAccessor>(
+        obj[strings.Address].toObject()));
   }
 
   JSONObject::Deserializer curve_deser{obj["Curve"].toObject()};

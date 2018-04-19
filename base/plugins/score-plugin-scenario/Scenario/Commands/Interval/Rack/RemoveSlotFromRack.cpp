@@ -1,26 +1,22 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-
-#include <type_traits>
-#include <utility>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "RemoveSlotFromRack.hpp"
-#include <score/serialization/DataStreamVisitor.hpp>
+
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <score/model/EntityMap.hpp>
+#include <score/model/path/ObjectIdentifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
-#include <score/model/path/ObjectIdentifier.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <type_traits>
+#include <utility>
 
 namespace Scenario
 {
 namespace Command
 {
-RemoveSlotFromRack::RemoveSlotFromRack(
-    SlotPath slotPath,
-    Slot slt):
-  m_path{std::move(slotPath)}
-, m_slot{std::move(slt)}
+RemoveSlotFromRack::RemoveSlotFromRack(SlotPath slotPath, Slot slt)
+    : m_path{std::move(slotPath)}, m_slot{std::move(slt)}
 {
 }
 

@@ -1,6 +1,6 @@
 #pragma once
-#include <Engine/LocalTree/Scenario/IntervalComponent.hpp>
 #include <Engine/LocalTree/Scenario/EventComponent.hpp>
+#include <Engine/LocalTree/Scenario/IntervalComponent.hpp>
 #include <Engine/LocalTree/Scenario/StateComponent.hpp>
 #include <Engine/LocalTree/Scenario/TimeSyncComponent.hpp>
 #include <Loop/LoopProcessModel.hpp>
@@ -39,8 +39,13 @@ private:
   std::vector<std::unique_ptr<BaseProperty>> m_properties;
 };
 
-using LoopComponent
-    = HierarchicalBaseScenario<LoopComponentBase, Loop::ProcessModel, Interval, Event, TimeSync, State>;
+using LoopComponent = HierarchicalBaseScenario<
+    LoopComponentBase,
+    Loop::ProcessModel,
+    Interval,
+    Event,
+    TimeSync,
+    State>;
 
 using LoopComponentFactory = ProcessComponentFactory_T<LoopComponent>;
 }

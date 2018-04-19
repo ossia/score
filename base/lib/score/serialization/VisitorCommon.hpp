@@ -19,39 +19,46 @@
 
 namespace score
 {
-struct has_no_base {};
-struct has_base {};
+struct has_no_base
+{
+};
+struct has_base
+{
+};
 
-template<typename T, typename U = void>
+template <typename T, typename U = void>
 struct base_kind
-{ using type = has_no_base; };
+{
+  using type = has_no_base;
+};
 
-template<typename T>
+template <typename T>
 struct base_kind<T, ossia::void_t<typename T::base_type>>
-{ using type = has_base; };
+{
+  using type = has_base;
+};
 
-template<typename Vis, typename T>
+template <typename Vis, typename T>
 void serialize_dyn_impl(Vis& v, const T& t);
 
-template<typename Vis, typename T>
+template <typename Vis, typename T>
 void serialize_recursive(Vis& v, const T& t, has_no_base)
 {
   v.read(t);
 }
 
-template<typename Vis, typename T>
+template <typename Vis, typename T>
 void serialize_recursive(Vis& v, const T& t, has_base)
 {
   serialize_dyn_impl(v, (const typename T::base_type&)t);
   v.read(t);
 }
 
-template<typename Vis, typename T>
+template <typename Vis, typename T>
 void serialize_dyn_impl(Vis& v, const T& t)
 {
   serialize_recursive(v, t, typename base_kind<T>::type{});
 }
-
 
 template <typename TheClass>
 void serialize_dyn(const VisitorVariant& vis, const TheClass& s)
@@ -159,5 +166,4 @@ auto unmarshall(const QByteArray& arr)
 {
   return DataStreamWriter::unmarshall<Object>(arr);
 }
-
 }

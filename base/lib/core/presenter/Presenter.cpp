@@ -1,41 +1,37 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "QRecentFilesMenu.h"
+#include "score_git_info.hpp"
+
 #include <QAction>
+#include <QApplication>
 #include <QKeySequence>
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QObject>
-#include <core/view/Window.hpp>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <qnamespace.h>
-
 #include <QString>
 #include <algorithm>
-#include <cstdint>
-#include <functional>
-#include <sys/types.h>
-#include <utility>
-#include <vector>
-#include <QApplication>
-
-#include "QRecentFilesMenu.h"
 #include <core/document/Document.hpp>
 #include <core/presenter/DocumentManager.hpp>
-#include <score/application/ApplicationComponents.hpp>
-
 #include <core/presenter/Presenter.hpp>
 #include <core/settings/Settings.hpp>
 #include <core/settings/SettingsView.hpp>
+#include <core/view/Window.hpp>
+#include <cstdint>
+#include <functional>
+#include <qnamespace.h>
 #include <score/actions/Menu.hpp>
+#include <score/application/ApplicationComponents.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
-
-#include <score/model/Identifier.hpp>
-
-#include "score_git_info.hpp"
+#include <score/tools/IdentifierGeneration.hpp>
+#include <score/tools/std/Optional.hpp>
+#include <sys/types.h>
+#include <utility>
+#include <vector>
 
 namespace score
 {
@@ -61,10 +57,10 @@ Presenter::Presenter(
     , m_components_readonly{m_components}
     ,
 #ifdef __APPLE__
-    m_menubar{view ? new QMenuBar : (QMenuBar*) nullptr}
+    m_menubar{view ? new QMenuBar : (QMenuBar*)nullptr}
     ,
 #else
-    m_menubar{view ? view->menuBar() : (QMenuBar*) nullptr}
+    m_menubar{view ? view->menuBar() : (QMenuBar*)nullptr}
     ,
 #endif
     m_context{
@@ -78,7 +74,7 @@ Presenter::Presenter(
       &m_context.docManager, &DocumentManager::documentChanged, &m_actions,
       &ActionManager::reset);
 
-  if(m_view)
+  if (m_view)
     m_view->setPresenter(this);
 }
 
@@ -108,7 +104,7 @@ void Presenter::setupGUI()
       return lhs.column() < rhs.column();
     });
 
-    if(view())
+    if (view())
     {
       for (Menu& menu : menus)
       {
@@ -135,7 +131,7 @@ void Presenter::setupGUI()
         toolbars.at(tb.second.row()).push_back(tb.second);
       }
 
-      if(!view())
+      if (!view())
         return;
 
       int i = 0;
@@ -156,19 +152,18 @@ void Presenter::setupGUI()
   }
 }
 
-
 void Presenter::optimize()
 {
   score::optimize_hash_map(m_components.commands);
   auto& com = m_components.commands;
   auto com_end = com.end();
-  for(auto it = com.begin(); it != com_end; ++it)
+  for (auto it = com.begin(); it != com_end; ++it)
   {
     score::optimize_hash_map(it.value());
   }
 
   score::optimize_hash_map(m_components.factories);
-  for(auto& fact : m_components.factories)
+  for (auto& fact : m_components.factories)
   {
     fact.second->optimize();
   }

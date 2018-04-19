@@ -1,16 +1,14 @@
 #pragma once
-#include <State/Message.hpp>
-
 #include <QString>
 #include <QStringList>
 #include <QVector>
+#include <State/Address.hpp>
+#include <State/Message.hpp>
+#include <State/Value.hpp>
 #include <array>
+#include <score/model/Identifier.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/tools/std/Optional.hpp>
-
-#include <State/Address.hpp>
-#include <State/Value.hpp>
-#include <score/model/Identifier.hpp>
 #include <score_lib_process_export.h>
 
 namespace Process
@@ -65,7 +63,6 @@ struct SCORE_LIB_PROCESS_EXPORT StateNodeData
   bool hasValue() const;
   State::OptionalValue value() const;
 };
-
 
 SCORE_LIB_PROCESS_EXPORT QDebug
 operator<<(QDebug d, const ProcessStateData& mess);

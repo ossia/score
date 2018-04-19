@@ -1,15 +1,15 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "DocumentInterface.hpp"
+
 #include <QObject>
 #include <QString>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
-#include <stdexcept>
-
-#include "DocumentInterface.hpp"
 #include <score/model/path/ObjectPath.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
+#include <stdexcept>
 
 score::Document* score::IDocument::documentFromObject(const QObject* obj)
 {
@@ -51,7 +51,7 @@ ObjectPath score::IDocument::unsafe_path(const QObject& obj)
 score::DocumentDelegatePresenter*
 score::IDocument::presenterDelegate_generic(const score::Document& d)
 {
-  if(d.presenter())
+  if (d.presenter())
     return d.presenter()->presenterDelegate();
   return nullptr;
 }

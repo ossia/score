@@ -1,29 +1,24 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QObject>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <score/tools/std/Optional.hpp>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioDisplayedElementsProvider.hpp"
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
+
+#include <QObject>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/tools/std/Optional.hpp>
 
 namespace Scenario
 {
-bool ScenarioDisplayedElementsProvider::matches(
-    const IntervalModel& cst) const
+bool ScenarioDisplayedElementsProvider::matches(const IntervalModel& cst) const
 {
   return dynamic_cast<Scenario::ProcessModel*>(cst.parent());
 }
@@ -67,8 +62,7 @@ ScenarioDisplayedElementsProvider::make_presenters(
     const auto& startNode = sm->timeSyncs.at(startEvent.timeSync());
     const auto& endNode = sm->timeSyncs.at(endEvent.timeSync());
     return DisplayedElementsPresenterContainer{
-        new FullViewIntervalPresenter{m, ctx, view_parent,
-                                        parent},
+        new FullViewIntervalPresenter{m, ctx, view_parent, parent},
         new StatePresenter{startState, view_parent, parent},
         new StatePresenter{endState, view_parent, parent},
         new EventPresenter{startEvent, view_parent, parent},

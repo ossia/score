@@ -12,15 +12,12 @@ namespace Scenario
 class TimeSyncModel;
 namespace Command
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT SetTrigger final
-    : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT SetTrigger final : public score::Command
 {
   SCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), SetTrigger, "Change a trigger")
 public:
-  SetTrigger(
-      const TimeSyncModel& tn,
-      State::Expression trigger);
+  SetTrigger(const TimeSyncModel& tn, State::Expression trigger);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

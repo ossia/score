@@ -5,7 +5,8 @@
 namespace Explorer
 {
 class DeviceExplorerWidget;
-class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT PanelDelegate final : public score::PanelDelegate
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT PanelDelegate final
+    : public score::PanelDelegate
 {
 public:
   PanelDelegate(const score::GUIApplicationContext& ctx);

@@ -1,6 +1,7 @@
 #pragma once
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/node.hpp>
+
 #include <Engine/Protocols/OSSIADevice.hpp>
 #include <nano_observer.hpp>
 

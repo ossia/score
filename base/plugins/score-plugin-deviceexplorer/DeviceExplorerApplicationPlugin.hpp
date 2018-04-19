@@ -1,7 +1,6 @@
 #pragma once
 #include <QString>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
-
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 
 namespace score

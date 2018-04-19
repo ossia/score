@@ -1,7 +1,10 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <ossia/network/dataspace/dataspace_visitors.hpp>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "Address.hpp"
+
 #include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
+
 #include <QDataStream>
 #include <QJsonObject>
 #include <QJsonValue>
@@ -12,37 +15,30 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VariantSerialization.hpp>
 
-#include "Address.hpp"
-
-
 /// Address ///
 template <>
-SCORE_LIB_STATE_EXPORT void
-DataStreamReader::read(const State::Address& a)
+SCORE_LIB_STATE_EXPORT void DataStreamReader::read(const State::Address& a)
 {
   m_stream << a.device << a.path;
   insertDelimiter();
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void
-JSONObjectReader::read(const State::Address& a)
+SCORE_LIB_STATE_EXPORT void JSONObjectReader::read(const State::Address& a)
 {
   obj[strings.Device] = a.device;
   obj[strings.Path] = a.path.join('/');
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void
-DataStreamWriter::write(State::Address& a)
+SCORE_LIB_STATE_EXPORT void DataStreamWriter::write(State::Address& a)
 {
   m_stream >> a.device >> a.path;
   checkDelimiter();
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void
-JSONObjectWriter::write(State::Address& a)
+SCORE_LIB_STATE_EXPORT void JSONObjectWriter::write(State::Address& a)
 {
   a.device = obj[strings.Device].toString();
 

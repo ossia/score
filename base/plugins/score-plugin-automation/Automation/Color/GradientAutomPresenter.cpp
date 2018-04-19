@@ -1,15 +1,14 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Automation/Color/GradientAutomPresenter.hpp>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <ossia/detail/math.hpp>
+
 #include <Automation/Color/GradientAutomModel.hpp>
+#include <Automation/Color/GradientAutomPresenter.hpp>
 #include <Automation/Color/GradientAutomView.hpp>
-
 #include <Process/Focus/FocusDispatcher.hpp>
-
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
-#include <ossia/detail/math.hpp>
 namespace Gradient
 {
 Presenter::Presenter(
@@ -17,9 +16,7 @@ Presenter::Presenter(
     View* view,
     const Process::ProcessPresenterContext& ctx,
     QObject* parent)
-    : LayerPresenter{ctx, parent}
-    , m_layer{layer}
-    , m_view{view}
+    : LayerPresenter{ctx, parent}, m_layer{layer}, m_view{view}
 {
   putToFront();
   connect(&m_layer, &ProcessModel::gradientChanged, this, [&] {
@@ -27,65 +24,62 @@ Presenter::Presenter(
   });
 
   m_view->setGradient(m_layer.gradient());
-  connect(m_view, &View::doubleClicked, this, [&] (QPointF pos) {
+  connect(m_view, &View::doubleClicked, this, [&](QPointF pos) {
     auto np = pos.x() / m_view->dataWidth();
     auto new_grad = m_layer.gradient();
     auto prev = new_grad.lower_bound(np);
-    if(prev == new_grad.begin())
+    if (prev == new_grad.begin())
       return;
-    if(prev == new_grad.end())
+    if (prev == new_grad.end())
       prev = new_grad.begin();
     else
       prev--;
 
     new_grad.insert(std::make_pair(np, prev->second));
     CommandDispatcher<>{context().context.commandStack}
-          .submitCommand<ChangeGradient>(layer, new_grad);
+        .submitCommand<ChangeGradient>(layer, new_grad);
   });
 
-  connect(m_view, &View::movePoint, this,
-          [&] (double orig, double cur) {
+  connect(m_view, &View::movePoint, this, [&](double orig, double cur) {
     auto new_grad = m_layer.gradient();
     auto it = new_grad.find(orig);
-    if(it == new_grad.end())
+    if (it == new_grad.end())
       return;
 
     auto col = it->second;
     new_grad.erase(it);
     new_grad.insert(std::make_pair(cur, col));
     CommandDispatcher<>{context().context.commandStack}
-      .submitCommand<ChangeGradient>(layer, new_grad);
+        .submitCommand<ChangeGradient>(layer, new_grad);
   });
 
-  connect(m_view, &View::removePoint, this,
-          [&] (double orig) {
+  connect(m_view, &View::removePoint, this, [&](double orig) {
     auto new_grad = m_layer.gradient();
     auto it = new_grad.find(orig);
-    if(it == new_grad.end())
+    if (it == new_grad.end())
       return;
 
     new_grad.erase(it);
     CommandDispatcher<>{context().context.commandStack}
-      .submitCommand<ChangeGradient>(layer, new_grad);
+        .submitCommand<ChangeGradient>(layer, new_grad);
   });
 
-  connect(m_view, &View::setColor, this,
-          [&] (double pos, QColor col) {
+  connect(m_view, &View::setColor, this, [&](double pos, QColor col) {
     auto new_grad = m_layer.gradient();
     auto it = new_grad.find(pos);
-    if(it == new_grad.end())
+    if (it == new_grad.end())
       return;
 
     it->second = col;
     CommandDispatcher<>{context().context.commandStack}
-      .submitCommand<ChangeGradient>(layer, new_grad);
+        .submitCommand<ChangeGradient>(layer, new_grad);
   });
 
   connect(m_view, &View::pressed, this, [&] {
     m_context.context.focusDispatcher.focus(this);
   });
-  connect(m_view, &View::askContextMenu,
-          this, &Presenter::contextMenuRequested);
+  connect(
+      m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
 }
 
 void Presenter::setWidth(qreal val)

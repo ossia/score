@@ -1,17 +1,15 @@
 #pragma once
+#include <QObject>
+#include <score/command/Command.hpp>
+#include <score/command/CommandGeneratorMap.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/qt_interfaces/CommandFactory_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
-
-#include <QObject>
 #include <utility>
 #include <vector>
-
-#include <score/command/CommandGeneratorMap.hpp>
-#include <score/command/Command.hpp>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
 
 namespace score
 {
@@ -21,12 +19,12 @@ class PanelFactory;
 } // namespace score
 
 class score_plugin_deviceexplorer final
-    : public QObject,
-      public score::Plugin_QtInterface,
-      public score::FactoryList_QtInterface,
-      public score::FactoryInterface_QtInterface,
-      public score::ApplicationPlugin_QtInterface,
-      public score::CommandFactory_QtInterface
+    : public QObject
+    , public score::Plugin_QtInterface
+    , public score::FactoryList_QtInterface
+    , public score::FactoryInterface_QtInterface
+    , public score::ApplicationPlugin_QtInterface
+    , public score::CommandFactory_QtInterface
 {
   Q_OBJECT
   Q_PLUGIN_METADATA(IID Plugin_QtInterface_iid)

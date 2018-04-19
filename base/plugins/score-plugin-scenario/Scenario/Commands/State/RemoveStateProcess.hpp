@@ -1,10 +1,8 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <score/command/Command.hpp>
-
-#include <score/model/path/Path.hpp>
 #include <score/model/Identifier.hpp>
-
+#include <score/model/path/Path.hpp>
 #include <score_plugin_scenario_export.h>
 namespace Process
 {
@@ -26,8 +24,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT RemoveStateProcess final
       "Remove a state process")
 public:
   RemoveStateProcess(
-      const Scenario::StateModel& state,
-      Id<Process::ProcessModel> processId);
+      const Scenario::StateModel& state, Id<Process::ProcessModel> processId);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

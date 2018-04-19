@@ -2,7 +2,6 @@
 
 #include <QList>
 #include <QPoint>
-
 #include <score/selection/Selection.hpp>
 
 namespace score

@@ -7,10 +7,10 @@
 #include <State/Expression.hpp>
 #include <score/model/Component.hpp>
 #include <score/model/EntityImpl.hpp>
-#include <score/selection/Selectable.hpp>
 #include <score/model/IdentifiedObject.hpp>
-#include <score/tools/Metadata.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/selection/Selectable.hpp>
+#include <score/tools/Metadata.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <score_plugin_scenario_export.h>
 class DataStream;
@@ -79,7 +79,8 @@ public:
   void setCondition(const State::Expression& arg);
   void setExtent(const Scenario::VerticalExtent& extent);
   void setDate(const TimeVal& date);
-  void setStatus(Scenario::ExecutionStatus status, const Scenario::ScenarioInterface&);
+  void setStatus(
+      Scenario::ExecutionStatus status, const Scenario::ScenarioInterface&);
   void setOffsetBehavior(Scenario::OffsetBehavior);
 
 Q_SIGNALS:

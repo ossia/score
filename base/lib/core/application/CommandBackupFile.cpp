@@ -1,11 +1,11 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "CommandBackupFile.hpp"
+
 #include <core/command/CommandStack.hpp>
+#include <score/command/Command.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/Todo.hpp>
-
-#include "CommandBackupFile.hpp"
-#include <score/command/Command.hpp>
 
 namespace score
 {

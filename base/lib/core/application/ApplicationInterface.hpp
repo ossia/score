@@ -30,13 +30,12 @@ public:
 
   static ApplicationInterface& instance();
 
-
 protected:
   static ApplicationInterface* m_instance;
 };
 
-
-class SCORE_LIB_BASE_EXPORT GUIApplicationInterface : public ApplicationInterface
+class SCORE_LIB_BASE_EXPORT GUIApplicationInterface
+    : public ApplicationInterface
 {
 public:
   using ApplicationInterface::ApplicationInterface;

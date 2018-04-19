@@ -1,25 +1,24 @@
 #pragma once
-#include <Curve/Segment/CurveSegmentModel.hpp>
-#include <score/serialization/VisitorCommon.hpp>
+#include <ossia/detail/math.hpp>
+#include <ossia/editor/curve/curve_segment/easing.hpp>
+
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
-#include <ossia/editor/curve/curve_segment/easing.hpp>
-#include <score/model/Identifier.hpp>
-#include <ossia/detail/math.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
 #include <QDebug>
 #include <QPoint>
 #include <cmath>
 #include <cstddef>
+#include <score/model/Identifier.hpp>
+#include <score/serialization/VisitorCommon.hpp>
 #include <vector>
-
 
 namespace Curve
 {
 struct PeriodicSegmentData;
-template<typename PeriodicFunction>
+template <typename PeriodicFunction>
 class PeriodicSegment;
 }
-
 
 namespace Curve
 {
@@ -29,7 +28,7 @@ struct PeriodicSegmentData
   double ampl{0.5};
 };
 
-template<typename PeriodicFunction>
+template <typename PeriodicFunction>
 class SCORE_PLUGIN_CURVE_EXPORT PeriodicSegment final
     : public SegmentModel
     , public PeriodicSegmentData
@@ -48,14 +47,16 @@ public:
   using data_type = PeriodicSegmentData;
   using SegmentModel::SegmentModel;
   PeriodicSegment(const SegmentData& dat, QObject* parent)
-    : SegmentModel{dat, parent}
+      : SegmentModel{dat, parent}
   {
-    const auto& sin_data = dat.specificSegmentData.value<PeriodicSegmentData>();
+    const auto& sin_data
+        = dat.specificSegmentData.value<PeriodicSegmentData>();
     freq = sin_data.freq;
     ampl = sin_data.ampl;
   }
-  PeriodicSegment(const PeriodicSegment& other, const id_type& id, QObject* parent)
-    : SegmentModel{other.start(), other.end(), id, parent}
+  PeriodicSegment(
+      const PeriodicSegment& other, const id_type& id, QObject* parent)
+      : SegmentModel{other.start(), other.end(), id, parent}
   {
     freq = other.freq;
     ampl = other.ampl;
@@ -63,12 +64,15 @@ public:
 
   PeriodicSegment(DataStream::Deserializer& vis, QObject* parent)
       : SegmentModel{vis, parent}
-  { vis.writeTo(*this); }
+  {
+    vis.writeTo(*this);
+  }
 
   PeriodicSegment(JSONObject::Deserializer& vis, QObject* parent)
       : SegmentModel{vis, parent}
-  { vis.writeTo(*this); }
-
+  {
+    vis.writeTo(*this);
+  }
 
   void on_startChanged() override
   {
@@ -96,8 +100,12 @@ public:
       {
         QPointF& pt = m_data[j];
         pt.setX(start_x + (double(j) / numInterp) * (end_x - start_x));
-        pt.setY((start_y + end_y) / 2. + (end_y - start_y)
-                * (ampl * PeriodicFunction{}(ossia::two_pi * freq * double(j) / numInterp)));
+        pt.setY(
+            (start_y + end_y) / 2.
+            + (end_y - start_y)
+                  * (ampl
+                     * PeriodicFunction{}(
+                           ossia::two_pi * freq * double(j) / numInterp)));
       }
     }
   }
@@ -107,10 +115,9 @@ public:
   {
     auto amplitude = ampl;
     auto f = ossia::two_pi * freq;
-    return [amplitude,f](double ratio, Y start, Y end) {
-      return
-          (start + end) / 2. + (end - start)
-          * amplitude * PeriodicFunction{}(ratio * f);
+    return [amplitude, f](double ratio, Y start, Y end) {
+      return (start + end) / 2.
+             + (end - start) * amplitude * PeriodicFunction{}(ratio * f);
     };
   }
 
@@ -161,78 +168,92 @@ public:
 
 struct Sin
 {
-    template<typename T>
-    auto operator()(T val) { return std::sin(val); }
+  template <typename T>
+  auto operator()(T val)
+  {
+    return std::sin(val);
+  }
 };
 struct Square
 {
-    template<typename T>
-    auto operator()(T val) { return std::sin(val) > 0 ? T(1) : T(-1); }
+  template <typename T>
+  auto operator()(T val)
+  {
+    return std::sin(val) > 0 ? T(1) : T(-1);
+  }
 };
 struct Triangle
 {
-    template<typename T>
-    auto operator()(T val) { return std::asin(std::sin(val)); }
+  template <typename T>
+  auto operator()(T val)
+  {
+    return std::asin(std::sin(val));
+  }
 };
 struct Saw
 {
-    template<typename T>
-    auto operator()(T val) { return std::atan(std::tan(val)); }
+  template <typename T>
+  auto operator()(T val)
+  {
+    return std::atan(std::tan(val));
+  }
 };
 }
 
-template<typename T>
-struct is_custom_serialized<Curve::PeriodicSegment<T>> : public std::true_type {};
+template <typename T>
+struct is_custom_serialized<Curve::PeriodicSegment<T>> : public std::true_type
+{
+};
 
 template <typename T>
 struct TSerializer<DataStream, Curve::PeriodicSegment<T>>
 {
-    using type =Curve::PeriodicSegment<T>;
-    static void readFrom(DataStream::Serializer& s, const type& obj)
-    {
-    }
+  using type = Curve::PeriodicSegment<T>;
+  static void readFrom(DataStream::Serializer& s, const type& obj)
+  {
+  }
 
-    static void writeTo(DataStream::Deserializer& s, type& obj)
-    {
-    }
+  static void writeTo(DataStream::Deserializer& s, type& obj)
+  {
+  }
 };
 
 template <typename T>
 struct TSerializer<JSONObject, Curve::PeriodicSegment<T>>
 {
-    using type =Curve::PeriodicSegment<T>;
-    static void readFrom(JSONObject::Serializer& s, const type& obj)
-    {
-    }
+  using type = Curve::PeriodicSegment<T>;
+  static void readFrom(JSONObject::Serializer& s, const type& obj)
+  {
+  }
 
-    static void writeTo(JSONObject::Deserializer& s, type& obj)
-    {
-    }
+  static void writeTo(JSONObject::Deserializer& s, type& obj)
+  {
+  }
 };
 
 namespace Curve
 {
-template<typename T>
+template <typename T>
 void PeriodicSegment<T>::serialize_impl(const VisitorVariant& vis) const
 {
   if (vis.identifier == DataStream::type())
   {
-    TSerializer<DataStream, PeriodicSegment<T>>::readFrom(static_cast<DataStream::Serializer&>(vis.visitor), *this);
+    TSerializer<DataStream, PeriodicSegment<T>>::readFrom(
+        static_cast<DataStream::Serializer&>(vis.visitor), *this);
     return;
   }
   else if (vis.identifier == JSONObject::type())
   {
-    TSerializer<JSONObject, PeriodicSegment<T>>::readFrom(static_cast<JSONObject::Serializer&>(vis.visitor), *this);
+    TSerializer<JSONObject, PeriodicSegment<T>>::readFrom(
+        static_cast<JSONObject::Serializer&>(vis.visitor), *this);
     return;
   }
 
   SCORE_ABORT;
 }
-
 }
 
 Q_DECLARE_METATYPE(Curve::PeriodicSegmentData)
-
 
 CURVE_SEGMENT_METADATA(
     SCORE_PLUGIN_CURVE_EXPORT,

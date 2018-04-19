@@ -1,5 +1,8 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "Document.hpp"
+#include "DocumentModel.hpp"
+
 #include <QByteArray>
 #include <QCryptographicHash>
 #include <QDataStream>
@@ -14,31 +17,27 @@
 #include <QtGlobal>
 #include <algorithm>
 #include <core/application/ApplicationSettings.hpp>
+#include <core/command/CommandStack.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
+#include <core/presenter/DocumentManager.hpp>
+#include <iterator>
+#include <score/application/ApplicationComponents.hpp>
+#include <score/application/ApplicationContext.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/model/IdentifiedObject.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <iterator>
 #include <stdexcept>
 #include <vector>
-
-#include "Document.hpp"
-#include "DocumentModel.hpp"
-#include <core/command/CommandStack.hpp>
-#include <score/application/ApplicationComponents.hpp>
-#include <score/application/ApplicationContext.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONValueVisitor.hpp>
-#include <score/model/IdentifiedObject.hpp>
-
-#include <core/presenter/DocumentManager.hpp>
-#include <score/model/Identifier.hpp>
 
 namespace score
 {
@@ -49,7 +48,8 @@ QByteArray Document::saveDocumentModelAsByteArray()
 
   DataStream::Serializer s{&arr};
 
-  TSerializer<DataStream, IdentifiedObject<DocumentDelegateModel>>::readFrom(s, m_model->modelDelegate());
+  TSerializer<DataStream, IdentifiedObject<DocumentDelegateModel>>::readFrom(
+      s, m_model->modelDelegate());
   m_model->modelDelegate().serialize(s.toVariant());
   return arr;
 }
@@ -57,7 +57,8 @@ QByteArray Document::saveDocumentModelAsByteArray()
 QJsonObject Document::saveDocumentModelAsJson()
 {
   JSONObject::Serializer s;
-  TSerializer<JSONObject, IdentifiedObject<DocumentDelegateModel>>::readFrom(s, m_model->modelDelegate());
+  TSerializer<JSONObject, IdentifiedObject<DocumentDelegateModel>>::readFrom(
+      s, m_model->modelDelegate());
   m_model->modelDelegate().serialize(s.toVariant());
   return s.obj;
 }
@@ -79,7 +80,8 @@ QJsonObject Document::saveAsJson()
       serializable_plugin->serializeAfterDocument(s_after.toVariant());
 
       s_before.obj["DocumentPostModelPart"] = std::move(s_after.obj);
-      json_plugins[serializable_plugin->objectName()] = std::move(s_before.obj);
+      json_plugins[serializable_plugin->objectName()]
+          = std::move(s_before.obj);
     }
   }
 
@@ -110,17 +112,20 @@ QByteArray Document::saveAsByteArray()
     if (auto serializable_plugin
         = qobject_cast<SerializableDocumentPlugin*>(plugin))
     {
-      static_assert(is_identified_object<SerializableDocumentPlugin>::value, "");
       static_assert(
-            std::is_same<
+          is_identified_object<SerializableDocumentPlugin>::value, "");
+      static_assert(
+          std::is_same<
               serialization_tag<SerializableDocumentPlugin>::type,
-            visitor_abstract_object_tag>::value, "");
+              visitor_abstract_object_tag>::value,
+          "");
       QByteArray arr_before, arr_after;
       DataStream::Serializer s_before{&arr_before};
       DataStream::Serializer s_after{&arr_after};
       s_before.readFrom(*serializable_plugin);
       serializable_plugin->serializeAfterDocument(s_after.toVariant());
-      documentPluginModels.push_back({std::move(arr_before), std::move(arr_after)});
+      documentPluginModels.push_back(
+          {std::move(arr_before), std::move(arr_after)});
     }
   }
 
@@ -160,10 +165,11 @@ Document::Document(
     throw;
   }
 
-  if(parentview)
+  if (parentview)
   {
     m_view = new DocumentView{factory, *this, parentview};
-    m_presenter = new DocumentPresenter{m_context, factory, *m_model, *m_view, this};
+    m_presenter
+        = new DocumentPresenter{m_context, factory, *m_model, *m_view, this};
   }
   init();
 }
@@ -173,11 +179,11 @@ Document::Document(
     const QVariant& data,
     DocumentDelegateFactory& factory,
     QObject* parent)
-  : QObject{parent}
-  , m_metadata{name}
-  , m_commandStack{*this}
-  , m_objectLocker{this}
-  , m_context{*this}
+    : QObject{parent}
+    , m_metadata{name}
+    , m_commandStack{*this}
+    , m_objectLocker{this}
+    , m_context{*this}
 {
   std::allocator<DocumentModel> allocator;
   m_model = allocator.allocate(1);
@@ -191,7 +197,6 @@ Document::Document(
     throw;
   }
 }
-
 
 void DocumentModel::loadDocumentAsByteArray(
     score::DocumentContext& ctx,
@@ -230,11 +235,10 @@ void DocumentModel::loadDocumentAsByteArray(
 
   const auto plug_n = documentPluginModels.size();
 
-  auto& plugin_factories
-      = ctx.app.interfaces<DocumentPluginFactoryList>();
+  auto& plugin_factories = ctx.app.interfaces<DocumentPluginFactoryList>();
   std::vector<score::DocumentPlugin*> docs(plug_n, nullptr);
 
-  for(int i = 0; i < plug_n; i++)
+  for (int i = 0; i < plug_n; i++)
   {
     const auto& plugin_raw = documentPluginModels[i];
 
@@ -256,9 +260,9 @@ void DocumentModel::loadDocumentAsByteArray(
   // Load the document model
   fact.load(doc_writer.toVariant(), ctx, m_model, this);
 
-  for(int i = 0; i < plug_n; i++)
+  for (int i = 0; i < plug_n; i++)
   {
-    if(auto plug = qobject_cast<score::SerializableDocumentPlugin*>(docs[i]))
+    if (auto plug = qobject_cast<score::SerializableDocumentPlugin*>(docs[i]))
     {
       DataStream::Deserializer plug_writer{documentPluginModels[i].second};
       plug->reloadAfterDocument(plug_writer.toVariant());
@@ -281,8 +285,7 @@ void DocumentModel::loadDocumentAsJson(
   score::hash_map<score::SerializableDocumentPlugin*, QJsonObject> docs;
   // Load the plug-in models
   auto json_plugins = json["Plugins"].toObject();
-  auto& plugin_factories
-      = ctx.app.interfaces<DocumentPluginFactoryList>();
+  auto& plugin_factories = ctx.app.interfaces<DocumentPluginFactoryList>();
   Foreach(json_plugins.keys(), [&](const auto& key) {
     JSONObject::Deserializer plug_writer{json_plugins[key].toObject()};
     auto plug
@@ -290,10 +293,10 @@ void DocumentModel::loadDocumentAsJson(
 
     if (plug)
     {
-      if(auto ser = qobject_cast<score::SerializableDocumentPlugin*>(plug))
+      if (auto ser = qobject_cast<score::SerializableDocumentPlugin*>(plug))
       {
         auto it = plug_writer.obj.find("DocumentPostModelPart");
-        if((it != plug_writer.obj.end()) && it->isObject())
+        if ((it != plug_writer.obj.end()) && it->isObject())
         {
           docs.insert({ser, it->toObject()});
         }
@@ -311,7 +314,7 @@ void DocumentModel::loadDocumentAsJson(
   fact.load(doc_writer.toVariant(), ctx, m_model, this);
 
   auto it_end = docs.end();
-  for(auto it = docs.begin(); it != it_end; ++it)
+  for (auto it = docs.begin(); it != it_end; ++it)
   {
     JSONObject::Deserializer des{it.value()};
     it->first->reloadAfterDocument(des.toVariant());

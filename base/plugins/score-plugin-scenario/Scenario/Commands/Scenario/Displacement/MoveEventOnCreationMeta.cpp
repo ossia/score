@@ -1,17 +1,17 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
-
-#include <QByteArray>
-#include <algorithm>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "MoveEventOnCreationMeta.hpp"
 
 #include "MoveEventFactoryInterface.hpp"
-#include "MoveEventOnCreationMeta.hpp"
+
+#include <QByteArray>
+#include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
 #include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
+#include <algorithm>
 #include <score/application/ApplicationContext.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
-#include <score/model/Identifier.hpp>
 
 namespace Scenario
 {
@@ -22,17 +22,22 @@ namespace Command
 
 MoveEventOnCreationMeta::MoveEventOnCreationMeta(
     const Scenario::ProcessModel& scenarioPath,
-    Id<EventModel>
-        eventId,
+    Id<EventModel> eventId,
     TimeVal newDate,
     ExpandMode mode)
     : SerializableMoveEvent{}
     , m_moveEventImplementation(
-          score::AppContext().interfaces<MoveEventList>()
-              .get(score::AppContext(), MoveEventFactoryInterface::Strategy::CREATION)
+          score::AppContext()
+              .interfaces<MoveEventList>()
+              .get(
+                  score::AppContext(),
+                  MoveEventFactoryInterface::Strategy::CREATION)
               .make(
-                  scenarioPath, std::move(eventId),
-                  std::move(newDate), mode, LockMode::Free))
+                  scenarioPath,
+                  std::move(eventId),
+                  std::move(newDate),
+                  mode,
+                  LockMode::Free))
 {
 }
 
@@ -67,8 +72,11 @@ void MoveEventOnCreationMeta::deserializeImpl(DataStreamOutput& qDataStream)
   qDataStream >> cmdData;
 
   m_moveEventImplementation
-      = score::AppContext().interfaces<MoveEventList>()
-            .get(score::AppContext(), MoveEventFactoryInterface::Strategy::CREATION)
+      = score::AppContext()
+            .interfaces<MoveEventList>()
+            .get(
+                score::AppContext(),
+                MoveEventFactoryInterface::Strategy::CREATION)
             .make(LockMode::Free);
 
   m_moveEventImplementation->deserialize(cmdData);
@@ -76,11 +84,14 @@ void MoveEventOnCreationMeta::deserializeImpl(DataStreamOutput& qDataStream)
 
 void MoveEventOnCreationMeta::update(
     Scenario::ProcessModel& scenario,
-    const Id<EventModel>& eventId, const TimeVal& newDate, double y,
+    const Id<EventModel>& eventId,
+    const TimeVal& newDate,
+    double y,
     ExpandMode mode,
     LockMode lm)
 {
-  m_moveEventImplementation->update(scenario, eventId, newDate, y, mode, LockMode::Free);
+  m_moveEventImplementation->update(
+      scenario, eventId, newDate, y, mode, LockMode::Free);
 }
 }
 }

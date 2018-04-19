@@ -1,8 +1,9 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TriggerView.hpp"
-#include <QPainter>
+
 #include <QGraphicsSceneMouseEvent>
+#include <QPainter>
 
 namespace Scenario
 {
@@ -17,8 +18,8 @@ TriggerView::TriggerView(QGraphicsItem* parent)
 
 void TriggerView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-    if (event->button() == Qt::MouseButton::LeftButton)
-      pressed(event->scenePos());
+  if (event->button() == Qt::MouseButton::LeftButton)
+    pressed(event->scenePos());
 }
 
 void TriggerView::dropEvent(QGraphicsSceneDragDropEvent* event)

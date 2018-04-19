@@ -1,24 +1,21 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Device/Protocol/ProtocolList.hpp>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "DeviceSettings.hpp"
+#include "ProtocolFactoryInterface.hpp"
 
+#include <Device/Protocol/ProtocolList.hpp>
 #include <QDebug>
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QString>
 #include <QVariant>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONVisitor.hpp>
-
-#include "DeviceSettings.hpp"
-#include "ProtocolFactoryInterface.hpp"
 #include <score/application/ApplicationContext.hpp>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
-
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/plugins/customfactory/StringFactoryKeySerialization.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
-
+#include <score/serialization/JSONVisitor.hpp>
 
 template <>
 SCORE_LIB_DEVICE_EXPORT void
@@ -45,8 +42,7 @@ DataStreamReader::read(const Device::DeviceSettings& n)
 }
 
 template <>
-SCORE_LIB_DEVICE_EXPORT void
-DataStreamWriter::write(Device::DeviceSettings& n)
+SCORE_LIB_DEVICE_EXPORT void DataStreamWriter::write(Device::DeviceSettings& n)
 {
   m_stream >> n.name >> n.protocol;
 
@@ -86,15 +82,14 @@ JSONObjectReader::read(const Device::DeviceSettings& n)
 }
 
 template <>
-SCORE_LIB_DEVICE_EXPORT void
-JSONObjectWriter::write(Device::DeviceSettings& n)
+SCORE_LIB_DEVICE_EXPORT void JSONObjectWriter::write(Device::DeviceSettings& n)
 {
   n.name = obj[strings.Name].toString();
-  n.protocol = fromJsonValue<UuidKey<Device::ProtocolFactory>>(
-      obj[strings.Protocol]);
+  n.protocol
+      = fromJsonValue<UuidKey<Device::ProtocolFactory>>(obj[strings.Protocol]);
 
   auto pl = components.findInterfaces<Device::ProtocolFactoryList>();
-  if(pl)
+  if (pl)
   {
     if (auto prot = pl->get(n.protocol))
     {

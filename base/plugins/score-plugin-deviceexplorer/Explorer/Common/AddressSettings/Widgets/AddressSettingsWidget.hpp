@@ -1,11 +1,11 @@
 #pragma once
 
 #include <Device/Address/AddressSettings.hpp>
+#include <QComboBox>
 #include <QLabel>
 #include <QWidget>
 #include <score/widgets/TextLabel.hpp>
 #include <score_plugin_deviceexplorer_export.h>
-#include <QComboBox>
 class QComboBox;
 class QCheckBox;
 class QLineEdit;
@@ -19,8 +19,7 @@ class UnitWidget;
 }
 namespace Explorer
 {
-class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressSettingsWidget
-    : public QWidget
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressSettingsWidget : public QWidget
 {
 public:
   struct no_widgets_t
@@ -55,30 +54,30 @@ private:
 
 class AccessModeComboBox final : public QComboBox
 {
-    Q_OBJECT
-  public:
-    AccessModeComboBox(QWidget* parent);
-    virtual ~AccessModeComboBox();
+  Q_OBJECT
+public:
+  AccessModeComboBox(QWidget* parent);
+  virtual ~AccessModeComboBox();
 
-    ossia::access_mode get() const;
-    void set(ossia::access_mode t);
+  ossia::access_mode get() const;
+  void set(ossia::access_mode t);
 
-  Q_SIGNALS:
-    void changed(ossia::access_mode);
+Q_SIGNALS:
+  void changed(ossia::access_mode);
 };
 
 class BoundingModeComboBox final : public QComboBox
 {
-    Q_OBJECT
-  public:
-    BoundingModeComboBox(QWidget* parent);
-    virtual ~BoundingModeComboBox();
+  Q_OBJECT
+public:
+  BoundingModeComboBox(QWidget* parent);
+  virtual ~BoundingModeComboBox();
 
-    ossia::bounding_mode get() const;
-    void set(ossia::bounding_mode t);
+  ossia::bounding_mode get() const;
+  void set(ossia::bounding_mode t);
 
-  Q_SIGNALS:
-    void changed(ossia::bounding_mode);
+Q_SIGNALS:
+  void changed(ossia::bounding_mode);
 };
 
 inline QLabel* makeLabel(QString text, QWidget* parent)

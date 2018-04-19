@@ -1,6 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioActions.hpp"
+
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
@@ -12,7 +13,8 @@ namespace Scenario
 const ScenarioInterface*
 focusedScenarioInterface(const score::DocumentContext& ctx)
 {
-  if (auto layer = dynamic_cast<const Scenario::ScenarioInterface*>(ctx.document.focusManager().get()))
+  if (auto layer = dynamic_cast<const Scenario::ScenarioInterface*>(
+          ctx.document.focusManager().get()))
   {
     return layer;
   }
@@ -20,7 +22,7 @@ focusedScenarioInterface(const score::DocumentContext& ctx)
   {
     auto model = dynamic_cast<Scenario::ScenarioDocumentModel*>(
         &ctx.document.model().modelDelegate());
-    if(model)
+    if (model)
     {
       auto& bs = model->baseScenario();
       if (bs.focused())
@@ -34,7 +36,8 @@ focusedScenarioInterface(const score::DocumentContext& ctx)
 
 const ProcessModel* focusedScenarioModel(const score::DocumentContext& ctx)
 {
-  return dynamic_cast<const Scenario::ProcessModel*>(ctx.document.focusManager().get());
+  return dynamic_cast<const Scenario::ProcessModel*>(
+      ctx.document.focusManager().get());
 }
 
 EnableWhenScenarioModelObject::EnableWhenScenarioModelObject()
@@ -84,14 +87,14 @@ void EnableWhenScenarioModelObject::action(
   setEnabled(mgr, res);
 }
 
-
-
-EnableWhenScenarioInterfaceInstantObject::EnableWhenScenarioInterfaceInstantObject()
+EnableWhenScenarioInterfaceInstantObject::
+    EnableWhenScenarioInterfaceInstantObject()
     : score::ActionCondition{static_key()}
 {
 }
 
-score::ActionConditionKey EnableWhenScenarioInterfaceInstantObject::static_key()
+score::ActionConditionKey
+EnableWhenScenarioInterfaceInstantObject::static_key()
 {
   return score::ActionConditionKey{"ScenarioInterfaceInstantObject"};
 }
@@ -115,8 +118,6 @@ void EnableWhenScenarioInterfaceInstantObject::action(
 
   setEnabled(mgr, res);
 }
-
-
 
 EnableWhenScenarioInterfaceObject::EnableWhenScenarioInterfaceObject()
     : score::ActionCondition{static_key()}

@@ -1,8 +1,8 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <core/document/DocumentPresenter.hpp>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DocumentDelegatePresenter.hpp"
+
+#include <core/document/DocumentPresenter.hpp>
 
 namespace score
 {
@@ -17,7 +17,5 @@ DocumentDelegatePresenter::DocumentDelegatePresenter(
 {
 }
 
-score::DocumentDelegatePresenter::
-    ~DocumentDelegatePresenter()
-    = default;
+score::DocumentDelegatePresenter::~DocumentDelegatePresenter() = default;
 }

@@ -1,12 +1,11 @@
 #pragma once
 #include <Scenario/Process/ScenarioInterface.hpp>
-#include <tuple>
-
+#include <score/model/Identifier.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
-#include <score/model/Identifier.hpp>
 #include <score/tools/std/IndirectContainer.hpp>
 #include <score_plugin_scenario_export.h>
+#include <tuple>
 
 class DataStream;
 
@@ -64,8 +63,7 @@ public:
 
   StateModel* findState(const Id<StateModel>& id) const final override;
 
-  IntervalModel&
-  interval(const Id<IntervalModel>& id) const final override;
+  IntervalModel& interval(const Id<IntervalModel>& id) const final override;
 
   EventModel& event(const Id<EventModel>& id) const final override;
 

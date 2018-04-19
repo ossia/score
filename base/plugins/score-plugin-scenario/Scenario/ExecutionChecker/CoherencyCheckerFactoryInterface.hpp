@@ -1,10 +1,10 @@
 #pragma once
 
+#include "CSPCoherencyCheckerInterface.hpp"
+
 #include <score/plugins/customfactory/FactoryInterface.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score_plugin_scenario_export.h>
-
-#include "CSPCoherencyCheckerInterface.hpp"
 namespace score
 {
 struct ApplicationContext;

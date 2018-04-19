@@ -1,14 +1,14 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <algorithm>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <ossia/detail/algorithms.hpp>
-#include <ossia/network/dataspace/dataspace_visitors.hpp>
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/base/name_validation.hpp>
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
+
 #include <QStringBuilder>
 #include <State/Address.hpp>
 #include <State/Expression.hpp>
+#include <algorithm>
 #include <score/tools/Todo.hpp>
 namespace State
 {
@@ -354,7 +354,7 @@ QString toString(const ossia::destination_qualifiers& qualifiers)
   }
   else
   {
-    if(!qualifiers.accessors.empty())
+    if (!qualifiers.accessors.empty())
     {
       str += '@';
       for (auto acc : qualifiers.accessors)
@@ -370,8 +370,8 @@ QString toString(const ossia::destination_qualifiers& qualifiers)
 std::size_t std::hash<State::Address>::
 operator()(const State::Address& k) const
 {
-  using std::size_t;
   using std::hash;
+  using std::size_t;
   using std::string;
 
 // Compute individual hash values for first,
@@ -400,11 +400,10 @@ struct hash<ossia::unit_variant>
   {
     std::size_t seed = 0;
     boost::hash_combine(seed, k.which());
-    if(k)
+    if (k)
     {
-      ossia::apply_nonnull([&] (const auto& ds) {
-        boost::hash_combine(seed, ds.which());
-      }, k);
+      ossia::apply_nonnull(
+          [&](const auto& ds) { boost::hash_combine(seed, ds.which()); }, k);
     }
     return seed;
   }

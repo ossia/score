@@ -1,18 +1,19 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
 #include "IntervalInspectorWidget.hpp"
+
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Inspector/Interval/Widgets/DurationSectionWidget.hpp>
 #include <Scenario/Inspector/MetadataWidget.hpp>
 #include <Scenario/Inspector/SelectionButton.hpp>
-#include <Scenario/Inspector/Interval/Widgets/DurationSectionWidget.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/widgets/MarginLess.hpp>
 #include <score/widgets/Separator.hpp>
 #include <score/widgets/TextLabel.hpp>
-#include <score/widgets/MarginLess.hpp>
 
 namespace Scenario
 {
@@ -71,7 +72,8 @@ IntervalInspectorWidget::IntervalInspectorWidget(
       pb->setMinimumWidth(35);
       pb->setMaximumWidth(35);
       pb->setContentsMargins(0, 0, 0, 0);
-      pb->setStyleSheet(QStringLiteral("QPushButton { margin: 0px; padding: 0px; }"));
+      pb->setStyleSheet(
+          QStringLiteral("QPushButton { margin: 0px; padding: 0px; }"));
 
       connect(pb, &QPushButton::clicked, this, [=] { setSpeedFun(factor); });
       speedLay->addWidget(pb, 1, btn_col++, 1, 1);
@@ -108,7 +110,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   connect(setAsDisplayedInterval, &QPushButton::clicked, this, [this] {
     auto base = get<ScenarioDocumentPresenter>(*documentFromObject(m_model));
 
-    if(base)
+    if (base)
       base->setDisplayedInterval(model());
   });
 
@@ -132,8 +134,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   m_properties.push_back(new score::HSeparator{this});
 
   // Durations
-  auto& ctrl
-      = ctx.app.guiApplicationPlugin<ScenarioApplicationPlugin>();
+  auto& ctrl = ctx.app.guiApplicationPlugin<ScenarioApplicationPlugin>();
   m_durationSection
       = new DurationWidget{ctrl.editionSettings(), *m_delegate, this};
   m_properties.push_back(m_durationSection);
@@ -162,5 +163,4 @@ void IntervalInspectorWidget::updateDisplayedValues()
 {
   m_delegate->updateElements();
 }
-
 }

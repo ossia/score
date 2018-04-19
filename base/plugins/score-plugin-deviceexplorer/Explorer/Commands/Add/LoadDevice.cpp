@@ -1,24 +1,23 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <algorithm>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "LoadDevice.hpp"
+
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
+#include <algorithm>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/tree/TreeNode.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 
 namespace Explorer
 {
 namespace Command
 {
 LoadDevice::LoadDevice(
-    const DeviceDocumentPlugin& devplug,
-    Device::Node&& node)
+    const DeviceDocumentPlugin& devplug, Device::Node&& node)
     : m_deviceNode(std::move(node))
 {
 }
@@ -49,8 +48,7 @@ ReloadWholeDevice::ReloadWholeDevice(
     const DeviceDocumentPlugin& devplug,
     Device::Node&& oldNode,
     Device::Node&& newNode)
-    : m_oldNode(std::move(oldNode))
-    , m_newNode(std::move(newNode))
+    : m_oldNode(std::move(oldNode)), m_newNode(std::move(newNode))
 {
 }
 

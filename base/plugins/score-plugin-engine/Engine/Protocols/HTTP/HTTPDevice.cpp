@@ -1,16 +1,17 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QString>
-#include <QVariant>
-#include <memory>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "HTTPDevice.hpp"
-#include <ossia/network/generic/generic_parameter.hpp>
+
 #include <ossia/network/generic/generic_device.hpp>
-#include <ossia-qt/http/http.hpp>
+#include <ossia/network/generic/generic_parameter.hpp>
+
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/Protocols/HTTP/HTTPSpecificSettings.hpp>
 #include <Explorer/DeviceList.hpp>
+#include <QString>
+#include <QVariant>
+#include <memory>
+#include <ossia-qt/http/http.hpp>
 
 namespace Engine
 {

@@ -1,21 +1,21 @@
 #pragma once
+#include <ossia/detail/small_vector.hpp>
+
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QMap>
+#include <boost/container/flat_set.hpp>
+#include <score/model/EntityBase.hpp>
 #include <score/serialization/StringConstants.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/serialization/VisitorTags.hpp>
-#include <boost/container/flat_set.hpp>
-#include <score/model/EntityBase.hpp>
-#include <ossia/detail/small_vector.hpp>
 template <class>
 class StringKey;
 
 class JSONValue;
 class JSONValueReader;
 class JSONValueWriter;
-
 
 class JSONValue
 {
@@ -30,23 +30,21 @@ public:
   }
 };
 
-class SCORE_LIB_BASE_EXPORT JSONValueReader
-    : public AbstractVisitor
+class SCORE_LIB_BASE_EXPORT JSONValueReader : public AbstractVisitor
 {
 public:
   using is_visitor_tag = std::integral_constant<bool, true>;
 
   JSONValueReader() = default;
   JSONValueReader(const JSONValueReader&) = delete;
-  JSONValueReader& operator=(const JSONValueReader&)
-      = delete;
+  JSONValueReader& operator=(const JSONValueReader&) = delete;
 
   VisitorVariant toVariant()
   {
     return {*this, JSONValue::type()};
   }
 
-  template<typename T>
+  template <typename T>
   void readFrom(const T& obj)
   {
     readFrom_impl(obj, typename serialization_tag<T>::type{});
@@ -56,22 +54,19 @@ public:
   void read(const T&);
 
   template <typename T>
-  void readFrom_impl(
-      const T& obj, visitor_template_tag)
+  void readFrom_impl(const T& obj, visitor_template_tag)
   {
     TSerializer<JSONValue, T>::readFrom(*this, obj);
   }
 
   template <typename T>
-  void readFrom_impl(
-      const T& obj, visitor_default_tag)
+  void readFrom_impl(const T& obj, visitor_default_tag)
   {
     read(obj);
   }
 
   template <typename T>
-  void readFrom_impl(
-      const T& obj, visitor_enum_tag)
+  void readFrom_impl(const T& obj, visitor_enum_tag)
   {
     val = (int32_t)obj;
   }
@@ -80,8 +75,7 @@ public:
   const score::StringConstants& strings{score::StringConstant()};
 };
 
-class SCORE_LIB_BASE_EXPORT JSONValueWriter
-    : public AbstractVisitor
+class SCORE_LIB_BASE_EXPORT JSONValueWriter : public AbstractVisitor
 {
 public:
   using is_visitor_tag = std::integral_constant<bool, true>;
@@ -94,8 +88,7 @@ public:
 
   JSONValueWriter() = default;
   JSONValueWriter(const JSONValueReader&) = delete;
-  JSONValueWriter& operator=(const JSONValueWriter&)
-      = delete;
+  JSONValueWriter& operator=(const JSONValueWriter&) = delete;
 
   JSONValueWriter(const QJsonValue& obj) : val{obj}
   {
@@ -105,7 +98,7 @@ public:
   {
   }
 
-  template<typename T>
+  template <typename T>
   void writeTo(T& obj)
   {
     writeTo_impl(obj, typename serialization_tag<T>::type{});
@@ -213,10 +206,10 @@ struct TSerializer<JSONValue, QRectF>
   {
     auto arr = s.val.toArray();
     SCORE_ASSERT(arr.size() == 4);
-    obj = {arr[0].toDouble(), arr[1].toDouble(), arr[2].toDouble(), arr[3].toDouble()};
+    obj = {arr[0].toDouble(), arr[1].toDouble(), arr[2].toDouble(),
+           arr[3].toDouble()};
   }
 };
-
 
 template <typename U>
 struct TSerializer<JSONValue, Id<U>>
@@ -342,7 +335,8 @@ void fromJsonValueArray(const QJsonArray& json_arr, T<Id<V>>& arr)
 }
 
 template <typename V, std::size_t N>
-void fromJsonValueArray(const QJsonArray& json_arr, ossia::small_vector<Id<V>, N>& arr)
+void fromJsonValueArray(
+    const QJsonArray& json_arr, ossia::small_vector<Id<V>, N>& arr)
 {
   arr.reserve(json_arr.size());
   for (const auto& elt : json_arr)
@@ -351,13 +345,14 @@ void fromJsonValueArray(const QJsonArray& json_arr, ossia::small_vector<Id<V>, N
   }
 }
 template <typename V, std::size_t N>
-void fromJsonValueArray(const QJsonArray& json_arr, ossia::static_vector<Id<V>, N>& arr)
+void fromJsonValueArray(
+    const QJsonArray& json_arr, ossia::static_vector<Id<V>, N>& arr)
 {
-    arr.reserve(json_arr.size());
-    for (const auto& elt : json_arr)
-    {
-        arr.push_back(fromJsonValue<Id<V>>(elt));
-    }
+  arr.reserve(json_arr.size());
+  for (const auto& elt : json_arr)
+  {
+    arr.push_back(fromJsonValue<Id<V>>(elt));
+  }
 }
 
 template <typename V>
@@ -381,8 +376,8 @@ void fromJsonValueArray(const QJsonArray& json_arr, std::vector<Path<V>>& arr)
 
 template <
     typename Container,
-    std::enable_if_t<!std::is_arithmetic<
-        typename Container::value_type>::value>* = nullptr>
+    std::enable_if_t<
+        !std::is_arithmetic<typename Container::value_type>::value>* = nullptr>
 QJsonArray toJsonValueArray(const Container& c)
 {
   QJsonArray arr;
@@ -397,8 +392,8 @@ QJsonArray toJsonValueArray(const Container& c)
 
 template <
     typename Container,
-    std::enable_if_t<std::is_arithmetic<
-        typename Container::value_type>::value>* = nullptr>
+    std::enable_if_t<
+        std::is_arithmetic<typename Container::value_type>::value>* = nullptr>
 QJsonArray toJsonValueArray(const Container& c)
 {
   QJsonArray arr;
@@ -437,8 +432,6 @@ Container fromJsonValueArray(const QJsonArray& json_arr)
 
   return c;
 }
-
-
 
 inline QJsonValue toJsonValue(int obj)
 {
@@ -486,7 +479,8 @@ inline QJsonValue toJsonValue<bool>(const bool& obj)
   return obj;
 }
 template <>
-inline QJsonValue toJsonValue<std::array<float, 2>>(const std::array<float, 2>& obj)
+inline QJsonValue
+toJsonValue<std::array<float, 2>>(const std::array<float, 2>& obj)
 {
   QJsonArray arr;
   for (std::size_t i = 0; i < 2; i++)
@@ -494,7 +488,8 @@ inline QJsonValue toJsonValue<std::array<float, 2>>(const std::array<float, 2>& 
   return arr;
 }
 template <>
-inline QJsonValue toJsonValue<std::array<float, 3>>(const std::array<float, 3>& obj)
+inline QJsonValue
+toJsonValue<std::array<float, 3>>(const std::array<float, 3>& obj)
 {
   QJsonArray arr;
   for (std::size_t i = 0; i < 3; i++)
@@ -502,7 +497,8 @@ inline QJsonValue toJsonValue<std::array<float, 3>>(const std::array<float, 3>& 
   return arr;
 }
 template <>
-inline QJsonValue toJsonValue<std::array<float, 4>>(const std::array<float, 4>& obj)
+inline QJsonValue
+toJsonValue<std::array<float, 4>>(const std::array<float, 4>& obj)
 {
   QJsonArray arr;
   for (std::size_t i = 0; i < 4; i++)
@@ -573,7 +569,6 @@ inline std::string fromJsonValue<std::string>(const QJsonValueRef& obj)
   return obj.toString().toStdString();
 }
 
-
 template <typename U>
 struct TSerializer<JSONValue, UuidKey<U>>
 {
@@ -589,14 +584,12 @@ struct TSerializer<JSONValue, UuidKey<U>>
 };
 
 template <typename T>
-struct
-    TSerializer<JSONValue, std::vector<T>>
+struct TSerializer<JSONValue, std::vector<T>>
 {
-  static void
-  readFrom(JSONValue::Serializer& s, const std::vector<T>& vec)
+  static void readFrom(JSONValue::Serializer& s, const std::vector<T>& vec)
   {
     QJsonArray arr;
-    for(const auto& e : vec)
+    for (const auto& e : vec)
       arr.append(toJsonValue(e));
     s.val = std::move(arr);
   }
@@ -605,18 +598,15 @@ struct
   {
     const QJsonArray arr = s.val.toArray();
     vec.reserve(arr.size());
-    for(const auto& e : arr)
+    for (const auto& e : arr)
       vec.push_back(fromJsonValue<T>(e));
   }
 };
 
-
-
 template <typename T, std::size_t N>
 struct TSerializer<JSONValue, std::array<T, N>>
 {
-  static void
-  readFrom(JSONValue::Serializer& s, const std::array<T, N>& vec)
+  static void readFrom(JSONValue::Serializer& s, const std::array<T, N>& vec)
   {
     QJsonArray arr;
     for (std::size_t i = 0; i < N; i++)
@@ -624,8 +614,7 @@ struct TSerializer<JSONValue, std::array<T, N>>
     s.val = std::move(arr);
   }
 
-  static void
-  writeTo(JSONValue::Deserializer& s, std::array<T, N>& vec)
+  static void writeTo(JSONValue::Deserializer& s, std::array<T, N>& vec)
   {
     auto arr = s.val.toArray();
     const std::size_t M = std::min((int)N, arr.size());
@@ -646,8 +635,7 @@ struct TSerializer<JSONValue, std::array<float, N>>
     s.val = std::move(arr);
   }
 
-  static void
-  writeTo(JSONValue::Deserializer& s,  std::array<float, N>& vec)
+  static void writeTo(JSONValue::Deserializer& s, std::array<float, N>& vec)
   {
     auto arr = s.val.toArray();
     const std::size_t M = std::min((int)N, arr.size());
@@ -656,7 +644,7 @@ struct TSerializer<JSONValue, std::array<float, N>>
   }
 };
 
-template<typename T>
+template <typename T>
 struct TSerializer<JSONValue, optional<T>>
 {
   static void readFrom(JSONValue::Serializer& s, const optional<T>& obj)
@@ -673,7 +661,7 @@ struct TSerializer<JSONValue, optional<T>>
 
   static void writeTo(JSONValue::Deserializer& s, optional<T>& obj)
   {
-    if (s.val.isNull() || s.val.toString() == s.strings.none )
+    if (s.val.isNull() || s.val.toString() == s.strings.none)
     {
       obj = ossia::none;
     }
@@ -684,10 +672,9 @@ struct TSerializer<JSONValue, optional<T>>
   }
 };
 
-inline
-QJsonValue toJsonValue(const optional<float>& f)
+inline QJsonValue toJsonValue(const optional<float>& f)
 {
-  if(f)
+  if (f)
     return *f;
   else
     return QJsonValue{};
@@ -702,16 +689,14 @@ QJsonArray toJsonArray(const boost::container::flat_set<T>& array)
   return arr;
 }
 
-inline
-QJsonArray toJsonArray(const boost::container::flat_set<int>& array)
+inline QJsonArray toJsonArray(const boost::container::flat_set<int>& array)
 {
   QJsonArray arr;
   for (auto& v : array)
     arr.push_back(v);
   return arr;
 }
-inline
-QJsonArray toJsonArray(const boost::container::flat_set<float>& array)
+inline QJsonArray toJsonArray(const boost::container::flat_set<float>& array)
 {
   QJsonArray arr;
   for (auto& v : array)
@@ -719,31 +704,34 @@ QJsonArray toJsonArray(const boost::container::flat_set<float>& array)
   return arr;
 }
 
-template<std::size_t N>
+template <std::size_t N>
 QJsonArray toJsonArray(const std::array<optional<float>, N>& array)
 {
   QJsonArray arr;
   for (auto& v : array)
-    if(v) arr.push_back(*v);
-    else arr.push_back(QJsonValue{});
+    if (v)
+      arr.push_back(*v);
+    else
+      arr.push_back(QJsonValue{});
   return arr;
 }
 
-template<std::size_t N>
-QJsonArray toJsonArray(const std::array<boost::container::flat_set<float>, N>& array)
+template <std::size_t N>
+QJsonArray
+toJsonArray(const std::array<boost::container::flat_set<float>, N>& array)
 {
   QJsonArray arr;
   for (auto& v : array)
   {
     QJsonArray sub;
-    for(float val : v)
+    for (float val : v)
       sub.push_back(val);
     arr.push_back(std::move(sub));
   }
   return arr;
 }
 
-template<typename T, std::size_t N>
+template <typename T, std::size_t N>
 QJsonArray toJsonArray(const ossia::small_vector<Id<T>, N>& array)
 {
   QJsonArray arr;
@@ -752,7 +740,7 @@ QJsonArray toJsonArray(const ossia::small_vector<Id<T>, N>& array)
   return arr;
 }
 
-template<typename T, std::size_t N>
+template <typename T, std::size_t N>
 QJsonArray toJsonArray(const ossia::small_vector<T*, N>& array)
 {
   QJsonArray arr;

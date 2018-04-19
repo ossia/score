@@ -1,12 +1,12 @@
 #pragma once
-#include <QString>
-#include <score/command/Command.hpp>
-#include <score/tools/std/Optional.hpp>
-
 #include "CreateInterval_State.hpp"
+
+#include <QString>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <score/model/path/Path.hpp>
+#include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/model/path/Path.hpp>
+#include <score/tools/std/Optional.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;

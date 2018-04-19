@@ -1,6 +1,6 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <score/tools/std/Optional.hpp>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <ossia/detail/algorithms.hpp>
 
 #include <QApplication>
 #include <QByteArray>
@@ -8,33 +8,33 @@
 #include <QList>
 #include <QObject>
 #include <QStringBuilder>
-#include <score/model/path/ObjectPath.hpp>
-#include <score/model/path/RelativePath.hpp>
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <core/presenter/DocumentManager.hpp>
 #include <iterator>
 #include <qnamespace.h>
+#include <score/application/ApplicationContext.hpp>
+#include <score/model/IdentifiedObjectAbstract.hpp>
+#include <score/model/path/ObjectIdentifier.hpp>
+#include <score/model/path/ObjectPath.hpp>
+#include <score/model/path/RelativePath.hpp>
+#include <score/tools/std/Optional.hpp>
 #include <stdexcept>
 #include <sys/types.h>
 #include <typeinfo>
 
-#include <score/model/IdentifiedObjectAbstract.hpp>
-
-#include <ossia/detail/algorithms.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
-#include <core/presenter/DocumentManager.hpp>
-#include <score/application/ApplicationContext.hpp>
-#include <score/model/path/ObjectIdentifier.hpp>
-
 namespace boost
 {
-SCORE_LIB_BASE_EXPORT std::size_t hash<ObjectIdentifier>::operator()(const ObjectIdentifier& path) const
+SCORE_LIB_BASE_EXPORT std::size_t hash<ObjectIdentifier>::
+operator()(const ObjectIdentifier& path) const
 {
   std::size_t seed = 0;
   boost::hash_combine(seed, path.objectName());
   boost::hash_combine(seed, path.id());
   return seed;
 }
-SCORE_LIB_BASE_EXPORT std::size_t hash<ObjectPath>::operator()(const ObjectPath& path) const
+SCORE_LIB_BASE_EXPORT std::size_t hash<ObjectPath>::
+operator()(const ObjectPath& path) const
 {
   return boost::hash_range(path.vec().cbegin(), path.vec().cend());
 }

@@ -19,14 +19,10 @@ class Remove final : public score::Command
       DeviceExplorerCommandFactoryName(), Remove, "Remove an Explorer node")
 public:
   // For addresses
-  Remove(
-      const DeviceDocumentPlugin& devplug,
-      Device::NodePath&& path);
+  Remove(const DeviceDocumentPlugin& devplug, Device::NodePath&& path);
 
   // For devices
-  Remove(
-      const DeviceDocumentPlugin& devplug,
-      const Device::Node& node);
+  Remove(const DeviceDocumentPlugin& devplug, const Device::Node& node);
 
   ~Remove();
 

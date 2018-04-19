@@ -1,13 +1,13 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "ScenarioDocumentFactory.hpp"
+
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 #include <algorithm>
 #include <core/document/DocumentModel.hpp>
 #include <score/serialization/VisitorCommon.hpp>
-
-#include "ScenarioDocumentFactory.hpp"
 
 namespace Scenario
 {
@@ -17,8 +17,7 @@ score::DocumentDelegateView* ScenarioDocumentFactory::makeView(
   return new ScenarioDocumentView{ctx, parent};
 }
 
-score::DocumentDelegatePresenter*
-ScenarioDocumentFactory::makePresenter(
+score::DocumentDelegatePresenter* ScenarioDocumentFactory::makePresenter(
     const score::DocumentContext& ctx,
     score::DocumentPresenter* parent_presenter,
     const score::DocumentDelegateModel& model,

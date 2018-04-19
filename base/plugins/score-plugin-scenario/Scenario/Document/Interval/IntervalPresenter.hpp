@@ -1,15 +1,13 @@
 #pragma once
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
-
 #include <QPoint>
 #include <QString>
 #include <QTimer>
+#include <Scenario/Document/Interval/SlotPresenter.hpp>
+#include <nano_signal_slot.hpp>
 #include <score/model/Identifier.hpp>
 #include <score_plugin_scenario_export.h>
-#include <nano_signal_slot.hpp>
-
-#include <Scenario/Document/Interval/SlotPresenter.hpp>
 
 namespace Process
 {
@@ -45,9 +43,9 @@ struct LayerData
   Process::LayerView* view{};
 };
 
-
-class SCORE_PLUGIN_SCENARIO_EXPORT IntervalPresenter : public QObject,
-                                                          public Nano::Observer
+class SCORE_PLUGIN_SCENARIO_EXPORT IntervalPresenter
+    : public QObject
+    , public Nano::Observer
 {
   Q_OBJECT
 
@@ -73,7 +71,8 @@ public:
     return m_zoomRatio;
   }
 
-  const std::vector<SlotPresenter>& getSlots() const {
+  const std::vector<SlotPresenter>& getSlots() const
+  {
     return m_slots;
   }
 
@@ -86,7 +85,6 @@ public:
 
   virtual void selectedSlot(int) const = 0;
   virtual void requestSlotMenu(int slot, QPoint pos, QPointF sp) const = 0;
-
 
 Q_SIGNALS:
   void pressed(QPointF) const;

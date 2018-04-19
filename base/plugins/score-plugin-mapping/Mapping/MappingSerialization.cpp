@@ -1,31 +1,29 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "MappingModel.hpp"
+
+#include <Curve/CurveModel.hpp>
+#include <Process/Dataflow/Port.hpp>
 #include <QJsonObject>
 #include <QJsonValue>
-#include <algorithm>
-#include <score/serialization/VisitorCommon.hpp>
-
-#include <Process/Dataflow/Port.hpp>
-#include "MappingModel.hpp"
-#include <Curve/CurveModel.hpp>
 #include <State/Address.hpp>
+#include <algorithm>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+#include <score/serialization/VisitorCommon.hpp>
 
 template <>
-void DataStreamReader::read(
-    const Mapping::ProcessModel& autom)
+void DataStreamReader::read(const Mapping::ProcessModel& autom)
 {
   m_stream << *autom.inlet << *autom.outlet;
   readFrom(autom.curve());
 
-  m_stream << autom.sourceMin() << autom.sourceMax()
-           << autom.targetMin() << autom.targetMax();
+  m_stream << autom.sourceMin() << autom.sourceMax() << autom.targetMin()
+           << autom.targetMax();
 
   insertDelimiter();
 }
-
 
 template <>
 void DataStreamWriter::write(Mapping::ProcessModel& autom)
@@ -53,10 +51,8 @@ void DataStreamWriter::write(Mapping::ProcessModel& autom)
   checkDelimiter();
 }
 
-
 template <>
-void JSONObjectReader::read(
-    const Mapping::ProcessModel& autom)
+void JSONObjectReader::read(const Mapping::ProcessModel& autom)
 {
   obj["Inlet"] = toJsonObject(*autom.inlet);
   obj["Outlet"] = toJsonObject(*autom.outlet);
@@ -69,28 +65,29 @@ void JSONObjectReader::read(
   obj["TargetMax"] = autom.targetMax();
 }
 
-
 template <>
 void JSONObjectWriter::write(Mapping::ProcessModel& autom)
 {
   {
     JSONObjectWriter writer{obj["Inlet"].toObject()};
     autom.inlet = Process::make_inlet(writer, &autom);
-    if(!autom.inlet)
+    if (!autom.inlet)
     {
       autom.inlet = Process::make_inlet(Id<Process::Port>(0), &autom);
       autom.inlet->type = Process::PortType::Message;
-      autom.inlet->setAddress(fromJsonObject<State::AddressAccessor>(obj["SourceAddress"].toObject()));
+      autom.inlet->setAddress(fromJsonObject<State::AddressAccessor>(
+          obj["SourceAddress"].toObject()));
     }
   }
   {
     JSONObjectWriter writer{obj["Outlet"].toObject()};
     autom.outlet = Process::make_outlet(writer, &autom);
-    if(!autom.outlet)
+    if (!autom.outlet)
     {
       autom.outlet = Process::make_outlet(Id<Process::Port>(0), &autom);
       autom.outlet->type = Process::PortType::Message;
-      autom.outlet->setAddress(fromJsonObject<State::AddressAccessor>(obj["TargetAddress"].toObject()));
+      autom.outlet->setAddress(fromJsonObject<State::AddressAccessor>(
+          obj["TargetAddress"].toObject()));
     }
   }
 

@@ -1,21 +1,23 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QByteArray>
-#include <QDebug>
-#include <eggs/variant/variant.hpp>
-#include <vector>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DeviceNode.hpp"
+
 #include <ossia/editor/state/destination_qualifiers.hpp>
+
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Address/IOType.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <QByteArray>
+#include <QDebug>
 #include <State/Message.hpp>
 #include <State/Value.hpp>
-#include <score/tools/Todo.hpp>
+#include <eggs/variant/variant.hpp>
 #include <score/model/tree/TreeNode.hpp>
+#include <score/tools/Todo.hpp>
+#include <vector>
 
-template class SCORE_LIB_DEVICE_EXPORT boost::container::stable_vector<Device::Node>;
+template class SCORE_LIB_DEVICE_EXPORT
+    boost::container::stable_vector<Device::Node>;
 template class SCORE_LIB_DEVICE_EXPORT TreeNode<Device::DeviceExplorerNode>;
 namespace Device
 {
@@ -76,7 +78,7 @@ Device::Node& getNodeFromAddress(Device::Node& n, const State::Address& addr)
 
 void address_rec(QStringList& path, const Node* n, const Device::Node*& root)
 {
-  if(n->parent() && !n->is<DeviceSettings>())
+  if (n->parent() && !n->is<DeviceSettings>())
   {
     address_rec(path, n->parent(), root);
     path.push_back(n->get<AddressSettings>().name);

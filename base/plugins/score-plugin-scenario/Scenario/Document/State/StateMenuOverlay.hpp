@@ -1,24 +1,21 @@
 #pragma once
-#include <QGraphicsItem>
-#include <Scenario/Document/State/StateView.hpp>
-#include <QPainter>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <QPen>
 #include <QBrush>
+#include <QGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
+#include <QPainter>
+#include <QPen>
+#include <Scenario/Document/State/StateView.hpp>
 
 namespace Scenario
 {
 
-class StateMenuOverlay final :
-    public QGraphicsItem
+class StateMenuOverlay final : public QGraphicsItem
 {
 public:
-  StateMenuOverlay(StateView* parent):
-    QGraphicsItem{parent}
+  StateMenuOverlay(StateView* parent) : QGraphicsItem{parent}
   {
     this->setAcceptHoverEvents(true);
-
   }
 
   QRectF boundingRect() const override
@@ -26,7 +23,10 @@ public:
     return {-m_radius, -m_radius, 2 * m_radius, 2 * m_radius};
   }
 
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override
   {
     auto& skin = ScenarioStyle::instance();
 
@@ -43,8 +43,8 @@ public:
     const auto small_rad = 0.5 * m_radius;
     const QLineF l1{QPointF{0, -small_rad}, QPointF{0, small_rad}};
     const QLineF l2{QPointF{-small_rad, 0}, QPointF{small_rad, 0}};
-    painter->drawLine(l1.translated(1,1));
-    painter->drawLine(l2.translated(1,1));
+    painter->drawLine(l1.translated(1, 1));
+    painter->drawLine(l2.translated(1, 1));
     p.setColor(bright);
     painter->setPen(p);
     painter->drawLine(l1);
@@ -76,5 +76,4 @@ private:
 
   double m_radius{4};
 };
-
 }

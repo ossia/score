@@ -1,43 +1,46 @@
 #include <Media/Sound/SoundModel.hpp>
-
 #include <QFile>
 namespace Media
 {
 namespace Sound
 {
 ProcessModel::ProcessModel(
-        const TimeVal& duration,
-        const Id<Process::ProcessModel>& id,
-        QObject* parent):
-    Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-  , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
+    const TimeVal& duration,
+    const Id<Process::ProcessModel>& id,
+    QObject* parent)
+    : Process::ProcessModel{duration, id,
+                            Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
 {
-    outlet->setPropagate(true);
-    outlet->type = Process::PortType::Audio;
-    metadata().setInstanceName(*this);
-    setFile("/tmp/bass.aif");
-    init();
+  outlet->setPropagate(true);
+  outlet->type = Process::PortType::Audio;
+  metadata().setInstanceName(*this);
+  setFile("/tmp/bass.aif");
+  init();
 }
 
 ProcessModel::~ProcessModel()
 {
-
 }
 
-void ProcessModel::setFile(const QString &file)
+void ProcessModel::setFile(const QString& file)
 {
-    if(file != m_file.name())
-    {
-        m_file.load(file, score::IDocument::documentContext(*this));
-        fileChanged();
-    }
+  if (file != m_file.name())
+  {
+    m_file.load(file, score::IDocument::documentContext(*this));
+    fileChanged();
+  }
 }
 
-MediaFileHandle&ProcessModel::file()
-{ return m_file; }
+MediaFileHandle& ProcessModel::file()
+{
+  return m_file;
+}
 
-const MediaFileHandle&ProcessModel::file() const
-{ return m_file; }
+const MediaFileHandle& ProcessModel::file() const
+{
+  return m_file;
+}
 
 int ProcessModel::upmixChannels() const
 {
@@ -70,15 +73,13 @@ void ProcessModel::setStartChannel(int startChannel)
 void ProcessModel::init()
 {
   m_outlets.push_back(outlet.get());
-  connect(&m_file, &MediaFileHandle::mediaChanged,
-          this, [=] {
-    if(m_file.channels() == 1) {
+  connect(&m_file, &MediaFileHandle::mediaChanged, this, [=] {
+    if (m_file.channels() == 1)
+    {
       setUpmixChannels(2);
     }
     fileChanged();
   });
 }
-
 }
-
 }

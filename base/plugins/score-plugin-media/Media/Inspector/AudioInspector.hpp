@@ -1,50 +1,48 @@
 #pragma once
-#include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <Media/Sound/SoundModel.hpp>
 #include <Media/Input/InputModel.hpp>
+#include <Media/Sound/SoundModel.hpp>
+#include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <QLineEdit>
 #include <QSpinBox>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 
 namespace Media
 {
 namespace Sound
 {
-class InspectorWidget final :
-    public Process::InspectorWidgetDelegate_T<Sound::ProcessModel>
+class InspectorWidget final
+    : public Process::InspectorWidgetDelegate_T<Sound::ProcessModel>
 {
-  public:
-    explicit InspectorWidget(
-        const ProcessModel& object,
-        const score::DocumentContext& doc,
-        QWidget* parent);
+public:
+  explicit InspectorWidget(
+      const ProcessModel& object,
+      const score::DocumentContext& doc,
+      QWidget* parent);
 
-  private:
-    CommandDispatcher<> m_dispatcher;
-    QLineEdit m_edit;
-    QSpinBox m_start;
-    QSpinBox m_upmix;
-
+private:
+  CommandDispatcher<> m_dispatcher;
+  QLineEdit m_edit;
+  QSpinBox m_start;
+  QSpinBox m_upmix;
 };
 }
 
 namespace Input
 {
-class InspectorWidget final :
-    public Process::InspectorWidgetDelegate_T<Input::ProcessModel>
+class InspectorWidget final
+    : public Process::InspectorWidgetDelegate_T<Input::ProcessModel>
 {
-  public:
-    explicit InspectorWidget(
-        const Input::ProcessModel& object,
-        const score::DocumentContext& doc,
-        QWidget* parent);
+public:
+  explicit InspectorWidget(
+      const Input::ProcessModel& object,
+      const score::DocumentContext& doc,
+      QWidget* parent);
 
-  private:
-    CommandDispatcher<> m_dispatcher;
+private:
+  CommandDispatcher<> m_dispatcher;
 
-    QSpinBox m_start;
-    QSpinBox m_count;
-
+  QSpinBox m_start;
+  QSpinBox m_count;
 };
 }
 }

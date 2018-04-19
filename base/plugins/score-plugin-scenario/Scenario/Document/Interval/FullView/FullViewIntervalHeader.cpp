@@ -1,15 +1,16 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "FullViewIntervalHeader.hpp"
+
+#include <Process/Style/ScenarioStyle.hpp>
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QList>
 #include <QPoint>
+#include <Scenario/Document/Interval/IntervalHeader.hpp>
 #include <cmath>
-#include <Process/Style/ScenarioStyle.hpp>
-#include "FullViewIntervalHeader.hpp"
 #include <score/widgets/GraphicsItem.hpp>
 #include <score/widgets/WidgetWrapper.hpp>
-#include <Scenario/Document/Interval/IntervalHeader.hpp>
 
 class QGraphicsItem;
 class QPainter;
@@ -19,8 +20,7 @@ class QWidget;
 namespace Scenario
 {
 FullViewIntervalHeader::FullViewIntervalHeader(
-    const score::DocumentContext& ctx,
-    QGraphicsItem* parent)
+    const score::DocumentContext& ctx, QGraphicsItem* parent)
     : IntervalHeader{parent}, m_bar{ctx, this}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
@@ -48,8 +48,8 @@ void FullViewIntervalHeader::paint(
   const auto& skin = ScenarioStyle::instance();
   painter->setPen(skin.IntervalHeaderSeparator);
   painter->drawLine(
-              QPointF{0., (double)IntervalHeaderHeight},
-              QPointF{m_width, (double)IntervalHeaderHeight});
+      QPointF{0., (double)IntervalHeaderHeight},
+      QPointF{m_width, (double)IntervalHeaderHeight});
 
   double textWidth = m_bar.width();
 
@@ -57,14 +57,16 @@ void FullViewIntervalHeader::paint(
   // view.
   // We have to compute the visible part of the header
   auto view = getView(*this);
-  if(!view)
-      return;
+  if (!view)
+    return;
 
   // Note: if the interval always has its pos() in (0; 0), we can
   // safely remove the call to mapToScene.
 
   const double text_left
-      = view->mapFromScene(mapToScene(QPointF{m_width / 2. - textWidth / 2., 0.})).x();
+      = view->mapFromScene(
+                mapToScene(QPointF{m_width / 2. - textWidth / 2., 0.}))
+            .x();
   const double text_right = text_left + textWidth;
   double x = (m_width - textWidth) / 2.;
   const constexpr double min_x = 10.;

@@ -3,21 +3,21 @@
 //#include <State/Value.hpp>
 //#include <score/widgets/WidgetWrapper.hpp>
 
-//class QWidget;
-//namespace State
+// class QWidget;
+// namespace State
 //{
-//struct AddressAccessor;
-//struct Message;
-//class ValueWidget;
+// struct AddressAccessor;
+// struct Message;
+// class ValueWidget;
 //}
 
-//class QComboBox;
-//class QFormLayout;
+// class QComboBox;
+// class QFormLayout;
 
-//namespace Explorer
+// namespace Explorer
 //{
-//class AddressAccessorEditWidget;
-//class DeviceExplorerModel;
+// class AddressAccessorEditWidget;
+// class DeviceExplorerModel;
 
 ///**
 // * @brief The MessageEditDialog class
@@ -28,17 +28,18 @@
 // *
 // * A device explorer model is used for completion of the address.
 // */
-//class MessageEditDialog final : public QDialog
+// class MessageEditDialog final : public QDialog
 //{
-//public:
+// public:
 //  MessageEditDialog(
-//      const State::Message& mess, DeviceExplorerModel* model, QWidget* parent);
+//      const State::Message& mess, DeviceExplorerModel* model, QWidget*
+//      parent);
 
 //  const State::AddressAccessor& address() const;
 
 //  ossia::value value() const;
 
-//private:
+// private:
 //  void initTypeCombo();
 //  void on_typeChanged(int t);
 

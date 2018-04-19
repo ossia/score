@@ -1,9 +1,11 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "GradientComponent.hpp"
+
+#include <ossia/dataflow/nodes/gradient.hpp>
+
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
-#include <ossia/dataflow/nodes/gradient.hpp>
 namespace Gradient
 {
 namespace RecreateOnPlay
@@ -14,35 +16,28 @@ Component::Component(
     const ::Engine::Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
-  : ::Engine::Execution::
-      ProcessComponent_T<Gradient::ProcessModel, ossia::node_process>{
-        element,
-        ctx,
-        id, "Executor::GradientComponent", parent}
+    : ::Engine::Execution::
+          ProcessComponent_T<Gradient::ProcessModel, ossia::node_process>{
+              element, ctx, id, "Executor::GradientComponent", parent}
 {
   auto node = std::make_shared<gradient>();
   this->node = node;
   m_ossia_process = std::make_shared<ossia::nodes::gradient_process>(node);
 
-
-  con(*element.outlet, &Process::Port::addressChanged,
-      this, [=] (const auto&) {
-    this->in_exec([node] {
-      node->tween = ossia::none;
-    });
+  con(*element.outlet, &Process::Port::addressChanged, this, [=](const auto&) {
+    this->in_exec([node] { node->tween = ossia::none; });
   });
 
   // TODO the tween case will reset the "running" value,
   // so it may not work perfectly.
-  con(element, &Gradient::ProcessModel::tweenChanged,
-      this, [=] (bool b) {
+  con(element, &Gradient::ProcessModel::tweenChanged, this, [=](bool b) {
     this->in_exec([=] {
       node->tween = ossia::none;
       node->mustTween = b;
     });
   });
-  con(element, &Gradient::ProcessModel::gradientChanged,
-      this, [this] { this->recompute(); });
+  con(element, &Gradient::ProcessModel::gradientChanged, this,
+      [this] { this->recompute(); });
 
   recompute();
 }
@@ -53,7 +48,7 @@ Component::~Component()
 
 static ossia::hunter_lab to_ossia_color(const QColor& c)
 {
-  switch(c.spec())
+  switch (c.spec())
   {
     case QColor::Rgb:
     {
@@ -73,7 +68,7 @@ static ossia::hunter_lab to_ossia_color(const QColor& c)
 static auto to_ossia_gradient(const Gradient::ProcessModel::gradient_colors& c)
 {
   gradient::grad_type g;
-  for(auto& e : c)
+  for (auto& e : c)
   {
     g.insert(std::make_pair(e.first, to_ossia_color(e.second)));
   }
@@ -86,12 +81,9 @@ void Component::recompute()
   auto g = process().gradient();
 
   s.executionQueue.enqueue(
-        [proc=std::dynamic_pointer_cast<gradient>(OSSIAProcess().node)
-        ,g]
-  {
-    proc->set_gradient(to_ossia_gradient(g));
-  });
+      [proc = std::dynamic_pointer_cast<gradient>(OSSIAProcess().node), g] {
+        proc->set_gradient(to_ossia_gradient(g));
+      });
 }
-
 }
 }

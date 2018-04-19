@@ -1,6 +1,6 @@
 #pragma once
-#include <Scenario/Document/Graph.hpp>
 #include <Process/TimeValue.hpp>
+#include <Scenario/Document/Graph.hpp>
 #include <hopscotch_set.h>
 
 namespace Engine
@@ -17,16 +17,13 @@ struct PlayFromIntervalScenarioPruner
   Scenario::IntervalModel& interval;
   TimeVal time;
 
-   tsl::hopscotch_set<Scenario::IntervalModel*> intervalsToKeep() const;
+  tsl::hopscotch_set<Scenario::IntervalModel*> intervalsToKeep() const;
 
   bool toRemove(
       const tsl::hopscotch_set<Scenario::IntervalModel*>& toKeep,
       Scenario::IntervalModel& cst) const;
 
-
   void operator()(const Context& exec_ctx);
-
 };
-
 }
 }

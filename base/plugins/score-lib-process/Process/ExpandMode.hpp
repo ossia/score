@@ -1,7 +1,7 @@
 #pragma once
 #include <QMetaType>
 
-enum ExpandMode: int8_t
+enum ExpandMode : int8_t
 {
   Scale,
   GrowShrink,
@@ -9,7 +9,7 @@ enum ExpandMode: int8_t
   CannotExpand
 };
 
-enum LockMode: int8_t
+enum LockMode : int8_t
 {
   Free,
   Constrained

@@ -1,5 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
+#include "MessageNode.hpp"
 
 #include <QDataStream>
 #include <QJsonArray>
@@ -8,18 +10,16 @@
 #include <QString>
 #include <QVector>
 #include <QtGlobal>
+#include <State/Value.hpp>
+#include <State/ValueSerialization.hpp>
 #include <algorithm>
 #include <array>
 #include <cstddef>
-#include <score/serialization/VisitorCommon.hpp>
-
-#include "MessageNode.hpp"
-#include <State/Value.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
-#include <score/model/Identifier.hpp>
-#include <State/ValueSerialization.hpp>
+#include <score/serialization/VisitorCommon.hpp>
 
 namespace Process
 {
@@ -78,24 +78,21 @@ void fromJsonValue(
 }
 
 template <>
-void DataStreamReader::read(
-    const std::array<Process::PriorityPolicy, 3>& val)
+void DataStreamReader::read(const std::array<Process::PriorityPolicy, 3>& val)
 {
   for (int i = 0; i < 3; i++)
     m_stream << val.at(i);
 }
 
 template <>
-void DataStreamWriter::write(
-    std::array<Process::PriorityPolicy, 3>& val)
+void DataStreamWriter::write(std::array<Process::PriorityPolicy, 3>& val)
 {
   for (int i = 0; i < 3; i++)
     m_stream >> val.at(i);
 }
 
 template <>
-void DataStreamReader::read(
-    const Process::ProcessStateData& val)
+void DataStreamReader::read(const Process::ProcessStateData& val)
 {
   m_stream << val.process << val.value;
 }
@@ -107,8 +104,7 @@ void DataStreamWriter::write(Process::ProcessStateData& val)
 }
 
 template <>
-void JSONObjectReader::read(
-    const Process::ProcessStateData& val)
+void JSONObjectReader::read(const Process::ProcessStateData& val)
 {
   obj[strings.Process] = toJsonValue(val.process);
   toJsonValue(obj, strings.Value, val.value);
@@ -117,8 +113,7 @@ void JSONObjectReader::read(
 template <>
 void JSONObjectWriter::write(Process::ProcessStateData& val)
 {
-  val.process
-      = fromJsonValue<Id<Process::ProcessModel>>(obj[strings.Process]);
+  val.process = fromJsonValue<Id<Process::ProcessModel>>(obj[strings.Process]);
   fromJsonValue(obj, strings.Value, val.value);
 }
 
@@ -149,8 +144,7 @@ template <>
 void JSONObjectWriter::write(Process::StateNodeValues& val)
 {
   fromJsonArray(obj[strings.Previous].toArray(), val.previousProcessValues);
-  fromJsonArray(
-      obj[strings.Following].toArray(), val.followingProcessValues);
+  fromJsonArray(obj[strings.Following].toArray(), val.followingProcessValues);
   fromJsonValue(obj, strings.User, val.userValue);
   fromJsonArray(obj[strings.Priorities].toArray(), val.priorities);
 }

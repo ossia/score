@@ -56,12 +56,13 @@ private:
 
 namespace std
 {
-template<>
-struct hash<score::Version> {
+template <>
+struct hash<score::Version>
+{
 public:
-    auto operator()(const score::Version& s) const
-    {
-      return s.value();
-    }
+  auto operator()(const score::Version& s) const
+  {
+    return s.value();
+  }
 };
 }

@@ -1,18 +1,8 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TimeSyncInspectorWidget.hpp"
 
 #include <Inspector/InspectorSectionWidget.hpp>
-#include <Scenario/Commands/TimeSync/SplitTimeSync.hpp>
-#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Inspector/Event/EventInspectorWidget.hpp>
-#include <Scenario/Inspector/MetadataWidget.hpp>
-#include <Scenario/Inspector/TimeSync/TriggerInspectorWidget.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <score/widgets/Separator.hpp>
-
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <QApplication>
 #include <QBoxLayout>
@@ -25,20 +15,29 @@
 #include <QTimer>
 #include <QVector>
 #include <QWidget>
+#include <Scenario/Commands/TimeSync/SplitTimeSync.hpp>
+#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Inspector/Event/EventInspectorWidget.hpp>
+#include <Scenario/Inspector/MetadataWidget.hpp>
+#include <Scenario/Inspector/TimeSync/TriggerInspectorWidget.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <algorithm>
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/model/path/Path.hpp>
+#include <score/model/path/PathSerialization.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
-#include <score/model/path/Path.hpp>
-#include <score/model/path/PathSerialization.hpp>
-#include <score/model/Identifier.hpp>
 #include <score/tools/Todo.hpp>
+#include <score/tools/std/Optional.hpp>
 #include <score/widgets/MarginLess.hpp>
+#include <score/widgets/Separator.hpp>
 #include <score/widgets/TextLabel.hpp>
 
 namespace Scenario
@@ -61,13 +60,15 @@ TimeSyncInspectorWidget::TimeSyncInspectorWidget(
   addHeader(m_metadata);
 
   // default date
-  m_date = new TextLabel{tr("Default date: ") + m_model.date().toString(), this};
+  m_date
+      = new TextLabel{tr("Default date: ") + m_model.date().toString(), this};
 
   // Trigger
   m_trigwidg = new TriggerInspectorWidget{
-      ctx, ctx.app.interfaces<Command::TriggerCommandFactoryList>(),
-      m_model, this};
-  updateAreaLayout({m_date, new score::HSeparator{this}, new TextLabel{tr("Trigger")}, m_trigwidg});
+      ctx, ctx.app.interfaces<Command::TriggerCommandFactoryList>(), m_model,
+      this};
+  updateAreaLayout({m_date, new score::HSeparator{this},
+                    new TextLabel{tr("Trigger")}, m_trigwidg});
 
   // display data
   updateDisplayedValues();

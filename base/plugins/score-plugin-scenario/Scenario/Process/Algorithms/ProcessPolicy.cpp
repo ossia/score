@@ -1,7 +1,9 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ProcessPolicy.hpp"
+
 #include <ossia/detail/algorithms.hpp>
+
 #include <Process/State/ProcessStateDataInterface.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
@@ -127,8 +129,7 @@ void RemoveProcess(
   interval.processes.remove(proc_id);
 }
 
-void SetPreviousInterval(
-    StateModel& state, const IntervalModel& interval)
+void SetPreviousInterval(StateModel& state, const IntervalModel& interval)
 {
   SetNoPreviousInterval(state);
 

@@ -1,13 +1,12 @@
 #pragma once
 
+#include <Device/Node/DeviceNode.hpp>
+#include <Explorer/Explorer/ListeningManager.hpp>
 #include <QAbstractItemModel>
 #include <QGroupBox>
 #include <QWidget>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <memory>
-
-#include <Device/Node/DeviceNode.hpp>
-#include <Explorer/Explorer/ListeningManager.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/model/tree/TreePath.hpp>
 
 class QAction;
@@ -32,7 +31,8 @@ class DeviceEditDialog;
 class DeviceExplorerFilterProxyModel;
 class DeviceExplorerModel;
 class DeviceExplorerView;
-class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerWidget final : public QWidget
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerWidget final
+    : public QWidget
 {
   Q_OBJECT
 

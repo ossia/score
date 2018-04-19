@@ -1,15 +1,13 @@
 #pragma once
 #include <Automation/Metronome/MetronomeProcessMetadata.hpp>
 #include <Curve/Process/CurveProcessModel.hpp>
-#include <QByteArray>
-#include <QString>
-#include <QObject>
-#include <State/Address.hpp>
-
 #include <Process/TimeValue.hpp>
-#include <score/serialization/VisitorInterface.hpp>
-
+#include <QByteArray>
+#include <QObject>
+#include <QString>
+#include <State/Address.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/serialization/VisitorInterface.hpp>
 #include <score_plugin_automation_export.h>
 
 namespace Metronome
@@ -21,7 +19,8 @@ class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
   PROCESS_METADATA_IMPL(Metronome::ProcessModel)
 
   Q_OBJECT
-  Q_PROPERTY(State::Address address READ address WRITE setAddress NOTIFY addressChanged)
+  Q_PROPERTY(State::Address address READ address WRITE setAddress NOTIFY
+                 addressChanged)
   // Min and max to scale the curve with at execution
   Q_PROPERTY(double min READ min WRITE setMin NOTIFY minChanged)
   Q_PROPERTY(double max READ max WRITE setMax NOTIFY maxChanged)
@@ -34,8 +33,7 @@ public:
   ~ProcessModel() override;
 
   template <typename Impl>
-  ProcessModel(Impl& vis, QObject* parent)
-      : CurveProcessModel{vis, parent}
+  ProcessModel(Impl& vis, QObject* parent) : CurveProcessModel{vis, parent}
   {
     vis.writeTo(*this);
     init();

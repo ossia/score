@@ -80,7 +80,8 @@ public:
   }
 
   template <typename... Args>
-  Document* loadDocument(const score::GUIApplicationContext& ctx, Args&&... args)
+  Document*
+  loadDocument(const score::GUIApplicationContext& ctx, Args&&... args)
   {
     auto cur = currentDocument();
     if (cur && cur->virgin())
@@ -140,9 +141,7 @@ private:
   checkAndUpdateJson(QJsonDocument&, const score::GUIApplicationContext& ctx);
 
   bool updateJson(
-      QJsonObject& object,
-      score::Version json_ver,
-      score::Version score_ver);
+      QJsonObject& object, score::Version json_ver, score::Version score_ver);
 
   void saveRecentFilesState();
 
@@ -156,5 +155,6 @@ private:
 };
 
 Id<score::DocumentModel> getStrongId(const std::vector<score::Document*>& v);
-Id<score::DocumentPlugin> getStrongId(const std::vector<score::DocumentPlugin*>& v);
+Id<score::DocumentPlugin>
+getStrongId(const std::vector<score::DocumentPlugin*>& v);
 }

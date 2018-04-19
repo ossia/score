@@ -1,7 +1,23 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Device/Loading/JamomaDeviceLoader.hpp>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "DeviceExplorerWidget.hpp"
+
+#include "../../../score-plugin-scenario/Scenario/Inspector/ObjectTree/ObjectItemModel.hpp"
+#include "DeviceExplorerFilterProxyModel.hpp"
+#include "DeviceExplorerView.hpp"
+#include "ExplorationWorkerWrapper.hpp"
+#include "QProgressIndicator.h"
+#include "Widgets/AddressEditDialog.hpp"
+#include "Widgets/DeviceEditDialog.hpp"
+
+#include <ossia/detail/algorithms.hpp>
+
+#include <Device/Address/AddressSettings.hpp>
 #include <Device/Loading/IScoreDeviceLoader.hpp>
+#include <Device/Loading/JamomaDeviceLoader.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
+#include <Device/Protocol/DeviceSettings.hpp>
+#include <Device/Protocol/ProtocolList.hpp>
 #include <Explorer/Commands/Add/AddAddress.hpp>
 #include <Explorer/Commands/Add/AddDevice.hpp>
 #include <Explorer/Commands/Add/LoadDevice.hpp>
@@ -10,14 +26,13 @@
 #include <Explorer/Commands/ReplaceDevice.hpp>
 #include <Explorer/Commands/Update/UpdateAddressSettings.hpp>
 #include <Explorer/Commands/Update/UpdateDeviceSettings.hpp>
+#include <Explorer/DeviceList.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/AddressItemModel.hpp>
-#include <Device/Protocol/ProtocolList.hpp>
-#include <ossia-qt/js_utilities.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <Explorer/Listening/ListeningHandler.hpp>
 #include <QAbstractProxyModel>
 #include <QAction>
-#include <QTreeView>
-#include <QTableView>
-#include <QHeaderView>
 #include <QBoxLayout>
 #include <QComboBox>
 #include <QContextMenuEvent>
@@ -26,11 +41,14 @@
 #include <QEvent>
 #include <QFileDialog>
 #include <QGridLayout>
+#include <QHeaderView>
 #include <QIcon>
 #include <QJsonDocument>
 #include <QKeySequence>
+#include <QLabel>
 #include <QLineEdit>
 #include <QList>
+#include <QListWidget>
 #include <QMenu>
 #include <QPair>
 #include <QPushButton>
@@ -40,57 +58,38 @@
 #include <QStackedLayout>
 #include <QString>
 #include <QStringList>
+#include <QTableView>
 #include <QTreeView>
-#include <algorithm>
-#include <score/tools/std/Optional.hpp>
-#include <qnamespace.h>
-#include <set>
-#include <stdexcept>
-
-#include "DeviceExplorerFilterProxyModel.hpp"
-#include "DeviceExplorerView.hpp"
-#include "DeviceExplorerWidget.hpp"
-#include "ExplorationWorkerWrapper.hpp"
-#include "QProgressIndicator.h"
-#include "Widgets/AddressEditDialog.hpp"
-#include "Widgets/DeviceEditDialog.hpp"
-#include <ossia/detail/algorithms.hpp>
-#include <Device/Address/AddressSettings.hpp>
-#include <Device/Protocol/DeviceInterface.hpp>
-#include <Explorer/DeviceList.hpp>
-#include <Device/Protocol/DeviceSettings.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <Explorer/Listening/ListeningHandler.hpp>
 #include <State/Address.hpp>
 #include <State/Value.hpp>
+#include <algorithm>
+#include <ossia-qt/js_utilities.hpp>
+#include <qnamespace.h>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/model/IdentifiedObject.hpp>
-#include <score/model/tree/InvisibleRootNode.hpp>
 #include <score/model/path/Path.hpp>
+#include <score/model/tree/InvisibleRootNode.hpp>
 #include <score/model/tree/TreeNode.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/tools/std/Optional.hpp>
 #include <score/widgets/SetIcons.hpp>
 #include <score/widgets/SignalUtils.hpp>
-
-#include "../../../score-plugin-scenario/Scenario/Inspector/ObjectTree/ObjectItemModel.hpp"
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
-
-#include <QLabel>
-#include <QListWidget>
+#include <set>
+#include <stdexcept>
 namespace Explorer
 {
 static const Device::DeviceSettings* getDevice(const Device::Node& n)
 {
-  if(n.is<Device::AddressSettings>())
+  if (n.is<Device::AddressSettings>())
   {
     const Device::Node* p = &n;
-    while((p = p->parent()))
+    while ((p = p->parent()))
     {
-      if(p->is<Device::DeviceSettings>())
+      if (p->is<Device::DeviceSettings>())
         return &p->get<Device::DeviceSettings>();
     }
   }
-  else if(n.is<Device::DeviceSettings>())
+  else if (n.is<Device::DeviceSettings>())
   {
     return &n.get<Device::DeviceSettings>();
   }
@@ -116,9 +115,7 @@ public:
     lay->addWidget(buttonBox);
 
     con(dev, &Device::DeviceInterface::pathAdded, this,
-        [=](const State::Address& a) {
-          m_list->addItem(a.toString());
-        });
+        [=](const State::Address& a) { m_list->addItem(a.toString()); });
 
     m_dev.setLearning(true);
   }
@@ -142,27 +139,31 @@ DeviceExplorerWidget::DeviceExplorerWidget(
   buildGUI();
 
   // Set the expansion signals
-  connect(m_ntView, &DeviceExplorerView::created,
-          this, [&] (const QModelIndex& parent, int start, int end) {
-
-    if (m_listeningManager)
-    {
-      for(int i = start; i <= end; i++)
-      {
-        Device::Node* node{};
-        if(m_ntView->hasProxy())
+  connect(
+      m_ntView, &DeviceExplorerView::created, this,
+      [&](const QModelIndex& parent, int start, int end) {
+        if (m_listeningManager)
         {
-          node = (Device::Node*)sourceIndex(((QTreeView*)m_ntView)->model()->index(i, 0, parent)).internalPointer();
-        }
-        else
-        {
-          node = ((Device::Node*)model()->index(i, 0, parent).internalPointer());
-        }
+          for (int i = start; i <= end; i++)
+          {
+            Device::Node* node{};
+            if (m_ntView->hasProxy())
+            {
+              node = (Device::Node*)sourceIndex(
+                         ((QTreeView*)m_ntView)->model()->index(i, 0, parent))
+                         .internalPointer();
+            }
+            else
+            {
+              node = ((Device::Node*)model()
+                          ->index(i, 0, parent)
+                          .internalPointer());
+            }
 
-        m_listeningManager->enableListening(*node);
-      }
-    }
-  });
+            m_listeningManager->enableListening(*node);
+          }
+        }
+      });
   connect(m_ntView, &QTreeView::expanded, this, [&](const QModelIndex& idx) {
     if (m_listeningManager)
       m_listeningManager->setListening(idx, true);
@@ -176,12 +177,12 @@ DeviceExplorerWidget::DeviceExplorerWidget(
 void DeviceExplorerWidget::buildGUI()
 {
   m_ntView = new DeviceExplorerView(this);
-  m_ntView->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
-
+  m_ntView->setSizePolicy(
+      QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
 
   m_addressModel = new AddressItemModel{this};
   m_addressView = new QTableView{this};
-  auto delegate= new AddressItemDelegate{m_addressView};
+  auto delegate = new AddressItemDelegate{m_addressView};
   m_addressView->setItemDelegate(delegate);
   m_addressView->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
   m_addressView->setMinimumHeight(100);
@@ -189,7 +190,8 @@ void DeviceExplorerWidget::buildGUI()
   m_addressView->horizontalHeader()->hide();
   m_addressView->verticalHeader()->hide();
   m_addressView->horizontalHeader()->setCascadingSectionResizes(true);
-  m_addressView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+  m_addressView->horizontalHeader()->setSectionResizeMode(
+      QHeaderView::ResizeToContents);
   m_addressView->horizontalHeader()->setStretchLastSection(true);
   m_addressView->setAlternatingRowColors(true);
   m_addressView->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
@@ -199,12 +201,15 @@ void DeviceExplorerWidget::buildGUI()
 
   m_addressView->setModel(m_addressModel);
   connect(
-      m_ntView, static_cast<void (DeviceExplorerView::*)()>(
-                    &DeviceExplorerView::selectionChanged),
-        this, [=] {
-    updateAddressView();
-    updateActions();
-  }, Qt::QueuedConnection);
+      m_ntView,
+      static_cast<void (DeviceExplorerView::*)()>(
+          &DeviceExplorerView::selectionChanged),
+      this,
+      [=] {
+        updateAddressView();
+        updateActions();
+      },
+      Qt::QueuedConnection);
 
   m_editAction = new QAction(tr("Edit"), this);
 
@@ -270,7 +275,8 @@ void DeviceExplorerWidget::buildGUI()
   connect(
       m_learnAction, &QAction::triggered, this, &DeviceExplorerWidget::learn);
   connect(
-      m_findUsageAction, &QAction::triggered, this, &DeviceExplorerWidget::findUsage);
+      m_findUsageAction, &QAction::triggered, this,
+      &DeviceExplorerWidget::findUsage);
 
   QPushButton* addButton = new QPushButton(this);
 
@@ -286,8 +292,8 @@ void DeviceExplorerWidget::buildGUI()
 
   addButton->setMaximumSize(QSize(32, 32));
   addButton->setIcon(addButtonIcon);
-  addButton->setStyleSheet(
-      "QPushButton::menu-indicator{ image: url(none.jpg); }" /*to hide the small triangle added to indicate a menu.*/);
+  addButton
+      ->setStyleSheet("QPushButton::menu-indicator{ image: url(none.jpg); }" /*to hide the small triangle added to indicate a menu.*/);
 
   m_addDeviceAction = new QAction(
       QIcon(":/resources/images/addDevice.png"), tr("Add device"), this);
@@ -492,31 +498,34 @@ void DeviceExplorerWidget::setModel(DeviceExplorerModel* model)
 
     updateActions();
 
-    m_modelCon = connect(model, &DeviceExplorerModel::nodeChanged,
-                         this, [this] (Device::Node* n) {
-      bool parent_is_expanded = m_ntView->isExpanded(
-          proxyIndex(m_ntView->model()->modelIndexFromNode(*n->parent(), 0)));
-      if(parent_is_expanded)
-      {
-        if (m_listeningManager)
-          m_listeningManager->enableListening(*n);
-      }
-    });
+    m_modelCon = connect(
+        model, &DeviceExplorerModel::nodeChanged, this,
+        [this](Device::Node* n) {
+          bool parent_is_expanded = m_ntView->isExpanded(proxyIndex(
+              m_ntView->model()->modelIndexFromNode(*n->parent(), 0)));
+          if (parent_is_expanded)
+          {
+            if (m_listeningManager)
+              m_listeningManager->enableListening(*n);
+          }
+        });
 
-      connect(model, &DeviceExplorerModel::dataChanged,
-              this, [this] (const QModelIndex &topLeft,
-                            const QModelIndex &bottomRight,
-                            const QVector<int> &roles) {
-        auto indexes = m_ntView->selectedIndexes();
+    connect(
+        model, &DeviceExplorerModel::dataChanged, this,
+        [this](
+            const QModelIndex& topLeft, const QModelIndex& bottomRight,
+            const QVector<int>& roles) {
+          auto indexes = m_ntView->selectedIndexes();
 
-        if(indexes.size() == 1)
-        {
-          auto selected = sourceIndex(indexes.first());
+          if (indexes.size() == 1)
+          {
+            auto selected = sourceIndex(indexes.first());
 
-          if(selected.parent() == topLeft.parent() && selected.row() == topLeft.row())
-            updateAddressView();
-        }
-      });
+            if (selected.parent() == topLeft.parent()
+                && selected.row() == topLeft.row())
+              updateAddressView();
+          }
+        });
   }
   else
   {
@@ -610,7 +619,6 @@ void DeviceExplorerWidget::updateActions()
   }
 }
 
-
 Device::FullAddressSettings make(const Device::Node& node)
 {
   SCORE_ASSERT(node.is<Device::AddressSettings>());
@@ -623,24 +631,20 @@ Device::FullAddressSettings make(const Device::Node& node)
   return as;
 }
 
-
 void DeviceExplorerWidget::updateAddressView()
 {
   auto indexes = m_ntView->selectedIndexes();
 
-  if(indexes.size() != 1)
+  if (indexes.size() != 1)
   {
     m_addressModel->clear();
     return;
   }
 
   auto& n = model()->nodeFromModelIndex(sourceIndex(indexes.first()));
-  if(n.is<Device::AddressSettings>())
+  if (n.is<Device::AddressSettings>())
   {
-    m_addressModel->setState(
-          model(),
-          Device::NodePath(n),
-          make(n));
+    m_addressModel->setState(model(), Device::NodePath(n), make(n));
   }
   else
   {
@@ -662,7 +666,6 @@ DeviceExplorerFilterProxyModel* DeviceExplorerWidget::proxyModel()
 {
   return m_proxyModel;
 }
-
 
 void DeviceExplorerWidget::edit()
 {
@@ -693,23 +696,23 @@ void DeviceExplorerWidget::edit()
   {
     auto before = select.get<Device::AddressSettings>();
 
-    if(!model())
+    if (!model())
       return;
 
     auto dev_s = getDevice(select);
-    if(!dev_s)
+    if (!dev_s)
       return;
     auto proto = m_protocolList.get(dev_s->protocol);
-    if(!proto)
+    if (!proto)
       return;
     auto dev = model()->deviceModel().list().findDevice(dev_s->name);
-    if(!dev)
+    if (!dev)
       return;
 
-    QScopedPointer<Device::AddressDialog> dial{
-        proto->makeEditAddressDialog(before, *dev, model()->deviceModel().context(), this)};
+    QScopedPointer<Device::AddressDialog> dial{proto->makeEditAddressDialog(
+        before, *dev, model()->deviceModel().context(), this)};
 
-    if(!dial)
+    if (!dial)
       return;
 
     auto code = static_cast<QDialog::DialogCode>(dial->exec());
@@ -747,10 +750,10 @@ void DeviceExplorerWidget::refresh()
     if (!dev.capabilities().canRefreshTree)
       return;
 
-    if(!dev.connected())
+    if (!dev.connected())
       return;
     auto wrkr = make_worker(
-        [=] (Device::Node&& node) {
+        [=](Device::Node&& node) {
           auto cmd = new Explorer::Command::ReplaceDevice{
               m->deviceModel(), m_ntView->selectedIndex().row(),
               std::move(node)};
@@ -787,15 +790,14 @@ void DeviceExplorerWidget::refreshValue()
     auto& dev = model()->deviceModel().list().device(addr.address.device);
     if (!dev.capabilities().canRefreshValue)
       return;
-    if(!dev.connected())
+    if (!dev.connected())
       return;
 
     // Getting the new values
     auto val = dev.refresh(addr.address);
     if (val)
     {
-      expl->editData(
-          *node, Explorer::Column::Value, *val, Qt::EditRole);
+      expl->editData(*node, Explorer::Column::Value, *val, Qt::EditRole);
     }
   }
 }
@@ -1056,7 +1058,7 @@ void DeviceExplorerWidget::learn()
   if (!di->capabilities().canLearn)
     return;
 
-  if(!di->connected())
+  if (!di->connected())
     return;
 
   // Make a copy of the node
@@ -1106,7 +1108,6 @@ void DeviceExplorerWidget::findUsage()
     State::AddressAccessor address = Device::address(n);
 
     search_txt.push_back(address.address.toString());
-
   }
   findAddresses(search_txt);
 }
@@ -1128,19 +1129,19 @@ void DeviceExplorerWidget::addAddress(InsertMode insert)
   }
 
   auto dev_s = getDevice(node);
-  if(!dev_s)
+  if (!dev_s)
     return;
   auto proto = m_protocolList.get(dev_s->protocol);
-  if(!proto)
+  if (!proto)
     return;
   auto dev = model()->deviceModel().list().findDevice(dev_s->name);
-  if(!dev)
+  if (!dev)
     return;
 
-  QScopedPointer<Device::AddressDialog> dial{
-      proto->makeAddAddressDialog(*dev, model()->deviceModel().context(), this)};
+  QScopedPointer<Device::AddressDialog> dial{proto->makeAddAddressDialog(
+      *dev, model()->deviceModel().context(), this)};
 
-  if(!dial)
+  if (!dial)
     return;
 
   auto code = static_cast<QDialog::DialogCode>(dial->exec());

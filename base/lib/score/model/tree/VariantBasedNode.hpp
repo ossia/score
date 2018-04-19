@@ -1,10 +1,8 @@
 #pragma once
 #include <eggs/variant.hpp>
-
+#include <score/model/tree/InvisibleRootNode.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
-
-#include <score/model/tree/InvisibleRootNode.hpp>
 
 namespace score
 {
@@ -93,6 +91,7 @@ public:
   {
     return m_data == other.m_data;
   }
+
 protected:
   eggs::variant<InvisibleRootNode, Args...> m_data;
 };

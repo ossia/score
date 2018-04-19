@@ -1,18 +1,5 @@
 #pragma once
 #include "ScenarioToolState.hpp"
-#include <Scenario/Palette/ScenarioPaletteBaseStates.hpp>
-
-#include <Scenario/Palette/Transitions/EventTransitions.hpp>
-#include <Scenario/Palette/Transitions/NothingTransitions.hpp>
-#include <Scenario/Palette/Transitions/StateTransitions.hpp>
-#include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
-
-#include <Scenario/Palette/Tools/States/ScenarioCreation_FromEvent.hpp>
-#include <Scenario/Palette/Tools/States/ScenarioCreation_FromNothing.hpp>
-#include <Scenario/Palette/Tools/States/ScenarioCreation_FromState.hpp>
-#include <Scenario/Palette/Tools/States/ScenarioCreation_FromTimeSync.hpp>
-
-#include <Scenario/Palette/Tools/ScenarioToolState.hpp>
 
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
@@ -20,7 +7,16 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncView.hpp>
-
+#include <Scenario/Palette/ScenarioPaletteBaseStates.hpp>
+#include <Scenario/Palette/Tools/ScenarioToolState.hpp>
+#include <Scenario/Palette/Tools/States/ScenarioCreation_FromEvent.hpp>
+#include <Scenario/Palette/Tools/States/ScenarioCreation_FromNothing.hpp>
+#include <Scenario/Palette/Tools/States/ScenarioCreation_FromState.hpp>
+#include <Scenario/Palette/Tools/States/ScenarioCreation_FromTimeSync.hpp>
+#include <Scenario/Palette/Transitions/EventTransitions.hpp>
+#include <Scenario/Palette/Transitions/NothingTransitions.hpp>
+#include <Scenario/Palette/Transitions/StateTransitions.hpp>
+#include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/statemachine/StateMachineTools.hpp>
 
@@ -123,7 +119,6 @@ public:
 
         // Click on the background
         [&]() {
-
           // Here we have the logic for the creation in nothing
           // where we instead choose the latest state if selected
           if (auto state = furthestSelectedState(this->m_palette.model()))
@@ -138,7 +133,6 @@ public:
           }
 
           this->localSM().postEvent(new ClickOnNothing_Event{sp});
-
         });
   }
   void on_moved(QPointF scene, Scenario::Point sp)
@@ -157,9 +151,7 @@ public:
             this->localSM().postEvent(new MoveOnTimeSync_Event{id, sp});
           },
           [&]() { this->localSM().postEvent(new MoveOnNothing_Event{sp}); },
-          cs->createdStates,
-          cs->createdEvents,
-          cs->createdTimeSyncs);
+          cs->createdStates, cs->createdEvents, cs->createdTimeSyncs);
     }
   }
   void on_released(QPointF scene, Scenario::Point sp)
@@ -178,9 +170,7 @@ public:
             this->localSM().postEvent(new ReleaseOnTimeSync_Event{id, sp});
           },
           [&]() { this->localSM().postEvent(new ReleaseOnNothing_Event{sp}); },
-          cs->createdStates,
-          cs->createdEvents,
-          cs->createdTimeSyncs);
+          cs->createdStates, cs->createdEvents, cs->createdTimeSyncs);
     }
   }
 

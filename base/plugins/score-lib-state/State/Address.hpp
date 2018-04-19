@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/detail/destination_index.hpp>
+
 #include <QHash>
 #include <QList>
 #include <QMetaObject>
@@ -8,11 +9,11 @@
 #include <QStringList>
 #include <boost/functional/hash.hpp>
 #include <cstddef>
+#include <memory>
+#include <score/tools/std/HashMap.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <score_lib_state_export.h>
-#include <memory>
 #include <string>
-#include <score/tools/std/HashMap.hpp>
 
 namespace ossia
 {
@@ -77,7 +78,8 @@ struct SCORE_LIB_STATE_EXPORT Address
   static bool validateFragment(const QString& s);
 
   // Make an address from a valid address string
-  static optional<Address> fromString(const QString& str); // TODO return optional
+  static optional<Address>
+  fromString(const QString& str); // TODO return optional
 
   /**
    * @brief toString
@@ -110,7 +112,8 @@ struct SCORE_LIB_STATE_EXPORT AddressAccessor
   explicit AddressAccessor(State::Address a) noexcept;
   AddressAccessor(State::Address a, const AccessorVector& v) noexcept;
   AddressAccessor(
-      State::Address a, const AccessorVector& v,
+      State::Address a,
+      const AccessorVector& v,
       const ossia::unit_t&) noexcept;
 
   AddressAccessor& operator=(const Address& a);

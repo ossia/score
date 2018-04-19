@@ -1,11 +1,10 @@
 #pragma once
 #include <QByteArray>
-#include <score/tools/std/HashMap.hpp>
 #include <memory>
-#include <utility>
-
 #include <score/command/CommandFactoryKey.hpp>
+#include <score/tools/std/HashMap.hpp>
 #include <score_lib_base_export.h>
+#include <utility>
 
 namespace score
 {
@@ -27,11 +26,13 @@ class Command;
  * They are stored in a \ref CommandData upon serialization, along with
  * the command-specific data.
  *
- * Reinstatiation is donne through \ref score::ApplicationContext::instantiateUndoCommand.
+ * Reinstatiation is donne through \ref
+ * score::ApplicationContext::instantiateUndoCommand.
  *
  * OPTIMIZEME: right now the names are used, it should be nice to migrate
  * towards uids.
- * OPTIMIZEME : maybe we could just concatenate both keys and have a single hash_map...
+ * OPTIMIZEME : maybe we could just concatenate both keys and have a single
+ * hash_map...
  */
 
 /**
@@ -43,8 +44,7 @@ class SCORE_LIB_BASE_EXPORT CommandFactory
 {
 public:
   virtual ~CommandFactory();
-  virtual score::Command*
-  operator()(const QByteArray& data) const = 0;
+  virtual score::Command* operator()(const QByteArray& data) const = 0;
 };
 
 /**
@@ -54,8 +54,7 @@ template <typename T>
 class GenericCommandFactory : public CommandFactory
 {
 public:
-  score::Command*
-  operator()(const QByteArray& data) const override
+  score::Command* operator()(const QByteArray& data) const override
   {
     auto t = new T;
     t->deserialize(data);
@@ -68,8 +67,7 @@ public:
  *
  * A map between command names and corresponding factories.
  */
-using CommandGeneratorMap
-    = score::hash_map<CommandKey, CommandFactory*>;
+using CommandGeneratorMap = score::hash_map<CommandKey, CommandFactory*>;
 
 namespace score
 {
@@ -77,7 +75,8 @@ namespace commands
 {
 
 /**
- * @brief Creates and inserts a new factory class for a given command, in a list of such factories.
+ * @brief Creates and inserts a new factory class for a given command, in a
+ * list of such factories.
  */
 struct FactoryInserter
 {
@@ -85,9 +84,8 @@ struct FactoryInserter
   template <typename TheCommand>
   void perform() const
   {
-    fact.insert(
-        std::pair<const CommandKey, CommandFactory*>{
-            TheCommand::static_key(), new GenericCommandFactory<TheCommand>});
+    fact.insert(std::pair<const CommandKey, CommandFactory*>{
+        TheCommand::static_key(), new GenericCommandFactory<TheCommand>});
   }
 };
 }

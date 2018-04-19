@@ -1,42 +1,39 @@
 #pragma once
-#include <Process/Process.hpp>
 #include <Process/GenericProcessFactory.hpp>
+#include <Process/Process.hpp>
 #include <Skeleton/Metadata.hpp>
 
 namespace Skeleton
 {
-class Model final
-    : public Process::ProcessModel
+class Model final : public Process::ProcessModel
 {
-    SCORE_SERIALIZE_FRIENDS
-    PROCESS_METADATA_IMPL(Skeleton::Model)
-    Q_OBJECT
+  SCORE_SERIALIZE_FRIENDS
+  PROCESS_METADATA_IMPL(Skeleton::Model)
+  Q_OBJECT
 
-    public:
-      Model(
-        const TimeVal& duration,
-        const Id<Process::ProcessModel>& id,
-        QObject* parent);
+public:
+  Model(
+      const TimeVal& duration,
+      const Id<Process::ProcessModel>& id,
+      QObject* parent);
 
-    template<typename Impl>
-    Model(Impl& vis, QObject* parent) :
-      Process::ProcessModel{vis, parent}
-    {
-      vis.writeTo(*this);
-    }
+  template <typename Impl>
+  Model(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
+  {
+    vis.writeTo(*this);
+  }
 
-    ~Model();
+  ~Model();
 
-  private:
+private:
+  QString prettyName() const override;
+  void startExecution() override;
+  void stopExecution() override;
+  void reset() override;
 
-    QString prettyName() const override;
-    void startExecution() override;
-    void stopExecution() override;
-    void reset() override;
-
-    void setDurationAndScale(const TimeVal& newDuration) override;
-    void setDurationAndGrow(const TimeVal& newDuration) override;
-    void setDurationAndShrink(const TimeVal& newDuration) override;
+  void setDurationAndScale(const TimeVal& newDuration) override;
+  void setDurationAndGrow(const TimeVal& newDuration) override;
+  void setDurationAndShrink(const TimeVal& newDuration) override;
 };
 
 using ProcessFactory = Process::GenericProcessModelFactory<Skeleton::Model>;

@@ -1,5 +1,5 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 /****************************************************************************
 **
 ** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
@@ -41,12 +41,12 @@
 **
 ****************************************************************************/
 
+#include "dynamictreemodel.h"
+#include "modeltest.h"
+
 #include <QtGui/QtGui>
 #include <QtTest/QtTest>
 #include <QtWidgets/QtWidgets>
-
-#include "dynamictreemodel.h"
-#include "modeltest.h"
 
 class tst_ModelTest : public QObject
 {
@@ -227,8 +227,7 @@ public:
         SIGNAL(rowsAboutToBeMoved(QModelIndex, int, int, QModelIndex, int)),
         SLOT(storePersistent()));
     connect(
-        m_proxy,
-        SIGNAL(rowsMoved(QModelIndex, int, int, QModelIndex, int)),
+        m_proxy, SIGNAL(rowsMoved(QModelIndex, int, int, QModelIndex, int)),
         SLOT(checkPersistent()));
   }
 

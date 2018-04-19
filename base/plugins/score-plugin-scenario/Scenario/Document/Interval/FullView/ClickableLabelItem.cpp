@@ -1,16 +1,16 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
+#include "ClickableLabelItem.hpp"
+
+#include <Process/Style/ScenarioStyle.hpp>
 #include <QBrush>
 #include <QFont>
 #include <QPainter>
 #include <algorithm>
 #include <qnamespace.h>
-
-#include "ClickableLabelItem.hpp"
 #include <score/model/ModelMetadata.hpp>
 #include <score/model/Skin.hpp>
-#include <Process/Style/ScenarioStyle.hpp>
 
 class QGraphicsSceneHoverEvent;
 class QGraphicsSceneMouseEvent;
@@ -18,8 +18,7 @@ class QGraphicsSceneMouseEvent;
 namespace Scenario
 {
 
-SeparatorItem::SeparatorItem(QGraphicsItem* parent)
-    : QGraphicsItem{parent}
+SeparatorItem::SeparatorItem(QGraphicsItem* parent) : QGraphicsItem{parent}
 {
 }
 
@@ -28,7 +27,8 @@ QRectF SeparatorItem::boundingRect() const
   return {0., 0., 5., 10.};
 }
 
-void SeparatorItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void SeparatorItem::paint(
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto& skin = ScenarioStyle::instance();
   const Q_DECL_RELAXED_CONSTEXPR QRectF rect{1., 1., 4., 9.};

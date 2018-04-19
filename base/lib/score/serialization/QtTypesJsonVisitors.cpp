@@ -1,5 +1,8 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "DataStreamVisitor.hpp"
+#include "JSONValueVisitor.hpp"
+
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonValue>
@@ -7,10 +10,6 @@
 #include <QTransform>
 #include <array>
 #include <boost/none_t.hpp>
-#include <score/tools/std/Optional.hpp>
-
-#include "DataStreamVisitor.hpp"
-#include "JSONValueVisitor.hpp"
 #include <score/tools/std/Optional.hpp>
 
 template <typename T>
@@ -34,15 +33,13 @@ auto makeJsonArray(std::initializer_list<QJsonValue> lst)
 }
 
 template <>
-SCORE_LIB_BASE_EXPORT void
-JSONValueReader::read(const QPointF& pt)
+SCORE_LIB_BASE_EXPORT void JSONValueReader::read(const QPointF& pt)
 {
   val = makeJsonArray({pt.x(), pt.y()});
 }
 
 template <>
-SCORE_LIB_BASE_EXPORT void
-JSONValueReader::read(const QColor& p)
+SCORE_LIB_BASE_EXPORT void JSONValueReader::read(const QColor& p)
 {
   auto pt = p.toRgb();
   val = makeJsonArray({pt.red(), pt.green(), pt.blue(), pt.alpha()});
@@ -55,7 +52,6 @@ SCORE_LIB_BASE_EXPORT void JSONValueWriter::write(QColor& pt)
   pt = QColor{arr[0].toInt(), arr[1].toInt(), arr[2].toInt(), arr[3].toInt()};
 }
 
-
 template <>
 SCORE_LIB_BASE_EXPORT void JSONValueWriter::write(QPointF& pt)
 {
@@ -65,8 +61,7 @@ SCORE_LIB_BASE_EXPORT void JSONValueWriter::write(QPointF& pt)
 }
 
 template <>
-SCORE_LIB_BASE_EXPORT void
-JSONValueReader::read(const QRectF& pt)
+SCORE_LIB_BASE_EXPORT void JSONValueReader::read(const QRectF& pt)
 {
   val = makeJsonArray({pt.x(), pt.y(), pt.width(), pt.height()});
 }
@@ -82,8 +77,7 @@ SCORE_LIB_BASE_EXPORT void JSONValueWriter::write(QRectF& pt)
 }
 
 template <>
-SCORE_LIB_BASE_EXPORT void
-JSONValueReader::read(const QTransform& pt)
+SCORE_LIB_BASE_EXPORT void JSONValueReader::read(const QTransform& pt)
 {
   val = makeJsonArray({pt.m11(), pt.m12(), pt.m13(), pt.m21(), pt.m22(),
                        pt.m23(), pt.m31(), pt.m32(), pt.m33()});
@@ -109,8 +103,7 @@ DataStreamReader::read(const std::array<float, 2>& obj)
 }
 
 template <>
-SCORE_LIB_BASE_EXPORT void
-DataStreamWriter::write(std::array<float, 2>& obj)
+SCORE_LIB_BASE_EXPORT void DataStreamWriter::write(std::array<float, 2>& obj)
 {
   for (auto i = 0U; i < obj.size(); i++)
     m_stream >> obj[i];
@@ -127,8 +120,7 @@ DataStreamReader::read(const std::array<float, 3>& obj)
 }
 
 template <>
-SCORE_LIB_BASE_EXPORT void
-DataStreamWriter::write(std::array<float, 3>& obj)
+SCORE_LIB_BASE_EXPORT void DataStreamWriter::write(std::array<float, 3>& obj)
 {
   for (auto i = 0U; i < obj.size(); i++)
     m_stream >> obj[i];
@@ -145,8 +137,7 @@ DataStreamReader::read(const std::array<float, 4>& obj)
 }
 
 template <>
-SCORE_LIB_BASE_EXPORT void
-DataStreamWriter::write(std::array<float, 4>& obj)
+SCORE_LIB_BASE_EXPORT void DataStreamWriter::write(std::array<float, 4>& obj)
 {
   for (auto i = 0U; i < obj.size(); i++)
     m_stream >> obj[i];
@@ -154,8 +145,7 @@ DataStreamWriter::write(std::array<float, 4>& obj)
 }
 
 template <>
-SCORE_LIB_BASE_EXPORT void
-DataStreamReader::read(const QJsonObject& obj)
+SCORE_LIB_BASE_EXPORT void DataStreamReader::read(const QJsonObject& obj)
 {
   QJsonDocument doc{obj};
   m_stream << doc.toBinaryData();
@@ -163,8 +153,7 @@ DataStreamReader::read(const QJsonObject& obj)
 }
 
 template <>
-SCORE_LIB_BASE_EXPORT void
-DataStreamWriter::write(QJsonObject& obj)
+SCORE_LIB_BASE_EXPORT void DataStreamWriter::write(QJsonObject& obj)
 {
   QByteArray arr;
   m_stream >> arr;

@@ -1,15 +1,14 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "MoveNewEvent.hpp"
 
 #include <QByteArray>
-#include <algorithm>
-
-#include "MoveNewEvent.hpp"
 #include <Scenario/Commands/Scenario/Displacement/MoveEventOnCreationMeta.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
+#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <algorithm>
 #include <score/model/path/PathSerialization.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 
 namespace Scenario
 {
@@ -24,7 +23,8 @@ MoveNewEvent::MoveNewEvent(
     bool yLocked)
     : m_path{scenarioPath}
     , m_intervalId{std::move(intervalId)}
-    , m_cmd{scenarioPath, std::move(eventId), std::move(date), ExpandMode::Scale}
+    , m_cmd{scenarioPath, std::move(eventId), std::move(date),
+            ExpandMode::Scale}
     , m_y{y}
     , m_yLocked{yLocked}
 {

@@ -1,10 +1,10 @@
 #pragma once
-#include <memory>
-
-#include <ossia/editor/state/state_element.hpp>
-#include <QObject>
-#include <score_plugin_engine_export.h>
 #include <ossia/editor/scenario/clock.hpp>
+#include <ossia/editor/state/state_element.hpp>
+
+#include <QObject>
+#include <memory>
+#include <score_plugin_engine_export.h>
 namespace ossia
 {
 struct time_value;
@@ -114,7 +114,10 @@ public:
 
   void init(BaseScenarioRefContainer);
   void cleanup();
-  bool active() const { return bool(m_ossia_interval); }
+  bool active() const
+  {
+    return bool(m_ossia_interval);
+  }
 
   IntervalComponent& baseInterval() const;
 

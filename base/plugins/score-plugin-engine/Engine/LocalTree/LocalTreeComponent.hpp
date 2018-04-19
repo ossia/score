@@ -23,7 +23,10 @@ public:
     return m_thisNode.node;
   }
 
-  auto& context() const { return this->system().context(); }
+  auto& context() const
+  {
+    return this->system().context();
+  }
 
 protected:
   MetadataNamePropertyWrapper m_thisNode;

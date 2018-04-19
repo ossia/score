@@ -1,6 +1,6 @@
 #pragma once
-#include <score/plugins/customfactory/FactoryInterface.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
+#include <score/plugins/customfactory/FactoryInterface.hpp>
 #include <score_lib_process_export.h>
 namespace Process
 {
@@ -34,10 +34,10 @@ public:
   }
 
   QWidget* make(
-       const QList<const QObject*>& objects,
-       const score::DocumentContext& doc,
-       QWidget* parent) const final override;
-   bool matches(const QList<const QObject*>& objects) const final override;
+      const QList<const QObject*>& objects,
+      const score::DocumentContext& doc,
+      QWidget* parent) const final override;
+  bool matches(const QList<const QObject*>& objects) const final override;
 };
 
 template <typename Process_T, typename Widget_T>
@@ -58,5 +58,4 @@ private:
     return dynamic_cast<const Process_T*>(&process);
   }
 };
-
 }

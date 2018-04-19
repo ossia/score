@@ -1,15 +1,16 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CommentBlockView.hpp"
+
 #include "TextItem.hpp"
 
+#include <Process/Style/ScenarioStyle.hpp>
 #include <QFont>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 #include <QTextCursor>
 #include <QTextDocument>
 #include <QWidget>
-#include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
 #include <cmath>
 namespace Scenario

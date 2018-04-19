@@ -1,5 +1,9 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "CurvePointView.hpp"
+
+#include "CurvePointModel.hpp"
+
 #include <Curve/CurveStyle.hpp>
 #include <QColor>
 #include <QCursor>
@@ -7,11 +11,8 @@
 #include <QPainter>
 #include <QPen>
 #include <QtGlobal>
-#include <score/selection/Selectable.hpp>
 #include <qnamespace.h>
-
-#include "CurvePointModel.hpp"
-#include "CurvePointView.hpp"
+#include <score/selection/Selectable.hpp>
 #include <score/tools/Todo.hpp>
 
 class QStyleOptionGraphicsItem;
@@ -22,9 +23,9 @@ namespace Curve
 static const qreal radius = 2.85;
 static const QRectF ellipse{-radius, -radius, 2. * radius, 2. * radius};
 static const QPolygonF ellipsePath{[] {
-    QPainterPath p;
-    p.addEllipse(ellipse);
-    return p.simplified().toFillPolygon();
+  QPainterPath p;
+  p.addEllipse(ellipse);
+  return p.simplified().toFillPolygon();
 }()};
 PointView::PointView(
     const PointModel* model, const Curve::Style& style, QGraphicsItem* parent)
@@ -33,7 +34,8 @@ PointView::PointView(
   this->setZValue(2);
   this->setCursor(Qt::CrossCursor);
   this->setFlag(ItemIsFocusable, false);
-  // Bad on retina. :( this->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
+  // Bad on retina. :(
+  // this->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
 
   setModel(model);
 }
@@ -68,7 +70,7 @@ void PointView::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, true);
-  if(!m_selected)
+  if (!m_selected)
   {
     painter->setPen(m_style.PenPoint);
     painter->setBrush(m_style.BrushPoint);

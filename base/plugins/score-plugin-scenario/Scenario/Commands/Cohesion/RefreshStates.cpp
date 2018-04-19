@@ -1,22 +1,23 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Scenario/Commands/State/AddMessagesToState.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <algorithm>
-#include <score/document/DocumentInterface.hpp>
-#include <vector>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "RefreshStates.hpp"
+
 #include "RefreshStatesMacro.hpp"
+
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <Process/State/MessageNode.hpp>
+#include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <State/Message.hpp>
 #include <State/Value.hpp>
+#include <algorithm>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/document/DocumentInterface.hpp>
 #include <score/selection/SelectionStack.hpp>
+#include <vector>
 
 namespace Scenario
 {

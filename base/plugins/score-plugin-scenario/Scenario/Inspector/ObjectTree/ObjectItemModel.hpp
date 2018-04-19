@@ -1,20 +1,19 @@
 #pragma once
+#include <QAbstractItemModel>
+#include <QContextMenuEvent>
+#include <QHeaderView>
+#include <QLabel>
+#include <QLineEdit>
+#include <QMenu>
+#include <QPushButton>
+#include <QTreeView>
+#include <QVBoxLayout>
 #include <score/document/DocumentContext.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
 #include <score/plugins/panel/PanelDelegateFactory.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/selection/SelectionStack.hpp>
 #include <score/widgets/MarginLess.hpp>
-
-#include <QAbstractItemModel>
-#include <QTreeView>
-#include <QVBoxLayout>
-#include <QHeaderView>
-#include <QContextMenuEvent>
-#include <QMenu>
-#include <QPushButton>
-#include <QLabel>
-#include <QLineEdit>
 class QToolButton;
 class QGraphicsSceneMouseEvent;
 namespace Scenario
@@ -26,80 +25,88 @@ class ObjectItemModel final
     : public QAbstractItemModel
     , public Nano::Observer
 {
-    Q_OBJECT
-  public:
-    ObjectItemModel(const score::DocumentContext& ctx, QObject* parent);
-    void setSelected(QList<const IdentifiedObjectAbstract*> sel);
+  Q_OBJECT
+public:
+  ObjectItemModel(const score::DocumentContext& ctx, QObject* parent);
+  void setSelected(QList<const IdentifiedObjectAbstract*> sel);
 
-    QModelIndex index(int row, int column, const QModelIndex& parent) const override;
-    QModelIndex parent(const QModelIndex& child) const override;
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+  QModelIndex
+  index(int row, int column, const QModelIndex& parent) const override;
+  QModelIndex parent(const QModelIndex& child) const override;
+  QVariant headerData(
+      int section, Qt::Orientation orientation, int role) const override;
 
-    int rowCount(const QModelIndex& parent) const override;
-    int columnCount(const QModelIndex& parent) const override;
+  int rowCount(const QModelIndex& parent) const override;
+  int columnCount(const QModelIndex& parent) const override;
 
-    QVariant data(const QModelIndex& index, int role) const override;
-    Qt::ItemFlags flags(const QModelIndex& index) const override;
+  QVariant data(const QModelIndex& index, int role) const override;
+  Qt::ItemFlags flags(const QModelIndex& index) const override;
 
-    bool setData(const QModelIndex& index, const QVariant& value, int role) override;
+  bool
+  setData(const QModelIndex& index, const QVariant& value, int role) override;
 
-  Q_SIGNALS:
-    void changed();
+Q_SIGNALS:
+  void changed();
 
-  private:
-    void setupConnections();
-    void cleanConnections();
+private:
+  void setupConnections();
+  void cleanConnections();
 
-    bool isAlive(QObject* obj) const;
+  bool isAlive(QObject* obj) const;
 
-    template<typename... Args>
-    void recompute(Args&&...)
-    {
-      beginResetModel();
-      cleanConnections();
+  template <typename... Args>
+  void recompute(Args&&...)
+  {
+    beginResetModel();
+    cleanConnections();
 
-      setupConnections();
-      endResetModel();
+    setupConnections();
+    endResetModel();
 
-      changed();
-    }
+    changed();
+  }
 
-    QList<const QObject*> m_root;
-    QMetaObject::Connection m_con;
-    mutable QMap<const QObject*, QPointer<const QObject>> m_aliveMap;
+  QList<const QObject*> m_root;
+  QMetaObject::Connection m_con;
+  mutable QMap<const QObject*, QPointer<const QObject>> m_aliveMap;
 
-    const score::DocumentContext& m_ctx;
-    std::vector<QMetaObject::Connection> m_itemCon;
-
+  const score::DocumentContext& m_ctx;
+  std::vector<QMetaObject::Connection> m_itemCon;
 };
 
-class ObjectWidget final: public QTreeView
+class ObjectWidget final : public QTreeView
 {
-  public:
-    ObjectWidget(const score::DocumentContext& ctx, QWidget* par);
-    ObjectItemModel model;
+public:
+  ObjectWidget(const score::DocumentContext& ctx, QWidget* par);
+  ObjectItemModel model;
 
-    bool updatingSelection{false};
+  bool updatingSelection{false};
 
-  private:
-    void selectionChanged(const QItemSelection &selected, const QItemSelection &deselected) override;
+private:
+  void selectionChanged(
+      const QItemSelection& selected,
+      const QItemSelection& deselected) override;
 
-    void contextMenuEvent(QContextMenuEvent* ev) override;
-    const score::DocumentContext& m_ctx;
+  void contextMenuEvent(QContextMenuEvent* ev) override;
+  const score::DocumentContext& m_ctx;
 };
 
 class SizePolicyWidget final : public QWidget
 {
-  public:
-    using QWidget::QWidget;
+public:
+  using QWidget::QWidget;
 
-    QSize sizeHint() const override
-    {
-      return m_sizePolicy;
-    }
-    void setSizeHint(QSize s) { m_sizePolicy = s; }
-  private:
-    QSize m_sizePolicy;
+  QSize sizeHint() const override
+  {
+    return m_sizePolicy;
+  }
+  void setSizeHint(QSize s)
+  {
+    m_sizePolicy = s;
+  }
+
+private:
+  QSize m_sizePolicy;
 };
 
 class NeightborSelector
@@ -129,16 +136,18 @@ class SearchWidget final : public QWidget
 public:
   SearchWidget(const score::GUIApplicationContext& ctx);
 
-  void toggle() { this->isHidden() ? this->show() : this->hide();}
+  void toggle()
+  {
+    this->isHidden() ? this->show() : this->hide();
+  }
   void search();
 
   void dragEnterEvent(QDragEnterEvent* event) override;
-  void dropEvent(QDropEvent *event) override;
+  void dropEvent(QDropEvent* event) override;
   void on_findAddresses(QStringList strlst);
   void search_for(QString address);
 
 private:
-
   QLineEdit* m_lineEdit{};
   QPushButton* m_btn;
   const score::GUIApplicationContext& m_ctx;
@@ -147,7 +156,8 @@ private:
 class SelectionStackWidget final : public QWidget
 {
 public:
-  SelectionStackWidget(score::SelectionStack& s, QWidget* parent, ObjectWidget* objects);
+  SelectionStackWidget(
+      score::SelectionStack& s, QWidget* parent, ObjectWidget* objects);
 
 private:
   QToolButton* m_prev{};

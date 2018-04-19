@@ -1,19 +1,19 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-
-#include <Explorer/Widgets/AddressAccessorEditWidget.hpp>
-#include <QBoxLayout>
-#include <QFormLayout>
-#include <score/widgets/SpinBoxes.hpp>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
 #include "AutomationInspectorWidget.hpp"
+
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
+
 #include <Automation/AutomationModel.hpp>
 #include <Automation/Commands/ChangeAddress.hpp>
 #include <Automation/Commands/SetAutomationMax.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/Widgets/AddressAccessorEditWidget.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
+#include <QBoxLayout>
 #include <QCheckBox>
+#include <QFormLayout>
 #include <QLabel>
 #include <QPushButton>
 #include <QSpinBox>
@@ -22,14 +22,14 @@
 #include <State/Address.hpp>
 #include <State/Widgets/UnitWidget.hpp>
 #include <algorithm>
+#include <list>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/tools/Todo.hpp>
+#include <score/widgets/SpinBoxes.hpp>
 #include <score/widgets/TextLabel.hpp>
-#include <list>
 #include <vector>
-
 
 namespace Automation
 {
@@ -110,7 +110,8 @@ InspectorWidget::InspectorWidget(
   this->setLayout(vlay);
 }
 
-void InspectorWidget::on_addressChange(const Device::FullAddressAccessorSettings& newAddr)
+void InspectorWidget::on_addressChange(
+    const Device::FullAddressAccessorSettings& newAddr)
 {
   // Various checks
   if (newAddr.address == process().address())
@@ -167,16 +168,13 @@ void InspectorWidget::on_unitChanged()
 }
 }
 
-
-
 namespace Gradient
 {
 InspectorWidget::InspectorWidget(
     const ProcessModel& proc,
     const score::DocumentContext& doc,
     QWidget* parent)
-    : InspectorWidgetDelegate_T{proc, parent}
-    , m_dispatcher{doc.commandStack}
+    : InspectorWidgetDelegate_T{proc, parent}, m_dispatcher{doc.commandStack}
 {
   using namespace Explorer;
   setObjectName("GradientInspectorWidget");
@@ -192,21 +190,21 @@ InspectorWidget::InspectorWidget(
   auto port = new PortTooltip{doc, *proc.outlets};
   vlay->addWidget(port);
   */
-/*
-  m_lineEdit = new AddressAccessorEditWidget{
-      doc.plugin<DeviceDocumentPlugin>().explorer(), this};
+  /*
+    m_lineEdit = new AddressAccessorEditWidget{
+        doc.plugin<DeviceDocumentPlugin>().explorer(), this};
 
-  m_lineEdit->setAddress(process().address());
-  con(process(), &ProcessModel::addressChanged, m_lineEdit,
-      &AddressAccessorEditWidget::setAddress);
+    m_lineEdit->setAddress(process().address());
+    con(process(), &ProcessModel::addressChanged, m_lineEdit,
+        &AddressAccessorEditWidget::setAddress);
 
-  connect(
-      m_lineEdit, &AddressAccessorEditWidget::addressChanged, this,
-      &InspectorWidget::on_addressChange);
+    connect(
+        m_lineEdit, &AddressAccessorEditWidget::addressChanged, this,
+        &InspectorWidget::on_addressChange);
 
 
-  vlay->addRow(tr("Address"), m_lineEdit);
-*/
+    vlay->addRow(tr("Address"), m_lineEdit);
+  */
 
   // Tween
   m_tween = new QCheckBox{this};
@@ -219,7 +217,6 @@ InspectorWidget::InspectorWidget(
   this->setLayout(vlay);
 }
 
-
 void InspectorWidget::on_tweenChanged()
 {
   bool newVal = m_tween->checkState();
@@ -231,9 +228,6 @@ void InspectorWidget::on_tweenChanged()
   }
 }
 }
-
-
-
 
 namespace Spline
 {
@@ -280,7 +274,8 @@ InspectorWidget::InspectorWidget(
   this->setLayout(vlay);
 }
 
-void InspectorWidget::on_addressChange(const Device::FullAddressAccessorSettings& newAddr)
+void InspectorWidget::on_addressChange(
+    const Device::FullAddressAccessorSettings& newAddr)
 {
   // Various checks
   if (newAddr.address == process().address())
@@ -299,13 +294,12 @@ void InspectorWidget::on_tweenChanged()
   bool newVal = m_tween->checkState();
   if (newVal != process().tween())
   {
-    //auto cmd = new SetTween{process(), newVal};
+    // auto cmd = new SetTween{process(), newVal};
 
-    //m_dispatcher.submitCommand(cmd);
+    // m_dispatcher.submitCommand(cmd);
   }
 }
 }
-
 
 namespace Metronome
 {
@@ -331,9 +325,9 @@ InspectorWidget::InspectorWidget(
 
   m_lineEdit->setAddress(State::AddressAccessor{process().address()});
   con(process(), &ProcessModel::addressChanged, m_lineEdit,
-      [=] (const State::Address& addr) {
-    m_lineEdit->setAddress(State::AddressAccessor{addr});
-  });
+      [=](const State::Address& addr) {
+        m_lineEdit->setAddress(State::AddressAccessor{addr});
+      });
 
   connect(
       m_lineEdit, &AddressAccessorEditWidget::addressChanged, this,
@@ -344,7 +338,8 @@ InspectorWidget::InspectorWidget(
   this->setLayout(vlay);
 }
 
-void InspectorWidget::on_addressChange(const Device::FullAddressAccessorSettings& newAddr)
+void InspectorWidget::on_addressChange(
+    const Device::FullAddressAccessorSettings& newAddr)
 {
   // Various checks
   if (newAddr.address.address == process().address())
@@ -357,5 +352,4 @@ void InspectorWidget::on_addressChange(const Device::FullAddressAccessorSettings
 
   m_dispatcher.submitCommand(cmd);
 }
-
 }

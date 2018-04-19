@@ -1,20 +1,17 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QtTest/QtTest>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/LayerModel.hpp>
 #include <Process/Process.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/Rack/RackModel.hpp>
-#include <Scenario/Document/Interval/Slot.hpp>
-
 #include <Process/ProcessList.hpp>
+#include <QtTest/QtTest>
+#include <Scenario/Commands/Interval/AddLayerModelToSlot.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/AddRackToInterval.hpp>
 #include <Scenario/Commands/Interval/Rack/AddSlotToRack.hpp>
-#include <Scenario/Commands/Interval/AddLayerModelToSlot.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/Rack/RackModel.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Process/ScenarioFactory.hpp>
-
 #include <core/command/CommandStack.hpp>
 
 using namespace score;
@@ -42,8 +39,7 @@ private Q_SLOTS:
     stack.redoAndPush(cmd_proc);
     auto procId = cmd_proc->m_createdProcessId;
 
-    auto cmd_rack
-        = new AddRackToInterval(ObjectPath{{"IntervalModel", {0}}});
+    auto cmd_rack = new AddRackToInterval(ObjectPath{{"IntervalModel", {0}}});
     stack.redoAndPush(cmd_rack);
     auto rackId = cmd_rack->m_createdRackId;
 
@@ -53,9 +49,7 @@ private Q_SLOTS:
     stack.redoAndPush(cmd_slot);
 
     auto cmd_lm = new AddLayerModelToSlot(
-        {{"IntervalModel", {0}},
-         {"RackModel", rackId},
-         {"SlotModel", slotId}},
+        {{"IntervalModel", {0}}, {"RackModel", rackId}, {"SlotModel", slotId}},
         {{"IntervalModel", {0}}, {"ScenarioModel", procId}});
     stack.redoAndPush(cmd_lm);
 

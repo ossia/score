@@ -19,15 +19,24 @@ public:
   virtual bool dragEnter(
       const Scenario::TemporalScenarioPresenter&,
       QPointF pos,
-      const QMimeData* mime) { return false; }
+      const QMimeData* mime)
+  {
+    return false;
+  }
   virtual bool dragMove(
       const Scenario::TemporalScenarioPresenter&,
       QPointF pos,
-      const QMimeData* mime) { return false; }
+      const QMimeData* mime)
+  {
+    return false;
+  }
   virtual bool dragLeave(
       const Scenario::TemporalScenarioPresenter&,
       QPointF pos,
-      const QMimeData* mime) { return false; }
+      const QMimeData* mime)
+  {
+    return false;
+  }
   virtual bool drop(
       const Scenario::TemporalScenarioPresenter&,
       QPointF pos,
@@ -67,8 +76,7 @@ public:
   virtual ~IntervalDropHandler();
 
   // Returns false if not handled.
-  virtual bool drop(const Scenario::IntervalModel&, const QMimeData* mime)
-      = 0;
+  virtual bool drop(const Scenario::IntervalModel&, const QMimeData* mime) = 0;
 };
 
 class IntervalDropHandlerList final

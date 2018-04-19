@@ -1,25 +1,22 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "ClearInterval.hpp"
+
+#include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
-
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-
-#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
-
 #include <QDataStream>
 #include <QtGlobal>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <algorithm>
-
-#include "ClearInterval.hpp"
-#include <Process/Process.hpp>
 #include <score/application/ApplicationContext.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/IdentifiedObject.hpp>
-#include <score/tools/MapCopy.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/tools/MapCopy.hpp>
 
 namespace Scenario
 {
@@ -29,10 +26,11 @@ ClearInterval::ClearInterval(const IntervalModel& interval)
     : m_intervalSaveData{interval}
 {
   QObjectList l;
-  for(auto& proc : interval.processes)
+  for (auto& proc : interval.processes)
     l.push_back(&proc);
 
-  m_cables = Dataflow::saveCables(std::move(l), score::IDocument::documentContext(interval));
+  m_cables = Dataflow::saveCables(
+      std::move(l), score::IDocument::documentContext(interval));
 }
 
 void ClearInterval::undo(const score::DocumentContext& ctx) const

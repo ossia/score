@@ -5,19 +5,18 @@ namespace Dataflow
 {
 CreateCable::CreateCable(
     const Scenario::ScenarioDocumentModel& dp,
-    Id<Process::Cable> theCable, Process::CableData dat)
-  : m_model{dp}
-  , m_cable{std::move(theCable)}
-  , m_dat{std::move(dat)}
+    Id<Process::Cable> theCable,
+    Process::CableData dat)
+    : m_model{dp}, m_cable{std::move(theCable)}, m_dat{std::move(dat)}
 {
   SCORE_ASSERT(m_dat.source != m_dat.sink);
 }
 
 CreateCable::CreateCable(
     const Scenario::ScenarioDocumentModel& dp,
-    Id<Process::Cable> theCable, const Process::Cable& cable)
-  : m_model{dp}
-  , m_cable{std::move(theCable)}
+    Id<Process::Cable> theCable,
+    const Process::Cable& cable)
+    : m_model{dp}, m_cable{std::move(theCable)}
 {
   m_dat.source = cable.source();
   m_dat.sink = cable.sink();
@@ -55,11 +54,9 @@ void CreateCable::deserializeImpl(DataStreamOutput& s)
   s >> m_model >> m_cable >> m_dat;
 }
 
-
-
-UpdateCable::UpdateCable(const Process::Cable& cable, Process::CableType newDat)
-  : m_model{cable}
-  , m_new{newDat}
+UpdateCable::UpdateCable(
+    const Process::Cable& cable, Process::CableType newDat)
+    : m_model{cable}, m_new{newDat}
 {
   m_old = cable.type();
 }
@@ -84,13 +81,9 @@ void UpdateCable::deserializeImpl(DataStreamOutput& s)
   s >> m_model >> m_old >> m_new;
 }
 
-
-
 RemoveCable::RemoveCable(
-    const Scenario::ScenarioDocumentModel& dp,
-    const Process::Cable& c)
-  : m_model{dp}
-  , m_cable{c.id()}
+    const Scenario::ScenarioDocumentModel& dp, const Process::Cable& c)
+    : m_model{dp}, m_cable{c.id()}
 {
   m_data.type = c.type();
   m_data.source = c.source();
@@ -110,7 +103,7 @@ void RemoveCable::redo(const score::DocumentContext& ctx) const
 {
   auto& cables = m_model.find(ctx).cables;
   auto cable_it = cables.find(m_cable);
-  if(cable_it != cables.end())
+  if (cable_it != cables.end())
   {
     auto& cable = *cable_it;
     cable.source().find(ctx).removeCable(cable);
@@ -128,5 +121,4 @@ void RemoveCable::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_model >> m_cable >> m_data;
 }
-
 }

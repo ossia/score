@@ -1,13 +1,15 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QObject>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "SerialProtocolFactory.hpp"
 
 #include "SerialDevice.hpp"
-#include "SerialProtocolFactory.hpp"
+
+#include <ossia/network/base/device.hpp>
+
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/Protocols/Serial/SerialProtocolSettingsWidget.hpp>
 #include <Engine/Protocols/Serial/SerialSpecificSettings.hpp>
-#include <ossia/network/base/device.hpp>
+#include <QObject>
 
 namespace Device
 {

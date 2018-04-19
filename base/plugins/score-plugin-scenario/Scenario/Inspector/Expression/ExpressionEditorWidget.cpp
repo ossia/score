@@ -1,16 +1,16 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "ExpressionEditorWidget.hpp"
+
 #include <QBoxLayout>
 #include <QDebug>
 #include <QPushButton>
 #include <QStringList>
 #include <QToolButton>
 #include <QtGlobal>
+#include <Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <score/widgets/MarginLess.hpp>
-
-#include "ExpressionEditorWidget.hpp"
-#include <Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp>
 #include <score/widgets/SetIcons.hpp>
 
 namespace Scenario
@@ -103,7 +103,7 @@ void ExpressionEditorWidget::setExpression(State::Expression e)
   m_expression = currentExpr();
 }
 
-void ExpressionEditorWidget::setMenu(QMenu *menu)
+void ExpressionEditorWidget::setMenu(QMenu* menu)
 {
   m_menu = menu;
 }
@@ -187,8 +187,8 @@ QString ExpressionEditorWidget::currentExpr()
 
 void ExpressionEditorWidget::addNewTerm()
 {
-  auto relationEditor
-      = new SimpleExpressionEditorWidget{m_context, (int) m_relations.size(), this, m_menu};
+  auto relationEditor = new SimpleExpressionEditorWidget{
+      m_context, (int)m_relations.size(), this, m_menu};
   m_relations.push_back(relationEditor);
 
   m_mainLayout->addWidget(relationEditor);
@@ -203,14 +203,14 @@ void ExpressionEditorWidget::addNewTerm()
       relationEditor, &SimpleExpressionEditorWidget::editingFinished, this,
       &ExpressionEditorWidget::on_editFinished, Qt::QueuedConnection);
 
-  if(m_relations.size() == 1)
+  if (m_relations.size() == 1)
   {
-      m_relations[0]->enableRemoveButton(false);
+    m_relations[0]->enableRemoveButton(false);
   }
-  else if(m_relations.size() > 1)
+  else if (m_relations.size() > 1)
   {
-      m_relations[m_relations.size()-2]->enableAddButton(false);
-      m_relations[0]->enableRemoveButton(true);
+    m_relations[m_relations.size() - 2]->enableAddButton(false);
+    m_relations[0]->enableRemoveButton(true);
   }
 
   m_relations.front()->enableMenuButton(true);

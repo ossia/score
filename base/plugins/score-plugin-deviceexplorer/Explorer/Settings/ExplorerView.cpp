@@ -1,7 +1,9 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ExplorerView.hpp"
+
 #include "ExplorerModel.hpp"
+
 #include <QCheckBox>
 #include <QFormLayout>
 #include <score/widgets/SignalUtils.hpp>
@@ -11,7 +13,6 @@ View::View() : m_widg{new QWidget}
 {
   auto lay = new QFormLayout;
   SETTINGS_UI_COMBOBOX_SETUP("Log level", LogLevel, DeviceLogLevel{});
-
 
   m_widg->setLayout(lay);
 
@@ -34,7 +35,6 @@ QWidget* View::getWidget()
 
 SETTINGS_UI_COMBOBOX_IMPL(LogLevel)
 }
-
 
 namespace Explorer::ProjectSettings
 {

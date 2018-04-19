@@ -1,8 +1,9 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "Expression.hpp"
+
 #include <QMap>
 #include <QStringBuilder>
-#include "Expression.hpp"
 #include <State/Relation.hpp>
 namespace State
 {
@@ -11,7 +12,8 @@ bool operator<(const State::ExprData& lhs, const State::ExprData& rhs)
   return false;
 }
 }
-template class SCORE_LIB_STATE_EXPORT boost::container::stable_vector<State::ExprData>;
+template class SCORE_LIB_STATE_EXPORT
+    boost::container::stable_vector<State::ExprData>;
 QString State::ExprData::toString() const
 {
   static const QMap<State::BinaryOperator, QString> binopMap{
@@ -99,12 +101,11 @@ QString TreeNode<State::ExprData>::toString() const
   return s;
 }
 
-
 QString TreeNode<State::ExprData>::toPrettyString() const
 {
-  if(*this == State::defaultTrueExpression())
+  if (*this == State::defaultTrueExpression())
     return QObject::tr("True");
-  if(*this == State::defaultFalseExpression())
+  if (*this == State::defaultFalseExpression())
     return QObject::tr("False");
 
   QString s;
@@ -116,7 +117,7 @@ QString TreeNode<State::ExprData>::toPrettyString() const
     {
       ;
     }
-    else if(this->parent()->is<InvisibleRootNode>())
+    else if (this->parent()->is<InvisibleRootNode>())
     {
       s = exprstr;
     }
@@ -171,7 +172,8 @@ State::Expression State::defaultFalseExpression()
 
 bool State::isTrueExpression(const QString& cond)
 {
-  return cond.isEmpty() || cond == " { true == true } " || cond == "true == true";
+  return cond.isEmpty() || cond == " { true == true } "
+         || cond == "true == true";
 }
 
 bool State::isEmptyExpression(const QString& cond)
@@ -180,7 +182,8 @@ bool State::isEmptyExpression(const QString& cond)
 }
 
 SCORE_LIB_STATE_EXPORT
-bool operator==(const TreeNode<State::ExprData>& lhs, const TreeNode<State::ExprData>& rhs)
+bool operator==(
+    const TreeNode<State::ExprData>& lhs, const TreeNode<State::ExprData>& rhs)
 {
   const auto& ltd = static_cast<const State::ExprData&>(lhs);
   const auto& rtd = static_cast<const State::ExprData&>(rhs);
@@ -199,7 +202,8 @@ bool operator==(const TreeNode<State::ExprData>& lhs, const TreeNode<State::Expr
 }
 
 SCORE_LIB_STATE_EXPORT
-bool operator!=(const TreeNode<State::ExprData>& lhs, const TreeNode<State::ExprData>& rhs)
+bool operator!=(
+    const TreeNode<State::ExprData>& lhs, const TreeNode<State::ExprData>& rhs)
 {
   return !(lhs == rhs);
 }
@@ -209,12 +213,14 @@ TreeNode<State::ExprData>::iterator TreeNode<State::ExprData>::begin()
   return m_children.begin();
 }
 
-TreeNode<State::ExprData>::const_iterator TreeNode<State::ExprData>::begin() const
+TreeNode<State::ExprData>::const_iterator
+TreeNode<State::ExprData>::begin() const
 {
   return m_children.cbegin();
 }
 
-TreeNode<State::ExprData>::const_iterator TreeNode<State::ExprData>::cbegin() const
+TreeNode<State::ExprData>::const_iterator
+TreeNode<State::ExprData>::cbegin() const
 {
   return m_children.cbegin();
 }
@@ -229,12 +235,14 @@ TreeNode<State::ExprData>::iterator TreeNode<State::ExprData>::end()
   return m_children.end();
 }
 
-TreeNode<State::ExprData>::const_iterator TreeNode<State::ExprData>::end() const
+TreeNode<State::ExprData>::const_iterator
+TreeNode<State::ExprData>::end() const
 {
   return m_children.cend();
 }
 
-TreeNode<State::ExprData>::const_iterator TreeNode<State::ExprData>::cend() const
+TreeNode<State::ExprData>::const_iterator
+TreeNode<State::ExprData>::cend() const
 {
   return m_children.cend();
 }
@@ -246,12 +254,11 @@ TreeNode<State::ExprData>& TreeNode<State::ExprData>::back()
 
 TreeNode<State::ExprData>::TreeNode()
 {
-
 }
 
 TreeNode<State::ExprData>::TreeNode(const TreeNode& other)
-  : State::ExprData{static_cast<const State::ExprData&>(other)}
-  , m_children(other.m_children)
+    : State::ExprData{static_cast<const State::ExprData&>(other)}
+    , m_children(other.m_children)
 {
   setParent(other.m_parent);
   for (auto& child : m_children)
@@ -259,16 +266,17 @@ TreeNode<State::ExprData>::TreeNode(const TreeNode& other)
 }
 
 TreeNode<State::ExprData>::TreeNode(TreeNode&& other)
-  : State::ExprData{std::move(
-                      static_cast<State::ExprData&&>(std::move(other)))}
-  , m_children(std::move(other.m_children))
+    : State::ExprData{std::move(
+          static_cast<State::ExprData&&>(std::move(other)))}
+    , m_children(std::move(other.m_children))
 {
   setParent(other.m_parent);
   for (auto& child : m_children)
     child.setParent(this);
 }
 
-TreeNode<State::ExprData>& TreeNode<State::ExprData>::operator=(const TreeNode& source)
+TreeNode<State::ExprData>& TreeNode<State::ExprData>::
+operator=(const TreeNode& source)
 {
   static_cast<State::ExprData&>(*this)
       = static_cast<const State::ExprData&>(source);
@@ -283,7 +291,8 @@ TreeNode<State::ExprData>& TreeNode<State::ExprData>::operator=(const TreeNode& 
   return *this;
 }
 
-TreeNode<State::ExprData>& TreeNode<State::ExprData>::operator=(TreeNode<State::ExprData>&& source)
+TreeNode<State::ExprData>& TreeNode<State::ExprData>::
+operator=(TreeNode<State::ExprData>&& source)
 {
   static_cast<State::ExprData&>(*this)
       = static_cast<State::ExprData&&>(source);
@@ -299,7 +308,7 @@ TreeNode<State::ExprData>& TreeNode<State::ExprData>::operator=(TreeNode<State::
 }
 
 TreeNode<State::ExprData>::TreeNode(TreeNode source, TreeNode* parent)
-  : TreeNode{std::move(source)}
+    : TreeNode{std::move(source)}
 {
   setParent(parent);
 }
@@ -336,7 +345,8 @@ TreeNode<State::ExprData>& TreeNode<State::ExprData>::childAt(int index)
   return m_children.at(index);
 }
 
-const TreeNode<State::ExprData>& TreeNode<State::ExprData>::childAt(int index) const
+const TreeNode<State::ExprData>&
+TreeNode<State::ExprData>::childAt(int index) const
 {
   SCORE_ASSERT(hasChild(index));
   return m_children.at(index);
@@ -361,12 +371,14 @@ bool TreeNode<State::ExprData>::hasChildren() const
   return !m_children.empty();
 }
 
-boost::container::stable_vector<TreeNode<State::ExprData>>& TreeNode<State::ExprData>::children()
+boost::container::stable_vector<TreeNode<State::ExprData>>&
+TreeNode<State::ExprData>::children()
 {
   return m_children;
 }
 
-const boost::container::stable_vector<TreeNode<State::ExprData>>& TreeNode<State::ExprData>::children() const
+const boost::container::stable_vector<TreeNode<State::ExprData>>&
+TreeNode<State::ExprData>::children() const
 {
   return m_children;
 }
@@ -379,7 +391,7 @@ void TreeNode<State::ExprData>::removeChild(const_iterator it)
 void TreeNode<State::ExprData>::setParent(TreeNode* parent)
 {
   SCORE_ASSERT(
-        !m_parent || (m_parent && !m_parent->is<State::Relation>())
-        || (m_parent && !m_parent->is<State::Pulse>()));
+      !m_parent || (m_parent && !m_parent->is<State::Relation>())
+      || (m_parent && !m_parent->is<State::Pulse>()));
   m_parent = parent;
 }

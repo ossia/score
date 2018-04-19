@@ -1,6 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <ossia/detail/algorithms.hpp>
+
 #include <QAction>
 #include <QCloseEvent>
 #include <QDesktopWidget>
@@ -17,16 +18,15 @@
 #include <core/document/DocumentView.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/Window.hpp>
-
-#include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
-#include <score/actions/Menu.hpp>
-#include <score/plugins/panel/PanelDelegate.hpp>
-#include <score_git_info.hpp>
 #include <iterator>
 #include <qcoreevent.h>
 #include <qnamespace.h>
-#include <set>
+#include <score/actions/Menu.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
+#include <score/plugins/panel/PanelDelegate.hpp>
+#include <score_git_info.hpp>
+#include <set>
 
 namespace score
 {
@@ -42,7 +42,6 @@ struct PanelComparator
 };
 View::~View()
 {
-
 }
 View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
 {
@@ -81,7 +80,7 @@ View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
       [&](int index) {
         auto widg = m_tabWidget->widget(index);
         auto doc = m_documents.find(widg);
-        if(doc == m_documents.end())
+        if (doc == m_documents.end())
           return;
 
         activeDocumentChanged(doc->second->document().model().id());
@@ -89,10 +88,8 @@ View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
       Qt::QueuedConnection);
 
   connect(m_tabWidget, &QTabWidget::tabCloseRequested, this, [&](int index) {
-    closeRequested(m_documents.at(m_tabWidget->widget(index))
-                            ->document()
-                            .model()
-                            .id());
+    closeRequested(
+        m_documents.at(m_tabWidget->widget(index))->document().model().id());
   });
 }
 
@@ -163,7 +160,7 @@ void View::closeDocument(DocumentView* doc)
 {
   for (int i = 0; i < m_tabWidget->count(); i++)
   {
-    auto widg = doc->viewDelegate().getWidget() ;
+    auto widg = doc->viewDelegate().getWidget();
     if (widg == m_tabWidget->widget(i))
     {
       m_documents.erase(widg);
@@ -223,14 +220,15 @@ void View::on_fileNameChanged(DocumentView* d, const QString& newName)
 
 void View::changeEvent(QEvent* ev)
 {
-  if(m_presenter)
-  if (ev->type() == QEvent::ActivationChange)
-  {
-    for(GUIApplicationPlugin* ctrl : m_presenter->applicationContext().guiApplicationPlugins())
+  if (m_presenter)
+    if (ev->type() == QEvent::ActivationChange)
     {
-      ctrl->on_activeWindowChanged();
+      for (GUIApplicationPlugin* ctrl :
+           m_presenter->applicationContext().guiApplicationPlugins())
+      {
+        ctrl->on_activeWindowChanged();
+      }
     }
-  }
 
   QMainWindow::changeEvent(ev);
 }
@@ -240,5 +238,4 @@ void View::resizeEvent(QResizeEvent* e)
   QMainWindow::resizeEvent(e);
   sizeChanged(e->size());
 }
-
 }

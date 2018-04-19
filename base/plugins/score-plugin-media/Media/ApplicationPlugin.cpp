@@ -1,30 +1,30 @@
 #include "ApplicationPlugin.hpp"
+
 #include <Media/Effect/Settings/Model.hpp>
 #if defined(LILV_SHARED)
-#include <Media/Effect/LV2/LV2Context.hpp>
+#  include <Media/Effect/LV2/LV2Context.hpp>
 #endif
 #if defined(HAS_VST2)
-#include <Media/Effect/VST/VSTEffectModel.hpp>
-#include <Media/Effect/VST/VSTLoader.hpp>
+#  include <Media/Effect/VST/VSTEffectModel.hpp>
+#  include <Media/Effect/VST/VSTLoader.hpp>
 #endif
-#include <QFileInfo>
-#include <QDirIterator>
-
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-
-#include <Engine/Protocols/OSSIADevice.hpp>
-
 #include <ossia/audio/audio_protocol.hpp>
 
 #include <Engine/Protocols/Audio/AudioDevice.hpp>
+#include <Engine/Protocols/OSSIADevice.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <QDirIterator>
+#include <QFileInfo>
 
-template<>
-void DataStreamReader::read<Media::ApplicationPlugin::vst_info>(const Media::ApplicationPlugin::vst_info& p)
+template <>
+void DataStreamReader::read<Media::ApplicationPlugin::vst_info>(
+    const Media::ApplicationPlugin::vst_info& p)
 {
   m_stream << p.path << p.prettyName << p.uniqueID << p.isSynth << p.isValid;
 }
-template<>
-void DataStreamWriter::write<Media::ApplicationPlugin::vst_info>(Media::ApplicationPlugin::vst_info& p)
+template <>
+void DataStreamWriter::write<Media::ApplicationPlugin::vst_info>(
+    Media::ApplicationPlugin::vst_info& p)
 {
   m_stream >> p.path >> p.prettyName >> p.uniqueID >> p.isSynth >> p.isValid;
 }
@@ -34,21 +34,27 @@ Q_DECLARE_METATYPE(std::vector<Media::ApplicationPlugin::vst_info>)
 namespace Media
 {
 
-ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app):
-    score::ApplicationPlugin{app}
-  #if defined(LILV_SHARED)
-  , lv2_context{std::make_unique<LV2::GlobalContext>(64, lv2_host_context)}
-  , lv2_host_context{lv2_context.get(), nullptr, lv2_context->features(), lilv}
-  #endif
+ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
+    : score::ApplicationPlugin
+{
+  app
+}
+#if defined(LILV_SHARED)
+, lv2_context{std::make_unique<LV2::GlobalContext>(64, lv2_host_context)},
+    lv2_host_context
+{
+  lv2_context.get(), nullptr, lv2_context->features(), lilv
+}
+#endif
 {
   qRegisterMetaType<vst_info>();
   qRegisterMetaTypeStreamOperators<vst_info>();
   qRegisterMetaType<std::vector<vst_info>>();
   qRegisterMetaTypeStreamOperators<std::vector<vst_info>>();
-#if defined(LILV_SHARED) // TODO instead add a proper preprocessor macro that also works in static case
-    lv2_context->loadPlugins();
+#if defined(LILV_SHARED) // TODO instead add a proper preprocessor macro that
+                         // also works in static case
+  lv2_context->loadPlugins();
 #endif
-
 }
 void ApplicationPlugin::initialize()
 {
@@ -57,14 +63,14 @@ void ApplicationPlugin::initialize()
   // init with the database
   QSettings s;
   auto val = s.value("Effect/KnownVST2");
-  if(val.canConvert<std::vector<vst_info>>())
+  if (val.canConvert<std::vector<vst_info>>())
   {
     vst_infos = val.value<std::vector<vst_info>>();
   }
 
   auto& set = context.settings<Media::Settings::Model>();
-  con(set, &Media::Settings::Model::VstPathsChanged,
-      this, &ApplicationPlugin::rescanVSTs);
+  con(set, &Media::Settings::Model::VstPathsChanged, this,
+      &ApplicationPlugin::rescanVSTs);
   rescanVSTs(set.getVstPaths());
 #endif
 }
@@ -74,36 +80,42 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
 {
   // 1. List all plug-ins in new paths
   QSet<QString> newPlugins;
-  for(QString dir : paths)
+  for (QString dir : paths)
   {
-#if defined(__APPLE__)
+#  if defined(__APPLE__)
     {
-      QDirIterator it(dir, QStringList{"*.vst", "*.component"}, QDir::AllEntries, QDirIterator::Subdirectories);
+      QDirIterator it(
+          dir, QStringList{"*.vst", "*.component"}, QDir::AllEntries,
+          QDirIterator::Subdirectories);
 
       while (it.hasNext())
         newPlugins.insert(it.next());
     }
     {
-      QDirIterator it(dir, QStringList{"*.dylib"}, QDir::Files, QDirIterator::Subdirectories);
+      QDirIterator it(
+          dir, QStringList{"*.dylib"}, QDir::Files,
+          QDirIterator::Subdirectories);
       while (it.hasNext())
       {
         auto path = it.next();
-        if(!path.contains(".vst") && !path.contains(".component"))
+        if (!path.contains(".vst") && !path.contains(".component"))
           newPlugins.insert(path);
       }
     }
-#else
-    QDirIterator it(dir, QStringList{Media::VST::default_filter}, QDir::Files, QDirIterator::Subdirectories);
+#  else
+    QDirIterator it(
+        dir, QStringList{Media::VST::default_filter}, QDir::Files,
+        QDirIterator::Subdirectories);
     while (it.hasNext())
       newPlugins.insert(it.next());
-#endif
+#  endif
   }
 
   // 2. Remove plug-ins not in these paths
-  for(auto it = vst_infos.begin(); it != vst_infos.end(); )
+  for (auto it = vst_infos.begin(); it != vst_infos.end();)
   {
     auto new_it = newPlugins.find(it->path);
-    if(new_it != newPlugins.end())
+    if (new_it != newPlugins.end())
     {
       // plug-in is in both set, we ignore it
       newPlugins.erase(new_it);
@@ -116,8 +128,7 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
   }
 
   // 3. Add remaining plug-ins
-  auto add_invalid = [=] (const QString& path)
-  {
+  auto add_invalid = [=](const QString& path) {
     vst_info i;
     i.path = path;
     i.prettyName = "invalid";
@@ -127,21 +138,22 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
     vst_infos.push_back(i);
   };
 
-  for(const QString& path : newPlugins)
+  for (const QString& path : newPlugins)
   {
     qDebug() << "Loading VST " << path;
     SCORE_ASSERT(!path.isEmpty());
     bool isFile = QFile(QUrl(path).toString(QUrl::PreferLocalFile)).exists();
-    if(!isFile)
+    if (!isFile)
     {
       qDebug() << "Invalid path: " << path;
       continue;
     }
 
-    try {
+    try
+    {
 
       bool isFile = QFile(QUrl(path).toString(QUrl::PreferLocalFile)).exists();
-      if(!isFile)
+      if (!isFile)
       {
         qDebug() << "Invalid path: " << path;
         continue;
@@ -158,30 +170,31 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
           i.path = path;
           i.uniqueID = p->uniqueID;
           {
-/*
-            char buf[256] = {0};
-            p->dispatcher(p, effGetEffectName, 0, 0, buf, 0.f);
-            QString s = buf;
-            qDebug() << path;
-            qDebug() << "effGetEffectName: " << s;
+            /*
+                        char buf[256] = {0};
+                        p->dispatcher(p, effGetEffectName, 0, 0, buf, 0.f);
+                        QString s = buf;
+                        qDebug() << path;
+                        qDebug() << "effGetEffectName: " << s;
 
-            p->dispatcher(p, effGetProductString, 0, 0, buf, 0.f);
-            s = buf;
-            qDebug() << "effGetProductString: " << s;
+                        p->dispatcher(p, effGetProductString, 0, 0, buf, 0.f);
+                        s = buf;
+                        qDebug() << "effGetProductString: " << s;
 
-            p->dispatcher(p, effGetVstVersion, 0, 0, buf, 0.f);
-            s = buf;
-            qDebug() << "effGetProductString: " << s;
+                        p->dispatcher(p, effGetVstVersion, 0, 0, buf, 0.f);
+                        s = buf;
+                        qDebug() << "effGetProductString: " << s;
 
-            p->dispatcher(p, effGetVendorString, 0, 0, buf, 0.f);
-            s = buf;
-            qDebug() << "effGetVendorString: " << s;
+                        p->dispatcher(p, effGetVendorString, 0, 0, buf, 0.f);
+                        s = buf;
+                        qDebug() << "effGetVendorString: " << s;
 
-            p->dispatcher(p, effGetVendorVersion, 0, 0, buf, 0.f);
-            s = buf;
-            qDebug() << "effGetVendorVersion: " << s;
-*/
-            // Only way to get a separation between Kontakt 5 / Kontakt 5 (8 out) / Kontakt 5 (16 out),  etc...
+                        p->dispatcher(p, effGetVendorVersion, 0, 0, buf, 0.f);
+                        s = buf;
+                        qDebug() << "effGetVendorVersion: " << s;
+            */
+            // Only way to get a separation between Kontakt 5 / Kontakt 5 (8
+            // out) / Kontakt 5 (16 out),  etc...
             i.prettyName = QFileInfo(path).baseName();
           }
 
@@ -194,19 +207,18 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
         }
       }
 
-      if(!ok)
+      if (!ok)
       {
         add_invalid(path);
         delete plugin;
       }
-
-
-    } catch(const std::runtime_error& e) {
+    }
+    catch (const std::runtime_error& e)
+    {
       add_invalid(path);
       qDebug() << e.what();
       continue;
     }
-
   }
 
   // write in the database
@@ -216,21 +228,20 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
 ApplicationPlugin::~ApplicationPlugin()
 {
 #if defined(HAS_VST2)
-    for(auto& e : vst_modules)
-    {
-      delete e.second;
-    }
+  for (auto& e : vst_modules)
+  {
+    delete e.second;
+  }
 #endif
 }
 
-GUIApplicationPlugin::GUIApplicationPlugin(const score::GUIApplicationContext& app):
-  score::GUIApplicationPlugin{app}
+GUIApplicationPlugin::GUIApplicationPlugin(
+    const score::GUIApplicationContext& app)
+    : score::GUIApplicationPlugin{app}
 {
-
 }
 
 void GUIApplicationPlugin::initialize()
 {
 }
-
 }

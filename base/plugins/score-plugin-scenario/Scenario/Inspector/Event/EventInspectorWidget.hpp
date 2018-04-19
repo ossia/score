@@ -3,8 +3,8 @@
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Scenario/Inspector/Expression/ExpressionMenu.hpp>
-#include <score/selection/SelectionDispatcher.hpp>
 #include <list>
+#include <score/selection/SelectionDispatcher.hpp>
 #include <vector>
 
 class QLabel;

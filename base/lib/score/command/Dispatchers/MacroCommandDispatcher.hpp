@@ -1,8 +1,8 @@
 #pragma once
+#include <memory>
 #include <score/command/AggregateCommand.hpp>
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/Dispatchers/SendStrategy.hpp>
-#include <memory>
 
 /**
  * @brief The MacroCommandDispatcher class
@@ -65,15 +65,21 @@ protected:
 
 // Don't redo the individual commands, and redo() the aggregate command.
 template <typename Command_T>
-using MacroCommandDispatcher
-    = GenericMacroCommandDispatcher<Command_T, RedoStrategy::Quiet, SendStrategy::Simple>;
+using MacroCommandDispatcher = GenericMacroCommandDispatcher<
+    Command_T,
+    RedoStrategy::Quiet,
+    SendStrategy::Simple>;
 
 // Redo the individual commands, don't redo the aggregate command
 template <typename Command_T>
-using RedoMacroCommandDispatcher
-    = GenericMacroCommandDispatcher<Command_T, RedoStrategy::Redo, SendStrategy::Quiet>;
+using RedoMacroCommandDispatcher = GenericMacroCommandDispatcher<
+    Command_T,
+    RedoStrategy::Redo,
+    SendStrategy::Quiet>;
 
 // Don't redo anything, just push
 template <typename Command_T>
-using QuietMacroCommandDispatcher
-    = GenericMacroCommandDispatcher<Command_T, RedoStrategy::Quiet, SendStrategy::Quiet>;
+using QuietMacroCommandDispatcher = GenericMacroCommandDispatcher<
+    Command_T,
+    RedoStrategy::Quiet,
+    SendStrategy::Quiet>;

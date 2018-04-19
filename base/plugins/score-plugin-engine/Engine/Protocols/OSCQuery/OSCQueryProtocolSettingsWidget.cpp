@@ -1,21 +1,22 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "OSCQueryProtocolSettingsWidget.hpp"
+
+#include "OSCQuerySpecificSettings.hpp"
+
+#include <Device/Protocol/ProtocolSettingsWidget.hpp>
+#include <QAction>
 #include <QFormLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <State/Widgets/AddressFragmentLineEdit.hpp>
-
-#include "OSCQueryProtocolSettingsWidget.hpp"
-#include "OSCQuerySpecificSettings.hpp"
-#include <Device/Protocol/ProtocolSettingsWidget.hpp>
-#include <QAction>
 #include <QPushButton>
 #include <QSpinBox>
 #include <QString>
 #include <QVariant>
+#include <State/Widgets/AddressFragmentLineEdit.hpp>
 
 #if defined(OSSIA_DNSSD)
-#include <Explorer/Widgets/ZeroConf/ZeroconfBrowser.hpp>
+#  include <Explorer/Widgets/ZeroConf/ZeroconfBrowser.hpp>
 #endif
 
 class QWidget;
@@ -87,7 +88,7 @@ void OSCQueryProtocolSettingsWidget::setSettings(
           .canConvert<Network::OSCQuerySpecificSettings>())
   {
     OSCQuery = settings.deviceSpecificSettings
-                 .value<Network::OSCQuerySpecificSettings>();
+                   .value<Network::OSCQuerySpecificSettings>();
     m_localHostEdit->setText(OSCQuery.host);
   }
 }

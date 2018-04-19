@@ -1,36 +1,33 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QDebug>
-#include <QPoint>
-#include <score/document/DocumentInterface.hpp>
-#include <score/tools/std/Optional.hpp>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MetronomeModel.hpp"
+
 #include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
+
 #include <Automation/Metronome/MetronomeProcessMetadata.hpp>
 #include <Curve/CurveModel.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Process/CurveProcessModel.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
-#include <State/Address.hpp>
-#include <score/model/ModelMetadata.hpp>
-#include <score/model/IdentifiedObjectMap.hpp>
-#include <score/tools/MapCopy.hpp>
-#include <score/model/Identifier.hpp>
+#include <Process/Dataflow/Port.hpp>
+#include <QDebug>
 #include <QJsonObject>
 #include <QJsonValue>
-#include <algorithm>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONVisitor.hpp>
-
-#include "MetronomeModel.hpp"
-#include <ossia/network/dataspace/dataspace_visitors.hpp>
-#include <Curve/CurveModel.hpp>
+#include <QPoint>
 #include <State/Address.hpp>
+#include <algorithm>
+#include <score/document/DocumentInterface.hpp>
+#include <score/model/IdentifiedObjectMap.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/model/ModelMetadata.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
-#include <Process/Dataflow/Port.hpp>
+#include <score/tools/MapCopy.hpp>
+#include <score/tools/std/Optional.hpp>
 
 namespace Process
 {
@@ -66,7 +63,6 @@ ProcessModel::~ProcessModel()
 {
 }
 
-
 QString ProcessModel::prettyName() const
 {
   return address().toString();
@@ -75,12 +71,13 @@ QString ProcessModel::prettyName() const
 void ProcessModel::init()
 {
   m_outlets.push_back(outlet.get());
-  connect(outlet.get(), &Process::Port::addressChanged,
-          this, [=] (const State::AddressAccessor& arg) {
-    addressChanged(arg.address);
-    prettyNameChanged();
-    m_curve->changed();
-  });
+  connect(
+      outlet.get(), &Process::Port::addressChanged, this,
+      [=](const State::AddressAccessor& arg) {
+        addressChanged(arg.address);
+        prettyNameChanged();
+        m_curve->changed();
+      });
 }
 
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
@@ -214,13 +211,10 @@ void ProcessModel::setMax(double arg)
   maxChanged(arg);
   m_curve->changed();
 }
-
 }
 
-
 template <>
-void DataStreamReader::read(
-    const Metronome::ProcessModel& autom)
+void DataStreamReader::read(const Metronome::ProcessModel& autom)
 {
   State::Address address;
   readFrom(autom.curve());
@@ -230,7 +224,6 @@ void DataStreamReader::read(
 
   insertDelimiter();
 }
-
 
 template <>
 void DataStreamWriter::write(Metronome::ProcessModel& autom)
@@ -248,10 +241,8 @@ void DataStreamWriter::write(Metronome::ProcessModel& autom)
   checkDelimiter();
 }
 
-
 template <>
-void JSONObjectReader::read(
-    const Metronome::ProcessModel& autom)
+void JSONObjectReader::read(const Metronome::ProcessModel& autom)
 {
   obj["Outlet"] = toJsonObject(*autom.outlet);
   obj["Curve"] = toJsonObject(autom.curve());
@@ -259,17 +250,17 @@ void JSONObjectReader::read(
   obj[strings.Max] = autom.max();
 }
 
-
 template <>
 void JSONObjectWriter::write(Metronome::ProcessModel& autom)
 {
   JSONObjectWriter writer{obj["Outlet"].toObject()};
   autom.outlet = Process::make_outlet(writer, &autom);
-  if(!autom.outlet)
+  if (!autom.outlet)
   {
     autom.outlet = Process::make_outlet(Id<Process::Port>(0), &autom);
     autom.outlet->type = Process::PortType::Message;
-    autom.outlet->setAddress(fromJsonObject<State::AddressAccessor>(obj[strings.Address].toObject()));
+    autom.outlet->setAddress(fromJsonObject<State::AddressAccessor>(
+        obj[strings.Address].toObject()));
   }
 
   JSONObject::Deserializer curve_deser{obj["Curve"].toObject()};
@@ -278,4 +269,3 @@ void JSONObjectWriter::write(Metronome::ProcessModel& autom)
   autom.setMin(obj[strings.Min].toDouble());
   autom.setMax(obj[strings.Max].toDouble());
 }
-

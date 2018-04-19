@@ -1,30 +1,33 @@
 #include "MidiDrop.hpp"
-#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <ModernMIDI/midi_file_reader.h>
-#include <QMimeData>
-#include <QByteArray>
-#include <QFile>
-#include <QUrl>
-#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-#include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
-#include <Midi/MidiProcess.hpp>
+
+#include <Explorer/Settings/ExplorerModel.hpp>
 #include <Midi/Commands/AddNote.hpp>
 #include <Midi/Commands/SetOutput.hpp>
-#include <Explorer/Settings/ExplorerModel.hpp>
+#include <Midi/MidiProcess.hpp>
+#include <ModernMIDI/midi_file_reader.h>
+#include <QByteArray>
+#include <QFile>
+#include <QMimeData>
+#include <QUrl>
+#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
+#include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 namespace Midi
 {
 
 bool DropMidiInSenario::drop(
-    const Scenario::TemporalScenarioPresenter& pres, QPointF pos, const QMimeData* mime)
+    const Scenario::TemporalScenarioPresenter& pres,
+    QPointF pos,
+    const QMimeData* mime)
 {
   auto song = MidiTrack::parse(*mime, pres.context().context);
-  if(song.tracks.empty())
+  if (song.tracks.empty())
     return false;
 
   RedoMacroCommandDispatcher<Scenario::Command::AddProcessInNewBoxMacro> m{
-    pres.context().context.commandStack};
+      pres.context().context.commandStack};
 
   // Create a box.
   const Scenario::ProcessModel& scenar = pres.model();
@@ -34,22 +37,20 @@ bool DropMidiInSenario::drop(
 
   // Create the beginning
   auto start_cmd = new Scenario::Command::CreateTimeSync_Event_State{
-                   scenar, pt.date, pt.y};
+      scenar, pt.date, pt.y};
   m.submitCommand(start_cmd);
 
   // Create a box with the duration of the longest song
-  auto box_cmd
-      = new Scenario::Command::CreateInterval_State_Event_TimeSync{
-        scenar, start_cmd->createdState(), pt.date + t, pt.y};
+  auto box_cmd = new Scenario::Command::CreateInterval_State_Event_TimeSync{
+      scenar, start_cmd->createdState(), pt.date + t, pt.y};
   m.submitCommand(box_cmd);
   auto& interval = scenar.interval(box_cmd->createdInterval());
 
-  for(const MidiTrack& track : song.tracks)
+  for (const MidiTrack& track : song.tracks)
   {
     // Create process
-    auto process_cmd
-        = new Scenario::Command::AddOnlyProcessToInterval{
-          interval, Midi::ProcessModel::static_concreteKey(), {}};
+    auto process_cmd = new Scenario::Command::AddOnlyProcessToInterval{
+        interval, Midi::ProcessModel::static_concreteKey(), {}};
     m.submitCommand(process_cmd);
 
     // Create a new slot
@@ -57,15 +58,17 @@ bool DropMidiInSenario::drop(
     m.submitCommand(slot_cmd);
 
     // Add a new layer in this slot.
-    auto& proc = static_cast<Midi::ProcessModel&>(interval.processes.at(process_cmd->processId()));
+    auto& proc = static_cast<Midi::ProcessModel&>(
+        interval.processes.at(process_cmd->processId()));
 
     // Set midi data
-    auto set_data_cmd = new Midi::ReplaceNotes{proc, track.notes, track.min, track.max, t};
+    auto set_data_cmd
+        = new Midi::ReplaceNotes{proc, track.notes, track.min, track.max, t};
     m.submitCommand(set_data_cmd);
 
     auto layer_cmd = new Scenario::Command::AddLayerModelToSlot{
-                     Scenario::SlotPath{interval, int(interval.smallView().size() - 1)},
-                     proc};
+        Scenario::SlotPath{interval, int(interval.smallView().size() - 1)},
+        proc};
 
     m.submitCommand(layer_cmd);
   }
@@ -79,42 +82,44 @@ bool DropMidiInSenario::drop(
   return false;
 }
 
-MidiTrack::MidiSong MidiTrack::parse(const QMimeData& mime, const score::DocumentContext& ctx)
+MidiTrack::MidiSong
+MidiTrack::parse(const QMimeData& mime, const score::DocumentContext& ctx)
 {
   double delta = 1.;
   auto p = ctx.findPlugin<Explorer::ProjectSettings::Model>();
-  if(p)
+  if (p)
   {
     delta = p->getMidiImportRatio();
   }
   MidiSong m;
-  if (mime.formats().contains("audio/midi") || mime.formats().contains("audio/x-midi"))
+  if (mime.formats().contains("audio/midi")
+      || mime.formats().contains("audio/x-midi"))
   {
     auto data = mime.data("audio/midi");
     qDebug() << data;
     qDebug() << mime.text();
   }
-  else if(mime.formats().contains("text/uri-list"))
+  else if (mime.formats().contains("text/uri-list"))
   {
     qDebug() << mime.urls();
-    if(mime.urls().empty())
+    if (mime.urls().empty())
       return {};
 
     QFile f(mime.urls().first().toLocalFile());
 
-    if(!f.open(QIODevice::ReadOnly))
+    if (!f.open(QIODevice::ReadOnly))
       return {};
 
     auto dat = f.readAll();
     mm::MidiFileReader reader;
     std::vector<uint8_t> raw;
-    for(auto v : dat)
+    for (auto v : dat)
     {
       raw.push_back(v);
     }
     reader.parse(raw);
 
-    if(reader.tracks.empty())
+    if (reader.tracks.empty())
       return {};
 
     std::map<int, Midi::NoteData> notes;
@@ -129,31 +134,31 @@ MidiTrack::MidiSong MidiTrack::parse(const QMimeData& mime, const score::Documen
       double beat_dur = 60. / m.tempo; // in seconds
       m.durationInMs = 1000. * beat_dur * num_beats;
     }
-    for(const mm::MidiTrack& t : reader.tracks)
+    for (const mm::MidiTrack& t : reader.tracks)
     {
       MidiTrack nv;
-      for(const std::shared_ptr<mm::TrackEvent>& ev : t)
+      for (const std::shared_ptr<mm::TrackEvent>& ev : t)
       {
-        if(reader.useAbsoluteTicks)
+        if (reader.useAbsoluteTicks)
           tick = ev->tick;
         else
           tick += ev->tick;
-        switch(ev->m->getMessageType())
+        switch (ev->m->getMessageType())
         {
           case mm::MessageType::NOTE_ON:
           {
             const auto pitch = ev->m->data[1];
             const auto vel = ev->m->data[2];
 
-            if(vel > 0)
+            if (vel > 0)
             {
               NoteData note;
               note.setStart(delta * (tick / total));
               note.setPitch(pitch);
               note.setVelocity(vel);
-              if(note.pitch() < nv.min)
+              if (note.pitch() < nv.min)
                 nv.min = note.pitch();
-              else if(note.pitch() > nv.max)
+              else if (note.pitch() > nv.max)
                 nv.max = note.pitch();
 
               notes.insert({note.pitch(), note});
@@ -161,7 +166,7 @@ MidiTrack::MidiSong MidiTrack::parse(const QMimeData& mime, const score::Documen
             else
             {
               auto it = notes.find(pitch);
-              if(it != notes.end())
+              if (it != notes.end())
               {
                 NoteData note = it->second;
                 note.setDuration(delta * (tick / total - note.start()));
@@ -174,7 +179,7 @@ MidiTrack::MidiSong MidiTrack::parse(const QMimeData& mime, const score::Documen
           case mm::MessageType::NOTE_OFF:
           {
             auto it = notes.find(ev->m->data[1]);
-            if(it != notes.end())
+            if (it != notes.end())
             {
               NoteData note = it->second;
               note.setDuration(delta * (tick / total - note.start()));
@@ -185,10 +190,10 @@ MidiTrack::MidiSong MidiTrack::parse(const QMimeData& mime, const score::Documen
           }
           default:
           {
-            if(ev->m->isMetaEvent())
+            if (ev->m->isMetaEvent())
             {
               auto ev_t = ev->m->getMetaEventSubtype();
-              switch(ev_t)
+              switch (ev_t)
               {
                 case mm::MetaEventType::TEMPO_CHANGE:
                 {
@@ -197,7 +202,6 @@ MidiTrack::MidiSong MidiTrack::parse(const QMimeData& mime, const score::Documen
                 default:
                   break;
               }
-
             }
             break;
           }
@@ -205,7 +209,7 @@ MidiTrack::MidiSong MidiTrack::parse(const QMimeData& mime, const score::Documen
       }
       tick = 0;
       notes.clear();
-      if(nv.notes.size() > 0)
+      if (nv.notes.size() > 0)
         m.tracks.push_back(std::move(nv));
     }
   }

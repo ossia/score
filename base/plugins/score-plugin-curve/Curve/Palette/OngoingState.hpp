@@ -38,8 +38,7 @@ public:
           pressed, moving, *this);
       score::make_transition<ReleaseOnAnything_Transition>(pressed, released);
 
-      score::make_transition<MoveOnAnything_Transition>(
-          moving, moving, *this);
+      score::make_transition<MoveOnAnything_Transition>(moving, moving, *this);
       score::make_transition<ReleaseOnAnything_Transition>(moving, released);
 
       connect(pressed, &QAbstractState::entered, this, [&]() { obj.press(); });

@@ -1,20 +1,21 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "EventView.hpp"
+
+#include "EventModel.hpp"
+#include "EventPresenter.hpp"
+
 #include <Process/Style/ScenarioStyle.hpp>
 #include <QBrush>
+#include <QCursor>
 #include <QGraphicsSceneEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 #include <QPen>
-#include <algorithm>
-#include <qnamespace.h>
-
-#include "EventModel.hpp"
-#include "EventPresenter.hpp"
-#include "EventView.hpp"
-#include <QCursor>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
+#include <algorithm>
+#include <qnamespace.h>
 #include <score/model/ModelMetadata.hpp>
 
 class QStyleOptionGraphicsItem;
@@ -35,8 +36,9 @@ EventView::EventView(EventPresenter& presenter, QGraphicsItem* parent)
   m_conditionItem.setVisible(false);
   m_conditionItem.setPos(-13.5, -13.5);
 
-  connect(&m_conditionItem, &ConditionView::pressed,
-          &m_presenter, &EventPresenter::pressed);
+  connect(
+      &m_conditionItem, &ConditionView::pressed, &m_presenter,
+      &EventPresenter::pressed);
 
   this->setParentItem(parent);
   this->setCursor(Qt::SizeHorCursor);

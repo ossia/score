@@ -2,8 +2,6 @@
 #include <State/OSSIASerializationImpl.hpp>
 #include <State/ValueSerializationImpl.hpp>
 
-
-
 //////////// Domain Variant serialization /////////////
 
 template <>
@@ -20,7 +18,6 @@ struct TSerializer<DataStream, ossia::vector_domain>
     s.stream() >> domain.min >> domain.max >> domain.values;
   }
 };
-
 
 template <std::size_t N>
 struct TSerializer<JSONObject, ossia::vecf_domain<N>>
@@ -54,11 +51,11 @@ struct TSerializer<JSONObject, ossia::vecf_domain<N>>
       std::size_t i = 0;
       for (const auto& v : arr)
       {
-        if(i < N)
+        if (i < N)
         {
-          if(v.isArray())
+          if (v.isArray())
           {
-            for(const auto& u : v.toArray())
+            for (const auto& u : v.toArray())
               domain.values[i].insert(fromJsonValue<float>(u));
           }
           i++;
@@ -82,8 +79,6 @@ struct TSerializer<DataStream, ossia::vecf_domain<N>>
     s.stream() >> domain.min >> domain.max >> domain.values;
   }
 };
-
-
 
 template <typename T>
 struct TSerializer<JSONObject, ossia::domain_base<T>>
@@ -163,7 +158,6 @@ struct TSerializer<JSONObject, ossia::domain_base<ossia::impulse>>
   }
 };
 
-
 template <>
 struct TSerializer<JSONObject, ossia::vector_domain>
 {
@@ -197,9 +191,9 @@ struct TSerializer<JSONObject, ossia::vector_domain>
       int i = 0;
       for (const auto& v : arr)
       {
-        if(v.isArray())
+        if (v.isArray())
         {
-          for(const auto& u : v.toArray())
+          for (const auto& u : v.toArray())
             domain.values[i].insert(fromJsonValue<ossia::value>(u));
         }
         i++;
@@ -207,7 +201,6 @@ struct TSerializer<JSONObject, ossia::vector_domain>
     }
   }
 };
-
 
 template <typename T>
 struct TSerializer<DataStream, ossia::domain_base<T>>
@@ -328,44 +321,45 @@ struct TSerializer<DataStream, ossia::domain_base<ossia::impulse>>
   }
 };
 
-
-
-
-template<typename Functor>
-void apply_typeonly(Functor&& functor, ossia::domain_base_variant::Type type, ossia::domain_base_variant& var)
+template <typename Functor>
+void apply_typeonly(
+    Functor&& functor,
+    ossia::domain_base_variant::Type type,
+    ossia::domain_base_variant& var)
 {
   using namespace ossia;
-  switch (type) {
-  case domain_base_variant::Type::Type0:
+  switch (type)
+  {
+    case domain_base_variant::Type::Type0:
       return functor(typeholder<ossia::domain_base<ossia::impulse>>{}, var);
-  case domain_base_variant::Type::Type1:
+    case domain_base_variant::Type::Type1:
       return functor(typeholder<ossia::domain_base<bool>>{}, var);
-  case domain_base_variant::Type::Type2:
+    case domain_base_variant::Type::Type2:
       return functor(typeholder<ossia::domain_base<int>>{}, var);
-  case domain_base_variant::Type::Type3:
+    case domain_base_variant::Type::Type3:
       return functor(typeholder<ossia::domain_base<float>>{}, var);
-  case domain_base_variant::Type::Type4:
+    case domain_base_variant::Type::Type4:
       return functor(typeholder<ossia::domain_base<char>>{}, var);
-  case domain_base_variant::Type::Type5:
+    case domain_base_variant::Type::Type5:
       return functor(typeholder<ossia::domain_base<std::string>>{}, var);
-  case domain_base_variant::Type::Type6:
+    case domain_base_variant::Type::Type6:
       return functor(typeholder<ossia::vector_domain>{}, var);
-  case domain_base_variant::Type::Type7:
+    case domain_base_variant::Type::Type7:
       return functor(typeholder<ossia::vecf_domain<2>>{}, var);
-  case domain_base_variant::Type::Type8:
+    case domain_base_variant::Type::Type8:
       return functor(typeholder<ossia::vecf_domain<3>>{}, var);
-  case domain_base_variant::Type::Type9:
+    case domain_base_variant::Type::Type9:
       return functor(typeholder<ossia::vecf_domain<4>>{}, var);
-  case domain_base_variant::Type::Type10:
+    case domain_base_variant::Type::Type10:
       return functor(typeholder<ossia::domain_base<ossia::value>>{}, var);
-  default: throw;
+    default:
+      throw;
   }
-
 }
 struct DomainVariantJsonSerializer
 {
   QJsonObject& m_obj;
-  template<typename T>
+  template <typename T>
   void operator()(const T& value)
   {
     m_obj[Metadata<Json_k, T>::get()] = toJsonObject(value);
@@ -375,13 +369,13 @@ struct DomainVariantJsonSerializer
 struct DomainVariantDatastreamSerializer
 {
   DataStream::Serializer& s;
-  template<typename T>
+  template <typename T>
   void operator()(const T& value)
   {
     s.stream() << value;
   }
 };
-template<>
+template <>
 struct TSerializer<DataStream, ossia::domain_base_variant>
 {
   using var_t = ossia::domain_base_variant;
@@ -389,7 +383,7 @@ struct TSerializer<DataStream, ossia::domain_base_variant>
   {
     s.stream() << (quint64)var.which();
 
-    if(var)
+    if (var)
     {
       ossia::apply_nonnull(DomainVariantDatastreamSerializer{s}, var);
     }
@@ -404,16 +398,17 @@ struct TSerializer<DataStream, ossia::domain_base_variant>
 
     if (which != (quint64)var.npos)
     {
-      apply_typeonly([&] (auto type, var_t& var) {
-        typename decltype(type)::type value;
-        s.stream() >> value;
-        var = std::move(value);
-      }, (var_t::Type)which, var);
+      apply_typeonly(
+          [&](auto type, var_t& var) {
+            typename decltype(type)::type value;
+            s.stream() >> value;
+            var = std::move(value);
+          },
+          (var_t::Type)which, var);
     }
     s.checkDelimiter();
   }
 };
-
 
 template <>
 struct TSerializer<JSONObject, ossia::domain_base_variant>
@@ -421,30 +416,30 @@ struct TSerializer<JSONObject, ossia::domain_base_variant>
   using var_t = ossia::domain_base_variant;
   static void readFrom(JSONObject::Serializer& s, const var_t& var)
   {
-    if(var)
+    if (var)
     {
       ossia::apply_nonnull(DomainVariantJsonSerializer{s.obj}, var);
     }
   }
 
   using value_type_list = brigand::list<
-    ossia::domain_base<ossia::impulse>,
-  ossia::domain_base<bool>,
-  ossia::domain_base<int>,
-  ossia::domain_base<float>,
-  ossia::domain_base<char>,
-  ossia::domain_base<std::string>,
-  ossia::vector_domain,
-  ossia::vecf_domain<2>,
-  ossia::vecf_domain<3>,
-  ossia::vecf_domain<4>,
-  ossia::domain_base<ossia::value>>;
+      ossia::domain_base<ossia::impulse>,
+      ossia::domain_base<bool>,
+      ossia::domain_base<int>,
+      ossia::domain_base<float>,
+      ossia::domain_base<char>,
+      ossia::domain_base<std::string>,
+      ossia::vector_domain,
+      ossia::vecf_domain<2>,
+      ossia::vecf_domain<3>,
+      ossia::vecf_domain<4>,
+      ossia::domain_base<ossia::value>>;
 
   static auto init_keys()
   {
     std::array<QString, brigand::size<value_type_list>::value> arr;
     int i = 0;
-    brigand::for_each<value_type_list>([&] (auto t) {
+    brigand::for_each<value_type_list>([&](auto t) {
       using type = typename decltype(t)::type;
       arr[i] = Metadata<Json_k, type>::get();
       i++;
@@ -460,14 +455,16 @@ struct TSerializer<JSONObject, ossia::domain_base_variant>
   static void writeTo(JSONObject::Deserializer& s, var_t& var)
   {
     const auto& keys = keys_list();
-    for(std::size_t i = 0; i < keys.size(); i++)
+    for (std::size_t i = 0; i < keys.size(); i++)
     {
       auto it = s.obj.constFind(keys[i]);
       if (it != s.obj.constEnd())
       {
-          apply_typeonly([&] (auto type, var_t& var) {
+        apply_typeonly(
+            [&](auto type, var_t& var) {
               var = fromJsonObject<typename decltype(type)::type>(*it);
-          }, (var_t::Type)i, var);
+            },
+            (var_t::Type)i, var);
         return;
       }
     }

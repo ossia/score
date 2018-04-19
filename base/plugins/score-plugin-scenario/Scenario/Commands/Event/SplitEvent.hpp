@@ -3,11 +3,11 @@
 #include <QString>
 #include <QVector>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <score/command/AggregateCommand.hpp>
 #include <score/command/Command.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <score/command/AggregateCommand.hpp>
-#include <score/model/Identifier.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -39,7 +39,11 @@ public:
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
-  const Id<EventModel>& newEvent() const { return m_newEvent; }
+  const Id<EventModel>& newEvent() const
+  {
+    return m_newEvent;
+  }
+
 protected:
   void serializeImpl(DataStreamInput&) const override;
   void deserializeImpl(DataStreamOutput&) override;
@@ -55,9 +59,8 @@ private:
 
 class SplitStateMacro final : public score::AggregateCommand
 {
-    SCORE_COMMAND_DECL(
-        ScenarioCommandFactoryName(), SplitStateMacro,
-        "Split state from node")
+  SCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(), SplitStateMacro, "Split state from node")
 };
 }
 }

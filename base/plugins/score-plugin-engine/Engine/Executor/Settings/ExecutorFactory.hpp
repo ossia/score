@@ -1,9 +1,8 @@
 #pragma once
-#include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
-
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
 #include <Engine/Executor/Settings/ExecutorPresenter.hpp>
 #include <Engine/Executor/Settings/ExecutorView.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 
 namespace Engine
 {

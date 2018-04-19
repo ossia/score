@@ -1,6 +1,6 @@
 #pragma once
-#include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsView.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 class QCheckBox;
 namespace Explorer::Settings
 {
@@ -39,6 +39,5 @@ public:
 private:
   QWidget* getWidget() override;
   QWidget* m_widg{};
-
 };
 }

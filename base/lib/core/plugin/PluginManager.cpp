@@ -1,25 +1,25 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <ossia/detail/algorithms.hpp>
+
 #include <QCoreApplication>
 #include <QDebug>
 #include <QDir>
+#include <QJsonDocument>
+#include <QPluginLoader>
+#include <QSettings>
+#include <QStandardPaths>
+#include <QVariant>
 #include <boost/concept/usage.hpp>
 #include <boost/range/algorithm/find_if.hpp>
 #include <core/application/ApplicationRegistrar.hpp>
 #include <core/plugin/PluginManager.hpp>
 #include <score/application/ApplicationComponents.hpp>
-#include <score/application/GUIApplicationContext.hpp>
-#include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
-#include <QJsonDocument>
-#include <QPluginLoader>
-#include <QSettings>
-#include <QVariant>
-#include <utility>
-
-#include <ossia/detail/algorithms.hpp>
-#include <QStandardPaths>
 #include <score/application/ApplicationContext.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+#include <utility>
 
 namespace score
 {
@@ -40,12 +40,11 @@ QStringList pluginsDir()
     << "/usr/lib/score";
 #elif defined(__APPLE__) && defined(__MACH__)
   l << QCoreApplication::applicationDirPath() + "/plugins"
-    << QCoreApplication::applicationDirPath()
-           + "../Frameworks/score/plugins";
+    << QCoreApplication::applicationDirPath() + "../Frameworks/score/plugins";
 #endif
   auto pwd = QDir{}.absolutePath() + "/plugins";
 
-  if(pwd != l[0])
+  if (pwd != l[0])
     l << pwd;
   qDebug() << l;
   return l;
@@ -66,8 +65,7 @@ QStringList addonsDir()
 }
 
 std::pair<score::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
-    const QString& fileName,
-    const std::vector<score::Addon>& availablePlugins)
+    const QString& fileName, const std::vector<score::Addon>& availablePlugins)
 {
   using namespace score::PluginLoader;
 #if !defined(SCORE_STATIC_QT) && QT_CONFIG(library)
@@ -79,13 +77,13 @@ std::pair<score::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
     return std::make_pair(nullptr, PluginLoadingError::Blacklisted);
   }
 
-#if defined(_MSC_VER)
+#  if defined(_MSC_VER)
   QDir score_dir = QDir::current();
   qDebug() << "Loading: " << fileName << score_dir.relativeFilePath(fileName);
-  QPluginLoader loader{ fileName };//score_dir.relativeFilePath(fileName)};
-#else
+  QPluginLoader loader{fileName}; // score_dir.relativeFilePath(fileName)};
+#  else
   QPluginLoader loader{fileName};
-#endif
+#  endif
 
   if (QObject* plugin = loader.instance())
   {
@@ -128,8 +126,8 @@ std::pair<score::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
   return std::make_pair(nullptr, PluginLoadingError::UnknownError);
 }
 
-void
-loadPluginsInAllFolders(std::vector<score::Addon>& availablePlugins, QStringList additional)
+void loadPluginsInAllFolders(
+    std::vector<score::Addon>& availablePlugins, QStringList additional)
 {
   using namespace score::PluginLoader;
 
@@ -224,8 +222,7 @@ optional<score::Addon> makeAddon(
   return add;
 }
 
-void
-loadAddonsInAllFolders(std::vector<score::Addon>& availablePlugins)
+void loadAddonsInAllFolders(std::vector<score::Addon>& availablePlugins)
 {
   using namespace score::PluginLoader;
 
@@ -245,8 +242,7 @@ loadAddonsInAllFolders(std::vector<score::Addon>& availablePlugins)
       addonFile.open(QFile::ReadOnly);
 
       auto addon = makeAddon(
-          folder,
-          QJsonDocument::fromJson(addonFile.readAll()).object(),
+          folder, QJsonDocument::fromJson(addonFile.readAll()).object(),
           availablePlugins);
 
       if (addon)

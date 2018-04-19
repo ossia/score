@@ -1,7 +1,6 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
 #include <QString>
-
 #include <State/Value.hpp>
 #include <score_plugin_deviceexplorer_export.h>
 
@@ -89,8 +88,7 @@ public:
 
   void removeLocalNode(const State::Address&);
   void updateLocalValue(const State::AddressAccessor&, const ossia::value&);
-  void
-  updateLocalSettings(
+  void updateLocalSettings(
       const State::Address&,
       const Device::AddressSettings&,
       Device::DeviceInterface& newdev);

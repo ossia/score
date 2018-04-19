@@ -1,14 +1,13 @@
 #pragma once
+#include <Curve/Segment/CurveSegmentModel.hpp>
 #include <QPoint>
 #include <QVariant>
 #include <QVector>
 #include <boost/container/flat_map.hpp>
 #include <memory>
+#include <score/serialization/VisitorInterface.hpp>
 #include <utility>
 #include <vector>
-
-#include <Curve/Segment/CurveSegmentModel.hpp>
-#include <score/serialization/VisitorInterface.hpp>
 
 class QObject;
 #include <score/model/Identifier.hpp>
@@ -23,7 +22,8 @@ CURVE_SEGMENT_METADATA(
     Curve::PointArraySegment,
     "c598b840-db67-4c8f-937a-46cfac87cb59",
     "PointArray",
-    "PointArray", "hidden")
+    "PointArray",
+    "hidden")
 
 namespace Curve
 {
@@ -61,7 +61,6 @@ public:
   {
     vis.writeTo(*this);
   }
-
 
   void on_startChanged() override;
   void on_endChanged() override;
@@ -118,9 +117,18 @@ public:
   }
 
   // This will throw if execution is attempted.
-  ossia::curve_segment<float> makeFloatFunction() const override { return {}; }
-  ossia::curve_segment<int> makeIntFunction() const override { return {}; }
-  ossia::curve_segment<bool> makeBoolFunction() const override { return {}; }
+  ossia::curve_segment<float> makeFloatFunction() const override
+  {
+    return {};
+  }
+  ossia::curve_segment<int> makeIntFunction() const override
+  {
+    return {};
+  }
+  ossia::curve_segment<bool> makeBoolFunction() const override
+  {
+    return {};
+  }
   void reset();
 
 Q_SIGNALS:

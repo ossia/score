@@ -1,22 +1,21 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/Temporal/MiniScenarioView.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "ScenarioFactory.hpp"
 
+#include <Process/Process.hpp>
 #include <QDataStream>
 #include <QIODevice>
 #include <QMap>
-#include <score/tools/std/Optional.hpp>
-
-#include "ScenarioFactory.hpp"
-#include <Process/Process.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioProcessMetadata.hpp>
+#include <Scenario/Process/Temporal/MiniScenarioView.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 #include <score/document/DocumentInterface.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
-#include <score/model/Identifier.hpp>
+#include <score/tools/std/Optional.hpp>
 
 namespace Process
 {
@@ -48,8 +47,7 @@ Process::LayerView* ScenarioTemporalLayerFactory::makeLayerView(
 }
 
 Process::MiniLayer* ScenarioTemporalLayerFactory::makeMiniLayer(
-    const Process::ProcessModel& p,
-    QGraphicsItem* parent) const
+    const Process::ProcessModel& p, QGraphicsItem* parent) const
 {
   if (auto s = dynamic_cast<const Scenario::ProcessModel*>(&p))
     return new MiniScenarioView{*s, parent};

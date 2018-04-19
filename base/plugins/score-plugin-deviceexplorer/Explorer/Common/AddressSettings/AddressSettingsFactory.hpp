@@ -29,8 +29,7 @@ private:
   AddressSettingsFactory();
 
   std::
-      map<ossia::val_type,
-          std::unique_ptr<AddressSettingsWidgetFactoryMethod>>
+      map<ossia::val_type, std::unique_ptr<AddressSettingsWidgetFactoryMethod>>
           m_addressSettingsWidgetFactory;
 };
 }

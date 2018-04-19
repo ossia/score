@@ -1,19 +1,18 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "TimeSyncPresenter.hpp"
+
+#include <Scenario/Commands/TimeSync/SetTrigger.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncView.hpp>
 #include <Scenario/Document/TimeSync/TriggerView.hpp>
-#include <score/widgets/GraphicsItem.hpp>
-
-#include "TimeSyncPresenter.hpp"
+#include <State/MessageListSerialization.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/document/DocumentContext.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/selection/Selectable.hpp>
-#include <State/MessageListSerialization.hpp>
-#include <Scenario/Commands/TimeSync/SetTrigger.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-
 #include <score/tools/Todo.hpp>
+#include <score/widgets/GraphicsItem.hpp>
 
 class QObject;
 #include <score/model/Identifier.hpp>
@@ -21,9 +20,7 @@ class QObject;
 namespace Scenario
 {
 TimeSyncPresenter::TimeSyncPresenter(
-    const TimeSyncModel& model,
-        QGraphicsItem* parentview,
-        QObject* parent)
+    const TimeSyncModel& model, QGraphicsItem* parentview, QObject* parent)
     : QObject{parent}
     , m_model{model}
     , m_view{new TimeSyncView{*this, parentview}}
@@ -56,18 +53,18 @@ TimeSyncPresenter::TimeSyncPresenter(
 
   m_triggerView->setToolTip(m_model.expression().toString());
   con(m_model, &TimeSyncModel::triggerChanged, this,
-      [&](const State::Expression& t) { m_triggerView->setToolTip(t.toString()); });
+      [&](const State::Expression& t) {
+        m_triggerView->setToolTip(t.toString());
+      });
 
-  connect(
-      m_triggerView, &TriggerView::pressed,
-              &m_model, [=] (QPointF sp) {
-      m_model.triggeredByGui();
-      pressed(sp);
+  connect(m_triggerView, &TriggerView::pressed, &m_model, [=](QPointF sp) {
+    m_model.triggeredByGui();
+    pressed(sp);
   });
 
-  connect(m_triggerView, &TriggerView::dropReceived,
-          this, &TimeSyncPresenter::handleDrop);
-
+  connect(
+      m_triggerView, &TriggerView::dropReceived, this,
+      &TimeSyncPresenter::handleDrop);
 }
 
 TimeSyncPresenter::~TimeSyncPresenter()
@@ -110,7 +107,7 @@ void TimeSyncPresenter::handleDrop(const QPointF& pos, const QMimeData* mime)
       if (trig)
       {
         CommandDispatcher<> dispatcher{
-          score::IDocument::documentContext(m_model).commandStack};
+            score::IDocument::documentContext(m_model).commandStack};
         auto cmd = new Command::SetTrigger{m_model, std::move(*trig)};
         dispatcher.submitCommand(cmd);
       }

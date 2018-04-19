@@ -1,18 +1,18 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Curve/CurveModel.hpp>
-#include <Curve/Segment/Power/PowerSegment.hpp>
-#include <score/document/DocumentInterface.hpp>
-#include <score/tools/std/Optional.hpp>
-
-#include <Process/Dataflow/Port.hpp>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MappingModel.hpp"
+
+#include <Curve/CurveModel.hpp>
 #include <Curve/Process/CurveProcessModel.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
+#include <Curve/Segment/Power/PowerSegment.hpp>
 #include <Mapping/MappingProcessMetadata.hpp>
+#include <Process/Dataflow/Port.hpp>
 #include <State/Address.hpp>
-#include <score/model/ModelMetadata.hpp>
+#include <score/document/DocumentInterface.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/model/ModelMetadata.hpp>
+#include <score/tools/std/Optional.hpp>
 
 namespace Mapping
 {
@@ -20,8 +20,9 @@ ProcessModel::ProcessModel(
     const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : Curve::CurveProcessModel{
-          duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    : Curve::CurveProcessModel{duration, id,
+                               Metadata<ObjectKey_k, ProcessModel>::get(),
+                               parent}
     , inlet{Process::make_inlet(Id<Process::Port>(0), this)}
     , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
     , m_sourceMin{0.}
@@ -47,14 +48,14 @@ ProcessModel::ProcessModel(
 }
 
 ProcessModel::ProcessModel(JSONObject::Deserializer& vis, QObject* parent)
-  : CurveProcessModel{vis, parent}
+    : CurveProcessModel{vis, parent}
 {
   vis.writeTo(*this);
   init();
 }
 
 ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent)
-  : CurveProcessModel{vis, parent}
+    : CurveProcessModel{vis, parent}
 {
   vis.writeTo(*this);
   init();
@@ -69,24 +70,25 @@ void ProcessModel::init()
   m_inlets.push_back(inlet.get());
   m_outlets.push_back(outlet.get());
 
-  connect(inlet.get(), &Process::Port::addressChanged,
-          this, [=] (const State::AddressAccessor& arg) {
-    sourceAddressChanged(arg);
-    prettyNameChanged();
-    m_curve->changed();
-  });
-  connect(outlet.get(), &Process::Port::addressChanged,
-          this, [=] (const State::AddressAccessor& arg) {
-    targetAddressChanged(arg);
-    prettyNameChanged();
-    m_curve->changed();
-  });
+  connect(
+      inlet.get(), &Process::Port::addressChanged, this,
+      [=](const State::AddressAccessor& arg) {
+        sourceAddressChanged(arg);
+        prettyNameChanged();
+        m_curve->changed();
+      });
+  connect(
+      outlet.get(), &Process::Port::addressChanged, this,
+      [=](const State::AddressAccessor& arg) {
+        targetAddressChanged(arg);
+        prettyNameChanged();
+        m_curve->changed();
+      });
 }
 
 QString ProcessModel::prettyName() const
 {
-  return sourceAddress().toString()
-         + " -> " + targetAddress().toString();
+  return sourceAddress().toString() + " -> " + targetAddress().toString();
 }
 
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration)

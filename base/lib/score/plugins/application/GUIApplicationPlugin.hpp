@@ -1,12 +1,11 @@
 #pragma once
 #include <QString>
 #include <qnamespace.h>
-#include <vector>
-
 #include <score/actions/Action.hpp>
 #include <score/actions/Menu.hpp>
 #include <score/actions/Toolbar.hpp>
 #include <score/application/GUIApplicationContext.hpp>
+#include <vector>
 class QAction;
 class QObject;
 namespace score
@@ -89,7 +88,6 @@ class SCORE_LIB_BASE_EXPORT GUIApplicationPlugin
 public:
   using GUIElements = score::GUIElements;
   GUIApplicationPlugin(const score::GUIApplicationContext& presenter);
-
 
   virtual ~GUIApplicationPlugin();
 

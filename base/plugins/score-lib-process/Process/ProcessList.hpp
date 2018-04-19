@@ -1,6 +1,5 @@
 #pragma once
 #include <Process/ProcessFactory.hpp>
-
 #include <score/plugins/customfactory/FactoryFamily.hpp>
 
 namespace Process
@@ -22,9 +21,11 @@ public:
   ~LayerFactoryList();
 
   LayerFactory* findDefaultFactory(const Process::ProcessModel& proc) const;
-  LayerFactory* findDefaultFactory(
-      const UuidKey<Process::ProcessModel>& proc) const;
-  LayerFactory* get(
-      const UuidKey<Process::ProcessModel>& proc) const { return findDefaultFactory(proc); }
+  LayerFactory*
+  findDefaultFactory(const UuidKey<Process::ProcessModel>& proc) const;
+  LayerFactory* get(const UuidKey<Process::ProcessModel>& proc) const
+  {
+    return findDefaultFactory(proc);
+  }
 };
 }

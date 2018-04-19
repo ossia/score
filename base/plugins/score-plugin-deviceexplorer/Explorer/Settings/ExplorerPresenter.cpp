@@ -1,12 +1,14 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ExplorerPresenter.hpp"
+
 #include "ExplorerModel.hpp"
 #include "ExplorerView.hpp"
+
 #include <QApplication>
 #include <QStyle>
-#include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/Command.hpp>
+#include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/SettingsCommand.hpp>
 
 namespace Explorer::Settings
@@ -37,7 +39,6 @@ QIcon Presenter::settingsIcon()
   return QApplication::style()->standardIcon(QStyle::SP_MediaPlay);
 }
 }
-
 
 namespace Explorer::ProjectSettings
 {

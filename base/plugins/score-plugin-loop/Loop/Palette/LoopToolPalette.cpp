@@ -1,26 +1,25 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Loop/LoopPresenter.hpp>
-
-#include <algorithm>
-#include <score/tools/std/Optional.hpp>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "LoopToolPalette.hpp"
 
 #include "Loop/LoopProcessModel.hpp"
 #include "Loop/LoopView.hpp"
-#include "LoopToolPalette.hpp"
+
+#include <Loop/LoopPresenter.hpp>
 #include <Process/ProcessContext.hpp>
 #include <Process/TimeValue.hpp>
-#include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/BaseScenarioDisplayedElements_StateWrappers.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Palette/Tools/SmartTool.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
-
-#include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
+#include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
+#include <algorithm>
 #include <score/application/ApplicationContext.hpp>
-#include <score/statemachine/GraphicsSceneToolPalette.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/statemachine/GraphicsSceneToolPalette.hpp>
+#include <score/tools/std/Optional.hpp>
 
 namespace Scenario
 {
@@ -38,8 +37,9 @@ ToolPalette::ToolPalette(
     , m_presenter{presenter}
     , m_context{ctx}
     , m_view{view}
-    , m_editionSettings{m_context.context.app.guiApplicationPlugin<Scenario::
-                                                   ScenarioApplicationPlugin>()
+    , m_editionSettings{m_context.context.app
+                            .guiApplicationPlugin<
+                                Scenario::ScenarioApplicationPlugin>()
                             .editionSettings()}
     , m_state{*this}
     , m_inputDisp{m_presenter, *this, m_context}
@@ -128,7 +128,8 @@ DisplayedElementsToolPalette::DisplayedElementsToolPalette(
     , m_context{pres.context(), m_presenter}
     , m_view{view}
     , m_editionSettings{m_context.context.app
-                        .guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>()
+                            .guiApplicationPlugin<
+                                Scenario::ScenarioApplicationPlugin>()
                             .editionSettings()}
     , m_state{*this}
     , m_inputDisp{m_presenter, *this, m_context}
@@ -146,13 +147,13 @@ DisplayedElementsToolPalette::presenter() const
   return m_presenter.presenters();
 }
 
-const Loop::ProcessModel&
-DisplayedElementsToolPalette::model() const
+const Loop::ProcessModel& DisplayedElementsToolPalette::model() const
 {
   return m_scenarioModel;
 }
 
-const Scenario::BaseElementContext& DisplayedElementsToolPalette::context() const
+const Scenario::BaseElementContext&
+DisplayedElementsToolPalette::context() const
 {
   return m_context;
 }
@@ -198,7 +199,8 @@ void DisplayedElementsToolPalette::on_cancel()
 }
 std::unique_ptr<GraphicsSceneToolPalette>
 DisplayedElementsToolPaletteFactory::make(
-    Scenario::ScenarioDocumentPresenter& pres, const Scenario::IntervalModel& interval)
+    Scenario::ScenarioDocumentPresenter& pres,
+    const Scenario::IntervalModel& interval)
 {
   return std::make_unique<DisplayedElementsToolPalette>(
       pres.displayedElements, pres, pres.view().baseItem());

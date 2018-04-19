@@ -2,7 +2,6 @@
 #include <JS/Commands/JSCommandFactory.hpp>
 #include <QString>
 #include <score/command/Command.hpp>
-
 #include <score/model/path/Path.hpp>
 
 struct DataStreamInput;

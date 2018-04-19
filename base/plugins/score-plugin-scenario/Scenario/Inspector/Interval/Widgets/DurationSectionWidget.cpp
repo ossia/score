@@ -1,5 +1,9 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "DurationSectionWidget.hpp"
+
+#include <Inspector/InspectorSectionWidget.hpp>
+#include <Process/TimeValue.hpp>
 #include <QCheckBox>
 #include <QDateTime>
 #include <QGridLayout>
@@ -7,36 +11,32 @@
 #include <QStackedLayout>
 #include <QString>
 #include <QWidget>
+#include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Commands/Interval/SetMaxDuration.hpp>
 #include <Scenario/Commands/Interval/SetMinDuration.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalDurations.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Inspector/Interval/IntervalInspectorDelegate.hpp>
 #include <Scenario/Inspector/Interval/IntervalInspectorWidget.hpp>
 #include <chrono>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <score/widgets/TextLabel.hpp>
 #include <qnamespace.h>
-
-#include "DurationSectionWidget.hpp"
-#include <Inspector/InspectorSectionWidget.hpp>
-#include <Process/TimeValue.hpp>
-#include <Scenario/Application/ScenarioEditionSettings.hpp>
-#include <Scenario/Document/Interval/IntervalDurations.hpp>
-#include <Scenario/Inspector/Interval/IntervalInspectorDelegate.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
-#include <score/model/Identifier.hpp>
 #include <score/tools/Todo.hpp>
+#include <score/tools/std/Optional.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SpinBoxes.hpp>
+#include <score/widgets/TextLabel.hpp>
 
 namespace Scenario
 {
@@ -147,9 +147,7 @@ public:
   void defaultDurationSpinboxChanged(int val)
   {
     m_delegate.on_defaultDurationChanged(
-        m_dispatcher,
-        TimeVal::fromMsecs(val),
-        m_editionSettings.expandMode());
+        m_dispatcher, TimeVal::fromMsecs(val), m_editionSettings.expandMode());
   }
 
   void on_modelRigidityChanged(bool b)
@@ -258,8 +256,7 @@ public:
   {
     using namespace Scenario::Command;
     m_dispatcher.submitCommand<SetMinDuration>(
-        m_model,
-        TimeVal{std::chrono::milliseconds{val}},
+        m_model, TimeVal{std::chrono::milliseconds{val}},
         !m_minNonNullBox->isChecked());
   }
 
@@ -267,8 +264,7 @@ public:
   {
     using namespace Scenario::Command;
     m_dispatcher.submitCommand<SetMaxDuration>(
-        m_model,
-        TimeVal{std::chrono::milliseconds{val}},
+        m_model, TimeVal{std::chrono::milliseconds{val}},
         !m_maxFiniteBox->isChecked());
   }
 
@@ -368,9 +364,9 @@ DurationWidget::DurationWidget(
     const IntervalInspectorDelegate& delegate,
     IntervalInspectorWidget* parent)
     : QWidget{parent}
-    , m_editingWidget{new EditionGrid{parent->model(), parent->context(), set,
-                                      delegate}}
-   // , m_playingWidget{new PlayGrid{parent->model().duration}}
+    , m_editingWidget{
+          new EditionGrid{parent->model(), parent->context(), set, delegate}}
+// , m_playingWidget{new PlayGrid{parent->model().duration}}
 {
   using namespace score;
   auto mainWidg = this;
@@ -385,30 +381,30 @@ DurationWidget::DurationWidget(
 
       });
   con(dur, &IntervalDurations::minDurationChanged, this, [this](auto v) {
-    //m_playingWidget->on_modelMinDurationChanged(v);
+    // m_playingWidget->on_modelMinDurationChanged(v);
     m_editingWidget->on_modelMinDurationChanged(v);
   });
   con(dur, &IntervalDurations::maxDurationChanged, this, [this](auto v) {
-    //m_playingWidget->on_modelMaxDurationChanged(v);
+    // m_playingWidget->on_modelMaxDurationChanged(v);
     m_editingWidget->on_modelMaxDurationChanged(v);
   });
   con(dur, &IntervalDurations::rigidityChanged, this, [this](auto v) {
-   // m_playingWidget->on_modelRigidityChanged(v);
+    // m_playingWidget->on_modelRigidityChanged(v);
     m_editingWidget->on_modelRigidityChanged(v);
   });
-/*
-  con(set, &EditionSettings::toolChanged, this, [=](Scenario::Tool t) {
-    mainLay->setCurrentWidget(
-        t == Tool::Playing ? (QWidget*)m_playingWidget
-                           : (QWidget*)m_editingWidget);
-  });
-*/
-  //mainLay->addWidget(m_playingWidget);
+  /*
+    con(set, &EditionSettings::toolChanged, this, [=](Scenario::Tool t) {
+      mainLay->setCurrentWidget(
+          t == Tool::Playing ? (QWidget*)m_playingWidget
+                             : (QWidget*)m_editingWidget);
+    });
+  */
+  // mainLay->addWidget(m_playingWidget);
   mainLay->addWidget(m_editingWidget);
-/*
-  mainLay->setCurrentWidget(
-      set.tool() == Tool::Playing ? (QWidget*)m_playingWidget
-                                  : (QWidget*)m_editingWidget);
-*/
+  /*
+    mainLay->setCurrentWidget(
+        set.tool() == Tool::Playing ? (QWidget*)m_playingWidget
+                                    : (QWidget*)m_editingWidget);
+  */
 }
 }

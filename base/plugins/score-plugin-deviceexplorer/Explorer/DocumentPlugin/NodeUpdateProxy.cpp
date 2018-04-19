@@ -1,23 +1,24 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Device/Address/AddressSettings.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
-
-#include <QDebug>
-#include <QStringList>
-#include <algorithm>
-#include <score/tools/std/Optional.hpp>
-#include <vector>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "NodeUpdateProxy.hpp"
 
 #include "DeviceDocumentPlugin.hpp"
-#include "NodeUpdateProxy.hpp"
+
 #include <ossia/detail/algorithms.hpp>
+
+#include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
-#include <Explorer/DeviceList.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <Explorer/DeviceList.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <QDebug>
+#include <QStringList>
 #include <State/Address.hpp>
+#include <algorithm>
 #include <score/model/tree/TreeNode.hpp>
+#include <score/tools/std/Optional.hpp>
+#include <vector>
 
 namespace Explorer
 {
@@ -80,9 +81,9 @@ void NodeUpdateProxy::addAddress(
   SCORE_ASSERT(dev_node.template is<Device::DeviceSettings>());
 
   // Make a full path
-  Device::FullAddressSettings full = Device::FullAddressSettings::
-      make<Device::FullAddressSettings::as_parent>(
-          settings, Device::address(*parentnode));
+  Device::FullAddressSettings full = Device::FullAddressSettings::make<
+      Device::FullAddressSettings::as_parent>(
+      settings, Device::address(*parentnode));
 
   // Add in the device implementation
   devModel.list()
@@ -124,8 +125,8 @@ void NodeUpdateProxy::updateAddress(
 
   const auto addr = Device::address(*node);
   // Make a full path
-  Device::FullAddressSettings full = Device::FullAddressSettings::
-      make<Device::FullAddressSettings::as_child>(settings, addr);
+  Device::FullAddressSettings full = Device::FullAddressSettings::make<
+      Device::FullAddressSettings::as_child>(settings, addr);
   full.address.path.last() = settings.name;
 
   // Update in the device implementation
@@ -187,26 +188,29 @@ void NodeUpdateProxy::updateLocalValue(
 }
 
 void NodeUpdateProxy::updateLocalSettings(
-    const State::Address& addr, const Device::AddressSettings& set, Device::DeviceInterface& newdev)
+    const State::Address& addr,
+    const Device::AddressSettings& set,
+    Device::DeviceInterface& newdev)
 {
   auto n = Device::try_getNodeFromAddress(devModel.rootNode(), addr);
   if (!n)
   {
     // FIXME A subtle bug is introduced if we want to add the root node...
-    if(addr.path.size() > 0)
+    if (addr.path.size() > 0)
     {
       auto parentAddr = addr;
       parentAddr.path.removeLast();
 
-      Device::Node* parent = Device::try_getNodeFromAddress(devModel.rootNode(), parentAddr);
+      Device::Node* parent
+          = Device::try_getNodeFromAddress(devModel.rootNode(), parentAddr);
       if (parent)
       {
         const auto& last = addr.path[addr.path.size() - 1];
-        auto it = ossia::find_if(*parent, [&] (const auto& n) { return n.displayName() == last; });
-        if(it == parent->cend())
+        auto it = ossia::find_if(
+            *parent, [&](const auto& n) { return n.displayName() == last; });
+        if (it == parent->cend())
         {
-          addLocalNode(
-                *parent, newdev.getNode(addr));
+          addLocalNode(*parent, newdev.getNode(addr));
         }
         else
         {

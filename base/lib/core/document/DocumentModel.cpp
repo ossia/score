@@ -1,15 +1,14 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <core/document/DocumentModel.hpp>
+#include <score/model/IdentifiedObject.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/selection/Selection.hpp>
-#include <score/model/IdentifiedObject.hpp>
 class QObject;
 #include <score/model/Identifier.hpp>
-
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::DocumentModel)
 namespace score
@@ -47,5 +46,4 @@ void DocumentModel::addPluginModel(DocumentPlugin* m)
   m_pluginModels.push_back(m);
   pluginModelsChanged();
 }
-
 }

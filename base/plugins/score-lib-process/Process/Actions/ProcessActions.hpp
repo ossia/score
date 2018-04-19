@@ -6,26 +6,25 @@ template <typename T>
 struct EnableWhenFocusedProcessIs;
 }
 
-#define SCORE_DECLARE_FOCUSED_PROCESS_CONDITION(Type)                        \
+#define SCORE_DECLARE_FOCUSED_PROCESS_CONDITION(Type)                         \
   namespace Process                                                           \
   {                                                                           \
   template <>                                                                 \
   struct EnableWhenFocusedProcessIs<Type> final                               \
-      : public score::FocusActionCondition                                   \
+      : public score::FocusActionCondition                                    \
   {                                                                           \
   public:                                                                     \
-    static score::ActionConditionKey static_key()                            \
+    static score::ActionConditionKey static_key()                             \
     {                                                                         \
-      return score::ActionConditionKey{"FocusedProcessIs" #Type};            \
+      return score::ActionConditionKey{"FocusedProcessIs" #Type};             \
     }                                                                         \
                                                                               \
-    EnableWhenFocusedProcessIs() : score::FocusActionCondition{static_key()} \
+    EnableWhenFocusedProcessIs() : score::FocusActionCondition{static_key()}  \
     {                                                                         \
     }                                                                         \
                                                                               \
   private:                                                                    \
-    void                                                                      \
-    action(score::ActionManager& mgr, score::MaybeDocument doc) override    \
+    void action(score::ActionManager& mgr, score::MaybeDocument doc) override \
     {                                                                         \
       if (!doc)                                                               \
       {                                                                       \

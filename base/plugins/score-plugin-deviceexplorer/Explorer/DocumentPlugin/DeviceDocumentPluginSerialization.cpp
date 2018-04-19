@@ -1,22 +1,20 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DeviceDocumentPlugin.hpp"
+
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <score/serialization/VariantSerialization.hpp>
 
 template <>
-void DataStreamReader::read(
-    const Explorer::DeviceDocumentPlugin& dev)
+void DataStreamReader::read(const Explorer::DeviceDocumentPlugin& dev)
 {
   readFrom(dev.rootNode());
   insertDelimiter();
 }
 
-
 template <>
-void JSONObjectReader::read(
-    const Explorer::DeviceDocumentPlugin& plug)
+void JSONObjectReader::read(const Explorer::DeviceDocumentPlugin& plug)
 {
   // Childrens of the root node are the devices
   // We don't save their children if they don't have canSerialize().
@@ -45,7 +43,6 @@ void JSONObjectReader::read(
   obj["Children"] = children;
 }
 
-
 template <>
 void DataStreamWriter::write(Explorer::DeviceDocumentPlugin& plug)
 {
@@ -63,7 +60,6 @@ void DataStreamWriter::write(Explorer::DeviceDocumentPlugin& plug)
     plug.updateProxy.loadDevice(node);
   }
 }
-
 
 template <>
 void JSONObjectWriter::write(Explorer::DeviceDocumentPlugin& plug)

@@ -1,15 +1,13 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TimeSyncSummaryWidget.hpp"
 
-#include <score/document/DocumentContext.hpp>
-#include <score/widgets/TextLabel.hpp>
-
 #include <QLabel>
-
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Inspector/SelectionButton.hpp>
 #include <State/Expression.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/widgets/TextLabel.hpp>
 
 namespace Scenario
 {
@@ -39,6 +37,5 @@ TimeSyncSummaryWidget::TimeSyncSummaryWidget(
 
 TimeSyncSummaryWidget::~TimeSyncSummaryWidget()
 {
-
 }
 }

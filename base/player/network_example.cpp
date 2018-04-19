@@ -1,7 +1,9 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "player.hpp"
+
 #include <ossia/network/generic/generic_device.hpp>
+
 #include <QCoreApplication>
 int main(int argc, char** argv)
 {
@@ -16,12 +18,13 @@ int main(int argc, char** argv)
   dev.set_name("OSCdevice");
 
   // Add a custom callback on the device
-  auto address = ossia::net::create_node(dev, "/foo/bar").create_parameter(ossia::val_type::FLOAT);
-  address->add_callback([] (const ossia::value& val) {
-    std::cerr << val << std::endl;
-  });
+  auto address = ossia::net::create_node(dev, "/foo/bar")
+                     .create_parameter(ossia::val_type::FLOAT);
+  address->add_callback(
+      [](const ossia::value& val) { std::cerr << val << std::endl; });
 
-  // The device will replace the implementation that will be loaded with the same name.
+  // The device will replace the implementation that will be loaded with the
+  // same name.
   p.registerDevice(dev);
 
   return app.exec();

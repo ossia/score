@@ -1,6 +1,6 @@
 #pragma once
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
@@ -93,7 +93,8 @@ nextInterval(const StateModel& st, const Scenario_T& scenario)
 }
 
 template <typename Scenario_T>
-std::list<Id<IntervalModel>> nextIntervals(const EventModel& ev, const Scenario_T& scenario)
+std::list<Id<IntervalModel>>
+nextIntervals(const EventModel& ev, const Scenario_T& scenario)
 {
   std::list<Id<IntervalModel>> intervals;
   for (const Id<StateModel>& state : ev.states())
@@ -105,7 +106,8 @@ std::list<Id<IntervalModel>> nextIntervals(const EventModel& ev, const Scenario_
   return intervals;
 }
 template <typename Scenario_T>
-std::list<Id<IntervalModel>> previousIntervals(const EventModel& ev, const Scenario_T& scenario)
+std::list<Id<IntervalModel>>
+previousIntervals(const EventModel& ev, const Scenario_T& scenario)
 {
   std::list<Id<IntervalModel>> intervals;
   for (const Id<StateModel>& state : ev.states())
@@ -131,7 +133,8 @@ bool hasPreviousIntervals(const EventModel& ev, const Scenario_T& scenario)
 
 // TimeSyncs
 template <typename Scenario_T>
-std::list<Id<IntervalModel>> nextIntervals(const TimeSyncModel& tn, const Scenario_T& scenario)
+std::list<Id<IntervalModel>>
+nextIntervals(const TimeSyncModel& tn, const Scenario_T& scenario)
 {
   std::list<Id<IntervalModel>> intervals;
   for (const Id<EventModel>& event_id : tn.events())
@@ -145,7 +148,8 @@ std::list<Id<IntervalModel>> nextIntervals(const TimeSyncModel& tn, const Scenar
 }
 
 template <typename Scenario_T>
-std::list<Id<IntervalModel>> previousIntervals(const TimeSyncModel& tn, const Scenario_T& scenario)
+std::list<Id<IntervalModel>>
+previousIntervals(const TimeSyncModel& tn, const Scenario_T& scenario)
 {
   std::list<Id<IntervalModel>> intervals;
   for (const Id<EventModel>& event_id : tn.events())
@@ -164,14 +168,15 @@ bool hasPreviousIntervals(const TimeSyncModel& tn, const Scenario_T& scenario)
   for (const Id<EventModel>& event_id : tn.events())
   {
     const EventModel& event = scenario.event(event_id);
-    if(hasPreviousIntervals(event, scenario))
+    if (hasPreviousIntervals(event, scenario))
       return true;
   }
 
   return false;
 }
 template <typename Scenario_T>
-std::list<Id<StateModel>> states(const TimeSyncModel& tn, const Scenario_T& scenario)
+std::list<Id<StateModel>>
+states(const TimeSyncModel& tn, const Scenario_T& scenario)
 {
   std::list<Id<StateModel>> stateList;
   for (const Id<EventModel>& event_id : tn.events())
@@ -191,7 +196,7 @@ const TimeVal& date(const Element_T& e, const Scenario_T& scenario)
 {
   return parentTimeSync(e, scenario).date();
 }
-template<typename Scenario_T>
+template <typename Scenario_T>
 inline const TimeVal& date(const IntervalModel& e, const Scenario_T& scenario)
 {
   return e.date();
@@ -201,7 +206,7 @@ template <typename Element_T>
 Scenario::ScenarioInterface& parentScenario(Element_T&& e)
 {
   auto s = qobject_cast<Scenario::ProcessModel*>(e.parent());
-  if(s)
+  if (s)
     return *s;
 
   return *dynamic_cast<Scenario::ScenarioInterface*>(e.parent());

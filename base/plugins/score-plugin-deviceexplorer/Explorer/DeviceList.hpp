@@ -1,12 +1,11 @@
 #pragma once
 #include <Device/Protocol/DeviceInterface.hpp>
+#include <Device/Protocol/DeviceSettings.hpp>
 #include <QString>
 #include <algorithm>
 #include <functional>
-#include <vector>
-
-#include <Device/Protocol/DeviceSettings.hpp>
 #include <score_plugin_deviceexplorer_export.h>
+#include <vector>
 
 namespace Device
 {
@@ -36,9 +35,18 @@ public:
   void setLogging(bool);
 
   void setLocalDevice(DeviceInterface*);
-  void setAudioDevice(DeviceInterface* dev) { m_audioDevice = dev; }
-  DeviceInterface* localDevice() const { return m_localDevice; }
-  DeviceInterface* audioDevice() const { return m_audioDevice; }
+  void setAudioDevice(DeviceInterface* dev)
+  {
+    m_audioDevice = dev;
+  }
+  DeviceInterface* localDevice() const
+  {
+    return m_localDevice;
+  }
+  DeviceInterface* audioDevice() const
+  {
+    return m_audioDevice;
+  }
   const std::vector<DeviceInterface*>& devices() const;
 Q_SIGNALS:
   void logInbound(const QString&) const;
@@ -47,10 +55,9 @@ Q_SIGNALS:
 
 private:
   std::vector<DeviceInterface*> m_devices;
-  DeviceInterface* m_localDevice{}, *m_audioDevice{};
+  DeviceInterface *m_localDevice{}, *m_audioDevice{};
   bool m_logging = false;
 };
 
-SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceLogging get_cur_logging(bool b)
-;
+SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceLogging get_cur_logging(bool b);
 }

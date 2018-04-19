@@ -1,18 +1,16 @@
 #pragma once
-#include <Process/State/MessageNode.hpp>
-#include <Process/TimeValue.hpp>
-#include <Device/Node/DeviceNode.hpp>
-
 #include <ossia/editor/expression/expression.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
 #include <ossia/editor/state/state.hpp>
 #include <ossia/editor/state/state_element.hpp>
+
+#include <Device/Node/DeviceNode.hpp>
+#include <Process/State/MessageNode.hpp>
+#include <Process/TimeValue.hpp>
 #include <QStringList>
 #include <State/Expression.hpp>
-#include <memory>
-
 #include <State/Value.hpp>
-
+#include <memory>
 #include <score_plugin_engine_export.h>
 namespace Engine
 {
@@ -83,9 +81,11 @@ SCORE_PLUGIN_ENGINE_EXPORT void
 updateOSSIAValue(const ossia::value& data, ossia::value& val);
 
 //// Other conversions
-SCORE_PLUGIN_ENGINE_EXPORT inline ossia::time_value defaultTime(const TimeVal& t)
+SCORE_PLUGIN_ENGINE_EXPORT inline ossia::time_value
+defaultTime(const TimeVal& t)
 {
-  return t.isInfinite() ? ossia::Infinite : ossia::time_value{t.msec() * 1000.};
+  return t.isInfinite() ? ossia::Infinite
+                        : ossia::time_value{t.msec() * 1000.};
 }
 
 SCORE_PLUGIN_ENGINE_EXPORT void state(
@@ -97,9 +97,8 @@ SCORE_PLUGIN_ENGINE_EXPORT ossia::state state(
     const Engine::Execution::Context& ctx);
 
 SCORE_PLUGIN_ENGINE_EXPORT
-ossia::net::parameter_base* address(
-    const State::Address& addr,
-    const Device::DeviceList& deviceList);
+ossia::net::parameter_base*
+address(const State::Address& addr, const Device::DeviceList& deviceList);
 
 SCORE_PLUGIN_ENGINE_EXPORT optional<ossia::message>
 message(const State::Message& mess, const Device::DeviceList&);

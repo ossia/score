@@ -49,9 +49,8 @@ struct Visitor<Writer<Mime<Process::ProcessData>>> : public MimeDataWriter
   using MimeDataWriter::MimeDataWriter;
   auto deserialize()
   {
-    auto obj
-        = QJsonDocument::fromJson(m_mime.data(score::mime::processdata()))
-              .object();
+    auto obj = QJsonDocument::fromJson(m_mime.data(score::mime::processdata()))
+                   .object();
     Process::ProcessData p;
     p.key = fromJsonValue<score::uuid_t>(obj["uuid"]);
     p.customData = obj["Data"].toString();

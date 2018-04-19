@@ -1,10 +1,9 @@
 #pragma once
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <QVariant>
+#include <score/model/Identifier.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/tools/std/Optional.hpp>
-
-#include <score/model/Identifier.hpp>
 
 namespace Curve
 {
@@ -16,7 +15,8 @@ CURVE_SEGMENT_METADATA(
     Curve::PowerSegment,
     "1e7cb83f-4e47-4b14-814d-2242a9c75991",
     "Power",
-    "Power", "")
+    "Power",
+    "")
 
 namespace Curve
 {
@@ -45,12 +45,15 @@ public:
 
   PowerSegment(DataStream::Deserializer& vis, QObject* parent)
       : SegmentModel{vis, parent}
-  { vis.writeTo(*this); }
+  {
+    vis.writeTo(*this);
+  }
 
   PowerSegment(JSONObject::Deserializer& vis, QObject* parent)
       : SegmentModel{vis, parent}
-  { vis.writeTo(*this); }
-
+  {
+    vis.writeTo(*this);
+  }
 
   double gamma = PowerSegmentData::linearGamma; // TODO private
 private:

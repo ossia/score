@@ -16,11 +16,11 @@ using GraphVertex = Scenario::TimeSyncModel*;
 using GraphEdge = Scenario::IntervalModel*;
 
 using Graph = boost::adjacency_list<
-  boost::vecS,
-  boost::vecS,
-  boost::directedS,
-  GraphVertex,
-  GraphEdge>;
+    boost::vecS,
+    boost::vecS,
+    boost::directedS,
+    GraphVertex,
+    GraphEdge>;
 
 /**
  * @brief A directed graph of all the TimeSync%s in a ScenarioInterface.
@@ -39,25 +39,32 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT TimenodeGraphConnectedComponent
 };
 struct SCORE_PLUGIN_SCENARIO_EXPORT TimenodeGraphComponents
 {
-    const Scenario::ProcessModel& scenario;
-    std::vector<TimenodeGraphConnectedComponent> comps;
+  const Scenario::ProcessModel& scenario;
+  std::vector<TimenodeGraphConnectedComponent> comps;
 
-    const TimenodeGraphConnectedComponent& component(const Scenario::TimeSyncModel& c) const;
-    bool isInMain(const Scenario::TimeSyncModel& c) const;
-    bool isInMain(const Scenario::IntervalModel& c) const;
-    bool isInMain(const Scenario::EventModel& c) const;
-    bool isInMain(const Scenario::StateModel& c) const;
+  const TimenodeGraphConnectedComponent&
+  component(const Scenario::TimeSyncModel& c) const;
+  bool isInMain(const Scenario::TimeSyncModel& c) const;
+  bool isInMain(const Scenario::IntervalModel& c) const;
+  bool isInMain(const Scenario::EventModel& c) const;
+  bool isInMain(const Scenario::StateModel& c) const;
 };
 struct SCORE_PLUGIN_SCENARIO_EXPORT TimenodeGraph
 {
   TimenodeGraph(const Scenario::ProcessModel& scenar);
 
   const Graph& graph() const
-  { return m_graph; }
+  {
+    return m_graph;
+  }
   const auto& edges() const
-  { return m_edges; }
+  {
+    return m_edges;
+  }
   const auto& vertices() const
-  { return m_vertices; }
+  {
+    return m_vertices;
+  }
 
   //! Writes graphviz output on stdout
   void writeGraphviz();
@@ -68,12 +75,9 @@ private:
   const Scenario::ProcessModel& m_scenario;
   Graph m_graph;
 
-  score::hash_map<
-      const Scenario::TimeSyncModel*,
-      Graph::vertex_descriptor> m_vertices;
-  score::hash_map<
-      const Scenario::IntervalModel*,
-      Graph::edge_descriptor> m_edges;
+  score::hash_map<const Scenario::TimeSyncModel*, Graph::vertex_descriptor>
+      m_vertices;
+  score::hash_map<const Scenario::IntervalModel*, Graph::edge_descriptor>
+      m_edges;
 };
-
 }

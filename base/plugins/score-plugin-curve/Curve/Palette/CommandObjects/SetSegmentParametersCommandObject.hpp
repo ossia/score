@@ -1,9 +1,8 @@
 #pragma once
+#include <Curve/Commands/SetSegmentParameters.hpp>
 #include <QPoint>
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/tools/std/Optional.hpp>
-
-#include <Curve/Commands/SetSegmentParameters.hpp>
 
 namespace score
 {

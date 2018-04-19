@@ -1,21 +1,21 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "CommentBlockModel.hpp"
+
+#include <Process/TimeValue.hpp>
+#include <Process/TimeValueSerialization.hpp>
 #include <QDataStream>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QtGlobal>
-#include <algorithm>
-#include <score/tools/std/Optional.hpp>
-
-#include "CommentBlockModel.hpp"
-#include <Process/TimeValue.hpp>
-#include <Process/TimeValueSerialization.hpp>
 #include <State/Expression.hpp>
+#include <algorithm>
+#include <score/model/Identifier.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
-#include <score/model/Identifier.hpp>
+#include <score/tools/std/Optional.hpp>
 
 template <typename T>
 class Reader;
@@ -24,16 +24,13 @@ class Writer;
 template <typename model>
 class IdentifiedObject;
 
-
 template <>
-void DataStreamReader::read(
-    const Scenario::CommentBlockModel& comment)
+void DataStreamReader::read(const Scenario::CommentBlockModel& comment)
 {
   m_stream << comment.m_date << comment.m_yposition << comment.m_HTMLcontent;
 
   insertDelimiter();
 }
-
 
 template <>
 void DataStreamWriter::write(Scenario::CommentBlockModel& comment)
@@ -42,16 +39,13 @@ void DataStreamWriter::write(Scenario::CommentBlockModel& comment)
   checkDelimiter();
 }
 
-
 template <>
-void JSONObjectReader::read(
-    const Scenario::CommentBlockModel& comment)
+void JSONObjectReader::read(const Scenario::CommentBlockModel& comment)
 {
   obj["Date"] = toJsonValue(comment.m_date);
   obj["HeightPercentage"] = comment.m_yposition;
   obj["HTMLContent"] = comment.m_HTMLcontent;
 }
-
 
 template <>
 void JSONObjectWriter::write(Scenario::CommentBlockModel& comment)

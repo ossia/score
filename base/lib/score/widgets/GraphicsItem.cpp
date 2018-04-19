@@ -1,9 +1,9 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "GraphicsItem.hpp"
+
 #include <QGraphicsItem>
 #include <QGraphicsScene>
-
-#include "GraphicsItem.hpp"
 #include <score/plugins/customfactory/UuidKey.hpp>
 
 void deleteGraphicsObject(QGraphicsObject* item)
@@ -36,12 +36,12 @@ void deleteGraphicsItem(QGraphicsItem* item)
   }
 }
 
-QGraphicsView *getView(QGraphicsItem &self)
+QGraphicsView* getView(QGraphicsItem& self)
 {
-    if(!self.scene())
-        return nullptr;
-    auto v = self.scene()->views();
-    if(v.empty())
-        return nullptr;
-    return v.first();
+  if (!self.scene())
+    return nullptr;
+  auto v = self.scene()->views();
+  if (v.empty())
+    return nullptr;
+  return v.first();
 }

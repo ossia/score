@@ -1,6 +1,6 @@
 #pragma once
-#include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsPresenter.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 
 namespace Media::Settings
 {

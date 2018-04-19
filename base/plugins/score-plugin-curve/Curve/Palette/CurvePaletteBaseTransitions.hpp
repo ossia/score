@@ -1,6 +1,7 @@
 #pragma once
 #include "CurvePaletteBaseEvents.hpp"
 #include "CurvePaletteBaseStates.hpp"
+
 #include <Curve/Point/CurvePointModel.hpp>
 #include <Curve/Point/CurvePointView.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
@@ -26,8 +27,8 @@ class PositionedCurveTransition final
     : public MatchedCurveTransition<CurveEvent<Element_T, Modifier_T>>
 {
 public:
-  using MatchedCurveTransition<CurveEvent<Element_T, Modifier_T>>::
-      MatchedCurveTransition;
+  using MatchedCurveTransition<
+      CurveEvent<Element_T, Modifier_T>>::MatchedCurveTransition;
 
 protected:
   void onTransition(QEvent* ev) override
@@ -67,8 +68,7 @@ private:
         = safe_cast<const SegmentView*>(ev->item)->model().id();
   }
 
-  void
-  impl(CurveEvent<Element::Nothing_tag, score::Modifier::Release_tag>* ev)
+  void impl(CurveEvent<Element::Nothing_tag, score::Modifier::Release_tag>* ev)
   {
   }
   void impl(CurveEvent<Element::Point_tag, score::Modifier::Release_tag>* ev)
@@ -76,34 +76,41 @@ private:
     auto& model = safe_cast<const PointView*>(ev->item)->model();
     this->state().hoveredPointId = {model.previous(), model.following()};
   }
-  void
-  impl(CurveEvent<Element::Segment_tag, score::Modifier::Release_tag>* ev)
+  void impl(CurveEvent<Element::Segment_tag, score::Modifier::Release_tag>* ev)
   {
     this->state().hoveredSegmentId
         = safe_cast<const SegmentView*>(ev->item)->model().id();
   }
 };
 
-using ClickOnNothing_Transition
-    = PositionedCurveTransition<Element::Nothing_tag, score::Modifier::Click_tag>;
-using ClickOnPoint_Transition
-    = PositionedCurveTransition<Element::Point_tag, score::Modifier::Click_tag>;
-using ClickOnSegment_Transition
-    = PositionedCurveTransition<Element::Segment_tag, score::Modifier::Click_tag>;
+using ClickOnNothing_Transition = PositionedCurveTransition<
+    Element::Nothing_tag,
+    score::Modifier::Click_tag>;
+using ClickOnPoint_Transition = PositionedCurveTransition<
+    Element::Point_tag,
+    score::Modifier::Click_tag>;
+using ClickOnSegment_Transition = PositionedCurveTransition<
+    Element::Segment_tag,
+    score::Modifier::Click_tag>;
 
-using MoveOnNothing_Transition
-    = PositionedCurveTransition<Element::Nothing_tag, score::Modifier::Move_tag>;
+using MoveOnNothing_Transition = PositionedCurveTransition<
+    Element::Nothing_tag,
+    score::Modifier::Move_tag>;
 using MoveOnPoint_Transition
     = PositionedCurveTransition<Element::Point_tag, score::Modifier::Move_tag>;
-using MoveOnSegment_Transition
-    = PositionedCurveTransition<Element::Segment_tag, score::Modifier::Move_tag>;
+using MoveOnSegment_Transition = PositionedCurveTransition<
+    Element::Segment_tag,
+    score::Modifier::Move_tag>;
 
-using ReleaseOnNothing_Transition
-    = PositionedCurveTransition<Element::Nothing_tag, score::Modifier::Release_tag>;
-using ReleaseOnPoint_Transition
-    = PositionedCurveTransition<Element::Point_tag, score::Modifier::Release_tag>;
-using ReleaseOnSegment_Transition
-    = PositionedCurveTransition<Element::Segment_tag, score::Modifier::Release_tag>;
+using ReleaseOnNothing_Transition = PositionedCurveTransition<
+    Element::Nothing_tag,
+    score::Modifier::Release_tag>;
+using ReleaseOnPoint_Transition = PositionedCurveTransition<
+    Element::Point_tag,
+    score::Modifier::Release_tag>;
+using ReleaseOnSegment_Transition = PositionedCurveTransition<
+    Element::Segment_tag,
+    score::Modifier::Release_tag>;
 
 class ClickOnAnything_Transition final
     : public GenericTransition<QAbstractTransition>

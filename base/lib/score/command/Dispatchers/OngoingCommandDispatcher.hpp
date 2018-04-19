@@ -1,8 +1,7 @@
 #pragma once
+#include <core/command/CommandStack.hpp>
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/Dispatchers/SendStrategy.hpp>
-
-#include <core/command/CommandStack.hpp>
 
 /**
  * @brief The OngoingCommandDispatcher class
@@ -12,14 +11,11 @@
  *
  * That is, it is useful when you want to have a command that has a
  * long initialization but a very fast update. For instance, moving an object :
- * initializing the command is (relatively) long so we don't want to create a new one at
- * every mouse movement.
- * <br>
- * Instead, such commands have an `update()` function with
- * the same arguments than the used constructor.
- * <br>
- * This dispatcher will call the correct method of the given command whether we're
- * initializing it for the first time, or modifying the existing command.
+ * initializing the command is (relatively) long so we don't want to create a
+ * new one at every mouse movement. <br> Instead, such commands have an
+ * `update()` function with the same arguments than the used constructor. <br>
+ * This dispatcher will call the correct method of the given command whether
+ * we're initializing it for the first time, or modifying the existing command.
  *
  *
  */
@@ -31,7 +27,8 @@ public:
   {
   }
 
-  //! Call this repeatedly to make the command, for instance on click and when the mouse moves.
+  //! Call this repeatedly to make the command, for instance on click and when
+  //! the mouse moves.
   template <typename TheCommand, typename... Args>
   void submitCommand(Args&&... args)
   {
@@ -49,7 +46,8 @@ public:
     }
   }
 
-  //! When the command is finished and can be sent to the undo - redo stack. For instance on mouse release.
+  //! When the command is finished and can be sent to the undo - redo stack.
+  //! For instance on mouse release.
   void commit()
   {
     if (m_cmd)

@@ -1,5 +1,11 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "DocumentManager.hpp"
+
+#include "QRecentFilesMenu.h"
+
+#include <ossia/detail/algorithms.hpp>
+
 #include <QApplication>
 #include <QByteArray>
 #include <QFile>
@@ -8,39 +14,33 @@
 #include <QIODevice>
 #include <QJsonDocument>
 #include <QMessageBox>
-#include <core/document/DocumentBackups.hpp>
-#include <core/document/DocumentModel.hpp>
-#include <core/presenter/Presenter.hpp>
-#include <core/view/Window.hpp>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
-#include <score/plugins/panel/PanelDelegate.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <score/tools/std/Optional.hpp>
-
 #include <QSaveFile>
 #include <QSettings>
 #include <QStringList>
 #include <QVariant>
-#include <utility>
-
-#include "DocumentManager.hpp"
-#include "QRecentFilesMenu.h"
-#include <ossia/detail/algorithms.hpp>
-#include <core/application/ApplicationSettings.hpp>
-#include <core/command/CommandStack.hpp>
-#include <core/command/CommandStackSerialization.hpp>
-#include <core/document/Document.hpp>
-#include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
-#include <score/application/ApplicationComponents.hpp>
-#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
-#include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
-#include <score/model/Identifier.hpp>
-
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/multi_index/identity.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index_container.hpp>
+#include <core/application/ApplicationSettings.hpp>
+#include <core/command/CommandStack.hpp>
+#include <core/command/CommandStackSerialization.hpp>
+#include <core/document/Document.hpp>
+#include <core/document/DocumentBackups.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <core/presenter/Presenter.hpp>
+#include <core/view/Window.hpp>
+#include <score/application/ApplicationComponents.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+#include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+#include <score/plugins/panel/PanelDelegate.hpp>
+#include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+#include <score/tools/std/Optional.hpp>
+#include <utility>
 namespace score
 {
 struct LoadedPluginVersions
@@ -51,10 +51,18 @@ struct LoadedPluginVersions
 }
 
 namespace bmi = boost::multi_index;
-using LocalPluginVersionsMap = bmi::
-    multi_index_container<score::Plugin_QtInterface*, bmi::indexed_by<bmi::hashed_unique<bmi::const_mem_fun<score::Plugin_QtInterface, UuidKey<score::Plugin>, &score::Plugin_QtInterface::key>>>>;
-using LoadedPluginVersionsMap = bmi::
-    multi_index_container<score::Plugin_QtInterface*, bmi::indexed_by<bmi::hashed_unique<bmi::member<score::LoadedPluginVersions, UuidKey<score::Plugin>, &score::LoadedPluginVersions::plugin>>>>;
+using LocalPluginVersionsMap = bmi::multi_index_container<
+    score::Plugin_QtInterface*,
+    bmi::indexed_by<bmi::hashed_unique<bmi::const_mem_fun<
+        score::Plugin_QtInterface,
+        UuidKey<score::Plugin>,
+        &score::Plugin_QtInterface::key>>>>;
+using LoadedPluginVersionsMap = bmi::multi_index_container<
+    score::Plugin_QtInterface*,
+    bmi::indexed_by<bmi::hashed_unique<bmi::member<
+        score::LoadedPluginVersions,
+        UuidKey<score::Plugin>,
+        &score::LoadedPluginVersions::plugin>>>>;
 
 namespace std
 {
@@ -78,24 +86,28 @@ DocumentManager::DocumentManager(score::View* view, QObject* parentPresenter)
 
 void DocumentManager::init(const score::GUIApplicationContext& ctx)
 {
-  if(m_view)
+  if (m_view)
   {
-    connect(m_view, &View::activeDocumentChanged, this,
+    connect(
+        m_view, &View::activeDocumentChanged, this,
         [&](const Id<DocumentModel>& doc) {
-      prepareNewDocument(ctx);
-      auto it = ossia::find_if(m_documents, [&](auto other) {
-        return other->model().id() == doc;
-      });
-      setCurrentDocument(ctx, it != m_documents.end() ? *it : nullptr);
-    },
-    Qt::QueuedConnection);
+          prepareNewDocument(ctx);
+          auto it = ossia::find_if(m_documents, [&](auto other) {
+            return other->model().id() == doc;
+          });
+          setCurrentDocument(ctx, it != m_documents.end() ? *it : nullptr);
+        },
+        Qt::QueuedConnection);
 
-    connect(m_view, &View::closeRequested, this, [&](const Id<DocumentModel>& doc) {
-      auto it = ossia::find_if(
-                  m_documents, [&](auto other) { return other->model().id() == doc; });
-      SCORE_ASSERT(it != m_documents.end());
-      closeDocument(ctx, **it);
-    });
+    connect(
+        m_view, &View::closeRequested, this,
+        [&](const Id<DocumentModel>& doc) {
+          auto it = ossia::find_if(m_documents, [&](auto other) {
+            return other->model().id() == doc;
+          });
+          SCORE_ASSERT(it != m_documents.end());
+          closeDocument(ctx, **it);
+        });
 
     m_recentFiles = new QRecentFilesMenu{tr("Recent files"), nullptr};
 
@@ -103,8 +115,8 @@ void DocumentManager::init(const score::GUIApplicationContext& ctx)
     QSettings settings("OSSIA", "score");
     m_recentFiles->restoreState(settings.value("RecentFiles").toByteArray());
     connect(
-          m_recentFiles, &QRecentFilesMenu::recentFileTriggered, this,
-          [&](const QString& f) { loadFile(ctx, f); });
+        m_recentFiles, &QRecentFilesMenu::recentFileTriggered, this,
+        [&](const QString& f) { loadFile(ctx, f); });
 #endif
   }
 }
@@ -137,12 +149,14 @@ Document* DocumentManager::setupDocument(
     if (it == m_documents.end())
       m_documents.push_back(doc);
 
-    if(m_view)
+    if (m_view)
     {
       m_view->addDocumentView(doc->view());
       connect(
           &doc->metadata(), &DocumentMetadata::fileNameChanged, this,
-          [=](const QString& s) { m_view->on_fileNameChanged(doc->view(), s); });
+          [=](const QString& s) {
+            m_view->on_fileNameChanged(doc->view(), s);
+          });
     }
     setCurrentDocument(ctx, doc);
   }
@@ -154,8 +168,6 @@ Document* DocumentManager::setupDocument(
 
   return doc;
 }
-
-
 
 void DocumentManager::setCurrentDocument(
     const score::GUIApplicationContext& ctx, Document* doc)
@@ -224,14 +236,14 @@ bool DocumentManager::closeDocument(
 void DocumentManager::forceCloseDocument(
     const score::GUIApplicationContext& ctx, Document& doc)
 {
-  for(auto plug : doc.model().pluginModels())
+  for (auto plug : doc.model().pluginModels())
   {
     plug->on_documentClosing();
   }
 
   QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
-  if(m_view)
+  if (m_view)
     m_view->closeDocument(doc.view());
   ossia::remove_one(m_documents, &doc);
   setCurrentDocument(ctx, !m_documents.empty() ? m_documents.back() : nullptr);
@@ -271,7 +283,7 @@ bool DocumentManager::saveDocument(Document& doc)
 
 bool DocumentManager::saveDocumentAs(Document& doc)
 {
-  if(!m_view)
+  if (!m_view)
     return false;
   QFileDialog d{m_view, tr("Save Document As")};
   QString binFilter{tr("Binary (*.scorebin)")};
@@ -327,7 +339,7 @@ bool DocumentManager::saveDocumentAs(Document& doc)
 
 bool DocumentManager::saveStack()
 {
-  if(!m_view)
+  if (!m_view)
     return false;
   QFileDialog d{m_view, tr("Save Stack As")};
   d.setNameFilters({"*.stack"});
@@ -360,7 +372,7 @@ bool DocumentManager::saveStack()
 
 Document* DocumentManager::loadStack(const score::GUIApplicationContext& ctx)
 {
-  if(!m_view)
+  if (!m_view)
     return nullptr;
 
   QString loadname = QFileDialog::getOpenFileName(
@@ -394,9 +406,8 @@ Document* DocumentManager::loadStack(
     setupDocument(ctx, doc);
 
     loadCommandStack(
-        ctx.components, writer, doc->commandStack(), [doc](auto cmd) {
-          cmd->redo(doc->context());
-        });
+        ctx.components, writer, doc->commandStack(),
+        [doc](auto cmd) { cmd->redo(doc->context()); });
     return doc;
   }
 
@@ -406,7 +417,7 @@ Document* DocumentManager::loadStack(
 SCORE_LIB_BASE_EXPORT
 Document* DocumentManager::loadFile(const score::GUIApplicationContext& ctx)
 {
-  if(!m_view)
+  if (!m_view)
     return nullptr;
 
   QString loadname = QFileDialog::getOpenFileName(
@@ -418,12 +429,15 @@ Document* DocumentManager::loadFile(
     const score::GUIApplicationContext& ctx, const QString& fileName)
 {
   Document* doc{};
-  if (!fileName.isEmpty() && (fileName.indexOf(".scorebin") != -1 || fileName.indexOf(".scorejson") != -1 || fileName.indexOf(".score") != 1))
+  if (!fileName.isEmpty()
+      && (fileName.indexOf(".scorebin") != -1
+          || fileName.indexOf(".scorejson") != -1
+          || fileName.indexOf(".score") != 1))
   {
     QFile f{fileName};
     if (f.open(QIODevice::ReadOnly))
     {
-      if(m_recentFiles)
+      if (m_recentFiles)
       {
         m_recentFiles->addRecentFile(fileName);
         saveRecentFilesState();
@@ -448,8 +462,7 @@ Document* DocumentManager::loadFile(
         else
         {
           QMessageBox::warning(
-              qApp->activeWindow(),
-              tr("Unable to load"),
+              qApp->activeWindow(), tr("Unable to load"),
               tr("Unable to load file : "
                  "There is probably something wrong with the file format."));
         }
@@ -461,18 +474,19 @@ Document* DocumentManager::loadFile(
 }
 
 SCORE_LIB_BASE_EXPORT
-void DocumentManager::prepareNewDocument(const score::GUIApplicationContext& ctx)
+void DocumentManager::prepareNewDocument(
+    const score::GUIApplicationContext& ctx)
 {
   m_preparingNewDocument = true;
-  for (GUIApplicationPlugin* appPlugin :
-       ctx.guiApplicationPlugins())
+  for (GUIApplicationPlugin* appPlugin : ctx.guiApplicationPlugins())
   {
     appPlugin->prepareNewDocument();
   }
   m_preparingNewDocument = false;
 }
 
-bool DocumentManager::closeAllDocuments(const score::GUIApplicationContext& ctx)
+bool DocumentManager::closeAllDocuments(
+    const score::GUIApplicationContext& ctx)
 {
   while (!m_documents.empty())
   {
@@ -586,34 +600,33 @@ bool DocumentManager::updateJson(
     QJsonObject& object, Version json_ver, Version score_ver)
 {
   score::hash_map<
-      Version,
-      std::pair<Version, std::function<void(QJsonObject&)>>
-  > conversions;
-/*
-  conversions.insert(
-    {Version{2}, {Version{3}, [] (const QJsonObject& obj)
-     {
-       // Add '@' between address and accessor
+      Version, std::pair<Version, std::function<void(QJsonObject&)>>>
+      conversions;
+  /*
+    conversions.insert(
+      {Version{2}, {Version{3}, [] (const QJsonObject& obj)
+       {
+         // Add '@' between address and accessor
 
-     }}});
+       }}});
 
-  // For now just do from n to n+1
-  // TODO do the algorithm that does n..n+1..n+2..etc.
+    // For now just do from n to n+1
+    // TODO do the algorithm that does n..n+1..n+2..etc.
 
-  auto it = conversions.find(json_ver);
-  if(it != conversions.end())
-  {
-    it.value().second(object);
-    return true;
-  }
-  */
+    auto it = conversions.find(json_ver);
+    if(it != conversions.end())
+    {
+      it.value().second(object);
+      return true;
+    }
+    */
   return false;
 }
 
 void DocumentManager::saveRecentFilesState()
 {
 #if !defined(__EMSCRIPTEN__)
-  if(m_recentFiles)
+  if (m_recentFiles)
   {
     QSettings settings("OSSIA", "score");
     settings.setValue("RecentFiles", m_recentFiles->saveState());
@@ -625,7 +638,8 @@ void DocumentManager::saveRecentFilesState()
 SCORE_LIB_BASE_EXPORT
 void DocumentManager::restoreDocuments(const score::GUIApplicationContext& ctx)
 {
-  for (const RestorableDocument& backup : DocumentBackups::restorableDocuments())
+  for (const RestorableDocument& backup :
+       DocumentBackups::restorableDocuments())
   {
     restoreDocument(
         ctx, backup.filePath, backup.doc, backup.commands,
@@ -642,10 +656,10 @@ Id<score::DocumentModel> getStrongId(const std::vector<score::Document*>& v)
     return elt->id().val();
   });
 
-  return Id<score::DocumentModel>{
-      score::random_id_generator::getNextId(ids)};
+  return Id<score::DocumentModel>{score::random_id_generator::getNextId(ids)};
 }
-Id<score::DocumentPlugin> getStrongId(const std::vector<score::DocumentPlugin*>& v)
+Id<score::DocumentPlugin>
+getStrongId(const std::vector<score::DocumentPlugin*>& v)
 {
   using namespace std;
   vector<int32_t> ids(v.size()); // Map reduce
@@ -654,7 +668,6 @@ Id<score::DocumentPlugin> getStrongId(const std::vector<score::DocumentPlugin*>&
     return elt->id().val();
   });
 
-  return Id<score::DocumentPlugin>{
-      score::random_id_generator::getNextId(ids)};
+  return Id<score::DocumentPlugin>{score::random_id_generator::getNextId(ids)};
 }
 }

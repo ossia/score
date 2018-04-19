@@ -1,4 +1,7 @@
 #pragma once
+#include <QByteArray>
+#include <algorithm>
+#include <iterator>
 #include <score/command/CommandData.hpp>
 #include <score/command/CommandGeneratorMap.hpp>
 #include <score/plugins/Addon.hpp>
@@ -6,13 +9,9 @@
 #include <score/plugins/customfactory/FactoryInterface.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/tools/Todo.hpp>
+#include <score/tools/std/HashMap.hpp>
 #include <score/tools/std/IndirectContainer.hpp>
 #include <score_lib_base_export.h>
-
-#include <QByteArray>
-#include <algorithm>
-#include <iterator>
-#include <score/tools/std/HashMap.hpp>
 #include <utility>
 #include <vector>
 
@@ -40,7 +39,8 @@ struct SCORE_LIB_BASE_EXPORT ApplicationComponentsData
   std::vector<ApplicationPlugin*> appPlugins;
   std::vector<GUIApplicationPlugin*> guiAppPlugins;
 
-  score::hash_map<score::InterfaceKey, std::unique_ptr<InterfaceListBase>> factories;
+  score::hash_map<score::InterfaceKey, std::unique_ptr<InterfaceListBase>>
+      factories;
   score::hash_map<CommandGroupKey, CommandGeneratorMap> commands;
   std::vector<std::unique_ptr<PanelDelegate>> panels;
 };
@@ -69,9 +69,9 @@ public:
   template <typename T>
   T& applicationPlugin() const
   {
-    for(auto& elt : m_data.appPlugins)
+    for (auto& elt : m_data.appPlugins)
     {
-      if(auto c = dynamic_cast<T*>(elt))
+      if (auto c = dynamic_cast<T*>(elt))
       {
         return *c;
       }
@@ -146,8 +146,7 @@ public:
     throw;
   }
 
-  score::Command*
-  instantiateUndoCommand(const CommandData& cmd) const;
+  score::Command* instantiateUndoCommand(const CommandData& cmd) const;
 
 private:
   const score::ApplicationComponentsData& m_data;

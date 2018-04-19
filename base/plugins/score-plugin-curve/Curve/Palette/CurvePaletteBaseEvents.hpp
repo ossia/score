@@ -1,7 +1,7 @@
 #pragma once
 #include "CurvePoint.hpp"
-#include <score/statemachine/StateMachineUtils.hpp>
 
+#include <score/statemachine/StateMachineUtils.hpp>
 #include <score/tools/Clamp.hpp>
 
 class QGraphicsItem;
@@ -29,9 +29,8 @@ struct CurveEvent : public score::PositionedEvent<Curve::Point>
 {
   static constexpr const int user_type = Element_T::value + Modifier_T::value;
   CurveEvent(const Curve::Point& pt, const QGraphicsItem* theItem)
-      : score::PositionedEvent<Curve::Point>{pt,
-                                              QEvent::Type(
-                                                  QEvent::User + user_type)}
+      : score::PositionedEvent<Curve::Point>{pt, QEvent::Type(
+                                                     QEvent::User + user_type)}
       , item{theItem}
   {
   }

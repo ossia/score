@@ -1,6 +1,8 @@
 #pragma once
 #include "ValueWidget.hpp"
+
 #include <ossia/network/domain/domain.hpp>
+
 #include <QDialog>
 #include <QString>
 #include <State/Value.hpp>
@@ -10,8 +12,7 @@ class QWidget;
 
 namespace State
 {
-class SCORE_LIB_STATE_EXPORT StringValueWidget final
-    : public ValueWidget
+class SCORE_LIB_STATE_EXPORT StringValueWidget final : public ValueWidget
 {
 public:
   StringValueWidget(const std::string& value, QWidget* parent = nullptr);

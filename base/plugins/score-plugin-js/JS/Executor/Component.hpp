@@ -1,17 +1,18 @@
 #pragma once
+#include <ossia/dataflow/node_process.hpp>
 #include <ossia/editor/scenario/time_process.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
+
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
-#include <QQmlEngine>
+#include <JS/Qml/QmlObjects.hpp>
+#include <QEventLoop>
 #include <QJSValue>
+#include <QQmlEngine>
 #include <QString>
+#include <memory>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
-#include <QEventLoop>
-#include <memory>
-#include <JS/Qml/QmlObjects.hpp>
-#include <ossia/dataflow/node_process.hpp>
 
 namespace Explorer
 {

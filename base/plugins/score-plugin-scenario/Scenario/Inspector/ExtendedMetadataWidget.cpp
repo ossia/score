@@ -1,11 +1,6 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ExtendedMetadataWidget.hpp"
-
-#include <score/tools/QMapHelper.hpp>
-#include <score/widgets/ClearLayout.hpp>
-#include <score/widgets/MarginLess.hpp>
-#include <score/widgets/TextLabel.hpp>
 
 #include <QAction>
 #include <QFormLayout>
@@ -13,6 +8,10 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
+#include <score/tools/QMapHelper.hpp>
+#include <score/widgets/ClearLayout.hpp>
+#include <score/widgets/MarginLess.hpp>
+#include <score/widgets/TextLabel.hpp>
 
 namespace Scenario
 {

@@ -15,8 +15,9 @@ namespace Curve
 class SegmentModel;
 
 struct Style;
-class SCORE_PLUGIN_CURVE_EXPORT SegmentView final : public QObject,
-                                                     public QGraphicsItem
+class SCORE_PLUGIN_CURVE_EXPORT SegmentView final
+    : public QObject
+    , public QGraphicsItem
 {
   Q_OBJECT
   Q_INTERFACES(QGraphicsItem)
@@ -87,6 +88,5 @@ private:
   bool m_tween{false};
   bool m_selected{};
   mutable bool m_needsRecompute{false};
-
 };
 }

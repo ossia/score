@@ -1,6 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Skin.hpp"
+
 #include <QJsonArray>
 #include <QJsonObject>
 #include <boost/assign/list_of.hpp>
@@ -16,8 +17,8 @@ make_bimap(std::initializer_list<typename boost::bimap<L, R>::value_type> list)
 }
 
 #define SCORE_INSERT_COLOR(Col) \
-  {                              \
-    #Col, &Col                   \
+  {                             \
+#    Col, &Col                  \
   }
 Skin::Skin() noexcept
     : SansFont{"Ubuntu"}
@@ -28,42 +29,29 @@ Skin::Skin() noexcept
     , NoBrush{Qt::NoBrush}
     , TextBrush{QColor("#1f2a30")}
     , m_colorMap(make_bimap<QString, QBrush*>(
-          {SCORE_INSERT_COLOR(Dark),
-           SCORE_INSERT_COLOR(HalfDark),
-           SCORE_INSERT_COLOR(Gray),
-           SCORE_INSERT_COLOR(HalfLight),
-           SCORE_INSERT_COLOR(Light),
-           SCORE_INSERT_COLOR(Emphasis1),
-           SCORE_INSERT_COLOR(Emphasis2),
-           SCORE_INSERT_COLOR(Emphasis3),
-           SCORE_INSERT_COLOR(Emphasis4),
-           SCORE_INSERT_COLOR(Base1),
-           SCORE_INSERT_COLOR(Base2),
-           SCORE_INSERT_COLOR(Base3),
-           SCORE_INSERT_COLOR(Base4),
-           SCORE_INSERT_COLOR(Warn1),
-           SCORE_INSERT_COLOR(Warn2),
-           SCORE_INSERT_COLOR(Warn3),
-           SCORE_INSERT_COLOR(Background1),
-           SCORE_INSERT_COLOR(Transparent1),
-           SCORE_INSERT_COLOR(Transparent2),
-           SCORE_INSERT_COLOR(Transparent3),
-           SCORE_INSERT_COLOR(Smooth1),
-           SCORE_INSERT_COLOR(Smooth2),
-           SCORE_INSERT_COLOR(Smooth3),
-           SCORE_INSERT_COLOR(Tender1),
-           SCORE_INSERT_COLOR(Tender2),
-           SCORE_INSERT_COLOR(Tender3),
-           SCORE_INSERT_COLOR(Pulse1),
-           SCORE_INSERT_COLOR(Pulse2)
-                   }))
+          {SCORE_INSERT_COLOR(Dark),         SCORE_INSERT_COLOR(HalfDark),
+           SCORE_INSERT_COLOR(Gray),         SCORE_INSERT_COLOR(HalfLight),
+           SCORE_INSERT_COLOR(Light),        SCORE_INSERT_COLOR(Emphasis1),
+           SCORE_INSERT_COLOR(Emphasis2),    SCORE_INSERT_COLOR(Emphasis3),
+           SCORE_INSERT_COLOR(Emphasis4),    SCORE_INSERT_COLOR(Base1),
+           SCORE_INSERT_COLOR(Base2),        SCORE_INSERT_COLOR(Base3),
+           SCORE_INSERT_COLOR(Base4),        SCORE_INSERT_COLOR(Warn1),
+           SCORE_INSERT_COLOR(Warn2),        SCORE_INSERT_COLOR(Warn3),
+           SCORE_INSERT_COLOR(Background1),  SCORE_INSERT_COLOR(Transparent1),
+           SCORE_INSERT_COLOR(Transparent2), SCORE_INSERT_COLOR(Transparent3),
+           SCORE_INSERT_COLOR(Smooth1),      SCORE_INSERT_COLOR(Smooth2),
+           SCORE_INSERT_COLOR(Smooth3),      SCORE_INSERT_COLOR(Tender1),
+           SCORE_INSERT_COLOR(Tender2),      SCORE_INSERT_COLOR(Tender3),
+           SCORE_INSERT_COLOR(Pulse1),       SCORE_INSERT_COLOR(Pulse2)}))
 {
   this->startTimer(32, Qt::CoarseTimer);
-#if QT_VERSION >= QT_VERSION_CHECK(5,10,0)
-  //SansFont.setStyleHint(QFont::SansSerif, QFont::PreferNoShaping);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
+  // SansFont.setStyleHint(QFont::SansSerif, QFont::PreferNoShaping);
 #endif
-  //MonoFont.setStyleHint(QFont::Monospace, (QFont::StyleStrategy)(QFont::PreferBitmap | QFont::NoSubpixelAntialias | QFont::ForceIntegerMetrics));
-  //MonoFont.setHintingPreference(QFont::PreferVerticalHinting);
+  // MonoFont.setStyleHint(QFont::Monospace,
+  // (QFont::StyleStrategy)(QFont::PreferBitmap | QFont::NoSubpixelAntialias |
+  // QFont::ForceIntegerMetrics));
+  // MonoFont.setHintingPreference(QFont::PreferVerticalHinting);
 }
 
 Skin& score::Skin::instance()
@@ -73,9 +61,9 @@ Skin& score::Skin::instance()
 }
 
 #define SCORE_CONVERT_COLOR(Col) \
-  do                              \
-  {                               \
-    fromColor(#Col, Col);         \
+  do                             \
+  {                              \
+    fromColor(#Col, Col);        \
   } while (0)
 void Skin::load(const QJsonObject& obj)
 {
@@ -172,10 +160,10 @@ static bool pulse(QBrush& ref, bool pulse)
   bool invert = false;
   auto col = ref.color();
   auto alpha = col.alphaF();
-  if(pulse)
+  if (pulse)
   {
     alpha += 0.02;
-    if(alpha >= 1)
+    if (alpha >= 1)
     {
       invert = true;
       alpha = 1;
@@ -185,7 +173,7 @@ static bool pulse(QBrush& ref, bool pulse)
   else
   {
     alpha -= 0.02;
-    if(alpha <= 0.5)
+    if (alpha <= 0.5)
     {
       invert = true;
       alpha = 0.5;
@@ -200,7 +188,7 @@ void Skin::timerEvent(QTimerEvent* event)
 {
   pulse(Pulse1, m_pulseDirection);
   auto invert = pulse(Pulse2, m_pulseDirection);
-  if(invert)
+  if (invert)
     m_pulseDirection = !m_pulseDirection;
 }
 
@@ -212,8 +200,8 @@ const QBrush* Skin::fromString(const QString& s) const
 
 QBrush* Skin::fromString(const QString& s)
 {
-    auto it = m_colorMap.left.find(s);
-    return it != m_colorMap.left.end() ? it->second : nullptr;
+  auto it = m_colorMap.left.find(s);
+  return it != m_colorMap.left.end() ? it->second : nullptr;
 }
 
 QString Skin::toString(const QBrush* c) const

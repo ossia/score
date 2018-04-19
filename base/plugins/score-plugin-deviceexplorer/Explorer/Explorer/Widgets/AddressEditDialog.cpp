@@ -1,5 +1,11 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "AddressEditDialog.hpp"
+
+#include <ossia/network/domain/domain.hpp>
+
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Address/IOType.hpp>
 #include <Explorer/Common/AddressSettings/AddressSettingsFactory.hpp>
 #include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 #include <QComboBox>
@@ -8,24 +14,16 @@
 #include <QFlags>
 #include <QFormLayout>
 #include <QLineEdit>
+#include <QString>
+#include <State/Domain.hpp>
+#include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 #include <State/Widgets/AddressValidator.hpp>
 #include <State/Widgets/Values/TypeComboBox.hpp>
 #include <qnamespace.h>
-
-#include <QString>
-
-#include "AddressEditDialog.hpp"
-#include <Device/Address/AddressSettings.hpp>
-#include <State/Domain.hpp>
-#include <Device/Address/IOType.hpp>
-#include <State/Value.hpp>
-#include <State/ValueConversion.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/WidgetWrapper.hpp>
-
-#include <ossia/network/domain/domain.hpp>
 
 class QWidget;
 
@@ -82,7 +80,8 @@ AddressEditDialog::~AddressEditDialog()
 
 void AddressEditDialog::updateType(ossia::val_type valueType)
 {
-  auto widg = AddressSettingsFactory::instance().get_value_typeWidget(valueType);
+  auto widg
+      = AddressSettingsFactory::instance().get_value_typeWidget(valueType);
 
   m_addressWidget->setWidget(widg);
 
@@ -97,7 +96,7 @@ void AddressEditDialog::updateType(ossia::val_type valueType)
     widg->setSettings(m_originalSettings);
   }
 
-  if(widg)
+  if (widg)
     widg->setCanEditProperties(m_canEdit);
 }
 
@@ -138,7 +137,7 @@ void AddressEditDialog::setCanEditProperties(bool b)
 {
   m_canEdit = b;
   m_valueTypeCBox->setEnabled(b);
-  if(auto w = m_addressWidget->widget())
+  if (auto w = m_addressWidget->widget())
     w->setCanEditProperties(b);
 }
 
@@ -164,5 +163,4 @@ void AddressEditDialog::setValueSettings()
         index); // will emit currentIndexChanged(int) & call slot
   }
 }
-
 }

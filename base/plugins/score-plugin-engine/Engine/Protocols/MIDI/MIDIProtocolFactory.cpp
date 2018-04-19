@@ -1,12 +1,13 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QObject>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "MIDIProtocolFactory.hpp"
 
 #include "MIDIDevice.hpp"
-#include "MIDIProtocolFactory.hpp"
 #include "MIDIProtocolSettingsWidget.hpp"
+
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/Protocols/MIDI/MIDISpecificSettings.hpp>
+#include <QObject>
 
 namespace Device
 {
@@ -49,13 +50,19 @@ Device::ProtocolSettingsWidget* MIDIProtocolFactory::makeSettingsWidget()
   return new MIDIProtocolSettingsWidget;
 }
 
-Device::AddressDialog*MIDIProtocolFactory::makeAddAddressDialog(
-    const Device::DeviceInterface& dev, const score::DocumentContext& ctx, QWidget* parent)
+Device::AddressDialog* MIDIProtocolFactory::makeAddAddressDialog(
+    const Device::DeviceInterface& dev,
+    const score::DocumentContext& ctx,
+    QWidget* parent)
 {
   return nullptr;
 }
 
-Device::AddressDialog*MIDIProtocolFactory::makeEditAddressDialog(const Device::AddressSettings&, const Device::DeviceInterface& dev, const score::DocumentContext& ctx, QWidget*)
+Device::AddressDialog* MIDIProtocolFactory::makeEditAddressDialog(
+    const Device::AddressSettings&,
+    const Device::DeviceInterface& dev,
+    const score::DocumentContext& ctx,
+    QWidget*)
 {
   return nullptr;
 }

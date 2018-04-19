@@ -2,37 +2,30 @@
 #include <QGraphicsItem>
 #include <QState>
 #include <QStateMachine>
-#include <Scenario/Palette/ScenarioPoint.hpp>
-#include <chrono>
-#include <score/statemachine/GraphicsSceneTool.hpp>
-#include <score/model/Identifier.hpp>
-
-#include <Scenario/Palette/ScenarioPaletteBaseTransitions.hpp>
-
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/Event/ConditionView.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/Event/EventView.hpp>
-#include <Scenario/Document/Event/ConditionView.hpp>
-
+#include <Scenario/Document/Interval/IntervalHeader.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/IntervalPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalView.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
+#include <Scenario/Document/Interval/SlotHandle.hpp>
+#include <Scenario/Document/Interval/Temporal/Braces/LeftBrace.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/State/StateView.hpp>
-
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncView.hpp>
 #include <Scenario/Document/TimeSync/TriggerView.hpp>
-
-#include <Scenario/Document/Interval/SlotHandle.hpp>
-#include <Scenario/Document/Interval/Slot.hpp>
-
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/IntervalPresenter.hpp>
-#include <Scenario/Document/Interval/IntervalView.hpp>
-
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/Interval/IntervalHeader.hpp>
-#include <Scenario/Document/Interval/Temporal/Braces/LeftBrace.hpp>
+#include <Scenario/Palette/ScenarioPaletteBaseTransitions.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
+#include <chrono>
+#include <score/model/Identifier.hpp>
+#include <score/statemachine/GraphicsSceneTool.hpp>
 
 namespace score
 {
@@ -85,13 +78,16 @@ protected:
                ? event.id()
                : OptionalId<EventModel>{};
   }
-  OptionalId<EventModel> itemToConditionId(const QGraphicsItem* pressedItem) const
+  OptionalId<EventModel>
+  itemToConditionId(const QGraphicsItem* pressedItem) const
   {
-      const auto& event
-              = static_cast<const EventView*>(pressedItem->parentItem())->presenter().model();
-      return event.parent() == &this->m_palette.model()
-              ? event.id()
-              : OptionalId<EventModel>{};
+    const auto& event
+        = static_cast<const EventView*>(pressedItem->parentItem())
+              ->presenter()
+              .model();
+    return event.parent() == &this->m_palette.model()
+               ? event.id()
+               : OptionalId<EventModel>{};
   }
   OptionalId<TimeSyncModel>
   itemToTimeSyncId(const QGraphicsItem* pressedItem) const
@@ -105,18 +101,19 @@ protected:
   OptionalId<TimeSyncModel>
   itemToTriggerId(const QGraphicsItem* pressedItem) const
   {
-      const auto& timesync
-              = static_cast<const TimeSyncView*>(pressedItem->parentItem())->presenter().model();
-      return timesync.parent() == &this->m_palette.model()
-              ? timesync.id()
-              : OptionalId<TimeSyncModel>{};
+    const auto& timesync
+        = static_cast<const TimeSyncView*>(pressedItem->parentItem())
+              ->presenter()
+              .model();
+    return timesync.parent() == &this->m_palette.model()
+               ? timesync.id()
+               : OptionalId<TimeSyncModel>{};
   }
   OptionalId<IntervalModel>
   itemToIntervalId(const QGraphicsItem* pressedItem) const
   {
-    const auto& interval = static_cast<const IntervalView*>(pressedItem)
-                                 ->presenter()
-                                 .model();
+    const auto& interval
+        = static_cast<const IntervalView*>(pressedItem)->presenter().model();
     return interval.parent() == &this->m_palette.model()
                ? interval.id()
                : OptionalId<IntervalModel>{};
@@ -130,15 +127,15 @@ protected:
                ? state.id()
                : OptionalId<StateModel>{};
   }
-  optional<SlotPath> itemToIntervalFromHandle(const QGraphicsItem* pressedItem) const
+  optional<SlotPath>
+  itemToIntervalFromHandle(const QGraphicsItem* pressedItem) const
   {
     auto handle = static_cast<const SlotHandle*>(pressedItem);
     const auto& cst = handle->presenter().model();
 
-    if(cst.parent() == &this->m_palette.model())
+    if (cst.parent() == &this->m_palette.model())
     {
-      auto fv = isInFullView(cst) ?
-            Slot::FullView : Slot::SmallView;
+      auto fv = isInFullView(cst) ? Slot::FullView : Slot::SmallView;
       return SlotPath{cst, handle->slotIndex(), fv};
     }
     else
@@ -146,15 +143,15 @@ protected:
       return ossia::none;
     }
   }
-  optional<SlotPath> itemToIntervalFromHeader(const QGraphicsItem* pressedItem) const
+  optional<SlotPath>
+  itemToIntervalFromHeader(const QGraphicsItem* pressedItem) const
   {
     auto handle = static_cast<const SlotHeader*>(pressedItem);
     const auto& cst = handle->presenter().model();
 
-    if(cst.parent() == &this->m_palette.model())
+    if (cst.parent() == &this->m_palette.model())
     {
-      auto fv = isInFullView(cst) ?
-            Slot::FullView : Slot::SmallView;
+      auto fv = isInFullView(cst) ? Slot::FullView : Slot::SmallView;
       return SlotPath{cst, handle->slotIndex(), fv};
     }
     else

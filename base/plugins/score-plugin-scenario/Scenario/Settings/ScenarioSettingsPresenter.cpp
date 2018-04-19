@@ -1,12 +1,14 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioSettingsPresenter.hpp"
+
 #include "ScenarioSettingsModel.hpp"
 #include "ScenarioSettingsView.hpp"
+
 #include <QApplication>
 #include <QStyle>
-#include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/Command.hpp>
+#include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/SettingsCommand.hpp>
 
 namespace Scenario

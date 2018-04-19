@@ -1,6 +1,6 @@
 #pragma once
-#include <State/Widgets/AddressValidator.hpp>
 #include <QLineEdit>
+#include <State/Widgets/AddressValidator.hpp>
 namespace State
 {
 

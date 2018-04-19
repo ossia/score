@@ -1,7 +1,6 @@
 #pragma once
 #include <Scenario/Document/State/StateView.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
-
 #include <score/model/Identifier.hpp>
 #include <score/widgets/GraphicsItem.hpp>
 #include <score_plugin_scenario_export.h>

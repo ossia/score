@@ -1,22 +1,18 @@
 #pragma once
 #include "ScenarioCreationState.hpp"
 
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-
+#include <QFinalState>
+#include <Scenario/Commands/Scenario/Creations/CreateInterval.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
-
-#include <Scenario/Commands/Scenario/Creations/CreateInterval.hpp>
-
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Palette/Tools/ScenarioRollbackStrategy.hpp>
 #include <Scenario/Palette/Transitions/AnythingTransitions.hpp>
-#include <Scenario/Palette/Transitions/IntervalTransitions.hpp>
 #include <Scenario/Palette/Transitions/EventTransitions.hpp>
+#include <Scenario/Palette/Transitions/IntervalTransitions.hpp>
 #include <Scenario/Palette/Transitions/NothingTransitions.hpp>
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>
 #include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
-
-#include <QFinalState>
-#include <Scenario/Palette/Tools/ScenarioRollbackStrategy.hpp>
 
 namespace Scenario
 {
@@ -141,7 +137,6 @@ public:
 
       // MoveOnEvent -> MoveOnTimeSync
       this->add_transition(move_event, move_timesync, [&]() {
-
         if (this->hoveredTimeSync
             && this->createdTimeSyncs.contains(*this->hoveredTimeSync))
         {
@@ -202,12 +197,9 @@ public:
 
         // Move the timesync
         this->m_dispatcher.template submitCommand<MoveNewEvent>(
-            this->m_scenario,
-            this->createdIntervals.last(),
-            this->createdEvents.last(),
-            this->currentPoint.date,
-            this->currentPoint.y,
-            stateMachine.editionSettings().sequence());
+            this->m_scenario, this->createdIntervals.last(),
+            this->createdEvents.last(), this->currentPoint.date,
+            this->currentPoint.y, stateMachine.editionSettings().sequence());
       });
 
       QObject::connect(move_timesync, &QState::entered, [&]() {
@@ -223,12 +215,8 @@ public:
         }
 
         this->m_dispatcher.template submitCommand<MoveEventMeta>(
-            this->m_scenario,
-            this->createdEvents.last(),
-            TimeVal::zero(),
-            0.,
-            stateMachine.editionSettings().expandMode(),
-            LockMode::Free);
+            this->m_scenario, this->createdEvents.last(), TimeVal::zero(), 0.,
+            stateMachine.editionSettings().expandMode(), LockMode::Free);
       });
 
       QObject::connect(
@@ -236,8 +224,7 @@ public:
     }
 
     auto rollbackState = new QState{this};
-    score::make_transition<score::Cancel_Transition>(
-        mainState, rollbackState);
+    score::make_transition<score::Cancel_Transition>(mainState, rollbackState);
     rollbackState->addTransition(finalState);
     QObject::connect(
         rollbackState, &QState::entered, this,

@@ -1,18 +1,15 @@
 #pragma once
-#include <Process/LayerPresenter.hpp>
-#include <QPoint>
-
 #include <Process/Focus/FocusDispatcher.hpp>
-#include <Process/Process.hpp>
-#include <Process/ZoomHelper.hpp>
-#include <score/model/Identifier.hpp>
-#include <score_lib_process_export.h>
-
 #include <Process/LayerPresenter.hpp>
+#include <Process/Process.hpp>
 #include <Process/WidgetLayer/WidgetLayerPresenter.hpp>
 #include <Process/WidgetLayer/WidgetLayerView.hpp>
+#include <Process/ZoomHelper.hpp>
+#include <QPoint>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
+#include <score/model/Identifier.hpp>
+#include <score_lib_process_export.h>
 
 namespace WidgetLayer
 {
@@ -33,11 +30,10 @@ public:
     });
 
     connect(
-          m_view, &View::askContextMenu, this,
-          &Presenter::contextMenuRequested);
+        m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
 
-    m_view->setWidget(new Widget_T{
-        static_cast<const Process_T&>(m_layer), ctx, nullptr});
+    m_view->setWidget(
+        new Widget_T{static_cast<const Process_T&>(m_layer), ctx, nullptr});
   }
 
   void setWidth(qreal val) override

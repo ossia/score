@@ -1,30 +1,29 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Commands/Cohesion/CreateCurveFromStates.hpp>
-#include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "CreateCurves.hpp"
 
+#include <ossia/network/domain/domain.hpp>
+#include <ossia/network/value/value_conversion.hpp>
+
+#include <Automation/AutomationModel.hpp>
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Node/DeviceNode.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Process/State/MessageNode.hpp>
 #include <QList>
 #include <QPointer>
+#include <Scenario/Commands/Cohesion/CreateCurveFromStates.hpp>
+#include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
-
-#include "CreateCurves.hpp"
-#include <Device/Address/AddressSettings.hpp>
-#include <Device/Node/DeviceNode.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/model/IdentifiedObjectAbstract.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/selection/SelectionStack.hpp>
-#include <score/model/IdentifiedObjectAbstract.hpp>
-
-#include <ossia/network/value/value_conversion.hpp>
-#include <ossia/network/domain/domain.hpp>
-#include <Automation/AutomationModel.hpp>
 namespace Scenario
 {
 static std::vector<Device::FullAddressSettings>
@@ -62,8 +61,7 @@ void CreateCurves(
 
   // For each interval, interpolate between the states in its start event and
   // end event.
-  auto& doc
-      = score::IDocument::documentContext(*selected_intervals.first());
+  auto& doc = score::IDocument::documentContext(*selected_intervals.first());
 
   auto addresses = getSelectedAddresses(doc);
   if (addresses.empty())
@@ -97,7 +95,8 @@ void CreateCurvesFromAddresses(
     // Generate brand new ids for the processes
     auto process_ids = getStrongIdRange<Process::ProcessModel>(
         addresses.size(), interval.processes);
-    auto macro = Scenario::Command::makeAddProcessMacro(interval, addresses.size());
+    auto macro
+        = Scenario::Command::makeAddProcessMacro(interval, addresses.size());
 
     const Scenario::StateModel& ss = startState(interval, *scenar);
     const auto& es = endState(interval, *scenar);

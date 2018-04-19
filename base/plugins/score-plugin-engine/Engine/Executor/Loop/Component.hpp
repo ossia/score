@@ -1,8 +1,8 @@
 #pragma once
 #include <Engine/Executor/ProcessComponent.hpp>
 #include <Loop/LoopProcessModel.hpp>
-#include <score/model/Identifier.hpp>
 #include <memory>
+#include <score/model/Identifier.hpp>
 
 class DeviceList;
 namespace Process
@@ -39,8 +39,9 @@ namespace Loop
 namespace RecreateOnPlay
 {
 // TODO see if this can be used for the base scenario model too.
-class Component final : public ::Engine::Execution::
-                            ProcessComponent_T<Loop::ProcessModel, ossia::loop>
+class Component final
+    : public ::Engine::Execution::
+          ProcessComponent_T<Loop::ProcessModel, ossia::loop>
 {
   COMPONENT_METADATA("77b987ae-7bc8-4273-aa9c-9e4ba53a053d")
 public:
@@ -63,8 +64,10 @@ private:
 private:
   std::shared_ptr<Engine::Execution::IntervalRawPtrComponent> m_ossia_interval;
 
-  std::shared_ptr<Engine::Execution::TimeSyncRawPtrComponent> m_ossia_startTimeSync;
-  std::shared_ptr<Engine::Execution::TimeSyncRawPtrComponent> m_ossia_endTimeSync;
+  std::shared_ptr<Engine::Execution::TimeSyncRawPtrComponent>
+      m_ossia_startTimeSync;
+  std::shared_ptr<Engine::Execution::TimeSyncRawPtrComponent>
+      m_ossia_endTimeSync;
 
   std::shared_ptr<Engine::Execution::EventComponent> m_ossia_startEvent;
   std::shared_ptr<Engine::Execution::EventComponent> m_ossia_endEvent;

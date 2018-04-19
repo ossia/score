@@ -1,14 +1,15 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <ossia/editor/state/destination_qualifiers.hpp>
+
 #include <Interpolation/Commands/ChangeAddress.hpp>
-#include <score/model/path/PathSerialization.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
-#include <ossia/editor/state/destination_qualifiers.hpp>
 #include <State/ValueSerialization.hpp>
+#include <score/model/path/PathSerialization.hpp>
 
 namespace Interpolation
 {
@@ -66,7 +67,10 @@ void ChangeAddress::deserializeImpl(DataStreamOutput& s)
       >> m_newStart >> m_oldEnd >> m_newEnd;
 }
 
-void ChangeInterpolationAddress(const ProcessModel& proc, const State::AddressAccessor& addr, CommandDispatcher<>& disp)
+void ChangeInterpolationAddress(
+    const ProcessModel& proc,
+    const State::AddressAccessor& addr,
+    CommandDispatcher<>& disp)
 {
   // Various checks
   if (addr == proc.address())
@@ -111,7 +115,7 @@ void ChangeInterpolationAddress(const ProcessModel& proc, const State::AddressAc
 
       auto it = ossia::find_if(enodes, [&](auto rhs) {
         return (lhs->name.qualifiers == rhs->name.qualifiers)
-            && rhs->hasValue();
+               && rhs->hasValue();
       });
 
       if (it != enodes.end())
@@ -124,10 +128,7 @@ void ChangeInterpolationAddress(const ProcessModel& proc, const State::AddressAc
       }
     }
 
-    disp.submitCommand(
-          new ChangeAddress{proc, addr, sv, ev, source_u});
+    disp.submitCommand(new ChangeAddress{proc, addr, sv, ev, source_u});
   }
-
 }
-
 }

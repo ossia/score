@@ -1,16 +1,17 @@
 #pragma once
+#include <ossia/detail/any_map.hpp>
+#include <ossia/network/base/node_attributes.hpp>
+#include <ossia/network/common/parameter_properties.hpp>
+
 #include <Device/Address/ClipMode.hpp>
-#include <State/Domain.hpp>
 #include <Device/Address/IOType.hpp>
 #include <QString>
 #include <QVariant>
 #include <QVariantList>
+#include <State/Domain.hpp>
 #include <State/Message.hpp>
 #include <State/Unit.hpp>
 #include <score/tools/Metadata.hpp>
-#include <ossia/detail/any_map.hpp>
-#include <ossia/network/base/node_attributes.hpp>
-#include <ossia/network/common/parameter_properties.hpp>
 #include <score_lib_device_export.h>
 
 namespace Device
@@ -37,9 +38,14 @@ struct SCORE_LIB_DEVICE_EXPORT AddressSettingsCommon
 
   ossia::extended_attributes extendedAttributes;
 
-  operator const ossia::extended_attributes&() const { return extendedAttributes; }
-  operator ossia::extended_attributes&() { return extendedAttributes; }
-
+  operator const ossia::extended_attributes&() const
+  {
+    return extendedAttributes;
+  }
+  operator ossia::extended_attributes&()
+  {
+    return extendedAttributes;
+  }
 };
 
 // this one has only the name of the current node (e.g. 'a' for dev:/azazd/a)
@@ -74,17 +80,18 @@ struct SCORE_LIB_DEVICE_EXPORT FullAddressSettings
   State::Address address;
 
   template <typename T>
-  SCORE_LIB_DEVICE_EXPORT static FullAddressSettings
-  make(const Device::AddressSettings& other, const State::Address& addr) noexcept;
+  SCORE_LIB_DEVICE_EXPORT static FullAddressSettings make(
+      const Device::AddressSettings& other,
+      const State::Address& addr) noexcept;
   template <typename T>
   static FullAddressSettings make(
-      const Device::AddressSettings& other, const State::AddressAccessor& addr) noexcept
+      const Device::AddressSettings& other,
+      const State::AddressAccessor& addr) noexcept
   {
     return make<T>(other, addr.address);
   }
 
-  static FullAddressSettings
-  make(const State::Message& mess) noexcept;
+  static FullAddressSettings make(const State::Message& mess) noexcept;
 
   // Specializations are in FullAddressSettings.cpp
 };
@@ -100,7 +107,8 @@ inline bool operator!=(
   return !(lhs == rhs);
 }
 inline bool operator==(
-    const Device::AddressSettings& lhs, const Device::AddressSettings& rhs) noexcept
+    const Device::AddressSettings& lhs,
+    const Device::AddressSettings& rhs) noexcept
 {
   return static_cast<const Device::AddressSettingsCommon&>(lhs)
              == static_cast<const Device::AddressSettingsCommon&>(rhs)
@@ -108,7 +116,8 @@ inline bool operator==(
 }
 
 inline bool operator!=(
-    const Device::AddressSettings& lhs, const Device::AddressSettings& rhs) noexcept
+    const Device::AddressSettings& lhs,
+    const Device::AddressSettings& rhs) noexcept
 {
   return !(lhs == rhs);
 }
@@ -140,10 +149,10 @@ struct SCORE_LIB_DEVICE_EXPORT FullAddressAccessorSettings
   ~FullAddressAccessorSettings() noexcept;
 
   FullAddressAccessorSettings(
-      const State::AddressAccessor& addr, const AddressSettingsCommon& f) noexcept;
+      const State::AddressAccessor& addr,
+      const AddressSettingsCommon& f) noexcept;
 
-  explicit FullAddressAccessorSettings(
-      FullAddressSettings&& f) noexcept;
+  explicit FullAddressAccessorSettings(FullAddressSettings&& f) noexcept;
 
   FullAddressAccessorSettings(
       State::AddressAccessor&& addr, AddressSettingsCommon&& f) noexcept;

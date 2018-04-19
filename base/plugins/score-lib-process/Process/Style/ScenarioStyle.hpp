@@ -2,10 +2,9 @@
 #include <QBrush>
 #include <QColor>
 #include <QPen>
-#include <score_lib_process_export.h>
 #include <qnamespace.h>
-
 #include <score/model/ColorReference.hpp>
+#include <score_lib_process_export.h>
 namespace score
 {
 class Skin;
@@ -150,6 +149,7 @@ struct SCORE_LIB_PROCESS_EXPORT ScenarioStyle
   const QBrush TransparentBrush;
   const QPen NoPen;
   const QBrush NoBrush;
+
 private:
   ScenarioStyle() noexcept;
   void update(const score::Skin& skin);

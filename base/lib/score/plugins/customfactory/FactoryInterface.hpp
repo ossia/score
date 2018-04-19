@@ -14,8 +14,8 @@ using InterfaceKey = UuidKey<InterfaceBase>;
  *
  * * Each base interface should inherit from Interface<MyInterface>
  * * There is a key type to identify each interface type : score::InterfaceKey
- * * Then, each implementation of each interface should itself provide a key to identify
- *   itself with regards to the other implementations.
+ * * Then, each implementation of each interface should itself provide a key to
+ * identify itself with regards to the other implementations.
  *
  * This then allows to :
  *
@@ -28,7 +28,8 @@ using InterfaceKey = UuidKey<InterfaceBase>;
  * auto& iface_list = context.interfaces<MyInterfaceList>();
  * @endcode
  *
- * * Then look for the actual factory we want, obtained from user input for instance :
+ * * Then look for the actual factory we want, obtained from user input for
+ * instance :
  *
  * @code
  * auto iface = iface_list.get(actual_factory_key);
@@ -87,19 +88,20 @@ public:
  * An uuid should be passed in argument.
  *
  */
-#define SCORE_INTERFACE(Uuid)                                  \
-public:                                                                \
-  static Q_DECL_RELAXED_CONSTEXPR score::InterfaceKey           \
-  static_interfaceKey() noexcept                                           \
-  {                                                                    \
-    return_uuid(Uuid);                                                 \
-  }                                                                    \
-                                                                       \
+#define SCORE_INTERFACE(Uuid)                                      \
+public:                                                            \
+  static Q_DECL_RELAXED_CONSTEXPR score::InterfaceKey              \
+  static_interfaceKey() noexcept                                   \
+  {                                                                \
+    return_uuid(Uuid);                                             \
+  }                                                                \
+                                                                   \
   score::InterfaceKey interfaceKey() const noexcept final override \
-  {                                                                    \
-    return static_interfaceKey();                                \
-  }                                                                    \
-private: \
+  {                                                                \
+    return static_interfaceKey();                                  \
+  }                                                                \
+                                                                   \
+private:
 
 /**
  * \macro SCORE_CONCRETE
@@ -108,18 +110,16 @@ private: \
  * Use this macro in the class definition inheriting from
  * your interfaces.
  */
-#define SCORE_CONCRETE(Uuid)                          \
-public:                                                        \
-  static Q_DECL_RELAXED_CONSTEXPR ConcreteKey           \
-  static_concreteKey() noexcept                                   \
-  {                                                            \
-    return_uuid(Uuid);                                         \
-  }                                                            \
-                                                               \
-  ConcreteKey concreteKey() const noexcept final override \
-  {                                                            \
-    return static_concreteKey();                        \
-  }                                                            \
-private: \
-
-
+#define SCORE_CONCRETE(Uuid)                                                \
+public:                                                                     \
+  static Q_DECL_RELAXED_CONSTEXPR ConcreteKey static_concreteKey() noexcept \
+  {                                                                         \
+    return_uuid(Uuid);                                                      \
+  }                                                                         \
+                                                                            \
+  ConcreteKey concreteKey() const noexcept final override                   \
+  {                                                                         \
+    return static_concreteKey();                                            \
+  }                                                                         \
+                                                                            \
+private:

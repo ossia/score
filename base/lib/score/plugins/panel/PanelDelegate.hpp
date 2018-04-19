@@ -1,11 +1,10 @@
 #pragma once
 #include <QObject>
 #include <QShortcut>
+#include <boost/optional.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <score_lib_base_export.h>
-
-#include <boost/optional.hpp>
 class Selection;
 namespace score
 {

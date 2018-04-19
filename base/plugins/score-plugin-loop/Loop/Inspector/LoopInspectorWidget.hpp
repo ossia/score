@@ -1,6 +1,6 @@
 #pragma once
-#include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Loop/LoopProcessModel.hpp>
+#include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <QVBoxLayout>
 
 class QWidget;

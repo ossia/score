@@ -1,14 +1,15 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "MIDIDevice.hpp"
+
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/midi/midi.hpp>
+
+#include <Device/Protocol/DeviceSettings.hpp>
+#include <Engine/OSSIA2score.hpp>
 #include <Engine/Protocols/MIDI/MIDISpecificSettings.hpp>
 #include <QString>
 #include <memory>
-
-#include "MIDIDevice.hpp"
-#include <Device/Protocol/DeviceSettings.hpp>
-#include <Engine/OSSIA2score.hpp>
 
 namespace Engine
 {
@@ -37,8 +38,7 @@ bool MIDIDevice::reconnect()
     auto proto = std::make_unique<ossia::net::midi::midi_protocol>();
     bool res = proto->set_info(ossia::net::midi::midi_info(
         static_cast<ossia::net::midi::midi_info::Type>(set.io),
-        set.endpoint.toStdString(),
-        set.port));
+        set.endpoint.toStdString(), set.port));
     if (!res)
       return false;
 

@@ -1,28 +1,27 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
-#include <score/tools/exceptions/MissingCommand.hpp>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ApplicationComponents.hpp"
+
 #include <score/command/CommandGeneratorMap.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+#include <score/tools/exceptions/MissingCommand.hpp>
 
 namespace score
 {
 ApplicationComponentsData::ApplicationComponentsData() = default;
 ApplicationComponentsData::~ApplicationComponentsData()
 {
-  for(auto& sub_map : commands)
-    for(auto& pr : sub_map.second)
+  for (auto& sub_map : commands)
+    for (auto& pr : sub_map.second)
       delete pr.second;
-    /*
-     for(auto& elt : settings)
-     {
-         delete elt;
-     }*/
-
+  /*
+   for(auto& elt : settings)
+   {
+       delete elt;
+   }*/
 
   for (auto& elt : guiAppPlugins)
   {

@@ -1,8 +1,7 @@
 #pragma once
 
-#include <Device/Protocol/ProtocolSettingsWidget.hpp>
-
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <Device/Protocol/ProtocolSettingsWidget.hpp>
 class QLineEdit;
 class JSEdit;
 class QSpinBox;

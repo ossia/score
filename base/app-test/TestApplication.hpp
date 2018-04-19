@@ -2,35 +2,38 @@
 #include <core/application/ApplicationInterface.hpp>
 #include <core/application/ApplicationSettings.hpp>
 
-namespace score {
+namespace score
+{
 class Settings;
 class View;
 class Presenter;
-}  // namespace score
+} // namespace score
 
 class QApplication;
 
-class TestApplication final :
-        public QObject,
-        public score::GUIApplicationInterface
+class TestApplication final
+    : public QObject
+    , public score::GUIApplicationInterface
 {
-    public:
-        TestApplication(int& argc, char** argv);
-        ~TestApplication();
+public:
+  TestApplication(int& argc, char** argv);
+  ~TestApplication();
 
-        const score::GUIApplicationContext& context() const override;
-        const score::ApplicationComponents& components() const override
-        { return context().components; }
+  const score::GUIApplicationContext& context() const override;
+  const score::ApplicationComponents& components() const override
+  {
+    return context().components;
+  }
 
-        int exec();
+  int exec();
 
-        // Base stuff.
-        QApplication* m_app;
-        std::unique_ptr<score::Settings> m_settings; // Global settings
+  // Base stuff.
+  QApplication* m_app;
+  std::unique_ptr<score::Settings> m_settings; // Global settings
 
-        // MVP
-        score::View* m_view {};
-        score::Presenter* m_presenter {};
+  // MVP
+  score::View* m_view{};
+  score::Presenter* m_presenter{};
 
-        score::ApplicationSettings m_applicationSettings;
+  score::ApplicationSettings m_applicationSettings;
 };

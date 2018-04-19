@@ -1,8 +1,7 @@
 #pragma once
-#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
-
 #include <QPoint>
 #include <QString>
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/widgets/GraphicsItem.hpp>
 #include <score_plugin_scenario_export.h>
 class QGraphicsItem;

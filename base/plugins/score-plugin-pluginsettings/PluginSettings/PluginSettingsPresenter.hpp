@@ -1,9 +1,7 @@
 #pragma once
 #include <QIcon>
-#include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
-
-
 #include <QString>
+#include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 
 namespace PluginSettings
 {

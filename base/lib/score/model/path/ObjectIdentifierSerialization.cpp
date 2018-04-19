@@ -1,14 +1,14 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "ObjectIdentifier.hpp"
+
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QString>
-#include <score/tools/std/Optional.hpp>
-#include <sys/types.h>
-
-#include "ObjectIdentifier.hpp"
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+#include <score/tools/std/Optional.hpp>
+#include <sys/types.h>
 
 template <>
 void DataStreamReader::read(const ObjectIdentifier& obj)
@@ -25,16 +25,16 @@ void DataStreamWriter::write(ObjectIdentifier& obj)
   obj = ObjectIdentifier{name, id};
 }
 
-template<>
+template <>
 void JSONObjectReader::read(const ObjectIdentifier& id)
 {
   obj[strings.ObjectName] = id.objectName();
   obj[strings.ObjectId] = id.id();
 }
 
-template<>
+template <>
 void JSONObjectWriter::write(ObjectIdentifier& id)
 {
   id = ObjectIdentifier{obj[strings.ObjectName].toString(),
-                         obj[strings.ObjectId].toInt()};
+                        obj[strings.ObjectId].toInt()};
 }

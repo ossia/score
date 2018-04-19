@@ -3,12 +3,12 @@
 // RENAMEME IntervalBraces
 
 #include "IntervalBrace.hpp"
+
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 namespace Scenario
 {
 
-class SCORE_PLUGIN_SCENARIO_EXPORT LeftBraceView final
-    : public IntervalBrace
+class SCORE_PLUGIN_SCENARIO_EXPORT LeftBraceView final : public IntervalBrace
 {
 public:
   LeftBraceView(const IntervalView& parentCstr, QGraphicsItem* parent)
@@ -27,8 +27,7 @@ public:
   }
 };
 
-class SCORE_PLUGIN_SCENARIO_EXPORT RightBraceView final
-    : public IntervalBrace
+class SCORE_PLUGIN_SCENARIO_EXPORT RightBraceView final : public IntervalBrace
 {
 public:
   RightBraceView(const IntervalView& parentCstr, QGraphicsItem* parent)
@@ -47,6 +46,4 @@ public:
     return static_type();
   }
 };
-
-
 }

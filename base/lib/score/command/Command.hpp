@@ -1,7 +1,7 @@
 #pragma once
-#include <chrono>
 #include <QByteArray>
 #include <QString>
+#include <chrono>
 #include <score/command/CommandFactoryKey.hpp>
 
 namespace score
@@ -43,13 +43,13 @@ public:
 protected:
   virtual void serializeImpl(DataStreamInput&) const = 0;
   virtual void deserializeImpl(DataStreamOutput&) = 0;
-/*
-  quint32 timestamp() const;
-  void setTimestamp(quint32 stmp);
+  /*
+    quint32 timestamp() const;
+    void setTimestamp(quint32 stmp);
 
-private:
-  // TODO check if this is UTC
-  std::chrono::milliseconds m_timestamp;*/
+  private:
+    // TODO check if this is UTC
+    std::chrono::milliseconds m_timestamp;*/
 };
 }
 
@@ -71,34 +71,36 @@ private:
  * IScoreFunctions.cmake. See score_generate_command_list_file.
  *
  */
-#define SCORE_COMMAND_DECL(parentNameFun, name, desc)              \
-public:                                                             \
-  name() noexcept { }                                               \
-  const CommandGroupKey& parentKey() const noexcept override\
-  {                                                                 \
-    return parentNameFun;                                           \
-  }                                                                 \
+#define SCORE_COMMAND_DECL(parentNameFun, name, desc)        \
+public:                                                      \
+  name() noexcept                                            \
+  {                                                          \
+  }                                                          \
+  const CommandGroupKey& parentKey() const noexcept override \
+  {                                                          \
+    return parentNameFun;                                    \
+  }                                                          \
   const CommandKey& key() const noexcept override            \
-  {                                                                 \
-    return static_key();                                            \
-  }                                                                 \
-  QString description() const override                              \
-  {                                                                 \
-    return QObject::tr(desc);                                       \
-  }                                                                 \
-  static const CommandKey& static_key() noexcept                    \
-  {                                                                 \
+  {                                                          \
+    return static_key();                                     \
+  }                                                          \
+  QString description() const override                       \
+  {                                                          \
+    return QObject::tr(desc);                                \
+  }                                                          \
+  static const CommandKey& static_key() noexcept             \
+  {                                                          \
     static const CommandKey var{#name};                      \
-    return var;                                                     \
-  }                                                                 \
-                                                                    \
+    return var;                                              \
+  }                                                          \
+                                                             \
 private:
 
 /**
  * \macro SCORE_COMMAND_DECL_T
  * \brief Helper to declare template commands
  *
- * These commands generally have a specific description or key for each instantiation
- * so we just declare the name here.
+ * These commands generally have a specific description or key for each
+ * instantiation so we just declare the name here.
  */
 #define SCORE_COMMAND_DECL_T(name)

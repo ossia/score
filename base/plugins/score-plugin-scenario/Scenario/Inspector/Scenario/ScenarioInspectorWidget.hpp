@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <QString>
 
 namespace Scenario

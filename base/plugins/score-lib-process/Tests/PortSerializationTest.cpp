@@ -1,9 +1,12 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
-int main() {}
+int main()
+{
+}
 /*
 #include <ossia/editor/state/message.hpp>
+
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <QMetaType>
@@ -38,8 +41,8 @@ private Q_SLOTS:
 
     {
       auto json = marshall<JSONObject>((Process::Inlet&)port);
-      auto new_port = deserialize_interface(pl, JSONObject::Deserializer{json}, nullptr);
-      auto ptr = dynamic_cast<Process::ControlInlet*>(new_port);
+      auto new_port = deserialize_interface(pl, JSONObject::Deserializer{json},
+nullptr); auto ptr = dynamic_cast<Process::ControlInlet*>(new_port);
       QVERIFY(ptr);
       QVERIFY(ptr->id() == port.id());
       QVERIFY(ptr->address() == port.address());
@@ -56,8 +59,8 @@ private Q_SLOTS:
 
     {
       auto json = marshall<JSONObject>((Process::Outlet&)port);
-      auto new_port = deserialize_interface(pl, JSONObject::Deserializer{json}, nullptr);
-      auto ptr = dynamic_cast<Process::ControlOutlet*>(new_port);
+      auto new_port = deserialize_interface(pl, JSONObject::Deserializer{json},
+nullptr); auto ptr = dynamic_cast<Process::ControlOutlet*>(new_port);
       QVERIFY(ptr);
       QVERIFY(ptr->id() == port.id());
       QVERIFY(ptr->address() == port.address());
@@ -74,8 +77,8 @@ private Q_SLOTS:
 
     {
       auto json = marshall<DataStream>((Process::Inlet&)port);
-      auto new_port = deserialize_interface(pl, DataStream::Deserializer{json}, nullptr);
-      auto ptr = dynamic_cast<Process::ControlInlet*>(new_port);
+      auto new_port = deserialize_interface(pl, DataStream::Deserializer{json},
+nullptr); auto ptr = dynamic_cast<Process::ControlInlet*>(new_port);
       QVERIFY(ptr);
       QVERIFY(ptr->id() == port.id());
       QVERIFY(ptr->address() == port.address());
@@ -92,8 +95,8 @@ private Q_SLOTS:
 
     {
       auto json = marshall<DataStream>((Process::Outlet&)port);
-      auto new_port = deserialize_interface(pl, DataStream::Deserializer{json}, nullptr);
-      auto ptr = dynamic_cast<Process::ControlOutlet*>(new_port);
+      auto new_port = deserialize_interface(pl, DataStream::Deserializer{json},
+nullptr); auto ptr = dynamic_cast<Process::ControlOutlet*>(new_port);
       QVERIFY(ptr);
       QVERIFY(ptr->id() == port.id());
       QVERIFY(ptr->address() == port.address());
@@ -110,9 +113,8 @@ private Q_SLOTS:
 
     {
       auto json = marshall<JSONObject>((Process::Inlet&)port);
-      auto new_port = deserialize_interface(pl, JSONObject::Deserializer{json}, nullptr);
-      auto ptr = dynamic_cast<Process::Inlet*>(new_port);
-      QVERIFY(ptr);
+      auto new_port = deserialize_interface(pl, JSONObject::Deserializer{json},
+nullptr); auto ptr = dynamic_cast<Process::Inlet*>(new_port); QVERIFY(ptr);
       QVERIFY(ptr->id() == port.id());
       QVERIFY(ptr->address() == port.address());
     }
@@ -126,9 +128,8 @@ private Q_SLOTS:
 
     {
       auto json = marshall<JSONObject>((Process::Outlet&)port);
-      auto new_port = deserialize_interface(pl, JSONObject::Deserializer{json}, nullptr);
-      auto ptr = dynamic_cast<Process::Outlet*>(new_port);
-      QVERIFY(ptr);
+      auto new_port = deserialize_interface(pl, JSONObject::Deserializer{json},
+nullptr); auto ptr = dynamic_cast<Process::Outlet*>(new_port); QVERIFY(ptr);
       QVERIFY(ptr->id() == port.id());
       QVERIFY(ptr->address() == port.address());
       QVERIFY(ptr->propagate() == port.propagate());
@@ -142,9 +143,8 @@ private Q_SLOTS:
 
     {
       auto json = marshall<DataStream>((Process::Inlet&)port);
-      auto new_port = deserialize_interface(pl, DataStream::Deserializer{json}, nullptr);
-      auto ptr = dynamic_cast<Process::Inlet*>(new_port);
-      QVERIFY(ptr);
+      auto new_port = deserialize_interface(pl, DataStream::Deserializer{json},
+nullptr); auto ptr = dynamic_cast<Process::Inlet*>(new_port); QVERIFY(ptr);
       QVERIFY(ptr->id() == port.id());
       QVERIFY(ptr->address() == port.address());
     }
@@ -158,9 +158,8 @@ private Q_SLOTS:
 
     {
       auto json = marshall<DataStream>((Process::Outlet&)port);
-      auto new_port = deserialize_interface(pl, DataStream::Deserializer{json}, nullptr);
-      auto ptr = dynamic_cast<Process::Outlet*>(new_port);
-      QVERIFY(ptr);
+      auto new_port = deserialize_interface(pl, DataStream::Deserializer{json},
+nullptr); auto ptr = dynamic_cast<Process::Outlet*>(new_port); QVERIFY(ptr);
       QVERIFY(ptr->id() == port.id());
       QVERIFY(ptr->address() == port.address());
       QVERIFY(ptr->propagate() == port.propagate());

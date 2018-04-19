@@ -1,7 +1,7 @@
 #pragma once
 #include <QRect>
-#include <Scenario/Document/Interval/IntervalHeader.hpp>
 #include <Scenario/Document/Interval/FullView/AddressBarItem.hpp>
+#include <Scenario/Document/Interval/IntervalHeader.hpp>
 
 class QGraphicsItem;
 class QPainter;
@@ -13,23 +13,22 @@ namespace Scenario
 class AddressBarItem;
 class FullViewIntervalHeader final : public IntervalHeader
 {
-  public:
-    FullViewIntervalHeader(
-        const score::DocumentContext& ctx,
-        QGraphicsItem*);
+public:
+  FullViewIntervalHeader(const score::DocumentContext& ctx, QGraphicsItem*);
 
-    AddressBarItem& bar();
+  AddressBarItem& bar();
 
-    void setState(State s) override
-    {
-    }
+  void setState(State s) override
+  {
+  }
 
-    QRectF boundingRect() const override;
-    void paint(
-        QPainter* painter, const QStyleOptionGraphicsItem* option,
-        QWidget* widget) override;
+  QRectF boundingRect() const override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
 
-  private:
-    AddressBarItem m_bar;
+private:
+  AddressBarItem m_bar;
 };
 }

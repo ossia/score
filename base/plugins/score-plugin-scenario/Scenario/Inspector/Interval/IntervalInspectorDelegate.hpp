@@ -1,8 +1,8 @@
 #pragma once
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
-#include <score_plugin_scenario_export.h>
 #include <list>
+#include <score_plugin_scenario_export.h>
 
 class OngoingCommandDispatcher;
 class QWidget;

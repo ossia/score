@@ -1,12 +1,11 @@
 #pragma once
 
+#include <Process/TimeValue.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <score/command/Command.hpp>
-#include <score/model/path/Path.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
-
-#include <Process/TimeValue.hpp>
 
 namespace Scenario
 {
@@ -20,8 +19,7 @@ class MoveCommentBlock final : public score::Command
 public:
   MoveCommentBlock(
       const ProcessModel& scenarPath,
-      Id<CommentBlockModel>
-          id,
+      Id<CommentBlockModel> id,
       TimeVal newDate,
       double newY);
 

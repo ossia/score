@@ -1,5 +1,5 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "LayerPresenter.hpp"
 namespace Process
 {
@@ -22,7 +22,6 @@ void LayerPresenter::on_focusChanged()
 
 void LayerPresenter::setFullView()
 {
-
 }
 
 void LayerPresenter::fillContextMenu(
@@ -30,14 +29,13 @@ void LayerPresenter::fillContextMenu(
 {
 }
 
-GraphicsShapeItem*LayerPresenter::makeSlotHeaderDelegate()
+GraphicsShapeItem* LayerPresenter::makeSlotHeaderDelegate()
 {
   return nullptr;
 }
 
 GraphicsShapeItem::~GraphicsShapeItem()
 {
-
 }
 
 void GraphicsShapeItem::setSize(QSizeF sz)
@@ -47,10 +45,8 @@ void GraphicsShapeItem::setSize(QSizeF sz)
   update();
 }
 
-
 QRectF GraphicsShapeItem::boundingRect() const
 {
   return {0, 0, m_sz.width(), m_sz.height()};
 }
-
 }

@@ -1,5 +1,11 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "PluginSettingsModel.hpp"
+
+#include "commands/BlacklistCommand.hpp"
+
+#include <ossia/detail/algorithms.hpp>
+
 #include <QApplication>
 #include <QDebug>
 #include <QSet>
@@ -8,12 +14,8 @@
 #include <QStringList>
 #include <QVariant>
 #include <qnamespace.h>
-
-#include "PluginSettingsModel.hpp"
-#include "commands/BlacklistCommand.hpp"
-#include <ossia/detail/algorithms.hpp>
-#include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 #include <score/application/ApplicationContext.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 namespace PluginSettings
 {
 PluginSettingsModel::PluginSettingsModel(
@@ -26,6 +28,5 @@ PluginSettingsModel::PluginSettingsModel(
 
 PluginSettingsModel::~PluginSettingsModel()
 {
-
 }
 }

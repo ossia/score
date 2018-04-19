@@ -1,7 +1,6 @@
 #pragma once
 #include <Process/LayerView.hpp>
 #include <Process/TimeValue.hpp>
-
 #include <nano_observer.hpp>
 
 namespace Scenario
@@ -13,16 +12,16 @@ class MiniScenarioView final
     , public Nano::Observer
 {
 public:
-    MiniScenarioView(const Scenario::ProcessModel& sc, QGraphicsItem* p);
+  MiniScenarioView(const Scenario::ProcessModel& sc, QGraphicsItem* p);
 
 private:
-    template<typename... T>
-    void on_elementChanged(T&&...)
-    {
-      update();
-    }
+  template <typename... T>
+  void on_elementChanged(T&&...)
+  {
+    update();
+  }
 
-    void paint_impl(QPainter*) const override;
-    const Scenario::ProcessModel& m_scenario;
+  void paint_impl(QPainter*) const override;
+  const Scenario::ProcessModel& m_scenario;
 };
 }

@@ -1,13 +1,15 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QObject>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "OSCQueryProtocolFactory.hpp"
 
 #include "OSCQueryDevice.hpp"
-#include "OSCQueryProtocolFactory.hpp"
+
+#include <ossia/network/base/device.hpp>
+
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/Protocols/OSCQuery/OSCQueryProtocolSettingsWidget.hpp>
 #include <Engine/Protocols/OSCQuery/OSCQuerySpecificSettings.hpp>
-#include <ossia/network/base/device.hpp>
+#include <QObject>
 
 namespace Device
 {

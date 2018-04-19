@@ -12,7 +12,7 @@ inline QDebug operator<<(QDebug debug, const std::string& obj)
 
 namespace boost
 {
-template<>
+template <>
 struct hash<QString>
 {
   std::size_t operator()(const QString& path) const

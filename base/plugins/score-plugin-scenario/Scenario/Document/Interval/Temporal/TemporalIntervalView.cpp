@@ -1,24 +1,25 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
+#include "TemporalIntervalView.hpp"
+
+#include "TemporalIntervalPresenter.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
 #include <QBrush>
+#include <QCursor>
 #include <QFont>
 #include <QGraphicsItem>
 #include <QGraphicsSceneEvent>
 #include <QPainter>
 #include <QPainterPath>
 #include <QPen>
-#include <QCursor>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <qnamespace.h>
-#include <Scenario/Document/Interval/SlotHandle.hpp>
-
 #include <Scenario/Document/Interval/IntervalMenuOverlay.hpp>
-#include "TemporalIntervalPresenter.hpp"
-#include "TemporalIntervalView.hpp"
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/Interval/IntervalView.hpp>
+#include <Scenario/Document/Interval/SlotHandle.hpp>
+#include <qnamespace.h>
 #include <score/model/Skin.hpp>
 
 class QGraphicsSceneHoverEvent;
@@ -29,7 +30,7 @@ namespace Scenario
 {
 TemporalIntervalView::TemporalIntervalView(
     TemporalIntervalPresenter& presenter, QGraphicsItem* parent)
-  : IntervalView{presenter, parent}
+    : IntervalView{presenter, parent}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setParentItem(parent);
@@ -40,7 +41,6 @@ TemporalIntervalView::TemporalIntervalView(
 
 TemporalIntervalView::~TemporalIntervalView()
 {
-
 }
 
 QRectF TemporalIntervalView::boundingRect() const
@@ -51,7 +51,7 @@ QRectF TemporalIntervalView::boundingRect() const
   return {x, -4, rectW, qreal(intervalAndRackHeight())};
 }
 
-const TemporalIntervalPresenter&TemporalIntervalView::presenter() const
+const TemporalIntervalPresenter& TemporalIntervalView::presenter() const
 {
   return static_cast<const TemporalIntervalPresenter&>(m_presenter);
 }
@@ -67,10 +67,10 @@ void TemporalIntervalView::updatePaths()
   const qreal min_w = minWidth();
   const qreal max_w = maxWidth();
   const qreal def_w = defaultWidth();
-  const qreal play_w = m_waiting ?  playWidth() : 0.;
+  const qreal play_w = m_waiting ? playWidth() : 0.;
 
   // Paths
-  if(play_w <= 0.)
+  if (play_w <= 0.)
   {
     if (infinite())
     {
@@ -104,13 +104,13 @@ void TemporalIntervalView::updatePaths()
       if (min_w != 0.)
       {
         playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
-        //if(play_w < min_w)
+        // if(play_w < min_w)
         {
           solidPath.lineTo(min_w, 0.);
         }
       }
 
-      if(play_w > min_w)
+      if (play_w > min_w)
       {
         playedDashedPath.moveTo(min_w, 0.);
         playedDashedPath.lineTo(std::min(def_w, play_w), 0.);
@@ -127,7 +127,7 @@ void TemporalIntervalView::updatePaths()
     else if (min_w == max_w) // TODO rigid()
     {
       playedSolidPath.lineTo(std::min(play_w, def_w), 0.);
-      //if(play_w < def_w)
+      // if(play_w < def_w)
       {
         solidPath.lineTo(def_w, 0.);
       }
@@ -137,13 +137,13 @@ void TemporalIntervalView::updatePaths()
       if (min_w != 0.)
       {
         playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
-        //if(play_w < min_w)
+        // if(play_w < min_w)
         {
           solidPath.lineTo(min_w, 0.);
         }
       }
 
-      if(play_w > min_w)
+      if (play_w > min_w)
       {
         playedDashedPath.moveTo(min_w, 0.);
         playedDashedPath.lineTo(play_w, 0.);
@@ -160,7 +160,6 @@ void TemporalIntervalView::updatePaths()
   }
 }
 
-
 void TemporalIntervalView::updatePlayPaths()
 {
   playedSolidPath = QPainterPath{};
@@ -173,7 +172,7 @@ void TemporalIntervalView::updatePlayPaths()
   const qreal play_w = playWidth();
 
   // Paths
-  if(play_w <= 0.)
+  if (play_w <= 0.)
   {
     return;
   }
@@ -186,7 +185,7 @@ void TemporalIntervalView::updatePlayPaths()
         playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
       }
 
-      if(play_w > min_w)
+      if (play_w > min_w)
       {
         playedDashedPath.moveTo(min_w, 0.);
         playedDashedPath.lineTo(std::min(def_w, play_w), 0.);
@@ -206,7 +205,7 @@ void TemporalIntervalView::updatePlayPaths()
         playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
       }
 
-      if(play_w > min_w)
+      if (play_w > min_w)
       {
         playedDashedPath.moveTo(min_w, 0.);
         playedDashedPath.lineTo(play_w, 0.);
@@ -217,7 +216,6 @@ void TemporalIntervalView::updatePlayPaths()
     }
   }
 }
-
 
 void TemporalIntervalView::paint(
     QPainter* p, const QStyleOptionGraphicsItem*, QWidget*)
@@ -238,7 +236,8 @@ void TemporalIntervalView::paint(
     rect.adjust(0, 4, 0, SlotHandle::handleHeight());
     rect.setWidth(def_w);
 
-    auto bgColor = m_presenter.model().metadata().getColor().getBrush().color();
+    auto bgColor
+        = m_presenter.model().metadata().getColor().getBrush().color();
     bgColor.setAlpha(m_hasFocus ? 86 : 70);
     // TODO try to prevent allocation here by storing two copies instead
     painter.fillRect(rect, bgColor);
@@ -252,7 +251,6 @@ void TemporalIntervalView::paint(
 
   // Colors
   const auto& defaultColor = this->intervalColor(skin);
-
 
   // Drawing
   if (!solidPath.isEmpty())
@@ -279,14 +277,15 @@ void TemporalIntervalView::paint(
   }
   else
   {
-    //qDebug() << " no solid played path" << playedSolidPath.boundingRect();
+    // qDebug() << " no solid played path" << playedSolidPath.boundingRect();
   }
 
-  if(!waitingDashedPath.isEmpty())
+  if (!waitingDashedPath.isEmpty())
   {
-    if(this->m_waiting)
+    if (this->m_waiting)
     {
-      skin.IntervalWaitingDashPen.setBrush(skin.IntervalWaitingDashFill.getBrush());
+      skin.IntervalWaitingDashPen.setBrush(
+          skin.IntervalWaitingDashFill.getBrush());
       painter.setPen(skin.IntervalWaitingDashPen);
       painter.drawPath(waitingDashedPath);
     }
@@ -294,7 +293,7 @@ void TemporalIntervalView::paint(
 
   if (!playedDashedPath.isEmpty())
   {
-    if(this->m_waiting)
+    if (this->m_waiting)
     {
       skin.IntervalPlayDashPen.setBrush(skin.IntervalPlayDashFill.getBrush());
     }
@@ -317,7 +316,7 @@ void TemporalIntervalView::paint(
 void TemporalIntervalView::hoverEnterEvent(QGraphicsSceneHoverEvent* h)
 {
   QGraphicsItem::hoverEnterEvent(h);
-  if(h->pos().y() < 4)
+  if (h->pos().y() < 4)
     setUngripCursor();
   else
     unsetCursor();
@@ -363,7 +362,7 @@ void TemporalIntervalView::setLabel(const QString& label)
 
 void TemporalIntervalView::enableOverlay(bool b)
 {
-  if(b)
+  if (b)
   {
     m_overlay = new IntervalMenuOverlay{this};
     updateOverlayPos();
@@ -404,9 +403,10 @@ void TemporalIntervalView::setExecutionDuration(const TimeVal& progress)
 
 void TemporalIntervalView::updateOverlayPos()
 {
-  if(m_overlay)
+  if (m_overlay)
   {
-    m_overlay->setPos(defaultWidth() / 2. - m_overlay->boundingRect().width() / 2, -10);
+    m_overlay->setPos(
+        defaultWidth() / 2. - m_overlay->boundingRect().width() / 2, -10);
   }
 }
 

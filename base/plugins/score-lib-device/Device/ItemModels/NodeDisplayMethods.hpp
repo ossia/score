@@ -15,8 +15,8 @@ namespace Device
 {
 SCORE_LIB_DEVICE_EXPORT QVariant
 nameColumnData(const Device::Node& node, int role);
-SCORE_LIB_DEVICE_EXPORT QVariant deviceNameColumnData(
-    const Device::Node& node, bool connected, int role);
+SCORE_LIB_DEVICE_EXPORT QVariant
+deviceNameColumnData(const Device::Node& node, bool connected, int role);
 SCORE_LIB_DEVICE_EXPORT QVariant
 valueColumnData(const Device::Node& node, int role);
 SCORE_LIB_DEVICE_EXPORT QVariant

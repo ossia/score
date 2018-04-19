@@ -1,13 +1,12 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CurveSegmentModel.hpp"
+
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
-
+#include <score/model/IdentifiedObject.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
-
-#include <score/model/IdentifiedObject.hpp>
 
 namespace Curve
 {
@@ -19,10 +18,9 @@ SegmentModel::SegmentModel(const Id<SegmentModel>& id, QObject* parent)
 }
 
 SegmentModel::SegmentModel(const SegmentData& data, QObject* parent)
-    : IdentifiedObject<SegmentModel>{data.id,
-                                     Metadata<ObjectKey_k, SegmentModel>::
-                                         get(),
-                                     parent}
+    : IdentifiedObject<
+          SegmentModel>{data.id, Metadata<ObjectKey_k, SegmentModel>::get(),
+                        parent}
     , m_start{data.start}
     , m_end{data.end}
     , m_previous{data.previous}
@@ -35,22 +33,21 @@ SegmentModel::SegmentModel(
     Curve::Point e,
     const Id<SegmentModel>& id,
     QObject* parent)
-    : IdentifiedObject<SegmentModel>{id, Metadata<ObjectKey_k, SegmentModel>::
-                                             get(),
-                                     parent}
+    : IdentifiedObject<
+          SegmentModel>{id, Metadata<ObjectKey_k, SegmentModel>::get(), parent}
     , m_start{s}
     , m_end{e}
 {
 }
 
 SegmentModel::SegmentModel(JSONObject::Deserializer& vis, QObject* parent)
-  : IdentifiedObject{vis, parent}
+    : IdentifiedObject{vis, parent}
 {
   vis.writeTo(*this);
 }
 
 SegmentModel::SegmentModel(DataStream::Deserializer& vis, QObject* parent)
-  : IdentifiedObject{vis, parent}
+    : IdentifiedObject{vis, parent}
 {
   vis.writeTo(*this);
 }

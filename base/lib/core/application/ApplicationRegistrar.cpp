@@ -1,35 +1,34 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "ApplicationRegistrar.hpp"
+
+#include "ApplicationSettings.hpp"
+
+#include <core/document/Document.hpp>
+#include <core/presenter/DocumentManager.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/settings/Settings.hpp>
 #include <core/view/Window.hpp>
 #include <score/application/ApplicationComponents.hpp>
 #include <score/application/ApplicationContext.hpp>
+#include <score/command/CommandGeneratorMap.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/plugins/customfactory/FactoryFamily.hpp>
+#include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/plugins/panel/PanelDelegateFactory.hpp>
 #include <type_traits>
 #include <vector>
 
-#include "ApplicationRegistrar.hpp"
-#include "ApplicationSettings.hpp"
-#include <core/document/Document.hpp>
-#include <core/presenter/DocumentManager.hpp>
-#include <score/command/CommandGeneratorMap.hpp>
-#include <score/plugins/customfactory/FactoryFamily.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
-
 namespace score
 {
 SCORE_LIB_BASE_EXPORT
-ApplicationRegistrar::ApplicationRegistrar(
-    ApplicationComponentsData& comp)
-  : m_components{comp}
+ApplicationRegistrar::ApplicationRegistrar(ApplicationComponentsData& comp)
+    : m_components{comp}
 {
 }
 
 ApplicationRegistrar::~ApplicationRegistrar()
 {
-
 }
 
 SCORE_LIB_BASE_EXPORT
@@ -60,7 +59,7 @@ void ApplicationRegistrar::registerCommands(
 SCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerFactories(
     score::hash_map<score::InterfaceKey, std::unique_ptr<InterfaceListBase>>&&
-            facts)
+        facts)
 {
   m_components.factories = std::move(facts);
 }
@@ -72,7 +71,6 @@ void ApplicationRegistrar::registerFactory(
   m_components.factories.insert(
       std::make_pair(cmds->interfaceKey(), std::move(cmds)));
 }
-
 
 GUIApplicationRegistrar::GUIApplicationRegistrar(
     ApplicationComponentsData& comp,
@@ -90,14 +88,13 @@ GUIApplicationRegistrar::GUIApplicationRegistrar(
 
 GUIApplicationRegistrar::~GUIApplicationRegistrar()
 {
-
 }
 
 SCORE_LIB_BASE_EXPORT
 void GUIApplicationRegistrar::registerGUIApplicationPlugin(
     GUIApplicationPlugin* ctrl)
 {
-  if(m_context.applicationSettings.gui)
+  if (m_context.applicationSettings.gui)
   {
     // GUI Presenter stuff...
     auto ui = ctrl->makeGUIElements();
@@ -115,5 +112,4 @@ void GUIApplicationRegistrar::registerPanel(PanelDelegateFactory& factory)
 
   m_components.panels.push_back(std::move(panel));
 }
-
 }

@@ -5,12 +5,13 @@ namespace Recording
 {
 struct RecordedMessage
 {
-    double percentage;
-    State::Message m;
+  double percentage;
+  State::Message m;
 };
-class MessageRecorder : public QObject,
-                        public RecordProvider,
-                        public Nano::Observer
+class MessageRecorder
+    : public QObject
+    , public RecordProvider
+    , public Nano::Observer
 {
   Q_OBJECT
 public:

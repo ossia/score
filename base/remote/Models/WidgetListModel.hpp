@@ -1,8 +1,8 @@
 #pragma once
-#include <QObject>
-#include <QQmlComponent>
-#include <QQmlApplicationEngine>
 #include <QDebug>
+#include <QObject>
+#include <QQmlApplicationEngine>
+#include <QQmlComponent>
 #include <WidgetKind.hpp>
 namespace RemoteUI
 {
@@ -23,15 +23,16 @@ public:
       QString prettyName,
       QUrl comp,
       QUrl exampleComp,
-      QQmlApplicationEngine& eng):
-    m_kind{kind},
-    m_name{name},
-    m_prettyName{prettyName},
-    m_component{&eng, comp},
-    m_exampleComponent{&eng, exampleComp}
+      QQmlApplicationEngine& eng)
+      : m_kind{kind}
+      , m_name{name}
+      , m_prettyName{prettyName}
+      , m_component{&eng, comp}
+      , m_exampleComponent{&eng, exampleComp}
   {
     auto e = m_component.errorString();
-    if(!e.isEmpty()) qDebug() << "Error while creating" << name << ": " << e;
+    if (!e.isEmpty())
+      qDebug() << "Error while creating" << name << ": " << e;
   }
 
   ~WidgetListData();
@@ -69,14 +70,14 @@ public:
     return m_kind;
   }
 
-  Q_SIGNALS:
+Q_SIGNALS:
   void nameChanged(QString name);
 
   void prettyNameChanged(QString prettyName);
 
   void widgetKindChanged(WidgetKind widgetKind);
 
-  private:
+private:
   WidgetKind m_kind;
   QString m_name;
   QString m_prettyName;

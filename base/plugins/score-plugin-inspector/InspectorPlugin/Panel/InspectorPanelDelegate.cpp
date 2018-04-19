@@ -1,14 +1,14 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "InspectorPanelDelegate.hpp"
+
 #include "Implementation/InspectorPanel.hpp"
 
 #include <Inspector/InspectorWidgetList.hpp>
-
 #include <QVBoxLayout>
 #include <score/selection/SelectionStack.hpp>
-#include <score/widgets/MarginLess.hpp>
 #include <score/widgets/ClearLayout.hpp>
+#include <score/widgets/MarginLess.hpp>
 
 namespace InspectorPanel
 {
@@ -29,8 +29,8 @@ QWidget* PanelDelegate::widget()
 const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
 {
   static const score::PanelStatus status{true, Qt::RightDockWidgetArea, 10,
-                                          QObject::tr("Inspector"),
-                                          QObject::tr("Ctrl+Shift+I")};
+                                         QObject::tr("Inspector"),
+                                         QObject::tr("Ctrl+Shift+I")};
 
   return status;
 }
@@ -48,10 +48,11 @@ void PanelDelegate::on_modelChanged(
   {
     SelectionStack& stack = newm->selectionStack;
 
-    auto& fact
-        = newm->app.interfaces<Inspector::InspectorWidgetList>();
-    m_inspectorPanel = new InspectorPanelWidget{fact, stack, lay, m_widget, m_widget};
-    m_widget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
+    auto& fact = newm->app.interfaces<Inspector::InspectorWidgetList>();
+    m_inspectorPanel
+        = new InspectorPanelWidget{fact, stack, lay, m_widget, m_widget};
+    m_widget->setSizePolicy(
+        QSizePolicy::Minimum, QSizePolicy::MinimumExpanding);
   }
 }
 

@@ -4,11 +4,10 @@
 #include <QVector>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <score/command/Command.hpp>
-#include <score/tools/std/Optional.hpp>
-
-#include <score/model/path/Path.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/model/path/Path.hpp>
 #include <score/selection/Selection.hpp>
+#include <score/tools/std/Optional.hpp>
 
 namespace Scenario
 {
@@ -20,7 +19,8 @@ class IntervalModel;
 namespace Command
 {
 
-class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPasteElements final : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPasteElements final
+    : public score::Command
 {
   SCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),
@@ -54,8 +54,8 @@ private:
   QVector<QJsonObject> m_json_states;
 };
 
-
-class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPasteElementsAfter final : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPasteElementsAfter final
+    : public score::Command
 {
   SCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),
@@ -63,8 +63,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPasteElementsAfter final : public sco
       "Paste elements after sync")
 public:
   ScenarioPasteElementsAfter(
-      const Scenario::ProcessModel& path,
-      const QJsonObject& obj);
+      const Scenario::ProcessModel& path, const QJsonObject& obj);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

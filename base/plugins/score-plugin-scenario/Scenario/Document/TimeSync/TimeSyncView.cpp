@@ -1,19 +1,20 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "TimeSyncView.hpp"
+
+#include "TimeSyncPresenter.hpp"
+
 #include <Process/Style/ScenarioStyle.hpp>
 #include <QBrush>
+#include <QCursor>
 #include <QGraphicsScene>
 #include <QGraphicsSceneEvent>
 #include <QPainter>
 #include <QPen>
-#include <algorithm>
-#include <qnamespace.h>
-
-#include "TimeSyncPresenter.hpp"
-#include "TimeSyncView.hpp"
-#include <QCursor>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
+#include <algorithm>
+#include <qnamespace.h>
 #include <score/model/ModelMetadata.hpp>
 
 class QStyleOptionGraphicsItem;
@@ -22,9 +23,7 @@ class QWidget;
 namespace Scenario
 {
 TimeSyncView::TimeSyncView(TimeSyncPresenter& presenter, QGraphicsItem* parent)
-    : QGraphicsItem{parent}
-    , m_presenter{presenter}
-    , m_text{this}
+    : QGraphicsItem{parent}, m_presenter{presenter}, m_text{this}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setParentItem(parent);
@@ -46,7 +45,7 @@ void TimeSyncView::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto height = m_extent.bottom() - m_extent.top();
-  if(height < 1)
+  if (height < 1)
     return;
 
   auto& skin = ScenarioStyle::instance();

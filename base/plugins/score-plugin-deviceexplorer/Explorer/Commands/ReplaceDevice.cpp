@@ -1,19 +1,19 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QAbstractItemModel>
-#include <QString>
-#include <algorithm>
-#include <vector>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ReplaceDevice.hpp"
+
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
+#include <QAbstractItemModel>
+#include <QString>
+#include <algorithm>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/tree/TreeNode.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <vector>
 
 namespace Explorer
 {
@@ -26,8 +26,7 @@ ReplaceDevice::ReplaceDevice(
     const DeviceDocumentPlugin& device_tree,
     int deviceIndex,
     Device::Node&& rootNode)
-    : m_deviceIndex(deviceIndex)
-    , m_deviceNode{std::move(rootNode)}
+    : m_deviceIndex(deviceIndex), m_deviceNode{std::move(rootNode)}
 {
   auto& explorer = device_tree.explorer();
   m_savedNode = explorer.nodeFromModelIndex(

@@ -8,11 +8,10 @@
 #include <QPoint>
 #include <QRect>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/selection/SelectionDispatcher.hpp>
-#include <score/model/IdentifiedObjectMap.hpp>
-#include <score/widgets/GraphicsItem.hpp>
-
 #include <score/document/DocumentContext.hpp>
+#include <score/model/IdentifiedObjectMap.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
+#include <score/widgets/GraphicsItem.hpp>
 #include <score_plugin_curve_export.h>
 
 class QActionGroup;

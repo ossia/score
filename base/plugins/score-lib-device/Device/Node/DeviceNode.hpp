@@ -4,13 +4,12 @@
 #include <QList>
 #include <QString>
 #include <QStringList>
+#include <State/Address.hpp>
 #include <State/Message.hpp>
 #include <algorithm>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/TreePath.hpp>
 #include <score/model/tree/VariantBasedNode.hpp>
-
-#include <State/Address.hpp>
 #include <score_lib_device_export.h>
 
 class DataStream;
@@ -50,7 +49,8 @@ public:
 
   bool operator==(const DeviceExplorerNode& other) const
   {
-    return static_cast<const VariantBasedNode&>(*this) == static_cast<const VariantBasedNode&>(other);
+    return static_cast<const VariantBasedNode&>(*this)
+           == static_cast<const VariantBasedNode&>(other);
   }
 
   //- accessors
@@ -69,7 +69,6 @@ public:
  */
 using Node = TreeNode<DeviceExplorerNode>;
 using NodePath = TreePath<Device::Node>;
-
 
 // TODO reflist may be a better name.
 using FreeNode = std::pair<State::Address, Device::Node>;
@@ -95,8 +94,8 @@ parametersList(const Node& treeNode, State::MessageList& ml);
 // TODO have all these guys return references
 SCORE_LIB_DEVICE_EXPORT Device::Node&
 getNodeFromAddress(Device::Node& root, const State::Address&);
-SCORE_LIB_DEVICE_EXPORT Device::Node*
-getNodeFromString(Device::Node& n, const QStringList& str); // Fails if not present.
+SCORE_LIB_DEVICE_EXPORT Device::Node* getNodeFromString(
+    Device::Node& n, const QStringList& str); // Fails if not present.
 
 /**
  * @brief dumpTree An utility to print trees
@@ -218,7 +217,6 @@ Node_T* try_getNodeFromAddress(Node_T& root, const State::Address& addr)
 }
 
 bool operator<(const Device::Node& lhs, const Device::Node& rhs);
-
 }
 
 extern template class TreeNode<Device::DeviceExplorerNode>;

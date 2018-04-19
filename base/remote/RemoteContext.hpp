@@ -17,15 +17,14 @@ struct Context
       const NodeModel& n,
       WebSocketClient& ws,
       RemoteApplication& app,
-      QQuickItem* i):
-    engine{e},
-    widgets{w},
-    nodes{n},
-    websocket{ws},
-    application{app},
-    centralItem{i}
+      QQuickItem* i)
+      : engine{e}
+      , widgets{w}
+      , nodes{n}
+      , websocket{ws}
+      , application{app}
+      , centralItem{i}
   {
-
   }
   QQmlApplicationEngine& engine;
   const QList<RemoteUI::WidgetListData*>& widgets;
@@ -33,6 +32,5 @@ struct Context
   WebSocketClient& websocket;
   RemoteApplication& application;
   QQuickItem* centralItem{};
-
 };
 }

@@ -1,26 +1,27 @@
 #pragma once
-#include <Engine/Node/Port.hpp>
-#include <Process/Dataflow/Port.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <score/widgets/DoubleSlider.hpp>
-#include <score/widgets/SignalUtils.hpp>
-#include <score/widgets/MarginLess.hpp>
-#include <score/widgets/TextLabel.hpp>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <Scenario/Commands/SetControlValue.hpp>
-#include <Engine/Node/BaseWidgets.hpp>
 #include <ossia/network/domain/domain.hpp>
-#include <score/widgets/GraphicWidgets.hpp>
-#include <State/Value.hpp>
-#include <QPainter>
+
+#include <Engine/Node/BaseWidgets.hpp>
+#include <Engine/Node/Port.hpp>
+#include <Engine/Node/TimeSignature.hpp>
+#include <Process/Dataflow/Port.hpp>
+#include <QApplication>
 #include <QCheckBox>
 #include <QFormLayout>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QApplication>
-#include <score_plugin_engine_export.h>
 #include <QGraphicsProxyWidget>
-#include <Engine/Node/TimeSignature.hpp>
+#include <QLineEdit>
+#include <QPainter>
+#include <QPushButton>
+#include <Scenario/Commands/SetControlValue.hpp>
+#include <State/Value.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/widgets/DoubleSlider.hpp>
+#include <score/widgets/GraphicWidgets.hpp>
+#include <score/widgets/MarginLess.hpp>
+#include <score/widgets/SignalUtils.hpp>
+#include <score/widgets/TextLabel.hpp>
+#include <score_plugin_engine_export.h>
 namespace Control
 {
 using SetControlValue = Scenario::Command::SetControlValue;
@@ -46,932 +47,1122 @@ inline QGraphicsItem* wrapWidget(QWidget* widg)
 
 struct FloatSlider final : ossia::safe_nodes::control_in
 {
-    static const constexpr bool must_validate = false;
-    using type = float;
-    const float min{};
-    const float max{};
-    const float init{};
+  static const constexpr bool must_validate = false;
+  using type = float;
+  const float min{};
+  const float max{};
+  const float init{};
 
-    template<std::size_t N>
-    constexpr FloatSlider(const char (&name)[N], float v1, float v2, float v3):
-      ossia::safe_nodes::control_in{name}, min{v1}, max{v2}, init{v3}
-    {
-    }
+  template <std::size_t N>
+  constexpr FloatSlider(const char (&name)[N], float v1, float v2, float v3)
+      : ossia::safe_nodes::control_in{name}, min{v1}, max{v2}, init{v3}
+  {
+  }
 
-    auto getMin() const { return min; }
-    auto getMax() const { return max; }
+  auto getMin() const
+  {
+    return min;
+  }
+  auto getMax() const
+  {
+    return max;
+  }
 
-    auto create_inlet(Id<Process::Port> id, QObject* parent) const
-    {
-      auto p = new Process::ControlInlet(id, parent);
-      p->type = Process::PortType::Message;
-      p->setValue(init);
-      p->setDomain(ossia::make_domain(min, max));
-      p->setCustomData(QString::fromUtf8(name.data(), name.size()));
-      return p;
-    }
+  auto create_inlet(Id<Process::Port> id, QObject* parent) const
+  {
+    auto p = new Process::ControlInlet(id, parent);
+    p->type = Process::PortType::Message;
+    p->setValue(init);
+    p->setDomain(ossia::make_domain(min, max));
+    p->setCustomData(QString::fromUtf8(name.data(), name.size()));
+    return p;
+  }
 
-    float fromValue(const ossia::value& v) const
-    {
-      return ossia::convert<float>(v);
-    }
-    ossia::value toValue(float v) const { return v; }
+  float fromValue(const ossia::value& v) const
+  {
+    return ossia::convert<float>(v);
+  }
+  ossia::value toValue(float v) const
+  {
+    return v;
+  }
 
-    template<typename T>
-    static auto make_widget(const T& slider, Process::ControlInlet& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
-    {
-      const auto min = slider.getMin();
-      const auto max = slider.getMax();
-      auto sl = new ValueDoubleSlider{parent};
-      sl->setOrientation(Qt::Horizontal);
-      sl->setContentsMargins(0, 0, 0, 0);
-      sl->min = min;
-      sl->max = max;
-      sl->setValue((ossia::convert<double>(inlet.value()) - min) / (max - min));
+  template <typename T>
+  static auto make_widget(
+      const T& slider,
+      Process::ControlInlet& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context)
+  {
+    const auto min = slider.getMin();
+    const auto max = slider.getMax();
+    auto sl = new ValueDoubleSlider{parent};
+    sl->setOrientation(Qt::Horizontal);
+    sl->setContentsMargins(0, 0, 0, 0);
+    sl->min = min;
+    sl->max = max;
+    sl->setValue((ossia::convert<double>(inlet.value()) - min) / (max - min));
 
-      QObject::connect(sl, &score::DoubleSlider::sliderMoved,
-                       context, [=,&inlet,&ctx] (int v) {
-        sl->moving = true;
-        ctx.dispatcher.submitCommand<SetControlValue>(inlet, min + (v / score::DoubleSlider::max) * (max - min));
-      });
-      QObject::connect(sl, &score::DoubleSlider::sliderReleased,
-                       context, [&ctx,sl] () {
-        ctx.dispatcher.commit();
-        sl->moving = false;
-      });
+    QObject::connect(
+        sl, &score::DoubleSlider::sliderMoved, context,
+        [=, &inlet, &ctx](int v) {
+          sl->moving = true;
+          ctx.dispatcher.submitCommand<SetControlValue>(
+              inlet, min + (v / score::DoubleSlider::max) * (max - min));
+        });
+    QObject::connect(
+        sl, &score::DoubleSlider::sliderReleased, context, [&ctx, sl]() {
+          ctx.dispatcher.commit();
+          sl->moving = false;
+        });
 
-      QObject::connect(&inlet, &Process::ControlInlet::valueChanged,
-                       sl, [=] (ossia::value val) {
-        if(!sl->moving)
-          sl->setValue((ossia::convert<double>(val) - min) / (max - min));
-      });
+    QObject::connect(
+        &inlet, &Process::ControlInlet::valueChanged, sl,
+        [=](ossia::value val) {
+          if (!sl->moving)
+            sl->setValue((ossia::convert<double>(val) - min) / (max - min));
+        });
 
-      return sl;
-    }
+    return sl;
+  }
 
-    template<typename T>
-    static QGraphicsItem* make_item(const T& slider, Process::ControlInlet& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
-    {
-      const auto min = slider.getMin();
-      const auto max = slider.getMax();
-      auto sl = new score::QGraphicsSlider{nullptr};
-      sl->min = min;
-      sl->max = max;
-      sl->setRect({0., 0., 150., 15.});
-      sl->setValue((ossia::convert<double>(inlet.value()) - min) / (max - min));
+  template <typename T>
+  static QGraphicsItem* make_item(
+      const T& slider,
+      Process::ControlInlet& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context)
+  {
+    const auto min = slider.getMin();
+    const auto max = slider.getMax();
+    auto sl = new score::QGraphicsSlider{nullptr};
+    sl->min = min;
+    sl->max = max;
+    sl->setRect({0., 0., 150., 15.});
+    sl->setValue((ossia::convert<double>(inlet.value()) - min) / (max - min));
 
-      QObject::connect(sl, &score::QGraphicsSlider::sliderMoved,
-                       context, [=,&inlet,&ctx] {
-        sl->moving = true;
-        ctx.dispatcher.submitCommand<SetControlValue>(inlet, min + sl->value() * (max - min));
-      });
-      QObject::connect(sl, &score::QGraphicsSlider::sliderReleased,
-                       context, [&ctx,sl] () {
-        ctx.dispatcher.commit();
-        sl->moving = false;
-      });
+    QObject::connect(
+        sl, &score::QGraphicsSlider::sliderMoved, context, [=, &inlet, &ctx] {
+          sl->moving = true;
+          ctx.dispatcher.submitCommand<SetControlValue>(
+              inlet, min + sl->value() * (max - min));
+        });
+    QObject::connect(
+        sl, &score::QGraphicsSlider::sliderReleased, context, [&ctx, sl]() {
+          ctx.dispatcher.commit();
+          sl->moving = false;
+        });
 
-      QObject::connect(&inlet, &Process::ControlInlet::valueChanged,
-                       sl, [=] (ossia::value val) {
-        if(!sl->moving)
-          sl->setValue((ossia::convert<double>(val) - min) / (max - min));
-      });
+    QObject::connect(
+        &inlet, &Process::ControlInlet::valueChanged, sl,
+        [=](ossia::value val) {
+          if (!sl->moving)
+            sl->setValue((ossia::convert<double>(val) - min) / (max - min));
+        });
 
-      return sl;
-    }
+    return sl;
+  }
 };
 
 struct LogFloatSlider final : ossia::safe_nodes::control_in
 {
-    static const constexpr bool must_validate = false;
-    using type = float;
-    const float min{};
-    const float max{};
-    const float init{};
+  static const constexpr bool must_validate = false;
+  using type = float;
+  const float min{};
+  const float max{};
+  const float init{};
 
-    template<std::size_t N>
-    constexpr LogFloatSlider(const char (&name)[N], float v1, float v2, float v3):
-      ossia::safe_nodes::control_in{name}, min{v1}, max{v2}, init{v3}
-    {
-    }
+  template <std::size_t N>
+  constexpr LogFloatSlider(const char (&name)[N], float v1, float v2, float v3)
+      : ossia::safe_nodes::control_in{name}, min{v1}, max{v2}, init{v3}
+  {
+  }
 
-    auto getMin() const { return min; }
-    auto getMax() const { return max; }
+  auto getMin() const
+  {
+    return min;
+  }
+  auto getMax() const
+  {
+    return max;
+  }
 
-    auto create_inlet(Id<Process::Port> id, QObject* parent) const
-    {
-      auto p = new Process::ControlInlet(id, parent);
-      p->type = Process::PortType::Message;
-      p->setValue(init);
-      p->setDomain(ossia::make_domain(min, max));
-      p->setCustomData(QString::fromUtf8(name.data(), name.size()));
-      return p;
-    }
+  auto create_inlet(Id<Process::Port> id, QObject* parent) const
+  {
+    auto p = new Process::ControlInlet(id, parent);
+    p->type = Process::PortType::Message;
+    p->setValue(init);
+    p->setDomain(ossia::make_domain(min, max));
+    p->setCustomData(QString::fromUtf8(name.data(), name.size()));
+    return p;
+  }
 
-    float fromValue(const ossia::value& v) const
-    {
-      return ossia::convert<float>(v);
-    }
-    ossia::value toValue(float v) const { return v; }
+  float fromValue(const ossia::value& v) const
+  {
+    return ossia::convert<float>(v);
+  }
+  ossia::value toValue(float v) const
+  {
+    return v;
+  }
 
-    static float from01(float min, float max, float val)
-    {
-      return std::exp2(min + val * (max - min));
-    }
-    static float to01(float min, float max, float val)
-    {
-      return (std::log2(val) - min) / (max - min);
-    }
-    template<typename T>
-    static auto make_widget(const T& slider, Process::ControlInlet& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
-    {
-      const auto min = std::log2(slider.getMin());
-      const auto max = std::log2(slider.getMax());
-      auto sl = new ValueLogDoubleSlider{parent};
-      sl->setOrientation(Qt::Horizontal);
-      sl->setContentsMargins(0, 0, 0, 0);
-      sl->min = min;
-      sl->max = max;
-      sl->setValue(to01(min, max, ossia::convert<double>(inlet.value())));
+  static float from01(float min, float max, float val)
+  {
+    return std::exp2(min + val * (max - min));
+  }
+  static float to01(float min, float max, float val)
+  {
+    return (std::log2(val) - min) / (max - min);
+  }
+  template <typename T>
+  static auto make_widget(
+      const T& slider,
+      Process::ControlInlet& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context)
+  {
+    const auto min = std::log2(slider.getMin());
+    const auto max = std::log2(slider.getMax());
+    auto sl = new ValueLogDoubleSlider{parent};
+    sl->setOrientation(Qt::Horizontal);
+    sl->setContentsMargins(0, 0, 0, 0);
+    sl->min = min;
+    sl->max = max;
+    sl->setValue(to01(min, max, ossia::convert<double>(inlet.value())));
 
-      QObject::connect(sl, &score::DoubleSlider::sliderMoved,
-                       context, [=,&inlet,&ctx] (int v) {
-        sl->moving = true;
-        ctx.dispatcher.submitCommand<SetControlValue>(inlet, from01(min, max, v / score::DoubleSlider::max));
-      });
-      QObject::connect(sl, &score::DoubleSlider::sliderReleased,
-                       context, [&ctx,sl] () {
-        ctx.dispatcher.commit();
-        sl->moving = false;
-      });
+    QObject::connect(
+        sl, &score::DoubleSlider::sliderMoved, context,
+        [=, &inlet, &ctx](int v) {
+          sl->moving = true;
+          ctx.dispatcher.submitCommand<SetControlValue>(
+              inlet, from01(min, max, v / score::DoubleSlider::max));
+        });
+    QObject::connect(
+        sl, &score::DoubleSlider::sliderReleased, context, [&ctx, sl]() {
+          ctx.dispatcher.commit();
+          sl->moving = false;
+        });
 
-      QObject::connect(&inlet, &Process::ControlInlet::valueChanged,
-                       sl, [=] (ossia::value val) {
-        if(!sl->moving)
-          sl->setValue(to01(min, max, ossia::convert<double>(val)));
-      });
+    QObject::connect(
+        &inlet, &Process::ControlInlet::valueChanged, sl,
+        [=](ossia::value val) {
+          if (!sl->moving)
+            sl->setValue(to01(min, max, ossia::convert<double>(val)));
+        });
 
-      return sl;
-    }
+    return sl;
+  }
 
-    template<typename T>
-    static QGraphicsItem* make_item(const T& slider, Process::ControlInlet& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
-    {
-      const auto min = std::log2(slider.getMin());
-      const auto max = std::log2(slider.getMax());
-      auto sl = new score::QGraphicsLogSlider{nullptr};
-      sl->min = min;
-      sl->max = max;
-      sl->setRect({0., 0., 150., 15.});
-      sl->setValue(to01(min, max, ossia::convert<double>(inlet.value())));
+  template <typename T>
+  static QGraphicsItem* make_item(
+      const T& slider,
+      Process::ControlInlet& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context)
+  {
+    const auto min = std::log2(slider.getMin());
+    const auto max = std::log2(slider.getMax());
+    auto sl = new score::QGraphicsLogSlider{nullptr};
+    sl->min = min;
+    sl->max = max;
+    sl->setRect({0., 0., 150., 15.});
+    sl->setValue(to01(min, max, ossia::convert<double>(inlet.value())));
 
-      QObject::connect(sl, &score::QGraphicsLogSlider::sliderMoved,
-                       context, [=,&inlet,&ctx] {
-        sl->moving = true;
-        ctx.dispatcher.submitCommand<SetControlValue>(inlet, from01(min, max, sl->value()));
-      });
-      QObject::connect(sl, &score::QGraphicsLogSlider::sliderReleased,
-                       context, [&ctx,sl] () {
-        ctx.dispatcher.commit();
-        sl->moving = false;
-      });
+    QObject::connect(
+        sl, &score::QGraphicsLogSlider::sliderMoved, context,
+        [=, &inlet, &ctx] {
+          sl->moving = true;
+          ctx.dispatcher.submitCommand<SetControlValue>(
+              inlet, from01(min, max, sl->value()));
+        });
+    QObject::connect(
+        sl, &score::QGraphicsLogSlider::sliderReleased, context, [&ctx, sl]() {
+          ctx.dispatcher.commit();
+          sl->moving = false;
+        });
 
-      QObject::connect(&inlet, &Process::ControlInlet::valueChanged,
-                       sl, [=] (ossia::value val) {
-        if(!sl->moving)
-          sl->setValue(to01(min, max, ossia::convert<double>(val)));
-      });
+    QObject::connect(
+        &inlet, &Process::ControlInlet::valueChanged, sl,
+        [=](ossia::value val) {
+          if (!sl->moving)
+            sl->setValue(to01(min, max, ossia::convert<double>(val)));
+        });
 
-      return sl;
-    }
+    return sl;
+  }
 };
 
 struct IntSlider final : ossia::safe_nodes::control_in
 {
-    using type = int;
-    const int min{};
-    const int max{};
-    const int init{};
+  using type = int;
+  const int min{};
+  const int max{};
+  const int init{};
 
-    static const constexpr bool must_validate = false;
-    template<std::size_t N>
-    constexpr IntSlider(const char (&name)[N], int v1, int v2, int v3):
-      ossia::safe_nodes::control_in{name}, min{v1}, max{v2}, init{v3}
-    {
-    }
+  static const constexpr bool must_validate = false;
+  template <std::size_t N>
+  constexpr IntSlider(const char (&name)[N], int v1, int v2, int v3)
+      : ossia::safe_nodes::control_in{name}, min{v1}, max{v2}, init{v3}
+  {
+  }
 
-    int fromValue(const ossia::value& v) const
-    {
-      return ossia::convert<int>(v);
-    }
-    ossia::value toValue(int v) const { return v; }
+  int fromValue(const ossia::value& v) const
+  {
+    return ossia::convert<int>(v);
+  }
+  ossia::value toValue(int v) const
+  {
+    return v;
+  }
 
-    auto getMin() const { return min; }
-    auto getMax() const { return max; }
+  auto getMin() const
+  {
+    return min;
+  }
+  auto getMax() const
+  {
+    return max;
+  }
 
-    auto create_inlet(Id<Process::Port> id, QObject* parent) const
-    {
-      auto p = new Process::ControlInlet(id, parent);
-      p->type = Process::PortType::Message;
-      p->setValue(init);
-      p->setDomain(ossia::make_domain(min, max));
-      p->setCustomData(QString::fromUtf8(name.data(), name.size()));
-      return p;
-    }
+  auto create_inlet(Id<Process::Port> id, QObject* parent) const
+  {
+    auto p = new Process::ControlInlet(id, parent);
+    p->type = Process::PortType::Message;
+    p->setValue(init);
+    p->setDomain(ossia::make_domain(min, max));
+    p->setCustomData(QString::fromUtf8(name.data(), name.size()));
+    return p;
+  }
 
-    template<typename T>
-    static auto make_widget(const T& slider, Process::ControlInlet& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
-    {
-      const auto min = slider.getMin();
-      const auto max = slider.getMax();
-      auto sl = new ValueSlider{parent};
-      sl->setOrientation(Qt::Horizontal);
-      sl->setRange(min, max);
-      sl->setValue(ossia::convert<int>(inlet.value()));
-      sl->setContentsMargins(0, 0, 0, 0);
+  template <typename T>
+  static auto make_widget(
+      const T& slider,
+      Process::ControlInlet& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context)
+  {
+    const auto min = slider.getMin();
+    const auto max = slider.getMax();
+    auto sl = new ValueSlider{parent};
+    sl->setOrientation(Qt::Horizontal);
+    sl->setRange(min, max);
+    sl->setValue(ossia::convert<int>(inlet.value()));
+    sl->setContentsMargins(0, 0, 0, 0);
 
-      QObject::connect(sl, &QSlider::sliderMoved,
-                       context, [sl,&inlet,&ctx] (int p) {
-        sl->moving = true;
-        ctx.dispatcher.submitCommand<SetControlValue>(inlet, p);
-      });
-      QObject::connect(sl, &QSlider::sliderReleased,
-                       context, [&ctx,sl] () {
-        ctx.dispatcher.commit();
-        sl->moving = false;
-      });
+    QObject::connect(
+        sl, &QSlider::sliderMoved, context, [sl, &inlet, &ctx](int p) {
+          sl->moving = true;
+          ctx.dispatcher.submitCommand<SetControlValue>(inlet, p);
+        });
+    QObject::connect(sl, &QSlider::sliderReleased, context, [&ctx, sl]() {
+      ctx.dispatcher.commit();
+      sl->moving = false;
+    });
 
-      QObject::connect(&inlet, &Process::ControlInlet::valueChanged,
-                       sl, [sl] (ossia::value val) {
-        if(!sl->moving)
-          sl->setValue(ossia::convert<int>(val));
-      });
+    QObject::connect(
+        &inlet, &Process::ControlInlet::valueChanged, sl,
+        [sl](ossia::value val) {
+          if (!sl->moving)
+            sl->setValue(ossia::convert<int>(val));
+        });
 
-      return sl;
-    }
+    return sl;
+  }
 
-    template<typename T>
-    static QGraphicsItem* make_item(const T& slider, Process::ControlInlet& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
-    {
-      const auto min = slider.getMin();
-      const auto max = slider.getMax();
-      auto sl = new score::QGraphicsIntSlider{nullptr};
-      sl->setRange(min, max);
-      sl->setRect({0., 0., 150., 15.});
-      sl->setValue(ossia::convert<int>(inlet.value()));
+  template <typename T>
+  static QGraphicsItem* make_item(
+      const T& slider,
+      Process::ControlInlet& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context)
+  {
+    const auto min = slider.getMin();
+    const auto max = slider.getMax();
+    auto sl = new score::QGraphicsIntSlider{nullptr};
+    sl->setRange(min, max);
+    sl->setRect({0., 0., 150., 15.});
+    sl->setValue(ossia::convert<int>(inlet.value()));
 
-      QObject::connect(sl, &score::QGraphicsIntSlider::sliderMoved,
-                       context, [=,&inlet,&ctx] {
-        sl->moving = true;
-        ctx.dispatcher.submitCommand<SetControlValue>(inlet, sl->value());
-      });
-      QObject::connect(sl, &score::QGraphicsIntSlider::sliderReleased,
-                       context, [&ctx,sl] () {
-        ctx.dispatcher.commit();
-        sl->moving = false;
-      });
+    QObject::connect(
+        sl, &score::QGraphicsIntSlider::sliderMoved, context,
+        [=, &inlet, &ctx] {
+          sl->moving = true;
+          ctx.dispatcher.submitCommand<SetControlValue>(inlet, sl->value());
+        });
+    QObject::connect(
+        sl, &score::QGraphicsIntSlider::sliderReleased, context, [&ctx, sl]() {
+          ctx.dispatcher.commit();
+          sl->moving = false;
+        });
 
-      QObject::connect(&inlet, &Process::ControlInlet::valueChanged,
-                       sl, [=] (ossia::value val) {
-        if(!sl->moving)
-          sl->setValue(ossia::convert<int>(val));
-      });
+    QObject::connect(
+        &inlet, &Process::ControlInlet::valueChanged, sl,
+        [=](ossia::value val) {
+          if (!sl->moving)
+            sl->setValue(ossia::convert<int>(val));
+        });
 
-      return sl;
-    }
-
+    return sl;
+  }
 };
 struct IntSpinBox final : ossia::safe_nodes::control_in
 {
-    static const constexpr bool must_validate = false;
-    using type = int;
-    const int min{};
-    const int max{};
-    const int init{};
+  static const constexpr bool must_validate = false;
+  using type = int;
+  const int min{};
+  const int max{};
+  const int init{};
 
-    int fromValue(const ossia::value& v) const
-    {
-      return ossia::convert<int>(v);
-    }
-    ossia::value toValue(int v) const { return v; }
+  int fromValue(const ossia::value& v) const
+  {
+    return ossia::convert<int>(v);
+  }
+  ossia::value toValue(int v) const
+  {
+    return v;
+  }
 
-    template<std::size_t N>
-    constexpr IntSpinBox(const char (&name)[N], int v1, int v2, int v3):
-      ossia::safe_nodes::control_in{name}, min{v1}, max{v2}, init{v3}
-    {
-    }
+  template <std::size_t N>
+  constexpr IntSpinBox(const char (&name)[N], int v1, int v2, int v3)
+      : ossia::safe_nodes::control_in{name}, min{v1}, max{v2}, init{v3}
+  {
+  }
 
-    auto getMin() const { return min; }
-    auto getMax() const { return max; }
+  auto getMin() const
+  {
+    return min;
+  }
+  auto getMax() const
+  {
+    return max;
+  }
 
-    auto create_inlet(Id<Process::Port> id, QObject* parent) const
-    {
-      auto p = new Process::ControlInlet(id, parent);
-      p->type = Process::PortType::Message;
-      p->setValue(init);
-      p->setDomain(ossia::make_domain(min, max));
-      p->setCustomData(QString::fromUtf8(name.data(), name.size()));
-      return p;
-    }
+  auto create_inlet(Id<Process::Port> id, QObject* parent) const
+  {
+    auto p = new Process::ControlInlet(id, parent);
+    p->type = Process::PortType::Message;
+    p->setValue(init);
+    p->setDomain(ossia::make_domain(min, max));
+    p->setCustomData(QString::fromUtf8(name.data(), name.size()));
+    return p;
+  }
 
-    template<typename T>
-    static auto make_widget(const T& slider, Process::ControlInlet& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
-    {
-      const auto min = slider.getMin();
-      const auto max = slider.getMax();
-      auto sl = new QSpinBox{parent};
-      sl->setRange(min, max);
-      sl->setValue(ossia::convert<int>(inlet.value()));
-      sl->setContentsMargins(0, 0, 0, 0);
+  template <typename T>
+  static auto make_widget(
+      const T& slider,
+      Process::ControlInlet& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context)
+  {
+    const auto min = slider.getMin();
+    const auto max = slider.getMax();
+    auto sl = new QSpinBox{parent};
+    sl->setRange(min, max);
+    sl->setValue(ossia::convert<int>(inlet.value()));
+    sl->setContentsMargins(0, 0, 0, 0);
 
-      QObject::connect(sl, SignalUtils::QSpinBox_valueChanged_int(),
-                       context, [&inlet,&ctx] (int val) {
-        CommandDispatcher<>{ctx.commandStack}.submitCommand<SetControlValue>(inlet, val);
-      });
+    QObject::connect(
+        sl, SignalUtils::QSpinBox_valueChanged_int(), context,
+        [&inlet, &ctx](int val) {
+          CommandDispatcher<>{ctx.commandStack}.submitCommand<SetControlValue>(
+              inlet, val);
+        });
 
-      QObject::connect(&inlet, &Process::ControlInlet::valueChanged,
-                       sl, [sl] (ossia::value val) {
-        sl->setValue(ossia::convert<int>(val));
-      });
+    QObject::connect(
+        &inlet, &Process::ControlInlet::valueChanged, sl,
+        [sl](ossia::value val) { sl->setValue(ossia::convert<int>(val)); });
 
-      return sl;
-    }
+    return sl;
+  }
 
-    template<typename T>
-    static QGraphicsItem* make_item(const T& slider, Process::ControlInlet& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
-    {
-      const auto min = slider.getMin();
-      const auto max = slider.getMax();
-      auto sl = new score::QGraphicsIntSlider{nullptr};
-      sl->setRange(min, max);
-      sl->setRect({0., 0., 150., 15.});
-      sl->setValue(ossia::convert<int>(inlet.value()));
+  template <typename T>
+  static QGraphicsItem* make_item(
+      const T& slider,
+      Process::ControlInlet& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context)
+  {
+    const auto min = slider.getMin();
+    const auto max = slider.getMax();
+    auto sl = new score::QGraphicsIntSlider{nullptr};
+    sl->setRange(min, max);
+    sl->setRect({0., 0., 150., 15.});
+    sl->setValue(ossia::convert<int>(inlet.value()));
 
-      QObject::connect(sl, &score::QGraphicsIntSlider::sliderMoved,
-                       context, [=,&inlet,&ctx] {
-        sl->moving = true;
-        ctx.dispatcher.submitCommand<SetControlValue>(inlet, sl->value());
-      });
-      QObject::connect(sl, &score::QGraphicsIntSlider::sliderReleased,
-                       context, [&ctx,sl] () {
-        ctx.dispatcher.commit();
-        sl->moving = false;
-      });
+    QObject::connect(
+        sl, &score::QGraphicsIntSlider::sliderMoved, context,
+        [=, &inlet, &ctx] {
+          sl->moving = true;
+          ctx.dispatcher.submitCommand<SetControlValue>(inlet, sl->value());
+        });
+    QObject::connect(
+        sl, &score::QGraphicsIntSlider::sliderReleased, context, [&ctx, sl]() {
+          ctx.dispatcher.commit();
+          sl->moving = false;
+        });
 
-      QObject::connect(&inlet, &Process::ControlInlet::valueChanged,
-                       sl, [=] (ossia::value val) {
-        if(!sl->moving)
-          sl->setValue(ossia::convert<int>(val));
-      });
+    QObject::connect(
+        &inlet, &Process::ControlInlet::valueChanged, sl,
+        [=](ossia::value val) {
+          if (!sl->moving)
+            sl->setValue(ossia::convert<int>(val));
+        });
 
-      return sl;
-    }
-
+    return sl;
+  }
 };
 struct Toggle final : ossia::safe_nodes::control_in
 {
-    static const constexpr bool must_validate = false;
-    template<std::size_t N>
-    constexpr Toggle(const char (&name)[N], bool v1):
-      ossia::safe_nodes::control_in{name}, init{v1}
-    {
-    }
+  static const constexpr bool must_validate = false;
+  template <std::size_t N>
+  constexpr Toggle(const char (&name)[N], bool v1)
+      : ossia::safe_nodes::control_in{name}, init{v1}
+  {
+  }
 
-    using type = bool;
-    const bool init{};
-    auto create_inlet(Id<Process::Port> id, QObject* parent) const
-    {
-      auto p = new Process::ControlInlet(id, parent);
-      p->type = Process::PortType::Message;
-      p->setValue(init);
-      p->setCustomData(QString::fromUtf8(name.data(), name.size()));
-      return p;
-    }
+  using type = bool;
+  const bool init{};
+  auto create_inlet(Id<Process::Port> id, QObject* parent) const
+  {
+    auto p = new Process::ControlInlet(id, parent);
+    p->type = Process::PortType::Message;
+    p->setValue(init);
+    p->setCustomData(QString::fromUtf8(name.data(), name.size()));
+    return p;
+  }
 
-    bool fromValue(const ossia::value& v) const
-    {
-      return ossia::convert<bool>(v);
-    }
-    ossia::value toValue(bool v) const { return v; }
+  bool fromValue(const ossia::value& v) const
+  {
+    return ossia::convert<bool>(v);
+  }
+  ossia::value toValue(bool v) const
+  {
+    return v;
+  }
 
-    template<typename T>
-    static auto make_widget(const T& slider, Process::ControlInlet& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
-    {
-      auto sl = new QCheckBox{parent};
-      sl->setChecked(ossia::convert<bool>(inlet.value()));
-      sl->setContentsMargins(0, 0, 0, 0);
+  template <typename T>
+  static auto make_widget(
+      const T& slider,
+      Process::ControlInlet& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context)
+  {
+    auto sl = new QCheckBox{parent};
+    sl->setChecked(ossia::convert<bool>(inlet.value()));
+    sl->setContentsMargins(0, 0, 0, 0);
 
-      QObject::connect(sl, &QCheckBox::toggled,
-                       context, [&inlet,&ctx] (bool val) {
-        CommandDispatcher<>{ctx.commandStack}.submitCommand<SetControlValue>(inlet, val);
-      });
+    QObject::connect(
+        sl, &QCheckBox::toggled, context, [&inlet, &ctx](bool val) {
+          CommandDispatcher<>{ctx.commandStack}.submitCommand<SetControlValue>(
+              inlet, val);
+        });
 
-      QObject::connect(&inlet, &Process::ControlInlet::valueChanged,
-                       sl, [sl] (ossia::value val) {
-        sl->setChecked(ossia::convert<bool>(val));
-      });
+    QObject::connect(
+        &inlet, &Process::ControlInlet::valueChanged, sl,
+        [sl](ossia::value val) { sl->setChecked(ossia::convert<bool>(val)); });
 
-      return sl;
-    }
+    return sl;
+  }
 
-    template<typename T>
-    static QGraphicsItem* make_item(const T& slider, Process::ControlInlet& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
-    {
-      return wrapWidget(make_widget(slider, inlet, ctx, parent, context));
-    }
+  template <typename T>
+  static QGraphicsItem* make_item(
+      const T& slider,
+      Process::ControlInlet& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context)
+  {
+    return wrapWidget(make_widget(slider, inlet, ctx, parent, context));
+  }
 };
-
 
 struct ChooserToggle final : ossia::safe_nodes::control_in
 {
-    static const constexpr bool must_validate = false;
-    template<std::size_t N>
-    constexpr ChooserToggle(const char (&name)[N], std::array<const char*, 2> alt, bool v1):
-      ossia::safe_nodes::control_in{name}, alternatives{alt}, init{v1}
-    {
-    }
-    using type = bool;
-    std::array<const char*, 2> alternatives;
-    const bool init{};
+  static const constexpr bool must_validate = false;
+  template <std::size_t N>
+  constexpr ChooserToggle(
+      const char (&name)[N], std::array<const char*, 2> alt, bool v1)
+      : ossia::safe_nodes::control_in{name}, alternatives{alt}, init{v1}
+  {
+  }
+  using type = bool;
+  std::array<const char*, 2> alternatives;
+  const bool init{};
 
-    bool fromValue(const ossia::value& v) const
-    {
-      return ossia::convert<bool>(v);
-    }
-    ossia::value toValue(bool v) const { return v; }
+  bool fromValue(const ossia::value& v) const
+  {
+    return ossia::convert<bool>(v);
+  }
+  ossia::value toValue(bool v) const
+  {
+    return v;
+  }
 
-    auto create_inlet(Id<Process::Port> id, QObject* parent) const
-    {
-      auto p = new Process::ControlInlet(id, parent);
-      p->type = Process::PortType::Message;
-      p->setValue(init);
-      p->setCustomData(QString::fromUtf8(name.data(), name.size()));
-      return p;
-    }
+  auto create_inlet(Id<Process::Port> id, QObject* parent) const
+  {
+    auto p = new Process::ControlInlet(id, parent);
+    p->type = Process::PortType::Message;
+    p->setValue(init);
+    p->setCustomData(QString::fromUtf8(name.data(), name.size()));
+    return p;
+  }
 
-    template<typename T>
-    static auto make_widget(const T& slider, Process::ControlInlet& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
-    {
-      auto sl = new ToggleButton{slider.alternatives, parent};
-      sl->setCheckable(true);
-      bool b = ossia::convert<bool>(inlet.value());
-      if(b && !sl->isChecked())
-        sl->toggle();
-      else if(!b && sl->isChecked())
-        sl->toggle();
-      sl->setContentsMargins(0, 0, 0, 0);
+  template <typename T>
+  static auto make_widget(
+      const T& slider,
+      Process::ControlInlet& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context)
+  {
+    auto sl = new ToggleButton{slider.alternatives, parent};
+    sl->setCheckable(true);
+    bool b = ossia::convert<bool>(inlet.value());
+    if (b && !sl->isChecked())
+      sl->toggle();
+    else if (!b && sl->isChecked())
+      sl->toggle();
+    sl->setContentsMargins(0, 0, 0, 0);
 
-      QObject::connect(sl, &QCheckBox::toggled,
-                       context, [&inlet,&ctx] (bool val) {
-        CommandDispatcher<>{ctx.commandStack}.submitCommand<SetControlValue>(inlet, val);
-      });
+    QObject::connect(
+        sl, &QCheckBox::toggled, context, [&inlet, &ctx](bool val) {
+          CommandDispatcher<>{ctx.commandStack}.submitCommand<SetControlValue>(
+              inlet, val);
+        });
 
-      QObject::connect(&inlet, &Process::ControlInlet::valueChanged,
-                       sl, [sl] (ossia::value val) {
-        bool b = ossia::convert<bool>(val);
-        if(b && !sl->isChecked())
-          sl->toggle();
-        else if(!b && sl->isChecked())
-          sl->toggle();
-      });
+    QObject::connect(
+        &inlet, &Process::ControlInlet::valueChanged, sl,
+        [sl](ossia::value val) {
+          bool b = ossia::convert<bool>(val);
+          if (b && !sl->isChecked())
+            sl->toggle();
+          else if (!b && sl->isChecked())
+            sl->toggle();
+        });
 
-      return sl;
-    }
+    return sl;
+  }
 
-    template<typename T>
-    static QGraphicsItem* make_item(const T& slider, Process::ControlInlet& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
-    {
-      return wrapWidget(make_widget(slider, inlet, ctx, parent, context));
-    }
+  template <typename T>
+  static QGraphicsItem* make_item(
+      const T& slider,
+      Process::ControlInlet& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context)
+  {
+    return wrapWidget(make_widget(slider, inlet, ctx, parent, context));
+  }
 };
 struct LineEdit final : ossia::safe_nodes::control_in
 {
-    static const constexpr bool must_validate = false;
-    template<std::size_t N, std::size_t M>
-    constexpr LineEdit(const char (&name)[N], const char (&init)[M]):
-      ossia::safe_nodes::control_in{name}, init{init, M-1}
-    {
-    }
+  static const constexpr bool must_validate = false;
+  template <std::size_t N, std::size_t M>
+  constexpr LineEdit(const char (&name)[N], const char (&init)[M])
+      : ossia::safe_nodes::control_in{name}, init{init, M - 1}
+  {
+  }
 
-    std::string fromValue(const ossia::value& v) const
-    {
-      return ossia::convert<std::string>(v);
-    }
-    ossia::value toValue(std::string v) const { return ossia::value{std::move(v)}; }
+  std::string fromValue(const ossia::value& v) const
+  {
+    return ossia::convert<std::string>(v);
+  }
+  ossia::value toValue(std::string v) const
+  {
+    return ossia::value{std::move(v)};
+  }
 
-    using type = std::string;
-    const QLatin1Literal init{};
-    auto create_inlet(Id<Process::Port> id, QObject* parent) const
-    {
-      auto p = new Process::ControlInlet(id, parent);
-      p->type = Process::PortType::Message;
-      p->setValue(std::string(init.latin1(), init.size()));
-      p->setCustomData(QString::fromUtf8(name.data(), name.size()));
-      return p;
-    }
+  using type = std::string;
+  const QLatin1Literal init{};
+  auto create_inlet(Id<Process::Port> id, QObject* parent) const
+  {
+    auto p = new Process::ControlInlet(id, parent);
+    p->type = Process::PortType::Message;
+    p->setValue(std::string(init.latin1(), init.size()));
+    p->setCustomData(QString::fromUtf8(name.data(), name.size()));
+    return p;
+  }
 
-    template<typename T>
-    static auto make_widget(const T& slider, Process::ControlInlet& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
-    {
-      auto sl = new QLineEdit{parent};
-      sl->setText(QString::fromStdString(ossia::convert<std::string>(inlet.value())));
-      sl->setContentsMargins(0, 0, 0, 0);
+  template <typename T>
+  static auto make_widget(
+      const T& slider,
+      Process::ControlInlet& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context)
+  {
+    auto sl = new QLineEdit{parent};
+    sl->setText(
+        QString::fromStdString(ossia::convert<std::string>(inlet.value())));
+    sl->setContentsMargins(0, 0, 0, 0);
 
-      QObject::connect(sl, &QLineEdit::editingFinished,
-                       context, [sl,&inlet,&ctx] () {
-        CommandDispatcher<>{ctx.commandStack}.submitCommand<SetControlValue>(inlet, sl->text().toStdString());
-      });
+    QObject::connect(
+        sl, &QLineEdit::editingFinished, context, [sl, &inlet, &ctx]() {
+          CommandDispatcher<>{ctx.commandStack}.submitCommand<SetControlValue>(
+              inlet, sl->text().toStdString());
+        });
 
-      QObject::connect(&inlet, &Process::ControlInlet::valueChanged,
-                       sl, [sl] (ossia::value val) {
-        sl->setText(QString::fromStdString(ossia::convert<std::string>(val)));
-      });
+    QObject::connect(
+        &inlet, &Process::ControlInlet::valueChanged, sl,
+        [sl](ossia::value val) {
+          sl->setText(
+              QString::fromStdString(ossia::convert<std::string>(val)));
+        });
 
-      return sl;
-    }
-    template<typename T>
-    static QGraphicsItem* make_item(const T& slider, Process::ControlInlet& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
-    {
-      return wrapWidget(make_widget(slider, inlet, ctx, parent, context));
-    }
-
+    return sl;
+  }
+  template <typename T>
+  static QGraphicsItem* make_item(
+      const T& slider,
+      Process::ControlInlet& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context)
+  {
+    return wrapWidget(make_widget(slider, inlet, ctx, parent, context));
+  }
 };
 struct RGBAEdit final : ossia::safe_nodes::control_in
 {
-    static const constexpr bool must_validate = false;
-    using type = std::array<float, 4>;
-    std::array<float, 4> init{};
+  static const constexpr bool must_validate = false;
+  using type = std::array<float, 4>;
+  std::array<float, 4> init{};
 };
 struct XYZEdit final : ossia::safe_nodes::control_in
 {
-    static const constexpr bool must_validate = false;
-    using type = std::array<float, 3>;
-    std::array<float, 3> init{};
+  static const constexpr bool must_validate = false;
+  using type = std::array<float, 3>;
+  std::array<float, 3> init{};
 };
-template<typename T, std::size_t N>
+template <typename T, std::size_t N>
 struct ComboBox final : ossia::safe_nodes::control_in
 {
-    static const constexpr bool must_validate = false;
-    using type = T;
-    const std::size_t init{};
-    const std::array<std::pair<const char*, T>, N> values;
+  static const constexpr bool must_validate = false;
+  using type = T;
+  const std::size_t init{};
+  const std::array<std::pair<const char*, T>, N> values;
 
-    template<std::size_t M, typename Arr>
-    constexpr ComboBox(const char (&name)[M], std::size_t in, Arr arr):
-      ossia::safe_nodes::control_in{name}, init{in}, values{arr}
+  template <std::size_t M, typename Arr>
+  constexpr ComboBox(const char (&name)[M], std::size_t in, Arr arr)
+      : ossia::safe_nodes::control_in{name}, init{in}, values{arr}
+  {
+  }
+
+  const auto& getValues() const
+  {
+    return values;
+  }
+
+  auto create_inlet(Id<Process::Port> id, QObject* parent) const
+  {
+    auto p = new Process::ControlInlet(id, parent);
+    p->type = Process::PortType::Message;
+    p->setValue(values[init].second);
+    p->setCustomData(QString::fromUtf8(name.data(), name.size()));
+    return p;
+  }
+
+  T fromValue(const ossia::value& v) const
+  {
+    return ossia::convert<T>(v);
+  }
+  ossia::value toValue(T v) const
+  {
+    return ossia::value{std::move(v)};
+  }
+
+  template <typename U>
+  static auto make_widget(
+      const U& slider,
+      Process::ControlInlet& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context)
+  {
+    const auto& values = slider.getValues();
+    auto sl = new QComboBox{parent};
+    for (auto& e : values)
     {
+      sl->addItem(e.first);
     }
+    sl->setContentsMargins(0, 0, 0, 0);
 
-    const auto& getValues() const { return values; }
-
-    auto create_inlet(Id<Process::Port> id, QObject* parent) const
-    {
-      auto p = new Process::ControlInlet(id, parent);
-      p->type = Process::PortType::Message;
-      p->setValue(values[init].second);
-      p->setCustomData(QString::fromUtf8(name.data(), name.size()));
-      return p;
-    }
-
-
-    T fromValue(const ossia::value& v) const
-    {
-      return ossia::convert<T>(v);
-    }
-    ossia::value toValue(T v) const { return ossia::value{std::move(v)}; }
-
-    template<typename U>
-    static auto make_widget(const U& slider, Process::ControlInlet& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
-    {
-      const auto& values = slider.getValues();
-      auto sl = new QComboBox{parent};
-      for(auto& e : values)
+    auto set_index = [values, sl](const ossia::value& val) {
+      auto v = ossia::convert<T>(val);
+      auto it = ossia::find_if(
+          values, [&](const auto& pair) { return pair.second == v; });
+      if (it != values.end())
       {
-        sl->addItem(e.first);
+        sl->setCurrentIndex(std::distance(values.begin(), it));
       }
-      sl->setContentsMargins(0, 0, 0, 0);
+    };
+    set_index(inlet.value());
 
-      auto set_index = [values,sl] (const ossia::value& val)
+    QObject::connect(
+        sl, SignalUtils::QComboBox_currentIndexChanged_int(), context,
+        [values, &inlet, &ctx](int idx) {
+          CommandDispatcher<>{ctx.commandStack}.submitCommand<SetControlValue>(
+              inlet, values[idx].second);
+        });
+
+    QObject::connect(
+        &inlet, &Process::ControlInlet::valueChanged, sl,
+        [=](const ossia::value& val) { set_index(val); });
+
+    return sl;
+  }
+
+  template <typename U>
+  static QGraphicsItem* make_item(
+      const U& slider,
+      Process::ControlInlet& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context)
+  {
+    const auto& values = slider.getValues();
+    std::array<const char*, N> arr;
+    for (std::size_t i = 0; i < N; i++)
+      arr[i] = values[i].first;
+
+    auto sl = new score::QGraphicsComboSlider{arr, nullptr};
+    sl->setRect({0., 0., 150., 15.});
+
+    auto set_index = [values, sl](const ossia::value& val) {
+      auto v = ossia::convert<T>(val);
+      auto it = ossia::find_if(
+          values, [&](const auto& pair) { return pair.second == v; });
+      if (it != values.end())
       {
-        auto v = ossia::convert<T>(val);
-        auto it = ossia::find_if(values, [&] (const auto& pair) { return pair.second == v; });
-        if(it != values.end())
-        {
-          sl->setCurrentIndex(std::distance(values.begin(), it));
-        }
-      };
-      set_index(inlet.value());
+        sl->setValue(std::distance(values.begin(), it));
+      }
+    };
+    set_index(inlet.value());
 
-      QObject::connect(sl, SignalUtils::QComboBox_currentIndexChanged_int(),
-                       context, [values,&inlet,&ctx] (int idx) {
-        CommandDispatcher<>{ctx.commandStack}.submitCommand<SetControlValue>(inlet, values[idx].second);
-      });
+    QObject::connect(
+        sl, &score::QGraphicsComboSlider::sliderMoved, context,
+        [values, sl, &inlet, &ctx] {
+          sl->moving = true;
+          ctx.dispatcher.submitCommand<SetControlValue>(
+              inlet, values[sl->value()].second);
+        });
+    QObject::connect(
+        sl, &score::QGraphicsComboSlider::sliderReleased, context, [sl, &ctx] {
+          ctx.dispatcher.commit();
+          sl->moving = false;
+        });
 
-      QObject::connect(&inlet, &Process::ControlInlet::valueChanged,
-                       sl, [=] (const ossia::value& val) {
-        set_index(val);
-      });
+    QObject::connect(
+        &inlet, &Process::ControlInlet::valueChanged, sl,
+        [=](const ossia::value& val) {
+          if (sl->moving)
+            return;
 
-      return sl;
-    }
+          set_index(val);
+        });
 
-    template<typename U>
-    static QGraphicsItem* make_item(const U& slider, Process::ControlInlet& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
-    {
-      const auto& values = slider.getValues();
-      std::array<const char*, N> arr;
-      for(std::size_t i = 0; i < N; i++)
-        arr[i] = values[i].first;
-
-      auto sl = new score::QGraphicsComboSlider{arr, nullptr};
-      sl->setRect({0., 0., 150., 15.});
-
-      auto set_index = [values,sl] (const ossia::value& val)
-      {
-        auto v = ossia::convert<T>(val);
-        auto it = ossia::find_if(values, [&] (const auto& pair) { return pair.second == v; });
-        if(it != values.end())
-        {
-          sl->setValue(std::distance(values.begin(), it));
-        }
-      };
-      set_index(inlet.value());
-
-      QObject::connect(sl, &score::QGraphicsComboSlider::sliderMoved,
-                       context, [values,sl,&inlet,&ctx] {
-        sl->moving = true;
-        ctx.dispatcher.submitCommand<SetControlValue>(inlet, values[sl->value()].second);
-      });
-      QObject::connect(sl, &score::QGraphicsComboSlider::sliderReleased,
-                       context, [sl,&ctx] {
-        ctx.dispatcher.commit();
-        sl->moving = false;
-      });
-
-      QObject::connect(&inlet, &Process::ControlInlet::valueChanged,
-                       sl, [=] (const ossia::value& val) {
-        if(sl->moving)
-          return;
-
-        set_index(val);
-      });
-
-      return sl;
-    }
-
+    return sl;
+  }
 };
 
-template<typename ArrT>
+template <typename ArrT>
 struct EnumBase : ossia::safe_nodes::control_in
 {
-    using type = std::string;
-    const std::size_t init{};
-    const ArrT values;
+  using type = std::string;
+  const std::size_t init{};
+  const ArrT values;
 
-    const auto& getValues() const { return values; }
+  const auto& getValues() const
+  {
+    return values;
+  }
 
-    template<std::size_t N1>
-    constexpr EnumBase(const char (&name)[N1], std::size_t i, const ArrT& v)
-      : ossia::safe_nodes::control_in{name}
-      , init{i}
-      , values{v}
+  template <std::size_t N1>
+  constexpr EnumBase(const char (&name)[N1], std::size_t i, const ArrT& v)
+      : ossia::safe_nodes::control_in{name}, init{i}, values{v}
+  {
+  }
+
+  static const auto& toStd(const char* const& s)
+  {
+    return s;
+  }
+  static const auto& toStd(const std::string& s)
+  {
+    return s;
+  }
+  static auto toStd(const QString& s)
+  {
+    return s.toStdString();
+  }
+
+  static const auto& convert(const std::string& str, const char*)
+  {
+    return str;
+  }
+  static auto convert(const std::string& str, const QString&)
+  {
+    return QString::fromStdString(str);
+  }
+
+  ossia::value toValue(std::string v) const
+  {
+    return ossia::value{std::move(v)};
+  }
+
+  auto create_inlet(Id<Process::Port> id, QObject* parent) const
+  {
+    auto p = new Process::ControlInlet(id, parent);
+    p->type = Process::PortType::Message;
+    p->setValue(std::string(values[init]));
+    p->setCustomData(QString::fromUtf8(name.data(), name.size()));
+    return p;
+  }
+
+  template <typename T>
+  static auto make_widget(
+      const T& slider,
+      Process::ControlInlet& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context)
+  {
+    const auto& values = slider.getValues();
+    using val_t = std::remove_reference_t<decltype(values[0])>;
+    auto sl = new QComboBox{parent};
+    for (const auto& e : values)
     {
+      sl->addItem(e);
     }
 
-    static const auto& toStd(const char* const& s) { return s; }
-    static const auto& toStd(const std::string& s) { return s; }
-    static auto toStd(const QString& s) { return s.toStdString(); }
-
-    static const auto& convert(const std::string& str, const char*)
-    { return str; }
-    static auto convert(const std::string& str, const QString&)
-    { return QString::fromStdString(str); }
-
-    ossia::value toValue(std::string v) const { return ossia::value{std::move(v)}; }
-
-    auto create_inlet(Id<Process::Port> id, QObject* parent) const
-    {
-      auto p = new Process::ControlInlet(id, parent);
-      p->type = Process::PortType::Message;
-      p->setValue(std::string(values[init]));
-      p->setCustomData(QString::fromUtf8(name.data(), name.size()));
-      return p;
-    }
-
-    template<typename T>
-    static auto make_widget(const T& slider, Process::ControlInlet& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
-    {
-      const auto& values = slider.getValues();
-      using val_t = std::remove_reference_t<decltype(values[0])>;
-      auto sl = new QComboBox{parent};
-      for(const auto& e : values)
+    auto set_index = [values, sl](const ossia::value& val) {
+      auto v = ossia::convert<std::string>(val);
+      auto it = ossia::find(values, convert(v, val_t{}));
+      if (it != values.end())
       {
-        sl->addItem(e);
+        sl->setCurrentIndex(std::distance(values.begin(), it));
       }
+    };
+    set_index(inlet.value());
 
-      auto set_index = [values,sl] (const ossia::value& val)
+    QObject::connect(
+        sl, SignalUtils::QComboBox_currentIndexChanged_int(), context,
+        [values, &inlet, &ctx](int idx) {
+          CommandDispatcher<>{ctx.commandStack}.submitCommand<SetControlValue>(
+              inlet, toStd(values[idx]));
+        });
+
+    QObject::connect(
+        &inlet, &Process::ControlInlet::valueChanged, sl,
+        [=](const ossia::value& val) { set_index(val); });
+
+    return sl;
+  }
+
+  template <typename T>
+  static QGraphicsItem* make_item(
+      const T& slider,
+      Process::ControlInlet& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context)
+  {
+    const auto& values = slider.getValues();
+    using val_t = std::remove_reference_t<decltype(values[0])>;
+    auto sl = new score::QGraphicsComboSlider{values, nullptr};
+    sl->setRect({0., 0., 150., 15.});
+
+    auto set_index = [values, sl](const ossia::value& val) {
+      auto v = ossia::convert<std::string>(val);
+      auto it = ossia::find(values, convert(v, val_t{}));
+      if (it != values.end())
       {
-        auto v = ossia::convert<std::string>(val);
-        auto it = ossia::find(values, convert(v, val_t{}));
-        if(it != values.end())
-        {
-          sl->setCurrentIndex(std::distance(values.begin(), it));
-        }
-      };
-      set_index(inlet.value());
+        sl->setValue(std::distance(values.begin(), it));
+      }
+    };
 
-      QObject::connect(sl, SignalUtils::QComboBox_currentIndexChanged_int(),
-                       context, [values,&inlet,&ctx] (int idx) {
-        CommandDispatcher<>{ctx.commandStack}.submitCommand<SetControlValue>(inlet, toStd(values[idx]));
-      });
+    set_index(inlet.value());
 
-      QObject::connect(&inlet, &Process::ControlInlet::valueChanged,
-                       sl, [=] (const ossia::value& val) {
-        set_index(val);
-      });
+    QObject::connect(
+        sl, &score::QGraphicsComboSlider::sliderMoved, context,
+        [values, sl, &inlet, &ctx] {
+          sl->moving = true;
+          ctx.dispatcher.submitCommand<SetControlValue>(
+              inlet, toStd(values[sl->value()]));
+        });
+    QObject::connect(
+        sl, &score::QGraphicsComboSlider::sliderReleased, context, [sl, &ctx] {
+          ctx.dispatcher.commit();
+          sl->moving = false;
+        });
 
-      return sl;
-    }
+    QObject::connect(
+        &inlet, &Process::ControlInlet::valueChanged, sl,
+        [=](const ossia::value& val) {
+          if (sl->moving)
+            return;
 
-    template<typename T>
-    static QGraphicsItem* make_item(const T& slider, Process::ControlInlet& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
-    {
-      const auto& values = slider.getValues();
-      using val_t = std::remove_reference_t<decltype(values[0])>;
-      auto sl = new score::QGraphicsComboSlider{values, nullptr};
-      sl->setRect({0., 0., 150., 15.});
+          set_index(val);
+        });
 
-      auto set_index = [values,sl] (const ossia::value& val)
-      {
-        auto v = ossia::convert<std::string>(val);
-        auto it = ossia::find(values, convert(v, val_t{}));
-        if(it != values.end())
-        {
-          sl->setValue(std::distance(values.begin(), it));
-        }
-      };
-
-      set_index(inlet.value());
-
-      QObject::connect(sl, &score::QGraphicsComboSlider::sliderMoved,
-                       context, [values,sl,&inlet,&ctx] {
-        sl->moving = true;
-        ctx.dispatcher.submitCommand<SetControlValue>(inlet, toStd(values[sl->value()]));
-      });
-      QObject::connect(sl, &score::QGraphicsComboSlider::sliderReleased,
-                       context, [sl,&ctx] {
-        ctx.dispatcher.commit();
-        sl->moving = false;
-      });
-
-      QObject::connect(&inlet, &Process::ControlInlet::valueChanged,
-                       sl, [=] (const ossia::value& val) {
-        if(sl->moving)
-          return;
-
-        set_index(val);
-      });
-
-      return sl;
-    }
+    return sl;
+  }
 };
 
-
-template<typename ArrT>
+template <typename ArrT>
 struct Enum final : EnumBase<ArrT>
 {
-    using EnumBase<ArrT>::EnumBase;
-    static const constexpr bool must_validate = true;
-    auto fromValue(const ossia::value& v) const
+  using EnumBase<ArrT>::EnumBase;
+  static const constexpr bool must_validate = true;
+  auto fromValue(const ossia::value& v) const
+  {
+    auto t = v.target<std::string>();
+    if (t)
     {
-      auto t = v.target<std::string>();
-      if(t)
+      const auto& val = ossia::convert(*t, std::string{});
+      if (auto it = ossia::find(this->values, val); it != this->values.end())
       {
-        const auto& val = ossia::convert(*t, std::string{});
-        if(auto it = ossia::find(this->values, val); it != this->values.end())
-        {
-          return ossia::optional<std::string>{*t};
-        }
+        return ossia::optional<std::string>{*t};
       }
-      return ossia::optional<std::string>{};
     }
+    return ossia::optional<std::string>{};
+  }
 };
 
-template<typename ArrT>
+template <typename ArrT>
 struct UnvalidatedEnum final : EnumBase<ArrT>
 {
-    using EnumBase<ArrT>::EnumBase;
-    static const constexpr bool must_validate = false;
-    auto fromValue(const ossia::value& v) const
-    {
-      auto t = v.target<std::string>();
-      if(t)
-        return *t;
-      return std::string{};
-    }
+  using EnumBase<ArrT>::EnumBase;
+  static const constexpr bool must_validate = false;
+  auto fromValue(const ossia::value& v) const
+  {
+    auto t = v.target<std::string>();
+    if (t)
+      return *t;
+    return std::string{};
+  }
 };
 
-struct TimeSignatureChooser final: ossia::safe_nodes::control_in
+struct TimeSignatureChooser final : ossia::safe_nodes::control_in
 {
-    static const constexpr bool must_validate = true;
-    using type = time_signature;
-    const std::string_view init;
-    template<std::size_t M, std::size_t N>
-    constexpr TimeSignatureChooser(const char (&name)[M], const char (&in)[N]):
-      ossia::safe_nodes::control_in{name}, init{in, N}
-    {
-    }
+  static const constexpr bool must_validate = true;
+  using type = time_signature;
+  const std::string_view init;
+  template <std::size_t M, std::size_t N>
+  constexpr TimeSignatureChooser(const char (&name)[M], const char (&in)[N])
+      : ossia::safe_nodes::control_in{name}, init{in, N}
+  {
+  }
 
-    ossia::value toValue(time_signature v) const
-    {
-      std::string s; s.reserve(8);
-      s += std::to_string(v.first);
-      s += '/';
-      s += std::to_string(v.second);
-      return ossia::value{std::move(s)};
-    }
+  ossia::value toValue(time_signature v) const
+  {
+    std::string s;
+    s.reserve(8);
+    s += std::to_string(v.first);
+    s += '/';
+    s += std::to_string(v.second);
+    return ossia::value{std::move(s)};
+  }
 
-    optional<time_signature> fromValue(const ossia::value& v) const
+  optional<time_signature> fromValue(const ossia::value& v) const
+  {
+    if (auto str = v.target<std::string>())
     {
-      if(auto str = v.target<std::string>())
+      return get_time_signature(*str);
+    }
+    return ossia::none;
+  }
+  auto create_inlet(Id<Process::Port> id, QObject* parent) const
+  {
+    auto p = new Process::ControlInlet(id, parent);
+    p->type = Process::PortType::Message;
+    p->setValue(std::string{init});
+    p->setCustomData(QString::fromUtf8(name.data(), name.size()));
+    return p;
+  }
+
+  template <typename U>
+  static auto make_widget(
+      const U& slider,
+      Process::ControlInlet& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context)
+  {
+    auto sl = new QLineEdit;
+    struct TimeSignatureValidator final : public QValidator
+    {
+      State validate(QString& str, int&) const override
       {
-        return get_time_signature(*str);
+        auto p = get_time_signature(str.toStdString());
+        if (!p)
+          return State::Invalid;
+
+        return State::Acceptable;
       }
-      return ossia::none;
-    }
-    auto create_inlet(Id<Process::Port> id, QObject* parent) const
-    {
-      auto p = new Process::ControlInlet(id, parent);
-      p->type = Process::PortType::Message;
-      p->setValue(std::string{init});
-      p->setCustomData(QString::fromUtf8(name.data(), name.size()));
-      return p;
-    }
+    };
 
-    template<typename U>
-    static auto make_widget(const U& slider, Process::ControlInlet& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
-    {
-      auto sl = new QLineEdit;
-      struct TimeSignatureValidator final : public QValidator
-      {
-          State validate(QString& str, int &) const override
-          {
-            auto p = get_time_signature(str.toStdString());
-            if(!p)
-              return State::Invalid;
+    sl->setValidator(new TimeSignatureValidator);
+    sl->setContentsMargins(0, 0, 0, 0);
 
-            return State::Acceptable;
-          }
-      };
+    auto set_text = [sl](const ossia::value& val) {
+      const auto& vptr = val.target<std::string>();
+      if (!vptr)
+        return;
+      if (!get_time_signature(*vptr))
+        return;
 
-      sl->setValidator(new TimeSignatureValidator);
-      sl->setContentsMargins(0, 0, 0, 0);
+      sl->setText(QString::fromStdString(*vptr));
+    };
+    set_text(inlet.value());
 
-      auto set_text = [sl] (const ossia::value& val)
-      {
-        const auto& vptr = val.target<std::string>();
-        if(!vptr)
-          return;
-        if(!get_time_signature(*vptr))
-          return;
+    QObject::connect(
+        sl, &QLineEdit::editingFinished, context, [sl, &inlet, &ctx] {
+          CommandDispatcher<>{ctx.commandStack}.submitCommand<SetControlValue>(
+              inlet, sl->text().toStdString());
+        });
 
-        sl->setText(QString::fromStdString(*vptr));
-      };
-      set_text(inlet.value());
+    QObject::connect(
+        &inlet, &Process::ControlInlet::valueChanged, sl,
+        [=](const ossia::value& val) { set_text(val); });
 
-      QObject::connect(sl, &QLineEdit::editingFinished,
-                       context, [sl,&inlet,&ctx] {
-        CommandDispatcher<>{ctx.commandStack}.submitCommand<SetControlValue>(inlet, sl->text().toStdString());
-      });
+    return sl;
+  }
 
-      QObject::connect(&inlet, &Process::ControlInlet::valueChanged,
-                       sl, [=] (const ossia::value& val) {
-        set_text(val);
-      });
-
-      return sl;
-    }
-
-    template<typename U>
-    static QGraphicsItem* make_item(const U& slider, Process::ControlInlet& inlet, const score::DocumentContext& ctx, QWidget* parent, QObject* context)
-    {
-      return wrapWidget(make_widget(slider, inlet, ctx, parent, context));
-    }
-
+  template <typename U>
+  static QGraphicsItem* make_item(
+      const U& slider,
+      Process::ControlInlet& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context)
+  {
+    return wrapWidget(make_widget(slider, inlet, ctx, parent, context));
+  }
 };
 
-template<typename T1, typename T2>
+template <typename T1, typename T2>
 constexpr auto make_enum(const T1& t1, std::size_t s, const T2& t2)
 {
   return Control::Enum<T2>(t1, s, t2);
 }
-template<typename T1, typename T2>
+template <typename T1, typename T2>
 constexpr auto make_unvalidated_enum(const T1& t1, std::size_t s, const T2& t2)
 {
   return Control::UnvalidatedEnum<T2>(t1, s, t2);
 }
 /*
 template<std::size_t N1, std::size_t N2>
-Enum(const char (&name)[N1], std::size_t i, const std::array<const char*, N2>& v) -> Enum<std::array<const char*, N2>>;
+Enum(const char (&name)[N1], std::size_t i, const std::array<const char*, N2>&
+v) -> Enum<std::array<const char*, N2>>;
 */
 }

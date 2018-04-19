@@ -1,8 +1,8 @@
 #pragma once
+#include <memory>
 #include <score/plugins/customfactory/FactoryInterface.hpp>
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
 #include <score_plugin_scenario_export.h>
-#include <memory>
 
 namespace Scenario
 {
@@ -18,8 +18,8 @@ public:
 
   virtual bool matches(const IntervalModel& interval) const = 0;
 
-  bool matches(
-      ScenarioDocumentPresenter& pres, const IntervalModel& interval) const
+  bool
+  matches(ScenarioDocumentPresenter& pres, const IntervalModel& interval) const
   {
     return matches(interval);
   }

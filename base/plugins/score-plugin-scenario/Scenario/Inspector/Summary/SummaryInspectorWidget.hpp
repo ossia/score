@@ -19,7 +19,7 @@ class EventModel;
 class StateModel;
 class SummaryInspectorWidget final : public Inspector::InspectorWidgetBase
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
   SummaryInspectorWidget(
       const IdentifiedObjectAbstract* obj,

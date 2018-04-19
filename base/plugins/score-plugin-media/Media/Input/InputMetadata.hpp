@@ -11,15 +11,13 @@ class ProcessModel;
 }
 
 PROCESS_METADATA(
-        SCORE_PLUGIN_MEDIA_EXPORT,
-        Media::Input::ProcessModel,
-        "fe6ec588-23c8-458c-ad47-7fdfe0e813cc",
-        "Input",
-        "Audio input",
-        "Audio",
-        {},
-        Process::ProcessFlags::SupportsTemporal
-        )
-
+    SCORE_PLUGIN_MEDIA_EXPORT,
+    Media::Input::ProcessModel,
+    "fe6ec588-23c8-458c-ad47-7fdfe0e813cc",
+    "Input",
+    "Audio input",
+    "Audio",
+    {},
+    Process::ProcessFlags::SupportsTemporal)
 
 UNDO_NAME_METADATA(EMPTY_MACRO, Media::Input::ProcessModel, "Input")

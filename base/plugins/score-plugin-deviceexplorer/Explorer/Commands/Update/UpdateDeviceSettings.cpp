@@ -1,17 +1,17 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <algorithm>
-#include <vector>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "UpdateDeviceSettings.hpp"
+
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
+#include <algorithm>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/tree/TreeNode.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <vector>
 
 namespace Explorer
 {
@@ -24,8 +24,7 @@ UpdateDeviceSettings::UpdateDeviceSettings(
     : m_newParameters(parameters)
 {
   auto it = std::find_if(
-      devplug.rootNode().begin(),
-      devplug.rootNode().end(),
+      devplug.rootNode().begin(), devplug.rootNode().end(),
       [&](const Device::Node& n) {
         return n.get<Device::DeviceSettings>().name == name;
       });

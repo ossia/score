@@ -1,5 +1,11 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "ObjectMenuActions.hpp"
+
+#include "ScenarioCopy.hpp"
+#include "TextDialog.hpp"
+
+#include <Process/ProcessList.hpp>
 #include <QAction>
 #include <QByteArray>
 #include <QClipboard>
@@ -11,54 +17,43 @@
 #include <QMainWindow>
 #include <QMenu>
 #include <QObject>
-#include <score/document/DocumentInterface.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Commands/Interval/InsertContentInInterval.hpp>
-#include <Scenario/Commands/Scenario/ScenarioPasteContent.hpp>
-#include <Scenario/Commands/Scenario/ScenarioPasteElements.hpp>
-#include <Scenario/Commands/Scenario/Encapsulate.hpp>
-#include <Scenario/Commands/State/InsertContentInState.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <score/actions/MenuManager.hpp>
-#include <qnamespace.h>
-
 #include <QRect>
 #include <QString>
 #include <QToolBar>
-#include <algorithm>
-
-#include "ObjectMenuActions.hpp"
-#include <Process/ProcessList.hpp>
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-
-#include "ScenarioCopy.hpp"
-#include "TextDialog.hpp"
-#include <Scenario/Application/ScenarioEditionSettings.hpp>
-#include <Scenario/Palette/ScenarioPoint.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-
-#include <core/document/Document.hpp>
-#include <score/application/ApplicationContext.hpp>
-
 #include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Commands/Cohesion/DoForSelectedIntervals.hpp>
+#include <Scenario/Commands/Interval/InsertContentInInterval.hpp>
+#include <Scenario/Commands/Scenario/Encapsulate.hpp>
+#include <Scenario/Commands/Scenario/ScenarioPasteContent.hpp>
+#include <Scenario/Commands/Scenario/ScenarioPasteElements.hpp>
+#include <Scenario/Commands/State/InsertContentInState.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
+#include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
+#include <algorithm>
+#include <core/application/ApplicationSettings.hpp>
+#include <core/document/Document.hpp>
+#include <qnamespace.h>
 #include <score/actions/ActionManager.hpp>
-#include <score/document/DocumentInterface.hpp>
 #include <score/actions/Menu.hpp>
-#include <score/selection/Selectable.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/actions/MenuManager.hpp>
+#include <score/application/ApplicationContext.hpp>
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <score/document/DocumentInterface.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
-#include <core/application/ApplicationSettings.hpp>
+#include <score/selection/Selectable.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/tools/std/Optional.hpp>
 
 namespace Scenario
 {
@@ -68,7 +63,7 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
     , m_cstrActions{parent}
     , m_stateActions{parent}
 {
-  if(!parent->context.applicationSettings.gui)
+  if (!parent->context.applicationSettings.gui)
     return;
   using namespace score;
 
@@ -206,7 +201,7 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
   m_mergeEvents = new QAction{this};
   connect(m_mergeEvents, &QAction::triggered, [this]() {
     auto sm = focusedScenarioModel(m_parent->currentDocument()->context());
-    if(!sm)
+    if (!sm)
       return;
 
     Scenario::mergeEvents(
@@ -233,9 +228,10 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
         *sm, m_parent->currentDocument()->context().commandStack);
   });
 
-  if(parent->context.mainWindow)
+  if (parent->context.mainWindow)
   {
-    auto doc = parent->context.mainWindow->findChild<QWidget*>("Documents", Qt::FindDirectChildrenOnly);
+    auto doc = parent->context.mainWindow->findChild<QWidget*>(
+        "Documents", Qt::FindDirectChildrenOnly);
     SCORE_ASSERT(doc);
     doc->addAction(m_removeElements);
     doc->addAction(m_pasteElements);
@@ -269,22 +265,16 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   auto& actions = e.actions;
   auto& base_menus = m_parent->context.menus.get();
 
-  auto& scenariofocus_cond
-      = m_parent->context.actions
-            .condition<Process::
-                           EnableWhenFocusedProcessIs<Scenario::
-                                                          ProcessModel>>();
+  auto& scenariofocus_cond = m_parent->context.actions.condition<
+      Process::EnableWhenFocusedProcessIs<Scenario::ProcessModel>>();
   auto& scenariomodel_cond
       = m_parent->context.actions.condition<EnableWhenScenarioModelObject>();
   auto& scenarioiface_cond
       = m_parent->context.actions
             .condition<EnableWhenScenarioInterfaceObject>();
 
-  auto& scenariodocument_cond
-      = m_parent->context.actions
-            .condition<score::
-                           EnableWhenDocumentIs<Scenario::
-                                                    ScenarioDocumentModel>>();
+  auto& scenariodocument_cond = m_parent->context.actions.condition<
+      score::EnableWhenDocumentIs<Scenario::ScenarioDocumentModel>>();
 
   actions.add<Actions::RemoveElements>(m_removeElements);
   actions.add<Actions::CopyContent>(m_copyContent);
@@ -351,7 +341,9 @@ void ObjectMenuActions::setupContextMenu(
 
   // Used for scenario model
   scenario_model.functions.push_back([this](
-      QMenu& menu, QPoint, QPointF scenePoint, const LayerContext& ctx) {
+                                         QMenu& menu, QPoint,
+                                         QPointF scenePoint,
+                                         const LayerContext& ctx) {
     auto& scenario
         = *safe_cast<const TemporalScenarioPresenter*>(&ctx.presenter);
     auto sel = ctx.context.selectionStack.currentSelection();
@@ -472,7 +464,9 @@ void ObjectMenuActions::pasteElements(
 }
 
 void ObjectMenuActions::pasteElementsAfter(
-    const QJsonObject& obj, const Scenario::Point& origin, const Selection& sel)
+    const QJsonObject& obj,
+    const Scenario::Point& origin,
+    const Selection& sel)
 {
   // TODO check for unnecessary uses of focusedProcessModel after
   // focusedPresenter.
@@ -548,16 +542,16 @@ void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject& obj)
   }
 }
 
-ScenarioDocumentModel*ObjectMenuActions::getScenarioDocModel() const
+ScenarioDocumentModel* ObjectMenuActions::getScenarioDocModel() const
 {
-  if(auto doc = m_parent->currentDocument())
+  if (auto doc = m_parent->currentDocument())
     return score::IDocument::try_get<ScenarioDocumentModel>(*doc);
   return nullptr;
 }
 
-ScenarioDocumentPresenter*ObjectMenuActions::getScenarioDocPresenter() const
+ScenarioDocumentPresenter* ObjectMenuActions::getScenarioDocPresenter() const
 {
-  if(auto doc = m_parent->currentDocument())
+  if (auto doc = m_parent->currentDocument())
     return score::IDocument::try_get<ScenarioDocumentPresenter>(*doc);
   return nullptr;
 }

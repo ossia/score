@@ -1,26 +1,27 @@
 #include "VSTWidgets.hpp"
-#include <Media/Effect/VST/VSTControl.hpp>
+
+#include <Automation/AutomationModel.hpp>
+#include <Automation/Commands/SetAutomationMax.hpp>
 #include <Dataflow/Commands/CreateModulation.hpp>
 #include <Dataflow/Commands/EditConnection.hpp>
-#include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
-#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
-#include <Automation/Commands/SetAutomationMax.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <Media/Commands/VSTCommands.hpp>
-#include <Engine/Node/CommonWidgets.hpp>
-#include <Automation/AutomationModel.hpp>
 #include <Dataflow/UI/PortItem.hpp>
+#include <Engine/Node/CommonWidgets.hpp>
+#include <Media/Commands/VSTCommands.hpp>
+#include <Media/Effect/VST/VSTControl.hpp>
 #include <QAction>
 #include <QMenu>
+#include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 
 namespace Media::VST
 {
 
-
-VSTGraphicsSlider::VSTGraphicsSlider(AEffect* fx, int num, QGraphicsItem* parent):
-  QGraphicsItem{parent}
+VSTGraphicsSlider::VSTGraphicsSlider(
+    AEffect* fx, int num, QGraphicsItem* parent)
+    : QGraphicsItem{parent}
 {
   this->fx = fx;
   this->num = num;
@@ -47,14 +48,15 @@ double VSTGraphicsSlider::value() const
 
 void VSTGraphicsSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(isInHandle(event->pos()))
+  if (isInHandle(event->pos()))
   {
     m_grab = true;
   }
 
   const auto srect = sliderRect();
-  double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
-  if(curPos != m_value)
+  double curPos
+      = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+  if (curPos != m_value)
   {
     m_value = curPos;
     valueChanged(m_value);
@@ -67,11 +69,12 @@ void VSTGraphicsSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void VSTGraphicsSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(m_grab)
+  if (m_grab)
   {
     const auto srect = sliderRect();
-    double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
-    if(curPos != m_value)
+    double curPos
+        = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+    if (curPos != m_value)
     {
       m_value = curPos;
       valueChanged(m_value);
@@ -84,10 +87,11 @@ void VSTGraphicsSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 void VSTGraphicsSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(m_grab)
+  if (m_grab)
   {
-    double curPos = ossia::clamp(event->pos().x() / sliderRect().width(), 0., 1.);
-    if(curPos != m_value)
+    double curPos
+        = ossia::clamp(event->pos().x() / sliderRect().width(), 0., 1.);
+    if (curPos != m_value)
     {
       m_value = curPos;
       valueChanged(m_value);
@@ -104,7 +108,8 @@ QRectF VSTGraphicsSlider::boundingRect() const
   return m_rect;
 }
 
-void VSTGraphicsSlider::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void VSTGraphicsSlider::paint(
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   const auto& skin = score::Skin::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
@@ -131,9 +136,10 @@ void VSTGraphicsSlider::paint(QPainter* painter, const QStyleOptionGraphicsItem*
   static const constexpr auto dpi_adjust = -2;
 #endif
 
-  painter->drawText(srect.adjusted(6, dpi_adjust, -6, 0),
-                    QString::fromUtf8(str),
-                    getHandleX() > srect.width() / 2 ? QTextOption() : QTextOption(Qt::AlignRight));
+  painter->drawText(
+      srect.adjusted(6, dpi_adjust, -6, 0), QString::fromUtf8(str),
+      getHandleX() > srect.width() / 2 ? QTextOption()
+                                       : QTextOption(Qt::AlignRight));
 
   // Draw handle
   painter->setBrush(skin.HalfLight);
@@ -161,39 +167,43 @@ QRectF VSTGraphicsSlider::handleRect() const
   return {getHandleX() - 4., 1., 8., m_rect.height() - 1};
 }
 
-VSTEffectItem::VSTEffectItem(const VSTEffectModel& effect, const score::DocumentContext& doc, score::RectItem* root):
-  score::EmptyRectItem{root}
+VSTEffectItem::VSTEffectItem(
+    const VSTEffectModel& effect,
+    const score::DocumentContext& doc,
+    score::RectItem* root)
+    : score::EmptyRectItem{root}
 {
   rootItem = root;
   using namespace Control::Widgets;
   QObject::connect(
-        &effect, &Process::ProcessModel::controlAdded,
-        this, [&] (const Id<Process::Port>& id) {
-    auto inlet = safe_cast<VSTControlInlet*>(effect.inlet(id));
-    setupInlet(effect, *inlet, doc);
-    rootItem->setRect(rootItem->childrenBoundingRect());
-  });
+      &effect, &Process::ProcessModel::controlAdded, this,
+      [&](const Id<Process::Port>& id) {
+        auto inlet = safe_cast<VSTControlInlet*>(effect.inlet(id));
+        setupInlet(effect, *inlet, doc);
+        rootItem->setRect(rootItem->childrenBoundingRect());
+      });
 
   QObject::connect(
-        &effect, &Process::ProcessModel::controlRemoved,
-        this, [&] (const Process::Port& port) {
-    auto inlet = qobject_cast<const VSTControlInlet*>(&port);
-    SCORE_ASSERT(inlet);
-    auto it = ossia::find_if(controlItems, [&] (auto p) { return p.first == inlet; });
-    if(it != controlItems.end())
-    {
-      double pos_y = it->second->pos().y();
-      delete it->second;
-      it = controlItems.erase(it);
-      for(; it != controlItems.end(); ++it)
-      {
-        auto rect = it->second;
-        rect->setPos(0, pos_y);
-        pos_y += rect->boundingRect().height();
-      }
-    }
-    rootItem->setRect(rootItem->childrenBoundingRect());
-  });
+      &effect, &Process::ProcessModel::controlRemoved, this,
+      [&](const Process::Port& port) {
+        auto inlet = qobject_cast<const VSTControlInlet*>(&port);
+        SCORE_ASSERT(inlet);
+        auto it = ossia::find_if(
+            controlItems, [&](auto p) { return p.first == inlet; });
+        if (it != controlItems.end())
+        {
+          double pos_y = it->second->pos().y();
+          delete it->second;
+          it = controlItems.erase(it);
+          for (; it != controlItems.end(); ++it)
+          {
+            auto rect = it->second;
+            rect->setPos(0, pos_y);
+            pos_y += rect->boundingRect().height();
+          }
+        }
+        rootItem->setRect(rootItem->childrenBoundingRect());
+      });
 
   {
     auto tempo = safe_cast<Process::ControlInlet*>(effect.inlets()[1]);
@@ -203,7 +213,7 @@ VSTEffectItem::VSTEffectItem(const VSTEffectModel& effect, const score::Document
     auto sg = safe_cast<Process::ControlInlet*>(effect.inlets()[2]);
     setupInlet(TimeSigChooser(), *sg, doc);
   }
-  for(std::size_t i = 3; i < effect.inlets().size(); i++)
+  for (std::size_t i = 3; i < effect.inlets().size(); i++)
   {
     auto inlet = safe_cast<VSTControlInlet*>(effect.inlets()[i]);
     setupInlet(effect, *inlet, doc);
@@ -220,34 +230,43 @@ void VSTEffectItem::setupInlet(
   double pos_y = this->childrenBoundingRect().height();
 
   auto port_item = VSTControlPortFactory{}.makeItem(inlet, doc, rect, this);
-  static const auto close_off  = QPixmap::fromImage(QImage(":/icons/close_off.png") .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-  static const auto close_on   = QPixmap::fromImage(QImage(":/icons/close_on.png")  .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+  static const auto close_off = QPixmap::fromImage(
+      QImage(":/icons/close_off.png")
+          .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+  static const auto close_on = QPixmap::fromImage(
+      QImage(":/icons/close_on.png")
+          .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
 
   auto lab = new Scenario::SimpleTextItem{rect};
   lab->setColor(ScenarioStyle::instance().EventDefault);
   lab->setText(inlet.customData());
   lab->setPos(15, 2);
 
-
   double h = 20.;
-  if(fx.fx)
+  if (fx.fx)
   {
-    QGraphicsItem* widg = VSTFloatSlider::make_item(fx.fx->fx, inlet, doc, nullptr, this);
+    QGraphicsItem* widg
+        = VSTFloatSlider::make_item(fx.fx->fx, inlet, doc, nullptr, this);
     widg->setParentItem(rect);
     widg->setPos(15, lab->boundingRect().height());
 
-    h = std::max(20., (qreal)(widg->boundingRect().height() + lab->boundingRect().height() + 2.));
+    h = std::max(
+        20., (qreal)(
+                 widg->boundingRect().height() + lab->boundingRect().height()
+                 + 2.));
 
-    if(fx.fx->fx->numParams >= 10)
+    if (fx.fx->fx->numParams >= 10)
     {
-      auto rm_item = new score::QGraphicsPixmapButton{close_on, close_off, rect};
-      connect(rm_item, &score::QGraphicsPixmapButton::clicked,
-              this, [&doc,&fx,id=inlet.id()] {
-        QTimer::singleShot(0, [&doc, &fx,id] {
-          CommandDispatcher<> disp{doc.commandStack};
-          disp.submitCommand<RemoveVSTControl>(fx, id);
-        });
-      });
+      auto rm_item
+          = new score::QGraphicsPixmapButton{close_on, close_off, rect};
+      connect(
+          rm_item, &score::QGraphicsPixmapButton::clicked, this,
+          [&doc, &fx, id = inlet.id()] {
+            QTimer::singleShot(0, [&doc, &fx, id] {
+              CommandDispatcher<> disp{doc.commandStack};
+              disp.submitCommand<RemoveVSTControl>(fx, id);
+            });
+          });
 
       rm_item->setPos(2., 2.3 * h / 4.);
     }
@@ -260,7 +279,6 @@ void VSTEffectItem::setupInlet(
   controlItems.push_back({&inlet, rect});
 }
 
-
 ERect VSTWindow::getRect(AEffect& e)
 {
   ERect* vstRect{};
@@ -269,21 +287,21 @@ ERect VSTWindow::getRect(AEffect& e)
 
   int16_t w{};
   int16_t h{};
-  if(vstRect)
+  if (vstRect)
   {
     w = vstRect->right - vstRect->left;
     h = vstRect->bottom - vstRect->top;
   }
 
-  if(w <= 1)
+  if (w <= 1)
     w = 640;
-  if(h <= 1)
+  if (h <= 1)
     h = 480;
 
-  if(vstRect)
+  if (vstRect)
     return ERect{vstRect->top, vstRect->left, vstRect->bottom, vstRect->right};
   else
-    return ERect{0,0,w,h};
+    return ERect{0, 0, w, h};
 }
 
 bool VSTWindow::hasUI(AEffect& e)
@@ -295,16 +313,16 @@ void VSTWindow::closeEvent(QCloseEvent* event)
 {
   qDebug() << "Closing !";
   QPointer<VSTWindow> p(this);
-  if(auto eff = effect.lock())
+  if (auto eff = effect.lock())
     eff->fx->dispatcher(eff->fx, effEditClose, 0, 0, nullptr, 0);
   uiClosing();
-  if(p)
+  if (p)
     QDialog::closeEvent(event);
 }
 
 void VSTWindow::resizeEvent(QResizeEvent* event)
 {
-  //setup_rect(this, event->size().width(), event->size().height());
+  // setup_rect(this, event->size().width(), event->size().height());
   QDialog::resizeEvent(event);
 }
 
@@ -324,25 +342,22 @@ QGraphicsItem* VSTFloatSlider::make_item(
   sl->setRect({0., 0., 150., 15.});
   sl->setValue(ossia::convert<double>(inlet.value()));
 
-  QObject::connect(sl, &VSTGraphicsSlider::sliderMoved,
-                   context, [=,&inlet,&ctx] {
-    sl->moving = true;
-    ctx.dispatcher.submitCommand<SetVSTControl>(inlet, sl->value());
-  });
-  QObject::connect(sl, &VSTGraphicsSlider::sliderReleased,
-                   context, [&ctx,sl] () {
-    ctx.dispatcher.commit();
-    sl->moving = false;
-  });
+  QObject::connect(
+      sl, &VSTGraphicsSlider::sliderMoved, context, [=, &inlet, &ctx] {
+        sl->moving = true;
+        ctx.dispatcher.submitCommand<SetVSTControl>(inlet, sl->value());
+      });
+  QObject::connect(
+      sl, &VSTGraphicsSlider::sliderReleased, context, [&ctx, sl]() {
+        ctx.dispatcher.commit();
+        sl->moving = false;
+      });
 
-  QObject::connect(&inlet, &VSTControlInlet::valueChanged,
-                   sl, [=] (float val) {
-    if(!sl->moving)
+  QObject::connect(&inlet, &VSTControlInlet::valueChanged, sl, [=](float val) {
+    if (!sl->moving)
       sl->setValue(val);
   });
 
   return sl;
 }
-
 }
-

@@ -1,12 +1,12 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TextItem.hpp"
 
-#include <QGraphicsSceneMouseEvent>
-#include <QTextLayout>
-#include <QPainter>
-#include <QGraphicsView>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <QGraphicsSceneMouseEvent>
+#include <QGraphicsView>
+#include <QPainter>
+#include <QTextLayout>
 #include <score/widgets/GraphicsItem.hpp>
 namespace Scenario
 {
@@ -23,7 +23,7 @@ void TextItem::focusOutEvent(QFocusEvent* event)
   focusOut();
 }
 
-SimpleTextItem::SimpleTextItem(QGraphicsItem* p): QGraphicsItem{p}
+SimpleTextItem::SimpleTextItem(QGraphicsItem* p) : QGraphicsItem{p}
 {
   m_color = ScenarioStyle::instance().ConditionWaiting;
 }
@@ -36,7 +36,7 @@ QRectF SimpleTextItem::boundingRect() const
 void SimpleTextItem::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  if(!m_string.isEmpty())
+  if (!m_string.isEmpty())
   {
     painter->drawImage(QPointF{0, 0}, m_line);
   }
@@ -59,7 +59,6 @@ void SimpleTextItem::setText(std::string_view s)
 {
   m_string = QString::fromUtf8(s.data(), s.size());
   updateImpl();
-
 }
 
 void SimpleTextItem::setColor(score::ColorRef c)
@@ -72,7 +71,7 @@ void SimpleTextItem::updateImpl()
 {
   prepareGeometryChange();
 
-  if(m_string.isEmpty())
+  if (m_string.isEmpty())
   {
     m_rect = QRectF{};
     m_line = QImage{};
@@ -87,12 +86,14 @@ void SimpleTextItem::updateImpl()
     m_rect = line.naturalTextRect();
     auto r = line.glyphRuns();
 
-    if(r.size() > 0)
+    if (r.size() > 0)
     {
       double ratio = 1.;
-      if(auto v = getView(*this))
+      if (auto v = getView(*this))
         ratio = v->devicePixelRatioF();
-      m_line = QImage(m_rect.width() * ratio, m_rect.height() * ratio, QImage::Format_ARGB32_Premultiplied);
+      m_line = QImage(
+          m_rect.width() * ratio, m_rect.height() * ratio,
+          QImage::Format_ARGB32_Premultiplied);
       m_line.setDevicePixelRatio(ratio);
       m_line.fill(Qt::transparent);
 

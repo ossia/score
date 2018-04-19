@@ -1,17 +1,16 @@
 #pragma once
 #include <Process/Tools/ToolPalette.hpp>
 #include <QPoint>
-#include <Scenario/Palette/ScenarioPoint.hpp>
-#include <Scenario/Palette/Tools/SmartTool.hpp>
-#include <score/statemachine/GraphicsSceneToolPalette.hpp>
-#include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
-#include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/BaseScenario/BaseElementContext.hpp>
-#include <score/widgets/GraphicsProxyObject.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactory.hpp>
-
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Palette/Tool.hpp>
+#include <Scenario/Palette/Tools/SmartTool.hpp>
+#include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
+#include <score/statemachine/GraphicsSceneToolPalette.hpp>
+#include <score/widgets/GraphicsProxyObject.hpp>
 
 namespace Scenario
 {
@@ -66,22 +65,26 @@ private:
   LayerView& m_view;
   const Scenario::EditionSettings& m_editionSettings;
 
-  Scenario::
-      SmartTool<Loop::ProcessModel, ToolPalette, LayerView,
-                Scenario::MoveIntervalInBaseScenario_StateWrapper,
-                Scenario::MoveLeftBraceInScenario_StateWrapper,
-                Scenario::MoveRightBraceInScenario_StateWrapper,
-                Scenario::MoveEventInBaseScenario_StateWrapper,
-                Scenario::MoveTimeSyncInBaseScenario_StateWrapper>
-          m_state;
+  Scenario::SmartTool<
+      Loop::ProcessModel,
+      ToolPalette,
+      LayerView,
+      Scenario::MoveIntervalInBaseScenario_StateWrapper,
+      Scenario::MoveLeftBraceInScenario_StateWrapper,
+      Scenario::MoveRightBraceInScenario_StateWrapper,
+      Scenario::MoveEventInBaseScenario_StateWrapper,
+      Scenario::MoveTimeSyncInBaseScenario_StateWrapper>
+      m_state;
 
-  ToolPaletteInputDispatcher<Scenario::Tool, ToolPalette, Process::LayerContext, LayerPresenter>
+  ToolPaletteInputDispatcher<
+      Scenario::Tool,
+      ToolPalette,
+      Process::LayerContext,
+      LayerPresenter>
       m_inputDisp;
 };
 
-
-class DisplayedElementsToolPalette final
-    : public GraphicsSceneToolPalette
+class DisplayedElementsToolPalette final : public GraphicsSceneToolPalette
 {
 public:
   DisplayedElementsToolPalette(
@@ -113,18 +116,21 @@ private:
   const Scenario::EditionSettings& m_editionSettings;
 
   Scenario::SmartTool<
-            Loop::ProcessModel,
-            DisplayedElementsToolPalette,
-            BaseGraphicsObject,
-            Scenario::MoveIntervalInBaseScenario_StateWrapper,
-            Scenario::MoveLeftBraceInScenario_StateWrapper,
-            Scenario::MoveRightBraceInScenario_StateWrapper,
-            Scenario::MoveEventInBaseScenario_StateWrapper,
-            Scenario::MoveTimeSyncInBaseScenario_StateWrapper>
-          m_state;
+      Loop::ProcessModel,
+      DisplayedElementsToolPalette,
+      BaseGraphicsObject,
+      Scenario::MoveIntervalInBaseScenario_StateWrapper,
+      Scenario::MoveLeftBraceInScenario_StateWrapper,
+      Scenario::MoveRightBraceInScenario_StateWrapper,
+      Scenario::MoveEventInBaseScenario_StateWrapper,
+      Scenario::MoveTimeSyncInBaseScenario_StateWrapper>
+      m_state;
 
-  ToolPaletteInputDispatcher<Scenario::Tool, DisplayedElementsToolPalette,
-  Scenario::BaseElementContext, Scenario::ScenarioDocumentPresenter>
+  ToolPaletteInputDispatcher<
+      Scenario::Tool,
+      DisplayedElementsToolPalette,
+      Scenario::BaseElementContext,
+      Scenario::ScenarioDocumentPresenter>
       m_inputDisp;
 };
 
@@ -139,5 +145,4 @@ public:
       Scenario::ScenarioDocumentPresenter& pres,
       const Scenario::IntervalModel& interval) override;
 };
-
 }

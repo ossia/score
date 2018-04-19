@@ -1,4 +1,5 @@
 #include "Widgets.hpp"
+
 #include "Layer.hpp"
 
 namespace Control
@@ -7,10 +8,10 @@ namespace Control
 const QPalette& transparentPalette()
 {
   static QPalette p{[] {
-      QPalette palette;
-      palette.setBrush(QPalette::Background, Qt::transparent);
-      return palette;
-                    }()};
+    QPalette palette;
+    palette.setBrush(QPalette::Background, Qt::transparent);
+    return palette;
+  }()};
   return p;
 }
 
@@ -33,7 +34,8 @@ void ValueSlider::paintEvent(QPaintEvent* event)
   QStyleOptionSlider opt;
   initStyleOption(&opt);
   QPainter p{this};
-  style()->drawItemText(&p, this->rect(), 0, opt.palette, true, QString::number(value()));
+  style()->drawItemText(
+      &p, this->rect(), 0, opt.palette, true, QString::number(value()));
 }
 
 void ValueDoubleSlider::paintEvent(QPaintEvent* event)
@@ -42,7 +44,9 @@ void ValueDoubleSlider::paintEvent(QPaintEvent* event)
   QStyleOptionSlider opt;
   initStyleOption(&opt);
   QPainter p{this};
-  style()->drawItemText(&p, this->rect(), 0, opt.palette, true, QString::number(min + value() * (max - min), 'f', 3));
+  style()->drawItemText(
+      &p, this->rect(), 0, opt.palette, true,
+      QString::number(min + value() * (max - min), 'f', 3));
 }
 
 void ValueLogDoubleSlider::paintEvent(QPaintEvent* event)
@@ -52,15 +56,13 @@ void ValueLogDoubleSlider::paintEvent(QPaintEvent* event)
   initStyleOption(&opt);
   QPainter p{this};
   style()->drawItemText(
-        &p, this->rect(), 0, opt.palette, true,
-        QString::number(std::exp2(min + value() * (max - min)), 'f', 3));
+      &p, this->rect(), 0, opt.palette, true,
+      QString::number(std::exp2(min + value() * (max - min)), 'f', 3));
 }
 
-ComboSlider::ComboSlider(const QStringList& arr, QWidget* parent):
-  QSlider{parent},
-  array{arr}
+ComboSlider::ComboSlider(const QStringList& arr, QWidget* parent)
+    : QSlider{parent}, array{arr}
 {
-
 }
 
 void ComboSlider::paintEvent(QPaintEvent* event)
@@ -69,7 +71,7 @@ void ComboSlider::paintEvent(QPaintEvent* event)
   QStyleOptionSlider opt;
   initStyleOption(&opt);
   QPainter p{this};
-  style()->drawItemText(&p, this->rect(), 0, opt.palette, true, array[value()]);
+  style()->drawItemText(
+      &p, this->rect(), 0, opt.palette, true, array[value()]);
 }
-
 }

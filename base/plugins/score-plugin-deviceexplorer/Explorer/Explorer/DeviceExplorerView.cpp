@@ -1,6 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DeviceExplorerView.hpp"
+
 #include "DeviceExplorerFilterProxyModel.hpp"
 #include "DeviceExplorerModel.hpp"
 
@@ -9,7 +10,7 @@ class QPoint;
 class QWidget;
 
 #ifdef MODEL_TEST
-#include "ModelTest/modeltest.h"
+#  include "ModelTest/modeltest.h"
 #endif
 
 #include <QAbstractItemView>
@@ -225,7 +226,8 @@ void DeviceExplorerView::columnVisibilityChanged(bool shown)
   setColumnHidden(ind, !shown);
 }
 
-void DeviceExplorerView::rowsInserted(const QModelIndex& parent, int start, int end)
+void DeviceExplorerView::rowsInserted(
+    const QModelIndex& parent, int start, int end)
 {
   QTreeView::rowsInserted(parent, start, end);
   created(parent, start, end);

@@ -1,20 +1,19 @@
 #pragma once
 #include <Process/TimeValue.hpp>
 #include <QObject>
-#include <Scenario/Document/VerticalExtent.hpp>
-#include <Scenario/Document/Event/ExecutionStatus.hpp>
-#include <State/Expression.hpp>
-#include <score/model/EntityImpl.hpp>
-#include <score/selection/Selectable.hpp>
-#include <score/model/IdentifiedObject.hpp>
-#include <score/tools/Metadata.hpp>
-#include <score/model/Identifier.hpp>
-#include <score/tools/std/Optional.hpp>
-
 #include <QString>
 #include <QVector>
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
+#include <State/Expression.hpp>
 #include <chrono>
 #include <score/model/Component.hpp>
+#include <score/model/EntityImpl.hpp>
+#include <score/model/IdentifiedObject.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/selection/Selectable.hpp>
+#include <score/tools/Metadata.hpp>
+#include <score/tools/std/Optional.hpp>
 #include <score_plugin_scenario_export.h>
 class DataStream;
 class JSONObject;
@@ -64,7 +63,10 @@ public:
   const EventIdVec& events() const;
   void setEvents(const TimeSyncModel::EventIdVec& events);
 
-  State::Expression expression() const { return m_expression; }
+  State::Expression expression() const
+  {
+    return m_expression;
+  }
   void setExpression(const State::Expression& expression);
 
   bool active() const;

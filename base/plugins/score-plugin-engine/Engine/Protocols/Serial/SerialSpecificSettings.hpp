@@ -1,7 +1,7 @@
 #pragma once
 #include <QMetaType>
-#include <QString>
 #include <QSerialPortInfo>
+#include <QString>
 
 namespace Engine
 {

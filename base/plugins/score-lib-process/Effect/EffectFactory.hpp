@@ -1,10 +1,9 @@
 #pragma once
+#include <Effect/EffectLayer.hpp>
 #include <Process/LayerModelPanelProxy.hpp>
 #include <Process/LayerView.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
-#include <Process/Process.hpp>
-#include <Effect/EffectLayer.hpp>
 #include <score/widgets/RectItem.hpp>
 
 namespace Process
@@ -16,13 +15,21 @@ public:
   virtual ~EffectProcessFactory_T() = default;
 
   UuidKey<Process::ProcessModel> concreteKey() const noexcept override
-  { return Metadata<ConcreteKey_k, Model_T>::get(); }
+  {
+    return Metadata<ConcreteKey_k, Model_T>::get();
+  }
   QString prettyName() const override
-  { return Metadata<PrettyName_k, Model_T>::get(); }
+  {
+    return Metadata<PrettyName_k, Model_T>::get();
+  }
   QString category() const override
-  { return Metadata<Category_k, Model_T>::get(); }
+  {
+    return Metadata<Category_k, Model_T>::get();
+  }
   ProcessFlags flags() const override
-  { return Metadata<ProcessFlags_k, Model_T>::get(); }
+  {
+    return Metadata<ProcessFlags_k, Model_T>::get();
+  }
 
   QString customConstructionData() const override;
 
@@ -50,7 +57,7 @@ QString EffectProcessFactory_T<Model_T>::customConstructionData() const
   return {};
 }
 
-template<typename Model_T, typename Item_T, typename ExtView_T = void>
+template <typename Model_T, typename Item_T, typename ExtView_T = void>
 class EffectLayerFactory_T final : public Process::LayerFactory
 {
 public:
@@ -75,9 +82,9 @@ private:
       const Process::ProcessPresenterContext& context,
       QObject* parent) const final override
   {
-    auto pres = new EffectLayerPresenter{
-          safe_cast<const Model_T&>(lm),
-          safe_cast<EffectLayerView*>(v), context, parent};
+    auto pres = new EffectLayerPresenter{safe_cast<const Model_T&>(lm),
+                                         safe_cast<EffectLayerView*>(v),
+                                         context, parent};
 
     auto rect = new score::RectItem{v};
     auto item = makeItem(lm, context, rect);
@@ -93,17 +100,20 @@ private:
     return new Item_T{safe_cast<const Model_T&>(proc), ctx, parent};
   }
 
-  QWidget*
-  makeExternalUI(const Process::ProcessModel& proc,
-                 const score::DocumentContext& ctx,
-                 QWidget* parent) const final override
+  QWidget* makeExternalUI(
+      const Process::ProcessModel& proc,
+      const score::DocumentContext& ctx,
+      QWidget* parent) const final override
   {
-    (void) parent;
+    (void)parent;
     try
     {
-      if constexpr(!std::is_same_v<ExtView_T, void>)
+      if constexpr (!std::is_same_v<ExtView_T, void>)
         return new ExtView_T{safe_cast<const Model_T&>(proc), ctx, parent};
-    } catch(...) { }
+    }
+    catch (...)
+    {
+    }
     return nullptr;
   }
 
@@ -112,5 +122,4 @@ private:
     return p == Metadata<ConcreteKey_k, Model_T>::get();
   }
 };
-
 }

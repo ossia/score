@@ -1,18 +1,17 @@
 #pragma once
+#include <Automation/AutomationProcessMetadata.hpp>
+#include <Interpolation/InterpolationProcess.hpp>
+#include <Process/ProcessList.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <State/Address.hpp>
+#include <score/application/ApplicationContext.hpp>
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <utility>
 #include <vector>
-
-#include <Automation/AutomationProcessMetadata.hpp>
-#include <Interpolation/InterpolationProcess.hpp>
-#include <score/application/ApplicationContext.hpp>
-#include <Process/ProcessList.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -41,7 +40,9 @@ public:
       const IntervalModel& interval,
       const std::vector<SlotPath>& slotList,
       Id<Process::ProcessModel> procId)
-      : m_addProcessCmd{std::move(interval), std::move(procId), Metadata<ConcreteKey_k, ProcessModel_T>::get(), QString{}}
+      : m_addProcessCmd{std::move(interval), std::move(procId),
+                        Metadata<ConcreteKey_k, ProcessModel_T>::get(),
+                        QString{}}
   {
     m_slotsCmd.reserve(slotList.size());
     for (const auto& elt : slotList)
@@ -93,7 +94,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateAutomationFromStates final
     : public CreateProcessAndLayers<Automation::ProcessModel>
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), CreateAutomationFromStates,
+      ScenarioCommandFactoryName(),
+      CreateAutomationFromStates,
       "CreateCurveFromStates")
 public:
   CreateAutomationFromStates(
@@ -121,14 +123,17 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateInterpolationFromStates final
     : public CreateProcessAndLayers<Interpolation::ProcessModel>
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), CreateInterpolationFromStates,
+      ScenarioCommandFactoryName(),
+      CreateInterpolationFromStates,
       "CreateInterpolationFromStates")
 public:
   CreateInterpolationFromStates(
       const IntervalModel& interval,
       const std::vector<SlotPath>& slotList,
-      Id<Process::ProcessModel> curveId, State::AddressAccessor address,
-      ossia::value start, ossia::value end);
+      Id<Process::ProcessModel> curveId,
+      State::AddressAccessor address,
+      ossia::value start,
+      ossia::value end);
 
   void redo(const score::DocumentContext& ctx) const override;
 

@@ -2,7 +2,6 @@
 #include <Curve/CurvePresenter.hpp>
 #include <Curve/CurveView.hpp>
 #include <Curve/Palette/CurvePalette.hpp>
-
 #include <score/statemachine/CommonSelectionState.hpp>
 
 namespace Curve

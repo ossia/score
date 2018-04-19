@@ -1,14 +1,13 @@
 #pragma once
 #include <Process/State/MessageNode.hpp>
 #include <QString>
-#include <State/Message.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <vector>
-
 #include <State/Address.hpp>
+#include <State/Message.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/tools/std/Optional.hpp>
 #include <score_lib_process_export.h>
+#include <vector>
 
 namespace Process
 {

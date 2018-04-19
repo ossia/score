@@ -1,26 +1,25 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <score/tools/RandomNameProvider.hpp>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "SplitEvent.hpp"
 
 #include <QDataStream>
 #include <QtGlobal>
-#include <boost/iterator/iterator_facade.hpp>
-#include <boost/multi_index/detail/hash_index_iterator.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <vector>
-
-#include "SplitEvent.hpp"
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <score/model/ModelMetadata.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
+#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
+#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <score/model/EntityMap.hpp>
+#include <score/model/ModelMetadata.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+#include <score/tools/RandomNameProvider.hpp>
+#include <vector>
 
 namespace Scenario
 {
@@ -71,10 +70,8 @@ void SplitEvent::redo(const score::DocumentContext& ctx) const
   auto& scenar = m_scenarioPath.find(ctx);
   auto& originalEvent = scenar.event(m_originalEvent);
   ScenarioCreate<EventModel>::redo(
-      m_newEvent,
-      scenar.timeSyncs.at(originalEvent.timeSync()),
-      originalEvent.extent(),
-      scenar);
+      m_newEvent, scenar.timeSyncs.at(originalEvent.timeSync()),
+      originalEvent.extent(), scenar);
 
   auto& newEvent = scenar.events.at(m_newEvent);
   newEvent.metadata().setName(m_createdName);

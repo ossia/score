@@ -2,10 +2,9 @@
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <score/command/Command.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
-
-#include <score/model/Identifier.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -25,9 +24,7 @@ class MoveInterval final : public score::Command
       ScenarioCommandFactoryName(), MoveInterval, "Move a interval")
 public:
   MoveInterval(
-      const Scenario::ProcessModel& scenar,
-      Id<IntervalModel> id,
-      double y);
+      const Scenario::ProcessModel& scenar, Id<IntervalModel> id, double y);
 
   void update(unused_t, unused_t, double height)
   {

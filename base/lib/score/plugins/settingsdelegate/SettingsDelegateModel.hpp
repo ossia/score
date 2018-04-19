@@ -1,8 +1,9 @@
 #pragma once
+#include <ossia/detail/algorithms.hpp>
+
 #include <QObject>
 #include <QSettings>
 #include <score/command/SettingsCommand.hpp>
-#include <ossia/detail/algorithms.hpp>
 #include <score/tools/Todo.hpp>
 #include <score_lib_base_export.h>
 
@@ -58,10 +59,10 @@ void setupDefaultSettings(QSettings& set, const T& tuple, Model& model)
 }
 
 #define SCORE_SETTINGS_COMMAND(ModelType, Name)                   \
-  struct Set##ModelType##Name final                                \
+  struct Set##ModelType##Name final                               \
       : public score::SettingsCommand<ModelType##Name##Parameter> \
-  {                                                                \
-    static constexpr const bool is_deferred = false;               \
+  {                                                               \
+    static constexpr const bool is_deferred = false;              \
     SCORE_SETTINGS_COMMAND_DECL(Set##ModelType##Name)             \
   };
 
@@ -70,10 +71,10 @@ void setupDefaultSettings(QSettings& set, const T& tuple, Model& model)
   SCORE_SETTINGS_COMMAND(ModelType, Name)
 
 #define SCORE_SETTINGS_DEFERRED_COMMAND(ModelType, Name)          \
-  struct Set##ModelType##Name final                                \
+  struct Set##ModelType##Name final                               \
       : public score::SettingsCommand<ModelType##Name##Parameter> \
-  {                                                                \
-    static constexpr const bool is_deferred = true;                \
+  {                                                               \
+    static constexpr const bool is_deferred = true;               \
     SCORE_SETTINGS_COMMAND_DECL(Set##ModelType##Name)             \
   };
 
@@ -82,14 +83,14 @@ void setupDefaultSettings(QSettings& set, const T& tuple, Model& model)
   SCORE_SETTINGS_DEFERRED_COMMAND(ModelType, Name)
 
 #define SCORE_SETTINGS_PARAMETER_HPP(Type, Name) \
-public:                                           \
-  Type get##Name() const;                         \
-  void set##Name(Type);                           \
-  Q_SIGNAL void Name##Changed(Type);              \
-                                                  \
+public:                                          \
+  Type get##Name() const;                        \
+  void set##Name(Type);                          \
+  Q_SIGNAL void Name##Changed(Type);             \
+                                                 \
 private:
 
-#define SCORE_SETTINGS_PARAMETER_CPP(Type, ModelType, Name)         \
+#define SCORE_SETTINGS_PARAMETER_CPP(Type, ModelType, Name)          \
   Type ModelType::get##Name() const                                  \
   {                                                                  \
     return m_##Name;                                                 \
@@ -104,20 +105,20 @@ private:
                                                                      \
     QSettings s;                                                     \
     s.setValue(Parameters::Name.key, QVariant::fromValue(m_##Name)); \
-    Name##Changed(val);                                         \
+    Name##Changed(val);                                              \
   }
 
-#define SCORE_PROJECTSETTINGS_PARAMETER_CPP(Type, ModelType, Name)   \
-  Type ModelType::get##Name() const                                  \
-  {                                                                  \
-    return m_##Name;                                                 \
-  }                                                                  \
-                                                                     \
-  void ModelType::set##Name(Type val)                                \
-  {                                                                  \
-    if (val == m_##Name)                                             \
-      return;                                                        \
-                                                                     \
-    m_##Name = val;                                                  \
-    Name##Changed(val);                                              \
+#define SCORE_PROJECTSETTINGS_PARAMETER_CPP(Type, ModelType, Name) \
+  Type ModelType::get##Name() const                                \
+  {                                                                \
+    return m_##Name;                                               \
+  }                                                                \
+                                                                   \
+  void ModelType::set##Name(Type val)                              \
+  {                                                                \
+    if (val == m_##Name)                                           \
+      return;                                                      \
+                                                                   \
+    m_##Name = val;                                                \
+    Name##Changed(val);                                            \
   }

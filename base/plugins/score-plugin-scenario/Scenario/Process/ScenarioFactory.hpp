@@ -1,10 +1,9 @@
 #pragma once
+#include <Process/GenericProcessFactory.hpp>
 #include <Process/ProcessFactory.hpp>
+#include <Process/TimeValue.hpp>
 #include <QByteArray>
 #include <QString>
-
-#include <Process/GenericProcessFactory.hpp>
-#include <Process/TimeValue.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 namespace Process
 {
@@ -34,10 +33,11 @@ public:
       QObject* parent) const override;
 
   Process::LayerView* makeLayerView(
-      const Process::ProcessModel& viewmodel, QGraphicsItem* parent) const override;
+      const Process::ProcessModel& viewmodel,
+      QGraphicsItem* parent) const override;
 
-  Process::MiniLayer*
-  makeMiniLayer(const Process::ProcessModel& view, QGraphicsItem* parent) const override;
+  Process::MiniLayer* makeMiniLayer(
+      const Process::ProcessModel& view, QGraphicsItem* parent) const override;
 
   bool matches(const UuidKey<Process::ProcessModel>& p) const override;
   UuidKey<Process::ProcessModel> concreteKey() const noexcept override;

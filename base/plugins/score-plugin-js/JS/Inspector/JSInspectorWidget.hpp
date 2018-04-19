@@ -12,9 +12,11 @@ namespace JS
 {
 struct JSWidgetBase
 {
-  JSWidgetBase(const score::CommandStackFacade& st): m_dispatcher{st} { }
+  JSWidgetBase(const score::CommandStackFacade& st) : m_dispatcher{st}
+  {
+  }
 
-  template<typename Widg, typename T>
+  template <typename Widg, typename T>
   void init(Widg* self, T& model);
   void on_modelChanged(const QString& script);
 
@@ -31,6 +33,7 @@ class InspectorWidget final
 {
   Q_OBJECT
   friend struct JSWidgetBase;
+
 public:
   explicit InspectorWidget(
       const JS::ProcessModel& object,
@@ -39,9 +42,10 @@ public:
 
 Q_SIGNALS:
   void pressed();
+
 private:
   void on_textChange(const QString& newText);
-  void updateControls(const score::DocumentContext& );
+  void updateControls(const score::DocumentContext&);
   QWidget* m_ctrlWidg{};
 };
 }

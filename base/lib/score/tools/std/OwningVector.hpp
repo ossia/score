@@ -3,7 +3,10 @@
 #include <memory>
 #include <vector>
 
-template <template <class, class> class Container, typename T, typename U = std::allocator<std::unique_ptr<T>>>
+template <
+    template <class, class> class Container,
+    typename T,
+    typename U = std::allocator<std::unique_ptr<T>>>
 class PtrContainer : Container<std::unique_ptr<T>, U>
 {
 public:

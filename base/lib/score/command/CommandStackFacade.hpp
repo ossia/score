@@ -6,7 +6,8 @@ namespace score
  * @brief A small abstraction layer over the score::CommandStack
  *
  * This is a restriction of the API of the score::CommandStack, which allows
- * a lot of things that only make sense in the context of the base software, not plugins.
+ * a lot of things that only make sense in the context of the base software,
+ * not plugins.
  *
  * It is meant to be used by plug-ins authors.
  */

@@ -1,27 +1,25 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QApplication>
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <boost/iterator/iterator_facade.hpp>
-#include <score/tools/std/Optional.hpp>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DisplayedElementsPresenter.hpp"
+
 #include <ossia/detail/algorithms.hpp>
+
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
+#include <QApplication>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
-#include <Scenario/Document/Interval/IntervalDurations.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/IntervalView.hpp>
-#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/Event/EventView.hpp>
+#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalDurations.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/IntervalView.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
@@ -29,10 +27,13 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncView.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <boost/iterator/iterator_facade.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/tools/Todo.hpp>
+#include <score/tools/std/Optional.hpp>
 #include <score/widgets/GraphicsProxyObject.hpp>
 #include <tuple>
 #include <type_traits>
@@ -44,8 +45,9 @@ class DisplayedElementsModel;
 DisplayedElementsPresenter::DisplayedElementsPresenter(
     ScenarioDocumentPresenter& parent)
     : QObject{&parent}
-    , BaseScenarioPresenter<DisplayedElementsModel, FullViewIntervalPresenter>{
-        parent.displayedElements}
+    , BaseScenarioPresenter<
+          DisplayedElementsModel,
+          FullViewIntervalPresenter>{parent.displayedElements}
     , m_model{parent}
 {
 }
@@ -110,12 +112,11 @@ void DisplayedElementsPresenter::on_displayedIntervalChanged(
           &IntervalDurations::defaultDurationChanged, this,
           &DisplayedElementsPresenter::on_displayedIntervalDurationChanged));
   m_connections.push_back(
-        con(m_intervalPresenter->model(),
-            &IntervalModel::heightFinishedChanging, this,
-            [&]() {
-              on_displayedIntervalHeightChanged(
-                  m_intervalPresenter->view()->height());
-            }));
+      con(m_intervalPresenter->model(), &IntervalModel::heightFinishedChanging,
+          this, [&]() {
+            on_displayedIntervalHeightChanged(
+                m_intervalPresenter->view()->height());
+          }));
 
   m_connections.push_back(connect(
       m_intervalPresenter, &FullViewIntervalPresenter::heightChanged, this,
@@ -125,12 +126,8 @@ void DisplayedElementsPresenter::on_displayedIntervalChanged(
       }));
 
   auto elements = std::make_tuple(
-      m_intervalPresenter,
-      m_startStatePresenter,
-      m_endStatePresenter,
-      m_startEventPresenter,
-      m_endEventPresenter,
-      m_startNodePresenter,
+      m_intervalPresenter, m_startStatePresenter, m_endStatePresenter,
+      m_startEventPresenter, m_endEventPresenter, m_startNodePresenter,
       m_endNodePresenter);
 
   ossia::for_each_in_tuple(elements, [&](auto elt) {
@@ -140,7 +137,8 @@ void DisplayedElementsPresenter::on_displayedIntervalChanged(
     m_connections.push_back(connect(
         elt, &elt_t::moved, &m_model, &ScenarioDocumentPresenter::moved));
     m_connections.push_back(connect(
-        elt, &elt_t::released, &m_model, &ScenarioDocumentPresenter::released));
+        elt, &elt_t::released, &m_model,
+        &ScenarioDocumentPresenter::released));
   });
 
   elts.startState->view()->disableOverlay();
@@ -161,7 +159,7 @@ void DisplayedElementsPresenter::showInterval()
   if (!rack.empty())
   {
     auto& procs = rack.front().processes;
-    if(!procs.empty())
+    if (!procs.empty())
       requestFocusedPresenterChange(procs.front().presenter);
     // TODO else ??
   }
@@ -173,32 +171,28 @@ void DisplayedElementsPresenter::on_zoomRatioChanged(ZoomRatio r)
 {
   if (!m_intervalPresenter)
     return;
-  updateLength(m_intervalPresenter->model()
-                   .duration.defaultDuration()
-                   .toPixels(r));
+  updateLength(
+      m_intervalPresenter->model().duration.defaultDuration().toPixels(r));
 
   m_intervalPresenter->on_zoomRatioChanged(r);
 }
 
-void DisplayedElementsPresenter::on_displayedIntervalDurationChanged(
-    TimeVal t)
+void DisplayedElementsPresenter::on_displayedIntervalDurationChanged(TimeVal t)
 {
   updateLength(t.toPixels(m_model.zoomRatio()));
 }
 
 const double deltaX = 10.;
 const double deltaY = 20.;
-void DisplayedElementsPresenter::on_displayedIntervalHeightChanged(
-    double size)
+void DisplayedElementsPresenter::on_displayedIntervalHeightChanged(double size)
 {
   auto cur_rect = m_model.view().view().sceneRect();
   QRectF new_rect{qreal(ScenarioLeftSpace), 0.,
-                  m_intervalPresenter->model()
-                      .duration.guiDuration()
-                      .toPixels(m_intervalPresenter->zoomRatio()),
+                  m_intervalPresenter->model().duration.guiDuration().toPixels(
+                      m_intervalPresenter->zoomRatio()),
                   size + 40};
 
-  if(qApp->mouseButtons() & Qt::MouseButton::LeftButton)
+  if (qApp->mouseButtons() & Qt::MouseButton::LeftButton)
     new_rect.setHeight(std::max(new_rect.height(), cur_rect.height()));
   m_model.updateRect(new_rect);
 
@@ -232,12 +226,12 @@ void DisplayedElementsPresenter::on_intervalExecutionTimer()
 {
   auto& cst = *m_intervalPresenter;
   auto pp = cst.model().duration.playPercentage();
-  if(double w = cst.on_playPercentageChanged(pp))
+  if (double w = cst.on_playPercentageChanged(pp))
   {
     auto& v = *cst.view();
     const auto r = v.boundingRect();
 
-    if(pp != 0)
+    if (pp != 0)
       v.update(r.x() + v.playWidth() - w, r.y(), 2. * w, 5.);
     else
       v.update();

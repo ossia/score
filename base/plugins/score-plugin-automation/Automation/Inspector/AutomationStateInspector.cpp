@@ -1,16 +1,15 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QLabel>
-#include <QVBoxLayout>
-#include <list>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AutomationStateInspector.hpp"
+
 #include <Automation/State/AutomationState.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
+#include <QLabel>
+#include <QVBoxLayout>
 #include <State/Message.hpp>
+#include <list>
 #include <score/tools/Todo.hpp>
-
 #include <score/widgets/TextLabel.hpp>
 
 namespace Automation

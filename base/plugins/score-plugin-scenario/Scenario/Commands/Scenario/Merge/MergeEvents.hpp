@@ -1,22 +1,19 @@
 #pragma once
 
 #include "MergeTimeSyncs.hpp"
+
 #include <Scenario/Commands/Scenario/Displacement/MoveEvent.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Process/Algorithms/GoodOldDisplacementPolicy.hpp>
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-
-#include <score/command/Command.hpp>
 #include <score/command/AggregateCommand.hpp>
-
+#include <score/command/Command.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
-#include <score/model/Identifier.hpp>
-
 #include <score/serialization/DataStreamVisitor.hpp>
 
 namespace Scenario
@@ -24,11 +21,10 @@ namespace Scenario
 
 namespace Command
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT MergeEvents final
-    : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT MergeEvents final : public score::Command
 {
-    SCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MergeEvents, "Merge events")
-    public:
+  SCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MergeEvents, "Merge events")
+public:
   MergeEvents(
       const ProcessModel& scenario,
       Id<EventModel> clickedEv,
@@ -53,9 +49,8 @@ private:
 
 class MergeEventMacro final : public score::AggregateCommand
 {
-    SCORE_COMMAND_DECL(
-        ScenarioCommandFactoryName(), MergeEventMacro,
-        "Merge events")
+  SCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(), MergeEventMacro, "Merge events")
 };
 }
 }

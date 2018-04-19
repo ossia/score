@@ -26,11 +26,9 @@ public:
     changed();
   }
 
-  void changed()
-  W_SIGNAL(changed)
+  void changed() W_SIGNAL(changed)
 
-private:
-  QPointer<const IdentifiedObjectAbstract> m_obj{};
+      private : QPointer<const IdentifiedObjectAbstract> m_obj{};
 };
 
 struct SCORE_LIB_BASE_EXPORT FocusFacade

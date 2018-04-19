@@ -1,22 +1,19 @@
 #pragma once
-#include <Process/TimeValue.hpp>
-#include <score/model/Identifier.hpp>
-
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-
-#include <Scenario/Commands/Scenario/Deletions/ClearInterval.hpp>
-#include <Scenario/Document/Interval/Slot.hpp>
-#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
-#include <score/document/DocumentInterface.hpp>
-
 #include <Process/ProcessList.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Commands/Scenario/Deletions/ClearInterval.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
-#include <score/tools/MapCopy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
+#include <score/document/DocumentInterface.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/tools/MapCopy.hpp>
 
 namespace Scenario
 {
@@ -35,8 +32,7 @@ public:
   {
     // update each affected timesyncs
     for (auto it = propsToUpdate.timesyncs.cbegin();
-         it != propsToUpdate.timesyncs.cend();
-         ++it)
+         it != propsToUpdate.timesyncs.cend(); ++it)
     {
       auto& curTimenodeToUpdate = scenario.timeSync(it.key());
       auto& curTimenodePropertiesToUpdate = it.value();
@@ -51,7 +47,7 @@ public:
     }
 
     // update affected intervals
-    for(auto& e : propsToUpdate.intervals)
+    for (auto& e : propsToUpdate.intervals)
     {
       auto curIntervalPropertiesToUpdate_id = e.first;
 
@@ -62,8 +58,8 @@ public:
       // compute default duration here
       const auto& date
           = scenario
-                .event(scenario.state(curIntervalToUpdate.startState())
-                           .eventId())
+                .event(
+                    scenario.state(curIntervalToUpdate.startState()).eventId())
                 .date();
       const auto& endDate
           = scenario
@@ -103,8 +99,7 @@ public:
   {
     // update each affected timesyncs with old values
     for (auto it = propsToUpdate.timesyncs.cbegin();
-         it != propsToUpdate.timesyncs.cend();
-         ++it)
+         it != propsToUpdate.timesyncs.cend(); ++it)
     {
       auto& curTimenodeToUpdate = scenario.timeSync(it.key());
       auto& curTimenodePropertiesToUpdate = it.value();
@@ -119,7 +114,7 @@ public:
     }
 
     // update affected intervals with old values and restor processes
-    for(auto& e : propsToUpdate.intervals)
+    for (auto& e : propsToUpdate.intervals)
     {
       auto curIntervalPropertiesToUpdate_id = e.first;
 
@@ -130,8 +125,8 @@ public:
       // compute default duration here
       const auto& date
           = scenario
-                .event(scenario.state(curIntervalToUpdate.startState())
-                           .eventId())
+                .event(
+                    scenario.state(curIntervalToUpdate.startState()).eventId())
                 .date();
       const auto& endDate
           = scenario

@@ -1,7 +1,6 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <score/command/Command.hpp>
-
 #include <score/model/path/Path.hpp>
 
 struct DataStreamInput;
@@ -47,9 +46,7 @@ class PutProcessToEnd final : public score::Command
 
 public:
   // Put proc2 before proc
-  PutProcessToEnd(
-      const IntervalModel& cst,
-      Id<Process::ProcessModel> proc);
+  PutProcessToEnd(const IntervalModel& cst, Id<Process::ProcessModel> proc);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
@@ -73,10 +70,8 @@ class SwapProcessPosition final : public score::Command
 public:
   SwapProcessPosition(
       const IntervalModel& cst,
-      Id<Process::ProcessModel>
-          proc,
-      Id<Process::ProcessModel>
-          proc2);
+      Id<Process::ProcessModel> proc,
+      Id<Process::ProcessModel> proc2);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

@@ -30,5 +30,4 @@ public:
 private:
   score::hash_map<StringKey<Toolbar>, Toolbar> m_container;
 };
-
 }

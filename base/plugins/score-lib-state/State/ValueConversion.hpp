@@ -71,8 +71,8 @@ fromQJsonValue(const QJsonValue& val, const QString& type);
 
 SCORE_LIB_STATE_EXPORT QString
 prettyType(const ossia::value& val); // For display to the user, translated
-SCORE_LIB_STATE_EXPORT QString
-    prettyType(ossia::val_type); // For display to the user, translated
+SCORE_LIB_STATE_EXPORT
+    QString prettyType(ossia::val_type); // For display to the user, translated
 SCORE_LIB_STATE_EXPORT const std::array<const QString, 11>&
 ValuePrettyTypesArray(); // For display to the user, translated
 SCORE_LIB_STATE_EXPORT const QStringList&

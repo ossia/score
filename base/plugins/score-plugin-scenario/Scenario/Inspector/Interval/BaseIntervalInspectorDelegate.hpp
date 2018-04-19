@@ -1,9 +1,8 @@
 #pragma once
-#include <Scenario/Inspector/Interval/IntervalInspectorDelegate.hpp>
-#include <list>
-
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
+#include <Scenario/Inspector/Interval/IntervalInspectorDelegate.hpp>
+#include <list>
 
 class OngoingCommandDispatcher;
 class QWidget;
@@ -14,8 +13,7 @@ class TriggerInspectorWidget;
 class IntervalInspectorWidget;
 class IntervalModel;
 
-class BaseIntervalInspectorDelegate final
-    : public IntervalInspectorDelegate
+class BaseIntervalInspectorDelegate final : public IntervalInspectorDelegate
 {
 public:
   BaseIntervalInspectorDelegate(const IntervalModel& cst);

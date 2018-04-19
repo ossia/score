@@ -1,9 +1,9 @@
 #pragma once
 #include <QList>
 #include <QModelIndex>
+#include <score/model/tree/InvisibleRootNode.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
-#include <score/model/tree/InvisibleRootNode.hpp>
 template <typename T>
 using ref = T&;
 template <typename T>
@@ -123,8 +123,7 @@ struct TSerializer<JSONObject, TreePath<T>>
 {
   static void readFrom(JSONObject::Serializer& s, const TreePath<T>& path)
   {
-    s.obj[s.strings.Path]
-        = toJsonArray(static_cast<const QList<int>&>(path));
+    s.obj[s.strings.Path] = toJsonArray(static_cast<const QList<int>&>(path));
   }
 
   static void writeTo(JSONObject::Deserializer& s, TreePath<T>& path)

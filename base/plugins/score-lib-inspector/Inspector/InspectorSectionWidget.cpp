@@ -1,25 +1,24 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "InspectorSectionWidget.hpp"
-#include <score/tools/Todo.hpp>
-#include <QLayoutItem>
-#include <qnamespace.h>
-#include <score/widgets/SetIcons.hpp>
 
 #include <QAction>
+#include <QLayoutItem>
 #include <QMenu>
+#include <qnamespace.h>
+#include <score/tools/Todo.hpp>
+#include <score/widgets/SetIcons.hpp>
 
 namespace Inspector
 {
-MenuButton::MenuButton(QWidget* parent):
-  QPushButton{QStringLiteral("o"), parent}
+MenuButton::MenuButton(QWidget* parent)
+    : QPushButton{QStringLiteral("o"), parent}
 {
   setFlat(true);
   setObjectName(QStringLiteral("SettingsMenu"));
-  auto icon = makeIcons(
-      ":/icons/gear_on.png", ":/icons/gear_off.png");
+  auto icon = makeIcons(":/icons/gear_on.png", ":/icons/gear_off.png");
   setIcon(icon);
-  setIconSize(QSize(16,16));
+  setIconSize(QSize(16, 16));
 }
 
 InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
@@ -35,15 +34,14 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
   // HEADER : arrow button and name
   this->setContentsMargins(0, 0, 0, 0);
   m_title.setContentsMargins(0, 0, 0, 0);
-  m_unfoldBtn.setIconSize({4,4});
+  m_unfoldBtn.setIconSize({4, 4});
 
   m_buttonTitle.setObjectName(QStringLiteral("ButtonTitle"));
   m_buttonTitle.setText(QStringLiteral("section name"));
 
   m_sectionTitle.setObjectName("SectionTitle");
-  con(m_sectionTitle, &QLineEdit::editingFinished, this, [=]() {
-    nameChanged(m_sectionTitle.text());
-  });
+  con(m_sectionTitle, &QLineEdit::editingFinished, this,
+      [=]() { nameChanged(m_sectionTitle.text()); });
   if (editable)
     m_buttonTitle.hide();
   else
@@ -65,12 +63,10 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
   // GENERAL
   m_generalLayout.addWidget(&m_title);
 
-  con(m_unfoldBtn, &QAbstractButton::released, this, [&] {
-    this->expand(!m_isUnfolded);
-  });
-  con(m_buttonTitle, &QAbstractButton::clicked, this, [&] {
-    this->expand(!m_isUnfolded);
-  });
+  con(m_unfoldBtn, &QAbstractButton::released, this,
+      [&] { this->expand(!m_isUnfolded); });
+  con(m_buttonTitle, &QAbstractButton::clicked, this,
+      [&] { this->expand(!m_isUnfolded); });
 
   // INIT
   m_isUnfolded = true;
@@ -100,9 +96,9 @@ void InspectorSectionWidget::expand(bool b)
   else
     m_isUnfolded = b;
 
-  for(int i = m_generalLayout.count() - 1; i >= 1; i--)
+  for (int i = m_generalLayout.count() - 1; i >= 1; i--)
   {
-    if(auto widg = m_generalLayout.itemAt(i)->widget())
+    if (auto widg = m_generalLayout.itemAt(i)->widget())
       widg->setVisible(m_isUnfolded);
   }
 
@@ -150,6 +146,4 @@ void InspectorSectionWidget::showMenu(bool b)
 {
   m_menuBtn.setHidden(!b);
 }
-
-
 }

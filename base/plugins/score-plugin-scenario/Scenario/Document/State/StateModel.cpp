@@ -1,20 +1,21 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "StateModel.hpp"
+
+#include "ItemModel/MessageItemModelAlgorithms.hpp"
+
+#include <Process/Process.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
 #include <QAbstractItemModel>
 #include <QObject>
-#include <algorithm>
-#include <score/document/DocumentInterface.hpp>
-
-#include "ItemModel/MessageItemModelAlgorithms.hpp"
-#include "StateModel.hpp"
-#include <Process/Process.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <State/Message.hpp>
+#include <algorithm>
 #include <score/document/DocumentContext.hpp>
+#include <score/document/DocumentInterface.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
 
@@ -114,7 +115,5 @@ void StateModel::setStatus(ExecutionStatus status)
 
 ProcessStateWrapper::~ProcessStateWrapper()
 {
-
 }
-
 }

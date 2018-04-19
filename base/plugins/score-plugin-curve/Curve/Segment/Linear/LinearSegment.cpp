@@ -1,15 +1,14 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QPoint>
-#include <score/serialization/VisitorCommon.hpp>
-#include <vector>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "LinearSegment.hpp"
-#include <Curve/Palette/CurvePoint.hpp>
-
-#include <score/model/Identifier.hpp>
 
 #include <ossia/editor/curve/curve_segment/linear.hpp>
+
+#include <Curve/Palette/CurvePoint.hpp>
+#include <QPoint>
+#include <score/model/Identifier.hpp>
+#include <score/serialization/VisitorCommon.hpp>
+#include <vector>
 
 namespace Curve
 {

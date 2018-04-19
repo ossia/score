@@ -1,15 +1,13 @@
 #pragma once
-#include <Scenario/Application/ScenarioEditionSettings.hpp>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
-
+#include <Process/Layer/LayerContextMenu.hpp>
+#include <QVector>
 #include <Scenario/Application/Menus/ObjectMenuActions.hpp>
 #include <Scenario/Application/Menus/ToolMenuActions.hpp>
 #include <Scenario/Application/Menus/TransportActions.hpp>
-
-#include <Process/Layer/LayerContextMenu.hpp>
-#include <QVector>
+#include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Execution/ScenarioExecution.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score_plugin_scenario_export.h>
 #include <vector>
 
@@ -35,8 +33,8 @@ class ScenarioInterface;
 class StateModel;
 
 class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final
-    : public QObject,
-      public score::GUIApplicationPlugin
+    : public QObject
+    , public score::GUIApplicationPlugin
 {
   Q_OBJECT
   friend class ScenarioContextMenuManager;

@@ -1,20 +1,20 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QBoxLayout>
-#include <QPushButton>
-#include <Scenario/Commands/TimeSync/SetTrigger.hpp>
-#include <algorithm>
-#include <score/widgets/MarginLess.hpp>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TriggerInspectorWidget.hpp"
+
 #include <Inspector/InspectorWidgetBase.hpp>
+#include <QBoxLayout>
 #include <QInputDialog>
 #include <QMenu>
+#include <QPushButton>
+#include <Scenario/Commands/TimeSync/SetTrigger.hpp>
 #include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Inspector/Expression/ExpressionEditorWidget.hpp>
+#include <algorithm>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/model/path/Path.hpp>
+#include <score/widgets/MarginLess.hpp>
 
 namespace Scenario
 {
@@ -55,20 +55,21 @@ TriggerInspectorWidget::TriggerInspectorWidget(
   connect(
       m_menu.deleteAction, &QAction::triggered, this,
       &TriggerInspectorWidget::removeTrigger);
-  con(m_menu, &ExpressionMenu::expressionChanged, this, [=] (const QString&
-                                                                str) {
-    auto trig = State::parseExpression(str);
-    if (!trig)
-    {
-      trig = State::defaultTrueExpression();
-    }
+  con(m_menu, &ExpressionMenu::expressionChanged, this,
+      [=](const QString& str) {
+        auto trig = State::parseExpression(str);
+        if (!trig)
+        {
+          trig = State::defaultTrueExpression();
+        }
 
-    if (*trig != m_model.expression())
-    {
-      auto cmd = new Scenario::Command::SetTrigger{m_model, std::move(*trig)};
-      m_parent->commandDispatcher()->submitCommand(cmd);
-    }
-  });
+        if (*trig != m_model.expression())
+        {
+          auto cmd
+              = new Scenario::Command::SetTrigger{m_model, std::move(*trig)};
+          m_parent->commandDispatcher()->submitCommand(cmd);
+        }
+      });
   con(m_model, &TimeSyncModel::activeChanged, this,
       &TriggerInspectorWidget::on_triggerActiveChanged);
 }

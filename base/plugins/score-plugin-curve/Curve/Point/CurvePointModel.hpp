@@ -1,10 +1,9 @@
 #pragma once
-#include <score/selection/Selectable.hpp>
-#include <score/model/IdentifiedObject.hpp>
-#include <score/tools/std/Optional.hpp>
-
 #include <Curve/Palette/CurvePoint.hpp>
+#include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/selection/Selectable.hpp>
+#include <score/tools/std/Optional.hpp>
 #include <score_plugin_curve_export.h>
 
 class QObject;

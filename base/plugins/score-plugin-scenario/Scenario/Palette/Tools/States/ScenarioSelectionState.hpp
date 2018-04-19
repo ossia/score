@@ -1,9 +1,7 @@
 #pragma once
-#include <score/statemachine/CommonSelectionState.hpp>
-
-#include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
-
 #include <QPointF>
+#include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
+#include <score/statemachine/CommonSelectionState.hpp>
 
 namespace Scenario
 {

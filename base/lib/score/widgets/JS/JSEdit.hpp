@@ -51,7 +51,8 @@ class SCORE_LIB_BASE_EXPORT JSEdit final : public QPlainTextEdit
       bool textWrapEnabled READ isTextWrapEnabled WRITE setTextWrapEnabled)
 
 public:
-  typedef enum {
+  typedef enum
+  {
     Background,
     Normal,
     Comment,

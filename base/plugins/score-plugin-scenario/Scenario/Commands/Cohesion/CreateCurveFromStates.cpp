@@ -1,30 +1,27 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "CreateCurveFromStates.hpp"
+
 #include <Automation/AutomationModel.hpp>
 #include <Curve/CurveModel.hpp>
-#include <Curve/Segment/Power/PowerSegment.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-
-#include <score/tools/std/Optional.hpp>
-
-#include <QByteArray>
-#include <score/tools/IdentifierGeneration.hpp>
-
-#include "CreateCurveFromStates.hpp"
 #include <Curve/Segment/CurveSegmentModel.hpp>
+#include <Curve/Segment/Power/PowerSegment.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
+#include <QByteArray>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <State/ValueSerialization.hpp>
 #include <score/application/ApplicationContext.hpp>
+#include <score/model/EntityMap.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/model/path/Path.hpp>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
-
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
-#include <score/model/EntityMap.hpp>
-#include <score/model/path/Path.hpp>
-#include <score/model/Identifier.hpp>
-#include <State/ValueSerialization.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+#include <score/tools/std/Optional.hpp>
 
 namespace Scenario
 {
@@ -89,10 +86,11 @@ void CreateAutomationFromStates::deserializeImpl(DataStreamOutput& s)
 
 CreateInterpolationFromStates::CreateInterpolationFromStates(
     const IntervalModel& interval,
-    const std::vector<SlotPath>&
-        slotList,
-    Id<Process::ProcessModel> curveId, State::AddressAccessor address,
-    ossia::value start, ossia::value end)
+    const std::vector<SlotPath>& slotList,
+    Id<Process::ProcessModel> curveId,
+    State::AddressAccessor address,
+    ossia::value start,
+    ossia::value end)
     : CreateProcessAndLayers<Interpolation::ProcessModel>{interval, slotList,
                                                           std::move(curveId)}
     , m_address{std::move(address)}
@@ -101,7 +99,8 @@ CreateInterpolationFromStates::CreateInterpolationFromStates(
 {
 }
 
-void CreateInterpolationFromStates::redo(const score::DocumentContext& ctx) const
+void CreateInterpolationFromStates::redo(
+    const score::DocumentContext& ctx) const
 {
   m_addProcessCmd.redo(ctx);
 

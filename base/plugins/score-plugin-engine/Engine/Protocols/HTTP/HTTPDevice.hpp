@@ -11,7 +11,6 @@ public:
   HTTPDevice(const Device::DeviceSettings& settings);
 
   bool reconnect() override;
-
 };
 }
 }

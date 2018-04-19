@@ -1,6 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CurveCommandObjectBase.hpp"
+
 #include <Curve/Commands/UpdateCurve.hpp>
 #include <Curve/CurveModel.hpp>
 #include <Curve/CurvePresenter.hpp>
@@ -52,7 +53,6 @@ void CommandObjectBase::handleLocking()
     m_state->currentPoint.setX(0.);
   else if (bounded && current_x > 1.)
     m_state->currentPoint.setX(1.);
-
 
   if (current_y < 0.)
     m_state->currentPoint.setY(0.);

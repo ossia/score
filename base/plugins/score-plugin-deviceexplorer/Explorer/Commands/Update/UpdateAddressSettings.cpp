@@ -1,15 +1,15 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "UpdateAddressSettings.hpp"
+
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/tree/TreeNode.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 
 namespace Explorer
 {
@@ -19,7 +19,7 @@ UpdateAddressSettings::UpdateAddressSettings(
     const DeviceDocumentPlugin& devplug,
     const Device::NodePath& node,
     const Device::AddressSettings& parameters)
-    :m_node(node), m_newParameters(parameters)
+    : m_node(node), m_newParameters(parameters)
 {
   auto n = m_node.toNode(&devplug.rootNode());
   SCORE_ASSERT(n);

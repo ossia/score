@@ -1,21 +1,20 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <score/tools/RandomNameProvider.hpp>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "CreateInterval_State_Event.hpp"
 
 #include <QByteArray>
-#include <boost/iterator/iterator_facade.hpp>
-#include <boost/multi_index/detail/hash_index_iterator.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <vector>
-
-#include "CreateInterval_State_Event.hpp"
 #include <Scenario/Commands/Scenario/Creations/CreateInterval_State.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <score/model/EntityMap.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
-#include <score/model/EntityMap.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+#include <score/tools/RandomNameProvider.hpp>
+#include <vector>
 
 namespace Scenario
 {
@@ -23,10 +22,8 @@ namespace Command
 {
 CreateInterval_State_Event::CreateInterval_State_Event(
     const Scenario::ProcessModel& scenario,
-    Id<StateModel>
-        startState,
-    Id<TimeSyncModel>
-        endTimeSync,
+    Id<StateModel> startState,
+    Id<TimeSyncModel> endTimeSync,
     double endStateY)
     : m_newEvent{getStrongId(scenario.events)}
     , m_createdName{RandomNameProvider::generateName<EventModel>()}
@@ -49,10 +46,8 @@ void CreateInterval_State_Event::redo(const score::DocumentContext& ctx) const
 
   // Create the end event
   ScenarioCreate<EventModel>::redo(
-      m_newEvent,
-      scenar.timeSync(m_endTimeSync),
-      {m_command.endStateY(), m_command.endStateY()},
-      scenar);
+      m_newEvent, scenar.timeSync(m_endTimeSync),
+      {m_command.endStateY(), m_command.endStateY()}, scenar);
 
   scenar.events.at(m_newEvent).metadata().setName(m_createdName);
 

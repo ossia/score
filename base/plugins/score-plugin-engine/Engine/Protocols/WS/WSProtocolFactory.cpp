@@ -1,13 +1,15 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QObject>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "WSProtocolFactory.hpp"
 
 #include "WSDevice.hpp"
-#include "WSProtocolFactory.hpp"
+
+#include <ossia/network/base/device.hpp>
+
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/Protocols/WS/WSProtocolSettingsWidget.hpp>
 #include <Engine/Protocols/WS/WSSpecificSettings.hpp>
-#include <ossia/network/base/device.hpp>
+#include <QObject>
 
 namespace Device
 {

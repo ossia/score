@@ -1,14 +1,13 @@
 #pragma once
+#include <Process/ProcessContext.hpp>
 #include <Process/Tools/ToolPalette.hpp>
 #include <QPoint>
+#include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Palette/Tool.hpp>
 #include <Scenario/Palette/Tools/CreationToolState.hpp>
 #include <Scenario/Palette/Tools/PlayToolState.hpp>
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
-
-#include <Process/ProcessContext.hpp>
-#include <Scenario/Palette/ScenarioPoint.hpp>
 
 namespace score
 {
@@ -64,12 +63,24 @@ private:
   Process::LayerContext& m_context;
 
   CreationTool<ProcessModel, Scenario::ToolPalette> m_createTool;
-  SmartTool<ProcessModel, Scenario::ToolPalette, TemporalScenarioView, Scenario::MoveIntervalInScenario_StateWrapper, Scenario::MoveLeftBraceInScenario_StateWrapper, Scenario::MoveRightBraceInScenario_StateWrapper, Scenario::MoveEventInScenario_StateWrapper, Scenario::MoveTimeSyncInScenario_StateWrapper>
+  SmartTool<
+      ProcessModel,
+      Scenario::ToolPalette,
+      TemporalScenarioView,
+      Scenario::MoveIntervalInScenario_StateWrapper,
+      Scenario::MoveLeftBraceInScenario_StateWrapper,
+      Scenario::MoveRightBraceInScenario_StateWrapper,
+      Scenario::MoveEventInScenario_StateWrapper,
+      Scenario::MoveTimeSyncInScenario_StateWrapper>
       m_selectTool;
 
   PlayToolState m_playTool;
 
-  ToolPaletteInputDispatcher<Scenario::Tool, ToolPalette, Process::LayerContext, TemporalScenarioView>
+  ToolPaletteInputDispatcher<
+      Scenario::Tool,
+      ToolPalette,
+      Process::LayerContext,
+      TemporalScenarioView>
       m_inputDisp;
 };
 }

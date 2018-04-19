@@ -1,17 +1,17 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "IntervalView.hpp"
+
+#include "IntervalMenuOverlay.hpp"
+#include "IntervalPresenter.hpp"
+
+#include <QCursor>
 #include <QGraphicsSceneEvent>
 #include <QtGlobal>
-#include <QCursor>
-
-#include "IntervalPresenter.hpp"
-#include "IntervalView.hpp"
-#include "IntervalMenuOverlay.hpp"
 
 namespace Scenario
 {
-IntervalView::IntervalView(
-    IntervalPresenter& presenter, QGraphicsItem* parent)
+IntervalView::IntervalView(IntervalPresenter& presenter, QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_leftBrace{*this, this}
     , m_rightBrace{*this, this}
@@ -44,7 +44,7 @@ IntervalView::~IntervalView()
 
 void IntervalView::setInfinite(bool infinite)
 {
-  if(m_infinite != infinite)
+  if (m_infinite != infinite)
   {
     prepareGeometryChange();
 
@@ -63,7 +63,7 @@ void IntervalView::setExecuting(bool e)
 
 void IntervalView::setDefaultWidth(double width)
 {
-  if(m_defaultWidth != width)
+  if (m_defaultWidth != width)
   {
     prepareGeometryChange();
     m_defaultWidth = width;
@@ -75,7 +75,7 @@ void IntervalView::setDefaultWidth(double width)
 
 void IntervalView::setMaxWidth(bool infinite, double max)
 {
-  if(infinite != m_infinite || max != m_maxWidth)
+  if (infinite != m_infinite || max != m_maxWidth)
   {
     prepareGeometryChange();
 
@@ -92,7 +92,7 @@ void IntervalView::setMaxWidth(bool infinite, double max)
 
 void IntervalView::setMinWidth(double min)
 {
-  if(min != m_minWidth)
+  if (min != m_minWidth)
   {
     prepareGeometryChange();
     m_minWidth = min;
@@ -104,7 +104,7 @@ void IntervalView::setMinWidth(double min)
 
 void IntervalView::setHeight(double height)
 {
-  if(m_height != height)
+  if (m_height != height)
   {
     prepareGeometryChange();
     m_height = height;
@@ -117,7 +117,9 @@ void IntervalView::setHeight(double height)
 double IntervalView::setPlayWidth(double width)
 {
   const auto v = std::abs(m_playWidth - width);
-  if(v > 1. || (width > 0 && (playedSolidPath.isEmpty() || playedDashedPath.isEmpty())))
+  if (v > 1.
+      || (width > 0
+          && (playedSolidPath.isEmpty() || playedDashedPath.isEmpty())))
   {
     m_playWidth = width;
     updatePlayPaths();
@@ -145,7 +147,7 @@ void IntervalView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   if (event->button() == Qt::MouseButton::LeftButton)
   {
-    if(event->pos().y() < 4)
+    if (event->pos().y() < 4)
       setGripCursor();
     else
       unsetCursor();
@@ -161,7 +163,7 @@ void IntervalView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 void IntervalView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   m_presenter.released(event->scenePos());
-  if(event->pos().y() < 4)
+  if (event->pos().y() < 4)
     setUngripCursor();
   else
     unsetCursor();
@@ -204,7 +206,8 @@ const QBrush& IntervalView::intervalColor(const ScenarioStyle& skin) const
 
 void IntervalView::updateOverlay()
 {
-  if(m_overlay) m_overlay->update();
+  if (m_overlay)
+    m_overlay->update();
   update();
 }
 void IntervalView::updateLabelPos()
@@ -212,7 +215,7 @@ void IntervalView::updateLabelPos()
   const auto defW = defaultWidth();
   const auto textW = m_labelItem.boundingRect().width();
   const bool vis = m_labelItem.isVisible();
-  if(defW > textW && !vis)
+  if (defW > textW && !vis)
   {
     m_labelItem.setVisible(true);
     m_labelItem.setPos(defW / 2. - textW / 2., -17);
@@ -221,7 +224,7 @@ void IntervalView::updateLabelPos()
   {
     m_labelItem.setVisible(false);
   }
-  else if(vis)
+  else if (vis)
   {
     m_labelItem.setPos(defW / 2. - textW / 2., -17);
   }
@@ -230,7 +233,7 @@ void IntervalView::updateLabelPos()
 void IntervalView::updateCounterPos()
 {
   m_counterItem.setPos(
-        defaultWidth() - m_counterItem.boundingRect().width() - 5, 5);
+      defaultWidth() - m_counterItem.boundingRect().width() - 5, 5);
 }
 
 void IntervalView::setExecutionState(IntervalExecutionState s)

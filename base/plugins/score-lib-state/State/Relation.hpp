@@ -1,9 +1,10 @@
 #pragma once
 
+#include <ossia/editor/expression/operators.hpp>
+
 #include <QString>
 #include <State/Address.hpp>
 #include <State/Value.hpp>
-#include <ossia/editor/expression/operators.hpp>
 #include <eggs/variant.hpp>
 
 namespace State
@@ -41,7 +42,8 @@ struct SCORE_LIB_STATE_EXPORT Relation
     return *this;
   }
 
-  Relation(RelationMember l, ossia::expressions::comparator o, RelationMember r)
+  Relation(
+      RelationMember l, ossia::expressions::comparator o, RelationMember r)
       : lhs{std::move(l)}, op{o}, rhs{std::move(r)}
   {
   }

@@ -1,6 +1,6 @@
 #pragma once
-#include <Engine/LocalTree/Scenario/ProcessComponent.hpp>
 #include <Automation/AutomationModel.hpp>
+#include <Engine/LocalTree/Scenario/ProcessComponent.hpp>
 
 namespace Engine
 {
@@ -18,16 +18,14 @@ public:
       DocumentPlugin& ctx,
       QObject* parent_obj)
       : ProcessComponent_T<Automation::ProcessModel>{
-          parent, proc, ctx, id, "AutomationComponent", parent_obj}
+            parent, proc, ctx, id, "AutomationComponent", parent_obj}
   {
     m_properties.push_back(add_property<double>(
-        node(), "min", &proc,
-        &Automation::ProcessModel::min,
+        node(), "min", &proc, &Automation::ProcessModel::min,
         &Automation::ProcessModel::setMin,
         &Automation::ProcessModel::minChanged, this));
     m_properties.push_back(add_property<double>(
-        node(), "max", &proc,
-        &Automation::ProcessModel::max,
+        node(), "max", &proc, &Automation::ProcessModel::max,
         &Automation::ProcessModel::setMax,
         &Automation::ProcessModel::maxChanged, this));
   }
@@ -36,6 +34,7 @@ private:
   std::vector<std::unique_ptr<BaseProperty>> m_properties;
 };
 
-using AutomationComponentFactory = ProcessComponentFactory_T<AutomationComponent>;
+using AutomationComponentFactory
+    = ProcessComponentFactory_T<AutomationComponent>;
 }
 }

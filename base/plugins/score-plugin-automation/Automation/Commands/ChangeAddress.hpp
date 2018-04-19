@@ -45,46 +45,51 @@ namespace Spline
 class ProcessModel;
 class ChangeSplineAddress final : public score::Command
 {
-    SCORE_COMMAND_DECL(Automation::CommandFactoryName(), ChangeSplineAddress, "ChangeSplineAddress")
-    public:
-      ChangeSplineAddress(
-        const ProcessModel& autom, const State::AddressAccessor& newval);
+  SCORE_COMMAND_DECL(
+      Automation::CommandFactoryName(),
+      ChangeSplineAddress,
+      "ChangeSplineAddress")
+public:
+  ChangeSplineAddress(
+      const ProcessModel& autom, const State::AddressAccessor& newval);
 
-  public:
-    void undo(const score::DocumentContext& ctx) const override;
-    void redo(const score::DocumentContext& ctx) const override;
+public:
+  void undo(const score::DocumentContext& ctx) const override;
+  void redo(const score::DocumentContext& ctx) const override;
 
-  protected:
-    void serializeImpl(DataStreamInput&) const override;
-    void deserializeImpl(DataStreamOutput&) override;
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
 
-  private:
-    Path<ProcessModel> m_path;
-    State::AddressAccessor m_old, m_new;
+private:
+  Path<ProcessModel> m_path;
+  State::AddressAccessor m_old, m_new;
 };
 }
-
 
 namespace Metronome
 {
 class ProcessModel;
 class ChangeMetronomeAddress final : public score::Command
 {
-    SCORE_COMMAND_DECL(Automation::CommandFactoryName(), ChangeMetronomeAddress, "ChangeMetronomeAddress")
-    public:
-      ChangeMetronomeAddress(
-        const ProcessModel& autom, const State::Address& newval);
+  SCORE_COMMAND_DECL(
+      Automation::CommandFactoryName(),
+      ChangeMetronomeAddress,
+      "ChangeMetronomeAddress")
+public:
+  ChangeMetronomeAddress(
+      const ProcessModel& autom, const State::Address& newval);
 
-  public:
-    void undo(const score::DocumentContext& ctx) const override;
-    void redo(const score::DocumentContext& ctx) const override;
+public:
+  void undo(const score::DocumentContext& ctx) const override;
+  void redo(const score::DocumentContext& ctx) const override;
 
-  protected:
-    void serializeImpl(DataStreamInput&) const override;
-    void deserializeImpl(DataStreamOutput&) override;
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
 
-  private:
-    Path<ProcessModel> m_path;
-    State::Address m_old, m_new;
+private:
+  Path<ProcessModel> m_path;
+  State::Address m_old, m_new;
 };
 }

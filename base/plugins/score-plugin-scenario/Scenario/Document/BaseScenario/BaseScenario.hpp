@@ -1,11 +1,10 @@
 #pragma once
 #include <QVector>
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
-#include <score/selection/Selection.hpp>
-#include <score/tools/Metadata.hpp>
-
-#include <score/serialization/VisitorInterface.hpp>
 #include <score/model/IdentifiedObject.hpp>
+#include <score/selection/Selection.hpp>
+#include <score/serialization/VisitorInterface.hpp>
+#include <score/tools/Metadata.hpp>
 
 class DataStream;
 class JSONObject;
@@ -15,8 +14,9 @@ namespace Scenario
 {
 class IntervalModel;
 class TimeSyncModel;
-class BaseScenario final : public IdentifiedObject<BaseScenario>,
-                           public BaseScenarioContainer
+class BaseScenario final
+    : public IdentifiedObject<BaseScenario>
+    , public BaseScenarioContainer
 {
   Q_OBJECT
   SCORE_SERIALIZE_FRIENDS

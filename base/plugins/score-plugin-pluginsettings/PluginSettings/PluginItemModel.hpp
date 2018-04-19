@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/detail/algorithms.hpp>
+
 #include <QAbstractItemModel>
 #include <QImage>
 #include <QUrl>
@@ -42,8 +43,9 @@ struct AddonVectorWrapper
 
   using iterator = boost::
       filter_iterator<not_core_addon, std::vector<score::Addon>::iterator>;
-  using const_iterator = boost::
-      filter_iterator<not_core_addon, std::vector<score::Addon>::const_iterator>;
+  using const_iterator = boost::filter_iterator<
+      not_core_addon,
+      std::vector<score::Addon>::const_iterator>;
 
   auto size() const
   {

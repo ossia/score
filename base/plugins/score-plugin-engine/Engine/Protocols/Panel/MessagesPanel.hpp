@@ -10,13 +10,17 @@ class DeviceList;
 namespace Engine
 {
 class LogMessagesItemModel;
-class MessagesPanelDelegate final : public QObject, public score::PanelDelegate
+class MessagesPanelDelegate final
+    : public QObject
+    , public score::PanelDelegate
 {
   friend class err_sink;
+
 public:
   MessagesPanelDelegate(const score::GUIApplicationContext& ctx);
 
   void qtLog(const std::string& str);
+
 private:
   QWidget* widget() override;
 

@@ -1,13 +1,11 @@
 #pragma once
+#include <Process/State/MessageNode.hpp>
 #include <QMap>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <score/command/Command.hpp>
-#include <score/model/path/Path.hpp>
-
-#include <Process/State/MessageNode.hpp>
 #include <State/Message.hpp>
+#include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
-
+#include <score/model/path/Path.hpp>
 #include <score_plugin_scenario_export.h>
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -30,8 +28,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT AddMessagesToState final
       "Add messages to state")
 public:
   AddMessagesToState(
-      const Scenario::StateModel& state,
-      const State::MessageList& messages);
+      const Scenario::StateModel& state, const State::MessageList& messages);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

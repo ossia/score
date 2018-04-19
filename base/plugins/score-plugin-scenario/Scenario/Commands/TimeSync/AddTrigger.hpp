@@ -1,15 +1,12 @@
 #pragma once
 
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <score/command/Command.hpp>
-#include <score/model/path/Path.hpp>
-
 #include <Scenario/Commands/Interval/SetRigidity.hpp>
-
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <score/document/DocumentInterface.hpp>
-
 #include <State/Expression.hpp>
+#include <score/command/Command.hpp>
+#include <score/document/DocumentInterface.hpp>
+#include <score/model/path/Path.hpp>
 
 namespace Scenario
 {
@@ -34,15 +31,14 @@ public:
   }
   static const CommandKey& static_key() noexcept
   {
-    static const CommandKey kagi{
-        QString("AddTrigger_") + Metadata<ObjectKey_k, Scenario_T>::get()};
+    static const CommandKey kagi{QString("AddTrigger_")
+                                 + Metadata<ObjectKey_k, Scenario_T>::get()};
     return kagi;
   }
 
   AddTrigger() = default;
 
-  AddTrigger(const TimeSyncModel& tn)
-      : m_path{tn}
+  AddTrigger(const TimeSyncModel& tn) : m_path{tn}
   {
     Scenario_T* scenar = safe_cast<Scenario_T*>(tn.parent());
     for (const auto& cstrId : intervalsBeforeTimeSync(*scenar, tn.id()))

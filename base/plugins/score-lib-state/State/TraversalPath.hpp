@@ -1,10 +1,9 @@
 #pragma once
 #include <QMetaType>
+#include <memory>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
-
 #include <score_lib_state_export.h>
-#include <memory>
 
 namespace ossia
 {
@@ -42,7 +41,11 @@ public:
   const ossia::traversal::path& get() const noexcept;
   ossia::traversal::path& get() noexcept;
 
-  const QString& text() const { return m_textual; }
+  const QString& text() const
+  {
+    return m_textual;
+  }
+
 private:
   QString m_textual;
   std::unique_ptr<ossia::traversal::path> m_path;

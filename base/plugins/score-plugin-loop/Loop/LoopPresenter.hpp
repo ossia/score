@@ -2,17 +2,15 @@
 #include <Loop/LoopProcessModel.hpp>
 #include <Loop/LoopViewUpdater.hpp>
 #include <Loop/Palette/LoopToolPalette.hpp>
+#include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/LayerPresenter.hpp>
+#include <Process/ProcessContext.hpp>
+#include <Process/ZoomHelper.hpp>
 #include <QDebug>
 #include <QPoint>
 #include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
-
-#include <Process/Focus/FocusDispatcher.hpp>
-#include <Process/ProcessContext.hpp>
-#include <Process/ZoomHelper.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/widgets/GraphicsItem.hpp>
-
 
 namespace Process
 {
@@ -49,7 +47,9 @@ namespace Loop
 {
 class LayerPresenter final
     : public Process::LayerPresenter
-    , public BaseScenarioPresenter<Loop::ProcessModel, Scenario::TemporalIntervalPresenter>
+    , public BaseScenarioPresenter<
+          Loop::ProcessModel,
+          Scenario::TemporalIntervalPresenter>
     , public Nano::Observer
 {
   Q_OBJECT
@@ -68,8 +68,9 @@ public:
     return *m_view;
   }
 
-  using BaseScenarioPresenter<Loop::ProcessModel, Scenario::TemporalIntervalPresenter>::
-      event;
+  using BaseScenarioPresenter<
+      Loop::ProcessModel,
+      Scenario::TemporalIntervalPresenter>::event;
   using QObject::event;
 
   void setWidth(qreal width) override;

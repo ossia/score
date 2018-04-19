@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/editor/curve/curve.hpp>
+
 #include <Curve/Segment/Linear/LinearSegment.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
 
@@ -52,10 +53,9 @@ std::shared_ptr<ossia::curve<X_T, Y_T>> curve(
 
   for (auto score_segment : segments)
   {
-      auto end = score_segment->end();
-      curve->add_point(
-        (score_segment->*CurveTraits<Y_T>::fun)(),
-        scale_x(end.x()),
+    auto end = score_segment->end();
+    curve->add_point(
+        (score_segment->*CurveTraits<Y_T>::fun)(), scale_x(end.x()),
         scale_y(end.y()));
   }
 
@@ -67,14 +67,11 @@ std::shared_ptr<ossia::curve<X_T, Y_T>> curve(
   return curve;
 }
 
-
-template <
-    typename X_T,
-    typename Y_T,
-    typename XScaleFun,
-    typename Segments>
+template <typename X_T, typename Y_T, typename XScaleFun, typename Segments>
 std::shared_ptr<ossia::curve_abstract> scalable_curve(
-    Y_T min, Y_T max, Y_T end,
+    Y_T min,
+    Y_T max,
+    Y_T end,
     XScaleFun scale_x,
     const Segments& segments,
     const ossia::destination& tween)
@@ -95,11 +92,10 @@ std::shared_ptr<ossia::curve_abstract> scalable_curve(
   {
     auto end = score_segment->end();
     curve->add_point(
-        (score_segment->*CurveTraits<Y_T>::fun)(),
-          scale_x(end.x()), end.y());
+        (score_segment->*CurveTraits<Y_T>::fun)(), scale_x(end.x()), end.y());
   }
 
-  return curve; 
+  return curve;
 }
 }
 }

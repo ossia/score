@@ -1,12 +1,14 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ExecutorPresenter.hpp"
+
 #include "ExecutorModel.hpp"
 #include "ExecutorView.hpp"
+
 #include <QApplication>
 #include <QStyle>
-#include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/Command.hpp>
+#include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/SettingsCommand.hpp>
 
 namespace Engine
@@ -34,8 +36,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   std::map<QString, ClockManagerFactory::ConcreteKey> clockMap;
   for (auto& fact : m.clockFactories())
   {
-    clockMap.insert(
-        std::make_pair(fact.prettyName(), fact.concreteKey()));
+    clockMap.insert(std::make_pair(fact.prettyName(), fact.concreteKey()));
   }
   v.populateClocks(clockMap);
 
@@ -50,10 +51,10 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   v.setClock(m.getClock());
 
   con(v, &View::ExecutionListeningChanged, this, [&](auto val) {
-      if (val != m.getExecutionListening())
-      {
-          m_disp.submitCommand<SetModelExecutionListening>(this->model(this), val);
-      }
+    if (val != m.getExecutionListening())
+    {
+      m_disp.submitCommand<SetModelExecutionListening>(this->model(this), val);
+    }
   });
 
   con(m, &Model::ExecutionListeningChanged, &v, &View::setExecutionListening);

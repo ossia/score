@@ -1,8 +1,8 @@
 #pragma once
 #include <QObject>
-#include <wobjectdefs.h>
 #include <QStack>
 #include <score/selection/Selection.hpp>
+#include <wobjectdefs.h>
 
 class IdentifiedObjectAbstract;
 
@@ -38,12 +38,11 @@ public:
 
   Selection currentSelection() const;
 
-  void pushNewSelection(const Selection& s)
-  W_SIGNAL(pushNewSelection, s)
-  void currentSelectionChanged(const Selection& s)
-  W_SIGNAL(currentSelectionChanged, s)
+  void pushNewSelection(const Selection& s) W_SIGNAL(
+      pushNewSelection, s) void currentSelectionChanged(const Selection& s)
+      W_SIGNAL(currentSelectionChanged, s)
 
-  void prune(IdentifiedObjectAbstract* p);
+          void prune(IdentifiedObjectAbstract* p);
   W_INVOKABLE(prune)
 
 private:

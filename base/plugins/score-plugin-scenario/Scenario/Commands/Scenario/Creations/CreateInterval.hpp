@@ -2,14 +2,16 @@
 #include <QString>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <score/command/Command.hpp>
-#include <score/model/path/Path.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
-
 #include <score_plugin_scenario_export.h>
 struct DataStreamInput;
 struct DataStreamOutput;
-namespace Process { class Cable; }
+namespace Process
+{
+class Cable;
+}
 namespace Scenario
 {
 class StateModel;
@@ -19,23 +21,20 @@ class ProcessModel;
 namespace Command
 {
 /**
-        * @brief The CreateEventAfterEventCommand class
-        *
-        * This Command creates a interval and another event in a scenario,
-        * starting from an event selected by the user.
-        */
-class SCORE_PLUGIN_SCENARIO_EXPORT CreateInterval final
-    : public score::Command
+ * @brief The CreateEventAfterEventCommand class
+ *
+ * This Command creates a interval and another event in a scenario,
+ * starting from an event selected by the user.
+ */
+class SCORE_PLUGIN_SCENARIO_EXPORT CreateInterval final : public score::Command
 {
   SCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), CreateInterval, "Create an interval")
 public:
   CreateInterval(
       const Scenario::ProcessModel& scenarioPath,
-      Id<StateModel>
-          startState,
-      Id<StateModel>
-          endState);
+      Id<StateModel> startState,
+      Id<StateModel> endState);
   CreateInterval& operator=(CreateInterval&&) = default;
 
   const Path<Scenario::ProcessModel>& scenarioPath() const

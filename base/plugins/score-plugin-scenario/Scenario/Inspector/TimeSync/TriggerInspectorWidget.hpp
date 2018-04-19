@@ -1,7 +1,6 @@
 #pragma once
 
 #include <QWidget>
-
 #include <Scenario/Inspector/Expression/ExpressionMenu.hpp>
 #include <State/Expression.hpp>
 

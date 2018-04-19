@@ -1,10 +1,10 @@
 #pragma once
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONVisitor.hpp>
 #include "Value.hpp"
 
-SCORE_LIB_STATE_EXPORT QJsonValue ValueToJson(const ossia::value&);
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
 
+SCORE_LIB_STATE_EXPORT QJsonValue ValueToJson(const ossia::value&);
 
 inline QDataStream& operator<<(QDataStream& stream, const ossia::value& obj)
 {

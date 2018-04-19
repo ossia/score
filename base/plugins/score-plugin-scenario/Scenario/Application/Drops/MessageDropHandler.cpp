@@ -1,44 +1,44 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MessageDropHandler.hpp"
 
+#include <QMimeData>
 #include <Scenario/Application/ScenarioValidity.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateStateMacro.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
 #include <State/MessageListSerialization.hpp>
-
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
-
-#include <QMimeData>
 
 namespace Scenario
 {
-static Scenario::StateModel* closestLeftState(Scenario::Point pt, const Scenario::ProcessModel& scenario)
+static Scenario::StateModel*
+closestLeftState(Scenario::Point pt, const Scenario::ProcessModel& scenario)
 {
   TimeSyncModel* cur_tn = &scenario.startTimeSync();
-  for(auto& tn : scenario.timeSyncs)
+  for (auto& tn : scenario.timeSyncs)
   {
     auto date = tn.date();
-    if(date > cur_tn->date() && date < pt.date)
+    if (date > cur_tn->date() && date < pt.date)
     {
       cur_tn = &tn;
     }
   }
 
   auto states = Scenario::states(*cur_tn, scenario);
-  if(!states.empty())
+  if (!states.empty())
   {
     auto cur_st = &scenario.states.at(states.front());
-    for(auto state_id : states)
+    for (auto state_id : states)
     {
       auto& state = scenario.states.at(state_id);
-      if(std::abs(state.heightPercentage() - pt.y) < std::abs(cur_st->heightPercentage() - pt.y))
+      if (std::abs(state.heightPercentage() - pt.y)
+          < std::abs(cur_st->heightPercentage() - pt.y))
       {
         cur_st = &state;
       }
@@ -49,13 +49,15 @@ static Scenario::StateModel* closestLeftState(Scenario::Point pt, const Scenario
 }
 
 /*
-static Scenario::StateModel* magneticLeftState(Scenario::Point pt, const Scenario::ProcessModel& scenario)
+static Scenario::StateModel* magneticLeftState(Scenario::Point pt, const
+Scenario::ProcessModel& scenario)
 {
   Scenario::StateModel* cur_st = &*scenario.states.begin();
 
   for(auto& state : scenario.states)
   {
-      if(std::abs(state.heightPercentage() - pt.y) < std::abs(cur_st->heightPercentage() - pt.y))
+      if(std::abs(state.heightPercentage() - pt.y) <
+std::abs(cur_st->heightPercentage() - pt.y))
       {
         auto& new_ev = scenario.event(state.eventId());
         if(new_ev.date() < pt.date)
@@ -84,7 +86,7 @@ bool MessageDropHandler::dragMove(
 
   auto pt = pres.toScenarioPoint(pos);
   auto st = closestLeftState(pt, pres.model());
-  if(st)
+  if (st)
   {
     if (st->nextInterval())
     {

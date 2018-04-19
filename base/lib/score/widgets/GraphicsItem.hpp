@@ -1,8 +1,8 @@
 #pragma once
-#include <score_lib_base_export.h>
-#include <memory>
-#include <QPainterPath>
 #include <QList>
+#include <QPainterPath>
+#include <memory>
+#include <score_lib_base_export.h>
 class QGraphicsObject;
 class QGraphicsItem;
 class QGraphicsView;

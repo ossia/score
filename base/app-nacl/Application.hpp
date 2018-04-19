@@ -1,72 +1,69 @@
 #pragma once
+#include <QApplication>
 #include <core/application/ApplicationInterface.hpp>
 #include <core/application/ApplicationSettings.hpp>
-#include <score/application/ApplicationContext.hpp>
 #include <core/plugin/PluginManager.hpp>
-
-#include <QApplication>
 #include <memory>
-
-namespace score {
-class Settings;
-}  // namespace score
+#include <score/application/ApplicationContext.hpp>
 
 namespace score
 {
-    class Presenter;
-    class View;
+class Settings;
+} // namespace score
 
-    /**
-     * @brief Application
-     *
-     * This class is the main object in score. It is the
-     * parent of every other object created.
-     * It does instantiate the rest of the software (MVP, settings, plugins).
-     */
-    class Application final :
-            public NamedObject,
-            public ApplicationInterface
-    {
-            Q_OBJECT
-            friend class ChildEventFilter;
-        public:
-            Application(
-                    int& argc,
-                    char** argv);
+namespace score
+{
+class Presenter;
+class View;
 
-            Application(
-                    const ApplicationSettings& appSettings,
-                    int& argc,
-                    char** argv);
+/**
+ * @brief Application
+ *
+ * This class is the main object in score. It is the
+ * parent of every other object created.
+ * It does instantiate the rest of the software (MVP, settings, plugins).
+ */
+class Application final
+    : public NamedObject
+    , public ApplicationInterface
+{
+  Q_OBJECT
+  friend class ChildEventFilter;
 
-            Application(const Application&) = delete;
-            Application& operator= (const Application&) = delete;
-            ~Application();
+public:
+  Application(int& argc, char** argv);
 
-            int exec()
-            { return m_app->exec(); }
+  Application(const ApplicationSettings& appSettings, int& argc, char** argv);
 
-            Settings* settings() const
-            { return m_settings.get(); }
+  Application(const Application&) = delete;
+  Application& operator=(const Application&) = delete;
+  ~Application();
 
-            const ApplicationContext& context() const override;
-            void init(); // m_applicationSettings has to be set.
+  int exec()
+  {
+    return m_app->exec();
+  }
 
-        private:
-            void initDocuments();
-            void loadPluginData();
+  Settings* settings() const
+  {
+    return m_settings.get();
+  }
 
-            // Base stuff.
-            QApplication* m_app;
-            std::unique_ptr<Settings> m_settings; // Global settings
+  const ApplicationContext& context() const override;
+  void init(); // m_applicationSettings has to be set.
 
-            // MVP
-            View* m_view {};
-            Presenter* m_presenter {};
+private:
+  void initDocuments();
+  void loadPluginData();
 
-            ApplicationSettings m_applicationSettings;
-    };
+  // Base stuff.
+  QApplication* m_app;
+  std::unique_ptr<Settings> m_settings; // Global settings
 
+  // MVP
+  View* m_view{};
+  Presenter* m_presenter{};
+
+  ApplicationSettings m_applicationSettings;
+};
 }
-
-

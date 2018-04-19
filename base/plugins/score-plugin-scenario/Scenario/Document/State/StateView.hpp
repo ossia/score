@@ -3,10 +3,9 @@
 #include <QGraphicsItem>
 #include <QRect>
 #include <QtGlobal>
-#include <score/model/ColorReference.hpp>
-
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+#include <score/model/ColorReference.hpp>
 #include <score_plugin_scenario_export.h>
 
 class QGraphicsSceneDragDropEvent;
@@ -21,16 +20,17 @@ namespace Scenario
 class StateMenuOverlay;
 class StatePresenter;
 
-class SCORE_PLUGIN_SCENARIO_EXPORT StateView final : public QObject,
-                                                      public QGraphicsItem
+class SCORE_PLUGIN_SCENARIO_EXPORT StateView final
+    : public QObject
+    , public QGraphicsItem
 {
   Q_OBJECT
   Q_INTERFACES(QGraphicsItem)
 public:
-    static const constexpr qreal fullRadius = 6.;
-    static const constexpr qreal pointRadius = 3.5;
-    static const constexpr qreal notDilated = 1.;
-    static const constexpr qreal dilated = 1.5;
+  static const constexpr qreal fullRadius = 6.;
+  static const constexpr qreal pointRadius = 3.5;
+  static const constexpr qreal notDilated = 1.;
+  static const constexpr qreal dilated = 1.5;
 
   StateView(StatePresenter& presenter, QGraphicsItem* parent = nullptr);
   virtual ~StateView() = default;
@@ -90,6 +90,5 @@ private:
   bool m_selected{false};
   bool m_hasOverlay{true};
   ExecutionStatusProperty m_status{};
-
 };
 }

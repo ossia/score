@@ -1,11 +1,11 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QByteArray>
-#include <score/serialization/DataStreamVisitor.hpp>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CommandData.hpp"
+
+#include <QByteArray>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/plugins/customfactory/StringFactoryKeySerialization.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 
 template <typename T>
 class Reader;

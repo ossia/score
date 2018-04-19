@@ -1,25 +1,24 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "CurvePointInspectorWidget.hpp"
+
 #include <Automation/AutomationModel.hpp>
 #include <Curve/Commands/MovePoint.hpp>
 #include <Curve/CurveModel.hpp>
+#include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Point/CurvePointModel.hpp>
+#include <Inspector/InspectorWidgetBase.hpp>
+#include <Process/TimeValue.hpp>
 #include <QBoxLayout>
 #include <QLabel>
 #include <QObject>
 #include <QSpinBox>
 #include <QWidget>
-#include <score/widgets/TextLabel.hpp>
 #include <list>
-
-#include "CurvePointInspectorWidget.hpp"
-#include <Curve/Palette/CurvePoint.hpp>
-#include <Inspector/InspectorWidgetBase.hpp>
-#include <Process/TimeValue.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <score/widgets/SignalUtils.hpp>
-
+#include <score/widgets/TextLabel.hpp>
 
 namespace Automation
 {
@@ -55,13 +54,15 @@ PointInspectorWidget::PointInspectorWidget(
   m_XBox->setValue(m_model.pos().x() * m_xFactor);
 
   connect(
-      m_XBox, static_cast<void (QDoubleSpinBox::*)(double)>(
-                  &QDoubleSpinBox::valueChanged),
+      m_XBox,
+      static_cast<void (QDoubleSpinBox::*)(double)>(
+          &QDoubleSpinBox::valueChanged),
       this, &PointInspectorWidget::on_pointChanged);
 
   connect(
-      m_XBox, static_cast<void (QDoubleSpinBox::*)(double)>(
-                  &QDoubleSpinBox::valueChanged),
+      m_XBox,
+      static_cast<void (QDoubleSpinBox::*)(double)>(
+          &QDoubleSpinBox::valueChanged),
       this, &PointInspectorWidget::on_editFinished);
 
   vec.push_back(widgX);

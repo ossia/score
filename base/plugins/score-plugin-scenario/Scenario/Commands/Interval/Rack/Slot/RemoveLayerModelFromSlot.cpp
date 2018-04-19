@@ -1,17 +1,17 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <score/model/path/RelativePath.hpp>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
 #include "RemoveLayerModelFromSlot.hpp"
-#include <Process/ProcessList.hpp>
+
 #include <Process/Process.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
+#include <Process/ProcessList.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <score/application/ApplicationContext.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
-#include <score/application/ApplicationContext.hpp>
+#include <score/model/path/RelativePath.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 
 namespace Scenario
 {

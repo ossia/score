@@ -1,19 +1,18 @@
 #include "Executor.hpp"
 
-#include <Skeleton/Process.hpp>
+#include <ossia/editor/state/state_element.hpp>
+
+#include <Engine/score2OSSIA.hpp>
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Engine/score2OSSIA.hpp>
-#include <ossia/editor/state/state_element.hpp>
+#include <Skeleton/Process.hpp>
 
 namespace Skeleton
 {
-ProcessExecutor::ProcessExecutor(
-    const Device::DeviceList& devices):
-  m_devices{devices}
+ProcessExecutor::ProcessExecutor(const Device::DeviceList& devices)
+    : m_devices{devices}
 {
 }
-
 
 void ProcessExecutor::start(ossia::state&)
 {
@@ -39,9 +38,9 @@ ossia::state_element ProcessExecutor::state(ossia::time_value date, double pos)
   m.address = address;
   m.value = value;
 
-  if(auto res = Engine::score_to_ossia::message(m, m_devices))
+  if (auto res = Engine::score_to_ossia::message(m, m_devices))
   {
-    if(unmuted())
+    if (unmuted())
       return *res;
     return {};
   }
@@ -56,11 +55,11 @@ ProcessExecutorComponent::ProcessExecutorComponent(
     Skeleton::Model& element,
     const Engine::Execution::Context& ctx,
     const Id<score::Component>& id,
-    QObject* parent):
-  ProcessComponent_T{
-    parentInterval, element, ctx, id, "SkeletonExecutorComponent", parent}
+    QObject* parent)
+    : ProcessComponent_T{
+          parentInterval, element, ctx, id, "SkeletonExecutorComponent",
+          parent}
 {
   m_ossia_process = std::make_shared<ProcessExecutor>(ctx.devices.list());
 }
-
 }

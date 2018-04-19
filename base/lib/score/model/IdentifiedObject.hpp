@@ -1,7 +1,7 @@
 #pragma once
-#include <score/model/path/Path.hpp>
 #include <score/model/IdentifiedObjectAbstract.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/model/path/Path.hpp>
 
 /**
  * @brief The IdentifiedObject class
@@ -32,7 +32,8 @@ public:
   IdentifiedObject(Visitor& v, QObject* parent)
       : IdentifiedObjectAbstract{parent}
   {
-    TSerializer<typename Visitor::type, IdentifiedObject<model>>::writeTo(v, *this);
+    TSerializer<typename Visitor::type, IdentifiedObject<model>>::writeTo(
+        v, *this);
     m_id.m_ptr = this;
   }
 

@@ -1,27 +1,25 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "DeviceEditDialog.hpp"
+
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
+#include <Device/Protocol/ProtocolList.hpp>
+#include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QFlags>
+#include <QFormLayout>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLayoutItem>
-#include <qnamespace.h>
-
-#include <QFormLayout>
 #include <QVariant>
 #include <QWidget>
-#include <utility>
-
-#include "DeviceEditDialog.hpp"
-#include <Device/Protocol/ProtocolList.hpp>
-#include <Device/Protocol/ProtocolSettingsWidget.hpp>
+#include <qnamespace.h>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
-
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TextLabel.hpp>
+#include <utility>
 
 namespace Explorer
 {

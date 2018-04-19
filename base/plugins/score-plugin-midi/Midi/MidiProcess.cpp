@@ -1,5 +1,5 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Midi/MidiProcess.hpp>
 #include <Process/Dataflow/Port.hpp>
 
@@ -19,15 +19,15 @@ ProcessModel::ProcessModel(
   metadata().setInstanceName(*this);
 
   m_device = "MidiDevice";
-/*  for (int i = 0; i < 10; i++)
-  {
-    auto n = new Note{Id<Note>(i), this};
-    n->setPitch(32 +  3 * i);
-    n->setStart(0.1 + i * 0.05);
-    n->setDuration(0.1 + (9 - i) * 0.05);
-    n->setVelocity(i * 127. / 9.);
-    notes.add(n);
-  }*/
+  /*  for (int i = 0; i < 10; i++)
+    {
+      auto n = new Note{Id<Note>(i), this};
+      n->setPitch(32 +  3 * i);
+      n->setStart(0.1 + i * 0.05);
+      n->setDuration(0.1 + (9 - i) * 0.05);
+      n->setVelocity(i * 127. / 9.);
+      notes.add(n);
+    }*/
   init();
 }
 
@@ -41,7 +41,7 @@ void ProcessModel::setDevice(const QString& dev)
   deviceChanged(m_device);
 }
 
-const QString&ProcessModel::device() const
+const QString& ProcessModel::device() const
 {
   return m_device;
 }
@@ -101,20 +101,17 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration)
 }
 }
 
-
 template <>
 void DataStreamReader::read(const Midi::NoteData& n)
 {
   m_stream << n.m_start << n.m_duration << n.m_pitch << n.m_velocity;
 }
 
-
 template <>
 void DataStreamWriter::write(Midi::NoteData& n)
 {
   m_stream >> n.m_start >> n.m_duration >> n.m_pitch >> n.m_velocity;
 }
-
 
 template <>
 void JSONObjectReader::read(const Midi::NoteData& n)
@@ -125,7 +122,6 @@ void JSONObjectReader::read(const Midi::NoteData& n)
   obj["Velocity"] = n.m_velocity;
 }
 
-
 template <>
 void JSONObjectWriter::write(Midi::NoteData& n)
 {
@@ -135,14 +131,12 @@ void JSONObjectWriter::write(Midi::NoteData& n)
   n.m_velocity = obj["Velocity"].toInt();
 }
 
-
 template <>
 void DataStreamReader::read(const Midi::Note& n)
 {
   m_stream << n.noteData();
   insertDelimiter();
 }
-
 
 template <>
 void DataStreamWriter::write(Midi::Note& n)
@@ -153,13 +147,11 @@ void DataStreamWriter::write(Midi::Note& n)
   checkDelimiter();
 }
 
-
 template <>
 void JSONObjectReader::read(const Midi::Note& n)
 {
   readFrom(n.noteData());
 }
-
 
 template <>
 void JSONObjectWriter::write(Midi::Note& n)
@@ -169,11 +161,11 @@ void JSONObjectWriter::write(Midi::Note& n)
   n.setData(d);
 }
 
-
 template <>
 void DataStreamReader::read(const Midi::ProcessModel& proc)
 {
-  m_stream << *proc.outlet <<  proc.device() << proc.channel() << proc.m_range.first << proc.m_range.second;
+  m_stream << *proc.outlet << proc.device() << proc.channel()
+           << proc.m_range.first << proc.m_range.second;
 
   const auto& notes = proc.notes;
 
@@ -186,12 +178,12 @@ void DataStreamReader::read(const Midi::ProcessModel& proc)
   insertDelimiter();
 }
 
-
 template <>
 void DataStreamWriter::write(Midi::ProcessModel& proc)
 {
   proc.outlet = Process::make_outlet(*this, &proc);
-  m_stream >> proc.m_device >> proc.m_channel  >> proc.m_range.first >> proc.m_range.second;
+  m_stream >> proc.m_device >> proc.m_channel >> proc.m_range.first
+      >> proc.m_range.second;
   int n;
   m_stream >> n;
   for (int i = 0; i < n; i++)
@@ -200,7 +192,6 @@ void DataStreamWriter::write(Midi::ProcessModel& proc)
   }
   checkDelimiter();
 }
-
 
 template <>
 void JSONObjectReader::read(const Midi::ProcessModel& proc)
@@ -213,18 +204,18 @@ void JSONObjectReader::read(const Midi::ProcessModel& proc)
   obj["Notes"] = toJsonArray(proc.notes);
 }
 
-
 template <>
 void JSONObjectWriter::write(Midi::ProcessModel& proc)
 {
   {
     JSONObjectWriter writer{obj["Outlet"].toObject()};
     proc.outlet = Process::make_outlet(writer, &proc);
-    if(!proc.outlet)
+    if (!proc.outlet)
     {
       proc.outlet = Process::make_outlet(Id<Process::Port>(0), &proc);
       proc.outlet->type = Process::PortType::Midi;
-      proc.outlet->setAddress(fromJsonObject<State::AddressAccessor>(obj[strings.Address].toObject()));
+      proc.outlet->setAddress(fromJsonObject<State::AddressAccessor>(
+          obj[strings.Address].toObject()));
     }
   }
 
@@ -238,5 +229,4 @@ void JSONObjectWriter::write(Midi::ProcessModel& proc)
   proc.setDevice(obj["Device"].toString());
   proc.setChannel(obj["Channel"].toInt());
   proc.setRange(obj["Min"].toInt(), obj["Max"].toInt());
-
 }

@@ -1,8 +1,10 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "InterpolationProcess.hpp"
-#include <ossia/network/dataspace/dataspace_visitors.hpp>
+
 #include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
+
 #include <Curve/Segment/Power/PowerSegment.hpp>
 #include <State/ValueSerialization.hpp>
 
@@ -102,7 +104,8 @@ State::MessageList ProcessState::setMessages(
 }
 
 ProcessModel::ProcessModel(
-    const TimeVal& duration, const Id<Process::ProcessModel>& id,
+    const TimeVal& duration,
+    const Id<Process::ProcessModel>& id,
     QObject* parent)
     : CurveProcessModel{duration, id,
                         Metadata<ObjectKey_k, ProcessModel>::get(), parent}
@@ -215,13 +218,10 @@ ProcessState* ProcessModel::endStateData() const
 {
   return m_endState;
 }
-
 }
 
-
-template <> void
-DataStreamReader::read(
-    const Interpolation::ProcessModel& interp)
+template <>
+void DataStreamReader::read(const Interpolation::ProcessModel& interp)
 {
   readFrom(interp.curve());
 
@@ -231,9 +231,8 @@ DataStreamReader::read(
   insertDelimiter();
 }
 
-
-template <> void
-DataStreamWriter::write(Interpolation::ProcessModel& interp)
+template <>
+void DataStreamWriter::write(Interpolation::ProcessModel& interp)
 {
   interp.setCurve(new Curve::Model{*this, &interp});
 
@@ -253,10 +252,8 @@ DataStreamWriter::write(Interpolation::ProcessModel& interp)
   checkDelimiter();
 }
 
-
-template <> void
-JSONObjectReader::read(
-    const Interpolation::ProcessModel& interp)
+template <>
+void JSONObjectReader::read(const Interpolation::ProcessModel& interp)
 {
   obj["Curve"] = toJsonObject(interp.curve());
   obj[strings.Address] = toJsonObject(interp.address());
@@ -267,9 +264,8 @@ JSONObjectReader::read(
   obj["Tween"] = interp.tween();
 }
 
-
-template <> void
-JSONObjectWriter::write(Interpolation::ProcessModel& interp)
+template <>
+void JSONObjectWriter::write(Interpolation::ProcessModel& interp)
 {
   JSONObject::Deserializer curve_deser{obj["Curve"].toObject()};
   interp.setCurve(new Curve::Model{curve_deser, &interp});

@@ -1,11 +1,10 @@
 #pragma once
 #include <Curve/Commands/CurveCommandFactory.hpp>
+#include <Curve/Palette/CurvePoint.hpp>
 #include <score/command/Command.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
-
-#include <Curve/Palette/CurvePoint.hpp>
-#include <score/model/Identifier.hpp>
 #include <score_plugin_curve_export.h>
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -14,8 +13,7 @@ namespace Curve
 {
 class Model;
 class PointModel;
-class SCORE_PLUGIN_CURVE_EXPORT MovePoint final
-    : public score::Command
+class SCORE_PLUGIN_CURVE_EXPORT MovePoint final : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), MovePoint, "Move a point")
 public:

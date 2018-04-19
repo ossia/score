@@ -2,11 +2,11 @@
 #include <QApplication>
 #include <QFileInfo>
 #include <QMessageBox>
-#include <wobjectdefs.h>
 #include <cstdio>
+#include <wobjectdefs.h>
 
 #ifdef __APPLE__
-#include <QFileOpenEvent>
+#  include <QFileOpenEvent>
 #endif
 #include <score/tools/Todo.hpp>
 #include <score_lib_base_export.h>
@@ -63,54 +63,39 @@ public:
     auto basename_arr = QFileInfo(context.file).baseName().toUtf8();
     auto basename = basename_arr.constData();
     FILE* out_file = stderr;
-#if defined(_MSC_VER)
+#  if defined(_MSC_VER)
     static LogFile logger;
     out_file = logger.desc();
-#endif
+#  endif
     QByteArray localMsg = msg.toLocal8Bit();
     switch (type)
     {
       case QtDebugMsg:
         fprintf(
-            out_file,
-            "Debug: %s (%s:%u)\n",
-            localMsg.constData(),
-            basename,
+            out_file, "Debug: %s (%s:%u)\n", localMsg.constData(), basename,
             context.line);
         break;
 
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 5, 0))
+#  if (QT_VERSION >= QT_VERSION_CHECK(5, 5, 0))
       case QtInfoMsg:
         fprintf(
-            out_file,
-            "Info: %s (%s:%u)\n",
-            localMsg.constData(),
-            basename,
+            out_file, "Info: %s (%s:%u)\n", localMsg.constData(), basename,
             context.line);
         break;
-#endif
+#  endif
       case QtWarningMsg:
         fprintf(
-            out_file,
-            "Warning: %s (%s:%u)\n",
-            localMsg.constData(),
-            basename,
+            out_file, "Warning: %s (%s:%u)\n", localMsg.constData(), basename,
             context.line);
         break;
       case QtCriticalMsg:
         fprintf(
-            out_file,
-            "Critical: %s (%s:%u)\n",
-            localMsg.constData(),
-            basename,
+            out_file, "Critical: %s (%s:%u)\n", localMsg.constData(), basename,
             context.line);
         break;
       case QtFatalMsg:
         fprintf(
-            out_file,
-            "Fatal: %s (%s:%u)\n",
-            localMsg.constData(),
-            basename,
+            out_file, "Fatal: %s (%s:%u)\n", localMsg.constData(), basename,
             context.line);
         SCORE_BREAKPOINT;
         std::terminate();
@@ -146,6 +131,5 @@ public:
   bool event(QEvent* ev) override;
 #endif
 
-  void fileOpened(const QString& opened)
-  W_SIGNAL(fileOpened, opened)
+  void fileOpened(const QString& opened) W_SIGNAL(fileOpened, opened)
 };

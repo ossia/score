@@ -1,29 +1,27 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "CurveSegmentModelSerialization.hpp"
+
+#include "CurveSegmentList.hpp"
+#include "CurveSegmentModel.hpp"
+
+#include <Curve/Palette/CurvePoint.hpp>
+#include <Curve/Segment/CurveSegmentData.hpp>
+#include <Curve/Segment/CurveSegmentFactory.hpp>
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QPoint>
 #include <QVariant>
 #include <algorithm>
-#include <vector>
-
-#include <Curve/Palette/CurvePoint.hpp>
-#include <Curve/Segment/CurveSegmentData.hpp>
-#include <Curve/Segment/CurveSegmentFactory.hpp>
-
-#include "CurveSegmentList.hpp"
-#include "CurveSegmentModel.hpp"
-#include "CurveSegmentModelSerialization.hpp"
 #include <score/application/ApplicationContext.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
-
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/plugins/customfactory/StringFactoryKeySerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
-#include <score/model/Identifier.hpp>
-
+#include <vector>
 
 template <>
 SCORE_PLUGIN_CURVE_EXPORT void
@@ -42,7 +40,6 @@ DataStreamReader::read(const Curve::SegmentData& segmt)
   insertDelimiter();
 }
 
-
 template <>
 SCORE_PLUGIN_CURVE_EXPORT void
 DataStreamWriter::write(Curve::SegmentData& segmt)
@@ -59,7 +56,6 @@ DataStreamWriter::write(Curve::SegmentData& segmt)
   checkDelimiter();
 }
 
-
 template <>
 SCORE_PLUGIN_CURVE_EXPORT void
 DataStreamReader::read(const Curve::SegmentModel& segmt)
@@ -69,7 +65,6 @@ DataStreamReader::read(const Curve::SegmentModel& segmt)
   m_stream << segmt.previous() << segmt.following() << segmt.start()
            << segmt.end();
 }
-
 
 template <>
 SCORE_PLUGIN_CURVE_EXPORT void
@@ -82,7 +77,6 @@ DataStreamWriter::write(Curve::SegmentModel& segmt)
   // call virtual methods and this may be called from
   // CurveSegmentModel's constructor.
 }
-
 
 template <>
 SCORE_PLUGIN_CURVE_EXPORT void
@@ -97,7 +91,6 @@ JSONObjectReader::read(const Curve::SegmentModel& segmt)
   obj[strings.Start] = toJsonValue(segmt.start());
   obj[strings.End] = toJsonValue(segmt.end());
 }
-
 
 template <>
 SCORE_PLUGIN_CURVE_EXPORT void

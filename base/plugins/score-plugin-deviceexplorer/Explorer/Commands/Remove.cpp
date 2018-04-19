@@ -1,35 +1,30 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QByteArray>
-#include <algorithm>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "Remove.hpp"
 
 #include "Add/LoadDevice.hpp"
-#include "Remove.hpp"
 #include "Remove/RemoveAddress.hpp"
+
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
+#include <QByteArray>
+#include <algorithm>
 #include <score/command/Command.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
 #include <score/model/path/Path.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 
 namespace Explorer
 {
 class DeviceDocumentPlugin;
 namespace Command
 {
-Remove::Remove(
-    const DeviceDocumentPlugin& devplug,
-    Device::NodePath&& path)
-    : m_device{false}
-    , m_cmd{new RemoveAddress{devplug, std::move(path)}}
+Remove::Remove(const DeviceDocumentPlugin& devplug, Device::NodePath&& path)
+    : m_device{false}, m_cmd{new RemoveAddress{devplug, std::move(path)}}
 {
 }
 
-Remove::Remove(
-    const DeviceDocumentPlugin& devplug,
-    const Device::Node& node)
-    : m_device{true}
-    , m_cmd{new LoadDevice{devplug, Device::Node{node}}}
+Remove::Remove(const DeviceDocumentPlugin& devplug, const Device::Node& node)
+    : m_device{true}, m_cmd{new LoadDevice{devplug, Device::Node{node}}}
 {
 }
 

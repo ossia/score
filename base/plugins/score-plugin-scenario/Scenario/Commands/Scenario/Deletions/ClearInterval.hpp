@@ -1,13 +1,13 @@
 #pragma once
+#include <Dataflow/Commands/CableHelpers.hpp>
 #include <QByteArray>
 #include <QMap>
 #include <QVector>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
 #include <score/command/Command.hpp>
-#include <Dataflow/Commands/CableHelpers.hpp>
-#include <score/model/path/Path.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <score_plugin_scenario_export.h>
 
@@ -19,12 +19,11 @@ class IntervalModel;
 namespace Command
 {
 /**
-         * @brief The ClearInterval class
-         *
-         * Removes all the processes and the rackes of a interval.
-         */
-class SCORE_PLUGIN_SCENARIO_EXPORT ClearInterval final
-    : public score::Command
+ * @brief The ClearInterval class
+ *
+ * Removes all the processes and the rackes of a interval.
+ */
+class SCORE_PLUGIN_SCENARIO_EXPORT ClearInterval final : public score::Command
 {
   SCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), ClearInterval, "Clear a interval")

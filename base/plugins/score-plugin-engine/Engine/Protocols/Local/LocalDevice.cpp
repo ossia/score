@@ -1,18 +1,19 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <ossia/network/base/device.hpp>
-#include <QString>
-#include <QVariant>
-#include <score/document/DocumentContext.hpp>
-#include <memory>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "LocalDevice.hpp"
+
 #include <ossia/editor/state/state_element.hpp>
+#include <ossia/network/base/device.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/local/local.hpp>
+
+#include <QString>
+#include <QVariant>
+#include <memory>
 #include <ossia-config.hpp>
+#include <score/document/DocumentContext.hpp>
 #if defined(OSSIA_PROTOCOL_OSCQUERY)
-#include <ossia/network/oscquery/oscquery_server.hpp>
+#  include <ossia/network/oscquery/oscquery_server.hpp>
 #endif
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/LocalTree/LocalTreeDocumentPlugin.hpp>
@@ -37,8 +38,8 @@ LocalDevice::LocalDevice(
   m_capas.canRemoveNode = false;
   m_capas.canSerialize = false;
 
-
-  auto& proto = dynamic_cast<ossia::net::multiplex_protocol&>(dev.get_protocol());
+  auto& proto
+      = dynamic_cast<ossia::net::multiplex_protocol&>(dev.get_protocol());
 
   m_proto = &proto;
   setLogging_impl(Device::get_cur_logging(isLogging()));
@@ -68,9 +69,15 @@ void LocalDevice::setRemoteSettings(const Device::DeviceSettings& settings)
     set.wsPort = 9999;
     set.oscPort = 6666;
 
-    try {
-    m_proto->expose_to(std::make_unique<ossia::oscquery::oscquery_server_protocol>(set.oscPort, set.wsPort));
-    } catch(...) { }
+    try
+    {
+      m_proto->expose_to(
+          std::make_unique<ossia::oscquery::oscquery_server_protocol>(
+              set.oscPort, set.wsPort));
+    }
+    catch (...)
+    {
+    }
   }
   catch (...)
   {

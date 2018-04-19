@@ -1,22 +1,22 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <qnamespace.h>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "IntervalPresenter.hpp"
 
 #include "IntervalHeader.hpp"
-#include "IntervalPresenter.hpp"
 #include "IntervalView.hpp"
+
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Temporal/Braces/LeftBrace.hpp>
 #include <Scenario/Document/ModelConsistency.hpp>
-#include <score/selection/Selectable.hpp>
-
+#include <qnamespace.h>
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/selection/Selectable.hpp>
 #include <score/tools/Todo.hpp>
+#include <score/tools/std/Optional.hpp>
 
 class QObject;
 namespace Scenario
@@ -37,7 +37,7 @@ IntervalPresenter::IntervalPresenter(
   m_header->setParentItem(m_view);
   m_header->setIntervalView(m_view);
   m_header->hide();
-  //m_header->setPos(0, -m_header->headerHeight());
+  // m_header->setPos(0, -m_header->headerHeight());
 
   con(interval.duration, &IntervalDurations::minNullChanged, this,
       [&](bool b) { updateBraces(); });
@@ -54,19 +54,23 @@ IntervalPresenter::IntervalPresenter(
 
   con(interval, &IntervalModel::heightPercentageChanged, this,
       &IntervalPresenter::heightPercentageChanged);
-  con(interval, &IntervalModel::executionStarted,
-      this, [=] { m_view->setExecuting(true); m_view->updatePaths(); m_view->update(); }, Qt::QueuedConnection);
-  con(interval, &IntervalModel::executionStopped,
-      this, [=] {
-    m_view->setExecuting(false);
-  }, Qt::QueuedConnection);
-  con(interval, &IntervalModel::executionFinished,
-      this, [=] {
-    m_view->setExecuting(false);
-    m_view->setPlayWidth(0.);
-    m_view->updatePaths();
-    m_view->update();
-  }, Qt::QueuedConnection);
+  con(interval, &IntervalModel::executionStarted, this,
+      [=] {
+        m_view->setExecuting(true);
+        m_view->updatePaths();
+        m_view->update();
+      },
+      Qt::QueuedConnection);
+  con(interval, &IntervalModel::executionStopped, this,
+      [=] { m_view->setExecuting(false); }, Qt::QueuedConnection);
+  con(interval, &IntervalModel::executionFinished, this,
+      [=] {
+        m_view->setExecuting(false);
+        m_view->setPlayWidth(0.);
+        m_view->updatePaths();
+        m_view->update();
+      },
+      Qt::QueuedConnection);
 
   con(interval.consistency, &ModelConsistency::validChanged, m_view,
       &IntervalView::setValid);
@@ -157,5 +161,4 @@ void IntervalPresenter::updateBraces()
   lb.setVisible(!dur.isMinNull() && !rigid);
   rb.setVisible(!dur.isMaxInfinite() && !rigid);
 }
-
 }

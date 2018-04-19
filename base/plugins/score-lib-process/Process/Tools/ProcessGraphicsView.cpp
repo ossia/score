@@ -1,6 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ProcessGraphicsView.hpp"
+
 #include <Process/Style/ScenarioStyle.hpp>
 #include <QEvent>
 #include <QFlags>
@@ -10,8 +11,8 @@
 #include <QPainterPath>
 #include <QScrollBar>
 #include <QWheelEvent>
-#include <qnamespace.h>
 #include <iostream>
+#include <qnamespace.h>
 
 ProcessGraphicsView::ProcessGraphicsView(
     QGraphicsScene* scene, QWidget* parent)
@@ -25,21 +26,20 @@ ProcessGraphicsView::ProcessGraphicsView(
       | QPainter::TextAntialiasing);
 
   setFrameStyle(0);
-  //setCacheMode(QGraphicsView::CacheBackground);
+  // setCacheMode(QGraphicsView::CacheBackground);
   setDragMode(QGraphicsView::NoDrag);
 
   setOptimizationFlag(QGraphicsView::DontSavePainterState, true);
   setOptimizationFlag(QGraphicsView::DontAdjustForAntialiasing, true);
 #if !defined(SCORE_OPENGL)
- setAttribute(Qt::WA_PaintOnScreen, true);
- setAttribute(Qt::WA_OpaquePaintEvent, true);
+  setAttribute(Qt::WA_PaintOnScreen, true);
+  setAttribute(Qt::WA_OpaquePaintEvent, true);
 #endif
 
 #if defined(__APPLE__)
-  //setRenderHints(0);
-  //setOptimizationFlag(QGraphicsView::IndirectPainting, true);
+  // setRenderHints(0);
+  // setOptimizationFlag(QGraphicsView::IndirectPainting, true);
 #endif
-
 }
 
 void ProcessGraphicsView::drawBackground(QPainter* painter, const QRectF& rect)
@@ -47,7 +47,8 @@ void ProcessGraphicsView::drawBackground(QPainter* painter, const QRectF& rect)
   /*
   const constexpr int N = 16;
   QImage img(QSize(N, N), QImage::Format_RGB32);
-  auto light = ScenarioStyle::instance().Background.getColor().color().lighter(120);
+  auto light =
+  ScenarioStyle::instance().Background.getColor().color().lighter(120);
   img.fill(ScenarioStyle::instance().Background.getColor().color());
   for(int i = 0; i < N; i++)
   {
@@ -57,7 +58,6 @@ void ProcessGraphicsView::drawBackground(QPainter* painter, const QRectF& rect)
   QPixmap par = QPixmap::fromImage(img);
   */
   painter->fillRect(rect, ScenarioStyle::instance().Background.getBrush());
-
 }
 
 void ProcessGraphicsView::scrollHorizontal(double dx)
@@ -79,14 +79,16 @@ void ProcessGraphicsView::scrollContentsBy(int dx, int dy)
   QGraphicsView::scrollContentsBy(dx, dy);
 
   this->scene()->update();
-  if(dx != 0)
+  if (dx != 0)
     scrolled(dx);
 }
 
 void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
 {
   auto t = std::chrono::steady_clock::now();
-  if(std::chrono::duration_cast<std::chrono::milliseconds>(t - m_lastwheel).count() < 16)
+  if (std::chrono::duration_cast<std::chrono::milliseconds>(t - m_lastwheel)
+          .count()
+      < 16)
   {
     return;
   }
@@ -99,15 +101,20 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
     horizontalZoom(delta, mapToScene(event->pos()));
     return;
   }
-  else if(m_vZoom)
+  else if (m_vZoom)
   {
     verticalZoom(delta, mapToScene(event->pos()));
     return;
   }
   struct MyWheelEvent : public QWheelEvent
   {
-      MyWheelEvent(const QWheelEvent& other): QWheelEvent{other}
-      { p.ry() /= 4.; pixelD.ry() /= 4.; angleD /= 4.; qt4D /= 4.; }
+    MyWheelEvent(const QWheelEvent& other) : QWheelEvent{other}
+    {
+      p.ry() /= 4.;
+      pixelD.ry() /= 4.;
+      angleD /= 4.;
+      qt4D /= 4.;
+    }
   };
   MyWheelEvent e{*event};
   QGraphicsView::wheelEvent(&e);
@@ -117,7 +124,7 @@ void ProcessGraphicsView::keyPressEvent(QKeyEvent* event)
 {
   if (event->key() == Qt::Key_Control)
     m_hZoom = true;
-  else if(event->key() == Qt::Key_Shift)
+  else if (event->key() == Qt::Key_Shift)
     m_vZoom = true;
 
   event->ignore();
@@ -129,7 +136,7 @@ void ProcessGraphicsView::keyReleaseEvent(QKeyEvent* event)
 {
   if (event->key() == Qt::Key_Control)
     m_hZoom = false;
-  else if(event->key() == Qt::Key_Shift)
+  else if (event->key() == Qt::Key_Shift)
     m_vZoom = false;
 
   event->ignore();

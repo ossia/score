@@ -2,12 +2,12 @@
 
 #include <Process/TimeValue.hpp>
 #include <QObject>
+#include <score/model/IdentifiedObject.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
-#include <score/model/IdentifiedObject.hpp>
 #include <score/tools/Metadata.hpp>
-#include <score/model/Identifier.hpp>
 
 class DataStream;
 class JSONObject;

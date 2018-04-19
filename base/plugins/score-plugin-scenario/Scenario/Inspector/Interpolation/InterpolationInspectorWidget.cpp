@@ -1,8 +1,10 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "InterpolationInspectorWidget.hpp"
-#include <ossia/network/dataspace/dataspace_visitors.hpp>
+
 #include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
+
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Interpolation/Commands/ChangeAddress.hpp>
 #include <QCheckBox>
@@ -36,8 +38,7 @@ InspectorWidget::InspectorWidget(
 
   // Address
   m_lineEdit = new AddressAccessorEditWidget{
-      doc.plugin<DeviceDocumentPlugin>().explorer(),
-      this};
+      doc.plugin<DeviceDocumentPlugin>().explorer(), this};
 
   m_lineEdit->setAddress(process().address());
   con(process(), &ProcessModel::addressChanged, m_lineEdit,
@@ -45,7 +46,7 @@ InspectorWidget::InspectorWidget(
 
   connect(
       m_lineEdit, &AddressAccessorEditWidget::addressChanged, this,
-        [this] (const auto& addr) { this->on_addressChange(addr.address); });
+      [this](const auto& addr) { this->on_addressChange(addr.address); });
 
   vlay->addRow(tr("Address"), m_lineEdit);
 

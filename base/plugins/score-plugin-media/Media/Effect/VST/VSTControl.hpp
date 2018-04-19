@@ -1,90 +1,91 @@
 #pragma once
-#include <Media/Effect/VST/VSTEffectModel.hpp>
 #include <Dataflow/UI/PortItem.hpp>
+#include <Media/Effect/VST/VSTEffectModel.hpp>
 
 namespace Media::VST
 {
 
 class VSTControlInlet final : public Process::Inlet
 {
-    Q_OBJECT
-    SCORE_SERIALIZE_FRIENDS
-  public:
-      MODEL_METADATA_IMPL(VSTControlInlet)
-    using Process::Inlet::Inlet;
+  Q_OBJECT
+  SCORE_SERIALIZE_FRIENDS
+public:
+  MODEL_METADATA_IMPL(VSTControlInlet)
+  using Process::Inlet::Inlet;
 
-    VSTControlInlet(DataStream::Deserializer& vis, QObject* parent): Inlet{vis, parent}
-    {
-      vis.writeTo(*this);
-    }
-    VSTControlInlet(JSONObject::Deserializer& vis, QObject* parent): Inlet{vis, parent}
-    {
-      vis.writeTo(*this);
-    }
-    VSTControlInlet(DataStream::Deserializer&& vis, QObject* parent): Inlet{vis, parent}
-    {
-      vis.writeTo(*this);
-    }
-    VSTControlInlet(JSONObject::Deserializer&& vis, QObject* parent): Inlet{vis, parent}
-    {
-      vis.writeTo(*this);
-    }
+  VSTControlInlet(DataStream::Deserializer& vis, QObject* parent)
+      : Inlet{vis, parent}
+  {
+    vis.writeTo(*this);
+  }
+  VSTControlInlet(JSONObject::Deserializer& vis, QObject* parent)
+      : Inlet{vis, parent}
+  {
+    vis.writeTo(*this);
+  }
+  VSTControlInlet(DataStream::Deserializer&& vis, QObject* parent)
+      : Inlet{vis, parent}
+  {
+    vis.writeTo(*this);
+  }
+  VSTControlInlet(JSONObject::Deserializer&& vis, QObject* parent)
+      : Inlet{vis, parent}
+  {
+    vis.writeTo(*this);
+  }
 
-    int fxNum{};
+  int fxNum{};
 
-
-    float value() const { return m_value; }
-    void setValue(float v)
+  float value() const
+  {
+    return m_value;
+  }
+  void setValue(float v)
+  {
+    if (v != m_value)
     {
-      if(v != m_value)
-      {
-        m_value = v;
-        valueChanged(v);
-      }
+      m_value = v;
+      valueChanged(v);
     }
-  Q_SIGNALS:
-    void valueChanged(float);
+  }
+Q_SIGNALS:
+  void valueChanged(float);
 
-  private:
-    float m_value{};
+private:
+  float m_value{};
 };
 
 struct VSTControlPortItem final : public Dataflow::AutomatablePortItem
 {
-  public:
-    using Dataflow::AutomatablePortItem::AutomatablePortItem;
+public:
+  using Dataflow::AutomatablePortItem::AutomatablePortItem;
 
-    void setupMenu(QMenu& menu, const score::DocumentContext& ctx) override;
-    bool on_createAutomation(
-        Scenario::IntervalModel& cst,
-        std::function<void(score::Command*)> macro,
-        const score::DocumentContext& ctx) override;
+  void setupMenu(QMenu& menu, const score::DocumentContext& ctx) override;
+  bool on_createAutomation(
+      Scenario::IntervalModel& cst,
+      std::function<void(score::Command*)> macro,
+      const score::DocumentContext& ctx) override;
 };
 
 class VSTControlPortFactory final : public Process::PortFactory
 {
 public:
-    ~VSTControlPortFactory() override;
+  ~VSTControlPortFactory() override;
 
-    UuidKey<Process::Port> concreteKey() const noexcept override;
+  UuidKey<Process::Port> concreteKey() const noexcept override;
 
-    Process::Port* load(
-          const VisitorVariant& vis, QObject* parent) override;
+  Process::Port* load(const VisitorVariant& vis, QObject* parent) override;
 
-    Dataflow::PortItem* makeItem(
-          Process::Inlet& port
-          , const score::DocumentContext& ctx
-          , QGraphicsItem* parent
-          , QObject* context
-          ) override;
+  Dataflow::PortItem* makeItem(
+      Process::Inlet& port,
+      const score::DocumentContext& ctx,
+      QGraphicsItem* parent,
+      QObject* context) override;
 
-    Dataflow::PortItem* makeItem(
-          Process::Outlet& port
-          , const score::DocumentContext& ctx
-          , QGraphicsItem* parent
-          , QObject* context
-          ) override;
+  Dataflow::PortItem* makeItem(
+      Process::Outlet& port,
+      const score::DocumentContext& ctx,
+      QGraphicsItem* parent,
+      QObject* context) override;
 };
-
-
 }

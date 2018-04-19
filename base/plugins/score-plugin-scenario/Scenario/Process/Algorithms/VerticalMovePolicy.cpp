@@ -1,19 +1,18 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Process/ScenarioModel.hpp>
-
-#include <boost/container/flat_set.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <limits>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "VerticalMovePolicy.hpp"
-#include <Scenario/Document/Interval/IntervalModel.hpp>
+
 #include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <boost/container/flat_set.hpp>
+#include <limits>
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/tools/std/Optional.hpp>
 
 namespace Scenario
 {
@@ -69,8 +68,7 @@ void updateIntervalVerticalPos(
   statesToUpdate.insert(rec_state);
   while (rec_state->previousInterval())
   {
-    IntervalModel* rec_cst
-        = &s.intervals.at(*rec_state->previousInterval());
+    IntervalModel* rec_cst = &s.intervals.at(*rec_state->previousInterval());
     intervalsToUpdate.insert(rec_cst);
     statesToUpdate.insert(rec_state);
     rec_state = &s.states.at(rec_cst->startState());
@@ -103,6 +101,5 @@ void updateIntervalVerticalPos(
 
   intervalsToUpdate.clear();
   statesToUpdate.clear();
-
 }
 }

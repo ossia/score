@@ -1,48 +1,49 @@
 #include "CableItem.hpp"
-#include <Process/Dataflow/PortItem.hpp>
-#include <Process/Dataflow/Cable.hpp>
-#include <Process/Style/ScenarioStyle.hpp>
 
-#include <boost/range/algorithm_ext/erase.hpp>
+#include <Process/Dataflow/Cable.hpp>
+#include <Process/Dataflow/PortItem.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
+#include <QFormLayout>
 #include <QGraphicsSceneMoveEvent>
 #include <QMenu>
 #include <QPainter>
 #include <QSlider>
-#include <QFormLayout>
+#include <boost/range/algorithm_ext/erase.hpp>
 namespace Dataflow
 {
 bool CableItem::g_cables_enabled = true;
 
-CableItem::CableItem(Process::Cable& c, const score::DocumentContext& ctx, QGraphicsItem* parent):
-  QGraphicsItem{parent}
-, m_cable{c}
-, a1{int8_t(abs(qrand()) % 40 - 20)}
-, a2{int8_t(abs(qrand()) % 40 - 20)}
-, a3{int8_t(abs(qrand()) % 40 - 20)}
-, a4{int8_t(abs(qrand()) % 40 - 20)}
+CableItem::CableItem(
+    Process::Cable& c,
+    const score::DocumentContext& ctx,
+    QGraphicsItem* parent)
+    : QGraphicsItem{parent}
+    , m_cable{c}
+    , a1{int8_t(abs(qrand()) % 40 - 20)}
+    , a2{int8_t(abs(qrand()) % 40 - 20)}
+    , a3{int8_t(abs(qrand()) % 40 - 20)}
+    , a4{int8_t(abs(qrand()) % 40 - 20)}
 {
   this->setCursor(Qt::CrossCursor);
   g_cables().insert({&c, this});
 
-  con(c.selection, &Selectable::changed, this, [=](bool b) {
-    update();
-  });
+  con(c.selection, &Selectable::changed, this, [=](bool b) { update(); });
 
   auto& p = PortItem::g_ports();
-  if(auto src_port = c.source().try_find(ctx))
+  if (auto src_port = c.source().try_find(ctx))
   {
     auto src = p.find(src_port);
-    if(src != p.end())
+    if (src != p.end())
     {
       m_p1 = src->second;
       m_p1->cables.push_back(this);
     }
   }
 
-  if(auto snk_port = c.sink().try_find(ctx))
+  if (auto snk_port = c.sink().try_find(ctx))
   {
     auto snk = p.find(snk_port);
-    if(snk != p.end())
+    if (snk != p.end())
     {
       m_p2 = snk->second;
       m_p2->cables.push_back(this);
@@ -54,18 +55,18 @@ CableItem::CableItem(Process::Cable& c, const score::DocumentContext& ctx, QGrap
 
 CableItem::~CableItem()
 {
-  if(m_p1)
+  if (m_p1)
   {
     boost::remove_erase(m_p1->cables, this);
   }
-  if(m_p2)
+  if (m_p2)
   {
     boost::remove_erase(m_p2->cables, this);
   }
 
   auto& c = g_cables();
   auto it = c.find(&m_cable);
-  if(it != c.end())
+  if (it != c.end())
     c.erase(it);
 }
 
@@ -74,37 +75,43 @@ QRectF CableItem::boundingRect() const
   return m_path.boundingRect();
 }
 
-void CableItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void CableItem::paint(
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  if(m_p1 && m_p2)
+  if (m_p1 && m_p2)
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
     auto& style = ScenarioStyle::instance();
-    if(!m_cable.selection.get())
+    if (!m_cable.selection.get())
     {
-      switch(m_type)
+      switch (m_type)
       {
         case Process::PortType::Message:
-          painter->setPen(style.DataCablePen); break;
+          painter->setPen(style.DataCablePen);
+          break;
         case Process::PortType::Audio:
-          painter->setPen(style.AudioCablePen); break;
+          painter->setPen(style.AudioCablePen);
+          break;
         case Process::PortType::Midi:
-          painter->setPen(style.MidiCablePen); break;
+          painter->setPen(style.MidiCablePen);
+          break;
       }
     }
     else
     {
-      switch(m_type)
+      switch (m_type)
       {
         case Process::PortType::Message:
-          painter->setPen(style.SelectedDataCablePen); break;
+          painter->setPen(style.SelectedDataCablePen);
+          break;
         case Process::PortType::Audio:
-          painter->setPen(style.SelectedAudioCablePen); break;
+          painter->setPen(style.SelectedAudioCablePen);
+          break;
         case Process::PortType::Midi:
-          painter->setPen(style.SelectedMidiCablePen); break;
+          painter->setPen(style.SelectedMidiCablePen);
+          break;
       }
     }
-
 
     painter->setBrush(style.TransparentBrush);
     painter->drawPath(m_path);
@@ -116,7 +123,7 @@ void CableItem::resize()
 {
   prepareGeometryChange();
 
-  if(m_p1 && m_p2)
+  if (m_p1 && m_p2)
   {
     auto p1 = m_p1->scenePos();
     auto p2 = m_p2->scenePos();
@@ -133,7 +140,9 @@ void CableItem::resize()
     auto last = p1.x() >= p2.x() ? p1 : p2;
     QPainterPath p;
     p.moveTo(first.x(), first.y());
-    p.cubicTo(first.x() + a1, last.y() + a2, first.x() +a3 , last.y() + a4, last.x(), last.y());
+    p.cubicTo(
+        first.x() + a1, last.y() + a2, first.x() + a3, last.y() + a4, last.x(),
+        last.y());
     m_path = std::move(p);
   }
   else
@@ -146,36 +155,53 @@ void CableItem::resize()
 
 void CableItem::check()
 {
-  if(g_cables_enabled && m_p1 && m_p2 && m_p1->isVisible() && m_p2->isVisible()) {
+  if (g_cables_enabled && m_p1 && m_p2 && m_p1->isVisible()
+      && m_p2->isVisible())
+  {
 
-    if(!isEnabled())
+    if (!isEnabled())
     {
       setVisible(true);
       setEnabled(true);
     }
-    else if(!isVisible())
+    else if (!isVisible())
     {
       setVisible(true);
     }
     m_type = m_p1->port().type;
     resize();
   }
-  else if(isEnabled()) {
+  else if (isEnabled())
+  {
     setVisible(false);
     setEnabled(false);
     update();
   }
 }
 
-PortItem*CableItem::source() const { return m_p1; }
+PortItem* CableItem::source() const
+{
+  return m_p1;
+}
 
-PortItem*CableItem::target() const { return m_p2; }
+PortItem* CableItem::target() const
+{
+  return m_p2;
+}
 
-void CableItem::setSource(PortItem* p) { m_p1 = p; check(); }
+void CableItem::setSource(PortItem* p)
+{
+  m_p1 = p;
+  check();
+}
 
-void CableItem::setTarget(PortItem* p) { m_p2 = p; check(); }
+void CableItem::setTarget(PortItem* p)
+{
+  m_p2 = p;
+  check();
+}
 
-CableItem::cable_map&CableItem::g_cables()
+CableItem::cable_map& CableItem::g_cables()
 {
   static cable_map c;
   return c;
@@ -184,12 +210,12 @@ CableItem::cable_map&CableItem::g_cables()
 QPainterPath CableItem::shape() const
 {
   static const QPainterPathStroker cable_stroker{[] {
-      QPen pen;
-      pen.setCapStyle(Qt::PenCapStyle::RoundCap);
-      pen.setJoinStyle(Qt::PenJoinStyle::RoundJoin);
-      pen.setWidthF(3.);
-      return pen;
-    }()};
+    QPen pen;
+    pen.setCapStyle(Qt::PenCapStyle::RoundCap);
+    pen.setJoinStyle(Qt::PenJoinStyle::RoundJoin);
+    pen.setWidthF(3.);
+    return pen;
+  }()};
 
   return cable_stroker.createStroke(m_path);
 }
@@ -214,12 +240,8 @@ void CableItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
   QMenu* m = new QMenu;
   auto act = m->addAction(tr("Remove"));
-  connect(act, &QAction::triggered,
-          this, [=] {
-    removeRequested();
-  });
+  connect(act, &QAction::triggered, this, [=] { removeRequested(); });
   m->exec(event->screenPos());
   m->deleteLater();
 }
-
 }

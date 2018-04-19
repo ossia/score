@@ -1,10 +1,9 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <QtTest/QtTest>
 #include <Scenario/Commands/Interval/AddRackToInterval.hpp>
 #include <Scenario/Commands/Interval/Rack/AddSlotToRack.hpp>
 #include <Scenario/Commands/Interval/Rack/RemoveSlotFromRack.hpp>
-
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Rack/RackModel.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
@@ -34,8 +33,7 @@ private Q_SLOTS:
     cmd2.redo(ctx);
 
     RemoveSlotFromRack cmd3{
-        ObjectPath{{"IntervalModel", {}}, {"RackModel", rack->id()}},
-        slotId};
+        ObjectPath{{"IntervalModel", {}}, {"RackModel", rack->id()}}, slotId};
 
     QCOMPARE((int)rack->getSlots().size(), 1);
     cmd3.redo(ctx);

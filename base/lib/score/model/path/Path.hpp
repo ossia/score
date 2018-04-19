@@ -44,7 +44,8 @@ Path<T> path(const IdentifiedObject<T>& obj);
  *  B1
  * \endcode
  *
- * A `Path<B1>` will be converted automatically in `Path<B>` or `Path<A>` but not `Path<C>`.
+ * A `Path<B1>` will be converted automatically in `Path<B>` or `Path<A>` but
+ * not `Path<C>`.
  *
  */
 template <typename Object>
@@ -92,14 +93,15 @@ public:
 
   //! Add a new ObjectIdentifier at the end of the path and return a new path
   template <typename U>
-  auto extend(const QString& name, const Id<U>& id) const &
+  auto extend(const QString& name, const Id<U>& id) const&
   {
     Path<U> p{this->m_impl.vec()};
     p.m_impl.vec().push_back({name, id});
     return p;
   }
 
-  //! Add a new ObjectIdentifier at the end of the path and return a new path. The previous path is now empty.
+  //! Add a new ObjectIdentifier at the end of the path and return a new path.
+  //! The previous path is now empty.
   template <typename U>
   auto extend(const QString& name, const Id<U>& id) &&
   {
@@ -110,14 +112,15 @@ public:
 
   //! Add a new ObjectIdentifier at the end of the path and return a new path
   template <typename U>
-  auto extend(const Id<U>& id) const &
+  auto extend(const Id<U>& id) const&
   {
     Path<U> p{this->m_impl.vec()};
     p.m_impl.vec().push_back({Metadata<ObjectKey_k, U>::get(), id});
     return p;
   }
 
-  //! Add a new ObjectIdentifier at the end of the path and return a new path. The previous path is now empty.
+  //! Add a new ObjectIdentifier at the end of the path and return a new path.
+  //! The previous path is now empty.
   template <typename U>
   auto extend(const Id<U>& id) &&
   {
@@ -128,7 +131,7 @@ public:
 
   //! Return a new path without the last element of this one.
   template <typename U>
-  auto splitLast() const &
+  auto splitLast() const&
   {
     SCORE_ASSERT(m_impl.vec().size() > 0);
     auto vec = m_impl.vec();
@@ -137,7 +140,8 @@ public:
     return std::make_pair(Path<U>{std::move(vec)}, std::move(last));
   }
 
-  //! Return a new path without the last element of this one. The previous path is now empty.
+  //! Return a new path without the last element of this one. The previous path
+  //! is now empty.
   template <typename U>
   auto splitLast() &&
   {
@@ -201,7 +205,7 @@ public:
     return m_impl.try_find<Object>(ctx);
   }
 
-  const auto& unsafePath() const &
+  const auto& unsafePath() const&
   {
     return m_impl;
   }

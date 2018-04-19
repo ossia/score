@@ -1,20 +1,23 @@
 #include "DuplicateInterval.hpp"
-#include <score/tools/IdentifierGeneration.hpp>
-#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+
 #include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
 namespace Scenario::Command
 {
 
 DuplicateInterval::DuplicateInterval(
-    const Scenario::ProcessModel& parent,
-    const IntervalModel& cst)
-  : m_cmdStart{parent, getStrongId(parent.states), Scenario::startState(cst, parent).eventId(), cst.heightPercentage() + 0.1}
-  , m_cmdEnd{parent, Id<StateModel>{(int)getStrongId(parent.states) + 1}, Scenario::endState(cst, parent).eventId(), cst.heightPercentage() + 0.1}
-  , m_path{cst}
-  , m_createdId{ getStrongId(parent.intervals) }
+    const Scenario::ProcessModel& parent, const IntervalModel& cst)
+    : m_cmdStart{parent, getStrongId(parent.states),
+                 Scenario::startState(cst, parent).eventId(),
+                 cst.heightPercentage() + 0.1}
+    , m_cmdEnd{parent, Id<StateModel>{(int)getStrongId(parent.states) + 1},
+               Scenario::endState(cst, parent).eventId(),
+               cst.heightPercentage() + 0.1}
+    , m_path{cst}
+    , m_createdId{getStrongId(parent.intervals)}
 {
-
 }
 
 DuplicateInterval::~DuplicateInterval()
@@ -41,7 +44,8 @@ void DuplicateInterval::redo(const score::DocumentContext& ctx) const
   auto scenar = safe_cast<Scenario::ProcessModel*>(root.parent());
 
   auto obj = score::marshall<DataStream>(root);
-  auto interval = new Scenario::IntervalModel{DataStream::Deserializer{obj}, scenar};
+  auto interval
+      = new Scenario::IntervalModel{DataStream::Deserializer{obj}, scenar};
   interval->setId(m_createdId);
 
   interval->setStartState(m_cmdStart.createdState());
@@ -52,7 +56,7 @@ void DuplicateInterval::redo(const score::DocumentContext& ctx) const
   scenar->intervals.add(interval);
 }
 
-const Path<IntervalModel>&DuplicateInterval::intervalPath() const
+const Path<IntervalModel>& DuplicateInterval::intervalPath() const
 {
   return m_path;
 }
@@ -69,5 +73,4 @@ void DuplicateInterval::deserializeImpl(DataStreamOutput& s)
   m_cmdStart.deserialize(arr);
   m_cmdEnd.deserialize(arr2);
 }
-
 }

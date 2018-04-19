@@ -16,13 +16,21 @@ public:
 
 private:
   UuidKey<Process::ProcessModel> concreteKey() const noexcept override
-  { return Metadata<ConcreteKey_k, Model_T>::get(); }
+  {
+    return Metadata<ConcreteKey_k, Model_T>::get();
+  }
   QString prettyName() const override
-  { return Metadata<PrettyName_k, Model_T>::get(); }
+  {
+    return Metadata<PrettyName_k, Model_T>::get();
+  }
   QString category() const override
-  { return Metadata<Category_k, Model_T>::get(); }
+  {
+    return Metadata<Category_k, Model_T>::get();
+  }
   ProcessFlags flags() const override
-  { return Metadata<ProcessFlags_k, Model_T>::get(); }
+  {
+    return Metadata<ProcessFlags_k, Model_T>::get();
+  }
 
   Model_T* make(
       const TimeVal& duration,
@@ -44,8 +52,8 @@ Model_T* ProcessFactory_T<Model_T>::make(
 }
 
 template <typename Model_T>
-Model_T* ProcessFactory_T<Model_T>::load(
-    const VisitorVariant& vis, QObject* parent)
+Model_T*
+ProcessFactory_T<Model_T>::load(const VisitorVariant& vis, QObject* parent)
 {
   return score::deserialize_dyn(vis, [&](auto&& deserializer) {
     return new Model_T{deserializer, parent};
@@ -53,8 +61,10 @@ Model_T* ProcessFactory_T<Model_T>::load(
 }
 
 template <
-    typename Model_T, typename LayerPresenter_T,
-    typename LayerView_T, typename HeaderDelegate_T = default_t>
+    typename Model_T,
+    typename LayerPresenter_T,
+    typename LayerView_T,
+    typename HeaderDelegate_T = default_t>
 class LayerFactory_T final : public Process::LayerFactory
 {
 public:
@@ -91,7 +101,7 @@ private:
   HeaderDelegate*
   makeHeaderDelegate(const Process::LayerPresenter& pres) const override
   {
-    if constexpr(std::is_same_v<HeaderDelegate_T, default_t>)
+    if constexpr (std::is_same_v<HeaderDelegate_T, default_t>)
       return nullptr;
     else
       return new HeaderDelegate_T{pres};
@@ -99,8 +109,7 @@ private:
 };
 
 template <typename Model_T>
-class
-    LayerFactory_T<Model_T, default_t, default_t, default_t>
+class LayerFactory_T<Model_T, default_t, default_t, default_t>
     : // final :
       public Process::LayerFactory
 {
@@ -120,6 +129,6 @@ private:
 };
 
 template <typename Model_T>
-using GenericDefaultLayerFactory = LayerFactory_T<
-    Model_T, default_t, default_t, default_t>;
+using GenericDefaultLayerFactory
+    = LayerFactory_T<Model_T, default_t, default_t, default_t>;
 }

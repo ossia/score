@@ -1,10 +1,12 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DeviceList.hpp"
+
 #include <ossia/detail/algorithms.hpp>
+
 #include <Device/Protocol/DeviceInterface.hpp>
-#include <score/application/GUIApplicationContext.hpp>
 #include <Explorer/Settings/ExplorerModel.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 namespace Device
 {
 template <typename TheList>
@@ -50,9 +52,11 @@ void DeviceList::addDevice(DeviceInterface* dev)
   {
     // ...
   }
-  else if(dev->settings().protocol ==
-              UuidKey<Device::ProtocolFactory>{
-                score::uuids::string_generator::compute("2835e6da-9b55-4029-9802-e1c817acbdc1")})
+  else if (
+      dev->settings().protocol
+      == UuidKey<Device::ProtocolFactory>{
+             score::uuids::string_generator::compute(
+                 "2835e6da-9b55-4029-9802-e1c817acbdc1")})
   {
     // FIXME
     // TODO dirty hack
@@ -78,7 +82,7 @@ void DeviceList::removeDevice(const QString& name)
     for (const auto& elt : vec)
       m_localDevice->setListening(elt, false);
   }
-  else if(m_audioDevice && name == m_audioDevice->name())
+  else if (m_audioDevice && name == m_audioDevice->name())
   {
     m_audioDevice->setLogging(get_cur_logging(false));
     auto vec = m_audioDevice->listening();
@@ -127,25 +131,24 @@ void DeviceList::apply(std::function<void(Device::DeviceInterface&)> fun)
 
   if (m_localDevice)
     fun(*m_localDevice);
-  if(m_audioDevice)
+  if (m_audioDevice)
     fun(*m_audioDevice);
 }
 
 DeviceLogging get_cur_logging(bool b)
 {
-  if(b)
+  if (b)
   {
     static const Explorer::Settings::DeviceLogLevel ll;
     auto& app = score::GUIAppContext().settings<Explorer::Settings::Model>();
     auto log = app.getLogLevel();
-    if(log == ll.logNothing)
+    if (log == ll.logNothing)
       return LogNothing;
-    if(log == ll.logEverything)
+    if (log == ll.logEverything)
       return LogEverything;
-    if(log == ll.logUnfolded)
+    if (log == ll.logUnfolded)
       return LogUnfolded;
   }
   return LogNothing;
 }
-
 }

@@ -1,9 +1,8 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-
-#include <score/tools/Clamp.hpp>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
 #include "PenCommandObject.hpp"
+
 #include <Curve/CurveModel.hpp>
 #include <Curve/CurvePresenter.hpp>
 #include <Curve/Palette/CurvePaletteBaseStates.hpp>
@@ -12,6 +11,7 @@
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/path/Path.hpp>
+#include <score/tools/Clamp.hpp>
 
 namespace score
 {
@@ -28,21 +28,21 @@ void checkCoherent(const std::vector<SegmentData>& vec)
   {
     if(vec[i].following)
     {
-      auto next = ossia::find_if(vec, [&] (const SegmentData& d) { return d.id == vec[i].following; });
-      SCORE_ASSERT(next != vec.end());
-      qDebug()  << i
+      auto next = ossia::find_if(vec, [&] (const SegmentData& d) { return d.id
+== vec[i].following; }); SCORE_ASSERT(next != vec.end()); qDebug()  << i
                 << "actual: " << vec[i].id.val() << "\n"
-                << "expected: " << (next->previous ? QString::number(next->previous->val()) : QString("none"))
+                << "expected: " << (next->previous ?
+QString::number(next->previous->val()) : QString("none"))
                 << vec[i].following->val();
       SCORE_ASSERT(next->previous == vec[i].id);
     }
     if(vec[i].previous)
     {
-      auto prev = ossia::find_if(vec, [&] (const SegmentData& d) { return d.id == vec[i].previous; });
-      SCORE_ASSERT(prev != vec.end());
-      qDebug()  << i
+      auto prev = ossia::find_if(vec, [&] (const SegmentData& d) { return d.id
+== vec[i].previous; }); SCORE_ASSERT(prev != vec.end()); qDebug()  << i
                 << "actual: " <<  vec[i].id.val() << "\n"
-                << "expected: " << (prev->following ? QString::number(prev->following->val()) : QString("none"))
+                << "expected: " << (prev->following ?
+QString::number(prev->following->val()) : QString("none"))
                 << vec[i].previous->val();
       SCORE_ASSERT(prev->following == vec[i].id);
     }
@@ -99,7 +99,8 @@ void PenCommandObject::move()
   segts.push_back(dat_base);
   SegmentData& dat = segts.back();
 
-  if (middle_begin_p && middle_end_p && segts[*middle_begin_p].id == segts[*middle_end_p].id)
+  if (middle_begin_p && middle_end_p
+      && segts[*middle_begin_p].id == segts[*middle_end_p].id)
   {
     segts[*middle_end_p].id = getSegmentId(segts);
     for (auto& seg : segts)
@@ -211,7 +212,8 @@ void PenCommandObject::release_n(seg_tuple&& segts_tpl)
 
   // Handle the case of the whole drawn curve being
   // contained in a single original segment
-  if (middle_begin_p && middle_end_p && segts[*middle_begin_p].id == segts[*middle_end_p].id)
+  if (middle_begin_p && middle_end_p
+      && segts[*middle_begin_p].id == segts[*middle_end_p].id)
   {
     auto& mb = segts[*middle_begin_p];
     auto& me = segts[*middle_end_p];
@@ -245,15 +247,17 @@ void PenCommandObject::release_n(seg_tuple&& segts_tpl)
     last_lin.following = seg.id;
   }
 
-//  checkCoherent(segts);
+  //  checkCoherent(segts);
   submit(std::move(segts));
   m_dispatcher.commit();
   m_segment.reset();
 }
 
-std::
-    tuple<optional<SegmentData>, optional<SegmentData>, std::vector<SegmentData>>
-    PenCommandObject::filterSegments()
+std::tuple<
+    optional<SegmentData>,
+    optional<SegmentData>,
+    std::vector<SegmentData>>
+PenCommandObject::filterSegments()
 {
   auto x = m_state->currentPoint.x();
   if (x < m_minPress.x())

@@ -1,28 +1,25 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioInspectorWidgetFactoryWrapper.hpp"
 
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
-
+#include <Scenario/Inspector/Event/EventInspectorWidget.hpp>
 #include <Scenario/Inspector/Interval/IntervalInspectorFactory.hpp>
+#include <Scenario/Inspector/State/StateInspectorWidget.hpp>
 #include <Scenario/Inspector/Summary/SummaryInspectorWidget.hpp>
 #include <Scenario/Inspector/TimeSync/TimeSyncInspectorWidget.hpp>
-#include <Scenario/Inspector/Event/EventInspectorWidget.hpp>
-#include <Scenario/Inspector/State/StateInspectorWidget.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
 
 namespace Scenario
 {
 ScenarioInspectorWidgetFactoryWrapper::~ScenarioInspectorWidgetFactoryWrapper()
 {
-
 }
 
-QWidget*
-ScenarioInspectorWidgetFactoryWrapper::make(
+QWidget* ScenarioInspectorWidgetFactoryWrapper::make(
     const QList<const QObject*>& sourceElements,
     const score::DocumentContext& doc,
     QWidget* parent) const
@@ -72,37 +69,36 @@ ScenarioInspectorWidgetFactoryWrapper::make(
   }
 
   if (states.size() == 1 && intervals.empty())
-      return new StateInspectorWidget{**states.begin(), doc, parent};
+    return new StateInspectorWidget{**states.begin(), doc, parent};
   if (events.size() == 1 && intervals.empty())
-      return new EventInspectorWidget{**events.begin(), doc, parent};
+    return new EventInspectorWidget{**events.begin(), doc, parent};
   if (timesyncs.size() == 1 && intervals.empty())
     return new TimeSyncInspectorWidget{**timesyncs.begin(), doc, parent};
 
   if (intervals.size() == 1 && timesyncs.empty())
   {
-    return IntervalInspectorFactory{}.make(
-        {*intervals.begin()}, doc, parent);
+    return IntervalInspectorFactory{}.make({*intervals.begin()}, doc, parent);
   }
 
   return new SummaryInspectorWidget{
-      abstr, intervals, timesyncs, events, states, doc, parent}; // the default InspectorWidgetBase need
-                                       // an only IdentifiedObject : this will
-// be "abstr"
+      abstr,  intervals, timesyncs, events,
+      states, doc,       parent}; // the default InspectorWidgetBase need
+                                  // an only IdentifiedObject : this will
+  // be "abstr"
 }
 
 bool ScenarioInspectorWidgetFactoryWrapper::update(
-    QWidget* cur,
-    const QList<const IdentifiedObjectAbstract*>& obj) const
+    QWidget* cur, const QList<const IdentifiedObjectAbstract*>& obj) const
 {
-  if(obj.size() <= 1)
+  if (obj.size() <= 1)
     return false;
 
   auto w = qobject_cast<SummaryInspectorWidget*>(cur);
-  if(!w)
+  if (!w)
     return false;
 
   auto& ctx = score::IDocument::documentContext(*obj.front());
-  if(&ctx != &w->context())
+  if (&ctx != &w->context())
     return false;
 
   w->update(obj);

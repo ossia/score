@@ -1,40 +1,39 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
+#include "LoopPresenter.hpp"
+
+#include "Loop/LoopViewUpdater.hpp"
+
+#include <ossia/detail/algorithms.hpp>
 
 #include <Loop/LoopProcessModel.hpp>
 #include <Loop/LoopView.hpp>
-#include <QGraphicsItem>
-#include <score/widgets/GraphicsItem.hpp>
-#include <tuple>
-#include <type_traits>
-
-#include "Loop/LoopViewUpdater.hpp"
-#include "LoopPresenter.hpp"
-#include <ossia/detail/algorithms.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/TimeValue.hpp>
+#include <QGraphicsItem>
+#include <QMenu>
+#include <Scenario/Application/Menus/ObjectMenuActions.hpp>
+#include <Scenario/Application/Menus/ObjectsActions/EventActions.hpp>
+#include <Scenario/Application/Menus/ObjectsActions/IntervalActions.hpp>
+#include <Scenario/Application/Menus/ObjectsActions/StateActions.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
-#include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
-#include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <score/tools/Todo.hpp>
-
-#include <QMenu>
-#include <Scenario/Application/Menus/ObjectMenuActions.hpp>
-#include <Scenario/Application/Menus/ObjectsActions/IntervalActions.hpp>
-#include <Scenario/Application/Menus/ObjectsActions/EventActions.hpp>
-#include <Scenario/Application/Menus/ObjectsActions/StateActions.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
 #include <score/application/ApplicationContext.hpp>
-
+#include <score/document/DocumentContext.hpp>
+#include <score/tools/Todo.hpp>
+#include <score/widgets/GraphicsItem.hpp>
+#include <tuple>
+#include <type_traits>
 
 namespace Process
 {
@@ -54,35 +53,31 @@ LayerPresenter::LayerPresenter(
     const Process::ProcessPresenterContext& ctx,
     QObject* parent)
     : Process::LayerPresenter{ctx, parent}
-    , BaseScenarioPresenter<Loop::ProcessModel, Scenario::TemporalIntervalPresenter>{layer}
+    , BaseScenarioPresenter<
+          Loop::ProcessModel,
+          Scenario::TemporalIntervalPresenter>{layer}
     , m_layer{layer}
     , m_view{view}
     , m_viewUpdater{*this}
     , m_palette{m_layer, *this, m_context, *m_view}
 {
   using namespace Scenario;
-  m_intervalPresenter
-      = new TemporalIntervalPresenter{layer.interval(), ctx, false, view, this};
+  m_intervalPresenter = new TemporalIntervalPresenter{layer.interval(), ctx,
+                                                      false, view, this};
   m_startStatePresenter = new StatePresenter{
       layer.BaseScenarioContainer::startState(), m_view, this};
   m_endStatePresenter = new StatePresenter{
       layer.BaseScenarioContainer::endState(), m_view, this};
-  m_startEventPresenter
-      = new EventPresenter{layer.startEvent(), m_view, this};
-  m_endEventPresenter
-      = new EventPresenter{layer.endEvent(), m_view, this};
+  m_startEventPresenter = new EventPresenter{layer.startEvent(), m_view, this};
+  m_endEventPresenter = new EventPresenter{layer.endEvent(), m_view, this};
   m_startNodePresenter
       = new TimeSyncPresenter{layer.startTimeSync(), m_view, this};
   m_endNodePresenter
       = new TimeSyncPresenter{layer.endTimeSync(), m_view, this};
 
   auto elements = std::make_tuple(
-      m_intervalPresenter,
-      m_startStatePresenter,
-      m_endStatePresenter,
-      m_startEventPresenter,
-      m_endEventPresenter,
-      m_startNodePresenter,
+      m_intervalPresenter, m_startStatePresenter, m_endStatePresenter,
+      m_startEventPresenter, m_endEventPresenter, m_startNodePresenter,
       m_endNodePresenter);
 
   ossia::for_each_in_tuple(elements, [&](auto elt) {
@@ -109,8 +104,12 @@ LayerPresenter::LayerPresenter(
         m_viewUpdater.updateTimeSync(*m_endNodePresenter);
       });
 
-  m_model.interval().processes.added.connect<LayerPresenter, &LayerPresenter::on_addProcess>(*this);
-  m_model.interval().processes.removed.connect<LayerPresenter, &LayerPresenter::on_removeProcess>(*this);
+  m_model.interval()
+      .processes.added.connect<LayerPresenter, &LayerPresenter::on_addProcess>(
+          *this);
+  m_model.interval()
+      .processes.removed
+      .connect<LayerPresenter, &LayerPresenter::on_removeProcess>(*this);
   connect(
       m_view, &LayerView::askContextMenu, this,
       &LayerPresenter::contextMenuRequested);
@@ -129,15 +128,11 @@ LayerPresenter::LayerPresenter(
 
 void LayerPresenter::on_addProcess(const Process::ProcessModel& p)
 {
-  QTimer::singleShot(32, this, [=] {
-    setHeight(m_view->height());
-  });
+  QTimer::singleShot(32, this, [=] { setHeight(m_view->height()); });
 }
 void LayerPresenter::on_removeProcess(const Process::ProcessModel& p)
 {
-  QTimer::singleShot(32, this, [=] {
-    setHeight(m_view->height());
-  });
+  QTimer::singleShot(32, this, [=] { setHeight(m_view->height()); });
 }
 LayerPresenter::~LayerPresenter()
 {
@@ -156,8 +151,8 @@ LayerPresenter::~LayerPresenter()
 
 void LayerPresenter::on_intervalExecutionTimer()
 {
-  if(m_intervalPresenter->on_playPercentageChanged(
-      m_intervalPresenter->model().duration.playPercentage()))
+  if (m_intervalPresenter->on_playPercentageChanged(
+          m_intervalPresenter->model().duration.playPercentage()))
     m_intervalPresenter->view()->update();
 }
 
@@ -174,9 +169,10 @@ void LayerPresenter::setHeight(qreal height)
   const auto N = c.smallView().size();
   const auto slot_height = std::max(20., max_height / double(N) - 30.);
   auto& itv = const_cast<Scenario::IntervalModel&>(c);
-  for(std::size_t i = 0U; i < N; i++)
+  for (std::size_t i = 0U; i < N; i++)
   {
-    itv.setSlotHeight(Scenario::SlotId{i, Scenario::Slot::SmallView}, slot_height);
+    itv.setSlotHeight(
+        Scenario::SlotId{i, Scenario::Slot::SmallView}, slot_height);
   }
 }
 

@@ -1,5 +1,5 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 /*
   This file is part of the Ofi Labs X2 project.
 
@@ -576,7 +576,7 @@ void SidebarWidget::paintEvent(QPaintEvent* event)
   p.setFont(font);
   int fh = QFontMetrics(font).height();
   const auto& lines = lineNumbers;
-  for(const BlockInfo& ln : lines)
+  for (const BlockInfo& ln : lines)
   {
     p.setPen(ln.number != errorLine ? linePen : errorPen);
     p.drawText(
@@ -746,9 +746,15 @@ JSEdit::JSEdit(QWidget* parent)
 
   document()->setDocumentLayout(d_ptr->layout);
 
-  connect(this, &QPlainTextEdit::cursorPositionChanged, this, &JSEdit::updateCursor);
-  connect(this, &QPlainTextEdit::blockCountChanged, this, [=] { updateSidebar(); });
-  connect(this, &QPlainTextEdit::updateRequest, this, [=] (const QRect& r, int d) { updateSidebar(r, d); });
+  connect(
+      this, &QPlainTextEdit::cursorPositionChanged, this,
+      &JSEdit::updateCursor);
+  connect(this, &QPlainTextEdit::blockCountChanged, this, [=] {
+    updateSidebar();
+  });
+  connect(
+      this, &QPlainTextEdit::updateRequest, this,
+      [=](const QRect& r, int d) { updateSidebar(r, d); });
   this->setContextMenuPolicy(Qt::NoContextMenu);
 
 #if defined(Q_OS_MAC)
@@ -1021,7 +1027,8 @@ void JSEdit::wheelEvent(QWheelEvent* e)
 void JSEdit::keyPressEvent(QKeyEvent* e)
 {
   QPlainTextEdit::keyPressEvent(e);
-  if(e->key() == Qt::Key_Space && e->modifiers() & Qt::KeyboardModifier::ControlModifier)
+  if (e->key() == Qt::Key_Space
+      && e->modifiers() & Qt::KeyboardModifier::ControlModifier)
     editingFinished(this->toPlainText());
 
   e->accept();

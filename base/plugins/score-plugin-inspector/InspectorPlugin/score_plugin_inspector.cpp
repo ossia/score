@@ -1,7 +1,9 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "score_plugin_inspector.hpp"
+
 #include "Panel/InspectorPanelFactory.hpp"
+
 #include <score/plugins/customfactory/FactorySetup.hpp>
 #include <score/tools/ForEachType.hpp>
 
@@ -23,15 +25,17 @@ score_plugin_inspector::~score_plugin_inspector()
 
 std::vector<std::unique_ptr<score::InterfaceBase>>
 score_plugin_inspector::factories(
-    const score::ApplicationContext& ctx,
-    const score::InterfaceKey& key) const
+    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
-  return instantiate_factories<score::ApplicationContext, FW<score::PanelDelegateFactory, InspectorPanel::PanelDelegateFactory>>(
+  return instantiate_factories<
+      score::ApplicationContext,
+      FW<score::PanelDelegateFactory, InspectorPanel::PanelDelegateFactory>>(
       ctx, key);
 }
 
 std::vector<std::unique_ptr<score::InterfaceListBase>>
 score_plugin_inspector::factoryFamilies()
 {
-  return make_ptr_vector<score::InterfaceListBase, Inspector::InspectorWidgetList>();
+  return make_ptr_vector<
+      score::InterfaceListBase, Inspector::InspectorWidgetList>();
 }

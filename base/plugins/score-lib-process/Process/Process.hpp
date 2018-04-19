@@ -1,25 +1,24 @@
 #pragma once
-#include <Process/ExpandMode.hpp>
+#include <ossia/detail/small_vector.hpp>
 
+#include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
 #include <QByteArray>
 #include <QString>
-#include <score/model/EntityImpl.hpp>
-#include <score/selection/Selection.hpp>
-#include <score/serialization/VisitorCommon.hpp>
-#include <vector>
-
 #include <score/model/Component.hpp>
+#include <score/model/EntityImpl.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/plugins/customfactory/SerializableInterface.hpp>
+#include <score/selection/Selectable.hpp>
+#include <score/selection/Selection.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+#include <score/serialization/VisitorCommon.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/tools/Metadata.hpp>
-#include <score/selection/Selectable.hpp>
-#include <score/model/Identifier.hpp>
 #include <score_lib_process_export.h>
-#include <ossia/detail/small_vector.hpp>
+#include <vector>
 
 class ProcessStateDataInterface;
 
@@ -94,8 +93,14 @@ public:
   double getSlotHeight() const;
   void setSlotHeight(double);
 
-  const Process::Inlets& inlets() const { return m_inlets; }
-  const Process::Outlets& outlets() const { return m_outlets; }
+  const Process::Inlets& inlets() const
+  {
+    return m_inlets;
+  }
+  const Process::Outlets& outlets() const
+  {
+    return m_outlets;
+  }
 
   Process::Inlet* inlet(const Id<Process::Port>&) const;
   Process::Outlet* outlet(const Id<Process::Port>&) const;
@@ -117,8 +122,8 @@ Q_SIGNALS:
   void controlRemoved(const Process::Port&);
 
   void benchmark(double);
-protected:
 
+protected:
   // Used to scale the process.
   // This should be commutative :
   //   setDurationWithScale(2); setDurationWithScale(3);
@@ -134,14 +139,14 @@ protected:
 
   Process::Inlets m_inlets;
   Process::Outlets m_outlets;
+
 private:
   TimeVal m_duration;
   double m_slotHeight{}; //! Height in full view
 };
 
 SCORE_LIB_PROCESS_EXPORT ProcessModel* parentProcess(QObject* obj);
-SCORE_LIB_PROCESS_EXPORT const ProcessModel*
-parentProcess(const QObject* obj);
+SCORE_LIB_PROCESS_EXPORT const ProcessModel* parentProcess(const QObject* obj);
 }
 DEFAULT_MODEL_METADATA(Process::ProcessModel, "Process")
 

@@ -1,17 +1,18 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QObject>
-#include <algorithm>
-#include <stdexcept>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Process.hpp"
-#include <Process/Dataflow/Port.hpp>
+
 #include <ossia/detail/algorithms.hpp>
+
+#include <Process/Dataflow/Port.hpp>
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
-#include <score/model/ModelMetadata.hpp>
+#include <QObject>
+#include <algorithm>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/model/ModelMetadata.hpp>
+#include <stdexcept>
 
 template class IdentifiedObject<Process::ProcessModel>;
 template class score::SerializableInterface<Process::ProcessModelFactory>;
@@ -26,9 +27,9 @@ ProcessModel::ProcessModel(
     , m_duration{std::move(duration)}
     , m_slotHeight{300}
 {
-  con(metadata(), &score::ModelMetadata::NameChanged,
-      this, [=] { prettyNameChanged(); });
-  //metadata().setInstanceName(*this);
+  con(metadata(), &score::ModelMetadata::NameChanged, this,
+      [=] { prettyNameChanged(); });
+  // metadata().setInstanceName(*this);
 }
 
 ProcessModel::~ProcessModel()
@@ -52,19 +53,19 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration)
 }
 
 ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent)
-  : Entity(vis, parent)
+    : Entity(vis, parent)
 {
   vis.writeTo(*this);
-  con(metadata(), &score::ModelMetadata::NameChanged,
-      this, [=] { prettyNameChanged(); });
+  con(metadata(), &score::ModelMetadata::NameChanged, this,
+      [=] { prettyNameChanged(); });
 }
 
 ProcessModel::ProcessModel(JSONObject::Deserializer& vis, QObject* parent)
     : Entity(vis, parent)
 {
   vis.writeTo(*this);
-  con(metadata(), &score::ModelMetadata::NameChanged,
-      this, [=] { prettyNameChanged(); });
+  con(metadata(), &score::ModelMetadata::NameChanged, this,
+      [=] { prettyNameChanged(); });
 }
 
 QString ProcessModel::prettyName() const
@@ -132,12 +133,12 @@ void ProcessModel::reset()
 {
 }
 
-ProcessStateDataInterface*ProcessModel::startStateData() const
+ProcessStateDataInterface* ProcessModel::startStateData() const
 {
   return nullptr;
 }
 
-ProcessStateDataInterface*ProcessModel::endStateData() const
+ProcessStateDataInterface* ProcessModel::endStateData() const
 {
   return nullptr;
 }
@@ -158,16 +159,16 @@ void ProcessModel::setSelection(const Selection& s) const
 
 Process::Inlet* ProcessModel::inlet(const Id<Process::Port>& p) const
 {
-  for(auto e : m_inlets)
-    if(e->id() == p)
+  for (auto e : m_inlets)
+    if (e->id() == p)
       return e;
   return nullptr;
 }
 
 Process::Outlet* ProcessModel::outlet(const Id<Process::Port>& p) const
 {
-  for(auto e : m_outlets)
-    if(e->id() == p)
+  for (auto e : m_outlets)
+    if (e->id() == p)
       return e;
   return nullptr;
 }

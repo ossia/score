@@ -1,9 +1,9 @@
 #pragma once
 #include <core/command/CommandStack.hpp>
+#include <score/application/ApplicationComponents.hpp>
 #include <score/command/CommandData.hpp>
 #include <score/plugins/customfactory/StringFactoryKeySerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
-#include <score/application/ApplicationComponents.hpp>
 namespace score
 {
 template <typename RedoFun>

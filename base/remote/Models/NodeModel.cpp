@@ -1,13 +1,14 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "NodeModel.hpp"
-#include <Device/ItemModels/NodeDisplayMethods.hpp>
+
 #include <ossia/network/value/value_traits.hpp>
+
+#include <Device/ItemModels/NodeDisplayMethods.hpp>
 namespace RemoteUI
 {
 
-NodeModel::NodeModel(QObject *parent)
-  : QAbstractItemModel(parent)
+NodeModel::NodeModel(QObject* parent) : QAbstractItemModel(parent)
 {
 }
 
@@ -22,22 +23,29 @@ void NodeModel::replace(Device::Node n)
 
 QString NodeModel::nodeToAddressString(QModelIndex idx)
 {
-  if(!idx.isValid())
+  if (!idx.isValid())
     return {};
   auto& n = nodeFromModelIndex(idx);
   return Device::address(n).toString();
 }
 
-Device::Node&NodeModel::rootNode() { return m_root; }
+Device::Node& NodeModel::rootNode()
+{
+  return m_root;
+}
 
-const Device::Node&NodeModel::rootNode() const { return m_root; }
+const Device::Node& NodeModel::rootNode() const
+{
+  return m_root;
+}
 
-QVariant NodeModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant
+NodeModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
   return {};
 }
 
-int NodeModel::columnCount(const QModelIndex &parent) const
+int NodeModel::columnCount(const QModelIndex& parent) const
 {
   return 2;
 }
@@ -48,21 +56,20 @@ Qt::ItemFlags NodeModel::flags(const QModelIndex& index) const
   f |= Qt::ItemIsSelectable;
   f |= Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
   return f;
-
 }
 
-QVariant NodeModel::data(const QModelIndex &index, int role) const
+QVariant NodeModel::data(const QModelIndex& index, int role) const
 {
   const Device::Node& n = nodeFromModelIndex(index);
 
   switch (role)
   {
     case Roles::Name:
-        return n.displayName();
+      return n.displayName();
 
     case Roles::Value:
     {
-      if(auto addr = n.target<Device::AddressSettings>())
+      if (auto addr = n.target<Device::AddressSettings>())
       {
         const ossia::value& val = addr->value;
         if (ossia::is_array(val))
@@ -90,7 +97,7 @@ QHash<int, QByteArray> NodeModel::roleNames() const
   return {{Roles::Name, "address"}, {Roles::Value, "value"}};
 }
 
-Device::Node&NodeModel::nodeFromModelIndex(const QModelIndex& index) const
+Device::Node& NodeModel::nodeFromModelIndex(const QModelIndex& index) const
 {
   auto n = index.isValid() ? static_cast<NodeType*>(index.internalPointer())
                            : const_cast<NodeType*>(&rootNode());
@@ -124,10 +131,11 @@ QModelIndex NodeModel::parent(const QModelIndex& index) const
   return createIndex(rowParent, 0, parentNode);
 }
 
-QModelIndex NodeModel::index(int row, int column, const QModelIndex& parent) const
+QModelIndex
+NodeModel::index(int row, int column, const QModelIndex& parent) const
 {
-  auto&p = nodeFromModelIndex(parent);
-  qDebug( ) << p.displayName() << rowCount(parent) << columnCount(parent);
+  auto& p = nodeFromModelIndex(parent);
+  qDebug() << p.displayName() << rowCount(parent) << columnCount(parent);
 
   if (!hasIndex(row, column, parent))
     return QModelIndex();

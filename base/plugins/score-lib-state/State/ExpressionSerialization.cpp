@@ -1,16 +1,15 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QJsonObject>
-#include <QJsonValue>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONVisitor.hpp>
-#include <score/serialization/VariantSerialization.hpp>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Expression.hpp"
 #include "Relation.hpp"
-#include <score/serialization/JSONValueVisitor.hpp>
-#include <State/ValueSerialization.hpp>
 
+#include <QJsonObject>
+#include <QJsonValue>
+#include <State/ValueSerialization.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONValueVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+#include <score/serialization/VariantSerialization.hpp>
 
 template <>
 void DataStreamReader::read(const State::Pulse& rel)
@@ -20,13 +19,11 @@ void DataStreamReader::read(const State::Pulse& rel)
   insertDelimiter();
 }
 
-
 template <>
 void JSONObjectReader::read(const State::Pulse& rel)
 {
   obj[strings.address] = toJsonObject(rel.address);
 }
-
 
 template <>
 void DataStreamWriter::write(State::Pulse& rel)
@@ -36,13 +33,11 @@ void DataStreamWriter::write(State::Pulse& rel)
   checkDelimiter();
 }
 
-
 template <>
 void JSONObjectWriter::write(State::Pulse& rel)
 {
   fromJsonObject(obj[strings.address], rel.address);
 }
-
 
 template <>
 void DataStreamReader::read(const State::Relation& rel)
@@ -51,7 +46,6 @@ void DataStreamReader::read(const State::Relation& rel)
 
   insertDelimiter();
 }
-
 
 template <>
 void JSONObjectReader::read(const State::Relation& rel)
@@ -62,7 +56,6 @@ void JSONObjectReader::read(const State::Relation& rel)
   obj[strings.RHS] = toJsonObject(rel.rhs);
 }
 
-
 template <>
 void DataStreamWriter::write(State::Relation& rel)
 {
@@ -70,7 +63,6 @@ void DataStreamWriter::write(State::Relation& rel)
 
   checkDelimiter();
 }
-
 
 template <>
 void JSONObjectWriter::write(State::Relation& rel)
@@ -80,36 +72,28 @@ void JSONObjectWriter::write(State::Relation& rel)
   fromJsonObject(obj[strings.RHS], rel.rhs);
 }
 
-
 template <>
-SCORE_LIB_STATE_EXPORT void
-DataStreamReader::read(const State::ExprData& expr)
+SCORE_LIB_STATE_EXPORT void DataStreamReader::read(const State::ExprData& expr)
 {
   readFrom(expr.m_data);
   insertDelimiter();
 }
 
-
 template <>
-SCORE_LIB_STATE_EXPORT void
-JSONObjectReader::read(const State::ExprData& expr)
+SCORE_LIB_STATE_EXPORT void JSONObjectReader::read(const State::ExprData& expr)
 {
   readFrom(expr.m_data);
 }
 
-
 template <>
-SCORE_LIB_STATE_EXPORT void
-DataStreamWriter::write(State::ExprData& expr)
+SCORE_LIB_STATE_EXPORT void DataStreamWriter::write(State::ExprData& expr)
 {
   writeTo(expr.m_data);
   checkDelimiter();
 }
 
-
 template <>
-SCORE_LIB_STATE_EXPORT void
-JSONObjectWriter::write(State::ExprData& expr)
+SCORE_LIB_STATE_EXPORT void JSONObjectWriter::write(State::ExprData& expr)
 {
   writeTo(expr.m_data);
 }

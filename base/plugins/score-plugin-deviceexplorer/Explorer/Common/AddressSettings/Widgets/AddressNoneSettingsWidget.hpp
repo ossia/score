@@ -1,5 +1,6 @@
 #pragma once
 #include "AddressSettingsWidget.hpp"
+
 #include <Device/Address/AddressSettings.hpp>
 
 namespace Explorer

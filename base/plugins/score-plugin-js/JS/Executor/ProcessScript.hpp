@@ -8,5 +8,4 @@ class ProcessScript : public QObject
   Q_OBJECT
 public:
 };
-
 }

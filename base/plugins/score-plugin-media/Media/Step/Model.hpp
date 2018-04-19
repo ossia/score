@@ -1,6 +1,6 @@
 #pragma once
-#include <Process/Process.hpp>
 #include <Media/Step/Metadata.hpp>
+#include <Process/Process.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
@@ -16,23 +16,23 @@ class Model final : public Process::ProcessModel
   PROCESS_METADATA_IMPL(Media::Step::Model)
 
   Q_OBJECT
-  Q_PROPERTY(quint64 stepCount READ stepCount WRITE setStepCount NOTIFY stepCountChanged)
-  Q_PROPERTY(quint64 stepDuration READ stepDuration WRITE setStepDuration NOTIFY stepDurationChanged)
+  Q_PROPERTY(quint64 stepCount READ stepCount WRITE setStepCount NOTIFY
+                 stepCountChanged)
+  Q_PROPERTY(quint64 stepDuration READ stepDuration WRITE setStepDuration
+                 NOTIFY stepDurationChanged)
   Q_PROPERTY(double min READ min WRITE setMin NOTIFY minChanged)
   Q_PROPERTY(double max READ max WRITE setMax NOTIFY maxChanged)
-  public:
-    explicit Model(
-               const TimeVal& duration,
-               const Id<Process::ProcessModel>& id,
-               QObject* parent);
+public:
+  explicit Model(
+      const TimeVal& duration,
+      const Id<Process::ProcessModel>& id,
+      QObject* parent);
 
   ~Model() override;
 
-  template<typename Impl>
-  explicit Model(
-      Impl& vis,
-      QObject* parent) :
-    Process::ProcessModel{vis, parent}
+  template <typename Impl>
+  explicit Model(Impl& vis, QObject* parent)
+      : Process::ProcessModel{vis, parent}
   {
     vis.writeTo(*this);
     init();

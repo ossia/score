@@ -1,9 +1,10 @@
 #pragma once
-#include <score_plugin_engine_export.h>
-#include <readerwriterqueue.h>
-#include <functional>
 #include <ossia/editor/scenario/time_value.hpp>
+
 #include <Process/TimeValue.hpp>
+#include <functional>
+#include <readerwriterqueue.h>
+#include <score_plugin_engine_export.h>
 #include <smallfun.hpp>
 
 namespace ossia
@@ -35,16 +36,21 @@ class ProcessComponent;
 class ProcessComponentFactory;
 class ProcessComponentFactoryList;
 class BaseScenarioElement;
-namespace Settings { class Model; }
+namespace Settings
+{
+class Model;
+}
 
 using time_function = smallfun::function<ossia::time_value(const TimeVal&)>;
-using reverse_time_function = smallfun::function<TimeVal(const ossia::time_value&)>;
+using reverse_time_function
+    = smallfun::function<TimeVal(const ossia::time_value&)>;
 #if defined(__APPLE__) || defined(__EMSCRIPTEN__)
-using ExecutionCommand = smallfun::function<void(), 128, 2*sizeof(intptr_t)>;
+using ExecutionCommand = smallfun::function<void(), 128, 2 * sizeof(intptr_t)>;
 #else
 using ExecutionCommand = smallfun::function<void(), 128, sizeof(intptr_t)>;
 #endif
-using ExecutionCommandQueue = moodycamel::ReaderWriterQueue<ExecutionCommand, 1024>;
+using ExecutionCommandQueue
+    = moodycamel::ReaderWriterQueue<ExecutionCommand, 1024>;
 
 //! Useful structures when creating the execution elements.
 struct SCORE_PLUGIN_ENGINE_EXPORT Context
@@ -74,9 +80,11 @@ struct SCORE_PLUGIN_ENGINE_EXPORT Context
   ExecutionCommandQueue& editionQueue;
   DocumentPlugin& plugin;
 
-  auto& context() const { return *this; }
+  auto& context() const
+  {
+    return *this;
+  }
 };
-
 }
 }
 

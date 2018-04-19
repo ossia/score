@@ -16,8 +16,10 @@ template <typename Model_T, typename MakeTuple, typename LoadTuple>
 class GenericModelFactory;
 
 template <typename Model_T, typename... MakeArgs_T, typename... LoadArgs_T>
-class
-    GenericModelFactory<Model_T, MakeArgs<MakeArgs_T...>, LoadArgs<LoadArgs_T...>>
+class GenericModelFactory<
+    Model_T,
+    MakeArgs<MakeArgs_T...>,
+    LoadArgs<LoadArgs_T...>>
 {
 public:
   virtual ~GenericModelFactory() = default;
@@ -47,8 +49,7 @@ class GenericComponentFactoryImpl : public ComponentFactoryBase_T
   using base_model_type = typename ComponentFactoryBase_T::base_model_type;
   using system_type = typename ComponentFactoryBase_T::system_type;
   using component_type = Component_T;
-  using ConcreteKey =
-      typename ComponentFactoryBase_T::ConcreteKey;
+  using ConcreteKey = typename ComponentFactoryBase_T::ConcreteKey;
   using ComponentFactoryBase_T::ComponentFactoryBase_T;
 
   static auto static_concreteKey()

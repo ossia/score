@@ -1,14 +1,11 @@
 #pragma once
 
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-
-#include <score/command/Command.hpp>
-#include <score/tools/std/Optional.hpp>
-
-#include <score/model/path/Path.hpp>
-#include <score/model/Identifier.hpp>
-
 #include <Process/TimeValue.hpp>
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <score/command/Command.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/model/path/Path.hpp>
+#include <score/tools/std/Optional.hpp>
 
 namespace Scenario
 {

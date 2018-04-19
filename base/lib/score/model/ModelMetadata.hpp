@@ -2,12 +2,12 @@
 #include <QColor>
 #include <QObject>
 #include <QString>
-#include <wobjectdefs.h>
-#include <score/serialization/VisitorInterface.hpp>
+#include <qnamespace.h>
 #include <score/model/ColorReference.hpp>
+#include <score/serialization/VisitorInterface.hpp>
 #include <score/tools/Metadata.hpp>
 #include <score_lib_base_export.h>
-#include <qnamespace.h>
+#include <wobjectdefs.h>
 namespace score
 {
 /**
@@ -45,21 +45,44 @@ public:
   void setLabel(const QString&);
   void setExtendedMetadata(const QVariantMap&);
 
-  void NameChanged(const QString& arg) W_SIGNAL(NameChanged, arg)
-  void CommentChanged(const QString& arg) W_SIGNAL(CommentChanged, arg)
-  void ColorChanged(score::ColorRef arg) W_SIGNAL(ColorChanged, arg)
-  void LabelChanged(const QString& arg) W_SIGNAL(LabelChanged, arg)
-  void ExtendedMetadataChanged(const QVariantMap& arg) W_SIGNAL(ExtendedMetadataChanged, arg)
-  void metadataChanged() W_SIGNAL(metadataChanged)
+  void NameChanged(const QString& arg) W_SIGNAL(
+      NameChanged, arg) void CommentChanged(const QString& arg)
+      W_SIGNAL(CommentChanged, arg) void ColorChanged(score::ColorRef arg)
+          W_SIGNAL(ColorChanged, arg) void LabelChanged(const QString& arg)
+              W_SIGNAL(LabelChanged, arg) void ExtendedMetadataChanged(
+                  const QVariantMap& arg)
+                  W_SIGNAL(
+                      ExtendedMetadataChanged,
+                      arg) void metadataChanged() W_SIGNAL(metadataChanged)
 
-  W_PROPERTY(QString, Name READ getName WRITE setName NOTIFY NameChanged, W_Final)
-  W_PROPERTY(QString, Comment READ getComment WRITE setComment NOTIFY CommentChanged, W_Final)
-  W_PROPERTY(ColorRef, Color READ getColor WRITE setColor NOTIFY ColorChanged, W_Final)
-  W_PROPERTY(QString, Label READ getLabel WRITE setLabel NOTIFY LabelChanged, W_Final)
-  W_PROPERTY(QVariantMap, ExtendedMetadata READ getExtendedMetadata WRITE setExtendedMetadata NOTIFY ExtendedMetadataChanged, W_Final)
+                      W_PROPERTY(
+                          QString,
+                          Name READ getName WRITE setName NOTIFY NameChanged,
+                          W_Final)
+                          W_PROPERTY(
+                              QString,
+                              Comment READ getComment WRITE setComment NOTIFY
+                                  CommentChanged,
+                              W_Final)
+                              W_PROPERTY(
+                                  ColorRef,
+                                  Color READ getColor WRITE setColor NOTIFY
+                                      ColorChanged,
+                                  W_Final)
+                                  W_PROPERTY(
+                                      QString,
+                                      Label READ getLabel WRITE setLabel NOTIFY
+                                          LabelChanged,
+                                      W_Final)
+                                      W_PROPERTY(
+                                          QVariantMap,
+                                          ExtendedMetadata READ
+                                              getExtendedMetadata WRITE
+                                                  setExtendedMetadata NOTIFY
+                                                      ExtendedMetadataChanged,
+                                          W_Final)
 
-private:
-  QString m_scriptingName;
+                                          private : QString m_scriptingName;
   QString m_comment;
   ColorRef m_color;
   QString m_label;

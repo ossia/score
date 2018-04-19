@@ -1,8 +1,8 @@
 #pragma once
-#include <Process/TimeValue.hpp>
-#include <score/plugins/customfactory/FactoryInterface.hpp>
-#include <score/model/Identifier.hpp>
 #include <Process/ProcessMetadata.hpp>
+#include <Process/TimeValue.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/plugins/customfactory/FactoryInterface.hpp>
 #include <score_lib_process_export.h>
 
 class QGraphicsItem;
@@ -23,7 +23,6 @@ class MiniLayer;
 class ProcessModel;
 struct ProcessPresenterContext;
 
-
 /**
  * @brief The ProcessFactory class
  *
@@ -42,8 +41,11 @@ public:
 
   virtual QString customConstructionData() const;
 
-  virtual Process::ProcessModel*
-  make(const TimeVal& duration, const QString& data, const Id<ProcessModel>& id, QObject* parent)
+  virtual Process::ProcessModel* make(
+      const TimeVal& duration,
+      const QString& data,
+      const Id<ProcessModel>& id,
+      QObject* parent)
       = 0;
 
   virtual Process::ProcessModel* load(const VisitorVariant&, QObject* parent)
@@ -69,11 +71,15 @@ public:
   virtual Process::MiniLayer*
   makeMiniLayer(const Process::ProcessModel&, QGraphicsItem* parent) const;
 
-  virtual QGraphicsItem*
-  makeItem(const Process::ProcessModel&, const score::DocumentContext& ctx, score::RectItem* parent) const;
+  virtual QGraphicsItem* makeItem(
+      const Process::ProcessModel&,
+      const score::DocumentContext& ctx,
+      score::RectItem* parent) const;
 
-  virtual QWidget*
-  makeExternalUI(const Process::ProcessModel&, const score::DocumentContext& ctx, QWidget* parent) const;
+  virtual QWidget* makeExternalUI(
+      const Process::ProcessModel&,
+      const score::DocumentContext& ctx,
+      QWidget* parent) const;
 
   virtual HeaderDelegate*
   makeHeaderDelegate(const Process::LayerPresenter& pres) const;

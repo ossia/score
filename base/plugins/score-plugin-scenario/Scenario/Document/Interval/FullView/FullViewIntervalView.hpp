@@ -33,8 +33,8 @@ public:
   void setGuiWidth(double);
 
   void setSelected(bool selected);
+
 private:
   double m_guiWidth{};
-
 };
 }

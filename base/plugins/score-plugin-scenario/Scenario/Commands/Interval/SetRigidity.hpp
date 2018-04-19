@@ -13,12 +13,11 @@ class IntervalModel;
 namespace Command
 {
 /**
-         * @brief The SetRigidity class
-         *
-         * Sets the rigidity of a interval
-         */
-class SCORE_PLUGIN_SCENARIO_EXPORT SetRigidity final
-    : public score::Command
+ * @brief The SetRigidity class
+ *
+ * Sets the rigidity of a interval
+ */
+class SCORE_PLUGIN_SCENARIO_EXPORT SetRigidity final : public score::Command
 {
   SCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), SetRigidity, "Change interval rigidity")

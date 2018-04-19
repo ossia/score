@@ -1,6 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SetOutput.hpp"
+
 #include <Midi/MidiProcess.hpp>
 #include <score/model/path/PathSerialization.hpp>
 
@@ -56,8 +57,6 @@ void SetChannel::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_model >> m_old >> m_new;
 }
-
-
 
 SetRange::SetRange(const ProcessModel& model, int min, int max)
     : m_model{model}

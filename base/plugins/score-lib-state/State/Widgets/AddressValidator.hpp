@@ -24,8 +24,7 @@ public:
   }
 };
 
-class SCORE_LIB_STATE_EXPORT AddressAccessorValidator final
-    : public QValidator
+class SCORE_LIB_STATE_EXPORT AddressAccessorValidator final : public QValidator
 {
 public:
   virtual ~AddressAccessorValidator();

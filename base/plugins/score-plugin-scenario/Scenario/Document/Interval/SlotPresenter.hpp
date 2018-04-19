@@ -1,9 +1,9 @@
 #pragma once
 
-#include <Scenario/Document/Interval/SlotHeader.hpp>
-#include <Scenario/Document/Interval/SlotHandle.hpp>
-#include <Process/LayerPresenter.hpp>
 #include <Process/HeaderDelegate.hpp>
+#include <Process/LayerPresenter.hpp>
+#include <Scenario/Document/Interval/SlotHandle.hpp>
+#include <Scenario/Document/Interval/SlotHeader.hpp>
 
 namespace Scenario
 {
@@ -18,10 +18,10 @@ struct SlotPresenter
 
   double headerHeight() const
   {
-    if(!header)
+    if (!header)
       return SlotHeader::headerHeight();
 
-    if(!headerDelegate)
+    if (!headerDelegate)
       return header->headerHeight();
 
     return headerDelegate->boundingRect().height();

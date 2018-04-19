@@ -1,15 +1,14 @@
 #pragma once
 /*
-#include <Engine/LocalTree/Scenario/ProcessComponent.hpp>
 #include <Engine/LocalTree/LocalTreeComponent.hpp>
 #include <Engine/LocalTree/NameProperty.hpp>
-#include <Process/Process.hpp>
+#include <Engine/LocalTree/Scenario/ProcessComponent.hpp>
 #include <Media/Effect/EffectProcessModel.hpp>
 #include <Media/Effect/Faust/FaustEffectModel.hpp>
 #include <Media/Effect/LocalTree/LocalTreeEffectComponent.hpp>
-
-#include <score/tools/IdentifierGeneration.hpp>
+#include <Process/Process.hpp>
 #include <score/model/ComponentHierarchy.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
 
 namespace Media
 {
@@ -44,7 +43,8 @@ class EffectProcessComponentBase :
                const Id<score::Component> & id,
                Process::EffectModel &process);
 
-       void removing(const Process::EffectModel& cst, const EffectComponent& comp);
+       void removing(const Process::EffectModel& cst, const EffectComponent&
+comp);
 
        ~EffectProcessComponentBase();
 
@@ -53,7 +53,8 @@ class EffectProcessComponentBase :
        auto& models() const
        {
            static_assert(std::is_same<Models, EffectModel>::value,
-                         "Effect component must be passed EffectModel as child.");
+                         "Effect component must be passed EffectModel as
+child.");
 
            return process().effects();
        }
@@ -75,7 +76,8 @@ class EffectProcessComponent final :
         }
 };
 
-using EffectProcessComponentFactory = Engine::LocalTree::ProcessComponentFactory_T<EffectProcessComponent>;
+using EffectProcessComponentFactory =
+Engine::LocalTree::ProcessComponentFactory_T<EffectProcessComponent>;
 }
 }
 }

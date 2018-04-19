@@ -11,21 +11,17 @@ namespace Command
 class SCORE_PLUGIN_SCENARIO_EXPORT CreateBox final
     : public score::AggregateCommand
 {
-  SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
-      CreateBox,
-      "Create a box")
+  SCORE_COMMAND_DECL(ScenarioCommandFactoryName(), CreateBox, "Create a box")
 
-  public:
+public:
 };
 
 SCORE_PLUGIN_SCENARIO_EXPORT
 void MakeBox(
-      const score::CommandStackFacade& stack,
-      const Scenario::ProcessModel& scenario,
-      TimeVal date,
-      TimeVal endDate,
-      double Y);
-
+    const score::CommandStackFacade& stack,
+    const Scenario::ProcessModel& scenario,
+    TimeVal date,
+    TimeVal endDate,
+    double Y);
 }
 }

@@ -1,26 +1,22 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <Process/AbstractScenarioLayerModel.hpp>
+#include <Process/ProcessList.hpp>
 #include <QtTest/QtTest>
-#include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
-
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/Rack/RackModel.hpp>
-#include <Scenario/Document/Interval/Slot.hpp>
-#include <Scenario/Document/Interval/IntervalViewModel.hpp>
-#include <Scenario/Document/Event/EventData.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-
+#include <Scenario/Commands/Interval/AddLayerModelToSlot.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/AddRackToInterval.hpp>
 #include <Scenario/Commands/Interval/Rack/AddSlotToRack.hpp>
-#include <Scenario/Commands/Interval/AddLayerModelToSlot.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateEvent.hpp>
-
-#include <Process/AbstractScenarioLayerModel.hpp>
+#include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
+#include <Scenario/Document/Event/EventData.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/IntervalViewModel.hpp>
+#include <Scenario/Document/Interval/Rack/RackModel.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Process/ScenarioFactory.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-
-#include <Process/ProcessList.hpp>
 #include <core/command/CommandStack.hpp>
 #include <score/document/DocumentInterface.hpp>
 
@@ -49,12 +45,11 @@ private Q_SLOTS:
         = new AddProcessToInterval({{"IntervalModel", {}}}, "Scenario");
     stack.redoAndPush(cmd_proc);
     auto scenarioId = cmd_proc->m_createdProcessId;
-    auto scenario = static_cast<Scenario::ProcessModel*>(
-        interval->process(scenarioId));
+    auto scenario
+        = static_cast<Scenario::ProcessModel*>(interval->process(scenarioId));
 
     // Creation of a way to visualize what happens in the original interval
-    auto cmd_rack
-        = new AddRackToInterval(ObjectPath{{"IntervalModel", {}}});
+    auto cmd_rack = new AddRackToInterval(ObjectPath{{"IntervalModel", {}}});
     stack.redoAndPush(cmd_rack);
     auto rackId = cmd_rack->m_createdRackId;
 
@@ -64,9 +59,7 @@ private Q_SLOTS:
     stack.redoAndPush(cmd_slot);
 
     auto cmd_lm = new AddLayerModelToSlot(
-        {{"IntervalModel", {}},
-         {"RackModel", rackId},
-         {"SlotModel", slotId}},
+        {{"IntervalModel", {}}, {"RackModel", rackId}, {"SlotModel", slotId}},
         {{"IntervalModel", {}}, {"ScenarioModel", scenarioId}});
     stack.redoAndPush(cmd_lm);
 
@@ -106,14 +99,14 @@ private Q_SLOTS:
         interval_viewmodel->model(),
         scenario->interval(cmd_event->m_cmd->m_createdIntervalId));
     QCOMPARE(interval_viewmodel->isRackShown(), false); // No rack can be
-                                                          // shown since there
-                                                          // isn't any in this
-                                                          // interval
+                                                        // shown since there
+                                                        // isn't any in this
+                                                        // interval
 
-    auto cmd_rack2 = new AddRackToInterval(ObjectPath{
-        {"IntervalModel", {}},
-        {"ScenarioModel", scenarioId},
-        {"IntervalModel", cmd_event->m_cmd->m_createdIntervalId}});
+    auto cmd_rack2 = new AddRackToInterval(
+        ObjectPath{{"IntervalModel", {}},
+                   {"ScenarioModel", scenarioId},
+                   {"IntervalModel", cmd_event->m_cmd->m_createdIntervalId}});
     stack.redoAndPush(cmd_rack2);
 
     QCOMPARE(

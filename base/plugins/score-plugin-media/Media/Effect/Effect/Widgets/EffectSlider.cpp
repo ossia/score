@@ -1,21 +1,23 @@
 #include "EffectSlider.hpp"
+
+#include <ossia/network/base/node.hpp>
 #include <ossia/network/domain/domain.hpp>
+#include <ossia/network/value/value_conversion.hpp>
+
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Node/NodeListMimeSerialization.hpp>
+#include <Process/Dataflow/Port.hpp>
+#include <QAction>
+#include <QContextMenuEvent>
+#include <QDrag>
+#include <QLabel>
+#include <QMenu>
+#include <QVBoxLayout>
 #include <State/Expression.hpp>
+#include <State/MessageListSerialization.hpp>
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
-#include <Device/Node/NodeListMimeSerialization.hpp>
-#include <ossia/network/base/node.hpp>
-#include <ossia/network/value/value_conversion.hpp>
-#include <QMenu>
-#include <QLabel>
-#include <QDrag>
-#include <QVBoxLayout>
-#include <QAction>
-#include <QContextMenuEvent>
-#include <Device/Address/AddressSettings.hpp>
-#include <State/MessageListSerialization.hpp>
-#include <Process/Dataflow/Port.hpp>
 
 namespace Media
 {
@@ -27,9 +29,8 @@ class AddressLabel : public QLabel
 {
         const ossia::net::node_base& m_node;
     public:
-        AddressLabel(const ossia::net::node_base& node, QString str, QWidget* parent):
-            QLabel{std::move(str), parent},
-            m_node{node}
+        AddressLabel(const ossia::net::node_base& node, QString str, QWidget*
+parent): QLabel{std::move(str), parent}, m_node{node}
         {
 
         }
@@ -39,7 +40,8 @@ class AddressLabel : public QLabel
         {
             if (event->button() == Qt::LeftButton)
             {
-                auto as = Engine::ossia_to_score::ToFullAddressSettings(m_node);
+                auto as =
+Engine::ossia_to_score::ToFullAddressSettings(m_node);
 
                 auto drag = new QDrag(this);
                 auto mimeData = new QMimeData;
@@ -49,7 +51,8 @@ class AddressLabel : public QLabel
                 }
                 {
                     Mime<State::MessageList>::Serializer s{*mimeData};
-                    s.serialize({State::Message{State::AddressAccessor{as.address}, as.value}});
+                    s.serialize({State::Message{State::AddressAccessor{as.address},
+as.value}});
                 }
                 drag->setMimeData(mimeData);
 
@@ -62,22 +65,24 @@ class AddressLabel : public QLabel
 
 };
 */
-EffectSlider::EffectSlider(Process::ControlInlet& fx, bool is_output, QWidget* parent):
-  QWidget{parent},
-  m_param{fx}
+EffectSlider::EffectSlider(
+    Process::ControlInlet& fx, bool is_output, QWidget* parent)
+    : QWidget{parent}, m_param{fx}
 {
   const auto& dom = fx.domain().get();
 
-  if(auto f = dom.maybe_min<float>()) m_min = *f;
-  if(auto f = dom.maybe_max<float>()) m_max = *f;
+  if (auto f = dom.maybe_min<float>())
+    m_min = *f;
+  if (auto f = dom.maybe_max<float>())
+    m_max = *f;
 
   auto lay = new score::MarginLess<QVBoxLayout>;
   /*
   lay->addWidget(new AddressLabel{
                      m_param,
                      QString::fromStdString(
-                      ossia::get_value_or(ossia::net::get_description(m_param), "nothing")),
-                     this});
+                      ossia::get_value_or(ossia::net::get_description(m_param),
+  "nothing")), this});
   */
   lay->addWidget(new TextLabel{fx.customData()});
   m_slider = new score::DoubleSlider{this};
@@ -90,39 +95,36 @@ EffectSlider::EffectSlider(Process::ControlInlet& fx, bool is_output, QWidget* p
   scaledValue = (cur_val - m_min) / (m_max - m_min);
   m_slider->setValue(scaledValue);
 
-  if(!is_output)
+  if (!is_output)
   {
-      connect(m_slider, &score::DoubleSlider::valueChanged,
-              this, [=] (double v)
-      {
-          // TODO undo ???
-          // v is between 0 - 1
-          const auto& cur = m_param.value();
-          auto exp = float(m_min + (m_max - m_min) * v);
-          if(std::abs(ossia::convert<float>(cur) - exp) > 0.0001)
-            m_param.setValue(float{exp});
-      });
+    connect(m_slider, &score::DoubleSlider::valueChanged, this, [=](double v) {
+      // TODO undo ???
+      // v is between 0 - 1
+      const auto& cur = m_param.value();
+      auto exp = float(m_min + (m_max - m_min) * v);
+      if (std::abs(ossia::convert<float>(cur) - exp) > 0.0001)
+        m_param.setValue(float{exp});
+    });
   }
-  con(m_param, &Process::ControlInlet::valueChanged,
-          this, [=] (const ossia::value& val) {
-
-    if(auto v = val.target<float>())
-    {
-      auto scaled = (*v - m_min) / (m_max - m_min);
-      if(std::abs(scaled - m_slider->value()) > 0.0001)
-      {
-         m_slider->setValue(scaled);
-      }
-    }
-  });
+  con(m_param, &Process::ControlInlet::valueChanged, this,
+      [=](const ossia::value& val) {
+        if (auto v = val.target<float>())
+        {
+          auto scaled = (*v - m_min) / (m_max - m_min);
+          if (std::abs(scaled - m_slider->value()) > 0.0001)
+          {
+            m_slider->setValue(scaled);
+          }
+        }
+      });
 
   m_addAutomAction = new QAction{tr("Add automation"), this};
-  connect(m_addAutomAction, &QAction::triggered,
-          this, [=] () {
+  connect(m_addAutomAction, &QAction::triggered, this, [=]() {
     /*
     auto& ossia_addr = *m_param.get_parameter();
     auto& dom = ossia_addr.get_domain();
-    auto addr = State::parseAddress(QString::fromStdString(ossia::net::address_string_from_node(ossia_addr)));
+    auto addr =
+    State::parseAddress(QString::fromStdString(ossia::net::address_string_from_node(ossia_addr)));
 
     if(addr)
     {
@@ -147,6 +149,5 @@ void EffectSlider::contextMenuEvent(QContextMenuEvent* event)
 
   contextMenu->deleteLater();
 }
-
 }
 }

@@ -1,25 +1,22 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "MoveInterval.hpp"
+
+#include <Process/TimeValue.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-
 #include <algorithm>
-
-#include "MoveInterval.hpp"
-#include <Process/TimeValue.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 
 namespace Scenario
 {
 namespace Command
 {
 MoveInterval::MoveInterval(
-    const Scenario::ProcessModel& scenar,
-    Id<IntervalModel> id,
-    double height)
+    const Scenario::ProcessModel& scenar, Id<IntervalModel> id, double height)
     : m_path{scenar}, m_interval{id}, m_newHeight{height}
 {
   auto& cst = scenar.intervals.at(m_interval);

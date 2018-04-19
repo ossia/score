@@ -21,15 +21,12 @@ class SCORE_LIB_BASE_EXPORT ObjectLocker : public QObject
 public:
   explicit ObjectLocker(QObject* parent);
 
-
   // To the network
-  void lock(QByteArray b)
-  W_SIGNAL(lock, b)
-  void unlock(QByteArray b)
-  W_SIGNAL(unlock, b)
+  void lock(QByteArray b) W_SIGNAL(lock, b) void unlock(QByteArray b)
+      W_SIGNAL(unlock, b)
 
-  // From the network
-  void on_lock(QByteArray b);
+      // From the network
+      void on_lock(QByteArray b);
   W_INVOKABLE(on_lock)
   void on_unlock(QByteArray);
   W_INVOKABLE(on_unlock)

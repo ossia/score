@@ -5,6 +5,9 @@
 #pragma clang system_header
 
 ////
+#include <ossia/detail/small_vector.hpp>
+#include <ossia/detail/string_map.hpp>
+
 #include <QAbstractItemModel>
 #include <QAction>
 #include <QApplication>
@@ -44,7 +47,6 @@
 #include <QVector>
 #include <QWidget>
 #include <QtGlobal>
-
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -54,32 +56,22 @@
 #include <iterator>
 #include <memory>
 #include <numeric>
+#include <score/command/AggregateCommand.hpp>
+#include <score/model/EntityImpl.hpp>
+#include <score/model/path/Path.hpp>
+#include <score/model/tree/TreeNode.hpp>
+#include <score/model/tree/TreePath.hpp>
+#include <score/model/tree/VariantBasedNode.hpp>
+#include <score/selection/Selection.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONValueVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+#include <score/tools/std/Optional.hpp>
 #include <stdexcept>
 #include <string>
 #include <typeinfo>
 #include <utility>
 #include <vector>
-
-#include <ossia/detail/small_vector.hpp>
-#include <ossia/detail/string_map.hpp>
-#include <score/tools/std/Optional.hpp>
-
-
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONValueVisitor.hpp>
-#include <score/serialization/JSONVisitor.hpp>
-
-#include <score/command/AggregateCommand.hpp>
-
-#include <score/model/EntityImpl.hpp>
-#include <score/model/path/Path.hpp>
-
-#include <score/model/tree/TreeNode.hpp>
-#include <score/model/tree/TreePath.hpp>
-#include <score/model/tree/VariantBasedNode.hpp>
-
-#include <score/selection/Selection.hpp>
-#include <score/selection/SelectionDispatcher.hpp>
-
 #include <wobjectimpl.h>
 #endif

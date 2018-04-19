@@ -1,46 +1,47 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "InterpolateStates.hpp"
+
+#include <ossia/network/domain/domain.hpp>
+#include <ossia/network/value/value_conversion.hpp>
+
 #include <Automation/AutomationModel.hpp>
 #include <Device/Address/AddressSettings.hpp>
+#include <Device/Node/DeviceNode.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Interpolation/InterpolationProcess.hpp>
+#include <Process/Process.hpp>
+#include <Process/State/MessageNode.hpp>
 #include <QObject>
 #include <QString>
 #include <Scenario/Commands/Cohesion/CreateCurveFromStates.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <algorithm>
-#include <boost/iterator/indirect_iterator.hpp>
-#include <boost/iterator/iterator_facade.hpp>
-#include <boost/multi_index/detail/hash_index_iterator.hpp>
-#include <score/document/DocumentInterface.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <iterator>
-#include <utility>
-#include <vector>
-
-#include "InterpolateStates.hpp"
-#include <ossia/network/value/value_conversion.hpp>
-#include <ossia/network/domain/domain.hpp>
-#include <State/Domain.hpp>
-#include <Device/Node/DeviceNode.hpp>
-#include <Interpolation/InterpolationProcess.hpp>
-#include <Process/Process.hpp>
-#include <Process/State/MessageNode.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <State/Address.hpp>
+#include <State/Domain.hpp>
 #include <State/Message.hpp>
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
+#include <algorithm>
+#include <boost/iterator/indirect_iterator.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <iterator>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/selection/SelectionStack.hpp>
+#include <score/document/DocumentInterface.hpp>
 #include <score/model/EntityMap.hpp>
-#include <score/model/path/Path.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/model/path/Path.hpp>
 #include <score/model/tree/TreeNode.hpp>
+#include <score/selection/SelectionStack.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+#include <utility>
+#include <vector>
 
 namespace Scenario
 {
@@ -52,9 +53,8 @@ struct MessagePairs
       const Scenario::IntervalModel& interval,
       const Scenario::ScenarioInterface& scenar)
       : MessagePairs{
-            Process::flatten(Scenario::startState(interval, scenar)
-                                 .messages()
-                                 .rootNode()),
+            Process::flatten(
+                Scenario::startState(interval, scenar).messages().rootNode()),
             Process::flatten(
                 Scenario::endState(interval, scenar).messages().rootNode()),
             interval}
@@ -148,16 +148,15 @@ void InterpolateStates(
             .plugin<Explorer::DeviceDocumentPlugin>();
   auto& rootNode = devPlugin.rootNode();
 
-  auto big_macro = std::
-      make_unique<Command::AddMultipleProcessesToMultipleIntervalsMacro>();
+  auto big_macro = std::make_unique<
+      Command::AddMultipleProcessesToMultipleIntervalsMacro>();
   for (auto& interval_ptr : selected_intervals)
   {
     auto& interval = *interval_ptr;
     // Find the matching pairs of messages from both sides of the interval
     MessagePairs pairs{interval, *scenar};
 
-    int total_procs
-        = pairs.numericMessages.size() + pairs.listMessages.size();
+    int total_procs = pairs.numericMessages.size() + pairs.listMessages.size();
     if (total_procs == 0)
       continue;
 

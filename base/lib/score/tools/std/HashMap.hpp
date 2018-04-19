@@ -1,13 +1,14 @@
 #pragma once
 #include <ossia/detail/config.hpp>
-#include <score/serialization/IsTemplate.hpp>
+
 #include <hopscotch_map.h>
+#include <score/serialization/IsTemplate.hpp>
 namespace score
 {
-template<typename... Args>
+template <typename... Args>
 using hash_map = tsl::hopscotch_map<Args...>;
 
-template<typename Map>
+template <typename Map>
 void optimize_hash_map(Map& map)
 {
   map.max_load_factor(0.1f);

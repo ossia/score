@@ -1,24 +1,21 @@
 #pragma once
-#include <QGraphicsItem>
-#include <Scenario/Document/Interval/IntervalView.hpp>
-#include <QPainter>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <QPen>
 #include <QBrush>
+#include <QGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
+#include <QPainter>
+#include <QPen>
+#include <Scenario/Document/Interval/IntervalView.hpp>
 
 namespace Scenario
 {
 
-class IntervalMenuOverlay final :
-    public QGraphicsItem
+class IntervalMenuOverlay final : public QGraphicsItem
 {
 
 public:
-  IntervalMenuOverlay(IntervalView* parent):
-    QGraphicsItem{parent}
+  IntervalMenuOverlay(IntervalView* parent) : QGraphicsItem{parent}
   {
-
   }
 
   QRectF boundingRect() const override
@@ -26,7 +23,10 @@ public:
     return {0, -10, 20, 20};
   }
 
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override
   {
     auto& skin = ScenarioStyle::instance();
     auto cst = static_cast<IntervalView*>(parentItem());
@@ -45,8 +45,8 @@ public:
 
     const QLineF l1{QPointF{10, 2}, QPointF{10, 8}};
     const QLineF l2{QPointF{7, 5}, QPointF{13, 5}};
-    painter->drawLine(l1.translated(1,1));
-    painter->drawLine(l2.translated(1,1));
+    painter->drawLine(l1.translated(1, 1));
+    painter->drawLine(l2.translated(1, 1));
     p.setColor(bright);
     painter->setPen(p);
     painter->drawLine(l1);
@@ -64,5 +64,4 @@ protected:
     event->accept();
   }
 };
-
 }

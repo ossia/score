@@ -1,20 +1,20 @@
 #pragma once
 #include <algorithm>
-#include <score/command/Command.hpp>
 #include <list>
 #include <memory>
+#include <score/command/Command.hpp>
 
 namespace score
 {
 /**
-* @brief Allows for grouping of multiple commands in a single one.
-*
-* Useful for macros, meta-commands, etc.
-*/
-class SCORE_LIB_BASE_EXPORT AggregateCommand
-    : public score::Command
+ * @brief Allows for grouping of multiple commands in a single one.
+ *
+ * Useful for macros, meta-commands, etc.
+ */
+class SCORE_LIB_BASE_EXPORT AggregateCommand : public score::Command
 {
-        using command_ptr = score::Command*;
+  using command_ptr = score::Command*;
+
 public:
   AggregateCommand() = default;
   virtual ~AggregateCommand();
@@ -22,13 +22,14 @@ public:
   template <typename T>
   AggregateCommand(T* cmd) : AggregateCommand{}
   {
-      m_cmds.push_front(cmd);
+    m_cmds.push_front(cmd);
   }
 
   /**
    * This constructor allows to pass a list of commands in argument.
    *
-   * e.g. new AggregateCommand{new MyCommand, new MySecondCommand, new MyThirdCommand};
+   * e.g. new AggregateCommand{new MyCommand, new MySecondCommand, new
+   * MyThirdCommand};
    */
   template <typename T, typename... Args>
   AggregateCommand(T* cmd, Args&&... remaining)

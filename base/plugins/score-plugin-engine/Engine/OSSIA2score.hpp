@@ -1,16 +1,16 @@
 #pragma once
+#include <ossia/editor/scenario/time_value.hpp>
+#include <ossia/network/base/device.hpp>
 #include <ossia/network/common/parameter_properties.hpp>
 #include <ossia/network/domain/domain_fwd.hpp>
-#include <ossia/network/base/device.hpp>
-#include <Process/TimeValue.hpp>
-
-#include <ossia/editor/scenario/time_value.hpp>
 #include <ossia/network/value/vec.hpp>
+
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Address/ClipMode.hpp>
-#include <State/Domain.hpp>
 #include <Device/Address/IOType.hpp>
 #include <Device/Node/DeviceNode.hpp>
+#include <Process/TimeValue.hpp>
+#include <State/Domain.hpp>
 #include <State/Value.hpp>
 #include <score_plugin_engine_export.h>
 
@@ -200,7 +200,7 @@ ToDeviceExplorer(const ossia::net::node_base& node);
 inline ::TimeVal defaultTime(ossia::time_value t)
 {
   return t.infinite() ? ::TimeVal{PositiveInfinity{}}
-                        : ::TimeVal::fromMsecs(double(t) / 1000.);
+                      : ::TimeVal::fromMsecs(double(t) / 1000.);
 }
 }
 }

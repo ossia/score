@@ -1,38 +1,35 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "EventActions.hpp"
 
+#include <Process/ProcessContext.hpp>
+#include <QAction>
+#include <QMenu>
+#include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-
+#include <Scenario/Commands/Event/SetCondition.hpp>
 #include <Scenario/Commands/TimeSync/AddTrigger.hpp>
 #include <Scenario/Commands/TimeSync/RemoveTrigger.hpp>
 #include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <core/application/ApplicationSettings.hpp>
 #include <core/document/Document.hpp>
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/MenuManager.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 #include <score/widgets/SetIcons.hpp>
-#include <Process/ProcessContext.hpp>
-#include <QAction>
-#include <QMenu>
-#include <Scenario/Application/ScenarioActions.hpp>
-#include <Scenario/Commands/Event/SetCondition.hpp>
-#include <core/application/ApplicationSettings.hpp>
 namespace Scenario
 {
 EventActions::EventActions(ScenarioApplicationPlugin* parent)
     : m_parent{parent}
     , m_triggerCommandFactory{
-          parent->context
-              .interfaces<Command::TriggerCommandFactoryList>()}
+          parent->context.interfaces<Command::TriggerCommandFactoryList>()}
 {
-  if(!parent->context.applicationSettings.gui)
+  if (!parent->context.applicationSettings.gui)
     return;
   using namespace score;
 
@@ -56,12 +53,12 @@ EventActions::EventActions(ScenarioApplicationPlugin* parent)
   /// Add Condition ///
   m_addCondition = new QAction{tr("Add Condition"), this};
   connect(
-      m_addCondition, &QAction::triggered, this,
-      &EventActions::addCondition);
+      m_addCondition, &QAction::triggered, this, &EventActions::addCondition);
   m_addCondition->setEnabled(false);
 
   m_addCondition->setToolTip(tr("Add Condition"));
-  setIcons(m_addCondition, ":/icons/condition_on.png", ":/icons/condition_off.png");
+  setIcons(
+      m_addCondition, ":/icons/condition_on.png", ":/icons/condition_off.png");
 
   /// Remove Condition ///
   m_removeCondition = new QAction{tr("Remove Condition"), this};
@@ -69,7 +66,6 @@ EventActions::EventActions(ScenarioApplicationPlugin* parent)
       m_removeCondition, &QAction::triggered, this,
       &EventActions::removeCondition);
   m_removeCondition->setEnabled(false);
-
 }
 
 void EventActions::makeGUIElements(score::GUIElements& ref)
@@ -92,9 +88,8 @@ void EventActions::makeGUIElements(score::GUIElements& ref)
   ref.actions.add<Actions::AddCondition>(m_addCondition);
   ref.actions.add<Actions::RemoveCondition>(m_removeCondition);
 
-  auto& cond
-      = m_parent->context.actions
-            .condition<EnableWhenScenarioInterfaceInstantObject>();
+  auto& cond = m_parent->context.actions
+                   .condition<EnableWhenScenarioInterfaceInstantObject>();
   cond.add<Actions::AddTrigger>();
   cond.add<Actions::RemoveTrigger>();
   cond.add<Actions::AddCondition>();
@@ -131,7 +126,7 @@ void EventActions::setupContextMenu(Process::LayerContextMenuManager& ctxm)
 void EventActions::addTriggerToTimeSync()
 {
   auto si = focusedScenarioInterface(m_parent->currentDocument()->context());
-  if(!si)
+  if (!si)
     return;
 
   auto selectedTimeSyncs = selectedElements(si->getTimeSyncs());
@@ -140,10 +135,10 @@ void EventActions::addTriggerToTimeSync()
   {
     // take tn from a selected event
     auto selectedEvents = selectedElements(si->getEvents());
-    if(selectedEvents.empty())
+    if (selectedEvents.empty())
     {
       auto selectedStates = selectedElements(si->getStates());
-      if(!selectedStates.empty())
+      if (!selectedStates.empty())
       {
         auto& tn = Scenario::parentTimeSync(*selectedStates.first(), *si);
         selectedTimeSyncs.append(&tn);
@@ -174,14 +169,14 @@ void EventActions::addTriggerToTimeSync()
 void EventActions::addCondition()
 {
   auto si = focusedScenarioInterface(m_parent->currentDocument()->context());
-  if(!si)
+  if (!si)
     return;
 
   auto selectedEvents = selectedElements(si->getEvents());
-  if(selectedEvents.empty())
+  if (selectedEvents.empty())
   {
     auto selectedStates = selectedElements(si->getStates());
-    if(!selectedStates.empty())
+    if (!selectedStates.empty())
     {
       auto& ev = Scenario::parentEvent(*selectedStates.first(), *si);
       selectedEvents.append(&ev);
@@ -193,9 +188,10 @@ void EventActions::addCondition()
   }
 
   const EventModel& ev = *selectedEvents.first();
-  if(ev.condition() == State::Expression{})
+  if (ev.condition() == State::Expression{})
   {
-    auto cmd = new Scenario::Command::SetCondition{ev, State::defaultTrueExpression()};
+    auto cmd = new Scenario::Command::SetCondition{
+        ev, State::defaultTrueExpression()};
     dispatcher().submitCommand(cmd);
   }
 }
@@ -203,14 +199,14 @@ void EventActions::addCondition()
 void EventActions::removeCondition()
 {
   auto si = focusedScenarioInterface(m_parent->currentDocument()->context());
-  if(!si)
+  if (!si)
     return;
 
   auto selectedEvents = selectedElements(si->getEvents());
-  if(selectedEvents.empty())
+  if (selectedEvents.empty())
   {
     auto selectedStates = selectedElements(si->getStates());
-    if(!selectedStates.empty())
+    if (!selectedStates.empty())
     {
       auto& ev = Scenario::parentEvent(*selectedStates.first(), *si);
       selectedEvents.append(&ev);
@@ -222,7 +218,7 @@ void EventActions::removeCondition()
   }
 
   const EventModel& ev = *selectedEvents.first();
-  if(ev.condition() != State::Expression{})
+  if (ev.condition() != State::Expression{})
   {
     auto cmd = new Scenario::Command::SetCondition{ev, State::Expression{}};
     dispatcher().submitCommand(cmd);

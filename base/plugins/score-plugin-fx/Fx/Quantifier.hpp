@@ -1,6 +1,7 @@
 #pragma once
-#include <Engine/Node/PdNode.hpp>
 #include <ossia/dataflow/execution_state.hpp>
+
+#include <Engine/Node/PdNode.hpp>
 #include <random>
 
 namespace Nodes
@@ -16,16 +17,18 @@ struct Node
     static const constexpr auto objectKey = "Quantifier";
     static const constexpr auto category = "Midi";
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto uuid = make_uuid("b8e2e5ad-17e4-43de-8d79-660a29d5c4f4");
+    static const constexpr auto uuid
+        = make_uuid("b8e2e5ad-17e4-43de-8d79-660a29d5c4f4");
 
-    static const constexpr auto midi_ins  = ossia::safe_nodes::midi_ins<1>{{"in"}};
-    static const constexpr auto midi_outs = ossia::safe_nodes::midi_outs<1>{{"out"}};
+    static const constexpr auto midi_ins
+        = ossia::safe_nodes::midi_ins<1>{{"in"}};
+    static const constexpr auto midi_outs
+        = ossia::safe_nodes::midi_outs<1>{{"out"}};
     static const constexpr auto controls = std::make_tuple(
-      Control::Widgets::QuantificationChooser(),
-      Control::FloatSlider{"Tightness", 0.f, 1.f, 0.8f},
-      Control::Widgets::DurationChooser(),
-      Control::Widgets::TempoChooser()
-    );
+        Control::Widgets::QuantificationChooser(),
+        Control::FloatSlider{"Tightness", 0.f, 1.f, 0.8f},
+        Control::Widgets::DurationChooser(),
+        Control::Widgets::TempoChooser());
   };
 
   struct NoteIn
@@ -41,8 +44,8 @@ struct Node
 
   using control_policy = ossia::safe_nodes::default_tick;
 
-  static void run(
-      const ossia::midi_port& p1,
+  static void
+  run(const ossia::midi_port& p1,
       const ossia::safe_nodes::timed_vec<float>& startq,
       const ossia::safe_nodes::timed_vec<float>& tightness,
       const ossia::safe_nodes::timed_vec<float>& dur,
@@ -64,9 +67,9 @@ struct Node
     const auto whole_dur = 240.f / tempo; // in seconds
     const auto whole_samples = whole_dur * st.sampleRate;
 
-    for(const mm::MidiMessage& in : p1.messages)
+    for (const mm::MidiMessage& in : p1.messages)
     {
-      if(!in.isNoteOnOrOff())
+      if (!in.isNoteOnOrOff())
       {
         p2.messages.push_back(in);
         continue;
@@ -74,20 +77,21 @@ struct Node
 
       Note note{in[1], in[2], (uint8_t)in.getChannel()};
 
-      if(in.getMessageType() == mm::MessageType::NOTE_ON && note.vel != 0)
+      if (in.getMessageType() == mm::MessageType::NOTE_ON && note.vel != 0)
       {
-        if(start == 0.f) // No quantification, start directly
+        if (start == 0.f) // No quantification, start directly
         {
           auto no = mm::MakeNoteOn(note.chan, note.pitch, note.vel);
           no.timestamp = in.timestamp;
 
           p2.messages.push_back(no);
-          if(duration > 0.f)
+          if (duration > 0.f)
           {
-            auto end = tk.date + (int64_t)no.timestamp + (int64_t)(whole_samples * duration);
+            auto end = tk.date + (int64_t)no.timestamp
+                       + (int64_t)(whole_samples * duration);
             self.running_notes.push_back({note, end});
           }
-          else if(duration == 0.f)
+          else if (duration == 0.f)
           {
             // Stop at the next sample
             auto noff = mm::MakeNoteOff(note.chan, note.pitch, note.vel);
@@ -101,7 +105,8 @@ struct Node
           // Find next time that matches the requested quantification
           const auto start_q = whole_samples * start;
           auto perf_date = int64_t(start_q * int64_t(1 + tk.date / start_q));
-          auto actual_date = (1. - precision) * tk.date + precision * perf_date;
+          auto actual_date
+              = (1. - precision) * tk.date + precision * perf_date;
           ossia::time_value next_date{actual_date};
           self.to_start.push_back({note, next_date});
         }
@@ -115,18 +120,19 @@ struct Node
       }
     }
 
-    // TODO : also handle the case where we're quite close from the *previous* accessible
-    // value, eg we played a bit late
-    for(auto it = self.to_start.begin(); it != self.to_start.end(); )
+    // TODO : also handle the case where we're quite close from the *previous*
+    // accessible value, eg we played a bit late
+    for (auto it = self.to_start.begin(); it != self.to_start.end();)
     {
       auto& note = *it;
-      if(note.date > prev_date && note.date.impl < tk.date.impl)
+      if (note.date > prev_date && note.date.impl < tk.date.impl)
       {
-        auto no = mm::MakeNoteOn(note.note.chan, note.note.pitch, note.note.vel);
+        auto no
+            = mm::MakeNoteOn(note.note.chan, note.note.pitch, note.note.vel);
         no.timestamp = note.date - prev_date;
         p2.messages.push_back(no);
 
-        if(duration > 0.f)
+        if (duration > 0.f)
         {
           auto end = note.date + (int64_t)(whole_samples * duration);
           self.running_notes.push_back({note.note, end});
@@ -134,7 +140,8 @@ struct Node
         else if (duration == 0.f)
         {
           // Stop at the next sample
-          auto noff = mm::MakeNoteOff(note.note.chan, note.note.pitch, note.note.vel);
+          auto noff = mm::MakeNoteOff(
+              note.note.chan, note.note.pitch, note.note.vel);
           noff.timestamp = no.timestamp;
           p2.messages.push_back(noff);
         }
@@ -147,12 +154,13 @@ struct Node
       }
     }
 
-    for(auto it = self.running_notes.begin(); it != self.running_notes.end(); )
+    for (auto it = self.running_notes.begin(); it != self.running_notes.end();)
     {
       auto& note = *it;
-      if(note.date > prev_date && note.date.impl < tk.date.impl)
+      if (note.date > prev_date && note.date.impl < tk.date.impl)
       {
-        auto noff = mm::MakeNoteOff(note.note.chan, note.note.pitch, note.note.vel);
+        auto noff
+            = mm::MakeNoteOff(note.note.chan, note.note.pitch, note.note.vel);
         noff.timestamp = note.date - prev_date;
         p2.messages.push_back(noff);
         it = self.running_notes.erase(it);
@@ -164,7 +172,5 @@ struct Node
     }
   }
 };
-
 }
-
 }

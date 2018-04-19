@@ -1,9 +1,8 @@
 #pragma once
+#include <memory>
+#include <score/command/CommandStackFacade.hpp>
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/Dispatchers/SendStrategy.hpp>
-
-#include <score/command/CommandStackFacade.hpp>
-#include <memory>
 
 /**
  * @brief The SingleOngoingCommandDispatcher class

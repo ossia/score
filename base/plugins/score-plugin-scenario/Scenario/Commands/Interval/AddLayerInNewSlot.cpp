@@ -1,24 +1,23 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "AddLayerInNewSlot.hpp"
+
 #include <Process/Process.hpp>
+#include <Process/ProcessList.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
-
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <algorithm>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <vector>
-
-#include "AddLayerInNewSlot.hpp"
-#include <Process/ProcessList.hpp>
-#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <score/application/ApplicationContext.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/document/DocumentContext.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+#include <vector>
 
 namespace Scenario
 {
@@ -26,8 +25,7 @@ namespace Command
 {
 AddLayerInNewSlot::AddLayerInNewSlot(
     Path<IntervalModel>&& intervalPath, Id<Process::ProcessModel> process)
-  : m_path{std::move(intervalPath)}
-  , m_processId{std::move(process)}
+    : m_path{std::move(intervalPath)}, m_processId{std::move(process)}
 {
 }
 

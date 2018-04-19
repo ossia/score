@@ -4,9 +4,8 @@
 #include <QMap>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <score/command/Command.hpp>
-#include <score/model/path/Path.hpp>
-
 #include <score/model/Identifier.hpp>
+#include <score/model/path/Path.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -20,7 +19,8 @@ class IntervalModel;
 
 namespace Command
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT InsertContentInInterval final : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT InsertContentInInterval final
+    : public score::Command
 {
   SCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),
@@ -44,7 +44,8 @@ private:
   Path<IntervalModel> m_target;
   ExpandMode m_mode{ExpandMode::GrowShrink};
 
-  score::hash_map<Id<Process::ProcessModel>, Id<Process::ProcessModel>> m_processIds;
+  score::hash_map<Id<Process::ProcessModel>, Id<Process::ProcessModel>>
+      m_processIds;
 };
 }
 }

@@ -1,6 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioEditionSettings.hpp"
+
 #include <Process/ExpandMode.hpp>
 #include <Scenario/Palette/Tool.hpp>
 
@@ -28,12 +29,13 @@ void Scenario::EditionSettings::setTool(Scenario::Tool tool)
   if (m_execution)
     return;
 
-  if(tool != m_tool)
+  if (tool != m_tool)
   {
     if (m_tool != Scenario::Tool::Playing)
       m_previousTool = m_tool;
 
-    if (m_tool != Scenario::Tool::Create) {
+    if (m_tool != Scenario::Tool::Create)
+    {
       setSequence(false);
       setLockMode(LockMode::Free);
     }
@@ -72,7 +74,8 @@ void Scenario::EditionSettings::setDefault()
 void Scenario::EditionSettings::restoreTool()
 {
   setTool(Scenario::Tool{m_previousTool});
-  if (m_tool != Scenario::Tool::Create) {
+  if (m_tool != Scenario::Tool::Create)
+  {
     setSequence(false);
     setLockMode(LockMode::Free);
   }

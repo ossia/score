@@ -1,21 +1,20 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Process/Style/ScenarioStyle.hpp>
-#include <QObject>
-#include <score/document/DocumentInterface.hpp>
-
-#include <QPoint>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "EventModel.hpp"
+
+#include <Process/Style/ScenarioStyle.hpp>
 #include <Process/TimeValue.hpp>
+#include <QObject>
+#include <QPoint>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <State/Expression.hpp>
-#include <score/model/ModelMetadata.hpp>
+#include <score/document/DocumentInterface.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/model/ModelMetadata.hpp>
 
 namespace Scenario
 {
@@ -65,8 +64,7 @@ void EventModel::setDate(const TimeVal& date)
 }
 
 void EventModel::setStatus(
-    ExecutionStatus status,
-    const ScenarioInterface& scenar)
+    ExecutionStatus status, const ScenarioInterface& scenar)
 {
   if (m_status.get() == status)
     return;
