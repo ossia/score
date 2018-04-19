@@ -1,6 +1,6 @@
 #pragma once
-#include <QWidget>
 #include <Device/Address/AddressSettings.hpp>
+#include <QWidget>
 #include <score_plugin_deviceexplorer_export.h>
 
 class QLineEdit;

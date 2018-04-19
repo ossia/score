@@ -1,21 +1,20 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "PlayContextMenu.hpp"
+
+#include <Engine/ApplicationPlugin.hpp>
+#include <Engine/Executor/ContextMenu/PlayFromIntervalInScenario.hpp>
+#include <Engine/Executor/EventComponent.hpp>
+#include <Engine/Executor/IntervalComponent.hpp>
+#include <Engine/Executor/ScenarioComponent.hpp>
+#include <Engine/score2OSSIA.hpp>
+#include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Application/ScenarioRecordInitData.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
-#include <Engine/Executor/IntervalComponent.hpp>
-#include <Engine/Executor/EventComponent.hpp>
-#include <Engine/Executor/ScenarioComponent.hpp>
-#include <Engine/ApplicationPlugin.hpp>
-#include <Engine/score2OSSIA.hpp>
-
-#include <Engine/Executor/ContextMenu/PlayFromIntervalInScenario.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Application/ScenarioRecordInitData.hpp>
-#include <Scenario/Application/ScenarioActions.hpp>
-
 #include <core/presenter/DocumentManager.hpp>
 
 namespace Engine
@@ -102,29 +101,23 @@ PlayContextMenu::PlayContextMenu(
       });
 
   con(exec_signals, &Scenario::ScenarioExecution::playFromIntervalAtDate, this,
-      [&] (
-      const Scenario::ScenarioInterface& scenar,
-      Id<Scenario::IntervalModel> id,
-      const TimeVal& t) {
+      [&](const Scenario::ScenarioInterface& scenar,
+          Id<Scenario::IntervalModel> id, const TimeVal& t) {
+        // First we select the parent scenario of the interval,
+        auto& cst_to_play = scenar.interval(id);
 
-    // First we select the parent scenario of the interval,
-    auto& cst_to_play = scenar.interval(id);
+        // and the parent interval of this scenario;
+        // this is what needs executing.
+        auto parent_interval = safe_cast<Scenario::IntervalModel*>(
+            dynamic_cast<const QObject*>(&scenar)->parent());
 
-    // and the parent interval of this scenario;
-    // this is what needs executing.
-    auto parent_interval =
-        safe_cast<Scenario::IntervalModel*>(
-          dynamic_cast<const QObject*>(&scenar)->parent());
-
-    // We start playing the parent scenario.
-    // TODO: this also plays the other processes of the interval? Maybe remove them, too ?
-    plug.on_play(
-          *parent_interval,
-          true,
-          PlayFromIntervalScenarioPruner{scenar, cst_to_play, t},
-          t);
-  });
-
+        // We start playing the parent scenario.
+        // TODO: this also plays the other processes of the interval? Maybe
+        // remove them, too ?
+        plug.on_play(
+            *parent_interval, true,
+            PlayFromIntervalScenarioPruner{scenar, cst_to_play, t}, t);
+      });
 
   /// Record signals ///
   m_recordAutomations = new QAction{tr("Record automations from here"), this};
@@ -140,11 +133,9 @@ PlayContextMenu::PlayContextMenu(
     auto p = const_cast<Scenario::ProcessModel*>(proc);
 
     exec_signals.startRecording(
-        *p,
-        Scenario::ConvertToScenarioPoint(
-            pres.view().mapFromScene(recdata.point),
-            pres.zoomRatio(),
-            pres.view().boundingRect().height()));
+        *p, Scenario::ConvertToScenarioPoint(
+                pres.view().mapFromScene(recdata.point), pres.zoomRatio(),
+                pres.view().boundingRect().height()));
 
     m_recordAutomations->setData({});
   });
@@ -162,18 +153,15 @@ PlayContextMenu::PlayContextMenu(
     auto p = const_cast<Scenario::ProcessModel*>(proc);
 
     exec_signals.startRecordingMessages(
-        *p,
-        Scenario::ConvertToScenarioPoint(
-            pres.view().mapFromScene(recdata.point),
-            pres.zoomRatio(),
-            pres.view().boundingRect().height()));
+        *p, Scenario::ConvertToScenarioPoint(
+                pres.view().mapFromScene(recdata.point), pres.zoomRatio(),
+                pres.view().boundingRect().height()));
 
     m_recordAutomations->setData({});
   });
 
   auto& exec_ctx
-      = m_ctx.guiApplicationPlugin<ScenarioApplicationPlugin>()
-            .execution();
+      = m_ctx.guiApplicationPlugin<ScenarioApplicationPlugin>().execution();
   m_playFromHere = new QAction{tr("Play from here"), this};
   connect(m_playFromHere, &QAction::triggered, this, [&]() {
     exec_ctx.playAtDate(m_playFromHere->data().value<::TimeVal>());
@@ -200,7 +188,7 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
         if (ossia::any_of(sel, matches<Scenario::IntervalModel>{}))
         {
           auto submenu = menu.findChild<QMenu*>("Interval");
-          if(submenu)
+          if (submenu)
             submenu->addAction(m_playIntervals);
         }
       });
@@ -222,7 +210,8 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
       });
 
   scenario_cm.functions.push_back([this](
-      QMenu& menu, QPoint, QPointF scenept, const Process::LayerContext& ctx) {
+                                      QMenu& menu, QPoint, QPointF scenept,
+                                      const Process::LayerContext& ctx) {
     auto& pres
         = safe_cast<Scenario::TemporalScenarioPresenter&>(ctx.presenter);
     auto scenPoint = Scenario::ConvertToScenarioPoint(
@@ -241,7 +230,6 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
         Scenario::ScenarioRecordInitData{&pres, scenept});
     m_recordAutomations->setData(data);
     m_recordMessages->setData(data);
-
   });
 }
 }

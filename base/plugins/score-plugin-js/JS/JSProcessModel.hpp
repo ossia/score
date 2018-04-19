@@ -1,9 +1,9 @@
 #pragma once
 #include <JS/JSProcessMetadata.hpp>
 #include <Process/Process.hpp>
-#include <QQmlEngine>
-#include <QQmlComponent>
 #include <QFileSystemWatcher>
+#include <QQmlComponent>
+#include <QQmlEngine>
 #include <memory>
 namespace JS
 {

@@ -1,11 +1,12 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MidiNoteView.hpp"
+
+#include <Midi/MidiStyle.hpp>
+#include <Midi/MidiView.hpp>
 #include <QCursor>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
-#include <Midi/MidiStyle.hpp>
-#include <Midi/MidiView.hpp>
 namespace Midi
 {
 
@@ -25,11 +26,12 @@ void NoteView::paint(
 
   painter->setRenderHint(QPainter::Antialiasing, false);
 
-  painter->setBrush(this->isSelected() ? s.noteSelectedBaseBrush : s.noteBaseBrush);
+  painter->setBrush(
+      this->isSelected() ? s.noteSelectedBaseBrush : s.noteBaseBrush);
   painter->setPen(s.noteBasePen);
   painter->drawRect(boundingRect().adjusted(0., 0., 0., -1.));
 
-  if(m_height > 8)
+  if (m_height > 8)
   {
     auto orange = s.noteBaseBrush.color();
     orange.setHslF(
@@ -39,7 +41,7 @@ void NoteView::paint(
 
     painter->setPen(s.paintedNote);
     painter->drawLine(
-          QPointF{2., m_height / 2.}, QPointF{m_width - 2., m_height / 2.});
+        QPointF{2., m_height / 2.}, QPointF{m_width - 2., m_height / 2.});
   }
 }
 
@@ -50,7 +52,7 @@ QVariant NoteView::itemChange(
   {
     case QGraphicsItem::ItemPositionChange:
     {
-      const auto [min, max] = ((View*) parentItem())->range();
+      const auto [min, max] = ((View*)parentItem())->range();
       QPointF newPos = value.toPointF();
       QRectF rect = this->parentItem()->boundingRect();
       auto height = rect.height();
@@ -122,7 +124,7 @@ bool NoteView::canEdit() const
 
 void NoteView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(canEdit())
+  if (canEdit())
   {
     if (event->pos().x() >= this->boundingRect().width() - 2)
     {
@@ -139,7 +141,7 @@ void NoteView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void NoteView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(canEdit())
+  if (canEdit())
   {
     if (m_scaling)
     {
@@ -155,7 +157,7 @@ void NoteView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 void NoteView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(canEdit())
+  if (canEdit())
   {
     if (m_scaling)
     {

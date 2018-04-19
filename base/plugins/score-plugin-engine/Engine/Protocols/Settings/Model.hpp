@@ -1,20 +1,25 @@
 #pragma once
-#include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsModel.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 #include <score_plugin_engine_export.h>
 namespace Audio::Settings
 {
-class SCORE_PLUGIN_ENGINE_EXPORT Model
-    : public score::SettingsDelegateModel
+class SCORE_PLUGIN_ENGINE_EXPORT Model : public score::SettingsDelegateModel
 {
   Q_OBJECT
-    Q_PROPERTY(QString Driver READ getDriver WRITE setDriver NOTIFY DriverChanged)
-    Q_PROPERTY(QString CardIn READ getCardIn WRITE setCardIn NOTIFY CardInChanged)
-    Q_PROPERTY(QString CardOut READ getCardOut WRITE setCardOut NOTIFY CardOutChanged)
-    Q_PROPERTY(int BufferSize READ getBufferSize WRITE setBufferSize NOTIFY BufferSizeChanged)
-    Q_PROPERTY(int Rate READ getRate WRITE setRate NOTIFY RateChanged)
-    Q_PROPERTY(int DefaultIn READ getDefaultIn WRITE setDefaultIn NOTIFY DefaultInChanged)
-    Q_PROPERTY(int DefaultOut READ getDefaultOut WRITE setDefaultOut NOTIFY DefaultOutChanged)
+  Q_PROPERTY(
+      QString Driver READ getDriver WRITE setDriver NOTIFY DriverChanged)
+  Q_PROPERTY(
+      QString CardIn READ getCardIn WRITE setCardIn NOTIFY CardInChanged)
+  Q_PROPERTY(
+      QString CardOut READ getCardOut WRITE setCardOut NOTIFY CardOutChanged)
+  Q_PROPERTY(int BufferSize READ getBufferSize WRITE setBufferSize NOTIFY
+                 BufferSizeChanged)
+  Q_PROPERTY(int Rate READ getRate WRITE setRate NOTIFY RateChanged)
+  Q_PROPERTY(int DefaultIn READ getDefaultIn WRITE setDefaultIn NOTIFY
+                 DefaultInChanged)
+  Q_PROPERTY(int DefaultOut READ getDefaultOut WRITE setDefaultOut NOTIFY
+                 DefaultOutChanged)
 
   QString m_Driver{};
   QString m_CardIn{};
@@ -23,9 +28,9 @@ class SCORE_PLUGIN_ENGINE_EXPORT Model
   int m_Rate{};
   int m_DefaultIn{};
   int m_DefaultOut{};
+
 public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
-
 
   SCORE_SETTINGS_PARAMETER_HPP(QString, Driver)
   SCORE_SETTINGS_PARAMETER_HPP(QString, CardIn)
@@ -44,5 +49,3 @@ SCORE_SETTINGS_PARAMETER(Model, Rate)
 SCORE_SETTINGS_PARAMETER(Model, DefaultIn)
 SCORE_SETTINGS_PARAMETER(Model, DefaultOut)
 }
-
-

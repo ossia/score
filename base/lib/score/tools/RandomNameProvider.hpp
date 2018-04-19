@@ -1,7 +1,8 @@
 #pragma once
+#include "Metadata.hpp"
+
 #include <QString>
 #include <score_lib_base_export.h>
-#include "Metadata.hpp"
 
 /**
  * @brief Generates a random name from the dict.txt file.
@@ -21,6 +22,8 @@ public:
   static QString generateShortRandomName();
 
   template <typename T>
-  static QString generateName(){
-    return Metadata<PrettyName_k, T>::get() + "." + generateShortRandomName(); }
+  static QString generateName()
+  {
+    return Metadata<PrettyName_k, T>::get() + "." + generateShortRandomName();
+  }
 };

@@ -3,10 +3,11 @@
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
-class score_plugin_midi final : public QObject,
-                                 public score::Plugin_QtInterface,
-                                 public score::FactoryInterface_QtInterface,
-                                 public score::CommandFactory_QtInterface
+class score_plugin_midi final
+    : public QObject
+    , public score::Plugin_QtInterface
+    , public score::FactoryInterface_QtInterface
+    , public score::CommandFactory_QtInterface
 {
   Q_OBJECT
   Q_PLUGIN_METADATA(IID Plugin_QtInterface_iid)
@@ -27,5 +28,4 @@ private:
   // CommandFactory_QtInterface interface
   std::pair<const CommandGroupKey, CommandGeneratorMap>
   make_commands() override;
-
 };

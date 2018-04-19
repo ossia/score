@@ -1,10 +1,11 @@
 #pragma once
-#include <vector>
+#include <ossia/detail/optional.hpp>
+
+#include <Media/AudioArray.hpp>
 #include <QThread>
 #include <atomic>
-#include <Media/AudioArray.hpp>
-#include <ossia/detail/optional.hpp>
 #include <score_plugin_media_export.h>
+#include <vector>
 struct AVFrame;
 struct SwrContext;
 
@@ -12,50 +13,48 @@ namespace Media
 {
 struct AudioInfo
 {
-    int64_t rate{};
-    int64_t channels{};
-    int64_t length{};
-    int64_t max_arr_length{};
+  int64_t rate{};
+  int64_t channels{};
+  int64_t length{};
+  int64_t max_arr_length{};
 };
 
-class SCORE_PLUGIN_MEDIA_EXPORT AudioDecoder :
-    public QObject
+class SCORE_PLUGIN_MEDIA_EXPORT AudioDecoder : public QObject
 {
-    Q_OBJECT
+  Q_OBJECT
 
-  public:
-    AudioDecoder();
-    ~AudioDecoder();
-    ossia::optional<AudioInfo> probe(const QString& path);
-    void decode(const QString& path);
+public:
+  AudioDecoder();
+  ~AudioDecoder();
+  ossia::optional<AudioInfo> probe(const QString& path);
+  void decode(const QString& path);
 
-    static ossia::optional<std::pair<AudioInfo, AudioArray>>
-      decode_synchronous(const QString& path);
+  static ossia::optional<std::pair<AudioInfo, AudioArray>>
+  decode_synchronous(const QString& path);
 
-    int64_t sampleRate{};
-    std::size_t decoded{};
-    AudioArray data;
+  int64_t sampleRate{};
+  std::size_t decoded{};
+  AudioArray data;
 
-  Q_SIGNALS:
-    void newData();
-    void finishedDecoding();
+Q_SIGNALS:
+  void newData();
+  void finishedDecoding();
 
-    void startDecode(QString);
-  public Q_SLOTS:
-    void on_startDecode(QString);
+  void startDecode(QString);
+public Q_SLOTS:
+  void on_startDecode(QString);
 
-  private:
-    std::size_t read_length(const QString& path);
-    static QHash<QString, AudioInfo>& database();
+private:
+  std::size_t read_length(const QString& path);
+  static QHash<QString, AudioInfo>& database();
 
-    QThread* m_baseThread{};
-    QThread m_decodeThread;
+  QThread* m_baseThread{};
+  QThread m_decodeThread;
 
-    template<typename Decoder>
-    void decodeFrame(Decoder dec, AVFrame& frame);
-    void decodeRemaining();
-    std::vector<SwrContext*> resampler;
-    void initResample();
+  template <typename Decoder>
+  void decodeFrame(Decoder dec, AVFrame& frame);
+  void decodeRemaining();
+  std::vector<SwrContext*> resampler;
+  void initResample();
 };
-
 }

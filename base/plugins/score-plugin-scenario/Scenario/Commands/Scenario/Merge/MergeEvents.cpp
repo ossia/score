@@ -5,10 +5,13 @@ namespace Scenario
 namespace Command
 {
 
-MergeEvents::MergeEvents(const ProcessModel& scenario, Id<EventModel> clickedEv, Id<EventModel> hoveredEv)
-  : m_scenarioPath{scenario}
-  , m_movingEventId{std::move(clickedEv)}
-  , m_destinationEventId{std::move(hoveredEv)}
+MergeEvents::MergeEvents(
+    const ProcessModel& scenario,
+    Id<EventModel> clickedEv,
+    Id<EventModel> hoveredEv)
+    : m_scenarioPath{scenario}
+    , m_movingEventId{std::move(clickedEv)}
+    , m_destinationEventId{std::move(hoveredEv)}
 {
   auto& event = scenario.event(m_movingEventId);
   auto& destinantionEvent = scenario.event(m_destinationEventId);
@@ -18,16 +21,15 @@ MergeEvents::MergeEvents(const ProcessModel& scenario, Id<EventModel> clickedEv,
   s.readFrom(event);
   m_serializedEvent = arr;
 
-  m_mergeTimeSyncsCommand = new MergeTimeSyncs{
-      scenario, event.timeSync(),
-      destinantionEvent.timeSync()};
+  m_mergeTimeSyncsCommand = new MergeTimeSyncs{scenario, event.timeSync(),
+                                               destinantionEvent.timeSync()};
 }
 
 void MergeEvents::undo(const score::DocumentContext& ctx) const
 {
   auto& scenar = m_scenarioPath.find(ctx);
 
-  //ScenarioValidityChecker::checkValidity(scenar);
+  // ScenarioValidityChecker::checkValidity(scenar);
   auto& globalEvent = scenar.event(m_destinationEventId);
 
   DataStream::Deserializer s{m_serializedEvent};
@@ -53,9 +55,9 @@ void MergeEvents::undo(const score::DocumentContext& ctx) const
   if (recreatedEvent->timeSync() != globalEvent.timeSync())
   {
     tn.addEvent(m_movingEventId);
-    //ScenarioValidityChecker::checkValidity(scenar);
+    // ScenarioValidityChecker::checkValidity(scenar);
     m_mergeTimeSyncsCommand->undo(ctx);
-    //ScenarioValidityChecker::checkValidity(scenar);
+    // ScenarioValidityChecker::checkValidity(scenar);
   }
   else
   {
@@ -64,18 +66,18 @@ void MergeEvents::undo(const score::DocumentContext& ctx) const
     // auto it = ossia::find(tn.events(), m_movingEventId);
     // SCORE_ASSERT(it == tn.events().end());
     tn.addEvent(m_movingEventId);
-    //ScenarioValidityChecker::checkValidity(scenar);
+    // ScenarioValidityChecker::checkValidity(scenar);
   }
 
   updateEventExtent(m_destinationEventId, scenar);
 
-  //ScenarioValidityChecker::checkValidity(scenar);
+  // ScenarioValidityChecker::checkValidity(scenar);
 }
 
 void MergeEvents::redo(const score::DocumentContext& ctx) const
 {
   auto& scenar = m_scenarioPath.find(ctx);
-  //ScenarioValidityChecker::checkValidity(scenar);
+  // ScenarioValidityChecker::checkValidity(scenar);
   auto& movingEvent = scenar.event(m_movingEventId);
   auto& destinationEvent = scenar.event(m_destinationEventId);
   auto movingStates = movingEvent.states();
@@ -95,10 +97,11 @@ void MergeEvents::redo(const score::DocumentContext& ctx) const
 
   scenar.events.remove(m_movingEventId);
   updateEventExtent(m_destinationEventId, scenar);
-  //ScenarioValidityChecker::checkValidity(scenar);
+  // ScenarioValidityChecker::checkValidity(scenar);
 }
 
-void MergeEvents::update(unused_t, const Id<EventModel>&, const Id<EventModel>&)
+void MergeEvents::update(
+    unused_t, const Id<EventModel>&, const Id<EventModel>&)
 {
 }
 
@@ -118,6 +121,5 @@ void MergeEvents::deserializeImpl(DataStreamOutput& s)
   m_mergeTimeSyncsCommand = new MergeTimeSyncs{};
   m_mergeTimeSyncsCommand->deserialize(cmd);
 }
-
 }
 }

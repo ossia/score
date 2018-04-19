@@ -1,8 +1,9 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <ossia/editor/state/destination_qualifiers.hpp>
+
 #include <Automation/Color/GradientAutomModel.hpp>
 #include <Automation/Color/GradientAutomPresenter.hpp>
-#include <ossia/editor/state/destination_qualifiers.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <QColor>
 namespace Gradient
@@ -12,7 +13,7 @@ ProcessModel::ProcessModel(
     const Id<Process::ProcessModel>& id,
     QObject* parent)
     : Process::ProcessModel{duration, id,
-                        Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+                            Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
 
 {
@@ -31,19 +32,23 @@ ProcessModel::~ProcessModel()
 QString ProcessModel::prettyName() const
 {
   auto res = address().toString();
-  if(!res.isEmpty())
+  if (!res.isEmpty())
     return res;
   return "Gradient";
 }
 
-const ProcessModel::gradient_colors&ProcessModel::gradient() const { return m_colors; }
+const ProcessModel::gradient_colors& ProcessModel::gradient() const
+{
+  return m_colors;
+}
 
-void ProcessModel::setGradient(const ProcessModel::gradient_colors& c) {
-  if(m_colors != c)
-    {
-      m_colors = c;
-      gradientChanged();
-    }
+void ProcessModel::setGradient(const ProcessModel::gradient_colors& c)
+{
+  if (m_colors != c)
+  {
+    m_colors = c;
+    gradientChanged();
+  }
 }
 
 const ::State::AddressAccessor& ProcessModel::address() const
@@ -89,7 +94,7 @@ bool ProcessModel::contentHasDuration() const
 TimeVal ProcessModel::contentDuration() const
 {
   auto lastPoint = 1.;
-  if(!m_colors.empty())
+  if (!m_colors.empty())
   {
     auto back = m_colors.rbegin()->first;
     lastPoint = std::max(1., back);
@@ -99,52 +104,46 @@ TimeVal ProcessModel::contentDuration() const
 }
 }
 
-
 template <>
-void DataStreamReader::read(
-    const Gradient::ProcessModel& autom)
+void DataStreamReader::read(const Gradient::ProcessModel& autom)
 {
   m_stream << *autom.outlet;
-  m_stream << autom.m_colors
-           << autom.m_tween;
+  m_stream << autom.m_colors << autom.m_tween;
   insertDelimiter();
 }
-
 
 template <>
 void DataStreamWriter::write(Gradient::ProcessModel& autom)
 {
   autom.outlet = Process::make_outlet(*this, &autom);
-  m_stream >> autom.m_colors
-           >> autom.m_tween;
+  m_stream >> autom.m_colors >> autom.m_tween;
 
   checkDelimiter();
 }
 
-
 template <>
-void JSONObjectReader::read(
-    const Gradient::ProcessModel& autom)
+void JSONObjectReader::read(const Gradient::ProcessModel& autom)
 {
   obj["Outlet"] = toJsonObject(*autom.outlet);
-  JSONValueReader v{}; v.readFrom(autom.m_colors);
+  JSONValueReader v{};
+  v.readFrom(autom.m_colors);
   obj["Gradient"] = v.val;
   obj["Tween"] = autom.tween();
 }
-
 
 template <>
 void JSONObjectWriter::write(Gradient::ProcessModel& autom)
 {
   JSONObjectWriter writer{obj["Outlet"].toObject()};
   autom.outlet = Process::make_outlet(writer, &autom);
-  if(!autom.outlet)
+  if (!autom.outlet)
   {
     autom.outlet = Process::make_outlet(Id<Process::Port>(0), &autom);
     autom.outlet->type = Process::PortType::Message;
   }
 
   autom.setTween(obj["Tween"].toBool());
-  JSONValueWriter v{}; v.val = obj["Gradient"];
+  JSONValueWriter v{};
+  v.val = obj["Gradient"];
   v.writeTo(autom.m_colors);
 }

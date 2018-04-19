@@ -10,13 +10,14 @@ namespace Media
 {
 namespace Commands
 {
-class SetMergeInCount final
-    : public score::PropertyCommand
+class SetMergeInCount final : public score::PropertyCommand
 {
-  SCORE_COMMAND_DECL(Media::CommandFactoryName(), SetMergeInCount, "Set in count")
+  SCORE_COMMAND_DECL(
+      Media::CommandFactoryName(), SetMergeInCount, "Set in count")
 public:
   SetMergeInCount(const Merger::Model& path, std::size_t newval)
-      : score::PropertyCommand{std::move(path), "inCount", QVariant::fromValue(newval)}
+      : score::PropertyCommand{std::move(path), "inCount",
+                               QVariant::fromValue(newval)}
   {
   }
 };

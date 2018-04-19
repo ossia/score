@@ -3,9 +3,9 @@
 #include <QFont>
 #include <QObject>
 #include <QPair>
+#include <QPen>
 #include <QVector>
 #include <boost/bimap.hpp>
-#include <QPen>
 #include <score_lib_base_export.h>
 namespace score
 {
@@ -73,7 +73,7 @@ Q_SIGNALS:
   void changed();
 
 private:
-  void timerEvent(QTimerEvent *event) override;
+  void timerEvent(QTimerEvent* event) override;
   Skin() noexcept;
 
   boost::bimap<QString, QBrush*> m_colorMap;

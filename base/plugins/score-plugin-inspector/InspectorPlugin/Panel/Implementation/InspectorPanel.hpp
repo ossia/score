@@ -8,9 +8,8 @@
 #include <boost/multi_index/indexed_by.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index_container.hpp>
-#include <score/selection/SelectionDispatcher.hpp>
-
 #include <score/selection/Selection.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
 
 class IdentifiedObjectAbstract;
 namespace Inspector

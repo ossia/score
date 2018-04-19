@@ -1,6 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "RemoveNotes.hpp"
+
 #include <Midi/MidiProcess.hpp>
 #include <score/model/path/PathSerialization.hpp>
 
@@ -15,9 +16,8 @@ RemoveNotes::RemoveNotes(
   {
     auto& note = model.notes.at(id);
     m_notes.push_back(qMakePair(
-        id,
-        NoteData{note.start(), note.duration(), note.pitch(),
-                 note.velocity()}));
+        id, NoteData{note.start(), note.duration(), note.pitch(),
+                     note.velocity()}));
   }
 }
 

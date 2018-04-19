@@ -1,16 +1,16 @@
 #pragma once
 #include <QObject>
 #include <QSettings>
-#include <score_lib_base_export.h>
 #include <memory>
+#include <score_lib_base_export.h>
 namespace score
 {
 class SettingsDelegateFactory;
 class SettingsDelegateModel;
 class SettingsModel;
-template<class Model>
+template <class Model>
 class SettingsPresenter;
-template<class Model>
+template <class Model>
 class SettingsView;
 class ProjectSettingsModel;
 
@@ -32,7 +32,8 @@ namespace score
  *
  * A plug-in wishing to add user settings must :
  *
- * * Implement score::SettingsDelegateModel, score::SettingsDelegatePresenter, score::SettingsDelegateView
+ * * Implement score::SettingsDelegateModel, score::SettingsDelegatePresenter,
+ * score::SettingsDelegateView
  * * Register them with SCORE_DECLARE_SETTINGS_FACTORY.
  *
  */
@@ -69,7 +70,6 @@ private:
 
   std::vector<std::unique_ptr<SettingsDelegateModel>> m_settings;
 };
-
 
 class SCORE_LIB_BASE_EXPORT ProjectSettings final
 {

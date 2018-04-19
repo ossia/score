@@ -1,13 +1,15 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QObject>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "MinuitProtocolFactory.hpp"
 
 #include "MinuitDevice.hpp"
-#include "MinuitProtocolFactory.hpp"
+
+#include <ossia/network/base/device.hpp>
+
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/Protocols/Minuit/MinuitProtocolSettingsWidget.hpp>
 #include <Engine/Protocols/Minuit/MinuitSpecificSettings.hpp>
-#include <ossia/network/base/device.hpp>
+#include <QObject>
 
 namespace Device
 {

@@ -1,13 +1,13 @@
 #pragma once
-#include <ossia-config.hpp>
-#include <functional>
-#include <QString>
 #include <QHashFunctions>
+#include <QString>
+#include <functional>
+#include <ossia-config.hpp>
 
 // TODO merge String.hpp here
 namespace std
 {
-template<>
+template <>
 struct hash<QString>
 {
   std::size_t operator()(const QString& path) const

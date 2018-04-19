@@ -1,9 +1,9 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <algorithm>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SlotTransitions.hpp"
+
 #include <Scenario/Palette/ScenarioPaletteBaseStates.hpp>
+#include <algorithm>
 #include <score/model/path/Path.hpp>
 
 class QEvent;

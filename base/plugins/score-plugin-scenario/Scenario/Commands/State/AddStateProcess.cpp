@@ -1,22 +1,21 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AddStateProcess.hpp"
+
 #include <Process/ProcessList.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <score/model/path/PathSerialization.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/model/path/PathSerialization.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
 namespace Scenario
 {
 namespace Command
 {
 
 AddStateProcessToState::AddStateProcessToState(
-    const Scenario::StateModel& state,
-    UuidKey<Process::ProcessModel> process)
-    : AddStateProcessToState{state,
-                             getStrongId(state.stateProcesses), process}
+    const Scenario::StateModel& state, UuidKey<Process::ProcessModel> process)
+    : AddStateProcessToState{state, getStrongId(state.stateProcesses), process}
 {
 }
 

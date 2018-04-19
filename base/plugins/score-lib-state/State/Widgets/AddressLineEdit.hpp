@@ -1,11 +1,11 @@
 #pragma once
+#include "AddressValidator.hpp"
+
 #include <QDropEvent>
 #include <QLineEdit>
 #include <QValidator>
 #include <State/MessageListSerialization.hpp>
 #include <State/Widgets/AddressValidator.hpp>
-
-#include "AddressValidator.hpp"
 
 namespace State
 {
@@ -18,8 +18,7 @@ template <class Validator_T, class Parent_T>
 class AddressLineEditBase : public QLineEdit
 {
 public:
-  explicit AddressLineEditBase(Parent_T* parent) :
-    QLineEdit{parent}
+  explicit AddressLineEditBase(Parent_T* parent) : QLineEdit{parent}
   {
     setAcceptDrops(true);
     connect(this, &QLineEdit::textChanged, this, [&](const QString& str) {
@@ -37,7 +36,6 @@ public:
   }
 
 private:
-
   void dragEnterEvent(QDragEnterEvent* ev) override
   {
     static_cast<Parent_T*>(parent())->dragEnterEvent(ev);
@@ -50,7 +48,7 @@ private:
   Validator_T m_validator;
 };
 
-template<typename Parent_T>
+template <typename Parent_T>
 class AddressLineEdit final
     : public AddressLineEditBase<AddressValidator, Parent_T>
 {
@@ -58,12 +56,12 @@ public:
   using AddressLineEditBase<AddressValidator, Parent_T>::AddressLineEditBase;
 };
 
-template<typename Parent_T>
+template <typename Parent_T>
 class AddressAccessorLineEdit final
     : public AddressLineEditBase<AddressAccessorValidator, Parent_T>
 {
 public:
-  using AddressLineEditBase<AddressAccessorValidator, Parent_T>::AddressLineEditBase;
+  using AddressLineEditBase<AddressAccessorValidator, Parent_T>::
+      AddressLineEditBase;
 };
-
 }

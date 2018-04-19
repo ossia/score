@@ -1,14 +1,14 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "DeviceCompleter.hpp"
+
 #include <Device/Node/DeviceNode.hpp>
+#include <Device/Protocol/DeviceSettings.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <QAbstractItemModel>
 #include <QChar>
 #include <QVariant>
 #include <qnamespace.h>
-
-#include "DeviceCompleter.hpp"
-#include <Device/Protocol/DeviceSettings.hpp>
 #include <score/model/tree/TreeNode.hpp>
 
 class QObject;

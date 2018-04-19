@@ -30,6 +30,4 @@ public:
 private:
   score::hash_map<StringKey<Menu>, Menu> m_container;
 };
-
-
 }

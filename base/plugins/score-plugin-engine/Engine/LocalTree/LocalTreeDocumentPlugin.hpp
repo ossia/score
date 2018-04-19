@@ -1,12 +1,11 @@
 #pragma once
-#include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
-#include <score/tools/Metadata.hpp>
-
-#include <Engine/Protocols/Local/LocalDevice.hpp>
-
 #include "GetProperty.hpp"
 #include "Property.hpp"
 #include "SetProperty.hpp"
+
+#include <Engine/Protocols/Local/LocalDevice.hpp>
+#include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+#include <score/tools/Metadata.hpp>
 
 namespace score
 {
@@ -26,12 +25,13 @@ namespace Engine
 namespace LocalTree
 {
 class Interval;
-class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin
-    : public score::DocumentPlugin
+class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin : public score::DocumentPlugin
 {
 public:
   DocumentPlugin(
-      const score::DocumentContext& doc, Id<score::DocumentPlugin> id, QObject* parent);
+      const score::DocumentContext& doc,
+      Id<score::DocumentPlugin> id,
+      QObject* parent);
 
   ~DocumentPlugin();
 

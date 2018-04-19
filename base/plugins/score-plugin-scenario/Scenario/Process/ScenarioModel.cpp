@@ -1,44 +1,49 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
+#include "ScenarioModel.hpp"
 
+#include "Algorithms/StandardCreationPolicy.hpp"
+
+#include <Process/Process.hpp>
+#include <Process/TimeValue.hpp>
 #include <QDataStream>
 #include <QDebug>
 #include <QIODevice>
 #include <QMap>
 #include <QtGlobal>
-#include <score/selection/SelectionDispatcher.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <vector>
-
-#include "Algorithms/StandardCreationPolicy.hpp"
-#include "ScenarioModel.hpp"
-#include <Process/Process.hpp>
-#include <Process/TimeValue.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/ScenarioProcessMetadata.hpp>
+#include <core/document/Document.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
+#include <score/model/EntityMap.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/selection/Selectable.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
-#include <score/model/EntityMap.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/Todo.hpp>
-#include <core/document/Document.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <vector>
 
-template class SCORE_PLUGIN_SCENARIO_EXPORT score::EntityMap<Scenario::IntervalModel>;
-template class SCORE_PLUGIN_SCENARIO_EXPORT score::EntityMap<Scenario::EventModel>;
-template class SCORE_PLUGIN_SCENARIO_EXPORT score::EntityMap<Scenario::TimeSyncModel>;
-template class SCORE_PLUGIN_SCENARIO_EXPORT score::EntityMap<Scenario::StateModel>;
-template class SCORE_PLUGIN_SCENARIO_EXPORT score::EntityMap<Scenario::CommentBlockModel>;
+template class SCORE_PLUGIN_SCENARIO_EXPORT
+    score::EntityMap<Scenario::IntervalModel>;
+template class SCORE_PLUGIN_SCENARIO_EXPORT
+    score::EntityMap<Scenario::EventModel>;
+template class SCORE_PLUGIN_SCENARIO_EXPORT
+    score::EntityMap<Scenario::TimeSyncModel>;
+template class SCORE_PLUGIN_SCENARIO_EXPORT
+    score::EntityMap<Scenario::StateModel>;
+template class SCORE_PLUGIN_SCENARIO_EXPORT
+    score::EntityMap<Scenario::CommentBlockModel>;
 
 namespace Scenario
 {
@@ -79,7 +84,9 @@ ProcessModel::ProcessModel(
 
 ProcessModel::~ProcessModel()
 {
-  score::IDocument::documentFromObject(*parent())->context().selectionStack.clear();
+  score::IDocument::documentFromObject(*parent())
+      ->context()
+      .selectionStack.clear();
 
   comments.clear();
   intervals.clear();
@@ -426,25 +433,26 @@ bool ProcessModel::contentHasDuration() const
 TimeVal ProcessModel::contentDuration() const
 {
   TimeVal max_tn_pos = TimeVal::zero();
-  for(TimeSyncModel& t : timeSyncs)
+  for (TimeSyncModel& t : timeSyncs)
   {
-    if(t.date() > max_tn_pos)
+    if (t.date() > max_tn_pos)
       max_tn_pos = t.date();
   }
   return max_tn_pos;
 }
 
-const TimeSyncModel*furthestHierarchicallySelectedTimeSync(const ProcessModel& scenario)
+const TimeSyncModel*
+furthestHierarchicallySelectedTimeSync(const ProcessModel& scenario)
 {
   const Scenario::TimeSyncModel* attach_sync{};
 
-  if(auto furthestState = furthestSelectedState(scenario))
+  if (auto furthestState = furthestSelectedState(scenario))
   {
     attach_sync = &Scenario::parentTimeSync(*furthestState, scenario);
   }
   else
   {
-    if(auto furthestEvent = furthestSelectedEvent(scenario))
+    if (auto furthestEvent = furthestSelectedEvent(scenario))
     {
       attach_sync = &Scenario::parentTimeSync(*furthestEvent, scenario);
     }
@@ -454,10 +462,9 @@ const TimeSyncModel*furthestHierarchicallySelectedTimeSync(const ProcessModel& s
     }
   }
 
-  if(!attach_sync)
+  if (!attach_sync)
     attach_sync = &scenario.startTimeSync();
 
   return attach_sync;
 }
-
 }

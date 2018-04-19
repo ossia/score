@@ -1,8 +1,8 @@
 #pragma once
-#include <QVector>
-
 #include "LibraryElement.hpp"
+
 #include <QAbstractItemModel>
+#include <QVector>
 
 namespace Library
 {
@@ -27,17 +27,26 @@ public:
   // Data removal
   bool removeRows(int row, int count, const QModelIndex& parent) override;
   bool moveRows(
-      const QModelIndex& sourceParent, int sourceRow, int count,
-      const QModelIndex& destinationParent, int destinationChild) override;
+      const QModelIndex& sourceParent,
+      int sourceRow,
+      int count,
+      const QModelIndex& destinationParent,
+      int destinationChild) override;
 
   // Drag, drop, etc.
   QStringList mimeTypes() const override;
   QMimeData* mimeData(const QModelIndexList& indexes) const override;
   bool canDropMimeData(
-      const QMimeData* data, Qt::DropAction action, int row, int column,
+      const QMimeData* data,
+      Qt::DropAction action,
+      int row,
+      int column,
       const QModelIndex& parent) const override;
   bool dropMimeData(
-      const QMimeData* data, Qt::DropAction action, int row, int column,
+      const QMimeData* data,
+      Qt::DropAction action,
+      int row,
+      int column,
       const QModelIndex& parent) override;
   Qt::DropActions supportedDropActions() const override;
   Qt::DropActions supportedDragActions() const override;

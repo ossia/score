@@ -1,32 +1,28 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ApplicationPlugin.hpp"
 
+#include <Curve/Settings/CurveSettingsModel.hpp>
+#include <Engine/ApplicationPlugin.hpp>
 #include <QAction>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <score/actions/Menu.hpp>
-#include <qnamespace.h>
-
+#include <QApplication>
+#include <QMainWindow>
 #include <QString>
 #include <QToolBar>
 #include <Recording/Record/RecordManager.hpp>
 #include <Recording/Record/RecordProviderFactory.hpp>
-#include <Scenario/Palette/ScenarioPoint.hpp>
-
-#include <score/application/ApplicationContext.hpp>
-
-#include <core/document/Document.hpp>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
-
-#include <Curve/Settings/CurveSettingsModel.hpp>
-#include <Engine/ApplicationPlugin.hpp>
-#include <QApplication>
-#include <QMainWindow>
 #include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/Cohesion/DoForSelectedIntervals.hpp>
-#include <score/actions/ActionManager.hpp>
-#include <score/widgets/SetIcons.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
 #include <core/application/ApplicationSettings.hpp>
+#include <core/document/Document.hpp>
+#include <qnamespace.h>
+#include <score/actions/ActionManager.hpp>
+#include <score/actions/Menu.hpp>
+#include <score/application/ApplicationContext.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/widgets/SetIcons.hpp>
 
 namespace Recording
 {
@@ -51,8 +47,7 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
 
   m_ossiaplug = &ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
 
-
-  if(ctx.applicationSettings.gui)
+  if (ctx.applicationSettings.gui)
   {
     auto& stop_action = ctx.actions.action<Actions::Stop>();
     m_stopAction = stop_action.action();
@@ -82,7 +77,7 @@ void ApplicationPlugin::record(
   }
 
   auto res = m_recManager->setup();
-  if(!res)
+  if (!res)
   {
     m_recManager.reset();
     m_currentContext.reset();
@@ -111,7 +106,7 @@ void ApplicationPlugin::recordMessages(
   }
 
   auto res = m_recMessagesManager->setup();
-  if(!res)
+  if (!res)
   {
     m_recMessagesManager.reset();
     m_currentContext.reset();

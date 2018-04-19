@@ -1,10 +1,11 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "Relation.hpp"
+
 #include <ossia/editor/state/destination_qualifiers.hpp>
+
 #include <QMap>
 #include <State/ValueConversion.hpp>
-
-#include "Relation.hpp"
 namespace State
 {
 QString toString(const Pulse& pulse)

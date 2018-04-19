@@ -37,12 +37,8 @@ private:
   auto elements() const
   {
     return std::make_tuple(
-        m_elements.startNode,
-        m_elements.endNode,
-        m_elements.startEvent,
-        m_elements.endEvent,
-        m_elements.startState,
-        m_elements.endState,
+        m_elements.startNode, m_elements.endNode, m_elements.startEvent,
+        m_elements.endEvent, m_elements.startState, m_elements.endState,
         m_elements.interval);
   }
 

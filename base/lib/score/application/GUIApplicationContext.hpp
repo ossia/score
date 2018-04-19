@@ -38,7 +38,7 @@ struct GUIApplicationContext : public score::ApplicationContext
    *
    * @see score::PanelDelegate
    */
-  template<typename T>
+  template <typename T>
   T& panel() const
   {
     return components.panel<T>();
@@ -95,5 +95,4 @@ struct GUIApplicationContext : public score::ApplicationContext
 };
 
 SCORE_LIB_BASE_EXPORT const GUIApplicationContext& GUIAppContext();
-
 }

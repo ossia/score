@@ -1,9 +1,8 @@
 #pragma once
 #include <QMetaType>
-#include <score/serialization/VisitorInterface.hpp>
-
-#include <score_lib_state_export.h>
 #include <memory>
+#include <score/serialization/VisitorInterface.hpp>
+#include <score_lib_state_export.h>
 
 namespace ossia
 {
@@ -53,7 +52,9 @@ struct SCORE_LIB_STATE_EXPORT TSerializer<DataStream, State::Unit>
   static void writeTo(DataStreamWriter& s, State::Unit& var);
 };
 
-template<>
-struct is_custom_serialized<ossia::unit_t> : public std::true_type {};
+template <>
+struct is_custom_serialized<ossia::unit_t> : public std::true_type
+{
+};
 
 Q_DECLARE_METATYPE(State::Unit)

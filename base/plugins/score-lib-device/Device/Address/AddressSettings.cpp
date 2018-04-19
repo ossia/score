@@ -1,11 +1,12 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QStringList>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AddressSettings.hpp"
+
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/domain/domain.hpp>
+
 #include <Device/Node/DeviceNode.hpp>
+#include <QStringList>
 #include <State/Address.hpp>
 #include <State/Message.hpp>
 #include <State/Value.hpp>
@@ -190,7 +191,8 @@ FullAddressSettings::make(const State::Message& mess) noexcept
 }
 
 FullAddressAccessorSettings::FullAddressAccessorSettings(
-    const State::AddressAccessor& addr, const AddressSettingsCommon& f) noexcept
+    const State::AddressAccessor& addr,
+    const AddressSettingsCommon& f) noexcept
     : value{f.value}
     , domain{f.domain}
     , ioType{f.ioType}
@@ -202,7 +204,6 @@ FullAddressAccessorSettings::FullAddressAccessorSettings(
   if (!address.qualifiers.get().unit)
     address.qualifiers.get().unit = f.unit;
 }
-
 
 FullAddressAccessorSettings::FullAddressAccessorSettings(
     const State::AddressAccessor& addr,
@@ -228,21 +229,22 @@ FullAddressAccessorSettings::FullAddressAccessorSettings(
 
 FullAddressAccessorSettings::FullAddressAccessorSettings(
     FullAddressSettings&& f) noexcept
-  : FullAddressAccessorSettings{
-      State::AddressAccessor{std::move(f.address)},
-      std::move(static_cast<AddressSettingsCommon&&>(f))}
+    : FullAddressAccessorSettings{
+          State::AddressAccessor{std::move(f.address)},
+          std::move(static_cast<AddressSettingsCommon&&>(f))}
 {
-
 }
 
 bool operator==(
-    const AddressSettingsCommon& lhs, const AddressSettingsCommon& rhs) noexcept
+    const AddressSettingsCommon& lhs,
+    const AddressSettingsCommon& rhs) noexcept
 {
-  return    lhs.value == rhs.value && lhs.domain == rhs.domain
+  return lhs.value == rhs.value && lhs.domain == rhs.domain
          && lhs.ioType == rhs.ioType && lhs.clipMode == rhs.clipMode
          && lhs.unit == rhs.unit
          && lhs.repetitionFilter == rhs.repetitionFilter
-      // TODO we cannot compare "any" values...   && lhs.extendedAttributes == rhs.extendedAttributes
+      // TODO we cannot compare "any" values...   && lhs.extendedAttributes ==
+      // rhs.extendedAttributes
       ;
 }
 }

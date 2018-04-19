@@ -1,11 +1,13 @@
 
 /*
 #include "LocalTreeEffectProcessComponent.hpp"
+
+#include <ossia/editor/state/state_element.hpp>
+
 #include <Engine/LocalTree/Scenario/MetadataParameters.hpp>
 #include <Media/Effect/EffectProcessModel.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
 #include <Media/Effect/LocalTree/LocalTreeEffectComponent.hpp>
-#include <ossia/editor/state/state_element.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
 
 namespace Media
 {
@@ -20,7 +22,8 @@ EffectProcessComponentBase::EffectProcessComponentBase(
         Effect::ProcessModel& scenario,
         Engine::LocalTree::DocumentPlugin& doc,
         QObject* parent_obj):
-    Engine::LocalTree::ProcessComponent_T<ProcessModel>{parent, scenario, doc, id, "EffectProcessComponent", parent_obj},
+    Engine::LocalTree::ProcessComponent_T<ProcessModel>{parent, scenario, doc,
+id, "EffectProcessComponent", parent_obj},
     m_effectsNode{*node().create_child("effects")}
 {
 }
@@ -29,10 +32,12 @@ EffectComponent*EffectProcessComponentBase::make(
         const Id<score::Component>& id,
         EffectModel& model)
 {
-    return new EffectComponent{m_effectsNode, model, this->system(), id, "EffectComponent", this};
+    return new EffectComponent{m_effectsNode, model, this->system(), id,
+"EffectComponent", this};
 }
 
-void EffectProcessComponentBase::removing(const EffectModel& cst, const EffectComponent& comp)
+void EffectProcessComponentBase::removing(const EffectModel& cst, const
+EffectComponent& comp)
 {
 }
 

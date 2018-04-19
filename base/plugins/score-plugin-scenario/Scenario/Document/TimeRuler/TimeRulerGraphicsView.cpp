@@ -1,6 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TimeRulerGraphicsView.hpp"
+
 #include <Process/Style/ScenarioStyle.hpp>
 #include <QWheelEvent>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
@@ -35,23 +36,21 @@ TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene)
 #endif
 }
 
-MinimapGraphicsView::MinimapGraphicsView(QGraphicsScene *s):
-    TimeRulerGraphicsView{s}
+MinimapGraphicsView::MinimapGraphicsView(QGraphicsScene* s)
+    : TimeRulerGraphicsView{s}
 {
-    setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
-    setSceneRect({0, 0, 2000, 100});
+  setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+  setSceneRect({0, 0, 2000, 100});
 
-    setDragMode(DragMode::NoDrag);
+  setDragMode(DragMode::NoDrag);
 }
 
 void MinimapGraphicsView::scrollContentsBy(int dx, int dy)
 {
-
 }
 
-void MinimapGraphicsView::wheelEvent(QWheelEvent *event)
+void MinimapGraphicsView::wheelEvent(QWheelEvent* event)
 {
-    event->accept();
+  event->accept();
 }
-
 }

@@ -11,7 +11,6 @@ public:
   SerialDevice(const Device::DeviceSettings& settings);
 
   bool reconnect() override;
-
 };
 }
 }

@@ -8,8 +8,7 @@
  */
 struct SCORE_LIB_BASE_EXPORT InvisibleRootNode
 {
-  friend bool
-  operator==(const InvisibleRootNode&, const InvisibleRootNode&)
+  friend bool operator==(const InvisibleRootNode&, const InvisibleRootNode&)
   {
     return true;
   }

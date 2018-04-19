@@ -1,23 +1,23 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "GoodOldDisplacementPolicy.hpp"
+
 #include <QByteArray>
 #include <QMap>
 #include <QPair>
-#include <score/tools/std/Optional.hpp>
-
-#include "GoodOldDisplacementPolicy.hpp"
+#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
 #include <score/model/EntityMap.hpp>
-#include <score/model/path/Path.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/model/path/Path.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/tools/std/Optional.hpp>
 
 template <typename T>
 class Reader;
@@ -59,7 +59,9 @@ void GoodOldDisplacementPolicy::computeDisplacement(
       {
         TimenodeProperties t;
         t.oldDate = curTimeSync.date();
-        tn_it = elementsProperties.timesyncs.emplace(curTimeSyncId, std::move(t)).first;
+        tn_it
+            = elementsProperties.timesyncs.emplace(curTimeSyncId, std::move(t))
+                  .first;
       }
 
       // put the new date
@@ -93,10 +95,11 @@ void GoodOldDisplacementPolicy::computeDisplacement(
               c.oldMin = curInterval.duration.minDuration();
               c.oldMax = curInterval.duration.maxDuration();
 
-              cur_interval_it
-                  = elementsProperties.intervals.emplace(curIntervalId, std::move(c)).first;
+              cur_interval_it = elementsProperties.intervals
+                                    .emplace(curIntervalId, std::move(c))
+                                    .first;
 
-              for(auto& proc : curInterval.processes)
+              for (auto& proc : curInterval.processes)
                 processesToSave.append(&proc);
             }
 
@@ -122,8 +125,8 @@ void GoodOldDisplacementPolicy::computeDisplacement(
                 = elementsProperties.timesyncs[curTimeSyncId].newDate;
 
             TimeVal newDefaultDuration = endDate - date;
-            TimeVal deltaBounds = newDefaultDuration
-                                    - curInterval.duration.defaultDuration();
+            TimeVal deltaBounds
+                = newDefaultDuration - curInterval.duration.defaultDuration();
 
             auto& val = cur_interval_it.value();
             val.newMin = curInterval.duration.minDuration() + deltaBounds;
@@ -135,9 +138,10 @@ void GoodOldDisplacementPolicy::computeDisplacement(
       }
     }
 
-    if(!processesToSave.empty())
+    if (!processesToSave.empty())
     {
-      elementsProperties.cables = Dataflow::saveCables(processesToSave, score::IDocument::documentContext(scenario));
+      elementsProperties.cables = Dataflow::saveCables(
+          processesToSave, score::IDocument::documentContext(scenario));
     }
   }
 }
@@ -151,8 +155,7 @@ void GoodOldDisplacementPolicy::getRelatedTimeSyncs(
     return;
 
   auto it = std::find(
-      translatedTimeSyncs.begin(),
-      translatedTimeSyncs.end(),
+      translatedTimeSyncs.begin(), translatedTimeSyncs.end(),
       firstTimeSyncMovedId);
   if (it == translatedTimeSyncs.end())
   {

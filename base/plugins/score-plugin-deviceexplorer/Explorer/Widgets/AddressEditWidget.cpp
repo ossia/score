@@ -1,5 +1,5 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 //#include "AddressEditWidget.hpp"
 
 //#include <QBoxLayout>
@@ -16,9 +16,9 @@
 //#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 //#include <QContextMenuEvent>
 
-//namespace Explorer
+// namespace Explorer
 //{
-//AddressEditWidget::AddressEditWidget(
+// AddressEditWidget::AddressEditWidget(
 //    DeviceExplorerModel& model, QWidget* parent)
 //    : QWidget{parent}, m_model{model}
 //{
@@ -41,20 +41,20 @@
 //  lay->addWidget(m_lineEdit);
 //}
 
-//void AddressEditWidget::setAddress(const State::Address& addr)
+// void AddressEditWidget::setAddress(const State::Address& addr)
 //{
 //  m_address = addr;
 //  m_lineEdit->setText(m_address.toString());
 //}
 
-//void AddressEditWidget::setAddressString(QString s)
+// void AddressEditWidget::setAddressString(QString s)
 //{
 //  m_lineEdit->setText(std::move(s));
 //  State::Address addr;
 //  m_address = addr.fromString(s);
 //}
 
-//void AddressEditWidget::dragEnterEvent(QDragEnterEvent* event)
+// void AddressEditWidget::dragEnterEvent(QDragEnterEvent* event)
 //{
 //  const auto& formats = event->mimeData()->formats();
 //  if (formats.contains(score::mime::messagelist()))
@@ -63,11 +63,12 @@
 //  }
 //}
 
-//void AddressEditWidget::customContextMenuEvent(const QPoint& p)
+// void AddressEditWidget::customContextMenuEvent(const QPoint& p)
 //{
 //  auto device_menu = new QMenuView{m_lineEdit};
 //  device_menu->setModel(&m_model);
-//  connect(device_menu, &QMenuView::triggered, this, [&](const QModelIndex& m) {
+//  connect(device_menu, &QMenuView::triggered, this, [&](const QModelIndex& m)
+//  {
 //    auto addr = Device::address(m_model.nodeFromModelIndex(m)).address;
 //    setAddress(addr);
 //    addressChanged(addr);
@@ -77,7 +78,7 @@
 //  delete device_menu;
 //}
 
-//void AddressEditWidget::dropEvent(QDropEvent* ev)
+// void AddressEditWidget::dropEvent(QDropEvent* ev)
 //{
 //  auto mime = ev->mimeData();
 

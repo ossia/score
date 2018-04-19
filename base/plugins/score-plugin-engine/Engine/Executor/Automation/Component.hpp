@@ -1,8 +1,9 @@
 #pragma once
+#include <ossia/dataflow/node_process.hpp>
 #include <ossia/network/value/value.hpp>
+
 #include <Automation/AutomationModel.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
-#include <ossia/dataflow/node_process.hpp>
 #include <memory>
 namespace ossia
 {
@@ -31,6 +32,7 @@ public:
       QObject* parent);
 
   ~Component() override;
+
 private:
   void recompute();
 
@@ -45,7 +47,6 @@ using ComponentFactory
     = ::Engine::Execution::ProcessComponentFactory_T<Component>;
 }
 }
-
 
 SCORE_CONCRETE_COMPONENT_FACTORY(
     Engine::Execution::ProcessComponentFactory,

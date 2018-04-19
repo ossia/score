@@ -1,6 +1,5 @@
 #pragma once
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
-
 #include <score/plugins/customfactory/FactoryFamily.hpp>
 
 namespace Device

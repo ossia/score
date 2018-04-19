@@ -1,17 +1,16 @@
 #pragma once
+#include <Curve/Segment/CurveSegmentData.hpp>
 #include <QByteArray>
 #include <QPoint>
 #include <QVector>
 #include <algorithm>
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/model/path/Path.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <vector>
-
-#include <Curve/Segment/CurveSegmentData.hpp>
-#include <score/model/path/Path.hpp>
-#include <score/model/Identifier.hpp>
 #include <score_plugin_curve_export.h>
+#include <vector>
 
 namespace score
 {
@@ -67,18 +66,16 @@ protected:
   find(std::vector<SegmentData>& segments, const OptionalId<SegmentModel>& id)
   {
     return std::find_if(
-        segments.begin(), segments.end(), [&](const auto& seg) {
-          return seg.id == id;
-        });
+        segments.begin(), segments.end(),
+        [&](const auto& seg) { return seg.id == id; });
   }
   auto find(
       const std::vector<SegmentData>& segments,
       const OptionalId<SegmentModel>& id)
   {
     return std::find_if(
-        segments.cbegin(), segments.cend(), [&](const auto& seg) {
-          return seg.id == id;
-        });
+        segments.cbegin(), segments.cend(),
+        [&](const auto& seg) { return seg.id == id; });
   }
 
   virtual void on_press() = 0;

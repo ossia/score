@@ -1,10 +1,9 @@
 #pragma once
+#include <QByteArray>
+#include <QMap>
 #include <QObject>
 #include <QString>
-#include <QMap>
-#include <QByteArray>
 #include <memory>
-
 #include <score_plugin_deviceexplorer_export.h>
 
 class QAction;
@@ -13,9 +12,13 @@ class QListView;
 class QLineEdit;
 class QSpinBox;
 class QWidget;
-namespace servus {
+namespace servus
+{
 class Servus;
-namespace qt { class ItemModel; }
+namespace qt
+{
+class ItemModel;
+}
 }
 
 class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT ZeroconfBrowser : public QObject

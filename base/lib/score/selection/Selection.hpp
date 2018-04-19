@@ -10,20 +10,20 @@ class Selection final : private QList<QPointer<const IdentifiedObjectAbstract>>
   using base_type = QList<QPointer<const IdentifiedObjectAbstract>>;
 
 public:
+  using base_type::at;
   using base_type::base_type;
   using base_type::begin;
-  using base_type::end;
   using base_type::cbegin;
   using base_type::cend;
+  using base_type::clear;
   using base_type::constBegin;
   using base_type::constEnd;
-  using base_type::erase;
-  using base_type::empty;
-  using base_type::clear;
-  using base_type::size;
-  using base_type::at;
   using base_type::contains;
+  using base_type::empty;
+  using base_type::end;
+  using base_type::erase;
   using base_type::removeAll;
+  using base_type::size;
 
   static Selection
   fromList(const QList<const IdentifiedObjectAbstract*>& other)

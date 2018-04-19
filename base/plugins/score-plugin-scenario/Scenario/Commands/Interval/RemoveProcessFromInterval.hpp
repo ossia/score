@@ -1,15 +1,14 @@
 #pragma once
+#include <Dataflow/Commands/CableHelpers.hpp>
 #include <QByteArray>
 #include <QPair>
-#include <Scenario/Document/Interval/Slot.hpp>
 #include <QVector>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
 #include <score/command/Command.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
-
-#include <score/model/Identifier.hpp>
-#include <Dataflow/Commands/CableHelpers.hpp>
 struct DataStreamInput;
 struct DataStreamOutput;
 namespace Process
@@ -30,9 +29,7 @@ class RemoveProcessFromInterval final : public score::Command
       "Remove a process")
 public:
   RemoveProcessFromInterval(
-      const IntervalModel& cst,
-      Id<Process::ProcessModel>
-          processId);
+      const IntervalModel& cst, Id<Process::ProcessModel> processId);
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 

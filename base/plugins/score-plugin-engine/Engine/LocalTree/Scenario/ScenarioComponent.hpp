@@ -1,6 +1,6 @@
 #pragma once
-#include <Engine/LocalTree/Scenario/IntervalComponent.hpp>
 #include <Engine/LocalTree/Scenario/EventComponent.hpp>
+#include <Engine/LocalTree/Scenario/IntervalComponent.hpp>
 #include <Engine/LocalTree/Scenario/StateComponent.hpp>
 #include <Engine/LocalTree/Scenario/TimeSyncComponent.hpp>
 #include <Scenario/Document/Components/ScenarioComponent.hpp>
@@ -24,10 +24,15 @@ public:
   template <typename Component_T, typename Element>
   Component_T* make(const Id<score::Component>& id, Element& elt);
 
-  template<typename... Args>
-  bool removing(Args&&...) { return true; }
-  template<typename... Args>
-  void removed(Args&&...) { }
+  template <typename... Args>
+  bool removing(Args&&...)
+  {
+    return true;
+  }
+  template <typename... Args>
+  void removed(Args&&...)
+  {
+  }
 
 private:
   ossia::net::node_base& m_intervalsNode;
@@ -38,8 +43,13 @@ private:
   std::vector<std::unique_ptr<BaseProperty>> m_properties;
 };
 
-using ScenarioComponent
-    = HierarchicalScenarioComponent<ScenarioComponentBase, Scenario::ProcessModel, Interval, Event, TimeSync, State>;
+using ScenarioComponent = HierarchicalScenarioComponent<
+    ScenarioComponentBase,
+    Scenario::ProcessModel,
+    Interval,
+    Event,
+    TimeSync,
+    State>;
 
 using ScenarioComponentFactory
     = Engine::LocalTree::ProcessComponentFactory_T<ScenarioComponent>;

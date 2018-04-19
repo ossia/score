@@ -1,20 +1,21 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Device/Protocol/DeviceInterface.hpp>
-#include <QBrush>
-#include <QFont>
-#include <qnamespace.h>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "NodeDisplayMethods.hpp"
-#include <ossia/network/value/value_conversion.hpp>
+
 #include <ossia/network/domain/domain.hpp>
+#include <ossia/network/value/value_conversion.hpp>
+
 #include <Device/Address/AddressSettings.hpp>
-#include <State/Domain.hpp>
 #include <Device/Address/IOType.hpp>
 #include <Device/Node/DeviceNode.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <QBrush>
+#include <QFont>
+#include <State/Domain.hpp>
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
+#include <qnamespace.h>
 
 namespace ossia
 {
@@ -105,7 +106,8 @@ QVariant nameColumnData(const Device::Node& node, int role)
       return node.displayName();
     case Qt::FontRole:
     {
-      if (ioType == ossia::access_mode::GET || ioType == ossia::access_mode::SET)
+      if (ioType == ossia::access_mode::GET
+          || ioType == ossia::access_mode::SET)
       {
         return italicFont;
       }
@@ -113,7 +115,8 @@ QVariant nameColumnData(const Device::Node& node, int role)
     }
     case Qt::ForegroundRole:
     {
-      if (ioType == ossia::access_mode::GET || ioType == ossia::access_mode::SET)
+      if (ioType == ossia::access_mode::GET
+          || ioType == ossia::access_mode::SET)
       {
         return QBrush(Qt::lightGray);
       }
@@ -174,7 +177,7 @@ QVariant valueColumnData(const Device::Node& node, int role)
   {
     const auto ioType = node.get<AddressSettings>().ioType;
 
-    if(ioType)
+    if (ioType)
     {
       switch (*ioType)
       {
@@ -214,7 +217,7 @@ QVariant GetColumnData(const Device::Node& node, int role)
   if (role == Qt::CheckStateRole)
   {
     const auto ioType = node.get<AddressSettings>().ioType;
-    if(ioType)
+    if (ioType)
     {
       switch (*ioType)
       {
@@ -254,7 +257,7 @@ QVariant SetColumnData(const Device::Node& node, int role)
   if (role == Qt::CheckStateRole)
   {
     const auto ioType = node.get<AddressSettings>().ioType;
-    if(ioType)
+    if (ioType)
     {
       switch (*ioType)
       {

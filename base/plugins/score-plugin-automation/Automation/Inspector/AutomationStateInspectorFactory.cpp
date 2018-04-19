@@ -1,11 +1,12 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QString>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "AutomationStateInspectorFactory.hpp"
 
 #include "AutomationStateInspector.hpp"
-#include "AutomationStateInspectorFactory.hpp"
+
 #include <Automation/State/AutomationState.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
+#include <QString>
 
 namespace Automation
 {

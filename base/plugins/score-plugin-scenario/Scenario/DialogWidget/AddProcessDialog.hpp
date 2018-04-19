@@ -1,6 +1,6 @@
 #pragma once
-#include <QDialog>
 #include <Process/ProcessList.hpp>
+#include <QDialog>
 #include <score_plugin_scenario_export.h>
 class QListWidget;
 namespace Scenario
@@ -8,7 +8,7 @@ namespace Scenario
 class SCORE_PLUGIN_SCENARIO_EXPORT AddProcessDialog final : public QDialog
 {
 public:
-    using Key = typename Process::ProcessFactoryList::key_type;
+  using Key = typename Process::ProcessFactoryList::key_type;
 
   AddProcessDialog(
       const Process::ProcessFactoryList& plist,
@@ -29,5 +29,4 @@ private:
   QListWidget* m_processes{};
   Process::ProcessFlags m_flags{};
 };
-
 }

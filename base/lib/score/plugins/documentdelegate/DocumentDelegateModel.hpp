@@ -1,6 +1,5 @@
 #pragma once
 #include <score/model/IdentifiedObject.hpp>
-
 #include <score/selection/Selection.hpp>
 
 struct VisitorVariant;
@@ -16,6 +15,5 @@ public:
   virtual ~DocumentDelegateModel();
 
   virtual void serialize(const VisitorVariant&) const = 0;
-
 };
 }

@@ -1,13 +1,13 @@
 #pragma once
-#include <Process/TimeValue.hpp>
-#include <score/command/Command.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <QString>
-
 #include "CreateEvent_State.hpp"
+
+#include <Process/TimeValue.hpp>
+#include <QString>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <score/model/path/Path.hpp>
+#include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/model/path/Path.hpp>
+#include <score/tools/std/Optional.hpp>
 #include <score_plugin_scenario_export.h>
 struct DataStreamInput;
 struct DataStreamOutput;

@@ -2,34 +2,43 @@
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/ProcessContext.hpp>
+#include <Process/ZoomHelper.hpp>
 #include <QObject>
 #include <QPoint>
-#include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
-#include <Scenario/Palette/ScenarioPalette.hpp>
-#include <Scenario/Process/Temporal/ScenarioViewInterface.hpp>
-#include <score/model/IdentifiedObjectMap.hpp>
-#include <score/tools/std/Optional.hpp>
-
-#include <Process/ZoomHelper.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
+#include <Scenario/Palette/ScenarioPalette.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/Temporal/ScenarioViewInterface.hpp>
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
+#include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/tools/std/Optional.hpp>
 #include <score/widgets/GraphicsItem.hpp>
 
-extern template class IdContainer<Scenario::StatePresenter, Scenario::StateModel>;
-extern template class IdContainer<Scenario::EventPresenter, Scenario::EventModel>;
-extern template class IdContainer<Scenario::TimeSyncPresenter, Scenario::TimeSyncModel>;
-extern template class IdContainer<Scenario::TemporalIntervalPresenter, Scenario::IntervalModel>;
-extern template class IdContainer<Scenario::CommentBlockPresenter, Scenario::CommentBlockModel>;
+extern template class IdContainer<
+    Scenario::StatePresenter,
+    Scenario::StateModel>;
+extern template class IdContainer<
+    Scenario::EventPresenter,
+    Scenario::EventModel>;
+extern template class IdContainer<
+    Scenario::TimeSyncPresenter,
+    Scenario::TimeSyncModel>;
+extern template class IdContainer<
+    Scenario::TemporalIntervalPresenter,
+    Scenario::IntervalModel>;
+extern template class IdContainer<
+    Scenario::CommentBlockPresenter,
+    Scenario::CommentBlockModel>;
 namespace Scenario
 {
 

@@ -1,5 +1,9 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "MessageItemModelAlgorithms.hpp"
+
+#include <ossia/detail/algorithms.hpp>
+
 #include <Device/Node/DeviceNode.hpp>
 #include <Process/State/MessageNode.hpp>
 #include <QList>
@@ -8,19 +12,16 @@
 #include <QTypeInfo>
 #include <QVector>
 #include <QtGlobal>
-#include <algorithm>
-#include <score/tools/std/Optional.hpp>
-#include <set>
-#include <vector>
-
-#include "MessageItemModelAlgorithms.hpp"
-#include <ossia/detail/algorithms.hpp>
 #include <State/Address.hpp>
 #include <State/Message.hpp>
 #include <State/Value.hpp>
+#include <algorithm>
 #include <score/model/Identifier.hpp>
-#include <score/tools/Todo.hpp>
 #include <score/model/tree/TreeNode.hpp>
+#include <score/tools/Todo.hpp>
+#include <score/tools/std/Optional.hpp>
+#include <set>
+#include <vector>
 namespace Process
 {
 static QStringList toStringList(const State::AddressAccessor& addr)
@@ -253,7 +254,8 @@ static void rec_updateTree(
 
 static bool match(
     const State::AddressAccessorHead& cur_node,
-    const State::AddressAccessor& mess, int i)
+    const State::AddressAccessor& mess,
+    int i)
 {
   if (i == 0)
   {
@@ -593,25 +595,26 @@ void removeAllUserMessages(Process::MessageNode& rootNode)
 int countNodes(Process::MessageNode& rootNode)
 {
   int n = 0;
-  for(auto& child: rootNode)
+  for (auto& child : rootNode)
   {
-    if(child.hasValue())
+    if (child.hasValue())
       n++;
     n += 1 + countNodes(child);
   }
   return n;
 }
 
-static Process::MessageNode* rec_getNthChild(Process::MessageNode& rootNode, int& n)
+static Process::MessageNode*
+rec_getNthChild(Process::MessageNode& rootNode, int& n)
 {
-  for(auto& child: rootNode)
+  for (auto& child : rootNode)
   {
-    if(child.hasValue())
+    if (child.hasValue())
       n--;
-    if(n == 0)
+    if (n == 0)
       return &child;
 
-    if(auto ptr = rec_getNthChild(child, n))
+    if (auto ptr = rec_getNthChild(child, n))
       return ptr;
   }
   return nullptr;
@@ -623,15 +626,13 @@ Process::MessageNode* getNthChild(Process::MessageNode& rootNode, int n)
 }
 
 static void rec_getChildIndex(
-    Process::MessageNode& rootNode,
-    Process::MessageNode* n,
-    int& idx)
+    Process::MessageNode& rootNode, Process::MessageNode* n, int& idx)
 {
-  for(auto& child: rootNode)
+  for (auto& child : rootNode)
   {
-    if(child.hasValue())
+    if (child.hasValue())
       idx++;
-    if(&child == n)
+    if (&child == n)
       return;
     rec_getChildIndex(child, n, idx);
   }

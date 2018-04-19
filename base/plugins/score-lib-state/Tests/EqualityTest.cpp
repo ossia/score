@@ -1,5 +1,5 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <QMetaType>
 #include <QObject>
 #include <QtTest/QtTest>
@@ -60,5 +60,6 @@ private Q_SLOTS:
 
 QTEST_APPLESS_MAIN(EqualityTest)
 #include "EqualityTest.moc"
+
 #include <State/Address.hpp>
 #include <State/Value.hpp>

@@ -1,13 +1,14 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Command.hpp"
+
 #include "SettingsCommand.hpp"
-#include <score/application/ApplicationContext.hpp>
+
 #include <QDataStream>
 #include <QIODevice>
 #include <QtGlobal>
+#include <score/application/ApplicationContext.hpp>
 #include <score/command/Command.hpp>
-
 #include <score/serialization/DataStreamVisitor.hpp>
 namespace score
 {
@@ -38,7 +39,7 @@ QByteArray Command::serialize() const
     QDataStream s(&arr, QIODevice::Append);
     s.setVersion(QDataStream::Qt_5_7);
 
-    //s << timestamp();
+    // s << timestamp();
     DataStreamInput inp{s};
     serializeImpl(inp);
   }
@@ -51,10 +52,10 @@ void Command::deserialize(const QByteArray& arr)
   QDataStream s(arr);
   s.setVersion(QDataStream::Qt_5_7);
 
-  //quint32 stmp;
-  //s >> stmp;
+  // quint32 stmp;
+  // s >> stmp;
 
-  //setTimestamp(stmp);
+  // setTimestamp(stmp);
 
   DataStreamOutput outp{s};
   deserializeImpl(outp);

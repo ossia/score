@@ -11,7 +11,10 @@
 #include <Scenario/Document/Interval/IntervalView.hpp>
 #include <score/model/ColorReference.hpp>
 class QMimeData;
-namespace Process { class LayerPresenter; }
+namespace Process
+{
+class LayerPresenter;
+}
 namespace Scenario
 {
 class TemporalIntervalPresenter;
@@ -57,6 +60,5 @@ private:
 
   void updatePaths() final override;
   void updatePlayPaths() final override;
-
 };
 }

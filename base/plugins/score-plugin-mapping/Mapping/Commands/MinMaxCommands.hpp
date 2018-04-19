@@ -8,7 +8,8 @@ class ProcessModel;
 class SetMappingSourceMin final : public score::PropertyCommand
 {
   SCORE_COMMAND_DECL(
-      MappingCommandFactoryName(), SetMappingSourceMin,
+      MappingCommandFactoryName(),
+      SetMappingSourceMin,
       "Set mapping source minimum")
 public:
   SetMappingSourceMin(const ProcessModel& path, double newval)
@@ -20,7 +21,8 @@ public:
 class SetMappingSourceMax final : public score::PropertyCommand
 {
   SCORE_COMMAND_DECL(
-      MappingCommandFactoryName(), SetMappingSourceMax,
+      MappingCommandFactoryName(),
+      SetMappingSourceMax,
       "Set mapping source Maximum")
 public:
   SetMappingSourceMax(const ProcessModel& path, double newval)
@@ -32,7 +34,8 @@ public:
 class SetMappingTargetMin final : public score::PropertyCommand
 {
   SCORE_COMMAND_DECL(
-      MappingCommandFactoryName(), SetMappingTargetMin,
+      MappingCommandFactoryName(),
+      SetMappingTargetMin,
       "Set mapping Target minimum")
 public:
   SetMappingTargetMin(const ProcessModel& path, double newval)
@@ -44,7 +47,8 @@ public:
 class SetMappingTargetMax final : public score::PropertyCommand
 {
   SCORE_COMMAND_DECL(
-      MappingCommandFactoryName(), SetMappingTargetMax,
+      MappingCommandFactoryName(),
+      SetMappingTargetMax,
       "Set mapping Target Maximum")
 public:
   SetMappingTargetMax(const ProcessModel& path, double newval)

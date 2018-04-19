@@ -1,6 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <ossia/network/domain/domain.hpp>
+
 #include <QMetaType>
 #include <QObject>
 #include <QtTest/QtTest>
@@ -143,8 +144,8 @@ private Q_SLOTS:
     }
 
     {
-      ossia::domain d = ossia::make_domain(
-          ossia::vec3f{0, 0, 0}, ossia::vec3f{1, 1, 1});
+      ossia::domain d
+          = ossia::make_domain(ossia::vec3f{0, 0, 0}, ossia::vec3f{1, 1, 1});
       QCOMPARE(unmarshall<ossia::domain>(marshall<JSONObject>(d)), d);
       QCOMPARE(unmarshall<ossia::domain>(marshall<DataStream>(d)), d);
     }
@@ -174,6 +175,7 @@ private Q_SLOTS:
 
 QTEST_APPLESS_MAIN(SerializationTest)
 #include "SerializationTest.moc"
+
 #include <State/Address.hpp>
 #include <State/Value.hpp>
 

@@ -1,20 +1,20 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "SerialProtocolSettingsWidget.hpp"
+
+#include "SerialSpecificSettings.hpp"
+
+#include <Device/Protocol/ProtocolSettingsWidget.hpp>
+#include <QComboBox>
+#include <QFormLayout>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <State/Widgets/AddressFragmentLineEdit.hpp>
-
+#include <QPlainTextEdit>
 #include <QSpinBox>
 #include <QString>
 #include <QVariant>
-
-#include "SerialProtocolSettingsWidget.hpp"
-#include "SerialSpecificSettings.hpp"
-#include <Device/Protocol/ProtocolSettingsWidget.hpp>
-#include <QFormLayout>
-#include <QComboBox>
-#include <QPlainTextEdit>
+#include <State/Widgets/AddressFragmentLineEdit.hpp>
 #include <score/widgets/JS/JSEdit.hpp>
 class QWidget;
 
@@ -33,9 +33,9 @@ SerialProtocolSettingsWidget::SerialProtocolSettingsWidget(QWidget* parent)
       QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
   m_codeEdit->setMinimumHeight(300);
 
-  for(auto port : QSerialPortInfo::availablePorts())
+  for (auto port : QSerialPortInfo::availablePorts())
   {
-      m_port->addItem(port.portName());
+    m_port->addItem(port.portName());
   }
 
   auto lay = new QFormLayout;
@@ -63,12 +63,12 @@ Device::DeviceSettings SerialProtocolSettingsWidget::getSettings() const
   s.name = m_name->text();
 
   Network::SerialSpecificSettings specific;
-  for(auto port : QSerialPortInfo::availablePorts())
+  for (auto port : QSerialPortInfo::availablePorts())
   {
-      if(port.portName() == m_port->currentText())
-      {
-          specific.port = port;
-      }
+    if (port.portName() == m_port->currentText())
+    {
+      specific.port = port;
+    }
   }
 
   specific.text = m_codeEdit->toPlainText();
@@ -85,8 +85,8 @@ void SerialProtocolSettingsWidget::setSettings(
   if (settings.deviceSpecificSettings
           .canConvert<Network::SerialSpecificSettings>())
   {
-    specific
-        = settings.deviceSpecificSettings.value<Network::SerialSpecificSettings>();
+    specific = settings.deviceSpecificSettings
+                   .value<Network::SerialSpecificSettings>();
 
     m_port->setCurrentText(specific.port.portName());
     m_codeEdit->setPlainText(specific.text);

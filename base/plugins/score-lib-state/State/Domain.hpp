@@ -1,7 +1,7 @@
 #pragma once
 #include <QMetaType>
-#include <score_lib_state_export.h>
 #include <memory>
+#include <score_lib_state_export.h>
 
 namespace ossia
 {

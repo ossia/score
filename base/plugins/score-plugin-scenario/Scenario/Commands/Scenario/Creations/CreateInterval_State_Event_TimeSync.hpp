@@ -1,13 +1,13 @@
 #pragma once
+#include "CreateInterval_State_Event.hpp"
+
 #include <Process/TimeValue.hpp>
 #include <QString>
-#include <score/command/Command.hpp>
-#include <score/tools/std/Optional.hpp>
-
-#include "CreateInterval_State_Event.hpp"
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <score/model/path/Path.hpp>
+#include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/model/path/Path.hpp>
+#include <score/tools/std/Optional.hpp>
 #include <score_plugin_scenario_export.h>
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -80,6 +80,5 @@ private:
 
   TimeVal m_date;
 };
-
 }
 }

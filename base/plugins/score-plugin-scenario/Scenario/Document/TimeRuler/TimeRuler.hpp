@@ -1,4 +1,8 @@
 #pragma once
+#include <ossia/editor/scenario/time_value.hpp>
+
+#include <Process/TimeValue.hpp>
+#include <QCache>
 #include <QColor>
 #include <QDateTime>
 #include <QGlyphRun>
@@ -6,16 +10,13 @@
 #include <QMap>
 #include <QPainterPath>
 #include <QPoint>
-#include <QCache>
-#include <QTextLayout>
 #include <QString>
+#include <QTextLayout>
 #include <QtGlobal>
-#include <score/model/ColorReference.hpp>
-#include <deque>
-#include <chrono>
-#include <Process/TimeValue.hpp>
 #include <Scenario/Document/TimeRuler/TimeRuler.hpp>
-#include <ossia/editor/scenario/time_value.hpp>
+#include <chrono>
+#include <deque>
+#include <score/model/ColorReference.hpp>
 class QGraphicsSceneMouseEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
@@ -24,13 +25,19 @@ class QGraphicsView;
 
 namespace Scenario
 {
-class TimeRuler final : public QObject, public QGraphicsItem
+class TimeRuler final
+    : public QObject
+    , public QGraphicsItem
 {
   Q_OBJECT
   Q_INTERFACES(QGraphicsItem)
 
 public:
-  enum class Format { Seconds, Milliseconds };
+  enum class Format
+  {
+    Seconds,
+    Milliseconds
+  };
 
   TimeRuler(QGraphicsView*);
   void paint(
@@ -50,7 +57,6 @@ public:
   {
     return m_width;
   }
-
 
   void setStartPoint(TimeVal dur);
   void setPixelPerMillis(double factor);

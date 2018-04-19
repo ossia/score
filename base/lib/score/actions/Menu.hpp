@@ -1,6 +1,5 @@
 #pragma once
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
-
 #include <score_lib_base_export.h>
 class QMenu;
 namespace score
@@ -18,8 +17,7 @@ public:
 
   Menu(
       QMenu* menu,
-      StringKey<Menu>
-          m,
+      StringKey<Menu> m,
       is_toplevel,
       int c = std::numeric_limits<int>::max() - 1);
 
@@ -39,7 +37,6 @@ private:
   bool m_toplevel{};
 };
 
-
 struct SCORE_LIB_BASE_EXPORT Menus
 {
   static StringKey<Menu> File();
@@ -52,6 +49,4 @@ struct SCORE_LIB_BASE_EXPORT Menus
   static StringKey<Menu> Settings();
   static StringKey<Menu> About();
 };
-
-
 }

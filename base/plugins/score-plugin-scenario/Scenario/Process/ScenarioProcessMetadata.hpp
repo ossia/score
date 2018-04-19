@@ -16,5 +16,5 @@ PROCESS_METADATA(
     "Scenario",
     "Structure",
     QStringList{},
-    Process::ProcessFlags::SupportsTemporal |
-    Process::ProcessFlags::PutInNewSlot)
+    Process::ProcessFlags::SupportsTemporal
+        | Process::ProcessFlags::PutInNewSlot)

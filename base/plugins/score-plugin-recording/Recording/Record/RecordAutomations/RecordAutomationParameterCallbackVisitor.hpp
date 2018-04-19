@@ -6,13 +6,13 @@
 namespace Recording
 {
 /**
-* @brief The ParameterPolicy struct
-*
-* This policy is used to prevent interpolation :
-* if a message "/x 1" is received at t = 0,
-* if a message "/x 2" is received at t = 1,
-* then at t = 0.5 "/x" will still be 1
-*/
+ * @brief The ParameterPolicy struct
+ *
+ * This policy is used to prevent interpolation :
+ * if a message "/x 1" is received at t = 0,
+ * if a message "/x 2" is received at t = 1,
+ * then at t = 0.5 "/x" will still be 1
+ */
 struct ParameterPolicy
 {
   void operator()(
@@ -29,10 +29,10 @@ struct ParameterPolicy
 /**
  * @brief The MessagePolicy struct
  *
-* This policy is used to interpolate :
-* if a message "/x 1" is received at t = 0,
-* if a message "/x 2" is received at t = 1,
-* then at t = 0.5 "/x" will be 1.5
+ * This policy is used to interpolate :
+ * if a message "/x 1" is received at t = 0,
+ * if a message "/x 2" is received at t = 1,
+ * then at t = 0.5 "/x" will be 1.5
  */
 struct MessagePolicy
 {

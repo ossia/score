@@ -1,12 +1,13 @@
 #pragma once
+#include <ossia/detail/optional.hpp>
+
+#include <QGlyphRun>
 #include <QGraphicsItem>
 #include <QRect>
 #include <QTextLayout>
 #include <Scenario/Document/Interval/IntervalHeader.hpp>
-#include <ossia/detail/optional.hpp>
-#include <QGlyphRun>
-#include <score/widgets/GraphicWidgets.hpp>
 #include <qnamespace.h>
+#include <score/widgets/GraphicWidgets.hpp>
 
 class QGraphicsSceneMouseEvent;
 class QPainter;
@@ -18,25 +19,28 @@ namespace Scenario
 class TemporalIntervalPresenter;
 class RackButton final : public QGraphicsObject
 {
-    Q_OBJECT
-  public:
-    RackButton(QGraphicsItem* parent);
+  Q_OBJECT
+public:
+  RackButton(QGraphicsItem* parent);
 
-    void setUnrolled(bool b);
+  void setUnrolled(bool b);
 
-  Q_SIGNALS:
-    void clicked();
+Q_SIGNALS:
+  void clicked();
 
-  private:
-    QRectF boundingRect() const override;
+private:
+  QRectF boundingRect() const override;
 
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
 
-    void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
-    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 
-    bool m_unroll{false};
+  bool m_unroll{false};
 };
 
 class TemporalIntervalHeader final : public IntervalHeader
@@ -52,7 +56,8 @@ public:
       QWidget* widget) override;
   void updateButtons();
   void enableOverlay(bool b);
-  void setFocused(bool b) {
+  void setFocused(bool b)
+  {
     m_hasFocus = b;
     update();
   }
@@ -77,7 +82,7 @@ private:
   qreal m_previous_x{};
 
   QRectF m_textRectCache;
-  //ossia::optional<QGlyphRun> m_line;
+  // ossia::optional<QGlyphRun> m_line;
   QImage m_line;
   RackButton* m_button{};
   score::QGraphicsPixmapToggle* m_mute{};

@@ -1,19 +1,18 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "CharValueWidget.hpp"
+
+#include <QDialogButtonBox>
 #include <QGridLayout>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <QString>
-#include <score/widgets/MarginLess.hpp>
-#include <score/widgets/TextLabel.hpp>
-
-#include "CharValueWidget.hpp"
-#include <QDialogButtonBox>
-#include <QHBoxLayout>
-#include <QLineEdit>
 #include <QPushButton>
+#include <QString>
 #include <QVBoxLayout>
 #include <State/Widgets/Values/ValueWidget.hpp>
+#include <score/widgets/MarginLess.hpp>
+#include <score/widgets/TextLabel.hpp>
 
 namespace State
 {
@@ -94,7 +93,7 @@ void CharValueSetDialog::addRow(char c)
   auto minus_b = new QPushButton{tr("-"), this};
   sub_lay->addWidget(minus_b);
 
-  connect(minus_b, &QPushButton::clicked, this, [ this, i = m_rows.size() ] {
+  connect(minus_b, &QPushButton::clicked, this, [this, i = m_rows.size()] {
     removeRow(i);
   });
 

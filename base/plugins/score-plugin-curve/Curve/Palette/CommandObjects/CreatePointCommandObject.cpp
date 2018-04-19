@@ -1,10 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QPoint>
-#include <QVariant>
-#include <algorithm>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CreatePointCommandObject.hpp"
+
 #include <Curve/Commands/UpdateCurve.hpp>
 #include <Curve/CurveModel.hpp>
 #include <Curve/CurvePresenter.hpp>
@@ -12,8 +9,10 @@
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Point/CurvePointModel.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
-
 #include <Curve/Segment/Power/PowerSegment.hpp>
+#include <QPoint>
+#include <QVariant>
+#include <algorithm>
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/model/Identifier.hpp>
 
@@ -207,8 +206,7 @@ void CreatePointCommandObject::createPoint(std::vector<SegmentData>& segments)
         segments.push_back(newRightSegment);
       }
       SegmentData& newRightSegment = segments.back();
-      newRightSegment.type
-          = Metadata<ConcreteKey_k, PowerSegment>::get();
+      newRightSegment.type = Metadata<ConcreteKey_k, PowerSegment>::get();
       newRightSegment.specificSegmentData
           = QVariant::fromValue(PowerSegmentData{0});
       newRightSegment.start = m_state->currentPoint;

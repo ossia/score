@@ -8,8 +8,8 @@
 #include <QString>
 #include <QVector>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
@@ -19,11 +19,10 @@
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
-#include <score/tools/std/Optional.hpp>
-
+#include <score/model/Identifier.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/serialization/VisitorInterface.hpp>
-#include <score/model/Identifier.hpp>
+#include <score/tools/std/Optional.hpp>
 
 class DataStream;
 class JSONObject;
@@ -35,8 +34,8 @@ namespace Scenario
  * @brief The core hierarchical and temporal process of score
  */
 class SCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
-    : public Process::ProcessModel,
-      public ScenarioInterface
+    : public Process::ProcessModel
+    , public ScenarioInterface
 {
   Q_OBJECT
 
@@ -53,8 +52,7 @@ public:
       const Id<Process::ProcessModel>& id,
       QObject* parent);
   template <typename Impl>
-  ProcessModel(Impl& vis, QObject* parent)
-      : Process::ProcessModel{vis, parent}
+  ProcessModel(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
   {
     vis.writeTo(*this);
     init();
@@ -93,8 +91,7 @@ public:
     return {map.begin(), map.end()};
   }
 
-  IntervalModel*
-  findInterval(const Id<IntervalModel>& id) const final override
+  IntervalModel* findInterval(const Id<IntervalModel>& id) const final override
   {
     return ossia::ptr_find(intervals, id);
   }
@@ -264,8 +261,6 @@ const StateModel* furthestSelectedStateWithoutFollowingInterval(
 const TimeSyncModel*
 furthestHierarchicallySelectedTimeSync(const Scenario::ProcessModel& scenario);
 
-
-
 inline auto& intervals(const Scenario::ProcessModel& scenar)
 {
   return scenar.intervals;
@@ -286,39 +281,32 @@ inline auto& states(const Scenario::ProcessModel& scenar)
 template <>
 struct ElementTraits<Scenario::ProcessModel, IntervalModel>
 {
-  static const constexpr auto accessor
-      = static_cast<const score::EntityMap<IntervalModel>& (*)(const Scenario::
-                                                              ProcessModel&)>(
-          &intervals);
+  static const constexpr auto accessor = static_cast<const score::EntityMap<
+      IntervalModel>& (*)(const Scenario::ProcessModel&)>(&intervals);
 };
 template <>
 struct ElementTraits<Scenario::ProcessModel, EventModel>
 {
-  static const constexpr auto accessor
-      = static_cast<const score::EntityMap<EventModel>& (*)(const Scenario::
-                                                         ProcessModel&)>(
-          &events);
+  static const constexpr auto accessor = static_cast<
+      const score::EntityMap<EventModel>& (*)(const Scenario::ProcessModel&)>(
+      &events);
 };
 template <>
 struct ElementTraits<Scenario::ProcessModel, TimeSyncModel>
 {
-  static const constexpr auto accessor
-      = static_cast<const score::EntityMap<TimeSyncModel>& (*)(const Scenario::
-                                                            ProcessModel&)>(
-          &timeSyncs);
+  static const constexpr auto accessor = static_cast<const score::EntityMap<
+      TimeSyncModel>& (*)(const Scenario::ProcessModel&)>(&timeSyncs);
 };
 template <>
 struct ElementTraits<Scenario::ProcessModel, StateModel>
 {
-  static const constexpr auto accessor
-      = static_cast<const score::EntityMap<StateModel>& (*)(const Scenario::
-                                                         ProcessModel&)>(
-          &states);
+  static const constexpr auto accessor = static_cast<
+      const score::EntityMap<StateModel>& (*)(const Scenario::ProcessModel&)>(
+      &states);
 };
 }
 DESCRIPTION_METADATA(
     SCORE_PLUGIN_SCENARIO_EXPORT, Scenario::ProcessModel, "Scenario")
-
 
 extern template class score::EntityMap<Scenario::IntervalModel>;
 extern template class score::EntityMap<Scenario::EventModel>;

@@ -1,7 +1,7 @@
 #pragma once
-#include <Process/GenericProcessFactory.hpp>
-#include <Media/Input/InputModel.hpp>
 #include <Media/Input/InputMetadata.hpp>
+#include <Media/Input/InputModel.hpp>
+#include <Process/GenericProcessFactory.hpp>
 
 namespace Media
 {

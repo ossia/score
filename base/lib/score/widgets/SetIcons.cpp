@@ -1,16 +1,16 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SetIcons.hpp"
-#include <hopscotch_map.h>
+
 #include <QHash>
+#include <hopscotch_map.h>
 
 namespace std
 {
-template<>
+template <>
 struct hash<std::pair<QString, QString>>
 {
-  std::size_t
-  operator()(const std::pair<QString, QString>& p) const noexcept
+  std::size_t operator()(const std::pair<QString, QString>& p) const noexcept
   {
     return qHash(p);
   }
@@ -27,7 +27,7 @@ void setIcons(QAction* action, const QString& iconOn, const QString& iconOff)
   auto& map = iconMap();
   auto pair = std::make_pair(iconOn, iconOff);
   auto it = map.find(pair);
-  if(it != map.end())
+  if (it != map.end())
   {
     action->setIcon(it.value());
   }
@@ -56,7 +56,7 @@ QIcon genIconFromPixmaps(const QString& iconOn, const QString& iconOff)
   auto& map = iconMap();
   auto pair = std::make_pair(iconOn, iconOff);
   auto it = map.find(pair);
-  if(it != map.end())
+  if (it != map.end())
   {
     return it.value();
   }

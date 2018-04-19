@@ -1,12 +1,11 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "QtTest/QTest"
 
 #include <Scenario/Commands/Scenario/Creations/CreateInterval.hpp>
-
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventData.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
 using namespace score;
@@ -68,11 +67,9 @@ private Q_SLOTS:
     QCOMPARE(lastEvent->previousIntervals().size(), 1);
 
     QCOMPARE(
-        lastEvent->previousIntervals().indexOf(cstrCmd.createdInterval()),
-        -1);
+        lastEvent->previousIntervals().indexOf(cstrCmd.createdInterval()), -1);
     QCOMPARE(
-        firstEvent->nextIntervals().indexOf(cstrCmd.createdInterval()),
-        -1);
+        firstEvent->nextIntervals().indexOf(cstrCmd.createdInterval()), -1);
 
     try
     {

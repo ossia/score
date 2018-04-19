@@ -1,17 +1,18 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
+#include "PowerSegment.hpp"
+
+#include <ossia/editor/curve/curve_segment/linear.hpp>
+
+#include <Curve/Palette/CurvePoint.hpp>
+#include <Curve/Segment/CurveSegmentData.hpp>
 #include <QPoint>
 #include <cmath>
 #include <cstddef>
 #include <iostream>
 #include <score/serialization/VisitorCommon.hpp>
 #include <vector>
-
-#include "PowerSegment.hpp"
-#include <ossia/editor/curve/curve_segment/linear.hpp>
-#include <Curve/Palette/CurvePoint.hpp>
-#include <Curve/Segment/CurveSegmentData.hpp>
 
 class QObject;
 #include <score/model/Identifier.hpp>
@@ -48,7 +49,8 @@ void PowerSegment::updateData(int numInterp) const
     m_valid = false;
   if (!m_valid)
   {
-    if (gamma == PowerSegmentData::linearGamma || start() == end() || numInterp == 2)
+    if (gamma == PowerSegmentData::linearGamma || start() == end()
+        || numInterp == 2)
     {
       if (m_data.size() != 2)
         m_data.resize(2);

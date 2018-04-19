@@ -1,5 +1,5 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
 /*
 bool checkLeaves(const State::Expression* e)
@@ -26,6 +26,7 @@ bool validate(const State::Expression& expr)
 }
 */
 #include <ossia/editor/state/destination_qualifiers.hpp>
+
 #include <QDebug>
 #include <QObject>
 #include <QString>
@@ -189,10 +190,12 @@ QDebug operator<<(QDebug dbg, const State::Expression& v)
   return dbg;
 }
 
-static void debug_path(ossia::optional<State::AddressAccessor> addr ) {
+static void debug_path(ossia::optional<State::AddressAccessor> addr)
+{
   qDebug() << addr->toString();
 }
-static void debug_path(ossia::optional<State::Address> addr ) {
+static void debug_path(ossia::optional<State::Address> addr)
+{
   qDebug() << addr->toString();
 }
 using namespace score;
@@ -342,8 +345,8 @@ private Q_SLOTS:
       std::string str("minuit:/device/lol");
 
       typedef std::string::const_iterator iterator_type;
-      using qi::parse;
       using ascii::space;
+      using qi::parse;
 
       Address_parser<iterator_type> parser;
       auto first = str.cbegin(), last = str.cend();
@@ -436,14 +439,14 @@ private Q_SLOTS:
 
   void test_parse_expr_full()
   {
-    for (auto& input : std::list<std::string>{
-         "dev:/minuit != [1, 2, 3.12, 'c'];",
-         "{ dev:/minuit != [1, 2, 3.12, 'c'] };",
-         "a:/b >= c:/d/e/f;",
-         "{ a:/b >= c:/d/e/f };",
-         "{ dev:/minuit != [1, 2, 3.12, 'c']} and not { a:/b >= c:/d/e/f };",
-         "{ { dev:/minuit != [1, 2, 3.12, 'c'] } and not { a:/b >= c:/d/e/f } };"
-  })
+    for (auto& input :
+         std::list<std::string>{"dev:/minuit != [1, 2, 3.12, 'c'];",
+                                "{ dev:/minuit != [1, 2, 3.12, 'c'] };",
+                                "a:/b >= c:/d/e/f;", "{ a:/b >= c:/d/e/f };",
+                                "{ dev:/minuit != [1, 2, 3.12, 'c']} and not "
+                                "{ a:/b >= c:/d/e/f };",
+                                "{ { dev:/minuit != [1, 2, 3.12, 'c'] } and "
+                                "not { a:/b >= c:/d/e/f } };"})
     {
       auto f(std::begin(input)), l(std::end(input));
       Expression_parser<decltype(f)> p;
@@ -483,10 +486,13 @@ private Q_SLOTS:
 
   void test_address_dot_in_instances()
   {
-    debug_path(State::parseAddressAccessor("myapp:/score/color.1@[color.rgb.r]"));
+    debug_path(
+        State::parseAddressAccessor("myapp:/score/color.1@[color.rgb.r]"));
     debug_path(State::parseAddressAccessor("myapp:/score/color.1"));
-    debug_path(State::parseAddressAccessor("myapp:/score/color@[color.rgb.r]"));
-    debug_path(State::parseAddressAccessor("myapp:/score/color.1@[color.rgb]"));
+    debug_path(
+        State::parseAddressAccessor("myapp:/score/color@[color.rgb.r]"));
+    debug_path(
+        State::parseAddressAccessor("myapp:/score/color.1@[color.rgb]"));
 
     debug_path(State::parseAddress("myapp:/score/color.1@[color.rgb.r]"));
     debug_path(State::parseAddress("myapp:/score/color.1"));
@@ -497,22 +503,23 @@ private Q_SLOTS:
   void test_parse_random()
   {
     using namespace std::literals;
-    QVERIFY(bool(State::parseAddressAccessor("myapp:/score/color.1@[color.rgb.r]")));
+    QVERIFY(bool(
+        State::parseAddressAccessor("myapp:/score/color.1@[color.rgb.r]")));
     QVERIFY(bool(State::parseExpression("{ myapp:/score > 2}"s)));
     QVERIFY(bool(State::parseExpression("{2 > myapp:/stagescore }"s)));
     QVERIFY(
         bool(State::parseExpression("{ myapp:/score > myapp:/stagescore }"s)));
-    QVERIFY(
-        bool(State::parseExpression("{ myapp:/score >= myapp:/stagescore }"s)));
-    QVERIFY(
-        bool(State::parseExpression("{ my_app:/score > my_app:/stagescore }"s)));
-    QVERIFY(
-        bool(State::parseExpression("{ my_app:/score > my_app:/stage_score }"s)));
-    QVERIFY(
-        bool(State::parseExpression("{ my_app:/score > my_app:/stage_score }"s)));
-    QVERIFY(bool(State::parseExpression("{ { A:/B > c:/D } and { e:/f > g:/h } }"s)));
+    QVERIFY(bool(
+        State::parseExpression("{ myapp:/score >= myapp:/stagescore }"s)));
+    QVERIFY(bool(
+        State::parseExpression("{ my_app:/score > my_app:/stagescore }"s)));
+    QVERIFY(bool(
+        State::parseExpression("{ my_app:/score > my_app:/stage_score }"s)));
+    QVERIFY(bool(
+        State::parseExpression("{ my_app:/score > my_app:/stage_score }"s)));
+    QVERIFY(bool(
+        State::parseExpression("{ { A:/B > c:/D } and { e:/f > g:/h } }"s)));
   }
-
 
   void test_parse_patternmatch()
   {
@@ -522,7 +529,8 @@ private Q_SLOTS:
     QVERIFY(bool(State::TraversalPath::make_path("myapp:/score.")));
     QVERIFY(bool(State::TraversalPath::make_path("myapp:/score.*")));
     QVERIFY(bool(State::TraversalPath::make_path("../score/blop")));
-    QVERIFY(bool(State::TraversalPath::make_path("myapp:/score.*/[a-z]*/{blurg}")));
+    QVERIFY(bool(
+        State::TraversalPath::make_path("myapp:/score.*/[a-z]*/{blurg}")));
     QVERIFY(bool(State::TraversalPath::make_path("//score")));
     QVERIFY(bool(State::TraversalPath::make_path("//score/blop")));
   }
@@ -530,6 +538,7 @@ private Q_SLOTS:
 
 QTEST_APPLESS_MAIN(ExpressionParsingTests)
 #include "ExpressionParsingTests.moc"
+
 #include <State/Address.hpp>
 #include <State/Relation.hpp>
 #include <State/Value.hpp>

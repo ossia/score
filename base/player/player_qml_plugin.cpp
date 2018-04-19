@@ -1,11 +1,13 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "player_qml_plugin.hpp"
-#include <ossia-qt/qml_plugin.hpp>
+
 #include <ossia/context.hpp>
-#include <QQmlEngine>
-#include <spdlog/sinks/android_sink.h>
 #include <ossia/detail/logger.hpp>
+
+#include <QQmlEngine>
+#include <ossia-qt/qml_plugin.hpp>
+#include <spdlog/sinks/android_sink.h>
 
 namespace score
 {
@@ -15,7 +17,7 @@ struct qt_log_sink final : public spdlog::sinks::sink
   void log(const spdlog::details::log_msg& msg) override
   {
     QMessageLogger m;
-    switch(msg.level)
+    switch (msg.level)
     {
       case spdlog::level::info:
       case spdlog::level::trace:
@@ -51,7 +53,6 @@ struct qt_log_sink final : public spdlog::sinks::sink
   }
 };
 
-
 QMLPlayer::QMLPlayer()
 {
   m_player.init();
@@ -60,7 +61,6 @@ QMLPlayer::QMLPlayer()
 
 QMLPlayer::~QMLPlayer()
 {
-
 }
 
 int QMLPlayer::port() const
@@ -85,20 +85,19 @@ void QMLPlayer::stop()
 
 void QMLPlayer::registerDevice(ossia::qt::qml_device* dev)
 {
-  if(dev)
+  if (dev)
     m_player.registerDevice(&dev->device());
 }
 
 void QMLPlayer::setPort(int p)
 {
-  if(m_port != p)
+  if (m_port != p)
   {
     m_port = p;
     m_player.sig_setPort(p);
     portChanged(p);
   }
 }
-
 
 PlayerPlugin::PlayerPlugin()
 {
@@ -118,7 +117,5 @@ void PlayerPlugin::registerTypes(const char* uri)
 
 PlayerPlugin::~PlayerPlugin()
 {
-
 }
-
 }

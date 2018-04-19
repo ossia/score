@@ -1,12 +1,12 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "IntervalBrace.hpp"
+
+#include <Process/Style/ScenarioStyle.hpp>
 #include <QCursor>
 #include <QGraphicsSceneEvent>
 #include <QPainter>
 #include <QPen>
-
-#include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/Interval/IntervalView.hpp>
 
@@ -14,12 +14,10 @@ namespace Scenario
 {
 LeftBraceView::~LeftBraceView()
 {
-
 }
 
 RightBraceView::~RightBraceView()
 {
-
 }
 IntervalBrace::IntervalBrace(
     const IntervalView& parentCstr, QGraphicsItem* parent)

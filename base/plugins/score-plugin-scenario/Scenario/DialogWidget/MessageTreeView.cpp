@@ -1,5 +1,9 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "MessageTreeView.hpp"
+
+#include <Device/Node/DeviceNode.hpp>
+#include <Process/State/MessageNode.hpp>
 #include <QAbstractItemView>
 #include <QAction>
 #include <QContextMenuEvent>
@@ -10,23 +14,18 @@
 #include <QList>
 #include <QMenu>
 #include <QResizeEvent>
+#include <QSet>
+#include <QString>
 #include <Scenario/Commands/State/RemoveMessageNodes.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/document/DocumentInterface.hpp>
 #include <qnamespace.h>
-
-#include <QSet>
-#include <QString>
-
-#include "MessageTreeView.hpp"
-#include <Device/Node/DeviceNode.hpp>
-#include <Process/State/MessageNode.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/document/DocumentInterface.hpp>
 #include <score/model/path/Path.hpp>
-#include <score/tools/Todo.hpp>
 #include <score/model/tree/TreeNode.hpp>
+#include <score/tools/Todo.hpp>
 
 class QWidget;
 namespace Scenario

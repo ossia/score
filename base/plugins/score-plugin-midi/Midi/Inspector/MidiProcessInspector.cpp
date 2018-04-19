@@ -1,18 +1,16 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MidiProcessInspector.hpp"
-#include <Midi/Commands/SetOutput.hpp>
 
 #include <Engine/Protocols/MIDI/MIDIProtocolFactory.hpp>
 #include <Engine/Protocols/MIDI/MIDISpecificSettings.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-
+#include <Midi/Commands/SetOutput.hpp>
+#include <QComboBox>
+#include <QFormLayout>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>
-
-#include <QComboBox>
-#include <QFormLayout>
 
 namespace Midi
 {
@@ -61,11 +59,11 @@ InspectorWidget::InspectorWidget(
     }
 
     connect(
-          m_devices, SignalUtils::QComboBox_currentIndexChanged_int(), this,
-          [&](int idx) {
-      CommandDispatcher<> d{doc.commandStack};
-      d.submitCommand(new SetOutput{model, m_devices->itemText(idx)});
-    });
+        m_devices, SignalUtils::QComboBox_currentIndexChanged_int(), this,
+        [&](int idx) {
+          CommandDispatcher<> d{doc.commandStack};
+          d.submitCommand(new SetOutput{model, m_devices->itemText(idx)});
+        });
   }
 
   ///// CHAN /////
@@ -80,13 +78,14 @@ InspectorWidget::InspectorWidget(
       if (m_chan->value() != n)
         m_chan->setValue(n);
     });
-    connect(m_chan, SignalUtils::QSpinBox_valueChanged_int(), this, [&](int n) {
-      if (model.channel() != n)
-      {
-        CommandDispatcher<> d{doc.commandStack};
-        d.submitCommand(new SetChannel{model, n});
-      }
-    });
+    connect(
+        m_chan, SignalUtils::QSpinBox_valueChanged_int(), this, [&](int n) {
+          if (model.channel() != n)
+          {
+            CommandDispatcher<> d{doc.commandStack};
+            d.submitCommand(new SetChannel{model, n});
+          }
+        });
   }
 
   ///// RANGE /////
@@ -103,14 +102,12 @@ InspectorWidget::InspectorWidget(
     vlay->addRow(tr("Min"), m_min);
     vlay->addRow(tr("Max"), m_max);
 
-    con(model, &ProcessModel::rangeChanged,
-        this, [=] (int min, int max) {
+    con(model, &ProcessModel::rangeChanged, this, [=](int min, int max) {
       m_min->setValue(min);
       m_max->setValue(max);
     });
 
-    connect(m_min, &QSpinBox::editingFinished,
-            this, [=,&model,&doc] {
+    connect(m_min, &QSpinBox::editingFinished, this, [=, &model, &doc] {
       auto n = m_min->value();
       if (model.range().first != n)
       {
@@ -118,8 +115,7 @@ InspectorWidget::InspectorWidget(
         d.submitCommand(new SetRange{model, n, m_max->value()});
       }
     });
-    connect(m_max, &QSpinBox::editingFinished,
-            this, [=,&model,&doc] {
+    connect(m_max, &QSpinBox::editingFinished, this, [=, &model, &doc] {
       auto n = m_max->value();
       if (model.range().second != n)
       {
@@ -127,7 +123,6 @@ InspectorWidget::InspectorWidget(
         d.submitCommand(new SetRange{model, m_min->value(), n});
       }
     });
-
   }
 }
 }

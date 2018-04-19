@@ -1,8 +1,7 @@
 #pragma once
 #include <Automation/Commands/AutomationCommandFactory.hpp>
-#include <score/command/PropertyCommand.hpp>
-
 #include <State/Unit.hpp>
+#include <score/command/PropertyCommand.hpp>
 
 namespace Process
 {

@@ -1,18 +1,23 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-#include <score/tools/std/Optional.hpp>
-
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
+#include <score/tools/std/Optional.hpp>
 // This part is somewhat similar to what moc does
 // with moc_.. stuff generation.
+#include "Menus/TransportActions.hpp"
+#include "ScenarioApplicationPlugin.hpp"
+
+#include <Process/LayerPresenter.hpp>
+#include <Process/Process.hpp>
+#include <Process/Tools/ProcessGraphicsView.hpp>
 #include <QAction>
 #include <QByteArray>
 #include <QIODevice>
@@ -25,54 +30,38 @@
 #include <QMenu>
 #include <QString>
 #include <QToolBar>
-#include <qnamespace.h>
-#include <string.h>
-
-#include "Menus/TransportActions.hpp"
-#include <Process/LayerPresenter.hpp>
-#include <Process/Process.hpp>
-
-#include "ScenarioApplicationPlugin.hpp"
-#include <Process/Tools/ProcessGraphicsView.hpp>
 #include <Scenario/Application/Menus/ObjectMenuActions.hpp>
 #include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
+#include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
-#include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Palette/Tool.hpp>
+#include <algorithm>
+#include <core/application/ApplicationSettings.hpp>
 #include <core/document/Document.hpp>
-
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
-#include <score/document/DocumentInterface.hpp>
-#include <score/actions/Menu.hpp>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
-#include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
-#include <score/model/EntityMap.hpp>
-#include <score/model/IdentifiedObjectMap.hpp>
-#include <score/model/Identifier.hpp>
-#include <score/document/DocumentInterface.hpp>
-#include <score/actions/Menu.hpp>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
-#include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
-#include <score/model/EntityMap.hpp>
-#include <score/model/IdentifiedObjectMap.hpp>
-#include <score/model/Identifier.hpp>
-
-#include <Scenario/Application/ScenarioActions.hpp>
-#include <algorithm>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/Window.hpp>
+#include <qnamespace.h>
+#include <score/actions/Menu.hpp>
 #include <score/document/DocumentInterface.hpp>
-#include <core/application/ApplicationSettings.hpp>
+#include <score/model/EntityMap.hpp>
+#include <score/model/IdentifiedObjectMap.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
+#include <string.h>
 
-SCORE_DECLARE_ACTION(ShowCables, "&Show cables", Dataflow, Qt::ALT + Qt::SHIFT + Qt::Key_G)
+SCORE_DECLARE_ACTION(
+    ShowCables, "&Show cables", Dataflow, Qt::ALT + Qt::SHIFT + Qt::Key_G)
 namespace Scenario
 {
 void test_parse_expr_full();
@@ -82,7 +71,7 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
     : GUIApplicationPlugin{ctx}
 {
   auto app = QCoreApplication::instance();
-  if(auto guiapp = qobject_cast<QGuiApplication*>(app))
+  if (auto guiapp = qobject_cast<QGuiApplication*>(app))
   {
     connect(
         guiapp, &QGuiApplication::applicationStateChanged, this,
@@ -111,14 +100,15 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
   auto on_sm = std::make_shared<EnableWhenScenarioModelObject>();
   ctx.actions.onSelectionChange(on_sm);
   ctx.actions.onFocusChange(on_sm);
-  auto on_instant_si = std::make_shared<EnableWhenScenarioInterfaceInstantObject>();
+  auto on_instant_si
+      = std::make_shared<EnableWhenScenarioInterfaceInstantObject>();
   ctx.actions.onSelectionChange(on_instant_si);
   ctx.actions.onFocusChange(on_instant_si);
   auto on_si = std::make_shared<EnableWhenScenarioInterfaceObject>();
   ctx.actions.onSelectionChange(on_si);
   ctx.actions.onFocusChange(on_si);
 
-  if(context.applicationSettings.gui)
+  if (context.applicationSettings.gui)
   {
     m_objectActions.setupContextMenu(m_layerCtxMenuManager);
   }
@@ -126,13 +116,14 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
   m_showCables = new QAction{this};
   m_showCables->setCheckable(true);
   m_showCables->setChecked(true);
-  connect(m_showCables, &QAction::toggled, this, [this] (bool c) {
+  connect(m_showCables, &QAction::toggled, this, [this](bool c) {
     auto doc = this->currentDocument();
-    if(doc)
+    if (doc)
     {
       Dataflow::CableItem::g_cables_enabled = c;
       auto plug = score::IDocument::try_get<ScenarioDocumentPresenter>(*doc);
-      for(Dataflow::CableItem& cable : plug->cableItems) {
+      for (Dataflow::CableItem& cable : plug->cableItems)
+      {
         cable.check();
       }
     }
@@ -143,7 +134,6 @@ auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
 {
   using namespace score;
   GUIElements e;
-
 
   m_objectActions.makeGUIElements(e);
   m_toolActions.makeGUIElements(e);
@@ -231,12 +221,13 @@ void ScenarioApplicationPlugin::on_documentChanged(
 
   // Load cables
   auto& model
-      = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(*newdoc);
+      = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(
+          *newdoc);
   model.finishLoading();
   // TODO do htis on restore
 
   // Setup ui
-  if(!newdoc->context().app.mainWindow)
+  if (!newdoc->context().app.mainWindow)
     return;
 
   auto focusManager = processFocusManager();
@@ -245,11 +236,11 @@ void ScenarioApplicationPlugin::on_documentChanged(
     return;
 
   m_focusConnection = connect(
-                        focusManager, &Process::ProcessFocusManager::sig_focusedPresenter,
-                        this, &ScenarioApplicationPlugin::on_presenterFocused);
+      focusManager, &Process::ProcessFocusManager::sig_focusedPresenter, this,
+      &ScenarioApplicationPlugin::on_presenterFocused);
   m_defocusConnection = connect(
-                          focusManager, &Process::ProcessFocusManager::sig_defocusedPresenter,
-                          this, &ScenarioApplicationPlugin::on_presenterDefocused);
+      focusManager, &Process::ProcessFocusManager::sig_defocusedPresenter,
+      this, &ScenarioApplicationPlugin::on_presenterDefocused);
 
   if (focusManager->focusedPresenter())
   {
@@ -263,22 +254,23 @@ void ScenarioApplicationPlugin::on_documentChanged(
     // TODO this snippet is useful, put it somewhere in some Toolkit file.
     ScenarioDocumentPresenter* pres
         = IDocument::presenterDelegate<ScenarioDocumentPresenter>(*newdoc);
-    if(pres)
+    if (pres)
     {
-      FullViewIntervalPresenter* cst_pres = pres->presenters().intervalPresenter();
+      FullViewIntervalPresenter* cst_pres
+          = pres->presenters().intervalPresenter();
 
-      if(!cst_pres->getSlots().empty())
+      if (!cst_pres->getSlots().empty())
       {
-        focusManager->focus(cst_pres->getSlots().front().processes.front().presenter);
+        focusManager->focus(
+            cst_pres->getSlots().front().processes.front().presenter);
       }
     }
   }
 
   // Finally we focus the View widget.
-  if(auto v = newdoc->view())
+  if (auto v = newdoc->view())
   {
-    auto bev
-        = dynamic_cast<ScenarioDocumentView*>(&v->viewDelegate());
+    auto bev = dynamic_cast<ScenarioDocumentView*>(&v->viewDelegate());
     if (bev)
       bev->view().setFocus();
   }
@@ -305,12 +297,11 @@ void ScenarioApplicationPlugin::on_initDocument(score::Document& doc)
 
 void ScenarioApplicationPlugin::on_createdDocument(score::Document& doc)
 {
-
 }
 
 void ScenarioApplicationPlugin::prepareNewDocument()
 {
-  if(context.applicationSettings.gui)
+  if (context.applicationSettings.gui)
   {
     auto& stop_action = context.actions.action<Actions::Stop>();
     stop_action.action()->trigger();
@@ -322,10 +313,10 @@ ScenarioApplicationPlugin::processFocusManager() const
 {
   if (auto doc = currentDocument())
   {
-    if(auto pres = doc->presenter())
+    if (auto pres = doc->presenter())
     {
-      auto bem
-          = dynamic_cast<ScenarioDocumentPresenter*>(pres->presenterDelegate());
+      auto bem = dynamic_cast<ScenarioDocumentPresenter*>(
+          pres->presenterDelegate());
       if (bem)
       {
         return &bem->focusManager();

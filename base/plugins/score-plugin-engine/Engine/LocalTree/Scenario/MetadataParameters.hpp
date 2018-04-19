@@ -1,6 +1,6 @@
 #pragma once
-#include <score_plugin_engine_export.h>
 #include <memory>
+#include <score_plugin_engine_export.h>
 #include <vector>
 namespace score
 {

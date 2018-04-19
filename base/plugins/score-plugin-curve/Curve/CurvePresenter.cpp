@@ -1,29 +1,11 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "CurvePresenter.hpp"
+
+#include "CurveModel.hpp"
+#include "CurveView.hpp"
+
 #include <Curve/Commands/UpdateCurve.hpp>
-
-#include <boost/multi_index/detail/hash_index_iterator.hpp>
-#include <boost/multi_index/hashed_index.hpp>
-#include <boost/operators.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <set>
-
-#include <QAction>
-#include <QActionGroup>
-#include <QMenu>
-#include <QtAlgorithms>
-#include <score/widgets/GraphicsItem.hpp>
-#include <qnamespace.h>
-
-#include <QApplication>
-#include <QPointer>
-#include <QSet>
-#include <QSize>
-#include <QString>
-#include <QVariant>
-#include <utility>
-#include <vector>
-
 #include <Curve/Palette/CurveEditionSettings.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Point/CurvePointModel.hpp>
@@ -33,25 +15,41 @@
 #include <Curve/Segment/CurveSegmentList.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/CurveSegmentView.hpp>
-
-#include "CurveModel.hpp"
-#include "CurvePresenter.hpp"
-#include "CurveView.hpp"
 #include <Curve/Segment/Power/PowerSegment.hpp>
+#include <QAction>
+#include <QActionGroup>
+#include <QApplication>
+#include <QMenu>
+#include <QPointer>
+#include <QSet>
+#include <QSize>
+#include <QString>
+#include <QVariant>
+#include <QtAlgorithms>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/operators.hpp>
+#include <qnamespace.h>
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/plugins/customfactory/FactoryFamily.hpp>
-
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
-#include <score/selection/Selectable.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/IdentifiedObjectAbstract.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/plugins/customfactory/FactoryFamily.hpp>
+#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/selection/Selectable.hpp>
 #include <score/tools/Todo.hpp>
+#include <score/tools/std/Optional.hpp>
+#include <score/widgets/GraphicsItem.hpp>
+#include <set>
+#include <utility>
+#include <vector>
 
-template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::PointView, Curve::PointModel>;
-template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::SegmentView, Curve::SegmentModel>;
+template class SCORE_PLUGIN_CURVE_EXPORT
+    IdContainer<Curve::PointView, Curve::PointModel>;
+template class SCORE_PLUGIN_CURVE_EXPORT
+    IdContainer<Curve::SegmentView, Curve::SegmentModel>;
 
 namespace Curve
 {
@@ -242,7 +240,7 @@ void Presenter::setupView()
     {
       altact->setChecked(!altact->isChecked());
     }
-    if(key == Qt::Key_Backspace)
+    if (key == Qt::Key_Backspace)
     {
       removeSelection();
     }
@@ -278,18 +276,18 @@ void Presenter::fillContextMenu(
   {
     auto text = seg.category();
     QMenu* menuToAdd{};
-    if(text.isEmpty())
+    if (text.isEmpty())
     {
       menuToAdd = typeMenu;
     }
-    else if(text == "hidden")
+    else if (text == "hidden")
     {
       continue;
     }
     else
     {
       auto it = menus.find(text);
-      if(it != menus.end())
+      if (it != menus.end())
       {
         menuToAdd = it.value();
       }
@@ -301,10 +299,9 @@ void Presenter::fillContextMenu(
     }
 
     auto act = menuToAdd->addAction(seg.prettyName());
-    connect(act, &QAction::triggered, this, [
-      this, key = seg.concreteKey()
-    ]() { updateSegmentsType(key); });
-
+    connect(act, &QAction::triggered, this, [this, key = seg.concreteKey()]() {
+      updateSegmentsType(key);
+    });
   }
 
   auto lockAction = new QAction{tr("Lock between points"), this};
@@ -368,7 +365,7 @@ void Presenter::setupSegmentConnections(SegmentView* seg_view)
 {
   connect(
       seg_view, &SegmentView::contextMenuRequested, m_view,
-        &View::contextMenuRequested);
+      &View::contextMenuRequested);
 }
 
 void Presenter::modelReset()
@@ -522,8 +519,8 @@ void Presenter::removeSelection()
     {
       if (point->previous() && point->following())
       {
-          segmentsToDelete.insert(*point->previous());
-          segmentsToDelete.insert(*point->following());
+        segmentsToDelete.insert(*point->previous());
+        segmentsToDelete.insert(*point->following());
       }
     }
 
@@ -561,16 +558,22 @@ void Presenter::removeSelection()
           y1 = it->end.y();
         }
 
-        if(it->previous)
+        if (it->previous)
         {
-          auto prev_it = ossia::find_if(newSegments, [&] (const SegmentData& d) { return d.id == *it->previous; });
-          if(prev_it != newSegments.end())
+          auto prev_it
+              = ossia::find_if(newSegments, [&](const SegmentData& d) {
+                  return d.id == *it->previous;
+                });
+          if (prev_it != newSegments.end())
             prev_it->following = OptionalId<SegmentModel>{};
         }
-        if(it->following)
+        if (it->following)
         {
-          auto next_it = ossia::find_if(newSegments, [&] (const SegmentData& d) { return d.id == *it->following; });
-          if(next_it != newSegments.end())
+          auto next_it
+              = ossia::find_if(newSegments, [&](const SegmentData& d) {
+                  return d.id == *it->following;
+                });
+          if (next_it != newSegments.end())
             next_it->previous = OptionalId<SegmentModel>{};
         }
         it = newSegments.erase(it);
@@ -619,8 +622,7 @@ void Presenter::removeSelection()
         d.end = it->start;
         d.following = it->id;
         d.id = getSegmentId(newSegments);
-        d.type
-            = Metadata<ConcreteKey_k, DefaultCurveSegmentModel>::get();
+        d.type = Metadata<ConcreteKey_k, DefaultCurveSegmentModel>::get();
         d.specificSegmentData = QVariant::fromValue(DefaultCurveSegmentData{});
         it->previous = d.id;
 
@@ -638,8 +640,7 @@ void Presenter::removeSelection()
         d.start = it->end;
         d.previous = it->id;
         d.id = getSegmentId(newSegments);
-        d.type
-            = Metadata<ConcreteKey_k, DefaultCurveSegmentModel>::get();
+        d.type = Metadata<ConcreteKey_k, DefaultCurveSegmentModel>::get();
         d.specificSegmentData = QVariant::fromValue(DefaultCurveSegmentData{});
         it->following = d.id;
 
@@ -669,8 +670,7 @@ void Presenter::removeSelection()
         d.previous = it->id;
         d.following = next->id;
         d.id = getSegmentId(newSegments);
-        d.type
-            = Metadata<ConcreteKey_k, DefaultCurveSegmentModel>::get();
+        d.type = Metadata<ConcreteKey_k, DefaultCurveSegmentModel>::get();
         d.specificSegmentData = QVariant::fromValue(DefaultCurveSegmentData{});
         it->following = d.id;
         next->previous = d.id;

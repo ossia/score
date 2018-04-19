@@ -4,12 +4,11 @@
 #include <QObject>
 #include <QString>
 #include <State/Address.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <vector>
-
 #include <State/Value.hpp>
-#include <score_lib_device_export.h>
 #include <nano_signal_slot.hpp>
+#include <score/tools/std/Optional.hpp>
+#include <score_lib_device_export.h>
+#include <vector>
 namespace ossia
 {
 class value;
@@ -38,8 +37,11 @@ struct SCORE_LIB_DEVICE_EXPORT DeviceCapas
   bool hasCallbacks{true};
 };
 
-enum DeviceLogging: int8_t {
-  LogNothing, LogUnfolded, LogEverything
+enum DeviceLogging : int8_t
+{
+  LogNothing,
+  LogUnfolded,
+  LogEverything
 };
 class SCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
 {
@@ -64,7 +66,9 @@ public:
 
   virtual void disconnect() = 0;
   virtual bool reconnect() = 0;
-  virtual void recreate(const Device::Node&) {} // Argument is the node of the device, used for recreation
+  virtual void recreate(const Device::Node&)
+  {
+  } // Argument is the node of the device, used for recreation
   virtual bool connected() const = 0;
 
   virtual void updateSettings(const Device::DeviceSettings&) = 0;

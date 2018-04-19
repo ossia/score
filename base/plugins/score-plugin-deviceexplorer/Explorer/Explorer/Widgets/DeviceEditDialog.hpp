@@ -1,10 +1,9 @@
 #pragma once
 
+#include <Device/Protocol/DeviceSettings.hpp>
 #include <QDialog>
 #include <QList>
 #include <QString>
-
-#include <Device/Protocol/DeviceSettings.hpp>
 
 class QComboBox;
 class QFormLayout;

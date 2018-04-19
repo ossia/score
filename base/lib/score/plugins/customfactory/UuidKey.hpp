@@ -4,7 +4,6 @@
 #include <score/tools/Todo.hpp>
 #include <score_lib_base_export.h>
 
-
 class JSONObject;
 namespace score
 {
@@ -32,16 +31,14 @@ public:
   {
   }
 
-  constexpr uuid(const uuid& other) noexcept
-      : data{other.data}
+  constexpr uuid(const uuid& other) noexcept : data{other.data}
   {
   }
-  
+
   constexpr uuid(uint8_t* other) noexcept
-      : data{other[0], other[1], other[2], other[3], 
-             other[4], other[5], other[6], other[7], 
-             other[8], other[9], other[10], other[11],
-             other[12], other[13], other[14], other[15]} 
+      : data{other[0],  other[1],  other[2],  other[3], other[4],  other[5],
+             other[6],  other[7],  other[8],  other[9], other[10], other[11],
+             other[12], other[13], other[14], other[15]}
   {
   }
 
@@ -154,8 +151,7 @@ public:
   std::array<uint8_t, 16> data;
 };
 
-constexpr inline bool
-operator==(uuid const& lhs, uuid const& rhs) noexcept
+constexpr inline bool operator==(uuid const& lhs, uuid const& rhs) noexcept
 {
   for (std::size_t i = 0; i < uuid::static_size(); ++i)
   {
@@ -165,8 +161,7 @@ operator==(uuid const& lhs, uuid const& rhs) noexcept
   return true;
 }
 
-constexpr inline bool
-operator<(uuid const& lhs, uuid const& rhs) noexcept
+constexpr inline bool operator<(uuid const& lhs, uuid const& rhs) noexcept
 {
   for (std::size_t i = 0; i < uuid::static_size(); ++i)
   {
@@ -176,26 +171,22 @@ operator<(uuid const& lhs, uuid const& rhs) noexcept
   return true;
 }
 
-constexpr inline bool
-operator!=(uuid const& lhs, uuid const& rhs) noexcept
+constexpr inline bool operator!=(uuid const& lhs, uuid const& rhs) noexcept
 {
   return !(lhs == rhs);
 }
 
-constexpr inline bool
-operator>(uuid const& lhs, uuid const& rhs) noexcept
+constexpr inline bool operator>(uuid const& lhs, uuid const& rhs) noexcept
 {
   return rhs < lhs;
 }
 
-constexpr inline bool
-operator<=(uuid const& lhs, uuid const& rhs) noexcept
+constexpr inline bool operator<=(uuid const& lhs, uuid const& rhs) noexcept
 {
   return !(rhs < lhs);
 }
 
-constexpr inline bool
-operator>=(uuid const& lhs, uuid const& rhs) noexcept
+constexpr inline bool operator>=(uuid const& lhs, uuid const& rhs) noexcept
 {
   return !(lhs < rhs);
 }
@@ -220,13 +211,12 @@ struct string_generator
   template <int N>
   static constexpr uuid compute(const char (&s)[N])
   {
-    static_assert (N == 37, "Invalid uuid");
+    static_assert(N == 37, "Invalid uuid");
     return compute(s, s + N);
   }
 
   template <typename CharIterator>
-  static constexpr uuid
-  compute(CharIterator begin, CharIterator end)
+  static constexpr uuid compute(CharIterator begin, CharIterator end)
   {
     // check open brace
     auto c = *begin++;
@@ -250,7 +240,7 @@ struct string_generator
           c = *begin++;
         }
       }
-	
+
       if (has_dashes)
       {
         if (i == 6 || i == 8 || i == 10)
@@ -276,28 +266,50 @@ struct string_generator
   }
 
 private:
-
   static constexpr unsigned char get_value(char c)
   {
-    switch(c)
+    switch (c)
     {
-      case '0': return 0;
-      case '1': return 1;
-      case '2': return 2;
-      case '3': return 3;
-      case '4': return 4;
-      case '5': return 5;
-      case '6': return 6;
-      case '7': return 7;
-      case '8': return 8;
-      case '9': return 9;
-      case 'a': case 'A': return 10;
-      case 'b': case 'B': return 11;
-      case 'c': case 'C': return 12;
-      case 'd': case 'D': return 13;
-      case 'e': case 'E': return 14;
-      case 'f': case 'F': return 15;
-      default:  throw std::runtime_error{"Invalid uuid"};
+      case '0':
+        return 0;
+      case '1':
+        return 1;
+      case '2':
+        return 2;
+      case '3':
+        return 3;
+      case '4':
+        return 4;
+      case '5':
+        return 5;
+      case '6':
+        return 6;
+      case '7':
+        return 7;
+      case '8':
+        return 8;
+      case '9':
+        return 9;
+      case 'a':
+      case 'A':
+        return 10;
+      case 'b':
+      case 'B':
+        return 11;
+      case 'c':
+      case 'C':
+        return 12;
+      case 'd':
+      case 'D':
+        return 13;
+      case 'e':
+      case 'E':
+        return 14;
+      case 'f':
+      case 'F':
+        return 15;
+      default:
+        throw std::runtime_error{"Invalid uuid"};
     }
   }
 
@@ -319,12 +331,11 @@ private:
 using uuid_t = uuids::uuid;
 }
 
-#define return_uuid(text)                                   \
-  do                                                        \
-  {                                                         \
-    constexpr const auto t                   \
-        = score::uuids::string_generator::compute((text)); \
-    return t;                                               \
+#define return_uuid(text)                                                     \
+  do                                                                          \
+  {                                                                           \
+    constexpr const auto t = score::uuids::string_generator::compute((text)); \
+    return t;                                                                 \
   } while (0)
 
 template <typename Tag>
@@ -335,20 +346,17 @@ class UuidKey : score::uuid_t
   friend struct std::hash<this_type>;
   friend struct boost::hash<this_type>;
   friend struct boost::hash<const this_type>;
-  friend constexpr bool
-  operator==(const this_type& lhs, const this_type& rhs)
+  friend constexpr bool operator==(const this_type& lhs, const this_type& rhs)
   {
     return static_cast<const score::uuid_t&>(lhs)
            == static_cast<const score::uuid_t&>(rhs);
   }
-  friend constexpr bool
-  operator!=(const this_type& lhs, const this_type& rhs)
+  friend constexpr bool operator!=(const this_type& lhs, const this_type& rhs)
   {
     return static_cast<const score::uuid_t&>(lhs)
            != static_cast<const score::uuid_t&>(rhs);
   }
-  friend constexpr bool
-  operator<(const this_type& lhs, const this_type& rhs)
+  friend constexpr bool operator<(const this_type& lhs, const this_type& rhs)
   {
     return static_cast<const score::uuid_t&>(lhs)
            < static_cast<const score::uuid_t&>(rhs);
@@ -358,13 +366,10 @@ public:
   constexpr UuidKey() noexcept = default;
   constexpr UuidKey(const UuidKey& other) noexcept = default;
   constexpr UuidKey(UuidKey&& other) noexcept = default;
-  constexpr UuidKey& operator=(const UuidKey& other) noexcept
-      = default;
-  constexpr UuidKey& operator=(UuidKey&& other) noexcept
-      = default;
+  constexpr UuidKey& operator=(const UuidKey& other) noexcept = default;
+  constexpr UuidKey& operator=(UuidKey&& other) noexcept = default;
 
-  constexpr UuidKey(score::uuid_t other) noexcept
-      : score::uuid_t(other)
+  constexpr UuidKey(score::uuid_t other) noexcept : score::uuid_t(other)
   {
   }
 
@@ -376,8 +381,7 @@ public:
 
   template <typename Iterator>
   constexpr UuidKey(Iterator beg_it, Iterator end_it)
-      : score::uuid_t(
-            score::uuids::string_generator::compute(beg_it, end_it))
+      : score::uuid_t(score::uuids::string_generator::compute(beg_it, end_it))
   {
   }
 
@@ -406,8 +410,7 @@ namespace std
 template <typename T>
 struct hash<UuidKey<T>>
 {
-  constexpr std::size_t operator()(const UuidKey<T>& kagi) const
-      noexcept
+  constexpr std::size_t operator()(const UuidKey<T>& kagi) const noexcept
   {
     return boost::hash<score::uuid_t>()(
         static_cast<const score::uuid_t&>(kagi));
@@ -420,8 +423,7 @@ namespace boost
 template <typename T>
 struct hash<UuidKey<T>>
 {
-  constexpr std::size_t operator()(const UuidKey<T>& kagi) const
-      noexcept
+  constexpr std::size_t operator()(const UuidKey<T>& kagi) const noexcept
   {
     return boost::hash<score::uuid_t>()(
         static_cast<const score::uuid_t&>(kagi));
@@ -431,8 +433,7 @@ struct hash<UuidKey<T>>
 template <typename T>
 struct hash<const UuidKey<T>>
 {
-  constexpr std::size_t operator()(const UuidKey<T>& kagi) const
-      noexcept
+  constexpr std::size_t operator()(const UuidKey<T>& kagi) const noexcept
   {
     return boost::hash<score::uuid_t>()(
         static_cast<const score::uuid_t&>(kagi));

@@ -31,8 +31,10 @@ public:
   void cancel();
 
 private:
-  using seg_tuple = std::
-      tuple<optional<SegmentData>, optional<SegmentData>, std::vector<SegmentData>>;
+  using seg_tuple = std::tuple<
+      optional<SegmentData>,
+      optional<SegmentData>,
+      std::vector<SegmentData>>;
   void release_n(seg_tuple&&);
   seg_tuple filterSegments();
   PointArraySegment m_segment;

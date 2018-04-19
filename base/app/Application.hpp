@@ -1,74 +1,71 @@
 #pragma once
+#include <QApplication>
 #include <core/application/ApplicationInterface.hpp>
 #include <core/application/ApplicationSettings.hpp>
-#include <score/application/ApplicationContext.hpp>
 #include <core/plugin/PluginManager.hpp>
-
 #include <core/settings/Settings.hpp>
-#include <core/settings/Settings.hpp>
-#include <QApplication>
 #include <memory>
+#include <score/application/ApplicationContext.hpp>
 
-namespace score {
+namespace score
+{
 class Settings;
-}  // namespace score
+} // namespace score
 
 class SafeQApplication;
 namespace score
 {
-    class Presenter;
-    class View;
+class Presenter;
+class View;
 }
 
 /**
-     * @brief Application
-     *
-     * This class is the main object in score. It is the
-     * parent of every other object created.
-     * It does instantiate the rest of the software (MVP, settings, plugins).
-     */
-class Application final :
-        public QObject,
-        public score::GUIApplicationInterface
+ * @brief Application
+ *
+ * This class is the main object in score. It is the
+ * parent of every other object created.
+ * It does instantiate the rest of the software (MVP, settings, plugins).
+ */
+class Application final
+    : public QObject
+    , public score::GUIApplicationInterface
 {
-        Q_OBJECT
-        friend class ChildEventFilter;
-    public:
-        Application(
-                int& argc,
-                char** argv);
+  Q_OBJECT
+  friend class ChildEventFilter;
 
-        Application(
-                const score::ApplicationSettings& appSettings,
-                int& argc,
-                char** argv);
+public:
+  Application(int& argc, char** argv);
 
-        Application(const Application&) = delete;
-        Application& operator= (const Application&) = delete;
-        ~Application();
+  Application(
+      const score::ApplicationSettings& appSettings, int& argc, char** argv);
 
-        int exec();
+  Application(const Application&) = delete;
+  Application& operator=(const Application&) = delete;
+  ~Application();
 
-        const score::Settings& settings() const
-        { return m_settings; }
+  int exec();
 
-        const score::GUIApplicationContext& context() const override;
-        const score::ApplicationComponents& components() const override;
-        void init(); // m_applicationSettings has to be set.
+  const score::Settings& settings() const
+  {
+    return m_settings;
+  }
 
-    private:
-        void initDocuments();
-        void loadPluginData();
+  const score::GUIApplicationContext& context() const override;
+  const score::ApplicationComponents& components() const override;
+  void init(); // m_applicationSettings has to be set.
 
-        // Base stuff.
-        QCoreApplication* m_app;
-        score::Settings m_settings; // Global settings
-        score::ProjectSettings m_projectSettings; // Per project
+private:
+  void initDocuments();
+  void loadPluginData();
 
-        // MVP
-        score::View* m_view {};
-        score::Presenter* m_presenter {};
+  // Base stuff.
+  QCoreApplication* m_app;
+  score::Settings m_settings;               // Global settings
+  score::ProjectSettings m_projectSettings; // Per project
 
-        score::ApplicationSettings m_applicationSettings;
+  // MVP
+  score::View* m_view{};
+  score::Presenter* m_presenter{};
+
+  score::ApplicationSettings m_applicationSettings;
 };
-

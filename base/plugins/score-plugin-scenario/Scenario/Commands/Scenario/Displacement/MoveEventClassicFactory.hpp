@@ -1,9 +1,8 @@
 #pragma once
 
-#include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
-
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
+#include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
 #include <score/model/Identifier.hpp>
 
 template <typename Object>

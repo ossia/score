@@ -1,18 +1,17 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ProcessWidgetArea.hpp"
+
 #include <Process/Process.hpp>
-#include <Scenario/Commands/Interval/SetProcessPosition.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-
-#include <score/serialization/VisitorCommon.hpp>
-#include <score/model/path/PathSerialization.hpp>
-
 #include <QDrag>
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QLabel>
 #include <QMimeData>
+#include <Scenario/Commands/Interval/SetProcessPosition.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <score/model/path/PathSerialization.hpp>
+#include <score/serialization/VisitorCommon.hpp>
 namespace Scenario
 {
 // MOVEME
@@ -92,18 +91,18 @@ void ProcessWidgetArea::performSwap(
     const Id<Process::ProcessModel>& id1,
     const Id<Process::ProcessModel>& id2)
 {
-  if(cst)
+  if (cst)
   {
     // Create a command to swap both processes
-    m_disp.submitCommand(
-          new Command::PutProcessBefore{*cst, id1, id2});
+    m_disp.submitCommand(new Command::PutProcessBefore{*cst, id1, id2});
   }
 }
 
 void ProcessWidgetArea::putAtEnd(
-    QPointer<const Scenario::IntervalModel> cst, const Id<Process::ProcessModel>& id1)
+    QPointer<const Scenario::IntervalModel> cst,
+    const Id<Process::ProcessModel>& id1)
 {
-  if(cst)
+  if (cst)
   {
     m_disp.submitCommand(new Command::PutProcessToEnd{*cst, id1});
   }

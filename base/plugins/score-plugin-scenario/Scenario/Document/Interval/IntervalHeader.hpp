@@ -9,7 +9,9 @@ class QGraphicsSceneMouseEvent;
 namespace Scenario
 {
 class IntervalView;
-class IntervalHeader : public QObject, public QGraphicsItem
+class IntervalHeader
+    : public QObject
+    , public QGraphicsItem
 {
 public:
   enum class State

@@ -1,10 +1,8 @@
 #pragma once
-#include <Scenario/Inspector/ExpressionValidator.hpp>
-
 #include <QString>
 #include <QVector>
 #include <QWidget>
-
+#include <Scenario/Inspector/ExpressionValidator.hpp>
 #include <State/Expression.hpp>
 
 /* ****************************************************************

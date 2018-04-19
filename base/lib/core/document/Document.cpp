@@ -1,26 +1,23 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <QObject>
 #include <algorithm>
 #include <core/document/Document.hpp>
+#include <core/document/DocumentBackupManager.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
-#include <score/plugins/panel/PanelDelegate.hpp>
 #include <iterator>
-#include <vector>
-
-#include <core/document/DocumentBackupManager.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/plugins/panel/PanelDelegate.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/selection/SelectionStack.hpp>
-
 #include <score/tools/Todo.hpp>
+#include <vector>
 
 class QWidget;
 class Selection;
 #include <score/model/Identifier.hpp>
-
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::Document)
 namespace score
@@ -73,10 +70,11 @@ Document::Document(
   allocator.construct(m_model, id, m_context, factory, this);
 
   // TODO don't build them / destroy them if !application.gui.
-  if(parentview)
+  if (parentview)
   {
     m_view = new DocumentView{factory, *this, parentview};
-    m_presenter = new DocumentPresenter{m_context, factory, *m_model, *m_view, this};
+    m_presenter
+        = new DocumentPresenter{m_context, factory, *m_model, *m_view, this};
   }
 
   init();

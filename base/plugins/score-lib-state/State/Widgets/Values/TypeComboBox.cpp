@@ -1,6 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TypeComboBox.hpp"
+
 #include <State/ValueConversion.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
@@ -14,8 +15,8 @@ ossia::val_type TypeComboBox::get() const
 
 void TypeComboBox::set(ossia::val_type t)
 {
-  if(t != ossia::val_type::NONE)
-    setCurrentIndex((int) t);
+  if (t != ossia::val_type::NONE)
+    setCurrentIndex((int)t);
   else
     setCurrentIndex(this->count() - 1);
 }
@@ -33,9 +34,7 @@ TypeComboBox::TypeComboBox(QWidget* parent) : QComboBox{parent}
 
   connect(
       this, SignalUtils::QComboBox_currentIndexChanged_int(), this,
-      [=](int i) {
-        changed(this->itemData(i).value<ossia::val_type>());
-      });
+      [=](int i) { changed(this->itemData(i).value<ossia::val_type>()); });
 }
 
 TypeComboBox::~TypeComboBox()

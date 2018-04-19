@@ -1,6 +1,6 @@
 #pragma once
-#include <vector>
 #include <score_plugin_scenario_export.h>
+#include <vector>
 class QJsonObject;
 class QObject;
 
@@ -27,15 +27,14 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT CategorisedScenario
   std::vector<const TimeSyncModel*> selectedTimeSyncs;
 };
 
-
 QJsonObject copyBaseInterval(const IntervalModel&);
 
 SCORE_PLUGIN_SCENARIO_EXPORT
 QJsonObject copySelectedScenarioElements(const Scenario::ProcessModel& sm);
 
 SCORE_PLUGIN_SCENARIO_EXPORT
-QJsonObject copySelectedScenarioElements(const Scenario::ProcessModel& sm,
-                                         CategorisedScenario& cat);
+QJsonObject copySelectedScenarioElements(
+    const Scenario::ProcessModel& sm, CategorisedScenario& cat);
 
 /**
  * The parent should be in the object tree of the scenario.

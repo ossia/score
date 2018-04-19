@@ -1,12 +1,12 @@
 #pragma once
 #include <Automation/AutomationModel.hpp>
+#include <Automation/Color/GradientAutomModel.hpp>
+#include <Automation/Metronome/MetronomeModel.hpp>
+#include <Automation/Spline/SplineAutomModel.hpp>
+#include <Explorer/Widgets/AddressEditWidget.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <QString>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <Automation/Color/GradientAutomModel.hpp>
-#include <Automation/Spline/SplineAutomModel.hpp>
-#include <Automation/Metronome/MetronomeModel.hpp>
-#include <Explorer/Widgets/AddressEditWidget.hpp>
 
 class QLabel;
 class QWidget;
@@ -60,7 +60,6 @@ private:
   CommandDispatcher<> m_dispatcher;
 };
 }
-
 
 namespace Gradient
 {

@@ -1,36 +1,35 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "LoopInspectorFactory.hpp"
+
+#include "LoopInspectorWidget.hpp"
+
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Inspector/InspectorWidgetList.hpp>
 #include <Loop/LoopProcessModel.hpp>
+#include <Process/ExpandMode.hpp>
 #include <Process/ProcessList.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Inspector/Interval/IntervalInspectorDelegateFactory.hpp>
-#include <Scenario/Inspector/Interval/IntervalInspectorWidget.hpp>
-
-#include <score/tools/std/Optional.hpp>
-
+#include <Process/TimeValue.hpp>
+#include <Process/TimeValueSerialization.hpp>
 #include <QByteArray>
 #include <QDataStream>
 #include <QObject>
 #include <QtGlobal>
-#include <algorithm>
-#include <list>
-
-#include "LoopInspectorFactory.hpp"
-#include "LoopInspectorWidget.hpp"
-#include <Inspector/InspectorWidgetFactoryInterface.hpp>
-#include <Process/ExpandMode.hpp>
-#include <Process/TimeValue.hpp>
 #include <Scenario/Commands/MoveBaseEvent.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Inspector/Interval/IntervalInspectorDelegate.hpp>
+#include <Scenario/Inspector/Interval/IntervalInspectorDelegateFactory.hpp>
+#include <Scenario/Inspector/Interval/IntervalInspectorWidget.hpp>
+#include <algorithm>
+#include <list>
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/model/path/PathSerialization.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
-#include <score/model/path/PathSerialization.hpp>
-#include <Process/TimeValueSerialization.hpp>
+#include <score/tools/std/Optional.hpp>
 
 class InspectorWidgetBase;
 class QWidget;
@@ -86,11 +85,8 @@ void IntervalInspectorDelegate::on_defaultDurationChanged(
   auto& loop = *safe_cast<Loop::ProcessModel*>(m_model.parent());
   dispatcher
       .submitCommand<Scenario::Command::MoveBaseEvent<Loop::ProcessModel>>(
-          loop,
-          loop.state(m_model.endState()).eventId(),
-          m_model.date() + val,
-          0,
-          expandmode, LockMode::Free);
+          loop, loop.state(m_model.endState()).eventId(), m_model.date() + val,
+          0, expandmode, LockMode::Free);
 }
 
 IntervalInspectorDelegateFactory::~IntervalInspectorDelegateFactory()
@@ -98,8 +94,7 @@ IntervalInspectorDelegateFactory::~IntervalInspectorDelegateFactory()
 }
 
 std::unique_ptr<Scenario::IntervalInspectorDelegate>
-IntervalInspectorDelegateFactory::make(
-    const Scenario::IntervalModel& interval)
+IntervalInspectorDelegateFactory::make(const Scenario::IntervalModel& interval)
 {
   return std::make_unique<Loop::IntervalInspectorDelegate>(interval);
 }

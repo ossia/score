@@ -1,8 +1,7 @@
 #include <Skeleton/Presenter.hpp>
-#include <Skeleton/View.hpp>
 #include <Skeleton/Process.hpp>
+#include <Skeleton/View.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
-
 
 namespace Skeleton
 {
@@ -10,10 +9,8 @@ Presenter::Presenter(
     const Model& layer,
     View* view,
     const Process::ProcessPresenterContext& ctx,
-    QObject* parent):
-  Process::LayerPresenter{ctx, parent},
-  m_model{layer},
-  m_view{view}
+    QObject* parent)
+    : Process::LayerPresenter{ctx, parent}, m_model{layer}, m_view{view}
 {
 }
 

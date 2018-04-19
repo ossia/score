@@ -1,26 +1,25 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "StandardRemovalPolicy.hpp"
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
 
 #include <QDebug>
 #include <QVector>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
+#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <boost/iterator/indirect_iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
-#include <score/tools/std/Optional.hpp>
-
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
-#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <score/model/EntityMap.hpp>
-#include <score/tools/MapCopy.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/tools/MapCopy.hpp>
+#include <score/tools/std/Optional.hpp>
 
 namespace Scenario
 {

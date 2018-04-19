@@ -1,10 +1,9 @@
 #pragma once
 #include <Curve/CurveModel.hpp>
 #include <Curve/Point/CurvePointModel.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Process/Process.hpp>
 #include <QString>
-
-#include <Curve/Segment/CurveSegmentModel.hpp>
 #include <score/selection/Selection.hpp>
 #include <score_plugin_curve_export.h>
 
@@ -72,7 +71,9 @@ protected:
 
     setCurve_impl();
 
-    connect(m_curve, &Curve::Model::changed, this, &CurveProcessModel::curveChanged);
+    connect(
+        m_curve, &Curve::Model::changed, this,
+        &CurveProcessModel::curveChanged);
     m_curve->changed();
   }
 

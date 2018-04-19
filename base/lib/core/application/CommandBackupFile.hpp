@@ -5,8 +5,8 @@
 #include <QStack>
 #include <QString>
 #include <QTemporaryFile>
-#include <score/command/CommandData.hpp>
 #include <score/command/Command.hpp>
+#include <score/command/CommandData.hpp>
 
 namespace score
 {

@@ -1,22 +1,21 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "RecordTools.hpp"
-#include <Recording/Record/RecordProviderFactory.hpp>
 
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <Recording/Record/RecordProviderFactory.hpp>
 #include <Scenario/Commands/Interval/Rack/AddSlotToRack.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event_TimeSync.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 namespace Recording
 {
 
-
-static void GetParametersRecursive(Device::Node* parent, std::vector<Device::Node*>& vec)
+static void
+GetParametersRecursive(Device::Node* parent, std::vector<Device::Node*>& vec)
 {
   vec.reserve(vec.size() + parent->childCount());
   for (auto& node : *parent)
@@ -65,7 +64,8 @@ GetAddressesToRecordRecursive(Explorer::DeviceExplorerModel& explorer)
   RecordListening recordListening;
 
   auto nodes = explorer.uniqueSelectedNodes(explorer.selectedIndexes());
-  auto parameters = GetParametersRecursive(nodes.parents.empty() ? nodes.messages : nodes.parents);
+  auto parameters = GetParametersRecursive(
+      nodes.parents.empty() ? nodes.messages : nodes.parents);
 
   // First get the addresses to listen.
   for (auto node_ptr : parameters)
@@ -141,7 +141,6 @@ addr)});
 }
 */
 
-
 Box CreateBox(RecordContext& context)
 {
   // Get the clicked point in scenario and create a state + interval + state
@@ -165,13 +164,8 @@ Box CreateBox(RecordContext& context)
   auto& cstr = context.scenario.intervals.at(cmd_end->createdInterval());
 
   auto cmd_move = new Scenario::Command::MoveNewEvent(
-      context.scenario,
-      cstr.id(),
-      cmd_end->createdEvent(),
-      default_end_date,
-      0,
-      true,
-      ExpandMode::CannotExpand);
+      context.scenario, cstr.id(), cmd_end->createdEvent(), default_end_date,
+      0, true, ExpandMode::CannotExpand);
   context.dispatcher.submitCommand(cmd_move);
 
   auto cmd_slot = new Scenario::Command::AddSlotToRack{cstr};
@@ -184,5 +178,4 @@ Box CreateBox(RecordContext& context)
 
   return {cstr, *cmd_move, cmd_end->createdEvent()};
 }
-
 }

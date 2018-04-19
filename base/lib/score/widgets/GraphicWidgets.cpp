@@ -1,16 +1,17 @@
 #include "GraphicWidgets.hpp"
-#include <QWidget>
+
 #include <QDebug>
+#include <QWidget>
 #include <score/model/Skin.hpp>
 namespace score
 {
 
-QGraphicsPixmapButton::QGraphicsPixmapButton(QPixmap pressed, QPixmap released, QGraphicsItem* parent)
-  : QGraphicsPixmapItem{released, parent}
-  , m_pressed{std::move(pressed)}
-  , m_released{std::move(released)}
+QGraphicsPixmapButton::QGraphicsPixmapButton(
+    QPixmap pressed, QPixmap released, QGraphicsItem* parent)
+    : QGraphicsPixmapItem{released, parent}
+    , m_pressed{std::move(pressed)}
+    , m_released{std::move(released)}
 {
-
 }
 
 void QGraphicsPixmapButton::mousePressEvent(QGraphicsSceneMouseEvent* event)
@@ -31,14 +32,12 @@ void QGraphicsPixmapButton::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
-
-
-QGraphicsPixmapToggle::QGraphicsPixmapToggle(QPixmap pressed, QPixmap released, QGraphicsItem* parent)
-  : QGraphicsPixmapItem{released, parent}
-  , m_pressed{std::move(pressed)}
-  , m_released{std::move(released)}
+QGraphicsPixmapToggle::QGraphicsPixmapToggle(
+    QPixmap pressed, QPixmap released, QGraphicsItem* parent)
+    : QGraphicsPixmapItem{released, parent}
+    , m_pressed{std::move(pressed)}
+    , m_released{std::move(released)}
 {
-
 }
 
 void QGraphicsPixmapToggle::toggle()
@@ -71,10 +70,7 @@ void QGraphicsPixmapToggle::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
-
-
-QGraphicsSlider::QGraphicsSlider(QGraphicsItem* parent):
-  QGraphicsItem{parent}
+QGraphicsSlider::QGraphicsSlider(QGraphicsItem* parent) : QGraphicsItem{parent}
 {
   this->setAcceptedMouseButtons(Qt::LeftButton);
 }
@@ -98,14 +94,15 @@ double QGraphicsSlider::value() const
 
 void QGraphicsSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(isInHandle(event->pos()))
+  if (isInHandle(event->pos()))
   {
     m_grab = true;
   }
 
   const auto srect = sliderRect();
-  double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
-  if(curPos != m_value)
+  double curPos
+      = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+  if (curPos != m_value)
   {
     m_value = curPos;
     valueChanged(m_value);
@@ -118,11 +115,12 @@ void QGraphicsSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void QGraphicsSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(m_grab)
+  if (m_grab)
   {
     const auto srect = sliderRect();
-    double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
-    if(curPos != m_value)
+    double curPos
+        = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+    if (curPos != m_value)
     {
       m_value = curPos;
       valueChanged(m_value);
@@ -135,10 +133,11 @@ void QGraphicsSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 void QGraphicsSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(m_grab)
+  if (m_grab)
   {
-    double curPos = ossia::clamp(event->pos().x() / sliderRect().width(), 0., 1.);
-    if(curPos != m_value)
+    double curPos
+        = ossia::clamp(event->pos().x() / sliderRect().width(), 0., 1.);
+    if (curPos != m_value)
     {
       m_value = curPos;
       valueChanged(m_value);
@@ -155,7 +154,8 @@ QRectF QGraphicsSlider::boundingRect() const
   return m_rect;
 }
 
-void QGraphicsSlider::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void QGraphicsSlider::paint(
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   const auto& skin = score::Skin::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
@@ -178,9 +178,11 @@ void QGraphicsSlider::paint(QPainter* painter, const QStyleOptionGraphicsItem* o
   static const constexpr auto dpi_adjust = -2;
 #endif
   painter->setPen(grayPen);
-  painter->drawText(srect.adjusted(6, dpi_adjust, -6, 0),
-                    QString::number(min + value() * (max - min), 'f', 3),
-                    getHandleX() > srect.width() / 2 ? QTextOption() : QTextOption(Qt::AlignRight));
+  painter->drawText(
+      srect.adjusted(6, dpi_adjust, -6, 0),
+      QString::number(min + value() * (max - min), 'f', 3),
+      getHandleX() > srect.width() / 2 ? QTextOption()
+                                       : QTextOption(Qt::AlignRight));
 
   // Draw handle
   painter->setBrush(skin.HalfLight);
@@ -208,14 +210,8 @@ QRectF QGraphicsSlider::handleRect() const
   return {getHandleX() - 4., 1., 8., m_rect.height() - 1};
 }
 
-
-
-
-
-
-
-QGraphicsLogSlider::QGraphicsLogSlider(QGraphicsItem* parent):
-  QGraphicsItem{parent}
+QGraphicsLogSlider::QGraphicsLogSlider(QGraphicsItem* parent)
+    : QGraphicsItem{parent}
 {
   this->setAcceptedMouseButtons(Qt::LeftButton);
 }
@@ -239,14 +235,15 @@ double QGraphicsLogSlider::value() const
 
 void QGraphicsLogSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(isInHandle(event->pos()))
+  if (isInHandle(event->pos()))
   {
     m_grab = true;
   }
 
   const auto srect = sliderRect();
-  double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
-  if(curPos != m_value)
+  double curPos
+      = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+  if (curPos != m_value)
   {
     m_value = curPos;
     valueChanged(m_value);
@@ -259,11 +256,12 @@ void QGraphicsLogSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void QGraphicsLogSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(m_grab)
+  if (m_grab)
   {
     const auto srect = sliderRect();
-    double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
-    if(curPos != m_value)
+    double curPos
+        = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+    if (curPos != m_value)
     {
       m_value = curPos;
       valueChanged(m_value);
@@ -276,10 +274,11 @@ void QGraphicsLogSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 void QGraphicsLogSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(m_grab)
+  if (m_grab)
   {
-    double curPos = ossia::clamp(event->pos().x() / sliderRect().width(), 0., 1.);
-    if(curPos != m_value)
+    double curPos
+        = ossia::clamp(event->pos().x() / sliderRect().width(), 0., 1.);
+    if (curPos != m_value)
     {
       m_value = curPos;
       valueChanged(m_value);
@@ -296,7 +295,8 @@ QRectF QGraphicsLogSlider::boundingRect() const
   return m_rect;
 }
 
-void QGraphicsLogSlider::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void QGraphicsLogSlider::paint(
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   const auto& skin = score::Skin::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
@@ -312,9 +312,11 @@ void QGraphicsLogSlider::paint(QPainter* painter, const QStyleOptionGraphicsItem
 
   // Draw text
   painter->setPen(grayPen);
-  painter->drawText(srect.adjusted(6, -2, -6, -1),
-                    QString::number(std::exp2(min + value() * (max - min)), 'f', 3),
-                    getHandleX() > srect.width() / 2 ? QTextOption() : QTextOption(Qt::AlignRight));
+  painter->drawText(
+      srect.adjusted(6, -2, -6, -1),
+      QString::number(std::exp2(min + value() * (max - min)), 'f', 3),
+      getHandleX() > srect.width() / 2 ? QTextOption()
+                                       : QTextOption(Qt::AlignRight));
 
   // Draw handle
   painter->setBrush(skin.HalfLight);
@@ -339,17 +341,11 @@ QRectF QGraphicsLogSlider::sliderRect() const
 
 QRectF QGraphicsLogSlider::handleRect() const
 {
-  return{getHandleX() - 4., 1., 8., m_rect.height() - 1};
+  return {getHandleX() - 4., 1., 8., m_rect.height() - 1};
 }
 
-
-
-
-
-
-
-QGraphicsIntSlider::QGraphicsIntSlider(QGraphicsItem* parent):
-  QGraphicsItem{parent}
+QGraphicsIntSlider::QGraphicsIntSlider(QGraphicsItem* parent)
+    : QGraphicsItem{parent}
 {
   this->setAcceptedMouseButtons(Qt::LeftButton);
 }
@@ -380,15 +376,16 @@ int QGraphicsIntSlider::value() const
 
 void QGraphicsIntSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(isInHandle(event->pos()))
+  if (isInHandle(event->pos()))
   {
     m_grab = true;
   }
 
   const auto srect = sliderRect();
-  double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+  double curPos
+      = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
   int res = std::floor(m_min + curPos * (m_max - m_min));
-  if(res != m_value)
+  if (res != m_value)
   {
     m_value = res;
     valueChanged(m_value);
@@ -401,12 +398,13 @@ void QGraphicsIntSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void QGraphicsIntSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(m_grab)
+  if (m_grab)
   {
     const auto srect = sliderRect();
-    double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+    double curPos
+        = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
     int res = std::floor(m_min + curPos * (m_max - m_min));
-    if(res != m_value)
+    if (res != m_value)
     {
       m_value = res;
       valueChanged(m_value);
@@ -419,11 +417,12 @@ void QGraphicsIntSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 void QGraphicsIntSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(m_grab)
+  if (m_grab)
   {
-    double curPos = ossia::clamp(event->pos().x() / sliderRect().width(), 0., 1.);
+    double curPos
+        = ossia::clamp(event->pos().x() / sliderRect().width(), 0., 1.);
     int res = std::floor(m_min + curPos * (m_max - m_min));
-    if(res != m_value)
+    if (res != m_value)
     {
       m_value = res;
       valueChanged(m_value);
@@ -440,7 +439,8 @@ QRectF QGraphicsIntSlider::boundingRect() const
   return m_rect;
 }
 
-void QGraphicsIntSlider::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void QGraphicsIntSlider::paint(
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   const auto& skin = score::Skin::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
@@ -456,9 +456,10 @@ void QGraphicsIntSlider::paint(QPainter* painter, const QStyleOptionGraphicsItem
 
   // Draw text
   painter->setPen(grayPen);
-  painter->drawText(srect.adjusted(6, -2, -6, -1),
-                    QString::number(value()),
-                    getHandleX() > srect.width() / 2 ? QTextOption() : QTextOption(Qt::AlignRight));
+  painter->drawText(
+      srect.adjusted(6, -2, -6, -1), QString::number(value()),
+      getHandleX() > srect.width() / 2 ? QTextOption()
+                                       : QTextOption(Qt::AlignRight));
 
   // Draw handle
   painter->setBrush(skin.HalfLight);
@@ -473,7 +474,9 @@ bool QGraphicsIntSlider::isInHandle(QPointF p)
 
 double QGraphicsIntSlider::getHandleX() const
 {
-  return 4 + sliderRect().width() * ((double(m_value) - m_min) / (m_max - m_min));
+  return 4
+         + sliderRect().width()
+               * ((double(m_value) - m_min) / (m_max - m_min));
 }
 
 QRectF QGraphicsIntSlider::sliderRect() const
@@ -483,18 +486,11 @@ QRectF QGraphicsIntSlider::sliderRect() const
 
 QRectF QGraphicsIntSlider::handleRect() const
 {
-  return{getHandleX() - 4., 1., 8., m_rect.height() - 1};
+  return {getHandleX() - 4., 1., 8., m_rect.height() - 1};
 }
 
-
-
-
-
-
-
-
-QGraphicsComboSlider::QGraphicsComboSlider(QGraphicsItem* parent):
-  QGraphicsItem{parent}
+QGraphicsComboSlider::QGraphicsComboSlider(QGraphicsItem* parent)
+    : QGraphicsItem{parent}
 {
   this->setAcceptedMouseButtons(Qt::LeftButton);
 }
@@ -518,15 +514,16 @@ int QGraphicsComboSlider::value() const
 
 void QGraphicsComboSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(isInHandle(event->pos()))
+  if (isInHandle(event->pos()))
   {
     m_grab = true;
   }
 
   const auto srect = sliderRect();
-  double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+  double curPos
+      = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
   int res = std::floor(curPos * (array.size() - 1));
-  if(res != m_value)
+  if (res != m_value)
   {
     m_value = res;
     valueChanged(m_value);
@@ -539,12 +536,13 @@ void QGraphicsComboSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void QGraphicsComboSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(m_grab)
+  if (m_grab)
   {
     const auto srect = sliderRect();
-    double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+    double curPos
+        = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
     int res = std::floor(curPos * (array.size() - 1));
-    if(res != m_value)
+    if (res != m_value)
     {
       m_value = res;
       valueChanged(m_value);
@@ -557,11 +555,12 @@ void QGraphicsComboSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 void QGraphicsComboSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(m_grab)
+  if (m_grab)
   {
-    double curPos = ossia::clamp(event->pos().x() / sliderRect().width(), 0., 1.);
+    double curPos
+        = ossia::clamp(event->pos().x() / sliderRect().width(), 0., 1.);
     int res = std::floor(curPos * (array.size() - 1));
-    if(res != m_value)
+    if (res != m_value)
     {
       m_value = res;
       valueChanged(m_value);
@@ -578,7 +577,8 @@ QRectF QGraphicsComboSlider::boundingRect() const
   return m_rect;
 }
 
-void QGraphicsComboSlider::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void QGraphicsComboSlider::paint(
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   const auto& skin = score::Skin::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
@@ -594,9 +594,10 @@ void QGraphicsComboSlider::paint(QPainter* painter, const QStyleOptionGraphicsIt
 
   // Draw text
   painter->setPen(grayPen);
-  painter->drawText(srect.adjusted(6, -2, -6, -1),
-                    array[value()],
-                    getHandleX() > srect.width() / 2 ? QTextOption() : QTextOption(Qt::AlignRight));
+  painter->drawText(
+      srect.adjusted(6, -2, -6, -1), array[value()],
+      getHandleX() > srect.width() / 2 ? QTextOption()
+                                       : QTextOption(Qt::AlignRight));
 
   // Draw handle
   painter->setBrush(skin.HalfLight);
@@ -621,6 +622,6 @@ QRectF QGraphicsComboSlider::sliderRect() const
 
 QRectF QGraphicsComboSlider::handleRect() const
 {
-  return{getHandleX() - 4., 1., 8., m_rect.height() - 1};
+  return {getHandleX() - 4., 1., 8., m_rect.height() - 1};
 }
 }

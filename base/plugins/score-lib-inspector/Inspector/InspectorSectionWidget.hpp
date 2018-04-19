@@ -1,21 +1,20 @@
 #pragma once
-#include <score_lib_inspector_export.h>
-#include <score/widgets/MarginLess.hpp>
-
-#include <QString>
-#include <QWidget>
 #include <QBoxLayout>
-#include <QPushButton>
-#include <QToolButton>
 #include <QLineEdit>
+#include <QPushButton>
+#include <QString>
+#include <QToolButton>
+#include <QWidget>
+#include <score/widgets/MarginLess.hpp>
+#include <score_lib_inspector_export.h>
 class QMenu;
 
 namespace Inspector
 {
 class SCORE_LIB_INSPECTOR_EXPORT MenuButton final : public QPushButton
 {
-  public:
-    MenuButton(QWidget* parent);
+public:
+  MenuButton(QWidget* parent);
 };
 
 /** @brief InspectorSectionWidget is widget that can fold or unfold his
@@ -30,12 +29,9 @@ class SCORE_LIB_INSPECTOR_EXPORT InspectorSectionWidget : public QWidget
   Q_OBJECT
 public:
   explicit InspectorSectionWidget(
-      bool editable = false,
-        QWidget* parent = nullptr);
+      bool editable = false, QWidget* parent = nullptr);
   InspectorSectionWidget(
-      QString name,
-      bool nameEditable = false,
-      QWidget* parent = nullptr);
+      QString name, bool nameEditable = false, QWidget* parent = nullptr);
   virtual ~InspectorSectionWidget();
 
   QMenu* menu() const

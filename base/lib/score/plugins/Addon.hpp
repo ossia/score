@@ -16,7 +16,7 @@ struct SCORE_LIB_BASE_EXPORT Addon
 {
   score::Plugin_QtInterface* plugin{};
   UuidKey<Plugin> key; // Can be the same as plug-in's
-  QString path;       // Path to the addon folder
+  QString path;        // Path to the addon folder
 
   QString name;
   QString version;

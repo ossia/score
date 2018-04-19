@@ -1,15 +1,14 @@
 #pragma once
 #include <QObject>
 #include <QStringList>
-#include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
-#include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
-#include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
-#include <vector>
-
 #include <score/application/ApplicationContext.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/customfactory/FactoryInterface.hpp>
 #include <score/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
+#include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
+#include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
+#include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+#include <vector>
 
 /**
  * \namespace Engine
@@ -73,15 +72,11 @@
  *
  * \section LiveModification Live modification during execution.
  * The execution engine allows live modification of scores.
- * Since the execution happens in a different thread than edition, we have to be
- * extremely careful however.
- * <br>
- * Instead of locking all the data structures of the OSSIA API with mutex,
- * which may slow down the execution, we instead have a lock-free queue of
- * edition commands.
- * <br>
- * Modifications are submitted from the component hierarchy :
- * <br>
+ * Since the execution happens in a different thread than edition, we have to
+ * be extremely careful however. <br> Instead of locking all the data
+ * structures of the OSSIA API with mutex, which may slow down the execution,
+ * we instead have a lock-free queue of edition commands. <br> Modifications
+ * are submitted from the component hierarchy : <br>
  * * Engine::Execution::ScenarioComponent
  * * Engine::Execution::IntervalComponent
  * * etc...
@@ -123,33 +118,34 @@
  * See for instance Engine::Execution::IntervalComponentBase 's constructor.
  * <br>
  * For creation and removal of objects, this should be handled automatically by
- * the various ComponentHierarchy classes which take care of creating and removing the objects
- * in the correct order. The Component classes just have to provide functions that will
- * do the actual instantiation, and pre- & post- removal steps.
- * <br><br>
- * The actual "root" execution algorithm is given in Engine::Execution::DefaulClockManager::makeDefaultCallback
+ * the various ComponentHierarchy classes which take care of creating and
+ * removing the objects in the correct order. The Component classes just have
+ * to provide functions that will do the actual instantiation, and pre- & post-
+ * removal steps. <br><br> The actual "root" execution algorithm is given in
+ * Engine::Execution::DefaulClockManager::makeDefaultCallback
  *
  * \subsection ExecutionThreadSafety Execution Thread Safety
  * One must take care when modifying the Execution classes, since thins
  * happen on two different threads.
  *
- * The biggest problem is that the score structures could be created and deleted
- * in a single tick. For instance when doing a complete undo - redo of the whole undo stack.
- * <br>
- * This means that anything send to the command queue must absolutely never access
- * any of the score structures (for instance Scenario::IntervalModel, etc) directly : they have to be copied.
- * Else, there *will* be crashes, someday.
- * <br>
- * In the flow graph shown before, everything up to and including "Command inserted into the execution queue"
- * happens in the GUI thread, hence one can rely on everything "being here" at this point.
+ * The biggest problem is that the score structures could be created and
+ * deleted in a single tick. For instance when doing a complete undo - redo of
+ * the whole undo stack. <br> This means that anything send to the command
+ * queue must absolutely never access any of the score structures (for instance
+ * Scenario::IntervalModel, etc) directly : they have to be copied. Else, there
+ * *will* be crashes, someday. <br> In the flow graph shown before, everything
+ * up to and including "Command inserted into the execution queue" happens in
+ * the GUI thread, hence one can rely on everything "being here" at this point.
  * However, in the actual commands, the only things safe to use are :
  * * Copies of data : simple values, ints, etc, are safe.
- * * Shared pointers : unlike most other places in score, the Execution components
- * are not owned by their parents, but through shared pointers. This means that shall the component
- * be removed, if the pointer was copied in the ExecutionCommand, there is no risk of crash.
- * But one must take care of copying the actual `shared_ptr` and not just the `this` pointer for instance.
- * Multiple classes inherit from `std::enable_shared_from_this` to allow a `shared_from_this()` function
- * that gives back a `shared_ptr` to the this instance.
+ * * Shared pointers : unlike most other places in score, the Execution
+ * components are not owned by their parents, but through shared pointers. This
+ * means that shall the component be removed, if the pointer was copied in the
+ * ExecutionCommand, there is no risk of crash. But one must take care of
+ * copying the actual `shared_ptr` and not just the `this` pointer for
+ * instance. Multiple classes inherit from `std::enable_shared_from_this` to
+ * allow a `shared_from_this()` function that gives back a `shared_ptr` to the
+ * this instance.
  *
  */
 
@@ -162,18 +158,17 @@
  */
 
 class score_plugin_engine final
-    : public QObject,
-      public score::ApplicationPlugin_QtInterface,
-      public score::FactoryList_QtInterface,
-      public score::FactoryInterface_QtInterface,
-      public score::Plugin_QtInterface
+    : public QObject
+    , public score::ApplicationPlugin_QtInterface
+    , public score::FactoryList_QtInterface
+    , public score::FactoryInterface_QtInterface
+    , public score::Plugin_QtInterface
 {
   Q_OBJECT
   Q_PLUGIN_METADATA(IID Plugin_QtInterface_iid)
   Q_INTERFACES(
-      score::ApplicationPlugin_QtInterface
-          score::FactoryList_QtInterface score::FactoryInterface_QtInterface
-              score::Plugin_QtInterface)
+      score::ApplicationPlugin_QtInterface score::FactoryList_QtInterface
+          score::FactoryInterface_QtInterface score::Plugin_QtInterface)
 
   SCORE_PLUGIN_METADATA(1, "d4758f8d-64ac-41b4-8aaf-1cbd6f3feb91")
 public:

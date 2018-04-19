@@ -1,30 +1,30 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "ScenarioFactory.hpp"
+
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QString>
 #include <Scenario/Application/ScenarioValidity.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <algorithm>
-#include <score/tools/std/Optional.hpp>
-#include <sys/types.h>
-
-#include "ScenarioFactory.hpp"
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <algorithm>
 #include <score/document/DocumentContext.hpp>
+#include <score/model/EntityMap.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
-#include <score/model/EntityMap.hpp>
-#include <score/model/Identifier.hpp>
+#include <score/tools/std/Optional.hpp>
 #include <score_plugin_scenario_export.h>
+#include <sys/types.h>
 
 namespace Process
 {
@@ -37,10 +37,8 @@ class Reader;
 template <typename T>
 class Writer;
 
-
 template <>
-void DataStreamReader::read(
-    const Scenario::ProcessModel& scenario)
+void DataStreamReader::read(const Scenario::ProcessModel& scenario)
 {
   // Ports
   m_stream << *scenario.inlet << *scenario.outlet;
@@ -96,7 +94,6 @@ void DataStreamReader::read(
 
   insertDelimiter();
 }
-
 
 template <>
 void DataStreamWriter::write(Scenario::ProcessModel& scenario)
@@ -172,10 +169,8 @@ void DataStreamWriter::write(Scenario::ProcessModel& scenario)
   checkDelimiter();
 }
 
-
 template <>
-void JSONObjectReader::read(
-    const Scenario::ProcessModel& scenario)
+void JSONObjectReader::read(const Scenario::ProcessModel& scenario)
 {
   obj["Inlet"] = toJsonObject(*scenario.inlet);
   obj["Outlet"] = toJsonObject(*scenario.outlet);
@@ -190,14 +185,13 @@ void JSONObjectReader::read(
   obj["Comments"] = toJsonArray(scenario.comments);
 }
 
-
 template <>
 void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
 {
   {
     JSONObjectWriter writer{obj["Inlet"].toObject()};
     scenario.inlet = Process::make_inlet(writer, &scenario);
-    if(!scenario.inlet)
+    if (!scenario.inlet)
     {
       scenario.inlet = Process::make_inlet(Id<Process::Port>(0), &scenario);
       scenario.inlet->type = Process::PortType::Audio;
@@ -207,7 +201,7 @@ void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
     JSONObjectWriter writer{obj["Outlet"].toObject()};
     scenario.outlet = Process::make_outlet(writer, &scenario);
 
-    if(!scenario.outlet)
+    if (!scenario.outlet)
     {
       scenario.outlet = Process::make_outlet(Id<Process::Port>(0), &scenario);
       scenario.outlet->type = Process::PortType::Audio;

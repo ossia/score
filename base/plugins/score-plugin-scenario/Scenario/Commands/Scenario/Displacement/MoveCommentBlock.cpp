@@ -1,13 +1,12 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MoveCommentBlock.hpp"
 
 #include <Process/TimeValueSerialization.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-
-#include <score/serialization/DataStreamVisitor.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 
 namespace Scenario
 {
@@ -15,8 +14,7 @@ namespace Command
 {
 MoveCommentBlock::MoveCommentBlock(
     const ProcessModel& scenar,
-    Id<CommentBlockModel>
-        id,
+    Id<CommentBlockModel> id,
     TimeVal newDate,
     double newY)
     : m_path{scenar}
@@ -29,7 +27,8 @@ MoveCommentBlock::MoveCommentBlock(
   m_oldY = cmt.heightPercentage();
 }
 
-void Scenario::Command::MoveCommentBlock::undo(const score::DocumentContext& ctx) const
+void Scenario::Command::MoveCommentBlock::undo(
+    const score::DocumentContext& ctx) const
 {
   auto& scenar = m_path.find(ctx);
   auto& cmt = scenar.comment(m_id);
@@ -37,7 +36,8 @@ void Scenario::Command::MoveCommentBlock::undo(const score::DocumentContext& ctx
   cmt.setHeightPercentage(m_oldY);
 }
 
-void Scenario::Command::MoveCommentBlock::redo(const score::DocumentContext& ctx) const
+void Scenario::Command::MoveCommentBlock::redo(
+    const score::DocumentContext& ctx) const
 {
   auto& scenar = m_path.find(ctx);
   auto& cmt = scenar.comment(m_id);

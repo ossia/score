@@ -1,5 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "ApplicationSettings.hpp"
+
 #include <QApplication>
 #include <QCommandLineOption>
 #include <QCommandLineParser>
@@ -7,10 +9,7 @@
 #include <QFile>
 #include <QList>
 #include <QObject>
-
 #include <QString>
-
-#include "ApplicationSettings.hpp"
 namespace score
 {
 void ApplicationSettings::parse(QStringList cargs)
@@ -42,7 +41,7 @@ void ApplicationSettings::parse(QStringList cargs)
 
   tryToRestore = !parser.isSet(noRestore);
   gui = !parser.isSet(noGUI);
-  if(!gui)
+  if (!gui)
     tryToRestore = false;
   autoplay = parser.isSet(autoplayOpt) && args.size() == 1;
 

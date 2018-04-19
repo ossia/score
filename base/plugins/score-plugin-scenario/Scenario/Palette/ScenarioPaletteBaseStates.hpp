@@ -1,14 +1,12 @@
 #pragma once
-#include <Scenario/Palette/ScenarioPoint.hpp>
-
-#include <score/statemachine/StateMachineUtils.hpp>
-#include <score/model/path/Path.hpp>
-#include <Scenario/Document/Interval/Slot.hpp>
-
 #include <QAbstractTransition>
 #include <QPointF>
 #include <QState>
 #include <QStateMachine>
+#include <Scenario/Document/Interval/Slot.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
+#include <score/model/path/Path.hpp>
+#include <score/statemachine/StateMachineUtils.hpp>
 
 namespace Scenario
 {
@@ -70,6 +68,4 @@ public:
   QPointF m_originalPoint;
   double m_originalHeight{};
 };
-
-
 }

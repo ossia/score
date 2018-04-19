@@ -1,7 +1,9 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AutomationState.hpp"
+
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
+
 #include <Automation/AutomationModel.hpp>
 #include <Curve/CurveModel.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
@@ -70,8 +72,9 @@ ProcessState::ProcessState(
     // to make this fast (just checking for the first and the last).
     if (seg.start().x() <= m_point && seg.end().x() >= m_point)
     {
-      m.value = float(seg.valueAt(m_point) * (process().max() - process().min())
-                    + process().min());
+      m.value = float(
+          seg.valueAt(m_point) * (process().max() - process().min())
+          + process().min());
 
       return m;
     }
@@ -137,9 +140,8 @@ std::vector<State::AddressAccessor> ProcessState::matchingAddresses()
         // Find first segment
         // TODO ordering would help, here.
         auto seg_it = std::find_if(
-            segs.begin(), segs.end(), [](Curve::SegmentModel& segt) {
-              return segt.start().x() == 0;
-            });
+            segs.begin(), segs.end(),
+            [](Curve::SegmentModel& segt) { return segt.start().x() == 0; });
         if (seg_it != segs.end())
         {
           if (val != seg_it->start().y())
@@ -152,9 +154,8 @@ std::vector<State::AddressAccessor> ProcessState::matchingAddresses()
       {
         // Find last segment
         auto seg_it = std::find_if(
-            segs.begin(), segs.end(), [](Curve::SegmentModel& segt) {
-              return segt.end().x() == 1;
-            });
+            segs.begin(), segs.end(),
+            [](Curve::SegmentModel& segt) { return segt.end().x() == 1; });
         if (seg_it != segs.end())
         {
           if (val != seg_it->end().y())

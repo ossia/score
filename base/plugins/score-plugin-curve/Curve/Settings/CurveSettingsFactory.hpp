@@ -1,9 +1,8 @@
 #pragma once
-#include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
-
 #include <Curve/Settings/CurveSettingsModel.hpp>
 #include <Curve/Settings/CurveSettingsPresenter.hpp>
 #include <Curve/Settings/CurveSettingsView.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 
 namespace Curve
 {

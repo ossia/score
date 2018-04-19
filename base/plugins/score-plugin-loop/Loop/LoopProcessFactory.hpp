@@ -1,10 +1,9 @@
 #pragma once
-#include <Process/GenericProcessFactory.hpp>
-
 #include <Loop/LoopPresenter.hpp>
 #include <Loop/LoopProcessMetadata.hpp>
 #include <Loop/LoopProcessModel.hpp>
 #include <Loop/LoopView.hpp>
+#include <Process/GenericProcessFactory.hpp>
 #include <Process/LayerModelPanelProxy.hpp>
 
 namespace Loop

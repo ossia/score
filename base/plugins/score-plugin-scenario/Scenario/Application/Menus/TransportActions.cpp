@@ -1,35 +1,31 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QAction>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <score/actions/ActionManager.hpp>
-#include <qnamespace.h>
-
-#include <QString>
-#include <QToolBar>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TransportActions.hpp"
 
-#include <score/actions/MenuManager.hpp>
-
+#include <QAction>
 #include <QApplication>
 #include <QMainWindow>
+#include <QString>
+#include <QToolBar>
 #include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <score/actions/Menu.hpp>
-#include <score/widgets/SetIcons.hpp>
 #include <core/application/ApplicationSettings.hpp>
+#include <qnamespace.h>
+#include <score/actions/ActionManager.hpp>
+#include <score/actions/Menu.hpp>
+#include <score/actions/MenuManager.hpp>
+#include <score/widgets/SetIcons.hpp>
 class QMenu;
 
 namespace Scenario
 {
 class TemporalScenarioPresenter;
 
-TransportActions::TransportActions(
-    const score::GUIApplicationContext& context)
+TransportActions::TransportActions(const score::GUIApplicationContext& context)
     : m_context{context}
 {
-  if(!context.applicationSettings.gui)
+  if (!context.applicationSettings.gui)
     return;
   m_play = new QAction{tr("Play"), nullptr};
   m_play->setCheckable(true);
@@ -47,7 +43,8 @@ TransportActions::TransportActions(
   m_playGlobal->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   m_playGlobal->setData(false);
   setIcons(
-      m_playGlobal, QString(":/icons/play_glob_on.png"), QString(":/icons/play_glob_off.png"));
+      m_playGlobal, QString(":/icons/play_glob_on.png"),
+      QString(":/icons/play_glob_off.png"));
 
   m_stop = new QAction{tr("Stop"), nullptr};
   m_stop->setObjectName("Stop");
@@ -95,16 +92,17 @@ TransportActions::TransportActions(
     m_playGlobal->setText(b ? tr("Pause") : tr("Play (global)"));
     m_playGlobal->setData(b);
     setIcons(
-          m_playGlobal,
-          b ? QString(":/icons/pause_on.png") : QString(":/icons/play_glob_on.png"),
-          b ? QString(":/icons/pause_off.png")
-            : QString(":/icons/play_glob_off.png"));
+        m_playGlobal,
+        b ? QString(":/icons/pause_on.png")
+          : QString(":/icons/play_glob_on.png"),
+        b ? QString(":/icons/pause_off.png")
+          : QString(":/icons/play_glob_off.png"));
   };
-  connect(m_play, &QAction::toggled, this, [=] (bool b) {
+  connect(m_play, &QAction::toggled, this, [=](bool b) {
     on_play(b);
     m_playGlobal->setEnabled(false);
   });
-  connect(m_playGlobal, &QAction::toggled, this, [=] (bool b) {
+  connect(m_playGlobal, &QAction::toggled, this, [=](bool b) {
     on_play(b);
     m_play->setEnabled(false);
   });
@@ -125,8 +123,8 @@ TransportActions::TransportActions(
     m_playGlobal->setChecked(false);
     m_play->setText(tr("Play (global)"));
     setIcons(
-          m_playGlobal, QString(":/icons/play_glob_on.png"),
-          QString(":/icons/play_glob_off.png"));
+        m_playGlobal, QString(":/icons/play_glob_on.png"),
+        QString(":/icons/play_glob_off.png"));
     m_playGlobal->setData(false);
     //        m_record->setChecked(false);
 
@@ -160,7 +158,7 @@ TransportActions::TransportActions(
   //    connect(m_record, &QAction::toggled, this, [&] (bool b) {
   //    });
 
-  if(context.mainWindow)
+  if (context.mainWindow)
   {
     auto obj = context.mainWindow->centralWidget();
     obj->addAction(m_play);
@@ -172,11 +170,8 @@ TransportActions::TransportActions(
 
 void TransportActions::makeGUIElements(score::GUIElements& ref)
 {
-  auto& cond
-      = m_context.actions
-            .condition<score::
-                           EnableWhenDocumentIs<Scenario::
-                                                    ScenarioDocumentModel>>();
+  auto& cond = m_context.actions.condition<
+      score::EnableWhenDocumentIs<Scenario::ScenarioDocumentModel>>();
 
   // Put m_play m_stop and m_stopAndInit only for now in their own toolbar,
   // plus everything in the play menu

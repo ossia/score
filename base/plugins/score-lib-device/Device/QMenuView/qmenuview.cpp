@@ -1,5 +1,5 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 /*
 XINX
 Copyright Ulrich Van Den Hekke, (2007-2011)
@@ -40,6 +40,9 @@ qmenuview.h qmenuview.cpp, qmenuview_p.h.
 J'ai apporté quelques modifications en plus.
 */
 
+#include "qmenuview_p.h"
+
+#include <Device/QMenuView/qmenuview.h>
 #include <QAbstractItemModel>
 #include <QAction>
 #include <QEvent>
@@ -51,9 +54,6 @@ J'ai apporté quelques modifications en plus.
 #include <QString>
 #include <QVariant>
 #include <qnamespace.h>
-
-#include "qmenuview_p.h"
-#include <Device/QMenuView/qmenuview.h>
 
 class QWidget;
 

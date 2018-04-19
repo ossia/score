@@ -46,8 +46,7 @@ private:
 
 class SetRange final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      Midi::CommandFactoryName(), SetRange, "Set Midi range")
+  SCORE_COMMAND_DECL(Midi::CommandFactoryName(), SetRange, "Set Midi range")
 public:
   // Channel should be in [ 0; 15 ]
   SetRange(const ProcessModel& model, int min, int max);

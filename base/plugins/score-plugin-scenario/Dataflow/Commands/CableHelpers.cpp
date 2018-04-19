@@ -1,24 +1,26 @@
 #include "CableHelpers.hpp"
 
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <ossia/detail/ptr_set.hpp>
+
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
 namespace Dataflow
 {
-std::vector<Process::Cable*> getCablesInChildObjects(QObjectList objs, const score::DocumentContext& ctx)
+std::vector<Process::Cable*>
+getCablesInChildObjects(QObjectList objs, const score::DocumentContext& ctx)
 {
   std::vector<Process::Cable*> cables;
 
   ossia::ptr_set<Process::Port*> ports;
-  for(auto obj : objs)
+  for (auto obj : objs)
   {
-    if(auto p = qobject_cast<Process::Port*>(obj))
+    if (auto p = qobject_cast<Process::Port*>(obj))
     {
       ports.insert(p);
     }
     else
     {
-      for(auto p : obj->findChildren<Process::Port*>())
+      for (auto p : obj->findChildren<Process::Port*>())
       {
         ports.insert(p);
       }
@@ -26,9 +28,9 @@ std::vector<Process::Cable*> getCablesInChildObjects(QObjectList objs, const sco
   }
 
   cables.reserve(0.05 * ports.size()); // totally empiric
-  for(auto p : ports)
+  for (auto p : ports)
   {
-    for(auto& cbl : p->cables())
+    for (auto& cbl : p->cables())
     {
       cables.push_back(&cbl.find(ctx));
     }
@@ -36,20 +38,21 @@ std::vector<Process::Cable*> getCablesInChildObjects(QObjectList objs, const sco
 
   return cables;
 }
-SerializedCables saveCables(QObjectList objs, const score::DocumentContext& ctx)
+SerializedCables
+saveCables(QObjectList objs, const score::DocumentContext& ctx)
 {
   SerializedCables cables;
 
   ossia::ptr_set<Process::Port*> ports;
-  for(auto obj : objs)
+  for (auto obj : objs)
   {
-    if(auto p = qobject_cast<Process::Port*>(obj))
+    if (auto p = qobject_cast<Process::Port*>(obj))
     {
       ports.insert(p);
     }
     else
     {
-      for(auto p : obj->findChildren<Process::Port*>())
+      for (auto p : obj->findChildren<Process::Port*>())
       {
         ports.insert(p);
       }
@@ -57,9 +60,9 @@ SerializedCables saveCables(QObjectList objs, const score::DocumentContext& ctx)
   }
 
   cables.reserve(0.05 * ports.size()); // totally empiric
-  for(auto p : ports)
+  for (auto p : ports)
   {
-    for(auto& cbl : p->cables())
+    for (auto& cbl : p->cables())
     {
       Process::Cable& c = cbl.find(ctx);
       cables.push_back({c.id(), c.toCableData()});
@@ -69,14 +72,16 @@ SerializedCables saveCables(QObjectList objs, const score::DocumentContext& ctx)
   return cables;
 }
 
-void removeCables(const SerializedCables& cables, const score::DocumentContext& ctx)
+void removeCables(
+    const SerializedCables& cables, const score::DocumentContext& ctx)
 {
-  Scenario::ScenarioDocumentModel& doc = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
+  Scenario::ScenarioDocumentModel& doc
+      = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
 
-  for(const auto& cid : cables)
+  for (const auto& cid : cables)
   {
     auto cable_it = doc.cables.find(cid.first);
-    if(cable_it != doc.cables.end())
+    if (cable_it != doc.cables.end())
     {
       auto& cable = *cable_it;
       cable.source().find(ctx).removeCable(cable);
@@ -90,13 +95,15 @@ void removeCables(const SerializedCables& cables, const score::DocumentContext& 
   }
 }
 
-void restoreCables(const SerializedCables& cables, const score::DocumentContext& ctx)
+void restoreCables(
+    const SerializedCables& cables, const score::DocumentContext& ctx)
 {
-  Scenario::ScenarioDocumentModel& doc = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
+  Scenario::ScenarioDocumentModel& doc
+      = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
 
-  for(const auto& cid : cables)
+  for (const auto& cid : cables)
   {
-    if(doc.cables.find(cid.first) == doc.cables.end())
+    if (doc.cables.find(cid.first) == doc.cables.end())
     {
       auto cbl = new Process::Cable{cid.first, cid.second, &doc};
       doc.cables.add(cbl);
@@ -107,7 +114,6 @@ void restoreCables(const SerializedCables& cables, const score::DocumentContext&
     {
       qDebug() << "Warning: trying to add existing cable " << cid.first;
     }
-
   }
 }
 }

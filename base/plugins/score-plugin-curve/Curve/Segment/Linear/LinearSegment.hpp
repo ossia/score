@@ -11,7 +11,8 @@ CURVE_SEGMENT_METADATA(
     Curve::LinearSegment,
     "a8bd14e2-d7e4-47cd-b76a-6a88fa11f0d2",
     "Linear",
-    "Linear", "")
+    "Linear",
+    "")
 
 namespace Curve
 {
@@ -31,11 +32,15 @@ public:
 
   LinearSegment(DataStream::Deserializer& vis, QObject* parent)
       : SegmentModel{vis, parent}
-  { vis.writeTo(*this); }
+  {
+    vis.writeTo(*this);
+  }
 
   LinearSegment(JSONObject::Deserializer& vis, QObject* parent)
       : SegmentModel{vis, parent}
-  { vis.writeTo(*this); }
+  {
+    vis.writeTo(*this);
+  }
 
   void on_startChanged() override;
   void on_endChanged() override;

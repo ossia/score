@@ -1,6 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioSettingsModel.hpp"
+
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonDocument>
@@ -14,8 +15,10 @@ namespace Settings
 {
 namespace Parameters
 {
-const score::sp<ModelSkinParameter> Skin{QStringLiteral("Skin/Skin"), "Default"};
-const score::sp<ModelDefaultEditorParameter> DefaultEditor{QStringLiteral("Skin/DefaultEditor"), ""};
+const score::sp<ModelSkinParameter> Skin{QStringLiteral("Skin/Skin"),
+                                         "Default"};
+const score::sp<ModelDefaultEditorParameter> DefaultEditor{
+    QStringLiteral("Skin/DefaultEditor"), ""};
 const score::sp<ModelGraphicZoomParameter> GraphicZoom{
     QStringLiteral("Skin/Zoom"), 1};
 const score::sp<ModelSlotHeightParameter> SlotHeight{
@@ -27,13 +30,13 @@ const score::sp<ModelSnapshotOnCreateParameter> SnapshotOnCreate{
 const score::sp<ModelAutoSequenceParameter> AutoSequence{
     QStringLiteral("Scenario/AutoSequence"), true};
 const score::sp<ModelTimeBarParameter> TimeBar{
-  QStringLiteral("Scenario/TimeBar"), true};
+    QStringLiteral("Scenario/TimeBar"), true};
 
 static auto list()
 {
   return std::tie(
-      Skin, DefaultEditor, GraphicZoom, SlotHeight, DefaultDuration, SnapshotOnCreate,
-      AutoSequence, TimeBar);
+      Skin, DefaultEditor, GraphicZoom, SlotHeight, DefaultDuration,
+      SnapshotOnCreate, AutoSequence, TimeBar);
 }
 }
 
@@ -53,12 +56,12 @@ void Model::setSkin(const QString& skin)
     return;
 
   QFile f(skin);
-  if(skin.isEmpty() || skin == QStringLiteral("Default"))
-      f.setFileName(":/DefaultSkin.json");
+  if (skin.isEmpty() || skin == QStringLiteral("Default"))
+    f.setFileName(":/DefaultSkin.json");
   else if (skin == QStringLiteral("Dark"))
-      f.setFileName(":/DarkSkin.json");
+    f.setFileName(":/DarkSkin.json");
   else if (skin == QStringLiteral("IEEE"))
-      f.setFileName(":/IEEESkin.json");
+    f.setFileName(":/IEEESkin.json");
 
   if (f.open(QFile::ReadOnly))
   {
@@ -100,7 +103,8 @@ void Model::setDefaultEditor(QString val)
   m_DefaultEditor = val;
 
   QSettings s;
-  s.setValue(Parameters::DefaultEditor.key, QVariant::fromValue(m_DefaultEditor));
+  s.setValue(
+      Parameters::DefaultEditor.key, QVariant::fromValue(m_DefaultEditor));
   DefaultEditorChanged(val);
 }
 
@@ -118,7 +122,8 @@ void Model::setDefaultDuration(TimeVal val)
   m_DefaultDuration = val;
 
   QSettings s;
-  s.setValue(Parameters::DefaultDuration.key, QVariant::fromValue(m_DefaultDuration));
+  s.setValue(
+      Parameters::DefaultDuration.key, QVariant::fromValue(m_DefaultDuration));
   DefaultDurationChanged(val);
 }
 

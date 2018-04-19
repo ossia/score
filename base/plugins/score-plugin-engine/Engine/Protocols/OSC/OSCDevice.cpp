@@ -1,17 +1,18 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "OSCDevice.hpp"
+
+#include <ossia/network/generic/generic_device.hpp>
+#include <ossia/network/generic/generic_parameter.hpp>
+#include <ossia/network/osc/osc.hpp>
+
+#include <Device/Protocol/DeviceSettings.hpp>
+#include <Engine/Protocols/OSC/OSCSpecificSettings.hpp>
+#include <Explorer/DeviceList.hpp>
 #include <QDebug>
 #include <QString>
 #include <QVariant>
 #include <memory>
-
-#include "OSCDevice.hpp"
-#include <ossia/network/generic/generic_parameter.hpp>
-#include <ossia/network/generic/generic_device.hpp>
-#include <ossia/network/osc/osc.hpp>
-#include <Device/Protocol/DeviceSettings.hpp>
-#include <Engine/Protocols/OSC/OSCSpecificSettings.hpp>
-#include <Explorer/DeviceList.hpp>
 namespace Engine
 {
 namespace Network
@@ -48,7 +49,7 @@ bool OSCDevice::reconnect()
 
 void OSCDevice::recreate(const Device::Node& n)
 {
-  for(auto& child : n)
+  for (auto& child : n)
   {
     addNode(child);
   }
@@ -62,7 +63,7 @@ bool OSCDevice::isLearning() const
 
 void OSCDevice::setLearning(bool b)
 {
-  if(!m_dev)
+  if (!m_dev)
     return;
   auto& proto = static_cast<ossia::net::osc_protocol&>(m_dev->get_protocol());
   auto& dev = *m_dev;
@@ -74,10 +75,12 @@ void OSCDevice::setLearning(bool b)
         (OSSIADevice*)this);
     dev.on_node_renamed.connect<OSSIADevice, &OSSIADevice::nodeRenamed>(
         (OSSIADevice*)this);
-    dev.on_parameter_created.connect<OSSIADevice, &OSSIADevice::addressCreated>(
-        (OSSIADevice*)this);
-    dev.on_attribute_modified.connect<OSSIADevice, &OSSIADevice::addressUpdated>(
-        (OSSIADevice*)this);
+    dev.on_parameter_created
+        .connect<OSSIADevice, &OSSIADevice::addressCreated>(
+            (OSSIADevice*)this);
+    dev.on_attribute_modified
+        .connect<OSSIADevice, &OSSIADevice::addressUpdated>(
+            (OSSIADevice*)this);
   }
   else
   {
@@ -87,8 +90,9 @@ void OSCDevice::setLearning(bool b)
         (OSSIADevice*)this);
     dev.on_node_renamed.disconnect<OSSIADevice, &OSSIADevice::nodeRenamed>(
         (OSSIADevice*)this);
-    dev.on_parameter_created.disconnect<OSSIADevice, &OSSIADevice::addressCreated>(
-        (OSSIADevice*)this);
+    dev.on_parameter_created
+        .disconnect<OSSIADevice, &OSSIADevice::addressCreated>(
+            (OSSIADevice*)this);
     dev.on_attribute_modified
         .disconnect<OSSIADevice, &OSSIADevice::addressUpdated>(
             (OSSIADevice*)this);

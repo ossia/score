@@ -1,17 +1,16 @@
 #pragma once
-#include <wobjectdefs.h>
-#include <core/command/CommandStack.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <score/locking/ObjectLocker.hpp>
-#include <score/selection/FocusManager.hpp>
-#include <score/selection/SelectionStack.hpp>
-
 #include <QByteArray>
 #include <QJsonObject>
 #include <QString>
 #include <QTimer>
 #include <QVariant>
+#include <core/command/CommandStack.hpp>
 #include <core/document/DocumentMetadata.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/locking/ObjectLocker.hpp>
+#include <score/selection/FocusManager.hpp>
+#include <score/selection/SelectionStack.hpp>
+#include <wobjectdefs.h>
 
 class QObject;
 class QWidget;

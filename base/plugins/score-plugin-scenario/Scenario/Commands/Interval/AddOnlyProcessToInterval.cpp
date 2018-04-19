@@ -1,30 +1,27 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "AddOnlyProcessToInterval.hpp"
+
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessList.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
-
 #include <algorithm>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <vector>
-
-#include "AddOnlyProcessToInterval.hpp"
 #include <score/application/ApplicationContext.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/model/EntityMap.hpp>
+#include <score/model/path/PathSerialization.hpp>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
-
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/plugins/customfactory/StringFactoryKeySerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
-#include <score/model/EntityMap.hpp>
-#include <score/model/path/PathSerialization.hpp>
-#include <score/document/DocumentContext.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+#include <vector>
 
 namespace Scenario
 {
@@ -65,18 +62,16 @@ void AddOnlyProcessToInterval::undo(IntervalModel& interval) const
   RemoveProcess(interval, m_createdProcessId);
 }
 
-Process::ProcessModel&
-AddOnlyProcessToInterval::redo(IntervalModel& interval, const score::DocumentContext& ctx) const
+Process::ProcessModel& AddOnlyProcessToInterval::redo(
+    IntervalModel& interval, const score::DocumentContext& ctx) const
 {
   // Create process model
-  auto fac = ctx.app.interfaces<Process::ProcessFactoryList>().get(
-      m_processName);
+  auto fac
+      = ctx.app.interfaces<Process::ProcessFactoryList>().get(m_processName);
   SCORE_ASSERT(fac);
   auto proc = fac->make(
       interval.duration.defaultDuration(), // TODO should maybe be max ?
-                m_data,
-      m_createdProcessId,
-      &interval);
+      m_data, m_createdProcessId, &interval);
 
   AddProcess(interval, proc);
   return *proc;
@@ -92,15 +87,9 @@ void AddOnlyProcessToInterval::deserializeImpl(DataStreamOutput& s)
   s >> m_path >> m_processName >> m_data >> m_createdProcessId;
 }
 
-
-
-
 DuplicateOnlyProcessToInterval::DuplicateOnlyProcessToInterval(
-    const IntervalModel& cst,
-    const Process::ProcessModel& process)
-    : DuplicateOnlyProcessToInterval{cst,
-                                 getStrongId(cst.processes),
-                                 process}
+    const IntervalModel& cst, const Process::ProcessModel& process)
+    : DuplicateOnlyProcessToInterval{cst, getStrongId(cst.processes), process}
 {
 }
 
@@ -114,12 +103,14 @@ DuplicateOnlyProcessToInterval::DuplicateOnlyProcessToInterval(
 {
 }
 
-void DuplicateOnlyProcessToInterval::undo(const score::DocumentContext& ctx) const
+void DuplicateOnlyProcessToInterval::undo(
+    const score::DocumentContext& ctx) const
 {
   undo(m_path.find(ctx));
 }
 
-void DuplicateOnlyProcessToInterval::redo(const score::DocumentContext& ctx) const
+void DuplicateOnlyProcessToInterval::redo(
+    const score::DocumentContext& ctx) const
 {
   redo(m_path.find(ctx), ctx);
 }
@@ -129,12 +120,13 @@ void DuplicateOnlyProcessToInterval::undo(IntervalModel& interval) const
   RemoveProcess(interval, m_createdProcessId);
 }
 
-Process::ProcessModel&
-DuplicateOnlyProcessToInterval::redo(IntervalModel& interval, const score::DocumentContext& ctx) const
+Process::ProcessModel& DuplicateOnlyProcessToInterval::redo(
+    IntervalModel& interval, const score::DocumentContext& ctx) const
 {
   // Create process model
   auto& pl = ctx.app.interfaces<Process::ProcessFactoryList>();
-  Process::ProcessModel* proc = deserialize_interface(pl, DataStream::Deserializer{m_processData}, &interval);
+  Process::ProcessModel* proc = deserialize_interface(
+      pl, DataStream::Deserializer{m_processData}, &interval);
   proc->setId(m_createdProcessId);
 
   AddProcess(interval, proc);

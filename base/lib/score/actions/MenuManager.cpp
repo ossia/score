@@ -1,5 +1,5 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MenuManager.hpp"
 
 #include <QMenu>
@@ -40,24 +40,20 @@ StringKey<Menu> Menus::File()
   return StringKey<Menu>{"File"};
 }
 
-
 StringKey<Menu> Menus::Export()
 {
   return StringKey<Menu>{"Export"};
 }
-
 
 StringKey<Menu> Menus::Edit()
 {
   return StringKey<Menu>{"Edit"};
 }
 
-
 StringKey<Menu> Menus::Object()
 {
   return StringKey<Menu>{"Object"};
 }
-
 
 StringKey<Menu> Menus::Play()
 {
@@ -69,12 +65,10 @@ StringKey<Menu> Menus::View()
   return StringKey<Menu>{"View"};
 }
 
-
 StringKey<Menu> Menus::Windows()
 {
   return StringKey<Menu>{"Windows"};
 }
-
 
 StringKey<Menu> Menus::Settings()
 {
@@ -85,7 +79,6 @@ StringKey<Menu> Menus::About()
 {
   return StringKey<Menu>{"About"};
 }
-
 
 void MenuManager::insert(Menu val)
 {
@@ -99,5 +92,4 @@ void MenuManager::insert(std::vector<Menu> vals)
     insert(std::move(val));
   }
 }
-
 }

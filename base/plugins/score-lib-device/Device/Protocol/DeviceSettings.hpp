@@ -16,9 +16,8 @@ struct DeviceSettings
 
 inline bool operator==(const DeviceSettings& lhs, const DeviceSettings& rhs)
 {
-  return lhs.protocol == rhs.protocol
-      && lhs.name == rhs.name
-      && lhs.deviceSpecificSettings == rhs.deviceSpecificSettings;
+  return lhs.protocol == rhs.protocol && lhs.name == rhs.name
+         && lhs.deviceSpecificSettings == rhs.deviceSpecificSettings;
 }
 }
 

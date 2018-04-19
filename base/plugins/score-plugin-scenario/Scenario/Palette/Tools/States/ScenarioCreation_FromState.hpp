@@ -1,26 +1,22 @@
 #pragma once
 #include "ScenarioCreationState.hpp"
 
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-
+#include <QApplication>
+#include <QFinalState>
+#include <Scenario/Application/ScenarioEditionSettings.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateInterval.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveNewState.hpp>
-
-#include <Scenario/Commands/Scenario/Creations/CreateInterval.hpp>
-
-#include <Scenario/Application/ScenarioEditionSettings.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Palette/Tools/ScenarioRollbackStrategy.hpp>
 #include <Scenario/Palette/Transitions/AnythingTransitions.hpp>
-#include <Scenario/Palette/Transitions/IntervalTransitions.hpp>
 #include <Scenario/Palette/Transitions/EventTransitions.hpp>
+#include <Scenario/Palette/Transitions/IntervalTransitions.hpp>
 #include <Scenario/Palette/Transitions/NothingTransitions.hpp>
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>
 #include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
-
-#include <QApplication>
-#include <QFinalState>
-#include <Scenario/Palette/Tools/ScenarioRollbackStrategy.hpp>
 
 namespace Scenario
 {
@@ -119,7 +115,6 @@ public:
 
       // MoveOnEvent -> MoveOnState
       this->add_transition(move_event, move_state, [&]() {
-
         if (this->clickedState && this->hoveredState)
         {
           if (this->m_parentSM.model().state(*this->clickedState).eventId()
@@ -197,7 +192,7 @@ public:
           auto sequence = settings.sequence();
           auto magnetism_distance
               = (std::abs(this->currentPoint.y - this->m_clickedPoint.y)
-                < 0.02);
+                 < 0.02);
           if (!sequence && magnetism_distance)
           {
             settings.setSequence(true);
@@ -226,12 +221,9 @@ public:
         }
 
         this->m_dispatcher.template submitCommand<MoveNewEvent>(
-            this->m_scenario,
-            this->createdIntervals.last(),
-            this->createdEvents.last(),
-            this->currentPoint.date,
-            this->currentPoint.y,
-            sequence);
+            this->m_scenario, this->createdIntervals.last(),
+            this->createdEvents.last(), this->currentPoint.date,
+            this->currentPoint.y, sequence);
       });
 
       QObject::connect(move_event, &QState::entered, [&]() {
@@ -247,8 +239,7 @@ public:
         }
 
         this->m_dispatcher.template submitCommand<MoveNewState>(
-            this->m_scenario,
-            this->createdStates.last(),
+            this->m_scenario, this->createdStates.last(),
             this->currentPoint.y);
       });
 
@@ -265,8 +256,7 @@ public:
         }
 
         this->m_dispatcher.template submitCommand<MoveNewState>(
-            this->m_scenario,
-            this->createdStates.last(),
+            this->m_scenario, this->createdStates.last(),
             this->currentPoint.y);
       });
 
@@ -275,8 +265,7 @@ public:
     }
 
     auto rollbackState = new QState{this};
-    score::make_transition<score::Cancel_Transition>(
-        mainState, rollbackState);
+    score::make_transition<score::Cancel_Transition>(mainState, rollbackState);
     rollbackState->addTransition(finalState);
 
     QObject::connect(
@@ -294,7 +283,7 @@ private:
     bool sequence = this->m_parentSM.editionSettings().sequence();
     bool new_event = qApp->keyboardModifiers() & Qt::ALT;
     auto& st = scenar.state(*this->clickedState);
-    if(new_event && !sequence)
+    if (new_event && !sequence)
     {
       // Create new event on the timesync
       auto tn = Scenario::parentEvent(st, scenar).timeSync();
@@ -305,7 +294,6 @@ private:
       this->createdEvents.append(cmd->createdEvent());
       this->createdStates.append(cmd->createdState());
       fun(this->createdStates.first());
-
     }
     else
     {

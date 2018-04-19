@@ -1,13 +1,11 @@
 #pragma once
 
+#include <Scenario/Commands/Interval/SetRigidity.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <State/Expression.hpp>
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
-
-#include <Scenario/Commands/Interval/SetRigidity.hpp>
-
-#include <State/Expression.hpp>
 
 namespace Scenario
 {
@@ -32,8 +30,8 @@ public:
   }
   static const CommandKey& static_key()
   {
-    static const CommandKey kagi{
-        QString("RemoveTrigger_") + Metadata<ObjectKey_k, Scenario_T>::get()};
+    static const CommandKey kagi{QString("RemoveTrigger_")
+                                 + Metadata<ObjectKey_k, Scenario_T>::get()};
     return kagi;
   }
 

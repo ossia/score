@@ -1,9 +1,11 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "LoopDisplayedElements.hpp"
+
 #include "LoopProcessModel.hpp"
-#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
+
 #include <Scenario/Document/Event/EventPresenter.hpp>
+#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 namespace Loop

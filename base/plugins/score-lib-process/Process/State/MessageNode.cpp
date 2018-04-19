@@ -1,36 +1,35 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MessageNode.hpp"
-#include <State/Message.hpp>
-#include <State/ValueConversion.hpp>
 
-#include <score/serialization/JSONVisitor.hpp>
-#include <score/model/tree/TreeNode.hpp>
 #include <Process/Process.hpp>
 #include <QStringBuilder>
+#include <State/Message.hpp>
+#include <State/ValueConversion.hpp>
 #include <algorithm>
+#include <score/model/tree/TreeNode.hpp>
+#include <score/serialization/JSONVisitor.hpp>
 namespace Process
 {
 
-bool operator==(const Process::ProcessStateData& lhs, const Process::ProcessStateData& rhs)
+bool operator==(
+    const Process::ProcessStateData& lhs, const Process::ProcessStateData& rhs)
 {
-  return
-      lhs.process == rhs.process && lhs.value == rhs.value
-      ;
+  return lhs.process == rhs.process && lhs.value == rhs.value;
 }
 
-bool operator==(const Process::StateNodeData& lhs, const Process::StateNodeData& rhs)
+bool operator==(
+    const Process::StateNodeData& lhs, const Process::StateNodeData& rhs)
 {
-  return
-      lhs.name.name == rhs.name.name &&
-      lhs.name.qualifiers == rhs.name.qualifiers &&
-      lhs.values.previousProcessValues == rhs.values.previousProcessValues &&
-      lhs.values.followingProcessValues == rhs.values.followingProcessValues &&
-      lhs.values.priorities == rhs.values.priorities &&
-      lhs.values.userValue == rhs.values.userValue
-      ;
+  return lhs.name.name == rhs.name.name
+         && lhs.name.qualifiers == rhs.name.qualifiers
+         && lhs.values.previousProcessValues
+                == rhs.values.previousProcessValues
+         && lhs.values.followingProcessValues
+                == rhs.values.followingProcessValues
+         && lhs.values.priorities == rhs.values.priorities
+         && lhs.values.userValue == rhs.values.userValue;
 }
-
 }
 template class SCORE_LIB_PROCESS_EXPORT TreeNode<Process::StateNodeData>;
 namespace Process

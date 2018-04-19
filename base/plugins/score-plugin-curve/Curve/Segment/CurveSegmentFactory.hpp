@@ -2,9 +2,9 @@
 
 #include <QString>
 #include <QVariant>
+#include <score/model/Identifier.hpp>
 #include <score/plugins/customfactory/FactoryInterface.hpp>
 #include <score/serialization/VisitorCommon.hpp>
-#include <score/model/Identifier.hpp>
 #include <score_plugin_curve_export.h>
 
 class QObject;
@@ -75,7 +75,8 @@ public:
 
   QVariant makeCurveSegmentData(const VisitorVariant& vis) const override
   {
-    return QVariant::fromValue(score::deserialize_dyn<typename T::data_type>(vis));
+    return QVariant::fromValue(
+        score::deserialize_dyn<typename T::data_type>(vis));
   }
 
   UuidKey<Curve::SegmentFactory> concreteKey() const noexcept override

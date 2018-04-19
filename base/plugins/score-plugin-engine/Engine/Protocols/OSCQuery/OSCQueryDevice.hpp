@@ -1,6 +1,7 @@
 #pragma once
-#include <Engine/Protocols/OSSIADevice.hpp>
 #include <ossia/network/base/device.hpp>
+
+#include <Engine/Protocols/OSSIADevice.hpp>
 
 namespace Engine
 {

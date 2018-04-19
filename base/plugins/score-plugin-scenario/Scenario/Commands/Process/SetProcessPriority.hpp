@@ -14,7 +14,7 @@ class SetProcessPriority final : public score::PropertyCommand
 public:
   SetProcessPriority(const Process::ProcessModel& path, int32_t newval)
       : score::PropertyCommand{path, "processPriority",
-                                QVariant::fromValue(newval)}
+                               QVariant::fromValue(newval)}
   {
   }
 };
@@ -28,7 +28,7 @@ class SetProcessPriorityOverride final : public score::PropertyCommand
 public:
   SetProcessPriorityOverride(const Process::ProcessModel& path, bool newval)
       : score::PropertyCommand{path, "processPriorityOverride",
-                                QVariant::fromValue(newval)}
+                               QVariant::fromValue(newval)}
   {
   }
 };

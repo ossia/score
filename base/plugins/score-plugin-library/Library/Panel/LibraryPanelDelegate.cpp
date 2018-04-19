@@ -1,12 +1,13 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "LibraryPanelDelegate.hpp"
+
 #include <Library/JSONLibrary/LibraryWidget.hpp>
 #include <Process/ProcessList.hpp>
 #include <QTabWidget>
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
-#include <score/application/GUIApplicationContext.hpp>
 
 namespace Library
 {
@@ -43,8 +44,8 @@ QWidget* PanelDelegate::widget()
 const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
 {
   static const score::PanelStatus status{false, Qt::RightDockWidgetArea, 0,
-                                          QObject::tr("Library"),
-                                          QObject::tr("Ctrl+Shift+B")};
+                                         QObject::tr("Library"),
+                                         QObject::tr("Ctrl+Shift+B")};
 
   return status;
 }

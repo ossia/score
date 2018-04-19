@@ -1,11 +1,13 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "JamomaDeviceLoader.hpp"
+
+#include <ossia/network/domain/domain.hpp>
+
 #include <QFile>
 #include <QJsonDocument>
-#include <score/tools/std/StringHash.hpp>
 #include <qdom.h>
-#include <ossia/network/domain/domain.hpp>
+#include <score/tools/std/StringHash.hpp>
 
 namespace Device
 {
@@ -40,7 +42,7 @@ static ossia::value stringToVal(const QString& str, const QString& type)
     // TODO
     ok = true;
   }
-  else if(type == "none")
+  else if (type == "none")
   {
     val = ossia::impulse{};
     ok = true;
@@ -83,7 +85,7 @@ static ossia::value stringToOssiaVal(const QString& str, const QString& type)
     // TODO
     ok = true;
   }
-  else if(type == "none")
+  else if (type == "none")
   {
     val = ossia::impulse{};
     ok = true;
@@ -114,8 +116,8 @@ read_valueDefault(const QDomElement& dom_element, const QString& type)
   }
 }
 
-static optional<ossia::access_mode> read_service(
-    const QDomElement& dom_element)
+static optional<ossia::access_mode>
+read_service(const QDomElement& dom_element)
 {
   using namespace score;
   if (dom_element.hasAttribute("service"))
@@ -137,9 +139,7 @@ else if(service == "")
 }
 
 static auto
-read_rangeBounds(
-    const QDomElement& dom_element,
-    const QString& type)
+read_rangeBounds(const QDomElement& dom_element, const QString& type)
 {
   ossia::domain domain;
 
@@ -201,24 +201,27 @@ convertFromDomElement(const QDomElement& dom_element, Device::Node& parentNode)
     ossia::net::set_priority(addr, dom_element.attribute("priority").toInt());
     auto rfl = dom_element.attribute("repetitionsFilter").toInt();
 
-    addr.repetitionFilter = rfl ? ossia::repetition_filter::ON : ossia::repetition_filter::OFF;
+    addr.repetitionFilter
+        = rfl ? ossia::repetition_filter::ON : ossia::repetition_filter::OFF;
 
     addr.domain = read_rangeBounds(dom_element, type);
     addr.clipMode = read_rangeClipmode(dom_element);
 
-    if(!addr.ioType)
+    if (!addr.ioType)
     {
-      if(addr.value.valid())
+      if (addr.value.valid())
       {
         addr.ioType = ossia::access_mode::BI;
       }
     }
 
-    if(dom_element.previousSibling().isComment())
+    if (dom_element.previousSibling().isComment())
     {
       auto desc = dom_element.previousSibling().nodeValue();
-      if(desc.startsWith("\"")) desc.remove(0, 1);
-      if(desc.endsWith("\"")) desc.chop(1);
+      if (desc.startsWith("\""))
+        desc.remove(0, 1);
+      if (desc.endsWith("\""))
+        desc.chop(1);
       ossia::net::set_description(addr, desc.toStdString());
     }
   }
@@ -230,12 +233,11 @@ convertFromDomElement(const QDomElement& dom_element, Device::Node& parentNode)
     convertFromDomElement(dom_child, childNode);
 
     auto ns = dom_child.nextSibling();
-    while(ns.isComment())
+    while (ns.isComment())
     {
       ns = ns.nextSibling();
     }
     dom_child = ns.toElement();
-
   }
   return;
 }
@@ -276,41 +278,34 @@ bool loadDeviceFromXML(const QString& filePath, Device::Node& node)
   return true;
 }
 
-
-
 using json_actions_t = score::hash_map<
-QString,
-std::function<
-void(
-Device::AddressSettings& node,
-const QJsonValue& val)
->
->;
+    QString,
+    std::function<void(Device::AddressSettings& node, const QJsonValue& val)>>;
 
 static ossia::value fromJamomaTextualType(const QString& str)
 {
   static const score::hash_map<QString, ossia::value> value_map{
-    {"boolean", ossia::value(false)},
-    {"integer", ossia::value(0)},
-    {"decimal", ossia::value(0.)},
-    {"filepath", ossia::value(std::string(""))},
-    {"decimalArray", ossia::value(State::list_t{})},
-    {"string", ossia::value(std::string(""))}
-  };
+      {"boolean", ossia::value(false)},
+      {"integer", ossia::value(0)},
+      {"decimal", ossia::value(0.)},
+      {"filepath", ossia::value(std::string(""))},
+      {"decimalArray", ossia::value(State::list_t{})},
+      {"string", ossia::value(std::string(""))}};
   auto it = value_map.find(str);
-  if(it != value_map.end())
+  if (it != value_map.end())
   {
     return it.value();
   }
   return {};
 }
 
-static optional<ossia::net::instance_bounds> fromJamomaInstanceBounds(const QString& str)
+static optional<ossia::net::instance_bounds>
+fromJamomaInstanceBounds(const QString& str)
 {
-  if(!str.isEmpty())
+  if (!str.isEmpty())
   {
     auto inst = str.split(' ');
-    if(inst.size() == 2)
+    if (inst.size() == 2)
     {
       return ossia::net::instance_bounds(inst[0].toInt(), inst[1].toInt());
     }
@@ -318,16 +313,16 @@ static optional<ossia::net::instance_bounds> fromJamomaInstanceBounds(const QStr
   return ossia::none;
 }
 
-static ossia::domain fromJamomaJsonDomain(
-    const QString& str,
-    ossia::val_type t)
+static ossia::domain
+fromJamomaJsonDomain(const QString& str, ossia::val_type t)
 {
-  if(!str.isEmpty())
+  if (!str.isEmpty())
   {
     auto dom = str.split(' ');
-    if(dom.size() == 2)
+    if (dom.size() == 2)
     {
-      switch(t) {
+      switch (t)
+      {
         case ossia::val_type::INT:
           return ossia::make_domain(dom[0].toInt(), dom[1].toInt());
           break;
@@ -341,16 +336,13 @@ static ossia::domain fromJamomaJsonDomain(
         default:
           break;
       }
-
     }
   }
   return {};
 }
 
-
-static ossia::value fromJamomaJsonValue(
-    const QJsonValue& val,
-    ossia::val_type type)
+static ossia::value
+fromJamomaJsonValue(const QJsonValue& val, ossia::val_type type)
 {
   using namespace State;
   if (val.isNull())
@@ -390,7 +382,7 @@ static ossia::value fromJamomaJsonValue(
       State::list_t list;
       list.reserve(arr.size());
 
-      for(const auto& val : arr)
+      for (const auto& val : arr)
       {
         list.push_back(val.toDouble());
       }
@@ -407,66 +399,64 @@ static ossia::value fromJamomaJsonValue(
 
 static const json_actions_t& actions()
 {
-  static json_actions_t acts{
-    [] {
-      json_actions_t a;
-      a.emplace(json_actions_t::value_type{
-                  QStringLiteral("type"),
-                  [] (Device::AddressSettings& addr, const QJsonValue& val) {
-                    addr.value = fromJamomaTextualType(val.toString());
-                  }});
-      a.emplace(json_actions_t::value_type{
-                  QStringLiteral("description"),
-                  [] (Device::AddressSettings& addr, const QJsonValue& val) {
-                    ossia::net::set_description(addr, val.toString().toStdString());
-                  }});
-      a.emplace(json_actions_t::value_type{
-                  QStringLiteral("valueDefault"),
-                  [] (Device::AddressSettings& addr, const QJsonValue& val) {
-                    addr.value = fromJamomaJsonValue(val, (ossia::val_type)addr.value.v.which());
-                  }});
-      a.emplace(json_actions_t::value_type{
-                  QStringLiteral("priority"),
-                  [] (Device::AddressSettings& addr, const QJsonValue& val) {
-                    ossia::net::set_priority(addr, val.toVariant().toInt());
-                  }});
-      a.emplace(json_actions_t::value_type{
-                  QStringLiteral("rangeBounds"),
-                  [] (Device::AddressSettings& addr, const QJsonValue& val) {
-                    addr.domain = fromJamomaJsonDomain(val.toString(), (ossia::val_type)addr.value.v.which());
-                  }});
-      a.emplace(json_actions_t::value_type{
-                  QStringLiteral("valueStepSize"),
-                  [] (Device::AddressSettings& addr, const QJsonValue& val) {
-                    ossia::net::set_value_step_size(addr, val.toVariant().toInt());
-                  }});
-      a.emplace(json_actions_t::value_type{
-                  QStringLiteral("readonly"),
-                  [] (Device::AddressSettings& addr, const QJsonValue& val) {
-                    auto v = val.toVariant().toInt();
-                    if(v == 1)
-                      addr.ioType = ossia::access_mode::GET;
-                    else
-                      addr.ioType = ossia::access_mode::BI;
-                  }});
-      a.emplace(json_actions_t::value_type{
-                  QStringLiteral("instanceBounds"),
-                  [] (Device::AddressSettings& addr, const QJsonValue& val) {
-                    // TODO there is a memory corruption error when
-                    // doing it directly with val.toString(), maybe a Qt bug ?
-                    QString str = val.toString();
-                    ossia::net::set_instance_bounds(addr, fromJamomaInstanceBounds(str));
-                  }});
-      return a;
-    }()
-  };
+  static json_actions_t acts{[] {
+    json_actions_t a;
+    a.emplace(json_actions_t::value_type{
+        QStringLiteral("type"),
+        [](Device::AddressSettings& addr, const QJsonValue& val) {
+          addr.value = fromJamomaTextualType(val.toString());
+        }});
+    a.emplace(json_actions_t::value_type{
+        QStringLiteral("description"),
+        [](Device::AddressSettings& addr, const QJsonValue& val) {
+          ossia::net::set_description(addr, val.toString().toStdString());
+        }});
+    a.emplace(json_actions_t::value_type{
+        QStringLiteral("valueDefault"),
+        [](Device::AddressSettings& addr, const QJsonValue& val) {
+          addr.value = fromJamomaJsonValue(
+              val, (ossia::val_type)addr.value.v.which());
+        }});
+    a.emplace(json_actions_t::value_type{
+        QStringLiteral("priority"),
+        [](Device::AddressSettings& addr, const QJsonValue& val) {
+          ossia::net::set_priority(addr, val.toVariant().toInt());
+        }});
+    a.emplace(json_actions_t::value_type{
+        QStringLiteral("rangeBounds"),
+        [](Device::AddressSettings& addr, const QJsonValue& val) {
+          addr.domain = fromJamomaJsonDomain(
+              val.toString(), (ossia::val_type)addr.value.v.which());
+        }});
+    a.emplace(json_actions_t::value_type{
+        QStringLiteral("valueStepSize"),
+        [](Device::AddressSettings& addr, const QJsonValue& val) {
+          ossia::net::set_value_step_size(addr, val.toVariant().toInt());
+        }});
+    a.emplace(json_actions_t::value_type{
+        QStringLiteral("readonly"),
+        [](Device::AddressSettings& addr, const QJsonValue& val) {
+          auto v = val.toVariant().toInt();
+          if (v == 1)
+            addr.ioType = ossia::access_mode::GET;
+          else
+            addr.ioType = ossia::access_mode::BI;
+        }});
+    a.emplace(json_actions_t::value_type{
+        QStringLiteral("instanceBounds"),
+        [](Device::AddressSettings& addr, const QJsonValue& val) {
+          // TODO there is a memory corruption error when
+          // doing it directly with val.toString(), maybe a Qt bug ?
+          QString str = val.toString();
+          ossia::net::set_instance_bounds(addr, fromJamomaInstanceBounds(str));
+        }});
+    return a;
+  }()};
 
   return acts;
 }
 
-static void read_node(
-    const QJsonObject& dom_element,
-    Device::Node& thisNode)
+static void read_node(const QJsonObject& dom_element, Device::Node& thisNode)
 {
   Device::AddressSettings& addr = thisNode.get<Device::AddressSettings>();
   // If the nodes are objects, they're children
@@ -475,19 +465,19 @@ static void read_node(
 
   // First search for type because value has to come afterwards.
   auto type_it = dom_element.find("type");
-  if(type_it != dom_element.end())
+  if (type_it != dom_element.end())
   {
     addr.value = fromJamomaTextualType(type_it->toString());
   }
   auto json_begin = dom_element.constBegin();
   auto json_end = dom_element.constEnd();
-  for(auto it = json_begin; it != json_end; ++it)
+  for (auto it = json_begin; it != json_end; ++it)
   {
-    if(it == type_it)
+    if (it == type_it)
       continue;
 
     const QJsonValue& val = it.value();
-    if(val.isObject())
+    if (val.isObject())
     {
       // It means that it's a children on which we recurse
       Device::AddressSettings cld;
@@ -501,7 +491,7 @@ static void read_node(
     {
       // It's a common attribute.
       auto act_it = acts.find(it.key());
-      if(act_it != acts.end())
+      if (act_it != acts.end())
       {
         act_it.value()(addr, val);
       }
@@ -510,12 +500,10 @@ static void read_node(
 }
 
 bool loadDeviceFromJamomaJSON(
-    const QString& filePath,
-    Device::Node& rootNode)
-try
+    const QString& filePath, Device::Node& rootNode) try
 {
   QFile theFile{filePath};
-  if(!theFile.open(QIODevice::ReadOnly))
+  if (!theFile.open(QIODevice::ReadOnly))
   {
     qDebug() << "Error : unable to open the JSON";
     theFile.close();
@@ -523,7 +511,7 @@ try
   }
 
   QJsonDocument qt_doc = QJsonDocument::fromJson(theFile.readAll());
-  if(qt_doc.isNull())
+  if (qt_doc.isNull())
   {
     return false;
   }
@@ -533,19 +521,19 @@ try
 
   // It should have a single key which is the device object.
   auto it = obj.constBegin();
-  if(it != obj.constEnd())
+  if (it != obj.constEnd())
   {
     const auto& main_v = it.value();
-    if(main_v.isObject())
+    if (main_v.isObject())
     {
       const auto& main_obj = main_v.toObject();
 
       auto sub_it = main_obj.constBegin();
       auto sub_it_end = main_obj.constEnd();
-      for(; sub_it != sub_it_end; sub_it++)
+      for (; sub_it != sub_it_end; sub_it++)
       {
         const auto& sub_it_val = sub_it.value();
-        if(sub_it_val.isObject())
+        if (sub_it_val.isObject())
         {
           // It means that it's a children on which we recurse
           Device::AddressSettings cld;
@@ -565,10 +553,8 @@ try
 
   return true;
 }
-catch(...)
+catch (...)
 {
-return false;
+  return false;
 }
 }
-
-

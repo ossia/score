@@ -1,23 +1,23 @@
 #include "Executor.hpp"
+
+#include <ossia/dataflow/nodes/merger.hpp>
+#include <ossia/editor/scenario/time_value.hpp>
+
 #include <Engine/score2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <ossia/editor/scenario/time_value.hpp>
-#include <ossia/dataflow/nodes/merger.hpp>
 namespace Engine
 {
 namespace Execution
 {
 
-
 MergerComponent::MergerComponent(
-    Media::Merger::Model &element,
-    const Engine::Execution::Context &ctx,
-    const Id<score::Component> &id,
-    QObject *parent)
-  : Engine::Execution::ProcessComponent_T<Media::Merger::Model, ossia::node_process>{
-      element,
-      ctx,
-      id, "Executor::MergerComponent", parent}
+    Media::Merger::Model& element,
+    const Engine::Execution::Context& ctx,
+    const Id<score::Component>& id,
+    QObject* parent)
+    : Engine::Execution::
+          ProcessComponent_T<Media::Merger::Model, ossia::node_process>{
+              element, ctx, id, "Executor::MergerComponent", parent}
 {
   auto node = std::make_shared<ossia::nodes::merger>(element.inCount());
   this->node = node;
@@ -33,7 +33,5 @@ void MergerComponent::recompute()
 MergerComponent::~MergerComponent()
 {
 }
-
 }
 }
-

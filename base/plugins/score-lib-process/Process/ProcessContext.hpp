@@ -1,6 +1,6 @@
 #pragma once
-#include <score/document/DocumentContext.hpp>
 #include <Process/ProcessList.hpp>
+#include <score/document/DocumentContext.hpp>
 class FocusDispatcher;
 namespace Process
 {
@@ -10,8 +10,9 @@ struct ProcessPresenterContext : public score::DocumentContext
 {
   ProcessPresenterContext(
       const score::DocumentContext& doc, FocusDispatcher& d)
-      : score::DocumentContext{doc}, focusDispatcher{d},
-        processList{doc.app.interfaces<Process::LayerFactoryList>()}
+      : score::DocumentContext{doc}
+      , focusDispatcher{d}
+      , processList{doc.app.interfaces<Process::LayerFactoryList>()}
   {
   }
 

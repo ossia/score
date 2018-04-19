@@ -1,13 +1,12 @@
 #pragma once
 #include <QByteArray>
 #include <QJsonObject>
-#include <score/selection/Selection.hpp>
-#include <score/model/IdentifiedObject.hpp>
-
 #include <QString>
 #include <QVariant>
 #include <algorithm>
 #include <iterator>
+#include <score/model/IdentifiedObject.hpp>
+#include <score/selection/Selection.hpp>
 #include <vector>
 #include <wobjectdefs.h>
 class QObject;
@@ -55,14 +54,13 @@ public:
     return m_pluginModels;
   }
 
-  void pluginModelsChanged()
-  W_SIGNAL(pluginModelsChanged)
+  void pluginModelsChanged() W_SIGNAL(pluginModelsChanged)
 
-private:
-  void loadDocumentAsJson(
-      score::DocumentContext& ctx,
-      const QJsonObject&,
-      DocumentDelegateFactory& fact);
+      private
+      : void loadDocumentAsJson(
+            score::DocumentContext& ctx,
+            const QJsonObject&,
+            DocumentDelegateFactory& fact);
   void loadDocumentAsByteArray(
       score::DocumentContext& ctx,
       const QByteArray&,

@@ -1,25 +1,26 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "ValueConversion.hpp"
+
+#include "Expression.hpp"
+
+#include <ossia/detail/apply.hpp>
+#include <ossia/network/value/value.hpp>
+
 #include <QJsonArray>
 #include <QList>
 #include <QLocale>
 #include <QMetaType>
 #include <QObject>
-#include <ossia-qt/js_utilities.hpp>
-#include <ossia/detail/apply.hpp>
-
 #include <QStringList>
 #include <QVector2D>
 #include <QVector3D>
 #include <QVector4D>
+#include <State/Value.hpp>
 #include <algorithm>
 #include <array>
 #include <iterator>
-
-#include "Expression.hpp"
-#include "ValueConversion.hpp"
-#include <ossia/network/value/value.hpp>
-#include <State/Value.hpp>
+#include <ossia-qt/js_utilities.hpp>
 
 namespace State
 {
@@ -32,17 +33,18 @@ const std::array<const QString, 11> ValuePrettyTypes{
      QObject::tr("Bool"), QObject::tr("String"), QObject::tr("List"),
      QObject::tr("Char"), QObject::tr("Container")}};
 
-const std::array<std::pair<QString, ossia::val_type>, 10> ValuePrettyTypesPairArray{
-    {std::make_pair(QObject::tr("Impulse"), ossia::val_type::IMPULSE),
-     std::make_pair(QObject::tr("Int"), ossia::val_type::INT),
-     std::make_pair(QObject::tr("Float"), ossia::val_type::FLOAT),
-     std::make_pair(QObject::tr("Bool"), ossia::val_type::BOOL),
-     std::make_pair(QObject::tr("String"), ossia::val_type::STRING),
-     std::make_pair(QObject::tr("Char"), ossia::val_type::CHAR),
-     std::make_pair(QObject::tr("Vec2f"), ossia::val_type::VEC2F),
-     std::make_pair(QObject::tr("Vec3f"), ossia::val_type::VEC3F),
-     std::make_pair(QObject::tr("Vec4f"), ossia::val_type::VEC4F),
-     std::make_pair(QObject::tr("List"), ossia::val_type::LIST)}};
+const std::array<std::pair<QString, ossia::val_type>, 10>
+    ValuePrettyTypesPairArray{
+        {std::make_pair(QObject::tr("Impulse"), ossia::val_type::IMPULSE),
+         std::make_pair(QObject::tr("Int"), ossia::val_type::INT),
+         std::make_pair(QObject::tr("Float"), ossia::val_type::FLOAT),
+         std::make_pair(QObject::tr("Bool"), ossia::val_type::BOOL),
+         std::make_pair(QObject::tr("String"), ossia::val_type::STRING),
+         std::make_pair(QObject::tr("Char"), ossia::val_type::CHAR),
+         std::make_pair(QObject::tr("Vec2f"), ossia::val_type::VEC2F),
+         std::make_pair(QObject::tr("Vec3f"), ossia::val_type::VEC3F),
+         std::make_pair(QObject::tr("Vec4f"), ossia::val_type::VEC4F),
+         std::make_pair(QObject::tr("List"), ossia::val_type::LIST)}};
 
 template <>
 QVariant value(const ossia::value& val)
@@ -283,7 +285,7 @@ static ossia::val_type which(const QString& val)
 {
   auto it = ValTypesMap.find(val);
   SCORE_ASSERT(it != ValTypesMap.end()); // What happens if there is a
-                                            // corrupt save file ?
+                                         // corrupt save file ?
   return static_cast<ossia::val_type>(*it);
 }
 
@@ -782,7 +784,7 @@ QString value(const ossia::value& val)
   return ossia::apply(visitor, val.v);
 }
 
-template<int N, typename Vis>
+template <int N, typename Vis>
 std::array<float, N> string_to_vec(const std::string& s, const Vis& visitor)
 {
   auto v = parseValue(s);
@@ -791,7 +793,7 @@ std::array<float, N> string_to_vec(const std::string& s, const Vis& visitor)
   {
     const auto& val = *v;
 
-    if(auto t = val.target<list_t>())
+    if (auto t = val.target<list_t>())
       return visitor(*t);
   }
 
@@ -1021,7 +1023,7 @@ list_t value(const ossia::value& val)
 
       if (v)
       {
-        if(auto t = v->target<list_t>())
+        if (auto t = v->target<list_t>())
           return *t;
       }
 

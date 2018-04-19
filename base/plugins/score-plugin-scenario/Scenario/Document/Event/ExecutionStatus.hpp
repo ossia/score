@@ -8,14 +8,14 @@ namespace Scenario
 {
 
 // See ossia::time_event
-enum class OffsetBehavior: int8_t
+enum class OffsetBehavior : int8_t
 {
   True,
   False,
   Expression
 };
 
-enum class ExecutionStatus: int8_t
+enum class ExecutionStatus : int8_t
 {
   Waiting,
   Pending,
@@ -41,7 +41,6 @@ public:
   }
   score::ColorRef eventStatusColor();
   score::ColorRef stateStatusColor();
-
 
 private:
   ExecutionStatus m_status{ExecutionStatus::Editing};

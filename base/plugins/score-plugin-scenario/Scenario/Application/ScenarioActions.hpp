@@ -1,10 +1,9 @@
 #pragma once
 #include <Process/Actions/ProcessActions.hpp>
+#include <Process/Layer/LayerContextMenu.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <score/actions/Action.hpp>
-
-#include <Process/Layer/LayerContextMenu.hpp>
 
 namespace Scenario
 {
@@ -17,7 +16,8 @@ SCORE_PLUGIN_SCENARIO_EXPORT const Scenario::ProcessModel*
 focusedScenarioModel(const score::DocumentContext& ctx);
 
 //! Anything in a scenario model
-class SCORE_PLUGIN_SCENARIO_EXPORT EnableWhenScenarioModelObject final : public score::ActionCondition
+class SCORE_PLUGIN_SCENARIO_EXPORT EnableWhenScenarioModelObject final
+    : public score::ActionCondition
 {
 public:
   EnableWhenScenarioModelObject();
@@ -29,7 +29,8 @@ private:
 };
 
 //! Only events, nodes, states
-class EnableWhenScenarioInterfaceInstantObject final : public score::ActionCondition
+class EnableWhenScenarioInterfaceInstantObject final
+    : public score::ActionCondition
 {
 public:
   EnableWhenScenarioInterfaceInstantObject();
@@ -71,11 +72,15 @@ SCORE_DECLARE_ACTION(
 SCORE_DECLARE_ACTION(
     DeselectAll, "&Deselect All", Scenario, QKeySequence::Deselect)
 SCORE_DECLARE_ACTION(
-    SelectTop, "Select &Top", Scenario, QKeySequence{QObject::tr("Ctrl+Shift+T")})
+    SelectTop,
+    "Select &Top",
+    Scenario,
+    QKeySequence{QObject::tr("Ctrl+Shift+T")})
 
 // Transport
 SCORE_DECLARE_ACTION(Play, "&Play", Scenario, Qt::Key_Space)
-SCORE_DECLARE_ACTION(PlayGlobal, "&Play (Global)", Scenario, Qt::Key_Shift + Qt::Key_Space)
+SCORE_DECLARE_ACTION(
+    PlayGlobal, "&Play (Global)", Scenario, Qt::Key_Shift + Qt::Key_Space)
 SCORE_DECLARE_ACTION(Stop, "&Stop", Scenario, Qt::Key_Return)
 SCORE_DECLARE_ACTION(GoToStart, "&Go to Start", Scenario, Qt::Key_Back)
 SCORE_DECLARE_ACTION(GoToEnd, "Go to &End", Scenario, Qt::Key_Forward)
@@ -86,11 +91,15 @@ SCORE_DECLARE_ACTION(Record, "&Record", Scenario, QKeySequence::UnknownKey)
 // Edit
 SCORE_DECLARE_ACTION(SelectTool, "Tool &Select", Scenario, Qt::Key_S)
 SCORE_DECLARE_ACTION_2S(
-    CreateTool, "Tool &Create", Scenario, QKeySequence{QObject::tr("C")},
+    CreateTool,
+    "Tool &Create",
+    Scenario,
+    QKeySequence{QObject::tr("C")},
     QKeySequence{QObject::tr("Shift+C")})
 SCORE_DECLARE_ACTION(PlayTool, "Tool &Play", Scenario, Qt::Key_P)
 SCORE_DECLARE_ACTION(SequenceMode, "Se&quence", Scenario, Qt::Key_Shift)
-SCORE_DECLARE_ACTION(LockMode, "&Lock", Scenario, QKeySequence{QObject::tr("Alt")})
+SCORE_DECLARE_ACTION(
+    LockMode, "&Lock", Scenario, QKeySequence{QObject::tr("Alt")})
 
 SCORE_DECLARE_ACTION(Scale, "&Scale mode", Scenario, Qt::ALT + Qt::Key_S)
 SCORE_DECLARE_ACTION(Grow, "&Grow mode", Scenario, Qt::ALT + Qt::Key_D)
@@ -126,7 +135,9 @@ SCORE_DECLARE_ACTION(
 SCORE_DECLARE_ACTION(
     RefreshStates, "Refresh St&ates", Scenario, Qt::CTRL + Qt::Key_U)
 SCORE_DECLARE_ACTION(
-    Snapshot, "Snapshot in Event", Scenario,
+    Snapshot,
+    "Snapshot in Event",
+    Scenario,
     QKeySequence(QObject::tr("Ctrl+L")))
 
 // Interval
@@ -135,7 +146,9 @@ SCORE_DECLARE_ACTION(
 SCORE_DECLARE_ACTION(
     InterpolateStates, "&Interpolate states", Scenario, Qt::CTRL + Qt::Key_K)
 SCORE_DECLARE_ACTION(
-    CreateCurves, "Create Curves", Scenario,
+    CreateCurves,
+    "Create Curves",
+    Scenario,
     QKeySequence(QObject::tr("Ctrl+J")))
 SCORE_DECLARE_ACTION(
     MergeTimeSyncs, "&Synchronize", Scenario, Qt::SHIFT + Qt::Key_M)
@@ -146,8 +159,7 @@ SCORE_DECLARE_ACTION(
 
 SCORE_DECLARE_ACTION(
     Encapsulate, "&Encapsulate", Scenario, Qt::SHIFT + Qt::CTRL + Qt::Key_E)
-SCORE_DECLARE_ACTION(
-    Duplicate, "&Duplicate", Scenario, Qt::ALT + Qt::Key_D)
+SCORE_DECLARE_ACTION(Duplicate, "&Duplicate", Scenario, Qt::ALT + Qt::Key_D)
 
 // Navigation
 SCORE_DECLARE_ACTION(MoveUp, "&Move up", Scenario, Qt::UpArrow)

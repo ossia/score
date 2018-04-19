@@ -6,16 +6,19 @@ namespace Direction
 {
 struct Node
 {
-  struct Metadata: Control::Meta_base
+  struct Metadata : Control::Meta_base
   {
     static const constexpr auto prettyName = "Angle mapper";
     static const constexpr auto objectKey = "AngleMapper";
     static const constexpr auto category = "Mappings";
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto uuid = make_uuid("9b0e21ba-965a-4aa4-beeb-60cc5128c418");
+    static const constexpr auto uuid
+        = make_uuid("9b0e21ba-965a-4aa4-beeb-60cc5128c418");
 
-    static const constexpr auto value_ins = ossia::safe_nodes::value_ins<1>{{"in"}};
-    static const constexpr auto value_outs = ossia::safe_nodes::value_outs<1>{{"out"}};
+    static const constexpr auto value_ins
+        = ossia::safe_nodes::value_ins<1>{{"in"}};
+    static const constexpr auto value_outs
+        = ossia::safe_nodes::value_outs<1>{{"out"}};
   };
 
   struct State
@@ -24,19 +27,20 @@ struct Node
   };
 
   using control_policy = ossia::safe_nodes::default_tick;
-  static void run(
-      const ossia::value_port& p1,
+  static void
+  run(const ossia::value_port& p1,
       ossia::value_port& p2,
       ossia::time_value prev_date,
       ossia::token_request,
       ossia::execution_state&,
       State& self)
   {
-    // returns -1, 0, 1 to say if we're going backwards, staying equal, or going forward.
+    // returns -1, 0, 1 to say if we're going backwards, staying equal, or
+    // going forward.
 
-    for(const auto& val : p1.get_data())
+    for (const auto& val : p1.get_data())
     {
-      if(!self.prev_value.valid())
+      if (!self.prev_value.valid())
       {
         self.prev_value = val.value;
         continue;
@@ -46,12 +50,12 @@ struct Node
         ossia::tvalue output;
         output.timestamp = val.timestamp;
 
-        if(self.prev_value < val.value)
+        if (self.prev_value < val.value)
         {
           output.value = 1;
           self.prev_value = val.value;
         }
-        else if(self.prev_value > val.value)
+        else if (self.prev_value > val.value)
         {
           output.value = -1;
           self.prev_value = val.value;
@@ -67,5 +71,4 @@ struct Node
   }
 };
 }
-
 }

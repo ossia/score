@@ -1,5 +1,5 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DocumentMetadata.hpp"
 
 #include <wobjectimpl.h>
@@ -7,7 +7,9 @@ W_OBJECT_IMPL(score::DocumentMetadata)
 namespace score
 {
 
-DocumentMetadata::DocumentMetadata(QString file): m_fileName{file} { }
+DocumentMetadata::DocumentMetadata(QString file) : m_fileName{file}
+{
+}
 
 QString DocumentMetadata::fileName() const
 {

@@ -4,8 +4,8 @@
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <Scenario/Palette/Tools/States/MoveAndMergeState.hpp>
 #include <Scenario/Palette/Tools/States/MoveStates.hpp>
-#include <Scenario/Palette/Transitions/IntervalTransitions.hpp>
 #include <Scenario/Palette/Transitions/EventTransitions.hpp>
+#include <Scenario/Palette/Transitions/IntervalTransitions.hpp>
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>
 #include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
 
@@ -28,10 +28,10 @@ public:
   static void make(const ToolPalette_T& palette, QState* waitState, QState& sm)
   {
     /// Event
-    auto moveEvent = new Scenario::
-        MoveEventState<Command::MoveBaseEvent<Scenario_T>, Scenario_T, ToolPalette_T>{
-            palette, palette.model(), palette.context().context.commandStack,
-            palette.context().context.objectLocker, &sm};
+    auto moveEvent = new Scenario::MoveEventState<
+        Command::MoveBaseEvent<Scenario_T>, Scenario_T, ToolPalette_T>{
+        palette, palette.model(), palette.context().context.commandStack,
+        palette.context().context.objectLocker, &sm};
 
     score::make_transition<Scenario::ClickOnEndState_Transition<Scenario_T>>(
         waitState, moveEvent, *moveEvent);
@@ -49,14 +49,14 @@ public:
   static void make(const ToolPalette_T& palette, QState* waitState, QState& sm)
   {
     /// TimeSync
-    auto moveTimeSync = new Scenario::
-        MoveTimeSyncState<Command::MoveBaseEvent<Scenario_T>, Scenario_T, ToolPalette_T>{
-            palette, palette.model(), palette.context().context.commandStack,
-            palette.context().context.objectLocker, &sm};
+    auto moveTimeSync = new Scenario::MoveTimeSyncState<
+        Command::MoveBaseEvent<Scenario_T>, Scenario_T, ToolPalette_T>{
+        palette, palette.model(), palette.context().context.commandStack,
+        palette.context().context.objectLocker, &sm};
 
-    score::
-        make_transition<Scenario::ClickOnEndTimeSync_Transition<Scenario_T>>(
-            waitState, moveTimeSync, *moveTimeSync);
+    score::make_transition<
+        Scenario::ClickOnEndTimeSync_Transition<Scenario_T>>(
+        waitState, moveTimeSync, *moveTimeSync);
     moveTimeSync->addTransition(moveTimeSync, finishedState(), waitState);
   }
 };

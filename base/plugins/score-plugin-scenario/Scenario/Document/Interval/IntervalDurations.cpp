@@ -1,7 +1,9 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "IntervalDurations.hpp"
+
 #include "IntervalModel.hpp"
+
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/ModelConsistency.hpp>
 
@@ -10,11 +12,9 @@ namespace Scenario
 {
 IntervalDurations::~IntervalDurations()
 {
-
 }
 
-IntervalDurations& IntervalDurations::
-operator=(const IntervalDurations& other)
+IntervalDurations& IntervalDurations::operator=(const IntervalDurations& other)
 {
   m_defaultDuration = other.m_defaultDuration;
   m_minDuration = other.m_minDuration;
@@ -52,7 +52,7 @@ void IntervalDurations::setDefaultDuration(const TimeVal& arg)
     m_defaultDuration = arg;
     defaultDurationChanged(arg);
 
-    if(m_guiDuration < m_defaultDuration)
+    if (m_guiDuration < m_defaultDuration)
       setGuiDuration(m_defaultDuration * 1.1);
 
     checkConsistency();
@@ -77,7 +77,7 @@ void IntervalDurations::setMaxDuration(const TimeVal& arg)
     m_maxDuration = arg;
     maxDurationChanged(arg);
 
-    if(m_guiDuration < m_maxDuration && !m_maxDuration.isInfinite())
+    if (m_guiDuration < m_maxDuration && !m_maxDuration.isInfinite())
       setGuiDuration(m_maxDuration * 1.1);
 
     checkConsistency();
@@ -101,7 +101,8 @@ void IntervalDurations::setPlayPercentage(double arg)
   auto old = m_playPercentage;
   m_playPercentage = arg;
 
-  if(m_defaultDuration * std::abs(old - m_playPercentage) > TimeVal{std::chrono::milliseconds(16)})
+  if (m_defaultDuration * std::abs(old - m_playPercentage)
+      > TimeVal{std::chrono::milliseconds(16)})
   {
     playPercentageChanged(arg);
   }

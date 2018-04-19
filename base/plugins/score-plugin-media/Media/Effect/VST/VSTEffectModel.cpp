@@ -1,45 +1,49 @@
 #include "VSTEffectModel.hpp"
+
 #include "VSTWidgets.hpp"
 
+#include <ossia/detail/math.hpp>
+
+#include <Engine/Executor/DocumentPlugin.hpp>
+#include <Media/ApplicationPlugin.hpp>
+#include <Media/Commands/VSTCommands.hpp>
+#include <Media/Effect/VST/VSTControl.hpp>
 #include <Media/Effect/VST/VSTLoader.hpp>
 #include <ModernMIDI/midi_message.h>
-#include <ossia/detail/math.hpp>
-#include <score/tools/Todo.hpp>
-#include <Media/ApplicationPlugin.hpp>
-#include <QTimer>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
-#include <Engine/Executor/DocumentPlugin.hpp>
-#include <websocketpp/base64/base64.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Media/Effect/VST/VSTControl.hpp>
-#include <Media/Commands/VSTCommands.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <ossia-qt/invoke.hpp>
-
-#include <QUrl>
 #include <QFile>
 #include <QFileInfo>
-#include <set>
+#include <QInputDialog>
+#include <QTimer>
+#include <QUrl>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <cmath>
 #include <iostream>
 #include <memory>
-#include <cmath>
-
-#include <QInputDialog>
+#include <ossia-qt/invoke.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+#include <score/tools/Todo.hpp>
+#include <set>
+#include <websocketpp/base64/base64.hpp>
 namespace Process
 {
-template<>
-QString EffectProcessFactory_T<Media::VST::VSTEffectModel>::customConstructionData() const
+template <>
+QString
+EffectProcessFactory_T<Media::VST::VSTEffectModel>::customConstructionData()
+    const
 {
-  auto& app = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
-  QStringList vsts; vsts.reserve(app.vst_infos.size());
+  auto& app
+      = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
+  QStringList vsts;
+  vsts.reserve(app.vst_infos.size());
   QMap<QString, int32_t> ids;
-  for(Media::ApplicationPlugin::vst_info& i : app.vst_infos)
+  for (Media::ApplicationPlugin::vst_info& i : app.vst_infos)
   {
-    if(i.isValid)
+    if (i.isValid)
     {
       auto name = i.prettyName;
-      if(i.isSynth)
+      if (i.isSynth)
         name = "♪ " + name;
       vsts.push_back(name);
       ids.insert(name, i.uniqueID);
@@ -47,8 +51,10 @@ QString EffectProcessFactory_T<Media::VST::VSTEffectModel>::customConstructionDa
   }
   ossia::sort(vsts);
   bool ok = false;
-  auto res = QInputDialog::getItem(nullptr, QObject::tr("Select a VST plug-in"), QObject::tr("VST plug-in"), vsts, 0, false, &ok);
-  if(ok)
+  auto res = QInputDialog::getItem(
+      nullptr, QObject::tr("Select a VST plug-in"), QObject::tr("VST plug-in"),
+      vsts, 0, false, &ok);
+  if (ok)
     return QString::number(ids[res]);
   return {};
 }
@@ -59,9 +65,8 @@ VSTEffectModel::VSTEffectModel(
     TimeVal t,
     const QString& path,
     const Id<Process::ProcessModel>& id,
-    QObject* parent):
-  ProcessModel{t, id, "VST", parent},
-  m_effectId{path.toInt()}
+    QObject* parent)
+    : ProcessModel{t, id, "VST", parent}, m_effectId{path.toInt()}
 {
   init();
   create();
@@ -83,9 +88,9 @@ void VSTEffectModel::removeControl(int fxNum)
   SCORE_ASSERT(it != controls.end());
   auto ctrl = it->second;
   controls.erase(it);
-  for(auto it = m_inlets.begin(); it != m_inlets.end(); ++it)
+  for (auto it = m_inlets.begin(); it != m_inlets.end(); ++it)
   {
-    if(*it == ctrl)
+    if (*it == ctrl)
     {
       m_inlets.erase(it);
       break;
@@ -97,9 +102,8 @@ void VSTEffectModel::removeControl(int fxNum)
 
 void VSTEffectModel::removeControl(const Id<Process::Port>& id)
 {
-  auto it = ossia::find_if(m_inlets, [&] (const auto& inl) {
-    return inl->id() == id;
-  });
+  auto it = ossia::find_if(
+      m_inlets, [&](const auto& inl) { return inl->id() == id; });
 
   SCORE_ASSERT(it != m_inlets.end());
   auto ctrl = safe_cast<VSTControlInlet*>(*it);
@@ -113,22 +117,22 @@ void VSTEffectModel::removeControl(const Id<Process::Port>& id)
 
 VSTControlInlet* VSTEffectModel::getControl(const Id<Process::Port>& p)
 {
-  for(auto e : m_inlets)
-    if(e->id() == p)
+  for (auto e : m_inlets)
+    if (e->id() == p)
       return static_cast<VSTControlInlet*>(e);
   return nullptr;
 }
 
 void VSTEffectModel::init()
 {
-  connect(this, &VSTEffectModel::addControl,
-          this, &VSTEffectModel::on_addControl);
+  connect(
+      this, &VSTEffectModel::addControl, this, &VSTEffectModel::on_addControl);
 }
 
 void VSTEffectModel::on_addControl(int i, float v)
 {
   auto ctrl = new VSTControlInlet{
-              Id<Process::Port>(getStrongId(inlets()).val()), this};
+      Id<Process::Port>(getStrongId(inlets()).val()), this};
   ctrl->hidden = true;
   ctrl->fxNum = i;
   ctrl->setValue(v);
@@ -141,7 +145,7 @@ void VSTEffectModel::on_addControl(int i, float v)
 
     // Get the nameq
     QString str = name;
-    if(!label.isEmpty())
+    if (!label.isEmpty())
       str += "(" + label + ")";
 
     ctrl->setCustomData(name);
@@ -152,11 +156,12 @@ void VSTEffectModel::on_addControl(int i, float v)
 
 void VSTEffectModel::on_addControl_impl(VSTControlInlet* ctrl)
 {
-  connect(ctrl, &VSTControlInlet::valueChanged,
-          this, [this,i=ctrl->fxNum] (float newval) {
-    if(std::abs(newval - fx->getParameter(i)) > 0.0001)
-      fx->setParameter(i, newval);
-  });
+  connect(
+      ctrl, &VSTControlInlet::valueChanged, this,
+      [this, i = ctrl->fxNum](float newval) {
+        if (std::abs(newval - fx->getParameter(i)) > 0.0001)
+          fx->setParameter(i, newval);
+      });
 
   {
     /*
@@ -165,7 +170,8 @@ void VSTEffectModel::on_addControl_impl(VSTControlInlet* ctrl)
     if(res == 1)
     {
       // apparently there's exactly 0 plug-ins supporting this
-      qDebug() << props.label << props.minInteger << props.maxInteger << props.smallStepFloat << props.stepFloat;
+      qDebug() << props.label << props.minInteger << props.maxInteger <<
+    props.smallStepFloat << props.stepFloat;
     }
     */
   }
@@ -181,18 +187,24 @@ QString VSTEffectModel::getString(AEffectOpcodes op, int param)
   return QString::fromUtf8(paramName);
 }
 
-intptr_t vst_host_callback (AEffect* effect, int32_t opcode, int32_t index, intptr_t value, void* ptr, float opt)
+intptr_t vst_host_callback(
+    AEffect* effect,
+    int32_t opcode,
+    int32_t index,
+    intptr_t value,
+    void* ptr,
+    float opt)
 {
   intptr_t result = 0;
 
-  if(effect)
+  if (effect)
   {
     switch (opcode)
     {
       case audioMasterGetTime:
       {
         auto vst = reinterpret_cast<VSTEffectModel*>(effect->resvd1);
-        if(vst)
+        if (vst)
         {
           result = reinterpret_cast<intptr_t>(&vst->fx->info);
         }
@@ -201,7 +213,7 @@ intptr_t vst_host_callback (AEffect* effect, int32_t opcode, int32_t index, intp
       case audioMasterSizeWindow:
       {
         auto vst = reinterpret_cast<VSTEffectModel*>(effect->resvd1);
-        if(vst && vst->externalUI)
+        if (vst && vst->externalUI)
         {
           ((VSTWindow*)vst->externalUI)->resize(index, value);
         }
@@ -222,10 +234,10 @@ intptr_t vst_host_callback (AEffect* effect, int32_t opcode, int32_t index, intp
       case audioMasterAutomate:
       {
         auto vst = reinterpret_cast<VSTEffectModel*>(effect->resvd1);
-        if(vst)
+        if (vst)
         {
           auto ctrl_it = vst->controls.find(index);
-          if(ctrl_it != vst->controls.end())
+          if (ctrl_it != vst->controls.end())
           {
             ctrl_it->second->setValue(opt);
           }
@@ -233,7 +245,8 @@ intptr_t vst_host_callback (AEffect* effect, int32_t opcode, int32_t index, intp
           {
             ossia::qt::run_async(vst, [=] {
               auto& ctx = score::IDocument::documentContext(*vst);
-              CommandDispatcher<> {ctx.commandStack}.submitCommand<CreateVSTControl>(*vst, index, opt);
+              CommandDispatcher<>{ctx.commandStack}
+                  .submitCommand<CreateVSTControl>(*vst, index, opt);
             });
           }
         }
@@ -256,7 +269,7 @@ intptr_t vst_host_callback (AEffect* effect, int32_t opcode, int32_t index, intp
       break;
     case audioMasterGetOutputLatency:
       break;
-    case audioMasterVersion :
+    case audioMasterVersion:
       result = kVstVersion;
       break;
     case audioMasterGetSampleRate:
@@ -301,14 +314,13 @@ intptr_t vst_host_callback (AEffect* effect, int32_t opcode, int32_t index, intp
     case audioMasterCanDo:
     {
       static const std::set<std::string_view> supported{
-        HostCanDos::canDoSendVstEvents,
-            HostCanDos::canDoSendVstMidiEvent,
-            HostCanDos::canDoSendVstTimeInfo,
-            HostCanDos::canDoSendVstMidiEventFlagIsRealtime,
-            HostCanDos::canDoSizeWindow,
-            HostCanDos::canDoHasCockosViewAsConfig
-      };
-      if(supported.find(static_cast<const char*>(ptr)) != supported.end())
+          HostCanDos::canDoSendVstEvents,
+          HostCanDos::canDoSendVstMidiEvent,
+          HostCanDos::canDoSendVstTimeInfo,
+          HostCanDos::canDoSendVstMidiEventFlagIsRealtime,
+          HostCanDos::canDoSizeWindow,
+          HostCanDos::canDoHasCockosViewAsConfig};
+      if (supported.find(static_cast<const char*>(ptr)) != supported.end())
         result = 1;
       break;
     }
@@ -318,12 +330,12 @@ intptr_t vst_host_callback (AEffect* effect, int32_t opcode, int32_t index, intp
 
 void VSTEffectModel::closePlugin()
 {
-  if(fx)
+  if (fx)
   {
-    if(externalUI)
+    if (externalUI)
     {
       auto w = reinterpret_cast<VSTWindow*>(externalUI);
-      delete w; //hideUI();
+      delete w; // hideUI();
     }
     fx = nullptr;
   }
@@ -336,17 +348,17 @@ void VSTEffectModel::closePlugin()
 
 AEffect* getPluginInstance(const QString& name)
 {
-  auto& app = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
+  auto& app
+      = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
 
   auto info_it = ossia::find_if(
-              app.vst_infos,
-              [&] (const Media::ApplicationPlugin::vst_info& i) {
-    return i.prettyName == name;
-  });
-  if(info_it != app.vst_infos.end())
+      app.vst_infos, [&](const Media::ApplicationPlugin::vst_info& i) {
+        return i.prettyName == name;
+      });
+  if (info_it != app.vst_infos.end())
   {
     auto it = app.vst_modules.find(info_it->uniqueID);
-    if(it != app.vst_modules.end())
+    if (it != app.vst_modules.end())
     {
       if (auto m = it->second->getMain())
       {
@@ -374,17 +386,17 @@ AEffect* getPluginInstance(const QString& name)
 }
 AEffect* getPluginInstance(int32_t id)
 {
-  auto& app = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
+  auto& app
+      = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
 
   auto info_it = ossia::find_if(
-              app.vst_infos,
-              [&] (const Media::ApplicationPlugin::vst_info& i) {
-    return i.uniqueID == id;
-  });
-  if(info_it != app.vst_infos.end())
+      app.vst_infos, [&](const Media::ApplicationPlugin::vst_info& i) {
+        return i.uniqueID == id;
+      });
+  if (info_it != app.vst_infos.end())
   {
     auto it = app.vst_modules.find(info_it->uniqueID);
-    if(it != app.vst_modules.end())
+    if (it != app.vst_modules.end())
     {
       if (auto m = it->second->getMain())
       {
@@ -414,10 +426,11 @@ AEffect* getPluginInstance(int32_t id)
 void VSTEffectModel::initFx()
 {
   fx = std::make_shared<AEffectWrapper>(getPluginInstance(m_effectId));
-  if(!fx->fx)
+  if (!fx->fx)
   {
-    fx = std::make_shared<AEffectWrapper>(getPluginInstance(metadata().getLabel()));
-    if(!fx->fx)
+    fx = std::make_shared<AEffectWrapper>(
+        getPluginInstance(metadata().getLabel()));
+    if (!fx->fx)
     {
       qDebug() << "plugin was not created";
       fx.reset();
@@ -429,8 +442,10 @@ void VSTEffectModel::initFx()
 
   dispatch(effOpen);
 
-  auto& app = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
-  auto it = ossia::find_if(app.vst_infos, [=] (auto& i) { return i.uniqueID == fx->fx->uniqueID; });
+  auto& app
+      = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
+  auto it = ossia::find_if(
+      app.vst_infos, [=](auto& i) { return i.uniqueID == fx->fx->uniqueID; });
   SCORE_ASSERT(it != app.vst_infos.end());
   metadata().setLabel(it->prettyName);
 }
@@ -440,11 +455,11 @@ void VSTEffectModel::create()
   SCORE_ASSERT(!fx);
 
   initFx();
-  if(!fx)
+  if (!fx)
     return;
 
   int inlet_i = 0;
-  if(fx->fx->flags & effFlagsIsSynth)
+  if (fx->fx->flags & effFlagsIsSynth)
   {
     m_inlets.push_back(new Process::Inlet(Id<Process::Port>{inlet_i++}, this));
     m_inlets[0]->type = Process::PortType::Midi;
@@ -475,9 +490,10 @@ void VSTEffectModel::create()
     sig->setValue("4/4");
   }
 
-  if(fx->fx->numParams < 10 || !(fx->fx->flags & VstAEffectFlags::effFlagsHasEditor))
+  if (fx->fx->numParams < 10
+      || !(fx->fx->flags & VstAEffectFlags::effFlagsHasEditor))
   {
-    for(int i = 0; i < fx->fx->numParams; i++)
+    for (int i = 0; i < fx->fx->numParams; i++)
     {
       on_addControl(i, fx->getParameter(i));
     }
@@ -492,27 +508,26 @@ void VSTEffectModel::load()
 {
   SCORE_ASSERT(!fx);
   initFx();
-  if(!fx)
+  if (!fx)
     return;
 
-  for(std::size_t i = 3; i < m_inlets.size(); i++)
+  for (std::size_t i = 3; i < m_inlets.size(); i++)
   {
     auto inlet = safe_cast<VSTControlInlet*>(m_inlets[i]);
     int ctrl = inlet->fxNum;
-    connect(inlet, &VSTControlInlet::valueChanged,
-            this, [this,ctrl] (float newval) {
-      if(std::abs(newval - fx->getParameter(ctrl)) > 0.0001)
-        fx->setParameter(ctrl, newval);
-    });
+    connect(
+        inlet, &VSTControlInlet::valueChanged, this,
+        [this, ctrl](float newval) {
+          if (std::abs(newval - fx->getParameter(ctrl)) > 0.0001)
+            fx->setParameter(ctrl, newval);
+        });
     controls.insert({ctrl, inlet});
   }
 }
-
 }
 
 template <>
-void DataStreamReader::read(
-    const Media::VST::VSTEffectModel& eff)
+void DataStreamReader::read(const Media::VST::VSTEffectModel& eff)
 {
   readPorts(*this, eff.m_inlets, eff.m_outlets);
   m_stream << eff.m_effectId;
@@ -522,10 +537,11 @@ void DataStreamReader::read(
 }
 
 template <>
-void DataStreamWriter::write(
-    Media::VST::VSTEffectModel& eff)
+void DataStreamWriter::write(Media::VST::VSTEffectModel& eff)
 {
-  writePorts(*this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
+  writePorts(
+      *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets,
+      eff.m_outlets, &eff);
 
   m_stream >> eff.m_effectId;
   // TODO save & reload program parameters
@@ -534,28 +550,28 @@ void DataStreamWriter::write(
 }
 
 template <>
-void JSONObjectReader::read(
-    const Media::VST::VSTEffectModel& eff)
+void JSONObjectReader::read(const Media::VST::VSTEffectModel& eff)
 {
   readPorts(obj, eff.m_inlets, eff.m_outlets);
   obj["EffectId"] = eff.m_effectId;
 
-  if(eff.fx)
+  if (eff.fx)
   {
-    if(eff.fx->fx->flags & effFlagsProgramChunks)
+    if (eff.fx->fx->flags & effFlagsProgramChunks)
     {
       void* ptr{};
       auto res = eff.fx->dispatch(effGetChunk, 0, 0, &ptr, 0.f);
-      if(ptr && res > 0)
+      if (ptr && res > 0)
       {
-        auto encoded = websocketpp::base64_encode((const unsigned char*)ptr, res);
+        auto encoded
+            = websocketpp::base64_encode((const unsigned char*)ptr, res);
         obj["Data"] = QString::fromStdString(encoded);
       }
     }
     else
     {
       QJsonArray arr;
-      for(int i = 0; i < eff.fx->fx->numParams; i++)
+      for (int i = 0; i < eff.fx->fx->numParams; i++)
         arr.push_back(eff.fx->getParameter(i));
       obj["Params"] = std::move(arr);
     }
@@ -563,13 +579,14 @@ void JSONObjectReader::read(
 }
 
 template <>
-void JSONObjectWriter::write(
-    Media::VST::VSTEffectModel& eff)
+void JSONObjectWriter::write(Media::VST::VSTEffectModel& eff)
 {
-  writePorts(obj, components.interfaces<Process::PortFactoryList>(), eff.m_inlets, eff.m_outlets, &eff);
+  writePorts(
+      obj, components.interfaces<Process::PortFactoryList>(), eff.m_inlets,
+      eff.m_outlets, &eff);
 
   auto it = obj.find("EffectId");
-  if(it != obj.end())
+  if (it != obj.end())
   {
     eff.m_effectId = it->toInt();
   }
@@ -577,11 +594,11 @@ void JSONObjectWriter::write(
   {
     auto str = obj["Effect"].toString();
 
-    auto& app = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
-    auto it = ossia::find_if(app.vst_infos, [&] (const auto& i) {
-      return i.path == str;
-    });
-    if(it != app.vst_infos.end())
+    auto& app
+        = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
+    auto it = ossia::find_if(
+        app.vst_infos, [&](const auto& i) { return i.path == str; });
+    if (it != app.vst_infos.end())
     {
       eff.m_effectId = it->uniqueID;
     }
@@ -589,23 +606,24 @@ void JSONObjectWriter::write(
 
   eff.load();
   QPointer<Media::VST::VSTEffectModel> ptr = &eff;
-  QTimer::singleShot(1000, [obj=this->obj,ptr] {
-    if(!ptr)
+  QTimer::singleShot(1000, [obj = this->obj, ptr] {
+    if (!ptr)
       return;
     auto& eff = *ptr;
-    if(eff.fx)
+    if (eff.fx)
     {
-      if(eff.fx->fx->flags & effFlagsProgramChunks)
+      if (eff.fx->fx->flags & effFlagsProgramChunks)
       {
         auto it = obj.find("Data");
-        if(it != obj.end())
+        if (it != obj.end())
         {
           auto b64 = websocketpp::base64_decode(it->toString().toStdString());
           eff.fx->dispatch(effSetChunk, 0, b64.size(), b64.data(), 0.f);
 
-          for(std::size_t i = 3; i < eff.inlets().size(); i++)
+          for (std::size_t i = 3; i < eff.inlets().size(); i++)
           {
-            auto inlet = safe_cast<Media::VST::VSTControlInlet*>(eff.inlets()[i]);
+            auto inlet
+                = safe_cast<Media::VST::VSTControlInlet*>(eff.inlets()[i]);
             inlet->setValue(eff.fx->getParameter(inlet->fxNum));
           }
         }
@@ -613,39 +631,41 @@ void JSONObjectWriter::write(
       else
       {
         auto it = obj.find("Params");
-        if(it != obj.end())
+        if (it != obj.end())
         {
           QJsonArray arr = it->toArray();
-          for(int i = 0; i < arr.size(); i++)
+          for (int i = 0; i < arr.size(); i++)
           {
             eff.fx->setParameter(i, arr[i].toDouble());
           }
         }
       }
-    }});
+    }
+  });
 }
 
-
-
-template<>
-void DataStreamReader::read<Media::VST::VSTControlInlet>(const Media::VST::VSTControlInlet& p)
+template <>
+void DataStreamReader::read<Media::VST::VSTControlInlet>(
+    const Media::VST::VSTControlInlet& p)
 {
   m_stream << p.fxNum;
 }
-template<>
-void DataStreamWriter::write<Media::VST::VSTControlInlet>(Media::VST::VSTControlInlet& p)
+template <>
+void DataStreamWriter::write<Media::VST::VSTControlInlet>(
+    Media::VST::VSTControlInlet& p)
 {
   m_stream >> p.fxNum;
 }
 
-template<>
-void JSONObjectReader::read<Media::VST::VSTControlInlet>(const Media::VST::VSTControlInlet& p)
+template <>
+void JSONObjectReader::read<Media::VST::VSTControlInlet>(
+    const Media::VST::VSTControlInlet& p)
 {
   obj["FxNum"] = p.fxNum;
 }
-template<>
-void JSONObjectWriter::write<Media::VST::VSTControlInlet>(Media::VST::VSTControlInlet& p)
+template <>
+void JSONObjectWriter::write<Media::VST::VSTControlInlet>(
+    Media::VST::VSTControlInlet& p)
 {
   p.fxNum = obj["FxNum"].toInt();
 }
-

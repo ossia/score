@@ -3,8 +3,8 @@
 #include <QColor>
 #include <eggs/variant.hpp>
 #include <score/model/Skin.hpp>
-#include <score/tools/std/Optional.hpp>
 #include <score/tools/Todo.hpp>
+#include <score/tools/std/Optional.hpp>
 #include <utility>
 
 namespace score
@@ -12,8 +12,9 @@ namespace score
 /**
  * @brief A reference to a color. Used for skinning.
  *
- * This allows easy skinning : by using these classes instead of directly QColor,
- * we can change a color in a whole graphics scene instantly on the next redraw.
+ * This allows easy skinning : by using these classes instead of directly
+ * QColor, we can change a color in a whole graphics scene instantly on the
+ * next redraw.
  */
 struct SCORE_LIB_BASE_EXPORT ColorRef
 {

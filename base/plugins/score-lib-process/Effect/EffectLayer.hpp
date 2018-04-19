@@ -6,7 +6,8 @@ class QAction;
 namespace Process
 {
 
-class SCORE_LIB_PROCESS_EXPORT EffectLayerView final : public Process::LayerView
+class SCORE_LIB_PROCESS_EXPORT EffectLayerView final
+    : public Process::LayerView
 {
 public:
   EffectLayerView(QGraphicsItem* parent);
@@ -20,9 +21,10 @@ private:
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* ev) override;
 };
 
-class SCORE_LIB_PROCESS_EXPORT EffectLayerPresenter final : public Process::LayerPresenter
+class SCORE_LIB_PROCESS_EXPORT EffectLayerPresenter final
+    : public Process::LayerPresenter
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
   EffectLayerPresenter(
       const Process::ProcessModel& model,
@@ -47,11 +49,10 @@ public:
 
 private Q_SLOTS:
   void closeUI();
+
 private:
   const Process::ProcessModel& m_layer;
   EffectLayerView* m_view{};
   QAction* m_showUI{};
 };
-
-
 }

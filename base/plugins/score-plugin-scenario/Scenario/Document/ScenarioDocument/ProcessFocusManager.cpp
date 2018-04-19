@@ -1,6 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ProcessFocusManager.hpp"
+
 #include <Process/LayerPresenter.hpp>
 #include <Process/Process.hpp>
 namespace Process
@@ -10,7 +11,6 @@ const ProcessModel* ProcessFocusManager::focusedModel() const
 {
   return m_currentModel;
 }
-
 
 LayerPresenter* ProcessFocusManager::focusedPresenter() const
 {
@@ -84,7 +84,7 @@ void ProcessFocusManager::focusPresenter(LayerPresenter* p)
 void ProcessFocusManager::defocusPresenter(LayerPresenter* p)
 {
   p->setFocus(false);
-  if(p->model().selection.get())
+  if (p->model().selection.get())
     p->model().selection.set(false);
   m_deathConnection = QMetaObject::Connection{};
   sig_defocusedPresenter(p);

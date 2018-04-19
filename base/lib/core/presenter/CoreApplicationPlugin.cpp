@@ -1,7 +1,6 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CoreApplicationPlugin.hpp"
-#include <score_git_info.hpp>
 
 #include <QMessageBox>
 #include <QRecentFilesMenu.h>
@@ -11,6 +10,7 @@
 #include <core/view/Window.hpp>
 #include <score/actions/Menu.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+#include <score_git_info.hpp>
 namespace score
 {
 
@@ -23,8 +23,7 @@ CoreApplicationPlugin::CoreApplicationPlugin(
 void CoreApplicationPlugin::newDocument()
 {
   m_presenter.m_docManager.newDocument(
-      context,
-      getStrongId(m_presenter.m_docManager.documents()),
+      context, getStrongId(m_presenter.m_docManager.documents()),
       *context.interfaces<score::DocumentDelegateList>().begin());
 }
 
@@ -53,13 +52,13 @@ void CoreApplicationPlugin::close()
 
 void CoreApplicationPlugin::quit()
 {
-  if(m_presenter.m_view)
+  if (m_presenter.m_view)
     m_presenter.m_view->close();
 }
 
 void CoreApplicationPlugin::restoreLayout()
 {
-  if(m_presenter.m_view)
+  if (m_presenter.m_view)
     m_presenter.m_view->restoreLayout();
 }
 
@@ -70,7 +69,7 @@ void CoreApplicationPlugin::openSettings()
 void CoreApplicationPlugin::openProjectSettings()
 {
   auto doc = m_presenter.documentManager().currentDocument();
-  if(doc)
+  if (doc)
   {
     m_presenter.m_projectSettings.setup(doc->context());
     m_presenter.m_projectSettings.view().exec();
@@ -93,8 +92,7 @@ void CoreApplicationPlugin::about()
   }
 
   QMessageBox::about(
-      nullptr,
-      tr("About score"),
+      nullptr, tr("About score"),
       tr("With love and sweat from the score team. \nVersion:\n")
           + version_text);
 }
@@ -114,7 +112,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
   GUIElements e;
   auto& menus = e.menus;
   auto& actions = e.actions.container;
-  (void) actions;
+  (void)actions;
 
   menus.reserve(10);
   auto file = new QMenu{tr("&File")};
@@ -133,9 +131,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
 
   // Menus are by default at int_max - 1 so that they will be sorted before
   menus.emplace_back(
-      about,
-      Menus::About(),
-      Menu::is_toplevel{},
+      about, Menus::About(), Menu::is_toplevel{},
       std::numeric_limits<int>::max());
 
   auto export_menu = new QMenu{tr("&Export")};
@@ -157,15 +153,13 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
   // Close
   // Quit
 
-  if(m_presenter.view())
+  if (m_presenter.view())
   {
 
     {
       auto new_doc = new QAction(m_presenter.view());
       connect(
-          new_doc,
-          &QAction::triggered,
-          this,
+          new_doc, &QAction::triggered, this,
           &CoreApplicationPlugin::newDocument);
       file->addAction(new_doc);
       e.actions.add<Actions::New>(new_doc);
@@ -175,7 +169,8 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
 
     {
       auto load_doc = new QAction(m_presenter.view());
-      connect(load_doc, &QAction::triggered, this, &CoreApplicationPlugin::load);
+      connect(
+          load_doc, &QAction::triggered, this, &CoreApplicationPlugin::load);
       e.actions.add<Actions::Load>(load_doc);
       file->addAction(load_doc);
     }
@@ -185,7 +180,8 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     auto& cond = context.actions.condition<EnableActionIfDocument>();
     {
       auto save_doc = new QAction(m_presenter.view());
-      connect(save_doc, &QAction::triggered, this, &CoreApplicationPlugin::save);
+      connect(
+          save_doc, &QAction::triggered, this, &CoreApplicationPlugin::save);
       e.actions.add<Actions::Save>(save_doc);
       cond.add<Actions::Save>();
       file->addAction(save_doc);
@@ -194,7 +190,8 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     {
       auto saveas_doc = new QAction(m_presenter.view());
       connect(
-          saveas_doc, &QAction::triggered, this, &CoreApplicationPlugin::saveAs);
+          saveas_doc, &QAction::triggered, this,
+          &CoreApplicationPlugin::saveAs);
       e.actions.add<Actions::SaveAs>(saveas_doc);
       cond.add<Actions::SaveAs>();
       file->addAction(saveas_doc);
@@ -203,20 +200,15 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     file->addSeparator();
 
     file->addMenu(export_menu);
-  #ifdef SCORE_DEBUG
+#ifdef SCORE_DEBUG
     // Add command stack import / export
     {
       auto loadStack_act = new QAction(m_presenter.view());
       connect(
-          loadStack_act,
-          &QAction::triggered,
-          this,
+          loadStack_act, &QAction::triggered, this,
           &CoreApplicationPlugin::loadStack);
       actions.emplace_back(
-          loadStack_act,
-          tr("&Load a stack"),
-          "LoadStack",
-          "Common",
+          loadStack_act, tr("&Load a stack"), "LoadStack", "Common",
           QKeySequence::UnknownKey);
       export_menu->addAction(loadStack_act);
     }
@@ -224,19 +216,14 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     {
       auto saveStack_act = new QAction(m_presenter.view());
       connect(
-          saveStack_act,
-          &QAction::triggered,
-          this,
+          saveStack_act, &QAction::triggered, this,
           &CoreApplicationPlugin::saveStack);
       actions.emplace_back(
-          saveStack_act,
-          tr("&Save a stack"),
-          "SaveStack",
-          "Common",
+          saveStack_act, tr("&Save a stack"), "SaveStack", "Common",
           QKeySequence::UnknownKey);
       export_menu->addAction(saveStack_act);
     }
-  #endif
+#endif
 
     file->addSeparator();
 
@@ -250,7 +237,8 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
 
     {
       auto quit_act = new QAction(m_presenter.view());
-      connect(quit_act, &QAction::triggered, this, &CoreApplicationPlugin::quit);
+      connect(
+          quit_act, &QAction::triggered, this, &CoreApplicationPlugin::quit);
       e.actions.add<Actions::Quit>(quit_act);
       file->addAction(quit_act);
     }
@@ -260,7 +248,8 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     {
       auto act = new QAction(m_presenter.view());
       connect(
-          act, &QAction::triggered, this, &CoreApplicationPlugin::restoreLayout);
+          act, &QAction::triggered, this,
+          &CoreApplicationPlugin::restoreLayout);
       e.actions.add<Actions::RestoreLayout>(act);
       windows_menu->addAction(act);
     }
@@ -269,9 +258,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     {
       auto settings_act = new QAction(m_presenter.view());
       connect(
-          settings_act,
-          &QAction::triggered,
-          this,
+          settings_act, &QAction::triggered, this,
           &CoreApplicationPlugin::openSettings);
       e.actions.add<Actions::OpenSettings>(settings_act);
       settings->addAction(settings_act);
@@ -279,9 +266,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     {
       auto settings_act = new QAction(m_presenter.view());
       connect(
-          settings_act,
-          &QAction::triggered,
-          this,
+          settings_act, &QAction::triggered, this,
           &CoreApplicationPlugin::openProjectSettings);
       e.actions.add<Actions::OpenProjectSettings>(settings_act);
       settings->addAction(settings_act);
@@ -295,7 +280,6 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
       e.actions.add<Actions::About>(about_act);
       about->addAction(about_act);
     }
-
   }
 
   return e;

@@ -1,14 +1,14 @@
 #pragma once
-#include <State/Relation.hpp>
-
-#include <score/tools/std/Optional.hpp>
-#include <score/model/tree/InvisibleRootNode.hpp>
-#include <score/model/tree/VariantBasedNode.hpp>
 #include <ossia/editor/expression/operators.hpp>
-#include <score/model/tree/TreeNode.hpp>
+
 #include <QString>
+#include <State/Relation.hpp>
 #include <algorithm>
 #include <cstddef>
+#include <score/model/tree/InvisibleRootNode.hpp>
+#include <score/model/tree/TreeNode.hpp>
+#include <score/model/tree/VariantBasedNode.hpp>
+#include <score/tools/std/Optional.hpp>
 #include <vector>
 
 class DataStream;
@@ -76,8 +76,10 @@ public:
   QString toString() const;
   QString toPrettyString() const;
 
-  using iterator = typename boost::container::stable_vector<TreeNode>::iterator;
-  using const_iterator = typename boost::container::stable_vector<TreeNode>::const_iterator;
+  using iterator =
+      typename boost::container::stable_vector<TreeNode>::iterator;
+  using const_iterator =
+      typename boost::container::stable_vector<TreeNode>::const_iterator;
 
   iterator begin();
   const_iterator begin() const;
@@ -94,7 +96,8 @@ public:
   // The parent has to be set afterwards.
   TreeNode(const TreeNode<State::ExprData>& other);
   TreeNode(TreeNode<State::ExprData>&& other);
-  TreeNode<State::ExprData>& operator=(const TreeNode<State::ExprData>& source);
+  TreeNode<State::ExprData>&
+  operator=(const TreeNode<State::ExprData>& source);
   TreeNode<State::ExprData>& operator=(TreeNode<State::ExprData>&& source);
 
   TreeNode(State::ExprData data, TreeNode* parent)
@@ -159,7 +162,8 @@ SCORE_LIB_STATE_EXPORT optional<State::Expression>
 parseExpression(const QString& str);
 SCORE_LIB_STATE_EXPORT optional<State::Expression>
 parseExpression(const std::string& str);
-SCORE_LIB_STATE_EXPORT optional<ossia::value> parseValue(const std::string& str);
+SCORE_LIB_STATE_EXPORT optional<ossia::value>
+parseValue(const std::string& str);
 SCORE_LIB_STATE_EXPORT optional<State::Address>
 parseAddress(const QString& str);
 SCORE_LIB_STATE_EXPORT optional<State::AddressAccessor>

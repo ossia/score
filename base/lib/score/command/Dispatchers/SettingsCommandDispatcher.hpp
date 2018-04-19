@@ -1,6 +1,6 @@
 #pragma once
-#include <score/command/SettingsCommand.hpp>
 #include <memory>
+#include <score/command/SettingsCommand.hpp>
 #include <score/tools/std/HashMap.hpp>
 namespace score
 {

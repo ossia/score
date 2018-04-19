@@ -1,6 +1,6 @@
 #pragma once
-#include <score_lib_base_export.h>
 #include <qnamespace.h>
+#include <score_lib_base_export.h>
 class QLayout;
 
 namespace score

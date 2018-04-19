@@ -1,17 +1,17 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
+#include "SetSegmentParameters.hpp"
+
+#include <Curve/CurveModel.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
 #include <QDataStream>
 #include <QtGlobal>
 #include <algorithm>
-
-#include "SetSegmentParameters.hpp"
-#include <Curve/CurveModel.hpp>
-#include <Curve/Segment/CurveSegmentModel.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 
 namespace Curve
 {

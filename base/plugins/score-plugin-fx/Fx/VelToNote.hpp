@@ -1,7 +1,8 @@
 #pragma once
+#include <ossia/detail/math.hpp>
+
 #include <Engine/Node/PdNode.hpp>
 #include <Fx/Quantifier.hpp>
-#include <ossia/detail/math.hpp>
 #include <random>
 namespace Nodes
 {
@@ -9,29 +10,30 @@ namespace PulseToNote
 {
 struct Node
 {
-  struct Metadata: Control::Meta_base
+  struct Metadata : Control::Meta_base
   {
     static const constexpr auto prettyName = "Pulse to Note";
     static const constexpr auto objectKey = "VelToNote";
     static const constexpr auto category = "Midi";
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto uuid = make_uuid("2c6493c3-5449-4e52-ae04-9aee3be5fb6a");
+    static const constexpr auto uuid
+        = make_uuid("2c6493c3-5449-4e52-ae04-9aee3be5fb6a");
 
-    static const constexpr auto value_ins  = ossia::safe_nodes::value_ins<1>{value_in{"in", true}};
-    static const constexpr auto midi_outs = ossia::safe_nodes::midi_outs<1>{{"out"}};
-    static const constexpr auto controls =
-        std::make_tuple(
-          Control::Widgets::QuantificationChooser(),
-          Control::FloatSlider{"Tightness", 0.f, 1.f, 0.8f},
-          Control::Widgets::DurationChooser(),
-          Control::Widgets::MidiSpinbox("Default pitch"),
-          Control::Widgets::MidiSpinbox("Default vel."),
-          Control::Widgets::OctaveSlider("Pitch shift", -5, 5),
-          Control::Widgets::OctaveSlider("Pitch random", 0, 2),
-          Control::Widgets::OctaveSlider("Vel. random", 0, 2),
-          Control::Widgets::MidiChannel("Channel"),
-          Control::Widgets::TempoChooser()
-          );
+    static const constexpr auto value_ins
+        = ossia::safe_nodes::value_ins<1>{value_in{"in", true}};
+    static const constexpr auto midi_outs
+        = ossia::safe_nodes::midi_outs<1>{{"out"}};
+    static const constexpr auto controls = std::make_tuple(
+        Control::Widgets::QuantificationChooser(),
+        Control::FloatSlider{"Tightness", 0.f, 1.f, 0.8f},
+        Control::Widgets::DurationChooser(),
+        Control::Widgets::MidiSpinbox("Default pitch"),
+        Control::Widgets::MidiSpinbox("Default vel."),
+        Control::Widgets::OctaveSlider("Pitch shift", -5, 5),
+        Control::Widgets::OctaveSlider("Pitch random", 0, 2),
+        Control::Widgets::OctaveSlider("Vel. random", 0, 2),
+        Control::Widgets::MidiChannel("Channel"),
+        Control::Widgets::TempoChooser());
   };
 
   using State = Quantifier::Node::State;
@@ -52,7 +54,7 @@ struct Node
     {
       return {base_note, base_vel};
     }
-    template<typename T>
+    template <typename T>
     Note operator()(const T&)
     {
       return {base_note, base_vel};
@@ -79,14 +81,16 @@ struct Node
     }
     Note operator()(const std::vector<ossia::value>& v)
     {
-      switch(v.size())
+      switch (v.size())
       {
-        case 0: return operator()();
-        case 1: return operator()(ossia::convert<int>(v[0]));
+        case 0:
+          return operator()();
+        case 1:
+          return operator()(ossia::convert<int>(v[0]));
         case 2:
         {
           int note = ossia::convert<int>(v[0]);
-          switch(v[1].getType())
+          switch (v[1].getType())
           {
             case ossia::val_type::FLOAT:
               return operator()(note, *v[1].v.target<float>());
@@ -96,13 +100,15 @@ struct Node
               return operator()(note, ossia::convert<int>(v[1]));
           }
         }
-        default: return operator()(ossia::convert<int>(v[0]), ossia::convert<int>(v[1]));
+        default:
+          return operator()(
+              ossia::convert<int>(v[0]), ossia::convert<int>(v[1]));
       }
     }
-    template<std::size_t N>
+    template <std::size_t N>
     Note operator()(const std::array<float, N>& v)
     {
-      static_assert(N>=2);
+      static_assert(N >= 2);
       return operator()(v[0], v[1]);
     }
   };
@@ -111,8 +117,8 @@ struct Node
   {
     return (uint8_t)ossia::clamp(num, 0, 127);
   }
-  static void run(
-      const ossia::value_port& p1,
+  static void
+  run(const ossia::value_port& p1,
       const ossia::safe_nodes::timed_vec<float>& startq,
       const ossia::safe_nodes::timed_vec<float>& tightness,
       const ossia::safe_nodes::timed_vec<float>& dur,
@@ -138,9 +144,11 @@ struct Node
     // 2. Just an int: it's the velocity, use base note
     // 3. A tuple [int, int]: it's note and velocity
 
-    // Then once we have a pair [int, int] we randomize and we output a note on.
+    // Then once we have a pair [int, int] we randomize and we output a note
+    // on.
 
-    // At the end, scan running_notes: if any is going to end in this buffer, end it too.
+    // At the end, scan running_notes: if any is going to end in this buffer,
+    // end it too.
 
     auto start = startq.rbegin()->second;
     auto precision = tightness.rbegin()->second;
@@ -153,38 +161,38 @@ struct Node
     auto chan = chan_vec.rbegin()->second;
     auto tempo = tempo_vec.rbegin()->second;
 
-
     // how much time does a whole note last at this tempo given the current sr
     const auto whole_dur = 240.f / tempo; // in seconds
     const auto whole_samples = whole_dur * st.sampleRate;
 
-    for(auto& in : p1.get_data())
+    for (auto& in : p1.get_data())
     {
       auto note = in.value.apply(val_visitor{self, base_note, base_vel});
 
-      if(rand_note != 0)
-        note.pitch += std::uniform_int_distribution<int>(-rand_note, rand_note)(m);
-      if(rand_vel != 0)
+      if (rand_note != 0)
+        note.pitch
+            += std::uniform_int_distribution<int>(-rand_note, rand_note)(m);
+      if (rand_vel != 0)
         note.vel += std::uniform_int_distribution<int>(-rand_vel, rand_vel)(m);
 
       note.pitch = ossia::clamp((int)note.pitch + shiftnote, 0, 127);
       note.vel = ossia::clamp((int)note.vel, 0, 127);
 
-
-      if(note.vel != 0)
+      if (note.vel != 0)
       {
-        if(start == 0.f) // No quantification, start directly
+        if (start == 0.f) // No quantification, start directly
         {
           auto no = mm::MakeNoteOn(chan, note.pitch, note.vel);
           no.timestamp = in.timestamp;
 
           p2.messages.push_back(no);
-          if(duration > 0.f)
+          if (duration > 0.f)
           {
-            auto end = tk.date + (int64_t)no.timestamp + (int64_t)(whole_samples * duration);
+            auto end = tk.date + (int64_t)no.timestamp
+                       + (int64_t)(whole_samples * duration);
             self.running_notes.push_back({note, end});
           }
-          else if(duration == 0.f)
+          else if (duration == 0.f)
           {
             // Stop at the next sample
             auto noff = mm::MakeNoteOff(chan, note.pitch, note.vel);
@@ -198,7 +206,8 @@ struct Node
           // Find next time that matches the requested quantification
           const auto start_q = whole_samples * start;
           auto perf_date = int64_t(start_q * int64_t(1 + tk.date / start_q));
-          auto actual_date = (1. - precision) * tk.date + precision * perf_date;
+          auto actual_date
+              = (1. - precision) * tk.date + precision * perf_date;
           ossia::time_value next_date{actual_date};
           self.to_start.push_back({note, next_date});
         }
@@ -212,17 +221,16 @@ struct Node
       }
     }
 
-
-    for(auto it = self.to_start.begin(); it != self.to_start.end(); )
+    for (auto it = self.to_start.begin(); it != self.to_start.end();)
     {
       auto& note = *it;
-      if(note.date > prev_date && note.date.impl < tk.date.impl)
+      if (note.date > prev_date && note.date.impl < tk.date.impl)
       {
         auto no = mm::MakeNoteOn(chan, note.note.pitch, note.note.vel);
         no.timestamp = note.date - prev_date;
         p2.messages.push_back(no);
 
-        if(duration > 0.f)
+        if (duration > 0.f)
         {
           auto end = note.date + (int64_t)(whole_samples * duration);
           self.running_notes.push_back({note.note, end});
@@ -243,10 +251,10 @@ struct Node
       }
     }
 
-    for(auto it = self.running_notes.begin(); it != self.running_notes.end(); )
+    for (auto it = self.running_notes.begin(); it != self.running_notes.end();)
     {
       auto& note = *it;
-      if(note.date > prev_date && note.date.impl < tk.date.impl)
+      if (note.date > prev_date && note.date.impl < tk.date.impl)
       {
         auto noff = mm::MakeNoteOff(chan, note.note.pitch, note.note.vel);
         noff.timestamp = note.date - prev_date;
@@ -260,7 +268,5 @@ struct Node
     }
   }
 };
-
 }
-
 }

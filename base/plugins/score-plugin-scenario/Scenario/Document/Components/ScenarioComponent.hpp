@@ -1,28 +1,28 @@
 #pragma once
+#include <ossia/detail/algorithms.hpp>
+
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <score/model/Component.hpp>
-#include <ossia/detail/algorithms.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <score/model/ComponentSerialization.hpp>
 #include <list>
 #include <score/document/DocumentContext.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
+#include <score/model/Component.hpp>
 #include <score/model/ComponentSerialization.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
 
 template <
     typename Component_T,
     typename Scenario_T,
     typename IntervalComponent_T,
     bool HasOwnership = true>
-class SimpleHierarchicalScenarioComponent : public Component_T, public Nano::Observer
+class SimpleHierarchicalScenarioComponent
+    : public Component_T
+    , public Nano::Observer
 {
 public:
   struct IntervalPair
@@ -40,8 +40,8 @@ public:
     init();
   }
 
-
-  //! This constructor allows for initializing the children later. Useful for std::enable_shared_from_this.
+  //! This constructor allows for initializing the children later. Useful for
+  //! std::enable_shared_from_this.
   template <typename... Args>
   SimpleHierarchicalScenarioComponent(score::lazy_init_t, Args&&... args)
       : Component_T{std::forward<Args>(args)...}
@@ -96,7 +96,7 @@ private:
   void do_cleanup(const Pair_T& pair)
   {
     // TODO constexpr-if
-    if(HasOwnership)
+    if (HasOwnership)
     {
       Component_T::removing(pair.element, pair.component);
       pair.element.components().remove(pair.component);
@@ -120,22 +120,20 @@ private:
       add(elt);
     }
 
-    member.mutable_added
-        .template connect<SimpleHierarchicalScenarioComponent, &SimpleHierarchicalScenarioComponent::add>(
-            this);
+    member.mutable_added.template connect<
+        SimpleHierarchicalScenarioComponent,
+        &SimpleHierarchicalScenarioComponent::add>(this);
 
-    member.removing
-        .template connect<SimpleHierarchicalScenarioComponent, &SimpleHierarchicalScenarioComponent::remove>(
-            this);
+    member.removing.template connect<
+        SimpleHierarchicalScenarioComponent,
+        &SimpleHierarchicalScenarioComponent::remove>(this);
   }
 
   template <typename elt_t>
   void add(elt_t& element)
   {
-    add(element,
-        typename score::is_component_serializable<
-          typename MatchingComponent<elt_t, true>::type
-        >::type{});
+    add(element, typename score::is_component_serializable<
+                     typename MatchingComponent<elt_t, true>::type>::type{});
   }
 
   template <typename elt_t>
@@ -147,16 +145,15 @@ private:
     // Since the component may be serializable, we first look if
     // we can deserialize it.
     auto comp = score::deserialize_component<component_t>(
-          element.components(),
-          [&] (auto&& deserializer) {
-      Component_T::template load<component_t>(deserializer, element);
-    });
+        element.components(), [&](auto&& deserializer) {
+          Component_T::template load<component_t>(deserializer, element);
+        });
 
     // Maybe we could not deserialize it
-    if(!comp)
+    if (!comp)
     {
       comp = Component_T::template make<component_t>(
-            getStrongId(element.components()), element);
+          getStrongId(element.components()), element);
     }
 
     // We try to add it
@@ -173,8 +170,7 @@ private:
   {
     // We can just create a new component directly
     using map_t = MatchingComponent<elt_t, true>;
-    auto comp = Component_T::make(
-        getStrongId(element.components()), element);
+    auto comp = Component_T::make(getStrongId(element.components()), element);
     if (comp)
     {
       element.components().add(comp);
@@ -197,8 +193,6 @@ private:
   };
 };
 
-
-
 template <
     typename Component_T,
     typename Scenario_T,
@@ -207,7 +201,9 @@ template <
     typename TimeSyncComponent_T,
     typename StateComponent_T,
     bool HasOwnership = true>
-class HierarchicalScenarioComponent : public Component_T, public Nano::Observer
+class HierarchicalScenarioComponent
+    : public Component_T
+    , public Nano::Observer
 {
 public:
   struct IntervalPair
@@ -243,8 +239,8 @@ public:
     init();
   }
 
-
-  //! This constructor allows for initializing the children later. Useful for std::enable_shared_from_this.
+  //! This constructor allows for initializing the children later. Useful for
+  //! std::enable_shared_from_this.
   template <typename... Args>
   HierarchicalScenarioComponent(score::lazy_init_t, Args&&... args)
       : Component_T{std::forward<Args>(args)...}
@@ -323,7 +319,7 @@ private:
   void do_cleanup(const Pair_T& pair)
   {
     // TODO constexpr-if
-    if(HasOwnership)
+    if (HasOwnership)
     {
       Component_T::removing(pair.element, pair.component);
       pair.element.components().remove(pair.component);
@@ -347,22 +343,20 @@ private:
       add(elt);
     }
 
-    member.mutable_added
-        .template connect<HierarchicalScenarioComponent, &HierarchicalScenarioComponent::add>(
-            this);
+    member.mutable_added.template connect<
+        HierarchicalScenarioComponent, &HierarchicalScenarioComponent::add>(
+        this);
 
-    member.removing
-        .template connect<HierarchicalScenarioComponent, &HierarchicalScenarioComponent::remove>(
-            this);
+    member.removing.template connect<
+        HierarchicalScenarioComponent, &HierarchicalScenarioComponent::remove>(
+        this);
   }
 
   template <typename elt_t>
   void add(elt_t& element)
   {
-    add(element,
-        typename score::is_component_serializable<
-          typename MatchingComponent<elt_t, true>::type
-        >::type{});
+    add(element, typename score::is_component_serializable<
+                     typename MatchingComponent<elt_t, true>::type>::type{});
   }
 
   template <typename elt_t>
@@ -374,16 +368,15 @@ private:
     // Since the component may be serializable, we first look if
     // we can deserialize it.
     auto comp = score::deserialize_component<component_t>(
-          element.components(),
-          [&] (auto&& deserializer) {
-      Component_T::template load<component_t>(deserializer, element);
-    });
+        element.components(), [&](auto&& deserializer) {
+          Component_T::template load<component_t>(deserializer, element);
+        });
 
     // Maybe we could not deserialize it
-    if(!comp)
+    if (!comp)
     {
       comp = Component_T::template make<component_t>(
-            getStrongId(element.components()), element);
+          getStrongId(element.components()), element);
     }
 
     // We try to add it
@@ -432,8 +425,8 @@ private:
     using pair_type = EventPair;
     static const constexpr auto local_container
         = &HierarchicalScenarioComponent::m_events;
-    static const constexpr auto scenario_container = Scenario::
-        ElementTraits<Scenario_T, Scenario::EventModel>::accessor;
+    static const constexpr auto scenario_container
+        = Scenario::ElementTraits<Scenario_T, Scenario::EventModel>::accessor;
   };
   template <bool dummy>
   struct MatchingComponent<Scenario::TimeSyncModel, dummy>
@@ -452,11 +445,10 @@ private:
     using pair_type = StatePair;
     static const constexpr auto local_container
         = &HierarchicalScenarioComponent::m_states;
-    static const constexpr auto scenario_container = Scenario::
-        ElementTraits<Scenario_T, Scenario::StateModel>::accessor;
+    static const constexpr auto scenario_container
+        = Scenario::ElementTraits<Scenario_T, Scenario::StateModel>::accessor;
   };
 };
-
 
 template <
     typename Component_T,
@@ -465,7 +457,9 @@ template <
     typename EventComponent_T,
     typename TimeSyncComponent_T,
     typename StateComponent_T>
-class HierarchicalBaseScenario : public Component_T, public Nano::Observer
+class HierarchicalBaseScenario
+    : public Component_T
+    , public Nano::Observer
 {
 public:
   struct IntervalPair
@@ -606,8 +600,7 @@ private:
     static const constexpr auto local_container
         = &HierarchicalBaseScenario::m_intervals;
     static const constexpr auto scenario_container = Scenario::
-        ElementTraits<BaseScenario_T, Scenario::IntervalModel>::
-            accessor;
+        ElementTraits<BaseScenario_T, Scenario::IntervalModel>::accessor;
   };
   template <bool dummy>
   struct MatchingComponent<Scenario::EventModel, dummy>
@@ -627,8 +620,7 @@ private:
     static const constexpr auto local_container
         = &HierarchicalBaseScenario::m_timeSyncs;
     static const constexpr auto scenario_container = Scenario::
-        ElementTraits<BaseScenario_T, Scenario::TimeSyncModel>::
-            accessor;
+        ElementTraits<BaseScenario_T, Scenario::TimeSyncModel>::accessor;
   };
   template <bool dummy>
   struct MatchingComponent<Scenario::StateModel, dummy>

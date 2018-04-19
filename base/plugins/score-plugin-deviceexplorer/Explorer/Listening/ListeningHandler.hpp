@@ -1,6 +1,6 @@
 #pragma once
-#include <QObject>
 #include <Device/Node/DeviceNode.hpp>
+#include <QObject>
 #include <score_plugin_deviceexplorer_export.h>
 namespace State
 {
@@ -22,14 +22,13 @@ public:
       Device::DeviceInterface& dev, const State::Address& addr, bool b)
       = 0;
 
-    virtual void setListening(
-        Device::DeviceInterface& dev, const Device::Node& addr, bool b)
+  virtual void
+  setListening(Device::DeviceInterface& dev, const Device::Node& addr, bool b)
       = 0;
 
   virtual void addToListening(
       Device::DeviceInterface& dev, const std::vector<State::Address>& v)
       = 0;
-
 
 Q_SIGNALS:
   // Will stop everything from listening

@@ -2,16 +2,16 @@
 #include <Curve/CurveStyle.hpp>
 #include <Curve/Process/CurveProcessPresenter.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
-#include <State/MessageListSerialization.hpp>
 #include <Interpolation/Commands/ChangeAddress.hpp>
 #include <Interpolation/InterpolationProcess.hpp>
 #include <Interpolation/InterpolationView.hpp>
+#include <State/MessageListSerialization.hpp>
 
 namespace Interpolation
 {
 class Presenter final : public Curve::CurveProcessPresenter<ProcessModel, View>
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
   Presenter(
       const Curve::Style& style,
@@ -23,15 +23,11 @@ public:
   {
     con(m_layer, &ProcessModel::tweenChanged, this,
         &Presenter::on_tweenChanges);
-    connect(
-        m_view, &View::dropReceived, this,
-        &Presenter::on_dropReceived);
+    connect(m_view, &View::dropReceived, this, &Presenter::on_dropReceived);
 
     on_tweenChanges(m_layer.tween());
-    con(layer.curve(), &Curve::Model::curveReset,
-        this, [&] {
-      on_tweenChanges(layer.tween());
-    });
+    con(layer.curve(), &Curve::Model::curveReset, this,
+        [&] { on_tweenChanges(layer.tween()); });
   }
 
 private:
@@ -68,7 +64,8 @@ private:
         return;
 
       CommandDispatcher<> disp{context().context.commandStack};
-      ChangeInterpolationAddress(model(), State::AddressAccessor{std::move(as.address)}, disp);
+      ChangeInterpolationAddress(
+          model(), State::AddressAccessor{std::move(as.address)}, disp);
     }
     else if (mime.formats().contains(score::mime::messagelist()))
     {
@@ -88,6 +85,5 @@ private:
       ChangeInterpolationAddress(model(), std::move(newAddr), disp);
     }
   }
-
 };
 }

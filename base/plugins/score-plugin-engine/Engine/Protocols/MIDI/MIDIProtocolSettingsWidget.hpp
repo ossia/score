@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/network/midi/midi.hpp>
+
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 

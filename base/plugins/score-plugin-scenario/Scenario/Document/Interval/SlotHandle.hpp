@@ -20,9 +20,16 @@ class TemporalIntervalPresenter;
 class SCORE_PLUGIN_SCENARIO_EXPORT SlotHandle final : public QGraphicsItem
 {
 public:
-  SlotHandle(const IntervalPresenter& slotView, int slotIndex, bool isstatic, QGraphicsItem* parent);
+  SlotHandle(
+      const IntervalPresenter& slotView,
+      int slotIndex,
+      bool isstatic,
+      QGraphicsItem* parent);
 
-  const IntervalPresenter& presenter() const { return m_presenter; }
+  const IntervalPresenter& presenter() const
+  {
+    return m_presenter;
+  }
   static constexpr int static_type()
   {
     return QGraphicsItem::UserType + ItemType::SlotHandle;
@@ -57,6 +64,4 @@ private:
   int m_slotIndex{};
   bool m_static{};
 };
-
-
 }

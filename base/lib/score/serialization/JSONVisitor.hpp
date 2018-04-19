@@ -1,13 +1,13 @@
 #pragma once
-#include <score/serialization/JSONValueVisitor.hpp>
+#include <ossia/detail/small_vector.hpp>
 
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QMap>
 #include <score/application/ApplicationComponents.hpp>
-#include <score/serialization/StringConstants.hpp>
 #include <score/model/IdentifiedObject.hpp>
-#include <ossia/detail/small_vector.hpp>
+#include <score/serialization/JSONValueVisitor.hpp>
+#include <score/serialization/StringConstants.hpp>
 
 /**
  * This file contains facilities
@@ -48,8 +48,7 @@ class variant;
 }
 }
 
-class SCORE_LIB_BASE_EXPORT JSONObjectReader
-    : public AbstractVisitor
+class SCORE_LIB_BASE_EXPORT JSONObjectReader : public AbstractVisitor
 {
 public:
   using type = JSONObject;
@@ -73,7 +72,7 @@ public:
   }
 
   //! Called by code that wants to serialize.
-  template<typename T>
+  template <typename T>
   void readFrom(const T& obj)
   {
     readFrom_impl(obj, typename serialization_tag<T>::type{});
@@ -90,31 +89,27 @@ public:
   const score::StringConstants& strings;
 
 private:
-
   template <typename T>
-  void readFrom_impl(
-      const T& obj, visitor_template_tag)
+  void readFrom_impl(const T& obj, visitor_template_tag)
   {
     TSerializer<JSONObject, T>::readFrom(*this, obj);
   }
 
   template <typename T>
-  void readFrom_impl(
-      const T& obj, visitor_object_tag)
+  void readFrom_impl(const T& obj, visitor_object_tag)
   {
     TSerializer<JSONObject, IdentifiedObject<T>>::readFrom(*this, obj);
     read(obj);
   }
 
   template <typename T>
-  void readFrom_impl(
-      const T& obj, visitor_entity_tag)
+  void readFrom_impl(const T& obj, visitor_entity_tag)
   {
     TSerializer<JSONObject, score::Entity<T>>::readFrom(*this, obj);
     read(obj);
   }
 
-  template<typename T, typename Fun>
+  template <typename T, typename Fun>
   void readFromAbstract(const T& in, Fun f)
   {
     obj[strings.uuid] = toJsonValue(in.concreteKey().impl());
@@ -123,45 +118,36 @@ private:
   }
 
   template <typename T>
-  void readFrom_impl(
-      const T& obj, visitor_abstract_tag)
+  void readFrom_impl(const T& obj, visitor_abstract_tag)
   {
-    readFromAbstract(
-          obj,
-          [&] (JSONObjectReader& sub){ sub.read(obj); });
+    readFromAbstract(obj, [&](JSONObjectReader& sub) { sub.read(obj); });
   }
 
   template <typename T>
-  void readFrom_impl(
-      const T& obj, visitor_abstract_object_tag)
+  void readFrom_impl(const T& obj, visitor_abstract_object_tag)
   {
-    readFromAbstract(
-          obj,
-          [&] (JSONObjectReader& sub){ sub.readFrom_impl(obj, visitor_object_tag{}); });
+    readFromAbstract(obj, [&](JSONObjectReader& sub) {
+      sub.readFrom_impl(obj, visitor_object_tag{});
+    });
   }
 
   template <typename T>
-  void readFrom_impl(
-      const T& obj, visitor_abstract_entity_tag)
+  void readFrom_impl(const T& obj, visitor_abstract_entity_tag)
   {
-    readFromAbstract(
-          obj,
-          [&] (JSONObjectReader& sub){ sub.readFrom_impl(obj, visitor_entity_tag{}); });
+    readFromAbstract(obj, [&](JSONObjectReader& sub) {
+      sub.readFrom_impl(obj, visitor_entity_tag{});
+    });
   }
 
   //! Used to serialize general objects that won't fit in the other categories
   template <typename T>
-  void readFrom_impl(
-      const T& obj, visitor_default_tag)
+  void readFrom_impl(const T& obj, visitor_default_tag)
   {
     read(obj);
   }
-
-
 };
 
-class SCORE_LIB_BASE_EXPORT JSONObjectWriter
-    : public AbstractVisitor
+class SCORE_LIB_BASE_EXPORT JSONObjectWriter : public AbstractVisitor
 {
 public:
   using type = JSONObject;
@@ -192,7 +178,7 @@ public:
   template <typename T>
   void write(T&);
 
-  template<typename T>
+  template <typename T>
   void writeTo(T& obj)
   {
     writeTo_impl(obj, typename serialization_tag<T>::type{});
@@ -210,7 +196,6 @@ public:
   const score::ApplicationComponents& components;
   const score::StringConstants& strings;
 
-
 private:
   template <typename T>
   void writeTo_impl(T& obj, visitor_template_tag)
@@ -223,13 +208,12 @@ private:
   {
     write(obj);
   }
-
 };
 
 template <typename T>
 struct TSerializer<JSONObject, IdentifiedObject<T>>
 {
-  template<typename U>
+  template <typename U>
   static void
   readFrom(JSONObject::Serializer& s, const IdentifiedObject<U>& obj)
   {
@@ -237,7 +221,7 @@ struct TSerializer<JSONObject, IdentifiedObject<T>>
     s.obj[s.strings.id] = obj.id().val();
   }
 
-  template<typename U>
+  template <typename U>
   static void writeTo(JSONObject::Deserializer& s, IdentifiedObject<U>& obj)
   {
     obj.setObjectName(s.obj[s.strings.ObjectName].toString());
@@ -274,7 +258,6 @@ struct TSerializer<JSONObject, optional<int32_t>>
     }
   }
 };
-
 
 template <typename T>
 QJsonObject toJsonObject(const T& obj)
@@ -419,7 +402,10 @@ QJsonArray toJsonArray(const T<Id<V>>& array)
   return arr;
 }
 
-template <template <typename U, std::size_t> class T, typename V, std::size_t N>
+template <
+    template <typename U, std::size_t> class T,
+    typename V,
+    std::size_t N>
 QJsonArray toJsonArray(const T<Id<V>, N>& array)
 {
   QJsonArray arr;
@@ -431,7 +417,6 @@ QJsonArray toJsonArray(const T<Id<V>, N>& array)
 
   return arr;
 }
-
 
 template <typename Value>
 QJsonArray toJsonMap(const QMap<double, Value>& map)
@@ -468,7 +453,8 @@ QJsonArray toJsonMap(const QMap<Key, Value>& map)
 }
 
 template <
-    typename Key, typename Value,
+    typename Key,
+    typename Value,
     std::enable_if_t<std::is_same<bool, Value>::value>* = nullptr>
 QMap<Key, Value> fromJsonMap(const QJsonArray& array)
 {
@@ -559,7 +545,11 @@ void fromJsonArray(QJsonArray&& json_arr, Container<T>& arr)
   });
 }
 
-template <template <typename U, typename V> class Container, typename T1, typename T2, std::enable_if_t<!std::is_arithmetic<T1>::value>* = nullptr>
+template <
+    template <typename U, typename V> class Container,
+    typename T1,
+    typename T2,
+    std::enable_if_t<!std::is_arithmetic<T1>::value>* = nullptr>
 void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
 {
   arr.clear();
@@ -571,7 +561,11 @@ void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
   });
 }
 
-template <template <typename U, typename V> class Container, typename T1, typename T2, std::enable_if_t<std::is_integral<T1>::value>* = nullptr>
+template <
+    template <typename U, typename V> class Container,
+    typename T1,
+    typename T2,
+    std::enable_if_t<std::is_integral<T1>::value>* = nullptr>
 void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
 {
   int n = json_arr.size();
@@ -582,7 +576,11 @@ void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
   }
 }
 
-template <template <typename U, typename V> class Container, typename T1, typename T2, std::enable_if_t<std::is_floating_point<T1>::value>* = nullptr>
+template <
+    template <typename U, typename V> class Container,
+    typename T1,
+    typename T2,
+    std::enable_if_t<std::is_floating_point<T1>::value>* = nullptr>
 void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
 {
   int n = json_arr.size();
@@ -604,7 +602,7 @@ inline void fromJsonArray(QJsonArray&& json_arr, QStringList& arr)
   }
 }
 
-template<typename T>
+template <typename T>
 QJsonArray toJsonArray(const std::vector<T*>& array)
 {
   QJsonArray arr;
@@ -613,8 +611,9 @@ QJsonArray toJsonArray(const std::vector<T*>& array)
   return arr;
 }
 
-template<typename T>
-void fromJsonArray(const QJsonArray& arr, std::vector<T*>& array, QObject* parent)
+template <typename T>
+void fromJsonArray(
+    const QJsonArray& arr, std::vector<T*>& array, QObject* parent)
 {
   for (const auto& v : arr)
   {
@@ -623,8 +622,9 @@ void fromJsonArray(const QJsonArray& arr, std::vector<T*>& array, QObject* paren
   }
 }
 
-template<typename T, std::size_t N>
-void fromJsonArray(const QJsonArray& arr, ossia::small_vector<T*, N>& array, QObject* parent)
+template <typename T, std::size_t N>
+void fromJsonArray(
+    const QJsonArray& arr, ossia::small_vector<T*, N>& array, QObject* parent)
 {
   for (const auto& v : arr)
   {
@@ -632,7 +632,6 @@ void fromJsonArray(const QJsonArray& arr, ossia::small_vector<T*, N>& array, QOb
     array.push_back(new T{JSONObjectWriter{obj}, parent});
   }
 }
-
 
 Q_DECLARE_METATYPE(JSONObjectReader*)
 Q_DECLARE_METATYPE(JSONObjectWriter*)

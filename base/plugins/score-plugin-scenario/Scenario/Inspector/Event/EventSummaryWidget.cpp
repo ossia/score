@@ -1,28 +1,26 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "EventSummaryWidget.hpp"
 
 #include <QGridLayout>
 #include <QLabel>
-
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Inspector/SelectionButton.hpp>
+#include <State/Expression.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
 
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Inspector/SelectionButton.hpp>
-#include <State/Expression.hpp>
-
 namespace Scenario
 {
 EventSummaryWidget::EventSummaryWidget(
-    const EventModel& object, const score::DocumentContext& doc,
+    const EventModel& object,
+    const score::DocumentContext& doc,
     QWidget* parent)
     : QWidget{parent}
     , event{object}
-    , m_selectionDispatcher{
-          new score::SelectionDispatcher{doc.selectionStack}}
+    , m_selectionDispatcher{new score::SelectionDispatcher{doc.selectionStack}}
 {
   auto mainLay = new score::MarginLess<QGridLayout>{this};
 
@@ -43,6 +41,5 @@ EventSummaryWidget::EventSummaryWidget(
 
 EventSummaryWidget::~EventSummaryWidget()
 {
-
 }
 }

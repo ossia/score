@@ -1,8 +1,9 @@
 #pragma once
 #include "ZoomHelper.hpp"
+
+#include <QMetaType>
 #include <QStringBuilder>
 #include <QTime>
-#include <QMetaType>
 #include <chrono>
 #include <score/tools/std/Optional.hpp>
 
@@ -61,8 +62,9 @@ public:
   }
 
   template <
-      typename Duration, std::enable_if_t<std::is_class<
-                             typename Duration::period>::value>* = nullptr>
+      typename Duration,
+      std::enable_if_t<
+          std::is_class<typename Duration::period>::value>* = nullptr>
   constexpr TimeValue_T(Duration&& dur)
       : m_impl{T(std::chrono::duration_cast<std::chrono::milliseconds>(dur)
                      .count())}
@@ -264,6 +266,5 @@ inline const TimeVal& max(const TimeVal& lhs, const TimeVal& rhs)
   else
     return lhs;
 }
-
 
 Q_DECLARE_METATYPE(TimeVal)

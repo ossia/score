@@ -1,19 +1,20 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "score_plugin_js.hpp"
+
+#include "JS/Commands/JSCommandFactory.hpp"
+
+#include <Engine/Executor/DocumentPlugin.hpp>
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <JS/Executor/Component.hpp>
 #include <JS/Inspector/JSInspectorFactory.hpp>
 #include <JS/JSProcessFactory.hpp>
 #include <JS/Qml/QmlObjects.hpp>
-#include <score/tools/std/HashMap.hpp>
-
-#include "JS/Commands/JSCommandFactory.hpp"
-#include "score_plugin_js.hpp"
-#include <Engine/Executor/DocumentPlugin.hpp>
-#include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
 #include <score/plugins/customfactory/FactorySetup.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/tools/std/HashMap.hpp>
 #include <score_plugin_js_commands_files.hpp>
 
 score_plugin_js::score_plugin_js() : QObject{}
@@ -38,18 +39,16 @@ score_plugin_js::~score_plugin_js()
 {
 }
 
-std::vector<std::unique_ptr<score::InterfaceBase>>
-score_plugin_js::factories(
-    const score::ApplicationContext& ctx,
-    const score::InterfaceKey& key) const
+std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_js::factories(
+    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
-  return instantiate_factories<score::ApplicationContext,
+  return instantiate_factories<
+      score::ApplicationContext,
       FW<Process::ProcessModelFactory, JS::ProcessFactory>,
       FW<Process::LayerFactory, JS::LayerFactory>,
       FW<Inspector::InspectorWidgetFactory, JS::InspectorFactory>,
-      FW<Engine::Execution::ProcessComponentFactory, JS::Executor::ComponentFactory>
-      >(
-      ctx, key);
+      FW<Engine::Execution::ProcessComponentFactory,
+         JS::Executor::ComponentFactory>>(ctx, key);
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>

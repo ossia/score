@@ -1,23 +1,20 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "PlayToolState.hpp"
 
+#include <QApplication>
+#include <QKeyEvent>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Palette/ScenarioPalette.hpp>
-
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
-
+#include <Scenario/Palette/ScenarioPalette.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
-#include <QKeyEvent>
-#include <QApplication>
 namespace Scenario
 {
 PlayToolState::PlayToolState(const Scenario::ToolPalette& sm)
     : m_sm{sm}
     , m_exec{m_sm.context()
-                 .context.app
-                 .guiApplicationPlugin<ScenarioApplicationPlugin>()
+                 .context.app.guiApplicationPlugin<ScenarioApplicationPlugin>()
                  .execution()}
 {
 }
@@ -53,16 +50,13 @@ void PlayToolState::on_pressed(
                     : OptionalId<IntervalModel>{};
       if (id)
       {
-        if(QApplication::keyboardModifiers() & Qt::AltModifier)
+        if (QApplication::keyboardModifiers() & Qt::AltModifier)
         {
           m_exec.playInterval(m_sm.model(), *id);
         }
         else
         {
-          m_exec.playFromIntervalAtDate(
-                m_sm.model(),
-                *id,
-                scenarioPoint.date);
+          m_exec.playFromIntervalAtDate(m_sm.model(), *id, scenarioPoint.date);
         }
       }
       break;

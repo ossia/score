@@ -1,13 +1,12 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "BoolValueWidget.hpp"
+
 #include <QComboBox>
 #include <QGridLayout>
-#include <score/widgets/MarginLess.hpp>
-
 #include <QString>
-
-#include "BoolValueWidget.hpp"
 #include <State/Widgets/Values/ValueWidget.hpp>
+#include <score/widgets/MarginLess.hpp>
 
 namespace State
 {

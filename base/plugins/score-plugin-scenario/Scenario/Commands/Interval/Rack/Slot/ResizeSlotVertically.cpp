@@ -1,12 +1,12 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
 #include "ResizeSlotVertically.hpp"
+
 #include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 
 namespace Scenario
 {
@@ -14,17 +14,14 @@ namespace Command
 {
 
 ResizeSlotVertically::ResizeSlotVertically(
-    const IntervalModel& cst,
-    const SlotPath& slotPath,
-    double newSize)
-  : m_path{slotPath}, m_newSize{newSize}
+    const IntervalModel& cst, const SlotPath& slotPath, double newSize)
+    : m_path{slotPath}, m_newSize{newSize}
 {
   m_originalSize = cst.getSlotHeight(m_path);
 }
 
 ResizeSlotVertically::ResizeSlotVertically(
-    const IntervalModel& cst,
-    SlotPath&& slotPath, double newSize)
+    const IntervalModel& cst, SlotPath&& slotPath, double newSize)
     : m_path{slotPath}, m_newSize{newSize}
 {
   m_originalSize = cst.getSlotHeight(m_path);

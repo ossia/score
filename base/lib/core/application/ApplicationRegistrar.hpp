@@ -1,15 +1,13 @@
 #pragma once
 #include <QObject>
+#include <score/actions/Action.hpp>
+#include <score/command/Command.hpp>
 #include <score/command/CommandGeneratorMap.hpp>
 #include <score/plugins/Addon.hpp>
-#include <score/tools/std/HashMap.hpp>
-#include <utility>
-
-#include <score/command/Command.hpp>
 #include <score/plugins/customfactory/FactoryInterface.hpp>
-
-#include <score/actions/Action.hpp>
+#include <score/tools/std/HashMap.hpp>
 #include <score_lib_base_export.h>
+#include <utility>
 namespace score
 {
 class DocumentDelegateFactory;
@@ -30,12 +28,10 @@ class Plugin_QtInterface;
  * classes of the plug-in and performs minor initialization steps.
  */
 
-class SCORE_LIB_BASE_EXPORT ApplicationRegistrar
-    : public QObject
+class SCORE_LIB_BASE_EXPORT ApplicationRegistrar : public QObject
 {
 public:
-  ApplicationRegistrar(
-      ApplicationComponentsData&);
+  ApplicationRegistrar(ApplicationComponentsData&);
   ~ApplicationRegistrar();
 
   void registerAddons(std::vector<score::Addon> vec);
@@ -43,11 +39,11 @@ public:
 
   void registerCommands(
       score::hash_map<CommandGroupKey, CommandGeneratorMap>&& cmds);
-  void registerCommands(
-      std::pair<CommandGroupKey, CommandGeneratorMap>&& cmds);
-  void registerFactories(
-      score::hash_map<score::InterfaceKey, std::unique_ptr<InterfaceListBase>>&&
-              cmds);
+  void
+  registerCommands(std::pair<CommandGroupKey, CommandGeneratorMap>&& cmds);
+  void registerFactories(score::hash_map<
+                         score::InterfaceKey,
+                         std::unique_ptr<InterfaceListBase>>&& cmds);
   void registerFactory(std::unique_ptr<InterfaceListBase> cmds);
 
   ApplicationComponentsData& components() const

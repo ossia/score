@@ -1,20 +1,20 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "AddressBarItem.hpp"
+
+#include "ClickableLabelItem.hpp"
 
 #include <QMap>
 #include <QObject>
 #include <QString>
 #include <QtAlgorithms>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <algorithm>
 #include <cstddef>
-#include <vector>
-
-#include "AddressBarItem.hpp"
-#include "ClickableLabelItem.hpp"
 #include <score/model/ModelMetadata.hpp>
 #include <score/model/path/ObjectIdentifier.hpp>
+#include <vector>
 
 class QPainter;
 class QStyleOptionGraphicsItem;
@@ -23,10 +23,8 @@ class QWidget;
 namespace Scenario
 {
 AddressBarItem::AddressBarItem(
-    const score::DocumentContext& ctx,
-    QGraphicsItem* parent)
-  : QGraphicsItem{parent}
-  , m_ctx{ctx}
+    const score::DocumentContext& ctx, QGraphicsItem* parent)
+    : QGraphicsItem{parent}, m_ctx{ctx}
 {
   this->setFlag(QGraphicsItem::ItemHasNoContents, true);
 }
@@ -45,7 +43,7 @@ void AddressBarItem::setTargetObject(ObjectPath&& path)
   {
     i++;
     if (!identifier.objectName().contains("IntervalModel")
-     && !identifier.objectName().contains("ConstraintModel"))
+        && !identifier.objectName().contains("ConstraintModel"))
       continue;
 
     auto thisPath = m_currentPath;
@@ -57,8 +55,7 @@ void AddressBarItem::setTargetObject(ObjectPath&& path)
 
     auto lab = new ClickableLabelItem{
         thisObj.metadata(),
-        [&](ClickableLabelItem*) { intervalSelected(thisObj); },
-        txt, this};
+        [&](ClickableLabelItem*) { intervalSelected(thisObj); }, txt, this};
 
     lab->setIndex(i);
     connect(

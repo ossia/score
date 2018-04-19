@@ -1,37 +1,53 @@
 #pragma once
-#include <score/tools/Todo.hpp>
+#include <ossia/detail/small_vector.hpp>
+
 #include <QByteArray>
 #include <QDataStream>
-#include <score/serialization/VisitorInterface.hpp>
-#include <stdexcept>
-#include <sys/types.h>
-#include <type_traits>
-#include <vector>
-#include <ossia/detail/small_vector.hpp>
-#include <boost/container/flat_set.hpp>
-#include <score/serialization/VisitorTags.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <score/model/EntityBase.hpp>
-
 #include <QVector2D>
 #include <QVector3D>
 #include <QVector4D>
+#include <boost/container/flat_set.hpp>
+#include <score/model/EntityBase.hpp>
+#include <score/serialization/VisitorInterface.hpp>
+#include <score/serialization/VisitorTags.hpp>
+#include <score/tools/Todo.hpp>
+#include <score/tools/std/Optional.hpp>
+#include <stdexcept>
 #include <string>
+#include <sys/types.h>
+#include <type_traits>
+#include <vector>
 
 namespace score
 {
 class ApplicationComponents;
 }
 #if defined(SCORE_DEBUG_DELIMITERS)
-#define SCORE_DEBUG_INSERT_DELIMITER do { insertDelimiter(); } while(0)
-#define SCORE_DEBUG_INSERT_DELIMITER2(Vis) do { Vis.insertDelimiter(); } while(0)
-#define SCORE_DEBUG_CHECK_DELIMITER do { checkDelimiter(); } while(0)
-#define SCORE_DEBUG_CHECK_DELIMITER2(Vis) do { Vis.checkDelimiter(); } while(0)
+#  define SCORE_DEBUG_INSERT_DELIMITER \
+    do                                 \
+    {                                  \
+      insertDelimiter();               \
+    } while (0)
+#  define SCORE_DEBUG_INSERT_DELIMITER2(Vis) \
+    do                                       \
+    {                                        \
+      Vis.insertDelimiter();                 \
+    } while (0)
+#  define SCORE_DEBUG_CHECK_DELIMITER \
+    do                                \
+    {                                 \
+      checkDelimiter();               \
+    } while (0)
+#  define SCORE_DEBUG_CHECK_DELIMITER2(Vis) \
+    do                                      \
+    {                                       \
+      Vis.checkDelimiter();                 \
+    } while (0)
 #else
-#define SCORE_DEBUG_INSERT_DELIMITER
-#define SCORE_DEBUG_INSERT_DELIMITER2(Vis)
-#define SCORE_DEBUG_CHECK_DELIMITER
-#define SCORE_DEBUG_CHECK_DELIMITER2(Vis)
+#  define SCORE_DEBUG_INSERT_DELIMITER
+#  define SCORE_DEBUG_INSERT_DELIMITER2(Vis)
+#  define SCORE_DEBUG_CHECK_DELIMITER
+#  define SCORE_DEBUG_CHECK_DELIMITER2(Vis)
 #endif
 
 /**
@@ -43,16 +59,11 @@ class ApplicationComponents;
  * Generally, it is used with QByteArrays, but it works with any QIODevice.
  */
 template <typename T>
-using enable_if_QDataStreamSerializable =
-    typename std::enable_if_t<
-      std::is_arithmetic<T>::value
-   || std::is_same<T, QStringList>::value
-   || std::is_same<T, QVector2D>::value
-   || std::is_same<T, QVector3D>::value
-   || std::is_same<T, QVector4D>::value
-   || std::is_same<T, QPointF>::value
-   || std::is_same<T, QPoint>::value
-   || std::is_same<T, std::string>::value>;
+using enable_if_QDataStreamSerializable = typename std::enable_if_t<
+    std::is_arithmetic<T>::value || std::is_same<T, QStringList>::value
+    || std::is_same<T, QVector2D>::value || std::is_same<T, QVector3D>::value
+    || std::is_same<T, QVector4D>::value || std::is_same<T, QPointF>::value
+    || std::is_same<T, QPoint>::value || std::is_same<T, std::string>::value>;
 
 template <class, class Enable = void>
 struct is_QDataStreamSerializable : std::false_type
@@ -60,8 +71,9 @@ struct is_QDataStreamSerializable : std::false_type
 };
 
 template <class T>
-struct
-    is_QDataStreamSerializable<T, enable_if_QDataStreamSerializable<typename std::decay<T>::type>>
+struct is_QDataStreamSerializable<
+    T,
+    enable_if_QDataStreamSerializable<typename std::decay<T>::type>>
     : std::true_type
 {
 };
@@ -135,11 +147,9 @@ public:
   }
 };
 
-class SCORE_LIB_BASE_EXPORT DataStreamReader
-    : public AbstractVisitor
+class SCORE_LIB_BASE_EXPORT DataStreamReader : public AbstractVisitor
 {
 public:
-
   using type = DataStream;
   using is_visitor_tag = std::integral_constant<bool, true>;
 
@@ -165,7 +175,7 @@ public:
   }
 
   //! Called by code that wants to serialize.
-  template<typename T>
+  template <typename T>
   void readFrom(const T& obj)
   {
     readFrom_impl(obj, typename serialization_tag<T>::type{});
@@ -193,29 +203,26 @@ public:
 
 private:
   template <typename T>
-  void readFrom_impl(
-      const T& obj, visitor_template_tag)
+  void readFrom_impl(const T& obj, visitor_template_tag)
   {
     TSerializer<DataStream, T>::readFrom(*this, obj);
   }
 
   template <typename T>
-  void readFrom_impl(
-      const T& obj, visitor_object_tag)
+  void readFrom_impl(const T& obj, visitor_object_tag)
   {
     TSerializer<DataStream, IdentifiedObject<T>>::readFrom(*this, obj);
     read(obj);
   }
 
   template <typename T>
-  void readFrom_impl(
-      const T& obj, visitor_entity_tag)
+  void readFrom_impl(const T& obj, visitor_entity_tag)
   {
     TSerializer<DataStream, score::Entity<T>>::readFrom(*this, obj);
     read(obj);
   }
 
-  template<typename T, typename Fun>
+  template <typename T, typename Fun>
   void readFromAbstract(const T& obj, Fun f)
   {
     // We save in a byte array so that
@@ -232,7 +239,8 @@ private:
     // Read our object
     f(sub);
 
-    // Read the implementation of the derived class, through a virtual function.
+    // Read the implementation of the derived class, through a virtual
+    // function.
     obj.serialize_impl(sub.toVariant());
 
     // Finish our object
@@ -243,52 +251,39 @@ private:
   }
 
   template <typename T>
-  void readFrom_impl(
-      const T& obj, visitor_abstract_tag)
+  void readFrom_impl(const T& obj, visitor_abstract_tag)
   {
-    readFromAbstract(
-          obj,
-          [&] (DataStreamReader& sub)
-    {
+    readFromAbstract(obj, [&](DataStreamReader& sub) {
       // Read the implementation of the base object
       sub.read(obj);
     });
   }
 
   template <typename T>
-  void readFrom_impl(
-      const T& obj, visitor_abstract_object_tag)
+  void readFrom_impl(const T& obj, visitor_abstract_object_tag)
   {
-    readFromAbstract(
-          obj,
-          [&] (DataStreamReader& sub)
-    {
+    readFromAbstract(obj, [&](DataStreamReader& sub) {
       sub.readFrom_impl(obj, visitor_object_tag{});
     });
   }
 
   template <typename T>
-  void readFrom_impl(
-      const T& obj, visitor_abstract_entity_tag)
+  void readFrom_impl(const T& obj, visitor_abstract_entity_tag)
   {
-    readFromAbstract(
-          obj,
-          [&] (DataStreamReader& sub)
-    {
+    readFromAbstract(obj, [&](DataStreamReader& sub) {
       sub.readFrom_impl(obj, visitor_entity_tag{});
     });
   }
 
   //! Used to serialize general objects that won't fit in the other categories
   template <typename T>
-  void readFrom_impl(
-      const T& obj, visitor_default_tag)
+  void readFrom_impl(const T& obj, visitor_default_tag)
   {
     read(obj);
   }
 
   //! Used to serialize enums.
-  template<typename T>
+  template <typename T>
   void readFrom_impl(const T& elt, visitor_enum_tag)
   {
     m_stream << (int32_t)elt;
@@ -301,9 +296,7 @@ public:
   DataStreamInput m_stream{m_stream_impl};
 };
 
-
-class SCORE_LIB_BASE_EXPORT DataStreamWriter
-    : public AbstractVisitor
+class SCORE_LIB_BASE_EXPORT DataStreamWriter : public AbstractVisitor
 {
 public:
   using type = DataStream;
@@ -336,7 +329,7 @@ public:
   template <typename T>
   void write(T&);
 
-  template<typename T>
+  template <typename T>
   void writeTo(T& obj)
   {
     writeTo_impl(obj, typename serialization_tag<T>::type{});
@@ -396,8 +389,9 @@ public:
 // TODO instead why not add a score_serializable tag to our classes ?
 template <
     typename T,
-    std::
-        enable_if_t<!std::is_arithmetic<T>::value && !std::is_same<T, QStringList>::value>* = nullptr>
+    std::enable_if_t<
+        !std::is_arithmetic<T>::value
+        && !std::is_same<T, QStringList>::value>* = nullptr>
 QDataStream& operator<<(QDataStream& stream, const T& obj)
 {
   DataStreamReader reader{stream.device()};
@@ -407,8 +401,9 @@ QDataStream& operator<<(QDataStream& stream, const T& obj)
 
 template <
     typename T,
-    std::
-        enable_if_t<!std::is_arithmetic<T>::value && !std::is_same<T, QStringList>::value>* = nullptr>
+    std::enable_if_t<
+        !std::is_arithmetic<T>::value
+        && !std::is_same<T, QStringList>::value>* = nullptr>
 QDataStream& operator>>(QDataStream& stream, T& obj)
 {
   DataStreamWriter writer{stream.device()};
@@ -438,7 +433,7 @@ struct TSerializer<DataStream, Id<U>>
 template <typename T>
 struct TSerializer<DataStream, IdentifiedObject<T>>
 {
-  template<typename U>
+  template <typename U>
   static void
   readFrom(DataStream::Serializer& s, const IdentifiedObject<U>& obj)
   {
@@ -449,7 +444,7 @@ struct TSerializer<DataStream, IdentifiedObject<T>>
     SCORE_DEBUG_INSERT_DELIMITER2(s);
   }
 
-  template<typename U>
+  template <typename U>
   static void writeTo(DataStream::Deserializer& s, IdentifiedObject<U>& obj)
   {
     QString name;
@@ -516,8 +511,7 @@ struct TSerializer<DataStream, QList<T>>
 template <typename T, std::size_t N>
 struct TSerializer<DataStream, std::array<T, N>>
 {
-  static void
-  readFrom(DataStream::Serializer& s, const std::array<T, N>& arr)
+  static void readFrom(DataStream::Serializer& s, const std::array<T, N>& arr)
   {
     for (std::size_t i = 0U; i < N; i++)
       s.stream() << arr[i];
@@ -547,7 +541,8 @@ struct TSerializer<DataStream, ossia::small_vector<T, N>>
     SCORE_DEBUG_INSERT_DELIMITER2(s);
   }
 
-  static void writeTo(DataStream::Deserializer& s, ossia::small_vector<T, N>& arr)
+  static void
+  writeTo(DataStream::Deserializer& s, ossia::small_vector<T, N>& arr)
   {
     int32_t sz;
 
@@ -573,7 +568,8 @@ struct TSerializer<DataStream, ossia::static_vector<T, N>>
     SCORE_DEBUG_INSERT_DELIMITER2(s);
   }
 
-  static void writeTo(DataStream::Deserializer& s, ossia::static_vector<T, N>& arr)
+  static void
+  writeTo(DataStream::Deserializer& s, ossia::static_vector<T, N>& arr)
   {
     int32_t sz;
 
@@ -587,11 +583,11 @@ struct TSerializer<DataStream, ossia::static_vector<T, N>>
 };
 
 template <typename... Args>
-struct
-    TSerializer<
-       DataStream,
-       std::vector<Args...>,
-       std::enable_if_t<!is_QDataStreamSerializable<typename std::vector<Args...>::value_type>::value>>
+struct TSerializer<
+    DataStream,
+    std::vector<Args...>,
+    std::enable_if_t<!is_QDataStreamSerializable<
+        typename std::vector<Args...>::value_type>::value>>
 {
   static void
   readFrom(DataStream::Serializer& s, const std::vector<Args...>& vec)
@@ -620,11 +616,11 @@ struct
 };
 
 template <typename... Args>
-struct
-    TSerializer<
-      DataStream,
-      std::vector<Args...>,
-      std::enable_if_t<is_QDataStreamSerializable<typename std::vector<Args...>::value_type>::value>>
+struct TSerializer<
+    DataStream,
+    std::vector<Args...>,
+    std::enable_if_t<is_QDataStreamSerializable<
+        typename std::vector<Args...>::value_type>::value>>
 {
   static void
   readFrom(DataStream::Serializer& s, const std::vector<Args...>& vec)
@@ -670,29 +666,26 @@ struct TSerializer<DataStream, UuidKey<U>>
   }
 };
 
-template<typename T, typename U>
+template <typename T, typename U>
 struct TSerializer<DataStream, score::hash_map<T, U>>
 {
-  static void readFrom(
-      DataStream::Serializer& s,
-      const score::hash_map<T, U>& obj)
+  static void
+  readFrom(DataStream::Serializer& s, const score::hash_map<T, U>& obj)
   {
     auto& st = s.stream();
-    st << (int32_t) obj.size();
-    for(const auto& e : obj)
+    st << (int32_t)obj.size();
+    for (const auto& e : obj)
     {
       st << e.first << e.second;
     }
   }
 
-  static void writeTo(
-      DataStream::Deserializer& s,
-      score::hash_map<T, U>& obj)
+  static void writeTo(DataStream::Deserializer& s, score::hash_map<T, U>& obj)
   {
     auto& st = s.stream();
     int32_t n;
     st >> n;
-    for(int32_t i = 0; i < n; i++)
+    for (int32_t i = 0; i < n; i++)
     {
       T key;
       U value;
@@ -709,7 +702,7 @@ struct TSerializer<DataStream, boost::container::flat_set<T>>
   static void readFrom(DataStream::Serializer& s, const type& obj)
   {
     s.stream() << (int32_t)obj.size();
-    for(const auto& e : obj)
+    for (const auto& e : obj)
       s.stream() << e;
   }
 
@@ -717,7 +710,7 @@ struct TSerializer<DataStream, boost::container::flat_set<T>>
   {
     int32_t n;
     s.stream() >> n;
-    for(; n --> 0;)
+    for (; n-- > 0;)
     {
       T val;
       s.stream() >> val;

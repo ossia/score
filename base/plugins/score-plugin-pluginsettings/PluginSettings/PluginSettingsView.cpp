@@ -1,25 +1,23 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QGridLayout>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "PluginSettingsView.hpp"
 
 #include "PluginSettingsPresenter.hpp"
-#include "PluginSettingsView.hpp"
+
 #include <PluginSettings/FileDownloader.hpp>
-#include <QHeaderView>
-#include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
-
-#include <QNetworkRequest>
-#include <QTemporaryFile>
-
 #include <QBuffer>
-#include <QFile>
-#include <QJsonDocument>
-#include <QNetworkReply>
-#include <QStandardPaths>
 #include <QDir>
+#include <QFile>
+#include <QGridLayout>
+#include <QHeaderView>
+#include <QJsonDocument>
 #include <QMessageBox>
-
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QStandardPaths>
+#include <QTemporaryFile>
 #include <miniz.c>
+#include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 
 namespace PluginSettings
 {
@@ -29,90 +27,92 @@ namespace zip_helper
 
 QString get_path(const QString& str)
 {
-    auto idx = str.lastIndexOf('/');
-    if(idx != -1)
-    {
-      return str.mid(0, idx);
-    }
-    return "";
+  auto idx = str.lastIndexOf('/');
+  if (idx != -1)
+  {
+    return str.mid(0, idx);
+  }
+  return "";
 }
 
 QString slash_path(const QString& str)
 {
-    return {};
+  return {};
 }
 
 QString relative_path(const QString& base, const QString& filename)
 {
-    return filename;
+  return filename;
 }
 
 QString combine_path(const QString& path, const QString& filename)
 {
-    return path + "/" + filename;
+  return path + "/" + filename;
 }
 
 bool make_folder(const QString& str)
 {
-    QDir d;
-    return d.mkpath(str);
+  QDir d;
+  return d.mkpath(str);
 }
 
-std::vector<QString> unzip(const QString& zipFile,
-                               const QString& path)
+std::vector<QString> unzip(const QString& zipFile, const QString& path)
 {
-    std::vector<QString> files;
-    mz_zip_archive zip_archive;
-    memset(&zip_archive, 0, sizeof(zip_archive));
+  std::vector<QString> files;
+  mz_zip_archive zip_archive;
+  memset(&zip_archive, 0, sizeof(zip_archive));
 
-    auto status = mz_zip_reader_init_file(&zip_archive, zipFile.toUtf8(), 0);
-    if (!status) return files;
-    int fileCount = (int)mz_zip_reader_get_num_files(&zip_archive);
-    if (fileCount == 0)
-    {
-        mz_zip_reader_end(&zip_archive);
-        return files;
-    }
-    mz_zip_archive_file_stat file_stat;
-    if (!mz_zip_reader_file_stat(&zip_archive, 0, &file_stat))
-    {
-        mz_zip_reader_end(&zip_archive);
-        return files;
-    }
-
-    // Get root folder
-    QString lastDir = "";
-    QString base = slash_path(get_path(file_stat.m_filename)); // path delim on end
-
-    // Get and print information about each file in the archive.
-    for (int i = 0; i < fileCount; i++)
-    {
-        if (!mz_zip_reader_file_stat(&zip_archive, i, &file_stat)) continue;
-        if (mz_zip_reader_is_file_a_directory(&zip_archive, i)) continue; // skip directories for now
-        QString fileName = relative_path(base, file_stat.m_filename); // make path relative
-        QString destFile = combine_path(path, fileName); // make full dest path
-        auto newDir = get_path(fileName); // get the file's path
-        if (newDir != lastDir)
-        {
-            if (!make_folder(combine_path(path, newDir))) // creates the directory
-            {
-                return files;
-            }
-        }
-
-        if (mz_zip_reader_extract_to_file(&zip_archive, i, destFile.toUtf8(), 0))
-        {
-            files.emplace_back(destFile);
-        }
-    }
-
-    // Close the archive, freeing any resources it was using
+  auto status = mz_zip_reader_init_file(&zip_archive, zipFile.toUtf8(), 0);
+  if (!status)
+    return files;
+  int fileCount = (int)mz_zip_reader_get_num_files(&zip_archive);
+  if (fileCount == 0)
+  {
     mz_zip_reader_end(&zip_archive);
     return files;
-}
+  }
+  mz_zip_archive_file_stat file_stat;
+  if (!mz_zip_reader_file_stat(&zip_archive, 0, &file_stat))
+  {
+    mz_zip_reader_end(&zip_archive);
+    return files;
+  }
 
-}
+  // Get root folder
+  QString lastDir = "";
+  QString base
+      = slash_path(get_path(file_stat.m_filename)); // path delim on end
 
+  // Get and print information about each file in the archive.
+  for (int i = 0; i < fileCount; i++)
+  {
+    if (!mz_zip_reader_file_stat(&zip_archive, i, &file_stat))
+      continue;
+    if (mz_zip_reader_is_file_a_directory(&zip_archive, i))
+      continue; // skip directories for now
+    QString fileName
+        = relative_path(base, file_stat.m_filename); // make path relative
+    QString destFile = combine_path(path, fileName); // make full dest path
+    auto newDir = get_path(fileName);                // get the file's path
+    if (newDir != lastDir)
+    {
+      if (!make_folder(combine_path(path, newDir))) // creates the directory
+      {
+        return files;
+      }
+    }
+
+    if (mz_zip_reader_extract_to_file(&zip_archive, i, destFile.toUtf8(), 0))
+    {
+      files.emplace_back(destFile);
+    }
+  }
+
+  // Close the archive, freeing any resources it was using
+  mz_zip_reader_end(&zip_archive);
+  return files;
+}
+}
 
 PluginSettingsView::PluginSettingsView()
 {
@@ -177,7 +177,6 @@ PluginSettingsView::PluginSettingsView()
       });
 
   connect(m_refresh, &QPushButton::pressed, this, [this]() {
-
     RemotePluginItemModel* model
         = static_cast<RemotePluginItemModel*>(m_remoteAddons->model());
     model->clear();
@@ -188,12 +187,10 @@ PluginSettingsView::PluginSettingsView()
         QUrl("https://raw.githubusercontent.com/OSSIA/score-addons/master/"
              "addons.json")};
     mgr.get(rqst);
-
   });
 #if !defined(_MSC_VER)
 
   connect(m_install, &QPushButton::pressed, this, [this]() {
-
     RemotePluginItemModel& remotePlugins
         = *static_cast<RemotePluginItemModel*>(m_remoteAddons->model());
 
@@ -211,7 +208,6 @@ PluginSettingsView::PluginSettingsView()
     connect(
         dl, &score::FileDownloader::downloaded, this,
         [&, dl, addon](QByteArray arr) {
-
           QTemporaryFile f;
           f.open();
           f.setAutoRemove(true);
@@ -219,14 +215,14 @@ PluginSettingsView::PluginSettingsView()
 
           QFileInfo fi{f};
 
-#if defined(SCORE_DEPLOYMENT_BUILD)
+#  if defined(SCORE_DEPLOYMENT_BUILD)
           auto docs = QStandardPaths::standardLocations(
                           QStandardPaths::DocumentsLocation)
                           .first();
           auto dirname = docs + "/score/plugins/";
-#else
+#  else
             auto dirname = "addons";
-#endif
+#  endif
 
           auto res = zip_helper::unzip(fi.absoluteFilePath(), dirname);
 
@@ -235,8 +231,7 @@ PluginSettingsView::PluginSettingsView()
           if (res.size() > 0)
           {
             QMessageBox::information(
-                m_widget,
-                tr("Addon downloaded"),
+                m_widget, tr("Addon downloaded"),
                 tr("The addon %1 has been succesfully installed in :\n"
                    "%2\n\n"
                    "Please restart score to enable it.")
@@ -246,8 +241,7 @@ PluginSettingsView::PluginSettingsView()
           else
           {
             QMessageBox::warning(
-                m_widget,
-                tr("Download failed"),
+                m_widget, tr("Download failed"),
                 tr("The addon %1 could not be downloaded."));
           }
         });
@@ -329,28 +323,26 @@ void PluginSettingsView::handleAddon(const QJsonObject& obj)
   {
     // c.f. https://wiki.qt.io/Download_Data_from_URL
     auto dl = new score::FileDownloader{QUrl{smallImage}};
-    connect(
-        dl, &score::FileDownloader::downloaded, this, [=](QByteArray arr) {
-          model->updateAddon(add.key, [=](RemoteAddon& add) {
-            add.smallImage.loadFromData(arr);
-          });
+    connect(dl, &score::FileDownloader::downloaded, this, [=](QByteArray arr) {
+      model->updateAddon(add.key, [=](RemoteAddon& add) {
+        add.smallImage.loadFromData(arr);
+      });
 
-          dl->deleteLater();
-        });
+      dl->deleteLater();
+    });
   }
 
   if (!largeImage.isEmpty())
   {
     // c.f. https://wiki.qt.io/Download_Data_from_URL
     auto dl = new score::FileDownloader{QUrl{largeImage}};
-    connect(
-        dl, &score::FileDownloader::downloaded, this, [=](QByteArray arr) {
-          model->updateAddon(add.key, [=](RemoteAddon& add) {
-            add.largeImage.loadFromData(arr);
-          });
+    connect(dl, &score::FileDownloader::downloaded, this, [=](QByteArray arr) {
+      model->updateAddon(add.key, [=](RemoteAddon& add) {
+        add.largeImage.loadFromData(arr);
+      });
 
-          dl->deleteLater();
-        });
+      dl->deleteLater();
+    });
   }
 
   model->addAddon(std::move(add));

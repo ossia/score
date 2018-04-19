@@ -1,16 +1,16 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "IntervalInspectorFactory.hpp"
+
+#include "IntervalInspectorWidget.hpp"
+
 #include <Inspector/InspectorWidgetList.hpp>
 #include <Process/ProcessList.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Inspector/Interval/IntervalInspectorDelegateFactory.hpp>
-
 #include <QString>
-#include <score/application/ApplicationContext.hpp>
-
-#include "IntervalInspectorFactory.hpp"
-#include "IntervalInspectorWidget.hpp"
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Inspector/Interval/IntervalInspectorDelegate.hpp>
+#include <Scenario/Inspector/Interval/IntervalInspectorDelegateFactory.hpp>
+#include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 
@@ -25,23 +25,20 @@ QWidget* IntervalInspectorFactory::make(
     QWidget* parent) const
 {
   auto& appContext = doc.app;
-  auto& widgetFact
-      = appContext.interfaces<Inspector::InspectorWidgetList>();
+  auto& widgetFact = appContext.interfaces<Inspector::InspectorWidgetList>();
   auto& intervalWidgetFactory
-      = appContext
-            .interfaces<IntervalInspectorDelegateFactoryList>();
+      = appContext.interfaces<IntervalInspectorDelegateFactoryList>();
 
   // make a relevant widget delegate :
 
-  auto interval
-      = dynamic_cast<const IntervalModel*>(sourceElements.first());
+  auto interval = dynamic_cast<const IntervalModel*>(sourceElements.first());
 
-  if(interval)
+  if (interval)
     return new IntervalInspectorWidget{
-      widgetFact, *interval,
-          intervalWidgetFactory.make(
+        widgetFact, *interval,
+        intervalWidgetFactory.make(
             &IntervalInspectorDelegateFactory::make, *interval),
-          doc, parent};
+        doc, parent};
   return nullptr;
 }
 

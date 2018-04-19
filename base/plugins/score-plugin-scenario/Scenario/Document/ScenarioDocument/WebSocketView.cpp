@@ -1,12 +1,14 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "WebSocketView.hpp"
+
 #include <QtCore/QDebug>
 
 WebSocketView::WebSocketView(QGraphicsScene* s, quint16 port, QObject* parent)
     : QObject(parent)
     , m_pWebSocketServer(new QWebSocketServer(
-          QStringLiteral("Echo Server"), QWebSocketServer::NonSecureMode,
+          QStringLiteral("Echo Server"),
+          QWebSocketServer::NonSecureMode,
           this))
     , m_scene{s}
 {

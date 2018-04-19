@@ -1,28 +1,28 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "StatePresenter.hpp"
+
+#include "StateModel.hpp"
+
+#include <QApplication>
 #include <QMimeData>
 #include <QStringList>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <State/MessageListSerialization.hpp>
-#include <score/document/DocumentInterface.hpp>
-#include <score/widgets/GraphicsItem.hpp>
-
-#include "StateModel.hpp"
-#include "StatePresenter.hpp"
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include <State/Message.hpp>
+#include <State/MessageListSerialization.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/document/DocumentInterface.hpp>
+#include <score/model/IdentifiedObject.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/serialization/MimeVisitor.hpp>
-#include <score/model/IdentifiedObject.hpp>
-#include <QApplication>
-
 #include <score/tools/Todo.hpp>
+#include <score/widgets/GraphicsItem.hpp>
 
 class QObject;
 #include <score/model/Identifier.hpp>
@@ -46,9 +46,10 @@ StatePresenter::StatePresenter(
   con(m_model, &StateModel::statusChanged, m_view, &StateView::setStatus);
   m_view->setStatus(m_model.status());
 
-
   connect(m_view, &StateView::startCreateMode, this, [=] {
-    auto& plug = score::GUIAppContext().guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
+    auto& plug
+        = score::GUIAppContext()
+              .guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
     plug.editionSettings().setTool(Scenario::Tool::Create);
   });
   connect(m_view, &StateView::dropReceived, this, &StatePresenter::handleDrop);

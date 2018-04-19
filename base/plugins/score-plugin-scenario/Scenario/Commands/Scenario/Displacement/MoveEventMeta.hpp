@@ -1,14 +1,13 @@
 #pragma once
 
-#include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
-
 #include "MoveEventFactoryInterface.hpp"
+
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
+#include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <score/model/path/Path.hpp>
-
 #include <score/model/Identifier.hpp>
+#include <score/model/path/Path.hpp>
 struct DataStreamInput;
 struct DataStreamOutput;
 
@@ -29,8 +28,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT MoveEventMeta final
 public:
   MoveEventMeta(
       const Scenario::ProcessModel& scenarioPath,
-      Id<EventModel>
-          eventId,
+      Id<EventModel> eventId,
       TimeVal newDate,
       double y,
       ExpandMode mode,
@@ -38,8 +36,7 @@ public:
 
   MoveEventMeta(
       const Scenario::ProcessModel& scenarioPath,
-      Id<EventModel>
-          eventId,
+      Id<EventModel> eventId,
       TimeVal newDate,
       double y,
       ExpandMode mode,
@@ -54,13 +51,15 @@ public:
       Scenario::ProcessModel& scenar,
       const Id<EventModel>& eventId,
       const TimeVal& newDate,
-      double y, ExpandMode mode,
+      double y,
+      ExpandMode mode,
       LockMode lock) override;
   void update(
       Scenario::ProcessModel& scenar,
       const Id<EventModel>& eventId,
       const TimeVal& newDate,
-      double y, ExpandMode mode,
+      double y,
+      ExpandMode mode,
       LockMode lock,
       const Id<StateModel>& st);
 
@@ -81,8 +80,6 @@ private:
   std::unique_ptr<SerializableMoveEvent> m_moveEventImplementation{};
 };
 
-
-
 class SCORE_PLUGIN_SCENARIO_EXPORT MoveTopEventMeta final
     : public SerializableMoveEvent
 {
@@ -92,22 +89,22 @@ class SCORE_PLUGIN_SCENARIO_EXPORT MoveTopEventMeta final
 public:
   MoveTopEventMeta(
       const Scenario::ProcessModel& scenarioPath,
-      Id<EventModel>
-          eventId,
+      Id<EventModel> eventId,
       TimeVal newDate,
       double y,
       ExpandMode mode,
       LockMode lock);
   MoveTopEventMeta(
-          const Scenario::ProcessModel& scenarioPath,
-          Id<EventModel>
-          eventId,
-          TimeVal newDate,
-          double y,
-          ExpandMode mode,
-          LockMode lock, Id<StateModel> )
-      : MoveTopEventMeta{scenarioPath, eventId, newDate, y ,mode, lock}
-  { }
+      const Scenario::ProcessModel& scenarioPath,
+      Id<EventModel> eventId,
+      TimeVal newDate,
+      double y,
+      ExpandMode mode,
+      LockMode lock,
+      Id<StateModel>)
+      : MoveTopEventMeta{scenarioPath, eventId, newDate, y, mode, lock}
+  {
+  }
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
@@ -115,13 +112,22 @@ public:
   const Path<Scenario::ProcessModel>& path() const override;
 
   void update(
-      Scenario::ProcessModel&, const Id<EventModel>& eventId, const TimeVal& newDate,
-      double y, ExpandMode mode, LockMode) override;
+      Scenario::ProcessModel&,
+      const Id<EventModel>& eventId,
+      const TimeVal& newDate,
+      double y,
+      ExpandMode mode,
+      LockMode) override;
   void update(
-          Scenario::ProcessModel& s, const Id<EventModel>& eventId, const TimeVal& newDate,
-          double y, ExpandMode mode, LockMode, const Id<StateModel>&)
+      Scenario::ProcessModel& s,
+      const Id<EventModel>& eventId,
+      const TimeVal& newDate,
+      double y,
+      ExpandMode mode,
+      LockMode,
+      const Id<StateModel>&)
   {
-      update(s, eventId, newDate, y, mode, LockMode::Free);
+    update(s, eventId, newDate, y, mode, LockMode::Free);
   }
 
 protected:

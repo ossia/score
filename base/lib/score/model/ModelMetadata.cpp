@@ -1,18 +1,20 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ModelMetadata.hpp"
+
 #include <ossia/network/base/name_validation.hpp>
+
 #include <QJsonObject>
+#include <ossia-qt/js_utilities.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
-#include <ossia-qt/js_utilities.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::ModelMetadata)
 namespace score
 {
 ModelMetadata::ModelMetadata()
 {
-    m_color = &score::Skin::Base1;
+  m_color = &score::Skin::Base1;
 }
 
 ModelMetadata::ModelMetadata(const ModelMetadata& other) : QObject{}
@@ -74,19 +76,19 @@ void ModelMetadata::setName(const QString& arg)
 
     auto parent_bros
         = parent()->parent()->findChildren<IdentifiedObjectAbstract*>(
-          QString{}, Qt::FindDirectChildrenOnly);
+            QString{}, Qt::FindDirectChildrenOnly);
 
     bros.clear();
     bros.reserve(parent_bros.size());
     for (auto o : parent_bros)
     {
       auto objs = o->findChildren<ModelMetadata*>(
-            QString{}, Qt::FindDirectChildrenOnly);
+          QString{}, Qt::FindDirectChildrenOnly);
       if (!objs.empty())
       {
-         auto n = objs[0]->getName();
-         if(!n.isEmpty())
-             bros.push_back(std::move(n));
+        auto n = objs[0]->getName();
+        if (!n.isEmpty())
+          bros.push_back(std::move(n));
       }
     }
 
@@ -152,16 +154,14 @@ void ModelMetadata::setExtendedMetadata(const QVariantMap& arg)
 }
 
 // MOVEME
-template<>
-SCORE_LIB_BASE_EXPORT void
-DataStreamReader::read(const score::ColorRef& md)
+template <>
+SCORE_LIB_BASE_EXPORT void DataStreamReader::read(const score::ColorRef& md)
 {
   m_stream << md.name();
 }
 
-template<>
-SCORE_LIB_BASE_EXPORT void
-DataStreamWriter::write(score::ColorRef& md)
+template <>
+SCORE_LIB_BASE_EXPORT void DataStreamWriter::write(score::ColorRef& md)
 {
   QString col_name;
   m_stream >> col_name;
@@ -171,7 +171,7 @@ DataStreamWriter::write(score::ColorRef& md)
     md = *col;
 }
 
-template<>
+template <>
 SCORE_LIB_BASE_EXPORT void
 DataStreamReader::read(const score::ModelMetadata& md)
 {
@@ -181,9 +181,8 @@ DataStreamReader::read(const score::ModelMetadata& md)
   insertDelimiter();
 }
 
-template<>
-SCORE_LIB_BASE_EXPORT void
-DataStreamWriter::write(score::ModelMetadata& md)
+template <>
+SCORE_LIB_BASE_EXPORT void DataStreamWriter::write(score::ModelMetadata& md)
 {
   m_stream >> md.m_scriptingName >> md.m_comment >> md.m_color >> md.m_label
       >> md.m_extendedMetadata;
@@ -191,7 +190,7 @@ DataStreamWriter::write(score::ModelMetadata& md)
   checkDelimiter();
 }
 
-template<>
+template <>
 SCORE_LIB_BASE_EXPORT void
 JSONObjectReader::read(const score::ModelMetadata& md)
 {
@@ -202,13 +201,12 @@ JSONObjectReader::read(const score::ModelMetadata& md)
   if (!md.m_extendedMetadata.empty())
   {
     obj.insert(
-          strings.Extended, QJsonObject::fromVariantMap(md.m_extendedMetadata));
+        strings.Extended, QJsonObject::fromVariantMap(md.m_extendedMetadata));
   }
 }
 
-template<>
-SCORE_LIB_BASE_EXPORT void
-JSONObjectWriter::write(score::ModelMetadata& md)
+template <>
+SCORE_LIB_BASE_EXPORT void JSONObjectWriter::write(score::ModelMetadata& md)
 {
   md.m_scriptingName = obj[strings.ScriptingName].toString();
   md.m_comment = obj[strings.Comment].toString();
@@ -232,11 +230,11 @@ JSONObjectWriter::write(score::ModelMetadata& md)
     if (col)
       md.m_color = *col;
     else
-        md.m_color = score::Skin::instance().fromString("Base1");
+      md.m_color = score::Skin::instance().fromString("Base1");
   }
   else
   {
-      md.m_color = score::Skin::instance().fromString("Base1");
+    md.m_color = score::Skin::instance().fromString("Base1");
   }
 
   md.m_color.getBrush();

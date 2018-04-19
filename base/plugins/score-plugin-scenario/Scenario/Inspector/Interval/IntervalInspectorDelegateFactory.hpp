@@ -1,12 +1,12 @@
 #pragma once
-#include <Scenario/Inspector/Interval/IntervalInspectorDelegate.hpp>
-#include <score/plugins/customfactory/FactoryFamily.hpp>
-#include <memory>
-#include <vector>
-
 #include <ossia/detail/algorithms.hpp>
+
+#include <Scenario/Inspector/Interval/IntervalInspectorDelegate.hpp>
+#include <memory>
+#include <score/plugins/customfactory/FactoryFamily.hpp>
 #include <score/plugins/customfactory/FactoryInterface.hpp>
 #include <score_plugin_scenario_export.h>
+#include <vector>
 
 namespace Scenario
 {
@@ -23,8 +23,8 @@ public:
   virtual bool matches(const IntervalModel& interval) const = 0;
 };
 
-class SCORE_PLUGIN_SCENARIO_EXPORT IntervalInspectorDelegateFactoryList
-    final : public score::MatchingFactory<IntervalInspectorDelegateFactory>
+class SCORE_PLUGIN_SCENARIO_EXPORT IntervalInspectorDelegateFactoryList final
+    : public score::MatchingFactory<IntervalInspectorDelegateFactory>
 {
 };
 }

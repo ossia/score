@@ -1,76 +1,76 @@
 #pragma once
 #include <QDebug>
 #include <QObject>
-#include <stdexcept>
 #include <score_compiler_detection.hpp>
 #include <score_lib_base_export.h>
+#include <stdexcept>
 #include <typeinfo>
 
 #ifdef _WIN32
-#include <Windows.h>
-#define DEBUG_BREAK DebugBreak()
+#  include <Windows.h>
+#  define DEBUG_BREAK DebugBreak()
 #else
-#include <csignal>
-#define DEBUG_BREAK std::raise(SIGTRAP)
+#  include <csignal>
+#  define DEBUG_BREAK std::raise(SIGTRAP)
 #endif
 
 #define SCORE_TODO                    \
-  do                                   \
-  {                                    \
+  do                                  \
+  {                                   \
     static bool score_todo_b = false; \
     if (!score_todo_b)                \
-    {                                  \
-      qDebug() << "TODO";              \
+    {                                 \
+      qDebug() << "TODO";             \
       score_todo_b = true;            \
-    }                                  \
+    }                                 \
   } while (0)
 #define SCORE_TODO_(Str)              \
-  do                                   \
-  {                                    \
+  do                                  \
+  {                                   \
     static bool score_todo_b = false; \
     if (!score_todo_b)                \
-    {                                  \
-      qDebug() << "TODO: " << (Str);   \
+    {                                 \
+      qDebug() << "TODO: " << (Str);  \
       score_todo_b = true;            \
-    }                                  \
+    }                                 \
   } while (0)
 #if defined(SCORE_DEBUG)
-#define SCORE_BREAKPOINT \
-  do                      \
-  {                       \
-    DEBUG_BREAK;          \
-  } while (0)
+#  define SCORE_BREAKPOINT \
+    do                     \
+    {                      \
+      DEBUG_BREAK;         \
+    } while (0)
 #else
-#define SCORE_BREAKPOINT \
-  do                      \
-  {                       \
-  } while (0)
+#  define SCORE_BREAKPOINT \
+    do                     \
+    {                      \
+    } while (0)
 #endif
 
 #ifdef SCORE_DEBUG
-#define SCORE_ASSERT(arg)          \
-  do                                \
-  {                                 \
-    bool score_assert_b = !!(arg); \
-    if (!score_assert_b)           \
-    {                               \
-      DEBUG_BREAK;                  \
-      Q_ASSERT(score_assert_b);    \
-    }                               \
-  } while (false)
+#  define SCORE_ASSERT(arg)          \
+    do                               \
+    {                                \
+      bool score_assert_b = !!(arg); \
+      if (!score_assert_b)           \
+      {                              \
+        DEBUG_BREAK;                 \
+        Q_ASSERT(score_assert_b);    \
+      }                              \
+    } while (false)
 #else
-#define SCORE_ASSERT(arg)          \
-  do                                \
-  {                                 \
-    bool score_assert_b = !!(arg); \
-    if (!score_assert_b)           \
-    {                               \
-      throw std::runtime_error("Error: " #arg );    \
-    }                               \
-  } while (false)
+#  define SCORE_ASSERT(arg)                       \
+    do                                            \
+    {                                             \
+      bool score_assert_b = !!(arg);              \
+      if (!score_assert_b)                        \
+      {                                           \
+        throw std::runtime_error("Error: " #arg); \
+      }                                           \
+    } while (false)
 #endif
 
-#define SCORE_ABORT  \
+#define SCORE_ABORT   \
   do                  \
   {                   \
     DEBUG_BREAK;      \
@@ -81,9 +81,9 @@
 #define SCORE_STR(s) #s
 
 #if SCORE_COMPILER_CXX_RELAXED_CONSTEXPR
-#define SCORE_RELAXED_CONSTEXPR constexpr
+#  define SCORE_RELAXED_CONSTEXPR constexpr
 #else
-#define SCORE_RELAXED_CONSTEXPR
+#  define SCORE_RELAXED_CONSTEXPR
 #endif
 
 template <typename T>
@@ -114,7 +114,7 @@ catch (std::bad_cast& e)
 }
 
 #else
-#define safe_cast static_cast
+#  define safe_cast static_cast
 #endif
 
 /**
@@ -207,7 +207,7 @@ void Foreach(Array&& arr, F fun)
  * abstraction over foo.getBar(); foo.setBar();
  * etc..
  */
-#define SCORE_PARAMETER_TYPE(ModelType, Name)                          \
+#define SCORE_PARAMETER_TYPE(ModelType, Name)                           \
   struct ModelType##Name##Parameter                                     \
   {                                                                     \
     using model_type = ModelType;                                       \

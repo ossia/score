@@ -1,8 +1,8 @@
 #pragma once
-#include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
-#include <Engine/Protocols/Settings/Presenter.hpp>
 #include <Engine/Protocols/Settings/Model.hpp>
+#include <Engine/Protocols/Settings/Presenter.hpp>
 #include <Engine/Protocols/Settings/View.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 namespace Audio::Settings
 {
 SCORE_DECLARE_SETTINGS_FACTORY(

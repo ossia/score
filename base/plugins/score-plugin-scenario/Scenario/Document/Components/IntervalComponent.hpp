@@ -21,7 +21,10 @@ public:
     return m_interval;
   }
 
-  auto& context() const { return this->system().context(); }
+  auto& context() const
+  {
+    return this->system().context();
+  }
 
   template <typename Models>
   auto& models() const

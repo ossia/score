@@ -11,7 +11,8 @@ CURVE_SEGMENT_METADATA(
     Curve::NoiseSegment,
     "82a3709d-d9cc-4dcf-9aa8-5d539545f34b",
     "Noise",
-    "Noise", "")
+    "Noise",
+    "")
 
 namespace Curve
 {
@@ -26,16 +27,19 @@ public:
   using data_type = NoiseSegmentData;
   using SegmentModel::SegmentModel;
 
-  NoiseSegment(
-      const NoiseSegment& other, const id_type& id, QObject* parent);
+  NoiseSegment(const NoiseSegment& other, const id_type& id, QObject* parent);
 
   NoiseSegment(DataStream::Deserializer& vis, QObject* parent)
       : SegmentModel{vis, parent}
-  { vis.writeTo(*this); }
+  {
+    vis.writeTo(*this);
+  }
 
   NoiseSegment(JSONObject::Deserializer& vis, QObject* parent)
       : SegmentModel{vis, parent}
-  { vis.writeTo(*this); }
+  {
+    vis.writeTo(*this);
+  }
 
   void on_startChanged() override;
   void on_endChanged() override;

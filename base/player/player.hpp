@@ -1,10 +1,15 @@
 #pragma once
-#include <thread>
 #include <atomic>
-#include <string>
-
 #include <score_player_export.h>
-namespace ossia { namespace net { class device_base; } }
+#include <string>
+#include <thread>
+namespace ossia
+{
+namespace net
+{
+class device_base;
+}
+}
 namespace score
 {
 class PlayerImpl;
@@ -25,7 +30,5 @@ private:
   std::unique_ptr<PlayerImpl> m_player;
   std::thread m_thread;
   std::atomic_bool m_loaded{};
-
 };
-
 }

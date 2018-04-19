@@ -1,18 +1,15 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "OSCSpecificSettings.hpp"
+
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QString>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
-#include "OSCSpecificSettings.hpp"
-
-
-
 template <>
-void DataStreamReader::read(
-    const Engine::Network::OSCSpecificSettings& n)
+void DataStreamReader::read(const Engine::Network::OSCSpecificSettings& n)
 {
   // TODO put it in the right order before 1.0 final.
   // TODO same for minuit, etc..
@@ -20,29 +17,23 @@ void DataStreamReader::read(
   insertDelimiter();
 }
 
-
 template <>
-void DataStreamWriter::write(
-    Engine::Network::OSCSpecificSettings& n)
+void DataStreamWriter::write(Engine::Network::OSCSpecificSettings& n)
 {
   m_stream >> n.outputPort >> n.inputPort >> n.host;
   checkDelimiter();
 }
 
-
 template <>
-void JSONObjectReader::read(
-    const Engine::Network::OSCSpecificSettings& n)
+void JSONObjectReader::read(const Engine::Network::OSCSpecificSettings& n)
 {
   obj["OutputPort"] = n.outputPort;
   obj["InputPort"] = n.inputPort;
   obj["Host"] = n.host;
 }
 
-
 template <>
-void JSONObjectWriter::write(
-    Engine::Network::OSCSpecificSettings& n)
+void JSONObjectWriter::write(Engine::Network::OSCSpecificSettings& n)
 {
   n.outputPort = obj["OutputPort"].toInt();
   n.inputPort = obj["InputPort"].toInt();

@@ -46,6 +46,7 @@ public:
 
   // From double-click :
   void createPoint(QPointF);
+
 private:
   Curve::Point ScenePointToCurvePoint(const QPointF& point)
   {

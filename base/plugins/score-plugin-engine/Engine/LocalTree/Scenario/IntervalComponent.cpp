@@ -1,6 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "IntervalComponent.hpp"
+
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/editor/state/state_element.hpp>
 
@@ -14,7 +15,7 @@ IntervalBase::IntervalBase(
     Scenario::IntervalModel& interval,
     DocumentPlugin& doc,
     QObject* parent_comp)
-    : parent_t{parent, interval.metadata(), interval, doc,
+    : parent_t{parent, interval.metadata(), interval,   doc,
                id,     "IntervalComponent", parent_comp}
     , m_processesNode{*node().create_child("processes")}
 {
@@ -45,8 +46,7 @@ IntervalBase::IntervalBase(
       &IntervalDurations::playPercentageChanged, this));
 
   m_properties.push_back(add_property<double>(
-      node(), "speed", &interval.duration,
-      &IntervalDurations::executionSpeed,
+      node(), "speed", &interval.duration, &IntervalDurations::executionSpeed,
       &IntervalDurations::setExecutionSpeed,
       &IntervalDurations::executionSpeedChanged, this));
 }

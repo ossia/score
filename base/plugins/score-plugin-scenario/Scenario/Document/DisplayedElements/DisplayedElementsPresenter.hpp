@@ -1,10 +1,10 @@
 #pragma once
+#include <Process/LayerPresenter.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
 #include <QObject>
 #include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
-#include <Process/LayerPresenter.hpp>
 #include <vector>
 
 class BaseGraphicsObject;
@@ -16,16 +16,19 @@ class IntervalModel;
 // Contains the elements that are shown (not necessarily the ones in
 // BaseScenarioModel)
 class SCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsPresenter final
-    : public QObject,
-      public BaseScenarioPresenter<DisplayedElementsModel, FullViewIntervalPresenter>
+    : public QObject
+    , public BaseScenarioPresenter<
+          DisplayedElementsModel,
+          FullViewIntervalPresenter>
 {
   Q_OBJECT
 public:
   DisplayedElementsPresenter(ScenarioDocumentPresenter& parent);
   ~DisplayedElementsPresenter();
   using QObject::event;
-  using BaseScenarioPresenter<DisplayedElementsModel, FullViewIntervalPresenter>::
-      event;
+  using BaseScenarioPresenter<
+      DisplayedElementsModel,
+      FullViewIntervalPresenter>::event;
 
   BaseGraphicsObject& view() const;
 

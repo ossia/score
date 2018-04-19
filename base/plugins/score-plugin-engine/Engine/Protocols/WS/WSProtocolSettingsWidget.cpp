@@ -1,19 +1,18 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "WSProtocolSettingsWidget.hpp"
+
+#include "WSSpecificSettings.hpp"
+
+#include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <State/Widgets/AddressFragmentLineEdit.hpp>
-
+#include <QPlainTextEdit>
 #include <QSpinBox>
 #include <QString>
 #include <QVariant>
-
-#include "WSProtocolSettingsWidget.hpp"
-#include "WSSpecificSettings.hpp"
-#include <Device/Protocol/ProtocolSettingsWidget.hpp>
-
-#include <QPlainTextEdit>
+#include <State/Widgets/AddressFragmentLineEdit.hpp>
 #include <score/widgets/JS/JSEdit.hpp>
 class QWidget;
 

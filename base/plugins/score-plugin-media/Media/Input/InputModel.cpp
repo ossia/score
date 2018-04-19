@@ -36,9 +36,10 @@ void ProcessModel::setNumChannel(int numChannel)
 ProcessModel::ProcessModel(
     const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
-    QObject* parent):
-  Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-, outlet{Process::make_outlet(Id<Process::Port>(0), this)}
+    QObject* parent)
+    : Process::ProcessModel{duration, id,
+                            Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
 {
   outlet->setPropagate(true);
   outlet->type = Process::PortType::Audio;
@@ -49,11 +50,8 @@ ProcessModel::ProcessModel(
 
 ProcessModel::~ProcessModel()
 {
-
 }
-
 }
-
 }
 
 template <>

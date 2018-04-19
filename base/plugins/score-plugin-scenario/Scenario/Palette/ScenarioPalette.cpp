@@ -1,16 +1,10 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
+#include "ScenarioPalette.hpp"
 
 #include <QApplication>
 #include <QRect>
-#include <algorithm>
-#include <score/tools/std/Optional.hpp>
-#include <vector>
-
-#include "ScenarioPalette.hpp"
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Palette/Tool.hpp>
@@ -18,23 +12,26 @@
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
+#include <algorithm>
 #include <score/command/Command.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
-#include <score/model/Identifier.hpp>
+#include <score/tools/std/Optional.hpp>
+#include <vector>
 
 namespace Scenario
 {
 SlotState::~SlotState()
 {
-
 }
 ToolPalette::ToolPalette(
     Process::LayerContext& lay, TemporalScenarioPresenter& presenter)
     : GraphicsSceneToolPalette{*presenter.view().scene()}
     , m_presenter{presenter}
-    , m_model{static_cast<const Scenario::ProcessModel&>(
-          m_presenter.model())}
+    , m_model{static_cast<const Scenario::ProcessModel&>(m_presenter.model())}
     , m_context{lay}
     , m_createTool{*this}
     , m_selectTool{*this}
@@ -130,8 +127,7 @@ void ToolPalette::desactivate(Tool t)
 Scenario::Point ToolPalette::ScenePointToScenarioPoint(QPointF point)
 {
   return ConvertToScenarioPoint(
-      point,
-      m_presenter.zoomRatio(),
+      point, m_presenter.zoomRatio(),
       m_presenter.view().boundingRect().height());
 }
 }

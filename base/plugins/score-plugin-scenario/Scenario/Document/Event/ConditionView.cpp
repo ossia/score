@@ -1,5 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "ConditionView.hpp"
+
 #include <Process/Style/ScenarioStyle.hpp>
 #include <QColor>
 #include <QGraphicsSceneMouseEvent>
@@ -10,8 +12,6 @@
 #include <QSize>
 #include <QVector>
 #include <qnamespace.h>
-
-#include "ConditionView.hpp"
 
 class QStyleOptionGraphicsItem;
 class QWidget;
@@ -49,23 +49,19 @@ void ConditionView::paint(
   painter->setPen(style.ConditionTrianglePen);
   painter->setBrush(col);
 
-  static const QPainterPath trianglePath{
-      [] {
-          QPainterPath p;
-          QPainterPathStroker s;
-          s.setCapStyle(Qt::RoundCap);
-          s.setJoinStyle(Qt::RoundJoin);
-          s.setWidth(2);
+  static const QPainterPath trianglePath{[] {
+    QPainterPath p;
+    QPainterPathStroker s;
+    s.setCapStyle(Qt::RoundCap);
+    s.setJoinStyle(Qt::RoundJoin);
+    s.setWidth(2);
 
-          p.addPolygon(QVector<QPointF>{
-                           QPointF(25, 5),
-                           QPointF(25, 21),
-                           QPointF(32, 14)});
-          p.closeSubpath();
+    p.addPolygon(
+        QVector<QPointF>{QPointF(25, 5), QPointF(25, 21), QPointF(32, 14)});
+    p.closeSubpath();
 
-          return p + s.createStroke(p);
-      }()
-  };
+    return p + s.createStroke(p);
+  }()};
   painter->fillPath(trianglePath, col);
 #endif
 
@@ -95,7 +91,7 @@ void ConditionView::changeHeight(qreal newH)
 
 void ConditionView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-    if (event->button() == Qt::MouseButton::LeftButton)
-      pressed(event->scenePos());
+  if (event->button() == Qt::MouseButton::LeftButton)
+    pressed(event->scenePos());
 }
 }

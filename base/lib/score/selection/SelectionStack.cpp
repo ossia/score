@@ -1,16 +1,17 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SelectionStack.hpp"
+
 #include <QList>
 #include <QPointer>
 #include <QVector>
 #include <algorithm>
-#include <score/selection/Selection.hpp>
-#include <score/model/IdentifiedObjectAbstract.hpp>
-#include <score/tools/Todo.hpp>
 #include <qnamespace.h>
+#include <score/model/IdentifiedObjectAbstract.hpp>
 #include <score/selection/FocusManager.hpp>
 #include <score/selection/Selectable.hpp>
+#include <score/selection/Selection.hpp>
+#include <score/tools/Todo.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::SelectionStack)
 W_OBJECT_IMPL(Selectable)
@@ -20,10 +21,7 @@ namespace score
 SelectionStack::SelectionStack()
 {
   connect(
-      this,
-      &SelectionStack::pushNewSelection,
-      this,
-      &SelectionStack::push);
+      this, &SelectionStack::pushNewSelection, this, &SelectionStack::push);
   m_unselectable.push(Selection{});
 }
 
@@ -48,7 +46,7 @@ void SelectionStack::clear()
 void SelectionStack::clearAllButLast()
 {
   Selection last;
-  if(canUnselect())
+  if (canUnselect())
     last = m_unselectable.top();
 
   m_unselectable.clear();
@@ -73,7 +71,8 @@ void SelectionStack::push(const Selection& selection)
     }
 
     Foreach(s, [&](auto obj) {
-      // TODO we should erase connections once the selected objects aren't in the stack anymore.
+      // TODO we should erase connections once the selected objects aren't in
+      // the stack anymore.
       connect(
           obj, &IdentifiedObjectAbstract::identified_object_destroyed, this,
           &SelectionStack::prune, Qt::UniqueConnection);
@@ -168,15 +167,13 @@ void SelectionStack::prune(IdentifiedObjectAbstract* p)
 
   m_unselectable.erase(
       std::remove_if(
-          m_unselectable.begin(),
-          m_unselectable.end(),
+          m_unselectable.begin(), m_unselectable.end(),
           [](const Selection& s) { return s.empty(); }),
       m_unselectable.end());
 
   m_reselectable.erase(
       std::remove_if(
-          m_reselectable.begin(),
-          m_reselectable.end(),
+          m_reselectable.begin(), m_reselectable.end(),
           [](const Selection& s) { return s.empty(); }),
       m_reselectable.end());
 

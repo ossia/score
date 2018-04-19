@@ -1,8 +1,9 @@
 #pragma once
 #include <ossia/detail/algorithms.hpp>
+
+#include <nano_observer.hpp>
 #include <score/model/ComponentSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
-#include <nano_observer.hpp>
 #include <vector>
 
 namespace score
@@ -12,17 +13,19 @@ namespace score
  * \brief Manages simple hierarchies of components
  *
  * For instance, if the object Foo is a container for Bar elements,
- * this class can be used so that every time a new Bar is created, a matching component
- * will be added to Bar.
+ * this class can be used so that every time a new Bar is created, a matching
+ * component will be added to Bar.
  *
- * \todo If the number of such hierarchies grows, it may be interesting instead to
- * store them in a single hierarchy manager part of the original element.
+ * \todo If the number of such hierarchies grows, it may be interesting instead
+ * to store them in a single hierarchy manager part of the original element.
  */
 template <
-    typename ParentComponent_T, typename ChildModel_T,
+    typename ParentComponent_T,
+    typename ChildModel_T,
     typename ChildComponent_T>
-class ComponentHierarchyManager : public ParentComponent_T,
-                                  public Nano::Observer
+class ComponentHierarchyManager
+    : public ParentComponent_T
+    , public Nano::Observer
 {
 public:
   using hierarchy_t = ComponentHierarchyManager;
@@ -69,7 +72,6 @@ public:
     return m_children;
   }
 
-
   void add(ChildModel_T& element)
   {
     add(element,
@@ -81,16 +83,16 @@ public:
     // Since the component may be serializable, we first look if
     // we can deserialize it.
     auto comp = score::deserialize_component<ChildComponent_T>(
-          element.components(),
-          [&] (auto&& deserializer) {
-      ParentComponent_T::template load<ChildComponent_T>(deserializer, element);
-    });
+        element.components(), [&](auto&& deserializer) {
+          ParentComponent_T::template load<ChildComponent_T>(
+              deserializer, element);
+        });
 
     // Maybe we could not deserialize it
-    if(!comp)
+    if (!comp)
     {
       comp = ParentComponent_T::template make<ChildComponent_T>(
-            getStrongId(element.components()), element);
+          getStrongId(element.components()), element);
     }
 
     // We try to add it
@@ -155,16 +157,20 @@ private:
  * \class PolymorphicComponentHierarchyManager
  * \brief Manages polymorphic hierarchies of components
  *
- * Like ComponentHierarchyManager, but used when the components of the child class are polymorphic.
- * For instance, if we have a Process, we want to create components that will be specific to
- * each Process type. But then we have to source them from a factory somehow.
+ * Like ComponentHierarchyManager, but used when the components of the child
+ * class are polymorphic. For instance, if we have a Process, we want to create
+ * components that will be specific to each Process type. But then we have to
+ * source them from a factory somehow.
  */
 template <
-    typename ParentComponent_T, typename ChildModel_T,
-    typename ChildComponent_T, typename ChildComponentFactoryList_T,
+    typename ParentComponent_T,
+    typename ChildModel_T,
+    typename ChildComponent_T,
+    typename ChildComponentFactoryList_T,
     bool HasOwnership = true>
-class PolymorphicComponentHierarchyManager : public ParentComponent_T,
-                                             public Nano::Observer
+class PolymorphicComponentHierarchyManager
+    : public ParentComponent_T
+    , public Nano::Observer
 {
 public:
   using hierarchy_t = PolymorphicComponentHierarchyManager;
@@ -181,7 +187,9 @@ public:
   template <typename... Args>
   PolymorphicComponentHierarchyManager(Args&&... args)
       : ParentComponent_T{std::forward<Args>(args)...}
-      , m_componentFactory{score::AppComponents().template interfaces<ChildComponentFactoryList_T>()}
+      , m_componentFactory{
+            score::AppComponents()
+                .template interfaces<ChildComponentFactoryList_T>()}
   {
     init_hierarchy();
   }
@@ -189,7 +197,9 @@ public:
   template <typename... Args>
   PolymorphicComponentHierarchyManager(lazy_init_t, Args&&... args)
       : ParentComponent_T{std::forward<Args>(args)...}
-      , m_componentFactory{score::AppComponents().template interfaces<ChildComponentFactoryList_T>()}
+      , m_componentFactory{
+            score::AppComponents()
+                .template interfaces<ChildComponentFactoryList_T>()}
   {
   }
 
@@ -214,7 +224,8 @@ public:
 
   void add(ChildModel_T& element)
   {
-    add_impl(element,
+    add_impl(
+        element,
         typename score::is_component_serializable<ChildComponent_T>::type{});
   }
 
@@ -246,7 +257,7 @@ public:
 
 private:
   // TODO remove these useless templates when MSVC grows some brains
-  template<typename TheChild>
+  template <typename TheChild>
   void add_impl(TheChild& model, score::serializable_tag)
   {
     // Will return a factory for the given process if available
@@ -255,16 +266,16 @@ private:
       // Since the component may be serializable, we first look if
       // we can deserialize it.
       ChildComponent_T* comp = score::deserialize_component<ChildComponent_T>(
-            model.components(),
-            [&] (auto&& deserializer) {
-        ParentComponent_T::template load<ChildComponent_T>(deserializer, *factory, model);
-      });
+          model.components(), [&](auto&& deserializer) {
+            ParentComponent_T::template load<ChildComponent_T>(
+                deserializer, *factory, model);
+          });
 
       // Maybe we could not deserialize it
-      if(!comp)
+      if (!comp)
       {
         comp = ParentComponent_T::template make<ChildComponent_T>(
-              getStrongId(model.components()), *factory, model);
+            getStrongId(model.components()), *factory, model);
       }
 
       // We try to add it
@@ -277,7 +288,7 @@ private:
     }
   }
 
-  template<typename TheChild>
+  template <typename TheChild>
   void add_impl(TheChild& model, score::not_serializable_tag)
   {
     // Will return a factory for the given process if available
@@ -298,7 +309,7 @@ private:
 
   void do_cleanup(const ChildPair& pair)
   {
-    if constexpr(HasOwnership)
+    if constexpr (HasOwnership)
     {
       ParentComponent_T::removing(*pair.model, *pair.component);
       pair.model->components().remove(*pair.component);
@@ -318,10 +329,16 @@ private:
 };
 
 template <typename Component>
-using ComponentHierarchy
-    = ComponentHierarchyManager<Component, typename Component::model_t, typename Component::component_t>;
+using ComponentHierarchy = ComponentHierarchyManager<
+    Component,
+    typename Component::model_t,
+    typename Component::component_t>;
 
 template <typename Component, bool HasOwnership = true>
-using PolymorphicComponentHierarchy
-    = PolymorphicComponentHierarchyManager<Component, typename Component::model_t, typename Component::component_t, typename Component::component_factory_list_t, HasOwnership>;
+using PolymorphicComponentHierarchy = PolymorphicComponentHierarchyManager<
+    Component,
+    typename Component::model_t,
+    typename Component::component_t,
+    typename Component::component_factory_list_t,
+    HasOwnership>;
 }

@@ -1,11 +1,11 @@
 #pragma once
-#include <Scenario/Document/Interval/Slot.hpp>
+#include <QByteArray>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
 #include <score/command/Command.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <score/model/Identifier.hpp>
-#include <QByteArray>
 
 namespace Scenario
 {
@@ -21,9 +21,7 @@ class RemoveSlotFromRack final : public score::Command
   SCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), RemoveSlotFromRack, "Remove a slot")
 public:
-  RemoveSlotFromRack(
-      SlotPath slotPath,
-      Slot slt);
+  RemoveSlotFromRack(SlotPath slotPath, Slot slt);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

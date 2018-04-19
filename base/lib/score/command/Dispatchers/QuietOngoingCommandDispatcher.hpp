@@ -1,8 +1,7 @@
 #pragma once
+#include <core/command/CommandStack.hpp>
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/Dispatchers/SendStrategy.hpp>
-
-#include <core/command/CommandStack.hpp>
 
 namespace score
 {
@@ -29,7 +28,7 @@ public:
     }
   }
 
-  template<typename Strategy = SendStrategy::Simple> // TODO why ?
+  template <typename Strategy = SendStrategy::Simple> // TODO why ?
   void commit()
   {
     if (m_cmd)

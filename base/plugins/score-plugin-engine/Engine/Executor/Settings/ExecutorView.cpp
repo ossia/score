@@ -1,10 +1,11 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ExecutorView.hpp"
+
+#include <QCheckBox>
+#include <QComboBox>
 #include <QFormLayout>
 #include <QSpinBox>
-#include <QComboBox>
-#include <QCheckBox>
 #include <score/widgets/SignalUtils.hpp>
 
 namespace Engine
@@ -20,17 +21,18 @@ View::View() : m_widg{new QWidget}
   m_widg->setLayout(lay);
 
   SETTINGS_UI_COMBOBOX_SETUP("Tick policy", Tick, TickPolicies{});
-  SETTINGS_UI_COMBOBOX_SETUP("Scheduling policy", Scheduling, SchedulingPolicies{});
+  SETTINGS_UI_COMBOBOX_SETUP(
+      "Scheduling policy", Scheduling, SchedulingPolicies{});
   SETTINGS_UI_COMBOBOX_SETUP("Ordering policy", Ordering, OrderingPolicies{});
   SETTINGS_UI_COMBOBOX_SETUP("Merging policy", Merging, MergingPolicies{});
   SETTINGS_UI_COMBOBOX_SETUP("Commit policy", Commit, CommitPolicies{});
 
-  SETTINGS_UI_TOGGLE_SETUP("Enable listening during execution", ExecutionListening);
+  SETTINGS_UI_TOGGLE_SETUP(
+      "Enable listening during execution", ExecutionListening);
   SETTINGS_UI_TOGGLE_SETUP("Parallel", Parallel);
   SETTINGS_UI_TOGGLE_SETUP("Use Score order", ScoreOrder);
   SETTINGS_UI_TOGGLE_SETUP("Logging", Logging);
   SETTINGS_UI_TOGGLE_SETUP("Benchmark", Bench);
-
 
   m_Clock = new QComboBox;
   lay->addRow(tr("Clock source"), m_Clock);
@@ -39,14 +41,11 @@ View::View() : m_widg{new QWidget}
       m_Clock, SignalUtils::QComboBox_currentIndexChanged_int(), this,
       [this](int i) {
         ClockChanged(
-            m_Clock->itemData(i)
-                .value<ClockManagerFactory::ConcreteKey>());
+            m_Clock->itemData(i).value<ClockManagerFactory::ConcreteKey>());
       });
-
 
   SETTINGS_UI_SPINBOX_SETUP("Rate (default clock only)", Rate);
 }
-
 
 SETTINGS_UI_COMBOBOX_IMPL(Tick)
 SETTINGS_UI_COMBOBOX_IMPL(Scheduling)
@@ -61,7 +60,6 @@ SETTINGS_UI_TOGGLE_IMPL(ScoreOrder)
 SETTINGS_UI_TOGGLE_IMPL(Parallel)
 SETTINGS_UI_TOGGLE_IMPL(Logging)
 SETTINGS_UI_TOGGLE_IMPL(Bench)
-
 
 void View::setClock(ClockManagerFactory::ConcreteKey k)
 {

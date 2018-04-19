@@ -2,22 +2,20 @@
 #include <Process/Process.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <score/selection/Selectable.hpp>
+#include <list>
+#include <nano_signal_slot.hpp>
+#include <score/model/Component.hpp>
 #include <score/model/EntityImpl.hpp>
 #include <score/model/IdentifiedObject.hpp>
-#include <score/tools/Metadata.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/selection/Selectable.hpp>
+#include <score/serialization/VisitorInterface.hpp>
+#include <score/tools/Metadata.hpp>
+#include <score/tools/Todo.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <nano_signal_slot.hpp>
-
+#include <score_plugin_scenario_export.h>
 #include <set>
 #include <vector>
-#include <list>
-
-#include <score/model/Component.hpp>
-#include <score/serialization/VisitorInterface.hpp>
-#include <score/tools/Todo.hpp>
-#include <score_plugin_scenario_export.h>
 class DataStream;
 class JSONObject;
 namespace Process
@@ -56,8 +54,8 @@ public:
 
 // Model for the graphical state in a scenario.
 class SCORE_PLUGIN_SCENARIO_EXPORT StateModel final
-    : public score::Entity<StateModel>,
-      public Nano::Observer
+    : public score::Entity<StateModel>
+    , public Nano::Observer
 {
   Q_OBJECT
 

@@ -45,8 +45,6 @@ void mergeTimeSyncs(
 void mergeEvents(
     const Scenario::ProcessModel&, const score::CommandStackFacade&);
 
-
-
 // MOVEME : these are useful.
 template <typename T>
 struct StartDateComparator
@@ -63,5 +61,4 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT EndDateComparator
   const Scenario::ProcessModel* scenario;
   bool operator()(const IntervalModel* lhs, const IntervalModel* rhs);
 };
-
 }

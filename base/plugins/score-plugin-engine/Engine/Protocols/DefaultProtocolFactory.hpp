@@ -9,32 +9,34 @@ namespace Network
 {
 class DefaultProtocolFactory : public Device::ProtocolFactory
 {
-  public:
-    using Device::ProtocolFactory::ProtocolFactory;
+public:
+  using Device::ProtocolFactory::ProtocolFactory;
 
-    Device::AddressDialog* makeEditAddressDialog(
-        const Device::AddressSettings& set,
-        const Device::DeviceInterface& dev,
-        const score::DocumentContext& ctx,
-        QWidget* parent) override
-    {
-      auto ptr = new Explorer::AddressEditDialog{set, parent};
+  Device::AddressDialog* makeEditAddressDialog(
+      const Device::AddressSettings& set,
+      const Device::DeviceInterface& dev,
+      const score::DocumentContext& ctx,
+      QWidget* parent) override
+  {
+    auto ptr = new Explorer::AddressEditDialog{set, parent};
 
-      ptr->setCanRename(dev.capabilities().canRenameNode);
-      ptr->setCanEditProperties(dev.capabilities().canSetProperties);
+    ptr->setCanRename(dev.capabilities().canRenameNode);
+    ptr->setCanEditProperties(dev.capabilities().canSetProperties);
 
-      return ptr;
+    return ptr;
+  }
+  Device::AddressDialog* makeAddAddressDialog(
+      const Device::DeviceInterface& dev,
+      const score::DocumentContext& ctx,
+      QWidget* parent) override
+  {
+    auto ptr = new Explorer::AddressEditDialog{parent};
 
-    }
-    Device::AddressDialog* makeAddAddressDialog(const Device::DeviceInterface& dev, const score::DocumentContext& ctx, QWidget* parent) override
-    {
-      auto ptr = new Explorer::AddressEditDialog{parent};
+    ptr->setCanRename(dev.capabilities().canRenameNode);
+    ptr->setCanEditProperties(dev.capabilities().canSetProperties);
 
-      ptr->setCanRename(dev.capabilities().canRenameNode);
-      ptr->setCanEditProperties(dev.capabilities().canSetProperties);
-
-      return ptr;
-    }
+    return ptr;
+  }
 };
 }
 }

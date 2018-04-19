@@ -4,15 +4,21 @@
 namespace score
 {
 
-class SCORE_LIB_BASE_EXPORT RectItem : public QObject, public QGraphicsItem
+class SCORE_LIB_BASE_EXPORT RectItem
+    : public QObject
+    , public QGraphicsItem
 {
-    Q_OBJECT
+  Q_OBJECT
+  Q_INTERFACES(QGraphicsItem)
 public:
   using QGraphicsItem::QGraphicsItem;
   void setRect(QRectF r);
   void setHighlight(bool);
   QRectF boundingRect() const final override;
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) final override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) final override;
 
 Q_SIGNALS:
   void clicked();
@@ -28,14 +34,20 @@ private:
   bool m_highlight{false};
 };
 
-class SCORE_LIB_BASE_EXPORT EmptyRectItem : public QObject, public QGraphicsItem
+class SCORE_LIB_BASE_EXPORT EmptyRectItem
+    : public QObject
+    , public QGraphicsItem
 {
-    Q_OBJECT
+  Q_OBJECT
+  Q_INTERFACES(QGraphicsItem)
 public:
   EmptyRectItem(QGraphicsItem* parent);
   void setRect(QRectF r);
   QRectF boundingRect() const final override;
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) final override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) final override;
 
 Q_SIGNALS:
   void clicked();
@@ -48,5 +60,4 @@ private:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
   QRectF m_rect{};
 };
-
 }

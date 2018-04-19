@@ -5,9 +5,9 @@
 #include <stdexcept>
 
 #if defined(_WIN32)
-#include <malloc.h>
+#  include <malloc.h>
 #else
-#include <alloca.h>
+#  include <alloca.h>
 #endif
 
 namespace score
@@ -61,7 +61,7 @@ public:
 };
 
 #define make_dynarray(Type, Count)             \
-  score::dynarray_impl<Type>                  \
+  score::dynarray_impl<Type>                   \
   {                                            \
     (Type*)alloca(sizeof(Type) * Count), Count \
   }
@@ -133,7 +133,7 @@ public:
 };
 
 #define make_dynvector(Type, Count)            \
-  score::dynvector_impl<Type>                 \
+  score::dynvector_impl<Type>                  \
   {                                            \
     (Type*)alloca(sizeof(Type) * Count), Count \
   }

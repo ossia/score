@@ -9,7 +9,7 @@ class QSettings;
 namespace score
 {
 struct ApplicationContext;
-template<class Model>
+template <class Model>
 class SettingsPresenter;
 
 /**
@@ -42,13 +42,14 @@ protected:
       = 0;
 };
 
-using SettingsDelegateFactoryList = InterfaceList<score::SettingsDelegateFactory>;
+using SettingsDelegateFactoryList
+    = InterfaceList<score::SettingsDelegateFactory>;
 
 template <typename Model_T, typename Presenter_T, typename View_T>
 class SettingsDelegateFactory_T : public SettingsDelegateFactory
 {
-  std::unique_ptr<SettingsDelegateModel> makeModel(
-      QSettings& settings, const score::ApplicationContext& ctx) override
+  std::unique_ptr<SettingsDelegateModel>
+  makeModel(QSettings& settings, const score::ApplicationContext& ctx) override
   {
     return std::make_unique<Model_T>(settings, ctx);
   }
@@ -68,11 +69,10 @@ class SettingsDelegateFactory_T : public SettingsDelegateFactory
   }
 };
 
-#define SCORE_DECLARE_SETTINGS_FACTORY(                                 \
-    Factory, Model, Presenter, View, Uuid)                               \
-  class Factory final                                                    \
-      : public score::SettingsDelegateFactory_T<Model, Presenter, View> \
-  {                                                                      \
-    SCORE_CONCRETE(Uuid)                                        \
+#define SCORE_DECLARE_SETTINGS_FACTORY(Factory, Model, Presenter, View, Uuid) \
+  class Factory final                                                         \
+      : public score::SettingsDelegateFactory_T<Model, Presenter, View>       \
+  {                                                                           \
+    SCORE_CONCRETE(Uuid)                                                      \
   };
 }

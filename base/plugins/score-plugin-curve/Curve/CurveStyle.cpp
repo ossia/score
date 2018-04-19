@@ -1,15 +1,12 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Curve/CurveStyle.hpp>
-
 #include <score/model/Skin.hpp>
 namespace Curve
 {
 
-
 StyleInterface::~StyleInterface()
 {
-
 }
 
 void Style::init(const score::Skin& s)

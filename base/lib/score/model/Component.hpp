@@ -1,15 +1,18 @@
 #pragma once
-#include <wobjectdefs.h>
 #include <ossia/detail/algorithms.hpp>
-#include <score/plugins/customfactory/UuidKey.hpp>
-#include <score/model/EntityMap.hpp>
-#include <score/tools/std/HashMap.hpp>
+
 #include <QByteArray>
 #include <QJsonObject>
+#include <score/model/EntityMap.hpp>
+#include <score/plugins/customfactory/UuidKey.hpp>
+#include <score/tools/std/HashMap.hpp>
 #include <utility>
+#include <wobjectdefs.h>
 namespace score
 {
-struct lazy_init_t { };
+struct lazy_init_t
+{
+};
 
 /**
  * @brief A component adds custom data to an Entity.
@@ -32,8 +35,8 @@ public:
 /**
  * @brief A component that has a reference to a specific context object
  *
- * For instance if all components need to refer to a given DocumentPlugin instance,
- * one can inherit from this class.
+ * For instance if all components need to refer to a given DocumentPlugin
+ * instance, one can inherit from this class.
  */
 template <typename System_T>
 class GenericComponent : public score::Component
@@ -41,8 +44,7 @@ class GenericComponent : public score::Component
 public:
   template <typename... Args>
   GenericComponent(System_T& sys, Args&&... args)
-      : score::Component{std::forward<Args>(args)...}
-      , m_system{sys}
+      : score::Component{std::forward<Args>(args)...}, m_system{sys}
   {
   }
 
@@ -65,10 +67,11 @@ using Components = EntityMap<score::Component>;
  * @brief component Fetch a Component from Components by type
  * @return The component.
  *
- * The component must have a member `static const constexpr bool is_unique = true`
- * in order to use this function.
+ * The component must have a member `static const constexpr bool is_unique =
+ * true` in order to use this function.
  *
- * This guarantees that there will be a single component of a given type in the Components.
+ * This guarantees that there will be a single component of a given type in the
+ * Components.
  */
 template <typename T>
 T& component(const score::Components& c)
@@ -108,11 +111,15 @@ T* findComponent(const score::Components& c)
 }
 
 class SerializableComponent;
-using DataStreamComponents = score::hash_map<UuidKey<score::SerializableComponent>, QByteArray>;
-using JSONComponents = score::hash_map<UuidKey<score::SerializableComponent>, QJsonObject>;
+using DataStreamComponents
+    = score::hash_map<UuidKey<score::SerializableComponent>, QByteArray>;
+using JSONComponents
+    = score::hash_map<UuidKey<score::SerializableComponent>, QJsonObject>;
 }
-extern template class tsl::hopscotch_map<UuidKey<score::SerializableComponent>, QByteArray>;
-extern template class tsl::hopscotch_map<UuidKey<score::SerializableComponent>, QJsonObject>;
+extern template class tsl::
+    hopscotch_map<UuidKey<score::SerializableComponent>, QByteArray>;
+extern template class tsl::
+    hopscotch_map<UuidKey<score::SerializableComponent>, QJsonObject>;
 
 /**
  * \macro ABSTRACT_COMPONENT_METADATA
@@ -177,4 +184,3 @@ public:                                                       \
   }                                                           \
                                                               \
 private:
-

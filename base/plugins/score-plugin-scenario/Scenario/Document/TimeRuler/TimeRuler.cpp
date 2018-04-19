@@ -1,22 +1,22 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
+#include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/config.hpp>
+
+#include <Process/Style/ScenarioStyle.hpp>
+#include <Process/TimeValue.hpp>
 #include <QBrush>
 #include <QGraphicsSceneEvent>
+#include <QGraphicsView>
 #include <QPainter>
 #include <QPen>
+#include <QTextLayout>
 #include <Scenario/Document/TimeRuler/TimeRuler.hpp>
 #include <cmath>
-#include <qnamespace.h>
-#include <Process/Style/ScenarioStyle.hpp>
-#include <QGraphicsView>
-#include <QTextLayout>
-
 #include <fmt/format.h>
-#include <Process/TimeValue.hpp>
+#include <qnamespace.h>
 #include <score/model/Skin.hpp>
-#include <ossia/detail/algorithms.hpp>
 
 class QStyleOptionGraphicsItem;
 class QWidget;
@@ -24,38 +24,36 @@ class QWidget;
 namespace Scenario
 {
 
-static const constexpr std::array<std::pair<double, std::chrono::microseconds>, 22> graduations
-{{
-  {0.1, std::chrono::seconds(120)},
-  {0.2, std::chrono::seconds(60)},
-  {0.5, std::chrono::seconds(30)},
+static const constexpr std::
+    array<std::pair<double, std::chrono::microseconds>, 22>
+        graduations{{{0.1, std::chrono::seconds(120)},
+                     {0.2, std::chrono::seconds(60)},
+                     {0.5, std::chrono::seconds(30)},
 
-  {1, std::chrono::seconds(10)},
-  {2, std::chrono::seconds(5)},
-  {5, std::chrono::seconds(2)},
+                     {1, std::chrono::seconds(10)},
+                     {2, std::chrono::seconds(5)},
+                     {5, std::chrono::seconds(2)},
 
-  {10, std::chrono::milliseconds(1000)},
-  {20, std::chrono::milliseconds(500)},
-  {40, std::chrono::milliseconds(250)},
-  {80, std::chrono::milliseconds(150)},
+                     {10, std::chrono::milliseconds(1000)},
+                     {20, std::chrono::milliseconds(500)},
+                     {40, std::chrono::milliseconds(250)},
+                     {80, std::chrono::milliseconds(150)},
 
-  {100, std::chrono::milliseconds(100)},
-  {200, std::chrono::milliseconds(50)},
-  {500, std::chrono::milliseconds(20)},
+                     {100, std::chrono::milliseconds(100)},
+                     {200, std::chrono::milliseconds(50)},
+                     {500, std::chrono::milliseconds(20)},
 
-  {1000, std::chrono::milliseconds(10)},
-  {2000, std::chrono::milliseconds(5)},
-  {5000, std::chrono::milliseconds(2)},
+                     {1000, std::chrono::milliseconds(10)},
+                     {2000, std::chrono::milliseconds(5)},
+                     {5000, std::chrono::milliseconds(2)},
 
-  {10000, std::chrono::microseconds(1000)},
-  {20000, std::chrono::microseconds(500)},
-  {50000, std::chrono::microseconds(200)},
+                     {10000, std::chrono::microseconds(1000)},
+                     {20000, std::chrono::microseconds(500)},
+                     {50000, std::chrono::microseconds(200)},
 
-  {100000, std::chrono::microseconds(100)},
-  {200000, std::chrono::microseconds(50)},
-  {500000, std::chrono::microseconds(20)}
-}};
-
+                     {100000, std::chrono::microseconds(100)},
+                     {200000, std::chrono::microseconds(50)},
+                     {500000, std::chrono::microseconds(20)}}};
 
 TimeRuler::TimeRuler(QGraphicsView* v)
     : m_width{800}
@@ -93,7 +91,7 @@ void TimeRuler::paint(
     painter.setBrush(style.TimeRuler.getBrush());
     painter.drawPath(m_path);
 
-    //painter.setFont(score::Skin::instance().MonoFont);
+    // painter.setFont(score::Skin::instance().MonoFont);
 
     for (const Mark& mark : m_marks)
     {
@@ -150,7 +148,8 @@ void TimeRuler::computeGraduationSpacing()
         && pixPerSec < graduations[i + 1].first)
     {
       m_graduationDelta = graduations[i].second.count() / 1000.;
-      m_graduationsSpacing = pixPerSec * graduations[i].second.count() / 1000000.;
+      m_graduationsSpacing
+          = pixPerSec * graduations[i].second.count() / 1000000.;
       break;
     }
   }
@@ -165,7 +164,7 @@ void TimeRuler::computeGraduationSpacing()
   {
     m_timeFormat = Format::Seconds;
   }
-  if(oldFormat != m_timeFormat)
+  if (oldFormat != m_timeFormat)
     m_stringCache.clear();
 
   createRulerPath();
@@ -224,35 +223,48 @@ void TimeRuler::createRulerPath()
 }
 
 // Taken from https://stackoverflow.com/a/42139394/1495627
-template<class...Durations, class DurationIn>
-std::tuple<Durations...> break_down_durations( DurationIn d ) {
+template <class... Durations, class DurationIn>
+std::tuple<Durations...> break_down_durations(DurationIn d)
+{
   std::tuple<Durations...> retval;
-  using discard=int[];
-  (void)discard{0,(void((
-    (std::get<Durations>(retval) = std::chrono::duration_cast<Durations>(d)),
-    (d -= std::chrono::duration_cast<DurationIn>(std::get<Durations>(retval)))
-  )),0)...};
+  using discard = int[];
+  (void)discard{0, (void(
+                        ((std::get<Durations>(retval)
+                          = std::chrono::duration_cast<Durations>(d)),
+                         (d -= std::chrono::duration_cast<DurationIn>(
+                              std::get<Durations>(retval))))),
+                    0)...};
   return retval;
 }
 
 QGlyphRun TimeRuler::getGlyphs(std::chrono::microseconds t)
 {
-  auto it = ossia::find_if(m_stringCache, [&] (auto& v) { return v.first == t; });
-  if(it != m_stringCache.end())
+  auto it
+      = ossia::find_if(m_stringCache, [&](auto& v) { return v.first == t; });
+  if (it != m_stringCache.end())
   {
     return it->second;
   }
   else
   {
-    if(m_timeFormat == Format::Seconds)
+    if (m_timeFormat == Format::Seconds)
     {
-      auto clean_duration = break_down_durations<std::chrono::minutes, std::chrono::seconds>(t);
-      m_layout.setText(QString::fromStdString( fmt::format("{0}:{1:02}", std::get<0>(clean_duration).count(), std::get<1>(clean_duration).count())));
+      auto clean_duration
+          = break_down_durations<std::chrono::minutes, std::chrono::seconds>(
+              t);
+      m_layout.setText(QString::fromStdString(fmt::format(
+          "{0}:{1:02}", std::get<0>(clean_duration).count(),
+          std::get<1>(clean_duration).count())));
     }
-    else if(m_timeFormat == Format::Milliseconds)
+    else if (m_timeFormat == Format::Milliseconds)
     {
-      auto clean_duration = break_down_durations<std::chrono::minutes, std::chrono::seconds, std::chrono::milliseconds>(t);
-      m_layout.setText(QString::fromStdString(fmt::format("{0}:{1:02}.{2:03}", std::get<0>(clean_duration).count(), std::get<1>(clean_duration).count(), std::get<2>(clean_duration).count())));
+      auto clean_duration = break_down_durations<
+          std::chrono::minutes, std::chrono::seconds,
+          std::chrono::milliseconds>(t);
+      m_layout.setText(QString::fromStdString(fmt::format(
+          "{0}:{1:02}.{2:03}", std::get<0>(clean_duration).count(),
+          std::get<1>(clean_duration).count(),
+          std::get<2>(clean_duration).count())));
     }
     m_layout.beginLayout();
     auto line = m_layout.createLine();
@@ -262,11 +274,11 @@ QGlyphRun TimeRuler::getGlyphs(std::chrono::microseconds t)
 
     auto glr = line.glyphRuns();
     if (!glr.isEmpty())
-        gr = std::move(glr.first());
+      gr = std::move(glr.first());
 
     m_stringCache.push_back(std::make_pair(t, gr));
     if (m_stringCache.size() > 16)
-        m_stringCache.pop_front();
+      m_stringCache.pop_front();
 
     m_layout.clearLayout();
 

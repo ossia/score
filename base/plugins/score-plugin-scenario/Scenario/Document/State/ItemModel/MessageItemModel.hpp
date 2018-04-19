@@ -3,9 +3,9 @@
 #include <QAbstractItemModel>
 #include <QStringList>
 #include <QVariant>
+#include <qnamespace.h>
 #include <score/model/tree/TreeNodeItemModel.hpp>
 #include <score_plugin_scenario_export.h>
-#include <qnamespace.h>
 
 class QMimeData;
 class QObject;
@@ -107,9 +107,7 @@ private:
   const score::CommandStackFacade& m_stack;
 };
 
-QVariant
-valueColumnData(const MessageItemModel::node_type& node, int role);
-
+QVariant valueColumnData(const MessageItemModel::node_type& node, int role);
 }
 
 DEFAULT_MODEL_METADATA(Scenario::MessageItemModel, "Message item model")

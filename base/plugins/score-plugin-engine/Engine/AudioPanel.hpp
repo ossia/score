@@ -3,7 +3,10 @@
 #include <score/plugins/panel/PanelDelegateFactory.hpp>
 #include <score_plugin_deviceexplorer_export.h>
 
-namespace Dataflow { class PortItem; }
+namespace Dataflow
+{
+class PortItem;
+}
 namespace Audio
 {
 class AudioPanel;
@@ -11,7 +14,6 @@ class PanelDelegate final : public score::PanelDelegate
 {
 public:
   PanelDelegate(const score::GUIApplicationContext& ctx);
-
 
   QWidget* widget() override;
 

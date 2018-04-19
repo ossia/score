@@ -1,18 +1,17 @@
 #pragma once
+#include <Dataflow/Commands/CableHelpers.hpp>
 #include <QByteArray>
 #include <QPair>
 #include <QVector>
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <score/command/Command.hpp>
-#include <score/model/path/Path.hpp>
-#include <score/model/Identifier.hpp>
-#include <score/tools/std/Optional.hpp>
-
-#include <score/selection/Selection.hpp>
-#include <Scenario/Commands/Interval/SetRigidity.hpp>
 #include <Scenario/Commands/Event/SplitEvent.hpp>
+#include <Scenario/Commands/Interval/SetRigidity.hpp>
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Commands/TimeSync/SplitTimeSync.hpp>
-#include <Dataflow/Commands/CableHelpers.hpp>
+#include <score/command/Command.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/model/path/Path.hpp>
+#include <score/selection/Selection.hpp>
+#include <score/tools/std/Optional.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -32,15 +31,15 @@ namespace Command
  *
  * Tries to remove what is selected in a scenario.
  */
-class SCORE_PLUGIN_SCENARIO_EXPORT RemoveSelection final : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT RemoveSelection final
+    : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), RemoveSelection,
+      ScenarioCommandFactoryName(),
+      RemoveSelection,
       "Remove selected elements")
 public:
-  RemoveSelection(
-      const Scenario::ProcessModel&,
-      Selection sel);
+  RemoveSelection(const Scenario::ProcessModel&, Selection sel);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
@@ -61,7 +60,6 @@ private:
   std::vector<SplitEvent> m_cmds_split_event;
   std::vector<SplitTimeSync> m_cmds_split_timesync;
   Dataflow::SerializedCables m_cables;
-
 };
 }
 }

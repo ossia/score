@@ -1,6 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SerializableInterface.hpp"
+
 #include <boost/uuid/nil_generator.hpp>
 #include <boost/uuid/string_generator.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -47,32 +48,28 @@ static QByteArray toByteArray(uuid const& u)
 }
 }
 
-template<>
-SCORE_LIB_BASE_EXPORT void
-DataStreamReader::read(const score::uuid_t& obj)
+template <>
+SCORE_LIB_BASE_EXPORT void DataStreamReader::read(const score::uuid_t& obj)
 {
   m_stream << score::uuids::toByteArray(obj);
 }
 
-template<>
-SCORE_LIB_BASE_EXPORT void
-DataStreamWriter::write(score::uuid_t& obj)
+template <>
+SCORE_LIB_BASE_EXPORT void DataStreamWriter::write(score::uuid_t& obj)
 {
   QByteArray s;
   m_stream >> s;
   obj = score::uuids::string_generator::compute(s.begin(), s.end());
 }
 
-template<>
-SCORE_LIB_BASE_EXPORT void
-JSONValueReader::read(const score::uuid_t& obj)
+template <>
+SCORE_LIB_BASE_EXPORT void JSONValueReader::read(const score::uuid_t& obj)
 {
   val = QString(score::uuids::toByteArray(obj));
 }
 
-template<>
-SCORE_LIB_BASE_EXPORT void
-JSONValueWriter::write(score::uuid_t& obj)
+template <>
+SCORE_LIB_BASE_EXPORT void JSONValueWriter::write(score::uuid_t& obj)
 {
   auto str = val.toString();
   obj = score::uuids::string_generator::compute(str.begin(), str.end());

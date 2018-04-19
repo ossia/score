@@ -1,51 +1,49 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Scenario/Commands/Cohesion/CreateCurveFromStates.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "CreateSequence.hpp"
 
+#include <ossia/network/domain/domain.hpp>
+#include <ossia/network/value/value_conversion.hpp>
+
+#include <Device/Address/AddressSettings.hpp>
+#include <Device/Node/DeviceNode.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
+#include <Process/State/MessageNode.hpp>
+#include <Process/TimeValue.hpp>
 #include <QByteArray>
 #include <QList>
 #include <QString>
 #include <QtGlobal>
-#include <algorithm>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <iterator>
-#include <list>
-#include <utility>
-#include <vector>
-
-#include "CreateSequence.hpp"
-#include <Device/Address/AddressSettings.hpp>
-#include <State/Domain.hpp>
-#include <Device/Node/DeviceNode.hpp>
-#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
-#include <Process/State/MessageNode.hpp>
-#include <Process/TimeValue.hpp>
+#include <Scenario/Commands/Cohesion/CreateCurveFromStates.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event_TimeSync.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <State/Address.hpp>
+#include <State/Domain.hpp>
 #include <State/Message.hpp>
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
-#include <score/document/DocumentInterface.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/model/path/PathSerialization.hpp>
-#include <score/model/Identifier.hpp>
-#include <score/tools/Todo.hpp>
-#include <score/model/tree/TreeNode.hpp>
-
-#include <ossia/network/value/value_conversion.hpp>
-#include <Scenario/Settings/ScenarioSettingsModel.hpp>
+#include <algorithm>
+#include <iterator>
+#include <list>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
-
-#include <ossia/network/domain/domain.hpp>
+#include <score/document/DocumentInterface.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/model/path/PathSerialization.hpp>
+#include <score/model/tree/TreeNode.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+#include <score/tools/Todo.hpp>
+#include <score/tools/std/Optional.hpp>
+#include <utility>
+#include <vector>
 namespace Scenario
 {
 namespace Command
@@ -59,7 +57,9 @@ CreateSequenceProcesses::CreateSequenceProcesses(
 {
   // TESTME
 
-  if (!score::AppContext().settings<Scenario::Settings::Model>().getAutoSequence())
+  if (!score::AppContext()
+           .settings<Scenario::Settings::Model>()
+           .getAutoSequence())
     return;
 
   // We get the device explorer, and we fetch the new states.
@@ -167,11 +167,10 @@ CreateSequenceProcesses::CreateSequenceProcesses(
   {
     auto start = State::convert::value<double>(elt.first.value);
     auto end = State::convert::value<double>(elt.second.value);
-    Curve::CurveDomain d{ elt.second.domain.get(), start, end};
-    auto cmd = new CreateAutomationFromStates{interval,
-                                              m_interpolations.slotsToUse,
-                                              process_ids[cur_proc],
-                                              elt.first.address, d};
+    Curve::CurveDomain d{elt.second.domain.get(), start, end};
+    auto cmd = new CreateAutomationFromStates{
+        interval, m_interpolations.slotsToUse, process_ids[cur_proc],
+        elt.first.address, d};
     m_interpolations.addCommand(cmd);
     cur_proc++;
   }
@@ -179,9 +178,8 @@ CreateSequenceProcesses::CreateSequenceProcesses(
   for (const auto& elt : matchingListMessages)
   {
     m_interpolations.addCommand(new CreateInterpolationFromStates{
-        interval, m_interpolations.slotsToUse,
-        process_ids[cur_proc], elt.first.address,
-        elt.first.value, elt.second.value});
+        interval, m_interpolations.slotsToUse, process_ids[cur_proc],
+        elt.first.address, elt.first.value, elt.second.value});
     cur_proc++;
   }
 }
@@ -239,12 +237,13 @@ CreateSequence* CreateSequence::make(
   auto proc_command = new CreateSequenceProcesses{
       scenario, scenario.interval(create_command->createdInterval())};
 
-  if(proc_command->addedProcessCount() > 0)
+  if (proc_command->addedProcessCount() > 0)
   {
     proc_command->redo(ctx);
     cmd->addCommand(proc_command);
 
-    auto show_rack = new ShowRack{scenario.interval(create_command->createdInterval())};
+    auto show_rack
+        = new ShowRack{scenario.interval(create_command->createdInterval())};
     show_rack->redo(ctx);
     cmd->addCommand(show_rack);
   }

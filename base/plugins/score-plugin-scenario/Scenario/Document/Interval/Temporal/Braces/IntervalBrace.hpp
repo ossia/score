@@ -1,8 +1,8 @@
 #pragma once
 #include <QBrush>
 #include <QGraphicsItem>
-#include <score_plugin_scenario_export.h>
 #include <qnamespace.h>
+#include <score_plugin_scenario_export.h>
 
 class QGraphicsSceneMouseEvent;
 

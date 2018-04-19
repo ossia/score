@@ -102,7 +102,7 @@ public:
   }
 
 private:
-  //RecordContext& m_context;
+  // RecordContext& m_context;
   std::vector<std::unique_ptr<RecordProvider>> m_recorders;
 };
 
@@ -144,15 +144,10 @@ public:
     ctx.timer.setInterval(
         16.66 * 4); // TODO ReasonableUpdateInterval(curve_count));
     QObject::connect(&ctx.timer, &QTimer::timeout, this, [&, box]() {
-
       // Move end event by the current duration.
       box.moveCommand.update(
-          ctx.scenario,
-          {},
-          box.endEvent,
-          ctx.point.date + GetTimeDifference(ctx.firstValueTime),
-          0,
-          true);
+          ctx.scenario, {}, box.endEvent,
+          ctx.point.date + GetTimeDifference(ctx.firstValueTime), 0, true);
 
       box.moveCommand.redo(ctx.context);
     });
@@ -162,7 +157,6 @@ public:
     QObject::connect(
         &ctx.scenario, &IdentifiedObjectAbstract::identified_object_destroyed,
         this, [&]() { ctx.timer.stop(); });
-
 
     return true;
   }

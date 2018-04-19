@@ -1,6 +1,9 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AddressSettingsWidget.hpp"
+
+#include <ossia/network/base/node_attributes.hpp>
+
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Address/ClipMode.hpp>
 #include <Device/Address/IOType.hpp>
@@ -18,18 +21,17 @@
 #include <QVariant>
 #include <State/Widgets/UnitWidget.hpp>
 #include <score/widgets/SignalUtils.hpp>
-#include <ossia/network/base/node_attributes.hpp>
 namespace Explorer
 {
 AddressSettingsWidget::AddressSettingsWidget(QWidget* parent)
-  : QWidget(parent), m_layout{new QFormLayout}, m_none_type{false}
+    : QWidget(parent), m_layout{new QFormLayout}, m_none_type{false}
 {
   m_ioTypeCBox = new AccessModeComboBox{this};
   m_clipModeCBox = new BoundingModeComboBox{this};
   m_repetition = new QCheckBox;
   m_repetition->setToolTip(
-        tr("When repetitions are filtered, if two identical values are sent one "
-           "after the other, the second is ignored."));
+      tr("When repetitions are filtered, if two identical values are sent one "
+         "after the other, the second is ignored."));
   m_tagsEdit = new QComboBox{this};
   m_tagsEdit->setToolTip(tr("Tags for this parameter"));
   m_tagsEdit->setEditable(true);
@@ -39,8 +41,8 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget* parent)
   connect(m_addTagButton, &QPushButton::clicked, this, [&]() {
     bool ok = false;
     auto res = QInputDialog::getText(
-          this, tr("Add tag"), tr("Add a tag"), QLineEdit::Normal, QString{},
-          &ok);
+        this, tr("Add tag"), tr("Add a tag"), QLineEdit::Normal, QString{},
+        &ok);
     if (ok)
     {
       m_tagsEdit->addItem(res);
@@ -68,7 +70,7 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget* parent)
 
 AddressSettingsWidget::AddressSettingsWidget(
     AddressSettingsWidget::no_widgets_t, QWidget* parent)
-  : QWidget(parent), m_layout{new QFormLayout}, m_none_type{true}
+    : QWidget(parent), m_layout{new QFormLayout}, m_none_type{true}
 {
   m_tagsEdit = new QComboBox{this};
   m_tagsEdit->setEditable(true);
@@ -78,8 +80,8 @@ AddressSettingsWidget::AddressSettingsWidget(
   connect(addTagButton, &QPushButton::clicked, this, [&]() {
     bool ok = false;
     auto res = QInputDialog::getText(
-          this, tr("Add tag"), tr("Add a tag"), QLineEdit::Normal, QString{},
-          &ok);
+        this, tr("Add tag"), tr("Add a tag"), QLineEdit::Normal, QString{},
+        &ok);
     if (ok)
     {
       m_tagsEdit->addItem(res);
@@ -97,19 +99,19 @@ AddressSettingsWidget::AddressSettingsWidget(
 
 void AddressSettingsWidget::setCanEditProperties(bool b)
 {
-  if(m_ioTypeCBox)
+  if (m_ioTypeCBox)
     m_ioTypeCBox->setEnabled(b);
-  if(m_clipModeCBox)
+  if (m_clipModeCBox)
     m_clipModeCBox->setEnabled(b);
-  if(m_repetition)
+  if (m_repetition)
     m_repetition->setEnabled(b);
-  if(m_tagsEdit)
+  if (m_tagsEdit)
     m_tagsEdit->setEnabled(b);
-  if(m_addTagButton)
+  if (m_addTagButton)
     m_addTagButton->setEnabled(b);
-  if(m_description)
+  if (m_description)
     m_description->setEnabled(b);
-  if(m_unit)
+  if (m_unit)
     m_unit->setEnabled(b);
 }
 
@@ -121,22 +123,22 @@ Device::AddressSettings AddressSettingsWidget::getCommonSettings() const
   if (!m_none_type)
   {
     settings.ioType = static_cast<ossia::access_mode>(
-          m_ioTypeCBox->currentData().value<int>());
+        m_ioTypeCBox->currentData().value<int>());
     settings.clipMode = static_cast<ossia::bounding_mode>(
-          m_clipModeCBox->currentData().value<int>());
-    settings.repetitionFilter = static_cast<ossia::repetition_filter>(m_repetition->isChecked());
+        m_clipModeCBox->currentData().value<int>());
+    settings.repetitionFilter
+        = static_cast<ossia::repetition_filter>(m_repetition->isChecked());
     settings.unit = m_unit->unit();
     auto txt = m_description->text();
-    if(!txt.isEmpty())
+    if (!txt.isEmpty())
     {
       ossia::net::set_description(
-            settings.extendedAttributes,
-            txt.toStdString());
+          settings.extendedAttributes, txt.toStdString());
     }
   }
 
   const auto tags_n = m_tagsEdit->count();
-  if(tags_n > 0)
+  if (tags_n > 0)
   {
     ossia::net::tags tags;
     for (int i = 0; i < tags_n; i++)
@@ -164,17 +166,18 @@ void AddressSettingsWidget::setCommonSettings(
 
     m_unit->setUnit(settings.unit);
 
-    // Note : for extended attributes, we should instead have some kind of checkbox ?
-    if(auto desc = ossia::net::get_description(settings.extendedAttributes))
+    // Note : for extended attributes, we should instead have some kind of
+    // checkbox ?
+    if (auto desc = ossia::net::get_description(settings.extendedAttributes))
       m_description->setText(QString::fromStdString(*desc));
     else
       m_description->setText(QString{});
   }
 
-  if(const auto& tags = ossia::net::get_tags(settings.extendedAttributes))
+  if (const auto& tags = ossia::net::get_tags(settings.extendedAttributes))
   {
     QStringList t;
-    for(const auto& tag : *tags)
+    for (const auto& tag : *tags)
       t.push_back(QString::fromStdString(tag));
     m_tagsEdit->addItems(std::move(t));
   }
@@ -194,31 +197,25 @@ AccessModeComboBox::AccessModeComboBox(QWidget* parent) : QComboBox{parent}
   }
 
   connect(
-        this, SignalUtils::QComboBox_currentIndexChanged_int(), this,
-        [=](int i) {
-    changed(
-          (ossia::access_mode) this->itemData(i).toInt());
-  });
+      this, SignalUtils::QComboBox_currentIndexChanged_int(), this,
+      [=](int i) { changed((ossia::access_mode)this->itemData(i).toInt()); });
 }
-
 
 AccessModeComboBox::~AccessModeComboBox()
 {
 }
 
-
 ossia::access_mode AccessModeComboBox::get() const
 {
-  return (ossia::access_mode) this->currentData().toInt();
+  return (ossia::access_mode)this->currentData().toInt();
 }
-
 
 void AccessModeComboBox::set(ossia::access_mode t)
 {
   const auto& clip_map = Device::AccessModeText();
   for (int i = 0; i < clip_map.size(); i++)
   {
-    if(itemData(i).toInt() == (int)t)
+    if (itemData(i).toInt() == (int)t)
     {
       setCurrentIndex(i);
       break;
@@ -235,11 +232,10 @@ BoundingModeComboBox::BoundingModeComboBox(QWidget* parent) : QComboBox{parent}
     addItem(it.value(), (int)it.key());
   }
   connect(
-        this, SignalUtils::QComboBox_currentIndexChanged_int(), this,
-        [=](int i) {
-    changed(
-          (ossia::bounding_mode) this->itemData(i).toInt());
-  });
+      this, SignalUtils::QComboBox_currentIndexChanged_int(), this,
+      [=](int i) {
+        changed((ossia::bounding_mode)this->itemData(i).toInt());
+      });
 }
 
 BoundingModeComboBox::~BoundingModeComboBox()
@@ -248,7 +244,7 @@ BoundingModeComboBox::~BoundingModeComboBox()
 
 ossia::bounding_mode BoundingModeComboBox::get() const
 {
-  return (ossia::bounding_mode) this->currentData().toInt();
+  return (ossia::bounding_mode)this->currentData().toInt();
 }
 
 void BoundingModeComboBox::set(ossia::bounding_mode t)
@@ -256,12 +252,11 @@ void BoundingModeComboBox::set(ossia::bounding_mode t)
   const auto& clip_map = Device::ClipModePrettyStringMap();
   for (int i = 0; i < clip_map.size(); i++)
   {
-    if(itemData(i).toInt() == (int)t)
+    if (itemData(i).toInt() == (int)t)
     {
       setCurrentIndex(i);
       break;
     }
   }
 }
-
 }

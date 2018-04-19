@@ -1,10 +1,10 @@
 #pragma once
 #include <QColor>
-#include <QGraphicsTextItem>
 #include <QGlyphRun>
+#include <QGraphicsSceneMouseEvent>
+#include <QGraphicsTextItem>
 #include <QPen>
 #include <score/model/ColorReference.hpp>
-#include <QGraphicsSceneMouseEvent>
 #include <score_plugin_scenario_export.h>
 namespace Scenario
 {
@@ -50,31 +50,30 @@ class QGraphicsTextButton
     : public QObject
     , public Scenario::SimpleTextItem
 {
-    Q_OBJECT
-  public:
-    QGraphicsTextButton(QString text, QGraphicsItem* parent)
+  Q_OBJECT
+public:
+  QGraphicsTextButton(QString text, QGraphicsItem* parent)
       : SimpleTextItem{parent}
-    {
-      setText(std::move(text));
-    }
+  {
+    setText(std::move(text));
+  }
 
-  Q_SIGNALS:
-    void pressed();
+Q_SIGNALS:
+  void pressed();
 
-  protected:
-    void mousePressEvent(QGraphicsSceneMouseEvent* event) override
-    {
-      pressed();
-      event->accept();
-    }
-    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override
-    {
-      event->accept();
-    }
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override
-    {
-      event->accept();
-    }
+protected:
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override
+  {
+    pressed();
+    event->accept();
+  }
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override
+  {
+    event->accept();
+  }
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override
+  {
+    event->accept();
+  }
 };
-
 }

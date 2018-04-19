@@ -1,19 +1,17 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "UndoApplicationPlugin.hpp"
+
+#include <QIcon>
 #include <QKeySequence>
 #include <QString>
 #include <QToolBar>
-
-#include "UndoApplicationPlugin.hpp"
 #include <core/command/CommandStack.hpp>
 #include <core/document/Document.hpp>
-
-#include <score/actions/Menu.hpp>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
-
-#include <QIcon>
 #include <core/presenter/CoreActions.hpp>
 #include <core/presenter/CoreApplicationPlugin.hpp>
+#include <score/actions/Menu.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/widgets/SetIcons.hpp>
 
 class QObject;

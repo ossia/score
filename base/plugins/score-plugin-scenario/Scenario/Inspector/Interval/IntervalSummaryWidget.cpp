@@ -1,17 +1,14 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "IntervalSummaryWidget.hpp"
-
-#include <score/document/DocumentContext.hpp>
-#include <Scenario/Inspector/SelectionButton.hpp>
-#include <score/widgets/TextLabel.hpp>
-
-#include <QLabel>
-
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Process/Process.hpp>
+#include <QLabel>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Inspector/SelectionButton.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/widgets/TextLabel.hpp>
 
 namespace Scenario
 {
@@ -41,12 +38,12 @@ IntervalSummaryWidget::IntervalSummaryWidget(
   {
     QString text = tr("Flexible : ")
                    % (object.duration.minDuration().isZero()
-                        ? QStringLiteral("0")
-                        : object.duration.minDuration().toString())
+                          ? QStringLiteral("0")
+                          : object.duration.minDuration().toString())
                    % tr(" to ")
                    % (object.duration.maxDuration().isInfinite()
-                                                 ? QStringLiteral("inf")
-                                                 : object.duration.maxDuration().toString());
+                          ? QStringLiteral("inf")
+                          : object.duration.maxDuration().toString());
     auto l4 = new TextLabel{text};
     m_lay.addWidget(l4, 1, 1, 1, 4);
   }
@@ -68,6 +65,5 @@ IntervalSummaryWidget::IntervalSummaryWidget(
 
 IntervalSummaryWidget::~IntervalSummaryWidget()
 {
-
 }
 }

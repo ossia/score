@@ -1,15 +1,14 @@
 #pragma once
-#include <score/command/AggregateCommand.hpp>
-
 #include "CreateEvent_State.hpp"
-#include "CreateState.hpp"
-
 #include "CreateInterval.hpp"
 #include "CreateInterval_State.hpp"
 #include "CreateInterval_State_Event.hpp"
 #include "CreateInterval_State_Event_TimeSync.hpp"
 #include "CreateSequence.hpp"
+#include "CreateState.hpp"
+
 #include <boost/range/adaptor/reversed.hpp>
+#include <score/command/AggregateCommand.hpp>
 namespace Scenario
 {
 namespace Command

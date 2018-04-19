@@ -12,10 +12,11 @@ class PanelFactory;
 } // namespace score
 
 // RENAMEME
-class score_plugin_inspector : public QObject,
-                                public score::Plugin_QtInterface,
-                                public score::FactoryInterface_QtInterface,
-                                public score::FactoryList_QtInterface
+class score_plugin_inspector
+    : public QObject
+    , public score::Plugin_QtInterface
+    , public score::FactoryInterface_QtInterface
+    , public score::FactoryList_QtInterface
 {
   Q_OBJECT
   Q_PLUGIN_METADATA(IID Plugin_QtInterface_iid)

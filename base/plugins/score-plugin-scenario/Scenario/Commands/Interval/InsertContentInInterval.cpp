@@ -1,35 +1,34 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
+#include "InsertContentInInterval.hpp"
+
+#include <Process/ExpandMode.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
+#include <QDataStream>
+#include <QtGlobal>
+#include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
-
-#include <QDataStream>
-#include <QtGlobal>
 #include <algorithm>
 #include <boost/iterator/indirect_iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <functional>
-#include <score/tools/IdentifierGeneration.hpp>
 #include <iterator>
 #include <map>
-#include <utility>
-#include <vector>
+#include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
-
-#include "InsertContentInInterval.hpp"
-#include <Process/ExpandMode.hpp>
-#include <Scenario/Document/Interval/IntervalDurations.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONVisitor.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
-#include <score/application/ApplicationContext.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+#include <utility>
+#include <vector>
 
 namespace Scenario
 {
@@ -50,16 +49,15 @@ InsertContentInInterval::InsertContentInInterval(
   m_processIds.reserve(target_processes.size());
   std::transform(
       target_processes.begin(), target_processes.end(),
-      std::back_inserter(curIds),
-      [](const auto& proc) { return proc.id(); });
-
+      std::back_inserter(curIds), [](const auto& proc) { return proc.id(); });
 
   auto processes = m_source["Processes"].toArray();
   for (int i = 0; i < processes.size(); i++)
   {
     auto obj = processes[i].toObject();
     Id<Process::ProcessModel> newId = getStrongId(curIds);
-    Id<Process::ProcessModel> oldId = Id<Process::ProcessModel>(obj["id"].toInt());
+    Id<Process::ProcessModel> oldId
+        = Id<Process::ProcessModel>(obj["id"].toInt());
     obj["id"] = newId.val();
     processes[i] = std::move(obj);
     m_processIds.insert({oldId, newId});
@@ -80,7 +78,7 @@ void InsertContentInInterval::undo(const score::DocumentContext& ctx) const
     RemoveProcess(trg_interval, proc_id.second);
   }
 
-  if(trg_interval.processes.empty())
+  if (trg_interval.processes.empty())
     trg_interval.setSmallViewVisible(false);
 }
 
@@ -90,7 +88,7 @@ void InsertContentInInterval::redo(const score::DocumentContext& ctx) const
   auto& trg_interval = m_target.find(ctx);
   const auto& json_array = m_source["Processes"].toArray();
 
-  for(const auto& json_vref : json_array)
+  for (const auto& json_vref : json_array)
   {
     JSONObject::Deserializer deserializer{json_vref.toObject()};
     auto newproc = deserialize_interface(pl, deserializer, &trg_interval);
@@ -115,25 +113,24 @@ void InsertContentInInterval::redo(const score::DocumentContext& ctx) const
   }
 
   auto sv_it = m_source.constFind(score::StringConstant().SmallViewRack);
-  if(sv_it != m_source.constEnd())
+  if (sv_it != m_source.constEnd())
   {
     Rack smallView;
     fromJsonArray(sv_it->toArray(), smallView);
-    for(auto& sv : smallView)
+    for (auto& sv : smallView)
     {
-      if(sv.frontProcess)
+      if (sv.frontProcess)
       {
         sv.frontProcess = m_processIds.at(*sv.frontProcess);
       }
-      for(auto& proc : sv.processes)
+      for (auto& proc : sv.processes)
       {
         proc = m_processIds.at(proc);
       }
       trg_interval.addSlot(sv);
     }
-
   }
-  if(json_array.size() > 0 && !trg_interval.smallViewVisible())
+  if (json_array.size() > 0 && !trg_interval.smallViewVisible())
     trg_interval.setSmallViewVisible(true);
 }
 

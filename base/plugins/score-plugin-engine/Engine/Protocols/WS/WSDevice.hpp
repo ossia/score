@@ -11,7 +11,6 @@ public:
   WSDevice(const Device::DeviceSettings& settings);
 
   bool reconnect() override;
-
 };
 }
 }

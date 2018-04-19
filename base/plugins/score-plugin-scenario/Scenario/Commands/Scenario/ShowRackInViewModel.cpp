@@ -1,24 +1,20 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-
-#include <algorithm>
-#include <score/serialization/DataStreamVisitor.hpp>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ShowRackInViewModel.hpp"
+
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <algorithm>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 
 namespace Scenario
 {
 namespace Command
 {
-ShowRack::ShowRack(
-    const IntervalModel& vm)
-    : m_intervalViewPath{vm}
+ShowRack::ShowRack(const IntervalModel& vm) : m_intervalViewPath{vm}
 {
 }
-
 
 void ShowRack::undo(const score::DocumentContext& ctx) const
 {

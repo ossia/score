@@ -1,14 +1,14 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SetRigidity.hpp"
+
 #include <Process/TimeValue.hpp>
+#include <Process/TimeValueSerialization.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
-#include <Process/TimeValueSerialization.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 
 namespace Scenario
 {

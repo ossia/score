@@ -1,15 +1,13 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Loop/LoopProcessModel.hpp>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "LoopInspectorWidget.hpp"
-#include <QVBoxLayout>
 
 #include <Inspector/InspectorWidgetList.hpp>
+#include <Loop/LoopProcessModel.hpp>
 #include <Process/ProcessList.hpp>
+#include <QVBoxLayout>
 #include <Scenario/Inspector/Interval/IntervalInspectorDelegateFactory.hpp>
 #include <Scenario/Inspector/Interval/IntervalInspectorWidget.hpp>
-
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 LoopInspectorWidget::LoopInspectorWidget(
@@ -22,7 +20,8 @@ LoopInspectorWidget::LoopInspectorWidget(
   // inherits from a virtual.
   auto& appContext = doc.app;
   auto& intervalWidgetFactory
-      = appContext.interfaces<Scenario::IntervalInspectorDelegateFactoryList>();
+      = appContext
+            .interfaces<Scenario::IntervalInspectorDelegateFactoryList>();
 
   auto& interval = object.interval();
 

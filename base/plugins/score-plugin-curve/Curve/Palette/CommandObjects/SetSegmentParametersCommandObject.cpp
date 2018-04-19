@@ -1,9 +1,8 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-
-#include <score/tools/Clamp.hpp>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
 #include "SetSegmentParametersCommandObject.hpp"
+
 #include <Curve/CurveModel.hpp>
 #include <Curve/CurvePresenter.hpp>
 #include <Curve/Palette/CurvePaletteBaseStates.hpp>
@@ -12,6 +11,7 @@
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/path/Path.hpp>
+#include <score/tools/Clamp.hpp>
 
 namespace score
 {
@@ -48,24 +48,23 @@ void SetSegmentParametersCommandObject::move()
   double newVertical = m_verticalOrig
                            ? clamp(
                                  *m_verticalOrig
-                                     + amplitude * (m_state->currentPoint.y()
-                                                    - m_originalPress.y()),
-                                 -1.,
-                                 1.)
+                                     + amplitude
+                                           * (m_state->currentPoint.y()
+                                              - m_originalPress.y()),
+                                 -1., 1.)
                            : 0;
   double newHorizontal = m_horizontalOrig
                              ? clamp(
                                    *m_horizontalOrig
-                                       + amplitude * (m_state->currentPoint.x()
-                                                      - m_originalPress.x()),
-                                   -1.,
-                                   1.)
+                                       + amplitude
+                                             * (m_state->currentPoint.x()
+                                                - m_originalPress.x()),
+                                   -1., 1.)
                              : 0;
 
   m_dispatcher.submitCommand(
-      m_model,
-      SegmentParameterMap{
-          {m_state->clickedSegmentId, {newVertical, newHorizontal}}});
+      m_model, SegmentParameterMap{
+                   {m_state->clickedSegmentId, {newVertical, newHorizontal}}});
 }
 
 void SetSegmentParametersCommandObject::release()

@@ -1,6 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "RelativePath.hpp"
+
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
@@ -58,7 +59,7 @@ QObject* RelativePath::find_impl(QObject* source) const
 }
 }
 
-template<>
+template <>
 SCORE_LIB_BASE_EXPORT void
 DataStreamReader::read(const score::RelativePath& path)
 {
@@ -66,15 +67,14 @@ DataStreamReader::read(const score::RelativePath& path)
   readFrom(path.m_remainder);
 }
 
-template<>
-SCORE_LIB_BASE_EXPORT void
-DataStreamWriter::write(score::RelativePath& path)
+template <>
+SCORE_LIB_BASE_EXPORT void DataStreamWriter::write(score::RelativePath& path)
 {
   m_stream >> path.m_parents;
   writeTo(path.m_remainder);
 }
 
-template<>
+template <>
 SCORE_LIB_BASE_EXPORT void
 JSONObjectReader::read(const score::RelativePath& path)
 {
@@ -82,9 +82,8 @@ JSONObjectReader::read(const score::RelativePath& path)
   readFrom(path.m_remainder);
 }
 
-template<>
-SCORE_LIB_BASE_EXPORT void
-JSONObjectWriter::write(score::RelativePath& path)
+template <>
+SCORE_LIB_BASE_EXPORT void JSONObjectWriter::write(score::RelativePath& path)
 {
   path.m_parents = obj[strings.Parents].toInt();
   writeTo(path.m_remainder);

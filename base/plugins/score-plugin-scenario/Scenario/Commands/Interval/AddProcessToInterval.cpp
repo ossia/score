@@ -8,11 +8,9 @@ AddProcessToInterval::AddProcessToInterval(
     const Scenario::IntervalModel& interval,
     const UuidKey<Process::ProcessModel>& process,
     const QString& dat)
-  : m_addProcessCommand{interval,
-                        getStrongId(interval.processes),
-                        process,
-                        dat}
-  , m_addedSlot{interval.smallView().empty()}
+    : m_addProcessCommand{interval, getStrongId(interval.processes), process,
+                          dat}
+    , m_addedSlot{interval.smallView().empty()}
 {
 }
 
@@ -20,7 +18,7 @@ void AddProcessToInterval::undo(const score::DocumentContext& ctx) const
 {
   auto& interval = m_addProcessCommand.intervalPath().find(ctx);
 
-  if(m_addedSlot)
+  if (m_addedSlot)
     interval.removeSlot(0);
   else
     interval.removeLayer(0, m_addProcessCommand.processId());
@@ -36,10 +34,11 @@ void AddProcessToInterval::redo(const score::DocumentContext& ctx) const
   auto& proc = m_addProcessCommand.redo(interval, ctx);
 
   // Make it visible
-  if(m_addedSlot)
+  if (m_addedSlot)
   {
-    auto h
-        = score::AppContext().settings<Scenario::Settings::Model>().getSlotHeight();
+    auto h = score::AppContext()
+                 .settings<Scenario::Settings::Model>()
+                 .getSlotHeight();
     interval.addSlot(Slot{{proc.id()}, proc.id(), h});
     interval.setSmallViewVisible(true);
   }
@@ -49,17 +48,17 @@ void AddProcessToInterval::redo(const score::DocumentContext& ctx) const
   }
 }
 
-const Path<Scenario::IntervalModel>&AddProcessToInterval::intervalPath() const
+const Path<Scenario::IntervalModel>& AddProcessToInterval::intervalPath() const
 {
   return m_addProcessCommand.intervalPath();
 }
 
-const Id<Process::ProcessModel>&AddProcessToInterval::processId() const
+const Id<Process::ProcessModel>& AddProcessToInterval::processId() const
 {
   return m_addProcessCommand.processId();
 }
 
-const UuidKey<Process::ProcessModel>&AddProcessToInterval::processKey() const
+const UuidKey<Process::ProcessModel>& AddProcessToInterval::processKey() const
 {
   return m_addProcessCommand.processKey();
 }
@@ -79,14 +78,10 @@ void AddProcessToInterval::deserializeImpl(DataStreamOutput& s)
 
 AddProcessToInterval::~AddProcessToInterval()
 {
-
 }
 
 AddProcessInNewBoxMacro::~AddProcessInNewBoxMacro()
 {
-
 }
-
 }
-
 }

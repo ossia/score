@@ -1,16 +1,17 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QString>
-#include <QVariant>
-#include <memory>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "WSDevice.hpp"
-#include <ossia/network/generic/generic_parameter.hpp>
+
 #include <ossia/network/generic/generic_device.hpp>
-#include <ossia-qt/websocket-generic-client/ws_generic_client.hpp>
+#include <ossia/network/generic/generic_parameter.hpp>
+
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/Protocols/WS/WSSpecificSettings.hpp>
 #include <Explorer/DeviceList.hpp>
+#include <QString>
+#include <QVariant>
+#include <memory>
+#include <ossia-qt/websocket-generic-client/ws_generic_client.hpp>
 
 namespace Engine
 {

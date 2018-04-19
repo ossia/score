@@ -1,9 +1,11 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "UnitWidget.hpp"
+
 #include <ossia/network/dataspace/dataspace.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 #include <ossia/network/dataspace/detail/dataspace_parse.hpp>
+
 #include <QComboBox>
 #include <QHBoxLayout>
 #include <brigand/algorithms/for_each.hpp>
@@ -26,7 +28,8 @@ UnitWidget::UnitWidget(QWidget* parent) : QWidget{parent}
   m_dataspace->addItem(tr("None"), QVariant::fromValue(State::Unit{}));
   brigand::for_each<ossia::dataspace_u_list>([=](auto d) {
     // For each dataspace, add its text to the combo box
-    using dataspace_type = typename ossia::matching_unit_u_list<typename decltype(d)::type>::type;
+    using dataspace_type =
+        typename ossia::matching_unit_u_list<typename decltype(d)::type>::type;
     ossia::string_view text
         = ossia::dataspace_traits<dataspace_type>::text()[0];
 
@@ -44,14 +47,11 @@ UnitWidget::UnitWidget(QWidget* parent) : QWidget{parent}
 
   connect(
       m_unit, SignalUtils::QComboBox_currentIndexChanged_int(), this,
-      [=](int i) {
-        unitChanged(m_unit->itemData(i).value<State::Unit>());
-      });
+      [=](int i) { unitChanged(m_unit->itemData(i).value<State::Unit>()); });
 }
 
-
 UnitWidget::UnitWidget(const State::Unit& u, QWidget* parent)
-  : UnitWidget{parent}
+    : UnitWidget{parent}
 {
   setUnit(u);
 }
@@ -102,8 +102,8 @@ void UnitWidget::on_dataspaceChanged(const State::Unit& unit)
           [=](auto dataspace) -> void {
             // Then For each unit in the dataspace, add it to the unit
             // combobox.
-            using typelist = typename ossia
-              ::matching_unit_u_list<decltype(dataspace)>::type;
+            using typelist = typename ossia ::matching_unit_u_list<decltype(
+                dataspace)>::type;
             brigand::for_each<typelist>([=](auto u) {
               using unit_type = typename decltype(u)::type;
               ossia::string_view text

@@ -1,30 +1,29 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Commands/State/AddMessagesToState.hpp>
-#include <State/MessageListSerialization.hpp>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "MessageItemModel.hpp"
 
+#include <ossia/network/value/value_traits.hpp>
+
+#include <Process/State/MessageNode.hpp>
 #include <QFlags>
 #include <QJsonDocument>
 #include <QMap>
 #include <QMimeData>
 #include <QObject>
-#include <score/tools/std/Optional.hpp>
-
 #include <QString>
-#include <algorithm>
-
-#include "MessageItemModel.hpp"
-#include <Process/State/MessageNode.hpp>
+#include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <State/Message.hpp>
+#include <State/MessageListSerialization.hpp>
 #include <State/StateMimeTypes.hpp>
 #include <State/ValueConversion.hpp>
+#include <algorithm>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/serialization/JSONVisitor.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/TreeNodeItemModel.hpp>
-#include <ossia/network/value/value_traits.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+#include <score/tools/std/Optional.hpp>
 
 namespace Scenario
 {
@@ -81,8 +80,7 @@ nameColumnData(const MessageItemModel::node_type& node, int role)
   return {};
 }
 
-QVariant
-valueColumnData(const MessageItemModel::node_type& node, int role)
+QVariant valueColumnData(const MessageItemModel::node_type& node, int role)
 {
   if (role == Qt::DisplayRole || role == Qt::EditRole)
   {
@@ -137,9 +135,9 @@ QVariant MessageItemModel::headerData(
 {
   if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
   {
-    if(section == 0)
+    if (section == 0)
       return tr("Address");
-    else if(section == 1)
+    else if (section == 1)
       return tr("Value");
   }
 

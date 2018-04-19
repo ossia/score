@@ -1,11 +1,10 @@
 #pragma once
+#include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Point/CurvePointView.hpp>
 #include <Curve/Segment/CurveSegmentView.hpp>
 #include <QGraphicsItem>
 #include <QPoint>
 #include <score/statemachine/GraphicsSceneTool.hpp>
-
-#include <Curve/Palette/CurvePoint.hpp>
 
 namespace Curve
 {

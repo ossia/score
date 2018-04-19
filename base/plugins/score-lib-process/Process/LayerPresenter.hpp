@@ -1,11 +1,9 @@
 #pragma once
-#include <Process/ZoomHelper.hpp>
-
-#include <score_lib_process_export.h>
-
 #include <Process/ProcessContext.hpp>
-#include <score/model/Identifier.hpp>
+#include <Process/ZoomHelper.hpp>
 #include <QGraphicsItem>
+#include <score/model/Identifier.hpp>
+#include <score_lib_process_export.h>
 class QMenu;
 class QPoint;
 class QPointF;
@@ -15,15 +13,16 @@ class ProcessModel;
 class LayerContextMenuManager;
 class SCORE_LIB_PROCESS_EXPORT GraphicsShapeItem : public QGraphicsItem
 {
-  public:
-    using QGraphicsItem::QGraphicsItem;
-    ~GraphicsShapeItem() override;
-    virtual void setSize(QSizeF sz);
-    virtual void on_zoomRatioChanged(ZoomRatio) = 0;
+public:
+  using QGraphicsItem::QGraphicsItem;
+  ~GraphicsShapeItem() override;
+  virtual void setSize(QSizeF sz);
+  virtual void on_zoomRatioChanged(ZoomRatio) = 0;
 
-    QRectF boundingRect() const final override;
-  private:
-    QSizeF m_sz{};
+  QRectF boundingRect() const final override;
+
+private:
+  QSizeF m_sz{};
 };
 class SCORE_LIB_PROCESS_EXPORT LayerPresenter : public QObject
 {
@@ -61,10 +60,7 @@ public:
   virtual const Id<ProcessModel>& modelId() const = 0;
 
   virtual void fillContextMenu(
-      QMenu&,
-      QPoint pos,
-      QPointF scenepos,
-      const LayerContextMenuManager&);
+      QMenu&, QPoint pos, QPointF scenepos, const LayerContextMenuManager&);
 
   virtual GraphicsShapeItem* makeSlotHeaderDelegate();
 

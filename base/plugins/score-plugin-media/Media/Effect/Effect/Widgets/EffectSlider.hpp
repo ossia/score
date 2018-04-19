@@ -14,30 +14,29 @@ namespace Media
 {
 namespace Effect
 {
-class EffectSlider :
-        public QWidget
+class EffectSlider : public QWidget
 {
-    Q_OBJECT
-    public:
-        EffectSlider(Process::ControlInlet& fx, bool is_output, QWidget* parent);
+  Q_OBJECT
+public:
+  EffectSlider(Process::ControlInlet& fx, bool is_output, QWidget* parent);
 
-        ~EffectSlider() override;
+  ~EffectSlider() override;
 
-        double scaledValue;
-        score::DoubleSlider* m_slider{};
+  double scaledValue;
+  score::DoubleSlider* m_slider{};
 
-    Q_SIGNALS:
-        void createAutomation(const State::Address&, double min, double max);
+Q_SIGNALS:
+  void createAutomation(const State::Address&, double min, double max);
 
-    private:
-        void contextMenuEvent(QContextMenuEvent* event) override;
-        void on_paramDeleted();
+private:
+  void contextMenuEvent(QContextMenuEvent* event) override;
+  void on_paramDeleted();
 
-        Process::ControlInlet& m_param;
-        float m_min{0.};
-        float m_max{1.};
+  Process::ControlInlet& m_param;
+  float m_min{0.};
+  float m_max{1.};
 
-        QAction* m_addAutomAction{};
+  QAction* m_addAutomAction{};
 };
 }
 }

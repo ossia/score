@@ -1,18 +1,8 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MetadataWidget.hpp"
 
-#include <score/model/ModelMetadata.hpp>
-
 #include <Inspector/InspectorSectionWidget.hpp>
-#include <Scenario/Inspector/CommentEdit.hpp>
-#include <Scenario/Inspector/ExtendedMetadataWidget.hpp>
-
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/widgets/MarginLess.hpp>
-
-#include <QtColorWidgets/color_palette_widget.hpp>
-
 #include <QBoxLayout>
 #include <QColorDialog>
 #include <QFormLayout>
@@ -24,11 +14,16 @@
 #include <QSize>
 #include <QToolButton>
 #include <QWidgetAction>
+#include <QtColorWidgets/color_palette_widget.hpp>
+#include <Scenario/Inspector/CommentEdit.hpp>
+#include <Scenario/Inspector/ExtendedMetadataWidget.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/model/ModelMetadata.hpp>
+#include <score/widgets/MarginLess.hpp>
 
 namespace Scenario
 {
-auto colorPalette()
-  -> color_widgets::ColorPaletteModel&
+auto colorPalette() -> color_widgets::ColorPaletteModel&
 {
   using namespace color_widgets;
   static ColorPaletteModel p;
@@ -85,7 +80,7 @@ MetadataWidget::MetadataWidget(
   m_comments.setVisible(false);
 
   m_cmtBtn.setArrowType(Qt::RightArrow);
-  m_cmtBtn.setIconSize({4,4});
+  m_cmtBtn.setIconSize({4, 4});
   m_cmtLay.addWidget(&m_cmtBtn);
   m_cmtLabel = new TextLabel{tr("properties & comments"), this};
   m_cmtLay.addWidget(m_cmtLabel);
@@ -110,20 +105,16 @@ MetadataWidget::MetadataWidget(
       m_cmtBtn.setArrowType(Qt::RightArrow);
   });
 
-  con(m_scriptingNameLine, &QLineEdit::editingFinished, [=]() {
-    scriptingNameChanged(m_scriptingNameLine.text());
-  });
+  con(m_scriptingNameLine, &QLineEdit::editingFinished,
+      [=]() { scriptingNameChanged(m_scriptingNameLine.text()); });
 
-  con(m_labelLine, &QLineEdit::editingFinished, [=]() {
-    labelChanged(m_labelLine.text());
-  });
+  con(m_labelLine, &QLineEdit::editingFinished,
+      [=]() { labelChanged(m_labelLine.text()); });
 
-  con(m_comments, &CommentEdit::editingFinished, [=]() {
-    commentsChanged(m_comments.toPlainText());
-  });
+  con(m_comments, &CommentEdit::editingFinished,
+      [=]() { commentsChanged(m_comments.toPlainText()); });
 
-  con(
-      m_meta, &ExtendedMetadataWidget::dataChanged, this,
+  con(m_meta, &ExtendedMetadataWidget::dataChanged, this,
       [=]() { extendedMetadataChanged(m_meta.currentMap()); },
       Qt::QueuedConnection);
 
@@ -137,8 +128,9 @@ MetadataWidget::MetadataWidget(
     palette_widget->setReadOnly(true);
 
     connect(
-        palette_widget, static_cast<void (ColorPaletteWidget::*)(int)>(
-                            &ColorPaletteWidget::currentColorChanged),
+        palette_widget,
+        static_cast<void (ColorPaletteWidget::*)(int)>(
+            &ColorPaletteWidget::currentColorChanged),
         this, [=](int idx) {
           auto colors = palette.palette(0).colors();
 
@@ -149,7 +141,6 @@ MetadataWidget::MetadataWidget(
             if (col)
               colorChanged(*col);
           }
-
         });
 
     auto colorMenu = new QMenu{this};

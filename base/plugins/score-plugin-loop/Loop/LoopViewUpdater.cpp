@@ -1,29 +1,29 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
+#include "LoopViewUpdater.hpp"
 
 #include <Loop/LoopPresenter.hpp>
 #include <Loop/LoopProcessModel.hpp>
 #include <Loop/LoopView.hpp>
+#include <Process/TimeValue.hpp>
 #include <QPoint>
 #include <QRect>
 #include <QtGlobal>
-#include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/Event/EventView.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncView.hpp>
-
-#include "LoopViewUpdater.hpp"
-#include <Process/TimeValue.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Event/EventPresenter.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/State/StateView.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncView.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 
 namespace Loop

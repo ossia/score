@@ -1,5 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "AggregateCommand.hpp"
+
 #include <QByteArray>
 #include <QDataStream>
 #include <QList>
@@ -8,8 +10,6 @@
 #include <boost/concept/usage.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 #include <score/application/ApplicationComponents.hpp>
-
-#include "AggregateCommand.hpp"
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Command.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
@@ -41,12 +41,12 @@ void AggregateCommand::redo(const score::DocumentContext& ctx) const
 
 void AggregateCommand::addCommand(Command* cmd)
 {
-    m_cmds.push_back(command_ptr{cmd});
+  m_cmds.push_back(command_ptr{cmd});
 }
 
 int AggregateCommand::count() const
 {
-    return m_cmds.size();
+  return m_cmds.size();
 }
 
 void AggregateCommand::serializeImpl(DataStreamInput& s) const

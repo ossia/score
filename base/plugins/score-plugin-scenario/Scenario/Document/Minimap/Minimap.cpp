@@ -1,18 +1,17 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Document/Minimap/Minimap.hpp>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <ossia/detail/math.hpp>
 
+#include <Process/Style/ScenarioStyle.hpp>
+#include <QApplication>
 #include <QGraphicsSceneMouseEvent>
+#include <QGraphicsView>
 #include <QPainter>
 #include <QWidget>
-#include <Process/Style/ScenarioStyle.hpp>
-#include <ossia/detail/math.hpp>
-#include <QGraphicsView>
-#include <QApplication>
+#include <Scenario/Document/Minimap/Minimap.hpp>
 namespace Scenario
 {
-Minimap::Minimap(QGraphicsView* vp):
-  m_viewport{vp}
+Minimap::Minimap(QGraphicsView* vp) : m_viewport{vp}
 {
   this->setAcceptHoverEvents(true);
 }
@@ -62,15 +61,15 @@ void Minimap::setLargeView()
 void Minimap::zoomIn()
 {
   modifyHandles(
-        m_leftHandle + 0.01 * (m_rightHandle - m_leftHandle),
-        m_rightHandle - 0.01 * (m_rightHandle - m_leftHandle));
+      m_leftHandle + 0.01 * (m_rightHandle - m_leftHandle),
+      m_rightHandle - 0.01 * (m_rightHandle - m_leftHandle));
 }
 
 void Minimap::zoomOut()
 {
   modifyHandles(
-        m_leftHandle - 0.01 * (m_rightHandle - m_leftHandle),
-        m_rightHandle + 0.01 * (m_rightHandle - m_leftHandle));
+      m_leftHandle - 0.01 * (m_rightHandle - m_leftHandle),
+      m_rightHandle + 0.01 * (m_rightHandle - m_leftHandle));
 }
 
 void Minimap::zoom(double z)
@@ -83,13 +82,18 @@ QRectF Minimap::boundingRect() const
   return {0., 0., m_width, m_height};
 }
 
-void Minimap::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void Minimap::paint(
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto& sk = ScenarioStyle::instance();
   painter->setPen(sk.MinimapPen);
   painter->setBrush(sk.MinimapBrush);
-  painter->drawRoundedRect(QRectF{m_leftHandle, 2., m_rightHandle - m_leftHandle, m_height - 3.}, 4, 4);
-  painter->drawRoundedRect(QRectF{m_leftHandle, 2., m_rightHandle - m_leftHandle, m_height - 3.}, 4, 4);
+  painter->drawRoundedRect(
+      QRectF{m_leftHandle, 2., m_rightHandle - m_leftHandle, m_height - 3.}, 4,
+      4);
+  painter->drawRoundedRect(
+      QRectF{m_leftHandle, 2., m_rightHandle - m_leftHandle, m_height - 3.}, 4,
+      4);
 }
 
 #if defined(__APPLE__)
@@ -98,8 +102,8 @@ std::chrono::time_point<std::chrono::high_resolution_clock> t0, t1;
 void Minimap::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
 #if defined(__APPLE__)
-    t0 = std::chrono::high_resolution_clock::now();
-    t1 = std::chrono::high_resolution_clock::now();
+  t0 = std::chrono::high_resolution_clock::now();
+  t1 = std::chrono::high_resolution_clock::now();
 #endif
   m_gripLeft = false;
   m_gripRight = false;
@@ -107,11 +111,11 @@ void Minimap::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 
   const auto pos_x = ev->pos().x();
 
-  if(std::abs(pos_x - m_leftHandle) < 3.)
+  if (std::abs(pos_x - m_leftHandle) < 3.)
     m_gripLeft = true;
-  else if(std::abs(pos_x - m_rightHandle) < 3.)
+  else if (std::abs(pos_x - m_rightHandle) < 3.)
     m_gripRight = true;
-  else if(pos_x > m_leftHandle && pos_x < m_rightHandle)
+  else if (pos_x > m_leftHandle && pos_x < m_rightHandle)
     m_gripMid = true;
   else
   {
@@ -120,10 +124,11 @@ void Minimap::mousePressEvent(QGraphicsSceneMouseEvent* ev)
   }
 
   m_startPos = ev->screenPos();
-  m_relativeStartX = (ev->pos().x() - m_leftHandle) / (m_rightHandle - m_leftHandle);
+  m_relativeStartX
+      = (ev->pos().x() - m_leftHandle) / (m_rightHandle - m_leftHandle);
   m_startY = ev->pos().y();
 
-  if(m_setCursor)
+  if (m_setCursor)
   {
     QApplication::changeOverrideCursor(QCursor(Qt::BlankCursor));
   }
@@ -137,34 +142,33 @@ void Minimap::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 void Minimap::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
 {
 #if defined(__APPLE__)
-    t1 = std::chrono::high_resolution_clock::now();
-    if(t1 - t0 < std::chrono::milliseconds(16))
-    {
-        return;
-    }
-    t0 = t1;
+  t1 = std::chrono::high_resolution_clock::now();
+  if (t1 - t0 < std::chrono::milliseconds(16))
+  {
+    return;
+  }
+  t0 = t1;
 #endif
   const auto pos = ev->screenPos();
-  if(m_gripLeft || m_gripRight || m_gripMid)
+  if (m_gripLeft || m_gripRight || m_gripMid)
   {
     auto dx = 0.7 * (pos.x() - m_startPos.x());
-    if(m_gripLeft)
+    if (m_gripLeft)
     {
       setLeftHandle(m_leftHandle + dx);
     }
-    else if(m_gripRight)
+    else if (m_gripRight)
     {
       setRightHandle(m_rightHandle + dx);
     }
-    else if(m_gripMid)
+    else if (m_gripMid)
     {
       auto dy = 0.7 * (pos.y() - m_startPos.y());
 
-      if(!((m_leftHandle <= 0. && dx < 0) || (m_rightHandle >= m_width && dx > 0)))
+      if (!((m_leftHandle <= 0. && dx < 0)
+            || (m_rightHandle >= m_width && dx > 0)))
       {
-        setHandles(
-              m_leftHandle  + dx - dy,
-              m_rightHandle + dx + dy);
+        setHandles(m_leftHandle + dx - dy, m_rightHandle + dx + dy);
       }
     }
 
@@ -180,13 +184,13 @@ void Minimap::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
 
 void Minimap::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
 {
-  if(m_setCursor)
+  if (m_setCursor)
   {
     QApplication::restoreOverrideCursor();
     m_setCursor = false;
   }
 
-  if(m_gripLeft || m_gripRight || m_gripMid)
+  if (m_gripLeft || m_gripRight || m_gripMid)
   {
     m_gripLeft = false;
     m_gripRight = false;
@@ -194,9 +198,8 @@ void Minimap::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
 
     QPointF pos;
     pos.setX(ossia::clamp(
-               m_leftHandle + m_relativeStartX * (m_rightHandle - m_leftHandle),
-               m_leftHandle,
-               m_rightHandle));
+        m_leftHandle + m_relativeStartX * (m_rightHandle - m_leftHandle),
+        m_leftHandle, m_rightHandle));
     pos.setY(m_startY);
 
     QCursor::setPos(m_viewport->mapToGlobal(pos.toPoint()));
@@ -215,25 +218,25 @@ void Minimap::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* ev)
 void Minimap::hoverEnterEvent(QGraphicsSceneHoverEvent* ev)
 {
   const auto pos_x = ev->pos().x();
-  if(std::abs(pos_x - m_leftHandle) < 3.)
+  if (std::abs(pos_x - m_leftHandle) < 3.)
   {
-    if(!m_setCursor)
+    if (!m_setCursor)
     {
       QApplication::setOverrideCursor(Qt::SizeHorCursor);
       m_setCursor = true;
     }
   }
-  else if(std::abs(pos_x - m_rightHandle) < 3.)
+  else if (std::abs(pos_x - m_rightHandle) < 3.)
   {
-    if(!m_setCursor)
+    if (!m_setCursor)
     {
       QApplication::setOverrideCursor(Qt::SizeHorCursor);
       m_setCursor = true;
     }
   }
-  else if(pos_x > m_leftHandle && pos_x < m_rightHandle)
+  else if (pos_x > m_leftHandle && pos_x < m_rightHandle)
   {
-    if(!m_setCursor)
+    if (!m_setCursor)
     {
       QApplication::setOverrideCursor(Qt::SizeAllCursor);
       m_setCursor = true;
@@ -241,7 +244,7 @@ void Minimap::hoverEnterEvent(QGraphicsSceneHoverEvent* ev)
   }
   else
   {
-    if(m_setCursor)
+    if (m_setCursor)
     {
       QApplication::restoreOverrideCursor();
       m_setCursor = false;
@@ -255,12 +258,10 @@ void Minimap::hoverMoveEvent(QGraphicsSceneHoverEvent* ev)
 
 void Minimap::hoverLeaveEvent(QGraphicsSceneHoverEvent* e)
 {
-  if(m_setCursor)
+  if (m_setCursor)
   {
     QApplication::restoreOverrideCursor();
     m_setCursor = false;
   }
 }
-
 }
-

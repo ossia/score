@@ -1,21 +1,18 @@
 #pragma once
 
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-
+#include <QFinalState>
 #include <Scenario/Commands/Scenario/Creations/CreateEvent_State.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveNewState.hpp>
-
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Palette/Tools/States/ScenarioCreationState.hpp>
 #include <Scenario/Palette/Transitions/AnythingTransitions.hpp>
-#include <Scenario/Palette/Transitions/IntervalTransitions.hpp>
 #include <Scenario/Palette/Transitions/EventTransitions.hpp>
+#include <Scenario/Palette/Transitions/IntervalTransitions.hpp>
 #include <Scenario/Palette/Transitions/NothingTransitions.hpp>
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>
 #include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
-
-#include <QFinalState>
 
 namespace Scenario
 {
@@ -181,12 +178,9 @@ public:
         }
 
         this->m_dispatcher.template submitCommand<MoveNewEvent>(
-            this->m_scenario,
-            this->createdIntervals.last(),
-            this->createdEvents.last(),
-            this->currentPoint.date,
-            this->currentPoint.y,
-            stateMachine.editionSettings().sequence());
+            this->m_scenario, this->createdIntervals.last(),
+            this->createdEvents.last(), this->currentPoint.date,
+            this->currentPoint.y, stateMachine.editionSettings().sequence());
       });
 
       QObject::connect(move_timesync, &QState::entered, [&]() {
@@ -202,8 +196,7 @@ public:
         }
 
         this->m_dispatcher.template submitCommand<MoveNewState>(
-            this->m_scenario,
-            this->createdStates.last(),
+            this->m_scenario, this->createdStates.last(),
             this->currentPoint.y);
       });
 
@@ -220,8 +213,7 @@ public:
         }
 
         this->m_dispatcher.template submitCommand<MoveNewState>(
-            this->m_scenario,
-            this->createdStates.last(),
+            this->m_scenario, this->createdStates.last(),
             this->currentPoint.y);
       });
 
@@ -231,8 +223,7 @@ public:
 
     auto rollbackState = new QState{this};
     rollbackState->setObjectName("Rollback");
-    score::make_transition<score::Cancel_Transition>(
-        mainState, rollbackState);
+    score::make_transition<score::Cancel_Transition>(mainState, rollbackState);
     rollbackState->addTransition(finalState);
     QObject::connect(
         rollbackState, &QState::entered, this, &Creation_FromEvent::rollback);

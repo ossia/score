@@ -18,7 +18,7 @@ public:
       DocumentPlugin& doc,
       QObject* parent_comp);
 
-  private:
+private:
   bool m_setting{};
 };
 }

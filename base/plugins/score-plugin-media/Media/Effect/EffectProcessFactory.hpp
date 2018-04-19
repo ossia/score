@@ -1,6 +1,6 @@
 #pragma once
-#include <Process/GenericProcessFactory.hpp>
 #include <Media/Effect/EffectProcessLayer.hpp>
+#include <Process/GenericProcessFactory.hpp>
 namespace Media
 {
 namespace Effect

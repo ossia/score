@@ -1,14 +1,12 @@
 #pragma once
-#include <Scenario/Document/TimeRuler/TimeRulerGraphicsView.hpp>
+#include <Process/Tools/ProcessGraphicsView.hpp>
 #include <Scenario/Document/Minimap/Minimap.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioScene.hpp>
 #include <Scenario/Document/ScenarioDocument/TimeBar.hpp>
-#include <score/widgets/GraphicsProxyObject.hpp>
 #include <Scenario/Document/TimeRuler/TimeRuler.hpp>
-
-#include <Process/Tools/ProcessGraphicsView.hpp>
-
+#include <Scenario/Document/TimeRuler/TimeRulerGraphicsView.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
+#include <score/widgets/GraphicsProxyObject.hpp>
 
 class QGraphicsView;
 class QObject;
@@ -31,7 +29,8 @@ class ScenarioDocumentView final : public score::DocumentDelegateView
   Q_OBJECT
 
 public:
-  ScenarioDocumentView(const score::GUIApplicationContext& ctx, QObject* parent);
+  ScenarioDocumentView(
+      const score::GUIApplicationContext& ctx, QObject* parent);
   virtual ~ScenarioDocumentView() = default;
 
   QWidget* getWidget() override;
@@ -63,10 +62,15 @@ public:
     return m_timeRuler;
   }
 
-  Minimap& minimap() { return m_minimap; }
+  Minimap& minimap()
+  {
+    return m_minimap;
+  }
 
-  TimeBar& timeBar() { return m_bar; }
-
+  TimeBar& timeBar()
+  {
+    return m_bar;
+  }
 
   QRectF viewportRect() const;
   QRectF visibleSceneRect() const;

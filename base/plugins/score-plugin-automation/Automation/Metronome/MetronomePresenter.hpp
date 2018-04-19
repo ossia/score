@@ -1,11 +1,9 @@
 #pragma once
-#include <Curve/Process/CurveProcessPresenter.hpp>
-
+#include <Automation/Commands/ChangeAddress.hpp>
 #include <Automation/Metronome/MetronomeModel.hpp>
 #include <Automation/Metronome/MetronomeView.hpp>
+#include <Curve/Process/CurveProcessPresenter.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
-
-#include <Automation/Commands/ChangeAddress.hpp>
 #include <Process/ProcessContext.hpp>
 #include <State/MessageListSerialization.hpp>
 
@@ -14,7 +12,7 @@ namespace Metronome
 class LayerPresenter final
     : public Curve::CurveProcessPresenter<ProcessModel, LayerView>
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
   LayerPresenter(
       const Curve::Style& style,
@@ -35,7 +33,7 @@ private:
     m_curve.setBoundedMove(false);
   }
 
-  void on_dropReceived(const QPointF& pos,const QMimeData& mime)
+  void on_dropReceived(const QPointF& pos, const QMimeData& mime)
   {
     auto& autom = this->model();
     // TODO refactor with AddressEditWidget
@@ -48,7 +46,8 @@ private:
         return;
 
       CommandDispatcher<> disp{context().context.commandStack};
-      disp.submitCommand(new ChangeMetronomeAddress{autom, std::move(as.address)});
+      disp.submitCommand(
+          new ChangeMetronomeAddress{autom, std::move(as.address)});
     }
     else if (mime.formats().contains(score::mime::messagelist()))
     {

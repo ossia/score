@@ -1,14 +1,14 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "InspectorWidgetBase.hpp"
+
 #include <QBoxLayout>
 #include <QLayoutItem>
 #include <QScrollArea>
-#include <score/document/DocumentContext.hpp>
-
-#include "InspectorWidgetBase.hpp"
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/selection/SelectionDispatcher.hpp>
+#include <score/document/DocumentContext.hpp>
 #include <score/model/IdentifiedObjectAbstract.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
 
@@ -17,7 +17,8 @@ namespace Inspector
 InspectorWidgetBase::InspectorWidgetBase(
     const IdentifiedObjectAbstract& inspectedObj,
     const score::DocumentContext& ctx,
-    QWidget* parent, QString name)
+    QWidget* parent,
+    QString name)
     : QWidget(parent)
     , m_inspectedObject{inspectedObj}
     , m_context{ctx}
@@ -37,7 +38,8 @@ InspectorWidgetBase::InspectorWidgetBase(
   auto scrollArea = new QScrollArea;
   scrollArea->setWidgetResizable(true);
   scrollArea->setSizeAdjustPolicy(QScrollArea::AdjustToContents);
-  scrollArea->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+  scrollArea->setSizePolicy(
+      QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
   auto scrollAreaContentWidget = new QWidget;
   m_scrollAreaLayout
       = new score::MarginLess<QVBoxLayout>{scrollAreaContentWidget};
@@ -66,7 +68,7 @@ void InspectorWidgetBase::updateSectionsView(
   {
     auto item = layout->takeAt(0);
 
-    if(auto widg = item->widget())
+    if (auto widg = item->widget())
       delete widg;
     delete item;
   }
@@ -77,7 +79,8 @@ void InspectorWidgetBase::updateSectionsView(
   }
 }
 
-void InspectorWidgetBase::updateAreaLayout(std::initializer_list<QWidget*> contents)
+void InspectorWidgetBase::updateAreaLayout(
+    std::initializer_list<QWidget*> contents)
 {
   while (!m_scrollAreaLayout->isEmpty())
   {
@@ -94,7 +97,8 @@ void InspectorWidgetBase::updateAreaLayout(std::initializer_list<QWidget*> conte
   m_scrollAreaLayout->addStretch(1);
 }
 
-void InspectorWidgetBase::updateAreaLayout(const std::vector<QWidget*>& contents)
+void InspectorWidgetBase::updateAreaLayout(
+    const std::vector<QWidget*>& contents)
 {
   while (!m_scrollAreaLayout->isEmpty())
   {

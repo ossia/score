@@ -1,6 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MoveEventList.hpp"
+
 #include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
 #include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
 #include <algorithm>
@@ -14,7 +15,6 @@ namespace Command
 
 SerializableMoveEvent::~SerializableMoveEvent()
 {
-
 }
 
 MoveEventFactoryInterface& MoveEventList::get(

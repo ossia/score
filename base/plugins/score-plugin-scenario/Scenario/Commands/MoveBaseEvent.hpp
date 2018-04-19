@@ -2,18 +2,16 @@
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
-
 #include <score/command/Command.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
-#include <score/model/Identifier.hpp>
 
 /*
  * Command to change a interval duration by moving event. Vertical move is
@@ -38,8 +36,7 @@ private:
     scenar.endTimeSync().setDate(newDuration);
 
     auto& interval = scenar.interval();
-    IntervalDurations::Algorithms::changeAllDurations(
-        interval, newDuration);
+    IntervalDurations::Algorithms::changeAllDurations(interval, newDuration);
     for (auto& process : interval.processes)
     {
       scaleMethod(process, newDuration);
@@ -75,7 +72,8 @@ public:
       const Id<EventModel>& event,
       const TimeVal& date,
       double y,
-      ExpandMode mode, LockMode)
+      ExpandMode mode,
+      LockMode)
       : m_path{scenar}, m_newDate{date}, m_mode{mode}
   {
     const Scenario::IntervalModel& interval = scenar.interval();
@@ -88,8 +86,9 @@ public:
       const Id<EventModel>& event,
       const TimeVal& date,
       double y,
-      ExpandMode mode, LockMode lm,
-          Id<StateModel>)
+      ExpandMode mode,
+      LockMode lm,
+      Id<StateModel>)
       : MoveBaseEvent{scenar, event, date, y, mode, lm}
   {
   }
@@ -128,11 +127,19 @@ public:
         });
   }
 
-  void update(unused_t, unused_t, const TimeVal& date, double, ExpandMode, LockMode)
+  void
+  update(unused_t, unused_t, const TimeVal& date, double, ExpandMode, LockMode)
   {
     m_newDate = date;
   }
-  void update(unused_t, unused_t, const TimeVal& date, double, ExpandMode, LockMode, unused_t)
+  void update(
+      unused_t,
+      unused_t,
+      const TimeVal& date,
+      double,
+      ExpandMode,
+      LockMode,
+      unused_t)
   {
     m_newDate = date;
   }

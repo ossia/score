@@ -1,16 +1,14 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ToolbarManager.hpp"
+
 #include <QToolBar>
 namespace score
 {
 
 Toolbar::Toolbar(
     QToolBar* tb, StringKey<Toolbar> key, int defaultRow, int defaultCol)
-    : m_impl{tb}
-    , m_key{std::move(key)}
-    , m_row{defaultRow}
-    , m_col{defaultCol}
+    : m_impl{tb}, m_key{std::move(key)}, m_row{defaultRow}, m_col{defaultCol}
 {
 }
 
@@ -46,5 +44,4 @@ void ToolbarManager::insert(std::vector<Toolbar> vals)
     insert(std::move(val));
   }
 }
-
 }

@@ -1,13 +1,13 @@
 #pragma once
+#include <ossia/editor/scenario/time_process.hpp>
+
+#include <Engine/Executor/Component.hpp>
+#include <Engine/Executor/DocumentPlugin.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessComponent.hpp>
 #include <QObject>
-#include <Engine/Executor/Component.hpp>
-#include <score/model/ComponentFactory.hpp>
 #include <memory>
-
-#include <ossia/editor/scenario/time_process.hpp>
-#include <Engine/Executor/DocumentPlugin.hpp>
+#include <score/model/ComponentFactory.hpp>
 #include <score/plugins/customfactory/ModelFactory.hpp>
 #include <score_plugin_engine_export.h>
 
@@ -36,8 +36,8 @@ public:
 };
 
 class SCORE_PLUGIN_ENGINE_EXPORT ProcessComponent
-    : public Process::GenericProcessComponent<const Context>,
-      public std::enable_shared_from_this<ProcessComponent>
+    : public Process::GenericProcessComponent<const Context>
+    , public std::enable_shared_from_this<ProcessComponent>
 {
   Q_OBJECT
   ABSTRACT_COMPONENT_METADATA(
@@ -45,7 +45,7 @@ class SCORE_PLUGIN_ENGINE_EXPORT ProcessComponent
       "d0f714de-c832-42d8-a605-60f5ffd0b7af")
 
 public:
-    static constexpr bool is_unique = true;
+  static constexpr bool is_unique = true;
 
   ProcessComponent(
       Process::ProcessModel& proc,
@@ -72,10 +72,11 @@ public:
   }
 
   std::shared_ptr<ossia::graph_node> node;
-  Q_SIGNALS:
-    void nodeChanged(ossia::node_ptr old_node, ossia::node_ptr new_node);
-  protected:
-    std::shared_ptr<ossia::time_process> m_ossia_process;
+Q_SIGNALS:
+  void nodeChanged(ossia::node_ptr old_node, ossia::node_ptr new_node);
+
+protected:
+  std::shared_ptr<ossia::time_process> m_ossia_process;
 };
 
 template <typename Process_T, typename OSSIA_Process_T>
@@ -92,8 +93,10 @@ struct ProcessComponent_T
 };
 
 class SCORE_PLUGIN_ENGINE_EXPORT ProcessComponentFactory
-    : public score::
-          GenericComponentFactory<Process::ProcessModel, Engine::Execution::DocumentPlugin, Engine::Execution::ProcessComponentFactory>
+    : public score::GenericComponentFactory<
+          Process::ProcessModel,
+          Engine::Execution::DocumentPlugin,
+          Engine::Execution::ProcessComponentFactory>
 {
   SCORE_ABSTRACT_COMPONENT_FACTORY(Engine::Execution::ProcessComponent)
 public:
@@ -110,8 +113,9 @@ public:
 
 template <typename ProcessComponent_T>
 class ProcessComponentFactory_T
-    : public score::
-          GenericComponentFactoryImpl<ProcessComponent_T, ProcessComponentFactory>
+    : public score::GenericComponentFactoryImpl<
+          ProcessComponent_T,
+          ProcessComponentFactory>
 {
 public:
   using model_type = typename ProcessComponent_T::model_type;
@@ -121,20 +125,25 @@ public:
       const Id<score::Component>& id,
       QObject* parent) const final override
   {
-    try {
+    try
+    {
       auto comp = std::make_shared<ProcessComponent_T>(
-                    static_cast<model_type&>(proc), ctx, id, parent);
+          static_cast<model_type&>(proc), ctx, id, parent);
       this->init(comp.get());
       return comp;
     }
-    catch(...) {
+    catch (...)
+    {
       return {};
     }
   }
 };
 
-class SCORE_PLUGIN_ENGINE_EXPORT ProcessComponentFactoryList final : public score::
-    GenericComponentFactoryList<Process::ProcessModel, Engine::Execution::DocumentPlugin, Engine::Execution::ProcessComponentFactory>
+class SCORE_PLUGIN_ENGINE_EXPORT ProcessComponentFactoryList final
+    : public score::GenericComponentFactoryList<
+          Process::ProcessModel,
+          Engine::Execution::DocumentPlugin,
+          Engine::Execution::ProcessComponentFactory>
 {
 public:
   ~ProcessComponentFactoryList();

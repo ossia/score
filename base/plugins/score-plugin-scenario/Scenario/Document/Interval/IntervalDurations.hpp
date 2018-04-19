@@ -2,7 +2,6 @@
 #include <Process/TimeValue.hpp>
 #include <QObject>
 #include <chrono>
-
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score_plugin_scenario_export.h>
@@ -18,16 +17,24 @@ class IntervalModel;
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalDurations final : public QObject
 {
   // These dates are relative to the beginning of the interval.
-  Q_PROPERTY(TimeVal minDuration READ minDuration WRITE setMinDuration NOTIFY minDurationChanged FINAL)
-  Q_PROPERTY(TimeVal maxDuration READ maxDuration WRITE setMaxDuration NOTIFY maxDurationChanged FINAL)
-  Q_PROPERTY(TimeVal guiDuration READ guiDuration WRITE setGuiDuration NOTIFY guiDurationChanged FINAL)
-  Q_PROPERTY(double playPercentage READ playPercentage WRITE setPlayPercentage NOTIFY playPercentageChanged FINAL)
+  Q_PROPERTY(TimeVal minDuration READ minDuration WRITE setMinDuration NOTIFY
+                 minDurationChanged FINAL)
+  Q_PROPERTY(TimeVal maxDuration READ maxDuration WRITE setMaxDuration NOTIFY
+                 maxDurationChanged FINAL)
+  Q_PROPERTY(TimeVal guiDuration READ guiDuration WRITE setGuiDuration NOTIFY
+                 guiDurationChanged FINAL)
+  Q_PROPERTY(double playPercentage READ playPercentage WRITE setPlayPercentage
+                 NOTIFY playPercentageChanged FINAL)
 
-  Q_PROPERTY(bool isRigid READ isRigid WRITE setRigid NOTIFY rigidityChanged FINAL)
-  Q_PROPERTY(bool isMinNull READ isMinNull WRITE setMinNull NOTIFY minNullChanged FINAL)
-  Q_PROPERTY(bool isMaxInfinite READ isMaxInfinite WRITE setMaxInfinite NOTIFY maxInfiniteChanged FINAL)
+  Q_PROPERTY(
+      bool isRigid READ isRigid WRITE setRigid NOTIFY rigidityChanged FINAL)
+  Q_PROPERTY(bool isMinNull READ isMinNull WRITE setMinNull NOTIFY
+                 minNullChanged FINAL)
+  Q_PROPERTY(bool isMaxInfinite READ isMaxInfinite WRITE setMaxInfinite NOTIFY
+                 maxInfiniteChanged FINAL)
 
-  Q_PROPERTY(double executionSpeed READ executionSpeed WRITE setExecutionSpeed NOTIFY executionSpeedChanged FINAL)
+  Q_PROPERTY(double executionSpeed READ executionSpeed WRITE setExecutionSpeed
+                 NOTIFY executionSpeedChanged FINAL)
 
   SCORE_SERIALIZE_FRIENDS
 
@@ -114,15 +121,12 @@ public:
   class SCORE_PLUGIN_SCENARIO_EXPORT Algorithms
   {
   public:
-    static void
-    setDurationInBounds(IntervalModel& cstr, const TimeVal& time);
-    static void
-    changeAllDurations(IntervalModel& cstr, const TimeVal& time);
-    static void
-    scaleAllDurations(IntervalModel& cstr, const TimeVal& time);
+    static void setDurationInBounds(IntervalModel& cstr, const TimeVal& time);
+    static void changeAllDurations(IntervalModel& cstr, const TimeVal& time);
+    static void scaleAllDurations(IntervalModel& cstr, const TimeVal& time);
   };
 
-  Q_SIGNALS:
+Q_SIGNALS:
   void defaultDurationChanged(const TimeVal& arg);
   void minDurationChanged(const TimeVal& arg);
   void maxDurationChanged(const TimeVal& arg);
@@ -133,7 +137,7 @@ public:
   void executionSpeedChanged(double executionSpeed);
   void guiDurationChanged(TimeVal guiDuration);
 
-  private:
+private:
   IntervalModel& m_model;
 
   TimeVal m_defaultDuration{std::chrono::milliseconds{200}};
@@ -147,5 +151,4 @@ public:
   bool m_isMinNull{false};
   bool m_isMaxInfinite{false};
 };
-
 }

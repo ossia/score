@@ -18,9 +18,7 @@ class LoadDevice final : public score::Command
   SCORE_COMMAND_DECL(
       DeviceExplorerCommandFactoryName(), LoadDevice, "Load a device")
 public:
-  LoadDevice(
-      const DeviceDocumentPlugin& devplug,
-      Device::Node&& node);
+  LoadDevice(const DeviceDocumentPlugin& devplug, Device::Node&& node);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

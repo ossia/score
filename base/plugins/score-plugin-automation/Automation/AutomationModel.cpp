@@ -1,26 +1,26 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QDebug>
-#include <QPoint>
-#include <score/document/DocumentInterface.hpp>
-#include <score/tools/std/Optional.hpp>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AutomationModel.hpp"
+
 #include <ossia/editor/state/destination_qualifiers.hpp>
+
 #include <Automation/AutomationProcessMetadata.hpp>
-#include <Process/Dataflow/Port.hpp>
 #include <Automation/State/AutomationState.hpp>
 #include <Curve/CurveModel.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Process/CurveProcessModel.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
+#include <Process/Dataflow/Port.hpp>
+#include <QDebug>
+#include <QPoint>
 #include <State/Address.hpp>
-#include <score/model/ModelMetadata.hpp>
+#include <score/document/DocumentInterface.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
-#include <score/tools/MapCopy.hpp>
 #include <score/model/Identifier.hpp>
-
+#include <score/model/ModelMetadata.hpp>
+#include <score/tools/MapCopy.hpp>
+#include <score/tools/std/Optional.hpp>
 
 namespace Process
 {
@@ -33,13 +33,14 @@ namespace Automation
 void ProcessModel::init()
 {
   m_outlets.push_back(outlet.get());
-  connect(outlet.get(), &Process::Port::addressChanged,
-          this, [=] (const State::AddressAccessor& arg) {
-    addressChanged(arg);
-    prettyNameChanged();
-    unitChanged(arg.qualifiers.get().unit);
-    m_curve->changed();
-  });
+  connect(
+      outlet.get(), &Process::Port::addressChanged, this,
+      [=](const State::AddressAccessor& arg) {
+        addressChanged(arg);
+        prettyNameChanged();
+        unitChanged(arg.qualifiers.get().unit);
+        m_curve->changed();
+      });
 }
 
 ProcessModel::ProcessModel(
@@ -75,31 +76,31 @@ ProcessModel::~ProcessModel()
 }
 
 ProcessModel::ProcessModel(JSONObject::Deserializer& vis, QObject* parent)
-  : CurveProcessModel{vis, parent}
-  , m_startState{new ProcessState{*this, 0., this}}
-  , m_endState{new ProcessState{*this, 1., this}}
+    : CurveProcessModel{vis, parent}
+    , m_startState{new ProcessState{*this, 0., this}}
+    , m_endState{new ProcessState{*this, 1., this}}
 {
   vis.writeTo(*this);
   init();
 }
 
 ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent)
-  : CurveProcessModel{vis, parent}
-  , m_startState{new ProcessState{*this, 0., this}}
-  , m_endState{new ProcessState{*this, 1., this}}
+    : CurveProcessModel{vis, parent}
+    , m_startState{new ProcessState{*this, 0., this}}
+    , m_endState{new ProcessState{*this, 1., this}}
 {
   vis.writeTo(*this);
   init();
 }
 
-
 QString ProcessModel::prettyName() const
 {
   auto res = address().toString();
-  if(!res.isEmpty())
+  if (!res.isEmpty())
     return res;
 
-  // TODO we could use the customData of the port the automation is connected to if any
+  // TODO we could use the customData of the port the automation is connected
+  // to if any
   return "Automation";
 }
 

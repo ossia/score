@@ -1,16 +1,17 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "CommonSelectionState.hpp"
+
+#include "StateMachineUtils.hpp"
+
 #include <QAbstractState>
 #include <QAbstractTransition>
+#include <QApplication>
 #include <QFinalState>
 #include <QGraphicsItem>
 #include <QKeyEventTransition>
 #include <qcoreevent.h>
 #include <qnamespace.h>
-
-#include "CommonSelectionState.hpp"
-#include "StateMachineUtils.hpp"
-#include <QApplication>
 
 bool CommonSelectionState::multiSelection() const
 {
@@ -75,8 +76,7 @@ CommonSelectionState::CommonSelectionState(
   deselectState->setObjectName("deselectState");
   score::make_transition<score::Cancel_Transition>(
       selectionAreaState, deselectState);
-  score::make_transition<score::Cancel_Transition>(
-      m_waitState, deselectState);
+  score::make_transition<score::Cancel_Transition>(m_waitState, deselectState);
   score::make_transition<score::Cancel_Transition>(this, deselectState);
   deselectState->addTransition(m_waitState);
   connect(

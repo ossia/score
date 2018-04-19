@@ -1,5 +1,6 @@
 #pragma once
 #include "ExplorationWorker.hpp"
+
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <QApplication>
 #include <QMessageBox>
@@ -80,9 +81,7 @@ private:
         QApplication::activeWindow(),
         QObject::tr("Unable to refresh the device"),
         QObject::tr("Unable to refresh the device: ")
-            + worker->dev.settings().name
-            + QObject::tr(".\nCause: ")
-            + str);
+            + worker->dev.settings().name + QObject::tr(".\nCause: ") + str);
 
     m_widget.blockGUI(false);
     cleanup();

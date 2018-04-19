@@ -11,5 +11,4 @@ class InspectorFactory final
 {
   SCORE_CONCRETE("035923ae-1cbf-4ca8-97bd-cf6205ca396e")
 };
-
 }

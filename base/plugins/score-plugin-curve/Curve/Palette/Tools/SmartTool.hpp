@@ -1,9 +1,9 @@
 #pragma once
-#include <Curve/Palette/CommandObjects/MovePointCommandObject.hpp>
-#include <QPoint>
-
 #include "CurveTool.hpp"
+
+#include <Curve/Palette/CommandObjects/MovePointCommandObject.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
+#include <QPoint>
 
 namespace Curve
 {

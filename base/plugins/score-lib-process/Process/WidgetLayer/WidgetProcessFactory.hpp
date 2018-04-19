@@ -24,8 +24,7 @@ private:
   }
 
   View* makeLayerView(
-      const Process::ProcessModel&,
-      QGraphicsItem* parent) const final override
+      const Process::ProcessModel&, QGraphicsItem* parent) const final override
   {
     return new View{parent};
   }
@@ -36,10 +35,8 @@ private:
       const Process::ProcessPresenterContext& context,
       QObject* parent) const final override
   {
-    return new Presenter<Model_T, Widget_T>{safe_cast<const Model_T&>(lm),
-                                            safe_cast<View*>(v), context,
-                                            parent};
+    return new Presenter<Model_T, Widget_T>{
+        safe_cast<const Model_T&>(lm), safe_cast<View*>(v), context, parent};
   }
 };
-
 }

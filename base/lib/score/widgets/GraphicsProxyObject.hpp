@@ -4,7 +4,9 @@
 #include <QGraphicsItem>
 #include <QObject>
 #include <QPainter>
-class BaseGraphicsObject final : public QObject, public QGraphicsItem
+class BaseGraphicsObject final
+    : public QObject
+    , public QGraphicsItem
 {
 public:
   BaseGraphicsObject(QGraphicsItem* parent = nullptr) : QGraphicsItem{parent}
@@ -14,7 +16,6 @@ public:
 
   ~BaseGraphicsObject() override
   {
-
   }
 
   QRectF boundingRect() const override
@@ -23,7 +24,8 @@ public:
   }
 
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override
   {
   }

@@ -1,6 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CurveSettingsView.hpp"
+
 #include <QCheckBox>
 #include <QFormLayout>
 #include <QSpinBox>
@@ -42,7 +43,6 @@ View::View() : m_widg{new QWidget}
         default:
           break;
       }
-
     });
 
     lay->addRow(tr("Simplify"), m_simpl);

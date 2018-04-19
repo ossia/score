@@ -169,7 +169,10 @@ indirect_map_iterator<T> make_indirect_map_iterator(const T& it)
   return indirect_map_iterator<T>{it};
 }
 
-template <template <class, class> class Container, typename T, typename U = std::allocator<T*>>
+template <
+    template <class, class> class Container,
+    typename T,
+    typename U = std::allocator<T*>>
 class IndirectContainer : Container<T*, U>
 {
 public:

@@ -1,64 +1,65 @@
 #include "EffectInspector.hpp"
 
 #include <Media/Commands/InsertEffect.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <QPlainTextEdit>
-#include <QVBoxLayout>
-#include <QDialogButtonBox>
 #include <QDialog>
-#include <QListWidget>
-#include <QPushButton>
-#include <QInputDialog>
+#include <QDialogButtonBox>
 #include <QFileDialog>
+#include <QInputDialog>
+#include <QListWidget>
+#include <QPlainTextEdit>
+#include <QPushButton>
+#include <QVBoxLayout>
+#include <score/document/DocumentContext.hpp>
 
 #if defined(HAS_FAUST)
-#include <Media/Effect/Faust/FaustEffectModel.hpp>
-#include <Media/Commands/EditFaustEffect.hpp>
+#  include <Media/Commands/EditFaustEffect.hpp>
+#  include <Media/Effect/Faust/FaustEffectModel.hpp>
 #endif
 
 #if defined(LILV_SHARED)
-#include <lilv/lilvmm.hpp>
-#include <lv2/lv2plug.in/ns/extensions/ui/ui.h>
-#include <Media/Effect/LV2/LV2EffectModel.hpp>
-#include <Media/ApplicationPlugin.hpp>
+#  include <Media/ApplicationPlugin.hpp>
+#  include <Media/Effect/LV2/LV2EffectModel.hpp>
+#  include <lilv/lilvmm.hpp>
+#  include <lv2/lv2plug.in/ns/extensions/ui/ui.h>
 #endif
 
 #if defined(HAS_VST2)
-#include <Media/Effect/VST/VSTEffectModel.hpp>
+#  include <Media/Effect/VST/VSTEffectModel.hpp>
 #endif
 
-#include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #include <Process/ProcessList.hpp>
+#include <Scenario/DialogWidget/AddProcessDialog.hpp>
 namespace Media
 {
 namespace Effect
 {
 
 InspectorWidget::InspectorWidget(
-    const Effect::ProcessModel &object,
-    const score::DocumentContext &doc,
-    QWidget *parent):
-  InspectorWidgetDelegate_T {object, parent},
-  m_dispatcher{doc.commandStack}
-, m_ctx{doc}
+    const Effect::ProcessModel& object,
+    const score::DocumentContext& doc,
+    QWidget* parent)
+    : InspectorWidgetDelegate_T{object, parent}
+    , m_dispatcher{doc.commandStack}
+    , m_ctx{doc}
 {
   setObjectName("EffectInspectorWidget");
 
   auto lay = new QVBoxLayout;
   m_list = new QListWidget;
   lay->addWidget(m_list);
-  con(process(), &Effect::ProcessModel::effectsChanged,
-      this, &InspectorWidget::recreate);
+  con(process(), &Effect::ProcessModel::effectsChanged, this,
+      &InspectorWidget::recreate);
 
-
-  connect(m_list, &QListWidget::itemDoubleClicked,
-          this, [=] (QListWidgetItem* item) {
-    /* TODO
-    auto id = item->data(Qt::UserRole).value<Id<Process::ProcessModel>>();
-    auto proc = &process().effects().at(id);
-    proc->showUI();
-    */
-  }, Qt::QueuedConnection);
+  connect(
+      m_list, &QListWidget::itemDoubleClicked, this,
+      [=](QListWidgetItem* item) {
+        /* TODO
+        auto id = item->data(Qt::UserRole).value<Id<Process::ProcessModel>>();
+        auto proc = &process().effects().at(id);
+        proc->showUI();
+        */
+      },
+      Qt::QueuedConnection);
 
   m_list->setContextMenuPolicy(Qt::DefaultContextMenu);
   recreate();
@@ -66,15 +67,13 @@ InspectorWidget::InspectorWidget(
   // Add an effect
   {
     auto add = new QPushButton{tr("Add (Score)")};
-    connect(add, &QPushButton::pressed,
-            this, [&] { add_score(cur_pos()); });
+    connect(add, &QPushButton::pressed, this, [&] { add_score(cur_pos()); });
     lay->addWidget(add);
   }
   {
 #if defined(HAS_FAUST)
     auto add = new QPushButton{tr("Add (Faust)")};
-    connect(add, &QPushButton::pressed,
-            this, [&] { add_faust(cur_pos()); });
+    connect(add, &QPushButton::pressed, this, [&] { add_faust(cur_pos()); });
 
     lay->addWidget(add);
 #endif
@@ -83,8 +82,7 @@ InspectorWidget::InspectorWidget(
   {
 #if defined(LILV_SHARED)
     auto add = new QPushButton{tr("Add (LV2)")};
-    connect(add, &QPushButton::pressed,
-            this, [&] { add_lv2(cur_pos()); });
+    connect(add, &QPushButton::pressed, this, [&] { add_lv2(cur_pos()); });
 
     lay->addWidget(add);
 #endif
@@ -93,8 +91,7 @@ InspectorWidget::InspectorWidget(
 #if defined(HAS_VST2)
   {
     auto add = new QPushButton{tr("Add (VST 2)")};
-    connect(add, &QPushButton::pressed,
-            this, [&] { add_vst2(cur_pos()); });
+    connect(add, &QPushButton::pressed, this, [&] { add_vst2(cur_pos()); });
 
     lay->addWidget(add);
   }
@@ -112,14 +109,11 @@ void InspectorWidget::add_score(std::size_t pos)
 {
   auto& base_fxs = m_ctx.app.interfaces<Process::ProcessFactoryList>();
   auto dialog = new Scenario::AddProcessDialog(
-                  base_fxs,
-                  Process::ProcessFlags::SupportsEffectChain,
-                  this);
+      base_fxs, Process::ProcessFlags::SupportsEffectChain, this);
 
-
-  dialog->on_okPressed = [&] (const auto& proc, const QString& )  {
+  dialog->on_okPressed = [&](const auto& proc, const QString&) {
     m_dispatcher.submitCommand(
-          new Commands::InsertEffect{process(), proc, pos});
+        new Commands::InsertEffect{process(), proc, pos});
   };
   dialog->launchWindow();
   dialog->deleteLater();
@@ -128,14 +122,16 @@ void InspectorWidget::add_score(std::size_t pos)
 void InspectorWidget::add_lv2(std::size_t pos)
 {
 #if defined(LILV_SHARED)
-  auto& world = score::AppComponents().applicationPlugin<Media::ApplicationPlugin>().lilv;
+  auto& world = score::AppComponents()
+                    .applicationPlugin<Media::ApplicationPlugin>()
+                    .lilv;
 
   auto plugs = world.get_all_plugins();
 
   QStringList items;
 
   auto it = plugs.begin();
-  while(!plugs.is_end(it))
+  while (!plugs.is_end(it))
   {
     auto plug = plugs.get(it);
     items.push_back(plug.get_name().as_string());
@@ -143,17 +139,14 @@ void InspectorWidget::add_lv2(std::size_t pos)
   }
 
   auto res = QInputDialog::getItem(
-               this,
-               tr("Select a plug-in"), tr("Select a LV2 plug-in"),
-               items, 0, false);
+      this, tr("Select a plug-in"), tr("Select a LV2 plug-in"), items, 0,
+      false);
 
-  if(!res.isEmpty())
+  if (!res.isEmpty())
   {
     m_dispatcher.submitCommand(
-          new Commands::InsertGenericEffect<LV2::LV2EffectModel>{
-            process(),
-            res,
-            pos});
+        new Commands::InsertGenericEffect<LV2::LV2EffectModel>{process(), res,
+                                                               pos});
   }
 #endif
 }
@@ -161,10 +154,8 @@ void InspectorWidget::add_faust(std::size_t pos)
 {
 #if defined(HAS_FAUST)
   m_dispatcher.submitCommand(
-        new Commands::InsertGenericEffect<Faust::FaustEffectModel>{
-          process(),
-          "process = _;",
-          pos});
+      new Commands::InsertGenericEffect<Faust::FaustEffectModel>{
+          process(), "process = _;", pos});
 #endif
 }
 
@@ -173,12 +164,11 @@ void InspectorWidget::add_vst2(std::size_t pos)
 #if defined(HAS_VST2)
   auto res = VST::VSTEffectFactory{}.customConstructionData();
 
-  if(!res.isEmpty())
+  if (!res.isEmpty())
   {
     m_dispatcher.submitCommand(
-          new Commands::InsertGenericEffect<VST::VSTEffectModel>{
-            process(),
-            res, pos});
+        new Commands::InsertGenericEffect<VST::VSTEffectModel>{process(), res,
+                                                               pos});
   }
 #endif
 }
@@ -189,29 +179,28 @@ void InspectorWidget::addRequested(int pos)
 
 int InspectorWidget::cur_pos()
 {
-  if(m_list->currentRow() >= 0)
+  if (m_list->currentRow() >= 0)
     return m_list->currentRow();
   return process().effects().size();
 }
-struct ListWidgetItem :
-    public QObject,
-    public QListWidgetItem
+struct ListWidgetItem
+    : public QObject
+    , public QListWidgetItem
 {
-  public:
-    using QListWidgetItem::QListWidgetItem;
-
+public:
+  using QListWidgetItem::QListWidgetItem;
 };
 
 void InspectorWidget::recreate()
 {
   m_list->clear();
 
-  for(const auto& fx : process().effects())
+  for (const auto& fx : process().effects())
   {
     auto item = new ListWidgetItem(fx.prettyName(), m_list);
 
-    con(fx.metadata(), &score::ModelMetadata::LabelChanged,
-        item, [=] (const auto& txt) { item->setText(txt); });
+    con(fx.metadata(), &score::ModelMetadata::LabelChanged, item,
+        [=](const auto& txt) { item->setText(txt); });
     item->setData(Qt::UserRole, QVariant::fromValue(fx.id()));
     m_list->addItem(item);
   }

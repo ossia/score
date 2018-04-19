@@ -1,11 +1,10 @@
 #pragma once
 #include <QObject>
-#include <wobjectdefs.h>
-#include <score/command/Command.hpp>
-#include <score/command/Validity/ValidityChecker.hpp>
-
 #include <QStack>
 #include <QString>
+#include <score/command/Command.hpp>
+#include <score/command/Validity/ValidityChecker.hpp>
+#include <wobjectdefs.h>
 
 namespace score
 {
@@ -29,8 +28,7 @@ class SCORE_LIB_BASE_EXPORT CommandStack final : public QObject
   friend struct CommandStackBackup;
 
 public:
-  explicit CommandStack(
-      const score::Document& ctx, QObject* parent = nullptr);
+  explicit CommandStack(const score::Document& ctx, QObject* parent = nullptr);
   ~CommandStack();
 
   /**
@@ -93,51 +91,40 @@ public:
    * @brief Emitted when a command was pushed on the stack
    * @param cmd the command that was pushed
    */
-  void localCommand(score::Command* cmd)
-  W_SIGNAL(localCommand, cmd)
+  void localCommand(score::Command* cmd) W_SIGNAL(localCommand, cmd)
 
-  /**
-   * @brief Emitted when the user calls "Undo"
-   */
-  void localUndo()
-  W_SIGNAL(localUndo)
+      /**
+       * @brief Emitted when the user calls "Undo"
+       */
+      void localUndo() W_SIGNAL(localUndo)
 
-  /**
-   * @brief Emitted when the user calls "Redo"
-   */
-  void localRedo()
-  W_SIGNAL(localRedo)
+      /**
+       * @brief Emitted when the user calls "Redo"
+       */
+      void localRedo() W_SIGNAL(localRedo)
 
-  void localIndexChanged(int v)
-  W_SIGNAL(localIndexChanged, v)
+          void localIndexChanged(int v) W_SIGNAL(localIndexChanged, v)
 
-  void canUndoChanged(bool b)
-  W_SIGNAL(canUndoChanged, b)
-  void canRedoChanged(bool b)
-  W_SIGNAL(canRedoChanged, b)
+              void canUndoChanged(bool b) W_SIGNAL(
+                  canUndoChanged, b) void canRedoChanged(bool b)
+                  W_SIGNAL(canRedoChanged, b)
 
-  void undoTextChanged(QString b)
-  W_SIGNAL(undoTextChanged, b)
-  void redoTextChanged(QString b)
-  W_SIGNAL(redoTextChanged, b)
+                      void undoTextChanged(QString b) W_SIGNAL(
+                          undoTextChanged, b) void redoTextChanged(QString b)
+                          W_SIGNAL(redoTextChanged, b)
 
-  void indexChanged(int b)
-  W_SIGNAL(indexChanged, b)
-  void stackChanged()
-  W_SIGNAL(stackChanged)
+                              void indexChanged(int b)
+                                  W_SIGNAL(indexChanged, b) void stackChanged()
+                                      W_SIGNAL(stackChanged)
 
-  // These signals are low-level and are sent on each operation that affects
-  // the stacks
-  void sig_undo()
-  W_SIGNAL(sig_undo)
-  void sig_redo()
-  W_SIGNAL(sig_redo)
-  void sig_push()
-  W_SIGNAL(sig_push)
-  void sig_indexChanged()
-  W_SIGNAL(sig_indexChanged)
+      // These signals are low-level and are sent on each operation that
+      // affects the stacks
+      void sig_undo() W_SIGNAL(sig_undo) void sig_redo()
+          W_SIGNAL(sig_redo) void sig_push()
+              W_SIGNAL(sig_push) void sig_indexChanged()
+                  W_SIGNAL(sig_indexChanged)
 
-  void setIndex(int index);
+                      void setIndex(int index);
   W_INVOKABLE(setIndex)
   void setIndexQuiet(int index);
   W_INVOKABLE(setIndexQuiet)
@@ -192,12 +179,12 @@ public:
 public:
   template <typename Callable>
   /**
-       * @brief updateStack Updates the undo / redo stack
-       * @param c A function object of prototype void(void)
-       *
-       * This function takes care of keeping everything synced
-       * in the GUI.
-       */
+   * @brief updateStack Updates the undo / redo stack
+   * @param c A function object of prototype void(void)
+   *
+   * This function takes care of keeping everything synced
+   * in the GUI.
+   */
   void updateStack(Callable&& c)
   {
     bool pre_canUndo{canUndo()}, pre_canRedo{canRedo()};

@@ -1,7 +1,8 @@
 #pragma once
-#include <score_player_export.h>
 #include "player_impl.hpp"
+
 #include <QQmlExtensionPlugin>
+#include <score_player_export.h>
 namespace score
 {
 
@@ -29,7 +30,6 @@ private:
   PlayerImpl m_player;
   int m_port{};
 };
-
 
 class SCORE_PLAYER_EXPORT PlayerPlugin : public QQmlExtensionPlugin
 {

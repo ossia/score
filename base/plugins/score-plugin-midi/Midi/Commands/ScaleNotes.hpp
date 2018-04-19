@@ -35,9 +35,7 @@ class RescaleMidi final : public score::Command
 {
   SCORE_COMMAND_DECL(Midi::CommandFactoryName(), RescaleMidi, "Rescale midi")
 public:
-  RescaleMidi(
-      const ProcessModel& model,
-      double delta);
+  RescaleMidi(const ProcessModel& model, double delta);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
@@ -53,7 +51,8 @@ private:
 };
 class RescaleAllMidi final : public score::AggregateCommand
 {
-  SCORE_COMMAND_DECL(Midi::CommandFactoryName(), RescaleAllMidi, "Rescale all midi")
+  SCORE_COMMAND_DECL(
+      Midi::CommandFactoryName(), RescaleAllMidi, "Rescale all midi")
 public:
 };
 }

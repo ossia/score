@@ -1,6 +1,6 @@
 #pragma once
-#include <score/selection/Selectable.hpp>
 #include <score/model/IdentifiedObject.hpp>
+#include <score/selection/Selectable.hpp>
 
 namespace Midi
 {
@@ -13,17 +13,44 @@ struct NoteData
   {
   }
 
-  double start() const { return m_start; }
-  double duration() const { return m_duration; }
-  double end() const { return m_start + m_duration; }
+  double start() const
+  {
+    return m_start;
+  }
+  double duration() const
+  {
+    return m_duration;
+  }
+  double end() const
+  {
+    return m_start + m_duration;
+  }
 
-  midi_size_t pitch() const { return m_pitch; }
-  midi_size_t velocity() const { return m_velocity; }
+  midi_size_t pitch() const
+  {
+    return m_pitch;
+  }
+  midi_size_t velocity() const
+  {
+    return m_velocity;
+  }
 
-  void setStart(double s) { m_start = s; }
-  void setDuration(double s) { m_duration = s; }
-  void setPitch(midi_size_t s) { m_pitch = s; }
-  void setVelocity(midi_size_t s) { m_velocity = s; }
+  void setStart(double s)
+  {
+    m_start = s;
+  }
+  void setDuration(double s)
+  {
+    m_duration = s;
+  }
+  void setPitch(midi_size_t s)
+  {
+    m_pitch = s;
+  }
+  void setVelocity(midi_size_t s)
+  {
+    m_velocity = s;
+  }
 
   double m_start{};
   double m_duration{};
@@ -38,7 +65,8 @@ struct NoteComparator
   {
     return lhs.m_start < rhs.m_start;
   }
-  bool operator()(const NoteData& lhs, double rhs) const {
+  bool operator()(const NoteData& lhs, double rhs) const
+  {
     return lhs.m_start < rhs;
   }
 };

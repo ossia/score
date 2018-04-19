@@ -1,7 +1,7 @@
 #pragma once
-#include <WidgetKind.hpp>
 #include <Device/Address/AddressSettings.hpp>
 #include <QObject>
+#include <WidgetKind.hpp>
 namespace State
 {
 struct Message;
@@ -26,8 +26,10 @@ public:
   GUIItem(Context& ctx, WidgetKind c, QQuickItem* it);
   ~GUIItem();
 
-
-  QQuickItem* item() const { return m_item; }
+  QQuickItem* item() const
+  {
+    return m_item;
+  }
   void setAddress(const Device::FullAddressSettings&);
   void setValue(const State::Message& m);
 
@@ -58,5 +60,4 @@ private:
   Device::FullAddressSettings m_addr;
   QMetaObject::Connection m_connection;
 };
-
 }

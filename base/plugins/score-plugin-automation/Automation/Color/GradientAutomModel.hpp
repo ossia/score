@@ -1,7 +1,7 @@
 #pragma once
 #include <Automation/Color/GradientAutomMetadata.hpp>
-#include <Process/Process.hpp>
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Process.hpp>
 #include <State/Address.hpp>
 #include <State/Unit.hpp>
 #include <boost/container/flat_map.hpp>
@@ -26,8 +26,7 @@ public:
   ~ProcessModel();
 
   template <typename Impl>
-  ProcessModel(Impl& vis, QObject* parent)
-      : Process::ProcessModel{vis, parent}
+  ProcessModel(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
   {
     vis.writeTo(*this);
     init();
@@ -63,7 +62,6 @@ private:
 
   bool contentHasDuration() const override;
   TimeVal contentDuration() const override;
-
 
   boost::container::flat_map<double, QColor> m_colors;
 

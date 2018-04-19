@@ -1,13 +1,14 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "RecordAutomationCreationVisitor.hpp"
+
+#include <ossia/network/domain/domain.hpp>
+
 #include <Automation/AutomationModel.hpp>
 #include <Curve/Segment/PointArray/PointArraySegment.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
-
-#include <ossia/network/domain/domain.hpp>
 
 namespace Recording
 {
@@ -18,12 +19,14 @@ RecordData RecordAutomationCreationVisitor::makeCurve(float start_y)
   // about their generation.
   auto cmd_proc = new Scenario::Command::AddOnlyProcessToInterval{
       box.interval,
-      Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), {}};
+      Metadata<ConcreteKey_k, Automation::ProcessModel>::get(),
+      {}};
   cmd_proc->redo(recorder.context.context);
   auto& proc = box.interval.processes.at(cmd_proc->processId());
   auto& autom = static_cast<Automation::ProcessModel&>(proc);
 
-  auto cmd_layer = new Scenario::Command::AddLayerModelToSlot{Scenario::SlotPath{box.interval, 0}, proc};
+  auto cmd_layer = new Scenario::Command::AddLayerModelToSlot{
+      Scenario::SlotPath{box.interval, 0}, proc};
   cmd_layer->redo(recorder.context.context);
 
   autom.curve().clear();

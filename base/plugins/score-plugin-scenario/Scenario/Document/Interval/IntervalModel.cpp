@@ -1,43 +1,37 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
+#include "IntervalModel.hpp"
+
+#include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Process/TimeValue.hpp>
+#include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
-#include <score/document/DocumentInterface.hpp>
-#include <score/application/ApplicationContext.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/Interval/Slot.hpp>
-#include <score/document/DocumentInterface.hpp>
-#include <score/application/ApplicationContext.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <score/document/DocumentInterface.hpp>
-#include <score/document/DocumentContext.hpp>
+#include <boost/range/algorithm_ext/erase.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <map>
+#include <score/application/ApplicationContext.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/document/DocumentInterface.hpp>
+#include <score/model/ModelMetadata.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+#include <score/tools/Todo.hpp>
 #include <utility>
 
-#include "IntervalModel.hpp"
-#include <Process/Process.hpp>
-#include <Process/TimeValue.hpp>
-#include <Scenario/Document/Interval/IntervalDurations.hpp>
-#include <score/model/ModelMetadata.hpp>
-#include <score/tools/Todo.hpp>
-#include <boost/range/algorithm_ext/erase.hpp>
-
-template class SCORE_PLUGIN_SCENARIO_EXPORT score::EntityMap<Process::ProcessModel>;
+template class SCORE_PLUGIN_SCENARIO_EXPORT
+    score::EntityMap<Process::ProcessModel>;
 namespace Scenario
 {
-
 
 class StateModel;
 class TimeSyncModel;
 IntervalModel::IntervalModel(
-    const Id<IntervalModel>& id,
-    double yPos,
-    QObject* parent)
+    const Id<IntervalModel>& id, double yPos, QObject* parent)
     : Entity{id, Metadata<ObjectKey_k, IntervalModel>::get(), parent}
     , inlet{Process::make_inlet(Id<Process::Port>(0), this)}
     , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
@@ -54,45 +48,42 @@ IntervalModel::IntervalModel(
 
 IntervalModel::~IntervalModel()
 {
-  static_assert(std::is_same<serialization_tag<IntervalModel>::type, visitor_entity_tag>::value, "");
+  static_assert(
+      std::is_same<
+          serialization_tag<IntervalModel>::type, visitor_entity_tag>::value,
+      "");
   processes.clear();
 }
 void IntervalModel::initConnections()
 {
-  processes.added
-      .connect<IntervalModel, &IntervalModel::on_addProcess>(this);
+  processes.added.connect<IntervalModel, &IntervalModel::on_addProcess>(this);
   processes.removing
       .connect<IntervalModel, &IntervalModel::on_removingProcess>(this);
 }
 
-
-IntervalModel::IntervalModel(
-    DataStream::Deserializer& vis,
-    QObject* parent) : Entity{vis, parent}
+IntervalModel::IntervalModel(DataStream::Deserializer& vis, QObject* parent)
+    : Entity{vis, parent}
 {
   initConnections();
   vis.writeTo(*this);
 }
 
-IntervalModel::IntervalModel(
-    JSONObject::Deserializer& vis,
-    QObject* parent) : Entity{vis, parent}
+IntervalModel::IntervalModel(JSONObject::Deserializer& vis, QObject* parent)
+    : Entity{vis, parent}
 {
   initConnections();
   vis.writeTo(*this);
 }
 
-IntervalModel::IntervalModel(
-    DataStream::Deserializer&& vis,
-    QObject* parent) : Entity{vis, parent}
+IntervalModel::IntervalModel(DataStream::Deserializer&& vis, QObject* parent)
+    : Entity{vis, parent}
 {
   initConnections();
   vis.writeTo(*this);
 }
 
-IntervalModel::IntervalModel(
-    JSONObject::Deserializer&& vis,
-    QObject* parent) : Entity{vis, parent}
+IntervalModel::IntervalModel(JSONObject::Deserializer&& vis, QObject* parent)
+    : Entity{vis, parent}
 {
   initConnections();
   vis.writeTo(*this);
@@ -151,7 +142,7 @@ void IntervalModel::startExecution()
 }
 void IntervalModel::stopExecution()
 {
-  //duration.setPlayPercentage(0);
+  // duration.setPlayPercentage(0);
   duration.setExecutionSpeed(1.0);
   for (Process::ProcessModel& proc : processes)
   {
@@ -263,11 +254,11 @@ void IntervalModel::removeLayer(int slot, Id<Process::ProcessModel> id)
   const auto N = procs.size();
   boost::range::remove_erase(procs, id);
 
-  if(procs.size() < N)
+  if (procs.size() < N)
   {
     layerRemoved({slot, Slot::SmallView}, id);
 
-    if(!procs.empty())
+    if (!procs.empty())
       putLayerToFront(slot, procs.front());
     else
       putLayerToFront(slot, ossia::none);
@@ -292,7 +283,7 @@ void IntervalModel::addSlot(Slot s, int pos)
   m_smallView.insert(m_smallView.begin() + pos, std::move(s));
   slotAdded({pos, Slot::SmallView});
 
-  if(m_smallView.size() == 1)
+  if (m_smallView.size() == 1)
     setSmallViewVisible(true);
 }
 
@@ -307,14 +298,13 @@ void IntervalModel::removeSlot(int pos)
   m_smallView.erase(m_smallView.begin() + pos);
   slotRemoved({pos, Slot::SmallView});
 
-  if(m_smallView.empty())
+  if (m_smallView.empty())
     setSmallViewVisible(false);
 }
 
-
 const Slot* IntervalModel::findSmallViewSlot(int slot) const
 {
-  if(slot < (int)m_smallView.size())
+  if (slot < (int)m_smallView.size())
     return &m_smallView[slot];
 
   return nullptr;
@@ -330,11 +320,9 @@ Slot& IntervalModel::getSmallViewSlot(int slot)
   return m_smallView.at(slot);
 }
 
-
-
 const FullSlot* IntervalModel::findFullViewSlot(int slot) const
 {
-  if(slot < (int)m_fullView.size())
+  if (slot < (int)m_fullView.size())
     return &m_fullView[slot];
 
   return nullptr;
@@ -352,7 +340,7 @@ FullSlot& IntervalModel::getFullViewSlot(int slot)
 
 void IntervalModel::setMuted(bool m)
 {
-  if(m != m_muted)
+  if (m != m_muted)
   {
     m_muted = m;
     mutedChanged(m);
@@ -361,17 +349,16 @@ void IntervalModel::setMuted(bool m)
 
 double IntervalModel::getSlotHeight(const SlotId& slot) const
 {
-  if(slot.fullView())
+  if (slot.fullView())
     return processes.at(m_fullView.at(slot.index).process).getSlotHeight();
   else
     return m_smallView.at(slot.index).height;
 }
 
-
 void IntervalModel::setSlotHeight(const SlotId& slot, double height)
 {
   height = std::max(height, 20.);
-  if(slot.fullView())
+  if (slot.fullView())
     processes.at(m_fullView.at(slot.index).process).setSlotHeight(height);
   else
     getSmallViewSlot(slot.index).height = height;
@@ -387,7 +374,7 @@ void swap(Scenario::Slot& lhs, Scenario::Slot& rhs)
 
 void IntervalModel::swapSlots(int pos1, int pos2, Slot::RackView v)
 {
-  if(v == Slot::FullView)
+  if (v == Slot::FullView)
   {
     auto& vec = m_fullView;
     SCORE_ASSERT((int)vec.size() > pos1);
@@ -413,15 +400,14 @@ void IntervalModel::on_addProcess(const Process::ProcessModel& p)
 void IntervalModel::on_removingProcess(const Process::ProcessModel& p)
 {
   const auto& pid = p.id();
-  for(int i = 0; i < (int)m_smallView.size(); i++)
+  for (int i = 0; i < (int)m_smallView.size(); i++)
   {
     removeLayer(i, pid);
   }
 
-  auto it = ossia::find_if(m_fullView, [&] (const FullSlot& slot) {
-    return slot.process == pid;
-  });
-  if(it != m_fullView.end())
+  auto it = ossia::find_if(
+      m_fullView, [&](const FullSlot& slot) { return slot.process == pid; });
+  if (it != m_fullView.end())
   {
     int N = std::distance(m_fullView.begin(), it);
     m_fullView.erase(it);
@@ -433,10 +419,11 @@ bool isInFullView(const IntervalModel& cstr)
 {
   // TODO just check if parent() == basescenario
   auto& doc = score::IDocument::documentContext(cstr);
-  if(auto pres = doc.document.presenter())
+  if (auto pres = doc.document.presenter())
   {
-    auto sub = qobject_cast<Scenario::ScenarioDocumentPresenter*>(pres->presenterDelegate());
-    if(sub)
+    auto sub = qobject_cast<Scenario::ScenarioDocumentPresenter*>(
+        pres->presenterDelegate());
+    if (sub)
       return &sub->displayedElements.interval() == &cstr;
     return false;
   }
@@ -453,12 +440,12 @@ const Scenario::Slot& SlotPath::find(const score::DocumentContext& ctx) const
   return interval.find(ctx).getSmallViewSlot(index);
 }
 
-const Scenario::Slot* SlotPath::try_find(const score::DocumentContext& ctx) const
+const Scenario::Slot*
+SlotPath::try_find(const score::DocumentContext& ctx) const
 {
-  if(auto cst = interval.try_find(ctx))
+  if (auto cst = interval.try_find(ctx))
     return cst->findSmallViewSlot(index);
   else
     return nullptr;
 }
-
 }

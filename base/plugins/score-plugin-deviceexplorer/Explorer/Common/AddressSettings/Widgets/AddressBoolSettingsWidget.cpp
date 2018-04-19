@@ -1,15 +1,14 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "AddressBoolSettingsWidget.hpp"
+
+#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 #include <QComboBox>
 #include <QFormLayout>
-#include <State/ValueConversion.hpp>
-
 #include <QString>
 #include <QVariant>
-
-#include "AddressBoolSettingsWidget.hpp"
-#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
 #include <State/Value.hpp>
+#include <State/ValueConversion.hpp>
 
 class QWidget;
 

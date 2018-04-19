@@ -1,6 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScaleNotes.hpp"
+
 #include <Midi/MidiProcess.hpp>
 #include <score/model/path/PathSerialization.hpp>
 
@@ -44,14 +45,11 @@ void ScaleNotes::deserializeImpl(DataStreamOutput& s)
   s >> m_model >> m_toScale >> m_delta;
 }
 
-
-RescaleMidi::RescaleMidi(
-    const ProcessModel& model,
-    double delta)
+RescaleMidi::RescaleMidi(const ProcessModel& model, double delta)
     : m_model{model}, m_delta{delta}
 {
   m_old.reserve(model.notes.size());
-  for(auto& note : model.notes)
+  for (auto& note : model.notes)
     m_old.push_back({note.id(), note.noteData()});
 }
 
@@ -59,7 +57,7 @@ void RescaleMidi::undo(const score::DocumentContext& ctx) const
 {
   auto& model = m_model.find(ctx);
   model.notes.clear();
-  for(auto& note : m_old)
+  for (auto& note : m_old)
   {
     model.notes.add(new Note{note.first, note.second, &model});
   }

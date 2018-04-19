@@ -13,7 +13,7 @@ namespace Settings
 inline QString toString(score::uuid_t t)
 {
   QString s;
-  for(auto c : t.data)
+  for (auto c : t.data)
   {
     s += QString::number(c) + " ";
   }
@@ -27,8 +27,8 @@ public:
 
   void setClock(ClockManagerFactory::ConcreteKey k);
 
-  void populateClocks(
-      const std::map<QString, ClockManagerFactory::ConcreteKey>&);
+  void
+  populateClocks(const std::map<QString, ClockManagerFactory::ConcreteKey>&);
 
   SETTINGS_UI_COMBOBOX_HPP(Scheduling)
   SETTINGS_UI_COMBOBOX_HPP(Ordering)
@@ -52,7 +52,6 @@ private:
   QWidget* m_widg{};
 
   QComboBox* m_Clock{};
-
 };
 }
 }

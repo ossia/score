@@ -1,6 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CurvePointModel.hpp"
+
 #include <score/model/IdentifiedObject.hpp>
 
 class QObject;
@@ -8,7 +9,8 @@ class QObject;
 namespace Curve
 {
 PointModel::PointModel(const Id<PointModel>& id, QObject* parent)
-    : IdentifiedObject<PointModel>{id, QStringLiteral("CurvePointModel"), parent}
+    : IdentifiedObject<PointModel>{id, QStringLiteral("CurvePointModel"),
+                                   parent}
 {
 }
 

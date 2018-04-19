@@ -1,6 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DeviceExplorerPanelDelegate.hpp"
+
 #include <Device/Protocol/ProtocolList.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerWidget.hpp>
@@ -24,8 +25,8 @@ QWidget* PanelDelegate::widget()
 const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
 {
   static const score::PanelStatus status{true, Qt::LeftDockWidgetArea, 10,
-                                          QObject::tr("Device Explorer"),
-                                          QObject::tr("Ctrl+Shift+E")};
+                                         QObject::tr("Device Explorer"),
+                                         QObject::tr("Ctrl+Shift+E")};
 
   return status;
 }

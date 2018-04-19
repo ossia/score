@@ -1,8 +1,8 @@
 #pragma once
 #include <QGraphicsItem>
+#include <QGraphicsSceneDragDropEvent>
 #include <QRect>
 #include <QtGlobal>
-#include <QGraphicsSceneDragDropEvent>
 #include <score_lib_process_export.h>
 
 class QPainter;
@@ -11,8 +11,9 @@ class QWidget;
 class QMimeData;
 namespace Process
 {
-class SCORE_LIB_PROCESS_EXPORT LayerView : public QObject,
-                                            public QGraphicsItem
+class SCORE_LIB_PROCESS_EXPORT LayerView
+    : public QObject
+    , public QGraphicsItem
 {
   Q_OBJECT
   Q_INTERFACES(QGraphicsItem)
@@ -35,7 +36,7 @@ public:
 
   virtual QPixmap pixmap();
 
-  void dragEnterEvent(QGraphicsSceneDragDropEvent *event) override;
+  void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
 
 Q_SIGNALS:
   void heightChanged();
@@ -60,7 +61,7 @@ private:
   qreal m_width{};
 };
 
-class SCORE_LIB_PROCESS_EXPORT MiniLayer: public QGraphicsItem
+class SCORE_LIB_PROCESS_EXPORT MiniLayer : public QGraphicsItem
 {
   Q_INTERFACES(QGraphicsItem)
 public:

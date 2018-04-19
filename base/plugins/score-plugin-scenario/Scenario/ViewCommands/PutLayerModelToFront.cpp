@@ -1,12 +1,11 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "PutLayerModelToFront.hpp"
+
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <algorithm>
-
-#include "PutLayerModelToFront.hpp"
-#include <score/model/path/Path.hpp>
-
 #include <score/model/Identifier.hpp>
+#include <score/model/path/Path.hpp>
 namespace Scenario
 {
 PutLayerModelToFront::PutLayerModelToFront(

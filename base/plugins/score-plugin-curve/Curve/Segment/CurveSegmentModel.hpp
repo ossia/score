@@ -1,34 +1,37 @@
 #pragma once
+#include <ossia/editor/curve/curve_segment.hpp>
+
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
 #include <QPoint>
 #include <QVariant>
 #include <boost/align/aligned_allocator_adaptor.hpp>
 #include <functional>
+#include <score/model/IdentifiedObject.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/plugins/customfactory/SerializableInterface.hpp>
 #include <score/selection/Selectable.hpp>
-#include <score/model/IdentifiedObject.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <vector>
-
 #include <score/serialization/VisitorInterface.hpp>
-#include <score/model/Identifier.hpp>
-#include <ossia/editor/curve/curve_segment.hpp>
+#include <score/tools/std/Optional.hpp>
 #include <score_plugin_curve_export.h>
+#include <vector>
 
 class QObject;
 namespace Curve
 {
 // Gives the data.
 class SCORE_PLUGIN_CURVE_EXPORT SegmentModel
-    : public IdentifiedObject<SegmentModel>,
-      public score::SerializableInterface<SegmentFactory>
+    : public IdentifiedObject<SegmentModel>
+    , public score::SerializableInterface<SegmentFactory>
 {
   Q_OBJECT
 
   SCORE_SERIALIZE_FRIENDS
 public:
-  using data_vector = std::vector<QPointF, boost::alignment::aligned_allocator_adaptor<std::allocator<QPointF>, 32>>;
+  using data_vector = std::vector<
+      QPointF,
+      boost::alignment::
+          aligned_allocator_adaptor<std::allocator<QPointF>, 32>>;
   Selectable selection;
   SegmentModel(const Id<SegmentModel>& id, QObject* parent);
   SegmentModel(const SegmentData& id, QObject* parent);
@@ -84,8 +87,7 @@ public:
   virtual optional<double> verticalParameter() const;
   virtual optional<double> horizontalParameter() const;
 
-  virtual ossia::curve_segment<float>
-  makeFloatFunction() const = 0;
+  virtual ossia::curve_segment<float> makeFloatFunction() const = 0;
   virtual ossia::curve_segment<int> makeIntFunction() const = 0;
   virtual ossia::curve_segment<bool> makeBoolFunction() const = 0;
 

@@ -1,19 +1,20 @@
 #pragma once
 
+#include <ossia/network/base/node_attributes.hpp>
 #include <ossia/network/dataspace/dataspace.hpp>
 #include <ossia/network/domain/domain.hpp>
-#include <ossia/network/base/node_attributes.hpp>
+
 #include <QDataStream>
 #include <QJsonArray>
 #include <QJsonValue>
 #include <QtGlobal>
+#include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
 #include <State/ValueSerialization.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/VisitorCommon.hpp>
-#include <score/serialization/VariantSerialization.hpp>
 #include <brigand/algorithms/for_each.hpp>
-#include <State/Value.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/VariantSerialization.hpp>
+#include <score/serialization/VisitorCommon.hpp>
 #include <score_lib_state_export.h>
 JSON_METADATA(ossia::impulse, "Impulse")
 JSON_METADATA(int32_t, "Int")
@@ -47,18 +48,31 @@ SCORE_DECL_VALUE_TYPE(ossia::vec2f)
 SCORE_DECL_VALUE_TYPE(ossia::vec3f)
 SCORE_DECL_VALUE_TYPE(ossia::vec4f)
 
-template<>
-struct is_custom_serialized<ossia::vector_domain> : public std::true_type { };
-template<std::size_t N>
-struct is_custom_serialized<ossia::vecf_domain<N>> : public std::true_type { };
-template<typename T, std::size_t N>
-struct is_custom_serialized<std::array<T, N>> : public std::true_type { };
+template <>
+struct is_custom_serialized<ossia::vector_domain> : public std::true_type
+{
+};
+template <std::size_t N>
+struct is_custom_serialized<ossia::vecf_domain<N>> : public std::true_type
+{
+};
+template <typename T, std::size_t N>
+struct is_custom_serialized<std::array<T, N>> : public std::true_type
+{
+};
 
-template<>
-struct is_custom_serialized<ossia::value_variant_type> : public std::true_type {};
+template <>
+struct is_custom_serialized<ossia::value_variant_type> : public std::true_type
+{
+};
 
-template<>
-struct is_custom_serialized<ossia::domain_base_variant> : public std::true_type {};
+template <>
+struct is_custom_serialized<ossia::domain_base_variant> : public std::true_type
+{
+};
 
-template<typename T>
-struct typeholder { using type = T; };
+template <typename T>
+struct typeholder
+{
+  using type = T;
+};

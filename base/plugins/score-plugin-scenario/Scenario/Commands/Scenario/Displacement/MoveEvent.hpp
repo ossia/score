@@ -1,17 +1,16 @@
 #pragma once
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
-
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
 #include <Scenario/Tools/elementFindingHelper.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
-#include <score/model/Identifier.hpp>
 
 struct ElementsProperties;
 
@@ -26,8 +25,8 @@ class ProcessModel;
 namespace Command
 {
 /**
-    * This class use the new Displacement policy class
-    */
+ * This class use the new Displacement policy class
+ */
 template <class DisplacementPolicy>
 class MoveEvent final : public SerializableMoveEvent
 {
@@ -55,23 +54,21 @@ public:
   {
   }
   /**
-           * @brief MoveEvent
-           * @param scenarioPath
-           * @param eventId
-           * @param newDate
-           * !!! in the future it would be better to give directly the delta
+   * @brief MoveEvent
+   * @param scenarioPath
+   * @param eventId
+   * @param newDate
+   * !!! in the future it would be better to give directly the delta
    * time of the mouse displacement  !!!
-           * @param mode
-           */
+   * @param mode
+   */
   MoveEvent(
       const Scenario::ProcessModel& scenario,
       const Id<EventModel>& eventId,
       const TimeVal& newDate,
-      ExpandMode mode, LockMode lock)
-    : SerializableMoveEvent{}
-    , m_path{scenario}
-    , m_mode{mode}
-    , m_lock{lock}
+      ExpandMode mode,
+      LockMode lock)
+      : SerializableMoveEvent{}, m_path{scenario}, m_mode{mode}, m_lock{lock}
   {
     auto& s = const_cast<Scenario::ProcessModel&>(scenario);
     DisplacementPolicy::init(s, {scenario.event(eventId).timeSync()});
@@ -92,7 +89,8 @@ public:
       const Id<EventModel>& eventId,
       const TimeVal& newDate,
       double,
-      ExpandMode, LockMode) override
+      ExpandMode,
+      LockMode) override
   {
     // we need to compute the new time delta
     // NOTE: in the future in would be better to give directly the delta value
@@ -118,8 +116,7 @@ public:
 
     // update positions using old stored dates
     DisplacementPolicy::revertPositions(
-        ctx,
-        scenario,
+        ctx, scenario,
         [&](Process::ProcessModel& p, const TimeVal& t) {
           p.setParentDuration(m_mode, t);
         },
@@ -127,7 +124,7 @@ public:
 
     updateEventExtent(m_eventId, scenario);
 
-    //Dataflow::restoreCables(m_savedElementsProperties.cables, ctx);
+    // Dataflow::restoreCables(m_savedElementsProperties.cables, ctx);
   }
 
   void redo(const score::DocumentContext& ctx) const override
@@ -178,7 +175,8 @@ private:
    * @brief m_initialDate
    * the delta will be calculated from the initial date
    */
-  TimeVal m_initialDate; // used to compute the deltaTime and respect undo behavior
+  TimeVal
+      m_initialDate; // used to compute the deltaTime and respect undo behavior
 };
 }
 }

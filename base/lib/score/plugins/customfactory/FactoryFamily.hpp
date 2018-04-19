@@ -2,15 +2,14 @@
 #define FACTORY_FAMILY_HPP_2016_12_08_18_31
 
 #include <ossia/detail/algorithms.hpp>
+
+#include <QMetaType>
 #include <score/plugins/customfactory/FactoryInterface.hpp>
 #include <score/tools/ForEachType.hpp>
 #include <score/tools/Todo.hpp>
+#include <score/tools/std/HashMap.hpp>
 #include <score/tools/std/IndirectContainer.hpp>
 #include <score/tools/std/Pointer.hpp>
-
-#include <score/tools/std/HashMap.hpp>
-
-#include <QMetaType>
 #include <score_lib_base_export.h>
 
 namespace score
@@ -25,13 +24,16 @@ namespace score
  * @endcode
  *
  * The interface lists are initialised first when scanning the plug-ins,
- * then all the factories are added once all the lists of all plug-ins are instantiated.
+ * then all the factories are added once all the lists of all plug-ins are
+ * instantiated.
  */
 class SCORE_LIB_BASE_EXPORT InterfaceListBase
 {
 public:
   static constexpr bool factory_list_tag = true;
-  InterfaceListBase() noexcept { }
+  InterfaceListBase() noexcept
+  {
+  }
   InterfaceListBase(const InterfaceListBase&) = delete;
   InterfaceListBase& operator=(const InterfaceListBase&) = delete;
   virtual ~InterfaceListBase();
@@ -81,7 +83,9 @@ public:
   {
   }
 
-  ~InterfaceList() { }
+  ~InterfaceList()
+  {
+  }
 
   static const constexpr score::InterfaceKey static_interfaceKey() noexcept
   {
@@ -168,9 +172,9 @@ public:
   }
 
 protected:
-  score::hash_map<
-    typename FactoryType::ConcreteKey,
-    std::unique_ptr<FactoryType>> map;
+  score::
+      hash_map<typename FactoryType::ConcreteKey, std::unique_ptr<FactoryType>>
+          map;
 
 private:
   void optimize() noexcept final override
@@ -184,7 +188,6 @@ private:
   InterfaceList& operator=(InterfaceList&&) = delete;
 };
 
-
 /**
  * @brief Utility class for making a factory interface list
  */
@@ -193,13 +196,15 @@ class MatchingFactory : public score::InterfaceList<T>
 {
 public:
   /**
-   * @brief Apply a function on the correct factory according to a set of parameter.
+   * @brief Apply a function on the correct factory according to a set of
+   * parameter.
    *
    * The factory must have a function `match` that takes some arguments, and
    * return `true` if these arguments are correct for the given factory.
    *
-   * Then, the function passed in first argument is called on the actual factory
-   * if it is found, else a default-constructed return value (so for instance a null pointer).
+   * Then, the function passed in first argument is called on the actual
+   * factory if it is found, else a default-constructed return value (so for
+   * instance a null pointer).
    */
   template <typename Fun, typename... Args>
   auto make(Fun f, Args&&... args) const noexcept

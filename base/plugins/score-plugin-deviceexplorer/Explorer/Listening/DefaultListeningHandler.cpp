@@ -1,6 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DefaultListeningHandler.hpp"
+
 #include <Explorer/DeviceList.hpp>
 
 namespace Explorer
@@ -15,7 +16,8 @@ void DefaultListeningHandler::setListening(
   dev.setListening(addr, b);
 }
 
-void DefaultListeningHandler::setListening(Device::DeviceInterface& dev, const Device::Node& addr, bool b)
+void DefaultListeningHandler::setListening(
+    Device::DeviceInterface& dev, const Device::Node& addr, bool b)
 {
   dev.setListening(Device::address(addr).address, b);
 }

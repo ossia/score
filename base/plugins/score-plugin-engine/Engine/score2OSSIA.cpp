@@ -1,63 +1,61 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <ossia/network/dataspace/dataspace_visitors.hpp> // REMOVEME
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/apply.hpp>
 #include <ossia/editor/expression/expression.hpp>
 #include <ossia/editor/expression/expression_atom.hpp>
 #include <ossia/editor/expression/expression_composition.hpp>
 #include <ossia/editor/expression/expression_not.hpp>
 #include <ossia/editor/expression/expression_pulse.hpp>
-#include <Process/State/MessageNode.hpp>
-#include <boost/concept/usage.hpp>
-
-#include <QByteArray>
-#include <QChar>
-#include <QDebug>
-#include <QList>
-#include <QMap>
-#include <QString>
-#include <algorithm>
-#include <boost/range/algorithm/find_if.hpp>
-#include <eggs/variant/variant.hpp>
-#include <exception>
-#include <score/tools/std/Optional.hpp>
-#include <string>
-#include <vector>
-
-#include <ossia/detail/algorithms.hpp>
 #include <ossia/editor/state/message.hpp>
 #include <ossia/editor/state/state.hpp>
-#include <ossia/network/value/value.hpp>
-#include <ossia/network/base/parameter.hpp>
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/node.hpp>
+#include <ossia/network/base/parameter.hpp>
+#include <ossia/network/dataspace/dataspace_visitors.hpp> // REMOVEME
 #include <ossia/network/domain/domain.hpp>
+#include <ossia/network/value/value.hpp>
+
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Address/IOType.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
-#include <Explorer/DeviceList.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
 #include <Engine/LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <Engine/OSSIA2score.hpp>
 #include <Engine/Protocols/OSSIADevice.hpp>
 #include <Engine/score2OSSIA.hpp>
+#include <Explorer/DeviceList.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Process/State/MessageNode.hpp>
+#include <QByteArray>
+#include <QChar>
+#include <QDebug>
+#include <QList>
+#include <QMap>
+#include <QString>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <State/Address.hpp>
 #include <State/Expression.hpp>
 #include <State/Message.hpp>
 #include <State/Relation.hpp>
-#include <ossia/detail/apply.hpp>
-#include <score/model/tree/InvisibleRootNode.hpp>
-
+#include <algorithm>
 #include <boost/call_traits.hpp>
+#include <boost/concept/usage.hpp>
+#include <boost/range/algorithm/find_if.hpp>
+#include <eggs/variant/variant.hpp>
+#include <exception>
+#include <score/model/tree/InvisibleRootNode.hpp>
+#include <score/tools/std/Optional.hpp>
+#include <string>
+#include <vector>
 class NodeNotFoundException : public std::runtime_error
 {
 public:
   NodeNotFoundException(const State::Address& n)
-    : std::runtime_error{"Address: '" + n.toString().toStdString()
-                         + "' not found in actual tree."}
+      : std::runtime_error{"Address: '" + n.toString().toStdString()
+                           + "' not found in actual tree."}
   {
   }
 };
@@ -140,7 +138,7 @@ using small_node_vec = ossia::small_vector<const Device::Node*, 16>;
 void getPath(small_node_vec& v, const Device::Node* cur)
 {
   auto p = cur->parent();
-  if(p && !p->is<Device::DeviceSettings>())
+  if (p && !p->is<Device::DeviceSettings>())
   {
     getPath(v, p);
   }
@@ -153,7 +151,7 @@ findNodeFromPath(const Device::Node& path, ossia::net::device_base& dev)
   using namespace ossia;
   // Find the relevant node to add in the device
   ossia::net::node_base* node = &dev.get_root_node();
-  if(!path.is<Device::DeviceSettings>())
+  if (!path.is<Device::DeviceSettings>())
   {
     // First fill the vector of nodes
     ossia::small_vector<const Device::Node*, 16> vec;
@@ -166,8 +164,8 @@ findNodeFromPath(const Device::Node& path, ossia::net::device_base& dev)
         node = cld;
       else
       {
-        qDebug() << "looking for" << Device::address(path).address
-                 << " " << i << " " << vec.size() << " " << vec[i]->displayName()
+        qDebug() << "looking for" << Device::address(path).address << " " << i
+                 << " " << vec.size() << " " << vec[i]->displayName()
                  << " -- last found: " << node->get_name() << "\n";
         return {};
       }
@@ -187,7 +185,7 @@ getNodeFromPath(const QStringList& path, ossia::net::device_base& dev)
   // Find the relevant node to add in the device
   ossia::net::node_base* node = &dev.get_root_node();
   const int n = path.size();
-  for (int i = 0; i < n ; i++)
+  for (int i = 0; i < n; i++)
   {
     auto cld = node->find_child(path[i]);
 
@@ -204,17 +202,50 @@ struct ossia_type_visitor
 {
 public:
   using return_type = ossia::val_type;
-  return_type operator()() const { SCORE_ABORT; }
-  return_type operator()(const State::impulse&) const { return ossia::val_type::IMPULSE; }
-  return_type operator()(int) const { return ossia::val_type::INT; }
-  return_type operator()(float) const { return ossia::val_type::FLOAT; }
-  return_type operator()(bool) const { return ossia::val_type::BOOL; }
-  return_type operator()(const std::string&) const { return ossia::val_type::STRING; }
-  return_type operator()(char) const { return ossia::val_type::CHAR; }
-  return_type operator()(const State::vec2f&) const { return ossia::val_type::VEC2F; }
-  return_type operator()(const State::vec3f&) const { return ossia::val_type::VEC3F; }
-  return_type operator()(const State::vec4f&) const { return ossia::val_type::VEC4F; }
-  return_type operator()(const State::list_t&) const { return ossia::val_type::LIST; }
+  return_type operator()() const
+  {
+    SCORE_ABORT;
+  }
+  return_type operator()(const State::impulse&) const
+  {
+    return ossia::val_type::IMPULSE;
+  }
+  return_type operator()(int) const
+  {
+    return ossia::val_type::INT;
+  }
+  return_type operator()(float) const
+  {
+    return ossia::val_type::FLOAT;
+  }
+  return_type operator()(bool) const
+  {
+    return ossia::val_type::BOOL;
+  }
+  return_type operator()(const std::string&) const
+  {
+    return ossia::val_type::STRING;
+  }
+  return_type operator()(char) const
+  {
+    return ossia::val_type::CHAR;
+  }
+  return_type operator()(const State::vec2f&) const
+  {
+    return ossia::val_type::VEC2F;
+  }
+  return_type operator()(const State::vec3f&) const
+  {
+    return ossia::val_type::VEC3F;
+  }
+  return_type operator()(const State::vec4f&) const
+  {
+    return ossia::val_type::VEC4F;
+  }
+  return_type operator()(const State::list_t&) const
+  {
+    return ossia::val_type::LIST;
+  }
 };
 
 void updateOSSIAAddress(
@@ -227,7 +258,7 @@ void updateOSSIAAddress(
   addr.set_bounding(settings.clipMode);
 
   addr.set_repetition_filter(
-        ossia::repetition_filter(settings.repetitionFilter));
+      ossia::repetition_filter(settings.repetitionFilter));
 
   addr.set_value_type(ossia::apply(ossia_type_visitor{}, settings.value.v));
 
@@ -247,7 +278,7 @@ void createOSSIAAddress(
     return;
 
   auto addr = node.create_parameter(
-        ossia::apply(ossia_type_visitor{}, settings.value.v));
+      ossia::apply(ossia_type_visitor{}, settings.value.v));
   if (addr)
     updateOSSIAAddress(settings, *addr);
 }
@@ -307,9 +338,8 @@ void updateOSSIAValue(const ossia::value& score_data, ossia::value& val)
   return ossia::apply_nonnull(visitor, val.v);
 }
 
-ossia::net::parameter_base* address(
-    const State::Address& addr,
-    const Device::DeviceList& deviceList)
+ossia::net::parameter_base*
+address(const State::Address& addr, const Device::DeviceList& deviceList)
 {
   auto dev_p = deviceList.findDevice(addr.device);
   if (dev_p)
@@ -325,10 +355,8 @@ ossia::net::parameter_base* address(
         auto ossia_dev = casted_dev->getDevice();
         if (ossia_dev)
         {
-          auto ossia_node =
-              Engine::score_to_ossia::findNodeFromPath(
-                addr.path,
-                *ossia_dev);
+          auto ossia_node = Engine::score_to_ossia::findNodeFromPath(
+              addr.path, *ossia_dev);
 
           if (ossia_node)
             return ossia_node->get_parameter();
@@ -343,13 +371,13 @@ ossia::net::parameter_base* address(
 optional<ossia::message>
 message(const State::Message& mess, const Device::DeviceList& deviceList)
 {
-  if(auto ossia_addr = address(mess.address.address, deviceList))
+  if (auto ossia_addr = address(mess.address.address, deviceList))
   {
     if (mess.value.valid())
       return ossia::message{
-        {*ossia_addr, mess.address.qualifiers.get().accessors},
-        mess.value,
-        mess.address.qualifiers.get().unit};
+          {*ossia_addr, mess.address.qualifiers.get().accessors},
+          mess.value,
+          mess.address.qualifiers.get().unit};
   }
 
   return {};
@@ -485,8 +513,8 @@ expressionAtom(const State::Relation& rel, const Device::DeviceList& dev)
   using namespace eggs::variants;
 
   return ossia::expressions::make_expression_atom(
-        expressionOperand(rel.lhs, dev), rel.op,
-        expressionOperand(rel.rhs, dev));
+      expressionOperand(rel.lhs, dev), rel.op,
+      expressionOperand(rel.rhs, dev));
 }
 
 static ossia::expression_ptr
@@ -495,13 +523,12 @@ expressionPulse(const State::Pulse& rel, const Device::DeviceList& dev)
   using namespace eggs::variants;
 
   return ossia::expressions::make_expression_pulse(
-        expressionAddress(rel.address, dev));
+      expressionAddress(rel.address, dev));
 }
 
-
-template<typename T>
-ossia::expression_ptr
-expression(const State::Expression& e, const Device::DeviceList& list, const T&)
+template <typename T>
+ossia::expression_ptr expression(
+    const State::Expression& e, const Device::DeviceList& list, const T&)
 {
   const struct
   {
@@ -528,14 +555,13 @@ expression(const State::Expression& e, const Device::DeviceList& list, const T&)
       const auto& lhs = expr.childAt(0);
       const auto& rhs = expr.childAt(1);
       return ossia::expressions::make_expression_composition(
-            condition_expression(lhs, devlist),
-            rel,
-            condition_expression(rhs, devlist));
+          condition_expression(lhs, devlist), rel,
+          condition_expression(rhs, devlist));
     }
     return_type operator()(const State::UnaryOperator) const
     {
       return ossia::expressions::make_expression_not(
-            condition_expression(expr.childAt(0), devlist));
+          condition_expression(expr.childAt(0), devlist));
     }
     return_type operator()(const InvisibleRootNode) const
     {
@@ -559,12 +585,13 @@ expression(const State::Expression& e, const Device::DeviceList& list, const T&)
   return ossia::apply(visitor, e.impl());
 }
 
-
-ossia::expression_ptr
-condition_expression(const State::Expression& e, const Device::DeviceList& list)
+ossia::expression_ptr condition_expression(
+    const State::Expression& e, const Device::DeviceList& list)
 {
-  struct def_cond {
-    static ossia::expression_ptr default_expression() {
+  struct def_cond
+  {
+    static ossia::expression_ptr default_expression()
+    {
       return ossia::expressions::make_expression_true();
     }
   };
@@ -573,8 +600,10 @@ condition_expression(const State::Expression& e, const Device::DeviceList& list)
 ossia::expression_ptr
 trigger_expression(const State::Expression& e, const Device::DeviceList& list)
 {
-  struct def_trig {
-    static ossia::expression_ptr default_expression() {
+  struct def_trig
+  {
+    static ossia::expression_ptr default_expression()
+    {
       return ossia::expressions::make_expression_false();
     }
   };
@@ -586,7 +615,7 @@ ossia::net::node_base*
 findAddress(const Device::DeviceList& devs, const State::Address& addr)
 {
   auto dev_p = qobject_cast<Engine::Network::OSSIADevice*>(
-        devs.findDevice(addr.device));
+      devs.findDevice(addr.device));
   if (dev_p)
   {
     auto ossia_dev = dev_p->getDevice();
@@ -603,13 +632,12 @@ findAddress(const Device::DeviceList& devs, const State::Address& addr)
 optional<ossia::destination> makeDestination(
     const Device::DeviceList& devices, const State::AddressAccessor& addr)
 {
-  auto ossia_addr
-      = Engine::score_to_ossia::findAddress(devices, addr.address);
+  auto ossia_addr = Engine::score_to_ossia::findAddress(devices, addr.address);
 
   if (ossia_addr)
   {
     auto p = ossia_addr->get_parameter();
-    if(p)
+    if (p)
     {
       auto& qual = addr.qualifiers.get();
       return ossia::destination{*p, qual.accessors, qual.unit};

@@ -1,5 +1,12 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "AddressSettings.hpp"
+
+#include <ossia/network/dataspace/dataspace.hpp>
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
+
+#include <Device/Address/ClipMode.hpp>
+#include <Device/Address/IOType.hpp>
 #include <QDataStream>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -8,23 +15,15 @@
 #include <QString>
 #include <QStringList>
 #include <QtGlobal>
+#include <State/Domain.hpp>
+#include <State/Value.hpp>
+#include <State/ValueSerialization.hpp>
+#include <score/serialization/AnySerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
-#include "AddressSettings.hpp"
-#include <ossia/network/dataspace/dataspace.hpp>
-#include <ossia/network/dataspace/dataspace_visitors.hpp>
-#include <Device/Address/ClipMode.hpp>
-#include <State/Domain.hpp>
-#include <Device/Address/IOType.hpp>
-#include <State/Value.hpp>
-#include <score/serialization/AnySerialization.hpp>
-#include <State/ValueSerialization.hpp>
-
-
 template <>
-void DataStreamReader::read(
-    const Device::AddressSettingsCommon& n)
+void DataStreamReader::read(const Device::AddressSettingsCommon& n)
 {
   m_stream << n.value << n.domain << n.ioType << n.clipMode << n.unit
            << n.repetitionFilter << n.extendedAttributes;
@@ -34,15 +33,14 @@ template <>
 void DataStreamWriter::write(Device::AddressSettingsCommon& n)
 {
   m_stream >> n.value >> n.domain >> n.ioType >> n.clipMode >> n.unit
-           >> n.repetitionFilter >> n.extendedAttributes;
+      >> n.repetitionFilter >> n.extendedAttributes;
 }
 
 template <>
-void JSONObjectReader::read(
-    const Device::AddressSettingsCommon& n)
+void JSONObjectReader::read(const Device::AddressSettingsCommon& n)
 {
   // Metadata
-  if(n.ioType)
+  if (n.ioType)
     obj[strings.ioType] = Device::AccessModeText()[*n.ioType];
   obj[strings.ClipMode] = Device::ClipModeStringMap()[n.clipMode];
   obj[strings.Unit]
@@ -66,7 +64,8 @@ void JSONObjectWriter::write(Device::AddressSettingsCommon& n)
   n.unit
       = ossia::parse_pretty_unit(obj[strings.Unit].toString().toStdString());
 
-  n.repetitionFilter = (ossia::repetition_filter) obj[strings.RepetitionFilter].toBool();
+  n.repetitionFilter
+      = (ossia::repetition_filter)obj[strings.RepetitionFilter].toBool();
 
   writeTo(n.value);
   n.domain = fromJsonObject<State::Domain>(obj[strings.Domain].toObject());
@@ -147,8 +146,8 @@ JSONObjectWriter::write(Device::FullAddressSettings& n)
 }
 
 template <>
-SCORE_LIB_DEVICE_EXPORT void DataStreamReader::read(
-    const Device::FullAddressAccessorSettings& n)
+SCORE_LIB_DEVICE_EXPORT void
+DataStreamReader::read(const Device::FullAddressAccessorSettings& n)
 {
   m_stream << n.value << n.domain << n.ioType << n.clipMode
            << n.repetitionFilter << n.extendedAttributes << n.address;
@@ -163,11 +162,11 @@ DataStreamWriter::write(Device::FullAddressAccessorSettings& n)
 }
 
 template <>
-SCORE_LIB_DEVICE_EXPORT void JSONObjectReader::read(
-    const Device::FullAddressAccessorSettings& n)
+SCORE_LIB_DEVICE_EXPORT void
+JSONObjectReader::read(const Device::FullAddressAccessorSettings& n)
 {
   // Metadata
-  if(n.ioType)
+  if (n.ioType)
     obj[strings.ioType] = Device::AccessModeText()[*n.ioType];
   obj[strings.ClipMode] = Device::ClipModeStringMap()[n.clipMode];
 
@@ -189,15 +188,13 @@ JSONObjectWriter::write(Device::FullAddressAccessorSettings& n)
   n.clipMode
       = Device::ClipModeStringMap().key(obj[strings.ClipMode].toString());
 
-  n.repetitionFilter = (ossia::repetition_filter)obj[strings.RepetitionFilter].toBool();
-
+  n.repetitionFilter
+      = (ossia::repetition_filter)obj[strings.RepetitionFilter].toBool();
 
   writeTo(n.value);
 
   n.domain = fromJsonObject<State::Domain>(obj[strings.Domain].toObject());
   n.extendedAttributes = fromJsonObject<score::any_map>(obj[strings.Extended]);
 
-
   n.address = fromJsonObject<State::AddressAccessor>(obj[strings.Address]);
 }
-

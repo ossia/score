@@ -1,15 +1,14 @@
 #pragma once
 
-#include <score/tools/std/Optional.hpp>
-
 #include "MoveEventOnCreationMeta.hpp"
+
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <score/command/Command.hpp>
-#include <score/model/path/Path.hpp>
 #include <score/model/Identifier.hpp>
-
+#include <score/model/path/Path.hpp>
+#include <score/tools/std/Optional.hpp>
 #include <score_plugin_scenario_export.h>
 
 struct DataStreamInput;
@@ -27,8 +26,7 @@ class IntervalModel;
 class ProcessModel;
 namespace Command
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT MoveNewEvent final
-    : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT MoveNewEvent final : public score::Command
 {
   SCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), MoveNewEvent, "Move a new event")
@@ -42,7 +40,7 @@ public:
       bool yLocked);
   MoveNewEvent(
       const Scenario::ProcessModel& scenarioPath,
-      Id<IntervalModel>  intervalId,
+      Id<IntervalModel> intervalId,
       Id<EventModel> eventId,
       TimeVal date,
       const double y,

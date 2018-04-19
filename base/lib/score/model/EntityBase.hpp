@@ -1,10 +1,10 @@
 #pragma once
 
 #include <ossia/network/base/name_validation.hpp>
+
 #include <score/model/Component.hpp>
-#include <score/model/ModelMetadata.hpp>
 #include <score/model/IdentifiedObject.hpp>
-#include <score/model/Component.hpp>
+#include <score/model/ModelMetadata.hpp>
 template <typename T>
 class EntityMapInserter;
 
@@ -29,21 +29,20 @@ public:
   static const constexpr bool entity_tag = true;
 
   Entity(Id<T> id, const QString& name, QObject* parent)
-    : IdentifiedObject<T>{std::move(id), name, parent}
+      : IdentifiedObject<T>{std::move(id), name, parent}
   {
     m_metadata.setParent(this);
   }
 
   Entity(const Entity& other, Id<T> id, const QString& name, QObject* parent)
-    : IdentifiedObject<T>{std::move(id), name, parent}
-    , m_metadata{other.metadata()}
+      : IdentifiedObject<T>{std::move(id), name, parent}
+      , m_metadata{other.metadata()}
   {
     m_metadata.setParent(this);
   }
 
-  template<typename Visitor>
-  Entity(Visitor& vis, QObject* parent)
-    : IdentifiedObject<T>{vis, parent}
+  template <typename Visitor>
+  Entity(Visitor& vis, QObject* parent) : IdentifiedObject<T>{vis, parent}
   {
     m_metadata.setParent(this);
     TSerializer<typename Visitor::type, Entity<T>>::writeTo(vis, *this);
@@ -70,6 +69,4 @@ private:
   score::Components m_components;
   ModelMetadata m_metadata;
 };
-
-
 }

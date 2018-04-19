@@ -1,6 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SetProcessPosition.hpp"
+
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <score/model/path/PathSerialization.hpp>
 
@@ -10,13 +11,9 @@ namespace Command
 {
 PutProcessBefore::PutProcessBefore(
     const IntervalModel& cst,
-    Id<Process::ProcessModel>
-        proc,
-    Id<Process::ProcessModel>
-        proc2)
-    : m_path{cst}
-    , m_proc{std::move(proc)}
-    , m_proc2{std::move(proc2)}
+    Id<Process::ProcessModel> proc,
+    Id<Process::ProcessModel> proc2)
+    : m_path{cst}, m_proc{std::move(proc)}, m_proc2{std::move(proc2)}
 {
 }
 
@@ -42,8 +39,7 @@ void PutProcessBefore::deserializeImpl(DataStreamOutput& s)
 }
 
 PutProcessToEnd::PutProcessToEnd(
-    const IntervalModel& cst,
-    Id<Process::ProcessModel> proc)
+    const IntervalModel& cst, Id<Process::ProcessModel> proc)
     : m_path{std::move(cst)}, m_proc{std::move(proc)}
 {
   auto it = cst.processes.find(m_proc);
@@ -77,10 +73,8 @@ void PutProcessToEnd::deserializeImpl(DataStreamOutput& s)
 
 SwapProcessPosition::SwapProcessPosition(
     const IntervalModel& cst,
-    Id<Process::ProcessModel>
-        proc,
-    Id<Process::ProcessModel>
-        proc2)
+    Id<Process::ProcessModel> proc,
+    Id<Process::ProcessModel> proc2)
     : m_path{std::move(cst)}
     , m_proc{std::move(proc)}
     , m_proc2{std::move(proc2)}

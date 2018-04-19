@@ -1,8 +1,8 @@
 #ifndef NODEMODEL_H
 #define NODEMODEL_H
 
-#include <QAbstractItemModel>
 #include <Device/ItemModels/NodeBasedItemModel.hpp>
+#include <QAbstractItemModel>
 #include <unordered_map>
 
 namespace RemoteUI
@@ -19,9 +19,8 @@ class NodeModel : public QAbstractItemModel
 {
   Q_OBJECT
 
-
 public:
-  explicit NodeModel(QObject *parent = 0);
+  explicit NodeModel(QObject* parent = 0);
 
   void replace(Device::Node n);
   Q_INVOKABLE QString nodeToAddressString(QModelIndex idx);
@@ -30,14 +29,17 @@ public:
 
 private:
   using NodeType = Device::Node;
-  QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
+  QVariant headerData(
+      int section,
+      Qt::Orientation orientation,
+      int role = Qt::DisplayRole) const override;
 
-  int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+  int columnCount(const QModelIndex& parent = QModelIndex()) const override;
   Qt::ItemFlags flags(const QModelIndex& index) const override;
-  QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+  QVariant
+  data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
 
   QHash<int, QByteArray> roleNames() const override;
-
 
   Device::Node& nodeFromModelIndex(const QModelIndex& index) const;
 

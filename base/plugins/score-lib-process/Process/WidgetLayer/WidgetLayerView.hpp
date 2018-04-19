@@ -30,7 +30,6 @@ private:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent*) override;
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
-
   QGraphicsProxyWidget* m_widg{};
 };
 }

@@ -1,7 +1,6 @@
 #pragma once
 #include <QGraphicsItem>
 #include <QObject>
-
 #include <QPointF>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 namespace Scenario
@@ -9,7 +8,9 @@ namespace Scenario
 class TextItem;
 
 class CommentBlockPresenter;
-class CommentBlockView final : public QObject, public QGraphicsItem
+class CommentBlockView final
+    : public QObject
+    , public QGraphicsItem
 {
 public:
   CommentBlockView(CommentBlockPresenter& presenter, QGraphicsItem* parent);

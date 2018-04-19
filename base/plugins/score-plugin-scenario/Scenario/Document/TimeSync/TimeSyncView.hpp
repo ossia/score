@@ -4,12 +4,11 @@
 #include <QPoint>
 #include <QRect>
 #include <QTextLayout>
+#include <Scenario/Document/CommentBlock/TextItem.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <score/model/ColorReference.hpp>
 #include <score_plugin_scenario_export.h>
-
-#include <Scenario/Document/CommentBlock/TextItem.hpp>
 class QGraphicsSceneMouseEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;

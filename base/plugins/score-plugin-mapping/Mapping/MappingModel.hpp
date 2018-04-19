@@ -1,14 +1,13 @@
 #pragma once
 #include <Curve/Process/CurveProcessModel.hpp>
 #include <Mapping/MappingProcessMetadata.hpp>
+#include <Process/TimeValue.hpp>
 #include <QByteArray>
 #include <QString>
 #include <State/Address.hpp>
-
-#include <Process/TimeValue.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score_plugin_mapping_export.h>
-#include <score/model/Identifier.hpp>
 namespace Process
 {
 class Inlet;
@@ -24,13 +23,19 @@ class SCORE_PLUGIN_MAPPING_EXPORT ProcessModel final
 
   Q_OBJECT
 
-  Q_PROPERTY(State::AddressAccessor sourceAddress READ sourceAddress WRITE setSourceAddress NOTIFY sourceAddressChanged)
-  Q_PROPERTY(double sourceMin READ sourceMin WRITE setSourceMin NOTIFY sourceMinChanged)
-  Q_PROPERTY(double sourceMax READ sourceMax WRITE setSourceMax NOTIFY sourceMaxChanged)
+  Q_PROPERTY(State::AddressAccessor sourceAddress READ sourceAddress WRITE
+                 setSourceAddress NOTIFY sourceAddressChanged)
+  Q_PROPERTY(double sourceMin READ sourceMin WRITE setSourceMin NOTIFY
+                 sourceMinChanged)
+  Q_PROPERTY(double sourceMax READ sourceMax WRITE setSourceMax NOTIFY
+                 sourceMaxChanged)
 
-  Q_PROPERTY(State::AddressAccessor targetAddress READ targetAddress WRITE setTargetAddress NOTIFY targetAddressChanged)
-  Q_PROPERTY(double targetMin READ targetMin WRITE setTargetMin NOTIFY targetMinChanged)
-  Q_PROPERTY(double targetMax READ targetMax WRITE setTargetMax NOTIFY targetMaxChanged)
+  Q_PROPERTY(State::AddressAccessor targetAddress READ targetAddress WRITE
+                 setTargetAddress NOTIFY targetAddressChanged)
+  Q_PROPERTY(double targetMin READ targetMin WRITE setTargetMin NOTIFY
+                 targetMinChanged)
+  Q_PROPERTY(double targetMax READ targetMax WRITE setTargetMax NOTIFY
+                 targetMaxChanged)
 public:
   ProcessModel(
       const TimeVal& duration,
@@ -60,7 +65,6 @@ public:
   QString prettyName() const override;
 
   ~ProcessModel() override;
-
 
   std::unique_ptr<Process::Inlet> inlet;
   std::unique_ptr<Process::Outlet> outlet;

@@ -1,19 +1,20 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "FullViewIntervalView.hpp"
+
+#include "FullViewIntervalPresenter.hpp"
+
 #include <Process/Style/ScenarioStyle.hpp>
 #include <QColor>
 #include <QCursor>
 #include <QGraphicsItem>
+#include <QGraphicsScene>
+#include <QGraphicsView>
 #include <QPainter>
 #include <QPen>
 #include <QtGlobal>
-#include <qnamespace.h>
-
-#include "FullViewIntervalPresenter.hpp"
-#include "FullViewIntervalView.hpp"
 #include <Scenario/Document/Interval/IntervalView.hpp>
-#include <QGraphicsScene>
-#include <QGraphicsView>
+#include <qnamespace.h>
 class QStyleOptionGraphicsItem;
 class QWidget;
 
@@ -32,7 +33,6 @@ FullViewIntervalView::FullViewIntervalView(
 
 FullViewIntervalView::~FullViewIntervalView()
 {
-
 }
 
 void FullViewIntervalView::updatePaths()
@@ -46,11 +46,11 @@ void FullViewIntervalView::updatePaths()
   const qreal min_w = minWidth();
   const qreal max_w = maxWidth();
   const qreal def_w = defaultWidth();
-  const qreal play_w = m_waiting ?  playWidth() : 0.;
+  const qreal play_w = m_waiting ? playWidth() : 0.;
   const qreal gui_w = m_guiWidth;
 
   // Paths
-  if(play_w <= 0.)
+  if (play_w <= 0.)
   {
     if (infinite())
     {
@@ -84,13 +84,13 @@ void FullViewIntervalView::updatePaths()
       if (min_w != 0.)
       {
         playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
-        //if(play_w < min_w)
+        // if(play_w < min_w)
         {
           solidPath.lineTo(min_w, 0.);
         }
       }
 
-      if(play_w > min_w)
+      if (play_w > min_w)
       {
         playedDashedPath.moveTo(min_w, 0.);
         playedDashedPath.lineTo(std::min(def_w, play_w), 0.);
@@ -107,7 +107,7 @@ void FullViewIntervalView::updatePaths()
     else if (min_w == max_w) // TODO rigid()
     {
       playedSolidPath.lineTo(std::min(play_w, def_w), 0.);
-      //if(play_w < def_w)
+      // if(play_w < def_w)
       {
         solidPath.lineTo(def_w, 0.);
       }
@@ -117,13 +117,13 @@ void FullViewIntervalView::updatePaths()
       if (min_w != 0.)
       {
         playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
-        //if(play_w < min_w)
+        // if(play_w < min_w)
         {
           solidPath.lineTo(min_w, 0.);
         }
       }
 
-      if(play_w > min_w)
+      if (play_w > min_w)
       {
         playedDashedPath.moveTo(min_w, 0.);
         playedDashedPath.lineTo(play_w, 0.);
@@ -140,7 +140,6 @@ void FullViewIntervalView::updatePaths()
   }
 }
 
-
 void FullViewIntervalView::updatePlayPaths()
 {
   playedSolidPath = QPainterPath{};
@@ -153,7 +152,7 @@ void FullViewIntervalView::updatePlayPaths()
   const qreal play_w = playWidth();
 
   // Paths
-  if(play_w <= 0.)
+  if (play_w <= 0.)
   {
     return;
   }
@@ -166,7 +165,7 @@ void FullViewIntervalView::updatePlayPaths()
         playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
       }
 
-      if(play_w > min_w)
+      if (play_w > min_w)
       {
         playedDashedPath.moveTo(min_w, 0.);
         playedDashedPath.lineTo(std::min(def_w, play_w), 0.);
@@ -186,7 +185,7 @@ void FullViewIntervalView::updatePlayPaths()
         playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
       }
 
-      if(play_w > min_w)
+      if (play_w > min_w)
       {
         playedDashedPath.moveTo(min_w, 0.);
         playedDashedPath.lineTo(play_w, 0.);
@@ -210,7 +209,8 @@ void FullViewIntervalView::setSelected(bool selected)
 }
 QRectF FullViewIntervalView::boundingRect() const
 {
-  return {0, -3, qreal(std::max(defaultWidth(), m_guiWidth)) + 3, qreal(intervalAndRackHeight()) + 6};
+  return {0, -3, qreal(std::max(defaultWidth(), m_guiWidth)) + 3,
+          qreal(intervalAndRackHeight()) + 6};
 }
 
 void FullViewIntervalView::paint(
@@ -247,11 +247,12 @@ void FullViewIntervalView::paint(
     painter.drawPath(playedSolidPath);
   }
 
-  if(!waitingDashedPath.isEmpty())
+  if (!waitingDashedPath.isEmpty())
   {
-    if(this->m_waiting)
+    if (this->m_waiting)
     {
-      skin.IntervalWaitingDashPen.setBrush(skin.IntervalWaitingDashFill.getBrush());
+      skin.IntervalWaitingDashPen.setBrush(
+          skin.IntervalWaitingDashFill.getBrush());
       painter.setPen(skin.IntervalWaitingDashPen);
       painter.drawPath(waitingDashedPath);
     }
@@ -259,7 +260,7 @@ void FullViewIntervalView::paint(
 
   if (!playedDashedPath.isEmpty())
   {
-    if(this->m_waiting)
+    if (this->m_waiting)
     {
       skin.IntervalPlayDashPen.setBrush(skin.IntervalPlayDashFill.getBrush());
     }

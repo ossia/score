@@ -1,10 +1,11 @@
 #pragma once
-#include <Engine/Executor/ProcessComponent.hpp>
+#include <ossia/dataflow/node_process.hpp>
 #include <ossia/network/value/value.hpp>
+
+#include <Engine/Executor/ProcessComponent.hpp>
 #include <Mapping/MappingModel.hpp>
 #include <QPointer>
 #include <State/Address.hpp>
-#include <ossia/dataflow/node_process.hpp>
 namespace ossia
 {
 class curve_abstract;
@@ -31,15 +32,15 @@ public:
       QObject* parent);
 
   ~Component();
+
 private:
   void recompute();
-  std::shared_ptr<ossia::curve_abstract> rebuildCurve(
-      ossia::val_type source,
-      ossia::val_type target);
+  std::shared_ptr<ossia::curve_abstract>
+  rebuildCurve(ossia::val_type source, ossia::val_type target);
 
   template <typename T>
-  std::shared_ptr<ossia::curve_abstract> on_curveChanged_impl(
-      ossia::val_type target);
+  std::shared_ptr<ossia::curve_abstract>
+  on_curveChanged_impl(ossia::val_type target);
 
   template <typename X_T, typename Y_T>
   std::shared_ptr<ossia::curve_abstract> on_curveChanged_impl2();

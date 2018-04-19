@@ -1,19 +1,17 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
-#include <Scenario/Inspector/Interval/IntervalInspectorDelegate.hpp>
-
+#include <QSlider>
 #include <QString>
 #include <QVector>
-#include <QSlider>
+#include <Scenario/Inspector/Interval/IntervalInspectorDelegate.hpp>
 #include <list>
 #include <memory>
 #include <nano_signal_slot.hpp>
-#include <score/tools/std/HashMap.hpp>
-#include <vector>
-
 #include <score/model/Identifier.hpp>
+#include <score/tools/std/HashMap.hpp>
 #include <score_plugin_scenario_export.h>
+#include <vector>
 namespace Inspector
 {
 class InspectorSectionWidget;

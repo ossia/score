@@ -1,19 +1,19 @@
 #pragma once
+#include <QByteArray>
+#include <QString>
 #include <score_lib_base_export.h>
 #include <utility>
 #include <vector>
-#include <QString>
-#include <QByteArray>
 
 namespace score
 {
 
-struct RestorableDocument {
+struct RestorableDocument
+{
   QString filePath;
   QByteArray doc;
   QByteArray commands;
 };
-
 
 /**
  * @brief Manages the list of documents that can be restored after a crash.

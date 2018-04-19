@@ -1,5 +1,5 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CommentBlockPresenter.hpp"
 
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
@@ -14,12 +14,14 @@ CommentBlockPresenter::CommentBlockPresenter(
     , m_model{model}
     , m_view{new CommentBlockView{*this, parentView}}
 {
-  con(m_model.selection, &Selectable::changed, this, [&](bool b)
+  con(m_model.selection, &Selectable::changed, this,
+      [&](bool b)
       // ensure that connection is broken when presenter is delete
       // (may crash otherwise)
       { m_view->setSelected(b); });
 
-  con(m_model, &CommentBlockModel::contentChanged, this, [&](QString s)
+  con(m_model, &CommentBlockModel::contentChanged, this,
+      [&](QString s)
       // ensure that connection is broken when presenter is delete
       // (may crash otherwise)
       { m_view->setHtmlContent(s); });

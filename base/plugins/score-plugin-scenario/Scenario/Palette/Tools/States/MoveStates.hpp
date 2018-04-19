@@ -1,21 +1,20 @@
 #pragma once
+#include <QApplication>
+#include <QFinalState>
+#include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
 #include <Scenario/Palette/ScenarioPaletteBaseStates.hpp>
 #include <Scenario/Palette/Tools/ScenarioRollbackStrategy.hpp>
 #include <Scenario/Palette/Transitions/AnythingTransitions.hpp>
-#include <Scenario/Palette/Transitions/IntervalTransitions.hpp>
 #include <Scenario/Palette/Transitions/EventTransitions.hpp>
+#include <Scenario/Palette/Transitions/IntervalTransitions.hpp>
 #include <Scenario/Palette/Transitions/NothingTransitions.hpp>
 #include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
-
-#include <QFinalState>
-#include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/locking/ObjectLocker.hpp>
-#include <QApplication>
 namespace Scenario
 {
-template<typename T>
+template <typename T>
 class MoveIntervalState final : public StateBase<Scenario::ProcessModel>
 {
 public:
@@ -25,7 +24,8 @@ public:
       const score::CommandStackFacade& stack,
       score::ObjectLocker& locker,
       QState* parent)
-      : StateBase<Scenario::ProcessModel>{scenario, parent}, m_movingDispatcher{stack}
+      : StateBase<Scenario::ProcessModel>{scenario, parent}
+      , m_movingDispatcher{stack}
   {
     this->setObjectName("MoveIntervalState");
     using namespace Scenario::Command;
@@ -41,95 +41,91 @@ public:
       mainState->setInitialState(pressed);
       released->addTransition(finalState);
 
-      auto t_pressed
-          = score::make_transition<MoveOnAnything_Transition<Scenario::ProcessModel>>(
-              pressed, moving, *this);
+      auto t_pressed = score::make_transition<
+          MoveOnAnything_Transition<Scenario::ProcessModel>>(
+          pressed, moving, *this);
       QObject::connect(t_pressed, &QAbstractTransition::triggered, [&]() {
+        auto& scenar = stateMachine.model();
+        m_initialClick = this->currentPoint;
+        if (!this->clickedInterval)
+          return;
+        auto& cst = scenario.interval(*this->clickedInterval);
+        auto& sev = Scenario::startEvent(cst, scenario);
 
-          auto& scenar = stateMachine.model();
-          m_initialClick = this->currentPoint;
-          if(!this->clickedInterval)
-              return;
-          auto& cst = scenario.interval(*this->clickedInterval);
-          auto& sev = Scenario::startEvent(cst, scenario);
+        m_intervalInitialPoint = {cst.date(), cst.heightPercentage()};
 
-          m_intervalInitialPoint = {cst.date(), cst.heightPercentage()};
-
-          auto prev_csts = previousIntervals(sev, scenar);
-          if (!prev_csts.empty())
+        auto prev_csts = previousIntervals(sev, scenar);
+        if (!prev_csts.empty())
+        {
+          // We find the one that starts the latest.
+          TimeVal t = TimeVal::zero();
+          for (const auto& cst_id : prev_csts)
           {
-            // We find the one that starts the latest.
-            TimeVal t = TimeVal::zero();
-            for (const auto& cst_id : prev_csts)
-            {
-              const auto& other_date = scenar.interval(cst_id).date();
-              if (other_date > t)
-                t = other_date;
-            }
+            const auto& other_date = scenar.interval(cst_id).date();
+            if (other_date > t)
+              t = other_date;
+          }
 
-            // These 10 milliseconds are here to prevent "squashing"
-            // processes to zero, which leads to problem (they can't scale back!)
-            this->m_pressedPrevious = t + TimeVal::fromMsecs(10);
-          }
-          else
-          {
-            this->m_pressedPrevious = ossia::none;
-          }
+          // These 10 milliseconds are here to prevent "squashing"
+          // processes to zero, which leads to problem (they can't scale back!)
+          this->m_pressedPrevious = t + TimeVal::fromMsecs(10);
+        }
+        else
+        {
+          this->m_pressedPrevious = ossia::none;
+        }
       });
 
       score::make_transition<ReleaseOnAnything_Transition>(
           pressed, finalState);
-      score::make_transition<MoveOnAnything_Transition<Scenario::ProcessModel>>(
+      score::make_transition<
+          MoveOnAnything_Transition<Scenario::ProcessModel>>(
           moving, moving, *this);
       score::make_transition<ReleaseOnAnything_Transition>(moving, released);
 
       QObject::connect(moving, &QState::entered, [&] {
-          auto& scenario = stateMachine.model();
-          if(!this->clickedInterval)
-              return;
-          auto& cst = scenario.interval(*this->clickedInterval);
-          auto& sev = Scenario::startEvent(cst, scenario);
+        auto& scenario = stateMachine.model();
+        if (!this->clickedInterval)
+          return;
+        auto& cst = scenario.interval(*this->clickedInterval);
+        auto& sev = Scenario::startEvent(cst, scenario);
 
-          TimeVal date{};
-          if(qApp->keyboardModifiers() & Qt::ShiftModifier)
-            date = m_intervalInitialPoint.date + (this->currentPoint.date - m_initialClick.date);
-          else
-            date = m_intervalInitialPoint.date;
-          if(this->m_pressedPrevious)
-            date = std::max(date, *this->m_pressedPrevious);
-          date = std::max(date, TimeVal{});
+        TimeVal date{};
+        if (qApp->keyboardModifiers() & Qt::ShiftModifier)
+          date = m_intervalInitialPoint.date
+                 + (this->currentPoint.date - m_initialClick.date);
+        else
+          date = m_intervalInitialPoint.date;
+        if (this->m_pressedPrevious)
+          date = std::max(date, *this->m_pressedPrevious);
+        date = std::max(date, TimeVal{});
 
-          this->m_movingDispatcher.submitCommand(
-                      this->m_scenario,
-                      sev.id(),
-                      date,
-                      m_intervalInitialPoint.y + (this->currentPoint.y - m_initialClick.y),
-                      stateMachine.editionSettings().expandMode(),
-                      stateMachine.editionSettings().lockMode(),
-                      cst.startState());
+        this->m_movingDispatcher.submitCommand(
+            this->m_scenario, sev.id(), date,
+            m_intervalInitialPoint.y
+                + (this->currentPoint.y - m_initialClick.y),
+            stateMachine.editionSettings().expandMode(),
+            stateMachine.editionSettings().lockMode(), cst.startState());
       });
 
-      QObject::connect(
-          released, &QState::entered, [&]() {
-          m_movingDispatcher.commit();
-          m_pressedPrevious = {};
+      QObject::connect(released, &QState::entered, [&]() {
+        m_movingDispatcher.commit();
+        m_pressedPrevious = {};
       });
     }
 
     auto rollbackState = new QState{this};
-    score::make_transition<score::Cancel_Transition>(
-        mainState, rollbackState);
+    score::make_transition<score::Cancel_Transition>(mainState, rollbackState);
     rollbackState->addTransition(finalState);
-    QObject::connect(
-        rollbackState, &QState::entered, [&]() {
-        m_movingDispatcher.rollback();
-        m_pressedPrevious = {};
+    QObject::connect(rollbackState, &QState::entered, [&]() {
+      m_movingDispatcher.rollback();
+      m_pressedPrevious = {};
     });
 
     this->setInitialState(mainState);
   }
 
-  //SingleOngoingCommandDispatcher<MoveIntervalCommand_T> m_dispatcher;
+  // SingleOngoingCommandDispatcher<MoveIntervalCommand_T> m_dispatcher;
   SingleOngoingCommandDispatcher<Command::MoveEventMeta> m_movingDispatcher;
 
 private:
@@ -140,7 +136,8 @@ private:
 
 template <
     typename MoveBraceCommand_T, // SetMinDuration or setMaxDuration
-    typename Scenario_T, typename ToolPalette_T>
+    typename Scenario_T,
+    typename ToolPalette_T>
 class MoveIntervalBraceState final : public StateBase<Scenario_T>
 {
 public:
@@ -205,8 +202,7 @@ public:
     }
 
     auto rollbackState = new QState{this};
-    score::make_transition<score::Cancel_Transition>(
-        mainState, rollbackState);
+    score::make_transition<score::Cancel_Transition>(mainState, rollbackState);
     rollbackState->addTransition(finalState);
     QObject::connect(
         rollbackState, &QState::entered, [&]() { m_dispatcher.rollback(); });
@@ -222,7 +218,8 @@ private:
 
 template <
     typename MoveTimeSyncCommand_T, // MoveEventMeta
-    typename Scenario_T, typename ToolPalette_T>
+    typename Scenario_T,
+    typename ToolPalette_T>
 class MoveTimeSyncState final : public StateBase<Scenario_T>
 {
 public:
@@ -281,7 +278,6 @@ public:
         {
           this->m_pressedPrevious = ossia::none;
         }
-
       });
 
       QObject::connect(moving, &QState::entered, [&]() {
@@ -307,10 +303,7 @@ public:
         }
 
         m_dispatcher.submitCommand(
-            this->m_scenario,
-            ev_id,
-            date,
-            this->currentPoint.y,
+            this->m_scenario, ev_id, date, this->currentPoint.y,
             stateMachine.editionSettings().expandMode(),
             stateMachine.editionSettings().lockMode());
       });
@@ -320,8 +313,7 @@ public:
     }
 
     auto rollbackState = new QState{this};
-    score::make_transition<score::Cancel_Transition>(
-        mainState, rollbackState);
+    score::make_transition<score::Cancel_Transition>(mainState, rollbackState);
     rollbackState->addTransition(finalState);
     QObject::connect(
         rollbackState, &QState::entered, [&]() { m_dispatcher.rollback(); });

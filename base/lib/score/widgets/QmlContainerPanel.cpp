@@ -1,20 +1,20 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "QmlContainerPanel.hpp"
+
 #include <QAction>
 #include <QDebug>
 #include <QDockWidget>
 #include <QIcon>
 #include <QObject>
+#include <QQmlContext>
+#include <QQmlEngine>
 #include <QString>
 #include <QToolButton>
 #include <QUrl>
 #include <QVBoxLayout>
 #include <QWidget>
-#include <QQmlContext>
-#include <QQmlEngine>
 #include <QtQuickWidgets/QQuickWidget>
-
 #include <score/widgets/SetIcons.hpp>
 
 QMLContainerPanel::QMLContainerPanel(QWidget* parent)

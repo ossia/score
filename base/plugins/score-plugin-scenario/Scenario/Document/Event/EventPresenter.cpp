@@ -1,5 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "EventPresenter.hpp"
+
 #include <QGraphicsItem>
 #include <QMimeData>
 #include <QRect>
@@ -9,35 +11,29 @@
 #include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Event/EventView.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Event/EventView.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <State/MessageListSerialization.hpp>
-#include <algorithm>
-#include <score/document/DocumentInterface.hpp>
-#include <score/widgets/GraphicsItem.hpp>
-
-#include "EventPresenter.hpp"
 #include <Scenario/Process/ScenarioInterface.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <State/Expression.hpp>
 #include <State/Message.hpp>
+#include <State/MessageListSerialization.hpp>
+#include <algorithm>
 #include <score/document/DocumentContext.hpp>
+#include <score/document/DocumentInterface.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/serialization/MimeVisitor.hpp>
-
 #include <score/tools/Todo.hpp>
-#include <score/model/Identifier.hpp>
+#include <score/widgets/GraphicsItem.hpp>
 
 namespace Scenario
 {
 EventPresenter::EventPresenter(
     const EventModel& model, QGraphicsItem* parentview, QObject* parent)
-    : QObject{parent}
-    , m_model{model}
-    , m_view{new EventView{*this, parentview}}
+    : QObject{parent}, m_model{model}, m_view{new EventView{*this, parentview}}
 {
   // The scenario catches this :
   con(m_model.selection, &Selectable::changed, m_view,
@@ -105,16 +101,14 @@ void EventPresenter::handleDrop(const QPointF& pos, const QMimeData* mime)
     State::MessageList ml = des.deserialize();
 
     RedoMacroCommandDispatcher<Command::AddStateWithData> dispatcher{
-      score::IDocument::documentContext(m_model).commandStack};
+        score::IDocument::documentContext(m_model).commandStack};
 
     auto cmd = new Command::CreateState{
-                 *scenar, m_model.id(),
-                 pos.y() / m_view->parentItem()->boundingRect().size().height()};
+        *scenar, m_model.id(),
+        pos.y() / m_view->parentItem()->boundingRect().size().height()};
     dispatcher.submitCommand(cmd);
-    dispatcher.submitCommand(
-          new Command::AddMessagesToState{
-            scenar->states.at(cmd->createdState()),
-            std::move(ml)});
+    dispatcher.submitCommand(new Command::AddMessagesToState{
+        scenar->states.at(cmd->createdState()), std::move(ml)});
 
     dispatcher.commit();
   }

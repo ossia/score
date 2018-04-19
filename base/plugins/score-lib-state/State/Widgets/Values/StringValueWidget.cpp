@@ -1,15 +1,15 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "StringValueWidget.hpp"
+
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QVBoxLayout>
-#include <score/widgets/MarginLess.hpp>
-
-#include "StringValueWidget.hpp"
 #include <State/Widgets/Values/ValueWidget.hpp>
+#include <score/widgets/MarginLess.hpp>
 
 class QWidget;
 
@@ -80,7 +80,7 @@ void StringValueSetDialog::addRow(const std::string& c)
   auto minus_b = new QPushButton{tr("-"), this};
   sub_lay->addWidget(minus_b);
 
-  connect(minus_b, &QPushButton::clicked, this, [ this, i = m_rows.size() ] {
+  connect(minus_b, &QPushButton::clicked, this, [this, i = m_rows.size()] {
     removeRow(i);
   });
 

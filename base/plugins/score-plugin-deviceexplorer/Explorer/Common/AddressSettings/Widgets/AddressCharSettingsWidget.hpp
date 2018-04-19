@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AddressSettingsWidget.hpp"
+
 #include <Device/Address/AddressSettings.hpp>
 
 class QLineEdit;

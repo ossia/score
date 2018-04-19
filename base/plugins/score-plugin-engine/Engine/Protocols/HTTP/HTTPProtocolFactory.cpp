@@ -1,13 +1,15 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QObject>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "HTTPProtocolFactory.hpp"
 
 #include "HTTPDevice.hpp"
-#include "HTTPProtocolFactory.hpp"
+
+#include <ossia/network/base/device.hpp>
+
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/Protocols/HTTP/HTTPProtocolSettingsWidget.hpp>
 #include <Engine/Protocols/HTTP/HTTPSpecificSettings.hpp>
-#include <ossia/network/base/device.hpp>
+#include <QObject>
 
 namespace Device
 {

@@ -1,6 +1,6 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Process/Algorithms/StandardRemovalPolicy.hpp>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "RemoveSelection.hpp"
 
 #include <QDataStream>
 #include <QList>
@@ -8,33 +8,32 @@
 #include <QSet>
 #include <QString>
 #include <QtGlobal>
+#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+#include <Scenario/Process/Algorithms/StandardRemovalPolicy.hpp>
+#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <algorithm>
 #include <boost/iterator/indirect_iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <iterator>
-
-#include "RemoveSelection.hpp"
-#include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
-#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
 #include <score/document/DocumentContext.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/IdentifiedObjectAbstract.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
-#include <score/tools/MapCopy.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
-#include <score/model/Identifier.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+#include <score/tools/MapCopy.hpp>
 
 namespace Scenario
 {
@@ -47,7 +46,8 @@ RemoveSelection::RemoveSelection(
   // Serialize all the events and intervals and timesyncs and states and
   // comments
 
-  // For each removed interval, we also add its states to the selection if they are empty
+  // For each removed interval, we also add its states to the selection if they
+  // are empty
 
   // We add Event to the element to delete if all its States are selected
   // Wa add TimeSync to the list if all its node are selected for deletion
@@ -75,25 +75,29 @@ RemoveSelection::RemoveSelection(
     }
   }
 
-  // If we select a TimeSync for deletion, put its events into new separate TimeSync
+  // If we select a TimeSync for deletion, put its events into new separate
+  // TimeSync
   cp = sel;
   {
-    for ( const auto& obj : cp)
+    for (const auto& obj : cp)
     {
       if (auto ts = dynamic_cast<const TimeSyncModel*>(obj.data()))
       {
-        if(ts->events().size()>1)
+        if (ts->events().size() > 1)
         {
           bool split = false;
-          for (auto child : ts->events()){
+          for (auto child : ts->events())
+          {
             auto& ev = scenar.events.at(child);
-            if (!sel.contains(&ev)){
+            if (!sel.contains(&ev))
+            {
               split = true;
               break;
             }
           }
 
-          if (split){
+          if (split)
+          {
             for (std::size_t i = 1; i < ts->events().size(); i++)
             {
               QVector<Id<EventModel>> move_me{ts->events()[i]};
@@ -108,7 +112,8 @@ RemoveSelection::RemoveSelection(
     }
   }
 
-  // If we select an Event for deletion, put its states into new separate events
+  // If we select an Event for deletion, put its states into new separate
+  // events
   {
     /// FIXME do the same thing for timesyncs above
     struct EventToSplit
@@ -117,24 +122,28 @@ RemoveSelection::RemoveSelection(
       QVector<Id<StateModel>> states;
     };
     std::vector<EventToSplit> to_split;
-    for ( const auto& obj : cp)
+    for (const auto& obj : cp)
     {
       if (auto ev = dynamic_cast<const EventModel*>(obj.data()))
       {
-        if (ev->states().size()>1)
+        if (ev->states().size() > 1)
         {
-          bool split =  false;
-          for (auto child : ev->states()){
+          bool split = false;
+          for (auto child : ev->states())
+          {
             auto& st = scenar.states.at(child);
-            if (!sel.contains(&st)){
+            if (!sel.contains(&st))
+            {
               split = true;
               break;
             }
           }
-          if (split){
+          if (split)
+          {
             for (std::size_t i = 1; i < ev->states().size(); i++)
             {
-              to_split.push_back(EventToSplit{ev->id(), QVector<Id<StateModel>>{ev->states()[i]}});
+              to_split.push_back(EventToSplit{
+                  ev->id(), QVector<Id<StateModel>>{ev->states()[i]}});
             }
 
             // if we split the event, then we won't remove it
@@ -146,9 +155,10 @@ RemoveSelection::RemoveSelection(
 
     auto vec = getStrongIdRange<EventModel>(to_split.size(), scenar.events);
     int i = 0;
-    for(auto& e : to_split)
+    for (auto& e : to_split)
     {
-      m_cmds_split_event.emplace_back(scenar, e.orig, vec[i], std::move(e.states));
+      m_cmds_split_event.emplace_back(
+          scenar, e.orig, vec[i], std::move(e.states));
     }
   }
 
@@ -158,10 +168,12 @@ RemoveSelection::RemoveSelection(
     if (auto state = dynamic_cast<const StateModel*>(obj.data()))
     {
       auto& ev = scenar.events.at(state->eventId());
-      bool add_event=true;
-      for (auto child : ev.states()){
+      bool add_event = true;
+      for (auto child : ev.states())
+      {
         auto& st = scenar.states.at(child);
-        if (!sel.contains(&st)){
+        if (!sel.contains(&st))
+        {
           add_event = false;
           break;
         }
@@ -175,8 +187,12 @@ RemoveSelection::RemoveSelection(
 
   auto purged = sel.toList().toSet().toList();
 
-  QObjectList l; l.reserve(purged.size()); for(auto p : purged) l.push_back((QObject*)p);
-  m_cables = Dataflow::saveCables(l, score::IDocument::documentContext(scenar));
+  QObjectList l;
+  l.reserve(purged.size());
+  for (auto p : purged)
+    l.push_back((QObject*)p);
+  m_cables
+      = Dataflow::saveCables(l, score::IDocument::documentContext(scenar));
 
   // Serialize ALL the things
   for (const auto& obj : purged)
@@ -242,40 +258,32 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
 
   QList<StateModel*> states;
   std::transform(
-      m_removedStates.begin(),
-      m_removedStates.end(),
-      std::back_inserter(states),
-      [&](const auto& data) {
+      m_removedStates.begin(), m_removedStates.end(),
+      std::back_inserter(states), [&](const auto& data) {
         DataStream::Deserializer s{data.second};
         return new StateModel{s, stack, &scenar};
       });
 
   QList<EventModel*> events;
   std::transform(
-      m_removedEvents.begin(),
-      m_removedEvents.end(),
-      std::back_inserter(events),
-      [&](const auto& eventdata) {
+      m_removedEvents.begin(), m_removedEvents.end(),
+      std::back_inserter(events), [&](const auto& eventdata) {
         DataStream::Deserializer s{eventdata.second};
         return new EventModel{s, &scenar};
       });
 
   QList<TimeSyncModel*> timesyncs;
   std::transform(
-      m_removedTimeSyncs.begin(),
-      m_removedTimeSyncs.end(),
-      std::back_inserter(timesyncs),
-      [&](const auto& tndata) {
+      m_removedTimeSyncs.begin(), m_removedTimeSyncs.end(),
+      std::back_inserter(timesyncs), [&](const auto& tndata) {
         DataStream::Deserializer s{tndata.second};
         return new TimeSyncModel{s, &scenar};
       });
 
   QList<CommentBlockModel*> comments;
   std::transform(
-      m_removedComments.begin(),
-      m_removedComments.end(),
-      std::back_inserter(comments),
-      [&](const auto& cmtdata) {
+      m_removedComments.begin(), m_removedComments.end(),
+      std::back_inserter(comments), [&](const auto& cmtdata) {
         DataStream::Deserializer s{cmtdata.second};
         return new CommentBlockModel(s, &scenar);
       });
@@ -285,12 +293,15 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
   {
     auto ts = scenar.findTimeSync(timesync->id());
 
-    if (ts){
+    if (ts)
+    {
       if (timesync->active())
         ts->setActive(true);
       else
         ts->setActive(false);
-    } else {
+    }
+    else
+    {
       // The events should be removed first because else
       // signals may sent and the event may not be found...
       // They will be re-added anyway.
@@ -314,15 +325,16 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
     {
       // if so, reset it's condition
       ev->setCondition(event->condition());
-    } else {
+    }
+    else
+    {
 
       // We have to make a copy at each iteration since each iteration
       // might add a timesync.
       auto timesyncs_in_scenar = shallow_copy(scenar.timeSyncs.map());
       auto scenar_timesync_it = std::find(
-                                  timesyncs_in_scenar.begin(),
-                                  timesyncs_in_scenar.end(),
-                                  event->timeSync());
+          timesyncs_in_scenar.begin(), timesyncs_in_scenar.end(),
+          event->timeSync());
       if (scenar_timesync_it != timesyncs_in_scenar.end())
       {
         // We can add our event to the scenario.
@@ -339,7 +351,8 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
   for (const auto& state : states)
   {
     auto st = scenar.findState(state->id());
-    if (!st){
+    if (!st)
+    {
       scenar.states.add(state);
       scenar.event(state->eventId()).addState(state->id());
     }
@@ -466,9 +479,8 @@ void RemoveSelection::redo(const score::DocumentContext& ctx) const
 
 void RemoveSelection::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path << m_removedEvents
-    << m_removedTimeSyncs << m_removedIntervals << m_removedStates
-    << m_removedComments;
+  s << m_path << m_removedEvents << m_removedTimeSyncs << m_removedIntervals
+    << m_removedStates << m_removedComments;
 
   s << (int32_t)m_cmds_set_rigidity.size();
   for (const auto& cmd : m_cmds_set_rigidity)
@@ -492,9 +504,8 @@ void RemoveSelection::serializeImpl(DataStreamInput& s) const
 void RemoveSelection::deserializeImpl(DataStreamOutput& s)
 {
   int32_t n;
-  s >> m_path >> m_removedEvents
-      >> m_removedTimeSyncs >> m_removedIntervals >> m_removedStates
-      >> m_removedComments >> n;
+  s >> m_path >> m_removedEvents >> m_removedTimeSyncs >> m_removedIntervals
+      >> m_removedStates >> m_removedComments >> n;
 
   m_cmds_set_rigidity.resize(n);
   for (int i = 0; i < n; i++)

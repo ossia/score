@@ -11,9 +11,11 @@ static inline constexpr void test_nodes()
   n.audio_ins({{"foo"}, {"bar"}})
    .audio_outs({{"mimi"}});
 
-  constexpr NodeInfo<std::array<AudioOutInfo, 1>, std::array<AudioInInfo, 2>>& bld = res.build();
+  constexpr NodeInfo<std::array<AudioOutInfo, 1>, std::array<AudioInInfo, 2>>&
+bld = res.build();
 {
-  constexpr std::tuple<std::array<AudioOutInfo, 1>, std::array<AudioInInfo, 2>> t{bld};
+  constexpr std::tuple<std::array<AudioOutInfo, 1>, std::array<AudioInInfo, 2>>
+t{bld};
 
   constexpr auto res2 = std::get<std::array<AudioInInfo, 2>>(t);
   static_assert(res2[0].name[0] == 'f');
@@ -49,7 +51,8 @@ struct SomeInfo
     static const constexpr auto objectKey = "FunnyProcess";
     static const constexpr auto category = "Test";
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto uuid = make_uuid("f6b88ec9-cd56-43e8-a568-33208d5a8fb7");
+    static const constexpr auto uuid =
+make_uuid("f6b88ec9-cd56-43e8-a568-33208d5a8fb7");
   };
 
   struct State

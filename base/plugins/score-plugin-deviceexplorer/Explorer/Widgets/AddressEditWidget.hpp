@@ -3,10 +3,10 @@
 //#include <State/Address.hpp>
 //#include <score_plugin_deviceexplorer_export.h>
 
-//class QLineEdit;
-//namespace Explorer
+// class QLineEdit;
+// namespace Explorer
 //{
-//class DeviceExplorerModel;
+// class DeviceExplorerModel;
 
 ///**
 // * @brief The AddressEditWidget class
@@ -15,11 +15,11 @@
 // * A device explorer model is used for completion.
 // *
 // */
-//class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressEditWidget final
+// class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressEditWidget final
 //    : public QWidget
 //{
 //  Q_OBJECT
-//public:
+// public:
 //  AddressEditWidget(DeviceExplorerModel& model, QWidget* parent);
 
 //  void setAddress(const State::Address& addr);
@@ -37,10 +37,10 @@
 
 //  void dragEnterEvent(QDragEnterEvent* event) override;
 //  void dropEvent(QDropEvent*) override;
-//Q_SIGNALS:
+// Q_SIGNALS:
 //  void addressChanged(const State::Address&);
 
-//private:
+// private:
 //  void customContextMenuEvent(const QPoint& p);
 
 //  QLineEdit* m_lineEdit{};

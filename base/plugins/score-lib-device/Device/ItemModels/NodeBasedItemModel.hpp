@@ -1,14 +1,13 @@
 #pragma once
-#include <Device/Node/DeviceNode.hpp>
-#include <QAbstractItemModel>
-#include <score/model/tree/TreeNodeItemModel.hpp>
-#include <vector>
-
 #include <Device/Address/AddressSettings.hpp>
+#include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <QAbstractItemModel>
 #include <score/model/tree/InvisibleRootNode.hpp>
 #include <score/model/tree/TreeNode.hpp>
+#include <score/model/tree/TreeNodeItemModel.hpp>
 #include <score_lib_device_export.h>
+#include <vector>
 
 namespace Device
 {

@@ -1,37 +1,39 @@
 #include "SoundView.hpp"
-#include <QPainter>
-#include <QGraphicsView>
-#include <QScrollBar>
-#include <cmath>
+
 #include <QGraphicsSceneContextMenuEvent>
+#include <QGraphicsView>
+#include <QPainter>
+#include <QScrollBar>
 #include <QTimer>
+#include <cmath>
 #include <score/widgets/GraphicsItem.hpp>
 
 #if defined(__AVX2__) && __has_include(<immintrin.h>)
-#include <immintrin.h>
+#  include <immintrin.h>
 #elif defined(__SSE2__) && __has_include(<xmmintrin.h>)
-#include <xmmintrin.h>
+#  include <xmmintrin.h>
 #endif
 namespace Media
 {
 namespace Sound
 {
-LayerView::LayerView(QGraphicsItem* parent):
-    Process::LayerView{parent}
-  , m_cpt{new WaveformComputer{*this}}
+LayerView::LayerView(QGraphicsItem* parent)
+    : Process::LayerView{parent}, m_cpt{new WaveformComputer{*this}}
 {
-    setFlag(ItemClipsToShape, true);
-    this->setAcceptDrops(true);
-    if(auto view = getView(*parent))
-        connect(view->horizontalScrollBar(), &QScrollBar::valueChanged,
-                this, &Media::Sound::LayerView::scrollValueChanged);
-    connect(m_cpt, &WaveformComputer::ready,
-            this, [=] (QList<QPainterPath> p, QPainterPath c, double z) {
-      m_paths = std::move(p);
-      m_channels = std::move(c);
-      m_pathZoom = z;
-      update();
-    });
+  setFlag(ItemClipsToShape, true);
+  this->setAcceptDrops(true);
+  if (auto view = getView(*parent))
+    connect(
+        view->horizontalScrollBar(), &QScrollBar::valueChanged, this,
+        &Media::Sound::LayerView::scrollValueChanged);
+  connect(
+      m_cpt, &WaveformComputer::ready, this,
+      [=](QList<QPainterPath> p, QPainterPath c, double z) {
+        m_paths = std::move(p);
+        m_channels = std::move(c);
+        m_pathZoom = z;
+        update();
+      });
 }
 
 LayerView::~LayerView()
@@ -43,37 +45,40 @@ LayerView::~LayerView()
 
 void LayerView::setData(const MediaFileHandle& data)
 {
-  if(m_data)
-    {
-      QObject::disconnect(&m_data->decoder(), &AudioDecoder::finishedDecoding,
-                          this, &LayerView::on_finishedDecoding);
-      QObject::disconnect(&m_data->decoder(), &AudioDecoder::newData,
-                          this, &LayerView::on_newData);
-    }
-    m_data = &data;
-    m_numChan = data.data().size();
-    if(m_data)
-    {
-      QObject::connect(&m_data->decoder(), &AudioDecoder::finishedDecoding,
-                       this, &LayerView::on_finishedDecoding, Qt::QueuedConnection);
-      QObject::connect(&m_data->decoder(), &AudioDecoder::newData,
-                       this, &LayerView::on_newData, Qt::QueuedConnection);
-    }
-    m_sampleRate = data.sampleRate();
-    m_cpt->dirty = true;
+  if (m_data)
+  {
+    QObject::disconnect(
+        &m_data->decoder(), &AudioDecoder::finishedDecoding, this,
+        &LayerView::on_finishedDecoding);
+    QObject::disconnect(
+        &m_data->decoder(), &AudioDecoder::newData, this,
+        &LayerView::on_newData);
+  }
+  m_data = &data;
+  m_numChan = data.data().size();
+  if (m_data)
+  {
+    QObject::connect(
+        &m_data->decoder(), &AudioDecoder::finishedDecoding, this,
+        &LayerView::on_finishedDecoding, Qt::QueuedConnection);
+    QObject::connect(
+        &m_data->decoder(), &AudioDecoder::newData, this,
+        &LayerView::on_newData, Qt::QueuedConnection);
+  }
+  m_sampleRate = data.sampleRate();
+  m_cpt->dirty = true;
 }
 
 void LayerView::recompute(ZoomRatio ratio)
 {
   m_zoom = ratio;
-  if(m_data)
+  if (m_data)
   {
     m_cpt->recompute(m_data.data(), ratio);
   }
 }
 
-
-void LayerView::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
+void LayerView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
   askContextMenu(event->screenPos(), event->scenePos());
 
@@ -82,37 +87,39 @@ void LayerView::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
 
 void LayerView::paint_impl(QPainter* painter) const
 {
-    painter->setRenderHint(QPainter::Antialiasing, false);
-    const int nchannels = m_numChan;
-    if (nchannels == 0)
-        return;
+  painter->setRenderHint(QPainter::Antialiasing, false);
+  const int nchannels = m_numChan;
+  if (nchannels == 0)
+    return;
 
-    painter->setBrush(Qt::darkCyan);
-    painter->setPen(Qt::darkBlue);
+  painter->setBrush(Qt::darkCyan);
+  painter->setPen(Qt::darkBlue);
 
-    painter->save();
+  painter->save();
 
-    for (const auto& path : m_paths)
-        painter->drawPath(path);
+  for (const auto& path : m_paths)
+    painter->drawPath(path);
 
-    const auto h = -height() / nchannels;
-    const auto dblh = 2. * h;
+  const auto h = -height() / nchannels;
+  const auto dblh = 2. * h;
 
-    painter->scale(1, -1);
-    painter->translate(0, h + 1);
+  painter->scale(1, -1);
+  painter->translate(0, h + 1);
 
-    for (const auto& path : m_paths) {
-        painter->drawPath(path);
-        painter->translate(0., dblh + 1);
-    }
+  for (const auto& path : m_paths)
+  {
+    painter->drawPath(path);
+    painter->translate(0., dblh + 1);
+  }
 
-    painter->restore();
+  painter->restore();
 
-    painter->setPen(Qt::lightGray);
-    painter->drawPath(m_channels);
+  painter->setPen(Qt::lightGray);
+  painter->drawPath(m_channels);
 }
 
-void LayerView::scrollValueChanged(int sbvalue) {
+void LayerView::scrollValueChanged(int sbvalue)
+{
   recompute(m_zoom);
 }
 
@@ -156,23 +163,20 @@ void LayerView::dropEvent(QGraphicsSceneDragDropEvent* event)
     dropReceived(event->pos(), *event->mimeData());
 }
 
-
-
-
-WaveformComputer::WaveformComputer(LayerView& layer)
-  : m_layer{layer}
+WaveformComputer::WaveformComputer(LayerView& layer) : m_layer{layer}
 {
-  connect(this, &WaveformComputer::recompute,
-          this, &WaveformComputer::on_recompute, Qt::QueuedConnection);
+  connect(
+      this, &WaveformComputer::recompute, this,
+      &WaveformComputer::on_recompute, Qt::QueuedConnection);
 
   this->moveToThread(&m_drawThread);
   m_drawThread.start();
 }
 
-
-WaveformComputer::action WaveformComputer::compareDensity(const double density) {
+WaveformComputer::action WaveformComputer::compareDensity(const double density)
+{
   int ratio{};
-  if(density > m_density)
+  if (density > m_density)
   {
     ratio = 2;
   }
@@ -180,19 +184,19 @@ WaveformComputer::action WaveformComputer::compareDensity(const double density) 
   {
     ratio = 8;
   }
-  if (dirty
-      || m_density == -1
-      || m_density >= 2 * ratio * density
-      || 2 * ratio * m_density <= density
-      || (int)m_layer.width() == 0
-      || m_curdata.empty()) {
+  if (dirty || m_density == -1 || m_density >= 2 * ratio * density
+      || 2 * ratio * m_density <= density || (int)m_layer.width() == 0
+      || m_curdata.empty())
+  {
     dirty = false;
     return RECOMPUTE_ALL;
   }
-  if (m_density >= ratio * density) {
+  if (m_density >= ratio * density)
+  {
     return USE_NEXT;
   }
-  if (ratio * m_density <= density) {
+  if (ratio * m_density <= density)
+  {
     return USE_PREV;
   }
   return KEEP_CUR;
@@ -202,7 +206,7 @@ void WaveformComputer::computeDataSet(
     const MediaFileHandle& data,
     ZoomRatio ratio,
     double* densityptr,
-    std::vector<std::vector<float> >& dataset)
+    std::vector<std::vector<float>>& dataset)
 {
   auto& arr = data.data();
 
@@ -213,12 +217,17 @@ void WaveformComputer::computeDataSet(
     *densityptr = density;
 
   dataset.resize(nchannels);
-  for (int c = 0; c < nchannels; ++c) {
+  for (int c = 0; c < nchannels; ++c)
+  {
     const auto& chan = arr[c];
     const int chan_n = std::min(data.decoder().decoded, chan.size());
 
-    const double length = double(1000ll * chan_n) / data.sampleRate(); // duration of the track
-    const double size = ratio > 0 ? length / ratio : 0; // number of pixels the track will occupy in its entirety
+    const double length
+        = double(1000ll * chan_n) / data.sampleRate(); // duration of the track
+    const double size
+        = ratio > 0
+              ? length / ratio
+              : 0; // number of pixels the track will occupy in its entirety
 
     const int npoints = size;
     std::vector<float>& rmsv = dataset[c];
@@ -228,9 +237,7 @@ void WaveformComputer::computeDataSet(
     for (int i = 0; i < npoints; ++i)
     {
       rmsv[i] = 0;
-      for (int j = 0;
-           (j < density) && ((i * density + j) < chan_n);
-           ++j)
+      for (int j = 0; (j < density) && ((i * density + j) < chan_n); ++j)
       {
         auto s = chan[i * density + j];
         rmsv[i] += s * s;
@@ -239,37 +246,42 @@ void WaveformComputer::computeDataSet(
 
     int i = 0;
 #if defined(__AVX512__)
-    if(npoints > 8) {
-      for(; i < npoints - 8; i += 8)
+    if (npoints > 8)
+    {
+      for (; i < npoints - 8; i += 8)
       {
-        __m256 X = _mm256_mul_ps(_mm256_load_ps(&rmsv[i]), _mm256_set1_ps(one_over_dens));
+        __m256 X = _mm256_mul_ps(
+            _mm256_load_ps(&rmsv[i]), _mm256_set1_ps(one_over_dens));
         _mm256_store_ps(&rmsv[i], _mm256_mul_ps(_mm256_rsqrt14_ps(X), X));
       }
     }
 #elif defined(__SSE2__)
-    if(npoints > 4) {
-      for(; i < npoints - 4; i += 4)
+    if (npoints > 4)
+    {
+      for (; i < npoints - 4; i += 4)
       {
-        __m128 X = _mm_mul_ps(_mm_load_ps(&rmsv[i]), _mm_set1_ps(one_over_dens));
+        __m128 X
+            = _mm_mul_ps(_mm_load_ps(&rmsv[i]), _mm_set1_ps(one_over_dens));
         _mm_store_ps(&rmsv[i], _mm_mul_ps(X, _mm_rsqrt_ps(X)));
       }
     }
 #endif
 
-    for(; i < npoints ; i ++)
+    for (; i < npoints; i++)
       rmsv[i] = std::sqrt(rmsv[i] * one_over_dens);
   }
 }
 
-
-void WaveformComputer::drawWaveForms(const MediaFileHandle& data, ZoomRatio ratio)
+void WaveformComputer::drawWaveForms(
+    const MediaFileHandle& data, ZoomRatio ratio)
 {
   QList<QPainterPath> paths;
   QPainterPath channels;
 
   auto& arr = data.data();
   const double density = std::max((ratio * data.sampleRate()) / 1000., 1.);
-  const double densityratio = (m_density > 0 && density > 0) ? m_density / density : 1.;
+  const double densityratio
+      = (m_density > 0 && density > 0) ? m_density / density : 1.;
 
   int nchannels = arr.size();
   if (nchannels == 0)
@@ -282,25 +294,28 @@ void WaveformComputer::drawWaveForms(const MediaFileHandle& data, ZoomRatio rati
 
   // Trace lines between channels
 
-  for (int c = 1 ; c < nchannels; ++c) {
+  for (int c = 1; c < nchannels; ++c)
+  {
     channels.moveTo(0, c * h);
     channels.lineTo(w, c * h);
   }
 
   // Get horizontal offset
   auto view = getView(m_layer);
-  if(!view)
+  if (!view)
     return;
-  auto x0 = std::max(m_layer.mapFromScene(view->mapToScene(0, 0)).x(), qreal(0));
+  auto x0
+      = std::max(m_layer.mapFromScene(view->mapToScene(0, 0)).x(), qreal(0));
 
   int64_t i0 = x0 / densityratio;
   const int64_t n = m_curdata[0].size();
-  if(n == 0)
+  if (n == 0)
     return;
 
   auto xf = m_layer.mapFromScene(view->mapToScene(view->width(), 0)).x();
 
-  for (int64_t c = 0; c < nchannels ; ++c) {
+  for (int64_t c = 0; c < nchannels; ++c)
+  {
     const int64_t current_height = c * h;
     const std::vector<float>& dataset = m_curdata[c];
 
@@ -311,10 +326,12 @@ void WaveformComputer::drawWaveForms(const MediaFileHandle& data, ZoomRatio rati
 
     const float half_h = h / 2.f;
     const float height_adjustemnt = current_height + half_h;
-    if (n > i0) {
+    if (n > i0)
+    {
       path.moveTo(x0, double(dataset[i0] + height_adjustemnt));
       double x = x0;
-      for (int64_t i = i0; (i < n) && (x <= xf); ++i) {
+      for (int64_t i = i0; (i < n) && (x <= xf); ++i)
+      {
         x = i * densityratio;
         path.lineTo(x, double(dataset[i] * half_h + height_adjustemnt));
       }
@@ -326,13 +343,13 @@ void WaveformComputer::drawWaveForms(const MediaFileHandle& data, ZoomRatio rati
   ready(std::move(paths), std::move(channels), ratio);
 }
 
-
-void WaveformComputer::on_recompute(const MediaFileHandle* pdata, ZoomRatio ratio)
+void WaveformComputer::on_recompute(
+    const MediaFileHandle* pdata, ZoomRatio ratio)
 {
   auto& data = *pdata;
   m_zoom = ratio;
 
-  if(data.channels() == 0)
+  if (data.channels() == 0)
     return;
 
   const int64_t density = std::max((int)(ratio * data.sampleRate() / 1000), 1);
@@ -348,7 +365,7 @@ void WaveformComputer::on_recompute(const MediaFileHandle* pdata, ZoomRatio rati
       m_prevdensity = m_density;
       m_density = m_nextdensity;
 
-      QTimer::singleShot(0, [this,&data,ratio,density] {
+      QTimer::singleShot(0, [this, &data, ratio, density] {
         if (density > 1)
           computeDataSet(data, ratio / 2., &m_nextdensity, m_nextdata);
         else
@@ -360,13 +377,13 @@ void WaveformComputer::on_recompute(const MediaFileHandle* pdata, ZoomRatio rati
       std::swap(m_curdata, m_prevdata);
       m_nextdensity = m_density;
       m_density = m_prevdensity;
-      QTimer::singleShot(0, [this,&data,ratio] {
+      QTimer::singleShot(0, [this, &data, ratio] {
         computeDataSet(data, 2. * ratio, &m_prevdensity, m_prevdata);
       });
       break;
     case RECOMPUTE_ALL:
       computeDataSet(data, ratio, &m_density, m_curdata);
-      QTimer::singleShot(0, [this,&data,ratio] {
+      QTimer::singleShot(0, [this, &data, ratio] {
         computeDataSet(data, 2. * ratio, &m_prevdensity, m_prevdata);
         computeDataSet(data, ratio / 2., &m_nextdensity, m_nextdata);
       });
@@ -377,6 +394,5 @@ void WaveformComputer::on_recompute(const MediaFileHandle* pdata, ZoomRatio rati
 
   drawWaveForms(data, ratio);
 }
-
 }
 }

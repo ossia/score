@@ -1,20 +1,15 @@
 #pragma once
-#include <Scenario/Palette/ScenarioPaletteBaseStates.hpp>
-#include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
-
-#include <Scenario/Commands/Interval/Rack/Slot/ResizeSlotVertically.hpp>
-
-#include <Scenario/Palette/ScenarioPaletteBaseTransitions.hpp>
-
-#include <Scenario/Document/Interval/Slot.hpp>
-
-#include <Scenario/Commands/Interval/Rack/SwapSlots.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Palette/Transitions/AnythingTransitions.hpp>
-#include <score/document/DocumentInterface.hpp>
-
 #include <QFinalState>
 #include <QGraphicsScene>
+#include <Scenario/Commands/Interval/Rack/Slot/ResizeSlotVertically.hpp>
+#include <Scenario/Commands/Interval/Rack/SwapSlots.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
+#include <Scenario/Palette/ScenarioPaletteBaseStates.hpp>
+#include <Scenario/Palette/ScenarioPaletteBaseTransitions.hpp>
+#include <Scenario/Palette/Transitions/AnythingTransitions.hpp>
+#include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
+#include <score/document/DocumentInterface.hpp>
 
 namespace Scenario
 {
@@ -96,7 +91,8 @@ public:
     connect(press, &QAbstractState::entered, [=]() {
       m_originalPoint = m_sm.scenePoint;
 
-      const IntervalModel& cst = this->currentSlot.interval.find(stack.context());
+      const IntervalModel& cst
+          = this->currentSlot.interval.find(stack.context());
       m_originalHeight = cst.getSlotHeight(this->currentSlot);
     });
 
@@ -105,7 +101,8 @@ public:
           20.0,
           m_originalHeight + (m_sm.scenePoint.y() - m_originalPoint.y()));
 
-      const IntervalModel& cst = this->currentSlot.interval.find(stack.context());
+      const IntervalModel& cst
+          = this->currentSlot.interval.find(stack.context());
       m_ongoingDispatcher.submitCommand(cst, this->currentSlot, val);
     });
 

@@ -3,7 +3,6 @@
 #include <QJsonObject>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <score/command/Command.hpp>
-
 #include <score/model/path/Path.hpp>
 
 struct DataStreamInput;
@@ -24,8 +23,7 @@ class InsertContentInState final : public score::Command
 
 public:
   InsertContentInState(
-      const QJsonObject& stateData,
-      const Scenario::StateModel& state);
+      const QJsonObject& stateData, const Scenario::StateModel& state);
 
   void undo(const score::DocumentContext& ctx) const override;
 

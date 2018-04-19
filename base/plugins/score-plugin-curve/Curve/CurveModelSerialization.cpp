@@ -1,20 +1,18 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "CurveModel.hpp"
+
 #include <Curve/Segment/CurveSegmentList.hpp>
 #include <Curve/Segment/CurveSegmentModelSerialization.hpp>
-
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <score/application/ApplicationContext.hpp>
+#include <score/model/IdentifiedObjectMap.hpp>
+#include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <sys/types.h>
-
-#include "CurveModel.hpp"
-#include <score/application/ApplicationContext.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
-#include <score/model/IdentifiedObjectMap.hpp>
-
 
 template <>
 SCORE_PLUGIN_CURVE_EXPORT void
@@ -24,8 +22,7 @@ DataStreamReader::read(const Curve::CurveDomain& dom)
 }
 
 template <>
-SCORE_PLUGIN_CURVE_EXPORT void
-DataStreamWriter::write(Curve::CurveDomain& dom)
+SCORE_PLUGIN_CURVE_EXPORT void DataStreamWriter::write(Curve::CurveDomain& dom)
 {
   m_stream >> dom.min >> dom.max >> dom.start >> dom.end;
 }
@@ -44,10 +41,8 @@ DataStreamReader::read(const Curve::Model& curve)
   insertDelimiter();
 }
 
-
 template <>
-SCORE_PLUGIN_CURVE_EXPORT void
-DataStreamWriter::write(Curve::Model& curve)
+SCORE_PLUGIN_CURVE_EXPORT void DataStreamWriter::write(Curve::Model& curve)
 {
   int32_t size;
   m_stream >> size;
@@ -66,7 +61,6 @@ DataStreamWriter::write(Curve::Model& curve)
   checkDelimiter();
 }
 
-
 template <>
 SCORE_PLUGIN_CURVE_EXPORT void
 JSONObjectReader::read(const Curve::Model& curve)
@@ -74,10 +68,8 @@ JSONObjectReader::read(const Curve::Model& curve)
   obj[strings.Segments] = toJsonArray(curve.segments());
 }
 
-
 template <>
-SCORE_PLUGIN_CURVE_EXPORT void
-JSONObjectWriter::write(Curve::Model& curve)
+SCORE_PLUGIN_CURVE_EXPORT void JSONObjectWriter::write(Curve::Model& curve)
 {
   auto& csl = components.interfaces<Curve::SegmentList>();
   for (const auto& segment : obj[strings.Segments].toArray())

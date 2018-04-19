@@ -1,18 +1,18 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Curve/Palette/CurvePalette.hpp>
-#include <QState>
-#include <QStateMachine>
-#include <score/statemachine/StateMachineUtils.hpp>
-#include <score/tools/std/Optional.hpp>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MoveTool.hpp"
+
+#include <Curve/Palette/CurvePalette.hpp>
 #include <Curve/Palette/CurvePaletteBaseEvents.hpp>
 #include <Curve/Palette/CurvePaletteBaseTransitions.hpp>
 #include <Curve/Palette/OngoingState.hpp>
 #include <Curve/Palette/Tools/CurveTool.hpp>
 #include <Curve/Point/CurvePointView.hpp>
 #include <Curve/Segment/CurveSegmentView.hpp>
+#include <QState>
+#include <QStateMachine>
+#include <score/statemachine/StateMachineUtils.hpp>
+#include <score/tools/std/Optional.hpp>
 
 namespace Curve
 {

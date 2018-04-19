@@ -1,5 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <ossia/network/base/node_attributes.hpp>
+
 #include <Device/Node/DeviceNode.hpp>
 #include <QObject>
 #include <QString>
@@ -7,7 +9,6 @@
 #include <algorithm>
 #include <core/application/MockApplication.hpp>
 #include <score/serialization/AnySerialization.hpp>
-#include <ossia/network/base/node_attributes.hpp>
 class NodeTest : public QObject
 {
   Q_OBJECT
@@ -122,7 +123,10 @@ private Q_SLOTS:
     Device::Node root;
 
     Device::DeviceSettings dev_base{
-        UuidKey<Device::ProtocolFactory>{"85783b8d-454d-4326-a070-9666d2534eff"}, "ADevice", {}};
+        UuidKey<Device::ProtocolFactory>{
+            "85783b8d-454d-4326-a070-9666d2534eff"},
+        "ADevice",
+        {}};
     auto& dev = root.emplace_back(std::move(dev_base), nullptr);
 
     SCORE_ASSERT(root.childCount() == 1);
@@ -131,8 +135,10 @@ private Q_SLOTS:
     SCORE_ASSERT(&dev == &root.childAt(0));
 
     auto& dev_2 = root.emplace_back(
-        Device::DeviceSettings{
-            UuidKey<Device::ProtocolFactory>{"85783b8d-454d-4326-a070-9666d2534eff"}, "OtherDevice", {}},
+        Device::DeviceSettings{UuidKey<Device::ProtocolFactory>{
+                                   "85783b8d-454d-4326-a070-9666d2534eff"},
+                               "OtherDevice",
+                               {}},
         nullptr);
     SCORE_ASSERT(root.childCount() == 2);
     SCORE_ASSERT(dev_2.parent() == &root);
@@ -176,30 +182,47 @@ private Q_SLOTS:
   void test_serialize_any()
   {
     auto& anySer = score::anySerializers();
-    anySer.emplace(std::string("instanceBounds"), std::make_unique<score::any_serializer_t<ossia::net::instance_bounds>>());
-    anySer.emplace(std::string("description"), std::make_unique<score::any_serializer_t<ossia::net::description>>());
-    anySer.emplace(std::string("priority"), std::make_unique<score::any_serializer_t<ossia::net::priority>>());
-    anySer.emplace(std::string("tags"), std::make_unique<score::any_serializer_t<ossia::net::tags>>());
-    anySer.emplace(std::string("refreshRate"), std::make_unique<score::any_serializer_t<ossia::net::refresh_rate>>());
-    anySer.emplace(std::string("valueStepSize"), std::make_unique<score::any_serializer_t<ossia::net::value_step_size>>());
+    anySer.emplace(
+        std::string("instanceBounds"),
+        std::make_unique<
+            score::any_serializer_t<ossia::net::instance_bounds>>());
+    anySer.emplace(
+        std::string("description"),
+        std::make_unique<score::any_serializer_t<ossia::net::description>>());
+    anySer.emplace(
+        std::string("priority"),
+        std::make_unique<score::any_serializer_t<ossia::net::priority>>());
+    anySer.emplace(
+        std::string("tags"),
+        std::make_unique<score::any_serializer_t<ossia::net::tags>>());
+    anySer.emplace(
+        std::string("refreshRate"),
+        std::make_unique<score::any_serializer_t<ossia::net::refresh_rate>>());
+    anySer.emplace(
+        std::string("valueStepSize"),
+        std::make_unique<
+            score::any_serializer_t<ossia::net::value_step_size>>());
     score::testing::MockApplication app;
     ossia::extended_attributes s;
     {
-      auto out = DataStreamWriter::unmarshall<ossia::extended_attributes >(DataStreamReader::marshall(s));
+      auto out = DataStreamWriter::unmarshall<ossia::extended_attributes>(
+          DataStreamReader::marshall(s));
     }
-
 
     ossia::net::set_tags(s, std::vector<std::string>{"tutu", "titi"});
     {
-      auto out = DataStreamWriter::unmarshall<ossia::extended_attributes >(DataStreamReader::marshall(s));
+      auto out = DataStreamWriter::unmarshall<ossia::extended_attributes>(
+          DataStreamReader::marshall(s));
     }
     ossia::net::set_description(s, std::string("something"));
     {
-      auto out = DataStreamWriter::unmarshall<ossia::extended_attributes >(DataStreamReader::marshall(s));
+      auto out = DataStreamWriter::unmarshall<ossia::extended_attributes>(
+          DataStreamReader::marshall(s));
     }
     ossia::net::set_priority(s, 1234);
     {
-      auto out = DataStreamWriter::unmarshall<ossia::extended_attributes >(DataStreamReader::marshall(s));
+      auto out = DataStreamWriter::unmarshall<ossia::extended_attributes>(
+          DataStreamReader::marshall(s));
     }
 
     // TODO add more tests
@@ -209,7 +232,10 @@ private Q_SLOTS:
   {
     Device::Node root;
     Device::DeviceSettings dev_base{
-        UuidKey<Device::ProtocolFactory>{"85783b8d-454d-4326-a070-9666d2534eff"}, "ADevice", {}};
+        UuidKey<Device::ProtocolFactory>{
+            "85783b8d-454d-4326-a070-9666d2534eff"},
+        "ADevice",
+        {}};
     auto& dev = root.emplace_back(std::move(dev_base), nullptr);
 
     Device::Node child(Device::AddressSettings{}, &dev);
@@ -217,20 +243,17 @@ private Q_SLOTS:
 
     score::testing::MockApplication app;
     Device::AddressSettings s;
-    for(auto val : {
-        ossia::value(State::impulse{}),
-        ossia::value(int{}),
-        ossia::value(float{}),
-        ossia::value(char{}),
-        ossia::value(std::string{}),
-        ossia::value(State::list_t{}),
-        ossia::value(std::array<float,2>{}),
-        ossia::value(std::array<float,3>{}),
-        ossia::value(std::array<float,4>{})
-  })
+    for (auto val :
+         {ossia::value(State::impulse{}), ossia::value(int{}),
+          ossia::value(float{}), ossia::value(char{}),
+          ossia::value(std::string{}), ossia::value(State::list_t{}),
+          ossia::value(std::array<float, 2>{}),
+          ossia::value(std::array<float, 3>{}),
+          ossia::value(std::array<float, 4>{})})
     {
       s.value = val;
-      auto out = DataStreamWriter::unmarshall<Device::AddressSettings>(DataStreamReader::marshall(s));
+      auto out = DataStreamWriter::unmarshall<Device::AddressSettings>(
+          DataStreamReader::marshall(s));
       QVERIFY(out == s);
     }
 
@@ -238,13 +261,15 @@ private Q_SLOTS:
     ossia::net::set_description(s, std::string("something"));
     ossia::net::set_priority(s, 1234);
 
-    auto out = DataStreamWriter::unmarshall<Device::AddressSettings>(DataStreamReader::marshall(s));
+    auto out = DataStreamWriter::unmarshall<Device::AddressSettings>(
+        DataStreamReader::marshall(s));
     QVERIFY(out == s);
   }
 };
 
 QTEST_MAIN(NodeTest)
 #include "NodeTest.moc"
+
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <score/model/tree/TreeNode.hpp>

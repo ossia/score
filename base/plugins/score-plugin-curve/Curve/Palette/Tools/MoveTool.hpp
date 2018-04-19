@@ -2,10 +2,9 @@
 #include <Curve/Palette/CommandObjects/CreatePointCommandObject.hpp>
 #include <Curve/Palette/CommandObjects/PenCommandObject.hpp>
 #include <Curve/Palette/CommandObjects/SetSegmentParametersCommandObject.hpp>
+#include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Palette/Tools/CurveTool.hpp>
 #include <QPoint>
-
-#include <Curve/Palette/CurvePoint.hpp>
 
 namespace Curve
 {

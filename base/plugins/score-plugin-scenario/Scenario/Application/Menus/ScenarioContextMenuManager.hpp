@@ -1,7 +1,6 @@
 #pragma once
-#include <QObject>
-
 #include <Process/Layer/LayerContextMenu.hpp>
+#include <QObject>
 namespace Process
 {
 class LayerContextMenu;

@@ -1,11 +1,10 @@
 #pragma once
-#include <functional>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
-#include <score_lib_process_export.h>
-#include <score/tools/std/HashMap.hpp>
-
 #include <QPoint>
 #include <QPointF>
+#include <functional>
+#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/tools/std/HashMap.hpp>
+#include <score_lib_process_export.h>
 class QMenu;
 
 namespace Process
@@ -28,9 +27,9 @@ public:
 
   std::vector<ContextMenuFun> functions;
 
-  void build(
-      QMenu& m, QPoint pt, QPointF ptf,
-      const Process::LayerContext& proc) const;
+  void
+  build(QMenu& m, QPoint pt, QPointF ptf, const Process::LayerContext& proc)
+      const;
 
 private:
   StringKey<LayerContextMenu> m_key;
@@ -71,12 +70,11 @@ public:
   }
 
 private:
-  score::hash_map<StringKey<LayerContextMenu>, LayerContextMenu>
-      m_container;
+  score::hash_map<StringKey<LayerContextMenu>, LayerContextMenu> m_container;
 };
 }
 
-#define SCORE_PROCESS_DECLARE_CONTEXT_MENU(Export, Type)    \
+#define SCORE_PROCESS_DECLARE_CONTEXT_MENU(Export, Type)     \
   namespace ContextMenus                                     \
   {                                                          \
   class Type;                                                \

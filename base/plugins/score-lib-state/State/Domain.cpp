@@ -1,7 +1,9 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Domain.hpp"
+
 #include <ossia/network/domain/domain.hpp>
+
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 namespace State
@@ -80,29 +82,25 @@ Domain::operator ossia::domain&() noexcept
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void
-DataStreamReader::read(const State::Domain& var)
+SCORE_LIB_STATE_EXPORT void DataStreamReader::read(const State::Domain& var)
 {
   readFrom(var.get());
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void
-DataStreamWriter::write(State::Domain& var)
+SCORE_LIB_STATE_EXPORT void DataStreamWriter::write(State::Domain& var)
 {
   writeTo(var.get());
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void
-JSONObjectReader::read(const State::Domain& var)
+SCORE_LIB_STATE_EXPORT void JSONObjectReader::read(const State::Domain& var)
 {
   readFrom(var.get());
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void
-JSONObjectWriter::write(State::Domain& var)
+SCORE_LIB_STATE_EXPORT void JSONObjectWriter::write(State::Domain& var)
 {
   writeTo(var.get());
 }

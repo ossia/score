@@ -1,14 +1,12 @@
 #pragma once
-#include <score/application/ApplicationComponents.hpp>
-#include <score/application/GUIApplicationContext.hpp>
-
+#include <QMenuBar>
 #include <core/presenter/DocumentManager.hpp>
 #include <core/settings/Settings.hpp>
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/MenuManager.hpp>
 #include <score/actions/ToolbarManager.hpp>
-
-#include <QMenuBar>
+#include <score/application/ApplicationComponents.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 #include <score_lib_base_export.h>
 #include <vector>
 class QObject;
@@ -21,14 +19,14 @@ class View;
 class Settings;
 
 /**
-     * @brief The Presenter class
-     *
-     * Certainly needs refactoring.
-     * For now, manages menus and plug-in objects.
-     *
-     * It is also able to instantiate a Command from serialized Undo/Redo data.
-     * (this should go in the DocumentPresenter maybe ?)
-     */
+ * @brief The Presenter class
+ *
+ * Certainly needs refactoring.
+ * For now, manages menus and plug-in objects.
+ *
+ * It is also able to instantiate a Command from serialized Undo/Redo data.
+ * (this should go in the DocumentPresenter maybe ?)
+ */
 class SCORE_LIB_BASE_EXPORT Presenter final : public QObject
 {
   Q_OBJECT

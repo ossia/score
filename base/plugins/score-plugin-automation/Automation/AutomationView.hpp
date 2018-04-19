@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Process/LayerView.hpp>
 #include <Curve/CurveView.hpp>
+#include <Process/LayerView.hpp>
 #include <QString>
 #include <QTextLayout>
 
@@ -17,7 +17,10 @@ class LayerView final : public Process::LayerView
 public:
   explicit LayerView(QGraphicsItem* parent);
   ~LayerView() override;
-    void setCurveView(Curve::View* view) { m_curveView = view; }
+  void setCurveView(Curve::View* view)
+  {
+    m_curveView = view;
+  }
 
 private:
   QPixmap pixmap() override;

@@ -1,5 +1,7 @@
 #pragma once
 #include <Device/ItemModels/NodeBasedItemModel.hpp>
+#include <Device/Node/DeviceNode.hpp>
+#include <Explorer/Explorer/Column.hpp>
 #include <QAbstractItemModel>
 #include <QList>
 #include <QPair>
@@ -7,12 +9,9 @@
 #include <QString>
 #include <QStringList>
 #include <QVariant>
-#include <qnamespace.h>
-
-#include <Device/Node/DeviceNode.hpp>
-#include <Explorer/Explorer/Column.hpp>
 #include <State/Message.hpp>
 #include <State/Value.hpp>
+#include <qnamespace.h>
 #include <score_plugin_deviceexplorer_export.h>
 class QMimeData;
 class QObject;
@@ -48,8 +47,8 @@ class DeviceExplorerWidget;
 struct SCORE_PLUGIN_DEVICEEXPLORER_EXPORT SelectedNodes
 {
   /**
-  * @brief parents The topmost parents of the selected parameters
-  */
+   * @brief parents The topmost parents of the selected parameters
+   */
   std::vector<Device::Node*> parents;
 
   /**
@@ -158,10 +157,7 @@ public:
       const ossia::value& value,
       int role);
   void editData(
-      Device::Node& n,
-      Column column,
-      const ossia::value& value,
-      int role);
+      Device::Node& n, Column column, const ossia::value& value, int role);
 
   Qt::DropActions supportedDropActions() const override;
   Qt::DropActions supportedDragActions() const override;
@@ -187,6 +183,7 @@ public:
 
 Q_SIGNALS:
   void nodeChanged(Device::Node* n);
+
 protected:
   void debug_printPath(const Device::NodePath& path);
 
@@ -231,6 +228,5 @@ makeFullAddressAccessorSettings(
     ossia::value max);
 SCORE_PLUGIN_DEVICEEXPLORER_EXPORT Device::FullAddressAccessorSettings
 makeFullAddressAccessorSettings(
-    const Device::Node& mess,
-    const Explorer::DeviceExplorerModel& ctx);
+    const Device::Node& mess, const Explorer::DeviceExplorerModel& ctx);
 }

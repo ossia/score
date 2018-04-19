@@ -1,9 +1,9 @@
 #pragma once
 
-#include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Address/AddressSettings.hpp>
-#include <QString>
+#include <Device/Protocol/DeviceSettings.hpp>
 #include <QDialog>
+#include <QString>
 #include <QWidget>
 #include <score_lib_device_export.h>
 
@@ -27,9 +27,9 @@ public:
 
 class SCORE_LIB_DEVICE_EXPORT AddressDialog : public QDialog
 {
-  public:
-    using QDialog::QDialog;
-    virtual ~AddressDialog();
-    virtual Device::AddressSettings getSettings() const = 0;
+public:
+  using QDialog::QDialog;
+  virtual ~AddressDialog();
+  virtual Device::AddressSettings getSettings() const = 0;
 };
 }

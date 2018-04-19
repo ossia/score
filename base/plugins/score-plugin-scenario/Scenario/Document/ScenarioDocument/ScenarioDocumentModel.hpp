@@ -1,12 +1,12 @@
 #pragma once
-#include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
-#include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/Cable.hpp>
+#include <Process/Dataflow/Port.hpp>
+#include <QPointer>
 #include <core/document/Document.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score_plugin_scenario_export.h>
-#include <QPointer>
 #include <unordered_set>
 
 class JSONObject;
@@ -33,11 +33,8 @@ public:
 
   template <typename Impl>
   ScenarioDocumentModel(
-      Impl& vis,
-      const score::DocumentContext& ctx,
-      QObject* parent)
-      : score::DocumentDelegateModel{vis, parent}
-      , m_context{ctx}
+      Impl& vis, const score::DocumentContext& ctx, QObject* parent)
+      : score::DocumentDelegateModel{vis, parent}, m_context{ctx}
   {
     vis.writeTo(*this);
   }
@@ -55,6 +52,7 @@ public:
   void serialize(const VisitorVariant&) const override;
 
   score::EntityMap<Process::Cable> cables;
+
 private:
   void initializeNewDocument(const IntervalModel& viewmodel);
   const score::DocumentContext& m_context;

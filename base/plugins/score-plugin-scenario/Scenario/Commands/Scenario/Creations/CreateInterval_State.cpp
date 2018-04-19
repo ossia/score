@@ -1,23 +1,22 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <score/tools/RandomNameProvider.hpp>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "CreateInterval_State.hpp"
 
 #include <QByteArray>
-#include <algorithm>
-#include <boost/iterator/iterator_facade.hpp>
-#include <boost/multi_index/detail/hash_index_iterator.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <vector>
-
-#include "CreateInterval_State.hpp"
 #include <Scenario/Commands/Scenario/Creations/CreateInterval.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
+#include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
+#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <algorithm>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <score/model/EntityMap.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+#include <score/tools/RandomNameProvider.hpp>
+#include <vector>
 
 namespace Scenario
 {
@@ -53,7 +52,7 @@ void CreateInterval_State::redo(const score::DocumentContext& ctx) const
   ScenarioCreate<StateModel>::redo(
       m_newState, scenar.events.at(m_endEvent), m_stateY, scenar);
 
-    scenar.states.at(m_newState).metadata().setName(m_createdName);
+  scenar.states.at(m_newState).metadata().setName(m_createdName);
 
   // The interval between
   m_command.redo(ctx);
@@ -62,7 +61,8 @@ void CreateInterval_State::redo(const score::DocumentContext& ctx) const
 
 void CreateInterval_State::serializeImpl(DataStreamInput& s) const
 {
-  s << m_newState << m_createdName << m_command.serialize() << m_endEvent << m_stateY;
+  s << m_newState << m_createdName << m_command.serialize() << m_endEvent
+    << m_stateY;
 }
 
 void CreateInterval_State::deserializeImpl(DataStreamOutput& s)

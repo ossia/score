@@ -1,24 +1,24 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
-#include <algorithm>
-#include <core/document/Document.hpp>
-#include <QQmlEngine>
-#include <QQmlComponent>
-#include <vector>
-#include <QFileInfo>
-#include <QFileSystemWatcher>
-#include <JS/Qml/QmlObjects.hpp>
-#include <Process/Dataflow/Port.hpp>
+#include "JSProcessModel.hpp"
 
 #include "JS/JSProcessMetadata.hpp"
-#include "JSProcessModel.hpp"
-#include <score/document/DocumentInterface.hpp>
-#include <score/serialization/VisitorCommon.hpp>
-#include <State/Expression.hpp>
 
+#include <JS/Qml/QmlObjects.hpp>
+#include <Process/Dataflow/Port.hpp>
+#include <QFileInfo>
+#include <QFileSystemWatcher>
+#include <QQmlComponent>
+#include <QQmlEngine>
+#include <State/Expression.hpp>
+#include <algorithm>
+#include <core/document/Document.hpp>
+#include <score/document/DocumentInterface.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/File.hpp>
+#include <vector>
 
 namespace JS
 {
@@ -26,11 +26,11 @@ ProcessModel::ProcessModel(
     const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
     QObject* parent)
-  : Process::ProcessModel{duration, id,
-                          Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    : Process::ProcessModel{duration, id,
+                            Metadata<ObjectKey_k, ProcessModel>::get(), parent}
 {
   setScript(
-        R"_(import QtQuick 2.0
+      R"_(import QtQuick 2.0
 import Score 1.0
 Item {
   ValueInlet { id: in1 }
@@ -62,24 +62,26 @@ void ProcessModel::setScript(const QString& script)
 
   QByteArray data = trimmed.toUtf8();
 
-  auto path = score::locateFilePath(trimmed, score::IDocument::documentContext(*this));
-  if(QFileInfo{path}.exists())
+  auto path = score::locateFilePath(
+      trimmed, score::IDocument::documentContext(*this));
+  if (QFileInfo{path}.exists())
   {
     m_watch = std::make_unique<QFileSystemWatcher>(QStringList{trimmed});
-    connect(m_watch.get(), &QFileSystemWatcher::fileChanged,
-            this, [=] (const QString& path) {
-
-      // Note: https://stackoverflow.com/questions/18300376/qt-qfilesystemwatcher-signal-filechanged-gets-emited-only-once
-      QTimer::singleShot(20, this, [this, path] {
-        m_watch->addPath(path);
-        QFile f(path);
-        if(f.open(QIODevice::ReadOnly))
-        {
-          setQmlData(path.toUtf8(), true);
-          m_watch->addPath(path);
-        }
-      });
-    });
+    connect(
+        m_watch.get(), &QFileSystemWatcher::fileChanged, this,
+        [=](const QString& path) {
+          // Note:
+          // https://stackoverflow.com/questions/18300376/qt-qfilesystemwatcher-signal-filechanged-gets-emited-only-once
+          QTimer::singleShot(20, this, [this, path] {
+            m_watch->addPath(path);
+            QFile f(path);
+            if (f.open(QIODevice::ReadOnly))
+            {
+              setQmlData(path.toUtf8(), true);
+              m_watch->addPath(path);
+            }
+          });
+        });
 
     setQmlData(path.toUtf8(), true);
   }
@@ -91,16 +93,17 @@ void ProcessModel::setScript(const QString& script)
 
 void ProcessModel::setQmlData(const QByteArray& data, bool isFile)
 {
-  if(!isFile && !data.startsWith("import"))
+  if (!isFile && !data.startsWith("import"))
     return;
 
   m_qmlData = data;
   delete m_dummyObject;
   m_dummyObject = nullptr;
   m_dummyComponent.reset();
-  if(isFile)
+  if (isFile)
   {
-    m_dummyComponent = std::make_unique<QQmlComponent>(&m_dummyEngine, QUrl::fromLocalFile(data));
+    m_dummyComponent = std::make_unique<QQmlComponent>(
+        &m_dummyEngine, QUrl::fromLocalFile(data));
   }
   else
   {
@@ -109,7 +112,7 @@ void ProcessModel::setQmlData(const QByteArray& data, bool isFile)
   }
 
   const auto& errs = m_dummyComponent->errors();
-  if(!errs.empty())
+  if (!errs.empty())
   {
     const auto& err = errs.first();
     qDebug() << err.line() << err.toString();
@@ -119,12 +122,12 @@ void ProcessModel::setQmlData(const QByteArray& data, bool isFile)
 
   std::vector<State::AddressAccessor> oldInletAddresses, oldOutletAddresses;
   std::vector<std::vector<Path<Process::Cable>>> oldInletCable, oldOutletCable;
-  for(Process::Inlet* in : m_inlets)
+  for (Process::Inlet* in : m_inlets)
   {
     oldInletAddresses.push_back(in->address());
     oldInletCable.push_back(in->cables());
   }
-  for(Process::Outlet* in : m_outlets)
+  for (Process::Outlet* in : m_outlets)
   {
     oldOutletAddresses.push_back(in->address());
     oldOutletCable.push_back(in->cables());
@@ -140,10 +143,11 @@ void ProcessModel::setQmlData(const QByteArray& data, bool isFile)
   {
     auto cld_inlet = m_dummyObject->findChildren<Inlet*>();
     int i = 0;
-    for(auto n : cld_inlet) {
+    for (auto n : cld_inlet)
+    {
       auto port = n->make(Id<Process::Port>(i++), this);
       port->setCustomData(n->objectName());
-      if(auto addr = State::parseAddressAccessor(n->address()))
+      if (auto addr = State::parseAddressAccessor(n->address()))
         port->setAddress(std::move(*addr));
       m_inlets.push_back(port);
     }
@@ -152,10 +156,11 @@ void ProcessModel::setQmlData(const QByteArray& data, bool isFile)
   {
     auto cld_outlet = m_dummyObject->findChildren<Outlet*>();
     int i = 0;
-    for(auto n : cld_outlet) {
+    for (auto n : cld_outlet)
+    {
       auto port = n->make(Id<Process::Port>(i++), this);
       port->setCustomData(n->objectName());
-      if(auto addr = State::parseAddressAccessor(n->address()))
+      if (auto addr = State::parseAddressAccessor(n->address()))
         port->setAddress(std::move(*addr));
       m_outlets.push_back(port);
     }
@@ -163,25 +168,25 @@ void ProcessModel::setQmlData(const QByteArray& data, bool isFile)
   scriptOk();
 
   std::size_t i = 0;
-  for(Process::Inlet* in : m_inlets)
+  for (Process::Inlet* in : m_inlets)
   {
-    if(i < oldInletAddresses.size())
+    if (i < oldInletAddresses.size())
     {
-      if(!oldInletAddresses[i].address.device.isEmpty())
+      if (!oldInletAddresses[i].address.device.isEmpty())
         in->setAddress(oldInletAddresses[i]);
-      for(const auto& cbl : oldInletCable[i])
+      for (const auto& cbl : oldInletCable[i])
         in->addCable(cbl);
     }
     i++;
   }
   i = 0;
-  for(Process::Outlet* out : m_outlets)
+  for (Process::Outlet* out : m_outlets)
   {
-    if(i < oldOutletAddresses.size())
+    if (i < oldOutletAddresses.size())
     {
-      if(!oldOutletAddresses[i].address.device.isEmpty())
+      if (!oldOutletAddresses[i].address.device.isEmpty())
         out->setAddress(oldOutletAddresses[i]);
-      for(const auto& cbl : oldOutletCable[i])
+      for (const auto& cbl : oldOutletCable[i])
         out->addCable(cbl);
     }
     i++;

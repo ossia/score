@@ -1,6 +1,10 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AutomationDropHandler.hpp"
+
+#include <ossia/network/value/value_traits.hpp>
+
+#include <Dataflow/UI/PortItem.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 #include <Scenario/Commands/Cohesion/CreateCurves.hpp>
@@ -12,8 +16,6 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
-#include <ossia/network/value/value_traits.hpp>
-#include <Dataflow/UI/PortItem.hpp>
 namespace Scenario
 {
 
@@ -42,15 +44,14 @@ bool DropProcessInScenario::drop(
     m.submitCommand(start_cmd);
 
     // Create a box with the duration of the longest song
-    auto box_cmd
-        = new Scenario::Command::CreateInterval_State_Event_TimeSync{
-            scenar, start_cmd->createdState(), pt.date + t, pt.y};
+    auto box_cmd = new Scenario::Command::CreateInterval_State_Event_TimeSync{
+        scenar, start_cmd->createdState(), pt.date + t, pt.y};
     m.submitCommand(box_cmd);
     auto& interval = scenar.interval(box_cmd->createdInterval());
 
     // Create process
-    auto process_cmd
-        = new Scenario::Command::AddOnlyProcessToInterval{interval, p.key, p.customData};
+    auto process_cmd = new Scenario::Command::AddOnlyProcessToInterval{
+        interval, p.key, p.customData};
     m.submitCommand(process_cmd);
 
     // Create a new slot
@@ -60,8 +61,7 @@ bool DropProcessInScenario::drop(
     // Add a new layer in this slot.
     auto& proc = interval.processes.at(process_cmd->processId());
     auto layer_cmd = new Scenario::Command::AddLayerModelToSlot{
-        SlotPath{interval, int(interval.smallView().size() - 1)},
-        proc};
+        SlotPath{interval, int(interval.smallView().size() - 1)}, proc};
 
     m.submitCommand(layer_cmd);
 
@@ -82,11 +82,12 @@ bool DropPortInScenario::drop(
   if (mime->formats().contains(score::mime::port()))
   {
     auto base_port = Dataflow::PortItem::clickedPort;
-    if(!base_port || base_port->port().type != Process::PortType::Message || qobject_cast<Process::Outlet*>(&base_port->port()))
+    if (!base_port || base_port->port().type != Process::PortType::Message
+        || qobject_cast<Process::Outlet*>(&base_port->port()))
       return false;
 
     auto port = dynamic_cast<Dataflow::AutomatablePortItem*>(base_port);
-    if(!port)
+    if (!port)
       return false;
 
     RedoMacroCommandDispatcher<Scenario::Command::AddProcessInNewBoxMacro> m{
@@ -106,17 +107,16 @@ bool DropPortInScenario::drop(
     m.submitCommand(start_cmd);
 
     // Create a box with the duration of the longest song
-    auto box_cmd
-        = new Scenario::Command::CreateInterval_State_Event_TimeSync{
-            scenar, start_cmd->createdState(), pt.date + t, pt.y};
+    auto box_cmd = new Scenario::Command::CreateInterval_State_Event_TimeSync{
+        scenar, start_cmd->createdState(), pt.date + t, pt.y};
     m.submitCommand(box_cmd);
     auto& interval = scenar.interval(box_cmd->createdInterval());
 
     // Create process
-    auto ok = port->on_createAutomation(interval, [&] (score::Command* cmd) {
-              m.submitCommand(cmd);
-    }, pres.context().context);
-    if(!ok)
+    auto ok = port->on_createAutomation(
+        interval, [&](score::Command* cmd) { m.submitCommand(cmd); },
+        pres.context().context);
+    if (!ok)
     {
       m.rollback();
       return false;
@@ -133,7 +133,6 @@ bool DropPortInScenario::drop(
   return false;
 }
 
-
 bool DropProcessInInterval::drop(
     const IntervalModel& cst, const QMimeData* mime)
 {
@@ -144,7 +143,8 @@ bool DropProcessInInterval::drop(
 
     auto& doc = score::IDocument::documentContext(cst);
 
-    auto cmd = new Scenario::Command::AddProcessToInterval(cst, p.key, p.customData);
+    auto cmd = new Scenario::Command::AddProcessToInterval(
+        cst, p.key, p.customData);
     CommandDispatcher<> d{doc.commandStack};
     d.submitCommand(cmd);
     return true;
@@ -168,7 +168,7 @@ static void getAddressesRecursively(
     if (ossia::is_numeric(addr.value)
         || addr.value.getType() == ossia::val_type::VEC2F
         || addr.value.getType() == ossia::val_type::VEC3F
-        || addr.value.getType() == ossia::val_type::VEC4F )
+        || addr.value.getType() == ossia::val_type::VEC4F)
     {
       Device::FullAddressSettings as;
       static_cast<Device::AddressSettingsCommon&>(as) = addr;
@@ -226,5 +226,4 @@ bool AutomationDropHandler::drop(
     return false;
   }
 }
-
 }

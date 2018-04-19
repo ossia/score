@@ -1,27 +1,25 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "DocumentBuilder.hpp"
+
 #include <QByteArray>
 #include <QMessageBox>
 #include <QObject>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
-#include <core/document/DocumentBackupManager.hpp>
-#include <core/presenter/Presenter.hpp>
-#include <core/view/Window.hpp>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
-
 #include <QString>
 #include <QVariant>
-#include <stdexcept>
-
-#include "DocumentBuilder.hpp"
 #include <core/command/CommandStackSerialization.hpp>
+#include <core/document/Document.hpp>
+#include <core/document/DocumentBackupManager.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <core/presenter/Presenter.hpp>
+#include <core/view/Window.hpp>
 #include <score/application/ApplicationComponents.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
-
-#include <score/tools/RandomNameProvider.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsFactory.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/tools/RandomNameProvider.hpp>
+#include <stdexcept>
 
 namespace score
 {
@@ -36,14 +34,17 @@ Document* DocumentBuilder::newDocument(
     const Id<DocumentModel>& id,
     DocumentDelegateFactory& doctype)
 {
-  QString docName = "Untitled." + RandomNameProvider::generateShortRandomName();
+  QString docName
+      = "Untitled." + RandomNameProvider::generateShortRandomName();
   auto doc
       = new Document{docName, id, doctype, m_parentView, m_parentPresenter};
 
-  for(auto& projectsettings : ctx.interfaces<DocumentPluginFactoryList>())
+  for (auto& projectsettings : ctx.interfaces<DocumentPluginFactoryList>())
   {
-    if(auto fact = dynamic_cast<ProjectSettingsFactory*>(&projectsettings))
-      doc->model().addPluginModel(fact->makeModel(doc->context(), getStrongId(doc->model().pluginModels()), &doc->model()));
+    if (auto fact = dynamic_cast<ProjectSettingsFactory*>(&projectsettings))
+      doc->model().addPluginModel(fact->makeModel(
+          doc->context(), getStrongId(doc->model().pluginModels()),
+          &doc->model()));
   }
 
   m_backupManager = new DocumentBackupManager{*doc};
@@ -75,7 +76,8 @@ Document* DocumentBuilder::loadDocument(
   auto& doclist = ctx.documents.documents();
   try
   {
-    doc = new Document{filename, docData, doctype, m_parentView, m_parentPresenter};
+    doc = new Document{filename, docData, doctype, m_parentView,
+                       m_parentPresenter};
     for (auto& appPlug : ctx.guiApplicationPlugins())
     {
       appPlug->on_loadedDocument(*doc);
@@ -96,13 +98,12 @@ Document* DocumentBuilder::loadDocument(
   }
   catch (std::runtime_error& e)
   {
-    if(m_parentView)
+    if (m_parentView)
       QMessageBox::warning(m_parentView, QObject::tr("Error"), e.what());
     else
       qDebug() << "Error while loading: " << e.what();
 
-    if (!doclist.empty()
-        && doclist.back() == doc)
+    if (!doclist.empty() && doclist.back() == doc)
       doclist.pop_back();
 
     delete doc;
@@ -124,7 +125,8 @@ Document* DocumentBuilder::restoreDocument(
     // Restoring behaves just like loading : we reload what was loaded
     // (potentially a blank document which is saved at the beginning, once
     // every plug-in has been loaded)
-    doc = new Document{filename, docData, doctype, m_parentView, m_parentPresenter};
+    doc = new Document{filename, docData, doctype, m_parentView,
+                       m_parentPresenter};
     for (auto& appPlug : ctx.guiApplicationPlugins())
     {
       appPlug->on_loadedDocument(*doc);
@@ -140,9 +142,8 @@ Document* DocumentBuilder::restoreDocument(
     // We restore the pre-crash command stack.
     DataStream::Deserializer writer(cmdData);
     loadCommandStack(
-        ctx.components, writer, doc->commandStack(), [doc](auto cmd) {
-          cmd->redo(doc->context());
-        });
+        ctx.components, writer, doc->commandStack(),
+        [doc](auto cmd) { cmd->redo(doc->context()); });
 
     m_backupManager = new DocumentBackupManager{*doc};
     m_backupManager->saveModelData(docData); // Reuse the same data
@@ -152,13 +153,12 @@ Document* DocumentBuilder::restoreDocument(
   }
   catch (std::runtime_error& e)
   {
-    if(m_parentView)
+    if (m_parentView)
       QMessageBox::warning(m_parentView, QObject::tr("Error"), e.what());
     else
       qDebug() << "Error while loading: " << e.what();
 
-    if (!doclist.empty()
-        && doclist.back() == doc)
+    if (!doclist.empty() && doclist.back() == doc)
       doclist.pop_back();
 
     delete doc;

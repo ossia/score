@@ -23,8 +23,7 @@ class RemoveAddress final : public score::Command
       DeviceExplorerCommandFactoryName(), RemoveAddress, "Remove an address")
 public:
   RemoveAddress(
-      const DeviceDocumentPlugin& devplug,
-      const Device::NodePath& nodePath);
+      const DeviceDocumentPlugin& devplug, const Device::NodePath& nodePath);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

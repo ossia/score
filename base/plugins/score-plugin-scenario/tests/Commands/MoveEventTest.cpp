@@ -1,13 +1,10 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <QtTest/QtTest>
-
 #include <Scenario/Commands/Scenario/Creations/CreateEvent.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEvent.hpp>
-
 #include <Scenario/Document/Event/EventData.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
-
 #include <Scenario/Process/ScenarioModel.hpp>
 
 using namespace score;
@@ -39,9 +36,7 @@ private Q_SLOTS:
         {
             {"ScenarioModel", {}},
         },
-        eventid,
-        data.dDate,
-        data.relativeY);
+        eventid, data.dDate, data.relativeY);
 
     cmd.redo(ctx);
     QCOMPARE(scenar->event(eventid)->heightPercentage(), 0.1);

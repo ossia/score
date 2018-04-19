@@ -1,15 +1,14 @@
 #pragma once
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
+#include <list>
 #include <score/plugins/customfactory/UuidKey.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
-#include <list>
 
 namespace Scenario
 {
 class StateModel;
-class StateInspectorWidget final :
-    public Inspector::InspectorWidgetBase
+class StateInspectorWidget final : public Inspector::InspectorWidgetBase
 {
 public:
   explicit StateInspectorWidget(

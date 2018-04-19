@@ -6,7 +6,9 @@
 namespace Midi
 {
 class View;
-class NoteView final : public QObject, public QGraphicsItem
+class NoteView final
+    : public QObject
+    , public QGraphicsItem
 {
   Q_OBJECT
   Q_INTERFACES(QGraphicsItem)
@@ -33,7 +35,8 @@ public:
   }
 
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
 Q_SIGNALS:
@@ -57,5 +60,4 @@ private:
 
   bool m_scaling = false;
 };
-
 }

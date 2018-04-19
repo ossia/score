@@ -1,14 +1,14 @@
 #pragma once
+#include "CreateInterval_State_Event_TimeSync.hpp"
+
 #include <Process/State/MessageNode.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
-#include <score/command/CommandStackFacade.hpp>
-#include <score/command/Command.hpp>
-
-#include "CreateInterval_State_Event_TimeSync.hpp"
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <score/model/path/Path.hpp>
+#include <score/command/Command.hpp>
+#include <score/command/CommandStackFacade.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/model/path/Path.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -80,7 +80,10 @@ public:
       const Scenario::ProcessModel& scenario,
       const Scenario::IntervalModel& interval);
 
-  int addedProcessCount() const { return m_addedProcessCount; }
+  int addedProcessCount() const
+  {
+    return m_addedProcessCount;
+  }
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

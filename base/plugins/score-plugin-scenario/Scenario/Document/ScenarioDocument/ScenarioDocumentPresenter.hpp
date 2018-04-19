@@ -1,18 +1,17 @@
 #pragma once
+#include <Process/Dataflow/CableItem.hpp>
+#include <Process/Focus/FocusDispatcher.hpp>
+#include <Process/ProcessContext.hpp>
+#include <Process/ZoomHelper.hpp>
 #include <QPoint>
 #include <QRect>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
-#include <score/plugins/documentdelegate/DocumentDelegatePresenter.hpp>
-#include <score/selection/SelectionDispatcher.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 #include <memory>
-
-#include <Process/Focus/FocusDispatcher.hpp>
-#include <Process/ProcessContext.hpp>
-#include <Process/ZoomHelper.hpp>
-#include <Process/Dataflow/CableItem.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegatePresenter.hpp>
 #include <score/selection/Selection.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
 
 class ObjectPath;
@@ -66,7 +65,6 @@ public:
   // The height in pixels of the displayed interval with its rack.
   // double height() const;
   ZoomRatio zoomRatio() const;
-
 
   void selectAll();
   void deselectAll();

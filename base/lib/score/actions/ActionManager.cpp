@@ -1,6 +1,7 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ActionManager.hpp"
+
 #include <core/document/Document.hpp>
 
 namespace score
@@ -13,7 +14,6 @@ ActionManager::ActionManager()
 
 ActionManager::~ActionManager()
 {
-
 }
 
 void ActionManager::insert(Action val)
@@ -48,7 +48,8 @@ void ActionManager::reset(score::Document* doc)
           });
     selectionConnection = con(
         doc->selectionStack(), &SelectionStack::currentSelectionChanged, this,
-        [=](const auto&) { this->selectionChanged(mdoc); }, Qt::QueuedConnection);
+        [=](const auto&) { this->selectionChanged(mdoc); },
+        Qt::QueuedConnection);
   }
 
   // Reset all the actions
@@ -70,8 +71,7 @@ void ActionManager::onDocumentChange(std::shared_ptr<ActionCondition> cond)
 void ActionManager::onFocusChange(std::shared_ptr<ActionCondition> cond)
 {
   SCORE_ASSERT(bool(cond));
-  SCORE_ASSERT(
-      m_focusConditions.find(cond->key()) == m_focusConditions.end());
+  SCORE_ASSERT(m_focusConditions.find(cond->key()) == m_focusConditions.end());
 
   auto p = std::make_pair(cond->key(), std::move(cond));
   m_conditions.insert(p);
@@ -135,6 +135,4 @@ void ActionManager::resetCustomActions(MaybeDocument doc)
     cond.action(*this, doc);
   }
 }
-
-
 }

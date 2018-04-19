@@ -1,12 +1,15 @@
-#include <score/widgets/RectItem.hpp>
-
 #include <QGraphicsSceneEvent>
 #include <QPainter>
+#include <score/widgets/RectItem.hpp>
 
 namespace score
 {
 
-void RectItem::setRect(QRectF r) { prepareGeometryChange(); m_rect = r; }
+void RectItem::setRect(QRectF r)
+{
+  prepareGeometryChange();
+  m_rect = r;
+}
 
 void RectItem::setHighlight(bool b)
 {
@@ -19,10 +22,14 @@ QRectF RectItem::boundingRect() const
   return m_rect;
 }
 
-void RectItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void RectItem::paint(
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  static const auto pen = QPen{QColor(qRgba(80, 100, 140, 100)), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
-  static const auto highlight_pen = QPen{QColor(qRgba(100, 120, 180, 100)), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+  static const auto pen = QPen{QColor(qRgba(80, 100, 140, 100)), 2,
+                               Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+  static const auto highlight_pen
+      = QPen{QColor(qRgba(100, 120, 180, 100)), 2, Qt::SolidLine, Qt::RoundCap,
+             Qt::RoundJoin};
   static const auto brush = QBrush{Qt::transparent};
 
   painter->setRenderHint(QPainter::Antialiasing, true);
@@ -55,19 +62,23 @@ void RectItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
-EmptyRectItem::EmptyRectItem(QGraphicsItem* parent):
-  QGraphicsItem{parent}
+EmptyRectItem::EmptyRectItem(QGraphicsItem* parent) : QGraphicsItem{parent}
 {
   this->setFlag(ItemHasNoContents, true);
 }
-void EmptyRectItem::setRect(QRectF r) { prepareGeometryChange(); m_rect = r; }
+void EmptyRectItem::setRect(QRectF r)
+{
+  prepareGeometryChange();
+  m_rect = r;
+}
 
 QRectF EmptyRectItem::boundingRect() const
 {
   return m_rect;
 }
 
-void EmptyRectItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void EmptyRectItem::paint(
+    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
 }
 

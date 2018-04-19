@@ -1,28 +1,26 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Process/State/ProcessStateDataInterface.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "AddMessagesToState.hpp"
 
+#include <Process/Process.hpp>
+#include <Process/State/ProcessStateDataInterface.hpp>
 #include <QDataStream>
 #include <QtGlobal>
-#include <algorithm>
-
-#include "AddMessagesToState.hpp"
-#include <Process/Process.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <algorithm>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/tree/TreeNode.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 
 namespace Scenario
 {
 namespace Command
 {
 AddMessagesToState::AddMessagesToState(
-    const Scenario::StateModel& state,
-    const State::MessageList& messages)
+    const Scenario::StateModel& state, const State::MessageList& messages)
     : m_path{state}
 {
   m_oldState = state.messages().rootNode();
@@ -46,32 +44,29 @@ AddMessagesToState::AddMessagesToState(
   for (const ProcessStateWrapper& prevProc : state.previousProcesses())
   {
     const auto& processModel = prevProc.process().process();
-    m_previousBackup.insert(
-          processModel.id(), prevProc.process().messages());
+    m_previousBackup.insert(processModel.id(), prevProc.process().messages());
 
     auto lst = prevProc.process().setMessages(messages, m_oldState);
 
     updateTreeWithMessageList(
-          m_newState, lst, processModel.id(), ProcessPosition::Previous);
+        m_newState, lst, processModel.id(), ProcessPosition::Previous);
   }
 
   for (const ProcessStateWrapper& nextProc : state.followingProcesses())
   {
     const auto& processModel = nextProc.process().process();
-    m_followingBackup.insert(
-          processModel.id(), nextProc.process().messages());
+    m_followingBackup.insert(processModel.id(), nextProc.process().messages());
 
     auto lst = nextProc.process().setMessages(messages, m_oldState);
 
     updateTreeWithMessageList(
-          m_newState, lst, processModel.id(), ProcessPosition::Following);
+        m_newState, lst, processModel.id(), ProcessPosition::Following);
   }
 
   // TODO one day there will also be State functions that will perform
   // some local computation.
   // TODO this day has come
   // WARNING we are in the future
-
 
   updateTreeWithMessageList(m_newState, messages);
 }

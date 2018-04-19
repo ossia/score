@@ -1,5 +1,5 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 /****************************************************************************
 **
 ** Copyright (C) 2009 Stephen Kelly <steveire@gmail.com>
@@ -285,8 +285,11 @@ ModelMoveCommand::ModelMoveCommand(DynamicTreeModel* model, QObject* parent)
 {
 }
 bool ModelMoveCommand::emitPreSignal(
-    const QModelIndex& srcParent, int srcStart, int srcEnd,
-    const QModelIndex& destParent, int destRow)
+    const QModelIndex& srcParent,
+    int srcStart,
+    int srcEnd,
+    const QModelIndex& destParent,
+    int destRow)
 {
   return m_model->beginMoveRows(
       srcParent, srcStart, srcEnd, destParent, destRow);
@@ -356,8 +359,11 @@ ModelResetCommand::~ModelResetCommand()
 }
 
 bool ModelResetCommand::emitPreSignal(
-    const QModelIndex& srcParent, int srcStart, int srcEnd,
-    const QModelIndex& destParent, int destRow)
+    const QModelIndex& srcParent,
+    int srcStart,
+    int srcEnd,
+    const QModelIndex& destParent,
+    int destRow)
 {
   Q_UNUSED(srcParent);
   Q_UNUSED(srcStart);
@@ -384,8 +390,11 @@ ModelResetCommandFixed::~ModelResetCommandFixed()
 }
 
 bool ModelResetCommandFixed::emitPreSignal(
-    const QModelIndex& srcParent, int srcStart, int srcEnd,
-    const QModelIndex& destParent, int destRow)
+    const QModelIndex& srcParent,
+    int srcStart,
+    int srcEnd,
+    const QModelIndex& destParent,
+    int destRow)
 {
   Q_UNUSED(srcParent);
   Q_UNUSED(srcStart);

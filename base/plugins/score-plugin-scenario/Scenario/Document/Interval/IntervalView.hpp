@@ -2,12 +2,12 @@
 #include <QBrush>
 #include <QGraphicsItem>
 #include <QPen>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
-#include <Scenario/Document/Interval/Temporal/Braces/LeftBrace.hpp>
-#include <score_plugin_scenario_export.h>
-#include <Scenario/Document/Interval/ExecutionState.hpp>
-#include <qnamespace.h>
 #include <Scenario/Document/CommentBlock/TextItem.hpp>
+#include <Scenario/Document/Interval/ExecutionState.hpp>
+#include <Scenario/Document/Interval/Temporal/Braces/LeftBrace.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+#include <qnamespace.h>
+#include <score_plugin_scenario_export.h>
 class QGraphicsSceneMouseEvent;
 
 struct ScenarioStyle;
@@ -18,8 +18,9 @@ class LeftBraceView;
 class RightBraceView;
 class SimpleTextItem;
 class IntervalMenuOverlay;
-class SCORE_PLUGIN_SCENARIO_EXPORT IntervalView : public QObject,
-                                                     public QGraphicsItem
+class SCORE_PLUGIN_SCENARIO_EXPORT IntervalView
+    : public QObject
+    , public QGraphicsItem
 {
   Q_OBJECT
   Q_INTERFACES(QGraphicsItem)
@@ -143,7 +144,8 @@ protected:
   IntervalMenuOverlay* m_overlay{};
 
   IntervalPresenter& m_presenter;
-  QPainterPath solidPath, dashedPath, playedSolidPath, playedDashedPath, waitingDashedPath;
+  QPainterPath solidPath, dashedPath, playedSolidPath, playedDashedPath,
+      waitingDashedPath;
 
   double m_defaultWidth{};
   double m_maxWidth{};
@@ -160,5 +162,4 @@ protected:
   bool m_waiting{};
   IntervalExecutionState m_state{};
 };
-
 }

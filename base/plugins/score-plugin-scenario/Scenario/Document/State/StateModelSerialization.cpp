@@ -1,27 +1,23 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Document/State/StateModel.hpp>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/Process.hpp>
-
+#include <Process/ProcessList.hpp>
+#include <Process/State/MessageNode.hpp>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include <algorithm>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONVisitor.hpp>
-
-#include <Process/ProcessList.hpp>
-
-#include <Process/State/MessageNode.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <score/model/ModelMetadata.hpp>
-
-#include <score/serialization/JSONValueVisitor.hpp>
 #include <score/model/Identifier.hpp>
-#include <score/tools/Todo.hpp>
+#include <score/model/ModelMetadata.hpp>
 #include <score/model/tree/TreeNode.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONValueVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+#include <score/tools/Todo.hpp>
 
 namespace Scenario
 {
@@ -34,7 +30,6 @@ template <typename T>
 class Writer;
 template <typename model>
 class IdentifiedObject;
-
 
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
@@ -55,7 +50,6 @@ DataStreamReader::read(const Scenario::StateModel& s)
 
   insertDelimiter();
 }
-
 
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
@@ -86,7 +80,6 @@ DataStreamWriter::write(Scenario::StateModel& s)
   checkDelimiter();
 }
 
-
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
 JSONObjectReader::read(const Scenario::StateModel& s)
@@ -103,15 +96,13 @@ JSONObjectReader::read(const Scenario::StateModel& s)
   obj[strings.StateProcesses] = toJsonArray(s.stateProcesses);
 }
 
-
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
 JSONObjectWriter::write(Scenario::StateModel& s)
 {
   s.m_eventId = fromJsonValue<Id<Scenario::EventModel>>(obj[strings.Event]);
-  s.m_previousInterval
-      = fromJsonValue<OptionalId<Scenario::IntervalModel>>(
-          obj[strings.PreviousInterval]);
+  s.m_previousInterval = fromJsonValue<OptionalId<Scenario::IntervalModel>>(
+      obj[strings.PreviousInterval]);
   s.m_nextInterval = fromJsonValue<OptionalId<Scenario::IntervalModel>>(
       obj[strings.NextInterval]);
   s.m_heightPercentage = obj[strings.HeightPercentage].toDouble();

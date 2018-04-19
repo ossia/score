@@ -45,8 +45,8 @@ template <typename GetProperty>
 struct GetPropertyWrapper final : public BaseProperty
 {
   GetProperty property;
-  using converter_t = Engine::ossia_to_score::MatchingType<
-      typename GetProperty::value_type>;
+  using converter_t
+      = Engine::ossia_to_score::MatchingType<typename GetProperty::value_type>;
 
   GetPropertyWrapper(
       ossia::net::node_base& param_node,
@@ -58,7 +58,6 @@ struct GetPropertyWrapper final : public BaseProperty
     QObject::connect(
         &property.object(), property.changed_property(), context,
         [=] {
-
           auto newVal = converter_t::convert(property.get());
           try
           {
@@ -75,8 +74,7 @@ struct GetPropertyWrapper final : public BaseProperty
         },
         Qt::QueuedConnection);
 
-    addr.set_value(
-        converter_t::convert(property.get()));
+    addr.set_value(converter_t::convert(property.get()));
   }
 };
 

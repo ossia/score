@@ -1,21 +1,19 @@
 #pragma once
-#include <Curve/Process/CurveProcessPresenter.hpp>
-
 #include <Automation/AutomationModel.hpp>
 #include <Automation/AutomationView.hpp>
-#include <Device/Node/NodeListMimeSerialization.hpp>
-
 #include <Automation/Commands/ChangeAddress.hpp>
+#include <Curve/Process/CurveProcessPresenter.hpp>
+#include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Process/ProcessContext.hpp>
-#include <State/MessageListSerialization.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
+#include <State/MessageListSerialization.hpp>
 
 namespace Automation
 {
 class LayerPresenter final
     : public Curve::CurveProcessPresenter<ProcessModel, LayerView>
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
   LayerPresenter(
       const Curve::Style& style,
@@ -34,10 +32,8 @@ public:
         &LayerPresenter::on_dropReceived);
 
     on_tweenChanges(m_layer.tween());
-    con(layer.curve(), &Curve::Model::curveReset,
-        this, [&] {
-      on_tweenChanges(layer.tween());
-    });
+    con(layer.curve(), &Curve::Model::curveReset, this,
+        [&] { on_tweenChanges(layer.tween()); });
   }
 
 private:
@@ -95,7 +91,6 @@ private:
     }
     else if (mime.formats().contains(score::mime::layerdata()))
     {
-
     }
   }
 };

@@ -40,7 +40,8 @@ class ChangeTargetAddress final : public score::Command
   SCORE_COMMAND_DECL(
       MappingCommandFactoryName(), ChangeTargetAddress, "ChangeTargetAddress")
 public:
-  ChangeTargetAddress(const ProcessModel&, Device::FullAddressAccessorSettings);
+  ChangeTargetAddress(
+      const ProcessModel&, Device::FullAddressAccessorSettings);
 
 public:
   void undo(const score::DocumentContext& ctx) const override;

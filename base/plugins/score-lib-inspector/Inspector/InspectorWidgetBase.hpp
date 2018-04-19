@@ -1,13 +1,13 @@
 #pragma once
-#include <QLabel>
 #include <QColor>
+#include <QLabel>
 #include <QString>
 #include <QWidget>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score_lib_inspector_export.h>
 #include <list>
 #include <memory>
 #include <qnamespace.h>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score_lib_inspector_export.h>
 
 class IdentifiedObjectAbstract;
 class QVBoxLayout;
@@ -39,7 +39,8 @@ public:
   explicit InspectorWidgetBase(
       const IdentifiedObjectAbstract& inspectedObj,
       const score::DocumentContext& context,
-      QWidget* parent, QString name);
+      QWidget* parent,
+      QString name);
   ~InspectorWidgetBase();
 
   // By default returns the name of the object.
@@ -50,8 +51,8 @@ public:
     return m_context;
   }
 
-  void
-  updateSectionsView(QVBoxLayout* layout, const std::vector<QWidget*>& contents);
+  void updateSectionsView(
+      QVBoxLayout* layout, const std::vector<QWidget*>& contents);
   void updateAreaLayout(const std::vector<QWidget*>& contents);
   void updateAreaLayout(std::initializer_list<QWidget*> contents);
 

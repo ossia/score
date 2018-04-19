@@ -1,15 +1,15 @@
 #pragma once
+#include "ExecutionStatus.hpp"
+
 #include <QGraphicsItem>
 #include <QPoint>
 #include <QRect>
 #include <QString>
 #include <QtGlobal>
+#include <Scenario/Document/Event/ConditionView.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <score/model/ColorReference.hpp>
-#include <Scenario/Document/Event/ConditionView.hpp>
-
-#include "ExecutionStatus.hpp"
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <score_plugin_scenario_export.h>
 class QGraphicsSceneDragDropEvent;
 class QGraphicsSceneHoverEvent;
@@ -23,8 +23,9 @@ namespace Scenario
 {
 class ConditionView;
 class EventPresenter;
-class SCORE_PLUGIN_SCENARIO_EXPORT EventView final : public QObject,
-                                                      public QGraphicsItem
+class SCORE_PLUGIN_SCENARIO_EXPORT EventView final
+    : public QObject
+    , public QGraphicsItem
 {
   Q_OBJECT
   Q_INTERFACES(QGraphicsItem)
@@ -98,6 +99,5 @@ private:
   ExecutionStatusProperty m_status{};
   bool m_selected{};
   VerticalExtent m_extent;
-
 };
 }

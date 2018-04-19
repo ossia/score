@@ -1,17 +1,17 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "BaseIntervalInspectorDelegateFactory.hpp"
+
+#include "BaseIntervalInspectorDelegate.hpp"
+
 #include <QObject>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
-
-#include "BaseIntervalInspectorDelegate.hpp"
-#include "BaseIntervalInspectorDelegateFactory.hpp"
 #include <Scenario/Inspector/Interval/IntervalInspectorDelegate.hpp>
 
 namespace Scenario
 {
-BaseIntervalInspectorDelegateFactory::
-    ~BaseIntervalInspectorDelegateFactory()
+BaseIntervalInspectorDelegateFactory::~BaseIntervalInspectorDelegateFactory()
     = default;
 
 std::unique_ptr<IntervalInspectorDelegate>

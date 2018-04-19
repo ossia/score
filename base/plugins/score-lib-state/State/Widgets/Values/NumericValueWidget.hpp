@@ -2,11 +2,8 @@
 #include "ValueWidget.hpp"
 
 #include <ossia/network/domain/domain.hpp>
-#include <score/widgets/MarginLess.hpp>
-#include <score/widgets/SpinBoxes.hpp>
-#include <score/widgets/TextLabel.hpp>
-#include <QCheckBox>
 
+#include <QCheckBox>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QGridLayout>
@@ -14,6 +11,9 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QVBoxLayout>
+#include <score/widgets/MarginLess.hpp>
+#include <score/widgets/SpinBoxes.hpp>
+#include <score/widgets/TextLabel.hpp>
 
 namespace State
 {
@@ -98,7 +98,7 @@ private:
     auto minus_b = new QPushButton{tr("-"), this};
     sub_lay->addWidget(minus_b);
 
-    connect(minus_b, &QPushButton::clicked, this, [ this, i = m_rows.size() ] {
+    connect(minus_b, &QPushButton::clicked, this, [this, i = m_rows.size()] {
       removeRow(i);
     });
 
@@ -155,11 +155,11 @@ public:
     m_min->setEnabled(false);
     m_max->setEnabled(false);
 
-    connect(m_minCB, &QCheckBox::stateChanged, this, [=] (int st) {
-          m_min->setEnabled(bool(st));
+    connect(m_minCB, &QCheckBox::stateChanged, this, [=](int st) {
+      m_min->setEnabled(bool(st));
     });
-    connect(m_maxCB, &QCheckBox::stateChanged, this, [=] (int st) {
-          m_max->setEnabled(bool(st));
+    connect(m_maxCB, &QCheckBox::stateChanged, this, [=](int st) {
+      m_max->setEnabled(bool(st));
     });
     auto pb = new QPushButton{tr("Values"), this};
     lay->addWidget(pb);
@@ -179,12 +179,12 @@ public:
   {
     domain_type dom;
 
-    if(m_minCB->checkState())
+    if (m_minCB->checkState())
       dom.min = m_min->value();
     else
       dom.min = ossia::none;
 
-    if(m_maxCB->checkState())
+    if (m_maxCB->checkState())
       dom.max = m_max->value();
     else
       dom.max = ossia::none;

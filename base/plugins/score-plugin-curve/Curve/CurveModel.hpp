@@ -1,19 +1,17 @@
 #pragma once
-#include <score/selection/Selection.hpp>
+#include <Curve/Segment/CurveSegmentModel.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
+#include <score/selection/Selection.hpp>
+#include <score/serialization/VisitorInterface.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <vector>
-
-#include <Curve/Segment/CurveSegmentModel.hpp>
-#include <score/serialization/VisitorInterface.hpp>
 
 class DataStream;
 class JSONObject;
 class QObject;
 #include <score/model/Identifier.hpp>
 #include <score_plugin_curve_export.h>
-
 
 extern template class IdContainer<Curve::SegmentModel>;
 namespace ossia
@@ -33,12 +31,10 @@ public:
   Model(const Id<Model>&, QObject* parent);
 
   template <typename Impl>
-  Model(Impl& vis, QObject* parent)
-      : IdentifiedObject{vis, parent}
+  Model(Impl& vis, QObject* parent) : IdentifiedObject{vis, parent}
   {
     vis.writeTo(*this);
   }
-
 
   // These two will create points
   void addSegment(SegmentModel* m);
@@ -110,11 +106,13 @@ struct SCORE_PLUGIN_CURVE_EXPORT CurveDomain
   CurveDomain(const ossia::domain& dom);
   CurveDomain(const ossia::domain& dom, const ossia::value&);
   CurveDomain(const ossia::domain& dom, double start, double end);
-  CurveDomain(double start, double end):
-    min{std::min(start, end)},
-    max{std::max(start, end)},
-    start{start},
-    end{end} { }
+  CurveDomain(double start, double end)
+      : min{std::min(start, end)}
+      , max{std::max(start, end)}
+      , start{start}
+      , end{end}
+  {
+  }
 
   void refine(const ossia::domain&);
   void ensureValid();

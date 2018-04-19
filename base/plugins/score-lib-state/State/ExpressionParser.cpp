@@ -1,25 +1,25 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Expression.hpp"
 #ifndef Q_MOC_RUN
 //#define BOOST_SPIRIT_DEBUG
 // see https://svn.boost.org/trac/boost/ticket/11875
-#if defined(_GLIBCXX_DEBUG)
-#define BOOST_PHOENIX_USING_LIBCPP
-#endif
-#include <ossia/network/base/name_validation.hpp>
-#include <boost/fusion/adapted.hpp>
-#include <boost/spirit/include/phoenix.hpp>
-#include <boost/spirit/include/phoenix_operator.hpp>
-#include <boost/spirit/include/qi.hpp>
-#include <boost/spirit/include/qi_eoi.hpp>
-#include <boost/spirit/include/qi_lit.hpp>
-#include <boost/spirit/include/qi_real.hpp>
-#include <boost/spirit/repository/include/qi_confix.hpp>
-#include <boost/variant/recursive_wrapper.hpp>
+#  if defined(_GLIBCXX_DEBUG)
+#    define BOOST_PHOENIX_USING_LIBCPP
+#  endif
+#  include <ossia/network/base/name_validation.hpp>
+#  include <ossia/network/dataspace/dataspace_parse.hpp>
 
-#include <ossia/network/dataspace/dataspace_parse.hpp>
-#include <score/prefix.hpp>
+#  include <boost/fusion/adapted.hpp>
+#  include <boost/spirit/include/phoenix.hpp>
+#  include <boost/spirit/include/phoenix_operator.hpp>
+#  include <boost/spirit/include/qi.hpp>
+#  include <boost/spirit/include/qi_eoi.hpp>
+#  include <boost/spirit/include/qi_lit.hpp>
+#  include <boost/spirit/include/qi_real.hpp>
+#  include <boost/spirit/repository/include/qi_confix.hpp>
+#  include <boost/variant/recursive_wrapper.hpp>
+#  include <score/prefix.hpp>
 #endif
 /*
 Here is the grammar used. The grammar itself is split in multiple classes where
@@ -36,7 +36,8 @@ Address 		:= device, ‘:’, path;
 Dataspace   := 'color' || 'distance' || ...;
 UnitQualifier: Dataspace, '.', Unit, ('.', UnitAccessor)?; // e.g. color.rgb or
 color.rgb.r ; we make a static table with them precomputed.
-AddressAccessor 	:= Address, '@', (('[', [:int:], ']')* || ('[', UnitQualifier,
+AddressAccessor 	:= Address, '@', (('[', [:int:], ']')* || ('[',
+UnitQualifier,
 ']'));
 
 
@@ -135,7 +136,6 @@ BOOST_FUSION_ADAPT_STRUCT(
     State::AddressAccessor,
     (State::Address, address)(ossia::destination_qualifiers, qualifiers))
 
-
 BOOST_FUSION_ADAPT_STRUCT(
     State::Relation,
     (State::RelationMember,
@@ -157,7 +157,8 @@ struct Address_parser : qi::grammar<Iterator, State::Address()>
     using qi::alnum;
     // OPTIMIZEME
     dev = +qi::char_(std::string(ossia::net::device_characters()));
-    member_elt = +qi::char_(std::string(ossia::net::pattern_match_characters()));
+    member_elt
+        = +qi::char_(std::string(ossia::net::pattern_match_characters()));
     path %= (+("/" >> member_elt) | "/");
     start %= dev >> ":" >> path;
   }
@@ -173,10 +174,10 @@ struct AccessorList_parser : qi::grammar<Iterator, ossia::destination_index()>
 {
   AccessorList_parser() : AccessorList_parser::base_type(start)
   {
-    using qi::alnum;
+    using boost::spirit::int_;
     using boost::spirit::qi::skip;
     using boost::spirit::standard::space;
-    using boost::spirit::int_;
+    using qi::alnum;
 
     index %= skip(space)["[" >> int_ >> "]"];
     start %= skip(space)[+(index)];
@@ -192,13 +193,14 @@ struct AddressQualifiers_parser
 {
   AddressQualifiers_parser() : AddressQualifiers_parser::base_type(start)
   {
-    using qi::alnum;
+    using boost::spirit::int_;
     using boost::spirit::qi::skip;
     using boost::spirit::standard::space;
-    using boost::spirit::int_;
+    using qi::alnum;
 
     unit %= boost::spirit::eoi;
-    start %= "@" >> ((accessors >> -unit) | ("[" >> ossia::get_unit_parser() >> "]"));
+    start %= "@" >> ((accessors >> -unit)
+                     | ("[" >> ossia::get_unit_parser() >> "]"));
   }
 
   qi::rule<Iterator, ossia::destination_qualifiers()> start;
@@ -211,10 +213,10 @@ struct AddressAccessor_parser : qi::grammar<Iterator, State::AddressAccessor()>
 {
   AddressAccessor_parser() : AddressAccessor_parser::base_type(start)
   {
-    using qi::alnum;
+    using boost::spirit::int_;
     using boost::spirit::qi::skip;
     using boost::spirit::standard::space;
-    using boost::spirit::int_;
+    using qi::alnum;
 
     start %= skip(space)[address >> qualifiers];
   }
@@ -237,17 +239,19 @@ struct Value_parser : qi::grammar<Iterator, ossia::value()>
 {
   Value_parser() : Value_parser::base_type(start)
   {
-    using qi::alnum;
-    using boost::spirit::qi::skip;
     using boost::spirit::int_;
-    using boost::spirit::qi::real_parser;
     using boost::spirit::qi::char_;
+    using boost::spirit::qi::real_parser;
+    using boost::spirit::qi::skip;
+    using qi::alnum;
 
     char_parser %= "'" >> (char_ - "'") >> "'";
     str_parser %= '"' >> qi::lexeme[*(char_ - '"')] >> '"';
 
-    list_parser %= skip(boost::spirit::standard::space)["[" >> start % "," >> "]"];
-    start %= real_parser<float, boost::spirit::qi::strict_real_policies<float>>()
+    list_parser
+        %= skip(boost::spirit::standard::space)["[" >> start % "," >> "]"];
+    start
+        %= real_parser<float, boost::spirit::qi::strict_real_policies<float>>()
            | int_ | bool_parser | char_parser | str_parser | list_parser;
   }
 
@@ -275,7 +279,8 @@ struct RelationMember_parser : qi::grammar<Iterator, State::RelationMember()>
 };
 
 /// Relation parsing
-struct RelationOperation_map : qi::symbols<char, ossia::expressions::comparator>
+struct RelationOperation_map
+    : qi::symbols<char, ossia::expressions::comparator>
 {
   RelationOperation_map()
   {
@@ -309,8 +314,8 @@ struct Pulse_parser : qi::grammar<Iterator, State::Pulse()>
 {
   Pulse_parser() : Pulse_parser::base_type(start)
   {
-    using boost::spirit::qi::skip;
     using boost::spirit::qi::lit;
+    using boost::spirit::qi::skip;
     using boost::spirit::standard::string;
     start %= skip(boost::spirit::standard::space)[addr >> "impulse"]
              | skip(boost::spirit::standard::space)
@@ -345,8 +350,13 @@ struct binop;
 template <typename tag>
 struct unop;
 
-using expr_raw = boost::
-    variant<State::Relation, State::Pulse, boost::recursive_wrapper<unop<op_not>>, boost::recursive_wrapper<binop<op_and>>, boost::recursive_wrapper<binop<op_xor>>, boost::recursive_wrapper<binop<op_or>>>;
+using expr_raw = boost::variant<
+    State::Relation,
+    State::Pulse,
+    boost::recursive_wrapper<unop<op_not>>,
+    boost::recursive_wrapper<binop<op_and>>,
+    boost::recursive_wrapper<binop<op_xor>>,
+    boost::recursive_wrapper<binop<op_or>>>;
 
 template <typename tag>
 struct binop
@@ -456,7 +466,8 @@ struct Expression_builder : boost::static_visitor<void>
 };
 }
 
-ossia::optional<State::Expression> State::parseExpression(const std::string& input)
+ossia::optional<State::Expression>
+State::parseExpression(const std::string& input)
 {
   auto f(std::begin(input)), l(std::end(input));
   auto p = std::make_unique<Expression_parser<decltype(f)>>();

@@ -1,10 +1,9 @@
 #pragma once
 
+#include <QGraphicsScene>
 #include <QtCore/QByteArray>
 #include <QtCore/QList>
 #include <QtCore/QObject>
-
-#include <QGraphicsScene>
 #include <QtWebSockets/QWebSocket>
 #include <QtWebSockets/QWebSocketServer>
 

@@ -1,26 +1,24 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "ScenarioViewInterface.hpp"
+
+#include "TemporalScenarioPresenter.hpp"
+
+#include <Process/TimeValue.hpp>
 #include <QPoint>
 #include <QRect>
 #include <QtGlobal>
-#include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
-#include <boost/iterator/indirect_iterator.hpp>
-#include <boost/iterator/iterator_facade.hpp>
-#include <boost/multi_index/detail/hash_index_iterator.hpp>
-
-#include "ScenarioViewInterface.hpp"
-#include "TemporalScenarioPresenter.hpp"
-#include <Process/TimeValue.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockView.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Event/EventPresenter.hpp>
+#include <Scenario/Document/Event/EventView.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Event/EventPresenter.hpp>
-#include <Scenario/Document/Event/EventView.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/State/StateView.hpp>
@@ -30,8 +28,10 @@
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
+#include <boost/iterator/indirect_iterator.hpp>
+#include <boost/iterator/iterator_facade.hpp>
+#include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
-
 #include <score/model/Identifier.hpp>
 
 namespace Scenario
@@ -115,8 +115,7 @@ void ScenarioViewInterface::on_timeSyncMoved(const TimeSyncPresenter& timesync)
 void ScenarioViewInterface::on_stateMoved(const StatePresenter& state)
 {
   auto rect = m_presenter.m_view->boundingRect();
-  const auto& ev = m_presenter.model()
-                       .event(state.model().eventId());
+  const auto& ev = m_presenter.model().event(state.model().eventId());
 
   state.view()->setPos({ev.date().toPixels(m_presenter.m_zoomRatio),
                         rect.height() * state.model().heightPercentage()});

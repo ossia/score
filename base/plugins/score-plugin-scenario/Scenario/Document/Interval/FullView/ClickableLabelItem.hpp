@@ -1,9 +1,8 @@
 #pragma once
 #include <QGraphicsItem>
 #include <QString>
-#include <functional>
-
 #include <Scenario/Document/CommentBlock/TextItem.hpp>
+#include <functional>
 
 namespace score
 {
@@ -22,12 +21,15 @@ public:
   // QGraphicsItem interface
 public:
   QRectF boundingRect() const override;
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
 };
 
-class ClickableLabelItem final :
-    public QObject,
-    public SimpleTextItem
+class ClickableLabelItem final
+    : public QObject
+    , public SimpleTextItem
 {
   Q_OBJECT
 public:

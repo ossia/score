@@ -1,32 +1,31 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "CurveModel.hpp"
+
+#include <ossia/detail/algorithms.hpp>
+#include <ossia/network/domain/domain_base.hpp>
+
 #include <Curve/Point/CurvePointModel.hpp>
+#include <Curve/Segment/CurveSegmentData.hpp>
 #include <Curve/Segment/CurveSegmentList.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/CurveSegmentModelSerialization.hpp>
-
+#include <State/ValueConversion.hpp>
+#include <algorithm>
 #include <boost/iterator/indirect_iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
-
-#include <algorithm>
+#include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <ossia/network/domain/domain_base.hpp>
-
-#include "CurveModel.hpp"
-#include <ossia/detail/algorithms.hpp>
-#include <Curve/Segment/CurveSegmentData.hpp>
-#include <State/ValueConversion.hpp>
-#include <score/application/ApplicationContext.hpp>
+#include <score/model/IdentifiedObject.hpp>
+#include <score/model/IdentifiedObjectMap.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/selection/Selection.hpp>
-#include <score/model/IdentifiedObject.hpp>
-#include <score/model/IdentifiedObjectMap.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/MapCopy.hpp>
-#include <score/model/Identifier.hpp>
 
 template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::SegmentModel>;
 
@@ -318,8 +317,8 @@ const std::vector<PointModel*>& Model::points() const
 double Model::lastPointPos() const
 {
   double pos = 0;
-  for(auto pt : m_points)
-    if(pt->pos().x() > pos)
+  for (auto pt : m_points)
+    if (pt->pos().x() > pos)
       pos = pt->pos().x();
   return pos;
 }
@@ -359,11 +358,11 @@ std::vector<SegmentData> orderedSegments(const Model& curve)
   return vec2;
 }
 
-CurveDomain::CurveDomain(const ossia::domain& dom):
-  min{ossia::convert<double>(dom.get_min())}
-, max{ossia::convert<double>(dom.get_max())}
+CurveDomain::CurveDomain(const ossia::domain& dom)
+    : min{ossia::convert<double>(dom.get_min())}
+    , max{ossia::convert<double>(dom.get_max())}
 {
-  if(min == 0. && max == 0.)
+  if (min == 0. && max == 0.)
   {
     max = 1.;
   }
@@ -372,33 +371,33 @@ CurveDomain::CurveDomain(const ossia::domain& dom):
   end = std::max(min, max);
 }
 
-CurveDomain::CurveDomain(const ossia::domain& dom, const ossia::value& v):
-  min{ossia::convert<double>(dom.get_min())}
-, max{ossia::convert<double>(dom.get_max())}
+CurveDomain::CurveDomain(const ossia::domain& dom, const ossia::value& v)
+    : min{ossia::convert<double>(dom.get_min())}
+    , max{ossia::convert<double>(dom.get_max())}
 {
-  if(min == 0. && max == 0.)
+  if (min == 0. && max == 0.)
   {
     const auto val = State::convert::value<double>(v);
-    if(val > 0.)
+    if (val > 0.)
       max = val;
-    else if(val < 0.)
+    else if (val < 0.)
       min = val;
     else
       max = 1.;
   }
 
-  if(min == max)
+  if (min == max)
     max += 1.;
 
   start = std::min(min, max);
   end = std::max(min, max);
 }
 
-CurveDomain::CurveDomain(const ossia::domain& dom, double start, double end):
-  min{ossia::convert<double>(dom.get_min())}
-, max{ossia::convert<double>(dom.get_max())}
-, start{start}
-, end{end}
+CurveDomain::CurveDomain(const ossia::domain& dom, double start, double end)
+    : min{ossia::convert<double>(dom.get_min())}
+    , max{ossia::convert<double>(dom.get_max())}
+    , start{start}
+    , end{end}
 {
   auto min_v = dom.get_min();
   auto max_v = dom.get_max();
@@ -432,20 +431,19 @@ void CurveDomain::refine(const ossia::domain& dom)
 
 void CurveDomain::ensureValid()
 {
-  if(min == 0. && max == 0.)
+  if (min == 0. && max == 0.)
   {
     max = 1.;
   }
-  else if(min == max)
+  else if (min == max)
   {
     max += 1.;
   }
 
-  if(start == end)
+  if (start == end)
   {
     start = std::min(min, max);
     end = std::max(min, max);
   }
 }
-
 }

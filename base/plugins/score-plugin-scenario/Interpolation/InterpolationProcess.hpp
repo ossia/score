@@ -26,10 +26,9 @@ PROCESS_METADATA(
     Process::ProcessFlags::SupportsTemporal)
 namespace Interpolation
 {
-class ProcessState final
-    : public ProcessStateDataInterface
+class ProcessState final : public ProcessStateDataInterface
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
   enum Point
   {

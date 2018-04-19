@@ -1,17 +1,16 @@
 #pragma once
 #include <Curve/CurveStyle.hpp>
 #include <Curve/Process/CurveProcessPresenter.hpp>
-
 #include <Mapping/MappingModel.hpp>
 #include <Mapping/MappingView.hpp>
-
 #include <Process/ProcessContext.hpp>
 
 namespace Mapping
 {
-class LayerPresenter final : public Curve::CurveProcessPresenter<ProcessModel, LayerView>
+class LayerPresenter final
+    : public Curve::CurveProcessPresenter<ProcessModel, LayerView>
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
   LayerPresenter(
       const Curve::Style& style,

@@ -1,14 +1,12 @@
 #pragma once
 
+#include <Process/TimeValue.hpp>
 #include <QString>
 #include <QVector>
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
 #include <algorithm>
-#include <vector>
-
-#include <Process/TimeValue.hpp>
-
 #include <score/model/Identifier.hpp>
+#include <vector>
 
 namespace Scenario
 {

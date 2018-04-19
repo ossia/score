@@ -1,16 +1,17 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "PluginSettingsPresenter.hpp"
+
+#include "PluginSettings/commands/BlacklistCommand.hpp"
+#include "PluginSettingsModel.hpp"
+#include "PluginSettingsView.hpp"
+
+#include <PluginSettings/FileDownloader.hpp>
 #include <QApplication>
 #include <QDebug>
 #include <QListView>
 #include <QStandardItemModel>
 #include <QStyle>
-
-#include "PluginSettings/commands/BlacklistCommand.hpp"
-#include "PluginSettingsModel.hpp"
-#include "PluginSettingsPresenter.hpp"
-#include "PluginSettingsView.hpp"
-#include <PluginSettings/FileDownloader.hpp>
 #include <score/command/Command.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 
@@ -44,7 +45,6 @@ PluginSettingsPresenter::PluginSettingsPresenter(
   connect(
       &ps_model.remoteSelection, &QItemSelectionModel::currentRowChanged, this,
       [&](const QModelIndex& current, const QModelIndex& previous) {
-
         RemoteAddon& addon = ps_model.remotePlugins.addons().at(current.row());
 
         auto it = addon.architectures.find(score::addonArchitecture());

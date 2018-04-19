@@ -1,7 +1,6 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
 #include <Explorer/DeviceList.hpp>
-
 #include <Explorer/DocumentPlugin/DeviceDocumentPluginFactory.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
@@ -14,8 +13,8 @@
 namespace Explorer
 {
 class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final
-    : public score::SerializableDocumentPlugin,
-      public Nano::Observer
+    : public score::SerializableDocumentPlugin
+    , public Nano::Observer
 {
   Q_OBJECT
   SCORE_SERIALIZE_FRIENDS
@@ -24,16 +23,13 @@ class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final
 public:
   explicit DeviceDocumentPlugin(
       const score::DocumentContext& ctx,
-      Id<DocumentPlugin>
-          id,
+      Id<DocumentPlugin> id,
       QObject* parent);
 
   virtual ~DeviceDocumentPlugin();
   template <typename Impl>
   DeviceDocumentPlugin(
-      const score::DocumentContext& ctx,
-      Impl& vis,
-      QObject* parent)
+      const score::DocumentContext& ctx, Impl& vis, QObject* parent)
       : score::SerializableDocumentPlugin{ctx, vis, parent}
   {
     vis.writeTo(*this);

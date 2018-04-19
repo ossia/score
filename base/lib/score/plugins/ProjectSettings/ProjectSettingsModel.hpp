@@ -1,8 +1,8 @@
 #pragma once
 #include <QObject>
 #include <score/command/SettingsCommand.hpp>
-#include <score_lib_base_export.h>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+#include <score_lib_base_export.h>
 namespace score
 {
 class SCORE_LIB_BASE_EXPORT ProjectSettingsModel
@@ -14,7 +14,7 @@ public:
 };
 }
 
-#define SCORE_PROJECTSETTINGS_PARAMETER_TYPE(ModelType, Name)   \
+#define SCORE_PROJECTSETTINGS_PARAMETER_TYPE(ModelType, Name)    \
   struct Name##Parameter                                         \
   {                                                              \
     using model_type = ModelType;                                \
@@ -25,7 +25,7 @@ public:
 
 #define SCORE_PROJECTSETTINGS_COMMAND(Name)                                \
   struct Set##Name : public score::ProjectSettingsCommand<Name##Parameter> \
-  {                                                                         \
+  {                                                                        \
     SCORE_PROJECTSETTINGS_COMMAND_DECL(Set##Name)                          \
   };
 

@@ -17,7 +17,10 @@ public:
   void setDefaultWidth(double w);
 
   void setRange(int, int);
-  std::pair<int, int> range() const { return {m_min, m_max}; }
+  std::pair<int, int> range() const
+  {
+    return {m_min, m_max};
+  }
   NoteData noteAtPos(QPointF point) const;
 
 Q_SIGNALS:

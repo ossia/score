@@ -1,36 +1,34 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "StateActions.hpp"
 
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Commands/Cohesion/RefreshStates.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-
-#include <core/document/Document.hpp>
-#include <score/actions/ActionManager.hpp>
-#include <score/actions/MenuManager.hpp>
-
-#include <Process/ProcessContext.hpp>
 #include <Process/Layer/LayerContextMenu.hpp>
+#include <Process/ProcessContext.hpp>
 #include <QAction>
 #include <QMainWindow>
 #include <QMenu>
 #include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Commands/Cohesion/RefreshStates.hpp>
 #include <Scenario/Commands/Cohesion/SnapshotParameters.hpp>
-#include <score/widgets/SetIcons.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include <core/application/ApplicationSettings.hpp>
+#include <core/document/Document.hpp>
+#include <score/actions/ActionManager.hpp>
+#include <score/actions/MenuManager.hpp>
+#include <score/widgets/SetIcons.hpp>
 namespace Scenario
 {
 StateActions::StateActions(ScenarioApplicationPlugin* parent)
     : m_parent{parent}
 {
-  if(!parent->context.applicationSettings.gui)
+  if (!parent->context.applicationSettings.gui)
     return;
   m_refreshStates = new QAction{tr("Refresh states"), this};
   m_refreshStates->setShortcutContext(Qt::ApplicationShortcut);
   m_refreshStates->setShortcut(tr("Ctrl+U"));
   m_refreshStates->setToolTip(tr("Ctrl+U"));
-  if(parent->context.mainWindow)
+  if (parent->context.mainWindow)
     parent->context.mainWindow->addAction(m_refreshStates);
   setIcons(
       m_refreshStates, QString(":/icons/refresh_on.png"),
@@ -42,7 +40,7 @@ StateActions::StateActions(ScenarioApplicationPlugin* parent)
 
   m_snapshot = new QAction{this};
   m_snapshot->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-  if(parent->context.mainWindow)
+  if (parent->context.mainWindow)
     parent->context.mainWindow->addAction(m_snapshot);
 
   setIcons(
@@ -73,10 +71,8 @@ void StateActions::makeGUIElements(score::GUIElements& ref)
   ref.actions.add<Actions::Snapshot>(m_snapshot);
   ref.actions.add<Actions::RefreshStates>(m_refreshStates);
 
-  auto& cond
-      = m_parent->context.actions
-            .condition<score::EnableWhenSelectionContains<Scenario::
-                                                               StateModel>>();
+  auto& cond = m_parent->context.actions.condition<
+      score::EnableWhenSelectionContains<Scenario::StateModel>>();
   cond.add<Actions::RefreshStates>();
   cond.add<Actions::Snapshot>();
 }

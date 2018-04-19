@@ -95,9 +95,9 @@ struct SCORE_LIB_BASE_EXPORT ApplicationContext
   const score::ApplicationComponents& components;
 
   DocumentList& documents;
+
 private:
-  const std::vector<std::unique_ptr<score::SettingsDelegateModel>>&
-      m_settings;
+  const std::vector<std::unique_ptr<score::SettingsDelegateModel>>& m_settings;
 };
 
 // By default this is defined in score::Application

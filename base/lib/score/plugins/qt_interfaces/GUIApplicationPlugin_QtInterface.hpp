@@ -25,5 +25,4 @@ public:
   "org.ossia.score.plugins.ApplicationPlugin_QtInterface"
 
 Q_DECLARE_INTERFACE(
-    score::ApplicationPlugin_QtInterface,
-    ApplicationPlugin_QtInterface_iid)
+    score::ApplicationPlugin_QtInterface, ApplicationPlugin_QtInterface_iid)

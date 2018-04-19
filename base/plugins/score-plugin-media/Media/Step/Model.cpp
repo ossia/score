@@ -1,4 +1,5 @@
 #include "Model.hpp"
+
 #include <Process/Dataflow/Port.hpp>
 
 namespace Media
@@ -6,13 +7,13 @@ namespace Media
 namespace Step
 {
 
-
 Model::Model(
     const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
-    QObject* parent):
-  Process::ProcessModel{duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
-, outlet{Process::make_outlet(Id<Process::Port>(0), this)}
+    QObject* parent)
+    : Process::ProcessModel{duration, id,
+                            Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
 {
   outlet->type = Process::PortType::Message;
   m_steps = {0.5f, 0.3f, 0.5f, 0.8f, 1.f, 0.f, 0.5f, 0.1f};
@@ -26,22 +27,36 @@ Model::Model(
 
 Model::~Model()
 {
-
 }
 
-quint64 Model::stepCount() const { return m_stepCount; }
+quint64 Model::stepCount() const
+{
+  return m_stepCount;
+}
 
-quint64 Model::stepDuration() const { return m_stepDuration; }
+quint64 Model::stepDuration() const
+{
+  return m_stepDuration;
+}
 
-const std::vector<float>&Model::steps() const { return m_steps; }
+const std::vector<float>& Model::steps() const
+{
+  return m_steps;
+}
 
-double Model::min() const { return m_min; }
+double Model::min() const
+{
+  return m_min;
+}
 
-double Model::max() const { return m_max; }
+double Model::max() const
+{
+  return m_max;
+}
 
 void Model::setStepCount(quint64 s)
 {
-  if(s != m_stepCount)
+  if (s != m_stepCount)
   {
     m_stepCount = s;
     m_steps.resize(s);
@@ -51,7 +66,7 @@ void Model::setStepCount(quint64 s)
 
 void Model::setStepDuration(quint64 s)
 {
-  if(s != m_stepDuration)
+  if (s != m_stepDuration)
   {
     m_stepDuration = s;
     stepDurationChanged(s);
@@ -60,7 +75,7 @@ void Model::setStepDuration(quint64 s)
 
 void Model::setSteps(std::vector<float> v)
 {
-  if(m_steps != v)
+  if (m_steps != v)
   {
     m_steps = std::move(v);
     stepsChanged();
@@ -69,7 +84,7 @@ void Model::setSteps(std::vector<float> v)
 
 void Model::setMin(double v)
 {
-  if(m_min != v)
+  if (m_min != v)
   {
     m_min = v;
     minChanged(v);
@@ -78,20 +93,19 @@ void Model::setMin(double v)
 
 void Model::setMax(double v)
 {
-  if(m_max != v)
+  if (m_max != v)
   {
     m_max = v;
     maxChanged(v);
   }
 }
-
-
 }
 }
 template <>
 void DataStreamReader::read(const Media::Step::Model& proc)
 {
-  m_stream << *proc.outlet << proc.m_steps << proc.m_stepCount << proc.m_stepDuration << proc.m_min << proc.m_max;
+  m_stream << *proc.outlet << proc.m_steps << proc.m_stepCount
+           << proc.m_stepDuration << proc.m_min << proc.m_max;
   insertDelimiter();
 }
 
@@ -99,7 +113,8 @@ template <>
 void DataStreamWriter::write(Media::Step::Model& proc)
 {
   proc.outlet = Process::make_outlet(*this, &proc);
-  m_stream >> proc.m_steps >> proc.m_stepCount >> proc.m_stepDuration >> proc.m_min >> proc.m_max;
+  m_stream >> proc.m_steps >> proc.m_stepCount >> proc.m_stepDuration
+      >> proc.m_min >> proc.m_max;
   checkDelimiter();
 }
 
@@ -122,7 +137,8 @@ void JSONObjectWriter::write(Media::Step::Model& proc)
     proc.outlet = Process::make_outlet(writer, &proc);
   }
 
-  proc.m_steps = fromJsonValueArray<std::vector<float>>(obj["Steps"].toArray());
+  proc.m_steps
+      = fromJsonValueArray<std::vector<float>>(obj["Steps"].toArray());
   proc.m_stepCount = obj["StepCount"].toInt();
   proc.m_stepDuration = obj["StepDur"].toInt();
   proc.m_min = obj["StepMin"].toDouble();

@@ -13,5 +13,4 @@ enum WidgetKind
 
   Missing = -1
 };
-
 }

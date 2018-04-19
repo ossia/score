@@ -1,43 +1,40 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QPoint>
-#include <score/serialization/VisitorCommon.hpp>
-#include <vector>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "NoiseSegment.hpp"
-#include <Curve/Palette/CurvePoint.hpp>
-
-#include <score/model/Identifier.hpp>
 
 #include <ossia/editor/curve/curve_segment/linear.hpp>
-#include <random>
+
+#include <Curve/Palette/CurvePoint.hpp>
+#include <QPoint>
 #include <ctime>
+#include <random>
+#include <score/model/Identifier.hpp>
+#include <score/serialization/VisitorCommon.hpp>
+#include <vector>
 namespace Curve
 {
-template<typename T>
+template <typename T>
 struct Noise
 {
-    auto get_rand(double min, double max) const
-    {
-      static std::mt19937_64 gen(std::time(0));
-      return std::uniform_real_distribution<>{min, max}(gen);
-    }
-    auto get_rand(int min, int max) const
-    {
-      static std::mt19937_64 gen(std::time(0));
-      return std::uniform_int_distribution<>{min, max}(gen);
-    }
+  auto get_rand(double min, double max) const
+  {
+    static std::mt19937_64 gen(std::time(0));
+    return std::uniform_real_distribution<>{min, max}(gen);
+  }
+  auto get_rand(int min, int max) const
+  {
+    static std::mt19937_64 gen(std::time(0));
+    return std::uniform_int_distribution<>{min, max}(gen);
+  }
 
-    auto operator()(double val, T start, T end) {
-      return (start < end)
-          ? get_rand(start, end)
-          : get_rand(end, start);
-    }
-    auto operator()(double val, T start, T end) const {
-      return (start < end)
-          ? get_rand(start, end)
-          : get_rand(end, start);
-    }
+  auto operator()(double val, T start, T end)
+  {
+    return (start < end) ? get_rand(start, end) : get_rand(end, start);
+  }
+  auto operator()(double val, T start, T end) const
+  {
+    return (start < end) ? get_rand(start, end) : get_rand(end, start);
+  }
 };
 
 NoiseSegment::NoiseSegment(
@@ -63,7 +60,7 @@ std::array<double, rand_N> array_gen()
 {
   std::array<double, rand_N> arr{};
   int32_t seed = 1; // chosen by fair d20 dice roll.
-  for(std::size_t i = 0; i < rand_N; i++)
+  for (std::size_t i = 0; i < rand_N; i++)
   {
     // Modified from Intel fastrand :
     // https://software.intel.com/en-us/articles/fast-random-number-generator-on-the-intel-pentiumr-4-processor
@@ -103,18 +100,15 @@ QVariant NoiseSegment::toSegmentSpecificData() const
   return QVariant::fromValue(data_type{});
 }
 
-ossia::curve_segment<float>
-NoiseSegment::makeFloatFunction() const
+ossia::curve_segment<float> NoiseSegment::makeFloatFunction() const
 {
   return Noise<float>{};
 }
-
 
 ossia::curve_segment<int> NoiseSegment::makeIntFunction() const
 {
   return Noise<int>{};
 }
-
 
 ossia::curve_segment<bool> NoiseSegment::makeBoolFunction() const
 {

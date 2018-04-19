@@ -1,41 +1,42 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "score_plugin_loop.hpp"
+
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Loop/Commands/LoopCommandFactory.hpp>
 #include <Loop/Inspector/LoopInspectorFactory.hpp>
 #include <Loop/Inspector/LoopTriggerCommandFactory.hpp>
-#include <Loop/LoopProcessFactory.hpp>
-#include <Process/Process.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <string.h>
-#include <score/tools/std/HashMap.hpp>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
-#include <score/actions/ActionManager.hpp>
-#include <score/actions/MenuManager.hpp>
-#include "score_plugin_loop.hpp"
-#include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Loop/LoopDisplayedElements.hpp>
+#include <Loop/LoopProcessFactory.hpp>
+#include <Loop/Palette/LoopToolPalette.hpp>
+#include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
+#include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactory.hpp>
 #include <Scenario/Inspector/Interval/IntervalInspectorDelegateFactory.hpp>
-#include <Loop/Palette/LoopToolPalette.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/actions/ActionManager.hpp>
+#include <score/actions/MenuManager.hpp>
 #include <score/model/Identifier.hpp>
-#include <score_plugin_loop_commands_files.hpp>
-
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/customfactory/FactorySetup.hpp>
-#include <Scenario/Application/ScenarioActions.hpp>
+#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/tools/std/HashMap.hpp>
+#include <score/tools/std/Optional.hpp>
+#include <score_plugin_loop_commands_files.hpp>
+#include <string.h>
 
 SCORE_DECLARE_ACTION(
     PutInLoop, "&Put in Loop", Loop, Qt::SHIFT + Qt::CTRL + Qt::Key_L)
 
-namespace Loop {
+namespace Loop
+{
 class ApplicationPlugin
     : public QObject
     , public score::GUIApplicationPlugin
 {
 public:
-  ApplicationPlugin(const score::GUIApplicationContext& ctx):
-    GUIApplicationPlugin{ctx}
+  ApplicationPlugin(const score::GUIApplicationContext& ctx)
+      : GUIApplicationPlugin{ctx}
   {
     m_putInLoop = new QAction{this};
     connect(m_putInLoop, &QAction::triggered, [this] {
@@ -85,20 +86,22 @@ score::GUIApplicationPlugin* score_plugin_loop::make_guiApplicationPlugin(
 
 std::vector<std::unique_ptr<score::InterfaceBase>>
 score_plugin_loop::factories(
-    const score::ApplicationContext& ctx,
-    const score::InterfaceKey& key) const
+    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   using namespace Scenario;
   using namespace Scenario::Command;
-  return instantiate_factories<score::ApplicationContext,
-      FW<Process::ProcessModelFactory, Loop::ProcessFactory>
-      , FW<Process::LayerFactory, Loop::LayerFactory>
-      , FW<Inspector::InspectorWidgetFactory, Loop::InspectorFactory>
-      , FW<IntervalInspectorDelegateFactory, Loop::IntervalInspectorDelegateFactory>
-      , FW<TriggerCommandFactory, LoopTriggerCommandFactory>
-      , FW<Scenario::DisplayedElementsToolPaletteFactory, Loop::DisplayedElementsToolPaletteFactory>
-      , FW<Scenario::DisplayedElementsProvider, Loop::DisplayedElementsProvider>>(
-      ctx, key);
+  return instantiate_factories<
+      score::ApplicationContext,
+      FW<Process::ProcessModelFactory, Loop::ProcessFactory>,
+      FW<Process::LayerFactory, Loop::LayerFactory>,
+      FW<Inspector::InspectorWidgetFactory, Loop::InspectorFactory>,
+      FW<IntervalInspectorDelegateFactory,
+         Loop::IntervalInspectorDelegateFactory>,
+      FW<TriggerCommandFactory, LoopTriggerCommandFactory>,
+      FW<Scenario::DisplayedElementsToolPaletteFactory,
+         Loop::DisplayedElementsToolPaletteFactory>,
+      FW<Scenario::DisplayedElementsProvider,
+         Loop::DisplayedElementsProvider>>(ctx, key);
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>

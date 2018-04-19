@@ -1,27 +1,29 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <algorithm>
-#include <score/tools/std/Optional.hpp>
-#include <qnamespace.h>
-#include <tuple>
+#include "LoopProcessModel.hpp"
 
 #include "Loop/LoopProcessMetadata.hpp"
-#include "LoopProcessModel.hpp"
+
 #include <ossia/detail/algorithms.hpp>
+
 #include <Process/Process.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <algorithm>
+#include <qnamespace.h>
 #include <score/document/DocumentInterface.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/model/Skin.hpp>
 #include <score/serialization/VisitorCommon.hpp>
-#include <score/model/Identifier.hpp>
+#include <score/tools/std/Optional.hpp>
+#include <tuple>
 
 namespace Loop
 {
@@ -57,7 +59,6 @@ ProcessModel::ProcessModel(
   outlet->setPropagate(true);
   init();
 }
-
 
 ProcessModel::~ProcessModel()
 {

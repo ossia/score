@@ -1,6 +1,7 @@
 #pragma once
-#include <ossia/network/base/parameter.hpp>
 #include <ossia/network/base/node.hpp>
+#include <ossia/network/base/parameter.hpp>
+
 #include <score_plugin_engine_export.h>
 
 namespace Engine

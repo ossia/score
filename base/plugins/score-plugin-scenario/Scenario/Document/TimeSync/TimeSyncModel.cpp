@@ -1,17 +1,17 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "TimeSyncModel.hpp"
+
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Process/TimeValue.hpp>
 #include <QtGlobal>
 #include <Scenario/Document/Event/EventModel.hpp>
-
-#include "TimeSyncModel.hpp"
-#include <Process/TimeValue.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <score/document/DocumentInterface.hpp>
-#include <score/model/ModelMetadata.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/model/ModelMetadata.hpp>
 
 namespace Scenario
 {
@@ -62,7 +62,7 @@ void TimeSyncModel::clearEvents()
 {
   auto ev = m_events;
   m_events.clear();
-  for(const auto& e : ev)
+  for (const auto& e : ev)
     eventRemoved(e);
 }
 

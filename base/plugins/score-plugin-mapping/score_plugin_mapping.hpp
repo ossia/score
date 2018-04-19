@@ -1,5 +1,9 @@
 #pragma once
 #include <QObject>
+#include <score/application/ApplicationContext.hpp>
+#include <score/command/Command.hpp>
+#include <score/command/CommandGeneratorMap.hpp>
+#include <score/plugins/customfactory/FactoryInterface.hpp>
 #include <score/plugins/qt_interfaces/CommandFactory_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
@@ -7,15 +11,11 @@
 #include <utility>
 #include <vector>
 
-#include <score/application/ApplicationContext.hpp>
-#include <score/command/CommandGeneratorMap.hpp>
-#include <score/command/Command.hpp>
-#include <score/plugins/customfactory/FactoryInterface.hpp>
-
-class score_plugin_mapping : public QObject,
-                              public score::Plugin_QtInterface,
-                              public score::FactoryInterface_QtInterface,
-                              public score::CommandFactory_QtInterface
+class score_plugin_mapping
+    : public QObject
+    , public score::Plugin_QtInterface
+    , public score::FactoryInterface_QtInterface
+    , public score::CommandFactory_QtInterface
 {
   Q_OBJECT
   Q_PLUGIN_METADATA(IID Plugin_QtInterface_iid)

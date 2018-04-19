@@ -2,9 +2,9 @@
 
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/plugins/customfactory/FactoryInterface.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
-#include <score/model/Identifier.hpp>
 #include <score_plugin_scenario_export.h>
 
 namespace score
@@ -45,15 +45,15 @@ public:
   virtual ~MoveEventFactoryInterface();
 
   /**
-  * @brief priority
-  * the highest priority will be default move behavior for the indicated
-  * strategy
-  * Basically, we want to know how well the policy is suited for the desired
-  * strategy.
-  * @param strategy
-  * the strategy for which we need a displacement policy;
-  * @return
-  */
+   * @brief priority
+   * the highest priority will be default move behavior for the indicated
+   * strategy
+   * Basically, we want to know how well the policy is suited for the desired
+   * strategy.
+   * @param strategy
+   * the strategy for which we need a displacement policy;
+   * @return
+   */
   virtual int
   priority(const score::ApplicationContext& ctx, Strategy strategy) const = 0;
 };

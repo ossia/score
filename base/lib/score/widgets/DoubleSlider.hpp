@@ -1,9 +1,8 @@
 #pragma once
-#include <QSlider>
-#include <score/tools/Clamp.hpp>
 #include <QDebug>
+#include <QSlider>
 #include <limits>
-
+#include <score/tools/Clamp.hpp>
 #include <score_lib_base_export.h>
 
 namespace score
@@ -22,7 +21,7 @@ public:
   DoubleSlider(QWidget* parent) : QSlider{Qt::Horizontal, parent}
   {
     setMinimum(0);
-    setMaximum(max+1);
+    setMaximum(max + 1);
 
     connect(this, &QSlider::valueChanged, this, [&](int val) {
       valueChanged(double(val) / max);

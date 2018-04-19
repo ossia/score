@@ -1,6 +1,7 @@
 #pragma once
 #include <ossia/editor/scenario/clock.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
+
 #include <Engine/Executor/ClockManager/ClockManagerFactory.hpp>
 namespace Scenario
 {
@@ -19,34 +20,31 @@ public:
 
   virtual ~DefaultClockManager();
 
-  void prepareExecution(
-      const TimeVal& t, BaseScenarioElement& bs);
+  void prepareExecution(const TimeVal& t, BaseScenarioElement& bs);
+
 private:
   void play_impl(const TimeVal& t, BaseScenarioElement&) override;
   void pause_impl(BaseScenarioElement&) override;
   void resume_impl(BaseScenarioElement&) override;
   void stop_impl(BaseScenarioElement&) override;
-
 };
 
-class ControlClock final
-    : public ClockManager
+class ControlClock final : public ClockManager
 {
 public:
   ControlClock(const Context& ctx);
 
-  private:
-      // Clock interface
-      void play_impl(
-              const TimeVal& t,
-              Engine::Execution::BaseScenarioElement&) override;
-      void pause_impl(Engine::Execution::BaseScenarioElement&) override;
-      void resume_impl(Engine::Execution::BaseScenarioElement&) override;
-      void stop_impl(Engine::Execution::BaseScenarioElement&) override;
-      bool paused() const override;
+private:
+  // Clock interface
+  void play_impl(
+      const TimeVal& t, Engine::Execution::BaseScenarioElement&) override;
+  void pause_impl(Engine::Execution::BaseScenarioElement&) override;
+  void resume_impl(Engine::Execution::BaseScenarioElement&) override;
+  void stop_impl(Engine::Execution::BaseScenarioElement&) override;
+  bool paused() const override;
 
-      Engine::Execution::DefaultClockManager m_default;
-      ossia::clock m_clock;
+  Engine::Execution::DefaultClockManager m_default;
+  ossia::clock m_clock;
 };
 
 class SCORE_PLUGIN_ENGINE_EXPORT ControlClockFactory final

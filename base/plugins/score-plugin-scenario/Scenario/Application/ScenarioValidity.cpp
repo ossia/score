@@ -1,5 +1,5 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioValidity.hpp"
 
 namespace Scenario
@@ -54,8 +54,8 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
       SCORE_ASSERT(cst->startState() == state.id());
     }
 
-    auto num = ossia::count_if(scenar.events, [&] (auto& ev) {
-        return ossia::contains(ev.states(), state.id());
+    auto num = ossia::count_if(scenar.events, [&](auto& ev) {
+      return ossia::contains(ev.states(), state.id());
     });
     SCORE_ASSERT(num == 1);
   }
@@ -79,8 +79,8 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
       SCORE_ASSERT(st->eventId() == event.id());
     }
 
-    auto num = ossia::count_if(scenar.timeSyncs, [&] (auto& ev) {
-        return ossia::contains(ev.events(), event.id());
+    auto num = ossia::count_if(scenar.timeSyncs, [&](auto& ev) {
+      return ossia::contains(ev.events(), event.id());
     });
     SCORE_ASSERT(num == 1);
   }

@@ -1,60 +1,58 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <ossia/network/value/value.hpp>
 #include <ossia/network/value/value_conversion.hpp>
+
 #include <Automation/AutomationModel.hpp>
-#include <Automation/Commands/InitAutomation.hpp>
-#include <Curve/Segment/PointArray/PointArraySegment.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
-#include <Scenario/Commands/Interval/Rack/AddSlotToRack.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event_TimeSync.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
-#include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
-#include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
-#include <core/document/Document.hpp>
-#include <score/tools/std/Optional.hpp>
-
-#include <QApplication>
-#include <QString>
-#include <algorithm>
-#include <qnamespace.h>
-#include <type_traits>
-#include <utility>
-
 #include <Automation/AutomationProcessMetadata.hpp>
+#include <Automation/Commands/InitAutomation.hpp>
 #include <Curve/CurveModel.hpp>
+#include <Curve/Segment/PointArray/PointArraySegment.hpp>
+#include <Curve/Settings/CurveSettingsModel.hpp>
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Address/IOType.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Explorer/DeviceList.hpp>
-#include <Recording/Commands/Record.hpp>
-
-#include <ossia/network/value/value.hpp>
-#include <Curve/Settings/CurveSettingsModel.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/Explorer/ListeningManager.hpp>
 #include <Process/ExpandMode.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
+#include <QApplication>
+#include <QString>
+#include <Recording/Commands/Record.hpp>
 #include <Recording/Record/RecordAutomations/RecordAutomationCreationVisitor.hpp>
 #include <Recording/Record/RecordAutomations/RecordAutomationFirstParameterCallbackVisitor.hpp>
 #include <Recording/Record/RecordAutomations/RecordAutomationParameterCallbackVisitor.hpp>
 #include <Recording/Record/RecordData.hpp>
 #include <Recording/Record/RecordManager.hpp>
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
+#include <Scenario/Commands/Interval/Rack/AddSlotToRack.hpp>
 #include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event_TimeSync.hpp>
+#include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
+#include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
+#include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
+#include <algorithm>
+#include <core/document/Document.hpp>
+#include <qnamespace.h>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/EntityMap.hpp>
-#include <score/model/path/Path.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/model/path/Path.hpp>
 #include <score/model/tree/TreeNode.hpp>
+#include <score/tools/std/Optional.hpp>
+#include <type_traits>
+#include <utility>
 namespace Curve
 {
 class SegmentModel;
@@ -81,8 +79,8 @@ bool AutomationRecorder::setup(
     for (Device::Node* node : vec)
     {
       Device::AddressSettings& addr = node->get<Device::AddressSettings>();
-      addr.value.apply(RecordAutomationCreationVisitor{*node, box, addr, addresses,
-                                                 *this});
+      addr.value.apply(
+          RecordAutomationCreationVisitor{*node, box, addr, addresses, *this});
     }
   }
 
@@ -132,15 +130,13 @@ void AutomationRecorder::stop()
     {
       if (curve_mode == Curve::Settings::Mode::Parameter)
       {
-        dev->valueUpdated
-            .disconnect<AutomationRecorder, &AutomationRecorder::parameterCallback>(
-                *this);
+        dev->valueUpdated.disconnect<
+            AutomationRecorder, &AutomationRecorder::parameterCallback>(*this);
       }
       else
       {
-        dev->valueUpdated
-            .disconnect<AutomationRecorder, &AutomationRecorder::messageCallback>(
-                *this);
+        dev->valueUpdated.disconnect<
+            AutomationRecorder, &AutomationRecorder::messageCallback>(*this);
       }
     }
   }
@@ -162,8 +158,8 @@ void AutomationRecorder::stop()
   // Create commands for the state of each automation to send on
   // the network, and push them silently.
 
-  auto make_address = [](
-      State::Address a, uint8_t i, ossia::unit_t u) -> State::AddressAccessor {
+  auto make_address = [](State::Address a, uint8_t i,
+                         ossia::unit_t u) -> State::AddressAccessor {
     return State::AddressAccessor{std::move(a), {i}, u};
   };
 
@@ -172,52 +168,40 @@ void AutomationRecorder::stop()
   // Potentially simplify curve and transform it in segments
   for (const auto& recorded : numeric_records)
   {
-    if(finish(
-        State::AddressAccessor{recorded.first, {}, recorded.second.unit},
-        recorded.second,
-        msecs,
-        simplify,
-        simplifyRatio))
+    if (finish(
+            State::AddressAccessor{recorded.first, {}, recorded.second.unit},
+            recorded.second, msecs, simplify, simplifyRatio))
       N++;
   }
 
   for (const auto& recorded : vec2_records)
   {
     for (int i = 0; i < 2; i++)
-      if(finish(
-          make_address(recorded.first, i, recorded.second[i].unit),
-          recorded.second[i],
-          msecs,
-          simplify,
-          simplifyRatio))
+      if (finish(
+              make_address(recorded.first, i, recorded.second[i].unit),
+              recorded.second[i], msecs, simplify, simplifyRatio))
         N++;
   }
 
   for (const auto& recorded : vec3_records)
   {
     for (int i = 0; i < 3; i++)
-      if(finish(
-          make_address(recorded.first, i, recorded.second[i].unit),
-          recorded.second[i],
-          msecs,
-          simplify,
-          simplifyRatio))
+      if (finish(
+              make_address(recorded.first, i, recorded.second[i].unit),
+              recorded.second[i], msecs, simplify, simplifyRatio))
         N++;
   }
 
   for (const auto& recorded : vec4_records)
   {
     for (int i = 0; i < 4; i++)
-      if(finish(
-          make_address(recorded.first, i, recorded.second[i].unit),
-          recorded.second[i],
-          msecs,
-          simplify,
-          simplifyRatio))
+      if (finish(
+              make_address(recorded.first, i, recorded.second[i].unit),
+              recorded.second[i], msecs, simplify, simplifyRatio))
         N++;
   }
 
-  if(N == 0)
+  if (N == 0)
   {
     context.dispatcher.rollback();
   }
@@ -265,7 +249,8 @@ bool AutomationRecorder::finish(
     int simplifyRatio)
 {
   Curve::PointArraySegment& segt = recorded.segment;
-  if(segt.points().empty() || (segt.points().size() == 1 && segt.points().begin()->first == 0.))
+  if (segt.points().empty()
+      || (segt.points().size() == 1 && segt.points().begin()->first == 0.))
   {
     recorded.addLayCmd->undo(context.context);
     delete recorded.addLayCmd;

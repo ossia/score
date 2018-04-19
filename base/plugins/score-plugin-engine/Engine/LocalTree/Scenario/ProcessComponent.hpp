@@ -34,8 +34,10 @@ using ProcessComponent_T
     = Process::GenericProcessComponent_T<ProcessComponent, Process_T>;
 
 class SCORE_PLUGIN_ENGINE_EXPORT ProcessComponentFactory
-    : public score::
-          GenericComponentFactory<Process::ProcessModel, LocalTree::DocumentPlugin, LocalTree::ProcessComponentFactory>
+    : public score::GenericComponentFactory<
+          Process::ProcessModel,
+          LocalTree::DocumentPlugin,
+          LocalTree::ProcessComponentFactory>
 {
   SCORE_ABSTRACT_COMPONENT_FACTORY(Engine::LocalTree::ProcessComponent)
 public:
@@ -50,8 +52,9 @@ public:
 
 template <typename ProcessComponent_T>
 class ProcessComponentFactory_T
-    : public score::
-          GenericComponentFactoryImpl<ProcessComponent_T, ProcessComponentFactory>
+    : public score::GenericComponentFactoryImpl<
+          ProcessComponent_T,
+          ProcessComponentFactory>
 {
 public:
   using model_type = typename ProcessComponent_T::model_type;
@@ -67,8 +70,11 @@ public:
   }
 };
 
-class SCORE_PLUGIN_ENGINE_EXPORT ProcessComponentFactoryList final : public score::
-    GenericComponentFactoryList<Process::ProcessModel, LocalTree::DocumentPlugin, LocalTree::ProcessComponentFactory>
+class SCORE_PLUGIN_ENGINE_EXPORT ProcessComponentFactoryList final
+    : public score::GenericComponentFactoryList<
+          Process::ProcessModel,
+          LocalTree::DocumentPlugin,
+          LocalTree::ProcessComponentFactory>
 {
 public:
   ~ProcessComponentFactoryList();

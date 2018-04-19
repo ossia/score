@@ -2,8 +2,8 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <State/Expression.hpp>
-#include <score/command/PropertyCommand.hpp>
 #include <score/command/Command.hpp>
+#include <score/command/PropertyCommand.hpp>
 #include <score/model/path/Path.hpp>
 
 struct DataStreamInput;
@@ -19,9 +19,7 @@ class SetCondition final : public score::Command
   SCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), SetCondition, "Set an Event's condition")
 public:
-  SetCondition(
-      const EventModel& event,
-      State::Expression&& condition);
+  SetCondition(const EventModel& event, State::Expression&& condition);
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
@@ -40,9 +38,7 @@ class SetOffsetBehavior final : public score::PropertyCommand
   SCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), SetOffsetBehavior, "Set offset behavior")
 public:
-  SetOffsetBehavior(
-      const EventModel& event,
-      OffsetBehavior newval);
+  SetOffsetBehavior(const EventModel& event, OffsetBehavior newval);
 };
 }
 }

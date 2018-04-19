@@ -2,20 +2,17 @@
 #include <Curve/CurveModel.hpp>
 #include <Curve/CurvePresenter.hpp>
 #include <Curve/CurveView.hpp>
-#include <Process/LayerView.hpp>
 #include <Curve/Palette/CurvePalette.hpp>
 #include <Curve/Process/CurveProcessModel.hpp>
-
+#include <Curve/Segment/CurveSegmentList.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/LayerPresenter.hpp>
-
+#include <Process/LayerView.hpp>
+#include <QGraphicsScene>
+#include <QGraphicsSceneMouseEvent>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/widgets/GraphicsItem.hpp>
-
-#include <Curve/Segment/CurveSegmentList.hpp>
-#include <QGraphicsScene>
-#include <QGraphicsSceneMouseEvent>
 #include <score_plugin_curve_export.h>
 
 class CurvePresenter;
@@ -48,12 +45,12 @@ public:
       m_context.context.focusDispatcher.focus(this);
     });
 
-    con(
-        m_curve, &Presenter::contextMenuRequested, this,
+    con(m_curve, &Presenter::contextMenuRequested, this,
         &LayerPresenter::contextMenuRequested);
 
-    connect(&m_curve.view(), &View::doubleClick,
-            this, [this] (QPointF pt) { m_sm.createPoint(pt); });
+    connect(&m_curve.view(), &View::doubleClick, this, [this](QPointF pt) {
+      m_sm.createPoint(pt);
+    });
 
     parentGeometryChanged();
     m_view->setCurveView(&m_curve.view());
@@ -135,7 +132,8 @@ public:
     m_curve.fillContextMenu(menu, pos, scenepos);
   }
 
-  LayerView_T*  view(){
+  LayerView_T* view()
+  {
     return m_view.impl;
   }
 

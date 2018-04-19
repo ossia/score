@@ -1,15 +1,17 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QObject>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "LocalProtocolFactory.hpp"
 
 #include "LocalDevice.hpp"
-#include "LocalProtocolFactory.hpp"
 #include "LocalProtocolSettingsWidget.hpp"
+
 #include <ossia/editor/state/state_element.hpp>
+
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/ApplicationPlugin.hpp>
 #include <Engine/LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <Engine/Protocols/Local/LocalSpecificSettings.hpp>
+#include <QObject>
 namespace Device
 {
 class DeviceInterface;
@@ -29,7 +31,7 @@ QString LocalProtocolFactory::prettyName() const
 Device::DeviceInterface* LocalProtocolFactory::makeDevice(
     const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
 {
-  qDebug() << "updating local" << settings.name ;
+  qDebug() << "updating local" << settings.name;
   auto doc = ctx.findPlugin<LocalTree::DocumentPlugin>();
   if (doc)
   {
@@ -44,8 +46,7 @@ const Device::DeviceSettings& LocalProtocolFactory::static_defaultSettings()
 {
   static const Device::DeviceSettings settings = [&]() {
     Device::DeviceSettings s;
-    s.protocol
-        = static_concreteKey(); // Todo check for un-set protocol.
+    s.protocol = static_concreteKey(); // Todo check for un-set protocol.
     s.name = "score";
     Network::LocalSpecificSettings specif;
     specif.oscPort = 6666;

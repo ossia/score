@@ -25,11 +25,12 @@
  * \endcode
  *
  * Or by using one of the various macros provided. Custom types
- * are encouraged to provide macros to easily aggregate all the metadata required
- * for them.
+ * are encouraged to provide macros to easily aggregate all the metadata
+ * required for them.
  *
  * \note Since the mechanism works by template specialization,
- * it is necessary to put the macros or implementation outside of any namespace.
+ * it is necessary to put the macros or implementation outside of any
+ * namespace.
  */
 template <typename Metadata_T, typename Object>
 struct Metadata;
@@ -54,7 +55,8 @@ class UndoName_k;
 
 /**
  * \class Description_k
- * \brief Metadata to get the description that will be shown in the undo-redo panel.
+ * \brief Metadata to get the description that will be shown in the undo-redo
+ * panel.
  */
 class Description_k;
 
@@ -87,10 +89,10 @@ class Json_k;
 /**
  * \macro AUTO_METADATA
  * \brief Easily generate a generic metadata type.
- * \param Export The export macro (e.g. SCORE_LIB_BASE_EXPORT) if the metadata is to be accessed across plug-ins.
- * \param Model The type on which the metadata applies.
- * \param Key The metadata key.
- * \param Text The metadata value.
+ * \param Export The export macro (e.g. SCORE_LIB_BASE_EXPORT) if the metadata
+ * is to be accessed across plug-ins. \param Model The type on which the
+ * metadata applies. \param Key The metadata key. \param Text The metadata
+ * value.
  */
 #define AUTO_METADATA(Export, Model, Key, Text) \
   template <>                                   \

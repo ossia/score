@@ -1,19 +1,20 @@
 #pragma once
+#include "ProcessComponent.hpp"
+
 #include <ossia/editor/scenario/time_event.hpp>
+
+#include <Engine/Executor/EventComponent.hpp>
+#include <Engine/Executor/IntervalComponent.hpp>
+#include <Engine/Executor/StateComponent.hpp>
+#include <Engine/Executor/TimeSyncComponent.hpp>
+#include <Scenario/Document/Components/ScenarioComponent.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Tools/dataStructures.hpp>
+#include <map>
+#include <memory>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <map>
-#include <memory>
-#include <Scenario/Document/Components/ScenarioComponent.hpp>
-#include <Engine/Executor/IntervalComponent.hpp>
-#include <Engine/Executor/EventComponent.hpp>
-#include <Engine/Executor/StateComponent.hpp>
-#include <Engine/Executor/TimeSyncComponent.hpp>
-
-#include "ProcessComponent.hpp"
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Tools/dataStructures.hpp>
 
 Q_DECLARE_METATYPE(std::shared_ptr<Engine::Execution::EventComponent>)
 Q_DECLARE_METATYPE(ossia::time_event::status)
@@ -78,7 +79,10 @@ public:
   {
     return m_ossia_states;
   }
-  const score::hash_map<Id<Scenario::IntervalModel>, std::shared_ptr<IntervalComponent>>& intervals() const
+  const score::hash_map<
+      Id<Scenario::IntervalModel>,
+      std::shared_ptr<IntervalComponent>>&
+  intervals() const
   {
     return m_ossia_intervals;
   }
@@ -99,37 +103,45 @@ public:
   template <typename Component_T, typename Element, typename Fun>
   void removed(const Element& elt, const Component_T& comp, Fun f)
   {
-    if(f)
+    if (f)
       f();
   }
 
+  std::function<void()>
+  removing(const Scenario::IntervalModel& e, IntervalComponent& c);
 
-  std::function<void()> removing(const Scenario::IntervalModel& e, IntervalComponent& c);
+  std::function<void()>
+  removing(const Scenario::TimeSyncModel& e, TimeSyncComponent& c);
 
-  std::function<void()> removing(const Scenario::TimeSyncModel& e, TimeSyncComponent& c);
+  std::function<void()>
+  removing(const Scenario::EventModel& e, EventComponent& c);
 
-  std::function<void()> removing(const Scenario::EventModel& e, EventComponent& c);
-
-  std::function<void()> removing(const Scenario::StateModel& e, StateComponent& c);
+  std::function<void()>
+  removing(const Scenario::StateModel& e, StateComponent& c);
 
 Q_SIGNALS:
-  void sig_eventCallback(std::shared_ptr<EventComponent>, ossia::time_event::status st);
+  void sig_eventCallback(
+      std::shared_ptr<EventComponent>, ossia::time_event::status st);
+
 protected:
   void startIntervalExecution(const Id<Scenario::IntervalModel>&);
   void stopIntervalExecution(const Id<Scenario::IntervalModel>&);
   void disableIntervalExecution(const Id<Scenario::IntervalModel>& id);
 
-  void eventCallback(std::shared_ptr<EventComponent> ev, ossia::time_event::status newStatus);
+  void eventCallback(
+      std::shared_ptr<EventComponent> ev, ossia::time_event::status newStatus);
 
   void timeSyncCallback(
       Engine::Execution::TimeSyncComponent* tn, ossia::time_value date);
 
-  score::hash_map<Id<Scenario::IntervalModel>, std::shared_ptr<IntervalComponent>>
-      m_ossia_intervals;
+  score::
+      hash_map<Id<Scenario::IntervalModel>, std::shared_ptr<IntervalComponent>>
+          m_ossia_intervals;
   score::hash_map<Id<Scenario::StateModel>, std::shared_ptr<StateComponent>>
       m_ossia_states;
-  score::hash_map<Id<Scenario::TimeSyncModel>, std::shared_ptr<TimeSyncComponent>>
-      m_ossia_timesyncs;
+  score::
+      hash_map<Id<Scenario::TimeSyncModel>, std::shared_ptr<TimeSyncComponent>>
+          m_ossia_timesyncs;
   score::hash_map<Id<Scenario::EventModel>, std::shared_ptr<EventComponent>>
       m_ossia_timeevents;
 
@@ -143,10 +155,14 @@ protected:
   Scenario::ElementsProperties m_properties{};
 };
 
-using ScenarioComponentHierarchy
-    = HierarchicalScenarioComponent<
-        ScenarioComponentBase,
-        Scenario::ProcessModel, IntervalComponent, EventComponent, TimeSyncComponent, StateComponent, false>;
+using ScenarioComponentHierarchy = HierarchicalScenarioComponent<
+    ScenarioComponentBase,
+    Scenario::ProcessModel,
+    IntervalComponent,
+    EventComponent,
+    TimeSyncComponent,
+    StateComponent,
+    false>;
 
 struct ScenarioComponent final : public ScenarioComponentHierarchy
 {
@@ -161,16 +177,17 @@ struct ScenarioComponent final : public ScenarioComponentHierarchy
   void cleanup() override;
 };
 
-struct ScenarioComponentFactory final :
-    public ::Engine::Execution::ProcessComponentFactory_T<ScenarioComponent>
+struct ScenarioComponentFactory final
+    : public ::Engine::Execution::ProcessComponentFactory_T<ScenarioComponent>
 {
   void init(ProcessComponent* comp) const override
   {
-    if(comp)
+    if (comp)
     {
       auto s = static_cast<ScenarioComponent*>(comp);
       s->init();
     }
   }
 };
-}}
+}
+}

@@ -1,25 +1,26 @@
 #pragma once
-#include <core/application/ApplicationInterface.hpp>
-#include <core/application/ApplicationSettings.hpp>
+#include <Models/CentralItemModel.hpp>
+#include <Models/NodeModel.hpp>
+#include <Models/WidgetListModel.hpp>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-#include <Models/WidgetListModel.hpp>
-#include <Models/CentralItemModel.hpp>
 #include <WebSocketClient.hpp>
-#include <Models/NodeModel.hpp>
+#include <core/application/ApplicationInterface.hpp>
+#include <core/application/ApplicationSettings.hpp>
 #include <core/presenter/DocumentManager.hpp>
 
-namespace score {
+namespace score
+{
 class Settings;
 class Presenter;
-}  // namespace score
+} // namespace score
 
 namespace RemoteUI
 {
 
-class RemoteApplication final :
-    public QObject,
-    public score::ApplicationInterface
+class RemoteApplication final
+    : public QObject
+    , public score::ApplicationInterface
 {
 public:
   RemoteApplication(int& argc, char** argv);
@@ -56,5 +57,4 @@ private:
 
   std::unordered_map<State::Address, GUIItem*> m_listening;
 };
-
 }

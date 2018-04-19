@@ -1,18 +1,18 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "SerialDevice.hpp"
+
+#include <ossia/network/generic/generic_device.hpp>
+#include <ossia/network/generic/generic_parameter.hpp>
+
+#include <Device/Protocol/DeviceSettings.hpp>
+#include <Engine/Protocols/Serial/SerialSpecificSettings.hpp>
+#include <Explorer/DeviceList.hpp>
 #include <QString>
 #include <QVariant>
 #include <memory>
-
-#include "SerialDevice.hpp"
-#include <ossia/network/generic/generic_parameter.hpp>
-#include <ossia/network/generic/generic_device.hpp>
-#include <ossia-qt/serial/serial_protocol.hpp>
 #include <ossia-qt/serial/serial_device.hpp>
-#include <Device/Protocol/DeviceSettings.hpp>
-#include <Engine/Protocols/Serial/SerialSpecificSettings.hpp>
-
-#include <Explorer/DeviceList.hpp>
+#include <ossia-qt/serial/serial_protocol.hpp>
 namespace Engine
 {
 namespace Network
@@ -34,10 +34,11 @@ bool SerialDevice::reconnect()
 
   try
   {
-    const auto& stgs = settings().deviceSpecificSettings.value<SerialSpecificSettings>();
+    const auto& stgs
+        = settings().deviceSpecificSettings.value<SerialSpecificSettings>();
 
     m_dev = std::make_unique<ossia::net::serial_device>(
-                stgs.text.toUtf8(), stgs.port);
+        stgs.text.toUtf8(), stgs.port);
 
     enableCallbacks();
 

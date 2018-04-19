@@ -1,10 +1,10 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Action.hpp"
+
 #include <core/presenter/DocumentManager.hpp>
 #include <score/actions/ActionManager.hpp>
 #include <score/selection/SelectionStack.hpp>
-
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::CustomActionCondition)
 namespace score
@@ -12,7 +12,6 @@ namespace score
 
 EnableActionIfDocument::~EnableActionIfDocument()
 {
-
 }
 
 void EnableActionIfDocument::action(ActionManager& mgr, MaybeDocument doc)
@@ -154,22 +153,17 @@ void Action::updateTexts()
 
 DocumentActionCondition::~DocumentActionCondition()
 {
-
 }
 
 FocusActionCondition::~FocusActionCondition()
 {
-
 }
 
 SelectionActionCondition::~SelectionActionCondition()
 {
-
 }
 
 CustomActionCondition::~CustomActionCondition()
 {
-
 }
-
 }

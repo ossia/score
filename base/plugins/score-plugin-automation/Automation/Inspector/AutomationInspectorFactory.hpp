@@ -1,8 +1,7 @@
 #pragma once
-#include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
-
 #include <Automation/AutomationModel.hpp>
 #include <Automation/Inspector/AutomationInspectorWidget.hpp>
+#include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 
 namespace Automation
 {
@@ -28,9 +27,9 @@ namespace Spline
 {
 class InspectorFactory final
     : public Process::
-    InspectorWidgetDelegateFactory_T<ProcessModel, InspectorWidget>
+          InspectorWidgetDelegateFactory_T<ProcessModel, InspectorWidget>
 {
-    SCORE_CONCRETE("94c5afc5-c8c3-44e2-b8b4-6e53d8518677")
+  SCORE_CONCRETE("94c5afc5-c8c3-44e2-b8b4-6e53d8518677")
 };
 }
 
@@ -38,8 +37,8 @@ namespace Metronome
 {
 class InspectorFactory final
     : public Process::
-    InspectorWidgetDelegateFactory_T<ProcessModel, InspectorWidget>
+          InspectorWidgetDelegateFactory_T<ProcessModel, InspectorWidget>
 {
-    SCORE_CONCRETE("4c7c9f7d-50ff-4443-ae85-d2c340e17c44")
+  SCORE_CONCRETE("4c7c9f7d-50ff-4443-ae85-d2c340e17c44")
 };
 }

@@ -2,12 +2,11 @@
 #include <Process/Tools/ToolPalette.hpp>
 #include <QPoint>
 #include <Scenario/Document/BaseScenario/BaseElementContext.hpp>
-#include <Scenario/Palette/Tools/SmartTool.hpp>
-#include <score/statemachine/GraphicsSceneToolPalette.hpp>
-
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Palette/Tool.hpp>
+#include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/statemachine/GraphicsSceneToolPalette.hpp>
 
 class BaseGraphicsObject;
 
@@ -57,17 +56,21 @@ private:
   const Scenario::EditionSettings& m_editionSettings;
 
   Scenario::SmartTool<
-            Scenario::ProcessModel,
-            ScenarioDisplayedElementsToolPalette,
-            BaseGraphicsObject,
-            Scenario::MoveIntervalInScenario_StateWrapper,
-            Scenario::MoveLeftBraceInScenario_StateWrapper,
-            Scenario::MoveRightBraceInScenario_StateWrapper,
-            Scenario::MoveEventInTopScenario_StateWrapper,
-            Scenario::MoveTimeSyncInTopScenario_StateWrapper>
-          m_state;
+      Scenario::ProcessModel,
+      ScenarioDisplayedElementsToolPalette,
+      BaseGraphicsObject,
+      Scenario::MoveIntervalInScenario_StateWrapper,
+      Scenario::MoveLeftBraceInScenario_StateWrapper,
+      Scenario::MoveRightBraceInScenario_StateWrapper,
+      Scenario::MoveEventInTopScenario_StateWrapper,
+      Scenario::MoveTimeSyncInTopScenario_StateWrapper>
+      m_state;
 
-  ToolPaletteInputDispatcher<Scenario::Tool, ScenarioDisplayedElementsToolPalette, BaseElementContext, ScenarioDocumentPresenter>
+  ToolPaletteInputDispatcher<
+      Scenario::Tool,
+      ScenarioDisplayedElementsToolPalette,
+      BaseElementContext,
+      ScenarioDocumentPresenter>
       m_inputDisp;
 };
 }

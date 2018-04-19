@@ -1,18 +1,16 @@
 #pragma once
+#include <Media/Effect/EffectProcessMetadata.hpp>
+#include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
+#include <boost/iterator/indirect_iterator.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
-#include <Media/Effect/EffectProcessMetadata.hpp>
-#include <Process/Process.hpp>
-#include <boost/iterator/indirect_iterator.hpp>
-#include <Process/Dataflow/Port.hpp>
 namespace Media
 {
 namespace Effect
 {
 class ProcessModel;
-
 
 template <typename T>
 class EntityList
@@ -77,16 +75,18 @@ public:
   }
   auto find(const Id<T>& id) const
   {
-    return ossia::find_if(m_list, [&] (auto ptr) { return ptr->id() == id; });
+    return ossia::find_if(m_list, [&](auto ptr) { return ptr->id() == id; });
   }
   auto find(const Id<T>& id)
   {
-    return ossia::find_if(m_list, [&] (auto ptr) { return ptr->id() == id; });
+    return ossia::find_if(m_list, [&](auto ptr) { return ptr->id() == id; });
   }
 
   auto index(const Id<T>& id) const
   {
-    auto it = ossia::find_if(m_list, [&] (auto ptr) { return ptr->id() == id; });;
+    auto it
+        = ossia::find_if(m_list, [&](auto ptr) { return ptr->id() == id; });
+    ;
     SCORE_ASSERT(it != m_list.end());
     return std::distance(m_list.begin(), it);
   }
@@ -171,7 +171,6 @@ public:
     orderChanged();
   }
 
-
 private:
   std::list<T*> m_list;
 };
@@ -191,75 +190,75 @@ private:
  */
 class ProcessModel final : public Process::ProcessModel
 {
-        SCORE_SERIALIZE_FRIENDS
-        PROCESS_METADATA_IMPL(Media::Effect::ProcessModel)
+  SCORE_SERIALIZE_FRIENDS
+  PROCESS_METADATA_IMPL(Media::Effect::ProcessModel)
 
-        Q_OBJECT
-        Q_PROPERTY(bool badChaining READ badChaining WRITE setBadChaining NOTIFY badChainingChanged)
-    public:
-        explicit ProcessModel(
-                const TimeVal& duration,
-                const Id<Process::ProcessModel>& id,
-                QObject* parent);
+  Q_OBJECT
+  Q_PROPERTY(bool badChaining READ badChaining WRITE setBadChaining NOTIFY
+                 badChainingChanged)
+public:
+  explicit ProcessModel(
+      const TimeVal& duration,
+      const Id<Process::ProcessModel>& id,
+      QObject* parent);
 
+  ~ProcessModel() override;
 
-        ~ProcessModel() override;
+  template <typename Impl>
+  explicit ProcessModel(Impl& vis, QObject* parent)
+      : Process::ProcessModel{vis, parent}
+  {
+    vis.writeTo(*this);
+    init();
+  }
 
-        template<typename Impl>
-        explicit ProcessModel(
-                Impl& vis,
-                QObject* parent) :
-            Process::ProcessModel{vis, parent}
-        {
-            vis.writeTo(*this);
-            init();
-        }
+  void init()
+  {
+    m_inlets.push_back(inlet.get());
+    m_outlets.push_back(outlet.get());
+  }
+  const EntityList<Process::ProcessModel>& effects() const
+  {
+    return m_effects;
+  }
 
-        void init()
-        {
-          m_inlets.push_back(inlet.get());
-          m_outlets.push_back(outlet.get());
-        }
-        const EntityList<Process::ProcessModel>& effects() const
-        { return m_effects; }
+  void insertEffect(Process::ProcessModel* eff, int pos);
+  void removeEffect(const Id<Process::ProcessModel>&);
+  void moveEffect(const Id<Process::ProcessModel>&, int new_pos);
 
-        void insertEffect(Process::ProcessModel* eff, int pos);
-        void removeEffect(const Id<Process::ProcessModel>&);
-        void moveEffect(const Id<Process::ProcessModel>&, int new_pos);
+  int effectPosition(const Id<Process::ProcessModel>& e) const;
 
-        int effectPosition(const Id<Process::ProcessModel>& e) const;
+  std::unique_ptr<Process::Inlet> inlet{};
+  std::unique_ptr<Process::Outlet> outlet{};
 
-        std::unique_ptr<Process::Inlet> inlet{};
-        std::unique_ptr<Process::Outlet> outlet{};
-
-        void checkChaining();
-        bool badChaining() const
-        {
-          return m_badChaining;
-        }
+  void checkChaining();
+  bool badChaining() const
+  {
+    return m_badChaining;
+  }
 
 public Q_SLOTS:
-        void setBadChaining(bool badChaining)
-        {
-          if (m_badChaining == badChaining)
-            return;
+  void setBadChaining(bool badChaining)
+  {
+    if (m_badChaining == badChaining)
+      return;
 
-          m_badChaining = badChaining;
-          badChainingChanged(m_badChaining);
-        }
+    m_badChaining = badChaining;
+    badChainingChanged(m_badChaining);
+  }
 
 Q_SIGNALS:
-        void effectsChanged();
+  void effectsChanged();
 
-        void badChainingChanged(bool badChaining);
+  void badChainingChanged(bool badChaining);
 
 private:
-        Selection selectableChildren() const override;
-        Selection selectedChildren() const override;
-        void setSelection(const Selection& s) const override;
-        // The actual effect instances
-        EntityList<Process::ProcessModel> m_effects;
-        bool m_badChaining{false};
+  Selection selectableChildren() const override;
+  Selection selectedChildren() const override;
+  void setSelection(const Selection& s) const override;
+  // The actual effect instances
+  EntityList<Process::ProcessModel> m_effects;
+  bool m_badChaining{false};
 };
 }
 }

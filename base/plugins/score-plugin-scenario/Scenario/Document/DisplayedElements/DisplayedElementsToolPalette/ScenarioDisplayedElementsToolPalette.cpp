@@ -1,28 +1,26 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "ScenarioDisplayedElementsToolPalette.hpp"
+
+#include <Process/TimeValue.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Document/BaseScenario/BaseElementContext.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <Scenario/Palette/ScenarioPoint.hpp>
-
-#include <algorithm>
-#include <score/application/ApplicationContext.hpp>
-#include <score/tools/std/Optional.hpp>
-
-#include "ScenarioDisplayedElementsToolPalette.hpp"
-#include <Process/TimeValue.hpp>
-#include <Scenario/Document/BaseScenario/BaseElementContext.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <score/widgets/GraphicsProxyObject.hpp>
-
-#include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
-#include <score/statemachine/GraphicsSceneToolPalette.hpp>
+#include <algorithm>
+#include <score/application/ApplicationContext.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/statemachine/GraphicsSceneToolPalette.hpp>
+#include <score/tools/std/Optional.hpp>
+#include <score/widgets/GraphicsProxyObject.hpp>
 
 namespace Scenario
 {
@@ -48,7 +46,7 @@ ScenarioDisplayedElementsToolPalette::ScenarioDisplayedElementsToolPalette(
     , m_context{pres.context(), m_presenter}
     , m_view{view}
     , m_editionSettings{m_context.context.app
-                        .guiApplicationPlugin<ScenarioApplicationPlugin>()
+                            .guiApplicationPlugin<ScenarioApplicationPlugin>()
                             .editionSettings()}
     , m_state{*this}
     , m_inputDisp{m_presenter, *this, m_context}

@@ -19,10 +19,10 @@ namespace score
  *   This happens after the object has been constructed.
  */
 class SCORE_LIB_BASE_EXPORT SerializableDocumentPlugin
-    : public DocumentPlugin,
-      public SerializableInterface<DocumentPluginFactory>
+    : public DocumentPlugin
+    , public SerializableInterface<DocumentPluginFactory>
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
   virtual void serializeAfterDocument(const VisitorVariant& vis) const;
   virtual void reloadAfterDocument(const VisitorVariant& vis);
@@ -44,8 +44,8 @@ class SCORE_LIB_BASE_EXPORT DocumentPluginFactory
 public:
   virtual ~DocumentPluginFactory();
 
-  virtual DocumentPlugin* load(
-      const VisitorVariant& var, score::DocumentContext& doc, QObject* parent)
+  virtual DocumentPlugin*
+  load(const VisitorVariant& var, score::DocumentContext& doc, QObject* parent)
       = 0;
 };
 class SCORE_LIB_BASE_EXPORT DocumentPluginFactoryList final
@@ -79,8 +79,8 @@ public:
     return Metadata<ConcreteKey_k, T>::get();
   }
 
-  UuidKey<score::DocumentPluginFactory>
-  concreteKey() const noexcept final override
+  UuidKey<score::DocumentPluginFactory> concreteKey() const
+      noexcept final override
   {
     return Metadata<ConcreteKey_k, T>::get();
   }

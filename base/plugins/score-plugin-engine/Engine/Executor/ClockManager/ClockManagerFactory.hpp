@@ -1,10 +1,10 @@
 #pragma once
+#include <ossia/editor/scenario/time_value.hpp>
+
+#include <Process/TimeValue.hpp>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
 #include <score/plugins/customfactory/FactoryInterface.hpp>
 #include <score_plugin_engine_export.h>
-
-#include <Process/TimeValue.hpp>
-#include <ossia/editor/scenario/time_value.hpp>
 #include <smallfun.hpp>
 namespace score
 {
@@ -36,7 +36,8 @@ class BaseScenarioElement;
  */
 
 using time_function = smallfun::function<ossia::time_value(const TimeVal&)>;
-using reverse_time_function = smallfun::function<TimeVal(const ossia::time_value&)>;
+using reverse_time_function
+    = smallfun::function<TimeVal(const ossia::time_value&)>;
 class SCORE_PLUGIN_ENGINE_EXPORT ClockManager
 {
 public:

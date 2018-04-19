@@ -2,10 +2,8 @@
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/detail/hash_map.hpp>
 
-#include <score/tools/std/StringHash.hpp>
-
 #include <QtQml/QJSEngine>
-
+#include <score/tools/std/StringHash.hpp>
 
 namespace JS
 {

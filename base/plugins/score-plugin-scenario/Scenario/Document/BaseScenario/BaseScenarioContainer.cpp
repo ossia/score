@@ -1,19 +1,18 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Document/Interval/IntervalModel.hpp>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "BaseScenarioContainer.hpp"
+
+#include <Process/TimeValue.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
-
-#include <score/tools/std/Optional.hpp>
-
-#include "BaseScenarioContainer.hpp"
-#include <Process/TimeValue.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/tools/std/Optional.hpp>
 namespace Scenario
 {
 
@@ -31,10 +30,8 @@ BaseScenarioContainer::BaseScenarioContainer(QObject* parentObject)
                                   TimeVal::zero(),
                                   m_parent};
   m_startNode->metadata().setName("Sync.start");
-  m_endNode = new TimeSyncModel{Scenario::endId<TimeSyncModel>(),
-                                {0.2, 0.8},
-                                TimeVal::zero(),
-                                m_parent};
+  m_endNode = new TimeSyncModel{
+      Scenario::endId<TimeSyncModel>(), {0.2, 0.8}, TimeVal::zero(), m_parent};
   m_endNode->metadata().setName("Sync.end");
   m_startEvent = new EventModel{Scenario::startId<EventModel>(),
                                 m_startNode->id(),

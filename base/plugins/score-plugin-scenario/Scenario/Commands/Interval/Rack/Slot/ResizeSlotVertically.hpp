@@ -12,24 +12,20 @@ namespace Scenario
 namespace Command
 {
 /**
-         * @brief The ResizeSlotVerticallyCommand class
-         *
-         * Changes a slot's vertical size
-         */
+ * @brief The ResizeSlotVerticallyCommand class
+ *
+ * Changes a slot's vertical size
+ */
 class SCORE_PLUGIN_SCENARIO_EXPORT ResizeSlotVertically final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), ResizeSlotVertically, "Resize a slot")
 public:
-    ResizeSlotVertically(
-      const IntervalModel& cst,
-      const SlotPath& slotPath,
-      double newSize);
   ResizeSlotVertically(
-      const IntervalModel& cst,
-      SlotPath&& slotPath,
-      double newSize);
+      const IntervalModel& cst, const SlotPath& slotPath, double newSize);
+  ResizeSlotVertically(
+      const IntervalModel& cst, SlotPath&& slotPath, double newSize);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

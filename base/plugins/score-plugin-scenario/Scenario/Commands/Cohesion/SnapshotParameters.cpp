@@ -1,25 +1,25 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "SnapshotParameters.hpp"
+
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <QList>
 #include <QPointer>
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <Scenario/Commands/State/SnapshotStatesMacro.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
+#include <State/Message.hpp>
 #include <algorithm>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
-#include <vector>
-
-#include "SnapshotParameters.hpp"
-#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <State/Message.hpp>
-#include <score/selection/Selectable.hpp>
-#include <score/selection/SelectionStack.hpp>
 #include <score/model/IdentifiedObjectAbstract.hpp>
 #include <score/model/path/Path.hpp>
+#include <score/selection/Selectable.hpp>
+#include <score/selection/SelectionStack.hpp>
+#include <vector>
 
 namespace Scenario
 {

@@ -1,13 +1,13 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "CurveView.hpp"
+
 #include <QEvent>
 #include <QFlags>
 #include <QGraphicsSceneEvent>
 #include <QKeyEvent>
 #include <QPainter>
 #include <qnamespace.h>
-
-#include "CurveView.hpp"
 
 class QStyleOptionGraphicsItem;
 class QWidget;
@@ -98,31 +98,33 @@ QRectF View::boundingRect() const
 
 QPixmap View::pixmap()
 {
-    // Retrieve the bounding rect
-    QRect rect = boundingRect().toRect();
-    if (rect.isNull() || !rect.isValid()) {
-        return QPixmap();
-    }
+  // Retrieve the bounding rect
+  QRect rect = boundingRect().toRect();
+  if (rect.isNull() || !rect.isValid())
+  {
+    return QPixmap();
+  }
 
-    // Create the pixmap
-    QPixmap pixmap(rect.size());
-    pixmap.fill(Qt::transparent);
+  // Create the pixmap
+  QPixmap pixmap(rect.size());
+  pixmap.fill(Qt::transparent);
 
-    // Render
-    QPainter painter(&pixmap);
-    painter.setRenderHint(QPainter::Antialiasing, true);
-    painter.setRenderHint(QPainter::TextAntialiasing, true);
-    painter.translate(-rect.topLeft());
-    paint(&painter, nullptr, nullptr);
-    for (QGraphicsItem* child : childItems()) {
-        painter.save();
-        painter.translate(child->mapToParent(pos()));
-        child->paint(&painter, nullptr, nullptr);
-        painter.restore();
-    }
+  // Render
+  QPainter painter(&pixmap);
+  painter.setRenderHint(QPainter::Antialiasing, true);
+  painter.setRenderHint(QPainter::TextAntialiasing, true);
+  painter.translate(-rect.topLeft());
+  paint(&painter, nullptr, nullptr);
+  for (QGraphicsItem* child : childItems())
+  {
+    painter.save();
+    painter.translate(child->mapToParent(pos()));
+    child->paint(&painter, nullptr, nullptr);
+    painter.restore();
+  }
 
-    painter.end();
+  painter.end();
 
-    return pixmap;
+  return pixmap;
 }
 }

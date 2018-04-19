@@ -1,21 +1,21 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <score/tools/std/Optional.hpp>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "StandardCreationPolicy.hpp"
+
 #include <Process/TimeValue.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/tools/std/Optional.hpp>
 
 namespace Scenario
 {
@@ -143,10 +143,8 @@ IntervalModel& ScenarioCreate<IntervalModel>::redo(
   {
     interval->duration.setRigid(false);
     const auto& dur = interval->duration.defaultDuration();
-    interval->duration.setMinDuration(
-        TimeVal::fromMsecs(0.8 * dur.msec()));
-    interval->duration.setMaxDuration(
-        TimeVal::fromMsecs(1.2 * dur.msec()));
+    interval->duration.setMinDuration(TimeVal::fromMsecs(0.8 * dur.msec()));
+    interval->duration.setMaxDuration(TimeVal::fromMsecs(1.2 * dur.msec()));
   }
 
   return *interval;

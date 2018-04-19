@@ -1,11 +1,11 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Automation/Spline/SplineAutomView.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
+#include <QColorDialog>
+#include <QEasingCurve>
 #include <QGraphicsSceneMoveEvent>
 #include <QPainter>
-#include <QEasingCurve>
-#include <QColorDialog>
-#include <Process/Style/ScenarioStyle.hpp>
 // Disclaimer:
 // Part of the code comes from splineeditor.cpp from
 // the Qt project:
@@ -14,26 +14,22 @@
 
 namespace Spline
 {
-View::View(QGraphicsItem* parent)
-  : LayerView{parent}
+View::View(QGraphicsItem* parent) : LayerView{parent}
 {
   static_assert(std::is_same<tinyspline::real, qreal>::value, "");
-  this->setFlags(QGraphicsItem::ItemIsFocusable |
-                 QGraphicsItem::ItemClipsToShape);
+  this->setFlags(
+      QGraphicsItem::ItemIsFocusable | QGraphicsItem::ItemClipsToShape);
 }
-
-
 
 ossia::nodes::spline_point View::mapFromCanvas(const QPointF& point) const
 {
-  return ossia::nodes::spline_point{
-        (double)point.x() / width() ,
-        1. - point.y() / height()};
+  return ossia::nodes::spline_point{(double)point.x() / width(),
+                                    1. - point.y() / height()};
 }
 
 void View::paint_impl(QPainter* p) const
 {
-  if(m_spline.points.empty())
+  if (m_spline.points.empty())
     return;
 
   auto& skin = ScenarioStyle::instance();
@@ -55,7 +51,6 @@ void View::paint_impl(QPainter* p) const
   }
   painter.strokePath(path, segmt);
 
-
   const auto pts = m_spline.points.size();
 
   // Handle first point
@@ -66,11 +61,8 @@ void View::paint_impl(QPainter* p) const
     painter.setBrush(QColor(170, 220, 20));
   else
     painter.setBrush(QColor(170, 220, 220));
-  painter.drawEllipse(QRectF{fp.x() - pointSize,
-                       fp.y() - pointSize,
-                       pointSize * 2.,
-                       pointSize * 2.
-                      });
+  painter.drawEllipse(QRectF{fp.x() - pointSize, fp.y() - pointSize,
+                             pointSize * 2., pointSize * 2.});
 
   // Remaining points
   for (std::size_t i = 1U; i < pts; i++)
@@ -85,31 +77,22 @@ void View::paint_impl(QPainter* p) const
       painter.setBrush(QColor(170, 220, 220));
 
     painter.setPen(QPen(Qt::transparent));
-    painter.drawEllipse(QRectF{p.x() - pointSize,
-                         p.y() - pointSize,
-                         pointSize * 2.,
-                         pointSize * 2.
-                        });
+    painter.drawEllipse(QRectF{p.x() - pointSize, p.y() - pointSize,
+                               pointSize * 2., pointSize * 2.});
     fp = p;
   }
-
 }
 
 void View::updateSpline()
 {
-  m_spl = tinyspline::BSpline{
-          3,
-          2,
-          m_spline.points.size(),
-          TS_CLAMPED
-       };
+  m_spl = tinyspline::BSpline{3, 2, m_spline.points.size(), TS_CLAMPED};
   ts_bspline_set_ctrlp(
-        m_spl.data(),
-        reinterpret_cast<const tinyspline::real*>(m_spline.points.data()),
-        m_spl.data());
+      m_spl.data(),
+      reinterpret_cast<const tinyspline::real*>(m_spline.points.data()),
+      m_spl.data());
 }
 
-void View::mousePressEvent(QGraphicsSceneMouseEvent *e)
+void View::mousePressEvent(QGraphicsSceneMouseEvent* e)
 {
   auto btn = e->button();
   if (btn == Qt::LeftButton)
@@ -120,7 +103,7 @@ void View::mousePressEvent(QGraphicsSceneMouseEvent *e)
     }
     e->accept();
   }
-  else if(btn == Qt::RightButton)
+  else if (btn == Qt::RightButton)
   {
     // Delete
 
@@ -128,10 +111,10 @@ void View::mousePressEvent(QGraphicsSceneMouseEvent *e)
   }
 }
 
-void View::mouseMoveEvent(QGraphicsSceneMouseEvent *e)
+void View::mouseMoveEvent(QGraphicsSceneMouseEvent* e)
 {
   auto p = mapFromCanvas(e->pos());
-  if(!m_clicked)
+  if (!m_clicked)
     return;
   const auto mp = *m_clicked;
   const auto N = m_spline.points.size();
@@ -144,7 +127,7 @@ void View::mouseMoveEvent(QGraphicsSceneMouseEvent *e)
   }
 }
 
-void View::mouseReleaseEvent(QGraphicsSceneMouseEvent *e)
+void View::mouseReleaseEvent(QGraphicsSceneMouseEvent* e)
 {
   if (m_clicked)
   {
@@ -194,9 +177,8 @@ optional<std::size_t> View::findControlPoint(QPointF point)
     }
   }
 
-  if(pointIndex != -1)
+  if (pointIndex != -1)
     return pointIndex;
   return {};
 }
-
 }

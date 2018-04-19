@@ -1,15 +1,16 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QComboBox>
-#include <QGridLayout>
-#include <QLabel>
-
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MIDIProtocolSettingsWidget.hpp"
+
 #include "MIDISpecificSettings.hpp"
+
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QFormLayout>
+#include <QGridLayout>
 #include <QGroupBox>
+#include <QLabel>
 #include <QLineEdit>
 #include <QRadioButton>
 #include <QString>

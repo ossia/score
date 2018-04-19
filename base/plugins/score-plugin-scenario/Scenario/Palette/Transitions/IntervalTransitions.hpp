@@ -22,16 +22,14 @@ protected:
   }
 };
 template <typename Scenario_T>
-using ClickOnInterval_Transition
-    = Transition_T<Scenario_T, ClickOnInterval>;
+using ClickOnInterval_Transition = Transition_T<Scenario_T, ClickOnInterval>;
 
 template <typename Scenario_T>
 class Transition_T<Scenario_T, MoveOnInterval> final
     : public MatchedTransition<Scenario_T, MoveOnInterval_Event>
 {
 public:
-  using MatchedTransition<Scenario_T, MoveOnInterval_Event>::
-      MatchedTransition;
+  using MatchedTransition<Scenario_T, MoveOnInterval_Event>::MatchedTransition;
 
 protected:
   void onTransition(QEvent* ev) override

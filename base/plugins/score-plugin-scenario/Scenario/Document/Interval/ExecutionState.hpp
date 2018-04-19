@@ -3,7 +3,7 @@
 
 namespace Scenario
 {
-enum class IntervalExecutionState: uint8_t
+enum class IntervalExecutionState : uint8_t
 {
   Enabled,
   Disabled,

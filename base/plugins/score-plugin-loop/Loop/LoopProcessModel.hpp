@@ -1,15 +1,14 @@
 #pragma once
 #include <Loop/LoopProcessMetadata.hpp>
 #include <Process/Process.hpp>
+#include <Process/TimeValue.hpp>
 #include <QByteArray>
 #include <QString>
 #include <QVector>
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
-
-#include <Process/TimeValue.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/serialization/VisitorInterface.hpp>
-#include <score/model/Identifier.hpp>
 #include <score_plugin_loop_export.h>
 
 class DataStream;
@@ -24,8 +23,8 @@ class IntervalModel;
 namespace Loop
 {
 class SCORE_PLUGIN_LOOP_EXPORT ProcessModel final
-    : public Process::ProcessModel,
-      public Scenario::BaseScenarioContainer
+    : public Process::ProcessModel
+    , public Scenario::BaseScenarioContainer
 {
   Q_OBJECT
   SCORE_SERIALIZE_FRIENDS

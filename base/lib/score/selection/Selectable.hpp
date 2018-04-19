@@ -1,7 +1,7 @@
 #pragma once
 #include <QObject>
-#include <wobjectdefs.h>
 #include <score_lib_base_export.h>
+#include <wobjectdefs.h>
 
 /**
  * @brief The Selectable class
@@ -36,9 +36,8 @@ public:
     }
   }
 
-  void set(bool b) const W_SIGNAL(set, b)
-  void changed(bool b) W_SIGNAL(changed, b)
+  void set(bool b) const W_SIGNAL(set, b) void changed(bool b)
+      W_SIGNAL(changed, b)
 
-private:
-  bool m_val{};
+          private : bool m_val{};
 };

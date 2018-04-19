@@ -14,8 +14,9 @@ class QWidget;
 
 namespace Curve
 {
-class SCORE_PLUGIN_CURVE_EXPORT View final : public QObject,
-                                              public QGraphicsItem
+class SCORE_PLUGIN_CURVE_EXPORT View final
+    : public QObject
+    , public QGraphicsItem
 {
   Q_OBJECT
   Q_INTERFACES(QGraphicsItem)

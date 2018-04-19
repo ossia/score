@@ -27,5 +27,4 @@ private:
   int m_row = 0;
   int m_col = 0;
 };
-
 }

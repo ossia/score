@@ -1,8 +1,8 @@
 #pragma once
 #include <Midi/Commands/CommandFactory.hpp>
 #include <Midi/MidiNote.hpp>
-#include <score/model/path/Path.hpp>
 #include <Process/TimeValue.hpp>
+#include <score/model/path/Path.hpp>
 namespace Midi
 {
 class ProcessModel;
@@ -26,12 +26,16 @@ private:
   NoteData m_note;
 };
 
-
 class ReplaceNotes final : public score::Command
 {
   SCORE_COMMAND_DECL(Midi::CommandFactoryName(), ReplaceNotes, "Set notes")
 public:
-  ReplaceNotes(const ProcessModel& model, const std::vector<NoteData>& note, int min, int max, TimeVal dur);
+  ReplaceNotes(
+      const ProcessModel& model,
+      const std::vector<NoteData>& note,
+      int min,
+      int max,
+      TimeVal dur);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

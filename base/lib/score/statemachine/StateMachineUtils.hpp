@@ -1,9 +1,8 @@
 #pragma once
-#include <score/model/path/Path.hpp>
-
 #include <QAbstractTransition>
 #include <QEvent>
 #include <QState>
+#include <score/model/path/Path.hpp>
 
 /**
  * This file contains base types for the events and transitions of

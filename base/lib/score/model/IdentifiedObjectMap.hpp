@@ -1,12 +1,10 @@
 #pragma once
-#include <score/model/IdentifiedObject.hpp>
-
+#include <boost/iterator/indirect_iterator.hpp>
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/sequenced_index.hpp>
 #include <boost/multi_index_container.hpp>
-
-#include <boost/iterator/indirect_iterator.hpp>
+#include <score/model/IdentifiedObject.hpp>
 // This file contains a fast map for items based on their identifier,
 // based on boost's multi-index maps.
 
@@ -99,7 +97,8 @@ protected:
 // inheritance.
 
 /** This map is for classes which inherit from
- * IdentifiedObject<T> and don't have an id() method by themselves, e.g. all the model objects.
+ * IdentifiedObject<T> and don't have an id() method by themselves, e.g. all
+ * the model objects.
  *
  * Additionnally, items are ordered; iteration occurs on the ordered iterators.
  *
@@ -108,15 +107,39 @@ protected:
  * * `get<1>()` gets the ordered (like std::vector) iterator.
  */
 template <typename Element, typename Model>
-class
-    IdContainer<Element, Model, std::enable_if_t<std::is_base_of<IdentifiedObject<Model>, Element>::value>>
-    : public MapBase<Element, Model, bmi::multi_index_container<Element*, bmi::indexed_by<bmi::hashed_unique<bmi::const_mem_fun<IdentifiedObject<Model>, const Id<Model>&, &IdentifiedObject<Model>::id>>, bmi::sequenced<>>>>
+class IdContainer<
+    Element,
+    Model,
+    std::enable_if_t<std::is_base_of<IdentifiedObject<Model>, Element>::value>>
+    : public MapBase<
+          Element,
+          Model,
+          bmi::multi_index_container<
+              Element*,
+              bmi::indexed_by<
+                  bmi::hashed_unique<bmi::const_mem_fun<
+                      IdentifiedObject<Model>,
+                      const Id<Model>&,
+                      &IdentifiedObject<Model>::id>>,
+                  bmi::sequenced<>>>>
 {
 public:
-  using MapBase<Element, Model, bmi::multi_index_container<Element*, bmi::indexed_by<bmi::hashed_unique<bmi::const_mem_fun<IdentifiedObject<Model>, const Id<Model>&, &IdentifiedObject<Model>::id>>, bmi::sequenced<>>>>::
-      MapBase;
+  using MapBase<
+      Element,
+      Model,
+      bmi::multi_index_container<
+          Element*,
+          bmi::indexed_by<
+              bmi::hashed_unique<bmi::const_mem_fun<
+                  IdentifiedObject<Model>,
+                  const Id<Model>&,
+                  &IdentifiedObject<Model>::id>>,
+              bmi::sequenced<>>>>::MapBase;
 
-  auto& ordered() { return this->m_map.template get<1>(); }
+  auto& ordered()
+  {
+    return this->m_map.template get<1>();
+  }
 
   auto begin() const
   {
@@ -251,12 +274,29 @@ public:
  * like a Presenter whose id() would return its model's.
  */
 template <typename Element, typename Model>
-class
-    IdContainer<Element, Model, std::enable_if_t<!std::is_base_of<IdentifiedObject<Model>, Element>::value>>
-    : public MapBase<Element, Model, bmi::multi_index_container<Element*, bmi::indexed_by<bmi::hashed_unique<bmi::const_mem_fun<Element, const Id<Model>&, &Element::id>>>>>
+class IdContainer<
+    Element,
+    Model,
+    std::enable_if_t<
+        !std::is_base_of<IdentifiedObject<Model>, Element>::value>>
+    : public MapBase<
+          Element,
+          Model,
+          bmi::multi_index_container<
+              Element*,
+              bmi::indexed_by<bmi::hashed_unique<bmi::const_mem_fun<
+                  Element,
+                  const Id<Model>&,
+                  &Element::id>>>>>
 {
 public:
-  using MapBase<Element, Model, bmi::multi_index_container<Element*, bmi::indexed_by<bmi::hashed_unique<bmi::const_mem_fun<Element, const Id<Model>&, &Element::id>>>>>::
+  using MapBase<
+      Element,
+      Model,
+      bmi::multi_index_container<
+          Element*,
+          bmi::indexed_by<bmi::hashed_unique<
+              bmi::const_mem_fun<Element, const Id<Model>&, &Element::id>>>>>::
       MapBase;
 
   auto begin() const

@@ -1,13 +1,10 @@
 #pragma once
 #include <Scenario/Palette/Tools/ScenarioToolState.hpp>
-#include <score/selection/SelectionDispatcher.hpp>
-
-#include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
-
 #include <Scenario/Palette/Tools/States/ResizeSlotState.hpp>
 #include <Scenario/Palette/Tools/States/ScenarioSelectionState.hpp>
-
 #include <Scenario/Palette/Transitions/SlotTransitions.hpp>
+#include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
 
 namespace Scenario
 {
@@ -30,8 +27,8 @@ public:
   {
     // Selection
     m_state = new SelectionState<ToolPalette_T, View_T>{
-      this->m_palette.context().context.selectionStack, this->m_palette,
-          this->m_palette.presenter().view(), &this->localSM()};
+        this->m_palette.context().context.selectionStack, this->m_palette,
+        this->m_palette.presenter().view(), &this->localSM()};
 
     // this->localSM().setInitialState(m_state);
 
@@ -42,23 +39,23 @@ public:
       actionsState->setInitialState(waitState);
 
       MoveIntervalWrapper_T::template make<Scenario_T, ToolPalette_T>(
-            this->m_palette, waitState, *actionsState);
+          this->m_palette, waitState, *actionsState);
       MoveLeftBraceWrapper_T::template make<Scenario_T, ToolPalette_T>(
-            this->m_palette, waitState, *actionsState);
+          this->m_palette, waitState, *actionsState);
       MoveRightBraceWrapper_T::template make<Scenario_T, ToolPalette_T>(
-            this->m_palette, waitState, *actionsState);
+          this->m_palette, waitState, *actionsState);
       MoveEventWrapper_T::template make<Scenario_T, ToolPalette_T>(
-            this->m_palette, waitState, *actionsState);
+          this->m_palette, waitState, *actionsState);
       MoveTimeSyncWrapper_T::template make<Scenario_T, ToolPalette_T>(
-            this->m_palette, waitState, *actionsState);
+          this->m_palette, waitState, *actionsState);
 
       /// Slot resize
       auto resizeSlot = new ResizeSlotState<Scenario_T, ToolPalette_T>{
-        this->m_palette.context().context.commandStack, this->m_palette,
-            actionsState};
+          this->m_palette.context().context.commandStack, this->m_palette,
+          actionsState};
 
       score::make_transition<ClickOnSlotHandle_Transition>(
-            waitState, resizeSlot, *resizeSlot);
+          waitState, resizeSlot, *resizeSlot);
 
       resizeSlot->addTransition(resizeSlot, finishedState(), waitState);
     }
@@ -72,100 +69,88 @@ public:
     using namespace std;
 
     this->mapTopItem(
-          this->itemUnderMouse(scene),
-          [&](const Id<StateModel>& id) // State
-    {
-      const auto& elt = this->m_palette.presenter().state(id);
+        this->itemUnderMouse(scene),
+        [&](const Id<StateModel>& id) // State
+        {
+          const auto& elt = this->m_palette.presenter().state(id);
 
-      m_state->dispatcher.setAndCommit(
-            filterSelections(
-              &elt.model(),
-              this->m_palette.model().selectedChildren(),
+          m_state->dispatcher.setAndCommit(filterSelections(
+              &elt.model(), this->m_palette.model().selectedChildren(),
               m_state->multiSelection()));
 
-      this->localSM().postEvent(new ClickOnState_Event{id, sp});
-      m_nothingPressed = false;
-    },
-    [&](const Id<EventModel>& id) // Event
-    {
-      const auto& elt = this->m_palette.presenter().event(id);
+          this->localSM().postEvent(new ClickOnState_Event{id, sp});
+          m_nothingPressed = false;
+        },
+        [&](const Id<EventModel>& id) // Event
+        {
+          const auto& elt = this->m_palette.presenter().event(id);
 
-      m_state->dispatcher.setAndCommit(
-            filterSelections(
-              &elt.model(),
-              this->m_palette.model().selectedChildren(),
+          m_state->dispatcher.setAndCommit(filterSelections(
+              &elt.model(), this->m_palette.model().selectedChildren(),
               m_state->multiSelection()));
 
-      this->localSM().postEvent(new ClickOnEvent_Event{id, sp});
-      m_nothingPressed = false;
-    },
-    [&](const Id<TimeSyncModel>& id) // TimeSync
-    {
-      const auto& elt = this->m_palette.presenter().timeSync(id);
+          this->localSM().postEvent(new ClickOnEvent_Event{id, sp});
+          m_nothingPressed = false;
+        },
+        [&](const Id<TimeSyncModel>& id) // TimeSync
+        {
+          const auto& elt = this->m_palette.presenter().timeSync(id);
 
-      m_state->dispatcher.setAndCommit(
-            filterSelections(
-              &elt.model(),
-              this->m_palette.model().selectedChildren(),
+          m_state->dispatcher.setAndCommit(filterSelections(
+              &elt.model(), this->m_palette.model().selectedChildren(),
               m_state->multiSelection()));
-      this->localSM().postEvent(new ClickOnTimeSync_Event{id, sp});
-      m_nothingPressed = false;
-    },
-    [&](const Id<IntervalModel>& id) // Interval
-    {
-      const auto& elt = this->m_palette.presenter().interval(id);
-      if(!elt.isSelected())
-      {
-        m_state->dispatcher.setAndCommit(
-              filterSelections(
-                &elt.model(),
-                this->m_palette.model().selectedChildren(),
+          this->localSM().postEvent(new ClickOnTimeSync_Event{id, sp});
+          m_nothingPressed = false;
+        },
+        [&](const Id<IntervalModel>& id) // Interval
+        {
+          const auto& elt = this->m_palette.presenter().interval(id);
+          if (!elt.isSelected())
+          {
+            m_state->dispatcher.setAndCommit(filterSelections(
+                &elt.model(), this->m_palette.model().selectedChildren(),
                 m_state->multiSelection()));
-      }
-      this->localSM().postEvent(new ClickOnInterval_Event{id, sp});
-      m_nothingPressed = false;
-    },
-    [&](const Id<IntervalModel>& id) // LeftBrace
-    {
-      const auto& elt = this->m_palette.presenter().interval(id);
+          }
+          this->localSM().postEvent(new ClickOnInterval_Event{id, sp});
+          m_nothingPressed = false;
+        },
+        [&](const Id<IntervalModel>& id) // LeftBrace
+        {
+          const auto& elt = this->m_palette.presenter().interval(id);
 
-      if(!elt.isSelected())
-      {
-        m_state->dispatcher.setAndCommit(
-              filterSelections(
-                &elt.model(),
-                this->m_palette.model().selectedChildren(),
+          if (!elt.isSelected())
+          {
+            m_state->dispatcher.setAndCommit(filterSelections(
+                &elt.model(), this->m_palette.model().selectedChildren(),
                 m_state->multiSelection()));
-      }
+          }
 
-      this->localSM().postEvent((new ClickOnLeftBrace_Event{id, sp}));
-      m_nothingPressed = false;
-    },
-    [&](const Id<IntervalModel>& id) // RightBrace
-    {
-      const auto& elt = this->m_palette.presenter().interval(id);
+          this->localSM().postEvent((new ClickOnLeftBrace_Event{id, sp}));
+          m_nothingPressed = false;
+        },
+        [&](const Id<IntervalModel>& id) // RightBrace
+        {
+          const auto& elt = this->m_palette.presenter().interval(id);
 
-      if(!elt.isSelected())
-      {
-        m_state->dispatcher.setAndCommit(
-              filterSelections(
-                &elt.model(),
-                this->m_palette.model().selectedChildren(),
+          if (!elt.isSelected())
+          {
+            m_state->dispatcher.setAndCommit(filterSelections(
+                &elt.model(), this->m_palette.model().selectedChildren(),
                 m_state->multiSelection()));
-      }
+          }
 
-      this->localSM().postEvent((new ClickOnRightBrace_Event{id, sp}));
-      m_nothingPressed = false;
-    },
-    [&](const SlotPath& slot) // Slot handle
-    {
-      this->localSM().postEvent(new ClickOnSlotHandle_Event{slot});
-      m_nothingPressed = false;
-    },
-    [&]() {
-      this->localSM().postEvent(new score::Press_Event);
-      m_nothingPressed = true;
-    });
+          this->localSM().postEvent((new ClickOnRightBrace_Event{id, sp}));
+          m_nothingPressed = false;
+        },
+        [&](const SlotPath& slot) // Slot handle
+        {
+          this->localSM().postEvent(new ClickOnSlotHandle_Event{slot});
+          m_nothingPressed = false;
+        },
+        [&]() {
+          this->localSM().postEvent(new score::Press_Event);
+          m_nothingPressed = true;
+        });
 
     m_moved = false;
   }
@@ -180,29 +165,29 @@ public:
     {
       m_moved = true;
       this->mapTopItem(
-            this->itemUnderMouse(scene),
-            [&](const Id<StateModel>& id) {
-        this->localSM().postEvent(new MoveOnState_Event{id, sp});
-      }, // state
-      [&](const Id<EventModel>& id) {
-        this->localSM().postEvent(new MoveOnEvent_Event{id, sp});
-      }, // event
-      [&](const Id<TimeSyncModel>& id) {
-        this->localSM().postEvent(new MoveOnTimeSync_Event{id, sp});
-      }, // timesync
-      [&](const Id<IntervalModel>& id) {
-        this->localSM().postEvent(new MoveOnInterval_Event{id, sp});
-      }, // interval
-      [&](const Id<IntervalModel>& id) {
-        this->localSM().postEvent(new MoveOnLeftBrace_Event{id, sp});
-      }, // LeftBrace
-      [&](const Id<IntervalModel>& id) {
-        this->localSM().postEvent(new MoveOnRightBrace_Event{id, sp});
-      }, // RightBrace
-      [&](const SlotPath& slot) {
-        this->localSM().postEvent(new MoveOnSlotHandle_Event{slot});
-      }, // Slot handle
-      [&]() { this->localSM().postEvent(new MoveOnNothing_Event{sp}); });
+          this->itemUnderMouse(scene),
+          [&](const Id<StateModel>& id) {
+            this->localSM().postEvent(new MoveOnState_Event{id, sp});
+          }, // state
+          [&](const Id<EventModel>& id) {
+            this->localSM().postEvent(new MoveOnEvent_Event{id, sp});
+          }, // event
+          [&](const Id<TimeSyncModel>& id) {
+            this->localSM().postEvent(new MoveOnTimeSync_Event{id, sp});
+          }, // timesync
+          [&](const Id<IntervalModel>& id) {
+            this->localSM().postEvent(new MoveOnInterval_Event{id, sp});
+          }, // interval
+          [&](const Id<IntervalModel>& id) {
+            this->localSM().postEvent(new MoveOnLeftBrace_Event{id, sp});
+          }, // LeftBrace
+          [&](const Id<IntervalModel>& id) {
+            this->localSM().postEvent(new MoveOnRightBrace_Event{id, sp});
+          }, // RightBrace
+          [&](const SlotPath& slot) {
+            this->localSM().postEvent(new MoveOnSlotHandle_Event{slot});
+          }, // Slot handle
+          [&]() { this->localSM().postEvent(new MoveOnNothing_Event{sp}); });
     }
   }
 
@@ -224,37 +209,37 @@ public:
     }
 
     this->mapTopItem(
-          this->itemUnderMouse(scene),
-          [&](const Id<StateModel>& id) // State
-    {
-      this->localSM().postEvent(new ReleaseOnState_Event{id, sp});
-    },
-    [&](const Id<EventModel>& id) // Event
-    {
-      this->localSM().postEvent(new ReleaseOnEvent_Event{id, sp});
-    },
-    [&](const Id<TimeSyncModel>& id) // TimeSync
-    {
-      this->localSM().postEvent(new ReleaseOnTimeSync_Event{id, sp});
-    },
-    [&](const Id<IntervalModel>& id) // Interval
-    {
-      this->localSM().postEvent(new ReleaseOnInterval_Event{id, sp});
-    },
-    [&](const Id<IntervalModel>& id) // LeftBrace
-    {
-      this->localSM().postEvent(new ReleaseOnLeftBrace_Event{id, sp});
-    },
-    [&](const Id<IntervalModel>& id) // RightBrace
-    {
-      this->localSM().postEvent(new ReleaseOnRightBrace_Event{id, sp});
-    },
-    [&](const SlotPath& slot) // Slot handle
-    { this->localSM().postEvent(new ReleaseOnSlotHandle_Event{slot}); },
-    [&]() {
-      this->localSM().postEvent(
-            new ReleaseOnNothing_Event{sp}); // end of move
-    });
+        this->itemUnderMouse(scene),
+        [&](const Id<StateModel>& id) // State
+        {
+          this->localSM().postEvent(new ReleaseOnState_Event{id, sp});
+        },
+        [&](const Id<EventModel>& id) // Event
+        {
+          this->localSM().postEvent(new ReleaseOnEvent_Event{id, sp});
+        },
+        [&](const Id<TimeSyncModel>& id) // TimeSync
+        {
+          this->localSM().postEvent(new ReleaseOnTimeSync_Event{id, sp});
+        },
+        [&](const Id<IntervalModel>& id) // Interval
+        {
+          this->localSM().postEvent(new ReleaseOnInterval_Event{id, sp});
+        },
+        [&](const Id<IntervalModel>& id) // LeftBrace
+        {
+          this->localSM().postEvent(new ReleaseOnLeftBrace_Event{id, sp});
+        },
+        [&](const Id<IntervalModel>& id) // RightBrace
+        {
+          this->localSM().postEvent(new ReleaseOnRightBrace_Event{id, sp});
+        },
+        [&](const SlotPath& slot) // Slot handle
+        { this->localSM().postEvent(new ReleaseOnSlotHandle_Event{slot}); },
+        [&]() {
+          this->localSM().postEvent(
+              new ReleaseOnNothing_Event{sp}); // end of move
+        });
   }
 
   void on_cancel() override

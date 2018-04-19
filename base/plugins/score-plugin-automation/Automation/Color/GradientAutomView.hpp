@@ -1,35 +1,38 @@
 #pragma once
-#include <Process/LayerView.hpp>
 #include <Automation/Color/GradientAutomModel.hpp>
+#include <Process/LayerView.hpp>
 namespace Gradient
 {
 class View final : public Process::LayerView
 {
-    Q_OBJECT
-  public:
-    View(QGraphicsItem* parent);
+  Q_OBJECT
+public:
+  View(QGraphicsItem* parent);
 
-    using gradient_colors = boost::container::flat_map<double, QColor>;
-    void setGradient(const gradient_colors& c);
-    void setDataWidth(double);
-    double dataWidth() const { return m_dataWidth; }
+  using gradient_colors = boost::container::flat_map<double, QColor>;
+  void setGradient(const gradient_colors& c);
+  void setDataWidth(double);
+  double dataWidth() const
+  {
+    return m_dataWidth;
+  }
 
-  Q_SIGNALS:
-    void setColor(double pos, QColor);
-    void movePoint(double old, double cur);
-    void removePoint(double pos);
+Q_SIGNALS:
+  void setColor(double pos, QColor);
+  void movePoint(double old, double cur);
+  void removePoint(double pos);
 
-  private:
-    void paint_impl(QPainter*) const override;
+private:
+  void paint_impl(QPainter*) const override;
 
-    void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
-    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
-    boost::container::flat_map<double, QColor> m_colors;
-    boost::container::flat_map<double, QColor> m_origColors;
-    optional<double> m_clicked;
-    double m_dataWidth{};
+  boost::container::flat_map<double, QColor> m_colors;
+  boost::container::flat_map<double, QColor> m_origColors;
+  optional<double> m_clicked;
+  double m_dataWidth{};
 };
 }

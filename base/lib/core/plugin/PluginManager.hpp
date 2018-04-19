@@ -1,21 +1,19 @@
 #pragma once
 #include <QObject>
+#include <QPluginLoader>
 #include <QString>
 #include <QStringList>
-#include <vector>
-#include <QPluginLoader>
-
 #include <core/plugin/PluginDependencyGraph.hpp>
-#include <score/tools/std/Optional.hpp>
+#include <score/application/ApplicationContext.hpp>
+#include <score/plugins/customfactory/FactoryFamily.hpp>
 #include <score/plugins/qt_interfaces/CommandFactory_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
-#include <score/plugins/customfactory/FactoryFamily.hpp>
 #include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
-#include <score/application/ApplicationContext.hpp>
-
+#include <score/tools/std/Optional.hpp>
 #include <score_lib_base_export.h>
+#include <vector>
 namespace score
 {
 struct ApplicationContext;
@@ -39,19 +37,16 @@ enum class PluginLoadingError
   UnknownError
 };
 
-
 QStringList addonsDir();
 QStringList pluginsDir();
 
 SCORE_LIB_BASE_EXPORT void loadPluginsInAllFolders(
-    std::vector<score::Addon>& availablePlugins
-    , QStringList additional = {});
+    std::vector<score::Addon>& availablePlugins, QStringList additional = {});
 
-SCORE_LIB_BASE_EXPORT void loadAddonsInAllFolders(
-    std::vector<score::Addon>& availablePlugins);
+SCORE_LIB_BASE_EXPORT void
+loadAddonsInAllFolders(std::vector<score::Addon>& availablePlugins);
 
-std::pair<score::Plugin_QtInterface*, PluginLoadingError>
-loadPlugin(
+std::pair<score::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
     const QString& fileName,
     const std::vector<score::Addon>& availablePlugins);
 
@@ -60,8 +55,7 @@ ossia::optional<score::Addon> makeAddon(
     const QJsonObject& json_addon,
     const std::vector<score::Addon>& availablePlugins);
 
-
-template<typename Registrar_T>
+template <typename Registrar_T>
 void registerPluginsImpl(
     const std::vector<score::Addon>& availablePlugins,
     Registrar_T& registrar,
@@ -102,22 +96,21 @@ void registerPluginsImpl(
   }
 }
 
-
-template<typename Registrar_T>
+template <typename Registrar_T>
 void registerPlugins(
     const std::vector<score::Addon>& availablePlugins,
     Registrar_T& registrar,
     const score::GUIApplicationContext& context)
 {
-  for(const score::Addon& addon : availablePlugins)
+  for (const score::Addon& addon : availablePlugins)
   {
     auto ctrl_plugin
         = dynamic_cast<ApplicationPlugin_QtInterface*>(addon.plugin);
     if (ctrl_plugin)
     {
-      if(auto plug = ctrl_plugin->make_applicationPlugin(context))
+      if (auto plug = ctrl_plugin->make_applicationPlugin(context))
         registrar.registerApplicationPlugin(plug);
-      if(auto plug = ctrl_plugin->make_guiApplicationPlugin(context))
+      if (auto plug = ctrl_plugin->make_guiApplicationPlugin(context))
         registrar.registerGUIApplicationPlugin(plug);
     }
   }
@@ -131,9 +124,8 @@ void registerPlugins(
  * Reloads all the plug-ins.
  * Note: for now this is unsafe after the first loading.
  */
-template<typename Registrar_T, typename Context_T>
-void loadPlugins(
-    Registrar_T& registrar, const Context_T& context)
+template <typename Registrar_T, typename Context_T>
+void loadPlugins(Registrar_T& registrar, const Context_T& context)
 {
 
 #define DO_DEBUG qDebug() << i++
@@ -152,7 +144,8 @@ void loadPlugins(
       addon.key = score_plug->key();
       addon.corePlugin = true;
       availablePlugins.push_back(std::move(addon));
-      qDebug() << typeid (score_plug).name() << addon.key.impl().data[0] <<  addon.key.impl().data[1] <<  addon.key.impl().data[2];
+      qDebug() << typeid(score_plug).name() << addon.key.impl().data[0]
+               << addon.key.impl().data[1] << addon.key.impl().data[2];
     }
   }
 
@@ -174,7 +167,8 @@ void loadPlugins(
   {
     auto facfam_interface
         = dynamic_cast<FactoryList_QtInterface*>(addon.plugin);
-    qDebug() << typeid (facfam_interface).name() << addon.key.impl().data[0] <<  addon.key.impl().data[1] <<  addon.key.impl().data[2];
+    qDebug() << typeid(facfam_interface).name() << addon.key.impl().data[0]
+             << addon.key.impl().data[1] << addon.key.impl().data[2];
 
     if (facfam_interface)
     {
@@ -190,7 +184,7 @@ void loadPlugins(
   // We have to order them according to their dependencies
   PluginDependencyGraph graph{availablePlugins};
   const auto& add = graph.sortedAddons();
-  if(!add.empty())
+  if (!add.empty())
   {
     registerPlugins(add, registrar, context);
   }

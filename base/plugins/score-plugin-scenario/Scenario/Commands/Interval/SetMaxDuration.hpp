@@ -1,12 +1,11 @@
 #pragma once
+#include <Process/TimeValue.hpp>
+#include <Process/TimeValueSerialization.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
-
-#include <Process/TimeValue.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <tests/helpers/ForwardDeclaration.hpp>
-#include <Process/TimeValueSerialization.hpp>
 
 namespace Scenario
 {
@@ -17,7 +16,7 @@ namespace Command
  * @brief The SetMaxDuration class
  *
  * Sets the Max duration of a Interval
-*/
+ */
 class SetMaxDuration final : public score::Command
 {
   SCORE_COMMAND_DECL(
@@ -25,7 +24,7 @@ class SetMaxDuration final : public score::Command
 public:
   static const constexpr auto corresponding_member
       = &IntervalDurations::maxDuration; // used by state machine
-                                           // (MoveState.hpp)
+                                         // (MoveState.hpp)
 
   SetMaxDuration(const IntervalModel& cst, TimeVal newval, bool isInfinite)
       : m_path{cst}
@@ -36,8 +35,7 @@ public:
   {
   }
 
-  void
-  update(const IntervalModel& cst, const TimeVal& newval, bool isInfinite)
+  void update(const IntervalModel& cst, const TimeVal& newval, bool isInfinite)
   {
     m_newVal = newval;
     auto& cstrDuration = cst.duration;

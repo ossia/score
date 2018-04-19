@@ -1,26 +1,24 @@
 #pragma once
+#include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
 #include <QObject>
-#include <Scenario/Document/Interval/IntervalDurations.hpp>
-#include <Scenario/Document/Interval/ExecutionState.hpp>
-#include <Scenario/Document/Interval/Slot.hpp>
-#include <Scenario/Document/ModelConsistency.hpp>
-#include <score/model/EntityImpl.hpp>
-#include <score/selection/Selectable.hpp>
-#include <score/tools/Metadata.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <nano_signal_slot.hpp>
-
 #include <QPointer>
 #include <QString>
 #include <QVector>
-
-#include <Process/Dataflow/Port.hpp>
+#include <Scenario/Document/Interval/ExecutionState.hpp>
+#include <Scenario/Document/Interval/IntervalDurations.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
+#include <Scenario/Document/ModelConsistency.hpp>
+#include <nano_signal_slot.hpp>
 #include <score/model/Component.hpp>
+#include <score/model/EntityImpl.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/selection/Selectable.hpp>
+#include <score/tools/Metadata.hpp>
+#include <score/tools/std/Optional.hpp>
 
 class DataStream;
 class JSONObject;
@@ -31,15 +29,16 @@ namespace Scenario
 class StateModel;
 
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalModel final
-    : public score::Entity<IntervalModel>,
-      public Nano::Observer
+    : public score::Entity<IntervalModel>
+    , public Nano::Observer
 {
   Q_OBJECT
 
   SCORE_SERIALIZE_FRIENDS
   friend struct IntervalSaveData;
   friend struct SlotPath;
-  Q_PROPERTY(double heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY heightPercentageChanged)
+  Q_PROPERTY(double heightPercentage READ heightPercentage WRITE
+                 setHeightPercentage NOTIFY heightPercentageChanged)
   Q_PROPERTY(double muted READ muted WRITE setMuted NOTIFY mutedChanged)
 
 public:
@@ -54,10 +53,7 @@ public:
   IntervalDurations duration{*this};
 
   /** The class **/
-  IntervalModel(
-      const Id<IntervalModel>&,
-      double yPos,
-      QObject* parent);
+  IntervalModel(const Id<IntervalModel>&, double yPos, QObject* parent);
 
   ~IntervalModel();
 
@@ -102,8 +98,14 @@ public:
   void setSmallViewVisible(bool);
   bool smallViewVisible() const;
 
-  const Rack& smallView() const { return m_smallView; }
-  const FullRack& fullView() const { return m_fullView; }
+  const Rack& smallView() const
+  {
+    return m_smallView;
+  }
+  const FullRack& fullView() const
+  {
+    return m_fullView;
+  }
 
   void clearSmallView();
   void clearFullView();
@@ -134,7 +136,10 @@ public:
   const FullSlot& getFullViewSlot(int slot) const;
   FullSlot& getFullViewSlot(int slot);
 
-  bool muted() const { return m_muted; }
+  bool muted() const
+  {
+    return m_muted;
+  }
   void setMuted(bool m);
 
 Q_SIGNALS:
@@ -185,16 +190,12 @@ private:
   IntervalExecutionState m_executionState{};
   bool m_smallViewShown{};
   bool m_muted{};
-
-
 };
-
 
 SCORE_PLUGIN_SCENARIO_EXPORT
 bool isInFullView(const Scenario::IntervalModel& cstr);
 SCORE_PLUGIN_SCENARIO_EXPORT
 bool isInFullView(const Process::ProcessModel& cstr);
-
 }
 
 DEFAULT_MODEL_METADATA(Scenario::IntervalModel, "Interval")

@@ -1,7 +1,8 @@
 #pragma once
 #include <ossia/detail/string_view.hpp>
-#include <string>
+
 #include <score_player_export.h>
+#include <string>
 namespace score
 {
 /**

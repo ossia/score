@@ -12,8 +12,7 @@ class QWheelEvent;
 class SceneGraduations;
 
 // TODO namespace !!!
-class SCORE_LIB_PROCESS_EXPORT ProcessGraphicsView final
-    : public QGraphicsView
+class SCORE_LIB_PROCESS_EXPORT ProcessGraphicsView final : public QGraphicsView
 {
   Q_OBJECT
 public:
@@ -35,7 +34,7 @@ private:
   void keyReleaseEvent(QKeyEvent* event) override;
   void focusOutEvent(QFocusEvent* event) override;
   void leaveEvent(QEvent* event) override;
-  void drawBackground(QPainter *painter, const QRectF &rect) override;
+  void drawBackground(QPainter* painter, const QRectF& rect) override;
 
   bool m_hZoom{false};
   bool m_vZoom{false};

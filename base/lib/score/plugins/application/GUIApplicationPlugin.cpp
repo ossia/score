@@ -1,9 +1,9 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-
-#include <QApplication>
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
 #include "GUIApplicationPlugin.hpp"
+
+#include <QApplication>
 #include <core/document/Document.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <core/presenter/Presenter.hpp>
@@ -21,10 +21,9 @@ namespace score
 
 ApplicationPlugin::~ApplicationPlugin() = default;
 
-ApplicationPlugin::ApplicationPlugin(const ApplicationContext& ctx):
-  context{ctx}
+ApplicationPlugin::ApplicationPlugin(const ApplicationContext& ctx)
+    : context{ctx}
 {
-
 }
 
 void ApplicationPlugin::initialize()
@@ -38,7 +37,6 @@ GUIApplicationPlugin::GUIApplicationPlugin(
 }
 
 GUIApplicationPlugin::~GUIApplicationPlugin() = default;
-
 
 GUIElements GUIApplicationPlugin::makeGUIElements()
 {

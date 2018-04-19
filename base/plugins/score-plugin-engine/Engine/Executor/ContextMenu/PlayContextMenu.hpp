@@ -1,6 +1,5 @@
 #pragma once
 #include <QPoint>
-
 #include <score/actions/Action.hpp>
 #include <score/actions/Menu.hpp>
 #include <score/selection/Selection.hpp>

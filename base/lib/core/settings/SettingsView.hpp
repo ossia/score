@@ -4,19 +4,18 @@
 #include <QDialogButtonBox>
 #include <QFlags>
 #include <QListWidget>
-#include <QStackedWidget>
-#include <set>
-
 #include <QSize>
+#include <QStackedWidget>
 #include <QWidget>
 #include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
+#include <set>
 
 class QWidget;
 
 namespace score
 {
-template<typename Model>
+template <typename Model>
 class SettingsView final : public QDialog
 {
 public:
@@ -36,11 +35,13 @@ public:
     }
 
     connect(
-          m_settingsList, &QListWidget::currentRowChanged, m_stackedWidget,
-          &QStackedWidget::setCurrentIndex);
+        m_settingsList, &QListWidget::currentRowChanged, m_stackedWidget,
+        &QStackedWidget::setCurrentIndex);
 
-    connect(m_buttons, &QDialogButtonBox::accepted, this, &SettingsView::accept);
-    connect(m_buttons, &QDialogButtonBox::rejected, this, &SettingsView::reject);
+    connect(
+        m_buttons, &QDialogButtonBox::accepted, this, &SettingsView::accept);
+    connect(
+        m_buttons, &QDialogButtonBox::rejected, this, &SettingsView::reject);
   }
   void addSettingsView(SettingsDelegateView<Model>* view)
   {

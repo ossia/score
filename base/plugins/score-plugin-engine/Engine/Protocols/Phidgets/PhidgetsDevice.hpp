@@ -7,19 +7,19 @@ namespace Network
 {
 class PhidgetDevice final : public OwningOSSIADevice
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
   PhidgetDevice(const Device::DeviceSettings& settings);
 
   bool reconnect() override;
-  Q_SIGNALS:
-    void sig_command();
-  private Q_SLOTS:
-    void slot_command();
+Q_SIGNALS:
+  void sig_command();
+private Q_SLOTS:
+  void slot_command();
 
-  private:
-    void timerEvent(QTimerEvent* event) override;
-    int m_timer{-1};
+private:
+  void timerEvent(QTimerEvent* event) override;
+  int m_timer{-1};
 };
 }
 }

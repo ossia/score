@@ -1,15 +1,16 @@
 #pragma once
 
+#include <Engine/Executor/ContextMenu/PlayContextMenu.hpp>
 #include <Process/TimeValue.hpp>
 #include <QString>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <memory>
-
-#include <Engine/Executor/ContextMenu/PlayContextMenu.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score_plugin_engine_export.h>
 namespace ossia
-{ class audio_engine; }
+{
+class audio_engine;
+}
 namespace score
 {
 
@@ -23,7 +24,10 @@ class IntervalModel;
 }
 namespace Engine
 {
-namespace LocalTree { class DocumentPlugin; }
+namespace LocalTree
+{
+class DocumentPlugin;
+}
 namespace Execution
 {
 class ClockManager;
@@ -48,8 +52,8 @@ public:
 */
 
 class SCORE_PLUGIN_ENGINE_EXPORT ApplicationPlugin final
-    : public QObject,
-      public score::GUIApplicationPlugin
+    : public QObject
+    , public score::GUIApplicationPlugin
 {
 public:
   ApplicationPlugin(const score::GUIApplicationContext& app);
@@ -87,6 +91,7 @@ public:
   void on_stop();
 
   std::unique_ptr<ossia::audio_engine> audio;
+
 private:
   void on_init();
 

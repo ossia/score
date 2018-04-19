@@ -1,12 +1,12 @@
 #pragma once
-#include <score/model/EntityBase.hpp>
-#include <score/model/ComponentSerialization.hpp>
 #include <ossia-qt/name_utils.hpp>
+#include <score/model/ComponentSerialization.hpp>
+#include <score/model/EntityBase.hpp>
 
 namespace score
 {
 
-template<typename T>
+template <typename T>
 Id<score::Component> newId(const score::Entity<T>& e)
 {
   return getStrongId(e.components());
@@ -22,13 +22,13 @@ class EntityMapInserter<score::Entity<T>>
     std::vector<QString> bros_names;
     bros_names.reserve(map.size());
     std::transform(
-          map.begin(), map.end(), std::back_inserter(bros_names),
-          [&](const auto& res) {
-      bros_names.push_back(res.metadata().getName());
-    });
+        map.begin(), map.end(), std::back_inserter(bros_names),
+        [&](const auto& res) {
+          bros_names.push_back(res.metadata().getName());
+        });
 
-    auto new_name = ossia::net::sanitize_name(
-          obj->metadata().getName(), bros_names);
+    auto new_name
+        = ossia::net::sanitize_name(obj->metadata().getName(), bros_names);
     obj->metadata().setName(new_name);
 
     map.unsafe_map().insert(obj);
@@ -53,9 +53,9 @@ struct TSerializer<DataStream, score::Entity<T>>
 
     // Save components
     score::DataStreamComponents vec;
-    for(auto& comp : obj.components())
+    for (auto& comp : obj.components())
     {
-      if(auto c = dynamic_cast<score::SerializableComponent*>(&comp))
+      if (auto c = dynamic_cast<score::SerializableComponent*>(&comp))
       {
         vec[c->concreteKey()] = s.marshall(*c);
       }
@@ -73,9 +73,10 @@ struct TSerializer<DataStream, score::Entity<T>>
     // Reload components
     score::DataStreamComponents vec;
     s.writeTo(vec);
-    if(!vec.empty())
+    if (!vec.empty())
     {
-      // TODO we use id -1, there should be a better way... for now it will work since id's begin at 1.
+      // TODO we use id -1, there should be a better way... for now it will
+      // work since id's begin at 1.
       auto comp = new score::DataStreamSerializedComponents{
           Id<score::Component>{-1}, std::move(vec), &obj};
       obj.components().add(comp);
@@ -83,7 +84,6 @@ struct TSerializer<DataStream, score::Entity<T>>
     SCORE_DEBUG_CHECK_DELIMITER2(s);
   }
 };
-
 
 template <typename T>
 struct TSerializer<JSONObject, score::Entity<T>>
@@ -95,9 +95,9 @@ struct TSerializer<JSONObject, score::Entity<T>>
 
     // Save components
     QJsonArray json_components;
-    for(auto& comp : obj.components())
+    for (auto& comp : obj.components())
     {
-      if(auto c = dynamic_cast<score::SerializableComponent*>(&comp))
+      if (auto c = dynamic_cast<score::SerializableComponent*>(&comp))
       {
         json_components.append(s.marshall(*c));
       }
@@ -112,22 +112,24 @@ struct TSerializer<JSONObject, score::Entity<T>>
         = fromJsonObject<score::ModelMetadata>(s.obj[s.strings.Metadata]);
 
     QJsonArray json_components = s.obj[s.strings.Components].toArray();
-    if(!json_components.empty())
+    if (!json_components.empty())
     {
       score::JSONComponents vec;
-      for(const auto& comp : json_components)
+      for (const auto& comp : json_components)
       {
-        // Since the component is a SerializableInterface, it has an uuid attribute.
+        // Since the component is a SerializableInterface, it has an uuid
+        // attribute.
         auto obj = comp.toObject();
 
-        UuidKey<score::SerializableComponent> k = fromJsonValue<score::uuid_t>(obj[s.strings.uuid]);
+        UuidKey<score::SerializableComponent> k
+            = fromJsonValue<score::uuid_t>(obj[s.strings.uuid]);
         vec.emplace(k, std::move(obj));
       }
-      // TODO we use id -1, there should be a better way... for now it will work since id's begin at 1.
-      auto comp = new score::JSONSerializedComponents{
-          Id<score::Component>{-1}, std::move(vec), &obj};
+      // TODO we use id -1, there should be a better way... for now it will
+      // work since id's begin at 1.
+      auto comp = new score::JSONSerializedComponents{Id<score::Component>{-1},
+                                                      std::move(vec), &obj};
       obj.components().add(comp);
     }
-
   }
 };

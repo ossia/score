@@ -1,20 +1,20 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "PointArraySegment.hpp"
+
+#include "psimpl.h"
+
+#include <Curve/Palette/CurvePoint.hpp>
+#include <Curve/Segment/CurveSegmentData.hpp>
 #include <Curve/Segment/Linear/LinearSegment.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
-#include <score/tools/std/Optional.hpp>
-
 #include <QDebug>
 #include <cstddef>
 #include <functional>
-#include <score/serialization/VisitorCommon.hpp>
 #include <iterator>
-
-#include "PointArraySegment.hpp"
-#include "psimpl.h"
-#include <Curve/Palette/CurvePoint.hpp>
-#include <Curve/Segment/CurveSegmentData.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/serialization/VisitorCommon.hpp>
+#include <score/tools/std/Optional.hpp>
 
 class QObject;
 namespace Curve

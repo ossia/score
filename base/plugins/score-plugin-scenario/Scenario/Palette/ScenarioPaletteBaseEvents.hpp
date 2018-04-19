@@ -1,8 +1,8 @@
 #pragma once
 #include "ScenarioPoint.hpp"
+
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <score/statemachine/StateMachineUtils.hpp>
-
 #include <score/tools/Clamp.hpp>
 
 namespace score
@@ -33,8 +33,7 @@ class TriggerModel;
 // We avoid virtual inheritance (with Numbered event);
 // this replicates a tiny bit of code.
 template <int N>
-struct PositionedScenarioEvent
-    : public score::PositionedEvent<Scenario::Point>
+struct PositionedScenarioEvent : public score::PositionedEvent<Scenario::Point>
 {
   static constexpr const int user_type = N;
   PositionedScenarioEvent(const Scenario::Point& pt)
@@ -145,7 +144,6 @@ using ClickOnLeftBrace_Event
 using ClickOnRightBrace_Event
     = PositionedWithId_ScenarioEvent<IntervalModel, ClickOnRightBrace>;
 
-
 /* move on */
 using MoveOnNothing_Event = PositionedScenarioEvent<MoveOnNothing>;
 using MoveOnTimeSync_Event
@@ -180,37 +178,36 @@ using ReleaseOnLeftBrace_Event
 using ReleaseOnRightBrace_Event
     = PositionedWithId_ScenarioEvent<IntervalModel, ReleaseOnRightBrace>;
 
-
-//using ReleaseOnSlotHandle_Event
+// using ReleaseOnSlotHandle_Event
 //    = score::NumberedWithPath_Event<IntervalModel, ReleaseOnSlotHandle>;
-//using MoveOnSlotHandle_Event
+// using MoveOnSlotHandle_Event
 //    = score::NumberedWithPath_Event<IntervalModel, MoveOnSlotHandle>;
 // using ClickOnSlotHandle_Event
 //     = score::NumberedWithPath_Event<IntervalModel, ClickOnSlotHandle>;
-struct ClickOnSlotHandle_Event: public score::NumberedEvent<ClickOnSlotHandle>
+struct ClickOnSlotHandle_Event : public score::NumberedEvent<ClickOnSlotHandle>
 {
   explicit ClickOnSlotHandle_Event(const SlotPath& p)
-    : NumberedEvent<ClickOnSlotHandle>(), path(p)
+      : NumberedEvent<ClickOnSlotHandle>(), path(p)
   {
   }
 
   explicit ClickOnSlotHandle_Event(SlotPath&& p)
-    : NumberedEvent<ClickOnSlotHandle>(), path(std::move(p))
+      : NumberedEvent<ClickOnSlotHandle>(), path(std::move(p))
   {
   }
 
   SlotPath path;
 };
 
-struct MoveOnSlotHandle_Event: public score::NumberedEvent<MoveOnSlotHandle>
+struct MoveOnSlotHandle_Event : public score::NumberedEvent<MoveOnSlotHandle>
 {
   explicit MoveOnSlotHandle_Event(const SlotPath& p)
-    : NumberedEvent<MoveOnSlotHandle>(), path(p)
+      : NumberedEvent<MoveOnSlotHandle>(), path(p)
   {
   }
 
   explicit MoveOnSlotHandle_Event(SlotPath&& p)
-    : NumberedEvent<MoveOnSlotHandle>(), path(std::move(p))
+      : NumberedEvent<MoveOnSlotHandle>(), path(std::move(p))
   {
   }
 
@@ -219,15 +216,16 @@ struct MoveOnSlotHandle_Event: public score::NumberedEvent<MoveOnSlotHandle>
 
 // using ReleaseOnSlotHandle_Event
 //     = score::NumberedWithPath_Event<IntervalModel, ReleaseOnSlotHandle>;
-struct ReleaseOnSlotHandle_Event: public score::NumberedEvent<ReleaseOnSlotHandle>
+struct ReleaseOnSlotHandle_Event
+    : public score::NumberedEvent<ReleaseOnSlotHandle>
 {
   explicit ReleaseOnSlotHandle_Event(const SlotPath& p)
-    : NumberedEvent<ReleaseOnSlotHandle>(), path(p)
+      : NumberedEvent<ReleaseOnSlotHandle>(), path(p)
   {
   }
 
   explicit ReleaseOnSlotHandle_Event(SlotPath&& p)
-    : NumberedEvent<ReleaseOnSlotHandle>(), path(std::move(p))
+      : NumberedEvent<ReleaseOnSlotHandle>(), path(std::move(p))
   {
   }
 

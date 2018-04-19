@@ -1,19 +1,19 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "CommandStack.hpp"
+
 #include <QByteArray>
 #include <QDataStream>
 #include <QList>
 #include <QPair>
 #include <QStack>
 #include <QtGlobal>
-#include <score/serialization/DataStreamVisitor.hpp>
-
-#include "CommandStack.hpp"
 #include <score/application/ApplicationComponents.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Command.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/plugins/customfactory/StringFactoryKeySerialization.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 
 template <typename T>
 class Reader;

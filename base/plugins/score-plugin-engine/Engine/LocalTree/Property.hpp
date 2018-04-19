@@ -9,7 +9,10 @@ namespace Engine
 namespace LocalTree
 {
 template <
-    typename T, typename Object, typename PropGet, typename PropSet,
+    typename T,
+    typename Object,
+    typename PropGet,
+    typename PropSet,
     typename PropChanged>
 class QtProperty
 {
@@ -54,20 +57,16 @@ public:
   }
 };
 
-template<typename T>
-using MatchingType_T =
-  Engine::ossia_to_score::MatchingType<
-    std::remove_const_t<
-      std::remove_reference_t<T>
-    >
-  >;
+template <typename T>
+using MatchingType_T = Engine::ossia_to_score::MatchingType<
+    std::remove_const_t<std::remove_reference_t<T>>>;
 
 template <typename Property>
 struct PropertyWrapper final : public BaseCallbackWrapper
 {
   Property property;
-  using converter_t = Engine::ossia_to_score::MatchingType<
-      typename Property::value_type>;
+  using converter_t
+      = Engine::ossia_to_score::MatchingType<typename Property::value_type>;
   PropertyWrapper(
       ossia::net::node_base& param_node,
       ossia::net::parameter_base& param_addr,
@@ -75,9 +74,8 @@ struct PropertyWrapper final : public BaseCallbackWrapper
       QObject* context)
       : BaseCallbackWrapper{param_node, param_addr}, property{prop}
   {
-    callbackIt = addr.add_callback([=](const ossia::value& v) {
-      property.set(v);
-    });
+    callbackIt
+        = addr.add_callback([=](const ossia::value& v) { property.set(v); });
 
     QObject::connect(
         &property.object(), property.changed_property(), context,
@@ -114,7 +112,10 @@ auto make_property(
 }
 
 template <
-    typename T, typename Object, typename PropGet, typename PropSet,
+    typename T,
+    typename Object,
+    typename PropGet,
+    typename PropSet,
     typename PropChanged>
 auto add_property(
     ossia::net::node_base& n,
@@ -135,8 +136,7 @@ auto add_property(
   addr->set_access(ossia::access_mode::BI);
 
   return make_property(
-      *node,
-      *addr,
+      *node, *addr,
       QtProperty<T, Object, PropGet, PropSet, PropChanged>{*obj, get, set,
                                                            chgd},
       context);

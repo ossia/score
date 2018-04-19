@@ -30,8 +30,8 @@ Q_SIGNALS:
   /**
    * @brief Play from a given point in a IntervalModel.
    *
-   * The other branches of the Scenario will be discarded, i.e. all the IntervalModel
-   * that aren't originating from this one.
+   * The other branches of the Scenario will be discarded, i.e. all the
+   * IntervalModel that aren't originating from this one.
    */
   void playFromIntervalAtDate(
       const Scenario::ScenarioInterface&,
@@ -47,8 +47,7 @@ Q_SIGNALS:
   void startRecording(Scenario::ProcessModel&, Scenario::Point) const;
 
   //! Request a message recording from a given point.
-  void
-  startRecordingMessages(Scenario::ProcessModel&, Scenario::Point) const;
+  void startRecordingMessages(Scenario::ProcessModel&, Scenario::Point) const;
   void stopRecording() const;
 };
 }

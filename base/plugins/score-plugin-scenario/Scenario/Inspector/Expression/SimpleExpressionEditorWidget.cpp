@@ -1,5 +1,11 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+// This is an open source non-commercial project. Dear PVS-Studio, please check
+// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "SimpleExpressionEditorWidget.hpp"
+
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <Explorer/Widgets/AddressAccessorEditWidget.hpp>
+#include <Inspector/InspectorSectionWidget.hpp>
 #include <QBoxLayout>
 #include <QComboBox>
 #include <QLabel>
@@ -7,17 +13,10 @@
 #include <QPushButton>
 #include <QStringList>
 #include <QToolButton>
+#include <Scenario/Inspector/ExpressionValidator.hpp>
 #include <State/Expression.hpp>
 #include <State/Relation.hpp>
 #include <score/tools/std/Optional.hpp>
-
-#include "SimpleExpressionEditorWidget.hpp"
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <Explorer/Widgets/AddressAccessorEditWidget.hpp>
-#include <Scenario/Inspector/ExpressionValidator.hpp>
-#include <Inspector/InspectorSectionWidget.hpp>
-
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SetIcons.hpp>
 #include <score/widgets/SignalUtils.hpp>
@@ -34,8 +33,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
   m_binOperator = new QComboBox{this};
 
   m_address = new Explorer::AddressAccessorEditWidget{
-      doc.plugin<Explorer::DeviceDocumentPlugin>().explorer(),
-      this};
+      doc.plugin<Explorer::DeviceDocumentPlugin>().explorer(), this};
   m_ok = new TextLabel{QStringLiteral("/!\\ "), this};
 
   m_comparator = new QComboBox{this};
@@ -63,7 +61,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
 
   m_menuBtn = new Inspector::MenuButton{this};
   m_menuBtn->setObjectName(QStringLiteral("SettingsMenu"));
-  m_menuBtn->setMaximumSize(30,30);
+  m_menuBtn->setMaximumSize(30, 30);
   m_menuBtn->setMenu(menu);
 
   QSizePolicy sp = m_menuBtn->sizePolicy();
@@ -128,8 +126,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
     m_comparator->addItem(c.second, QVariant::fromValue(c.first));
   }
 
-  m_comparator->setCurrentText(
-      lst.at(ExpressionEditorComparator::AlwaysTrue));
+  m_comparator->setCurrentText(lst.at(ExpressionEditorComparator::AlwaysTrue));
 
   QSizePolicy sp_retain = m_binOperator->sizePolicy();
   sp_retain.setRetainSizeWhenHidden(true);

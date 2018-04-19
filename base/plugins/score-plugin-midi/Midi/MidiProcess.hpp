@@ -1,8 +1,7 @@
 #pragma once
+#include <Midi/MidiNote.hpp>
 #include <Midi/MidiProcessMetadata.hpp>
 #include <Process/Process.hpp>
-
-#include <Midi/MidiNote.hpp>
 #include <score/tools/Clamp.hpp>
 
 namespace Midi
@@ -15,7 +14,7 @@ class SCORE_PLUGIN_MIDI_EXPORT ProcessModel final
   Q_OBJECT
 
 public:
-    PROCESS_METADATA_IMPL(Midi::ProcessModel)
+  PROCESS_METADATA_IMPL(Midi::ProcessModel)
   explicit ProcessModel(
       const TimeVal& duration,
       const Id<Process::ProcessModel>& id,
@@ -51,16 +50,16 @@ public:
 
   void setRange(int min, int max)
   {
-    if(min == max)
+    if (min == max)
     {
       min = 127;
       max = 0;
 
-      for(auto& note : notes)
+      for (auto& note : notes)
       {
-        if(note.pitch() < min)
+        if (note.pitch() < min)
           min = note.pitch();
-        if(note.pitch() > max)
+        if (note.pitch() > max)
           max = note.pitch();
       }
     }
@@ -68,15 +67,15 @@ public:
     {
       min = std::max(0, min);
       max = std::min(127, max);
-      if(min >= max)
+      if (min >= max)
       {
         min = std::max(0, max - 7);
         max = std::min(127, min + 14);
       }
     }
 
-    std::pair<int,int> range{min, max};
-    if(range != m_range)
+    std::pair<int, int> range{min, max};
+    if (range != m_range)
     {
       m_range = range;
       rangeChanged(min, max);
@@ -101,5 +100,4 @@ private:
   int m_channel{1};
   std::pair<int, int> m_range{0, 127};
 };
-
 }
