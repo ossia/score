@@ -5,12 +5,11 @@
 #include <Scenario/Document/Interval/SlotPresenter.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <Scenario/Document/Interval/FullView/FullViewIntervalView.hpp>
-
+namespace Process { class DefaultHeaderDelegate; }
 namespace Scenario
 {
 class SlotView;
 class SlotHandle;
-class DefaultHeaderDelegate;
 class SCORE_PLUGIN_SCENARIO_EXPORT FullViewIntervalPresenter final
     : public IntervalPresenter
 {
@@ -25,7 +24,7 @@ public:
       QGraphicsItem* parentobject,
       QObject* parent);
 
-  virtual ~FullViewIntervalPresenter();
+  ~FullViewIntervalPresenter() override;
 
   void updateHeight();
   void on_zoomRatioChanged(ZoomRatio val) override;

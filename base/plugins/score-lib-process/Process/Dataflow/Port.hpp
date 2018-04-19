@@ -9,6 +9,7 @@
 #include <score/plugins/customfactory/SerializableInterface.hpp>
 #include <ossia/network/value/value.hpp>
 #include <ossia/detail/small_vector.hpp>
+#include <score/selection/Selectable.hpp>
 #include <QUuid>
 #include <QPointer>
 
@@ -37,6 +38,7 @@ class SCORE_LIB_PROCESS_EXPORT Port
     Q_PROPERTY(State::AddressAccessor address READ address WRITE setAddress NOTIFY addressChanged)
     SCORE_SERIALIZE_FRIENDS
     public:
+      Selectable selection;
       PortType type{};
       bool hidden{};
 

@@ -1,5 +1,6 @@
 #pragma once
 #include <Media/Effect/VST/VSTEffectModel.hpp>
+#include <Dataflow/UI/PortItem.hpp>
 
 namespace Media::VST
 {
@@ -46,6 +47,43 @@ class VSTControlInlet final : public Process::Inlet
 
   private:
     float m_value{};
+};
+
+struct VSTControlPortItem final : public Dataflow::AutomatablePortItem
+{
+  public:
+    using Dataflow::AutomatablePortItem::AutomatablePortItem;
+
+    void setupMenu(QMenu& menu, const score::DocumentContext& ctx) override;
+    bool on_createAutomation(
+        Scenario::IntervalModel& cst,
+        std::function<void(score::Command*)> macro,
+        const score::DocumentContext& ctx) override;
+};
+
+class VSTControlPortFactory final : public Process::PortFactory
+{
+public:
+    ~VSTControlPortFactory() override;
+
+    UuidKey<Process::Port> concreteKey() const noexcept override;
+
+    Process::Port* load(
+          const VisitorVariant& vis, QObject* parent) override;
+
+    Dataflow::PortItem* makeItem(
+          Process::Inlet& port
+          , const score::DocumentContext& ctx
+          , QGraphicsItem* parent
+          , QObject* context
+          ) override;
+
+    Dataflow::PortItem* makeItem(
+          Process::Outlet& port
+          , const score::DocumentContext& ctx
+          , QGraphicsItem* parent
+          , QObject* context
+          ) override;
 };
 
 

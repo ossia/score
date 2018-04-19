@@ -81,8 +81,12 @@ bool DropPortInScenario::drop(
 {
   if (mime->formats().contains(score::mime::port()))
   {
-    auto port = Dataflow::PortItem::clickedPort;
-    if(!port || port->port().type != Process::PortType::Message || qobject_cast<Process::Outlet*>(&port->port()))
+    auto base_port = Dataflow::PortItem::clickedPort;
+    if(!base_port || base_port->port().type != Process::PortType::Message || qobject_cast<Process::Outlet*>(&base_port->port()))
+      return false;
+
+    auto port = dynamic_cast<Dataflow::AutomatablePortItem*>(base_port);
+    if(!port)
       return false;
 
     RedoMacroCommandDispatcher<Scenario::Command::AddProcessInNewBoxMacro> m{

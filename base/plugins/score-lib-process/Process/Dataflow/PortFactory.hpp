@@ -2,6 +2,8 @@
 #include <Process/Dataflow/Port.hpp>
 #include <score/plugins/customfactory/FactoryInterface.hpp>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
+class QGraphicsItem;
+namespace Dataflow { class PortItem; }
 namespace Process
 {
 class SCORE_LIB_PROCESS_EXPORT PortFactory
@@ -12,6 +14,18 @@ public:
   ~PortFactory() override;
 
   virtual Process::Port* load(const VisitorVariant&, QObject* parent) = 0;
+  virtual Dataflow::PortItem* makeItem(
+      Process::Inlet& port
+      , const score::DocumentContext& ctx
+      , QGraphicsItem* parent
+      , QObject* context
+  );
+  virtual Dataflow::PortItem* makeItem(
+      Process::Outlet& port
+      , const score::DocumentContext& ctx
+      , QGraphicsItem* parent
+      , QObject* context
+  );
 };
 
 class SCORE_LIB_PROCESS_EXPORT PortFactoryList final
@@ -22,30 +36,6 @@ public:
   ~PortFactoryList();
     Process::Port* loadMissing(const VisitorVariant& vis, QObject* parent) const;
 };
-
-template <typename Model_T>
-class PortFactory_T final : public Process::PortFactory
-{
-public:
-  ~PortFactory_T() override = default;
-
-private:
-  UuidKey<Process::Port> concreteKey() const noexcept override
-  { return Metadata<ConcreteKey_k, Model_T>::get(); }
-
-  Model_T* load(
-      const VisitorVariant& vis, QObject* parent) override
-  {
-    return score::deserialize_dyn(vis, [&](auto&& deserializer) {
-      return new Model_T{deserializer, parent};
-    });
-  }
-};
-
-using InletFactory = PortFactory_T<Inlet>;
-using ControlInletFactory = PortFactory_T<ControlInlet>;
-using OutletFactory = PortFactory_T<Outlet>;
-using ControlOutletFactory = PortFactory_T<ControlOutlet>;
 
 
 inline

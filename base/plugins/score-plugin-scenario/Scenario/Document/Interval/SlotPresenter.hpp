@@ -3,7 +3,7 @@
 #include <Scenario/Document/Interval/SlotHeader.hpp>
 #include <Scenario/Document/Interval/SlotHandle.hpp>
 #include <Process/LayerPresenter.hpp>
-#include <Scenario/Document/Interval/Temporal/DefaultHeaderDelegate.hpp>
+#include <Process/HeaderDelegate.hpp>
 
 namespace Scenario
 {
@@ -15,5 +15,16 @@ struct SlotPresenter
   Process::HeaderDelegate* headerDelegate{};
   SlotHandle* handle{};
   std::vector<LayerData> processes;
+
+  double headerHeight() const
+  {
+    if(!header)
+      return SlotHeader::headerHeight();
+
+    if(!headerDelegate)
+      return header->headerHeight();
+
+    return headerDelegate->boundingRect().height();
+  }
 };
 }

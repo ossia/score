@@ -1,4 +1,5 @@
 #include "Port.hpp"
+#include "PortItem.hpp"
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/Cable.hpp>
 #include <score/model/path/PathSerialization.hpp>
@@ -214,10 +215,21 @@ PortFactory::~PortFactory()
 
 }
 
+Dataflow::PortItem* PortFactory::makeItem(Inlet& port, const score::DocumentContext& ctx, QGraphicsItem* parent, QObject* context)
+{
+  return new Dataflow::PortItem{port, ctx, parent};
+}
+
+Dataflow::PortItem* PortFactory::makeItem(Outlet& port, const score::DocumentContext& ctx, QGraphicsItem* parent, QObject* context)
+{
+  return new Dataflow::PortItem{port, ctx, parent};
+}
+
 Port*PortFactoryList::loadMissing(const VisitorVariant& vis, QObject* parent) const
 {
   return nullptr;
 }
+
 PortFactoryList::~PortFactoryList()
 {
 
