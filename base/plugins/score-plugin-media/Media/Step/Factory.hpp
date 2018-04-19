@@ -14,7 +14,6 @@ using ProcessFactory = Process::ProcessFactory_T<Step::Model>;
 using LayerFactory = Process::LayerFactory_T<
     Step::Model,
     Step::Presenter,
-    Step::View,
-    Process::GraphicsViewLayerPanelProxy>;
+    Step::View>;
 }
 }

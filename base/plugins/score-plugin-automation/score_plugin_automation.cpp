@@ -45,7 +45,7 @@ namespace Gradient
 using GradientFactory
     = Process::ProcessFactory_T<Gradient::ProcessModel>;
 using GradientLayerFactory = Process::
-    LayerFactory_T<Gradient::ProcessModel, Gradient::Presenter, Gradient::View, Process::GraphicsViewLayerPanelProxy>;
+    LayerFactory_T<Gradient::ProcessModel, Gradient::Presenter, Gradient::View>;
 }
 
 namespace Spline
@@ -53,7 +53,7 @@ namespace Spline
 using SplineFactory
 = Process::ProcessFactory_T<Spline::ProcessModel>;
 using SplineLayerFactory = Process::
-LayerFactory_T<Spline::ProcessModel, Spline::Presenter, Spline::View, Process::GraphicsViewLayerPanelProxy>;
+    LayerFactory_T<Spline::ProcessModel, Spline::Presenter, Spline::View>;
 }
 
 namespace Metronome

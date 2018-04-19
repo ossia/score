@@ -21,7 +21,6 @@ class HeaderDelegate;
 class LayerView;
 class MiniLayer;
 class ProcessModel;
-class LayerPanelProxy;
 struct ProcessPresenterContext;
 
 
@@ -72,9 +71,6 @@ public:
 
   virtual QGraphicsItem*
   makeItem(const Process::ProcessModel&, const score::DocumentContext& ctx, score::RectItem* parent) const;
-
-  virtual Process::LayerPanelProxy*
-  makePanel(const ProcessModel&, const score::DocumentContext& ctx, QObject* parent) const;
 
   virtual QWidget*
   makeExternalUI(const Process::ProcessModel&, const score::DocumentContext& ctx, QWidget* parent) const;

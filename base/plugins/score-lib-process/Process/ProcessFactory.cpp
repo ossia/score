@@ -2,11 +2,13 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ProcessFactory.hpp"
 #include "ProcessList.hpp"
-#include <Process/LayerModelPanelProxy.hpp>
+#include <Process/LayerPresenter.hpp>
 #include <Process/Process.hpp>
 #include <Process/LayerView.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/path/RelativePath.hpp>
+#include <QTextOption>
+#include <QPainter>
 
 namespace Process
 {
@@ -114,12 +116,6 @@ QGraphicsItem* LayerFactory::makeItem(
 HeaderDelegate* LayerFactory::makeHeaderDelegate(const LayerPresenter& pres) const
 {
   return nullptr;
-}
-
-LayerPanelProxy*
-LayerFactory::makePanel(const ProcessModel& layer, const score::DocumentContext& ctx, QObject* parent) const
-{
-  return new Process::GraphicsViewLayerPanelProxy{layer, parent};
 }
 
 QWidget* LayerFactory::makeExternalUI(const ProcessModel&, const score::DocumentContext& ctx, QWidget* parent) const

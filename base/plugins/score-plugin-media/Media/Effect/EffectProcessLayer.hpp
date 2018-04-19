@@ -18,6 +18,7 @@
 #include <Effect/EffectFactory.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/widgets/RectItem.hpp>
+#include <QGraphicsScene>
 #include <QWindow>
 
 namespace Media::Effect

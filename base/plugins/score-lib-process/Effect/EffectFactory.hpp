@@ -107,13 +107,6 @@ private:
     return nullptr;
   }
 
-  LayerPanelProxy* makePanel(
-      const Process::ProcessModel& viewmodel, const score::DocumentContext& ctx, QObject* parent) const final override
-  {
-    return nullptr;
-    //return new Process::GraphicsViewLayerPanelProxy{layer, parent};
-  }
-
   bool matches(const UuidKey<Process::ProcessModel>& p) const override
   {
     return p == Metadata<ConcreteKey_k, Model_T>::get();

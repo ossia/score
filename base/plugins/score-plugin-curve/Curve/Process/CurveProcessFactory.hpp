@@ -36,13 +36,6 @@ public:
                                 safe_cast<LayerView_T*>(v), context, parent};
   }
 
-  Process::LayerPanelProxy*
-  makePanel(const Process::ProcessModel& layer, const score::DocumentContext& ctx, QObject* parent) const override
-  {
-    return new CurvePanelProxy<Model_T>{
-        safe_cast<const Model_T&>(layer), parent};
-  }
-
   UuidKey<Process::ProcessModel> concreteKey() const noexcept override
   {
     return Metadata<ConcreteKey_k, Model_T>::get();

@@ -114,11 +114,5 @@ private:
     rootItem->setRect(rootItem->childrenBoundingRect());
     return rootItem;
   }
-
-  Process::LayerPanelProxy* makePanel(
-      const Process::ProcessModel& viewmodel, const score::DocumentContext& ctx, QObject* parent) const final override
-  {
-    return nullptr;
-  }
 };
 }
