@@ -56,7 +56,7 @@ private:
   // TODO see this :
   // http://stackoverflow.com/questions/34596768/stdunordered-mapfind-using-a-type-different-than-the-key-type
 };
-
+/*
 class AutomationRecorderFactory final : public RecorderFactory
 {
   Priority
@@ -65,4 +65,5 @@ class AutomationRecorderFactory final : public RecorderFactory
   std::unique_ptr<RecordProvider>
   make(const Device::NodeList&, const score::DocumentContext& ctx) override;
 };
+*/
 }

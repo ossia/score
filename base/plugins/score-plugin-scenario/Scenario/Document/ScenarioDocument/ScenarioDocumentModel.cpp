@@ -50,7 +50,7 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
 
-template SCORE_PLUGIN_SCENARIO_EXPORT class score::EntityMap<Process::Cable>;
+template class SCORE_PLUGIN_SCENARIO_EXPORT score::EntityMap<Process::Cable>;
 namespace Process
 {
 class LayerPresenter;

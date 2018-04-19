@@ -28,7 +28,7 @@
 #include <score/tools/MapCopy.hpp>
 #include <score/model/Identifier.hpp>
 
-template SCORE_PLUGIN_CURVE_EXPORT class IdContainer<Curve::SegmentModel>;
+template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::SegmentModel>;
 
 namespace Curve
 {

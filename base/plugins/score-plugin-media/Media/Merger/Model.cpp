@@ -36,15 +36,15 @@ void Model::setInCount(quint64 s)
 
     if(old < m_inCount)
     {
-      for(int i = 0; i < (m_inCount - old); i++)
+      for(std::size_t i = 0; i < (m_inCount - old); i++)
       {
-        m_inlets.push_back(Process::make_inlet(Id<Process::Port>(old + i), this).release());
+        m_inlets.push_back(Process::make_inlet(Id<Process::Port>(int(old + i)), this).release());
         m_inlets.back()->type = Process::PortType::Audio;
       }
     }
     else if(old > m_inCount)
     {
-      for(int i = m_inCount; i < old; i++)
+      for(std::size_t i = m_inCount; i < old; i++)
       {
         delete m_inlets[i];
       }
