@@ -1,3 +1,8 @@
+BreakBeforeInheritanceComma: true
+
+IndentPPDirectives: true
+IncludeBlocks: true
+
 BasedOnStyle: WebKit
 AccessModifierOffset: -2
 AlignAfterOpenBracket: AlwaysBreak
@@ -14,7 +19,7 @@ AllowShortLoopsOnASingleLine: false
 AlwaysBreakAfterDefinitionReturnType: false
 AlwaysBreakBeforeMultilineStrings: true
 AlwaysBreakTemplateDeclarations: true
-ExperimentalAutoDetectBinPacking: true
+
 BraceWrapping:
   AfterClass:      true
   AfterControlStatement: true
@@ -26,9 +31,9 @@ BraceWrapping:
   BeforeCatch:     true
   BeforeElse:      true
   IndentBraces:    false
-
+  
 BinPackArguments: true
-BinPackParameters: true
+BinPackParameters: false
 BreakBeforeBinaryOperators: All
 BreakBeforeBraces: Allman
 BreakBeforeTernaryOperators: true

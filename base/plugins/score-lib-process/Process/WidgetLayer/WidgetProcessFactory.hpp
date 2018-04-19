@@ -40,12 +40,6 @@ private:
                                             safe_cast<View*>(v), context,
                                             parent};
   }
-
-  Process::LayerPanelProxy* makePanel(
-      const Process::ProcessModel& viewmodel, const score::DocumentContext& ctx, QObject* parent) const final override
-  {
-    return new LayerPanelProxy<Model_T, Widget_T>{viewmodel, parent};
-  }
 };
 
 }

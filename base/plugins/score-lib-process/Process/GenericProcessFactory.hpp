@@ -54,7 +54,7 @@ Model_T* ProcessFactory_T<Model_T>::load(
 
 template <
     typename Model_T, typename LayerPresenter_T,
-    typename LayerView_T, typename LayerPanel_T>
+    typename LayerView_T, typename HeaderDelegate_T = default_t>
 class LayerFactory_T final : public Process::LayerFactory
 {
 public:
@@ -83,24 +83,20 @@ private:
                                 safe_cast<LayerView_T*>(v), context, parent};
   }
 
-  LayerPanel_T* makePanel(
-      const Process::ProcessModel& viewmodel, const score::DocumentContext& ctx, QObject* parent) const final override;
-
   bool matches(const UuidKey<Process::ProcessModel>& p) const override
   {
     return p == Metadata<ConcreteKey_k, Model_T>::get();
   }
-};
 
-template <
-    typename Model_T, typename LayerPresenter_T,
-    typename LayerView_T, typename LayerPanel_T>
-LayerPanel_T*
-LayerFactory_T<Model_T, LayerPresenter_T, LayerView_T, LayerPanel_T>::
-    makePanel(const Process::ProcessModel& viewmodel, const score::DocumentContext& ctx, QObject* parent) const
-{
-  return new LayerPanel_T{static_cast<const Model_T&>(viewmodel), parent};
-}
+  HeaderDelegate*
+  makeHeaderDelegate(const Process::LayerPresenter& pres) const override
+  {
+    if constexpr(std::is_same_v<HeaderDelegate_T, default_t>)
+      return nullptr;
+    else
+      return new HeaderDelegate_T{pres};
+  }
+};
 
 template <typename Model_T>
 class

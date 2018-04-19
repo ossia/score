@@ -1,6 +1,8 @@
 #include <Media/Effect/VST/VSTEffectModel.hpp>
 #include <Media/Effect/VST/VSTWidgets.hpp>
 #include <Media/Effect/VST/vst-compat.hpp>
+#include <QGraphicsScene>
+#include <QGraphicsView>
 namespace Media::VST
 {
 void VSTWindow::setup_rect(QWidget* container, int width, int height)
