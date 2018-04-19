@@ -26,9 +26,6 @@ private:
   // Maybe it should be a list instead ?
   int m_row = 0;
   int m_col = 0;
-
-  int m_defaultRow = 0;
-  int m_defaultCol = 0;
 };
 
 }

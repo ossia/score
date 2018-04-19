@@ -11,7 +11,7 @@ bool operator<(const State::ExprData& lhs, const State::ExprData& rhs)
   return false;
 }
 }
-template SCORE_LIB_STATE_EXPORT class boost::container::stable_vector<State::ExprData>;
+template class SCORE_LIB_STATE_EXPORT boost::container::stable_vector<State::ExprData>;
 QString State::ExprData::toString() const
 {
   static const QMap<State::BinaryOperator, QString> binopMap{

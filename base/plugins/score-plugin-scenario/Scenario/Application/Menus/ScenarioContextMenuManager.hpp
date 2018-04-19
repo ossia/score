@@ -19,7 +19,7 @@ struct DocumentContext;
 
 namespace Scenario
 {
-class SlotPresenter;
+struct SlotPresenter;
 class TemporalScenarioPresenter;
 class TemporalIntervalPresenter;
 class FullViewIntervalPresenter;

@@ -34,11 +34,11 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
-template SCORE_PLUGIN_SCENARIO_EXPORT class score::EntityMap<Scenario::IntervalModel>;
-template SCORE_PLUGIN_SCENARIO_EXPORT class score::EntityMap<Scenario::EventModel>;
-template SCORE_PLUGIN_SCENARIO_EXPORT class score::EntityMap<Scenario::TimeSyncModel>;
-template SCORE_PLUGIN_SCENARIO_EXPORT class score::EntityMap<Scenario::StateModel>;
-template SCORE_PLUGIN_SCENARIO_EXPORT class score::EntityMap<Scenario::CommentBlockModel>;
+template class SCORE_PLUGIN_SCENARIO_EXPORT score::EntityMap<Scenario::IntervalModel>;
+template class SCORE_PLUGIN_SCENARIO_EXPORT score::EntityMap<Scenario::EventModel>;
+template class SCORE_PLUGIN_SCENARIO_EXPORT score::EntityMap<Scenario::TimeSyncModel>;
+template class SCORE_PLUGIN_SCENARIO_EXPORT score::EntityMap<Scenario::StateModel>;
+template class SCORE_PLUGIN_SCENARIO_EXPORT score::EntityMap<Scenario::CommentBlockModel>;
 
 namespace Scenario
 {

@@ -5,9 +5,9 @@
 #include <score/document/DocumentContext.hpp>
 #include <wobjectimpl.h>
 
-template SCORE_LIB_BASE_EXPORT class score::EntityMap<score::Component>;
-template SCORE_LIB_BASE_EXPORT class tsl::hopscotch_map<UuidKey<score::SerializableComponent>, QByteArray>;
-template SCORE_LIB_BASE_EXPORT class tsl::hopscotch_map<UuidKey<score::SerializableComponent>, QJsonObject>;
+template class SCORE_LIB_BASE_EXPORT score::EntityMap<score::Component>;
+template class SCORE_LIB_BASE_EXPORT tsl::hopscotch_map<UuidKey<score::SerializableComponent>, QByteArray>;
+template class SCORE_LIB_BASE_EXPORT tsl::hopscotch_map<UuidKey<score::SerializableComponent>, QJsonObject>;
 W_OBJECT_IMPL(score::Component)
 namespace score
 {

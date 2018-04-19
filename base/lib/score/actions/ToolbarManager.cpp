@@ -11,8 +11,6 @@ Toolbar::Toolbar(
     , m_key{std::move(key)}
     , m_row{defaultRow}
     , m_col{defaultCol}
-    , m_defaultRow{defaultRow}
-    , m_defaultCol{defaultCol}
 {
 }
 

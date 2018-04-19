@@ -79,7 +79,7 @@ struct RecordProvider
 class Recorder
 {
 public:
-  Recorder(RecordContext& ctx) : m_context{ctx}
+  Recorder(RecordContext& ctx) //: m_context{ctx}
   {
     // Algorithm :
     // 1. Get all selected addresses.
@@ -102,7 +102,7 @@ public:
   }
 
 private:
-  RecordContext& m_context;
+  //RecordContext& m_context;
   std::vector<std::unique_ptr<RecordProvider>> m_recorders;
 };
 

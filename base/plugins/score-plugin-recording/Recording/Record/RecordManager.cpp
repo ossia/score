@@ -305,6 +305,7 @@ bool AutomationRecorder::finish(
   return true;
 }
 
+/*
 Priority AutomationRecorderFactory::matches(
     const Device::Node& n, const score::DocumentContext& ctx)
 {
@@ -316,4 +317,5 @@ std::unique_ptr<RecordProvider> AutomationRecorderFactory::make(
 {
   return {};
 }
+*/
 }

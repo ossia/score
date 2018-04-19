@@ -19,11 +19,11 @@
 class MessageItemModel;
 class QMenu;
 
-template SCORE_PLUGIN_SCENARIO_EXPORT class IdContainer<Scenario::StatePresenter, Scenario::StateModel, void>;
-template SCORE_PLUGIN_SCENARIO_EXPORT class IdContainer<Scenario::EventPresenter, Scenario::EventModel, void>;
-template SCORE_PLUGIN_SCENARIO_EXPORT class IdContainer<Scenario::TimeSyncPresenter, Scenario::TimeSyncModel, void>;
-template SCORE_PLUGIN_SCENARIO_EXPORT class IdContainer<Scenario::TemporalIntervalPresenter, Scenario::IntervalModel, void>;
-template SCORE_PLUGIN_SCENARIO_EXPORT class IdContainer<Scenario::CommentBlockPresenter, Scenario::CommentBlockModel, void>;
+template class SCORE_PLUGIN_SCENARIO_EXPORT IdContainer<Scenario::StatePresenter, Scenario::StateModel, void>;
+template class SCORE_PLUGIN_SCENARIO_EXPORT IdContainer<Scenario::EventPresenter, Scenario::EventModel, void>;
+template class SCORE_PLUGIN_SCENARIO_EXPORT IdContainer<Scenario::TimeSyncPresenter, Scenario::TimeSyncModel, void>;
+template class SCORE_PLUGIN_SCENARIO_EXPORT IdContainer<Scenario::TemporalIntervalPresenter, Scenario::IntervalModel, void>;
+template class SCORE_PLUGIN_SCENARIO_EXPORT IdContainer<Scenario::CommentBlockPresenter, Scenario::CommentBlockModel, void>;
 namespace Scenario
 {
 struct VerticalExtent;
