@@ -20,7 +20,6 @@ DESCRIPTION_METADATA(, Media::VST::VSTEffectModel, "VST")
 namespace Media::VST
 {
 
-using VSTControlInletFactory = Process::PortFactory_T<VSTControlInlet>;
 struct AEffectWrapper
 {
     AEffect* fx{};

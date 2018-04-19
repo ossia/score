@@ -121,12 +121,6 @@ void TemporalIntervalHeader::paint(
            (IntervalHeader::headerHeight() - m_textRectCache.height()) / 2.};
 
   painter->drawImage(p, m_line);
-
-/*
-  painter->drawGlyphRun({m_previous_x,
-                         (IntervalHeader::headerHeight() - m_textRectCache.height()) / 2.},
-                        *m_line);
-*/
 }
 
 void TemporalIntervalHeader::updateButtons()
@@ -286,18 +280,11 @@ void RackButton::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
   painter->setRenderHint(QPainter::Antialiasing, true);
   auto& skin = ScenarioStyle::instance();
   painter->setBrush(skin.IntervalHeaderSeparator.brush());
-  const auto bright = skin.IntervalHeaderSeparator.brush().color();
-  QPen p{bright.darker(150)};
-  p.setWidth(2);
-  painter->setPen(p);
-
   if(m_unroll) {
     painter->fillPath(trianglePath, painter->brush());
-    painter->drawPath(trianglePath);
   }
   else {
     painter->fillPath(rotatedTriangle, painter->brush());
-    painter->drawPath(rotatedTriangle);
   }
   painter->setRenderHint(QPainter::Antialiasing, false);
 }

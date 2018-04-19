@@ -7,6 +7,7 @@
 #include <QGraphicsSceneDragDropEvent>
 #include <QPainter>
 #include <QMimeData>
+#include <QStyleOption>
 
 class QStyleOptionGraphicsItem;
 class QWidget;
@@ -93,14 +94,15 @@ QPixmap LayerView::pixmap()
 
     // Render
     QPainter painter(&pixmap);
+    QStyleOptionGraphicsItem item;
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.setRenderHint(QPainter::TextAntialiasing, true);
     painter.translate(-rect.topLeft());
-    paint(&painter, nullptr, nullptr);
+    paint(&painter, &item, nullptr);
     for (QGraphicsItem* child : childItems()) {
         painter.save();
         painter.translate(child->mapToParent(pos()));
-        child->paint(&painter, nullptr, nullptr);
+        child->paint(&painter, &item, nullptr);
         painter.restore();
     }
 

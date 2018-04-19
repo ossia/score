@@ -96,9 +96,9 @@ void DocumentPlugin::connectCable(Process::Cable& cable)
 {
   if(!m_base.active())
     return;
-  ossia::node_ptr source_node, sink_node;
-  ossia::outlet_ptr source_port;
-  ossia::inlet_ptr sink_port;
+  ossia::node_ptr source_node{}, sink_node{};
+  ossia::outlet_ptr source_port{};
+  ossia::inlet_ptr sink_port{};
   if(auto port_src = cable.source().try_find(context().doc))
   {
     auto it = outlets.find(port_src);
@@ -473,7 +473,6 @@ void DocumentPlugin::slot_bench(ossia::bench_map b, int64_t ns)
           const_cast<Process::ProcessModel*>(proc->second)->benchmark(100. * *p.second / (double)ns);
         }
       }
-      //qDebug() << proc_map[p.first] << *p.second << 100. * *p.second / (double)ns;
     }
   }
 

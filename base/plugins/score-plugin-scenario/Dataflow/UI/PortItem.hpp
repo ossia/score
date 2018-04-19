@@ -1,91 +1,111 @@
 #pragma once
-#include <QGraphicsItem>
-#include <QObject>
-#include <functional>
-#if defined(_MSC_VER)
-#include <Process/Dataflow/Port.hpp>
-#endif
+#include <Explorer/Widgets/AddressAccessorEditWidget.hpp>
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
+#include <Process/Dataflow/PortFactory.hpp>
+#include <Process/Dataflow/PortItem.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score_plugin_scenario_export.h>
-#include <ossia/detail/ptr_set.hpp>
-namespace Process { class Port; class Inlet; class Outlet; class ControlInlet; }
-namespace score { struct DocumentContext; class Command; }
 namespace Scenario { class IntervalModel; }
-namespace Dataflow {
-  class PortItem;
-}
-extern template class tsl::hopscotch_map<Process::Port*, Dataflow::PortItem*, ossia::EgurHash<Process::Port*>>;
 namespace Dataflow
 {
 class CableItem;
-class SCORE_PLUGIN_SCENARIO_EXPORT PortItem
-    : public QObject
-    , public QGraphicsItem
+
+
+class SCORE_PLUGIN_SCENARIO_EXPORT AutomatablePortItem
+    : public PortItem
 {
-    Q_OBJECT
-    Q_INTERFACES(QGraphicsItem)
-    Process::Port& m_port;
   public:
-    PortItem(Process::Port& p, QGraphicsItem* parent);
-    ~PortItem() override;
-    Process::Port& port() const { return m_port; }
-    std::vector<QPointer<CableItem>> cables;
+    using PortItem::PortItem;
+    ~AutomatablePortItem() override;
 
-    using port_map = ossia::ptr_map<Process::Port*, Dataflow::PortItem*>;
-    static port_map& g_ports();
-
-    static PortItem* clickedPort;
-
-    virtual void setupMenu(QMenu&, const score::DocumentContext& ctx);
+    void setupMenu(QMenu&, const score::DocumentContext& ctx) override;
     void on_createAutomation(const score::DocumentContext& m_context);
     virtual bool on_createAutomation(
         Scenario::IntervalModel& parent,
         std::function<void(score::Command*)> macro,
         const score::DocumentContext& m_context);
 
-  Q_SIGNALS:
-    void showPanel();
-    void createCable(PortItem* src, PortItem* snk);
-    void contextMenuRequested(QPointF scenepos, QPoint pos);
+    void dropEvent(QGraphicsSceneDragDropEvent* event) override;
+};
+
+class AutomatablePortFactory : public Process::PortFactory
+{
+  public:
+    ~AutomatablePortFactory() override = default;
 
   private:
-    QRectF boundingRect() const final override;
-    void paint(
-        QPainter* painter,
-        const QStyleOptionGraphicsItem* option,
-        QWidget* widget) final override;
+    Dataflow::PortItem* makeItem(
+        Process::Inlet& port
+        , const score::DocumentContext& ctx
+        , QGraphicsItem* parent
+        , QObject* context
+        ) override;
 
-    void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
-    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
-    void hoverEnterEvent(QGraphicsSceneHoverEvent* event) final override;
-    void hoverMoveEvent(QGraphicsSceneHoverEvent* event) final override;
-    void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) final override;
-
-    void dragEnterEvent(QGraphicsSceneDragDropEvent* event) final override;
-    void dragMoveEvent(QGraphicsSceneDragDropEvent* event) final override;
-    void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) final override;
-    void dropEvent(QGraphicsSceneDragDropEvent* event) final override;
-    QVariant itemChange(GraphicsItemChange change, const QVariant &value) final override;
-
-
-    double m_diam = 6.;
+    Dataflow::PortItem* makeItem(
+        Process::Outlet& port
+        , const score::DocumentContext& ctx
+        , QGraphicsItem* parent
+        , QObject* context
+        ) override;
 };
-SCORE_PLUGIN_SCENARIO_EXPORT
-void setupSimpleInlet(PortItem* item, Process::Inlet& port, const score::DocumentContext& ctx, QGraphicsItem* parent, QObject* context);
-SCORE_PLUGIN_SCENARIO_EXPORT
-PortItem* setupInlet(Process::Inlet& port, const score::DocumentContext& ctx, QGraphicsItem* parent, QObject* context);
-SCORE_PLUGIN_SCENARIO_EXPORT
-PortItem* setupOutlet(Process::Outlet& port, const score::DocumentContext& ctx, QGraphicsItem* parent, QObject* context);
 
-}
 
-namespace score
+template <typename Model_T>
+class AutomatablePortFactory_T final : public AutomatablePortFactory
 {
-namespace mime
+  public:
+    ~AutomatablePortFactory_T() override = default;
+
+  private:
+    UuidKey<Process::Port> concreteKey() const noexcept override
+    { return Metadata<ConcreteKey_k, Model_T>::get(); }
+
+    Model_T* load(
+        const VisitorVariant& vis, QObject* parent) override
+    {
+      return score::deserialize_dyn(vis, [&](auto&& deserializer) {
+        return new Model_T{deserializer, parent};
+      });
+    }
+};
+
+
+using InletFactory = AutomatablePortFactory_T<Process::Inlet>;
+using ControlInletFactory = AutomatablePortFactory_T<Process::ControlInlet>;
+using OutletFactory = AutomatablePortFactory_T<Process::Outlet>;
+using ControlOutletFactory = AutomatablePortFactory_T<Process::ControlOutlet>;
+
+class PortTooltip : public QWidget
 {
-inline const constexpr char* port()
+  public:
+    PortTooltip(const score::DocumentContext& ctx, const Process::Port& p, QWidget* parent);
+
+  private:
+    CommandDispatcher<> m_disp;
+    Explorer::AddressAccessorEditWidget m_edit;
+};
+
+class PortInspectorFactory final : public Inspector::InspectorWidgetFactory
 {
-  return "application/x-score-port";
-}
-}
+    SCORE_CONCRETE("1e7166bb-278a-49ce-b6a9-d662b8cd8dd2")
+  public:
+    PortInspectorFactory() : InspectorWidgetFactory{}
+    {
+    }
+
+    QWidget* make(
+        const QList<const QObject*>& sourceElements,
+        const score::DocumentContext& doc,
+        QWidget* parent) const override
+    {
+      return new PortTooltip{doc,
+        safe_cast<const Process::Port&>(*sourceElements.first()),
+            parent};
+    }
+
+    bool matches(const QList<const QObject*>& objects) const override
+    {
+      return dynamic_cast<const Process::Port*>(objects.first());
+    }
+};
 }

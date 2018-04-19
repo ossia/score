@@ -125,7 +125,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_media::factories
 
     #if defined(HAS_VST2)
         FW<Process::PortFactory
-          , Media::VST::VSTControlInletFactory
+          , Media::VST::VSTControlPortFactory
             >,
     #endif
 

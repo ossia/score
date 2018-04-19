@@ -9,6 +9,7 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ExpandMode.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Focus/FocusDispatcher.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/HeaderDelegate.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerModelPanelProxy.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerPresenter.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerView.hpp"
@@ -20,7 +21,9 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessMetadata.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessList.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/Port.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortItem.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/Cable.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/CableItem.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNode.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/ProcessStateDataInterface.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ScenarioStyle.hpp"
@@ -51,6 +54,7 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNodeSerialization.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/HeaderDelegate.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Process.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerPresenter.cpp"
@@ -58,7 +62,9 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerModelPanelProxy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ScenarioStyle.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/Port.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/Cable.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/CableItem.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Layer/LayerContextMenu.cpp"
 

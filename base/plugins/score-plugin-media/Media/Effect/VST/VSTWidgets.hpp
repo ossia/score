@@ -29,7 +29,9 @@ class VSTEffectItem final:
 
       double pos_y = this->childrenBoundingRect().height();
 
-      auto port = Dataflow::setupInlet(inlet, doc, item, this);
+      auto& portFactory = score::AppContext().interfaces<Process::PortFactoryList>();
+      Process::PortFactory* fact = portFactory.get(inlet.concreteKey());
+      auto port = fact->makeItem(inlet, doc, item, this);
 
       auto lab = new Scenario::SimpleTextItem{item};
       lab->setColor(ScenarioStyle::instance().EventDefault);
