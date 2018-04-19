@@ -13,7 +13,8 @@ template <
     typename Model_T,
     typename LayerPresenter_T,
     typename LayerView_T,
-    typename CurveColors_T>
+    typename CurveColors_T,
+    typename HeaderDelegate_T>
 class CurveLayerFactory_T final
     : public Process::LayerFactory
     , public StyleInterface
@@ -52,6 +53,12 @@ public:
   const Curve::Style& style() const override
   {
     return m_colors.style();
+  }
+
+  Process::HeaderDelegate*
+  makeHeaderDelegate(const Process::LayerPresenter& pres) const override
+  {
+    return new HeaderDelegate_T{*safe_cast<const LayerPresenter_T*>(&pres)};
   }
 
 private:

@@ -25,19 +25,60 @@
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
+#include <Process/HeaderDelegate.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <score/plugins/customfactory/FactorySetup.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/tools/std/HashMap.hpp>
 #include <score_plugin_automation_commands_files.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
 namespace Automation
 {
+template<typename Layer_T>
+class MinMaxHeaderDelegate final :
+        public Process::DefaultHeaderDelegate
+{
+  public:
+    MinMaxHeaderDelegate(const Layer_T& layer)
+      : Process::DefaultHeaderDelegate{layer}
+    {
+      const auto& model = layer.model();
+      using model_t = std::remove_reference_t<decltype(model)>;
+
+      con(model, &model_t::minChanged,
+          this, [=] { updateName(); });
+      con(model, &model_t::maxChanged,
+          this, [=] { updateName(); });
+    }
+
+    void updateName() override
+    {
+      if (presenter)
+      {
+        const auto& style = ScenarioStyle::instance();
+        using model_t = std::remove_reference_t<decltype(std::declval<Layer_T>().model())>;
+        auto& model = static_cast<const model_t&>(presenter->model());
+
+        QString txt = presenter->model().prettyName();
+        txt += "  Min: ";
+        txt += QString::number(model.min());
+        txt += "  Max: ";
+        txt += QString::number(model.max());
+        m_line = Process::makeGlyphs(
+            txt,
+            m_sel ? style.IntervalHeaderTextPen : style.GrayTextPen);
+        update();
+      }
+    }
+
+};
 using AutomationFactory = Process::ProcessFactory_T<Automation::ProcessModel>;
 using AutomationLayerFactory = Curve::CurveLayerFactory_T<
     Automation::ProcessModel,
     Automation::LayerPresenter,
     Automation::LayerView,
-    Automation::Colors>;
+    Automation::Colors,
+    Automation::MinMaxHeaderDelegate<Automation::LayerPresenter>>;
 }
 namespace Gradient
 {
@@ -62,7 +103,8 @@ using MetronomeLayerFactory = Curve::CurveLayerFactory_T<
     Metronome::ProcessModel,
     Metronome::LayerPresenter,
     Metronome::LayerView,
-    Metronome::Colors>;
+    Metronome::Colors,
+    Automation::MinMaxHeaderDelegate<Metronome::LayerPresenter>>;
 }
 
 score_plugin_automation::score_plugin_automation() = default;
