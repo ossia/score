@@ -1,5 +1,5 @@
 #include "PortItem.hpp"
-#include <Dataflow/UI/CableItem.hpp>
+#include <Process/Dataflow/CableItem.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <QDrag>
 #include <QGraphicsSceneMoveEvent>
@@ -38,270 +38,6 @@
 #include <ossia/editor/state/destination_qualifiers.hpp>
 namespace Dataflow
 {
-
-void onCreateCable(const score::DocumentContext& ctx, Dataflow::PortItem* p1, Dataflow::PortItem* p2);
-
-PortItem* PortItem::clickedPort;
-PortItem::PortItem(Process::Port& p, QGraphicsItem* parent)
-  : QGraphicsItem{parent}
-  , m_port{p}
-{
-  this->setCursor(QCursor());
-  this->setAcceptDrops(true);
-  this->setAcceptHoverEvents(true);
-  this->setFlag(QGraphicsItem::ItemSendsScenePositionChanges, true);
-  this->setToolTip(p.customData());
-
-  g_ports().insert({&p, this});
-
-  Path<Process::Port> path = p;
-  for(auto c : CableItem::g_cables())
-  {
-    if(c.first->source().unsafePath() == path.unsafePath())
-    {
-      c.second->setSource(this);
-      cables.push_back(c.second);
-    }
-    else if(c.first->sink().unsafePath() == path.unsafePath())
-    {
-      c.second->setTarget(this);
-      cables.push_back(c.second);
-    }
-  }
-}
-
-PortItem::~PortItem()
-{
-  for(auto cable : cables)
-  {
-    if(cable->source() == this)
-      cable->setSource(nullptr);
-    if(cable->target() == this)
-      cable->setTarget(nullptr);
-  }
-  auto& p = g_ports();
-  auto it = p.find(&m_port);
-  if(it != p.end())
-    p.erase(it);
-}
-
-PortItem::port_map& PortItem::g_ports() {
-  static port_map g;
-  return g;
-}
-
-void PortItem::setupMenu(QMenu&, const score::DocumentContext& ctx)
-{
-
-}
-
-QRectF PortItem::boundingRect() const
-{
-  return {-m_diam/2., -m_diam/2., m_diam, m_diam};
-}
-
-void PortItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
-{
-  static const qreal smallRadius = 3.;
-  static const qreal largeRadius = 4.;
-  static const QRectF smallEllipse{-smallRadius, -smallRadius, 2. * smallRadius, 2. * smallRadius};
-  static const QPolygonF smallEllipsePath{[] {
-      QPainterPath p;
-      p.addEllipse(smallEllipse);
-      return p.simplified().toFillPolygon();
-  }()};
-  static const QRectF largeEllipse{-largeRadius, -largeRadius, 2. * largeRadius, 2. * largeRadius};
-  static const QPolygonF largeEllipsePath{[] {
-      QPainterPath p;
-      p.addEllipse(largeEllipse);
-      return p.simplified().toFillPolygon();
-  }()};
-
-  painter->setRenderHint(QPainter::Antialiasing, true);
-
-  auto& style = ScenarioStyle::instance();
-  switch(m_port.type)
-  {
-    case Process::PortType::Audio:
-      painter->setPen(style.AudioPortPen);
-      painter->setBrush(style.AudioPortBrush);
-      break;
-    case Process::PortType::Message:
-      painter->setPen(style.DataPortPen);
-      painter->setBrush(style.DataPortBrush);
-      break;
-    case Process::PortType::Midi:
-      painter->setPen(style.MidiPortPen);
-      painter->setBrush(style.MidiPortBrush);
-      break;
-  }
-
-  painter->drawPolygon(m_diam == 6. ? smallEllipsePath : largeEllipsePath);
-  painter->setRenderHint(QPainter::Antialiasing, false);
-}
-
-void PortItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
-{
-  if(this->contains(event->pos()))
-  {
-    switch(event->button())
-    {
-      case Qt::RightButton:
-        contextMenuRequested(event->scenePos(), event->screenPos());
-        break;
-      default:
-        break;
-    }
-  }
-  event->accept();
-}
-
-void PortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
-{
-  event->accept();
-  if(QLineF(pos(), event->pos()).length() > QApplication::startDragDistance())
-  {
-    QDrag* d{new QDrag{this}};
-    QMimeData* m = new QMimeData;
-    clickedPort = this;
-    m->setData(score::mime::port(), {});
-    d->setMimeData(m);
-    d->exec();
-    connect(d, &QDrag::destroyed, this, [] {
-      clickedPort = nullptr;
-    });
-  }
-}
-
-void PortItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
-{
-  if(this->contains(event->pos()))
-  {
-    event->accept();
-    switch(event->button())
-    {
-      case Qt::LeftButton:
-        showPanel();
-        break;
-      default:
-        break;
-    }
-  }
-}
-
-void PortItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
-{
-  prepareGeometryChange();
-  m_diam = 8.;
-  update();
-  event->accept();
-}
-
-void PortItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
-{
-  event->accept();
-}
-
-void PortItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
-{
-  prepareGeometryChange();
-  m_diam = 6.;
-  update();
-  event->accept();
-}
-
-void PortItem::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
-{
-  prepareGeometryChange();
-  m_diam = 8.;
-  update();
-  event->accept();
-}
-
-void PortItem::dragMoveEvent(QGraphicsSceneDragDropEvent* event)
-{
-  event->accept();
-}
-
-void PortItem::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
-{
-  prepareGeometryChange();
-  m_diam = 6.;
-  update();
-  event->accept();
-}
-
-void PortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
-{
-  prepareGeometryChange();
-  m_diam = 6.;
-  update();
-  auto& mime = *event->mimeData();
-
-  auto& ctx = score::IDocument::documentContext(m_port);
-  if(mime.formats().contains(score::mime::port()))
-  {
-    if(clickedPort && this != clickedPort)
-    {
-      onCreateCable(ctx, clickedPort, this);
-    }
-  }
-  clickedPort = nullptr;
-
-  CommandDispatcher<> disp{ctx.commandStack};
-  if (mime.formats().contains(score::mime::addressettings()))
-  {
-    Mime<Device::FullAddressSettings>::Deserializer des{mime};
-    Device::FullAddressSettings as = des.deserialize();
-
-    if (as.address.path.isEmpty())
-      return;
-
-    disp.submitCommand(new ChangePortAddress{m_port, State::AddressAccessor{as.address}});
-  }
-  else if (mime.formats().contains(score::mime::messagelist()))
-  {
-    Mime<State::MessageList>::Deserializer des{mime};
-    State::MessageList ml = des.deserialize();
-    if (ml.empty())
-      return;
-    auto& newAddr = ml[0].address;
-
-    if (newAddr == m_port.address())
-      return;
-
-    if (newAddr.address.path.isEmpty())
-      return;
-
-    disp.submitCommand(new ChangePortAddress{m_port, std::move(newAddr)});
-  }
-  event->accept();
-}
-
-QVariant PortItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value)
-{
-  switch(change)
-  {
-    case QGraphicsItem::ItemScenePositionHasChanged:
-      for(auto cbl : cables)
-      {
-        cbl->resize();
-      }
-      break;
-    case QGraphicsItem::ItemVisibleHasChanged:
-    case QGraphicsItem::ItemSceneHasChanged:
-      for(auto cbl : cables)
-      {
-        cbl->check();
-      }
-      break;
-    default:
-      break;
-  }
-
-  return QGraphicsItem::itemChange(change, value);
-}
-
 
 
 
@@ -380,65 +116,13 @@ bool intersection_empty(const Vec& v1, const Vec& v2)
   return true;
 }
 
-class PortTooltip : public QWidget
-{
-  public:
-    PortTooltip(const score::DocumentContext& ctx, Process::Port& p)
-      : m_disp{ctx.commandStack}
-      , m_edit{ctx.plugin<Explorer::DeviceDocumentPlugin>().explorer(), this}
-    {
-      auto lay = new QFormLayout{this};
-      lay->addRow(p.customData(), (QWidget*)nullptr);
-      lay->addRow(tr("Address"), &m_edit);
-      if(auto outlet = qobject_cast<Process::Outlet*>(&p))
-      {
-        if(p.type == Process::PortType::Audio)
-        {
-          auto cb = new QCheckBox{this};
-          cb->setChecked(outlet->propagate());
-          lay->addRow(tr("Propagate"), cb);
-          connect(cb, &QCheckBox::toggled,
-                  this, [&ctx,&out=*outlet] (auto ok) {
-            if(ok != out.propagate()) {
-              CommandDispatcher<> d{ctx.commandStack};
-              d.submitCommand<Dataflow::SetPortPropagate>(out, ok);
-            }
-          });
-          con(*outlet, &Process::Outlet::propagateChanged,
-              this, [=] (bool p) {
-            if(p != cb->isChecked()) {
-              cb->setChecked(p);
-            }
-          });
-        }
-      }
-
-      m_edit.setAddress(p.address());
-      con(p, &Process::Port::addressChanged,
-          this, [this] (const State::AddressAccessor& addr) {
-        if(addr != m_edit.address().address)
-        {
-          m_edit.setAddress(addr);
-        }
-      });
-      con(m_edit, &Explorer::AddressAccessorEditWidget::addressChanged,
-          this, [this,&p] (const Device::FullAddressAccessorSettings& set) {
-        if(set.address != p.address())
-          m_disp.submitCommand<Dataflow::ChangePortAddress>(p, set.address);
-      });
-    }
-
-  private:
-    CommandDispatcher<> m_disp;
-    Explorer::AddressAccessorEditWidget m_edit;
-};
 class PortDialog final
     : public QDialog
 {
   public:
     PortDialog(const score::DocumentContext& ctx, Process::Port& p, QWidget* parent):
       QDialog{parent}
-    , m_pw{ctx, p}
+    , m_pw{ctx, p, parent}
     , m_bb{QDialogButtonBox::Ok}
     {
       this->setLayout(&m_lay);
@@ -503,61 +187,20 @@ void onCreateCable(const score::DocumentContext& ctx, Dataflow::PortItem* p1, Da
         cd);
 }
 
-SCORE_PLUGIN_SCENARIO_EXPORT
-void setupSimpleInlet(
-    PortItem* item,
-    Process::Inlet& port,
-    const score::DocumentContext& ctx,
-    QGraphicsItem* parent,
-    QObject* context)
+AutomatablePortItem::~AutomatablePortItem()
 {
-  QObject::connect(item, &Dataflow::PortItem::showPanel,
-          context, [&] {
-    auto panel = new PortDialog{ctx, port, nullptr};
-    panel->exec();
-    panel->deleteLater();
-  });
 
-  if(port.type == Process::PortType::Message)
-  {
-    QObject::connect(item, &Dataflow::PortItem::contextMenuRequested,
-                     context, [&,item] (QPointF sp, QPoint p) {
-      auto menu = new QMenu{};
-      auto act = menu->addAction(QObject::tr("Create automation"));
-      QObject::connect(act, &QAction::triggered, item, [item,&ctx] {
-        item->on_createAutomation(ctx);
-      }, Qt::QueuedConnection);
-      item->setupMenu(*menu, ctx);
-      menu->exec(p);
-      menu->deleteLater();
-    });
-  }
 }
 
-SCORE_PLUGIN_SCENARIO_EXPORT
-PortItem* setupInlet(Process::Inlet& port, const score::DocumentContext& ctx, QGraphicsItem* parent, QObject* context)
+void AutomatablePortItem::setupMenu(QMenu& menu, const score::DocumentContext& ctx)
 {
-  auto item = new Dataflow::PortItem{port, parent};
-
-  setupSimpleInlet(item, port, ctx, parent, context);
-
-  return item;
+  auto act = menu.addAction(QObject::tr("Create automation"));
+  QObject::connect(act, &QAction::triggered, this, [this,&ctx] {
+    on_createAutomation(ctx);
+  }, Qt::QueuedConnection);
 }
 
-PortItem* setupOutlet(Process::Outlet& port, const score::DocumentContext& ctx, QGraphicsItem* parent, QObject* context)
-{
-  auto item = new Dataflow::PortItem{port, parent};
-  QObject::connect(item, &Dataflow::PortItem::showPanel,
-          context, [&] {
-    auto panel = new PortDialog{ctx, port, nullptr};
-    panel->exec();
-    panel->deleteLater();
-  });
-  return item;
-}
-
-
-void PortItem::on_createAutomation(const score::DocumentContext& ctx)
+void AutomatablePortItem::on_createAutomation(const score::DocumentContext& ctx)
 {
   QObject* obj = &m_port;
   while(obj)
@@ -577,7 +220,7 @@ void PortItem::on_createAutomation(const score::DocumentContext& ctx)
   }
 }
 
-bool PortItem::on_createAutomation(
+bool AutomatablePortItem::on_createAutomation(
     Scenario::IntervalModel& cst,
     std::function<void(score::Command*)> macro,
     const score::DocumentContext& ctx)
@@ -614,6 +257,135 @@ bool PortItem::on_createAutomation(
 
   macro(new Dataflow::CreateCable{plug, getStrongId(plug.cables), std::move(cd)});
   return true;
+}
+
+void AutomatablePortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
+{
+  prepareGeometryChange();
+  m_diam = 6.;
+  update();
+  auto& mime = *event->mimeData();
+
+  auto& ctx = score::IDocument::documentContext(m_port);
+  if(mime.formats().contains(score::mime::port()))
+  {
+    if(clickedPort && this != clickedPort)
+    {
+      onCreateCable(ctx, clickedPort, this);
+    }
+  }
+  clickedPort = nullptr;
+
+  CommandDispatcher<> disp{ctx.commandStack};
+  if (mime.formats().contains(score::mime::addressettings()))
+  {
+    Mime<Device::FullAddressSettings>::Deserializer des{mime};
+    Device::FullAddressSettings as = des.deserialize();
+
+    if (as.address.path.isEmpty())
+      return;
+
+    disp.submitCommand(new ChangePortAddress{m_port, State::AddressAccessor{as.address}});
+  }
+  else if (mime.formats().contains(score::mime::messagelist()))
+  {
+    Mime<State::MessageList>::Deserializer des{mime};
+    State::MessageList ml = des.deserialize();
+    if (ml.empty())
+      return;
+    auto& newAddr = ml[0].address;
+
+    if (newAddr == m_port.address())
+      return;
+
+    if (newAddr.address.path.isEmpty())
+      return;
+
+    disp.submitCommand(new ChangePortAddress{m_port, std::move(newAddr)});
+  }
+  event->accept();
+}
+
+PortItem* AutomatablePortFactory::makeItem(
+    Process::Inlet& port
+    , const score::DocumentContext& ctx
+    , QGraphicsItem* parent
+    , QObject* context)
+{
+  auto item = new Dataflow::AutomatablePortItem{port, ctx, parent};
+/*
+  QObject::connect(item, &Dataflow::PortItem::showPanel,
+          context, [&] {
+    auto panel = new PortDialog{ctx, port, nullptr};
+    panel->exec();
+    panel->deleteLater();
+  });
+*/
+  return item;
+}
+
+PortItem* AutomatablePortFactory::makeItem(
+    Process::Outlet& port
+    , const score::DocumentContext& ctx
+    , QGraphicsItem* parent
+    , QObject* context)
+{
+  auto item = new Dataflow::AutomatablePortItem{port, ctx, parent};
+/*
+  QObject::connect(item, &Dataflow::PortItem::showPanel,
+                   context, [&] {
+    auto panel = new PortDialog{ctx, port, nullptr};
+    panel->exec();
+    panel->deleteLater();
+  });
+*/
+  return item;
+}
+
+PortTooltip::PortTooltip(const score::DocumentContext& ctx, const Process::Port& p, QWidget* parent)
+  : QWidget{parent}
+  , m_disp{ctx.commandStack}
+  , m_edit{ctx.plugin<Explorer::DeviceDocumentPlugin>().explorer(), this}
+{
+  auto lay = new QFormLayout{this};
+  lay->addRow(p.customData(), (QWidget*)nullptr);
+  lay->addRow(tr("Address"), &m_edit);
+  if(auto outlet = qobject_cast<const Process::Outlet*>(&p))
+  {
+    if(p.type == Process::PortType::Audio)
+    {
+      auto cb = new QCheckBox{this};
+      cb->setChecked(outlet->propagate());
+      lay->addRow(tr("Propagate"), cb);
+      connect(cb, &QCheckBox::toggled,
+              this, [&ctx,&out=*outlet] (auto ok) {
+        if(ok != out.propagate()) {
+          CommandDispatcher<> d{ctx.commandStack};
+          d.submitCommand<Dataflow::SetPortPropagate>(out, ok);
+        }
+      });
+      con(*outlet, &Process::Outlet::propagateChanged,
+          this, [=] (bool p) {
+        if(p != cb->isChecked()) {
+          cb->setChecked(p);
+        }
+      });
+    }
+  }
+
+  m_edit.setAddress(p.address());
+  con(p, &Process::Port::addressChanged,
+      this, [this] (const State::AddressAccessor& addr) {
+    if(addr != m_edit.address().address)
+    {
+      m_edit.setAddress(addr);
+    }
+  });
+  con(m_edit, &Explorer::AddressAccessorEditWidget::addressChanged,
+      this, [this,&p] (const Device::FullAddressAccessorSettings& set) {
+    if(set.address != p.address())
+      m_disp.submitCommand<Dataflow::ChangePortAddress>(p, set.address);
+  });
 }
 
 }

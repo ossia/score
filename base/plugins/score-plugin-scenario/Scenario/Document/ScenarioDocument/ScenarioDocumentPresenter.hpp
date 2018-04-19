@@ -11,7 +11,7 @@
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/ProcessContext.hpp>
 #include <Process/ZoomHelper.hpp>
-#include <Dataflow/UI/CableItem.hpp>
+#include <Process/Dataflow/CableItem.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
 
@@ -54,7 +54,7 @@ public:
       score::DocumentPresenter* parent_presenter,
       const score::DocumentDelegateModel& model,
       score::DocumentDelegateView& view);
-  virtual ~ScenarioDocumentPresenter();
+  ~ScenarioDocumentPresenter() override;
 
   IntervalModel& displayedInterval() const;
   const DisplayedElementsPresenter& presenters() const;

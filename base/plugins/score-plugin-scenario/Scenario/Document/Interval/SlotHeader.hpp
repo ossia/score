@@ -24,7 +24,7 @@ class SlotHeader final : public QGraphicsItem
     void setSlotIndex(int);
     static constexpr double headerHeight()
     {
-      return 32.;
+      return 16.;
     }
     static constexpr double handleWidth()
     {
@@ -42,7 +42,6 @@ class SlotHeader final : public QGraphicsItem
         QWidget* widget) override;
 
     void setWidth(qreal width);
-
     void setMini(bool b);
 private:
     void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
@@ -52,6 +51,5 @@ private:
     qreal m_width{};
     double m_menupos{};
     int m_slotIndex{};
-    bool m_mini{false};
 };
 }

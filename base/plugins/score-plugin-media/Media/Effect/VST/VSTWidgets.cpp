@@ -210,50 +210,6 @@ VSTEffectItem::VSTEffectItem(const VSTEffectModel& effect, const score::Document
   }
 }
 
-struct VSTControlPortItem final : public Dataflow::PortItem
-{
-  public:
-    using Dataflow::PortItem::PortItem;
-
-    void setupMenu(QMenu& menu, const score::DocumentContext& ctx) override
-    {
-      auto rm_act = menu.addAction(QObject::tr("Remove port"));
-      connect(rm_act, &QAction::triggered,
-              this, [this,&ctx] {
-        QTimer::singleShot(0, [&ctx, parent=port().parent(), id=port().id()] {
-          CommandDispatcher<> disp{ctx.commandStack};
-          disp.submitCommand<RemoveVSTControl>(*static_cast<VSTEffectModel*>(parent), id);
-        });
-      });
-    }
-    bool on_createAutomation(
-        Scenario::IntervalModel& cst,
-        std::function<void(score::Command*)> macro,
-        const score::DocumentContext& ctx) override
-    {
-      auto make_cmd = new Scenario::Command::AddOnlyProcessToInterval{
-                      cst,
-                      Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), {}};
-      macro(make_cmd);
-
-      auto lay_cmd = new Scenario::Command::AddLayerInNewSlot{cst, make_cmd->processId()};
-      macro(lay_cmd);
-
-      auto& autom = safe_cast<Automation::ProcessModel&>(cst.processes.at(make_cmd->processId()));
-      macro(new Automation::SetMin{autom, 0.});
-      macro(new Automation::SetMax{autom, 1.});
-
-      auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
-      Process::CableData cd;
-      cd.type = Process::CableType::ImmediateStrict;
-      cd.source = *autom.outlet;
-      cd.sink = port();
-
-      macro(new Dataflow::CreateCable{plug, getStrongId(plug.cables), std::move(cd)});
-      return true;
-    }
-};
-
 void VSTEffectItem::setupInlet(
     const VSTEffectModel& fx,
     VSTControlInlet& inlet,
@@ -263,8 +219,7 @@ void VSTEffectItem::setupInlet(
 
   double pos_y = this->childrenBoundingRect().height();
 
-  auto port_item = new VSTControlPortItem{inlet, rect};
-  Dataflow::setupSimpleInlet(port_item, inlet, doc, rect, this);
+  auto port_item = VSTControlPortFactory{}.makeItem(inlet, doc, rect, this);
   static const auto close_off  = QPixmap::fromImage(QImage(":/icons/close_off.png") .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
   static const auto close_on   = QPixmap::fromImage(QImage(":/icons/close_on.png")  .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
 

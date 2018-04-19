@@ -42,12 +42,6 @@ void SlotHeader::setSlotIndex(int v)
   m_slotIndex = v;
 }
 
-void SlotHeader::setMini(bool b)
-{
-  m_mini = b;
-  update();
-}
-
 QRectF SlotHeader::boundingRect() const
 {
   return {0., 0., m_width, headerHeight()};
@@ -58,7 +52,7 @@ void SlotHeader::paint(
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
   const auto& style = ScenarioStyle::instance();
-  if(!m_mini) {
+  if(m_width > 20) {
     painter->setPen(style.IntervalHeaderSeparator);
     painter->setBrush(style.NoBrush);
 
@@ -129,6 +123,7 @@ void SlotHeader::setWidth(qreal width)
   m_width = width;
   update();
 }
+
 
 void SlotHeader::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {

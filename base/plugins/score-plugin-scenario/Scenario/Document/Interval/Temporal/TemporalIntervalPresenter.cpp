@@ -525,7 +525,7 @@ void TemporalIntervalPresenter::on_layerModelPutToFront(int slot, const Process:
       if (elt.model->id() == proc.id())
       {
         elt.presenter->putToFront();
-        slt.headerDelegate = new DefaultHeaderDelegate{*elt.presenter};
+        slt.headerDelegate = new Process::DefaultHeaderDelegate{*elt.presenter};
         slt.headerDelegate->setParentItem(slt.header);
         slt.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
         slt.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
@@ -608,7 +608,8 @@ void TemporalIntervalPresenter::on_zoomRatioChanged(ZoomRatio val)
 
   for(const SlotPresenter& slot : m_slots)
   {
-    slot.headerDelegate->on_zoomRatioChanged(val);
+    if(slot.headerDelegate)
+      slot.headerDelegate->on_zoomRatioChanged(val);
     for(const LayerData& proc : slot.processes)
     {
       proc.presenter->on_zoomRatioChanged(val);
@@ -681,29 +682,8 @@ void TemporalIntervalPresenter::setHeaderWidth(const SlotPresenter& slot, double
 
   if(slot.headerDelegate)
   {
-    switch(slot.headerDelegate->headerShape(w))
-    {
-      case Process::HeaderDelegate::Shape::MaxiShape:
-      {
-        slot.header->setMini(false);
-
-        slot.headerDelegate->setSize(QSizeF{std::max(0., w - SlotHeader::handleWidth() - SlotHeader::menuWidth()), SlotHeader::headerHeight()});
-        slot.headerDelegate->setX(30);
-        break;
-      }
-      case Process::HeaderDelegate::Shape::MiniShape:
-      {
-        slot.header->setMini(true);
-
-        slot.headerDelegate->setSize(QSizeF{w, SlotHeader::headerHeight()});
-        slot.headerDelegate->setX(0);
-        break;
-      }
-    }
-  }
-  else
-  {
-    slot.header->setMini(false);
+    slot.headerDelegate->setSize(QSizeF{std::max(0., w - SlotHeader::handleWidth() - SlotHeader::menuWidth()), SlotHeader::headerHeight()});
+    slot.headerDelegate->setX(30);
   }
 }
 

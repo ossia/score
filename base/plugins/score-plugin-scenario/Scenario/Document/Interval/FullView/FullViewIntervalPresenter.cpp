@@ -1,9 +1,8 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <Process/HeaderDelegate.hpp>
 #include <Process/ProcessContext.hpp>
 #include <Process/ProcessList.hpp>
-#include <QGraphicsScene>
-#include <QList>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/FullView/FullViewIntervalView.hpp>
 #include <Scenario/Document/Interval/DefaultHeaderDelegate.hpp>
@@ -24,6 +23,8 @@
 #include <boost/range/algorithm_ext/erase.hpp>
 #include <score/widgets/GraphicsItem.hpp>
 
+#include <QGraphicsScene>
+#include <QList>
 class QObject;
 
 namespace Scenario
@@ -135,7 +136,7 @@ void FullViewIntervalPresenter::createSlot(int pos, const FullSlot& slt)
   proc_pres->on_zoomRatioChanged(m_zoomRatio);
   proc_pres->setFullView();
 
-  p.headerDelegate = new DefaultHeaderDelegate{*proc_pres};
+  p.headerDelegate = new Process::DefaultHeaderDelegate{*proc_pres};
   p.headerDelegate->setParentItem(p.header);
   p.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
   p.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
@@ -146,13 +147,6 @@ void FullViewIntervalPresenter::createSlot(int pos, const FullSlot& slt)
   slot.processes.push_back(LayerData{
                   &proc, proc_pres, proc_view
                 });
-
-  slot.headerDelegate =
-      new DefaultHeaderDelegate{*proc_pres};
-  slot.headerDelegate->setParentItem(slot.header);
-  slot.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
-  slot.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
-  slot.headerDelegate->setPos(30, 0);
 
   auto con_id = con(
         proc, &Process::ProcessModel::durationChanged, this,
@@ -196,9 +190,8 @@ void FullViewIntervalPresenter::updateProcessShape(const LayerData& data, const 
   data.presenter->setWidth(width);
 
   slot.header->setWidth(width);
-  slot.header->setMini(false);
 
-  slot.headerDelegate->setSize(QSizeF{std::max(0., width - SlotHeader::handleWidth() - SlotHeader::menuWidth()), SlotHeader::headerHeight()});
+  slot.headerDelegate->setSize(QSizeF{std::max(0., width - SlotHeader::handleWidth() - SlotHeader::menuWidth()), slot.header->headerHeight()});
   slot.headerDelegate->setX(30);
 
   data.presenter->parentGeometryChanged();
@@ -252,12 +245,13 @@ void FullViewIntervalPresenter::updatePositions()
     {
       const LayerData& proc = slot.processes.front();
 
+      assert(slot.header);
       if(slot.header)
       {
         slot.header->setPos(QPointF{0, currentSlotY});
         slot.header->setSlotIndex(i);
       }
-      currentSlotY += SlotHeader::headerHeight();
+      currentSlotY += slot.headerHeight();
 
       proc.view->setPos(0, currentSlotY);
       proc.view->update();
@@ -290,7 +284,7 @@ double FullViewIntervalPresenter::rackHeight() const
     if(!slot.processes.empty())
       height += slot.processes.front().model->getSlotHeight();
 
-    height += SlotHandle::handleHeight() + SlotHeader::headerHeight();
+    height += SlotHandle::handleHeight() + slot.headerHeight();
   }
   return height;
 }

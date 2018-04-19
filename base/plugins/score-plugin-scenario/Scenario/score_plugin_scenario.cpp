@@ -24,6 +24,7 @@
 #include <Scenario/Process/ScenarioFactory.hpp>
 #include <Scenario/Settings/ScenarioSettingsFactory.hpp>
 #include <Scenario/score_plugin_scenario.hpp>
+#include <Dataflow/UI/PortItem.hpp>
 #include <State/Message.hpp>
 
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
@@ -172,10 +173,10 @@ score_plugin_scenario::factories(
 //      FW<score::PanelDelegateFactory, Scenario::PanelDelegateFactory>,
       FW<Scenario::DropHandler, Scenario::MessageDropHandler, Scenario::DropProcessInScenario, Scenario::DropPortInScenario>,
       FW<Scenario::IntervalDropHandler, Scenario::DropProcessInInterval, Scenario::AutomationDropHandler>,
-      FW<Inspector::InspectorWidgetFactory, ScenarioInspectorWidgetFactoryWrapper, Interpolation::StateInspectorFactory, ScenarioInspectorFactory, Interpolation::InspectorFactory, Dataflow::CableInspectorFactory>,
+      FW<Inspector::InspectorWidgetFactory, ScenarioInspectorWidgetFactoryWrapper, Interpolation::StateInspectorFactory, ScenarioInspectorFactory, Interpolation::InspectorFactory, Dataflow::CableInspectorFactory, Dataflow::PortInspectorFactory>,
       FW<IntervalInspectorDelegateFactory, ScenarioIntervalInspectorDelegateFactory, BaseIntervalInspectorDelegateFactory>,
       FW<score::ValidityChecker, ScenarioValidityChecker>,
-      FW<Process::PortFactory, Process::InletFactory, Process::ControlInletFactory, Process::OutletFactory, Process::ControlOutletFactory>
+      FW<Process::PortFactory, Dataflow::InletFactory, Dataflow::ControlInletFactory, Dataflow::OutletFactory, Dataflow::ControlOutletFactory>
       //, FW<Dataflow::ProcessComponentFactory, Dataflow::ScenarioComponentFactory>
       >(ctx, key);
 }
