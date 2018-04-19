@@ -5,13 +5,13 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
+#include <Effect/EffectFactory.hpp>
 #include <Dataflow/UI/PortItem.hpp>
 #include <Scenario/Document/CommentBlock/TextItem.hpp>
 #include <score/widgets/RectItem.hpp>
 #include <QGraphicsProxyWidget>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
-#include <Effect/EffectFactory.hpp>
 
 namespace Control
 {
@@ -28,6 +28,7 @@ struct UISetup
       {
         std::size_t i = 0;
         double pos_y = 0.;
+        auto& portFactory = score::AppContext().interfaces<Process::PortFactoryList>();
         ossia::for_each_in_tuple(
               ossia::safe_nodes::get_controls<Info>{}(),
               [&] (const auto& ctrl) {
@@ -35,8 +36,8 @@ struct UISetup
           item->setPos(0, pos_y);
           auto inlet = static_cast<Process::ControlInlet*>(object.inlets()[ossia::safe_nodes::info_functions<Info>::control_start + i]);
 
-          auto port = Dataflow::setupInlet(*inlet, doc, item, &self);
-
+          Process::PortFactory* fact = portFactory.get(inlet->concreteKey());
+          auto port = fact->makeItem(*inlet, doc, item, &self);
 
           auto lab = new Scenario::SimpleTextItem{item};
           lab->setColor(ScenarioStyle::instance().EventWaiting);

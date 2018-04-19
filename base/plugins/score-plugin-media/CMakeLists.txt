@@ -162,6 +162,7 @@ set(VST_HDRS
   )
 set(VST_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTLoader.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTControl.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTEffectModel.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTWidgets.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/VST/VSTExecutor.cpp"

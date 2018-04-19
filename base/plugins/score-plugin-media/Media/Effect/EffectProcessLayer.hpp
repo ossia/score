@@ -74,11 +74,13 @@ class View final : public Process::LayerView
     {
       qDeleteAll(ui.inlets); ui.inlets.clear();
       qreal x = 10;
+      auto& portFactory = score::AppContext().interfaces<Process::PortFactoryList>();
       for(Process::Inlet* port : effect.inlets())
       {
         if(port->hidden)
           continue;
-        auto item = Dataflow::setupInlet(*port, ctx.context, root, this);
+        Process::PortFactory* fact = portFactory.get(port->concreteKey());
+        auto item = fact->makeItem(*port, ctx.context, root, this);
         item->setPos(x, 21.);
         ui.inlets.push_back(item);
 
@@ -93,11 +95,13 @@ class View final : public Process::LayerView
     {
       qDeleteAll(ui.outlets); ui.outlets.clear();
       qreal x = 10;
+      auto& portFactory = score::AppContext().interfaces<Process::PortFactoryList>();
       for(Process::Outlet* port : effect.outlets())
       {
         if(port->hidden)
           continue;
-        auto item = Dataflow::setupOutlet(*port, ctx.context, root, this);
+        Process::PortFactory* fact = portFactory.get(port->concreteKey());
+        auto item = fact->makeItem(*port, ctx.context, root, this);
         item->setPos(x, 32.);
         ui.outlets.push_back(item);
 
