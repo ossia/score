@@ -184,8 +184,6 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/GraphicsProxyObject.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/JS/JSEdit.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/MarginLess.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/OrderedToolbar.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/QGraphicsButton.hpp"
 #    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/QmlContainerPanel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/RectItem.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ReactiveLabel.hpp"
@@ -247,8 +245,6 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/ProjectSettings/ProjectSettingsFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/ProjectSettings/ProjectSettingsModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/ProjectSettings/ProjectSettingsPresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/ProjectSettings/ProjectSettingsView.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/Addon.cpp"
 
@@ -268,7 +264,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/model/IdentifiedObjectAbstract.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/model/path/ObjectPath.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/score/model/path/RelativePath.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/RandomNameProvider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/model/ModelMetadata.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/model/Skin.cpp"
@@ -307,8 +302,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/DocumentManager.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/presenter/Presenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/settings/Settings.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/core/settings/SettingsPresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/core/settings/SettingsView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/Widgets/UndoListWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/UndoPanelDelegate.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/UndoPanelFactory.cpp"

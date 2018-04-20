@@ -155,7 +155,6 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/Temporal/TemporalIntervalHeader.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/Temporal/DefaultHeaderDelegate.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/BaseScenarioDisplayedElementsProvider.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsContainer.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp"
@@ -267,8 +266,6 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Transitions/SlotTransitions.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Transitions/StateTransitions.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Transitions/TimeSyncTransitions.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/PanelDelegateFactory.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/PanelDelegate.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/Accessors.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/ContainersAccessors.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/ConstrainedDisplacementPolicy.hpp"
@@ -312,7 +309,6 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/CableHelpers.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Inspector/DataflowWidget.hpp"
 
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/CableItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/PortItem.hpp"
 )
 qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/resources/ScenarioResources.qrc")
@@ -476,11 +472,9 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/FullView/FullViewIntervalHeader.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/FullView/ClickableLabelItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/FullView/AddressBarItem.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/DefaultHeaderDelegate.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/Temporal/Braces/IntervalBrace.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/Temporal/TemporalIntervalView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/Temporal/DefaultHeaderDelegate.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/Temporal/TemporalIntervalHeader.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/IntervalView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/IntervalDurations.cpp"
@@ -507,9 +501,6 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/CommentBlock/CommentBlockPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/CommentBlock/CommentBlockView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/CommentBlock/TextItem.cpp"
-
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/PanelDelegate.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Panel/PanelDelegateFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/StandardCreationPolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/GoodOldDisplacementPolicy.cpp"
@@ -577,7 +568,6 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/CableHelpers.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Inspector/DataflowWidget.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/CableItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/PortItem.cpp"
 )
 

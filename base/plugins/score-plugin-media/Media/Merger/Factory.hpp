@@ -6,7 +6,6 @@
 #include <Media/Merger/Presenter.hpp>
 #include <Media/Merger/View.hpp>
 #include <Process/GenericProcessFactory.hpp>
-#include <Process/LayerModelPanelProxy.hpp>
 
 namespace Media
 {

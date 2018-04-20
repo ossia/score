@@ -4,7 +4,6 @@
 #include <Media/Sound/SoundPresenter.hpp>
 #include <Media/Sound/SoundView.hpp>
 #include <Process/GenericProcessFactory.hpp>
-#include <Process/LayerModelPanelProxy.hpp>
 
 namespace Media
 {

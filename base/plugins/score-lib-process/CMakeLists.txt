@@ -10,7 +10,6 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ExpandMode.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Focus/FocusDispatcher.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/HeaderDelegate.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerModelPanelProxy.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerPresenter.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerView.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessContext.hpp"
@@ -22,6 +21,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessList.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/Port.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortItem.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/Cable.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/CableItem.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNode.hpp"
@@ -45,10 +45,10 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetProcessFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerPresenter.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerView.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerPanelProxy.hpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectLayer.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score_lib_process.hpp"
 )
 set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessModelSerialization.cpp"
@@ -59,7 +59,6 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Process.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/LayerModelPanelProxy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ScenarioStyle.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/Port.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortItem.cpp"

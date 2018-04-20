@@ -4,7 +4,6 @@
 #include <Media/Step/Presenter.hpp>
 #include <Media/Step/View.hpp>
 #include <Process/GenericProcessFactory.hpp>
-#include <Process/LayerModelPanelProxy.hpp>
 
 namespace Media
 {

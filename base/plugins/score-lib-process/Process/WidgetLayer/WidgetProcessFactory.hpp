@@ -1,6 +1,5 @@
 #pragma once
 #include <Process/ProcessFactory.hpp>
-#include <Process/WidgetLayer/WidgetLayerPanelProxy.hpp>
 #include <Process/WidgetLayer/WidgetLayerPresenter.hpp>
 #include <Process/WidgetLayer/WidgetLayerView.hpp>
 

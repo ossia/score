@@ -1,6 +1,5 @@
 #pragma once
 #include <Curve/CurveStyle.hpp>
-#include <Curve/Panel/CurvePanel.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <score/serialization/VisitorCommon.hpp>

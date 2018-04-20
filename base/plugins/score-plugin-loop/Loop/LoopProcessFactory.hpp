@@ -4,7 +4,6 @@
 #include <Loop/LoopProcessModel.hpp>
 #include <Loop/LoopView.hpp>
 #include <Process/GenericProcessFactory.hpp>
-#include <Process/LayerModelPanelProxy.hpp>
 
 namespace Loop
 {
