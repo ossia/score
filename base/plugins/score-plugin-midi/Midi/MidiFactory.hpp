@@ -3,7 +3,6 @@
 #include <Midi/MidiProcess.hpp>
 #include <Midi/MidiView.hpp>
 #include <Process/GenericProcessFactory.hpp>
-#include <Process/LayerModelPanelProxy.hpp>
 
 namespace Midi
 {

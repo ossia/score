@@ -28,6 +28,7 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/InsertEffect.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Inspector/AudioInspector.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Inspector/Factory.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundFactory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundMetadata.hpp"
@@ -141,6 +142,7 @@ if(TARGET Lilv)
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2EffectModel.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/lv2_atom_helpers.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2Context.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2Node.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/InsertLV2.hpp"
         )
     set(LV2_SRCS

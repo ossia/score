@@ -24,7 +24,6 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/Interval/SlotHandle.hpp>
-#include <Scenario/Document/Interval/Temporal/DefaultHeaderDelegate.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>

@@ -43,6 +43,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ContextMenu/PlayContextMenu.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ContextMenu/PlayFromIntervalInScenario.hpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Component.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/ExecutorContext.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/BaseScenarioComponent.hpp"
@@ -73,6 +74,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Listening/PlayListeningHandler.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Listening/PlayListeningHandlerFactory.hpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/LocalTreeComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/LocalTreeDocumentPlugin.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/BaseProperty.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/LocalTree/Property.hpp"
@@ -98,7 +100,10 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Inspector.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Layer.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Executor.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Node.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/BaseWidgets.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/CommonWidgets.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Port.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/TimeSignature.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/TickPolicy.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/AudioPanel.hpp"

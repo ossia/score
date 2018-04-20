@@ -45,7 +45,6 @@
 #include <Scenario/Inspector/ObjectTree/ObjectItemModel.hpp>
 #include <Scenario/Inspector/Scenario/ScenarioInspectorFactory.hpp>
 #include <Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.hpp>
-#include <Scenario/Panel/PanelDelegateFactory.hpp>
 #include <Scenario/Process/ScenarioFactory.hpp>
 #include <Scenario/Settings/ScenarioSettingsFactory.hpp>
 #include <Scenario/score_plugin_scenario.hpp>

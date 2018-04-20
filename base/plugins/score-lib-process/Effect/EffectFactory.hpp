@@ -1,6 +1,5 @@
 #pragma once
 #include <Effect/EffectLayer.hpp>
-#include <Process/LayerModelPanelProxy.hpp>
 #include <Process/LayerView.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
