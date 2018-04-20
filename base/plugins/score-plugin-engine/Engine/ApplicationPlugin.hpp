@@ -2,55 +2,30 @@
 
 #include <Engine/Executor/ContextMenu/PlayContextMenu.hpp>
 #include <Process/TimeValue.hpp>
-#include <QString>
-#include <memory>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score_plugin_engine_export.h>
-namespace ossia
-{
-class audio_engine;
-}
-namespace score
-{
-
-class Document;
-} // namespace score
-struct VisitorVariant;
+#include <QString>
+#include <memory>
 
 namespace Scenario
+{ class IntervalModel; }
+namespace Engine::Execution
 {
-class IntervalModel;
+class Context;
+class ClockManager;
 }
-namespace Engine
-{
-namespace LocalTree
+
+namespace Engine::LocalTree
 {
 class DocumentPlugin;
 }
-namespace Execution
-{
-class ClockManager;
-struct Context;
-class IntervalComponent;
-}
-}
-// TODO this should have "OSSIA Policies" : one would be the
-// "basic" that corresponds to the default scenario.
-// One would be the "distributed" policy which provides the
-// same functionalities but for scenario executing on different computers.
+
+namespace ossia
+{ class audio_engine; }
 
 namespace Engine
 {
-/*
-class CoreApplicationPlugin : public score::ApplicationPlugin
-{
-public:
-  CoreApplicationPlugin(const score::ApplicationContext& ctx);
-
-};
-*/
-
 class SCORE_PLUGIN_ENGINE_EXPORT ApplicationPlugin final
     : public QObject
     , public score::GUIApplicationPlugin
@@ -83,6 +58,7 @@ public:
   {
     return m_playing;
   }
+
   bool paused() const
   {
     return m_paused;
@@ -94,7 +70,8 @@ public:
 
 private:
   void on_init();
-
+  void initialize() override;
+  void on_transport(TimeVal t);
   void initLocalTreeNodes(Engine::LocalTree::DocumentPlugin&);
 
   std::unique_ptr<Engine::Execution::ClockManager>
@@ -105,7 +82,5 @@ private:
   std::unique_ptr<Engine::Execution::ClockManager> m_clock;
   QAction* m_audioEngineAct{};
   bool m_playing{false}, m_paused{false};
-  void initialize() override;
-  void on_transport(TimeVal t);
 };
 }

@@ -161,9 +161,23 @@ static std::unique_ptr<ossia::audio_engine> make_engine()
   auto bs = set.getBufferSize();
   auto old_bs = bs;
 
-  auto eng = ossia::make_audio_engine(
-      driver.toStdString(), "score", req_in.toStdString(),
-      req_out.toStdString(), ins, outs, rate, bs);
+  ossia::audio_engine* eng{};
+
+  try
+  {
+    eng = ossia::make_audio_engine(
+             driver.toStdString(), "score",
+             req_in.toStdString(), req_out.toStdString(),
+             ins, outs, rate, bs);
+  }
+  catch(...)
+  {
+    eng = ossia::make_audio_engine(
+             "PortAudio", "score",
+             req_in.toStdString(), req_out.toStdString(),
+             ins, outs, rate, bs);
+    set.setDriver("PortAudio");
+  }
 
   if (ins != old_ins)
     set.setDefaultIn(ins);
