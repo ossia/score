@@ -12,7 +12,7 @@ namespace Scenario
 { class IntervalModel; }
 namespace Engine::Execution
 {
-class Context;
+struct Context;
 class ClockManager;
 }
 
