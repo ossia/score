@@ -16,7 +16,7 @@ class score_plugin_fx final
   SCORE_PLUGIN_METADATA(1, "bb86ea2a-cf2b-452c-90b4-ffcace8e6345")
 public:
   score_plugin_fx();
-  virtual ~score_plugin_fx();
+  ~score_plugin_fx() override;
 
 private:
   std::vector<std::unique_ptr<score::InterfaceBase>> factories(
