@@ -91,9 +91,11 @@ static const QImage& toGlyphWhite()
 DefaultHeaderDelegate::DefaultHeaderDelegate(const Process::LayerPresenter& p)
     : HeaderDelegate{p}
 {
-  con(p.model(), &Process::ProcessModel::prettyNameChanged, this,
-      &DefaultHeaderDelegate::updateName);
-  updateName();
+  con(p.model(), &Process::ProcessModel::prettyNameChanged, this, [=] {
+    updateName();
+    updatePorts();
+    update();
+  });
 
   con(p.model(), &Process::ProcessModel::inletsChanged, this,
       [=] { updatePorts(); });
@@ -101,12 +103,14 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(const Process::LayerPresenter& p)
       [=] { updatePorts(); });
   con(p.model(), &Process::ProcessModel::benchmark, this,
       [=](double d) { updateBench(d); });
-  con(p.model().selection, &Selectable::changed, this, [=](bool b) {
+  con(p.model().selection, &Selectable::changed, this, [=] (bool b) {
     m_sel = b;
     updateName();
     updatePorts();
     update();
   });
+
+  updateName();
   updatePorts();
 }
 

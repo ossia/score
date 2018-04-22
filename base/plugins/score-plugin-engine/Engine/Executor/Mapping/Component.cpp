@@ -69,6 +69,14 @@ void Component::recompute()
         sourceAddressType, targetAddressType); // If the type changes we need
                                                // to rebuild the curve.
   }
+  else if(ossia_source_addr)
+  {
+    curve = rebuildCurve(ossia_source_addr->address().get_value_type(), ossia_source_addr->address().get_value_type());
+  }
+  else if(ossia_target_addr)
+  {
+    curve = rebuildCurve(ossia::val_type::FLOAT, ossia_target_addr->address().get_value_type());
+  }
   else
   {
     curve = rebuildCurve(ossia::val_type::FLOAT, ossia::val_type::FLOAT);
