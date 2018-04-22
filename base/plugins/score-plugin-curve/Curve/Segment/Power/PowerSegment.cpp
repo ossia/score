@@ -140,17 +140,17 @@ ossia::curve_segment<Y> PowerSegment::makeFunction() const
 }
 ossia::curve_segment<float> PowerSegment::makeFloatFunction() const
 {
-  return ossia::curve_segment_linear<float>{};
+  return makeFunction<float>();
 }
 
 ossia::curve_segment<int> PowerSegment::makeIntFunction() const
 {
-  return ossia::curve_segment_linear<int>{};
+  return makeFunction<int>();
 }
 
 ossia::curve_segment<bool> PowerSegment::makeBoolFunction() const
 {
-  return ossia::curve_segment_linear<bool>{};
+  return makeFunction<bool>();
 }
 
 optional<double> PowerSegment::verticalParameter() const
