@@ -15,7 +15,6 @@ if(NOT SCORE_CONFIGURATION)
   set(SCORE_CONFIGURATION developer)
 endif()
 include("${SCORE_CONFIGURATION}")
-
 project(score LANGUAGES C CXX)
 
 cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
