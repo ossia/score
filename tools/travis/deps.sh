@@ -33,11 +33,17 @@ case "$TRAVIS_OS_NAME" in
     set +e
 
     brew update
-    ARCHIVE=homebrew-cache.txz
     brew install gnu-tar xz
 
-    wget -nv https://github.com/OSSIA/score-sdk/releases/download/sdk8/$ARCHIVE -O $ARCHIVE
-    gtar xhaf $ARCHIVE --directory /usr/local/Cellar
+    SDK_ARCHIVE=homebrew-cache.txz
+    wget -nv https://github.com/OSSIA/score-sdk/releases/download/sdk8/$SDK_ARCHIVE -O $SDK_ARCHIVE
+    gtar xhaf $SDK_ARCHIVE --directory /usr/local/Cellar
+
+    AUDIO_ARCHIVE=audio-sdk.txz
+    wget -nv https://github.com/OSSIA/score-sdk/releases/download/sdk8/$AUDIO_ARCHIVE -O $AUDIO_ARCHIVE
+    gtar xhaf $AUDIO_ARCHIVE --directory /opt
+
+
     brew unlink cmake
     brew link --force boost ninja qt5 cmake
     brew install portaudio
