@@ -12,9 +12,9 @@
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
+
 namespace Dataflow
 {
-
 void onCreateCable(
     const score::DocumentContext& ctx,
     Dataflow::PortItem* p1,
