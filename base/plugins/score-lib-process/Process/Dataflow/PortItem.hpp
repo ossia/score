@@ -24,11 +24,12 @@ namespace Dataflow
 {
 class PortItem;
 }
+#if !defined(__APPLE__)
 extern template class tsl::hopscotch_map<
     Process::Port*,
     Dataflow::PortItem*,
     ossia::EgurHash<Process::Port*>>;
-
+#endif
 namespace Dataflow
 {
 class CableItem;

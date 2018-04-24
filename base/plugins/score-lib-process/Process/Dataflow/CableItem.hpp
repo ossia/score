@@ -10,10 +10,12 @@ namespace Dataflow
 {
 class CableItem;
 }
+#if !defined(__APPLE__)
 extern template class tsl::hopscotch_map<
     Process::Cable*,
     Dataflow::CableItem*,
     ossia::EgurHash<std::remove_pointer_t<Process::Cable*>>>;
+#endif
 namespace Dataflow
 {
 class PortItem;
