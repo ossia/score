@@ -11,7 +11,7 @@ case "$TRAVIS_OS_NAME" in
   linux)
     sudo wget https://github.com/OSSIA/score-sdk/releases/download/sdk8/boost.tar.bz2 -O /opt/boost.tar.bz2 &
 
-      wget -nv https://cmake.org/files/v3.10/cmake-3.10.1-Linux-x86_64.tar.gz -O cmake-linux.tgz &
+      wget -nv https://cmake.org/files/v3.11/cmake-3.11.0-Linux-x86_64.tar.gz -O cmake-linux.tgz &
 
     echo 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-6.0 main' | sudo tee /etc/apt/sources.list.d/llvm.list
     sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 1397BC53640DB551
