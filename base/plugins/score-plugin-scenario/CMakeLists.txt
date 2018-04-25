@@ -5,9 +5,6 @@ score_common_setup()
 # Packages
 # TODO make a check to see what libs aren't necessary
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Xml Svg Test)
-if(SCORE_OPENGL)
-find_package(Qt5 5.3 REQUIRED COMPONENTS OpenGL)
-endif()
 
 if(SCORE_WEBSOCKETS)
 find_package(Qt5 5.3 REQUIRED COMPONENTS WebSockets)
@@ -583,10 +580,6 @@ target_link_libraries(score_plugin_scenario
     score_lib_process score_lib_device score_plugin_deviceexplorer
     score_lib_state score_plugin_curve score_plugin_automation
     score_lib_inspector Threads::Threads)
-
-if(SCORE_OPENGL)
-target_link_libraries(score_plugin_scenario PRIVATE Qt5::OpenGL)
-endif()
 
 if(SCORE_WEBSOCKETS)
 target_link_libraries(score_plugin_scenario PRIVATE Qt5::WebSockets)
