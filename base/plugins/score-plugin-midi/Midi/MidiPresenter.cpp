@@ -101,7 +101,7 @@ void Presenter::fillContextMenu(
     bool ok = true;
     double val = QInputDialog::getDouble(
         qApp->activeWindow(), tr("Rescale factor"), tr("Rescale factor"), 1.0,
-        0.0001, 100., 2, &ok);
+        0.0001, 100., 8, &ok);
     if (!ok)
       return;
 
@@ -114,7 +114,7 @@ void Presenter::fillContextMenu(
     bool ok = true;
     double val = QInputDialog::getDouble(
         qApp->activeWindow(), tr("Rescale factor"), tr("Rescale factor"), 1.0,
-        0.0001, 100., 2, &ok);
+        0.0001, 100., 8, &ok);
     if (!ok)
       return;
 
