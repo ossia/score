@@ -118,7 +118,7 @@ Component::~Component()
 js_node::js_node(ossia::execution_state& st)
 {
   m_engine.rootContext()->setContextProperty(
-      "Device", new ExecStateWrapper{m_engine, st});
+      "Device", new ExecStateWrapper{m_engine, st, &m_engine});
 }
 
 void js_node::setupComponent(QQmlComponent& c)

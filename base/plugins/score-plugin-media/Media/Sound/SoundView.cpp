@@ -40,7 +40,7 @@ LayerView::~LayerView()
 {
   m_cpt->stop();
   m_cpt->moveToThread(this->thread());
-  m_cpt->deleteLater();
+  delete m_cpt;
 }
 
 void LayerView::setData(const MediaFileHandle& data)

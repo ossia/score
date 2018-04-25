@@ -1101,6 +1101,7 @@ struct TimeSignatureChooser final : ossia::safe_nodes::control_in
     auto sl = new QLineEdit;
     struct TimeSignatureValidator final : public QValidator
     {
+      using QValidator::QValidator;
       State validate(QString& str, int&) const override
       {
         auto p = get_time_signature(str.toStdString());
@@ -1111,7 +1112,7 @@ struct TimeSignatureChooser final : ossia::safe_nodes::control_in
       }
     };
 
-    sl->setValidator(new TimeSignatureValidator);
+    sl->setValidator(new TimeSignatureValidator{sl});
     sl->setContentsMargins(0, 0, 0, 0);
 
     auto set_text = [sl](const ossia::value& val) {
