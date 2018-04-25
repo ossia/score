@@ -33,9 +33,6 @@
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
 
-#if defined(SCORE_OPENGL)
-#  include <QOpenGLWidget>
-#endif
 #if defined(SCORE_WEBSOCKETS)
 #  include "WebSocketView.hpp"
 #endif
@@ -60,16 +57,8 @@ ScenarioDocumentView::ScenarioDocumentView(
 #if defined(SCORE_WEBSOCKETS)
   auto wsview = new WebSocketView(m_scene, 9998, this);
 #endif
-#undef SCORE_OPENGL
-#if defined(SCORE_OPENGL)
-  auto vp1 = new QOpenGLWidget;
-  m_view.setViewport(vp1);
-  auto vp2 = new QOpenGLWidget;
-  m_timeRulersView.setViewport(vp2);
-#else
   // m_view.setAttribute(Qt::WA_PaintOnScreen, true);
   // m_timeRulersView.setAttribute(Qt::WA_PaintOnScreen, true);
-#endif
   m_widget->addAction(new SnapshotAction{m_scene, m_widget});
 
   m_timeRulersView.setFixedHeight(20);

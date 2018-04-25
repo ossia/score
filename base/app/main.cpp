@@ -5,7 +5,7 @@
 #include <QApplication>
 #include <QPixmapCache>
 #include <qnamespace.h>
-
+#include <ossia/detail/thread.hpp>
 #if defined(__APPLE__)
 struct NSAutoreleasePool;
 #  include <CoreFoundation/CFNumber.h>
@@ -70,6 +70,11 @@ int main(int argc, char** argv)
   auto pool = mac_init_pool();
   disableAppRestore();
   qputenv("QT_MAC_WANTS_LAYER", "1");
+  auto path = ossia::get_exe_path();
+  auto last_slash = path.find_last_of('/');
+  path = path.substr(0, last_slash);
+  path += "/../Frameworks/Faust";
+  qputenv("FAUST_LIB_PATH", path.c_str());
 #endif
 
 #if defined(__SSE3__)
@@ -103,23 +108,11 @@ int main(int argc, char** argv)
 
   init_plugins();
 
-#undef SCORE_OPENGL
   QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
   fmt.setMajorVersion(4);
   fmt.setMinorVersion(1);
   fmt.setSamples(1);
   fmt.setDefaultFormat(fmt);
-#if defined(SCORE_OPENGL)
-  QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
-#  if defined(__APPLE__)
-  fmt.setMajorVersion(4);
-  fmt.setMinorVersion(1);
-  fmt.setSamples(1);
-#  endif
-  fmt.setSwapBehavior(QSurfaceFormat::SingleBuffer);
-  fmt.setSwapInterval(0);
-  QSurfaceFormat::setDefaultFormat(fmt);
-#endif
 
   QPixmapCache::setCacheLimit(819200);
   Application app(argc, argv);

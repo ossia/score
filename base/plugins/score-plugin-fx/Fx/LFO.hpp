@@ -2,7 +2,7 @@
 #include <ossia/dataflow/execution_state.hpp>
 
 #include <Engine/Node/PdNode.hpp>
-#include <QtMath>
+#include <ossia/detail/math.hpp>
 #include <algorithm>
 #include <array>
 #include <bitset>
@@ -43,6 +43,7 @@ struct Node
   struct State
   {
     int64_t phase{};
+    std::mt19937 rd;
   };
 
   using control_policy = ossia::safe_nodes::precise_tick;
@@ -63,46 +64,64 @@ struct Node
   {
     auto& waveform_map = Control::Widgets::waveformMap();
 
-    static std::mt19937 rd;
-
     if (auto it = waveform_map.find(type); it != waveform_map.end())
     {
       float new_val{};
       auto ph = s.phase;
       if (jitter > 0)
       {
-        ph += std::normal_distribution<float>(0., 5000.)(rd) * jitter;
+        ph += std::normal_distribution<float>(0., 5000.)(s.rd) * jitter;
       }
 
       using namespace Control::Widgets;
-      const auto phi = phase + (2.f * float(M_PI) * freq * ph) / st.sampleRate;
+      const auto phi = phase + (float(ossia::two_pi) * freq * ph) / st.sampleRate;
 
       switch (it->second)
       {
         case Sin:
           new_val = (coarse + fine) * std::sin(phi);
+          out.add_raw_value(new_val + offset);
           break;
         case Triangle:
           new_val = (coarse + fine) * std::asin(std::sin(phi));
+          out.add_raw_value(new_val + offset);
           break;
         case Saw:
           new_val = (coarse + fine) * std::atan(std::tan(phi));
+          out.add_raw_value(new_val + offset);
           break;
         case Square:
           new_val = (coarse + fine) * ((std::sin(phi) > 0.f) ? 1.f : -1.f);
+          out.add_raw_value(new_val + offset);
           break;
+        case SampleAndHold:
+        {
+          auto start_phi = phase + (float(ossia::two_pi) * freq * s.phase) / st.sampleRate;
+          auto end_phi = phase + (float(ossia::two_pi) * freq * (s.phase + tk.date - prev_date)) / st.sampleRate;
+          auto start_s = std::sin(start_phi);
+          auto end_s = std::sin(end_phi);
+          if((start_s > 0 && end_s <= 0) || (start_s <= 0 && end_s > 0))
+          {
+            new_val = std::uniform_real_distribution<float>(
+                  -(coarse + fine), coarse + fine)(s.rd);
+            out.add_raw_value(new_val + offset);
+          }
+          break;
+        }
         case Noise1:
           new_val = std::uniform_real_distribution<float>(
-              -(coarse + fine), coarse + fine)(rd);
+              -(coarse + fine), coarse + fine)(s.rd);
+          out.add_raw_value(new_val + offset);
           break;
         case Noise2:
-          new_val = std::normal_distribution<float>(0, coarse + fine)(rd);
+          new_val = std::normal_distribution<float>(0, coarse + fine)(s.rd);
+          out.add_raw_value(new_val + offset);
           break;
         case Noise3:
-          new_val = std::cauchy_distribution<float>(0, coarse + fine)(rd);
+          new_val = std::cauchy_distribution<float>(0, coarse + fine)(s.rd);
+          out.add_raw_value(new_val + offset);
           break;
       }
-      out.add_raw_value(new_val + offset);
     }
 
     s.phase += (tk.date - prev_date);

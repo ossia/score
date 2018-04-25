@@ -31,10 +31,8 @@ ProcessGraphicsView::ProcessGraphicsView(
 
   setOptimizationFlag(QGraphicsView::DontSavePainterState, true);
   setOptimizationFlag(QGraphicsView::DontAdjustForAntialiasing, true);
-#if !defined(SCORE_OPENGL)
   setAttribute(Qt::WA_PaintOnScreen, true);
   setAttribute(Qt::WA_OpaquePaintEvent, true);
-#endif
 
 #if defined(__APPLE__)
   // setRenderHints(0);
