@@ -11,8 +11,8 @@ class ExecStateWrapper : public QObject
 {
   Q_OBJECT
 public:
-  ExecStateWrapper(QJSEngine& engine, const ossia::execution_state& state)
-      : m_engine{engine}, devices{state}
+  ExecStateWrapper(QJSEngine& engine, const ossia::execution_state& state, QObject* parent)
+      : QObject{parent}, m_engine{engine}, devices{state}
   {
   }
   ~ExecStateWrapper() override;
