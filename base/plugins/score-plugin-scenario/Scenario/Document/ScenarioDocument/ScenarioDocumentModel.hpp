@@ -40,7 +40,7 @@ public:
   }
 
   void finishLoading();
-  virtual ~ScenarioDocumentModel() = default;
+  ~ScenarioDocumentModel() override;
 
   BaseScenario& baseScenario() const
   {

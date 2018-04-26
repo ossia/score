@@ -15,7 +15,7 @@ class QToolBar;
 
 namespace Scenario
 {
-class TransportActions : public QObject
+class TransportActions final : public QObject
 {
 public:
   TransportActions(const score::GUIApplicationContext&);

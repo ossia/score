@@ -228,15 +228,6 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
         *sm, m_parent->currentDocument()->context().commandStack);
   });
 
-  if (parent->context.mainWindow)
-  {
-    auto doc = parent->context.mainWindow->findChild<QWidget*>(
-        "Documents", Qt::FindDirectChildrenOnly);
-    SCORE_ASSERT(doc);
-    doc->addAction(m_removeElements);
-    doc->addAction(m_pasteElements);
-  }
-
   // Selection actions
   m_selectAll = new QAction{tr("Select all"), this};
   m_selectAll->setToolTip("Ctrl+A");
@@ -257,6 +248,33 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
     if (auto pres = getScenarioDocPresenter())
       pres->selectTop();
   });
+
+  m_goToParent = new QAction{this};
+  m_deselectAll->setToolTip("Ctrl+Shift+Up");
+  connect(m_goToParent, &QAction::triggered, [this]() {
+    if (auto pres = getScenarioDocPresenter())
+    {
+      auto* cur = (QObject*)&pres->displayedInterval();
+      while(cur = cur->parent())
+      {
+        if(auto parent = qobject_cast<Scenario::IntervalModel*>(cur))
+        {
+          pres->setDisplayedInterval(*parent);
+          break;
+        }
+      }
+    }
+  });
+
+  if (parent->context.mainWindow)
+  {
+    auto doc = parent->context.mainWindow->findChild<QWidget*>(
+        "Documents", Qt::FindDirectChildrenOnly);
+    SCORE_ASSERT(doc);
+    doc->addAction(m_removeElements);
+    doc->addAction(m_pasteElements);
+    doc->addAction(m_goToParent);
+  }
 }
 
 void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
@@ -320,14 +338,17 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   view.menu()->addAction(m_selectAll);
   view.menu()->addAction(m_deselectAll);
   view.menu()->addAction(m_selectTop);
+  view.menu()->addAction(m_goToParent);
 
   e.actions.add<Actions::SelectAll>(m_selectAll);
   e.actions.add<Actions::DeselectAll>(m_deselectAll);
   e.actions.add<Actions::SelectTop>(m_selectTop);
+  e.actions.add<Actions::GoToParent>(m_goToParent);
 
   scenariodocument_cond.add<Actions::SelectAll>();
   scenariodocument_cond.add<Actions::DeselectAll>();
   scenariodocument_cond.add<Actions::SelectTop>();
+  scenariodocument_cond.add<Actions::GoToParent>();
 }
 
 void ObjectMenuActions::setupContextMenu(

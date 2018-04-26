@@ -20,7 +20,7 @@ class ScenarioApplicationPlugin;
 class ScenarioDocumentModel;
 class ScenarioDocumentPresenter;
 class TemporalScenarioPresenter;
-class SCORE_PLUGIN_SCENARIO_EXPORT ObjectMenuActions : public QObject
+class SCORE_PLUGIN_SCENARIO_EXPORT ObjectMenuActions final : public QObject
 {
 public:
   ObjectMenuActions(ScenarioApplicationPlugin* parent);
@@ -68,5 +68,6 @@ private:
   QAction* m_selectAll{};
   QAction* m_deselectAll{};
   QAction* m_selectTop{};
+  QAction* m_goToParent{};
 };
 }

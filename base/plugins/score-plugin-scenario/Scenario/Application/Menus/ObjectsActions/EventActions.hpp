@@ -19,7 +19,7 @@ namespace Command
 {
 class TriggerCommandFactoryList;
 }
-class SCORE_PLUGIN_SCENARIO_EXPORT EventActions : public QObject
+class SCORE_PLUGIN_SCENARIO_EXPORT EventActions final : public QObject
 {
 public:
   EventActions(ScenarioApplicationPlugin* parent);
