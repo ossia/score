@@ -10,7 +10,7 @@ git clone https://code.qt.io/qt/qt5.git
 
 (
   cd qt5
-  git checkout v5.10.0
+  git checkout 5.11
   git submodule update --init --recursive
 )
 
