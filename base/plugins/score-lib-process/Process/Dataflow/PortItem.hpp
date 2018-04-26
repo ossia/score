@@ -56,6 +56,8 @@ public:
   static PortItem* clickedPort;
 
   virtual void setupMenu(QMenu&, const score::DocumentContext& ctx);
+  void setPortVisible(bool b);
+  void resetPortVisible();
 
 Q_SIGNALS:
   void createCable(PortItem* src, PortItem* snk);
@@ -84,6 +86,7 @@ protected:
   std::vector<QPointer<CableItem>> cables;
   Process::Port& m_port;
   double m_diam = 6.;
+  bool m_visible{true};
 
   friend class Dataflow::CableItem;
 };

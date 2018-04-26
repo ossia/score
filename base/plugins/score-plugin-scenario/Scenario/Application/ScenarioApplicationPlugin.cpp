@@ -15,6 +15,7 @@
 #include "Menus/TransportActions.hpp"
 #include "ScenarioApplicationPlugin.hpp"
 
+#include <Process/Dataflow/PortItem.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/Process.hpp>
 #include <Process/Tools/ProcessGraphicsView.hpp>
@@ -121,11 +122,19 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
     if (doc)
     {
       Dataflow::CableItem::g_cables_enabled = c;
-      auto plug = score::IDocument::try_get<ScenarioDocumentPresenter>(*doc);
+      ScenarioDocumentPresenter* plug = score::IDocument::try_get<ScenarioDocumentPresenter>(*doc);
+
+      for(const auto& port : Dataflow::PortItem::g_ports())
+      {
+        Dataflow::PortItem& item = *port.second;
+        item.resetPortVisible();
+      }
+
       for (Dataflow::CableItem& cable : plug->cableItems)
       {
         cable.check();
       }
+
     }
   });
 }

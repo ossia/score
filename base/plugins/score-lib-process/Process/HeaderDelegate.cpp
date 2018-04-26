@@ -1,3 +1,4 @@
+#include <Process/Dataflow/CableItem.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortItem.hpp>
@@ -148,12 +149,12 @@ void DefaultHeaderDelegate::setSize(QSizeF sz)
     if (p->x() > sz.width())
     {
       if (p->isVisible())
-        p->setVisible(false);
+        p->setPortVisible(false);
     }
     else
     {
       if (!p->isVisible())
-        p->setVisible(true);
+        p->setPortVisible(true);
     }
   }
 
@@ -162,12 +163,12 @@ void DefaultHeaderDelegate::setSize(QSizeF sz)
     if (p->x() > sz.width())
     {
       if (p->isVisible())
-        p->setVisible(false);
+        p->setPortVisible(false);
     }
     else
     {
       if (!p->isVisible())
-        p->setVisible(true);
+        p->setPortVisible(true);
     }
   }
 }
