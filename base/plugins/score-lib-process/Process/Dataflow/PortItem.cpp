@@ -56,6 +56,8 @@ PortItem::PortItem(
         menu->exec(p);
         menu->deleteLater();
       });
+
+  setVisible(CableItem::g_cables_enabled);
 }
 
 PortItem::~PortItem()
@@ -82,6 +84,19 @@ PortItem::port_map& PortItem::g_ports()
 void PortItem::setupMenu(QMenu&, const score::DocumentContext& ctx)
 {
 }
+
+void PortItem::setPortVisible(bool b)
+{
+  m_visible = b;
+  resetPortVisible();
+}
+void PortItem::resetPortVisible()
+{
+  bool v = m_visible && CableItem::g_cables_enabled;
+  if(v != isVisible())
+    setVisible(v);
+}
+
 
 QRectF PortItem::boundingRect() const
 {

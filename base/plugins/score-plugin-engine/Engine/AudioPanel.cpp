@@ -111,7 +111,7 @@ QWidget* PanelDelegate::widget()
 
 const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
 {
-  static const score::PanelStatus status{true, Qt::BottomDockWidgetArea, 10,
+  static const score::PanelStatus status{false, Qt::BottomDockWidgetArea, 10,
                                          QObject::tr("Audio"),
                                          QObject::tr("Ctrl+Shift+A")};
 
