@@ -36,6 +36,9 @@ Model::Model(
     : ProjectSettingsModel{ctx, id, "ExplorerSettings", parent}
 {
 }
+Model::~Model()
+{
+}
 
 SCORE_PROJECTSETTINGS_PARAMETER_CPP(qreal, Model, MidiImportRatio)
 SCORE_PROJECTSETTINGS_PARAMETER_CPP(bool, Model, RefreshOnStart)
