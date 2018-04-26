@@ -15,7 +15,7 @@ namespace Scenario
 {
 class ScenarioApplicationPlugin;
 class TemporalScenarioPresenter;
-class ToolMenuActions : public QObject
+class ToolMenuActions final : public QObject
 {
 public:
   ToolMenuActions(ScenarioApplicationPlugin* parent);

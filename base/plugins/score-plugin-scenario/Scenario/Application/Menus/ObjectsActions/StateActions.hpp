@@ -13,7 +13,7 @@ namespace Scenario
 {
 class ScenarioApplicationPlugin;
 class TemporalScenarioPresenter;
-class SCORE_PLUGIN_SCENARIO_EXPORT StateActions : public QObject
+class SCORE_PLUGIN_SCENARIO_EXPORT StateActions final : public QObject
 {
 public:
   StateActions(ScenarioApplicationPlugin* parent);

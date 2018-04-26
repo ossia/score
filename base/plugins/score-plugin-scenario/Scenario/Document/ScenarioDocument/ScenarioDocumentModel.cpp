@@ -129,6 +129,11 @@ void ScenarioDocumentModel::finishLoading()
   m_savedCables = QJsonArray{};
 }
 
+ScenarioDocumentModel::~ScenarioDocumentModel()
+{
+
+}
+
 void ScenarioDocumentModel::initializeNewDocument(
     const IntervalModel& Interval_model)
 {

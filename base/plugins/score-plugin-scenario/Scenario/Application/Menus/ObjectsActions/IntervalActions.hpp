@@ -18,7 +18,7 @@ namespace Scenario
 {
 class ScenarioApplicationPlugin;
 class TemporalScenarioPresenter;
-class SCORE_PLUGIN_SCENARIO_EXPORT IntervalActions : public QObject
+class SCORE_PLUGIN_SCENARIO_EXPORT IntervalActions final : public QObject
 {
 public:
   IntervalActions(ScenarioApplicationPlugin* parent);
