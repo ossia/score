@@ -91,7 +91,7 @@ void GoodOldDisplacementPolicy::computeDisplacement(
                 = elementsProperties.intervals.find(curIntervalId);
             if (cur_interval_it == elementsProperties.intervals.end())
             {
-              IntervalProperties c{curInterval};
+              IntervalProperties c{curInterval, false};
               c.oldMin = curInterval.duration.minDuration();
               c.oldMax = curInterval.duration.maxDuration();
 

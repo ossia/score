@@ -23,7 +23,7 @@ namespace Scenario
 namespace Command
 {
 ClearInterval::ClearInterval(const IntervalModel& interval)
-    : m_intervalSaveData{interval}
+    : m_intervalSaveData{interval, true}
 {
   QObjectList l;
   for (auto& proc : interval.processes)

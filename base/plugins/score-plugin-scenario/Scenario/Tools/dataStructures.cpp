@@ -16,18 +16,33 @@
 
 namespace Scenario
 {
-IntervalSaveData::IntervalSaveData(const Scenario::IntervalModel& interval)
+IntervalSaveData::IntervalSaveData(const Scenario::IntervalModel& interval, bool saveIntemporal)
     : intervalPath{interval}
 {
   processes.reserve(interval.processes.size());
-  for (const auto& process : interval.processes)
+  if(saveIntemporal)
   {
-    QByteArray arr;
-    DataStream::Serializer s{&arr};
-    s.readFrom(process);
-    processes.push_back(std::move(arr));
+    for (const auto& process : interval.processes)
+    {
+      QByteArray arr;
+      DataStream::Serializer s{&arr};
+      s.readFrom(process);
+      processes.push_back(std::move(arr));
+    }
   }
-
+  else
+  {
+    for (const auto& process : interval.processes)
+    {
+      if(!process.flags() & Process::ProcessFlags::TimeIndependent)
+      {
+        QByteArray arr;
+        DataStream::Serializer s{&arr};
+        s.readFrom(process);
+        processes.push_back(std::move(arr));
+      }
+    }
+  }
   racks.reserve(2);
 
   {

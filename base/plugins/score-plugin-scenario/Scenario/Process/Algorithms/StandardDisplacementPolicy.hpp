@@ -120,7 +120,7 @@ public:
 
       auto& curIntervalToUpdate
           = scenario.intervals.at(curIntervalPropertiesToUpdate_id);
-      auto& curIntervalPropertiesToUpdate = e.second;
+      const IntervalProperties& curIntervalPropertiesToUpdate = e.second;
 
       // compute default duration here
       const auto& date
@@ -162,7 +162,8 @@ public:
         auto processes = shallow_copy(curIntervalToUpdate.processes);
         for (auto process : processes)
         {
-          RemoveProcess(curIntervalToUpdate, process->id());
+          if(!(process->flags() & Process::ProcessFlags::TimeIndependent))
+            RemoveProcess(curIntervalToUpdate, process->id());
         }
       }
 

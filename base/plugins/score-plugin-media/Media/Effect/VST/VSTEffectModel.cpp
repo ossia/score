@@ -526,13 +526,38 @@ void VSTEffectModel::load()
 }
 }
 
+#define SCORE_DATASTREAM_IDENTIFY_VST_CHUNK int32_t(0xABABABAB)
+#define SCORE_DATASTREAM_IDENTIFY_VST_PARAMS int32_t(0x10101010)
 template <>
 void DataStreamReader::read(const Media::VST::VSTEffectModel& eff)
 {
   readPorts(*this, eff.m_inlets, eff.m_outlets);
   m_stream << eff.m_effectId;
 
-  // TODO save & reload program parameters
+  if (eff.fx)
+  {
+    if (eff.fx->fx->flags & effFlagsProgramChunks)
+    {
+      m_stream << SCORE_DATASTREAM_IDENTIFY_VST_CHUNK;
+      void* ptr{};
+      auto res = eff.fx->dispatch(effGetChunk, 0, 0, &ptr, 0.f);
+      std::string encoded;
+      if (ptr && res > 0)
+      {
+        encoded.assign((const char*)ptr, res);
+      }
+      m_stream << encoded;
+    }
+    else
+    {
+      m_stream << SCORE_DATASTREAM_IDENTIFY_VST_PARAMS;
+      std::vector<float> arr(eff.fx->fx->numParams);
+      for (int i = 0; i < eff.fx->fx->numParams; i++)
+        arr[i] = eff.fx->getParameter(i);
+      m_stream << arr;
+    }
+  }
+
   insertDelimiter();
 }
 
@@ -544,8 +569,58 @@ void DataStreamWriter::write(Media::VST::VSTEffectModel& eff)
       eff.m_outlets, &eff);
 
   m_stream >> eff.m_effectId;
-  // TODO save & reload program parameters
+  int32_t kind = 0;
+  m_stream >> kind;
   eff.load();
+
+  if(kind == SCORE_DATASTREAM_IDENTIFY_VST_CHUNK)
+  {
+      std::string chunk;
+      m_stream >> chunk;
+      if(!chunk.empty())
+      {
+          QPointer<Media::VST::VSTEffectModel> ptr = &eff;
+          QTimer::singleShot(1000, [chunk=std::move(chunk), ptr] () mutable {
+            if (!ptr)
+              return;
+            auto& eff = *ptr;
+            if (eff.fx)
+            {
+              if (eff.fx->fx->flags & effFlagsProgramChunks)
+              {
+                  eff.fx->dispatch(effSetChunk, 0, chunk.size(), chunk.data(), 0.f);
+
+                  for (std::size_t i = 3; i < eff.inlets().size(); i++)
+                  {
+                    auto inlet
+                        = safe_cast<Media::VST::VSTControlInlet*>(eff.inlets()[i]);
+                    inlet->setValue(eff.fx->getParameter(inlet->fxNum));
+                  }
+              }
+            }
+          });
+      }
+  }
+  else if(kind == SCORE_DATASTREAM_IDENTIFY_VST_PARAMS)
+  {
+      std::vector<float> params;
+      m_stream >> params;
+
+      QPointer<Media::VST::VSTEffectModel> ptr = &eff;
+      QTimer::singleShot(1000, [params=std::move(params), ptr] {
+        if (!ptr)
+          return;
+        auto& eff = *ptr;
+        if (eff.fx)
+        {
+            for (std::size_t i = 0; i < params.size(); i++)
+            {
+              eff.fx->setParameter(i, params[i]);
+            }
+        }
+      });
+  }
+
   checkDelimiter();
 }
 

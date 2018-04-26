@@ -96,7 +96,7 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
     else
     {
       auto& curInterval = scenario.intervals.at(id);
-      IntervalProperties c{curInterval};
+      IntervalProperties c{curInterval, false};
       c.oldDefault = curInterval.duration.defaultDuration();
       c.oldMin = curInterval.duration.minDuration();
       c.oldMax = curInterval.duration.maxDuration();
@@ -105,7 +105,7 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
       c.newMax = c.oldMax;
       c.newMin = std::max(TimeVal::zero(), c.oldMin + dt);
       c.newMax = c.oldMax + dt;
-      elementsProperties.intervals.insert({id, c});
+      elementsProperties.intervals.insert({id, std::move(c)});
     }
   }
 
@@ -121,7 +121,7 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
     else
     {
       auto& curInterval = scenario.intervals.at(id);
-      IntervalProperties c{curInterval};
+      IntervalProperties c{curInterval, false};
       c.oldDefault = curInterval.duration.defaultDuration();
       c.oldMin = curInterval.duration.minDuration();
       c.oldMax = curInterval.duration.maxDuration();
@@ -131,7 +131,7 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
 
       c.newMin = std::max(TimeVal::zero(), c.oldMin - dt);
       c.newMax = c.oldMax - dt;
-      elementsProperties.intervals.insert({id, c});
+      elementsProperties.intervals.insert({id, std::move(c)});
     }
   }
 

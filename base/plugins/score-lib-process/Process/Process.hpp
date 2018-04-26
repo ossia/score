@@ -2,9 +2,8 @@
 #include <ossia/detail/small_vector.hpp>
 
 #include <Process/ExpandMode.hpp>
+#include <Process/ProcessFlags.hpp>
 #include <Process/TimeValue.hpp>
-#include <QByteArray>
-#include <QString>
 #include <score/model/Component.hpp>
 #include <score/model/EntityImpl.hpp>
 #include <score/model/Identifier.hpp>
@@ -18,6 +17,10 @@
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/tools/Metadata.hpp>
 #include <score_lib_process_export.h>
+
+#include <QByteArray>
+#include <QString>
+
 #include <vector>
 
 class ProcessStateDataInterface;
@@ -63,6 +66,7 @@ public:
   virtual QString prettyShortName() const = 0;
   virtual QString category() const = 0;
   virtual QStringList tags() const = 0;
+  virtual ProcessFlags flags() const = 0;
 
   //// Features of a process
   /// Duration
@@ -105,7 +109,9 @@ public:
   Process::Inlet* inlet(const Id<Process::Port>&) const;
   Process::Outlet* outlet(const Id<Process::Port>&) const;
 
+  // FIXME ugh
   QWidget* externalUI{};
+
 Q_SIGNALS:
   // True if the execution is running.
   void execution(bool);
