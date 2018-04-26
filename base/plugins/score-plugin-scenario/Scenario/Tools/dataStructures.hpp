@@ -36,7 +36,7 @@ struct TimenodeProperties
 struct SCORE_PLUGIN_SCENARIO_EXPORT IntervalSaveData
 {
   IntervalSaveData() = default;
-  IntervalSaveData(const IntervalModel&);
+  IntervalSaveData(const IntervalModel&, bool saveIntemporal);
 
   void reload(IntervalModel&) const;
 

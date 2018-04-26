@@ -19,6 +19,8 @@ PROCESS_METADATA(
     "Structure",
     {},
     Process::ProcessFlags::SupportsTemporal
-        | Process::ProcessFlags::PutInNewSlot)
+  | Process::ProcessFlags::PutInNewSlot
+  | Process::ProcessFlags::TimeIndependent
+ )
 
 UNDO_NAME_METADATA(EMPTY_MACRO, Media::Effect::ProcessModel, "Effects")

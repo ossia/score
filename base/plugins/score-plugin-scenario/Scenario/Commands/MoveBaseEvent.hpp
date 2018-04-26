@@ -78,7 +78,7 @@ public:
   {
     const Scenario::IntervalModel& interval = scenar.interval();
     m_oldDate = interval.duration.defaultDuration();
-    m_saveData = IntervalSaveData{interval};
+    m_saveData = IntervalSaveData{interval, true}; // TODO fix the "clear" under this
   }
 
   MoveBaseEvent(
