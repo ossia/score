@@ -41,8 +41,7 @@ case "$TRAVIS_OS_NAME" in
 
     AUDIO_ARCHIVE=audio-libs.txz
     wget -nv https://github.com/OSSIA/score-sdk/releases/download/sdk8/$AUDIO_ARCHIVE -O $AUDIO_ARCHIVE
-    gtar xhaf $AUDIO_ARCHIVE --directory /opt
-
+    sudo gtar xhaf $AUDIO_ARCHIVE --directory /opt
 
     brew unlink cmake
     brew link --force boost ninja qt5 cmake
