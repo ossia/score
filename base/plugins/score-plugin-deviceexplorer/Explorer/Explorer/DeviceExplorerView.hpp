@@ -46,6 +46,8 @@ private Q_SLOTS:
   void columnVisibilityChanged(bool shown);
 
 private:
+  QModelIndexList selectedDraggableIndexes() const;
+  void startDrag(Qt::DropActions supportedActions) override;
   void rowsInserted(const QModelIndex& parent, int start, int end) override;
   void saveSettings();
   void restoreSettings();
@@ -55,6 +57,6 @@ private:
 
   QList<QAction*> m_actions;
 
-  bool m_hasProxy;
+  bool m_hasProxy{};
 };
 }
