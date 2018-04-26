@@ -50,7 +50,7 @@ UUID_METADATA(
 
 namespace Explorer::ProjectSettings
 {
-class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT Model
+class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT Model final
     : public score::ProjectSettingsModel
 {
   Q_OBJECT
@@ -69,6 +69,7 @@ class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT Model
 
 public:
   Model(const score::DocumentContext&, Id<DocumentPlugin> id, QObject* parent);
+  ~Model() override;
 
   template <typename Impl>
   Model(const score::DocumentContext& ctx, Impl& vis, QObject* parent)

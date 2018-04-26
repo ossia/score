@@ -414,6 +414,14 @@ Document* DocumentManager::loadStack(
   return nullptr;
 }
 
+static QString lastOpenFileName()
+{
+  QSettings s;
+  if(s.contains("score/last_open_doc"))
+    return s.value("score/last_open_doc").toString();
+  return {};
+}
+
 SCORE_LIB_BASE_EXPORT
 Document* DocumentManager::loadFile(const score::GUIApplicationContext& ctx)
 {
@@ -421,7 +429,8 @@ Document* DocumentManager::loadFile(const score::GUIApplicationContext& ctx)
     return nullptr;
 
   QString loadname = QFileDialog::getOpenFileName(
-      m_view, tr("Open"), QString(), "*.scorebin *.score *.scorejson");
+      m_view, tr("Open"), lastOpenFileName(), "*.scorebin *.score *.scorejson");
+  QSettings s; s.setValue("score/last_open_doc", QFileInfo(loadname).absoluteDir().path());
   return loadFile(ctx, loadname);
 }
 
