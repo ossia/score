@@ -194,12 +194,12 @@ AddressItemModel::index(int row, int column, const QModelIndex& parent) const
   return {};
 }
 
-QModelIndex AddressItemModel::parent(const QModelIndex& child) const
+QModelIndex AddressItemModel::parent(const QModelIndex&) const
 {
   return {};
 }
 
-int AddressItemModel::rowCount(const QModelIndex& parent) const
+int AddressItemModel::rowCount(const QModelIndex&) const
 {
   if (m_settings.address.device.isEmpty())
     return 0;
@@ -210,7 +210,7 @@ int AddressItemModel::rowCount(const QModelIndex& parent) const
   return Rows::Count + m_settings.extendedAttributes.size();
 }
 
-int AddressItemModel::columnCount(const QModelIndex& parent) const
+int AddressItemModel::columnCount(const QModelIndex&) const
 {
   return 2;
 }
@@ -422,11 +422,24 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
   }
   else if (role == Qt::CheckStateRole)
   {
-    if (index.column() == 1 && index.row() == Rows::Repetition)
+    if (index.column() == 1)
     {
-      return m_settings.repetitionFilter == ossia::repetition_filter::ON
-                 ? Qt::Checked
-                 : Qt::Unchecked;
+      switch(index.row())
+      {
+        case Rows::Repetition:
+          return m_settings.repetitionFilter == ossia::repetition_filter::ON
+                     ? Qt::Checked
+                     : Qt::Unchecked;
+        case Rows::Value:
+        {
+          if(auto b = m_settings.value.target<bool>())
+          {
+            return *b ? Qt::Checked : Qt::Unchecked;
+          }
+        }
+        default:
+          break;
+      }
     }
   }
 
@@ -469,6 +482,15 @@ Qt::ItemFlags AddressItemModel::flags(const QModelIndex& index) const
 
   if (index.row() < Rows::Count)
     f |= flags[index.row()];
+
+  if(index.row() == Value)
+  {
+    if(m_settings.value.target<bool>())
+    {
+      f |= Qt::ItemIsUserCheckable;
+      f |= Qt::ItemIsEnabled;
+    }
+  }
 
   return f;
 }
