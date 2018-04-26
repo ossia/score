@@ -34,7 +34,7 @@ IntervalSaveData::IntervalSaveData(const Scenario::IntervalModel& interval, bool
   {
     for (const auto& process : interval.processes)
     {
-      if(!process.flags() & Process::ProcessFlags::TimeIndependent)
+      if(!(process.flags() & Process::ProcessFlags::TimeIndependent))
       {
         QByteArray arr;
         DataStream::Serializer s{&arr};

@@ -5,7 +5,7 @@ BINUTILS=binutils-2.29.1
 MPC=mpc-1.0.3
 MPFR=mpfr-3.1.6
 GMP=gmp-6.1.2
-GCC=gcc-7.2.0
+GCC=gcc-7.3.0
 ISL=isl-0.18
 CLOOG=cloog-0.18.4
 
