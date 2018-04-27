@@ -1,16 +1,16 @@
 #!/bin/bash
 
 cd /image
-BINUTILS=binutils-2.29.0
+BINUTILS=binutils-2.30
 MPC=mpc-1.0.3
 MPFR=mpfr-3.1.4
 GMP=gmp-6.1.2
-GCC=gcc-7.3.0
+GCC=gcc-8-20180422
 ISL=isl-0.18
 CLOOG=cloog-0.18.4
 
 wget -nv "http://isl.gforge.inria.fr/$ISL.tar.bz2"
-wget -nv "https://ftp.gnu.org/gnu/gcc/$GCC/$GCC.tar.xz"
+wget -nv "ftp://gcc.gnu.org/pub/gcc/snapshots/LATEST-8/$GCC.tar.xz"
 wget -nv "http://ftp.gnu.org/gnu/gmp/$GMP.tar.bz2"
 wget -nv "ftp://ftp.gnu.org/gnu/mpc/$MPC.tar.gz"
 wget -nv "ftp://gcc.gnu.org/pub/gcc/infrastructure/$MPFR.tar.bz2"

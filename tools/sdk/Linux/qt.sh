@@ -13,7 +13,7 @@ git clone https://code.qt.io/qt/qt5.git
   git checkout 5.11
   git submodule update --init --recursive qtbase qtdeclarative qtquickcontrols2 qtserialport qtimageformats qtgraphicaleffects qtsvg qtwebsockets
 )
-
+cp /usr/local/bin/* /usr/bin/
 export CC=/usr/local/bin/gcc
 export CXX=/usr/local/bin/g++
 
@@ -56,5 +56,4 @@ mkdir qt5-build
   gmake -j$NPROC
   gmake install -j$NPROC
 )
-cd /
-rm -rf /image
+

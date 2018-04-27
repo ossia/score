@@ -1,7 +1,6 @@
 #!/bin/bash -eux
 set -o pipefail
 
-
 # Minimal stuff
 yum -y update
 yum -y install epel-release centos-release-scl-rh
