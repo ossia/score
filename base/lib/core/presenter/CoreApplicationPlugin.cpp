@@ -3,7 +3,7 @@
 #include "CoreApplicationPlugin.hpp"
 
 #include <QMessageBox>
-#include <QRecentFilesMenu.h>
+#include <core/view/QRecentFilesMenu.h>
 #include <core/presenter/CoreActions.hpp>
 #include <core/settings/Settings.hpp>
 #include <core/settings/SettingsView.hpp>

@@ -1,7 +1,7 @@
-FROM centos:6
+FROM centos:7
 
 RUN yum -y update 
-RUN yum -y install epel-release gcc gcc-c++ wget flex bison rsync
+RUN yum -y install epel-release gcc gcc-c++ wget flex bison rsync bzip2 make xz
 
 ADD gcc-deps.sh /image/gcc-deps.sh
 RUN /image/gcc-deps.sh

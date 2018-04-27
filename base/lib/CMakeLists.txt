@@ -42,6 +42,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/Widgets/UndoListWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/UndoApplicationPlugin.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/view/Window.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/core/view/QRecentFilesMenu.h"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/score/actions/Action.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/actions/ActionManager.hpp"
@@ -307,6 +308,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/UndoPanelFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/UndoApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/view/Window.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/core/view/QRecentFilesMenu.cpp"
 
 )
 
@@ -314,7 +316,7 @@ add_library(score_lib_base ${SRCS} ${HEADERS} ${QRCS})
 score_moc_headers(${PROJECT_NAME} "${HEADERS}")
 target_link_libraries(score_lib_base
         PUBLIC Qt5::Core Qt5::Widgets ossia # Qt5::Qml Qt5::QuickWidgets
-    PRIVATE Qt5::Svg QRecentFilesMenu)
+    PRIVATE Qt5::Svg )
 
 set_property(TARGET score_lib_base PROPERTY COTIRE_CXX_PREFIX_HEADER_INIT "${CMAKE_CURRENT_SOURCE_DIR}/score/prefix.hpp")
 setup_score_library(score_lib_base)

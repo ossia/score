@@ -1,6 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include "QRecentFilesMenu.h"
+
 #include "score_git_info.hpp"
 
 #include <QAction>
@@ -12,6 +12,7 @@
 #include <QObject>
 #include <QString>
 #include <algorithm>
+#include <core/view/QRecentFilesMenu.h>
 #include <core/document/Document.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <core/presenter/Presenter.hpp>

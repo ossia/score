@@ -2,7 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DocumentManager.hpp"
 
-#include "QRecentFilesMenu.h"
+#include <core/view/QRecentFilesMenu.h>
 
 #include <ossia/detail/algorithms.hpp>
 
