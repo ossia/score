@@ -23,8 +23,6 @@
 #include <score/tools/Todo.hpp>
 #include <utility>
 
-template class SCORE_PLUGIN_SCENARIO_EXPORT
-    score::EntityMap<Process::ProcessModel>;
 namespace Scenario
 {
 

@@ -4,8 +4,10 @@
 
 #include "CurveSegmentList.hpp"
 #include "CurveSegmentModel.hpp"
+#include "CurveSegmentView.hpp"
 
 #include <Curve/Palette/CurvePoint.hpp>
+#include <Curve/Point/CurvePointView.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
 #include <Curve/Segment/CurveSegmentFactory.hpp>
 #include <QJsonObject>
@@ -22,6 +24,10 @@
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <vector>
+
+template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::SegmentModel>;
+template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::PointView, Curve::PointModel>;
+template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::SegmentView, Curve::SegmentModel>;
 
 template <>
 SCORE_PLUGIN_CURVE_EXPORT void

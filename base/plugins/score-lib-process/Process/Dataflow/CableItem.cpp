@@ -9,6 +9,11 @@
 #include <QPainter>
 #include <QSlider>
 #include <boost/range/algorithm_ext/erase.hpp>
+
+template class SCORE_LIB_PROCESS_EXPORT tsl::hopscotch_map<
+    Process::Cable*,
+    Dataflow::CableItem*,
+    ossia::EgurHash<std::remove_pointer_t<Process::Cable*>>>;
 namespace Dataflow
 {
 bool CableItem::g_cables_enabled = true;
