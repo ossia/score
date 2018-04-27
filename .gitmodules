@@ -4,9 +4,6 @@
 [submodule "3rdparty/QProgressIndicator"]
 	path = 3rdparty/QProgressIndicator
 	url = https://github.com/jcelerier/QProgressIndicator
-[submodule "3rdparty/QRecentFilesMenu"]
-	path = 3rdparty/QRecentFilesMenu
-	url = https://github.com/jcelerier/QRecentFilesMenu.git
 [submodule "3rdparty/Qt-Color-Widgets"]
 	path = 3rdparty/Qt-Color-Widgets
 	url = https://github.com/jcelerier/Qt-Color-Widgets.git

@@ -50,7 +50,7 @@ template <typename T>
 struct StartDateComparator
 {
   const Scenario::ProcessModel* scenario;
-  bool operator()(const T* lhs, const T* rhs)
+  bool operator()(const T* lhs, const T* rhs) const
   {
     return Scenario::date(*lhs, *scenario) <= Scenario::date(*rhs, *scenario);
   }
@@ -59,6 +59,6 @@ struct StartDateComparator
 struct SCORE_PLUGIN_SCENARIO_EXPORT EndDateComparator
 {
   const Scenario::ProcessModel* scenario;
-  bool operator()(const IntervalModel* lhs, const IntervalModel* rhs);
+  bool operator()(const IntervalModel* lhs, const IntervalModel* rhs) const;
 };
 }
