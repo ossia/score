@@ -13,6 +13,10 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 
+template class SCORE_LIB_PROCESS_EXPORT tsl::hopscotch_map<
+    Process::Port*,
+    Dataflow::PortItem*,
+    ossia::EgurHash<std::remove_pointer_t<Process::Port*>>>;
 namespace Dataflow
 {
 void onCreateCable(

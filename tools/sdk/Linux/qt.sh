@@ -4,14 +4,14 @@ cd /image
 
 NPROC=$(nproc)
 
-yum -y install perl-version libxcb libxcb-devel xcb-util xcb-util-devel fontconfig-devel libX11-devel libXrender-devel libXi-devel git openssl-devel dbus-devel glib2-devel mesa-libGL-devel
+yum -y install which make perl-version libxcb libxcb-devel xcb-util xcb-util-devel fontconfig-devel libX11-devel libXrender-devel libXi-devel git openssl-devel dbus-devel glib2-devel mesa-libGL-devel
 
 git clone https://code.qt.io/qt/qt5.git
 
 (
   cd qt5
   git checkout 5.11
-  git submodule update --init --recursive
+  git submodule update --init --recursive qtbase qtdeclarative qtquickcontrols2 qtserialport qtimageformats qtgraphicaleffects qtsvg qtwebsockets
 )
 
 export CC=/usr/local/bin/gcc
@@ -43,7 +43,6 @@ mkdir qt5-build
                    -qt-xkbcommon-x11 \
                    -no-xinput2 \
                    -glib \
-                   -no-pulseaudio \
                    -no-alsa \
                    -no-compile-examples \
                    -no-cups \
@@ -54,12 +53,10 @@ mkdir qt5-build
                    -ltcg \
                    -dbus-linked \
                    -no-gstreamer \
-                   -no-system-proxies \
-                   -skip qtwayland -skip webkit -skip wayland -skip qtscript -skip qtwebkit -skip qtwebengine -skip qtgamepad -skip qtenginio
+                   -no-system-proxies
 
   make -j$NPROC
   make install -j$NPROC
 )
 cd /
 rm -rf /image
-

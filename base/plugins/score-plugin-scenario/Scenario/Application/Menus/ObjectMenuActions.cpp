@@ -255,7 +255,7 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
     if (auto pres = getScenarioDocPresenter())
     {
       auto* cur = (QObject*)&pres->displayedInterval();
-      while(cur = cur->parent())
+      while((cur = cur->parent()))
       {
         if(auto parent = qobject_cast<Scenario::IntervalModel*>(cur))
         {

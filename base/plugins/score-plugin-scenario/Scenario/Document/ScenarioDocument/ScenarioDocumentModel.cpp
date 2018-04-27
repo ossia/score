@@ -48,7 +48,6 @@
 #include <score/tools/Todo.hpp>
 #include <score/tools/std/Optional.hpp>
 
-template class SCORE_PLUGIN_SCENARIO_EXPORT score::EntityMap<Process::Cable>;
 namespace Process
 {
 class LayerPresenter;

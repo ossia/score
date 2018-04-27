@@ -27,8 +27,6 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/MapCopy.hpp>
 
-template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::SegmentModel>;
-
 namespace Curve
 {
 Model::Model(const Id<Model>& id, QObject* parent)
