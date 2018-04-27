@@ -14,6 +14,7 @@ find_package(Threads)
 
 ### Scenario plugin ###
 set(HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Instantiations.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Drops/AutomationDropHandler.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Drops/MessageDropHandler.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Drops/ScenarioDropHandler.hpp"
@@ -319,6 +320,7 @@ set(HDRS ${HDRS}
 )
 endif()
 set(SRCS ${SRCS}
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Instantiations.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/VerticalExtentSerialization.cpp"
 
 

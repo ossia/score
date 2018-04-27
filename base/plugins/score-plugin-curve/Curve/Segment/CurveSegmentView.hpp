@@ -1,10 +1,11 @@
 #pragma once
+#include <score/model/Identifier.hpp>
+#include <score/model/IdentifiedObjectMap.hpp>
+#include <score_plugin_curve_export.h>
 #include <QGraphicsItem>
 #include <QPainterPath>
 #include <QPoint>
 #include <QRect>
-#include <score/model/Identifier.hpp>
-#include <score_plugin_curve_export.h>
 class QGraphicsSceneContextMenuEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
@@ -90,3 +91,5 @@ private:
   mutable bool m_needsRecompute{false};
 };
 }
+
+extern template class IdContainer<Curve::SegmentView, Curve::SegmentModel>;

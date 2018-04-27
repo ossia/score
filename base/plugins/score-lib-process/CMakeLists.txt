@@ -7,6 +7,7 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 
 ### Library ###
 set(PROCESS_HDRS
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Instantiations.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ExpandMode.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Focus/FocusDispatcher.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/HeaderDelegate.hpp"
@@ -52,6 +53,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/score_lib_process.hpp"
 )
 set(PROCESS_SRCS
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Instantiations.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNodeSerialization.cpp"
 

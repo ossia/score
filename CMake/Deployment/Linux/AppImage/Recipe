@@ -1,6 +1,5 @@
 #!/bin/bash -eux
 set -o pipefail
- 
 # Set-up paths
 export BOOST_ROOT=/boost
 export CMAKE_PATH=$(find /cmake-*/ -type d | head -n 1)bin
@@ -40,7 +39,7 @@ mkdir -p $APP.AppDir/usr
     mkdir -p build
 
     cd build
-    cmake ../score -DSCORE_CONFIGURATION=release -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_PREFIX_PATH="$(dirname $(find /usr/local -name 'Qt5Config.cmake'))" -DBOOST_ROOT=$BOOST_ROOT -DCMAKE_SKIP_RPATH=ON -DOSSIA_PYTHON=0 -DOSSIA_JAVA=0 -DOSSIA_PD=0
+    cmake ../score -DSCORE_CONFIGURATION=static-release -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_PREFIX_PATH="$(dirname $(find /usr/local -name 'Qt5Config.cmake'))" -DBOOST_ROOT=$BOOST_ROOT -DCMAKE_SKIP_RPATH=ON -DOSSIA_PYTHON=0 -DOSSIA_JAVA=0 -DOSSIA_PD=0
 
     cmake --build . --target all_unity -- -j$NPROC
     cmake --build . --target install -- -j$NPROC
@@ -67,12 +66,12 @@ export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
     cp -rf "$QTDIR/qml/QtQuick.2"  ./usr/lib/qt5/qml
 
     # Dependencies of plugins and score
-    for lib in usr/lib/libscore_lib_*; do ldd $lib; done | grep 'Qt5' | awk '{ print $1; }' | sort | uniq | xargs -I '{}' cp -v $QTDIR/lib/'{}' ./usr/lib
+    # for lib in usr/lib/libscore_lib_*; do ldd $lib; done | grep 'Qt5' | awk '{ print $1; }' | sort | uniq | xargs -I '{}' cp -v $QTDIR/lib/'{}' ./usr/lib
     for lib in usr/lib/score/*; do ldd $lib; done | grep 'Qt5' | awk '{ print $1; }' | sort | uniq | xargs -I '{}' cp -v $QTDIR/lib/'{}' ./usr/lib
     ldd usr/bin/score | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
 
     # libossia
-    cp -v ../build/API/OSSIA/*.so* usr/lib/
+    # cp -v ../build/API/OSSIA/*.so* usr/lib/
 
 
     # Dependencies of qt
@@ -86,6 +85,8 @@ export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
     cp -v $QTDIR/lib/libQt5DBus.so.5 ./usr/lib || true
     cp -v $QTDIR/lib/libQt5QuickControls2.so.5 ./usr/lib || true
     cp -v $QTDIR/lib/libQt5QuickTemplates2.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5WebSockets.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5SerialPort.so.5 ./usr/lib || true
 
     # Taken from Subsurface appimage
     # The following are assumed to be part of the base system

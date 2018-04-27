@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Process.hpp>
+#include <Process/Instantiations.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <list>
@@ -28,8 +29,6 @@ namespace score
 {
 class CommandStackFacade;
 }
-
-extern template class score::EntityMap<Process::ProcessModel>;
 namespace Scenario
 {
 class EventModel;

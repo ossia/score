@@ -134,3 +134,5 @@ using DefaultCurveSegmentData = PowerSegmentData;
 
 OBJECTKEY_METADATA(
     SCORE_PLUGIN_CURVE_EXPORT, Curve::SegmentModel, "CurveSegmentModel")
+
+extern template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::SegmentModel>;

@@ -13,7 +13,6 @@ class QObject;
 #include <score/model/Identifier.hpp>
 #include <score_plugin_curve_export.h>
 
-extern template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::SegmentModel>;
 namespace ossia
 {
 struct domain;

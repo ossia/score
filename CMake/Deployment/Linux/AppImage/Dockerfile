@@ -1,4 +1,4 @@
-FROM centos:6
+FROM centos:7
 
 ADD Recipe.deps /Recipe.deps
 RUN bash -ex Recipe.deps 

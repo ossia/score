@@ -3,8 +3,7 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/ProcessContext.hpp>
 #include <Process/ZoomHelper.hpp>
-#include <QObject>
-#include <QPoint>
+#include <Scenario/Instantiations.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
@@ -24,21 +23,6 @@
 #include <score/tools/std/Optional.hpp>
 #include <score/widgets/GraphicsItem.hpp>
 
-extern template class IdContainer<
-    Scenario::StatePresenter,
-    Scenario::StateModel>;
-extern template class IdContainer<
-    Scenario::EventPresenter,
-    Scenario::EventModel>;
-extern template class IdContainer<
-    Scenario::TimeSyncPresenter,
-    Scenario::TimeSyncModel>;
-extern template class IdContainer<
-    Scenario::TemporalIntervalPresenter,
-    Scenario::IntervalModel>;
-extern template class IdContainer<
-    Scenario::CommentBlockPresenter,
-    Scenario::CommentBlockModel>;
 namespace Scenario
 {
 

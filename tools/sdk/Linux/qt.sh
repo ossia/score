@@ -4,7 +4,7 @@ cd /image
 
 NPROC=$(nproc)
 
-yum -y install which make perl-version libxcb libxcb-devel xcb-util xcb-util-devel fontconfig-devel libX11-devel libXrender-devel libXi-devel git openssl-devel dbus-devel glib2-devel mesa-libGL-devel
+yum -y install harfbuzz-devel which make perl-version libxcb libxcb-devel xcb-util xcb-util-devel fontconfig-devel libX11-devel libXrender-devel libXi-devel git openssl-devel dbus-devel glib2-devel mesa-libGL-devel
 
 git clone https://code.qt.io/qt/qt5.git
 
@@ -35,15 +35,14 @@ mkdir qt5-build
                    -qt-libpng \
                    -qt-libjpeg \
                    -qt-zlib \
-                   -system-freetype \
-                   -system-harfbuzz \
+                   -qt-freetype \
+                   -qt-harfbuzz \
                    -openssl \
                    -qt-pcre \
                    -qt-xcb \
                    -qt-xkbcommon-x11 \
                    -no-xinput2 \
                    -glib \
-                   -no-alsa \
                    -no-compile-examples \
                    -no-cups \
                    -no-iconv \
@@ -52,11 +51,10 @@ mkdir qt5-build
                    -no-pch \
                    -ltcg \
                    -dbus-linked \
-                   -no-gstreamer \
                    -no-system-proxies
 
-  make -j$NPROC
-  make install -j$NPROC
+  gmake -j$NPROC
+  gmake install -j$NPROC
 )
 cd /
 rm -rf /image

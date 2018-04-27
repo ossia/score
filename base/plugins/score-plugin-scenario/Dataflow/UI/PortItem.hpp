@@ -73,7 +73,7 @@ using ControlInletFactory = AutomatablePortFactory_T<Process::ControlInlet>;
 using OutletFactory = AutomatablePortFactory_T<Process::Outlet>;
 using ControlOutletFactory = AutomatablePortFactory_T<Process::ControlOutlet>;
 
-class PortTooltip : public QWidget
+class PortTooltip final : public QWidget
 {
 public:
   PortTooltip(
