@@ -6,6 +6,7 @@
 #include <QPointer>
 #include <QString>
 #include <QVector>
+#include <Process/Instantiations.hpp>
 #include <Scenario/Document/Interval/ExecutionState.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
@@ -23,7 +24,6 @@
 class DataStream;
 class JSONObject;
 
-extern template class score::EntityMap<Process::ProcessModel>;
 namespace Scenario
 {
 class StateModel;

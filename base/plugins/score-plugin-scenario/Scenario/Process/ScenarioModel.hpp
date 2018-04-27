@@ -1,4 +1,5 @@
 #pragma once
+#include <Scenario/Instantiations.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
 #include <QByteArray>
@@ -23,11 +24,6 @@
 #include <score/selection/Selection.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/tools/std/Optional.hpp>
-
-class DataStream;
-class JSONObject;
-class QEvent;
-
 namespace Scenario
 {
 /**
@@ -307,9 +303,3 @@ struct ElementTraits<Scenario::ProcessModel, StateModel>
 }
 DESCRIPTION_METADATA(
     SCORE_PLUGIN_SCENARIO_EXPORT, Scenario::ProcessModel, "Scenario")
-
-extern template class score::EntityMap<Scenario::IntervalModel>;
-extern template class score::EntityMap<Scenario::EventModel>;
-extern template class score::EntityMap<Scenario::TimeSyncModel>;
-extern template class score::EntityMap<Scenario::StateModel>;
-extern template class score::EntityMap<Scenario::CommentBlockModel>;

@@ -4,6 +4,7 @@
 #include <QPointer>
 #include <core/document/Document.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
+#include <Scenario/Instantiations.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score_plugin_scenario_export.h>
@@ -60,4 +61,3 @@ private:
   QJsonArray m_savedCables;
 };
 }
-extern template class score::EntityMap<Process::Cable>;

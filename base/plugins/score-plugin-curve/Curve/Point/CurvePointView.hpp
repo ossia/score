@@ -1,4 +1,7 @@
 #pragma once
+#include <score/model/Identifier.hpp>
+#include <score/model/IdentifiedObjectMap.hpp>
+
 #include <QGraphicsItem>
 #include <QPoint>
 #include <QRect>
@@ -7,8 +10,6 @@ class QGraphicsSceneContextMenuEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
-#include <score/model/Identifier.hpp>
-
 namespace Curve
 {
 class PointModel;
@@ -63,3 +64,5 @@ private:
   bool m_enabled{true};
 };
 }
+
+extern template class IdContainer<Curve::PointView, Curve::PointModel>;
