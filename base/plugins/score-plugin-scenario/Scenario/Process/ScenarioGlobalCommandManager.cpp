@@ -272,7 +272,7 @@ void mergeEvents(
 }
 
 bool EndDateComparator::
-operator()(const IntervalModel* lhs, const IntervalModel* rhs)
+operator()(const IntervalModel* lhs, const IntervalModel* rhs) const
 {
   return (Scenario::date(*lhs, *scenario) + lhs->duration.defaultDuration())
          <= (Scenario::date(*rhs, *scenario)
