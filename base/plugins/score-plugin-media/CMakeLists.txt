@@ -18,6 +18,9 @@ if(SCORE_AUDIO_PLUGINS)
   endif()
 endif()
 
+if(UNIX AND NOT APPLE)
+  find_package(ZLIB)
+endif()
 # Files & main target
 set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioArray.hpp"
