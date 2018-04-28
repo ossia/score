@@ -7,7 +7,9 @@
 #include "CurveSegmentView.hpp"
 
 #include <Curve/Palette/CurvePoint.hpp>
+#include <Curve/Point/CurvePointModel.hpp>
 #include <Curve/Point/CurvePointView.hpp>
+#include <Curve/Segment/CurveSegmentView.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
 #include <Curve/Segment/CurveSegmentFactory.hpp>
 #include <QJsonObject>
