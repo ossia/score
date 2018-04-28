@@ -117,9 +117,11 @@ if (NOT FFMPEG_LIBRARIES)
     endif ()
   endforeach ()
 
-  find_package(ZLIB)
-  if(TARGET ZLIB::ZLIB)
-    set(FFMPEG_LIBRARIES  "-Wl,--start-group" ${FFMPEG_LIBRARIES} ZLIB::ZLIB "-Wl,--end-group")
+  if(UNIX AND NOT APPLE)
+    find_package(ZLIB)
+    if(TARGET ZLIB::ZLIB)
+      set(FFMPEG_LIBRARIES  "-Wl,--start-group" ${FFMPEG_LIBRARIES} ZLIB::ZLIB "-Wl,--end-group")
+    endif()
   endif()
 
   # Build the include path with duplicates removed.
