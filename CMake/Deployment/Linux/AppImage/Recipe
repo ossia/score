@@ -87,6 +87,14 @@ export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
     cp -v $QTDIR/lib/libQt5QuickTemplates2.so.5 ./usr/lib || true
     cp -v $QTDIR/lib/libQt5WebSockets.so.5 ./usr/lib || true
     cp -v $QTDIR/lib/libQt5SerialPort.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5Xml.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5Quick.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5Network.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5Svg.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5Widgets.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5Gui.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5Core.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5Qml.so.5 ./usr/lib || true
 
     # Taken from Subsurface appimage
     # The following are assumed to be part of the base system
