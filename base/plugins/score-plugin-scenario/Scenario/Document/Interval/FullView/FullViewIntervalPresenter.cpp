@@ -210,7 +210,9 @@ void FullViewIntervalPresenter::on_slotRemoved(int pos)
       deleteGraphicsItem(slot.processes.front().view);
   }
   deleteGraphicsItem(slot.header);
+  slot.header = nullptr;
   deleteGraphicsItem(slot.handle);
+  slot.handle = nullptr;
 
   m_slots.erase(m_slots.begin() + pos);
 }
@@ -289,7 +291,7 @@ void FullViewIntervalPresenter::on_rackChanged()
   // Remove existing
   if (!m_slots.empty())
   {
-    for (std::size_t i = m_slots.size(); i-- > 0;)
+    for (int i = (int)m_slots.size(); i-- > 0;)
     {
       on_slotRemoved(i);
     }
