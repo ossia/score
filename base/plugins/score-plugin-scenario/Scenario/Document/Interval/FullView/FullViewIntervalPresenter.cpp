@@ -116,7 +116,6 @@ void FullViewIntervalPresenter::createSlot(int pos, const FullSlot& slt)
   SlotPresenter p;
   p.header = new SlotHeader{*this, pos, m_view};
   p.handle = new SlotHandle{*this, pos, false, m_view};
-  m_slots.insert(m_slots.begin() + pos, std::move(p));
 
   const auto& proc = m_model.processes.at(slt.process);
 
