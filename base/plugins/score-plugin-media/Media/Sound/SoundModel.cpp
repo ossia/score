@@ -15,7 +15,6 @@ ProcessModel::ProcessModel(
   outlet->setPropagate(true);
   outlet->type = Process::PortType::Audio;
   metadata().setInstanceName(*this);
-  setFile("/tmp/bass.aif");
   init();
 }
 
@@ -25,10 +24,11 @@ ProcessModel::~ProcessModel()
 
 void ProcessModel::setFile(const QString& file)
 {
-  if (file != m_file.name())
+  if (file != m_file.path())
   {
     m_file.load(file, score::IDocument::documentContext(*this));
     fileChanged();
+    prettyNameChanged();
   }
 }
 
@@ -40,6 +40,11 @@ MediaFileHandle& ProcessModel::file()
 const MediaFileHandle& ProcessModel::file() const
 {
   return m_file;
+}
+
+QString ProcessModel::prettyName() const
+{
+  return m_file.empty() ? Process::ProcessModel::prettyName() : m_file.fileName();
 }
 
 int ProcessModel::upmixChannels() const

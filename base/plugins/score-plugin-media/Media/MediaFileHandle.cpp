@@ -10,9 +10,9 @@
 namespace Media
 {
 void MediaFileHandle::load(
-    const QString& filename, const score::DocumentContext& ctx)
+    const QString& path, const score::DocumentContext& ctx)
 {
-  m_file = score::locateFilePath(filename, ctx);
+  m_file = score::locateFilePath(path, ctx);
   QFile f(m_file);
   if (isAudioFile(f))
   {
@@ -24,6 +24,7 @@ void MediaFileHandle::load(
     for (std::size_t i = 0; i < m_decoder.data.size(); i++)
       m_data[i] = m_decoder.data[i].data();
 
+    m_fileName = f.fileName();
     mediaChanged();
   }
 }

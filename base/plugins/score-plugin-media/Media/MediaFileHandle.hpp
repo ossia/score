@@ -17,11 +17,16 @@ struct SCORE_PLUGIN_MEDIA_EXPORT MediaFileHandle : public QObject
 public:
   MediaFileHandle() = default;
 
-  void load(const QString& filename, const score::DocumentContext&);
+  void load(const QString& path, const score::DocumentContext&);
 
-  QString name() const
+  QString path() const
   {
     return m_file;
+  }
+
+  QString fileName() const
+  {
+    return m_fileName;
   }
 
   const AudioDecoder& decoder() const
@@ -56,6 +61,7 @@ Q_SIGNALS:
 
 private:
   QString m_file;
+  QString m_fileName;
   AudioDecoder m_decoder;
   std::vector<float*> m_data;
   int m_sampleRate;

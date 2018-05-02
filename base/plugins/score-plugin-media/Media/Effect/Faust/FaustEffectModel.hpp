@@ -73,6 +73,7 @@ private:
   void init();
   void reload();
   QString m_text;
+  QString m_declareName;
 };
 }
 

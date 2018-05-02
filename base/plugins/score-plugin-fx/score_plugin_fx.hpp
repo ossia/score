@@ -11,7 +11,8 @@ class score_plugin_fx final
 {
   Q_OBJECT
   Q_PLUGIN_METADATA(IID Plugin_QtInterface_iid)
-  Q_INTERFACES(score::FactoryInterface_QtInterface)
+  Q_INTERFACES(score::FactoryInterface_QtInterface
+               score::Plugin_QtInterface)
 
   SCORE_PLUGIN_METADATA(1, "bb86ea2a-cf2b-452c-90b4-ffcace8e6345")
 public:

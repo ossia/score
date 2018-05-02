@@ -3,7 +3,7 @@
 template <>
 void DataStreamReader::read(const Media::Sound::ProcessModel& proc)
 {
-  m_stream << proc.m_file.name() << *proc.outlet << proc.m_upmixChannels
+  m_stream << proc.m_file.path() << *proc.outlet << proc.m_upmixChannels
            << proc.m_startChannel;
 
   insertDelimiter();
@@ -24,7 +24,7 @@ void DataStreamWriter::write(Media::Sound::ProcessModel& proc)
 template <>
 void JSONObjectReader::read(const Media::Sound::ProcessModel& proc)
 {
-  obj["File"] = proc.file().name();
+  obj["File"] = proc.file().path();
   obj["Outlet"] = toJsonObject(*proc.outlet);
   obj["Upmix"] = proc.m_upmixChannels;
   obj["Start"] = proc.m_startChannel;
