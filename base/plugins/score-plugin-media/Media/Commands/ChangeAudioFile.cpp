@@ -11,7 +11,7 @@ ChangeAudioFile::ChangeAudioFile(
     const Sound::ProcessModel& model, const QString& text)
     : m_model{model}, m_new{text}
 {
-  m_old = model.file().name();
+  m_old = model.file().path();
 }
 
 void ChangeAudioFile::undo(const score::DocumentContext& ctx) const

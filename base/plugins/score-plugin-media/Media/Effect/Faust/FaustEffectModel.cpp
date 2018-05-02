@@ -56,7 +56,7 @@ void FaustEffectModel::init()
 
 QString FaustEffectModel::prettyName() const
 {
-  return "Faust";
+  return m_declareName.isEmpty() ? "Faust" : m_declareName;
 }
 void FaustEffectModel::reload()
 {
@@ -153,6 +153,28 @@ void FaustEffectModel::reload()
     Faust::UI<decltype(*this)> ui{*this};
     buildUserInterfaceCDSPInstance(faust_object, &ui.glue);
   }
+
+  auto lines = fx_text.split('\n');
+  for(int i = 0; i < std::min(5, lines.size()); i++)
+  {
+    if(lines[i].startsWith("declare name"))
+    {
+      auto s = lines[i].indexOf('"', 12);
+      if(s > 0)
+      {
+        auto e = lines[i].indexOf('"', s + 1);
+        if(e > s)
+        {
+          m_declareName = "Faust: " + lines[i].mid(s + 1, e - s - 1);
+          prettyNameChanged();
+        }
+      }
+      break;
+    }
+  }
+
+
+
 }
 
 FaustEditDialog::FaustEditDialog(

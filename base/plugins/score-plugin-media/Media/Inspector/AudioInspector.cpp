@@ -14,7 +14,7 @@ InspectorWidget::InspectorWidget(
     QWidget* parent)
     : InspectorWidgetDelegate_T{object, parent}
     , m_dispatcher{doc.commandStack}
-    , m_edit{object.file().name(), this}
+    , m_edit{object.file().path(), this}
     , m_start{this}
     , m_upmix{this}
 {
@@ -32,7 +32,7 @@ InspectorWidget::InspectorWidget(
   con(process(), &Sound::ProcessModel::upmixChannelsChanged, this,
       [&] { m_upmix.setValue(object.upmixChannels()); });
   con(process(), &Sound::ProcessModel::fileChanged, this,
-      [&] { m_edit.setText(object.file().name()); });
+      [&] { m_edit.setText(object.file().path()); });
 
   con(m_edit, &QLineEdit::editingFinished, this, [&]() {
     m_dispatcher.submitCommand(
