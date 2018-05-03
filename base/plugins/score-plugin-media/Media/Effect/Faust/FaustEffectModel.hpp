@@ -5,6 +5,8 @@
 #include <Engine/Executor/ProcessComponent.hpp>
 #include <Media/Effect/DefaultEffectItem.hpp>
 #include <Process/GenericProcessFactory.hpp>
+#include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
+#include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 #include <Process/Process.hpp>
 #include <QDialog>
 #include <faust/dsp/llvm-c-dsp.h>
@@ -102,6 +104,26 @@ public:
       QWidget* parent);
 
   QString text() const;
+};
+
+class InspectorWidget final
+    : public Process::InspectorWidgetDelegate_T<Media::Faust::FaustEffectModel>
+{
+public:
+  explicit InspectorWidget(
+      const Media::Faust::FaustEffectModel& object,
+      const score::DocumentContext& doc,
+      QWidget* parent);
+
+private:
+  QPlainTextEdit* m_textedit{};
+};
+
+class InspectorFactory final
+    : public Process::
+          InspectorWidgetDelegateFactory_T<FaustEffectModel, InspectorWidget>
+{
+  SCORE_CONCRETE("6f1b2f7f-29ec-4ba4-b07e-8aa227ec3806")
 };
 
 using FaustEffectFactory = Process::EffectProcessFactory_T<FaustEffectModel>;
