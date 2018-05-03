@@ -57,6 +57,41 @@ struct js_control_updater
     control.setValue(v.apply(ossia::qt::ossia_to_qvariant{}));
   }
 };
+
+struct js_process final
+    : public ossia::node_process
+{
+  using node_process::node_process;
+  js_node& js() const { return static_cast<js_node&>(*node); }
+  void start() override
+  {
+    QMetaObject::invokeMethod(js().m_object, "start", Qt::DirectConnection);
+  }
+  void stop() override
+  {
+    QMetaObject::invokeMethod(js().m_object, "stop", Qt::DirectConnection);
+  }
+  void pause() override
+  {
+    QMetaObject::invokeMethod(js().m_object, "pause", Qt::DirectConnection);
+  }
+  void resume() override
+  {
+    QMetaObject::invokeMethod(js().m_object, "resume", Qt::DirectConnection);
+  }
+  void transport(ossia::time_value date, double pos) override
+  {
+    QMetaObject::invokeMethod(js().m_object, "transport", Qt::DirectConnection,
+                              Q_ARG(QVariant, double(date)),
+                              Q_ARG(QVariant, pos));
+  }
+  void offset(ossia::time_value date, double pos) override
+  {
+    QMetaObject::invokeMethod(js().m_object, "offset", Qt::DirectConnection,
+                              Q_ARG(QVariant, double(date)),
+                              Q_ARG(QVariant, pos));
+  }
+};
 Component::Component(
     JS::ProcessModel& element,
     const ::Engine::Execution::Context& ctx,
@@ -69,7 +104,7 @@ Component::Component(
   std::shared_ptr<js_node> node
       = std::make_shared<js_node>(*ctx.plugin.execState);
   this->node = node;
-  auto proc = std::make_shared<ossia::node_process>(node);
+  auto proc = std::make_shared<js_process>(node);
   m_ossia_process = proc;
 
   node->setScript(element.qmlData());
@@ -100,15 +135,14 @@ Component::Component(
       inl++;
     }
   }
-  /*
-  con(element, &JS::ProcessModel::scriptChanged,
+
+  con(element, &JS::ProcessModel::qmlDataChanged,
       this, [=] (const QString& str) {
     in_exec(
-          [proc=std::dynamic_pointer_cast<js_node>(m_node),
+          [proc=std::dynamic_pointer_cast<js_node>(this->node),
           &str]
     { proc->setScript(str); });
   });
-  */
 }
 
 Component::~Component()
