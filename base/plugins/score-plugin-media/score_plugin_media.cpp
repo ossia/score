@@ -103,6 +103,7 @@ score_plugin_media::factories(
          >,
       FW<Inspector::InspectorWidgetFactory, Media::Sound::InspectorFactory,
          Media::Input::InspectorFactory, Media::Effect::InspectorFactory,
+         Media::Faust::InspectorFactory,
          Media::Step::InspectorFactory, Media::Merger::InspectorFactory>,
       FW<Process::LayerFactory, Media::Sound::LayerFactory,
          Media::Input::LayerFactory, Media::Effect::LayerFactory,

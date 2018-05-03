@@ -172,9 +172,25 @@ void FaustEffectModel::reload()
       break;
     }
   }
+}
 
 
+InspectorWidget::InspectorWidget(
+    const Media::Faust::FaustEffectModel& fx
+    , const score::DocumentContext& doc
+    , QWidget* parent)
+  : InspectorWidgetDelegate_T{fx, parent}
+{
+  auto lay = new QVBoxLayout{this};
+  this->setLayout(lay);
+  m_textedit = new QPlainTextEdit{fx.text(), this};
 
+  lay->addWidget(m_textedit);
+
+  connect(m_textedit, &QPlainTextEdit::textChanged, this, [&] {
+    CommandDispatcher<>{doc.commandStack}.submitCommand(
+        new Media::Commands::EditFaustEffect{fx, m_textedit->document()->toPlainText()});
+  });
 }
 
 FaustEditDialog::FaustEditDialog(
@@ -273,4 +289,5 @@ Engine::Execution::FaustEffectComponent::FaustEffectComponent(
     }
   }
 }
+
 }
