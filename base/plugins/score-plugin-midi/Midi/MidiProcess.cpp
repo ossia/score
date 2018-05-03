@@ -13,21 +13,23 @@ ProcessModel::ProcessModel(
                             Metadata<ObjectKey_k, ProcessModel>::get(), parent}
     , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
 {
-  m_range = {59, 71};
+  m_range = {60, 71};
   outlet->type = Process::PortType::Midi;
 
   metadata().setInstanceName(*this);
 
   m_device = "MidiDevice";
-  /*  for (int i = 0; i < 10; i++)
+  /*
+    for (int i = 0; i < 12; i++)
     {
       auto n = new Note{Id<Note>(i), this};
-      n->setPitch(32 +  3 * i);
-      n->setStart(0.1 + i * 0.05);
-      n->setDuration(0.1 + (9 - i) * 0.05);
+      n->setPitch(i);
+      n->setStart(i * 0.07);
+      n->setDuration(0.1);
       n->setVelocity(i * 127. / 9.);
       notes.add(n);
-    }*/
+    }
+    */
   init();
 }
 

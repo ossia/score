@@ -29,7 +29,7 @@ void NoteView::paint(
   painter->setBrush(
       this->isSelected() ? s.noteSelectedBaseBrush : s.noteBaseBrush);
   painter->setPen(s.noteBasePen);
-  painter->drawRect(boundingRect().adjusted(0., 0., 0., -1.));
+  painter->drawRect(boundingRect().adjusted(0., 0., 0., -1.5));
 
   if (m_height > 8)
   {
@@ -45,6 +45,39 @@ void NoteView::paint(
   }
 }
 
+QPointF NoteView::closestPos(QPointF newPos) const
+{
+  auto& view = *(View*)parentItem();
+  const auto [min, max] = view.range();
+  const double count = view.visibleCount();
+  const QRectF rect = view.boundingRect();
+  const auto height = rect.height();
+  const auto note_height = height / count;
+
+  newPos.setX(qMin(rect.right(), qMax(newPos.x(), rect.left())));
+  // Snap to grid : we round y to the closest multiple of 127
+  auto bounded = (qBound(rect.top(), newPos.y() - note_height * 0.45, rect.bottom())  )/ height ;
+  int note = qBound(min, int(max - bounded * count), max);
+
+  newPos.setY(height - (note - min + 1) * note_height);
+  return newPos;
+}
+
+QRectF NoteView::computeRect() const
+{
+  auto& view = *(View*)parentItem();
+  const auto [min, max] = view.range();
+  const auto note_height = view.height() / view.visibleCount();
+  const QRectF rect{
+    note.start() * view.defaultWidth(),
+    view.height() - std::ceil((note.pitch() - min + 1) * note_height),
+    note.duration() * view.defaultWidth(),
+    note_height
+  };
+
+  return rect;
+}
+
 QVariant NoteView::itemChange(
     QGraphicsItem::GraphicsItemChange change, const QVariant& value)
 {
@@ -52,23 +85,7 @@ QVariant NoteView::itemChange(
   {
     case QGraphicsItem::ItemPositionChange:
     {
-      const auto [min, max] = ((View*)parentItem())->range();
-      QPointF newPos = value.toPointF();
-      QRectF rect = this->parentItem()->boundingRect();
-      auto height = rect.height();
-      auto note_height = height / (max - min);
-
-      newPos.setX(qMin(rect.right(), qMax(newPos.x(), rect.left())));
-      // Snap to grid : we round y to the closest multiple of 127
-      int note = qBound(
-          min,
-          int(max
-              - (qMin(rect.bottom(), qMax(newPos.y(), rect.top())) / height)
-                    * (max - min)),
-          max);
-
-      newPos.setY(height - (note - min) * note_height);
-      return newPos;
+      return closestPos(value.toPointF());
     }
     case QGraphicsItem::ItemSelectedChange:
     {

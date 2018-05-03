@@ -22,6 +22,7 @@ public:
     return {m_min, m_max};
   }
   NoteData noteAtPos(QPointF point) const;
+  int visibleCount() const;
 
 Q_SIGNALS:
   void deleteRequested();
