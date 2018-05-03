@@ -179,14 +179,6 @@ const Id<Process::ProcessModel>& Presenter::modelId() const
 
 void Presenter::setupNote(NoteView& v)
 {
-  const auto [min, max] = this->m_layer.range();
-  const auto note_height = m_view->height() / (max - min);
-  v.setPos(
-      v.note.start() * m_view->defaultWidth(),
-      m_view->height() - (v.note.pitch() - min) * note_height);
-  v.setWidth(v.note.duration() * m_view->defaultWidth());
-  v.setHeight(note_height);
-
   con(v.note, &Note::noteChanged, &v, [&] { updateNote(v); });
 
   con(v, &NoteView::noteChangeFinished, this, [&] {
@@ -199,7 +191,7 @@ void Presenter::setupNote(NoteView& v)
     int note = ossia::clamp(
         int(max
             - (qMin(rect.bottom(), qMax(newPos.y(), rect.top())) / height)
-                  * (max - min)),
+                  * this->m_view->visibleCount()),
         min, max);
 
     auto notes = selectedNotes();
@@ -231,23 +223,20 @@ void Presenter::setupNote(NoteView& v)
 
 void Presenter::updateNote(NoteView& v)
 {
-  const auto [min, max] = this->m_layer.range();
-  const auto note_height = m_view->height() / (max - min);
-  QPointF newPos{v.note.start() * m_view->defaultWidth(),
-                 m_view->height()
-                     - std::ceil((v.note.pitch() - min) * note_height)};
-
+  const auto noteRect = v.computeRect();
+  const auto newPos = noteRect.topLeft();
   if (newPos != v.pos())
     v.setPos(newPos);
 
-  v.setWidth(v.note.duration() * m_view->defaultWidth());
-  v.setHeight(note_height);
+  v.setWidth(noteRect.width());
+  v.setHeight(noteRect.height());
 }
 
 void Presenter::on_noteAdded(const Note& n)
 {
   auto v = new NoteView{n, m_view};
   setupNote(*v);
+  updateNote(*v);
   m_notes.push_back(v);
 }
 

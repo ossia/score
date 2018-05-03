@@ -48,7 +48,7 @@ static const MidiStyle style;
 bool View::canEdit() const
 {
   const auto rect = boundingRect();
-  const auto note_height = rect.height() / (m_max - m_min);
+  const auto note_height = rect.height() / (visibleCount());
   return note_height > 5;
 }
 
@@ -59,10 +59,10 @@ void View::paint_impl(QPainter* p) const
   //    1 3   6 8 10
   //   0 2 4 5 7 9  11
   const auto rect = boundingRect();
-  const auto note_height = rect.height() / (m_max - m_min);
+  const auto note_height = rect.height() / (visibleCount());
 
   const auto for_white_notes = [&](auto fun) {
-    for (int i = m_min + 1; i <= m_max; i++)
+    for (int i = m_min; i <= m_max; i++)
       switch (i % 12)
       {
         case 0:
@@ -77,7 +77,7 @@ void View::paint_impl(QPainter* p) const
       }
   };
   const auto for_black_notes = [&](auto fun) {
-    for (int i = m_min + 1; i <= m_max; i++)
+    for (int i = m_min; i <= m_max; i++)
       switch (i % 12)
       {
         case 1:
@@ -108,11 +108,11 @@ void View::paint_impl(QPainter* p) const
 
       {
         QRectF* white_rects
-            = (QRectF*)alloca((sizeof(QRectF) * m_max - m_min));
+            = (QRectF*)alloca((sizeof(QRectF) * visibleCount()));
         int max_white = 0;
         const auto draw_bg_white = [&](int i) {
           white_rects[max_white++]
-              = QRectF{left, rect.height() + note_height * (m_min - i) - 1,
+              = QRectF{left, rect.height() + note_height * (m_min - i - 1) - 1,
                        right - left, note_height};
         };
         for_white_notes(draw_bg_white);
@@ -122,11 +122,11 @@ void View::paint_impl(QPainter* p) const
 
       {
         QRectF* black_rects
-            = (QRectF*)alloca((sizeof(QRectF) * m_max - m_min));
+            = (QRectF*)alloca((sizeof(QRectF) * visibleCount()));
         int max_black = 0;
         const auto draw_bg_black = [&](int i) {
           black_rects[max_black++]
-              = QRectF{left, rect.height() + note_height * (m_min - i) - 1,
+              = QRectF{left, rect.height() + note_height * (m_min - i - 1) - 1,
                        right - left, note_height};
         };
         for_black_notes(draw_bg_black);
@@ -141,7 +141,7 @@ void View::paint_impl(QPainter* p) const
             "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
         const auto draw_text = [&](int i) {
           p->drawText(
-              QRectF{2., rect.height() + note_height * (m_min - i) - 1,
+              QRectF{2., rect.height() + note_height * (m_min - i - 1) - 1,
                      rect.width(), note_height},
               texts[i % 12], QTextOption{Qt::AlignVCenter});
         };
@@ -238,10 +238,13 @@ NoteData View::noteAtPos(QPointF point) const
           + int(m_max
                 - (qMin(rect.bottom(), qMax(point.y(), rect.top()))
                    / rect.height())
-                      * (m_max - m_min)),
+                      * visibleCount()),
       m_max);
 
   n.m_velocity = 127.;
   return n;
 }
+
+int View::visibleCount() const
+{ return m_max - m_min + 1; }
 }

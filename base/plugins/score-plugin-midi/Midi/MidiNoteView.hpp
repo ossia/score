@@ -39,6 +39,8 @@ public:
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
+  QRectF computeRect() const;
+  QPointF closestPos(QPointF note) const;
 Q_SIGNALS:
   void noteChanged(int, double); // pitch, scaled between [0; 1]
   void noteChangeFinished();
