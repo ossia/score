@@ -166,7 +166,7 @@ SCORE_DECLARE_ACTION(MoveUp, "&Move up", Scenario, Qt::UpArrow)
 SCORE_DECLARE_ACTION(MoveDown, "&Move down", Scenario, Qt::DownArrow)
 SCORE_DECLARE_ACTION(MoveLeft, "&Move left", Scenario, Qt::LeftArrow)
 SCORE_DECLARE_ACTION(MoveRight, "&Move right", Scenario, Qt::RightArrow)
-SCORE_DECLARE_ACTION(GoToParent, "&Go to parent", Scenario, Qt::CTRL + Qt::SHIFT + Qt::Key_Up)
+SCORE_DECLARE_ACTION(GoToParent, "&Go to parent", Scenario, Qt::CTRL + Qt::Key_Up)
 
 /// Context menus
 SCORE_PROCESS_DECLARE_CONTEXT_MENU(
