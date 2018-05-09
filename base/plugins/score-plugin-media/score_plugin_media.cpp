@@ -89,28 +89,30 @@ score_plugin_media::factories(
          Media::Input::ProcessFactory, Media::Effect::ProcessFactory,
          Media::Step::ProcessFactory, Media::Merger::ProcessFactory
 #if defined(HAS_FAUST)
-         ,
-         Media::Faust::FaustEffectFactory
+         , Media::Faust::FaustEffectFactory
 #endif
 #if defined(LILV_SHARED)
-         ,
-         Media::LV2::LV2EffectFactory
+         , Media::LV2::LV2EffectFactory
 #endif
 #if defined(HAS_VST2)
-         ,
-         Media::VST::VSTEffectFactory
+         , Media::VST::VSTEffectFactory
 #endif
          >,
-      FW<Inspector::InspectorWidgetFactory, Media::Sound::InspectorFactory,
-         Media::Input::InspectorFactory, Media::Effect::InspectorFactory,
-         Media::Faust::InspectorFactory,
-         Media::Step::InspectorFactory, Media::Merger::InspectorFactory>,
+      FW<Inspector::InspectorWidgetFactory
+      , Media::Sound::InspectorFactory
+      , Media::Input::InspectorFactory
+      , Media::Effect::InspectorFactory
+    #if defined(HAS_FAUST)
+      , Media::Faust::InspectorFactory
+    #endif
+      , Media::Step::InspectorFactory
+      , Media::Merger::InspectorFactory
+      >,
       FW<Process::LayerFactory, Media::Sound::LayerFactory,
          Media::Input::LayerFactory, Media::Effect::LayerFactory,
          Media::Step::LayerFactory, Media::Merger::LayerFactory
 #if defined(HAS_VST2)
-         ,
-         Media::VST::LayerFactory
+         , Media::VST::LayerFactory
 #endif
 #if defined(LILV_SHARED)
          ,

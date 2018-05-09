@@ -139,7 +139,7 @@ Component::Component(
   con(element, &JS::ProcessModel::qmlDataChanged,
       this, [=] (const QString& str) {
     in_exec(
-          [proc=std::dynamic_pointer_cast<js_node>(this->node),
+          [proc=std::dynamic_pointer_cast<js_node>(node),
           &str]
     { proc->setScript(str); });
   });
