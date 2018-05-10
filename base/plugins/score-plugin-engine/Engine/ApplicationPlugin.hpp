@@ -82,5 +82,8 @@ private:
   std::unique_ptr<Engine::Execution::ClockManager> m_clock;
   QAction* m_audioEngineAct{};
   bool m_playing{false}, m_paused{false};
+
+  bool m_updating_audio = false;
+  void setup_engine();
 };
 }

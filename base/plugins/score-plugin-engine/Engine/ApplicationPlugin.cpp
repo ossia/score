@@ -146,7 +146,17 @@ bool ApplicationPlugin::handleStartup()
   return false;
 }
 
-static std::unique_ptr<ossia::audio_engine> make_engine()
+struct AlteredAudioSettings
+{
+    ossia::optional<QString> driver;
+    ossia::optional<QString> card_in;
+    ossia::optional<QString> card_out;
+    ossia::optional<int> default_ins{};
+    ossia::optional<int> default_outs{};
+    ossia::optional<int> rate{};
+    ossia::optional<int> buffer_size{};
+};
+static std::unique_ptr<ossia::audio_engine> make_engine(AlteredAudioSettings& alt_set)
 {
   auto& set = score::AppContext().settings<Audio::Settings::Model>();
   auto driver = set.getDriver();
@@ -172,30 +182,69 @@ static std::unique_ptr<ossia::audio_engine> make_engine()
   }
   catch(...)
   {
-    eng = ossia::make_audio_engine(
-             "PortAudio", "score",
-             req_in.toStdString(), req_out.toStdString(),
-             ins, outs, rate, bs);
-    set.setDriver("PortAudio");
+    try {
+      eng = ossia::make_audio_engine(
+               "PortAudio", "score",
+               req_in.toStdString(), req_out.toStdString(),
+               ins, outs, rate, bs);
+      alt_set.driver = "PortAudio";
+    }
+    catch(...)
+    {
+      // todo set.driver
+      return nullptr;
+    }
   }
 
   if (ins != old_ins)
-    set.setDefaultIn(ins);
+    alt_set.default_ins = ins;
   if (outs != old_outs)
-    set.setDefaultOut(outs);
+    alt_set.default_outs = outs;
   if (bs != old_bs)
-    set.setBufferSize(bs);
+    alt_set.buffer_size = bs;
   if (rate != old_rate)
-    set.setRate(rate);
+    alt_set.rate = rate;
 
   return std::unique_ptr<ossia::audio_engine>{eng};
+}
+void ApplicationPlugin::setup_engine()
+{
+  audio.reset();
+  AlteredAudioSettings alt;
+  audio = make_engine(alt);
+  {
+    auto& set = score::AppContext().settings<Audio::Settings::Model>();
+
+    m_updating_audio = true;
+
+    if(alt.driver)
+      set.setDriver(*alt.driver);
+    if(alt.card_in)
+      set.setCardIn(*alt.card_in);
+    if(alt.card_out)
+      set.setCardOut(*alt.card_out);
+    if(alt.buffer_size)
+      set.setBufferSize(*alt.buffer_size);
+    if(alt.rate)
+      set.setRate(*alt.rate);
+    if(alt.default_ins)
+      set.setDefaultOut(*alt.default_ins);
+    if(alt.default_outs)
+      set.setDefaultOut(*alt.default_outs);
+
+    m_updating_audio = false;
+  }
+  m_audioEngineAct->setChecked(bool(audio));
 }
 void ApplicationPlugin::initialize()
 {
   auto& set = context.settings<Audio::Settings::Model>();
 
   con(set, &Audio::Settings::Model::DriverChanged, this,
-      [=](const QString& card) {
+      [=](const QString& ) {
+        if(m_updating_audio)
+          return;
+
         if (auto doc = this->currentDocument())
         {
           auto dev = doc->context()
@@ -207,8 +256,8 @@ void ApplicationPlugin::initialize()
           auto& d = *dynamic_cast<Dataflow::AudioDevice*>(dev);
           if (audio)
             audio->stop();
-          audio = make_engine();
-          m_audioEngineAct->setChecked(bool(audio));
+
+          setup_engine();
           d.reconnect();
         }
       });
@@ -255,8 +304,7 @@ void ApplicationPlugin::initialize()
       }
     });
   */
-  audio = make_engine();
-  m_audioEngineAct->setChecked(bool(audio));
+  setup_engine();
 }
 score::GUIElements ApplicationPlugin::makeGUIElements()
 {
@@ -306,7 +354,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
   e.actions.container.reserve(2);
   e.actions.add<Actions::RestartAudio>(m_audioEngineAct);
 
-  connect(m_audioEngineAct, &QAction::triggered, this, [=](bool k) {
+  connect(m_audioEngineAct, &QAction::triggered, this, [=] (bool k) {
     if (audio)
     {
       audio->stop();
@@ -314,7 +362,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     }
     else
     {
-      audio = make_engine();
+      setup_engine();
     }
     m_audioEngineAct->setChecked(bool(audio));
 
