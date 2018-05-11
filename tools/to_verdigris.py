@@ -4,19 +4,10 @@ import clang.cindex
 import copy
 
 from glob import glob
-result = [y for x in os.walk("/home/jcelerier/score/") for y in glob(os.path.join(x[0], '*.hpp'))]
 
-clang.cindex.Config.set_library_file('/usr/lib/libclang.so')
-index = clang.cindex.Index.create()
-
-# print(result[0])
-with open('/tmp/foo.hpp', 'r') as content_file:
-    source_file = content_file.read()
-
-translation_unit = index.parse(
-    '/tmp/foo.hpp',
-    ['-x', 'c++', '-std=c++17', '-D__CODE_GENERATOR__', '-I/usr/include/qt', '-I/usr/include/qt/QtCore'],
-    options=clang.cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
+if len(sys.argv) < 2:
+    print("Usage: python to_verdigris.py /path/to/convert")
+    exit(1)
 
 def node_children(node):
     return (c for c in node.get_children() if c.location.file.name == '/tmp/foo.hpp')
@@ -29,160 +20,203 @@ def print_node(node):
 def replace_at(oldStr, start, end, replacement):
     return oldStr[0:start] + replacement + oldStr[end:]
 
-k = 0
+class verdigris_converter:
 
-# Replacements are inserted in a dict, and are then executed in reverse order
-# to preserve positions
-replacements = { }
-def add_replacement(c, s):
-    replacements[c.extent.start.offset] = lambda src : replace_at(src, c.extent.start.offset, c.extent.end.offset, s)
+    k = 0
 
-def replace_qobject(c):
-    global source_file
-    if(c.kind.is_declaration() and c.spelling == 'staticMetaObject'):
-        add_replacement(c, "W_OBJECT(" + c.semantic_parent.spelling + ")")
+    # Replacements are inserted in a dict, and are then executed in reverse order
+    # to preserve positions
+    file_path = ""
+    source_file = ""
+    replacements = { }
+    signal_positions = []
+    slot_positions = []
 
-def replace_qproperty(c):
-    global source_file
-    if(c.kind == clang.cindex.CursorKind.MACRO_INSTANTIATION):
-      if(c.spelling == 'Q_PROPERTY'):
-        prop = source_file[c.extent.start.offset+11:c.extent.end.offset-1]
-        props = prop.split()
-        p_type = props[0]
-        p_name = props[1]
-        p_read = ""
-        p_write = ""
-        p_notify = ""
-        p_reset = ""
-        p_member = ""
-        p_final = False
-        i = 2
-        while i < len(props):
-            if props[i] == "READ":
-                p_read = props[i+1]
-                i = i + 2
-            elif props[i] == "WRITE":
-                p_write = props[i+1]
-                i = i + 2
-            elif props[i] == "NOTIFY":
-                p_notify = props[i+1]
-                i = i + 2
-            elif props[i] == "RESET":
-                p_reset = props[i+1]
-                i = i + 2
-            elif props[i] == "MEMBER":
-                p_member = props[i+1]
-                i = i + 2
-            elif props[i] == "FINAL":
-                p_final = True
-                i = i + 1
-            else:
-                i = i + 1
+    def add_replacement(self, c, s):
+        self.replacements[c.extent.start.offset] = lambda src : replace_at(src, c.extent.start.offset, c.extent.end.offset, s)
 
-        p_line = "W_PROPERTY(" + p_type + ", " + p_name;
-        if p_read != "":
-            p_line = p_line + " READ " + p_read;
-        if p_write != "":
-            p_line = p_line + " WRITE " + p_write;
-        if p_notify != "":
-            p_line = p_line + " NOTIFY " + p_notify;
-        if p_reset != "":
-            p_line = p_line + " RESET " + p_reset;
-        if p_member != "":
-            p_line = p_line + " MEMBER " + p_member;
-        if p_final:
-            p_line = p_line + "; W_Final"
-        p_line = p_line + ")";
+    def replace_qobject(self, c):
+        if(c.kind.is_declaration() and c.spelling == 'staticMetaObject'):
+            # print(c.kind, c.spelling)
+            self.add_replacement(c, "W_OBJECT(" + c.semantic_parent.spelling + ")")
 
-        add_replacement(c, p_line)
+    def replace_qproperty(self, c):
+        if(c.kind == clang.cindex.CursorKind.MACRO_INSTANTIATION):
+          if(c.spelling == 'Q_PROPERTY'):
+            prop = self.source_file[c.extent.start.offset+11:c.extent.end.offset-1]
+            props = prop.split()
+            p_type = props[0]
+            p_name = props[1]
+            p_read = ""
+            p_write = ""
+            p_notify = ""
+            p_reset = ""
+            p_member = ""
+            p_final = False
+            i = 2
+            while i < len(props):
+                if props[i] == "READ":
+                    p_read = props[i+1]
+                    i = i + 2
+                elif props[i] == "WRITE":
+                    p_write = props[i+1]
+                    i = i + 2
+                elif props[i] == "NOTIFY":
+                    p_notify = props[i+1]
+                    i = i + 2
+                elif props[i] == "RESET":
+                    p_reset = props[i+1]
+                    i = i + 2
+                elif props[i] == "MEMBER":
+                    p_member = props[i+1]
+                    i = i + 2
+                elif props[i] == "FINAL":
+                    p_final = True
+                    i = i + 1
+                else:
+                    i = i + 1
+
+            p_line = "W_PROPERTY(" + p_type + ", " + p_name;
+            if p_read != "":
+                p_line = p_line + " READ " + p_read;
+            if p_write != "":
+                p_line = p_line + " WRITE " + p_write;
+            if p_notify != "":
+                p_line = p_line + " NOTIFY " + p_notify;
+            if p_reset != "":
+                p_line = p_line + " RESET " + p_reset;
+            if p_member != "":
+                p_line = p_line + " MEMBER " + p_member;
+            if p_final:
+                p_line = p_line + "; W_Final"
+            p_line = p_line + ")";
+
+            self.add_replacement(c, p_line)
 
 
-signal_positions = []
-slot_positions = []
+    def replace_qsignal(self, c, it):
+        if(c.kind == clang.cindex.CursorKind.MACRO_INSTANTIATION):
+            if c.spelling == 'Q_SIGNALS' or c.spelling == 'signals':
+                self.signal_positions.append(c.location.line)
 
-    #print(k * ' ' + print_node(c))
-def replace_qsignal(c, it):
-    global source_file
-    if(c.kind == clang.cindex.CursorKind.MACRO_INSTANTIATION):
-        if c.spelling == 'Q_SIGNALS' or c.spelling == 'signals':
-            signal_positions.append(c.location.line)
+        elif c.kind == clang.cindex.CursorKind.CXX_ACCESS_SPEC_DECL and c.location.line in self.signal_positions:
+            while 1:
+                try:
+                    next_c = next(it)
+                except StopIteration:
+                    break
 
-    elif c.kind == clang.cindex.CursorKind.CXX_ACCESS_SPEC_DECL and c.location.line in signal_positions:
+                if next_c.kind == clang.cindex.CursorKind.CXX_METHOD:
+                    signal = self.source_file[next_c.extent.start.offset:next_c.extent.end.offset]
+                    sig_name = next_c.spelling;
+
+                    s_line = "W_SIGNAL(" + sig_name;
+                    count = 0
+                    for sig_p in next_c.get_children():
+                        count = count + 1
+                        if(len(sig_p.spelling) > 0):
+                          s_line = s_line + ", " + sig_p.spelling;
+                        else:
+                          print("A signal argument does not have a name: ", self.file_path, ":", next_c.location.line)
+                          signal = replace_at(signal, sig_p.extent.end.offset - next_c.extent.start.offset, sig_p.extent.end.offset - next_c.extent.start.offset, " arg_" + str(count))
+                          s_line = s_line + ", " + "arg_" + str(count);
+                    s_line = s_line + ")"
+                    print(signal, s_line)
+
+                    self.add_replacement(next_c, signal + " " + s_line)
+                    print(signal + " " + s_line)
+                if next_c.kind == clang.cindex.CursorKind.CXX_ACCESS_SPEC_DECL:
+                    break
+
+
+    def replace_qslot(self, c, it):
+        if(c.kind == clang.cindex.CursorKind.MACRO_INSTANTIATION):
+            if(c.spelling == 'Q_SLOTS' or c.spelling == 'slots'):
+                self.slot_positions.append(c.location.line)
+        elif c.kind == clang.cindex.CursorKind.CXX_ACCESS_SPEC_DECL and c.location.line in self.slot_positions:
+            while 1:
+                try:
+                    next_c = next(it)
+                except StopIteration:
+                    break
+
+                if next_c.kind == clang.cindex.CursorKind.CXX_METHOD:
+                    slot = self.source_file[next_c.extent.start.offset:next_c.extent.end.offset]
+                    slt_name = next_c.spelling;
+
+                    s_line = "W_SLOT(" + slt_name + ")";
+                    # print(slot, s_line)
+
+                    self.add_replacement(next_c, slot + "; " + s_line)
+                if next_c.kind == clang.cindex.CursorKind.CXX_ACCESS_SPEC_DECL:
+                    break
+
+    def replace_qinvokable(self, c):
+        return 0
+
+    def recurse(self, node):
+        cld = node.get_children()
         while 1:
             try:
-                next_c = next(it)
+                c = next(cld)
             except StopIteration:
                 break
 
-            if next_c.kind == clang.cindex.CursorKind.CXX_METHOD:
-                signal = source_file[next_c.extent.start.offset:next_c.extent.end.offset]
-                sig_name = next_c.spelling;
+            if(c.location.file is not None):
+                if(c.location.file.name == self.file_path):
 
-                s_line = "W_SIGNAL(" + sig_name;
-                for sig_p in next_c.get_children():
-                    s_line = s_line + ", " + sig_p.spelling;
-                s_line = s_line + ")"
-                print(signal, s_line)
+                    # print(c.location.file.name, self.file_path)
+                    self.replace_qobject(c)
+                    self.replace_qproperty(c)
+                    self.replace_qsignal(c, copy.copy(cld))
+                    self.replace_qslot(c, copy.copy(cld))
+                    self.replace_qinvokable(c)
 
-                add_replacement(next_c, signal + " " + s_line)
-                print(signal + " " + s_line)
-            if next_c.kind == clang.cindex.CursorKind.CXX_ACCESS_SPEC_DECL:
-                break
+            self.recurse(c)
 
+    def process(self, tu, source_file):
+        # print(source_file)
 
-def replace_qslot(c, it):
-    global source_file
-    if(c.kind == clang.cindex.CursorKind.MACRO_INSTANTIATION):
-        if(c.spelling == 'Q_SLOTS' or c.spelling == 'slots'):
-            slot_positions.append(c.location.line)
-    elif c.kind == clang.cindex.CursorKind.CXX_ACCESS_SPEC_DECL and c.location.line in slot_positions:
-        while 1:
-            try:
-                next_c = next(it)
-            except StopIteration:
-                break
+        self.source_file = source_file
+        self.file_path = tu.spelling
+        self.replacements = { }
+        self.signal_positions = []
+        self.slot_positions = []
 
-            if next_c.kind == clang.cindex.CursorKind.CXX_METHOD:
-                slot = source_file[next_c.extent.start.offset:next_c.extent.end.offset]
-                slt_name = next_c.spelling;
+        self.recurse(tu.cursor)
 
-                s_line = "W_SLOT(" + slt_name + ")";
-                print(slot, s_line)
+        for key in sorted(self.replacements.keys(), reverse=True):
+            self.source_file = self.replacements[key](self.source_file)
 
-                add_replacement(next_c, slot + " " + s_line)
-            if next_c.kind == clang.cindex.CursorKind.CXX_ACCESS_SPEC_DECL:
-                break
-
-def replace_qinvokable(c):
-    global source_file
-
-def recurse(node):
-    global k
-    k = k + 1
-    cld = node.get_children()
-    while 1:
-        try:
-            c = next(cld)
-        except StopIteration:
-            break
-
-        if(c.location.file is not None):
-            if(c.location.file.name == '/tmp/foo.hpp'):
-                replace_qobject(c)
-                replace_qproperty(c)
-
-                replace_qsignal(c, copy.copy(cld))
+        # print(self.source_file)
+        with open(self.file_path, 'w') as f:
+            f.write(self.source_file)
 
 
-                replace_qslot(c, copy.copy(cld))
+index = clang.cindex.Index.create()
+compdb = clang.cindex.CompilationDatabase.fromDirectory(sys.argv[1])
 
-                replace_qinvokable(c)
-        recurse(c)
-    k = k - 1
+for cmd in compdb.getAllCompileCommands():
+    arg = cmd.arguments
+    next(arg)
+    args = ['-x', 'c++']
 
-recurse(translation_unit.cursor)
+    for c in arg:
+        args.append(c)
+    args = args[:len(args) - 4]
 
-for key in sorted(replacements.keys(), reverse=True):
-    source_file = replacements[key](source_file)
+    if cmd.filename[-3:] != 'hpp':
+        continue
+    with open(cmd.filename, 'r') as content_file:
+        source_file = content_file.read()
 
-print(source_file)
+    if("Q_OBJECT" not in source_file):
+        continue
+
+    print(cmd.filename)
+    # print(args)
+
+    tu = index.parse(cmd.filename, args, options=clang.cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
+
+    conv = verdigris_converter();
+    conv.process(tu, source_file)
