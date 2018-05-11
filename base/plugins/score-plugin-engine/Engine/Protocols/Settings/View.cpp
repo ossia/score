@@ -18,7 +18,7 @@ View::View() : m_widg{new QWidget}
   auto lay = new QFormLayout;
 
   SETTINGS_UI_COMBOBOX_SETUP(
-      "Driver", Driver, (QStringList{"PortAudio", "JACK" /*, "SDL"*/}));
+      "Driver", Driver, (QStringList{"PortAudio", "JACK", "Dummy" /*, "SDL"*/}));
   SETTINGS_UI_NUM_COMBOBOX_SETUP(
       "Rate", Rate, (std::vector<int>{44100, 48000, 88200, 96000}));
   SETTINGS_UI_NUM_COMBOBOX_SETUP(
