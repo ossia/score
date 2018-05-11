@@ -191,8 +191,11 @@ static std::unique_ptr<ossia::audio_engine> make_engine(AlteredAudioSettings& al
     }
     catch(...)
     {
-      // todo set.driver
-      return nullptr;
+      eng = ossia::make_audio_engine(
+               "Dummy", "score",
+               req_in.toStdString(), req_out.toStdString(),
+               ins, outs, rate, bs);
+      alt_set.driver = "Dummy";
     }
   }
 
@@ -236,6 +239,7 @@ void ApplicationPlugin::setup_engine()
   }
   m_audioEngineAct->setChecked(bool(audio));
 }
+
 void ApplicationPlugin::initialize()
 {
   auto& set = context.settings<Audio::Settings::Model>();
