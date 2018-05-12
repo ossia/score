@@ -86,16 +86,16 @@ class verdigris_converter:
             if p_member != "":
                 p_line = p_line + " MEMBER " + p_member;
             if p_final:
-                p_line = p_line + "; W_Final"
+                p_line = p_line + ", W_Final"
             p_line = p_line + ")\n";
 
-            self.props_positions[c.location.line] = [ c, p_line ]
+            self.props_positions[c.location.line] = [ c.extent.start.offset, c.extent.end.offset, p_line ]
 
         elif c.kind == clang.cindex.CursorKind.CLASS_DECL:
             for prop_line in self.props_positions.keys():
                 if(prop_line > c.extent.start.line and prop_line < c.extent.end.line):
-                    prop_cursor, newline = self.props_positions[prop_line]
-                    self.add_replacement(prop_cursor, "")
+                    qp_start, qp_end, newline = self.props_positions[prop_line]
+                    self.add_replacement_at(qp_start, qp_end, "")
                     print("REPLACING at : ", c.extent.end.offset - 1, newline)
                     self.add_replacement_at(c.extent.end.offset - 1, c.extent.end.offset - 1, newline)
 
