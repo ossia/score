@@ -2,12 +2,7 @@ import os, sys
 from itertools import tee
 import clang.cindex
 import copy
-
 from glob import glob
-
-if len(sys.argv) < 2:
-    print("Usage: python to_verdigris.py /path/to/convert")
-    exit(1)
 
 def node_children(node):
     return (c for c in node.get_children() if c.location.file.name == '/tmp/foo.hpp')
@@ -21,9 +16,6 @@ def replace_at(oldStr, start, end, replacement):
     return oldStr[0:start] + replacement + oldStr[end:]
 
 class verdigris_converter:
-
-    k = 0
-
     # Replacements are inserted in a dict, and are then executed in reverse order
     # to preserve positions
     file_path = ""
@@ -31,9 +23,15 @@ class verdigris_converter:
     replacements = { }
     signal_positions = []
     slot_positions = []
+    props_positions = {}
+
+    def add_replacement_at(self, start, end, s):
+        self.replacements.setdefault(start, [])
+        self.replacements[start].append(lambda src : replace_at(src, start, end, s))
 
     def add_replacement(self, c, s):
-        self.replacements[c.extent.start.offset] = lambda src : replace_at(src, c.extent.start.offset, c.extent.end.offset, s)
+        self.add_replacement_at(c.extent.start.offset, c.extent.end.offset, s)
+        # self.replacements[c.extent.start.offset] = lambda src : replace_at(src, c.extent.start.offset, c.extent.end.offset, s)
 
     def replace_qobject(self, c):
         if(c.kind.is_declaration() and c.spelling == 'staticMetaObject'):
@@ -76,7 +74,7 @@ class verdigris_converter:
                 else:
                     i = i + 1
 
-            p_line = "W_PROPERTY(" + p_type + ", " + p_name;
+            p_line = "\nW_PROPERTY(" + p_type + ", " + p_name;
             if p_read != "":
                 p_line = p_line + " READ " + p_read;
             if p_write != "":
@@ -89,9 +87,17 @@ class verdigris_converter:
                 p_line = p_line + " MEMBER " + p_member;
             if p_final:
                 p_line = p_line + "; W_Final"
-            p_line = p_line + ")";
+            p_line = p_line + ")\n";
 
-            self.add_replacement(c, p_line)
+            self.props_positions[c.location.line] = [ c, p_line ]
+
+        elif c.kind == clang.cindex.CursorKind.CLASS_DECL:
+            for prop_line in self.props_positions.keys():
+                if(prop_line > c.extent.start.line and prop_line < c.extent.end.line):
+                    prop_cursor, newline = self.props_positions[prop_line]
+                    self.add_replacement(prop_cursor, "")
+                    print("REPLACING at : ", c.extent.end.offset - 1, newline)
+                    self.add_replacement_at(c.extent.end.offset - 1, c.extent.end.offset - 1, newline)
 
 
     def replace_qsignal(self, c, it):
@@ -186,37 +192,53 @@ class verdigris_converter:
         self.recurse(tu.cursor)
 
         for key in sorted(self.replacements.keys(), reverse=True):
-            self.source_file = self.replacements[key](self.source_file)
-
-        # print(self.source_file)
-        with open(self.file_path, 'w') as f:
-            f.write(self.source_file)
+            for repl in self.replacements[key]:
+                self.source_file = repl(self.source_file)
 
 
-index = clang.cindex.Index.create()
-compdb = clang.cindex.CompilationDatabase.fromDirectory(sys.argv[1])
-
-for cmd in compdb.getAllCompileCommands():
-    arg = cmd.arguments
-    next(arg)
-    args = ['-x', 'c++']
-
-    for c in arg:
-        args.append(c)
-    args = args[:len(args) - 4]
-
-    if cmd.filename[-3:] != 'hpp':
-        continue
-    with open(cmd.filename, 'r') as content_file:
+if len(sys.argv) < 2:
+    print("Usage: python to_verdigris.py /path/to/convert")
+    index = clang.cindex.Index.create()
+    with open('/tmp/foo.hpp', 'r') as content_file:
         source_file = content_file.read()
 
-    if("Q_OBJECT" not in source_file):
-        continue
-
-    print(cmd.filename)
-    # print(args)
-
-    tu = index.parse(cmd.filename, args, options=clang.cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
+    tu = index.parse(
+        '/tmp/foo.hpp',
+        ['-x', 'c++', '-std=c++17', '-D__CODE_GENERATOR__', '-I/usr/include/qt', '-I/usr/include/qt/QtCore'],
+        options=clang.cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
 
     conv = verdigris_converter();
     conv.process(tu, source_file)
+    print(conv.source_file)
+    exit(1)
+else:
+    index = clang.cindex.Index.create()
+    compdb = clang.cindex.CompilationDatabase.fromDirectory(sys.argv[1])
+
+    for cmd in compdb.getAllCompileCommands():
+        arg = cmd.arguments
+        print(cmd.filename)
+        next(arg)
+        args = ['-x', 'c++']
+
+        for c in arg:
+            args.append(c)
+        args = args[:len(args) - 4]
+
+        if cmd.filename[-3:] != 'hpp':
+            continue
+        with open(cmd.filename, 'r') as content_file:
+            source_file = content_file.read()
+
+        if("Q_OBJECT" not in source_file):
+            continue
+
+        # print(args)
+
+        tu = index.parse(cmd.filename, args, options=clang.cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
+
+        conv = verdigris_converter();
+        conv.process(tu, source_file)
+
+        with open(cmd.filename, 'w') as f:
+            f.write(conv.source_file)
