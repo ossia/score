@@ -218,27 +218,45 @@ else:
     compdb = clang.cindex.CompilationDatabase.fromDirectory(sys.argv[1])
 
     for cmd in compdb.getAllCompileCommands():
-        arg = cmd.arguments
-        next(arg)
-        args = ['-x', 'c++']
+        try:
+            arg = cmd.arguments
+            next(arg)
+            args = ['-x', 'c++']
 
-        for c in arg:
-            args.append(c)
-        args = args[:len(args) - 4]
+            for i in range(0, len(args)):
+                if(arg[i] == '-c')
+                    continue
+                if(i > 0 and arg[i-1] == '-c')
+                    continue
 
-        if cmd.filename[-3:] != 'hpp':
-            continue
-        with open(cmd.filename, 'r') as content_file:
-            source_file = content_file.read()
+                if(arg[i] == '-o')
+                    continue
+                if(i > 0 and arg[i-1] == '-o')
+                    continue
 
-        if("Q_OBJECT" not in source_file):
-            continue
-        print(cmd.filename)
+                if(arg[i] == '-include')
+                    continue
+                if(i > 0 and arg[i-1] == '-include')
+                    continue
+                args.append(arg[i])
 
-        tu = index.parse(cmd.filename, args, options=clang.cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
 
-        conv = verdigris_converter();
-        conv.process(tu, source_file)
+            if cmd.filename[-3:] != 'hpp':
+                continue
+            with open(cmd.filename, 'r') as content_file:
+                source_file = content_file.read()
 
-        with open(cmd.filename, 'w') as f:
-            f.write(conv.source_file)
+            if("Q_OBJECT" not in source_file):
+                continue
+
+            print(args)
+            tu = index.parse(cmd.filename, args, options=clang.cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
+
+            conv = verdigris_converter();
+            conv.process(tu, source_file)
+
+            with open(cmd.filename, 'w') as f:
+                f.write(conv.source_file)
+        except clang.cindex.TranslationUnitLoadError as e:
+            print("Error: ", e.args)
+
