@@ -188,6 +188,7 @@ class verdigris_converter:
         self.replacements = { }
         self.signal_positions = []
         self.slot_positions = []
+        self.props_positions = []
 
         self.recurse(tu.cursor)
 
