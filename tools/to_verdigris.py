@@ -7,10 +7,10 @@ from glob import glob
 def node_children(node):
     return (c for c in node.get_children() if c.location.file.name == '/tmp/foo.hpp')
 
-def print_node(node):
+def print_node(node, k = 0):
     text = node.spelling or node.displayname
     kind = str(node.kind)[str(node.kind).index('.')+1:]
-    return '{} {}'.format(kind, text)
+    print(k * ' ' + '{} {}'.format(kind, text))
 
 def replace_at(oldStr, start, end, replacement):
     return oldStr[0:start] + replacement + oldStr[end:]
@@ -24,6 +24,7 @@ class verdigris_converter:
     signal_positions = []
     slot_positions = []
     props_positions = {}
+    included = False
 
     def add_replacement_at(self, start, end, s):
         self.replacements.setdefault(start, [])
@@ -96,7 +97,7 @@ class verdigris_converter:
                 if(prop_line > c.extent.start.line and prop_line < c.extent.end.line):
                     qp_start, qp_end, newline = self.props_positions[prop_line]
                     self.add_replacement_at(qp_start, qp_end, "")
-                    print("REPLACING at : ", c.extent.end.offset - 1, newline)
+                    # print("REPLACING at : ", c.extent.end.offset - 1, newline)
                     self.add_replacement_at(c.extent.end.offset - 1, c.extent.end.offset - 1, newline)
 
 
@@ -123,14 +124,16 @@ class verdigris_converter:
                         if(len(sig_p.spelling) > 0):
                           s_line = s_line + ", " + sig_p.spelling;
                         else:
-                          print("A signal argument does not have a name: ", self.file_path, ":", next_c.location.line)
-                          signal = replace_at(signal, sig_p.extent.end.offset - next_c.extent.start.offset, sig_p.extent.end.offset - next_c.extent.start.offset, " arg_" + str(count))
+                          print(" ! A signal argument does not have a name: ", self.file_path, ":", next_c.location.line)
+                          if(sig_p.extent.start.offset > 0):
+                              signal = replace_at(signal, sig_p.extent.end.offset - next_c.extent.start.offset, sig_p.extent.end.offset - next_c.extent.start.offset, " arg_" + str(count))
+                          else:
+                              signal = replace_at(signal, sig_p.location.offset - next_c.extent.start.offset, sig_p.location.offset - next_c.extent.start.offset, " arg_" + str(count))
+
                           s_line = s_line + ", " + "arg_" + str(count);
                     s_line = s_line + ")"
-                    print(signal, s_line)
-
                     self.add_replacement(next_c, signal + " " + s_line)
-                    print(signal + " " + s_line)
+
                 if next_c.kind == clang.cindex.CursorKind.CXX_ACCESS_SPEC_DECL:
                     break
 
@@ -160,6 +163,12 @@ class verdigris_converter:
     def replace_qinvokable(self, c):
         return 0
 
+    def add_include(self, c):
+        # print_node(c)
+        if self.included == False and c.kind == clang.cindex.CursorKind.INCLUSION_DIRECTIVE:
+            self.add_replacement_at(c.extent.end.offset, c.extent.end.offset, "\n#include <wobjectdefs.h>")
+            self.included = True
+
     def recurse(self, node):
         cld = node.get_children()
         while 1:
@@ -172,6 +181,7 @@ class verdigris_converter:
                 if(c.location.file.name == self.file_path):
 
                     # print(c.location.file.name, self.file_path)
+                    self.add_include(c)
                     self.replace_qobject(c)
                     self.replace_qproperty(c)
                     self.replace_qsignal(c, copy.copy(cld))
@@ -189,6 +199,8 @@ class verdigris_converter:
         self.signal_positions = []
         self.slot_positions = []
         self.props_positions = {}
+        self.included = False
+        self.first_include_line = 0
 
         self.recurse(tu.cursor)
 
@@ -199,26 +211,14 @@ class verdigris_converter:
 
 if len(sys.argv) < 2:
     print("Usage: python to_verdigris.py /path/to/convert")
-    index = clang.cindex.Index.create()
-    with open('/tmp/foo.hpp', 'r') as content_file:
-        source_file = content_file.read()
-
-    tu = index.parse(
-        '/tmp/foo.hpp',
-        ['-x', 'c++', '-std=c++17', '-D__CODE_GENERATOR__', '-I/usr/include/qt', '-I/usr/include/qt/QtCore'],
-        options=clang.cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
-
-    conv = verdigris_converter();
-    conv.process(tu, source_file)
-    print(conv.source_file)
     exit(1)
+
 else:
     index = clang.cindex.Index.create()
     compdb = clang.cindex.CompilationDatabase.fromDirectory(sys.argv[1])
 
     for cmd in compdb.getAllCompileCommands():
         arg = cmd.arguments
-        print(cmd.filename)
         next(arg)
         args = ['-x', 'c++']
 
@@ -233,8 +233,7 @@ else:
 
         if("Q_OBJECT" not in source_file):
             continue
-
-        # print(args)
+        print(cmd.filename)
 
         tu = index.parse(cmd.filename, args, options=clang.cindex.TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD)
 
