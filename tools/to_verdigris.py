@@ -119,6 +119,7 @@ class verdigris_converter:
 
                     s_line = "W_SIGNAL(" + sig_name;
                     count = 0
+                    added = 0
                     for sig_p in next_c.get_children():
                         count = count + 1
                         if(len(sig_p.spelling) > 0):
@@ -126,11 +127,14 @@ class verdigris_converter:
                         else:
                           print(" ! A signal argument does not have a name: ", self.file_path, ":", next_c.location.line)
                           if(sig_p.extent.start.offset > 0):
-                              signal = replace_at(signal, sig_p.extent.end.offset - next_c.extent.start.offset, sig_p.extent.end.offset - next_c.extent.start.offset, " arg_" + str(count))
+                              sig_start = sig_p.extent.end.offset - next_c.extent.start.offset + added
                           else:
-                              signal = replace_at(signal, sig_p.location.offset - next_c.extent.start.offset, sig_p.location.offset - next_c.extent.start.offset, " arg_" + str(count))
+                              sig_start = sig_p.location.offset - next_c.extent.start.offset + added
 
-                          s_line = s_line + ", " + "arg_" + str(count);
+                          new_arg_name = " arg_" + str(count)
+                          added = added + len(new_arg_name)
+                          signal = replace_at(signal, sig_start, sig_start, new_arg_name)
+                          s_line = s_line + "," + new_arg_name;
                     s_line = s_line + ")"
                     self.add_replacement(next_c, signal + " " + s_line)
 
@@ -219,26 +223,29 @@ else:
 
     for cmd in compdb.getAllCompileCommands():
         try:
-            arg = cmd.arguments
-            next(arg)
+            orig_args = cmd.arguments
+            next(orig_args) # skip the first which is the compiler path
             args = ['-x', 'c++']
 
-            for i in range(0, len(args)):
-                if(arg[i] == '-c')
-                    continue
-                if(i > 0 and arg[i-1] == '-c')
-                    continue
-
-                if(arg[i] == '-o')
-                    continue
-                if(i > 0 and arg[i-1] == '-o')
+            skip = False
+            for arg in orig_args:
+                if(skip):
+                    skip = False
                     continue
 
-                if(arg[i] == '-include')
+                if(arg == '-c'):
+                    skip = True
                     continue
-                if(i > 0 and arg[i-1] == '-include')
+
+                if(arg == '-o'):
+                    skip = True
                     continue
-                args.append(arg[i])
+
+                if(arg == '-include'):
+                    skip = True
+                    continue
+
+                args.append(arg)
 
 
             if cmd.filename[-3:] != 'hpp':
