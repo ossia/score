@@ -1,5 +1,6 @@
 #pragma once
 #include <QGraphicsItem>
+#include <wobjectdefs.h>
 #include <QPainterPath>
 #include <QRect>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
@@ -11,7 +12,7 @@ class ConditionView final
     : public QObject
     , public QGraphicsItem
 {
-  Q_OBJECT
+  W_OBJECT(ConditionView)
   Q_INTERFACES(QGraphicsItem)
 public:
   ConditionView(score::ColorRef color, QGraphicsItem* parent);
@@ -39,8 +40,8 @@ public:
     return static_type();
   }
 
-Q_SIGNALS:
-  void pressed(QPointF);
+public:
+  void pressed(QPointF arg_1) W_SIGNAL(pressed, arg_1);
 
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent*) override;

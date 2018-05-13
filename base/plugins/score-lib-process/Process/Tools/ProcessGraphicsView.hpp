@@ -1,5 +1,6 @@
 #pragma once
 #include <QGraphicsView>
+#include <wobjectdefs.h>
 #include <QPoint>
 #include <score_lib_process_export.h>
 class QFocusEvent;
@@ -14,17 +15,17 @@ class SceneGraduations;
 // TODO namespace !!!
 class SCORE_LIB_PROCESS_EXPORT ProcessGraphicsView final : public QGraphicsView
 {
-  Q_OBJECT
+  W_OBJECT(ProcessGraphicsView)
 public:
   ProcessGraphicsView(QGraphicsScene* scene, QWidget* parent);
 
   void scrollHorizontal(double dx);
-Q_SIGNALS:
-  void sizeChanged(const QSize&);
-  void scrolled(int);
-  void focusedOut();
-  void horizontalZoom(QPointF pixDelta, QPointF pos);
-  void verticalZoom(QPointF pixDelta, QPointF pos);
+public:
+  void sizeChanged(const QSize& arg_1) W_SIGNAL(sizeChanged, arg_1);
+  void scrolled(int arg_1) W_SIGNAL(scrolled, arg_1);
+  void focusedOut() W_SIGNAL(focusedOut);
+  void horizontalZoom(QPointF pixDelta, QPointF pos) W_SIGNAL(horizontalZoom, pixDelta, pos);
+  void verticalZoom(QPointF pixDelta, QPointF pos) W_SIGNAL(verticalZoom, pixDelta, pos);
 
 private:
   void resizeEvent(QResizeEvent* ev) override;

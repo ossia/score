@@ -1,18 +1,19 @@
 #pragma once
 #include <score/plugins/ProjectSettings/ProjectSettingsView.hpp>
+#include <wobjectdefs.h>
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 class QCheckBox;
 namespace Explorer::Settings
 {
 class View : public score::GlobalSettingsView
 {
-  Q_OBJECT
+  W_OBJECT(View)
 public:
   View();
 
   void setLocalTree(bool);
-Q_SIGNALS:
-  void localTreeChanged(bool);
+public:
+  void localTreeChanged(bool arg_1) W_SIGNAL(localTreeChanged, arg_1);
 
   SETTINGS_UI_COMBOBOX_HPP(LogLevel)
 
@@ -28,7 +29,7 @@ namespace Explorer::ProjectSettings
 {
 class View : public score::ProjectSettingsView
 {
-  Q_OBJECT
+  W_OBJECT(View)
 public:
   View();
 

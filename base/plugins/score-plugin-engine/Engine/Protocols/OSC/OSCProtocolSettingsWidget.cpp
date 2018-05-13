@@ -16,7 +16,8 @@
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 #include <score/widgets/MarginLess.hpp>
 
-class QWidget;
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Engine::Network::OSCProtocolSettingsWidget)
 
 namespace Engine
 {

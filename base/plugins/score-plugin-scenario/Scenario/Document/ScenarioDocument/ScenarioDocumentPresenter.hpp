@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Dataflow/CableItem.hpp>
+#include <wobjectdefs.h>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/ProcessContext.hpp>
 #include <Process/ZoomHelper.hpp>
@@ -44,7 +45,7 @@ class TimeRulerPresenter;
 class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentPresenter final
     : public score::DocumentDelegatePresenter
 {
-  Q_OBJECT
+  W_OBJECT(ScenarioDocumentPresenter)
   friend class DisplayedElementsPresenter;
 
 public:
@@ -84,17 +85,17 @@ public:
 
   IdContainer<Dataflow::CableItem, Process::Cable> cableItems;
   void setLargeView();
-Q_SIGNALS:
-  void pressed(QPointF);
-  void moved(QPointF);
-  void released(QPointF);
-  void escPressed();
+public:
+  void pressed(QPointF arg_1) W_SIGNAL(pressed, arg_1);
+  void moved(QPointF arg_1) W_SIGNAL(moved, arg_1);
+  void released(QPointF arg_1) W_SIGNAL(released, arg_1);
+  void escPressed() W_SIGNAL(escPressed);
 
-  void setFocusedPresenter(QPointer<Process::LayerPresenter>);
+  void setFocusedPresenter(QPointer<Process::LayerPresenter> arg_1) W_SIGNAL(setFocusedPresenter, arg_1);
 
-private Q_SLOTS:
-  void on_windowSizeChanged(QSize);
-  void on_viewReady();
+private:
+  void on_windowSizeChanged(QSize); W_SLOT(on_windowSizeChanged);
+  void on_viewReady(); W_SLOT(on_viewReady);
 
 private:
   void updateTimeBar();

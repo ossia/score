@@ -13,6 +13,8 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <exception>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Engine::Execution::EventComponent)
 namespace Engine
 {
 namespace Execution

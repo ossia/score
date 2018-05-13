@@ -27,6 +27,9 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/MapCopy.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Curve::Model)
+
 namespace Curve
 {
 Model::Model(const Id<Model>& id, QObject* parent)

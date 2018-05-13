@@ -10,6 +10,8 @@
 #include <QSlider>
 #include <boost/range/algorithm_ext/erase.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Dataflow::CableItem)
 template class SCORE_LIB_PROCESS_EXPORT tsl::hopscotch_map<
     Process::Cable*,
     Dataflow::CableItem*,

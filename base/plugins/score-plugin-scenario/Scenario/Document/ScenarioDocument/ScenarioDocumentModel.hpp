@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Dataflow/Cable.hpp>
+#include <wobjectdefs.h>
 #include <Process/Dataflow/Port.hpp>
 #include <QPointer>
 #include <core/document/Document.hpp>
@@ -27,7 +28,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentModel final
     : public score::DocumentDelegateModel
     , public Nano::Observer
 {
-  Q_OBJECT
+  W_OBJECT(ScenarioDocumentModel)
   SCORE_SERIALIZE_FRIENDS
 public:
   ScenarioDocumentModel(const score::DocumentContext& ctx, QObject* parent);

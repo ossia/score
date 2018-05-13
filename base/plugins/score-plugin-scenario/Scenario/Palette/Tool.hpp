@@ -1,6 +1,6 @@
 #pragma once
 #include <QMetaType>
-
+#include <wobjectdefs.h>
 namespace Scenario
 {
 enum class Tool : int8_t
@@ -14,3 +14,4 @@ enum class Tool : int8_t
 };
 }
 Q_DECLARE_METATYPE(Scenario::Tool)
+W_REGISTER_ARGTYPE(Scenario::Tool)

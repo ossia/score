@@ -1,5 +1,6 @@
 #pragma once
 #include <QObject>
+#include <wobjectdefs.h>
 #include <QString>
 #include <score_lib_base_export.h>
 
@@ -12,7 +13,7 @@ class DocumentPresenter;
 
 class SCORE_LIB_BASE_EXPORT DocumentDelegatePresenter : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(DocumentDelegatePresenter)
 public:
   DocumentDelegatePresenter(
       DocumentPresenter* parent_presenter,
@@ -21,8 +22,8 @@ public:
 
   virtual ~DocumentDelegatePresenter();
 
-public Q_SLOTS:
-  virtual void setNewSelection(const Selection& s) = 0;
+public:
+  virtual void setNewSelection(const Selection& s) = 0; W_SLOT(setNewSelection);
 
 protected:
   const DocumentDelegateModel& m_model;

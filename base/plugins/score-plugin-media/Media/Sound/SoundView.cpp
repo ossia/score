@@ -13,6 +13,10 @@
 #elif defined(__SSE2__) && __has_include(<xmmintrin.h>)
 #  include <xmmintrin.h>
 #endif
+#include <wobjectimpl.h>
+W_REGISTER_ARGTYPE(const Media::MediaFileHandle*)
+W_OBJECT_IMPL(Media::Sound::LayerView)
+W_OBJECT_IMPL(Media::Sound::WaveformComputer)
 namespace Media
 {
 namespace Sound

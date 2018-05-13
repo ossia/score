@@ -26,6 +26,8 @@
 #include <score/model/Identifier.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <utility>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Engine::Execution::IntervalRawPtrComponent)
 namespace Engine
 {
 namespace Execution

@@ -254,6 +254,7 @@ void PeriodicSegment<T>::serialize_impl(const VisitorVariant& vis) const
 }
 
 Q_DECLARE_METATYPE(Curve::PeriodicSegmentData)
+W_REGISTER_ARGTYPE(Curve::PeriodicSegmentData)
 
 CURVE_SEGMENT_METADATA(
     SCORE_PLUGIN_CURVE_EXPORT,

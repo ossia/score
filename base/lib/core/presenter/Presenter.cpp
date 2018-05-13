@@ -34,12 +34,8 @@
 #include <utility>
 #include <vector>
 
-namespace score
-{
-class Document;
-class DocumentModel;
-} // namespace score
-
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(score::Presenter)
 namespace score
 {
 

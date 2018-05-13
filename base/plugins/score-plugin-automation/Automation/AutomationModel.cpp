@@ -22,11 +22,8 @@
 #include <score/tools/MapCopy.hpp>
 #include <score/tools/std/Optional.hpp>
 
-namespace Process
-{
-class ProcessModel;
-}
-class QObject;
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Automation::ProcessModel)
 namespace Automation
 {
 

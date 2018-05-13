@@ -168,3 +168,5 @@ private:
   // if we want to load a document instead upon opening score.
 };
 }
+
+W_REGISTER_ARGTYPE(score::Document*)

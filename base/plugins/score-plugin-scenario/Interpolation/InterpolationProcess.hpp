@@ -1,5 +1,6 @@
 #pragma once
 #include <Curve/Process/CurveProcessModel.hpp>
+#include <wobjectdefs.h>
 #include <Process/ProcessMetadata.hpp>
 #include <Process/State/MessageNode.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
@@ -28,7 +29,7 @@ namespace Interpolation
 {
 class ProcessState final : public ProcessStateDataInterface
 {
-  Q_OBJECT
+  W_OBJECT(ProcessState)
 public:
   enum Point
   {
@@ -60,12 +61,11 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Interpolation::ProcessModel)
 
-  Q_OBJECT
-  Q_PROPERTY(State::AddressAccessor address READ address WRITE setAddress
-                 NOTIFY addressChanged)
-  Q_PROPERTY(ossia::value start READ start WRITE setStart NOTIFY startChanged)
-  Q_PROPERTY(ossia::value end READ end WRITE setEnd NOTIFY endChanged)
-  Q_PROPERTY(bool tween READ tween WRITE setTween NOTIFY tweenChanged)
+  W_OBJECT(ProcessModel)
+  
+  
+  
+  
 
 public:
   ProcessModel(
@@ -110,11 +110,11 @@ public:
     tweenChanged(tween);
   }
 
-Q_SIGNALS:
-  void addressChanged(const ::State::AddressAccessor&);
-  void startChanged(const ossia::value&);
-  void endChanged(const ossia::value&);
-  void tweenChanged(bool tween);
+public:
+  void addressChanged(const ::State::AddressAccessor& arg_1) W_SIGNAL(addressChanged, arg_1);
+  void startChanged(const ossia::value& arg_1) W_SIGNAL(startChanged, arg_1);
+  void endChanged(const ossia::value& arg_1) W_SIGNAL(endChanged, arg_1);
+  void tweenChanged(bool tween) W_SIGNAL(tweenChanged, tween);
 
 private:
   //// ProcessModel ////
@@ -137,5 +137,13 @@ private:
   ProcessState* m_startState{};
   ProcessState* m_endState{};
   bool m_tween = false;
+
+W_PROPERTY(bool, tween READ tween WRITE setTween NOTIFY tweenChanged)
+
+W_PROPERTY(ossia::value, end READ end WRITE setEnd NOTIFY endChanged)
+
+W_PROPERTY(ossia::value, start READ start WRITE setStart NOTIFY startChanged)
+
+W_PROPERTY(State::AddressAccessor, address READ address WRITE setAddress NOTIFY addressChanged)
 };
 }

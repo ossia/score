@@ -6,6 +6,9 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 #include <score/model/Skin.hpp>
+
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Interpolation::View)
 namespace Interpolation
 {
 View::View(QGraphicsItem* parent) : Process::LayerView{parent}

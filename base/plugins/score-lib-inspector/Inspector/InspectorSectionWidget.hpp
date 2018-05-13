@@ -1,5 +1,6 @@
 #pragma once
 #include <QBoxLayout>
+#include <wobjectdefs.h>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QString>
@@ -26,7 +27,7 @@ public:
  */
 class SCORE_LIB_INSPECTOR_EXPORT InspectorSectionWidget : public QWidget
 {
-  Q_OBJECT
+  W_OBJECT(InspectorSectionWidget)
 public:
   explicit InspectorSectionWidget(
       bool editable = false, QWidget* parent = nullptr);
@@ -56,8 +57,8 @@ public:
   void removeAll();
   void showMenu(bool b);
 
-Q_SIGNALS:
-  void nameChanged(QString newName);
+public:
+  void nameChanged(QString newName) W_SIGNAL(nameChanged, newName);
 
 private:
   score::MarginLess<QVBoxLayout> m_generalLayout; /*!< main layout */

@@ -1,5 +1,6 @@
 #pragma once
 #include <QColor>
+#include <wobjectdefs.h>
 #include <QGlyphRun>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsTextItem>
@@ -10,12 +11,12 @@ namespace Scenario
 {
 class TextItem final : public QGraphicsTextItem
 {
-  Q_OBJECT
+  W_OBJECT(TextItem)
 public:
   TextItem(QString text, QGraphicsItem* parent);
 
-Q_SIGNALS:
-  void focusOut();
+public:
+  void focusOut() W_SIGNAL(focusOut);
 
 protected:
   void focusOutEvent(QFocusEvent* event) override;
@@ -50,7 +51,7 @@ class QGraphicsTextButton
     : public QObject
     , public Scenario::SimpleTextItem
 {
-  Q_OBJECT
+  W_OBJECT(QGraphicsTextButton)
 public:
   QGraphicsTextButton(QString text, QGraphicsItem* parent)
       : SimpleTextItem{parent}
@@ -58,8 +59,8 @@ public:
     setText(std::move(text));
   }
 
-Q_SIGNALS:
-  void pressed();
+public:
+  void pressed() W_SIGNAL(pressed);
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override

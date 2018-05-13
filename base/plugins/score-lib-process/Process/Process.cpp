@@ -13,7 +13,8 @@
 #include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <stdexcept>
-
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Process::ProcessModel)
 template class IdentifiedObject<Process::ProcessModel>;
 template class score::SerializableInterface<Process::ProcessModelFactory>;
 namespace Process

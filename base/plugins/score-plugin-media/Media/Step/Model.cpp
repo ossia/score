@@ -2,6 +2,8 @@
 
 #include <Process/Dataflow/Port.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Media::Step::Model)
 namespace Media
 {
 namespace Step

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Inspector/InspectorSectionWidget.hpp>
+#include <wobjectdefs.h>
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Scenario/Inspector/Expression/ExpressionMenu.hpp>
 #include <list>
@@ -25,15 +26,15 @@ class TriggerInspectorWidget;
  */
 class EventInspectorWidget final : public Inspector::InspectorWidgetBase
 {
-  Q_OBJECT
+  W_OBJECT(EventInspectorWidget)
 public:
   explicit EventInspectorWidget(
       const EventModel& object,
       const score::DocumentContext& context,
       QWidget* parent = nullptr);
 
-Q_SIGNALS:
-  void expandEventSection(bool b);
+public:
+  void expandEventSection(bool b) W_SIGNAL(expandEventSection, b);
 
 private:
   QString tabName() override;

@@ -1,5 +1,6 @@
 #pragma once
 #include <Dataflow/UI/PortItem.hpp>
+#include <wobjectdefs.h>
 #include <Media/Effect/VST/VSTEffectModel.hpp>
 
 namespace Media::VST
@@ -7,7 +8,7 @@ namespace Media::VST
 
 class VSTControlInlet final : public Process::Inlet
 {
-  Q_OBJECT
+  W_OBJECT(VSTControlInlet)
   SCORE_SERIALIZE_FRIENDS
 public:
   MODEL_METADATA_IMPL(VSTControlInlet)
@@ -48,8 +49,8 @@ public:
       valueChanged(v);
     }
   }
-Q_SIGNALS:
-  void valueChanged(float);
+public:
+  void valueChanged(float arg_1) W_SIGNAL(valueChanged, arg_1);
 
 private:
   float m_value{};

@@ -1,5 +1,6 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
+#include <wobjectdefs.h>
 #include <QObject>
 #include <QString>
 
@@ -18,15 +19,15 @@ namespace Explorer
  */
 class ExplorationWorker final : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(ExplorationWorker)
 public:
   Device::DeviceInterface& dev;
   Device::Node node; // Result
 
   explicit ExplorationWorker(Device::DeviceInterface& dev);
 
-Q_SIGNALS:
-  void finished();
-  void failed(QString);
+public:
+  void finished() W_SIGNAL(finished);
+  void failed(QString arg_1) W_SIGNAL(failed, arg_1);
 };
 }

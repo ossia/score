@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/TimeValue.hpp>
+#include <wobjectdefs.h>
 #include <Process/ZoomHelper.hpp>
 #include <QPoint>
 #include <QString>
@@ -47,7 +48,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT IntervalPresenter
     : public QObject
     , public Nano::Observer
 {
-  Q_OBJECT
+  W_OBJECT(IntervalPresenter)
 
 public:
   IntervalPresenter(
@@ -86,14 +87,14 @@ public:
   virtual void selectedSlot(int) const = 0;
   virtual void requestSlotMenu(int slot, QPoint pos, QPointF sp) const = 0;
 
-Q_SIGNALS:
-  void pressed(QPointF) const;
-  void moved(QPointF) const;
-  void released(QPointF) const;
+public:
+  void pressed(QPointF arg_1) const W_SIGNAL(pressed, arg_1);
+  void moved(QPointF arg_1) const W_SIGNAL(moved, arg_1);
+  void released(QPointF arg_1) const W_SIGNAL(released, arg_1);
 
-  void askUpdate();
-  void heightChanged();           // The vertical size
-  void heightPercentageChanged(); // The vertical position
+  void askUpdate() W_SIGNAL(askUpdate);
+  void heightChanged() W_SIGNAL(heightChanged);           // The vertical size
+  void heightPercentageChanged() W_SIGNAL(heightPercentageChanged); // The vertical position
 
 protected:
   // Process presenters are in the slot presenters.

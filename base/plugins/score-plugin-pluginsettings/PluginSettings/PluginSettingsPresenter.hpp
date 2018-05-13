@@ -1,5 +1,6 @@
 #pragma once
 #include <QIcon>
+#include <wobjectdefs.h>
 #include <QString>
 #include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 
@@ -10,7 +11,7 @@ class PluginSettingsModel;
 class PluginSettingsView;
 class PluginSettingsPresenter : public score::GlobalSettingsPresenter
 {
-  Q_OBJECT
+  W_OBJECT(PluginSettingsPresenter)
 public:
   PluginSettingsPresenter(
       score::SettingsDelegateModel& model,

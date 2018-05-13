@@ -3,6 +3,8 @@
 #include "ProcessComponent.hpp"
 
 #include <Engine/Executor/ExecutorContext.hpp>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Engine::Execution::ProcessComponent)
 namespace Engine
 {
 namespace Execution

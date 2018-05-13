@@ -9,6 +9,8 @@
 #include <Media/Effect/VST/VSTControl.hpp>
 #include <Media/Effect/VST/VSTNode.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Engine::Execution::VSTEffectComponent)
 namespace Engine::Execution
 {
 VSTEffectComponent::VSTEffectComponent(

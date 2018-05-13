@@ -1,5 +1,6 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
+#include <wobjectdefs.h>
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPluginFactory.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
@@ -16,7 +17,7 @@ class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final
     : public score::SerializableDocumentPlugin
     , public Nano::Observer
 {
-  Q_OBJECT
+  W_OBJECT(DeviceDocumentPlugin)
   SCORE_SERIALIZE_FRIENDS
 
   MODEL_METADATA_IMPL(DeviceDocumentPlugin)

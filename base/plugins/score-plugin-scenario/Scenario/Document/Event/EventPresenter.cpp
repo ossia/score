@@ -29,6 +29,9 @@
 #include <score/tools/Todo.hpp>
 #include <score/widgets/GraphicsItem.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::EventPresenter)
+
 namespace Scenario
 {
 EventPresenter::EventPresenter(
@@ -88,16 +91,16 @@ bool EventPresenter::isSelected() const
   return m_model.selection.get();
 }
 
-void EventPresenter::handleDrop(const QPointF& pos, const QMimeData* mime)
+void EventPresenter::handleDrop(const QPointF& pos, const QMimeData& mime)
 {
   // We don't want to create a new state in BaseScenario
   auto scenar = dynamic_cast<Scenario::ProcessModel*>(m_model.parent());
   // todo Maybe the drop should be handled by the scenario presenter ?? or not
 
   // If the mime data has states in it we can handle it.
-  if (scenar && mime->formats().contains(score::mime::messagelist()))
+  if (scenar && mime.formats().contains(score::mime::messagelist()))
   {
-    Mime<State::MessageList>::Deserializer des{*mime};
+    Mime<State::MessageList>::Deserializer des{mime};
     State::MessageList ml = des.deserialize();
 
     RedoMacroCommandDispatcher<Command::AddStateWithData> dispatcher{

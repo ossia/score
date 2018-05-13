@@ -1,5 +1,6 @@
 #pragma once
 #include <Media/Input/InputMetadata.hpp>
+#include <wobjectdefs.h>
 #include <Process/Process.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
@@ -21,11 +22,9 @@ class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Media::Input::ProcessModel)
-  Q_OBJECT
-  Q_PROPERTY(int startChannel READ startChannel WRITE setStartChannel NOTIFY
-                 startChannelChanged)
-  Q_PROPERTY(int numChannel READ numChannel WRITE setNumChannel NOTIFY
-                 numChannelChanged)
+  W_OBJECT(ProcessModel)
+  
+  
 
 public:
   explicit ProcessModel(
@@ -53,18 +52,22 @@ public:
   int startChannel() const;
   int numChannel() const;
 
-public Q_SLOTS:
-  void setStartChannel(int startChannel);
-  void setNumChannel(int numChannel);
+public:
+  void setStartChannel(int startChannel); W_SLOT(setStartChannel);
+  void setNumChannel(int numChannel); W_SLOT(setNumChannel);
 
-Q_SIGNALS:
-  void inputsChanged();
-  void startChannelChanged(int startChannel);
-  void numChannelChanged(int numChannel);
+public:
+  void inputsChanged() W_SIGNAL(inputsChanged);
+  void startChannelChanged(int startChannel) W_SIGNAL(startChannelChanged, startChannel);
+  void numChannelChanged(int numChannel) W_SIGNAL(numChannelChanged, numChannel);
 
 private:
   int m_startChannel{};
   int m_numChannel{};
+
+W_PROPERTY(int, numChannel READ numChannel WRITE setNumChannel NOTIFY numChannelChanged)
+
+W_PROPERTY(int, startChannel READ startChannel WRITE setStartChannel NOTIFY startChannelChanged)
 };
 }
 }

@@ -1,7 +1,9 @@
 #pragma once
+#include <ossia/detail/config.hpp>
 #include <boost/functional/hash_fwd.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/serialization/VisitorInterface.hpp>
+#include <wobjectdefs.h>
 
 /**
  * @brief The ObjectIdentifier class
@@ -55,5 +57,6 @@ private:
 };
 
 Q_DECLARE_METATYPE(ObjectIdentifier)
+W_REGISTER_ARGTYPE(ObjectIdentifier)
 
-typedef std::vector<ObjectIdentifier> ObjectIdentifierVector;
+using ObjectIdentifierVector = std::vector<ObjectIdentifier>;

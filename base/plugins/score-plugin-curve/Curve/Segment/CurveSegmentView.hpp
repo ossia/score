@@ -1,5 +1,6 @@
 #pragma once
 #include <score/model/Identifier.hpp>
+#include <wobjectdefs.h>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score_plugin_curve_export.h>
 #include <QGraphicsItem>
@@ -20,7 +21,7 @@ class SCORE_PLUGIN_CURVE_EXPORT SegmentView final
     : public QObject
     , public QGraphicsItem
 {
-  Q_OBJECT
+  W_OBJECT(SegmentView)
   Q_INTERFACES(QGraphicsItem)
 public:
   SegmentView(
@@ -63,8 +64,8 @@ public:
   void disable();
 
   void setTween(bool b);
-Q_SIGNALS:
-  void contextMenuRequested(const QPoint&, const QPointF&);
+public:
+  void contextMenuRequested(const QPoint& arg_1, const QPointF& arg_2) W_SIGNAL(contextMenuRequested, arg_1, arg_2);
 
 protected:
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;

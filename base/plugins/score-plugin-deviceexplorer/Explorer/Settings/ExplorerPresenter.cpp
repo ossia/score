@@ -10,7 +10,11 @@
 #include <score/command/Command.hpp>
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/SettingsCommand.hpp>
-
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Explorer::Settings::Model)
+W_OBJECT_IMPL(Explorer::Settings::View)
+W_OBJECT_IMPL(Explorer::ProjectSettings::Model)
+W_OBJECT_IMPL(Explorer::ProjectSettings::View)
 namespace Explorer::Settings
 {
 Presenter::Presenter(Model& m, View& v, QObject* parent)

@@ -1,5 +1,6 @@
 #pragma once
 #include <Automation/Commands/ChangeAddress.hpp>
+#include <wobjectdefs.h>
 #include <Automation/Metronome/MetronomeModel.hpp>
 #include <Automation/Metronome/MetronomeView.hpp>
 #include <Curve/Process/CurveProcessPresenter.hpp>
@@ -12,7 +13,7 @@ namespace Metronome
 class LayerPresenter final
     : public Curve::CurveProcessPresenter<ProcessModel, LayerView>
 {
-  Q_OBJECT
+  W_OBJECT(LayerPresenter)
 public:
   LayerPresenter(
       const Curve::Style& style,

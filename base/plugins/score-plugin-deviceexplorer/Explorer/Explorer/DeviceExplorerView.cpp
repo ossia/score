@@ -30,7 +30,9 @@ class QWidget;
 #include <iostream> //DEBUG
 #include <qnamespace.h>
 #include <qtypetraits.h>
-
+W_REGISTER_ARGTYPE(QItemSelection)
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Explorer::DeviceExplorerView)
 namespace
 {
 const QString GeometrySetting("DeviceExplorerView/Geometry");

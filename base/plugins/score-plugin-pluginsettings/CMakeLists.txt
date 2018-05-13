@@ -28,7 +28,7 @@ set(SOURCE_FILES
 
 add_library(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES})
 
-score_moc_headers(${PROJECT_NAME} "${HEADER_FILES}")
+score_moc_headers(${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_pluginsettings.hpp")
 target_link_libraries(${PROJECT_NAME} PUBLIC
                         Qt5::Core Qt5::Widgets
                         score_lib_base)

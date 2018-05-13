@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <wobjectdefs.h>
 #include <QDialog>
 #include <QList>
 #include <QString>
@@ -18,7 +19,7 @@ namespace Explorer
 {
 class DeviceEditDialog final : public QDialog
 {
-  Q_OBJECT
+  W_OBJECT(DeviceEditDialog)
 
 public:
   explicit DeviceEditDialog(
@@ -34,9 +35,9 @@ public:
   // the user if he has to edit the device again.
   void setEditingInvalidState(bool);
 
-protected Q_SLOTS:
+protected:
 
-  void updateProtocolWidget();
+  void updateProtocolWidget(); W_SLOT(updateProtocolWidget);
 
 protected:
   void buildGUI();

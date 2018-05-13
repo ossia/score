@@ -1,6 +1,7 @@
 #pragma once
 #include <QMetaType>
 #include <QString>
+#include <wobjectdefs.h>
 
 namespace Engine
 {
@@ -15,3 +16,4 @@ struct OSCSpecificSettings
 }
 }
 Q_DECLARE_METATYPE(Engine::Network::OSCSpecificSettings)
+W_REGISTER_ARGTYPE(Engine::Network::OSCSpecificSettings)

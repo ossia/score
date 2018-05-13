@@ -1,5 +1,6 @@
 #pragma once
 #include <Dataflow/UI/PortItem.hpp>
+#include <wobjectdefs.h>
 #include <Engine/Node/Widgets.hpp>
 #include <Media/Effect/VST/VSTEffectModel.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
@@ -65,7 +66,7 @@ class VSTGraphicsSlider final
     : public QObject
     , public QGraphicsItem
 {
-  Q_OBJECT
+  W_OBJECT(VSTGraphicsSlider)
   Q_INTERFACES(QGraphicsItem)
 
   double m_value{};
@@ -84,10 +85,10 @@ public:
   double value() const;
 
   bool moving = false;
-Q_SIGNALS:
-  void valueChanged(double);
-  void sliderMoved();
-  void sliderReleased();
+public:
+  void valueChanged(double arg_1) W_SIGNAL(valueChanged, arg_1);
+  void sliderMoved() W_SIGNAL(sliderMoved);
+  void sliderReleased() W_SIGNAL(sliderReleased);
 
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -116,7 +117,7 @@ struct VSTFloatSlider : ossia::safe_nodes::control_in
 
 class VSTWindow final : public QDialog
 {
-  Q_OBJECT
+  W_OBJECT(VSTWindow)
 public:
   static ERect getRect(AEffect& e);
   static bool hasUI(AEffect& e);
@@ -141,8 +142,8 @@ public:
 
   ~VSTWindow();
   void resize(int w, int h);
-Q_SIGNALS:
-  void uiClosing();
+public:
+  void uiClosing() W_SIGNAL(uiClosing);
 
 private:
   static void setup_rect(QWidget* container, int width, int height);

@@ -1,5 +1,6 @@
 #pragma once
 #include <Device/Address/AddressSettings.hpp>
+#include <wobjectdefs.h>
 #include <QWidget>
 #include <score_plugin_deviceexplorer_export.h>
 
@@ -10,7 +11,7 @@ class DeviceExplorerModel;
 class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressAccessorEditWidget final
     : public QWidget
 {
-  Q_OBJECT
+  W_OBJECT(AddressAccessorEditWidget)
 public:
   AddressAccessorEditWidget(DeviceExplorerModel& model, QWidget* parent);
 
@@ -23,8 +24,8 @@ public:
 
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent*) override;
-Q_SIGNALS:
-  void addressChanged(const Device::FullAddressAccessorSettings&);
+public:
+  void addressChanged(const Device::FullAddressAccessorSettings& arg_1) W_SIGNAL(addressChanged, arg_1);
 
 private:
   void customContextMenuEvent(const QPoint& p);

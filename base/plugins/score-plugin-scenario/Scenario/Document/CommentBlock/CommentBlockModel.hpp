@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Process/TimeValue.hpp>
+#include <wobjectdefs.h>
 #include <QObject>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
@@ -17,7 +18,7 @@ namespace Scenario
 {
 class CommentBlockModel final : public IdentifiedObject<CommentBlockModel>
 {
-  Q_OBJECT
+  W_OBJECT(CommentBlockModel)
 
   SCORE_SERIALIZE_FRIENDS
 
@@ -46,10 +47,10 @@ public:
   const QString content() const;
   void setContent(const QString content);
 
-Q_SIGNALS:
-  void dateChanged(const TimeVal&);
-  void heightPercentageChanged(bool);
-  void contentChanged(QString);
+public:
+  void dateChanged(const TimeVal& arg_1) W_SIGNAL(dateChanged, arg_1);
+  void heightPercentageChanged(bool arg_1) W_SIGNAL(heightPercentageChanged, arg_1);
+  void contentChanged(QString arg_1) W_SIGNAL(contentChanged, arg_1);
 
 private:
   TimeVal m_date{std::chrono::seconds{0}};
@@ -68,3 +69,5 @@ private:
 }
 
 DEFAULT_MODEL_METADATA(Scenario::CommentBlockModel, "Comment Block")
+
+W_REGISTER_ARGTYPE(Scenario::CommentBlockModel)

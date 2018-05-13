@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QWidget>
+#include <wobjectdefs.h>
 
 namespace score
 {
@@ -17,7 +18,7 @@ class PanelView;
  */
 class DocumentView final : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(DocumentView)
 public:
   DocumentView(
       DocumentDelegateFactory& viewDelegate,
@@ -39,3 +40,5 @@ private:
   DocumentDelegateView* m_view{};
 };
 }
+
+W_REGISTER_ARGTYPE(score::DocumentView*)

@@ -30,6 +30,8 @@
 #include <stdexcept>
 #include <vector>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Explorer::DeviceDocumentPlugin)
 namespace Explorer
 {
 DeviceDocumentPlugin::DeviceDocumentPlugin(

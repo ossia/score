@@ -54,4 +54,3 @@ private:
   QStack<Selection> m_reselectable;
 };
 }
-W_REGISTER_ARGTYPE(Selection)

@@ -7,6 +7,8 @@
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Process::Cable)
 namespace Process
 {
 

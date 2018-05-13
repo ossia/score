@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/ProcessContext.hpp>
+#include <wobjectdefs.h>
 #include <Process/ZoomHelper.hpp>
 #include <QGraphicsItem>
 #include <score/model/Identifier.hpp>
@@ -26,7 +27,7 @@ private:
 };
 class SCORE_LIB_PROCESS_EXPORT LayerPresenter : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(LayerPresenter)
 
 public:
   LayerPresenter(const ProcessPresenterContext& ctx, QObject* parent)
@@ -64,8 +65,8 @@ public:
 
   virtual GraphicsShapeItem* makeSlotHeaderDelegate();
 
-Q_SIGNALS:
-  void contextMenuRequested(const QPoint&, const QPointF&);
+public:
+  void contextMenuRequested(const QPoint& arg_1, const QPointF& arg_2) W_SIGNAL(contextMenuRequested, arg_1, arg_2);
 
 protected:
   Process::LayerContext m_context;
@@ -74,3 +75,5 @@ private:
   bool m_focus{false};
 };
 }
+
+W_REGISTER_ARGTYPE(Process::LayerPresenter*)

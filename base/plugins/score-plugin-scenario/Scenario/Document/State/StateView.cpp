@@ -15,8 +15,8 @@
 #include <QScreen>
 #include <qnamespace.h>
 
-class QStyleOptionGraphicsItem;
-class QWidget;
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::StateView)
 namespace Scenario
 {
 static const QPainterPath smallNonDilated{[] {
@@ -175,7 +175,7 @@ void StateView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 
 void StateView::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
-  dropReceived(event->mimeData());
+  dropReceived(*event->mimeData());
   setDilatation(m_selected);
 }
 

@@ -1,5 +1,6 @@
 #pragma once
 #include <Curve/Palette/CurveEditionSettings.hpp>
+#include <wobjectdefs.h>
 #include <Curve/Point/CurvePointModel.hpp>
 #include <Curve/Point/CurvePointView.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
@@ -25,7 +26,7 @@ class Model;
 
 class SCORE_PLUGIN_CURVE_EXPORT Presenter final : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(Presenter)
 public:
   Presenter(
       const score::DocumentContext& lst,
@@ -92,8 +93,8 @@ public:
     return m_localRect;
   }
 
-Q_SIGNALS:
-  void contextMenuRequested(const QPoint&, const QPointF&);
+public:
+  void contextMenuRequested(const QPoint& arg_1, const QPointF& arg_2) W_SIGNAL(contextMenuRequested, arg_1, arg_2);
 
 private:
   // Context menu actions

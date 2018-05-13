@@ -1,5 +1,6 @@
 #pragma once
 #include <QByteArray>
+#include <wobjectdefs.h>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
@@ -10,13 +11,13 @@ namespace score
 
 class FileDownloader : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(FileDownloader)
 public:
   explicit FileDownloader(QUrl url);
   QByteArray downloadedData() const;
 
-Q_SIGNALS:
-  void downloaded(QByteArray);
+public:
+  void downloaded(QByteArray arg_1) W_SIGNAL(downloaded, arg_1);
 
 private:
   void fileDownloaded(QNetworkReply*);

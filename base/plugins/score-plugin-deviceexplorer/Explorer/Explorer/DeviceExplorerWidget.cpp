@@ -76,6 +76,8 @@
 #include <score/widgets/SignalUtils.hpp>
 #include <set>
 #include <stdexcept>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Explorer::DeviceExplorerWidget)
 namespace Explorer
 {
 static const Device::DeviceSettings* getDevice(const Device::Node& n)

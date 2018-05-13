@@ -1,5 +1,6 @@
 #pragma once
 #include <Curve/Palette/CurvePoint.hpp>
+#include <wobjectdefs.h>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/selection/Selectable.hpp>
@@ -13,7 +14,7 @@ class SegmentModel;
 class SCORE_PLUGIN_CURVE_EXPORT PointModel final
     : public IdentifiedObject<PointModel>
 {
-  Q_OBJECT
+  W_OBJECT(PointModel)
 public:
   Selectable selection;
   PointModel(const Id<PointModel>& id, QObject* parent);
@@ -27,8 +28,8 @@ public:
   Curve::Point pos() const;
   void setPos(const Curve::Point& pos);
 
-Q_SIGNALS:
-  void posChanged();
+public:
+  void posChanged() W_SIGNAL(posChanged);
 
 private:
   OptionalId<SegmentModel> m_previous, m_following;
@@ -36,3 +37,7 @@ private:
   Curve::Point m_pos;
 };
 }
+
+W_REGISTER_ARGTYPE(const Curve::PointModel&)
+W_REGISTER_ARGTYPE(Curve::PointModel)
+W_REGISTER_ARGTYPE(Id<Curve::PointModel>)

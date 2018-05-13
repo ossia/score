@@ -14,6 +14,8 @@
 #include <score/model/ModelMetadata.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Mapping::ProcessModel)
 namespace Mapping
 {
 ProcessModel::ProcessModel(

@@ -48,7 +48,7 @@ J'ai apporté quelques modifications en plus.
 //! \private
 class QMenuViewPrivate final : public QObject
 {
-    Q_OBJECT
+    W_OBJECT(QMenuViewPrivate)
 public:
     QMenuViewPrivate(QMenuView * menu);
     virtual ~QMenuViewPrivate() = default;
@@ -58,8 +58,8 @@ public:
     QMenuView * _menu{};
     QAbstractItemModel * m_model{};
     QPersistentModelIndex m_root;
-public Q_SLOTS:
-    void aboutToShow();
-    void triggered(QAction *action);
-    void hovered(QAction *action);
+public:
+    void aboutToShow() ;
+    void triggered(QAction *action) ;
+    void hovered(QAction *action) ;
 };

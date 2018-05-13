@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/detail/small_vector.hpp>
+#include <wobjectdefs.h>
 
 #include <Process/ExpandMode.hpp>
 #include <Process/ProcessFlags.hpp>
@@ -46,7 +47,7 @@ class SCORE_LIB_PROCESS_EXPORT ProcessModel
     : public score::Entity<ProcessModel>
     , public score::SerializableInterface<ProcessModel>
 {
-  Q_OBJECT
+  W_OBJECT(ProcessModel)
   SCORE_SERIALIZE_FRIENDS
 public:
   Selectable selection;
@@ -112,22 +113,22 @@ public:
   // FIXME ugh
   QWidget* externalUI{};
 
-Q_SIGNALS:
+public:
   // True if the execution is running.
-  void execution(bool);
-  void durationChanged(const TimeVal&);
-  void useParentDurationChanged(bool);
+  void execution(bool arg_1) W_SIGNAL(execution, arg_1);
+  void durationChanged(const TimeVal& arg_1) W_SIGNAL(durationChanged, arg_1);
+  void useParentDurationChanged(bool arg_1) W_SIGNAL(useParentDurationChanged, arg_1);
 
-  void slotHeightChanged(double);
-  void prettyNameChanged();
+  void slotHeightChanged(double arg_1) W_SIGNAL(slotHeightChanged, arg_1);
+  void prettyNameChanged() W_SIGNAL(prettyNameChanged);
 
-  void inletsChanged();
-  void outletsChanged();
+  void inletsChanged() W_SIGNAL(inletsChanged);
+  void outletsChanged() W_SIGNAL(outletsChanged);
 
-  void controlAdded(const Id<Process::Port>&);
-  void controlRemoved(const Process::Port&);
+  void controlAdded(const Id<Process::Port>& arg_1) W_SIGNAL(controlAdded, arg_1);
+  void controlRemoved(const Process::Port& arg_1) W_SIGNAL(controlRemoved, arg_1);
 
-  void benchmark(double);
+  void benchmark(double arg_1) W_SIGNAL(benchmark, arg_1);
 
 protected:
   // Used to scale the process.
@@ -157,3 +158,10 @@ SCORE_LIB_PROCESS_EXPORT const ProcessModel* parentProcess(const QObject* obj);
 DEFAULT_MODEL_METADATA(Process::ProcessModel, "Process")
 
 Q_DECLARE_METATYPE(Id<Process::ProcessModel>)
+W_REGISTER_ARGTYPE(Id<Process::ProcessModel>)
+W_REGISTER_ARGTYPE(OptionalId<Process::ProcessModel>)
+
+Q_DECLARE_METATYPE(const Process::ProcessModel*)
+W_REGISTER_ARGTYPE(const Process::ProcessModel*)
+W_REGISTER_ARGTYPE(QPointer<const Process::ProcessModel>)
+W_REGISTER_ARGTYPE(QPointer<Process::ProcessModel>)

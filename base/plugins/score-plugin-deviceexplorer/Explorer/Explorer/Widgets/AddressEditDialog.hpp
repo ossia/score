@@ -1,5 +1,6 @@
 #pragma once
 #include <Device/Address/AddressSettings.hpp>
+#include <wobjectdefs.h>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <QDialog>
 #include <score/widgets/WidgetWrapper.hpp>
@@ -16,7 +17,7 @@ class AddressSettingsWidget;
 class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressEditDialog final
     : public Device::AddressDialog
 {
-  Q_OBJECT
+  W_OBJECT(AddressEditDialog)
 
 public:
   // Creation of an address

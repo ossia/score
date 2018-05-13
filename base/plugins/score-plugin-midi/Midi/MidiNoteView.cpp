@@ -7,6 +7,8 @@
 #include <QCursor>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Midi::NoteView)
 namespace Midi
 {
 

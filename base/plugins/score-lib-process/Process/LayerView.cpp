@@ -10,8 +10,8 @@
 #include <QPainter>
 #include <QStyleOption>
 
-class QStyleOptionGraphicsItem;
-class QWidget;
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Process::LayerView)
 namespace Process
 {
 HeaderDelegate::~HeaderDelegate()

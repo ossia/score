@@ -1,5 +1,6 @@
 #pragma once
 #include <QMenuBar>
+#include <wobjectdefs.h>
 #include <core/presenter/DocumentManager.hpp>
 #include <core/settings/Settings.hpp>
 #include <score/actions/ActionManager.hpp>
@@ -29,7 +30,7 @@ class Settings;
  */
 class SCORE_LIB_BASE_EXPORT Presenter final : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(Presenter)
   friend class score::CoreApplicationPlugin;
 
 public:

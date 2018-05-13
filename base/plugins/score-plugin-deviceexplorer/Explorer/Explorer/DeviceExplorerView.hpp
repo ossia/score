@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QAbstractItemModel>
+#include <wobjectdefs.h>
 #include <QList>
 #include <QTreeView>
 class QAction;
@@ -14,11 +15,11 @@ class DeviceExplorerFilterProxyModel;
 class DeviceExplorerModel;
 class DeviceExplorerView final : public QTreeView
 {
-  Q_OBJECT
+  W_OBJECT(DeviceExplorerView)
 
 public:
   explicit DeviceExplorerView(QWidget* parent = nullptr);
-  ~DeviceExplorerView();
+  ~DeviceExplorerView() override;
 
   void setModel(QAbstractItemModel* model) override;
   void setModel(DeviceExplorerFilterProxyModel* model);
@@ -33,17 +34,17 @@ public:
 
   bool hasProxy() const;
 
-Q_SIGNALS:
-  void selectionChanged();
-  void created(QModelIndex parent, int start, int end);
+public:
+  void selectionChanged() W_SIGNAL(selectionChanged, ());
+  void created(QModelIndex parent, int start, int end) W_SIGNAL(created, parent, start, end);
 
-private Q_SLOTS:
+private:
   void selectionChanged(
       const QItemSelection& selected,
-      const QItemSelection& deselected) override;
+      const QItemSelection& deselected) override; W_SLOT(selectionChanged, (const QItemSelection&, const QItemSelection&));
 
-  void headerMenuRequested(const QPoint& pos);
-  void columnVisibilityChanged(bool shown);
+  void headerMenuRequested(const QPoint& pos); W_SLOT(headerMenuRequested);
+  void columnVisibilityChanged(bool shown); W_SLOT(columnVisibilityChanged);
 
 private:
   QModelIndexList selectedDraggableIndexes() const;

@@ -133,7 +133,7 @@ void removeSelection(
   s.setAndCommit({});
   ctx.selectionStack.clear();
   // We have to remove the first / last timesyncs / events from the selection.
-  erase_if(sel, [&](auto&& elt) { return elt->id_val() == startId_val(); });
+  erase_if(sel, [&](auto&& elt) { return elt->id_val() == startId_val; });
 
   if (!sel.empty())
   {

@@ -9,6 +9,7 @@
 #include <Engine/OSSIA2score.hpp>
 #include <Engine/score2OSSIA.hpp>
 #include <score/application/ApplicationContext.hpp>
+
 namespace Engine
 {
 namespace Execution

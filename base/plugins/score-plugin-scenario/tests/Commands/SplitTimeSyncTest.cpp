@@ -15,7 +15,7 @@ using namespace Scenario::Command;
 class SplitTimeSyncTest : public QObject
 {
   Q_OBJECT
-private Q_SLOTS:
+private:
   void SplitTest()
   {
     Scenario::ProcessModel* scenar = new ScenarioModel(

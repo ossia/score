@@ -22,6 +22,9 @@
 #include <servus/servus.h>
 
 class QWidget;
+W_REGISTER_ARGTYPE(QMap<QString, QByteArray>)
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(ZeroconfBrowser)
 
 ZeroconfBrowser::ZeroconfBrowser(const QString& service, QWidget* parent)
     : QObject{parent}, m_dialog{new QDialog{parent}}
@@ -30,8 +33,8 @@ ZeroconfBrowser::ZeroconfBrowser(const QString& service, QWidget* parent)
   auto buttonBox
       = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 
-  connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
-  connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+  connect(buttonBox, &QDialogButtonBox::accepted, this, &ZeroconfBrowser::accept);
+  connect(buttonBox, &QDialogButtonBox::rejected, this, &ZeroconfBrowser::reject);
 
   lay->addWidget(buttonBox);
   m_dialog->setLayout(lay);

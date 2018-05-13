@@ -16,7 +16,7 @@ class MoveIntervalTest : public QObject
 {
   Q_OBJECT
 public:
-private Q_SLOTS:
+private:
 
   void MoveCommandTest()
   {

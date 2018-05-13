@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/editor/scenario/time_value.hpp>
+#include <wobjectdefs.h>
 
 #include <Process/TimeValue.hpp>
 #include <QCache>
@@ -29,7 +30,7 @@ class TimeRuler final
     : public QObject
     , public QGraphicsItem
 {
-  Q_OBJECT
+  W_OBJECT(TimeRuler)
   Q_INTERFACES(QGraphicsItem)
 
 public:
@@ -61,9 +62,9 @@ public:
   void setStartPoint(TimeVal dur);
   void setPixelPerMillis(double factor);
 
-Q_SIGNALS:
-  void drag(QPointF, QPointF);
-  void rescale();
+public:
+  void drag(QPointF arg_1, QPointF  arg_2) W_SIGNAL(drag, arg_1, arg_2);
+  void rescale() W_SIGNAL(rescale);
 
 private:
   void computeGraduationSpacing();

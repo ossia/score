@@ -1,5 +1,6 @@
 #pragma once
 #include <Curve/Settings/CurveSettingsModel.hpp>
+#include <wobjectdefs.h>
 #include <Recording/Record/RecordData.hpp>
 #include <Recording/Record/RecordProviderFactory.hpp>
 #include <Recording/Record/RecordTools.hpp>
@@ -21,7 +22,7 @@ class AutomationRecorder
     , public RecordProvider
     , public Nano::Observer
 {
-  Q_OBJECT
+  W_OBJECT(AutomationRecorder)
 public:
   RecordContext& context;
   AutomationRecorder(RecordContext& ctx);
@@ -37,8 +38,8 @@ public:
   score::hash_map<State::Address, std::array<RecordData, 4>> vec4_records;
   score::hash_map<State::Address, std::vector<RecordData>> list_records;
 
-Q_SIGNALS:
-  void firstMessageReceived();
+public:
+  void firstMessageReceived() W_SIGNAL(firstMessageReceived);
 
 private:
   void messageCallback(const State::Address& addr, const ossia::value& val);

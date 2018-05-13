@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/dataflow/execution_state.hpp>
+#include <wobjectdefs.h>
 #include <ossia/detail/hash_map.hpp>
 
 #include <QtQml/QJSEngine>
@@ -9,7 +10,7 @@ namespace JS
 {
 class ExecStateWrapper : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(ExecStateWrapper)
 public:
   ExecStateWrapper(QJSEngine& engine, const ossia::execution_state& state, QObject* parent)
       : QObject{parent}, m_engine{engine}, devices{state}
@@ -17,9 +18,9 @@ public:
   }
   ~ExecStateWrapper() override;
 
-public Q_SLOTS:
-  QVariant read(const QString& address);
-  void write(const QString& address, const QVariant& value);
+public:
+  QVariant read(const QString& address); W_SLOT(read);
+  void write(const QString& address, const QVariant& value); W_SLOT(write);
 
 private:
   QJSEngine& m_engine;

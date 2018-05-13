@@ -99,4 +99,4 @@ SCORE_PARAMETER_TYPE(ModelMetadata, Label)
 SCORE_PARAMETER_TYPE(ModelMetadata, ExtendedMetadata)
 }
 Q_DECLARE_METATYPE(score::ModelMetadata)
-W_REGISTER_ARGTYPE(score::ColorRef)
+W_REGISTER_ARGTYPE(score::ModelMetadata)

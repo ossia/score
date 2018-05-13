@@ -16,7 +16,8 @@
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/std/Optional.hpp>
 
-class QObject;
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Curve::PointArraySegment)
 namespace Curve
 {
 PointArraySegment::PointArraySegment(const SegmentData& dat, QObject* parent)
@@ -45,6 +46,7 @@ PointArraySegment::PointArraySegment(
 {
 }
 
+PointArraySegment::~PointArraySegment() = default;
 void PointArraySegment::on_startChanged()
 {
   dataChanged();

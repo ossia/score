@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QListWidget>
+#include <wobjectdefs.h>
 
 namespace score
 {
@@ -8,13 +9,13 @@ class CommandStack;
 
 class UndoListWidget final : public QListWidget
 {
-  Q_OBJECT
+  W_OBJECT(UndoListWidget)
 public:
   explicit UndoListWidget(score::CommandStack& s);
   ~UndoListWidget() override;
 
-public Q_SLOTS:
-  void on_stackChanged();
+public:
+  void on_stackChanged(); W_SLOT(on_stackChanged);
 
 private:
   score::CommandStack& m_stack;

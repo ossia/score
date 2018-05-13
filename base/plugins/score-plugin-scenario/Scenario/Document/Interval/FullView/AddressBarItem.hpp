@@ -1,5 +1,6 @@
 #pragma once
 #include <QGraphicsItem>
+#include <wobjectdefs.h>
 #include <QList>
 #include <QRect>
 #include <score/model/path/ObjectPath.hpp>
@@ -16,7 +17,7 @@ class AddressBarItem final
     : public QObject
     , public QGraphicsItem
 {
-  Q_OBJECT
+  W_OBJECT(AddressBarItem)
   Q_INTERFACES(QGraphicsItem)
 public:
   AddressBarItem(const score::DocumentContext& ctx, QGraphicsItem* parent);
@@ -30,9 +31,9 @@ public:
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
-Q_SIGNALS:
-  void needRedraw();
-  void intervalSelected(IntervalModel& cst);
+public:
+  void needRedraw() W_SIGNAL(needRedraw);
+  void intervalSelected(IntervalModel& cst) W_SIGNAL(intervalSelected, cst);
 
 private:
   void redraw();

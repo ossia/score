@@ -1,5 +1,6 @@
 #pragma once
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <wobjectdefs.h>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 
 class QLineEdit;
@@ -12,7 +13,7 @@ namespace Network
 {
 class OSCProtocolSettingsWidget final : public Device::ProtocolSettingsWidget
 {
-  Q_OBJECT
+  W_OBJECT(OSCProtocolSettingsWidget)
 
 public:
   OSCProtocolSettingsWidget(QWidget* parent = nullptr);
@@ -22,8 +23,8 @@ public:
 
   void setSettings(const Device::DeviceSettings& settings) override;
 
-protected Q_SLOTS:
-  void openFileDialog();
+protected:
+  void openFileDialog(); W_SLOT(openFileDialog);
 
 protected:
   void setDefaults();

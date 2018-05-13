@@ -9,7 +9,6 @@
 #include <score/model/Identifier.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 #include <vector>
-
 namespace Curve
 {
 LinearSegment::LinearSegment(

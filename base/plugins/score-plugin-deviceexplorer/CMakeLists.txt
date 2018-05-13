@@ -140,7 +140,7 @@ add_library(${PROJECT_NAME}
       ${SRCS} ${HDRS}
       ${EXPLORER_RESOURCES_RCC})
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
-score_moc_headers(${PROJECT_NAME} "${HDRS}")
+score_moc_headers(${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_deviceexplorer.hpp")
 target_link_libraries(score_plugin_deviceexplorer
         PUBLIC
                 score_lib_device
@@ -151,7 +151,6 @@ if(OSSIA_DNSSD)
   target_sources(${PROJECT_NAME} PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/ZeroConf/ZeroconfBrowser.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/ZeroConf/ZeroconfBrowser.cpp")
-  score_moc_headers(${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/ZeroConf/ZeroconfBrowser.hpp")
 
   target_link_libraries(${PROJECT_NAME} PRIVATE Servus_iface ServusQt)
   target_include_directories(${PROJECT_NAME} PRIVATE ${OSSIA_3RDPARTY_FOLDER}/Servus)

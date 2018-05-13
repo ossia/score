@@ -1,5 +1,6 @@
 #pragma once
 #include "ExecutionStatus.hpp"
+#include <wobjectdefs.h>
 
 #include <QGraphicsItem>
 #include <QPoint>
@@ -9,8 +10,10 @@
 #include <Scenario/Document/Event/ConditionView.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
+#include <score/widgets/MimeData.hpp>
 #include <score/model/ColorReference.hpp>
 #include <score_plugin_scenario_export.h>
+#include <score/widgets/MimeData.hpp>
 class QGraphicsSceneDragDropEvent;
 class QGraphicsSceneHoverEvent;
 class QGraphicsSceneMouseEvent;
@@ -27,12 +30,12 @@ class SCORE_PLUGIN_SCENARIO_EXPORT EventView final
     : public QObject
     , public QGraphicsItem
 {
-  Q_OBJECT
+  W_OBJECT(EventView)
   Q_INTERFACES(QGraphicsItem)
 
 public:
   EventView(EventPresenter& presenter, QGraphicsItem* parent);
-  virtual ~EventView() = default;
+  ~EventView() override;
 
   static constexpr int static_type()
   {
@@ -74,11 +77,11 @@ public:
   void setWidthScale(double);
   void changeToolTip(const QString&);
 
-Q_SIGNALS:
-  void eventHoverEnter();
-  void eventHoverLeave();
+public:
+  void eventHoverEnter() W_SIGNAL(eventHoverEnter);
+  void eventHoverLeave() W_SIGNAL(eventHoverLeave);
 
-  void dropReceived(const QPointF& pos, const QMimeData*);
+  void dropReceived(const QPointF& pos, const QMimeData& arg_2) W_SIGNAL(dropReceived, pos, arg_2);
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;

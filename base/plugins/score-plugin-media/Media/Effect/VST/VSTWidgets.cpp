@@ -16,6 +16,9 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Media::VST::VSTWindow)
+W_OBJECT_IMPL(Media::VST::VSTGraphicsSlider)
 namespace Media::VST
 {
 

@@ -1,5 +1,6 @@
 #pragma once
 #include <Scenario/Instantiations.hpp>
+#include <wobjectdefs.h>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
 #include <QByteArray>
@@ -33,7 +34,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
     : public Process::ProcessModel
     , public ScenarioInterface
 {
-  Q_OBJECT
+  W_OBJECT(ProcessModel)
 
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Scenario::ProcessModel)
@@ -143,24 +144,24 @@ public:
   score::EntityMap<StateModel> states;
   score::EntityMap<CommentBlockModel> comments;
 
-Q_SIGNALS:
-  void stateMoved(const Scenario::StateModel&);
-  void eventMoved(const Scenario::EventModel&);
-  void intervalMoved(const Scenario::IntervalModel&);
-  void commentMoved(const Scenario::CommentBlockModel&);
+public:
+  void stateMoved(const Scenario::StateModel& arg_1) W_SIGNAL(stateMoved, arg_1);
+  void eventMoved(const Scenario::EventModel& arg_1) W_SIGNAL(eventMoved, arg_1);
+  void intervalMoved(const Scenario::IntervalModel& arg_1) W_SIGNAL(intervalMoved, arg_1);
+  void commentMoved(const Scenario::CommentBlockModel& arg_1) W_SIGNAL(commentMoved, arg_1);
 
-  void locked();
-  void unlocked();
+  void locked() W_SIGNAL(locked);
+  void unlocked() W_SIGNAL(unlocked);
 
-public Q_SLOTS:
+public:
   void lock()
   {
     locked();
-  }
+  }; W_SLOT(lock)
   void unlock()
   {
     unlocked();
-  }
+  }; W_SLOT(unlock)
 
 private:
   //// ProcessModel specifics ////
@@ -303,3 +304,7 @@ struct ElementTraits<Scenario::ProcessModel, StateModel>
 }
 DESCRIPTION_METADATA(
     SCORE_PLUGIN_SCENARIO_EXPORT, Scenario::ProcessModel, "Scenario")
+
+W_REGISTER_ARGTYPE(const Scenario::ProcessModel&)
+W_REGISTER_ARGTYPE(Scenario::ProcessModel&)
+W_REGISTER_ARGTYPE(Scenario::ProcessModel)

@@ -1,8 +1,10 @@
 #pragma once
 #include <Process/LayerView.hpp>
+#include <wobjectdefs.h>
 #include <QPoint>
 #include <QRect>
 #include <score/tools/std/Optional.hpp>
+#include <score/widgets/MimeData.hpp>
 
 class QGraphicsItem;
 class QGraphicsSceneContextMenuEvent;
@@ -18,7 +20,7 @@ class TemporalScenarioPresenter;
 
 class TemporalScenarioView final : public Process::LayerView
 {
-  Q_OBJECT
+  W_OBJECT(TemporalScenarioView)
 
 public:
   TemporalScenarioView(QGraphicsItem* parent);
@@ -34,36 +36,36 @@ public:
 
   void drawDragLine(QPointF, QPointF);
   void stopDrawDragLine();
-Q_SIGNALS:
-  void clearPressed();
-  void escPressed();
+public:
+  void clearPressed() W_SIGNAL(clearPressed);
+  void escPressed() W_SIGNAL(escPressed);
 
-  void keyPressed(int);
-  void keyReleased(int);
+  void keyPressed(int arg_1) W_SIGNAL(keyPressed, arg_1);
+  void keyReleased(int arg_1) W_SIGNAL(keyReleased, arg_1);
 
   // Screen pos, scene pos
-  void dragEnter(const QPointF& pos, const QMimeData&);
-  void dragMove(const QPointF& pos, const QMimeData&);
-  void dragLeave(const QPointF& pos, const QMimeData&);
+  void dragEnter(const QPointF& pos, const QMimeData& arg_2) W_SIGNAL(dragEnter, pos, arg_2);
+  void dragMove(const QPointF& pos, const QMimeData& arg_2) W_SIGNAL(dragMove, pos, arg_2);
+  void dragLeave(const QPointF& pos, const QMimeData& arg_2) W_SIGNAL(dragLeave, pos, arg_2);
 
-public Q_SLOTS:
+public:
   void lock()
   {
     m_lock = true;
     update();
-  }
+  }; W_SLOT(lock)
   void unlock()
   {
     m_lock = false;
     update();
-  }
+  }; W_SLOT(unlock)
 
   void pressedAsked(const QPointF& p)
   {
     m_previousPoint = p;
     pressed(p);
-  }
-  void movedAsked(const QPointF& p);
+  }; W_SLOT(pressedAsked)
+  void movedAsked(const QPointF& p); W_SLOT(movedAsked);
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;

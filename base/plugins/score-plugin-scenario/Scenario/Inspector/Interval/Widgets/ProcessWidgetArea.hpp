@@ -1,5 +1,6 @@
 #pragma once
 #include <Inspector/InspectorSectionWidget.hpp>
+#include <wobjectdefs.h>
 #include <Process/Process.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -12,7 +13,7 @@ namespace Scenario
 {
 class ProcessWidgetArea final : public Inspector::InspectorSectionWidget
 {
-  Q_OBJECT
+  W_OBJECT(ProcessWidgetArea)
 public:
   template <typename... Args>
   ProcessWidgetArea(
@@ -44,28 +45,28 @@ private:
   void dragMoveEvent(QDragMoveEvent* event) override;
   void dropEvent(QDropEvent* event) override;
 
-Q_SIGNALS:
+public:
   void sig_handleSwap(
-      QPointer<const Process::ProcessModel> cst, double center, double y);
+      QPointer<const Process::ProcessModel> cst, double center, double y) W_SIGNAL(sig_handleSwap, cst, center, y);
   void sig_performSwap(
       QPointer<const Scenario::IntervalModel> cst,
       const Id<Process::ProcessModel>& id1,
-      const Id<Process::ProcessModel>& id2);
+      const Id<Process::ProcessModel>& id2) W_SIGNAL(sig_performSwap, cst, id1, id2);
   void sig_putAtEnd(
       QPointer<const Scenario::IntervalModel> cst,
-      const Id<Process::ProcessModel>& id1);
+      const Id<Process::ProcessModel>& id1) W_SIGNAL(sig_putAtEnd, cst, id1);
 
-private Q_SLOTS:
+private:
   void performSwap(
       QPointer<const Scenario::IntervalModel> cst,
       const Id<Process::ProcessModel>& id1,
-      const Id<Process::ProcessModel>& id2);
+      const Id<Process::ProcessModel>& id2); W_SLOT(performSwap);
   void putAtEnd(
       QPointer<const Scenario::IntervalModel> cst,
-      const Id<Process::ProcessModel>& id1);
+      const Id<Process::ProcessModel>& id1); W_SLOT(putAtEnd);
 
   void handleSwap(
-      QPointer<const Process::ProcessModel> cst, double center, double y);
+      QPointer<const Process::ProcessModel> cst, double center, double y); W_SLOT(handleSwap);
 
 private:
   const Process::ProcessModel& m_proc;

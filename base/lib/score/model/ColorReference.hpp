@@ -69,3 +69,4 @@ private:
 }
 
 Q_DECLARE_METATYPE(score::ColorRef)
+W_REGISTER_ARGTYPE(score::ColorRef)

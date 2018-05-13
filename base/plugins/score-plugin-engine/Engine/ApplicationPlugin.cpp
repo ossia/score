@@ -51,6 +51,9 @@
 #include <score/widgets/SetIcons.hpp>
 #include <spdlog/spdlog.h>
 #include <vector>
+
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Engine::OssiaLogger)
 SCORE_DECLARE_ACTION(
     RestartAudio, "Restart Audio", Common, QKeySequence::UnknownKey)
 

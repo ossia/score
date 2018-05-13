@@ -1,12 +1,13 @@
 #pragma once
 #include <score/plugins/ProjectSettings/ProjectSettingsView.hpp>
+#include <wobjectdefs.h>
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 class QCheckBox;
 namespace Audio::Settings
 {
 class View : public score::GlobalSettingsView
 {
-  Q_OBJECT
+  W_OBJECT(View)
 public:
   View();
   SETTINGS_UI_COMBOBOX_HPP(Driver)

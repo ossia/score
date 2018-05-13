@@ -9,6 +9,9 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 
+
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Curve::SegmentModel)
 namespace Curve
 {
 SegmentModel::SegmentModel(const Id<SegmentModel>& id, QObject* parent)

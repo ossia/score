@@ -5,6 +5,8 @@
 #include <Process/ExpandMode.hpp>
 #include <Scenario/Palette/Tool.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::EditionSettings)
 ExpandMode Scenario::EditionSettings::expandMode() const
 {
   return m_expandMode;

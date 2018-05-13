@@ -1,5 +1,6 @@
 #pragma once
 #include <JS/JSProcessMetadata.hpp>
+#include <wobjectdefs.h>
 #include <Process/Process.hpp>
 #include <QFileSystemWatcher>
 #include <QQmlComponent>
@@ -11,7 +12,7 @@ class ProcessModel final : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(JS::ProcessModel)
-  Q_OBJECT
+  W_OBJECT(ProcessModel)
 public:
   explicit ProcessModel(
       const TimeVal& duration,
@@ -39,12 +40,12 @@ public:
   ~ProcessModel() override;
 
   QObject* m_dummyObject{};
-Q_SIGNALS:
-  void scriptError(int, const QString&);
-  void scriptOk();
-  void scriptChanged(const QString&);
+public:
+  void scriptError(int arg_1, const QString& arg_2) W_SIGNAL(scriptError, arg_1, arg_2);
+  void scriptOk() W_SIGNAL(scriptOk);
+  void scriptChanged(const QString& arg_1) W_SIGNAL(scriptChanged, arg_1);
 
-  void qmlDataChanged(const QString&);
+  void qmlDataChanged(const QString& arg_1) W_SIGNAL(qmlDataChanged, arg_1);
 
 private:
   QString m_script, m_qmlData;

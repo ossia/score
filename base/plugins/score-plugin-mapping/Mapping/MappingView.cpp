@@ -12,6 +12,8 @@
 #include <QRect>
 #include <qnamespace.h>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Mapping::LayerView)
 namespace Mapping
 {
 LayerView::LayerView(QGraphicsItem* parent) : Process::LayerView{parent}

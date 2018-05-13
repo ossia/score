@@ -1,5 +1,6 @@
 #pragma once
 #include <QApplication>
+#include <wobjectdefs.h>
 #include <core/application/ApplicationInterface.hpp>
 #include <core/application/ApplicationSettings.hpp>
 #include <core/plugin/PluginManager.hpp>
@@ -30,7 +31,7 @@ class Application final
     : public QObject
     , public score::GUIApplicationInterface
 {
-  Q_OBJECT
+  W_OBJECT(Application)
   friend class ChildEventFilter;
 
 public:

@@ -2,6 +2,7 @@
 #include <QMetaType>
 #include <QSerialPortInfo>
 #include <QString>
+#include <wobjectdefs.h>
 
 namespace Engine
 {
@@ -15,3 +16,4 @@ struct SerialSpecificSettings
 }
 }
 Q_DECLARE_METATYPE(Engine::Network::SerialSpecificSettings)
+W_REGISTER_ARGTYPE(Engine::Network::SerialSpecificSettings)

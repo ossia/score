@@ -1,5 +1,6 @@
 #pragma once
 #include <QString>
+#include <wobjectdefs.h>
 #include <QVector>
 #include <QWidget>
 #include <Scenario/Inspector/ExpressionValidator.hpp>
@@ -23,7 +24,7 @@ class SimpleExpressionEditorWidget;
 // TODO move in State lib
 class ExpressionEditorWidget : public QWidget
 {
-  Q_OBJECT
+  W_OBJECT(ExpressionEditorWidget)
 public:
   explicit ExpressionEditorWidget(
       const score::DocumentContext& doc, QWidget* parent = nullptr);
@@ -36,9 +37,9 @@ public:
   void addNewTermAndFinish();
   void on_editFinished();
 
-Q_SIGNALS:
-  void editingFinished();
-  void resetExpression();
+public:
+  void editingFinished() W_SIGNAL(editingFinished);
+  void resetExpression() W_SIGNAL(resetExpression);
 
 private:
   //	void on_operatorChanged(int i);

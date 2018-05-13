@@ -5,7 +5,6 @@
 #include "SelectionStack.hpp"
 
 #include <score/selection/Selection.hpp>
-
 namespace score
 {
 void SelectionDispatcher::setAndCommit(const Selection& s)

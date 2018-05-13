@@ -1,5 +1,6 @@
 #pragma once
 #include <QString>
+#include <wobjectdefs.h>
 #include <QWidget>
 
 class QCheckBox;
@@ -10,15 +11,15 @@ namespace Scenario
 // TODO refactor with SelectableButton
 class EventShortCut final : public QWidget
 {
-  Q_OBJECT
+  W_OBJECT(EventShortCut)
 public:
   EventShortCut(QString eventId, QWidget* parent = nullptr);
 
   bool isChecked();
   QString eventName();
 
-Q_SIGNALS:
-  void eventSelected();
+public:
+  void eventSelected() W_SIGNAL(eventSelected);
 
 private:
   QCheckBox* m_box;

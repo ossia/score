@@ -13,8 +13,6 @@
 #include <iostream>
 #include <score/serialization/VisitorCommon.hpp>
 #include <vector>
-
-class QObject;
 #include <score/model/Identifier.hpp>
 namespace Curve
 {

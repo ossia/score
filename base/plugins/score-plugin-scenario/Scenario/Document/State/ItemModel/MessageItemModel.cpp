@@ -25,6 +25,8 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::MessageItemModel)
 namespace Scenario
 {
 class StateModel;

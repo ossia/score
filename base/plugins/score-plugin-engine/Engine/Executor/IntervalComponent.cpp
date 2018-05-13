@@ -28,6 +28,9 @@
 #include <score/model/Identifier.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <utility>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Engine::Execution::IntervalComponentBase)
+W_OBJECT_IMPL(Engine::Execution::IntervalComponent)
 namespace Engine
 {
 namespace Execution

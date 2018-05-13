@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Automation/AutomationProcessMetadata.hpp>
+#include <wobjectdefs.h>
 #include <Automation/State/AutomationState.hpp>
 #include <Curve/Process/CurveProcessModel.hpp>
 #include <Process/TimeValue.hpp>
@@ -30,21 +31,17 @@ class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Automation::ProcessModel)
 
-  Q_OBJECT
-  Q_PROPERTY(::State::AddressAccessor address READ address WRITE setAddress
-                 NOTIFY addressChanged)
+  W_OBJECT(ProcessModel)
+
   // Min and max to scale the curve with at execution
-  Q_PROPERTY(double min READ min WRITE setMin NOTIFY minChanged)
-  Q_PROPERTY(double max READ max WRITE setMax NOTIFY maxChanged)
-  Q_PROPERTY(bool tween READ tween WRITE setTween NOTIFY tweenChanged)
-  Q_PROPERTY(State::Unit unit READ unit WRITE setUnit NOTIFY unitChanged)
+
 
 public:
   ProcessModel(
       const TimeVal& duration,
       const Id<Process::ProcessModel>& id,
       QObject* parent);
-  ~ProcessModel();
+  ~ProcessModel() override;
 
   ProcessModel(DataStream::Deserializer& vis, QObject* parent);
   ProcessModel(JSONObject::Deserializer& vis, QObject* parent);
@@ -77,12 +74,12 @@ public:
   QString prettyName() const override;
 
   std::unique_ptr<Process::Outlet> outlet;
-Q_SIGNALS:
-  void addressChanged(const ::State::AddressAccessor&);
-  void minChanged(double);
-  void maxChanged(double);
-  void tweenChanged(bool tween);
-  void unitChanged(const State::Unit&);
+public:
+  void addressChanged(const ::State::AddressAccessor& arg_1) W_SIGNAL(addressChanged, arg_1);
+  void minChanged(double arg_1) W_SIGNAL(minChanged, arg_1);
+  void maxChanged(double arg_1) W_SIGNAL(maxChanged, arg_1);
+  void tweenChanged(bool tween) W_SIGNAL(tweenChanged, tween);
+  void unitChanged(const State::Unit& arg_1) W_SIGNAL(unitChanged, arg_1);
 
 private:
   void init();
@@ -107,5 +104,15 @@ private:
   ProcessState* m_startState{};
   ProcessState* m_endState{};
   bool m_tween = false;
+
+W_PROPERTY(State::Unit, unit READ unit WRITE setUnit NOTIFY unitChanged)
+
+W_PROPERTY(bool, tween READ tween WRITE setTween NOTIFY tweenChanged)
+
+W_PROPERTY(double, max READ max WRITE setMax NOTIFY maxChanged)
+
+W_PROPERTY(double, min READ min WRITE setMin NOTIFY minChanged)
+
+W_PROPERTY(::State::AddressAccessor, address READ address WRITE setAddress NOTIFY addressChanged)
 };
 }

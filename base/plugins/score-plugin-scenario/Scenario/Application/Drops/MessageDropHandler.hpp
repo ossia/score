@@ -15,18 +15,18 @@ class MessageDropHandler final : public DropHandler
   bool dragEnter(
       const Scenario::TemporalScenarioPresenter&,
       QPointF pos,
-      const QMimeData* mime) override;
+      const QMimeData& mime) override;
   bool dragMove(
       const Scenario::TemporalScenarioPresenter&,
       QPointF pos,
-      const QMimeData* mime) override;
+      const QMimeData& mime) override;
   bool dragLeave(
       const Scenario::TemporalScenarioPresenter&,
       QPointF pos,
-      const QMimeData* mime) override;
+      const QMimeData& mime) override;
   bool drop(
       const TemporalScenarioPresenter&,
       QPointF drop,
-      const QMimeData* mime) override;
+      const QMimeData& mime) override;
 };
 }

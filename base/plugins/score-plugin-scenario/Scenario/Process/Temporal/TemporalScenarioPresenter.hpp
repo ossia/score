@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Focus/FocusDispatcher.hpp>
+#include <wobjectdefs.h>
 #include <Process/LayerPresenter.hpp>
 #include <Process/ProcessContext.hpp>
 #include <Process/ZoomHelper.hpp>
@@ -33,7 +34,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final
     : public Process::LayerPresenter
     , public Nano::Observer
 {
-  Q_OBJECT
+  W_OBJECT(TemporalScenarioPresenter)
 
   friend class Scenario::ToolPalette;
   friend class ScenarioViewInterface;
@@ -128,11 +129,11 @@ public:
 
   void drawDragLine(const Scenario::StateModel&, Scenario::Point) const;
   void stopDrawDragLine() const;
-Q_SIGNALS:
-  void linesExtremityScaled(int, int);
+public:
+  void linesExtremityScaled(int arg_1, int arg_2) W_SIGNAL(linesExtremityScaled, arg_1, arg_2);
 
-  void keyPressed(int);
-  void keyReleased(int);
+  void keyPressed(int arg_1) W_SIGNAL(keyPressed, arg_1);
+  void keyReleased(int arg_1) W_SIGNAL(keyReleased, arg_1);
 
 public:
   // Model -> view

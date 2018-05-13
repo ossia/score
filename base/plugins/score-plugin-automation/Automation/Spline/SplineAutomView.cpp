@@ -11,7 +11,8 @@
 // the Qt project:
 // Copyright (C) 2016 The Qt Company Ltd.
 // https://github.com/qt/qtdeclarative/blob/dev/tools/qmleasing/splineeditor.cpp
-
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Spline::View)
 namespace Spline
 {
 View::View(QGraphicsItem* parent) : LayerView{parent}

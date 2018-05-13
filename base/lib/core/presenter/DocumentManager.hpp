@@ -1,5 +1,6 @@
 #pragma once
 #include <QObject>
+#include <wobjectdefs.h>
 #include <QString>
 #include <algorithm>
 #include <core/document/Document.hpp>
@@ -54,7 +55,7 @@ class SCORE_LIB_BASE_EXPORT DocumentManager
     : public QObject
     , public DocumentList
 {
-  Q_OBJECT
+  W_OBJECT(DocumentManager)
 public:
   DocumentManager(score::View* view, QObject* parentPresenter);
 
@@ -127,8 +128,8 @@ public:
 
   bool preparingNewDocument() const;
 
-Q_SIGNALS:
-  void documentChanged(score::Document*);
+public:
+  void documentChanged(score::Document* arg_1) W_SIGNAL(documentChanged, arg_1);
 
 private:
   void prepareNewDocument(const score::GUIApplicationContext& ctx);

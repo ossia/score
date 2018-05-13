@@ -41,8 +41,9 @@ using GlobalSettingsView = SettingsDelegateView<SettingsDelegateModel>;
 #define SETTINGS_UI_COMBOBOX_HPP(Control) \
 public:                                   \
   void set##Control(QString);             \
-Q_SIGNALS:                                \
-  void Control##Changed(QString);         \
+public:                                   \
+  void Control##Changed(QString arg)      \
+       W_SIGNAL(Control##Changed, arg);   \
                                           \
 private:                                  \
   QComboBox* m_##Control{};
@@ -50,8 +51,8 @@ private:                                  \
 #define SETTINGS_UI_NUM_COMBOBOX_HPP(Control) \
 public:                                       \
   void set##Control(int);                     \
-Q_SIGNALS:                                    \
-  void Control##Changed(int);                 \
+  void Control##Changed(int arg)              \
+       W_SIGNAL(Control##Changed, arg);       \
                                               \
 private:                                      \
   QComboBox* m_##Control{};
@@ -59,8 +60,8 @@ private:                                      \
 #define SETTINGS_UI_TOGGLE_HPP(Control) \
 public:                                 \
   void set##Control(bool);              \
-Q_SIGNALS:                              \
-  void Control##Changed(bool);          \
+  void Control##Changed(bool arg)       \
+       W_SIGNAL(Control##Changed, arg); \
                                         \
 private:                                \
   QCheckBox* m_##Control{};
@@ -68,8 +69,8 @@ private:                                \
 #define SETTINGS_UI_SPINBOX_HPP(Control) \
 public:                                  \
   void set##Control(int);                \
-Q_SIGNALS:                               \
-  void Control##Changed(int);            \
+  void Control##Changed(int arg)         \
+       W_SIGNAL(Control##Changed, arg);  \
                                          \
 private:                                 \
   QSpinBox* m_##Control{};
@@ -77,8 +78,8 @@ private:                                 \
 #define SETTINGS_UI_DOUBLE_SPINBOX_HPP(Control) \
 public:                                         \
   void set##Control(double);                    \
-Q_SIGNALS:                                      \
-  void Control##Changed(double);                \
+  void Control##Changed(double arg)             \
+       W_SIGNAL(Control##Changed, arg);         \
                                                 \
 private:                                        \
   QDoubleSpinBox* m_##Control{};

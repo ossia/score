@@ -32,6 +32,7 @@
 #define OFILABS_JSEDIT
 
 #include <QColor>
+#include <wobjectdefs.h>
 #include <QPlainTextEdit>
 #include <QScopedPointer>
 #include <score_lib_base_export.h>
@@ -40,15 +41,11 @@ class JSEditPrivate;
 
 class SCORE_LIB_BASE_EXPORT JSEdit final : public QPlainTextEdit
 {
-  Q_OBJECT
-  Q_PROPERTY(bool bracketsMatchingEnabled READ isBracketsMatchingEnabled WRITE
-                 setBracketsMatchingEnabled)
-  Q_PROPERTY(bool codeFoldingEnabled READ isCodeFoldingEnabled WRITE
-                 setCodeFoldingEnabled)
-  Q_PROPERTY(bool lineNumbersVisible READ isLineNumbersVisible WRITE
-                 setLineNumbersVisible)
-  Q_PROPERTY(
-      bool textWrapEnabled READ isTextWrapEnabled WRITE setTextWrapEnabled)
+  W_OBJECT(JSEdit)
+
+
+
+
 
 public:
   typedef enum
@@ -90,22 +87,22 @@ public:
   void setError(int line);
   void clearError();
 
-Q_SIGNALS:
-  void editingFinished(QString);
-  void focused();
+public:
+  void editingFinished(QString arg_1) W_SIGNAL(editingFinished, arg_1);
+  void focused() W_SIGNAL(focused);
 
-public Q_SLOTS:
-  void updateSidebar();
+public:
+  void updateSidebar(); W_SLOT(updateSidebar);
   void
-  mark(const QString& str, Qt::CaseSensitivity sens = Qt::CaseInsensitive);
-  void setBracketsMatchingEnabled(bool enable);
-  void setCodeFoldingEnabled(bool enable);
-  void setLineNumbersVisible(bool visible);
-  void setTextWrapEnabled(bool enable);
+  mark(const QString& str, Qt::CaseSensitivity sens = Qt::CaseInsensitive); W_SLOT(mark);
+  void setBracketsMatchingEnabled(bool enable); W_SLOT(setBracketsMatchingEnabled);
+  void setCodeFoldingEnabled(bool enable); W_SLOT(setCodeFoldingEnabled);
+  void setLineNumbersVisible(bool visible); W_SLOT(setLineNumbersVisible);
+  void setTextWrapEnabled(bool enable); W_SLOT(setTextWrapEnabled);
 
-  void fold(int line);
-  void unfold(int line);
-  void toggleFold(int line);
+  void fold(int line); W_SLOT(fold);
+  void unfold(int line); W_SLOT(unfold);
+  void toggleFold(int line); W_SLOT(toggleFold);
 
 protected:
   void resizeEvent(QResizeEvent* e) override;
@@ -117,15 +114,24 @@ protected:
     event->ignore();
   }
 
-private Q_SLOTS:
-  void updateCursor();
-  void updateSidebar(const QRect& rect, int d);
+private:
+  void updateCursor(); W_SLOT(updateCursor);
+  void do_updateSidebar(const QRect& rect, int d); W_SLOT(do_updateSidebar);
 
 private:
   void focusInEvent(QFocusEvent* event) override;
   QScopedPointer<JSEditPrivate> d_ptr;
   Q_DECLARE_PRIVATE(JSEdit)
   Q_DISABLE_COPY(JSEdit)
+
+W_PROPERTY(bool, textWrapEnabled READ isTextWrapEnabled WRITE setTextWrapEnabled)
+
+W_PROPERTY(bool, lineNumbersVisible READ isLineNumbersVisible WRITE setLineNumbersVisible)
+
+W_PROPERTY(bool, codeFoldingEnabled READ isCodeFoldingEnabled WRITE setCodeFoldingEnabled)
+
+W_PROPERTY(bool, bracketsMatchingEnabled READ isBracketsMatchingEnabled WRITE setBracketsMatchingEnabled)
 };
 
+W_REGISTER_ARGTYPE(Qt::CaseSensitivity)
 #endif // OFILABS_JSEDIT

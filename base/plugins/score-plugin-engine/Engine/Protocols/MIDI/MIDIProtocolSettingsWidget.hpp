@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/network/midi/midi.hpp>
+#include <wobjectdefs.h>
 
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
@@ -16,7 +17,7 @@ namespace Network
 {
 class MIDIProtocolSettingsWidget final : public Device::ProtocolSettingsWidget
 {
-  Q_OBJECT
+  W_OBJECT(MIDIProtocolSettingsWidget)
 
 public:
   MIDIProtocolSettingsWidget(QWidget* parent = nullptr);

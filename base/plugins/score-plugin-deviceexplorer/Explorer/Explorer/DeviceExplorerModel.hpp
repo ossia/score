@@ -1,5 +1,6 @@
 #pragma once
 #include <Device/ItemModels/NodeBasedItemModel.hpp>
+#include <wobjectdefs.h>
 #include <Device/Node/DeviceNode.hpp>
 #include <Explorer/Explorer/Column.hpp>
 #include <QAbstractItemModel>
@@ -60,7 +61,7 @@ struct SCORE_PLUGIN_DEVICEEXPLORER_EXPORT SelectedNodes
 class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerModel final
     : public Device::NodeBasedItemModel
 {
-  Q_OBJECT
+  W_OBJECT(DeviceExplorerModel)
 
 public:
   using QAbstractItemModel::beginResetModel;
@@ -181,8 +182,8 @@ public:
   SelectedNodes uniqueSelectedNodes(const QModelIndexList& indexes)
       const; // Note : filters so that only parents are given.
 
-Q_SIGNALS:
-  void nodeChanged(Device::Node* n);
+public:
+  void nodeChanged(Device::Node* n) W_SIGNAL(nodeChanged, n);
 
 protected:
   void debug_printPath(const Device::NodePath& path);

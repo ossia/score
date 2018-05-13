@@ -54,7 +54,7 @@ class ModelTest : public QObject
 public:
   ModelTest( QAbstractItemModel *model, QObject *parent = 0 );
 
-private Q_SLOTS:
+private:
   void nonDestructiveBasicTest();
   void rowCount();
   void columnCount();
@@ -63,7 +63,7 @@ private Q_SLOTS:
   void parent();
   void data();
 
-protected Q_SLOTS:
+protected:
   void runAllTests();
   void layoutAboutToBeChanged();
   void layoutChanged();

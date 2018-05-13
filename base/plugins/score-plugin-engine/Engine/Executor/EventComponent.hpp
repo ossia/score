@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/editor/expression/expression.hpp>
+#include <wobjectdefs.h>
 #include <ossia/editor/scenario/time_event.hpp>
 
 #include <Engine/Executor/Component.hpp>
@@ -20,7 +21,7 @@ namespace Execution
 class SCORE_PLUGIN_ENGINE_EXPORT EventComponent final
     : public Execution::Component
 {
-  Q_OBJECT
+  W_OBJECT(EventComponent)
   COMMON_COMPONENT_METADATA("02c41de0-3a8c-44da-ae03-68a0ca26a7d0")
 public:
   EventComponent(
@@ -46,8 +47,8 @@ public:
     return m_score_event;
   }
 
-Q_SIGNALS:
-  void happened();
+public:
+  void happened() W_SIGNAL(happened);
 
 private:
   const Scenario::EventModel& m_score_event;

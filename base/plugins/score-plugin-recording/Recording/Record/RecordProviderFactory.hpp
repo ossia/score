@@ -1,5 +1,6 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
+#include <wobjectdefs.h>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Recording/Record/RecordTools.hpp>
@@ -20,7 +21,7 @@ namespace Recording
 {
 struct RecordContext : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(RecordContext)
 public:
   using clock = std::chrono::steady_clock;
   RecordContext(Scenario::ProcessModel&, Scenario::Point pt);
@@ -59,13 +60,13 @@ public:
   clock::time_point firstValueTime{};
   QTimer timer;
 
-Q_SIGNALS:
-  void startTimer();
-public Q_SLOTS:
+public:
+  void startTimer() W_SIGNAL(startTimer);
+public:
   void on_startTimer()
   {
     timer.start();
-  }
+  }; W_SLOT(on_startTimer)
 };
 
 struct RecordProvider

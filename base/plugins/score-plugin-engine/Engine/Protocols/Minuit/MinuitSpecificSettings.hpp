@@ -1,6 +1,7 @@
 #pragma once
 #include <QMetaType>
 #include <QString>
+#include <wobjectdefs.h>
 
 namespace Engine
 {
@@ -16,3 +17,4 @@ struct MinuitSpecificSettings
 }
 }
 Q_DECLARE_METATYPE(Engine::Network::MinuitSpecificSettings)
+W_REGISTER_ARGTYPE(Engine::Network::MinuitSpecificSettings)

@@ -25,7 +25,7 @@ public:
   void show();
   ~QMLContainerPanel();
 
-public Q_SLOTS:
+public:
   virtual void collapse();
   virtual QQuickWidget* container();
   virtual QWidget* rootWidget();

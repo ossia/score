@@ -1,5 +1,6 @@
 #pragma once
 #include <PluginSettings/PluginItemModel.hpp>
+#include <wobjectdefs.h>
 #include <QGridLayout>
 #include <QNetworkAccessManager>
 #include <QProgressBar>
@@ -15,7 +16,7 @@ namespace PluginSettings
 class PluginSettingsPresenter;
 class PluginSettingsView : public score::GlobalSettingsView
 {
-  Q_OBJECT
+  W_OBJECT(PluginSettingsView)
 public:
   PluginSettingsView();
 

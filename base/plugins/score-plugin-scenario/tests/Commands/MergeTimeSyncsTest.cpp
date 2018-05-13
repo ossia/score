@@ -15,7 +15,7 @@ using namespace Scenario::Command;
 class MergeTimeSyncsTest : public QObject
 {
   Q_OBJECT
-private Q_SLOTS:
+private:
   void mergeTest()
   {
     // A scenario, 2 events at same date

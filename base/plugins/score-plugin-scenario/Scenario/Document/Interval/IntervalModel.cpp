@@ -22,6 +22,8 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/Todo.hpp>
 #include <utility>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::IntervalModel)
 
 namespace Scenario
 {

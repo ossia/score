@@ -28,7 +28,8 @@
 #include <score/document/DocumentInterface.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <vector>
-
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Engine::Execution::BaseScenarioElement)
 namespace Engine
 {
 namespace Execution

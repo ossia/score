@@ -1,5 +1,6 @@
 #pragma once
 #include <Curve/CurveModel.hpp>
+#include <wobjectdefs.h>
 #include <Curve/Point/CurvePointModel.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Process/Process.hpp>
@@ -12,7 +13,7 @@ namespace Curve
 class SCORE_PLUGIN_CURVE_EXPORT CurveProcessModel
     : public Process::ProcessModel
 {
-  Q_OBJECT
+  W_OBJECT(CurveProcessModel)
 public:
   CurveProcessModel(
       TimeVal duration,
@@ -60,8 +61,8 @@ public:
     m_curve->setSelection(s);
   }
 
-Q_SIGNALS:
-  void curveChanged();
+public:
+  void curveChanged() W_SIGNAL(curveChanged);
 
 protected:
   void setCurve(Model* newCurve)

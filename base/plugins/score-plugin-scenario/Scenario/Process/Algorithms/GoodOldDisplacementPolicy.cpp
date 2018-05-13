@@ -151,7 +151,7 @@ void GoodOldDisplacementPolicy::getRelatedTimeSyncs(
     const Id<TimeSyncModel>& firstTimeSyncMovedId,
     std::vector<Id<TimeSyncModel>>& translatedTimeSyncs)
 {
-  if (firstTimeSyncMovedId.val() == Scenario::startId_val())
+  if (firstTimeSyncMovedId.val() == Scenario::startId_val)
     return;
 
   auto it = std::find(

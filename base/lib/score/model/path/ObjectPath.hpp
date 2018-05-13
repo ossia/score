@@ -174,8 +174,6 @@ inline uint qHash(const ObjectPath& obj, uint seed)
   return qHash(obj.toString(), seed);
 }
 
-Q_DECLARE_METATYPE(ObjectPath)
-
 namespace boost
 {
 template <>
@@ -189,3 +187,6 @@ struct SCORE_LIB_BASE_EXPORT hash<ObjectPath>
   std::size_t operator()(const ObjectPath& path) const;
 };
 }
+
+Q_DECLARE_METATYPE(ObjectPath)
+W_REGISTER_ARGTYPE(ObjectPath)

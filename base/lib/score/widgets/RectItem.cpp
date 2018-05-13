@@ -2,6 +2,9 @@
 #include <QPainter>
 #include <score/widgets/RectItem.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(score::RectItem)
+W_OBJECT_IMPL(score::EmptyRectItem)
 namespace score
 {
 

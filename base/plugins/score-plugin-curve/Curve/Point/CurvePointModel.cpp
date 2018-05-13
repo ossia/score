@@ -4,7 +4,8 @@
 
 #include <score/model/IdentifiedObject.hpp>
 
-class QObject;
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Curve::PointModel)
 
 namespace Curve
 {

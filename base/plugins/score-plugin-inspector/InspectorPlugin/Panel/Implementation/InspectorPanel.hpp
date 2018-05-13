@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
+#include <wobjectdefs.h>
 #include <QList>
 #include <QWidget>
 #include <boost/multi_index/hashed_index.hpp>
@@ -35,7 +36,7 @@ namespace InspectorPanel
 // TODO rename file
 class InspectorPanelWidget final : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(InspectorPanelWidget)
 
 public:
   explicit InspectorPanelWidget(
@@ -45,14 +46,14 @@ public:
       QWidget* parent,
       QObject* parentObj);
 
-public Q_SLOTS:
+public:
   /*!
    * \brief newItemInspected load the view for the selected object
    *
    *  It's called when the user selects a new item
    * \param object The selected objet.
    */
-  void newItemsInspected(const Selection&);
+  void newItemsInspected(const Selection&); W_SLOT(newItemsInspected);
 
 private:
   QWidget* m_parent{};

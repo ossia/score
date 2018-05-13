@@ -6,7 +6,7 @@
 #include <QTime>
 #include <chrono>
 #include <score/tools/std/Optional.hpp>
-
+#include <wobjectdefs.h>
 // using namespace std::literals::chrono_literals;
 
 class ZeroTime
@@ -268,3 +268,4 @@ inline const TimeVal& max(const TimeVal& lhs, const TimeVal& rhs)
 }
 
 Q_DECLARE_METATYPE(TimeVal)
+W_REGISTER_ARGTYPE(TimeVal)

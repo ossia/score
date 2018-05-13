@@ -17,7 +17,7 @@ namespace State
 {
 struct SCORE_LIB_STATE_EXPORT TraversalPath
 {
-  Q_GADGET
+  W_GADGET(TraversalPath)
   SCORE_SERIALIZE_FRIENDS
 public:
   TraversalPath() noexcept;
@@ -53,3 +53,4 @@ private:
 }
 
 Q_DECLARE_METATYPE(State::TraversalPath)
+W_REGISTER_ARGTYPE(State::TraversalPath)

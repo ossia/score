@@ -1,6 +1,7 @@
 #pragma once
 #include <QMetaType>
 #include <QPointF>
+#include <wobjectdefs.h>
 
 namespace Process
 {
@@ -24,3 +25,4 @@ struct ScenarioRecordInitData
 };
 }
 Q_DECLARE_METATYPE(Scenario::ScenarioRecordInitData)
+W_REGISTER_ARGTYPE(Scenario::ScenarioRecordInitData)

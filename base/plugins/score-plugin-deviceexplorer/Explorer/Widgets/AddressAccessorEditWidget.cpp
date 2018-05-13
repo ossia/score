@@ -14,7 +14,8 @@
 #include <QHBoxLayout>
 #include <State/Widgets/AddressLineEdit.hpp>
 #include <score/widgets/MarginLess.hpp>
-
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Explorer::AddressAccessorEditWidget)
 namespace Explorer
 {
 AddressAccessorEditWidget::AddressAccessorEditWidget(

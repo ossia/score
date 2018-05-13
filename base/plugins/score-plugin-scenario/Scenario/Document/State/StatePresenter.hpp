@@ -1,5 +1,6 @@
 #pragma once
 #include <Scenario/Document/State/StateView.hpp>
+#include <wobjectdefs.h>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/widgets/GraphicsItem.hpp>
@@ -10,7 +11,7 @@ namespace Scenario
 class StateModel;
 class SCORE_PLUGIN_SCENARIO_EXPORT StatePresenter final : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(StatePresenter)
 
 public:
   StatePresenter(
@@ -26,17 +27,17 @@ public:
 
   bool isSelected() const;
 
-  void handleDrop(const QMimeData* mime);
+  void handleDrop(const QMimeData& mime);
 
-Q_SIGNALS:
-  void pressed(const QPointF&);
-  void moved(const QPointF&);
-  void released(const QPointF&);
+public:
+  void pressed(const QPointF& arg_1) W_SIGNAL(pressed, arg_1);
+  void moved(const QPointF& arg_1) W_SIGNAL(moved, arg_1);
+  void released(const QPointF& arg_1) W_SIGNAL(released, arg_1);
 
-  void hoverEnter();
-  void hoverLeave();
+  void hoverEnter() W_SIGNAL(hoverEnter);
+  void hoverLeave() W_SIGNAL(hoverLeave);
 
-  void askUpdate();
+  void askUpdate() W_SIGNAL(askUpdate);
 
 private:
   void updateStateView();

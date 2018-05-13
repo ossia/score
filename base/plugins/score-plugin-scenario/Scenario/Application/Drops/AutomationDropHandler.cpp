@@ -20,11 +20,11 @@ namespace Scenario
 {
 
 bool DropProcessInScenario::drop(
-    const TemporalScenarioPresenter& pres, QPointF pos, const QMimeData* mime)
+    const TemporalScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
 {
-  if (mime->formats().contains(score::mime::processdata()))
+  if (mime.formats().contains(score::mime::processdata()))
   {
-    Mime<Process::ProcessData>::Deserializer des{*mime};
+    Mime<Process::ProcessData>::Deserializer des{mime};
     Process::ProcessData p = des.deserialize();
 
     RedoMacroCommandDispatcher<Scenario::Command::AddProcessInNewBoxMacro> m{
@@ -77,9 +77,9 @@ bool DropProcessInScenario::drop(
 }
 
 bool DropPortInScenario::drop(
-    const TemporalScenarioPresenter& pres, QPointF pos, const QMimeData* mime)
+    const TemporalScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
 {
-  if (mime->formats().contains(score::mime::port()))
+  if (mime.formats().contains(score::mime::port()))
   {
     auto base_port = Dataflow::PortItem::clickedPort;
     if (!base_port || base_port->port().type != Process::PortType::Message
@@ -134,11 +134,11 @@ bool DropPortInScenario::drop(
 }
 
 bool DropProcessInInterval::drop(
-    const IntervalModel& cst, const QMimeData* mime)
+    const IntervalModel& cst, const QMimeData& mime)
 {
-  if (mime->formats().contains(score::mime::processdata()))
+  if (mime.formats().contains(score::mime::processdata()))
   {
-    Mime<Process::ProcessData>::Deserializer des{*mime};
+    Mime<Process::ProcessData>::Deserializer des{mime};
     Process::ProcessData p = des.deserialize();
 
     auto& doc = score::IDocument::documentContext(cst);
@@ -189,12 +189,12 @@ static void getAddressesRecursively(
 }
 
 bool AutomationDropHandler::drop(
-    const IntervalModel& cst, const QMimeData* mime)
+    const IntervalModel& cst, const QMimeData& mime)
 {
   // TODO refactor with AddressEditWidget
-  if (mime->formats().contains(score::mime::nodelist()))
+  if (mime.formats().contains(score::mime::nodelist()))
   {
-    Mime<Device::FreeNodeList>::Deserializer des{*mime};
+    Mime<Device::FreeNodeList>::Deserializer des{mime};
     Device::FreeNodeList nl = des.deserialize();
     if (nl.empty())
       return false;
@@ -213,9 +213,9 @@ bool AutomationDropHandler::drop(
 
     return true;
   }
-  else if (mime->formats().contains(score::mime::addressettings()))
+  else if (mime.formats().contains(score::mime::addressettings()))
   {
-    Mime<Device::FullAddressSettings>::Deserializer des{*mime};
+    Mime<Device::FullAddressSettings>::Deserializer des{mime};
     auto& doc = score::IDocument::documentContext(cst);
 
     CreateCurvesFromAddresses({&cst}, {des.deserialize()}, doc.commandStack);

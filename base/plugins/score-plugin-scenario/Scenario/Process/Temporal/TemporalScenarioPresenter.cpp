@@ -16,8 +16,8 @@
 #include <State/MessageListSerialization.hpp>
 #include <score/actions/ActionManager.hpp>
 
-class MessageItemModel;
-class QMenu;
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::TemporalScenarioPresenter)
 namespace Scenario
 {
 struct VerticalExtent;
@@ -120,7 +120,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
         try
         {
           m_context.context.app.interfaces<Scenario::DropHandlerList>()
-              .dragEnter(*this, pos, &mime);
+              .dragEnter(*this, pos, mime);
         }
         catch (std::exception& e)
         {
@@ -133,7 +133,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
         try
         {
           m_context.context.app.interfaces<Scenario::DropHandlerList>()
-              .dragMove(*this, pos, &mime);
+              .dragMove(*this, pos, mime);
         }
         catch (std::exception& e)
         {
@@ -146,7 +146,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
         try
         {
           m_context.context.app.interfaces<Scenario::DropHandlerList>()
-              .dragLeave(*this, pos, &mime);
+              .dragLeave(*this, pos, mime);
         }
         catch (std::exception& e)
         {
@@ -159,7 +159,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
         try
         {
           m_context.context.app.interfaces<Scenario::DropHandlerList>().drop(
-              *this, pos, &mime);
+              *this, pos, mime);
         }
         catch (std::exception& e)
         {

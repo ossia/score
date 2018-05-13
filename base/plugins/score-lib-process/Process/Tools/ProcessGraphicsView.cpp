@@ -14,6 +14,8 @@
 #include <iostream>
 #include <qnamespace.h>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(ProcessGraphicsView)
 ProcessGraphicsView::ProcessGraphicsView(
     QGraphicsScene* scene, QWidget* parent)
     : QGraphicsView{scene, parent}

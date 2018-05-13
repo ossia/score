@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Process/TimeValue.hpp>
+#include <wobjectdefs.h>
 #include <QGraphicsItem>
 class QGraphicsView;
 namespace Scenario
@@ -9,7 +10,7 @@ class Minimap final
     : public QObject
     , public QGraphicsItem
 {
-  Q_OBJECT
+  W_OBJECT(Minimap)
   Q_INTERFACES(QGraphicsItem)
 public:
   Minimap(QGraphicsView* vp);
@@ -41,9 +42,9 @@ public:
   void zoomOut();
   void zoom(double z);
 
-Q_SIGNALS:
-  void rescale();
-  void visibleRectChanged(double l, double r);
+public:
+  void rescale() W_SIGNAL(rescale);
+  void visibleRectChanged(double l, double r) W_SIGNAL(visibleRectChanged, l, r);
 
 private:
   QRectF boundingRect() const override;

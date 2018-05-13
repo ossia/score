@@ -9,6 +9,9 @@
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/SettingsCommand.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Media::Settings::View)
+W_OBJECT_IMPL(Media::Settings::Model)
 namespace Media::Settings
 {
 Presenter::Presenter(Model& m, View& v, QObject* parent)

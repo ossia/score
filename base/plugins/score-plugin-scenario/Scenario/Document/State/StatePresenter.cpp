@@ -23,10 +23,10 @@
 #include <score/serialization/MimeVisitor.hpp>
 #include <score/tools/Todo.hpp>
 #include <score/widgets/GraphicsItem.hpp>
-
-class QObject;
 #include <score/model/Identifier.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::StatePresenter)
 namespace Scenario
 {
 StatePresenter::StatePresenter(
@@ -81,12 +81,12 @@ bool StatePresenter::isSelected() const
   return m_model.selection.get();
 }
 
-void StatePresenter::handleDrop(const QMimeData* mime)
+void StatePresenter::handleDrop(const QMimeData& mime)
 {
   // If the mime data has states in it we can handle it.
-  if (mime->formats().contains(score::mime::messagelist()))
+  if (mime.formats().contains(score::mime::messagelist()))
   {
-    Mime<State::MessageList>::Deserializer des{*mime};
+    Mime<State::MessageList>::Deserializer des{mime};
     State::MessageList ml = des.deserialize();
 
     auto cmd = new Command::AddMessagesToState{m_model, ml};

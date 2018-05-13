@@ -4,6 +4,8 @@
 
 #include <QTextDocument>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::CommentBlockModel)
 namespace Scenario
 {
 CommentBlockModel::CommentBlockModel(

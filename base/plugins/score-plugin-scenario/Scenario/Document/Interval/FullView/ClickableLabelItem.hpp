@@ -1,5 +1,6 @@
 #pragma once
 #include <QGraphicsItem>
+#include <wobjectdefs.h>
 #include <QString>
 #include <Scenario/Document/CommentBlock/TextItem.hpp>
 #include <functional>
@@ -31,7 +32,7 @@ class ClickableLabelItem final
     : public QObject
     , public SimpleTextItem
 {
-  Q_OBJECT
+  W_OBJECT(ClickableLabelItem)
 public:
   using ClickHandler = std::function<void(ClickableLabelItem*)>;
   ClickableLabelItem(
@@ -43,8 +44,8 @@ public:
   int index() const;
   void setIndex(int index);
 
-Q_SIGNALS:
-  void textChanged();
+public:
+  void textChanged() W_SIGNAL(textChanged);
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;

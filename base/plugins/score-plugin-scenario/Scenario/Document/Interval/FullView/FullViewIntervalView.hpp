@@ -1,5 +1,6 @@
 #pragma once
 #include <QRect>
+#include <wobjectdefs.h>
 #include <Scenario/Document/Interval/IntervalView.hpp>
 
 class QGraphicsItem;
@@ -12,7 +13,7 @@ namespace Scenario
 class FullViewIntervalPresenter;
 class FullViewIntervalView final : public IntervalView
 {
-  Q_OBJECT
+  W_OBJECT(FullViewIntervalView)
 
 public:
   FullViewIntervalView(

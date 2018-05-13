@@ -34,6 +34,8 @@
 #include <score/tools/Todo.hpp>
 #include <vector>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::ProcessModel)
 namespace Scenario
 {
 

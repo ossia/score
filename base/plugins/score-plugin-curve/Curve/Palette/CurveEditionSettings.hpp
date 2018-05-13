@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <wobjectdefs.h>
 #include <score_plugin_curve_export.h>
 
 namespace Curve
@@ -29,19 +30,7 @@ enum class RemovePointBehaviour
 
 class SCORE_PLUGIN_CURVE_EXPORT EditionSettings : public QObject
 {
-  Q_OBJECT
-  Q_PROPERTY(bool lockBetweenPoints READ lockBetweenPoints WRITE
-                 setLockBetweenPoints NOTIFY lockBetweenPointsChanged)
-  Q_PROPERTY(bool suppressOnOverlap READ suppressOnOverlap WRITE
-                 setSuppressOnOverlap NOTIFY suppressOnOverlapChanged)
-  Q_PROPERTY(bool stretchBothBounds READ stretchBothBounds WRITE
-                 setStretchBothBounds NOTIFY stretchBothBoundsChanged)
-  Q_PROPERTY(Curve::AddPointBehaviour addPointBehaviour READ addPointBehaviour
-                 WRITE setAddPointBehaviour NOTIFY addPointBehaviourChanged)
-  Q_PROPERTY(Curve::RemovePointBehaviour removePointBehaviour READ
-                 removePointBehaviour WRITE setRemovePointBehaviour NOTIFY
-                     removePointBehaviourChanged)
-  Q_PROPERTY(Curve::Tool tool READ tool WRITE setTool NOTIFY toolChanged)
+  W_OBJECT(EditionSettings)
 
   bool m_lockBetweenPoints{true};
   bool m_suppressOnOverlap{true};
@@ -68,15 +57,30 @@ public:
   setRemovePointBehaviour(Curve::RemovePointBehaviour removePointBehaviour);
   void setTool(Curve::Tool tool);
 
-Q_SIGNALS:
-  void lockBetweenPointsChanged(bool);
-  void suppressOnOverlapChanged(bool);
-  void stretchBothBoundsChanged(bool);
-  void addPointBehaviourChanged(Curve::AddPointBehaviour);
+public:
+  void lockBetweenPointsChanged(bool arg_1) W_SIGNAL(lockBetweenPointsChanged, arg_1);
+  void suppressOnOverlapChanged(bool arg_1) W_SIGNAL(suppressOnOverlapChanged, arg_1);
+  void stretchBothBoundsChanged(bool arg_1) W_SIGNAL(stretchBothBoundsChanged, arg_1);
+  void addPointBehaviourChanged(Curve::AddPointBehaviour arg_1) W_SIGNAL(addPointBehaviourChanged, arg_1);
   void removePointBehaviourChanged(
-      Curve::RemovePointBehaviour removePointBehaviour);
-  void toolChanged(Curve::Tool tool);
+      Curve::RemovePointBehaviour removePointBehaviour) W_SIGNAL(removePointBehaviourChanged, removePointBehaviour);
+  void toolChanged(Curve::Tool tool) W_SIGNAL(toolChanged, tool);
+
+W_PROPERTY(Curve::Tool, tool READ tool WRITE setTool NOTIFY toolChanged)
+
+W_PROPERTY(Curve::RemovePointBehaviour, removePointBehaviour READ removePointBehaviour WRITE setRemovePointBehaviour NOTIFY removePointBehaviourChanged)
+
+W_PROPERTY(Curve::AddPointBehaviour, addPointBehaviour READ addPointBehaviour WRITE setAddPointBehaviour NOTIFY addPointBehaviourChanged)
+
+W_PROPERTY(bool, stretchBothBounds READ stretchBothBounds WRITE setStretchBothBounds NOTIFY stretchBothBoundsChanged)
+
+W_PROPERTY(bool, suppressOnOverlap READ suppressOnOverlap WRITE setSuppressOnOverlap NOTIFY suppressOnOverlapChanged)
+
+W_PROPERTY(bool, lockBetweenPoints READ lockBetweenPoints WRITE setLockBetweenPoints NOTIFY lockBetweenPointsChanged)
 };
 }
 
 Q_DECLARE_METATYPE(Curve::Tool)
+W_REGISTER_ARGTYPE(Curve::Tool)
+W_REGISTER_ARGTYPE(Curve::AddPointBehaviour)
+W_REGISTER_ARGTYPE(Curve::RemovePointBehaviour)

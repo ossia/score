@@ -1,6 +1,7 @@
 #pragma once
 #include <QMetaType>
 #include <memory>
+#include <wobjectdefs.h>
 #include <score_lib_state_export.h>
 
 namespace ossia
@@ -12,7 +13,7 @@ namespace State
 {
 struct SCORE_LIB_STATE_EXPORT Domain
 {
-  Q_GADGET
+  W_GADGET(Domain)
 public:
   Domain() noexcept;
   Domain(const Domain& other) noexcept;
@@ -39,3 +40,4 @@ private:
 }
 
 Q_DECLARE_METATYPE(State::Domain)
+W_REGISTER_ARGTYPE(State::Domain)

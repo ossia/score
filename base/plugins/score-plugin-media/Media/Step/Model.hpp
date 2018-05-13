@@ -1,11 +1,13 @@
 #pragma once
 #include <Media/Step/Metadata.hpp>
+#include <wobjectdefs.h>
 #include <Process/Process.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 
 Q_DECLARE_METATYPE(std::size_t)
+W_REGISTER_ARGTYPE(std::size_t)
 namespace Media
 {
 namespace Step
@@ -15,13 +17,11 @@ class Model final : public Process::ProcessModel
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Media::Step::Model)
 
-  Q_OBJECT
-  Q_PROPERTY(quint64 stepCount READ stepCount WRITE setStepCount NOTIFY
-                 stepCountChanged)
-  Q_PROPERTY(quint64 stepDuration READ stepDuration WRITE setStepDuration
-                 NOTIFY stepDurationChanged)
-  Q_PROPERTY(double min READ min WRITE setMin NOTIFY minChanged)
-  Q_PROPERTY(double max READ max WRITE setMax NOTIFY maxChanged)
+  W_OBJECT(Model)
+
+
+
+
 public:
   explicit Model(
       const TimeVal& duration,
@@ -51,25 +51,35 @@ public:
   double min() const;
   double max() const;
 
-Q_SIGNALS:
-  void stepCountChanged(quint64);
-  void stepDurationChanged(quint64);
-  void stepsChanged();
-  void minChanged(double);
-  void maxChanged(double);
+public:
+  void stepCountChanged(quint64 arg_1) W_SIGNAL(stepCountChanged, arg_1);
+  void stepDurationChanged(quint64 arg_1) W_SIGNAL(stepDurationChanged, arg_1);
+  void stepsChanged() W_SIGNAL(stepsChanged);
+  void minChanged(double arg_1) W_SIGNAL(minChanged, arg_1);
+  void maxChanged(double arg_1) W_SIGNAL(maxChanged, arg_1);
 
-public Q_SLOTS:
-  void setStepCount(quint64 s);
-  void setStepDuration(quint64 s);
-  void setSteps(std::vector<float> v);
-  void setMin(double v);
-  void setMax(double v);
+public:
+  void setStepCount(quint64 s); W_SLOT(setStepCount);
+  void setStepDuration(quint64 s); W_SLOT(setStepDuration);
+  void setSteps(std::vector<float> v); W_SLOT(setSteps);
+  void setMin(double v); W_SLOT(setMin);
+  void setMax(double v); W_SLOT(setMax);
 
 private:
   std::vector<float> m_steps;
   quint64 m_stepCount{8};
   quint64 m_stepDuration{22000};
   double m_min{}, m_max{};
+
+W_PROPERTY(double, max READ max WRITE setMax NOTIFY maxChanged)
+
+W_PROPERTY(double, min READ min WRITE setMin NOTIFY minChanged)
+
+W_PROPERTY(quint64, stepDuration READ stepDuration WRITE setStepDuration NOTIFY stepDurationChanged)
+
+W_PROPERTY(quint64, stepCount READ stepCount WRITE setStepCount NOTIFY stepCountChanged)
 };
 }
 }
+
+W_REGISTER_ARGTYPE(std::vector<float>)

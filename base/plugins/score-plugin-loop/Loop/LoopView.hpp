@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/LayerView.hpp>
+#include <wobjectdefs.h>
 #include <QRect>
 
 class QGraphicsItem;
@@ -9,7 +10,7 @@ namespace Loop
 {
 class LayerView final : public Process::LayerView
 {
-  Q_OBJECT
+  W_OBJECT(LayerView)
 public:
   LayerView(QGraphicsItem* parent);
 

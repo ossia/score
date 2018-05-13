@@ -21,6 +21,10 @@
 #include <QVariant>
 #include <State/Widgets/UnitWidget.hpp>
 #include <score/widgets/SignalUtils.hpp>
+#include <ossia-qt/metatypes.hpp>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Explorer::AccessModeComboBox)
+W_OBJECT_IMPL(Explorer::BoundingModeComboBox)
 namespace Explorer
 {
 AddressSettingsWidget::AddressSettingsWidget(QWidget* parent)

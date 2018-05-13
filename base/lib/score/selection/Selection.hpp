@@ -1,5 +1,6 @@
 #pragma once
 #include <QPointer>
+#include <wobjectdefs.h>
 #include <score/model/IdentifiedObjectAbstract.hpp>
 
 /**
@@ -127,3 +128,5 @@ inline Selection filterSelections(
 
   return newSelection;
 }
+
+W_REGISTER_ARGTYPE(Selection)

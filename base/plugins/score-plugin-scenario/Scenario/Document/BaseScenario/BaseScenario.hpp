@@ -1,5 +1,6 @@
 #pragma once
 #include <QVector>
+#include <wobjectdefs.h>
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/selection/Selection.hpp>
@@ -18,7 +19,7 @@ class BaseScenario final
     : public IdentifiedObject<BaseScenario>
     , public BaseScenarioContainer
 {
-  Q_OBJECT
+  W_OBJECT(BaseScenario)
   SCORE_SERIALIZE_FRIENDS
 
 public:

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Process/TimeValue.hpp>
+#include <wobjectdefs.h>
 #include <QPoint>
 #include <score/model/Identifier.hpp>
 #include <score/widgets/GraphicsItem.hpp>
@@ -14,7 +15,7 @@ class CommentBlockView;
 class CommentBlockModel;
 class CommentBlockPresenter final : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(CommentBlockPresenter)
 public:
   CommentBlockPresenter(
       const CommentBlockModel& model,
@@ -42,11 +43,11 @@ public:
   const TimeVal& date() const;
 
   void on_zoomRatioChanged(ZoomRatio newRatio);
-Q_SIGNALS:
-  void moved(const QPointF&);
-  void released(const QPointF&);
-  void selected();
-  void editFinished(QString);
+public:
+  void moved(const QPointF& arg_1) W_SIGNAL(moved, arg_1);
+  void released(const QPointF& arg_1) W_SIGNAL(released, arg_1);
+  void selected() W_SIGNAL(selected);
+  void editFinished(QString arg_1) W_SIGNAL(editFinished, arg_1);
 
 private:
   const CommentBlockModel& m_model;

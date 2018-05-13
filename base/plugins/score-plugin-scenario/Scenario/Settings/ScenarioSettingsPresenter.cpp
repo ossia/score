@@ -11,6 +11,9 @@
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/SettingsCommand.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::Settings::Model)
+W_OBJECT_IMPL(Scenario::Settings::View)
 namespace Scenario
 {
 namespace Settings

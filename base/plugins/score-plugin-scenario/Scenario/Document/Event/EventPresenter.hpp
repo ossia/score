@@ -1,5 +1,6 @@
 #pragma once
 #include <QPoint>
+#include <wobjectdefs.h>
 #include <QString>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/widgets/GraphicsItem.hpp>
@@ -15,7 +16,7 @@ class EventModel;
 class EventView;
 class SCORE_PLUGIN_SCENARIO_EXPORT EventPresenter final : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(EventPresenter)
 
 public:
   EventPresenter(
@@ -28,15 +29,15 @@ public:
   const EventModel& model() const;
 
   bool isSelected() const;
-  void handleDrop(const QPointF& pos, const QMimeData* mime);
+  void handleDrop(const QPointF& pos, const QMimeData& mime);
 
-Q_SIGNALS:
-  void pressed(const QPointF&);
-  void moved(const QPointF&);
-  void released(const QPointF&);
+public:
+  void pressed(const QPointF& arg_1) W_SIGNAL(pressed, arg_1);
+  void moved(const QPointF& arg_1) W_SIGNAL(moved, arg_1);
+  void released(const QPointF& arg_1) W_SIGNAL(released, arg_1);
 
-  void eventHoverEnter();
-  void eventHoverLeave();
+  void eventHoverEnter() W_SIGNAL(eventHoverEnter);
+  void eventHoverLeave() W_SIGNAL(eventHoverLeave);
 
 private:
   const EventModel& m_model;

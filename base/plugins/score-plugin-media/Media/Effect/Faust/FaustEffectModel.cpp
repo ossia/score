@@ -14,6 +14,8 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Media::Faust::FaustEffectModel)
 namespace Media::Faust
 {
 
@@ -291,3 +293,4 @@ Engine::Execution::FaustEffectComponent::FaustEffectComponent(
 }
 
 }
+W_OBJECT_IMPL(Engine::Execution::FaustEffectComponent)

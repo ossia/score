@@ -23,9 +23,9 @@
 #include <score/model/Skin.hpp>
 #include <score/widgets/GraphicsItem.hpp>
 
-class QGraphicsSceneMouseEvent;
-class QStyleOptionGraphicsItem;
-class QWidget;
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::RackButton)
+W_OBJECT_IMPL(Scenario::TemporalIntervalHeader)
 
 namespace Scenario
 {
@@ -235,7 +235,7 @@ void TemporalIntervalHeader::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 
 void TemporalIntervalHeader::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
-  dropReceived(event->pos(), event->mimeData());
+  dropReceived(event->pos(), *event->mimeData());
 
   event->accept();
 }

@@ -6,6 +6,7 @@
 #include <QUrl>
 #include <boost/iterator/filter_iterator.hpp>
 #include <score/plugins/Addon.hpp>
+#include <wobjectdefs.h>
 namespace PluginSettings
 {
 
@@ -175,3 +176,4 @@ private:
 }
 
 Q_DECLARE_METATYPE(PluginSettings::RemoteAddon)
+W_REGISTER_ARGTYPE(PluginSettings::RemoteAddon)

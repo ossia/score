@@ -12,18 +12,10 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::ProcessWidgetArea)
 namespace Scenario
 {
-// MOVEME
-template <typename T>
-auto id(const Path<T>& path)
-{
-  SCORE_ASSERT(path.valid());
-  SCORE_ASSERT(bool(path.unsafePath().vec().back().id()));
-
-  return Id<T>(path.unsafePath().vec().back().id());
-}
-
 void ProcessWidgetArea::mousePressEvent(QMouseEvent* event)
 {
   if (event->button() == Qt::LeftButton)

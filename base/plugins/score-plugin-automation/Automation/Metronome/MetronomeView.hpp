@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Curve/CurveView.hpp>
+#include <wobjectdefs.h>
 #include <Process/LayerView.hpp>
 #include <QString>
 #include <QTextLayout>
@@ -13,7 +14,7 @@ namespace Metronome
 {
 class LayerView final : public Process::LayerView
 {
-  Q_OBJECT
+  W_OBJECT(LayerView)
 public:
   explicit LayerView(QGraphicsItem* parent);
   void setCurveView(Curve::View* view)

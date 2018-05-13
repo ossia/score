@@ -8,9 +8,6 @@
 #include <QMenu>
 #include <QPushButton>
 #include <score/widgets/SignalUtils.hpp>
-#if __has_include(<portaudio.h>)
-#  include <portaudio.h>
-#endif
 namespace Media::Settings
 {
 View::View() : m_widg{new QWidget}

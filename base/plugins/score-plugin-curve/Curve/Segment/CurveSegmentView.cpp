@@ -16,10 +16,10 @@
 #include <score/selection/Selectable.hpp>
 #include <score/tools/Todo.hpp>
 #include <vector>
-
-class QStyleOptionGraphicsItem;
-class QWidget;
 #include <score/model/Identifier.hpp>
+
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Curve::SegmentView)
 namespace Curve
 {
 SegmentView::SegmentView(

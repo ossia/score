@@ -13,6 +13,7 @@
 #include <score/tools/std/HashMap.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <score_lib_state_export.h>
+#include <wobjectdefs.h>
 #include <string>
 
 namespace ossia
@@ -25,7 +26,7 @@ namespace State
 {
 struct SCORE_LIB_STATE_EXPORT DestinationQualifiers
 {
-  Q_GADGET
+  W_GADGET(DestinationQualifiers)
 public:
   DestinationQualifiers();
   DestinationQualifiers(const DestinationQualifiers& other);
@@ -184,3 +185,7 @@ struct SCORE_LIB_STATE_EXPORT hash<State::Address>
 Q_DECLARE_METATYPE(State::DestinationQualifiers)
 Q_DECLARE_METATYPE(State::Address)
 Q_DECLARE_METATYPE(State::AddressAccessor)
+
+W_REGISTER_ARGTYPE(State::DestinationQualifiers)
+W_REGISTER_ARGTYPE(State::Address)
+W_REGISTER_ARGTYPE(State::AddressAccessor)

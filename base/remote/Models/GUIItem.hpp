@@ -38,10 +38,10 @@ public:
   qreal x() const;
   qreal y() const;
 
-Q_SIGNALS:
+public:
   void removeMe();
 
-private Q_SLOTS:
+private:
   void setAddress(QString);
 
   void on_impulse();

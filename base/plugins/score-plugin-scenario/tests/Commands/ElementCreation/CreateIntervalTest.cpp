@@ -14,7 +14,7 @@ using namespace Scenario::Command;
 class CreateIntervalTest : public QObject
 {
   Q_OBJECT
-private Q_SLOTS:
+private:
   void RemoveTest()
   {
     Scenario::ProcessModel* scenar = new ScenarioModel(

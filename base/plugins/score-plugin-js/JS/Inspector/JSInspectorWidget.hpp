@@ -1,5 +1,6 @@
 #pragma once
 #include <JS/JSProcessModel.hpp>
+#include <wobjectdefs.h>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <QString>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -31,7 +32,7 @@ class InspectorWidget final
     : public Process::InspectorWidgetDelegate_T<JS::ProcessModel>
     , public JSWidgetBase
 {
-  Q_OBJECT
+  W_OBJECT(InspectorWidget)
   friend struct JSWidgetBase;
 
 public:
@@ -40,8 +41,8 @@ public:
       const score::DocumentContext& context,
       QWidget* parent);
 
-Q_SIGNALS:
-  void pressed();
+public:
+  void pressed() W_SIGNAL(pressed);
 
 private:
   void on_textChange(const QString& newText);

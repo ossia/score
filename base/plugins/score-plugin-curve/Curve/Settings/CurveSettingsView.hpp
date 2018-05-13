@@ -1,5 +1,6 @@
 #pragma once
 #include <Curve/Settings/CurveSettingsModel.hpp>
+#include <wobjectdefs.h>
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 class QCheckBox;
 class QDoubleSpinBox;
@@ -10,7 +11,7 @@ namespace Settings
 
 class View : public score::GlobalSettingsView
 {
-  Q_OBJECT
+  W_OBJECT(View)
 public:
   View();
 
@@ -19,11 +20,11 @@ public:
   void setMode(Mode);
   void setPlayWhileRecording(bool);
 
-Q_SIGNALS:
-  void simplificationRatioChanged(double);
-  void simplifyChanged(bool);
-  void modeChanged(Mode);
-  void playWhileRecordingChanged(bool);
+public:
+  void simplificationRatioChanged(double arg_1) W_SIGNAL(simplificationRatioChanged, arg_1);
+  void simplifyChanged(bool arg_1) W_SIGNAL(simplifyChanged, arg_1);
+  void modeChanged(Mode arg_1) W_SIGNAL(modeChanged, arg_1);
+  void playWhileRecordingChanged(bool arg_1) W_SIGNAL(playWhileRecordingChanged, arg_1);
 
 private:
   QWidget* getWidget() override;

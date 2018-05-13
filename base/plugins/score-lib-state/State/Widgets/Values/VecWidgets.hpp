@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/network/domain/domain.hpp>
+#include <wobjectdefs.h>
 
 #include <QDoubleSpinBox>
 #include <QFormLayout>
@@ -15,12 +16,12 @@ namespace State
 {
 struct SCORE_LIB_STATE_EXPORT VecEditBase : public QWidget
 {
-  Q_OBJECT
+  W_OBJECT(VecEditBase)
 public:
   using QWidget::QWidget;
 
-Q_SIGNALS:
-  void changed();
+public:
+  void changed() W_SIGNAL(changed);
 };
 
 template <std::size_t N>

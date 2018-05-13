@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Process.hpp>
+#include <wobjectdefs.h>
 #include <Process/Instantiations.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
@@ -56,7 +57,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT StateModel final
     : public score::Entity<StateModel>
     , public Nano::Observer
 {
-  Q_OBJECT
+  W_OBJECT(StateModel)
 
   SCORE_SERIALIZE_FRIENDS
 public:
@@ -131,10 +132,10 @@ public:
     return !messages().rootNode().hasChild(0);
   }
 
-Q_SIGNALS:
-  void sig_statesUpdated();
-  void heightPercentageChanged();
-  void statusChanged(Scenario::ExecutionStatus);
+public:
+  void sig_statesUpdated() W_SIGNAL(sig_statesUpdated);
+  void heightPercentageChanged() W_SIGNAL(heightPercentageChanged);
+  void statusChanged(Scenario::ExecutionStatus arg_1) W_SIGNAL(statusChanged, arg_1);
 
 private:
   void statesUpdated_slt();
@@ -159,3 +160,9 @@ private:
 DEFAULT_MODEL_METADATA(Scenario::StateModel, "State")
 
 TR_TEXT_METADATA(, Scenario::StateModel, PrettyName_k, "State")
+
+Q_DECLARE_METATYPE(Id<Scenario::StateModel>)
+W_REGISTER_ARGTYPE(Id<Scenario::StateModel>)
+W_REGISTER_ARGTYPE(Scenario::StateModel)
+W_REGISTER_ARGTYPE(const Scenario::StateModel&)
+W_REGISTER_ARGTYPE(Scenario::StateModel&)

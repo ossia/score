@@ -1,15 +1,16 @@
 #pragma once
 #include <QObject>
+#include <wobjectdefs.h>
 #include <score_plugin_scenario_export.h>
 
 namespace Scenario
 {
 class SCORE_PLUGIN_SCENARIO_EXPORT ModelConsistency final : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(ModelConsistency)
 
-  Q_PROPERTY(bool valid READ isValid WRITE setValid NOTIFY validChanged)
-  Q_PROPERTY(bool warning READ warning WRITE setWarning NOTIFY warningChanged)
+  
+  
 
   bool m_valid{true};
   bool m_warning{false};
@@ -25,8 +26,12 @@ public:
   void setValid(bool arg);
   void setWarning(bool warning);
 
-Q_SIGNALS:
-  void validChanged(bool arg);
-  void warningChanged(bool warning);
+public:
+  void validChanged(bool arg) W_SIGNAL(validChanged, arg);
+  void warningChanged(bool warning) W_SIGNAL(warningChanged, warning);
+
+W_PROPERTY(bool, warning READ warning WRITE setWarning NOTIFY warningChanged)
+
+W_PROPERTY(bool, valid READ isValid WRITE setValid NOTIFY validChanged)
 };
 }

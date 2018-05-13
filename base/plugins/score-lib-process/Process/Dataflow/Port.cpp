@@ -5,7 +5,13 @@
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <score/model/path/PathSerialization.hpp>
-
+#include <ossia-qt/value_metatypes.hpp>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Process::Port)
+W_OBJECT_IMPL(Process::Inlet)
+W_OBJECT_IMPL(Process::Outlet)
+W_OBJECT_IMPL(Process::ControlInlet)
+W_OBJECT_IMPL(Process::ControlOutlet)
 namespace Process
 {
 

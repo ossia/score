@@ -270,3 +270,13 @@ struct hash<Path<tag>>
   }
 };
 }
+
+template <typename T>
+auto id(const Path<T>& path)
+{
+  SCORE_ASSERT(path.valid());
+  SCORE_ASSERT(bool(path.unsafePath().vec().back().id()));
+
+  return Id<T>(path.unsafePath().vec().back().id());
+}
+

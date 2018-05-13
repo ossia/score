@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <wobjectdefs.h>
 
 class Selection;
 namespace score
@@ -15,7 +16,7 @@ class DocumentView;
  */
 class DocumentPresenter final : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(DocumentPresenter)
 public:
   DocumentPresenter(
       const score::DocumentContext& ctx,

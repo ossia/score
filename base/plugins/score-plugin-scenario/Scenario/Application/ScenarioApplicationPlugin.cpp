@@ -61,6 +61,9 @@
 #include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <string.h>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::ScenarioExecution)
+W_OBJECT_IMPL(Scenario::ScenarioApplicationPlugin)
 SCORE_DECLARE_ACTION(
     ShowCables, "&Show cables", Dataflow, Qt::ALT + Qt::SHIFT + Qt::Key_G)
 namespace Scenario

@@ -179,3 +179,7 @@ JSON_METADATA(Device::AddressSettings, "AddressSettings")
 Q_DECLARE_METATYPE(Device::AddressSettings)
 Q_DECLARE_METATYPE(Device::FullAddressSettings)
 Q_DECLARE_METATYPE(Device::FullAddressAccessorSettings)
+
+W_REGISTER_ARGTYPE(Device::AddressSettings)
+W_REGISTER_ARGTYPE(Device::FullAddressSettings)
+W_REGISTER_ARGTYPE(Device::FullAddressAccessorSettings)

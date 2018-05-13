@@ -1,5 +1,6 @@
 #pragma once
 #include <Curve/CurveView.hpp>
+#include <wobjectdefs.h>
 #include <Process/LayerView.hpp>
 #include <QTextLayout>
 
@@ -7,7 +8,7 @@ namespace Interpolation
 {
 class View final : public Process::LayerView
 {
-  Q_OBJECT
+  W_OBJECT(View)
 public:
   explicit View(QGraphicsItem* parent);
   ~View() override;

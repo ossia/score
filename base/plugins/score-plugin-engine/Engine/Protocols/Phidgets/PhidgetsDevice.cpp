@@ -14,6 +14,8 @@
 #include <QVariant>
 #include <memory>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Engine::Network::PhidgetDevice)
 namespace Engine
 {
 namespace Network

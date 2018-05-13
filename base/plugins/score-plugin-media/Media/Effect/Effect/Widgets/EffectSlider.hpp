@@ -1,5 +1,6 @@
 #pragma once
 #include <QWidget>
+#include <wobjectdefs.h>
 #include <State/Address.hpp>
 namespace Process
 {
@@ -16,7 +17,7 @@ namespace Effect
 {
 class EffectSlider : public QWidget
 {
-  Q_OBJECT
+  W_OBJECT(EffectSlider)
 public:
   EffectSlider(Process::ControlInlet& fx, bool is_output, QWidget* parent);
 
@@ -25,8 +26,8 @@ public:
   double scaledValue;
   score::DoubleSlider* m_slider{};
 
-Q_SIGNALS:
-  void createAutomation(const State::Address&, double min, double max);
+public:
+  void createAutomation(const State::Address& arg_1, double min, double max) W_SIGNAL(createAutomation, arg_1, min, max);
 
 private:
   void contextMenuEvent(QContextMenuEvent* event) override;

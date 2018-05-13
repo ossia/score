@@ -12,7 +12,7 @@ class AddRackToIntervalTest : public QObject
 {
   Q_OBJECT
 
-private Q_SLOTS:
+private:
   void CreateRackTest()
   {
     IntervalModel* interval = new IntervalModel{

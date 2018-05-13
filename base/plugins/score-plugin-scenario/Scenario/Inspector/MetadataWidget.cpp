@@ -21,6 +21,9 @@
 #include <score/model/ModelMetadata.hpp>
 #include <score/widgets/MarginLess.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::MetadataWidget)
+W_OBJECT_IMPL(Scenario::CommentEdit)
 namespace Scenario
 {
 auto colorPalette() -> color_widgets::ColorPaletteModel&

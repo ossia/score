@@ -13,6 +13,8 @@
 #include <Scenario/Inspector/TimeSync/TimeSyncSummaryWidget.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::SummaryInspectorWidget)
 namespace Scenario
 {
 SummaryInspectorWidget::SummaryInspectorWidget(

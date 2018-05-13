@@ -13,7 +13,7 @@ class TimeSyncModelTests : public QObject
   Q_OBJECT
 
 public:
-private Q_SLOTS:
+private:
   void AddEventTest()
   {
     TimeSyncModel model{Id<TimeSyncModel>(1),

@@ -1,5 +1,6 @@
 #pragma once
 #include <QObject>
+#include <wobjectdefs.h>
 #include <QStringList>
 #include <score/command/Command.hpp>
 #include <score/command/CommandGeneratorMap.hpp>

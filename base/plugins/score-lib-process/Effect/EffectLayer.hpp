@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/LayerPresenter.hpp>
+#include <wobjectdefs.h>
 #include <Process/LayerView.hpp>
 
 class QAction;
@@ -24,7 +25,7 @@ private:
 class SCORE_LIB_PROCESS_EXPORT EffectLayerPresenter final
     : public Process::LayerPresenter
 {
-  Q_OBJECT
+  W_OBJECT(EffectLayerPresenter)
 public:
   EffectLayerPresenter(
       const Process::ProcessModel& model,
@@ -47,8 +48,8 @@ public:
       QPointF scenepos,
       const Process::LayerContextMenuManager&) final override;
 
-private Q_SLOTS:
-  void closeUI();
+private:
+  void closeUI(); W_SLOT(closeUI);
 
 private:
   const Process::ProcessModel& m_layer;

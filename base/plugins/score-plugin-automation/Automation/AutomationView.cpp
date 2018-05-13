@@ -13,6 +13,8 @@
 #include <qnamespace.h>
 #include <score/model/Skin.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Automation::LayerView)
 namespace Automation
 {
 LayerView::LayerView(QGraphicsItem* parent) : Process::LayerView{parent}

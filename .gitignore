@@ -1,3 +1,6 @@
+*.AppImage
+*.txz
+*.AppDir
 wasm-release
 make-build
 cmake-build-debug

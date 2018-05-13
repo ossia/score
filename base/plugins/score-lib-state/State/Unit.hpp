@@ -3,6 +3,7 @@
 #include <memory>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score_lib_state_export.h>
+#include <wobjectdefs.h>
 
 namespace ossia
 {
@@ -12,7 +13,7 @@ namespace State
 {
 struct SCORE_LIB_STATE_EXPORT Unit
 {
-  Q_GADGET
+  W_GADGET(Unit)
 public:
   Unit() noexcept;
   Unit(const Unit& other) noexcept;
@@ -58,3 +59,4 @@ struct is_custom_serialized<ossia::unit_t> : public std::true_type
 };
 
 Q_DECLARE_METATYPE(State::Unit)
+W_REGISTER_ARGTYPE(State::Unit)

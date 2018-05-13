@@ -9,6 +9,9 @@
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/SettingsCommand.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Audio::Settings::Model)
+W_OBJECT_IMPL(Audio::Settings::View)
 namespace Audio::Settings
 {
 Presenter::Presenter(Model& m, View& v, QObject* parent)

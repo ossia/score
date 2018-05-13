@@ -35,6 +35,8 @@
 #include <tuple>
 #include <type_traits>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Loop::LayerPresenter)
 namespace Process
 {
 class ProcessModel;

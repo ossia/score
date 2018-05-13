@@ -1,5 +1,6 @@
 #pragma once
 #include <Recording/Record/RecordProviderFactory.hpp>
+#include <wobjectdefs.h>
 #include <Recording/Record/RecordTools.hpp>
 namespace Recording
 {
@@ -13,7 +14,7 @@ class MessageRecorder
     , public RecordProvider
     , public Nano::Observer
 {
-  Q_OBJECT
+  W_OBJECT(MessageRecorder)
 public:
   RecordContext& context;
 
@@ -22,8 +23,8 @@ public:
   bool setup(const Box&, const RecordListening&) override;
   void stop() override;
 
-Q_SIGNALS:
-  void firstMessageReceived();
+public:
+  void firstMessageReceived() W_SIGNAL(firstMessageReceived);
 
 private:
   void on_valueUpdated(const State::Address& addr, const ossia::value& val);

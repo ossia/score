@@ -1,5 +1,6 @@
 #pragma once
 #include <QWidget>
+#include <wobjectdefs.h>
 #include <utility>
 #include <vector>
 class QFormLayout;
@@ -10,7 +11,7 @@ namespace Scenario
 {
 class ExtendedMetadataWidget final : public QWidget
 {
-  Q_OBJECT
+  W_OBJECT(ExtendedMetadataWidget)
 public:
   ExtendedMetadataWidget(const QVariantMap& map, QWidget* parent);
 
@@ -20,8 +21,8 @@ public:
 
   QVariantMap currentMap() const;
 
-Q_SIGNALS:
-  void dataChanged();
+public:
+  void dataChanged() W_SIGNAL(dataChanged);
 
 private:
   std::pair<QLabel*, QLineEdit*>

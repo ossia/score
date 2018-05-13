@@ -1,6 +1,7 @@
 #pragma once
 #include <QMetaType>
 #include <QString>
+#include <wobjectdefs.h>
 
 namespace Engine
 {
@@ -14,3 +15,4 @@ struct LocalSpecificSettings
 }
 }
 Q_DECLARE_METATYPE(Engine::Network::LocalSpecificSettings)
+W_REGISTER_ARGTYPE(Engine::Network::LocalSpecificSettings)

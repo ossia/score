@@ -1,5 +1,6 @@
 #pragma once
 #include <Midi/MidiProcess.hpp>
+#include <wobjectdefs.h>
 #include <Process/LayerView.hpp>
 #include <QPainterPath>
 
@@ -8,7 +9,7 @@ namespace Midi
 class NoteView;
 class View final : public Process::LayerView
 {
-  Q_OBJECT
+  W_OBJECT(View)
 public:
   View(QGraphicsItem* parent);
 
@@ -24,8 +25,8 @@ public:
   NoteData noteAtPos(QPointF point) const;
   int visibleCount() const;
 
-Q_SIGNALS:
-  void deleteRequested();
+public:
+  void deleteRequested() W_SIGNAL(deleteRequested);
 
 private:
   bool canEdit() const;

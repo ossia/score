@@ -3,7 +3,10 @@
 #include "DocumentDelegatePresenter.hpp"
 
 #include <core/document/DocumentPresenter.hpp>
+#include <score/selection/Selection.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(score::DocumentDelegatePresenter)
 namespace score
 {
 DocumentDelegatePresenter::DocumentDelegatePresenter(

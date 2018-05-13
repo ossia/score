@@ -1,5 +1,6 @@
 #pragma once
 #include "ProcessComponent.hpp"
+#include <wobjectdefs.h>
 
 #include <ossia/editor/scenario/time_event.hpp>
 
@@ -17,7 +18,9 @@
 #include <score/tools/std/Optional.hpp>
 
 Q_DECLARE_METATYPE(std::shared_ptr<Engine::Execution::EventComponent>)
+W_REGISTER_ARGTYPE(std::shared_ptr<Engine::Execution::EventComponent>)
 Q_DECLARE_METATYPE(ossia::time_event::status)
+W_REGISTER_ARGTYPE(ossia::time_event::status)
 namespace Device
 {
 class DeviceList;
@@ -64,7 +67,7 @@ class IntervalComponent;
 class ScenarioComponentBase
     : public ProcessComponent_T<Scenario::ProcessModel, ossia::scenario>
 {
-  Q_OBJECT
+  W_OBJECT(ScenarioComponentBase)
   COMPONENT_METADATA("4e4b1c1a-1a2a-4ae6-a1a1-38d0900e74e8")
 
 public:
@@ -119,9 +122,9 @@ public:
   std::function<void()>
   removing(const Scenario::StateModel& e, StateComponent& c);
 
-Q_SIGNALS:
+public:
   void sig_eventCallback(
-      std::shared_ptr<EventComponent>, ossia::time_event::status st);
+      std::shared_ptr<EventComponent> arg_1, ossia::time_event::status st) W_SIGNAL(sig_eventCallback, arg_1, st);
 
 protected:
   void startIntervalExecution(const Id<Scenario::IntervalModel>&);

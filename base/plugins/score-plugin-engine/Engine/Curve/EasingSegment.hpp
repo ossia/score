@@ -188,6 +188,7 @@ inline void JSONObjectWriter::write(Engine::EasingCurve::EasingData& segmt)
 }
 
 Q_DECLARE_METATYPE(Engine::EasingCurve::EasingData)
+W_REGISTER_ARGTYPE(Engine::EasingCurve::EasingData)
 
 // cat easings | xargs -L1 bash -c 'echo $(uuidgen)' | paste - easings | sed
 // 's/\t/ /' > easings2

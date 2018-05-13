@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/dataflow/node_process.hpp>
+#include <wobjectdefs.h>
 
 #include <Engine/Executor/ProcessComponent.hpp>
 #include <Media/Effect/VST/VSTEffectModel.hpp>
@@ -10,7 +11,7 @@ class VSTEffectComponent final
     : public Engine::Execution::
           ProcessComponent_T<Media::VST::VSTEffectModel, ossia::node_process>
 {
-  Q_OBJECT
+  W_OBJECT(VSTEffectComponent)
   COMPONENT_METADATA("84bb8af9-bfb9-4819-8427-79787de716f3")
 
 public:

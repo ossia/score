@@ -37,7 +37,7 @@
 
 //  void dragEnterEvent(QDragEnterEvent* event) override;
 //  void dropEvent(QDropEvent*) override;
-// Q_SIGNALS:
+// public:
 //  void addressChanged(const State::Address&);
 
 // private:

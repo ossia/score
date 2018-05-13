@@ -1,5 +1,6 @@
 #pragma once
 #include <Media/AudioArray.hpp>
+#include <wobjectdefs.h>
 #include <Media/MediaFileHandle.hpp>
 #include <Process/LayerView.hpp>
 #include <Process/TimeValue.hpp>
@@ -13,7 +14,7 @@ namespace Sound
 class LayerView;
 struct WaveformComputer : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(WaveformComputer)
 public:
   enum action
   {
@@ -22,7 +23,7 @@ public:
     USE_NEXT,
     RECOMPUTE_ALL
   };
-  Q_ENUM(action)
+  W_ENUM(action, KEEP_CUR, USE_PREV, USE_NEXT, RECOMPUTE_ALL)
 
   LayerView& m_layer;
   WaveformComputer(LayerView& layer);
@@ -38,12 +39,12 @@ public:
     m_drawThread.wait();
   }
 
-Q_SIGNALS:
-  void recompute(const MediaFileHandle*, double);
-  void ready(QList<QPainterPath>, QPainterPath, double z);
+public:
+  void recompute(const MediaFileHandle* arg_1, double arg_2) W_SIGNAL(recompute, arg_1, arg_2);
+  void ready(QList<QPainterPath> arg_1, QPainterPath arg_2, double z) W_SIGNAL(ready, arg_1, arg_2, z);
 
-private Q_SLOTS:
-  void on_recompute(const MediaFileHandle* data, double ratio);
+private:
+  void on_recompute(const MediaFileHandle* data, double ratio); W_SLOT(on_recompute);
 
 private:
   // Returns what to do depending on current density and stored density
@@ -72,7 +73,7 @@ private:
 
 class LayerView final : public Process::LayerView
 {
-  Q_OBJECT
+  W_OBJECT(LayerView)
 
 public:
   explicit LayerView(QGraphicsItem* parent);

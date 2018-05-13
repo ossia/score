@@ -8,6 +8,8 @@
 #include <Scenario/Document/ModelConsistency.hpp>
 
 #define TIME_TOLERANCE_MSEC 0.5
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::IntervalDurations)
 namespace Scenario
 {
 IntervalDurations::~IntervalDurations()
