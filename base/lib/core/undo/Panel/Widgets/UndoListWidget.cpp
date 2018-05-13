@@ -6,6 +6,8 @@
 #include <core/command/CommandStack.hpp>
 #include <score/command/Command.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(score::UndoListWidget)
 namespace score
 {
 UndoListWidget::UndoListWidget(score::CommandStack& s) : m_stack{s}

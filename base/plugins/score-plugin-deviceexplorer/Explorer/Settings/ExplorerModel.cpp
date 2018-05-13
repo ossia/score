@@ -3,6 +3,7 @@
 #include "ExplorerModel.hpp"
 
 #include <QSettings>
+#include <wobjectimpl.h>
 
 namespace Explorer::Settings
 {

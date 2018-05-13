@@ -1,5 +1,6 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
+#include <wobjectdefs.h>
 #include <QObject>
 #include <score_plugin_deviceexplorer_export.h>
 namespace State
@@ -15,7 +16,7 @@ namespace Explorer
 {
 class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT ListeningHandler : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(ListeningHandler)
 public:
   virtual ~ListeningHandler();
   virtual void setListening(
@@ -30,11 +31,11 @@ public:
       Device::DeviceInterface& dev, const std::vector<State::Address>& v)
       = 0;
 
-Q_SIGNALS:
+public:
   // Will stop everything from listening
-  void stop();
+  void stop() W_SIGNAL(stop);
 
   // Will restore with the current state of the tree
-  void restore();
+  void restore() W_SIGNAL(restore);
 };
 }

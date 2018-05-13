@@ -15,8 +15,9 @@
 #include <QtGlobal>
 #include <Scenario/Document/Interval/IntervalView.hpp>
 #include <qnamespace.h>
-class QStyleOptionGraphicsItem;
-class QWidget;
+
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::FullViewIntervalView)
 
 namespace Scenario
 {

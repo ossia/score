@@ -44,6 +44,7 @@ J'ai apporté quelques modifications en plus.
 #include <qmenu.h>
 #include <qscopedpointer.h>
 #include <qstring.h>
+#include <wobjectdefs.h>
 #include <score_lib_device_export.h>
 // TODO put me in 3rdparty
 
@@ -53,7 +54,7 @@ class QWidget;
 
 class SCORE_LIB_DEVICE_EXPORT  ClickableMenu : public QMenu
 {
-        Q_OBJECT
+        W_OBJECT(ClickableMenu)
     public:
         using QMenu::QMenu;
         virtual ~ClickableMenu() = default;
@@ -62,7 +63,7 @@ class SCORE_LIB_DEVICE_EXPORT  ClickableMenu : public QMenu
 
 class SCORE_LIB_DEVICE_EXPORT QMenuView final : public ClickableMenu
 {
-        Q_OBJECT
+  W_OBJECT(QMenuView)
     public:
         QMenuView(QWidget * parent = nullptr);
         virtual ~QMenuView();
@@ -78,11 +79,13 @@ class SCORE_LIB_DEVICE_EXPORT QMenuView final : public ClickableMenu
         virtual void postPopulated();
         void createMenu(const QModelIndex &parent, QMenu& parentMenu, QMenu *menu = nullptr);
 
-    Q_SIGNALS:
-        void hovered(const QString &text) const;
-        void triggered(const QModelIndex & index) const;
+    public:
+        void hovered(const QString &text) const W_SIGNAL(hovered, text);
+        void triggered(const QModelIndex & index) const W_SIGNAL(triggered, index);
 
     private:
         QScopedPointer<QMenuViewPrivate> d;
         friend class QMenuViewPrivate;
 };
+
+W_REGISTER_ARGTYPE(QAction*)

@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/editor/curve/curve_segment.hpp>
+#include <wobjectdefs.h>
 
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
@@ -24,7 +25,7 @@ class SCORE_PLUGIN_CURVE_EXPORT SegmentModel
     : public IdentifiedObject<SegmentModel>
     , public score::SerializableInterface<SegmentFactory>
 {
-  Q_OBJECT
+  W_OBJECT(SegmentModel)
 
   SCORE_SERIALIZE_FRIENDS
 public:
@@ -102,12 +103,12 @@ public:
             toSegmentSpecificData()};
   }
 
-Q_SIGNALS:
-  void dataChanged();
-  void previousChanged();
-  void followingChanged();
-  void startChanged();
-  void endChanged();
+public:
+  void dataChanged() W_SIGNAL(dataChanged);
+  void previousChanged() W_SIGNAL(previousChanged);
+  void followingChanged() W_SIGNAL(followingChanged);
+  void startChanged() W_SIGNAL(startChanged);
+  void endChanged() W_SIGNAL(endChanged);
 
 protected:
   virtual void on_startChanged() = 0;
@@ -136,3 +137,7 @@ OBJECTKEY_METADATA(
     SCORE_PLUGIN_CURVE_EXPORT, Curve::SegmentModel, "CurveSegmentModel")
 
 extern template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::SegmentModel>;
+
+W_REGISTER_ARGTYPE(const Curve::SegmentModel&)
+W_REGISTER_ARGTYPE(Curve::SegmentModel)
+W_REGISTER_ARGTYPE(Id<Curve::SegmentModel>)

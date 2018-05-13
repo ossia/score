@@ -41,6 +41,9 @@
 #include <score/tools/std/Optional.hpp>
 #include <type_traits>
 #include <utility>
+
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Recording::MessageRecorder)
 namespace Recording
 {
 MessageRecorder::MessageRecorder(RecordContext& ctx) : context{ctx}

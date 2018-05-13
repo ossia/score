@@ -736,3 +736,5 @@ struct TSerializer<DataStream, std::pair<T, U>>
 
 Q_DECLARE_METATYPE(DataStreamReader*)
 Q_DECLARE_METATYPE(DataStreamWriter*)
+W_REGISTER_ARGTYPE(DataStreamReader*)
+W_REGISTER_ARGTYPE(DataStreamWriter*)

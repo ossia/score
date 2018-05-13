@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Device/Node/DeviceNode.hpp>
+#include <wobjectdefs.h>
 #include <Explorer/Explorer/ListeningManager.hpp>
 #include <QAbstractItemModel>
 #include <QGroupBox>
@@ -34,7 +35,7 @@ class DeviceExplorerView;
 class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerWidget final
     : public QWidget
 {
-  Q_OBJECT
+  W_OBJECT(DeviceExplorerWidget)
 
 public:
   explicit DeviceExplorerWidget(
@@ -124,7 +125,7 @@ private:
 
   QMetaObject::Connection m_addressCon;
 
-Q_SIGNALS:
-  void findAddresses(QStringList strlst);
+public:
+  void findAddresses(QStringList strlst) W_SIGNAL(findAddresses, strlst);
 };
 }

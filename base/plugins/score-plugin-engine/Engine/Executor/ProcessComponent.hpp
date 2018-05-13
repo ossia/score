@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/editor/scenario/time_process.hpp>
+#include <wobjectdefs.h>
 
 #include <Engine/Executor/Component.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
@@ -12,6 +13,7 @@
 #include <score_plugin_engine_export.h>
 
 Q_DECLARE_METATYPE(std::shared_ptr<Engine::Execution::ProcessComponent>)
+W_REGISTER_ARGTYPE(std::shared_ptr<Engine::Execution::ProcessComponent>)
 namespace ossia
 {
 class scenario;
@@ -39,7 +41,7 @@ class SCORE_PLUGIN_ENGINE_EXPORT ProcessComponent
     : public Process::GenericProcessComponent<const Context>
     , public std::enable_shared_from_this<ProcessComponent>
 {
-  Q_OBJECT
+  W_OBJECT(ProcessComponent)
   ABSTRACT_COMPONENT_METADATA(
       Engine::Execution::ProcessComponent,
       "d0f714de-c832-42d8-a605-60f5ffd0b7af")
@@ -72,8 +74,8 @@ public:
   }
 
   std::shared_ptr<ossia::graph_node> node;
-Q_SIGNALS:
-  void nodeChanged(ossia::node_ptr old_node, ossia::node_ptr new_node);
+public:
+  void nodeChanged(ossia::node_ptr old_node, ossia::node_ptr new_node) W_SIGNAL(nodeChanged, old_node, new_node);
 
 protected:
   std::shared_ptr<ossia::time_process> m_ossia_process;
@@ -150,3 +152,4 @@ public:
 };
 }
 }
+W_REGISTER_ARGTYPE(ossia::node_ptr)

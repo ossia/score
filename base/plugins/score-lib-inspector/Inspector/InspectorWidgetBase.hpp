@@ -1,5 +1,6 @@
 #pragma once
 #include <QColor>
+#include <wobjectdefs.h>
 #include <QLabel>
 #include <QString>
 #include <QWidget>
@@ -29,7 +30,7 @@ namespace Inspector
  */
 class SCORE_LIB_INSPECTOR_EXPORT InspectorWidgetBase : public QWidget
 {
-  Q_OBJECT
+  W_OBJECT(InspectorWidgetBase)
 public:
   /*!
    * \brief InspectorWidgetBase Constructor

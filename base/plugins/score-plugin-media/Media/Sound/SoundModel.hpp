@@ -1,5 +1,6 @@
 #pragma once
 #include <Media/MediaFileHandle.hpp>
+#include <wobjectdefs.h>
 #include <Media/Sound/SoundMetadata.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
@@ -20,11 +21,9 @@ class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Media::Sound::ProcessModel)
 
-  Q_OBJECT
-  Q_PROPERTY(int upmixChannels READ upmixChannels WRITE setUpmixChannels NOTIFY
-                 upmixChannelsChanged)
-  Q_PROPERTY(int startChannel READ startChannel WRITE setStartChannel NOTIFY
-                 startChannelChanged)
+  W_OBJECT(ProcessModel)
+  
+  
 public:
   explicit ProcessModel(
       const TimeVal& duration,
@@ -56,10 +55,10 @@ public:
   void setStartChannel(int startChannel);
 
   std::unique_ptr<Process::Outlet> outlet;
-Q_SIGNALS:
-  void fileChanged();
-  void upmixChannelsChanged(int upmixChannels);
-  void startChannelChanged(int startChannel);
+public:
+  void fileChanged() W_SIGNAL(fileChanged);
+  void upmixChannelsChanged(int upmixChannels) W_SIGNAL(upmixChannelsChanged, upmixChannels);
+  void startChannelChanged(int startChannel) W_SIGNAL(startChannelChanged, startChannel);
 
 private:
   void init();
@@ -67,6 +66,10 @@ private:
   MediaFileHandle m_file;
   int m_upmixChannels{};
   int m_startChannel{};
+
+W_PROPERTY(int, startChannel READ startChannel WRITE setStartChannel NOTIFY startChannelChanged)
+
+W_PROPERTY(int, upmixChannels READ upmixChannels WRITE setUpmixChannels NOTIFY upmixChannelsChanged)
 };
 }
 }

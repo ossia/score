@@ -1,6 +1,7 @@
 #pragma once
 #include <QDebug>
 #include <QPointF>
+#include <wobjectdefs.h>
 
 namespace Scenario
 {
@@ -58,3 +59,5 @@ inline QDebug operator<<(const QDebug& d, const VerticalExtent& ve)
   return d;
 }
 }
+Q_DECLARE_METATYPE(Scenario::VerticalExtent)
+W_REGISTER_ARGTYPE(Scenario::VerticalExtent)

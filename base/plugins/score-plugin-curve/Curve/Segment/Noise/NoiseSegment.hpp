@@ -56,3 +56,4 @@ public:
 }
 
 Q_DECLARE_METATYPE(Curve::NoiseSegmentData)
+W_REGISTER_ARGTYPE(Curve::NoiseSegmentData)

@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/editor/scenario/time_value.hpp>
+#include <wobjectdefs.h>
 #include <ossia/editor/state/state_element.hpp>
 
 #include <Engine/Executor/ProcessComponent.hpp>
@@ -12,6 +13,7 @@
 #include <score_plugin_engine_export.h>
 
 Q_DECLARE_METATYPE(ossia::time_value)
+W_REGISTER_ARGTYPE(ossia::time_value)
 namespace Process
 {
 class ProcessModel;
@@ -72,7 +74,7 @@ struct interval_duration_data
 class SCORE_PLUGIN_ENGINE_EXPORT IntervalComponentBase
     : public Scenario::GenericIntervalComponent<const Context>
 {
-  Q_OBJECT
+  W_OBJECT(IntervalComponentBase)
   COMMON_COMPONENT_METADATA("4d644678-1924-49bf-8c82-89841581d23f")
 public:
   using parent_t = Engine::Execution::Component;
@@ -143,7 +145,7 @@ protected:
 class SCORE_PLUGIN_ENGINE_EXPORT IntervalComponent final
     : public score::PolymorphicComponentHierarchy<IntervalComponentBase, false>
 {
-  Q_OBJECT
+  W_OBJECT(IntervalComponent)
 
 public:
   template <typename... Args>
@@ -177,10 +179,10 @@ public:
       std::shared_ptr<ossia::time_interval> ossia_cst,
       interval_duration_data dur);
 
-Q_SIGNALS:
-  void sig_callback(double position, ossia::time_value date);
-public Q_SLOTS:
-  void slot_callback(double position, ossia::time_value date);
+public:
+  void sig_callback(double position, ossia::time_value date) W_SIGNAL(sig_callback, position, date);
+public:
+  void slot_callback(double position, ossia::time_value date); W_SLOT(slot_callback);
 };
 }
 }

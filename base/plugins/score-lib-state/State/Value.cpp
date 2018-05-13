@@ -12,6 +12,10 @@
 #include <State/ValueConversion.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+
+#include <wobjectimpl.h>
+W_GADGET_IMPL(State::Unit)
+
 namespace State
 {
 SCORE_LIB_STATE_EXPORT QDebug& operator<<(QDebug& s, const Value& m)

@@ -21,6 +21,7 @@
 #include <Engine/Protocols/Local/LocalSpecificSettings.hpp>
 #include <Engine/score2OSSIA.hpp>
 #include <Explorer/DeviceList.hpp>
+#include <wobjectimpl.h>
 namespace Engine
 {
 namespace Network

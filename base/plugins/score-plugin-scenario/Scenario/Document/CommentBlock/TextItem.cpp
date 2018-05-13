@@ -8,6 +8,9 @@
 #include <QPainter>
 #include <QTextLayout>
 #include <score/widgets/GraphicsItem.hpp>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::TextItem)
+W_OBJECT_IMPL(Scenario::QGraphicsTextButton)
 namespace Scenario
 {
 

@@ -57,3 +57,4 @@ public:
 }
 
 Q_DECLARE_METATYPE(Curve::LinearSegmentData)
+W_REGISTER_ARGTYPE(Curve::LinearSegmentData)

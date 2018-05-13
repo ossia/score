@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/ExpandMode.hpp>
+#include <wobjectdefs.h>
 #include <QObject>
 #include <Scenario/Palette/Tool.hpp>
 #include <score_plugin_scenario_export.h>
@@ -7,14 +8,11 @@ namespace Scenario
 {
 class SCORE_PLUGIN_SCENARIO_EXPORT EditionSettings final : public QObject
 {
-  Q_OBJECT
-  Q_PROPERTY(ExpandMode expandMode READ expandMode WRITE setExpandMode NOTIFY
-                 expandModeChanged)
-  Q_PROPERTY(
-      LockMode lockMode READ lockMode WRITE setLockMode NOTIFY lockModeChanged)
-  Q_PROPERTY(Scenario::Tool tool READ tool WRITE setTool NOTIFY toolChanged)
-  Q_PROPERTY(
-      bool sequence READ sequence WRITE setSequence NOTIFY sequenceChanged)
+  W_OBJECT(EditionSettings)
+  
+  
+  
+  
 
   ExpandMode m_expandMode{ExpandMode::Scale};
   Scenario::Tool m_tool{Scenario::Tool::Select};
@@ -38,14 +36,22 @@ public:
 
   LockMode lockMode() const;
 
-public Q_SLOTS:
-  void setLockMode(LockMode lockMode);
+public:
+  void setLockMode(LockMode lockMode); W_SLOT(setLockMode);
 
-Q_SIGNALS:
-  void expandModeChanged(ExpandMode expandMode);
-  void toolChanged(Scenario::Tool tool);
-  void sequenceChanged(bool sequence);
+public:
+  void expandModeChanged(ExpandMode expandMode) W_SIGNAL(expandModeChanged, expandMode);
+  void toolChanged(Scenario::Tool tool) W_SIGNAL(toolChanged, tool);
+  void sequenceChanged(bool sequence) W_SIGNAL(sequenceChanged, sequence);
 
-  void lockModeChanged(LockMode lockMode);
+  void lockModeChanged(LockMode lockMode) W_SIGNAL(lockModeChanged, lockMode);
+
+W_PROPERTY(bool, sequence READ sequence WRITE setSequence NOTIFY sequenceChanged)
+
+W_PROPERTY(Scenario::Tool, tool READ tool WRITE setTool NOTIFY toolChanged)
+
+W_PROPERTY(LockMode, lockMode READ lockMode WRITE setLockMode NOTIFY lockModeChanged)
+
+W_PROPERTY(ExpandMode, expandMode READ expandMode WRITE setExpandMode NOTIFY expandModeChanged)
 };
 }

@@ -18,9 +18,8 @@
 #include <qnamespace.h>
 #include <score/model/Skin.hpp>
 
-class QStyleOptionGraphicsItem;
-class QWidget;
-
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::TimeRuler)
 namespace Scenario
 {
 

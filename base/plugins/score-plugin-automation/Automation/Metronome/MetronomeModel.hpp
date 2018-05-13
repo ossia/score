@@ -1,5 +1,6 @@
 #pragma once
 #include <Automation/Metronome/MetronomeProcessMetadata.hpp>
+#include <wobjectdefs.h>
 #include <Curve/Process/CurveProcessModel.hpp>
 #include <Process/TimeValue.hpp>
 #include <QByteArray>
@@ -18,12 +19,11 @@ class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Metronome::ProcessModel)
 
-  Q_OBJECT
-  Q_PROPERTY(State::Address address READ address WRITE setAddress NOTIFY
-                 addressChanged)
+  W_OBJECT(ProcessModel)
+  
   // Min and max to scale the curve with at execution
-  Q_PROPERTY(double min READ min WRITE setMin NOTIFY minChanged)
-  Q_PROPERTY(double max READ max WRITE setMax NOTIFY maxChanged)
+  
+  
 
 public:
   ProcessModel(
@@ -53,10 +53,10 @@ public:
   std::unique_ptr<Process::Outlet> outlet;
 
   void init();
-Q_SIGNALS:
-  void addressChanged(const State::Address&);
-  void minChanged(double);
-  void maxChanged(double);
+public:
+  void addressChanged(const State::Address& arg_1) W_SIGNAL(addressChanged, arg_1);
+  void minChanged(double arg_1) W_SIGNAL(minChanged, arg_1);
+  void maxChanged(double arg_1) W_SIGNAL(maxChanged, arg_1);
 
 private:
   //// ProcessModel ////
@@ -71,5 +71,11 @@ private:
 
   double m_min{};
   double m_max{};
+
+W_PROPERTY(double, max READ max WRITE setMax NOTIFY maxChanged)
+
+W_PROPERTY(double, min READ min WRITE setMin NOTIFY minChanged)
+
+W_PROPERTY(State::Address, address READ address WRITE setAddress NOTIFY addressChanged)
 };
 }

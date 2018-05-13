@@ -1,5 +1,22 @@
 #include "QmlObjects.hpp"
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(JS::Inlet)
+W_OBJECT_IMPL(JS::Outlet)
+W_OBJECT_IMPL(JS::ValueInlet)
+W_OBJECT_IMPL(JS::ValueOutlet)
+W_OBJECT_IMPL(JS::ControlInlet)
+W_OBJECT_IMPL(JS::MidiInlet)
+W_OBJECT_IMPL(JS::MidiOutlet)
+W_OBJECT_IMPL(JS::AudioInlet)
+W_OBJECT_IMPL(JS::AudioOutlet)
+W_OBJECT_IMPL(JS::FloatSlider)
+W_OBJECT_IMPL(JS::IntSlider)
+W_OBJECT_IMPL(JS::Enum)
+W_OBJECT_IMPL(JS::Toggle)
+W_OBJECT_IMPL(JS::LineEdit)
+W_GADGET_IMPL(JS::ValueMessage)
+W_GADGET_IMPL(JS::MidiMessage)
 namespace JS
 {
 

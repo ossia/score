@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Dataflow/Port.hpp>
+#include <wobjectdefs.h>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
 #include <QObject>
@@ -32,14 +33,13 @@ class SCORE_PLUGIN_SCENARIO_EXPORT IntervalModel final
     : public score::Entity<IntervalModel>
     , public Nano::Observer
 {
-  Q_OBJECT
+  W_OBJECT(IntervalModel)
 
   SCORE_SERIALIZE_FRIENDS
   friend struct IntervalSaveData;
   friend struct SlotPath;
-  Q_PROPERTY(double heightPercentage READ heightPercentage WRITE
-                 setHeightPercentage NOTIFY heightPercentageChanged)
-  Q_PROPERTY(double muted READ muted WRITE setMuted NOTIFY mutedChanged)
+
+
 
 public:
   std::unique_ptr<Process::Inlet> inlet;
@@ -142,31 +142,31 @@ public:
   }
   void setMuted(bool m);
 
-Q_SIGNALS:
-  void heightPercentageChanged(double);
+public:
+  void heightPercentageChanged(double arg_1) W_SIGNAL(heightPercentageChanged, arg_1);
 
-  void dateChanged(const TimeVal&);
+  void dateChanged(const TimeVal& arg_1) W_SIGNAL(dateChanged, arg_1);
 
-  void focusChanged(bool);
-  void executionStateChanged(Scenario::IntervalExecutionState);
-  void executionStarted();
-  void executionStopped();
-  void executionFinished();
+  void focusChanged(bool arg_1) W_SIGNAL(focusChanged, arg_1);
+  void executionStateChanged(Scenario::IntervalExecutionState arg_1) W_SIGNAL(executionStateChanged, arg_1);
+  void executionStarted() W_SIGNAL(executionStarted);
+  void executionStopped() W_SIGNAL(executionStopped);
+  void executionFinished() W_SIGNAL(executionFinished);
 
-  void smallViewVisibleChanged(bool fv);
+  void smallViewVisibleChanged(bool fv) W_SIGNAL(smallViewVisibleChanged, fv);
 
-  void rackChanged(Scenario::Slot::RackView fv);
-  void slotAdded(Scenario::SlotId);
-  void slotRemoved(Scenario::SlotId);
-  void slotResized(Scenario::SlotId);
-  void slotsSwapped(int slot1, int slot2, Slot::RackView fv);
-  void heightFinishedChanging();
+  void rackChanged(Scenario::Slot::RackView fv) W_SIGNAL(rackChanged, fv);
+  void slotAdded(Scenario::SlotId arg_1) W_SIGNAL(slotAdded, arg_1);
+  void slotRemoved(Scenario::SlotId arg_1) W_SIGNAL(slotRemoved, arg_1);
+  void slotResized(Scenario::SlotId arg_1) W_SIGNAL(slotResized, arg_1);
+  void slotsSwapped(int slot1, int slot2, Slot::RackView fv) W_SIGNAL(slotsSwapped, slot1, slot2, fv);
+  void heightFinishedChanging() W_SIGNAL(heightFinishedChanging);
 
-  void layerAdded(Scenario::SlotId, Id<Process::ProcessModel>);
-  void layerRemoved(Scenario::SlotId, Id<Process::ProcessModel>);
-  void frontLayerChanged(int, OptionalId<Process::ProcessModel>);
+  void layerAdded(Scenario::SlotId arg_1, Id<Process::ProcessModel> arg_2) W_SIGNAL(layerAdded, arg_1, arg_2);
+  void layerRemoved(Scenario::SlotId arg_1, Id<Process::ProcessModel> arg_2) W_SIGNAL(layerRemoved, arg_1, arg_2);
+  void frontLayerChanged(int arg_1, OptionalId<Process::ProcessModel> arg_2) W_SIGNAL(frontLayerChanged, arg_1, arg_2);
 
-  void mutedChanged(bool);
+  void mutedChanged(bool arg_1) W_SIGNAL(mutedChanged, arg_1);
 
 private:
   void on_addProcess(const Process::ProcessModel&);
@@ -190,6 +190,10 @@ private:
   IntervalExecutionState m_executionState{};
   bool m_smallViewShown{};
   bool m_muted{};
+
+W_PROPERTY(double, muted READ muted WRITE setMuted NOTIFY mutedChanged)
+
+W_PROPERTY(double, heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY heightPercentageChanged)
 };
 
 SCORE_PLUGIN_SCENARIO_EXPORT
@@ -203,4 +207,11 @@ DEFAULT_MODEL_METADATA(Scenario::IntervalModel, "Interval")
 Q_DECLARE_METATYPE(Id<Scenario::IntervalModel>)
 Q_DECLARE_METATYPE(Path<Scenario::IntervalModel>)
 Q_DECLARE_METATYPE(QPointer<const Scenario::IntervalModel>)
+
+W_REGISTER_ARGTYPE(Id<Scenario::IntervalModel>)
+W_REGISTER_ARGTYPE(OptionalId<Scenario::IntervalModel>)
+W_REGISTER_ARGTYPE(Path<Scenario::IntervalModel>)
+W_REGISTER_ARGTYPE(QPointer<const Scenario::IntervalModel>)
+W_REGISTER_ARGTYPE(Scenario::IntervalModel)
+W_REGISTER_ARGTYPE(Scenario::IntervalModel&)
 TR_TEXT_METADATA(, Scenario::IntervalModel, PrettyName_k, "Interval")

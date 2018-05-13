@@ -1,5 +1,6 @@
 #pragma once
 #include <Curve/Segment/CurveSegmentModel.hpp>
+#include <wobjectdefs.h>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/selection/Selection.hpp>
@@ -25,7 +26,7 @@ struct SegmentData;
 class SCORE_PLUGIN_CURVE_EXPORT Model final : public IdentifiedObject<Model>
 {
   SCORE_SERIALIZE_FRIENDS
-  Q_OBJECT
+  W_OBJECT(Model)
 public:
   Model(const Id<Model>&, QObject* parent);
 
@@ -71,18 +72,18 @@ public:
 
   double lastPointPos() const;
 
-Q_SIGNALS:
-  void segmentAdded(const SegmentModel&);
-  void segmentRemoved(const Id<SegmentModel>&); // dangerous if async
-  void pointAdded(const PointModel&);
-  void pointRemoved(const Id<PointModel>&); // dangerous if async
+public:
+  void segmentAdded(const SegmentModel& arg_1) W_SIGNAL(segmentAdded, arg_1);
+  void segmentRemoved(const Id<SegmentModel>& arg_1) W_SIGNAL(segmentRemoved, arg_1); // dangerous if async
+  void pointAdded(const PointModel& arg_1) W_SIGNAL(pointAdded, arg_1);
+  void pointRemoved(const Id<PointModel>& arg_1) W_SIGNAL(pointRemoved, arg_1); // dangerous if async
 
   // This signal has to be emitted after big modifications.
   // (it's an optimization to prevent updating the OSSIA API each time a
   // segment moves).
-  void changed();
-  void curveReset(); // like changed() but for the presenter
-  void cleared();
+  void changed() W_SIGNAL(changed);
+  void curveReset() W_SIGNAL(curveReset); // like changed() but for the presenter
+  void cleared() W_SIGNAL(cleared);
 
 private:
   void addPoint(PointModel* pt);

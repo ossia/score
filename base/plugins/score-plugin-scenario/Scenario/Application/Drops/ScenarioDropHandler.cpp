@@ -16,7 +16,7 @@ DropHandlerList::~DropHandlerList()
 bool DropHandlerList::dragEnter(
     const TemporalScenarioPresenter& scen,
     QPointF drop,
-    const QMimeData* mime) const
+    const QMimeData& mime) const
 {
   for (auto& fact : *this)
   {
@@ -30,7 +30,7 @@ bool DropHandlerList::dragEnter(
 bool DropHandlerList::dragMove(
     const TemporalScenarioPresenter& scen,
     QPointF drop,
-    const QMimeData* mime) const
+    const QMimeData& mime) const
 {
   for (auto& fact : *this)
   {
@@ -44,7 +44,7 @@ bool DropHandlerList::dragMove(
 bool DropHandlerList::dragLeave(
     const TemporalScenarioPresenter& scen,
     QPointF drop,
-    const QMimeData* mime) const
+    const QMimeData& mime) const
 {
   for (auto& fact : *this)
   {
@@ -58,7 +58,7 @@ bool DropHandlerList::dragLeave(
 bool DropHandlerList::drop(
     const TemporalScenarioPresenter& scen,
     QPointF drop,
-    const QMimeData* mime) const
+    const QMimeData& mime) const
 {
   for (auto& fact : *this)
   {
@@ -78,7 +78,7 @@ IntervalDropHandlerList::~IntervalDropHandlerList()
 }
 
 bool IntervalDropHandlerList::drop(
-    const Scenario::IntervalModel& cst, const QMimeData* mime) const
+    const Scenario::IntervalModel& cst, const QMimeData& mime) const
 {
   for (auto& fact : *this)
   {

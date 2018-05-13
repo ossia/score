@@ -5,6 +5,8 @@
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Device::DeviceInterface)
 namespace Device
 {
 struct DeviceSettings;

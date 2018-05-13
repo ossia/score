@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/TimeValue.hpp>
+#include <wobjectdefs.h>
 #include <QObject>
 #include <chrono>
 #include <score/serialization/DataStreamVisitor.hpp>
@@ -17,28 +18,11 @@ class IntervalModel;
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalDurations final : public QObject
 {
   // These dates are relative to the beginning of the interval.
-  Q_PROPERTY(TimeVal minDuration READ minDuration WRITE setMinDuration NOTIFY
-                 minDurationChanged FINAL)
-  Q_PROPERTY(TimeVal maxDuration READ maxDuration WRITE setMaxDuration NOTIFY
-                 maxDurationChanged FINAL)
-  Q_PROPERTY(TimeVal guiDuration READ guiDuration WRITE setGuiDuration NOTIFY
-                 guiDurationChanged FINAL)
-  Q_PROPERTY(double playPercentage READ playPercentage WRITE setPlayPercentage
-                 NOTIFY playPercentageChanged FINAL)
 
-  Q_PROPERTY(
-      bool isRigid READ isRigid WRITE setRigid NOTIFY rigidityChanged FINAL)
-  Q_PROPERTY(bool isMinNull READ isMinNull WRITE setMinNull NOTIFY
-                 minNullChanged FINAL)
-  Q_PROPERTY(bool isMaxInfinite READ isMaxInfinite WRITE setMaxInfinite NOTIFY
-                 maxInfiniteChanged FINAL)
-
-  Q_PROPERTY(double executionSpeed READ executionSpeed WRITE setExecutionSpeed
-                 NOTIFY executionSpeedChanged FINAL)
 
   SCORE_SERIALIZE_FRIENDS
 
-  Q_OBJECT
+  W_OBJECT(IntervalDurations)
 public:
   IntervalDurations(IntervalModel& model) : m_model{model}
   {
@@ -126,16 +110,16 @@ public:
     static void scaleAllDurations(IntervalModel& cstr, const TimeVal& time);
   };
 
-Q_SIGNALS:
-  void defaultDurationChanged(const TimeVal& arg);
-  void minDurationChanged(const TimeVal& arg);
-  void maxDurationChanged(const TimeVal& arg);
-  void playPercentageChanged(double arg);
-  void rigidityChanged(bool arg);
-  void minNullChanged(bool isMinNull);
-  void maxInfiniteChanged(bool isMaxInfinite);
-  void executionSpeedChanged(double executionSpeed);
-  void guiDurationChanged(TimeVal guiDuration);
+public:
+  void defaultDurationChanged(const TimeVal& arg) W_SIGNAL(defaultDurationChanged, arg);
+  void minDurationChanged(const TimeVal& arg) W_SIGNAL(minDurationChanged, arg);
+  void maxDurationChanged(const TimeVal& arg) W_SIGNAL(maxDurationChanged, arg);
+  void playPercentageChanged(double arg) W_SIGNAL(playPercentageChanged, arg);
+  void rigidityChanged(bool arg) W_SIGNAL(rigidityChanged, arg);
+  void minNullChanged(bool isMinNull) W_SIGNAL(minNullChanged, isMinNull);
+  void maxInfiniteChanged(bool isMaxInfinite) W_SIGNAL(maxInfiniteChanged, isMaxInfinite);
+  void executionSpeedChanged(double executionSpeed) W_SIGNAL(executionSpeedChanged, executionSpeed);
+  void guiDurationChanged(TimeVal guiDuration) W_SIGNAL(guiDurationChanged, guiDuration);
 
 private:
   IntervalModel& m_model;
@@ -150,5 +134,21 @@ private:
   bool m_rigidity{true};
   bool m_isMinNull{false};
   bool m_isMaxInfinite{false};
+
+W_PROPERTY(double, executionSpeed READ executionSpeed WRITE setExecutionSpeed NOTIFY executionSpeedChanged, W_Final)
+
+W_PROPERTY(bool, isMaxInfinite READ isMaxInfinite WRITE setMaxInfinite NOTIFY maxInfiniteChanged, W_Final)
+
+W_PROPERTY(bool, isMinNull READ isMinNull WRITE setMinNull NOTIFY minNullChanged, W_Final)
+
+W_PROPERTY(bool, isRigid READ isRigid WRITE setRigid NOTIFY rigidityChanged, W_Final)
+
+W_PROPERTY(double, playPercentage READ playPercentage WRITE setPlayPercentage NOTIFY playPercentageChanged, W_Final)
+
+W_PROPERTY(TimeVal, guiDuration READ guiDuration WRITE setGuiDuration NOTIFY guiDurationChanged, W_Final)
+
+W_PROPERTY(TimeVal, maxDuration READ maxDuration WRITE setMaxDuration NOTIFY maxDurationChanged, W_Final)
+
+W_PROPERTY(TimeVal, minDuration READ minDuration WRITE setMinDuration NOTIFY minDurationChanged, W_Final)
 };
 }

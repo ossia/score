@@ -1,5 +1,6 @@
 #pragma once
 #include <QPointer>
+#include <wobjectdefs.h>
 #include <QUuid>
 #include <State/Address.hpp>
 #include <score/model/IdentifiedObject.hpp>
@@ -50,10 +51,10 @@ struct SCORE_LIB_PROCESS_EXPORT CableData
 
 class SCORE_LIB_PROCESS_EXPORT Cable final : public IdentifiedObject<Cable>
 {
-  Q_OBJECT
-  Q_PROPERTY(CableType type READ type WRITE setType NOTIFY typeChanged)
-  Q_PROPERTY(Path<Process::Outlet> source READ source)
-  Q_PROPERTY(Path<Process::Inlet> sink READ sink)
+  W_OBJECT(Cable)
+
+
+
 public:
   Selectable selection;
   Cable() = delete;
@@ -77,14 +78,23 @@ public:
   Path<Process::Inlet> sink() const;
 
   void setType(CableType type);
-Q_SIGNALS:
-  void typeChanged(CableType type);
+public:
+  void typeChanged(CableType type) W_SIGNAL(typeChanged, type);
 
 private:
   CableType m_type{};
   Path<Process::Outlet> m_source;
   Path<Process::Inlet> m_sink;
+
+W_PROPERTY(Path<Process::Inlet>, sink READ sink)
+
+W_PROPERTY(Path<Process::Outlet>, source READ source)
+
+W_PROPERTY(CableType, type READ type WRITE setType NOTIFY typeChanged)
 };
 }
 
 DEFAULT_MODEL_METADATA(Process::Cable, "Cable")
+
+W_REGISTER_ARGTYPE(Id<Process::Cable>)
+W_REGISTER_ARGTYPE(Process::CableType)

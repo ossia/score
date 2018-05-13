@@ -20,9 +20,9 @@ namespace Midi
 bool DropMidiInSenario::drop(
     const Scenario::TemporalScenarioPresenter& pres,
     QPointF pos,
-    const QMimeData* mime)
+    const QMimeData& mime)
 {
-  auto song = MidiTrack::parse(*mime, pres.context().context);
+  auto song = MidiTrack::parse(mime, pres.context().context);
   if (song.tracks.empty())
     return false;
 

@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Focus/FocusDispatcher.hpp>
+#include <wobjectdefs.h>
 #include <QObject>
 #include <QPointer>
 
@@ -27,7 +28,7 @@ namespace Process
 {
 class ProcessFocusManager final : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(ProcessFocusManager)
 
 public:
   ProcessFocusManager(score::FocusManager& fmgr) : m_mgr{fmgr}
@@ -42,14 +43,14 @@ public:
 
   void focusNothing();
 
-Q_SIGNALS:
-  void sig_focusedPresenter(LayerPresenter*);
-  void sig_defocusedPresenter(LayerPresenter*);
+public:
+  void sig_focusedPresenter(LayerPresenter* arg_1) W_SIGNAL(sig_focusedPresenter, arg_1);
+  void sig_defocusedPresenter(LayerPresenter* arg_1) W_SIGNAL(sig_defocusedPresenter, arg_1);
 
-  void sig_defocusedViewModel(const ProcessModel*);
-  void sig_focusedViewModel(const ProcessModel*);
+  void sig_defocusedViewModel(const ProcessModel* arg_1) W_SIGNAL(sig_defocusedViewModel, arg_1);
+  void sig_focusedViewModel(const ProcessModel* arg_1) W_SIGNAL(sig_focusedViewModel, arg_1);
 
-  void sig_focusedRoot();
+  void sig_focusedRoot() W_SIGNAL(sig_focusedRoot);
 
 private:
   void focusPresenter(LayerPresenter*);

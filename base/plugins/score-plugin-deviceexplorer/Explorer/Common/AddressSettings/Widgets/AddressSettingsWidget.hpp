@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Device/Address/AddressSettings.hpp>
+#include <wobjectdefs.h>
 #include <QComboBox>
 #include <QLabel>
 #include <QWidget>
@@ -54,7 +55,7 @@ private:
 
 class AccessModeComboBox final : public QComboBox
 {
-  Q_OBJECT
+  W_OBJECT(AccessModeComboBox)
 public:
   AccessModeComboBox(QWidget* parent);
   virtual ~AccessModeComboBox();
@@ -62,13 +63,13 @@ public:
   ossia::access_mode get() const;
   void set(ossia::access_mode t);
 
-Q_SIGNALS:
-  void changed(ossia::access_mode);
+public:
+  void changed(ossia::access_mode arg_1) W_SIGNAL(changed, arg_1);
 };
 
 class BoundingModeComboBox final : public QComboBox
 {
-  Q_OBJECT
+  W_OBJECT(BoundingModeComboBox)
 public:
   BoundingModeComboBox(QWidget* parent);
   virtual ~BoundingModeComboBox();
@@ -76,8 +77,8 @@ public:
   ossia::bounding_mode get() const;
   void set(ossia::bounding_mode t);
 
-Q_SIGNALS:
-  void changed(ossia::bounding_mode);
+public:
+  void changed(ossia::bounding_mode arg_1) W_SIGNAL(changed, arg_1);
 };
 
 inline QLabel* makeLabel(QString text, QWidget* parent)

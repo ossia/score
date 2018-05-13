@@ -14,10 +14,10 @@
 #include <qnamespace.h>
 #include <score/selection/Selectable.hpp>
 #include <score/tools/Todo.hpp>
-
-class QStyleOptionGraphicsItem;
-class QWidget;
 #include <score/model/Identifier.hpp>
+
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Curve::PointView)
 namespace Curve
 {
 static const qreal radius = 2.85;

@@ -9,6 +9,8 @@
 #include <QGraphicsSceneEvent>
 #include <QtGlobal>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::IntervalView)
 namespace Scenario
 {
 IntervalView::IntervalView(IntervalPresenter& presenter, QGraphicsItem* parent)

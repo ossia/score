@@ -1,5 +1,6 @@
 #pragma once
 #include <score/plugins/ProjectSettings/ProjectSettingsModel.hpp>
+#include <wobjectdefs.h>
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 #include <score_plugin_deviceexplorer_export.h>
 namespace Explorer::Settings
@@ -18,11 +19,9 @@ struct DeviceLogLevel
 class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT Model
     : public score::SettingsDelegateModel
 {
-  Q_OBJECT
-  Q_PROPERTY(bool LocalTree READ getLocalTree WRITE setLocalTree NOTIFY
-                 LocalTreeChanged)
-  Q_PROPERTY(QString logLevel READ getLogLevel WRITE setLogLevel NOTIFY
-                 LogLevelChanged)
+  W_OBJECT(Model)
+  
+  
   bool m_LocalTree = false;
   QString m_LogLevel;
 
@@ -31,6 +30,10 @@ public:
 
   SCORE_SETTINGS_PARAMETER_HPP(bool, LocalTree)
   SCORE_SETTINGS_PARAMETER_HPP(QString, LogLevel)
+
+W_PROPERTY(QString, logLevel READ getLogLevel WRITE setLogLevel NOTIFY LogLevelChanged)
+
+W_PROPERTY(bool, LocalTree READ getLocalTree WRITE setLocalTree NOTIFY LocalTreeChanged)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, LogLevel)
@@ -53,16 +56,13 @@ namespace Explorer::ProjectSettings
 class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT Model final
     : public score::ProjectSettingsModel
 {
-  Q_OBJECT
+  W_OBJECT(Model)
   SCORE_SERIALIZE_FRIENDS
   MODEL_METADATA_IMPL(Model)
 
-  Q_PROPERTY(bool RefreshOnStart READ getRefreshOnStart WRITE setRefreshOnStart
-                 NOTIFY RefreshOnStartChanged)
-  Q_PROPERTY(bool ReconnectOnStart READ getReconnectOnStart WRITE
-                 setReconnectOnStart NOTIFY ReconnectOnStartChanged)
-  Q_PROPERTY(qreal MidiImportRatio READ getMidiImportRatio WRITE
-                 setMidiImportRatio NOTIFY MidiImportRatioChanged)
+  
+  
+  
   qreal m_MidiImportRatio = 1.;
   bool m_RefreshOnStart = false;
   bool m_ReconnectOnStart = false;
@@ -81,6 +81,12 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(qreal, MidiImportRatio)
   SCORE_SETTINGS_PARAMETER_HPP(bool, RefreshOnStart)
   SCORE_SETTINGS_PARAMETER_HPP(bool, ReconnectOnStart)
+
+W_PROPERTY(qreal, MidiImportRatio READ getMidiImportRatio WRITE setMidiImportRatio NOTIFY MidiImportRatioChanged)
+
+W_PROPERTY(bool, ReconnectOnStart READ getReconnectOnStart WRITE setReconnectOnStart NOTIFY ReconnectOnStartChanged)
+
+W_PROPERTY(bool, RefreshOnStart READ getRefreshOnStart WRITE setRefreshOnStart NOTIFY RefreshOnStartChanged)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, MidiImportRatio)

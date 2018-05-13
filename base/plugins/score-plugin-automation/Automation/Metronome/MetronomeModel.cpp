@@ -29,6 +29,8 @@
 #include <score/tools/MapCopy.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Metronome::ProcessModel)
 namespace Process
 {
 class ProcessModel;

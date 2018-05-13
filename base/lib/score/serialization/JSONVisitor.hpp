@@ -635,3 +635,6 @@ void fromJsonArray(
 
 Q_DECLARE_METATYPE(JSONObjectReader*)
 Q_DECLARE_METATYPE(JSONObjectWriter*)
+W_REGISTER_ARGTYPE(JSONObjectReader*)
+W_REGISTER_ARGTYPE(JSONObjectWriter*)
+

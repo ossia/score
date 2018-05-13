@@ -53,7 +53,8 @@
 #include <score/serialization/MimeVisitor.hpp>
 #include <string>
 #include <vector>
-
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Explorer::DeviceExplorerModel)
 namespace Explorer
 {
 static const QMap<Explorer::Column, QString> HEADERS{

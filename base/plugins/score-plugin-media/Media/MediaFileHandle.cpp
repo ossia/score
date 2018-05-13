@@ -7,6 +7,8 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/File.hpp>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Media::MediaFileHandle)
 namespace Media
 {
 void MediaFileHandle::load(

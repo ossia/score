@@ -221,3 +221,5 @@ bool operator<(const Device::Node& lhs, const Device::Node& rhs);
 
 extern template class TreeNode<Device::DeviceExplorerNode>;
 extern template class boost::container::stable_vector<Device::Node>;
+
+W_REGISTER_ARGTYPE(Device::Node*)

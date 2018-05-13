@@ -1,11 +1,12 @@
 #pragma once
 #include <Automation/Color/GradientAutomModel.hpp>
+#include <wobjectdefs.h>
 #include <Process/LayerView.hpp>
 namespace Gradient
 {
 class View final : public Process::LayerView
 {
-  Q_OBJECT
+  W_OBJECT(View)
 public:
   View(QGraphicsItem* parent);
 
@@ -17,10 +18,10 @@ public:
     return m_dataWidth;
   }
 
-Q_SIGNALS:
-  void setColor(double pos, QColor);
-  void movePoint(double old, double cur);
-  void removePoint(double pos);
+public:
+  void setColor(double pos, QColor arg_2) W_SIGNAL(setColor, pos, arg_2);
+  void movePoint(double old, double cur) W_SIGNAL(movePoint, old, cur);
+  void removePoint(double pos) W_SIGNAL(removePoint, pos);
 
 private:
   void paint_impl(QPainter*) const override;

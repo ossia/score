@@ -38,6 +38,8 @@
 #include <tuple>
 #include <type_traits>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::DisplayedElementsPresenter)
 namespace Scenario
 {
 class DisplayedElementsModel;

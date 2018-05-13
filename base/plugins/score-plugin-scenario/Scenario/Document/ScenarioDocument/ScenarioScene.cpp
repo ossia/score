@@ -3,6 +3,8 @@
 #include "ScenarioScene.hpp"
 
 #include <QWidget>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::ScenarioScene)
 namespace Scenario
 {
 

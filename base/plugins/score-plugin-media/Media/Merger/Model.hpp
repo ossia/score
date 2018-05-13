@@ -1,5 +1,6 @@
 #pragma once
 #include <Media/Merger/Metadata.hpp>
+#include <wobjectdefs.h>
 #include <Process/Process.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
@@ -14,9 +15,8 @@ class Model final : public Process::ProcessModel
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Media::Merger::Model)
 
-  Q_OBJECT
-  Q_PROPERTY(
-      quint64 inCount READ inCount WRITE setInCount NOTIFY inCountChanged)
+  W_OBJECT(Model)
+  
 public:
   explicit Model(
       const TimeVal& duration,
@@ -34,14 +34,16 @@ public:
 
   quint64 inCount() const;
 
-Q_SIGNALS:
-  void inCountChanged(quint64);
+public:
+  void inCountChanged(quint64 arg_1) W_SIGNAL(inCountChanged, arg_1);
 
-public Q_SLOTS:
-  void setInCount(quint64 s);
+public:
+  void setInCount(quint64 s); W_SLOT(setInCount);
 
 private:
   quint64 m_inCount{};
+
+W_PROPERTY(quint64, inCount READ inCount WRITE setInCount NOTIFY inCountChanged)
 };
 }
 }

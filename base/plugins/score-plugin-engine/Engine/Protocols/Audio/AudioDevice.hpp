@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/audio/audio_protocol.hpp>
+#include <wobjectdefs.h>
 
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
@@ -42,7 +43,7 @@ class AudioProtocolFactory final : public Device::ProtocolFactory
 
 class AudioDevice final : public Engine::Network::OSSIADevice
 {
-  Q_OBJECT
+  W_OBJECT(AudioDevice)
 public:
   AudioDevice(const Device::DeviceSettings& settings);
   ~AudioDevice();

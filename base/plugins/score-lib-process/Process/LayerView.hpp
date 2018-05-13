@@ -1,8 +1,10 @@
 #pragma once
 #include <QGraphicsItem>
+#include <wobjectdefs.h>
 #include <QGraphicsSceneDragDropEvent>
 #include <QRect>
 #include <QtGlobal>
+#include <score/widgets/MimeData.hpp>
 #include <score_lib_process_export.h>
 
 class QPainter;
@@ -15,7 +17,7 @@ class SCORE_LIB_PROCESS_EXPORT LayerView
     : public QObject
     , public QGraphicsItem
 {
-  Q_OBJECT
+  W_OBJECT(LayerView)
   Q_INTERFACES(QGraphicsItem)
 public:
   LayerView(QGraphicsItem* parent);
@@ -38,18 +40,18 @@ public:
 
   void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
 
-Q_SIGNALS:
-  void heightChanged();
-  void widthChanged();
+public:
+  void heightChanged() W_SIGNAL(heightChanged);
+  void widthChanged() W_SIGNAL(widthChanged);
 
-  void pressed(QPointF);
-  void released(QPointF);
-  void moved(QPointF);
-  void doubleClicked(QPointF);
+  void pressed(QPointF arg_1) W_SIGNAL(pressed, arg_1);
+  void released(QPointF arg_1) W_SIGNAL(released, arg_1);
+  void moved(QPointF arg_1) W_SIGNAL(moved, arg_1);
+  void doubleClicked(QPointF arg_1) W_SIGNAL(doubleClicked, arg_1);
 
   // Screen pos, scene pos
-  void askContextMenu(const QPoint&, const QPointF&);
-  void dropReceived(const QPointF& pos, const QMimeData&);
+  void askContextMenu(const QPoint& arg_1, const QPointF& arg_2) W_SIGNAL(askContextMenu, arg_1, arg_2);
+  void dropReceived(const QPointF& pos, const QMimeData& arg_2) W_SIGNAL(dropReceived, pos, arg_2);
 
 protected:
   virtual void paint_impl(QPainter*) const = 0;

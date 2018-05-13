@@ -12,6 +12,7 @@
 #include <QString>
 #include <QVariant>
 #include <memory>
+#include <wobjectimpl.h>
 
 namespace Engine
 {

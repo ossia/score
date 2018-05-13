@@ -1,5 +1,6 @@
 #pragma once
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
+#include <wobjectdefs.h>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
 class score_plugin_library

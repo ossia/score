@@ -38,6 +38,8 @@
 #endif
 #include <Process/Style/ScenarioStyle.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::ScenarioDocumentView)
 namespace Scenario
 {
 ScenarioDocumentView::ScenarioDocumentView(

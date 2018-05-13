@@ -20,5 +20,5 @@ set(SRCS
 add_library(${PROJECT_NAME} ${HDRS} ${SRCS})
 target_link_libraries(${PROJECT_NAME} PUBLIC score_lib_inspector)
 
-score_moc_headers(${PROJECT_NAME} "${HDRS}")
+score_moc_headers(${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/score_plugin_inspector.hpp")
 setup_score_plugin(score_plugin_inspector)

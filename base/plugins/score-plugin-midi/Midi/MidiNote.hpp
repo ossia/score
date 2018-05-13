@@ -1,5 +1,6 @@
 #pragma once
 #include <score/model/IdentifiedObject.hpp>
+#include <wobjectdefs.h>
 #include <score/selection/Selectable.hpp>
 
 namespace Midi
@@ -82,7 +83,7 @@ struct NoteComparator
  */
 class Note final : public IdentifiedObject<Note>
 {
-  Q_OBJECT
+  W_OBJECT(Note)
 
 public:
   Selectable selection;
@@ -120,8 +121,8 @@ public:
 
   void setData(NoteData d);
 
-Q_SIGNALS:
-  void noteChanged();
+public:
+  void noteChanged() W_SIGNAL(noteChanged);
 
 private:
   double m_start{};

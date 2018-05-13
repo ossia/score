@@ -24,7 +24,8 @@
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <tuple>
-
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Loop::ProcessModel)
 namespace Loop
 {
 ProcessModel::ProcessModel(

@@ -1,5 +1,6 @@
 #pragma once
 #include <Automation/Color/GradientAutomMetadata.hpp>
+#include <wobjectdefs.h>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
 #include <State/Address.hpp>
@@ -15,15 +16,14 @@ class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Gradient::ProcessModel)
 
-  Q_OBJECT
-  Q_PROPERTY(bool tween READ tween WRITE setTween NOTIFY tweenChanged)
+  W_OBJECT(ProcessModel)
 
 public:
   ProcessModel(
       const TimeVal& duration,
       const Id<Process::ProcessModel>& id,
       QObject* parent);
-  ~ProcessModel();
+  ~ProcessModel() override;
 
   template <typename Impl>
   ProcessModel(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
@@ -50,9 +50,9 @@ public:
 
   std::unique_ptr<Process::Outlet> outlet;
 
-Q_SIGNALS:
-  void tweenChanged(bool tween);
-  void gradientChanged();
+public:
+  void tweenChanged(bool tween) W_SIGNAL(tweenChanged, tween);
+  void gradientChanged() W_SIGNAL(gradientChanged);
 
 private:
   //// ProcessModel ////
@@ -66,5 +66,7 @@ private:
   boost::container::flat_map<double, QColor> m_colors;
 
   bool m_tween = false;
+
+W_PROPERTY(bool, tween READ tween WRITE setTween NOTIFY tweenChanged)
 };
 }

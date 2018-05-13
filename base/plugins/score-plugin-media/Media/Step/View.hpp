@@ -1,5 +1,6 @@
 #pragma once
 #include <Automation/AutomationColors.hpp>
+#include <wobjectdefs.h>
 #include <Media/Step/Model.hpp>
 #include <Process/LayerView.hpp>
 #include <QGraphicsSceneMouseEvent>
@@ -12,7 +13,7 @@ namespace Step
 
 class View final : public Process::LayerView
 {
-  Q_OBJECT
+  W_OBJECT(View)
 public:
   explicit View(QGraphicsItem* parent) : Process::LayerView{parent}
   {
@@ -26,8 +27,8 @@ public:
   }
   const Model* m_model{};
 
-Q_SIGNALS:
-  void change(int, float);
+public:
+  void change(int arg_1, float arg_2) W_SIGNAL(change, arg_1, arg_2);
 
 private:
   void paint_impl(QPainter* p) const override

@@ -34,6 +34,8 @@
 #include <score/selection/Selectable.hpp>
 #include <score/tools/Todo.hpp>
 #include <score/widgets/GraphicsItem.hpp>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::TemporalIntervalPresenter)
 
 namespace Scenario
 {
@@ -96,7 +98,7 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
 
   // Drop
   con(v, &TemporalIntervalView::dropReceived, this,
-      [=](const QPointF& pos, const QMimeData* mime) {
+      [=](const QPointF& pos, const QMimeData& mime) {
         m_context.app.interfaces<Scenario::IntervalDropHandlerList>().drop(
             m_model, mime);
       });
@@ -119,7 +121,7 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
 
   connect(
       head, &TemporalIntervalHeader::dropReceived, this,
-      [=](const QPointF& pos, const QMimeData* mime) {
+      [=](const QPointF& pos, const QMimeData& mime) {
         m_context.app.interfaces<Scenario::IntervalDropHandlerList>().drop(
             m_model, mime);
       });

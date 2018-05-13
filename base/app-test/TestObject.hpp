@@ -30,10 +30,10 @@ public:
     connect(this, SIGNAL(appStarting()), this, SLOT(appStarted()));
   }
 
-Q_SIGNALS:
+public:
   void appStarting();
 
-public Q_SLOTS:
+public:
   void appStarted()
   {
     QDirIterator it("testdata/stacks/");

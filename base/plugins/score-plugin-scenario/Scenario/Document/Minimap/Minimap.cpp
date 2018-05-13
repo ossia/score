@@ -9,6 +9,8 @@
 #include <QPainter>
 #include <QWidget>
 #include <Scenario/Document/Minimap/Minimap.hpp>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::Minimap)
 namespace Scenario
 {
 Minimap::Minimap(QGraphicsView* vp) : m_viewport{vp}

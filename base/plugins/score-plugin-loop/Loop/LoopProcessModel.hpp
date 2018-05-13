@@ -1,5 +1,6 @@
 #pragma once
 #include <Loop/LoopProcessMetadata.hpp>
+#include <wobjectdefs.h>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
 #include <QByteArray>
@@ -26,7 +27,7 @@ class SCORE_PLUGIN_LOOP_EXPORT ProcessModel final
     : public Process::ProcessModel
     , public Scenario::BaseScenarioContainer
 {
-  Q_OBJECT
+  W_OBJECT(ProcessModel)
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Loop::ProcessModel)
 

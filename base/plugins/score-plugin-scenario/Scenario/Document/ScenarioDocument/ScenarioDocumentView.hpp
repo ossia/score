@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Tools/ProcessGraphicsView.hpp>
+#include <wobjectdefs.h>
 #include <Scenario/Document/Minimap/Minimap.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioScene.hpp>
 #include <Scenario/Document/ScenarioDocument/TimeBar.hpp>
@@ -26,7 +27,7 @@ class ScenarioScene;
 class TimeRuler;
 class ScenarioDocumentView final : public score::DocumentDelegateView
 {
-  Q_OBJECT
+  W_OBJECT(ScenarioDocumentView)
 
 public:
   ScenarioDocumentView(
@@ -75,9 +76,9 @@ public:
   QRectF viewportRect() const;
   QRectF visibleSceneRect() const;
 
-Q_SIGNALS:
-  void elementsScaleChanged(double);
-  void setLargeView();
+public:
+  void elementsScaleChanged(double arg_1) W_SIGNAL(elementsScaleChanged, arg_1);
+  void setLargeView() W_SIGNAL(setLargeView);
 
 private:
   QWidget* m_widget{};

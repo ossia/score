@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Layer/LayerContextMenu.hpp>
+#include <wobjectdefs.h>
 #include <QVector>
 #include <Scenario/Application/Menus/ObjectMenuActions.hpp>
 #include <Scenario/Application/Menus/ToolMenuActions.hpp>
@@ -36,7 +37,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final
     : public QObject
     , public score::GUIApplicationPlugin
 {
-  Q_OBJECT
+  W_OBJECT(ScenarioApplicationPlugin)
   friend class ScenarioContextMenuManager;
 
 public:
@@ -69,9 +70,9 @@ public:
     return m_execution;
   }
 
-Q_SIGNALS:
-  void keyPressed(int);
-  void keyReleased(int);
+public:
+  void keyPressed(int arg_1) W_SIGNAL(keyPressed, arg_1);
+  void keyReleased(int arg_1) W_SIGNAL(keyReleased, arg_1);
 
 private:
   void prepareNewDocument() override;

@@ -203,7 +203,7 @@ class ExpressionParsingTests : public QObject
 {
   Q_OBJECT
 public:
-private Q_SLOTS:
+private:
 
   void test_parse_impulse()
   {

@@ -1,5 +1,6 @@
 #pragma once
 #include <Midi/MidiNote.hpp>
+#include <wobjectdefs.h>
 #include <Midi/MidiProcessMetadata.hpp>
 #include <Process/Process.hpp>
 #include <score/tools/Clamp.hpp>
@@ -11,7 +12,7 @@ class SCORE_PLUGIN_MIDI_EXPORT ProcessModel final
     : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
-  Q_OBJECT
+  W_OBJECT(ProcessModel)
 
 public:
   PROCESS_METADATA_IMPL(Midi::ProcessModel)
@@ -84,12 +85,12 @@ public:
 
   std::unique_ptr<Process::Outlet> outlet;
 
-Q_SIGNALS:
-  void notesChanged();
-  void deviceChanged(const QString&);
-  void channelChanged(int);
+public:
+  void notesChanged() W_SIGNAL(notesChanged);
+  void deviceChanged(const QString& arg_1) W_SIGNAL(deviceChanged, arg_1);
+  void channelChanged(int arg_1) W_SIGNAL(channelChanged, arg_1);
 
-  void rangeChanged(int, int);
+  void rangeChanged(int arg_1, int arg_2) W_SIGNAL(rangeChanged, arg_1, arg_2);
 
 private:
   void setDurationAndScale(const TimeVal& newDuration) override;

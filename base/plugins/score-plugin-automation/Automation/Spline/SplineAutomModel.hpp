@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/dataflow/nodes/spline.hpp>
+#include <wobjectdefs.h>
 
 #include <Automation/Spline/SplineAutomMetadata.hpp>
 #include <Process/Process.hpp>
@@ -17,11 +18,10 @@ class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Spline::ProcessModel)
 
-  Q_OBJECT
-  Q_PROPERTY(State::AddressAccessor address READ address WRITE setAddress
-                 NOTIFY addressChanged)
-  Q_PROPERTY(bool tween READ tween WRITE setTween NOTIFY tweenChanged)
-  Q_PROPERTY(State::Unit unit READ unit WRITE setUnit NOTIFY unitChanged)
+  W_OBJECT(ProcessModel)
+  
+  
+  
 
 public:
   ProcessModel(
@@ -73,11 +73,11 @@ public:
 
   std::unique_ptr<Process::Outlet> outlet;
 
-Q_SIGNALS:
-  void addressChanged(const ::State::AddressAccessor&);
-  void tweenChanged(bool tween);
-  void unitChanged(const State::Unit&);
-  void splineChanged();
+public:
+  void addressChanged(const ::State::AddressAccessor& arg_1) W_SIGNAL(addressChanged, arg_1);
+  void tweenChanged(bool tween) W_SIGNAL(tweenChanged, tween);
+  void unitChanged(const State::Unit& arg_1) W_SIGNAL(unitChanged, arg_1);
+  void splineChanged() W_SIGNAL(splineChanged);
 
 private:
   //// ProcessModel ////
@@ -91,5 +91,11 @@ private:
   ossia::nodes::spline_data m_spline;
 
   bool m_tween = false;
+
+W_PROPERTY(State::Unit, unit READ unit WRITE setUnit NOTIFY unitChanged)
+
+W_PROPERTY(bool, tween READ tween WRITE setTween NOTIFY tweenChanged)
+
+W_PROPERTY(State::AddressAccessor, address READ address WRITE setAddress NOTIFY addressChanged)
 };
 }

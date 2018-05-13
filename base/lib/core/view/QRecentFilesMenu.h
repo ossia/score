@@ -24,12 +24,10 @@ SOFTWARE.
 */
 #include <QMenu>
 #include <QStringList>
-
+#include <wobjectdefs.h>
 class QRecentFilesMenu final : public QMenu
 {
-    Q_OBJECT
-    Q_PROPERTY(int maxCount READ maxCount WRITE setMaxCount)
-    Q_PROPERTY(QString format READ format WRITE setFormat)
+    W_OBJECT(QRecentFilesMenu)
 public:
     //! Constructs a menu with parent parent.
     QRecentFilesMenu(QWidget * parent = 0 );
@@ -68,7 +66,6 @@ public:
      */
     bool restoreState(const QByteArray &state);
 
-public Q_SLOTS:
     //!
     void addRecentFile(const QString &fileName);
 
@@ -77,17 +74,19 @@ public Q_SLOTS:
 
     //! Sets the maximum number of entries int he menu.
     void setMaxCount(int);
-Q_SIGNALS:
+public:
     //! This signal is emitted when a recent file in this menu is triggered.
-    void recentFileTriggered(const QString & filename);
+    void recentFileTriggered(const QString & filename) W_SIGNAL(recentFileTriggered, filename);
 
-private Q_SLOTS:
+private:
     void menuTriggered(QAction*);
     void updateRecentFileActions();
-private:
-    int m_maxCount;
+
+    int m_maxCount{};
     QString m_format;
     QStringList m_files;
+    W_PROPERTY(int, maxCount READ maxCount WRITE setMaxCount)
+    W_PROPERTY(QString, format READ format WRITE setFormat)
 };
 
 #endif // QRECENTFILEMENU_H

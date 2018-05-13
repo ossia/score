@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/LayerPresenter.hpp>
+#include <wobjectdefs.h>
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
 #include <QObject>
@@ -21,7 +22,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsPresenter final
           DisplayedElementsModel,
           FullViewIntervalPresenter>
 {
-  Q_OBJECT
+  W_OBJECT(DisplayedElementsPresenter)
 public:
   DisplayedElementsPresenter(ScenarioDocumentPresenter& parent);
   ~DisplayedElementsPresenter();
@@ -40,8 +41,8 @@ public:
   void on_displayedIntervalDurationChanged(TimeVal);
   void on_displayedIntervalHeightChanged(double);
 
-Q_SIGNALS:
-  void requestFocusedPresenterChange(Process::LayerPresenter*);
+public:
+  void requestFocusedPresenterChange(Process::LayerPresenter* arg_1) W_SIGNAL(requestFocusedPresenterChange, arg_1);
 
 private:
   void on_intervalExecutionTimer();

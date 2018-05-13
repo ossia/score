@@ -13,9 +13,8 @@
 #include <QVector>
 #include <qnamespace.h>
 
-class QStyleOptionGraphicsItem;
-class QWidget;
-
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::ConditionView)
 namespace Scenario
 {
 ConditionView::ConditionView(score::ColorRef color, QGraphicsItem* parent)

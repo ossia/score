@@ -21,6 +21,8 @@
 #include <score/model/path/Path.hpp>
 #include <score/widgets/JS/JSEdit.hpp>
 #include <score/widgets/MarginLess.hpp>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(JS::InspectorWidget)
 class QVBoxLayout;
 namespace JS
 {

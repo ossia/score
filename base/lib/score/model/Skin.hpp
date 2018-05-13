@@ -1,17 +1,19 @@
 #pragma once
 #include <QBrush>
+#include <wobjectdefs.h>
 #include <QFont>
 #include <QObject>
 #include <QPair>
 #include <QPen>
 #include <QVector>
+#include <QJsonObject>
 #include <boost/bimap.hpp>
 #include <score_lib_base_export.h>
 namespace score
 {
 class SCORE_LIB_BASE_EXPORT Skin : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(Skin)
 public:
   static Skin& instance();
 
@@ -69,8 +71,8 @@ public:
 
   QVector<QPair<QColor, QString>> getColors() const;
 
-Q_SIGNALS:
-  void changed();
+public:
+  void changed() W_SIGNAL(changed);
 
 private:
   void timerEvent(QTimerEvent* event) override;

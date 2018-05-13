@@ -1,11 +1,12 @@
 #pragma once
 #include <QTextEdit>
+#include <wobjectdefs.h>
 
 namespace Scenario
 {
 class CommentEdit final : public QTextEdit
 {
-  Q_OBJECT
+  W_OBJECT(CommentEdit)
 public:
   template <typename... Args>
   CommentEdit(Args&&... args) : QTextEdit{std::forward<Args>(args)...}
@@ -19,7 +20,7 @@ public:
     editingFinished();
   }
 
-Q_SIGNALS:
-  void editingFinished();
+public:
+  void editingFinished() W_SIGNAL(editingFinished);
 };
 }

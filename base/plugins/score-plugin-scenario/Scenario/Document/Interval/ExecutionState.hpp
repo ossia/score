@@ -1,6 +1,6 @@
 #pragma once
 #include <QMetaType>
-
+#include <wobjectdefs.h>
 namespace Scenario
 {
 enum class IntervalExecutionState : uint8_t
@@ -11,3 +11,4 @@ enum class IntervalExecutionState : uint8_t
 };
 }
 Q_DECLARE_METATYPE(Scenario::IntervalExecutionState)
+W_REGISTER_ARGTYPE(Scenario::IntervalExecutionState)

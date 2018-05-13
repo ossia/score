@@ -3,7 +3,8 @@
 #include "TraversalPath.hpp"
 
 #include <ossia/network/common/path.hpp>
-
+#include <wobjectimpl.h>
+W_GADGET_IMPL(State::TraversalPath)
 namespace State
 {
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QPoint>
+#include <wobjectdefs.h>
 #include <score/model/Identifier.hpp>
 #include <score/widgets/GraphicsItem.hpp>
 #include <score_plugin_scenario_export.h>
@@ -19,7 +20,7 @@ class TriggerView;
 
 class SCORE_PLUGIN_SCENARIO_EXPORT TimeSyncPresenter final : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(TimeSyncPresenter)
 public:
   TimeSyncPresenter(
       const TimeSyncModel& model, QGraphicsItem* parentview, QObject* parent);
@@ -35,15 +36,15 @@ public:
   TimeSyncView* view() const;
 
   void on_eventAdded(const Id<EventModel>& eventId);
-  void handleDrop(const QPointF& pos, const QMimeData* mime);
+  void handleDrop(const QPointF& pos, const QMimeData& mime);
 
-Q_SIGNALS:
-  void pressed(const QPointF&);
-  void moved(const QPointF&);
-  void released(const QPointF&);
+public:
+  void pressed(const QPointF& arg_1) W_SIGNAL(pressed, arg_1);
+  void moved(const QPointF& arg_1) W_SIGNAL(moved, arg_1);
+  void released(const QPointF& arg_1) W_SIGNAL(released, arg_1);
 
   void eventAdded(
-      const Id<EventModel>& eventId, const Id<TimeSyncModel>& timeSyncId);
+      const Id<EventModel>& eventId, const Id<TimeSyncModel>& timeSyncId) W_SIGNAL(eventAdded, eventId, timeSyncId);
 
 private:
   const TimeSyncModel& m_model;

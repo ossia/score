@@ -12,8 +12,8 @@
 #include <score/model/ModelMetadata.hpp>
 #include <score/model/Skin.hpp>
 
-class QGraphicsSceneHoverEvent;
-class QGraphicsSceneMouseEvent;
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::ClickableLabelItem)
 
 namespace Scenario
 {

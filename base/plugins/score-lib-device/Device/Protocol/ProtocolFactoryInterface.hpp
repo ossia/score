@@ -78,3 +78,4 @@ public:
 }
 
 Q_DECLARE_METATYPE(UuidKey<Device::ProtocolFactory>)
+W_REGISTER_ARGTYPE(UuidKey<Device::ProtocolFactory>)

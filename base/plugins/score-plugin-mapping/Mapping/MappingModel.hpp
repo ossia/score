@@ -1,5 +1,6 @@
 #pragma once
 #include <Curve/Process/CurveProcessModel.hpp>
+#include <wobjectdefs.h>
 #include <Mapping/MappingProcessMetadata.hpp>
 #include <Process/TimeValue.hpp>
 #include <QByteArray>
@@ -21,21 +22,15 @@ class SCORE_PLUGIN_MAPPING_EXPORT ProcessModel final
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Mapping::ProcessModel)
 
-  Q_OBJECT
+  W_OBJECT(ProcessModel)
 
-  Q_PROPERTY(State::AddressAccessor sourceAddress READ sourceAddress WRITE
-                 setSourceAddress NOTIFY sourceAddressChanged)
-  Q_PROPERTY(double sourceMin READ sourceMin WRITE setSourceMin NOTIFY
-                 sourceMinChanged)
-  Q_PROPERTY(double sourceMax READ sourceMax WRITE setSourceMax NOTIFY
-                 sourceMaxChanged)
+  
+  
+  
 
-  Q_PROPERTY(State::AddressAccessor targetAddress READ targetAddress WRITE
-                 setTargetAddress NOTIFY targetAddressChanged)
-  Q_PROPERTY(double targetMin READ targetMin WRITE setTargetMin NOTIFY
-                 targetMinChanged)
-  Q_PROPERTY(double targetMax READ targetMax WRITE setTargetMax NOTIFY
-                 targetMaxChanged)
+  
+  
+  
 public:
   ProcessModel(
       const TimeVal& duration,
@@ -68,14 +63,14 @@ public:
 
   std::unique_ptr<Process::Inlet> inlet;
   std::unique_ptr<Process::Outlet> outlet;
-Q_SIGNALS:
-  void sourceAddressChanged(const State::AddressAccessor& arg);
-  void sourceMinChanged(double arg);
-  void sourceMaxChanged(double arg);
+public:
+  void sourceAddressChanged(const State::AddressAccessor& arg) W_SIGNAL(sourceAddressChanged, arg);
+  void sourceMinChanged(double arg) W_SIGNAL(sourceMinChanged, arg);
+  void sourceMaxChanged(double arg) W_SIGNAL(sourceMaxChanged, arg);
 
-  void targetAddressChanged(const State::AddressAccessor& arg);
-  void targetMinChanged(double arg);
-  void targetMaxChanged(double arg);
+  void targetAddressChanged(const State::AddressAccessor& arg) W_SIGNAL(targetAddressChanged, arg);
+  void targetMinChanged(double arg) W_SIGNAL(targetMinChanged, arg);
+  void targetMaxChanged(double arg) W_SIGNAL(targetMaxChanged, arg);
 
 private:
   void init();
@@ -89,5 +84,17 @@ private:
 
   double m_targetMin{};
   double m_targetMax{};
+
+W_PROPERTY(double, targetMax READ targetMax WRITE setTargetMax NOTIFY targetMaxChanged)
+
+W_PROPERTY(double, targetMin READ targetMin WRITE setTargetMin NOTIFY targetMinChanged)
+
+W_PROPERTY(State::AddressAccessor, targetAddress READ targetAddress WRITE setTargetAddress NOTIFY targetAddressChanged)
+
+W_PROPERTY(double, sourceMax READ sourceMax WRITE setSourceMax NOTIFY sourceMaxChanged)
+
+W_PROPERTY(double, sourceMin READ sourceMin WRITE setSourceMin NOTIFY sourceMinChanged)
+
+W_PROPERTY(State::AddressAccessor, sourceAddress READ sourceAddress WRITE setSourceAddress NOTIFY sourceAddressChanged)
 };
 }

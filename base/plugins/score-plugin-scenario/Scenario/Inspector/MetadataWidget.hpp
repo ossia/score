@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QColor>
+#include <wobjectdefs.h>
 #include <QFormLayout>
 #include <QLineEdit>
 #include <QPixmap>
@@ -43,7 +44,7 @@ class CommentEdit;
 // TODO move me in Process
 class MetadataWidget final : public QWidget
 {
-  Q_OBJECT
+  W_OBJECT(MetadataWidget)
 
 public:
   explicit MetadataWidget(
@@ -113,12 +114,12 @@ public:
   void setScriptingName(QString arg);
   void updateAsked();
 
-Q_SIGNALS:
-  void scriptingNameChanged(QString arg);
-  void labelChanged(QString arg);
-  void commentsChanged(QString arg);
-  void colorChanged(score::ColorRef arg);
-  void extendedMetadataChanged(const QVariantMap& arg);
+public:
+  void scriptingNameChanged(QString arg) W_SIGNAL(scriptingNameChanged, arg);
+  void labelChanged(QString arg) W_SIGNAL(labelChanged, arg);
+  void commentsChanged(QString arg) W_SIGNAL(commentsChanged, arg);
+  void colorChanged(score::ColorRef arg) W_SIGNAL(colorChanged, arg);
+  void extendedMetadataChanged(const QVariantMap& arg) W_SIGNAL(extendedMetadataChanged, arg);
 
 private:
   static const constexpr int m_colorIconSize{21};

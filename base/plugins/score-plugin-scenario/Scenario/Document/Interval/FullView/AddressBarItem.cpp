@@ -16,10 +16,8 @@
 #include <score/model/path/ObjectIdentifier.hpp>
 #include <vector>
 
-class QPainter;
-class QStyleOptionGraphicsItem;
-class QWidget;
-
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::AddressBarItem)
 namespace Scenario
 {
 AddressBarItem::AddressBarItem(

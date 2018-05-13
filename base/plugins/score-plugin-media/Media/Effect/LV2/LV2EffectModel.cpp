@@ -24,6 +24,8 @@
 #include "LV2Context.hpp"
 #include "LV2Node.hpp"
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Media::LV2::LV2EffectModel)
 namespace Process
 {
 
@@ -262,3 +264,5 @@ Engine::Execution::LV2EffectComponent::LV2EffectComponent(
       ctx.plugin.execState->sampleRate);
   m_ossia_process = std::make_shared<ossia::node_process>(node);
 }
+
+W_OBJECT_IMPL(Engine::Execution::LV2EffectComponent)

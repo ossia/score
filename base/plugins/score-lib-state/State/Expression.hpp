@@ -185,3 +185,5 @@ JSON_METADATA(State::UnaryOperator, "UnOp")
 JSON_METADATA(State::BinaryOperator, "BinOp")
 
 Q_DECLARE_METATYPE(State::Expression)
+W_REGISTER_ARGTYPE(State::Expression)
+

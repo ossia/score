@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/detail/logger.hpp>
+#include <wobjectdefs.h>
 
 #include <QMetaType>
 #include <QObject>
@@ -11,6 +12,7 @@ using level = spdlog::level::level_enum;
 }
 
 Q_DECLARE_METATYPE(Engine::level)
+W_REGISTER_ARGTYPE(Engine::level)
 
 namespace Engine
 {
@@ -19,7 +21,7 @@ class OssiaLogger final
     : public QObject
     , public spdlog::sinks::sink
 {
-  Q_OBJECT
+  W_OBJECT(OssiaLogger)
 public:
   OssiaLogger()
   {
@@ -35,8 +37,8 @@ public:
   {
   }
 
-Q_SIGNALS:
+public:
   //! Used in Engine::PanelDelegate
-  void l(Engine::level, const QString&);
+  void l(Engine::level arg_1, const QString& arg_2) W_SIGNAL(l, arg_1, arg_2);
 };
 }

@@ -5,6 +5,8 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::TriggerView)
 namespace Scenario
 {
 TriggerView::TriggerView(QGraphicsItem* parent)
@@ -24,6 +26,6 @@ void TriggerView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void TriggerView::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
-  dropReceived(event->scenePos(), event->mimeData());
+  dropReceived(event->scenePos(), *event->mimeData());
 }
 }

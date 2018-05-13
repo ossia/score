@@ -26,6 +26,9 @@
 #include <score/tools/Todo.hpp>
 #include <set>
 #include <websocketpp/base64/base64.hpp>
+
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Media::VST::VSTEffectModel)
 namespace Process
 {
 template <>

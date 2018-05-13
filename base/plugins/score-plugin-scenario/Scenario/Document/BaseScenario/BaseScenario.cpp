@@ -16,6 +16,8 @@
 #include <score/tools/std/Optional.hpp>
 #include <tuple>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::BaseScenario)
 namespace Scenario
 {
 BaseScenario::BaseScenario(const Id<BaseScenario>& id, QObject* parent)

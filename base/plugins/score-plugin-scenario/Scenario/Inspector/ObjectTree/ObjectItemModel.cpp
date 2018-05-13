@@ -35,6 +35,8 @@
 #include <score/application/ApplicationContext.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::ObjectItemModel)
 namespace Scenario
 {
 

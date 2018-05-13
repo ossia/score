@@ -7,6 +7,8 @@
 #include <QPushButton>
 #include <score/widgets/MarginLess.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::EventShortCut)
 namespace Scenario
 {
 EventShortCut::EventShortCut(QString eventId, QWidget* parent)

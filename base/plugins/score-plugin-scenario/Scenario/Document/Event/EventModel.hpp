@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/TimeValue.hpp>
+#include <wobjectdefs.h>
 #include <QString>
 #include <QVector>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
@@ -26,12 +27,11 @@ class TimeSyncModel;
 class SCORE_PLUGIN_SCENARIO_EXPORT EventModel final
     : public score::Entity<EventModel>
 {
-  Q_OBJECT
+  W_OBJECT(EventModel)
 
   SCORE_SERIALIZE_FRIENDS
 
-  Q_PROPERTY(Scenario::OffsetBehavior offsetBehavior READ offsetBehavior WRITE
-                 setOffsetBehavior NOTIFY offsetBehaviorChanged FINAL)
+
 
 public:
   /** Public properties of the class **/
@@ -83,13 +83,13 @@ public:
       Scenario::ExecutionStatus status, const Scenario::ScenarioInterface&);
   void setOffsetBehavior(Scenario::OffsetBehavior);
 
-Q_SIGNALS:
-  void extentChanged(const VerticalExtent&);
-  void dateChanged(const TimeVal&);
-  void conditionChanged(const State::Expression&);
-  void statesChanged();
-  void statusChanged(Scenario::ExecutionStatus status);
-  void offsetBehaviorChanged(OffsetBehavior);
+public:
+  void extentChanged(const VerticalExtent& arg_1) W_SIGNAL(extentChanged, arg_1);
+  void dateChanged(const TimeVal& arg_1) W_SIGNAL(dateChanged, arg_1);
+  void conditionChanged(const State::Expression& arg_1) W_SIGNAL(conditionChanged, arg_1);
+  void statesChanged() W_SIGNAL(statesChanged);
+  void statusChanged(Scenario::ExecutionStatus status) W_SIGNAL(statusChanged, status);
+  void offsetBehaviorChanged(OffsetBehavior arg_1) W_SIGNAL(offsetBehaviorChanged, arg_1);
 
 private:
   Id<TimeSyncModel> m_timeSync;
@@ -103,8 +103,15 @@ private:
 
   ExecutionStatusProperty m_status{};
   OffsetBehavior m_offset{};
+
+W_PROPERTY(Scenario::OffsetBehavior, offsetBehavior READ offsetBehavior WRITE setOffsetBehavior NOTIFY offsetBehaviorChanged, W_Final)
 };
 }
 
 DEFAULT_MODEL_METADATA(Scenario::EventModel, "Event")
 TR_TEXT_METADATA(, Scenario::EventModel, PrettyName_k, "Event")
+Q_DECLARE_METATYPE(Id<Scenario::EventModel>)
+W_REGISTER_ARGTYPE(Id<Scenario::EventModel>)
+W_REGISTER_ARGTYPE(Scenario::EventModel)
+W_REGISTER_ARGTYPE(const Scenario::EventModel&)
+W_REGISTER_ARGTYPE(Scenario::EventModel&)

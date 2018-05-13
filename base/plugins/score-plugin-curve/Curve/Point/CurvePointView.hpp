@@ -1,5 +1,6 @@
 #pragma once
 #include <score/model/Identifier.hpp>
+#include <wobjectdefs.h>
 #include <score/model/IdentifiedObjectMap.hpp>
 
 #include <QGraphicsItem>
@@ -18,7 +19,7 @@ class PointView final
     : public QObject
     , public QGraphicsItem
 {
-  Q_OBJECT
+  W_OBJECT(PointView)
   Q_INTERFACES(QGraphicsItem)
 public:
   PointView(
@@ -51,8 +52,8 @@ public:
 
   void setModel(const PointModel* model);
 
-Q_SIGNALS:
-  void contextMenuRequested(const QPoint&, const QPointF&);
+public:
+  void contextMenuRequested(const QPoint& arg_1, const QPointF& arg_2) W_SIGNAL(contextMenuRequested, arg_1, arg_2);
 
 protected:
   void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override;
@@ -61,7 +62,6 @@ private:
   const PointModel* m_model;
   const Curve::Style& m_style;
   bool m_selected{};
-  bool m_enabled{true};
 };
 }
 

@@ -2,6 +2,7 @@
 #include <QList>
 #include <QPainterPath>
 #include <memory>
+#include <wobjectdefs.h>
 #include <score_lib_base_export.h>
 class QGraphicsObject;
 class QGraphicsItem;
@@ -66,3 +67,6 @@ struct graphics_item_ptr
 
 Q_DECLARE_METATYPE(QPainterPath)
 Q_DECLARE_METATYPE(QList<QPainterPath>)
+
+W_REGISTER_ARGTYPE(QPainterPath)
+W_REGISTER_ARGTYPE(QList<QPainterPath>)

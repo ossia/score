@@ -6,6 +6,8 @@
 #include <QFile>
 #include <score/tools/Clamp.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Media::Effect::ProcessModel)
 namespace Media
 {
 namespace Effect

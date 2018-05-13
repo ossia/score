@@ -1,5 +1,6 @@
 #pragma once
 #include <Media/AudioDecoder.hpp>
+#include <wobjectdefs.h>
 #include <QFile>
 #include <array>
 #include <score_plugin_media_export.h>
@@ -13,7 +14,7 @@ namespace Media
 // TODO memmap
 struct SCORE_PLUGIN_MEDIA_EXPORT MediaFileHandle : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(MediaFileHandle)
 public:
   MediaFileHandle() = default;
 
@@ -56,8 +57,8 @@ public:
     return channels() == 0 || samples() == 0;
   }
 
-Q_SIGNALS:
-  void mediaChanged();
+public:
+  void mediaChanged() W_SIGNAL(mediaChanged);
 
 private:
   QString m_file;

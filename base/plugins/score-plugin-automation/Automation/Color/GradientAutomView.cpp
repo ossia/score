@@ -5,6 +5,8 @@
 #include <QGraphicsSceneMoveEvent>
 #include <QPainter>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Gradient::View)
 namespace Gradient
 {
 View::View(QGraphicsItem* parent) : LayerView{parent}

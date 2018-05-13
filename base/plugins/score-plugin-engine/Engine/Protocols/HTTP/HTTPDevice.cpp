@@ -13,6 +13,7 @@
 #include <memory>
 #include <ossia-qt/http/http.hpp>
 
+#include <wobjectimpl.h>
 namespace Engine
 {
 namespace Network

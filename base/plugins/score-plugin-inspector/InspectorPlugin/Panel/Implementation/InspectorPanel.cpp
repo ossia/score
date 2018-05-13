@@ -14,11 +14,8 @@
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/widgets/MarginLess.hpp>
 
-namespace score
-{
-class SelectionStack;
-} // namespace score
-
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(InspectorPanel::InspectorPanelWidget)
 namespace InspectorPanel
 {
 InspectorPanelWidget::InspectorPanelWidget(

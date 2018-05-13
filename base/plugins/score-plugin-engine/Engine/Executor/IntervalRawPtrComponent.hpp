@@ -1,5 +1,6 @@
 #pragma once
 #include <Engine/Executor/IntervalComponent.hpp>
+#include <wobjectdefs.h>
 
 namespace Engine
 {
@@ -109,7 +110,7 @@ class SCORE_PLUGIN_ENGINE_EXPORT IntervalRawPtrComponent final
     : public score::
           PolymorphicComponentHierarchy<IntervalRawPtrComponentBase, false>
 {
-  Q_OBJECT
+  W_OBJECT(IntervalRawPtrComponent)
 
 public:
   template <typename... Args>
@@ -142,10 +143,10 @@ public:
       std::shared_ptr<IntervalRawPtrComponent> self,
       ossia::time_interval* ossia_cst,
       interval_duration_data dur);
-Q_SIGNALS:
-  void sig_callback(double position, ossia::time_value date);
-public Q_SLOTS:
-  void slot_callback(double position, ossia::time_value date);
+public:
+  void sig_callback(double position, ossia::time_value date) W_SIGNAL(sig_callback, position, date);
+public:
+  void slot_callback(double position, ossia::time_value date); W_SLOT(slot_callback);
 };
 }
 }

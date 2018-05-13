@@ -1,5 +1,6 @@
 #pragma once
 #include <QWidget>
+#include <wobjectdefs.h>
 #include <State/Unit.hpp>
 #include <score_lib_state_export.h>
 
@@ -9,7 +10,7 @@ namespace State
 {
 class SCORE_LIB_STATE_EXPORT UnitWidget : public QWidget
 {
-  Q_OBJECT
+  W_OBJECT(UnitWidget)
 public:
   UnitWidget(QWidget* parent);
   UnitWidget(const State::Unit& u, QWidget* parent);
@@ -17,8 +18,8 @@ public:
   State::Unit unit() const;
   void setUnit(const State::Unit&);
 
-Q_SIGNALS:
-  void unitChanged(const State::Unit&);
+public:
+  void unitChanged(const State::Unit& arg_1) W_SIGNAL(unitChanged, arg_1);
 
 private:
   void on_dataspaceChanged(const State::Unit&);

@@ -71,7 +71,7 @@ std::abs(cur_st->heightPercentage() - pt.y))
 bool MessageDropHandler::dragEnter(
     const Scenario::TemporalScenarioPresenter& pres,
     QPointF pos,
-    const QMimeData* mime)
+    const QMimeData& mime)
 {
   return dragMove(pres, pos, mime);
 }
@@ -79,9 +79,9 @@ bool MessageDropHandler::dragEnter(
 bool MessageDropHandler::dragMove(
     const Scenario::TemporalScenarioPresenter& pres,
     QPointF pos,
-    const QMimeData* mime)
+    const QMimeData& mime)
 {
-  if (!mime->formats().contains(score::mime::messagelist()))
+  if (!mime.formats().contains(score::mime::messagelist()))
     return false;
 
   auto pt = pres.toScenarioPoint(pos);
@@ -104,7 +104,7 @@ bool MessageDropHandler::dragMove(
 bool MessageDropHandler::dragLeave(
     const Scenario::TemporalScenarioPresenter& pres,
     QPointF pos,
-    const QMimeData* mime)
+    const QMimeData& mime)
 {
   pres.stopDrawDragLine();
   return false;
@@ -113,16 +113,16 @@ bool MessageDropHandler::dragLeave(
 bool MessageDropHandler::drop(
     const Scenario::TemporalScenarioPresenter& pres,
     QPointF pos,
-    const QMimeData* mime)
+    const QMimeData& mime)
 {
   using namespace Scenario::Command;
   // If the mime data has states in it we can handle it.
-  if (!mime->formats().contains(score::mime::messagelist()))
+  if (!mime.formats().contains(score::mime::messagelist()))
     return false;
 
   pres.stopDrawDragLine();
 
-  Mime<State::MessageList>::Deserializer des{*mime};
+  Mime<State::MessageList>::Deserializer des{mime};
   State::MessageList ml = des.deserialize();
 
   RedoMacroCommandDispatcher<Scenario::Command::CreateStateMacro> m{

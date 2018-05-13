@@ -15,6 +15,8 @@
 #include <QRadioButton>
 #include <QString>
 #include <QVariant>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Engine::Network::MIDIProtocolSettingsWidget)
 class QWidget;
 
 namespace Engine

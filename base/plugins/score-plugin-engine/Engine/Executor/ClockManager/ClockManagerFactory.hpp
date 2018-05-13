@@ -88,3 +88,4 @@ public:
 }
 
 Q_DECLARE_METATYPE(Engine::Execution::ClockManagerFactory::ConcreteKey)
+W_REGISTER_ARGTYPE(Engine::Execution::ClockManagerFactory::ConcreteKey)

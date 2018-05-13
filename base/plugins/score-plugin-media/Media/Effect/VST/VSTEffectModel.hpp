@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/detail/hash_map.hpp>
+#include <wobjectdefs.h>
 
 #include <Effect/EffectFactory.hpp>
 #include <Media/Effect/DefaultEffectItem.hpp>
@@ -75,7 +76,7 @@ class CreateVSTControl;
 class VSTControlInlet;
 class VSTEffectModel final : public Process::ProcessModel
 {
-  Q_OBJECT
+  W_OBJECT(VSTEffectModel)
   SCORE_SERIALIZE_FRIENDS
   friend class Media::VST::CreateVSTControl;
 
@@ -104,11 +105,11 @@ public:
 
   void removeControl(const Id<Process::Port>&);
   void removeControl(int fxnum);
-Q_SIGNALS:
-  void addControl(int idx, float v);
+public:
+  void addControl(int idx, float v) W_SIGNAL(addControl, idx, v);
 
-public Q_SLOTS:
-  void on_addControl(int idx, float v);
+public:
+  void on_addControl(int idx, float v); W_SLOT(on_addControl);
 
 public:
   void on_addControl_impl(VSTControlInlet* inl);

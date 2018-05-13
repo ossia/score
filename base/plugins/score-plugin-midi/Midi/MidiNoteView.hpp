@@ -1,5 +1,6 @@
 #pragma once
 #include <Midi/MidiNote.hpp>
+#include <wobjectdefs.h>
 #include <QGraphicsItem>
 #include <QObject>
 
@@ -10,7 +11,7 @@ class NoteView final
     : public QObject
     , public QGraphicsItem
 {
-  Q_OBJECT
+  W_OBJECT(NoteView)
   Q_INTERFACES(QGraphicsItem)
 public:
   const Note& note;
@@ -41,10 +42,10 @@ public:
 
   QRectF computeRect() const;
   QPointF closestPos(QPointF note) const;
-Q_SIGNALS:
-  void noteChanged(int, double); // pitch, scaled between [0; 1]
-  void noteChangeFinished();
-  void noteScaled(double);
+public:
+  void noteChanged(int arg_1, double arg_2) W_SIGNAL(noteChanged, arg_1, arg_2); // pitch, scaled between [0; 1]
+  void noteChangeFinished() W_SIGNAL(noteChangeFinished);
+  void noteScaled(double arg_1) W_SIGNAL(noteScaled, arg_1);
 
 private:
   bool canEdit() const;

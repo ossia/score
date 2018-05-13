@@ -25,6 +25,9 @@
 #include <core/document/DocumentModel.hpp>
 #include <score/actions/ActionManager.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+#include <wobjectimpl.h>
+W_REGISTER_ARGTYPE(ossia::bench_map)
+W_OBJECT_IMPL(Engine::Execution::DocumentPlugin)
 namespace Engine
 {
 namespace Execution

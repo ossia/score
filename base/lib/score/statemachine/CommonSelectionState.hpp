@@ -1,5 +1,6 @@
 #pragma once
 #include <QState>
+#include <wobjectdefs.h>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/statemachine/StateMachineTools.hpp>
 
@@ -22,7 +23,7 @@ class SelectionStack;
  */
 class SCORE_LIB_BASE_EXPORT CommonSelectionState : public QState
 {
-  Q_OBJECT
+  W_OBJECT(CommonSelectionState)
 public:
   score::SelectionDispatcher dispatcher;
 

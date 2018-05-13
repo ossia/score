@@ -82,9 +82,9 @@ TimeVal DroppedAudioFiles::dropMaxDuration() const
 bool DropHandler::drop(
     const Scenario::TemporalScenarioPresenter& pres,
     QPointF pos,
-    const QMimeData* mime)
+    const QMimeData& mime)
 {
-  DroppedAudioFiles drop{*mime};
+  DroppedAudioFiles drop{mime};
   if (!drop.valid())
   {
     return false;
@@ -166,9 +166,9 @@ static bool intervalHasNoFollowers(
 }
 
 bool IntervalDropHandler::drop(
-    const Scenario::IntervalModel& interval, const QMimeData* mime)
+    const Scenario::IntervalModel& interval, const QMimeData& mime)
 {
-  DroppedAudioFiles drop{*mime};
+  DroppedAudioFiles drop{mime};
   if (!drop.valid())
   {
     return false;

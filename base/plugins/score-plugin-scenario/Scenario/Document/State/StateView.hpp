@@ -1,11 +1,13 @@
 #pragma once
 #include <QColor>
+#include <wobjectdefs.h>
 #include <QGraphicsItem>
 #include <QRect>
 #include <QtGlobal>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <score/model/ColorReference.hpp>
+#include <score/widgets/MimeData.hpp>
 #include <score_plugin_scenario_export.h>
 
 class QGraphicsSceneDragDropEvent;
@@ -24,7 +26,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT StateView final
     : public QObject
     , public QGraphicsItem
 {
-  Q_OBJECT
+  W_OBJECT(StateView)
   Q_INTERFACES(QGraphicsItem)
 public:
   static const constexpr qreal fullRadius = 6.;
@@ -65,9 +67,9 @@ public:
   void setStatus(ExecutionStatus);
   void disableOverlay();
 
-Q_SIGNALS:
-  void dropReceived(const QMimeData*);
-  void startCreateMode();
+public:
+  void dropReceived(const QMimeData& arg_1) W_SIGNAL(dropReceived, arg_1);
+  void startCreateMode() W_SIGNAL(startCreateMode);
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;

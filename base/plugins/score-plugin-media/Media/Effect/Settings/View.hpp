@@ -1,19 +1,20 @@
 #pragma once
 #include <score/plugins/ProjectSettings/ProjectSettingsView.hpp>
+#include <wobjectdefs.h>
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 class QCheckBox;
 namespace Media::Settings
 {
 class View : public score::GlobalSettingsView
 {
-  Q_OBJECT
+  W_OBJECT(View)
 public:
   View();
 
 public:
   void setVstPaths(QStringList);
-Q_SIGNALS:
-  void VstPathsChanged(QStringList);
+public:
+  void VstPathsChanged(QStringList arg_1) W_SIGNAL(VstPathsChanged, arg_1);
 
 private:
   QListWidget* m_VstPaths{};

@@ -35,6 +35,9 @@
 #include <QtGui>
 #include <array>
 
+#include <wobjectimpl.h>
+
+W_OBJECT_IMPL(JSEdit)
 const std::array<QColor, 16> colors{
     QColor{"#151515"}, QColor{"#202020"}, QColor{"#303030"},
     QColor{"#505050"}, QColor{"#b0b0b0"}, QColor{"#d0d0d0"},
@@ -754,7 +757,7 @@ JSEdit::JSEdit(QWidget* parent)
   });
   connect(
       this, &QPlainTextEdit::updateRequest, this,
-      [=](const QRect& r, int d) { updateSidebar(r, d); });
+      [=](const QRect& r, int d) { do_updateSidebar(r, d); });
   this->setContextMenuPolicy(Qt::NoContextMenu);
 
 #if defined(Q_OS_MAC)
@@ -1117,7 +1120,7 @@ void JSEdit::updateCursor()
   }
 }
 
-void JSEdit::updateSidebar(const QRect& rect, int d)
+void JSEdit::do_updateSidebar(const QRect& rect, int d)
 {
   Q_UNUSED(rect)
   if (d != 0)

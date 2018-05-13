@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/State/MessageNode.hpp>
+#include <wobjectdefs.h>
 #include <QString>
 #include <State/Address.hpp>
 #include <State/Message.hpp>
@@ -18,7 +19,7 @@ class QObject;
 class SCORE_LIB_PROCESS_EXPORT ProcessStateDataInterface
     : public IdentifiedObject<ProcessStateDataInterface>
 {
-  Q_OBJECT
+  W_OBJECT(ProcessStateDataInterface)
 public:
   ProcessStateDataInterface(Process::ProcessModel& model, QObject* parent);
 
@@ -61,14 +62,14 @@ public:
     return m_model;
   }
 
-Q_SIGNALS:
-  void stateChanged();
+public:
+  void stateChanged() W_SIGNAL(stateChanged);
   /**
    * @brief messagesChanged
    * Sent whenever the messages in the process changed.
    *
    */
-  void messagesChanged(const State::MessageList&);
+  void messagesChanged(const State::MessageList& arg_1) W_SIGNAL(messagesChanged, arg_1);
 
 private:
   Process::ProcessModel& m_model;

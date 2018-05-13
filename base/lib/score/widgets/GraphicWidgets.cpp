@@ -3,6 +3,13 @@
 #include <QDebug>
 #include <QWidget>
 #include <score/model/Skin.hpp>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(score::QGraphicsPixmapButton)
+W_OBJECT_IMPL(score::QGraphicsPixmapToggle)
+W_OBJECT_IMPL(score::QGraphicsSlider)
+W_OBJECT_IMPL(score::QGraphicsLogSlider)
+W_OBJECT_IMPL(score::QGraphicsIntSlider)
+W_OBJECT_IMPL(score::QGraphicsComboSlider)
 namespace score
 {
 

@@ -1,5 +1,6 @@
 #pragma once
 #include <Inspector/InspectorWidgetBase.hpp>
+#include <wobjectdefs.h>
 #include <list>
 #include <set>
 #include <vector>
@@ -19,7 +20,7 @@ class EventModel;
 class StateModel;
 class SummaryInspectorWidget final : public Inspector::InspectorWidgetBase
 {
-  Q_OBJECT
+  W_OBJECT(SummaryInspectorWidget)
 public:
   SummaryInspectorWidget(
       const IdentifiedObjectAbstract* obj,

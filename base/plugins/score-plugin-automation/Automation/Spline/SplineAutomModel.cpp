@@ -6,6 +6,8 @@
 #include <Automation/Spline/SplineAutomPresenter.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <QColor>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Spline::ProcessModel)
 namespace Spline
 {
 ProcessModel::ProcessModel(

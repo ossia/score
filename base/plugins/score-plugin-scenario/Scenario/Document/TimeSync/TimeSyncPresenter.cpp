@@ -4,6 +4,7 @@
 
 #include <Scenario/Commands/TimeSync/SetTrigger.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncView.hpp>
 #include <Scenario/Document/TimeSync/TriggerView.hpp>
 #include <State/MessageListSerialization.hpp>
@@ -13,10 +14,10 @@
 #include <score/selection/Selectable.hpp>
 #include <score/tools/Todo.hpp>
 #include <score/widgets/GraphicsItem.hpp>
-
-class QObject;
 #include <score/model/Identifier.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::TimeSyncPresenter)
 namespace Scenario
 {
 TimeSyncPresenter::TimeSyncPresenter(
@@ -91,12 +92,12 @@ void TimeSyncPresenter::on_eventAdded(const Id<EventModel>& eventId)
   eventAdded(eventId, m_model.id());
 }
 
-void TimeSyncPresenter::handleDrop(const QPointF& pos, const QMimeData* mime)
+void TimeSyncPresenter::handleDrop(const QPointF& pos, const QMimeData& mime)
 {
   // If the mime data has states in it we can handle it.
-  if (mime->formats().contains(score::mime::messagelist()))
+  if (mime.formats().contains(score::mime::messagelist()))
   {
-    Mime<State::MessageList>::Deserializer des{*mime};
+    Mime<State::MessageList>::Deserializer des{mime};
     State::MessageList ml = des.deserialize();
 
     if (ml.size() > 0)

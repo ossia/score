@@ -1,7 +1,7 @@
 #pragma once
 #include <QObject>
 #include <score/model/ColorReference.hpp>
-
+#include <wobjectdefs.h>
 class QColor;
 
 namespace Scenario
@@ -49,3 +49,5 @@ private:
 
 Q_DECLARE_METATYPE(Scenario::ExecutionStatus)
 Q_DECLARE_METATYPE(Scenario::OffsetBehavior)
+W_REGISTER_ARGTYPE(Scenario::ExecutionStatus)
+W_REGISTER_ARGTYPE(Scenario::OffsetBehavior)

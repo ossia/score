@@ -8,6 +8,8 @@
 #include <QPainter>
 #include <QSlider>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Loop::LayerView)
 namespace Loop
 {
 LayerView::LayerView(QGraphicsItem* parent) : Process::LayerView{parent}

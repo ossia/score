@@ -1,5 +1,6 @@
 #pragma once
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
+#include <wobjectdefs.h>
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Document/Interval/SlotPresenter.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
@@ -21,7 +22,7 @@ struct SlotPresenter;
 class SCORE_PLUGIN_SCENARIO_EXPORT TemporalIntervalPresenter final
     : public IntervalPresenter
 {
-  Q_OBJECT
+  W_OBJECT(TemporalIntervalPresenter)
 
 public:
   using view_type = TemporalIntervalView;
@@ -52,9 +53,9 @@ public:
 
   void requestSlotMenu(int slot, QPoint pos, QPointF sp) const override;
   void requestProcessSelectorMenu(int slot, QPoint pos, QPointF sp) const;
-Q_SIGNALS:
-  void intervalHoverEnter();
-  void intervalHoverLeave();
+public:
+  void intervalHoverEnter() W_SIGNAL(intervalHoverEnter);
+  void intervalHoverLeave() W_SIGNAL(intervalHoverLeave);
 
 private:
   double rackHeight() const;

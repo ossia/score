@@ -1,5 +1,6 @@
 #pragma once
 #include <QAction>
+#include <wobjectdefs.h>
 #include <QInputDialog>
 #include <QMenu>
 #include <QObject>
@@ -10,7 +11,7 @@ namespace Scenario
 // TODO use me with condition also.
 class ExpressionMenu : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(ExpressionMenu)
 public:
   // Fun should be a function that returns an expression
   template <typename Fun>
@@ -33,7 +34,7 @@ public:
   QAction* deleteAction{};
   QAction* editAction{};
 
-Q_SIGNALS:
-  void expressionChanged(QString);
+public:
+  void expressionChanged(QString arg_1) W_SIGNAL(expressionChanged, arg_1);
 };
 }

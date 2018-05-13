@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/detail/math.hpp>
+#include <wobjectdefs.h>
 
 #include <QGraphicsPixmapItem>
 #include <QGraphicsSceneEvent>
@@ -11,15 +12,15 @@ class SCORE_LIB_BASE_EXPORT QGraphicsPixmapButton final
     : public QObject
     , public QGraphicsPixmapItem
 {
-  Q_OBJECT
+  W_OBJECT(QGraphicsPixmapButton)
   const QPixmap m_pressed, m_released;
 
 public:
   QGraphicsPixmapButton(
       QPixmap pressed, QPixmap released, QGraphicsItem* parent);
 
-Q_SIGNALS:
-  void clicked();
+public:
+  void clicked() W_SIGNAL(clicked);
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -31,7 +32,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsPixmapToggle final
     : public QObject
     , public QGraphicsPixmapItem
 {
-  Q_OBJECT
+  W_OBJECT(QGraphicsPixmapToggle)
   Q_INTERFACES(QGraphicsItem)
 
   const QPixmap m_pressed, m_released;
@@ -44,8 +45,8 @@ public:
   void toggle();
   void setState(bool toggled);
 
-Q_SIGNALS:
-  void toggled(bool);
+public:
+  void toggled(bool arg_1) W_SIGNAL(toggled, arg_1);
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -57,7 +58,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsSlider final
     : public QObject
     , public QGraphicsItem
 {
-  Q_OBJECT
+  W_OBJECT(QGraphicsSlider)
   Q_INTERFACES(QGraphicsItem)
 
   double m_value{};
@@ -77,10 +78,10 @@ public:
   double value() const;
 
   bool moving = false;
-Q_SIGNALS:
-  void valueChanged(double);
-  void sliderMoved();
-  void sliderReleased();
+public:
+  void valueChanged(double arg_1) W_SIGNAL(valueChanged, arg_1);
+  void sliderMoved() W_SIGNAL(sliderMoved);
+  void sliderReleased() W_SIGNAL(sliderReleased);
 
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -101,7 +102,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsLogSlider final
     : public QObject
     , public QGraphicsItem
 {
-  Q_OBJECT
+  W_OBJECT(QGraphicsLogSlider)
   Q_INTERFACES(QGraphicsItem)
 
   double m_value{};
@@ -121,10 +122,10 @@ public:
   double value() const;
 
   bool moving = false;
-Q_SIGNALS:
-  void valueChanged(double);
-  void sliderMoved();
-  void sliderReleased();
+public:
+  void valueChanged(double arg_1) W_SIGNAL(valueChanged, arg_1);
+  void sliderMoved() W_SIGNAL(sliderMoved);
+  void sliderReleased() W_SIGNAL(sliderReleased);
 
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -145,7 +146,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsIntSlider final
     : public QObject
     , public QGraphicsItem
 {
-  Q_OBJECT
+  W_OBJECT(QGraphicsIntSlider)
   Q_INTERFACES(QGraphicsItem)
   QRectF m_rect;
   int m_value{}, m_min{}, m_max{};
@@ -160,10 +161,10 @@ public:
   int value() const;
 
   bool moving = false;
-Q_SIGNALS:
-  void valueChanged(int);
-  void sliderMoved();
-  void sliderReleased();
+public:
+  void valueChanged(int arg_1) W_SIGNAL(valueChanged, arg_1);
+  void sliderMoved() W_SIGNAL(sliderMoved);
+  void sliderReleased() W_SIGNAL(sliderReleased);
 
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -184,7 +185,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsComboSlider final
     : public QObject
     , public QGraphicsItem
 {
-  Q_OBJECT
+  W_OBJECT(QGraphicsComboSlider)
   Q_INTERFACES(QGraphicsItem)
   QRectF m_rect;
 
@@ -215,10 +216,10 @@ public:
   int value() const;
 
   bool moving = false;
-Q_SIGNALS:
-  void valueChanged(int);
-  void sliderMoved();
-  void sliderReleased();
+public:
+  void valueChanged(int arg_1) W_SIGNAL(valueChanged, arg_1);
+  void sliderMoved() W_SIGNAL(sliderMoved);
+  void sliderReleased() W_SIGNAL(sliderReleased);
 
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;

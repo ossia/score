@@ -6,6 +6,8 @@
 #include <Automation/Color/GradientAutomPresenter.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <QColor>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Gradient::ProcessModel)
 namespace Gradient
 {
 ProcessModel::ProcessModel(

@@ -1,5 +1,6 @@
 #pragma once
 #include <score/plugins/documentdelegate/plugin/DocumentPluginBase.hpp>
+#include <wobjectdefs.h>
 
 namespace score
 {
@@ -22,7 +23,7 @@ class SCORE_LIB_BASE_EXPORT SerializableDocumentPlugin
     : public DocumentPlugin
     , public SerializableInterface<DocumentPluginFactory>
 {
-  Q_OBJECT
+  W_OBJECT(SerializableDocumentPlugin)
 public:
   virtual void serializeAfterDocument(const VisitorVariant& vis) const;
   virtual void reloadAfterDocument(const VisitorVariant& vis);

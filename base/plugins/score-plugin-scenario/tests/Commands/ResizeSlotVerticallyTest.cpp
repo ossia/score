@@ -10,7 +10,7 @@ class ResizeSlotVerticallyTest : public QObject
 {
   Q_OBJECT
 public:
-private Q_SLOTS:
+private:
   void test()
   {
     QFAIL("TODO");

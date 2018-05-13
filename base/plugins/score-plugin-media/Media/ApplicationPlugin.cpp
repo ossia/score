@@ -15,6 +15,8 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <QDirIterator>
 #include <QFileInfo>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Media::ApplicationPlugin)
 
 template <>
 void DataStreamReader::read<Media::ApplicationPlugin::vst_info>(
@@ -30,15 +32,14 @@ void DataStreamWriter::write<Media::ApplicationPlugin::vst_info>(
 }
 
 Q_DECLARE_METATYPE(Media::ApplicationPlugin::vst_info)
+W_REGISTER_ARGTYPE(Media::ApplicationPlugin::vst_info)
 Q_DECLARE_METATYPE(std::vector<Media::ApplicationPlugin::vst_info>)
+W_REGISTER_ARGTYPE(std::vector<Media::ApplicationPlugin::vst_info>)
 namespace Media
 {
 
 ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
-    : score::ApplicationPlugin
-{
-  app
-}
+    : score::ApplicationPlugin{app}
 #if defined(LILV_SHARED)
 , lv2_context{std::make_unique<LV2::GlobalContext>(64, lv2_host_context)},
     lv2_host_context

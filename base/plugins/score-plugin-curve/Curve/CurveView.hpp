@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QGraphicsItem>
+#include <wobjectdefs.h>
 #include <QPoint>
 #include <QRect>
 #include <score_plugin_curve_export.h>
@@ -18,7 +19,7 @@ class SCORE_PLUGIN_CURVE_EXPORT View final
     : public QObject
     , public QGraphicsItem
 {
-  Q_OBJECT
+  W_OBJECT(View)
   Q_INTERFACES(QGraphicsItem)
 public:
   explicit View(QGraphicsItem* parent);
@@ -35,18 +36,18 @@ public:
   void setSelectionArea(const QRectF&);
   QPixmap pixmap();
 
-Q_SIGNALS:
-  void pressed(QPointF);
-  void moved(QPointF);
-  void released(QPointF);
-  void doubleClick(QPointF);
+public:
+  void pressed(QPointF arg_1) W_SIGNAL(pressed, arg_1);
+  void moved(QPointF arg_1) W_SIGNAL(moved, arg_1);
+  void released(QPointF arg_1) W_SIGNAL(released, arg_1);
+  void doubleClick(QPointF arg_1) W_SIGNAL(doubleClick, arg_1);
 
-  void escPressed();
+  void escPressed() W_SIGNAL(escPressed);
 
-  void keyPressed(int);
-  void keyReleased(int);
+  void keyPressed(int arg_1) W_SIGNAL(keyPressed, arg_1);
+  void keyReleased(int arg_1) W_SIGNAL(keyReleased, arg_1);
 
-  void contextMenuRequested(const QPoint&, const QPointF&);
+  void contextMenuRequested(const QPoint& arg_1, const QPointF& arg_2) W_SIGNAL(contextMenuRequested, arg_1, arg_2);
 
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;

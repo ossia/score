@@ -58,6 +58,8 @@ namespace Curve
 class SegmentModel;
 }
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Recording::AutomationRecorder)
 namespace Recording
 {
 AutomationRecorder::AutomationRecorder(RecordContext& ctx)

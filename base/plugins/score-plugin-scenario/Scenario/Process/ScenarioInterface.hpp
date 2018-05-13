@@ -2,6 +2,7 @@
 #include <score/model/Identifier.hpp>
 #include <score/tools/std/IndirectContainer.hpp>
 #include <score_plugin_scenario_export.h>
+#include <wobjectdefs.h>
 namespace Scenario
 {
 class IntervalModel;
@@ -37,24 +38,19 @@ public:
   virtual TimeSyncModel& startTimeSync() const = 0;
 };
 
-static inline auto startId_val()
+static const constexpr auto startId_val = 0;
+static const constexpr auto endId_val = 1;
+
+template <typename T>
+auto startId()
 {
-  return 0;
+  return Id<T>{startId_val};
 }
 
-static inline auto endId_val()
-{
-  return 1;
-}
 template <typename T>
-static auto startId()
+auto endId()
 {
-  return Id<T>{startId_val()};
-}
-template <typename T>
-static auto endId()
-{
-  return Id<T>{endId_val()};
+  return Id<T>{endId_val};
 }
 
 template <typename Scenario_T, typename Element_T>
@@ -82,3 +78,6 @@ struct ElementTraits<Scenario::ScenarioInterface, StateModel>
   static const constexpr auto accessor = &ScenarioInterface::getStates;
 };
 }
+
+W_REGISTER_ARGTYPE(const Scenario::ScenarioInterface&)
+W_REGISTER_ARGTYPE(Scenario::ScenarioInterface)

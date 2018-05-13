@@ -12,9 +12,11 @@
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(State::UnitWidget)
+
 namespace State
 {
-
 UnitWidget::UnitWidget(QWidget* parent) : QWidget{parent}
 {
   m_layout = new score::MarginLess<QHBoxLayout>{this};

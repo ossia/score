@@ -1,5 +1,6 @@
 #pragma once
 #include <Automation/AutomationModel.hpp>
+#include <wobjectdefs.h>
 #include <Automation/AutomationView.hpp>
 #include <Automation/Commands/ChangeAddress.hpp>
 #include <Curve/Process/CurveProcessPresenter.hpp>
@@ -13,7 +14,7 @@ namespace Automation
 class LayerPresenter final
     : public Curve::CurveProcessPresenter<ProcessModel, LayerView>
 {
-  Q_OBJECT
+  W_OBJECT(LayerPresenter)
 public:
   LayerPresenter(
       const Curve::Style& style,

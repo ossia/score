@@ -65,6 +65,8 @@
 #include <score_plugin_scenario_commands_files.hpp>
 #include <utility>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Interpolation::Presenter)
 score_plugin_scenario::score_plugin_scenario()
 {
   using namespace Scenario;

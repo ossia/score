@@ -46,7 +46,8 @@
 #include <utility>
 #include <vector>
 
-
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Curve::Presenter)
 namespace Curve
 {
 struct Style;

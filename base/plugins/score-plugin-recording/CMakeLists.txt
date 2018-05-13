@@ -40,7 +40,7 @@ set(SRCS
 )
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 
-score_moc_headers(${PROJECT_NAME} "${HDRS}")
+score_moc_headers(${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_recording.hpp")
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_engine)
 

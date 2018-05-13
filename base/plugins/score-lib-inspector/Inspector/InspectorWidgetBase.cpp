@@ -11,7 +11,8 @@
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
-
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Inspector::InspectorWidgetBase)
 namespace Inspector
 {
 InspectorWidgetBase::InspectorWidgetBase(

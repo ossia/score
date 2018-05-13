@@ -22,6 +22,8 @@
 #include <qnamespace.h>
 #include <score/model/Skin.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::TemporalIntervalView)
 class QGraphicsSceneHoverEvent;
 class QStyleOptionGraphicsItem;
 class QWidget;
@@ -349,7 +351,7 @@ void TemporalIntervalView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 
 void TemporalIntervalView::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
-  dropReceived(event->pos(), event->mimeData());
+  dropReceived(event->pos(), *event->mimeData());
 
   event->accept();
 }

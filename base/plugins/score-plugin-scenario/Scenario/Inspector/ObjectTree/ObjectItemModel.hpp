@@ -1,5 +1,6 @@
 #pragma once
 #include <QAbstractItemModel>
+#include <wobjectdefs.h>
 #include <QContextMenuEvent>
 #include <QHeaderView>
 #include <QLabel>
@@ -25,7 +26,7 @@ class ObjectItemModel final
     : public QAbstractItemModel
     , public Nano::Observer
 {
-  Q_OBJECT
+  W_OBJECT(ObjectItemModel)
 public:
   ObjectItemModel(const score::DocumentContext& ctx, QObject* parent);
   void setSelected(QList<const IdentifiedObjectAbstract*> sel);
@@ -45,8 +46,8 @@ public:
   bool
   setData(const QModelIndex& index, const QVariant& value, int role) override;
 
-Q_SIGNALS:
-  void changed();
+public:
+  void changed() W_SIGNAL(changed);
 
 private:
   void setupConnections();

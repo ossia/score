@@ -13,7 +13,7 @@ class CreateEventTest : public QObject
 {
   Q_OBJECT
 public:
-private Q_SLOTS:
+private:
 
   void CreateTest()
   {

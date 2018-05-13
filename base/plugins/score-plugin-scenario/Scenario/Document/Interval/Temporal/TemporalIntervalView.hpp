@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/TimeValue.hpp>
+#include <wobjectdefs.h>
 #include <QColor>
 #include <QPainter>
 #include <QPoint>
@@ -10,7 +11,7 @@
 #include <Scenario/Document/Interval/ExecutionState.hpp>
 #include <Scenario/Document/Interval/IntervalView.hpp>
 #include <score/model/ColorReference.hpp>
-class QMimeData;
+#include <score/widgets/MimeData.hpp>
 namespace Process
 {
 class LayerPresenter;
@@ -22,7 +23,7 @@ class IntervalDurations;
 class SCORE_PLUGIN_SCENARIO_EXPORT TemporalIntervalView final
     : public IntervalView
 {
-  Q_OBJECT
+  W_OBJECT(TemporalIntervalView)
 
 public:
   TemporalIntervalView(
@@ -46,10 +47,10 @@ public:
 
   void updateOverlayPos();
   void setSelected(bool selected);
-Q_SIGNALS:
-  void intervalHoverEnter();
-  void intervalHoverLeave();
-  void dropReceived(const QPointF& pos, const QMimeData*);
+public:
+  void intervalHoverEnter() W_SIGNAL(intervalHoverEnter);
+  void intervalHoverLeave() W_SIGNAL(intervalHoverLeave);
+  void dropReceived(const QPointF& pos, const QMimeData& arg_2) W_SIGNAL(dropReceived, pos, arg_2);
 
 private:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;

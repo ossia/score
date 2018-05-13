@@ -12,7 +12,7 @@ class UnitTests : public QObject
   Q_OBJECT
   score::testing::MockApplication m;
 
-private Q_SLOTS:
+private:
 
   void test_deserialize()
   {

@@ -1,5 +1,6 @@
 #pragma once
 #include <Device/Address/AddressSettings.hpp>
+#include <wobjectdefs.h>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <QAbstractItemModel>
 #include <QComboBox>
@@ -28,7 +29,7 @@ class DeviceExplorerModel;
  */
 class AddressItemModel final : public QAbstractItemModel
 {
-  Q_OBJECT
+  W_OBJECT(AddressItemModel)
 public:
   AddressItemModel(QObject* parent);
   enum Rows
@@ -101,13 +102,13 @@ private:
 
 class AddressValueWidget : public QWidget
 {
-  Q_OBJECT
+  W_OBJECT(AddressValueWidget)
 public:
   using QWidget::QWidget;
   virtual ossia::value get() const = 0;
   virtual void set(ossia::value t) = 0;
 
-Q_SIGNALS:
-  void changed(ossia::value);
+public:
+  void changed(ossia::value arg_1) W_SIGNAL(changed, arg_1);
 };
 }

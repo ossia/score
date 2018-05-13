@@ -18,8 +18,8 @@
 #include <qnamespace.h>
 #include <score/model/ModelMetadata.hpp>
 
-class QStyleOptionGraphicsItem;
-class QWidget;
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::EventView)
 
 namespace Scenario
 {
@@ -45,6 +45,11 @@ EventView::EventView(EventPresenter& presenter, QGraphicsItem* parent)
 
   this->setZValue(ZPos::Event);
   this->setAcceptHoverEvents(true);
+}
+
+EventView::~EventView()
+{
+
 }
 
 void EventView::setCondition(const QString& cond)
@@ -175,6 +180,6 @@ void EventView::hoverLeaveEvent(QGraphicsSceneHoverEvent* h)
 
 void EventView::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
-  dropReceived(event->scenePos(), event->mimeData());
+  dropReceived(event->scenePos(), *event->mimeData());
 }
 }

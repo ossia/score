@@ -22,6 +22,8 @@
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Dataflow::AudioDevice)
 namespace Dataflow
 {
 AudioDevice::AudioDevice(const Device::DeviceSettings& settings)

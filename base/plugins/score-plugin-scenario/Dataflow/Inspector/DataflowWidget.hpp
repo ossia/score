@@ -1,5 +1,6 @@
 #pragma once
 #include <Dataflow/Commands/EditPort.hpp>
+#include <wobjectdefs.h>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/Widgets/AddressAccessorEditWidget.hpp>
@@ -22,7 +23,7 @@ namespace Dataflow
 {
 class SCORE_PLUGIN_SCENARIO_EXPORT PortWidget : public QWidget
 {
-  Q_OBJECT
+  W_OBJECT(PortWidget)
   score::MarginLess<QHBoxLayout> m_lay;
   QPushButton m_remove;
 
@@ -32,8 +33,8 @@ public:
   QLineEdit localName;
   Explorer::AddressAccessorEditWidget accessor;
 
-Q_SIGNALS:
-  void removeMe();
+public:
+  void removeMe() W_SIGNAL(removeMe);
 };
 
 class CableWidget final : public Inspector::InspectorWidgetBase
@@ -62,7 +63,7 @@ public:
 };
 class SCORE_PLUGIN_SCENARIO_EXPORT DataflowWidget : public QWidget
 {
-  Q_OBJECT
+  W_OBJECT(DataflowWidget)
   const Process::ProcessModel& m_proc;
   Explorer::DeviceExplorerModel& m_explorer;
   CommandDispatcher<> m_disp;

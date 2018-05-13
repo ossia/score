@@ -12,7 +12,7 @@ class DropMidiInSenario final : public Scenario::DropHandler
   bool drop(
       const Scenario::TemporalScenarioPresenter&,
       QPointF pos,
-      const QMimeData* mime) override;
+      const QMimeData& mime) override;
 };
 
 struct MidiTrack

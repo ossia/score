@@ -4,6 +4,7 @@
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::DocumentPlugin)
+W_OBJECT_IMPL(score::SerializableDocumentPlugin)
 namespace score
 {
 class Document;

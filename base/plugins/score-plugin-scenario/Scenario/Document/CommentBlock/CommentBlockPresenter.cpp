@@ -6,6 +6,9 @@
 #include <Scenario/Document/CommentBlock/CommentBlockView.hpp>
 #include <score/widgets/GraphicsItem.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::CommentBlockPresenter)
+
 namespace Scenario
 {
 CommentBlockPresenter::CommentBlockPresenter(

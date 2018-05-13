@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/detail/ptr_set.hpp>
+#include <wobjectdefs.h>
 
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/Port.hpp>
@@ -22,7 +23,7 @@ class CableItem final
     : public QObject
     , public QGraphicsItem
 {
-  Q_OBJECT
+  W_OBJECT(CableItem)
   Q_INTERFACES(QGraphicsItem)
 
 public:
@@ -46,9 +47,9 @@ public:
   using cable_map = ossia::ptr_map<Process::Cable*, Dataflow::CableItem*>;
   static cable_map& g_cables();
 
-Q_SIGNALS:
-  void clicked();
-  void removeRequested();
+public:
+  void clicked() W_SIGNAL(clicked);
+  void removeRequested() W_SIGNAL(removeRequested);
 
 private:
   QRectF boundingRect() const override;

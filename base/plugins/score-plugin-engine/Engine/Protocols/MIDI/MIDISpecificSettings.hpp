@@ -1,6 +1,7 @@
 #pragma once
 #include <QJsonObject>
 #include <QMetaType>
+#include <wobjectdefs.h>
 
 namespace Engine
 {
@@ -19,3 +20,4 @@ struct MIDISpecificSettings
 }
 }
 Q_DECLARE_METATYPE(Engine::Network::MIDISpecificSettings)
+W_REGISTER_ARGTYPE(Engine::Network::MIDISpecificSettings)

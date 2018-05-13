@@ -1,5 +1,6 @@
 #pragma once
 #include <Device/Protocol/DeviceInterface.hpp>
+#include <wobjectdefs.h>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <QString>
 #include <algorithm>
@@ -21,7 +22,7 @@ namespace Device
  */
 class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceList : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(DeviceList)
 public:
   DeviceInterface& device(const QString& name) const;
   DeviceInterface& device(const Device::Node& name) const;
@@ -48,10 +49,10 @@ public:
     return m_audioDevice;
   }
   const std::vector<DeviceInterface*>& devices() const;
-Q_SIGNALS:
-  void logInbound(const QString&) const;
-  void logOutbound(const QString&) const;
-  void logError(const QString&) const;
+public:
+  void logInbound(const QString& arg_1) const W_SIGNAL(logInbound, arg_1);
+  void logOutbound(const QString& arg_1) const W_SIGNAL(logOutbound, arg_1);
+  void logError(const QString& arg_1) const W_SIGNAL(logError, arg_1);
 
 private:
   std::vector<DeviceInterface*> m_devices;

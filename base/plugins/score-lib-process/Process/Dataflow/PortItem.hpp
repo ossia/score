@@ -1,5 +1,6 @@
 #pragma once
 #include <QGraphicsItem>
+#include <wobjectdefs.h>
 #include <QObject>
 #include <functional>
 #if defined(_MSC_VER)
@@ -35,7 +36,7 @@ class SCORE_LIB_PROCESS_EXPORT PortItem
     : public QObject
     , public QGraphicsItem
 {
-  Q_OBJECT
+  W_OBJECT(PortItem)
   Q_INTERFACES(QGraphicsItem)
 public:
   PortItem(
@@ -57,9 +58,9 @@ public:
   void setPortVisible(bool b);
   void resetPortVisible();
 
-Q_SIGNALS:
-  void createCable(PortItem* src, PortItem* snk);
-  void contextMenuRequested(QPointF scenepos, QPoint pos);
+public:
+  void createCable(PortItem* src, PortItem* snk) W_SIGNAL(createCable, src, snk);
+  void contextMenuRequested(QPointF scenepos, QPoint pos) W_SIGNAL(contextMenuRequested, scenepos, pos);
 
 protected:
   QRectF boundingRect() const final override;
@@ -100,3 +101,5 @@ inline const constexpr char* port()
 }
 }
 }
+
+W_REGISTER_ARGTYPE(Dataflow::PortItem*)

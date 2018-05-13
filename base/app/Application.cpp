@@ -46,6 +46,9 @@
 #if __has_include(<QQuickStyle>)
 #  include <QQuickStyle>
 #endif
+
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Application)
 namespace score
 {
 class DocumentModel;

@@ -41,6 +41,8 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <utility>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(score::DocumentManager)
 namespace score
 {
 struct LoadedPluginVersions

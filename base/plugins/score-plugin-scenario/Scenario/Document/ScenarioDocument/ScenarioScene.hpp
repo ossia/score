@@ -1,11 +1,12 @@
 #pragma once
 #include <QGraphicsScene>
+#include <wobjectdefs.h>
 
 namespace Scenario
 {
 class ScenarioScene final : public QGraphicsScene
 {
-  Q_OBJECT
+  W_OBJECT(ScenarioScene)
 public:
   ScenarioScene(QWidget* parent);
 };

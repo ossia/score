@@ -40,6 +40,9 @@
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <vector>
+
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Engine::Execution::ScenarioComponentBase)
 namespace Engine
 {
 namespace Execution

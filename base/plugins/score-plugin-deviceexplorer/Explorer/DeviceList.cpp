@@ -7,6 +7,8 @@
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Explorer/Settings/ExplorerModel.hpp>
 #include <score/application/GUIApplicationContext.hpp>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Device::DeviceList)
 namespace Device
 {
 template <typename TheList>

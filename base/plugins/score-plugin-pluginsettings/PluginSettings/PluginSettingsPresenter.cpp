@@ -15,6 +15,8 @@
 #include <score/command/Command.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(PluginSettings::PluginSettingsPresenter)
 namespace score
 {
 class SettingsDelegateModel;

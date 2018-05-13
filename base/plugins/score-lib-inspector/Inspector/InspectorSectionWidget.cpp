@@ -8,7 +8,8 @@
 #include <qnamespace.h>
 #include <score/tools/Todo.hpp>
 #include <score/widgets/SetIcons.hpp>
-
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Inspector::InspectorSectionWidget)
 namespace Inspector
 {
 MenuButton::MenuButton(QWidget* parent)

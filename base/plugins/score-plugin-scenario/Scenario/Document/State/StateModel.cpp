@@ -19,6 +19,8 @@
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::StateModel)
 namespace Scenario
 {
 StateModel::StateModel(

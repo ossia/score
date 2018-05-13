@@ -1,5 +1,6 @@
 #pragma once
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
+#include <wobjectdefs.h>
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 class QSpinBox;
 class QComboBox;
@@ -21,7 +22,7 @@ inline QString toString(score::uuid_t t)
 }
 class View : public score::GlobalSettingsView
 {
-  Q_OBJECT
+  W_OBJECT(View)
 public:
   View();
 
@@ -44,8 +45,8 @@ public:
   SETTINGS_UI_TOGGLE_HPP(ExecutionListening)
   SETTINGS_UI_TOGGLE_HPP(ScoreOrder)
 
-Q_SIGNALS:
-  void ClockChanged(ClockManagerFactory::ConcreteKey);
+public:
+  void ClockChanged(ClockManagerFactory::ConcreteKey arg_1) W_SIGNAL(ClockChanged, arg_1);
 
 private:
   QWidget* getWidget() override;

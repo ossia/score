@@ -1,5 +1,6 @@
 #pragma once
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <wobjectdefs.h>
 #if defined(LILV_SHARED) // TODO instead add a proper preprocessor macro that
                          // also works in static case
 #  include <Media/Effect/LV2/LV2Context.hpp>
@@ -22,7 +23,7 @@ class ApplicationPlugin
     : public QObject
     , public score::ApplicationPlugin
 {
-  Q_OBJECT
+  W_OBJECT(ApplicationPlugin)
 public:
   ApplicationPlugin(const score::ApplicationContext& app);
   void initialize() override;

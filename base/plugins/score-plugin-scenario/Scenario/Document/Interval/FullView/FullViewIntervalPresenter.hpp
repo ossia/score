@@ -1,5 +1,6 @@
 #pragma once
 #include <Scenario/Document/Interval/FullView/FullViewIntervalView.hpp>
+#include <wobjectdefs.h>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Document/Interval/SlotHandle.hpp>
@@ -16,7 +17,7 @@ class SlotHandle;
 class SCORE_PLUGIN_SCENARIO_EXPORT FullViewIntervalPresenter final
     : public IntervalPresenter
 {
-  Q_OBJECT
+  W_OBJECT(FullViewIntervalPresenter)
 
 public:
   using view_type = FullViewIntervalView;
@@ -37,8 +38,8 @@ public:
   {
     return m_slots;
   }
-Q_SIGNALS:
-  void intervalSelected(IntervalModel&);
+public:
+  void intervalSelected(IntervalModel& arg_1) W_SIGNAL(intervalSelected, arg_1);
 
 private:
   void requestSlotMenu(int slot, QPoint pos, QPointF sp) const override;

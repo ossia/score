@@ -6,6 +6,8 @@
 #include <QJsonObject>
 #include <boost/assign/list_of.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(score::Skin)
 namespace score
 {
 // Taken from http://stackoverflow.com/a/31841462

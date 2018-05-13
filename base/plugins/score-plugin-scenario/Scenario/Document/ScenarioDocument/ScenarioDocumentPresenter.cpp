@@ -49,6 +49,8 @@
 #include <score/tools/Clamp.hpp>
 #include <score/tools/Todo.hpp>
 #include <score/widgets/DoubleSlider.hpp>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::ScenarioDocumentPresenter)
 namespace Scenario
 {
 const ScenarioDocumentModel& ScenarioDocumentPresenter::model() const

@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/detail/optional.hpp>
+#include <wobjectdefs.h>
 
 #include <Media/AudioArray.hpp>
 #include <QThread>
@@ -21,7 +22,7 @@ struct AudioInfo
 
 class SCORE_PLUGIN_MEDIA_EXPORT AudioDecoder : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(AudioDecoder)
 
 public:
   AudioDecoder();
@@ -36,13 +37,13 @@ public:
   std::size_t decoded{};
   AudioArray data;
 
-Q_SIGNALS:
-  void newData();
-  void finishedDecoding();
+public:
+  void newData() W_SIGNAL(newData);
+  void finishedDecoding() W_SIGNAL(finishedDecoding);
 
-  void startDecode(QString);
-public Q_SLOTS:
-  void on_startDecode(QString);
+  void startDecode(QString arg_1) W_SIGNAL(startDecode, arg_1);
+public:
+  void on_startDecode(QString); W_SLOT(on_startDecode);
 
 private:
   std::size_t read_length(const QString& path);

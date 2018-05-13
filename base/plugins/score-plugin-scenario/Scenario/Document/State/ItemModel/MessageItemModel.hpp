@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/State/MessageNode.hpp>
+#include <wobjectdefs.h>
 #include <QAbstractItemModel>
 #include <QStringList>
 #include <QVariant>
@@ -31,7 +32,7 @@ class StateModel;
 class SCORE_PLUGIN_SCENARIO_EXPORT MessageItemModel final
     : public TreeNodeBasedItemModel<Process::MessageNode>
 {
-  Q_OBJECT
+  W_OBJECT(MessageItemModel)
 
 public:
   using node_type = TreeNodeBasedItemModel<Process::MessageNode>::node_type;
@@ -98,8 +99,8 @@ public:
 
   const StateModel& stateModel;
 
-Q_SIGNALS:
-  void userMessage(const State::Message&);
+public:
+  void userMessage(const State::Message& arg_1) W_SIGNAL(userMessage, arg_1);
 
 private:
   node_type m_rootNode;

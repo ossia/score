@@ -44,6 +44,8 @@
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TextLabel.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::EventInspectorWidget)
 namespace Scenario
 {
 EventInspectorWidget::EventInspectorWidget(

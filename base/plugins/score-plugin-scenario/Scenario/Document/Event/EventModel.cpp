@@ -16,6 +16,8 @@
 #include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::EventModel)
 namespace Scenario
 {
 EventModel::EventModel(

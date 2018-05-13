@@ -1,5 +1,6 @@
 #pragma once
 #include <QGraphicsItem>
+#include <wobjectdefs.h>
 #include <score_lib_base_export.h>
 namespace score
 {
@@ -8,7 +9,7 @@ class SCORE_LIB_BASE_EXPORT RectItem
     : public QObject
     , public QGraphicsItem
 {
-  Q_OBJECT
+  W_OBJECT(RectItem)
   Q_INTERFACES(QGraphicsItem)
 public:
   using QGraphicsItem::QGraphicsItem;
@@ -20,8 +21,8 @@ public:
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) final override;
 
-Q_SIGNALS:
-  void clicked();
+public:
+  void clicked() W_SIGNAL(clicked);
 
 private:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) final override;
@@ -38,7 +39,7 @@ class SCORE_LIB_BASE_EXPORT EmptyRectItem
     : public QObject
     , public QGraphicsItem
 {
-  Q_OBJECT
+  W_OBJECT(EmptyRectItem)
   Q_INTERFACES(QGraphicsItem)
 public:
   EmptyRectItem(QGraphicsItem* parent);
@@ -49,8 +50,8 @@ public:
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) final override;
 
-Q_SIGNALS:
-  void clicked();
+public:
+  void clicked() W_SIGNAL(clicked);
 
 private:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) final override;

@@ -25,7 +25,8 @@
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/WidgetWrapper.hpp>
 
-class QWidget;
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Explorer::AddressEditDialog)
 
 namespace Explorer
 {

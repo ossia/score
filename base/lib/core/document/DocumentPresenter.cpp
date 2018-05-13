@@ -6,8 +6,8 @@
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegatePresenter.hpp>
 
-class QObject;
-
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(score::DocumentPresenter)
 namespace score
 {
 DocumentPresenter::DocumentPresenter(

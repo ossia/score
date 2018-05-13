@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/dataflow/node_process.hpp>
+#include <wobjectdefs.h>
 
 #include <Effect/EffectFactory.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
@@ -31,7 +32,7 @@ class FaustEffectModel : public Process::ProcessModel
 {
   friend class FaustUI;
   friend class FaustUpdateUI;
-  Q_OBJECT
+  W_OBJECT(FaustEffectModel)
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(FaustEffectModel)
 
@@ -140,7 +141,7 @@ class FaustEffectComponent final
           Media::Faust::FaustEffectModel,
           ossia::node_process>
 {
-  Q_OBJECT
+  W_OBJECT(FaustEffectComponent)
   COMPONENT_METADATA("eb4f83af-5ddc-4f2f-9426-6f8a599a1e96")
 
 public:

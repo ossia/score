@@ -28,6 +28,8 @@
 #include <score_git_info.hpp>
 #include <set>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(score::View)
 namespace score
 {
 struct PanelComparator

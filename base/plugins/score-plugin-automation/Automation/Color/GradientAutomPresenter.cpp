@@ -9,6 +9,7 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
+#include <wobjectimpl.h>
 namespace Gradient
 {
 Presenter::Presenter(

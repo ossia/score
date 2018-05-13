@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QGraphicsScene>
+#include <wobjectdefs.h>
 #include <QtCore/QByteArray>
 #include <QtCore/QList>
 #include <QtCore/QObject>
@@ -9,20 +10,20 @@
 
 class WebSocketView final : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(WebSocketView)
 public:
   explicit WebSocketView(
       QGraphicsScene* s, quint16 port, QObject* parent = Q_NULLPTR);
   ~WebSocketView();
 
-Q_SIGNALS:
-  void closed();
+public:
+  void closed() W_SIGNAL(closed);
 
-public Q_SLOTS:
-  void onNewConnection();
-  void processTextMessage(QString message);
-  void processBinaryMessage(QByteArray message);
-  void socketDisconnected();
+public:
+  void onNewConnection(); W_SLOT(onNewConnection);
+  void processTextMessage(QString message); W_SLOT(processTextMessage);
+  void processBinaryMessage(QByteArray message); W_SLOT(processBinaryMessage);
+  void socketDisconnected(); W_SLOT(socketDisconnected);
 
 private:
   QWebSocketServer* m_pWebSocketServer;

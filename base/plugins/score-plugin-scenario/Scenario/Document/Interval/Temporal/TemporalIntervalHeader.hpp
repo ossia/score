@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/detail/optional.hpp>
+#include <wobjectdefs.h>
 
 #include <QGlyphRun>
 #include <QGraphicsItem>
@@ -8,6 +9,7 @@
 #include <Scenario/Document/Interval/IntervalHeader.hpp>
 #include <qnamespace.h>
 #include <score/widgets/GraphicWidgets.hpp>
+#include <score/widgets/MimeData.hpp>
 
 class QGraphicsSceneMouseEvent;
 class QPainter;
@@ -19,14 +21,14 @@ namespace Scenario
 class TemporalIntervalPresenter;
 class RackButton final : public QGraphicsObject
 {
-  Q_OBJECT
+  W_OBJECT(RackButton)
 public:
   RackButton(QGraphicsItem* parent);
 
   void setUnrolled(bool b);
 
-Q_SIGNALS:
-  void clicked();
+public:
+  void clicked() W_SIGNAL(clicked);
 
 private:
   QRectF boundingRect() const override;
@@ -45,7 +47,7 @@ private:
 
 class TemporalIntervalHeader final : public IntervalHeader
 {
-  Q_OBJECT
+  W_OBJECT(TemporalIntervalHeader)
 public:
   TemporalIntervalHeader(TemporalIntervalPresenter& pres);
 
@@ -61,12 +63,12 @@ public:
     m_hasFocus = b;
     update();
   }
-Q_SIGNALS:
-  void doubleClicked();
+public:
+  void doubleClicked() W_SIGNAL(doubleClicked);
 
-  void intervalHoverEnter();
-  void intervalHoverLeave();
-  void dropReceived(const QPointF& pos, const QMimeData*);
+  void intervalHoverEnter() W_SIGNAL(intervalHoverEnter);
+  void intervalHoverLeave() W_SIGNAL(intervalHoverLeave);
+  void dropReceived(const QPointF& pos, const QMimeData& arg_2) W_SIGNAL(dropReceived, pos, arg_2);
 
 protected:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QString>
+#include <wobjectdefs.h>
 #include <QWidget>
 #include <Scenario/Inspector/ExpressionValidator.hpp>
 #include <State/Expression.hpp>
@@ -41,7 +42,7 @@ ExpressionEditorComparators();
 // TODO move in plugin state
 class SimpleExpressionEditorWidget final : public QWidget
 {
-  Q_OBJECT
+  W_OBJECT(SimpleExpressionEditorWidget)
 public:
   SimpleExpressionEditorWidget(
       const score::DocumentContext&,
@@ -66,10 +67,10 @@ public:
   void enableAddButton(bool);
   void enableMenuButton(bool);
 
-Q_SIGNALS:
-  void editingFinished();
-  void addTerm();
-  void removeTerm(int index);
+public:
+  void editingFinished() W_SIGNAL(editingFinished);
+  void addTerm() W_SIGNAL(addTerm);
+  void removeTerm(int index) W_SIGNAL(removeTerm, index);
 
 private:
   void on_editFinished();
@@ -95,3 +96,4 @@ private:
 }
 
 Q_DECLARE_METATYPE(Scenario::ExpressionEditorComparator)
+W_REGISTER_ARGTYPE(Scenario::ExpressionEditorComparator)

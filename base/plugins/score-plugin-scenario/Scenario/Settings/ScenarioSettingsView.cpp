@@ -22,6 +22,7 @@
 #include <score/model/Skin.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/widgets/SignalUtils.hpp>
+
 namespace Scenario
 {
 namespace Settings

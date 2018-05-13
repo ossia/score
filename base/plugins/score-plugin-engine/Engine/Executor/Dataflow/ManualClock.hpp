@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Engine/Executor/ClockManager/ClockManagerFactory.hpp>
+#include <wobjectdefs.h>
 #include <Engine/Executor/ClockManager/DefaultClockManager.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/Executor/IntervalComponent.hpp>
@@ -15,7 +16,7 @@ namespace ManualClock
 
 class TimeWidget : public QToolBar
 {
-  Q_OBJECT
+  W_OBJECT(TimeWidget)
 public:
   TimeWidget(QWidget* parent = nullptr)
   {
@@ -35,7 +36,7 @@ public:
     }
   }
 
-  Q_SIGNAL void advance(int);
+  void advance(int arg_1) W_SIGNAL(advance, arg_1);
 };
 
 class Clock final

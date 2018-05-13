@@ -1,5 +1,6 @@
 #pragma once
 #include <Curve/CurveStyle.hpp>
+#include <wobjectdefs.h>
 #include <Curve/Process/CurveProcessPresenter.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Interpolation/Commands/ChangeAddress.hpp>
@@ -11,7 +12,7 @@ namespace Interpolation
 {
 class Presenter final : public Curve::CurveProcessPresenter<ProcessModel, View>
 {
-  Q_OBJECT
+  W_OBJECT(Presenter)
 public:
   Presenter(
       const Curve::Style& style,

@@ -22,6 +22,8 @@
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TextLabel.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::SimpleExpressionEditorWidget)
 namespace Scenario
 {
 SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(

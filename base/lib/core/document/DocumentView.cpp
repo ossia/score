@@ -9,6 +9,8 @@
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 #include <score/widgets/MarginLess.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(score::DocumentView)
 namespace score
 {
 DocumentView::DocumentView(

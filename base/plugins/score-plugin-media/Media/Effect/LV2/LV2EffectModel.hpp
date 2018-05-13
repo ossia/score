@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/dataflow/node_process.hpp>
+#include <wobjectdefs.h>
 
 #include <Effect/EffectFactory.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
@@ -34,7 +35,7 @@ namespace Media::LV2
  */
 class LV2EffectModel : public Process::ProcessModel
 {
-  Q_OBJECT
+  W_OBJECT(LV2EffectModel)
   SCORE_SERIALIZE_FRIENDS
 public:
   PROCESS_METADATA_IMPL(LV2EffectModel)
@@ -96,7 +97,7 @@ class LV2EffectComponent final
     : public Engine::Execution::
           ProcessComponent_T<Media::LV2::LV2EffectModel, ossia::node_process>
 {
-  Q_OBJECT
+  W_OBJECT(LV2EffectComponent)
   COMPONENT_METADATA("57f50003-a179-424a-80b1-b9394d73a84a")
 
 public:

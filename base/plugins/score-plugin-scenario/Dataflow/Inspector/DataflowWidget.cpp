@@ -3,6 +3,9 @@
 #include <QFormLayout>
 #include <score/widgets/SignalUtils.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Dataflow::PortWidget)
+W_OBJECT_IMPL(Dataflow::DataflowWidget)
 namespace Dataflow
 {
 

@@ -82,12 +82,12 @@ void setupDefaultSettings(QSettings& set, const T& tuple, Model& model)
   SCORE_PARAMETER_TYPE(ModelType, Name)                    \
   SCORE_SETTINGS_DEFERRED_COMMAND(ModelType, Name)
 
-#define SCORE_SETTINGS_PARAMETER_HPP(Type, Name) \
-public:                                          \
-  Type get##Name() const;                        \
-  void set##Name(Type);                          \
-  Q_SIGNAL void Name##Changed(Type);             \
-                                                 \
+#define SCORE_SETTINGS_PARAMETER_HPP(Type, Name)             \
+public:                                                      \
+  Type get##Name() const;                                    \
+  void set##Name(Type);                                      \
+  void Name##Changed(Type arg) W_SIGNAL(Name##Changed, arg); \
+                                                             \
 private:
 
 #define SCORE_SETTINGS_PARAMETER_CPP(Type, ModelType, Name)          \

@@ -1,5 +1,7 @@
 #include <Media/Sound/SoundModel.hpp>
 #include <QFile>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Media::Sound::ProcessModel)
 namespace Media
 {
 namespace Sound

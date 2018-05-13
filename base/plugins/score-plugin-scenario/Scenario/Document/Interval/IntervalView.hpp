@@ -1,5 +1,6 @@
 #pragma once
 #include <QBrush>
+#include <wobjectdefs.h>
 #include <QGraphicsItem>
 #include <QPen>
 #include <Scenario/Document/CommentBlock/TextItem.hpp>
@@ -22,7 +23,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT IntervalView
     : public QObject
     , public QGraphicsItem
 {
-  Q_OBJECT
+  W_OBJECT(IntervalView)
   Q_INTERFACES(QGraphicsItem)
 
 public:
@@ -129,8 +130,8 @@ public:
     return m_rightBrace;
   }
 
-Q_SIGNALS:
-  void requestOverlayMenu(QPointF);
+public:
+  void requestOverlayMenu(QPointF arg_1) W_SIGNAL(requestOverlayMenu, arg_1);
 
 protected:
   void setGripCursor();

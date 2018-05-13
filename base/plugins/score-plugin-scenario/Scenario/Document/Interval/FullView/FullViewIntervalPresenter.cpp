@@ -24,8 +24,8 @@
 #include <boost/range/algorithm_ext/erase.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/widgets/GraphicsItem.hpp>
-class QObject;
-
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::FullViewIntervalPresenter)
 namespace Scenario
 {
 FullViewIntervalPresenter::FullViewIntervalPresenter(

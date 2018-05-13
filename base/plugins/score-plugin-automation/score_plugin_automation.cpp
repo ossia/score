@@ -32,6 +32,9 @@
 #include <score/tools/std/HashMap.hpp>
 #include <score_plugin_automation_commands_files.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Automation::LayerPresenter)
+W_OBJECT_IMPL(Metronome::LayerPresenter)
 namespace Automation
 {
 template<typename Layer_T>

@@ -1,5 +1,6 @@
 #pragma once
 #include <QByteArray>
+#include <wobjectdefs.h>
 #include <QMap>
 #include <QObject>
 #include <QString>
@@ -23,19 +24,19 @@ class ItemModel;
 
 class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT ZeroconfBrowser : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(ZeroconfBrowser)
 public:
   ZeroconfBrowser(const QString& service, QWidget* parent);
   ~ZeroconfBrowser();
   QAction* makeAction();
 
-Q_SIGNALS:
+public:
   // ip, port, other data
-  void sessionSelected(QString, QString, int, QMap<QString, QByteArray>);
+  void sessionSelected(QString arg_1, QString arg_2, int arg_3, QMap<QString, QByteArray> arg_4) W_SIGNAL(sessionSelected, arg_1, arg_2, arg_3, arg_4);
 
-public Q_SLOTS:
-  void accept();
-  void reject();
+public:
+  void accept(); W_SLOT(accept);
+  void reject(); W_SLOT(reject);
 
 private:
   QDialog* m_dialog{};

@@ -21,6 +21,8 @@
 #include <score/widgets/TextLabel.hpp>
 #include <utility>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Explorer::DeviceEditDialog)
 namespace Explorer
 {
 DeviceEditDialog::DeviceEditDialog(

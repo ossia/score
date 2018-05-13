@@ -1,5 +1,6 @@
 #pragma once
 #include <QObject>
+#include <wobjectdefs.h>
 #include <QStringList>
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Command.hpp>

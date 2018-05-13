@@ -10,6 +10,8 @@
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <ossia-qt/js_utilities.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(JS::ExecStateWrapper)
 namespace JS
 {
 

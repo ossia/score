@@ -13,6 +13,8 @@
 #include <qnamespace.h>
 #include <score/model/Skin.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Metronome::LayerView)
 namespace Metronome
 {
 LayerView::LayerView(QGraphicsItem* parent) : Process::LayerView{parent}

@@ -8,6 +8,9 @@
 #include <Curve/Segment/Power/PowerSegment.hpp>
 #include <State/ValueSerialization.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Interpolation::ProcessState)
+W_OBJECT_IMPL(Interpolation::ProcessModel)
 namespace Interpolation
 {
 ProcessModel::~ProcessModel() = default;

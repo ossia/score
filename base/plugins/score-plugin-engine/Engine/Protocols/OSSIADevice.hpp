@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/detail/callback_container.hpp>
+#include <wobjectdefs.h>
 #include <ossia/network/base/value_callback.hpp>
 
 #include <Device/Node/DeviceNode.hpp>
@@ -36,7 +37,7 @@ class SCORE_PLUGIN_ENGINE_EXPORT OSSIADevice
     : public Device::DeviceInterface
     , public Nano::Observer
 {
-  Q_OBJECT
+  W_OBJECT(OSSIADevice)
 public:
   virtual ~OSSIADevice();
   void disconnect() override;

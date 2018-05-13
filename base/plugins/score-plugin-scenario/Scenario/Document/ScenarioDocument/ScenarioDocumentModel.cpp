@@ -48,6 +48,8 @@
 #include <score/tools/Todo.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::ScenarioDocumentModel)
 namespace Process
 {
 class LayerPresenter;

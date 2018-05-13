@@ -32,7 +32,7 @@ class DropHandler final : public Scenario::DropHandler
   bool drop(
       const Scenario::TemporalScenarioPresenter&,
       QPointF pos,
-      const QMimeData* mime) override;
+      const QMimeData& mime) override;
 
   bool createInSequence(
       const Scenario::TemporalScenarioPresenter&,
@@ -48,7 +48,7 @@ class IntervalDropHandler final : public Scenario::IntervalDropHandler
 {
   SCORE_CONCRETE("edbc884b-96cc-4b59-998c-2f48941a7b6a")
 
-  bool drop(const Scenario::IntervalModel&, const QMimeData* mime) override;
+  bool drop(const Scenario::IntervalModel&, const QMimeData& mime) override;
 };
 
 // TODO drop in slots, drop in rack ?

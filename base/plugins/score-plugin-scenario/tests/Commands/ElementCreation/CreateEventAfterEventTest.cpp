@@ -13,7 +13,7 @@ class CreateEventAfterEventTest : public QObject
 {
   Q_OBJECT
 public:
-private Q_SLOTS:
+private:
   void CreateTest()
   {
     Scenario::ProcessModel* scenar = new ScenarioModel(

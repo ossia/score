@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/TimeValue.hpp>
+#include <wobjectdefs.h>
 #include <QObject>
 #include <QString>
 #include <QVector>
@@ -26,7 +27,7 @@ class ScenarioInterface;
 class SCORE_PLUGIN_SCENARIO_EXPORT TimeSyncModel final
     : public score::Entity<TimeSyncModel>
 {
-  Q_OBJECT
+  W_OBJECT(TimeSyncModel)
 
   SCORE_SERIALIZE_FRIENDS
 
@@ -72,17 +73,17 @@ public:
   bool active() const;
   void setActive(bool active);
 
-Q_SIGNALS:
-  void extentChanged(const Scenario::VerticalExtent&);
-  void dateChanged(const TimeVal&);
+public:
+  void extentChanged(const Scenario::VerticalExtent& arg_1) W_SIGNAL(extentChanged, arg_1);
+  void dateChanged(const TimeVal& arg_1) W_SIGNAL(dateChanged, arg_1);
 
-  void newEvent(const Id<Scenario::EventModel>& eventId);
-  void eventRemoved(const Id<Scenario::EventModel>& eventId);
+  void newEvent(const Id<Scenario::EventModel>& eventId) W_SIGNAL(newEvent, eventId);
+  void eventRemoved(const Id<Scenario::EventModel>& eventId) W_SIGNAL(eventRemoved, eventId);
 
-  void triggerChanged(const State::Expression&);
-  void activeChanged();
+  void triggerChanged(const State::Expression& arg_1) W_SIGNAL(triggerChanged, arg_1);
+  void activeChanged() W_SIGNAL(activeChanged);
 
-  void triggeredByGui() const;
+  void triggeredByGui() const W_SIGNAL(triggeredByGui);
 
 private:
   TimeVal m_date{std::chrono::seconds{0}};
@@ -97,3 +98,6 @@ private:
 
 DEFAULT_MODEL_METADATA(Scenario::TimeSyncModel, "Sync")
 TR_TEXT_METADATA(, Scenario::TimeSyncModel, PrettyName_k, "Sync")
+
+Q_DECLARE_METATYPE(Id<Scenario::TimeSyncModel>)
+W_REGISTER_ARGTYPE(Id<Scenario::TimeSyncModel>)

@@ -18,7 +18,8 @@
 #include <QTemporaryFile>
 #include <miniz.c>
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
-
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(PluginSettings::PluginSettingsView)
 namespace PluginSettings
 {
 

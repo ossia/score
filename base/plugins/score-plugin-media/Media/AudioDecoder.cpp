@@ -17,6 +17,8 @@ extern "C"
 #include <libswresample/swresample.h>
 }
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Media::AudioDecoder)
 namespace
 {
 static const constexpr std::size_t dynamic_channels

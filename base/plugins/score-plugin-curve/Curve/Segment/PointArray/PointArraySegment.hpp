@@ -1,5 +1,6 @@
 #pragma once
 #include <Curve/Segment/CurveSegmentModel.hpp>
+#include <wobjectdefs.h>
 #include <QPoint>
 #include <QVariant>
 #include <QVector>
@@ -37,7 +38,7 @@ struct PointArraySegmentData
 };
 class SCORE_PLUGIN_CURVE_EXPORT PointArraySegment final : public SegmentModel
 {
-  Q_OBJECT
+  W_OBJECT(PointArraySegment)
   MODEL_METADATA_IMPL(PointArraySegment)
 public:
   using data_type = PointArraySegmentData;
@@ -61,6 +62,8 @@ public:
   {
     vis.writeTo(*this);
   }
+
+  ~PointArraySegment();
 
   void on_startChanged() override;
   void on_endChanged() override;
@@ -131,9 +134,9 @@ public:
   }
   void reset();
 
-Q_SIGNALS:
-  void minChanged(double);
-  void maxChanged(double);
+public:
+  void minChanged(double arg_1) W_SIGNAL(minChanged, arg_1);
+  void maxChanged(double arg_1) W_SIGNAL(maxChanged, arg_1);
 
 private:
   // Coordinates in {x, y}.
@@ -147,3 +150,4 @@ private:
 }
 
 Q_DECLARE_METATYPE(Curve::PointArraySegmentData)
+W_REGISTER_ARGTYPE(Curve::PointArraySegmentData)

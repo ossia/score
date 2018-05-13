@@ -12,7 +12,11 @@
 #include <score/tools/std/Optional.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SetIcons.hpp>
+#include <Scenario/Inspector/Expression/ExpressionMenu.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Scenario::ExpressionEditorWidget)
+W_OBJECT_IMPL(Scenario::ExpressionMenu)
 namespace Scenario
 {
 ExpressionEditorWidget::ExpressionEditorWidget(

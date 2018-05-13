@@ -9,9 +9,8 @@
 #include <QPainter>
 #include <qnamespace.h>
 
-class QStyleOptionGraphicsItem;
-class QWidget;
-
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Curve::View)
 namespace Curve
 {
 View::View(QGraphicsItem* parent) : QGraphicsItem{parent}

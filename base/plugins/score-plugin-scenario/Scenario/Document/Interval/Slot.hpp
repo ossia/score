@@ -103,3 +103,10 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT SlotId
   }
 };
 }
+
+W_REGISTER_ARGTYPE(Scenario::Slot)
+W_REGISTER_ARGTYPE(Scenario::Rack)
+W_REGISTER_ARGTYPE(Scenario::Slot::RackView)
+W_REGISTER_ARGTYPE(Scenario::FullSlot)
+W_REGISTER_ARGTYPE(Scenario::SlotPath)
+W_REGISTER_ARGTYPE(Scenario::SlotId)

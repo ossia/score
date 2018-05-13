@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Midi/MidiProcess.hpp>
 #include <Process/Dataflow/Port.hpp>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Midi::ProcessModel)
 
 namespace Midi
 {

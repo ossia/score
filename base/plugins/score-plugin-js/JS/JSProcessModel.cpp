@@ -20,6 +20,8 @@
 #include <score/tools/File.hpp>
 #include <vector>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(JS::ProcessModel)
 namespace JS
 {
 ProcessModel::ProcessModel(

@@ -17,6 +17,8 @@
 #include <score/plugins/customfactory/FactorySetup.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/tools/std/HashMap.hpp>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Mapping::LayerPresenter)
 namespace Mapping
 {
 

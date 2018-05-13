@@ -1,5 +1,6 @@
 #pragma once
 #include <QDebug>
+#include <wobjectdefs.h>
 #include <QSlider>
 #include <limits>
 #include <score/tools/Clamp.hpp>
@@ -14,7 +15,7 @@ namespace score
  */
 class SCORE_LIB_BASE_EXPORT DoubleSlider : public QSlider
 {
-  Q_OBJECT
+  W_OBJECT(DoubleSlider)
 
 public:
   static const constexpr double max = std::numeric_limits<int>::max() / 65536.;
@@ -43,7 +44,7 @@ public:
     return QSlider::value() / max;
   }
 
-Q_SIGNALS:
-  void valueChanged(double);
+public:
+  void valueChanged(double arg_1) W_SIGNAL(valueChanged, arg_1);
 };
 }

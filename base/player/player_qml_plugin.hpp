@@ -16,14 +16,14 @@ public:
 
   int port() const;
 
-public Q_SLOTS:
+public:
   void load(QString);
   void play();
   void stop();
   void registerDevice(ossia::qt::qml_device*);
   void setPort(int);
 
-Q_SIGNALS:
+public:
   void portChanged(int port);
 
 private:

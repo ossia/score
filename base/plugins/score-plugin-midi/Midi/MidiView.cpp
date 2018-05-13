@@ -10,6 +10,8 @@
 #include <QKeyEvent>
 #include <QPainter>
 #include <score/widgets/GraphicsItem.hpp>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Midi::View)
 namespace Midi
 {
 

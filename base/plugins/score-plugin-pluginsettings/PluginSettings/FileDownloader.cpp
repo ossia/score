@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "FileDownloader.hpp"
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(score::FileDownloader)
 namespace score
 {
 FileDownloader::FileDownloader(QUrl imageUrl)

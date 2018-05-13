@@ -1,6 +1,8 @@
 #include <Media/Input/InputModel.hpp>
 #include <Process/Dataflow/Port.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Media::Input::ProcessModel)
 namespace Media
 {
 namespace Input

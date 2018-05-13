@@ -8,6 +8,8 @@
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Media::VST::VSTControlInlet)
 namespace Media::VST
 {
 

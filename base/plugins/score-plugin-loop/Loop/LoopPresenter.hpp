@@ -1,5 +1,6 @@
 #pragma once
 #include <Loop/LoopProcessModel.hpp>
+#include <wobjectdefs.h>
 #include <Loop/LoopViewUpdater.hpp>
 #include <Loop/Palette/LoopToolPalette.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
@@ -52,7 +53,7 @@ class LayerPresenter final
           Scenario::TemporalIntervalPresenter>
     , public Nano::Observer
 {
-  Q_OBJECT
+  W_OBJECT(LayerPresenter)
   friend class ViewUpdater;
 
 public:
@@ -98,11 +99,11 @@ public:
       QPointF scenepos,
       const Process::LayerContextMenuManager&) override;
 
-Q_SIGNALS:
-  void pressed(QPointF);
-  void moved(QPointF);
-  void released(QPointF);
-  void escPressed();
+public:
+  void pressed(QPointF arg_1) W_SIGNAL(pressed, arg_1);
+  void moved(QPointF arg_1) W_SIGNAL(moved, arg_1);
+  void released(QPointF arg_1) W_SIGNAL(released, arg_1);
+  void escPressed() W_SIGNAL(escPressed);
 
 private:
   void updateAllElements();

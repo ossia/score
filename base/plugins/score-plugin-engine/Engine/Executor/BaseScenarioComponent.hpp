@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/editor/scenario/clock.hpp>
+#include <wobjectdefs.h>
 #include <ossia/editor/state/state_element.hpp>
 
 #include <QObject>
@@ -107,7 +108,7 @@ namespace Execution
 struct Context;
 class SCORE_PLUGIN_ENGINE_EXPORT BaseScenarioElement final : public QObject
 {
-  Q_OBJECT
+  W_OBJECT(BaseScenarioElement)
 public:
   BaseScenarioElement(const Context&, QObject* parent);
   ~BaseScenarioElement();
@@ -130,8 +131,8 @@ public:
   StateComponent& startState() const;
   StateComponent& endState() const;
 
-Q_SIGNALS:
-  void finished();
+public:
+  void finished() W_SIGNAL(finished);
 
 private:
   const Context& m_ctx;

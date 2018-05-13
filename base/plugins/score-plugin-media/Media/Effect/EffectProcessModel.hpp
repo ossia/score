@@ -1,5 +1,6 @@
 #pragma once
 #include <Media/Effect/EffectProcessMetadata.hpp>
+#include <wobjectdefs.h>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
 #include <boost/iterator/indirect_iterator.hpp>
@@ -91,7 +92,7 @@ public:
     return std::distance(m_list.begin(), it);
   }
 
-  // Q_SIGNALS:
+  // public:
   mutable Nano::Signal<void(T&)> mutable_added;
   mutable Nano::Signal<void(const T&)> added;
   mutable Nano::Signal<void(const T&)> removing;
@@ -193,9 +194,8 @@ class ProcessModel final : public Process::ProcessModel
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Media::Effect::ProcessModel)
 
-  Q_OBJECT
-  Q_PROPERTY(bool badChaining READ badChaining WRITE setBadChaining NOTIFY
-                 badChainingChanged)
+  W_OBJECT(ProcessModel)
+  
 public:
   explicit ProcessModel(
       const TimeVal& duration,
@@ -237,7 +237,7 @@ public:
     return m_badChaining;
   }
 
-public Q_SLOTS:
+public:
   void setBadChaining(bool badChaining)
   {
     if (m_badChaining == badChaining)
@@ -245,12 +245,12 @@ public Q_SLOTS:
 
     m_badChaining = badChaining;
     badChainingChanged(m_badChaining);
-  }
+  }; W_SLOT(setBadChaining)
 
-Q_SIGNALS:
-  void effectsChanged();
+public:
+  void effectsChanged() W_SIGNAL(effectsChanged);
 
-  void badChainingChanged(bool badChaining);
+  void badChainingChanged(bool badChaining) W_SIGNAL(badChainingChanged, badChaining);
 
 private:
   Selection selectableChildren() const override;
@@ -259,6 +259,8 @@ private:
   // The actual effect instances
   EntityList<Process::ProcessModel> m_effects;
   bool m_badChaining{false};
+
+W_PROPERTY(bool, badChaining READ badChaining WRITE setBadChaining NOTIFY badChainingChanged)
 };
 }
 }

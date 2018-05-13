@@ -18,6 +18,11 @@
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>
+
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Explorer::AddressItemModel)
+W_OBJECT_IMPL(Explorer::AddressValueWidget)
+
 namespace Explorer
 {
 AddressItemModel::AddressItemModel(QObject* parent)
@@ -556,7 +561,7 @@ public:
     m_slider.setValue(ossia::convert<int>(t));
   }
 
-Q_SIGNALS:
+public:
   void changed(ossia::value);
 
 private:
@@ -600,7 +605,7 @@ public:
     m_edit.setValue(ossia::convert<float>(t));
   }
 
-Q_SIGNALS:
+public:
   void changed(ossia::value);
 
 private:

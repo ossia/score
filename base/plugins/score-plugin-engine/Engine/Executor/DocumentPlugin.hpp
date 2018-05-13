@@ -1,5 +1,6 @@
 #pragma once
 #include "BaseScenarioComponent.hpp"
+#include <wobjectdefs.h>
 
 #include <ossia/dataflow/bench_map.hpp>
 #include <ossia/dataflow/dataflow_fwd.hpp>
@@ -39,7 +40,7 @@ namespace Execution
 class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final
     : public score::DocumentPlugin
 {
-  Q_OBJECT
+  W_OBJECT(DocumentPlugin)
 public:
   DocumentPlugin(
       const score::DocumentContext& ctx,
@@ -109,11 +110,11 @@ public:
       std::vector<QMetaObject::Connection>>
       runtime_connections;
 
-Q_SIGNALS:
-  void finished();
-  void sig_bench(ossia::bench_map, int64_t ns);
-public Q_SLOTS:
-  void slot_bench(ossia::bench_map, int64_t ns);
+public:
+  void finished() W_SIGNAL(finished);
+  void sig_bench(ossia::bench_map arg_1, int64_t ns) W_SIGNAL(sig_bench, arg_1, ns);
+public:
+  void slot_bench(ossia::bench_map, int64_t ns); W_SLOT(slot_bench);
 
 private:
   score::hash_map<const ossia::graph_node*, const Process::ProcessModel*>

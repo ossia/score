@@ -1,5 +1,6 @@
 #pragma once
 #include <Curve/CurveStyle.hpp>
+#include <wobjectdefs.h>
 #include <Curve/Process/CurveProcessPresenter.hpp>
 #include <Mapping/MappingModel.hpp>
 #include <Mapping/MappingView.hpp>
@@ -10,7 +11,7 @@ namespace Mapping
 class LayerPresenter final
     : public Curve::CurveProcessPresenter<ProcessModel, LayerView>
 {
-  Q_OBJECT
+  W_OBJECT(LayerPresenter)
 public:
   LayerPresenter(
       const Curve::Style& style,

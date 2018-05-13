@@ -22,6 +22,8 @@
 #include <list>
 #include <ossia-qt/name_utils.hpp>
 
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Engine::Network::OSSIADevice)
 namespace Engine
 {
 namespace Network

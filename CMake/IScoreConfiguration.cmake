@@ -14,11 +14,6 @@ if(UNIX AND NOT APPLE)
     endif()
 endif()
 
-# broken in ubuntu 17.10
-if(NOT "${RELEASE_CODENAME}" MATCHES "Ubuntu")
-  CHECK_CXX_COMPILER_FLAG("-fuse-ld=lld" LLD_LINKER_SUPPORTED)
-endif()
-
 option(SCORE_ENABLE_LTO "Enable link-time optimization. Won't work on Travis." OFF)
 option(SCORE_ENABLE_OPTIMIZE_CUSTOM "Enable -march=native." OFF)
 
@@ -70,6 +65,15 @@ endif()
 
 if(NACL)
   set(SCORE_STATIC_QT True)
+endif()
+
+
+# broken in ubuntu 17.10
+if(NOT "${RELEASE_CODENAME}" MATCHES "Ubuntu")
+  CHECK_CXX_COMPILER_FLAG("-fuse-ld=lld" LLD_LINKER_SUPPORTED)
+endif()
+if(SCORE_SANITIZE AND NOT APPLE)
+  set(LLD_LINKER_SUPPORTED 0)
 endif()
 
 add_definitions(-DQT_DISABLE_DEPRECATED_BEFORE=0x050800)
