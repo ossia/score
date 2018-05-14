@@ -271,6 +271,8 @@ struct hash<Path<tag>>
 };
 }
 
+namespace score
+{
 template <typename T>
 auto id(const Path<T>& path)
 {
@@ -279,4 +281,4 @@ auto id(const Path<T>& path)
 
   return Id<T>(path.unsafePath().vec().back().id());
 }
-
+}

@@ -20,6 +20,6 @@ public:
 
 private:
   const Scenario::ToolPalette& m_sm;
-  const ScenarioExecution& m_exec;
+  ScenarioExecution& m_exec;
 };
 }

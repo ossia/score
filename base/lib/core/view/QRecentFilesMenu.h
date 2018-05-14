@@ -71,15 +71,18 @@ public:
 
     //! Removes all the menu's actions.
     void clearMenu();
+    W_SLOT(clearMenu);
 
     //! Sets the maximum number of entries int he menu.
     void setMaxCount(int);
 public:
     //! This signal is emitted when a recent file in this menu is triggered.
-    void recentFileTriggered(const QString & filename) W_SIGNAL(recentFileTriggered, filename);
+    void recentFileTriggered(const QString & filename)
+    W_SIGNAL(recentFileTriggered, filename);
 
 private:
     void menuTriggered(QAction*);
+    W_SLOT(menuTriggered);
     void updateRecentFileActions();
 
     int m_maxCount{};

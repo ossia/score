@@ -1,6 +1,7 @@
 #include "QRecentFilesMenu.h"
 #include <QFileInfo>
 #include <wobjectimpl.h>
+W_REGISTER_ARGTYPE(QAction*)
 W_OBJECT_IMPL(QRecentFilesMenu)
 
 static const qint32 RecentFilesMenuMagic = 0xff;
