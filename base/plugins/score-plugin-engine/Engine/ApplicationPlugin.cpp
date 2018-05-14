@@ -190,7 +190,7 @@ static std::unique_ptr<ossia::audio_engine> make_engine(AlteredAudioSettings& al
                "PortAudio", "score",
                req_in.toStdString(), req_out.toStdString(),
                ins, outs, rate, bs);
-      alt_set.driver = "PortAudio";
+      alt_set.driver = QString{"PortAudio"};
     }
     catch(...)
     {
@@ -198,7 +198,7 @@ static std::unique_ptr<ossia::audio_engine> make_engine(AlteredAudioSettings& al
                "Dummy", "score",
                req_in.toStdString(), req_out.toStdString(),
                ins, outs, rate, bs);
-      alt_set.driver = "Dummy";
+      alt_set.driver = QString{"Dummy"};
     }
   }
 

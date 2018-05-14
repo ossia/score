@@ -15,8 +15,12 @@ W_OBJECT_IMPL(JS::IntSlider)
 W_OBJECT_IMPL(JS::Enum)
 W_OBJECT_IMPL(JS::Toggle)
 W_OBJECT_IMPL(JS::LineEdit)
+
 W_GADGET_IMPL(JS::ValueMessage)
 W_GADGET_IMPL(JS::MidiMessage)
+
+auto disregard_me = &JS::ValueMessage::staticMetaObject;
+auto disregard_me_2 = &JS::MidiMessage::staticMetaObject;
 namespace JS
 {
 

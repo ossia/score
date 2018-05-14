@@ -18,7 +18,8 @@
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
-
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(Media::Effect::EffectSlider)
 namespace Media
 {
 namespace Effect
