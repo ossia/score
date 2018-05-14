@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QMainWindow>
+#include <core/document/Document.hpp>
 #include <wobjectdefs.h>
 #include <QPair>
 #include <QString>
@@ -64,4 +65,3 @@ private:
   QTabWidget* m_tabWidget{};
 };
 }
-W_REGISTER_ARGTYPE(Id<score::DocumentModel>)
