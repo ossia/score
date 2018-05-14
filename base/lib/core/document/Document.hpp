@@ -169,4 +169,7 @@ private:
 };
 }
 
+Q_DECLARE_METATYPE(score::Document*)
+Q_DECLARE_METATYPE(Id<score::DocumentModel>)
 W_REGISTER_ARGTYPE(score::Document*)
+W_REGISTER_ARGTYPE(Id<score::DocumentModel>)
