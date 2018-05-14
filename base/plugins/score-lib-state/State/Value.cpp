@@ -14,7 +14,7 @@
 #include <score/serialization/JSONVisitor.hpp>
 
 #include <wobjectimpl.h>
-W_GADGET_IMPL(State::Unit)
+//W_GADGET_IMPL(State::Unit)
 
 namespace State
 {

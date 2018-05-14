@@ -8,7 +8,7 @@
 #include <score/serialization/JSONVisitor.hpp>
 
 #include <wobjectimpl.h>
-W_GADGET_IMPL(State::Domain)
+//W_GADGET_IMPL(State::Domain)
 namespace State
 {
 

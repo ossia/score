@@ -13,7 +13,7 @@ namespace State
 {
 struct SCORE_LIB_STATE_EXPORT Unit
 {
-  W_GADGET(Unit)
+  //W_GADGET(Unit)
 public:
   Unit() noexcept;
   Unit(const Unit& other) noexcept;

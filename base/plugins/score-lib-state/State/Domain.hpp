@@ -13,7 +13,7 @@ namespace State
 {
 struct SCORE_LIB_STATE_EXPORT Domain
 {
-  W_GADGET(Domain)
+  //W_GADGET(Domain)
 public:
   Domain() noexcept;
   Domain(const Domain& other) noexcept;
