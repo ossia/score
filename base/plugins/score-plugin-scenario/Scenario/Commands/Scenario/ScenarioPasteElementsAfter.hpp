@@ -18,19 +18,16 @@ class TimeSyncModel;
 class IntervalModel;
 namespace Command
 {
-
-class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPasteElements final
+class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPasteElementsAfter final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),
-      ScenarioPasteElements,
-      "Paste elements in scenario")
+      ScenarioPasteElementsAfter,
+      "Paste elements after sync")
 public:
-  ScenarioPasteElements(
-      const Scenario::ProcessModel& path,
-      const QJsonObject& obj,
-      const Scenario::Point& pt);
+  ScenarioPasteElementsAfter(
+      const Scenario::ProcessModel& path, const QJsonObject& obj);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
@@ -41,6 +38,8 @@ protected:
 
 private:
   Path<Scenario::ProcessModel> m_ts;
+  Id<TimeSyncModel> m_attachSync;
+  QVector<Id<EventModel>> m_eventsToAttach;
 
   // TODO std::vector...
   QVector<Id<TimeSyncModel>> m_ids_timesyncs;
@@ -55,6 +54,5 @@ private:
 
   QMap<Id<Process::Cable>, Process::CableData> m_cables;
 };
-
 }
 }
