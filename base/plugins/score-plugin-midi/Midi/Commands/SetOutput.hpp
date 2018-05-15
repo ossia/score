@@ -6,24 +6,6 @@ namespace Midi
 {
 class ProcessModel;
 
-class SetOutput final : public score::Command
-{
-  SCORE_COMMAND_DECL(Midi::CommandFactoryName(), SetOutput, "Set Midi output")
-public:
-  SetOutput(const ProcessModel& model, const QString& dev);
-
-  void undo(const score::DocumentContext& ctx) const override;
-  void redo(const score::DocumentContext& ctx) const override;
-
-protected:
-  void serializeImpl(DataStreamInput& s) const override;
-  void deserializeImpl(DataStreamOutput& s) override;
-
-private:
-  Path<ProcessModel> m_model;
-  QString m_old, m_new;
-};
-
 class SetChannel final : public score::Command
 {
   SCORE_COMMAND_DECL(

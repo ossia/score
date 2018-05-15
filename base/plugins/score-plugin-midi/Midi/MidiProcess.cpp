@@ -20,7 +20,6 @@ ProcessModel::ProcessModel(
 
   metadata().setInstanceName(*this);
 
-  m_device = "MidiDevice";
   /*
     for (int i = 0; i < 12; i++)
     {
@@ -39,17 +38,6 @@ ProcessModel::~ProcessModel()
 {
 }
 
-void ProcessModel::setDevice(const QString& dev)
-{
-  m_device = dev;
-  deviceChanged(m_device);
-}
-
-const QString& ProcessModel::device() const
-{
-  return m_device;
-}
-
 void ProcessModel::setChannel(int n)
 {
   m_channel = clamp(n, 1, 16);
@@ -59,6 +47,40 @@ void ProcessModel::setChannel(int n)
 int ProcessModel::channel() const
 {
   return m_channel;
+}
+
+void ProcessModel::setRange(int min, int max)
+{
+  if (min == max)
+  {
+    min = 127;
+    max = 0;
+
+    for (auto& note : notes)
+    {
+      if (note.pitch() < min)
+        min = note.pitch();
+      if (note.pitch() > max)
+        max = note.pitch();
+    }
+  }
+  else
+  {
+    min = std::max(0, min);
+    max = std::min(127, max);
+    if (min >= max)
+    {
+      min = std::max(0, max - 7);
+      max = std::min(127, min + 14);
+    }
+  }
+
+  std::pair<int, int> range{min, max};
+  if (range != m_range)
+  {
+    m_range = range;
+    rangeChanged(min, max);
+  }
 }
 
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
@@ -168,7 +190,7 @@ void JSONObjectWriter::write(Midi::Note& n)
 template <>
 void DataStreamReader::read(const Midi::ProcessModel& proc)
 {
-  m_stream << *proc.outlet << proc.device() << proc.channel()
+  m_stream << *proc.outlet << proc.channel()
            << proc.m_range.first << proc.m_range.second;
 
   const auto& notes = proc.notes;
@@ -186,7 +208,7 @@ template <>
 void DataStreamWriter::write(Midi::ProcessModel& proc)
 {
   proc.outlet = Process::make_outlet(*this, &proc);
-  m_stream >> proc.m_device >> proc.m_channel >> proc.m_range.first
+  m_stream >> proc.m_channel >> proc.m_range.first
       >> proc.m_range.second;
   int n;
   m_stream >> n;
@@ -201,7 +223,6 @@ template <>
 void JSONObjectReader::read(const Midi::ProcessModel& proc)
 {
   obj["Outlet"] = toJsonObject(*proc.outlet);
-  obj["Device"] = proc.device();
   obj["Channel"] = proc.channel();
   obj["Min"] = proc.range().first;
   obj["Max"] = proc.range().second;
@@ -230,7 +251,6 @@ void JSONObjectWriter::write(Midi::ProcessModel& proc)
     proc.notes.add(note);
   }
 
-  proc.setDevice(obj["Device"].toString());
   proc.setChannel(obj["Channel"].toInt());
   proc.setRange(obj["Min"].toInt(), obj["Max"].toInt());
 }
