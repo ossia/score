@@ -53,7 +53,7 @@ private:
   QVector<QJsonObject> m_json_events;
   QVector<QJsonObject> m_json_states;
 
-  std::vector<Process::CableData> m_cables;
+  QMap<Id<Process::Cable>, Process::CableData> m_cables;
 };
 
 class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPasteElementsAfter final

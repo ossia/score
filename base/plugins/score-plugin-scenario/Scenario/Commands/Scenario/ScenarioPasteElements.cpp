@@ -21,6 +21,8 @@
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <algorithm>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/multi_index/detail/hash_index_iterator.hpp>
@@ -39,6 +41,7 @@
 #include <score/tools/Clamp.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <vector>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 // Needed for copy since we want to generate IDs that are neither
 // in the scenario in which we are copying into, nor in the elements
 // that we copied because it may cause conflicts.
@@ -95,7 +98,8 @@ ScenarioPasteElements::ScenarioPasteElements(
 {
   // We assign new ids WRT the elements of the scenario - these ids can
   // be easily mapped.
-  auto& stack = score::IDocument::documentContext(scenario).commandStack;
+  auto& ctx = score::IDocument::documentContext(scenario);
+  auto& stack = ctx.commandStack;
 
   std::vector<TimeSyncModel*> timesyncs;
   std::vector<IntervalModel*> intervals;
@@ -237,15 +241,22 @@ ScenarioPasteElements::ScenarioPasteElements(
     }
   }
 
+  // Cables //
   {
     std::unordered_map<Id<IntervalModel>, Id<IntervalModel>> id_map;
-    int i = 0;
-    for (IntervalModel* interval : intervals)
     {
-      id_map[interval->id()] = interval_ids[i];
-      i++;
+      int i = 0;
+      for (IntervalModel* interval : intervals)
+      {
+        id_map[interval->id()] = interval_ids[i];
+        i++;
+      }
     }
 
+    auto& doc = score::IDocument::modelDelegate<ScenarioDocumentModel>(ctx.document);
+    auto cable_ids = getStrongIdRange<Process::Cable>(cables.size(), doc.cables);
+
+    int i = 0;
     Path<Process::ProcessModel> p{scenario};
     for(Process::CableData& cd : cables)
     {
@@ -267,14 +278,25 @@ ScenarioPasteElements::ScenarioPasteElements(
 
       source_vec.insert(source_vec.begin(), p.unsafePath().vec().begin(), p.unsafePath().vec().end());
       sink_vec.insert(sink_vec.begin(), p.unsafePath().vec().begin(), p.unsafePath().vec().end());
+
+      m_cables.insert(cable_ids[i], std::move(cd));
+      i++;
     }
   }
-  m_cables = std::move(cables);
 
   {
     int i = 0;
     for (IntervalModel* interval : intervals)
     {
+      const auto ports = interval->findChildren<Process::Port*>();
+      for(Process::Port* port : ports)
+      {
+        while(!port->cables().empty())
+        {
+          port->removeCable(port->cables().back());
+        }
+      }
+
       interval->setId(interval_ids[i]);
       {
         auto start_state_id = ossia::find_if(states, [&](auto state) {
@@ -457,7 +479,7 @@ void ScenarioPasteElements::redo(const score::DocumentContext& ctx) const
     addedEvents.push_back(ev);
   }
 
-  auto& stack = score::IDocument::documentContext(scenario).commandStack;
+  auto& stack = ctx.commandStack;
   for (const auto& state : m_json_states)
   {
     scenario.states.add(
@@ -480,9 +502,18 @@ void ScenarioPasteElements::redo(const score::DocumentContext& ctx) const
     updateTimeSyncExtent(timesync->id(), scenario);
   }
 
-  for(const auto& cable : m_cables)
+  ScenarioDocumentModel& model = score::IDocument::modelDelegate<ScenarioDocumentModel>(ctx.document);
+  for(const auto& cable_id : m_cables.keys())
   {
+    const auto& dat = m_cables[cable_id];
+    auto c = new Process::Cable{cable_id, dat, &model};
 
+    Path<Scenario::ScenarioDocumentModel> model_path{model};
+
+    model.cables.add(c);
+    auto ext = model_path.extend(cable_id);
+    dat.source.find(ctx).addCable(ext);
+    dat.sink.find(ctx).addCable(ext);
   }
 }
 
@@ -490,14 +521,14 @@ void ScenarioPasteElements::serializeImpl(DataStreamInput& s) const
 {
   s << m_ts << m_ids_timesyncs << m_ids_events << m_ids_states
     << m_ids_intervals << m_json_timesyncs << m_json_events << m_json_states
-    << m_json_intervals;
+    << m_json_intervals << m_cables;
 }
 
 void ScenarioPasteElements::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_ts >> m_ids_timesyncs >> m_ids_events >> m_ids_states
       >> m_ids_intervals >> m_json_timesyncs >> m_json_events >> m_json_states
-      >> m_json_intervals;
+      >> m_json_intervals >> m_cables;
 }
 
 ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
