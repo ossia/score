@@ -24,6 +24,7 @@
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <score/actions/ActionManager.hpp>
+#include <ossia/network/common/path.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <wobjectimpl.h>
 W_REGISTER_ARGTYPE(ossia::bench_map)
@@ -385,23 +386,23 @@ void DocumentPlugin::unregister_node(
   proc_map.erase(node.get());
 }
 
-void DocumentPlugin::set_destination(
-    const State::AddressAccessor& address, const ossia::inlet_ptr& port)
+template<typename T>
+void set_destination_impl(const DocumentPlugin& plug, const State::AddressAccessor& address, const T& port)
 {
   if (address.address.device.isEmpty())
     return;
 
+  auto& qual = address.qualifiers.get();
+  auto& equeue = plug.context().executionQueue;
   if (auto ossia_addr = Engine::score_to_ossia::findAddress(
-          context().devices.list(), address.address))
+          plug.context().devices.list(), address.address))
   {
     auto p = ossia_addr->get_parameter();
     if (p)
     {
-      auto& qual = address.qualifiers.get();
-
-      m_execQueue.enqueue([=, g = execGraph] {
+      equeue.enqueue([=, g = plug.execGraph] {
         port->address = p;
-        if (ossia::value_port* dat = port->data.target<ossia::value_port>())
+        if (ossia::value_port* dat = port->data.template target<ossia::value_port>())
         {
           if (qual.unit)
             dat->type = qual.unit;
@@ -412,7 +413,7 @@ void DocumentPlugin::set_destination(
     }
     else
     {
-      m_execQueue.enqueue([=, g = execGraph] {
+      equeue.enqueue([=, g = plug.execGraph] {
         port->address = ossia_addr;
         g->mark_dirty();
       });
@@ -420,58 +421,45 @@ void DocumentPlugin::set_destination(
   }
   else
   {
-    m_execQueue.enqueue([=, g = execGraph] {
-      port->address = {};
-      if (ossia::value_port* dat = port->data.target<ossia::value_port>())
-      {
-        dat->type = {};
-        dat->index.clear();
-      }
-    });
+    // OPTIMIZEME
+    auto path = ossia::traversal::make_path(address.address.toString().toStdString());
+    if(path)
+    {
+      equeue.enqueue([=, g = plug.execGraph, p = *path] () mutable {
+        port->address = std::move(p);
+        if (ossia::value_port* dat = port->data.template target<ossia::value_port>())
+        {
+          if (qual.unit)
+            dat->type = qual.unit;
+          dat->index = qual.accessors;
+        }
+        g->mark_dirty();
+      });
+    }
+    else
+    {
+      equeue.enqueue([=, g = plug.execGraph] {
+        port->address = {};
+        if (ossia::value_port* dat = port->data.template target<ossia::value_port>())
+        {
+          dat->type = {};
+          dat->index.clear();
+        }
+      });
+    }
   }
 }
+
+void DocumentPlugin::set_destination(
+    const State::AddressAccessor& address, const ossia::inlet_ptr& port)
+{
+  set_destination_impl(*this, address, port);
+}
+
 void DocumentPlugin::set_destination(
     const State::AddressAccessor& address, const ossia::outlet_ptr& port)
 {
-  if (auto ossia_addr = Engine::score_to_ossia::findAddress(
-          context().devices.list(), address.address))
-  {
-    auto p = ossia_addr->get_parameter();
-    if (p)
-    {
-      auto& qual = address.qualifiers.get();
-
-      m_execQueue.enqueue([=, g = execGraph] {
-        port->address = p;
-        if (ossia::value_port* dat = port->data.target<ossia::value_port>())
-        {
-          if (qual.unit)
-            dat->type = qual.unit;
-          dat->index = qual.accessors;
-        }
-        g->mark_dirty();
-      });
-    }
-    else
-    {
-      m_execQueue.enqueue([=, g = execGraph] {
-        port->address = ossia_addr;
-        g->mark_dirty();
-      });
-    }
-  }
-  else
-  {
-    m_execQueue.enqueue([=, g = execGraph] {
-      port->address = {};
-      if (ossia::value_port* dat = port->data.target<ossia::value_port>())
-      {
-        dat->type = {};
-        dat->index.clear();
-      }
-      g->mark_dirty();
-    });
-  }
+  set_destination_impl(*this, address, port);
 }
 
 void DocumentPlugin::slot_bench(ossia::bench_map b, int64_t ns)
