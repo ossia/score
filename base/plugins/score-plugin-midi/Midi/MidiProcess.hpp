@@ -38,9 +38,6 @@ public:
 
   score::EntityMap<Note> notes;
 
-  void setDevice(const QString& dev);
-  const QString& device() const;
-
   void setChannel(int n);
   int channel() const;
 
@@ -49,45 +46,12 @@ public:
     return m_range;
   }
 
-  void setRange(int min, int max)
-  {
-    if (min == max)
-    {
-      min = 127;
-      max = 0;
-
-      for (auto& note : notes)
-      {
-        if (note.pitch() < min)
-          min = note.pitch();
-        if (note.pitch() > max)
-          max = note.pitch();
-      }
-    }
-    else
-    {
-      min = std::max(0, min);
-      max = std::min(127, max);
-      if (min >= max)
-      {
-        min = std::max(0, max - 7);
-        max = std::min(127, min + 14);
-      }
-    }
-
-    std::pair<int, int> range{min, max};
-    if (range != m_range)
-    {
-      m_range = range;
-      rangeChanged(min, max);
-    }
-  }
+  void setRange(int min, int max);
 
   std::unique_ptr<Process::Outlet> outlet;
 
 public:
   void notesChanged() W_SIGNAL(notesChanged);
-  void deviceChanged(const QString& arg_1) W_SIGNAL(deviceChanged, arg_1);
   void channelChanged(int arg_1) W_SIGNAL(channelChanged, arg_1);
 
   void rangeChanged(int arg_1, int arg_2) W_SIGNAL(rangeChanged, arg_1, arg_2);
@@ -97,7 +61,6 @@ private:
   void setDurationAndGrow(const TimeVal& newDuration) override;
   void setDurationAndShrink(const TimeVal& newDuration) override;
 
-  QString m_device;
   int m_channel{1};
   std::pair<int, int> m_range{0, 127};
 };
