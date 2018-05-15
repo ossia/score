@@ -101,6 +101,7 @@ ScenarioPasteElements::ScenarioPasteElements(
   std::vector<IntervalModel*> intervals;
   std::vector<EventModel*> events;
   std::vector<StateModel*> states;
+  std::vector<Process::CableData> cables;
 
   // TODO this is really a bad idea... either they should be properly added, or
   // the json should be modified without including anything in the scenario.
@@ -142,6 +143,14 @@ ScenarioPasteElements::ScenarioPasteElements(
     {
       states.emplace_back(new StateModel{
           JSONObject::Deserializer{element.toObject()}, stack, nullptr});
+    }
+  }
+  {
+    const auto json_arr = obj["Cables"].toArray();
+    cables.reserve(json_arr.size());
+    for (const auto& element : json_arr)
+    {
+      cables.emplace_back(score::unmarshall<Process::CableData>(element.toObject()));
     }
   }
 
@@ -225,6 +234,40 @@ ScenarioPasteElements::ScenarioPasteElements(
 
       state->setId(state_ids[i]);
       i++;
+    }
+  }
+
+  {
+    std::unordered_map<Id<IntervalModel>, Id<IntervalModel>> id_map;
+    int i = 0;
+    for (IntervalModel* interval : intervals)
+    {
+      id_map[interval->id()] = interval_ids[i];
+      i++;
+    }
+
+    Path<Process::ProcessModel> p{scenario};
+    for(Process::CableData& cd : cables)
+    {
+      auto& source_vec = cd.source.unsafePath_ref().vec();
+      auto& sink_vec = cd.sink.unsafePath_ref().vec();
+      auto source_itv_id = source_vec.front().id();
+      auto sink_itv_id = sink_vec.front().id();
+/*
+      for (IntervalModel* interval : intervals)
+      {
+        const auto& id = interval->id();
+        if (id == source_itv_id)
+          source_itv_id = id_map[interval->id()];
+        if (id == sink_itv_id)
+          sink_itv_id = id_map[interval->id()];
+      }
+      source_vec.front().setId(source_itv_id);
+      sink_vec.front().setId(sink_itv_id);
+
+      source_vec.insert(source_vec.begin(), p.unsafePath().begin(), p.unsafePath().end());
+      sink_vec.insert(sink_vec.begin(), p.unsafePath().begin(), p.unsafePath().end());
+      */
     }
   }
 

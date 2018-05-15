@@ -8,7 +8,7 @@
 #include <score/model/path/Path.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/tools/std/Optional.hpp>
-
+#include <Process/Dataflow/Cable.hpp>
 namespace Scenario
 {
 struct Point;
@@ -52,6 +52,8 @@ private:
   QVector<QJsonObject> m_json_intervals;
   QVector<QJsonObject> m_json_events;
   QVector<QJsonObject> m_json_states;
+
+  std::vector<Process::CableData> m_cables;
 };
 
 class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPasteElementsAfter final
