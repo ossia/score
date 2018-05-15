@@ -513,12 +513,13 @@ public:
   const QVector<QVector<double>>& audio() const;
   void setAudio(const QVector<QVector<double>>& audio);
 
-  Q_INVOKABLE QVector<double> channel(int i) const
+  QVector<double> channel(int i) const
   {
     if (m_audio.size() > i)
       return m_audio[i];
     return {};
   }
+  W_INVOKABLE(channel);
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
@@ -549,13 +550,13 @@ public:
 
   const QVector<QVector<double>>& audio() const;
 
-  Q_INVOKABLE void setChannel(int i, QVector<double> v)
+  void setChannel(int i, QVector<double> v)
   {
     i = std::abs(i);
     m_audio.resize(std::max(i + 1, (int)m_audio.size()));
     m_audio[i] = v;
   }
-
+  W_INVOKABLE(setChannel)
 private:
   QVector<QVector<double>> m_audio;
 };
@@ -590,10 +591,11 @@ public:
     }
   }
 
-  Q_INVOKABLE QVariantList messages() const
+  QVariantList messages() const
   {
     return m_midi;
   }
+  W_INVOKABLE(messages);
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
@@ -623,7 +625,7 @@ public:
   void clear();
   const QVector<QVector<int>>& midi() const;
 
-  Q_INVOKABLE void setMessages(const QVariantList m)
+  void setMessages(const QVariantList m)
   {
     m_midi.clear();
     for (auto& v : m)
@@ -632,11 +634,13 @@ public:
         m_midi.push_back(v.value<QVector<int>>());
     }
   }
+  W_INVOKABLE(setMessages);
 
-  Q_INVOKABLE void add(QVector<int> m)
+  void add(QVector<int> m)
   {
     m_midi.push_back(std::move(m));
   }
+  W_INVOKABLE(add);
 
 private:
   QVector<QVector<int>> m_midi;
