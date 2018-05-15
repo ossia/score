@@ -42,11 +42,37 @@ static auto arrayToJson(Selected_T&& selected)
   return array;
 }
 
+bool isChildOf(const ObjectPath& path, const ObjectPath& parent)
+{
+  auto parent_n = parent.vec().size();
+  auto path_n = path.vec().size();
+  if(parent_n >= path_n)
+    return false;
+  for(std::size_t i = 0; i < parent_n; i++)
+  {
+    if(!(path.vec()[i] == parent.vec()[i]))
+      return false;
+  }
+
+  return true;
+}
+
+template<typename T, typename P>
+bool isChildOf(const Path<P>& path, const T& vec)
+{
+  for(const auto& parent : vec)
+  {
+    if(isChildOf(path.unsafePath(), parent.unsafePath()))
+      return true;
+  }
+  return false;
+}
+
 template <typename Scenario_T>
 QJsonObject
 copySelected(const Scenario_T& sm, CategorisedScenario& cs, QObject* parent)
 {
-  auto& ctx = score::IDocument::documentContext(*parent);
+  std::vector<Path<Scenario::IntervalModel>> itv_paths;
   for (const IntervalModel* interval : cs.selectedIntervals)
   {
     auto start_it
@@ -66,6 +92,8 @@ copySelected(const Scenario_T& sm, CategorisedScenario& cs, QObject* parent)
     {
       cs.selectedStates.push_back(&sm.state(interval->endState()));
     }
+
+    itv_paths.push_back(*interval);
   }
 
   for (const StateModel* state : cs.selectedStates)
@@ -170,20 +198,16 @@ copySelected(const Scenario_T& sm, CategorisedScenario& cs, QObject* parent)
     outs.insert(child_outs.begin(), child_outs.end());
   }
 
-  // FIXME it can't get any slower
+  auto& ctx = score::IDocument::documentContext(*parent);
   for (auto inl : ins)
   {
     for (const auto& c_inl : inl->cables())
     {
-      for (auto outl : outs)
+      if(Process::Cable* cable = c_inl.try_find(ctx))
       {
-        for (const auto& c_out : outl->cables())
+        if(isChildOf(cable->source(), itv_paths))
         {
-          if (c_out == c_inl)
-          {
-            if (Process::Cable* c = c_out.try_find(ctx))
-              copiedCables.push_back(c);
-          }
+          copiedCables.push_back(cable);
         }
       }
     }

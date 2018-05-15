@@ -255,7 +255,9 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
               return tr("Name");
             case Rows::Address:
               return tr("Address");
+            default: break;
           }
+          break;
         }
         case 1:
         {
@@ -265,7 +267,9 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
               return m_settings.address.path.last();
             case Rows::Address:
               return m_settings.address.toString();
+            default: break;
           }
+          break;
         }
         default:
           break;
