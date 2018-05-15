@@ -251,25 +251,25 @@ ScenarioPasteElements::ScenarioPasteElements(
     {
       auto& source_vec = cd.source.unsafePath_ref().vec();
       auto& sink_vec = cd.sink.unsafePath_ref().vec();
-      auto source_itv_id = source_vec.front().id();
-      auto sink_itv_id = sink_vec.front().id();
-/*
+      int32_t source_itv_id = source_vec.front().id();
+      int32_t sink_itv_id = sink_vec.front().id();
+
       for (IntervalModel* interval : intervals)
       {
-        const auto& id = interval->id();
+        auto id = interval->id().val();
         if (id == source_itv_id)
-          source_itv_id = id_map[interval->id()];
+          source_itv_id = id_map.at(interval->id()).val();
         if (id == sink_itv_id)
-          sink_itv_id = id_map[interval->id()];
+          sink_itv_id = id_map.at(interval->id()).val();
       }
-      source_vec.front().setId(source_itv_id);
-      sink_vec.front().setId(sink_itv_id);
+      source_vec.front() = ObjectIdentifier{source_vec.front().objectName(), source_itv_id};
+      sink_vec.front() = ObjectIdentifier{sink_vec.front().objectName(), sink_itv_id};
 
-      source_vec.insert(source_vec.begin(), p.unsafePath().begin(), p.unsafePath().end());
-      sink_vec.insert(sink_vec.begin(), p.unsafePath().begin(), p.unsafePath().end());
-      */
+      source_vec.insert(source_vec.begin(), p.unsafePath().vec().begin(), p.unsafePath().vec().end());
+      sink_vec.insert(sink_vec.begin(), p.unsafePath().vec().begin(), p.unsafePath().vec().end());
     }
   }
+  m_cables = std::move(cables);
 
   {
     int i = 0;
@@ -478,6 +478,11 @@ void ScenarioPasteElements::redo(const score::DocumentContext& ctx) const
   for (const auto& timesync : addedTimeSyncs)
   {
     updateTimeSyncExtent(timesync->id(), scenario);
+  }
+
+  for(const auto& cable : m_cables)
+  {
+
   }
 }
 
