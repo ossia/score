@@ -101,8 +101,10 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/HideRackInViewModel.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Merge/MergeEvents.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Merge/MergeTimeSyncs.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/ScenarioPaste.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/ScenarioPasteContent.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/ScenarioPasteElements.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/ScenarioPasteElementsAfter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/ShowRackInViewModel.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/DuplicateInterval.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/State/AddMessagesToState.hpp"
@@ -386,6 +388,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/HideRackInViewModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/ShowRackInViewModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/ScenarioPasteElements.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/ScenarioPasteElementsAfter.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Cohesion/CreateCurveFromStates.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Cohesion/InterpolateStates.cpp"

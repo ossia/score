@@ -174,3 +174,43 @@ auto getStrongIdRange(std::size_t s, const Vector& existing)
 
   return std::vector<Id<T>>(vec.begin() + existing.size(), vec.end());
 }
+
+template <typename T, typename Vector1, typename Vector2>
+static auto getStrongIdRange2(
+    std::size_t s, const Vector1& existing1, const Vector2& existing2)
+{
+  std::vector<Id<T>> vec;
+  vec.reserve(s + existing1.size() + existing2.size());
+  std::transform(
+      existing1.begin(), existing1.end(), std::back_inserter(vec),
+      [](const auto& elt) { return elt.id(); });
+  std::transform(
+      existing2.begin(), existing2.end(), std::back_inserter(vec),
+      [](const auto& elt) { return elt->id(); });
+
+  for (; s-- > 0;)
+  {
+    vec.push_back(getStrongId(vec));
+  }
+  auto final = std::vector<Id<T>>(
+      vec.begin() + existing1.size() + existing2.size(), vec.end());
+
+  return final;
+}
+
+template <typename T, typename Vector>
+auto getStrongIdRangePtr(std::size_t s, const Vector& existing)
+{
+  std::vector<Id<T>> vec;
+  vec.reserve(s + existing.size());
+  std::transform(
+      existing.begin(), existing.end(), std::back_inserter(vec),
+      [](const auto& elt) { return elt->id(); });
+
+  for (; s-- > 0;)
+  {
+    vec.push_back(getStrongId(vec));
+  }
+
+  return std::vector<Id<T>>(vec.begin() + existing.size(), vec.end());
+}
