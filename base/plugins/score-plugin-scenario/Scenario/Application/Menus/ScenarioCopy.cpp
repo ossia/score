@@ -42,7 +42,8 @@ static auto arrayToJson(Selected_T&& selected)
   return array;
 }
 
-bool isChildOf(const ObjectPath& path, const ObjectPath& parent)
+// MOVEME
+bool verifyAndUpdateIfChildOf(ObjectPath& path, const ObjectPath& parent)
 {
   auto parent_n = parent.vec().size();
   auto path_n = path.vec().size();
@@ -54,18 +55,37 @@ bool isChildOf(const ObjectPath& path, const ObjectPath& parent)
       return false;
   }
 
+  SCORE_ASSERT(parent_n > 1);
+  path.vec().erase(path.vec().begin(), path.vec().begin() + parent_n - 1);
   return true;
 }
 
-template<typename T, typename P>
-bool isChildOf(const Path<P>& path, const T& vec)
+bool verifyAndUpdateIfChildOf(
+    Process::CableData& path,
+    const std::vector<Path<IntervalModel>>& vec)
 {
+  bool source_ok = false;
   for(const auto& parent : vec)
   {
-    if(isChildOf(path.unsafePath(), parent.unsafePath()))
-      return true;
+    if(verifyAndUpdateIfChildOf(path.source.unsafePath_ref(), parent.unsafePath()))
+    {
+      source_ok = true;
+      break;
+    }
   }
-  return false;
+  if(!source_ok)
+    return false;
+
+  for(const auto& parent : vec)
+  {
+    if(verifyAndUpdateIfChildOf(path.sink.unsafePath_ref(), parent.unsafePath()))
+    {
+      return true;
+    }
+  }
+  // must not happen: the sink is already guaranteed to be a child of an interval
+  // since we look for all the inlets
+  SCORE_ABORT;
 }
 
 template <typename Scenario_T>
@@ -187,15 +207,12 @@ copySelected(const Scenario_T& sm, CategorisedScenario& cs, QObject* parent)
   // For every cable, if both ends are in one of the elements or child elements
   // currently selected, we copy them.
   // Note: ids / cable paths have to be updated of course.
-  std::vector<Process::Cable*> copiedCables;
+  std::vector<Process::CableData> copiedCables;
   ossia::ptr_set<Process::Inlet*> ins;
-  ossia::ptr_set<Process::Outlet*> outs;
   for (auto itv : cs.selectedIntervals)
   {
     auto child_ins = itv->findChildren<Process::Inlet*>();
     ins.insert(child_ins.begin(), child_ins.end());
-    auto child_outs = itv->findChildren<Process::Outlet*>();
-    outs.insert(child_outs.begin(), child_outs.end());
   }
 
   auto& ctx = score::IDocument::documentContext(*parent);
@@ -205,9 +222,10 @@ copySelected(const Scenario_T& sm, CategorisedScenario& cs, QObject* parent)
     {
       if(Process::Cable* cable = c_inl.try_find(ctx))
       {
-        if(isChildOf(cable->source(), itv_paths))
+        auto cd = cable->toCableData();
+        if(verifyAndUpdateIfChildOf(cd, itv_paths))
         {
-          copiedCables.push_back(cable);
+          copiedCables.push_back(cd);
         }
       }
     }
@@ -218,7 +236,7 @@ copySelected(const Scenario_T& sm, CategorisedScenario& cs, QObject* parent)
   base["Events"] = arrayToJson(copiedEvents);
   base["TimeNodes"] = arrayToJson(copiedTimeSyncs);
   base["States"] = arrayToJson(copiedStates);
-  base["Cables"] = arrayToJson(copiedCables);
+  base["Cables"] = toJsonArray(copiedCables);
 
   for (auto elt : copiedTimeSyncs)
     delete elt;
