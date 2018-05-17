@@ -70,11 +70,11 @@ struct Node
   {
     for (std::size_t i = 0; i < std::min(num, chord.size()); i++)
     {
-      auto new_note = m.data[1] + chord[i];
+      auto new_note = m.bytes[1] + chord[i];
       if (new_note > 127)
         break;
 
-      auto non = mm::MakeNoteOn(m.getChannel(), new_note, m.data[2]);
+      auto non = rtmidi::message::note_on(m.get_channel(), new_note, m.bytes[2]);
       non.timestamp = m.timestamp;
       op.messages.push_back(non);
     }
@@ -89,11 +89,11 @@ struct Node
   {
     for (std::size_t i = 0; i < std::min(num, chord.size()); i++)
     {
-      auto new_note = m.data[1] + chord[i];
+      auto new_note = m.bytes[1] + chord[i];
       if (new_note > 127)
         break;
 
-      auto noff = mm::MakeNoteOff(m.getChannel(), new_note, m.data[2]);
+      auto noff = rtmidi::message::note_off(m.get_channel(), new_note, m.bytes[2]);
       noff.timestamp = m.timestamp;
       op.messages.push_back(noff);
     }
@@ -129,17 +129,17 @@ struct Node
       auto lastNum = num.rbegin()->second;
       const auto& lastCh = chord.rbegin()->second;
 
-      if (m.getMessageType() == mm::MessageType::NOTE_ON)
+      if (m.get_message_type() == rtmidi::message_type::NOTE_ON)
       {
-        auto cur = m.data[1];
+        auto cur = m.bytes[1];
         self.chords[cur].push_back({lastCh, lastNum});
         dispatchChord(lastCh, m, lastNum, op, [](auto&&... args) {
           startChord(args...);
         });
       }
-      else if (m.getMessageType() == mm::MessageType::NOTE_OFF)
+      else if (m.get_message_type() == rtmidi::message_type::NOTE_OFF)
       {
-        auto it = self.chords.find(m.data[1]);
+        auto it = self.chords.find(m.bytes[1]);
         if (it != self.chords.end())
         {
           for (const State::chord& chord : it->second)

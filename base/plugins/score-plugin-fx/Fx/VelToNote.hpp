@@ -182,7 +182,7 @@ struct Node
       {
         if (start == 0.f) // No quantification, start directly
         {
-          auto no = mm::MakeNoteOn(chan, note.pitch, note.vel);
+          auto no = rtmidi::message::note_on(chan, note.pitch, note.vel);
           no.timestamp = in.timestamp;
 
           p2.messages.push_back(no);
@@ -195,7 +195,7 @@ struct Node
           else if (duration == 0.f)
           {
             // Stop at the next sample
-            auto noff = mm::MakeNoteOff(chan, note.pitch, note.vel);
+            auto noff = rtmidi::message::note_off(chan, note.pitch, note.vel);
             noff.timestamp = no.timestamp;
             p2.messages.push_back(noff);
           }
@@ -215,7 +215,7 @@ struct Node
       else
       {
         // Just stop
-        auto noff = mm::MakeNoteOff(chan, note.pitch, note.vel);
+        auto noff = rtmidi::message::note_off(chan, note.pitch, note.vel);
         noff.timestamp = in.timestamp;
         p2.messages.push_back(noff);
       }
@@ -226,7 +226,7 @@ struct Node
       auto& note = *it;
       if (note.date > prev_date && note.date.impl < tk.date.impl)
       {
-        auto no = mm::MakeNoteOn(chan, note.note.pitch, note.note.vel);
+        auto no = rtmidi::message::note_on(chan, note.note.pitch, note.note.vel);
         no.timestamp = note.date - prev_date;
         p2.messages.push_back(no);
 
@@ -238,7 +238,7 @@ struct Node
         else if (duration == 0.f)
         {
           // Stop at the next sample
-          auto noff = mm::MakeNoteOff(chan, note.note.pitch, note.note.vel);
+          auto noff = rtmidi::message::note_off(chan, note.note.pitch, note.note.vel);
           noff.timestamp = no.timestamp;
           p2.messages.push_back(noff);
         }
@@ -256,7 +256,7 @@ struct Node
       auto& note = *it;
       if (note.date > prev_date && note.date.impl < tk.date.impl)
       {
-        auto noff = mm::MakeNoteOff(chan, note.note.pitch, note.note.vel);
+        auto noff = rtmidi::message::note_off(chan, note.note.pitch, note.note.vel);
         noff.timestamp = note.date - prev_date;
         p2.messages.push_back(noff);
         it = self.running_notes.erase(it);

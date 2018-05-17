@@ -252,23 +252,23 @@ struct Node
   {
     for (const auto& msg : midi_in.messages)
     {
-      switch (msg.getMessageType())
+      switch (msg.get_message_type())
       {
-        case mm::MessageType::NOTE_ON:
+        case rtmidi::message_type::NOTE_ON:
         {
           // map to scale
-          if (auto index = find_closest_index(scale, msg.data[1]))
+          if (auto index = find_closest_index(scale, msg.bytes[1]))
           {
             // transpose
             auto res = msg;
-            res.data[1] = (uint8_t)ossia::clamp(int(*index + transp), 0, 127);
-            Note note{(uint8_t)res.data[1], (uint8_t)res.data[2],
-                      (uint8_t)res.getChannel()};
-            auto it = self.map.find(msg.data[1]);
+            res.bytes[1] = (uint8_t)ossia::clamp(int(*index + transp), 0, 127);
+            Note note{(uint8_t)res.bytes[1], (uint8_t)res.bytes[2],
+                      (uint8_t)res.get_channel()};
+            auto it = self.map.find(msg.bytes[1]);
             if (it != self.map.end())
             {
-              midi_out.messages.push_back(mm::MakeNoteOff(
-                  res.getChannel(), it->second.pitch, res.data[2]));
+              midi_out.messages.push_back(rtmidi::message::note_off(
+                  res.get_channel(), it->second.pitch, res.bytes[2]));
               midi_out.messages.back().timestamp = offset;
               midi_out.messages.push_back(res);
               midi_out.messages.back().timestamp
@@ -279,18 +279,18 @@ struct Node
             {
               midi_out.messages.push_back(res);
               midi_out.messages.back().timestamp = offset;
-              self.map.insert(std::make_pair((uint8_t)msg.data[1], note));
+              self.map.insert(std::make_pair((uint8_t)msg.bytes[1], note));
             }
           }
           break;
         }
-        case mm::MessageType::NOTE_OFF:
+        case rtmidi::message_type::NOTE_OFF:
         {
-          auto it = self.map.find(msg.data[1]);
+          auto it = self.map.find(msg.bytes[1]);
           if (it != self.map.end())
           {
-            midi_out.messages.push_back(mm::MakeNoteOff(
-                msg.getChannel(), it->second.pitch, msg.data[2]));
+            midi_out.messages.push_back(rtmidi::message::note_off(
+                msg.get_channel(), it->second.pitch, msg.bytes[2]));
             midi_out.messages.back().timestamp = offset;
             self.map.erase(it);
           }
@@ -319,11 +319,11 @@ struct Node
         if ((*index + transp) != note.pitch)
         {
           midi_out.messages.push_back(
-              mm::MakeNoteOff(note.chan, note.pitch, note.vel));
+              rtmidi::message::note_off(note.chan, note.pitch, note.vel));
           note.pitch = *index + transp;
           midi_out.messages.back().timestamp = offset;
           midi_out.messages.push_back(
-              mm::MakeNoteOn(note.chan, note.pitch, note.vel));
+              rtmidi::message::note_on(note.chan, note.pitch, note.vel));
           midi_out.messages.back().timestamp = offset + ossia::time_value{1};
         }
       }
