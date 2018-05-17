@@ -16,6 +16,7 @@
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
+#include <unordered_map>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>

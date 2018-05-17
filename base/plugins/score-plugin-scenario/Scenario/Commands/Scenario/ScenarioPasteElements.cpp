@@ -26,6 +26,7 @@
 #include <cstddef>
 #include <iterator>
 #include <limits>
+#include <unordered_map>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/EntityMap.hpp>
