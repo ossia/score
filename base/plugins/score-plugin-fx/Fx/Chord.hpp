@@ -64,7 +64,7 @@ struct Node
   template <typename T>
   static void startChord(
       const T& chord,
-      const mm::MidiMessage& m,
+      const rtmidi::message& m,
       const std::size_t num,
       ossia::midi_port& op)
   {
@@ -83,7 +83,7 @@ struct Node
   template <typename T>
   static void stopChord(
       const T& chord,
-      const mm::MidiMessage& m,
+      const rtmidi::message& m,
       const std::size_t num,
       ossia::midi_port& op)
   {
@@ -102,7 +102,7 @@ struct Node
   template <typename F>
   static void dispatchChord(
       std::string_view chord,
-      const mm::MidiMessage& m,
+      const rtmidi::message& m,
       int num,
       ossia::midi_port& op,
       F&& f)
@@ -124,7 +124,7 @@ struct Node
       ossia::execution_state& st,
       State& self)
   {
-    for (const mm::MidiMessage& m : ip.messages)
+    for (const rtmidi::message& m : ip.messages)
     {
       auto lastNum = num.rbegin()->second;
       const auto& lastCh = chord.rbegin()->second;

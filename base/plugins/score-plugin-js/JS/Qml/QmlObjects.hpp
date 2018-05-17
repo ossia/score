@@ -2,7 +2,7 @@
 #include <ossia/network/domain/domain.hpp>
 #include <wobjectdefs.h>
 
-#include <ModernMIDI/midi_message.h>
+#include <rtmidi17/message.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <QObject>
 #include <QVariant>
@@ -582,7 +582,7 @@ public:
   void setMidi(const T& arr)
   {
     m_midi.clear();
-    for (const mm::MidiMessage& mess : arr)
+    for (const rtmidi::message& mess : arr)
     {
       QVector<int> m;
       for (auto byte : mess.data)

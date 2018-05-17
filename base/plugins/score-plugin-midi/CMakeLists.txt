@@ -57,7 +57,7 @@ set(SOURCE_FILES
 
 add_library(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES})
 score_generate_command_list_file(${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_midi.hpp")
-target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_engine ModernMIDI)
+target_link_libraries(${PROJECT_NAME} PUBLIC score_plugin_engine RtMidi17)
 target_include_directories(${PROJECT_NAME} PRIVATE "${OSSIA_3RDPARTY_FOLDER}/GSL")
 
 score_moc_headers(${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_midi.hpp")
