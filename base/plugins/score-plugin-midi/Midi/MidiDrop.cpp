@@ -4,7 +4,7 @@
 #include <Midi/Commands/AddNote.hpp>
 #include <Midi/Commands/SetOutput.hpp>
 #include <Midi/MidiProcess.hpp>
-#include <ModernMIDI/midi_file_reader.h>
+#include <rtmidi17/reader.hpp>
 #include <QByteArray>
 #include <QFile>
 #include <QMimeData>

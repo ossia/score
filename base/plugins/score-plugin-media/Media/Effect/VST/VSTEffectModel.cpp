@@ -9,7 +9,6 @@
 #include <Media/Commands/VSTCommands.hpp>
 #include <Media/Effect/VST/VSTControl.hpp>
 #include <Media/Effect/VST/VSTLoader.hpp>
-#include <ModernMIDI/midi_message.h>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <QFile>

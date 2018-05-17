@@ -10,7 +10,6 @@
 
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Media/ApplicationPlugin.hpp>
-#include <ModernMIDI/midi_message.h>
 #include <QFile>
 #include <QUrl>
 #include <cmath>

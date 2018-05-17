@@ -67,7 +67,7 @@ struct Node
     const auto whole_dur = 240.f / tempo; // in seconds
     const auto whole_samples = whole_dur * st.sampleRate;
 
-    for (const mm::MidiMessage& in : p1.messages)
+    for (const rtmidi::message& in : p1.messages)
     {
       if (!in.isNoteOnOrOff())
       {
