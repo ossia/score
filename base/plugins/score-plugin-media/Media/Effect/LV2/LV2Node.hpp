@@ -221,7 +221,7 @@ public:
             Iterator it{port.buf};
             for(int i = 0; i < 127; i++)
             {
-              auto off = mm::MakeNoteOff(fMidiSource->process().channel(), i,
+              auto off = rtmidi::message::note_off(fMidiSource->process().channel(), i,
        0); it.write(0, 0, data.host.midi_event_id, 3, off.data.data());
             }
 
@@ -239,14 +239,14 @@ public:
              Iterator it{port.buf};
              for(auto& note : fMidiSource->timedState.currentAudioStart)
              {
-               auto on = mm::MakeNoteOn(fMidiSource->process().channel(),
+               auto on = rtmidi::message::note_on(fMidiSource->process().channel(),
        note.first.pitch(), note.first.velocity()); it.write(note.second, 0,
        data.host.midi_event_id, 3, on.data.data());
              }
 
              for(auto& note : fMidiSource->timedState.currentAudioStop)
              {
-               auto off = mm::MakeNoteOff(fMidiSource->process().channel(),
+               auto off = rtmidi::message::note_off(fMidiSource->process().channel(),
        note.first.pitch(), note.first.velocity()); it.write(note.second, 0,
        data.host.midi_event_id, 3, off.data.data());
              }

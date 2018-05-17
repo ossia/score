@@ -69,19 +69,19 @@ struct Node
 
     for (const rtmidi::message& in : p1.messages)
     {
-      if (!in.isNoteOnOrOff())
+      if (!in.is_note_on_or_off())
       {
         p2.messages.push_back(in);
         continue;
       }
 
-      Note note{in[1], in[2], (uint8_t)in.getChannel()};
+      Note note{in[1], in[2], (uint8_t)in.get_channel()};
 
-      if (in.getMessageType() == mm::MessageType::NOTE_ON && note.vel != 0)
+      if (in.get_message_type() == rtmidi::message_type::NOTE_ON && note.vel != 0)
       {
         if (start == 0.f) // No quantification, start directly
         {
-          auto no = mm::MakeNoteOn(note.chan, note.pitch, note.vel);
+          auto no = rtmidi::message::note_on(note.chan, note.pitch, note.vel);
           no.timestamp = in.timestamp;
 
           p2.messages.push_back(no);
@@ -94,7 +94,7 @@ struct Node
           else if (duration == 0.f)
           {
             // Stop at the next sample
-            auto noff = mm::MakeNoteOff(note.chan, note.pitch, note.vel);
+            auto noff = rtmidi::message::note_off(note.chan, note.pitch, note.vel);
             noff.timestamp = no.timestamp;
             p2.messages.push_back(noff);
           }
@@ -114,7 +114,7 @@ struct Node
       else
       {
         // Just stop
-        auto noff = mm::MakeNoteOff(note.chan, note.pitch, note.vel);
+        auto noff = rtmidi::message::note_off(note.chan, note.pitch, note.vel);
         noff.timestamp = in.timestamp;
         p2.messages.push_back(noff);
       }
@@ -128,7 +128,7 @@ struct Node
       if (note.date > prev_date && note.date.impl < tk.date.impl)
       {
         auto no
-            = mm::MakeNoteOn(note.note.chan, note.note.pitch, note.note.vel);
+            = rtmidi::message::note_on(note.note.chan, note.note.pitch, note.note.vel);
         no.timestamp = note.date - prev_date;
         p2.messages.push_back(no);
 
@@ -140,7 +140,7 @@ struct Node
         else if (duration == 0.f)
         {
           // Stop at the next sample
-          auto noff = mm::MakeNoteOff(
+          auto noff = rtmidi::message::note_off(
               note.note.chan, note.note.pitch, note.note.vel);
           noff.timestamp = no.timestamp;
           p2.messages.push_back(noff);
@@ -160,7 +160,7 @@ struct Node
       if (note.date > prev_date && note.date.impl < tk.date.impl)
       {
         auto noff
-            = mm::MakeNoteOff(note.note.chan, note.note.pitch, note.note.vel);
+            = rtmidi::message::note_off(note.note.chan, note.note.pitch, note.note.vel);
         noff.timestamp = note.date - prev_date;
         p2.messages.push_back(noff);
         it = self.running_notes.erase(it);
