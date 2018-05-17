@@ -111,7 +111,7 @@ MidiTrack::parse(const QMimeData& mime, const score::DocumentContext& ctx)
       return {};
 
     auto dat = f.readAll();
-    mm::MidiFileReader reader;
+    rtmidi::reader reader{false};
     std::vector<uint8_t> raw;
     for (auto v : dat)
     {
@@ -125,7 +125,7 @@ MidiTrack::parse(const QMimeData& mime, const score::DocumentContext& ctx)
     std::map<int, Midi::NoteData> notes;
 
     int tick = 0;
-    const double total = reader.getEndTime();
+    const double total = reader.get_end_time();
     m.duration = total;
     m.tempo = reader.startingTempo;
     m.tickPerBeat = reader.ticksPerBeat;
@@ -134,21 +134,24 @@ MidiTrack::parse(const QMimeData& mime, const score::DocumentContext& ctx)
       double beat_dur = 60. / m.tempo; // in seconds
       m.durationInMs = 1000. * beat_dur * num_beats;
     }
-    for (const mm::MidiTrack& t : reader.tracks)
+    for (const rtmidi::midi_track& t : reader.tracks)
     {
       MidiTrack nv;
-      for (const std::shared_ptr<mm::TrackEvent>& ev : t)
+      for (const std::shared_ptr<rtmidi::track_event>& ev : t)
       {
+        /*
         if (reader.useAbsoluteTicks)
           tick = ev->tick;
         else
           tick += ev->tick;
-        switch (ev->m->getMessageType())
+          */
+        tick += ev->tick;
+        switch (ev->m->get_message_type())
         {
-          case mm::MessageType::NOTE_ON:
+          case rtmidi::message_type::NOTE_ON:
           {
-            const auto pitch = ev->m->data[1];
-            const auto vel = ev->m->data[2];
+            const auto pitch = ev->m->bytes[1];
+            const auto vel = ev->m->bytes[2];
 
             if (vel > 0)
             {
@@ -176,28 +179,28 @@ MidiTrack::parse(const QMimeData& mime, const score::DocumentContext& ctx)
             }
             break;
           }
-          case mm::MessageType::NOTE_OFF:
+          case rtmidi::message_type::NOTE_OFF:
           {
-            auto it = notes.find(ev->m->data[1]);
+            auto it = notes.find(ev->m->bytes[1]);
             if (it != notes.end())
             {
               NoteData note = it->second;
               note.setDuration(delta * (tick / total - note.start()));
               nv.notes.push_back(note);
             }
-            notes.erase(ev->m->data[1]);
+            notes.erase(ev->m->bytes[1]);
             break;
           }
           default:
           {
-            if (ev->m->isMetaEvent())
+            if (ev->m->is_meta_event())
             {
-              auto ev_t = ev->m->getMetaEventSubtype();
+              auto ev_t = ev->m->get_meta_event_type();
               switch (ev_t)
               {
-                case mm::MetaEventType::TEMPO_CHANGE:
+                case rtmidi::meta_event_type::TEMPO_CHANGE:
                 {
-                  qDebug() << "TEMPO_CHANGE" << ev->m->data[0];
+                  qDebug() << "TEMPO_CHANGE" << ev->m->bytes[0];
                 }
                 default:
                   break;

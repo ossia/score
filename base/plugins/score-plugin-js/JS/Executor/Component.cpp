@@ -344,10 +344,10 @@ void js_node::run(ossia::token_request t, ossia::execution_state&)
     for (const auto& mess : m_midOutlets[i].first->midi())
     {
       rtmidi::message m;
-      m.data.resize(mess.size());
+      m.bytes.resize(mess.size());
       for (int j = 0; j < mess.size(); j++)
       {
-        m.data[j] = mess[j];
+        m.bytes[j] = mess[j];
       }
       dat.messages.push_back(std::move(m));
     }

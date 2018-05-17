@@ -180,9 +180,9 @@ public:
       e.deltaFrames = mess.timestamp;
       e.flags = kVstMidiEventIsRealtime;
 
-      for (std::size_t k = 0; k < std::min(mess.data.size(), (std::size_t)4);
+      for (std::size_t k = 0; k < std::min(mess.bytes.size(), (std::size_t)4);
            k++)
-        e.midiData[k] = mess.data[k];
+        e.midiData[k] = mess.bytes[k];
 
       events->events[i] = reinterpret_cast<VstEvent*>(&e);
       i++;

@@ -584,9 +584,13 @@ public:
     m_midi.clear();
     for (const rtmidi::message& mess : arr)
     {
+      const auto N = mess.size();
       QVector<int> m;
-      for (auto byte : mess.data)
-        m.push_back(byte);
+      m.resize(N);
+
+      for(std::size_t i = 0; i < N; i++)
+        m[i] = mess.bytes[i];
+
       m_midi.push_back(QVariant::fromValue(m));
     }
   }
