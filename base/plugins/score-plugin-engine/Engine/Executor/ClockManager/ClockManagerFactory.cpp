@@ -21,12 +21,15 @@ void ClockManager::play(const TimeVal& t)
 {
   auto& bs = context.scenario;
   play_impl(t, bs);
-  auto view = static_cast<Scenario::ScenarioDocumentView*>(
-      &context.doc.document.view()->viewDelegate());
-  view->timeBar().setVisible(
-      context.doc.app.settings<Scenario::Settings::Model>().getTimeBar());
-  view->timeBar().playing = true;
-  view->timeBar().setInterval(&bs.baseInterval().interval());
+  if(auto v = context.doc.document.view())
+  {
+    auto view = static_cast<Scenario::ScenarioDocumentView*>(
+        &v->viewDelegate());
+    view->timeBar().setVisible(
+        context.doc.app.settings<Scenario::Settings::Model>().getTimeBar());
+    view->timeBar().playing = true;
+    view->timeBar().setInterval(&bs.baseInterval().interval());
+  }
 }
 
 void ClockManager::pause()

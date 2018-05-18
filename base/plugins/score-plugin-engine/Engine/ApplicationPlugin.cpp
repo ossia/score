@@ -240,7 +240,8 @@ void ApplicationPlugin::setup_engine()
 
     m_updating_audio = false;
   }
-  m_audioEngineAct->setChecked(bool(audio));
+  if(m_audioEngineAct)
+    m_audioEngineAct->setChecked(bool(audio));
 }
 
 void ApplicationPlugin::initialize()
