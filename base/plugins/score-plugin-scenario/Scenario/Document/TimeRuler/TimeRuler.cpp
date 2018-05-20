@@ -62,7 +62,7 @@ TimeRuler::TimeRuler(QGraphicsView* v)
     , m_intervalsBetweenMark{1}
     , m_viewport{v->viewport()}
 {
-  setY(-24);
+  setY(-27);
 
   m_layout.setFont(score::Skin::instance().MonoFont);
 

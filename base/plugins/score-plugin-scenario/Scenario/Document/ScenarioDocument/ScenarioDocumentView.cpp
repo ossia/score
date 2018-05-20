@@ -48,7 +48,7 @@ ScenarioDocumentView::ScenarioDocumentView(
     , m_widget{new QWidget}
     , m_scene{m_widget}
     , m_view{&m_scene, m_widget}
-    , m_timeRulersView{&m_scene}
+    , m_timeRulersView{&m_timerulerScene}
     , m_timeRuler{&m_timeRulersView}
     , m_minimapScene{m_widget}
     , m_minimapView{&m_minimapScene}
@@ -64,6 +64,7 @@ ScenarioDocumentView::ScenarioDocumentView(
   m_widget->addAction(new SnapshotAction{m_scene, m_widget});
 
   m_timeRulersView.setFixedHeight(20);
+  m_timerulerScene.addItem(&m_timeRuler);
   // Transport
   /// Zoom
   QAction* zoomIn = new QAction(tr("Zoom in"), m_widget);
@@ -87,7 +88,6 @@ ScenarioDocumentView::ScenarioDocumentView(
   con(m_minimap, &Minimap::rescale, largeView, &QAction::trigger);
 
   // view layout
-  m_scene.addItem(&m_timeRuler);
   m_scene.addItem(&m_baseObject);
 
   auto lay = new score::MarginLess<QVBoxLayout>;
