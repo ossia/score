@@ -137,21 +137,21 @@ MidiTrack::parse(const QMimeData& mime, const score::DocumentContext& ctx)
     for (const rtmidi::midi_track& t : reader.tracks)
     {
       MidiTrack nv;
-      for (const std::shared_ptr<rtmidi::track_event>& ev : t)
+      for (const rtmidi::track_event& ev : t)
       {
         /*
         if (reader.useAbsoluteTicks)
-          tick = ev->tick;
+          tick = ev.tick;
         else
-          tick += ev->tick;
+          tick += ev.tick;
           */
-        tick += ev->tick;
-        switch (ev->m->get_message_type())
+        tick += ev.tick;
+        switch (ev.m.get_message_type())
         {
           case rtmidi::message_type::NOTE_ON:
           {
-            const auto pitch = ev->m->bytes[1];
-            const auto vel = ev->m->bytes[2];
+            const auto pitch = ev.m.bytes[1];
+            const auto vel = ev.m.bytes[2];
 
             if (vel > 0)
             {
@@ -181,26 +181,26 @@ MidiTrack::parse(const QMimeData& mime, const score::DocumentContext& ctx)
           }
           case rtmidi::message_type::NOTE_OFF:
           {
-            auto it = notes.find(ev->m->bytes[1]);
+            auto it = notes.find(ev.m.bytes[1]);
             if (it != notes.end())
             {
               NoteData note = it->second;
               note.setDuration(delta * (tick / total - note.start()));
               nv.notes.push_back(note);
             }
-            notes.erase(ev->m->bytes[1]);
+            notes.erase(ev.m.bytes[1]);
             break;
           }
           default:
           {
-            if (ev->m->is_meta_event())
+            if (ev.m.is_meta_event())
             {
-              auto ev_t = ev->m->get_meta_event_type();
+              auto ev_t = ev.m.get_meta_event_type();
               switch (ev_t)
               {
                 case rtmidi::meta_event_type::TEMPO_CHANGE:
                 {
-                  qDebug() << "TEMPO_CHANGE" << ev->m->bytes[0];
+                  qDebug() << "TEMPO_CHANGE" << ev.m.bytes[0];
                 }
                 default:
                   break;
