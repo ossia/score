@@ -68,18 +68,6 @@ struct TickPolicies
 class SCORE_PLUGIN_ENGINE_EXPORT Model : public score::SettingsDelegateModel
 {
   W_OBJECT(Model)
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
 
   ClockManagerFactory::ConcreteKey m_Clock;
   QString m_Scheduling;
@@ -93,6 +81,7 @@ class SCORE_PLUGIN_ENGINE_EXPORT Model : public score::SettingsDelegateModel
   bool m_Logging{};
   bool m_Bench{};
   bool m_ScoreOrder{};
+  bool m_ValueCompilation{};
 
   const ClockManagerFactoryList& m_clockFactories;
 
@@ -122,29 +111,20 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(bool, Logging)
   SCORE_SETTINGS_PARAMETER_HPP(bool, Bench)
   SCORE_SETTINGS_PARAMETER_HPP(bool, ScoreOrder)
+  SCORE_SETTINGS_PARAMETER_HPP(bool, ValueCompilation)
 
+W_PROPERTY(bool, valueCompilation READ getValueCompilation WRITE setValueCompilation NOTIFY ValueCompilationChanged)
 W_PROPERTY(bool, scoreOrder READ getScoreOrder WRITE setScoreOrder NOTIFY ScoreOrderChanged)
-
 W_PROPERTY(bool, bench READ getBench WRITE setBench NOTIFY BenchChanged)
-
 W_PROPERTY(bool, logging READ getLogging WRITE setLogging NOTIFY LoggingChanged)
-
 W_PROPERTY(bool, executionListening READ getExecutionListening WRITE setExecutionListening NOTIFY ExecutionListeningChanged)
-
 W_PROPERTY(bool, parallel READ getParallel WRITE setParallel NOTIFY ParallelChanged)
-
 W_PROPERTY(int, rate READ getRate WRITE setRate NOTIFY RateChanged)
-
 W_PROPERTY(QString, tick READ getTick WRITE setTick NOTIFY TickChanged)
-
 W_PROPERTY(QString, commit READ getCommit WRITE setCommit NOTIFY CommitChanged)
-
 W_PROPERTY(QString, merging READ getMerging WRITE setMerging NOTIFY MergingChanged)
-
 W_PROPERTY(QString, ordering READ getOrdering WRITE setOrdering NOTIFY OrderingChanged)
-
 W_PROPERTY(QString, scheduling READ getScheduling WRITE setScheduling NOTIFY SchedulingChanged)
-
 W_PROPERTY(ClockManagerFactory::ConcreteKey, clock READ getClock WRITE setClock NOTIFY ClockChanged)
 };
 
@@ -160,6 +140,7 @@ SCORE_SETTINGS_PARAMETER(Model, ExecutionListening)
 SCORE_SETTINGS_PARAMETER(Model, Logging)
 SCORE_SETTINGS_PARAMETER(Model, Bench)
 SCORE_SETTINGS_PARAMETER(Model, ScoreOrder)
+SCORE_SETTINGS_PARAMETER(Model, ValueCompilation)
 }
 }
 }

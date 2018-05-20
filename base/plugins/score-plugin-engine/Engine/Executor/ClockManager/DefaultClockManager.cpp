@@ -27,17 +27,20 @@ void DefaultClockManager::prepareExecution(
     const TimeVal& t, BaseScenarioElement& bs)
 {
   IntervalComponentBase& comp = bs.baseInterval();
-  comp.interval().duration.setPlayPercentage(0);
+  if(context.settings.getValueCompilation())
+  {
+    comp.interval().duration.setPlayPercentage(0);
 
-  // Send the first state
-  const auto& oc = comp.OSSIAInterval();
-  oc->get_start_event().tick(ossia::Zero, 0., ossia::Zero);
-  context.plugin.execGraph->state(*context.plugin.execState);
+    // Send the first state
+    const auto& oc = comp.OSSIAInterval();
+    oc->get_start_event().tick(ossia::Zero, 0., ossia::Zero);
+    context.plugin.execGraph->state(*context.plugin.execState);
 
-  if (t != TimeVal::zero())
-    oc->offset(context.time(t));
+    if (t != TimeVal::zero())
+      oc->offset(context.time(t));
 
-  context.plugin.execState->commit();
+    context.plugin.execState->commit();
+  }
 }
 
 void DefaultClockManager::play_impl(const TimeVal& t, BaseScenarioElement& bs)
