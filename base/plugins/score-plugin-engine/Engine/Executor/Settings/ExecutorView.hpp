@@ -44,6 +44,7 @@ public:
   SETTINGS_UI_TOGGLE_HPP(Parallel)
   SETTINGS_UI_TOGGLE_HPP(ExecutionListening)
   SETTINGS_UI_TOGGLE_HPP(ScoreOrder)
+  SETTINGS_UI_TOGGLE_HPP(ValueCompilation)
 
 public:
   void ClockChanged(ClockManagerFactory::ConcreteKey arg_1) W_SIGNAL(ClockChanged, arg_1);
