@@ -429,9 +429,8 @@ void set_destination_impl(const DocumentPlugin& plug, const State::AddressAccess
         port->address = std::move(p);
         if (ossia::value_port* dat = port->data.template target<ossia::value_port>())
         {
-          if (qual.unit)
-            dat->type = qual.unit;
-          dat->index = qual.accessors;
+          dat->type = {};
+          dat->index.clear();
         }
         g->mark_dirty();
       });

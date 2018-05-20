@@ -210,9 +210,9 @@ void Application::init()
   path += ";" + QCoreApplication::applicationDirPath();
   path += ";" + QCoreApplication::applicationDirPath() + "/plugins";
   qputenv("PATH", path);
-  SetDllDirectory(QCoreApplication::applicationDirPath().toLocal8Bit());
-  SetDllDirectory(
-      (QCoreApplication::applicationDirPath() + "/plugins").toLocal8Bit());
+  SetDllDirectory((wchar_t*)QCoreApplication::applicationDirPath().utf16());
+  SetDllDirectory((wchar_t*)
+      (QCoreApplication::applicationDirPath() + "/plugins").utf16());
 #endif
 
   // MVP

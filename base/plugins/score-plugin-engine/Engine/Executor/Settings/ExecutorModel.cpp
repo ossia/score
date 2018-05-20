@@ -21,7 +21,7 @@ namespace Parameters
 {
 const score::sp<ModelClockParameter> Clock{
     QStringLiteral("score_plugin_engine/Clock"),
-    ControlClockFactory::static_concreteKey()};
+    Dataflow::ClockFactory::static_concreteKey()};
 
 const score::sp<ModelRateParameter> Rate{
     QStringLiteral("score_plugin_engine/Rate"), 50};

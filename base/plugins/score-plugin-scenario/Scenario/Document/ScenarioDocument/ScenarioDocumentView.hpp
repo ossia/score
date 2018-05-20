@@ -86,6 +86,7 @@ private:
   ProcessGraphicsView m_view;
   BaseGraphicsObject m_baseObject;
 
+  QGraphicsScene m_timerulerScene;
   TimeRulerGraphicsView m_timeRulersView;
   TimeRuler m_timeRuler;
   QGraphicsScene m_minimapScene;
