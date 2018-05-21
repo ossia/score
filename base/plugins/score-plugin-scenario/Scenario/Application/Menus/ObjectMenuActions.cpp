@@ -82,11 +82,11 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
 
     if (sm)
     {
-      Scenario::removeSelection(*sm, ctx.commandStack);
+      Scenario::removeSelection(*sm, ctx);
     }
     else if (si && !selectedElements(si->getStates()).empty())
     {
-      Scenario::clearContentFromSelection(*si, ctx.commandStack);
+      Scenario::clearContentFromSelection(*si, ctx);
     }
   });
 
@@ -459,11 +459,11 @@ QJsonObject ObjectMenuActions::cutSelectedElementsToJson()
 
   if (auto sm = focusedScenarioModel(ctx))
   {
-    Scenario::removeSelection(*sm, ctx.commandStack);
+    Scenario::removeSelection(*sm, ctx);
   }
   else if (auto si = focusedScenarioInterface(ctx))
   {
-    Scenario::clearContentFromSelection(*si, ctx.commandStack);
+    Scenario::clearContentFromSelection(*si, ctx);
   }
 
   return obj;

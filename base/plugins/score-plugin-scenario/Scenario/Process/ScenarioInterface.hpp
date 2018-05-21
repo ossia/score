@@ -1,5 +1,6 @@
 #pragma once
 #include <score/model/Identifier.hpp>
+#include <Process/TimeValue.hpp>
 #include <score/tools/std/IndirectContainer.hpp>
 #include <score_plugin_scenario_export.h>
 #include <wobjectdefs.h>
@@ -36,6 +37,8 @@ public:
   virtual ElementContainer<TimeSyncModel> getTimeSyncs() const = 0;
 
   virtual TimeSyncModel& startTimeSync() const = 0;
+
+  virtual void changeDuration(IntervalModel& itv, const TimeVal& v) = 0;
 };
 
 static const constexpr auto startId_val = 0;

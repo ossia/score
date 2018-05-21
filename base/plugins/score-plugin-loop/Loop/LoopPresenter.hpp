@@ -37,11 +37,11 @@ struct DocumentContext;
 namespace Loop
 {
 inline void removeSelection(
-    const Loop::ProcessModel& model, const score::CommandStackFacade&)
+    const Loop::ProcessModel& model, const score::DocumentContext&)
 {
 }
 void clearContentFromSelection(
-    const Loop::ProcessModel& model, const score::CommandStackFacade&);
+    const Loop::ProcessModel& model, const score::DocumentContext&);
 }
 
 namespace Loop

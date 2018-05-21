@@ -41,9 +41,9 @@ namespace Scenario
 void clearContentFromSelection(
     const QList<const IntervalModel*>& intervalsToRemove,
     const QList<const StateModel*>& statesToRemove,
-    const score::CommandStackFacade& stack)
+    const score::DocumentContext& ctx)
 {
-  MacroCommandDispatcher<ClearSelection> cleaner{stack};
+  MacroCommandDispatcher<ClearSelection> cleaner{ctx.commandStack};
 
   // Create a Clear command for each.
 
@@ -66,7 +66,7 @@ void clearContentFromSelection(
 
 void clearContentFromSelection(
     const Scenario::ProcessModel& scenario,
-    const score::CommandStackFacade& stack)
+    const score::DocumentContext& stack)
 {
   clearContentFromSelection(
       selectedElements(scenario.intervals), selectedElements(scenario.states),
@@ -84,8 +84,9 @@ void erase_if(Range& r, Fun f)
 
 void removeSelection(
     const Scenario::ProcessModel& scenario,
-    const score::CommandStackFacade& stack)
+    const score::DocumentContext& ctx)
 {
+  auto& stack = ctx.commandStack;
   MacroCommandDispatcher<ClearSelection> cleaner{stack};
 
   const QList<const StateModel*>& states
@@ -102,8 +103,6 @@ void removeSelection(
   }
 
   Selection sel = scenario.selectedChildren();
-
-  auto& ctx = score::IDocument::documentContext(scenario);
 
   for (const auto& obj : ctx.selectionStack.currentSelection())
   {
@@ -143,14 +142,14 @@ void removeSelection(
   cleaner.commit();
 }
 
-void removeSelection(const BaseScenario&, const score::CommandStackFacade&)
+void removeSelection(const BaseScenario&, const score::DocumentContext&)
 {
   // Shall do nothing
 }
 
 void clearContentFromSelection(
     const BaseScenarioContainer& scenario,
-    const score::CommandStackFacade& stack)
+    const score::DocumentContext& ctx)
 {
   QList<const Scenario::IntervalModel*> itv;
   QList<const Scenario::StateModel*> states;
@@ -161,19 +160,19 @@ void clearContentFromSelection(
   if (scenario.endState().selection.get())
     states.push_back(&scenario.endState());
 
-  clearContentFromSelection(itv, states, stack);
+  clearContentFromSelection(itv, states, ctx);
 }
 
 void clearContentFromSelection(
-    const BaseScenario& scenario, const score::CommandStackFacade& stack)
+    const BaseScenario& scenario, const score::DocumentContext& ctx)
 {
   clearContentFromSelection(
-      static_cast<const BaseScenarioContainer&>(scenario), stack);
+      static_cast<const BaseScenarioContainer&>(scenario), ctx);
 }
 
 void clearContentFromSelection(
     const Scenario::ScenarioInterface& scenario,
-    const score::CommandStackFacade& stack)
+    const score::DocumentContext& stack)
 {
   clearContentFromSelection(
       selectedElements(scenario.getIntervals()),

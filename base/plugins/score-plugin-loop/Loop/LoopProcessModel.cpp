@@ -9,6 +9,7 @@
 
 #include <Process/Process.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Scenario/Commands/MoveBaseEvent.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
@@ -17,11 +18,14 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <algorithm>
 #include <qnamespace.h>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/model/Skin.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+#include <Process/TimeValueSerialization.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <tuple>
 #include <wobjectimpl.h>
@@ -109,6 +113,13 @@ void ProcessModel::setSelection(const Selection& s) const
   ossia::for_each_in_tuple(elements(), [&](auto elt) {
     elt->selection.set(s.contains(elt)); // OPTIMIZEME
   });
+}
+
+void ProcessModel::changeDuration(Scenario::IntervalModel& itv, const TimeVal& v)
+{
+  Scenario::Command::MoveBaseEvent<Loop::ProcessModel> cmd(
+        *this, endEvent().id(), v, 0., ExpandMode::GrowShrink, LockMode::Free);
+  cmd.redo(score::IDocument::documentContext(*this));
 }
 
 const QVector<Id<Scenario::IntervalModel>> intervalsBeforeTimeSync(

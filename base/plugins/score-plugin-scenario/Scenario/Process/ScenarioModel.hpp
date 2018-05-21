@@ -179,6 +179,7 @@ public:
   Selection selectedChildren() const override;
 
 private:
+  void changeDuration(IntervalModel& itv, const TimeVal& v) override;
   void setSelection(const Selection& s) const override;
   bool event(QEvent* e) override
   {

@@ -67,6 +67,7 @@ public:
   Selection selectedChildren() const override;
   void setSelection(const Selection& s) const override;
 
+  void changeDuration(Scenario::IntervalModel& itv, const TimeVal& v) override;
   ~ProcessModel() override;
 };
 

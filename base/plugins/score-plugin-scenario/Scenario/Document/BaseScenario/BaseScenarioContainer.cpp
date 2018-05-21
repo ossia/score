@@ -24,7 +24,6 @@ BaseScenarioContainer::BaseScenarioContainer(no_init, QObject* parentObject)
 BaseScenarioContainer::BaseScenarioContainer(QObject* parentObject)
     : m_parent{parentObject}
 {
-  auto& stack = score::IDocument::documentContext(*m_parent).commandStack;
   m_startNode = new TimeSyncModel{Scenario::startId<TimeSyncModel>(),
                                   {0.2, 0.8},
                                   TimeVal::zero(),
@@ -46,10 +45,10 @@ BaseScenarioContainer::BaseScenarioContainer(QObject* parentObject)
                               m_parent};
   m_endEvent->metadata().setName("Event.end");
   m_startState = new StateModel{Scenario::startId<StateModel>(),
-                                m_startEvent->id(), 0, stack, m_parent};
+                                m_startEvent->id(), 0, m_parent};
   m_startState->metadata().setName("State.start");
   m_endState = new StateModel{Scenario::endId<StateModel>(), m_endEvent->id(),
-                              0, stack, m_parent};
+                              0, m_parent};
   m_endState->metadata().setName("State.end");
   m_interval = new IntervalModel{Id<IntervalModel>{0}, 0, m_parent};
 

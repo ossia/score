@@ -140,10 +140,9 @@ void DataStreamWriter::write(Scenario::ProcessModel& scenario)
   int32_t state_count;
   m_stream >> state_count;
 
-  auto& stack = score::IDocument::documentContext(scenario).commandStack;
   for (; state_count-- > 0;)
   {
-    auto stmodel = new Scenario::StateModel{*this, stack, &scenario};
+    auto stmodel = new Scenario::StateModel{*this, &scenario};
     scenario.states.add(stmodel);
   }
 
@@ -250,12 +249,11 @@ void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
     scenario.comments.add(cmtmodel);
   }
 
-  auto& stack = score::IDocument::documentContext(scenario).commandStack;
   const auto& states = obj["States"].toArray();
   for (const auto& json_vref : states)
   {
     auto stmodel = new Scenario::StateModel{
-        JSONObject::Deserializer{json_vref.toObject()}, stack, &scenario};
+        JSONObject::Deserializer{json_vref.toObject()}, &scenario};
 
     scenario.states.add(stmodel);
   }

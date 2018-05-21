@@ -12,8 +12,6 @@ struct ScenarioBeingCopied
       const Scenario::ProcessModel& scenario
       , const score::DocumentContext& ctx)
   {
-    auto& stack = ctx.commandStack;
-
     // TODO this is really a bad idea... either they should be properly added, or
     // the json should be modified without including anything in the scenario.
     // Especially their parents aren't coherent (TimeSync must not have a parent
@@ -52,7 +50,7 @@ struct ScenarioBeingCopied
       for (const auto& element : json_arr)
       {
         states.emplace_back(new StateModel{
-                              JSONObject::Deserializer{element.toObject()}, stack, nullptr});
+                              JSONObject::Deserializer{element.toObject()}, nullptr});
       }
     }
     {

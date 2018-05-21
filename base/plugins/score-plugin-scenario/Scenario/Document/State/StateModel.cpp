@@ -27,13 +27,11 @@ StateModel::StateModel(
     const Id<StateModel>& id,
     const Id<EventModel>& eventId,
     double yPos,
-    const score::CommandStackFacade& stack,
     QObject* parent)
     : Entity{id, Metadata<ObjectKey_k, StateModel>::get(), parent}
-    , m_stack{stack}
     , m_eventId{eventId}
     , m_heightPercentage{yPos}
-    , m_messageItemModel{new MessageItemModel{stack, *this, this}}
+    , m_messageItemModel{new MessageItemModel{*this, this}}
 {
   metadata().setInstanceName(*this);
   init();

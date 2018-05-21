@@ -45,7 +45,6 @@ public:
   };
 
   MessageItemModel(
-      const score::CommandStackFacade& stack,
       const StateModel&,
       QObject* parent);
   MessageItemModel& operator=(const MessageItemModel&);
@@ -104,8 +103,6 @@ public:
 
 private:
   node_type m_rootNode;
-
-  const score::CommandStackFacade& m_stack;
 };
 
 QVariant valueColumnData(const MessageItemModel::node_type& node, int role);

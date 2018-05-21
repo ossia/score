@@ -12,8 +12,8 @@ class ExecStateWrapper : public QObject
 {
   W_OBJECT(ExecStateWrapper)
 public:
-  ExecStateWrapper(QJSEngine& engine, const ossia::execution_state& state, QObject* parent)
-      : QObject{parent}, m_engine{engine}, devices{state}
+  ExecStateWrapper(const ossia::execution_state& state, QObject* parent)
+      : QObject{parent}, devices{state}
   {
   }
   ~ExecStateWrapper() override;
@@ -23,7 +23,6 @@ public:
   void write(const QString& address, const QVariant& value); W_SLOT(write);
 
 private:
-  QJSEngine& m_engine;
   const ossia::execution_state& devices;
 
   ossia::net::parameter_base* find_address(const QString&);

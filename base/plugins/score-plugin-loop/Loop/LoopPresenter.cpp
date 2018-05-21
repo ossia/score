@@ -249,9 +249,9 @@ void LayerPresenter::fillContextMenu(
 }
 
 void clearContentFromSelection(
-    const ProcessModel& model, const score::CommandStackFacade& stack)
+    const ProcessModel& model, const score::DocumentContext& ctx)
 {
   clearContentFromSelection(
-      static_cast<const Scenario::BaseScenarioContainer&>(model), stack);
+      static_cast<const Scenario::BaseScenarioContainer&>(model), ctx);
 }
 }

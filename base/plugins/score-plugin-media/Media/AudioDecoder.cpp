@@ -476,7 +476,7 @@ std::size_t AudioDecoder::read_length(const QString& path)
 
   auto fmt_ctx = open_audio(path);
 
-  auto ret = avformat_find_stream_info(fmt_ctx.get(), NULL);
+  auto ret = avformat_find_stream_info(fmt_ctx.get(), nullptr);
   if (ret != 0)
     throw std::runtime_error("Couldn't find stream information");
 
@@ -558,7 +558,7 @@ std::size_t AudioDecoder::read_length(const QString& path)
         }
       }
       // Flush
-      avcodec_send_packet(codec_ctx.get(), NULL);
+      avcodec_send_packet(codec_ctx.get(), nullptr);
 
       return pos;
     }
@@ -687,7 +687,7 @@ void AudioDecoder::decodeRemaining()
       float* out_ptr = data[i].data() + decoded;
 
       res = swr_convert(
-          resampler[i], (uint8_t**)&out_ptr, data[i].size() - decoded, NULL,
+          resampler[i], (uint8_t**)&out_ptr, data[i].size() - decoded, nullptr,
           0);
     }
     decoded += res;
@@ -705,7 +705,7 @@ void AudioDecoder::on_startDecode(QString path)
 
     auto fmt_ctx = open_audio(path);
 
-    auto ret = avformat_find_stream_info(fmt_ctx.get(), NULL);
+    auto ret = avformat_find_stream_info(fmt_ctx.get(), nullptr);
     if (ret != 0)
       throw std::runtime_error("Couldn't find stream information");
 
@@ -749,8 +749,8 @@ void AudioDecoder::on_startDecode(QString path)
       for (std::size_t i = 0; i < channels; ++i)
       {
         SwrContext* swr = swr_alloc_set_opts(
-            NULL, AV_CH_LAYOUT_MONO, AV_SAMPLE_FMT_FLT, 44100,
-            AV_CH_LAYOUT_MONO, AV_SAMPLE_FMT_FLT, sampleRate, 0, NULL);
+            nullptr, AV_CH_LAYOUT_MONO, AV_SAMPLE_FMT_FLT, 44100,
+            AV_CH_LAYOUT_MONO, AV_SAMPLE_FMT_FLT, sampleRate, 0, nullptr);
         swr_init(swr);
         resampler.push_back(swr);
       }
@@ -820,7 +820,7 @@ void AudioDecoder::on_startDecode(QString path)
           }
 
           // Flush
-          avcodec_send_packet(codec_ctx.get(), NULL);
+          avcodec_send_packet(codec_ctx.get(), nullptr);
 
           decodeRemaining();
         },

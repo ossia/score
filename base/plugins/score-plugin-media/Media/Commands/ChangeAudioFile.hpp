@@ -28,6 +28,7 @@ protected:
 private:
   Path<Sound::ProcessModel> m_model;
   QString m_old, m_new;
+  TimeVal m_olddur;
 };
 
 class ChangeStart final : public score::PropertyCommand

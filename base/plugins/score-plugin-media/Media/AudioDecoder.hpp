@@ -14,7 +14,7 @@ namespace Media
 {
 struct AudioInfo
 {
-  int64_t rate{};
+  int32_t rate{};
   int64_t channels{};
   int64_t length{};
   int64_t max_arr_length{};
@@ -33,7 +33,9 @@ public:
   static ossia::optional<std::pair<AudioInfo, AudioArray>>
   decode_synchronous(const QString& path);
 
-  int64_t sampleRate{};
+  static QHash<QString, AudioInfo>& database();
+
+  int32_t sampleRate{};
   std::size_t decoded{};
   AudioArray data;
 
@@ -47,7 +49,6 @@ public:
 
 private:
   std::size_t read_length(const QString& path);
-  static QHash<QString, AudioInfo>& database();
 
   QThread* m_baseThread{};
   QThread m_decodeThread;

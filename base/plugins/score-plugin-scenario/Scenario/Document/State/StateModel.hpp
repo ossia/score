@@ -70,7 +70,6 @@ public:
       const Id<StateModel>& id,
       const Id<EventModel>& eventId,
       double yPos,
-      const score::CommandStackFacade& stack,
       QObject* parent);
 
   // Load
@@ -79,9 +78,8 @@ public:
       enable_if_deserializer<DeserializerVisitor>* = nullptr>
   StateModel(
       DeserializerVisitor&& vis,
-      const score::CommandStackFacade& stack,
       QObject* parent)
-      : Entity{vis, parent}, m_stack{stack}
+      : Entity{vis, parent}
   {
     vis.writeTo(*this);
     init();
@@ -140,7 +138,6 @@ public:
 private:
   void statesUpdated_slt();
   void init(); // TODO check if other model elements need an init method too.
-  const score::CommandStackFacade& m_stack;
 
   ProcessVector m_previousProcesses;
   ProcessVector m_nextProcesses;

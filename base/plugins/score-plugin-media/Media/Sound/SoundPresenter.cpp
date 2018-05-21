@@ -6,6 +6,7 @@
 #include <Media/Sound/Drop/SoundDrop.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+
 namespace Media
 {
 namespace Sound
