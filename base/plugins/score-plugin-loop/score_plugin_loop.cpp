@@ -13,7 +13,6 @@
 #include <Process/ProcessFactory.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactory.hpp>
-#include <Scenario/Inspector/Interval/IntervalInspectorDelegateFactory.hpp>
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/MenuManager.hpp>
 #include <score/model/Identifier.hpp>
@@ -95,8 +94,6 @@ score_plugin_loop::factories(
       FW<Process::ProcessModelFactory, Loop::ProcessFactory>,
       FW<Process::LayerFactory, Loop::LayerFactory>,
       FW<Inspector::InspectorWidgetFactory, Loop::InspectorFactory>,
-      FW<IntervalInspectorDelegateFactory,
-         Loop::IntervalInspectorDelegateFactory>,
       FW<TriggerCommandFactory, LoopTriggerCommandFactory>,
       FW<Scenario::DisplayedElementsToolPaletteFactory,
          Loop::DisplayedElementsToolPaletteFactory>,

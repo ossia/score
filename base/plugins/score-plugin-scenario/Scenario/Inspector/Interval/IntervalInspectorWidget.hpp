@@ -4,7 +4,6 @@
 #include <QSlider>
 #include <QString>
 #include <QVector>
-#include <Scenario/Inspector/Interval/IntervalInspectorDelegate.hpp>
 #include <list>
 #include <memory>
 #include <nano_signal_slot.hpp>
@@ -39,11 +38,10 @@ public:
   explicit IntervalInspectorWidget(
       const Inspector::InspectorWidgetList& list,
       const IntervalModel& object,
-      std::unique_ptr<IntervalInspectorDelegate> del,
       const score::DocumentContext& context,
       QWidget* parent = nullptr);
 
-  ~IntervalInspectorWidget();
+  ~IntervalInspectorWidget() override;
 
   IntervalModel& model() const;
 
@@ -65,6 +63,5 @@ private:
   QWidget* m_durationSection{};
   std::vector<QWidget*> m_properties;
   MetadataWidget* m_metadata{};
-  std::unique_ptr<IntervalInspectorDelegate> m_delegate;
 };
 }

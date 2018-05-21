@@ -20,13 +20,11 @@ namespace Scenario
 IntervalInspectorWidget::IntervalInspectorWidget(
     const Inspector::InspectorWidgetList& widg,
     const IntervalModel& object,
-    std::unique_ptr<IntervalInspectorDelegate> del,
     const score::DocumentContext& ctx,
     QWidget* parent)
     : InspectorWidgetBase{object, ctx, parent, tabName()}
     , m_widgetList{widg}
     , m_model{object}
-    , m_delegate{std::move(del)}
 {
   using namespace score;
   using namespace score::IDocument;
@@ -55,7 +53,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
     speedLay->setHorizontalSpacing(0);
     speedLay->setVerticalSpacing(0);
 
-    auto setSpeedFun = [=](int val) {
+    auto setSpeedFun = [=](double val) {
       auto& dur = ((IntervalModel&)(m_model)).duration;
       auto s = double(val) / 100.0;
       if (dur.executionSpeed() != s)
@@ -65,7 +63,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
     };
     // Buttons
     int btn_col = 0;
-    for (int factor : {0, 50, 100, 200, 500})
+    for (double factor : {0., 50., 100., 200., 500.})
     {
       auto pb
           = new QPushButton{"x " + QString::number(factor / 100.0), speedWidg};
@@ -103,8 +101,6 @@ IntervalInspectorWidget::IntervalInspectorWidget(
     m_properties.push_back(speedWidg);
   }
 
-  m_delegate->addWidgets_pre(m_properties, this);
-
   ////// BODY
   auto setAsDisplayedInterval = new QPushButton{tr("Full view"), this};
   connect(setAsDisplayedInterval, &QPushButton::clicked, this, [this] {
@@ -136,12 +132,10 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   // Durations
   auto& ctrl = ctx.app.guiApplicationPlugin<ScenarioApplicationPlugin>();
   m_durationSection
-      = new DurationWidget{ctrl.editionSettings(), *m_delegate, this};
+      = new DurationWidget{ctrl.editionSettings(), this};
   m_properties.push_back(m_durationSection);
 
   updateDisplayedValues();
-
-  m_delegate->addWidgets_post(m_properties, this);
 
   // Display data
   updateAreaLayout(m_properties);
@@ -161,6 +155,5 @@ QString IntervalInspectorWidget::tabName()
 
 void IntervalInspectorWidget::updateDisplayedValues()
 {
-  m_delegate->updateElements();
 }
 }

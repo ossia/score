@@ -18,7 +18,6 @@ namespace Scenario
 class EditionGrid;
 class PlayGrid;
 class EditionSettings;
-class IntervalInspectorDelegate;
 class IntervalInspectorWidget;
 class IntervalModel;
 class DurationWidget final : public QWidget
@@ -26,7 +25,6 @@ class DurationWidget final : public QWidget
 public:
   DurationWidget(
       const Scenario::EditionSettings& set,
-      const IntervalInspectorDelegate&,
       IntervalInspectorWidget* parent);
 
 private:

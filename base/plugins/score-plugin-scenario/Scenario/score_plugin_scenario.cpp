@@ -38,10 +38,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentFactory.hpp>
 #include <Scenario/ExecutionChecker/CSPCoherencyCheckerList.hpp>
 #include <Scenario/Inspector/Interpolation/InterpolationInspectorWidget.hpp>
-#include <Scenario/Inspector/Interval/BaseIntervalInspectorDelegateFactory.hpp>
-#include <Scenario/Inspector/Interval/IntervalInspectorDelegateFactory.hpp>
 #include <Scenario/Inspector/Interval/IntervalInspectorFactory.hpp>
-#include <Scenario/Inspector/Interval/ScenarioIntervalInspectorDelegateFactory.hpp>
 #include <Scenario/Inspector/ObjectTree/ObjectItemModel.hpp>
 #include <Scenario/Inspector/Scenario/ScenarioInspectorFactory.hpp>
 #include <Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.hpp>
@@ -121,7 +118,6 @@ score_plugin_scenario::factoryFamilies()
       score::InterfaceListBase, Process::ProcessFactoryList,
       Process::PortFactoryList, Process::LayerFactoryList,
       Process::ProcessFactoryList, MoveEventList, CSPCoherencyCheckerList,
-      IntervalInspectorDelegateFactoryList,
       DisplayedElementsToolPaletteFactoryList, TriggerCommandFactoryList,
       DisplayedElementsProviderList, DropHandlerList,
       IntervalDropHandlerList>();
@@ -173,9 +169,6 @@ score_plugin_scenario::factories(
          Interpolation::StateInspectorFactory, ScenarioInspectorFactory,
          Interpolation::InspectorFactory, Dataflow::CableInspectorFactory,
          Dataflow::PortInspectorFactory>,
-      FW<IntervalInspectorDelegateFactory,
-         ScenarioIntervalInspectorDelegateFactory,
-         BaseIntervalInspectorDelegateFactory>,
       FW<score::ValidityChecker, ScenarioValidityChecker>,
       FW<Process::PortFactory, Dataflow::InletFactory,
          Dataflow::ControlInletFactory, Dataflow::OutletFactory,

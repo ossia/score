@@ -68,6 +68,11 @@ public:
   void setSelection(const Selection& s) const override;
 
   void changeDuration(Scenario::IntervalModel& itv, const TimeVal& v) override;
+  void changeDuration(const Scenario::IntervalModel& itv,
+                      OngoingCommandDispatcher& dispatcher,
+                      const TimeVal& v,
+                      ExpandMode expandmode,
+                      LockMode lockmode) override;
   ~ProcessModel() override;
 };
 

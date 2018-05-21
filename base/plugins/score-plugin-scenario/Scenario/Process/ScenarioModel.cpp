@@ -211,6 +211,19 @@ void ProcessModel::changeDuration(IntervalModel& itv, const TimeVal& v)
   cmd.redo(score::IDocument::documentContext(*this));
 }
 
+void ProcessModel::changeDuration(const Scenario::IntervalModel& itv,
+                                  OngoingCommandDispatcher& dispatcher,
+                                  const TimeVal& val,
+                                  ExpandMode expandmode,
+                                  LockMode lockmode)
+{
+  auto& scenario = *this;
+  dispatcher.submitCommand<Command::MoveEventMeta>(
+      scenario, scenario.state(itv.endState()).eventId(),
+      itv.date() + val, itv.heightPercentage(), expandmode,
+      lockmode);
+}
+
 void ProcessModel::setSelection(const Selection& s) const
 {
   // OPTIMIZEME
