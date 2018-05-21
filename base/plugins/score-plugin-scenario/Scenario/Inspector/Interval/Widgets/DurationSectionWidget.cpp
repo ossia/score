@@ -19,8 +19,8 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <Scenario/Inspector/Interval/IntervalInspectorDelegate.hpp>
 #include <Scenario/Inspector/Interval/IntervalInspectorWidget.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
 #include <chrono>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
@@ -46,12 +46,10 @@ public:
   EditionGrid(
       const IntervalModel& m,
       const score::DocumentContext& fac,
-      const Scenario::EditionSettings& set,
-      const IntervalInspectorDelegate& delegate)
+      const Scenario::EditionSettings& set)
       : m_model{m}
       , m_dur{m.duration}
       , m_editionSettings{set}
-      , m_delegate{delegate}
       , m_dispatcher{fac.commandStack}
       , m_simpleDispatcher{fac.commandStack}
   {
@@ -146,8 +144,11 @@ public:
 
   void defaultDurationSpinboxChanged(int val)
   {
-    m_delegate.on_defaultDurationChanged(
-        m_dispatcher, TimeVal::fromMsecs(val), m_editionSettings.expandMode());
+    auto s = dynamic_cast<Scenario::ScenarioInterface*>(m_model.parent());
+    if(s)
+    {
+      s->changeDuration(m_model, m_dispatcher, TimeVal::fromMsecs(val), m_editionSettings.expandMode(), LockMode::Free);
+    }
   }
 
   void on_modelRigidityChanged(bool b)
@@ -271,7 +272,6 @@ public:
   const IntervalModel& m_model;
   const IntervalDurations& m_dur;
   const Scenario::EditionSettings& m_editionSettings;
-  const IntervalInspectorDelegate& m_delegate;
 
   QLabel* m_maxTitle{};
   QLabel* m_minTitle{};
@@ -361,11 +361,10 @@ private:
 */
 DurationWidget::DurationWidget(
     const Scenario::EditionSettings& set,
-    const IntervalInspectorDelegate& delegate,
     IntervalInspectorWidget* parent)
     : QWidget{parent}
     , m_editingWidget{
-          new EditionGrid{parent->model(), parent->context(), set, delegate}}
+          new EditionGrid{parent->model(), parent->context(), set}}
 // , m_playingWidget{new PlayGrid{parent->model().duration}}
 {
   using namespace score;

@@ -8,8 +8,6 @@
 #include <Process/ProcessList.hpp>
 #include <QString>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Inspector/Interval/IntervalInspectorDelegate.hpp>
-#include <Scenario/Inspector/Interval/IntervalInspectorDelegateFactory.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
@@ -26,19 +24,10 @@ QWidget* IntervalInspectorFactory::make(
 {
   auto& appContext = doc.app;
   auto& widgetFact = appContext.interfaces<Inspector::InspectorWidgetList>();
-  auto& intervalWidgetFactory
-      = appContext.interfaces<IntervalInspectorDelegateFactoryList>();
-
-  // make a relevant widget delegate :
 
   auto interval = dynamic_cast<const IntervalModel*>(sourceElements.first());
-
   if (interval)
-    return new IntervalInspectorWidget{
-        widgetFact, *interval,
-        intervalWidgetFactory.make(
-            &IntervalInspectorDelegateFactory::make, *interval),
-        doc, parent};
+    return new IntervalInspectorWidget{widgetFact, *interval, doc, parent};
   return nullptr;
 }
 

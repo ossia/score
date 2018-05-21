@@ -58,11 +58,22 @@ bool BaseScenario::focused() const
   return res;
 }
 
-void BaseScenario::changeDuration(IntervalModel& itv, const TimeVal& v)
+void BaseScenario::changeDuration(IntervalModel& , const TimeVal& v)
 {
   Command::MoveBaseEvent<BaseScenario> cmd(
       *this, endEvent().id(), v, 0., ExpandMode::GrowShrink, LockMode::Free);
   cmd.redo(score::IDocument::documentContext(*this));
+}
+
+void BaseScenario::changeDuration(const Scenario::IntervalModel& itv,
+                                  OngoingCommandDispatcher& dispatcher,
+                                  const TimeVal& val,
+                                  ExpandMode expandmode,
+                                  LockMode lockmode)
+{
+  auto& scenario = *this;
+  dispatcher.submitCommand<Command::MoveBaseEvent<BaseScenario>>(
+      scenario, scenario.endEvent().id(), val, 0., expandmode, lockmode);
 }
 
 const QVector<Id<IntervalModel>> intervalsBeforeTimeSync(

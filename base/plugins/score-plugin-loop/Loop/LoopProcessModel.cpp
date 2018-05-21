@@ -122,6 +122,19 @@ void ProcessModel::changeDuration(Scenario::IntervalModel& itv, const TimeVal& v
   cmd.redo(score::IDocument::documentContext(*this));
 }
 
+void ProcessModel::changeDuration(const Scenario::IntervalModel& itv,
+                                  OngoingCommandDispatcher& dispatcher,
+                                  const TimeVal& val,
+                                  ExpandMode expandmode,
+                                  LockMode lockmode)
+{
+  auto& loop = *this;
+  dispatcher
+      .submitCommand<Scenario::Command::MoveBaseEvent<Loop::ProcessModel>>(
+          loop, loop.state(itv.endState()).eventId(), itv.date() + val,
+          0, expandmode, lockmode);
+}
+
 const QVector<Id<Scenario::IntervalModel>> intervalsBeforeTimeSync(
     const ProcessModel& scen, const Id<Scenario::TimeSyncModel>& timeSyncId)
 {

@@ -40,6 +40,11 @@ public:
   Selection selectedChildren() const;
   bool focused() const;
   void changeDuration(IntervalModel& itv, const TimeVal& v) override;
+  void changeDuration(const Scenario::IntervalModel& itv,
+                      OngoingCommandDispatcher& dispatcher,
+                      const TimeVal& val,
+                      ExpandMode expandmode,
+                      LockMode lockmode) override;
 
   using BaseScenarioContainer::event;
   using QObject::event;
