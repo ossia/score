@@ -12,6 +12,7 @@
 #include <QIODevice>
 #include <QMap>
 #include <QtGlobal>
+#include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
@@ -23,6 +24,7 @@
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/ScenarioProcessMetadata.hpp>
 #include <core/document/Document.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/EntityMap.hpp>
@@ -199,6 +201,14 @@ Selection ProcessModel::selectedChildren() const
   Selection objects;
   apply([&](const auto& m) { copySelected(this->*m, objects); });
   return objects;
+}
+
+void ProcessModel::changeDuration(IntervalModel& itv, const TimeVal& v)
+{
+  Command::MoveEventMeta cmd(
+        *this, this->states.at(itv.endState()).eventId(),
+        itv.date() + v, itv.heightPercentage(), ExpandMode::GrowShrink, LockMode::Free);
+  cmd.redo(score::IDocument::documentContext(*this));
 }
 
 void ProcessModel::setSelection(const Selection& s) const

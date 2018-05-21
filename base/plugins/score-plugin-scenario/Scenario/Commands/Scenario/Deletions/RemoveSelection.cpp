@@ -252,8 +252,6 @@ RemoveSelection::RemoveSelection(
 void RemoveSelection::undo(const score::DocumentContext& ctx) const
 {
   auto& scenar = m_path.find(ctx);
-
-  auto& stack = score::IDocument::documentContext(scenar).commandStack;
   // First instantiate everything
 
   QList<StateModel*> states;
@@ -261,7 +259,7 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
       m_removedStates.begin(), m_removedStates.end(),
       std::back_inserter(states), [&](const auto& data) {
         DataStream::Deserializer s{data.second};
-        return new StateModel{s, stack, &scenar};
+        return new StateModel{s, &scenar};
       });
 
   QList<EventModel*> events;

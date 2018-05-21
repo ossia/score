@@ -33,17 +33,17 @@ void RefreshStates(const score::DocumentContext& doc)
   auto selected_states = filterSelectionByType<StateModel>(
       doc.selectionStack.currentSelection());
 
-  RefreshStates(selected_states, doc.commandStack);
+  RefreshStates(selected_states, doc);
 }
 
 void RefreshStates(
     const QList<const StateModel*>& states,
-    const score::CommandStackFacade& stack)
+    const score::DocumentContext& doc)
 {
   if (states.empty())
     return;
 
-  auto& doc = score::IDocument::documentContext(*states.first());
+  auto& stack = doc.commandStack;
   auto& proxy = doc.plugin<Explorer::DeviceDocumentPlugin>().updateProxy;
 
   auto macro = new RefreshStatesMacro;

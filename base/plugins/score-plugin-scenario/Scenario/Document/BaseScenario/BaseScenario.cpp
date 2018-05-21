@@ -5,15 +5,19 @@
 #include <ossia/detail/algorithms.hpp>
 
 #include <QString>
+#include <Scenario/Commands/MoveBaseEvent.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <Process/TimeValueSerialization.hpp>
+#include <Scenario/Commands/MoveBaseEvent.hpp>
 #include <tuple>
 
 #include <wobjectimpl.h>
@@ -52,6 +56,13 @@ bool BaseScenario::focused() const
   });
 
   return res;
+}
+
+void BaseScenario::changeDuration(IntervalModel& itv, const TimeVal& v)
+{
+  Command::MoveBaseEvent<BaseScenario> cmd(
+      *this, endEvent().id(), v, 0., ExpandMode::GrowShrink, LockMode::Free);
+  cmd.redo(score::IDocument::documentContext(*this));
 }
 
 const QVector<Id<IntervalModel>> intervalsBeforeTimeSync(

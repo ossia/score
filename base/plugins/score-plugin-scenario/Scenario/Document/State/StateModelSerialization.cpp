@@ -61,7 +61,7 @@ DataStreamWriter::write(Scenario::StateModel& s)
   // Message tree
   Process::MessageNode n;
   m_stream >> n;
-  s.m_messageItemModel = new Scenario::MessageItemModel{s.m_stack, s, &s};
+  s.m_messageItemModel = new Scenario::MessageItemModel{s, &s};
   s.messages() = n;
 
   // Processes plugins
@@ -108,7 +108,7 @@ JSONObjectWriter::write(Scenario::StateModel& s)
   s.m_heightPercentage = obj[strings.HeightPercentage].toDouble();
 
   // Message tree
-  s.m_messageItemModel = new Scenario::MessageItemModel{s.m_stack, s, &s};
+  s.m_messageItemModel = new Scenario::MessageItemModel{s, &s};
   s.messages() = fromJsonObject<Process::MessageNode>(obj[strings.Messages]);
 
   // Processes plugins

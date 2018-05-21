@@ -186,11 +186,10 @@ copySelected(const Scenario_T& sm, CategorisedScenario& cs, QObject* parent)
 
   std::vector<StateModel*> copiedStates;
   copiedStates.reserve(cs.selectedStates.size());
-  auto& stack = score::IDocument::documentContext(*parent).commandStack;
   for (const StateModel* st : cs.selectedStates)
   {
     auto clone_st = new StateModel(
-        DataStreamWriter{score::marshall<DataStream>(*st)}, stack, parent);
+        DataStreamWriter{score::marshall<DataStream>(*st)}, parent);
 
     // NOTE : we must not serialize the state with their previous / next
     // interval

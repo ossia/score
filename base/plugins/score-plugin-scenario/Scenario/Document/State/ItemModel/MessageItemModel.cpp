@@ -24,20 +24,18 @@
 #include <score/model/tree/TreeNodeItemModel.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/std/Optional.hpp>
-
+#include <score/document/DocumentContext.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::MessageItemModel)
 namespace Scenario
 {
 class StateModel;
 MessageItemModel::MessageItemModel(
-    const score::CommandStackFacade& stack,
     const StateModel& sm,
     QObject* parent)
     : TreeNodeBasedItemModel<Process::MessageNode>{parent}
     , stateModel{sm}
     , m_rootNode{}
-    , m_stack{stack}
 {
   this->setObjectName("Scenario::MessageItemModel");
 }
@@ -218,7 +216,7 @@ bool MessageItemModel::dropMimeData(
 
   auto cmd = new Command::AddMessagesToState{stateModel, ml};
 
-  CommandDispatcher<> disp(m_stack);
+  CommandDispatcher<> disp(score::IDocument::documentContext(stateModel).commandStack);
   beginResetModel();
   disp.submitCommand(cmd);
   endResetModel();
@@ -283,7 +281,7 @@ bool MessageItemModel::setData(
       auto cmd = new Command::AddMessagesToState{
           stateModel, State::MessageList{{address(n), value}}};
 
-      CommandDispatcher<> disp(m_stack);
+      CommandDispatcher<> disp(score::IDocument::documentContext(stateModel).commandStack);
       beginResetModel();
       disp.submitCommand(cmd);
       endResetModel();

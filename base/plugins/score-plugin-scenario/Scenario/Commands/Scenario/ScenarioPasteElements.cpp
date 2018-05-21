@@ -373,11 +373,10 @@ void ScenarioPasteElements::redo(const score::DocumentContext& ctx) const
     addedEvents.push_back(ev);
   }
 
-  auto& stack = ctx.commandStack;
   for (const auto& state : m_json_states)
   {
     scenario.states.add(
-          new StateModel(JSONObject::Deserializer{state}, stack, &scenario));
+          new StateModel(JSONObject::Deserializer{state}, &scenario));
   }
 
   for (const auto& interval : m_json_intervals)

@@ -48,12 +48,10 @@ DataStreamWriter::write(Scenario::BaseScenarioContainer& base_scenario)
   base_scenario.m_startEvent = new EventModel{*this, base_scenario.m_parent};
   base_scenario.m_endEvent = new EventModel{*this, base_scenario.m_parent};
 
-  auto& stack = score::IDocument::documentContext(base_scenario.parentObject())
-                    .commandStack;
   base_scenario.m_startState
-      = new StateModel{*this, stack, base_scenario.m_parent};
+      = new StateModel{*this, base_scenario.m_parent};
   base_scenario.m_endState
-      = new StateModel{*this, stack, base_scenario.m_parent};
+      = new StateModel{*this, base_scenario.m_parent};
 
   Scenario::SetPreviousInterval(
       *base_scenario.m_endState, *base_scenario.m_interval);
@@ -100,14 +98,12 @@ JSONObjectWriter::write(Scenario::BaseScenarioContainer& base_scenario)
       = new EventModel{JSONObject::Deserializer{obj["EndEvent"].toObject()},
                        base_scenario.m_parent};
 
-  auto& stack = score::IDocument::documentContext(base_scenario.parentObject())
-                    .commandStack;
   base_scenario.m_startState
       = new StateModel{JSONObject::Deserializer{obj["StartState"].toObject()},
-                       stack, base_scenario.m_parent};
+                       base_scenario.m_parent};
   base_scenario.m_endState
       = new StateModel{JSONObject::Deserializer{obj["EndState"].toObject()},
-                       stack, base_scenario.m_parent};
+                       base_scenario.m_parent};
 
   Scenario::SetPreviousInterval(
       *base_scenario.m_endState, *base_scenario.m_interval);

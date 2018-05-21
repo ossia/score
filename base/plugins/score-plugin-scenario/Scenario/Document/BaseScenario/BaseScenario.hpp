@@ -35,10 +35,11 @@ public:
     vis.writeTo(*this);
   }
 
-  ~BaseScenario();
+  ~BaseScenario() override;
 
   Selection selectedChildren() const;
   bool focused() const;
+  void changeDuration(IntervalModel& itv, const TimeVal& v) override;
 
   using BaseScenarioContainer::event;
   using QObject::event;

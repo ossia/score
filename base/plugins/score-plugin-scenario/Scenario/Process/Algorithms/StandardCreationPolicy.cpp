@@ -94,8 +94,7 @@ StateModel& ScenarioCreate<StateModel>::redo(
     double y,
     Scenario::ProcessModel& s)
 {
-  auto& stack = score::IDocument::documentContext(s).commandStack;
-  auto state = new StateModel{id, ev.id(), y, stack, &s};
+  auto state = new StateModel{id, ev.id(), y, &s};
 
   s.states.add(state);
   ev.addState(state->id());
