@@ -334,11 +334,11 @@ public:
 
           float* dummy = (float*)alloca(sizeof(float) * samples);
 
-          float** output = (float**)alloca(
-              sizeof(float*) * std::max(2, this->fx->fx->numOutputs));
+          const auto max_io = std::max(this->fx->fx->numOutputs, this->fx->fx->numInputs);
+          float** output = (float**)alloca(sizeof(float*) * std::max(2, max_io));
           output[0] = float_v[0].data();
           output[1] = float_v[1].data();
-          for (int i = 2; i < this->fx->fx->numOutputs; i++)
+          for (int i = 2; i < max_io; i++)
             output[i] = dummy;
 
           fx->fx->processReplacing(fx->fx, output, output, samples);
