@@ -6,6 +6,7 @@
 #include <Process/Process.hpp>
 #include <Scenario/Document/Components/IntervalComponent.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
+#include <ossia/dataflow/nodes/state.hpp>
 #include <score/model/ComponentHierarchy.hpp>
 
 namespace ossia
@@ -86,8 +87,7 @@ public:
 protected:
   const Scenario::StateModel& m_model;
   std::shared_ptr<ossia::time_event> m_ev;
-  std::shared_ptr<ossia::graph_node> m_node;
-  ossia::state m_state;
+  std::shared_ptr<ossia::nodes::state> m_node;
   score::hash_map<Id<Process::ProcessModel>, std::shared_ptr<ProcessComponent>>
       m_processes;
 };
