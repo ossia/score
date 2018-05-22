@@ -35,6 +35,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   SETTINGS_PRESENTER(ExecutionListening);
   SETTINGS_PRESENTER(ScoreOrder);
   SETTINGS_PRESENTER(ValueCompilation);
+  SETTINGS_PRESENTER(TransportValueCompilation);
 
   // Clock used
   std::map<QString, ClockManagerFactory::ConcreteKey> clockMap;

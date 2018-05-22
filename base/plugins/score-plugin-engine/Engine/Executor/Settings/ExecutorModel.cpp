@@ -61,11 +61,14 @@ const score::sp<ModelScoreOrderParameter> ScoreOrder{
 const score::sp<ModelValueCompilationParameter> ValueCompilation{
     QStringLiteral("score_plugin_engine/ValueCompilation"), true};
 
+const score::sp<ModelTransportValueCompilationParameter> TransportValueCompilation{
+    QStringLiteral("score_plugin_engine/TransportValueCompilation"), false};
+
 static auto list()
 {
   return std::tie(
       Clock, Rate, Scheduling, Ordering, Merging, Commit, Tick, Parallel,
-      ExecutionListening, Logging, Bench, ScoreOrder, ValueCompilation);
+      ExecutionListening, Logging, Bench, ScoreOrder, ValueCompilation, TransportValueCompilation);
 }
 }
 
@@ -96,26 +99,8 @@ Model::makeReverseTimeFunction(const score::DocumentContext& ctx) const
   auto it = m_clockFactories.find(m_Clock);
   return it != m_clockFactories.end() ? it->makeReverseTimeFunction(ctx)
                                       : &ossia_to_score::defaultTime;
-} /*
+}
 
- #define SCORE_SETTINGS_PARAMETER_CPP(Type, ModelType, Name)         \
-   ClockManagerFactory::ConcreteKey Model::get##Name() const \
-   {                                                                  \
-     return m_Clock;                                                 \
-   }                                                                  \
-                                                                      \
-   void Model::setClock(ClockManagerFactory::ConcreteKey val) \
-   {                                                                  \
-     if (val == m_Clock)                                             \
-       return;                                                        \
-                                                                      \
-     m_Clock = val;                                                  \
-                                                                      \
-     QSettings s;                                                     \
-     s.setValue(Parameters::Name.key, QVariant::fromValue(m_Clock)); \
-     ClockChanged(val);                                         \
-   }
- */
 SCORE_SETTINGS_PARAMETER_CPP(ClockManagerFactory::ConcreteKey, Model, Clock)
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, Scheduling)
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, Ordering)
@@ -129,6 +114,7 @@ SCORE_SETTINGS_PARAMETER_CPP(bool, Model, Logging)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, Bench)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, ScoreOrder)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, ValueCompilation)
+SCORE_SETTINGS_PARAMETER_CPP(bool, Model, TransportValueCompilation)
 }
 }
 }

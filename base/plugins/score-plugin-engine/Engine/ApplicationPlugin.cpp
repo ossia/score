@@ -514,8 +514,21 @@ void ApplicationPlugin::on_transport(TimeVal t)
   if (!itv)
     return;
 
-  m_clock->context.executionQueue.enqueue(
-      [itv, time = m_clock->context.time(t)] { itv->transport(time); });
+  auto& ctx = m_clock->context;
+  if(ctx.settings.getTransportValueCompilation())
+  {
+    auto execState = m_clock->context.plugin.execState;
+    ctx.executionQueue.enqueue(
+        [execState, itv, time = m_clock->context.time(t)] {
+      itv->offset(time);
+      execState->commit();
+    });
+  }
+  else
+  {
+    ctx.executionQueue.enqueue(
+        [itv, time = m_clock->context.time(t)] { itv->transport(time); });
+  }
 }
 
 void ApplicationPlugin::on_play(
