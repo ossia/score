@@ -50,7 +50,6 @@ struct Node
   run(const ossia::audio_port& audio,
       ossia::value_port& rms_port,
       ossia::value_port& peak_port,
-      ossia::time_value prev_date,
       ossia::token_request tk,
       ossia::execution_state&)
   {

@@ -57,7 +57,6 @@ struct Node
       float phase,
       const std::string& type,
       ossia::value_port& out,
-      ossia::time_value prev_date,
       ossia::token_request tk,
       ossia::execution_state& st,
       State& s)
@@ -97,7 +96,7 @@ struct Node
         case SampleAndHold:
         {
           auto start_phi = phase + (float(ossia::two_pi) * freq * s.phase) / st.sampleRate;
-          auto end_phi = phase + (float(ossia::two_pi) * freq * (s.phase + tk.date - prev_date)) / st.sampleRate;
+          auto end_phi = phase + (float(ossia::two_pi) * freq * (s.phase + tk.date - tk.prev_date)) / st.sampleRate;
           auto start_s = std::sin(start_phi);
           auto end_s = std::sin(end_phi);
           if((start_s > 0 && end_s <= 0) || (start_s <= 0 && end_s > 0))
@@ -124,7 +123,7 @@ struct Node
       }
     }
 
-    s.phase += (tk.date - prev_date);
+    s.phase += (tk.date - tk.prev_date);
   }
 };
 }

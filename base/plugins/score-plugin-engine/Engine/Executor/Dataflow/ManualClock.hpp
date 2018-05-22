@@ -69,7 +69,8 @@ private:
           Qt::ToolBarArea::BottomToolBarArea, m_widg);
     }
     QObject::connect(m_widg, &TimeWidget::advance, this, [=](int val) {
-      m_cur->baseInterval().OSSIAInterval()->tick(ossia::time_value{val});
+      using namespace ossia;
+      m_cur->baseInterval().OSSIAInterval()->tick_offset(ossia::time_value{val}, 0_tv);
     });
     m_widg->show();
 

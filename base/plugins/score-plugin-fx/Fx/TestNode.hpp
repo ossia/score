@@ -75,7 +75,7 @@ make_uuid("f6b88ec9-cd56-43e8-a568-33208d5a8fb7");
       const ossia::audio_port& p2,
       const ossia::safe_nodes::timed_vec<float>& o1,
       ossia::midi_port& p,
-      ossia::time_value prev_date,
+      ossia::time_value tk.prev_date,
       ossia::token_request tk,
       ossia::execution_state& ,
       State& st)

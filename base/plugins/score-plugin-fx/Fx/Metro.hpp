@@ -56,19 +56,18 @@ struct Node
       bool val,
       float tempo,
       ossia::value_port& res,
-      ossia::time_value prev_date,
       ossia::token_request tk,
       ossia::execution_state& st)
   {
-    if (tk.date > prev_date)
+    if (tk.date > tk.prev_date)
     {
       const auto period = get_period(val, quantif, freq, tempo, st.sampleRate);
-      const auto next = next_date(prev_date, period);
+      const auto next = next_date(tk.prev_date, period);
       if (next.impl < tk.date.impl)
       {
         ossia::tvalue t;
         t.value = ossia::impulse{};
-        t.timestamp = next - prev_date;
+        t.timestamp = next - tk.prev_date;
         res.add_raw_value(t);
       }
     }

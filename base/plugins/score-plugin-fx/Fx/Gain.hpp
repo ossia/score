@@ -29,7 +29,6 @@ struct Node
   run(const ossia::audio_port& p1,
       float g,
       ossia::audio_port& p2,
-      ossia::time_value prev_date,
       ossia::token_request,
       ossia::execution_state&)
   {

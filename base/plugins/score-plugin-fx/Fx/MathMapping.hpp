@@ -61,7 +61,6 @@ struct Node
       float b,
       float c,
       ossia::value_port& output,
-      ossia::time_value prev_date,
       ossia::token_request tk,
       ossia::execution_state& st,
       State& self)
@@ -73,7 +72,7 @@ struct Node
     {
       self.cur_value = ossia::convert<double>(v.value);
       self.cur_time = tk.date.impl;
-      self.cur_deltatime = tk.date.impl - prev_date.impl;
+      self.cur_deltatime = tk.date.impl - tk.prev_date.impl;
       self.cur_pos = tk.position;
       self.p1 = a;
       self.p2 = b;
@@ -144,14 +143,13 @@ struct Node
       float b,
       float c,
       ossia::audio_port& output,
-      ossia::time_value prev_date,
       ossia::token_request tk,
       ossia::execution_state& st,
       State& self)
   {
-    if (tk.date > prev_date)
+    if (tk.date > tk.prev_date)
     {
-      auto count = tk.date - prev_date;
+      auto count = tk.date - tk.prev_date;
       if (!updateExpr(self, expr))
         return;
 
@@ -171,7 +169,7 @@ struct Node
       for (int64_t i = 0; i < count; i++)
       {
         self.cur_in = input.samples[0][tk.offset + i];
-        self.cur_time = prev_date + i;
+        self.cur_time = tk.prev_date + i;
         out[tk.offset + i] = self.expr.value();
       }
     }
