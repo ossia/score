@@ -337,7 +337,6 @@ struct Node
       const ossia::safe_nodes::timed_vec<int>& base,
       const ossia::safe_nodes::timed_vec<int>& transp,
       ossia::midi_port& midi_out,
-      ossia::time_value prev_date,
       ossia::token_request tk,
       ossia::execution_state& st,
       State& self)

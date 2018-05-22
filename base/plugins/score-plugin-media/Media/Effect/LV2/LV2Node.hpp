@@ -287,20 +287,20 @@ public:
     }
   }
 
-  ~lv2_node()
+  ~lv2_node() override
   {
     lilv_instance_deactivate(fInstance);
     // lilv_instance_free(fInstance);
   }
 
-  void run(ossia::token_request tk, ossia::execution_state&) override
+  void run(ossia::token_request t, ossia::execution_state&) override
   {
-    if (tk.date > prev_date())
+    if (t.date > t.prev_date)
     {
       data.host.current = &data.effect;
       preProcess();
 
-      const std::size_t samples = tk.date - prev_date();
+      const std::size_t samples = t.date - t.prev_date;
       const auto audio_ins = data.audio_in_ports.size();
       const auto audio_outs = data.audio_out_ports.size();
       std::vector<std::vector<float>> in_vec;

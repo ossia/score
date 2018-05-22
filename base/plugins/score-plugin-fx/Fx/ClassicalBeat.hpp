@@ -43,20 +43,19 @@ struct Node
   run(float tempo,
       const Control::time_signature& sig,
       ossia::value_port& res,
-      ossia::time_value prev_date,
       ossia::token_request tk,
       ossia::execution_state& st)
   {
-    if (tk.date > prev_date)
+    if (tk.date > tk.prev_date)
     {
-      if (prev_date == 0)
+      if (tk.prev_date == 0)
       {
         res.add_value(1, 0);
       }
 
       const auto period
           = get_period(1. / sig.second, (double)tempo, st.sampleRate);
-      const auto next = next_date(prev_date, period);
+      const auto next = next_date(tk.prev_date, period);
       if (next.impl < tk.date.impl)
       {
         if (sig == Control::time_signature{3, 4})
@@ -67,7 +66,7 @@ struct Node
           else
             t.value = 0;
 
-          t.timestamp = next - prev_date;
+          t.timestamp = next - tk.prev_date;
           res.add_raw_value(std::move(t));
         }
         else if (sig == Control::time_signature{4, 4})
@@ -78,7 +77,7 @@ struct Node
           else
             t.value = 0;
 
-          t.timestamp = next - prev_date;
+          t.timestamp = next - tk.prev_date;
           res.add_raw_value(std::move(t));
         }
       }

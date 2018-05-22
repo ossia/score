@@ -322,7 +322,7 @@ void js_node::run(ossia::token_request t, ossia::execution_state&)
 
   QMetaObject::invokeMethod(
       m_object, "onTick", Qt::DirectConnection,
-      Q_ARG(QVariant, double(prev_date())), Q_ARG(QVariant, double(t.date)),
+      Q_ARG(QVariant, double(t.prev_date)), Q_ARG(QVariant, double(t.date)),
       Q_ARG(QVariant, t.position), Q_ARG(QVariant, double(t.offset)));
 
   for (int i = 0; i < m_valOutlets.size(); i++)

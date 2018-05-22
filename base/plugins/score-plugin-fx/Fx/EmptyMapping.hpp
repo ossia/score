@@ -25,7 +25,6 @@ struct Node
   static void
   run(const ossia::value_port& p1,
       ossia::value_port& p2,
-      ossia::time_value prev_date,
       ossia::token_request,
       ossia::execution_state&)
   {
@@ -57,7 +56,6 @@ struct Node
   static void
   run(const ossia::midi_port& p1,
       ossia::midi_port& p2,
-      ossia::time_value prev_date,
       ossia::token_request,
       ossia::execution_state&)
   {
@@ -89,7 +87,6 @@ struct Node
   static void
   run(const ossia::audio_port& p1,
       ossia::audio_port& p2,
-      ossia::time_value prev_date,
       ossia::token_request,
       ossia::execution_state&)
   {

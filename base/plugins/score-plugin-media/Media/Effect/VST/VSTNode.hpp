@@ -240,9 +240,9 @@ public:
   }
   void run(ossia::token_request tk, ossia::execution_state& st) override
   {
-    if (!muted() && tk.date > m_prev_date)
+    if (!muted() && tk.date > tk.prev_date)
     {
-      const std::size_t samples = tk.date - m_prev_date;
+      const std::size_t samples = tk.date - tk.prev_date;
       setControls();
       setupTimeInfo(tk, st);
 

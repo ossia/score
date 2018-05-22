@@ -130,7 +130,6 @@ struct Node
       const ossia::safe_nodes::timed_vec<int>& chan_vec,
       const ossia::safe_nodes::timed_vec<float>& tempo_vec,
       ossia::midi_port& p2,
-      ossia::time_value prev_date,
       ossia::token_request tk,
       ossia::execution_state& st,
       State& self)
@@ -224,10 +223,10 @@ struct Node
     for (auto it = self.to_start.begin(); it != self.to_start.end();)
     {
       auto& note = *it;
-      if (note.date > prev_date && note.date.impl < tk.date.impl)
+      if (note.date > tk.prev_date && note.date.impl < tk.date.impl)
       {
         auto no = rtmidi::message::note_on(chan, note.note.pitch, note.note.vel);
-        no.timestamp = note.date - prev_date;
+        no.timestamp = note.date - tk.prev_date;
         p2.messages.push_back(no);
 
         if (duration > 0.f)
@@ -254,10 +253,10 @@ struct Node
     for (auto it = self.running_notes.begin(); it != self.running_notes.end();)
     {
       auto& note = *it;
-      if (note.date > prev_date && note.date.impl < tk.date.impl)
+      if (note.date > tk.prev_date && note.date.impl < tk.date.impl)
       {
         auto noff = rtmidi::message::note_off(chan, note.note.pitch, note.note.vel);
-        noff.timestamp = note.date - prev_date;
+        noff.timestamp = note.date - tk.prev_date;
         p2.messages.push_back(noff);
         it = self.running_notes.erase(it);
       }
