@@ -34,6 +34,7 @@ View::View() : m_widg{new QWidget}
   SETTINGS_UI_TOGGLE_SETUP("Logging", Logging);
   SETTINGS_UI_TOGGLE_SETUP("Benchmark", Bench);
   SETTINGS_UI_TOGGLE_SETUP("Value compilation", ValueCompilation);
+  SETTINGS_UI_TOGGLE_SETUP("Transport value compilation", TransportValueCompilation);
 
   m_Clock = new QComboBox;
   lay->addRow(tr("Clock source"), m_Clock);
@@ -62,6 +63,7 @@ SETTINGS_UI_TOGGLE_IMPL(Parallel)
 SETTINGS_UI_TOGGLE_IMPL(Logging)
 SETTINGS_UI_TOGGLE_IMPL(Bench)
 SETTINGS_UI_TOGGLE_IMPL(ValueCompilation)
+SETTINGS_UI_TOGGLE_IMPL(TransportValueCompilation)
 
 void View::setClock(ClockManagerFactory::ConcreteKey k)
 {
