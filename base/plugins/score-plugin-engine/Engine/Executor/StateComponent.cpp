@@ -21,36 +21,39 @@ StateComponentBase::StateComponentBase(
     QObject* parent)
     : Execution::Component{ctx, id, "Executor::State", nullptr}
     , m_model{element}
-    , m_state{Engine::score_to_ossia::state(element, ctx)}
+    , m_node{std::make_shared<ossia::nodes::state>(Engine::score_to_ossia::state(element, ctx))}
 {
+  connect(&element, &Scenario::StateModel::sig_statesUpdated,
+          this, [this, &ctx] {
+    in_exec(
+          [
+          n=m_node
+         ,x=Engine::score_to_ossia::state(m_model, ctx)
+          ] () mutable {
+      n->data = std::move(x);
+    });
+  });
 }
 
 void StateComponentBase::onSetup(
     const std::shared_ptr<ossia::time_event>& root)
 {
   m_ev = root;
-  if (!m_state.empty())
-  {
-    m_node = std::make_shared<ossia::nodes::state>(m_state);
-    m_ev->add_time_process(std::make_shared<ossia::node_process>(m_node));
-    system().plugin.register_node({}, {}, m_node);
-  }
+  m_ev->add_time_process(std::make_shared<ossia::node_process>(m_node));
+  system().plugin.register_node({}, {}, m_node);
 }
 
 void StateComponentBase::onDelete() const
 {
-  if (m_node)
-  {
-    system().plugin.unregister_node({}, {}, m_node);
-    in_exec([gr = this->system().plugin.execGraph, ev = m_ev, st = m_state] {
-      auto& procs = ev->get_time_processes();
-      if (!procs.empty())
-      {
-        const auto& proc = (*procs.begin());
-        ev->remove_time_process(proc.get());
-      }
-    });
-  }
+  system().plugin.unregister_node({}, {}, m_node);
+  in_exec([gr = this->system().plugin.execGraph, ev = m_ev] {
+    auto& procs = ev->get_time_processes();
+    if (!procs.empty())
+    {
+      const auto& proc = (*procs.begin());
+      ev->remove_time_process(proc.get());
+    }
+  });
 }
 
 ProcessComponent* StateComponentBase::make(
@@ -151,6 +154,7 @@ void StateComponent::cleanup(const std::shared_ptr<StateComponent>& self)
   clear();
   m_processes.clear();
   m_ev.reset();
+  m_node.reset();
   disconnect();
 }
 }
