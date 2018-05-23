@@ -15,7 +15,7 @@ void MediaFileHandle::load(
     const QString& path, const score::DocumentContext& ctx)
 {
   m_file = score::locateFilePath(path, ctx);
-  QFile f(m_file);
+  QFile f{m_file};
   if (isAudioFile(f))
   {
     m_decoder.decode(m_file);
@@ -26,7 +26,8 @@ void MediaFileHandle::load(
     for (std::size_t i = 0; i < m_decoder.data.size(); i++)
       m_data[i] = m_decoder.data[i].data();
 
-    m_fileName = f.fileName();
+    QFileInfo fi{f};
+    m_fileName = fi.fileName();
     mediaChanged();
   }
 }
