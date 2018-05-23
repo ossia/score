@@ -4,7 +4,6 @@
 #include <score_compiler_detection.hpp>
 #include <score_lib_base_export.h>
 #include <stdexcept>
-#include <typeinfo>
 
 #ifdef _WIN32
 #  include <Windows.h>
@@ -86,6 +85,18 @@
 #  define SCORE_RELAXED_CONSTEXPR
 #endif
 
+#define PROPERTY(...) W_MACRO_MSVC_EXPAND(PROPERTY2(__VA_ARGS__))
+
+#define PROPERTY2(TYPE, NAME, ...)                                \
+  W_PROPERTY(TYPE, NAME, __VA_ARGS__)                             \
+  static constexpr struct {                                       \
+    using param_type = TYPE;                                      \
+    using model_type = W_ThisType;                                \
+    static constexpr auto get() { return std::get<0>(std::make_tuple(__VA_ARGS__)); }     \
+    static constexpr auto set() { return std::get<1>(std::make_tuple(__VA_ARGS__)); }     \
+    static constexpr auto notify() { return std::get<3>(std::make_tuple(__VA_ARGS__)); }  \
+  } p_ ## NAME {};
+
 template <typename T>
 using remove_qualifs_t = std::decay_t<std::remove_pointer_t<std::decay_t<T>>>;
 
@@ -107,7 +118,7 @@ T safe_cast(U&& other) try
   auto&& res = dynamic_cast<T>(other);
   return res;
 }
-catch (std::bad_cast& e)
+catch (const std::exception& e)
 {
   qDebug() << e.what();
   SCORE_ABORT;
@@ -116,58 +127,6 @@ catch (std::bad_cast& e)
 #else
 #  define safe_cast static_cast
 #endif
-
-/**
- * @brief The ptr struct
- * Reduces the chances of UB
- */
-template <typename T>
-struct ptr
-{
-  T* impl{};
-  ptr() = default;
-  ptr(const ptr&) = default;
-  ptr(ptr&&) = default;
-  ptr& operator=(const ptr&) = default;
-  ptr& operator=(ptr&&) = default;
-
-  ptr(T* p) : impl{p}
-  {
-  }
-
-  auto operator=(T* other)
-  {
-    impl = other;
-  }
-
-  operator bool() const
-  {
-    return impl;
-  }
-
-  operator T*() const
-  {
-    return impl;
-  }
-
-  auto operator*() const -> decltype(auto)
-  {
-    SCORE_ASSERT(impl);
-    return *impl;
-  }
-
-  T* operator->() const
-  {
-    SCORE_ASSERT(impl);
-    return impl;
-  }
-
-  void free()
-  {
-    ::delete impl;
-    impl = nullptr;
-  }
-};
 
 /**
  * @brief con A wrapper around Qt's connect
@@ -180,11 +139,14 @@ QMetaObject::Connection con(const T& t, Args&&... args)
   return QObject::connect(&t, std::forward<Args>(args)...);
 }
 
-template <typename T, typename... Args>
-QMetaObject::Connection con(ptr<T> t, Args&&... args)
+template <typename T, typename Property, typename U, typename Slot, typename... Args>
+QMetaObject::Connection bind(T& t, const Property& prop, const U* tgt, Slot&& slt, Args&&... args)
 {
-  return QObject::connect(&*t, std::forward<Args>(args)...);
+  auto con = QObject::connect(&t, Property::notify(), tgt, std::forward<Slot>(slt), std::forward<Args>(args)...);
+  slt((t.*(Property::get()))());
+  return con;
 }
+
 
 /**
  * Used since it seems that
@@ -201,30 +163,6 @@ void Foreach(Array&& arr, F fun)
     fun(arr.at(i));
   }
 }
-
-/**
- * Macros to define a property type, e.g. an
- * abstraction over foo.getBar(); foo.setBar();
- * etc..
- */
-#define SCORE_PARAMETER_TYPE(ModelType, Name)                           \
-  struct ModelType##Name##Parameter                                     \
-  {                                                                     \
-    using model_type = ModelType;                                       \
-    using param_type = decltype(std::declval<ModelType>().get##Name()); \
-    static constexpr auto get()                                         \
-    {                                                                   \
-      return &model_type::get##Name;                                    \
-    }                                                                   \
-    static constexpr auto set()                                         \
-    {                                                                   \
-      return &model_type::set##Name;                                    \
-    }                                                                   \
-    static constexpr auto notify()                                      \
-    {                                                                   \
-      return &model_type::Name##Changed;                                \
-    }                                                                   \
-  };
 
 struct unused_t
 {

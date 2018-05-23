@@ -151,7 +151,7 @@ void merge(Device::Node& base, const State::Message& message)
   QStringList path = message.address.address.path;
   path.prepend(message.address.address.device);
 
-  ptr<Node> node = &base;
+  Node* node = &base;
   for (int i = 0; i < path.size(); i++)
   {
     auto it
@@ -162,10 +162,10 @@ void merge(Device::Node& base, const State::Message& message)
     if (it == node->end())
     {
       // We have to start adding sub-nodes from here.
-      ptr<Node> parentnode{node};
+      Node* parentnode{node};
       for (int k = i; k < path.size(); k++)
       {
-        ptr<Node> newNode;
+        Node* newNode{};
         if (k == 0)
         {
           // We're adding a device

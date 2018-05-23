@@ -114,21 +114,6 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(bool, ScoreOrder)
   SCORE_SETTINGS_PARAMETER_HPP(bool, ValueCompilation)
   SCORE_SETTINGS_PARAMETER_HPP(bool, TransportValueCompilation)
-
-  W_PROPERTY(bool, transportCompilation READ getTransportValueCompilation WRITE setTransportValueCompilation NOTIFY TransportValueCompilationChanged, W_Final)
-W_PROPERTY(bool, valueCompilation READ getValueCompilation WRITE setValueCompilation NOTIFY ValueCompilationChanged, W_Final)
-W_PROPERTY(bool, scoreOrder READ getScoreOrder WRITE setScoreOrder NOTIFY ScoreOrderChanged, W_Final)
-W_PROPERTY(bool, bench READ getBench WRITE setBench NOTIFY BenchChanged, W_Final)
-W_PROPERTY(bool, logging READ getLogging WRITE setLogging NOTIFY LoggingChanged, W_Final)
-W_PROPERTY(bool, executionListening READ getExecutionListening WRITE setExecutionListening NOTIFY ExecutionListeningChanged, W_Final)
-W_PROPERTY(bool, parallel READ getParallel WRITE setParallel NOTIFY ParallelChanged, W_Final)
-W_PROPERTY(int, rate READ getRate WRITE setRate NOTIFY RateChanged, W_Final)
-W_PROPERTY(QString, tick READ getTick WRITE setTick NOTIFY TickChanged, W_Final)
-W_PROPERTY(QString, commit READ getCommit WRITE setCommit NOTIFY CommitChanged, W_Final)
-W_PROPERTY(QString, merging READ getMerging WRITE setMerging NOTIFY MergingChanged, W_Final)
-W_PROPERTY(QString, ordering READ getOrdering WRITE setOrdering NOTIFY OrderingChanged, W_Final)
-W_PROPERTY(QString, scheduling READ getScheduling WRITE setScheduling NOTIFY SchedulingChanged, W_Final)
-W_PROPERTY(ClockManagerFactory::ConcreteKey, clock READ getClock WRITE setClock NOTIFY ClockChanged, W_Final)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, Clock)

@@ -22,8 +22,7 @@ class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final
   PROCESS_METADATA_IMPL(Media::Sound::ProcessModel)
 
   W_OBJECT(ProcessModel)
-  
-  
+
 public:
   explicit ProcessModel(
       const TimeVal& duration,
@@ -50,15 +49,22 @@ public:
 
   int upmixChannels() const;
   int startChannel() const;
+  qint32 startOffset() const;
 
   void setUpmixChannels(int upmixChannels);
   void setStartChannel(int startChannel);
+  void setStartOffset(qint32 startOffset);
 
   std::unique_ptr<Process::Outlet> outlet;
 public:
   void fileChanged() W_SIGNAL(fileChanged);
   void upmixChannelsChanged(int upmixChannels) W_SIGNAL(upmixChannelsChanged, upmixChannels);
   void startChannelChanged(int startChannel) W_SIGNAL(startChannelChanged, startChannel);
+  void startOffsetChanged(qint32 startOffset) W_SIGNAL(startOffsetChanged, startOffset);
+
+  PROPERTY(int, startChannel READ startChannel WRITE setStartChannel NOTIFY startChannelChanged, W_Final)
+  PROPERTY(int, upmixChannels READ upmixChannels WRITE setUpmixChannels NOTIFY upmixChannelsChanged, W_Final)
+  PROPERTY(int, startOffset READ startOffset WRITE setStartOffset NOTIFY startOffsetChanged, W_Final)
 
 private:
   void init();
@@ -66,10 +72,9 @@ private:
   MediaFileHandle m_file;
   int m_upmixChannels{};
   int m_startChannel{};
+  qint32 m_startOffset{};
+  qint32 m_endOffset{};
 
-W_PROPERTY(int, startChannel READ startChannel WRITE setStartChannel NOTIFY startChannelChanged)
-
-W_PROPERTY(int, upmixChannels READ upmixChannels WRITE setUpmixChannels NOTIFY upmixChannelsChanged)
 };
 }
 }

@@ -15,22 +15,14 @@ namespace Settings
 {
 namespace Parameters
 {
-const score::sp<ModelSkinParameter> Skin{QStringLiteral("Skin/Skin"),
-                                         "Default"};
-const score::sp<ModelDefaultEditorParameter> DefaultEditor{
-    QStringLiteral("Skin/DefaultEditor"), ""};
-const score::sp<ModelGraphicZoomParameter> GraphicZoom{
-    QStringLiteral("Skin/Zoom"), 1};
-const score::sp<ModelSlotHeightParameter> SlotHeight{
-    QStringLiteral("Skin/slotHeight"), 200};
-const score::sp<ModelDefaultDurationParameter> DefaultDuration{
-    QStringLiteral("Skin/defaultDuration"), TimeVal::fromMsecs(15000)};
-const score::sp<ModelSnapshotOnCreateParameter> SnapshotOnCreate{
-    QStringLiteral("Scenario/SnapshotOnCreate"), false};
-const score::sp<ModelAutoSequenceParameter> AutoSequence{
-    QStringLiteral("Scenario/AutoSequence"), true};
-const score::sp<ModelTimeBarParameter> TimeBar{
-    QStringLiteral("Scenario/TimeBar"), true};
+sp_(Skin){QStringLiteral("Skin/Skin"), "Default"};
+sp_(DefaultEditor){QStringLiteral("Skin/DefaultEditor"), ""};
+sp_(GraphicZoom){QStringLiteral("Skin/Zoom"), 1};
+sp_(SlotHeight){QStringLiteral("Skin/slotHeight"), 200};
+sp_(DefaultDuration){QStringLiteral("Skin/defaultDuration"), TimeVal::fromMsecs(15000)};
+sp_(SnapshotOnCreate){QStringLiteral("Scenario/SnapshotOnCreate"), false};
+sp_(AutoSequence){QStringLiteral("Scenario/AutoSequence"), true};
+sp_(TimeBar){QStringLiteral("Scenario/TimeBar"), true};
 
 static auto list()
 {

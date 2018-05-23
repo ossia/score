@@ -72,6 +72,8 @@ public:
       double yPos,
       QObject* parent);
 
+  ~StateModel() override;
+
   // Load
   template <
       typename DeserializerVisitor,
@@ -149,7 +151,7 @@ private:
 
   double m_heightPercentage{0.5}; // In the whole scenario
 
-  ptr<MessageItemModel> m_messageItemModel;
+  MessageItemModel* m_messageItemModel{};
   ExecutionStatusProperty m_status{};
 };
 }

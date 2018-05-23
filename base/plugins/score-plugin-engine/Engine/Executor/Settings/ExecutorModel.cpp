@@ -19,50 +19,26 @@ namespace Settings
 
 namespace Parameters
 {
-const score::sp<ModelClockParameter> Clock{
+sp_(Clock){
     QStringLiteral("score_plugin_engine/Clock"),
     Dataflow::ClockFactory::static_concreteKey()};
-
-const score::sp<ModelRateParameter> Rate{
-    QStringLiteral("score_plugin_engine/Rate"), 50};
-
-const score::sp<ModelSchedulingParameter> Scheduling{
+sp_(Rate){QStringLiteral("score_plugin_engine/Rate"), 50};
+sp_(Scheduling){
     QStringLiteral("score_plugin_engine/Scheduling"),
     SchedulingPolicies{}.StaticTC};
-
-const score::sp<ModelOrderingParameter> Ordering{
+sp_(Ordering){
     QStringLiteral("score_plugin_engine/Ordering"),
     OrderingPolicies{}.CreationOrder};
-
-const score::sp<ModelMergingParameter> Merging{
-    QStringLiteral("score_plugin_engine/Merging"), MergingPolicies{}.Merge};
-
-const score::sp<ModelCommitParameter> Commit{
-    QStringLiteral("score_plugin_engine/Commit"), CommitPolicies{}.Merged};
-
-const score::sp<ModelTickParameter> Tick{
-    QStringLiteral("score_plugin_engine/Tick"), TickPolicies{}.Buffer};
-
-const score::sp<ModelParallelParameter> Parallel{
-    QStringLiteral("score_plugin_engine/Parallel"), true};
-
-const score::sp<ModelExecutionListeningParameter> ExecutionListening{
-    QStringLiteral("score_plugin_engine/ExecListening"), true};
-
-const score::sp<ModelLoggingParameter> Logging{
-    QStringLiteral("score_plugin_engine/Logging"), true};
-
-const score::sp<ModelBenchParameter> Bench{
-    QStringLiteral("score_plugin_engine/Bench"), true};
-
-const score::sp<ModelScoreOrderParameter> ScoreOrder{
-    QStringLiteral("score_plugin_engine/ScoreOrder"), false};
-
-const score::sp<ModelValueCompilationParameter> ValueCompilation{
-    QStringLiteral("score_plugin_engine/ValueCompilation"), true};
-
-const score::sp<ModelTransportValueCompilationParameter> TransportValueCompilation{
-    QStringLiteral("score_plugin_engine/TransportValueCompilation"), false};
+sp_(Merging){QStringLiteral("score_plugin_engine/Merging"), MergingPolicies{}.Merge};
+sp_(Commit){QStringLiteral("score_plugin_engine/Commit"), CommitPolicies{}.Merged};
+sp_(Tick){QStringLiteral("score_plugin_engine/Tick"), TickPolicies{}.Buffer};
+sp_(Parallel){QStringLiteral("score_plugin_engine/Parallel"), true};
+sp_(ExecutionListening){QStringLiteral("score_plugin_engine/ExecListening"), true};
+sp_(Logging){QStringLiteral("score_plugin_engine/Logging"), true};
+sp_(Bench){QStringLiteral("score_plugin_engine/Bench"), true};
+sp_(ScoreOrder){QStringLiteral("score_plugin_engine/ScoreOrder"), false};
+sp_(ValueCompilation){QStringLiteral("score_plugin_engine/ValueCompilation"), true};
+sp_(TransportValueCompilation){QStringLiteral("score_plugin_engine/TransportValueCompilation"), false};
 
 static auto list()
 {

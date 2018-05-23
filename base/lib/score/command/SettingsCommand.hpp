@@ -28,11 +28,12 @@ template <typename T>
 class SettingsCommand : public SettingsCommandBase
 {
 public:
+  using model_t = typename T::model_type;
   using parameter_t = T;
   using parameter_pass_t =
       typename boost::call_traits<typename T::param_type>::param_type;
   SettingsCommand() = default;
-  SettingsCommand(typename T::model_type& obj, parameter_pass_t newval)
+  SettingsCommand(model_t& obj, parameter_pass_t newval)
       : m_model{obj}, m_new{newval}
   {
     m_old = (m_model.*T::get())();
@@ -50,13 +51,13 @@ public:
     (m_model.*T::set())(m_new);
   }
 
-  void update(typename T::model_type&, parameter_pass_t newval)
+  void update(model_t&, parameter_pass_t newval)
   {
     m_new = newval;
   }
 
 private:
-  typename T::model_type& m_model;
+  model_t& m_model;
   typename T::param_type m_old, m_new;
 };
 }

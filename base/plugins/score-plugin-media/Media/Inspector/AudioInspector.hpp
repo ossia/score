@@ -24,6 +24,7 @@ private:
   QLineEdit m_edit;
   QSpinBox m_start;
   QSpinBox m_upmix;
+  QSpinBox m_startOffset;
 };
 }
 

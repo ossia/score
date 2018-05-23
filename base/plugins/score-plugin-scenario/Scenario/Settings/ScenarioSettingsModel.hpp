@@ -12,15 +12,6 @@ class SCORE_PLUGIN_SCENARIO_EXPORT Model final
     : public score::SettingsDelegateModel
 {
   W_OBJECT(Model)
-  
-  
-  
-  
-  
-  
-  
-  
-
   QString m_Skin;
   QString m_DefaultEditor;
   double m_GraphicZoom{};
@@ -46,22 +37,7 @@ public:
 
 public:
   void SkinChanged(const QString& arg_1) W_SIGNAL(SkinChanged, arg_1);
-
-W_PROPERTY(bool, TimeBar READ getTimeBar WRITE setTimeBar NOTIFY TimeBarChanged, W_Final)
-
-W_PROPERTY(bool, AutoSequence READ getAutoSequence WRITE setAutoSequence NOTIFY AutoSequenceChanged, W_Final)
-
-W_PROPERTY(bool, SnapshotOnCreate READ getSnapshotOnCreate WRITE setSnapshotOnCreate NOTIFY SnapshotOnCreateChanged, W_Final)
-
-W_PROPERTY(TimeVal, DefaultDuration READ getDefaultDuration WRITE setDefaultDuration NOTIFY DefaultDurationChanged, W_Final)
-
-W_PROPERTY(qreal, SlotHeight READ getSlotHeight WRITE setSlotHeight NOTIFY SlotHeightChanged, W_Final)
-
-W_PROPERTY(double, GraphicZoom READ getGraphicZoom WRITE setGraphicZoom NOTIFY GraphicZoomChanged, W_Final)
-
-W_PROPERTY(QString, DefaultEditor READ getDefaultEditor WRITE setDefaultEditor NOTIFY DefaultEditorChanged, W_Final)
-
-W_PROPERTY(QString, Skin READ getSkin WRITE setSkin NOTIFY SkinChanged, W_Final)
+  PROPERTY(QString, Skin READ getSkin WRITE setSkin NOTIFY SkinChanged, W_Final)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, DefaultEditor)
