@@ -3,6 +3,7 @@
 #include "TemporalScenarioView.hpp"
 
 #include <Process/LayerView.hpp>
+#include <QApplication>
 #include <QColor>
 #include <QCursor>
 #include <QEvent>
@@ -74,15 +75,17 @@ void TemporalScenarioView::stopDrawDragLine()
 
 void TemporalScenarioView::movedAsked(const QPointF& p)
 {
-  QRectF r = QRectF{m_previousPoint.x(), m_previousPoint.y(), 1, 1};
+  QRectF r{m_previousPoint.x(), m_previousPoint.y(), 1, 1};
   ensureVisible(mapRectFromScene(r), 30, 30);
   moved(p);
-  m_previousPoint
-      = p; // we use the last pos, because if not there's a larsen and crash
+
+  // we use the last pos, because if not there's a larsen and crash
+  m_previousPoint = p;
 }
 
 void TemporalScenarioView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
+  m_moving = false;
   if (event->button() == Qt::LeftButton)
     pressed(event->scenePos());
 
@@ -91,13 +94,17 @@ void TemporalScenarioView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void TemporalScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  moved(event->scenePos());
-
+  if(m_moving || (event->buttonDownScreenPos(Qt::LeftButton) - event->screenPos()).manhattanLength() > QApplication::startDragDistance())
+  {
+    m_moving = true;
+    moved(event->scenePos());
+  }
   event->accept();
 }
 
 void TemporalScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
+  m_moving = false;
   released(event->scenePos());
 
   event->accept();

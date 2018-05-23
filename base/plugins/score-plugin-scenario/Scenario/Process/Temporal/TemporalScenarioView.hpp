@@ -87,5 +87,6 @@ private:
   QPointF m_previousPoint{};
   ossia::optional<QRectF> m_dragLine{};
   bool m_lock{};
+  bool m_moving{};
 };
 }

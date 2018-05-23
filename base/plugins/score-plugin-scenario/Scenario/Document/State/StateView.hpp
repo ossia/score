@@ -91,6 +91,7 @@ private:
   bool m_containMessage{false};
   bool m_selected{false};
   bool m_hasOverlay{true};
+  bool m_moving{false};
   ExecutionStatusProperty m_status{};
 };
 }
