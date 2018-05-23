@@ -79,7 +79,7 @@ public:
   {
     return m_model;
   }
-  const std::shared_ptr<ossia::graph_node>& node() const
+  const std::shared_ptr<ossia::nodes::state>& node() const
   {
     return m_node;
   }

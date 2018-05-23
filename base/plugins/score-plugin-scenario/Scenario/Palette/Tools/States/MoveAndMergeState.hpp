@@ -124,48 +124,23 @@ public:
       // ********************************************
       // What happens in each state.
 
-      QObject::connect(onlyMoving, &QState::entered, [&]() {
-        auto& scenar = stateMachine.model();
-        // If we came here through a state.
-        auto evId = this->clickedEvent;
-        if (!bool(evId) && bool(this->clickedState))
-        {
-          evId = scenar.state(*this->clickedState).eventId();
-        }
-
-        if (!evId)
-          return;
-
-        TimeVal date
-            = this->m_pressedPrevious
-                  ? std::max(this->currentPoint.date, *this->m_pressedPrevious)
-                  : this->currentPoint.date;
-        date = std::max(date, TimeVal{});
-
-        if (this->clickedState)
-          this->m_movingDispatcher.submitCommand(
-              this->m_scenario, *evId, date, this->currentPoint.y,
-              stateMachine.editionSettings().expandMode(),
-              stateMachine.editionSettings().lockMode(), *this->clickedState);
-        else
-          this->m_movingDispatcher.submitCommand(
-              this->m_scenario, *evId, date, this->currentPoint.y,
-              stateMachine.editionSettings().expandMode(),
-              stateMachine.editionSettings().lockMode());
-      });
-
-      QObject::connect(pressed, &QState::entered, [&]() {
+      QObject::connect(pressed, &QState::entered, [&] () {
         auto& scenar = stateMachine.model();
         auto evId{this->clickedEvent};
         if (!bool(evId) && bool(this->clickedState))
         {
-          evId = scenar.state(*this->clickedState).eventId();
+          const Scenario::StateModel& st = scenar.state(*this->clickedState);
+          evId = st.eventId();
+          m_origPos.y = st.heightPercentage();
         }
 
         if (!evId)
           return;
 
-        auto prev_csts = previousIntervals(scenar.event(*evId), scenar);
+        const Scenario::EventModel& ev = scenar.event(*evId);
+        m_origPos.date = ev.date();
+
+        auto prev_csts = previousIntervals(ev, scenar);
         if (!prev_csts.empty())
         {
           // We find the one that starts the latest.
@@ -185,10 +160,49 @@ public:
         {
           this->m_pressedPrevious = ossia::none;
         }
+
+        this->m_pressPos = this->currentPoint;
+      });
+
+      QObject::connect(onlyMoving, &QState::entered, [&]() {
+        auto& scenar = stateMachine.model();
+        // If we came here through a state.
+        auto evId = this->clickedEvent;
+        if (!bool(evId) && bool(this->clickedState))
+        {
+          evId = scenar.state(*this->clickedState).eventId();
+        }
+
+        if (!evId)
+          return;
+
+        TimeVal adjDate = this->m_origPos.date + (this->currentPoint.date - this->m_pressPos.date);
+        TimeVal date
+            = this->m_pressedPrevious
+                  ? std::max(adjDate, *this->m_pressedPrevious)
+                  : adjDate;
+        date = std::max(date, TimeVal{});
+
+        if (this->clickedState)
+        {
+          auto new_y = m_origPos.y + (this->currentPoint.y - this->m_pressPos.y);
+          this->m_movingDispatcher.submitCommand(
+              this->m_scenario, *evId, date, new_y,
+              stateMachine.editionSettings().expandMode(),
+              stateMachine.editionSettings().lockMode(), *this->clickedState);
+        }
+        else
+        {
+          this->m_movingDispatcher.submitCommand(
+              this->m_scenario, *evId, date, this->currentPoint.y,
+              stateMachine.editionSettings().expandMode(),
+              stateMachine.editionSettings().lockMode());
+        }
       });
 
       QObject::connect(released, &QState::entered, [&] {
         this->m_movingDispatcher.commit();
+        this->m_pressPos = {};
         this->m_pressedPrevious = {};
       });
     }
@@ -198,6 +212,7 @@ public:
     rollbackState->addTransition(finalState);
     QObject::connect(rollbackState, &QState::entered, [&] {
       this->m_movingDispatcher.rollback();
+      this->m_pressPos = {};
       this->m_pressedPrevious = {};
     });
 
@@ -205,6 +220,8 @@ public:
   }
 
   SingleOngoingCommandDispatcher<MoveEventCommand_T> m_movingDispatcher;
+  Scenario::Point m_pressPos{}; // where the click landed in the scenario
+  Scenario::Point m_origPos{}; // original position of the object being moved
   optional<TimeVal> m_pressedPrevious;
 };
 
