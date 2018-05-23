@@ -27,10 +27,6 @@ class SCORE_PLUGIN_CURVE_EXPORT Model : public score::SettingsDelegateModel
 {
   W_OBJECT(Model)
 
-
-
-
-
 public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
 
@@ -38,19 +34,13 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(bool, Simplify)
   SCORE_SETTINGS_PARAMETER_HPP(Curve::Settings::Mode, CurveMode)
   SCORE_SETTINGS_PARAMETER_HPP(bool, PlayWhileRecording)
+
 private:
   int m_SimplificationRatio{};
   bool m_Simplify = true;
   Mode m_CurveMode = Mode::Parameter;
   bool m_PlayWhileRecording{};
 
-W_PROPERTY(bool, PlayWhileRecording READ getPlayWhileRecording WRITE setPlayWhileRecording NOTIFY PlayWhileRecordingChanged, W_Final)
-
-W_PROPERTY(Mode, CurveMode READ getCurveMode WRITE setCurveMode NOTIFY CurveModeChanged, W_Final)
-
-W_PROPERTY(bool, Simplify READ getSimplify WRITE setSimplify NOTIFY SimplifyChanged, W_Final)
-
-W_PROPERTY(int, SimplificationRatio READ getSimplificationRatio WRITE setSimplificationRatio NOTIFY SimplificationRatioChanged, W_Final)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, SimplificationRatio)

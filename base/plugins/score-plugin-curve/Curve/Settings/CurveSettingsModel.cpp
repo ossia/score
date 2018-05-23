@@ -11,14 +11,10 @@ namespace Settings
 
 namespace Parameters
 {
-const score::sp<ModelSimplificationRatioParameter> SimplificationRatio{
-    QStringLiteral("score_plugin_curve/SimplificationRatio"), 10};
-const score::sp<ModelSimplifyParameter> Simplify{
-    QStringLiteral("score_plugin_curve/Simplify"), true};
-const score::sp<ModelCurveModeParameter> CurveMode{
-    QStringLiteral("score_plugin_curve/Mode"), Mode::Parameter};
-const score::sp<ModelPlayWhileRecordingParameter> PlayWhileRecording{
-    QStringLiteral("score_plugin_curve/PlayWhileRecording"), true};
+sp_(SimplificationRatio){QStringLiteral("score_plugin_curve/SimplificationRatio"), 10};
+sp_(Simplify){QStringLiteral("score_plugin_curve/Simplify"), true};
+sp_(CurveMode){QStringLiteral("score_plugin_curve/Mode"), Mode::Parameter};
+sp_(PlayWhileRecording){QStringLiteral("score_plugin_curve/PlayWhileRecording"), true};
 
 static auto list()
 {

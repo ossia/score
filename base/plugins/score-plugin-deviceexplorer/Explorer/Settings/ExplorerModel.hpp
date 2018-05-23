@@ -20,8 +20,8 @@ class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT Model
     : public score::SettingsDelegateModel
 {
   W_OBJECT(Model)
-  
-  
+
+
   bool m_LocalTree = false;
   QString m_LogLevel;
 
@@ -30,10 +30,6 @@ public:
 
   SCORE_SETTINGS_PARAMETER_HPP(bool, LocalTree)
   SCORE_SETTINGS_PARAMETER_HPP(QString, LogLevel)
-
-W_PROPERTY(QString, logLevel READ getLogLevel WRITE setLogLevel NOTIFY LogLevelChanged)
-
-W_PROPERTY(bool, LocalTree READ getLocalTree WRITE setLocalTree NOTIFY LocalTreeChanged)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, LogLevel)
@@ -60,9 +56,6 @@ class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT Model final
   SCORE_SERIALIZE_FRIENDS
   MODEL_METADATA_IMPL(Model)
 
-  
-  
-  
   qreal m_MidiImportRatio = 1.;
   bool m_RefreshOnStart = false;
   bool m_ReconnectOnStart = false;
@@ -81,12 +74,6 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(qreal, MidiImportRatio)
   SCORE_SETTINGS_PARAMETER_HPP(bool, RefreshOnStart)
   SCORE_SETTINGS_PARAMETER_HPP(bool, ReconnectOnStart)
-
-W_PROPERTY(qreal, MidiImportRatio READ getMidiImportRatio WRITE setMidiImportRatio NOTIFY MidiImportRatioChanged)
-
-W_PROPERTY(bool, ReconnectOnStart READ getReconnectOnStart WRITE setReconnectOnStart NOTIFY ReconnectOnStartChanged)
-
-W_PROPERTY(bool, RefreshOnStart READ getRefreshOnStart WRITE setRefreshOnStart NOTIFY RefreshOnStartChanged)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, MidiImportRatio)

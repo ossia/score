@@ -299,7 +299,7 @@ static void merge_impl(
 {
   const auto path_n = addr.address.path.size() + 1;
 
-  ptr<Process::MessageNode> node = &base;
+  Process::MessageNode* node = &base;
   for (int i = 0; i < path_n; i++)
   {
     auto it = ossia::find_if(*node, [&](const auto& cur_node) {
@@ -309,10 +309,10 @@ static void merge_impl(
     if (it == node->end())
     {
       // We have to start adding sub-nodes from here.
-      ptr<Process::MessageNode> parentnode{node};
+      Process::MessageNode* parentnode{node};
       for (int k = i; k < path_n; k++)
       {
-        ptr<Process::MessageNode> newNode;
+        Process::MessageNode* newNode{};
         if (k < path_n - 1)
         {
           newNode = &parentnode->emplace_back(

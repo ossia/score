@@ -4,8 +4,7 @@ namespace Media::Settings
 namespace Parameters
 {
 
-const score::sp<ModelVstPathsParameter> VstPaths
-{
+sp_(VstPaths){
   QStringLiteral("Effect/VstPaths"),
 #if defined(__APPLE__)
   {

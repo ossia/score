@@ -17,20 +17,22 @@ InspectorWidget::InspectorWidget(
     , m_edit{object.file().path(), this}
     , m_start{this}
     , m_upmix{this}
+    , m_startOffset{this}
 {
-  m_start.setValue(object.startChannel());
-  m_upmix.setValue(object.upmixChannels());
   m_start.setRange(0, 512);
   m_upmix.setRange(0, 512);
+  m_startOffset.setRange(0, INT_MAX);
 
   setObjectName("SoundInspectorWidget");
 
   auto lay = new QFormLayout;
 
-  con(process(), &Sound::ProcessModel::startChannelChanged, this,
-      [&] { m_start.setValue(object.startChannel()); });
-  con(process(), &Sound::ProcessModel::upmixChannelsChanged, this,
-      [&] { m_upmix.setValue(object.upmixChannels()); });
+  ::bind(process(), Sound::ProcessModel::p_startChannel, this,
+       [&] (int v) { m_start.setValue(v); });
+  ::bind(process(), Sound::ProcessModel::p_upmixChannels, this,
+      [&] (int v) { m_upmix.setValue(v); });
+  ::bind(process(), Sound::ProcessModel::p_startOffset, this,
+      [&] (qint32 v) { m_startOffset.setValue(v); });
   con(process(), &Sound::ProcessModel::fileChanged, this,
       [&] { m_edit.setText(object.file().path()); });
 
@@ -50,6 +52,7 @@ InspectorWidget::InspectorWidget(
   lay->addRow(tr("Path"), &m_edit);
   lay->addRow(tr("Start channel"), &m_start);
   lay->addRow(tr("Upmix channels"), &m_upmix);
+  lay->addRow(tr("Start offset (samples)"), &m_startOffset);
   this->setLayout(lay);
 }
 }

@@ -58,36 +58,36 @@ void setupDefaultSettings(QSettings& set, const T& tuple, Model& model)
 }
 }
 
-#define SCORE_SETTINGS_COMMAND(ModelType, Name)                   \
-  struct Set##ModelType##Name final                               \
-      : public score::SettingsCommand<ModelType##Name##Parameter> \
-  {                                                               \
-    static constexpr const bool is_deferred = false;              \
-    SCORE_SETTINGS_COMMAND_DECL(Set##ModelType##Name)             \
+#define sp_(Name) const score::sp<decltype(Model::p_ ## Name)> Name
+
+#define SCORE_SETTINGS_COMMAND(ModelType, Name)                          \
+  struct Set##ModelType##Name final                                      \
+      : public score::SettingsCommand<decltype(ModelType::p_ ## Name)>   \
+  {                                                                      \
+    static constexpr const bool is_deferred = false;                     \
+    SCORE_SETTINGS_COMMAND_DECL(Set##ModelType##Name)                    \
   };
 
 #define SCORE_SETTINGS_PARAMETER(ModelType, Name) \
-  SCORE_PARAMETER_TYPE(ModelType, Name)           \
   SCORE_SETTINGS_COMMAND(ModelType, Name)
 
-#define SCORE_SETTINGS_DEFERRED_COMMAND(ModelType, Name)          \
-  struct Set##ModelType##Name final                               \
-      : public score::SettingsCommand<ModelType##Name##Parameter> \
-  {                                                               \
-    static constexpr const bool is_deferred = true;               \
-    SCORE_SETTINGS_COMMAND_DECL(Set##ModelType##Name)             \
+#define SCORE_SETTINGS_DEFERRED_COMMAND(ModelType, Name)                 \
+  struct Set##ModelType##Name final                                      \
+      : public score::SettingsCommand<decltype(ModelType::p_ ## Name)>   \
+  {                                                                      \
+    static constexpr const bool is_deferred = true;                      \
+    SCORE_SETTINGS_COMMAND_DECL(Set##ModelType##Name)                    \
   };
 
 #define SCORE_SETTINGS_DEFERRED_PARAMETER(ModelType, Name) \
-  SCORE_PARAMETER_TYPE(ModelType, Name)                    \
   SCORE_SETTINGS_DEFERRED_COMMAND(ModelType, Name)
 
-#define SCORE_SETTINGS_PARAMETER_HPP(Type, Name)             \
-public:                                                      \
-  Type get##Name() const;                                    \
-  void set##Name(Type);                                      \
-  void Name##Changed(Type arg) W_SIGNAL(Name##Changed, arg); \
-                                                             \
+#define SCORE_SETTINGS_PARAMETER_HPP(Type, Name)                           \
+public:                                                                    \
+  Type get##Name() const;                                                  \
+  void set##Name(Type);                                                    \
+  void Name##Changed(Type arg) W_SIGNAL(Name##Changed, arg);               \
+  PROPERTY(Type, Name READ get##Name WRITE set##Name NOTIFY Name##Changed) \
 private:
 
 #define SCORE_SETTINGS_PARAMETER_CPP(Type, ModelType, Name)          \

@@ -59,6 +59,11 @@ int ProcessModel::startChannel() const
   return m_startChannel;
 }
 
+qint32 ProcessModel::startOffset() const
+{
+  return m_startOffset;
+}
+
 void ProcessModel::setUpmixChannels(int upmixChannels)
 {
   if (m_upmixChannels == upmixChannels)
@@ -77,6 +82,15 @@ void ProcessModel::setStartChannel(int startChannel)
   startChannelChanged(m_startChannel);
 }
 
+void ProcessModel::setStartOffset(qint32 startOffset)
+{
+  if (m_startOffset == startOffset)
+    return;
+
+  m_startOffset = startOffset;
+  startOffsetChanged(m_startOffset);
+}
+
 void ProcessModel::init()
 {
   m_outlets.push_back(outlet.get());
@@ -89,4 +103,50 @@ void ProcessModel::init()
   });
 }
 }
+}
+
+
+template <>
+void DataStreamReader::read(const Media::Sound::ProcessModel& proc)
+{
+  m_stream << proc.m_file.path() << *proc.outlet << proc.m_upmixChannels
+           << proc.m_startChannel << proc.m_startOffset << proc.m_endOffset;
+
+  insertDelimiter();
+}
+
+template <>
+void DataStreamWriter::write(Media::Sound::ProcessModel& proc)
+{
+  QString s;
+  m_stream >> s;
+  proc.setFile(s);
+  proc.outlet = make_outlet(*this, &proc);
+
+  m_stream >> proc.m_upmixChannels >> proc.m_startChannel
+           >> proc.m_startOffset >> proc.m_endOffset;
+  checkDelimiter();
+}
+
+template <>
+void JSONObjectReader::read(const Media::Sound::ProcessModel& proc)
+{
+  obj["File"] = proc.file().path();
+  obj["Outlet"] = toJsonObject(*proc.outlet);
+  obj["Upmix"] = proc.m_upmixChannels;
+  obj["Start"] = proc.m_startChannel;
+  obj["StartOffset"] = proc.m_startOffset;
+  obj["EndOffset"] = proc.m_endOffset;
+}
+
+template <>
+void JSONObjectWriter::write(Media::Sound::ProcessModel& proc)
+{
+  proc.setFile(obj["File"].toString());
+  JSONObjectWriter writer{obj["Outlet"].toObject()};
+  proc.outlet = Process::make_outlet(writer, &proc);
+  proc.m_upmixChannels = obj["Upmix"].toInt();
+  proc.m_startChannel = obj["Start"].toInt();
+  proc.m_startOffset = obj["StartOffset"].toInt();
+  proc.m_endOffset = obj["EndOffset"].toInt();
 }

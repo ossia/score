@@ -3,20 +3,13 @@ namespace Audio::Settings
 {
 namespace Parameters
 {
-const score::sp<ModelDriverParameter> Driver{QStringLiteral("Audio/Driver"),
-                                             "PortAudio"};
-const score::sp<ModelCardInParameter> CardIn{QStringLiteral("Audio/CardIn"),
-                                             ""};
-const score::sp<ModelCardOutParameter> CardOut{QStringLiteral("Audio/CardOut"),
-                                               ""};
-const score::sp<ModelBufferSizeParameter> BufferSize{
-    QStringLiteral("Audio/BufferSize"), 64};
-const score::sp<ModelRateParameter> Rate{QStringLiteral("Audio/SamplingRate"),
-                                         44100};
-const score::sp<ModelDefaultInParameter> DefaultIn{
-    QStringLiteral("Audio/DefaultIn"), 8};
-const score::sp<ModelDefaultOutParameter> DefaultOut{
-    QStringLiteral("Audio/DefaultOut"), 8};
+sp_(Driver){QStringLiteral("Audio/Driver"), "PortAudio"};
+sp_(CardIn){QStringLiteral("Audio/CardIn"), ""};
+sp_(CardOut){QStringLiteral("Audio/CardOut"), ""};
+sp_(BufferSize){QStringLiteral("Audio/BufferSize"), 64};
+sp_(Rate){QStringLiteral("Audio/SamplingRate"), 44100};
+sp_(DefaultIn){QStringLiteral("Audio/DefaultIn"), 8};
+sp_(DefaultOut){QStringLiteral("Audio/DefaultOut"), 8};
 
 static auto list()
 {

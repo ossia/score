@@ -58,26 +58,26 @@ class SCORE_LIB_BASE_EXPORT ModelMetadata : public QObject
   void metadataChanged()
   W_SIGNAL(metadataChanged);
 
-  W_PROPERTY(
+  PROPERTY(
       QString,
       Name READ getName WRITE setName NOTIFY NameChanged,
       W_Final)
-  W_PROPERTY(
+  PROPERTY(
       QString,
       Comment READ getComment WRITE setComment NOTIFY
       CommentChanged,
       W_Final)
-  W_PROPERTY(
+  PROPERTY(
       ColorRef,
       Color READ getColor WRITE setColor NOTIFY
       ColorChanged,
       W_Final)
-  W_PROPERTY(
+  PROPERTY(
       QString,
       Label READ getLabel WRITE setLabel NOTIFY
       LabelChanged,
       W_Final)
-  W_PROPERTY(
+  PROPERTY(
       QVariantMap,
       ExtendedMetadata READ
       getExtendedMetadata WRITE
@@ -91,12 +91,6 @@ class SCORE_LIB_BASE_EXPORT ModelMetadata : public QObject
   QString m_label;
   QVariantMap m_extendedMetadata;
 };
-
-SCORE_PARAMETER_TYPE(ModelMetadata, Name)
-SCORE_PARAMETER_TYPE(ModelMetadata, Comment)
-SCORE_PARAMETER_TYPE(ModelMetadata, Color)
-SCORE_PARAMETER_TYPE(ModelMetadata, Label)
-SCORE_PARAMETER_TYPE(ModelMetadata, ExtendedMetadata)
 }
 Q_DECLARE_METATYPE(score::ModelMetadata)
 W_REGISTER_ARGTYPE(score::ModelMetadata)

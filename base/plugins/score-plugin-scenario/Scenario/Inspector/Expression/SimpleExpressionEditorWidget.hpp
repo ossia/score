@@ -90,8 +90,6 @@ private:
   ExpressionValidator<State::Expression> m_validator;
   QString m_relation{};
   QString m_op{};
-
-  QWidget* m_wrapper{};
 };
 }
 
