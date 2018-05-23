@@ -124,34 +124,72 @@ void View::setupPanel(PanelDelegate* v)
   // Note : this only has meaning at initialisation time.
   auto dock = v->defaultPanelStatus().dock;
 
-  this->addDockWidget(dock, dial);
-  if (dock == Qt::LeftDockWidgetArea)
+  switch(dock)
   {
-    m_leftPanels.push_back({v, dial});
-    if (m_leftPanels.size() > 1)
+    case Qt::LeftDockWidgetArea:
     {
-      // Find the one with the biggest priority
-      auto it = ossia::max_element(m_leftPanels, PanelComparator{});
-
-      it->second->raise();
-      if (dial != it->second)
+      addDockWidget(dock, dial);
+      m_leftPanels.push_back({v, dial});
+      if (m_leftPanels.size() > 1)
       {
-        // dial is not on top
-        tabifyDockWidget(dial, it->second);
+        // Find the one with the biggest priority
+        auto it = ossia::max_element(m_leftPanels, PanelComparator{});
+
+        it->second->raise();
+        if (dial != it->second)
+        {
+          // dial is not on top
+          tabifyDockWidget(dial, it->second);
+        }
+        else
+        {
+          // dial is on top
+          auto it = ossia::find_if(
+              m_leftPanels, [=] (auto elt) { return elt.second != dial; });
+          SCORE_ASSERT(it != m_leftPanels.end());
+          tabifyDockWidget(it->second, dial);
+        }
+      }
+      break;
+    }
+
+    case Qt::RightDockWidgetArea:
+    {
+      m_rightPanels.push_back({v, dial});
+      if (m_rightPanels.size() > 1)
+      {
+        ossia::sort(m_rightPanels, PanelComparator{});
+        for(auto it = m_rightPanels.rbegin(); it != m_rightPanels.rend(); ++it)
+        {
+          addDockWidget(dock, it->second);
+          it->second->raise();
+        }
       }
       else
       {
-        // dial is on top
-        auto it = ossia::find_if(
-            m_leftPanels, [=](auto elt) { return elt.second != dial; });
-        SCORE_ASSERT(it != m_leftPanels.end());
-        tabifyDockWidget(it->second, dial);
+        addDockWidget(dock, dial);
       }
+
+      break;
     }
-  }
-  else if (dock == Qt::RightDockWidgetArea)
-  {
-    m_rightPanels.push_back({v, dial});
+
+    case Qt::TopDockWidgetArea:
+    {
+      addDockWidget(dock, dial);
+      break;
+    }
+
+    case Qt::BottomDockWidgetArea:
+    {
+      addDockWidget(dock, dial);
+      break;
+    }
+
+    default:
+    {
+      addDockWidget(dock, dial);
+      break;
+    }
   }
 
   if (!v->defaultPanelStatus().shown)
