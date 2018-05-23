@@ -30,6 +30,7 @@ public:
       const ProcessModel& scenario,
       Id<TimeSyncModel> clickedTn,
       Id<TimeSyncModel> hoveredTn);
+  ~MergeTimeSyncs() override;
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

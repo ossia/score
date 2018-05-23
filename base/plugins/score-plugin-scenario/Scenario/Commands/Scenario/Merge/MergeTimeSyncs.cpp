@@ -31,6 +31,11 @@ MergeTimeSyncs::MergeTimeSyncs(
   m_targetTriggerActive = destinantionTn.active();
 }
 
+MergeTimeSyncs::~MergeTimeSyncs()
+{
+  delete m_moveCommand;
+}
+
 void MergeTimeSyncs::undo(const score::DocumentContext& ctx) const
 {
   auto& scenar = m_scenarioPath.find(ctx);
