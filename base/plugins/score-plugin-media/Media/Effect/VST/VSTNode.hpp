@@ -252,12 +252,13 @@ public:
         {
           dispatchMidi([=] {
             auto& op = prepareOutput(samples);
+            const auto max_io = std::max(this->fx->fx->numOutputs, this->fx->fx->numInputs);
             double** output = (double**)alloca(
-                sizeof(double*) * std::max(2, this->fx->fx->numOutputs));
+                sizeof(double*) * std::max(2, max_io));
             output[0] = op[0].data();
             output[1] = op[1].data();
             double* dummy = (double*)alloca(sizeof(double) * samples);
-            for (int i = 2; i < this->fx->fx->numOutputs; i++)
+            for (int i = 2; i < max_io; i++)
               output[i] = dummy;
 
             fx->fx->processDoubleReplacing(fx->fx, output, output, samples);
@@ -300,11 +301,12 @@ public:
             for (auto& vec : float_v)
               vec.resize(samples);
 
+            const auto max_io = std::max(this->fx->fx->numOutputs, this->fx->fx->numInputs);
             float** output = (float**)alloca(
-                sizeof(float*) * std::max(2, this->fx->fx->numOutputs));
+                sizeof(float*) * std::max(2, max_io));
             output[0] = float_v[0].data();
             output[1] = float_v[1].data();
-            for (int i = 2; i < this->fx->fx->numOutputs; i++)
+            for (int i = 2; i < max_io; i++)
               output[i] = dummy;
 
             fx->fx->processReplacing(fx->fx, output, output, samples);
