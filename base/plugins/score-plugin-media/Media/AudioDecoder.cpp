@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <score/tools/Todo.hpp>
 extern "C"
 {
 #include <libavcodec/avcodec.h>
@@ -25,29 +25,35 @@ static const constexpr std::size_t dynamic_channels
     = std::numeric_limits<std::size_t>::max();
 
 template <typename SampleFormat, int N>
-constexpr float convert_sample(SampleFormat i);
+constexpr AudioSample convert_sample(SampleFormat i);
 
 template <>
-constexpr float convert_sample<int16_t, 16>(int16_t i)
+constexpr AudioSample convert_sample<int16_t, 16>(int16_t i)
 {
-  return (i + .5f) / (0x7FFF + .5f);
+  if constexpr(std::is_same_v<AudioSample, float>)
+    return (i + .5f) / (0x7FFF + .5f);
+  else
+    return (i + .5) / (0x7FFF + .5);
 }
 
 template <>
-constexpr float convert_sample<int32_t, 24>(int32_t i)
+constexpr AudioSample convert_sample<int32_t, 24>(int32_t i)
 {
-  return ((int32_t)i >> 8)
-         / ((float)std::numeric_limits<int32_t>::max() / 256.f);
+  if constexpr(std::is_same_v<AudioSample, float>)
+    return ((int32_t)i >> 8) / ((AudioSample)std::numeric_limits<int32_t>::max() / 256.f);
+  else
+    return ((int32_t)i >> 8) / ((AudioSample)std::numeric_limits<int32_t>::max() / 256.);
+
 }
 
 template <>
-constexpr float convert_sample<int32_t, 32>(int32_t i)
+constexpr AudioSample convert_sample<int32_t, 32>(int32_t i)
 {
-  return i / (float)(std::numeric_limits<int32_t>::max());
+  return i / (AudioSample)(std::numeric_limits<int32_t>::max());
 }
 
 template <>
-constexpr float convert_sample<float, 32>(float i)
+constexpr AudioSample convert_sample<float, 32>(float i)
 {
   return i;
 }
@@ -566,8 +572,9 @@ std::size_t AudioDecoder::read_length(const QString& path)
   return 0;
 }
 
-void AudioDecoder::decode(const QString& path)
+void AudioDecoder::decode(const QString& path, audio_handle hdl)
 {
+  SCORE_ASSERT(hdl);
   AudioInfo info;
   auto it = database().find(path);
   if (it == database().end())
@@ -580,7 +587,7 @@ void AudioDecoder::decode(const QString& path)
     catch (...)
     {
       qDebug("Cannot decode without info");
-      finishedDecoding();
+      finishedDecoding(hdl);
       return;
     }
   }
@@ -591,6 +598,7 @@ void AudioDecoder::decode(const QString& path)
 
   decoded = 0;
   sampleRate = info.rate;
+  auto& data = hdl->data;
   data.resize(info.channels);
   qDebug() << "CHANNELS" << info.channels << "LENGTH" << info.max_arr_length;
   for (auto& c : data)
@@ -603,7 +611,7 @@ void AudioDecoder::decode(const QString& path)
 
   this->moveToThread(&m_decodeThread);
   m_decodeThread.start();
-  startDecode(path);
+  startDecode(path, hdl);
 }
 
 ossia::optional<std::pair<AudioInfo, AudioArray>>
@@ -616,19 +624,21 @@ AudioDecoder::decode_synchronous(const QString& path)
     return ossia::none;
 
   dec.sampleRate = res->rate;
-  dec.data.resize(res->channels);
-  for (auto& c : dec.data)
+
+  auto hdl = std::make_shared<audio_data>();
+  hdl->data.resize(res->channels);
+  for (auto& c : hdl->data)
   {
     c.resize(res->max_arr_length);
   }
 
-  dec.on_startDecode(path);
+  dec.on_startDecode(path, hdl);
 
-  return std::make_pair(*std::move(res), std::move(dec.data));
+  return std::make_pair(*std::move(res), std::move(hdl->data));
 }
 
 template <typename Decoder>
-void AudioDecoder::decodeFrame(Decoder dec, AVFrame& frame)
+void AudioDecoder::decodeFrame(Decoder dec, AudioArray& data, AVFrame& frame)
 {
   const std::size_t channels = data.size();
   const std::size_t max_samples = data[0].size();
@@ -654,8 +664,8 @@ void AudioDecoder::decodeFrame(Decoder dec, AVFrame& frame)
     int res = 0;
     for (std::size_t i = 0; i < channels; ++i)
     {
-      float* out_ptr = data[i].data() + decoded;
-      float* in_ptr = tmp[i].data();
+      AudioSample* out_ptr = data[i].data() + decoded;
+      AudioSample* in_ptr = tmp[i].data();
 
       res = swr_convert(
           resampler[i], (uint8_t**)&out_ptr, new_len, (const uint8_t**)&in_ptr,
@@ -676,7 +686,7 @@ void AudioDecoder::decodeFrame(Decoder dec, AVFrame& frame)
   }
 }
 
-void AudioDecoder::decodeRemaining()
+void AudioDecoder::decodeRemaining(AudioArray& data)
 {
   const std::size_t channels = data.size();
   if (sampleRate != 44100)
@@ -684,7 +694,7 @@ void AudioDecoder::decodeRemaining()
     int res = 0;
     for (std::size_t i = 0; i < channels; ++i)
     {
-      float* out_ptr = data[i].data() + decoded;
+      AudioSample* out_ptr = data[i].data() + decoded;
 
       res = swr_convert(
           resampler[i], (uint8_t**)&out_ptr, data[i].size() - decoded, nullptr,
@@ -693,9 +703,10 @@ void AudioDecoder::decodeRemaining()
     decoded += res;
   }
 }
-void AudioDecoder::on_startDecode(QString path)
+void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
 {
   qDebug() << "decoding: " << path;
+  auto& data = hdl->data;
   try
   {
     const std::size_t channels = data.size();
@@ -749,8 +760,8 @@ void AudioDecoder::on_startDecode(QString path)
       for (std::size_t i = 0; i < channels; ++i)
       {
         SwrContext* swr = swr_alloc_set_opts(
-            nullptr, AV_CH_LAYOUT_MONO, AV_SAMPLE_FMT_FLT, 44100,
-            AV_CH_LAYOUT_MONO, AV_SAMPLE_FMT_FLT, sampleRate, 0, nullptr);
+            nullptr, AV_CH_LAYOUT_MONO, AV_SAMPLE_FMT_DBL, 44100,
+            AV_CH_LAYOUT_MONO, AV_SAMPLE_FMT_DBL, sampleRate, 0, nullptr);
         swr_init(swr);
         resampler.push_back(swr);
       }
@@ -778,7 +789,7 @@ void AudioDecoder::on_startDecode(QString path)
               {
                 while (ret == 0)
                 {
-                  decodeFrame(dec, *frame);
+                  decodeFrame(dec, data, *frame);
                   ret = avcodec_receive_frame(codec_ctx.get(), frame.get());
 
                   update++;
@@ -800,7 +811,7 @@ void AudioDecoder::on_startDecode(QString path)
               }
               else if (ret == AVERROR_EOF)
               {
-                decodeFrame(dec, *frame);
+                decodeFrame(dec, data, *frame);
                 break;
               }
               else
@@ -822,7 +833,7 @@ void AudioDecoder::on_startDecode(QString path)
           // Flush
           avcodec_send_packet(codec_ctx.get(), nullptr);
 
-          decodeRemaining();
+          decodeRemaining(data);
         },
         decoder);
 
@@ -836,7 +847,7 @@ void AudioDecoder::on_startDecode(QString path)
     qDebug() << "Decoder error: " << e.what();
   }
 
-  finishedDecoding();
+  finishedDecoding(hdl);
   m_decodeThread.quit();
 
   return;

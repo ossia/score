@@ -7,10 +7,14 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/File.hpp>
-#include <wobjectimpl.h>
-W_OBJECT_IMPL(Media::MediaFileHandle)
+
 namespace Media
 {
+MediaFileHandle::MediaFileHandle()
+{
+  m_hdl = std::make_shared<audio_data>();
+}
+
 void MediaFileHandle::load(
     const QString& path, const score::DocumentContext& ctx)
 {
@@ -18,23 +22,24 @@ void MediaFileHandle::load(
   QFile f{m_file};
   if (isAudioFile(f))
   {
-    m_decoder.decode(m_file);
+    m_hdl = std::make_shared<audio_data>();
+    m_decoder.decode(m_file, m_hdl);
 
     m_sampleRate = 44100; // for now everything is reencoded
 
-    m_data.resize(m_decoder.data.size());
-    for (std::size_t i = 0; i < m_decoder.data.size(); i++)
-      m_data[i] = m_decoder.data[i].data();
+    m_data.resize(m_hdl->data.size());
+    for (std::size_t i = 0; i < m_hdl->data.size(); i++)
+      m_data[i] = m_hdl->data[i].data();
 
     QFileInfo fi{f};
     m_fileName = fi.fileName();
-    mediaChanged();
+    on_mediaChanged();
   }
 }
 
-float** MediaFileHandle::audioData() const
+AudioSample** MediaFileHandle::audioData() const
 {
-  return const_cast<float**>(m_data.data());
+  return const_cast<AudioSample**>(m_data.data());
 }
 
 bool MediaFileHandle::isAudioFile(const QFile& file)
@@ -46,11 +51,11 @@ bool MediaFileHandle::isAudioFile(const QFile& file)
 
 int64_t MediaFileHandle::samples() const
 {
-  return channels() > 0 ? m_decoder.data[0].size() : 0;
+  return channels() > 0 ? m_hdl->data[0].size() : 0;
 }
 
 int64_t MediaFileHandle::channels() const
 {
-  return m_decoder.data.size();
+  return m_hdl->data.size();
 }
 }

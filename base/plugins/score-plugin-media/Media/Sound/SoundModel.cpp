@@ -91,16 +91,19 @@ void ProcessModel::setStartOffset(qint32 startOffset)
   startOffsetChanged(m_startOffset);
 }
 
+void ProcessModel::on_mediaChanged()
+{
+  if (m_file.channels() == 1)
+  {
+    setUpmixChannels(2);
+  }
+  fileChanged();
+}
+
 void ProcessModel::init()
 {
   m_outlets.push_back(outlet.get());
-  connect(&m_file, &MediaFileHandle::mediaChanged, this, [=] {
-    if (m_file.channels() == 1)
-    {
-      setUpmixChannels(2);
-    }
-    fileChanged();
-  });
+  m_file.on_mediaChanged.connect<ProcessModel, &ProcessModel::on_mediaChanged>(*this);
 }
 }
 }

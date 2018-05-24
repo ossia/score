@@ -17,6 +17,7 @@ class ProcessModel;
 
 class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final
     : public Process::ProcessModel
+    , public Nano::Observer
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Media::Sound::ProcessModel)
@@ -54,6 +55,8 @@ public:
   void setUpmixChannels(int upmixChannels);
   void setStartChannel(int startChannel);
   void setStartOffset(qint32 startOffset);
+
+  void on_mediaChanged();
 
   std::unique_ptr<Process::Outlet> outlet;
 public:

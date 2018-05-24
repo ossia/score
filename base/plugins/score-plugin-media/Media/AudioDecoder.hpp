@@ -12,6 +12,16 @@ struct SwrContext;
 
 namespace Media
 {
+
+struct audio_data
+{
+  std::string file_path;
+  AudioArray data;
+};
+
+using audio_handle = std::shared_ptr<audio_data>;
+
+
 struct AudioInfo
 {
   int32_t rate{};
@@ -28,7 +38,7 @@ public:
   AudioDecoder();
   ~AudioDecoder();
   ossia::optional<AudioInfo> probe(const QString& path);
-  void decode(const QString& path);
+  void decode(const QString& path, audio_handle hdl);
 
   static ossia::optional<std::pair<AudioInfo, AudioArray>>
   decode_synchronous(const QString& path);
@@ -37,15 +47,14 @@ public:
 
   int32_t sampleRate{};
   std::size_t decoded{};
-  AudioArray data;
 
 public:
   void newData() W_SIGNAL(newData);
-  void finishedDecoding() W_SIGNAL(finishedDecoding);
+  void finishedDecoding(audio_handle hdl) W_SIGNAL(finishedDecoding, hdl);
 
-  void startDecode(QString arg_1) W_SIGNAL(startDecode, arg_1);
+  void startDecode(QString str, audio_handle hdl) W_SIGNAL(startDecode, str, hdl);
 public:
-  void on_startDecode(QString); W_SLOT(on_startDecode);
+  void on_startDecode(QString, audio_handle hdl); W_SLOT(on_startDecode);
 
 private:
   std::size_t read_length(const QString& path);
@@ -54,9 +63,12 @@ private:
   QThread m_decodeThread;
 
   template <typename Decoder>
-  void decodeFrame(Decoder dec, AVFrame& frame);
-  void decodeRemaining();
+  void decodeFrame(Decoder dec, AudioArray& data, AVFrame& frame);
+  void decodeRemaining(AudioArray& data);
   std::vector<SwrContext*> resampler;
   void initResample();
 };
 }
+
+Q_DECLARE_METATYPE(Media::audio_handle)
+W_REGISTER_ARGTYPE(Media::audio_handle)
