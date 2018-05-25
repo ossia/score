@@ -39,8 +39,6 @@ class SCORE_PLUGIN_SCENARIO_EXPORT IntervalModel final
   friend struct IntervalSaveData;
   friend struct SlotPath;
 
-
-
 public:
   std::unique_ptr<Process::Inlet> inlet;
   std::unique_ptr<Process::Outlet> outlet;
@@ -168,6 +166,9 @@ public:
 
   void mutedChanged(bool arg_1) W_SIGNAL(mutedChanged, arg_1);
 
+  W_PROPERTY(double, muted READ muted WRITE setMuted NOTIFY mutedChanged)
+  W_PROPERTY(double, heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY heightPercentageChanged)
+
 private:
   void on_addProcess(const Process::ProcessModel&);
   void on_removingProcess(const Process::ProcessModel&);
@@ -191,9 +192,6 @@ private:
   bool m_smallViewShown{};
   bool m_muted{};
 
-W_PROPERTY(double, muted READ muted WRITE setMuted NOTIFY mutedChanged)
-
-W_PROPERTY(double, heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY heightPercentageChanged)
 };
 
 SCORE_PLUGIN_SCENARIO_EXPORT

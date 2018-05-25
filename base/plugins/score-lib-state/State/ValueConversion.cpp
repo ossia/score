@@ -81,15 +81,10 @@ QVariant value(const ossia::value& val)
     {
       return operator()(QString::fromStdString(s));
     }
-    return_type operator()(QChar c) const
-    {
-      return QVariant::fromValue(c);
-    }
     return_type operator()(char c) const
     {
       return QVariant::fromValue(QChar(c));
     }
-
     return_type operator()(vec2f t) const
     {
       return QVector2D{t[0], t[1]};
@@ -146,23 +141,10 @@ QJsonValue value(const ossia::value& val)
     {
       return b;
     }
-    return_type operator()(const QString& s) const
-    {
-      return s;
-    }
     return_type operator()(const std::string& s) const
     {
       return QString::fromStdString(s);
     }
-
-    return_type operator()(QChar c) const
-    {
-      // Note : it is saved as a string but the actual type should be saved
-      // also
-      // so that the QChar can be recovered.
-      return QString(c);
-    }
-
     return_type operator()(char c) const
     {
       // Note : it is saved as a string but the actual type should be saved
@@ -230,17 +212,9 @@ QString textualType(const ossia::value& val)
     {
       return QStringLiteral("Bool");
     }
-    return_type operator()(const QString& s) const
-    {
-      return QStringLiteral("String");
-    }
     return_type operator()(const std::string& s) const
     {
       return QStringLiteral("String");
-    }
-    return_type operator()(QChar c) const
-    {
-      return QStringLiteral("Char");
     }
     return_type operator()(char c) const
     {
@@ -478,17 +452,9 @@ int value(const ossia::value& val)
     {
       return v;
     }
-    return_type operator()(const QString& v) const
-    {
-      return QLocale::c().toInt(v);
-    }
     return_type operator()(const std::string& v) const
     {
       return QLocale::c().toInt(QString::fromStdString(v));
-    }
-    return_type operator()(QChar v) const
-    {
-      return QLocale::c().toInt(QString(v));
     }
     return_type operator()(char v) const
     {
@@ -550,10 +516,6 @@ float value(const ossia::value& val)
     {
       return operator()(QString::fromStdString(v));
     }
-    return_type operator()(QChar v) const
-    {
-      return QLocale::c().toFloat(QString(v));
-    }
     return_type operator()(char v) const
     {
       return QLocale::c().toFloat(QString(v));
@@ -611,13 +573,6 @@ bool value(const ossia::value& val)
     {
       return v;
     }
-    return_type operator()(const QString& v) const
-    {
-      auto& strings = score::StringConstant();
-
-      return v == strings.lowercase_true || v == strings.True
-             || v == strings.lowercase_yes || v == strings.Yes;
-    }
     return_type operator()(const std::string& ve) const
     {
       auto& strings = score::StringConstant();
@@ -625,10 +580,6 @@ bool value(const ossia::value& val)
       auto v = QString::fromStdString(ve);
       return v == strings.lowercase_true || v == strings.True
              || v == strings.lowercase_yes || v == strings.Yes;
-    }
-    return_type operator()(QChar v) const
-    {
-      return v == 't' || v == 'T' || v == 'y' || v == 'Y';
     }
     return_type operator()(char v) const
     {
@@ -682,18 +633,10 @@ QChar value(const ossia::value& val)
     {
       return v ? 'T' : 'F';
     }
-    return_type operator()(const QString& s) const
-    {
-      return !s.isEmpty() ? s[0] : '-';
-    } // TODO boueeeff
     return_type operator()(const std::string& s) const
     {
       return !s.empty() ? s[0] : '-';
     } // TODO boueeeff
-    return_type operator()(QChar v) const
-    {
-      return v.toLatin1();
-    }
     return_type operator()(char v) const
     {
       return v;
@@ -747,17 +690,9 @@ QString value(const ossia::value& val)
 
       return b ? strings.lowercase_true : strings.lowercase_false;
     }
-    return_type operator()(const QString& s) const
-    {
-      return s;
-    }
     return_type operator()(const std::string& s) const
     {
       return QString::fromStdString(s);
-    }
-    return_type operator()(QChar c) const
-    {
-      return c;
     }
     return_type operator()(char c) const
     {
@@ -829,10 +764,6 @@ vec2f value(const ossia::value& val)
     return_type operator()(const std::string& s) const
     {
       return string_to_vec<2>(s, *this);
-    }
-    return_type operator()(QChar c) const
-    {
-      return {};
     }
     return_type operator()(char c) const
     {
@@ -1105,11 +1036,6 @@ QString toPrettyString(const ossia::value& val)
     QString operator()(const std::string& s) const
     {
       return operator()(QString::fromStdString(s));
-    }
-
-    QString operator()(QChar c) const
-    {
-      return QString("'%1'").arg(c);
     }
 
     QString operator()(const vec2f& t) const

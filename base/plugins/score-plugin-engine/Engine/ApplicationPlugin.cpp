@@ -213,6 +213,28 @@ static std::unique_ptr<ossia::audio_engine> make_engine(AlteredAudioSettings& al
 
   return std::unique_ptr<ossia::audio_engine>{eng};
 }
+void ApplicationPlugin::restart_engine()
+{
+  if(m_updating_audio)
+    return;
+
+  if (auto doc = this->currentDocument())
+  {
+    auto dev = doc->context()
+                   .plugin<Explorer::DeviceDocumentPlugin>()
+                   .list()
+                   .audioDevice();
+    if (!dev)
+      return;
+    auto& d = *dynamic_cast<Dataflow::AudioDevice*>(dev);
+    if (audio)
+      audio->stop();
+
+    setup_engine();
+    d.reconnect();
+  }
+}
+
 void ApplicationPlugin::setup_engine()
 {
   audio.reset();
@@ -234,7 +256,7 @@ void ApplicationPlugin::setup_engine()
     if(alt.rate)
       set.setRate(*alt.rate);
     if(alt.default_ins)
-      set.setDefaultOut(*alt.default_ins);
+      set.setDefaultIn(*alt.default_ins);
     if(alt.default_outs)
       set.setDefaultOut(*alt.default_outs);
 
@@ -248,70 +270,13 @@ void ApplicationPlugin::initialize()
 {
   auto& set = context.settings<Audio::Settings::Model>();
 
-  con(set, &Audio::Settings::Model::DriverChanged, this,
-      [=](const QString& ) {
-        if(m_updating_audio)
-          return;
-
-        if (auto doc = this->currentDocument())
-        {
-          auto dev = doc->context()
-                         .plugin<Explorer::DeviceDocumentPlugin>()
-                         .list()
-                         .audioDevice();
-          if (!dev)
-            return;
-          auto& d = *dynamic_cast<Dataflow::AudioDevice*>(dev);
-          if (audio)
-            audio->stop();
-
-          setup_engine();
-          d.reconnect();
-        }
-      });
-  /*
-    con(set, &Audio::Settings::Model::BufferSizeChanged, this, [=] (int sz) {
-      if(auto doc = this->currentDocument()) {
-        auto dev =
-    doc->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
-        if(!dev)
-          return;
-        auto& d = *dynamic_cast<Dataflow::AudioDevice*>(dev);
-        d.reconnect();
-      }
-    });
-
-    con(set, &Audio::Settings::Model::RateChanged, this, [=] (int sz) {
-      if(auto doc = this->currentDocument()) {
-        auto dev =
-    doc->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
-        if(!dev)
-          return;
-        auto& d = *dynamic_cast<Dataflow::AudioDevice*>(dev);
-        d.reconnect();
-      }
-    });
-
-    con(set, &Audio::Settings::Model::CardInChanged, this, [=] (const QString&
-    card) { if(auto doc = this->currentDocument()) { auto dev =
-    doc->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
-        if(!dev)
-          return;
-        auto& d = *dynamic_cast<Dataflow::AudioDevice*>(dev);
-        d.reconnect();
-      }
-    });
-
-    con(set, &Audio::Settings::Model::CardOutChanged, this, [=] (const QString&
-    card) { if(auto doc = this->currentDocument()) { auto dev =
-    doc->context().plugin<Explorer::DeviceDocumentPlugin>().list().audioDevice();
-        if(!dev)
-          return;
-        auto& d = *dynamic_cast<Dataflow::AudioDevice*>(dev);
-        d.reconnect();
-      }
-    });
-  */
+  con(set, &Audio::Settings::Model::DriverChanged, this, &ApplicationPlugin::restart_engine);
+  con(set, &Audio::Settings::Model::BufferSizeChanged, this, &ApplicationPlugin::restart_engine);
+  con(set, &Audio::Settings::Model::RateChanged, this, &ApplicationPlugin::restart_engine);
+  con(set, &Audio::Settings::Model::CardInChanged, this, &ApplicationPlugin::restart_engine);
+  con(set, &Audio::Settings::Model::CardOutChanged, this, &ApplicationPlugin::restart_engine);
+  con(set, &Audio::Settings::Model::DefaultInChanged, this, &ApplicationPlugin::restart_engine);
+  con(set, &Audio::Settings::Model::DefaultOutChanged, this, &ApplicationPlugin::restart_engine);
   setup_engine();
 }
 score::GUIElements ApplicationPlugin::makeGUIElements()
@@ -327,7 +292,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
 
   setIcons(
       m_audioEngineAct, QString(":/icons/engine_on.png"),
-      QString(":/icons/engine_off.png"));
+      QString(":/icons/engine_off.png"), false);
   {
     auto bar = new QToolBar;
     bar->addAction(m_audioEngineAct);

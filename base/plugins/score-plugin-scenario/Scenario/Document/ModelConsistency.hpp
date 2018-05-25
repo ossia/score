@@ -5,16 +5,10 @@
 
 namespace Scenario
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT ModelConsistency final : public QObject
+class SCORE_PLUGIN_SCENARIO_EXPORT ModelConsistency final
+    : public QObject
 {
   W_OBJECT(ModelConsistency)
-
-  
-  
-
-  bool m_valid{true};
-  bool m_warning{false};
-
 public:
   explicit ModelConsistency(QObject* parent);
   ModelConsistency(const ModelConsistency& other);
@@ -30,8 +24,12 @@ public:
   void validChanged(bool arg) W_SIGNAL(validChanged, arg);
   void warningChanged(bool warning) W_SIGNAL(warningChanged, warning);
 
-W_PROPERTY(bool, warning READ warning WRITE setWarning NOTIFY warningChanged)
+  W_PROPERTY(bool, warning READ warning WRITE setWarning NOTIFY warningChanged)
+  W_PROPERTY(bool, valid READ isValid WRITE setValid NOTIFY validChanged)
 
-W_PROPERTY(bool, valid READ isValid WRITE setValid NOTIFY validChanged)
+private:
+  bool m_valid{true};
+  bool m_warning{false};
+
 };
 }
