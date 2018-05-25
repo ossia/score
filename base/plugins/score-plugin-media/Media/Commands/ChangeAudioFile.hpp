@@ -32,45 +32,17 @@ private:
   TimeVal m_olddur;
 };
 
+PROPERTY_COMMAND_T(ChangeStart, Sound::ProcessModel::p_startChannel, "Change start channel")
+PROPERTY_COMMAND_T(ChangeUpmix, Sound::ProcessModel::p_upmixChannels, "Change upmix channels")
+PROPERTY_COMMAND_T(ChangeStartOffset, Sound::ProcessModel::p_startOffset, "Change start offset")
+SCORE_COMMAND_DECL_T(Media::Commands::ChangeStart)
+SCORE_COMMAND_DECL_T(Media::Commands::ChangeUpmix)
+SCORE_COMMAND_DECL_T(Media::Commands::ChangeStartOffset)
 
-class ChangeStart final :
-    public score::PropertyCommand_T<Sound::ProcessModel::p_startChannel>
-{
-  SCORE_COMMAND_DECL(CommandFactoryName(), ChangeStart, "Change start channel")
-public:
-  using PropertyCommand_T::PropertyCommand_T;
-};
+PROPERTY_COMMAND_T(ChangeInputStart, Input::ProcessModel::p_startChannel, "Change input start channel")
+PROPERTY_COMMAND_T(ChangeInputNum, Input::ProcessModel::p_numChannel, "Change input num channel")
+SCORE_COMMAND_DECL_T(Media::Commands::ChangeInputStart)
+SCORE_COMMAND_DECL_T(Media::Commands::ChangeInputNum)
 
-class ChangeUpmix final :
-    public score::PropertyCommand_T<Sound::ProcessModel::p_upmixChannels>
-{
-  SCORE_COMMAND_DECL(CommandFactoryName(), ChangeUpmix, "Change upmix channels")
-  public:
-    using PropertyCommand_T::PropertyCommand_T;
-};
-
-class ChangeStartOffset final :
-    public score::PropertyCommand_T<Sound::ProcessModel::p_startOffset>
-{
-  SCORE_COMMAND_DECL(CommandFactoryName(), ChangeStartOffset, "Change start offset")
-  public:
-    using PropertyCommand_T::PropertyCommand_T;
-};
-
-class ChangeInputStart final :
-    public score::PropertyCommand_T<Input::ProcessModel::p_startChannel>
-{
-  SCORE_COMMAND_DECL(CommandFactoryName(), ChangeInputStart, "Change input start channel")
-  public:
-    using PropertyCommand_T::PropertyCommand_T;
-};
-
-class ChangeInputNum final :
-    public score::PropertyCommand_T<Input::ProcessModel::p_numChannel>
-{
-  SCORE_COMMAND_DECL(CommandFactoryName(), ChangeInputNum, "Change input num channel")
-  public:
-    using PropertyCommand_T::PropertyCommand_T;
-};
 }
 }

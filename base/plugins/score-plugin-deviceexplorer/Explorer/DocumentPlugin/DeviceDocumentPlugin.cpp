@@ -190,7 +190,7 @@ void DeviceDocumentPlugin::initDevice(Device::DeviceInterface& newdev)
 {
   newdev.reconnect();
   newdev.valueUpdated
-      .connect<DeviceDocumentPlugin, &DeviceDocumentPlugin::on_valueUpdated>(
+      .connect<&DeviceDocumentPlugin::on_valueUpdated>(
           *this);
 
   con(newdev, &Device::DeviceInterface::pathAdded, this,

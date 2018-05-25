@@ -163,13 +163,9 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
   setDisplayedInterval(model().baseInterval());
 
   model()
-      .cables.mutable_added.connect<
-          ScenarioDocumentPresenter,
-          &ScenarioDocumentPresenter::on_cableAdded>(*this);
+      .cables.mutable_added.connect<&ScenarioDocumentPresenter::on_cableAdded>(*this);
   model()
-      .cables.removing.connect<
-          ScenarioDocumentPresenter,
-          &ScenarioDocumentPresenter::on_cableRemoving>(*this);
+      .cables.removing.connect<&ScenarioDocumentPresenter::on_cableRemoving>(*this);
 }
 
 ScenarioDocumentPresenter::~ScenarioDocumentPresenter()

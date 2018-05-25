@@ -103,13 +103,13 @@ bool AutomationRecorder::setup(
     if (curve_mode == Curve::Settings::Mode::Parameter)
     {
       dev.valueUpdated
-          .connect<AutomationRecorder, &AutomationRecorder::parameterCallback>(
+          .connect<&AutomationRecorder::parameterCallback>(
               *this);
     }
     else
     {
       dev.valueUpdated
-          .connect<AutomationRecorder, &AutomationRecorder::messageCallback>(
+          .connect<&AutomationRecorder::messageCallback>(
               *this);
     }
 
@@ -132,13 +132,11 @@ void AutomationRecorder::stop()
     {
       if (curve_mode == Curve::Settings::Mode::Parameter)
       {
-        dev->valueUpdated.disconnect<
-            AutomationRecorder, &AutomationRecorder::parameterCallback>(*this);
+        dev->valueUpdated.disconnect<&AutomationRecorder::parameterCallback>(*this);
       }
       else
       {
-        dev->valueUpdated.disconnect<
-            AutomationRecorder, &AutomationRecorder::messageCallback>(*this);
+        dev->valueUpdated.disconnect<&AutomationRecorder::messageCallback>(*this);
       }
     }
   }

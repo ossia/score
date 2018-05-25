@@ -194,12 +194,8 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
         }
       });
 
-  m_model.processes.added.connect<
-      TemporalIntervalPresenter,
-      &TemporalIntervalPresenter::on_processesChanged>(this);
-  m_model.processes.removed.connect<
-      TemporalIntervalPresenter,
-      &TemporalIntervalPresenter::on_processesChanged>(this);
+  m_model.processes.added.connect<&TemporalIntervalPresenter::on_processesChanged>(this);
+  m_model.processes.removed.connect<&TemporalIntervalPresenter::on_processesChanged>(this);
 
   on_defaultDurationChanged(m_model.duration.defaultDuration());
   on_rackVisibleChanged(m_model.smallViewVisible());
@@ -727,7 +723,7 @@ void TemporalIntervalPresenter::requestProcessSelectorMenu(
         ScenarioContextMenuManager::createLayerContextMenuForProcess(
             *menu, pos, sp, reg, *p.presenter);
         menu->exec(pos);
-        menu->close();
+        //menu->close();
         menu->deleteLater();
         break;
       }

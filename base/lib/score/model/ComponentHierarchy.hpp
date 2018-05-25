@@ -61,9 +61,9 @@ public:
     }
 
     child_models.mutable_added
-        .template connect<hierarchy_t, &hierarchy_t::add>(this);
+        .template.connect<&hierarchy_t::add>(this);
 
-    child_models.removing.template connect<hierarchy_t, &hierarchy_t::remove>(
+    child_models.removing.template.connect<&hierarchy_t::remove>(
         this);
   }
 
@@ -212,9 +212,9 @@ public:
     }
 
     child_models.mutable_added
-        .template connect<hierarchy_t, &hierarchy_t::add>(this);
+        .template connect<&hierarchy_t::add>(this);
 
-    child_models.removing.template connect<hierarchy_t, &hierarchy_t::remove>(
+    child_models.removing.template connect<&hierarchy_t::remove>(
         this);
   }
   const auto& children() const

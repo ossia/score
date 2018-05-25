@@ -133,6 +133,7 @@ template <typename T, typename = void>
 struct is_component_serializable
 {
   using type = score::not_serializable_tag;
+  static constexpr bool value = false;
 };
 
 template <typename T>
@@ -141,6 +142,7 @@ struct is_component_serializable<
     std::enable_if_t<std::is_base_of<score::SerializableComponent, T>::value>>
 {
   using type = score::serializable_tag;
+  static constexpr bool value = true;
 };
 
 template <typename Component_T, typename Fun>

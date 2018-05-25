@@ -66,38 +66,28 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
 
   /////// Connections
   scenario.intervals.added.connect<
-      TemporalScenarioPresenter,
       &TemporalScenarioPresenter::on_intervalCreated>(this);
   scenario.intervals.removed.connect<
-      TemporalScenarioPresenter,
       &TemporalScenarioPresenter::on_intervalRemoved>(this);
 
-  scenario.states.added.connect<
-      TemporalScenarioPresenter, &TemporalScenarioPresenter::on_stateCreated>(
+  scenario.states.added.connect<&TemporalScenarioPresenter::on_stateCreated>(
       this);
-  scenario.states.removed.connect<
-      TemporalScenarioPresenter, &TemporalScenarioPresenter::on_stateRemoved>(
+  scenario.states.removed.connect<&TemporalScenarioPresenter::on_stateRemoved>(
       this);
 
-  scenario.events.added.connect<
-      TemporalScenarioPresenter, &TemporalScenarioPresenter::on_eventCreated>(
+  scenario.events.added.connect<&TemporalScenarioPresenter::on_eventCreated>(
       this);
-  scenario.events.removed.connect<
-      TemporalScenarioPresenter, &TemporalScenarioPresenter::on_eventRemoved>(
+  scenario.events.removed.connect<&TemporalScenarioPresenter::on_eventRemoved>(
       this);
 
   scenario.timeSyncs.added.connect<
-      TemporalScenarioPresenter,
       &TemporalScenarioPresenter::on_timeSyncCreated>(this);
   scenario.timeSyncs.removed.connect<
-      TemporalScenarioPresenter,
       &TemporalScenarioPresenter::on_timeSyncRemoved>(this);
 
   scenario.comments.added.connect<
-      TemporalScenarioPresenter,
       &TemporalScenarioPresenter::on_commentCreated>(this);
   scenario.comments.removed.connect<
-      TemporalScenarioPresenter,
       &TemporalScenarioPresenter::on_commentRemoved>(this);
 
   connect(

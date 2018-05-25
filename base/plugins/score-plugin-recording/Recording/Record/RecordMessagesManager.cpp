@@ -58,7 +58,7 @@ void MessageRecorder::stop()
     if (dev)
       (*dev)
           .valueUpdated
-          .disconnect<MessageRecorder, &MessageRecorder::on_valueUpdated>(
+          .disconnect<&MessageRecorder::on_valueUpdated>(
               *this);
   }
   m_recordCallbackConnections.clear();
@@ -172,7 +172,7 @@ bool MessageRecorder::setup(
 
     // Add a custom callback.
     dev.valueUpdated
-        .connect<MessageRecorder, &MessageRecorder::on_valueUpdated>(*this);
+        .connect<&MessageRecorder::on_valueUpdated>(*this);
 
     m_recordCallbackConnections.push_back(&dev);
   }

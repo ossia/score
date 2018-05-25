@@ -68,9 +68,9 @@ DocumentPlugin::DocumentPlugin(
 
   auto& model = ctx.model<Scenario::ScenarioDocumentModel>();
   model.cables.mutable_added
-      .connect<DocumentPlugin, &DocumentPlugin::on_cableCreated>(*this);
+      .connect<&DocumentPlugin::on_cableCreated>(*this);
   model.cables.removing
-      .connect<DocumentPlugin, &DocumentPlugin::on_cableRemoved>(*this);
+      .connect<&DocumentPlugin::on_cableRemoved>(*this);
 
   con(m_base, &Engine::Execution::BaseScenarioElement::finished, this,
       [=] {

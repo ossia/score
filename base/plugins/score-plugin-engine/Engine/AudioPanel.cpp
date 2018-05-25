@@ -43,7 +43,7 @@ public:
     });
     param.get_node()
         .about_to_be_deleted
-        .connect<AudioSlider, &AudioSlider::onParamRemoved>(*this);
+        .connect<&AudioSlider::onParamRemoved>(*this);
   }
 
   void onParamRemoved(const ossia::net::node_base& n)
