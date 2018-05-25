@@ -6,6 +6,7 @@
 #include <score/command/Command.hpp>
 #include <score/command/PropertyCommand.hpp>
 #include <score/model/path/Path.hpp>
+
 namespace Media
 {
 namespace Commands
@@ -31,53 +32,45 @@ private:
   TimeVal m_olddur;
 };
 
-class ChangeStart final : public score::PropertyCommand
+
+class ChangeStart final :
+    public score::PropertyCommand_T<Sound::ProcessModel::p_startChannel>
 {
-  SCORE_COMMAND_DECL(
-      Media::CommandFactoryName(), ChangeStart, "Change start channel")
+  SCORE_COMMAND_DECL(CommandFactoryName(), ChangeStart, "Change start channel")
 public:
-  ChangeStart(const Sound::ProcessModel& path, int newval)
-      : score::PropertyCommand{path, "startChannel",
-                               QVariant::fromValue(newval)}
-  {
-  }
+  using PropertyCommand_T::PropertyCommand_T;
 };
 
-class ChangeUpmix final : public score::PropertyCommand
+class ChangeUpmix final :
+    public score::PropertyCommand_T<Sound::ProcessModel::p_upmixChannels>
 {
-  SCORE_COMMAND_DECL(
-      Media::CommandFactoryName(), ChangeUpmix, "Change upmix channels")
-public:
-  ChangeUpmix(const Sound::ProcessModel& path, int newval)
-      : score::PropertyCommand{path, "upmixChannels",
-                               QVariant::fromValue(newval)}
-  {
-  }
+  SCORE_COMMAND_DECL(CommandFactoryName(), ChangeUpmix, "Change upmix channels")
+  public:
+    using PropertyCommand_T::PropertyCommand_T;
 };
 
-class ChangeInputStart final : public score::PropertyCommand
+class ChangeStartOffset final :
+    public score::PropertyCommand_T<Sound::ProcessModel::p_startOffset>
 {
-  SCORE_COMMAND_DECL(
-      Media::CommandFactoryName(),
-      ChangeInputStart,
-      "Change input start channel")
-public:
-  ChangeInputStart(const Input::ProcessModel& path, int newval)
-      : score::PropertyCommand{path, "startChannel",
-                               QVariant::fromValue(newval)}
-  {
-  }
+  SCORE_COMMAND_DECL(CommandFactoryName(), ChangeStartOffset, "Change start offset")
+  public:
+    using PropertyCommand_T::PropertyCommand_T;
 };
 
-class ChangeInputNum final : public score::PropertyCommand
+class ChangeInputStart final :
+    public score::PropertyCommand_T<Input::ProcessModel::p_startChannel>
 {
-  SCORE_COMMAND_DECL(
-      Media::CommandFactoryName(), ChangeInputNum, "Change input num channel")
-public:
-  ChangeInputNum(const Input::ProcessModel& path, int newval)
-      : score::PropertyCommand{path, "numChannel", QVariant::fromValue(newval)}
-  {
-  }
+  SCORE_COMMAND_DECL(CommandFactoryName(), ChangeInputStart, "Change input start channel")
+  public:
+    using PropertyCommand_T::PropertyCommand_T;
+};
+
+class ChangeInputNum final :
+    public score::PropertyCommand_T<Input::ProcessModel::p_numChannel>
+{
+  SCORE_COMMAND_DECL(CommandFactoryName(), ChangeInputNum, "Change input num channel")
+  public:
+    using PropertyCommand_T::PropertyCommand_T;
 };
 }
 }

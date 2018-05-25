@@ -58,11 +58,11 @@ void setupDefaultSettings(QSettings& set, const T& tuple, Model& model)
 }
 }
 
-#define sp_(Name) const score::sp<decltype(Model::p_ ## Name)> Name
+#define sp_(Name) const score::sp<Model::p_ ## Name> Name
 
 #define SCORE_SETTINGS_COMMAND(ModelType, Name)                          \
   struct Set##ModelType##Name final                                      \
-      : public score::SettingsCommand<decltype(ModelType::p_ ## Name)>   \
+      : public score::SettingsCommand<ModelType::p_ ## Name>   \
   {                                                                      \
     static constexpr const bool is_deferred = false;                     \
     SCORE_SETTINGS_COMMAND_DECL(Set##ModelType##Name)                    \
@@ -73,7 +73,7 @@ void setupDefaultSettings(QSettings& set, const T& tuple, Model& model)
 
 #define SCORE_SETTINGS_DEFERRED_COMMAND(ModelType, Name)                 \
   struct Set##ModelType##Name final                                      \
-      : public score::SettingsCommand<decltype(ModelType::p_ ## Name)>   \
+      : public score::SettingsCommand<ModelType::p_ ## Name>   \
   {                                                                      \
     static constexpr const bool is_deferred = true;                      \
     SCORE_SETTINGS_COMMAND_DECL(Set##ModelType##Name)                    \

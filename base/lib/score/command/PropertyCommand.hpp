@@ -5,6 +5,7 @@
 #include <QVariant>
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
+#include <score/model/path/PathSerialization.hpp>
 
 namespace score
 {
@@ -32,7 +33,7 @@ public:
   {
   }
 
-  virtual ~PropertyCommand();
+  ~PropertyCommand() override;
 
   void undo(const score::DocumentContext& ctx) const final override;
   void redo(const score::DocumentContext& ctx) const final override;
@@ -51,5 +52,58 @@ private:
   ObjectPath m_path;
   QString m_property;
   QVariant m_old, m_new;
+};
+
+template <typename T>
+class PropertyCommand_T : public score::Command
+{
+public:
+  using model_t = typename T::model_type;
+  using param_t = typename T::param_type;
+  using score::Command::Command;
+  PropertyCommand_T() = default;
+
+  template<typename U>
+  PropertyCommand_T(const model_t& obj, U&& newval)
+      : m_path{obj}
+      , m_old{(obj.*T::get())()}
+      , m_new{std::forward<U>(newval)}
+  {
+  }
+
+  ~PropertyCommand_T() override
+  {
+
+  }
+
+  template <typename Path_T, typename U>
+  void update(const Path_T&, U&& newval)
+  {
+    m_new = std::forward<U>(newval);
+  }
+
+  void undo(const score::DocumentContext& ctx) const final override
+  {
+    (m_path.find(ctx).*T::set())(m_old);
+  }
+
+  void redo(const score::DocumentContext& ctx) const final override
+  {
+    (m_path.find(ctx).*T::set())(m_new);
+  }
+
+private:
+  void serializeImpl(DataStreamInput& s) const final override
+  {
+    s << m_path << m_old << m_new;
+  }
+
+  void deserializeImpl(DataStreamOutput& s) final override
+  {
+    s >> m_path >> m_old >> m_new;
+  }
+
+  Path<model_t> m_path;
+  param_t m_old, m_new;
 };
 }

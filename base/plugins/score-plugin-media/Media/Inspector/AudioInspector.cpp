@@ -27,11 +27,11 @@ InspectorWidget::InspectorWidget(
 
   auto lay = new QFormLayout;
 
-  ::bind(process(), Sound::ProcessModel::p_startChannel, this,
+  ::bind(process(), Sound::ProcessModel::p_startChannel{}, this,
        [&] (int v) { m_start.setValue(v); });
-  ::bind(process(), Sound::ProcessModel::p_upmixChannels, this,
+  ::bind(process(), Sound::ProcessModel::p_upmixChannels{}, this,
       [&] (int v) { m_upmix.setValue(v); });
-  ::bind(process(), Sound::ProcessModel::p_startOffset, this,
+  ::bind(process(), Sound::ProcessModel::p_startOffset{}, this,
       [&] (qint32 v) { m_startOffset.setValue(v); });
   con(process(), &Sound::ProcessModel::fileChanged, this,
       [&] { m_edit.setText(object.file().path()); });
@@ -47,6 +47,10 @@ InspectorWidget::InspectorWidget(
   con(m_upmix, &QSpinBox::editingFinished, this, [&]() {
     m_dispatcher.submitCommand(
         new Commands::ChangeUpmix(object, m_upmix.value()));
+  });
+  con(m_startOffset, &QSpinBox::editingFinished, this, [&]() {
+    m_dispatcher.submitCommand(
+          new Commands::ChangeStartOffset(object, m_startOffset.value()));
   });
 
   lay->addRow(tr("Path"), &m_edit);
