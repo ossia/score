@@ -107,3 +107,12 @@ private:
   param_t m_old, m_new;
 };
 }
+
+#define PROPERTY_COMMAND_T(Name, Property, Description)        \
+class Name final :                                             \
+    public score::PropertyCommand_T<Property>                  \
+{                                                              \
+  SCORE_COMMAND_DECL(CommandFactoryName(), Name, Description)  \
+public:                                                        \
+  using PropertyCommand_T::PropertyCommand_T;                  \
+};

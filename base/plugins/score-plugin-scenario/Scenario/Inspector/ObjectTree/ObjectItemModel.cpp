@@ -128,9 +128,9 @@ void ObjectItemModel::setupConnections()
     if (auto cst = qobject_cast<const Scenario::IntervalModel*>(obj))
     {
       cst->processes.added
-          .connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
+          .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(*this);
       cst->processes.removed
-          .connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
+          .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(*this);
 
       for (auto& proc : cst->processes)
         m_aliveMap.insert(&proc, &proc);
@@ -156,10 +156,10 @@ void ObjectItemModel::setupConnections()
             {
               m_aliveMap.insert(sptr, sptr);
               sptr->stateProcesses.added
-                  .connect<ObjectItemModel, &ObjectItemModel::recompute>(
+                  .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(
                       *this);
               sptr->stateProcesses.removed
-                  .connect<ObjectItemModel, &ObjectItemModel::recompute>(
+                  .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(
                       *this);
 
               for (const auto& sp : sptr->stateProcesses)
@@ -183,9 +183,9 @@ void ObjectItemModel::setupConnections()
         {
           m_aliveMap.insert(sptr, sptr);
           sptr->stateProcesses.added
-              .connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
+              .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(*this);
           sptr->stateProcesses.removed
-              .connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
+              .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(*this);
 
           for (const auto& sp : sptr->stateProcesses)
             m_aliveMap.insert(&sp, &sp);
@@ -197,9 +197,9 @@ void ObjectItemModel::setupConnections()
       auto& s = *st;
       m_aliveMap.insert(&s, &s);
       s.stateProcesses.added
-          .connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
+          .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(*this);
       s.stateProcesses.removed
-          .connect<ObjectItemModel, &ObjectItemModel::recompute>(*this);
+          .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(*this);
 
       for (const auto& sp : s.stateProcesses)
         m_aliveMap.insert(&sp, &sp);

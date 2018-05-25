@@ -139,7 +139,7 @@ void SlotHeader::mousePressEvent(QGraphicsSceneMouseEvent* event)
         = dynamic_cast<const TemporalIntervalPresenter*>(&m_presenter))
       tip->requestSlotMenu(m_slotIndex, event->screenPos(), event->scenePos());
   }
-  else
+  else if(boundingRect().contains(event->pos()))
   {
     if (const auto tip
         = dynamic_cast<const TemporalIntervalPresenter*>(&m_presenter))

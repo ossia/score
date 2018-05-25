@@ -6,6 +6,7 @@
 namespace Scenario
 {
 class ProcessModel;
+class IntervalModel;
 class MiniScenarioView final
     : public QObject
     , public Process::MiniLayer
@@ -15,8 +16,7 @@ public:
   MiniScenarioView(const Scenario::ProcessModel& sc, QGraphicsItem* p);
 
 private:
-  template <typename... T>
-  void on_elementChanged(T&&...)
+  void on_elementChanged(const IntervalModel&)
   {
     update();
   }

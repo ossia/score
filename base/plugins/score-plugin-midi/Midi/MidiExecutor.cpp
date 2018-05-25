@@ -47,8 +47,8 @@ Component::Component(
   };
   set_notes();
 
-  element.notes.added.connect<Component, &Component::on_noteAdded>(this);
-  element.notes.removing.connect<Component, &Component::on_noteRemoved>(this);
+  element.notes.added.connect<&Component::on_noteAdded>(this);
+  element.notes.removing.connect<&Component::on_noteRemoved>(this);
 
   for (auto& note : element.notes)
   {

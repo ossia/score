@@ -54,6 +54,7 @@ public:
   void tweenChanged(bool tween) W_SIGNAL(tweenChanged, tween);
   void gradientChanged() W_SIGNAL(gradientChanged);
 
+  PROPERTY(bool, tween READ tween WRITE setTween NOTIFY tweenChanged)
 private:
   //// ProcessModel ////
   void setDurationAndScale(const TimeVal& newDuration) override;
@@ -66,7 +67,5 @@ private:
   boost::container::flat_map<double, QColor> m_colors;
 
   bool m_tween = false;
-
-W_PROPERTY(bool, tween READ tween WRITE setTween NOTIFY tweenChanged)
 };
 }

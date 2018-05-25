@@ -72,7 +72,6 @@ public:
   }
 
   QString prettyName() const override;
-
   std::unique_ptr<Process::Outlet> outlet;
 public:
   void addressChanged(const ::State::AddressAccessor& arg_1) W_SIGNAL(addressChanged, arg_1);
@@ -80,6 +79,12 @@ public:
   void maxChanged(double arg_1) W_SIGNAL(maxChanged, arg_1);
   void tweenChanged(bool tween) W_SIGNAL(tweenChanged, tween);
   void unitChanged(const State::Unit& arg_1) W_SIGNAL(unitChanged, arg_1);
+
+  PROPERTY(State::Unit, unit READ unit WRITE setUnit NOTIFY unitChanged)
+  PROPERTY(bool, tween READ tween WRITE setTween NOTIFY tweenChanged)
+  PROPERTY(double, max READ max WRITE setMax NOTIFY maxChanged)
+  PROPERTY(double, min READ min WRITE setMin NOTIFY minChanged)
+  PROPERTY(::State::AddressAccessor, address READ address WRITE setAddress NOTIFY addressChanged)
 
 private:
   void init();
@@ -104,15 +109,5 @@ private:
   ProcessState* m_startState{};
   ProcessState* m_endState{};
   bool m_tween = false;
-
-W_PROPERTY(State::Unit, unit READ unit WRITE setUnit NOTIFY unitChanged)
-
-W_PROPERTY(bool, tween READ tween WRITE setTween NOTIFY tweenChanged)
-
-W_PROPERTY(double, max READ max WRITE setMax NOTIFY maxChanged)
-
-W_PROPERTY(double, min READ min WRITE setMin NOTIFY minChanged)
-
-W_PROPERTY(::State::AddressAccessor, address READ address WRITE setAddress NOTIFY addressChanged)
 };
 }

@@ -14,9 +14,9 @@ MiniScenarioView::MiniScenarioView(const ProcessModel& sc, QGraphicsItem* p)
     : MiniLayer{p}, m_scenario{sc}
 {
   m_scenario.intervals.added
-      .connect<MiniScenarioView, &MiniScenarioView::on_elementChanged>(this);
+      .connect<&MiniScenarioView::on_elementChanged>(this);
   m_scenario.intervals.removed
-      .connect<MiniScenarioView, &MiniScenarioView::on_elementChanged>(this);
+      .connect<&MiniScenarioView::on_elementChanged>(this);
 
   connect(&m_scenario, &Scenario::ProcessModel::intervalMoved, this, [=] {
     update();

@@ -69,32 +69,32 @@ void OSCDevice::setLearning(bool b)
   auto& dev = *m_dev;
   if (b)
   {
-    dev.on_node_created.connect<OSSIADevice, &OSSIADevice::nodeCreated>(
+    dev.on_node_created.connect<&OSSIADevice::nodeCreated>(
         (OSSIADevice*)this);
-    dev.on_node_removing.connect<OSSIADevice, &OSSIADevice::nodeRemoving>(
+    dev.on_node_removing.connect<&OSSIADevice::nodeRemoving>(
         (OSSIADevice*)this);
-    dev.on_node_renamed.connect<OSSIADevice, &OSSIADevice::nodeRenamed>(
+    dev.on_node_renamed.connect<&OSSIADevice::nodeRenamed>(
         (OSSIADevice*)this);
     dev.on_parameter_created
-        .connect<OSSIADevice, &OSSIADevice::addressCreated>(
+        .connect<&OSSIADevice::addressCreated>(
             (OSSIADevice*)this);
     dev.on_attribute_modified
-        .connect<OSSIADevice, &OSSIADevice::addressUpdated>(
+        .connect<&OSSIADevice::addressUpdated>(
             (OSSIADevice*)this);
   }
   else
   {
-    dev.on_node_created.disconnect<OSSIADevice, &OSSIADevice::nodeCreated>(
+    dev.on_node_created.disconnect<&OSSIADevice::nodeCreated>(
         (OSSIADevice*)this);
-    dev.on_node_removing.disconnect<OSSIADevice, &OSSIADevice::nodeRemoving>(
+    dev.on_node_removing.disconnect<&OSSIADevice::nodeRemoving>(
         (OSSIADevice*)this);
-    dev.on_node_renamed.disconnect<OSSIADevice, &OSSIADevice::nodeRenamed>(
+    dev.on_node_renamed.disconnect<&OSSIADevice::nodeRenamed>(
         (OSSIADevice*)this);
     dev.on_parameter_created
-        .disconnect<OSSIADevice, &OSSIADevice::addressCreated>(
+        .disconnect<&OSSIADevice::addressCreated>(
             (OSSIADevice*)this);
     dev.on_attribute_modified
-        .disconnect<OSSIADevice, &OSSIADevice::addressUpdated>(
+        .disconnect<&OSSIADevice::addressUpdated>(
             (OSSIADevice*)this);
   }
 

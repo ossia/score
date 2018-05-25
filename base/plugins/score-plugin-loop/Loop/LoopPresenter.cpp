@@ -107,11 +107,11 @@ LayerPresenter::LayerPresenter(
       });
 
   m_model.interval()
-      .processes.added.connect<LayerPresenter, &LayerPresenter::on_addProcess>(
+      .processes.added.connect<&LayerPresenter::on_addProcess>(
           *this);
   m_model.interval()
       .processes.removed
-      .connect<LayerPresenter, &LayerPresenter::on_removeProcess>(*this);
+      .connect<&LayerPresenter::on_removeProcess>(*this);
   connect(
       m_view, &LayerView::askContextMenu, this,
       &LayerPresenter::contextMenuRequested);

@@ -103,7 +103,7 @@ void ProcessModel::on_mediaChanged()
 void ProcessModel::init()
 {
   m_outlets.push_back(outlet.get());
-  m_file.on_mediaChanged.connect<ProcessModel, &ProcessModel::on_mediaChanged>(*this);
+  m_file.on_mediaChanged.connect<&ProcessModel::on_mediaChanged>(*this);
 }
 }
 }

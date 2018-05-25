@@ -63,8 +63,8 @@ Presenter::Presenter(
       updateNote(*note);
   });
   m_view->setRange(model.range().first, model.range().second);
-  model.notes.added.connect<Presenter, &Presenter::on_noteAdded>(this);
-  model.notes.removing.connect<Presenter, &Presenter::on_noteRemoving>(this);
+  model.notes.added.connect<&Presenter::on_noteAdded>(this);
+  model.notes.removing.connect<&Presenter::on_noteRemoving>(this);
 
   connect(m_view, &View::doubleClicked, this, [&](QPointF pos) {
     CommandDispatcher<>{context().context.commandStack}.submitCommand(

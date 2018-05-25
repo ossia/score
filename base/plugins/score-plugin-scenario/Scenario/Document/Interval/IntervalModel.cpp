@@ -56,9 +56,9 @@ IntervalModel::~IntervalModel()
 }
 void IntervalModel::initConnections()
 {
-  processes.added.connect<IntervalModel, &IntervalModel::on_addProcess>(this);
+  processes.added.connect<&IntervalModel::on_addProcess>(this);
   processes.removing
-      .connect<IntervalModel, &IntervalModel::on_removingProcess>(this);
+      .connect<&IntervalModel::on_removingProcess>(this);
 }
 
 IntervalModel::IntervalModel(DataStream::Deserializer& vis, QObject* parent)

@@ -52,6 +52,8 @@ class MinMaxHeaderDelegate final :
           this, [=] { updateName(); });
       con(model, &model_t::maxChanged,
           this, [=] { updateName(); });
+
+      updateName();
     }
 
     void updateName() override

@@ -1,51 +1,25 @@
 #pragma once
 #include <Automation/Commands/AutomationCommandFactory.hpp>
+#include <Automation/AutomationModel.hpp>
+#include <Automation/Color/GradientAutomModel.hpp>
 #include <State/Unit.hpp>
 #include <score/command/PropertyCommand.hpp>
 
-namespace Process
-{
-class ProcessModel;
-}
 namespace Automation
 {
-class SetMin final : public score::PropertyCommand
-{
-  SCORE_COMMAND_DECL(CommandFactoryName(), SetMin, "Set minimum")
-public:
-  SetMin(const Process::ProcessModel& path, double newval)
-      : score::PropertyCommand{path, "min", newval}
-  {
-  }
-};
-class SetMax final : public score::PropertyCommand
-{
-  SCORE_COMMAND_DECL(CommandFactoryName(), SetMax, "Set maximum")
-public:
-  SetMax(const Process::ProcessModel& path, double newval)
-      : score::PropertyCommand{path, "max", newval}
-  {
-  }
-};
-
-// MOVEME
-class SetTween final : public score::PropertyCommand
-{
-  SCORE_COMMAND_DECL(CommandFactoryName(), SetTween, "Set tween")
-public:
-  SetTween(const Process::ProcessModel& path, bool newval)
-      : score::PropertyCommand{path, "tween", newval}
-  {
-  }
-};
-
-class SetUnit final : public score::PropertyCommand
-{
-  SCORE_COMMAND_DECL(CommandFactoryName(), SetUnit, "Set unit")
-public:
-  SetUnit(const Process::ProcessModel& path, const State::Unit& newval)
-      : score::PropertyCommand{path, "unit", QVariant::fromValue(newval)}
-  {
-  }
-};
+PROPERTY_COMMAND_T(SetMin, Automation::ProcessModel::p_min, "Set minimum")
+PROPERTY_COMMAND_T(SetMax, Automation::ProcessModel::p_max, "Set maximum")
+PROPERTY_COMMAND_T(SetTween, Automation::ProcessModel::p_tween, "Set tween")
+PROPERTY_COMMAND_T(SetUnit, Automation::ProcessModel::p_unit, "Set unit")
 }
+SCORE_COMMAND_DECL_T(Automation::SetMin)
+SCORE_COMMAND_DECL_T(Automation::SetMax)
+SCORE_COMMAND_DECL_T(Automation::SetTween)
+SCORE_COMMAND_DECL_T(Automation::SetUnit)
+
+namespace Gradient
+{
+using Automation::CommandFactoryName;
+PROPERTY_COMMAND_T(SetTween, Gradient::ProcessModel::p_tween, "Set tween")
+}
+SCORE_COMMAND_DECL_T(Gradient::SetTween)

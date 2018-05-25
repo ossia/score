@@ -325,18 +325,18 @@ void OSSIADevice::enableCallbacks()
     auto dev = getDevice();
     if (dev)
     {
-      dev->on_node_created.connect<OSSIADevice, &OSSIADevice::nodeCreated>(
+      dev->on_node_created.connect<&OSSIADevice::nodeCreated>(
           this);
-      dev->on_node_removing.connect<OSSIADevice, &OSSIADevice::nodeRemoving>(
+      dev->on_node_removing.connect<&OSSIADevice::nodeRemoving>(
           this);
-      dev->on_node_renamed.connect<OSSIADevice, &OSSIADevice::nodeRenamed>(
+      dev->on_node_renamed.connect<&OSSIADevice::nodeRenamed>(
           this);
       dev->on_parameter_created
-          .connect<OSSIADevice, &OSSIADevice::addressCreated>(this);
+          .connect<&OSSIADevice::addressCreated>(this);
       dev->on_parameter_removing
-          .connect<OSSIADevice, &OSSIADevice::addressRemoved>(this);
+          .connect<&OSSIADevice::addressRemoved>(this);
       dev->on_attribute_modified
-          .connect<OSSIADevice, &OSSIADevice::addressUpdated>(this);
+          .connect<&OSSIADevice::addressUpdated>(this);
     }
     m_callbacksEnabled = true;
   }
@@ -349,18 +349,18 @@ void OSSIADevice::disableCallbacks()
     auto dev = getDevice();
     if (dev)
     {
-      dev->on_node_created.disconnect<OSSIADevice, &OSSIADevice::nodeCreated>(
+      dev->on_node_created.disconnect<&OSSIADevice::nodeCreated>(
           this);
       dev->on_node_removing
-          .disconnect<OSSIADevice, &OSSIADevice::nodeRemoving>(this);
-      dev->on_node_renamed.disconnect<OSSIADevice, &OSSIADevice::nodeRenamed>(
+          .disconnect<&OSSIADevice::nodeRemoving>(this);
+      dev->on_node_renamed.disconnect<&OSSIADevice::nodeRenamed>(
           this);
       dev->on_parameter_created
-          .disconnect<OSSIADevice, &OSSIADevice::addressCreated>(this);
+          .disconnect<&OSSIADevice::addressCreated>(this);
       dev->on_parameter_removing
-          .disconnect<OSSIADevice, &OSSIADevice::addressRemoved>(this);
+          .disconnect<&OSSIADevice::addressRemoved>(this);
       dev->on_attribute_modified
-          .disconnect<OSSIADevice, &OSSIADevice::addressUpdated>(this);
+          .disconnect<&OSSIADevice::addressUpdated>(this);
     }
     m_callbacksEnabled = false;
   }
