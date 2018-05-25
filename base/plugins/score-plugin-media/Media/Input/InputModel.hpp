@@ -11,11 +11,6 @@ namespace Media
 {
 namespace Input
 {
-struct InputChannels
-{
-  std::vector<int> inputs;
-};
-
 class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final
     : public Process::ProcessModel
     , public Nano::Observer
@@ -23,8 +18,6 @@ class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Media::Input::ProcessModel)
   W_OBJECT(ProcessModel)
-  
-  
 
 public:
   explicit ProcessModel(
@@ -61,13 +54,12 @@ public:
   void startChannelChanged(int startChannel) W_SIGNAL(startChannelChanged, startChannel);
   void numChannelChanged(int numChannel) W_SIGNAL(numChannelChanged, numChannel);
 
+  PROPERTY(int, numChannel READ numChannel WRITE setNumChannel NOTIFY numChannelChanged)
+  PROPERTY(int, startChannel READ startChannel WRITE setStartChannel NOTIFY startChannelChanged)
+
 private:
   int m_startChannel{};
   int m_numChannel{};
-
-W_PROPERTY(int, numChannel READ numChannel WRITE setNumChannel NOTIFY numChannelChanged)
-
-W_PROPERTY(int, startChannel READ startChannel WRITE setStartChannel NOTIFY startChannelChanged)
 };
 }
 }
