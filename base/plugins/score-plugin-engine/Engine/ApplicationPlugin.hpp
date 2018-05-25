@@ -84,6 +84,7 @@ private:
   bool m_playing{false}, m_paused{false};
 
   bool m_updating_audio = false;
+  void restart_engine();
   void setup_engine();
 };
 }

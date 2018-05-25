@@ -22,7 +22,7 @@ static auto& iconMap()
   return icons;
 }
 
-void setIcons(QAction* action, const QString& iconOn, const QString& iconOff)
+void setIcons(QAction* action, const QString& iconOn, const QString& iconOff, bool enableHover)
 {
   auto& map = iconMap();
   auto pair = std::make_pair(iconOn, iconOff);
@@ -37,7 +37,8 @@ void setIcons(QAction* action, const QString& iconOn, const QString& iconOff)
     QPixmap on(iconOn);
     QPixmap off(iconOff);
     icon.addPixmap(on, QIcon::Mode::Selected);
-    icon.addPixmap(on, QIcon::Mode::Active);
+    if(enableHover)
+      icon.addPixmap(on, QIcon::Mode::Active);
     icon.addPixmap(on, QIcon::Mode::Normal, QIcon::State::On);
     icon.addPixmap(off, QIcon::Mode::Normal);
     action->setIcon(icon);

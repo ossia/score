@@ -24,6 +24,7 @@
 #include <score/model/IdentifiedObjectAbstract.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/selection/SelectionStack.hpp>
+#include <ossia/editor/state/destination_qualifiers.hpp>
 namespace Scenario
 {
 static std::vector<Device::FullAddressSettings>
@@ -70,9 +71,236 @@ void CreateCurves(
   CreateCurvesFromAddresses(selected_intervals, addresses, stack);
 }
 
+
+struct CategorizedAddresses
+{
+  explicit CategorizedAddresses(const std::vector<Device::FullAddressSettings>& addrs)
+  {
+    for(auto& addr : addrs)
+    {
+      if(addr.value.v)
+        ossia::apply_nonnull([&] (const auto& v) { (*this)(v, addr); }, addr.value.v);
+    }
+  }
+
+  void operator()(ossia::impulse, const Device::FullAddressSettings& addr) { impulse_addr.push_back(addr); }
+  void operator()(bool, const Device::FullAddressSettings& addr) { bool_addr.push_back(addr); }
+  void operator()(int, const Device::FullAddressSettings& addr) { int_addr.push_back(addr); }
+  void operator()(float, const Device::FullAddressSettings& addr) { float_addr.push_back(addr); }
+  void operator()(char, const Device::FullAddressSettings& addr) { char_addr.push_back(addr); }
+  void operator()(const std::string&, const Device::FullAddressSettings& addr) { string_addr.push_back(addr); }
+  void operator()(const ossia::vec2f&, const Device::FullAddressSettings& addr) { vec2f_addr.push_back(addr); }
+  void operator()(const ossia::vec3f&, const Device::FullAddressSettings& addr) { vec3f_addr.push_back(addr); }
+  void operator()(const ossia::vec4f&, const Device::FullAddressSettings& addr) { vec4f_addr.push_back(addr); }
+  void operator()(const std::vector<ossia::value>& v, const Device::FullAddressSettings& addr)
+  {
+    if(!v.empty())
+    {
+      list_addr.push_back(addr);
+    }
+  }
+
+  int automCount()
+  {
+    int c = 0;
+    //c += impulse_addr.size();
+    c += int_addr.size();
+    //c += bool_addr.size();
+    c += float_addr.size();
+    //c += string_addr.size();
+    c += char_addr.size();
+    c += 2 * vec2f_addr.size();
+    c += 3 * vec3f_addr.size();
+    c += 4 * vec4f_addr.size();
+
+    for(auto& addr : list_addr)
+    {
+      auto& v = addr.value.get<std::vector<ossia::value>>();
+      c += v.size();
+      // TODO only keep numeric indices ?
+    }
+    return c;
+  }
+
+  std::vector<Device::FullAddressSettings> impulse_addr;
+  std::vector<Device::FullAddressSettings> int_addr;
+  std::vector<Device::FullAddressSettings> bool_addr;
+  std::vector<Device::FullAddressSettings> float_addr;
+  std::vector<Device::FullAddressSettings> string_addr;
+  std::vector<Device::FullAddressSettings> char_addr;
+  std::vector<Device::FullAddressSettings> vec2f_addr;
+  std::vector<Device::FullAddressSettings> vec3f_addr;
+  std::vector<Device::FullAddressSettings> vec4f_addr;
+  std::vector<Device::FullAddressSettings> list_addr;
+};
+
+struct CurveCreator
+{
+  const Device::FullAddressSettings& as;
+  const Scenario::StateModel& ss;
+  const Scenario::StateModel& es;
+  const Scenario::IntervalModel& interval;
+  const std::vector<Id<Process::ProcessModel>>& process_ids;
+  Scenario::Command::AddMultipleProcessesToIntervalMacro& macro;
+  int& i;
+
+  void operator()(ossia::impulse)
+  {
+
+  }
+
+  void operator()(bool b)
+  {
+
+  }
+
+  void operator()(int v)
+  {
+    State::AddressAccessor addr{as.address, {}, as.unit};
+    // Then we set-up all the necessary values
+    // min / max
+    Curve::CurveDomain dom{as.domain.get(), as.value};
+    bool tween = false;
+
+    // start value / end value
+    Process::MessageNode* s_node = Device::try_getNodeFromString(
+        ss.messages().rootNode(), stringList(as.address));
+    if (s_node)
+    {
+      if (auto val = s_node->value())
+      {
+        dom.start = State::convert::value<int>(*val);
+        dom.min = std::min(dom.start, dom.min);
+        dom.max = std::max(dom.start, dom.max);
+      }
+    }
+    else
+    {
+      tween = true;
+    }
+
+    Process::MessageNode* e_node = Device::try_getNodeFromString(
+        es.messages().rootNode(), stringList(as.address));
+    if (e_node)
+    {
+      if (auto val = e_node->value())
+      {
+        dom.end = State::convert::value<int>(*val);
+        dom.min = std::min(dom.end, dom.min);
+        dom.max = std::max(dom.end, dom.max);
+      }
+    }
+
+    // Send the command.
+    macro.addCommand(new Scenario::Command::CreateAutomationFromStates{interval, macro.slotsToUse, process_ids[i], addr, dom, tween});
+    i++;
+  }
+
+  void operator()(float v)
+  {
+    State::AddressAccessor addr{as.address, {}, as.unit};
+    // Then we set-up all the necessary values
+    // min / max
+    Curve::CurveDomain dom{as.domain.get(), as.value};
+    bool tween = false;
+
+    // start value / end value
+    Process::MessageNode* s_node = Device::try_getNodeFromString(
+        ss.messages().rootNode(), stringList(as.address));
+    if (s_node)
+    {
+      if (auto val = s_node->value())
+      {
+        dom.start = State::convert::value<double>(*val);
+        dom.min = std::min(dom.start, dom.min);
+        dom.max = std::max(dom.start, dom.max);
+      }
+    }
+    else
+    {
+      tween = true;
+    }
+
+    Process::MessageNode* e_node = Device::try_getNodeFromString(
+        es.messages().rootNode(), stringList(as.address));
+    if (e_node)
+    {
+      if (auto val = e_node->value())
+      {
+        dom.end = State::convert::value<double>(*val);
+        dom.min = std::min(dom.end, dom.min);
+        dom.max = std::max(dom.end, dom.max);
+      }
+    }
+
+    // Send the command.
+    macro.addCommand(new Scenario::Command::CreateAutomationFromStates{interval, macro.slotsToUse, process_ids[i], addr, dom, tween});
+    i++;
+  }
+
+  void operator()(char v)
+  {
+
+  }
+
+  void operator()(const std::string& v)
+  {
+
+  }
+
+  template<std::size_t N>
+  void operator()(const std::array<float, N>& v)
+  {
+    State::AddressAccessor addr{as.address, {}, as.unit};
+    // Then we set-up all the necessary values
+    // min / max
+    Curve::CurveDomain dom{as.domain.get(), as.value};
+    bool tween = false;
+
+    auto& acc = addr.qualifiers.get().accessors;
+    acc.resize(1);
+    for(std::size_t c = 0; c < N; c++)
+    {
+      acc[0] = (int)c;
+      // Send the command.
+      macro.addCommand(new Scenario::Command::CreateAutomationFromStates{interval, macro.slotsToUse, process_ids[i], addr, dom, tween});
+      i++;
+    }
+  }
+
+  void operator()(const std::vector<ossia::value>& v)
+  {
+    State::AddressAccessor addr{as.address, {}, as.unit};
+    // Then we set-up all the necessary values
+    // min / max
+    Curve::CurveDomain dom{as.domain.get(), as.value};
+    bool tween = false;
+
+    auto& acc = addr.qualifiers.get().accessors;
+    acc.resize(1);
+    // TODO do a proper recursive algorithm here ; also change the count algorithm before to match
+    for(std::size_t c = 0; c < v.size(); c++)
+    {
+      const auto t = v[c].getType();
+      if(t == ossia::val_type::FLOAT || t == ossia::val_type::INT)
+      {
+        acc[0] = (int)c;
+        // Send the command.
+        macro.addCommand(new Scenario::Command::CreateAutomationFromStates{interval, macro.slotsToUse, process_ids[i], addr, dom, tween});
+        i++;
+      }
+    }
+  }
+
+  void operator()()
+  {
+
+  }
+};
+
 void CreateCurvesFromAddresses(
     const QList<const Scenario::IntervalModel*>& selected_intervals,
-    const std::vector<Device::FullAddressSettings>& addresses,
+    const std::vector<Device::FullAddressSettings>& a,
     const score::CommandStackFacade& stack)
 {
   if (selected_intervals.empty())
@@ -84,19 +312,20 @@ void CreateCurvesFromAddresses(
   auto scenar = dynamic_cast<Scenario::ScenarioInterface*>(
       selected_intervals.first()->parent());
 
-  int added_processes = 0;
+  bool added_processes = false;
   // Then create the commands
   auto big_macro
       = new Scenario::Command::AddMultipleProcessesToMultipleIntervalsMacro;
 
+  CategorizedAddresses addresses{a};
+  const auto N = addresses.automCount();
   for (const auto& interval_ptr : selected_intervals)
   {
     auto& interval = *interval_ptr;
     // Generate brand new ids for the processes
-    auto process_ids = getStrongIdRange<Process::ProcessModel>(
-        addresses.size(), interval.processes);
+    auto process_ids = getStrongIdRange<Process::ProcessModel>(N, interval.processes);
     auto macro
-        = Scenario::Command::makeAddProcessMacro(interval, addresses.size());
+        = Scenario::Command::makeAddProcessMacro(interval, N);
 
     const Scenario::StateModel& ss = startState(interval, *scenar);
     const auto& es = endState(interval, *scenar);
@@ -109,57 +338,40 @@ void CreateCurvesFromAddresses(
     }
 
     int i = 0;
-    for (const Device::FullAddressSettings& as : addresses)
+    for (const Device::FullAddressSettings& as : addresses.float_addr)
     {
-      State::AddressAccessor addr{as.address, {}, as.unit};
-      // First, we skip the curve if there is already a curve
-      // with this address in the interval.
-      if (ossia::contains(existing_automations, addr))
-        continue;
-
-      // Then we set-up all the necessary values
-      // min / max
-      Curve::CurveDomain dom{as.domain.get(), as.value};
-      bool tween = false;
-
-      // start value / end value
-      Process::MessageNode* s_node = Device::try_getNodeFromString(
-          ss.messages().rootNode(), stringList(as.address));
-      if (s_node)
-      {
-        if (auto val = s_node->value())
-        {
-          dom.start = State::convert::value<double>(*val);
-          dom.min = std::min(dom.start, dom.min);
-          dom.max = std::max(dom.start, dom.max);
-        }
-      }
-      else
-        tween = true;
-
-      Process::MessageNode* e_node = Device::try_getNodeFromString(
-          es.messages().rootNode(), stringList(as.address));
-      if (e_node)
-      {
-        if (auto val = e_node->value())
-        {
-          dom.end = State::convert::value<double>(*val);
-          dom.min = std::min(dom.end, dom.min);
-          dom.max = std::max(dom.end, dom.max);
-        }
-      }
-
-      // Send the command.
-      macro->addCommand(new Scenario::Command::CreateAutomationFromStates{
-          interval, macro->slotsToUse, process_ids[i], addr, dom, tween});
-
-      i++;
-      added_processes++;
+      CurveCreator{as, ss, es, interval, process_ids, *macro, i}(float{});
+      added_processes = true;
+    }
+    for (const Device::FullAddressSettings& as : addresses.int_addr)
+    {
+      CurveCreator{as, ss, es, interval, process_ids, *macro, i}(int{});
+      added_processes = true;
+    }
+    for (const Device::FullAddressSettings& as : addresses.vec2f_addr)
+    {
+      CurveCreator{as, ss, es, interval, process_ids, *macro, i}(ossia::vec2f{});
+      added_processes = true;
+    }
+    for (const Device::FullAddressSettings& as : addresses.vec3f_addr)
+    {
+      CurveCreator{as, ss, es, interval, process_ids, *macro, i}(ossia::vec3f{});
+      added_processes = true;
+    }
+    for (const Device::FullAddressSettings& as : addresses.vec4f_addr)
+    {
+      CurveCreator{as, ss, es, interval, process_ids, *macro, i}(ossia::vec4f{});
+      added_processes = true;
+    }
+    for (const Device::FullAddressSettings& as : addresses.list_addr)
+    {
+      CurveCreator{as, ss, es, interval, process_ids, *macro, i}(as.value.get<std::vector<ossia::value>>());
+      added_processes = true;
     }
     big_macro->addCommand(macro);
   }
 
-  if (added_processes > 0)
+  if (added_processes)
   {
     CommandDispatcher<> disp{stack};
     disp.submitCommand(big_macro);
