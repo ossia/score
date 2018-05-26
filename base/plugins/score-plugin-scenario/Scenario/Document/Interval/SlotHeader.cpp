@@ -156,9 +156,8 @@ void SlotHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   const auto xpos = event->pos().x();
   if (xpos >= 0 && xpos < 16)
   {
-    if (QLineF(event->screenPos(), event->buttonDownScreenPos(Qt::LeftButton))
-            .length()
-        < QApplication::startDragDistance())
+    if ((event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton))
+            .manhattanLength() < QApplication::startDragDistance())
     {
       return;
     }
@@ -173,7 +172,9 @@ void SlotHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     drag->setPixmap(view->pixmap());
     drag->setHotSpot(QPoint(5, 5));
 
+    m_presenter.startSlotDrag(m_slotIndex, mapToParent(event->pos()));
     drag->exec();
+    m_presenter.stopSlotDrag();
   }
 }
 

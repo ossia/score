@@ -28,6 +28,14 @@
 W_OBJECT_IMPL(Scenario::FullViewIntervalPresenter)
 namespace Scenario
 {
+void FullViewIntervalPresenter::startSlotDrag(int slot, QPointF) const
+{
+}
+
+void FullViewIntervalPresenter::stopSlotDrag() const
+{
+}
+
 FullViewIntervalPresenter::FullViewIntervalPresenter(
     const IntervalModel& interval,
     const Process::ProcessPresenterContext& ctx,

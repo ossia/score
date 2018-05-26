@@ -42,6 +42,9 @@ public:
   void intervalSelected(IntervalModel& arg_1) W_SIGNAL(intervalSelected, arg_1);
 
 private:
+  void startSlotDrag(int slot, QPointF) const override;
+  void stopSlotDrag() const override;
+
   void requestSlotMenu(int slot, QPoint pos, QPointF sp) const override;
   void updateScaling() override;
   void selectedSlot(int) const override;

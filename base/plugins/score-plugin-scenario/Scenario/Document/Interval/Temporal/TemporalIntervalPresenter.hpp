@@ -74,6 +74,9 @@ private:
   void on_rackVisibleChanged(bool);
   void on_defaultDurationChanged(const TimeVal&);
 
+  void startSlotDrag(int slot, QPointF) const override;
+  void stopSlotDrag() const override;
+
   bool m_handles{true};
   void setHeaderWidth(const SlotPresenter& slot, double w);
 };

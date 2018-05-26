@@ -84,6 +84,9 @@ public:
 
   double on_playPercentageChanged(double t);
 
+  virtual void startSlotDrag(int slot, QPointF) const = 0;
+  virtual void stopSlotDrag() const = 0;
+
   virtual void selectedSlot(int) const = 0;
   virtual void requestSlotMenu(int slot, QPoint pos, QPointF sp) const = 0;
 
