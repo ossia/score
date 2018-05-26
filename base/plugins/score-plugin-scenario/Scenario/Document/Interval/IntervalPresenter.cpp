@@ -17,6 +17,7 @@
 #include <score/selection/Selectable.hpp>
 #include <score/tools/Todo.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <QPainter>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::IntervalPresenter)
 namespace Scenario
