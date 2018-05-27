@@ -18,6 +18,7 @@
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/CreateProcessInNewSlot.hpp>
+#include <Scenario/Commands/Interval/Rack/SwapSlots.hpp>
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #include <Scenario/Document/Interval/DefaultHeaderDelegate.hpp>
 #include <Scenario/Document/Interval/IntervalHeader.hpp>
@@ -152,6 +153,12 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
     {
       createSlot(s.index, m_model.smallView()[s.index]);
     }
+  });
+
+  con(m_model, &IntervalModel::slotsSwapped, this,
+      [=] (int i, int j, Slot::RackView v) {
+        if (v == Slot::SmallView)
+          on_rackChanged();
   });
 
   con(m_model, &IntervalModel::slotRemoved, this, [=](const SlotId& s) {
@@ -290,191 +297,28 @@ void TemporalIntervalPresenter::updateHeight()
   heightChanged();
 }
 
-
-class SlotDragOverlay final
-    : public QObject
-    , public QGraphicsItem
-
-{
-  W_OBJECT(SlotDragOverlay)
-public:
-  SlotDragOverlay(const TemporalIntervalPresenter& c)
-    : interval{c}
-  {
-    this->setAcceptDrops(true);
-    this->setZValue(9999);
-  }
-
-  const TemporalIntervalPresenter& interval;
-  QRectF boundingRect() const override
-  {
-    auto rect = interval.view()->boundingRect();
-    rect.adjust(0, 0, 0, 10);
-    return rect;
-  }
-
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
-  {
-    const auto& style = ScenarioStyle::instance();
-    auto c = style.IntervalBase.getBrush().color();
-    c.setAlphaF(0.2);
-    painter->fillRect(interval.view()->boundingRect(), c);
-    painter->fillRect(m_drawnRect, QColor::fromRgbF(0.6, 0.6, 1., 0.8));
-    painter->setPen(QPen(QColor::fromRgbF(0.6, 0.6, 1., 0.7), 2));
-    painter->drawRect(m_drawnRect);
-  }
-
-  void dropBefore(int slot) W_SIGNAL(dropBefore, slot);
-  void dropIn(int slot) W_SIGNAL(dropIn, slot);
-
-  void onDrag(QPointF pos)
-  {
-    const auto y = pos.y();
-    const auto rect = interval.view()->boundingRect();
-    const auto& rack = interval.model().smallView();
-    double height = interval.header()->headerHeight();
-
-    if(y <= height)
-    {
-      m_drawnRect = {0, height - 2.5, rect.width(), 5};
-      update();
-    }
-    else if(y > rect.height() - 5.)
-    {
-      m_drawnRect = {0, rect.height() - 5., rect.width(), 5};
-      update();
-    }
-    else
-    {
-      for (std::size_t i = 0; i < rack.size(); i++)
-      {
-        const auto& slot = rack[i];
-        const auto next_height = slot.height + SlotHeader::headerHeight() + SlotHandle::handleHeight();
-        if(y > height - 2.5 && y < height + 2.5)
-        {
-          m_drawnRect = {0, height - 2.5, rect.width(), 5};
-          update();
-          break;
-        }
-        else if(y < height + next_height - 2.5)
-        {
-          m_drawnRect = {0, height, rect.width(), next_height};
-          update();
-          break;
-        }
-
-        height += next_height;
-      }
-
-      if(y > height - 2.5 && y < height + 2.5)
-      {
-        m_drawnRect = {0, height - 2.5, rect.width(), 5};
-        update();
-      }
-    }
-  }
-private:
-  void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override
-  {
-    m_drawnRect = {};
-
-    onDrag(event->pos());
-    event->accept();
-  }
-  void dragMoveEvent(QGraphicsSceneDragDropEvent* event) override
-  {
-    onDrag(event->pos());
-    event->accept();
-  }
-  void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override
-  {
-    m_drawnRect = {};
-    update();
-    event->accept();
-  }
-
-  void dropEvent(QGraphicsSceneDragDropEvent* event) override
-  {
-    m_drawnRect = {};
-    update();
-    const auto pos = event->pos();
-    const auto y = pos.y();
-    const auto rect = interval.view()->boundingRect();
-    const auto& rack = interval.model().smallView();
-    double height = interval.header()->headerHeight();
-
-    if(y <= height)
-    {
-      m_drawnRect = {0, height - 2.5, rect.width(), 5};
-      dropBefore(0);
-      update();
-    }
-    else if(y > rect.height() - 5.)
-    {
-      m_drawnRect = {0, rect.height() - 5., rect.width(), 5};
-      dropBefore((int)rack.size());
-      update();
-    }
-    else
-    {
-      for (std::size_t i = 0; i < rack.size(); i++)
-      {
-        const auto& slot = rack[i];
-        const auto next_height = slot.height + SlotHeader::headerHeight() + SlotHandle::handleHeight();
-        if(y > height - 2.5 && y < height + 2.5)
-        {
-          m_drawnRect = {0, height - 2.5, rect.width(), 5};
-          dropBefore(i);
-          update();
-          break;
-        }
-        else if(y < height + next_height - 2.5)
-        {
-          m_drawnRect = {0, height, rect.width(), next_height};
-          dropIn(i);
-          update();
-          break;
-        }
-
-        height += next_height;
-      }
-
-      if(y > height - 2.5 && y < height + 2.5)
-      {
-        m_drawnRect = {0, height - 2.5, rect.width(), 5};
-        dropBefore((int)rack.size());
-        update();
-      }
-    }
-    event->accept();
-  }
-
-  private:
-  QRectF m_drawnRect;
-};
-
-W_OBJECT_IMPL(SlotDragOverlay)
-static SlotDragOverlay* slot_drag_overlay{};
+static SlotDragOverlay* temporal_slot_drag_overlay{};
 void TemporalIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
 {
   // Create an overlay object
-  slot_drag_overlay = new SlotDragOverlay{*this};
-  connect(slot_drag_overlay, &SlotDragOverlay::dropBefore,
-          this, [] (int slot) {
+  temporal_slot_drag_overlay = new SlotDragOverlay{*this, Slot::SmallView};
+  connect(temporal_slot_drag_overlay, &SlotDragOverlay::dropBefore,
+          this, [=] (int slot) {
+    CommandDispatcher<>{this->m_context.commandStack}
+    .submitCommand<Command::SwapSlots>(this->m_model, Slot::RackView::SmallView, curslot, slot);
+  }, Qt::QueuedConnection); // needed because else SlotHeader is removed and stopSlotDrag can't be called
+  connect(temporal_slot_drag_overlay, &SlotDragOverlay::dropIn,
+          this, [=] (int slot) {
 
-  });
-  connect(slot_drag_overlay, &SlotDragOverlay::dropIn,
-          this, [] (int slot) {
-
-  });
-  slot_drag_overlay->setParentItem(view());
-  slot_drag_overlay->onDrag(pos);
+  }, Qt::QueuedConnection);
+  temporal_slot_drag_overlay->setParentItem(view());
+  temporal_slot_drag_overlay->onDrag(pos);
 }
 
 void TemporalIntervalPresenter::stopSlotDrag() const
 {
-  delete slot_drag_overlay;
-  slot_drag_overlay = nullptr;
+  delete temporal_slot_drag_overlay;
+  temporal_slot_drag_overlay = nullptr;
 }
 
 void TemporalIntervalPresenter::on_rackVisibleChanged(bool b)

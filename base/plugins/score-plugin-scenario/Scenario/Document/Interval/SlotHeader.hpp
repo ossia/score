@@ -1,6 +1,8 @@
 #pragma once
 #include <QGraphicsItem>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+#include <Scenario/Document/Interval/Slot.hpp>
+#include <wobjectdefs.h>
 
 namespace Scenario
 {
@@ -56,5 +58,34 @@ private:
   qreal m_width{};
   double m_menupos{};
   int m_slotIndex{};
+};
+
+class SlotDragOverlay final
+    : public QObject
+    , public QGraphicsItem
+{
+  W_OBJECT(SlotDragOverlay)
+public:
+  SlotDragOverlay(const IntervalPresenter& c, Slot::RackView v);
+
+  const IntervalPresenter& interval;
+  Slot::RackView view;
+  QRectF boundingRect() const override;
+
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+
+  void dropBefore(int slot) W_SIGNAL(dropBefore, slot);
+  void dropIn(int slot) W_SIGNAL(dropIn, slot);
+
+  void onDrag(QPointF pos);
+private:
+  void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
+  void dragMoveEvent(QGraphicsSceneDragDropEvent* event) override;
+  void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;
+
+  void dropEvent(QGraphicsSceneDragDropEvent* event) override;
+
+  private:
+    QRectF m_drawnRect;
 };
 }

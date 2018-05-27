@@ -20,20 +20,40 @@
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/Interval/SlotHandle.hpp>
 #include <Scenario/Document/Interval/SlotHeader.hpp>
+#include <QPainter>
+#include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <boost/range/algorithm_ext/erase.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/widgets/GraphicsItem.hpp>
 #include <wobjectimpl.h>
+#include <Scenario/Commands/Interval/Rack/SwapSlots.hpp>
 W_OBJECT_IMPL(Scenario::FullViewIntervalPresenter)
 namespace Scenario
 {
-void FullViewIntervalPresenter::startSlotDrag(int slot, QPointF) const
+
+static SlotDragOverlay* full_slot_drag_overlay{};
+void FullViewIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
 {
+  // Create an overlay object
+  full_slot_drag_overlay = new SlotDragOverlay{*this, Slot::FullView};
+  connect(full_slot_drag_overlay, &SlotDragOverlay::dropBefore,
+          this, [=] (int slot) {
+    CommandDispatcher<>{this->m_context.commandStack}
+    .submitCommand<Command::SwapSlots>(this->m_model, Slot::RackView::FullView, curslot, slot);
+  }, Qt::QueuedConnection); // needed because else SlotHeader is removed and stopSlotDrag can't be called
+  connect(full_slot_drag_overlay, &SlotDragOverlay::dropIn,
+          this, [=] (int slot) {
+
+  }, Qt::QueuedConnection);
+  full_slot_drag_overlay->setParentItem(view());
+  full_slot_drag_overlay->onDrag(pos);
 }
 
 void FullViewIntervalPresenter::stopSlotDrag() const
 {
+  delete full_slot_drag_overlay;
+  full_slot_drag_overlay = nullptr;
 }
 
 FullViewIntervalPresenter::FullViewIntervalPresenter(
@@ -90,7 +110,7 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
       [=](int i, int j, Slot::RackView v) {
         if (v == Slot::FullView)
           on_rackChanged();
-      });
+  });
 
   con(m_model, &IntervalModel::slotResized, this, [this](const SlotId& s) {
     if (s.fullView())

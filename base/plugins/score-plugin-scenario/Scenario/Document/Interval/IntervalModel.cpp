@@ -374,19 +374,74 @@ void swap(Scenario::Slot& lhs, Scenario::Slot& rhs)
 
 void IntervalModel::swapSlots(int pos1, int pos2, Slot::RackView v)
 {
+  SCORE_ASSERT(pos1 >= 0);
+  SCORE_ASSERT(pos2 >= 0);
+  std::cerr << pos1 << " -> " << pos2 << "\n";
   if (v == Slot::FullView)
   {
-    auto& vec = m_fullView;
-    SCORE_ASSERT((int)vec.size() > pos1);
-    SCORE_ASSERT((int)vec.size() > pos2);
-    std::iter_swap(vec.begin() + pos1, vec.begin() + pos2);
+    auto& v = m_fullView;
+    int N = (int)v.size();
+    if(pos1 < N && pos2 < N)
+    {
+      if(pos1 < pos2)
+      {
+        auto val = *(v.begin() + pos1);
+
+        v.insert(v.begin() + pos2, val);
+        v.erase(v.begin() + pos1);
+      }
+      else if(pos1 > pos2)
+      {
+        auto val = *(v.begin() + pos1);
+
+        v.insert(v.begin() + pos2, val);
+        v.erase(v.begin() + pos1 + 1);
+      }
+      //std::swap(*(v.begin() + pos1), *(v.begin() + pos2));
+    }
+    else if(pos1 < N && pos2 >= N)
+    {
+      auto it = v.begin() + pos1;
+      std::rotate(it, it + 1, v.end());
+    }
+    else if(pos2 < N && pos1 >= N)
+    {
+      auto it = v.begin() + pos2;
+      std::rotate(it, it + 1, v.end());
+    }
   }
   else
   {
-    auto& vec = m_smallView;
-    SCORE_ASSERT((int)vec.size() > pos1);
-    SCORE_ASSERT((int)vec.size() > pos2);
-    std::iter_swap(vec.begin() + pos1, vec.begin() + pos2);
+    auto& v = m_smallView;
+    int N = v.size();
+    if(pos1 < N && pos2 < N)
+    {
+      if(pos1 < pos2)
+      {
+        auto val = *(v.begin() + pos1);
+
+        v.insert(v.begin() + pos2, val);
+        v.erase(v.begin() + pos1);
+      }
+      else if(pos1 > pos2)
+      {
+        auto val = *(v.begin() + pos1);
+
+        v.insert(v.begin() + pos2, val);
+        v.erase(v.begin() + pos1 + 1);
+      }
+      //std::swap(*(v.begin() + pos1), *(v.begin() + pos2));
+    }
+    else if(pos1 < N && pos2 >= N)
+    {
+      auto it = v.begin() + pos1;
+      std::rotate(it, it + 1, v.end());
+    }
+    else if(pos2 < N && pos1 >= N)
+    {
+      auto it = v.begin() + pos2;
+      std::rotate(it, it + 1, v.end());
+    }
   }
   slotsSwapped(pos1, pos2, v);
 }

@@ -65,6 +65,7 @@ public:
   const IntervalModel& model() const;
 
   IntervalView* view() const;
+  IntervalHeader* header() const { return m_header; }
 
   virtual void on_zoomRatioChanged(ZoomRatio val);
   ZoomRatio zoomRatio() const
