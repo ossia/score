@@ -11,10 +11,10 @@ namespace Settings
 
 namespace Parameters
 {
-sp_(SimplificationRatio){QStringLiteral("score_plugin_curve/SimplificationRatio"), 10};
-sp_(Simplify){QStringLiteral("score_plugin_curve/Simplify"), true};
-sp_(CurveMode){QStringLiteral("score_plugin_curve/Mode"), Mode::Parameter};
-sp_(PlayWhileRecording){QStringLiteral("score_plugin_curve/PlayWhileRecording"), true};
+SETTINGS_PARAMETER_IMPL(SimplificationRatio){QStringLiteral("score_plugin_curve/SimplificationRatio"), 10};
+SETTINGS_PARAMETER_IMPL(Simplify){QStringLiteral("score_plugin_curve/Simplify"), true};
+SETTINGS_PARAMETER_IMPL(CurveMode){QStringLiteral("score_plugin_curve/Mode"), Mode::Parameter};
+SETTINGS_PARAMETER_IMPL(PlayWhileRecording){QStringLiteral("score_plugin_curve/PlayWhileRecording"), true};
 
 static auto list()
 {

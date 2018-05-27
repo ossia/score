@@ -3,13 +3,13 @@ namespace Audio::Settings
 {
 namespace Parameters
 {
-sp_(Driver){QStringLiteral("Audio/Driver"), "PortAudio"};
-sp_(CardIn){QStringLiteral("Audio/CardIn"), ""};
-sp_(CardOut){QStringLiteral("Audio/CardOut"), ""};
-sp_(BufferSize){QStringLiteral("Audio/BufferSize"), 64};
-sp_(Rate){QStringLiteral("Audio/SamplingRate"), 44100};
-sp_(DefaultIn){QStringLiteral("Audio/DefaultIn"), 8};
-sp_(DefaultOut){QStringLiteral("Audio/DefaultOut"), 8};
+SETTINGS_PARAMETER_IMPL(Driver){QStringLiteral("Audio/Driver"), "PortAudio"};
+SETTINGS_PARAMETER_IMPL(CardIn){QStringLiteral("Audio/CardIn"), ""};
+SETTINGS_PARAMETER_IMPL(CardOut){QStringLiteral("Audio/CardOut"), ""};
+SETTINGS_PARAMETER_IMPL(BufferSize){QStringLiteral("Audio/BufferSize"), 64};
+SETTINGS_PARAMETER_IMPL(Rate){QStringLiteral("Audio/SamplingRate"), 44100};
+SETTINGS_PARAMETER_IMPL(DefaultIn){QStringLiteral("Audio/DefaultIn"), 8};
+SETTINGS_PARAMETER_IMPL(DefaultOut){QStringLiteral("Audio/DefaultOut"), 8};
 
 static auto list()
 {

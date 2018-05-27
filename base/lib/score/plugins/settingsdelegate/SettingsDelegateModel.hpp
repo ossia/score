@@ -58,7 +58,7 @@ void setupDefaultSettings(QSettings& set, const T& tuple, Model& model)
 }
 }
 
-#define sp_(Name) const score::sp<Model::p_ ## Name> Name
+#define SETTINGS_PARAMETER_IMPL(Name) const score::sp<Model::p_ ## Name> Name
 
 #define SCORE_SETTINGS_COMMAND(ModelType, Name)                          \
   struct Set##ModelType##Name final                                      \
