@@ -42,10 +42,7 @@ void FullViewIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
     CommandDispatcher<>{this->m_context.commandStack}
     .submitCommand<Command::SwapSlots>(this->m_model, Slot::RackView::FullView, curslot, slot);
   }, Qt::QueuedConnection); // needed because else SlotHeader is removed and stopSlotDrag can't be called
-  connect(full_slot_drag_overlay, &SlotDragOverlay::dropIn,
-          this, [=] (int slot) {
 
-  }, Qt::QueuedConnection);
   full_slot_drag_overlay->setParentItem(view());
   full_slot_drag_overlay->onDrag(pos);
 }

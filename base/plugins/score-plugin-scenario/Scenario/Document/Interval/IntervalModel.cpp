@@ -376,7 +376,6 @@ void IntervalModel::swapSlots(int pos1, int pos2, Slot::RackView v)
 {
   SCORE_ASSERT(pos1 >= 0);
   SCORE_ASSERT(pos2 >= 0);
-  std::cerr << pos1 << " -> " << pos2 << "\n";
   if (v == Slot::FullView)
   {
     auto& v = m_fullView;

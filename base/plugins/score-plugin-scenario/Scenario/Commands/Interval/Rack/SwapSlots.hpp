@@ -32,5 +32,25 @@ private:
   Slot::RackView m_view{};
   int m_first{}, m_second{};
 };
+
+class MergeSlots final : public score::Command
+{
+  SCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MergeSlots, "Merge slots")
+public:
+  MergeSlots(const IntervalModel&, int pos1, int pos2);
+
+  void undo(const score::DocumentContext& ctx) const override;
+  void redo(const score::DocumentContext& ctx) const override;
+
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
+
+private:
+  Path<IntervalModel> m_path;
+  Scenario::Rack m_old{};
+  Scenario::Rack m_new{};
+};
+
 }
 }
