@@ -19,26 +19,26 @@ namespace Settings
 
 namespace Parameters
 {
-sp_(Clock){
+SETTINGS_PARAMETER_IMPL(Clock){
     QStringLiteral("score_plugin_engine/Clock"),
     Dataflow::ClockFactory::static_concreteKey()};
-sp_(Rate){QStringLiteral("score_plugin_engine/Rate"), 50};
-sp_(Scheduling){
+SETTINGS_PARAMETER_IMPL(Rate){QStringLiteral("score_plugin_engine/Rate"), 50};
+SETTINGS_PARAMETER_IMPL(Scheduling){
     QStringLiteral("score_plugin_engine/Scheduling"),
     SchedulingPolicies{}.StaticTC};
-sp_(Ordering){
+SETTINGS_PARAMETER_IMPL(Ordering){
     QStringLiteral("score_plugin_engine/Ordering"),
     OrderingPolicies{}.CreationOrder};
-sp_(Merging){QStringLiteral("score_plugin_engine/Merging"), MergingPolicies{}.Merge};
-sp_(Commit){QStringLiteral("score_plugin_engine/Commit"), CommitPolicies{}.Merged};
-sp_(Tick){QStringLiteral("score_plugin_engine/Tick"), TickPolicies{}.Buffer};
-sp_(Parallel){QStringLiteral("score_plugin_engine/Parallel"), true};
-sp_(ExecutionListening){QStringLiteral("score_plugin_engine/ExecListening"), true};
-sp_(Logging){QStringLiteral("score_plugin_engine/Logging"), true};
-sp_(Bench){QStringLiteral("score_plugin_engine/Bench"), true};
-sp_(ScoreOrder){QStringLiteral("score_plugin_engine/ScoreOrder"), false};
-sp_(ValueCompilation){QStringLiteral("score_plugin_engine/ValueCompilation"), true};
-sp_(TransportValueCompilation){QStringLiteral("score_plugin_engine/TransportValueCompilation"), false};
+SETTINGS_PARAMETER_IMPL(Merging){QStringLiteral("score_plugin_engine/Merging"), MergingPolicies{}.Merge};
+SETTINGS_PARAMETER_IMPL(Commit){QStringLiteral("score_plugin_engine/Commit"), CommitPolicies{}.Merged};
+SETTINGS_PARAMETER_IMPL(Tick){QStringLiteral("score_plugin_engine/Tick"), TickPolicies{}.Buffer};
+SETTINGS_PARAMETER_IMPL(Parallel){QStringLiteral("score_plugin_engine/Parallel"), true};
+SETTINGS_PARAMETER_IMPL(ExecutionListening){QStringLiteral("score_plugin_engine/ExecListening"), true};
+SETTINGS_PARAMETER_IMPL(Logging){QStringLiteral("score_plugin_engine/Logging"), true};
+SETTINGS_PARAMETER_IMPL(Bench){QStringLiteral("score_plugin_engine/Bench"), true};
+SETTINGS_PARAMETER_IMPL(ScoreOrder){QStringLiteral("score_plugin_engine/ScoreOrder"), false};
+SETTINGS_PARAMETER_IMPL(ValueCompilation){QStringLiteral("score_plugin_engine/ValueCompilation"), true};
+SETTINGS_PARAMETER_IMPL(TransportValueCompilation){QStringLiteral("score_plugin_engine/TransportValueCompilation"), false};
 
 static auto list()
 {

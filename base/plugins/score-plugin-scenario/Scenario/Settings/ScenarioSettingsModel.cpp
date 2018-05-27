@@ -15,14 +15,14 @@ namespace Settings
 {
 namespace Parameters
 {
-sp_(Skin){QStringLiteral("Skin/Skin"), "Default"};
-sp_(DefaultEditor){QStringLiteral("Skin/DefaultEditor"), ""};
-sp_(GraphicZoom){QStringLiteral("Skin/Zoom"), 1};
-sp_(SlotHeight){QStringLiteral("Skin/slotHeight"), 200};
-sp_(DefaultDuration){QStringLiteral("Skin/defaultDuration"), TimeVal::fromMsecs(15000)};
-sp_(SnapshotOnCreate){QStringLiteral("Scenario/SnapshotOnCreate"), false};
-sp_(AutoSequence){QStringLiteral("Scenario/AutoSequence"), true};
-sp_(TimeBar){QStringLiteral("Scenario/TimeBar"), true};
+SETTINGS_PARAMETER_IMPL(Skin){QStringLiteral("Skin/Skin"), "Default"};
+SETTINGS_PARAMETER_IMPL(DefaultEditor){QStringLiteral("Skin/DefaultEditor"), ""};
+SETTINGS_PARAMETER_IMPL(GraphicZoom){QStringLiteral("Skin/Zoom"), 1};
+SETTINGS_PARAMETER_IMPL(SlotHeight){QStringLiteral("Skin/slotHeight"), 200};
+SETTINGS_PARAMETER_IMPL(DefaultDuration){QStringLiteral("Skin/defaultDuration"), TimeVal::fromMsecs(15000)};
+SETTINGS_PARAMETER_IMPL(SnapshotOnCreate){QStringLiteral("Scenario/SnapshotOnCreate"), false};
+SETTINGS_PARAMETER_IMPL(AutoSequence){QStringLiteral("Scenario/AutoSequence"), true};
+SETTINGS_PARAMETER_IMPL(TimeBar){QStringLiteral("Scenario/TimeBar"), true};
 
 static auto list()
 {

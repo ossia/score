@@ -9,9 +9,9 @@ namespace Explorer::Settings
 {
 namespace Parameters
 {
-sp_(LocalTree){
+SETTINGS_PARAMETER_IMPL(LocalTree){
     QStringLiteral("score_plugin_engine/LocalTree"), true};
-sp_(LogLevel){
+SETTINGS_PARAMETER_IMPL(LogLevel){
     QStringLiteral("score_plugin_engine/LogLevel"),
     DeviceLogLevel{}.logEverything};
 
