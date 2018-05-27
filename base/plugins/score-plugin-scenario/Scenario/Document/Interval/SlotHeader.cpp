@@ -10,10 +10,12 @@
 #include <QGraphicsView>
 #include <QMimeData>
 #include <QWidget>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalHeader.hpp>
 #include <Scenario/Document/Interval/IntervalView.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
-
+#include <wobjectimpl.h>
 namespace Scenario
 {
 SlotHeader::SlotHeader(
@@ -182,4 +184,164 @@ void SlotHeader::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   event->accept();
 }
+
+SlotDragOverlay::SlotDragOverlay(const IntervalPresenter& c, Slot::RackView v)
+  : interval{c}
+  , view{v}
+{
+  this->setAcceptDrops(true);
+  this->setZValue(9999);
 }
+
+
+QRectF SlotDragOverlay::boundingRect() const
+{
+  auto rect = interval.view()->boundingRect();
+  rect.adjust(0, 0, 0, 10);
+  return rect;
+}
+
+
+void SlotDragOverlay::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+  const auto& style = ScenarioStyle::instance();
+  auto c = style.IntervalBase.getBrush().color();
+  c.setAlphaF(0.2);
+  painter->fillRect(interval.view()->boundingRect(), c);
+  painter->fillRect(m_drawnRect, QColor::fromRgbF(0.6, 0.6, 1., 0.8));
+  painter->setPen(QPen(QColor::fromRgbF(0.6, 0.6, 1., 0.7), 2));
+  painter->drawRect(m_drawnRect);
+}
+
+
+void SlotDragOverlay::onDrag(QPointF pos)
+{
+  const auto y = pos.y();
+  const auto& itv = interval.model();
+  const auto rect = interval.view()->boundingRect();
+
+  double height = interval.header()->headerHeight();
+
+  if(y <= height)
+  {
+    m_drawnRect = {0, height - 2.5, rect.width(), 5};
+    update();
+  }
+  else if(y > rect.height() - 5.)
+  {
+    m_drawnRect = {0, rect.height() - 5., rect.width(), 5};
+    update();
+  }
+  else
+  {
+    const int N = int(view == Slot::SmallView ? itv.smallView().size() : itv.fullView().size());
+    for (int i = 0; i < N; i++)
+    {
+      const auto next_height = itv.getSlotHeight({i, view}) + SlotHeader::headerHeight() + SlotHandle::handleHeight();
+      if(y > height - 2.5 && y < height + 2.5)
+      {
+        m_drawnRect = {0, height - 2.5, rect.width(), 5};
+        update();
+        break;
+      }
+      else if(y < height + next_height - 2.5)
+      {
+        m_drawnRect = {0, height, rect.width(), next_height};
+        update();
+        break;
+      }
+
+      height += next_height;
+    }
+
+    if(y > height - 2.5 && y < height + 2.5)
+    {
+      m_drawnRect = {0, height - 2.5, rect.width(), 5};
+      update();
+    }
+  }
+}
+
+
+void SlotDragOverlay::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
+{
+  m_drawnRect = {};
+
+  onDrag(event->pos());
+  event->accept();
+}
+
+
+void SlotDragOverlay::dragMoveEvent(QGraphicsSceneDragDropEvent* event)
+{
+  onDrag(event->pos());
+  event->accept();
+}
+
+
+void SlotDragOverlay::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
+{
+  m_drawnRect = {};
+  update();
+  event->accept();
+}
+
+
+void SlotDragOverlay::dropEvent(QGraphicsSceneDragDropEvent* event)
+{
+  event->accept();
+  const auto pos = event->pos();
+  const auto y = pos.y();
+  const auto rect = interval.view()->boundingRect();
+  const auto& itv = interval.model();
+  double height = interval.header()->headerHeight();
+  const int N = int(view == Slot::SmallView ? itv.smallView().size() : itv.fullView().size());
+
+  if(y <= height)
+  {
+    m_drawnRect = {0, height - 2.5, rect.width(), 5};
+    dropBefore(0);
+    update();
+  }
+  else if(y > rect.height() - 5.)
+  {
+    m_drawnRect = {0, rect.height() - 5., rect.width(), 5};
+    dropBefore(N);
+    update();
+  }
+  else
+  {
+    for (int i = 0; i < N; i++)
+    {
+      const auto next_height = itv.getSlotHeight({i, view}) + SlotHeader::headerHeight() + SlotHandle::handleHeight();
+      if(y > height - 2.5 && y < height + 2.5)
+      {
+        m_drawnRect = {0, height - 2.5, rect.width(), 5};
+        dropBefore(i);
+        update();
+        return;
+      }
+      else if(y < height + next_height - 2.5)
+      {
+        m_drawnRect = {0, height, rect.width(), next_height};
+        dropIn(i);
+        update();
+        return;
+      }
+
+      height += next_height;
+    }
+
+    if(y > height - 2.5 && y < height + 2.5)
+    {
+      m_drawnRect = {0, height - 2.5, rect.width(), 5};
+      dropBefore(N);
+      update();
+      return;
+    }
+  }
+}
+
+}
+
+W_OBJECT_IMPL(Scenario::SlotDragOverlay)
