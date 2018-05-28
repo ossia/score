@@ -304,13 +304,32 @@ void TemporalIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
   temporal_slot_drag_overlay = new SlotDragOverlay{*this, Slot::SmallView};
   connect(temporal_slot_drag_overlay, &SlotDragOverlay::dropBefore,
           this, [=] (int slot) {
-    CommandDispatcher<>{this->m_context.commandStack}
-    .submitCommand<Command::SwapSlots>(this->m_model, Slot::RackView::SmallView, curslot, slot);
+    if(slot == curslot)
+      return;
+    CommandDispatcher<> disp{this->m_context.commandStack};
+    if(qApp->keyboardModifiers() & Qt::ALT || m_model.smallView()[curslot].processes.size() == 1)
+    {
+      disp.submitCommand<Command::MoveSlot>(this->m_model, Slot::RackView::SmallView, curslot, slot);
+    }
+    else
+    {
+      disp.submitCommand<Command::MoveLayerInNewSlot>(this->m_model, curslot, slot);
+    }
   }, Qt::QueuedConnection); // needed because else SlotHeader is removed and stopSlotDrag can't be called
   connect(temporal_slot_drag_overlay, &SlotDragOverlay::dropIn,
           this, [=] (int slot) {
-    CommandDispatcher<>{this->m_context.commandStack}
-    .submitCommand<Command::MergeSlots>(this->m_model, curslot, slot);
+    if(slot == curslot)
+      return;
+
+    CommandDispatcher<> disp{this->m_context.commandStack};
+    if(qApp->keyboardModifiers() & Qt::ALT || m_model.smallView()[curslot].processes.size() == 1)
+    {
+      disp.submitCommand<Command::MergeSlots>(this->m_model, curslot, slot);
+    }
+    else
+    {
+      disp.submitCommand<Command::MergeLayerInSlot>(this->m_model, curslot, slot);
+    }
 
   }, Qt::QueuedConnection);
   temporal_slot_drag_overlay->setParentItem(view());

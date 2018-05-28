@@ -7,12 +7,13 @@
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
-
+#include <score/application/ApplicationContext.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 namespace Scenario
 {
 namespace Command
 {
-SwapSlots::SwapSlots(
+MoveSlot::MoveSlot(
     Path<IntervalModel>&& rack, Slot::RackView v, int first, int second)
     : m_path{std::move(rack)}
     , m_view{v}
@@ -21,32 +22,60 @@ SwapSlots::SwapSlots(
 {
 }
 
-void SwapSlots::undo(const score::DocumentContext& ctx) const
+void MoveSlot::undo(const score::DocumentContext& ctx) const
 {
   redo(ctx);
 }
 
-void SwapSlots::redo(const score::DocumentContext& ctx) const
+void MoveSlot::redo(const score::DocumentContext& ctx) const
 {
   auto& cst = m_path.find(ctx);
   cst.swapSlots(m_first, m_second, m_view);
 }
 
-void SwapSlots::serializeImpl(DataStreamInput& s) const
+void MoveSlot::serializeImpl(DataStreamInput& s) const
 {
   s << m_path << m_view << m_first << m_second;
 }
 
-void SwapSlots::deserializeImpl(DataStreamOutput& s)
+void MoveSlot::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_path >> m_view >> m_first >> m_second;
 }
 
+SlotCommand::SlotCommand(const IntervalModel& c):
+  m_path{c}
+, m_old{c.smallView()}
+, m_new{m_old}
+{
+
+}
+
+void SlotCommand::undo(const score::DocumentContext& ctx) const
+{
+  auto& cst = m_path.find(ctx);
+  cst.replaceSmallView(m_old);
+}
+
+void SlotCommand::redo(const score::DocumentContext& ctx) const
+{
+  auto& cst = m_path.find(ctx);
+  cst.replaceSmallView(m_new);
+}
+
+void SlotCommand::serializeImpl(DataStreamInput& s) const
+{
+  s << m_path << m_old << m_new;
+}
+
+void SlotCommand::deserializeImpl(DataStreamOutput& s)
+{
+  s >> m_path >> m_old >> m_new;
+}
+
 MergeSlots::MergeSlots(
     const IntervalModel& rack, int first, int second)
-    : m_path{rack}
-    , m_old{rack.smallView()}
-    , m_new{rack.smallView()}
+    : SlotCommand{rack}
 {
   auto& source = m_old[first];
   auto& target = m_new[second];
@@ -55,26 +84,67 @@ MergeSlots::MergeSlots(
   m_new.erase(m_new.begin() + first);
 }
 
-void MergeSlots::undo(const score::DocumentContext& ctx) const
+
+MoveLayerInNewSlot::MoveLayerInNewSlot(
+    const IntervalModel& rack, int first, int second)
+  : SlotCommand{rack}
 {
-  auto& cst = m_path.find(ctx);
-  cst.replaceSmallView(m_old);
+  auto source = m_old[first];
+  Scenario::Slot newSlot;
+  newSlot.processes.push_back(*source.frontProcess);
+  newSlot.frontProcess = *source.frontProcess;
+  newSlot.height = score::AppContext().settings<Scenario::Settings::Model>().getSlotHeight();
+
+  auto it = ossia::find(source.processes, *source.frontProcess);
+  SCORE_ASSERT(it != source.processes.end());
+  source.processes.erase(it);
+
+  if(source.processes.empty())
+  {
+    m_new.insert(m_new.begin() + second, newSlot);
+    if(first < second)
+    {
+      m_new.erase(m_new.begin() + first);
+    }
+    else if(first > second)
+    {
+      m_new.erase(m_new.begin() + first + 1);
+    }
+  }
+  else
+  {
+    source.frontProcess = source.processes.front();
+    m_new[first] = source;
+    m_new.insert(m_new.begin() + second, newSlot);
+  }
 }
 
-void MergeSlots::redo(const score::DocumentContext& ctx) const
+MergeLayerInSlot::MergeLayerInSlot(
+    const IntervalModel& rack, int first, int second)
+  : SlotCommand{rack}
 {
-  auto& cst = m_path.find(ctx);
-  cst.replaceSmallView(m_new);
+  auto source = m_old[first];
+  auto target = m_old[second];
+
+  target.processes.push_back(*source.frontProcess);
+  target.frontProcess = source.frontProcess;
+
+  auto it = ossia::find(source.processes, *source.frontProcess);
+  SCORE_ASSERT(it != source.processes.end());
+  source.processes.erase(it);
+
+  if(source.processes.empty())
+  {
+    m_new[second] = target;
+    m_new.erase(m_new.begin() + first);
+  }
+  else
+  {
+    source.frontProcess = source.processes.front();
+    m_new[first] = source;
+    m_new[second] = target;
+  }
 }
 
-void MergeSlots::serializeImpl(DataStreamInput& s) const
-{
-  s << m_path << m_old << m_new;
-}
-
-void MergeSlots::deserializeImpl(DataStreamOutput& s)
-{
-  s >> m_path >> m_old >> m_new;
-}
 }
 }

@@ -187,29 +187,6 @@ void ScenarioContextMenuManager::createSlotContextMenu(
     disp.commit();
   });
   menu.addAction(duplProcessInNewSlot);
-
-  if (slot_index > 0)
-  {
-    auto move_upwards = new QAction{tr("Move upwards"), &menu};
-    QObject::connect(move_upwards, &QAction::triggered, [=, &ctx, &interval] {
-      CommandDispatcher<> disp{ctx.commandStack};
-      disp.submitCommand<Command::SwapSlots>(
-          interval, Slot::FullView, slot_index, slot_index - 1);
-    });
-    menu.addAction(move_upwards);
-  }
-
-  if (slot_index < int(interval.fullView().size()) - 1)
-  {
-    auto move_downwards = new QAction{tr("Move downwards"), &menu};
-    QObject::connect(
-        move_downwards, &QAction::triggered, [=, &ctx, &interval] {
-          CommandDispatcher<> disp{ctx.commandStack};
-          disp.submitCommand<Command::SwapSlots>(
-              interval, Slot::FullView, slot_index, slot_index + 1);
-        });
-    menu.addAction(move_downwards);
-  }
 }
 
 void ScenarioContextMenuManager::createProcessSelectorContextMenu(

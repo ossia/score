@@ -14,11 +14,11 @@ namespace Scenario
 class IntervalModel;
 namespace Command
 {
-class SwapSlots final : public score::Command
+class MoveSlot final : public score::Command
 {
-  SCORE_COMMAND_DECL(ScenarioCommandFactoryName(), SwapSlots, "Swap slots")
+  SCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveSlot, "Swap slots")
 public:
-  SwapSlots(Path<IntervalModel>&& rack, Slot::RackView, int pos1, int pos2);
+  MoveSlot(Path<IntervalModel>&& rack, Slot::RackView, int pos1, int pos2);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
@@ -33,12 +33,11 @@ private:
   int m_first{}, m_second{};
 };
 
-class MergeSlots final : public score::Command
+class SlotCommand : public score::Command
 {
-  SCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MergeSlots, "Merge slots")
 public:
-  MergeSlots(const IntervalModel&, int pos1, int pos2);
-
+  SlotCommand() = default;
+  SlotCommand(const IntervalModel& c);
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
@@ -46,10 +45,32 @@ protected:
   void serializeImpl(DataStreamInput&) const override;
   void deserializeImpl(DataStreamOutput&) override;
 
-private:
   Path<IntervalModel> m_path;
   Scenario::Rack m_old{};
   Scenario::Rack m_new{};
+};
+
+class MoveLayerInNewSlot final : public SlotCommand
+{
+  SCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveLayerInNewSlot, "Move layer in new slot")
+public:
+  MoveLayerInNewSlot(const IntervalModel&, int pos1, int pos2);
+};
+
+class MergeSlots final : public SlotCommand
+{
+  SCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MergeSlots, "Merge slots")
+
+public:
+  MergeSlots(const IntervalModel&, int pos1, int pos2);
+};
+
+class MergeLayerInSlot final : public SlotCommand
+{
+  SCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MergeLayerInSlot, "Merge layer")
+
+public:
+  MergeLayerInSlot(const IntervalModel&, int pos1, int pos2);
 };
 
 }
