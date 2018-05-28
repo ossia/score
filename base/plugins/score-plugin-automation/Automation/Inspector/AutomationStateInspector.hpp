@@ -17,8 +17,6 @@ public:
       QWidget* parent = nullptr);
 
 private:
-  QString tabName() override;
-
   void on_stateChanged();
 
   const ProcessState& m_state;

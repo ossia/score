@@ -37,8 +37,6 @@ public:
   void expandEventSection(bool b) W_SIGNAL(expandEventSection, b);
 
 private:
-  QString tabName() override;
-
   void updateDisplayedValues();
   void on_conditionChanged();
   void on_conditionReset();

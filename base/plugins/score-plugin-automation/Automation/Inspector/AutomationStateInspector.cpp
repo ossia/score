@@ -18,7 +18,7 @@ StateInspectorWidget::StateInspectorWidget(
     const ProcessState& object,
     const score::DocumentContext& doc,
     QWidget* parent)
-    : InspectorWidgetBase{object, doc, parent, tabName()}
+    : InspectorWidgetBase{object, doc, parent, tr("State")}
     , m_state{object}
     , m_label{new TextLabel}
 {
@@ -38,8 +38,4 @@ void StateInspectorWidget::on_stateChanged()
   m_label->setText(m_state.message().toString());
 }
 
-QString StateInspectorWidget::tabName()
-{
-  return tr("State");
-}
 }

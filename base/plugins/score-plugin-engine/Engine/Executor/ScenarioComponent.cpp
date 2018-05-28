@@ -588,10 +588,10 @@ void ScenarioComponentBase::timeSyncCallback(
       auto ossiaCstr = cstr.second->OSSIAInterval();
 
       auto tmin = m_properties.intervals[cstr.first].newMin.msec();
-      ossiaCstr->set_min_duration(ossia::time_value{tmin});
+      ossiaCstr->set_min_duration(ossia::time_value{int64_t(tmin)});
 
       auto tmax = m_properties.intervals[cstr.first].newMax.msec();
-      ossiaCstr->set_max_duration(ossia::time_value{tmax});
+      ossiaCstr->set_max_duration(ossia::time_value{int64_t(tmax)});
     }
   }
 }

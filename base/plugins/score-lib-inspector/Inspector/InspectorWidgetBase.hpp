@@ -44,9 +44,6 @@ public:
       QString name);
   ~InspectorWidgetBase();
 
-  // By default returns the name of the object.
-  virtual QString tabName();
-
   const score::DocumentContext& context() const
   {
     return m_context;

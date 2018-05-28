@@ -56,12 +56,11 @@ MetadataWidget::MetadataWidget(
     , m_metadataLayout{this}
     , m_descriptionWidget{this}
     , m_descriptionLay{&m_descriptionWidget}
-    , m_scriptingNameLine{metadata.getName(), this}
     , m_labelLine{metadata.getLabel(), this}
     , m_comments{metadata.getComment(), this}
     , m_colorButton{this}
     , m_cmtBtn{this}
-    , m_meta{metadata.getExtendedMetadata(), this}
+    // , m_meta{metadata.getExtendedMetadata(), this}
 {
   // main
   m_metadataLayout.setSizeConstraint(QLayout::SetMinimumSize);
@@ -69,10 +68,10 @@ MetadataWidget::MetadataWidget(
   m_headerLay.addLayout(&m_btnLay);
 
   // Name(s)
-  m_descriptionLay.addRow(tr("Name"), &m_scriptingNameLine);
   m_descriptionLay.addRow(tr("Label"), &m_labelLine);
-
   m_descriptionWidget.setObjectName("Description");
+  con(metadata, &score::ModelMetadata::LabelChanged,
+      this, [=] (const auto& str) { m_labelLine.setText(str); });
 
   // color
   m_colorButton.setArrowType(Qt::NoArrow);
@@ -85,31 +84,31 @@ MetadataWidget::MetadataWidget(
   m_cmtBtn.setArrowType(Qt::RightArrow);
   m_cmtBtn.setIconSize({4, 4});
   m_cmtLay.addWidget(&m_cmtBtn);
-  m_cmtLabel = new TextLabel{tr("properties & comments"), this};
+  m_cmtLabel = new TextLabel{tr("Comments"), this};
   m_cmtLay.addWidget(m_cmtLabel);
 
-  m_meta.setVisible(false);
+  con(metadata, &score::ModelMetadata::CommentChanged,
+      this, [=] (const auto& str) { m_comments.setText(str); });
+
+  //m_meta.setVisible(false);
 
   m_btnLay.addWidget(&m_colorButton);
   m_btnLay.addLayout(&m_cmtLay);
 
   m_headerLay.addWidget(&m_descriptionWidget);
 
-  m_metadataLayout.addWidget(&m_meta);
+  //m_metadataLayout.addWidget(&m_meta);
   m_metadataLayout.addWidget(&m_comments);
 
   con(m_cmtBtn, &QToolButton::released, this, [&]() {
     m_cmtExpanded = !m_cmtExpanded;
     m_comments.setVisible(m_cmtExpanded);
-    m_meta.setVisible(m_cmtExpanded);
+    //m_meta.setVisible(m_cmtExpanded);
     if (m_cmtExpanded)
       m_cmtBtn.setArrowType(Qt::DownArrow);
     else
       m_cmtBtn.setArrowType(Qt::RightArrow);
   });
-
-  con(m_scriptingNameLine, &QLineEdit::editingFinished,
-      [=]() { scriptingNameChanged(m_scriptingNameLine.text()); });
 
   con(m_labelLine, &QLineEdit::editingFinished,
       [=]() { labelChanged(m_labelLine.text()); });
@@ -117,10 +116,11 @@ MetadataWidget::MetadataWidget(
   con(m_comments, &CommentEdit::editingFinished,
       [=]() { commentsChanged(m_comments.toPlainText()); });
 
+  /*
   con(m_meta, &ExtendedMetadataWidget::dataChanged, this,
       [=]() { extendedMetadataChanged(m_meta.currentMap()); },
       Qt::QueuedConnection);
-
+  */
   {
     using namespace color_widgets;
     static auto& palette = colorPalette();
@@ -144,7 +144,7 @@ MetadataWidget::MetadataWidget(
             if (col)
               colorChanged(*col);
           }
-        });
+    });
 
     auto colorMenu = new QMenu{this};
     auto act = new QWidgetAction(colorMenu);
@@ -158,6 +158,11 @@ MetadataWidget::MetadataWidget(
     m_colorButtonPixmap.fill(metadata.getColor().getBrush().color());
     m_colorButton.setIcon(QIcon(m_colorButtonPixmap));
     m_colorButton.setIconSize(QSize(m_colorIconSize, m_colorIconSize));
+
+    // TODO
+    con(metadata, &score::ModelMetadata::ColorChanged,
+        this, [=] (const auto& str) {  });
+
   }
 
   con(metadata, &score::ModelMetadata::metadataChanged, this,
@@ -169,28 +174,11 @@ MetadataWidget::~MetadataWidget()
 {
 }
 
-QString MetadataWidget::scriptingName() const
-{
-  return m_scriptingNameLine.text();
-}
-
-void MetadataWidget::setScriptingName(QString arg)
-{
-  if (m_scriptingNameLine.text() == arg)
-  {
-    return;
-  }
-
-  m_scriptingNameLine.setText(arg);
-  scriptingNameChanged(arg);
-}
-
 void MetadataWidget::updateAsked()
 {
-  m_scriptingNameLine.setText(m_metadata.getName());
   m_labelLine.setText(m_metadata.getLabel());
   m_comments.setText(m_metadata.getComment());
-  m_meta.update(m_metadata.getExtendedMetadata());
+  // m_meta.update(m_metadata.getExtendedMetadata());
 
   m_colorButtonPixmap.fill(m_metadata.getColor().getBrush().color());
   m_colorButton.setIcon(QIcon(m_colorButtonPixmap));

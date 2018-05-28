@@ -85,7 +85,7 @@ SCORE_PLUGIN_ENGINE_EXPORT inline ossia::time_value
 defaultTime(const TimeVal& t)
 {
   return t.isInfinite() ? ossia::Infinite
-                        : ossia::time_value{t.msec() * 1000.};
+                        : ossia::time_value{int64_t(t.msec() * 1000)};
 }
 
 SCORE_PLUGIN_ENGINE_EXPORT void state(

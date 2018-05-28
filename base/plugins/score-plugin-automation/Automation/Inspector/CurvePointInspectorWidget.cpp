@@ -26,7 +26,7 @@ PointInspectorWidget::PointInspectorWidget(
     const Curve::PointModel& model,
     const score::DocumentContext& doc,
     QWidget* parent)
-    : InspectorWidgetBase{model, doc, parent, tabName()}
+    : InspectorWidgetBase{model, doc, parent, tr("Point")}
     , m_model{model}
     , m_dispatcher{commandDispatcher()->stack()}
 {
@@ -124,8 +124,4 @@ void PointInspectorWidget::on_editFinished()
   m_dispatcher.commit();
 }
 
-QString PointInspectorWidget::tabName()
-{
-  return tr("Point");
-}
 }

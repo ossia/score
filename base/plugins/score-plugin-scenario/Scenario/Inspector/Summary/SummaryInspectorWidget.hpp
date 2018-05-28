@@ -32,8 +32,6 @@ public:
       QWidget* parent = nullptr);
   ~SummaryInspectorWidget() override;
 
-  QString tabName() override;
-
   void update(const QList<const IdentifiedObjectAbstract*>&);
 
 private:

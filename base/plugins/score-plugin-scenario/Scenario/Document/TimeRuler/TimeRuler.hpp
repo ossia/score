@@ -46,7 +46,6 @@ public:
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
-  void setHeight(qreal newHeight);
   void setWidth(qreal newWidth);
 
   qreal graduationSpacing() const
@@ -89,13 +88,10 @@ private:
 
   std::vector<Mark> m_marks;
 
-  qreal m_height{};
   qreal m_width{};
 
   qreal m_graduationsSpacing{};
-  qreal m_textPosition{};
   qreal m_graduationDelta{};
-  qreal m_graduationHeight{};
   qreal m_intervalsBetweenMark{};
   Format m_timeFormat{};
 
@@ -106,5 +102,9 @@ private:
   QGlyphRun getGlyphs(std::chrono::microseconds);
   QTextLayout m_layout;
   std::deque<std::pair<std::chrono::microseconds, QGlyphRun>> m_stringCache;
+
+  static const constexpr qreal graduationHeight = -15.;
+  static const constexpr qreal timeRulerHeight = -2. * graduationHeight;
+  static const constexpr qreal textPosition = 1.65 * graduationHeight;
 };
 }

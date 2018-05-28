@@ -605,35 +605,63 @@ bool ObjectItemModel::setData(
       return {};
 
     CommandDispatcher<> disp{m_ctx.commandStack};
+    auto new_name = value.toString();
+
+    auto sanitize = [&] (auto* ptr) {
+      if (new_name == ptr->metadata().getName())
+        return false;
+      using T = std::remove_reference_t<decltype(*ptr)>;
+      if(new_name.isEmpty())
+        new_name = QString("%1.0").arg(Metadata<PrettyName_k, T>::get());
+      return true;
+    };
+
 
     if (auto cst = qobject_cast<Scenario::IntervalModel*>(sel))
     {
+      if(!sanitize(cst))
+        return false;
+
       disp.submitCommand<Command::ChangeElementName<Scenario::IntervalModel>>(
-          *cst, value.toString());
+          *cst, new_name);
       return true;
     }
     else if (auto ev = qobject_cast<Scenario::EventModel*>(sel))
     {
+      if(!sanitize(ev))
+        return false;
+
       disp.submitCommand<Command::ChangeElementName<Scenario::EventModel>>(
-          *ev, value.toString());
+          *ev, new_name);
       return true;
     }
     else if (auto tn = qobject_cast<Scenario::TimeSyncModel*>(sel))
     {
+      if(!sanitize(tn))
+        return false;
+
       disp.submitCommand<Command::ChangeElementName<Scenario::TimeSyncModel>>(
-          *tn, value.toString());
+          *tn, new_name);
       return true;
     }
     else if (auto st = qobject_cast<Scenario::StateModel*>(sel))
     {
+      if(!sanitize(st))
+        return false;
+
       disp.submitCommand<Command::ChangeElementName<Scenario::StateModel>>(
-          *st, value.toString());
+          *st, new_name);
       return true;
     }
     else if (auto p = qobject_cast<Process::ProcessModel*>(sel))
     {
+      if (new_name == p->metadata().getName())
+        return false;
+      if(new_name.isEmpty())
+        new_name = QString("%1.0").arg(p->objectName());
+
       disp.submitCommand<Command::ChangeElementName<Process::ProcessModel>>(
-          *p, value.toString());
+          *p, new_name);
       return true;
     }
   }

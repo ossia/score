@@ -150,7 +150,7 @@ struct Node
     // end it too.
 
     auto start = startq.rbegin()->second;
-    auto precision = tightness.rbegin()->second;
+    double precision = tightness.rbegin()->second;
     auto duration = dur.rbegin()->second;
     auto shiftnote = shift_note.rbegin()->second;
     auto base_note = midi_clamp(basenote.rbegin()->second);
@@ -205,8 +205,7 @@ struct Node
           // Find next time that matches the requested quantification
           const auto start_q = whole_samples * start;
           auto perf_date = int64_t(start_q * int64_t(1 + tk.date / start_q));
-          auto actual_date
-              = (1. - precision) * tk.date + precision * perf_date;
+          int64_t actual_date = (1. - precision) * tk.date + precision * perf_date;
           ossia::time_value next_date{actual_date};
           self.to_start.push_back({note, next_date});
         }
