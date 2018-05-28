@@ -123,7 +123,7 @@ class ClockFactory final : public Engine::Execution::ClockManagerFactory
     return [=](const TimeVal& v) -> ossia::time_value {
       return v.isInfinite()
                  ? ossia::Infinite
-                 : ossia::time_value(std::llround(rate * v.msec() / 1000.));
+                 : ossia::time_value{std::llround(rate * v.msec() / 1000.)};
     };
   }
 

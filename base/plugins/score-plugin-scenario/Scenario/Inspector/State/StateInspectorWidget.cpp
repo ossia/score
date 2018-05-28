@@ -167,7 +167,7 @@ StateInspectorWidget::StateInspectorWidget(
     const StateModel& object,
     const score::DocumentContext& doc,
     QWidget* parent)
-    : Inspector::InspectorWidgetBase{object, doc, parent, tabName()}
+    : Inspector::InspectorWidgetBase{object, doc, parent, tr("State (%1)").arg(object.metadata().getName())}
     , m_model{object}
     , m_context{doc}
     , m_commandDispatcher{m_context.commandStack}
@@ -300,10 +300,5 @@ void StateInspectorWidget::splitFromNode()
       }
     }
   }
-}
-
-QString StateInspectorWidget::tabName()
-{
-  return tr("State");
 }
 }

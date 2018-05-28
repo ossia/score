@@ -46,7 +46,7 @@ TimeSyncInspectorWidget::TimeSyncInspectorWidget(
     const TimeSyncModel& object,
     const score::DocumentContext& ctx,
     QWidget* parent)
-    : InspectorWidgetBase{object, ctx, parent, tabName()}, m_model{object}
+    : InspectorWidgetBase{object, ctx, parent, tr("Sync (%1)").arg(object.metadata().getName())}, m_model{object}
 {
   setObjectName("TimeSyncInspectorWidget");
   setParent(parent);
@@ -75,11 +75,6 @@ TimeSyncInspectorWidget::TimeSyncInspectorWidget(
 
   con(m_model, &TimeSyncModel::dateChanged, this,
       &TimeSyncInspectorWidget::on_dateChanged);
-}
-
-QString TimeSyncInspectorWidget::tabName()
-{
-  return tr("Sync");
 }
 
 void TimeSyncInspectorWidget::updateDisplayedValues()

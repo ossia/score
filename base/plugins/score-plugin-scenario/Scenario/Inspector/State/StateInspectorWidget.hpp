@@ -17,8 +17,6 @@ public:
       QWidget* parent);
 
 private:
-  QString tabName() override;
-
   void splitFromEvent();
   void splitFromNode();
   void updateDisplayedValues();

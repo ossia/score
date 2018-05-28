@@ -22,7 +22,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
     const IntervalModel& object,
     const score::DocumentContext& ctx,
     QWidget* parent)
-    : InspectorWidgetBase{object, ctx, parent, tabName()}
+    : InspectorWidgetBase{object, ctx, parent, tr("Interval (%1)").arg(object.metadata().getName())}
     , m_widgetList{widg}
     , m_model{object}
 {
@@ -146,11 +146,6 @@ IntervalInspectorWidget::~IntervalInspectorWidget() = default;
 IntervalModel& IntervalInspectorWidget::model() const
 {
   return const_cast<IntervalModel&>(m_model);
-}
-
-QString IntervalInspectorWidget::tabName()
-{
-  return tr("Interval");
 }
 
 void IntervalInspectorWidget::updateDisplayedValues()

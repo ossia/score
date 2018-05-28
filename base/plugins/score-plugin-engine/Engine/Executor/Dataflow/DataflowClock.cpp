@@ -159,7 +159,7 @@ ClockFactory::makeTimeFunction(const score::DocumentContext& ctx) const
     // x ms    = k samples
     return v.isInfinite()
                ? ossia::Infinite
-               : ossia::time_value(std::llround(rate * v.msec() / 1000.));
+               : ossia::time_value{int64_t(std::llround(rate * v.msec() / 1000.))};
   };
 }
 

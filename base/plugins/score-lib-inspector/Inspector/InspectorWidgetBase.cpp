@@ -57,11 +57,6 @@ InspectorWidgetBase::~InspectorWidgetBase()
   delete m_commandDispatcher;
 }
 
-QString InspectorWidgetBase::tabName()
-{
-  return m_inspectedObject.objectName();
-}
-
 void InspectorWidgetBase::updateSectionsView(
     QVBoxLayout* layout, const std::vector<QWidget*>& contents)
 {

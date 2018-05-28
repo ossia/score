@@ -25,7 +25,7 @@ SummaryInspectorWidget::SummaryInspectorWidget(
     const std::set<const StateModel*>& states,
     const score::DocumentContext& context,
     QWidget* parent)
-    : InspectorWidgetBase{*obj, context, parent, tabName()}
+    : InspectorWidgetBase{*obj, context, parent, tr("Summary")}
 {
   setObjectName("SummaryInspectorWidget");
   setParent(parent);
@@ -66,11 +66,6 @@ SummaryInspectorWidget::SummaryInspectorWidget(
 
 SummaryInspectorWidget::~SummaryInspectorWidget()
 {
-}
-
-QString SummaryInspectorWidget::tabName()
-{
-  return tr("Summary");
 }
 
 void SummaryInspectorWidget::update(

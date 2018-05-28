@@ -22,7 +22,7 @@ StepComponent::StepComponent(
   auto node = std::make_shared<ossia::nodes::step>();
   this->node = node;
   m_ossia_process = std::make_shared<ossia::node_process>(node);
-  node->dur = ossia::time_value(element.stepDuration());
+  node->dur = ossia::time_value{int64_t(element.stepDuration())};
 
   recompute();
   con(element, &Media::Step::Model::stepsChanged, this,
@@ -33,7 +33,7 @@ StepComponent::StepComponent(
       &StepComponent::recompute);
   con(element, &Media::Step::Model::stepDurationChanged, this, [=] {
     in_exec([node, dur = process().stepDuration()]() mutable {
-      node->dur = ossia::time_value(dur);
+      node->dur = ossia::time_value{int64_t(dur)};
     });
   });
 }

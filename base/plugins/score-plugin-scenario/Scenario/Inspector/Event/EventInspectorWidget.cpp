@@ -52,7 +52,7 @@ EventInspectorWidget::EventInspectorWidget(
     const EventModel& object,
     const score::DocumentContext& doc,
     QWidget* parent)
-    : Inspector::InspectorWidgetBase{object, doc, parent, tabName()}
+    : Inspector::InspectorWidgetBase{object, doc, parent, tr("Event (%1)").arg(object.metadata().getName())}
     , m_model{&object}
     , m_context{doc}
     , m_commandDispatcher{doc.commandStack}
@@ -213,8 +213,4 @@ void EventInspectorWidget::on_conditionReset()
   m_commandDispatcher.submitCommand(cmd);
 }
 
-QString EventInspectorWidget::tabName()
-{
-  return tr("Event");
-}
 }

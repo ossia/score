@@ -29,8 +29,6 @@ public:
       QWidget* parent);
 
 private:
-  QString tabName() override;
-
   void updateDisplayedValues();
   void on_dateChanged(const TimeVal&);
 

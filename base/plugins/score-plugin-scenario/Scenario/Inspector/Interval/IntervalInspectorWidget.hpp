@@ -51,7 +51,6 @@ public:
   }
 
 private:
-  QString tabName() override;
   void updateDisplayedValues();
 
   // These methods are used to display created things

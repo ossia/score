@@ -58,7 +58,6 @@ TimeRuler::TimeRuler(QGraphicsView* v)
     : m_width{800}
     , m_graduationsSpacing{10}
     , m_graduationDelta{10}
-    , m_graduationHeight{-15}
     , m_intervalsBetweenMark{1}
     , m_viewport{v->viewport()}
 {
@@ -67,14 +66,12 @@ TimeRuler::TimeRuler(QGraphicsView* v)
   m_layout.setFont(score::Skin::instance().MonoFont);
 
   this->setCacheMode(QGraphicsItem::NoCache);
-  m_height = -2 * m_graduationHeight;
-  m_textPosition = 1.65 * m_graduationHeight;
   this->setX(10);
 }
 
 QRectF TimeRuler::boundingRect() const
 {
-  return QRectF{0, -m_height, m_width * 2, m_height};
+  return QRectF{0, -timeRulerHeight, m_width * 2, timeRulerHeight};
 }
 void TimeRuler::paint(
     QPainter* p, const QStyleOptionGraphicsItem* option, QWidget* widget)
@@ -94,15 +91,9 @@ void TimeRuler::paint(
 
     for (const Mark& mark : m_marks)
     {
-      painter.drawGlyphRun({mark.pos + 6., m_textPosition}, mark.text);
+      painter.drawGlyphRun({mark.pos + 6., textPosition}, mark.text);
     }
   }
-}
-
-void TimeRuler::setHeight(qreal newHeight)
-{
-  prepareGeometryChange();
-  m_height = newHeight;
 }
 
 void TimeRuler::setWidth(qreal newWidth)
@@ -210,7 +201,7 @@ void TimeRuler::createRulerPath()
     if (res == 0)
     {
       m_marks.emplace_back(Mark{t, time, getGlyphs(time)});
-      m_path.addRect(t, 0., 1., m_graduationHeight * 3.);
+      m_path.addRect(t, 0., 1., graduationHeight * 3.);
     }
 
     t += m_graduationsSpacing;
