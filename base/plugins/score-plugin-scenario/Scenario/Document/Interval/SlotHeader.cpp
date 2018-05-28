@@ -174,9 +174,11 @@ void SlotHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     drag->setPixmap(view->pixmap());
     drag->setHotSpot(QPoint(5, 5));
 
+    QObject::connect(drag, &QDrag::destroyed, &m_presenter, [p=&m_presenter] { p->stopSlotDrag(); });
+
     m_presenter.startSlotDrag(m_slotIndex, mapToParent(event->pos()));
     drag->exec();
-    m_presenter.stopSlotDrag();
+    drag->deleteLater();
   }
 }
 
