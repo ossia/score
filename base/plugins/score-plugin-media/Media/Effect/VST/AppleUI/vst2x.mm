@@ -86,7 +86,7 @@ VSTWindow::VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx)
   subviews = [superview subviews];
   auto m_view = [[subviews objectAtIndex:0] retain];
 
-  [[NSNotificationCenter defaultCenter] addObserverForName:@"NSViewFrameDidChangeNotification" object:m_view queue:nil usingBlock:^(NSNotification* notification) {
+  [[NSNotificationCenter defaultCenter] addObserverForName:@"NSViewFrameDidChangeNotification" object:m_view queue:nullptr usingBlock:^(NSNotification* notification) {
       Q_UNUSED(notification);
 
       //qDebug() << "adjust editor size to" << sizeHint();
