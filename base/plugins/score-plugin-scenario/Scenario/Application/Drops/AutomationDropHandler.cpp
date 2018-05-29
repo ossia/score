@@ -9,6 +9,7 @@
 #include <Process/ProcessMimeSerialization.hpp>
 #include <Scenario/Commands/Cohesion/CreateCurves.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
+#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -121,6 +122,50 @@ bool DropPortInScenario::drop(
       m.rollback();
       return false;
     }
+
+    // Finally we show the newly created rack
+    auto show_cmd = new Scenario::Command::ShowRack{interval};
+    m.submitCommand(show_cmd);
+
+    m.commit();
+    return true;
+  }
+
+  return false;
+}
+
+bool DropLayerInScenario::drop(
+    const TemporalScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
+{
+  if (mime.formats().contains(score::mime::layerdata()))
+  {
+    RedoMacroCommandDispatcher<Scenario::Command::AddProcessInNewBoxMacro> m{
+        pres.context().context.commandStack};
+
+    // Create a box.
+    const Scenario::ProcessModel& scenar = pres.model();
+    Scenario::Point pt = pres.toScenarioPoint(pos);
+
+    auto json = QJsonDocument::fromJson(mime.data(score::mime::layerdata())).object();
+
+    // 5 seconds.
+    // TODO instead use a percentage of the currently displayed view
+    TimeVal t = TimeVal::fromMsecs(json["Duration"].toDouble());
+
+    // Create the beginning
+    auto start_cmd = new Scenario::Command::CreateTimeSync_Event_State{
+        scenar, pt.date, pt.y};
+    m.submitCommand(start_cmd);
+
+    // Create a box with the duration of the longest song
+    auto box_cmd = new Scenario::Command::CreateInterval_State_Event_TimeSync{
+        scenar, start_cmd->createdState(), pt.date + t, pt.y};
+    m.submitCommand(box_cmd);
+    auto& interval = scenar.interval(box_cmd->createdInterval());
+
+    // Create process
+    auto proc_cmd = new Scenario::Command::LoadProcessInInterval{interval, json};
+    m.submitCommand(proc_cmd);
 
     // Finally we show the newly created rack
     auto show_cmd = new Scenario::Command::ShowRack{interval};

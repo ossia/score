@@ -65,6 +65,32 @@ private:
   bool m_addedSlot{};
 };
 
+class SCORE_PLUGIN_SCENARIO_EXPORT LoadProcessInInterval final
+    : public score::Command
+{
+  SCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(),
+      LoadProcessInInterval,
+      "Load a process in an interval")
+
+public:
+  LoadProcessInInterval(
+      const IntervalModel& interval,
+      const QJsonObject& dat);
+  ~LoadProcessInInterval();
+
+  void undo(const score::DocumentContext& ctx) const override;
+  void redo(const score::DocumentContext& ctx) const override;
+
+  const Path<IntervalModel>& intervalPath() const;
+  const Id<Process::ProcessModel>& processId() const;
+
+private:
+  void serializeImpl(DataStreamInput& s) const override;
+  void deserializeImpl(DataStreamOutput& s) override;
+  LoadOnlyProcessInInterval m_addProcessCommand;
+  bool m_addedSlot{};
+};
 class SCORE_PLUGIN_SCENARIO_EXPORT AddProcessInNewBoxMacro final
     : public score::AggregateCommand
 {

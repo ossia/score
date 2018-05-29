@@ -316,6 +316,7 @@ void TemporalIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
       disp.submitCommand<Command::MoveLayerInNewSlot>(this->m_model, curslot, slot);
     }
   }, Qt::QueuedConnection); // needed because else SlotHeader is removed and stopSlotDrag can't be called
+
   connect(temporal_slot_drag_overlay, &SlotDragOverlay::dropIn,
           this, [=] (int slot) {
     if(slot == curslot)
