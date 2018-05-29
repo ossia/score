@@ -22,7 +22,7 @@ public:
   using model_type = model;
   using id_type = Id<model>;
 
-  IdentifiedObject(id_type id, const QString& name, QObject* parent)
+  IdentifiedObject(id_type id, const QString& name, QObject* parent) noexcept
       : IdentifiedObjectAbstract{name, parent}, m_id{std::move(id)}
   {
     m_id.m_ptr = this;
@@ -37,26 +37,24 @@ public:
     m_id.m_ptr = this;
   }
 
-  virtual ~IdentifiedObject()
-  {
-  }
+  ~IdentifiedObject() override = default;
 
-  const id_type& id() const
+  const id_type& id() const noexcept
   {
     return m_id;
   }
 
-  int32_t id_val() const final override
+  int32_t id_val() const noexcept final override
   {
     return m_id.val();
   }
 
-  void setId(const id_type& id)
+  void setId(const id_type& id) noexcept
   {
     m_id = id;
   }
 
-  void setId(id_type&& id)
+  void setId(id_type&& id) noexcept
   {
     m_id = std::move(id);
   }
@@ -70,19 +68,19 @@ private:
 };
 
 template <typename model>
-std::size_t hash_value(const Id<model>& id)
+std::size_t hash_value(const Id<model>& id) noexcept
 {
   return id.val();
 }
 
 template <typename T, typename U>
-bool operator==(const T* obj, const Id<U>& id)
+bool operator==(const T* obj, const Id<U>& id)  noexcept
 {
   return obj->id() == id;
 }
 
 template <typename T, typename U, typename = decltype(std::declval<T>().id())>
-bool operator==(const T& obj, const Id<U>& id)
+bool operator==(const T& obj, const Id<U>& id)  noexcept
 {
   return obj.id() == id;
 }

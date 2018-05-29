@@ -28,15 +28,8 @@ class Entity : public IdentifiedObject<T>
 public:
   static const constexpr bool entity_tag = true;
 
-  Entity(Id<T> id, const QString& name, QObject* parent)
+  Entity(Id<T> id, const QString& name, QObject* parent) noexcept
       : IdentifiedObject<T>{std::move(id), name, parent}
-  {
-    m_metadata.setParent(this);
-  }
-
-  Entity(const Entity& other, Id<T> id, const QString& name, QObject* parent)
-      : IdentifiedObject<T>{std::move(id), name, parent}
-      , m_metadata{other.metadata()}
   {
     m_metadata.setParent(this);
   }
@@ -48,19 +41,19 @@ public:
     TSerializer<typename Visitor::type, Entity<T>>::writeTo(vis, *this);
   }
 
-  const score::Components& components() const
+  const score::Components& components() const noexcept
   {
     return m_components;
   }
-  score::Components& components()
+  score::Components& components() noexcept
   {
     return m_components;
   }
-  const score::ModelMetadata& metadata() const
+  const score::ModelMetadata& metadata() const noexcept
   {
     return m_metadata;
   }
-  score::ModelMetadata& metadata()
+  score::ModelMetadata& metadata() noexcept
   {
     return m_metadata;
   }

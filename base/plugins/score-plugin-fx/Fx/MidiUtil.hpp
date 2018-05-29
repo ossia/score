@@ -128,6 +128,11 @@ constexpr int get_scale(std::string_view s)
   else
     return scale::custom;
 }
+#if defined(_MSC_VER)
+#define MSVC_CONSTEXPR const
+#else
+#define MSVC_CONSTEXPR constexpr
+#endif
 static MSVC_CONSTEXPR
     frozen::unordered_map<int, scales_array, scale::SCALES_MAX - 1>
         scales{

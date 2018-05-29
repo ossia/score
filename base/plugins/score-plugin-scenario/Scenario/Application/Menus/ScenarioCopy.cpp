@@ -67,7 +67,7 @@ bool verifyAndUpdateIfChildOf(
   bool source_ok = false;
   for(const auto& parent : vec)
   {
-    if(verifyAndUpdateIfChildOf(path.source.unsafePath_ref(), parent.unsafePath()))
+    if(verifyAndUpdateIfChildOf(path.source.unsafePath(), parent.unsafePath()))
     {
       source_ok = true;
       break;
@@ -78,7 +78,7 @@ bool verifyAndUpdateIfChildOf(
 
   for(const auto& parent : vec)
   {
-    if(verifyAndUpdateIfChildOf(path.sink.unsafePath_ref(), parent.unsafePath()))
+    if(verifyAndUpdateIfChildOf(path.sink.unsafePath(), parent.unsafePath()))
     {
       return true;
     }

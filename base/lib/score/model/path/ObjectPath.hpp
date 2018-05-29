@@ -33,58 +33,59 @@ class QObject;
  */
 class SCORE_LIB_BASE_EXPORT ObjectPath
 {
-  friend ObjectIdentifierVector::iterator begin(ObjectPath& path)
+  friend ObjectIdentifierVector::iterator begin(ObjectPath& path) noexcept
   {
     return path.m_objectIdentifiers.begin();
   }
 
-  friend ObjectIdentifierVector::iterator end(ObjectPath& path)
+  friend ObjectIdentifierVector::iterator end(ObjectPath& path) noexcept
   {
     return path.m_objectIdentifiers.end();
   }
 
-  friend bool operator==(const ObjectPath& lhs, const ObjectPath& rhs)
+  friend bool operator==(const ObjectPath& lhs, const ObjectPath& rhs) noexcept
   {
     return lhs.m_objectIdentifiers == rhs.m_objectIdentifiers;
   }
 
-  friend bool operator!=(const ObjectPath& lhs, const ObjectPath& rhs)
+  friend bool operator!=(const ObjectPath& lhs, const ObjectPath& rhs) noexcept
   {
     return lhs.m_objectIdentifiers != rhs.m_objectIdentifiers;
   }
 
 public:
-  ObjectPath() = default;
-  QString toString() const;
+  ObjectPath() noexcept { }
+  ~ObjectPath() noexcept = default;
+  QString toString() const noexcept;
 
-  explicit ObjectPath(std::vector<ObjectIdentifier> vec)
+  explicit ObjectPath(std::vector<ObjectIdentifier> vec) noexcept
       : m_objectIdentifiers{std::move(vec)}
   {
   }
 
-  explicit ObjectPath(std::initializer_list<ObjectIdentifier> lst)
+  ObjectPath(std::initializer_list<ObjectIdentifier> lst) noexcept
       : m_objectIdentifiers(lst)
   {
   }
 
-  ObjectPath(const ObjectPath& obj)
+  ObjectPath(const ObjectPath& obj) noexcept
       : m_objectIdentifiers{obj.m_objectIdentifiers}
   {
   }
 
-  ObjectPath(ObjectPath&& obj)
+  ObjectPath(ObjectPath&& obj) noexcept
       : m_objectIdentifiers{std::move(obj.m_objectIdentifiers)}
   {
   }
 
-  ObjectPath& operator=(ObjectPath&& obj)
+  ObjectPath& operator=(ObjectPath&& obj) noexcept
   {
     m_objectIdentifiers = std::move(obj.m_objectIdentifiers);
     m_cache.clear();
     return *this;
   }
 
-  ObjectPath& operator=(const ObjectPath& obj)
+  ObjectPath& operator=(const ObjectPath& obj) noexcept
   {
     m_objectIdentifiers = obj.m_objectIdentifiers;
     m_cache.clear();
@@ -126,7 +127,7 @@ public:
    * @return null if the object does not exist.
    */
   template <class T>
-  T* try_find(const score::DocumentContext& ctx) const
+  T* try_find(const score::DocumentContext& ctx) const noexcept
   {
     try
     {
@@ -148,12 +149,12 @@ public:
     }
   }
 
-  const ObjectIdentifierVector& vec() const
+  const ObjectIdentifierVector& vec() const noexcept
   {
     return m_objectIdentifiers;
   }
 
-  ObjectIdentifierVector& vec()
+  ObjectIdentifierVector& vec() noexcept
   {
     return m_objectIdentifiers;
   }
@@ -163,7 +164,7 @@ private:
   QObject* find_impl(const score::DocumentContext& ctx) const;
 
   // Returns nullptr
-  QObject* find_impl_unsafe(const score::DocumentContext& ctx) const;
+  QObject* find_impl_unsafe(const score::DocumentContext& ctx) const noexcept;
 
   ObjectIdentifierVector m_objectIdentifiers;
   mutable QPointer<QObject> m_cache;

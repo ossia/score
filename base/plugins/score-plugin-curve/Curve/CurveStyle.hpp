@@ -11,21 +11,6 @@ namespace Curve
 {
 struct SCORE_PLUGIN_CURVE_EXPORT Style
 {
-  // TODO removeme when msvc starts knowing C++
-  Style(
-      const QBrush& c1,
-      const QBrush& c2,
-      const QBrush& c3,
-      const QBrush& c4,
-      const QBrush& c5)
-      : Point{c1}
-      , PointSelected{c2}
-      , Segment{c3}
-      , SegmentSelected{c4}
-      , SegmentDisabled{c5}
-  {
-  }
-
   const QBrush& Point;         //{128, 215, 62}; // Tender3
   const QBrush& PointSelected; //{233, 208, 89}; // Emphasis2
 

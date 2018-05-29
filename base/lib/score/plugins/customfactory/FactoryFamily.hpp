@@ -31,11 +31,11 @@ class SCORE_LIB_BASE_EXPORT InterfaceListBase
 {
 public:
   static constexpr bool factory_list_tag = true;
-  InterfaceListBase() noexcept
-  {
-  }
+  InterfaceListBase() noexcept = default;
   InterfaceListBase(const InterfaceListBase&) = delete;
+  InterfaceListBase(InterfaceListBase&&) = delete;
   InterfaceListBase& operator=(const InterfaceListBase&) = delete;
+  InterfaceListBase& operator=(InterfaceListBase&&) = delete;
   virtual ~InterfaceListBase();
 
   //! A key that uniquely identifies this family of factories.
@@ -79,13 +79,8 @@ class InterfaceList : public score::InterfaceListBase
 public:
   using factory_type = FactoryType;
   using key_type = typename FactoryType::ConcreteKey;
-  InterfaceList() noexcept
-  {
-  }
-
-  ~InterfaceList()
-  {
-  }
+  InterfaceList() = default;
+  ~InterfaceList() = default;
 
   static const constexpr score::InterfaceKey static_interfaceKey() noexcept
   {
@@ -119,54 +114,54 @@ public:
     return (it != this->map.end()) ? it->second.get() : nullptr;
   }
 
-  auto begin()
+  auto begin() noexcept
   {
     return make_indirect_map_iterator(map.begin());
   }
-  auto begin() const
+  auto begin() const noexcept
   {
     return make_indirect_map_iterator(map.begin());
   }
 
-  auto cbegin()
+  auto cbegin() noexcept
   {
     return make_indirect_map_iterator(map.cbegin());
   }
-  auto cbegin() const
+  auto cbegin() const noexcept
   {
     return make_indirect_map_iterator(map.cbegin());
   }
 
-  auto end()
+  auto end() noexcept
   {
     return make_indirect_map_iterator(map.end());
   }
-  auto end() const
+  auto end() const noexcept
   {
     return make_indirect_map_iterator(map.end());
   }
 
-  auto cend()
+  auto cend() noexcept
   {
     return make_indirect_map_iterator(map.cend());
   }
-  auto cend() const
+  auto cend() const noexcept
   {
     return make_indirect_map_iterator(map.cend());
   }
 
-  auto empty() const
+  auto empty() const noexcept
   {
     return map.empty();
   }
 
   template <typename K>
-  auto find(K&& key) const
+  auto find(K&& key) const noexcept
   {
     return make_indirect_map_iterator(map.find(std::forward<K>(key)));
   }
 
-  auto size() const
+  auto size() const noexcept
   {
     return map.size();
   }
