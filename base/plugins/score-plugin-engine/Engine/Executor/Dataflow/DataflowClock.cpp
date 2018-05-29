@@ -175,6 +175,6 @@ ClockFactory::makeReverseTimeFunction(const score::DocumentContext& ctx) const
 
 QString ClockFactory::prettyName() const
 {
-  return QObject::tr("Dataflow");
+  return QObject::tr("Audio");
 }
 }

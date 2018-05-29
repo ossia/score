@@ -96,7 +96,7 @@ ObjectPath ObjectPath::pathBetweenObjects(
   return path;
 }
 
-QString ObjectPath::toString() const
+QString ObjectPath::toString() const noexcept
 {
   QString s;
 
@@ -124,7 +124,7 @@ QObject* ObjectPath::find_impl(const score::DocumentContext& ctx) const
   return obj;
 }
 
-QObject* ObjectPath::find_impl_unsafe(const score::DocumentContext& ctx) const
+QObject* ObjectPath::find_impl_unsafe(const score::DocumentContext& ctx) const noexcept
 {
   using namespace score;
   QObject* obj = &ctx.document.model();

@@ -51,17 +51,17 @@ Path<T> path(const IdentifiedObject<T>& obj);
 template <typename Object>
 class Path
 {
-  friend bool operator==(const Path& lhs, const Path& rhs)
+  friend bool operator==(const Path& lhs, const Path& rhs) noexcept
   {
     return lhs.m_impl == rhs.m_impl;
   }
 
-  friend bool operator!=(const Path& lhs, const Path& rhs)
+  friend bool operator!=(const Path& lhs, const Path& rhs) noexcept
   {
     return lhs.m_impl != rhs.m_impl;
   }
 
-  friend uint qHash(const Path& obj, uint seed)
+  friend uint qHash(const Path& obj, uint seed) noexcept
   {
     return qHash(obj.m_impl, seed);
   }
@@ -80,20 +80,24 @@ public:
   {
     UnsafeDynamicCreation() = default;
   };
-  Path(const ObjectPath& obj, UnsafeDynamicCreation) : m_impl{obj.vec()}
+
+  Path(const ObjectPath& obj, UnsafeDynamicCreation) noexcept
+    : m_impl{obj.vec()}
   {
   }
-  Path(ObjectPath&& obj, UnsafeDynamicCreation) : m_impl{std::move(obj.vec())}
+  Path(ObjectPath&& obj, UnsafeDynamicCreation) noexcept
+    : m_impl{std::move(obj.vec())}
   {
   }
 
-  Path(const Object& obj) : Path(score::IDocument::path(obj))
+  Path(const Object& obj) noexcept
+    : Path(score::IDocument::path(obj))
   {
   }
 
   //! Add a new ObjectIdentifier at the end of the path and return a new path
   template <typename U>
-  auto extend(const QString& name, const Id<U>& id) const&
+  auto extend(const QString& name, const Id<U>& id) const& noexcept
   {
     Path<U> p{this->m_impl.vec()};
     p.m_impl.vec().push_back({name, id});
@@ -103,7 +107,7 @@ public:
   //! Add a new ObjectIdentifier at the end of the path and return a new path.
   //! The previous path is now empty.
   template <typename U>
-  auto extend(const QString& name, const Id<U>& id) &&
+  auto extend(const QString& name, const Id<U>& id) && noexcept
   {
     Path<U> p{std::move(this->m_impl.vec())};
     p.m_impl.vec().push_back({name, id});
@@ -112,7 +116,7 @@ public:
 
   //! Add a new ObjectIdentifier at the end of the path and return a new path
   template <typename U>
-  auto extend(const Id<U>& id) const&
+  auto extend(const Id<U>& id) const& noexcept
   {
     Path<U> p{this->m_impl.vec()};
     p.m_impl.vec().push_back({Metadata<ObjectKey_k, U>::get(), id});
@@ -122,7 +126,7 @@ public:
   //! Add a new ObjectIdentifier at the end of the path and return a new path.
   //! The previous path is now empty.
   template <typename U>
-  auto extend(const Id<U>& id) &&
+  auto extend(const Id<U>& id) && noexcept
   {
     Path<U> p{std::move(this->m_impl.vec())};
     p.m_impl.vec().push_back({Metadata<ObjectKey_k, U>::get(), id});
@@ -158,21 +162,23 @@ public:
   template <
       typename U,
       std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
-  Path(const Path<U>& other) : m_impl{other.m_impl.vec()}
+  Path(const Path<U>& other) noexcept
+    : m_impl{other.m_impl.vec()}
   {
   }
 
   template <
       typename U,
       std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
-  Path(Path<U>&& other) : m_impl{std::move(other.m_impl.vec())}
+  Path(Path<U>&& other) noexcept
+    : m_impl{std::move(other.m_impl.vec())}
   {
   }
 
   template <
       typename U,
       std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
-  Path& operator=(const Path<U>& other)
+  Path& operator=(const Path<U>& other) noexcept
   {
     m_impl = other.m_impl;
     return *this;
@@ -181,64 +187,59 @@ public:
   template <
       typename U,
       std::enable_if_t<in_relationship<U, Object>::value>* = nullptr>
-  Path& operator=(Path<U>&& other)
+  Path& operator=(Path<U>&& other) noexcept
   {
     m_impl = std::move(other.m_impl);
     return *this;
   }
 
-  Path() = default;
-  Path(const Path&) = default;
-  Path(Path&&) = default;
-  Path& operator=(const Path&) = default;
-  Path& operator=(Path&&) = default;
+  Path() noexcept = default;
+  Path(const Path&) noexcept = default;
+  Path(Path&&) noexcept = default;
+  Path& operator=(const Path&) noexcept = default;
+  Path& operator=(Path&&) noexcept = default;
 
   Object& find(const score::DocumentContext& ctx) const
   {
     SCORE_ASSERT(valid());
     return m_impl.find<Object>(ctx);
   }
-  Object* try_find(const score::DocumentContext& ctx) const
+  Object* try_find(const score::DocumentContext& ctx) const noexcept
   {
     if (!valid())
       return nullptr;
     return m_impl.try_find<Object>(ctx);
   }
 
-  const auto& unsafePath() const&
+  const auto& unsafePath() const& noexcept
   {
     return m_impl;
   }
-  auto& unsafePath() &
+  auto& unsafePath() & noexcept
   {
     return m_impl;
   }
-  auto& unsafePath_ref()
-  {
-    // Due to a bug in unity build with gcc 5.3
-    return m_impl;
-  }
-  auto&& unsafePath() &&
+  auto&& unsafePath() && noexcept
   {
     return std::move(m_impl);
   }
 
-  bool valid() const
+  bool valid() const noexcept
   {
     return !m_impl.vec().empty();
   }
 
 private:
-  Path(const ObjectPath& path) : m_impl{path.vec()}
+  Path(const ObjectPath& path) noexcept : m_impl{path.vec()}
   {
   }
-  Path(ObjectPath&& path) : m_impl{std::move(path.vec())}
+  Path(ObjectPath&& path) noexcept : m_impl{std::move(path.vec())}
   {
   }
-  Path(const std::vector<ObjectIdentifier>& vec) : m_impl{vec}
+  Path(const std::vector<ObjectIdentifier>& vec) noexcept : m_impl{vec}
   {
   }
-  Path(std::vector<ObjectIdentifier>&& vec) : m_impl{std::move(vec)}
+  Path(std::vector<ObjectIdentifier>&& vec) noexcept : m_impl{std::move(vec)}
   {
   }
 

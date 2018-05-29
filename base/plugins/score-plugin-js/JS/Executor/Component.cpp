@@ -32,7 +32,7 @@ public:
 
   void setScript(const QString& val);
 
-  void run(ossia::token_request t, ossia::execution_state&) override;
+  void run(ossia::token_request t, ossia::execution_state&) noexcept override;
 
   QQmlEngine m_engine;
   QList<std::pair<ControlInlet*, ossia::inlet_ptr>> m_ctrlInlets;
@@ -246,7 +246,7 @@ void js_node::setScript(const QString& val)
   }
 }
 
-void js_node::run(ossia::token_request t, ossia::execution_state&)
+void js_node::run(ossia::token_request t, ossia::execution_state&) noexcept
 {
   if (t.date == ossia::Zero)
     return;

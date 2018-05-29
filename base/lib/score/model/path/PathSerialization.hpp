@@ -15,7 +15,7 @@ template <typename Object>
 QDataStream& operator>>(QDataStream& stream, Path<Object>& obj)
 {
   DataStreamWriter writer(stream.device());
-  writer.writeTo(obj.unsafePath_ref());
+  writer.writeTo(obj.unsafePath());
 
   return stream;
 }
@@ -30,7 +30,7 @@ struct TSerializer<DataStream, Path<T>>
 
   static void writeTo(DataStream::Deserializer& s, Path<T>& path)
   {
-    s.writeTo(path.unsafePath_ref());
+    s.writeTo(path.unsafePath());
   }
 };
 
@@ -44,6 +44,6 @@ struct TSerializer<JSONObject, Path<T>>
 
   static void writeTo(JSONObject::Deserializer& s, Path<T>& path)
   {
-    s.writeTo(path.unsafePath_ref());
+    s.writeTo(path.unsafePath());
   }
 };

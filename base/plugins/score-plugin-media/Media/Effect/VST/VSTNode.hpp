@@ -66,12 +66,12 @@ public:
     dispatch(effMainsChanged, 0, 0);
   }
 
-  std::string label() const override
+  std::string label() const noexcept override
   {
     return "VST";
   }
 
-  void all_notes_off() override
+  void all_notes_off() noexcept override
   {
     if constexpr (IsSynth)
     {
@@ -238,7 +238,7 @@ public:
     time_info.flags = kVstTransportPlaying & kVstNanosValid & kVstPpqPosValid
                       & kVstTempoValid & kVstTimeSigValid & kVstClockValid;
   }
-  void run(ossia::token_request tk, ossia::execution_state& st) override
+  void run(ossia::token_request tk, ossia::execution_state& st) noexcept override
   {
     if (!muted() && tk.date > tk.prev_date)
     {

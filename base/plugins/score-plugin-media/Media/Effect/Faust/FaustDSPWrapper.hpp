@@ -215,32 +215,32 @@ public:
       dsp.buildUserInterface(&ex);
     }
 
-    void run(ossia::token_request tk, ossia::execution_state&) override
+    void run(ossia::token_request tk, ossia::execution_state&) noexcept override
     {
       ossia::nodes::faust_exec(*this, dsp, tk);
     }
 
-    std::string label() const override
+    std::string label() const noexcept override
     {
       return "Faust";
     }
 
-    void all_notes_off() override
+    void all_notes_off() noexcept override
     {
     }
   };
 
-  static Q_DECL_RELAXED_CONSTEXPR score::Component::Key static_key()
+  static Q_DECL_RELAXED_CONSTEXPR score::Component::Key static_key() noexcept
   {
     return Metadata<ConcreteKey_k, Fx<DSP>>::get().impl();
   }
 
-  score::Component::Key key() const final override
+  score::Component::Key key() const noexcept final override
   {
     return static_key();
   }
 
-  bool key_match(score::Component::Key other) const final override
+  bool key_match(score::Component::Key other) const noexcept final override
   {
     return static_key() == other
            || Engine::Execution::ProcessComponent::base_key_match(other);

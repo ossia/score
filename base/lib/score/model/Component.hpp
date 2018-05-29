@@ -26,10 +26,10 @@ class SCORE_LIB_BASE_EXPORT Component
 public:
   using IdentifiedObject<score::Component>::IdentifiedObject;
   using Key = UuidKey<score::Component>;
-  virtual Key key() const = 0;
-  virtual bool key_match(Key other) const = 0;
+  virtual Key key() const noexcept = 0;
+  virtual bool key_match(Key other) const noexcept = 0;
 
-  virtual ~Component();
+  ~Component() override;
 };
 
 /**
@@ -43,12 +43,12 @@ class GenericComponent : public score::Component
 {
 public:
   template <typename... Args>
-  GenericComponent(System_T& sys, Args&&... args)
+  GenericComponent(System_T& sys, Args&&... args) noexcept
       : score::Component{std::forward<Args>(args)...}, m_system{sys}
   {
   }
 
-  System_T& system() const
+  System_T& system() const noexcept
   {
     return m_system;
   }
@@ -93,7 +93,7 @@ T& component(const score::Components& c)
  * @see \ref components
  */
 template <typename T>
-T* findComponent(const score::Components& c)
+T* findComponent(const score::Components& c) noexcept
 {
   static_assert(T::is_unique, "Components must be unique to use getComponent");
 
@@ -128,12 +128,12 @@ extern template class tsl::
 public:                                                                     \
   using base_component_type = Type;                                         \
                                                                             \
-  static Q_DECL_RELAXED_CONSTEXPR Component::Key static_key()               \
+  static Q_DECL_RELAXED_CONSTEXPR Component::Key static_key() noexcept      \
   {                                                                         \
     return_uuid(Uuid);                                                      \
   }                                                                         \
                                                                             \
-  static Q_DECL_RELAXED_CONSTEXPR bool base_key_match(Component::Key other) \
+  static Q_DECL_RELAXED_CONSTEXPR bool base_key_match(Component::Key other) noexcept \
   {                                                                         \
     return static_key() == other;                                           \
   }                                                                         \
@@ -145,17 +145,17 @@ private:
  */
 #define COMPONENT_METADATA(Uuid)                              \
 public:                                                       \
-  static Q_DECL_RELAXED_CONSTEXPR Component::Key static_key() \
+  static Q_DECL_RELAXED_CONSTEXPR Component::Key static_key() noexcept \
   {                                                           \
     return_uuid(Uuid);                                        \
   }                                                           \
                                                               \
-  Component::Key key() const final override                   \
+  Component::Key key() const noexcept final  override                   \
   {                                                           \
     return static_key();                                      \
   }                                                           \
                                                               \
-  bool key_match(Component::Key other) const final override   \
+  bool key_match(Component::Key other) const noexcept final  override   \
   {                                                           \
     return static_key() == other                              \
            || base_component_type::base_key_match(other);     \
@@ -168,17 +168,17 @@ private:
  */
 #define COMMON_COMPONENT_METADATA(Uuid)                       \
 public:                                                       \
-  static Q_DECL_RELAXED_CONSTEXPR Component::Key static_key() \
+  static Q_DECL_RELAXED_CONSTEXPR Component::Key static_key() noexcept \
   {                                                           \
     return_uuid(Uuid);                                        \
   }                                                           \
                                                               \
-  Component::Key key() const final override                   \
+  Component::Key key() const noexcept final override          \
   {                                                           \
     return static_key();                                      \
   }                                                           \
                                                               \
-  bool key_match(Component::Key other) const final override   \
+  bool key_match(Component::Key other) const noexcept final  override   \
   {                                                           \
     return static_key() == other;                             \
   }                                                           \

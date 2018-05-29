@@ -235,7 +235,7 @@ struct TSerializer<JSONValue, Path<U>>
 
   static void writeTo(JSONValue::Deserializer& s, Path<U>& obj)
   {
-    fromJsonArray(s.val.toArray(), obj.unsafePath_ref().vec());
+    fromJsonArray(s.val.toArray(), obj.unsafePath().vec());
   }
 };
 */

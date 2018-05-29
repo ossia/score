@@ -30,7 +30,7 @@ findById_weak_safe(const Container& c, int32_t id)
 
 template <typename Container>
 typename Container::value_type
-findById_weak_unsafe(const Container& c, int32_t id)
+findById_weak_unsafe(const Container& c, int32_t id) noexcept
 {
   auto it = std::find_if(
       std::begin(c), std::end(c), [&id](typename Container::value_type model) {

@@ -1,5 +1,5 @@
 if(NOT WIN32)
-return()
+  return()
 endif()
 
 set(SCORE_BIN_INSTALL_DIR "bin")
@@ -29,10 +29,7 @@ set(DEBUG_CHAR "$<$<CONFIG:Debug>:d>")
 get_target_property(QtCore_LOCATION Qt5::Core LOCATION)
 get_filename_component(QT_DLL_DIR ${QtCore_LOCATION} PATH)
 file(GLOB ICU_DLLS "${QT_DLL_DIR}/icu*.dll")
-
 # TODO instead register them somewhere like the plug-ins.
-
-
 
 if(NOT OSSIA_STATIC)
 install(FILES "$<TARGET_FILE:ossia>"

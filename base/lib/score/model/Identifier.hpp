@@ -64,19 +64,19 @@ class id_base_t
 
 public:
   using value_type = impl;
-  explicit id_base_t() = default;
+  explicit id_base_t() noexcept { }
 
-  id_base_t(const id_base_t& other) : m_id{other.m_id}
+  id_base_t(const id_base_t& other) noexcept : m_id{other.m_id}
   {
   }
 
-  id_base_t(id_base_t&& other) : m_id{std::move(other.m_id)}
+  id_base_t(id_base_t&& other) noexcept : m_id{std::move(other.m_id)}
   {
   }
   template <typename other>
   id_base_t(
       const id_base_t<other, impl>& oid,
-      typename std::enable_if<std::is_base_of_v<tag, other>>::type* = 0)
+      typename std::enable_if<std::is_base_of_v<tag, other>>::type* = 0) noexcept
       : m_id{oid.val()}
   {
   }
@@ -84,19 +84,19 @@ public:
   template <typename other>
   id_base_t(
       id_base_t&& oid,
-      typename std::enable_if<std::is_base_of_v<tag, other>>::type* = 0)
+      typename std::enable_if<std::is_base_of_v<tag, other>>::type* = 0) noexcept
       : m_id{oid.val()}
   {
   }
 
-  id_base_t& operator=(const id_base_t& other)
+  id_base_t& operator=(const id_base_t& other) noexcept
   {
     m_id = other.m_id;
     m_ptr.clear();
     return *this;
   }
 
-  id_base_t& operator=(id_base_t&& other)
+  id_base_t& operator=(id_base_t&& other) noexcept
   {
     m_id = other.m_id;
     m_ptr.clear();
@@ -105,15 +105,15 @@ public:
 
   // TODO check if when an id is returned by value,
   // the pointer gets copied correctly
-  explicit id_base_t(value_type val) : m_id{std::move(val)}
+  explicit id_base_t(value_type val) noexcept : m_id{std::move(val)}
   {
   }
 
-  explicit id_base_t(tag& element) : m_ptr{&element}, m_id{element.id()}
+  explicit id_base_t(tag& element) noexcept : m_ptr{&element}, m_id{element.id()}
   {
   }
 
-  id_base_t& operator=(tag& element)
+  id_base_t& operator=(tag& element) noexcept
   {
     m_ptr = &element;
     m_id = element.id();
@@ -121,32 +121,32 @@ public:
     return *this;
   }
 
-  friend bool operator==(const id_base_t& lhs, const id_base_t& rhs)
+  friend bool operator==(const id_base_t& lhs, const id_base_t& rhs) noexcept
   {
     return lhs.m_id == rhs.m_id;
   }
 
-  friend bool operator!=(const id_base_t& lhs, const id_base_t& rhs)
+  friend bool operator!=(const id_base_t& lhs, const id_base_t& rhs) noexcept
   {
     return lhs.m_id != rhs.m_id;
   }
 
-  friend bool operator<(const id_base_t& lhs, const id_base_t& rhs)
+  friend bool operator<(const id_base_t& lhs, const id_base_t& rhs) noexcept
   {
     return lhs.val() < rhs.val();
   }
 
-  explicit operator value_type() const
+  explicit operator value_type() const noexcept
   {
     return m_id;
   }
 
-  const value_type& val() const
+  const value_type& val() const noexcept
   {
     return m_id;
   }
 
-  void setVal(value_type val)
+  void setVal(value_type val) noexcept
   {
     m_id = val;
   }
