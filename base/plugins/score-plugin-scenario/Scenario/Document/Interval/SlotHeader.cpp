@@ -10,12 +10,14 @@
 #include <QGraphicsView>
 #include <QMimeData>
 #include <QWidget>
+#include <QJsonDocument>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/Interval/IntervalHeader.hpp>
 #include <Scenario/Document/Interval/IntervalView.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
 #include <wobjectimpl.h>
+#include <Scenario/Application/Menus/ScenarioCopy.hpp>
 namespace Scenario
 {
 SlotHeader::SlotHeader(
@@ -166,9 +168,15 @@ void SlotHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
     QDrag* drag = new QDrag(event->widget());
     QMimeData* mime = new QMimeData;
+    //auto json = score::marshall<JSONObject>(m_presenter.model());
+    //json["DraggedSlot"] = m_slotIndex;
+    auto proc_id = *m_presenter.model().smallView()[m_slotIndex].frontProcess;
+    auto& proc = m_presenter.model().processes.at(proc_id);
+    auto json = copyProcess(proc);
+    json["Duration"] = m_presenter.model().duration.defaultDuration().msec();
+    mime->setData(score::mime::layerdata(), QJsonDocument{json}.toJson());
     drag->setMimeData(mime);
 
-    mime->setData(score::mime::layerdata(), {});
 
     auto view = m_presenter.getSlots()[m_slotIndex].processes.front().view;
     drag->setPixmap(view->pixmap());
