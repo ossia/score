@@ -209,7 +209,7 @@ public:
     return {};
   }
 
-  void all_notes_off() override
+  void all_notes_off() noexcept override
   {
     /*
         if(fMidiSource)
@@ -293,7 +293,7 @@ public:
     // lilv_instance_free(fInstance);
   }
 
-  void run(ossia::token_request t, ossia::execution_state&) override
+  void run(ossia::token_request t, ossia::execution_state&) noexcept override
   {
     if (t.date > t.prev_date)
     {
