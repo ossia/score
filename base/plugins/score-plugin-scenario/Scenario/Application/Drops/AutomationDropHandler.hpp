@@ -24,6 +24,16 @@ class DropPortInScenario final : public DropHandler
       const QMimeData& mime) override;
 };
 
+class DropLayerInScenario final : public DropHandler
+{
+  SCORE_CONCRETE("0eb96d95-3f5f-4e7a-b806-d03d0ac88b48")
+
+  bool drop(
+      const Scenario::TemporalScenarioPresenter&,
+      QPointF pos,
+      const QMimeData& mime) override;
+};
+
 /**
  * @brief The ProcessDropHandler class
  * Will create a blank process.

@@ -87,6 +87,77 @@ void AddOnlyProcessToInterval::deserializeImpl(DataStreamOutput& s)
   s >> m_path >> m_processName >> m_data >> m_createdProcessId;
 }
 
+
+
+
+
+
+LoadOnlyProcessInInterval::LoadOnlyProcessInInterval(
+    const IntervalModel& cst,
+    Id<Process::ProcessModel> processId,
+    const QJsonObject& dat)
+    : m_path{cst}
+    , m_data{dat}
+    , m_createdProcessId{std::move(processId)}
+{
+}
+
+void LoadOnlyProcessInInterval::undo(const score::DocumentContext& ctx) const
+{
+  undo(m_path.find(ctx));
+}
+
+void LoadOnlyProcessInInterval::redo(const score::DocumentContext& ctx) const
+{
+  redo(m_path.find(ctx), ctx);
+}
+
+void LoadOnlyProcessInInterval::undo(IntervalModel& interval) const
+{
+  RemoveProcess(interval, m_createdProcessId);
+}
+
+Process::ProcessModel& LoadOnlyProcessInInterval::redo(
+    IntervalModel& interval, const score::DocumentContext& ctx) const
+{
+  // Create process model
+  auto obj = m_data[score::StringConstant().Process].toObject();
+  auto key = fromJsonValue<UuidKey<Process::ProcessModel>>(obj[score::StringConstant().uuid]);
+  auto fac = ctx.app.interfaces<Process::ProcessFactoryList>().get(key);
+  SCORE_ASSERT(fac);
+  JSONObject::Deserializer des{obj};
+  auto proc = fac->load(des.toVariant(), &interval);
+  const auto ports = proc->findChildren<Process::Port*>();
+  for(Process::Port* port : ports)
+  {
+    while(!port->cables().empty())
+    {
+      port->removeCable(port->cables().back());
+    }
+  }
+  proc->setId(m_createdProcessId);
+
+  AddProcess(interval, proc);
+  return *proc;
+}
+
+void LoadOnlyProcessInInterval::serializeImpl(DataStreamInput& s) const
+{
+  s << m_path << m_data << m_createdProcessId;
+}
+
+void LoadOnlyProcessInInterval::deserializeImpl(DataStreamOutput& s)
+{
+  s >> m_path >> m_data >> m_createdProcessId;
+}
+
+
+
+
+
+
+
+
 DuplicateOnlyProcessToInterval::DuplicateOnlyProcessToInterval(
     const IntervalModel& cst, const Process::ProcessModel& process)
     : DuplicateOnlyProcessToInterval{cst, getStrongId(cst.processes), process}
