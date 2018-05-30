@@ -32,6 +32,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/ScenarioEditionSettings.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/ScenarioRecordInitData.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/ScenarioValidity.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/CommandAPI.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/SetControlValue.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/ClearSelection.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Cohesion/CreateCurveFromStates.hpp"
@@ -333,6 +334,7 @@ set(SRCS ${SRCS}
 
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Tools/ScenarioRollbackStrategy.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/CommandAPI.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/SetProcessPosition.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/AddProcessToInterval.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.cpp"

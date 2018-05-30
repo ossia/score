@@ -21,6 +21,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <Scenario/Commands/Scenario/Deletions/RemoveSelection.hpp>
+#include <Scenario/Commands/CommandAPI.hpp>
 namespace Scenario
 {
 
@@ -32,8 +33,7 @@ bool DropProcessInScenario::drop(
     Mime<Process::ProcessData>::Deserializer des{mime};
     Process::ProcessData p = des.deserialize();
 
-    RedoMacroCommandDispatcher<Scenario::Command::AddProcessInNewBoxMacro> m{
-        pres.context().context.commandStack};
+    Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, pres.context().context};
 
     // Create a box.
     const Scenario::ProcessModel& scenar = pres.model();
@@ -43,36 +43,19 @@ bool DropProcessInScenario::drop(
     // TODO instead use a percentage of the currently displayed view
     TimeVal t = std::chrono::seconds{5};
 
-    // Create the beginning
-    auto start_cmd = new Scenario::Command::CreateTimeSync_Event_State{
-        scenar, pt.date, pt.y};
-    m.submitCommand(start_cmd);
-
-    // Create a box with the duration of the longest song
-    auto box_cmd = new Scenario::Command::CreateInterval_State_Event_TimeSync{
-        scenar, start_cmd->createdState(), pt.date + t, pt.y};
-    m.submitCommand(box_cmd);
-    auto& interval = scenar.interval(box_cmd->createdInterval());
+    auto& interval = m.createBox(scenar, pt.date, pt.date + t, pt.y);
 
     // Create process
-    auto process_cmd = new Scenario::Command::AddOnlyProcessToInterval{
-        interval, p.key, p.customData};
-    m.submitCommand(process_cmd);
+    auto proc = m.createProcess(interval, p.key, p.customData);
 
     // Create a new slot
-    auto slot_cmd = new Scenario::Command::AddSlotToRack{interval};
-    m.submitCommand(slot_cmd);
+    m.createSlot(interval);
 
     // Add a new layer in this slot.
-    auto& proc = interval.processes.at(process_cmd->processId());
-    auto layer_cmd = new Scenario::Command::AddLayerModelToSlot{
-        SlotPath{interval, int(interval.smallView().size() - 1)}, proc};
-
-    m.submitCommand(layer_cmd);
+    m.addLayerToLastSlot(interval, *proc);
 
     // Finally we show the newly created rack
-    auto show_cmd = new Scenario::Command::ShowRack{interval};
-    m.submitCommand(show_cmd);
+    m.showRack(interval);
 
     m.commit();
     return true;
@@ -143,8 +126,7 @@ bool DropLayerInScenario::drop(
 {
   if (mime.formats().contains(score::mime::layerdata()))
   {
-    RedoMacroCommandDispatcher<Scenario::Command::AddProcessInNewBoxMacro> m{
-        pres.context().context.commandStack};
+    Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, pres.context().context};
 
     // Create a box.
     const Scenario::ProcessModel& scenar = pres.model();
@@ -154,16 +136,7 @@ bool DropLayerInScenario::drop(
 
     TimeVal t = TimeVal::fromMsecs(json["Duration"].toDouble());
 
-    // Create the beginning
-    auto start_cmd = new Scenario::Command::CreateTimeSync_Event_State{
-        scenar, pt.date, pt.y};
-    m.submitCommand(start_cmd);
-
-    // Create a box with the duration of the longest song
-    auto box_cmd = new Scenario::Command::CreateInterval_State_Event_TimeSync{
-        scenar, start_cmd->createdState(), pt.date + t, pt.y};
-    m.submitCommand(box_cmd);
-    auto& interval = scenar.interval(box_cmd->createdInterval());
+    auto& interval = m.createBox(scenar, pt.date, pt.date + t, pt.y);
 
     // Remove old process
     {
@@ -171,25 +144,21 @@ bool DropLayerInScenario::drop(
       if(auto obj = old_p.try_find(pres.context().context))
       if(auto itv = qobject_cast<IntervalModel*>(obj->parent()))
       {
-        auto rm_cmd = new Scenario::Command::RemoveProcessFromInterval(*itv, obj->id());
-        m.submitCommand(rm_cmd);
+        m.removeProcess(*itv, obj->id());
 
         auto s = dynamic_cast<Scenario::ProcessModel*>(itv->parent());
         if(s && isSingular(*itv, *s))
         {
-          auto rm_cmd = new Scenario::Command::RemoveSelection(*s, {itv});
-          m.submitCommand(rm_cmd);
+          m.removeElements(*s, {itv});
         }
       }
     }
 
     // Create process
-    auto proc_cmd = new Scenario::Command::LoadProcessInInterval{interval, json};
-    m.submitCommand(proc_cmd);
+    m.loadProcessInSlot(interval, json);
 
     // Finally we show the newly created rack
-    auto show_cmd = new Scenario::Command::ShowRack{interval};
-    m.submitCommand(show_cmd);
+    m.showRack(interval);
 
     m.commit();
     return true;
@@ -204,8 +173,7 @@ bool DropLayerInInterval::drop(
   if (mime.formats().contains(score::mime::layerdata()))
   {
     auto& doc = score::IDocument::documentContext(interval);
-    RedoMacroCommandDispatcher<Scenario::Command::DropProcessInIntervalMacro> m{
-        doc.commandStack};
+    Scenario::Command::Macro m{new Scenario::Command::DropProcessInIntervalMacro, doc};
 
     auto json = QJsonDocument::fromJson(mime.data(score::mime::layerdata())).object();
 
@@ -215,25 +183,21 @@ bool DropLayerInInterval::drop(
       if(auto obj = old_p.try_find(doc))
       if(auto itv = qobject_cast<IntervalModel*>(obj->parent()))
       {
-        auto rm_cmd = new Scenario::Command::RemoveProcessFromInterval(*itv, obj->id());
-        m.submitCommand(rm_cmd);
+        m.removeProcess(*itv, obj->id());
 
         auto s = dynamic_cast<Scenario::ProcessModel*>(itv->parent());
         if(s && isSingular(*itv, *s))
         {
-          auto rm_cmd = new Scenario::Command::RemoveSelection(*s, {itv});
-          m.submitCommand(rm_cmd);
+          m.removeElements(*s, {itv});
         }
       }
     }
 
     // Create process
-    auto proc_cmd = new Scenario::Command::LoadProcessInInterval{interval, json};
-    m.submitCommand(proc_cmd);
+    m.loadProcessInSlot(interval, json);
 
     // Finally we show the newly created rack
-    auto show_cmd = new Scenario::Command::ShowRack{interval};
-    m.submitCommand(show_cmd);
+    m.showRack(interval);
 
     m.commit();
     return true;
