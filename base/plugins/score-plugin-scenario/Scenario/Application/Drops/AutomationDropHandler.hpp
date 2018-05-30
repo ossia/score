@@ -34,6 +34,14 @@ class DropLayerInScenario final : public DropHandler
       const QMimeData& mime) override;
 };
 
+class DropLayerInInterval final : public IntervalDropHandler
+{
+  SCORE_CONCRETE("9df2eac6-6680-43cc-9634-60324416ba04")
+
+  bool drop(
+      const Scenario::IntervalModel&,
+      const QMimeData& mime) override;
+};
 /**
  * @brief The ProcessDropHandler class
  * Will create a blank process.

@@ -10,13 +10,17 @@
 #include <Scenario/Commands/Cohesion/CreateCurves.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
+#include <Scenario/Commands/Interval/RemoveProcessFromInterval.hpp>
 #include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/model/path/PathSerialization.hpp>
+#include <Scenario/Commands/Scenario/Deletions/RemoveSelection.hpp>
 namespace Scenario
 {
 
@@ -148,8 +152,6 @@ bool DropLayerInScenario::drop(
 
     auto json = QJsonDocument::fromJson(mime.data(score::mime::layerdata())).object();
 
-    // 5 seconds.
-    // TODO instead use a percentage of the currently displayed view
     TimeVal t = TimeVal::fromMsecs(json["Duration"].toDouble());
 
     // Create the beginning
@@ -162,6 +164,68 @@ bool DropLayerInScenario::drop(
         scenar, start_cmd->createdState(), pt.date + t, pt.y};
     m.submitCommand(box_cmd);
     auto& interval = scenar.interval(box_cmd->createdInterval());
+
+    // Remove old process
+    {
+      auto old_p = fromJsonObject<Path<Process::ProcessModel>>(json["Path"]);
+      if(auto obj = old_p.try_find(pres.context().context))
+      if(auto itv = qobject_cast<IntervalModel*>(obj->parent()))
+      {
+        auto rm_cmd = new Scenario::Command::RemoveProcessFromInterval(*itv, obj->id());
+        m.submitCommand(rm_cmd);
+
+        auto s = dynamic_cast<Scenario::ProcessModel*>(itv->parent());
+        if(s && isSingular(*itv, *s))
+        {
+          auto rm_cmd = new Scenario::Command::RemoveSelection(*s, {itv});
+          m.submitCommand(rm_cmd);
+        }
+      }
+    }
+
+    // Create process
+    auto proc_cmd = new Scenario::Command::LoadProcessInInterval{interval, json};
+    m.submitCommand(proc_cmd);
+
+    // Finally we show the newly created rack
+    auto show_cmd = new Scenario::Command::ShowRack{interval};
+    m.submitCommand(show_cmd);
+
+    m.commit();
+    return true;
+  }
+
+  return false;
+}
+
+bool DropLayerInInterval::drop(
+    const IntervalModel& interval, const QMimeData& mime)
+{
+  if (mime.formats().contains(score::mime::layerdata()))
+  {
+    auto& doc = score::IDocument::documentContext(interval);
+    RedoMacroCommandDispatcher<Scenario::Command::DropProcessInIntervalMacro> m{
+        doc.commandStack};
+
+    auto json = QJsonDocument::fromJson(mime.data(score::mime::layerdata())).object();
+
+    // Remove old process
+    {
+      auto old_p = fromJsonObject<Path<Process::ProcessModel>>(json["Path"]);
+      if(auto obj = old_p.try_find(doc))
+      if(auto itv = qobject_cast<IntervalModel*>(obj->parent()))
+      {
+        auto rm_cmd = new Scenario::Command::RemoveProcessFromInterval(*itv, obj->id());
+        m.submitCommand(rm_cmd);
+
+        auto s = dynamic_cast<Scenario::ProcessModel*>(itv->parent());
+        if(s && isSingular(*itv, *s))
+        {
+          auto rm_cmd = new Scenario::Command::RemoveSelection(*s, {itv});
+          m.submitCommand(rm_cmd);
+        }
+      }
+    }
 
     // Create process
     auto proc_cmd = new Scenario::Command::LoadProcessInInterval{interval, json};
