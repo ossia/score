@@ -4,6 +4,7 @@
 
 #include <QMimeData>
 #include <Scenario/Application/ScenarioValidity.hpp>
+#include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateStateMacro.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
@@ -125,8 +126,9 @@ bool MessageDropHandler::drop(
   Mime<State::MessageList>::Deserializer des{mime};
   State::MessageList ml = des.deserialize();
 
-  RedoMacroCommandDispatcher<Scenario::Command::CreateStateMacro> m{
-      pres.context().context.commandStack};
+  Scenario::Command::Macro m{
+    new Scenario::Command::CreateStateMacro,
+    pres.context().context};
 
   const Scenario::ProcessModel& scenar = pres.model();
   Id<StateModel> createdState;
@@ -139,34 +141,25 @@ bool MessageDropHandler::drop(
     if (state->nextInterval())
     {
       // We create from the event instead
-      auto cmd1
-          = new Scenario::Command::CreateState{scenar, state->eventId(), pt.y};
-      m.submitCommand(cmd1);
-
-      auto cmd2 = new Scenario::Command::CreateInterval_State_Event_TimeSync{
-          scenar, cmd1->createdState(), pt.date, pt.y};
-      m.submitCommand(cmd2);
-      createdState = cmd2->createdState();
+      auto& s = m.createState(scenar, state->eventId(), pt.y);
+      auto& i = m.createIntervalAfter(scenar, s.id(), pt);
+      createdState = i.endState();
     }
     else
     {
-      auto cmd = new Scenario::Command::CreateInterval_State_Event_TimeSync{
-          scenar, state->id(), pt.date, state->heightPercentage()};
-      m.submitCommand(cmd);
-      createdState = cmd->createdState();
+      auto& i = m.createIntervalAfter(scenar, state->id(), {pt.date, state->heightPercentage()});
+      createdState = i.endState();
     }
   }
   else
   {
     // We create in the emptiness
-    auto cmd = new Scenario::Command::CreateTimeSync_Event_State(
-        scenar, pt.date, pt.y);
-    m.submitCommand(cmd);
-    createdState = cmd->createdState();
+    auto& [t, e, s] = m.createDot(scenar, pt);
+    createdState = s.id();
   }
 
-  auto cmd2 = new AddMessagesToState{scenar.state(createdState), ml};
-  m.submitCommand(cmd2);
+  m.addMessages(scenar.state(createdState), std::move(ml));
+
   m.commit();
   return true;
 }

@@ -26,6 +26,14 @@ public:
         "MacroCommandDispatcher: Command_T must be AggregateCommand-derived");
   }
 
+  template <typename... Args>
+  GenericMacroCommandDispatcher(std::unique_ptr<score::AggregateCommand> cmd, Args&&... args)
+      : ICommandDispatcher{std::forward<Args&&>(args)...}
+      , m_aggregateCommand{std::move(cmd)}
+  {
+    SCORE_ASSERT(m_aggregateCommand);
+  }
+
   void submitCommand(score::Command* cmd)
   {
     RedoStrategy_T::redo(stack().context(), *cmd);
