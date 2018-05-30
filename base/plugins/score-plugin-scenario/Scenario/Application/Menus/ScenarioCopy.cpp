@@ -101,7 +101,7 @@ std::vector<Process::CableData> cablesToCopy(
   ossia::ptr_set<Process::Inlet*> ins;
   for (auto itv : array)
   {
-    auto child_ins = itv->findChildren<Process::Inlet*>();
+    auto child_ins = itv->template findChildren<Process::Inlet*>();
     ins.insert(child_ins.begin(), child_ins.end());
   }
 
