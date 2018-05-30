@@ -15,6 +15,7 @@
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/Interval/IntervalHeader.hpp>
 #include <Scenario/Document/Interval/IntervalView.hpp>
+#include <score/model/path/PathSerialization.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
 #include <wobjectimpl.h>
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
@@ -128,13 +129,18 @@ void SlotHeader::setWidth(qreal width)
   update();
 }
 
+static std::unique_ptr<QDrag> slot_header_drag = nullptr;
+static bool slot_drag_moving = false;
 void SlotHeader::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
+  slot_header_drag.reset();
+  slot_drag_moving = false;
   m_presenter.selectedSlot(m_slotIndex);
 
   const auto xpos = event->pos().x();
   if (xpos >= 0 && xpos < 16)
   {
+    slot_header_drag.reset(new QDrag(event->widget()));
   }
   else if (xpos >= m_menupos - 4 && xpos < m_menupos + 4)
   {
@@ -158,40 +164,49 @@ void SlotHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 
   const auto xpos = event->pos().x();
-  if (xpos >= 0 && xpos < 16)
+  if (xpos >= 0 && xpos < 16 && slot_header_drag)
   {
-    if ((event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton))
-            .manhattanLength() < QApplication::startDragDistance())
+    qDebug() << xpos << slot_drag_moving;
+    auto min_dist = (event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton))
+                    .manhattanLength() >= QApplication::startDragDistance();
+    if (min_dist)
+    {
+      slot_drag_moving = true;
+    }
+    if (!slot_drag_moving)
     {
       return;
     }
 
-    QDrag* drag = new QDrag(event->widget());
     QMimeData* mime = new QMimeData;
     //auto json = score::marshall<JSONObject>(m_presenter.model());
     //json["DraggedSlot"] = m_slotIndex;
     auto proc_id = *m_presenter.model().smallView()[m_slotIndex].frontProcess;
     auto& proc = m_presenter.model().processes.at(proc_id);
     auto json = copyProcess(proc);
+    json["Path"] = toJsonObject(score::IDocument::path(proc));
     json["Duration"] = m_presenter.model().duration.defaultDuration().msec();
     mime->setData(score::mime::layerdata(), QJsonDocument{json}.toJson());
-    drag->setMimeData(mime);
+    slot_header_drag->setMimeData(mime);
 
 
     auto view = m_presenter.getSlots()[m_slotIndex].processes.front().view;
-    drag->setPixmap(view->pixmap());
-    drag->setHotSpot(QPoint(5, 5));
+    slot_header_drag->setPixmap(view->pixmap().scaledToWidth(50));
+    slot_header_drag->setHotSpot(QPoint(5, 5));
 
-    QObject::connect(drag, &QDrag::destroyed, &m_presenter, [p=&m_presenter] { p->stopSlotDrag(); });
+    QObject::connect(slot_header_drag.get(), &QDrag::destroyed, &m_presenter, [p=&m_presenter] { p->stopSlotDrag(); });
 
     m_presenter.startSlotDrag(m_slotIndex, mapToParent(event->pos()));
-    drag->exec();
-    drag->deleteLater();
+    slot_header_drag->exec();
+    auto ptr = slot_header_drag.release();
+    ptr->deleteLater();
   }
 }
 
 void SlotHeader::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
+  slot_header_drag.reset();
+  slot_drag_moving = false;
   event->accept();
 }
 

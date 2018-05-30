@@ -91,6 +91,7 @@ private:
   LoadOnlyProcessInInterval m_addProcessCommand;
   bool m_addedSlot{};
 };
+
 class SCORE_PLUGIN_SCENARIO_EXPORT AddProcessInNewBoxMacro final
     : public score::AggregateCommand
 {
@@ -101,6 +102,15 @@ class SCORE_PLUGIN_SCENARIO_EXPORT AddProcessInNewBoxMacro final
 
 public:
   ~AddProcessInNewBoxMacro();
+};
+
+class SCORE_PLUGIN_SCENARIO_EXPORT DropProcessInIntervalMacro final
+    : public score::AggregateCommand
+{
+  SCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(),
+      DropProcessInIntervalMacro,
+      "Drop a process in an interval")
 };
 }
 }
