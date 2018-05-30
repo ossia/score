@@ -9,6 +9,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <ossia-qt/js_utilities.hpp>
+#include <ossia/dataflow/dataflow.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(JS::ExecStateWrapper)
@@ -19,7 +20,7 @@ ExecStateWrapper::~ExecStateWrapper()
 {
 }
 
-ossia::net::parameter_base* ExecStateWrapper::find_address(const QString& str)
+ossia::destination_t ExecStateWrapper::find_address(const QString& str)
 {
   auto it = m_address_cache.find(str);
   if (it != m_address_cache.end())
@@ -73,14 +74,20 @@ ossia::net::parameter_base* ExecStateWrapper::find_address(const QString& str)
     }
   }
 
-  return nullptr;
+  if(auto p = ossia::traversal::make_path(str.toStdString()))
+  {
+    m_address_cache.insert({str, *p});
+    return ossia::destination_t{*p};
+  }
+
+  return {};
 }
 
 QVariant ExecStateWrapper::read(const QString& address)
 {
   if (auto addr = find_address(address))
   {
-    return addr->value().apply(ossia::qt::ossia_to_qvariant{});
+    //return addr->value().apply(ossia::qt::ossia_to_qvariant{});
   }
   return {};
 }
@@ -89,7 +96,13 @@ void ExecStateWrapper::write(const QString& address, const QVariant& value)
 {
   if (auto addr = find_address(address))
   {
-    addr->push_value(ossia::qt::qt_to_ossia{}(value));
+    auto val = ossia::qt::qt_to_ossia{}(value);
+
+    ossia::apply_to_destination(addr, devices.allDevices,
+      [&] (ossia::net::parameter_base* addr, bool unique) {
+        devices.insert(*addr, ossia::tvalue{val});
+    });
+    // addr->push_value(ossia::qt::qt_to_ossia{}(value));
   }
 }
 }
