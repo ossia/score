@@ -4,6 +4,11 @@
 class QJsonObject;
 class QObject;
 
+namespace Process
+{
+class ProcessModel;
+}
+
 namespace Scenario
 {
 class IntervalModel;
@@ -35,6 +40,9 @@ QJsonObject copySelectedScenarioElements(const Scenario::ProcessModel& sm);
 SCORE_PLUGIN_SCENARIO_EXPORT
 QJsonObject copySelectedScenarioElements(
     const Scenario::ProcessModel& sm, CategorisedScenario& cat);
+
+SCORE_PLUGIN_SCENARIO_EXPORT
+QJsonObject copyProcess(const Process::ProcessModel&);
 
 /**
  * The parent should be in the object tree of the scenario.

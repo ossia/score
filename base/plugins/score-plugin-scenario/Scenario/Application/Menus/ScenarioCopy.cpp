@@ -60,9 +60,10 @@ bool verifyAndUpdateIfChildOf(ObjectPath& path, const ObjectPath& parent)
   return true;
 }
 
+template<typename T>
 bool verifyAndUpdateIfChildOf(
     Process::CableData& path,
-    const std::vector<Path<IntervalModel>>& vec)
+    const std::vector<Path<T>>& vec)
 {
   bool source_ok = false;
   for(const auto& parent : vec)
@@ -86,6 +87,40 @@ bool verifyAndUpdateIfChildOf(
   // must not happen: the sink is already guaranteed to be a child of an interval
   // since we look for all the inlets
   SCORE_ABORT;
+}
+template<typename T>
+std::vector<Process::CableData> cablesToCopy(
+    const std::vector<const T*>& array
+    , const std::vector<Path<T>>& siblings
+    , const score::DocumentContext& ctx)
+{
+  // For every cable, if both ends are in one of the elements or child elements
+  // currently selected, we copy them.
+  // Note: ids / cable paths have to be updated of course.
+  std::vector<Process::CableData> copiedCables;
+  ossia::ptr_set<Process::Inlet*> ins;
+  for (auto itv : array)
+  {
+    auto child_ins = itv->findChildren<Process::Inlet*>();
+    ins.insert(child_ins.begin(), child_ins.end());
+  }
+
+  for (auto inl : ins)
+  {
+    for (const auto& c_inl : inl->cables())
+    {
+      if(Process::Cable* cable = c_inl.try_find(ctx))
+      {
+        auto cd = cable->toCableData();
+        if(verifyAndUpdateIfChildOf(cd, siblings))
+        {
+          copiedCables.push_back(cd);
+        }
+      }
+    }
+  }
+
+  return copiedCables;
 }
 
 template <typename Scenario_T>
@@ -203,39 +238,14 @@ copySelected(const Scenario_T& sm, CategorisedScenario& cs, QObject* parent)
     copiedStates.push_back(clone_st);
   }
 
-  // For every cable, if both ends are in one of the elements or child elements
-  // currently selected, we copy them.
-  // Note: ids / cable paths have to be updated of course.
-  std::vector<Process::CableData> copiedCables;
-  ossia::ptr_set<Process::Inlet*> ins;
-  for (auto itv : cs.selectedIntervals)
-  {
-    auto child_ins = itv->findChildren<Process::Inlet*>();
-    ins.insert(child_ins.begin(), child_ins.end());
-  }
-
-  auto& ctx = score::IDocument::documentContext(*parent);
-  for (auto inl : ins)
-  {
-    for (const auto& c_inl : inl->cables())
-    {
-      if(Process::Cable* cable = c_inl.try_find(ctx))
-      {
-        auto cd = cable->toCableData();
-        if(verifyAndUpdateIfChildOf(cd, itv_paths))
-        {
-          copiedCables.push_back(cd);
-        }
-      }
-    }
-  }
+  const auto& ctx = score::IDocument::documentContext(*parent);
 
   QJsonObject base;
   base["Intervals"] = arrayToJson(cs.selectedIntervals);
   base["Events"] = arrayToJson(copiedEvents);
   base["TimeNodes"] = arrayToJson(copiedTimeSyncs);
   base["States"] = arrayToJson(copiedStates);
-  base["Cables"] = toJsonArray(copiedCables);
+  base["Cables"] = toJsonArray(cablesToCopy(cs.selectedIntervals, itv_paths, ctx));
 
   for (auto elt : copiedTimeSyncs)
     delete elt;
@@ -244,6 +254,18 @@ copySelected(const Scenario_T& sm, CategorisedScenario& cs, QObject* parent)
   for (auto elt : copiedStates)
     delete elt;
 
+  return base;
+}
+
+QJsonObject copyProcess(
+    const Process::ProcessModel& proc)
+{
+  const auto& ctx = score::IDocument::documentContext(proc);
+  QJsonObject base;
+  std::vector<const Process::ProcessModel*> vp{&proc};
+  std::vector<Path<Process::ProcessModel>> vpath{proc};
+  base["Process"] = toJsonObject(proc);
+  base["Cables"] = toJsonArray(cablesToCopy(vp, vpath, ctx));
   return base;
 }
 
