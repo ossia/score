@@ -20,7 +20,7 @@ ExecStateWrapper::~ExecStateWrapper()
 {
 }
 
-ossia::destination_t ExecStateWrapper::find_address(const QString& str)
+const ossia::destination_t& ExecStateWrapper::find_address(const QString& str)
 {
   auto it = m_address_cache.find(str);
   if (it != m_address_cache.end())
@@ -38,8 +38,8 @@ ossia::destination_t ExecStateWrapper::find_address(const QString& str)
     {
       if (auto addr = node->get_parameter())
       {
-        m_address_cache.insert({str, addr});
-        return addr;
+        auto [it, b] = m_address_cache.insert({str, addr});
+        return it->second;
       }
     }
   }
@@ -57,8 +57,8 @@ ossia::destination_t ExecStateWrapper::find_address(const QString& str)
     {
       if (auto addr = (*dev)->get_root_node().get_parameter())
       {
-        m_address_cache.insert({str, addr});
-        return addr;
+        auto [it, b] = m_address_cache.insert({str, addr});
+        return it->second;
       }
     }
 
@@ -68,33 +68,51 @@ ossia::destination_t ExecStateWrapper::find_address(const QString& str)
     {
       if (auto addr = node->get_parameter())
       {
-        m_address_cache.insert({str, addr});
-        return addr;
+        auto [it, b] = m_address_cache.insert({str, addr});
+        return it->second;
       }
     }
   }
 
   if(auto p = ossia::traversal::make_path(str.toStdString()))
   {
-    m_address_cache.insert({str, *p});
-    return ossia::destination_t{*p};
+    auto [it, b] = m_address_cache.insert({str, *p});
+    return it->second;
   }
 
-  return {};
+  static ossia::destination_t bad_dest;
+  return bad_dest;
 }
 
 QVariant ExecStateWrapper::read(const QString& address)
 {
   if (auto addr = find_address(address))
   {
-    //return addr->value().apply(ossia::qt::ossia_to_qvariant{});
+    QVariant var;
+    QVariantMap mv;
+
+    bool unique = ossia::apply_to_destination(addr, devices.allDevices,
+      [&] (ossia::net::parameter_base* addr, bool unique) {
+        if(unique)
+        {
+          var = addr->value().apply(ossia::qt::ossia_to_qvariant{});
+        }
+        else
+        {
+          mv[QString::fromStdString(addr->get_node().osc_address())] = addr->value().apply(ossia::qt::ossia_to_qvariant{});
+        }
+    });
+    if(unique)
+      return var;
+    else
+      return mv;
   }
   return {};
 }
 
 void ExecStateWrapper::write(const QString& address, const QVariant& value)
 {
-  if (auto addr = find_address(address))
+  if (const auto& addr = find_address(address))
   {
     auto val = ossia::qt::qt_to_ossia{}(value);
 
