@@ -154,7 +154,7 @@ bool MessageDropHandler::drop(
   else
   {
     // We create in the emptiness
-    auto& [t, e, s] = m.createDot(scenar, pt);
+    const auto& [t, e, s] = m.createDot(scenar, pt);
     createdState = s.id();
   }
 
