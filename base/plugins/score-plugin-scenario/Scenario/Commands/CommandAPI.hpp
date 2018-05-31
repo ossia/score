@@ -34,6 +34,11 @@ class Macro
         , const Id<Scenario::StateModel>& state
         , Scenario::Point pt);
 
+    IntervalModel& createInterval(
+        const Scenario::ProcessModel& scenar
+        , const Id<Scenario::StateModel>& start
+        , const Id<Scenario::StateModel>& end);
+
     Process::ProcessModel* createProcess(
         const Scenario::IntervalModel& interval
         , const UuidKey<Process::ProcessModel>& key
