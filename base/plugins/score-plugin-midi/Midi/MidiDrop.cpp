@@ -14,6 +14,7 @@
 #include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <Scenario/Commands/CommandAPI.hpp>
 namespace Midi
 {
 
@@ -26,8 +27,9 @@ bool DropMidiInSenario::drop(
   if (song.tracks.empty())
     return false;
 
-  RedoMacroCommandDispatcher<Scenario::Command::AddProcessInNewBoxMacro> m{
-      pres.context().context.commandStack};
+  Scenario::Command::Macro m{
+      new Scenario::Command::AddProcessInNewBoxMacro,
+      pres.context().context};
 
   // Create a box.
   const Scenario::ProcessModel& scenar = pres.model();
@@ -36,46 +38,26 @@ bool DropMidiInSenario::drop(
   TimeVal t = TimeVal::fromMsecs(song.durationInMs);
 
   // Create the beginning
-  auto start_cmd = new Scenario::Command::CreateTimeSync_Event_State{
-      scenar, pt.date, pt.y};
-  m.submitCommand(start_cmd);
-
-  // Create a box with the duration of the longest song
-  auto box_cmd = new Scenario::Command::CreateInterval_State_Event_TimeSync{
-      scenar, start_cmd->createdState(), pt.date + t, pt.y};
-  m.submitCommand(box_cmd);
-  auto& interval = scenar.interval(box_cmd->createdInterval());
+  auto& interval = m.createBox(scenar, pt.date, pt.date + t, pt.y);
 
   for (const MidiTrack& track : song.tracks)
   {
     // Create process
-    auto process_cmd = new Scenario::Command::AddOnlyProcessToInterval{
-        interval, Midi::ProcessModel::static_concreteKey(), {}};
-    m.submitCommand(process_cmd);
+    auto& proc = m.createProcess<Midi::ProcessModel>(interval, {});
 
     // Create a new slot
-    auto slot_cmd = new Scenario::Command::AddSlotToRack{interval};
-    m.submitCommand(slot_cmd);
-
-    // Add a new layer in this slot.
-    auto& proc = static_cast<Midi::ProcessModel&>(
-        interval.processes.at(process_cmd->processId()));
+    m.createSlot(interval);
 
     // Set midi data
-    auto set_data_cmd
-        = new Midi::ReplaceNotes{proc, track.notes, track.min, track.max, t};
-    m.submitCommand(set_data_cmd);
+    m.submit(new Midi::ReplaceNotes{proc, track.notes, track.min, track.max, t});
 
-    auto layer_cmd = new Scenario::Command::AddLayerModelToSlot{
+    m.addLayer(
         Scenario::SlotPath{interval, int(interval.smallView().size() - 1)},
-        proc};
-
-    m.submitCommand(layer_cmd);
+        proc);
   }
 
   // Finally we show the newly created rack
-  auto show_cmd = new Scenario::Command::ShowRack{interval};
-  m.submitCommand(show_cmd);
+  m.showRack(interval);
 
   m.commit();
 

@@ -6,8 +6,7 @@
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <memory>
 #include <score/document/DocumentContext.hpp>
-namespace Scenario::Command
-{
+namespace Scenario { namespace Command {
 class Macro
 {
     RedoMacroCommandDispatcher<score::AggregateCommand> m;
@@ -44,9 +43,46 @@ class Macro
         , const UuidKey<Process::ProcessModel>& key
         , const QString& data);
 
+    template<typename T>
+    T& createProcess(
+        const Scenario::IntervalModel& interval
+        , const QString& data)
+    {
+      return *safe_cast<T*>(
+            this->createProcess(
+              interval,
+              Metadata<ConcreteKey_k, T>::get(),
+              data));
+    }
+
+    Process::ProcessModel* createProcessInSlot(
+        const Scenario::IntervalModel& interval
+        , const UuidKey<Process::ProcessModel>& key
+        , const QString& data);
+
+    template<typename T>
+    T& createProcessInSlot(
+        const Scenario::IntervalModel& interval
+        , const QString& data)
+    {
+      return *safe_cast<T*>(
+            this->createProcessInSlot(
+              interval,
+              Metadata<ConcreteKey_k, T>::get(),
+              data));
+    }
+
     Process::ProcessModel* loadProcessInSlot(
         const Scenario::IntervalModel& interval
         , const QJsonObject& procdata);
+
+    void clearInterval(
+        const Scenario::IntervalModel&);
+
+    void insertInInterval(
+        QJsonObject&& sourceInterval,
+        const IntervalModel& targetInterval,
+        ExpandMode mode);
 
     void createSlot(
         const Scenario::IntervalModel& interval);
@@ -106,4 +142,4 @@ class Macro
     void submit(score::Command* cmd);
     void commit();
 };
-}
+} }

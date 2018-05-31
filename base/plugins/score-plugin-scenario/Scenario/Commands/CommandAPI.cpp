@@ -55,10 +55,32 @@ Macro::createIntervalAfter(const ProcessModel& scenar, const Id<StateModel>& sta
   return scenar.intervals.at(cmd->createdInterval());
 }
 
+IntervalModel& Macro::createInterval(
+    const ProcessModel& scenar
+    , const Id<StateModel>& start
+    , const Id<StateModel>& end)
+{
+  auto cmd = new CreateInterval{scenar, start, end};
+  m.submitCommand(cmd);
+  return scenar.intervals.at(cmd->createdInterval());
+}
+
 Process::ProcessModel*
 Macro::createProcess(const IntervalModel& interval, const UuidKey<Process::ProcessModel>& key, const QString& data)
 {
   auto process_cmd = new AddOnlyProcessToInterval{
+      interval, key, data};
+  m.submitCommand(process_cmd);
+  auto it = interval.processes.find(process_cmd->processId());
+  if(it != interval.processes.end())
+    return &(*it);
+  return nullptr;
+}
+
+Process::ProcessModel*
+Macro::createProcessInSlot(const IntervalModel& interval, const UuidKey<Process::ProcessModel>& key, const QString& data)
+{
+  auto process_cmd = new AddProcessToInterval{
       interval, key, data};
   m.submitCommand(process_cmd);
   auto it = interval.processes.find(process_cmd->processId());
@@ -179,6 +201,21 @@ void Macro::addMessages(const StateModel& state, State::MessageList msgs)
 {
   auto cmd2 = new AddMessagesToState{state, std::move(msgs)};
   m.submitCommand(cmd2);
+}
+
+void Macro::clearInterval(const IntervalModel& itv)
+{
+  auto cmd = new ClearInterval{itv};
+  m.submitCommand(cmd);
+}
+
+void Macro::insertInInterval(
+    QJsonObject&& json
+    , const IntervalModel& itv
+    , ExpandMode mode)
+{
+  auto cmd = new InsertContentInInterval{std::move(json), itv, mode};
+  m.submitCommand(cmd);
 }
 
 void Macro::submit(score::Command* cmd)

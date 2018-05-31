@@ -40,15 +40,13 @@ void EncapsulateInScenario(
     return;
 
   auto& itv = *e.interval;
-  disp.createProcess(itv, Metadata<ConcreteKey_k, Scenario::ProcessModel>::get(), QString{});
+  auto& sub_scenar = disp.createProcessInSlot<Scenario::ProcessModel>(itv, {});
 
   // Resize the slot to fit the existing elements
   disp.resizeSlot(
       itv, SlotPath{itv, 0, Slot::RackView::SmallView},
       100 + (e.bottomY - e.topY) * 400);
 
-  auto& sub_scenar
-      = static_cast<Scenario::ProcessModel&>(*itv.processes.begin());
   disp.pasteElements(sub_scenar, objects, Scenario::Point{{}, 0.1});
 
   // Merge inside
