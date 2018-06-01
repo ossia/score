@@ -35,9 +35,12 @@ if(FAUST_FOUND)
         # This is a static build of faust, hence
         # we have to add all the LLVM flags...
 
-        find_program(LLVM_CONFIG llvm-config HINTS /usr/bin /usr/local/bin /usr/local/opt/llvm/bin c:/llvm/bin)
+        find_program(LLVM_CONFIG llvm-config HINTS /usr/bin /usr/local/bin /usr/local/opt/llvm/bin /opt/llvm-release/bin c:/llvm/bin)
         if(NOT LLVM_CONFIG)
-            message(FATAL_ERROR "Using a static Faust library requires LLVM tooling to be present in the path")
+            message("Using a static Faust library requires LLVM tooling to be present in the path")
+            unset(FAUST_LIBRARIES)
+            unset(FAUST_INCLUDE_DIRS)
+            return()
         endif()
 
         exec_program(${LLVM_CONFIG} ARGS --includedir OUTPUT_VARIABLE LLVM_DIR)
