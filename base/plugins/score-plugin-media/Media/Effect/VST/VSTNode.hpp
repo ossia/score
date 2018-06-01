@@ -142,7 +142,7 @@ public:
         continue;
       if (auto t = last(vec).template target<float>())
       {
-        fx->fx->setParameter(fx->fx, p.first, *t);
+        fx->fx->setParameter(fx->fx, p.first, ossia::clamp<float>(*t, 0.f, 1.f));
       }
     }
   }

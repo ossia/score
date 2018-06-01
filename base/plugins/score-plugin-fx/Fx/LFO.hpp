@@ -31,9 +31,10 @@ struct Node
 
     static const constexpr auto controls = std::make_tuple(
         Control::Widgets::LFOFreqChooser(),
-        Control::FloatSlider{"Coarse intens.", 0., 1000., 0.},
-        Control::FloatSlider{"Fine intens.", 0., 1., 1.},
-        Control::FloatSlider{"Offset.", -1000., 1000., 0.},
+        Control::FloatSlider{"Amplitude", 0., 1000., 0.},
+        Control::FloatSlider{"Fine ampl.", 0., 1., 1.},
+        Control::FloatSlider{"Offset", -1000., 1000., 0.},
+        Control::FloatSlider{"Fine offset", -1., 1., 0.},
         Control::FloatSlider{"Jitter", 0., 1., 0.},
         Control::FloatSlider{"Phase", -1., 1., 0.},
         Control::Widgets::WaveformChooser());
@@ -50,9 +51,10 @@ struct Node
 
   static void
   run(float freq,
-      float coarse,
-      float fine,
+      float ampl,
+      float ampl_fine,
       float offset,
+      float offset_fine,
       float jitter,
       float phase,
       const std::string& type,
@@ -72,25 +74,28 @@ struct Node
         ph += std::normal_distribution<float>(0., 5000.)(s.rd) * jitter;
       }
 
+      ampl += ampl_fine;
+      offset += offset_fine;
+
       using namespace Control::Widgets;
       const auto phi = phase + (float(ossia::two_pi) * freq * ph) / st.sampleRate;
 
       switch (it->second)
       {
         case Sin:
-          new_val = (coarse + fine) * std::sin(phi);
+          new_val = ampl * std::sin(phi);
           out.add_raw_value(new_val + offset);
           break;
         case Triangle:
-          new_val = (coarse + fine) * std::asin(std::sin(phi));
+          new_val = ampl * std::asin(std::sin(phi));
           out.add_raw_value(new_val + offset);
           break;
         case Saw:
-          new_val = (coarse + fine) * std::atan(std::tan(phi));
+          new_val = ampl * std::atan(std::tan(phi));
           out.add_raw_value(new_val + offset);
           break;
         case Square:
-          new_val = (coarse + fine) * ((std::sin(phi) > 0.f) ? 1.f : -1.f);
+          new_val = ampl * ((std::sin(phi) > 0.f) ? 1.f : -1.f);
           out.add_raw_value(new_val + offset);
           break;
         case SampleAndHold:
@@ -102,22 +107,22 @@ struct Node
           if((start_s > 0 && end_s <= 0) || (start_s <= 0 && end_s > 0))
           {
             new_val = std::uniform_real_distribution<float>(
-                  -(coarse + fine), coarse + fine)(s.rd);
+                  -ampl, ampl)(s.rd);
             out.add_raw_value(new_val + offset);
           }
           break;
         }
         case Noise1:
           new_val = std::uniform_real_distribution<float>(
-              -(coarse + fine), coarse + fine)(s.rd);
+              -ampl, ampl)(s.rd);
           out.add_raw_value(new_val + offset);
           break;
         case Noise2:
-          new_val = std::normal_distribution<float>(0, coarse + fine)(s.rd);
+          new_val = std::normal_distribution<float>(0, ampl)(s.rd);
           out.add_raw_value(new_val + offset);
           break;
         case Noise3:
-          new_val = std::cauchy_distribution<float>(0, coarse + fine)(s.rd);
+          new_val = std::cauchy_distribution<float>(0, ampl)(s.rd);
           out.add_raw_value(new_val + offset);
           break;
       }
