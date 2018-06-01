@@ -1,6 +1,7 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
+#include <score/command/AggregateCommand.hpp>
 namespace score { class CommandStackFacade; }
 namespace Scenario
 {

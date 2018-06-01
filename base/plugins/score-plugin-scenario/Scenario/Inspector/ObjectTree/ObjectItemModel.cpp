@@ -9,6 +9,7 @@
 #include <Scenario/Commands/Interval/RemoveProcessFromInterval.hpp>
 #include <Scenario/Commands/State/AddStateProcess.hpp>
 #include <Scenario/Commands/State/RemoveStateProcess.hpp>
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
