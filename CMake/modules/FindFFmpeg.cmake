@@ -68,6 +68,7 @@ macro(find_component _component _pkgconfig _library _header)
       ${PC_${_component}_INCLUDEDIR}
       ${PC_${_component}_INCLUDE_DIRS}
       c:/ffmpeg/include
+      /opt/ffmpeg/include
     PATH_SUFFIXES
       ffmpeg
   )

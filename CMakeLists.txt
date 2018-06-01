@@ -1,3 +1,4 @@
+cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
 set(CMAKE_MODULE_PATH
   "${CMAKE_MODULE_PATH}"
   "${CMAKE_CURRENT_SOURCE_DIR}/CMake"
@@ -17,8 +18,8 @@ endif()
 include("${SCORE_CONFIGURATION}")
 project(score LANGUAGES C CXX)
 
-cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
 cmake_policy(VERSION 3.9)
+cmake_policy(SET CMP0025 NEW)
 
 set(SCORE_VERSION_MAJOR 2)
 set(SCORE_VERSION_MINOR 0)
