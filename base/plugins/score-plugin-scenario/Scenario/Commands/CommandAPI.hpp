@@ -12,6 +12,7 @@ class Macro
     RedoMacroCommandDispatcher<score::AggregateCommand> m;
   public:
     Macro(score::AggregateCommand* cmd, const score::DocumentContext& ctx);
+    ~Macro();
 
     StateModel&
     createState(
@@ -117,9 +118,13 @@ class Macro
         , SlotPath&& slotPath
         , double newSize);
 
-    void duplicate(
+    IntervalModel& duplicate(
         const Scenario::ProcessModel& scenario
         , const Scenario::IntervalModel& itv);
+
+    Process::ProcessModel& duplicateProcess(
+        const Scenario::IntervalModel& itv,
+        const Process::ProcessModel& process);
 
     void pasteElements(
         const Scenario::ProcessModel& scenario

@@ -27,6 +27,8 @@ public:
   void redo(const score::DocumentContext& ctx) const override;
 
   const Path<IntervalModel>& intervalPath() const;
+  const Id<Scenario::IntervalModel>& createdId() const
+  { return m_createdId; }
 
 protected:
   void serializeImpl(DataStreamInput& s) const override;

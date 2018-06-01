@@ -27,6 +27,7 @@
 #include <Explorer/Panel/DeviceExplorerPanelDelegate.hpp>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
@@ -878,13 +879,17 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
         auto& fact = m_ctx.app.interfaces<Process::ProcessFactoryList>();
         auto dialog = new AddProcessDialog{
             fact, Process::ProcessFlags::SupportsTemporal, this};
-        dialog->on_okPressed = [&](const auto& proc, QString dat) {
-          using cmd = Scenario::Command::AddProcessInNewSlot;
-          QuietMacroCommandDispatcher<cmd> disp{m_ctx.commandStack};
+        dialog->on_okPressed = [&](const auto& proc, QString dat)
+        {
+          using namespace Scenario::Command;
+          Macro m{new AddProcessInNewSlot, m_ctx};
 
-          cmd::create(disp, *cst, proc, dat);
-
-          disp.commit();
+          if(auto p = m.createProcess(*cst, proc, dat))
+          {
+            m.createSlot(*cst);
+            m.addLayerToLastSlot(*cst, *p);
+            m.commit();
+          }
         };
 
         dialog->launchWindow();
