@@ -1,25 +1,9 @@
 #include "Encapsulate.hpp"
-
 #include "DuplicateInterval.hpp"
-#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
-#include <Scenario/Commands/Interval/Rack/Slot/ResizeSlotVertically.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event_TimeSync.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
-#include <Scenario/Commands/Scenario/Deletions/RemoveSelection.hpp>
-#include <Scenario/Commands/Scenario/Merge/MergeEvents.hpp>
-#include <Scenario/Commands/Scenario/ScenarioPasteElements.hpp>
-#include <Scenario/Application/Menus/ScenarioCopy.hpp>
-#include <Scenario/Palette/ScenarioPoint.hpp>
-#include <Scenario/Process/ScenarioFactory.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
-#include <score/command/Command.hpp>
-#include <score/command/CommandData.hpp>
-#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <score/model/Identifier.hpp>
-#include <score/model/path/Path.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-
+#include <Scenario/Commands/CommandAPI.hpp>
 namespace Scenario
 {
 

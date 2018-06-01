@@ -96,6 +96,10 @@ class Macro
         const Scenario::IntervalModel& interval
         , const Process::ProcessModel& proc);
 
+    void addLayerInNewSlot(
+        const Scenario::IntervalModel& interval
+        , const Process::ProcessModel& proc);
+
     void addLayer(
         const Scenario::SlotPath& slotpath
         , const Process::ProcessModel& proc);

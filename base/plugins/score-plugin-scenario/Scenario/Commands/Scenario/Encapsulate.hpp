@@ -1,10 +1,10 @@
 #pragma once
-#include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
-
+namespace score { class CommandStackFacade; }
 namespace Scenario
 {
+namespace Command { class Macro; }
 class IntervalModel;
 namespace Command
 {

@@ -1,7 +1,9 @@
 #include "PutInLoop.hpp"
-
 #include <Loop/LoopProcessModel.hpp>
-#include <Scenario/Commands/Interval/InsertContentInInterval.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
+#include <Scenario/Commands/CommandAPI.hpp>
 
 namespace Loop
 {
@@ -24,9 +26,7 @@ void EncapsulateInLoop(
     auto itv_json = score::marshall<JSONObject>(source_itv);
 
     disp.clearInterval(source_itv);
-    auto& loop =
-        static_cast<Loop::ProcessModel&>(
-          *disp.createProcess(source_itv, Metadata<ConcreteKey_k, Loop::ProcessModel>::get(), {}));
+    auto& loop = disp.createProcess<Loop::ProcessModel>(source_itv, {});
 
     disp.insertInInterval(
         std::move(itv_json), loop.intervals()[0], ExpandMode::Scale);
