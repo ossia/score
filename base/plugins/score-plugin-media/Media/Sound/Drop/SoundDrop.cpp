@@ -9,21 +9,17 @@
 #include <QApplication>
 #include <QMimeData>
 #include <QUrl>
-#include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
-#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
-#include <Scenario/Commands/Interval/Rack/AddSlotToRack.hpp>
 #include <Scenario/Commands/MoveBaseEvent.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
-#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <Scenario/Commands/CommandAPI.hpp>
 namespace Media
 {
 namespace Sound
 {
 static void createSoundProcesses(
-    RedoMacroCommandDispatcher<Media::Commands::CreateSoundBoxMacro>& m,
+    Scenario::Command::Macro& m,
     const Scenario::IntervalModel& interval,
     DroppedAudioFiles& drop)
 {
@@ -31,23 +27,9 @@ static void createSoundProcesses(
   {
     // TODO set file directly
     // Create sound process
-    auto process_cmd = new Scenario::Command::AddOnlyProcessToInterval{
-        interval,
-        Metadata<ConcreteKey_k, Media::Sound::ProcessModel>::get(),
-        {}};
-    m.submitCommand(process_cmd);
-
-    // Set process file
-    auto& proc = safe_cast<Sound::ProcessModel&>(
-        interval.processes.at(process_cmd->processId()));
-    auto file_cmd
-        = new Media::Commands::ChangeAudioFile{proc, std::move(file)};
-    m.submitCommand(file_cmd);
-
-    // Create a new slot
-    auto slot_cmd = new Scenario::Command::AddLayerInNewSlot{
-        interval, process_cmd->processId()};
-    m.submitCommand(slot_cmd);
+    auto& proc = m.createProcess<Media::Sound::ProcessModel>(interval, {});
+    m.submit(new Media::Commands::ChangeAudioFile{proc, std::move(file)});
+    m.addLayerInNewSlot(interval, proc);
   }
 }
 
@@ -116,8 +98,9 @@ bool DropHandler::createInParallel(
     QPointF pos,
     DroppedAudioFiles&& drop)
 {
-  RedoMacroCommandDispatcher<Media::Commands::CreateSoundBoxMacro> m{
-      pres.context().context.commandStack};
+  Scenario::Command::Macro m{
+    new Media::Commands::CreateSoundBoxMacro,
+    pres.context().context};
 
   // Create a box.
   const Scenario::ProcessModel& scenar = pres.model();
@@ -126,22 +109,14 @@ bool DropHandler::createInParallel(
   TimeVal t = drop.dropMaxDuration();
 
   // Create the beginning
-  auto start_cmd = new Scenario::Command::CreateTimeSync_Event_State{
-      scenar, pt.date, pt.y};
-  m.submitCommand(start_cmd);
-
-  // Create a box with the duration of the longest song
-  auto box_cmd = new Scenario::Command::CreateInterval_State_Event_TimeSync{
-      scenar, start_cmd->createdState(), pt.date + t, pt.y};
-  m.submitCommand(box_cmd);
-  auto& interval = scenar.interval(box_cmd->createdInterval());
+  auto& interval = m.createBox(scenar, pt.date, pt.date + t, pt.y);
 
   // Add sound processes as fit.
   createSoundProcesses(m, interval, drop);
 
   // Finally we show the newly created rack
-  auto show_cmd = new Scenario::Command::ShowRack{interval};
-  m.submitCommand(show_cmd);
+  m.showRack(interval);
+
   m.commit();
 
   return true;
@@ -175,8 +150,7 @@ bool IntervalDropHandler::drop(
   }
 
   auto& doc = score::IDocument::documentContext(interval);
-  RedoMacroCommandDispatcher<Media::Commands::CreateSoundBoxMacro> m{
-      doc.commandStack};
+  Scenario::Command::Macro m{new Media::Commands::CreateSoundBoxMacro, doc};
 
   // TODO dynamic_safe_cast ? for non-static-castable types, have the compiler
   // enforce dynamic_cast ?
@@ -197,7 +171,7 @@ bool IntervalDropHandler::drop(
               interval.heightPercentage(),
               ExpandMode::GrowShrink,
               LockMode::Free};
-      m.submitCommand(resize_cmd);
+      m.submit(resize_cmd);
     }
     else if (
         auto scenar = dynamic_cast<Scenario::ProcessModel*>(interval.parent()))
@@ -214,7 +188,7 @@ bool IntervalDropHandler::drop(
             interval.heightPercentage(),
             ExpandMode::GrowShrink,
             LockMode::Free};
-        m.submitCommand(resize_cmd);
+        m.submit(resize_cmd);
       }
     }
   }
@@ -223,8 +197,8 @@ bool IntervalDropHandler::drop(
   createSoundProcesses(m, interval, drop);
 
   // Show the rack
-  auto show_cmd = new Scenario::Command::ShowRack{interval};
-  m.submitCommand(show_cmd);
+  m.showRack(interval);
+
   m.commit();
 
   return false;

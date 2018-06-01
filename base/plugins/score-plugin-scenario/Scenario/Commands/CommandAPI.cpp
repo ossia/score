@@ -123,6 +123,14 @@ void Macro::addLayerToLastSlot(
   addLayer(SlotPath{interval, int(interval.smallView().size() - 1)}, proc);
 }
 
+void Macro::addLayerInNewSlot(
+    const IntervalModel& interval
+    , const Process::ProcessModel& proc)
+{
+  auto layer_cmd = new AddLayerInNewSlot{interval, proc.id()};
+  m.submitCommand(layer_cmd);
+}
+
 void Macro::addLayer(
     const SlotPath& slotpath
     , const Process::ProcessModel& proc)
