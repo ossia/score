@@ -11,6 +11,11 @@ Macro::Macro(
 
 }
 
+Macro::~Macro()
+{
+  m.rollback();
+}
+
 StateModel&Macro::createState(
     const ProcessModel& scenar
     , const Id<EventModel>& ev
@@ -163,12 +168,22 @@ void Macro::resizeSlot(
   m.submitCommand(cmd);
 }
 
-void Macro::duplicate(
+Scenario::IntervalModel& Macro::duplicate(
     const Scenario::ProcessModel& scenario
     , const IntervalModel& itv)
 {
   auto cmd = new DuplicateInterval{scenario, itv};
   m.submitCommand(cmd);
+  return scenario.intervals.at(cmd->createdId());
+}
+
+Process::ProcessModel& Macro::duplicateProcess(
+    const IntervalModel& itv
+    , const Process::ProcessModel& process)
+{
+  auto cmd = new DuplicateOnlyProcessToInterval{itv, process};
+  m.submitCommand(cmd);
+  return itv.processes.at(cmd->processId());
 }
 
 void Macro::pasteElements(

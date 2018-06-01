@@ -12,6 +12,7 @@
 #include <QPoint>
 #include <QString>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/CreateProcessInExistingSlot.hpp>
@@ -70,7 +71,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
       name = p.prettyShortName();
     QAction* procAct = new QAction{name, new_processes_submenu};
     QObject::connect(procAct, &QAction::triggered, [&]() {
-      auto cmd = new Scenario::Command::AddLayerInNewSlot{interval, p.id()};
+      auto cmd = new AddLayerInNewSlot{interval, p.id()};
       CommandDispatcher<>{ctx.commandStack}.submitCommand(cmd);
     });
     new_processes_submenu->addAction(procAct);
@@ -79,7 +80,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
   // Then removal of slot
   auto removeSlotAct = menu.addAction(tr("Remove this slot"));
   QObject::connect(removeSlotAct, &QAction::triggered, [&, slot_path]() {
-    auto cmd = new Scenario::Command::RemoveSlotFromRack{slot_path,
+    auto cmd = new RemoveSlotFromRack{slot_path,
                                                          slot_path.find(ctx)};
     CommandDispatcher<>{ctx.commandStack}.submitCommand(cmd);
   });
@@ -102,7 +103,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
         name = p.prettyShortName();
       QAction* procAct = new QAction{name, existing_processes_submenu};
       QObject::connect(procAct, &QAction::triggered, [&, slot_path]() mutable {
-        auto cmd2 = new Scenario::Command::AddLayerModelToSlot{
+        auto cmd2 = new AddLayerModelToSlot{
             std::move(slot_path), p};
         CommandDispatcher<>{ctx.commandStack}.submitCommand(cmd2);
       });
@@ -122,15 +123,15 @@ void ScenarioContextMenuManager::createSlotContextMenu(
         dialog->on_okPressed
             = [&, slot_path](const auto& proc, const QString& data) mutable {
                 QuietMacroCommandDispatcher<
-                    Scenario::Command::CreateProcessInExistingSlot>
+                    CreateProcessInExistingSlot>
                     disp{ctx.commandStack};
 
-                auto cmd1 = new Scenario::Command::AddOnlyProcessToInterval(
+                auto cmd1 = new AddOnlyProcessToInterval(
                     interval, proc, data);
                 cmd1->redo(ctx);
                 disp.submitCommand(cmd1);
 
-                auto cmd2 = new Scenario::Command::AddLayerModelToSlot(
+                auto cmd2 = new AddLayerModelToSlot(
                     std::move(slot_path),
                     interval.processes.at(cmd1->processId()));
                 cmd2->redo(ctx);
@@ -153,12 +154,15 @@ void ScenarioContextMenuManager::createSlotContextMenu(
         fact, Process::ProcessFlags::SupportsTemporal, qApp->activeWindow()};
 
     dialog->on_okPressed = [&](const auto& proc, const QString& data) {
-      using cmd = Scenario::Command::AddProcessInNewSlot;
-      QuietMacroCommandDispatcher<cmd> disp{ctx.commandStack};
+      Macro m{new AddProcessInNewSlot, ctx};
 
-      cmd::create(disp, interval, proc, data);
+      if(auto p = m.createProcess(interval, proc, data))
+      {
+        m.createSlot(interval);
+        m.addLayerToLastSlot(interval, *p);
 
-      disp.commit();
+        m.commit();
+      }
     };
 
     dialog->launchWindow();
@@ -179,12 +183,14 @@ void ScenarioContextMenuManager::createSlotContextMenu(
   auto duplProcessInNewSlot
       = new QAction{tr("Duplicate process in new slot"), &menu};
   QObject::connect(duplProcessInNewSlot, &QAction::triggered, [&] {
-    using cmd = Scenario::Command::DuplicateProcess;
-    QuietMacroCommandDispatcher<cmd> disp{ctx.commandStack};
+    using namespace Scenario::Command;
+    Macro m{new DuplicateProcess, ctx};
 
-    cmd::create(disp, interval, interval.processes.at(slot.process));
+    auto& proc = m.duplicateProcess(interval, interval.processes.at(slot.process));
+    m.createSlot(interval);
+    m.addLayerToLastSlot(interval, proc);
 
-    disp.commit();
+    m.commit();
   });
   menu.addAction(duplProcessInNewSlot);
 }

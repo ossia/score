@@ -16,6 +16,7 @@
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 #include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/CreateProcessInNewSlot.hpp>
 #include <Scenario/Commands/Interval/Rack/SwapSlots.hpp>
@@ -251,10 +252,14 @@ void TemporalIntervalPresenter::on_requestOverlayMenu(QPointF)
 
     if (fact.get(key)->flags() & Process::ProcessFlags::PutInNewSlot)
     {
-      QuietMacroCommandDispatcher<AddProcessInNewSlot> d{
-          m_context.commandStack};
-      AddProcessInNewSlot::create(d, this->model(), key, dat);
-      d.commit();
+      Macro m{new AddProcessInNewSlot, m_context};
+
+      if(auto p = m.createProcess(this->model(), key, dat))
+      {
+        m.createSlot(this->model());
+        m.addLayerToLastSlot(this->model(), *p);
+        m.commit();
+      }
     }
     else
     {
