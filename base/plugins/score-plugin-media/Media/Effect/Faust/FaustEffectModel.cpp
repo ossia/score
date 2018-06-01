@@ -272,7 +272,7 @@ Engine::Execution::FaustEffectComponent::FaustEffectComponent(
   if (proc.faust_object)
   {
     initCDSPInstance(proc.faust_object, ctx.plugin.execState->sampleRate);
-    auto node = std::make_shared<ossia::nodes::faust>(*proc.faust_object);
+    auto node = std::make_shared<ossia::nodes::faust>(proc.faust_object);
     this->node = node;
     m_ossia_process = std::make_shared<ossia::node_process>(node);
     for (std::size_t i = 1; i < proc.inlets().size(); i++)
