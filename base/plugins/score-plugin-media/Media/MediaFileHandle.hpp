@@ -3,6 +3,7 @@
 #include <wobjectdefs.h>
 #include <QFile>
 #include <array>
+#include <nano_signal_slot.hpp>
 #include <ossia/detail/small_vector.hpp>
 #include <score_plugin_media_export.h>
 namespace score
