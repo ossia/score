@@ -297,6 +297,11 @@ set(HDRS
 
   "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/ChangeAddress.hpp"
 
+  "${CMAKE_CURRENT_SOURCE_DIR}/InterpState/InterpStateProcess.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/InterpState/InterpStateView.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/InterpState/InterpStateColors.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/InterpState/InterpStateFactory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/InterpState/InterpStatePresenter.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/CreateModulation.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/EditPort.hpp"
@@ -554,6 +559,10 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationColors.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationProcess.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationView.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/InterpState/InterpStateColors.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/InterpState/InterpStateProcess.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/InterpState/InterpStateView.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/EditPort.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/EditConnection.cpp"
