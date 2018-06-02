@@ -1,6 +1,7 @@
 #pragma once
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+#include <type_traits>
 
 /**
  * \file VisitorCommon.hpp
@@ -33,7 +34,7 @@ struct base_kind
 };
 
 template <typename T>
-struct base_kind<T, ossia::void_t<typename T::base_type>>
+struct base_kind<T, std::void_t<typename T::base_type>>
 {
   using type = has_base;
 };
