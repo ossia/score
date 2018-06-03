@@ -277,7 +277,12 @@ void ApplicationPlugin::initialize()
   con(set, &Audio::Settings::Model::CardOutChanged, this, &ApplicationPlugin::restart_engine);
   con(set, &Audio::Settings::Model::DefaultInChanged, this, &ApplicationPlugin::restart_engine);
   con(set, &Audio::Settings::Model::DefaultOutChanged, this, &ApplicationPlugin::restart_engine);
+
+  try {
   setup_engine();
+  } catch(...) {
+
+  }
 }
 score::GUIElements ApplicationPlugin::makeGUIElements()
 {
