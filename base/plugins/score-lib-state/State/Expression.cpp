@@ -5,8 +5,21 @@
 #include <QMap>
 #include <QStringBuilder>
 #include <State/Relation.hpp>
+#include <State/Message.hpp>
+#include <State/ValueConversion.hpp>
 namespace State
 {
+QString Message::toString() const
+{
+  return address.toString() + " " + State::convert::toPrettyString(value);
+}
+
+QDebug operator<<(QDebug s, const Message& mess)
+{
+  s << mess.toString();
+  return s;
+}
+
 bool operator<(const State::ExprData& lhs, const State::ExprData& rhs)
 {
   return false;

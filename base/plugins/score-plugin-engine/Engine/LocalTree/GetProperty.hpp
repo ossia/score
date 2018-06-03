@@ -7,58 +7,27 @@ namespace Engine
 {
 namespace LocalTree
 {
-template <typename T, typename Object, typename PropGet, typename PropChanged>
-class QtGetProperty
-{
-  Object& m_obj;
-  PropGet m_get{};
-  PropChanged m_changed{};
 
-public:
-  using value_type = T;
-  QtGetProperty(Object& obj, PropGet get, PropChanged chgd)
-      : m_obj{obj}, m_get{get}, m_changed{chgd}
-  {
-  }
-
-  auto get() const
-  {
-    return (m_obj.*m_get)();
-  }
-
-  auto changed() const
-  {
-    return (m_obj.*m_changed);
-  }
-
-  auto& object() const
-  {
-    return m_obj;
-  }
-  auto changed_property() const
-  {
-    return m_changed;
-  }
-};
-
-template <typename GetProperty>
+template <typename Property>
 struct GetPropertyWrapper final : public BaseProperty
 {
-  GetProperty property;
+  using model_t = typename Property::model_type;
+  using param_t = typename Property::param_type;
+  model_t& m_model;
   using converter_t
-      = Engine::ossia_to_score::MatchingType<typename GetProperty::value_type>;
+      = Engine::ossia_to_score::MatchingType<typename Property::param_type>;
 
   GetPropertyWrapper(
       ossia::net::node_base& param_node,
       ossia::net::parameter_base& param_addr,
-      GetProperty prop,
+      model_t& obj,
       QObject* context)
-      : BaseProperty{param_node, param_addr}, property{prop}
+      : BaseProperty{param_node, param_addr}, m_model{obj}
   {
     QObject::connect(
-        &property.object(), property.changed_property(), context,
+        &m_model, Property::notify(), context,
         [=] {
-          auto newVal = converter_t::convert(property.get());
+          auto newVal = converter_t::convert((m_model.*Property::get())());
           try
           {
             auto res = addr.value();
@@ -74,32 +43,18 @@ struct GetPropertyWrapper final : public BaseProperty
         },
         Qt::QueuedConnection);
 
-    addr.set_value(converter_t::convert(property.get()));
+    addr.set_value(converter_t::convert((m_model.*Property::get())()));
   }
 };
 
-template <typename Property>
-auto make_getProperty(
-    ossia::net::node_base& node,
-    ossia::net::parameter_base& addr,
-    Property prop,
-    QObject* context)
-{
-  return std::make_unique<GetPropertyWrapper<Property>>(
-      node, addr, prop, context);
-}
-
-template <typename T, typename Object, typename PropGet, typename PropChanged>
+template <typename Property, typename Object>
 auto add_getProperty(
     ossia::net::node_base& n,
-    const std::string& name,
-    Object* obj,
-    PropGet get,
-    PropChanged chgd,
+    Object& obj,
     QObject* context)
 {
-  constexpr const auto t = Engine::ossia_to_score::MatchingType<T>::val;
-  auto node = n.create_child(name);
+  constexpr const auto t = Engine::ossia_to_score::MatchingType<typename Property::param_type>::val;
+  auto node = n.create_child(Property::name);
   SCORE_ASSERT(node);
 
   auto addr = node->create_parameter(t);
@@ -107,10 +62,8 @@ auto add_getProperty(
 
   addr->set_access(ossia::access_mode::GET);
 
-  return make_getProperty(
-      *node, *addr,
-      QtGetProperty<T, Object, PropGet, PropChanged>{*obj, get, chgd},
-      context);
+  return std::make_unique<GetPropertyWrapper<Property>>(
+      *node, *addr, obj, context);
 }
 }
 }

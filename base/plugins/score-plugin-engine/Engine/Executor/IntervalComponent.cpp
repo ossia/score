@@ -43,7 +43,7 @@ IntervalComponentBase::IntervalComponentBase(
     : Scenario::GenericIntervalComponent<const Context>{
           score_cst, ctx, id, "Executor::Interval", nullptr}
 {
-  con(interval().duration, &Scenario::IntervalDurations::executionSpeedChanged,
+  con(interval().duration, &Scenario::IntervalDurations::speedChanged,
       this, [&](double sp) {
         if (m_ossia_interval)
           in_exec([sp, cst = m_ossia_interval] { cst->set_speed(sp); });
@@ -196,7 +196,7 @@ interval_duration_data IntervalComponentBase::makeDurations() const
   return {context().time(interval().duration.defaultDuration()),
           context().time(interval().duration.minDuration()),
           context().time(interval().duration.maxDuration()),
-          interval().duration.executionSpeed()};
+          interval().duration.speed()};
 }
 
 void IntervalComponent::onSetup(

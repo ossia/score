@@ -24,13 +24,6 @@ class SCORE_PLUGIN_MAPPING_EXPORT ProcessModel final
 
   W_OBJECT(ProcessModel)
 
-  
-  
-  
-
-  
-  
-  
 public:
   ProcessModel(
       const TimeVal& duration,
@@ -72,6 +65,13 @@ public:
   void targetMinChanged(double arg) W_SIGNAL(targetMinChanged, arg);
   void targetMaxChanged(double arg) W_SIGNAL(targetMaxChanged, arg);
 
+  PROPERTY(double, targetMax READ targetMax WRITE setTargetMax NOTIFY targetMaxChanged)
+  PROPERTY(double, targetMin READ targetMin WRITE setTargetMin NOTIFY targetMinChanged)
+  PROPERTY(State::AddressAccessor, targetAddress READ targetAddress WRITE setTargetAddress NOTIFY targetAddressChanged)
+  PROPERTY(double, sourceMax READ sourceMax WRITE setSourceMax NOTIFY sourceMaxChanged)
+  PROPERTY(double, sourceMin READ sourceMin WRITE setSourceMin NOTIFY sourceMinChanged)
+  PROPERTY(State::AddressAccessor, sourceAddress READ sourceAddress WRITE setSourceAddress NOTIFY sourceAddressChanged)
+
 private:
   void init();
   //// ProcessModel ////
@@ -84,17 +84,5 @@ private:
 
   double m_targetMin{};
   double m_targetMax{};
-
-W_PROPERTY(double, targetMax READ targetMax WRITE setTargetMax NOTIFY targetMaxChanged)
-
-W_PROPERTY(double, targetMin READ targetMin WRITE setTargetMin NOTIFY targetMinChanged)
-
-W_PROPERTY(State::AddressAccessor, targetAddress READ targetAddress WRITE setTargetAddress NOTIFY targetAddressChanged)
-
-W_PROPERTY(double, sourceMax READ sourceMax WRITE setSourceMax NOTIFY sourceMaxChanged)
-
-W_PROPERTY(double, sourceMin READ sourceMin WRITE setSourceMin NOTIFY sourceMinChanged)
-
-W_PROPERTY(State::AddressAccessor, sourceAddress READ sourceAddress WRITE setSourceAddress NOTIFY sourceAddressChanged)
 };
 }

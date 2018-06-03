@@ -2,61 +2,13 @@
 #include <Engine/LocalTree/BaseCallbackWrapper.hpp>
 #include <Engine/OSSIA2score.hpp>
 #include <Engine/score2OSSIA.hpp>
+#include <State/ValueConversion.hpp>
 #include <State/Value.hpp>
 
 namespace Engine
 {
 namespace LocalTree
 {
-template <
-    typename T,
-    typename Object,
-    typename PropGet,
-    typename PropSet,
-    typename PropChanged>
-class QtProperty
-{
-  Object& m_obj;
-  PropGet m_get{};
-  PropSet m_set{};
-  PropChanged m_changed{};
-
-public:
-  using value_type = T;
-  QtProperty(Object& obj, PropGet get, PropSet set, PropChanged chgd)
-      : m_obj{obj}, m_get{get}, m_set{set}, m_changed{chgd}
-  {
-  }
-
-  auto get() const
-  {
-    return (m_obj.*m_get)();
-  }
-
-  auto set(const T& newval) const
-  {
-    return (m_obj.*m_set)(newval);
-  }
-  auto set(const ::ossia::value& newval) const
-  {
-    return (m_obj.*m_set)(::State::convert::value<T>(newval));
-  }
-
-  auto changed() const
-  {
-    return (m_obj.*m_changed);
-  }
-
-  auto& object() const
-  {
-    return m_obj;
-  }
-  auto changed_property() const
-  {
-    return m_changed;
-  }
-};
-
 template <typename T>
 using MatchingType_T = Engine::ossia_to_score::MatchingType<
     std::remove_const_t<std::remove_reference_t<T>>>;
@@ -64,23 +16,28 @@ using MatchingType_T = Engine::ossia_to_score::MatchingType<
 template <typename Property>
 struct PropertyWrapper final : public BaseCallbackWrapper
 {
-  Property property;
+  using model_t = typename Property::model_type;
+  using param_t = typename Property::param_type;
+  model_t& m_model;
   using converter_t
-      = Engine::ossia_to_score::MatchingType<typename Property::value_type>;
+      = Engine::ossia_to_score::MatchingType<typename Property::param_type>;
   PropertyWrapper(
       ossia::net::node_base& param_node,
       ossia::net::parameter_base& param_addr,
-      Property prop,
+      model_t& obj,
       QObject* context)
-      : BaseCallbackWrapper{param_node, param_addr}, property{prop}
+      : BaseCallbackWrapper{param_node, param_addr}
+      , m_model{obj}
   {
     callbackIt
-        = addr.add_callback([=](const ossia::value& v) { property.set(v); });
+        = addr.add_callback([=](const ossia::value& v) {
+      (m_model.*Property::set())(::State::convert::value<param_t>(v));
+    });
 
     QObject::connect(
-        &property.object(), property.changed_property(), context,
+        &m_model, Property::notify(), context,
         [=] {
-          auto newVal = converter_t::convert(property.get());
+          auto newVal = converter_t::convert((m_model.*Property::get())());
           try
           {
             auto res = addr.value();
@@ -96,50 +53,25 @@ struct PropertyWrapper final : public BaseCallbackWrapper
         },
         Qt::QueuedConnection);
 
-    addr.set_value(converter_t::convert(property.get()));
+    addr.set_value(converter_t::convert((m_model.*Property::get())()));
   }
 };
 
-template <typename Property>
-auto make_property(
-    ossia::net::node_base& node,
-    ossia::net::parameter_base& addr,
-    Property prop,
-    QObject* context)
-{
-  return std::make_unique<PropertyWrapper<Property>>(
-      node, addr, prop, context);
-}
-
-template <
-    typename T,
-    typename Object,
-    typename PropGet,
-    typename PropSet,
-    typename PropChanged>
+template <typename Property, typename Object>
 auto add_property(
     ossia::net::node_base& n,
-    const std::string& name,
-    Object* obj,
-    PropGet get,
-    PropSet set,
-    PropChanged chgd,
+    Object& obj,
     QObject* context)
 {
-  constexpr const auto t = Engine::ossia_to_score::MatchingType<T>::val;
-  auto node = n.create_child(name);
+  constexpr const auto t = Engine::ossia_to_score::MatchingType<typename Property::param_type>::val;
+  auto node = n.create_child(Property::name);
   SCORE_ASSERT(node);
 
   auto addr = node->create_parameter(t);
   SCORE_ASSERT(addr);
 
   addr->set_access(ossia::access_mode::BI);
-
-  return make_property(
-      *node, *addr,
-      QtProperty<T, Object, PropGet, PropSet, PropChanged>{*obj, get, set,
-                                                           chgd},
-      context);
+  return std::make_unique<PropertyWrapper<Property>>(*node, *addr, obj, context);
 }
 }
 }

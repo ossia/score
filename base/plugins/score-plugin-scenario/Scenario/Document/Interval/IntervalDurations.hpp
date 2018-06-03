@@ -56,9 +56,9 @@ public:
     return m_playPercentage;
   }
 
-  double executionSpeed() const
+  double speed() const
   {
-    return m_executionSpeed;
+    return m_speed;
   }
 
   bool isRigid() const
@@ -90,13 +90,13 @@ public:
   void setRigid(bool arg);
   void setMinNull(bool isMinNull);
   void setMaxInfinite(bool isMaxInfinite);
-  void setExecutionSpeed(double executionSpeed)
+  void setSpeed(double Speed)
   {
-    if (m_executionSpeed == executionSpeed)
+    if (m_speed == Speed)
       return;
 
-    m_executionSpeed = executionSpeed;
-    executionSpeedChanged(executionSpeed);
+    m_speed = Speed;
+    speedChanged(Speed);
   }
 
   void checkConsistency();
@@ -118,9 +118,18 @@ public:
   void rigidityChanged(bool arg) W_SIGNAL(rigidityChanged, arg);
   void minNullChanged(bool isMinNull) W_SIGNAL(minNullChanged, isMinNull);
   void maxInfiniteChanged(bool isMaxInfinite) W_SIGNAL(maxInfiniteChanged, isMaxInfinite);
-  void executionSpeedChanged(double executionSpeed) W_SIGNAL(executionSpeedChanged, executionSpeed);
+  void speedChanged(double speed) W_SIGNAL(speedChanged, speed);
   void guiDurationChanged(TimeVal guiDuration) W_SIGNAL(guiDurationChanged, guiDuration);
 
+  PROPERTY(double, speed READ speed WRITE setSpeed NOTIFY speedChanged, W_Final)
+  PROPERTY(bool, isMaxInfinite READ isMaxInfinite WRITE setMaxInfinite NOTIFY maxInfiniteChanged, W_Final)
+  PROPERTY(bool, isMinNull READ isMinNull WRITE setMinNull NOTIFY minNullChanged, W_Final)
+  PROPERTY(bool, isRigid READ isRigid WRITE setRigid NOTIFY rigidityChanged, W_Final)
+  PROPERTY(double, percentage READ playPercentage WRITE setPlayPercentage NOTIFY playPercentageChanged, W_Final)
+  PROPERTY(TimeVal, guiDuration READ guiDuration WRITE setGuiDuration NOTIFY guiDurationChanged, W_Final)
+  PROPERTY(TimeVal, max READ maxDuration WRITE setMaxDuration NOTIFY maxDurationChanged, W_Final)
+  PROPERTY(TimeVal, min READ minDuration WRITE setMinDuration NOTIFY minDurationChanged, W_Final)
+  PROPERTY(TimeVal, default READ defaultDuration WRITE setDefaultDuration NOTIFY defaultDurationChanged, W_Final)
 private:
   IntervalModel& m_model;
 
@@ -130,25 +139,9 @@ private:
   TimeVal m_guiDuration{m_defaultDuration};
 
   double m_playPercentage{}; // Between 0 and 1.
-  double m_executionSpeed{1};
+  double m_speed{1};
   bool m_rigidity{true};
   bool m_isMinNull{false};
   bool m_isMaxInfinite{false};
-
-W_PROPERTY(double, executionSpeed READ executionSpeed WRITE setExecutionSpeed NOTIFY executionSpeedChanged, W_Final)
-
-W_PROPERTY(bool, isMaxInfinite READ isMaxInfinite WRITE setMaxInfinite NOTIFY maxInfiniteChanged, W_Final)
-
-W_PROPERTY(bool, isMinNull READ isMinNull WRITE setMinNull NOTIFY minNullChanged, W_Final)
-
-W_PROPERTY(bool, isRigid READ isRigid WRITE setRigid NOTIFY rigidityChanged, W_Final)
-
-W_PROPERTY(double, playPercentage READ playPercentage WRITE setPlayPercentage NOTIFY playPercentageChanged, W_Final)
-
-W_PROPERTY(TimeVal, guiDuration READ guiDuration WRITE setGuiDuration NOTIFY guiDurationChanged, W_Final)
-
-W_PROPERTY(TimeVal, maxDuration READ maxDuration WRITE setMaxDuration NOTIFY maxDurationChanged, W_Final)
-
-W_PROPERTY(TimeVal, minDuration READ minDuration WRITE setMinDuration NOTIFY minDurationChanged, W_Final)
 };
 }

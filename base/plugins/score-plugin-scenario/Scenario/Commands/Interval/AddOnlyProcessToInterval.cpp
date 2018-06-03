@@ -97,8 +97,8 @@ LoadOnlyProcessInInterval::LoadOnlyProcessInInterval(
     Id<Process::ProcessModel> processId,
     const QJsonObject& dat)
     : m_path{cst}
-    , m_data{dat}
     , m_createdProcessId{std::move(processId)}
+    , m_data{dat}
 {
 }
 

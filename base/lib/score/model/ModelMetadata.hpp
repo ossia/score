@@ -60,36 +60,37 @@ class SCORE_LIB_BASE_EXPORT ModelMetadata : public QObject
 
   PROPERTY(
       QString,
-      Name READ getName WRITE setName NOTIFY NameChanged,
+      name READ getName WRITE setName NOTIFY NameChanged,
       W_Final)
   PROPERTY(
       QString,
-      Comment READ getComment WRITE setComment NOTIFY
+      comment READ getComment WRITE setComment NOTIFY
       CommentChanged,
       W_Final)
   PROPERTY(
       ColorRef,
-      Color READ getColor WRITE setColor NOTIFY
+      color READ getColor WRITE setColor NOTIFY
       ColorChanged,
       W_Final)
   PROPERTY(
       QString,
-      Label READ getLabel WRITE setLabel NOTIFY
+      label READ getLabel WRITE setLabel NOTIFY
       LabelChanged,
       W_Final)
   PROPERTY(
       QVariantMap,
-      ExtendedMetadata READ
+      extendedMetadata READ
       getExtendedMetadata WRITE
       setExtendedMetadata NOTIFY
       ExtendedMetadataChanged,
       W_Final)
 
-  private : QString m_scriptingName;
-  QString m_comment;
-  ColorRef m_color;
-  QString m_label;
-  QVariantMap m_extendedMetadata;
+  private:
+    QString m_scriptingName;
+    QString m_comment;
+    ColorRef m_color;
+    QString m_label;
+    QVariantMap m_extendedMetadata;
 };
 }
 Q_DECLARE_METATYPE(score::ModelMetadata)

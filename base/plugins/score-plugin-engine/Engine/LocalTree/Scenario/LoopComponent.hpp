@@ -35,8 +35,6 @@ private:
   ossia::net::node_base& m_eventsNode;
   ossia::net::node_base& m_timeSyncsNode;
   ossia::net::node_base& m_statesNode;
-
-  std::vector<std::unique_ptr<BaseProperty>> m_properties;
 };
 
 using LoopComponent = HierarchicalBaseScenario<
