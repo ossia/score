@@ -132,7 +132,7 @@ class ClockFactory final : public Engine::Execution::ClockManagerFactory
   {
     constexpr double rate = 44100;
     return [=](const ossia::time_value& v) -> TimeVal {
-      return v.infinite() ? TimeVal{PositiveInfinity{}}
+      return v.infinite() ? TimeVal::infinite()
                           : TimeVal::fromMsecs(1000. * v.impl / rate);
     };
   }
