@@ -4,7 +4,6 @@
 
 #include <Effect/EffectFactory.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
-#include <Engine/LocalTree/Scenario/ProcessComponent.hpp>
 #include <Media/Effect/DefaultEffectItem.hpp>
 #include <Media/Effect/Faust/FaustUtils.hpp>
 #include <Process/Dataflow/PortFactory.hpp>

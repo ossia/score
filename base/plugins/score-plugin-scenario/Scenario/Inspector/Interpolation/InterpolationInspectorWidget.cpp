@@ -7,6 +7,7 @@
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Interpolation/Commands/ChangeAddress.hpp>
+#include <State/ValueConversion.hpp>
 #include <QCheckBox>
 #include <QFormLayout>
 #include <QLabel>

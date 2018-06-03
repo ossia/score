@@ -9,6 +9,7 @@
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <State/ValueConversion.hpp>
 #include <Process/State/MessageNode.hpp>
 #include <QList>
 #include <QPointer>

@@ -20,18 +20,9 @@ public:
       : ProcessComponent_T<Automation::ProcessModel>{
             parent, proc, ctx, id, "AutomationComponent", parent_obj}
   {
-    m_properties.push_back(add_property<double>(
-        node(), "min", &proc, &Automation::ProcessModel::min,
-        &Automation::ProcessModel::setMin,
-        &Automation::ProcessModel::minChanged, this));
-    m_properties.push_back(add_property<double>(
-        node(), "max", &proc, &Automation::ProcessModel::max,
-        &Automation::ProcessModel::setMax,
-        &Automation::ProcessModel::maxChanged, this));
+    add<Automation::ProcessModel::p_min>(proc);
+    add<Automation::ProcessModel::p_min>(proc);
   }
-
-private:
-  std::vector<std::unique_ptr<BaseProperty>> m_properties;
 };
 
 using AutomationComponentFactory

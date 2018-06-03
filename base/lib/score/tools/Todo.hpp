@@ -92,6 +92,7 @@
   struct p_ ## NAME {                                                                     \
     using param_type = TYPE;                                                              \
     using model_type = W_ThisType;                                                        \
+    static constexpr auto name = #NAME ;                                                  \
     static constexpr auto get() { constexpr auto x = std::get<0>(std::make_tuple(__VA_ARGS__)); return x; }     \
     static constexpr auto set() { constexpr auto x = std::get<1>(std::make_tuple(__VA_ARGS__)); return x; }     \
     static constexpr auto notify() { constexpr auto x = std::get<3>(std::make_tuple(__VA_ARGS__)); return x; }  \

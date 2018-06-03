@@ -14,7 +14,6 @@
 W_GADGET_IMPL(State::DestinationQualifiers)
 namespace State
 {
-
 DestinationQualifiers::DestinationQualifiers()
     : qualifiers{std::make_unique<ossia::destination_qualifiers>()}
 {

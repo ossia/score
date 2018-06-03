@@ -20,26 +20,11 @@ public:
       : ProcessComponent_T<Mapping::ProcessModel>{
             parent, proc, ctx, id, "MappingComponent", parent_obj}
   {
-    m_properties.push_back(add_property<double>(
-        node(), "sourceMin", &proc, &Mapping::ProcessModel::sourceMin,
-        &Mapping::ProcessModel::setSourceMin,
-        &Mapping::ProcessModel::sourceMinChanged, this));
-    m_properties.push_back(add_property<double>(
-        node(), "sourceMax", &proc, &Mapping::ProcessModel::sourceMax,
-        &Mapping::ProcessModel::setSourceMax,
-        &Mapping::ProcessModel::sourceMaxChanged, this));
-    m_properties.push_back(add_property<double>(
-        node(), "targetMin", &proc, &Mapping::ProcessModel::targetMin,
-        &Mapping::ProcessModel::setTargetMin,
-        &Mapping::ProcessModel::targetMinChanged, this));
-    m_properties.push_back(add_property<double>(
-        node(), "targetMax", &proc, &Mapping::ProcessModel::targetMax,
-        &Mapping::ProcessModel::setTargetMax,
-        &Mapping::ProcessModel::targetMaxChanged, this));
+    add<Mapping::ProcessModel::p_sourceMin>(proc);
+    add<Mapping::ProcessModel::p_sourceMax>(proc);
+    add<Mapping::ProcessModel::p_targetMin>(proc);
+    add<Mapping::ProcessModel::p_targetMax>(proc);
   }
-
-private:
-  std::vector<std::unique_ptr<BaseProperty>> m_properties;
 };
 
 using MappingComponentFactory = ProcessComponentFactory_T<MappingComponent>;

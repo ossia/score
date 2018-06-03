@@ -26,7 +26,7 @@ class OSSIA_EXPORT state_interpolation final :
 
     void set_behaviors(const drives_vector& b)
     {
-      //m_drive = b;
+      m_drives = b;
     }
 
     void reset_drive()

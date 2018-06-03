@@ -14,6 +14,7 @@
 #include <QMetaType>
 #include <QPainterPath>
 #include <QString>
+#include <Process/TimeValueSerialization.hpp>
 #include <Scenario/Application/Drops/AutomationDropHandler.hpp>
 #include <Scenario/Application/Drops/MessageDropHandler.hpp>
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>

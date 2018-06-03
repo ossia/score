@@ -50,6 +50,16 @@ QString ProcessModel::prettyName() const
   return tr("State interpolation");
 }
 
+State::MessageList ProcessModel::startMessages() const
+{
+  return {};
+}
+
+State::MessageList ProcessModel::endMessages() const
+{
+  return {};
+}
+
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
 {
   // We only need to change the duration.

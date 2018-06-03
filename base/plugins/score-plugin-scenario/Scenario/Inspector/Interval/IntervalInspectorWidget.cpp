@@ -45,7 +45,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
 
     // Label
     auto speedLab = new TextLabel{
-        "Speed x" + QString::number(m_model.duration.executionSpeed())};
+        "Speed x" + QString::number(m_model.duration.speed())};
     lay->addWidget(speedLab);
 
     auto speedLay = new score::MarginLess<QGridLayout>;
@@ -56,9 +56,9 @@ IntervalInspectorWidget::IntervalInspectorWidget(
     auto setSpeedFun = [=](double val) {
       auto& dur = ((IntervalModel&)(m_model)).duration;
       auto s = double(val) / 100.0;
-      if (dur.executionSpeed() != s)
+      if (dur.speed() != s)
       {
-        dur.setExecutionSpeed(s);
+        dur.setSpeed(s);
       }
     };
     // Buttons
@@ -82,8 +82,8 @@ IntervalInspectorWidget::IntervalInspectorWidget(
     speedSlider->setTickInterval(100);
     speedSlider->setMinimum(-100);
     speedSlider->setMaximum(500);
-    speedSlider->setValue(m_model.duration.executionSpeed() * 100.);
-    con(m_model.duration, &IntervalDurations::executionSpeedChanged, this,
+    speedSlider->setValue(m_model.duration.speed() * 100.);
+    con(m_model.duration, &IntervalDurations::speedChanged, this,
         [=](double s) {
           double r = s * 100;
           speedLab->setText("Speed x" + QString::number(s));

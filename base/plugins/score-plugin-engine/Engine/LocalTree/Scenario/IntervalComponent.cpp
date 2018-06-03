@@ -16,39 +16,17 @@ IntervalBase::IntervalBase(
     DocumentPlugin& doc,
     QObject* parent_comp)
     : parent_t{parent, interval.metadata(), interval,   doc,
-               id,     "IntervalComponent", parent_comp}
+               id, "IntervalComponent", parent_comp}
     , m_processesNode{*node().create_child("processes")}
 {
   using namespace Scenario;
-  using tv_t = ::TimeVal;
 
-  m_properties.push_back(add_property<float>(
-      node(), "yPos", &interval, &IntervalModel::heightPercentage,
-      &IntervalModel::setHeightPercentage,
-      &IntervalModel::heightPercentageChanged, this));
+  add_get<IntervalDurations::p_min>(interval.duration);
+  add_get<IntervalDurations::p_max>(interval.duration);
+  add_get<IntervalDurations::p_default>(interval.duration);
+  add_get<IntervalDurations::p_percentage>(interval.duration);
 
-  m_properties.push_back(add_getProperty<tv_t>(
-      node(), "min", &interval.duration, &IntervalDurations::minDuration,
-      &IntervalDurations::minDurationChanged, this));
-
-  m_properties.push_back(add_getProperty<tv_t>(
-      node(), "max", &interval.duration, &IntervalDurations::maxDuration,
-      &IntervalDurations::maxDurationChanged, this));
-
-  m_properties.push_back(add_getProperty<tv_t>(
-      node(), "default", &interval.duration,
-      &IntervalDurations::defaultDuration,
-      &IntervalDurations::defaultDurationChanged, this));
-
-  m_properties.push_back(add_getProperty<float>(
-      node(), "playtime", &interval.duration,
-      &IntervalDurations::playPercentage,
-      &IntervalDurations::playPercentageChanged, this));
-
-  m_properties.push_back(add_property<double>(
-      node(), "speed", &interval.duration, &IntervalDurations::executionSpeed,
-      &IntervalDurations::setExecutionSpeed,
-      &IntervalDurations::executionSpeedChanged, this));
+  add<IntervalDurations::p_speed>(interval.duration);
 }
 
 ProcessComponent* IntervalBase::make(

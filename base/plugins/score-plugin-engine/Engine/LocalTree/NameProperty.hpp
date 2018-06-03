@@ -31,8 +31,8 @@ public:
     */
 
     auto setNameFun = [=](const QString& newName_qstring) {
-      auto newName = newName_qstring.toStdString();
-      auto curName = node.get_name();
+      const auto newName = newName_qstring.toStdString();
+      const auto curName = node.get_name();
 
       if (curName != newName)
       {
@@ -40,8 +40,9 @@ public:
         auto real_newName = node.get_name();
         if (real_newName != newName)
         {
-          qDebug() << "ERROR (old/new)" << real_newName << newName;
-          metadata.setName(QString::fromStdString(real_newName));
+          const auto& x = QString::fromStdString(real_newName);
+          qDebug() << "ERROR (real_newName/newName)" << x << newName_qstring;
+          metadata.setName(x);
         }
       }
     };

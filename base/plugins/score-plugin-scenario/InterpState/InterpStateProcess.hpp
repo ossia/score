@@ -1,5 +1,6 @@
 #pragma once
 #include <Curve/Process/CurveProcessModel.hpp>
+#include <State/Message.hpp>
 #include <Process/ProcessMetadata.hpp>
 #include <score_plugin_scenario_export.h>
 namespace InterpState
@@ -42,6 +43,9 @@ public:
   }
 
   QString prettyName() const override;
+
+  State::MessageList startMessages() const;
+  State::MessageList endMessages() const;
 
 private:
   //// ProcessModel ////

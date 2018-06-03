@@ -178,7 +178,7 @@ struct MatchingType<::TimeVal>
 {
   static constexpr const auto val = ossia::val_type::FLOAT;
   using type = float;
-  static auto convert(::TimeVal&& t)
+  static auto convert(const TimeVal& t)
   {
     return t.msec();
   }

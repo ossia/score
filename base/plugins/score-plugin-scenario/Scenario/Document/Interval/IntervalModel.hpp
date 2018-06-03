@@ -166,8 +166,8 @@ public:
 
   void mutedChanged(bool arg_1) W_SIGNAL(mutedChanged, arg_1);
 
-  W_PROPERTY(double, muted READ muted WRITE setMuted NOTIFY mutedChanged)
-  W_PROPERTY(double, heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY heightPercentageChanged)
+  PROPERTY(double, muted READ muted WRITE setMuted NOTIFY mutedChanged)
+  PROPERTY(double, heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY heightPercentageChanged)
 
 private:
   void on_addProcess(const Process::ProcessModel&);

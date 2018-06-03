@@ -6,6 +6,7 @@
 #include <QTime>
 #include <chrono>
 #include <score/tools/std/Optional.hpp>
+#include <score/serialization/IsTemplate.hpp>
 #include <wobjectdefs.h>
 // using namespace std::literals::chrono_literals;
 
@@ -15,9 +16,9 @@ class ZeroTime
 class PositiveInfinity
 {
 };
-template <typename T>
 class TimeValue_T
 {
+  using T = double;
 public:
   static constexpr TimeValue_T zero()
   {
@@ -257,7 +258,7 @@ private:
   optional<T> m_impl{T(0)}; // TODO std::isinf instead.
 };
 
-using TimeVal = TimeValue_T<double>;
+using TimeVal = TimeValue_T;
 
 inline const TimeVal& max(const TimeVal& lhs, const TimeVal& rhs)
 {
@@ -266,6 +267,11 @@ inline const TimeVal& max(const TimeVal& lhs, const TimeVal& rhs)
   else
     return lhs;
 }
+
+template <>
+struct is_custom_serialized<TimeVal> : std::true_type
+{
+};
 
 Q_DECLARE_METATYPE(TimeVal)
 W_REGISTER_ARGTYPE(TimeVal)

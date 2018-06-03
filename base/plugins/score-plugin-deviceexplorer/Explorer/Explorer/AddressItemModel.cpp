@@ -12,6 +12,7 @@
 #include <QHBoxLayout>
 #include <QPainter>
 #include <QSpinBox>
+#include <State/ValueConversion.hpp>
 #include <State/Widgets/UnitWidget.hpp>
 #include <ossia-qt/metatypes.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>

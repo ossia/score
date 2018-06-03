@@ -8,6 +8,7 @@
 #include <State/ValueConversion.hpp>
 namespace State
 {
+
 QString toString(const Pulse& pulse)
 {
   return pulse.address.toString() + " impulse";

@@ -1,7 +1,6 @@
 #pragma once
 #include <Engine/LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <Engine/LocalTree/NameProperty.hpp>
-#include <Engine/LocalTree/Scenario/MetadataParameters.hpp>
 #include <score/model/Component.hpp>
 namespace Engine
 {
@@ -13,9 +12,12 @@ class Component : public Component_T
 public:
   template <typename... Args>
   Component(ossia::net::node_base& n, score::ModelMetadata& m, Args&&... args)
-      : Component_T{std::forward<Args>(args)...}, m_thisNode{n, m, this}
+      : Component_T{std::forward<Args>(args)...}
+      , m_thisNode{n, m, this}
   {
-    make_metadata_node(m, m_thisNode.node, m_properties, this);
+    add_get<score::ModelMetadata::p_name>(m);
+    add<score::ModelMetadata::p_comment>(m);
+    add<score::ModelMetadata::p_label>(m);
   }
 
   ossia::net::node_base& node() const
@@ -29,6 +31,18 @@ public:
   }
 
 protected:
+  template<typename Property, typename Object>
+  void add(Object& obj)
+  {
+    m_properties.push_back(add_property<Property>(node(), obj, this));
+  }
+
+  template<typename Property, typename Object>
+  void add_get(Object& obj)
+  {
+    m_properties.push_back(add_getProperty<Property>(node(), obj, this));
+  }
+
   MetadataNamePropertyWrapper m_thisNode;
   std::vector<std::unique_ptr<BaseProperty>> m_properties;
 };
