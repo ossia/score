@@ -16,17 +16,16 @@ class ZeroTime
 class PositiveInfinity
 {
 };
-class TimeValue_T
+struct TimeValue_T
 {
   using T = double;
-public:
   static constexpr TimeValue_T zero()
   {
-    return ZeroTime{};
+    return TimeValue_T{optional<T>{0}};
   }
   static constexpr TimeValue_T infinite()
   {
-    return PositiveInfinity{};
+    return TimeValue_T{optional<T>{}};
   }
   static TimeValue_T fromMsecs(T msecs)
   {
@@ -36,13 +35,12 @@ public:
   }
 
   constexpr TimeValue_T() = default;
-  constexpr TimeValue_T(PositiveInfinity) : m_impl{}
-  {
-  }
-
-  constexpr TimeValue_T(ZeroTime) : m_impl{T(0)}
-  {
-  }
+  //~TimeValue_T() = default;
+  constexpr TimeValue_T(const TimeValue_T&) = default;
+  constexpr TimeValue_T(TimeValue_T&&) = default;
+  constexpr TimeValue_T& operator=(const TimeValue_T&) = default;
+  constexpr TimeValue_T& operator=(TimeValue_T&&) = default;
+  constexpr TimeValue_T(optional<T> t): m_impl{std::move(t)} { }
 
   TimeValue_T(QTime t)
       : m_impl{
@@ -196,7 +194,7 @@ public:
 
   TimeValue_T operator+(const TimeValue_T& other) const
   {
-    TimeValue_T res{PositiveInfinity{}};
+    TimeValue_T res = TimeValue_T::infinite();
 
     if (isInfinite() || other.isInfinite())
     {
@@ -209,7 +207,7 @@ public:
 
   TimeValue_T operator*(double other) const
   {
-    TimeValue_T res{PositiveInfinity{}};
+    TimeValue_T res = TimeValue_T::infinite();
 
     if (isInfinite())
     {
@@ -227,7 +225,7 @@ public:
 
   TimeValue_T operator-(const TimeValue_T& other) const
   {
-    TimeValue_T res{PositiveInfinity{}};
+    TimeValue_T res = TimeValue_T::infinite();
 
     if (isInfinite() || other.isInfinite())
     {
@@ -240,8 +238,8 @@ public:
 
   TimeValue_T operator-() const
   {
-    TimeValue_T res{ZeroTime{}};
-    TimeValue_T zero{ZeroTime{}};
+    TimeValue_T res = TimeValue_T::zero();
+    constexpr TimeValue_T zero = TimeValue_T::zero();
 
     res.m_impl = *zero.m_impl - *m_impl;
 
@@ -254,8 +252,7 @@ public:
     return *this;
   }
 
-private:
-  optional<T> m_impl{T(0)}; // TODO std::isinf instead.
+  optional<T> m_impl{T(0.)}; // TODO std::isinf instead.
 };
 
 using TimeVal = TimeValue_T;
