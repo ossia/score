@@ -168,7 +168,7 @@ ClockFactory::makeReverseTimeFunction(const score::DocumentContext& ctx) const
 {
   auto rate = ctx.app.settings<Audio::Settings::Model>().getRate();
   return [=](const ossia::time_value& v) -> TimeVal {
-    return v.infinite() ? TimeVal{PositiveInfinity{}}
+    return v.infinite() ? TimeVal::infinite()
                         : TimeVal::fromMsecs(1000. * v.impl / rate);
   };
 }
