@@ -44,7 +44,7 @@ struct TSerializer<DataStream, TimeVal>
     }
     else
     {
-      tv = TimeVal{PositiveInfinity{}};
+      tv = TimeVal::infinite();
     }
   }
 };
@@ -68,7 +68,7 @@ struct TSerializer<JSONValue, TimeVal>
   {
     if (s.val.toString() == "inf")
     {
-      tv = TimeVal{PositiveInfinity{}};
+      tv = TimeVal::infinite();
     }
     else
     {
