@@ -77,10 +77,11 @@ ProcessModel::ProcessModel(
 
 ProcessModel::~ProcessModel()
 {
-  score::IDocument::documentFromObject(*parent())
-      ->context()
-      .selectionStack.clear();
-
+  try {
+    score::IDocument::documentContext(*parent()).selectionStack.clear();
+  } catch (...) {
+    // Sometimes the scenario isn't in the hierarchy, e.G. in ScenarioPasteElements
+  }
   comments.clear();
   intervals.clear();
   states.clear();
