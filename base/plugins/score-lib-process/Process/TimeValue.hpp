@@ -1,46 +1,43 @@
 #pragma once
-#include "ZoomHelper.hpp"
-
+#include <Process/ZoomHelper.hpp>
+#include <score/tools/std/Optional.hpp>
+#include <score/serialization/IsTemplate.hpp>
 #include <QMetaType>
 #include <QStringBuilder>
 #include <QTime>
 #include <chrono>
-#include <score/tools/std/Optional.hpp>
-#include <score/serialization/IsTemplate.hpp>
 #include <wobjectdefs.h>
-// using namespace std::literals::chrono_literals;
-
-class ZeroTime
-{
-};
-class PositiveInfinity
-{
-};
+#if defined(_MSC_VER)
+#define OPTIONAL_CONSTEXPR constexpr
+#else
+#define OPTIONAL_CONSTEXPR
+#endif
 struct TimeValue_T
 {
   using T = double;
-  static constexpr TimeValue_T zero()
+  static OPTIONAL_CONSTEXPR TimeValue_T zero()
   {
     return TimeValue_T{optional<T>{0}};
   }
-  static constexpr TimeValue_T infinite()
+  static OPTIONAL_CONSTEXPR TimeValue_T infinite()
   {
     return TimeValue_T{optional<T>{}};
   }
-  static TimeValue_T fromMsecs(T msecs)
+
+  OPTIONAL_CONSTEXPR static TimeValue_T fromMsecs(T msecs)
   {
     TimeValue_T time;
     time.m_impl = msecs;
     return time;
   }
 
-  constexpr TimeValue_T() = default;
+  OPTIONAL_CONSTEXPR TimeValue_T() = default;
   //~TimeValue_T() = default;
-  constexpr TimeValue_T(const TimeValue_T&) = default;
-  constexpr TimeValue_T(TimeValue_T&&) = default;
-  constexpr TimeValue_T& operator=(const TimeValue_T&) = default;
-  constexpr TimeValue_T& operator=(TimeValue_T&&) = default;
-  constexpr TimeValue_T(optional<T> t): m_impl{std::move(t)} { }
+  OPTIONAL_CONSTEXPR TimeValue_T(const TimeValue_T&) = default;
+  OPTIONAL_CONSTEXPR TimeValue_T(TimeValue_T&&) = default;
+  OPTIONAL_CONSTEXPR TimeValue_T& operator=(const TimeValue_T&) = default;
+  OPTIONAL_CONSTEXPR TimeValue_T& operator=(TimeValue_T&&) = default;
+  OPTIONAL_CONSTEXPR TimeValue_T(optional<T> t): m_impl{std::move(t)} { }
 
   TimeValue_T(QTime t)
       : m_impl{
@@ -50,12 +47,12 @@ struct TimeValue_T
   }
 
   // These two overloads are here to please coverity...
-  constexpr TimeValue_T(std::chrono::seconds&& dur)
+  OPTIONAL_CONSTEXPR TimeValue_T(std::chrono::seconds&& dur)
       : m_impl{T(std::chrono::duration_cast<std::chrono::milliseconds>(dur)
                      .count())}
   {
   }
-  constexpr TimeValue_T(std::chrono::milliseconds&& dur)
+  OPTIONAL_CONSTEXPR TimeValue_T(std::chrono::milliseconds&& dur)
       : m_impl{T(dur.count())}
   {
   }
@@ -64,7 +61,7 @@ struct TimeValue_T
       typename Duration,
       std::enable_if_t<
           std::is_class<typename Duration::period>::value>* = nullptr>
-  constexpr TimeValue_T(Duration&& dur)
+  OPTIONAL_CONSTEXPR TimeValue_T(Duration&& dur)
       : m_impl{T(std::chrono::duration_cast<std::chrono::milliseconds>(dur)
                      .count())}
   {
@@ -239,7 +236,7 @@ struct TimeValue_T
   TimeValue_T operator-() const
   {
     TimeValue_T res = TimeValue_T::zero();
-    constexpr TimeValue_T zero = TimeValue_T::zero();
+    OPTIONAL_CONSTEXPR TimeValue_T zero = TimeValue_T::zero();
 
     res.m_impl = *zero.m_impl - *m_impl;
 
