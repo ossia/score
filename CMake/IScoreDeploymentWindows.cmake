@@ -69,8 +69,13 @@ set(QT_QML_PLUGINS_DIR "${QT_DLL_DIR}/../qml")
 set(plugin_dest_dir "${SCORE_BIN_INSTALL_DIR}/plugins")
 
 if(WIN32)
-  install(FILES "c:/faust/faust.dll" DESTINATION "${SCORE_BIN_INSTALL_DIR}")
-  install(FILES "c:/tbb/bin/tbb.dll" DESTINATION "${SCORE_BIN_INSTALL_DIR}")
+  if(EXISTS "c:/faust/faust.dll")
+    install(FILES "c:/faust/faust.dll" DESTINATION "${SCORE_BIN_INSTALL_DIR}")
+  endif()
+
+  if(EXISTS "c:/tbb/bin/tbb.dll")
+    install(FILES "c:/tbb/bin/tbb.dll" DESTINATION "${SCORE_BIN_INSTALL_DIR}")
+  endif()
 endif()
 install(FILES "${QT_PLUGINS_DIR}/platforms/qwindows${DEBUG_CHAR}.dll" DESTINATION "${plugin_dest_dir}/platforms")
 install(FILES "${QT_PLUGINS_DIR}/imageformats/qsvg${DEBUG_CHAR}.dll" DESTINATION "${plugin_dest_dir}/imagesformats")
@@ -82,7 +87,7 @@ install(
   DESTINATION
     "${SCORE_BIN_INSTALL_DIR}/qml"
   PATTERN
-    .qmlc EXCLUDE
+    "*.qmlc" EXCLUDE
  )
 
 install(CODE "
