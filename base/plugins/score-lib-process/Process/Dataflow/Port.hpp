@@ -130,7 +130,7 @@ public:
 private:
 };
 
-class SCORE_LIB_PROCESS_EXPORT ControlInlet : public Inlet
+class SCORE_LIB_PROCESS_EXPORT ControlInlet final : public Inlet
 {
   W_OBJECT(ControlInlet)
 

@@ -17,6 +17,9 @@ set ( OLDCPP_BACKEND OFF        CACHE STRING  "Include old CPP backend"   FORCE 
 set ( RUST_BACKEND   OFF        CACHE STRING  "Include RUST backend"      FORCE )
 set ( WASM_BACKEND   OFF   CACHE STRING  "Include WASM backend"  FORCE )
 ' > backends/llvm.cmake
+mkdir -p faustdir
+cd faustdir
+cmake -C ../backends/llvm.cmake  .. -DINCLUDE_OSC=0 -DINCLUDE_HTTP=0 -DINCLUDE_EXECUTABLE=0 -DINCLUDE_STATIC=1
 BACKENDS=llvm.cmake make configstatic
 make -j$(nproc)
 make install
