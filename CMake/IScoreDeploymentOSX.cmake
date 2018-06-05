@@ -32,7 +32,7 @@ endif()
 # Copy our dylibs if necessary
 if(NOT SCORE_STATIC_PLUGINS)
     set(SCORE_BUNDLE_PLUGINS_FOLDER "${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins/")
-    
+
     function(score_copy_osx_plugin theTarget)
       add_custom_command(
         TARGET ${APPNAME} POST_BUILD
@@ -82,8 +82,16 @@ Plugins = PlugIns
 Qml2Imports = Resources/qml
 \")
 " )
-#Translations = Resources/translations
-#Data = Resources
+
+# set-up Faust stuff
+if(EXISTS "${CMAKE_BINARY_DIR}/base/plugins/score-plugin-media/faustlibs/src/faustlibs")
+  install(
+    DIRECTORY
+      "${CMAKE_BINARY_DIR}/base/plugins/score-plugin-media/faustlibs/src/faustlibs"
+    DESTINATION
+      "${APPNAME}.app/Contents/Frameworks/Faust"
+   )
+endif()
 
 if(SCORE_STATIC_PLUGINS)
     install(CODE "
