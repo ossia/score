@@ -35,14 +35,6 @@ StateComponentBase::StateComponentBase(
   });
 }
 
-void StateComponentBase::onSetup(
-    const std::shared_ptr<ossia::time_event>& root)
-{
-  m_ev = root;
-  m_ev->add_time_process(std::make_shared<ossia::node_process>(m_node));
-  system().plugin.register_node({}, {}, m_node);
-}
-
 void StateComponentBase::onDelete() const
 {
   system().plugin.unregister_node({}, {}, m_node);
@@ -141,6 +133,23 @@ std::function<void()> StateComponentBase::removing(
 StateComponent::~StateComponent()
 {
 }
+
+void StateComponent::onSetup(
+    const std::shared_ptr<ossia::time_event>& root)
+{
+  m_ev = root;
+  m_ev->add_time_process(std::make_shared<ossia::node_process>(m_node));
+  system().plugin.register_node({}, {}, m_node);
+
+  init();
+}
+
+void StateComponent::init()
+{
+  init_hierarchy();
+}
+
+
 void StateComponent::cleanup(const std::shared_ptr<StateComponent>& self)
 {
   if (m_ev)
