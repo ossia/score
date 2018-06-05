@@ -36,9 +36,6 @@ public:
       const Id<score::Component>& id,
       QObject* parent);
 
-  //! To be called from the API edition queue
-  void onSetup(const std::shared_ptr<ossia::time_event>& root);
-
   //! To be called from the GUI thread
   void onDelete() const;
 
@@ -108,6 +105,9 @@ public:
   StateComponent& operator=(const StateComponent&) = delete;
   StateComponent& operator=(StateComponent&&) = delete;
   ~StateComponent();
+
+  //! To be called from the API edition queue
+  void onSetup(const std::shared_ptr<ossia::time_event>& root);
 
   void init();
   void cleanup(const std::shared_ptr<StateComponent>&);

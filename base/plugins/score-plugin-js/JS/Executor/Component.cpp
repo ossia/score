@@ -248,8 +248,8 @@ void js_node::setScript(const QString& val)
 
 void js_node::run(ossia::token_request t, ossia::execution_state&) noexcept
 {
-  if (t.date == ossia::Zero)
-    return;
+  // if (t.date == ossia::Zero)
+  //   return;
 
   QEventLoop e;
   // Copy audio

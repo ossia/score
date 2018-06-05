@@ -43,7 +43,7 @@ mkdir -p $APP.AppDir/usr
     cd build
     cmake ../score -DSCORE_CONFIGURATION=static-release -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_PREFIX_PATH="$(dirname $(find /usr/local -name 'Qt5Config.cmake'))" -DBOOST_ROOT=$BOOST_ROOT -DCMAKE_SKIP_RPATH=ON -DOSSIA_PYTHON=0 -DOSSIA_JAVA=0 -DOSSIA_PD=0
 
-    cmake --build . --target all_unity
+    cmake --build . --target all_unity -- -j$(ncpu)
     cmake --build . --target install
 )
 
