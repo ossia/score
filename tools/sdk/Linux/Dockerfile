@@ -12,6 +12,9 @@ RUN /image/gcc.sh
 ADD qt.sh /image/qt.sh
 RUN /image/qt.sh
 
+ADD llvm.sh /image/llvm.sh
+RUN /image/llvm.sh
+
 ADD audio.sh /image/audio.sh
 RUN /image/audio.sh
 

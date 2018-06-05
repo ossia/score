@@ -145,7 +145,7 @@ auto getStrongIdRange(std::size_t s)
   vec.emplace_back(score::id_generator::getFirstId());
 
   s--;
-  for (; s-- > 0;)
+  for (std::size_t i = 0; i < s; i++)
   {
     vec.push_back(getStrongId(vec));
   }
@@ -167,7 +167,7 @@ auto getStrongIdRange(std::size_t s, const Vector& existing)
       [](const auto& elt) { return elt.id(); });
 
   // Then generate the new ones
-  for (; s-- > 0;)
+  for (std::size_t i = 0; i < s; i++)
   {
     vec.push_back(getStrongId(vec));
   }
@@ -188,7 +188,7 @@ static auto getStrongIdRange2(
       existing2.begin(), existing2.end(), std::back_inserter(vec),
       [](const auto& elt) { return elt->id(); });
 
-  for (; s-- > 0;)
+  for (std::size_t i = 0; i < s; i++)
   {
     vec.push_back(getStrongId(vec));
   }
