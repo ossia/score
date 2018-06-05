@@ -57,7 +57,7 @@ endif()
 if(EXISTS "${CMAKE_BINARY_DIR}/base/plugins/score-plugin-media/faustlibs/src/faustlibs")
   install(
     DIRECTORY
-      "${CMAKE_BINARY_DIR}/base/plugins/score-plugin-media/faustlibs/src/faustlibs"
+      "${CMAKE_BINARY_DIR}/base/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs/"
     DESTINATION
       "share/faust"
    )

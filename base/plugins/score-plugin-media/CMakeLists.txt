@@ -251,14 +251,16 @@ if(${Faust_FOUND})
   target_link_libraries(${PROJECT_NAME}  PUBLIC ${FAUST_LIBRARIES})
   target_include_directories(${PROJECT_NAME}  PRIVATE ${FAUST_INCLUDE_DIR})
 
+  message("Downloading Faust libs...")
   ExternalProject_Add(
       faustlibs
-      PREFIX "faustlibs"
-      URL https://github.com/grame-cncm/faustlibraries/archive/master.zip
-      CONFIGURE_COMMAND ""
-      BUILD_COMMAND ""
+      PREFIX ""
+      GIT_REPOSITORY https://github.com/grame-cncm/faustlibraries
+      CONFIGURE_COMMAND "pwd"
+      BUILD_COMMAND "ls"
       INSTALL_COMMAND ""
   )
+  add_dependencies(${PROJECT_NAME} faustlibs)
 
 endif()
 
