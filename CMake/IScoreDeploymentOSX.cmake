@@ -87,9 +87,9 @@ Qml2Imports = Resources/qml
 if(EXISTS "${CMAKE_BINARY_DIR}/base/plugins/score-plugin-media/faustlibs/src/faustlibs")
   install(
     DIRECTORY
-      "${CMAKE_BINARY_DIR}/base/plugins/score-plugin-media/faustlibs/src/faustlibs"
+      "${CMAKE_BINARY_DIR}/base/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs/"
     DESTINATION
-      "${APPNAME}.app/Contents/Frameworks/Faust"
+      "${APPNAME}.app/Contents/Frameworks/Faust.framework"
    )
 endif()
 
