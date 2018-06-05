@@ -13,15 +13,11 @@ git_pull_rebase_helper()
 wget -nv https://github.com/OSSIA/score-sdk/releases/download/sdk9/iscore-linux-sdk.txz -O score-sdk.txz
 tar -xaf score-sdk.txz --directory /
 
-# rsync -ar /usr/local/ /usr/
-#cp -rf /usr/local/lib64/* /usr/lib64/
-#cp -rf /usr/local/lib/* /usr/lib64/
-#cp -rf /usr/local/bin/* /usr/bin/
-
 export BOOST_VER=67
 wget -nv "http://downloads.sourceforge.net/project/boost/boost/1.${BOOST_VER}.0/boost_1_${BOOST_VER}_0.tar.bz2"
 tar -xaf "boost_1_${BOOST_VER}_0.tar.bz2"
 mv "boost_1_${BOOST_VER}_0" boost
+rm -rf boost/libs boost/doc boost/tools
 
 # Download CMake
 (
@@ -34,3 +30,4 @@ export CMAKE_PATH=$(find $PWD/cmake-*/ -type d | head -n 1)bin
 export LD_LIBRARY_PATH=/usr/local/lib64:$LD_LIBRARY_PATH
 export PATH=/usr/local/bin:$CMAKE_PATH:$PATH
 
+rm boost*.tar.bz2 cmake-*.tar.gz score-sdk.txz

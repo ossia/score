@@ -8,5 +8,5 @@ RUN yum -y install ninja-build jack-audio-connection-kit-devel libmpc sudo wget 
 ADD Recipe.deps /Recipe.deps
 RUN bash -ex Recipe.deps
 
-ADD Recipe /Recipe
+# ADD Recipe /Recipe
 # RUN bash -ex Recipe
