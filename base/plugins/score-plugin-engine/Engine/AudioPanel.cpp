@@ -57,7 +57,7 @@ public:
       p->remove_callback(idx);
   }
 };
-class AudioPanel : public QScrollArea
+class AudioPanel final : public QScrollArea
 {
 public:
   QWidget widg;

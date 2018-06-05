@@ -2,11 +2,6 @@
 set -o pipefail
 
 # Minimal stuff
-yum -y update
-yum -y install epel-release centos-release-scl-rh
-yum -y update
-yum -y install ninja-build jack-audio-connection-kit-devel libmpc gcc sudo wget tar bzip2 xz git libxml2  binutils fuse mesa-libGL-devel glibc-devel glib2-devel fuse-devel zlib-devel libpng12 libXrender fontconfig freetype xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm libXi alsa-lib-devel git wget make binutils fuse glibc-devel glib2-devel libarchive3-devel fuse-devel zlib-devel patch openssl-static openssl-devel vim-common python-devel
-
 git_pull_rebase_helper()
 {
     git reset --hard HEAD
@@ -15,11 +10,13 @@ git_pull_rebase_helper()
 }
 
 # Install required libs
-wget -nv https://github.com/OSSIA/score-sdk/releases/download/sdk9/iscore-linux-sdk.tgz -O score-sdk.tgz
-tar -xaf score-sdk.tgz --directory /
-cp -rf /usr/local/lib64/* /usr/lib64/
-cp -rf /usr/local/lib/* /usr/lib64/
-cp -rf /usr/local/bin/* /usr/bin/
+wget -nv https://github.com/OSSIA/score-sdk/releases/download/sdk9/iscore-linux-sdk.txz -O score-sdk.txz
+tar -xaf score-sdk.txz --directory /
+
+# rsync -ar /usr/local/ /usr/
+#cp -rf /usr/local/lib64/* /usr/lib64/
+#cp -rf /usr/local/lib/* /usr/lib64/
+#cp -rf /usr/local/bin/* /usr/bin/
 
 export BOOST_VER=67
 wget -nv "http://downloads.sourceforge.net/project/boost/boost/1.${BOOST_VER}.0/boost_1_${BOOST_VER}_0.tar.bz2"
@@ -28,7 +25,7 @@ mv "boost_1_${BOOST_VER}_0" boost
 
 # Download CMake
 (
-    wget -nv --no-check-certificate -c https://cmake.org/files/v3.11/cmake-3.11.1-Linux-x86_64.tar.gz
+    wget -nv --no-check-certificate -c https://cmake.org/files/v3.11/cmake-3.11.3-Linux-x86_64.tar.gz
     tar xaf cmake-*.tar.gz
 )
 

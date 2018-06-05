@@ -145,15 +145,18 @@ void MoveEventMeta::update(
 
 void MoveEventMeta::serializeImpl(DataStreamInput& s) const
 {
-  s << m_scenario << m_eventId << m_stateId << (int&)m_lock << m_oldY << m_newY
+  int l = (int) m_lock;
+  s << m_scenario << m_eventId << m_stateId << l << m_oldY << m_newY
     << m_moveEventImplementation->serialize();
 }
 
 void MoveEventMeta::deserializeImpl(DataStreamOutput& s)
 {
   QByteArray cmdData;
-  s >> m_scenario >> m_eventId >> m_stateId >> (int&)m_lock >> m_oldY >> m_newY
+  int l;
+  s >> m_scenario >> m_eventId >> m_stateId >> l >> m_oldY >> m_newY
       >> cmdData;
+  m_lock = (LockMode) l;
 
   m_moveEventImplementation
       = score::AppContext()
