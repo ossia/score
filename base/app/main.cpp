@@ -75,6 +75,12 @@ int main(int argc, char** argv)
   path = path.substr(0, last_slash);
   path += "/../Frameworks/Faust";
   qputenv("FAUST_LIB_PATH", path.c_str());
+#elif defined(__linux__)
+  auto path = ossia::get_exe_path();
+  auto last_slash = path.find_last_of('/');
+  path = path.substr(0, last_slash);
+  path += "/../share/faust";
+  qputenv("FAUST_LIB_PATH", path.c_str());
 #endif
 
 #if defined(__SSE3__)

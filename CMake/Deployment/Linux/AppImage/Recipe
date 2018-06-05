@@ -36,12 +36,13 @@ cd ./$BUILD_DIR
 # Build score in the AppDir
 mkdir -p $APP.AppDir/usr
 
+export SOURCE_DIR=$PWD/score
 (
     export INSTALL_ROOT=$(cd $APP.AppDir/usr; pwd)
     mkdir -p build
 
     cd build
-    cmake ../score -DSCORE_CONFIGURATION=static-release -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_PREFIX_PATH="$(dirname $(find /usr/local -name 'Qt5Config.cmake'))" -DBOOST_ROOT=$BOOST_ROOT -DCMAKE_SKIP_RPATH=ON -DOSSIA_PYTHON=0 -DOSSIA_JAVA=0 -DOSSIA_PD=0
+    cmake $SOURCE_DIR -DSCORE_CONFIGURATION=static-release -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_PREFIX_PATH="$(dirname $(find /usr/local -name 'Qt5Config.cmake'))" -DBOOST_ROOT=$BOOST_ROOT -DCMAKE_SKIP_RPATH=ON -DOSSIA_PYTHON=0 -DOSSIA_JAVA=0 -DOSSIA_PD=0
 
     cmake --build . --target all_unity -- -j$(ncpu)
     cmake --build . --target install
@@ -66,6 +67,13 @@ export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
     cp -rf "$QTDIR/plugins/iconengines/libqsvgicon.so"  ./usr/lib/qt5/plugins/iconengines
     cp -rf "$QTDIR/qml/QtQuick.2/libqtquick2plugin.so"  ./usr/lib/qt5/plugins/quick
     cp -rf "$QTDIR/qml/QtQuick.2"  ./usr/lib/qt5/qml
+
+    # Fonts
+    mkdir -p ./usr/bin/lib/fonts
+    cp -rf $SOURCE_DIR/base/lib/resources/*.otf ./usr/bin/lib/fonts/
+    cp -rf $SOURCE_DIR/base/lib/resources/*.ttf ./usr/bin/lib/fonts/
+
+
 
     # Dependencies of plugins and score
     # for lib in usr/lib/libscore_lib_*; do ldd $lib; done | grep 'Qt5' | awk '{ print $1; }' | sort | uniq | xargs -I '{}' cp -v $QTDIR/lib/'{}' ./usr/lib
@@ -108,6 +116,8 @@ export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
     rm -f usr/lib/libgcc_s.so.1 || true
     rm -f usr/lib/libglib-2.0.so.0 || true
     rm -f usr/lib/libgpg-error.so.0 || true
+    rm -f usr/lib/libjack* || true
+    rm -f usr/lib/libasound* || true
     rm -f usr/lib/libgssapi_krb5.so.2 || true
     rm -f usr/lib/libgssapi.so.3 || true
     rm -f usr/lib/libhcrypto.so.4 || true

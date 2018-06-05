@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 project(score_plugin_media LANGUAGES CXX)
 
+include(ExternalProject)
 score_common_setup()
 
 # Packages
@@ -249,6 +250,16 @@ if(${Faust_FOUND})
   target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_FAUST)
   target_link_libraries(${PROJECT_NAME}  PUBLIC ${FAUST_LIBRARIES})
   target_include_directories(${PROJECT_NAME}  PRIVATE ${FAUST_INCLUDE_DIR})
+
+  ExternalProject_Add(
+      faustlibs
+      PREFIX "faustlibs"
+      URL https://github.com/grame-cncm/faustlibraries/archive/master.zip
+      CONFIGURE_COMMAND ""
+      BUILD_COMMAND ""
+      INSTALL_COMMAND ""
+  )
+
 endif()
 
 setup_score_plugin(${PROJECT_NAME})

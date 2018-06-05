@@ -54,6 +54,14 @@ configure_file (
 
 endif()
 
+if(EXISTS "${CMAKE_BINARY_DIR}/base/plugins/score-plugin-media/faustlibs/src/faustlibs")
+  install(
+    DIRECTORY
+      "${CMAKE_BINARY_DIR}/base/plugins/score-plugin-media/faustlibs/src/faustlibs"
+    DESTINATION
+      "share/faust"
+   )
+endif()
 
 install(PROGRAMS "${CMAKE_SOURCE_DIR}/base/app/score.sh"
         DESTINATION bin)
