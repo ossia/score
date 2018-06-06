@@ -1,6 +1,7 @@
 #pragma once
 #include <array>
 #include <memory>
+#include <vector>
 
 namespace score
 {
@@ -37,7 +38,7 @@ struct indirect_iterator
   }
   auto operator-> ()
   {
-    return it;
+    return *it;
   }
   bool operator==(const self_type& rhs) const
   {
@@ -170,13 +171,12 @@ indirect_map_iterator<T> make_indirect_map_iterator(const T& it)
 }
 
 template <
-    template <class, class> class Container,
     typename T,
     typename U = std::allocator<T*>>
-class IndirectContainer : Container<T*, U>
+class IndirectContainer : std::vector<T*, U>
 {
 public:
-  using ctnr_t = Container<T*, U>;
+  using ctnr_t = std::vector<T*, U>;
   using ctnr_t::ctnr_t;
   using value_type = T;
 

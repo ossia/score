@@ -18,6 +18,8 @@ struct PositionedEvent<Scenario::Point> : public QEvent
     point.y = clamp(point.y, 0.004, 0.99);
   }
 
+  ~PositionedEvent() override = default;
+
   Scenario::Point point;
 };
 }

@@ -12,8 +12,6 @@
 #include <Curve/Point/CurvePointModel.hpp>
 #include <QPoint>
 #include <algorithm>
-#include <boost/multi_index/detail/hash_index_iterator.hpp>
-#include <boost/multi_index/hashed_index.hpp>
 #include <boost/operators.hpp>
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/model/Identifier.hpp>

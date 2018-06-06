@@ -6,9 +6,8 @@
 #include <QPair>
 #include <QPen>
 #include <QVector>
-#include <QJsonObject>
-#include <boost/bimap.hpp>
 #include <score_lib_base_export.h>
+class QJsonObject;
 namespace score
 {
 class SCORE_LIB_BASE_EXPORT Skin : public QObject
@@ -16,6 +15,7 @@ class SCORE_LIB_BASE_EXPORT Skin : public QObject
   W_OBJECT(Skin)
 public:
   static Skin& instance();
+  ~Skin() override;
 
   void load(const QJsonObject& style);
 
@@ -78,7 +78,8 @@ private:
   void timerEvent(QTimerEvent* event) override;
   Skin() noexcept;
 
-  boost::bimap<QString, QBrush*> m_colorMap;
+  struct color_map;
+  color_map* m_colorMap{};
 
   bool m_pulseDirection{false};
 };

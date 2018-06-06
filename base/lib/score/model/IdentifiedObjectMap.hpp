@@ -1,14 +1,11 @@
 #pragma once
-#include <boost/iterator/indirect_iterator.hpp>
-#include <boost/multi_index/hashed_index.hpp>
-#include <boost/multi_index/mem_fun.hpp>
-#include <boost/multi_index/sequenced_index.hpp>
-#include <boost/multi_index_container.hpp>
+#include <score/tools/std/IndirectContainer.hpp>
 #include <score/model/IdentifiedObject.hpp>
+#include <hopscotch_map.h>
+#include <vector>
+#include <list>
 // This file contains a fast map for items based on their identifier,
 // based on boost's multi-index maps.
-
-namespace bmi = boost::multi_index;
 
 /**
  * @brief A map to access child objects through their id.
@@ -16,81 +13,6 @@ namespace bmi = boost::multi_index;
 template <class Element, class Model = Element, class Enable = void>
 class IdContainer
 {
-};
-
-template <typename Element, typename Model, typename Map>
-/**
- * @brief The MapBase class
- *
- * A generic map type, which provides reference-like access to the stored
- * pointers.
- */
-class MapBase
-{
-public:
-  using value_type = Element;
-  using model_type = Model;
-
-  MapBase() = default;
-  MapBase(const MapBase& other) = delete;
-  /*
-  template<typename T>
-  MapBase(const T& container)
-  {
-      for(auto& element : container)
-      {
-          insert(&element);
-      }
-  }
-  */
-
-  ~MapBase()
-  {
-    // To ensure that children are deleted before their parents
-    for (auto elt : this->get())
-    {
-      delete elt;
-    }
-  }
-
-  void insert(value_type* t)
-  {
-    SCORE_ASSERT(m_map.find(t->id()) == m_map.end());
-    m_map.insert(t);
-  }
-
-  std::size_t size() const
-  {
-    return m_map.size();
-  }
-
-  bool empty() const
-  {
-    return m_map.empty();
-  }
-
-  template <typename T>
-  void remove(const T& t)
-  {
-    m_map.erase(t);
-  }
-
-  void clear()
-  {
-    m_map.clear();
-  }
-
-  auto& get()
-  {
-    return m_map.template get<0>();
-  }
-  const auto& get() const
-  {
-    return m_map.template get<0>();
-  }
-
-protected:
-  Map m_map;
 };
 
 // We have to write two implementations since const_mem_fun does not handle
@@ -111,88 +33,170 @@ class IdContainer<
     Element,
     Model,
     std::enable_if_t<std::is_base_of<IdentifiedObject<Model>, Element>::value>>
-    : public MapBase<
-          Element,
-          Model,
-          bmi::multi_index_container<
-              Element*,
-              bmi::indexed_by<
-                  bmi::hashed_unique<bmi::const_mem_fun<
-                      IdentifiedObject<Model>,
-                      const Id<Model>&,
-                      &IdentifiedObject<Model>::id>>,
-                  bmi::sequenced<>>>>
 {
 public:
-  using MapBase<
-      Element,
-      Model,
-      bmi::multi_index_container<
-          Element*,
-          bmi::indexed_by<
-              bmi::hashed_unique<bmi::const_mem_fun<
-                  IdentifiedObject<Model>,
-                  const Id<Model>&,
-                  &IdentifiedObject<Model>::id>>,
-              bmi::sequenced<>>>>::MapBase;
+  using model_type = Model;
+  using order_t = std::list<Element*>;
+  using map_t = tsl::hopscotch_map<Id<Model>, std::pair<Element*, typename order_t::iterator>>;
+  map_t m_map;
+  order_t m_order;
+
+  using value_type = Element;
+  using model_type = Model;
+  using iterator = score::indirect_iterator<typename order_t::iterator>;
+  using const_iterator = score::indirect_iterator<typename order_t::const_iterator>;
+  using const_reverse_iterator = score::indirect_iterator<typename order_t::const_reverse_iterator>;
+
+  IdContainer() = default;
+  IdContainer(const IdContainer& other) = delete;
+  IdContainer(IdContainer&& other) noexcept = default;
+  IdContainer& operator=(const IdContainer& other) = delete;
+  IdContainer& operator=(IdContainer&& other) noexcept = default;
+
+  ~IdContainer()
+  {
+    // To ensure that children are deleted before their parents
+    for (auto elt : m_order)
+    {
+      delete elt;
+    }
+  }
 
   auto& ordered()
   {
-    return this->m_map.template get<1>();
+    return m_order;
   }
 
-  auto begin() const
+  const_iterator begin() const
   {
-    return boost::make_indirect_iterator(
-        this->m_map.template get<1>().begin());
+    return score::make_indirect_iterator(this->m_order.begin());
   }
-  auto rbegin() const
+  const_reverse_iterator rbegin() const
   {
-    return boost::make_indirect_iterator(
-        this->m_map.template get<1>().rbegin());
+    return score::make_indirect_iterator(this->m_order.rbegin());
   }
-  auto cbegin() const
+  const_iterator cbegin() const
   {
-    return boost::make_indirect_iterator(
-        this->m_map.template get<1>().cbegin());
+    return score::make_indirect_iterator(this->m_order.cbegin());
   }
-  auto end() const
+  const_iterator end() const
   {
-    return boost::make_indirect_iterator(this->m_map.template get<1>().end());
+    return score::make_indirect_iterator(this->m_order.end());
   }
-  auto rend() const
+  const_reverse_iterator rend() const
   {
-    return boost::make_indirect_iterator(this->m_map.template get<1>().rend());
+    return score::make_indirect_iterator(this->m_order.rend());
   }
-  auto cend() const
+  const_iterator cend() const
   {
-    return boost::make_indirect_iterator(this->m_map.template get<1>().cend());
+    return score::make_indirect_iterator(this->m_order.cend());
   }
 
-  auto find(const Id<Model>& id) const
+  std::size_t size() const
+  {
+    return m_map.size();
+  }
+
+  bool empty() const
+  {
+    return m_map.empty();
+  }
+
+  std::vector<Element*> as_vec() const
+  {
+    return std::vector<Element*>(m_order.begin(), m_order.end());
+  }
+
+  score::IndirectContainer<Element> as_indirect_vec() const
+  {
+    return score::IndirectContainer<Element>(m_order.begin(), m_order.end());
+  }
+
+  /*
+  auto& get()
+  {
+    return m_map;
+  }
+
+  const auto& get() const
+  {
+    return m_map;
+  }
+  */
+
+
+  void insert(value_type* t)
+  {
+    SCORE_ASSERT(m_map.find(t->id()) == m_map.end());
+    m_order.push_front(t);
+    m_map.insert({t->id(), {t, m_order.begin()}});
+  }
+
+  void remove(typename map_t::iterator it)
+  {
+    // No delete : it is done in EntityMap.
+
+    if(it != this->m_map.end())
+    {
+      m_order.erase(it->second.second);
+      m_map.erase(it);
+    }
+  }
+  void remove(typename map_t::const_iterator it)
+  {
+    // No delete : it is done in EntityMap.
+
+    if(it != this->m_map.end())
+    {
+      m_order.erase(it->second.second);
+      m_map.erase(it);
+    }
+  }
+
+  void remove(const Id<Model>& id)
+  {
+    remove(m_map.find(id));
+  }
+
+  void clear()
+  {
+    m_map.clear();
+    m_order.clear();
+    // TODO why no delete ?!
+    // e.g. in some cases (Curve::Model::clear()) it deletes afterwards
+    // but not in Scenario destructor
+  }
+
+  const_iterator find(const Id<Model>& id) const
   {
     auto it = this->m_map.find(id);
-
-    auto p_it = this->m_map.template project<1>(it);
-    return boost::make_indirect_iterator(p_it);
+    if(it != this->m_map.end())
+    {
+      return score::make_indirect_iterator((typename order_t::const_iterator)it->second.second);
+    }
+    else
+    {
+      return score::make_indirect_iterator(this->m_order.end());
+    }
   }
 
   Element& at(const Id<Model>& id) const
   {
     if (id.m_ptr)
     {
-      SCORE_ASSERT(id.m_ptr->parent() == (*this->m_map.find(id))->parent());
+      SCORE_ASSERT(id.m_ptr->parent() == this->m_map.find(id)->second.first->parent());
       return safe_cast<Element&>(*id.m_ptr);
     }
     auto item = this->m_map.find(id);
     SCORE_ASSERT(item != this->m_map.end());
 
-    id.m_ptr = *item;
-    return safe_cast<Element&>(**item);
+    id.m_ptr = item->second.first;
+    return safe_cast<Element&>(*item->second.first);
   }
 
   void swap(const Id<Model>& t1, const Id<Model>& t2)
   {
+    /*
     if (t1 == t2)
       return;
 
@@ -231,10 +235,12 @@ public:
     }
 
     seq.relocate(beg, first);
+    */
   }
 
   void relocate(const Id<Model>& t1, const Id<Model>& t2)
   {
+    /*
     if (t1 == t2)
       return;
 
@@ -252,10 +258,12 @@ public:
     auto p2 = map.template project<1>(pos2);
 
     seq.relocate(p1, p2);
+    */
   }
 
   void putToEnd(const Id<Model>& t1)
   {
+    /*
     auto& map = this->m_map;
     auto& hash = map.template get<0>();
     auto& seq = map.template get<1>();
@@ -267,6 +275,7 @@ public:
     auto p1 = map.template project<1>(pos1);
 
     seq.relocate(seq.end(), p1);
+    */
   }
 };
 
@@ -279,60 +288,92 @@ class IdContainer<
     Model,
     std::enable_if_t<
         !std::is_base_of<IdentifiedObject<Model>, Element>::value>>
-    : public MapBase<
-          Element,
-          Model,
-          bmi::multi_index_container<
-              Element*,
-              bmi::indexed_by<bmi::hashed_unique<bmi::const_mem_fun<
-                  Element,
-                  const Id<Model>&,
-                  &Element::id>>>>>
 {
 public:
-  using MapBase<
-      Element,
-      Model,
-      bmi::multi_index_container<
-          Element*,
-          bmi::indexed_by<bmi::hashed_unique<
-              bmi::const_mem_fun<Element, const Id<Model>&, &Element::id>>>>>::
-      MapBase;
+  using model_type = Model;
+  tsl::hopscotch_map<Id<Model>, Element*> m_map;
+/*
+  auto& get()
+  {
+    return m_map;
+  }
+  const auto& get() const
+  {
+    return m_map;
+  }
+*/
+  std::vector<Element*> as_vec() const
+  {
+    std::vector<Element*> v;
+    const auto N = m_map.size();
+    v.reserve(N);
+    for(auto& e : m_map)
+    {
+      v.push_back(e.second);
+    }
+    return v;
+  }
 
   auto begin() const
   {
-    return boost::make_indirect_iterator(this->m_map.begin());
+    return score::make_indirect_map_iterator(this->m_map.begin());
   }
   auto rbegin() const
   {
-    return boost::make_indirect_iterator(this->m_map.begin());
+    return score::make_indirect_map_iterator(this->m_map.begin());
   }
   auto cbegin() const
   {
-    return boost::make_indirect_iterator(this->m_map.cbegin());
+    return score::make_indirect_map_iterator(this->m_map.cbegin());
   }
   auto end() const
   {
-    return boost::make_indirect_iterator(this->m_map.end());
+    return score::make_indirect_map_iterator(this->m_map.end());
   }
   auto rend() const
   {
-    return boost::make_indirect_iterator(this->m_map.end());
+    return score::make_indirect_map_iterator(this->m_map.end());
   }
   auto cend() const
   {
-    return boost::make_indirect_iterator(this->m_map.cend());
+    return score::make_indirect_map_iterator(this->m_map.cend());
   }
 
   auto find(const Id<Model>& id) const
   {
-    return boost::make_indirect_iterator(this->m_map.find(id));
+    return score::make_indirect_map_iterator(this->m_map.find(id));
+  }
+
+  void insert(Element* t)
+  {
+    SCORE_ASSERT(m_map.find(t->id()) == m_map.end());
+    m_map.insert({t->id(), t});
+  }
+
+  void erase(const Id<Model>& id)
+  {
+    auto it = m_map.find(id);
+    if(it != m_map.end())
+    {
+      auto ptr = it->second;
+      m_map.erase(it);
+      delete ptr;
+    }
+  }
+
+  void clear()
+  {
+    for(auto& e : m_map)
+    {
+      delete e.second;
+    }
+    m_map.clear();
   }
 
   auto& at(const Id<Model>& id) const
   {
     auto item = this->m_map.find(id);
     SCORE_ASSERT(item != this->m_map.end());
-    return **item;
+    return *item->second;
   }
 };

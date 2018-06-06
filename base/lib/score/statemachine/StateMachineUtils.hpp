@@ -46,6 +46,8 @@ struct PositionedEvent : public QEvent
   {
   }
 
+  ~PositionedEvent() override = default;
+
   PointType point;
 };
 

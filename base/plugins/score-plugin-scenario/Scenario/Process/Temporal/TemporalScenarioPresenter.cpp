@@ -332,57 +332,34 @@ void TemporalScenarioPresenter::stopDrawDragLine() const
 template <typename Map, typename Id>
 void TemporalScenarioPresenter::removeElement(Map& map, const Id& id)
 {
-  auto it = map.find(id);
-  if (it != map.end())
-  {
-    delete *it;
-    map.erase(it);
-  }
-
+  map.erase(id);
   m_view->update();
 }
 
 void TemporalScenarioPresenter::on_stateRemoved(const StateModel& state)
 {
-  removeElement(m_states.get(), state.id());
+  removeElement(m_states, state.id());
 }
 
 void TemporalScenarioPresenter::on_eventRemoved(const EventModel& event)
 {
-  removeElement(m_events.get(), event.id());
+  removeElement(m_events, event.id());
 }
 
 void TemporalScenarioPresenter::on_timeSyncRemoved(
     const TimeSyncModel& timeSync)
 {
-  removeElement(m_timeSyncs.get(), timeSync.id());
+  removeElement(m_timeSyncs, timeSync.id());
 }
 
 void TemporalScenarioPresenter::on_intervalRemoved(const IntervalModel& cvm)
 {
-  // Don't put a const auto& here, else deletion will crash.
-  for (auto& pres : m_intervals)
-  {
-    // OPTIMIZEME add an index in the map on viewmodel id ?
-    if (pres.id() == cvm.id())
-    {
-      auto cid = pres.id();
-      auto it = m_intervals.find(cid);
-      if (it != m_intervals.end())
-      {
-        m_intervals.remove(cid);
-        delete &pres;
-      }
-
-      m_view->update();
-      break;
-    }
-  }
+  removeElement(m_intervals, cvm.id());
 }
 
 void TemporalScenarioPresenter::on_commentRemoved(const CommentBlockModel& cmt)
 {
-  removeElement(m_comments.get(), cmt.id());
+  removeElement(m_comments, cmt.id());
 }
 
 /////////////////////////////////////////////////////////////////////

@@ -451,13 +451,7 @@ void ScenarioDocumentPresenter::on_cableAdded(Process::Cable& c)
 
 void ScenarioDocumentPresenter::on_cableRemoving(const Process::Cable& c)
 {
-  auto& map = cableItems.get();
-  auto it = map.find(c.id());
-  if (it != map.end())
-  {
-    delete *it;
-    map.erase(it);
-  }
+  cableItems.erase(c.id());
 }
 
 void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
