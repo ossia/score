@@ -19,14 +19,6 @@ namespace score
       decltype(boost::bimap<QString, QBrush*>{}.right)& right{the_map.right};
   };
 
-// Taken from http://stackoverflow.com/a/31841462
-template <typename L, typename R>
-auto
-make_bimap(std::initializer_list<typename boost::bimap<L, R>::value_type> list)
-{
-  return new Skin::color_map{list.begin(), list.end()};
-}
-
 Skin::~Skin()
 {
   delete m_colorMap;

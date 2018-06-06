@@ -42,16 +42,15 @@ public:
   order_t m_order;
 
   using value_type = Element;
-  using model_type = Model;
   using iterator = score::indirect_iterator<typename order_t::iterator>;
   using const_iterator = score::indirect_iterator<typename order_t::const_iterator>;
   using const_reverse_iterator = score::indirect_iterator<typename order_t::const_reverse_iterator>;
 
   IdContainer() = default;
   IdContainer(const IdContainer& other) = delete;
-  IdContainer(IdContainer&& other) noexcept = default;
+  IdContainer(IdContainer&& other) noexcept = delete;
   IdContainer& operator=(const IdContainer& other) = delete;
-  IdContainer& operator=(IdContainer&& other) noexcept = default;
+  IdContainer& operator=(IdContainer&& other) = delete;
 
   ~IdContainer()
   {

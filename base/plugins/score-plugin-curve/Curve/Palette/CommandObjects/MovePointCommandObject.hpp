@@ -1,15 +1,11 @@
 #pragma once
 #include "CurveCommandObjectBase.hpp"
-
 #include <Curve/Segment/CurveSegmentData.hpp>
-
-namespace score
-{
-class CommandStackFacade;
-} // namespace score
 
 namespace Curve
 {
+struct CurveSegmentMap;
+
 class Presenter;
 class SCORE_PLUGIN_CURVE_EXPORT MovePointCommandObject final
     : public CommandObjectBase
