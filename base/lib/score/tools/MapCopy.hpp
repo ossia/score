@@ -5,7 +5,7 @@
 template <typename T>
 std::vector<T*> shallow_copy(const IdContainer<T>& m)
 {
-  return {m.get().begin(), m.get().end()};
+  return m.as_vec();
 }
 
 template <typename T>

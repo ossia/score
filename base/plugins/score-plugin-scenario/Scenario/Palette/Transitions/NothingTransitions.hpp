@@ -23,7 +23,7 @@ protected:
 template <typename Scenario_T>
 using ClickOnNothing_Transition = Transition_T<Scenario_T, ClickOnNothing>;
 
-template <typename Scenario_T>
+template <class Scenario_T>
 class Transition_T<Scenario_T, MoveOnNothing> final
     : public MatchedTransition<Scenario_T, MoveOnNothing_Event>
 {

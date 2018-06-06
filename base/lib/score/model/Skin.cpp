@@ -5,19 +5,32 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <boost/assign/list_of.hpp>
-
+#include <boost/bimap.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::Skin)
 namespace score
 {
+  struct Skin::color_map
+  {
+      color_map(std::initializer_list<boost::bimap<QString, QBrush*>::value_type> list): the_map(list.begin(), list.end()) { }
+
+      boost::bimap<QString, QBrush*> the_map;
+      decltype(boost::bimap<QString, QBrush*>{}.left)& left{the_map.left};
+      decltype(boost::bimap<QString, QBrush*>{}.right)& right{the_map.right};
+  };
+
 // Taken from http://stackoverflow.com/a/31841462
 template <typename L, typename R>
-boost::bimap<L, R>
+auto
 make_bimap(std::initializer_list<typename boost::bimap<L, R>::value_type> list)
 {
-  return boost::bimap<L, R>(list.begin(), list.end());
+  return new Skin::color_map{list.begin(), list.end()};
 }
 
+Skin::~Skin()
+{
+  delete m_colorMap;
+}
 #define SCORE_INSERT_COLOR(Col) \
   {                             \
 #    Col, &Col                  \
@@ -30,7 +43,7 @@ Skin::Skin() noexcept
     , NoPen{Qt::NoPen}
     , NoBrush{Qt::NoBrush}
     , TextBrush{QColor("#1f2a30")}
-    , m_colorMap(make_bimap<QString, QBrush*>(
+    , m_colorMap(new color_map
           {SCORE_INSERT_COLOR(Dark),         SCORE_INSERT_COLOR(HalfDark),
            SCORE_INSERT_COLOR(Gray),         SCORE_INSERT_COLOR(HalfLight),
            SCORE_INSERT_COLOR(Light),        SCORE_INSERT_COLOR(Emphasis1),
@@ -44,7 +57,7 @@ Skin::Skin() noexcept
            SCORE_INSERT_COLOR(Smooth1),      SCORE_INSERT_COLOR(Smooth2),
            SCORE_INSERT_COLOR(Smooth3),      SCORE_INSERT_COLOR(Tender1),
            SCORE_INSERT_COLOR(Tender2),      SCORE_INSERT_COLOR(Tender3),
-           SCORE_INSERT_COLOR(Pulse1),       SCORE_INSERT_COLOR(Pulse2)}))
+           SCORE_INSERT_COLOR(Pulse1),       SCORE_INSERT_COLOR(Pulse2)})
 {
   this->startTimer(32, Qt::CoarseTimer);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
@@ -196,20 +209,20 @@ void Skin::timerEvent(QTimerEvent* event)
 
 const QBrush* Skin::fromString(const QString& s) const
 {
-  auto it = m_colorMap.left.find(s);
-  return it != m_colorMap.left.end() ? it->second : nullptr;
+  auto it = m_colorMap->left.find(s);
+  return it != m_colorMap->left.end() ? it->second : nullptr;
 }
 
 QBrush* Skin::fromString(const QString& s)
 {
-  auto it = m_colorMap.left.find(s);
-  return it != m_colorMap.left.end() ? it->second : nullptr;
+  auto it = m_colorMap->left.find(s);
+  return it != m_colorMap->left.end() ? it->second : nullptr;
 }
 
 QString Skin::toString(const QBrush* c) const
 {
-  auto it = m_colorMap.right.find(const_cast<QBrush*>(c));
-  return it != m_colorMap.right.end() ? it->second : nullptr;
+  auto it = m_colorMap->right.find(const_cast<QBrush*>(c));
+  return it != m_colorMap->right.end() ? it->second : nullptr;
 }
 
 #undef SCORE_INSERT_COLOR

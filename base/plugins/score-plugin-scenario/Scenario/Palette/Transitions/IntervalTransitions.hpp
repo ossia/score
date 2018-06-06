@@ -1,5 +1,6 @@
 #pragma once
 #include <Scenario/Palette/ScenarioPaletteBaseTransitions.hpp>
+#include <QEvent>
 
 namespace Scenario
 {

@@ -36,19 +36,19 @@ public:
     return *m_parent;
   }
 
-  ElementContainer<IntervalModel> getIntervals() const final override
+  score::IndirectContainer<IntervalModel> getIntervals() const final override
   {
     return {m_interval};
   }
-  ElementContainer<StateModel> getStates() const final override
+  score::IndirectContainer<StateModel> getStates() const final override
   {
     return {m_startState, m_endState};
   }
-  ElementContainer<EventModel> getEvents() const final override
+  score::IndirectContainer<EventModel> getEvents() const final override
   {
     return {m_startEvent, m_endEvent};
   }
-  ElementContainer<TimeSyncModel> getTimeSyncs() const final override
+  score::IndirectContainer<TimeSyncModel> getTimeSyncs() const final override
   {
     return {m_startNode, m_endNode};
   }

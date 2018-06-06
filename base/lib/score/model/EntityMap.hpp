@@ -79,7 +79,7 @@ public:
   }
   const auto& get() const
   {
-    return m_map.get();
+    return m_map.m_map;
   }
   T& at(const Id<T>& id)
   {
@@ -126,8 +126,8 @@ public:
 
   void remove(const Id<T>& id)
   {
-    auto it = m_map.get().find(id);
-    auto& elt = **it;
+    auto it = m_map.m_map.find(id);
+    auto& elt = *it->second.first;
 
     removing(elt);
     m_map.remove(it);

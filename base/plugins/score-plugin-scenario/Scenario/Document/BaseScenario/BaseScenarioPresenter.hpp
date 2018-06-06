@@ -20,25 +20,25 @@ public:
 
   virtual ~BaseScenarioPresenter() = default;
 
-  score::IndirectContainer<std::vector, IntervalPresenter_T>
+  score::IndirectContainer<IntervalPresenter_T>
   getIntervals() const
   {
     return {m_intervalPresenter};
   }
 
-  score::IndirectContainer<std::vector, Scenario::StatePresenter>
+  score::IndirectContainer<Scenario::StatePresenter>
   getStates() const
   {
     return {m_startStatePresenter, m_endStatePresenter};
   }
 
-  score::IndirectContainer<std::vector, Scenario::EventPresenter>
+  score::IndirectContainer<Scenario::EventPresenter>
   getEvents() const
   {
     return {m_startEventPresenter, m_endEventPresenter};
   }
 
-  score::IndirectContainer<std::vector, Scenario::TimeSyncPresenter>
+  score::IndirectContainer<Scenario::TimeSyncPresenter>
   getTimeSyncs() const
   {
     return {m_startNodePresenter, m_endNodePresenter};

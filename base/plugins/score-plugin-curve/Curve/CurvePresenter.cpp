@@ -26,8 +26,6 @@
 #include <QString>
 #include <QVariant>
 #include <QtAlgorithms>
-#include <boost/multi_index/detail/hash_index_iterator.hpp>
-#include <boost/multi_index/hashed_index.hpp>
 #include <boost/operators.hpp>
 #include <qnamespace.h>
 #include <score/application/ApplicationContext.hpp>
@@ -129,28 +127,14 @@ void Presenter::setupSignals()
   });
 
   con(m_model, &Model::pointRemoved, this, [&](const Id<PointModel>& m) {
-    auto& map = m_points.get();
-    auto it = map.find(m);
-    if (it != map.end()) // TODO should never happen ?
-    {
-      delete *it;
-      map.erase(it);
-    }
+    m_points.erase(m);
   });
 
   con(m_model, &Model::segmentRemoved, this, [&](const Id<SegmentModel>& m) {
-    auto& map = m_segments.get();
-    auto it = map.find(m);
-    if (it != map.end()) // TODO should never happen ?
-    {
-      delete *it;
-      map.erase(it);
-    }
+    m_segments.erase(m);
   });
 
   con(m_model, &Model::cleared, this, [&]() {
-    qDeleteAll(m_points.get());
-    qDeleteAll(m_segments.get());
     m_points.clear();
     m_segments.clear();
   });
@@ -368,9 +352,8 @@ void Presenter::setupSegmentConnections(SegmentView* seg_view)
 void Presenter::modelReset()
 {
   // 1. We put our current elements in our pool.
-  std::vector<PointView*> points(m_points.get().begin(), m_points.get().end());
-  std::vector<SegmentView*> segments(
-      m_segments.get().begin(), m_segments.get().end());
+  std::vector<PointView*> points = m_points.as_vec();
+  std::vector<SegmentView*> segments = m_segments.as_vec();
 
   std::vector<PointView*> newPoints;
   std::vector<SegmentView*> newSegments;

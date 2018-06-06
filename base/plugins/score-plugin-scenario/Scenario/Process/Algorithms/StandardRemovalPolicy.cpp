@@ -15,7 +15,6 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <boost/iterator/indirect_iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
-#include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/tools/MapCopy.hpp>

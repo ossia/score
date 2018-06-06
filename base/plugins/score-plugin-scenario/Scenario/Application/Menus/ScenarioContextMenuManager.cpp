@@ -31,9 +31,6 @@
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 #include <Scenario/ViewCommands/PutLayerModelToFront.hpp>
 #include <algorithm>
-#include <boost/iterator/indirect_iterator.hpp>
-#include <boost/iterator/iterator_facade.hpp>
-#include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>

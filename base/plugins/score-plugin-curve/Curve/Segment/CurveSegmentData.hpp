@@ -1,10 +1,10 @@
 #pragma once
 #include <Curve/Palette/CurvePoint.hpp>
-#include <boost/multi_index/hashed_index.hpp>
-#include <boost/multi_index/mem_fun.hpp>
-#include <boost/multi_index/member.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index_container.hpp>
+#include <multi_index/hashed_index.hpp>
+#include <multi_index/mem_fun.hpp>
+#include <multi_index/member.hpp>
+#include <multi_index/ordered_index.hpp>
+#include <multi_index_container.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/plugins/customfactory/UuidKey.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
@@ -161,7 +161,7 @@ public:
   }
 };
 
-namespace bmi = boost::multi_index;
+namespace bmi = multi_index;
 using CurveSegmentMap = bmi::multi_index_container<
     SegmentData,
     bmi::indexed_by<bmi::hashed_unique<

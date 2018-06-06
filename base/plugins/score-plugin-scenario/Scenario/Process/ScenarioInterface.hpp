@@ -12,8 +12,6 @@ class IntervalModel;
 class EventModel;
 class StateModel;
 class TimeSyncModel;
-template <typename T>
-using ElementContainer = score::IndirectContainer<std::vector, T>;
 
 class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioInterface
 {
@@ -33,10 +31,10 @@ public:
   timeSync(const Id<TimeSyncModel>& timeSyncId) const = 0;
   virtual StateModel& state(const Id<StateModel>& stId) const = 0;
 
-  virtual ElementContainer<IntervalModel> getIntervals() const = 0;
-  virtual ElementContainer<StateModel> getStates() const = 0;
-  virtual ElementContainer<EventModel> getEvents() const = 0;
-  virtual ElementContainer<TimeSyncModel> getTimeSyncs() const = 0;
+  virtual score::IndirectContainer<IntervalModel> getIntervals() const = 0;
+  virtual score::IndirectContainer<StateModel> getStates() const = 0;
+  virtual score::IndirectContainer<EventModel> getEvents() const = 0;
+  virtual score::IndirectContainer<TimeSyncModel> getTimeSyncs() const = 0;
 
   virtual TimeSyncModel& startTimeSync() const = 0;
 

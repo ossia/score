@@ -18,7 +18,6 @@
 #include <algorithm>
 #include <boost/iterator/indirect_iterator.hpp>
 #include <boost/iterator/iterator_facade.hpp>
-#include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
@@ -117,7 +116,7 @@ std::vector<State::AddressAccessor> ProcessState::matchingAddresses()
 ::State::MessageList ProcessState::setMessages(
     const ::State::MessageList& received, const Process::MessageNode&)
 {
-  if (m_point != 0 && m_point != 1)
+  if (m_point != 0. && m_point != 1.)
     return messages();
 
   const auto& segs = process().curve().segments();
@@ -135,13 +134,13 @@ std::vector<State::AddressAccessor> ProcessState::matchingAddresses()
 
       val = (val - process().min()) / (process().max() - process().min());
 
-      if (m_point == 0)
+      if (m_point == 0.)
       {
         // Find first segment
         // TODO ordering would help, here.
         auto seg_it = std::find_if(
             segs.begin(), segs.end(),
-            [](Curve::SegmentModel& segt) { return segt.start().x() == 0; });
+            [](Curve::SegmentModel& segt) { return segt.start().x() == 0.; });
         if (seg_it != segs.end())
         {
           if (val != seg_it->start().y())

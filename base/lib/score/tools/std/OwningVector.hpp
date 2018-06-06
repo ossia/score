@@ -1,5 +1,5 @@
 #pragma once
-#include <boost/iterator/indirect_iterator.hpp>
+#include <score/tools/std/IndirectContainer.hpp>
 #include <memory>
 #include <vector>
 
@@ -16,27 +16,27 @@ public:
 
   auto begin()
   {
-    return boost::make_indirect_iterator(ctnr_t::begin());
+    return score::make_indirect_iterator(ctnr_t::begin());
   }
   auto end()
   {
-    return boost::make_indirect_iterator(ctnr_t::end());
+    return score::make_indirect_iterator(ctnr_t::end());
   }
   auto begin() const
   {
-    return boost::make_indirect_iterator(ctnr_t::begin());
+    return score::make_indirect_iterator(ctnr_t::begin());
   }
   auto end() const
   {
-    return boost::make_indirect_iterator(ctnr_t::end());
+    return score::make_indirect_iterator(ctnr_t::end());
   }
   auto cbegin() const
   {
-    return boost::make_indirect_iterator(ctnr_t::cbegin());
+    return score::make_indirect_iterator(ctnr_t::cbegin());
   }
   auto cend() const
   {
-    return boost::make_indirect_iterator(ctnr_t::cend());
+    return score::make_indirect_iterator(ctnr_t::cend());
   }
 };
 

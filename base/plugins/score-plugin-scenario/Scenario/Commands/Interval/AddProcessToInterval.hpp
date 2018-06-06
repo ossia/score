@@ -15,8 +15,6 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
-#include <boost/iterator/iterator_facade.hpp>
-#include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/AggregateCommand.hpp>
 #include <score/command/Command.hpp>

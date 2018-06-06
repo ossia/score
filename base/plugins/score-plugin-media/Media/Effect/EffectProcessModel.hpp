@@ -3,7 +3,7 @@
 #include <wobjectdefs.h>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
-#include <boost/iterator/indirect_iterator.hpp>
+#include <score/tools/std/IndirectContainer.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
@@ -21,19 +21,19 @@ public:
   using value_type = T;
   auto begin() const
   {
-    return boost::make_indirect_iterator(m_list.begin());
+    return score::make_indirect_iterator(m_list.begin());
   }
   auto cbegin() const
   {
-    return boost::make_indirect_iterator(m_list.cbegin());
+    return score::make_indirect_iterator(m_list.cbegin());
   }
   auto end() const
   {
-    return boost::make_indirect_iterator(m_list.end());
+    return score::make_indirect_iterator(m_list.end());
   }
   auto cend() const
   {
-    return boost::make_indirect_iterator(m_list.cend());
+    return score::make_indirect_iterator(m_list.cend());
   }
   auto size() const
   {
@@ -195,7 +195,7 @@ class ProcessModel final : public Process::ProcessModel
   PROCESS_METADATA_IMPL(Media::Effect::ProcessModel)
 
   W_OBJECT(ProcessModel)
-  
+
 public:
   explicit ProcessModel(
       const TimeVal& duration,

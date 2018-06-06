@@ -16,7 +16,7 @@ struct in_relationship
 // These forward declarations are required
 // because Path<T>(Object&) calls score::IDocument::path()
 // which in turns calls another constructor of Path<T>.
-template <typename T>
+template <typename Object>
 class Path;
 template <typename T>
 class IdentifiedObject;
@@ -94,6 +94,8 @@ public:
     : Path(score::IDocument::path(obj))
   {
   }
+
+  ~Path() = default;
 
   //! Add a new ObjectIdentifier at the end of the path and return a new path
   template <typename U>

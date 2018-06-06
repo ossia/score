@@ -18,11 +18,11 @@
 #include <QSettings>
 #include <QStringList>
 #include <QVariant>
-#include <boost/multi_index/hashed_index.hpp>
-#include <boost/multi_index/identity.hpp>
-#include <boost/multi_index/mem_fun.hpp>
-#include <boost/multi_index/member.hpp>
-#include <boost/multi_index_container.hpp>
+#include <multi_index/hashed_index.hpp>
+#include <multi_index/identity.hpp>
+#include <multi_index/mem_fun.hpp>
+#include <multi_index/member.hpp>
+#include <multi_index_container.hpp>
 #include <core/application/ApplicationSettings.hpp>
 #include <core/command/CommandStack.hpp>
 #include <core/command/CommandStackSerialization.hpp>
@@ -52,7 +52,7 @@ struct LoadedPluginVersions
 };
 }
 
-namespace bmi = boost::multi_index;
+namespace bmi = multi_index;
 using LocalPluginVersionsMap = bmi::multi_index_container<
     score::Plugin_QtInterface*,
     bmi::indexed_by<bmi::hashed_unique<bmi::const_mem_fun<

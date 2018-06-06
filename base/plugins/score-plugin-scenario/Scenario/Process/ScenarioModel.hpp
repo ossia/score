@@ -16,9 +16,6 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <Scenario/Process/ScenarioProcessMetadata.hpp>
-#include <boost/iterator/indirect_iterator.hpp>
-#include <boost/iterator/iterator_facade.hpp>
-#include <boost/multi_index/detail/hash_index_iterator.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
@@ -64,28 +61,24 @@ public:
   //// ScenarioModel specifics ////
 
   // Accessors
-  ElementContainer<IntervalModel> getIntervals() const final override
+  score::IndirectContainer<IntervalModel> getIntervals() const final override
   {
-    auto& map = intervals.map().get();
-    return {map.begin(), map.end()};
+    return intervals.map().as_indirect_vec();
   }
 
-  ElementContainer<StateModel> getStates() const final override
+  score::IndirectContainer<StateModel> getStates() const final override
   {
-    auto& map = states.map().get();
-    return {map.begin(), map.end()};
+    return states.map().as_indirect_vec();
   }
 
-  ElementContainer<EventModel> getEvents() const final override
+  score::IndirectContainer<EventModel> getEvents() const final override
   {
-    auto& map = events.map().get();
-    return {map.begin(), map.end()};
+    return events.map().as_indirect_vec();
   }
 
-  ElementContainer<TimeSyncModel> getTimeSyncs() const final override
+  score::IndirectContainer<TimeSyncModel> getTimeSyncs() const final override
   {
-    auto& map = timeSyncs.map().get();
-    return {map.begin(), map.end()};
+    return timeSyncs.map().as_indirect_vec();
   }
 
   IntervalModel* findInterval(const Id<IntervalModel>& id) const final override
