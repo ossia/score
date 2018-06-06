@@ -31,6 +31,7 @@ QProgressBar::chunk:horizontal {
     background-color: qlineargradient(spread:reflect, x1:1, y1:0.545, x2:1, y2:0, stop:0 rgba(28, 66, 111, 255), stop:1 rgba(37, 87, 146, 255));
 }
 
+
 QToolTip
 {
     /*border: 1px solid #3A3939;*/
@@ -42,7 +43,6 @@ QToolTip
 
 QWidget
 {
-    font: 9pt "Ubuntu";
     color: silver;
     background-color: #1A2024;
     selection-background-color: #416681;
@@ -52,6 +52,16 @@ QWidget
     border: none;
     outline: 0;
 }
+
+QMenu {
+    font: 10pt "Ubuntu";
+}
+
+QMenuBar {
+    font: 10pt "Ubuntu";
+    font-weight: bold;
+}
+
 
 QWidget:item:hover
 {

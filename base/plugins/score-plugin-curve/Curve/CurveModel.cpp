@@ -10,6 +10,13 @@
 #include <Curve/Segment/CurveSegmentList.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/CurveSegmentModelSerialization.hpp>
+
+#include <multi_index/hashed_index.hpp>
+#include <multi_index/mem_fun.hpp>
+#include <multi_index/member.hpp>
+#include <multi_index/ordered_index.hpp>
+#include <multi_index_container.hpp>
+
 #include <State/ValueConversion.hpp>
 #include <algorithm>
 #include <boost/iterator/indirect_iterator.hpp>
@@ -250,6 +257,15 @@ std::vector<SegmentData> Model::toCurveData() const
 
   return dat;
 }
+
+namespace bmi = multi_index;
+using CurveSegmentOrderedMap = bmi::multi_index_container<
+    SegmentData,
+    bmi::indexed_by<
+        bmi::hashed_unique<
+            bmi::member<SegmentData, Id<SegmentModel>, &SegmentData::id>,
+            CurveDataHash>,
+        bmi::ordered_unique<bmi::identity<SegmentData>>>>;
 
 void Model::fromCurveData(const std::vector<SegmentData>& curve)
 {

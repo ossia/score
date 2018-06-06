@@ -18,6 +18,12 @@
 #include <score/tools/std/Optional.hpp>
 #include <vector>
 
+#include <multi_index/hashed_index.hpp>
+#include <multi_index/mem_fun.hpp>
+#include <multi_index/member.hpp>
+#include <multi_index_container.hpp>
+
+namespace bmi = multi_index;
 namespace score
 {
 class CommandStackFacade;
@@ -25,6 +31,17 @@ class CommandStackFacade;
 
 namespace Curve
 {
+struct CurveSegmentMap : bmi::multi_index_container<
+    SegmentData,
+    bmi::indexed_by<bmi::hashed_unique<
+        bmi::member<SegmentData, Id<SegmentModel>, &SegmentData::id>,
+        CurveDataHash
+       >
+     >
+   >
+{
+  using multi_index_container::multi_index_container;
+};
 class SegmentModel;
 MovePointCommandObject::MovePointCommandObject(
     Presenter* presenter, const score::CommandStackFacade& stack)
