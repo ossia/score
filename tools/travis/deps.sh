@@ -36,8 +36,8 @@ case "$TRAVIS_OS_NAME" in
     brew install gnu-tar xz
 
     SDK_ARCHIVE=homebrew-cache.txz
-    wget -nv https://github.com/OSSIA/score-sdk/releases/download/sdk8/$SDK_ARCHIVE -O $SDK_ARCHIVE
-    gtar xhaf $SDK_ARCHIVE --directory /
+    wget -nv https://github.com/OSSIA/score-sdk/releases/download/sdk9/$SDK_ARCHIVE -O $SDK_ARCHIVE
+    gtar xhaf $SDK_ARCHIVE --directory /usr/local/Cellar
 
     AUDIO_ARCHIVE=audio-libs.txz
     wget -nv https://github.com/OSSIA/score-sdk/releases/download/sdk8/$AUDIO_ARCHIVE -O $AUDIO_ARCHIVE
