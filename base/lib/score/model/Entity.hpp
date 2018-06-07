@@ -108,10 +108,12 @@ struct TSerializer<JSONObject, score::Entity<T>>
 
   static void writeTo(JSONObject::Deserializer& s, score::Entity<T>& obj)
   {
-    obj.metadata()
-        = fromJsonObject<score::ModelMetadata>(s.obj[s.strings.Metadata]);
+    {
+      JSONObjectWriter writer{s.obj[s.strings.Metadata].toObject()};
+      writer.writeTo(obj.metadata());
+    }
 
-    QJsonArray json_components = s.obj[s.strings.Components].toArray();
+    const QJsonArray json_components = s.obj[s.strings.Components].toArray();
     if (!json_components.empty())
     {
       score::JSONComponents vec;

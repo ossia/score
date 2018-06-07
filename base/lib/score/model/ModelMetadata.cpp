@@ -73,7 +73,48 @@ void ModelMetadata::setName(const QString& arg)
   {
     // TODO use an object pool of some sorts instead
     static std::vector<QString> bros;
+    const auto& cld = parent()->parent()->children();
+    bros.reserve(cld.size());
+    const QObjectList* cld2{};
+    int cld2_N = 0;
 
+    std::size_t cur_bros_idx = 0;
+    std::size_t cur_bros_size = bros.size();
+
+    for(auto c : cld)
+    {
+      if(auto bro = qobject_cast<IdentifiedObjectAbstract*>(c))
+      {
+        cld2 = &bro->children();
+        cld2_N = cld2->size();
+        for(int j = 0; j < cld2_N; j++)
+        {
+          if(auto m = qobject_cast<ModelMetadata*>((*cld2)[j]))
+          {
+            if (const auto& n = m->getName(); !n.isEmpty())
+            {
+              if(cur_bros_idx < cur_bros_size)
+              {
+                bros[cur_bros_idx] = n;
+              }
+              else
+              {
+                bros.push_back(std::move(n));
+                cur_bros_size++;
+              }
+              cur_bros_idx++;
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    m_scriptingName = ossia::net::sanitize_name(arg, bros);
+
+    for(int i = 0; i < cur_bros_idx; i++)
+      bros[i].clear();
+/*
     auto parent_bros
         = parent()->parent()->findChildren<IdentifiedObjectAbstract*>(
             QString{}, Qt::FindDirectChildrenOnly);
@@ -91,8 +132,7 @@ void ModelMetadata::setName(const QString& arg)
           bros.push_back(std::move(n));
       }
     }
-
-    m_scriptingName = ossia::net::sanitize_name(arg, bros);
+*/
   }
   else
   {
@@ -100,7 +140,7 @@ void ModelMetadata::setName(const QString& arg)
     ossia::net::sanitize_name(m_scriptingName);
   }
 
-  NameChanged(arg);
+  NameChanged(m_scriptingName);
   metadataChanged();
 }
 
