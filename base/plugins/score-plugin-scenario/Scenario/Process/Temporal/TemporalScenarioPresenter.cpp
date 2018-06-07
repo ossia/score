@@ -194,6 +194,11 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
 TemporalScenarioPresenter::~TemporalScenarioPresenter()
 {
   disconnect(m_con);
+  m_intervals.remove_all();
+  m_states.remove_all();
+  m_events.remove_all();
+  m_timeSyncs.remove_all();
+  m_comments.remove_all();
 }
 
 const Scenario::ProcessModel& TemporalScenarioPresenter::model() const
