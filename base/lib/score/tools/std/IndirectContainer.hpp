@@ -32,11 +32,11 @@ struct indirect_iterator
     return i;
   }
 
-  auto& operator*()
+  value_type& operator*()
   {
     return **it;
   }
-  auto operator-> ()
+  value_type* operator-> ()
   {
     return *it;
   }

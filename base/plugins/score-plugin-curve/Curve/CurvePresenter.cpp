@@ -135,8 +135,8 @@ void Presenter::setupSignals()
   });
 
   con(m_model, &Model::cleared, this, [&]() {
-    m_points.clear();
-    m_segments.clear();
+    m_points.remove_all();
+    m_segments.remove_all();
   });
 
   con(m_model, &Model::curveReset, this, &Presenter::modelReset);
@@ -436,8 +436,8 @@ void Presenter::modelReset()
 
   // Now the ones that have a new model
   // 4. We put them all back in our maps.
-  m_points.clear();
-  m_segments.clear();
+  m_points.m_map.clear();
+  m_segments.m_map.clear();
 
   for (auto pt_view : points)
   {

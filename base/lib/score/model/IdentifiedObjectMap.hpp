@@ -360,7 +360,7 @@ public:
     }
   }
 
-  void clear()
+  void remove_all()
   {
     for(auto& e : m_map)
     {
