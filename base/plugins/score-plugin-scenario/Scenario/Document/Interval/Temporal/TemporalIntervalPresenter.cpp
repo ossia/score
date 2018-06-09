@@ -29,7 +29,7 @@
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <boost/range/algorithm_ext/erase.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/ModelMetadata.hpp>
@@ -474,7 +474,7 @@ void TemporalIntervalPresenter::removeLayer(const Process::ProcessModel& proc)
   {
     for (SlotPresenter& slot : m_slots)
     {
-      boost::range::remove_erase_if(slot.processes, [&](const LayerData& elt) {
+      ossia::remove_erase_if(slot.processes, [&](const LayerData& elt) {
         bool to_delete = elt.model->id() == proc.id();
 
         if (to_delete)

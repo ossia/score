@@ -11,7 +11,7 @@
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <boost/range/algorithm_ext/erase.hpp>
+
 #include <core/document/Document.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <map>
@@ -252,7 +252,7 @@ void IntervalModel::removeLayer(int slot, Id<Process::ProcessModel> id)
 {
   auto& procs = m_smallView.at(slot).processes;
   const auto N = procs.size();
-  boost::range::remove_erase(procs, id);
+  ossia::remove_erase(procs, id);
 
   if (procs.size() < N)
   {

@@ -8,7 +8,7 @@
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <algorithm>
-#include <boost/iterator/iterator_facade.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntityMap.hpp>

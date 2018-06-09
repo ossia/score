@@ -5,7 +5,7 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
-#include <boost/iterator/iterator_facade.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/path/Path.hpp>

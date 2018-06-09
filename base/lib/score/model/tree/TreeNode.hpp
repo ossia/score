@@ -1,20 +1,54 @@
 #pragma once
-#include <boost/container/stable_vector.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+#include <list>
 /**
  * @brief Base type for a tree data structure.
  *
  * This class adds a tree structure around a data type.
  * It can then be used in abstract item models easily.
  */
+
+template<typename T>
+auto& child_at(const std::list<T>& list, int index)
+{
+  SCORE_ASSERT(index >= 0 && index < list.size());
+  auto it = list.begin();
+  std::advance(it, index);
+  return *it;
+}
+
+template<typename T>
+auto& child_at(std::list<T>& list, int index)
+{
+  SCORE_ASSERT(index >= 0 && index < list.size());
+  auto it = list.begin();
+  std::advance(it, index);
+  return *it;
+}
+
+template<typename T>
+int index_of_child(const std::list<T>& list, const T* child)
+{
+  int i = 0;
+  const auto end = list.end();
+  for(auto it = list.begin(); it != end; ++it)
+  {
+    if(&(*it) == child)
+      return i;
+    i++;
+  }
+
+  return -1;
+}
+
 template <typename DataType>
 class TreeNode : public DataType
 {
 private:
   TreeNode* m_parent{};
-  boost::container::stable_vector<TreeNode> m_children;
-  using impl_type = boost::container::stable_vector<TreeNode>;
+  std::list<TreeNode> m_children;
+  using impl_type = std::list<TreeNode>;
 
 public:
   using iterator = typename impl_type::iterator;
@@ -153,29 +187,23 @@ public:
 
   TreeNode& childAt(int index)
   {
-    SCORE_ASSERT(hasChild(index));
-    return m_children.at(index);
+    return child_at(m_children, index);
   }
 
   const TreeNode& childAt(int index) const
   {
-    SCORE_ASSERT(hasChild(index));
-    return m_children.at(index);
+    return child_at(m_children, index);
   }
 
   // returns -1 if not found
   int indexOfChild(const TreeNode* child) const
   {
-    for (std::size_t i = 0U; i < m_children.size(); i++)
-      if (child == &m_children[i])
-        return i;
-
-    return -1;
+    return index_of_child(m_children, child);
   }
 
   auto iterOfChild(const TreeNode* child)
   {
-    auto end = m_children.end();
+    const auto end = m_children.end();
     for (auto it = m_children.begin(); it != end; ++it)
     {
       if (&*it == child)
@@ -200,7 +228,7 @@ public:
   }
   void reserve(std::size_t s)
   {
-    m_children.reserve(s);
+    //m_children.reserve(s);
   }
   void resize(std::size_t s)
   {

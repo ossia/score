@@ -23,7 +23,7 @@
 #include <QPainter>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <boost/range/algorithm_ext/erase.hpp>
+
 #include <score/document/DocumentInterface.hpp>
 #include <score/widgets/GraphicsItem.hpp>
 #include <wobjectimpl.h>

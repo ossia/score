@@ -13,8 +13,8 @@
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <boost/iterator/indirect_iterator.hpp>
-#include <boost/iterator/iterator_facade.hpp>
+
+
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/tools/MapCopy.hpp>
