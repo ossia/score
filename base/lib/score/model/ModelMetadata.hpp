@@ -19,11 +19,8 @@ class SCORE_LIB_BASE_EXPORT ModelMetadata : public QObject
 
   W_OBJECT(ModelMetadata)
 
-  public:
-    ModelMetadata();
-  ModelMetadata(const ModelMetadata& other);
-
-  ModelMetadata& operator=(const ModelMetadata& other);
+public:
+  ModelMetadata();
 
   const QString& getName() const;
   const QString& getComment() const;
@@ -93,5 +90,5 @@ class SCORE_LIB_BASE_EXPORT ModelMetadata : public QObject
     QVariantMap m_extendedMetadata;
 };
 }
-Q_DECLARE_METATYPE(score::ModelMetadata)
-W_REGISTER_ARGTYPE(score::ModelMetadata)
+Q_DECLARE_METATYPE(score::ModelMetadata*)
+W_REGISTER_ARGTYPE(score::ModelMetadata*)

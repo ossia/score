@@ -17,26 +17,6 @@ ModelMetadata::ModelMetadata()
   m_color = &score::Skin::Base1;
 }
 
-ModelMetadata::ModelMetadata(const ModelMetadata& other) : QObject{}
-{
-  setName(other.getName());
-  setComment(other.getComment());
-  setColor(other.getColor());
-  setLabel(other.getLabel());
-  setExtendedMetadata(other.getExtendedMetadata());
-}
-
-ModelMetadata& score::ModelMetadata::operator=(const ModelMetadata& other)
-{
-  setName(other.getName());
-  setComment(other.getComment());
-  setColor(other.getColor());
-  setLabel(other.getLabel());
-  setExtendedMetadata(other.getExtendedMetadata());
-
-  return *this;
-}
-
 const QString& ModelMetadata::getName() const
 {
   return m_scriptingName;

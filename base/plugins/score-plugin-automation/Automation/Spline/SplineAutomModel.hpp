@@ -6,7 +6,6 @@
 #include <Process/Process.hpp>
 #include <State/Address.hpp>
 #include <State/Unit.hpp>
-#include <boost/container/flat_map.hpp>
 #include <score_plugin_automation_export.h>
 
 namespace Spline
@@ -19,9 +18,9 @@ class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
   PROCESS_METADATA_IMPL(Spline::ProcessModel)
 
   W_OBJECT(ProcessModel)
-  
-  
-  
+
+
+
 
 public:
   ProcessModel(

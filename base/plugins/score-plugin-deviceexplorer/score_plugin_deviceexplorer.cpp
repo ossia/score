@@ -110,10 +110,9 @@ score_plugin_deviceexplorer::make_commands()
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       DeviceExplorerCommandFactoryName(), CommandGeneratorMap{}};
 
-  using Types = TypeList<
-#include <score_plugin_deviceexplorer_commands.hpp>
-      >;
-  for_each_type<Types>(score::commands::FactoryInserter{cmds.second});
+  for_each_type<
+    #include <score_plugin_deviceexplorer_commands.hpp>
+      >(score::commands::FactoryInserter{cmds.second});
 
   return cmds;
 }

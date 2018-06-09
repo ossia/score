@@ -45,7 +45,7 @@ template <typename T>
 class NumericValueSetDialog final : public QDialog
 {
 public:
-  using set_type = boost::container::flat_set<T>;
+  using set_type = ossia::flat_set<T>;
   NumericValueSetDialog(QWidget* parent) : QDialog{parent}
   {
     auto lay = new score::MarginLess<QVBoxLayout>{this};
@@ -130,7 +130,7 @@ class NumericDomainWidget final : public QWidget
 {
 public:
   using domain_type = ossia::domain_base<T>;
-  using set_type = boost::container::flat_set<T>;
+  using set_type = ossia::flat_set<T>;
 
   NumericDomainWidget(QWidget* parent) : QWidget{parent}
   {

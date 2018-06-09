@@ -5,7 +5,7 @@
 #include <Process/Process.hpp>
 #include <State/Address.hpp>
 #include <State/Unit.hpp>
-#include <boost/container/flat_map.hpp>
+#include <ossia/detail/flat_map.hpp>
 #include <score_plugin_automation_export.h>
 
 namespace Gradient
@@ -44,7 +44,7 @@ public:
 
   QString prettyName() const override;
 
-  using gradient_colors = boost::container::flat_map<double, QColor>;
+  using gradient_colors = ossia::flat_map<double, QColor>;
   const gradient_colors& gradient() const;
   void setGradient(const gradient_colors& c);
 
@@ -64,7 +64,7 @@ private:
   bool contentHasDuration() const override;
   TimeVal contentDuration() const override;
 
-  boost::container::flat_map<double, QColor> m_colors;
+  ossia::flat_map<double, QColor> m_colors;
 
   bool m_tween = false;
 };

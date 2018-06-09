@@ -8,7 +8,7 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <boost/container/flat_set.hpp>
+#include <ossia/detail/flat_set.hpp>
 #include <limits>
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
@@ -59,8 +59,8 @@ void updateIntervalVerticalPos(
   auto& cst = s.intervals.at(id);
 
   // First make the list of all the intervals to update
-  static boost::container::flat_set<IntervalModel*> intervalsToUpdate;
-  static boost::container::flat_set<StateModel*> statesToUpdate;
+  static ossia::flat_set<IntervalModel*> intervalsToUpdate;
+  static ossia::flat_set<StateModel*> statesToUpdate;
 
   intervalsToUpdate.insert(&cst);
   StateModel* rec_state = &s.state(cst.startState());

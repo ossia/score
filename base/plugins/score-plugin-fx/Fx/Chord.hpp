@@ -37,7 +37,7 @@ struct Node
       std::string ch{};
       int notes{};
     };
-    boost::container::flat_map<uint8_t, std::vector<chord>> chords;
+    ossia::flat_map<uint8_t, std::vector<chord>> chords;
   };
 
   enum Chord
@@ -147,7 +147,7 @@ struct Node
               stopChord(args...);
             });
           }
-          it->second.clear();
+          const_cast<std::vector<State::chord>&>(it->second).clear();
         }
       }
       else

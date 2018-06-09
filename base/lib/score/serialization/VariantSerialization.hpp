@@ -48,12 +48,12 @@ struct VariantDataStreamSerializer
   bool done = false;
 
   template <typename TheClass>
-  void perform();
+  void operator()();
 };
 
 template <typename T>
 template <typename TheClass>
-void VariantDataStreamSerializer<T>::perform()
+void VariantDataStreamSerializer<T>::operator()()
 {
   // This trickery iterates over all the types in Args...
   // A single type should be serialized, even if we cannot break.
@@ -81,12 +81,12 @@ struct VariantDataStreamDeserializer
 
   quint64 i = 0;
   template <typename TheClass>
-  void perform();
+  void operator()();
 };
 
 template <typename T>
 template <typename TheClass>
-void VariantDataStreamDeserializer<T>::perform()
+void VariantDataStreamDeserializer<T>::operator()()
 {
   // Here we iterate until we are on the correct type, and we deserialize it.
   if (i++ != which)
@@ -108,7 +108,7 @@ struct TSerializer<DataStream, eggs::variant<Args...>>
     // TODO this should be an assert.
     if ((quint64)var.which() != (quint64)var.npos)
     {
-      for_each_type<TypeList<Args...>>(
+      for_each_type<Args...>(
           VariantDataStreamSerializer<var_t>{s, var});
     }
 
@@ -122,7 +122,7 @@ struct TSerializer<DataStream, eggs::variant<Args...>>
 
     if (which != (quint64)var.npos)
     {
-      for_each_type<TypeList<Args...>>(
+      for_each_type<Args...>(
           VariantDataStreamDeserializer<var_t>{s, which, var});
     }
     s.checkDelimiter();
@@ -185,12 +185,12 @@ struct VariantJSONSerializer
   bool done = false;
 
   template <typename TheClass>
-  void perform();
+  void operator()();
 };
 
 template <typename T>
 template <typename TheClass>
-void VariantJSONSerializer<T>::perform()
+void VariantJSONSerializer<T>::operator()()
 {
   if (done)
     return;
@@ -214,12 +214,12 @@ struct VariantJSONDeserializer
 
   bool done = false;
   template <typename TheClass>
-  void perform();
+  void operator()();
 };
 
 template <typename T>
 template <typename TheClass>
-void VariantJSONDeserializer<T>::perform()
+void VariantJSONDeserializer<T>::operator()()
 {
   if (done)
     return;
@@ -240,12 +240,12 @@ struct TSerializer<JSONObject, eggs::variant<Args...>>
   {
     if ((quint64)var.which() != (quint64)var.npos)
     {
-      for_each_type<TypeList<Args...>>(VariantJSONSerializer<var_t>{s, var});
+      for_each_type<Args...>(VariantJSONSerializer<var_t>{s, var});
     }
   }
 
   static void writeTo(JSONObject::Deserializer& s, var_t& var)
   {
-    for_each_type<TypeList<Args...>>(VariantJSONDeserializer<var_t>{s, var});
+    for_each_type<Args...>(VariantJSONDeserializer<var_t>{s, var});
   }
 };

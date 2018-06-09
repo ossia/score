@@ -241,7 +241,7 @@ struct Node
 
   struct State
   {
-    boost::container::flat_map<uint8_t, Note> map;
+    ossia::flat_map<uint8_t, Note> map;
     std::string scale{};
     int base{};
     int transpose{};
@@ -278,7 +278,7 @@ struct Node
               midi_out.messages.push_back(res);
               midi_out.messages.back().timestamp
                   = offset + ossia::time_value{1};
-              it->second = note;
+              const_cast<Note&>(it->second) = note;
             }
             else
             {
@@ -318,7 +318,7 @@ struct Node
   {
     for (auto& notes : self.map)
     {
-      Note& note = notes.second;
+      Note& note = const_cast<Note&>(notes.second);
       if (auto index = find_closest_index(scale, notes.first))
       {
         if ((*index + transp) != note.pitch)

@@ -58,10 +58,9 @@ score_plugin_js::make_commands()
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       JS::CommandFactoryName(), CommandGeneratorMap{}};
 
-  using Types = TypeList<
-#include <score_plugin_js_commands.hpp>
-      >;
-  for_each_type<Types>(score::commands::FactoryInserter{cmds.second});
+  for_each_type<
+    #include <score_plugin_js_commands.hpp>
+      >(score::commands::FactoryInserter{cmds.second});
 
   return cmds;
 }

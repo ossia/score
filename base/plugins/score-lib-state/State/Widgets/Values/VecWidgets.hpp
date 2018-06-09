@@ -78,7 +78,7 @@ class VecDomainWidget final : public QWidget
 {
 public:
   using domain_type = ossia::vecf_domain<N>;
-  using set_type = boost::container::flat_set<float>;
+  using set_type = ossia::flat_set<float>;
 
   VecDomainWidget(QWidget* parent) : QWidget{parent}
   {
