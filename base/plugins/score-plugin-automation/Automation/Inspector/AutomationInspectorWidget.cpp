@@ -222,7 +222,7 @@ void InspectorWidget::on_tweenChanged()
   bool newVal = m_tween->checkState();
   if (newVal != process().tween())
   {
-    auto cmd = new Gradient::SetTween(process(), newVal);
+    auto cmd = new Gradient::SetGradientTween(process(), newVal);
 
     m_dispatcher.submitCommand(cmd);
   }
