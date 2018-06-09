@@ -112,7 +112,7 @@ void ModelMetadata::setName(const QString& arg)
 
     m_scriptingName = ossia::net::sanitize_name(arg, bros);
 
-    for(int i = 0; i < cur_bros_idx; i++)
+    for(std::size_t i = 0; i < cur_bros_idx; i++)
       bros[i].clear();
 /*
     auto parent_bros
