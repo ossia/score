@@ -59,10 +59,11 @@ void fill_ptr_vector(
 template <typename Factory_T, typename... Types_T>
 struct FW_T
 {
+#if !defined(_MSC_VER)
   static_assert(
         (std::is_base_of<Factory_T, Types_T>::value && ...),
         "A type is not child of the parent.");
-
+#endif
   template <typename Context_T>
   bool operator()(
       const Context_T& ctx,
