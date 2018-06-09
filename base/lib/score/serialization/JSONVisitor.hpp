@@ -402,6 +402,19 @@ QJsonArray toJsonArray(const T<Id<V>>& array)
   return arr;
 }
 
+template <template <typename U, typename W> class T, typename V, typename Alloc>
+QJsonArray toJsonArray(const T<Id<V>, Alloc>& array)
+{
+  QJsonArray arr;
+
+  for (const auto& elt : array)
+  {
+    arr.append(toJsonValue(elt));
+  }
+
+  return arr;
+}
+
 template <
     template <typename U, std::size_t> class T,
     typename V,

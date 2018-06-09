@@ -8,7 +8,7 @@
 #include <QMenu>
 #include <QPainter>
 #include <QSlider>
-#include <boost/range/algorithm_ext/erase.hpp>
+
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Dataflow::CableItem)
@@ -64,11 +64,11 @@ CableItem::~CableItem()
 {
   if (m_p1)
   {
-    boost::remove_erase(m_p1->cables, this);
+    ossia::remove_erase(m_p1->cables, this);
   }
   if (m_p2)
   {
-    boost::remove_erase(m_p2->cables, this);
+    ossia::remove_erase(m_p2->cables, this);
   }
 
   auto& c = g_cables();

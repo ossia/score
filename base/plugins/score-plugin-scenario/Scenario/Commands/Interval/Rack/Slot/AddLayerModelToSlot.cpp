@@ -6,7 +6,7 @@
 #include <Process/ProcessList.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <algorithm>
-#include <boost/iterator/iterator_facade.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/path/Path.hpp>

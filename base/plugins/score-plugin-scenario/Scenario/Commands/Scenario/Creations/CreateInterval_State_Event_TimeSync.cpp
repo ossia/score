@@ -9,7 +9,7 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <boost/iterator/iterator_facade.hpp>
+
 #include <score/model/EntityMap.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>

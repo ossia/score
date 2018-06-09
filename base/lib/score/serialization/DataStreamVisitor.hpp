@@ -528,6 +528,7 @@ struct TSerializer<DataStream, std::array<T, N>>
   }
 };
 
+#if defined(NDEBUG)
 template <typename T, std::size_t N>
 struct TSerializer<DataStream, ossia::small_vector<T, N>>
 {
@@ -581,6 +582,7 @@ struct TSerializer<DataStream, ossia::static_vector<T, N>>
     SCORE_DEBUG_CHECK_DELIMITER2(s);
   }
 };
+#endif
 
 template <typename... Args>
 struct TSerializer<

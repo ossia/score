@@ -77,9 +77,9 @@ public:
   QString toPrettyString() const;
 
   using iterator =
-      typename boost::container::stable_vector<TreeNode>::iterator;
+      typename std::list<TreeNode>::iterator;
   using const_iterator =
-      typename boost::container::stable_vector<TreeNode>::const_iterator;
+      typename std::list<TreeNode>::const_iterator;
 
   iterator begin();
   const_iterator begin() const;
@@ -140,8 +140,8 @@ public:
   int childCount() const;
   bool hasChildren() const;
 
-  boost::container::stable_vector<TreeNode>& children();
-  const boost::container::stable_vector<TreeNode>& children() const;
+  std::list<TreeNode>& children();
+  const std::list<TreeNode>& children() const;
 
   // Won't delete the child!
   void removeChild(const_iterator it);
@@ -149,10 +149,9 @@ public:
 
 protected:
   TreeNode<State::ExprData>* m_parent{};
-  boost::container::stable_vector<TreeNode> m_children;
+  std::list<TreeNode> m_children;
 };
 bool operator<(const State::ExprData& lhs, const State::ExprData& rhs);
-extern template class boost::container::stable_vector<State::ExprData>;
 
 namespace State
 {

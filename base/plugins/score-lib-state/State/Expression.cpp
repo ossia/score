@@ -26,7 +26,7 @@ bool operator<(const State::ExprData& lhs, const State::ExprData& rhs)
 }
 }
 template class SCORE_LIB_STATE_EXPORT
-    boost::container::stable_vector<State::ExprData>;
+    std::list<State::ExprData>;
 QString State::ExprData::toString() const
 {
   static const QMap<State::BinaryOperator, QString> binopMap{
@@ -88,11 +88,11 @@ QString TreeNode<State::ExprData>::toString() const
   {
     if (this->is<InvisibleRootNode>())
     {
-      s = m_children.at(0).toString();
+      s = m_children.front().toString();
     }
     else
     {
-      s = " { " % exprstr % " " % m_children.at(0).toString() % " } ";
+      s = " { " % exprstr % " " % m_children.front().toString() % " } ";
     }
   }
   else // binop
@@ -143,11 +143,11 @@ QString TreeNode<State::ExprData>::toPrettyString() const
   {
     if (this->is<InvisibleRootNode>())
     {
-      s = m_children.at(0).toPrettyString();
+      s = m_children.front().toPrettyString();
     }
     else
     {
-      s = exprstr % m_children.at(0).toPrettyString();
+      s = exprstr % m_children.front().toPrettyString();
     }
   }
   else // binop
@@ -205,10 +205,15 @@ bool operator==(
   if (!b)
     return false;
 
-  for (std::size_t i = 0; i < lhs.m_children.size(); i++)
+  auto l = lhs.begin();
+  auto e = lhs.end();
+  auto r = rhs.begin();
+  while(l != e)
   {
-    if (lhs.m_children[i] != rhs.m_children[i])
+    if(*l != *r)
       return false;
+    ++l;
+    ++r;
   }
 
   return true;
@@ -354,24 +359,18 @@ bool TreeNode<State::ExprData>::hasChild(std::size_t index) const
 
 TreeNode<State::ExprData>& TreeNode<State::ExprData>::childAt(int index)
 {
-  SCORE_ASSERT(hasChild(index));
-  return m_children.at(index);
+  return child_at(m_children, index);
 }
 
 const TreeNode<State::ExprData>&
 TreeNode<State::ExprData>::childAt(int index) const
 {
-  SCORE_ASSERT(hasChild(index));
-  return m_children.at(index);
+  return child_at(m_children, index);
 }
 
 int TreeNode<State::ExprData>::indexOfChild(const TreeNode* child) const
 {
-  for (std::size_t i = 0U; i < m_children.size(); i++)
-    if (child == &m_children[i])
-      return i;
-
-  return -1;
+  return index_of_child(m_children, child);
 }
 
 int TreeNode<State::ExprData>::childCount() const
@@ -384,13 +383,13 @@ bool TreeNode<State::ExprData>::hasChildren() const
   return !m_children.empty();
 }
 
-boost::container::stable_vector<TreeNode<State::ExprData>>&
+std::list<TreeNode<State::ExprData>>&
 TreeNode<State::ExprData>::children()
 {
   return m_children;
 }
 
-const boost::container::stable_vector<TreeNode<State::ExprData>>&
+const std::list<TreeNode<State::ExprData>>&
 TreeNode<State::ExprData>::children() const
 {
   return m_children;

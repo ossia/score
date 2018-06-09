@@ -20,7 +20,7 @@
 #include <core/document/DocumentModel.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <algorithm>
-#include <boost/iterator/iterator_facade.hpp>
+
 #include <core/document/Document.hpp>
 #include <cstddef>
 #include <iterator>

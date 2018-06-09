@@ -16,8 +16,8 @@
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
 #include <algorithm>
-#include <boost/iterator/indirect_iterator.hpp>
-#include <boost/iterator/iterator_facade.hpp>
+
+
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>

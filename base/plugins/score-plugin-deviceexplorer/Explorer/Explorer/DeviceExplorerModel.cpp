@@ -37,7 +37,7 @@
 #include <State/MessageListSerialization.hpp>
 #include <State/ValueConversion.hpp>
 #include <algorithm>
-#include <boost/range/algorithm_ext/erase.hpp>
+
 #include <iostream>
 #include <iterator>
 #include <qtypetraits.h>
@@ -142,17 +142,18 @@ int DeviceExplorerModel::addDevice(Device::Node&& deviceNode)
 void DeviceExplorerModel::updateDevice(
     const QString& name, const Device::DeviceSettings& dev)
 {
-  for (int i = 0; i < m_rootNode.childCount(); i++)
+  int i = 0;
+  for (auto& n : m_rootNode)
   {
-    auto n = &m_rootNode.childAt(i);
-    if (n->get<Device::DeviceSettings>().name == name)
+    if (n.get<Device::DeviceSettings>().name == name)
     {
-      n->set(dev);
+      n.set(dev);
 
-      QModelIndex index = createIndex(i, 0, n->parent());
+      QModelIndex index = createIndex(i, 0, n.parent());
       dataChanged(index, index);
       return;
     }
+    i++;
   }
 }
 
@@ -171,7 +172,10 @@ void DeviceExplorerModel::addAddress(
 
   beginInsertRows(parentIndex, row, row);
 
-  parentNode->emplace(parentNode->begin() + row, addressSettings, parentNode);
+  auto it = parentNode->begin();
+  std::advance(it, row);
+
+  parentNode->emplace(it, addressSettings, parentNode);
 
   endInsertRows();
 }
@@ -189,7 +193,9 @@ void DeviceExplorerModel::addNode(
 
   beginInsertRows(parentIndex, row, row);
 
-  parentNode->emplace(parentNode->begin() + row, std::move(child));
+  auto it = parentNode->begin();
+  std::advance(it, row);
+  parentNode->emplace(it, std::move(child));
 
   endInsertRows();
 }
@@ -619,7 +625,7 @@ DeviceExplorerModel::uniqueSelectedNodes(const QModelIndexList& indexes) const
       indexes, std::back_inserter(nodes.parents),
       [&](const QModelIndex& idx) { return &nodeFromModelIndex(idx); });
 
-  boost::range::remove_erase(nodes.parents, &m_rootNode);
+  ossia::remove_erase(nodes.parents, &m_rootNode);
 
   nodes.messages.reserve(nodes.messages.size() + nodes.parents.size());
   if (nodes.parents.size() > 1)

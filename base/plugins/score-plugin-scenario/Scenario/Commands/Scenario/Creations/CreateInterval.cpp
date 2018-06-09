@@ -14,7 +14,7 @@
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <algorithm>
-#include <boost/iterator/iterator_facade.hpp>
+
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>

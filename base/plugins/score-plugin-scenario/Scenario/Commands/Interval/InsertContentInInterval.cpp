@@ -13,8 +13,8 @@
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <algorithm>
-#include <boost/iterator/indirect_iterator.hpp>
-#include <boost/iterator/iterator_facade.hpp>
+
+
 #include <functional>
 #include <iterator>
 #include <map>

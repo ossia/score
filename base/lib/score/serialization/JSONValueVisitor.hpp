@@ -344,6 +344,8 @@ void fromJsonValueArray(
     arr.push_back(fromJsonValue<Id<V>>(elt));
   }
 }
+
+#if defined(NDEBUG)
 template <typename V, std::size_t N>
 void fromJsonValueArray(
     const QJsonArray& json_arr, ossia::static_vector<Id<V>, N>& arr)
@@ -354,6 +356,7 @@ void fromJsonValueArray(
     arr.push_back(fromJsonValue<Id<V>>(elt));
   }
 }
+#endif
 
 template <typename V>
 void fromJsonValueArray(const QJsonArray& json_arr, std::vector<Id<V>>& arr)

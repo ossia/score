@@ -28,7 +28,7 @@
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncView.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <boost/iterator/iterator_facade.hpp>
+
 #include <score/model/EntityMap.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>

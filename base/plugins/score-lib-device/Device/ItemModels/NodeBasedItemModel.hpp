@@ -45,7 +45,10 @@ public:
 
     beginInsertRows(parentIndex, row, row);
 
-    parentNode.emplace(parentNode.begin() + row, other, &parentNode);
+
+    auto it = parentNode.begin();
+    std::advance(it, row);
+    parentNode.emplace(it, other, &parentNode);
 
     endInsertRows();
   }

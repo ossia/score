@@ -31,7 +31,7 @@
 #include <Scenario/Process/ScenarioProcessMetadata.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <algorithm>
-#include <boost/iterator/iterator_facade.hpp>
+
 #include <chrono>
 #include <core/document/Document.hpp>
 #include <score/application/ApplicationContext.hpp>
