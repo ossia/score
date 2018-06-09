@@ -35,7 +35,7 @@ private:
 class SCORE_LIB_STATE_EXPORT CharValueSetDialog final : public QDialog
 {
 public:
-  using set_type = boost::container::flat_set<char>;
+  using set_type = ossia::flat_set<char>;
   CharValueSetDialog(QWidget* parent);
 
   set_type values();
@@ -67,6 +67,6 @@ private:
   QLineEdit* m_min{};
   QLineEdit* m_max{};
 
-  boost::container::flat_set<char> m_values;
+  ossia::flat_set<char> m_values;
 };
 }

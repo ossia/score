@@ -4,7 +4,7 @@
 #include <QPoint>
 #include <QVariant>
 #include <QVector>
-#include <boost/container/flat_map.hpp>
+#include <ossia/detail/flat_map.hpp>
 #include <memory>
 #include <score/serialization/VisitorInterface.hpp>
 #include <utility>
@@ -63,7 +63,7 @@ public:
     vis.writeTo(*this);
   }
 
-  ~PointArraySegment();
+  ~PointArraySegment() override;
 
   void on_startChanged() override;
   void on_endChanged() override;
@@ -103,7 +103,7 @@ public:
     max_y = y;
   }
 
-  const boost::container::flat_map<double, double>& points() const
+  const ossia::flat_map<double, double>& points() const
   {
     return m_points;
   }
@@ -145,7 +145,7 @@ private:
 
   double m_lastX{-1};
 
-  boost::container::flat_map<double, double> m_points;
+  ossia::flat_map<double, double> m_points;
 };
 }
 

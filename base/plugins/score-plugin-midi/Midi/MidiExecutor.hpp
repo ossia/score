@@ -6,7 +6,7 @@
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
 #include <Midi/MidiNote.hpp>
-#include <boost/container/flat_set.hpp>
+#include <ossia/detail/flat_set.hpp>
 namespace ossia::nodes
 {
 struct note_data;

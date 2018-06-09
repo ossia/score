@@ -10,7 +10,7 @@ class View final : public Process::LayerView
 public:
   View(QGraphicsItem* parent);
 
-  using gradient_colors = boost::container::flat_map<double, QColor>;
+  using gradient_colors = ossia::flat_map<double, QColor>;
   void setGradient(const gradient_colors& c);
   void setDataWidth(double);
   double dataWidth() const
@@ -31,8 +31,8 @@ private:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
-  boost::container::flat_map<double, QColor> m_colors;
-  boost::container::flat_map<double, QColor> m_origColors;
+  ossia::flat_map<double, QColor> m_colors;
+  ossia::flat_map<double, QColor> m_origColors;
   optional<double> m_clicked;
   double m_dataWidth{};
 };

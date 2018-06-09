@@ -28,18 +28,17 @@ Component::Component(
   midi->set_channel(element.channel());
   auto set_notes = [&, midi] {
     midi_node::note_set notes;
-    notes.reserve(element.notes.size());
-    ossia::transform(
-        element.notes, std::inserter(notes, notes.begin()),
-        [&](const Note& n) {
-          auto data = n.noteData();
-          if (data.start() < 0 && data.end() > 0)
-          {
-            data.setStart(0.);
-            data.setDuration(data.duration() + data.start());
-          }
-          return to_note(data);
-        });
+    notes.container.reserve(element.notes.size());
+    for(const auto& n : element.notes)
+    {
+      auto data = n.noteData();
+      if (data.start() < 0 && data.end() > 0)
+      {
+        data.setStart(0.);
+        data.setDuration(data.duration() + data.start());
+      }
+      notes.insert(to_note(data));
+    }
 
     in_exec([n = std::move(notes), midi]() mutable {
       midi->set_notes(std::move(n));

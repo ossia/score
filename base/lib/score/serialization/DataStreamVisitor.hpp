@@ -6,7 +6,7 @@
 #include <QVector2D>
 #include <QVector3D>
 #include <QVector4D>
-#include <boost/container/flat_set.hpp>
+#include <ossia/detail/flat_set.hpp>
 #include <score/model/EntityBase.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/serialization/VisitorTags.hpp>
@@ -696,9 +696,9 @@ struct TSerializer<DataStream, score::hash_map<T, U>>
 };
 
 template <typename T>
-struct TSerializer<DataStream, boost::container::flat_set<T>>
+struct TSerializer<DataStream, ossia::flat_set<T>>
 {
-  using type = boost::container::flat_set<T>;
+  using type = ossia::flat_set<T>;
   static void readFrom(DataStream::Serializer& s, const type& obj)
   {
     s.stream() << (int32_t)obj.size();

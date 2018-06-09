@@ -159,6 +159,19 @@ struct TSerializer<JSONObject, ossia::domain_base<ossia::impulse>>
 };
 
 template <>
+struct TSerializer<JSONObject, ossia::domain_base<bool>>
+{
+  using domain_t = ossia::domain_base<bool>;
+  static void readFrom(JSONObject::Serializer& s, const domain_t& domain)
+  {
+  }
+
+  static void writeTo(JSONObject::Deserializer& s, domain_t& domain)
+  {
+  }
+};
+
+template <>
 struct TSerializer<JSONObject, ossia::vector_domain>
 {
   using domain_t = ossia::vector_domain;
@@ -312,12 +325,23 @@ struct TSerializer<DataStream, ossia::domain_base<ossia::impulse>>
   using domain_t = ossia::domain_base<ossia::impulse>;
   static void readFrom(DataStream::Serializer& s, const domain_t& domain)
   {
-    s.insertDelimiter();
   }
 
   static void writeTo(DataStream::Deserializer& s, domain_t& domain)
   {
-    s.checkDelimiter();
+  }
+};
+
+template <>
+struct TSerializer<DataStream, ossia::domain_base<bool>>
+{
+  using domain_t = ossia::domain_base<bool>;
+  static void readFrom(DataStream::Serializer& s, const domain_t& domain)
+  {
+  }
+
+  static void writeTo(DataStream::Deserializer& s, domain_t& domain)
+  {
   }
 };
 

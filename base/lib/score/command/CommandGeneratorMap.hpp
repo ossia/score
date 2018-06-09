@@ -82,10 +82,11 @@ struct FactoryInserter
 {
   CommandGeneratorMap& fact;
   template <typename TheCommand>
-  void perform() const
+  void operator()() const
   {
-    fact.insert(std::pair<const CommandKey, CommandFactory*>{
+    auto res = fact.insert(std::pair<const CommandKey, CommandFactory*>{
         TheCommand::static_key(), new GenericCommandFactory<TheCommand>});
+    SCORE_ASSERT(res.second);
   }
 };
 }

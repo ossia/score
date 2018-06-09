@@ -56,10 +56,9 @@ score_plugin_curve::make_commands()
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       Curve::CommandFactoryName(), CommandGeneratorMap{}};
 
-  using Types = TypeList<
-#include <score_plugin_curve_commands.hpp>
-      >;
-  for_each_type<Types>(score::commands::FactoryInserter{cmds.second});
+  for_each_type<
+    #include <score_plugin_curve_commands.hpp>
+      >(score::commands::FactoryInserter{cmds.second});
 
   return cmds;
 }

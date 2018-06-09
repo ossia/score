@@ -67,11 +67,11 @@ Presenter::Presenter(
 
   connect(m_view, &View::setColor, this, [&](double pos, QColor col) {
     auto new_grad = m_layer.gradient();
-    auto it = new_grad.find(pos);
-    if (it == new_grad.end())
+    auto it = new_grad.has(pos);
+    if (!it)
       return;
 
-    it->second = col;
+    *it = col;
     CommandDispatcher<>{context().context.commandStack}
         .submitCommand<ChangeGradient>(layer, new_grad);
   });

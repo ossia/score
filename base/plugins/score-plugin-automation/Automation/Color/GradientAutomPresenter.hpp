@@ -11,9 +11,9 @@ struct is_custom_serialized<QColor> : public std::true_type
 };
 
 template <typename T, typename U>
-struct TSerializer<DataStream, boost::container::flat_map<T, U>>
+struct TSerializer<DataStream, ossia::flat_map<T, U>>
 {
-  using type = boost::container::flat_map<T, U>;
+  using type = ossia::flat_map<T, U>;
   static void readFrom(DataStream::Serializer& s, const type& obj)
   {
     s.stream() << (int32_t)obj.size();
@@ -55,9 +55,9 @@ struct TSerializer<JSONValue, QColor>
 };
 
 template <typename U>
-struct TSerializer<JSONValue, boost::container::flat_map<double, U>>
+struct TSerializer<JSONValue, ossia::flat_map<double, U>>
 {
-  using type = boost::container::flat_map<double, U>;
+  using type = ossia::flat_map<double, U>;
   static void readFrom(JSONValue::Serializer& s, const type& obj)
   {
     QJsonArray arr;

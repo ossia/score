@@ -5,7 +5,7 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QMap>
-#include <boost/container/flat_set.hpp>
+#include <ossia/detail/flat_set.hpp>
 #include <score/model/EntityBase.hpp>
 #include <score/serialization/StringConstants.hpp>
 #include <score/serialization/VisitorInterface.hpp>
@@ -681,7 +681,7 @@ inline QJsonValue toJsonValue(const optional<float>& f)
 }
 
 template <typename T>
-QJsonArray toJsonArray(const boost::container::flat_set<T>& array)
+QJsonArray toJsonArray(const ossia::flat_set<T>& array)
 {
   QJsonArray arr;
   for (auto& v : array)
@@ -689,14 +689,14 @@ QJsonArray toJsonArray(const boost::container::flat_set<T>& array)
   return arr;
 }
 
-inline QJsonArray toJsonArray(const boost::container::flat_set<int>& array)
+inline QJsonArray toJsonArray(const ossia::flat_set<int>& array)
 {
   QJsonArray arr;
   for (auto& v : array)
     arr.push_back(v);
   return arr;
 }
-inline QJsonArray toJsonArray(const boost::container::flat_set<float>& array)
+inline QJsonArray toJsonArray(const ossia::flat_set<float>& array)
 {
   QJsonArray arr;
   for (auto& v : array)
@@ -718,7 +718,7 @@ QJsonArray toJsonArray(const std::array<optional<float>, N>& array)
 
 template <std::size_t N>
 QJsonArray
-toJsonArray(const std::array<boost::container::flat_set<float>, N>& array)
+toJsonArray(const std::array<ossia::flat_set<float>, N>& array)
 {
   QJsonArray arr;
   for (auto& v : array)

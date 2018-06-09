@@ -190,7 +190,7 @@ QJsonArray toJsonArray(const std::vector<ossia::value>& array)
 }
 
 QJsonArray
-toJsonArray(const std::vector<boost::container::flat_set<ossia::value>>& array)
+toJsonArray(const std::vector<ossia::flat_set<ossia::value>>& array)
 {
   QJsonArray arr;
   for (auto& v : array)

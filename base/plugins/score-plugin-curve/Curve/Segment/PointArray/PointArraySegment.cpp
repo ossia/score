@@ -174,7 +174,7 @@ void PointArraySegment::simplify(double ratio)
   SCORE_ASSERT(result.size() % 2 == 0);
 
   m_points.clear();
-  m_points.reserve(result.size() / 2);
+  m_points.container.reserve(result.size() / 2);
   for (auto i = 0u; i < result.size(); i += 2)
   {
     m_points.insert(std::make_pair(result[i], result[i + 1]));
