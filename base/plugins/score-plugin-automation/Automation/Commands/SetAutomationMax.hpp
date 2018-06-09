@@ -20,6 +20,6 @@ SCORE_COMMAND_DECL_T(Automation::SetUnit)
 namespace Gradient
 {
 using Automation::CommandFactoryName;
-PROPERTY_COMMAND_T(SetTween, Gradient::ProcessModel::p_tween, "Set tween")
+PROPERTY_COMMAND_T(SetGradientTween, Gradient::ProcessModel::p_tween, "Set tween")
 }
-SCORE_COMMAND_DECL_T(Gradient::SetTween)
+SCORE_COMMAND_DECL_T(Gradient::SetGradientTween)
