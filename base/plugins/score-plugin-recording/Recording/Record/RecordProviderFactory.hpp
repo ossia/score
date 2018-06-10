@@ -177,9 +177,9 @@ private:
 };
 
 class SCORE_PLUGIN_RECORDING_EXPORT RecorderFactory
-    : public score::Interface<RecorderFactory>
+    : public score::InterfaceBase
 {
-  SCORE_INTERFACE("64999184-a705-4686-b967-14e8f79692f1")
+  SCORE_INTERFACE(RecorderFactory, "64999184-a705-4686-b967-14e8f79692f1")
 public:
   virtual ~RecorderFactory();
 

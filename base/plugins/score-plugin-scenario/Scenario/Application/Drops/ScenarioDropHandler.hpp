@@ -9,9 +9,9 @@ namespace Scenario
 {
 class TemporalScenarioPresenter;
 class SCORE_PLUGIN_SCENARIO_EXPORT DropHandler
-    : public score::Interface<DropHandler>
+    : public score::InterfaceBase
 {
-  SCORE_INTERFACE("ce1c5b6c-fe4c-416f-877c-eae642a1413a")
+  SCORE_INTERFACE(DropHandler, "ce1c5b6c-fe4c-416f-877c-eae642a1413a")
 public:
   ~DropHandler() override;
 
@@ -69,9 +69,9 @@ public:
 
 class IntervalModel;
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalDropHandler
-    : public score::Interface<IntervalDropHandler>
+    : public score::InterfaceBase
 {
-  SCORE_INTERFACE("b9f3efc0-b906-487a-ac49-87924edd2cff")
+  SCORE_INTERFACE(IntervalDropHandler, "b9f3efc0-b906-487a-ac49-87924edd2cff")
 public:
   ~IntervalDropHandler() override;
 

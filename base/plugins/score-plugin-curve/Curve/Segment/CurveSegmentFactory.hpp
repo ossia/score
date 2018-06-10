@@ -16,9 +16,9 @@ class Category_k;
 class SegmentModel;
 struct SegmentData;
 class SCORE_PLUGIN_CURVE_EXPORT SegmentFactory
-    : public score::Interface<SegmentFactory>
+    : public score::InterfaceBase
 {
-  SCORE_INTERFACE("608ecec9-d8bc-4b6b-8e9e-31867a310f1e")
+  SCORE_INTERFACE(SegmentFactory, "608ecec9-d8bc-4b6b-8e9e-31867a310f1e")
 public:
   virtual ~SegmentFactory();
 

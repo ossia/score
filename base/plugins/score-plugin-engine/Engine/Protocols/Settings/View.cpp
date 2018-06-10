@@ -11,6 +11,7 @@
 #if __has_include(<portaudio.h>)
 #  include <portaudio.h>
 #endif
+#include <ossia/detail/pod_vector.hpp>
 namespace Audio::Settings
 {
 View::View() : m_widg{new QWidget}
@@ -27,10 +28,10 @@ View::View() : m_widg{new QWidget}
   SETTINGS_UI_SPINBOX_SETUP("Default Outs\n(JACK)", DefaultOut);
 
   QStringList raw_cards_in, cards_in;
-  std::vector<int> indices_in;
+  ossia::int_vector indices_in;
 
   QStringList raw_cards_out, cards_out;
-  std::vector<int> indices_out;
+  ossia::int_vector indices_out;
 #if __has_include(<portaudio.h>)
   Pa_Initialize();
 

@@ -584,15 +584,15 @@ struct TSerializer<DataStream, ossia::static_vector<T, N>>
 };
 #endif
 
-template <typename... Args>
+template <typename T, typename Alloc>
 struct TSerializer<
     DataStream,
-    std::vector<Args...>,
+    std::vector<T, Alloc>,
     std::enable_if_t<!is_QDataStreamSerializable<
-        typename std::vector<Args...>::value_type>::value>>
+        typename std::vector<T, Alloc>::value_type>::value>>
 {
   static void
-  readFrom(DataStream::Serializer& s, const std::vector<Args...>& vec)
+  readFrom(DataStream::Serializer& s, const std::vector<T, Alloc>& vec)
   {
     s.stream() << (int32_t)vec.size();
     for (const auto& elt : vec)
@@ -601,7 +601,7 @@ struct TSerializer<
     SCORE_DEBUG_INSERT_DELIMITER2(s);
   }
 
-  static void writeTo(DataStream::Deserializer& s, std::vector<Args...>& vec)
+  static void writeTo(DataStream::Deserializer& s, std::vector<T, Alloc>& vec)
   {
     int32_t n;
     s.stream() >> n;
@@ -617,15 +617,15 @@ struct TSerializer<
   }
 };
 
-template <typename... Args>
+template <typename T, typename Alloc>
 struct TSerializer<
     DataStream,
-    std::vector<Args...>,
+    std::vector<T, Alloc>,
     std::enable_if_t<is_QDataStreamSerializable<
-        typename std::vector<Args...>::value_type>::value>>
+        typename std::vector<T, Alloc>::value_type>::value>>
 {
   static void
-  readFrom(DataStream::Serializer& s, const std::vector<Args...>& vec)
+  readFrom(DataStream::Serializer& s, const std::vector<T, Alloc>& vec)
   {
     s.stream() << (int32_t)vec.size();
     for (const auto& elt : vec)
@@ -634,7 +634,7 @@ struct TSerializer<
     SCORE_DEBUG_INSERT_DELIMITER2(s);
   }
 
-  static void writeTo(DataStream::Deserializer& s, std::vector<Args...>& vec)
+  static void writeTo(DataStream::Deserializer& s, std::vector<T, Alloc>& vec)
   {
     int32_t n = 0;
     s.stream() >> n;

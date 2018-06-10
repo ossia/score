@@ -26,12 +26,17 @@ template <
     typename Model_T,            // e.g. ProcessModel - maybe ProcessEntity ?
     typename System_T,           // e.g. LocalTree::DocumentPlugin
     typename ComponentFactory_T> // e.g. ProcessComponent
-class GenericComponentFactory : public score::Interface<ComponentFactory_T>
+class GenericComponentFactory : public score::InterfaceBase
 {
 public:
   using base_model_type = Model_T;
   using system_type = System_T;
   using factory_type = ComponentFactory_T;
+
+  using ConcreteKey = UuidKey<ComponentFactory_T>;
+
+  //! Identifies an implementation of an interface uniquely
+  virtual ConcreteKey concreteKey() const noexcept = 0;
 
   virtual bool matches(const base_model_type&) const = 0;
 };

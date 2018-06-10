@@ -7,6 +7,7 @@
 #include <ossia/detail/logger.hpp>
 #include <ossia/detail/math.hpp>
 #include <ossia/network/domain/domain.hpp>
+#include <ossia/detail/pod_vector.hpp>
 
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Media/ApplicationPlugin.hpp>
@@ -80,7 +81,7 @@ void LV2EffectModel::readPlugin()
   auto& app_plug
       = score::AppComponents().applicationPlugin<Media::ApplicationPlugin>();
   auto& h = app_plug.lv2_host_context;
-  std::vector<float> fInControls, fOutControls, fParamMin, fParamMax,
+  ossia::float_vector fInControls, fOutControls, fParamMin, fParamMax,
       fParamInit, fOtherControls;
 
   LV2Data data{h, effectContext};

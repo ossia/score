@@ -19,7 +19,7 @@
 #include <score/model/path/RelativePath.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
-#include <vector>
+#include <ossia/detail/pod_vector.hpp>
 
 // MOVEME
 template <>
@@ -98,7 +98,7 @@ void RemoveProcessFromInterval::redo(const score::DocumentContext& ctx) const
 
   auto& interval = m_path.find(ctx);
   // Find the slots that will be empty : we remove them.
-  std::vector<int> slots_to_remove;
+  ossia::int_vector slots_to_remove;
   int i = 0;
   for (const Slot& slot : interval.smallView())
   {

@@ -2,26 +2,17 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AutomationDropHandler.hpp"
 
-#include <ossia/network/value/value_traits.hpp>
-
-#include <Dataflow/UI/PortItem.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
-#include <Scenario/Commands/Cohesion/CreateCurves.hpp>
-#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
-#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
-#include <Scenario/Commands/Interval/RemoveProcessFromInterval.hpp>
-#include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
-#include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <score/model/path/PathSerialization.hpp>
-#include <Scenario/Commands/Scenario/Deletions/RemoveSelection.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
+#include <Dataflow/UI/PortItem.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <ossia/network/value/value_traits.hpp>
+#include <Scenario/Commands/Cohesion/CreateCurves.hpp>
+
 namespace Scenario
 {
 
@@ -78,8 +69,7 @@ bool DropPortInScenario::drop(
     if (!port)
       return false;
 
-    RedoMacroCommandDispatcher<Scenario::Command::AddProcessInNewBoxMacro> m{
-        pres.context().context.commandStack};
+    Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, pres.context().context};
 
     // Create a box.
     const Scenario::ProcessModel& scenar = pres.model();
@@ -89,30 +79,18 @@ bool DropPortInScenario::drop(
     // TODO instead use a percentage of the currently displayed view
     TimeVal t = std::chrono::seconds{5};
 
-    // Create the beginning
-    auto start_cmd = new Scenario::Command::CreateTimeSync_Event_State{
-        scenar, pt.date, pt.y};
-    m.submitCommand(start_cmd);
-
-    // Create a box with the duration of the longest song
-    auto box_cmd = new Scenario::Command::CreateInterval_State_Event_TimeSync{
-        scenar, start_cmd->createdState(), pt.date + t, pt.y};
-    m.submitCommand(box_cmd);
-    auto& interval = scenar.interval(box_cmd->createdInterval());
+    auto& interval = m.createBox(scenar, pt.date, pt.date + t, pt.y);
 
     // Create process
     auto ok = port->on_createAutomation(
-        interval, [&](score::Command* cmd) { m.submitCommand(cmd); },
+        interval, [&](score::Command* cmd) { m.submit(cmd); },
         pres.context().context);
     if (!ok)
     {
-      m.rollback();
       return false;
     }
 
-    // Finally we show the newly created rack
-    auto show_cmd = new Scenario::Command::ShowRack{interval};
-    m.submitCommand(show_cmd);
+    m.showRack(interval);
 
     m.commit();
     return true;

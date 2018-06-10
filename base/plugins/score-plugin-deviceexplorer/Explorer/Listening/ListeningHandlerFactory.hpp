@@ -10,9 +10,9 @@ namespace Explorer
 {
 class DeviceDocumentPlugin;
 class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT ListeningHandlerFactory
-    : public score::Interface<ListeningHandlerFactory>
+    : public score::InterfaceBase
 {
-  SCORE_INTERFACE("42828393-b8de-45a6-b79f-811eea2e1a40")
+  SCORE_INTERFACE(ListeningHandlerFactory, "42828393-b8de-45a6-b79f-811eea2e1a40")
 
 public:
   virtual ~ListeningHandlerFactory();

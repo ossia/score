@@ -358,8 +358,8 @@ void fromJsonValueArray(
 }
 #endif
 
-template <typename V>
-void fromJsonValueArray(const QJsonArray& json_arr, std::vector<Id<V>>& arr)
+template <typename V, typename Alloc>
+void fromJsonValueArray(const QJsonArray& json_arr, std::vector<Id<V>, Alloc>& arr)
 {
   arr.reserve(json_arr.size());
   for (const auto& elt : json_arr)
@@ -367,8 +367,8 @@ void fromJsonValueArray(const QJsonArray& json_arr, std::vector<Id<V>>& arr)
     arr.push_back(fromJsonValue<Id<V>>(elt));
   }
 }
-template <typename V>
-void fromJsonValueArray(const QJsonArray& json_arr, std::vector<Path<V>>& arr)
+template <typename V, typename Alloc>
+void fromJsonValueArray(const QJsonArray& json_arr, std::vector<Path<V>, Alloc>& arr)
 {
   arr.reserve(json_arr.size());
   for (const auto& elt : json_arr)
@@ -586,10 +586,10 @@ struct TSerializer<JSONValue, UuidKey<U>>
   }
 };
 
-template <typename T>
-struct TSerializer<JSONValue, std::vector<T>>
+template <typename T, typename Alloc>
+struct TSerializer<JSONValue, std::vector<T, Alloc>>
 {
-  static void readFrom(JSONValue::Serializer& s, const std::vector<T>& vec)
+  static void readFrom(JSONValue::Serializer& s, const std::vector<T, Alloc>& vec)
   {
     QJsonArray arr;
     for (const auto& e : vec)
@@ -597,7 +597,7 @@ struct TSerializer<JSONValue, std::vector<T>>
     s.val = std::move(arr);
   }
 
-  static void writeTo(JSONValue::Deserializer& s, std::vector<T>& vec)
+  static void writeTo(JSONValue::Deserializer& s, std::vector<T, Alloc>& vec)
   {
     const QJsonArray arr = s.val.toArray();
     vec.reserve(arr.size());

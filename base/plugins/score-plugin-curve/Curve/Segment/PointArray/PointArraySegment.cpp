@@ -15,6 +15,7 @@
 #include <score/model/Identifier.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <ossia/detail/pod_vector.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Curve::PointArraySegment)
@@ -157,7 +158,7 @@ void PointArraySegment::simplify(double ratio)
 {
   double tolerance = (max_y - min_y) / ratio;
 
-  std::vector<double> orig;
+  ossia::double_vector orig;
   orig.reserve(m_points.size() * 2);
   for (const auto& pt : m_points)
   {
@@ -165,7 +166,7 @@ void PointArraySegment::simplify(double ratio)
     orig.push_back(pt.second);
   }
 
-  std::vector<double> result;
+  ossia::double_vector result;
   result.reserve(m_points.size() / 2);
 
   psimpl::simplify_reumann_witkam<2>(

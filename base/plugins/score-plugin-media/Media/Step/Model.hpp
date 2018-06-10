@@ -5,6 +5,7 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+#include <ossia/detail/pod_vector.hpp>
 
 Q_DECLARE_METATYPE(std::size_t)
 W_REGISTER_ARGTYPE(std::size_t)
@@ -47,7 +48,7 @@ public:
 
   quint64 stepCount() const;
   quint64 stepDuration() const;
-  const std::vector<float>& steps() const;
+  const ossia::float_vector& steps() const;
   double min() const;
   double max() const;
 
@@ -61,12 +62,12 @@ public:
 public:
   void setStepCount(quint64 s); W_SLOT(setStepCount);
   void setStepDuration(quint64 s); W_SLOT(setStepDuration);
-  void setSteps(std::vector<float> v); W_SLOT(setSteps);
+  void setSteps(ossia::float_vector v); W_SLOT(setSteps);
   void setMin(double v); W_SLOT(setMin);
   void setMax(double v); W_SLOT(setMax);
 
 private:
-  std::vector<float> m_steps;
+  ossia::float_vector m_steps;
   quint64 m_stepCount{8};
   quint64 m_stepDuration{22000};
   double m_min{}, m_max{};
@@ -82,4 +83,4 @@ W_PROPERTY(quint64, stepCount READ stepCount WRITE setStepCount NOTIFY stepCount
 }
 }
 
-W_REGISTER_ARGTYPE(std::vector<float>)
+W_REGISTER_ARGTYPE(ossia::float_vector)

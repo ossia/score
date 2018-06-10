@@ -15,6 +15,7 @@
 #include <boost/graph/topological_sort.hpp>
 #include <boost/range/iterator_range.hpp>
 #include <score/model/ModelMetadata.hpp>
+#include <ossia/detail/pod_vector.hpp>
 
 namespace Scenario
 {
@@ -57,7 +58,7 @@ void TimenodeGraph::writeGraphviz()
 
 TimenodeGraphComponents TimenodeGraph::components()
 {
-  std::vector<int> component(boost::num_vertices(m_graph));
+  ossia::int_vector component(boost::num_vertices(m_graph));
   int num = boost::connected_components(m_graph, &component[0]);
 
   std::vector<TimenodeGraphConnectedComponent> comps(num);

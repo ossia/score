@@ -5,6 +5,7 @@
 
 #include <Engine/Node/TimeSignature.hpp>
 #include <Media/Effect/VST/VSTEffectModel.hpp>
+#include <ossia/detail/pod_vector.hpp>
 
 namespace Media
 {
@@ -353,7 +354,7 @@ public:
     }
   }
 
-  std::array<std::vector<float>, 2> float_v;
+  std::array<ossia::float_vector, 2> float_v;
 };
 template <bool b1, bool b2, typename... Args>
 auto make_vst_fx(Args&... args)

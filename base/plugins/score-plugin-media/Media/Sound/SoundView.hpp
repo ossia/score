@@ -7,6 +7,7 @@
 #include <Process/ZoomHelper.hpp>
 #include <QPointer>
 #include <score/widgets/GraphicsItem.hpp>
+#include <ossia/detail/pod_vector.hpp>
 namespace Media
 {
 namespace Sound
@@ -55,7 +56,7 @@ private:
       const MediaFileHandle& m_data,
       ZoomRatio ratio,
       double* densityptr,
-      std::vector<std::vector<float>>& dataset);
+      std::vector<ossia::float_vector>& dataset);
 
   void drawWaveForms(const MediaFileHandle& data, ZoomRatio ratio);
   ZoomRatio m_zoom{};
@@ -64,9 +65,9 @@ private:
   double m_density = -1;
   double m_nextdensity = -1;
 
-  std::vector<std::vector<float>> m_prevdata;
-  std::vector<std::vector<float>> m_curdata;
-  std::vector<std::vector<float>> m_nextdata;
+  std::vector<ossia::float_vector> m_prevdata;
+  std::vector<ossia::float_vector> m_curdata;
+  std::vector<ossia::float_vector> m_nextdata;
 
   QThread m_drawThread;
 };

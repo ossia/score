@@ -15,9 +15,9 @@ class DeviceInterface;
 class ProtocolSettingsWidget;
 class AddressDialog;
 class SCORE_LIB_DEVICE_EXPORT ProtocolFactory
-    : public score::Interface<ProtocolFactory>
+    : public score::InterfaceBase
 {
-  SCORE_INTERFACE("3f69d72e-318d-42dc-b48c-a806036592f1")
+  SCORE_INTERFACE(ProtocolFactory, "3f69d72e-318d-42dc-b48c-a806036592f1")
 
 public:
   virtual ~ProtocolFactory();

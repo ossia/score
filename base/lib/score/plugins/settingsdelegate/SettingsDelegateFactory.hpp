@@ -18,9 +18,9 @@ class SettingsPresenter;
  * Reimplement in order to provide custom user settings for the plug-in.
  */
 class SCORE_LIB_BASE_EXPORT SettingsDelegateFactory
-    : public score::Interface<SettingsDelegateFactory>
+    : public score::InterfaceBase
 {
-  SCORE_INTERFACE("f18653bc-7ca9-44aa-a08b-4188d086b46e")
+  SCORE_INTERFACE(SettingsDelegateFactory, "f18653bc-7ca9-44aa-a08b-4188d086b46e")
 
 public:
   virtual ~SettingsDelegateFactory();

@@ -62,9 +62,9 @@ protected:
 };
 
 class SCORE_PLUGIN_ENGINE_EXPORT ClockManagerFactory
-    : public score::Interface<ClockManagerFactory>
+    : public score::InterfaceBase
 {
-  SCORE_INTERFACE("fb2b3624-ee6f-4e9a-901a-a096bb5fec0a")
+  SCORE_INTERFACE(ClockManagerFactory, "fb2b3624-ee6f-4e9a-901a-a096bb5fec0a")
 public:
   virtual ~ClockManagerFactory();
 

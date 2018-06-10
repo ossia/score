@@ -12,9 +12,9 @@ struct ApplicationContext;
 namespace Scenario
 {
 class SCORE_PLUGIN_SCENARIO_EXPORT CoherencyCheckerFactoryInterface
-    : public score::Interface<CoherencyCheckerFactoryInterface>
+    : public score::InterfaceBase
 {
-  SCORE_INTERFACE("e9942ad6-1e39-4bdf-bb93-f31962e3cf79")
+  SCORE_INTERFACE(CoherencyCheckerFactoryInterface, "e9942ad6-1e39-4bdf-bb93-f31962e3cf79")
 
 public:
   virtual CSPCoherencyCheckerInterface* make(

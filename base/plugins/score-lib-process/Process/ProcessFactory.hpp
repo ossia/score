@@ -28,9 +28,9 @@ struct ProcessPresenterContext;
  * Interface to make processes, like Scenario, Automation...
  */
 class SCORE_LIB_PROCESS_EXPORT ProcessModelFactory
-    : public score::Interface<ProcessModel>
+    : public score::InterfaceBase
 {
-  SCORE_INTERFACE("507ae654-f3b8-4aae-afc3-7ab8e1a3a86f")
+  SCORE_INTERFACE(ProcessModel, "507ae654-f3b8-4aae-afc3-7ab8e1a3a86f")
 public:
   ~ProcessModelFactory() override;
 
@@ -52,9 +52,9 @@ public:
 };
 
 class SCORE_LIB_PROCESS_EXPORT LayerFactory
-    : public score::Interface<ProcessModel>
+    : public score::InterfaceBase
 {
-  SCORE_INTERFACE("aeee61e4-89aa-42ec-aa33-bf4522ed710b")
+  SCORE_INTERFACE(ProcessModel, "aeee61e4-89aa-42ec-aa33-bf4522ed710b")
 public:
   ~LayerFactory() override;
 
