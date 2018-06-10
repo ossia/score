@@ -1,4 +1,5 @@
 #include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Commands/Interval/MoveProcess.hpp>
 #include <score_plugin_scenario_commands_files.hpp>
 
 namespace Scenario { namespace Command {
@@ -201,6 +202,15 @@ void Macro::mergeTimeSyncs(
     , const Id<TimeSyncModel>& b)
 {
   auto cmd = new Command::MergeTimeSyncs(scenario, a, b);
+  m.submitCommand(cmd);
+}
+
+void Macro::moveProcess(
+    const IntervalModel& old_interval
+    , const IntervalModel& new_interval
+    , const Id<Process::ProcessModel>& proc)
+{
+  auto cmd = new Command::MoveProcess(old_interval, new_interval, proc);
   m.submitCommand(cmd);
 }
 

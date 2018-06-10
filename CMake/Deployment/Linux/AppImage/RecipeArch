@@ -1,0 +1,166 @@
+#!/bin/bash -eux
+set -o pipefail
+# Set-up paths
+export BOOST_ROOT=/boost
+export CMAKE_PATH=$(find /cmake-*/ -type d | head -n 1)bin
+export LD_LIBRARY_PATH=/usr/local/lib64
+export PATH=/usr/local/bin:$CMAKE_PATH:$PATH
+
+git_pull_rebase_helper()
+{
+    git reset --hard HEAD
+    git pull
+    git submodule update --init --recursive
+}
+
+export NPROC=$(nproc)
+export CC=/usr/local/bin/gcc
+export CXX=/usr/local/bin/g++
+
+export BUILD_DIR=Score-build
+export APP=score
+rm -rf ./$BUILD_DIR/$APP.AppDir
+mkdir -p ./$BUILD_DIR/$APP.AppDir
+cd ./$BUILD_DIR
+
+# Get score from git
+(
+    if [ ! -d score ] ; then
+        git clone https://github.com/OSSIA/score
+    fi
+
+    cd score/
+    git_pull_rebase_helper
+)
+
+# Build score in the AppDir
+mkdir -p $APP.AppDir/usr
+
+export SOURCE_DIR=$PWD/score
+(
+    export INSTALL_ROOT=$(cd $APP.AppDir/usr; pwd)
+    mkdir -p build
+
+    cd build
+    cmake $SOURCE_DIR -DSCORE_CONFIGURATION=static-release -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_PREFIX_PATH="$(dirname $(find /usr/local -name 'Qt5Config.cmake'))" -DBOOST_ROOT=$BOOST_ROOT -DCMAKE_SKIP_RPATH=ON -DOSSIA_PYTHON=0 -DOSSIA_JAVA=0 -DOSSIA_PD=0
+
+    cmake --build . --target all_unity -- -j$(ncpu)
+    cmake --build . --target install
+)
+
+# Copy pixmaps
+cp $APP.AppDir/usr/share/applications/Score.desktop $APP.AppDir/
+cp $APP.AppDir/usr/share/pixmaps/score.png $APP.AppDir/
+
+export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
+# Copy needed libraries and remove system ones
+(
+    cd $APP.AppDir
+    mkdir -p ./usr/lib/qt5/
+    mkdir -p ./usr/lib/qt5/plugins/platforms
+    mkdir -p ./usr/lib/qt5/plugins/imageformats
+    mkdir -p ./usr/lib/qt5/plugins/iconengines
+    mkdir -p ./usr/lib/qt5/plugins/quick
+    mkdir -p ./usr/lib/qt5/qml
+    cp -rf "$QTDIR/plugins/platforms/libqxcb.so"  ./usr/lib/qt5/plugins/platforms
+    cp -rf "$QTDIR/plugins/imageformats/libqsvg.so"  ./usr/lib/qt5/plugins/imageformats
+    cp -rf "$QTDIR/plugins/iconengines/libqsvgicon.so"  ./usr/lib/qt5/plugins/iconengines
+    cp -rf "$QTDIR/qml/QtQuick.2/libqtquick2plugin.so"  ./usr/lib/qt5/plugins/quick
+    cp -rf "$QTDIR/qml/QtQuick.2"  ./usr/lib/qt5/qml
+
+    # Fonts
+    mkdir -p ./usr/bin/lib/fonts
+    cp -rf $SOURCE_DIR/base/lib/resources/*.otf ./usr/bin/lib/fonts/
+    cp -rf $SOURCE_DIR/base/lib/resources/*.ttf ./usr/bin/lib/fonts/
+
+
+
+    # Dependencies of plugins and score
+    # for lib in usr/lib/libscore_lib_*; do ldd $lib; done | grep 'Qt5' | awk '{ print $1; }' | sort | uniq | xargs -I '{}' cp -v $QTDIR/lib/'{}' ./usr/lib
+    for lib in usr/lib/score/*; do ldd $lib; done | grep 'Qt5' | awk '{ print $1; }' | sort | uniq | xargs -I '{}' cp -v $QTDIR/lib/'{}' ./usr/lib
+    ldd usr/bin/score | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
+
+    # libossia
+    # cp -v ../build/API/OSSIA/*.so* usr/lib/
+
+
+    # Dependencies of qt
+    ldd usr/lib/qt5/plugins/platforms/libqxcb.so | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
+    ldd usr/lib/qt5/plugins/imageformats/libqsvg.so | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
+    ldd usr/lib/qt5/plugins/iconengines/libqsvgicon.so | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
+    ldd usr/lib/qt5/plugins/quick/libqtquick2plugin.so | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
+
+    cp -v $QTDIR/lib/libQt5XcbQpa.so.5 ./usr/lib || true
+    ldd ./usr/lib/libQt5XcbQpa.so.5 | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5DBus.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5QuickControls2.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5QuickTemplates2.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5WebSockets.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5SerialPort.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5Xml.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5Quick.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5Network.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5Svg.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5Widgets.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5Gui.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5Core.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5Qml.so.5 ./usr/lib || true
+
+    # Taken from Subsurface appimage
+    # The following are assumed to be part of the base system
+    rm -f usr/lib/libcom_err.so.2 || true
+    rm -f usr/lib/libcrypt.so.1 || true
+    rm -f usr/lib/libdl.so.2 || true
+    rm -f usr/lib/libexpat.so.1 || true
+    rm -f usr/lib/libfontconfig.so.1 || true
+    rm -f usr/lib/libgcc_s.so.1 || true
+    rm -f usr/lib/libglib-2.0.so.0 || true
+    rm -f usr/lib/libgpg-error.so.0 || true
+    rm -f usr/lib/libjack* || true
+    rm -f usr/lib/libasound* || true
+    rm -f usr/lib/libgssapi_krb5.so.2 || true
+    rm -f usr/lib/libgssapi.so.3 || true
+    rm -f usr/lib/libhcrypto.so.4 || true
+    rm -f usr/lib/libheimbase.so.1 || true
+    rm -f usr/lib/libheimntlm.so.0 || true
+    rm -f usr/lib/libhx509.so.5 || true
+    rm -f usr/lib/libICE.so.6 || true
+    rm -f usr/lib/libidn.so.11 || true
+    rm -f usr/lib/libk5crypto.so.3 || true
+    rm -f usr/lib/libkeyutils.so.1 || true
+    rm -f usr/lib/libkrb5.so.26 || true
+    rm -f usr/lib/libkrb5.so.3 || true
+    rm -f usr/lib/libkrb5support.so.0 || true
+    rm -f usr/lib/libm.so.6 || true
+    rm -f usr/lib/libp11-kit.so.0 || true
+    rm -f usr/lib/libpcre.so.3 || true
+    rm -f usr/lib/libpthread.so.0 || true
+    rm -f usr/lib/libresolv.so.2 || true
+    rm -f usr/lib/libroken.so.18 || true
+    rm -f usr/lib/librt.so.1 || true
+    rm -f usr/lib/libsasl2.so.2 || true
+    rm -f usr/lib/libSM.so.6 || true
+    rm -f usr/lib/libusb-1.0.so.0 || true
+    rm -f usr/lib/libuuid.so.1 || true
+    rm -f usr/lib/libwind.so.0 || true
+    rm -f usr/lib/libz.so.1 || true
+
+    # Delete potentially dangerous libraries
+    rm -f usr/lib/libgobject* usr/lib/libc.so.* || true
+
+    strip usr/bin/score usr/lib/*.* usr/lib/qt5/plugins/*/*.* usr/lib/score/*.* || true
+
+    cd usr/ ; find . -type f -exec sed -i -e 's|/usr/lib|././/lib|g' {} \; ; cd ..
+    cd usr/ ; find . -type f -exec sed -i -e "s|$QTDIR/lib|././/lib|g" {} \; ; cd ..
+)
+
+cp score/CMake/Deployment/Linux/AppImage/qt.conf $APP.AppDir/usr/bin/
+mkdir -p score.AppDir/usr/bin/lib/
+
+export APPIMAGE=Score.AppImage
+
+rm -rf out || true
+mkdir -p out
+
+tar caf score.AppDir.txz "$APP.AppDir"
+mv score.AppDir.txz /score.AppDir.txz

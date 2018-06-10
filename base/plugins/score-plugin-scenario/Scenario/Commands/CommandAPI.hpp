@@ -136,6 +136,11 @@ class Macro
         , const Id<TimeSyncModel>& a
         , const Id<TimeSyncModel>& b);
 
+    void moveProcess(
+        const Scenario::IntervalModel& old_interval
+        , const Scenario::IntervalModel& new_interval
+        , const Id<Process::ProcessModel>& proc);
+
     void removeProcess(
         const Scenario::IntervalModel& interval
         , const Id<Process::ProcessModel>& proc);

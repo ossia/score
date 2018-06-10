@@ -142,3 +142,25 @@ QObject* ObjectPath::find_impl_unsafe(const score::DocumentContext& ctx) const n
 
   return obj;
 }
+
+
+void replacePathPart(
+    const ObjectPath& src
+    , const ObjectPath& target
+    , ObjectPath& toChange)
+{
+  auto& src_v = src.vec();
+  auto& tgt_v = target.vec();
+  auto& v = toChange.vec();
+#ifdef SCORE_DEBUG
+  SCORE_ASSERT(v.size() > src_v.size());
+  for(std::size_t i = 0; i < v.size(); i++)
+  {
+    SCORE_ASSERT(v[i] == src_v[i]);
+  }
+#endif
+
+  // OPTIMIZEME
+  v.erase(v.begin(), v.begin() + src_v.size());
+  v.insert(v.begin(), tgt_v.begin(), tgt_v.end());
+}

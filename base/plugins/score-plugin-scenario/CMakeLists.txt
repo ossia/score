@@ -56,6 +56,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/Rack/Slot/RemoveLayerModelFromSlot.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/Rack/Slot/ResizeSlotVertically.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/Rack/SwapSlots.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/MoveProcess.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/RemoveProcessFromInterval.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/SetMaxDuration.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/SetMinDuration.hpp"
@@ -352,6 +353,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/AddLayerInNewSlot.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/InsertContentInInterval.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/RemoveProcessFromInterval.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/MoveProcess.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/SetRigidity.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Event/SetCondition.cpp"
