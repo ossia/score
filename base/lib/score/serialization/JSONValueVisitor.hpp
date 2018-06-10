@@ -324,8 +324,8 @@ T fromJsonValue(const QJsonValueRef& json)
   return val;
 }
 
-template <template <typename U> class T, typename V>
-void fromJsonValueArray(const QJsonArray& json_arr, T<Id<V>>& arr)
+template <template <typename, typename> class T, typename V, typename Alloc>
+void fromJsonValueArray(const QJsonArray& json_arr, T<Id<V>, Alloc>& arr)
 {
   arr.reserve(json_arr.size());
   for (const auto& elt : json_arr)
@@ -334,6 +334,7 @@ void fromJsonValueArray(const QJsonArray& json_arr, T<Id<V>>& arr)
   }
 }
 
+#if defined(OSSIA_SMALL_VECTOR)
 template <typename V, std::size_t N>
 void fromJsonValueArray(
     const QJsonArray& json_arr, ossia::small_vector<Id<V>, N>& arr)
@@ -345,7 +346,6 @@ void fromJsonValueArray(
   }
 }
 
-#if defined(NDEBUG)
 template <typename V, std::size_t N>
 void fromJsonValueArray(
     const QJsonArray& json_arr, ossia::static_vector<Id<V>, N>& arr)
@@ -357,25 +357,6 @@ void fromJsonValueArray(
   }
 }
 #endif
-
-template <typename V, typename Alloc>
-void fromJsonValueArray(const QJsonArray& json_arr, std::vector<Id<V>, Alloc>& arr)
-{
-  arr.reserve(json_arr.size());
-  for (const auto& elt : json_arr)
-  {
-    arr.push_back(fromJsonValue<Id<V>>(elt));
-  }
-}
-template <typename V, typename Alloc>
-void fromJsonValueArray(const QJsonArray& json_arr, std::vector<Path<V>, Alloc>& arr)
-{
-  arr.reserve(json_arr.size());
-  for (const auto& elt : json_arr)
-  {
-    arr.push_back(fromJsonValue<Path<V>>(elt));
-  }
-}
 
 template <
     typename Container,

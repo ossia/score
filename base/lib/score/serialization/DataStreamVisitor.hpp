@@ -528,7 +528,7 @@ struct TSerializer<DataStream, std::array<T, N>>
   }
 };
 
-#if defined(NDEBUG)
+#if defined(OSSIA_SMALL_VECTOR)
 template <typename T, std::size_t N>
 struct TSerializer<DataStream, ossia::small_vector<T, N>>
 {
