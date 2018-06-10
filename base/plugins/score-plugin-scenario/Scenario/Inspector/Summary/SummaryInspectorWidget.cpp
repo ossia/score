@@ -71,9 +71,9 @@ SummaryInspectorWidget::~SummaryInspectorWidget()
 void SummaryInspectorWidget::update(
     const QList<const IdentifiedObjectAbstract*>& sourceElements)
 {
-  std::vector<const EventModel*> events;
-  std::vector<const TimeSyncModel*> timesyncs;
-  std::vector<const IntervalModel*> intervals;
+  ossia::flat_set<const EventModel*> events;
+  ossia::flat_set<const TimeSyncModel*> timesyncs;
+  ossia::flat_set<const IntervalModel*> intervals;
   auto scenar = dynamic_cast<ScenarioInterface*>(sourceElements[0]->parent());
   for (auto elt : sourceElements)
   {
@@ -85,8 +85,8 @@ void SummaryInspectorWidget::update(
         if (!tn)
           continue;
 
-        events.push_back(ev);
-        timesyncs.push_back(tn);
+        events.insert(ev);
+        timesyncs.insert(tn);
       }
     }
     else if (auto ev = qobject_cast<const EventModel*>(elt))
@@ -94,16 +94,16 @@ void SummaryInspectorWidget::update(
       auto tn = scenar->findTimeSync(ev->timeSync());
       if (!tn)
         continue;
-      events.push_back(ev);
-      timesyncs.push_back(tn);
+      events.insert(ev);
+      timesyncs.insert(tn);
     }
     else if (auto tn = qobject_cast<const TimeSyncModel*>(elt))
     {
-      timesyncs.push_back(tn);
+      timesyncs.insert(tn);
     }
     else if (auto cstr = qobject_cast<const IntervalModel*>(elt))
     {
-      intervals.push_back(cstr);
+      intervals.insert(cstr);
     }
   }
 

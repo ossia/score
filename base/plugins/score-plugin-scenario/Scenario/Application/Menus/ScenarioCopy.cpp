@@ -14,6 +14,7 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
+#include <core/document/Document.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
@@ -24,6 +25,7 @@
 #include <score/model/Identifier.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <ossia/detail/thread.hpp>
 #include <vector>
 namespace Scenario
 {
@@ -88,6 +90,7 @@ bool verifyAndUpdateIfChildOf(
   // since we look for all the inlets
   SCORE_ABORT;
 }
+
 template<typename T>
 std::vector<Process::CableData> cablesToCopy(
     const std::vector<const T*>& array
@@ -264,6 +267,8 @@ QJsonObject copyProcess(
   QJsonObject base;
   std::vector<const Process::ProcessModel*> vp{&proc};
   std::vector<Path<Process::ProcessModel>> vpath{proc};
+  base["PID"] = ossia::get_pid();
+  base["Document"] = toJsonValue(ctx.document.id());
   base["Process"] = toJsonObject(proc);
   base["Cables"] = toJsonArray(cablesToCopy(vp, vpath, ctx));
   return base;

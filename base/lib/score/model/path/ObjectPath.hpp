@@ -170,6 +170,7 @@ private:
   mutable QPointer<QObject> m_cache;
 };
 
+SCORE_LIB_BASE_EXPORT void replacePathPart(const ObjectPath& src, const ObjectPath& target, ObjectPath& toChange);
 inline uint qHash(const ObjectPath& obj, uint seed)
 {
   return qHash(obj.toString(), seed);

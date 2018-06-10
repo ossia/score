@@ -116,4 +116,23 @@ void restoreCables(
     }
   }
 }
+
+void reparentCables(
+    QObject* obj
+    , const ObjectPath& src
+    , const ObjectPath& dest
+    , const score::DocumentContext& ctx)
+{
+  auto cables = Dataflow::saveCables({obj}, ctx);
+  Dataflow::removeCables(cables, ctx);
+
+  for(auto& c : cables)
+  {
+    replacePathPart(src, dest, c.second.source.unsafePath());
+    replacePathPart(src, dest, c.second.sink.unsafePath());
+  }
+
+  restoreCables(cables, ctx);
+}
+
 }
