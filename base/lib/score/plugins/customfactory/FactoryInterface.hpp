@@ -57,25 +57,6 @@ public:
   virtual InterfaceKey interfaceKey() const noexcept = 0;
 };
 
-template <typename T>
-/**
- * @brief Base class to use for interfaces.
- *
- * This class adds a mean to identify its concrete implementations
- * in order to choose them from a list.
- *
- * One should inherit from this when creating a new plug-in interface.
- */
-class Interface : public InterfaceBase
-{
-public:
-  virtual ~Interface() = default;
-
-  using ConcreteKey = UuidKey<T>;
-
-  //! Identifies an implementation of an interface uniquely
-  virtual ConcreteKey concreteKey() const noexcept = 0;
-};
 }
 
 /**
@@ -86,9 +67,9 @@ public:
  * Interface<T>.
  *
  * An uuid should be passed in argument.
- *
+ * ConcreteKey ntifies an implementation of an interface uniquely
  */
-#define SCORE_INTERFACE(Uuid)                                      \
+#define SCORE_INTERFACE(Type, Uuid)                                \
 public:                                                            \
   static Q_DECL_RELAXED_CONSTEXPR score::InterfaceKey              \
   static_interfaceKey() noexcept                                   \
@@ -101,6 +82,8 @@ public:                                                            \
     return static_interfaceKey();                                  \
   }                                                                \
                                                                    \
+  using ConcreteKey = UuidKey<Type>;                               \
+  virtual ConcreteKey concreteKey() const noexcept = 0;            \
 private:
 
 /**

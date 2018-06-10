@@ -7,6 +7,7 @@
 #include <QTimer>
 #include <cmath>
 #include <score/widgets/GraphicsItem.hpp>
+#include <ossia/detail/pod_vector.hpp>
 
 #if defined(__AVX2__) && __has_include(<immintrin.h>)
 #  include <immintrin.h>
@@ -210,7 +211,7 @@ void WaveformComputer::computeDataSet(
     const MediaFileHandle& data,
     ZoomRatio ratio,
     double* densityptr,
-    std::vector<std::vector<float>>& dataset)
+    std::vector<ossia::float_vector>& dataset)
 {
   auto& arr = data.data();
 
@@ -234,7 +235,7 @@ void WaveformComputer::computeDataSet(
               : 0; // number of pixels the track will occupy in its entirety
 
     const int npoints = size;
-    std::vector<float>& rmsv = dataset[c];
+    ossia::float_vector& rmsv = dataset[c];
     rmsv.resize(npoints);
 
     const float one_over_dens = 1. / density;
@@ -321,7 +322,7 @@ void WaveformComputer::drawWaveForms(
   for (int64_t c = 0; c < nchannels; ++c)
   {
     const int64_t current_height = c * h;
-    const std::vector<float>& dataset = m_curdata[c];
+    const ossia::float_vector& dataset = m_curdata[c];
 
     QPainterPath path{};
     path.setFillRule(Qt::WindingFill);

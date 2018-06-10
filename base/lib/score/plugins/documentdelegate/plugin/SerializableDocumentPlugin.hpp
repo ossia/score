@@ -39,9 +39,9 @@ protected:
  * @brief Reimplement to instantiate document plug-ins.
  */
 class SCORE_LIB_BASE_EXPORT DocumentPluginFactory
-    : public score::Interface<DocumentPluginFactory>
+    : public score::InterfaceBase
 {
-  SCORE_INTERFACE("570faa0b-f100-4039-a2f0-b60347c4e581")
+  SCORE_INTERFACE(DocumentPluginFactory, "570faa0b-f100-4039-a2f0-b60347c4e581")
 public:
   virtual ~DocumentPluginFactory();
 

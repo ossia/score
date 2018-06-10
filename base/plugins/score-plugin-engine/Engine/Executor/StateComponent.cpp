@@ -9,6 +9,7 @@
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <Engine/score2OSSIA.hpp>
+#include <ossia/detail/pod_vector.hpp>
 
 namespace Engine
 {
@@ -63,7 +64,7 @@ ProcessComponent* StateComponentBase::make(
       m_processes.emplace(proc.id(), plug);
 
       const auto& outlets = proc.outlets();
-      std::vector<std::size_t> propagated_outlets;
+      ossia::pod_vector<std::size_t> propagated_outlets;
       for (std::size_t i = 0; i < outlets.size(); i++)
       {
         if (outlets[i]->propagate())

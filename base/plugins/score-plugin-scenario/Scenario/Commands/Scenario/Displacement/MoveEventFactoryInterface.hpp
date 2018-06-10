@@ -23,9 +23,9 @@ namespace Command
 class SerializableMoveEvent;
 
 class SCORE_PLUGIN_SCENARIO_EXPORT MoveEventFactoryInterface
-    : public score::Interface<MoveEventFactoryInterface>
+    : public score::InterfaceBase
 {
-  SCORE_INTERFACE("69dc1f79-5cb9-4a36-b382-8c099f7abf57")
+  SCORE_INTERFACE(MoveEventFactoryInterface, "69dc1f79-5cb9-4a36-b382-8c099f7abf57")
 
 public:
   enum Strategy

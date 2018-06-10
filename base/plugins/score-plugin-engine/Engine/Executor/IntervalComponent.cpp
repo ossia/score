@@ -27,8 +27,10 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+#include <ossia/detail/pod_vector.hpp>
 #include <utility>
 #include <wobjectimpl.h>
+#include <ossia/detail/pod_vector.hpp>
 W_OBJECT_IMPL(Engine::Execution::IntervalComponentBase)
 W_OBJECT_IMPL(Engine::Execution::IntervalComponent)
 namespace Engine
@@ -314,7 +316,7 @@ ProcessComponent* IntervalComponentBase::make(
       m_processes.emplace(proc.id(), plug);
 
       const auto& outlets = proc.outlets();
-      std::vector<std::size_t> propagated_outlets;
+      ossia::pod_vector<std::size_t> propagated_outlets;
       for (std::size_t i = 0; i < outlets.size(); i++)
       {
         if (outlets[i]->propagate())
@@ -375,7 +377,7 @@ ProcessComponent* IntervalComponentBase::make(
           [this, cst_node_weak, g_weak, oproc_weak,
            &proc](auto old_node, auto new_node) {
             const auto& outlets = proc.outlets();
-            std::vector<int> propagated_outlets;
+            ossia::int_vector propagated_outlets;
             for (std::size_t i = 0; i < outlets.size(); i++)
             {
               if (outlets[i]->propagate())

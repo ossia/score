@@ -5,6 +5,7 @@
 #include <score/command/PropertyCommand.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <ossia/detail/pod_vector.hpp>
 
 namespace Media
 {
@@ -14,7 +15,7 @@ class ChangeSteps final : public score::Command
 {
   SCORE_COMMAND_DECL(Media::CommandFactoryName(), ChangeSteps, "Change steps")
 public:
-  ChangeSteps(const Media::Step::Model& model, const std::vector<float>& cur)
+  ChangeSteps(const Media::Step::Model& model, const ossia::float_vector& cur)
       : m_model{model}, m_old{model.steps()}, m_new{cur}
   {
   }
@@ -29,7 +30,7 @@ public:
     m_model.find(ctx).setSteps(m_new);
   }
 
-  void update(const Media::Step::Model& model, std::vector<float>&& cur)
+  void update(const Media::Step::Model& model, ossia::float_vector&& cur)
   {
     m_new = std::move(cur);
   }
@@ -46,7 +47,7 @@ public:
 
 private:
   Path<Media::Step::Model> m_model;
-  std::vector<float> m_old, m_new;
+  ossia::float_vector m_old, m_new;
 };
 
 class SetStepCount final : public score::PropertyCommand

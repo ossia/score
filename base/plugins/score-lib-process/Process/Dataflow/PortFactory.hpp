@@ -10,9 +10,9 @@ class PortItem;
 namespace Process
 {
 class SCORE_LIB_PROCESS_EXPORT PortFactory
-    : public score::Interface<Process::Port>
+    : public score::InterfaceBase
 {
-  SCORE_INTERFACE("4d461658-5c27-4a12-ba97-3d9392561ece")
+  SCORE_INTERFACE(Process::Port, "4d461658-5c27-4a12-ba97-3d9392561ece")
 public:
   ~PortFactory() override;
 

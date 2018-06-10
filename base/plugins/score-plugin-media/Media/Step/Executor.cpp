@@ -5,6 +5,7 @@
 
 #include <Engine/score2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <ossia/detail/pod_vector.hpp>
 namespace Engine
 {
 namespace Execution
@@ -42,7 +43,7 @@ void StepComponent::recompute()
 {
   float min = process().min();
   float max = process().max();
-  std::vector<float> v = process().steps();
+  ossia::float_vector v = process().steps();
   for (auto& val : v)
   {
     val = min + (1. - val) * (max - min);

@@ -5,6 +5,7 @@
 #include <chrono>
 #include <exception>
 #include <memory>
+#include <ossia/detail/pod_vector.hpp>
 #include <score/plugins/Addon.hpp>
 #include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
@@ -79,7 +80,7 @@ public:
 
     // Then do a topological sort, to detect cycles and to be able to iterate
     // easily afterwards.
-    std::vector<int> topo_order;
+    ossia::int_vector topo_order;
     topo_order.reserve(addons.size() - not_loaded.size());
 
     try

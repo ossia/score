@@ -3,6 +3,7 @@
 #include <Process/Dataflow/Port.hpp>
 
 #include <wobjectimpl.h>
+#include <ossia/detail/pod_vector.hpp>
 W_OBJECT_IMPL(Media::Step::Model)
 namespace Media
 {
@@ -41,7 +42,7 @@ quint64 Model::stepDuration() const
   return m_stepDuration;
 }
 
-const std::vector<float>& Model::steps() const
+const ossia::float_vector& Model::steps() const
 {
   return m_steps;
 }
@@ -75,7 +76,7 @@ void Model::setStepDuration(quint64 s)
   }
 }
 
-void Model::setSteps(std::vector<float> v)
+void Model::setSteps(ossia::float_vector v)
 {
   if (m_steps != v)
   {
@@ -140,7 +141,7 @@ void JSONObjectWriter::write(Media::Step::Model& proc)
   }
 
   proc.m_steps
-      = fromJsonValueArray<std::vector<float>>(obj["Steps"].toArray());
+      = fromJsonValueArray<ossia::float_vector>(obj["Steps"].toArray());
   proc.m_stepCount = obj["StepCount"].toInt();
   proc.m_stepDuration = obj["StepDur"].toInt();
   proc.m_min = obj["StepMin"].toDouble();

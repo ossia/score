@@ -5,6 +5,8 @@
 #include <ossia/dataflow/nodes/sound.hpp>
 
 #include <Engine/score2OSSIA.hpp>
+
+#include <ossia/detail/pod_vector.hpp>
 namespace Engine
 {
 namespace Execution
@@ -42,7 +44,7 @@ SoundComponent::SoundComponent(
 void SoundComponent::recompute()
 {
   auto to_double = [](const auto& float_vec) {
-    std::vector<std::vector<double>> v;
+    std::vector<ossia::double_vector> v;
     v.reserve(float_vec.size());
     for (auto& chan : float_vec)
     {

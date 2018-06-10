@@ -73,11 +73,11 @@ public:
 };
 
 struct SCORE_LIB_BASE_EXPORT SerializableComponentFactory
-    : public score::Interface<score::SerializableComponent>
+    : public score::InterfaceBase
 {
-  SCORE_INTERFACE("ffafadc2-0ce7-45d8-b673-d9238c37d018")
+  SCORE_INTERFACE(SerializableComponentFactory, "ffafadc2-0ce7-45d8-b673-d9238c37d018")
 public:
-  ~SerializableComponentFactory();
+  ~SerializableComponentFactory() override;
   virtual score::SerializableComponent* make(
       const Id<score::Component>& id,
       const score::DocumentContext& ctx,

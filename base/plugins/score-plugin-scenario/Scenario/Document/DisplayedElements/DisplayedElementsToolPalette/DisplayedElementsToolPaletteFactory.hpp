@@ -10,9 +10,9 @@ class IntervalModel;
 class ScenarioDocumentPresenter;
 
 class SCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsToolPaletteFactory
-    : public score::Interface<DisplayedElementsToolPaletteFactory>
+    : public score::InterfaceBase
 {
-  SCORE_INTERFACE("0884edb9-81e4-44ff-856f-fbc772f6d683")
+  SCORE_INTERFACE(DisplayedElementsToolPaletteFactory, "0884edb9-81e4-44ff-856f-fbc772f6d683")
 public:
   virtual ~DisplayedElementsToolPaletteFactory();
 

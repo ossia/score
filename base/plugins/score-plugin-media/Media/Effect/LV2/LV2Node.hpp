@@ -3,6 +3,7 @@
 
 #include <Media/Effect/LV2/LV2Context.hpp>
 #include <Media/Effect/LV2/lv2_atom_helpers.hpp>
+#include <ossia/detail/pod_vector.hpp>
 
 namespace Media
 {
@@ -12,9 +13,9 @@ class lv2_node final : public ossia::graph_node
 {
 protected:
   LV2Data data;
-  std::vector<float> fInControls, fOutControls, fParamMin, fParamMax,
+  ossia::float_vector fInControls, fOutControls, fParamMin, fParamMax,
       fParamInit, fOtherControls;
-  std::vector<std::vector<float>> fCVs;
+  std::vector<ossia::float_vector> fCVs;
   std::vector<AtomBuffer> fMidiIns, fMidiOuts;
 
   LilvInstance* fInstance{};
@@ -161,26 +162,6 @@ public:
     lilv_instance_activate(fInstance);
   }
 
-  void GetControlParamImpl(
-      long param,
-      char* label,
-      float* min,
-      float* max,
-      float* init,
-      std::vector<int>& v)
-  {
-    if (param >= 0 && param < (int64_t)v.size())
-    {
-      auto port_i = v[param];
-      Lilv::Port p = data.effect.plugin.get_port_by_index(port_i);
-      Lilv::Node n = p.get_name();
-      strcpy(label, n.as_string());
-      *min = fParamMin[port_i];
-      *max = fParamMax[port_i];
-      *init = fParamInit[port_i];
-    }
-  }
-
   std::string GetName()
   {
     return data.effect.plugin.get_name().as_string();
@@ -303,9 +284,9 @@ public:
       const std::size_t samples = t.date - t.prev_date;
       const auto audio_ins = data.audio_in_ports.size();
       const auto audio_outs = data.audio_out_ports.size();
-      std::vector<std::vector<float>> in_vec;
+      std::vector<ossia::float_vector> in_vec;
       in_vec.resize(audio_ins);
-      std::vector<std::vector<float>> out_vec;
+      std::vector<ossia::float_vector> out_vec;
       out_vec.resize(audio_outs);
 
       if (audio_ins > 0)

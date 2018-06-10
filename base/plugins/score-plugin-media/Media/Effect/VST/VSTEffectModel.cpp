@@ -3,6 +3,7 @@
 #include "VSTWidgets.hpp"
 
 #include <ossia/detail/math.hpp>
+#include <ossia/detail/pod_vector.hpp>
 
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Media/ApplicationPlugin.hpp>
@@ -553,7 +554,7 @@ void DataStreamReader::read(const Media::VST::VSTEffectModel& eff)
     else
     {
       m_stream << SCORE_DATASTREAM_IDENTIFY_VST_PARAMS;
-      std::vector<float> arr(eff.fx->fx->numParams);
+      ossia::float_vector arr(eff.fx->fx->numParams);
       for (int i = 0; i < eff.fx->fx->numParams; i++)
         arr[i] = eff.fx->getParameter(i);
       m_stream << arr;
@@ -605,7 +606,7 @@ void DataStreamWriter::write(Media::VST::VSTEffectModel& eff)
   }
   else if(kind == SCORE_DATASTREAM_IDENTIFY_VST_PARAMS)
   {
-      std::vector<float> params;
+      ossia::float_vector params;
       m_stream >> params;
 
       QPointer<Media::VST::VSTEffectModel> ptr = &eff;

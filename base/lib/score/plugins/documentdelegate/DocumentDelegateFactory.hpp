@@ -22,9 +22,9 @@ struct DocumentContext;
  * main page)
  */
 class SCORE_LIB_BASE_EXPORT DocumentDelegateFactory
-    : public score::Interface<DocumentDelegateFactory>
+    : public score::InterfaceBase
 {
-  SCORE_INTERFACE("127ea824-f623-4f68-8deb-7c8c930a262b")
+  SCORE_INTERFACE(DocumentDelegateFactory, "127ea824-f623-4f68-8deb-7c8c930a262b")
 public:
   ~DocumentDelegateFactory() override;
 
