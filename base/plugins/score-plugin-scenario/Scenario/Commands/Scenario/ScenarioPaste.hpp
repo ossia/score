@@ -23,7 +23,7 @@ struct ScenarioBeingCopied
       for (const auto& element : json_arr)
       {
         intervals.emplace_back(new IntervalModel{
-                                 JSONObject::Deserializer{element.toObject()}, nullptr});
+                                 JSONObject::Deserializer{element.toObject()}, (QObject*)&scenario});
       }
     }
     {
@@ -50,7 +50,7 @@ struct ScenarioBeingCopied
       for (const auto& element : json_arr)
       {
         states.emplace_back(new StateModel{
-                              JSONObject::Deserializer{element.toObject()}, nullptr});
+                              JSONObject::Deserializer{element.toObject()}, (QObject*)&scenario});
       }
     }
     {
