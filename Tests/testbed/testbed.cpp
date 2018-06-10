@@ -1,5 +1,5 @@
 #include <type_traits>
-#include <brigand/algorithms/for_each.hpp>
+#include <ossia/detail/for_each.hpp>
 
 int main()
 {

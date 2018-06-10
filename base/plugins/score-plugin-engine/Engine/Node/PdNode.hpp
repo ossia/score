@@ -8,7 +8,7 @@
 #include <Engine/Node/Process.hpp>
 #include <Engine/Node/Widgets.hpp>
 #include <Process/GenericProcessFactory.hpp>
-#include <brigand/algorithms/for_each.hpp>
+#include <ossia/detail/for_each.hpp>
 #define make_uuid(text) score::uuids::string_generator::compute((text))
 
 namespace Control
@@ -35,7 +35,7 @@ struct create_types
   auto perform()
   {
     std::vector<std::unique_ptr<score::InterfaceBase>> vec;
-    brigand::for_each<brigand::list<Args...>>([&](auto t) {
+    ossia::for_each_tagged(brigand::list<Args...>{}, [&](auto t) {
       using type = typename decltype(t)::type;
       vec.emplace_back(std::make_unique<GenericFactory<type>>());
     });

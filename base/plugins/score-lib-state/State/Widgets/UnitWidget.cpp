@@ -8,7 +8,7 @@
 
 #include <QComboBox>
 #include <QHBoxLayout>
-#include <brigand/algorithms/for_each.hpp>
+#include <ossia/detail/for_each.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
@@ -28,7 +28,7 @@ UnitWidget::UnitWidget(QWidget* parent) : QWidget{parent}
 
   // Fill dataspace. Unit is filled each time the dataspace changes
   m_dataspace->addItem(tr("None"), QVariant::fromValue(State::Unit{}));
-  brigand::for_each<ossia::dataspace_u_list>([=](auto d) {
+  ossia::for_each_tagged(ossia::dataspace_u_list{}, [=](auto d) {
     // For each dataspace, add its text to the combo box
     using dataspace_type =
         typename ossia::matching_unit_u_list<typename decltype(d)::type>::type;
@@ -106,7 +106,7 @@ void UnitWidget::on_dataspaceChanged(const State::Unit& unit)
             // combobox.
             using typelist = typename ossia ::matching_unit_u_list<decltype(
                 dataspace)>::type;
-            brigand::for_each<typelist>([=](auto u) {
+            ossia::for_each_tagged(typelist{}, [=](auto u) {
               using unit_type = typename decltype(u)::type;
               ossia::string_view text
                   = ossia::unit_traits<unit_type>::text()[0];

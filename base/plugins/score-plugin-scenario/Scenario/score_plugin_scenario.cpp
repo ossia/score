@@ -189,7 +189,7 @@ score_plugin_scenario::make_commands()
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       ScenarioCommandFactoryName(), CommandGeneratorMap{}};
 
-  for_each_type<
+  ossia::for_each_type<
     #include <score_plugin_scenario_commands.hpp>
       >(score::commands::FactoryInserter{cmds.second});
 

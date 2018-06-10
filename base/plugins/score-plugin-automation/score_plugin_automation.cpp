@@ -143,7 +143,7 @@ score_plugin_automation::make_commands()
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       CommandFactoryName(), CommandGeneratorMap{}};
 
-  for_each_type<
+  ossia::for_each_type<
     #include <score_plugin_automation_commands.hpp>
       >(score::commands::FactoryInserter{cmds.second});
 

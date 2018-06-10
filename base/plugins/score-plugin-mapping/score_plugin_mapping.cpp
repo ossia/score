@@ -61,7 +61,7 @@ score_plugin_mapping::make_commands()
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       MappingCommandFactoryName(), CommandGeneratorMap{}};
 
-  for_each_type<
+  ossia::for_each_type<
     #include <score_plugin_mapping_commands.hpp>
       >(score::commands::FactoryInserter{cmds.second});
 

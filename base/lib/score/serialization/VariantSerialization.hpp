@@ -1,6 +1,7 @@
 #pragma once
 #include <QDebug>
 #include <eggs/variant.hpp>
+#include <ossia/detail/for_each.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
@@ -108,7 +109,7 @@ struct TSerializer<DataStream, eggs::variant<Args...>>
     // TODO this should be an assert.
     if ((quint64)var.which() != (quint64)var.npos)
     {
-      for_each_type<Args...>(
+      ossia::for_each_type<Args...>(
           VariantDataStreamSerializer<var_t>{s, var});
     }
 
@@ -122,7 +123,7 @@ struct TSerializer<DataStream, eggs::variant<Args...>>
 
     if (which != (quint64)var.npos)
     {
-      for_each_type<Args...>(
+      ossia::for_each_type<Args...>(
           VariantDataStreamDeserializer<var_t>{s, which, var});
     }
     s.checkDelimiter();
@@ -240,12 +241,12 @@ struct TSerializer<JSONObject, eggs::variant<Args...>>
   {
     if ((quint64)var.which() != (quint64)var.npos)
     {
-      for_each_type<Args...>(VariantJSONSerializer<var_t>{s, var});
+      ossia::for_each_type<Args...>(VariantJSONSerializer<var_t>{s, var});
     }
   }
 
   static void writeTo(JSONObject::Deserializer& s, var_t& var)
   {
-    for_each_type<Args...>(VariantJSONDeserializer<var_t>{s, var});
+    ossia::for_each_type<Args...>(VariantJSONDeserializer<var_t>{s, var});
   }
 };
