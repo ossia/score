@@ -1,5 +1,4 @@
 #pragma once
-#include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/node_process.hpp>
 
 #include <Effect/EffectFactory.hpp>

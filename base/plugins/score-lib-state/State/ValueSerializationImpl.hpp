@@ -1,5 +1,7 @@
 #pragma once
 #include <State/OSSIASerializationImpl.hpp>
+#include <ossia/detail/size.hpp>
+#include <brigand/sequences/list.hpp>
 
 //////////// Value Variant serialization /////////////
 template <typename Functor>
@@ -116,9 +118,9 @@ struct TSerializer<JSONObject, ossia::value_variant_type>
 
   static auto init_keys()
   {
-    std::array<QString, brigand::size<value_type_list>::value> arr;
+    std::array<QString, ossia::size<value_type_list>::value> arr;
     int i = 0;
-    brigand::for_each<value_type_list>([&](auto t) {
+    ossia::for_each_tagged(value_type_list{}, [&](auto t) {
       using type = typename decltype(t)::type;
       arr[i] = Metadata<Json_k, type>::get();
       i++;

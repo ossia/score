@@ -11,7 +11,7 @@
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
 #include <State/ValueSerialization.hpp>
-#include <brigand/algorithms/for_each.hpp>
+#include <ossia/detail/for_each.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/VariantSerialization.hpp>
 #include <score/serialization/VisitorCommon.hpp>

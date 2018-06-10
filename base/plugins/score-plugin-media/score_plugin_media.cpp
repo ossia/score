@@ -61,7 +61,7 @@ score_plugin_media::make_commands()
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       Media::CommandFactoryName(), CommandGeneratorMap{}};
 
-  for_each_type<
+  ossia::for_each_type<
     #include <score_plugin_media_commands.hpp>
       >(score::commands::FactoryInserter{cmds.second});
 

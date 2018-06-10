@@ -1,11 +1,14 @@
 #pragma once
-#include <ossia/dataflow/execution_state.hpp>
 #include <wobjectdefs.h>
 #include <ossia/detail/hash_map.hpp>
 
 #include <QtQml/QJSEngine>
 #include <score/tools/std/StringHash.hpp>
-
+#include <ossia/dataflow/dataflow_fwd.hpp>
+namespace ossia
+{
+struct execution_state;
+}
 namespace JS
 {
 class ExecStateWrapper : public QObject

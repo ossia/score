@@ -108,7 +108,7 @@ score_plugin_loop::make_commands()
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       LoopCommandFactoryName(), CommandGeneratorMap{}};
 
-  for_each_type<
+  ossia::for_each_type<
     #include <score_plugin_loop_commands.hpp>
       >(score::commands::FactoryInserter{cmds.second});
 

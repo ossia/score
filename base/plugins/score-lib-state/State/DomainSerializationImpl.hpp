@@ -461,9 +461,9 @@ struct TSerializer<JSONObject, ossia::domain_base_variant>
 
   static auto init_keys()
   {
-    std::array<QString, brigand::size<value_type_list>::value> arr;
+    std::array<QString, ossia::size<value_type_list>::value> arr;
     int i = 0;
-    brigand::for_each<value_type_list>([&](auto t) {
+    ossia::for_each_tagged(value_type_list{}, [&](auto t) {
       using type = typename decltype(t)::type;
       arr[i] = Metadata<Json_k, type>::get();
       i++;

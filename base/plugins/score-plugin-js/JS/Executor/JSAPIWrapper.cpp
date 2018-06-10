@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "JSAPIWrapper.hpp"
 
+#include <ossia/dataflow/execution_state.hpp>
 #include <ossia/detail/apply.hpp>
 #include <ossia/network/value/value.hpp>
 

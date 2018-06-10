@@ -110,7 +110,7 @@ score_plugin_deviceexplorer::make_commands()
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       DeviceExplorerCommandFactoryName(), CommandGeneratorMap{}};
 
-  for_each_type<
+  ossia::for_each_type<
     #include <score_plugin_deviceexplorer_commands.hpp>
       >(score::commands::FactoryInserter{cmds.second});
 
