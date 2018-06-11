@@ -40,11 +40,13 @@ void IntervalHeader::mousePressEvent(QGraphicsSceneMouseEvent* event)
   if (this->cursor().shape() != closedCursor().shape())
     this->setCursor(closedCursor());
   m_view->mousePressEvent(event);
+  event->accept();
 }
 
 void IntervalHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   m_view->mouseMoveEvent(event);
+  event->accept();
 }
 
 void IntervalHeader::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
@@ -52,5 +54,6 @@ void IntervalHeader::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   if (this->cursor().shape() != openCursor().shape())
     this->setCursor(openCursor());
   m_view->mouseReleaseEvent(event);
+  event->accept();
 }
 }
