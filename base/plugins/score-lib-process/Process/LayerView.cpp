@@ -5,6 +5,7 @@
 #include <Process/HeaderDelegate.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Process/Dataflow/CableItem.hpp>
 #include <QGraphicsSceneDragDropEvent>
 #include <QMimeData>
 #include <QPainter>
@@ -18,7 +19,16 @@ HeaderDelegate::~HeaderDelegate()
 {
 }
 
-LayerView::~LayerView() = default;
+LayerView::~LayerView()
+{
+  for(auto item : childItems())
+  {
+    if(item->type() == Dataflow::CableItem::static_type())
+    {
+      item->setParentItem(nullptr);
+    }
+  }
+}
 MiniLayer::~MiniLayer() = default;
 
 LayerView::LayerView(QGraphicsItem* parent) : QGraphicsItem{parent}

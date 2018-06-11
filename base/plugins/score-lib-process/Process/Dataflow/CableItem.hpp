@@ -37,6 +37,16 @@ public:
   {
     return m_cable.id();
   }
+
+  static constexpr int static_type()
+  {
+    return QGraphicsItem::UserType + 9999;
+  }
+  int type() const final override
+  {
+    return static_type();
+  }
+
   void resize();
   void check();
   PortItem* source() const;

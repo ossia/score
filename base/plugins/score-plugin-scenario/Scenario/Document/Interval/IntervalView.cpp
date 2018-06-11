@@ -4,7 +4,7 @@
 
 #include "IntervalMenuOverlay.hpp"
 #include "IntervalPresenter.hpp"
-
+#include <Process/Dataflow/CableItem.hpp>
 #include <QCursor>
 #include <QGraphicsSceneEvent>
 #include <QtGlobal>
@@ -41,6 +41,13 @@ IntervalView::IntervalView(IntervalPresenter& presenter, QGraphicsItem* parent)
 
 IntervalView::~IntervalView()
 {
+  for(auto item : childItems())
+  {
+    if(item->type() == Dataflow::CableItem::static_type())
+    {
+      item->setParentItem(nullptr);
+    }
+  }
   delete m_overlay;
 }
 

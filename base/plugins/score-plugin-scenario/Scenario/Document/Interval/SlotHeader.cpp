@@ -29,6 +29,7 @@ SlotHeader::SlotHeader(
     , m_slotIndex{slotIndex}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
+  this->setAcceptHoverEvents(true);
   this->setFlag(ItemClipsToShape);
   this->setFlag(ItemClipsChildrenToShape);
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
@@ -208,6 +209,42 @@ void SlotHeader::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   slot_header_drag.reset();
   slot_drag_moving = false;
   event->accept();
+}
+
+void SlotHeader::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+{
+  const auto xpos = event->pos().x();
+  if (xpos >= 0 && xpos < 16)
+  {
+    if (this->cursor().shape() != Qt::OpenHandCursor)
+      setCursor(Qt::OpenHandCursor);
+  }
+  else
+  {
+    if (this->cursor().shape() == Qt::OpenHandCursor)
+      unsetCursor();
+  }
+}
+
+void SlotHeader::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
+{
+  const auto xpos = event->pos().x();
+  if (xpos >= 0 && xpos < 16)
+  {
+    if (this->cursor().shape() != Qt::OpenHandCursor)
+      setCursor(Qt::OpenHandCursor);
+  }
+  else
+  {
+    if (this->cursor().shape() == Qt::OpenHandCursor)
+      unsetCursor();
+  }
+}
+
+void SlotHeader::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+{
+  if (this->cursor().shape() == Qt::OpenHandCursor)
+    unsetCursor();
 }
 
 SlotDragOverlay::SlotDragOverlay(const IntervalPresenter& c, Slot::RackView v)
