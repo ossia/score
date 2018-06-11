@@ -73,6 +73,7 @@ class MinMaxHeaderDelegate final :
             txt,
             m_sel ? style.IntervalHeaderTextPen : style.GrayTextPen);
         update();
+        updatePorts();
       }
     }
 

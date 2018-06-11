@@ -25,6 +25,7 @@ SetRigidity::SetRigidity(const IntervalModel& interval, bool rigid)
   // used.
   m_oldMinDuration = interval.duration.minDuration();
   m_oldMaxDuration = interval.duration.maxDuration();
+  m_oldRigidity = interval.duration.isRigid();
   m_oldIsNull = interval.duration.isMinNull();
   m_oldIsInfinite = interval.duration.isMaxInfinite();
 }
@@ -32,8 +33,7 @@ SetRigidity::SetRigidity(const IntervalModel& interval, bool rigid)
 void SetRigidity::undo(const score::DocumentContext& ctx) const
 {
   auto& interval = m_path.find(ctx);
-  interval.duration.setRigid(!m_rigidity);
-
+  interval.duration.setRigid(m_oldRigidity);
   interval.duration.setMinNull(m_oldIsNull);
   interval.duration.setMaxInfinite(m_oldIsInfinite);
   interval.duration.setMinDuration(m_oldMinDuration);
@@ -63,13 +63,13 @@ void SetRigidity::redo(const score::DocumentContext& ctx) const
 void SetRigidity::serializeImpl(DataStreamInput& s) const
 {
   s << m_path << m_oldMinDuration << m_oldMaxDuration << m_rigidity
-    << m_oldIsNull << m_oldIsInfinite;
+    << m_oldRigidity << m_oldIsNull << m_oldIsInfinite;
 }
 
 void SetRigidity::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_path >> m_oldMinDuration >> m_oldMaxDuration >> m_rigidity
-      >> m_oldIsNull >> m_oldIsInfinite;
+    >> m_oldRigidity >> m_oldIsNull >> m_oldIsInfinite;
 }
 }
 }
