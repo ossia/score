@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <score/document/DocumentInterface.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+#include <ossia/dataflow/nodes/forward_node.hpp>
 #include <vector>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Engine::Execution::BaseScenarioElement)
@@ -101,7 +102,7 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
   auto param = score_to_ossia::address(addr, m_ctx.devices.list());
 
   auto node = main_interval->node;
-  m_ctx.executionQueue.enqueue([=] { node->audio_out.address = param; });
+  m_ctx.executionQueue.enqueue([=] { static_cast<ossia::nodes::interval*>(node.get())->audio_out.address = param; });
 }
 
 void BaseScenarioElement::cleanup()
