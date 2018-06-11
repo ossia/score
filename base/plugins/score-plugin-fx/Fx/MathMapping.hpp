@@ -62,7 +62,7 @@ struct Node
       float c,
       ossia::value_port& output,
       ossia::token_request tk,
-      ossia::execution_state& st,
+      ossia::exec_state_facade st,
       State& self)
   {
     if (!updateExpr(self, expr))
@@ -144,7 +144,7 @@ struct Node
       float c,
       ossia::audio_port& output,
       ossia::token_request tk,
-      ossia::execution_state& st,
+      ossia::exec_state_facade st,
       State& self)
   {
     if (tk.date > tk.prev_date)
@@ -165,7 +165,7 @@ struct Node
       self.p1 = a;
       self.p2 = b;
       self.p3 = c;
-      self.fs = st.sampleRate;
+      self.fs = st.sampleRate();
       for (int64_t i = 0; i < count; i++)
       {
         self.cur_in = input.samples[0][tk.offset + i];

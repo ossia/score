@@ -343,7 +343,7 @@ struct Node
       const ossia::safe_nodes::timed_vec<int>& transp,
       ossia::midi_port& midi_out,
       ossia::token_request tk,
-      ossia::execution_state& st,
+      ossia::exec_state_facade st,
       State& self)
   {
     const auto& new_scale = sc.rbegin()->second;

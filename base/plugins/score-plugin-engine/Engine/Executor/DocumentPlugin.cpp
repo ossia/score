@@ -8,6 +8,7 @@
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/port.hpp>
+#include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/detail/logger.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 

@@ -4,6 +4,7 @@
 #include <ossia/dataflow/fx_node.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/detail/logger.hpp>
+#include <ossia/dataflow/port.hpp>
 #include <ossia/network/domain/domain.hpp>
 
 #include <Media/Effect/VST/VSTControl.hpp>

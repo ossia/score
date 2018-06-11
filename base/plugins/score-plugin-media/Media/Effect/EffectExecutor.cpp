@@ -1,6 +1,8 @@
 #include "EffectExecutor.hpp"
 
 #include <ossia/dataflow/graph/graph_interface.hpp>
+#include <ossia/dataflow/port.hpp>
+#include <ossia/dataflow/graph_edge.hpp>
 namespace Engine
 {
 namespace Execution

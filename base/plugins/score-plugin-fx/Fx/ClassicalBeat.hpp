@@ -1,6 +1,4 @@
 #pragma once
-#include <ossia/dataflow/execution_state.hpp>
-
 #include <Engine/Node/PdNode.hpp>
 #include <numeric>
 namespace Nodes
@@ -44,7 +42,7 @@ struct Node
       const Control::time_signature& sig,
       ossia::value_port& res,
       ossia::token_request tk,
-      ossia::execution_state& st)
+      ossia::exec_state_facade st)
   {
     if (tk.date > tk.prev_date)
     {
@@ -54,7 +52,7 @@ struct Node
       }
 
       const auto period
-          = get_period(1. / sig.second, (double)tempo, st.sampleRate);
+          = get_period(1. / sig.second, (double)tempo, st.sampleRate());
       const auto next = next_date(tk.prev_date, period);
       if (next.impl < tk.date.impl)
       {

@@ -51,7 +51,7 @@ struct Node
       ossia::value_port& rms_port,
       ossia::value_port& peak_port,
       ossia::token_request tk,
-      ossia::execution_state&)
+      ossia::exec_state_facade)
   {
     switch (audio.samples.size())
     {

@@ -1,5 +1,4 @@
 #include <Engine/Executor/Automation/InterpStateComponent.hpp>
-#include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/nodes/percentage.hpp>
 #include <ossia/editor/automation/curve_value_visitor.hpp>
 #include <ossia/editor/curve/behavior.hpp>
@@ -36,7 +35,7 @@ class OSSIA_EXPORT state_interpolation final :
     }
 
   private:
-    void run(ossia::token_request t, ossia::execution_state& e) noexcept override
+    void run(ossia::token_request t, ossia::exec_state_facade e) noexcept override
     {
       for(auto& [dest, drive] : m_drives)
       {

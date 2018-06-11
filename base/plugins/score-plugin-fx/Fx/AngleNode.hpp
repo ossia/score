@@ -31,7 +31,7 @@ struct Node
   run(const ossia::value_port& p1,
       ossia::value_port& p2,
       ossia::token_request,
-      ossia::execution_state&,
+      ossia::exec_state_facade,
       State& self)
   {
     // returns -1, 0, 1 to say if we're going backwards, staying equal, or

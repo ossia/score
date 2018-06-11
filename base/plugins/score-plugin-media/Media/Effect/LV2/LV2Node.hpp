@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/dataflow/fx_node.hpp>
+#include <ossia/dataflow/port.hpp>
 
 #include <Media/Effect/LV2/LV2Context.hpp>
 #include <Media/Effect/LV2/lv2_atom_helpers.hpp>
@@ -274,7 +275,7 @@ public:
     // lilv_instance_free(fInstance);
   }
 
-  void run(ossia::token_request t, ossia::execution_state&) noexcept override
+  void run(ossia::token_request t, ossia::exec_state_facade) noexcept override
   {
     if (t.date > t.prev_date)
     {

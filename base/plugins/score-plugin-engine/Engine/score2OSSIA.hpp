@@ -1,7 +1,6 @@
 #pragma once
 #include <ossia/editor/expression/expression.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
-#include <ossia/editor/state/state.hpp>
 
 
 #include <Device/Node/DeviceNode.hpp>
