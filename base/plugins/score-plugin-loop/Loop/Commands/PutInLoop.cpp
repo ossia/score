@@ -4,7 +4,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
-
+#include <score/tools/MapCopy.hpp>
 namespace Loop
 {
 
@@ -25,11 +25,14 @@ void EncapsulateInLoop(
     const IntervalModel& source_itv = *cat.selectedIntervals.front();
     auto itv_json = score::marshall<JSONObject>(source_itv);
 
-    disp.clearInterval(source_itv);
-    auto& loop = disp.createProcess<Loop::ProcessModel>(source_itv, {});
-
-    disp.insertInInterval(
-        std::move(itv_json), loop.intervals()[0], ExpandMode::Scale);
+    auto& loop = disp.createProcessInSlot<Loop::ProcessModel>(source_itv, {});
+    for(auto proc : shallow_copy(source_itv.processes))
+    {
+      if(proc != &loop)
+      {
+        disp.moveProcess(source_itv, loop.intervals()[0], proc->id());
+      }
+    }
     disp.commit();
   }
   else
@@ -42,7 +45,7 @@ void EncapsulateInLoop(
 
     auto& loop_parent_itv = *e.interval;
 
-    auto& loop = disp.createProcess<Loop::ProcessModel>(loop_parent_itv, {});
+    auto& loop = disp.createProcessInSlot<Loop::ProcessModel>(loop_parent_itv, {});
 
     auto& itv = loop.intervals()[0];
 
@@ -67,6 +70,7 @@ void EncapsulateInLoop(
     }
 
     // Resize the slot to fit the existing elements
+    disp.showRack(loop_parent_itv);
     disp.resizeSlot(
         loop_parent_itv,
         SlotPath{loop_parent_itv, 0, Slot::RackView::SmallView},
