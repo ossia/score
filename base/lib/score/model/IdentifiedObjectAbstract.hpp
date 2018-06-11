@@ -25,6 +25,7 @@ public:
   void identified_object_destroyed(IdentifiedObjectAbstract* o)
   W_SIGNAL(identified_object_destroyed, o);
 
+  virtual void resetCache() = 0;
   protected:
     using QObject::QObject;
     IdentifiedObjectAbstract(const QString& name, QObject* parent)

@@ -154,7 +154,7 @@ void replacePathPart(
   auto& v = toChange.vec();
 #ifdef SCORE_DEBUG
   SCORE_ASSERT(v.size() > src_v.size());
-  for(std::size_t i = 0; i < v.size(); i++)
+  for(std::size_t i = 0; i < src_v.size(); i++)
   {
     SCORE_ASSERT(v[i] == src_v[i]);
   }

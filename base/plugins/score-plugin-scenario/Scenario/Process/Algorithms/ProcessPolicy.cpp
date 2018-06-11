@@ -120,14 +120,27 @@ void AddProcess(IntervalModel& interval, Process::ProcessModel* proc)
 void RemoveProcess(
     IntervalModel& interval, const Id<Process::ProcessModel>& proc_id)
 {
-  const auto& proc = interval.processes.at(proc_id);
+  auto& proc = interval.processes.at(proc_id);
   const auto& scenar = *dynamic_cast<ScenarioInterface*>(interval.parent());
 
   RemoveProcessAfterState(startState(interval, scenar), proc);
   RemoveProcessBeforeState(endState(interval, scenar), proc);
 
-  interval.processes.remove(proc_id);
+  interval.processes.remove(proc);
 }
+
+void EraseProcess(
+    IntervalModel& interval, const Id<Process::ProcessModel>& proc_id)
+{
+  auto& proc = interval.processes.at(proc_id);
+  const auto& scenar = *dynamic_cast<ScenarioInterface*>(interval.parent());
+
+  RemoveProcessAfterState(startState(interval, scenar), proc);
+  RemoveProcessBeforeState(endState(interval, scenar), proc);
+
+  interval.processes.erase(proc);
+}
+
 
 void SetPreviousInterval(StateModel& state, const IntervalModel& interval)
 {

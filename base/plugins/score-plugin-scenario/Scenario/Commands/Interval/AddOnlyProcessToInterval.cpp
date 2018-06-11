@@ -21,6 +21,7 @@
 #include <score/plugins/customfactory/StringFactoryKeySerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+#include <score/document/ChangeId.hpp>
 #include <vector>
 
 namespace Scenario
@@ -135,7 +136,7 @@ Process::ProcessModel& LoadOnlyProcessInInterval::redo(
       port->removeCable(port->cables().back());
     }
   }
-  proc->setId(m_createdProcessId);
+  score::IDocument::changeObjectId(*proc, m_createdProcessId);
 
   AddProcess(interval, proc);
   return *proc;
@@ -198,7 +199,7 @@ Process::ProcessModel& DuplicateOnlyProcessToInterval::redo(
   auto& pl = ctx.app.interfaces<Process::ProcessFactoryList>();
   Process::ProcessModel* proc = deserialize_interface(
       pl, DataStream::Deserializer{m_processData}, &interval);
-  proc->setId(m_createdProcessId);
+  score::IDocument::changeObjectId(*proc, m_createdProcessId);
 
   AddProcess(interval, proc);
 
