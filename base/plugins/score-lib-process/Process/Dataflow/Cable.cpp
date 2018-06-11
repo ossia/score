@@ -18,6 +18,7 @@ Cable::~Cable()
 
 Cable::Cable(Id<Cable> c, QObject* parent)
     : IdentifiedObject{c, Metadata<ObjectKey_k, Process::Cable>::get(), parent}
+    , m_type{CableType::ImmediateGlutton}
 {
 }
 
