@@ -54,6 +54,11 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
+
+  void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
+  void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
+  void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
+
   const IntervalPresenter& m_presenter;
   qreal m_width{};
   double m_menupos{};

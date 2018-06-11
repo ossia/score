@@ -26,7 +26,7 @@ const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
 {
   static const score::PanelStatus status{true, Qt::LeftDockWidgetArea, 10,
                                          QObject::tr("Device Explorer"),
-                                         QObject::tr("Ctrl+Shift+E")};
+                                         QObject::tr("Ctrl+Shift+D")};
 
   return status;
 }
