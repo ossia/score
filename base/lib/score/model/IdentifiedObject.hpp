@@ -52,11 +52,20 @@ public:
   void setId(const id_type& id) noexcept
   {
     m_id = id;
+    m_path_cache.unsafePath().vec().clear();
+    m_id.m_ptr = this;
   }
 
   void setId(id_type&& id) noexcept
   {
     m_id = std::move(id);
+    m_path_cache.unsafePath().vec().clear();
+    m_id.m_ptr = this;
+  }
+
+  void resetCache() final override
+  {
+    m_path_cache.unsafePath().vec().clear();
   }
 
   mutable Path<model>

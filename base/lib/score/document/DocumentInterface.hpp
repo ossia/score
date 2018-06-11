@@ -14,6 +14,7 @@ struct DocumentContext;
 
 namespace IDocument
 {
+
 /**
  * @brief documentFromObject
  * @param obj an object in the application hierarchy

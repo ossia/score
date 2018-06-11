@@ -35,8 +35,11 @@ protected:
 
 private:
   Path<IntervalModel> m_src, m_tgt;
-  Id<Process::ProcessModel> m_processId;
+  Id<Process::ProcessModel> m_oldId, m_newId;
+  Scenario::Rack m_oldSmall;
+  Scenario::FullRack m_oldFull;
   int m_oldPos{};
+  bool m_addedSlot{};
 };
 
 }

@@ -18,13 +18,6 @@ void removeCables(
     const SerializedCables& cbls, const score::DocumentContext& ctx);
 
 SCORE_PLUGIN_SCENARIO_EXPORT
-void reparentCables(
-    QObject* obj
-    , const ObjectPath& src
-    , const ObjectPath& dest
-    , const score::DocumentContext& ctx);
-
-SCORE_PLUGIN_SCENARIO_EXPORT
 void restoreCables(
     const SerializedCables& cbls, const score::DocumentContext& ctx);
 

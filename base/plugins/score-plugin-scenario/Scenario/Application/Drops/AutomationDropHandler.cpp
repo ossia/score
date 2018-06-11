@@ -12,6 +12,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <ossia/network/value/value_traits.hpp>
 #include <Scenario/Commands/Cohesion/CreateCurves.hpp>
+#include <ossia/detail/thread.hpp>
 
 namespace Scenario
 {
@@ -114,26 +115,26 @@ bool DropLayerInScenario::drop(
 
     TimeVal t = TimeVal::fromMsecs(json["Duration"].toDouble());
 
+    auto& doc = score::IDocument::documentContext(scenar);
     auto& interval = m.createBox(scenar, pt.date, pt.date + t, pt.y);
 
-    // Remove old process
+    auto pid = ossia::get_pid();
+    bool same_doc = (pid == json["PID"].toInt()) && (doc.document.id().val() == json["Document"] .toInt());
+
+    auto old_p = fromJsonObject<Path<Process::ProcessModel>>(json["Path"]);
+    if(same_doc)
     {
-      auto old_p = fromJsonObject<Path<Process::ProcessModel>>(json["Path"]);
-      if(auto obj = old_p.try_find(pres.context().context))
+      if(auto obj = old_p.try_find(doc))
       if(auto itv = qobject_cast<IntervalModel*>(obj->parent()))
       {
-        m.removeProcess(*itv, obj->id());
-
-        auto s = dynamic_cast<Scenario::ProcessModel*>(itv->parent());
-        if(s && isSingular(*itv, *s))
-        {
-          m.removeElements(*s, {itv});
-        }
+        m.moveProcess(*itv, interval, obj->id());
       }
     }
-
-    // Create process
-    m.loadProcessInSlot(interval, json);
+    else
+    {
+      // Just create a new process
+      m.loadProcessInSlot(interval, json);
+    }
 
     // Finally we show the newly created rack
     m.showRack(interval);
@@ -155,24 +156,23 @@ bool DropLayerInInterval::drop(
 
     auto json = QJsonDocument::fromJson(mime.data(score::mime::layerdata())).object();
 
-    // Remove old process
+    auto pid = ossia::get_pid();
+    bool same_doc = (pid == json["PID"].toInt()) && (doc.document.id().val() == json["Document"] .toInt());
+
+    auto old_p = fromJsonObject<Path<Process::ProcessModel>>(json["Path"]);
+    if(same_doc)
     {
-      auto old_p = fromJsonObject<Path<Process::ProcessModel>>(json["Path"]);
       if(auto obj = old_p.try_find(doc))
       if(auto itv = qobject_cast<IntervalModel*>(obj->parent()))
       {
-        m.removeProcess(*itv, obj->id());
-
-        auto s = dynamic_cast<Scenario::ProcessModel*>(itv->parent());
-        if(s && isSingular(*itv, *s))
-        {
-          m.removeElements(*s, {itv});
-        }
+        m.moveProcess(*itv, interval, obj->id());
       }
     }
-
-    // Create process
-    m.loadProcessInSlot(interval, json);
+    else
+    {
+      // Just create a new process
+      m.loadProcessInSlot(interval, json);
+    }
 
     // Finally we show the newly created rack
     m.showRack(interval);
