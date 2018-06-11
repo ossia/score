@@ -3,11 +3,12 @@
 #include "OSSIADevice.hpp"
 
 #include <ossia/detail/logger.hpp>
-#include <ossia/editor/state/state_element.hpp>
+
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/parameter.hpp>
 #include <ossia/network/base/protocol.hpp>
 #include <ossia/network/common/network_logger.hpp>
+#include <ossia/editor/state/destination_qualifiers.hpp>
 
 #include <Device/Address/IOType.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>

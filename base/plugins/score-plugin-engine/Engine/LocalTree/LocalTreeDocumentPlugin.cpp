@@ -4,7 +4,7 @@
 
 #include "Scenario/ScenarioComponent.hpp"
 
-#include <ossia/editor/state/state_element.hpp>
+
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/parameter.hpp>
 #include <ossia/network/generic/generic_device.hpp>

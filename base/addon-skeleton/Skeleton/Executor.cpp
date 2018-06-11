@@ -1,6 +1,6 @@
 #include "Executor.hpp"
 
-#include <ossia/editor/state/state_element.hpp>
+
 
 #include <Engine/score2OSSIA.hpp>
 #include <Explorer/DeviceList.hpp>

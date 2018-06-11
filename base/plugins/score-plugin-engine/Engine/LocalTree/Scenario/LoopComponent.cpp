@@ -2,7 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "LoopComponent.hpp"
 
-#include <ossia/editor/state/state_element.hpp>
+
 
 #include <Engine/LocalTree/Scenario/MetadataParameters.hpp>
 

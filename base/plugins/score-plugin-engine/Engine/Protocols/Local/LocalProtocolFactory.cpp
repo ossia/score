@@ -5,7 +5,7 @@
 #include "LocalDevice.hpp"
 #include "LocalProtocolSettingsWidget.hpp"
 
-#include <ossia/editor/state/state_element.hpp>
+
 
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/ApplicationPlugin.hpp>

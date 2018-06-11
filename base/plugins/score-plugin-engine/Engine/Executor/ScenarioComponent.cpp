@@ -10,7 +10,7 @@
 #include <ossia/editor/scenario/time_sync.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
 #include <ossia/editor/state/state.hpp>
-#include <ossia/editor/state/state_element.hpp>
+
 
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/Executor/EventComponent.hpp>

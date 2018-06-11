@@ -4,8 +4,6 @@
 
 #include "MetadataParameters.hpp"
 
-#include <ossia/editor/state/state_element.hpp>
-
 #include <State/Value.hpp>
 
 namespace Engine

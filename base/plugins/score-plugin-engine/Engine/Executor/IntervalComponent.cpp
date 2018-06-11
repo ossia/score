@@ -10,7 +10,7 @@
 #include <ossia/editor/scenario/scenario.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
-#include <ossia/editor/state/state_element.hpp>
+
 
 #include <Automation/AutomationModel.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
@@ -87,7 +87,7 @@ struct mute_rec
   void operator()(ossia::time_interval& itv)
   {
     itv.node->set_mute(muted);
-    for (auto proc : itv.get_time_processes())
+    for (auto& proc : itv.get_time_processes())
     {
       (*this)(*proc);
     }

@@ -2,7 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "LocalDevice.hpp"
 
-#include <ossia/editor/state/state_element.hpp>
+
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/local/local.hpp>

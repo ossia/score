@@ -4,7 +4,7 @@
 #include <ossia/editor/scenario/time_event.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/scenario/time_sync.hpp>
-#include <ossia/editor/state/state_element.hpp>
+
 
 #include <Engine/Executor/BaseScenarioComponent.hpp>
 #include <Engine/Executor/ContextMenu/PlayFromIntervalInScenario.hpp>
