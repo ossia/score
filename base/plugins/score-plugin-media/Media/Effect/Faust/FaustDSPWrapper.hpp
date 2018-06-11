@@ -11,6 +11,7 @@
 #include <Process/ProcessFactory.hpp>
 #include <faust/gui/GUI.h>
 #include <score/tools/IdentifierGeneration.hpp>
+#include <ossia/dataflow/execution_state.hpp>
 namespace FaustDSP
 {
 template <typename DSP>
