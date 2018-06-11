@@ -4,12 +4,12 @@
 
 #include "MetadataParameters.hpp"
 
-#include <ossia/editor/state/state_element.hpp>
-
 #include <Engine/Executor/DocumentPlugin.hpp>
 #include <Engine/score2OSSIA.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
+#include <ossia/editor/state/state_element.hpp>
+
 namespace Engine
 {
 namespace LocalTree

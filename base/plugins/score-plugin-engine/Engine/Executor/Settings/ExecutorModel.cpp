@@ -2,7 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ExecutorModel.hpp"
 
-#include <ossia/editor/state/state_element.hpp>
+
 
 #include <Engine/Executor/ClockManager/DefaultClockManager.hpp>
 #include <Engine/Executor/Dataflow/DataflowClock.hpp>

@@ -8,7 +8,7 @@
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
-#include <ossia/editor/state/state_element.hpp>
+
 
 #include <Automation/AutomationModel.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>

@@ -7,7 +7,7 @@
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 #include <ossia/network/domain/domain.hpp>
 #include <ossia/network/value/value.hpp>
-#include <ossia/editor/state/state_element.hpp>
+
 
 #include <Engine/OSSIA2score.hpp>
 #include <Engine/score2OSSIA.hpp>

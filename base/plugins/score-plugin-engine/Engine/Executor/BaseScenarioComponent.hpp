@@ -1,7 +1,7 @@
 #pragma once
 #include <ossia/editor/scenario/clock.hpp>
 #include <wobjectdefs.h>
-#include <ossia/editor/state/state_element.hpp>
+
 
 #include <QObject>
 #include <memory>

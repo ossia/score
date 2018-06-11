@@ -4,7 +4,7 @@
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
-#include <ossia/editor/state/state_element.hpp>
+
 
 #include <Engine/Executor/BaseScenarioComponent.hpp>
 #include <Engine/Executor/EventComponent.hpp>
