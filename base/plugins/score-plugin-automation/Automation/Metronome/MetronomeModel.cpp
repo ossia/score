@@ -218,6 +218,8 @@ void ProcessModel::setMax(double arg)
 template <>
 void DataStreamReader::read(const Metronome::ProcessModel& autom)
 {
+  m_stream << *autom.outlet;
+
   State::Address address;
   readFrom(autom.curve());
 

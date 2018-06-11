@@ -38,7 +38,7 @@ private:
   TimeVal m_oldMinDuration;
   TimeVal m_oldMaxDuration;
 
-  bool m_rigidity{}, m_oldIsNull{}, m_oldIsInfinite{};
+  bool m_rigidity{}, m_oldRigidity{}, m_oldIsNull{}, m_oldIsInfinite{};
 };
 }
 }
