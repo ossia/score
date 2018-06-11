@@ -30,7 +30,7 @@ struct Node
       float g,
       ossia::audio_port& p2,
       ossia::token_request,
-      ossia::execution_state&)
+      ossia::exec_state_facade)
   {
     const auto chans = p1.samples.size();
     p2.samples.resize(chans);

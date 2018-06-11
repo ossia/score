@@ -15,6 +15,7 @@
 #include <Engine/Executor/ExecutorContext.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
+#include <ossia/dataflow/graph_edge.hpp>
 #include <Engine/OSSIA2score.hpp>
 #include <Engine/score2OSSIA.hpp>
 #include <Process/Process.hpp>

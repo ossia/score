@@ -1,6 +1,4 @@
 #pragma once
-#include <ossia/dataflow/execution_state.hpp>
-
 #include <Engine/Node/PdNode.hpp>
 #include <random>
 
@@ -52,7 +50,7 @@ struct Node
       const ossia::safe_nodes::timed_vec<float>& tempo_vec,
       ossia::midi_port& p2,
       ossia::token_request tk,
-      ossia::execution_state& st,
+      ossia::exec_state_facade st,
       State& self)
   {
     static std::mt19937 m;
@@ -64,7 +62,7 @@ struct Node
 
     // how much time does a whole note last at this tempo given the current sr
     const auto whole_dur = 240.f / tempo; // in seconds
-    const auto whole_samples = whole_dur * st.sampleRate;
+    const auto whole_samples = whole_dur * st.sampleRate();
 
     for (const rtmidi::message& in : p1.messages)
     {

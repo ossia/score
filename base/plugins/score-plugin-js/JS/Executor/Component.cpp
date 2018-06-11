@@ -7,6 +7,7 @@
 #include <ossia/detail/logger.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/state/message.hpp>
+#include <ossia/dataflow/port.hpp>
 #include <ossia/editor/state/state.hpp>
 
 #include <Engine/Executor/DocumentPlugin.hpp>
@@ -32,7 +33,7 @@ public:
 
   void setScript(const QString& val);
 
-  void run(ossia::token_request t, ossia::execution_state&) noexcept override;
+  void run(ossia::token_request t, ossia::exec_state_facade) noexcept override;
 
   QQmlEngine m_engine;
   QList<std::pair<ControlInlet*, ossia::inlet_ptr>> m_ctrlInlets;
@@ -246,7 +247,7 @@ void js_node::setScript(const QString& val)
   }
 }
 
-void js_node::run(ossia::token_request t, ossia::execution_state&) noexcept
+void js_node::run(ossia::token_request t, ossia::exec_state_facade) noexcept
 {
   // if (t.date == ossia::Zero)
   //   return;

@@ -120,7 +120,7 @@ struct Node
       const ossia::safe_nodes::timed_vec<std::string>& chord,
       ossia::midi_port& op,
       ossia::token_request tk,
-      ossia::execution_state& st,
+      ossia::exec_state_facade st,
       State& self)
   {
     for (const rtmidi::message& m : ip.messages)

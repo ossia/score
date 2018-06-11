@@ -1,6 +1,4 @@
 #pragma once
-#include <ossia/editor/state/state.hpp>
-
 #include <Engine/Executor/Component.hpp>
 #include <Engine/Executor/ProcessComponent.hpp>
 #include <Process/Process.hpp>

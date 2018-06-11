@@ -9,6 +9,7 @@
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/scenario/time_sync.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
+#include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/editor/state/state.hpp>
 
 

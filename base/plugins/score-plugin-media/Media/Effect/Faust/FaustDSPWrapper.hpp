@@ -213,7 +213,7 @@ public:
       dsp.buildUserInterface(&ex);
     }
 
-    void run(ossia::token_request tk, ossia::execution_state&) noexcept override
+    void run(ossia::token_request tk, ossia::exec_state_facade) noexcept override
     {
       ossia::nodes::faust_exec(*this, dsp, tk);
     }

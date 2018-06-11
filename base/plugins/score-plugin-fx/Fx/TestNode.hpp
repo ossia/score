@@ -77,7 +77,7 @@ make_uuid("f6b88ec9-cd56-43e8-a568-33208d5a8fb7");
       ossia::midi_port& p,
       ossia::time_value tk.prev_date,
       ossia::token_request tk,
-      ossia::execution_state& ,
+      ossia::exec_state_facade ,
       State& st)
   {
   }

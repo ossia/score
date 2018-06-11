@@ -19,6 +19,7 @@
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
 #include <Engine/OSSIA2score.hpp>
 #include <Engine/score2OSSIA.hpp>
+#include <ossia/dataflow/graph_edge.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>

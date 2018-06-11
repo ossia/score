@@ -1,5 +1,4 @@
 #pragma once
-#include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/fx_node.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 
@@ -219,15 +218,15 @@ public:
   }
 
   void
-  setupTimeInfo(const ossia::token_request& tk, ossia::execution_state& st)
+  setupTimeInfo(const ossia::token_request& tk, ossia::exec_state_facade st)
   {
     auto& time_info = fx->info;
     time_info.samplePos = tk.date.impl;
-    time_info.sampleRate = st.sampleRate;
-    time_info.nanoSeconds = st.cur_date - st.start_date;
+    time_info.sampleRate = st.sampleRate();
+    time_info.nanoSeconds = st.currentDate() - st.startDate();
     time_info.tempo = m_tempo;
     time_info.ppqPos
-        = (tk.date.impl / st.sampleRate) * (60. / time_info.tempo);
+        = (tk.date.impl / st.sampleRate()) * (60. / time_info.tempo);
     time_info.barStartPos = 0.;
     time_info.cycleStartPos = 0.;
     time_info.cycleEndPos = 0.;
@@ -239,7 +238,7 @@ public:
     time_info.flags = kVstTransportPlaying & kVstNanosValid & kVstPpqPosValid
                       & kVstTempoValid & kVstTimeSigValid & kVstClockValid;
   }
-  void run(ossia::token_request tk, ossia::execution_state& st) noexcept override
+  void run(ossia::token_request tk, ossia::exec_state_facade st) noexcept override
   {
     if (!muted() && tk.date > tk.prev_date)
     {

@@ -1,6 +1,4 @@
 #pragma once
-#include <ossia/dataflow/execution_state.hpp>
-
 #include <Engine/Node/PdNode.hpp>
 #include <ossia/detail/math.hpp>
 #include <algorithm>
@@ -60,7 +58,7 @@ struct Node
       const std::string& type,
       ossia::value_port& out,
       ossia::token_request tk,
-      ossia::execution_state& st,
+      ossia::exec_state_facade st,
       State& s)
   {
     auto& waveform_map = Control::Widgets::waveformMap();
@@ -78,7 +76,7 @@ struct Node
       offset += offset_fine;
 
       using namespace Control::Widgets;
-      const auto phi = phase + (float(ossia::two_pi) * freq * ph) / st.sampleRate;
+      const auto phi = phase + (float(ossia::two_pi) * freq * ph) / st.sampleRate();
 
       switch (it->second)
       {
@@ -100,8 +98,8 @@ struct Node
           break;
         case SampleAndHold:
         {
-          auto start_phi = phase + (float(ossia::two_pi) * freq * s.phase) / st.sampleRate;
-          auto end_phi = phase + (float(ossia::two_pi) * freq * (s.phase + tk.date - tk.prev_date)) / st.sampleRate;
+          auto start_phi = phase + (float(ossia::two_pi) * freq * s.phase) / st.sampleRate();
+          auto end_phi = phase + (float(ossia::two_pi) * freq * (s.phase + tk.date - tk.prev_date)) / st.sampleRate();
           auto start_s = std::sin(start_phi);
           auto end_s = std::sin(end_phi);
           if((start_s > 0 && end_s <= 0) || (start_s <= 0 && end_s > 0))
