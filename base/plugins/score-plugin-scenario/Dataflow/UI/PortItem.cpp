@@ -140,7 +140,7 @@ void onCreateCable(
   auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
   CommandDispatcher<> disp{ctx.commandStack};
   Process::CableData cd;
-  cd.type = Process::CableType::ImmediateStrict;
+  cd.type = Process::CableType::ImmediateGlutton;
 
   auto& port1 = p1->port();
   auto& port2 = p2->port();
@@ -248,7 +248,7 @@ bool AutomatablePortItem::on_createAutomation(
 
   auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
   Process::CableData cd;
-  cd.type = Process::CableType::ImmediateStrict;
+  cd.type = Process::CableType::ImmediateGlutton;
   cd.source = *autom.outlet;
   cd.sink = m_port;
 
