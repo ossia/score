@@ -27,7 +27,7 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <vector>
 
-template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::SegmentModel>;
+//template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::SegmentModel>;
 template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::PointView, Curve::PointModel>;
 template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::SegmentView, Curve::SegmentModel>;
 
