@@ -136,7 +136,7 @@ using DefaultCurveSegmentData = PowerSegmentData;
 OBJECTKEY_METADATA(
     SCORE_PLUGIN_CURVE_EXPORT, Curve::SegmentModel, "CurveSegmentModel")
 
-extern template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::SegmentModel>;
+//extern template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::SegmentModel>;
 
 W_REGISTER_ARGTYPE(const Curve::SegmentModel&)
 W_REGISTER_ARGTYPE(Curve::SegmentModel)
