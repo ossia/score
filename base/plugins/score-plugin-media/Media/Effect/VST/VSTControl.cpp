@@ -46,7 +46,7 @@ bool VSTControlPortItem::on_createAutomation(
 
   auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
   Process::CableData cd;
-  cd.type = Process::CableType::ImmediateStrict;
+  cd.type = Process::CableType::ImmediateGlutton;
   cd.source = *autom.outlet;
   cd.sink = port();
 
