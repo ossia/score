@@ -22,7 +22,7 @@ StateComponentBase::StateComponentBase(
     QObject* parent)
     : Execution::Component{ctx, id, "Executor::State", nullptr}
     , m_model{element}
-    , m_node{std::make_shared<ossia::nodes::state>(Engine::score_to_ossia::state(element, ctx))}
+    , m_node{std::make_shared<ossia::nodes::state_writer>(Engine::score_to_ossia::state(element, ctx))}
 {
   connect(&element, &Scenario::StateModel::sig_statesUpdated,
           this, [this, &ctx] {
