@@ -74,7 +74,7 @@ public:
   {
     return m_model;
   }
-  const std::shared_ptr<ossia::nodes::state>& node() const
+  const std::shared_ptr<ossia::nodes::state_writer>& node() const
   {
     return m_node;
   }
@@ -82,7 +82,7 @@ public:
 protected:
   const Scenario::StateModel& m_model;
   std::shared_ptr<ossia::time_event> m_ev;
-  std::shared_ptr<ossia::nodes::state> m_node;
+  std::shared_ptr<ossia::nodes::state_writer> m_node;
   score::hash_map<Id<Process::ProcessModel>, std::shared_ptr<ProcessComponent>>
       m_processes;
 };

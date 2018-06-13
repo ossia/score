@@ -20,7 +20,7 @@ struct SetPropertyWrapper final : public BaseCallbackWrapper
   {
     callbackIt = addr.add_callback([=](const ossia::value& v) { setFun(v); });
 
-    addr.set_value(typename Engine::ossia_to_score::MatchingType<T>::type{});
+    //addr.set_value(typename Engine::ossia_to_score::MatchingType<T>::type{});
   }
 };
 
