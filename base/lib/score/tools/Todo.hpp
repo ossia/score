@@ -143,9 +143,9 @@ QMetaObject::Connection con(const T& t, Args&&... args)
 template <typename T, typename Property, typename U, typename Slot, typename... Args>
 QMetaObject::Connection bind(T& t, const Property& prop, const U* tgt, Slot&& slt, Args&&... args)
 {
-  auto con = QObject::connect(&t, Property::notify(), tgt, std::forward<Slot>(slt), std::forward<Args>(args)...);
   slt((t.*(Property::get()))());
-  return con;
+
+  return QObject::connect(&t, Property::notify(), tgt, std::forward<Slot>(slt), std::forward<Args>(args)...);
 }
 
 
