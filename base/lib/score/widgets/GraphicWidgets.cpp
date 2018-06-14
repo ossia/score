@@ -150,9 +150,9 @@ void QGraphicsSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
       valueChanged(m_value);
       update();
     }
-    sliderReleased();
     m_grab = false;
   }
+  sliderReleased();
   event->accept();
 }
 
@@ -291,9 +291,9 @@ void QGraphicsLogSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
       valueChanged(m_value);
       update();
     }
-    sliderReleased();
     m_grab = false;
   }
+  sliderReleased();
   event->accept();
 }
 
