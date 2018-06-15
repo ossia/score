@@ -53,8 +53,8 @@ private:
 
   QVector<QPair<Id<CommentBlockModel>, QByteArray>> m_removedComments;
   QVector<QPair<Id<StateModel>, QByteArray>> m_removedStates;
-  QVector<QPair<Id<EventModel>, QByteArray>> m_removedEvents;
-  QVector<QPair<Id<TimeSyncModel>, QByteArray>> m_removedTimeSyncs;
+  QVector<QPair<Id<EventModel>, QByteArray>> m_cleanedEvents;
+  QVector<QPair<Id<TimeSyncModel>, QByteArray>> m_cleanedTimeSyncs;
   QVector<QPair<Id<IntervalModel>, QByteArray>> m_removedIntervals;
   std::vector<SetRigidity> m_cmds_set_rigidity;
   std::vector<SplitEvent> m_cmds_split_event;
