@@ -76,8 +76,8 @@ RemoveSelection::RemoveSelection(
 
   // If we select a TimeSync for deletion, put its events into new separate
   // TimeSync
-  cp = sel;
   {
+    cp = sel;
     for (const auto& obj : cp)
     {
       if (auto ts = dynamic_cast<const TimeSyncModel*>(obj.data()))
@@ -114,6 +114,7 @@ RemoveSelection::RemoveSelection(
   // If we select an Event for deletion, put its states into new separate
   // events
   {
+    cp = sel;
     /// FIXME do the same thing for timesyncs above
     struct EventToSplit
     {
@@ -162,13 +163,15 @@ RemoveSelection::RemoveSelection(
   }
 
   // Then add Event to selection if we select all its States
+
+  cp = sel;
   for (const auto& obj : cp)
   {
     if (auto state = dynamic_cast<const StateModel*>(obj.data()))
     {
       auto& ev = scenar.events.at(state->eventId());
       bool add_event = true;
-      for (auto child : ev.states())
+      for (const auto& child : ev.states())
       {
         auto& st = scenar.states.at(child);
         if (!sel.contains(&st))
@@ -183,6 +186,30 @@ RemoveSelection::RemoveSelection(
       }
     }
   }
+
+  cp = sel;
+  for (const auto& obj : cp)
+  {
+    if (auto event = dynamic_cast<const EventModel*>(obj.data()))
+    {
+      Scenario::TimeSyncModel& ts = scenar.timeSyncs.at(event->timeSync());
+      bool add_ts = true;
+      for (const auto& child : ts.events())
+      {
+        auto& st = scenar.events.at(child);
+        if (!sel.contains(&st))
+        {
+          add_ts = false;
+          break;
+        }
+      }
+      if (add_ts)
+      {
+        sel.append(&ts);
+      }
+    }
+  }
+
 
   auto purged = sel.toList().toSet().toList();
 
@@ -211,7 +238,7 @@ RemoveSelection::RemoveSelection(
         QByteArray arr;
         DataStream::Serializer s{&arr};
         s.readFrom(*event);
-        m_removedEvents.push_back({event->id(), arr});
+        m_cleanedEvents.push_back({event->id(), arr});
       }
     }
 
@@ -222,7 +249,7 @@ RemoveSelection::RemoveSelection(
         QByteArray arr;
         DataStream::Serializer s2{&arr};
         s2.readFrom(*ts);
-        m_removedTimeSyncs.push_back({ts->id(), arr});
+        m_cleanedTimeSyncs.push_back({ts->id(), arr});
         for (const auto& cstrId : intervalsBeforeTimeSync(scenar, ts->id()))
         {
           m_cmds_set_rigidity.emplace_back(scenar.interval(cstrId), true);
@@ -263,7 +290,7 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
 
   QList<EventModel*> events;
   std::transform(
-      m_removedEvents.begin(), m_removedEvents.end(),
+      m_cleanedEvents.begin(), m_cleanedEvents.end(),
       std::back_inserter(events), [&](const auto& eventdata) {
         DataStream::Deserializer s{eventdata.second};
         return new EventModel{s, &scenar};
@@ -271,7 +298,7 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
 
   QList<TimeSyncModel*> timesyncs;
   std::transform(
-      m_removedTimeSyncs.begin(), m_removedTimeSyncs.end(),
+      m_cleanedTimeSyncs.begin(), m_cleanedTimeSyncs.end(),
       std::back_inserter(timesyncs), [&](const auto& tndata) {
         DataStream::Deserializer s{tndata.second};
         return new TimeSyncModel{s, &scenar};
@@ -296,6 +323,7 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
         ts->setActive(true);
       else
         ts->setActive(false);
+      delete timesync;
     }
     else
     {
@@ -322,6 +350,7 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
     {
       // if so, reset it's condition
       ev->setCondition(event->condition());
+      delete event;
     }
     else
     {
@@ -352,6 +381,10 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
     {
       scenar.states.add(state);
       scenar.event(state->eventId()).addState(state->id());
+    }
+    else
+    {
+      delete state;
     }
   }
 
@@ -428,15 +461,6 @@ void RemoveSelection::redo(const score::DocumentContext& ctx) const
 
   // The other things
 
-  // remove condition on selected Events
-  for (const auto& ev : m_removedEvents)
-  {
-    auto e = scenar.findEvent(ev.first);
-    if (e->condition() != State::Expression{})
-    {
-      e->setCondition({});
-    }
-  }
 
   for (const auto& cmt : m_removedComments)
   {
@@ -455,10 +479,33 @@ void RemoveSelection::redo(const score::DocumentContext& ctx) const
     }
   }
 
-  for (const auto& tsid : m_removedTimeSyncs)
+  for (const auto& ev : m_cleanedEvents)
+  {
+    auto e = scenar.findEvent(ev.first);
+
+    if(e->states().size() == 0)
+    {
+      scenar.timeSyncs.at(e->timeSync()).removeEvent(e->id());
+      scenar.events.remove(e);
+    }
+    else
+    {
+      // remove condition on selected Events
+      if (e->condition() != State::Expression{})
+      {
+        e->setCondition({});
+      }
+    }
+  }
+
+  for (const auto& tsid : m_cleanedTimeSyncs)
   {
     auto ts = scenar.findTimeSync(tsid.first);
-    if (ts->active())
+    if(ts->events().size() == 0)
+    {
+      scenar.timeSyncs.remove(ts);
+    }
+    else
     {
       ts->setActive(false);
     }
@@ -476,7 +523,7 @@ void RemoveSelection::redo(const score::DocumentContext& ctx) const
 
 void RemoveSelection::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path << m_removedEvents << m_removedTimeSyncs << m_removedIntervals
+  s << m_path << m_cleanedEvents << m_cleanedTimeSyncs << m_removedIntervals
     << m_removedStates << m_removedComments;
 
   s << (int32_t)m_cmds_set_rigidity.size();
@@ -501,7 +548,7 @@ void RemoveSelection::serializeImpl(DataStreamInput& s) const
 void RemoveSelection::deserializeImpl(DataStreamOutput& s)
 {
   int32_t n;
-  s >> m_path >> m_removedEvents >> m_removedTimeSyncs >> m_removedIntervals
+  s >> m_path >> m_cleanedEvents >> m_cleanedTimeSyncs >> m_removedIntervals
       >> m_removedStates >> m_removedComments >> n;
 
   m_cmds_set_rigidity.resize(n);
