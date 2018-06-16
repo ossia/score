@@ -104,7 +104,6 @@ void Engine::LocalTree::DocumentPlugin::create()
       m_localDevice->get_root_node(), getStrongId(cstr.components()), cstr,
       *this, this);
   cstr.components().add(m_root);
-  m_root->node().set_name("root");
 }
 
 void Engine::LocalTree::DocumentPlugin::cleanup()

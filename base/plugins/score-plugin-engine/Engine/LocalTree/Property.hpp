@@ -22,11 +22,10 @@ struct PropertyWrapper final : public BaseCallbackWrapper
   using converter_t
       = Engine::ossia_to_score::MatchingType<typename Property::param_type>;
   PropertyWrapper(
-      ossia::net::node_base& param_node,
       ossia::net::parameter_base& param_addr,
       model_t& obj,
       QObject* context)
-      : BaseCallbackWrapper{param_node, param_addr}
+      : BaseCallbackWrapper{param_addr}
       , m_model{obj}
   {
     callbackIt
@@ -71,7 +70,7 @@ auto add_property(
   SCORE_ASSERT(addr);
 
   addr->set_access(ossia::access_mode::BI);
-  return std::make_unique<PropertyWrapper<Property>>(*node, *addr, obj, context);
+  return std::make_unique<PropertyWrapper<Property>>(*addr, obj, context);
 }
 }
 }

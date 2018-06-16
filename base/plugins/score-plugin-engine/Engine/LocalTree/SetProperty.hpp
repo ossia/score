@@ -13,10 +13,9 @@ struct SetPropertyWrapper final : public BaseCallbackWrapper
   SetFun setFun;
 
   SetPropertyWrapper(
-      ossia::net::node_base& param_node,
       ossia::net::parameter_base& param_addr,
       SetFun prop)
-      : BaseCallbackWrapper{param_node, param_addr}, setFun{prop}
+      : BaseCallbackWrapper{param_addr}, setFun{prop}
   {
     callbackIt = addr.add_callback([=](const ossia::value& v) { setFun(v); });
 
@@ -26,11 +25,10 @@ struct SetPropertyWrapper final : public BaseCallbackWrapper
 
 template <typename T, typename Callback>
 auto make_setProperty(
-    ossia::net::node_base& node,
     ossia::net::parameter_base& addr,
     Callback prop)
 {
-  return std::make_unique<SetPropertyWrapper<T, Callback>>(node, addr, prop);
+  return std::make_unique<SetPropertyWrapper<T, Callback>>(addr, prop);
 }
 
 template <typename T, typename Callback>
@@ -46,7 +44,7 @@ auto add_setProperty(
 
   addr->set_access(ossia::access_mode::SET);
 
-  return make_setProperty<T>(*node, *addr, cb);
+  return make_setProperty<T>(*addr, cb);
 }
 }
 }
