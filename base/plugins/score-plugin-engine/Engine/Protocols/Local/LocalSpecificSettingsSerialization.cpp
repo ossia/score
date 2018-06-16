@@ -26,7 +26,7 @@ template <>
 void JSONObjectReader::read(const Engine::Network::LocalSpecificSettings& n)
 {
   obj["WSPort"] = n.wsPort;
-  obj["OSCport"] = n.oscPort;
+  obj["OSCPort"] = n.oscPort;
 }
 
 template <>
