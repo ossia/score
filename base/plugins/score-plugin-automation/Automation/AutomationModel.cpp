@@ -92,7 +92,7 @@ ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent)
 
 QString ProcessModel::prettyName() const
 {
-  auto res = address().toString();
+  auto res = address().toString_unsafe();
   if (!res.isEmpty())
     return res;
 

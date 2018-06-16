@@ -76,6 +76,8 @@ struct SCORE_LIB_STATE_EXPORT Address
    */
   QString toString() const;
 
+  QString toString_unsafe() const;
+
   /**
    * @brief toShortString
    * @return If short, "dev:/foo", else the last fifteen chars.
@@ -112,6 +114,7 @@ struct SCORE_LIB_STATE_EXPORT AddressAccessor
   DestinationQualifiers qualifiers;
 
   // Utility
+  QString toString_unsafe() const;
   QString toString() const;
   QString toShortString() const;
 

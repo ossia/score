@@ -167,11 +167,16 @@ optional<Address> Address::fromString(const QString& str)
 
 QString Address::toString() const
 {
-  QString ad = device % ":/" % path.join("/");
+  QString ad = toString_unsafe();
   if (!validateString(ad))
     ad.clear();
 
   return ad;
+}
+
+QString Address::toString_unsafe() const
+{
+  return device % ":/" % path.join("/");
 }
 
 QString Address::toShortString() const
@@ -252,6 +257,11 @@ AddressAccessor& AddressAccessor::operator=(Address&& a)
 QString AddressAccessor::toString() const
 {
   return address.toString() + State::toString(qualifiers);
+}
+
+QString AddressAccessor::toString_unsafe() const
+{
+  return address.toString_unsafe() + State::toString(qualifiers);
 }
 
 QString AddressAccessor::toShortString() const

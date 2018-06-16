@@ -423,7 +423,8 @@ void set_destination_impl(const DocumentPlugin& plug, const State::AddressAccess
   else
   {
     // OPTIMIZEME
-    auto path = ossia::traversal::make_path(address.address.toString().toStdString());
+    QString ad = address.address.toString_unsafe();
+    auto path = ossia::traversal::make_path(ad.toStdString());
     if(path)
     {
       equeue.enqueue([=, g = plug.execGraph, p = *path] () mutable {

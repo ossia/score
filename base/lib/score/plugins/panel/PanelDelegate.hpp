@@ -94,6 +94,6 @@ protected:
 
 private:
   const score::GUIApplicationContext& m_context;
-  MaybeDocument m_model;
+  MaybeDocument m_model{};
 };
 }

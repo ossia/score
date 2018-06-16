@@ -90,7 +90,10 @@ void ProcessModel::init()
 
 QString ProcessModel::prettyName() const
 {
-  return sourceAddress().toString() + " -> " + targetAddress().toString();
+  auto str = sourceAddress().toString_unsafe() + " -> " + targetAddress().toString_unsafe();
+  if(str != " -> ")
+    return str;
+  return tr("Mapping");
 }
 
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration)

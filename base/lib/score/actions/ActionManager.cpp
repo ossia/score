@@ -37,7 +37,7 @@ void ActionManager::reset(score::Document* doc)
   QObject::disconnect(focusConnection);
   QObject::disconnect(selectionConnection);
 
-  MaybeDocument mdoc;
+  MaybeDocument mdoc{};
   if (doc)
   {
     mdoc = &doc->context();
