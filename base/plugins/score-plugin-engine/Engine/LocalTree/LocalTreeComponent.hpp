@@ -15,7 +15,6 @@ public:
       : Component_T{std::forward<Args>(args)...}
       , m_thisNode{n, m, this}
   {
-    add_get<score::ModelMetadata::p_name>(m);
     add<score::ModelMetadata::p_comment>(m);
     add<score::ModelMetadata::p_label>(m);
   }
