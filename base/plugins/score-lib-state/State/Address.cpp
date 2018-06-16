@@ -402,7 +402,7 @@ operator()(const State::Address& k) const
 #endif
 }
 
-namespace boost
+namespace std
 {
 template <>
 struct hash<ossia::unit_variant>
@@ -410,11 +410,11 @@ struct hash<ossia::unit_variant>
   std::size_t operator()(const ossia::unit_variant& k) const
   {
     std::size_t seed = 0;
-    boost::hash_combine(seed, k.which());
+    ossia::hash_combine(seed, k.which());
     if (k)
     {
       ossia::apply_nonnull(
-          [&](const auto& ds) { boost::hash_combine(seed, ds.which()); }, k);
+          [&](const auto& ds) { ossia::hash_combine(seed, ds.which()); }, k);
     }
     return seed;
   }
@@ -425,15 +425,13 @@ std::size_t std::hash<State::AddressAccessor>::
 operator()(const State::AddressAccessor& k) const
 {
   std::size_t seed = 0;
-  boost::hash_combine(seed, k.address);
+  ossia::hash_combine(seed, k.address);
   auto& qual = k.qualifiers.get();
-  boost::hash_range(seed, qual.accessors.begin(), qual.accessors.end());
-  boost::hash_combine(seed, qual.unit.v);
+  for(auto& q : qual.accessors)
+  {
+    ossia::hash_combine(seed, q);
+  }
+  ossia::hash_combine(seed, qual.unit.v);
   return seed;
 }
 
-std::size_t boost::hash<State::Address>::
-operator()(const State::Address& k) const
-{
-  return std::hash<State::Address>{}(k);
-}

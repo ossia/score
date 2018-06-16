@@ -272,6 +272,9 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/model/ColorReference.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/statemachine/GraphicsSceneToolPalette.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/statemachine/CommonSelectionState.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/String.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/GraphicsItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ClearLayout.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/DoubleSlider.cpp"
