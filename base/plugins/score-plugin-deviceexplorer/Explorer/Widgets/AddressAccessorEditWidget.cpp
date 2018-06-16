@@ -61,13 +61,13 @@ void AddressAccessorEditWidget::setAddress(const State::AddressAccessor& addr)
 {
   m_address = Device::FullAddressAccessorSettings{};
   m_address.address = addr;
-  m_lineEdit->setText(m_address.address.toString());
+  m_lineEdit->setText(m_address.address.toString_unsafe());
 }
 void AddressAccessorEditWidget::setFullAddress(
     Device::FullAddressAccessorSettings&& addr)
 {
   m_address = std::move(addr);
-  m_lineEdit->setText(m_address.address.toString());
+  m_lineEdit->setText(m_address.address.toString_unsafe());
 }
 
 const Device::FullAddressAccessorSettings&
