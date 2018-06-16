@@ -1,5 +1,4 @@
 #pragma once
-#include <boost/optional.hpp>
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/command/CommandStackFacade.hpp>
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
@@ -73,5 +72,5 @@ protected:
   DocumentContext& operator=(DocumentContext&&) = default;
 };
 
-using MaybeDocument = boost::optional<const score::DocumentContext&>;
+using MaybeDocument = const score::DocumentContext*;
 }

@@ -40,7 +40,7 @@ void ActionManager::reset(score::Document* doc)
   MaybeDocument mdoc;
   if (doc)
   {
-    mdoc = doc->context();
+    mdoc = &doc->context();
 
     focusConnection
         = con(doc->focusManager(), &FocusManager::changed, this, [=] {

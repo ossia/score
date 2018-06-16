@@ -1,21 +1,9 @@
 #pragma once
 #include <ossia/detail/destination_index.hpp>
-
-#include <QHash>
-#include <QList>
-#include <QMetaObject>
-#include <QMetaType>
-#include <QString>
-#include <QStringList>
-#include <boost/functional/hash.hpp>
-#include <cstddef>
-#include <memory>
-#include <score/tools/std/HashMap.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <score_lib_state_export.h>
+#include <ossia/detail/optional.hpp>
 #include <wobjectdefs.h>
-#include <string>
-
+#include <memory>
+#include <score_lib_state_export.h>
 namespace ossia
 {
 struct destination_qualifiers;
