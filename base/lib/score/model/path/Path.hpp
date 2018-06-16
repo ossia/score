@@ -269,7 +269,7 @@ struct hash<Path<tag>>
 {
   std::size_t operator()(const Path<tag>& path) const
   {
-    return boost::hash<ObjectPath>{}(path.unsafePath());
+    return std::hash<ObjectPath>{}(path.unsafePath());
   }
 };
 }

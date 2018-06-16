@@ -1,23 +1,8 @@
 #pragma once
-#include <QDataStream>
 #include <QDebug>
-#include <QString>
-#include <boost/functional/hash_fwd.hpp>
+#include <string>
+#include <score_lib_base_export.h>
 
-inline QDebug operator<<(QDebug debug, const std::string& obj)
-{
-  debug << obj.c_str();
-  return debug;
-}
+SCORE_LIB_BASE_EXPORT
+QDebug operator<<(QDebug debug, const std::string& obj);
 
-namespace boost
-{
-template <>
-struct hash<QString>
-{
-  std::size_t operator()(const QString& path) const
-  {
-    return qHash(path);
-  }
-};
-}

@@ -22,21 +22,28 @@
 #include <stdexcept>
 #include <sys/types.h>
 #include <typeinfo>
+#include <ossia/detail/murmur3.hpp>
+#include <ossia/detail/hash.hpp>
 
-namespace boost
+namespace std
 {
 SCORE_LIB_BASE_EXPORT std::size_t hash<ObjectIdentifier>::
 operator()(const ObjectIdentifier& path) const
 {
-  std::size_t seed = 0;
-  boost::hash_combine(seed, path.objectName());
-  boost::hash_combine(seed, path.id());
+  uint32_t seed = 0;
+  ossia::murmur::murmur3_x86_32(path.objectName().data(), path.objectName().size() * 2, seed, seed);
+  ossia::hash_combine(seed, path.id());
   return seed;
 }
 SCORE_LIB_BASE_EXPORT std::size_t hash<ObjectPath>::
 operator()(const ObjectPath& path) const
 {
-  return boost::hash_range(path.vec().cbegin(), path.vec().cend());
+  std::size_t seed = 0;
+  for(const auto& v : path.vec())
+  {
+    ossia::hash_combine(seed, hash<ObjectIdentifier>{}(v));
+  }
+  return seed;
 }
 }
 

@@ -176,7 +176,7 @@ inline uint qHash(const ObjectPath& obj, uint seed)
   return qHash(obj.toString(), seed);
 }
 
-namespace boost
+namespace std
 {
 template <>
 struct SCORE_LIB_BASE_EXPORT hash<ObjectIdentifier>

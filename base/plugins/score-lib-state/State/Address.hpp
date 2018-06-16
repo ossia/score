@@ -164,15 +164,6 @@ struct SCORE_LIB_STATE_EXPORT hash<State::AddressAccessor>
 };
 }
 
-namespace boost
-{
-template <>
-struct SCORE_LIB_STATE_EXPORT hash<State::Address>
-{
-  std::size_t operator()(const State::Address& k) const;
-};
-}
-
 Q_DECLARE_METATYPE(State::DestinationQualifiers)
 Q_DECLARE_METATYPE(State::Address)
 Q_DECLARE_METATYPE(State::AddressAccessor)

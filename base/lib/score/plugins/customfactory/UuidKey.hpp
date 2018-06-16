@@ -414,24 +414,3 @@ struct hash<UuidKey<T>>
   }
 };
 }
-
-namespace boost
-{
-template <typename T>
-struct hash<UuidKey<T>>
-{
-  constexpr std::size_t operator()(const UuidKey<T>& kagi) const noexcept
-  {
-    return score::uuids::hash_value(kagi.impl());
-  }
-};
-
-template <typename T>
-struct hash<const UuidKey<T>>
-{
-  constexpr std::size_t operator()(const UuidKey<T>& kagi) const noexcept
-  {
-    return score::uuids::hash_value(kagi.impl());
-  }
-};
-}
