@@ -18,11 +18,10 @@ struct GetPropertyWrapper final : public BaseProperty
       = Engine::ossia_to_score::MatchingType<typename Property::param_type>;
 
   GetPropertyWrapper(
-      ossia::net::node_base& param_node,
       ossia::net::parameter_base& param_addr,
       model_t& obj,
       QObject* context)
-      : BaseProperty{param_node, param_addr}, m_model{obj}
+      : BaseProperty{param_addr}, m_model{obj}
   {
     QObject::connect(
         &m_model, Property::notify(), context,
@@ -63,7 +62,7 @@ auto add_getProperty(
   addr->set_access(ossia::access_mode::GET);
 
   return std::make_unique<GetPropertyWrapper<Property>>(
-      *node, *addr, obj, context);
+      *addr, obj, context);
 }
 }
 }
