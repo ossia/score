@@ -28,14 +28,14 @@ PanelDelegate::~PanelDelegate() = default;
 void PanelDelegate::setModel(const DocumentContext& model)
 {
   auto old = m_model;
-  m_model = model;
+  m_model = &model;
   on_modelChanged(old, m_model);
 }
 
 void PanelDelegate::setModel(none_t)
 {
   auto old = m_model;
-  m_model = boost::none;
+  m_model = nullptr;
   on_modelChanged(old, m_model);
 }
 

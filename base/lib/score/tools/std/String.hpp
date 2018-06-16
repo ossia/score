@@ -2,7 +2,7 @@
 #include <QDataStream>
 #include <QDebug>
 #include <QString>
-#include <boost/functional/hash.hpp>
+#include <boost/functional/hash_fwd.hpp>
 
 inline QDebug operator<<(QDebug debug, const std::string& obj)
 {

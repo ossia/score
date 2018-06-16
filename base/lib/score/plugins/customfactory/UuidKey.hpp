@@ -1,6 +1,4 @@
 #pragma once
-
-#include <boost/functional/hash.hpp>
 #include <score/tools/Todo.hpp>
 #include <score_lib_base_export.h>
 
@@ -344,8 +342,8 @@ class UuidKey : score::uuid_t
   using this_type = UuidKey<Tag>;
 
   friend struct std::hash<this_type>;
-  friend struct boost::hash<this_type>;
-  friend struct boost::hash<const this_type>;
+  //friend struct boost::hash<this_type>;
+  //friend struct boost::hash<const this_type>;
   friend constexpr bool operator==(const this_type& lhs, const this_type& rhs)
   {
     return static_cast<const score::uuid_t&>(lhs)
@@ -412,8 +410,7 @@ struct hash<UuidKey<T>>
 {
   constexpr std::size_t operator()(const UuidKey<T>& kagi) const noexcept
   {
-    return boost::hash<score::uuid_t>()(
-        static_cast<const score::uuid_t&>(kagi));
+    return score::uuids::hash_value(kagi.impl());
   }
 };
 }
@@ -425,8 +422,7 @@ struct hash<UuidKey<T>>
 {
   constexpr std::size_t operator()(const UuidKey<T>& kagi) const noexcept
   {
-    return boost::hash<score::uuid_t>()(
-        static_cast<const score::uuid_t&>(kagi));
+    return score::uuids::hash_value(kagi.impl());
   }
 };
 
@@ -435,8 +431,7 @@ struct hash<const UuidKey<T>>
 {
   constexpr std::size_t operator()(const UuidKey<T>& kagi) const noexcept
   {
-    return boost::hash<score::uuid_t>()(
-        static_cast<const score::uuid_t&>(kagi));
+    return score::uuids::hash_value(kagi.impl());
   }
 };
 }
