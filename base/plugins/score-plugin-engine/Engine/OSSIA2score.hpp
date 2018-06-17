@@ -1,36 +1,9 @@
 #pragma once
 #include <ossia/editor/scenario/time_value.hpp>
-#include <ossia/network/base/device.hpp>
-#include <ossia/network/common/parameter_properties.hpp>
-#include <ossia/network/domain/domain_fwd.hpp>
-#include <ossia/network/value/vec.hpp>
-
-#include <Device/Address/AddressSettings.hpp>
-#include <Device/Address/ClipMode.hpp>
-#include <Device/Address/IOType.hpp>
-#include <Device/Node/DeviceNode.hpp>
-#include <Process/TimeValue.hpp>
-#include <State/Domain.hpp>
 #include <State/Value.hpp>
-#include <score_plugin_engine_export.h>
+#include <Process/TimeValue.hpp>
 
-namespace ossia
-{
-class value;
-namespace net
-{
-class node_base;
-}
-}
-
-namespace Device
-{
-class DeviceList;
-}
-// Utility functions to convert from one node to another.
-namespace Engine
-{
-namespace ossia_to_score
+namespace Engine::ossia_to_score
 {
 
 template <typename>
@@ -184,23 +157,9 @@ struct MatchingType<::TimeVal>
   }
 };
 
-SCORE_PLUGIN_ENGINE_EXPORT State::Address
-ToAddress(const ossia::net::node_base& node);
-SCORE_PLUGIN_ENGINE_EXPORT Device::AddressSettings
-ToAddressSettings(const ossia::net::node_base& node);
-SCORE_PLUGIN_ENGINE_EXPORT Device::FullAddressSettings
-ToFullAddressSettings(const ossia::net::node_base& node);
-
-SCORE_PLUGIN_ENGINE_EXPORT Device::FullAddressSettings
-ToFullAddressSettings(const State::Address& addr, const Device::DeviceList&);
-
-SCORE_PLUGIN_ENGINE_EXPORT Device::Node
-ToDeviceExplorer(const ossia::net::node_base& node);
-
 inline ::TimeVal defaultTime(ossia::time_value t)
 {
   return t.infinite() ? ::TimeVal::infinite()
                       : ::TimeVal::fromMsecs(double(t) / 1000.);
-}
 }
 }

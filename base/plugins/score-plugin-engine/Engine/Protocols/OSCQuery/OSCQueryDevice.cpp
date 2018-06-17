@@ -21,7 +21,7 @@ namespace Engine
 namespace Network
 {
 OSCQueryDevice::OSCQueryDevice(const Device::DeviceSettings& settings)
-    : OwningOSSIADevice{settings}
+    : OwningDeviceInterface{settings}
 {
   m_capas.canRefreshTree = true;
   m_capas.canRenameNode = false;
@@ -45,7 +45,7 @@ void OSCQueryDevice::disconnect()
     proto->set_fail_callback([=] {});
   }
 
-  OwningOSSIADevice::disconnect();
+  OwningDeviceInterface::disconnect();
 }
 bool OSCQueryDevice::reconnect()
 {

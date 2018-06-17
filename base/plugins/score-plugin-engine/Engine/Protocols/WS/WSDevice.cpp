@@ -18,7 +18,7 @@ namespace Engine
 namespace Network
 {
 WSDevice::WSDevice(const Device::DeviceSettings& settings)
-    : OwningOSSIADevice{settings}
+    : OwningDeviceInterface{settings}
 {
   m_capas.canRefreshTree = true;
   m_capas.canAddNode = false;

@@ -292,14 +292,13 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
   execState->register_device(audio_device->getDevice());
   for (auto dev : m_ctx.devices.list().devices())
   {
-    if (auto od = dynamic_cast<Engine::Network::OSSIADevice*>(dev))
-      if (auto d = od->getDevice())
-      {
-        if (auto midi_dev = dynamic_cast<ossia::net::midi::midi_device*>(d))
-          execState->register_device(midi_dev);
-        else
-          execState->register_device(d);
-      }
+    if (auto d = dev->getDevice())
+    {
+      if (auto midi_dev = dynamic_cast<ossia::net::midi::midi_device*>(d))
+        execState->register_device(midi_dev);
+      else
+        execState->register_device(d);
+    }
   }
 
   auto parent = dynamic_cast<Scenario::ScenarioInterface*>(cst.parent());

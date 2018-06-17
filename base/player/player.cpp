@@ -8,7 +8,7 @@
 #include <ossia/network/generic/generic_device.hpp>
 
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
-#include <Engine/Protocols/OSSIADevice.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #if defined(SCORE_PLUGIN_AUDIO)
 #  include <Audio/AudioStreamEngine/AudioApplicationPlugin.hpp>
@@ -244,7 +244,7 @@ void PlayerImpl::setupLoadedDocument()
     Device::DeviceInterface* d = m_devicesPlugin->list().findDevice(
         QString::fromStdString(dev->get_name()));
 
-    if (auto sd = static_cast<Engine::Network::OwningOSSIADevice*>(d))
+    if (auto sd = dynamic_cast<Device::OwningDeviceInterface*>(d))
     {
       sd->replaceDevice(dev);
     }
@@ -277,7 +277,7 @@ void PlayerImpl::releaseDevice(ossia::net::device_base* dev)
   SCORE_ASSERT(m_devicesPlugin);
   Device::DeviceInterface* d = m_devicesPlugin->list().findDevice(
       QString::fromStdString(dev->get_name()));
-  if (auto sd = static_cast<Engine::Network::OwningOSSIADevice*>(d))
+  if (auto sd = dynamic_cast<Device::OwningDeviceInterface*>(d))
   {
     sd->releaseDevice();
   }

@@ -2,7 +2,7 @@
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/node.hpp>
 
-#include <Engine/Protocols/OSSIADevice.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
 #include <nano_observer.hpp>
 
 namespace ossia
@@ -17,7 +17,8 @@ namespace Engine
 {
 namespace Network
 {
-class LocalDevice final : public OSSIADevice
+class LocalDevice final
+    : public Device::DeviceInterface
 {
 public:
   LocalDevice(
@@ -42,7 +43,7 @@ private:
 
   ossia::net::device_base& m_dev;
   ossia::net::multiplex_protocol* m_proto;
-  using OSSIADevice::refresh;
+  using DeviceInterface::refresh;
 };
 }
 }

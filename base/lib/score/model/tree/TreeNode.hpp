@@ -251,7 +251,7 @@ public:
   }
 
   template <typename Fun>
-  void visit(Fun f)
+  void visit(Fun f) const
   {
     f(*this);
 

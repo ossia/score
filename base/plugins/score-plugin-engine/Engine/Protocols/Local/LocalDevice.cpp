@@ -30,7 +30,7 @@ LocalDevice::LocalDevice(
     ossia::net::generic_device& dev,
     const score::DocumentContext& ctx,
     const Device::DeviceSettings& settings)
-    : OSSIADevice{settings}, m_dev{dev}
+    : DeviceInterface{settings}, m_dev{dev}
 {
   m_capas.canRefreshTree = true;
   m_capas.canAddNode = false;

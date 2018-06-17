@@ -19,7 +19,7 @@ namespace Engine
 namespace Network
 {
 HTTPDevice::HTTPDevice(const Device::DeviceSettings& settings)
-    : OwningOSSIADevice{settings}
+    : OwningDeviceInterface{settings}
 {
   m_capas.canRefreshTree = true;
   m_capas.canAddNode = false;

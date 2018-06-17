@@ -1,5 +1,5 @@
 #pragma once
-#include <Engine/Protocols/OSSIADevice.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
 
 namespace score
 {
@@ -10,7 +10,7 @@ namespace Engine
 {
 namespace Network
 {
-class MIDIDevice final : public OwningOSSIADevice
+class MIDIDevice final : public Device::OwningDeviceInterface
 {
 public:
   MIDIDevice(const Device::DeviceSettings& settings);
@@ -19,7 +19,7 @@ public:
 
   void disconnect() override;
 
-  using OwningOSSIADevice::refresh;
+  using OwningDeviceInterface::refresh;
   Device::Node refresh() override;
 };
 }

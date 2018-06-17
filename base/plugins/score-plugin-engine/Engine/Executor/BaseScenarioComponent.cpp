@@ -98,11 +98,17 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
   m_ossia_interval->onSetup(
       m_ossia_interval, main_interval, m_ossia_interval->makeDurations());
 
-  auto addr = *State::Address::fromString("audio:/out/main");
-  auto param = score_to_ossia::address(addr, m_ctx.devices.list());
-
-  auto node = main_interval->node;
-  m_ctx.executionQueue.enqueue([=] { static_cast<ossia::nodes::interval*>(node.get())->audio_out.address = param; });
+  if(auto dev = m_ctx.devices.list().findDevice("audio"))
+  {
+    if(auto n = ossia::net::find_node(dev->getDevice()->get_root_node(), "/out/main"))
+    {
+      if(auto param = n->get_parameter())
+      {
+        auto node = main_interval->node;
+        m_ctx.executionQueue.enqueue([=] { static_cast<ossia::nodes::interval*>(node.get())->audio_out.address = param; });
+      }
+    }
+  }
 }
 
 void BaseScenarioElement::cleanup()

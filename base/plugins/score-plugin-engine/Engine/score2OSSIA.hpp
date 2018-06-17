@@ -55,29 +55,10 @@ namespace score_to_ossia
 //// Device-related functions
 // OSSIA::net::Node* might be null.
 SCORE_PLUGIN_ENGINE_EXPORT ossia::net::node_base*
-findNodeFromPath(const QStringList& path, ossia::net::device_base& dev);
-SCORE_PLUGIN_ENGINE_EXPORT ossia::net::node_base*
-findNodeFromPath(const Device::Node& path, ossia::net::device_base& dev);
-
-SCORE_PLUGIN_ENGINE_EXPORT ossia::net::node_base*
 findAddress(const Device::DeviceList& devices, const State::Address& addr);
 
 SCORE_PLUGIN_ENGINE_EXPORT optional<ossia::destination> makeDestination(
     const Device::DeviceList& devices, const State::AddressAccessor& addr);
-
-// OSSIA::net::Node* won't be null.
-SCORE_PLUGIN_ENGINE_EXPORT ossia::net::node_base*
-getNodeFromPath(const QStringList& path, ossia::net::device_base& dev);
-SCORE_PLUGIN_ENGINE_EXPORT ossia::net::node_base*
-createNodeFromPath(const QStringList& path, ossia::net::device_base& dev);
-
-SCORE_PLUGIN_ENGINE_EXPORT void createOSSIAAddress(
-    const Device::FullAddressSettings& settings, ossia::net::node_base& node);
-SCORE_PLUGIN_ENGINE_EXPORT void updateOSSIAAddress(
-    const Device::FullAddressSettings& settings,
-    ossia::net::parameter_base& addr);
-SCORE_PLUGIN_ENGINE_EXPORT void
-updateOSSIAValue(const ossia::value& data, ossia::value& val);
 
 //// Other conversions
 SCORE_PLUGIN_ENGINE_EXPORT inline ossia::time_value
@@ -94,13 +75,6 @@ SCORE_PLUGIN_ENGINE_EXPORT void state(
 SCORE_PLUGIN_ENGINE_EXPORT ossia::state state(
     const Scenario::StateModel& score_state,
     const Engine::Execution::Context& ctx);
-
-SCORE_PLUGIN_ENGINE_EXPORT
-ossia::net::parameter_base*
-address(const State::Address& addr, const Device::DeviceList& deviceList);
-
-SCORE_PLUGIN_ENGINE_EXPORT optional<ossia::message>
-message(const State::Message& mess, const Device::DeviceList&);
 
 SCORE_PLUGIN_ENGINE_EXPORT ossia::expression_ptr
 condition_expression(const State::Expression& expr, const Device::DeviceList&);

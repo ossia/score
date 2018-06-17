@@ -5,7 +5,7 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
-#include <Engine/Protocols/OSSIADevice.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
 class QLineEdit;
 namespace Dataflow
 {
@@ -41,7 +41,7 @@ class AudioProtocolFactory final : public Device::ProtocolFactory
       const Device::DeviceSettings& b) const override;
 };
 
-class AudioDevice final : public Engine::Network::OSSIADevice
+class AudioDevice final : public Device::DeviceInterface
 {
   W_OBJECT(AudioDevice)
 public:
@@ -57,7 +57,7 @@ public:
   }
 
 private:
-  using Engine::Network::OSSIADevice::refresh;
+  using Device::DeviceInterface::refresh;
   Device::Node refresh() override;
   void disconnect() override;
   ossia::audio_protocol* m_protocol{};

@@ -1,20 +1,20 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
-#include <wobjectdefs.h>
 #include <Device/Protocol/DeviceSettings.hpp>
-#include <QObject>
-#include <QString>
-#include <State/Address.hpp>
-#include <State/Value.hpp>
-#include <nano_signal_slot.hpp>
-#include <score/tools/std/Optional.hpp>
 #include <score_lib_device_export.h>
-#include <vector>
+#include <nano_observer.hpp>
+#include <wobjectdefs.h>
 namespace ossia
 {
 class value;
 }
 
+namespace ossia::net
+{
+class node_base;
+class parameter_base;
+class device_base;
+}
 namespace State
 {
 struct Message;
@@ -44,7 +44,9 @@ enum DeviceLogging : int8_t
   LogUnfolded,
   LogEverything
 };
-class SCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject
+class SCORE_LIB_DEVICE_EXPORT DeviceInterface
+    : public QObject
+    , public Nano::Observer
 {
   W_OBJECT(DeviceInterface)
 
@@ -53,98 +55,142 @@ public:
   virtual ~DeviceInterface();
 
   const Device::DeviceSettings& settings() const;
-  const auto& name() const
-  {
-    return settings().name;
-  }
+  const QString& name() const;
 
   virtual void addNode(const Device::Node& n);
 
-  DeviceCapas capabilities() const
-  {
-    return m_capas;
-  }
+  DeviceCapas capabilities() const;
 
-  virtual void disconnect() = 0;
+  virtual void disconnect();
   virtual bool reconnect() = 0;
-  virtual void recreate(const Device::Node&)
-  {
-  } // Argument is the node of the device, used for recreation
-  virtual bool connected() const = 0;
+  virtual void recreate(const Device::Node&); // Argument is the node of the device, used for recreation
+  bool connected() const;
 
-  virtual void updateSettings(const Device::DeviceSettings&) = 0;
+  void updateSettings(const Device::DeviceSettings&);
 
   // Asks, and returns all the new addresses if the device can refresh itself
   // Minuit-like.
   // The addresses are not applied to the device, they have to be via a
   // command!
-  virtual Device::Node refresh()
-  {
-    return {};
-  }
-  virtual optional<ossia::value> refresh(const State::Address&)
-  {
-    return {};
-  }
-  virtual void request(const Device::Node&)
-  {
-  }
-  virtual void setListening(const State::Address&, bool)
-  {
-  }
-  virtual void addToListening(const std::vector<State::Address>&)
-  {
-  }
-  virtual std::vector<State::Address> listening() const
-  {
-    return {};
-  }
+  virtual Device::Node refresh();
+  optional<ossia::value> refresh(const State::Address&);
+  void request(const Device::Node&);
+  void setListening(const State::Address&, bool);
+  void addToListening(const std::vector<State::Address>&);
+  std::vector<State::Address> listening() const;
 
-  virtual void addAddress(const Device::FullAddressSettings&) = 0;
-  virtual void updateAddress(
+  virtual void addAddress(const Device::FullAddressSettings&);
+  void updateAddress(
       const State::Address& currentAddr,
-      const Device::FullAddressSettings& newAddr)
-      = 0;
-  virtual void removeNode(const State::Address&) = 0;
+      const Device::FullAddressSettings& newAddr);
+  void removeNode(const State::Address&);
 
-  // Execution API... Maybe we don't need it here.
-  virtual void sendMessage(const State::Message& mess) = 0;
+  void sendMessage(const State::Message& mess);
 
   // Make a node from an inside path, if it has been added for instance.
-  virtual Device::Node getNode(const State::Address&) = 0;
-  virtual Device::Node getNodeWithoutChildren(const State::Address&) = 0;
+  Device::Node getNode(const State::Address&);
+  Device::Node getNodeWithoutChildren(const State::Address&);
 
-  virtual bool isLogging() const = 0;
-  virtual void setLogging(DeviceLogging) = 0;
+  bool isLogging() const;
+  void setLogging(DeviceLogging);
 
-  virtual bool isLearning() const
-  {
-    return false;
-  }
-  virtual void setLearning(bool)
-  {
-  }
+  virtual ossia::net::device_base* getDevice() const = 0;
+
+  virtual bool isLearning() const;
+  virtual void setLearning(bool);
+
+
+  void nodeCreated(const ossia::net::node_base&);
+  void nodeRemoving(const ossia::net::node_base&);
+  void nodeRenamed(const ossia::net::node_base&, std::string);
+  void addressCreated(const ossia::net::parameter_base&);
+  void addressUpdated(const ossia::net::node_base&, ossia::string_view key);
+  void addressRemoved(const ossia::net::parameter_base& addr);
 
   Nano::Signal<void(const State::Address&, const ossia::value&)> valueUpdated;
 
 public:
   // These signals are emitted if a device changes from the inside
-  void pathAdded(const State::Address& arg_1) W_SIGNAL(pathAdded, arg_1);
+  void pathAdded(const State::Address& arg_1)
+  W_SIGNAL(pathAdded, arg_1);
   void pathUpdated(
       const State::Address& arg_1,           // current address
-      const Device::AddressSettings& arg_2) W_SIGNAL(pathUpdated, arg_1, arg_2); // new data
-  void pathRemoved(const State::Address& arg_1) W_SIGNAL(pathRemoved, arg_1);
+      const Device::AddressSettings& arg_2)
+  W_SIGNAL(pathUpdated, arg_1, arg_2); // new data
+  void pathRemoved(const State::Address& arg_1)
+  W_SIGNAL(pathRemoved, arg_1);
 
   // In case the whole namespace changed?
-  void namespaceUpdated() W_SIGNAL(namespaceUpdated);
+  void namespaceUpdated()
+  W_SIGNAL(namespaceUpdated);
 
   /* If logging is enabled, these two signals may be sent
    * when something happens */
-  void logInbound(const QString& arg_1) const W_SIGNAL(logInbound, arg_1);
-  void logOutbound(const QString& arg_1) const W_SIGNAL(logOutbound, arg_1);
+  void logInbound(const QString& arg_1) const
+  W_SIGNAL(logInbound, arg_1);
+  void logOutbound(const QString& arg_1) const
+  W_SIGNAL(logOutbound, arg_1);
 
 protected:
   Device::DeviceSettings m_settings;
   DeviceCapas m_capas;
+
+
+  using callback_pair = std::pair<
+      ossia::net::parameter_base*,
+      ossia::callback_container<ossia::value_callback>::iterator>;
+  score::hash_map<State::Address, callback_pair> m_callbacks;
+
+  void removeListening_impl(ossia::net::node_base& node, State::Address addr);
+  void removeListening_impl(
+      ossia::net::node_base& node,
+      State::Address addr,
+      std::vector<State::Address>&);
+  void
+  renameListening_impl(const State::Address& parent, const QString& newName);
+  void setLogging_impl(DeviceLogging) const;
+  void enableCallbacks();
+  void disableCallbacks();
+
+  // Refresh without handling callbacks
+  Device::Node simple_refresh();
+
+private:
+  DeviceLogging m_logging = DeviceLogging::LogNothing;
+  bool m_callbacksEnabled = false;
 };
+
+class SCORE_LIB_DEVICE_EXPORT OwningDeviceInterface
+    : public DeviceInterface
+{
+public:
+  virtual ~OwningDeviceInterface();
+  void replaceDevice(ossia::net::device_base*);
+  void releaseDevice();
+
+protected:
+  void disconnect() override;
+
+  using DeviceInterface::DeviceInterface;
+
+  ossia::net::device_base* getDevice() const final override
+  {
+    return m_dev.get();
+  }
+
+  std::unique_ptr<ossia::net::device_base> m_dev;
+  bool m_owned{true};
+};
+
+SCORE_LIB_DEVICE_EXPORT ossia::net::node_base*
+createNodeFromPath(const QStringList& path, ossia::net::device_base& dev);
+
+SCORE_LIB_DEVICE_EXPORT Device::Node
+ToDeviceExplorer(const ossia::net::node_base& node);
+
+SCORE_LIB_DEVICE_EXPORT ossia::net::node_base*
+findNodeFromPath(const Device::Node& path, ossia::net::device_base& dev);
+
+SCORE_LIB_DEVICE_EXPORT ossia::net::node_base*
+findNodeFromPath(const QStringList& path, ossia::net::device_base& dev);
 }
