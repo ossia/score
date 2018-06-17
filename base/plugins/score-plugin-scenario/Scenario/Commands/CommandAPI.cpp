@@ -1,5 +1,4 @@
 #include <Scenario/Commands/CommandAPI.hpp>
-#include <Scenario/Commands/Interval/MoveProcess.hpp>
 #include <score_plugin_scenario_commands_files.hpp>
 
 namespace Scenario { namespace Command {
@@ -211,6 +210,39 @@ void Macro::moveProcess(
     , const Id<Process::ProcessModel>& proc)
 {
   auto cmd = new Command::MoveProcess(old_interval, new_interval, proc);
+  m.submitCommand(cmd);
+}
+
+void Macro::moveSlot(
+    const IntervalModel& old_interval
+    , const IntervalModel& new_interval
+    , int slot_idx)
+{
+  const auto old_slot = old_interval.smallView()[slot_idx];
+  const auto old_procs = old_slot.processes;
+
+  // OPTIMIZEME by putting it in a single command.
+  // Hard to do but the current approach wastes a lot of memory.
+  // To the future reader: don't forget to do a getStrongIdRange.
+
+  Scenario::Slot new_slot;
+  new_slot.height = old_slot.height;
+  for(auto& proc : old_procs)
+  {
+    auto cmd = new Command::MoveProcess(old_interval, new_interval, proc, false);
+    m.submitCommand(cmd);
+    const auto& old_id = cmd->oldProcessId();
+    const auto& new_id = cmd->newProcessId();
+
+    if(old_id == old_slot.frontProcess)
+    {
+      new_slot.frontProcess = new_id;
+    }
+
+    new_slot.processes.push_back(new_id);
+  }
+
+  auto cmd = new Command::AddSlotToRack{new_interval, std::move(new_slot)};
   m.submitCommand(cmd);
 }
 

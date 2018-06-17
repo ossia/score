@@ -141,6 +141,11 @@ class Macro
         , const Scenario::IntervalModel& new_interval
         , const Id<Process::ProcessModel>& proc);
 
+    void moveSlot(
+        const IntervalModel& old_interval
+        , const IntervalModel& new_interval
+        , int slot_idx);
+
     void removeProcess(
         const Scenario::IntervalModel& interval
         , const Id<Process::ProcessModel>& proc);

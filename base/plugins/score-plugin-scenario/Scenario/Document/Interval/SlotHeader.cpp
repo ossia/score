@@ -146,9 +146,7 @@ void SlotHeader::mousePressEvent(QGraphicsSceneMouseEvent* event)
   else if (xpos >= m_menupos - 4 && xpos < m_menupos + 4)
   {
     // menu
-    if (const auto tip
-        = dynamic_cast<const TemporalIntervalPresenter*>(&m_presenter))
-      tip->requestSlotMenu(m_slotIndex, event->screenPos(), event->scenePos());
+    m_presenter.requestSlotMenu(m_slotIndex, event->screenPos(), event->scenePos());
   }
   else if(boundingRect().contains(event->pos()) && m_presenter.getSlots()[m_slotIndex].processes.size() > 1)
   {
@@ -167,7 +165,6 @@ void SlotHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   const auto xpos = event->pos().x();
   if (xpos >= 0 && xpos < 16 && slot_header_drag)
   {
-    qDebug() << xpos << slot_drag_moving;
     auto min_dist = (event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton))
                     .manhattanLength() >= QApplication::startDragDistance();
     if (min_dist)
@@ -179,14 +176,19 @@ void SlotHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
       return;
     }
 
+    bool temporal = dynamic_cast<const TemporalIntervalPresenter*>(&m_presenter);
     QMimeData* mime = new QMimeData;
-    //auto json = score::marshall<JSONObject>(m_presenter.model());
-    //json["DraggedSlot"] = m_slotIndex;
-    auto proc_id = *m_presenter.model().smallView()[m_slotIndex].frontProcess;
+    auto proc_id =
+        temporal
+        ? *m_presenter.model().smallView()[m_slotIndex].frontProcess
+        : m_presenter.model().fullView()[m_slotIndex].process;
+
     auto& proc = m_presenter.model().processes.at(proc_id);
     auto json = copyProcess(proc);
     json["Path"] = toJsonObject(score::IDocument::path(proc));
     json["Duration"] = m_presenter.model().duration.defaultDuration().msec();
+    json["SlotIndex"] = m_slotIndex;
+    json["View"] = temporal ? QStringLiteral("Small") : QStringLiteral("Full");
     mime->setData(score::mime::layerdata(), QJsonDocument{json}.toJson());
     slot_header_drag->setMimeData(mime);
 
@@ -195,7 +197,8 @@ void SlotHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     slot_header_drag->setPixmap(view->pixmap().scaledToWidth(50));
     slot_header_drag->setHotSpot(QPoint(5, 5));
 
-    QObject::connect(slot_header_drag.get(), &QDrag::destroyed, &m_presenter, [p=&m_presenter] { p->stopSlotDrag(); });
+    QObject::connect(slot_header_drag.get(), &QDrag::destroyed,
+                     &m_presenter, [p=&m_presenter] { p->stopSlotDrag(); });
 
     m_presenter.startSlotDrag(m_slotIndex, mapToParent(event->pos()));
     slot_header_drag->exec();

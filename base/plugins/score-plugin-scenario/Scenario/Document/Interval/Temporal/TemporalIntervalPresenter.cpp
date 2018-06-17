@@ -314,7 +314,7 @@ void TemporalIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
     CommandDispatcher<> disp{this->m_context.commandStack};
     if(qApp->keyboardModifiers() & Qt::ALT || m_model.smallView()[curslot].processes.size() == 1)
     {
-      disp.submitCommand<Command::MoveSlot>(this->m_model, Slot::RackView::SmallView, curslot, slot);
+      disp.submitCommand<Command::ChangeSlotPosition>(this->m_model, Slot::RackView::SmallView, curslot, slot);
     }
     else
     {
