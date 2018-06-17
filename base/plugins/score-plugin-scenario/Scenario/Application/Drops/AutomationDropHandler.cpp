@@ -109,50 +109,56 @@ bool DropLayerInScenario::drop(
 
     // Create a box.
     const Scenario::ProcessModel& scenar = pres.model();
-    Scenario::Point pt = pres.toScenarioPoint(pos);
+    const Scenario::Point pt = pres.toScenarioPoint(pos);
 
-    auto json = QJsonDocument::fromJson(mime.data(score::mime::layerdata())).object();
+    const auto json = QJsonDocument::fromJson(mime.data(score::mime::layerdata())).object();
 
-    TimeVal t = TimeVal::fromMsecs(json["Duration"].toDouble());
+    const TimeVal t = TimeVal::fromMsecs(json["Duration"].toDouble());
 
-    auto& doc = score::IDocument::documentContext(scenar);
     auto& interval = m.createBox(scenar, pt.date, pt.date + t, pt.y);
 
-    auto pid = ossia::get_pid();
-    bool same_doc = (pid == json["PID"].toInt()) && (doc.document.id().val() == json["Document"] .toInt());
-    bool small_view = json["View"].toString() == "Small";
-    int slot_index = json["SlotIndex"].toInt();
-
-    auto old_p = fromJsonObject<Path<Process::ProcessModel>>(json["Path"]);
-    if(same_doc)
-    {
-      if(auto obj = old_p.try_find(doc))
-      if(auto itv = qobject_cast<IntervalModel*>(obj->parent()))
-      {
-        if(small_view && (qApp->keyboardModifiers() & Qt::ALT))
-        {
-          m.moveSlot(*itv, interval, slot_index);
-        }
-        else
-        {
-          m.moveProcess(*itv, interval, obj->id());
-        }
-      }
-    }
-    else
-    {
-      // Just create a new process
-      m.loadProcessInSlot(interval, json);
-    }
-
-    // Finally we show the newly created rack
-    m.showRack(interval);
-
-    m.commit();
+    const auto& doc = score::IDocument::documentContext(scenar);
+    DropLayerInInterval::perform(interval, doc, m, json);
     return true;
   }
 
   return false;
+}
+
+void DropLayerInInterval::perform(
+    const IntervalModel& interval, const score::DocumentContext& doc, Scenario::Command::Macro& m, const QJsonObject& json)
+{
+  const auto pid = ossia::get_pid();
+  const bool same_doc = (pid == json["PID"].toInt()) && (doc.document.id().val() == json["Document"] .toInt());
+  const bool small_view = json["View"].toString() == "Small";
+  const int slot_index = json["SlotIndex"].toInt();
+
+  const auto old_p = fromJsonObject<Path<Process::ProcessModel>>(json["Path"]);
+  if(same_doc)
+  {
+    if(auto obj = old_p.try_find(doc))
+    if(auto itv = qobject_cast<IntervalModel*>(obj->parent()))
+    {
+      if(small_view && (qApp->keyboardModifiers() & Qt::ALT))
+      {
+        m.moveSlot(*itv, interval, slot_index);
+      }
+      else
+      {
+        m.moveProcess(*itv, interval, obj->id());
+      }
+    }
+  }
+  else
+  {
+    // Just create a new process
+    m.loadProcessInSlot(interval, json);
+  }
+
+  // Finally we show the newly created rack
+  m.showRack(interval);
+
+  m.commit();
 }
 
 bool DropLayerInInterval::drop(
@@ -160,33 +166,11 @@ bool DropLayerInInterval::drop(
 {
   if (mime.formats().contains(score::mime::layerdata()))
   {
-    auto& doc = score::IDocument::documentContext(interval);
+    const auto& doc = score::IDocument::documentContext(interval);
     Scenario::Command::Macro m{new Scenario::Command::DropProcessInIntervalMacro, doc};
 
-    auto json = QJsonDocument::fromJson(mime.data(score::mime::layerdata())).object();
-
-    auto pid = ossia::get_pid();
-    bool same_doc = (pid == json["PID"].toInt()) && (doc.document.id().val() == json["Document"] .toInt());
-
-    auto old_p = fromJsonObject<Path<Process::ProcessModel>>(json["Path"]);
-    if(same_doc)
-    {
-      if(auto obj = old_p.try_find(doc))
-      if(auto itv = qobject_cast<IntervalModel*>(obj->parent()))
-      {
-        m.moveProcess(*itv, interval, obj->id());
-      }
-    }
-    else
-    {
-      // Just create a new process
-      m.loadProcessInSlot(interval, json);
-    }
-
-    // Finally we show the newly created rack
-    m.showRack(interval);
-
-    m.commit();
+    const auto json = QJsonDocument::fromJson(mime.data(score::mime::layerdata())).object();
+    perform(interval, doc, m, json);
     return true;
   }
 

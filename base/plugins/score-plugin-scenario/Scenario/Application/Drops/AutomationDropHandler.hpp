@@ -1,8 +1,15 @@
 #pragma once
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
-
+namespace score
+{
+class DocumentContext;
+}
 namespace Scenario
 {
+namespace Command
+{
+class Macro;
+}
 
 class DropProcessInScenario final : public DropHandler
 {
@@ -41,6 +48,9 @@ class DropLayerInInterval final : public IntervalDropHandler
   bool drop(
       const Scenario::IntervalModel&,
       const QMimeData& mime) override;
+
+public:
+  static void perform(const IntervalModel& interval, const score::DocumentContext& doc, Scenario::Command::Macro& m, const QJsonObject& json);
 };
 /**
  * @brief The ProcessDropHandler class
