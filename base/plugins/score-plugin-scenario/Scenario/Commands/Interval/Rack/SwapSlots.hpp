@@ -14,11 +14,11 @@ namespace Scenario
 class IntervalModel;
 namespace Command
 {
-class MoveSlot final : public score::Command
+class ChangeSlotPosition final : public score::Command
 {
-  SCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveSlot, "Swap slots")
+  SCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ChangeSlotPosition, "Change slot position")
 public:
-  MoveSlot(Path<IntervalModel>&& rack, Slot::RackView, int pos1, int pos2);
+  ChangeSlotPosition(Path<IntervalModel>&& rack, Slot::RackView, int pos1, int pos2);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

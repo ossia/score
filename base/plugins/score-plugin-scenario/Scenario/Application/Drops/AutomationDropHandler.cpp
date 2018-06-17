@@ -120,6 +120,8 @@ bool DropLayerInScenario::drop(
 
     auto pid = ossia::get_pid();
     bool same_doc = (pid == json["PID"].toInt()) && (doc.document.id().val() == json["Document"] .toInt());
+    bool small_view = json["View"].toString() == "Small";
+    int slot_index = json["SlotIndex"].toInt();
 
     auto old_p = fromJsonObject<Path<Process::ProcessModel>>(json["Path"]);
     if(same_doc)
@@ -127,7 +129,14 @@ bool DropLayerInScenario::drop(
       if(auto obj = old_p.try_find(doc))
       if(auto itv = qobject_cast<IntervalModel*>(obj->parent()))
       {
-        m.moveProcess(*itv, interval, obj->id());
+        if(small_view && (qApp->keyboardModifiers() & Qt::ALT))
+        {
+          m.moveSlot(*itv, interval, slot_index);
+        }
+        else
+        {
+          m.moveProcess(*itv, interval, obj->id());
+        }
       }
     }
     else

@@ -21,6 +21,17 @@ namespace Command
 
 AddSlotToRack::AddSlotToRack(const Path<IntervalModel>& rackPath)
     : m_path{rackPath}
+    , m_slot{{}
+             , Id<Process::ProcessModel>{}
+             , score::AppContext()
+               .settings<Scenario::Settings::Model>()
+               .getSlotHeight()}
+{
+}
+
+AddSlotToRack::AddSlotToRack(const Path<IntervalModel>& rackPath, Slot&& slt)
+    : m_path{rackPath}
+    , m_slot{std::move(slt)}
 {
 }
 
@@ -33,21 +44,18 @@ void AddSlotToRack::undo(const score::DocumentContext& ctx) const
 void AddSlotToRack::redo(const score::DocumentContext& ctx) const
 {
   auto& rack = m_path.find(ctx);
-  auto h = score::AppContext()
-               .settings<Scenario::Settings::Model>()
-               .getSlotHeight();
 
-  rack.addSlot(Slot{{}, Id<Process::ProcessModel>{}, h});
+  rack.addSlot(m_slot);
 }
 
 void AddSlotToRack::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path;
+  s << m_path << m_slot;
 }
 
 void AddSlotToRack::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_path;
+  s >> m_path >> m_slot;
 }
 }
 }

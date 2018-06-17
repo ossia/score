@@ -13,7 +13,7 @@ namespace Scenario
 {
 namespace Command
 {
-MoveSlot::MoveSlot(
+ChangeSlotPosition::ChangeSlotPosition(
     Path<IntervalModel>&& rack, Slot::RackView v, int first, int second)
     : m_path{std::move(rack)}
     , m_view{v}
@@ -22,23 +22,23 @@ MoveSlot::MoveSlot(
 {
 }
 
-void MoveSlot::undo(const score::DocumentContext& ctx) const
+void ChangeSlotPosition::undo(const score::DocumentContext& ctx) const
 {
   redo(ctx);
 }
 
-void MoveSlot::redo(const score::DocumentContext& ctx) const
+void ChangeSlotPosition::redo(const score::DocumentContext& ctx) const
 {
   auto& cst = m_path.find(ctx);
   cst.swapSlots(m_first, m_second, m_view);
 }
 
-void MoveSlot::serializeImpl(DataStreamInput& s) const
+void ChangeSlotPosition::serializeImpl(DataStreamInput& s) const
 {
   s << m_path << m_view << m_first << m_second;
 }
 
-void MoveSlot::deserializeImpl(DataStreamOutput& s)
+void ChangeSlotPosition::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_path >> m_view >> m_first >> m_second;
 }

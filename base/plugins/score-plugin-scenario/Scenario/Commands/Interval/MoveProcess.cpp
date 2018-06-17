@@ -19,13 +19,15 @@ namespace Scenario::Command
 MoveProcess::MoveProcess(
       const IntervalModel& src
       , const IntervalModel& tgt
-      , Id<Process::ProcessModel> processId):
+      , Id<Process::ProcessModel> processId
+      , bool addSlot):
     m_src{src}
   , m_tgt{tgt}
   , m_oldId{processId}
   , m_newId{getStrongId(tgt.processes)}
   , m_oldSmall{src.smallView()}
   , m_oldFull{src.fullView()}
+  , m_addedSlot{addSlot}
 {
   int i = 0;
   for(auto& e : src.fullView())
@@ -113,10 +115,13 @@ void moveProcess(Scenario::IntervalModel& src
 void MoveProcess::undo(const score::DocumentContext& ctx) const
 {
   auto& src = m_src.find(ctx);
-  moveProcess(m_tgt.find(ctx), src, m_newId, m_oldId, ctx);
+  auto& tgt = m_tgt.find(ctx);
+  moveProcess(tgt, src, m_newId, m_oldId, ctx);
 
   src.replaceSmallView(m_oldSmall);
   src.replaceFullView(m_oldFull);
+
+  // slot will be removed if it is empty
 }
 
 void MoveProcess::redo(const score::DocumentContext& ctx) const
@@ -124,6 +129,7 @@ void MoveProcess::redo(const score::DocumentContext& ctx) const
   auto& tgt = m_tgt.find(ctx);
   moveProcess(m_src.find(ctx), tgt, m_oldId, m_newId, ctx);
 
+  if(m_addedSlot)
   {
     auto h = score::AppContext()
                  .settings<Scenario::Settings::Model>()
@@ -142,4 +148,5 @@ void MoveProcess::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_src >> m_tgt >> m_oldId >> m_newId >> m_oldSmall >> m_oldFull >> m_oldPos >> m_addedSlot;
 }
+
 }
