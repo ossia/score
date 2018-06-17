@@ -47,28 +47,5 @@ private:
   int m_oldPos{};
   bool m_addedSlot{};
 };
-/*
-class MoveSlot final
-    : public score::Command
-{
-  SCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveSlot, "Move slot")
-public:
-  MoveSlot(
-        const IntervalModel& source
-      , const IntervalModel& target
-      , int source_pos
-      , int target_pos);
 
-  void undo(const score::DocumentContext& ctx) const override;
-  void redo(const score::DocumentContext& ctx) const override;
-
-protected:
-  void serializeImpl(DataStreamInput&) const override;
-  void deserializeImpl(DataStreamOutput&) override;
-
-private:
-  std::vector<MoveProcess> m_cmds;
-  int m_sourcepos{}, m_targetpos{};
-};
-*/
 }
