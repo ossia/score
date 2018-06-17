@@ -1,55 +1,25 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <ossia/detail/algorithms.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
+#include <Explorer/DeviceList.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Engine/score2OSSIA.hpp>
+#include <Engine/Executor/ExecutorContext.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+
+#include <ossia/network/value/value.hpp>
+#include <ossia/editor/state/state.hpp>
+#include <ossia/editor/state/message.hpp>
+
 #include <ossia/detail/apply.hpp>
 #include <ossia/editor/expression/expression.hpp>
 #include <ossia/editor/expression/expression_atom.hpp>
 #include <ossia/editor/expression/expression_composition.hpp>
 #include <ossia/editor/expression/expression_not.hpp>
 #include <ossia/editor/expression/expression_pulse.hpp>
-#include <ossia/editor/state/message.hpp>
-#include <ossia/editor/state/state.hpp>
-#include <ossia/network/base/device.hpp>
-#include <ossia/network/base/node.hpp>
-#include <ossia/network/base/parameter.hpp>
-#include <ossia/network/dataspace/dataspace_visitors.hpp> // REMOVEME
-#include <ossia/network/domain/domain.hpp>
-#include <ossia/network/value/value.hpp>
 
-#include <Device/Address/AddressSettings.hpp>
-#include <Device/Address/IOType.hpp>
-#include <Device/Protocol/DeviceInterface.hpp>
-#include <Engine/Executor/ExecutorContext.hpp>
-#include <Engine/Executor/ProcessComponent.hpp>
-#include <Engine/LocalTree/LocalTreeDocumentPlugin.hpp>
-#include <Engine/OSSIA2score.hpp>
-#include <Engine/Protocols/OSSIADevice.hpp>
-#include <Engine/score2OSSIA.hpp>
-#include <Explorer/DeviceList.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Process/State/MessageNode.hpp>
-#include <QByteArray>
-#include <QChar>
-#include <QDebug>
-#include <QList>
-#include <QMap>
-#include <QString>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <State/Address.hpp>
-#include <State/Expression.hpp>
-#include <State/Message.hpp>
-#include <State/Relation.hpp>
-#include <algorithm>
-#include <boost/call_traits.hpp>
-#include <boost/concept/usage.hpp>
-#include <boost/range/algorithm/find_if.hpp>
-#include <eggs/variant/variant.hpp>
-#include <exception>
-#include <score/model/tree/InvisibleRootNode.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <string>
-#include <vector>
+#include <score_plugin_engine_export.h>
+
 class NodeNotFoundException : public std::runtime_error
 {
 public:
@@ -65,279 +35,6 @@ namespace Engine
 namespace score_to_ossia
 {
 
-ossia::net::node_base*
-createNodeFromPath(const QStringList& path, ossia::net::device_base& dev)
-{
-  using namespace ossia;
-  // Find the relevant node to add in the device
-  ossia::net::node_base* node = &dev.get_root_node();
-  for (int i = 0; i < path.size(); i++)
-  {
-    auto cld = node->find_child(path[i]);
-    if (!cld)
-    {
-      // We have to start adding sub-nodes from here.
-      ossia::net::node_base* parentnode = node;
-      for (int k = i; k < path.size(); k++)
-      {
-        auto path_k = path[k].toStdString();
-        auto newNode = parentnode->create_child(path_k);
-        if (path_k != newNode->get_name())
-        {
-          qDebug() << path[k] << newNode->get_name().c_str();
-          for (const auto& node : parentnode->children())
-          {
-            qDebug() << node->get_name().c_str();
-          }
-          SCORE_ABORT;
-        }
-        if (k == path.size() - 1)
-        {
-          node = newNode;
-        }
-        else
-        {
-          parentnode = newNode;
-        }
-      }
-
-      break;
-    }
-    else
-    {
-      node = cld;
-    }
-  }
-
-  return node;
-}
-
-ossia::net::node_base*
-findNodeFromPath(const QStringList& path, ossia::net::device_base& dev)
-{
-  using namespace ossia;
-  // Find the relevant node to add in the device
-  ossia::net::node_base* node = &dev.get_root_node();
-  for (int i = 0; i < path.size(); i++)
-  {
-    auto cld = node->find_child(path[i]);
-    if (cld)
-      node = cld;
-    else
-    {
-      qDebug() << "looking for" << path
-               << " -- last found: " << node->get_name() << "\n";
-      return {};
-    }
-  }
-
-  return node;
-}
-
-using small_node_vec = ossia::small_vector<const Device::Node*, 16>;
-void getPath(small_node_vec& v, const Device::Node* cur)
-{
-  auto p = cur->parent();
-  if (p && !p->is<Device::DeviceSettings>())
-  {
-    getPath(v, p);
-  }
-  v.push_back(cur);
-}
-
-ossia::net::node_base*
-findNodeFromPath(const Device::Node& path, ossia::net::device_base& dev)
-{
-  using namespace ossia;
-  // Find the relevant node to add in the device
-  ossia::net::node_base* node = &dev.get_root_node();
-  if (!path.is<Device::DeviceSettings>())
-  {
-    // First fill the vector of nodes
-    ossia::small_vector<const Device::Node*, 16> vec;
-    getPath(vec, &path);
-
-    for (std::size_t i = 0; i < vec.size(); i++)
-    {
-      auto cld = node->find_child(vec[i]->displayName());
-      if (cld)
-        node = cld;
-      else
-      {
-        qDebug() << "looking for" << Device::address(path).address << " " << i
-                 << " " << vec.size() << " " << vec[i]->displayName()
-                 << " -- last found: " << node->get_name() << "\n";
-        return {};
-      }
-    }
-    return node;
-  }
-  else
-  {
-    return &dev.get_root_node();
-  }
-}
-
-ossia::net::node_base*
-getNodeFromPath(const QStringList& path, ossia::net::device_base& dev)
-{
-  using namespace ossia;
-  // Find the relevant node to add in the device
-  ossia::net::node_base* node = &dev.get_root_node();
-  const int n = path.size();
-  for (int i = 0; i < n; i++)
-  {
-    auto cld = node->find_child(path[i]);
-
-    SCORE_ASSERT(cld);
-
-    node = cld;
-  }
-
-  SCORE_ASSERT(node);
-  return node;
-}
-
-struct ossia_type_visitor
-{
-public:
-  using return_type = ossia::val_type;
-  return_type operator()() const
-  {
-    SCORE_ABORT;
-  }
-  return_type operator()(const State::impulse&) const
-  {
-    return ossia::val_type::IMPULSE;
-  }
-  return_type operator()(int) const
-  {
-    return ossia::val_type::INT;
-  }
-  return_type operator()(float) const
-  {
-    return ossia::val_type::FLOAT;
-  }
-  return_type operator()(bool) const
-  {
-    return ossia::val_type::BOOL;
-  }
-  return_type operator()(const std::string&) const
-  {
-    return ossia::val_type::STRING;
-  }
-  return_type operator()(char) const
-  {
-    return ossia::val_type::CHAR;
-  }
-  return_type operator()(const State::vec2f&) const
-  {
-    return ossia::val_type::VEC2F;
-  }
-  return_type operator()(const State::vec3f&) const
-  {
-    return ossia::val_type::VEC3F;
-  }
-  return_type operator()(const State::vec4f&) const
-  {
-    return ossia::val_type::VEC4F;
-  }
-  return_type operator()(const State::list_t&) const
-  {
-    return ossia::val_type::LIST;
-  }
-};
-
-void updateOSSIAAddress(
-    const Device::FullAddressSettings& settings,
-    ossia::net::parameter_base& addr)
-{
-  SCORE_ASSERT(settings.ioType);
-  addr.set_access(*settings.ioType);
-
-  addr.set_bounding(settings.clipMode);
-
-  addr.set_repetition_filter(
-      ossia::repetition_filter(settings.repetitionFilter));
-
-  addr.set_value_type(ossia::apply(ossia_type_visitor{}, settings.value.v));
-
-  addr.set_value(settings.value);
-
-  addr.set_domain(settings.domain);
-
-  addr.set_unit(settings.unit);
-
-  addr.get_node().set_extended_attributes(settings.extendedAttributes);
-}
-
-void createOSSIAAddress(
-    const Device::FullAddressSettings& settings, ossia::net::node_base& node)
-{
-  if (!settings.value.v)
-    return;
-
-  auto addr = node.create_parameter(
-      ossia::apply(ossia_type_visitor{}, settings.value.v));
-  if (addr)
-    updateOSSIAAddress(settings, *addr);
-}
-
-void updateOSSIAValue(const ossia::value& score_data, ossia::value& val)
-{
-  struct
-  {
-    const ossia::value& data;
-    void operator()(ossia::impulse) const
-    {
-    }
-    void operator()(int32_t& v) const
-    {
-      v = data.get<int>();
-    }
-    void operator()(float& v) const
-    {
-      v = data.get<float>();
-    }
-    void operator()(bool& v) const
-    {
-      v = data.get<bool>();
-    }
-    void operator()(char& v) const
-    {
-      v = data.get<char>();
-    }
-    void operator()(std::string& v) const
-    {
-      v = data.get<std::string>();
-    }
-    void operator()(ossia::vec2f& v) const
-    {
-      v = data.get<State::vec2f>();
-    }
-    void operator()(ossia::vec3f& v) const
-    {
-      v = data.get<State::vec3f>();
-    }
-    void operator()(ossia::vec4f& v) const
-    {
-      v = data.get<State::vec4f>();
-    }
-    void operator()(std::vector<ossia::value>& vec) const
-    {
-      const State::list_t& list = *data.target<State::list_t>();
-      SCORE_ASSERT(list.size() == vec.size());
-      const int n = vec.size();
-      for (int i = 0; i < n; i++)
-      {
-        updateOSSIAValue(list[i], vec[i]);
-      }
-    }
-  } visitor{score_data};
-
-  return ossia::apply_nonnull(visitor, val.v);
-}
-
 ossia::net::parameter_base*
 address(const State::Address& addr, const Device::DeviceList& deviceList)
 {
@@ -347,21 +44,13 @@ address(const State::Address& addr, const Device::DeviceList& deviceList)
     // OPTIMIZEME by sorting by device prior
     // to this.
     const auto& dev = *dev_p;
-    if (dev.connected())
+    if (auto ossia_dev = dev.getDevice())
     {
-      if (auto casted_dev
-          = qobject_cast<const Engine::Network::OSSIADevice*>(&dev))
-      {
-        auto ossia_dev = casted_dev->getDevice();
-        if (ossia_dev)
-        {
-          auto ossia_node = Engine::score_to_ossia::findNodeFromPath(
-              addr.path, *ossia_dev);
+      auto ossia_node = Device::findNodeFromPath(
+            addr.path, *ossia_dev);
 
-          if (ossia_node)
-            return ossia_node->get_parameter();
-        }
-      }
+      if (ossia_node)
+        return ossia_node->get_parameter();
     }
   }
 
@@ -383,17 +72,6 @@ message(const State::Message& mess, const Device::DeviceList& deviceList)
   return {};
 }
 
-template <typename Fun>
-static void visit_node(const Process::MessageNode& root, Fun f)
-{
-  f(root);
-
-  for (const auto& child : root.children())
-  {
-    visit_node(child, f);
-  }
-}
-
 SCORE_PLUGIN_ENGINE_EXPORT void state(
     ossia::state& parent,
     const Scenario::StateModel& score_state,
@@ -405,7 +83,7 @@ SCORE_PLUGIN_ENGINE_EXPORT void state(
   // we add the elements to the state.
 
   auto& dl = ctx.devices.list();
-  visit_node(score_state.messages().rootNode(), [&](const auto& n) {
+  score_state.messages().rootNode().visit([&](const auto& n) {
     const auto& val = n.value();
     if (val)
     {
@@ -447,26 +125,18 @@ static ossia::destination expressionAddress(
     throw NodeNotFoundException(addr);
   }
 
-  if (auto casted_dev
-      = qobject_cast<const Engine::Network::OSSIADevice*>(&device))
-  {
-    auto dev = casted_dev->getDevice();
-    if (!dev)
-      throw NodeNotFoundException(addr);
+  auto dev = device.getDevice();
+  if (!dev)
+    throw NodeNotFoundException(addr);
 
-    auto n = findNodeFromPath(addr.path, *dev);
-    if (n)
-    {
-      auto ossia_addr = n->get_parameter();
-      if (ossia_addr)
-        return ossia::destination(*ossia_addr);
-      else
-        throw NodeNotFoundException(addr);
-    }
+  auto n = Device::findNodeFromPath(addr.path, *dev);
+  if (n)
+  {
+    auto ossia_addr = n->get_parameter();
+    if (ossia_addr)
+      return ossia::destination(*ossia_addr);
     else
-    {
       throw NodeNotFoundException(addr);
-    }
   }
   else
   {
@@ -614,21 +284,19 @@ trigger_expression(const State::Expression& e, const Device::DeviceList& list)
 ossia::net::node_base*
 findAddress(const Device::DeviceList& devs, const State::Address& addr)
 {
-  auto dev_p = qobject_cast<Engine::Network::OSSIADevice*>(
-      devs.findDevice(addr.device));
-  if (dev_p)
+  if (auto dev_p = devs.findDevice(addr.device))
   {
     auto ossia_dev = dev_p->getDevice();
     if (ossia_dev)
     {
-      auto node
-          = Engine::score_to_ossia::findNodeFromPath(addr.path, *ossia_dev);
+      auto node = Device::findNodeFromPath(addr.path, *ossia_dev);
       if (node)
         return node;
     }
   }
   return {};
 }
+
 optional<ossia::destination> makeDestination(
     const Device::DeviceList& devices, const State::AddressAccessor& addr)
 {

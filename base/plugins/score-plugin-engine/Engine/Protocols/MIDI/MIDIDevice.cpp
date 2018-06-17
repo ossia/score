@@ -16,7 +16,7 @@ namespace Engine
 namespace Network
 {
 MIDIDevice::MIDIDevice(const Device::DeviceSettings& settings)
-    : OwningOSSIADevice{settings}
+    : OwningDeviceInterface{settings}
 {
   using namespace ossia;
   m_capas.canRefreshTree = true;
@@ -83,7 +83,7 @@ Device::Node MIDIDevice::refresh()
     for (const auto& node : children)
     {
       device_node.push_back(
-          Engine::ossia_to_score::ToDeviceExplorer(*node.get()));
+          Device::ToDeviceExplorer(*node.get()));
     }
   }
 

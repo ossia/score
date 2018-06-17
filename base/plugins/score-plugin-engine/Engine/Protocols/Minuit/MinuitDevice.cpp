@@ -19,7 +19,7 @@ namespace Engine
 namespace Network
 {
 MinuitDevice::MinuitDevice(const Device::DeviceSettings& settings)
-    : OwningOSSIADevice{settings}
+    : OwningDeviceInterface{settings}
 {
   m_capas.canRefreshTree = true;
   m_capas.canRenameNode = false;

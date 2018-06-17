@@ -2,13 +2,13 @@
 #include <ossia/network/base/device.hpp>
 #include <wobjectdefs.h>
 
-#include <Engine/Protocols/OSSIADevice.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
 
 namespace Engine
 {
 namespace Network
 {
-class OSCQueryDevice final : public OwningOSSIADevice
+class OSCQueryDevice final : public Device::OwningDeviceInterface
 {
   W_OBJECT(OSCQueryDevice)
 public:

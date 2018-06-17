@@ -1,11 +1,11 @@
 #pragma once
-#include <Engine/Protocols/OSSIADevice.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
 
 namespace Engine
 {
 namespace Network
 {
-class HTTPDevice final : public OwningOSSIADevice
+class HTTPDevice final : public Device::OwningDeviceInterface
 {
 public:
   HTTPDevice(const Device::DeviceSettings& settings);

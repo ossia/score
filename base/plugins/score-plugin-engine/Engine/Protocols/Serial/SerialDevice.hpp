@@ -1,11 +1,11 @@
 #pragma once
-#include <Engine/Protocols/OSSIADevice.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
 
 namespace Engine
 {
 namespace Network
 {
-class SerialDevice final : public OwningOSSIADevice
+class SerialDevice final : public Device::OwningDeviceInterface
 {
 public:
   SerialDevice(const Device::DeviceSettings& settings);

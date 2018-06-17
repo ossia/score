@@ -1,11 +1,11 @@
 #pragma once
-#include <Engine/Protocols/OSSIADevice.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
 
 namespace Engine
 {
 namespace Network
 {
-class PhidgetDevice final : public OwningOSSIADevice
+class PhidgetDevice final : public Device::OwningDeviceInterface
 {
   W_OBJECT(PhidgetDevice)
 public:

@@ -1,11 +1,11 @@
 #pragma once
-#include <Engine/Protocols/OSSIADevice.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
 
 namespace Engine
 {
 namespace Network
 {
-class MinuitDevice final : public OwningOSSIADevice
+class MinuitDevice final : public Device::OwningDeviceInterface
 {
 public:
   MinuitDevice(const Device::DeviceSettings& settings);

@@ -18,7 +18,7 @@ namespace Engine
 namespace Network
 {
 OSCDevice::OSCDevice(const Device::DeviceSettings& settings)
-    : OwningOSSIADevice{settings}
+    : OwningDeviceInterface{settings}
 {
   using namespace ossia;
   m_capas.canLearn = true;
@@ -69,33 +69,33 @@ void OSCDevice::setLearning(bool b)
   auto& dev = *m_dev;
   if (b)
   {
-    dev.on_node_created.connect<&OSSIADevice::nodeCreated>(
-        (OSSIADevice*)this);
-    dev.on_node_removing.connect<&OSSIADevice::nodeRemoving>(
-        (OSSIADevice*)this);
-    dev.on_node_renamed.connect<&OSSIADevice::nodeRenamed>(
-        (OSSIADevice*)this);
+    dev.on_node_created.connect<&DeviceInterface::nodeCreated>(
+        (DeviceInterface*)this);
+    dev.on_node_removing.connect<&DeviceInterface::nodeRemoving>(
+        (DeviceInterface*)this);
+    dev.on_node_renamed.connect<&DeviceInterface::nodeRenamed>(
+        (DeviceInterface*)this);
     dev.on_parameter_created
-        .connect<&OSSIADevice::addressCreated>(
-            (OSSIADevice*)this);
+        .connect<&DeviceInterface::addressCreated>(
+            (DeviceInterface*)this);
     dev.on_attribute_modified
-        .connect<&OSSIADevice::addressUpdated>(
-            (OSSIADevice*)this);
+        .connect<&DeviceInterface::addressUpdated>(
+            (DeviceInterface*)this);
   }
   else
   {
-    dev.on_node_created.disconnect<&OSSIADevice::nodeCreated>(
-        (OSSIADevice*)this);
-    dev.on_node_removing.disconnect<&OSSIADevice::nodeRemoving>(
-        (OSSIADevice*)this);
-    dev.on_node_renamed.disconnect<&OSSIADevice::nodeRenamed>(
-        (OSSIADevice*)this);
+    dev.on_node_created.disconnect<&DeviceInterface::nodeCreated>(
+        (DeviceInterface*)this);
+    dev.on_node_removing.disconnect<&DeviceInterface::nodeRemoving>(
+        (DeviceInterface*)this);
+    dev.on_node_renamed.disconnect<&DeviceInterface::nodeRenamed>(
+        (DeviceInterface*)this);
     dev.on_parameter_created
-        .disconnect<&OSSIADevice::addressCreated>(
-            (OSSIADevice*)this);
+        .disconnect<&DeviceInterface::addressCreated>(
+            (DeviceInterface*)this);
     dev.on_attribute_modified
-        .disconnect<&OSSIADevice::addressUpdated>(
-            (OSSIADevice*)this);
+        .disconnect<&DeviceInterface::addressUpdated>(
+            (DeviceInterface*)this);
   }
 
   proto.set_learning(b);

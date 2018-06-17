@@ -7,7 +7,7 @@
 
 #include <Engine/CurveConversion.hpp>
 #include <Engine/Executor/IntervalComponent.hpp>
-#include <Engine/Protocols/OSSIADevice.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
 #include <Engine/score2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 

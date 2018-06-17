@@ -6,7 +6,7 @@
 #include <ossia/network/dataspace/dataspace_visitors.hpp> // temporary
 
 #include <Engine/CurveConversion.hpp>
-#include <Engine/Protocols/OSSIADevice.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
 #include <Engine/score2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 namespace Automation

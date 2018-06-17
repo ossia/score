@@ -6,7 +6,7 @@
 
 #include <Engine/Executor/IntervalComponent.hpp>
 #include <Engine/Executor/Settings/ExecutorModel.hpp>
-#include <Engine/Protocols/OSSIADevice.hpp>
+#include <Device/Protocol/DeviceInterface.hpp>
 #include <Engine/Protocols/Settings/Model.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>

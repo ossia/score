@@ -27,7 +27,7 @@ W_OBJECT_IMPL(Dataflow::AudioDevice)
 namespace Dataflow
 {
 AudioDevice::AudioDevice(const Device::DeviceSettings& settings)
-    : OSSIADevice{settings}
+    : DeviceInterface{settings}
     , m_protocol{new ossia::audio_protocol}
     , m_dev{std::unique_ptr<ossia::net::protocol_base>(m_protocol), "audio"}
 {
@@ -52,7 +52,7 @@ void AudioDevice::addAddress(const Device::FullAddressSettings& settings)
   if (auto dev = getDevice())
   {
     // Create the node. It is added into the device.
-    ossia::net::node_base* node = Engine::score_to_ossia::createNodeFromPath(
+    ossia::net::node_base* node = Device::createNodeFromPath(
         settings.address.path, *dev);
     SCORE_ASSERT(node);
 
