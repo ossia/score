@@ -97,7 +97,7 @@ void AddressAccessorEditWidget::customContextMenuEvent(const QPoint& p)
   device_menu->setModel(&m_model);
   connect(device_menu, &QMenuView::triggered, this, [&](const QModelIndex& m) {
     setFullAddress(makeFullAddressAccessorSettings(
-        m_model.nodeFromModelIndex(m), m_model));
+        m_model.nodeFromModelIndex(m)));
 
     addressChanged(m_address);
   });

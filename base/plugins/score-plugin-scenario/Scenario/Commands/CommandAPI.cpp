@@ -1,4 +1,6 @@
 #include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Commands/Cohesion/CreateCurves.hpp>
+#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <score_plugin_scenario_commands_files.hpp>
 
 namespace Scenario { namespace Command {
@@ -109,8 +111,7 @@ Process::ProcessModel* Macro::loadProcessInSlot(
 
 void Macro::createSlot(const IntervalModel& interval)
 {
-  auto slot_cmd = new AddSlotToRack{interval};
-  m.submitCommand(slot_cmd);
+  m.submitCommand(new AddSlotToRack{interval});
 }
 
 void Macro::addLayer(
@@ -132,22 +133,19 @@ void Macro::addLayerInNewSlot(
     const IntervalModel& interval
     , const Process::ProcessModel& proc)
 {
-  auto layer_cmd = new AddLayerInNewSlot{interval, proc.id()};
-  m.submitCommand(layer_cmd);
+  m.submitCommand(new AddLayerInNewSlot{interval, proc.id()});
 }
 
 void Macro::addLayer(
     const SlotPath& slotpath
     , const Process::ProcessModel& proc)
 {
-  auto layer_cmd = new AddLayerModelToSlot{slotpath, proc};
-  m.submitCommand(layer_cmd);
+  m.submitCommand(new AddLayerModelToSlot{slotpath, proc});
 }
 
 void Macro::showRack(const IntervalModel& interval)
 {
-  auto show_cmd = new ShowRack{interval};
-  m.submitCommand(show_cmd);
+  m.submitCommand(new ShowRack{interval});
 }
 
 void Macro::resizeSlot(
@@ -191,8 +189,8 @@ void Macro::pasteElements(
     , const QJsonObject& objs
     , Point pos)
 {
-  auto paste = new ScenarioPasteElements(scenario, objs, pos);
-  m.submitCommand(paste);
+  auto cmd = new ScenarioPasteElements(scenario, objs, pos);
+  m.submitCommand(cmd);
 }
 
 void Macro::pasteElementsAfter(
@@ -200,8 +198,8 @@ void Macro::pasteElementsAfter(
     , const TimeSyncModel& sync
     , const QJsonObject& objs)
 {
-  auto paste = new ScenarioPasteElementsAfter(scenario, sync, objs);
-  m.submitCommand(paste);
+  auto cmd = new ScenarioPasteElementsAfter(scenario, sync, objs);
+  m.submitCommand(cmd);
 }
 
 void Macro::mergeTimeSyncs(
@@ -259,28 +257,54 @@ void Macro::removeProcess(
     const IntervalModel& interval
     , const Id<Process::ProcessModel>& proc)
 {
-  auto rm_cmd = new RemoveProcessFromInterval(interval, proc);
-  m.submitCommand(rm_cmd);
+  m.submitCommand(new RemoveProcessFromInterval{interval, proc});
 }
 
 void Macro::removeElements(
     const Scenario::ProcessModel& scenario
     , const Selection& sel)
 {
-  auto rm_cmd = new RemoveSelection(scenario, sel);
-  m.submitCommand(rm_cmd);
+  m.submitCommand(new RemoveSelection{scenario, sel});
 }
 
 void Macro::addMessages(const StateModel& state, State::MessageList msgs)
 {
-  auto cmd2 = new AddMessagesToState{state, std::move(msgs)};
-  m.submitCommand(cmd2);
+  m.submitCommand(new AddMessagesToState{state, std::move(msgs)});
+}
+
+std::vector<Process::ProcessModel*> Macro::automate(
+    const IntervalModel& cst
+    , const QString& str)
+{
+  // Find the address in the device explorer
+  if(auto addr = State::AddressAccessor::fromString(str))
+  {
+    auto& ctx = m.stack().context();
+    auto fa = Explorer::makeFullAddressAccessorSettings(*addr, ctx, ossia::value{}, ossia::value{});
+
+    return CreateCurvesFromAddress(cst, std::move(fa), *this);
+  }
+
+  return {};
+}
+
+Process::ProcessModel&Macro::automate(
+    const IntervalModel& interval
+    , const std::vector<SlotPath>& slotList
+    , Id<Process::ProcessModel> curveId
+    , State::AddressAccessor address
+    , const Curve::CurveDomain& dom
+    , bool tween)
+{
+  auto c = new CreateAutomationFromStates{
+      interval, slotList, curveId, address, dom, tween};
+  m.submitCommand(c);
+  return interval.processes.at(c->processId());
 }
 
 void Macro::clearInterval(const IntervalModel& itv)
 {
-  auto cmd = new ClearInterval{itv};
-  m.submitCommand(cmd);
+  m.submitCommand(new ClearInterval{itv});
 }
 
 void Macro::insertInInterval(
@@ -288,8 +312,7 @@ void Macro::insertInInterval(
     , const IntervalModel& itv
     , ExpandMode mode)
 {
-  auto cmd = new InsertContentInInterval{std::move(json), itv, mode};
-  m.submitCommand(cmd);
+  m.submitCommand(new InsertContentInInterval{std::move(json), itv, mode});
 }
 
 void Macro::submit(score::Command* cmd)

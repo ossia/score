@@ -20,6 +20,7 @@ endif()
 set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_js.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/EditScript.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/ScriptMacro.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/JSCommandFactory.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/Component.hpp"
@@ -34,8 +35,10 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessMetadata.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessModel.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/JS/ConsolePanel.hpp"
 )
 set(SRCS
+"${CMAKE_CURRENT_SOURCE_DIR}/JS/ConsolePanel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessModelSerialization.cpp"
 

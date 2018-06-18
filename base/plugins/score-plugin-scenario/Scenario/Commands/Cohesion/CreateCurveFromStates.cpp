@@ -34,8 +34,7 @@ CreateAutomationFromStates::CreateAutomationFromStates(
     State::AddressAccessor address,
     const Curve::CurveDomain& dom,
     bool tween)
-    : CreateProcessAndLayers<Automation::ProcessModel>{interval, slotList,
-                                                       std::move(curveId)}
+    : CreateProcessAndLayers{interval, slotList, std::move(curveId), Metadata<ConcreteKey_k, Automation::ProcessModel>::get()}
     , m_address{std::move(address)}
     , m_dom{dom}
     , m_tween(tween)
@@ -74,13 +73,13 @@ void CreateAutomationFromStates::redo(const score::DocumentContext& ctx) const
 
 void CreateAutomationFromStates::serializeImpl(DataStreamInput& s) const
 {
-  CreateProcessAndLayers<Automation::ProcessModel>::serializeImpl(s);
+  CreateProcessAndLayers::serializeImpl(s);
   s << m_address << m_dom;
 }
 
 void CreateAutomationFromStates::deserializeImpl(DataStreamOutput& s)
 {
-  CreateProcessAndLayers<Automation::ProcessModel>::deserializeImpl(s);
+  CreateProcessAndLayers::deserializeImpl(s);
   s >> m_address >> m_dom;
 }
 
@@ -91,8 +90,7 @@ CreateInterpolationFromStates::CreateInterpolationFromStates(
     State::AddressAccessor address,
     ossia::value start,
     ossia::value end)
-    : CreateProcessAndLayers<Interpolation::ProcessModel>{interval, slotList,
-                                                          std::move(curveId)}
+    : CreateProcessAndLayers{interval, slotList, std::move(curveId), Metadata<ConcreteKey_k, Interpolation::ProcessModel>::get()}
     , m_address{std::move(address)}
     , m_start{std::move(start)}
     , m_end{std::move(end)}
@@ -117,14 +115,67 @@ void CreateInterpolationFromStates::redo(
 
 void CreateInterpolationFromStates::serializeImpl(DataStreamInput& s) const
 {
-  CreateProcessAndLayers<Interpolation::ProcessModel>::serializeImpl(s);
+  CreateProcessAndLayers::serializeImpl(s);
   s << m_address << m_start << m_end;
 }
 
 void CreateInterpolationFromStates::deserializeImpl(DataStreamOutput& s)
 {
-  CreateProcessAndLayers<Interpolation::ProcessModel>::deserializeImpl(s);
+  CreateProcessAndLayers::deserializeImpl(s);
   s >> m_address >> m_start >> m_end;
 }
+
+CreateProcessAndLayers::CreateProcessAndLayers(
+    const IntervalModel& interval
+    , const std::vector<SlotPath>& slotList
+    , Id<Process::ProcessModel> procId
+    , UuidKey<Process::ProcessModel> key)
+  : m_addProcessCmd{std::move(interval), std::move(procId),
+                    std::move(key),
+                    QString{}}
+{
+  m_slotsCmd.reserve(slotList.size());
+  for (const auto& elt : slotList)
+  {
+    m_slotsCmd.emplace_back(elt, procId);
+  }
+}
+
+void CreateProcessAndLayers::undo(const score::DocumentContext& ctx) const
+{
+  for (const auto& cmd : m_slotsCmd)
+    cmd.undo(ctx);
+  m_addProcessCmd.undo(ctx);
+}
+
+
+void CreateProcessAndLayers::serializeImpl(DataStreamInput& s) const
+{
+  s << m_addProcessCmd.serialize();
+  s << (int32_t)m_slotsCmd.size();
+  for (const auto& elt : m_slotsCmd)
+  {
+    s << elt.serialize();
+  }
+}
+
+
+void CreateProcessAndLayers::deserializeImpl(DataStreamOutput& s)
+{
+  QByteArray a;
+  s >> a;
+  m_addProcessCmd.deserialize(a);
+
+  int32_t n = 0;
+  s >> n;
+  m_slotsCmd.resize(n);
+  for (int i = 0; i < n; i++)
+  {
+    QByteArray b;
+    s >> b;
+    m_slotsCmd.at(i).deserialize(b);
+  }
+}
+
 }
 }

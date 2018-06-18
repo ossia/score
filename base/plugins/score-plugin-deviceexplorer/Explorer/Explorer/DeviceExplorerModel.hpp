@@ -229,5 +229,5 @@ makeFullAddressAccessorSettings(
     ossia::value max);
 SCORE_PLUGIN_DEVICEEXPLORER_EXPORT Device::FullAddressAccessorSettings
 makeFullAddressAccessorSettings(
-    const Device::Node& mess, const Explorer::DeviceExplorerModel& ctx);
+    const Device::Node& mess);
 }

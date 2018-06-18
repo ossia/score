@@ -30,68 +30,31 @@ namespace Command
 {
 
 // MOVEME
-template <typename ProcessModel_T>
 class SCORE_PLUGIN_SCENARIO_EXPORT CreateProcessAndLayers
     : public score::Command
 {
 public:
   CreateProcessAndLayers() = default;
+
   CreateProcessAndLayers(
       const IntervalModel& interval,
       const std::vector<SlotPath>& slotList,
-      Id<Process::ProcessModel> procId)
-      : m_addProcessCmd{std::move(interval), std::move(procId),
-                        Metadata<ConcreteKey_k, ProcessModel_T>::get(),
-                        QString{}}
-  {
-    m_slotsCmd.reserve(slotList.size());
-    for (const auto& elt : slotList)
-    {
-      m_slotsCmd.emplace_back(elt, procId);
-    }
-  }
+      Id<Process::ProcessModel> procId,
+      UuidKey<Process::ProcessModel> key);
 
-  void undo(const score::DocumentContext& ctx) const final override
-  {
-    for (const auto& cmd : m_slotsCmd)
-      cmd.undo(ctx);
-    m_addProcessCmd.undo(ctx);
-  }
+  void undo(const score::DocumentContext& ctx) const final override;
+  const Id<Process::ProcessModel>& processId() const { return m_addProcessCmd.processId(); }
 
 protected:
-  void serializeImpl(DataStreamInput& s) const override
-  {
-    s << m_addProcessCmd.serialize();
-    s << (int32_t)m_slotsCmd.size();
-    for (const auto& elt : m_slotsCmd)
-    {
-      s << elt.serialize();
-    }
-  }
-
-  void deserializeImpl(DataStreamOutput& s) override
-  {
-    QByteArray a;
-    s >> a;
-    m_addProcessCmd.deserialize(a);
-
-    int32_t n = 0;
-    s >> n;
-    m_slotsCmd.resize(n);
-    for (int i = 0; i < n; i++)
-    {
-      QByteArray b;
-      s >> b;
-      m_slotsCmd.at(i).deserialize(b);
-    }
-  }
+  void serializeImpl(DataStreamInput& s) const override;
+  void deserializeImpl(DataStreamOutput& s) override;
 
   AddOnlyProcessToInterval m_addProcessCmd;
   std::vector<Scenario::Command::AddLayerModelToSlot> m_slotsCmd;
 };
 
 class SCORE_PLUGIN_SCENARIO_EXPORT CreateAutomationFromStates final
-    : public CreateProcessAndLayers<Automation::ProcessModel>
+    : public CreateProcessAndLayers
 {
   SCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),
@@ -120,7 +83,7 @@ private:
 };
 
 class SCORE_PLUGIN_SCENARIO_EXPORT CreateInterpolationFromStates final
-    : public CreateProcessAndLayers<Interpolation::ProcessModel>
+    : public CreateProcessAndLayers
 {
   SCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(),
