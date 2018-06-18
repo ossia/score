@@ -63,6 +63,9 @@ public:
       const Device::AddressSettings& settings,
       int row);
 
+  void addAddress(
+      const Device::FullAddressSettings& settings);
+
   /**
    * @brief addNode Adds a node hierarchy in the tree
    * @param parentPath Path to the parent

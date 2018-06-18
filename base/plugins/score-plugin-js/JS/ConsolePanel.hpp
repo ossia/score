@@ -13,7 +13,14 @@
 #include <QQmlContext>
 #include <QJSEngine>
 #include <wobjectimpl.h>
-
+#include <Explorer/Commands/Add/AddDevice.hpp>
+#include <Explorer/Commands/Add/AddAddress.hpp>
+#include <Engine/Protocols/OSC/OSCProtocolFactory.hpp>
+#include <Engine/Protocols/OSC/OSCSpecificSettings.hpp>
+#include <core/command/CommandStack.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <ossia/network/common/complex_type.hpp>
+#include <ossia/network/base/parameter_data.hpp>
 namespace JS
 {
 
@@ -27,10 +34,74 @@ public:
 
   }
 
-  QObject* document()
+  const score::DocumentContext& ctx()
   {
-     return score::GUIAppContext().documents.currentDocument();
-  } W_SLOT(document)
+    return score::GUIAppContext().documents.currentDocument()->context();
+  }
+
+  void createOSCDevice(QString name, QString host, int in, int out)
+  {
+    auto& plug = ctx().plugin<Explorer::DeviceDocumentPlugin>();
+    Device::DeviceSettings set;
+    set.name = name;
+    set.deviceSpecificSettings = QVariant::fromValue(Engine::Network::OSCSpecificSettings{in, out, host});
+    set.protocol = Engine::Network::OSCProtocolFactory::static_concreteKey();
+
+    Scenario::Command::Macro m{new ScriptMacro, ctx()};
+    m.submit(new Explorer::Command::AddDevice{plug, std::move(set)});
+    m.commit();
+  } W_SLOT(createOSCDevice)
+
+  void createAddress(QString addr, QString type)
+  {
+    auto a = State::Address::fromString(addr);
+    if(!a)
+      return;
+
+    auto& plug = ctx().plugin<Explorer::DeviceDocumentPlugin>();
+    Scenario::Command::Macro m{new ScriptMacro, ctx()};
+
+    Device::FullAddressSettings set;
+    set.address = *a;
+
+    const ossia::net::parameter_data* t = ossia::default_parameter_for_type(type.toStdString());
+    if(t)
+    {
+      set.unit = t->unit;
+      if(t->bounding)
+        set.clipMode = *t->bounding;
+      if(t->domain)
+        set.domain = *t->domain;
+
+      set.ioType = ossia::access_mode::BI;
+      set.value = t->value;
+      if(set.value.getType() == ossia::val_type::NONE)
+      {
+        set.value = ossia::init_value(ossia::underlying_type(t->type));
+      }
+    }
+    m.submit(new Explorer::Command::AddWholeAddress{plug, std::move(set)});
+    m.commit();
+  } W_SLOT(createAddress)
+
+  void automate(QObject* interval, QString addr)
+  {
+    auto itv = qobject_cast<Scenario::IntervalModel*>(interval);
+    if(!itv)
+      return;
+    Scenario::Command::Macro m{new ScriptMacro, ctx()};
+    m.automate(*itv, addr);
+    m.commit();
+
+  } W_SLOT(automate)
+
+  void undo()
+  { ctx().document.commandStack().undo(); }
+  W_SLOT(undo)
+
+  void redo()
+  { ctx().document.commandStack().redo(); }
+  W_SLOT(redo)
 
   QObject* find(QString p)
   {
@@ -46,17 +117,10 @@ public:
     return nullptr;
   } W_SLOT(find)
 
-  void automate(QObject* interval, QString addr)
+  QObject* document()
   {
-    auto itv = qobject_cast<Scenario::IntervalModel*>(interval);
-    if(!itv)
-      return;
-    auto& ctx = score::GUIAppContext().documents.currentDocument()->context();
-    Scenario::Command::Macro m{new ScriptMacro, ctx};
-    m.automate(*itv, addr);
-    m.commit();
-
-  } W_SLOT(automate)
+     return score::GUIAppContext().documents.currentDocument();
+  } W_SLOT(document)
 };
 
 W_OBJECT_IMPL(EditJsContext)
