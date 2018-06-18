@@ -7,6 +7,7 @@
 #include <QDialog>
 #include <QTimer>
 #include <Scenario/Document/CommentBlock/TextItem.hpp>
+#include <score/widgets/GraphicWidgets.hpp>
 
 namespace Media::VST
 {
@@ -78,7 +79,13 @@ private:
   bool m_grab;
 
 public:
+  static const constexpr double min = 0.;
+  static const constexpr double max = 1.;
+  friend class score::DefaultGraphicsSliderImpl;
   VSTGraphicsSlider(AEffect* fx, int num, QGraphicsItem* parent);
+
+  static double map(double v) { return v; }
+  static double unmap(double v) { return v; }
 
   void setRect(QRectF r);
   void setValue(double v);
@@ -94,6 +101,7 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
   QRectF boundingRect() const override;
   void paint(
       QPainter* painter,
