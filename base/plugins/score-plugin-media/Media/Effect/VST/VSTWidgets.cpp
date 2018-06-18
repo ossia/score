@@ -15,7 +15,7 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
-
+#include <QGraphicsScene>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::VST::VSTWindow)
 W_OBJECT_IMPL(Media::VST::VSTGraphicsSlider)
@@ -51,59 +51,22 @@ double VSTGraphicsSlider::value() const
 
 void VSTGraphicsSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (isInHandle(event->pos()))
-  {
-    m_grab = true;
-  }
-
-  const auto srect = sliderRect();
-  double curPos
-      = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
-  if (curPos != m_value)
-  {
-    m_value = curPos;
-    valueChanged(m_value);
-    sliderMoved();
-    update();
-  }
-
-  event->accept();
+  score::DefaultGraphicsSliderImpl::mousePressEvent(*this, event);
 }
 
 void VSTGraphicsSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (m_grab)
-  {
-    const auto srect = sliderRect();
-    double curPos
-        = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
-    if (curPos != m_value)
-    {
-      m_value = curPos;
-      valueChanged(m_value);
-      sliderMoved();
-      update();
-    }
-  }
-  event->accept();
+  score::DefaultGraphicsSliderImpl::mouseMoveEvent(*this, event);
 }
 
 void VSTGraphicsSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (m_grab)
-  {
-    double curPos
-        = ossia::clamp(event->pos().x() / sliderRect().width(), 0., 1.);
-    if (curPos != m_value)
-    {
-      m_value = curPos;
-      valueChanged(m_value);
-      update();
-    }
-    sliderReleased();
-    m_grab = false;
-  }
-  event->accept();
+  score::DefaultGraphicsSliderImpl::mouseReleaseEvent(*this, event);
+}
+
+void VSTGraphicsSlider::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
+{
+  score::DefaultGraphicsSliderImpl::mouseDoubleClickEvent(*this, event);
 }
 
 QRectF VSTGraphicsSlider::boundingRect() const

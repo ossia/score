@@ -3,6 +3,11 @@
 #include <QDebug>
 #include <QWidget>
 #include <score/model/Skin.hpp>
+#include <QDoubleSpinBox>
+#include <QWindow>
+#include <QGraphicsScene>
+#include <QGraphicsProxyWidget>
+#include <score/actions/ActionManager.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::QGraphicsPixmapButton)
 W_OBJECT_IMPL(score::QGraphicsPixmapToggle)
@@ -101,59 +106,22 @@ double QGraphicsSlider::value() const
 
 void QGraphicsSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (isInHandle(event->pos()))
-  {
-    m_grab = true;
-  }
-
-  const auto srect = sliderRect();
-  double curPos
-      = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
-  if (curPos != m_value)
-  {
-    m_value = curPos;
-    valueChanged(m_value);
-    sliderMoved();
-    update();
-  }
-
-  event->accept();
+  DefaultGraphicsSliderImpl::mousePressEvent(*this, event);
 }
 
 void QGraphicsSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (m_grab)
-  {
-    const auto srect = sliderRect();
-    double curPos
-        = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
-    if (curPos != m_value)
-    {
-      m_value = curPos;
-      valueChanged(m_value);
-      sliderMoved();
-      update();
-    }
-  }
-  event->accept();
+  DefaultGraphicsSliderImpl::mouseMoveEvent(*this, event);
 }
 
 void QGraphicsSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (m_grab)
-  {
-    double curPos
-        = ossia::clamp(event->pos().x() / sliderRect().width(), 0., 1.);
-    if (curPos != m_value)
-    {
-      m_value = curPos;
-      valueChanged(m_value);
-      update();
-    }
-    m_grab = false;
-  }
-  sliderReleased();
-  event->accept();
+  DefaultGraphicsSliderImpl::mouseReleaseEvent(*this, event);
+}
+
+void QGraphicsSlider::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
+{
+  DefaultGraphicsSliderImpl::mouseDoubleClickEvent(*this, event);
 }
 
 QRectF QGraphicsSlider::boundingRect() const
@@ -242,59 +210,22 @@ double QGraphicsLogSlider::value() const
 
 void QGraphicsLogSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (isInHandle(event->pos()))
-  {
-    m_grab = true;
-  }
-
-  const auto srect = sliderRect();
-  double curPos
-      = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
-  if (curPos != m_value)
-  {
-    m_value = curPos;
-    valueChanged(m_value);
-    sliderMoved();
-    update();
-  }
-
-  event->accept();
+  DefaultGraphicsSliderImpl::mousePressEvent(*this, event);
 }
 
 void QGraphicsLogSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (m_grab)
-  {
-    const auto srect = sliderRect();
-    double curPos
-        = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
-    if (curPos != m_value)
-    {
-      m_value = curPos;
-      valueChanged(m_value);
-      sliderMoved();
-      update();
-    }
-  }
-  event->accept();
+  DefaultGraphicsSliderImpl::mouseMoveEvent(*this, event);
 }
 
 void QGraphicsLogSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (m_grab)
-  {
-    double curPos
-        = ossia::clamp(event->pos().x() / sliderRect().width(), 0., 1.);
-    if (curPos != m_value)
-    {
-      m_value = curPos;
-      valueChanged(m_value);
-      update();
-    }
-    m_grab = false;
-  }
-  sliderReleased();
-  event->accept();
+  DefaultGraphicsSliderImpl::mouseReleaseEvent(*this, event);
+}
+
+void QGraphicsLogSlider::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
+{
+  DefaultGraphicsSliderImpl::mouseDoubleClickEvent(*this, event);
 }
 
 QRectF QGraphicsLogSlider::boundingRect() const

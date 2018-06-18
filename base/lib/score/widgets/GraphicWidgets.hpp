@@ -4,8 +4,12 @@
 
 #include <QGraphicsPixmapItem>
 #include <QGraphicsSceneEvent>
+#include <QDoubleSpinBox>
+#include <QKeyEvent>
 #include <QPainter>
+#include <score/widgets/SignalUtils.hpp>
 #include <score_lib_base_export.h>
+
 namespace score
 {
 class SCORE_LIB_BASE_EXPORT QGraphicsPixmapButton final
@@ -54,12 +58,120 @@ protected:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 };
 
+struct DefaultGraphicsSliderImpl
+{
+  struct DoubleSpinboxWithEnter final : public QDoubleSpinBox
+  {
+  public:
+    using QDoubleSpinBox::QDoubleSpinBox;
+  public:
+    bool event(QEvent* event) override
+    {
+      if(event->type() == QEvent::ShortcutOverride)
+      {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+        if(keyEvent->key() == Qt::Key_Return)
+        {
+          editingFinished();
+        }
+      }
+      return QDoubleSpinBox::event(event);
+    }
+  };
+
+  template<typename T>
+  static void mousePressEvent(T& self, QGraphicsSceneMouseEvent* event)
+  {
+    if (self.isInHandle(event->pos()))
+    {
+      self.m_grab = true;
+    }
+
+    const auto srect = self.sliderRect();
+    double curPos
+        = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+    if (curPos != self.m_value)
+    {
+      self.m_value = curPos;
+      self.valueChanged(self.m_value);
+      self.sliderMoved();
+      self.update();
+    }
+
+    event->accept();
+  }
+
+  template<typename T>
+  static void mouseMoveEvent(T& self, QGraphicsSceneMouseEvent* event)
+  {
+    if (self.m_grab)
+    {
+      const auto srect = self.sliderRect();
+      double curPos
+          = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+      if (curPos != self.m_value)
+      {
+        self.m_value = curPos;
+        self.valueChanged(self.m_value);
+        self.sliderMoved();
+        self.update();
+      }
+    }
+    event->accept();
+  }
+
+  template<typename T>
+  static void mouseReleaseEvent(T& self, QGraphicsSceneMouseEvent* event)
+  {
+    if (self.m_grab)
+    {
+      double curPos
+          = ossia::clamp(event->pos().x() / self.sliderRect().width(), 0., 1.);
+      if (curPos != self.m_value)
+      {
+        self.m_value = curPos;
+        self.valueChanged(self.m_value);
+        self.update();
+      }
+      self.m_grab = false;
+    }
+    self.sliderReleased();
+    event->accept();
+  }
+
+  template<typename T>
+  static void mouseDoubleClickEvent(T& self, QGraphicsSceneMouseEvent* event)
+  {
+    auto w = new DoubleSpinboxWithEnter;
+    w->setRange(self.map(self.min), self.map(self.max));
+
+    w->setDecimals(6);
+    w->setValue(self.map(self.m_value * (self.max - self.min) + self.min));
+    auto obj = self.scene()->addWidget(w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
+    obj->setPos(event->scenePos());
+    w->setFocus();
+
+    QObject::connect(w, SignalUtils::QDoubleSpinBox_valueChanged_double(),
+            &self, [=,&self] (double v) {
+      self.m_value = (self.unmap(v) - self.min) / (self.max - self.min);
+      self.valueChanged(self.m_value);
+      self.sliderMoved();
+      self.update();
+    });
+    QObject::connect(w, &QDoubleSpinBox::editingFinished,
+                     &self, [=,&self] {
+      self.scene()->removeItem(obj); obj->deleteLater();
+    });
+  }
+};
+
 class SCORE_LIB_BASE_EXPORT QGraphicsSlider final
     : public QObject
     , public QGraphicsItem
 {
   W_OBJECT(QGraphicsSlider)
   Q_INTERFACES(QGraphicsItem)
+  friend class DefaultGraphicsSliderImpl;
 
   double m_value{};
   QRectF m_rect;
@@ -72,6 +184,9 @@ private:
 
 public:
   QGraphicsSlider(QGraphicsItem* parent);
+
+  static double map(double v) { return v; }
+  static double unmap(double v) { return v; }
 
   void setRect(QRectF r);
   void setValue(double v);
@@ -87,6 +202,8 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
+
   QRectF boundingRect() const override;
   void paint(
       QPainter* painter,
@@ -104,6 +221,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsLogSlider final
 {
   W_OBJECT(QGraphicsLogSlider)
   Q_INTERFACES(QGraphicsItem)
+  friend class DefaultGraphicsSliderImpl;
 
   double m_value{};
   QRectF m_rect;
@@ -121,6 +239,9 @@ public:
   void setValue(double v);
   double value() const;
 
+  static double map(double v) { return std::exp2(v); }
+  static double unmap(double v) { return std::log2(v); }
+
   bool moving = false;
 public:
   void valueChanged(double arg_1) W_SIGNAL(valueChanged, arg_1);
@@ -131,6 +252,7 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
   QRectF boundingRect() const override;
   void paint(
       QPainter* painter,
@@ -148,6 +270,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsIntSlider final
 {
   W_OBJECT(QGraphicsIntSlider)
   Q_INTERFACES(QGraphicsItem)
+  friend class DefaultGraphicsSliderImpl;
   QRectF m_rect;
   int m_value{}, m_min{}, m_max{};
   bool m_grab;
@@ -187,6 +310,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsComboSlider final
 {
   W_OBJECT(QGraphicsComboSlider)
   Q_INTERFACES(QGraphicsItem)
+  friend class DefaultGraphicsSliderImpl;
   QRectF m_rect;
 
 public:
