@@ -195,6 +195,15 @@ void Macro::pasteElements(
   m.submitCommand(paste);
 }
 
+void Macro::pasteElementsAfter(
+    const ProcessModel& scenario
+    , const TimeSyncModel& sync
+    , const QJsonObject& objs)
+{
+  auto paste = new ScenarioPasteElementsAfter(scenario, sync, objs);
+  m.submitCommand(paste);
+}
+
 void Macro::mergeTimeSyncs(
     const ProcessModel& scenario
     , const Id<TimeSyncModel>& a

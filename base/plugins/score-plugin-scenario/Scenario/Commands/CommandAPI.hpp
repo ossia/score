@@ -131,6 +131,11 @@ class Macro
         , const QJsonObject& objs
         , Scenario::Point pos);
 
+    void pasteElementsAfter(
+        const ProcessModel& scenario
+        , const TimeSyncModel& sync
+        , const QJsonObject& objs);
+
     void mergeTimeSyncs(
         const Scenario::ProcessModel& scenario
         , const Id<TimeSyncModel>& a

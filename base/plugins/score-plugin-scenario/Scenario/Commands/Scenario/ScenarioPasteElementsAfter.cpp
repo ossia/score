@@ -43,12 +43,10 @@ namespace Scenario
 namespace Command
 {
 ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
-    const Scenario::ProcessModel& scenario, const QJsonObject& obj)
+    const Scenario::ProcessModel& scenario, const Scenario::TimeSyncModel& attach_sync, const QJsonObject& obj)
   : m_ts{scenario}
 {
-  const Scenario::TimeSyncModel* attach_sync
-      = furthestHierarchicallySelectedTimeSync(scenario);
-  m_attachSync = attach_sync->id();
+  m_attachSync = attach_sync.id();
 
   auto& ctx = score::IDocument::documentContext(scenario);
   auto [timesyncs, intervals, events, states, cables,
@@ -91,7 +89,7 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
         {
           if (event->timeSync() == timesync->id())
           {
-            event->changeTimeSync(attach_sync->id());
+            event->changeTimeSync(m_attachSync);
           }
         }
         delete timesync;
@@ -131,7 +129,7 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
         }
         else
         {
-          SCORE_ASSERT(event->timeSync() == attach_sync->id());
+          SCORE_ASSERT(event->timeSync() == m_attachSync);
           m_eventsToAttach.push_back(event_ids[i]);
         }
       }
@@ -289,7 +287,7 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
         earliestTime = t;
     }
 
-    auto delta_t = attach_sync->date() - earliestTime;
+    auto delta_t = attach_sync.date() - earliestTime;
     for (IntervalModel* interval : intervals)
     {
       interval->setStartDate(interval->date() + delta_t);
@@ -317,7 +315,7 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
     }
   }
 
-  auto delta_y = attach_sync->extent().bottom() - highest_y;
+  auto delta_y = attach_sync.extent().bottom() - highest_y;
 
   for (IntervalModel* cst : intervals)
   {

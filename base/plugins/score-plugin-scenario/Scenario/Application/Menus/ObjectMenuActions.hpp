@@ -63,6 +63,7 @@ private:
   QAction* m_mergeTimeSyncs{};
   QAction* m_mergeEvents{};
   QAction* m_encapsulate{};
+  QAction* m_decapsulate{};
   QAction* m_duplicate{};
 
   QAction* m_selectAll{};

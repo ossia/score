@@ -93,8 +93,8 @@ bool verifyAndUpdateIfChildOf(
 
 template<typename T>
 std::vector<Process::CableData> cablesToCopy(
-    const std::vector<const T*>& array
-    , const std::vector<Path<T>>& siblings
+    const std::vector<T*>& array
+    , const std::vector<Path<std::remove_const_t<T>>>& siblings
     , const score::DocumentContext& ctx)
 {
   // For every cable, if both ends are in one of the elements or child elements
@@ -282,6 +282,26 @@ QJsonObject copySelectedScenarioElements(
   obj["Comments"] = arrayToJson(selectedElements(sm.comments));
 
   return obj;
+}
+
+QJsonObject copyWholeScenario(
+    const Scenario::ProcessModel& sm)
+{
+  const auto& ctx = score::IDocument::documentContext(sm);
+
+  auto itvs = sm.intervals.map().as_vec();
+  std::vector<Path<Scenario::IntervalModel>> itv_paths(sm.intervals.begin(), sm.intervals.end());
+
+  QJsonObject base;
+
+  base["Intervals"] = toJsonArray(sm.intervals);
+  base["Events"] = toJsonArray(sm.events);
+  base["TimeNodes"] = toJsonArray(sm.timeSyncs);
+  base["States"] = toJsonArray(sm.states);
+  base["Cables"] = toJsonArray(cablesToCopy(itvs, itv_paths, ctx));
+  base["Comments"] = toJsonArray(sm.comments);
+
+  return base;
 }
 
 QJsonObject copySelectedScenarioElements(const Scenario::ProcessModel& sm)

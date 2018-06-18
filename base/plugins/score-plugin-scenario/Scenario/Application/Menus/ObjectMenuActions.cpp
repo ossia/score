@@ -219,6 +219,17 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
         *sm, m_parent->currentDocument()->context().commandStack);
   });
 
+  // Decapsulate
+  m_decapsulate = new QAction{this};
+  connect(m_decapsulate, &QAction::triggered, [this]() {
+    auto sm = focusedScenarioModel(m_parent->currentDocument()->context());
+    SCORE_ASSERT(sm);
+
+    Scenario::DecapsulateScenario(
+        *sm, m_parent->currentDocument()->context().commandStack);
+  });
+
+
   // Duplicate
   m_duplicate = new QAction{this};
   connect(m_duplicate, &QAction::triggered, [this]() {
@@ -305,11 +316,13 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   actions.add<Actions::MergeTimeSyncs>(m_mergeTimeSyncs);
   actions.add<Actions::MergeEvents>(m_mergeEvents);
   actions.add<Actions::Encapsulate>(m_encapsulate);
+  actions.add<Actions::Decapsulate>(m_decapsulate);
   actions.add<Actions::Duplicate>(m_duplicate);
 
   scenariomodel_cond.add<Actions::RemoveElements>();
   scenariomodel_cond.add<Actions::MergeTimeSyncs>();
   scenariomodel_cond.add<Actions::Encapsulate>();
+  scenariomodel_cond.add<Actions::Decapsulate>();
   scenariofocus_cond.add<Actions::PasteElements>();
 
   scenarioiface_cond.add<Actions::CopyContent>();
@@ -330,6 +343,7 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   object.menu()->addAction(m_mergeTimeSyncs);
   object.menu()->addAction(m_mergeEvents);
   object.menu()->addAction(m_encapsulate);
+  object.menu()->addAction(m_decapsulate);
   object.menu()->addAction(m_duplicate);
   m_eventActions.makeGUIElements(e);
   m_cstrActions.makeGUIElements(e);
@@ -381,6 +395,7 @@ void ObjectMenuActions::setupContextMenu(
       objectMenu->addAction(m_cutContent);
       objectMenu->addAction(m_pasteContent);
       objectMenu->addAction(m_encapsulate);
+      objectMenu->addAction(m_decapsulate);
       objectMenu->addAction(m_duplicate);
     }
 
@@ -497,10 +512,13 @@ void ObjectMenuActions::pasteElementsAfter(
     return;
 
   auto& sm = static_cast<const Scenario::ProcessModel&>(pres->model());
-  // TODO check json validity
-  auto cmd = new Command::ScenarioPasteElementsAfter{sm, obj};
 
-  dispatcher().submitCommand(cmd);
+  // TODO check json validity
+  if(auto ts = furthestHierarchicallySelectedTimeSync(sm))
+  {
+    auto cmd = new Command::ScenarioPasteElementsAfter{sm, *ts, obj};
+    dispatcher().submitCommand(cmd);
+  }
 }
 
 template <typename Scenario_T>
