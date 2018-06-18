@@ -10,12 +10,14 @@
 #include <JS/Inspector/JSInspectorFactory.hpp>
 #include <JS/JSProcessFactory.hpp>
 #include <JS/Qml/QmlObjects.hpp>
+#include <JS/ConsolePanel.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
 #include <score/plugins/customfactory/FactorySetup.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/tools/std/HashMap.hpp>
 #include <score_plugin_js_commands_files.hpp>
+
 
 score_plugin_js::score_plugin_js() : QObject{}
 {
@@ -47,6 +49,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_js::factories(
       FW<Process::ProcessModelFactory, JS::ProcessFactory>,
       FW<Process::LayerFactory, JS::LayerFactory>,
       FW<Inspector::InspectorWidgetFactory, JS::InspectorFactory>,
+      FW<score::PanelDelegateFactory, JS::PanelDelegateFactory>,
       FW<Engine::Execution::ProcessComponentFactory,
          JS::Executor::ComponentFactory>>(ctx, key);
 }

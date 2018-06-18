@@ -6,6 +6,8 @@
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <memory>
 #include <score/document/DocumentContext.hpp>
+
+namespace Curve { struct CurveDomain; }
 namespace Scenario { namespace Command {
 class Macro
 {
@@ -162,6 +164,18 @@ class Macro
     void addMessages(
         const Scenario::StateModel& state
         , State::MessageList msgs);
+
+    std::vector<Process::ProcessModel*> automate(
+        const Scenario::IntervalModel& scenar
+        , const QString& addr);
+
+    Process::ProcessModel& automate(
+        const IntervalModel& interval,
+        const std::vector<SlotPath>& slotList,
+        Id<Process::ProcessModel> curveId,
+        State::AddressAccessor address,
+        const Curve::CurveDomain& dom,
+        bool tween);
 
     void submit(score::Command* cmd);
     void commit();

@@ -1023,7 +1023,7 @@ Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
 }
 
 Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
-    const Device::Node& mess, const DeviceExplorerModel& ctx)
+    const Device::Node& mess)
 {
   if (auto as_ptr = mess.target<Device::AddressSettings>())
   {
