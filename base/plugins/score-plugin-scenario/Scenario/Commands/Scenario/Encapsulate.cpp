@@ -7,6 +7,28 @@
 namespace Scenario
 {
 
+void DecapsulateScenario(
+    const ProcessModel& scenar, const score::CommandStackFacade& stack)
+{
+  auto parent_itv = qobject_cast<Scenario::IntervalModel*>(scenar.parent());
+  if(!parent_itv)
+    return;
+
+  auto parent_s = qobject_cast<Scenario::ProcessModel*>(parent_itv->parent());
+  if(!parent_s)
+    return;
+
+  using namespace Command;
+  Scenario::Command::Macro disp{new Decapsulate, stack.context()};
+
+  auto objects = copyWholeScenario(scenar);
+
+  disp.pasteElementsAfter(*parent_s, Scenario::startTimeSync(*parent_itv, *parent_s), objects);
+
+  disp.removeProcess(*parent_itv, scenar.id());
+  disp.commit();
+}
+
 void EncapsulateInScenario(
     const ProcessModel& scenar, const score::CommandStackFacade& stack)
 {
