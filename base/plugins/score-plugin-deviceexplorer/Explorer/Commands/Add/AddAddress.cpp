@@ -64,5 +64,76 @@ void AddAddress::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_parentNodePath >> m_addressSettings;
 }
+
+
+AddWholeAddress::AddWholeAddress(
+    const DeviceDocumentPlugin& devplug,
+    const Device::FullAddressSettings& addr)
+{
+  m_addressSettings = addr;
+
+  if(devplug.list().findDevice(addr.address.device))
+  {
+    auto iter = &devplug.rootNode();
+/*
+    auto find_cld = [&] (QString toFind) {
+      return [&, toFind] (auto& cld) {
+        if(cld.prettyName() == toFind)
+        {
+          iter = &cld;
+          return true;
+        }
+        else
+        {
+          return false;
+        }
+      };
+    };
+    if(!iter->visit(find_cld(addr.address.device)))
+    {
+      throw std::runtime_error("Non-existing device");
+      return;
+    }
+
+    // at this point iter is the device node
+    const int pathSize = addr.address.path.size();
+    for (int i = 0; i < pathSize; ++i)
+    {
+      if(iter->visit(find_cld(addr.address.path[i])))
+      {
+        continue;
+      }
+      else
+      {
+        m_existsUpTo = i;
+        break;
+      }
+    }
+    */
+  }
+}
+
+void AddWholeAddress::undo(const score::DocumentContext& ctx) const
+{
+  // TODO
+  //auto& devplug = ctx.plugin<DeviceDocumentPlugin>();
+  //devplug.updateProxy.removeNode(m_parentNodePath, m_addressSettings);
+}
+
+void AddWholeAddress::redo(const score::DocumentContext& ctx) const
+{
+  auto& devplug = ctx.plugin<DeviceDocumentPlugin>();
+  devplug.updateProxy.addAddress(m_addressSettings);
+}
+
+void AddWholeAddress::serializeImpl(DataStreamInput& s) const
+{
+  s << m_addressSettings << m_existsUpTo;
+}
+
+void AddWholeAddress::deserializeImpl(DataStreamOutput& s)
+{
+  s >> m_addressSettings >> m_existsUpTo;
+}
 }
 }

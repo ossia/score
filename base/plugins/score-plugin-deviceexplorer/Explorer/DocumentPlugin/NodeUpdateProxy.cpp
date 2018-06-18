@@ -94,6 +94,20 @@ void NodeUpdateProxy::addAddress(
   addLocalAddress(*parentnode, settings, row);
 }
 
+void NodeUpdateProxy::addAddress(
+    const Device::FullAddressSettings& full)
+{
+  // Add in the device implementation
+  auto& dev = devModel.list().device(full.address.device);
+  bool learning = dev.isLearning();
+  dev.setLearning(true);
+  dev.addAddress(full);
+  dev.setLearning(learning);
+  // Add in the device explorer
+  //addLocalAddress(*parentnode, settings, row);
+
+}
+
 void NodeUpdateProxy::rec_addNode(
     Device::NodePath parentPath, const Device::Node& n, int row)
 {
