@@ -4,7 +4,7 @@ title: How to manually declare a namespace
 
 # How to manually declare a namespace ?
 
-When not using Score with an application providing querying mechanism (such as OSCQuery) or echoing its parameters state, you need to manually add the parameter addresses to your device setup. Once having [setup an OSC device](../howtos/declare_an_osc_device.html), click on the device name and from the contextual menu, choose `Add child` to add an address at a level below. (you may as well choose `Add sibling` when right-clicking on a parameter name to add a parameter at the same hierarchical level)
+When not using Score with an application providing querying mechanism (such as OSCQuery) or echoing its parameters state, you need to manually add the parameter addresses to your device setup. Once having [setup an OSC device](../howtos/declare_an_osc_device.md), click on the device name and from the contextual menu, choose `Add child` to add an address at a level below. (you may as well choose `Add sibling` when right-clicking on a parameter name to add a parameter at the same hierarchical level)
 
 ![Adding child in namespace](../images/adding_child.png)
 
