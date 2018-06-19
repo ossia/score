@@ -81,7 +81,7 @@ private:
 public:
   static const constexpr double min = 0.;
   static const constexpr double max = 1.;
-  friend class score::DefaultGraphicsSliderImpl;
+  friend struct score::DefaultGraphicsSliderImpl;
   VSTGraphicsSlider(AEffect* fx, int num, QGraphicsItem* parent);
 
   static double map(double v) { return v; }
