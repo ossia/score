@@ -46,3 +46,5 @@ base/addons/*
 i-score*.pri
 tools/sdk/Raspberry/qemu-arm-static
 
+Documentation/Doc_sources/score-documentation/site
+
