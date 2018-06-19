@@ -1,0 +1,16 @@
+site_name: 'Score documentation'
+
+pages:
+- Home: 'index.md'
+- First steps:
+   - Introduction: 'first_steps/score-presentation.md'
+   - 'Time approach in Score': 'first_steps/time_approach.md'
+   - 'Meet Score interface': 'first_steps/meet_score_interface.md'
+   - 'Writing your first scenario': 'first_steps/first_scenario.md'
+- How to ?:
+   - Setup:
+      - 'Setup an OSC device': 'howtos/declare_an_osc_device.md'
+      - 'Manually declare a namespace': 'howtos/manual_namespace_setup.md'
+      - 'Use the learn function': 'howtos/namespace_learning.md'
+   
+use_directory_urls: false
