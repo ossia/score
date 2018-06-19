@@ -171,7 +171,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsSlider final
 {
   W_OBJECT(QGraphicsSlider)
   Q_INTERFACES(QGraphicsItem)
-  friend class DefaultGraphicsSliderImpl;
+  friend struct DefaultGraphicsSliderImpl;
 
   double m_value{};
   QRectF m_rect;
@@ -221,7 +221,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsLogSlider final
 {
   W_OBJECT(QGraphicsLogSlider)
   Q_INTERFACES(QGraphicsItem)
-  friend class DefaultGraphicsSliderImpl;
+  friend struct DefaultGraphicsSliderImpl;
 
   double m_value{};
   QRectF m_rect;
@@ -270,7 +270,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsIntSlider final
 {
   W_OBJECT(QGraphicsIntSlider)
   Q_INTERFACES(QGraphicsItem)
-  friend class DefaultGraphicsSliderImpl;
+  friend struct DefaultGraphicsSliderImpl;
   QRectF m_rect;
   int m_value{}, m_min{}, m_max{};
   bool m_grab;
@@ -310,7 +310,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsComboSlider final
 {
   W_OBJECT(QGraphicsComboSlider)
   Q_INTERFACES(QGraphicsItem)
-  friend class DefaultGraphicsSliderImpl;
+  friend struct DefaultGraphicsSliderImpl;
   QRectF m_rect;
 
 public:
