@@ -35,6 +35,7 @@ $SOURCES
 " >> ../score-srcs.pri
 )
 
+exit 0
 (
 cd ..
 mkdir build
