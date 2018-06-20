@@ -46,25 +46,24 @@ struct Node
       }
       else
       {
-        ossia::tvalue output;
-        output.timestamp = val.timestamp;
+        ossia::value output;
 
         if (self.prev_value < val.value)
         {
-          output.value = 1;
+          output = 1;
           self.prev_value = val.value;
         }
         else if (self.prev_value > val.value)
         {
-          output.value = -1;
+          output = -1;
           self.prev_value = val.value;
         }
         else
         {
-          output.value = 0;
+          output = 0;
         }
 
-        p2.add_raw_value(output);
+        p2.add_value(std::move(output), val.timestamp);
       }
     }
   }

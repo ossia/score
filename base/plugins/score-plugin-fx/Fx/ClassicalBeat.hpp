@@ -60,23 +60,18 @@ struct Node
         {
           ossia::tvalue t;
           if (next.impl == 0 || (next.impl % (3 * period)) == 0)
-            t.value = 1;
+            res.add_value(1, next - tk.prev_date);
           else
-            t.value = 0;
+            res.add_value(0, next - tk.prev_date);
 
-          t.timestamp = next - tk.prev_date;
-          res.add_raw_value(std::move(t));
         }
         else if (sig == Control::time_signature{4, 4})
         {
           ossia::tvalue t;
           if (next.impl == 0 || next.impl % (2 * period) == 0)
-            t.value = 1;
+            res.add_value(1, next - tk.prev_date);
           else
-            t.value = 0;
-
-          t.timestamp = next - tk.prev_date;
-          res.add_raw_value(std::move(t));
+            res.add_value(0, next - tk.prev_date);
         }
       }
     }

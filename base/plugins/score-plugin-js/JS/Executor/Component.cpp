@@ -331,7 +331,7 @@ void js_node::run(ossia::token_request t, ossia::exec_state_facade) noexcept
     auto& dat = *m_valOutlets[i].second->data.target<ossia::value_port>();
     const auto& v = m_valOutlets[i].first->value();
     if (!v.isNull() && v.isValid())
-      dat.add_raw_value(ossia::qt::qt_to_ossia{}(v));
+      dat.add_value(ossia::qt::qt_to_ossia{}(v));
     for (auto& v : m_valOutlets[i].first->values)
     {
       dat.add_value(ossia::qt::qt_to_ossia{}(std::move(v.value)), v.timestamp);
