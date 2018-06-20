@@ -14,3 +14,6 @@ pages:
       - 'Use the learn function': 'howtos/namespace_learning.md'
    
 use_directory_urls: false
+
+extra_css: 
+   - 'css/ossiadoc.css'

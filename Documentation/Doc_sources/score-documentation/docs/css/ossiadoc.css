@@ -1,0 +1,55 @@
+/* @override 
+	http://127.0.0.1:8000/css/ossiadoc.css */
+
+body {
+	background-image: url(none);
+}
+
+
+.bs-sidenav {
+	color: #F3F7F9;
+}
+
+blockquote {
+	margin-bottom: 4em;
+	margin-top: 4em;
+	margin-left: 2em;
+	border: 1px solid #F3F7F9;
+	background-color: #F3F7F9;
+	color: #2a3c75;
+	text-align: justify;
+}
+
+.navbar {
+	background-color: #1E2224;
+	background-image: url(none);
+}
+
+/*.navbar-nav {
+	background: url(none) #2E3336;
+}*/
+
+/*.navbar > li > a:hover {
+	background-color: #2E3336;
+	background-image: url(none);
+}
+
+.navbar > li > a:focus {
+	background-color: #2E3336;
+	background-image: url(none);*/
+}
+
+
+.dropdown-menu>li>a:hover,.dropdown-menu>li>a:focus{;text-decoration:none;background-color: #F3F7F9;
+	color: black;
+}
+
+.dropdown-menu>.active>a,.dropdown-menu>.active>a:hover,.dropdown-menu>.active>a:focus{text-decoration:none;;outline:0;color: white;
+}
+
+/*Tab selection accessors*/
+/*.navbar-default .navbar-nav>li>a:hover,.navbar-default .navbar-nav>li>a:focus{color:#fff;background-color: #17cc9e
+}
+
+.navbar-default .navbar-nav>.active>a,.navbar-default .navbar-nav>.active>a:hover,.navbar-default .navbar-nav>.active>a:focus{color:#fff;background-color: #398eb9
+}*/
