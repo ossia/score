@@ -82,19 +82,19 @@ struct Node
       {
         case Sin:
           new_val = ampl * std::sin(phi);
-          out.add_raw_value(new_val + offset);
+          out.add_value(new_val + offset);
           break;
         case Triangle:
           new_val = ampl * std::asin(std::sin(phi));
-          out.add_raw_value(new_val + offset);
+          out.add_value(new_val + offset);
           break;
         case Saw:
           new_val = ampl * std::atan(std::tan(phi));
-          out.add_raw_value(new_val + offset);
+          out.add_value(new_val + offset);
           break;
         case Square:
           new_val = ampl * ((std::sin(phi) > 0.f) ? 1.f : -1.f);
-          out.add_raw_value(new_val + offset);
+          out.add_value(new_val + offset);
           break;
         case SampleAndHold:
         {
@@ -106,22 +106,22 @@ struct Node
           {
             new_val = std::uniform_real_distribution<float>(
                   -ampl, ampl)(s.rd);
-            out.add_raw_value(new_val + offset);
+            out.add_value(new_val + offset);
           }
           break;
         }
         case Noise1:
           new_val = std::uniform_real_distribution<float>(
               -ampl, ampl)(s.rd);
-          out.add_raw_value(new_val + offset);
+          out.add_value(new_val + offset);
           break;
         case Noise2:
           new_val = std::normal_distribution<float>(0, ampl)(s.rd);
-          out.add_raw_value(new_val + offset);
+          out.add_value(new_val + offset);
           break;
         case Noise3:
           new_val = std::cauchy_distribution<float>(0, ampl)(s.rd);
-          out.add_raw_value(new_val + offset);
+          out.add_value(new_val + offset);
           break;
       }
     }

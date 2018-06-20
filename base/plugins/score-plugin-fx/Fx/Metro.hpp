@@ -63,10 +63,7 @@ struct Node
       const auto next = next_date(tk.prev_date, period);
       if (next.impl < tk.date.impl)
       {
-        ossia::tvalue t;
-        t.value = ossia::impulse{};
-        t.timestamp = next - tk.prev_date;
-        res.add_raw_value(t);
+        res.add_value(ossia::impulse{}, next - tk.prev_date);
       }
     }
   }
