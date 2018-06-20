@@ -125,10 +125,6 @@ public:
   {
     return makeFunction<int>();
   }
-  ossia::curve_segment<bool> makeBoolFunction() const override
-  {
-    return makeFunction<bool>();
-  }
 };
 using Segment_backIn = EasingSegment<ossia::easing::backIn>;
 using Segment_backOut = EasingSegment<ossia::easing::backOut>;

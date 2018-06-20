@@ -2,7 +2,7 @@
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 namespace score
 {
-class DocumentContext;
+struct DocumentContext;
 }
 namespace Scenario
 {

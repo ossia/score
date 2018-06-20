@@ -90,7 +90,6 @@ public:
 
   virtual ossia::curve_segment<float> makeFloatFunction() const = 0;
   virtual ossia::curve_segment<int> makeIntFunction() const = 0;
-  virtual ossia::curve_segment<bool> makeBoolFunction() const = 0;
 
   SegmentData toSegmentData() const
   {

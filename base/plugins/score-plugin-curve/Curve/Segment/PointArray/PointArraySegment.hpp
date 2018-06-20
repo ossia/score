@@ -128,10 +128,6 @@ public:
   {
     return {};
   }
-  ossia::curve_segment<bool> makeBoolFunction() const override
-  {
-    return {};
-  }
   void reset();
 
 public:
