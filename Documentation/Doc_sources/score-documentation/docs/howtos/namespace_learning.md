@@ -4,7 +4,7 @@ title: How to use learn function to build your namespace ?
 
 # How to use the learn function to build your application namespace ?
 
-Once having [setup an OSC device](../howtos/declare_an_osc_device.html), you may want to use the Device explorer's learn feature to ease the declaration of all the parameter addresses of the application you want to control from Score. To do so, in the Device explorer, right-click on your device name then from the contextual menu, choose `learn`.
+Once having [setup an OSC device](../howtos/declare_an_osc_device.md), you may want to use the Device explorer's learn feature to ease the declaration of all the parameter addresses of the application you want to control from Score. To do so, in the Device explorer, right-click on your device name then from the contextual menu, choose `learn`.
 
 ![Turning on namespace learning](../images/learn_namespace.png)
 

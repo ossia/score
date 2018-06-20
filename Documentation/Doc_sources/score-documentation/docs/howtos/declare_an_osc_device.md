@@ -24,7 +24,7 @@ These setup up the communication between Score and your application.
 When done, you may either:
 
 * Load a namespace file from the device setup window that describes all the parameters of your application
-* Use the `learn` function available when [right-clicking your device name in the Device explorer](../howtos/namespace_learning.html)
-* [Manually declare the namespace in the Device explorer pane](../howtos/manual_namespace_setup.html)
+* Use the `learn` function available when [right-clicking your device name in the Device explorer](../howtos/namespace_learning.md)
+* [Manually declare the namespace in the Device explorer pane](../howtos/manual_namespace_setup.md)
 
 ![OSCdevice tree view](../images/osc_device.png)

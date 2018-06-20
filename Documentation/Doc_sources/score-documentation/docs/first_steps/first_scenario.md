@@ -31,7 +31,7 @@ Our simple patch example is built to use Score's OSC default ports and address s
 
 Should you need to modify the OSC setup of your device, right-click on your device name in the Device explorer pane and choose `Edit`.
 
-> The namespace file we just loaded is a json file describing all parameters addresses of a device we want to send values to. If using another OSC application for this tutorial, you may either use the learn feature available when right-clicking your device name in the Device explorer, or manually declare the namespace of your application. In the later case, please see the [How to manually declare a namespace](../howtos/manual_namespace_setup.html) documentation page.
+> The namespace file we just loaded is a json file describing all parameters addresses of a device we want to send values to. If using another OSC application for this tutorial, you may either use the learn feature available when right-clicking your device name in the Device explorer, or manually declare the namespace of your application. In the later case, please see the [How to manually declare a namespace](../howtos/manual_namespace_setup.md) documentation page.
 
 
 
