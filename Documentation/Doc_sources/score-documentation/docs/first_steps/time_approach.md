@@ -32,7 +32,7 @@ First example here is what happens when adding a trigger to an event in your sce
 
 The second mentioned example can be set when using conditions on events (ie. If a variable such as the distance between a user and a sensor is either smaller or greater than a particular threshold). When time reaches these conditional events, Score will check which conditions are true and choose which path(s) to execute. 
 
-![Conditionnal triggering](conditionnal_triggering.gif)
+![Conditionnal triggering](../images/conditionnal_triggering.gif)
 
 Of course as detailed later in this documentation, both interactive triggering and conditions can be used along with other features so you can get a precise control of time flow in your scenario.
 
