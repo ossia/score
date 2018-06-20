@@ -18,6 +18,7 @@
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::ApplicationPlugin)
 
+#if defined(HAS_VST2)
 template <>
 void DataStreamReader::read<Media::ApplicationPlugin::vst_info>(
     const Media::ApplicationPlugin::vst_info& p)
@@ -35,6 +36,7 @@ Q_DECLARE_METATYPE(Media::ApplicationPlugin::vst_info)
 W_REGISTER_ARGTYPE(Media::ApplicationPlugin::vst_info)
 Q_DECLARE_METATYPE(std::vector<Media::ApplicationPlugin::vst_info>)
 W_REGISTER_ARGTYPE(std::vector<Media::ApplicationPlugin::vst_info>)
+#endif
 namespace Media
 {
 
@@ -48,10 +50,14 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
 }
 #endif
 {
+
+#if defined(HAS_VST2)
   qRegisterMetaType<vst_info>();
   qRegisterMetaTypeStreamOperators<vst_info>();
   qRegisterMetaType<std::vector<vst_info>>();
   qRegisterMetaTypeStreamOperators<std::vector<vst_info>>();
+#endif
+
 #if defined(LILV_SHARED) // TODO instead add a proper preprocessor macro that
                          // also works in static case
   lv2_context->loadPlugins();

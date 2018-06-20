@@ -107,7 +107,7 @@ void GUIApplicationInterface::loadPluginData(
     app_plug->initialize();
   }
   DO_DEBUG;
-#if !defined(__EMSCRIPTEN__)
+
   if (presenter.view())
   {
     for (auto& panel_fac : ctx.interfaces<score::PanelDelegateFactoryList>())
@@ -120,7 +120,7 @@ void GUIApplicationInterface::loadPluginData(
       presenter.view()->setupPanel(panel.get());
     }
   }
-#endif
+
   DO_DEBUG;
 }
 

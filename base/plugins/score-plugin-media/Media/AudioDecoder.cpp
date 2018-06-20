@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <score/tools/Todo.hpp>
+
+#if __has_include(<libavcodec/avcodec.h>)
 extern "C"
 {
 #include <libavcodec/avcodec.h>
@@ -16,9 +18,11 @@ extern "C"
 #include <libavutil/mem.h>
 #include <libswresample/swresample.h>
 }
+#endif
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::AudioDecoder)
+#if __has_include(<libavcodec/avcodec.h>)
 namespace
 {
 static const constexpr std::size_t dynamic_channels
@@ -248,7 +252,6 @@ decoder_t make_N_decoder(AVStream& stream)
         break;
     }
   }
-
   return {};
 }
 
@@ -321,10 +324,8 @@ decoder_t make_N_decoder<1>(AVStream& stream)
   {
     return Decoder<int32_t, 1, 24, true>{};
   }
-  else
-  {
-    return {};
-  }
+
+  return {};
 }
 
 static decoder_t make_decoder(AVStream& stream)
@@ -345,7 +346,11 @@ case 8: return make_N_decoder<8>(stream);*/
   }
 }
 }
+#endif
 
+struct AVCodecContext;
+struct AVFormatContext;
+struct AVFrame;
 namespace Media
 {
 AudioDecoder::AudioDecoder()
@@ -366,21 +371,27 @@ struct AVCodecContext_Free
 {
   void operator()(AVCodecContext* ctx)
   {
+#if __has_include(<libavcodec/avcodec.h>)
     avcodec_free_context(&ctx);
+#endif
   }
 };
 struct AVFormatContext_Free
 {
   void operator()(AVFormatContext* ctx)
   {
+#if __has_include(<libavcodec/avcodec.h>)
     avformat_free_context(ctx);
+#endif
   }
 };
 struct AVFrame_Free
 {
   void operator()(AVFrame* frame)
   {
+#if __has_include(<libavcodec/avcodec.h>)
     av_frame_free(&frame);
+#endif
   }
 };
 using AVFormatContext_ptr
@@ -391,6 +402,7 @@ using AVFrame_ptr = std::unique_ptr<AVFrame, AVFrame_Free>;
 
 AVFormatContext_ptr open_audio(const QString& path)
 {
+#if __has_include(<libavcodec/avcodec.h>)
   AVFormatContext* fmt_ctx_ptr{};
   auto l1 = path.toUtf8();
   auto ret
@@ -405,6 +417,9 @@ AVFormatContext_ptr open_audio(const QString& path)
   }
 
   return AVFormatContext_ptr{fmt_ctx_ptr};
+#else
+  return {};
+#endif
 }
 
 ossia::optional<AudioInfo> AudioDecoder::probe(const QString& path)
@@ -412,6 +427,7 @@ ossia::optional<AudioInfo> AudioDecoder::probe(const QString& path)
   auto it = database().find(path);
   if (it == database().end())
   {
+#if __has_include(<libavcodec/avcodec.h>)
     av_register_all();
     avcodec_register_all();
 
@@ -446,7 +462,7 @@ ossia::optional<AudioInfo> AudioDecoder::probe(const QString& path)
         return info;
       }
     }
-
+#endif
     return {};
   }
   else
@@ -463,6 +479,7 @@ QHash<QString, AudioInfo>& AudioDecoder::database()
 
 auto debug_ffmpeg(int ret, QString ctx)
 {
+#if __has_include(<libavcodec/avcodec.h>)
   if (ret < 0 && ret != AVERROR_EOF)
   {
     char err[100]{0};
@@ -473,10 +490,12 @@ auto debug_ffmpeg(int ret, QString ctx)
   {
     // qDebug()<<"ok: "<< ctx ;
   }
+#endif
 }
 
 std::size_t AudioDecoder::read_length(const QString& path)
 {
+#if __has_include(<libavcodec/avcodec.h>)
   av_register_all();
   avcodec_register_all();
 
@@ -569,6 +588,7 @@ std::size_t AudioDecoder::read_length(const QString& path)
       return pos;
     }
   }
+#endif
   return 0;
 }
 
@@ -640,6 +660,7 @@ AudioDecoder::decode_synchronous(const QString& path)
 template <typename Decoder>
 void AudioDecoder::decodeFrame(Decoder dec, AudioArray& data, AVFrame& frame)
 {
+#if __has_include(<libavcodec/avcodec.h>)
   const std::size_t channels = data.size();
   const std::size_t max_samples = data[0].size();
 
@@ -684,10 +705,12 @@ void AudioDecoder::decodeFrame(Decoder dec, AudioArray& data, AVFrame& frame)
     dec(data, decoded, frame.extended_data, frame.nb_samples);
     decoded += frame.nb_samples;
   }
+#endif
 }
 
 void AudioDecoder::decodeRemaining(AudioArray& data)
 {
+#if __has_include(<libavcodec/avcodec.h>)
   const std::size_t channels = data.size();
   if (sampleRate != 44100)
   {
@@ -702,9 +725,11 @@ void AudioDecoder::decodeRemaining(AudioArray& data)
     }
     decoded += res;
   }
+#endif
 }
 void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
 {
+#if __has_include(<libavcodec/avcodec.h>)
   qDebug() << "decoding: " << path;
   auto& data = hdl->data;
   try
@@ -850,6 +875,7 @@ void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
   finishedDecoding(hdl);
   m_decodeThread.quit();
 
+#endif
   return;
 }
 }

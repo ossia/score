@@ -1,4 +1,5 @@
 #pragma once
+#if defined(HAS_FAUST)
 #include <ossia/dataflow/node_process.hpp>
 #include <wobjectdefs.h>
 
@@ -156,3 +157,4 @@ public:
 using FaustEffectComponentFactory
     = Engine::Execution::ProcessComponentFactory_T<FaustEffectComponent>;
 }
+#endif
