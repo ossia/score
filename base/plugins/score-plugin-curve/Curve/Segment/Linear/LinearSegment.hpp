@@ -52,7 +52,6 @@ public:
 
   ossia::curve_segment<float> makeFloatFunction() const override;
   ossia::curve_segment<int> makeIntFunction() const override;
-  ossia::curve_segment<bool> makeBoolFunction() const override;
 };
 }
 

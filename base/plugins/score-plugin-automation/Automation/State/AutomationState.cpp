@@ -5,9 +5,6 @@
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 
 #include <Automation/AutomationModel.hpp>
-#include <Curve/CurveModel.hpp>
-#include <Curve/Palette/CurvePoint.hpp>
-#include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>

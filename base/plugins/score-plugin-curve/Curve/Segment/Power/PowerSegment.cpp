@@ -146,11 +146,6 @@ ossia::curve_segment<int> PowerSegment::makeIntFunction() const
   return makeFunction<int>();
 }
 
-ossia::curve_segment<bool> PowerSegment::makeBoolFunction() const
-{
-  return makeFunction<bool>();
-}
-
 optional<double> PowerSegment::verticalParameter() const
 {
 

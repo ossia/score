@@ -62,8 +62,4 @@ ossia::curve_segment<int> LinearSegment::makeIntFunction() const
   return ossia::curve_segment_linear<int>{};
 }
 
-ossia::curve_segment<bool> LinearSegment::makeBoolFunction() const
-{
-  return ossia::curve_segment_linear<bool>{};
-}
 }

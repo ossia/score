@@ -160,10 +160,6 @@ public:
   {
     return makeFunction<int>();
   }
-  ossia::curve_segment<bool> makeBoolFunction() const override
-  {
-    return makeFunction<bool>();
-  }
 };
 
 struct Sin

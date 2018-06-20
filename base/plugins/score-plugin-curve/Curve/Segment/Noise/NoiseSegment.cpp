@@ -109,9 +109,4 @@ ossia::curve_segment<int> NoiseSegment::makeIntFunction() const
 {
   return Noise<int>{};
 }
-
-ossia::curve_segment<bool> NoiseSegment::makeBoolFunction() const
-{
-  return Noise<bool>{};
-}
 }

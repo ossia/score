@@ -24,12 +24,6 @@ struct CurveTraits<float>
   static const constexpr auto fun = &Curve::SegmentModel::makeFloatFunction;
 };
 
-template <>
-struct CurveTraits<bool>
-{
-  static const constexpr auto fun = &Curve::SegmentModel::makeBoolFunction;
-};
-
 template <
     typename X_T,
     typename Y_T,
