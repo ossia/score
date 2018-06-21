@@ -143,7 +143,7 @@
                 },
                 "Extended": {
                 },
-                "Float": 0,
+                "Float": -80,
                 "Name": "gain",
                 "RepetitionFilter": true,
                 "Unit": "gain.db",
