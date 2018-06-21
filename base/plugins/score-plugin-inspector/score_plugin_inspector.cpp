@@ -2,7 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "score_plugin_inspector.hpp"
 
-#include "Panel/InspectorPanelFactory.hpp"
+#include <InspectorPlugin/Panel/InspectorPanelFactory.hpp>
 
 #include <score/plugins/customfactory/FactorySetup.hpp>
 #include <score/tools/ForEachType.hpp>
@@ -39,3 +39,6 @@ score_plugin_inspector::factoryFamilies()
   return make_ptr_vector<
       score::InterfaceListBase, Inspector::InspectorWidgetList>();
 }
+
+#include <score/plugins/PluginInstances.hpp>
+SCORE_EXPORT_PLUGIN(score_plugin_inspector)

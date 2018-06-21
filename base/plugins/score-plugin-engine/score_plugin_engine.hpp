@@ -159,18 +159,11 @@
  */
 
 class score_plugin_engine final
-    : public QObject
-    , public score::ApplicationPlugin_QtInterface
+    : public score::ApplicationPlugin_QtInterface
     , public score::FactoryList_QtInterface
     , public score::FactoryInterface_QtInterface
     , public score::Plugin_QtInterface
 {
-  Q_OBJECT
-  Q_PLUGIN_METADATA(IID Plugin_QtInterface_iid)
-  Q_INTERFACES(
-      score::ApplicationPlugin_QtInterface score::FactoryList_QtInterface
-          score::FactoryInterface_QtInterface score::Plugin_QtInterface)
-
   SCORE_PLUGIN_METADATA(1, "d4758f8d-64ac-41b4-8aaf-1cbd6f3feb91")
 public:
   score_plugin_engine();

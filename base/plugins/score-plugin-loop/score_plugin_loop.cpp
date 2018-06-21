@@ -34,48 +34,52 @@ class ApplicationPlugin
     , public score::GUIApplicationPlugin
 {
 public:
-  ApplicationPlugin(const score::GUIApplicationContext& ctx)
-      : GUIApplicationPlugin{ctx}
-  {
-    m_putInLoop = new QAction{this};
-    connect(m_putInLoop, &QAction::triggered, [this] {
-      auto& ctx = currentDocument()->context();
-      auto sm = Scenario::focusedScenarioModel(ctx);
-      SCORE_ASSERT(sm);
-
-      Loop::EncapsulateInLoop(*sm, ctx.commandStack);
-    });
-  }
-
-  score::GUIElements makeGUIElements() override
-  {
-    score::GUIElements e;
-    auto& actions = e.actions;
-    auto& base_menus = context.menus.get();
-
-    actions.add<Actions::PutInLoop>(m_putInLoop);
-
-    auto& scenariomodel_cond
-        = context.actions.condition<Scenario::EnableWhenScenarioModelObject>();
-    scenariomodel_cond.add<Actions::PutInLoop>();
-
-    auto& object = base_menus.at(score::Menus::Object());
-    object.menu()->addAction(m_putInLoop);
-    return e;
-  }
-
-private:
-  QAction* m_putInLoop{};
+  ApplicationPlugin(const score::GUIApplicationContext& ctx);
+  ~ApplicationPlugin() override;
+  score::GUIElements makeGUIElements() override;
 };
-}
 
-score_plugin_loop::score_plugin_loop() : QObject{}
+ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
+  : GUIApplicationPlugin{ctx}
 {
 }
 
-score_plugin_loop::~score_plugin_loop()
+
+ApplicationPlugin::~ApplicationPlugin()
 {
+
 }
+
+score::GUIElements ApplicationPlugin::makeGUIElements()
+{
+  score::GUIElements e;
+  auto& actions = e.actions;
+  auto& base_menus = context.menus.get();
+
+  auto putInLoop = new QAction{this};
+  connect(putInLoop, &QAction::triggered, this, [this] {
+    auto& ctx = currentDocument()->context();
+    auto sm = Scenario::focusedScenarioModel(ctx);
+    SCORE_ASSERT(sm);
+
+    Loop::EncapsulateInLoop(*sm, ctx.commandStack);
+  });
+
+  actions.add<Actions::PutInLoop>(putInLoop);
+
+  auto& scenariomodel_cond
+      = context.actions.condition<Scenario::EnableWhenScenarioModelObject>();
+  scenariomodel_cond.add<Actions::PutInLoop>();
+
+  auto& object = base_menus.at(score::Menus::Object());
+  object.menu()->addAction(putInLoop);
+  return e;
+}
+
+}
+
+score_plugin_loop::score_plugin_loop() = default;
+score_plugin_loop::~score_plugin_loop() = default;
 
 score::GUIApplicationPlugin* score_plugin_loop::make_guiApplicationPlugin(
     const score::GUIApplicationContext& app)
@@ -114,3 +118,6 @@ score_plugin_loop::make_commands()
 
   return cmds;
 }
+
+#include <score/plugins/PluginInstances.hpp>
+SCORE_EXPORT_PLUGIN(score_plugin_loop)

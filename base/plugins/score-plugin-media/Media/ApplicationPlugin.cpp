@@ -177,29 +177,6 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
           i.path = path;
           i.uniqueID = p->uniqueID;
           {
-            /*
-                        char buf[256] = {0};
-                        p->dispatcher(p, effGetEffectName, 0, 0, buf, 0.f);
-                        QString s = buf;
-                        qDebug() << path;
-                        qDebug() << "effGetEffectName: " << s;
-
-                        p->dispatcher(p, effGetProductString, 0, 0, buf, 0.f);
-                        s = buf;
-                        qDebug() << "effGetProductString: " << s;
-
-                        p->dispatcher(p, effGetVstVersion, 0, 0, buf, 0.f);
-                        s = buf;
-                        qDebug() << "effGetProductString: " << s;
-
-                        p->dispatcher(p, effGetVendorString, 0, 0, buf, 0.f);
-                        s = buf;
-                        qDebug() << "effGetVendorString: " << s;
-
-                        p->dispatcher(p, effGetVendorVersion, 0, 0, buf, 0.f);
-                        s = buf;
-                        qDebug() << "effGetVendorVersion: " << s;
-            */
             // Only way to get a separation between Kontakt 5 / Kontakt 5 (8
             // out) / Kontakt 5 (16 out),  etc...
             i.prettyName = QFileInfo(path).baseName();

@@ -15,9 +15,3 @@ public:
       = 0;
 };
 }
-
-#define CommandFactory_QtInterface_iid \
-  "org.ossia.score.plugins.CommandFactory_QtInterface"
-
-Q_DECLARE_INTERFACE(
-    score::CommandFactory_QtInterface, CommandFactory_QtInterface_iid)

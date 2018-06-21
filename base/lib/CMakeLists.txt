@@ -101,6 +101,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/tree/TreePath.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/tree/VariantBasedNode.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/Addon.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/PluginInstances.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/ProjectSettings/ProjectSettingsFactory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/ProjectSettings/ProjectSettingsModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/ProjectSettings/ProjectSettingsPresenter.hpp"
@@ -249,6 +250,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/ProjectSettings/ProjectSettingsModel.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/Addon.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/PluginInstances.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/qt_interfaces/FactoryFamily_QtInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/qt_interfaces/FactoryInterface_QtInterface.cpp"

@@ -1,5 +1,4 @@
 #pragma once
-#include <QObject>
 #include <score_lib_base_export.h>
 
 namespace score
@@ -20,9 +19,3 @@ public:
   make_guiApplicationPlugin(const score::GUIApplicationContext& app);
 };
 }
-
-#define ApplicationPlugin_QtInterface_iid \
-  "org.ossia.score.plugins.ApplicationPlugin_QtInterface"
-
-Q_DECLARE_INTERFACE(
-    score::ApplicationPlugin_QtInterface, ApplicationPlugin_QtInterface_iid)

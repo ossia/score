@@ -5,20 +5,15 @@
 #include <QString>
 #include <Recording/ApplicationPlugin.hpp>
 #include <Recording/Commands/RecordingCommandFactory.hpp>
-#include <Scenario/score_plugin_scenario.hpp>
+#include <score_plugin_scenario.hpp>
 #include <score/plugins/customfactory/FactorySetup.hpp>
 #include <score/tools/ForEachType.hpp>
 #include <score/tools/std/HashMap.hpp>
 #include <score_plugin_engine.hpp>
 #include <score_plugin_recording_commands_files.hpp>
 
-score_plugin_recording::score_plugin_recording() : QObject{}
-{
-}
-
-score_plugin_recording::~score_plugin_recording()
-{
-}
+score_plugin_recording::score_plugin_recording() = default;
+score_plugin_recording::~score_plugin_recording() = default;
 
 score::GUIApplicationPlugin* score_plugin_recording::make_guiApplicationPlugin(
     const score::GUIApplicationContext& app)
@@ -45,3 +40,6 @@ score_plugin_recording::make_commands()
 
   return cmds;
 }
+
+#include <score/plugins/PluginInstances.hpp>
+SCORE_EXPORT_PLUGIN(score_plugin_recording)

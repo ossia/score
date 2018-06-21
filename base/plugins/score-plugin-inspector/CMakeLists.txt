@@ -5,13 +5,13 @@ score_common_setup()
 
 # Inspector panel plug-in
 set(HDRS
-  "${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/score_plugin_inspector.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_inspector.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/Panel/Implementation/InspectorPanel.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/Panel/InspectorPanelDelegate.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/Panel/InspectorPanelFactory.hpp"
   )
 set(SRCS
-"${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/score_plugin_inspector.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_inspector.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/Panel/Implementation/InspectorPanel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/Panel/InspectorPanelFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/Panel/InspectorPanelDelegate.cpp"
@@ -20,5 +20,4 @@ set(SRCS
 add_library(${PROJECT_NAME} ${HDRS} ${SRCS})
 target_link_libraries(${PROJECT_NAME} PUBLIC score_lib_inspector)
 
-score_moc_headers(${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/InspectorPlugin/score_plugin_inspector.hpp")
 setup_score_plugin(score_plugin_inspector)

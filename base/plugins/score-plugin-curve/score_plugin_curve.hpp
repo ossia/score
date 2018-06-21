@@ -32,22 +32,15 @@
  */
 
 class score_plugin_curve final
-    : public QObject
-    , public score::Plugin_QtInterface
+    : public score::Plugin_QtInterface
     , public score::FactoryInterface_QtInterface
     , public score::CommandFactory_QtInterface
     , public score::FactoryList_QtInterface
 {
-  Q_OBJECT
-  Q_PLUGIN_METADATA(IID Plugin_QtInterface_iid)
-  Q_INTERFACES(
-      score::Plugin_QtInterface score::FactoryInterface_QtInterface
-          score::CommandFactory_QtInterface score::FactoryList_QtInterface)
-
   SCORE_PLUGIN_METADATA(1, "49837ed7-dbc5-4330-9890-a130a2718b5e")
 public:
   score_plugin_curve();
-  virtual ~score_plugin_curve() = default;
+  ~score_plugin_curve() override;
 
 private:
   std::vector<std::unique_ptr<score::InterfaceBase>> factories(

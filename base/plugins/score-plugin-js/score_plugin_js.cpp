@@ -19,7 +19,7 @@
 #include <score_plugin_js_commands_files.hpp>
 
 
-score_plugin_js::score_plugin_js() : QObject{}
+score_plugin_js::score_plugin_js()
 {
   qmlRegisterType<JS::ControlInlet>("Score", 1, 0, "ControlInlet");
   qmlRegisterType<JS::ValueInlet>("Score", 1, 0, "ValueInlet");
@@ -37,9 +37,7 @@ score_plugin_js::score_plugin_js() : QObject{}
   qRegisterMetaType<QVector<JS::MidiMessage>>();
 }
 
-score_plugin_js::~score_plugin_js()
-{
-}
+score_plugin_js::~score_plugin_js() = default;
 
 std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_js::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
@@ -67,3 +65,6 @@ score_plugin_js::make_commands()
 
   return cmds;
 }
+
+#include <score/plugins/PluginInstances.hpp>
+SCORE_EXPORT_PLUGIN(score_plugin_js)
