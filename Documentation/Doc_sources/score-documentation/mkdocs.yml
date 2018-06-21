@@ -12,6 +12,8 @@ pages:
       - 'Setup an OSC device': 'howtos/declare_an_osc_device.md'
       - 'Manually declare a namespace': 'howtos/manual_namespace_setup.md'
       - 'Use the learn function': 'howtos/namespace_learning.md'
+   - Edit:
+      - 'Update stored state': 'howtos/update_state.md'
    
 use_directory_urls: false
 
