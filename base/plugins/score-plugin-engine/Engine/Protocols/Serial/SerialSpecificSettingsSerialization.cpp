@@ -1,5 +1,8 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
+#include <ossia/detail/config.hpp>
+#if defined(OSSIA_PROTOCOL_SERIAL)
 #include "SerialSpecificSettings.hpp"
 
 #include <QJsonObject>
@@ -54,3 +57,4 @@ void JSONObjectWriter::write(Engine::Network::SerialSpecificSettings& n)
   }
   n.text = obj["Text"].toString();
 }
+#endif

@@ -45,7 +45,7 @@
 #include <Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.hpp>
 #include <Scenario/Process/ScenarioFactory.hpp>
 #include <Scenario/Settings/ScenarioSettingsFactory.hpp>
-#include <Scenario/score_plugin_scenario.hpp>
+#include <score_plugin_scenario.hpp>
 #include <State/Message.hpp>
 #include <State/Unit.hpp>
 #include <State/Value.hpp>
@@ -174,8 +174,6 @@ score_plugin_scenario::factories(
       FW<Process::PortFactory, Dataflow::InletFactory,
          Dataflow::ControlInletFactory, Dataflow::OutletFactory,
          Dataflow::ControlOutletFactory>
-      //, FW<Dataflow::ProcessComponentFactory,
-      //Dataflow::ScenarioComponentFactory>
       >(ctx, key);
 }
 
@@ -207,3 +205,6 @@ score_plugin_scenario::guiFactories(
       score::GUIApplicationContext,
       FW<Process::LayerFactory, ScenarioTemporalLayerFactory>>(ctx, key);
 }
+
+#include <score/plugins/PluginInstances.hpp>
+SCORE_EXPORT_PLUGIN(score_plugin_scenario)

@@ -1,5 +1,5 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check
-// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+//// This is an open source non-commercial project. Dear PVS-Studio, please check
+//// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ApplicationPlugin.hpp"
 
 #include <ossia/audio/audio_protocol.hpp>
@@ -213,6 +213,7 @@ static std::unique_ptr<ossia::audio_engine> make_engine(AlteredAudioSettings& al
 
   return std::unique_ptr<ossia::audio_engine>{eng};
 }
+
 void ApplicationPlugin::restart_engine()
 {
   if(m_updating_audio)
@@ -284,9 +285,11 @@ void ApplicationPlugin::initialize()
 
   }
 }
+
 score::GUIElements ApplicationPlugin::makeGUIElements()
 {
   GUIElements e;
+
   auto& toolbars = e.toolbars;
 
   toolbars.reserve(1);
@@ -357,13 +360,20 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     }
   });
 
+
   return e;
 }
 
+
 void ApplicationPlugin::on_initDocument(score::Document& doc)
 {
-  doc.model().addPluginModel(new Engine::LocalTree::DocumentPlugin{
-      doc.context(), getStrongId(doc.model().pluginModels()), &doc.model()});
+#if !defined(__EMSCRIPTEN__)
+  auto& m = doc.model();
+  auto id = getStrongId(m.pluginModels());
+  auto p = new Engine::LocalTree::DocumentPlugin{
+      doc.context(), id, &doc.model()};
+  m.addPluginModel(p);
+#endif
 }
 
 void ApplicationPlugin::on_createdDocument(score::Document& doc)
@@ -378,6 +388,8 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
   doc.model().addPluginModel(new Engine::Execution::DocumentPlugin{
       doc.context(), getStrongId(doc.model().pluginModels()), &doc.model()});
 }
+
+
 
 void ApplicationPlugin::on_documentChanged(
     score::Document* olddoc, score::Document* newdoc)
@@ -500,6 +512,8 @@ void ApplicationPlugin::on_transport(TimeVal t)
         [itv, time = m_clock->context.time(t)] { itv->transport(time); });
   }
 }
+
+
 
 void ApplicationPlugin::on_play(
     Scenario::IntervalModel& cst,

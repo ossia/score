@@ -57,10 +57,6 @@ add_executable(player_network
   )
 target_link_libraries(player_network PUBLIC score_player)
 
-if(SCORE_STATIC_PLUGINS)
-  score_write_static_plugins_header()
-endif()
-
 setup_score_common_lib_features(score_player)
 setup_score_common_lib_features(score_player_plugin)
 setup_score_common_exe_features(player)

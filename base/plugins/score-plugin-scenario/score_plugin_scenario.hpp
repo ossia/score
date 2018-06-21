@@ -57,25 +57,16 @@ class PanelFactory;
 } // namespace score
 
 class score_plugin_scenario final
-    : public QObject
-    , public score::ApplicationPlugin_QtInterface
+    : public score::ApplicationPlugin_QtInterface
     , public score::CommandFactory_QtInterface
     , public score::FactoryList_QtInterface
     , public score::FactoryInterface_QtInterface
     , public score::Plugin_QtInterface
 {
-  Q_OBJECT
-
-  Q_PLUGIN_METADATA(IID Plugin_QtInterface_iid)
-  Q_INTERFACES(
-      score::ApplicationPlugin_QtInterface score::CommandFactory_QtInterface
-          score::FactoryList_QtInterface score::FactoryInterface_QtInterface
-              score::Plugin_QtInterface)
-
   SCORE_PLUGIN_METADATA(1, "8439ef6c-90c3-4e08-8185-6a0f3c87f8b4")
 public:
   score_plugin_scenario();
-  virtual ~score_plugin_scenario();
+  ~score_plugin_scenario() override;
 
 private:
   // Application plugin interface

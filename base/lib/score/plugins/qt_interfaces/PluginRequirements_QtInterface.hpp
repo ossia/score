@@ -1,6 +1,5 @@
 #pragma once
-#include <QObject>
-#include <QStringList>
+#include <QJsonObject>
 #include <score/plugins/customfactory/UuidKey.hpp>
 #include <score/tools/Version.hpp>
 #include <score_lib_base_export.h>
@@ -12,8 +11,6 @@ struct Plugin
 };
 
 using PluginKey = UuidKey<Plugin>;
-// Used to declare which plug-ins require to
-// have their ApplicationPlugin loaded prior to this one.
 class SCORE_LIB_BASE_EXPORT Plugin_QtInterface
 {
 public:
@@ -37,10 +34,6 @@ public:
   }
 };
 }
-
-#define Plugin_QtInterface_iid "org.ossia.score.plugins.Plugin_QtInterface"
-
-Q_DECLARE_INTERFACE(score::Plugin_QtInterface, Plugin_QtInterface_iid)
 
 /**
  * \macro SCORE_PLUGIN_METADATA

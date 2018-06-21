@@ -23,3 +23,6 @@ score_plugin_library::guiFactories(
       FW<score::PanelDelegateFactory, Library::PanelDelegateFactory>>(
       ctx, key);
 }
+
+#include <score/plugins/PluginInstances.hpp>
+SCORE_EXPORT_PLUGIN(score_plugin_library)

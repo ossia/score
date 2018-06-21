@@ -18,6 +18,7 @@
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::ApplicationPlugin)
 
+#if defined(HAS_VST2)
 template <>
 void DataStreamReader::read<Media::ApplicationPlugin::vst_info>(
     const Media::ApplicationPlugin::vst_info& p)
@@ -35,6 +36,7 @@ Q_DECLARE_METATYPE(Media::ApplicationPlugin::vst_info)
 W_REGISTER_ARGTYPE(Media::ApplicationPlugin::vst_info)
 Q_DECLARE_METATYPE(std::vector<Media::ApplicationPlugin::vst_info>)
 W_REGISTER_ARGTYPE(std::vector<Media::ApplicationPlugin::vst_info>)
+#endif
 namespace Media
 {
 
@@ -48,10 +50,14 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
 }
 #endif
 {
+
+#if defined(HAS_VST2)
   qRegisterMetaType<vst_info>();
   qRegisterMetaTypeStreamOperators<vst_info>();
   qRegisterMetaType<std::vector<vst_info>>();
   qRegisterMetaTypeStreamOperators<std::vector<vst_info>>();
+#endif
+
 #if defined(LILV_SHARED) // TODO instead add a proper preprocessor macro that
                          // also works in static case
   lv2_context->loadPlugins();
@@ -171,29 +177,6 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
           i.path = path;
           i.uniqueID = p->uniqueID;
           {
-            /*
-                        char buf[256] = {0};
-                        p->dispatcher(p, effGetEffectName, 0, 0, buf, 0.f);
-                        QString s = buf;
-                        qDebug() << path;
-                        qDebug() << "effGetEffectName: " << s;
-
-                        p->dispatcher(p, effGetProductString, 0, 0, buf, 0.f);
-                        s = buf;
-                        qDebug() << "effGetProductString: " << s;
-
-                        p->dispatcher(p, effGetVstVersion, 0, 0, buf, 0.f);
-                        s = buf;
-                        qDebug() << "effGetProductString: " << s;
-
-                        p->dispatcher(p, effGetVendorString, 0, 0, buf, 0.f);
-                        s = buf;
-                        qDebug() << "effGetVendorString: " << s;
-
-                        p->dispatcher(p, effGetVendorVersion, 0, 0, buf, 0.f);
-                        s = buf;
-                        qDebug() << "effGetVendorVersion: " << s;
-            */
             // Only way to get a separation between Kontakt 5 / Kontakt 5 (8
             // out) / Kontakt 5 (16 out),  etc...
             i.prettyName = QFileInfo(path).baseName();

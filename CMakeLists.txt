@@ -89,8 +89,6 @@ include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/readerwriterqueue")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/exprtk")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/multi_index/include")
 include_directories(SYSTEM "${3RDPARTY_FOLDER}/miniz")
-add_subdirectory("${3RDPARTY_FOLDER}/Qt-Color-Widgets" )
-add_subdirectory("${3RDPARTY_FOLDER}/QProgressIndicator" )
 
 set(SCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins") # todo libraries, components ?
 set(SCORE_GLOBAL_COMPONENTS_LIST CACHE INTERNAL "List of components") # todo libraries, components ?

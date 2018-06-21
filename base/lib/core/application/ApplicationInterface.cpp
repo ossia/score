@@ -52,9 +52,6 @@ void GUIApplicationInterface::loadPluginData(
     score::Settings& settings,
     score::Presenter& presenter)
 {
-#define DO_DEBUG qDebug() << i++
-  int i = 0;
-  DO_DEBUG;
   registrar.registerFactory(std::make_unique<score::DocumentDelegateList>());
   registrar.registerFactory(std::make_unique<score::ValidityCheckerList>());
   registrar.registerFactory(
@@ -67,47 +64,37 @@ void GUIApplicationInterface::loadPluginData(
   registrar.registerFactory(
       std::make_unique<score::SettingsDelegateFactoryList>());
 
-  DO_DEBUG;
   registrar.registerGUIApplicationPlugin(
       new score::CoreApplicationPlugin{ctx, presenter});
 
-  DO_DEBUG;
   if (presenter.view())
   {
     registrar.registerGUIApplicationPlugin(
         new score::UndoApplicationPlugin{ctx});
   }
-  DO_DEBUG;
   score::PluginLoader::loadPlugins(registrar, ctx);
 
-  DO_DEBUG;
   // Now rehash our various hash tables
   presenter.optimize();
-  DO_DEBUG;
   // Load the settings
   QSettings s;
   for (auto& elt : ctx.interfaces<score::SettingsDelegateFactoryList>())
   {
     settings.setupSettingsPlugin(s, ctx, elt);
   }
-  DO_DEBUG;
   if (presenter.view())
   {
     presenter.setupGUI();
   }
-  DO_DEBUG;
   for (score::ApplicationPlugin* app_plug : ctx.applicationPlugins())
   {
-    qDebug() << typeid(app_plug).name();
     app_plug->initialize();
   }
   for (score::GUIApplicationPlugin* app_plug : ctx.guiApplicationPlugins())
   {
-    qDebug() << typeid(app_plug).name();
     app_plug->initialize();
   }
-  DO_DEBUG;
-#if !defined(__EMSCRIPTEN__)
+
   if (presenter.view())
   {
     for (auto& panel_fac : ctx.interfaces<score::PanelDelegateFactoryList>())
@@ -120,8 +107,6 @@ void GUIApplicationInterface::loadPluginData(
       presenter.view()->setupPanel(panel.get());
     }
   }
-#endif
-  DO_DEBUG;
 }
 
 GUIApplicationContext::GUIApplicationContext(

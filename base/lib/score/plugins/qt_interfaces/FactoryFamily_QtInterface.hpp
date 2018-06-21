@@ -1,5 +1,4 @@
 #pragma once
-#include <QObject>
 #include <memory>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
 #include <vector>
@@ -18,9 +17,3 @@ public:
       = 0;
 };
 }
-
-#define FactoryList_QtInterface_iid \
-  "org.ossia.score.plugins.FactoryList_QtInterface"
-
-Q_DECLARE_INTERFACE(
-    score::FactoryList_QtInterface, FactoryList_QtInterface_iid)

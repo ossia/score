@@ -24,20 +24,15 @@
  *
  */
 class score_plugin_automation final
-    : public QObject
-    , public score::Plugin_QtInterface
+    : public score::Plugin_QtInterface
     , public score::FactoryInterface_QtInterface
     , public score::CommandFactory_QtInterface
 {
-  Q_OBJECT
-  Q_PLUGIN_METADATA(IID Plugin_QtInterface_iid)
-  Q_INTERFACES(score::Plugin_QtInterface score::FactoryInterface_QtInterface
-                   score::CommandFactory_QtInterface)
-
   SCORE_PLUGIN_METADATA(1, "255cbc40-c7e9-4bb2-87ea-8ad803fb9f2b")
+
 public:
   score_plugin_automation();
-  virtual ~score_plugin_automation();
+  ~score_plugin_automation() override;
 
 private:
   std::vector<std::unique_ptr<score::InterfaceBase>> factories(

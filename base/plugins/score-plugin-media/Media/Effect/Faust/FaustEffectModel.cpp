@@ -1,3 +1,4 @@
+#if defined(HAS_FAUST)
 #include "FaustEffectModel.hpp"
 
 #include <ossia/dataflow/execution_state.hpp>
@@ -294,3 +295,4 @@ Engine::Execution::FaustEffectComponent::FaustEffectComponent(
 
 }
 W_OBJECT_IMPL(Engine::Execution::FaustEffectComponent)
+#endif

@@ -31,11 +31,12 @@ ProcessGraphicsView::ProcessGraphicsView(
   // setCacheMode(QGraphicsView::CacheBackground);
   setDragMode(QGraphicsView::NoDrag);
 
+#if !defined(__EMSCRIPTEN__)
   setOptimizationFlag(QGraphicsView::DontSavePainterState, true);
   setOptimizationFlag(QGraphicsView::DontAdjustForAntialiasing, true);
   setAttribute(Qt::WA_PaintOnScreen, true);
   setAttribute(Qt::WA_OpaquePaintEvent, true);
-
+#endif
 #if defined(__APPLE__)
   // setRenderHints(0);
   // setOptimizationFlag(QGraphicsView::IndirectPainting, true);

@@ -105,20 +105,24 @@ int main(int argc, char** argv)
   qRegisterMetaType<QItemSelection>();
 #endif
 
+#if !defined(__EMSCRIPTEN__)
   QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
   QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
   QCoreApplication::setAttribute(Qt::AA_CompressHighFrequencyEvents);
+#endif
 
   QLocale::setDefault(QLocale::C);
   setlocale(LC_ALL, "C");
 
   init_plugins();
 
+#if !defined(__EMSCRIPTEN__)
   QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
   fmt.setMajorVersion(4);
   fmt.setMinorVersion(1);
   fmt.setSamples(1);
   fmt.setDefaultFormat(fmt);
+#endif
 
   QPixmapCache::setCacheLimit(819200);
   Application app(argc, argv);

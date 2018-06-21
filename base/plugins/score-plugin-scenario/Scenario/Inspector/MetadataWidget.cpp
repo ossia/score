@@ -133,7 +133,7 @@ MetadataWidget::MetadataWidget(
     connect(
         palette_widget,
         static_cast<void (ColorPaletteWidget::*)(int)>(
-            &ColorPaletteWidget::currentColorChanged),
+            &ColorPaletteWidget::selectedChanged),
         this, [=](int idx) {
           auto colors = palette.palette(0).colors();
 

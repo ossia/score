@@ -16,11 +16,13 @@
 #include <score/tools/std/HashMap.hpp>
 #include <score_plugin_curve_commands_files.hpp>
 
-score_plugin_curve::score_plugin_curve() : QObject{}
+score_plugin_curve::score_plugin_curve()
 {
   qRegisterMetaType<Curve::Settings::Mode>();
   qRegisterMetaTypeStreamOperators<Curve::Settings::Mode>();
 }
+
+score_plugin_curve::~score_plugin_curve() = default;
 
 std::vector<std::unique_ptr<score::InterfaceBase>>
 score_plugin_curve::factories(
@@ -62,3 +64,6 @@ score_plugin_curve::make_commands()
 
   return cmds;
 }
+
+#include <score/plugins/PluginInstances.hpp>
+SCORE_EXPORT_PLUGIN(score_plugin_curve)

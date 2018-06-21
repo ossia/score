@@ -292,7 +292,6 @@ if(OSSIA_DATAFLOW)
     target_sources(${PROJECT_NAME} PRIVATE ${AUDIO_HDRS} ${AUDIO_SRCS})
 endif()
 
-score_moc_headers(${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_engine.hpp")
 target_link_libraries(${PROJECT_NAME}
         PUBLIC
           Qt5::Core Qt5::Widgets

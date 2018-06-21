@@ -2,7 +2,7 @@ TARGET = i-score
 TEMPLATE = app
 CONFIG += c++1z object_parallel_to_source warn_off debug
 
-QT+=core widgets gui network xml svg websockets
+QT+=core widgets gui network xml svg websockets quick
 DEFINES += __EMSCRIPTEN__
 # cp *.h *.hpp from cmake
 INCLUDEPATH += $$PWD/build-debug $$PWD/base/lib \
@@ -13,13 +13,17 @@ $$PWD/API/3rdparty/fmt \
 $$PWD/API/3rdparty/hopscotch-map/src \
 $$PWD/API/3rdparty/nano-signal-slot/include \
 $$PWD/API/3rdparty/rapidjson/include \
+$$PWD/API/3rdparty/flat/include \
+$$PWD/API/3rdparty/multi_index/include \
 $$PWD/API/3rdparty/readerwriterqueue \
+$$PWD/API/3rdparty/concurrentqueue \
 $$PWD/API/3rdparty/Servus \
 $$PWD/API/3rdparty/spdlog/include \
 $$PWD/API/3rdparty/variant/include \
 $$PWD/API/3rdparty/websocketpp \
 $$PWD/API/3rdparty/GSL/include \
 $$PWD/API/3rdparty/bitset2 \
+$$PWD/API/3rdparty/RtMidi17 \
 $$PWD/API/3rdparty/flat_hash_map \
 $$PWD/API/3rdparty/verdigris/src \
 $$PWD/API/3rdparty/SmallFunction/smallfun/include \
@@ -45,6 +49,7 @@ $$PWD/base/plugins/score-lib-device \
 $$PWD/base/plugins/score-lib-process \
 $$PWD/base/plugins/score-plugin-automation \
 $$PWD/base/plugins/score-plugin-js \
+$$PWD/base/plugins/score-plugin-fx \
 $$PWD/base/plugins/score-plugin-mapping \
 $$PWD/base/plugins/score-plugin-media \
 $$PWD/base/plugins/score-plugin-loop \
