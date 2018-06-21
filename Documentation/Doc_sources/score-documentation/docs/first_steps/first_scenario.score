@@ -1,0 +1,2148 @@
+{
+    "Document": {
+        "BaseScenario": {
+            "Constraint": {
+                "Center": 8232.202784534962,
+                "Components": [
+                ],
+                "DefaultDuration": 15000,
+                "EndState": 1,
+                "FullViewRack": [
+                    {
+                        "Process": 1
+                    }
+                ],
+                "GuiDuration": 16500,
+                "HeightPercentage": 0,
+                "Inlet": {
+                    "Address": {
+                        "Accessors": [
+                        ],
+                        "Unit": "none",
+                        "address": {
+                            "Device": "",
+                            "Path": ""
+                        }
+                    },
+                    "Custom": "",
+                    "Hidden": false,
+                    "ObjectName": "Inlet",
+                    "Type": 1,
+                    "id": 0,
+                    "uuid": "8884228a-d197-4b0a-b6ca-d1fb15291559"
+                },
+                "MaxDuration": 15000,
+                "MaxInf": true,
+                "Metadata": {
+                    "Color": "Transparent1",
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": "Untitled.halo19"
+                },
+                "MinDuration": 15000,
+                "MinNull": false,
+                "ObjectName": "Scenario::IntervalModel",
+                "Outlet": {
+                    "Address": {
+                        "Accessors": [
+                        ],
+                        "Unit": "none",
+                        "address": {
+                            "Device": "",
+                            "Path": ""
+                        }
+                    },
+                    "Custom": "",
+                    "Hidden": false,
+                    "ObjectName": "Outlet",
+                    "Propagate": true,
+                    "Type": 1,
+                    "id": 0,
+                    "uuid": "34e2c5a7-18c4-4759-b6cc-46feaeee06e2"
+                },
+                "Processes": [
+                    {
+                        "Comments": [
+                        ],
+                        "Components": [
+                        ],
+                        "Constraints": [
+                            {
+                                "Center": 0,
+                                "Components": [
+                                ],
+                                "DefaultDuration": 4483.822265928265,
+                                "EndState": 4,
+                                "FullViewRack": [
+                                    {
+                                        "Process": 1
+                                    }
+                                ],
+                                "GuiDuration": 4932.204492521091,
+                                "HeightPercentage": 0.03000000000000001,
+                                "Inlet": {
+                                    "Address": {
+                                        "Accessors": [
+                                        ],
+                                        "Unit": "none",
+                                        "address": {
+                                            "Device": "",
+                                            "Path": ""
+                                        }
+                                    },
+                                    "Custom": "",
+                                    "Hidden": false,
+                                    "ObjectName": "Inlet",
+                                    "Type": 1,
+                                    "id": 0,
+                                    "uuid": "8884228a-d197-4b0a-b6ca-d1fb15291559"
+                                },
+                                "MaxDuration": 4483.822265928265,
+                                "MaxInf": false,
+                                "Metadata": {
+                                    "Color": "Transparent1",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "Interval.loon12"
+                                },
+                                "MinDuration": 4483.822265928265,
+                                "MinNull": false,
+                                "ObjectName": "Scenario::IntervalModel",
+                                "Outlet": {
+                                    "Address": {
+                                        "Accessors": [
+                                        ],
+                                        "Unit": "none",
+                                        "address": {
+                                            "Device": "",
+                                            "Path": ""
+                                        }
+                                    },
+                                    "Custom": "",
+                                    "Hidden": false,
+                                    "ObjectName": "Outlet",
+                                    "Propagate": true,
+                                    "Type": 1,
+                                    "id": 0,
+                                    "uuid": "34e2c5a7-18c4-4759-b6cc-46feaeee06e2"
+                                },
+                                "Processes": [
+                                    {
+                                        "Components": [
+                                        ],
+                                        "Curve": {
+                                            "ObjectName": "CurveModel",
+                                            "Segments": [
+                                                {
+                                                    "End": [
+                                                        1,
+                                                        1
+                                                    ],
+                                                    "Following": null,
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Previous": null,
+                                                    "Start": [
+                                                        0,
+                                                        0
+                                                    ],
+                                                    "id": 1,
+                                                    "uuid": "82a3709d-d9cc-4dcf-9aa8-5d539545f34b"
+                                                }
+                                            ],
+                                            "id": 45345
+                                        },
+                                        "Duration": 4483.822265928265,
+                                        "Height": 300,
+                                        "Max": 10,
+                                        "Metadata": {
+                                            "Color": "Base1",
+                                            "Comment": "",
+                                            "Label": "",
+                                            "ScriptingName": "Automation_(float).1"
+                                        },
+                                        "Min": 5.000010013580322,
+                                        "ObjectName": "Automation",
+                                        "Outlet": {
+                                            "Address": {
+                                                "Accessors": [
+                                                ],
+                                                "Unit": "none",
+                                                "address": {
+                                                    "Device": "OSCdevice",
+                                                    "Path": "modulation/ratio"
+                                                }
+                                            },
+                                            "Custom": "",
+                                            "Hidden": false,
+                                            "ObjectName": "Outlet",
+                                            "Propagate": false,
+                                            "Type": 0,
+                                            "id": 0,
+                                            "uuid": "34e2c5a7-18c4-4759-b6cc-46feaeee06e2"
+                                        },
+                                        "Tween": false,
+                                        "id": 1,
+                                        "uuid": "d2a67bd8-5d3f-404e-b6e9-e350cf2a833f"
+                                    }
+                                ],
+                                "Rigidity": true,
+                                "SmallViewRack": [
+                                    {
+                                        "Height": 200,
+                                        "Process": 1,
+                                        "Processes": [
+                                            1
+                                        ]
+                                    }
+                                ],
+                                "SmallViewShown": true,
+                                "StartDate": 6310.564670565706,
+                                "StartState": 3,
+                                "Zoom": -1,
+                                "id": 4
+                            },
+                            {
+                                "Center": 0,
+                                "Components": [
+                                ],
+                                "DefaultDuration": 1874.1902593033492,
+                                "EndState": 3,
+                                "FullViewRack": [
+                                ],
+                                "GuiDuration": 4384.18177112986,
+                                "HeightPercentage": 0.03000000000000001,
+                                "Inlet": {
+                                    "Address": {
+                                        "Accessors": [
+                                        ],
+                                        "Unit": "none",
+                                        "address": {
+                                            "Device": "",
+                                            "Path": ""
+                                        }
+                                    },
+                                    "Custom": "",
+                                    "Hidden": false,
+                                    "ObjectName": "Inlet",
+                                    "Type": 1,
+                                    "id": 0,
+                                    "uuid": "8884228a-d197-4b0a-b6ca-d1fb15291559"
+                                },
+                                "MaxDuration": 1874.1902593033492,
+                                "MaxInf": false,
+                                "Metadata": {
+                                    "Color": "Transparent1",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "Interval.gail45"
+                                },
+                                "MinDuration": 1874.1902593033492,
+                                "MinNull": false,
+                                "ObjectName": "Scenario::IntervalModel",
+                                "Outlet": {
+                                    "Address": {
+                                        "Accessors": [
+                                        ],
+                                        "Unit": "none",
+                                        "address": {
+                                            "Device": "",
+                                            "Path": ""
+                                        }
+                                    },
+                                    "Custom": "",
+                                    "Hidden": false,
+                                    "ObjectName": "Outlet",
+                                    "Propagate": true,
+                                    "Type": 1,
+                                    "id": 0,
+                                    "uuid": "34e2c5a7-18c4-4759-b6cc-46feaeee06e2"
+                                },
+                                "Processes": [
+                                ],
+                                "Rigidity": true,
+                                "SmallViewRack": [
+                                ],
+                                "SmallViewShown": false,
+                                "StartDate": 4436.374411262357,
+                                "StartState": 2,
+                                "Zoom": -1,
+                                "id": 3
+                            },
+                            {
+                                "Center": 0,
+                                "Components": [
+                                ],
+                                "DefaultDuration": 3297.6258992805756,
+                                "EndState": 2,
+                                "FullViewRack": [
+                                    {
+                                        "Process": 1
+                                    }
+                                ],
+                                "GuiDuration": 3627.3884892086335,
+                                "HeightPercentage": 0.03000000000000001,
+                                "Inlet": {
+                                    "Address": {
+                                        "Accessors": [
+                                        ],
+                                        "Unit": "none",
+                                        "address": {
+                                            "Device": "",
+                                            "Path": ""
+                                        }
+                                    },
+                                    "Custom": "",
+                                    "Hidden": false,
+                                    "ObjectName": "Inlet",
+                                    "Type": 1,
+                                    "id": 0,
+                                    "uuid": "8884228a-d197-4b0a-b6ca-d1fb15291559"
+                                },
+                                "MaxDuration": 3297.6258992805756,
+                                "MaxInf": false,
+                                "Metadata": {
+                                    "Color": "Transparent1",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "Interval.beau19"
+                                },
+                                "MinDuration": 3297.6258992805756,
+                                "MinNull": false,
+                                "ObjectName": "Scenario::IntervalModel",
+                                "Outlet": {
+                                    "Address": {
+                                        "Accessors": [
+                                        ],
+                                        "Unit": "none",
+                                        "address": {
+                                            "Device": "",
+                                            "Path": ""
+                                        }
+                                    },
+                                    "Custom": "",
+                                    "Hidden": false,
+                                    "ObjectName": "Outlet",
+                                    "Propagate": true,
+                                    "Type": 1,
+                                    "id": 0,
+                                    "uuid": "34e2c5a7-18c4-4759-b6cc-46feaeee06e2"
+                                },
+                                "Processes": [
+                                    {
+                                        "Components": [
+                                        ],
+                                        "Curve": {
+                                            "ObjectName": "CurveModel",
+                                            "Segments": [
+                                                {
+                                                    "End": [
+                                                        1,
+                                                        1
+                                                    ],
+                                                    "Following": null,
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 10.21,
+                                                    "Previous": -2121979431,
+                                                    "Start": [
+                                                        0.697841726618705,
+                                                        0.585
+                                                    ],
+                                                    "id": 1,
+                                                    "uuid": "1e7cb83f-4e47-4b14-814d-2242a9c75991"
+                                                },
+                                                {
+                                                    "End": [
+                                                        0.697841726618705,
+                                                        0.585
+                                                    ],
+                                                    "Following": 1,
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 11.649999999999999,
+                                                    "Previous": -1704388578,
+                                                    "Start": [
+                                                        0.16546762589928057,
+                                                        0.27
+                                                    ],
+                                                    "id": -2121979431,
+                                                    "uuid": "1e7cb83f-4e47-4b14-814d-2242a9c75991"
+                                                },
+                                                {
+                                                    "End": [
+                                                        0.16546762589928057,
+                                                        0.27
+                                                    ],
+                                                    "Following": -2121979431,
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 11.05,
+                                                    "Previous": null,
+                                                    "Start": [
+                                                        0,
+                                                        0
+                                                    ],
+                                                    "id": -1704388578,
+                                                    "uuid": "1e7cb83f-4e47-4b14-814d-2242a9c75991"
+                                                }
+                                            ],
+                                            "id": 45345
+                                        },
+                                        "Duration": 3297.6258992805756,
+                                        "Height": 300,
+                                        "Max": 0,
+                                        "Metadata": {
+                                            "Color": "Base1",
+                                            "Comment": "",
+                                            "Label": "",
+                                            "ScriptingName": "Automation_(float).1"
+                                        },
+                                        "Min": -100,
+                                        "ObjectName": "Automation",
+                                        "Outlet": {
+                                            "Address": {
+                                                "Accessors": [
+                                                ],
+                                                "Unit": "gain.db",
+                                                "address": {
+                                                    "Device": "OSCdevice",
+                                                    "Path": "gain"
+                                                }
+                                            },
+                                            "Custom": "",
+                                            "Hidden": false,
+                                            "ObjectName": "Outlet",
+                                            "Propagate": false,
+                                            "Type": 0,
+                                            "id": 0,
+                                            "uuid": "34e2c5a7-18c4-4759-b6cc-46feaeee06e2"
+                                        },
+                                        "Tween": true,
+                                        "id": 1,
+                                        "uuid": "d2a67bd8-5d3f-404e-b6e9-e350cf2a833f"
+                                    }
+                                ],
+                                "Rigidity": true,
+                                "SmallViewRack": [
+                                    {
+                                        "Height": 200,
+                                        "Process": 1,
+                                        "Processes": [
+                                            1
+                                        ]
+                                    }
+                                ],
+                                "SmallViewShown": true,
+                                "StartDate": 1138.7485119817816,
+                                "StartState": 1,
+                                "Zoom": -1,
+                                "id": 2
+                            },
+                            {
+                                "Center": 0,
+                                "Components": [
+                                ],
+                                "DefaultDuration": 1138.7485119817816,
+                                "EndState": 1,
+                                "FullViewRack": [
+                                ],
+                                "GuiDuration": 1748.4534444386939,
+                                "HeightPercentage": 0.03000000000000001,
+                                "Inlet": {
+                                    "Address": {
+                                        "Accessors": [
+                                        ],
+                                        "Unit": "none",
+                                        "address": {
+                                            "Device": "",
+                                            "Path": ""
+                                        }
+                                    },
+                                    "Custom": "",
+                                    "Hidden": false,
+                                    "ObjectName": "Inlet",
+                                    "Type": 1,
+                                    "id": 0,
+                                    "uuid": "8884228a-d197-4b0a-b6ca-d1fb15291559"
+                                },
+                                "MaxDuration": 1138.7485119817816,
+                                "MaxInf": false,
+                                "Metadata": {
+                                    "Color": "Transparent1",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "Interval.alum64"
+                                },
+                                "MinDuration": 1138.7485119817816,
+                                "MinNull": false,
+                                "ObjectName": "Scenario::IntervalModel",
+                                "Outlet": {
+                                    "Address": {
+                                        "Accessors": [
+                                        ],
+                                        "Unit": "none",
+                                        "address": {
+                                            "Device": "",
+                                            "Path": ""
+                                        }
+                                    },
+                                    "Custom": "",
+                                    "Hidden": false,
+                                    "ObjectName": "Outlet",
+                                    "Propagate": true,
+                                    "Type": 1,
+                                    "id": 0,
+                                    "uuid": "34e2c5a7-18c4-4759-b6cc-46feaeee06e2"
+                                },
+                                "Processes": [
+                                ],
+                                "Rigidity": true,
+                                "SmallViewRack": [
+                                ],
+                                "SmallViewShown": false,
+                                "StartDate": 0,
+                                "StartState": 0,
+                                "Zoom": -1,
+                                "id": 1
+                            }
+                        ],
+                        "Duration": 15000,
+                        "Events": [
+                            {
+                                "Components": [
+                                ],
+                                "Condition": {
+                                    "Children": [
+                                    ],
+                                    "RootNode": {
+                                    }
+                                },
+                                "Date": 10794.386936493971,
+                                "Extent": [
+                                    0.03000000000000001,
+                                    0.03000000000000001
+                                ],
+                                "Metadata": {
+                                    "Color": "Emphasis4",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "Event.mobs12"
+                                },
+                                "ObjectName": "Scenario::EventModel",
+                                "Offset": 0,
+                                "States": [
+                                    4
+                                ],
+                                "TimeNode": 4,
+                                "id": 4
+                            },
+                            {
+                                "Components": [
+                                ],
+                                "Condition": {
+                                    "Children": [
+                                    ],
+                                    "RootNode": {
+                                    }
+                                },
+                                "Date": 6310.564670565706,
+                                "Extent": [
+                                    0.03000000000000001,
+                                    0.03000000000000001
+                                ],
+                                "Metadata": {
+                                    "Color": "Emphasis4",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "Event.bled72"
+                                },
+                                "ObjectName": "Scenario::EventModel",
+                                "Offset": 0,
+                                "States": [
+                                    3
+                                ],
+                                "TimeNode": 3,
+                                "id": 3
+                            },
+                            {
+                                "Components": [
+                                ],
+                                "Condition": {
+                                    "Children": [
+                                    ],
+                                    "RootNode": {
+                                    }
+                                },
+                                "Date": 4436.374411262357,
+                                "Extent": [
+                                    0.03000000000000001,
+                                    0.03000000000000001
+                                ],
+                                "Metadata": {
+                                    "Color": "Emphasis4",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "Event.khan49"
+                                },
+                                "ObjectName": "Scenario::EventModel",
+                                "Offset": 0,
+                                "States": [
+                                    2
+                                ],
+                                "TimeNode": 2,
+                                "id": 2
+                            },
+                            {
+                                "Components": [
+                                ],
+                                "Condition": {
+                                    "Children": [
+                                    ],
+                                    "RootNode": {
+                                    }
+                                },
+                                "Date": 1138.7485119817816,
+                                "Extent": [
+                                    0.03000000000000001,
+                                    0.03000000000000001
+                                ],
+                                "Metadata": {
+                                    "Color": "Emphasis4",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "Event.swig17"
+                                },
+                                "ObjectName": "Scenario::EventModel",
+                                "Offset": 0,
+                                "States": [
+                                    1
+                                ],
+                                "TimeNode": 1,
+                                "id": 1
+                            },
+                            {
+                                "Components": [
+                                ],
+                                "Condition": {
+                                    "Children": [
+                                    ],
+                                    "RootNode": {
+                                    }
+                                },
+                                "Date": 0,
+                                "Extent": [
+                                    0.03000000000000001,
+                                    0.03000000000000001
+                                ],
+                                "Metadata": {
+                                    "Color": "Emphasis4",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "Event.start"
+                                },
+                                "ObjectName": "Scenario::EventModel",
+                                "Offset": 0,
+                                "States": [
+                                    0
+                                ],
+                                "TimeNode": 0,
+                                "id": 0
+                            }
+                        ],
+                        "Height": 1500,
+                        "Inlet": {
+                            "Address": {
+                                "Accessors": [
+                                ],
+                                "Unit": "none",
+                                "address": {
+                                    "Device": "",
+                                    "Path": ""
+                                }
+                            },
+                            "Custom": "",
+                            "Hidden": false,
+                            "ObjectName": "Inlet",
+                            "Type": 1,
+                            "id": 0,
+                            "uuid": "8884228a-d197-4b0a-b6ca-d1fb15291559"
+                        },
+                        "Metadata": {
+                            "Color": "Base1",
+                            "Comment": "",
+                            "Label": "",
+                            "ScriptingName": "Scenario.1"
+                        },
+                        "ObjectName": "Scenario",
+                        "Outlet": {
+                            "Address": {
+                                "Accessors": [
+                                ],
+                                "Unit": "none",
+                                "address": {
+                                    "Device": "",
+                                    "Path": ""
+                                }
+                            },
+                            "Custom": "",
+                            "Hidden": false,
+                            "ObjectName": "Outlet",
+                            "Propagate": true,
+                            "Type": 1,
+                            "id": 0,
+                            "uuid": "34e2c5a7-18c4-4759-b6cc-46feaeee06e2"
+                        },
+                        "StartEventId": 0,
+                        "StartStateId": 0,
+                        "StartTimeNodeId": 0,
+                        "States": [
+                            {
+                                "Components": [
+                                ],
+                                "Event": 4,
+                                "HeightPercentage": 0.03000000000000001,
+                                "Messages": {
+                                    "Accessors": [
+                                    ],
+                                    "Children": [
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ],
+                                    "Unit": "none"
+                                },
+                                "Metadata": {
+                                    "Color": "Base1",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "State.mode62"
+                                },
+                                "NextConstraint": null,
+                                "ObjectName": "Scenario::StateModel",
+                                "PreviousConstraint": 4,
+                                "StateProcesses": [
+                                ],
+                                "id": 4
+                            },
+                            {
+                                "Components": [
+                                ],
+                                "Event": 3,
+                                "HeightPercentage": 0.03000000000000001,
+                                "Messages": {
+                                    "Accessors": [
+                                    ],
+                                    "Children": [
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                                {
+                                                    "Accessors": [
+                                                    ],
+                                                    "Children": [
+                                                        {
+                                                            "Accessors": [
+                                                            ],
+                                                            "Children": [
+                                                            ],
+                                                            "Following": [
+                                                            ],
+                                                            "Name": "frequency",
+                                                            "Previous": [
+                                                            ],
+                                                            "Priorities": [
+                                                                1,
+                                                                2,
+                                                                0
+                                                            ],
+                                                            "Unit": "time.Hz",
+                                                            "User": {
+                                                                "Float": 500
+                                                            }
+                                                        }
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "carrier",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "Unit": "none",
+                                                    "User": {
+                                                    }
+                                                },
+                                                {
+                                                    "Accessors": [
+                                                    ],
+                                                    "Children": [
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "ramptime",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "Unit": "time.ms",
+                                                    "User": {
+                                                        "Float": 5
+                                                    }
+                                                },
+                                                {
+                                                    "Accessors": [
+                                                    ],
+                                                    "Children": [
+                                                        {
+                                                            "Accessors": [
+                                                            ],
+                                                            "Children": [
+                                                            ],
+                                                            "Following": [
+                                                            ],
+                                                            "Name": "index",
+                                                            "Previous": [
+                                                            ],
+                                                            "Priorities": [
+                                                                1,
+                                                                2,
+                                                                0
+                                                            ],
+                                                            "Unit": "none",
+                                                            "User": {
+                                                                "Float": 10
+                                                            }
+                                                        },
+                                                        {
+                                                            "Accessors": [
+                                                            ],
+                                                            "Children": [
+                                                            ],
+                                                            "Following": [
+                                                            ],
+                                                            "Name": "ratio",
+                                                            "Previous": [
+                                                            ],
+                                                            "Priorities": [
+                                                                1,
+                                                                2,
+                                                                0
+                                                            ],
+                                                            "Unit": "none",
+                                                            "User": {
+                                                                "Float": 4
+                                                            }
+                                                        }
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "modulation",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "Unit": "none",
+                                                    "User": {
+                                                    }
+                                                },
+                                                {
+                                                    "Accessors": [
+                                                    ],
+                                                    "Children": [
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "gain",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "Unit": "gain.db",
+                                                    "User": {
+                                                        "Float": -80
+                                                    }
+                                                },
+                                                {
+                                                    "Accessors": [
+                                                    ],
+                                                    "Children": [
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "pan",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "Unit": "none",
+                                                    "User": {
+                                                        "Float": 0
+                                                    }
+                                                }
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "OSCdevice",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none"
+                                        }
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ],
+                                    "Unit": "none"
+                                },
+                                "Metadata": {
+                                    "Color": "Base1",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "State.hues16"
+                                },
+                                "NextConstraint": 4,
+                                "ObjectName": "Scenario::StateModel",
+                                "PreviousConstraint": 3,
+                                "StateProcesses": [
+                                ],
+                                "id": 3
+                            },
+                            {
+                                "Components": [
+                                ],
+                                "Event": 2,
+                                "HeightPercentage": 0.03000000000000001,
+                                "Messages": {
+                                    "Accessors": [
+                                    ],
+                                    "Children": [
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                                {
+                                                    "Accessors": [
+                                                    ],
+                                                    "Children": [
+                                                        {
+                                                            "Accessors": [
+                                                            ],
+                                                            "Children": [
+                                                            ],
+                                                            "Following": [
+                                                            ],
+                                                            "Name": "frequency",
+                                                            "Previous": [
+                                                            ],
+                                                            "Priorities": [
+                                                                1,
+                                                                2,
+                                                                0
+                                                            ],
+                                                            "Unit": "time.Hz",
+                                                            "User": {
+                                                                "Float": 400
+                                                            }
+                                                        }
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "carrier",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "Unit": "none",
+                                                    "User": {
+                                                    }
+                                                },
+                                                {
+                                                    "Accessors": [
+                                                    ],
+                                                    "Children": [
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "ramptime",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "Unit": "time.ms",
+                                                    "User": {
+                                                        "Float": 20
+                                                    }
+                                                },
+                                                {
+                                                    "Accessors": [
+                                                    ],
+                                                    "Children": [
+                                                        {
+                                                            "Accessors": [
+                                                            ],
+                                                            "Children": [
+                                                            ],
+                                                            "Following": [
+                                                            ],
+                                                            "Name": "index",
+                                                            "Previous": [
+                                                            ],
+                                                            "Priorities": [
+                                                                1,
+                                                                2,
+                                                                0
+                                                            ],
+                                                            "Unit": "none",
+                                                            "User": {
+                                                                "Float": 100
+                                                            }
+                                                        },
+                                                        {
+                                                            "Accessors": [
+                                                            ],
+                                                            "Children": [
+                                                            ],
+                                                            "Following": [
+                                                            ],
+                                                            "Name": "ratio",
+                                                            "Previous": [
+                                                            ],
+                                                            "Priorities": [
+                                                                1,
+                                                                2,
+                                                                0
+                                                            ],
+                                                            "Unit": "none",
+                                                            "User": {
+                                                                "Float": 4
+                                                            }
+                                                        }
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "modulation",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "Unit": "none",
+                                                    "User": {
+                                                    }
+                                                },
+                                                {
+                                                    "Accessors": [
+                                                    ],
+                                                    "Children": [
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "gain",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "Unit": "gain.db",
+                                                    "User": {
+                                                        "Float": -6
+                                                    }
+                                                },
+                                                {
+                                                    "Accessors": [
+                                                    ],
+                                                    "Children": [
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "pan",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "Unit": "none",
+                                                    "User": {
+                                                        "Float": 0
+                                                    }
+                                                }
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "OSCdevice",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none"
+                                        }
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ],
+                                    "Unit": "none"
+                                },
+                                "Metadata": {
+                                    "Color": "Base1",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "State.bate9"
+                                },
+                                "NextConstraint": 3,
+                                "ObjectName": "Scenario::StateModel",
+                                "PreviousConstraint": 2,
+                                "StateProcesses": [
+                                ],
+                                "id": 2
+                            },
+                            {
+                                "Components": [
+                                ],
+                                "Event": 1,
+                                "HeightPercentage": 0.03000000000000001,
+                                "Messages": {
+                                    "Accessors": [
+                                    ],
+                                    "Children": [
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                                {
+                                                    "Accessors": [
+                                                    ],
+                                                    "Children": [
+                                                    ],
+                                                    "Following": [
+                                                    ],
+                                                    "Name": "start",
+                                                    "Previous": [
+                                                    ],
+                                                    "Priorities": [
+                                                        1,
+                                                        2,
+                                                        0
+                                                    ],
+                                                    "Unit": "none",
+                                                    "User": {
+                                                        "Impulse": null
+                                                    }
+                                                }
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "OSCdevice",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none"
+                                        }
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ],
+                                    "Unit": "none"
+                                },
+                                "Metadata": {
+                                    "Color": "Base1",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "State.jude62"
+                                },
+                                "NextConstraint": 2,
+                                "ObjectName": "Scenario::StateModel",
+                                "PreviousConstraint": 1,
+                                "StateProcesses": [
+                                ],
+                                "id": 1
+                            },
+                            {
+                                "Components": [
+                                ],
+                                "Event": 0,
+                                "HeightPercentage": 0.03000000000000001,
+                                "Messages": {
+                                    "Accessors": [
+                                    ],
+                                    "Children": [
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ],
+                                    "Unit": "none"
+                                },
+                                "Metadata": {
+                                    "Color": "Base1",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "State.start"
+                                },
+                                "NextConstraint": 1,
+                                "ObjectName": "Scenario::StateModel",
+                                "PreviousConstraint": null,
+                                "StateProcesses": [
+                                ],
+                                "id": 0
+                            }
+                        ],
+                        "TimeNodes": [
+                            {
+                                "Components": [
+                                ],
+                                "Date": 10794.386936493971,
+                                "Events": [
+                                    4
+                                ],
+                                "Extent": [
+                                    0.03000000000000001,
+                                    0.03000000000000001
+                                ],
+                                "Metadata": {
+                                    "Color": "Gray",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "Sync.jane30"
+                                },
+                                "ObjectName": "Scenario::TimeSyncModel",
+                                "Trigger": {
+                                    "Active": false,
+                                    "Expression": {
+                                        "Children": [
+                                            {
+                                                "Children": [
+                                                ],
+                                                "Relation": {
+                                                    "LHS": {
+                                                        "Value": {
+                                                            "Bool": true
+                                                        }
+                                                    },
+                                                    "Op": 0,
+                                                    "RHS": {
+                                                        "Value": {
+                                                            "Bool": false
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        ],
+                                        "RootNode": {
+                                        }
+                                    }
+                                },
+                                "id": 4
+                            },
+                            {
+                                "Components": [
+                                ],
+                                "Date": 6310.564670565706,
+                                "Events": [
+                                    3
+                                ],
+                                "Extent": [
+                                    0.03000000000000001,
+                                    0.03000000000000001
+                                ],
+                                "Metadata": {
+                                    "Color": "Gray",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "Sync.dune72"
+                                },
+                                "ObjectName": "Scenario::TimeSyncModel",
+                                "Trigger": {
+                                    "Active": false,
+                                    "Expression": {
+                                        "Children": [
+                                            {
+                                                "Children": [
+                                                ],
+                                                "Relation": {
+                                                    "LHS": {
+                                                        "Value": {
+                                                            "Bool": true
+                                                        }
+                                                    },
+                                                    "Op": 0,
+                                                    "RHS": {
+                                                        "Value": {
+                                                            "Bool": false
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        ],
+                                        "RootNode": {
+                                        }
+                                    }
+                                },
+                                "id": 3
+                            },
+                            {
+                                "Components": [
+                                ],
+                                "Date": 4436.374411262357,
+                                "Events": [
+                                    2
+                                ],
+                                "Extent": [
+                                    0.03000000000000001,
+                                    0.03000000000000001
+                                ],
+                                "Metadata": {
+                                    "Color": "Gray",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "Sync.bask47"
+                                },
+                                "ObjectName": "Scenario::TimeSyncModel",
+                                "Trigger": {
+                                    "Active": false,
+                                    "Expression": {
+                                        "Children": [
+                                            {
+                                                "Children": [
+                                                ],
+                                                "Relation": {
+                                                    "LHS": {
+                                                        "Value": {
+                                                            "Bool": true
+                                                        }
+                                                    },
+                                                    "Op": 0,
+                                                    "RHS": {
+                                                        "Value": {
+                                                            "Bool": false
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        ],
+                                        "RootNode": {
+                                        }
+                                    }
+                                },
+                                "id": 2
+                            },
+                            {
+                                "Components": [
+                                ],
+                                "Date": 1138.7485119817816,
+                                "Events": [
+                                    1
+                                ],
+                                "Extent": [
+                                    0.03000000000000001,
+                                    0.03000000000000001
+                                ],
+                                "Metadata": {
+                                    "Color": "Gray",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "Sync.bing80"
+                                },
+                                "ObjectName": "Scenario::TimeSyncModel",
+                                "Trigger": {
+                                    "Active": false,
+                                    "Expression": {
+                                        "Children": [
+                                            {
+                                                "Children": [
+                                                ],
+                                                "Relation": {
+                                                    "LHS": {
+                                                        "Value": {
+                                                            "Bool": true
+                                                        }
+                                                    },
+                                                    "Op": 0,
+                                                    "RHS": {
+                                                        "Value": {
+                                                            "Bool": false
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        ],
+                                        "RootNode": {
+                                        }
+                                    }
+                                },
+                                "id": 1
+                            },
+                            {
+                                "Components": [
+                                ],
+                                "Date": 0,
+                                "Events": [
+                                    0
+                                ],
+                                "Extent": [
+                                    0.03000000000000001,
+                                    0.03000000000000001
+                                ],
+                                "Metadata": {
+                                    "Color": "Gray",
+                                    "Comment": "",
+                                    "Label": "",
+                                    "ScriptingName": "Sync.start"
+                                },
+                                "ObjectName": "Scenario::TimeSyncModel",
+                                "Trigger": {
+                                    "Active": false,
+                                    "Expression": {
+                                        "Children": [
+                                            {
+                                                "Children": [
+                                                ],
+                                                "Relation": {
+                                                    "LHS": {
+                                                        "Value": {
+                                                            "Bool": true
+                                                        }
+                                                    },
+                                                    "Op": 0,
+                                                    "RHS": {
+                                                        "Value": {
+                                                            "Bool": false
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        ],
+                                        "RootNode": {
+                                        }
+                                    }
+                                },
+                                "id": 0
+                            }
+                        ],
+                        "id": 1,
+                        "uuid": "de035912-5b03-49a8-bc4d-b2cba68e21d9"
+                    }
+                ],
+                "Rigidity": false,
+                "SmallViewRack": [
+                ],
+                "SmallViewShown": false,
+                "StartDate": 0,
+                "StartState": 0,
+                "Zoom": 23.72392733295378,
+                "id": 0
+            },
+            "EndEvent": {
+                "Components": [
+                ],
+                "Condition": {
+                    "Children": [
+                    ],
+                    "RootNode": {
+                    }
+                },
+                "Date": 15000,
+                "Extent": [
+                    0.4,
+                    0.6
+                ],
+                "Metadata": {
+                    "Color": "Emphasis4",
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": "Event.end"
+                },
+                "ObjectName": "Scenario::EventModel",
+                "Offset": 0,
+                "States": [
+                    1
+                ],
+                "TimeNode": 1,
+                "id": 1
+            },
+            "EndState": {
+                "Components": [
+                ],
+                "Event": 1,
+                "HeightPercentage": 0,
+                "Messages": {
+                    "Accessors": [
+                    ],
+                    "Children": [
+                    ],
+                    "Following": [
+                    ],
+                    "Name": "",
+                    "Previous": [
+                    ],
+                    "Priorities": [
+                        1,
+                        2,
+                        0
+                    ],
+                    "Unit": "none"
+                },
+                "Metadata": {
+                    "Color": "Base1",
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": "State.end"
+                },
+                "NextConstraint": null,
+                "ObjectName": "Scenario::StateModel",
+                "PreviousConstraint": 0,
+                "StateProcesses": [
+                ],
+                "id": 1
+            },
+            "EndTimeNode": {
+                "Components": [
+                ],
+                "Date": 15000,
+                "Events": [
+                    1
+                ],
+                "Extent": [
+                    0.2,
+                    0.8
+                ],
+                "Metadata": {
+                    "Color": "Gray",
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": "Sync.end"
+                },
+                "ObjectName": "Scenario::TimeSyncModel",
+                "Trigger": {
+                    "Active": true,
+                    "Expression": {
+                        "Children": [
+                            {
+                                "Children": [
+                                ],
+                                "Relation": {
+                                    "LHS": {
+                                        "Value": {
+                                            "Bool": true
+                                        }
+                                    },
+                                    "Op": 0,
+                                    "RHS": {
+                                        "Value": {
+                                            "Bool": false
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+                        "RootNode": {
+                        }
+                    }
+                },
+                "id": 1
+            },
+            "ObjectName": "Scenario::BaseScenario",
+            "StartEvent": {
+                "Components": [
+                ],
+                "Condition": {
+                    "Children": [
+                    ],
+                    "RootNode": {
+                    }
+                },
+                "Date": 0,
+                "Extent": [
+                    0.1,
+                    0.15
+                ],
+                "Metadata": {
+                    "Color": "Emphasis4",
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": "Event.start"
+                },
+                "ObjectName": "Scenario::EventModel",
+                "Offset": 0,
+                "States": [
+                    0
+                ],
+                "TimeNode": 0,
+                "id": 0
+            },
+            "StartState": {
+                "Components": [
+                ],
+                "Event": 0,
+                "HeightPercentage": 0,
+                "Messages": {
+                    "Accessors": [
+                    ],
+                    "Children": [
+                        {
+                            "Accessors": [
+                            ],
+                            "Children": [
+                                {
+                                    "Accessors": [
+                                    ],
+                                    "Children": [
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "stop",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ],
+                                    "Unit": "none",
+                                    "User": {
+                                        "Impulse": null
+                                    }
+                                },
+                                {
+                                    "Accessors": [
+                                    ],
+                                    "Children": [
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "pan",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ],
+                                    "Unit": "none",
+                                    "User": {
+                                        "Float": 0
+                                    }
+                                },
+                                {
+                                    "Accessors": [
+                                    ],
+                                    "Children": [
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "ramptime",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ],
+                                    "Unit": "time.ms",
+                                    "User": {
+                                        "Float": 5
+                                    }
+                                },
+                                {
+                                    "Accessors": [
+                                    ],
+                                    "Children": [
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "index",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none",
+                                            "User": {
+                                                "Float": 10
+                                            }
+                                        },
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "ratio",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "none",
+                                            "User": {
+                                                "Float": 4
+                                            }
+                                        }
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "modulation",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ],
+                                    "Unit": "none",
+                                    "User": {
+                                    }
+                                },
+                                {
+                                    "Accessors": [
+                                    ],
+                                    "Children": [
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "gain",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ],
+                                    "Unit": "gain.db",
+                                    "User": {
+                                        "Float": -80
+                                    }
+                                },
+                                {
+                                    "Accessors": [
+                                    ],
+                                    "Children": [
+                                        {
+                                            "Accessors": [
+                                            ],
+                                            "Children": [
+                                            ],
+                                            "Following": [
+                                            ],
+                                            "Name": "frequency",
+                                            "Previous": [
+                                            ],
+                                            "Priorities": [
+                                                1,
+                                                2,
+                                                0
+                                            ],
+                                            "Unit": "time.Hz",
+                                            "User": {
+                                                "Float": 400
+                                            }
+                                        }
+                                    ],
+                                    "Following": [
+                                    ],
+                                    "Name": "carrier",
+                                    "Previous": [
+                                    ],
+                                    "Priorities": [
+                                        1,
+                                        2,
+                                        0
+                                    ],
+                                    "Unit": "none",
+                                    "User": {
+                                    }
+                                }
+                            ],
+                            "Following": [
+                            ],
+                            "Name": "OSCdevice",
+                            "Previous": [
+                            ],
+                            "Priorities": [
+                                1,
+                                2,
+                                0
+                            ],
+                            "Unit": "none"
+                        }
+                    ],
+                    "Following": [
+                    ],
+                    "Name": "",
+                    "Previous": [
+                    ],
+                    "Priorities": [
+                        1,
+                        2,
+                        0
+                    ],
+                    "Unit": "none"
+                },
+                "Metadata": {
+                    "Color": "Base1",
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": "State.start"
+                },
+                "NextConstraint": 0,
+                "ObjectName": "Scenario::StateModel",
+                "PreviousConstraint": null,
+                "StateProcesses": [
+                ],
+                "id": 0
+            },
+            "StartTimeNode": {
+                "Components": [
+                ],
+                "Date": 0,
+                "Events": [
+                    0
+                ],
+                "Extent": [
+                    0.2,
+                    0.8
+                ],
+                "Metadata": {
+                    "Color": "Gray",
+                    "Comment": "",
+                    "Label": "",
+                    "ScriptingName": "Sync.start"
+                },
+                "ObjectName": "Scenario::TimeSyncModel",
+                "Trigger": {
+                    "Active": false,
+                    "Expression": {
+                        "Children": [
+                            {
+                                "Children": [
+                                ],
+                                "Relation": {
+                                    "LHS": {
+                                        "Value": {
+                                            "Bool": true
+                                        }
+                                    },
+                                    "Op": 0,
+                                    "RHS": {
+                                        "Value": {
+                                            "Bool": false
+                                        }
+                                    }
+                                }
+                            }
+                        ],
+                        "RootNode": {
+                        }
+                    }
+                },
+                "id": 0
+            },
+            "id": 0
+        },
+        "Cables": [
+        ],
+        "ObjectName": "Scenario::ScenarioDocumentModel",
+        "id": 1
+    },
+    "Plugins": {
+        "Explorer::DeviceDocumentPlugin": {
+            "Children": [
+                {
+                    "Children": [
+                        {
+                            "AddressSettings": {
+                                "ClipMode": "Free",
+                                "Domain": {
+                                },
+                                "Extended": {
+                                    "description": "Turn DSP off"
+                                },
+                                "Impulse": null,
+                                "Name": "stop",
+                                "RepetitionFilter": false,
+                                "Unit": "none",
+                                "ioType": "<->"
+                            },
+                            "Children": [
+                            ]
+                        },
+                        {
+                            "AddressSettings": {
+                                "ClipMode": "Free",
+                                "Domain": {
+                                },
+                                "Extended": {
+                                    "description": "Turn DSP on"
+                                },
+                                "Impulse": null,
+                                "Name": "start",
+                                "RepetitionFilter": false,
+                                "Unit": "none",
+                                "ioType": "<->"
+                            },
+                            "Children": [
+                            ]
+                        },
+                        {
+                            "AddressSettings": {
+                                "ClipMode": "Clip",
+                                "Domain": {
+                                    "Float": {
+                                        "Max": 1,
+                                        "Min": -1
+                                    }
+                                },
+                                "Extended": {
+                                    "description": "Pan position"
+                                },
+                                "Float": 0,
+                                "Name": "pan",
+                                "RepetitionFilter": false,
+                                "Unit": "none",
+                                "ioType": "<->"
+                            },
+                            "Children": [
+                            ]
+                        },
+                        {
+                            "AddressSettings": {
+                                "ClipMode": "Low",
+                                "Domain": {
+                                    "Float": {
+                                        "Max": 1000,
+                                        "Min": 0
+                                    }
+                                },
+                                "Extended": {
+                                    "description": "Smooth parameters changes of value"
+                                },
+                                "Float": 5,
+                                "Name": "ramptime",
+                                "RepetitionFilter": true,
+                                "Unit": "time.ms",
+                                "ioType": "<->"
+                            },
+                            "Children": [
+                            ]
+                        },
+                        {
+                            "AddressSettings": {
+                                "ClipMode": "Free",
+                                "Domain": {
+                                },
+                                "Extended": {
+                                },
+                                "Name": "modulation",
+                                "RepetitionFilter": false,
+                                "Unit": "none",
+                                "ioType": "<->"
+                            },
+                            "Children": [
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Low",
+                                        "Domain": {
+                                            "Float": {
+                                                "Max": 1000,
+                                                "Min": 0
+                                            }
+                                        },
+                                        "Extended": {
+                                            "description": "Modulation index"
+                                        },
+                                        "Float": 10,
+                                        "Name": "index",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none",
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                },
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Float": {
+                                                "Max": 10,
+                                                "Min": 9.999999747378752e-06
+                                            }
+                                        },
+                                        "Extended": {
+                                        },
+                                        "Float": 4,
+                                        "Name": "ratio",
+                                        "RepetitionFilter": false,
+                                        "Unit": "none",
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "AddressSettings": {
+                                "ClipMode": "High",
+                                "Domain": {
+                                    "Float": {
+                                        "Max": 0,
+                                        "Min": -100
+                                    }
+                                },
+                                "Extended": {
+                                },
+                                "Float": -80,
+                                "Name": "gain",
+                                "RepetitionFilter": true,
+                                "Unit": "gain.db",
+                                "ioType": "<->"
+                            },
+                            "Children": [
+                            ]
+                        },
+                        {
+                            "AddressSettings": {
+                                "ClipMode": "Free",
+                                "Domain": {
+                                },
+                                "Extended": {
+                                },
+                                "Name": "carrier",
+                                "RepetitionFilter": false,
+                                "Unit": "none",
+                                "ioType": "<->"
+                            },
+                            "Children": [
+                                {
+                                    "AddressSettings": {
+                                        "ClipMode": "Clip",
+                                        "Domain": {
+                                            "Float": {
+                                                "Max": 16000,
+                                                "Min": 0
+                                            }
+                                        },
+                                        "Extended": {
+                                            "description": "Carrier frequency"
+                                        },
+                                        "Float": 400,
+                                        "Name": "frequency",
+                                        "RepetitionFilter": false,
+                                        "Unit": "time.Hz",
+                                        "ioType": "<->"
+                                    },
+                                    "Children": [
+                                    ]
+                                }
+                            ]
+                        }
+                    ],
+                    "DeviceSettings": {
+                        "Host": "127.0.0.1",
+                        "InputPort": 9996,
+                        "Name": "OSCdevice",
+                        "OutputPort": 9997,
+                        "Protocol": "9a42de4b-f6eb-4bca-9564-01b975f601b9"
+                    }
+                }
+            ],
+            "DocumentPostModelPart": {
+            },
+            "ObjectName": "Explorer::DeviceDocumentPlugin",
+            "RootNode": {
+            },
+            "id": 1121522761,
+            "uuid": "6e610e1f-9de2-4c36-90dd-0ef570002a21"
+        },
+        "ExplorerSettings": {
+            "DocumentPostModelPart": {
+            },
+            "MidiRatio": 1,
+            "ObjectName": "ExplorerSettings",
+            "Reconnect": false,
+            "Refresh": false,
+            "id": 1121522760,
+            "uuid": "1f923578-08c3-49be-9ba9-69c144ee2e32"
+        }
+    },
+    "Version": 2
+}
