@@ -1,4 +1,4 @@
-#N canvas 368 132 813 608 10;
+#N canvas 624 22 813 608 10;
 #X msg 675 119 \; pd dsp 1;
 #X obj 12 573 dac~, f 11;
 #X msg 736 119 \; pd dsp 0;
@@ -36,7 +36,7 @@
 /gain /pan /ramptime, f 111;
 #X text 114 1 > Add the “mrpeach” extension in “Help > Find Externals”
 ;
-#X floatatom 12 132 5 0 0 0 - - -, f 5;
+#X floatatom 12 133 5 0 0 0 - - -, f 5;
 #X floatatom 219 132 5 0 0 0 - - -, f 5;
 #X floatatom 260 200 5 0 0 0 - - -, f 5;
 #X floatatom 343 91 5 -80 3 0 - - -, f 5;
