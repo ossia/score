@@ -138,13 +138,12 @@ qt5_add_resources(EXPLORER_RESOURCES_RCC "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/D
 
 add_library(${PROJECT_NAME}
       ${SRCS} ${HDRS}
-      ${EXPLORER_RESOURCES_RCC})
+      ${EXPLORER_RESOURCES_RCC} )
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 target_link_libraries(score_plugin_deviceexplorer
         PUBLIC
                 score_lib_device
-        PRIVATE
-                QProgressIndicator)
+                )
 
 if(OSSIA_DNSSD)
   target_sources(${PROJECT_NAME} PRIVATE

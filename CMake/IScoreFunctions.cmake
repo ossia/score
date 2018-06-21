@@ -245,7 +245,6 @@ function(score_write_static_plugins_header)
   string(APPEND SCORE_PLUGINS_FILE_DATA "auto score_init_static_plugins = [] {\n")
 
   foreach(plugin ${SCORE_PLUGINS_LIST})
-    message("Linking statically with score plugin : ${plugin}")
     string(APPEND SCORE_PLUGINS_FILE_DATA "{ static ${plugin} p\; score::staticPlugins().push_back(&p)\; }\n")
   endforeach()
   string(APPEND SCORE_PLUGINS_FILE_DATA "\nreturn 0\;\n }()\;")

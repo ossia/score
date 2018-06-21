@@ -2,10 +2,10 @@
 	path = API
 	url = https://github.com/OSSIA/API
 [submodule "3rdparty/QProgressIndicator"]
-	path = 3rdparty/QProgressIndicator
+	path = base/lib/3rdparty/QProgressIndicator
 	url = https://github.com/jcelerier/QProgressIndicator
 [submodule "3rdparty/Qt-Color-Widgets"]
-	path = 3rdparty/Qt-Color-Widgets
+	path = base/lib/3rdparty/Qt-Color-Widgets
 	url = https://github.com/jcelerier/Qt-Color-Widgets.git
 [submodule "Documentation/Doxygen/doxygen-bootstrapped"]
 	path = Documentation/Doxygen/doxygen-bootstrapped

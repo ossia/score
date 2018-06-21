@@ -196,6 +196,27 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SpinBoxes.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/TextLabel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/WidgetWrapper.hpp"
+
+     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/QProgressIndicator/QProgressIndicator.h"
+
+     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/QtColorWidgets/color_palette_model.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/QtColorWidgets/color_palette_widget.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/QtColorWidgets/colorwidgets_global.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/QtColorWidgets/color_wheel.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/QtColorWidgets/color_line_edit.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/QtColorWidgets/swatch.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/QtColorWidgets/color_delegate.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/QtColorWidgets/color_palette.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/QtColorWidgets/hue_slider.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/QtColorWidgets/abstract_widget_list.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/QtColorWidgets/bound_color_selector.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/QtColorWidgets/color_dialog.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/QtColorWidgets/color_2d_slider.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/QtColorWidgets/color_selector.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/QtColorWidgets/color_list_widget.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/QtColorWidgets/color_preview.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/QtColorWidgets/gradient_slider.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/QtColorWidgets/color_names.hpp"
 )
 
 set(SRCS
@@ -316,13 +337,36 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/core/view/Window.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/view/QRecentFilesMenu.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/QProgressIndicator/QProgressIndicator.cpp"
+
+# "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/color_list_widget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/gradient_slider.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/color_line_edit.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/swatch.cpp"
+# "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/bound_color_selector.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/color_palette_widget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/color_palette_model.cpp"
+# "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/color_2d_slider.cpp"
+# "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/abstract_widget_list.cpp"
+# "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/color_delegate.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/color_utils.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/color_dialog.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/color_palette.cpp"
+# "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/color_selector.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/color_preview.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/hue_slider.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/color_wheel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/src/color_names.cpp"
 )
 
 add_library(score_lib_base ${SRCS} ${HEADERS} ${QRCS})
-# score_moc_headers(${PROJECT_NAME} "${HEADERS}")
 target_link_libraries(score_lib_base
-        PUBLIC Qt5::Core Qt5::Widgets ossia # Qt5::Qml Qt5::QuickWidgets
+    PUBLIC Qt5::Core Qt5::Widgets ossia # Qt5::Qml Qt5::QuickWidgets
     PRIVATE Qt5::Svg )
+target_include_directories(score_lib_base PUBLIC 3rdparty/QProgressIndicator)
+target_include_directories(score_lib_base PUBLIC 3rdparty/Qt-Color-Widgets)
+target_include_directories(score_lib_base PUBLIC 3rdparty/Qt-Color-Widgets/src)
+target_include_directories(score_lib_base PUBLIC 3rdparty/Qt-Color-Widgets/QtColorWidgets)
 
 set_property(TARGET score_lib_base PROPERTY COTIRE_CXX_PREFIX_HEADER_INIT "${CMAKE_CURRENT_SOURCE_DIR}/score/prefix.hpp")
 setup_score_library(score_lib_base)
