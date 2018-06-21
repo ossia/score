@@ -16,8 +16,11 @@ TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene)
       QPainter::Antialiasing | QPainter::SmoothPixmapTransform
       | QPainter::TextAntialiasing);
 //#if !defined(SCORE_OPENGL)
+
+#if !defined(__EMSCRIPTEN__)
   setAttribute(Qt::WA_OpaquePaintEvent, true);
   setAttribute(Qt::WA_PaintOnScreen, true);
+#endif
 //#endif
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);

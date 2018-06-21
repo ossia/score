@@ -26,6 +26,5 @@ add_library(
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_fx.cpp"
 )
 
-score_moc_headers(${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_fx.hpp")
 target_link_libraries(score_plugin_fx PUBLIC score_plugin_engine)
 setup_score_plugin(score_plugin_fx)

@@ -33,13 +33,8 @@ using MappingLayerFactory = Curve::CurveLayerFactory_T<
 
 #include <score_plugin_mapping_commands_files.hpp>
 
-score_plugin_mapping::score_plugin_mapping() : QObject{}
-{
-}
-
-score_plugin_mapping::~score_plugin_mapping()
-{
-}
+score_plugin_mapping::score_plugin_mapping() = default;
+score_plugin_mapping::~score_plugin_mapping() = default;
 
 std::vector<std::unique_ptr<score::InterfaceBase>>
 score_plugin_mapping::factories(
@@ -67,3 +62,6 @@ score_plugin_mapping::make_commands()
 
   return cmds;
 }
+
+#include <score/plugins/PluginInstances.hpp>
+SCORE_EXPORT_PLUGIN(score_plugin_mapping)

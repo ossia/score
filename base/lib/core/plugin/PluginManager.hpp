@@ -12,6 +12,7 @@
 #include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <score/plugins/PluginInstances.hpp>
 #include <score_lib_base_export.h>
 #include <vector>
 namespace score
@@ -127,37 +128,27 @@ void registerPlugins(
 template <typename Registrar_T, typename Context_T>
 void loadPlugins(Registrar_T& registrar, const Context_T& context)
 {
-
-#define DO_DEBUG qDebug() << i++
-  int i = 0;
-  DO_DEBUG;
   // Here, the plug-ins that are effectively loaded.
   std::vector<score::Addon> availablePlugins;
 
   // Load static plug-ins
-  for (QObject* plugin : QPluginLoader::staticInstances())
+  for (auto score_plug : score::staticPlugins())
   {
-    if (auto score_plug = dynamic_cast<score::Plugin_QtInterface*>(plugin))
-    {
-      score::Addon addon;
-      addon.plugin = score_plug;
-      addon.key = score_plug->key();
-      addon.corePlugin = true;
-      availablePlugins.push_back(std::move(addon));
-      qDebug() << typeid(score_plug).name() << addon.key.impl().data[0]
-               << addon.key.impl().data[1] << addon.key.impl().data[2];
-    }
+    score::Addon addon;
+    addon.plugin = score_plug;
+    addon.key = score_plug->key();
+    addon.corePlugin = true;
+    availablePlugins.push_back(std::move(addon));
+    qDebug() << typeid(score_plug).name() << addon.key.impl().data[0]
+             << addon.key.impl().data[1] << addon.key.impl().data[2];
   }
 
-  DO_DEBUG;
   loadPluginsInAllFolders(availablePlugins);
   loadAddonsInAllFolders(availablePlugins);
 
-  DO_DEBUG;
   // First bring in the plugin objects
   registrar.registerAddons(availablePlugins);
 
-  DO_DEBUG;
   // Here, it is important not to collapse all the for-loops
   // because for instance a ApplicationPlugin from plugin B might require the
   // factory
@@ -167,8 +158,6 @@ void loadPlugins(Registrar_T& registrar, const Context_T& context)
   {
     auto facfam_interface
         = dynamic_cast<FactoryList_QtInterface*>(addon.plugin);
-    qDebug() << typeid(facfam_interface).name() << addon.key.impl().data[0]
-             << addon.key.impl().data[1] << addon.key.impl().data[2];
 
     if (facfam_interface)
     {
@@ -179,7 +168,6 @@ void loadPlugins(Registrar_T& registrar, const Context_T& context)
     }
   }
 
-  DO_DEBUG;
   // Load all the application context plugins.
   // We have to order them according to their dependencies
   PluginDependencyGraph graph{availablePlugins};
@@ -188,7 +176,6 @@ void loadPlugins(Registrar_T& registrar, const Context_T& context)
   {
     registerPlugins(add, registrar, context);
   }
-  DO_DEBUG;
 }
 
 QStringList pluginsBlacklist();

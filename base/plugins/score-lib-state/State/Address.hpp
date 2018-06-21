@@ -3,6 +3,8 @@
 #include <ossia/detail/optional.hpp>
 #include <wobjectdefs.h>
 #include <memory>
+#include <QString>
+#include <QStringList>
 #include <score_lib_state_export.h>
 namespace ossia
 {
@@ -67,8 +69,7 @@ struct SCORE_LIB_STATE_EXPORT Address
   static bool validateFragment(const QString& s);
 
   // Make an address from a valid address string
-  static optional<Address>
-  fromString(const QString& str); // TODO return optional
+  static ossia::optional<Address> fromString(const QString& str);
 
   /**
    * @brief toString
@@ -118,7 +119,7 @@ struct SCORE_LIB_STATE_EXPORT AddressAccessor
   QString toString() const;
   QString toShortString() const;
 
-  static optional<AddressAccessor> fromString(const QString& str);
+  static ossia::optional<AddressAccessor> fromString(const QString& str);
   bool operator==(const AddressAccessor& other) const;
   bool operator!=(const AddressAccessor& a) const;
 };

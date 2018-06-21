@@ -20,24 +20,16 @@ class PanelFactory;
 } // namespace score
 
 class score_plugin_deviceexplorer final
-    : public QObject
-    , public score::Plugin_QtInterface
+    : public score::Plugin_QtInterface
     , public score::FactoryList_QtInterface
     , public score::FactoryInterface_QtInterface
     , public score::ApplicationPlugin_QtInterface
     , public score::CommandFactory_QtInterface
 {
-  Q_OBJECT
-  Q_PLUGIN_METADATA(IID Plugin_QtInterface_iid)
-  Q_INTERFACES(score::Plugin_QtInterface score::FactoryList_QtInterface
-                   score::FactoryInterface_QtInterface
-                       score::ApplicationPlugin_QtInterface
-                           score::CommandFactory_QtInterface)
-
   SCORE_PLUGIN_METADATA(1, "3c2a0e25-ab14-4c06-a1ba-033d721a520f")
 public:
   score_plugin_deviceexplorer();
-  virtual ~score_plugin_deviceexplorer();
+  ~score_plugin_deviceexplorer() override;
 
 private:
   // Factory for protocols

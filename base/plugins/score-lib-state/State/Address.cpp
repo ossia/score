@@ -10,6 +10,7 @@
 #include <State/Expression.hpp>
 #include <algorithm>
 #include <score/tools/Todo.hpp>
+#include <ossia/detail/hash.hpp>
 #include <wobjectimpl.h>
 W_GADGET_IMPL(State::DestinationQualifiers)
 namespace State

@@ -25,7 +25,6 @@ set(SRCS
 
 add_library(score_plugin_library ${SRCS} ${HDRS})
 
-score_moc_headers(${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_library.hpp")
 target_link_libraries(score_plugin_library
   PUBLIC
       Qt5::Core Qt5::Widgets

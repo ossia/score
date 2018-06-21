@@ -64,12 +64,12 @@
 #include <Engine/Executor/Dataflow/DataflowClock.hpp>
 #include <Engine/Protocols/Audio/AudioDevice.hpp>
 #include <Engine/Executor/Dataflow/ManualClock.hpp>
-#include <Scenario/score_plugin_scenario.hpp>
+#include <score_plugin_scenario.hpp>
 #include <score_plugin_deviceexplorer.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Engine::ManualClock::TimeWidget)
 
-score_plugin_engine::score_plugin_engine() : QObject{}
+score_plugin_engine::score_plugin_engine()
 {
   qRegisterMetaType<Engine::Execution::ClockManagerFactory::ConcreteKey>(
       "ClockManagerKey");
@@ -215,3 +215,6 @@ auto score_plugin_engine::required() const -> std::vector<score::PluginKey>
   return {score_plugin_scenario::static_key(),
           score_plugin_deviceexplorer::static_key()};
 }
+
+#include <score/plugins/PluginInstances.hpp>
+SCORE_EXPORT_PLUGIN(score_plugin_engine)

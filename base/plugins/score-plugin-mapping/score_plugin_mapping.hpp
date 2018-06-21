@@ -13,20 +13,15 @@
 #include <vector>
 
 class score_plugin_mapping
-    : public QObject
-    , public score::Plugin_QtInterface
+    : public score::Plugin_QtInterface
     , public score::FactoryInterface_QtInterface
     , public score::CommandFactory_QtInterface
 {
-  Q_OBJECT
-  Q_PLUGIN_METADATA(IID Plugin_QtInterface_iid)
-  Q_INTERFACES(score::Plugin_QtInterface score::FactoryInterface_QtInterface
-                   score::CommandFactory_QtInterface)
-
   SCORE_PLUGIN_METADATA(1, "e097f02d-4676-492e-98b0-764963e1f792")
+
 public:
   score_plugin_mapping();
-  virtual ~score_plugin_mapping();
+  ~score_plugin_mapping() override;
 
 private:
   // Process & inspector

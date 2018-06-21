@@ -152,3 +152,6 @@ score_plugin_media::factories(
       FW<Scenario::IntervalDropHandler, Media::Sound::IntervalDropHandler>,
       FW<score::SettingsDelegateFactory, Media::Settings::Factory>>(ctx, key);
 }
+
+#include <score/plugins/PluginInstances.hpp>
+SCORE_EXPORT_PLUGIN(score_plugin_media)

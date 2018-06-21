@@ -64,14 +64,10 @@ struct Metadata<ConcreteKey_k, FaustDSP::Fx<mydsp>>
   }
 };
 
-class score_faust_ == FAUST_NAME == final : public QObject
-    , public score::Plugin_QtInterface
+class score_faust_ == FAUST_NAME == final
+    : public score::Plugin_QtInterface
     , public score::FactoryInterface_QtInterface
 {
-  Q_OBJECT
-  Q_PLUGIN_METADATA(IID FactoryInterface_QtInterface_iid)
-  Q_INTERFACES(score::Plugin_QtInterface score::FactoryInterface_QtInterface)
-
   SCORE_PLUGIN_METADATA(1, "==UUID==")
 
 public:

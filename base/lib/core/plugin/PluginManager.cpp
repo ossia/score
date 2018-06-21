@@ -6,7 +6,6 @@
 #include <QDebug>
 #include <QDir>
 #include <QJsonDocument>
-#include <QPluginLoader>
 #include <QSettings>
 #include <QStandardPaths>
 #include <QVariant>
@@ -19,7 +18,79 @@
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+
 #include <utility>
+
+#if defined(_WIN32)
+#include <Windows.h>
+#else
+#include <dlfcn.h>
+#endif
+extern "C" score::Plugin_QtInterface* plugin_instance();
+class DLL
+{
+public:
+  explicit DLL(const char* const so) noexcept
+  {
+#ifdef _WIN32
+    impl = (void*) LoadLibraryA(so);
+#else
+    impl = dlopen(so, RTLD_LAZY|RTLD_LOCAL|RTLD_NODELETE);
+#endif
+  }
+
+  DLL(const DLL&) noexcept = delete;
+  DLL& operator=(const DLL&) noexcept = delete;
+  DLL(DLL&& other)
+  {
+    impl = other.impl;
+    other.impl = nullptr;
+  }
+
+  DLL& operator=(DLL&& other) noexcept
+  {
+    impl = other.impl;
+    other.impl = nullptr;
+    return *this;
+  }
+
+  QString errorString() const
+  {
+
+#ifdef _WIN32
+    //TODO
+#else
+      return QString::fromUtf8(dlerror());
+#endif
+  }
+
+  ~DLL()
+  {
+    if(impl)
+    {
+#ifdef _WIN32
+      FreeLibrary((HMODULE)impl);
+#else
+      dlclose(impl);
+#endif
+    }
+  }
+
+  template<typename T>
+  T symbol(const char* const sym) const noexcept
+  {
+#ifdef _WIN32
+    return (T) GetProcAddress((HMODULE)impl, sym);
+#else
+    return (T) dlsym(impl, sym);
+#endif
+  }
+
+  operator bool() const { return bool(impl); }
+
+private:
+  void* impl{};
+};
 
 namespace score
 {
@@ -77,21 +148,26 @@ std::pair<score::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
     return std::make_pair(nullptr, PluginLoadingError::Blacklisted);
   }
 
-#  if defined(_MSC_VER)
-  QDir score_dir = QDir::current();
-  qDebug() << "Loading: " << fileName << score_dir.relativeFilePath(fileName);
-  QPluginLoader loader{fileName}; // score_dir.relativeFilePath(fileName)};
-#  else
-  QPluginLoader loader{fileName};
-#  endif
+  static std::vector<DLL> plugins;
+  DLL ptr{fileName.toUtf8().constData()};
 
-  if (QObject* plugin = loader.instance())
+  if (ptr)
   {
-    auto score_plugin = dynamic_cast<score::Plugin_QtInterface*>(plugin);
-    if (!score_plugin)
+    auto score_factory = ptr.symbol<decltype(&plugin_instance)>("plugin_instance");
+    if(!score_factory)
     {
-      qDebug() << "Warning: plugin" << plugin->metaObject()->className()
-               << "is not an score plug-in.";
+      qDebug() << "Warning: plugin" << fileName
+               << "is not a correct score plugin.";
+
+      return std::make_pair(nullptr, PluginLoadingError::NotAPlugin);
+    }
+
+    auto score_plugin = score_factory();
+    if(!score_plugin)
+    {
+      qDebug() << "Warning: plugin" << fileName
+               << "is not a correct score plugin.";
+
       return std::make_pair(nullptr, PluginLoadingError::NotAPlugin);
     }
 
@@ -103,22 +179,19 @@ std::pair<score::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
 
     if (plug_it != availablePlugins.end())
     {
-      qDebug() << "Warning: plugin" << plugin->metaObject()->className()
-               << "was already loaded. Not reloading.";
+      qDebug() << "Warning: plugin" << fileName
+               << "was already loaded (" << plug_it->path << "). Not reloading.";
 
       return std::make_pair(nullptr, PluginLoadingError::AlreadyLoaded);
     }
 
     // We can load the plug-in
+    plugins.push_back(std::move(ptr));
     return std::make_pair(score_plugin, PluginLoadingError::NoError);
   }
   else
   {
-    QString s = loader.errorString();
-    if (!s.contains("Plugin verification data mismatch")
-        && !s.contains("is not a Qt plugin"))
-      qDebug() << "Error while loading" << fileName << ": "
-               << loader.errorString();
+    qDebug() << "Error while loading" << fileName << ": " << ptr.errorString();
     return std::make_pair(nullptr, PluginLoadingError::UnknownError);
   }
 #endif

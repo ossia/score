@@ -59,8 +59,7 @@ ScenarioDocumentView::ScenarioDocumentView(
 #if defined(SCORE_WEBSOCKETS)
   auto wsview = new WebSocketView(m_scene, 9998, this);
 #endif
-  // m_view.setAttribute(Qt::WA_PaintOnScreen, true);
-  // m_timeRulersView.setAttribute(Qt::WA_PaintOnScreen, true);
+
   m_widget->addAction(new SnapshotAction{m_scene, m_widget});
 
   m_timeRulersView.setFixedHeight(20);

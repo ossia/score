@@ -6,7 +6,6 @@
 #include <QtGui>
 #include <QtWidgets>
 #include <qnamespace.h>
-#include <score_static_plugins.hpp>
 
 #if defined(SCORE_OPENGL)
 #  include <QSurfaceFormat>

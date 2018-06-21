@@ -4,13 +4,8 @@
 #include <score/plugins/customfactory/FactorySetup.hpp>
 #include <score_plugin_pluginsettings.hpp>
 
-score_plugin_pluginsettings::score_plugin_pluginsettings()
-{
-}
-
-score_plugin_pluginsettings::~score_plugin_pluginsettings()
-{
-}
+score_plugin_pluginsettings::score_plugin_pluginsettings() = default;
+score_plugin_pluginsettings::~score_plugin_pluginsettings() = default;
 
 std::vector<std::unique_ptr<score::InterfaceBase>>
 score_plugin_pluginsettings::factories(
@@ -20,3 +15,6 @@ score_plugin_pluginsettings::factories(
       score::ApplicationContext,
       FW<score::SettingsDelegateFactory, PluginSettings::Factory>>(ctx, key);
 }
+
+#include <score/plugins/PluginInstances.hpp>
+SCORE_EXPORT_PLUGIN(score_plugin_pluginsettings)

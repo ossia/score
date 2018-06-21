@@ -1,4 +1,7 @@
 #pragma once
+
+#include <ossia/detail/config.hpp>
+#if defined(OSSIA_PROTOCOL_SERIAL)
 #include <Engine/Protocols/DefaultProtocolFactory.hpp>
 
 namespace Engine
@@ -30,3 +33,4 @@ class SerialProtocolFactory final : public DefaultProtocolFactory
 };
 }
 }
+#endif

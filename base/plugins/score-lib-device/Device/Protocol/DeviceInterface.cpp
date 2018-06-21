@@ -12,21 +12,8 @@
 #include <ossia/network/base/protocol.hpp>
 #include <ossia/network/common/network_logger.hpp>
 #include <ossia/editor/state/destination_qualifiers.hpp>
-/*
-#include <Device/Address/IOType.hpp>
-#include <Device/Protocol/DeviceSettings.hpp>
-//#include <Engine/OSSIA2score.hpp>
-//#include <Engine/score2OSSIA.hpp>
-//#include <Explorer/DeviceList.hpp>
-
 #include <ossia-qt/name_utils.hpp>
-#include <QDebug>
-#include <QStringList>
-#include <State/Message.hpp>
-#include <State/Value.hpp>
-#include <algorithm>
-#include <list>
-*/
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Device::DeviceInterface)
 namespace Device

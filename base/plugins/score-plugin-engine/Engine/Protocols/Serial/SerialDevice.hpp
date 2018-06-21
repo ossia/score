@@ -1,4 +1,6 @@
 #pragma once
+#include <ossia/detail/config.hpp>
+#if defined(OSSIA_PROTOCOL_SERIAL)
 #include <Device/Protocol/DeviceInterface.hpp>
 
 namespace Engine
@@ -14,3 +16,4 @@ public:
 };
 }
 }
+#endif
