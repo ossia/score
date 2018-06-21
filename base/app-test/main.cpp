@@ -5,10 +5,6 @@
 
 #include <QLocale>
 #include <clocale>
-#if defined(SCORE_STATIC_PLUGINS)
-#  include <score_static_plugins.hpp>
-#endif
-
 static void init_plugins()
 {
 // TODO generate this too

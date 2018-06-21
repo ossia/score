@@ -233,7 +233,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/TimeSync/TimeSyncSummaryWidget.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/TimeSync/TriggerInspectorWidget.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/ObjectTree/ObjectItemModel.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/score_plugin_scenario.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_scenario.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/ScenarioPaletteBaseEvents.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/ScenarioPaletteBaseStates.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/ScenarioPaletteBaseTransitions.hpp"
@@ -555,7 +555,7 @@ set(SRCS ${SRCS}
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Tools/dataStructures.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/score_plugin_scenario.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_scenario.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/ChangeAddress.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/InterpolationColors.cpp"
@@ -576,7 +576,6 @@ set(SRCS ${SRCS}
 
 add_library(score_plugin_scenario ${SRCS} ${HDRS} ${QRCS})
 
-score_moc_headers(${PROJECT_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/score_plugin_scenario.hpp")
 score_generate_command_list_file(score_plugin_scenario "${HDRS}")
 
 target_link_libraries(score_plugin_scenario

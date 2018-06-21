@@ -19,7 +19,6 @@ target_link_libraries(score_testapp PRIVATE score_lib_base ${SCORE_PLUGINS_LIST}
     Qt5::Core Qt5::Widgets Qt5::Gui Qt5::Network Qt5::Xml Qt5::Svg Qt5::Test)
 
 if(SCORE_STATIC_PLUGINS)
-  score_write_static_plugins_header()
   target_link_libraries(score_testapp PUBLIC ${SCORE_PLUGINS_LIST})
 endif()
 

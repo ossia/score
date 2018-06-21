@@ -255,17 +255,13 @@ void Application::init()
 
 void Application::initDocuments()
 {
-  qDebug() << "void Application::initDocuments()";
-  int i = 0;
-#define DO_DEBUG qDebug() << i++
-  DO_DEBUG;
   auto& ctx = m_presenter->applicationContext();
   if (!m_applicationSettings.loadList.empty())
   {
     for (const auto& doc : m_applicationSettings.loadList)
       m_presenter->documentManager().loadFile(ctx, doc);
   }
-  DO_DEBUG;
+
   // The plug-ins have the ability to override the boot process.
   for (auto plug : ctx.guiApplicationPlugins())
   {
@@ -274,7 +270,6 @@ void Application::initDocuments()
       return;
     }
   }
-  DO_DEBUG;
 
   if (auto sqa = dynamic_cast<SafeQApplication*>(m_app))
   {
@@ -283,14 +278,14 @@ void Application::initDocuments()
           m_presenter->documentManager().loadFile(ctx, file);
         });
   }
-  DO_DEBUG;
+
   // Try to reload if there was a crash
   if (m_applicationSettings.tryToRestore
       && score::DocumentBackups::canRestoreDocuments())
   {
     m_presenter->documentManager().restoreDocuments(ctx);
   }
-  DO_DEBUG;
+
   // If nothing was reloaded, open a normal document
   if (m_presenter->documentManager().documents().empty())
   {
@@ -307,7 +302,6 @@ void Application::initDocuments()
                .begin());
     }
   }
-  DO_DEBUG;
 }
 
 void Application::loadPluginData()

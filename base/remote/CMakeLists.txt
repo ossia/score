@@ -31,7 +31,6 @@ qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/qml.qrc")
 add_executable(score_remote_ui ${SRCS} ${QRCS})
 
 if(SCORE_STATIC_PLUGINS)
-  score_write_static_plugins_header()
   # TODO Investigate why this is necessary ? (see testapp)
   target_link_libraries(score_remote_ui PUBLIC score_lib_base score_lib_device score_plugin_engine Qt5::Core Qt5::Widgets Qt5::WebSockets Qt5::Qml)
 else()

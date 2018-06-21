@@ -25,9 +25,3 @@ public:
       const score::InterfaceKey& key) const;
 };
 }
-
-#define FactoryInterface_QtInterface_iid \
-  "org.ossia.score.plugins.FactoryInterface_QtInterface"
-
-Q_DECLARE_INTERFACE(
-    score::FactoryInterface_QtInterface, FactoryInterface_QtInterface_iid)

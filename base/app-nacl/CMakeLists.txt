@@ -5,7 +5,6 @@ enable_testing()
 set(APPNAME "score-pnacl")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
-score_write_static_plugins_header()
 
 # Find dependencies
 get_target_property(QtCore_LIB Qt5::Core LOCATION)

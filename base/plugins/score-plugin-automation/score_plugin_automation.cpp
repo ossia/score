@@ -150,3 +150,6 @@ score_plugin_automation::make_commands()
 
   return cmds;
 }
+#include <score/plugins/PluginInstances.hpp>
+SCORE_EXPORT_PLUGIN(score_plugin_automation)
+

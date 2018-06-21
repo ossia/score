@@ -22,13 +22,8 @@
 namespace Control
 {
 }
-score_plugin_fx::score_plugin_fx() : QObject{}
-{
-}
-
-score_plugin_fx::~score_plugin_fx()
-{
-}
+score_plugin_fx::score_plugin_fx() = default;
+score_plugin_fx::~score_plugin_fx() = default;
 
 std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_fx::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
@@ -46,3 +41,6 @@ auto score_plugin_fx::required() const -> std::vector<score::PluginKey>
 {
   return {score_plugin_engine::static_key()};
 }
+
+#include <score/plugins/PluginInstances.hpp>
+SCORE_EXPORT_PLUGIN(score_plugin_fx)

@@ -233,15 +233,25 @@ function(score_generate_command_list_file TheTarget Headers)
 endfunction()
 
 function(score_write_static_plugins_header)
-  # TODO use score_write_file here
   set(SCORE_PLUGINS_FILE "${SCORE_ROOT_BINARY_DIR}/score_static_plugins.hpp")
-  file(WRITE "${SCORE_PLUGINS_FILE}" "#pragma once\n#include <QtPlugin>\n")
+  set(SCORE_PLUGINS_FILE_DATA)
+
   foreach(plugin ${SCORE_PLUGINS_LIST})
     message("Linking statically with score plugin : ${plugin}")
-    file(APPEND "${SCORE_PLUGINS_FILE}" "Q_IMPORT_PLUGIN(${plugin})\n")
+    string(APPEND SCORE_PLUGINS_FILE_DATA "#include <${plugin}.hpp>\n")
   endforeach()
-endfunction()
 
+  string(APPEND SCORE_PLUGINS_FILE_DATA "#include <score/plugins/PluginInstances.hpp>\n")
+  string(APPEND SCORE_PLUGINS_FILE_DATA "auto score_init_static_plugins = [] {\n")
+
+  foreach(plugin ${SCORE_PLUGINS_LIST})
+    message("Linking statically with score plugin : ${plugin}")
+    string(APPEND SCORE_PLUGINS_FILE_DATA "{ static ${plugin} p\; score::staticPlugins().push_back(&p)\; }\n")
+  endforeach()
+  string(APPEND SCORE_PLUGINS_FILE_DATA "\nreturn 0\;\n }()\;")
+
+  score_write_file("${SCORE_PLUGINS_FILE}" "${SCORE_PLUGINS_FILE_DATA}\n")
+endfunction()
 ### Adds tests ###
 function(setup_score_tests TestFolder)
   if(NOT DEPLOYMENT_BUILD AND NOT SCORE_STATIC_QT AND NOT IOS)

@@ -8,22 +8,16 @@
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
 class score_plugin_media final
-    : public QObject
-    , public score::Plugin_QtInterface
+    : public score::Plugin_QtInterface
     , public score::FactoryInterface_QtInterface
     , public score::ApplicationPlugin_QtInterface
     , public score::CommandFactory_QtInterface
 {
-  Q_OBJECT
-  Q_PLUGIN_METADATA(IID Plugin_QtInterface_iid)
-  Q_INTERFACES(score::Plugin_QtInterface score::FactoryInterface_QtInterface
-                   score::CommandFactory_QtInterface
-                       score::ApplicationPlugin_QtInterface)
   SCORE_PLUGIN_METADATA(1, "142f926e-b2d9-41ce-aff3-a1dab33d3de2")
 
 public:
   score_plugin_media();
-  ~score_plugin_media();
+  ~score_plugin_media() override;
 
   std::vector<std::unique_ptr<score::InterfaceBase>> factories(
       const score::ApplicationContext& ctx,

@@ -9,13 +9,8 @@
 #include <score/plugins/customfactory/FactorySetup.hpp>
 #include <score_plugin_midi_commands_files.hpp>
 
-score_plugin_midi::score_plugin_midi() : QObject{}
-{
-}
-
-score_plugin_midi::~score_plugin_midi()
-{
-}
+score_plugin_midi::score_plugin_midi() = default;
+score_plugin_midi::~score_plugin_midi() = default;
 
 std::vector<std::unique_ptr<score::InterfaceBase>>
 score_plugin_midi::factories(
@@ -44,3 +39,6 @@ score_plugin_midi::make_commands()
 
   return cmds;
 }
+
+#include <score/plugins/PluginInstances.hpp>
+SCORE_EXPORT_PLUGIN(score_plugin_midi)

@@ -17,7 +17,6 @@
 #include <core/document/DocumentModel.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/document/DocumentInterface.hpp>
-#include <score_static_plugins.hpp>
 
 #include <Automation/AutomationModel.hpp>
 #include <Curve/Commands/UpdateCurve.hpp>

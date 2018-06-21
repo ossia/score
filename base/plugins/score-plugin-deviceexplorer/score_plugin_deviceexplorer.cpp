@@ -116,3 +116,6 @@ score_plugin_deviceexplorer::make_commands()
 
   return cmds;
 }
+
+#include <score/plugins/PluginInstances.hpp>
+SCORE_EXPORT_PLUGIN(score_plugin_deviceexplorer)
