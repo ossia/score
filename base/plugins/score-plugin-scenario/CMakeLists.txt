@@ -581,7 +581,7 @@ score_generate_command_list_file(score_plugin_scenario "${HDRS}")
 target_link_libraries(score_plugin_scenario
   PUBLIC
     Qt5::Core Qt5::Widgets Qt5::Svg
-        score_lib_base ColorWidgets-qt5
+        score_lib_base
     score_lib_process score_lib_device score_plugin_deviceexplorer
     score_lib_state score_plugin_curve score_plugin_automation
     score_lib_inspector Threads::Threads)

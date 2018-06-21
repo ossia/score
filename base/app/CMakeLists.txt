@@ -36,8 +36,6 @@ else()
     add_executable(${APPNAME} WIN32 ${SRCS})
 endif()
 
-score_moc_headers("${APPNAME}" "${CMAKE_CURRENT_SOURCE_DIR}/Application.hpp")
-
 target_link_libraries(${APPNAME} PUBLIC score_lib_base)
 if(TARGET Qt5::QuickControls2)
   target_link_libraries(${APPNAME} PUBLIC score_lib_base Qt5::QuickControls2)
