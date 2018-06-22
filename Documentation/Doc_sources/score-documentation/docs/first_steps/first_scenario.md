@@ -120,7 +120,7 @@ From the automation inspector, check the min and max textfield and set desired v
 
 ## Summary
 
-We now covered the major features of Score and workflow: setting up your devices network, storing & recalling snapshots, writing automations for the parameters of your device, write precise temporal structure.
+We now covered the major features of the Score workflow: setting up your devices network, storing & recalling snapshots, writing automations for the parameters of your device, write precise temporal structure.
 
 Score offers a number of other features depending on the protocols used to communicate with your devices, handy shortcuts to ease the writing of complex performances or installations, vast collection of available processes that will get covered in the following on the documentation.
 

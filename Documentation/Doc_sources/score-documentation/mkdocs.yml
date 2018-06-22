@@ -5,7 +5,7 @@ pages:
 - First steps:
    - Introduction: 'first_steps/score-presentation.md'
    - 'Time approach in Score': 'first_steps/time_approach.md'
-   - 'Meet Score interface': 'first_steps/meet_score_interface.md'
+   - 'Meet the Score interface': 'first_steps/meet_score_interface.md'
    - 'Writing your first scenario': 'first_steps/first_scenario.md'
 - How to ?:
    - Setup:

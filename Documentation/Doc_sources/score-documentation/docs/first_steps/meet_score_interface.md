@@ -1,8 +1,8 @@
 ---
-title: Meet Score interface
+title: Meet the Score interface
 ---
 
-# Meet Score interface
+# Meet the Score interface
 
 Here we will go through the various parts of Score's interface. Rather than going into each detail or advanced feature, we will first do a short run through of Score environment so you can feel at ease when going into deeper in the following tutorials.
 
