@@ -65,7 +65,7 @@ The device used in this tutorial only provides unidirectional communication (our
 
 Select the addresses you want to store then drag them on the timeline. You will see that Score offers to connect this new event to the event it is most aligned with. Make sure to connect this new event to the one we previously created.
 
-Now follow your inspiration and store on the timeline as many of your device's states or [fine tune them](howtos/updating_states.md) as you wish. 
+Now follow your inspiration and store on the timeline as many of your device's states or [fine tune them](../howtos/update_state.md) as you wish. 
 
 Press the `spacebar` to start playing our scenario and recalling these snapshots as time moves along the timeline. You may pause the execution of our scenario pressing the `spacebar` again or stop it using `return` key (remember of can use `cmd + return` or `ctrl + return` to stop and fully reinitialize the scenario).
 
