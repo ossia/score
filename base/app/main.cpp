@@ -126,6 +126,11 @@ int main(int argc, char** argv)
 
   QPixmapCache::setCacheLimit(819200);
   Application app(argc, argv);
+
+#if defined(SCORE_STATIC_PLUGINS)
+  score_init_static_plugins();
+#endif
+
   app.init();
   int res = app.exec();
 #if defined(__APPLE__)

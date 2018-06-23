@@ -242,12 +242,12 @@ function(score_write_static_plugins_header)
   endforeach()
 
   string(APPEND SCORE_PLUGINS_FILE_DATA "#include <score/plugins/PluginInstances.hpp>\n")
-  string(APPEND SCORE_PLUGINS_FILE_DATA "auto score_init_static_plugins = [] {\n")
+  string(APPEND SCORE_PLUGINS_FILE_DATA "void score_init_static_plugins() {\n")
 
   foreach(plugin ${SCORE_PLUGINS_LIST})
     string(APPEND SCORE_PLUGINS_FILE_DATA "{ static ${plugin} p\; score::staticPlugins().push_back(&p)\; }\n")
   endforeach()
-  string(APPEND SCORE_PLUGINS_FILE_DATA "\nreturn 0\;\n }()\;")
+  string(APPEND SCORE_PLUGINS_FILE_DATA "\n }\n")
 
   score_write_file("${SCORE_PLUGINS_FILE}" "${SCORE_PLUGINS_FILE_DATA}\n")
 endfunction()
