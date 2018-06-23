@@ -56,9 +56,8 @@ public:
 
   QString errorString() const
   {
-
 #ifdef _WIN32
-    //TODO
+    return {};
 #else
       return QString::fromUtf8(dlerror());
 #endif
