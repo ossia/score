@@ -290,7 +290,12 @@ QJsonObject copyWholeScenario(
   const auto& ctx = score::IDocument::documentContext(sm);
 
   auto itvs = sm.intervals.map().as_vec();
-  std::vector<Path<Scenario::IntervalModel>> itv_paths(sm.intervals.begin(), sm.intervals.end());
+  std::vector<Path<Scenario::IntervalModel>> itv_paths;
+  itv_paths.reserve(sm.intervals.size());
+  for(Scenario::IntervalModel& itv : sm.intervals)
+  {
+    itv_paths.push_back(itv);
+  }
 
   QJsonObject base;
 
