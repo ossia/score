@@ -29,7 +29,7 @@ This section offers advanced documentation on the various features offered in *S
 
 #### Processes
 ###### [Automation Process](in_depth/automation_process.md)
-###### [Interpolation Process](n_depth/interpolation_process.md)
+###### [Interpolation Process](in_depth/interpolation_process.md)
 ###### [Mapping Process](in_depth/mapping_process.md)
 ###### [Loop Process](in_depth/loop_process.md)
 ###### [Scenario Process](in_depth/scenario_process.md)
