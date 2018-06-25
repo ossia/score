@@ -1,6 +1,7 @@
 #pragma once
 #include <score/tools/Todo.hpp>
 #include <score_lib_base_export.h>
+#include <array>
 
 class JSONObject;
 namespace score
