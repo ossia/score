@@ -7,6 +7,14 @@ pages:
    - 'Time approach in Score': 'first_steps/time_approach.md'
    - 'Meet the Score interface': 'first_steps/meet_score_interface.md'
    - 'Writing your first scenario': 'first_steps/first_scenario.md'
+- In depth:
+   - Processes:
+      - 'Automation Process': 'in_depth/automation_process.md'
+      - 'Interpolation Process': 'in_depth/interpolation_process.md'
+      - 'Mapping Process': 'in_depth/mapping_process.md'
+      - 'Loop Process': 'in_depth/loop_process.md'
+      - 'Scenario Process': 'in_depth/scenario_process.md'
+
 - How to ?:
    - Setup:
       - 'Setup an OSC device': 'howtos/declare_an_osc_device.md'
