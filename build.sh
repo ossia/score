@@ -16,7 +16,7 @@ then
     esac
 fi
 
-brew install qt5 boost ninja ffmpeg tbb || true
+brew install qt5 boost ninja ffmpeg tbb jack || true
 mkdir -p $BUILD_DIR
 cd $BUILD_DIR
 
