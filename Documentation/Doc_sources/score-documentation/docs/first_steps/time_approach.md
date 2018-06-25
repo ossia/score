@@ -38,13 +38,17 @@ Of course as detailed later in this documentation, both interactive triggering a
 
 ## Hierarchical/cascading time flow
 
-Using intervals between events in your scenario ensures that time will flow along the paths and will trigger events or automations as they are reached. Yet another feature allows you to add even more temporal flexibility, in a continuous way, by precisely controlling how time flows: hierarchical time flow. 
+Using intervals between events in your scenario ensures that time will flow along the paths and will trigger events or automations as they are reached. Yet another feature allows you to add even more temporal flexibility, by precisely and continuously controlling the speed of the time-flow, in a hierarchical and cascading way. 
+
+![Controlling the global speed](../images/speed-global.gif)
 
 Each interval in a *Score* scenario provides a speed control allowing to adjust how time will travel along the paths during the execution of your scenario. This makes a very useful feature, in particular for live performance when you may want to slow down a particular process (ie. light automation) a bit as the performer on stage takes more time to reach his new position, while not affecting automations controlling another process (e.g. sound spatialization). 
 
+![Controlling speed locally](../images/speed-sub-intervals.gif)
+
 But the important point to note here is that changing the speed of a given interval will also affect the sub-paths it is feeding time to, in a *cascading way*. You may think of this speed variable as an *adjustable tap at each feeder pipe input*. For example, when using sub-scenarios, changing the speed of the parent interval will propagate to the whole scenario it holds. On the other hand, changing the speed of an interval inside the sub-scenario will only affect this interval and its attached processes while the parent interval time will progress as written in the scenario.
 
-![Cascading time](../images/cascading_time.gif)
+![Cascading speed control](../images/speed-cascading.gif)
 
 ## Out of time events
 
