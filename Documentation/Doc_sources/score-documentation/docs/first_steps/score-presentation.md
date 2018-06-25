@@ -10,7 +10,7 @@ title: What is *Score* ?
 
 *Score* brings these two approaches together in an unified timeline. Scenario authoring and execution in *Score* thus make it possible to write fixed-timed automations as well as interactive sequences of automations. Most importantly, these two paradigms can be combined and used in parallel or hierarchically, which provides a high level of control and of openness, as is required by today’s creation.
 
-![*Score* scenario](../images/Scor*_scenario.png "*Score* example scenario")
+![*Score* scenario](../images/Score_scenario.png "*Score* example scenario")
 
 ## A sequencer for distributed media systems
 
