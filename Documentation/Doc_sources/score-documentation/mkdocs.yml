@@ -14,6 +14,7 @@ pages:
       - 'Mapping Process': 'in_depth/mapping_process.md'
       - 'Loop Process': 'in_depth/loop_process.md'
       - 'Scenario Process': 'in_depth/scenario_process.md'
+   - 'Avanced value addressing': 'in_depth/value_addressing.md'
 
 - How to ?:
    - Setup:

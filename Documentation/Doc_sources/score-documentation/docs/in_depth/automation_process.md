@@ -2,95 +2,67 @@
 tile: Process overview: Automation
 ---
 
-# Process overview : Automation
+# Process overview: Automation
 
 ## Presentation
 
-The automation is a central process in score.
-It is a curve that represents the variation of the value of an address in time, bounded between a minimum and a maximum, with an optional unit.
-It also allows tweening : instead of starting from a fixed point, it will query the current value of its address when executing, and adapt its first segment to start smoothly from this point.
-This is useful for transitions and will be explained in further details afterwards.
+It is a curve that represents the variation of the value of an address in time, bounded between a *minimum* and a *maximum*, with an optional *unit*. It can also be used for tweening, that is ramping from a point defined during execution to a point value specified in the automation.
 
-[caption id="attachment_1071" align="alignnone" width="218"] A interval with a single automation[/caption]
-Curve edition
-Automations can have multiple break-points.
-Between each break-point, in green, there are curve segments, in red.
+![An automation](http://ossia.io/wp-content/uploads/2016/03/automation.png)
 
-New break-points can be added by pressing ⌘ (Mac) / Ctrl (Lin/Win) and clicking or simply double-clicking on the curve :
+## Function edition
+### Basic editing
+
+Automations can have multiple break-points, between each are curve segments.
+
+When adding an automation process, default function is an ascendant line going from the parameter minimal value or its value stored in the preceding state, to the maximum parameter value or its value stored in the consecutive state.
+
+New break-points can be added by double clicking in the automation panel or using `cmd + click` (macOS) or `Ctrl + click (Windows).
 
 ![Adding points in automation](../images/autom-click.gif)
 
-By default, the curvature of a segment can be modified by clicking on it, pressing Shift and moving the mouse vertically :
+By default, the curvature of a segment can be modified by selecting the segment to edit and using `shift + drag` to adjust curvature amount. Moving the mouse upward or downward will curve the segment in the corresponding direction.
 
 ![Adding curvature](../images/autom-curve.gif)
 
-For now, this is only possible for the "Power" curve segment type ; this is the default type of a segment.
+> Note that adjusting the curvature of a segment is only available when using the default "Power" curve segment type
 
-Other curve segments are available, including the common easing functions :
+Points of the automation can be deleted by selecting them and pressing the `delete` or `backspace` key.
 
-![Tween function](../images/autom-ease.gif)
 
-One can remove points of the automation by selecting them and pressing delete or backspace :
+### Advance editing
 
-Finally, there are multiple edition modes :
+The automation editor provides different options for point displacement. By default, moving a point horizontally is locked to the x position of the preceding and following point.
 
-The default mode locks the moved point between its two closest points.
-
-Another mode ("unlocked") allows overwriting them :
+Point displacement can be unlocked from the function contextual menu. To do so, right click in the automation editor and uncheck the option: `Automation (float) > Lock between points`. When unlocked, moving a point beyond its preceding or following point will delete them.
 
 ![Nolock mode](../images/autom-nolock.gif)
 
-It is also possible to just move the point without overwriting the adjacent points :
+Overwriting of the adjacent points can be prevented from by unchecking the option in the automation editor contextual menu: `Automation (float) > Suppress on overlap`.
 
 ![No suppression](../images/autom-nosuppress-1.gif)
 
-Automation inspector
-When clicking on the parent interval of an automation (in the previous examples drop0lead33),
-its inspector should become visible :
+## Function types
+
+Other curve segments are available, including the common easing functions :
+
+![Tween function](../images/function_types.gif)
+
+To set a function type, right click in the automation editor and select the desired type: `Automation (float) > Type`
 
 
-The fields are as follows :
-
- 	Address : the address on which the automation will send messages.
-Nodes of the device explorer can be dragged here.
-It can be of the form :
-
- 	aDevice:/anAddress : simple address
- 	aDevice:/anAddress[1] : if the address is an array, will access the *second* value of the array (e.g. for [27, 12, 5], it will be 12)
- 	aDevice:/anAddress[angle.radian] : if the address has an unit, will send the value in this unit. The value will be converted back to the address's original unit upon sending.
-
- 	aDevice:/anAddress[color.rgb.r] : same as before, but for a specific component of an unit.
+## Tween mode
 
 
+ Automation can be used in tween mode. To do so, from the automation Inspector, check the corresponding option. When checked, the automation will tween from the current value of the address.
+ 
+![Tween mode](../images/tween_mode.gif)
 
-
- 	Tween : when checked, the automation will tween from the current value of the address.
-The first curve segment will become dashed :
+> Notice that in tween mode, first curve segment will become dashed
 
 When playing, if the value of the address when the automation is reached is 50, then the first segment will interpolate from 50 to the value of the second point.
- 	Min / max : the values between which the automation evolves.
-The min is the value that will be sent if a point is at the bottom in the curve.
-The max is the value that will be sent if a point is at the top in the curve.
 
-Execution semantics
-The automation tries to send values that are graphically as close as possible as the shown curve.
-For the case where the address has no unit :
+## Related topic
 
- 	If the address is integer or floating point, the behavior is as expected.
- 	If the address is a fixed-width array, then :
-
- 	If there is no array accessor (such as an:/address[1]), all the values of the array are set to the value of the automation ([1, 1], [2, 2], [3, 3], etc.).
- 	If there is an array accessor, only the accessed value will be set : [1, 1], [1, 2], [1, 3], etc...
-
-
-
-For the case where the address has an unit, the value will be converted to the correct unit afterwards.
-
-An interesting case is the cascading of units.
-For instance, given this case :
-
-
-
-First, the current value of aDevice:/light will be fetched, converted to the hue-saturation-value color space and its value will be set according to the first curve.
-Then, in the red-green-blue color-space, the red component will be increased.
-The result will be applied.
+* [Adding processes](../first_steps/first_scenario.md#writing-processes)
+* [Addressing value](in_depth/value_addressing.md)

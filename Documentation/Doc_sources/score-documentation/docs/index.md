@@ -18,7 +18,7 @@ This documentation will guide you through *Score*'s workflow and advanced featur
 
 This section offers a general presentation of *Score* main concepts and workflow. It aims at guiding through the authoring of scenarios in *Score*.
 
-#### [Introduction](first_steps/score-presentation.md)
+## [Introduction](first_steps/score-presentation.md)
 #### [Time approach in Score](first_steps/time_approach.md)
 #### [Meet the Score interface](first_steps/meet_score_interface.md)
 #### [Writing your first scenario](first_steps/first_scenario.md)
