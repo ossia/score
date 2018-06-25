@@ -20,7 +20,7 @@ The various edition features of a scenario are detailed in the tutorials.
 
 Sub-scenarios can of course be added :
 
-<video src="http://ossia.io/wp-content/uploads/2016/11/scenario-1.webm" autoplay>
+![Sub-scenarios](../images/scenario-1.gif)
 
 ## Full-view and hierarchy
 
@@ -28,4 +28,4 @@ One can go inside sub-scenarios by using the Full-view feature of the interval.
 
 By double-clicking on a interval name, it switches to the main view.
 
-<video src="http://ossia.io/wp-content/uploads/2016/11/full-view.webm" autoplay>
+![Full view](../images/full-view.gif)

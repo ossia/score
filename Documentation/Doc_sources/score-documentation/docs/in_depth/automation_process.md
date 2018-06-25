@@ -18,26 +18,31 @@ Between each break-point, in green, there are curve segments, in red.
 
 New break-points can be added by pressing ⌘ (Mac) / Ctrl (Lin/Win) and clicking or simply double-clicking on the curve :
 
-[video width="254" height="156" webm="http://ossia.io/wp-content/uploads/2016/11/autom-click.webm"][/video]
+![Adding points in automation](../images/autom-click.gif)
 
 By default, the curvature of a segment can be modified by clicking on it, pressing Shift and moving the mouse vertically :
 
-[video width="254" height="156" webm="http://ossia.io/wp-content/uploads/2016/11/autom-curve.webm"][/video]
+![Adding curvature](../images/autom-curve.gif)
 
 For now, this is only possible for the "Power" curve segment type ; this is the default type of a segment.
 
 Other curve segments are available, including the common easing functions :
 
-[video width="484" height="300" webm="http://ossia.io/wp-content/uploads/2016/11/autom-ease.webm"][/video]
+![Tween function](../images/autom-ease.gif)
 
 One can remove points of the automation by selecting them and pressing delete or backspace :
 
 Finally, there are multiple edition modes :
 
- 	The default mode locks the moved point between its two closest points.
- 	Another mode ("unlocked") allows overwriting them :[video width="244" height="160" webm="http://ossia.io/wp-content/uploads/2016/11/autom-nolock.webm"][/video]
- 	It is also possible to just move the point without overwriting the adjacent points :
-[video width="272" height="256" webm="http://ossia.io/wp-content/uploads/2016/11/autom-nosuppress-1.webm"][/video]
+The default mode locks the moved point between its two closest points.
+
+Another mode ("unlocked") allows overwriting them :
+
+![Nolock mode](../images/autom-nolock.gif)
+
+It is also possible to just move the point without overwriting the adjacent points :
+
+![No suppression](../images/autom-nosuppress-1.gif)
 
 Automation inspector
 When clicking on the parent interval of an automation (in the previous examples drop0lead33),

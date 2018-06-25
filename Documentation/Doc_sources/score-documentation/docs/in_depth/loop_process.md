@@ -6,7 +6,9 @@ title: Process overview: Loop
 ## Presentation
 
 The loop is somewhat similar to the scenario.
+
 It is a process that allows to loop other processes.
+
 However no new structures can be created or removed in it.
 
 It is built of :
@@ -22,7 +24,8 @@ When created, it looks like this :
 ## Edition
 
 The last event can be resized :
-<video src="http://ossia.io/wp-content/uploads/2016/11/loop-resize.webm" autoplay>
+
+![Loop resize](../images/loop-resize.gif)
 
 
 
@@ -32,7 +35,7 @@ Processes can of course be added to the interval, as well as data to the states.
 
 The loop process, as its name tells, loops :
 
-<video controls src="../../images/loop-exec.webm" >Loop execution</video>
+![Loop execution](..images/loop-exec.gif)
 
 To make an infinite loop, one can for instance remove the maximum of its parent interval :
 
@@ -40,4 +43,4 @@ To make an infinite loop, one can for instance remove the maximum of its parent 
 
 To make an interactive loop, a trigger can instead be added at the first or last trigger of the loop :
 
-<video src="http://ossia.io/wp-content/uploads/2016/11/loop-interact.webm" autoplay>
+![Interactive loop](../images/loop-interact.gif)
