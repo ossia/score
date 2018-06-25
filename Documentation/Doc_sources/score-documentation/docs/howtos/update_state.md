@@ -16,3 +16,13 @@ If your device can only receive messages from Score, in the Device explorer, dou
 Alternatively, stored states can be edited from a state inspector.
 
 On the timeline, select the state to edit to display its inspector. From the tree view of the stored addresses and value, double-click on the value textfield and type the desired value.
+
+## Drag’n’dropping from the Device Explorer
+
+On can also update the existing parameters from a state by drag’n’dropping them from the Device Explorer.
+
+This allows to:
+- only update a portion of the parameters
+- add new parameters while updating those already present.
+
+When doing so, the parameters already present will be updated, when applicable. Those that were not present beforehands will be added with the current value from the Device Explorer
