@@ -141,7 +141,7 @@ private:
 
   double m_lastX{-1};
 
-  std::map<double, double> m_points;
+  ossia::flat_map<double, double> m_points;
 };
 }
 

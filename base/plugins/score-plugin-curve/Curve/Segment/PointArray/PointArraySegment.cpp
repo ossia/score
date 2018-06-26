@@ -134,8 +134,6 @@ void PointArraySegment::addPointUnscaled(double x, double y)
     {
       auto it1 = m_points.find(m_lastX);
       auto it2 = m_points.lower_bound(x);
-      //if(it1 != end && it2 != end)
-      //  SCORE_ASSERT(it1 < it2);
       if (it1 != end && it2 != end)
       {
         std::advance(it1, 1);
@@ -152,8 +150,7 @@ void PointArraySegment::addPointUnscaled(double x, double y)
     {
       auto it1 = m_points.find(x);
       auto it2 = m_points.lower_bound(m_lastX);
-      //if(it1 != end && it2 != end)
-      //  SCORE_ASSERT(it1 < it2);
+
       if (it1 != end && it2 != end)
       {
         std::advance(it1, 1);
