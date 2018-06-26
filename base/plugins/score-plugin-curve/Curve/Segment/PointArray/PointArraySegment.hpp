@@ -103,7 +103,7 @@ public:
     max_y = y;
   }
 
-  const ossia::flat_map<double, double>& points() const
+  const auto& points() const
   {
     return m_points;
   }

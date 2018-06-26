@@ -127,24 +127,40 @@ void PointArraySegment::addPoint(double x, double y)
 void PointArraySegment::addPointUnscaled(double x, double y)
 {
   m_points[x] = y;
+  const auto end = m_points.end();
   if (m_lastX != -1)
   {
-    if (x > m_lastX)
+    if (m_lastX < x)
     {
       auto it1 = m_points.find(m_lastX);
       auto it2 = m_points.lower_bound(x);
-      if (it1 != m_points.end() && it2 != m_points.end() && it1 != it2)
+      if (it1 != end && it2 != end)
       {
-        m_points.erase(it1 + 1, it2);
+        std::advance(it1, 1);
+        if(it1 != end)
+        {
+          if(it1 == it2)
+            m_points.erase(it2);
+          else
+            m_points.erase(it1, it2);
+        }
       }
     }
     else if (x < m_lastX)
     {
       auto it1 = m_points.find(x);
       auto it2 = m_points.lower_bound(m_lastX);
-      if (it1 != m_points.end() && it2 != m_points.end() && it1 != it2)
+
+      if (it1 != end && it2 != end)
       {
-        m_points.erase(it1 + 1, it2);
+        std::advance(it1, 1);
+        if(it1 != end)
+        {
+          if(it1 == it2)
+            m_points.erase(it2);
+          else
+            m_points.erase(it1, it2);
+        }
       }
     }
   }
@@ -175,7 +191,7 @@ void PointArraySegment::simplify(double ratio)
   SCORE_ASSERT(result.size() % 2 == 0);
 
   m_points.clear();
-  m_points.container.reserve(result.size() / 2);
+  //m_points.container.reserve(result.size() / 2);
   for (auto i = 0u; i < result.size(); i += 2)
   {
     m_points.insert(std::make_pair(result[i], result[i + 1]));

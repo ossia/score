@@ -32,6 +32,7 @@ private:
   void restoreLayout();
 
   void openSettings();
+  void help();
   void about();
 
   void loadStack();

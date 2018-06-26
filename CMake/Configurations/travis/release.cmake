@@ -1,7 +1,5 @@
 set(CMAKE_BUILD_TYPE Release)
-if(TRAVIS)
-  set(SCORE_COTIRE True)
-endif()
+set(SCORE_COTIRE True)
 set(DEPLOYMENT_BUILD True)
 
 if(NOT DEFINED SCORE_ENABLE_LTO)
