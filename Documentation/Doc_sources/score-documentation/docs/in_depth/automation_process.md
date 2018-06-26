@@ -69,4 +69,4 @@ In tween mode, when playing, if the automated parameter in the device is 50, the
 ## Related topic
 
 * [Adding processes](../first_steps/first_scenario.md#writing-processes)
-* [Addressing value](in_depth/value_addressing.md)
+* [Addressing value](./value_addressing.md)
