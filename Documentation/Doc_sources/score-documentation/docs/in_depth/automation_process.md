@@ -64,7 +64,7 @@ Automation can be used in tween mode. To do so, from the automation Inspector, c
 
 > Notice that in tween mode, first curve segment will become dashed
 
-When playing, if the value of the address when the automation is reached is 50, then the first segment will interpolate from 50 to the value of the second point.
+In tween mode, when playing, if the automated parameter in the device is 50, the first segment will interpolate from 50 to the value of the second point set in the automation editor.
 
 ## Related topic
 
