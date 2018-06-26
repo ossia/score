@@ -34,7 +34,7 @@ matrix:
 #      env: CONF=linux-gcov CAN_DEPLOY=False
 
     - os: osx
-      env: CONF=osx-release CAN_DEPLOY=True
+      env: CONF=osx-package CAN_DEPLOY=True
     - os: linux
       env: CONF=linux-package-appimage CAN_DEPLOY=True
 
@@ -43,7 +43,7 @@ matrix:
     - os: osx
       env: CONF=osx-static-debug CAN_DEPLOY=False
     - os: osx
-      env: CONF=osx-package CAN_DEPLOY=False
+      env: CONF=osx-release CAN_DEPLOY=False
 
     - os: linux
       env: CONF=linux-debug CAN_DEPLOY=False
