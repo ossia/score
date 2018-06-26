@@ -21,3 +21,4 @@ SCORE_DECLARE_ACTION(
 SCORE_DECLARE_ACTION(
     RestoreLayout, "&Restore Layout", Common, QKeySequence::UnknownKey)
 SCORE_DECLARE_ACTION(About, "&About", Common, QKeySequence::UnknownKey)
+SCORE_DECLARE_ACTION(Help, "&Help", Common, QKeySequence::UnknownKey)

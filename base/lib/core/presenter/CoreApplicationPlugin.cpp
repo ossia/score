@@ -3,6 +3,8 @@
 #include "CoreApplicationPlugin.hpp"
 
 #include <QMessageBox>
+#include <QDesktopServices>
+#include <QUrl>
 #include <core/view/QRecentFilesMenu.h>
 #include <core/presenter/CoreActions.hpp>
 #include <core/settings/Settings.hpp>
@@ -74,6 +76,11 @@ void CoreApplicationPlugin::openProjectSettings()
     m_presenter.m_projectSettings.setup(doc->context());
     m_presenter.m_projectSettings.view().exec();
   }
+}
+
+void CoreApplicationPlugin::help()
+{
+   QDesktopServices::openUrl(QUrl("https://ossia.github.io/score"));
 }
 
 void CoreApplicationPlugin::about()
@@ -273,6 +280,14 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     }
 
     ////// About /////
+    {
+      auto help_act = new QAction(m_presenter.view());
+      connect(
+          help_act, &QAction::triggered, this, &CoreApplicationPlugin::help);
+      e.actions.add<Actions::Help>(help_act);
+      about->addAction(help_act);
+    }
+
     {
       auto about_act = new QAction(m_presenter.view());
       connect(
