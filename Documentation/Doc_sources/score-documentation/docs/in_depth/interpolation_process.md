@@ -2,7 +2,7 @@
 title: Process overview: Interpolation
 ---
 
-<span style="color:grey">DISCLAMER: as of 2.0.0.a6, interpolation process is broken as new implementation is in progress</span>
+<span style="color:red;font-weight: bold">DISCLAMER: as of 2.0.0.a6, interpolation process is broken as new implementation is in progress</span>
 
 # Process overview: Interpolation
 
