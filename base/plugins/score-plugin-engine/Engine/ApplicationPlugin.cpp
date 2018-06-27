@@ -891,6 +891,27 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
       });
     });
   }
+
+  {
+    auto local_stop_node = root.create_child("reinit");
+    auto local_stop_address
+        = local_stop_node->create_parameter(ossia::val_type::IMPULSE);
+    local_stop_address->set_value(ossia::impulse{});
+    local_stop_address->set_access(ossia::access_mode::SET);
+    local_stop_address->add_callback([&](const ossia::value&) {
+      ossia::qt::run_async(this, [=] {
+        if (context.applicationSettings.gui)
+        {
+          auto& stop_action = context.actions.action<Actions::Reinitialize>();
+          stop_action.action()->trigger();
+        }
+        else
+        {
+          this->on_init();
+        }
+      });
+    });
+  }
   {
     auto node = root.create_child("exit");
     auto address = node->create_parameter(ossia::val_type::IMPULSE);
