@@ -50,3 +50,7 @@ For example, using `aDevice:/anAddress[angle.radian]` as a destination address o
 	Then, in the red-green-blue color-space, the red component will be increased.
 	The result will be applied.
 	-->
+	
+<!-- TODO
+	## Pattern matching
+	-->
