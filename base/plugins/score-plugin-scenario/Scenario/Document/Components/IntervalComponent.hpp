@@ -12,13 +12,14 @@ class IntervalComponent : public Component_T
 public:
   template <typename... Args>
   IntervalComponent(Scenario::IntervalModel& cst, Args&&... args)
-      : Component_T{std::forward<Args>(args)...}, m_interval{cst}
+      : Component_T{std::forward<Args>(args)...}, m_interval{&cst}
   {
   }
 
   Scenario::IntervalModel& interval() const
   {
-    return m_interval;
+    SCORE_ASSERT(m_interval);
+    return *m_interval;
   }
 
   auto& context() const
@@ -33,11 +34,12 @@ public:
         std::is_same<Models, Process::ProcessModel>::value,
         "Interval component must be passed Process::ProcessModel as child.");
 
-    return m_interval.processes;
+    SCORE_ASSERT(m_interval);
+    return m_interval->processes;
   }
 
-private:
-  Scenario::IntervalModel& m_interval;
+protected:
+  QPointer<Scenario::IntervalModel> m_interval;
 };
 
 template <typename System_T>

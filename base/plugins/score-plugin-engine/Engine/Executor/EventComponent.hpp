@@ -4,14 +4,10 @@
 #include <ossia/editor/scenario/time_event.hpp>
 
 #include <Engine/Executor/Component.hpp>
-
+#include <Scenario/Document/Event/EventModel.hpp>
 namespace ossia
 {
 class time_event;
-}
-namespace Scenario
-{
-class EventModel;
 }
 
 namespace Engine
@@ -44,14 +40,15 @@ public:
   std::shared_ptr<ossia::time_event> OSSIAEvent() const;
   const Scenario::EventModel& scoreEvent() const
   {
-    return m_score_event;
+    SCORE_ASSERT(m_score_event);
+    return *m_score_event;
   }
 
 public:
   void happened() W_SIGNAL(happened);
 
 private:
-  const Scenario::EventModel& m_score_event;
+  QPointer<const Scenario::EventModel> m_score_event;
   std::shared_ptr<ossia::time_event> m_ossia_event;
 };
 }
