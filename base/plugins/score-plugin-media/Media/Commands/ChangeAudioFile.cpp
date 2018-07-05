@@ -42,7 +42,10 @@ void ChangeAudioFile::redo(const score::DocumentContext& ctx) const
     auto& info = AudioDecoder::database()[m_new];
 
     auto& s = *dynamic_cast<Scenario::ScenarioInterface*>(itv->parent());
-    s.changeDuration(*itv, TimeVal::fromMsecs(1000. * double(info.length) / double(info.rate)));
+    if(info.length != 0)
+    {
+      s.changeDuration(*itv, TimeVal::fromMsecs(1000. * double(info.length) / double(info.rate)));
+    }
   }
 }
 

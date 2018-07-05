@@ -44,7 +44,7 @@ private:
   void updateTrigger();
   void on_GUITrigger();
   ossia::time_sync* m_ossia_node{};
-  const Scenario::TimeSyncModel& m_score_node;
+  QPointer<const Scenario::TimeSyncModel> m_score_node;
 };
 }
 }

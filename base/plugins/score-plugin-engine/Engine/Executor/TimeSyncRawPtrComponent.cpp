@@ -27,14 +27,14 @@ TimeSyncRawPtrComponent::TimeSyncRawPtrComponent(
     const Id<score::Component>& id,
     QObject* parent)
     : Execution::Component{ctx, id, "Executor::Event", nullptr}
-    , m_score_node{element}
+    , m_score_node{&element}
 {
-  con(m_score_node, &Scenario::TimeSyncModel::triggeredByGui, this,
+  con(element, &Scenario::TimeSyncModel::triggeredByGui, this,
       &TimeSyncRawPtrComponent::on_GUITrigger);
 
-  con(m_score_node, &Scenario::TimeSyncModel::activeChanged, this,
+  con(element, &Scenario::TimeSyncModel::activeChanged, this,
       &TimeSyncRawPtrComponent::updateTrigger);
-  con(m_score_node, &Scenario::TimeSyncModel::triggerChanged, this,
+  con(element, &Scenario::TimeSyncModel::triggerChanged, this,
       [this](const State::Expression& expr) { this->updateTrigger(); });
 }
 
@@ -46,17 +46,19 @@ void TimeSyncRawPtrComponent::cleanup()
 
 ossia::expression_ptr TimeSyncRawPtrComponent::makeTrigger() const
 {
-  auto& element = m_score_node;
-  if (element.active())
+  if(auto element = m_score_node)
   {
-    try
+    if (element->active())
     {
-      return Engine::score_to_ossia::trigger_expression(
-          element.expression(), system().devices.list());
-    }
-    catch (std::exception& e)
-    {
-      ossia::logger().error(e.what());
+      try
+      {
+        return Engine::score_to_ossia::trigger_expression(
+              element->expression(), system().devices.list());
+      }
+      catch (std::exception& e)
+      {
+        ossia::logger().error(e.what());
+      }
     }
   }
 
@@ -77,7 +79,8 @@ ossia::time_sync* TimeSyncRawPtrComponent::OSSIATimeSync() const
 
 const Scenario::TimeSyncModel& TimeSyncRawPtrComponent::scoreTimeSync() const
 {
-  return m_score_node;
+  SCORE_ASSERT(m_score_node);
+  return *m_score_node;
 }
 
 void TimeSyncRawPtrComponent::updateTrigger()
