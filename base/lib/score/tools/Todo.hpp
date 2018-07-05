@@ -85,19 +85,6 @@
 #  define SCORE_RELAXED_CONSTEXPR
 #endif
 
-#define PROPERTY(...) W_MACRO_MSVC_EXPAND(PROPERTY2(__VA_ARGS__))
-
-#define PROPERTY2(TYPE, NAME, ...)                                                        \
-  W_PROPERTY(TYPE, NAME, __VA_ARGS__)                                                     \
-  struct p_ ## NAME {                                                                     \
-    using param_type = TYPE;                                                              \
-    using model_type = W_ThisType;                                                        \
-    static constexpr auto name = #NAME ;                                                  \
-    static constexpr auto get() { constexpr auto x = std::get<0>(std::make_tuple(__VA_ARGS__)); return x; }     \
-    static constexpr auto set() { constexpr auto x = std::get<1>(std::make_tuple(__VA_ARGS__)); return x; }     \
-    static constexpr auto notify() { constexpr auto x = std::get<3>(std::make_tuple(__VA_ARGS__)); return x; }  \
-  };
-
 template <typename T>
 using remove_qualifs_t = std::decay_t<std::remove_pointer_t<std::decay_t<T>>>;
 

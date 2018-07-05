@@ -21,11 +21,11 @@ public:
 
   void scrollHorizontal(double dx);
 public:
-  void sizeChanged(const QSize& arg_1) W_SIGNAL(sizeChanged, arg_1);
-  void scrolled(int arg_1) W_SIGNAL(scrolled, arg_1);
-  void focusedOut() W_SIGNAL(focusedOut);
-  void horizontalZoom(QPointF pixDelta, QPointF pos) W_SIGNAL(horizontalZoom, pixDelta, pos);
-  void verticalZoom(QPointF pixDelta, QPointF pos) W_SIGNAL(verticalZoom, pixDelta, pos);
+  void sizeChanged(const QSize& arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, sizeChanged, arg_1);
+  void scrolled(int arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, scrolled, arg_1);
+  void focusedOut() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, focusedOut);
+  void horizontalZoom(QPointF pixDelta, QPointF pos) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, horizontalZoom, pixDelta, pos);
+  void verticalZoom(QPointF pixDelta, QPointF pos) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, verticalZoom, pixDelta, pos);
 
 private:
   void resizeEvent(QResizeEvent* ev) override;

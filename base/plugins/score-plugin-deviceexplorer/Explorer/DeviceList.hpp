@@ -50,9 +50,9 @@ public:
   }
   const std::vector<DeviceInterface*>& devices() const;
 public:
-  void logInbound(const QString& arg_1) const W_SIGNAL(logInbound, arg_1);
-  void logOutbound(const QString& arg_1) const W_SIGNAL(logOutbound, arg_1);
-  void logError(const QString& arg_1) const W_SIGNAL(logError, arg_1);
+  void logInbound(const QString& arg_1) const E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, logInbound, arg_1);
+  void logOutbound(const QString& arg_1) const E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, logOutbound, arg_1);
+  void logError(const QString& arg_1) const E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, logError, arg_1);
 
 private:
   std::vector<DeviceInterface*> m_devices;

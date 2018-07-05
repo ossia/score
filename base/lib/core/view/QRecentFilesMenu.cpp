@@ -7,13 +7,8 @@ W_OBJECT_IMPL(QRecentFilesMenu)
 static const qint32 RecentFilesMenuMagic = 0xff;
 
 QRecentFilesMenu::QRecentFilesMenu(QWidget * parent)
-: QMenu(parent)
-, m_maxCount(5)
-, m_format(QLatin1String("%d %s"))
+  : QRecentFilesMenu({}, parent)
 {
-    connect(this, &QRecentFilesMenu::triggered, this, &QRecentFilesMenu::menuTriggered);
-
-    setMaxCount(m_maxCount);
 }
 
 QRecentFilesMenu::QRecentFilesMenu(const QString & title, QWidget * parent)
@@ -21,7 +16,7 @@ QRecentFilesMenu::QRecentFilesMenu(const QString & title, QWidget * parent)
 , m_maxCount(5)
 , m_format(QLatin1String("%d %s"))
 {
-    connect(this, SIGNAL(triggered(QAction*)), this, SLOT(menuTriggered(QAction*)));
+    connect(this, &QRecentFilesMenu::triggered, this, &QRecentFilesMenu::menuTriggered);
 
     setMaxCount(m_maxCount);
 }

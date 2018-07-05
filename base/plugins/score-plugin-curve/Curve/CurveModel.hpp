@@ -73,17 +73,17 @@ public:
   double lastPointPos() const;
 
 public:
-  void segmentAdded(const SegmentModel& arg_1) W_SIGNAL(segmentAdded, arg_1);
-  void segmentRemoved(const Id<SegmentModel>& arg_1) W_SIGNAL(segmentRemoved, arg_1); // dangerous if async
-  void pointAdded(const PointModel& arg_1) W_SIGNAL(pointAdded, arg_1);
-  void pointRemoved(const Id<PointModel>& arg_1) W_SIGNAL(pointRemoved, arg_1); // dangerous if async
+  void segmentAdded(const SegmentModel& arg_1) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, segmentAdded, arg_1);
+  void segmentRemoved(const Id<SegmentModel>& arg_1) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, segmentRemoved, arg_1); // dangerous if async
+  void pointAdded(const PointModel& arg_1) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, pointAdded, arg_1);
+  void pointRemoved(const Id<PointModel>& arg_1) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, pointRemoved, arg_1); // dangerous if async
 
   // This signal has to be emitted after big modifications.
   // (it's an optimization to prevent updating the OSSIA API each time a
   // segment moves).
-  void changed() W_SIGNAL(changed);
-  void curveReset() W_SIGNAL(curveReset); // like changed() but for the presenter
-  void cleared() W_SIGNAL(cleared);
+  void changed() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, changed);
+  void curveReset() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, curveReset); // like changed() but for the presenter
+  void cleared() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, cleared);
 
 private:
   void addPoint(PointModel* pt);

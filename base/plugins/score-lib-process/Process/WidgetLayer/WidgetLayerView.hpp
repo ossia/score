@@ -22,7 +22,7 @@ public:
   void setWidget(QWidget*);
 
 public:
-  void contextMenuRequested(QPoint arg_1) W_SIGNAL(contextMenuRequested, arg_1);
+  void contextMenuRequested(QPoint arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, contextMenuRequested, arg_1);
 
 private:
   void paint_impl(QPainter*) const override;

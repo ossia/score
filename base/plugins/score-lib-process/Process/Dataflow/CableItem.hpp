@@ -19,7 +19,7 @@ extern template class tsl::hopscotch_map<
 namespace Dataflow
 {
 class PortItem;
-class CableItem final
+class SCORE_LIB_PROCESS_EXPORT CableItem final
     : public QObject
     , public QGraphicsItem
 {
@@ -58,8 +58,8 @@ public:
   static cable_map& g_cables();
 
 public:
-  void clicked() W_SIGNAL(clicked);
-  void removeRequested() W_SIGNAL(removeRequested);
+  void clicked() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, clicked);
+  void removeRequested() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, removeRequested);
 
 private:
   QRectF boundingRect() const override;

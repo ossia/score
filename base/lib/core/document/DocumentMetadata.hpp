@@ -30,10 +30,10 @@ public:
   void setCreation(QDateTime creation);
   void setLastEdition(QDateTime lastEdition);
 
-  void fileNameChanged(QString fileName) W_SIGNAL(fileNameChanged, fileName);
-  void authorChanged(QString author) W_SIGNAL(authorChanged, author);
-  void creationChanged(QDateTime creation) W_SIGNAL(creationChanged, creation);
-  void lastEditionChanged(QDateTime lastEdition) W_SIGNAL(lastEditionChanged, lastEdition);
+  void fileNameChanged(QString fileName) E_SIGNAL(SCORE_LIB_BASE_EXPORT, fileNameChanged, fileName);
+  void authorChanged(QString author) E_SIGNAL(SCORE_LIB_BASE_EXPORT, authorChanged, author);
+  void creationChanged(QDateTime creation) E_SIGNAL(SCORE_LIB_BASE_EXPORT, creationChanged, creation);
+  void lastEditionChanged(QDateTime lastEdition) E_SIGNAL(SCORE_LIB_BASE_EXPORT, lastEditionChanged, lastEdition);
 
   W_PROPERTY(
       QString,

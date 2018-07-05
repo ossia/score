@@ -62,7 +62,7 @@ public:
   }
 
 public:
-  void curveChanged() W_SIGNAL(curveChanged);
+  void curveChanged() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, curveChanged);
 
 protected:
   void setCurve(Model* newCurve)

@@ -19,7 +19,7 @@ class StateModel;
 
 namespace Engine::Execution
 {
-class SCORE_PLUGIN_ENGINE_EXPORT StateComponentBase
+class StateComponentBase
     : public Execution::Component
 {
   COMMON_COMPONENT_METADATA("b3905e79-2bd0-48bd-8654-8666455ceedd")
@@ -87,7 +87,7 @@ protected:
       m_processes;
 };
 
-class SCORE_PLUGIN_ENGINE_EXPORT StateComponent final
+class StateComponent final
     : public score::PolymorphicComponentHierarchy<StateComponentBase, false>
 {
 public:

@@ -79,32 +79,28 @@ struct PortSetup
     auto& ins = self.m_inlets;
     auto& outs = self.m_outlets;
     int inlet = 0;
-    for (const auto& in :
-         ossia::safe_nodes::get_ports<ossia::safe_nodes::audio_in, Node_T>{}())
+    for (const auto& in : Node_T::Metadata::audio_ins)
     {
       auto p = new Process::Inlet(Id<Process::Port>(inlet++), &self);
       p->type = Process::PortType::Audio;
       p->setCustomData(QString::fromUtf8(in.name.data(), in.name.size()));
       ins.push_back(p);
     }
-    for (const auto& in :
-         ossia::safe_nodes::get_ports<ossia::safe_nodes::midi_in, Node_T>{}())
+    for (const auto& in : Node_T::Metadata::midi_ins)
     {
       auto p = new Process::Inlet(Id<Process::Port>(inlet++), &self);
       p->type = Process::PortType::Midi;
       p->setCustomData(QString::fromUtf8(in.name.data(), in.name.size()));
       ins.push_back(p);
     }
-    for (const auto& in :
-         ossia::safe_nodes::get_ports<ossia::safe_nodes::value_in, Node_T>{}())
+    for (const auto& in : Node_T::Metadata::value_ins)
     {
       auto p = new Process::Inlet(Id<Process::Port>(inlet++), &self);
       p->type = Process::PortType::Message;
       p->setCustomData(QString::fromUtf8(in.name.data(), in.name.size()));
       ins.push_back(p);
     }
-    for (const auto& in : ossia::safe_nodes::get_ports<
-             ossia::safe_nodes::address_in, Node_T>{}())
+    for (const auto& in : Node_T::Metadata::address_ins)
     {
       auto p = new Process::Inlet(Id<Process::Port>(inlet++), &self);
       p->type = Process::PortType::Message;
@@ -121,8 +117,7 @@ struct PortSetup
         });
 
     int outlet = 0;
-    for (const auto& out : ossia::safe_nodes::get_ports<
-             ossia::safe_nodes::audio_out, Node_T>{}())
+    for (const auto& out : Node_T::Metadata::audio_outs)
     {
       auto p = new Process::Outlet(Id<Process::Port>(outlet++), &self);
       p->type = Process::PortType::Audio;
@@ -131,16 +126,14 @@ struct PortSetup
         p->setPropagate(true);
       outs.push_back(p);
     }
-    for (const auto& out :
-         ossia::safe_nodes::get_ports<ossia::safe_nodes::midi_out, Node_T>{}())
+    for (const auto& out : Node_T::Metadata::midi_outs)
     {
       auto p = new Process::Outlet(Id<Process::Port>(outlet++), &self);
       p->type = Process::PortType::Midi;
       p->setCustomData(QString::fromUtf8(out.name.data(), out.name.size()));
       outs.push_back(p);
     }
-    for (const auto& out : ossia::safe_nodes::get_ports<
-             ossia::safe_nodes::value_out, Node_T>{}())
+    for (const auto& out : Node_T::Metadata::value_outs)
     {
       auto p = new Process::Outlet(Id<Process::Port>(outlet++), &self);
       p->type = Process::PortType::Message;

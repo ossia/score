@@ -12,7 +12,6 @@
 #include <memory>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/tools/Metadata.hpp>
-#include <score_plugin_engine_export.h>
 
 namespace ossia
 {
@@ -37,7 +36,7 @@ namespace Engine
 {
 namespace Execution
 {
-class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final
+class DocumentPlugin final
     : public score::DocumentPlugin
 {
   W_OBJECT(DocumentPlugin)

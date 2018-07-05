@@ -58,7 +58,7 @@ public:
   void showMenu(bool b);
 
 public:
-  void nameChanged(QString newName) W_SIGNAL(nameChanged, newName);
+  void nameChanged(QString newName) E_SIGNAL(SCORE_LIB_INSPECTOR_EXPORT, nameChanged, newName);
 
 private:
   score::MarginLess<QVBoxLayout> m_generalLayout; /*!< main layout */

@@ -126,6 +126,6 @@ private:
   QMetaObject::Connection m_addressCon;
 
 public:
-  void findAddresses(QStringList strlst) W_SIGNAL(findAddresses, strlst);
+  void findAddresses(QStringList strlst) E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, findAddresses, strlst);
 };
 }

@@ -7,15 +7,13 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
-#include <score_plugin_media_export.h>
-
 namespace Media
 {
 namespace Sound
 {
 class ProcessModel;
 
-class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final
+class ProcessModel final
     : public Process::ProcessModel
     , public Nano::Observer
 {

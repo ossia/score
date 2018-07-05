@@ -91,38 +91,38 @@ public:
    * @brief Emitted when a command was pushed on the stack
    * @param cmd the command that was pushed
    */
-  void localCommand(score::Command* cmd) W_SIGNAL(localCommand, cmd)
+  void localCommand(score::Command* cmd) E_SIGNAL(SCORE_LIB_BASE_EXPORT, localCommand, cmd)
 
       /**
        * @brief Emitted when the user calls "Undo"
        */
-      void localUndo() W_SIGNAL(localUndo)
+      void localUndo() E_SIGNAL(SCORE_LIB_BASE_EXPORT, localUndo)
 
       /**
        * @brief Emitted when the user calls "Redo"
        */
-      void localRedo() W_SIGNAL(localRedo)
+      void localRedo() E_SIGNAL(SCORE_LIB_BASE_EXPORT, localRedo)
 
-          void localIndexChanged(int v) W_SIGNAL(localIndexChanged, v)
+          void localIndexChanged(int v) E_SIGNAL(SCORE_LIB_BASE_EXPORT, localIndexChanged, v)
 
-              void canUndoChanged(bool b) W_SIGNAL(
+              void canUndoChanged(bool b) E_SIGNAL(SCORE_LIB_BASE_EXPORT,
                   canUndoChanged, b) void canRedoChanged(bool b)
-                  W_SIGNAL(canRedoChanged, b)
+                  E_SIGNAL(SCORE_LIB_BASE_EXPORT, canRedoChanged, b)
 
-                      void undoTextChanged(QString b) W_SIGNAL(
+                      void undoTextChanged(QString b) E_SIGNAL(SCORE_LIB_BASE_EXPORT,
                           undoTextChanged, b) void redoTextChanged(QString b)
-                          W_SIGNAL(redoTextChanged, b)
+                          E_SIGNAL(SCORE_LIB_BASE_EXPORT, redoTextChanged, b)
 
                               void indexChanged(int b)
-                                  W_SIGNAL(indexChanged, b) void stackChanged()
-                                      W_SIGNAL(stackChanged)
+                                  E_SIGNAL(SCORE_LIB_BASE_EXPORT, indexChanged, b) void stackChanged()
+                                      E_SIGNAL(SCORE_LIB_BASE_EXPORT, stackChanged)
 
       // These signals are low-level and are sent on each operation that
       // affects the stacks
-      void sig_undo() W_SIGNAL(sig_undo) void sig_redo()
-          W_SIGNAL(sig_redo) void sig_push()
-              W_SIGNAL(sig_push) void sig_indexChanged()
-                  W_SIGNAL(sig_indexChanged)
+      void sig_undo() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sig_undo) void sig_redo()
+          E_SIGNAL(SCORE_LIB_BASE_EXPORT, sig_redo) void sig_push()
+              E_SIGNAL(SCORE_LIB_BASE_EXPORT, sig_push) void sig_indexChanged()
+                  E_SIGNAL(SCORE_LIB_BASE_EXPORT, sig_indexChanged)
 
                       void setIndex(int index);
   W_INVOKABLE(setIndex)

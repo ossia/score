@@ -18,10 +18,8 @@ struct Node
     static const constexpr auto uuid
         = make_uuid("b8e2e5ad-17e4-43de-8d79-660a29d5c4f4");
 
-    static const constexpr auto midi_ins
-        = ossia::safe_nodes::midi_ins<1>{{"in"}};
-    static const constexpr auto midi_outs
-        = ossia::safe_nodes::midi_outs<1>{{"out"}};
+    static const constexpr midi_in midi_ins[]{"in"};
+    static const constexpr midi_out midi_outs[]{"out"};
     static const constexpr auto controls = std::make_tuple(
         Control::Widgets::QuantificationChooser(),
         Control::FloatSlider{"Tightness", 0.f, 1.f, 0.8f},

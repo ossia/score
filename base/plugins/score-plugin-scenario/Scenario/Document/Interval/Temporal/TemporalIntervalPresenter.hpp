@@ -54,8 +54,8 @@ public:
   void requestSlotMenu(int slot, QPoint pos, QPointF sp) const override;
   void requestProcessSelectorMenu(int slot, QPoint pos, QPointF sp) const;
 public:
-  void intervalHoverEnter() W_SIGNAL(intervalHoverEnter);
-  void intervalHoverLeave() W_SIGNAL(intervalHoverLeave);
+  void intervalHoverEnter() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalHoverEnter);
+  void intervalHoverLeave() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalHoverLeave);
 
 private:
   double rackHeight() const;

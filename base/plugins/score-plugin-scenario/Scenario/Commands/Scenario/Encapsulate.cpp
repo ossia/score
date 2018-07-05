@@ -81,6 +81,7 @@ void Duplicate(
   d.submitCommand(cmd);
 }
 
+SCORE_PLUGIN_SCENARIO_EXPORT
 EncapsData EncapsulateElements(
     Scenario::Command::Macro& m
     , CategorisedScenario& cat

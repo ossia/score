@@ -53,7 +53,7 @@ public:
   void setModel(const PointModel* model);
 
 public:
-  void contextMenuRequested(const QPoint& arg_1, const QPointF& arg_2) W_SIGNAL(contextMenuRequested, arg_1, arg_2);
+  void contextMenuRequested(const QPoint& arg_1, const QPointF& arg_2) E_SIGNAL(, contextMenuRequested, arg_1, arg_2);
 
 protected:
   void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override;

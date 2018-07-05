@@ -16,7 +16,7 @@ namespace Engine
 {
 namespace Execution
 {
-class SCORE_PLUGIN_ENGINE_EXPORT TimeSyncComponent final
+class TimeSyncComponent final
     : public Execution::Component
 {
   COMMON_COMPONENT_METADATA("eca86942-002e-4af5-ad3d-cb1615e0552c")

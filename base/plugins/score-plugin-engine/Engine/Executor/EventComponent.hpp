@@ -18,7 +18,7 @@ namespace Engine
 {
 namespace Execution
 {
-class SCORE_PLUGIN_ENGINE_EXPORT EventComponent final
+class EventComponent final
     : public Execution::Component
 {
   W_OBJECT(EventComponent)

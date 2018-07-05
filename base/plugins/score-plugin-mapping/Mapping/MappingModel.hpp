@@ -57,13 +57,13 @@ public:
   std::unique_ptr<Process::Inlet> inlet;
   std::unique_ptr<Process::Outlet> outlet;
 public:
-  void sourceAddressChanged(const State::AddressAccessor& arg) W_SIGNAL(sourceAddressChanged, arg);
-  void sourceMinChanged(double arg) W_SIGNAL(sourceMinChanged, arg);
-  void sourceMaxChanged(double arg) W_SIGNAL(sourceMaxChanged, arg);
+  void sourceAddressChanged(const State::AddressAccessor& arg) E_SIGNAL(SCORE_PLUGIN_MAPPING_EXPORT, sourceAddressChanged, arg);
+  void sourceMinChanged(double arg) E_SIGNAL(SCORE_PLUGIN_MAPPING_EXPORT, sourceMinChanged, arg);
+  void sourceMaxChanged(double arg) E_SIGNAL(SCORE_PLUGIN_MAPPING_EXPORT, sourceMaxChanged, arg);
 
-  void targetAddressChanged(const State::AddressAccessor& arg) W_SIGNAL(targetAddressChanged, arg);
-  void targetMinChanged(double arg) W_SIGNAL(targetMinChanged, arg);
-  void targetMaxChanged(double arg) W_SIGNAL(targetMaxChanged, arg);
+  void targetAddressChanged(const State::AddressAccessor& arg) E_SIGNAL(SCORE_PLUGIN_MAPPING_EXPORT, targetAddressChanged, arg);
+  void targetMinChanged(double arg) E_SIGNAL(SCORE_PLUGIN_MAPPING_EXPORT, targetMinChanged, arg);
+  void targetMaxChanged(double arg) E_SIGNAL(SCORE_PLUGIN_MAPPING_EXPORT, targetMaxChanged, arg);
 
   PROPERTY(double, targetMax READ targetMax WRITE setTargetMax NOTIFY targetMaxChanged)
   PROPERTY(double, targetMin READ targetMin WRITE setTargetMin NOTIFY targetMinChanged)

@@ -22,7 +22,7 @@ public:
       QWidget* widget) final override;
 
 public:
-  void clicked() W_SIGNAL(clicked);
+  void clicked() E_SIGNAL(SCORE_LIB_BASE_EXPORT, clicked);
 
 private:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) final override;
@@ -51,7 +51,7 @@ public:
       QWidget* widget) final override;
 
 public:
-  void clicked() W_SIGNAL(clicked);
+  void clicked() E_SIGNAL(SCORE_LIB_BASE_EXPORT, clicked);
 
 private:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) final override;

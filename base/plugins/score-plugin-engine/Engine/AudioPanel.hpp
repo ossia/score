@@ -1,7 +1,6 @@
 #pragma once
 #include <score/plugins/panel/PanelDelegate.hpp>
 #include <score/plugins/panel/PanelDelegateFactory.hpp>
-#include <score_plugin_deviceexplorer_export.h>
 
 namespace Dataflow
 {

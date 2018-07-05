@@ -99,7 +99,7 @@ public:
   const StateModel& stateModel;
 
 public:
-  void userMessage(const State::Message& arg_1) W_SIGNAL(userMessage, arg_1);
+  void userMessage(const State::Message& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, userMessage, arg_1);
 
 private:
   node_type m_rootNode;

@@ -59,8 +59,8 @@ public:
   void resetPortVisible();
 
 public:
-  void createCable(PortItem* src, PortItem* snk) W_SIGNAL(createCable, src, snk);
-  void contextMenuRequested(QPointF scenepos, QPoint pos) W_SIGNAL(contextMenuRequested, scenepos, pos);
+  void createCable(PortItem* src, PortItem* snk) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, createCable, src, snk);
+  void contextMenuRequested(QPointF scenepos, QPoint pos) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, contextMenuRequested, scenepos, pos);
 
 protected:
   QRectF boundingRect() const final override;

@@ -17,10 +17,8 @@ struct Node
     static const constexpr auto uuid
         = make_uuid("F0904279-EA26-48DB-B0DF-F68FE3091DA1");
 
-    static const constexpr auto midi_ins
-        = ossia::safe_nodes::midi_ins<1>{{"in"}};
-    static const constexpr auto midi_outs
-        = ossia::safe_nodes::midi_outs<1>{{"out"}};
+    static const constexpr midi_in midi_ins[]{"in"};
+    static const constexpr midi_out midi_outs[]{"out"};
     static const constexpr auto controls = std::make_tuple(
         Control::IntSlider{"Num. Notes", 1, 5, 3},
         Control::make_enum(

@@ -24,8 +24,7 @@ struct Node
     static const constexpr auto uuid
         = make_uuid("0697b807-f588-49b5-926c-f97701edd0d8");
 
-    static const constexpr auto value_outs
-        = ossia::safe_nodes::value_outs<1>{value_out{"out"}};
+    static const constexpr value_out value_outs[]{"out"};
 
     static const constexpr auto controls = std::make_tuple(
         Control::Widgets::LFOFreqChooser(),

@@ -6,7 +6,7 @@ namespace Engine
 {
 namespace LocalTree
 {
-class SCORE_PLUGIN_ENGINE_EXPORT State final : public CommonComponent
+class State final : public CommonComponent
 {
   COMMON_COMPONENT_METADATA("2e5fefa2-3442-4c08-9f3e-564ab65f7b22")
 public:

@@ -129,7 +129,7 @@ public:
   bool preparingNewDocument() const;
 
 public:
-  void documentChanged(score::Document* arg_1) W_SIGNAL(documentChanged, arg_1);
+  void documentChanged(score::Document* arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, documentChanged, arg_1);
 
 private:
   void prepareNewDocument(const score::GUIApplicationContext& ctx);

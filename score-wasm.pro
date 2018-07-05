@@ -27,10 +27,9 @@ $$PWD/API/3rdparty/RtMidi17 \
 $$PWD/API/3rdparty/flat_hash_map \
 $$PWD/API/3rdparty/verdigris/src \
 $$PWD/API/3rdparty/SmallFunction/smallfun/include \
-$$PWD/3rdparty/QRecentFilesMenu \
-$$PWD/3rdparty/QProgressIndicator \
-$$PWD/3rdparty/Qt-Color-Widgets \
-$$PWD/3rdparty/Qt-Color-Widgets/QtColorWidgets \
+$$PWD/base/lib/3rdparty/QProgressIndicator \
+$$PWD/base/lib/3rdparty/Qt-Color-Widgets \
+$$PWD/base/lib/3rdparty/Qt-Color-Widgets/QtColorWidgets \
 $$PWD/3rdparty/miniz \
 $$PWD/API/OSSIA \
 $$PWD/API/3rdparty/spdlog/include \
@@ -63,9 +62,6 @@ DEFINES += QT_STATICPLUGIN SCORE_STATIC_PLUGINS SCORE_DEPLOYMENT_BUILD TINYSPLIN
 
 include($$PWD/score-srcs.pri)
 
-include($$PWD/3rdparty/QProgressIndicator/qprogressindicator.pri)
-include($$PWD/3rdparty/QRecentFilesMenu/QRecentFilesMenu.pri)
-include($$PWD/3rdparty/Qt-Color-Widgets/color_widgets.pri)
 
 SOURCES += \
     $$PWD/base/app/main.cpp \
