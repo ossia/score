@@ -25,7 +25,7 @@ EventComponent::EventComponent(
     const Id<score::Component>& id,
     QObject* parent)
     : Execution::Component{ctx, id, "Executor::Event", nullptr}
-    , m_score_event{element}
+    , m_score_event{&element}
 {
   con(element, &Scenario::EventModel::conditionChanged, this,
       [this](const auto& expr) {
@@ -45,16 +45,19 @@ void EventComponent::cleanup()
 
 ossia::expression_ptr EventComponent::makeExpression() const
 {
-  try
+  if(m_score_event)
   {
-    return Engine::score_to_ossia::condition_expression(
-        m_score_event.condition(), system().devices.list());
+    try
+    {
+      return Engine::score_to_ossia::condition_expression(
+            m_score_event->condition(), system().devices.list());
+    }
+    catch (std::exception& e)
+    {
+      ossia::logger().error(e.what());
+    }
   }
-  catch (std::exception& e)
-  {
-    ossia::logger().error(e.what());
-    return ossia::expressions::make_expression_true();
-  }
+  return ossia::expressions::make_expression_true();
 }
 
 void EventComponent::onSetup(
