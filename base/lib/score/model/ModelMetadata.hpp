@@ -43,17 +43,17 @@ public:
   void setExtendedMetadata(const QVariantMap&);
 
   void NameChanged(const QString& arg)
-  W_SIGNAL(NameChanged, arg);
+  E_SIGNAL(SCORE_LIB_BASE_EXPORT, NameChanged, arg);
   void CommentChanged(const QString& arg)
-  W_SIGNAL(CommentChanged, arg);
+  E_SIGNAL(SCORE_LIB_BASE_EXPORT, CommentChanged, arg);
   void ColorChanged(score::ColorRef arg)
-  W_SIGNAL(ColorChanged, arg);
+  E_SIGNAL(SCORE_LIB_BASE_EXPORT, ColorChanged, arg);
   void LabelChanged(const QString& arg)
-  W_SIGNAL(LabelChanged, arg);
+  E_SIGNAL(SCORE_LIB_BASE_EXPORT, LabelChanged, arg);
   void ExtendedMetadataChanged( const QVariantMap& arg)
-  W_SIGNAL(ExtendedMetadataChanged, arg);
+  E_SIGNAL(SCORE_LIB_BASE_EXPORT, ExtendedMetadataChanged, arg);
   void metadataChanged()
-  W_SIGNAL(metadataChanged);
+  E_SIGNAL(SCORE_LIB_BASE_EXPORT, metadataChanged);
 
   PROPERTY(
       QString,

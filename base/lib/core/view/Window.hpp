@@ -44,11 +44,11 @@ public:
   void closeEvent(QCloseEvent*) override;
 
 public:
-  void activeDocumentChanged(const Id<DocumentModel>& arg_1) W_SIGNAL(activeDocumentChanged, arg_1);
-  void closeRequested(const Id<DocumentModel>& arg_1) W_SIGNAL(closeRequested, arg_1);
+  void activeDocumentChanged(const Id<DocumentModel>& arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, activeDocumentChanged, arg_1);
+  void closeRequested(const Id<DocumentModel>& arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, closeRequested, arg_1);
 
-  void ready() W_SIGNAL(ready);
-  void sizeChanged(QSize arg_1) W_SIGNAL(sizeChanged, arg_1);
+  void ready() E_SIGNAL(SCORE_LIB_BASE_EXPORT, ready);
+  void sizeChanged(QSize arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, sizeChanged, arg_1);
 
 public:
   void on_fileNameChanged(DocumentView* d, const QString& newName); W_SLOT(on_fileNameChanged);

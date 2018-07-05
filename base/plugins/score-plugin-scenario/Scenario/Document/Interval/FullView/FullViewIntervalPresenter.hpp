@@ -39,7 +39,7 @@ public:
     return m_slots;
   }
 public:
-  void intervalSelected(IntervalModel& arg_1) W_SIGNAL(intervalSelected, arg_1);
+  void intervalSelected(IntervalModel& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalSelected, arg_1);
 
 private:
   void startSlotDrag(int slot, QPointF) const override;

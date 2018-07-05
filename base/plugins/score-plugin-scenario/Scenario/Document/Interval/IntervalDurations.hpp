@@ -111,15 +111,15 @@ public:
   };
 
 public:
-  void defaultDurationChanged(const TimeVal& arg) W_SIGNAL(defaultDurationChanged, arg);
-  void minDurationChanged(const TimeVal& arg) W_SIGNAL(minDurationChanged, arg);
-  void maxDurationChanged(const TimeVal& arg) W_SIGNAL(maxDurationChanged, arg);
-  void playPercentageChanged(double arg) W_SIGNAL(playPercentageChanged, arg);
-  void rigidityChanged(bool arg) W_SIGNAL(rigidityChanged, arg);
-  void minNullChanged(bool isMinNull) W_SIGNAL(minNullChanged, isMinNull);
-  void maxInfiniteChanged(bool isMaxInfinite) W_SIGNAL(maxInfiniteChanged, isMaxInfinite);
-  void speedChanged(double speed) W_SIGNAL(speedChanged, speed);
-  void guiDurationChanged(TimeVal guiDuration) W_SIGNAL(guiDurationChanged, guiDuration);
+  void defaultDurationChanged(const TimeVal& arg) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, defaultDurationChanged, arg);
+  void minDurationChanged(const TimeVal& arg) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, minDurationChanged, arg);
+  void maxDurationChanged(const TimeVal& arg) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, maxDurationChanged, arg);
+  void playPercentageChanged(double arg) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, playPercentageChanged, arg);
+  void rigidityChanged(bool arg) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, rigidityChanged, arg);
+  void minNullChanged(bool isMinNull) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, minNullChanged, isMinNull);
+  void maxInfiniteChanged(bool isMaxInfinite) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, maxInfiniteChanged, isMaxInfinite);
+  void speedChanged(double speed) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, speedChanged, speed);
+  void guiDurationChanged(TimeVal guiDuration) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, guiDurationChanged, guiDuration);
 
   PROPERTY(double, speed READ speed WRITE setSpeed NOTIFY speedChanged, W_Final)
   PROPERTY(bool, isMaxInfinite READ isMaxInfinite WRITE setMaxInfinite NOTIFY maxInfiniteChanged, W_Final)

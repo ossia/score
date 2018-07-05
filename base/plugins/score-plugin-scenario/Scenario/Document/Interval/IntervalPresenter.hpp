@@ -92,13 +92,13 @@ public:
   virtual void requestSlotMenu(int slot, QPoint pos, QPointF sp) const = 0;
 
 public:
-  void pressed(QPointF arg_1) const W_SIGNAL(pressed, arg_1);
-  void moved(QPointF arg_1) const W_SIGNAL(moved, arg_1);
-  void released(QPointF arg_1) const W_SIGNAL(released, arg_1);
+  void pressed(QPointF arg_1) const E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1);
+  void moved(QPointF arg_1) const E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1);
+  void released(QPointF arg_1) const E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1);
 
-  void askUpdate() W_SIGNAL(askUpdate);
-  void heightChanged() W_SIGNAL(heightChanged);           // The vertical size
-  void heightPercentageChanged() W_SIGNAL(heightPercentageChanged); // The vertical position
+  void askUpdate() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, askUpdate);
+  void heightChanged() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, heightChanged);           // The vertical size
+  void heightPercentageChanged() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, heightPercentageChanged); // The vertical position
 
 protected:
   // Process presenters are in the slot presenters.

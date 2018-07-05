@@ -21,7 +21,7 @@ public:
   using QWidget::QWidget;
 
 public:
-  void changed() W_SIGNAL(changed);
+  void changed() E_SIGNAL(SCORE_LIB_STATE_EXPORT, changed);
 };
 
 template <std::size_t N>

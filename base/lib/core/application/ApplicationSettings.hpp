@@ -28,6 +28,9 @@ struct SCORE_LIB_BASE_EXPORT ApplicationSettings
   //! List of scenarios that should be loaded
   QStringList loadList;
 
-  void parse(QStringList args);
+  void parse(QStringList args, int& argc, char** argv);
 };
+
+SCORE_LIB_BASE_EXPORT
+void setQApplicationMetadata();
 }

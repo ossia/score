@@ -20,10 +20,8 @@ struct Node
       Control::Toggle{"Generate", false},
       Control::IntSlider{"Longueur seq", 1, 20, 8}
     );
-    static const constexpr auto value_ins
-        = ossia::safe_nodes::value_ins<1>{{"in"}};
-    static const constexpr auto value_outs
-        = ossia::safe_nodes::value_outs<1>{{"out"}};
+    static const constexpr value_in value_ins[]{"in"};
+    static const constexpr value_out value_outs[]{"out"};
   };
 
   struct State

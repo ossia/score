@@ -115,13 +115,18 @@ public:
 
   void remove(T& elt)
   {
-    erase(elt);
+    removing(elt);
+    m_map.remove(elt.id());
+    removed(elt);
     delete &elt;
   }
 
   void remove(T* elt)
   {
-    remove(*elt);
+    removing(*elt);
+    m_map.remove(elt->id());
+    removed(*elt);
+    delete elt;
   }
 
   void remove(const Id<T>& id)

@@ -1,11 +1,8 @@
 #pragma once
 #include <ossia/editor/scenario/clock.hpp>
 #include <wobjectdefs.h>
-
-
 #include <QObject>
 #include <memory>
-#include <score_plugin_engine_export.h>
 namespace ossia
 {
 struct time_value;
@@ -106,7 +103,7 @@ namespace Engine
 namespace Execution
 {
 struct Context;
-class SCORE_PLUGIN_ENGINE_EXPORT BaseScenarioElement final : public QObject
+class BaseScenarioElement final : public QObject
 {
   W_OBJECT(BaseScenarioElement)
 public:

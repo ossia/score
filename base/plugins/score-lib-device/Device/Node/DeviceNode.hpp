@@ -219,6 +219,6 @@ Node_T* try_getNodeFromAddress(Node_T& root, const State::Address& addr)
 bool operator<(const Device::Node& lhs, const Device::Node& rhs);
 }
 
-extern template class TreeNode<Device::DeviceExplorerNode>;
+extern template class SCORE_LIB_DEVICE_EXPORT TreeNode<Device::DeviceExplorerNode>;
 
 W_REGISTER_ARGTYPE(Device::Node*)

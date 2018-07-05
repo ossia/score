@@ -1,6 +1,5 @@
 #pragma once
 #include <Process/ProcessMetadata.hpp>
-#include <score_plugin_media_export.h>
 
 namespace Media
 {
@@ -11,7 +10,7 @@ class Model;
 }
 
 PROCESS_METADATA(
-    SCORE_PLUGIN_MEDIA_EXPORT,
+    ,
     Media::Step::Model,
     "c953fa55-65f0-4b93-8bfc-54780250d2b8",
     "Step",

@@ -40,11 +40,11 @@ public:
   void setLockMode(LockMode lockMode); W_SLOT(setLockMode);
 
 public:
-  void expandModeChanged(ExpandMode expandMode) W_SIGNAL(expandModeChanged, expandMode);
-  void toolChanged(Scenario::Tool tool) W_SIGNAL(toolChanged, tool);
-  void sequenceChanged(bool sequence) W_SIGNAL(sequenceChanged, sequence);
+  void expandModeChanged(ExpandMode expandMode) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, expandModeChanged, expandMode);
+  void toolChanged(Scenario::Tool tool) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, toolChanged, tool);
+  void sequenceChanged(bool sequence) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sequenceChanged, sequence);
 
-  void lockModeChanged(LockMode lockMode) W_SIGNAL(lockModeChanged, lockMode);
+  void lockModeChanged(LockMode lockMode) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, lockModeChanged, lockMode);
 
 W_PROPERTY(bool, sequence READ sequence WRITE setSequence NOTIFY sequenceChanged)
 

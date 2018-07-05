@@ -14,7 +14,7 @@ class SCORE_PLUGIN_MEDIA_EXPORT Model : public score::SettingsDelegateModel
 public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
 
-  SCORE_SETTINGS_PARAMETER_HPP(QStringList, VstPaths)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_MEDIA_EXPORT, QStringList, VstPaths)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, VstPaths)

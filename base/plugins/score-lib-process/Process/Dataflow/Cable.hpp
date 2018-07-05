@@ -79,7 +79,7 @@ public:
 
   void setType(CableType type);
 public:
-  void typeChanged(CableType type) W_SIGNAL(typeChanged, type);
+  void typeChanged(CableType type) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, typeChanged, type);
 
 private:
   CableType m_type{};

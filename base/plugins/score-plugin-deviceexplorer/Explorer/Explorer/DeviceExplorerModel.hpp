@@ -183,7 +183,7 @@ public:
       const; // Note : filters so that only parents are given.
 
 public:
-  void nodeChanged(Device::Node* n) W_SIGNAL(nodeChanged, n);
+  void nodeChanged(Device::Node* n) E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, nodeChanged, n);
 
 protected:
   void debug_printPath(const Device::NodePath& path);

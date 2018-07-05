@@ -15,10 +15,8 @@ struct Node
     static const constexpr auto uuid
         = make_uuid("70B12B42-BB4B-4A13-861B-53C577601186");
 
-    static const constexpr auto value_ins
-        = ossia::safe_nodes::value_ins<1>{{"in"}};
-    static const constexpr auto value_outs
-        = ossia::safe_nodes::value_outs<1>{{"out"}};
+    static const constexpr value_in value_ins[]{"in"};
+    static const constexpr value_out value_outs[]{"out"};
   };
 
   using control_policy = ossia::safe_nodes::default_tick;
@@ -46,10 +44,8 @@ struct Node
     static const constexpr auto uuid
         = make_uuid("2CE4F3F3-E04F-48CD-B81C-1F6537EC8CFA");
 
-    static const constexpr auto midi_ins
-        = ossia::safe_nodes::midi_ins<1>{{"in"}};
-    static const constexpr auto midi_outs
-        = ossia::safe_nodes::midi_outs<1>{{"out"}};
+    static const constexpr midi_in midi_ins[]{"in"};
+    static const constexpr midi_out midi_outs[]{"out"};
   };
 
   using control_policy = ossia::safe_nodes::default_tick;
@@ -77,10 +73,8 @@ struct Node
     static const constexpr auto uuid
         = make_uuid("D074CC6C-D1CB-47F8-871D-CC949D8EEBEC");
 
-    static const constexpr auto audio_ins
-        = ossia::safe_nodes::audio_ins<1>{{"in"}};
-    static const constexpr auto audio_outs
-        = ossia::safe_nodes::audio_outs<1>{{"out"}};
+    static const constexpr audio_in audio_ins[]{"in"};
+    static const constexpr audio_out audio_outs[]{"out"};
   };
 
   using control_policy = ossia::safe_nodes::default_tick;

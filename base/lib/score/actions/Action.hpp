@@ -284,7 +284,7 @@ public:
   using ActionCondition::ActionCondition;
   ~CustomActionCondition();
 
-  void changed(bool b) W_SIGNAL(changed, b)
+  void changed(bool b) E_SIGNAL(SCORE_LIB_BASE_EXPORT, changed, b)
 };
 
 using ActionConditionKey = StringKey<score::ActionCondition>;

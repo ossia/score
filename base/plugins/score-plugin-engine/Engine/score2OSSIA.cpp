@@ -18,8 +18,6 @@
 #include <ossia/editor/expression/expression_not.hpp>
 #include <ossia/editor/expression/expression_pulse.hpp>
 
-#include <score_plugin_engine_export.h>
-
 class NodeNotFoundException : public std::runtime_error
 {
 public:
@@ -72,7 +70,7 @@ message(const State::Message& mess, const Device::DeviceList& deviceList)
   return {};
 }
 
-SCORE_PLUGIN_ENGINE_EXPORT void state(
+void state(
     ossia::state& parent,
     const Scenario::StateModel& score_state,
     const Engine::Execution::Context& ctx)
@@ -103,7 +101,7 @@ SCORE_PLUGIN_ENGINE_EXPORT void state(
   */
 }
 
-SCORE_PLUGIN_ENGINE_EXPORT ossia::state state(
+ossia::state state(
     const Scenario::StateModel& score_state,
     const Engine::Execution::Context& ctx)
 {
