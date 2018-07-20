@@ -40,7 +40,11 @@
 #include <score/selection/Selection.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <spdlog/spdlog.h>
+#include <ossia/context.hpp>
+#include <ossia/detail/logger.hpp>
 #include <vector>
+#include <ossia-qt/qt_logger.hpp>
 
 #if __has_include(<QQuickStyle>)
 #  include <QQuickStyle>
@@ -176,8 +180,13 @@ static QPixmap writeVersionName()
 
 void Application::init()
 {
-  score::setQApplicationMetadata();
+  std::vector<spdlog::sink_ptr> v{spdlog::sinks::stderr_sink_mt::instance(),
+                                  std::make_shared<ossia::qt::log_sink>()};
 
+  ossia::context context{v};
+  ossia::logger().set_level(spdlog::level::debug);
+
+  score::setQApplicationMetadata();
 #if !defined(SCORE_DEBUG) && !defined(__EMSCRIPTEN__)
 #  define SCORE_SPLASH_SCREEN 1
 #endif
@@ -227,6 +236,7 @@ void Application::init()
 #if !defined(__EMSCRIPTEN__)
     m_view->show();
 #else
+    m_view->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
     m_view->showFullScreen();
 #endif
 

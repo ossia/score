@@ -247,7 +247,6 @@ void FullViewIntervalPresenter::updateProcessesShape()
   {
     updateProcessShape(i);
   }
-  updateHeight();
 }
 
 void FullViewIntervalPresenter::updatePositions()
@@ -295,6 +294,7 @@ void FullViewIntervalPresenter::updatePositions()
   on_guiDurationChanged(m_model.duration.guiDuration());
 
   updateProcessesShape();
+  updateHeight();
 }
 
 double FullViewIntervalPresenter::rackHeight() const

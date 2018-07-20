@@ -27,7 +27,6 @@
 #include <Engine/LocalTree/Scenario/MappingComponent.hpp>
 #include <Engine/LocalTree/Scenario/ScenarioComponent.hpp>
 #include <Engine/Protocols/Local/LocalProtocolFactory.hpp>
-#include <Engine/Protocols/Panel/MessagesPanel.hpp>
 #include <Engine/Protocols/Settings/Factory.hpp>
 #include <QString>
 #include <ossia-config.hpp>
@@ -170,7 +169,7 @@ score_plugin_engine::factories(
          Engine::LocalTree::LoopComponentFactory,
          Engine::LocalTree::AutomationComponentFactory,
          Engine::LocalTree::MappingComponentFactory>,
-      FW<score::PanelDelegateFactory, Engine::MessagesPanelDelegateFactory,
+      FW<score::PanelDelegateFactory,
          Audio::PanelDelegateFactory>,
       FW<Engine::Execution::ClockManagerFactory
          // , Engine::Execution::ControlClockFactory
