@@ -34,7 +34,6 @@ using sp = SettingsParameterMetadata<T>;
 template <typename T, typename Model>
 void setupDefaultSettings(QSettings& set, const T& tuple, Model& model)
 {
-#if !defined(__EMSCRIPTEN__)
   ossia::for_each_in_tuple(tuple, [&](auto& e) {
     using type = std::remove_reference_t<decltype(e)>;
     using data_type = typename type::data_type;
@@ -54,7 +53,6 @@ void setupDefaultSettings(QSettings& set, const T& tuple, Model& model)
       (model.*param_type::set())(val);
     }
   });
-#endif
 }
 }
 

@@ -16,6 +16,7 @@
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
+#include <core/messages/MessagesPanel.hpp>
 namespace score
 {
 ApplicationInterface* ApplicationInterface::m_instance;
@@ -58,6 +59,7 @@ void GUIApplicationInterface::loadPluginData(
       std::make_unique<score::SerializableComponentFactoryList>());
   auto panels = std::make_unique<score::PanelDelegateFactoryList>();
   panels->insert(std::make_unique<score::UndoPanelDelegateFactory>());
+  panels->insert(std::make_unique<score::MessagesPanelDelegateFactory>());
   registrar.registerFactory(std::move(panels));
   registrar.registerFactory(
       std::make_unique<score::DocumentPluginFactoryList>());
