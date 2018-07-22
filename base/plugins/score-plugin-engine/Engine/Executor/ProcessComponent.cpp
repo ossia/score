@@ -13,7 +13,7 @@ ProcessComponent::~ProcessComponent() = default;
 ProcessComponentFactory::~ProcessComponentFactory() = default;
 ProcessComponentFactoryList::~ProcessComponentFactoryList() = default;
 
-void ProcessComponentFactory::init(ProcessComponent* comp) const
+void ProcessComponent::init()
 {
 }
 

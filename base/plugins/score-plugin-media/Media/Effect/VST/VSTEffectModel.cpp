@@ -276,10 +276,10 @@ intptr_t vst_host_callback(
       result = kVstVersion;
       break;
     case audioMasterGetSampleRate:
-      return 44100;
+      return 44100; // FIXME
       break;
     case audioMasterGetBlockSize:
-      return 64;
+      return 64; // FIXME
       break;
     case audioMasterGetCurrentProcessLevel:
       result = kVstProcessLevelUnknown;

@@ -88,179 +88,182 @@ JSHighlighter::JSHighlighter(QTextDocument* parent)
   m_colors[JSEdit::Marker] = colors[0x02];     // base16 - 02
 
   // https://developer.mozilla.org/en/JavaScript/Reference/Reserved_Words
-  m_keywords << "break";
-  m_keywords << "case";
-  m_keywords << "catch";
-  m_keywords << "continue";
-  m_keywords << "default";
-  m_keywords << "delete";
-  m_keywords << "do";
-  m_keywords << "else";
-  m_keywords << "finally";
-  m_keywords << "for";
-  m_keywords << "function";
-  m_keywords << "if";
-  m_keywords << "in";
-  m_keywords << "instanceof";
-  m_keywords << "new";
-  m_keywords << "return";
-  m_keywords << "switch";
-  m_keywords << "this";
-  m_keywords << "throw";
-  m_keywords << "try";
-  m_keywords << "typeof";
-  m_keywords << "var";
-  m_keywords << "void";
-  m_keywords << "while";
-  m_keywords << "with";
+  m_keywords = {
+     "break"
+    , "case"
+    , "catch"
+    , "continue"
+    , "default"
+    , "delete"
+    , "do"
+    , "else"
+    , "finally"
+    , "for"
+    , "function"
+    , "if"
+    , "in"
+    , "instanceof"
+    , "new"
+    , "return"
+    , "switch"
+    , "this"
+    , "throw"
+    , "try"
+    , "typeof"
+    , "var"
+    , "void"
+    , "while"
+    , "with"
 
-  m_keywords << "true";
-  m_keywords << "false";
-  m_keywords << "null";
+    , "true"
+    , "false"
+    , "null"
+  };
 
   // built-in and other popular objects + properties
-  m_knownIds << "Object";
-  m_knownIds << "prototype";
-  m_knownIds << "create";
-  m_knownIds << "defineProperty";
-  m_knownIds << "defineProperties";
-  m_knownIds << "getOwnPropertyDescriptor";
-  m_knownIds << "keys";
-  m_knownIds << "getOwnPropertyNames";
-  m_knownIds << "constructor";
-  m_knownIds << "__parent__";
-  m_knownIds << "__proto__";
-  m_knownIds << "__defineGetter__";
-  m_knownIds << "__defineSetter__";
-  m_knownIds << "eval";
-  m_knownIds << "hasOwnProperty";
-  m_knownIds << "isPrototypeOf";
-  m_knownIds << "__lookupGetter__";
-  m_knownIds << "__lookupSetter__";
-  m_knownIds << "__noSuchMethod__";
-  m_knownIds << "propertyIsEnumerable";
-  m_knownIds << "toSource";
-  m_knownIds << "toLocaleString";
-  m_knownIds << "toString";
-  m_knownIds << "unwatch";
-  m_knownIds << "valueOf";
-  m_knownIds << "watch";
+  m_knownIds = {
+    "Object"
+  , "prototype"
+  , "create"
+  , "defineProperty"
+  , "defineProperties"
+  , "getOwnPropertyDescriptor"
+  , "keys"
+  , "getOwnPropertyNames"
+  , "constructor"
+  , "__parent__"
+  , "__proto__"
+  , "__defineGetter__"
+  , "__defineSetter__"
+  , "eval"
+  , "hasOwnProperty"
+  , "isPrototypeOf"
+  , "__lookupGetter__"
+  , "__lookupSetter__"
+  , "__noSuchMethod__"
+  , "propertyIsEnumerable"
+  , "toSource"
+  , "toLocaleString"
+  , "toString"
+  , "unwatch"
+  , "valueOf"
+  , "watch"
 
-  m_knownIds << "Function";
-  m_knownIds << "arguments";
-  m_knownIds << "arity";
-  m_knownIds << "caller";
-  m_knownIds << "constructor";
-  m_knownIds << "length";
-  m_knownIds << "name";
-  m_knownIds << "apply";
-  m_knownIds << "bind";
-  m_knownIds << "call";
+  , "Function"
+  , "arguments"
+  , "arity"
+  , "caller"
+  , "constructor"
+  , "length"
+  , "name"
+  , "apply"
+  , "bind"
+  , "call"
 
-  m_knownIds << "String";
-  m_knownIds << "fromCharCode";
-  m_knownIds << "length";
-  m_knownIds << "charAt";
-  m_knownIds << "charCodeAt";
-  m_knownIds << "concat";
-  m_knownIds << "indexOf";
-  m_knownIds << "lastIndexOf";
-  m_knownIds << "localCompare";
-  m_knownIds << "match";
-  m_knownIds << "quote";
-  m_knownIds << "replace";
-  m_knownIds << "search";
-  m_knownIds << "slice";
-  m_knownIds << "split";
-  m_knownIds << "substr";
-  m_knownIds << "substring";
-  m_knownIds << "toLocaleLowerCase";
-  m_knownIds << "toLocaleUpperCase";
-  m_knownIds << "toLowerCase";
-  m_knownIds << "toUpperCase";
-  m_knownIds << "trim";
-  m_knownIds << "trimLeft";
-  m_knownIds << "trimRight";
+  , "String"
+  , "fromCharCode"
+  , "length"
+  , "charAt"
+  , "charCodeAt"
+  , "concat"
+  , "indexOf"
+  , "lastIndexOf"
+  , "localCompare"
+  , "match"
+  , "quote"
+  , "replace"
+  , "search"
+  , "slice"
+  , "split"
+  , "substr"
+  , "substring"
+  , "toLocaleLowerCase"
+  , "toLocaleUpperCase"
+  , "toLowerCase"
+  , "toUpperCase"
+  , "trim"
+  , "trimLeft"
+  , "trimRight"
 
-  m_knownIds << "Array";
-  m_knownIds << "isArray";
-  m_knownIds << "index";
-  m_knownIds << "input";
-  m_knownIds << "pop";
-  m_knownIds << "push";
-  m_knownIds << "reverse";
-  m_knownIds << "shift";
-  m_knownIds << "sort";
-  m_knownIds << "splice";
-  m_knownIds << "unshift";
-  m_knownIds << "concat";
-  m_knownIds << "join";
-  m_knownIds << "filter";
-  m_knownIds << "forEach";
-  m_knownIds << "every";
-  m_knownIds << "map";
-  m_knownIds << "some";
-  m_knownIds << "reduce";
-  m_knownIds << "reduceRight";
+  , "Array"
+  , "isArray"
+  , "index"
+  , "input"
+  , "pop"
+  , "push"
+  , "reverse"
+  , "shift"
+  , "sort"
+  , "splice"
+  , "unshift"
+  , "concat"
+  , "join"
+  , "filter"
+  , "forEach"
+  , "every"
+  , "map"
+  , "some"
+  , "reduce"
+  , "reduceRight"
 
-  m_knownIds << "RegExp";
-  m_knownIds << "global";
-  m_knownIds << "ignoreCase";
-  m_knownIds << "lastIndex";
-  m_knownIds << "multiline";
-  m_knownIds << "source";
-  m_knownIds << "exec";
-  m_knownIds << "test";
+  , "RegExp"
+  , "global"
+  , "ignoreCase"
+  , "lastIndex"
+  , "multiline"
+  , "source"
+  , "exec"
+  , "test"
 
-  m_knownIds << "JSON";
-  m_knownIds << "parse";
-  m_knownIds << "stringify";
+  , "JSON"
+  , "parse"
+  , "stringify"
 
-  m_knownIds << "decodeURI";
-  m_knownIds << "decodeURIComponent";
-  m_knownIds << "encodeURI";
-  m_knownIds << "encodeURIComponent";
-  m_knownIds << "eval";
-  m_knownIds << "isFinite";
-  m_knownIds << "isNaN";
-  m_knownIds << "parseFloat";
-  m_knownIds << "parseInt";
-  m_knownIds << "Infinity";
-  m_knownIds << "NaN";
-  m_knownIds << "undefined";
+  , "decodeURI"
+  , "decodeURIComponent"
+  , "encodeURI"
+  , "encodeURIComponent"
+  , "eval"
+  , "isFinite"
+  , "isNaN"
+  , "parseFloat"
+  , "parseInt"
+  , "Infinity"
+  , "NaN"
+  , "undefined"
 
-  m_knownIds << "Math";
-  m_knownIds << "E";
-  m_knownIds << "LN2";
-  m_knownIds << "LN10";
-  m_knownIds << "LOG2E";
-  m_knownIds << "LOG10E";
-  m_knownIds << "PI";
-  m_knownIds << "SQRT1_2";
-  m_knownIds << "SQRT2";
-  m_knownIds << "abs";
-  m_knownIds << "acos";
-  m_knownIds << "asin";
-  m_knownIds << "atan";
-  m_knownIds << "atan2";
-  m_knownIds << "ceil";
-  m_knownIds << "cos";
-  m_knownIds << "exp";
-  m_knownIds << "floor";
-  m_knownIds << "log";
-  m_knownIds << "max";
-  m_knownIds << "min";
-  m_knownIds << "pow";
-  m_knownIds << "random";
-  m_knownIds << "round";
-  m_knownIds << "sin";
-  m_knownIds << "sqrt";
-  m_knownIds << "tan";
+  , "Math"
+  , "E"
+  , "LN2"
+  , "LN10"
+  , "LOG2E"
+  , "LOG10E"
+  , "PI"
+  , "SQRT1_2"
+  , "SQRT2"
+  , "abs"
+  , "acos"
+  , "asin"
+  , "atan"
+  , "atan2"
+  , "ceil"
+  , "cos"
+  , "exp"
+  , "floor"
+  , "log"
+  , "max"
+  , "min"
+  , "pow"
+  , "random"
+  , "round"
+  , "sin"
+  , "sqrt"
+  , "tan"
 
-  m_knownIds << "document";
-  m_knownIds << "window";
-  m_knownIds << "navigator";
-  m_knownIds << "userAgent";
+  , "document"
+  , "window"
+  , "navigator"
+  , "userAgent"};
 }
 
 void JSHighlighter::setColor(

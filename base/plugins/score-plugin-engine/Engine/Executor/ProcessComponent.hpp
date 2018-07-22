@@ -56,6 +56,9 @@ public:
       const QString& name,
       QObject* parent);
 
+  //! Reimplement this if the element needs two-phase initialization.
+  virtual void init();
+
   virtual ~ProcessComponent();
 
   virtual void cleanup();
@@ -108,9 +111,6 @@ public:
       const Context& ctx,
       const Id<score::Component>& id,
       QObject* parent) const = 0;
-
-  //! Reimplement this if the element needs two-phase initialization.
-  virtual void init(ProcessComponent* comp) const;
 };
 
 template <typename ProcessComponent_T>
@@ -131,7 +131,7 @@ public:
     {
       auto comp = std::make_shared<ProcessComponent_T>(
           static_cast<model_type&>(proc), ctx, id, parent);
-      this->init(comp.get());
+      comp->init();
       return comp;
     }
     catch (...)

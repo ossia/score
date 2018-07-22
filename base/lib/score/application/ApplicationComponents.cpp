@@ -38,7 +38,14 @@ ApplicationComponentsData::~ApplicationComponentsData()
   {
     if (elt.plugin)
     {
-      dynamic_cast<QObject*>(elt.plugin)->deleteLater();
+      if(auto obj = dynamic_cast<QObject*>(elt.plugin))
+      {
+        obj->deleteLater();
+      }
+      else
+      {
+        delete obj;
+      }
     }
   }
 }

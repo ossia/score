@@ -15,6 +15,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <QDirIterator>
 #include <QFileInfo>
+#include <QCoreApplication>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::ApplicationPlugin)
 
@@ -60,6 +61,9 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
 
 #if defined(LILV_SHARED) // TODO instead add a proper preprocessor macro that
                          // also works in static case
+  static int argc{0};
+  static char** argv{nullptr};
+  suil_init(&argc, &argv, SUIL_ARG_NONE);
   lv2_context->loadPlugins();
 #endif
 }
