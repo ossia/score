@@ -87,7 +87,7 @@ QGraphicsSlider::QGraphicsSlider(QGraphicsItem* parent) : QGraphicsItem{parent}
   this->setAcceptedMouseButtons(Qt::LeftButton);
 }
 
-void QGraphicsSlider::setRect(QRectF r)
+void QGraphicsSlider::setRect(const QRectF& r)
 {
   prepareGeometryChange();
   m_rect = r;
@@ -191,7 +191,7 @@ QGraphicsLogSlider::QGraphicsLogSlider(QGraphicsItem* parent)
   this->setAcceptedMouseButtons(Qt::LeftButton);
 }
 
-void QGraphicsLogSlider::setRect(QRectF r)
+void QGraphicsLogSlider::setRect(const QRectF& r)
 {
   prepareGeometryChange();
   m_rect = r;
@@ -288,7 +288,7 @@ QGraphicsIntSlider::QGraphicsIntSlider(QGraphicsItem* parent)
   this->setAcceptedMouseButtons(Qt::LeftButton);
 }
 
-void QGraphicsIntSlider::setRect(QRectF r)
+void QGraphicsIntSlider::setRect(const QRectF& r)
 {
   prepareGeometryChange();
   m_rect = r;
@@ -433,7 +433,7 @@ QGraphicsComboSlider::QGraphicsComboSlider(QGraphicsItem* parent)
   this->setAcceptedMouseButtons(Qt::LeftButton);
 }
 
-void QGraphicsComboSlider::setRect(QRectF r)
+void QGraphicsComboSlider::setRect(const QRectF& r)
 {
   prepareGeometryChange();
   m_rect = r;

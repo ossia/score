@@ -21,6 +21,7 @@
 
 #if defined(LILV_SHARED)
 #  include <Media/Effect/LV2/LV2EffectModel.hpp>
+#  include <Media/Effect/LV2/LV2Window.hpp>
 #endif
 #if defined(HAS_VST2)
 #  include <Media/Effect/VST/VSTControl.hpp>
@@ -141,7 +142,7 @@ score_plugin_media::factories(
 #endif
 #if defined(LILV_SHARED)
          ,
-         Engine::Execution::LV2EffectComponentFactory
+         Media::LV2::LV2EffectComponentFactory
 #endif
 #if defined(HAS_FAUST)
          ,

@@ -175,22 +175,11 @@ struct ScenarioComponent final : public ScenarioComponentHierarchy
       const Id<score::Component>& id,
       QObject* parent);
 
-  void init();
+  void init() override;
 
   void cleanup() override;
 };
 
-struct ScenarioComponentFactory final
-    : public ::Engine::Execution::ProcessComponentFactory_T<ScenarioComponent>
-{
-  void init(ProcessComponent* comp) const override
-  {
-    if (comp)
-    {
-      auto s = static_cast<ScenarioComponent*>(comp);
-      s->init();
-    }
-  }
-};
+using ScenarioComponentFactory = Engine::Execution::ProcessComponentFactory_T<ScenarioComponent>;
 }
 }

@@ -27,6 +27,7 @@
 #include <score/actions/ActionManager.hpp>
 #include <ossia/network/common/path.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+#include <QCoreApplication>
 #include <wobjectimpl.h>
 W_REGISTER_ARGTYPE(ossia::bench_map)
 W_OBJECT_IMPL(Engine::Execution::DocumentPlugin)
@@ -193,6 +194,12 @@ DocumentPlugin::~DocumentPlugin()
 
 void DocumentPlugin::on_finished()
 {
+  if (m_tid != -1)
+  {
+    killTimer(m_tid);
+    m_tid = -1;
+    QCoreApplication::instance()->processEvents();
+  }
 
   clear();
 
@@ -207,11 +214,6 @@ void DocumentPlugin::on_finished()
   }
   runtime_connections.clear();
 
-  if (m_tid != -1)
-  {
-    killTimer(m_tid);
-    m_tid = -1;
-  }
 }
 
 void DocumentPlugin::timerEvent(QTimerEvent* event)
