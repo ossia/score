@@ -1,9 +1,9 @@
 #pragma once
 #include <Process/Focus/FocusDispatcher.hpp>
+#include <score_lib_process_export.h>
 #include <wobjectdefs.h>
 #include <QObject>
 #include <QPointer>
-
 namespace score
 {
 struct FocusManager;
@@ -26,7 +26,7 @@ class ScenarioDocumentPresenter;
 // should more be part of the per-document part.
 namespace Process
 {
-class ProcessFocusManager final : public QObject
+class SCORE_LIB_PROCESS_EXPORT ProcessFocusManager final : public QObject
 {
   W_OBJECT(ProcessFocusManager)
 

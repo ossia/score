@@ -6,7 +6,7 @@
 #include <QRect>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <score/widgets/MimeData.hpp>
-
+#include <score_plugin_scenario_export.h>
 class QGraphicsSceneMouseEvent;
 class QGraphicsSvgItem;
 class QPainter;
@@ -14,7 +14,8 @@ class QStyleOptionGraphicsItem;
 class QWidget;
 namespace Scenario
 {
-class TriggerView final : public QGraphicsSvgItem
+class SCORE_PLUGIN_SCENARIO_EXPORT TriggerView final
+    : public QGraphicsSvgItem
 {
   W_OBJECT(TriggerView)
   Q_INTERFACES(QGraphicsItem)
