@@ -23,7 +23,7 @@ public:
 private:
 //  static void setup_rect(QWidget* container, int width, int height);
 
-//  void resizeEvent(QResizeEvent* event) override;
+  void resizeEvent(QResizeEvent* event) override;
 //  void closeEvent(QCloseEvent* event) override;
   static bool is_resizable(LilvWorld* world, const LilvUI& ui);
   static void on_uiMessage(
@@ -35,8 +35,8 @@ private:
 
   static uint32_t port_index(SuilController controller, const char* symbol);
 
-  const LilvPlugin* effect{};
-  QWidget* m_defaultWidg{};
+  const LV2EffectModel& effect;
+  QWidget* m_widget{};
 };
 
 using LayerFactory = Process::
