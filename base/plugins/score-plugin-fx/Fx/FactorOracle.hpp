@@ -85,7 +85,7 @@ public:
 
   std::string make_sequence(float continuity, unsigned int curSate, int seqSize)
   {
-    if (curSate > m_sequence.size() || curSate < 0)
+    if (curSate > m_sequence.size())
     {
       qDebug() << "Le point initial de l'improvisation doit être comprise dans la séquence";
       return "-1";

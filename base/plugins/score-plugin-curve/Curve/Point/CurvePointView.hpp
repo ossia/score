@@ -6,6 +6,7 @@
 #include <QGraphicsItem>
 #include <QPoint>
 #include <QRect>
+#include <score_plugin_curve_export.h>
 
 class QGraphicsSceneContextMenuEvent;
 class QPainter;
@@ -15,7 +16,7 @@ namespace Curve
 {
 class PointModel;
 struct Style;
-class PointView final
+class SCORE_PLUGIN_CURVE_EXPORT PointView final
     : public QObject
     , public QGraphicsItem
 {
