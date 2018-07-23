@@ -5,6 +5,7 @@
 #include <QPoint>
 #include <score/model/Identifier.hpp>
 #include <score/widgets/GraphicsItem.hpp>
+#include <score_plugin_scenario_export.h>
 
 class QGraphicsItem;
 class QTextDocument;
@@ -13,7 +14,7 @@ namespace Scenario
 {
 class CommentBlockView;
 class CommentBlockModel;
-class CommentBlockPresenter final : public QObject
+class SCORE_PLUGIN_SCENARIO_EXPORT CommentBlockPresenter final : public QObject
 {
   W_OBJECT(CommentBlockPresenter)
 public:

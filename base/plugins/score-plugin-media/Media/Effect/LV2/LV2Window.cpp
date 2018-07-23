@@ -9,6 +9,7 @@
 namespace Media::LV2
 {
 Window::Window(const LV2EffectModel& fx, const score::DocumentContext& ctx, QWidget* parent)
+  : effect{fx}
 {
   if (!fx.plugin)
     throw std::runtime_error("Cannot create UI");
@@ -92,22 +93,10 @@ Window::Window(const LV2EffectModel& fx, const score::DocumentContext& ctx, QWid
   // Setup the widget stuff
   auto widget = (QWidget*)suil_instance_get_widget(fx.effectContext.ui_instance);
   lay->addWidget(widget);
+  m_widget = widget;
   auto name = lilv_plugin_get_name(fx.plugin);
   setWindowTitle(lilv_node_as_string(name));
   lilv_node_free(name);
-  show();
-
-  if (!is_resizable(p.lilv.me, *fx.effectContext.ui))
-  {
-    widget->setMinimumSize(widget->width(), widget->height());
-    widget->setMaximumSize(widget->width(), widget->height());
-    adjustSize();
-    setFixedSize(width(), height());
-  }
-  else
-  {
-    resize(widget->width(), widget->height());
-  }
 
   // Set up regular updates
   connect(&ctx.coarseUpdateTimer, &QTimer::timeout,
@@ -162,11 +151,39 @@ Window::Window(const LV2EffectModel& fx, const score::DocumentContext& ctx, QWid
     float f = ossia::convert<float>(e.second.first->value());
     suil_instance_port_event(fx.effectContext.ui_instance, e.first, sizeof(float), 0, &f);
   }
+
+  // Show ui and resize
+  QTimer::singleShot(0, [=,&p] {
+    if (!is_resizable(p.lilv.me, *effect.effectContext.ui))
+    {
+      widget->setMinimumSize(widget->width(), widget->height());
+      widget->setMaximumSize(widget->width(), widget->height());
+      adjustSize();
+      setFixedSize(width(), height());
+    }
+    else
+    {
+      resize(widget->width(), widget->height());
+    }
+  });
 }
 
 Window::~Window()
 {
+  suil_instance_free(effect.effectContext.ui_instance);
+  effect.effectContext.ui_instance = nullptr;
+}
 
+void Window::resizeEvent(QResizeEvent* event)
+{
+  QDialog::resizeEvent(event);
+  /*
+  auto& p = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
+  if (is_resizable(p.lilv.me, *effect.effectContext.ui))
+  {
+    resize(m_widget->width(), m_widget->height());
+  }
+  */
 }
 
 bool Window::is_resizable(LilvWorld* world, const LilvUI& ui)

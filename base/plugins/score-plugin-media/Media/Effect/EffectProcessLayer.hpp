@@ -154,25 +154,8 @@ public:
             auto& facts
                 = ctx.context.app.interfaces<Process::LayerFactoryList>();
             if (auto fact = facts.findDefaultFactory(effect))
-            { /*
-               if(QWidget* win = fact->makeExternalUI(m_layer,
-               context().context, nullptr))
-               {
-                 const_cast<QWidget*&>(m_layer.externalUI) = win;
-                 win->show();
-                 connect(win, SIGNAL(uiClosing()), this, SLOT(closeUI()));
-
-                 connect(m_showUI, &QAction::toggled,
-                         win, [=] (bool b) {
-                   if(win)
-                     win->close();
-                   delete win;
-                   const_cast<QWidget*&>(m_layer.externalUI) = nullptr;
-                 });
-               }*/
-
-              if (auto win
-                  = fact->makeExternalUI(effect, ctx.context, nullptr))
+            {
+              if (auto win = fact->makeExternalUI(effect, ctx.context, nullptr))
               {
                 const_cast<QWidget*&>(effect.externalUI) = win;
                 win->show();
