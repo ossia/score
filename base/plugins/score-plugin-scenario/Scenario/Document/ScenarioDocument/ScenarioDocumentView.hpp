@@ -25,7 +25,7 @@ namespace Scenario
 class Minimap;
 class ScenarioScene;
 class TimeRuler;
-class ScenarioDocumentView final : public score::DocumentDelegateView
+class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentView final : public score::DocumentDelegateView
 {
   W_OBJECT(ScenarioDocumentView)
 

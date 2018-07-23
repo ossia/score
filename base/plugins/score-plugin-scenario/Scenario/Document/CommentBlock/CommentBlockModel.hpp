@@ -9,14 +9,14 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/Metadata.hpp>
-
+#include <score_plugin_scenario_export.h>
 class DataStream;
 class JSONObject;
 class QTextDocument;
 
 namespace Scenario
 {
-class CommentBlockModel final : public IdentifiedObject<CommentBlockModel>
+class SCORE_PLUGIN_SCENARIO_EXPORT CommentBlockModel final : public IdentifiedObject<CommentBlockModel>
 {
   W_OBJECT(CommentBlockModel)
 
