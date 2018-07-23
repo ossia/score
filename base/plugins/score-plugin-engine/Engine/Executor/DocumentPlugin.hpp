@@ -36,7 +36,7 @@ namespace Engine
 {
 namespace Execution
 {
-class DocumentPlugin final
+class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final
     : public score::DocumentPlugin
 {
   W_OBJECT(DocumentPlugin)

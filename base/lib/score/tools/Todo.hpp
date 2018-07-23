@@ -85,6 +85,16 @@
 #  define SCORE_RELAXED_CONSTEXPR
 #endif
 
+#if defined(Q_CC_MSVC)
+  #define INLINE_EXPORT
+#else
+  #if defined(SCORE_STATIC_PLUGINS)
+    #define INLINE_EXPORT
+  #else
+    #define INLINE_EXPORT Q_DECL_EXPORT
+  #endif
+#endif
+
 template <typename T>
 using remove_qualifs_t = std::decay_t<std::remove_pointer_t<std::decay_t<T>>>;
 

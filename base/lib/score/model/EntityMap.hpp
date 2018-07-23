@@ -37,59 +37,59 @@ class EntityMap
 public:
   // The real interface starts here
   using value_type = T;
-  auto begin() const
+  auto begin() const INLINE_EXPORT
   {
     return m_map.begin();
   }
-  auto rbegin() const
+  auto rbegin() const INLINE_EXPORT
   {
     return m_map.rbegin();
   }
-  auto cbegin() const
+  auto cbegin() const INLINE_EXPORT
   {
     return m_map.cbegin();
   }
-  auto end() const
+  auto end() const INLINE_EXPORT
   {
     return m_map.end();
   }
-  auto rend() const
+  auto rend() const INLINE_EXPORT
   {
     return m_map.rend();
   }
-  auto cend() const
+  auto cend() const INLINE_EXPORT
   {
     return m_map.cend();
   }
-  auto size() const
+  auto size() const INLINE_EXPORT
   {
     return m_map.size();
   }
-  bool empty() const
+  bool empty() const INLINE_EXPORT
   {
     return m_map.empty();
   }
-  auto& unsafe_map()
+  auto& unsafe_map() INLINE_EXPORT
   {
     return m_map;
   }
-  const auto& map() const
+  const auto& map() const INLINE_EXPORT
   {
     return m_map;
   }
-  const auto& get() const
+  const auto& get() const INLINE_EXPORT
   {
     return m_map.m_map;
   }
-  T& at(const Id<T>& id)
+  T& at(const Id<T>& id) INLINE_EXPORT
   {
     return m_map.at(id);
   }
-  T& at(const Id<T>& id) const
+  T& at(const Id<T>& id) const INLINE_EXPORT
   {
     return m_map.at(id);
   }
-  auto find(const Id<T>& id) const
+  auto find(const Id<T>& id) const INLINE_EXPORT
   {
     return m_map.find(id);
   }
@@ -101,19 +101,19 @@ public:
   mutable Nano::Signal<void(const T&)> removed;
   mutable Nano::Signal<void()> orderChanged;
 
-  void add(T* t)
+  void add(T* t) INLINE_EXPORT
   {
     EntityMapInserter<T>{}.add(*this, t);
   }
 
-  void erase(T& elt)
+  void erase(T& elt) INLINE_EXPORT
   {
     removing(elt);
     m_map.remove(elt.id());
     removed(elt);
   }
 
-  void remove(T& elt)
+  void remove(T& elt) INLINE_EXPORT
   {
     removing(elt);
     m_map.remove(elt.id());
@@ -121,7 +121,7 @@ public:
     delete &elt;
   }
 
-  void remove(T* elt)
+  void remove(T* elt) INLINE_EXPORT
   {
     removing(*elt);
     m_map.remove(elt->id());
@@ -129,7 +129,7 @@ public:
     delete elt;
   }
 
-  void remove(const Id<T>& id)
+  void remove(const Id<T>& id) INLINE_EXPORT
   {
     auto it = m_map.m_map.find(id);
     auto& elt = *it->second.first;
@@ -140,7 +140,7 @@ public:
     delete &elt;
   }
 
-  void clear()
+  void clear() INLINE_EXPORT
   {
     while (!m_map.empty())
     {
@@ -148,7 +148,7 @@ public:
     }
   }
 
-  void swap(const Id<T>& id1, const Id<T>& id2)
+  void swap(const Id<T>& id1, const Id<T>& id2) INLINE_EXPORT
   {
     if (id1 != id2)
     {
@@ -158,7 +158,7 @@ public:
   }
 
   // Will put id2 before id1
-  void relocate(const Id<T>& id1, const Id<T>& id2)
+  void relocate(const Id<T>& id1, const Id<T>& id2) INLINE_EXPORT
   {
     if (id1 != id2)
     {
@@ -167,7 +167,7 @@ public:
     }
   }
 
-  void putToEnd(const Id<T>& id1)
+  void putToEnd(const Id<T>& id1) INLINE_EXPORT
   {
     m_map.putToEnd(id1);
     orderChanged();
