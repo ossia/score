@@ -175,7 +175,7 @@ struct ScenarioComponent final : public ScenarioComponentHierarchy
       const Id<score::Component>& id,
       QObject* parent);
 
-  void init() override;
+  void lazy_init() override;
 
   void cleanup() override;
 };

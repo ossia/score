@@ -75,6 +75,9 @@ public:
       const score::DocumentContext& ctx,
       score::RectItem* parent) const;
 
+  virtual bool hasExternalUI(
+      const Process::ProcessModel& proc,
+      const score::DocumentContext& ctx) const;
   virtual QWidget* makeExternalUI(
       const Process::ProcessModel&,
       const score::DocumentContext& ctx,

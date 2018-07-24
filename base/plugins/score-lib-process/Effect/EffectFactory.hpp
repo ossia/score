@@ -69,7 +69,7 @@ private:
   }
 
   LayerView* makeLayerView(
-      const Process::ProcessModel& viewmodel,
+      const Process::ProcessModel&,
       QGraphicsItem* parent) const final override
   {
     return new EffectLayerView{parent};
@@ -97,6 +97,13 @@ private:
       score::RectItem* parent) const override
   {
     return new Item_T{safe_cast<const Model_T&>(proc), ctx, parent};
+  }
+
+  bool hasExternalUI(
+      const Process::ProcessModel& proc,
+      const score::DocumentContext& ctx) const override
+  {
+    return ((Model_T&) proc).hasExternalUI();
   }
 
   QWidget* makeExternalUI(

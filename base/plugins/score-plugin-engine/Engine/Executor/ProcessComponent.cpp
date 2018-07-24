@@ -13,7 +13,7 @@ ProcessComponent::~ProcessComponent() = default;
 ProcessComponentFactory::~ProcessComponentFactory() = default;
 ProcessComponentFactoryList::~ProcessComponentFactoryList() = default;
 
-void ProcessComponent::init()
+void ProcessComponent::lazy_init()
 {
 }
 

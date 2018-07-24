@@ -122,30 +122,11 @@ void InspectorWidget::add_score(std::size_t pos)
 void InspectorWidget::add_lv2(std::size_t pos)
 {
 #if defined(LILV_SHARED)
-  auto& world = score::AppComponents()
-                    .applicationPlugin<Media::ApplicationPlugin>()
-                    .lilv;
-
-  auto plugs = world.get_all_plugins();
-
-  QStringList items;
-
-  auto it = plugs.begin();
-  while (!plugs.is_end(it))
-  {
-    auto plug = plugs.get(it);
-    items.push_back(plug.get_name().as_string());
-    it = plugs.next(it);
-  }
-
-  auto res = QInputDialog::getItem(
-      this, tr("Select a plug-in"), tr("Select a LV2 plug-in"), items, 0,
-      false);
-
-  if (!res.isEmpty())
+  auto txt = LV2::LV2EffectFactory{}.customConstructionData();
+  if (!txt.isEmpty())
   {
     m_dispatcher.submitCommand(
-        new Commands::InsertGenericEffect<LV2::LV2EffectModel>{process(), res,
+        new Commands::InsertGenericEffect<LV2::LV2EffectModel>{process(), txt,
                                                                pos});
   }
 #endif
