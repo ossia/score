@@ -32,7 +32,7 @@ PutProcessBefore::PutProcessBefore(
   }
   else
   {
-    m_old_after_proc2.reset();
+    m_old_after_proc2 = {};
   }
 }
 
@@ -122,7 +122,7 @@ PutStateProcessBefore::PutStateProcessBefore(
   }
   else
   {
-    m_old_after_proc2.reset();
+    m_old_after_proc2 = {};
   }
 }
 
