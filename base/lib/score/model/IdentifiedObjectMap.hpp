@@ -184,6 +184,14 @@ public:
   void swap(const Id<Model>& t1, const Id<Model>& t2) INLINE_EXPORT
   {
     /*
+    auto it1 = ossia::find(m_order, t1);
+    if(it1 == m_order.end())
+      return;
+    auto it2 = ossia::find(m_order, t2);
+    if(it2 == m_order.end())
+      return;
+    */
+    /*
     if (t1 == t2)
       return;
 
