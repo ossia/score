@@ -2,7 +2,6 @@
 #include <QVariant>
 #include <QComboBox>
 #include <QPushButton>
-
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
 #include "JoystickProtocolSettingsWidget.hpp"
@@ -11,6 +10,7 @@
 #include <ossia/network/joystick/joystick_protocol.hpp>
 
 #include <wobjectimpl.h>
+
 W_OBJECT_IMPL(Engine::Network::JoystickProtocolSettingsWidget)
 
 namespace Engine {
@@ -22,7 +22,7 @@ namespace Engine {
         {
             m_deviceNameEdit =
                 new State::AddressFragmentLineEdit{this};
-            m_deviceNameEdit->setText("essai");
+            m_deviceNameEdit->setText("Joystick");
 
             m_deviceChoice =
                     new QComboBox{this};
