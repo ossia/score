@@ -75,6 +75,14 @@ ProcessModel::ProcessModel(
   init();
 }
 
+void ProcessModel::init()
+{
+  inlet->setCustomData("In");
+  outlet->setCustomData("Out");
+  m_inlets.push_back(inlet.get());
+  m_outlets.push_back(outlet.get());
+}
+
 ProcessModel::~ProcessModel()
 {
   try {

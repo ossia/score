@@ -7,10 +7,10 @@
 #include <Automation/Commands/SetAutomationMax.hpp>
 #include <Dataflow/Commands/CreateModulation.hpp>
 #include <Dataflow/Commands/EditConnection.hpp>
-#include <Dataflow/Commands/EditPort.hpp>
+#include <Process/Commands/EditPort.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Explorer/Widgets/AddressAccessorEditWidget.hpp>
+#include <Device/Widgets/AddressAccessorEditWidget.hpp>
 #include <Process/Dataflow/CableItem.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
@@ -284,7 +284,7 @@ void AutomatablePortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
       return;
 
     disp.submitCommand(
-        new ChangePortAddress{m_port, State::AddressAccessor{as.address}});
+        new Process::ChangePortAddress{m_port, State::AddressAccessor{as.address}});
   }
   else if (mime.formats().contains(score::mime::messagelist()))
   {
@@ -300,7 +300,7 @@ void AutomatablePortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
     if (newAddr.address.path.isEmpty())
       return;
 
-    disp.submitCommand(new ChangePortAddress{m_port, std::move(newAddr)});
+    disp.submitCommand(new Process::ChangePortAddress{m_port, std::move(newAddr)});
   }
   event->accept();
 }
@@ -361,7 +361,7 @@ PortTooltip::PortTooltip(
         if (ok != out.propagate())
         {
           CommandDispatcher<> d{ctx.commandStack};
-          d.submitCommand<Dataflow::SetPortPropagate>(out, ok);
+          d.submitCommand<Process::SetPortPropagate>(out, ok);
         }
       });
       con(*outlet, &Process::Outlet::propagateChanged, this, [=](bool p) {
@@ -381,10 +381,10 @@ PortTooltip::PortTooltip(
           m_edit.setAddress(addr);
         }
       });
-  con(m_edit, &Explorer::AddressAccessorEditWidget::addressChanged, this,
+  con(m_edit, &Device::AddressAccessorEditWidget::addressChanged, this,
       [this, &p](const Device::FullAddressAccessorSettings& set) {
         if (set.address != p.address())
-          m_disp.submitCommand<Dataflow::ChangePortAddress>(p, set.address);
+          m_disp.submitCommand<Process::ChangePortAddress>(p, set.address);
       });
 }
 }

@@ -5,7 +5,9 @@
 #include <Process/Process.hpp>
 #include <QWidget>
 #include <QHBoxLayout>
+#include <QTabWidget>
 #include <score/widgets/TextLabel.hpp>
+#include <Process/Dataflow/PortListWidget.hpp>
 namespace Process
 {
 InspectorWidgetDelegateFactory::~InspectorWidgetDelegateFactory() = default;
@@ -52,9 +54,14 @@ QWidget* InspectorWidgetDelegateFactory::wrap(
   auto label = new TextLabel{process.prettyShortName(), widg};
 
   label->setStyleSheet("font-weight: bold; font-size: 18");
+
+  auto ports = new PortListWidget{process, doc, widg};
   lay->addWidget(label);
-  lay->addWidget(w);
-  lay->addStretch(0);
+  auto tab = new QTabWidget;
+  tab->setTabPosition(QTabWidget::South);
+  tab->addTab(w, "Basic");
+  tab->addTab(ports, "Ports");
+  lay->addWidget(tab);
 
   return widg;
 }

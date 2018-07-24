@@ -1,9 +1,9 @@
 #pragma once
-#include <Dataflow/Commands/EditPort.hpp>
+#include <Process/Commands/EditPort.hpp>
 #include <wobjectdefs.h>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <Explorer/Widgets/AddressAccessorEditWidget.hpp>
+#include <Device/Widgets/AddressAccessorEditWidget.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Process/Dataflow/Port.hpp>
@@ -31,7 +31,7 @@ public:
   PortWidget(Explorer::DeviceExplorerModel& model, QWidget* parent);
 
   QLineEdit localName;
-  Explorer::AddressAccessorEditWidget accessor;
+  Device::AddressAccessorEditWidget accessor;
 
 public:
   void removeMe() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, removeMe);

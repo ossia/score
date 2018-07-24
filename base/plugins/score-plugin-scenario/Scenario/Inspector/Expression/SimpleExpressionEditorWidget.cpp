@@ -4,7 +4,7 @@
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <Explorer/Widgets/AddressAccessorEditWidget.hpp>
+#include <Device/Widgets/AddressAccessorEditWidget.hpp>
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <QBoxLayout>
 #include <QComboBox>
@@ -34,7 +34,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
 
   m_binOperator = new QComboBox{this};
 
-  m_address = new Explorer::AddressAccessorEditWidget{
+  m_address = new Device::AddressAccessorEditWidget{
       doc.plugin<Explorer::DeviceDocumentPlugin>().explorer(), this};
   m_ok = new TextLabel{QStringLiteral("/!\\ "), this};
 
@@ -92,7 +92,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
 
   /// EDIT FINSHED
   connect(
-      m_address, &Explorer::AddressAccessorEditWidget::addressChanged, this,
+      m_address, &Device::AddressAccessorEditWidget::addressChanged, this,
       [&]() { on_editFinished(); });
   connect(m_comparator, &QComboBox::currentTextChanged, this, [&] {
     on_editFinished();

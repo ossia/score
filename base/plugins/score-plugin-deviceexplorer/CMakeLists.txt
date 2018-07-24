@@ -50,12 +50,6 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Listening/ListeningHandler.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Panel/DeviceExplorerPanelDelegate.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Panel/DeviceExplorerPanelFactory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/AddressAccessorEditWidget.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/AddressEditWidget.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/DeviceCompleter.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/MessageEditDialog.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/MessageListEditor.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/MessageWidget.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Settings/ExplorerModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Settings/ExplorerPresenter.hpp"
@@ -106,12 +100,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/AddressItemModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/DeviceExplorerWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/ListeningManager.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/DeviceCompleter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/MessageWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/MessageListEditor.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/MessageEditDialog.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/AddressEditWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Widgets/AddressAccessorEditWidget.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Listening/ListeningHandler.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Listening/ListeningHandlerFactory.cpp"
@@ -141,9 +129,9 @@ add_library(${PROJECT_NAME}
       ${EXPLORER_RESOURCES_RCC} )
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 target_link_libraries(score_plugin_deviceexplorer
-        PUBLIC
-                score_lib_device
-                )
+  PUBLIC
+    score_lib_device
+)
 
 if(OSSIA_DNSSD)
   target_sources(${PROJECT_NAME} PRIVATE

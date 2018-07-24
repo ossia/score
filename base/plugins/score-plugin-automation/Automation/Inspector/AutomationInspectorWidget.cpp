@@ -9,7 +9,7 @@
 #include <Automation/Commands/ChangeAddress.hpp>
 #include <Automation/Commands/SetAutomationMax.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Explorer/Widgets/AddressAccessorEditWidget.hpp>
+#include <Device/Widgets/AddressAccessorEditWidget.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <QBoxLayout>
 #include <QCheckBox>
@@ -41,6 +41,7 @@ InspectorWidget::InspectorWidget(
     , m_dispatcher{doc.commandStack}
 {
   using namespace Explorer;
+  using namespace Device;
   setObjectName("AutomationInspectorWidget");
   setParent(parent);
 
@@ -232,6 +233,7 @@ InspectorWidget::InspectorWidget(
     : InspectorWidgetDelegate_T{automationModel, parent}
     , m_dispatcher{doc.commandStack}
 {
+  using namespace Device;
   using namespace Explorer;
   setObjectName("SplineInspectorWidget");
   setParent(parent);
@@ -304,6 +306,7 @@ InspectorWidget::InspectorWidget(
     : InspectorWidgetDelegate_T{automationModel, parent}
     , m_dispatcher{doc.commandStack}
 {
+  using namespace Device;
   using namespace Explorer;
   setObjectName("MetronomeInspectorWidget");
   setParent(parent);

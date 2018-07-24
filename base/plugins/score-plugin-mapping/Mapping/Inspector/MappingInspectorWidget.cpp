@@ -4,7 +4,7 @@
 #include "MappingInspectorWidget.hpp"
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Explorer/Widgets/AddressAccessorEditWidget.hpp>
+#include <Device/Widgets/AddressAccessorEditWidget.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Mapping/Commands/ChangeAddresses.hpp>
 #include <Mapping/Commands/MinMaxCommands.hpp>
@@ -37,6 +37,7 @@ InspectorWidget::InspectorWidget(
     : InspectorWidgetDelegate_T{mappingModel, parent}
     , m_dispatcher{doc.commandStack}
 {
+  using namespace Device;
   using namespace Explorer;
   setObjectName("MappingInspectorWidget");
   setParent(parent);
