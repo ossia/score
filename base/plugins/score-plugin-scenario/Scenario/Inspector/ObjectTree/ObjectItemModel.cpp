@@ -10,6 +10,7 @@
 #include <Scenario/Commands/State/AddStateProcess.hpp>
 #include <Scenario/Commands/State/RemoveStateProcess.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
+#include <Scenario/Commands/Interval/SetProcessPosition.hpp>
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -46,6 +47,7 @@ ObjectItemModel::ObjectItemModel(
     const score::DocumentContext& ctx, QObject* parent)
     : QAbstractItemModel{parent}, m_ctx{ctx}
 {
+
 }
 
 void ObjectItemModel::setSelected(QList<const IdentifiedObjectAbstract*> objs)
@@ -549,11 +551,6 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
         static const QIcon icon(":/images/process.svg");
         return icon;
       }
-      else if (qobject_cast<Process::ProcessModel*>(sel))
-      {
-        static const QIcon icon(":/images/process.svg");
-        return icon;
-      }
     }
     else if (role == Qt::ToolTipRole)
     {
@@ -574,10 +571,6 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
       {
         return {};
       }
-      else if(auto stp = qobject_cast<Process::StateProcess*>(sel))
-      {
-        return {};
-      }
       else if(auto p = qobject_cast<Process::ProcessModel*>(sel))
       {
         return {};
@@ -594,6 +587,14 @@ Qt::ItemFlags ObjectItemModel::flags(const QModelIndex& index) const
   f |= Qt::ItemIsSelectable;
   f |= Qt::ItemIsEnabled;
   f |= Qt::ItemIsEditable;
+  f |= Qt::ItemIsDropEnabled;
+
+  auto p = (QObject*) index.internalPointer();
+  if(auto q = qobject_cast<Process::ProcessModel*>(p))
+  {
+    f |= Qt::ItemIsDragEnabled;
+  }
+
   return f;
 }
 
@@ -668,6 +669,204 @@ bool ObjectItemModel::setData(
     }
   }
   return false;
+}
+
+QMimeData* ObjectItemModel::mimeData(const QModelIndexList& indexes) const
+{
+  if(indexes.size() != 1)
+    return nullptr;
+
+  auto p = (QObject*) indexes.front().internalPointer();
+  if(!p)
+    return nullptr;
+
+  auto q = qobject_cast<Process::ProcessModel*>(p);
+  if(!q)
+    return nullptr;
+
+  auto m = new QMimeData;
+  m->setData("score/object-item-model-index", score::marshall<DataStream>(Path<Process::ProcessModel>{*q}));
+  return m;
+}
+
+bool ObjectItemModel::canDropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent) const
+{
+  if(!parent.isValid())
+    return false;
+
+  auto obj = score::unmarshall<Path<Process::ProcessModel>>(data->data("score/object-item-model-index"));
+  auto other = obj.try_find(m_ctx);
+  if(!other)
+    return false;
+
+  auto p = (QObject*) parent.internalPointer();
+  Process::ProcessModel* the_proc{};
+  if(auto itv = qobject_cast<Scenario::IntervalModel*>(p))
+  {
+    if(other->parent() != itv)
+      return false;
+    if(row < itv->processes.size())
+    {
+      auto pb = itv->processes.map().m_order.begin();
+      std::advance(pb, row);
+
+      the_proc = *pb;
+      // Row: the row before the process
+      if(other == the_proc)
+        return false;
+    }
+    else
+    {
+      return true;
+    }
+    return true;
+  }
+  else if(auto sta = qobject_cast<Scenario::StateModel*>(p))
+  {
+    if(other->parent() != sta)
+      return false;
+
+    if(row < sta->stateProcesses.size())
+    {
+      auto pb = sta->stateProcesses.map().m_order.begin();
+      std::advance(pb, row);
+
+      the_proc = *pb;
+      // Row: the row before the process
+      if(other == the_proc)
+        return false;
+    }
+    else
+    {
+      return true;
+    }
+    return true;
+  }
+  else
+  {
+    the_proc = qobject_cast<Process::ProcessModel*>(p);
+
+    if(!the_proc)
+      return false;
+    if(other == the_proc)
+      return false;
+    if(other->parent() != the_proc->parent())
+      return false;
+    return true;
+  }
+
+  return true;
+}
+
+bool ObjectItemModel::dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent)
+{
+  using namespace Scenario::Command;
+  if(!parent.isValid())
+    return false;
+
+  auto obj = score::unmarshall<Path<Process::ProcessModel>>(data->data("score/object-item-model-index"));
+  auto other = obj.try_find(m_ctx);
+  if(!other)
+    return false;
+
+  auto p = (QObject*) parent.internalPointer();
+
+  auto move_in_itv = [=] (auto itv, int row) {
+    if(other->parent() != itv)
+      return false;
+
+    if(row < itv->processes.size())
+    {
+      auto pb = itv->processes.map().m_order.begin();
+      std::advance(pb, row);
+
+      auto the_proc = *pb;
+      // Row: the row before the process
+      if(other == the_proc)
+        return false;
+
+      // put before row: row == 0 -> begin
+      CommandDispatcher<> disp{m_ctx.dispatcher};
+      disp.submitCommand(new PutProcessBefore{*itv, the_proc->id(), other->id()});
+    }
+    else if(row >= itv->processes.size())
+    {
+      // put at end
+      CommandDispatcher<> disp{m_ctx.dispatcher};
+      disp.submitCommand(new PutProcessBefore{*itv, {}, other->id()});
+    }
+    return true;
+  };
+
+  auto move_in_state = [=] (auto sta, int row)  {
+    if(other->parent() != sta)
+      return false;
+
+    if(row < sta->stateProcesses.size())
+    {
+      auto pb = sta->stateProcesses.map().m_order.begin();
+      std::advance(pb, row);
+
+      auto the_proc = *pb;
+      // Row: the row before the process
+      if(other == the_proc)
+        return false;
+
+      // put before row: row == 0 -> begin
+      CommandDispatcher<> disp{m_ctx.dispatcher};
+      disp.submitCommand(new PutStateProcessBefore{*sta, the_proc->id(), other->id()});
+    }
+    else if(row >= sta->stateProcesses.size())
+    {
+      // put at end
+      CommandDispatcher<> disp{m_ctx.dispatcher};
+      disp.submitCommand(new PutStateProcessBefore{*sta, {}, other->id()});
+    }
+    return true;
+  };
+
+  if(auto itv = qobject_cast<Scenario::IntervalModel*>(p))
+  {
+    return move_in_itv(itv, row);
+  }
+  else if(auto sta = qobject_cast<Scenario::StateModel*>(p))
+  {
+    return move_in_state(sta, row);
+  }
+  else
+  {
+    auto the_proc = qobject_cast<Process::ProcessModel*>(p);
+
+    if(!the_proc)
+      return false;
+    if(other == the_proc)
+      return false;
+    if(other->parent() != the_proc->parent())
+      return false;
+
+    if(auto itv = qobject_cast<Scenario::IntervalModel*>(the_proc->parent()))
+    {
+      CommandDispatcher<> disp{m_ctx.dispatcher};
+      disp.submitCommand(new PutProcessBefore{*itv, the_proc->id(), other->id()});
+    }
+    else if(auto sta = qobject_cast<Scenario::StateModel*>(the_proc->parent()))
+    {
+      CommandDispatcher<> disp{m_ctx.dispatcher};
+      disp.submitCommand(new PutStateProcessBefore{*sta, the_proc->id(), other->id()});
+    }
+    return true;
+  }
+  return true;
+}
+
+Qt::DropActions ObjectItemModel::supportedDropActions() const
+{
+  return Qt::CopyAction | Qt::MoveAction | Qt::TargetMoveAction;
+}
+
+Qt::DropActions ObjectItemModel::supportedDragActions() const
+{
+  return Qt::CopyAction | Qt::MoveAction | Qt::TargetMoveAction;
 }
 
 SelectionStackWidget::SelectionStackWidget(
@@ -837,6 +1036,7 @@ ObjectWidget::ObjectWidget(const score::DocumentContext& ctx, QWidget* par)
   setUniformRowHeights(true);
   setWordWrap(false);
   setMouseTracking(true);
+  setDragDropMode(QAbstractItemView::DragDrop);
 
   con(model, &ObjectItemModel::changed, this, &QTreeView::expandAll);
 }
@@ -953,13 +1153,13 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
   }
 }
 
-NeightborSelector::NeightborSelector(
+NeighbourSelector::NeighbourSelector(
     score::SelectionStack& s, ObjectWidget* objects)
     : m_stack{s}, m_objects{objects}, m_selectionDispatcher{s}
 {
 }
 
-bool NeightborSelector::hasLeft() const
+bool NeighbourSelector::hasLeft() const
 {
   for (const auto& obj : m_stack.currentSelection())
   {
@@ -977,7 +1177,7 @@ bool NeightborSelector::hasLeft() const
   return false;
 }
 
-bool NeightborSelector::hasRight() const
+bool NeighbourSelector::hasRight() const
 {
   for (const auto& obj : m_stack.currentSelection())
   {
@@ -995,7 +1195,7 @@ bool NeightborSelector::hasRight() const
   return false;
 }
 
-bool NeightborSelector::hasUp() const
+bool NeighbourSelector::hasUp() const
 {
   auto cur_idx = m_objects->selectionModel()->currentIndex();
   auto idx = m_objects->indexAbove(cur_idx);
@@ -1003,7 +1203,7 @@ bool NeightborSelector::hasUp() const
   return res;
 }
 
-bool NeightborSelector::hasDown() const
+bool NeighbourSelector::hasDown() const
 {
   auto cur_idx = m_objects->selectionModel()->currentIndex();
   auto idx = m_objects->indexBelow(cur_idx);
@@ -1011,7 +1211,7 @@ bool NeightborSelector::hasDown() const
   return res;
 }
 
-void NeightborSelector::selectRight()
+void NeighbourSelector::selectRight()
 {
   Selection sel{};
 
@@ -1038,7 +1238,7 @@ void NeightborSelector::selectRight()
     m_selectionDispatcher.setAndCommit(sel);
 }
 
-void NeightborSelector::selectLeft()
+void NeighbourSelector::selectLeft()
 {
   Selection sel{};
 
@@ -1065,7 +1265,7 @@ void NeightborSelector::selectLeft()
     m_selectionDispatcher.setAndCommit(sel);
 }
 
-void NeightborSelector::selectUp()
+void NeighbourSelector::selectUp()
 {
   auto cur_idx = m_objects->selectionModel()->currentIndex();
   auto idx = m_objects->indexAbove(cur_idx);
@@ -1077,7 +1277,7 @@ void NeightborSelector::selectUp()
   }
 }
 
-void NeightborSelector::selectDown()
+void NeighbourSelector::selectDown()
 {
   auto cur_idx = m_objects->selectionModel()->currentIndex();
   auto idx = m_objects->indexBelow(cur_idx);
@@ -1328,3 +1528,5 @@ void SearchWidget::dropEvent(QDropEvent* ev)
   }
 }
 }
+
+
