@@ -62,13 +62,17 @@ namespace Media::LV2
         if(sub_it == m_categories_map.end())
         {
           m_categories_map.insert({class_name, {plug_name}});
-          m_categories.addItem(class_name);
         }
         else
         {
           sub_it->second.append(plug_name);
         }
         it = plugs.next(it);
+      }
+
+      for(auto& category : m_categories_map)
+      {
+        m_categories.addItem(category.first);
       }
 
       con(m_categories, &QListWidget::currentTextChanged, this,
