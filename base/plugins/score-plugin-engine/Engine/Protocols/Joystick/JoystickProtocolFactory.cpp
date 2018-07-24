@@ -19,7 +19,6 @@ namespace Engine {
             const Device::DeviceSettings& settings, 
             const score::DocumentContext& ctx)
         {
-            std::printf("Creating new JoystickDevice\n");
             return new JoystickDevice{settings};
         }
 

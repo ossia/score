@@ -41,7 +41,6 @@ namespace Engine {
             catch (...)
             {
                 SCORE_TODO;
-                std::printf("WALALALALALLALALALALAL\n");
             }        
 
             return connected();
