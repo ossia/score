@@ -55,16 +55,17 @@ void SlotHeader::paint(
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
   const auto& style = ScenarioStyle::instance();
+  painter->setPen(style.SlotHeaderPen);
+  painter->setBrush(style.NoBrush);
+
   if (m_width > 20)
   {
-    painter->setPen(style.IntervalHeaderSeparator);
-    painter->setBrush(style.NoBrush);
 
     // Grip
     static const std::array<QRectF, 6> rects{[] {
       std::array<QRectF, 6> rects;
       for (int i = 0; i < 3; i++)
-        rects[i] = {6., 5 + 3. * i, 0.1, 0.1};
+        rects[i] = {6., 4 + 3. * i, 1, 1};
       return rects;
     }()};
     painter->drawRects(rects.data(), 6);
@@ -102,23 +103,15 @@ void SlotHeader::paint(
       }
       centerX = std::max(centerX, 5.);
 
-      painter->setBrush(style.MinimapBrush);
-      painter->drawEllipse(QPointF{centerX, centerY}, r, r);
-      r -= 1.;
       painter->setRenderHint(QPainter::Antialiasing, false);
-      painter->setPen(style.TimeRulerSmallPen);
-      painter->drawLine(
-          QPointF{centerX, centerY - r}, QPointF{centerX, centerY + r});
-      painter->drawLine(
-          QPointF{centerX - r, centerY}, QPointF{centerX + r, centerY});
+      painter->drawLine(centerX - r, centerY + 0, centerX + r, centerY + 0);
+      painter->drawLine(centerX - r, centerY - 3, centerX + r, centerY - 3);
+      painter->drawLine(centerX - r, centerY + 3, centerX + r, centerY + 3);
       m_menupos = centerX;
     }
   }
   else
   {
-    painter->setPen(style.IntervalHeaderSeparator);
-    painter->setBrush(style.NoBrush);
-
     painter->drawRect(QRectF{0., 0., m_width, headerHeight() - 1});
   }
 }

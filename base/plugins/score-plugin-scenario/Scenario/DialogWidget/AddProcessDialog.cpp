@@ -28,7 +28,7 @@ AddProcessDialog::AddProcessDialog(
   lay->addWidget(m_processes);
   auto buttonBox = new QDialogButtonBox{};
   auto add = new QPushButton{"+"};
-  buttonBox->addButton(add, QDialogButtonBox::ActionRole);
+  buttonBox->addButton(add, QDialogButtonBox::AcceptRole);
   buttonBox->addButton(QDialogButtonBox::StandardButton::Close);
   buttonBox->setOrientation(Qt::Vertical);
   lay->addWidget(buttonBox);
