@@ -8,7 +8,7 @@ W_OBJECT_IMPL(score::EmptyRectItem)
 namespace score
 {
 
-void RectItem::setRect(QRectF r)
+void RectItem::setRect(const QRectF& r)
 {
   prepareGeometryChange();
   m_rect = r;
@@ -69,7 +69,7 @@ EmptyRectItem::EmptyRectItem(QGraphicsItem* parent) : QGraphicsItem{parent}
 {
   this->setFlag(ItemHasNoContents, true);
 }
-void EmptyRectItem::setRect(QRectF r)
+void EmptyRectItem::setRect(const QRectF& r)
 {
   prepareGeometryChange();
   m_rect = r;

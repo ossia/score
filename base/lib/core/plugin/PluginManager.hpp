@@ -1,6 +1,5 @@
 #pragma once
 #include <QObject>
-#include <QPluginLoader>
 #include <QString>
 #include <QStringList>
 #include <core/plugin/PluginDependencyGraph.hpp>
@@ -139,8 +138,6 @@ void loadPlugins(Registrar_T& registrar, const Context_T& context)
     addon.key = score_plug->key();
     addon.corePlugin = true;
     availablePlugins.push_back(std::move(addon));
-    qDebug() << typeid(score_plug).name() << addon.key.impl().data[0]
-             << addon.key.impl().data[1] << addon.key.impl().data[2];
   }
 
   loadPluginsInAllFolders(availablePlugins);

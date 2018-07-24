@@ -2,7 +2,6 @@
 #include <Engine/Executor/ClockManager/ClockManagerFactory.hpp>
 #include <Engine/Executor/ClockManager/DefaultClockManager.hpp>
 #include <Engine/Executor/DocumentPlugin.hpp>
-#include <score_plugin_engine_export.h>
 namespace Process
 {
 class Cable;

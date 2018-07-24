@@ -13,7 +13,7 @@ class SCORE_LIB_BASE_EXPORT RectItem
   Q_INTERFACES(QGraphicsItem)
 public:
   using QGraphicsItem::QGraphicsItem;
-  void setRect(QRectF r);
+  void setRect(const QRectF& r);
   void setHighlight(bool);
   QRectF boundingRect() const final override;
   void paint(
@@ -22,7 +22,7 @@ public:
       QWidget* widget) final override;
 
 public:
-  void clicked() W_SIGNAL(clicked);
+  void clicked() E_SIGNAL(SCORE_LIB_BASE_EXPORT, clicked);
 
 private:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) final override;
@@ -43,7 +43,7 @@ class SCORE_LIB_BASE_EXPORT EmptyRectItem
   Q_INTERFACES(QGraphicsItem)
 public:
   EmptyRectItem(QGraphicsItem* parent);
-  void setRect(QRectF r);
+  void setRect(const QRectF& r);
   QRectF boundingRect() const final override;
   void paint(
       QPainter* painter,
@@ -51,7 +51,7 @@ public:
       QWidget* widget) final override;
 
 public:
-  void clicked() W_SIGNAL(clicked);
+  void clicked() E_SIGNAL(SCORE_LIB_BASE_EXPORT, clicked);
 
 private:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) final override;

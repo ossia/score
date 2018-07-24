@@ -74,16 +74,16 @@ public:
   void setActive(bool active);
 
 public:
-  void extentChanged(const Scenario::VerticalExtent& arg_1) W_SIGNAL(extentChanged, arg_1);
-  void dateChanged(const TimeVal& arg_1) W_SIGNAL(dateChanged, arg_1);
+  void extentChanged(const Scenario::VerticalExtent& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, extentChanged, arg_1);
+  void dateChanged(const TimeVal& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dateChanged, arg_1);
 
-  void newEvent(const Id<Scenario::EventModel>& eventId) W_SIGNAL(newEvent, eventId);
-  void eventRemoved(const Id<Scenario::EventModel>& eventId) W_SIGNAL(eventRemoved, eventId);
+  void newEvent(const Id<Scenario::EventModel>& eventId) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, newEvent, eventId);
+  void eventRemoved(const Id<Scenario::EventModel>& eventId) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, eventRemoved, eventId);
 
-  void triggerChanged(const State::Expression& arg_1) W_SIGNAL(triggerChanged, arg_1);
-  void activeChanged() W_SIGNAL(activeChanged);
+  void triggerChanged(const State::Expression& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, triggerChanged, arg_1);
+  void activeChanged() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, activeChanged);
 
-  void triggeredByGui() const W_SIGNAL(triggeredByGui);
+  void triggeredByGui() const E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, triggeredByGui);
 
 private:
   TimeVal m_date{std::chrono::seconds{0}};

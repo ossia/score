@@ -78,10 +78,10 @@ public:
   void changeToolTip(const QString&);
 
 public:
-  void eventHoverEnter() W_SIGNAL(eventHoverEnter);
-  void eventHoverLeave() W_SIGNAL(eventHoverLeave);
+  void eventHoverEnter() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, eventHoverEnter);
+  void eventHoverLeave() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, eventHoverLeave);
 
-  void dropReceived(const QPointF& pos, const QMimeData& arg_2) W_SIGNAL(dropReceived, pos, arg_2);
+  void dropReceived(const QPointF& pos, const QMimeData& arg_2) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dropReceived, pos, arg_2);
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;

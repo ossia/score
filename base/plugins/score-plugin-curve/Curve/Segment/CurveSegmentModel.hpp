@@ -103,11 +103,11 @@ public:
   }
 
 public:
-  void dataChanged() W_SIGNAL(dataChanged);
-  void previousChanged() W_SIGNAL(previousChanged);
-  void followingChanged() W_SIGNAL(followingChanged);
-  void startChanged() W_SIGNAL(startChanged);
-  void endChanged() W_SIGNAL(endChanged);
+  void dataChanged() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, dataChanged);
+  void previousChanged() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, previousChanged);
+  void followingChanged() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, followingChanged);
+  void startChanged() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, startChanged);
+  void endChanged() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, endChanged);
 
 protected:
   virtual void on_startChanged() = 0;

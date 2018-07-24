@@ -14,21 +14,6 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 
-namespace Explorer
-{
-class DeviceDocumentPlugin;
-}
-namespace Device
-{
-class DeviceList;
-}
-namespace Engine
-{
-namespace Execution
-{
-class IntervalComponent;
-}
-}
 namespace JS
 {
 class ProcessModel;

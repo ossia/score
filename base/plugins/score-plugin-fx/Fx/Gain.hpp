@@ -18,10 +18,8 @@ struct Node
 
     static const constexpr auto controls
         = std::make_tuple(Control::FloatSlider{"Gain", 0., 2., 1.});
-    static const constexpr auto audio_ins
-        = ossia::safe_nodes::audio_ins<1>{{"in"}};
-    static const constexpr auto audio_outs
-        = ossia::safe_nodes::audio_outs<1>{{"out"}};
+    static const constexpr audio_in audio_ins[]{"in"};
+    static const constexpr audio_out audio_outs[]{"out"};
   };
 
   using control_policy = ossia::safe_nodes::last_tick;

@@ -21,10 +21,10 @@ public:
   void setPlayWhileRecording(bool);
 
 public:
-  void simplificationRatioChanged(double arg_1) W_SIGNAL(simplificationRatioChanged, arg_1);
-  void simplifyChanged(bool arg_1) W_SIGNAL(simplifyChanged, arg_1);
-  void modeChanged(Mode arg_1) W_SIGNAL(modeChanged, arg_1);
-  void playWhileRecordingChanged(bool arg_1) W_SIGNAL(playWhileRecordingChanged, arg_1);
+  void simplificationRatioChanged(double arg_1) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, simplificationRatioChanged, arg_1);
+  void simplifyChanged(bool arg_1) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, simplifyChanged, arg_1);
+  void modeChanged(Mode arg_1) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, modeChanged, arg_1);
+  void playWhileRecordingChanged(bool arg_1) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, playWhileRecordingChanged, arg_1);
 
 private:
   QWidget* getWidget() override;

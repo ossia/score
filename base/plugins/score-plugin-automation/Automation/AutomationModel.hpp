@@ -74,11 +74,11 @@ public:
   QString prettyName() const override;
   std::unique_ptr<Process::Outlet> outlet;
 public:
-  void addressChanged(const ::State::AddressAccessor& arg_1) W_SIGNAL(addressChanged, arg_1);
-  void minChanged(double arg_1) W_SIGNAL(minChanged, arg_1);
-  void maxChanged(double arg_1) W_SIGNAL(maxChanged, arg_1);
-  void tweenChanged(bool tween) W_SIGNAL(tweenChanged, tween);
-  void unitChanged(const State::Unit& arg_1) W_SIGNAL(unitChanged, arg_1);
+  void addressChanged(const ::State::AddressAccessor& arg_1) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, addressChanged, arg_1);
+  void minChanged(double arg_1) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, minChanged, arg_1);
+  void maxChanged(double arg_1) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, maxChanged, arg_1);
+  void tweenChanged(bool tween) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, tweenChanged, tween);
+  void unitChanged(const State::Unit& arg_1) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, unitChanged, arg_1);
 
   PROPERTY(State::Unit, unit READ unit WRITE setUnit NOTIFY unitChanged)
   PROPERTY(bool, tween READ tween WRITE setTween NOTIFY tweenChanged)

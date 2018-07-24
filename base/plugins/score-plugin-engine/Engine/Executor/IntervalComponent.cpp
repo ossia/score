@@ -121,52 +121,54 @@ struct mute_rec
 };
 void IntervalComponent::init()
 {
-  if (interval().muted())
-    mute_rec{true}(*OSSIAInterval());
-  init_hierarchy();
-
-  con(interval(), &Scenario::IntervalModel::mutedChanged, this, [=](bool b) {
-    in_exec([b, itv = OSSIAInterval()] { mute_rec{b}(*itv); });
-  });
-
-  if (context().doc.app.settings<Settings::Model>().getScoreOrder())
+  if(m_interval)
   {
-    std::vector<ossia::edge_ptr> edges_to_add;
-    edges_to_add.reserve(m_processes.size());
+    if (interval().muted())
+      mute_rec{true}(*OSSIAInterval());
+    init_hierarchy();
 
-    std::shared_ptr<ossia::graph_node> prev_node;
-    for (auto& proc : m_processes)
+    con(interval(), &Scenario::IntervalModel::mutedChanged, this, [=](bool b) {
+      in_exec([b, itv = OSSIAInterval()] { mute_rec{b}(*itv); });
+    });
+
+    if (context().doc.app.settings<Settings::Model>().getScoreOrder())
     {
-      auto& node = proc.second->OSSIAProcess().node;
-      SCORE_ASSERT(node);
-      if (prev_node)
-      {
+      std::vector<ossia::edge_ptr> edges_to_add;
+      edges_to_add.reserve(m_processes.size());
 
-        edges_to_add.push_back(ossia::make_edge(
-            ossia::dependency_connection{}, ossia::outlet_ptr{},
-            ossia::inlet_ptr{}, prev_node, node));
+      std::shared_ptr<ossia::graph_node> prev_node;
+      for (auto& proc : m_processes)
+      {
+        auto& node = proc.second->OSSIAProcess().node;
+        SCORE_ASSERT(node);
+        if (prev_node)
+        {
+          edges_to_add.push_back(ossia::make_edge(
+                                   ossia::dependency_connection{}, ossia::outlet_ptr{},
+                                   ossia::inlet_ptr{}, prev_node, node));
+        }
+        prev_node = node;
       }
 
-      prev_node = node;
-    }
-    if (prev_node)
-    {
-      edges_to_add.push_back(ossia::make_edge(
-          ossia::dependency_connection{}, ossia::outlet_ptr{},
-          ossia::inlet_ptr{}, prev_node, m_ossia_interval->node));
+      if (prev_node)
+      {
+        edges_to_add.push_back(ossia::make_edge(
+                                 ossia::dependency_connection{}, ossia::outlet_ptr{},
+                                 ossia::inlet_ptr{}, prev_node, m_ossia_interval->node));
 
-      std::weak_ptr<ossia::graph_interface> g_weak
-          = context().plugin.execGraph;
+        std::weak_ptr<ossia::graph_interface> g_weak
+            = context().plugin.execGraph;
 
-      in_exec([edges = std::move(edges_to_add), g_weak] {
-        if (auto g = g_weak.lock())
-        {
-          for (auto& c : edges)
+        in_exec([edges = std::move(edges_to_add), g_weak] {
+          if (auto g = g_weak.lock())
           {
-            g->connect(std::move(c));
+            for (auto& c : edges)
+            {
+              g->connect(std::move(c));
+            }
           }
-        }
-      });
+        });
+      }
     }
   }
 }
@@ -428,9 +430,12 @@ std::function<void()> IntervalComponentBase::removing(
   if (it != m_processes.end())
   {
     auto c_ptr = c.shared_from_this();
-    in_exec([cstr = m_ossia_interval, c_ptr] {
-      cstr->remove_time_process(c_ptr->OSSIAProcessPtr().get());
-    });
+    if(m_ossia_interval)
+    {
+      in_exec([cstr = m_ossia_interval, c_ptr] {
+        cstr->remove_time_process(c_ptr->OSSIAProcessPtr().get());
+      });
+    }
     c.cleanup();
 
     return [=] { m_processes.erase(it); };

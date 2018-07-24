@@ -73,10 +73,10 @@ public:
   std::unique_ptr<Process::Outlet> outlet;
 
 public:
-  void addressChanged(const ::State::AddressAccessor& arg_1) W_SIGNAL(addressChanged, arg_1);
-  void tweenChanged(bool tween) W_SIGNAL(tweenChanged, tween);
-  void unitChanged(const State::Unit& arg_1) W_SIGNAL(unitChanged, arg_1);
-  void splineChanged() W_SIGNAL(splineChanged);
+  void addressChanged(const ::State::AddressAccessor& arg_1) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, addressChanged, arg_1);
+  void tweenChanged(bool tween) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, tweenChanged, tween);
+  void unitChanged(const State::Unit& arg_1) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, unitChanged, arg_1);
+  void splineChanged() E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, splineChanged);
 
 private:
   //// ProcessModel ////

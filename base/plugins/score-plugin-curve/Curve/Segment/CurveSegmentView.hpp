@@ -65,7 +65,7 @@ public:
 
   void setTween(bool b);
 public:
-  void contextMenuRequested(const QPoint& arg_1, const QPointF& arg_2) W_SIGNAL(contextMenuRequested, arg_1, arg_2);
+  void contextMenuRequested(const QPoint& arg_1, const QPointF& arg_2) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, contextMenuRequested, arg_1, arg_2);
 
 protected:
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;

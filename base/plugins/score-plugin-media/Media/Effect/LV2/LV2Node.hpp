@@ -10,9 +10,9 @@ namespace Media
 {
 namespace LV2
 {
-class lv2_node final : public ossia::graph_node
+template<typename OnExecFinished>
+struct lv2_node final : public ossia::graph_node
 {
-protected:
   LV2Data data;
   ossia::float_vector fInControls, fOutControls, fParamMin, fParamMax,
       fParamInit, fOtherControls;
@@ -21,8 +21,10 @@ protected:
 
   LilvInstance* fInstance{};
 
-public:
-  lv2_node(LV2Data dat, int sampleRate) : data{dat}
+  OnExecFinished onFinished;
+  lv2_node(LV2Data dat, int sampleRate, OnExecFinished of)
+    : data{dat}
+    , onFinished{of}
   {
     data.host.global->sampleRate = sampleRate;
     const std::size_t audio_in_size = data.audio_in_ports.size();
@@ -67,12 +69,6 @@ public:
       m_outlets.push_back(ossia::make_outlet<ossia::value_port>());
     }
 
-    qDebug() << "in\t" << control_in_size << "\n"
-             << "out\t" << control_out_size << "\n"
-             << "min\t" << midi_in_size << "\n"
-             << "mout\t" << midi_out_size << "\n"
-             << "np\t" << num_ports;
-
     fInControls.resize(control_in_size);
     fOutControls.resize(control_out_size);
     fOtherControls.resize(other_size);
@@ -89,16 +85,12 @@ public:
     data.effect.plugin.get_port_ranges_float(
         fParamMin.data(), fParamMax.data(), fParamInit.data());
 
-    fInstance = lilv_plugin_instantiate(
-        data.effect.plugin.me, data.host.global->sampleRate,
-        data.host.features);
+    fInstance = data.effect.instance;
     data.effect.instance = fInstance;
 
     if (!fInstance)
       throw std::runtime_error("Error while creating a LV2 plug-in");
 
-    data.effect.data.data_access
-        = lilv_instance_get_descriptor(fInstance)->extension_data;
 
     // MIDI
     fMidiIns.reserve(midi_in_size);
@@ -163,34 +155,6 @@ public:
     lilv_instance_activate(fInstance);
   }
 
-  std::string GetName()
-  {
-    return data.effect.plugin.get_name().as_string();
-  }
-
-  void SetControlValue(long param, float value)
-  {
-    if (param >= 0 && param < (int64_t)data.control_in_ports.size())
-    {
-      auto param_i = data.control_in_ports[param];
-      fInControls[param]
-          = ossia::clamp(value, fParamMin[param_i], fParamMax[param_i]);
-    }
-  }
-
-  float GetControlValue(long param)
-  {
-    if (param >= 0 && param < (int64_t)data.control_in_ports.size())
-      return fInControls[param];
-    return {};
-  }
-  float GetControlOutValue(long param)
-  {
-    if (param >= 0 && param < (int64_t)data.control_out_ports.size())
-      return fOutControls[param];
-    return {};
-  }
-
   void all_notes_off() noexcept override
   {
     /*
@@ -213,29 +177,40 @@ public:
   }
 
   void preProcess()
-  { /*
-         if(fMidiSource)
-         {
-           for(AtomBuffer& port : fMidiIns)
-           {
-             Iterator it{port.buf};
-             for(auto& note : fMidiSource->timedState.currentAudioStart)
-             {
-               auto on = rtmidi::message::note_on(fMidiSource->process().channel(),
-       note.first.pitch(), note.first.velocity()); it.write(note.second, 0,
-       data.host.midi_event_id, 3, on.data.data());
-             }
+  {
+    const std::size_t audio_in_size = data.audio_in_ports.size();
+    const std::size_t cv_size = data.cv_ports.size();
+    const std::size_t midi_in_size = data.midi_in_ports.size();
+    const std::size_t control_in_size = data.control_in_ports.size();
 
-             for(auto& note : fMidiSource->timedState.currentAudioStop)
-             {
-               auto off = rtmidi::message::note_off(fMidiSource->process().channel(),
-       note.first.pitch(), note.first.velocity()); it.write(note.second, 0,
-       data.host.midi_event_id, 3, off.data.data());
-             }
-           }
-           fMidiSource->timedState.currentAudioStart.clear();
-           fMidiSource->timedState.currentAudioStop.clear();
-         }*/
+    // Copy midi
+    int first_midi_idx = (audio_in_size > 0 ? 1 : 0) + cv_size;
+    for(int i = 0; i < fMidiIns.size(); i++)
+    {
+      ossia::midi_port& ossia_port = *this->inputs()[i + first_midi_idx]->data.template target<ossia::midi_port>();
+      auto& lv2_port = fMidiIns[i];
+      Iterator it{lv2_port.buf};
+
+      for(const rtmidi::message& msg : ossia_port.messages)
+      {
+        it.write(msg.timestamp, 0, data.host.midi_event_id, msg.bytes.size(), msg.bytes.data());
+      }
+    }
+
+    // Copy controls
+    auto control_start = (audio_in_size > 0 ? 1 : 0) + midi_in_size + cv_size;
+    for(std::size_t i = control_start; i < control_in_size; i++)
+    {
+      auto& in = m_inlets[i]->data.template target<ossia::value_port>()->get_data();
+
+      if(!in.empty())
+      {
+        if(auto f = in.back().value.template target<float>())
+        {
+          fInControls[i - control_start] = *f;
+        }
+      }
+    }
   }
 
   void postProcess()
@@ -249,15 +224,51 @@ public:
       data.effect.worker_response = false;
     }
 
-    if (data.effect.on_outControlsChanged && !fOutControls.empty())
-    {
-      data.effect.on_outControlsChanged();
-    }
-
     if (data.effect.worker && data.effect.worker->end_run)
     {
       data.effect.worker->end_run(data.effect.instance->lv2_handle);
     }
+
+    const std::size_t audio_out_size = data.audio_out_ports.size();
+    const std::size_t midi_out_size = data.midi_out_ports.size();
+    const std::size_t control_out_size = data.control_out_ports.size();
+
+    // Copy midi
+    int first_midi_idx = (audio_out_size > 0 ? 1 : 0);
+    for(int i = 0; i < fMidiOuts.size(); i++)
+    {
+      ossia::midi_port& ossia_port = *this->outputs()[i + first_midi_idx]->data.template target<ossia::midi_port>();
+      auto& lv2_port = fMidiOuts[i];
+      Iterator it{lv2_port.buf};
+
+      while(it.is_valid())
+      {
+        uint8_t* bytes;
+        auto ev = it.get(&bytes);
+
+        if(ev->body.type == data.host.midi_event_id)
+        {
+          rtmidi::message msg;
+          msg.timestamp = ev->time.frames;
+          msg.bytes.resize(ev->body.size);
+          for(std::size_t i = 0; i < ev->body.size; i++)
+            msg.bytes[i] = bytes[i];
+          ossia_port.messages.push_back(std::move(msg));
+        }
+        it.increment();
+      }
+    }
+
+    // Copy controls
+    auto control_start = (audio_out_size > 0 ? 1 : 0) + midi_out_size ;
+    for(std::size_t i = control_start; i < control_out_size; i++)
+    {
+      auto& out = *m_outlets[i]->data.template target<ossia::value_port>();
+
+      out.add_value(fOutControls[i - control_start]);
+    }
+
+    onFinished();
 
     for (AtomBuffer& port : fMidiIns)
     {
@@ -272,7 +283,6 @@ public:
   ~lv2_node() override
   {
     lilv_instance_deactivate(fInstance);
-    // lilv_instance_free(fInstance);
   }
 
   void run(ossia::token_request t, ossia::exec_state_facade) noexcept override
@@ -285,14 +295,14 @@ public:
       const std::size_t samples = t.date - t.prev_date;
       const auto audio_ins = data.audio_in_ports.size();
       const auto audio_outs = data.audio_out_ports.size();
-      std::vector<ossia::float_vector> in_vec;
+      ossia::small_vector<ossia::float_vector, 2> in_vec;
       in_vec.resize(audio_ins);
-      std::vector<ossia::float_vector> out_vec;
+      ossia::small_vector<ossia::float_vector, 2> out_vec;
       out_vec.resize(audio_outs);
 
       if (audio_ins > 0)
       {
-        const auto& audio_in = *m_inlets[0]->data.target<ossia::audio_port>();
+        const auto& audio_in = *m_inlets[0]->data.template target<ossia::audio_port>();
         for (std::size_t i = 0; i < audio_ins; i++)
         {
           in_vec[i].resize(samples);
@@ -323,7 +333,7 @@ public:
 
       if (audio_outs > 0)
       {
-        auto& audio_out = *m_outlets[0]->data.target<ossia::audio_port>();
+        auto& audio_out = *m_outlets[0]->data.template target<ossia::audio_port>();
         audio_out.samples.resize(audio_outs);
         for (std::size_t i = 0; i < audio_outs; i++)
         {

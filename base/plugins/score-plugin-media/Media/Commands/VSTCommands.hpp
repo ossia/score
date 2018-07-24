@@ -2,7 +2,6 @@
 #include <Dataflow/Commands/CableHelpers.hpp>
 #include <Media/Commands/MediaCommandFactory.hpp>
 #include <score/command/Command.hpp>
-#include <score_plugin_media_export.h>
 
 namespace Process
 {
@@ -14,7 +13,7 @@ namespace Media::VST
 {
 class VSTEffectModel;
 class VSTControlInlet;
-class SCORE_PLUGIN_MEDIA_EXPORT SetVSTControl final : public score::Command
+class SetVSTControl final : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), SetVSTControl, "Set a control")
 
@@ -35,7 +34,7 @@ private:
   float m_old, m_new;
 };
 
-class SCORE_PLUGIN_MEDIA_EXPORT CreateVSTControl final : public score::Command
+class CreateVSTControl final : public score::Command
 {
   SCORE_COMMAND_DECL(
       CommandFactoryName(), CreateVSTControl, "Create a control")
@@ -56,7 +55,7 @@ private:
   float m_val{};
 };
 
-class SCORE_PLUGIN_MEDIA_EXPORT RemoveVSTControl final : public score::Command
+class RemoveVSTControl final : public score::Command
 {
   SCORE_COMMAND_DECL(
       CommandFactoryName(), RemoveVSTControl, "Remove a control")

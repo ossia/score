@@ -141,30 +141,30 @@ public:
   void setMuted(bool m);
 
 public:
-  void heightPercentageChanged(double arg_1) W_SIGNAL(heightPercentageChanged, arg_1);
+  void heightPercentageChanged(double arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, heightPercentageChanged, arg_1);
 
-  void dateChanged(const TimeVal& arg_1) W_SIGNAL(dateChanged, arg_1);
+  void dateChanged(const TimeVal& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dateChanged, arg_1);
 
-  void focusChanged(bool arg_1) W_SIGNAL(focusChanged, arg_1);
-  void executionStateChanged(Scenario::IntervalExecutionState arg_1) W_SIGNAL(executionStateChanged, arg_1);
-  void executionStarted() W_SIGNAL(executionStarted);
-  void executionStopped() W_SIGNAL(executionStopped);
-  void executionFinished() W_SIGNAL(executionFinished);
+  void focusChanged(bool arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, focusChanged, arg_1);
+  void executionStateChanged(Scenario::IntervalExecutionState arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionStateChanged, arg_1);
+  void executionStarted() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionStarted);
+  void executionStopped() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionStopped);
+  void executionFinished() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionFinished);
 
-  void smallViewVisibleChanged(bool fv) W_SIGNAL(smallViewVisibleChanged, fv);
+  void smallViewVisibleChanged(bool fv) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, smallViewVisibleChanged, fv);
 
-  void rackChanged(Scenario::Slot::RackView fv) W_SIGNAL(rackChanged, fv);
-  void slotAdded(Scenario::SlotId arg_1) W_SIGNAL(slotAdded, arg_1);
-  void slotRemoved(Scenario::SlotId arg_1) W_SIGNAL(slotRemoved, arg_1);
-  void slotResized(Scenario::SlotId arg_1) W_SIGNAL(slotResized, arg_1);
-  void slotsSwapped(int slot1, int slot2, Slot::RackView fv) W_SIGNAL(slotsSwapped, slot1, slot2, fv);
-  void heightFinishedChanging() W_SIGNAL(heightFinishedChanging);
+  void rackChanged(Scenario::Slot::RackView fv) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, rackChanged, fv);
+  void slotAdded(Scenario::SlotId arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, slotAdded, arg_1);
+  void slotRemoved(Scenario::SlotId arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, slotRemoved, arg_1);
+  void slotResized(Scenario::SlotId arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, slotResized, arg_1);
+  void slotsSwapped(int slot1, int slot2, Slot::RackView fv) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, slotsSwapped, slot1, slot2, fv);
+  void heightFinishedChanging() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, heightFinishedChanging);
 
-  void layerAdded(Scenario::SlotId arg_1, Id<Process::ProcessModel> arg_2) W_SIGNAL(layerAdded, arg_1, arg_2);
-  void layerRemoved(Scenario::SlotId arg_1, Id<Process::ProcessModel> arg_2) W_SIGNAL(layerRemoved, arg_1, arg_2);
-  void frontLayerChanged(int arg_1, OptionalId<Process::ProcessModel> arg_2) W_SIGNAL(frontLayerChanged, arg_1, arg_2);
+  void layerAdded(Scenario::SlotId arg_1, Id<Process::ProcessModel> arg_2) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, layerAdded, arg_1, arg_2);
+  void layerRemoved(Scenario::SlotId arg_1, Id<Process::ProcessModel> arg_2) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, layerRemoved, arg_1, arg_2);
+  void frontLayerChanged(int arg_1, OptionalId<Process::ProcessModel> arg_2) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, frontLayerChanged, arg_1, arg_2);
 
-  void mutedChanged(bool arg_1) W_SIGNAL(mutedChanged, arg_1);
+  void mutedChanged(bool arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, mutedChanged, arg_1);
 
   PROPERTY(double, muted READ muted WRITE setMuted NOTIFY mutedChanged)
   PROPERTY(double, heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY heightPercentageChanged)

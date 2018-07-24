@@ -23,7 +23,6 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <score_plugin_scenario_export.h>
 #include <sys/types.h>
 
 namespace Process

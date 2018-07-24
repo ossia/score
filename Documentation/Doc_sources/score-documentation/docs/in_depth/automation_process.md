@@ -29,6 +29,10 @@ By default, the curvature of a segment can be modified by selecting the segment 
 
 Points of the automation can be deleted by selecting them and pressing the `delete` or `backspace` key.
 
+Automation's function can also be hand-drawn by holding the `alt` key and drawing in Automation editor. Drawn function will get optimized and transformed onto a beak-point function on mouse release so you can edit various points individually.
+
+![Hand-drawing function](../images/function_handraw.gif)
+
 
 ### Advance editing
 
@@ -54,15 +58,15 @@ To set a function type, right click in the automation editor and select the desi
 ## Tween mode
 
 
- Automation can be used in tween mode. To do so, from the automation Inspector, check the corresponding option. When checked, the automation will tween from the current value of the address.
+Automation can be used in tween mode. To do so, from the automation Inspector, check the corresponding option. When checked, the automation will tween from the current value of the address.
  
 ![Tween mode](../images/tween_mode.gif)
 
 > Notice that in tween mode, first curve segment will become dashed
 
-When playing, if the value of the address when the automation is reached is 50, then the first segment will interpolate from 50 to the value of the second point.
+In tween mode, when playing, if the automated parameter in the device is 50, the first segment will interpolate from 50 to the value of the second point set in the automation editor.
 
 ## Related topic
 
 * [Adding processes](../first_steps/first_scenario.md#writing-processes)
-* [Addressing value](in_depth/value_addressing.md)
+* [Addressing value](./value_addressing.md)

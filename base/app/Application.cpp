@@ -2,7 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Application.hpp"
 
-#include "score_git_info.hpp"
 
 #include <QByteArray>
 #include <QCoreApplication>
@@ -41,7 +40,11 @@
 #include <score/selection/Selection.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <spdlog/spdlog.h>
+#include <ossia/context.hpp>
+#include <ossia/detail/logger.hpp>
 #include <vector>
+#include <ossia-qt/qt_logger.hpp>
 
 #if __has_include(<QQuickStyle>)
 #  include <QQuickStyle>
@@ -90,6 +93,7 @@ static void setQApplicationSettings(QApplication& m_app)
 #endif
 }
 
+
 } // namespace score
 
 Application::Application(int& argc, char** argv) : QObject{nullptr}
@@ -99,7 +103,7 @@ Application::Application(int& argc, char** argv) : QObject{nullptr}
   QStringList l;
   for (int i = 0; i < argc; i++)
     l.append(QString::fromUtf8(argv[i]));
-  m_applicationSettings.parse(l);
+  m_applicationSettings.parse(l, argc, argv);
 
   if (m_applicationSettings.gui)
     m_app = new SafeQApplication{argc, argv};
@@ -176,18 +180,14 @@ static QPixmap writeVersionName()
 
 void Application::init()
 {
-  {
-    QCoreApplication::setOrganizationName("OSSIA");
-    QCoreApplication::setOrganizationDomain("ossia.io");
-    QCoreApplication::setApplicationName("score");
-    QCoreApplication::setApplicationVersion(QString("%1.%2.%3-%4")
-                                                .arg(SCORE_VERSION_MAJOR)
-                                                .arg(SCORE_VERSION_MINOR)
-                                                .arg(SCORE_VERSION_PATCH)
-                                                .arg(SCORE_VERSION_EXTRA));
-  }
+  std::vector<spdlog::sink_ptr> v{spdlog::sinks::stderr_sink_mt::instance(),
+                                  std::make_shared<ossia::qt::log_sink>()};
 
-#if 1 || !defined(SCORE_DEBUG) && !defined(__EMSCRIPTEN__)
+  ossia::context context{v};
+  ossia::logger().set_level(spdlog::level::debug);
+
+  score::setQApplicationMetadata();
+#if !defined(SCORE_DEBUG) && !defined(__EMSCRIPTEN__)
 #  define SCORE_SPLASH_SCREEN 1
 #endif
 #if defined(SCORE_SPLASH_SCREEN)
@@ -233,7 +233,12 @@ void Application::init()
   // View
   if (m_applicationSettings.gui)
   {
+#if !defined(__EMSCRIPTEN__)
     m_view->show();
+#else
+    m_view->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+    m_view->showFullScreen();
+#endif
 
 #if defined(SCORE_SPLASH_SCREEN)
     if (splash)

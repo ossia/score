@@ -12,7 +12,6 @@
 #include <memory>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/tools/Metadata.hpp>
-#include <score_plugin_engine_export.h>
 
 namespace ossia
 {

@@ -64,7 +64,7 @@ public:
   void set(ossia::access_mode t);
 
 public:
-  void changed(ossia::access_mode arg_1) W_SIGNAL(changed, arg_1);
+  void changed(ossia::access_mode arg_1) E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, changed, arg_1);
 };
 
 class BoundingModeComboBox final : public QComboBox
@@ -78,7 +78,7 @@ public:
   void set(ossia::bounding_mode t);
 
 public:
-  void changed(ossia::bounding_mode arg_1) W_SIGNAL(changed, arg_1);
+  void changed(ossia::bounding_mode arg_1) E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, changed, arg_1);
 };
 
 inline QLabel* makeLabel(QString text, QWidget* parent)

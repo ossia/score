@@ -36,6 +36,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioScene.hpp>
 #include <Scenario/Document/TimeRuler/TimeRuler.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
+#include <core/view/Window.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -84,13 +85,14 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
   using namespace score;
 
   // Setup the connections
-  if (auto win = score::GUIAppContext().mainWindow)
+  if (auto win = static_cast<score::View*>(score::GUIAppContext().mainWindow))
   {
     connect(
-        win, SIGNAL(sizeChanged(QSize)), this,
-        SLOT(on_windowSizeChanged(QSize)), Qt::QueuedConnection);
+        win, &View::sizeChanged,
+        this, &ScenarioDocumentPresenter::on_windowSizeChanged,
+          Qt::QueuedConnection);
     connect(
-        win, SIGNAL(ready()), this, SLOT(on_viewReady()),
+        win, &View::ready, this, &ScenarioDocumentPresenter::on_viewReady,
         Qt::QueuedConnection);
   }
 
@@ -122,8 +124,8 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
 
   // Focus
   connect(
-      &m_focusDispatcher, SIGNAL(focus(QPointer<Process::LayerPresenter>)),
-      this, SIGNAL(setFocusedPresenter(QPointer<Process::LayerPresenter>)),
+      &m_focusDispatcher, qOverload<QPointer<Process::LayerPresenter>>(&FocusDispatcher::focus),
+      this, &ScenarioDocumentPresenter::setFocusedPresenter,
       Qt::QueuedConnection);
 
   auto& set = ctx.app.settings<Settings::Model>();

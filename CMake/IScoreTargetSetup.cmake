@@ -65,7 +65,7 @@ function(score_set_msvc_compile_options theTarget)
 
     target_compile_definitions(${theTarget} PUBLIC
         "NOMINMAX"
-#        "__cpp_constexpr=201304" 
+#        "__cpp_constexpr=201304"
 #        "__cpp_variable_templates=201304"
         )
 endfunction()
@@ -275,14 +275,6 @@ function(score_set_compile_options theTarget)
   # currently breaks build : add_linker_warnings(${theTarget})
 endfunction()
 
-function(score_moc_headers TheTarget TheHeaders)
-  set(cur_moc "")
-  foreach(HEADER ${TheHeaders})
-    qt5_wrap_cpp(cur_moc ${HEADER} TARGET ${TheTarget})
-  endforeach()
-  target_sources(${TheTarget} PRIVATE ${cur_moc})
-endfunction()
-
 function(setup_score_common_features TheTarget)
   score_set_compile_options(${TheTarget})
   score_cotire_pre(${TheTarget})
@@ -314,11 +306,11 @@ endfunction()
 function(setup_score_common_lib_features TheTarget)
   setup_score_common_features("${TheTarget}")
 
-  generate_export_header(${TheTarget})
   if(NOT SCORE_STATIC_PLUGINS)
-    set_target_properties(${TheTarget} PROPERTIES CXX_VISIBILITY_PRESET default)
-      set_target_properties(${TheTarget} PROPERTIES VISIBILITY_INLINES_HIDDEN 0)
+    set_target_properties(${TheTarget} PROPERTIES CXX_VISIBILITY_PRESET hidden)
+    set_target_properties(${TheTarget} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
   endif()
+  generate_export_header(${TheTarget})
 
   string(TOUPPER "${TheTarget}" UPPERCASE_PLUGIN_NAME)
   set_property(TARGET ${TheTarget} APPEND

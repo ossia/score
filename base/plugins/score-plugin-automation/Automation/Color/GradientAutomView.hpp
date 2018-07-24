@@ -19,9 +19,9 @@ public:
   }
 
 public:
-  void setColor(double pos, QColor arg_2) W_SIGNAL(setColor, pos, arg_2);
-  void movePoint(double old, double cur) W_SIGNAL(movePoint, old, cur);
-  void removePoint(double pos) W_SIGNAL(removePoint, pos);
+  void setColor(double pos, QColor arg_2) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, setColor, pos, arg_2);
+  void movePoint(double old, double cur) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, movePoint, old, cur);
+  void removePoint(double pos) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, removePoint, pos);
 
 private:
   void paint_impl(QPainter*) const override;

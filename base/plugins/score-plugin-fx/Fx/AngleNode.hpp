@@ -15,10 +15,8 @@ struct Node
     static const constexpr auto uuid
         = make_uuid("9b0e21ba-965a-4aa4-beeb-60cc5128c418");
 
-    static const constexpr auto value_ins
-        = ossia::safe_nodes::value_ins<1>{{"in"}};
-    static const constexpr auto value_outs
-        = ossia::safe_nodes::value_outs<1>{{"out"}};
+    static const constexpr value_in value_ins[]{"in"};
+    static const constexpr value_out value_outs[]{"out"};
   };
 
   struct State

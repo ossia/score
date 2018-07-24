@@ -23,6 +23,29 @@ struct WorkerData
   const void* data;
 };
 
+static LV2_URID do_uri_map(
+    LV2_URI_Map_Callback_Data ptr,
+    const char*               ,
+    const char*               val)
+{
+  auto& c = *static_cast<LV2::GlobalContext*>(ptr);
+  auto& map = c.uri_map_left;
+
+  std::string v{val};
+  auto it = map.find(v);
+  if (it != map.end())
+  {
+    return it->second;
+  }
+  else
+  {
+    auto n = c.uri_map_cur;
+    map.insert(std::make_pair(v, n));
+    c.uri_map_cur++;
+    return n;
+  }
+}
+
 static LV2_URID do_map(LV2_URID_Map_Handle ptr, const char* val)
 {
   auto& c = *static_cast<LV2::GlobalContext*>(ptr);
@@ -135,6 +158,7 @@ static char* do_make_path(LV2_State_Make_Path_Handle handle, const char* path)
 
 GlobalContext::GlobalContext(int buffer_size, LV2::HostContext& host)
     : host{host}
+    , uri_map{this, do_uri_map}
     , map{this, do_map}
     , unmap{this, do_unmap}
     , event{this, do_event_ref, do_event_unref}
@@ -172,6 +196,7 @@ GlobalContext::GlobalContext(int buffer_size, LV2::HostContext& host)
 
   options_feature.data = options.data();
 
+  lv2_features.push_back(&uri_map_feature);
   lv2_features.push_back(&map_feature);
   lv2_features.push_back(&unmap_feature);
   lv2_features.push_back(&event_feature);
@@ -198,6 +223,7 @@ void LV2::GlobalContext::loadPlugins()
   host.midi_event_id = map.map(map.handle, LILV_URI_MIDI_EVENT);
   host.atom_sequence_id = map.map(map.handle, LV2_ATOM__Sequence);
   host.atom_chunk_id = map.map(map.handle, LV2_ATOM__Chunk);
+  host.atom_eventTransfer = map.map(map.handle, LV2_ATOM__eventTransfer);
   lv2_atom_forge_init(&host.forge, &map);
 }
 

@@ -63,13 +63,13 @@ public:
   }
 
 public:
-  void stateChanged() W_SIGNAL(stateChanged);
+  void stateChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, stateChanged);
   /**
    * @brief messagesChanged
    * Sent whenever the messages in the process changed.
    *
    */
-  void messagesChanged(const State::MessageList& arg_1) W_SIGNAL(messagesChanged, arg_1);
+  void messagesChanged(const State::MessageList& arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, messagesChanged, arg_1);
 
 private:
   Process::ProcessModel& m_model;

@@ -4,7 +4,7 @@
 #include <ossia/editor/curve/behavior.hpp>
 namespace ossia::nodes
 {
-class OSSIA_EXPORT state_interpolation final :
+class state_interpolation final :
     public ossia::graph_node
 {
   public:

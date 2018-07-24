@@ -84,12 +84,12 @@ public:
   void setOffsetBehavior(Scenario::OffsetBehavior);
 
 public:
-  void extentChanged(const VerticalExtent& arg_1) W_SIGNAL(extentChanged, arg_1);
-  void dateChanged(const TimeVal& arg_1) W_SIGNAL(dateChanged, arg_1);
-  void conditionChanged(const State::Expression& arg_1) W_SIGNAL(conditionChanged, arg_1);
-  void statesChanged() W_SIGNAL(statesChanged);
-  void statusChanged(Scenario::ExecutionStatus status) W_SIGNAL(statusChanged, status);
-  void offsetBehaviorChanged(OffsetBehavior arg_1) W_SIGNAL(offsetBehaviorChanged, arg_1);
+  void extentChanged(const VerticalExtent& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, extentChanged, arg_1);
+  void dateChanged(const TimeVal& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dateChanged, arg_1);
+  void conditionChanged(const State::Expression& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, conditionChanged, arg_1);
+  void statesChanged() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, statesChanged);
+  void statusChanged(Scenario::ExecutionStatus status) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, statusChanged, status);
+  void offsetBehaviorChanged(OffsetBehavior arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, offsetBehaviorChanged, arg_1);
 
 private:
   Id<TimeSyncModel> m_timeSync;

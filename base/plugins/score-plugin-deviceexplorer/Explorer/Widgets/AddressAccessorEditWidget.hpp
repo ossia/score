@@ -25,7 +25,7 @@ public:
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent*) override;
 public:
-  void addressChanged(const Device::FullAddressAccessorSettings& arg_1) W_SIGNAL(addressChanged, arg_1);
+  void addressChanged(const Device::FullAddressAccessorSettings& arg_1) E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, addressChanged, arg_1);
 
 private:
   void customContextMenuEvent(const QPoint& p);

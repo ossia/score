@@ -5,7 +5,6 @@
 #include <Media/AudioArray.hpp>
 #include <QThread>
 #include <atomic>
-#include <score_plugin_media_export.h>
 #include <vector>
 struct AVFrame;
 struct SwrContext;
@@ -30,7 +29,7 @@ struct AudioInfo
   int64_t max_arr_length{};
 };
 
-class SCORE_PLUGIN_MEDIA_EXPORT AudioDecoder : public QObject
+class AudioDecoder : public QObject
 {
   W_OBJECT(AudioDecoder)
 

@@ -28,11 +28,6 @@ PROCESS_METADATA(
 DESCRIPTION_METADATA(, Media::LV2::LV2EffectModel, "LV2")
 namespace Media::LV2
 {
-/** LV2 effect model.
- * Should contain an effect, maybe instantiated with
- * LibMediaStream's MakeLV2MediaEffect
- * Cloning can be done with MakeCopyEffect.
- */
 class LV2EffectModel : public Process::ProcessModel
 {
   W_OBJECT(LV2EffectModel)
@@ -65,34 +60,22 @@ public:
   QString prettyName() const override;
 
   const LilvPlugin* plugin{};
-  LV2::EffectContext effectContext;
+  mutable LV2::EffectContext effectContext;
 
+  std::size_t m_controlInStart{};
+  std::size_t m_controlOutStart{};
+  mutable moodycamel::ReaderWriterQueue<Message> ui_events; // from ui
+  mutable moodycamel::ReaderWriterQueue<Message> plugin_events; // from plug-in
+
+  ossia::fast_hash_map<uint32_t, std::pair<Process::ControlInlet*, bool>> control_map;
+  ossia::fast_hash_map<uint32_t, Process::ControlOutlet*> control_out_map;
 private:
   void reload();
   QString m_effectPath;
   void readPlugin();
 };
-}
 
-namespace Process
-{
-template <>
-QString
-EffectProcessFactory_T<Media::LV2::LV2EffectModel>::customConstructionData()
-    const;
-}
 
-namespace Media::LV2
-{
-using LV2EffectFactory = Process::EffectProcessFactory_T<LV2EffectModel>;
-using LayerFactory = Process::
-    EffectLayerFactory_T<LV2EffectModel, Media::Effect::DefaultEffectItem>;
-}
-
-namespace Engine
-{
-namespace Execution
-{
 class LV2EffectComponent final
     : public Engine::Execution::
           ProcessComponent_T<Media::LV2::LV2EffectModel, ossia::node_process>
@@ -108,8 +91,30 @@ public:
       const Engine::Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent);
+
+  void init() override;
+
+  void writeAtomToUi(
+        uint32_t port_index,
+        uint32_t type,
+        uint32_t size,
+        const void* body);
 };
+
+}
+
+namespace Process
+{
+template <>
+QString
+EffectProcessFactory_T<Media::LV2::LV2EffectModel>::customConstructionData()
+    const;
+}
+
+namespace Media::LV2
+{
+using LV2EffectFactory = Process::EffectProcessFactory_T<LV2EffectModel>;
 using LV2EffectComponentFactory
     = Engine::Execution::ProcessComponentFactory_T<LV2EffectComponent>;
-}
+
 }

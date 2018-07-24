@@ -19,7 +19,7 @@ class StateModel;
 
 namespace Engine::Execution
 {
-class SCORE_PLUGIN_ENGINE_EXPORT StateComponentBase
+class StateComponentBase
     : public Execution::Component
 {
   COMMON_COMPONENT_METADATA("b3905e79-2bd0-48bd-8654-8666455ceedd")
@@ -61,7 +61,7 @@ public:
         std::is_same<Models, Process::ProcessModel>::value,
         "State component must be passed Process::ProcessModel as child.");
 
-    return m_model.stateProcesses;
+    return m_model->stateProcesses;
   }
 
   const score::
@@ -72,7 +72,8 @@ public:
   }
   const Scenario::StateModel& state() const
   {
-    return m_model;
+    SCORE_ASSERT(m_model);
+    return *m_model;
   }
   const std::shared_ptr<ossia::nodes::state_writer>& node() const
   {
@@ -80,14 +81,14 @@ public:
   }
 
 protected:
-  const Scenario::StateModel& m_model;
+  QPointer<const Scenario::StateModel> m_model;
   std::shared_ptr<ossia::time_event> m_ev;
   std::shared_ptr<ossia::nodes::state_writer> m_node;
   score::hash_map<Id<Process::ProcessModel>, std::shared_ptr<ProcessComponent>>
       m_processes;
 };
 
-class SCORE_PLUGIN_ENGINE_EXPORT StateComponent final
+class StateComponent final
     : public score::PolymorphicComponentHierarchy<StateComponentBase, false>
 {
 public:

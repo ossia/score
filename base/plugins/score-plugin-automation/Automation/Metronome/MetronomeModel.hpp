@@ -20,10 +20,10 @@ class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
   PROCESS_METADATA_IMPL(Metronome::ProcessModel)
 
   W_OBJECT(ProcessModel)
-  
+
   // Min and max to scale the curve with at execution
-  
-  
+
+
 
 public:
   ProcessModel(
@@ -54,9 +54,9 @@ public:
 
   void init();
 public:
-  void addressChanged(const State::Address& arg_1) W_SIGNAL(addressChanged, arg_1);
-  void minChanged(double arg_1) W_SIGNAL(minChanged, arg_1);
-  void maxChanged(double arg_1) W_SIGNAL(maxChanged, arg_1);
+  void addressChanged(const State::Address& arg_1) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, addressChanged, arg_1);
+  void minChanged(double arg_1) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, minChanged, arg_1);
+  void maxChanged(double arg_1) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, maxChanged, arg_1);
 
 private:
   //// ProcessModel ////

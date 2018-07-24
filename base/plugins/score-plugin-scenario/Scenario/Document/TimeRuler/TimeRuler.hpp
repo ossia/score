@@ -18,6 +18,7 @@
 #include <chrono>
 #include <deque>
 #include <score/model/ColorReference.hpp>
+#include <score_plugin_scenario_export.h>
 class QGraphicsSceneMouseEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
@@ -26,7 +27,7 @@ class QGraphicsView;
 
 namespace Scenario
 {
-class TimeRuler final
+class SCORE_PLUGIN_SCENARIO_EXPORT TimeRuler final
     : public QObject
     , public QGraphicsItem
 {

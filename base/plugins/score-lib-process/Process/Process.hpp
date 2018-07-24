@@ -115,20 +115,20 @@ public:
 
 public:
   // True if the execution is running.
-  void execution(bool arg_1) W_SIGNAL(execution, arg_1);
-  void durationChanged(const TimeVal& arg_1) W_SIGNAL(durationChanged, arg_1);
-  void useParentDurationChanged(bool arg_1) W_SIGNAL(useParentDurationChanged, arg_1);
+  void execution(bool arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, execution, arg_1);
+  void durationChanged(const TimeVal& arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, durationChanged, arg_1);
+  void useParentDurationChanged(bool arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, useParentDurationChanged, arg_1);
 
-  void slotHeightChanged(double arg_1) W_SIGNAL(slotHeightChanged, arg_1);
-  void prettyNameChanged() W_SIGNAL(prettyNameChanged);
+  void slotHeightChanged(double arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, slotHeightChanged, arg_1);
+  void prettyNameChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, prettyNameChanged);
 
-  void inletsChanged() W_SIGNAL(inletsChanged);
-  void outletsChanged() W_SIGNAL(outletsChanged);
+  void inletsChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, inletsChanged);
+  void outletsChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, outletsChanged);
 
-  void controlAdded(const Id<Process::Port>& arg_1) W_SIGNAL(controlAdded, arg_1);
-  void controlRemoved(const Process::Port& arg_1) W_SIGNAL(controlRemoved, arg_1);
+  void controlAdded(const Id<Process::Port>& arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, controlAdded, arg_1);
+  void controlRemoved(const Process::Port& arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, controlRemoved, arg_1);
 
-  void benchmark(double arg_1) W_SIGNAL(benchmark, arg_1);
+  void benchmark(double arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, benchmark, arg_1);
 
 protected:
   // Used to scale the process.

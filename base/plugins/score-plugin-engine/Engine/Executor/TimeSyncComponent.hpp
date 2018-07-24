@@ -16,7 +16,7 @@ namespace Engine
 {
 namespace Execution
 {
-class SCORE_PLUGIN_ENGINE_EXPORT TimeSyncComponent final
+class TimeSyncComponent final
     : public Execution::Component
 {
   COMMON_COMPONENT_METADATA("eca86942-002e-4af5-ad3d-cb1615e0552c")
@@ -44,7 +44,7 @@ private:
   void updateTrigger();
   void on_GUITrigger();
   std::shared_ptr<ossia::time_sync> m_ossia_node;
-  const Scenario::TimeSyncModel& m_score_node;
+  QPointer<const Scenario::TimeSyncModel> m_score_node;
 };
 }
 }
