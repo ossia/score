@@ -6,7 +6,7 @@
 #include <Engine/Protocols/Local/LocalDevice.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/tools/Metadata.hpp>
-
+#include <score_plugin_engine_export.h>
 namespace score
 {
 class ModelMetadata;

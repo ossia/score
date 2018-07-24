@@ -35,7 +35,6 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Settings/View.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Settings/Factory.hpp"
 
-    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Panel/MessagesPanel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Curve/EasingSegment.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/ApplicationPlugin.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/score2OSSIA.hpp"
@@ -135,7 +134,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Settings/View.cpp"
 
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Panel/MessagesPanel.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/OSSIA2score.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/ApplicationPlugin.cpp"

@@ -10,7 +10,6 @@
 #include <memory>
 #include <score/model/ComponentHierarchy.hpp>
 #include <score/model/Identifier.hpp>
-#include <score_plugin_engine_export.h>
 
 Q_DECLARE_METATYPE(ossia::time_value)
 W_REGISTER_ARGTYPE(ossia::time_value)
@@ -71,7 +70,7 @@ struct interval_duration_data
   double speed;
 };
 
-class SCORE_PLUGIN_ENGINE_EXPORT IntervalComponentBase
+class IntervalComponentBase
     : public Scenario::GenericIntervalComponent<const Context>
 {
   W_OBJECT(IntervalComponentBase)
@@ -142,7 +141,7 @@ protected:
       m_processes;
 };
 
-class SCORE_PLUGIN_ENGINE_EXPORT IntervalComponent final
+class IntervalComponent final
     : public score::PolymorphicComponentHierarchy<IntervalComponentBase, false>
 {
   W_OBJECT(IntervalComponent)

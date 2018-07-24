@@ -112,24 +112,24 @@ public:
 public:
   // These signals are emitted if a device changes from the inside
   void pathAdded(const State::Address& arg_1)
-  W_SIGNAL(pathAdded, arg_1);
+  E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, pathAdded, arg_1);
   void pathUpdated(
       const State::Address& arg_1,           // current address
       const Device::AddressSettings& arg_2)
-  W_SIGNAL(pathUpdated, arg_1, arg_2); // new data
+  E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, pathUpdated, arg_1, arg_2); // new data
   void pathRemoved(const State::Address& arg_1)
-  W_SIGNAL(pathRemoved, arg_1);
+  E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, pathRemoved, arg_1);
 
   // In case the whole namespace changed?
   void namespaceUpdated()
-  W_SIGNAL(namespaceUpdated);
+  E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, namespaceUpdated);
 
   /* If logging is enabled, these two signals may be sent
    * when something happens */
   void logInbound(const QString& arg_1) const
-  W_SIGNAL(logInbound, arg_1);
+  E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, logInbound, arg_1);
   void logOutbound(const QString& arg_1) const
-  W_SIGNAL(logOutbound, arg_1);
+  E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, logOutbound, arg_1);
 
 protected:
   Device::DeviceSettings m_settings;

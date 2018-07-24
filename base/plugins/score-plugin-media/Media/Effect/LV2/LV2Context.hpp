@@ -30,14 +30,13 @@
 #include <lv2/lv2plug.in/ns/ext/uri-map/uri-map.h>
 #include <lv2/lv2plug.in/ns/ext/urid/urid.h>
 #include <lv2/lv2plug.in/ns/ext/worker/worker.h>
+#include <lv2/lv2plug.in/ns/extensions/ui/ui.h>
 #include <readerwriterqueue.h>
 #include <score/tools/Todo.hpp>
 #include <vector>
+#include <suil-0/suil/suil.h>
 
-namespace Media
-{
-
-namespace LV2
+namespace Media::LV2
 {
 struct EffectContext;
 struct GlobalContext;
@@ -67,12 +66,18 @@ struct HostContext
   Lilv::Node work_interface{make_node(LV2_WORKER__interface)};
   Lilv::Node work_schedule{make_node(LV2_WORKER__schedule)};
 
+  Lilv::Node optional_feature{make_node(LV2_CORE__optionalFeature)};
+  Lilv::Node fixed_size{make_node(LV2_UI__fixedSize)};
+  Lilv::Node no_user_resize{make_node(LV2_UI__noUserResize)};
+
   int32_t midi_buffer_size = 2048;
   // Lilv::Node midi_event_class{make_node(LILV_URI_MIDI_EVENT)};
-  uint32_t midi_event_id{};
-  uint32_t atom_chunk_id{};
-  uint32_t atom_sequence_id{};
-  uint32_t null_id{};
+  LV2_URID midi_event_id{};
+  LV2_URID atom_chunk_id{};
+  LV2_URID atom_sequence_id{};
+  LV2_URID null_id{};
+  LV2_URID atom_eventTransfer{};
+
 };
 
 struct EffectContext
@@ -81,8 +86,10 @@ struct EffectContext
   LilvInstance* instance{};
   const LV2_Worker_Interface* worker{};
   LV2_Extension_Data_Feature data{};
+  const LilvUI* ui{};
+  const LilvNode* ui_type{};
+  SuilInstance* ui_instance{};
 
-  std::function<void()> on_outControlsChanged;
   std::vector<char> worker_data;
   std::atomic_bool worker_response{false};
 };
@@ -107,18 +114,23 @@ public:
   ossia::fast_hash_map<std::string, LV2_URID> urid_map_left;
   ossia::fast_hash_map<LV2_URID, std::string> urid_map_right;
 
-  LV2_URID_Map map;
-  LV2_URID_Unmap unmap;
-  LV2_Event_Feature event;
-  LV2_Worker_Schedule worker;
-  LV2_Worker_Schedule worker_state;
+  LV2_URI_Map_Feature uri_map{};
+  LV2_URID uri_map_cur = 1;
+  ossia::fast_hash_map<std::string, LV2_URID> uri_map_left;
 
-  LV2_Log_Log logger;
+  LV2_URID_Map map{};
+  LV2_URID_Unmap unmap{};
+  LV2_Event_Feature event{};
+  LV2_Worker_Schedule worker{};
+  LV2_Worker_Schedule worker_state{};
+
+  LV2_Log_Log logger{};
   LV2_Extension_Data_Feature ext_data{nullptr};
 
-  LV2_Resize_Port_Resize ext_port_resize;
-  LV2_State_Make_Path state_make_path;
+  LV2_Resize_Port_Resize ext_port_resize{};
+  LV2_State_Make_Path state_make_path{};
 
+  LV2_Feature uri_map_feature{"http://lv2plug.in/ns/ext/uri-map", &uri_map};
   LV2_Feature map_feature{LV2_URID__map, &map};
   LV2_Feature unmap_feature{LV2_URID__unmap, &unmap};
   LV2_Feature event_feature{LV2_EVENT_URI, &event};
@@ -138,6 +150,10 @@ public:
   LV2_Feature pow2{LV2_BUF_SIZE__powerOf2BlockLength, nullptr};
 
   std::vector<LV2_Feature*> lv2_features;
+
+  SuilHost* ui_host{};
+
+  const LV2_Feature data_feature{LV2_DATA_ACCESS_URI, &ext_data};
 };
 
 struct LV2Data
@@ -156,5 +172,11 @@ struct LV2Data
   ossia::small_vector<int, 2> midi_in_ports, midi_out_ports, midi_other_ports,
       cv_ports;
 };
-}
+
+struct Message {
+  uint32_t index;
+  uint32_t protocol;
+  ossia::small_vector<uint8_t, 8> body;
+};
+
 }

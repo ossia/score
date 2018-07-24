@@ -16,6 +16,7 @@
 #include <Fx/Quantifier.hpp>
 #include <Fx/TestNode.hpp>
 #include <Fx/VelToNote.hpp>
+#include <Fx/FactorOracle.hpp>
 #include <score/plugins/customfactory/FactorySetup.hpp>
 #include <score_plugin_engine.hpp>
 
@@ -34,7 +35,10 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_fx::factories(
       Nodes::Metro::Node, Nodes::Envelope::Node, Nodes::Quantifier::Node,
       Nodes::MathGenerator::Node, Nodes::MathAudioGenerator::Node,
       Nodes::MathMapping::Node, Nodes::EmptyValueMapping::Node,
-      Nodes::EmptyMidiMapping::Node, Nodes::EmptyAudioMapping::Node>(ctx, key);
+      Nodes::EmptyMidiMapping::Node
+      , Nodes::EmptyAudioMapping::Node
+      , Nodes::FactorOracle::Node
+      >(ctx, key);
 }
 
 auto score_plugin_fx::required() const -> std::vector<score::PluginKey>

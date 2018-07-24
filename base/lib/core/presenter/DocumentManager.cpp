@@ -658,6 +658,7 @@ void DocumentManager::restoreDocuments(const score::GUIApplicationContext& ctx)
   }
 }
 
+SCORE_LIB_BASE_EXPORT
 Id<score::DocumentModel> getStrongId(const std::vector<score::Document*>& v)
 {
   using namespace std;
@@ -669,6 +670,8 @@ Id<score::DocumentModel> getStrongId(const std::vector<score::Document*>& v)
 
   return Id<score::DocumentModel>{score::random_id_generator::getNextId(ids)};
 }
+
+SCORE_LIB_BASE_EXPORT
 Id<score::DocumentPlugin>
 getStrongId(const std::vector<score::DocumentPlugin*>& v)
 {

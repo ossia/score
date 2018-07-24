@@ -34,7 +34,7 @@ namespace Execution
 struct Context;
 class DocumentPlugin;
 
-class SCORE_PLUGIN_ENGINE_EXPORT IntervalRawPtrComponentBase
+class IntervalRawPtrComponentBase
     : public Scenario::GenericIntervalComponent<const Context>
 {
   COMMON_COMPONENT_METADATA("15f89c71-75a8-4966-8c3e-710a46f7a4db")
@@ -106,7 +106,7 @@ protected:
       m_processes;
 };
 
-class SCORE_PLUGIN_ENGINE_EXPORT IntervalRawPtrComponent final
+class IntervalRawPtrComponent final
     : public score::
           PolymorphicComponentHierarchy<IntervalRawPtrComponentBase, false>
 {

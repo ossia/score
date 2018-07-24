@@ -14,6 +14,7 @@ endif()
 set(SCORE_AUDIO_PLUGINS 1)
 if(SCORE_AUDIO_PLUGINS)
   find_package(Lilv)
+  find_package(Suil)
   if(NOT MSVC)
     find_package(Faust)
   endif()
@@ -147,11 +148,13 @@ if(TARGET Lilv)
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/lv2_atom_helpers.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2Context.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2Node.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2Window.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/InsertLV2.hpp"
         )
     set(LV2_SRCS
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2EffectModel.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2Context.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/LV2/LV2Window.cpp"
     )
 endif()
 
@@ -243,6 +246,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_DL_LIBS})
 if(TARGET Lilv)
     target_link_libraries(${PROJECT_NAME} PRIVATE Lilv)
     target_include_directories(${PROJECT_NAME} PRIVATE 3rdparty/readerwriterqueue)
+
+    if(TARGET Suil)
+        target_link_libraries(${PROJECT_NAME} PRIVATE Suil)
+    endif()
 endif()
 
 if(${Faust_FOUND})

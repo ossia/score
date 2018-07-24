@@ -16,8 +16,7 @@ struct Node
     static const constexpr auto uuid
         = make_uuid("5d71816e-e081-4d85-b385-fb42472b41bf");
 
-    static const constexpr auto value_outs
-        = ossia::safe_nodes::value_outs<1>{{"out"}};
+    static const constexpr value_out value_outs[]{"out"};
 
     static const constexpr auto controls = std::make_tuple(
         Control::Widgets::TempoChooser(), Control::Widgets::TimeSigChooser());

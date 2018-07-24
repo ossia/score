@@ -5,10 +5,11 @@
 #include <QRect>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <score/model/ColorReference.hpp>
+#include <score_plugin_scenario_export.h>
 
 namespace Scenario
 {
-class ConditionView final
+class SCORE_PLUGIN_SCENARIO_EXPORT ConditionView final
     : public QObject
     , public QGraphicsItem
 {

@@ -1,5 +1,4 @@
 #pragma once
-#include <score_plugin_engine_export.h>
 namespace ossia::net
 {
 class parameter_base;

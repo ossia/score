@@ -133,9 +133,9 @@ public:
   }
 
 public:
-  void sig_statesUpdated() W_SIGNAL(sig_statesUpdated);
-  void heightPercentageChanged() W_SIGNAL(heightPercentageChanged);
-  void statusChanged(Scenario::ExecutionStatus arg_1) W_SIGNAL(statusChanged, arg_1);
+  void sig_statesUpdated() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sig_statesUpdated);
+  void heightPercentageChanged() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, heightPercentageChanged);
+  void statusChanged(Scenario::ExecutionStatus arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, statusChanged, arg_1);
 
 private:
   void statesUpdated_slt();

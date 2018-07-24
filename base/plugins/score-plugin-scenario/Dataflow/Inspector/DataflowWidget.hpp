@@ -34,7 +34,7 @@ public:
   Explorer::AddressAccessorEditWidget accessor;
 
 public:
-  void removeMe() W_SIGNAL(removeMe);
+  void removeMe() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, removeMe);
 };
 
 class CableWidget final : public Inspector::InspectorWidgetBase

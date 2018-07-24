@@ -1,42 +1,43 @@
 #pragma once
 #include <score/plugins/panel/PanelDelegate.hpp>
 #include <score/plugins/panel/PanelDelegateFactory.hpp>
+#include <score_lib_base_export.h>
 class QListWidget;
 class QListView;
-namespace Device
-{
-class DeviceList;
-}
-namespace Engine
+class QDockWidget;
+namespace score
 {
 class LogMessagesItemModel;
-class MessagesPanelDelegate final
+
+// REFACTORME
+namespace log
+{
+static const QColor dark1 = QColor(Qt::darkGray).darker();
+static const QColor dark2 = dark1.darker(); // almost darker than black
+static const QColor dark3 = QColor(Qt::darkRed).darker();
+static const QColor dark4 = QColor(Qt::darkBlue).darker();
+}
+class SCORE_LIB_BASE_EXPORT MessagesPanelDelegate final
     : public QObject
     , public score::PanelDelegate
 {
   friend class err_sink;
+  W_OBJECT(MessagesPanelDelegate)
 
 public:
   MessagesPanelDelegate(const score::GUIApplicationContext& ctx);
 
+  void push(const QString& str, const QColor& col);
   void qtLog(const std::string& str);
 
+  QDockWidget* dock();
 private:
   QWidget* widget() override;
 
   const score::PanelStatus& defaultPanelStatus() const override;
 
-  void on_modelChanged(
-      score::MaybeDocument oldm, score::MaybeDocument newm) override;
-
-  void setupConnections(Device::DeviceList&);
-  void disableConnections();
-  Device::DeviceList* getDeviceList(score::MaybeDocument);
-
   LogMessagesItemModel* m_itemModel{};
   QListView* m_widget{};
-
-  QMetaObject::Connection m_inbound{}, m_outbound{}, m_error{}, m_visible{};
 };
 
 class MessagesPanelDelegateFactory final : public score::PanelDelegateFactory

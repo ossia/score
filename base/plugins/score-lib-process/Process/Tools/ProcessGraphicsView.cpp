@@ -16,6 +16,14 @@
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(ProcessGraphicsView)
+SCORE_LIB_PROCESS_EXPORT
+auto process_graphics_view_odr = std::make_tuple(
+      &ProcessGraphicsView::sizeChanged,
+      &ProcessGraphicsView::scrolled,
+      &ProcessGraphicsView::focusedOut,
+      &ProcessGraphicsView::horizontalZoom,
+      &ProcessGraphicsView::verticalZoom
+      );
 ProcessGraphicsView::ProcessGraphicsView(
     QGraphicsScene* scene, QWidget* parent)
     : QGraphicsView{scene, parent}

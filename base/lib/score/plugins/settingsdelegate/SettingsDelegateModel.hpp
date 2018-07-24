@@ -34,7 +34,6 @@ using sp = SettingsParameterMetadata<T>;
 template <typename T, typename Model>
 void setupDefaultSettings(QSettings& set, const T& tuple, Model& model)
 {
-#if !defined(__EMSCRIPTEN__)
   ossia::for_each_in_tuple(tuple, [&](auto& e) {
     using type = std::remove_reference_t<decltype(e)>;
     using data_type = typename type::data_type;
@@ -54,7 +53,6 @@ void setupDefaultSettings(QSettings& set, const T& tuple, Model& model)
       (model.*param_type::set())(val);
     }
   });
-#endif
 }
 }
 
@@ -82,11 +80,11 @@ void setupDefaultSettings(QSettings& set, const T& tuple, Model& model)
 #define SCORE_SETTINGS_DEFERRED_PARAMETER(ModelType, Name) \
   SCORE_SETTINGS_DEFERRED_COMMAND(ModelType, Name)
 
-#define SCORE_SETTINGS_PARAMETER_HPP(Type, Name)                           \
+#define SCORE_SETTINGS_PARAMETER_HPP(Export, Type, Name)                   \
 public:                                                                    \
   Type get##Name() const;                                                  \
   void set##Name(Type);                                                    \
-  void Name##Changed(Type arg) W_SIGNAL(Name##Changed, arg);               \
+  void Name##Changed(Type arg) E_SIGNAL(Export, Name##Changed, arg);       \
   PROPERTY(Type, Name READ get##Name WRITE set##Name NOTIFY Name##Changed) \
 private:
 

@@ -29,7 +29,7 @@ struct Simple
  * as long as the commands sent through submitCommand
  * are mergeable, they will be merged with the latest command on the array.
  *
- * When a new command is encoutered, it is put in a new place in the array.
+ * When a new command is encountered, it is put in a new place in the array.
  */
 class MultiOngoingCommandDispatcher final : public ICommandDispatcher
 {

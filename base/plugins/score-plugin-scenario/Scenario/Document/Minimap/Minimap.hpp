@@ -3,10 +3,11 @@
 #include <Process/TimeValue.hpp>
 #include <wobjectdefs.h>
 #include <QGraphicsItem>
+#include <score_plugin_scenario_export.h>
 class QGraphicsView;
 namespace Scenario
 {
-class Minimap final
+class SCORE_PLUGIN_SCENARIO_EXPORT Minimap final
     : public QObject
     , public QGraphicsItem
 {

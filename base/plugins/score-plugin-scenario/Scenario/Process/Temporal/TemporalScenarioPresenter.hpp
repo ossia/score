@@ -130,10 +130,10 @@ public:
   void drawDragLine(const Scenario::StateModel&, Scenario::Point) const;
   void stopDrawDragLine() const;
 public:
-  void linesExtremityScaled(int arg_1, int arg_2) W_SIGNAL(linesExtremityScaled, arg_1, arg_2);
+  void linesExtremityScaled(int arg_1, int arg_2) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, linesExtremityScaled, arg_1, arg_2);
 
-  void keyPressed(int arg_1) W_SIGNAL(keyPressed, arg_1);
-  void keyReleased(int arg_1) W_SIGNAL(keyReleased, arg_1);
+  void keyPressed(int arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyPressed, arg_1);
+  void keyReleased(int arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyReleased, arg_1);
 
 public:
   // Model -> view

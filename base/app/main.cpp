@@ -111,6 +111,10 @@ int main(int argc, char** argv)
   QCoreApplication::setAttribute(Qt::AA_CompressHighFrequencyEvents);
 #endif
 
+#if defined(__EMSCRIPTEN__)
+  QCoreApplication::setAttribute(Qt::AA_ForceRasterWidgets, true);
+#endif
+
   QLocale::setDefault(QLocale::C);
   setlocale(LC_ALL, "C");
 
@@ -122,6 +126,10 @@ int main(int argc, char** argv)
   fmt.setMinorVersion(1);
   fmt.setSamples(1);
   fmt.setDefaultFormat(fmt);
+#else
+  QSurfaceFormat fmt;
+  fmt.setAlphaBufferSize(0);
+  fmt.setDefaultFormat(fmt);
 #endif
 
   QPixmapCache::setCacheLimit(819200);
@@ -132,6 +140,7 @@ int main(int argc, char** argv)
 #endif
 
   app.init();
+
   int res = app.exec();
 #if defined(__APPLE__)
   mac_finish_pool(pool);

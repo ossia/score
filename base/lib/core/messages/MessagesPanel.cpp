@@ -4,19 +4,16 @@
 
 #include <ossia/detail/logger.hpp>
 
-#include <Device/Protocol/DeviceInterface.hpp>
-#include <Engine/OssiaLogger.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <QDockWidget>
 #include <QFileInfo>
 #include <QListWidget>
 #include <QMenu>
 #include <deque>
 #include <ossia-qt/invoke.hpp>
-//#include <boost/circular_buffer.hpp>
-namespace Engine
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(score::MessagesPanelDelegate)
+namespace score
 {
-
 struct LogMessage
 {
   QString message;
@@ -167,6 +164,7 @@ MessagesPanelDelegate::MessagesPanelDelegate(
           m_itemModel->clear();
         }
       });
+
 }
 
 QWidget* MessagesPanelDelegate::widget()
@@ -183,101 +181,25 @@ const score::PanelStatus& MessagesPanelDelegate::defaultPanelStatus() const
   return status;
 }
 
-void MessagesPanelDelegate::on_modelChanged(
-    score::MaybeDocument oldm, score::MaybeDocument newm)
-{
-  disableConnections();
-  QObject::disconnect(m_visible);
-
-  if (!newm)
-    return;
-
-  if (auto qw = qobject_cast<QDockWidget*>(m_widget->parent()))
-  {
-    auto func = [=](bool visible) {
-      disableConnections();
-      if (auto devices = getDeviceList(newm))
-      {
-        if (visible)
-        {
-          setupConnections(*devices);
-        }
-        devices->setLogging(visible);
-      }
-    };
-
-    m_visible
-        = QObject::connect(qw, &QDockWidget::visibilityChanged, this, func);
-
-    func(qw->isVisible());
-  }
-}
-
-static const auto dark1 = QColor(Qt::darkGray).darker();
-static const auto dark2 = dark1.darker(); // almost darker than black
-static const auto dark3 = QColor(Qt::darkRed).darker();
-static const auto dark4 = QColor(Qt::darkBlue).darker();
-
 void MessagesPanelDelegate::qtLog(const std::string& str)
 {
   ossia::qt::run_async(this, [=] {
     if (m_itemModel && m_widget)
     {
-      m_itemModel->push({QString::fromStdString(str), dark4});
-      m_widget->scrollToBottom();
+      push(QString::fromStdString(str), score::log::dark4);
     }
   });
 }
 
-void MessagesPanelDelegate::setupConnections(Device::DeviceList& devices)
+QDockWidget* MessagesPanelDelegate::dock()
 {
-  m_inbound = QObject::connect(
-      &devices, &Device::DeviceList::logInbound, m_widget,
-      [=](const QString& str) {
-        m_itemModel->push({str, dark1});
-        m_widget->scrollToBottom();
-      },
-      Qt::QueuedConnection);
-
-  m_outbound = QObject::connect(
-      &devices, &Device::DeviceList::logOutbound, m_widget,
-      [=](const QString& str) {
-        m_itemModel->push({str, dark2});
-        m_widget->scrollToBottom();
-      },
-      Qt::QueuedConnection);
-
-  auto qt_sink = dynamic_cast<OssiaLogger*>(&*ossia::logger().sinks()[1]);
-  if (qt_sink)
-  {
-    m_error = QObject::connect(
-        qt_sink, &OssiaLogger::l, this,
-        [=](Engine::level l, const QString& m) {
-          m_itemModel->push({m, dark3});
-
-          m_widget->scrollToBottom();
-        },
-        Qt::QueuedConnection);
-  }
+  return qobject_cast<QDockWidget*>(m_widget->parent());
 }
 
-void MessagesPanelDelegate::disableConnections()
+void MessagesPanelDelegate::push(const QString& str, const QColor& col)
 {
-  QObject::disconnect(m_inbound);
-  QObject::disconnect(m_outbound);
-  QObject::disconnect(m_error);
-}
-
-Device::DeviceList*
-MessagesPanelDelegate::getDeviceList(score::MaybeDocument newm)
-{
-  if (!newm)
-    return nullptr;
-
-  auto plug = newm->findPlugin<Explorer::DeviceDocumentPlugin>();
-  if (!plug)
-    return nullptr;
-  return &plug->list();
+  m_itemModel->push({str, col});
+  m_widget->scrollToBottom();
 }
 
 std::unique_ptr<score::PanelDelegate>

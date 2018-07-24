@@ -86,9 +86,9 @@ public:
   void setAddress(const State::AddressAccessor& address); W_SLOT(setAddress);
 
 public:
-  void cablesChanged() W_SIGNAL(cablesChanged);
-  void customDataChanged(const QString& customData) W_SIGNAL(customDataChanged, customData);
-  void addressChanged(const State::AddressAccessor& address) W_SIGNAL(addressChanged, address);
+  void cablesChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, cablesChanged);
+  void customDataChanged(const QString& customData) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, customDataChanged, customData);
+  void addressChanged(const State::AddressAccessor& address) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, addressChanged, address);
 
 protected:
   Port() = delete;
@@ -156,8 +156,8 @@ public:
   }
 
 public:
-  void valueChanged(const ossia::value& v) W_SIGNAL(valueChanged, v);
-  void domainChanged(const State::Domain& d) W_SIGNAL(domainChanged, d);
+  void valueChanged(const ossia::value& v) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, valueChanged, v);
+  void domainChanged(const State::Domain& d) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, domainChanged, d);
 
 public:
   void setValue(const ossia::value& value)
@@ -207,7 +207,7 @@ public:
   bool propagate() const;
 
 public:
-  void propagateChanged(bool propagate) W_SIGNAL(propagateChanged, propagate);
+  void propagateChanged(bool propagate) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, propagateChanged, propagate);
 
 public:
   void setPropagate(bool propagate); W_SLOT(setPropagate);
@@ -244,8 +244,8 @@ public:
   }
 
 public:
-  void valueChanged(const ossia::value& v) W_SIGNAL(valueChanged, v);
-  void domainChanged(const State::Domain& d) W_SIGNAL(domainChanged, d);
+  void valueChanged(const ossia::value& v) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, valueChanged, v);
+  void domainChanged(const State::Domain& d) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, domainChanged, d);
 
 public:
   void setValue(const ossia::value& value)

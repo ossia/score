@@ -131,8 +131,8 @@ public:
   void reset();
 
 public:
-  void minChanged(double arg_1) W_SIGNAL(minChanged, arg_1);
-  void maxChanged(double arg_1) W_SIGNAL(maxChanged, arg_1);
+  void minChanged(double arg_1) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, minChanged, arg_1);
+  void maxChanged(double arg_1) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, maxChanged, arg_1);
 
 private:
   // Coordinates in {x, y}.

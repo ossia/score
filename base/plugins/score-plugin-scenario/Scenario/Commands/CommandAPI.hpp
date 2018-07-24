@@ -9,7 +9,7 @@
 
 namespace Curve { struct CurveDomain; }
 namespace Scenario { namespace Command {
-class Macro
+class SCORE_PLUGIN_SCENARIO_EXPORT Macro
 {
     RedoMacroCommandDispatcher<score::AggregateCommand> m;
   public:

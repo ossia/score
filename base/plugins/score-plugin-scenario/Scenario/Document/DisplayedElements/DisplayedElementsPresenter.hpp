@@ -42,7 +42,7 @@ public:
   void on_displayedIntervalHeightChanged(double);
 
 public:
-  void requestFocusedPresenterChange(Process::LayerPresenter* arg_1) W_SIGNAL(requestFocusedPresenterChange, arg_1);
+  void requestFocusedPresenterChange(Process::LayerPresenter* arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, requestFocusedPresenterChange, arg_1);
 
 private:
   void on_intervalExecutionTimer();

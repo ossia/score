@@ -1,6 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ApplicationSettings.hpp"
+#include <score_git_info.hpp>
 
 #include <QApplication>
 #include <QCommandLineOption>
@@ -12,7 +13,7 @@
 #include <QString>
 namespace score
 {
-void ApplicationSettings::parse(QStringList cargs)
+void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
 {
   QCommandLineParser parser;
   parser.setApplicationDescription(QObject::tr(
@@ -35,7 +36,17 @@ void ApplicationSettings::parse(QStringList cargs)
       QCoreApplication::translate("main", "Auto-play the loaded scenario"));
   parser.addOption(autoplayOpt);
 
-  parser.process(cargs);
+  if(cargs.contains("--help") || cargs.contains("--version"))
+  {
+    QCoreApplication app(argc, argv);
+    setQApplicationMetadata();
+    parser.process(cargs);
+    exit(0);
+  }
+  else
+  {
+    parser.process(cargs);
+  }
 
   const QStringList args = parser.positionalArguments();
 
@@ -50,4 +61,17 @@ void ApplicationSettings::parse(QStringList cargs)
     loadList.push_back(args[0]);
   }
 }
+
+void setQApplicationMetadata()
+{
+  QCoreApplication::setOrganizationName("OSSIA");
+  QCoreApplication::setOrganizationDomain("ossia.io");
+  QCoreApplication::setApplicationName("score");
+  QCoreApplication::setApplicationVersion(QString("%1.%2.%3-%4")
+                                          .arg(SCORE_VERSION_MAJOR)
+                                          .arg(SCORE_VERSION_MINOR)
+                                          .arg(SCORE_VERSION_PATCH)
+                                          .arg(SCORE_VERSION_EXTRA));
+}
+
 }

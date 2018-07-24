@@ -48,9 +48,9 @@ public:
   void updateOverlayPos();
   void setSelected(bool selected);
 public:
-  void intervalHoverEnter() W_SIGNAL(intervalHoverEnter);
-  void intervalHoverLeave() W_SIGNAL(intervalHoverLeave);
-  void dropReceived(const QPointF& pos, const QMimeData& arg_2) W_SIGNAL(dropReceived, pos, arg_2);
+  void intervalHoverEnter() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalHoverEnter);
+  void intervalHoverLeave() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalHoverLeave);
+  void dropReceived(const QPointF& pos, const QMimeData& arg_2) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dropReceived, pos, arg_2);
 
 private:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;

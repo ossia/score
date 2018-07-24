@@ -145,6 +145,7 @@ void DeviceDocumentPlugin::setConnection(bool b)
 {
   if (b)
   {
+    // Reconnect all devices
     m_list.apply([&](Device::DeviceInterface& dev) {
       if (!dev.connected())
         dev.reconnect();
@@ -172,6 +173,7 @@ void DeviceDocumentPlugin::setConnection(bool b)
   }
   else
   {
+    // Disconnect all devices
     m_list.apply([&](Device::DeviceInterface& dev) { dev.disconnect(); });
   }
 }

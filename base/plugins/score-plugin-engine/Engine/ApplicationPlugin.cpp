@@ -3,7 +3,6 @@
 #include "ApplicationPlugin.hpp"
 
 #include <ossia/audio/audio_protocol.hpp>
-#include <ossia/context.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/network/generic/generic_device.hpp>
@@ -49,11 +48,9 @@
 #include <score/tools/Todo.hpp>
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/SetIcons.hpp>
-#include <spdlog/spdlog.h>
 #include <vector>
 
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(Engine::OssiaLogger)
 SCORE_DECLARE_ACTION(
     RestartAudio, "Restart Audio", Common, QKeySequence::UnknownKey)
 
@@ -62,11 +59,6 @@ namespace Engine
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
     : score::GUIApplicationPlugin{ctx}, m_playActions{*this, ctx}
 {
-  std::vector<spdlog::sink_ptr> v{spdlog::sinks::stderr_sink_mt::instance(),
-                                  std::make_shared<OssiaLogger>()};
-
-  ossia::context context{v};
-  ossia::logger().set_level(spdlog::level::debug);
   // qInstallMessageHandler(nullptr);
   // Two parts :
   // One that maintains the devices for each document
@@ -194,11 +186,22 @@ static std::unique_ptr<ossia::audio_engine> make_engine(AlteredAudioSettings& al
     }
     catch(...)
     {
-      eng = ossia::make_audio_engine(
-               "Dummy", "score",
-               req_in.toStdString(), req_out.toStdString(),
-               ins, outs, rate, bs);
-      alt_set.driver = QString{"Dummy"};
+      try
+      {
+        eng = ossia::make_audio_engine(
+                 "SDL", "score",
+                 req_in.toStdString(), req_out.toStdString(),
+                 ins, outs, rate, bs);
+        alt_set.driver = QString{"SDL"};
+      }
+      catch(...)
+      {
+        eng = ossia::make_audio_engine(
+                 "Dummy", "score",
+                 req_in.toStdString(), req_out.toStdString(),
+                 ins, outs, rate, bs);
+        alt_set.driver = QString{"Dummy"};
+      }
     }
   }
 
@@ -887,6 +890,27 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
         else
         {
           this->on_stop();
+        }
+      });
+    });
+  }
+
+  {
+    auto local_stop_node = root.create_child("reinit");
+    auto local_stop_address
+        = local_stop_node->create_parameter(ossia::val_type::IMPULSE);
+    local_stop_address->set_value(ossia::impulse{});
+    local_stop_address->set_access(ossia::access_mode::SET);
+    local_stop_address->add_callback([&](const ossia::value&) {
+      ossia::qt::run_async(this, [=] {
+        if (context.applicationSettings.gui)
+        {
+          auto& stop_action = context.actions.action<Actions::Reinitialize>();
+          stop_action.action()->trigger();
+        }
+        else
+        {
+          this->on_init();
         }
       });
     });

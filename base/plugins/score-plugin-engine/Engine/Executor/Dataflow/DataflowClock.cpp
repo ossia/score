@@ -131,10 +131,11 @@ void Clock::resume_impl(Engine::Execution::BaseScenarioElement& bs)
 void Clock::stop_impl(Engine::Execution::BaseScenarioElement& bs)
 {
   m_paused = false;
-  m_plug.finished();
 
   auto& proto = m_plug.audioProto();
   proto.set_tick([](unsigned long, double) {});
+
+  m_plug.finished();
   m_default.stop();
 }
 

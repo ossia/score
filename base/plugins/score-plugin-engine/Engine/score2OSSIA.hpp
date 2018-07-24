@@ -10,7 +10,6 @@
 #include <State/Expression.hpp>
 #include <State/Value.hpp>
 #include <memory>
-#include <score_plugin_engine_export.h>
 namespace Engine
 {
 namespace Execution
@@ -54,31 +53,31 @@ namespace score_to_ossia
 // Creates it if necessary.
 //// Device-related functions
 // OSSIA::net::Node* might be null.
-SCORE_PLUGIN_ENGINE_EXPORT ossia::net::node_base*
+ossia::net::node_base*
 findAddress(const Device::DeviceList& devices, const State::Address& addr);
 
-SCORE_PLUGIN_ENGINE_EXPORT optional<ossia::destination> makeDestination(
+optional<ossia::destination> makeDestination(
     const Device::DeviceList& devices, const State::AddressAccessor& addr);
 
 //// Other conversions
-SCORE_PLUGIN_ENGINE_EXPORT inline ossia::time_value
+inline ossia::time_value
 defaultTime(const TimeVal& t)
 {
   return t.isInfinite() ? ossia::Infinite
                         : ossia::time_value{int64_t(t.msec() * 1000)};
 }
 
-SCORE_PLUGIN_ENGINE_EXPORT void state(
+void state(
     ossia::state& ossia_state,
     const Scenario::StateModel& score_state,
     const Engine::Execution::Context& ctx);
-SCORE_PLUGIN_ENGINE_EXPORT ossia::state state(
+ossia::state state(
     const Scenario::StateModel& score_state,
     const Engine::Execution::Context& ctx);
 
-SCORE_PLUGIN_ENGINE_EXPORT ossia::expression_ptr
+ossia::expression_ptr
 condition_expression(const State::Expression& expr, const Device::DeviceList&);
-SCORE_PLUGIN_ENGINE_EXPORT ossia::expression_ptr
+ossia::expression_ptr
 trigger_expression(const State::Expression& expr, const Device::DeviceList&);
 }
 }

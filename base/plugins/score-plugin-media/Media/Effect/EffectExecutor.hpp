@@ -12,7 +12,7 @@ namespace Engine
 namespace Execution
 {
 
-class SCORE_PLUGIN_MEDIA_EXPORT EffectProcessComponentBase
+class EffectProcessComponentBase
     : public ::Engine::Execution::ProcessComponent_T<
           Media::Effect::ProcessModel,
           ossia::node_chain_process>
@@ -81,7 +81,7 @@ private:
   void reg(const RegisteredEffect& fx);
 };
 
-class SCORE_PLUGIN_MEDIA_EXPORT EffectProcessComponent final
+class EffectProcessComponent final
     : public score::
           PolymorphicComponentHierarchy<EffectProcessComponentBase, false>
 {

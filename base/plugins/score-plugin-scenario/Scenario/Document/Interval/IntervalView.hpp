@@ -131,7 +131,7 @@ public:
   }
 
 public:
-  void requestOverlayMenu(QPointF arg_1) W_SIGNAL(requestOverlayMenu, arg_1);
+  void requestOverlayMenu(QPointF arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, requestOverlayMenu, arg_1);
 
 protected:
   void setGripCursor();

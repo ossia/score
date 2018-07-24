@@ -6,6 +6,7 @@
 #include <QGraphicsItem>
 #include <QPoint>
 #include <QRect>
+#include <score_plugin_curve_export.h>
 
 class QGraphicsSceneContextMenuEvent;
 class QPainter;
@@ -15,7 +16,7 @@ namespace Curve
 {
 class PointModel;
 struct Style;
-class PointView final
+class SCORE_PLUGIN_CURVE_EXPORT PointView final
     : public QObject
     , public QGraphicsItem
 {
@@ -53,7 +54,7 @@ public:
   void setModel(const PointModel* model);
 
 public:
-  void contextMenuRequested(const QPoint& arg_1, const QPointF& arg_2) W_SIGNAL(contextMenuRequested, arg_1, arg_2);
+  void contextMenuRequested(const QPoint& arg_1, const QPointF& arg_2) E_SIGNAL(, contextMenuRequested, arg_1, arg_2);
 
 protected:
   void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override;

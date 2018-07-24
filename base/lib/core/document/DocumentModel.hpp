@@ -54,7 +54,7 @@ public:
     return m_pluginModels;
   }
 
-  void pluginModelsChanged() W_SIGNAL(pluginModelsChanged)
+  void pluginModelsChanged() E_SIGNAL(SCORE_LIB_BASE_EXPORT, pluginModelsChanged)
 
       private
       : void loadDocumentAsJson(

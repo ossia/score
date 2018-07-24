@@ -18,8 +18,21 @@ View::View() : m_widg{new QWidget}
 {
   auto lay = new QFormLayout;
 
+  QStringList audio_drivers;
+#if __has_include(<portaudio.h>)
+  audio_drivers.append("PortAudio");
+#endif
+#if __has_include(<jack/jack.h>)
+  audio_drivers.append("JACK");
+#endif
+#if defined(__EMSCRIPTEN__) || __has_include(<SDL/SDL_audio.h>)
+  audio_drivers.append("SDL");
+#endif
+  audio_drivers.append("Dummy");
+
+
   SETTINGS_UI_COMBOBOX_SETUP(
-      "Driver", Driver, (QStringList{"PortAudio", "JACK", "Dummy" /*, "SDL"*/}));
+      "Driver", Driver, audio_drivers);
   SETTINGS_UI_NUM_COMBOBOX_SETUP(
       "Rate", Rate, (std::vector<int>{44100, 48000, 88200, 96000}));
   SETTINGS_UI_NUM_COMBOBOX_SETUP(
@@ -105,9 +118,8 @@ View::View() : m_widg{new QWidget}
   }
 
   Pa_Terminate();
-  qDebug() << cards_in << cards_out;
-
 #endif
+
   m_CardIn = new QComboBox{m_widg};
   for (int i = 0; i < cards_in.size(); i++)
     m_CardIn->addItem(cards_in[i], indices_in[i]);

@@ -148,7 +148,7 @@ public:
     }
   }
 
-  ~VSTWindow();
+  ~VSTWindow() override;
   void resize(int w, int h);
 public:
   void uiClosing() W_SIGNAL(uiClosing);

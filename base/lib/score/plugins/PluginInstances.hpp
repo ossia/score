@@ -1,8 +1,6 @@
 #pragma once
 #include <score/tools/Todo.hpp>
 #include <vector>
-#include <memory>
-#include <QObject>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <score_lib_base_export.h>
 

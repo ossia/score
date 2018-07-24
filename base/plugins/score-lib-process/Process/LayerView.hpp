@@ -41,17 +41,17 @@ public:
   void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
 
 public:
-  void heightChanged() W_SIGNAL(heightChanged);
-  void widthChanged() W_SIGNAL(widthChanged);
+  void heightChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, heightChanged);
+  void widthChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, widthChanged);
 
-  void pressed(QPointF arg_1) W_SIGNAL(pressed, arg_1);
-  void released(QPointF arg_1) W_SIGNAL(released, arg_1);
-  void moved(QPointF arg_1) W_SIGNAL(moved, arg_1);
-  void doubleClicked(QPointF arg_1) W_SIGNAL(doubleClicked, arg_1);
+  void pressed(QPointF arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, pressed, arg_1);
+  void released(QPointF arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, released, arg_1);
+  void moved(QPointF arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, moved, arg_1);
+  void doubleClicked(QPointF arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, doubleClicked, arg_1);
 
   // Screen pos, scene pos
-  void askContextMenu(const QPoint& arg_1, const QPointF& arg_2) W_SIGNAL(askContextMenu, arg_1, arg_2);
-  void dropReceived(const QPointF& pos, const QMimeData& arg_2) W_SIGNAL(dropReceived, pos, arg_2);
+  void askContextMenu(const QPoint& arg_1, const QPointF& arg_2) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, askContextMenu, arg_1, arg_2);
+  void dropReceived(const QPointF& pos, const QMimeData& arg_2) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, dropReceived, pos, arg_2);
 
 protected:
   virtual void paint_impl(QPainter*) const = 0;

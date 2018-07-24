@@ -46,13 +46,13 @@ public:
   using const_iterator = score::indirect_iterator<typename order_t::const_iterator>;
   using const_reverse_iterator = score::indirect_iterator<typename order_t::const_reverse_iterator>;
 
-  IdContainer() = default;
+  IdContainer() INLINE_EXPORT = default;
   IdContainer(const IdContainer& other) = delete;
   IdContainer(IdContainer&& other) noexcept = delete;
   IdContainer& operator=(const IdContainer& other) = delete;
   IdContainer& operator=(IdContainer&& other) = delete;
 
-  ~IdContainer()
+  ~IdContainer() INLINE_EXPORT
   {
     // To ensure that children are deleted before their parents
     for (auto elt : m_order)
@@ -61,77 +61,65 @@ public:
     }
   }
 
-  auto& ordered()
+  auto& ordered() INLINE_EXPORT
   {
     return m_order;
   }
 
-  const_iterator begin() const
+  const_iterator begin() const INLINE_EXPORT
   {
     return score::make_indirect_iterator(this->m_order.begin());
   }
-  const_reverse_iterator rbegin() const
+  const_reverse_iterator rbegin() const INLINE_EXPORT
   {
     return score::make_indirect_iterator(this->m_order.rbegin());
   }
-  const_iterator cbegin() const
+  const_iterator cbegin() const INLINE_EXPORT
   {
     return score::make_indirect_iterator(this->m_order.cbegin());
   }
-  const_iterator end() const
+  const_iterator end() const INLINE_EXPORT
   {
     return score::make_indirect_iterator(this->m_order.end());
   }
-  const_reverse_iterator rend() const
+  const_reverse_iterator rend() const INLINE_EXPORT
   {
     return score::make_indirect_iterator(this->m_order.rend());
   }
-  const_iterator cend() const
+  const_iterator cend() const INLINE_EXPORT
   {
     return score::make_indirect_iterator(this->m_order.cend());
   }
 
-  std::size_t size() const
+  std::size_t size() const INLINE_EXPORT
   {
     return m_map.size();
   }
 
-  bool empty() const
+  bool empty() const INLINE_EXPORT
   {
     return m_map.empty();
   }
 
-  std::vector<Element*> as_vec() const
+  std::vector<Element*> as_vec() const INLINE_EXPORT
   {
     return std::vector<Element*>(m_order.begin(), m_order.end());
   }
 
-  score::IndirectContainer<Element> as_indirect_vec() const
+  score::IndirectContainer<Element> as_indirect_vec() const INLINE_EXPORT
   {
     return score::IndirectContainer<Element>(m_order.begin(), m_order.end());
   }
 
-  /*
-  auto& get()
-  {
-    return m_map;
-  }
 
-  const auto& get() const
-  {
-    return m_map;
-  }
-  */
-
-
-  void insert(value_type* t)
+  void insert(value_type* t) INLINE_EXPORT
   {
     SCORE_ASSERT(m_map.find(t->id()) == m_map.end());
     m_order.push_front(t);
     m_map.insert({t->id(), {t, m_order.begin()}});
   }
 
-  void remove(typename map_t::iterator it)
+  void remove(typename map_t::iterator it) INLINE_EXPORT
   {
     // No delete : it is done in EntityMap.
 
@@ -141,7 +129,7 @@ public:
       m_map.erase(it);
     }
   }
-  void remove(typename map_t::const_iterator it)
+  void remove(typename map_t::const_iterator it) INLINE_EXPORT
   {
     // No delete : it is done in EntityMap.
 
@@ -152,12 +140,12 @@ public:
     }
   }
 
-  void remove(const Id<Model>& id)
+  void remove(const Id<Model>& id) INLINE_EXPORT
   {
     remove(m_map.find(id));
   }
 
-  void clear()
+  void clear() INLINE_EXPORT
   {
     m_map.clear();
     m_order.clear();
@@ -166,7 +154,7 @@ public:
     // but not in Scenario destructor
   }
 
-  const_iterator find(const Id<Model>& id) const
+  const_iterator find(const Id<Model>& id) const INLINE_EXPORT
   {
     auto it = this->m_map.find(id);
     if(it != this->m_map.end())
@@ -179,7 +167,7 @@ public:
     }
   }
 
-  Element& at(const Id<Model>& id) const
+  Element& at(const Id<Model>& id) const INLINE_EXPORT
   {
     if (id.m_ptr)
     {
@@ -193,7 +181,7 @@ public:
     return safe_cast<Element&>(*item->second.first);
   }
 
-  void swap(const Id<Model>& t1, const Id<Model>& t2)
+  void swap(const Id<Model>& t1, const Id<Model>& t2) INLINE_EXPORT
   {
     /*
     if (t1 == t2)
@@ -237,7 +225,7 @@ public:
     */
   }
 
-  void relocate(const Id<Model>& t1, const Id<Model>& t2)
+  void relocate(const Id<Model>& t1, const Id<Model>& t2) INLINE_EXPORT
   {
     /*
     if (t1 == t2)
@@ -260,7 +248,7 @@ public:
     */
   }
 
-  void putToEnd(const Id<Model>& t1)
+  void putToEnd(const Id<Model>& t1) INLINE_EXPORT
   {
     /*
     auto& map = this->m_map;
@@ -291,17 +279,8 @@ class IdContainer<
 public:
   using model_type = Model;
   tsl::hopscotch_map<Id<Model>, Element*> m_map;
-/*
-  auto& get()
-  {
-    return m_map;
-  }
-  const auto& get() const
-  {
-    return m_map;
-  }
-*/
-  std::vector<Element*> as_vec() const
+
+  std::vector<Element*> as_vec() const INLINE_EXPORT
   {
     std::vector<Element*> v;
     const auto N = m_map.size();
@@ -313,43 +292,43 @@ public:
     return v;
   }
 
-  auto begin() const
+  auto begin() const INLINE_EXPORT
   {
     return score::make_indirect_map_iterator(this->m_map.begin());
   }
-  auto rbegin() const
+  auto rbegin() const INLINE_EXPORT
   {
     return score::make_indirect_map_iterator(this->m_map.begin());
   }
-  auto cbegin() const
+  auto cbegin() const INLINE_EXPORT
   {
     return score::make_indirect_map_iterator(this->m_map.cbegin());
   }
-  auto end() const
+  auto end() const INLINE_EXPORT
   {
     return score::make_indirect_map_iterator(this->m_map.end());
   }
-  auto rend() const
+  auto rend() const INLINE_EXPORT
   {
     return score::make_indirect_map_iterator(this->m_map.end());
   }
-  auto cend() const
+  auto cend() const INLINE_EXPORT
   {
     return score::make_indirect_map_iterator(this->m_map.cend());
   }
 
-  auto find(const Id<Model>& id) const
+  auto find(const Id<Model>& id) const INLINE_EXPORT
   {
     return score::make_indirect_map_iterator(this->m_map.find(id));
   }
 
-  void insert(Element* t)
+  void insert(Element* t) INLINE_EXPORT
   {
     SCORE_ASSERT(m_map.find(t->id()) == m_map.end());
     m_map.insert({t->id(), t});
   }
 
-  void erase(const Id<Model>& id)
+  void erase(const Id<Model>& id) INLINE_EXPORT
   {
     auto it = m_map.find(id);
     if(it != m_map.end())
@@ -360,7 +339,7 @@ public:
     }
   }
 
-  void remove_all()
+  void remove_all() INLINE_EXPORT
   {
     for(auto& e : m_map)
     {
@@ -369,7 +348,7 @@ public:
     m_map.clear();
   }
 
-  auto& at(const Id<Model>& id) const
+  auto& at(const Id<Model>& id) const INLINE_EXPORT
   {
     auto item = this->m_map.find(id);
     SCORE_ASSERT(item != this->m_map.end());

@@ -35,8 +35,7 @@ struct Node
     static const constexpr auto uuid
         = make_uuid("d757bd0d-c0a1-4aec-bf72-945b722ab85b");
 
-    static const constexpr auto value_outs
-        = ossia::safe_nodes::value_outs<1>{{"out"}};
+    static const constexpr value_out value_outs[]{"out"};
 
     static const constexpr auto controls = std::make_tuple(
         Control::LineEdit("Expression (ExprTK)", "cos(t) + log(pos * 1 / dt)"),
@@ -109,8 +108,7 @@ struct Node
     static const constexpr auto uuid
         = make_uuid("eae294b3-afeb-4fba-bbe4-337998d3748a");
 
-    static const constexpr auto audio_outs
-        = ossia::safe_nodes::audio_outs<1>{{"out"}};
+    static const constexpr audio_out audio_outs[]{"out"};
 
     static const constexpr auto controls = std::make_tuple(
         Control::LineEdit(

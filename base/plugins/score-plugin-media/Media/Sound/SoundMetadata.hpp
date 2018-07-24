@@ -1,6 +1,5 @@
 #pragma once
 #include <Process/ProcessMetadata.hpp>
-#include <score_plugin_media_export.h>
 
 namespace Media
 {
@@ -11,7 +10,7 @@ class ProcessModel;
 }
 
 PROCESS_METADATA(
-    SCORE_PLUGIN_MEDIA_EXPORT,
+    ,
     Media::Sound::ProcessModel,
     "63174570-d608-44bf-a9cb-e6f5a11f73cc",
     "Sound",

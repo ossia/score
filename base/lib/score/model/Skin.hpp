@@ -72,7 +72,7 @@ public:
   QVector<QPair<QColor, QString>> getColors() const;
 
 public:
-  void changed() W_SIGNAL(changed);
+  void changed() E_SIGNAL(SCORE_LIB_BASE_EXPORT, changed);
 
 private:
   void timerEvent(QTimerEvent* event) override;

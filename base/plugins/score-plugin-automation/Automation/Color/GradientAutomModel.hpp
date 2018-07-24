@@ -51,8 +51,8 @@ public:
   std::unique_ptr<Process::Outlet> outlet;
 
 public:
-  void tweenChanged(bool tween) W_SIGNAL(tweenChanged, tween);
-  void gradientChanged() W_SIGNAL(gradientChanged);
+  void tweenChanged(bool tween) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, tweenChanged, tween);
+  void gradientChanged() E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, gradientChanged);
 
   PROPERTY(bool, tween READ tween WRITE setTween NOTIFY tweenChanged)
 private:
