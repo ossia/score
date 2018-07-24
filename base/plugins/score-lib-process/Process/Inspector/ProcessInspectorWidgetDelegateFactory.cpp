@@ -3,6 +3,9 @@
 #include "ProcessInspectorWidgetDelegateFactory.hpp"
 
 #include <Process/Process.hpp>
+#include <QWidget>
+#include <QHBoxLayout>
+#include <score/widgets/TextLabel.hpp>
 namespace Process
 {
 InspectorWidgetDelegateFactory::~InspectorWidgetDelegateFactory() = default;
@@ -35,5 +38,24 @@ bool InspectorWidgetDelegateFactory::matches(
     return matches_process(*p);
   }
   return false;
+}
+
+QWidget* InspectorWidgetDelegateFactory::wrap(
+    const ProcessModel& process
+    , const score::DocumentContext& doc
+    , QWidget* w
+    , QWidget* parent)
+{
+  auto widg = new QWidget{parent};
+  auto lay = new QVBoxLayout{widg};
+
+  auto label = new TextLabel{process.prettyShortName(), widg};
+
+  label->setStyleSheet("font-weight: bold; font-size: 18");
+  lay->addWidget(label);
+  lay->addWidget(w);
+  lay->addStretch(0);
+
+  return widg;
 }
 }

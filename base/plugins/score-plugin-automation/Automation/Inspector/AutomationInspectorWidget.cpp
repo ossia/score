@@ -49,12 +49,6 @@ InspectorWidget::InspectorWidget(
   vlay->setMargin(2);
   vlay->setContentsMargins(0, 0, 0, 0);
 
-  QString name = tr("Automation");
-  m_label = new TextLabel{name, this};
-  // TODO use the same style as InspectorWidgetBase
-  m_label->setStyleSheet("font-weight: bold; font-size: 18");
-  vlay->addWidget(m_label);
-
   // Address
   m_lineEdit = new AddressAccessorEditWidget{
       doc.plugin<DeviceDocumentPlugin>().explorer(), this};
