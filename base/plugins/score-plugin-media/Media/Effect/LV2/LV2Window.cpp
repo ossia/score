@@ -91,6 +91,10 @@ Window::Window(const LV2EffectModel& fx, const score::DocumentContext& ctx, QWid
 
   // Setup the widget stuff
   auto widget = (QWidget*)suil_instance_get_widget(fx.effectContext.ui_instance);
+
+  const int default_w = widget->width();
+  const int default_h = widget->height();
+
   lay->addWidget(widget);
   m_widget = widget;
   auto name = lilv_plugin_get_name(fx.plugin);
@@ -155,14 +159,15 @@ Window::Window(const LV2EffectModel& fx, const score::DocumentContext& ctx, QWid
   QTimer::singleShot(0, [=,&p] {
     if (!is_resizable(p.lilv.me, *effect.effectContext.ui))
     {
-      widget->setMinimumSize(widget->width(), widget->height());
-      widget->setMaximumSize(widget->width(), widget->height());
+      widget->setMinimumSize(default_w, default_h);
+      widget->setMaximumSize(default_w, default_h);
       adjustSize();
       setFixedSize(width(), height());
     }
     else
     {
-      resize(widget->width(), widget->height());
+      using namespace std;
+      resize(min(800, default_w), min(800, default_h));
     }
   });
 }
@@ -200,7 +205,7 @@ bool Window::is_resizable(LilvWorld* world, const LilvUI& ui)
   auto s = lilv_ui_get_uri(&ui);
 
   Lilv::Nodes fs_matches = plug.lilv.find_nodes(s, h.optional_feature, h.fixed_size);
-  Lilv::Nodes nrs_matches = plug.lilv.find_nodes(s, h.optional_feature, h.fixed_size);
+  Lilv::Nodes nrs_matches = plug.lilv.find_nodes(s, h.optional_feature, h.no_user_resize);
 
   return fs_matches.me == nullptr && nrs_matches.me == nullptr;
 }
