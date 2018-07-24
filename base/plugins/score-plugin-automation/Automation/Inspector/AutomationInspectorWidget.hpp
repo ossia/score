@@ -55,7 +55,6 @@ private:
   QCheckBox* m_tween{};
   QDoubleSpinBox *m_minsb{}, *m_maxsb{};
   State::UnitWidget* m_uw{};
-  QLabel* m_label;
 
   CommandDispatcher<> m_dispatcher;
 };

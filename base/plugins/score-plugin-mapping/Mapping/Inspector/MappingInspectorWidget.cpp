@@ -41,18 +41,16 @@ InspectorWidget::InspectorWidget(
   setObjectName("MappingInspectorWidget");
   setParent(parent);
 
-  auto lay = new QVBoxLayout;
+  auto lay = new QFormLayout;
+  lay->setSpacing(2);
+  lay->setMargin(2);
+  lay->setContentsMargins(0, 0, 0, 0);
 
   auto& explorer = doc.plugin<DeviceDocumentPlugin>().explorer();
 
   {
     // Source
-    auto widg = new QWidget;
-    auto vlay = new QVBoxLayout{widg};
-    vlay->setSpacing(0);
-    vlay->setContentsMargins(0, 0, 0, 0);
-
-    vlay->addWidget(new TextLabel{tr("Source")});
+    lay->addWidget(new TextLabel{tr("Source")});
 
     m_sourceLineEdit = new AddressAccessorEditWidget{explorer, this};
 
@@ -64,12 +62,12 @@ InspectorWidget::InspectorWidget(
         m_sourceLineEdit, &AddressAccessorEditWidget::addressChanged, this,
         &InspectorWidget::on_sourceAddressChange);
 
-    vlay->addWidget(m_sourceLineEdit);
+    lay->addWidget(m_sourceLineEdit);
 
     // Min / max
     auto minmaxwid = new QWidget;
     auto minmaxlay = new QFormLayout{minmaxwid};
-    vlay->addWidget(minmaxwid);
+    lay->addWidget(minmaxwid);
     minmaxlay->setSpacing(0);
     minmaxlay->setContentsMargins(0, 0, 0, 0);
 
@@ -91,19 +89,11 @@ InspectorWidget::InspectorWidget(
     connect(
         m_sourceMax, &QAbstractSpinBox::editingFinished, this,
         &InspectorWidget::on_sourceMaxValueChanged);
-
-    // TODO in AutomationInspectorWidget, remove all Qt4-style connects.
-    lay->addWidget(widg);
   }
 
   {
     // target
-    auto widg = new QWidget;
-    auto vlay = new QVBoxLayout{widg};
-    vlay->setSpacing(0);
-    vlay->setContentsMargins(0, 0, 0, 0);
-
-    vlay->addWidget(new TextLabel{tr("Target")});
+    lay->addWidget(new TextLabel{tr("Target")});
 
     m_targetLineEdit = new AddressAccessorEditWidget{explorer, this};
 
@@ -115,12 +105,12 @@ InspectorWidget::InspectorWidget(
         m_targetLineEdit, &AddressAccessorEditWidget::addressChanged, this,
         &InspectorWidget::on_targetAddressChange);
 
-    vlay->addWidget(m_targetLineEdit);
+    lay->addWidget(m_targetLineEdit);
 
     // Min / max
     auto minmaxwid = new QWidget;
     auto minmaxlay = new QFormLayout{minmaxwid};
-    vlay->addWidget(minmaxwid);
+    lay->addWidget(minmaxwid);
     minmaxlay->setSpacing(0);
     minmaxlay->setContentsMargins(0, 0, 0, 0);
 
@@ -142,7 +132,6 @@ InspectorWidget::InspectorWidget(
     connect(
         m_targetMax, &QAbstractSpinBox::editingFinished, this,
         &InspectorWidget::on_targetMaxValueChanged);
-    lay->addWidget(widg);
   }
 
   this->setLayout(lay);
