@@ -10,7 +10,7 @@
 namespace Process
 {
 
-class ChangePortAddress final : public score::Command
+class SCORE_LIB_PROCESS_EXPORT ChangePortAddress final : public score::Command
 {
   SCORE_COMMAND_DECL(
       Process::CommandFactoryName(),
@@ -32,7 +32,7 @@ private:
   State::AddressAccessor m_old, m_new;
 };
 
-class SetPortPropagate final : public score::PropertyCommand
+class SCORE_LIB_PROCESS_EXPORT SetPortPropagate final : public score::PropertyCommand
 {
   SCORE_COMMAND_DECL(
       Process::CommandFactoryName(),
