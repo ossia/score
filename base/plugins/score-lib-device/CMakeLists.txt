@@ -25,6 +25,8 @@ set(HEADERS
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Protocol/ProtocolSettingsWidget.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/QMenuView/qmenuview.h"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/QMenuView/qmenuview_p.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/Device/Widgets/DeviceCompleter.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Device/Widgets/AddressAccessorEditWidget.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score_lib_device.hpp"
 )
 
@@ -49,6 +51,9 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/QMenuView/qmenuview.cpp" # TODO move in 3rdparty
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Loading/JamomaDeviceLoader.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Loading/IScoreDeviceLoader.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Device/Widgets/DeviceCompleter.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Device/Widgets/AddressAccessorEditWidget.cpp"
 )
 
 add_library(score_lib_device ${SRCS} ${HEADERS})

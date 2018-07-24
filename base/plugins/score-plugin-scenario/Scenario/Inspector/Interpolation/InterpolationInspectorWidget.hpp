@@ -1,5 +1,5 @@
 #pragma once
-#include <Explorer/Widgets/AddressAccessorEditWidget.hpp>
+#include <Device/Widgets/AddressAccessorEditWidget.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Interpolation/InterpolationProcess.hpp>
@@ -22,7 +22,7 @@ public:
 
 private:
   void on_addressChange(const ::State::AddressAccessor& newText);
-  Explorer::AddressAccessorEditWidget* m_lineEdit{};
+  Device::AddressAccessorEditWidget* m_lineEdit{};
   QCheckBox* m_tween{};
   QLabel* m_label;
 

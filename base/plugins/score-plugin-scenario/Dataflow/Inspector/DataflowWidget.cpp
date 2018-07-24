@@ -64,7 +64,7 @@ void DataflowWidget::reinit()
     m_inlets.push_back(widg);
     /*
         con(widg->accessor,
-       &Explorer::AddressAccessorEditWidget::addressChanged, this, [=] (const
+       &Device::AddressAccessorEditWidget::addressChanged, this, [=] (const
        Device::FullAddressAccessorSettings& as) { auto cur =
        m_proc.inlets()[i]; cur->setAddress(as.address); auto cmd = new
        EditPort{m_proc, std::move(cur), i, true}; m_disp.submitCommand(cmd);
@@ -105,7 +105,7 @@ void DataflowWidget::reinit()
     m_outlets.push_back(widg);
     /*
         con(widg->accessor,
-       &Explorer::AddressAccessorEditWidget::addressChanged, this, [=] (const
+       &Device::AddressAccessorEditWidget::addressChanged, this, [=] (const
        Device::FullAddressAccessorSettings& as) { auto cur =
        m_proc.outlets()[i]; cur.address = as.address; auto cmd = new
        EditPort{m_proc, std::move(cur), i, false}; m_disp.submitCommand(cmd);
