@@ -2,6 +2,7 @@
 #include <ossia/editor/scenario/clock.hpp>
 #include <wobjectdefs.h>
 #include <QObject>
+#include <score_plugin_engine_export.h>
 #include <memory>
 namespace ossia
 {
@@ -103,7 +104,7 @@ namespace Engine
 namespace Execution
 {
 struct Context;
-class BaseScenarioElement final : public QObject
+class SCORE_PLUGIN_ENGINE_EXPORT BaseScenarioElement final : public QObject
 {
   W_OBJECT(BaseScenarioElement)
 public:
