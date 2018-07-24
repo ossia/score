@@ -98,6 +98,7 @@ public:
 
   VSTControlInlet* getControl(const Id<Process::Port>& p);
   QString prettyName() const override;
+  bool hasExternalUI() const;
 
   std::shared_ptr<AEffectWrapper> fx{};
 
@@ -105,13 +106,9 @@ public:
 
   void removeControl(const Id<Process::Port>&);
   void removeControl(int fxnum);
-public:
+
   void addControl(int idx, float v) W_SIGNAL(addControl, idx, v);
-
-public:
   void on_addControl(int idx, float v); W_SLOT(on_addControl);
-
-public:
   void on_addControl_impl(VSTControlInlet* inl);
 
 private:
@@ -170,6 +167,5 @@ EffectProcessFactory_T<Media::VST::VSTEffectModel>::customConstructionData()
 
 namespace Media::VST
 {
-
 using VSTEffectFactory = Process::EffectProcessFactory_T<VSTEffectModel>;
 }

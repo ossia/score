@@ -81,7 +81,7 @@ ScenarioComponent::ScenarioComponent(
 {
 }
 
-void ScenarioComponent::init()
+void ScenarioComponent::lazy_init()
 {
   // set-up the ports
   const Context& ctx = system();

@@ -57,7 +57,7 @@ public:
       QObject* parent);
 
   //! Reimplement this if the element needs two-phase initialization.
-  virtual void init();
+  virtual void lazy_init();
 
   virtual ~ProcessComponent();
 
@@ -131,7 +131,7 @@ public:
     {
       auto comp = std::make_shared<ProcessComponent_T>(
           static_cast<model_type&>(proc), ctx, id, parent);
-      comp->init();
+      comp->lazy_init();
       return comp;
     }
     catch (...)

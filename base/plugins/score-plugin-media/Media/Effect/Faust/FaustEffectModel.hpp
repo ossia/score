@@ -70,6 +70,8 @@ public:
     return m_outlets;
   }
 
+  bool hasExternalUI() const { return false; }
+
   llvm_dsp_factory* faust_factory{};
   llvm_dsp* faust_object{};
 

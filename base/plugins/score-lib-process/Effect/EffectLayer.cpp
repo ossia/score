@@ -119,6 +119,13 @@ void EffectLayerPresenter::fillContextMenu(
     QPointF scenepos,
     const LayerContextMenuManager& mgr)
 {
+  auto& facts
+      = context().context.app.interfaces<Process::LayerFactoryList>();
+
+  auto fact = facts.findDefaultFactory(m_layer);
+  if (!fact || !fact->hasExternalUI(m_layer, context().context))
+    return;
+
   menu.addAction(m_showUI);
   m_showUI->setCheckable(true);
   if (m_layer.externalUI)
