@@ -23,8 +23,8 @@ public:
   void update_device_list();
 
 protected:
-  QLineEdit* m_deviceNameEdit;
-  QComboBox* m_deviceChoice;
+  QLineEdit* m_deviceNameEdit{};
+  QComboBox* m_deviceChoice{};
 };
 
 }
