@@ -7,7 +7,7 @@
 
 W_OBJECT_IMPL(Engine::Network::JoystickDevice)
 
-namespace Engine::Netwok {
+namespace Engine::Network {
 
 JoystickDevice::JoystickDevice(const Device::DeviceSettings& settings)
     : OwningDeviceInterface{settings}
