@@ -7,11 +7,12 @@ namespace Nodes::FactorOracle
 
 class FactorOracle
 {
+    std::random_device m_dev;
 public:
   FactorOracle(int sz = 0)
     : m_oracleSize{sz}
-    , m_forwardLink(m_oracleSize + 1, {-1})
-    , m_rand_engine{std::random_device{}()}
+    , m_forwardLink(m_oracleSize + 1, std::vector<int>{-1})
+    , m_rand_engine{m_dev()}
   {
     m_sp[0] = -1;
     m_lrs[0] = 0;

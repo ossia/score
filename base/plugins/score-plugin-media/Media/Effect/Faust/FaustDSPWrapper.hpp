@@ -189,6 +189,8 @@ public:
   {
     return m_outlets;
   }
+
+  bool hasExternalUI() const { return false; }
 };
 
 template <typename DSP>
