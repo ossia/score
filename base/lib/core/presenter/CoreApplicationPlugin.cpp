@@ -1,6 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CoreApplicationPlugin.hpp"
+#include "AboutDialog.hpp"
 
 #include <QMessageBox>
 #include <QDesktopServices>
@@ -85,23 +86,8 @@ void CoreApplicationPlugin::help()
 
 void CoreApplicationPlugin::about()
 {
-  auto version_text = QStringLiteral("%1.%2.%3-%4 '%5'\n\n")
-                          .arg(SCORE_VERSION_MAJOR)
-                          .arg(SCORE_VERSION_MINOR)
-                          .arg(SCORE_VERSION_PATCH)
-                          .arg(SCORE_VERSION_EXTRA)
-                          .arg(SCORE_CODENAME);
-
-  QString commit{GIT_COMMIT};
-  if (!commit.isEmpty())
-  {
-    version_text += tr("Commit: \n%1\n").arg(commit);
-  }
-
-  QMessageBox::about(
-      nullptr, tr("About score"),
-      tr("With love and sweat from the score team. \nVersion:\n")
-          + version_text);
+  AboutDialog aboutDialog;
+  aboutDialog.exec();
 }
 
 void CoreApplicationPlugin::loadStack()
