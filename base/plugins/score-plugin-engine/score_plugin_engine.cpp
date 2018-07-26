@@ -59,6 +59,9 @@
 #if defined(OSSIA_PROTOCOL_PHIDGETS)
 #  include <Engine/Protocols/Phidgets/PhidgetsProtocolFactory.hpp>
 #endif
+#if defined(OSSIA_PROTOCOL_JOYSTICK)
+#  include <Engine/Protocols/Joystick/JoystickProtocolFactory.hpp>
+#endif
 
 #include <Engine/Executor/Dataflow/DataflowClock.hpp>
 #include <Engine/Protocols/Audio/AudioDevice.hpp>
@@ -148,6 +151,10 @@ score_plugin_engine::factories(
 #if defined(OSSIA_PROTOCOL_AUDIO)
          ,
          Dataflow::AudioProtocolFactory
+#endif
+#if defined(OSSIA_PROTOCOL_JOYSTICK)
+        ,
+        Network::JoystickProtocolFactory
 #endif
          >,
       FW<Engine::Execution::ProcessComponentFactory,
