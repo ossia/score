@@ -9,7 +9,7 @@
 #include <Automation/Commands/ChangeAddress.hpp>
 #include <Automation/Commands/SetAutomationMax.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Explorer/Widgets/AddressAccessorEditWidget.hpp>
+#include <Device/Widgets/AddressAccessorEditWidget.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <QBoxLayout>
 #include <QCheckBox>
@@ -41,6 +41,7 @@ InspectorWidget::InspectorWidget(
     , m_dispatcher{doc.commandStack}
 {
   using namespace Explorer;
+  using namespace Device;
   setObjectName("AutomationInspectorWidget");
   setParent(parent);
 
@@ -48,12 +49,6 @@ InspectorWidget::InspectorWidget(
   vlay->setSpacing(2);
   vlay->setMargin(2);
   vlay->setContentsMargins(0, 0, 0, 0);
-
-  QString name = tr("Automation");
-  m_label = new TextLabel{name, this};
-  // TODO use the same style as InspectorWidgetBase
-  m_label->setStyleSheet("font-weight: bold; font-size: 18");
-  vlay->addWidget(m_label);
 
   // Address
   m_lineEdit = new AddressAccessorEditWidget{
@@ -238,6 +233,7 @@ InspectorWidget::InspectorWidget(
     : InspectorWidgetDelegate_T{automationModel, parent}
     , m_dispatcher{doc.commandStack}
 {
+  using namespace Device;
   using namespace Explorer;
   setObjectName("SplineInspectorWidget");
   setParent(parent);
@@ -310,6 +306,7 @@ InspectorWidget::InspectorWidget(
     : InspectorWidgetDelegate_T{automationModel, parent}
     , m_dispatcher{doc.commandStack}
 {
+  using namespace Device;
   using namespace Explorer;
   setObjectName("MetronomeInspectorWidget");
   setParent(parent);

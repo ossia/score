@@ -2,18 +2,21 @@
 #include <Device/Address/AddressSettings.hpp>
 #include <wobjectdefs.h>
 #include <QWidget>
-#include <score_plugin_deviceexplorer_export.h>
+#include <score_lib_device_export.h>
 
 class QLineEdit;
-namespace Explorer
+namespace Device
 {
-class DeviceExplorerModel;
-class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddressAccessorEditWidget final
+class NodeBasedItemModel;
+}
+namespace Device
+{
+class SCORE_LIB_DEVICE_EXPORT AddressAccessorEditWidget final
     : public QWidget
 {
   W_OBJECT(AddressAccessorEditWidget)
 public:
-  AddressAccessorEditWidget(DeviceExplorerModel& model, QWidget* parent);
+  AddressAccessorEditWidget(Device::NodeBasedItemModel& model, QWidget* parent);
 
   void setAddress(const State::AddressAccessor& addr);
   void setFullAddress(Device::FullAddressAccessorSettings&& addr);
@@ -25,13 +28,13 @@ public:
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent*) override;
 public:
-  void addressChanged(const Device::FullAddressAccessorSettings& arg_1) E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, addressChanged, arg_1);
+  void addressChanged(const Device::FullAddressAccessorSettings& arg_1) E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, addressChanged, arg_1);
 
 private:
   void customContextMenuEvent(const QPoint& p);
 
   QLineEdit* m_lineEdit{};
   Device::FullAddressAccessorSettings m_address;
-  DeviceExplorerModel& m_model;
+  Device::NodeBasedItemModel& m_model;
 };
 }

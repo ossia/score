@@ -144,62 +144,47 @@ public:
         con(effect, &Process::ProcessModel::outletsChanged, this,
             [&, root] { resetOutlets(effect, ctx, root, ui); }));
 
-    auto ui_btn
-        = new score::QGraphicsPixmapToggle{undock_on, undock_off, root};
-    connect(
-        ui_btn, &score::QGraphicsPixmapToggle::toggled, this,
-        [=, &effect](bool b) {
-          if (b)
-          {
-            auto& facts
-                = ctx.context.app.interfaces<Process::LayerFactoryList>();
-            if (auto fact = facts.findDefaultFactory(effect))
-            { /*
-               if(QWidget* win = fact->makeExternalUI(m_layer,
-               context().context, nullptr))
-               {
-                 const_cast<QWidget*&>(m_layer.externalUI) = win;
-                 win->show();
-                 connect(win, SIGNAL(uiClosing()), this, SLOT(closeUI()));
 
-                 connect(m_showUI, &QAction::toggled,
-                         win, [=] (bool b) {
-                   if(win)
-                     win->close();
-                   delete win;
-                   const_cast<QWidget*&>(m_layer.externalUI) = nullptr;
-                 });
-               }*/
-
-              if (auto win
-                  = fact->makeExternalUI(effect, ctx.context, nullptr))
+    auto& facts
+        = ctx.context.app.interfaces<Process::LayerFactoryList>();
+    auto fact = facts.findDefaultFactory(effect);
+    if (fact && fact->hasExternalUI(effect, ctx.context))
+    {
+      auto ui_btn
+          = new score::QGraphicsPixmapToggle{undock_on, undock_off, root};
+      connect(
+          ui_btn, &score::QGraphicsPixmapToggle::toggled, this,
+          [=, &effect](bool b) {
+            if (b)
+            {
+              if (auto win = fact->makeExternalUI(effect, ctx.context, nullptr))
               {
                 const_cast<QWidget*&>(effect.externalUI) = win;
                 win->show();
                 auto c0 = connect(
-                    win->windowHandle(), &QWindow::visibilityChanged, ui_btn,
-                    [=, &effect](auto vis) {
-                      if (vis == QWindow::Hidden)
-                      {
-                        ui_btn->toggle();
-                        const_cast<QWidget*&>(effect.externalUI) = nullptr;
-                        win->deleteLater();
-                      }
-                    });
+                      win->windowHandle(), &QWindow::visibilityChanged, ui_btn,
+                      [=, &effect](auto vis) {
+                  if (vis == QWindow::Hidden)
+                  {
+                    ui_btn->toggle();
+                    const_cast<QWidget*&>(effect.externalUI) = nullptr;
+                    win->deleteLater();
+                  }
+                });
 
                 connect(
-                    ui_btn, &score::QGraphicsPixmapToggle::toggled, win,
-                    [=, &effect](bool b) {
-                      QObject::disconnect(c0);
-                      win->close();
-                      delete win;
-                      const_cast<QWidget*&>(effect.externalUI) = nullptr;
-                    });
+                      ui_btn, &score::QGraphicsPixmapToggle::toggled, win,
+                      [=, &effect](bool b) {
+                  QObject::disconnect(c0);
+                  win->close();
+                  delete win;
+                  const_cast<QWidget*&>(effect.externalUI) = nullptr;
+                });
               }
             }
-          }
-        });
-    ui_btn->setPos({5, 4});
+          });
+      ui_btn->setPos({5, 4});
+    }
 
     auto rm_btn = new score::QGraphicsPixmapButton{close_on, close_off, root};
     connect(

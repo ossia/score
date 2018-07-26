@@ -40,7 +40,6 @@ VSTWindow::VSTWindow(
     lay->addWidget(v);
     m_defaultWidg = v;
 
-    qDebug() << e.controls.size();
     for (auto& inlet : e.controls)
     {
       auto sl

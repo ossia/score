@@ -5,7 +5,7 @@
 #include <QRect>
 #include <score/tools/std/Optional.hpp>
 #include <score/widgets/MimeData.hpp>
-
+#include <score_plugin_scenario_export.h>
 class QGraphicsItem;
 class QGraphicsSceneContextMenuEvent;
 class QGraphicsSceneDragDropEvent;
@@ -18,7 +18,7 @@ namespace Scenario
 {
 class TemporalScenarioPresenter;
 
-class TemporalScenarioView final : public Process::LayerView
+class SCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioView final : public Process::LayerView
 {
   W_OBJECT(TemporalScenarioView)
 

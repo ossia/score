@@ -3,6 +3,11 @@
 #include "ProcessInspectorWidgetDelegateFactory.hpp"
 
 #include <Process/Process.hpp>
+#include <QWidget>
+#include <QHBoxLayout>
+#include <QTabWidget>
+#include <score/widgets/TextLabel.hpp>
+#include <Process/Dataflow/PortListWidget.hpp>
 namespace Process
 {
 InspectorWidgetDelegateFactory::~InspectorWidgetDelegateFactory() = default;
@@ -35,5 +40,29 @@ bool InspectorWidgetDelegateFactory::matches(
     return matches_process(*p);
   }
   return false;
+}
+
+QWidget* InspectorWidgetDelegateFactory::wrap(
+    const ProcessModel& process
+    , const score::DocumentContext& doc
+    , QWidget* w
+    , QWidget* parent)
+{
+  auto widg = new QWidget{parent};
+  auto lay = new QVBoxLayout{widg};
+
+  auto label = new TextLabel{process.prettyShortName(), widg};
+
+  label->setStyleSheet("font-weight: bold; font-size: 18");
+
+  auto ports = new PortListWidget{process, doc, widg};
+  lay->addWidget(label);
+  auto tab = new QTabWidget;
+  tab->setTabPosition(QTabWidget::South);
+  tab->addTab(w, "Basic");
+  tab->addTab(ports, "Ports");
+  lay->addWidget(tab);
+
+  return widg;
 }
 }

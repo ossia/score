@@ -277,7 +277,6 @@ bool VSTWindow::hasUI(AEffect& e)
 
 void VSTWindow::closeEvent(QCloseEvent* event)
 {
-  qDebug() << "Closing !";
   QPointer<VSTWindow> p(this);
   if (auto eff = effect.lock())
     eff->fx->dispatcher(eff->fx, effEditClose, 0, 0, nullptr, 0);

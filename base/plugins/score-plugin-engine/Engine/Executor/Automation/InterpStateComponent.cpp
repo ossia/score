@@ -41,7 +41,7 @@ class state_interpolation final :
       {
         auto val = ossia::apply(
                 ossia::detail::compute_value_visitor{t.position, dest.value.get().get_value_type()}, drive);
-        e.insert(dest.address(), ossia::tvalue{std::move(val)});
+        e.insert(dest.address(), ossia::typed_value{std::move(val)});
       }
     }
 

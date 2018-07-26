@@ -3,6 +3,7 @@
 #include <Media/Effect/Settings/Model.hpp>
 #if defined(LILV_SHARED)
 #  include <Media/Effect/LV2/LV2Context.hpp>
+#  include <Media/Effect/LV2/LV2EffectModel.hpp>
 #endif
 #if defined(HAS_VST2)
 #  include <Media/Effect/VST/VSTEffectModel.hpp>
@@ -38,6 +39,50 @@ W_REGISTER_ARGTYPE(Media::ApplicationPlugin::vst_info)
 Q_DECLARE_METATYPE(std::vector<Media::ApplicationPlugin::vst_info>)
 W_REGISTER_ARGTYPE(std::vector<Media::ApplicationPlugin::vst_info>)
 #endif
+
+#if defined(LILV_SHARED)
+namespace Media::LV2
+{
+void on_uiMessage(
+    SuilController controller,
+    uint32_t port_index,
+    uint32_t buffer_size,
+    uint32_t protocol,
+    const void* buffer)
+{
+  auto& fx = *(LV2EffectModel*)controller;
+
+  auto it = fx.control_map.find(port_index);
+  if (it == fx.control_map.end()) {
+    qDebug() << fx.effect() << " (LV2): invalid write on port" << port_index;
+    return;
+  }
+
+  // currently writing from score
+  if(it->second.second)
+    return;
+
+  Message c{port_index, protocol, {}};
+  c.body.resize(buffer_size);
+  auto b = (const uint8_t*) buffer;
+  for(uint32_t i = 0; i < buffer_size; i++)
+    c.body[i] = b[i];
+
+  fx.ui_events.enqueue(std::move(c));
+}
+
+uint32_t port_index(SuilController controller, const char* symbol)
+{
+  auto& p = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
+  LV2EffectModel& fx = (LV2EffectModel&)controller;
+  auto n = lilv_new_uri(p.lilv.me, symbol);
+  auto port = lilv_plugin_get_port_by_symbol(fx.plugin, n);
+  lilv_node_free(n);
+  return port ? lilv_port_get_index(fx.plugin, port) : LV2UI_INVALID_PORT_INDEX;
+}
+}
+#endif
+
 namespace Media
 {
 
@@ -65,11 +110,16 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
   static char** argv{nullptr};
   suil_init(&argc, &argv, SUIL_ARG_NONE);
   lv2_context->loadPlugins();
+
+  lv2_context->ui_host = suil_host_new(
+        Media::LV2::on_uiMessage,
+        Media::LV2::port_index,
+        nullptr, nullptr);
 #endif
 }
+
 void ApplicationPlugin::initialize()
 {
-
 #if defined(HAS_VST2)
   // init with the database
   QSettings s;
@@ -213,6 +263,7 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
   QSettings{}.setValue("Effect/KnownVST2", QVariant::fromValue(vst_infos));
 }
 #endif
+
 ApplicationPlugin::~ApplicationPlugin()
 {
 #if defined(HAS_VST2)
@@ -220,6 +271,10 @@ ApplicationPlugin::~ApplicationPlugin()
   {
     delete e.second;
   }
+#endif
+
+#if defined(LILV_SHARED)
+  suil_host_free(lv2_context->ui_host);
 #endif
 }
 

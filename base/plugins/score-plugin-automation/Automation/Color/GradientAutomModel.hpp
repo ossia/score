@@ -32,10 +32,7 @@ public:
     init();
   }
 
-  void init()
-  {
-    m_outlets.push_back(outlet.get());
-  }
+  void init();
 
   const State::AddressAccessor& address() const;
 

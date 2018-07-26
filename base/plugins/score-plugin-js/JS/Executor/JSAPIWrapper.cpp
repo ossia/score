@@ -119,9 +119,8 @@ void ExecStateWrapper::write(const QString& address, const QVariant& value)
 
     ossia::apply_to_destination(addr, devices.allDevices,
       [&] (ossia::net::parameter_base* addr, bool unique) {
-        devices.insert(*addr, ossia::tvalue{val});
+        devices.insert(*addr, ossia::typed_value{val});
     });
-    // addr->push_value(ossia::qt::qt_to_ossia{}(value));
   }
 }
 }

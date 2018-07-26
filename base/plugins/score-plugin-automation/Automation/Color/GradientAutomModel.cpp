@@ -31,6 +31,12 @@ ProcessModel::~ProcessModel()
 {
 }
 
+void ProcessModel::init()
+{
+  outlet->setCustomData("Out");
+  m_outlets.push_back(outlet.get());
+}
+
 QString ProcessModel::prettyName() const
 {
   auto res = address().toString();

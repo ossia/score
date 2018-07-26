@@ -12,7 +12,7 @@ class QLineEdit;
 class QToolButton;
 class QMenu;
 class QPushButton;
-namespace Explorer
+namespace Device
 {
 class AddressAccessorEditWidget;
 }
@@ -79,7 +79,7 @@ private:
 
   QLabel* m_ok{};
 
-  Explorer::AddressAccessorEditWidget* m_address{};
+  Device::AddressAccessorEditWidget* m_address{};
   QComboBox* m_comparator{};
   QLineEdit* m_value{};
   QComboBox* m_binOperator{};

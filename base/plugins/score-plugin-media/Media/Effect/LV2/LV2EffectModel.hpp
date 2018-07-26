@@ -59,6 +59,8 @@ public:
 
   QString prettyName() const override;
 
+  bool hasExternalUI() const;
+
   const LilvPlugin* plugin{};
   mutable LV2::EffectContext effectContext;
 
@@ -92,7 +94,7 @@ public:
       const Id<score::Component>& id,
       QObject* parent);
 
-  void init() override;
+  void lazy_init() override;
 
   void writeAtomToUi(
         uint32_t port_index,

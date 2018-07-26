@@ -135,6 +135,13 @@ QGraphicsItem* LayerFactory::makeItem(
   return nullptr;
 }
 
+bool LayerFactory::hasExternalUI(
+    const ProcessModel&,
+    const score::DocumentContext& ctx) const
+{
+  return false;
+}
+
 HeaderDelegate*
 LayerFactory::makeHeaderDelegate(const LayerPresenter& pres) const
 {

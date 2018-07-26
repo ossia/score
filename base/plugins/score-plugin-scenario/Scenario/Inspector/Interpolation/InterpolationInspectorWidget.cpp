@@ -23,6 +23,7 @@ InspectorWidget::InspectorWidget(
     : InspectorWidgetDelegate_T{automationModel, parent}
     , m_dispatcher{doc.commandStack}
 {
+  using namespace Device;
   using namespace Explorer;
   setObjectName("InterpolationInspectorWidget");
   setParent(parent);

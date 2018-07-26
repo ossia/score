@@ -145,6 +145,7 @@ struct SCORE_LIB_PROCESS_EXPORT ScenarioStyle
 
   QPen GrayTextPen;
 
+  QPen SlotHeaderPen;
   const QPen TransparentPen;
   const QBrush TransparentBrush;
   const QPen NoPen;

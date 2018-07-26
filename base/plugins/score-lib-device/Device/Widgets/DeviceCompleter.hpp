@@ -5,11 +5,13 @@
 
 class QModelIndex;
 class QObject;
-
-namespace Explorer
+namespace Device
+{
+class NodeBasedItemModel;
+}
+namespace Device
 {
 
-class DeviceExplorerModel;
 /**
  * @brief The DeviceCompleter class
  *
@@ -20,7 +22,7 @@ class DeviceExplorerModel;
 class DeviceCompleter final : public QCompleter
 {
 public:
-  DeviceCompleter(DeviceExplorerModel& model, QObject* parent);
+  DeviceCompleter(Device::NodeBasedItemModel& model, QObject* parent);
 
   QString pathFromIndex(const QModelIndex& index) const override;
   QStringList splitPath(const QString& path) const override;
