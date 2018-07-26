@@ -189,6 +189,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/MarginLess.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/MimeData.hpp"
 #    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/QmlContainerPanel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/Pixmap.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/RectItem.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ReactiveLabel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/Separator.hpp"
