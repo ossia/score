@@ -11,14 +11,15 @@
 #include <QDesktopServices>
 #include <map>
 #include <score_git_info.hpp>
+#include <score/widgets/Pixmap.hpp>
 
 namespace score {
 AboutDialog::AboutDialog(QWidget *parent) :
   QDialog(parent),
   m_windowSize(492,437),
-  m_backgroundImage(":/about/about_background.png"),
-  m_catamaranFont(":/Catamaran-Regular.ttf", 12),
-  m_montserratFont(":/Montserrat-Regular.ttf", 11),
+  m_backgroundImage(score::get_image(":/about/about_background.png")),
+  m_catamaranFont(":/Catamaran-Regular.ttf", 13),
+  m_montserratFont(":/Montserrat-Regular.ttf", 10),
   m_mouseAreaLabri(17, 221, 126, 62),
   m_mouseAreaBlueYeti(20, 287, 110, 29),
   m_mouseAreaScrime(22, 320, 100, 35)
@@ -27,11 +28,14 @@ AboutDialog::AboutDialog(QWidget *parent) :
   resize(m_windowSize.width(),m_windowSize.height());
   setMouseTracking(true);
 
+  // fonts
+  m_catamaranFont.setFamily("Catamaran");
+  m_montserratFont.setFamily("Montserrat");
+
   // map
   std::map<QString, QString> map;
   map["Qt"] = "GNU General Public License v3";
   map["Boost"] = "Boost License";
-
 
   // software list
   auto softwareList = new QListWidget{this};
@@ -54,9 +58,7 @@ AboutDialog::AboutDialog(QWidget *parent) :
                               background-color: rgb(18,23,26);
                               margin:0px;
                               }
-                              /* QListView::item{
-                              color: rgb(0,146,207);
-                              }*/
+
                               QScrollBar::right-arrow:horizontal, QScrollBar::left-arrow:horizontal
                               {
                               border: none;
@@ -72,11 +74,14 @@ AboutDialog::AboutDialog(QWidget *parent) :
                               background: none;
                               }
                               )_");
-  for(auto item : map)
+  for(const auto& item : map)
   {
     softwareList->addItem(item.first);
   }
-
+  for(std::size_t i = 0; i < map.size(); i++)
+  {
+    softwareList->item(i)->setTextAlignment( Qt::AlignHCenter );
+  }
 
   // license
   auto license = new QPlainTextEdit{this};
@@ -93,7 +98,6 @@ AboutDialog::AboutDialog(QWidget *parent) :
 
 void AboutDialog::mousePressEvent(QMouseEvent *event)
 {
-
   QPointF pos = event->localPos();
   if(m_mouseAreaLabri.contains(pos))
   {
@@ -131,7 +135,7 @@ void AboutDialog::paintEvent(QPaintEvent *event)
   QPen rectPen(QColor("#03c3dd"));
   QBrush rectBrush(QColor(18,23,26));
 
-  auto version_text = QStringLiteral("Version: %1.%2.%3-%4 '%5'\n")
+  auto version_text = QStringLiteral("Version: %1.%2.%3-%4 “%5”\n")
                       .arg(SCORE_VERSION_MAJOR)
                       .arg(SCORE_VERSION_MINOR)
                       .arg(SCORE_VERSION_PATCH)
@@ -154,7 +158,7 @@ void AboutDialog::paintEvent(QPaintEvent *event)
   // write version and commit
   painter.setPen(textPen);
   painter.setFont(m_catamaranFont);
-  painter.drawText(QRectF(0,120,m_windowSize.width(),40),
+  painter.drawText(QRectF(0,110,m_windowSize.width(),40),
                    Qt::AlignHCenter,
                    version_text);
 
@@ -173,10 +177,9 @@ void AboutDialog::paintEvent(QPaintEvent *event)
                    "Project");
 
   // write title above license
-  painter.drawText(QRectF(280,210,120,15),
+  painter.drawText(QRectF(280,210,185,15),
                    Qt::AlignHCenter,
                    "License");
 }
-
 
 }

@@ -88,6 +88,7 @@ void CoreApplicationPlugin::about()
 {
   AboutDialog aboutDialog;
   aboutDialog.exec();
+  aboutDialog.deleteLater();
 }
 
 void CoreApplicationPlugin::loadStack()
