@@ -66,7 +66,7 @@ struct Node
     if (!updateExpr(self, expr))
       return;
 
-    for (const ossia::tvalue& v : input.get_data())
+    for (const ossia::timed_value& v : input.get_data())
     {
       self.cur_value = ossia::convert<double>(v.value);
       self.cur_time = tk.date.impl;
@@ -77,7 +77,7 @@ struct Node
       self.p3 = c;
 
       auto res = self.expr.value();
-      output.add_value(res, v.timestamp);
+      output.write_value(res, v.timestamp);
     }
   }
 };

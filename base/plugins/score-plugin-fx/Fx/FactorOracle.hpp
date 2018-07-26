@@ -7,12 +7,11 @@ namespace Nodes::FactorOracle
 
 class FactorOracle
 {
-    std::random_device m_dev;
 public:
   FactorOracle(int sz = 0)
     : m_oracleSize{sz}
-    , m_forwardLink(m_oracleSize + 1, std::vector<int>{-1})
-    , m_rand_engine{m_dev()}
+    , m_forwardLink(m_oracleSize + 1, {-1})
+    , m_rand_engine{std::random_device{}()}
   {
     m_sp[0] = -1;
     m_lrs[0] = 0;
@@ -201,7 +200,7 @@ struct Node
       for(auto& bang : bangs.get_data())
       {
         self.sequence_idx = ossia::clamp<std::size_t>(self.sequence_idx, 0, self.sequence.length() - 1);
-        out.add_value('a' + self.sequence[self.sequence_idx], bang.timestamp);
+        out.write_value('a' + self.sequence[self.sequence_idx], bang.timestamp);
         self.sequence_idx = (self.sequence_idx + 1) % self.sequence.length();
       }
     }

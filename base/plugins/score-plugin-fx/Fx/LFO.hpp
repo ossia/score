@@ -64,7 +64,6 @@ struct Node
 
     if (auto it = waveform_map.find(type); it != waveform_map.end())
     {
-      float new_val{};
       auto ph = s.phase;
       if (jitter > 0)
       {
@@ -77,23 +76,20 @@ struct Node
       using namespace Control::Widgets;
       const auto phi = phase + (float(ossia::two_pi) * freq * ph) / st.sampleRate();
 
+      auto add_val = [&] (auto new_val) { out.write_value(ampl * new_val + offset, tk.tick_start()); };
       switch (it->second)
       {
         case Sin:
-          new_val = ampl * std::sin(phi);
-          out.add_value(new_val + offset);
+          add_val(std::sin(phi));
           break;
         case Triangle:
-          new_val = ampl * std::asin(std::sin(phi));
-          out.add_value(new_val + offset);
+          add_val(std::asin(std::sin(phi)));
           break;
         case Saw:
-          new_val = ampl * std::atan(std::tan(phi));
-          out.add_value(new_val + offset);
+          add_val(std::atan(std::tan(phi)));
           break;
         case Square:
-          new_val = ampl * ((std::sin(phi) > 0.f) ? 1.f : -1.f);
-          out.add_value(new_val + offset);
+          add_val((std::sin(phi) > 0.f) ? 1.f : -1.f);
           break;
         case SampleAndHold:
         {
@@ -103,24 +99,18 @@ struct Node
           auto end_s = std::sin(end_phi);
           if((start_s > 0 && end_s <= 0) || (start_s <= 0 && end_s > 0))
           {
-            new_val = std::uniform_real_distribution<float>(
-                  -ampl, ampl)(s.rd);
-            out.add_value(new_val + offset);
+            add_val(std::uniform_real_distribution<float>(-1., 1.)(s.rd));
           }
           break;
         }
         case Noise1:
-          new_val = std::uniform_real_distribution<float>(
-              -ampl, ampl)(s.rd);
-          out.add_value(new_val + offset);
+          add_val(std::uniform_real_distribution<float>(-1., 1.)(s.rd));
           break;
         case Noise2:
-          new_val = std::normal_distribution<float>(0, ampl)(s.rd);
-          out.add_value(new_val + offset);
+          add_val(std::normal_distribution<float>(0., 1.)(s.rd));
           break;
         case Noise3:
-          new_val = std::cauchy_distribution<float>(0, ampl)(s.rd);
-          out.add_value(new_val + offset);
+          add_val(std::cauchy_distribution<float>(0., 1.)(s.rd));
           break;
       }
     }
