@@ -159,10 +159,10 @@ MetadataWidget::MetadataWidget(
     m_colorButton.setIcon(QIcon(m_colorButtonPixmap));
     m_colorButton.setIconSize(QSize(m_colorIconSize, m_colorIconSize));
 
-    // TODO
     con(metadata, &score::ModelMetadata::ColorChanged,
-        this, [=] (const auto& str) {  });
-
+        this, [=] (const score::ColorRef& str) {
+      palette_widget->setCurrentColor(str.getBrush().color());
+    });
   }
 
   con(metadata, &score::ModelMetadata::metadataChanged, this,

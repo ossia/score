@@ -6,6 +6,7 @@
 #include <ossia/detail/pod_vector.hpp>
 
 #include <Engine/Executor/DocumentPlugin.hpp>
+#include <Engine/Protocols/Settings/Model.hpp>
 #include <Media/ApplicationPlugin.hpp>
 #include <Media/Commands/VSTCommands.hpp>
 #include <Media/Effect/VST/VSTControl.hpp>
@@ -266,6 +267,7 @@ intptr_t vst_host_callback(
     }
   }
 
+  static const auto& settings = score::GUIAppContext().settings<Audio::Settings::Model>();
   switch (opcode)
   {
     case audioMasterProcessEvents:
@@ -283,10 +285,10 @@ intptr_t vst_host_callback(
       result = kVstVersion;
       break;
     case audioMasterGetSampleRate:
-      return 44100; // FIXME
+      return settings.getRate();
       break;
     case audioMasterGetBlockSize:
-      return 64; // FIXME
+      return settings.getBufferSize();
       break;
     case audioMasterGetCurrentProcessLevel:
       result = kVstProcessLevelUnknown;

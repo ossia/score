@@ -245,13 +245,13 @@ void NodeUpdateProxy::updateLocalSettings(
 }
 
 void NodeUpdateProxy::updateRemoteValue(
-    const State::AddressAccessor& addr, const ossia::value& val)
+    const State::Address& addr, const ossia::value& val)
 {
   // TODO add these checks everywhere.
-  if (auto dev = devModel.list().findDevice(addr.address.device))
+  if (auto dev = devModel.list().findDevice(addr.device))
   {
     // Update in the device implementation
-    dev->sendMessage({addr, val});
+    dev->sendMessage(addr, val);
   }
 }
 

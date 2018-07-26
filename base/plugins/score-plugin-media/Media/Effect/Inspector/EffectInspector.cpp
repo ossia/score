@@ -53,11 +53,11 @@ InspectorWidget::InspectorWidget(
   connect(
       m_list, &QListWidget::itemDoubleClicked, this,
       [=](QListWidgetItem* item) {
-        /* TODO
+    /* TODO unify with EffectProcessLayer and all the makeExternalUI uses
         auto id = item->data(Qt::UserRole).value<Id<Process::ProcessModel>>();
         auto proc = &process().effects().at(id);
         proc->showUI();
-        */
+    */
       },
       Qt::QueuedConnection);
 

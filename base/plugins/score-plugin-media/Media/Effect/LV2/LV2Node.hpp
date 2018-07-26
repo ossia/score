@@ -157,23 +157,7 @@ struct lv2_node final : public ossia::graph_node
 
   void all_notes_off() noexcept override
   {
-    /*
-        if(fMidiSource)
-        {
-          for(AtomBuffer& port : fMidiIns)
-          {
-            static float stopbuf_[1];
-            static float* stopbuf[2] = { +stopbuf_, +stopbuf_ };
-            Iterator it{port.buf};
-            for(int i = 0; i < 127; i++)
-            {
-              auto off = rtmidi::message::note_off(fMidiSource->process().channel(), i,
-       0); it.write(0, 0, data.host.midi_event_id, 3, off.data.data());
-            }
-
-            Process(+stopbuf, +stopbuf, 0);
-          }
-        }*/
+    // TODO
   }
 
   void preProcess()
