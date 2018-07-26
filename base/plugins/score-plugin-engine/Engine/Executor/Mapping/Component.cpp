@@ -87,9 +87,7 @@ void Component::recompute()
     std::function<void()> v
         = [proc = std::dynamic_pointer_cast<ossia::nodes::mapping>(
                OSSIAProcess().node),
-           curve, ossia_source_addr, ossia_target_addr] {
-            proc->set_driver(std::move(ossia_source_addr));
-            proc->set_driven(std::move(ossia_target_addr));
+           curve] {
             proc->set_behavior(std::move(curve));
           };
     in_exec([fun = std::move(v)] { fun(); });

@@ -189,6 +189,8 @@ public:
   {
     return m_outlets;
   }
+
+  bool hasExternalUI() const { return false; }
 };
 
 template <typename DSP>
@@ -267,7 +269,7 @@ public:
           inlet, &Process::ControlInlet::valueChanged, this,
           [this, inl](const ossia::value& v) {
             this->system().executionQueue.enqueue([inl, val = v]() mutable {
-              inl->data.template target<ossia::value_port>()->add_value(
+              inl->data.template target<ossia::value_port>()->write_value(
                   std::move(val), 0);
             });
           });

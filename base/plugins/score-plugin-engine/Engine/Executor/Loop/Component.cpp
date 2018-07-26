@@ -3,7 +3,6 @@
 #include "Component.hpp"
 
 #include <ossia/dataflow/graph/graph_interface.hpp>
-#include <ossia/dataflow/graph/graph_utils.hpp>
 #include <ossia/editor/loop/loop.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
 #include <ossia/editor/scenario/time_sync.hpp>
@@ -19,6 +18,7 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <ossia/dataflow/graph_edge.hpp>
 
 namespace Loop
 {
