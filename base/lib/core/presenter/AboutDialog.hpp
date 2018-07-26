@@ -2,7 +2,7 @@
 #include <QDialog>
 
 namespace score {
-class AboutDialog : public QDialog
+class AboutDialog final : public QDialog
 {
   public:
     AboutDialog(QWidget *parent = 0);
