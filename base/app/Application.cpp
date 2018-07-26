@@ -44,6 +44,7 @@
 #include <ossia/context.hpp>
 #include <ossia/detail/logger.hpp>
 #include <vector>
+#include <score/widgets/Pixmap.hpp>
 #include <ossia-qt/qt_logger.hpp>
 
 #if __has_include(<QQuickStyle>)
@@ -145,18 +146,7 @@ const score::ApplicationComponents& Application::components() const
 
 static QPixmap writeVersionName()
 {
-  QImage pixmap;
-  if (auto screen = qApp->primaryScreen())
-  {
-    if (screen->devicePixelRatio() >= 2.0)
-    {
-      pixmap.load(":/splash@2x.png");
-    }
-    else
-    {
-      pixmap.load(":/splash.png");
-    }
-  }
+  QImage pixmap = score::get_image(":/splash.png");
 
   QPainter painter;
   if (!painter.begin(&pixmap))
