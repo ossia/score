@@ -59,8 +59,8 @@ struct Node
       {
         auto [rms, peak] = get(audio.samples[0]);
 
-        rms_port.add_value(rms);
-        peak_port.add_value(peak);
+        rms_port.write_value(rms, tk.tick_start());
+        peak_port.write_value(peak, tk.tick_start());
         break;
       }
       default:
@@ -75,8 +75,8 @@ struct Node
           rms_vec.push_back(rms);
           peak_vec.push_back(peak);
         }
-        rms_port.add_value(rms_vec);
-        peak_port.add_value(peak_vec);
+        rms_port.write_value(rms_vec, tk.tick_start());
+        peak_port.write_value(peak_vec, tk.tick_start());
       }
       break;
     }

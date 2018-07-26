@@ -16,7 +16,6 @@
 namespace ossia
 {
 class audio_protocol;
-struct graph_base;
 struct bench_map;
 }
 namespace score

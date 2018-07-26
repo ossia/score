@@ -476,7 +476,7 @@ void LV2EffectComponent::lazy_init()
         inlet, &Process::ControlInlet::valueChanged, this,
         [this, inl](const ossia::value& v) {
           system().executionQueue.enqueue([inl, val = v]() mutable {
-            inl->data.target<ossia::value_port>()->add_value(
+            inl->data.target<ossia::value_port>()->write_value(
                 std::move(val), 0);
           });
         });

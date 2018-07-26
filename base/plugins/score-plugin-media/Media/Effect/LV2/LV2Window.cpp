@@ -102,9 +102,13 @@ Window::Window(const LV2EffectModel& fx, const score::DocumentContext& ctx, QWid
   lilv_node_free(name);
 
   // Set up regular updates
+  QPointer<const LV2EffectModel> fx_ptr{&fx};
   connect(&ctx.coarseUpdateTimer, &QTimer::timeout,
-          this, [&] {
+          this, [&,fx_ptr] {
     // score -> UI
+    if(!fx_ptr)
+      return;
+
     {
       Message ev;
       while(fx.plugin_events.try_dequeue(ev))

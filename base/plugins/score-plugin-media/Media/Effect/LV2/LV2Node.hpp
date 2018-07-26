@@ -213,7 +213,7 @@ struct lv2_node final : public ossia::graph_node
     }
   }
 
-  void postProcess()
+  void postProcess(int64_t offset)
   {
     if (data.effect.worker && data.effect.worker_response
         && data.effect.worker->work_response)
@@ -265,7 +265,7 @@ struct lv2_node final : public ossia::graph_node
     {
       auto& out = *m_outlets[i]->data.template target<ossia::value_port>();
 
-      out.add_value(fOutControls[i - control_start]);
+      out.write_value(fOutControls[i - control_start], offset);
     }
 
     onFinished();
@@ -285,14 +285,14 @@ struct lv2_node final : public ossia::graph_node
     lilv_instance_deactivate(fInstance);
   }
 
-  void run(ossia::token_request t, ossia::exec_state_facade) noexcept override
+  void run(ossia::token_request tk, ossia::exec_state_facade) noexcept override
   {
-    if (t.date > t.prev_date)
+    if (tk.date > tk.prev_date)
     {
       data.host.current = &data.effect;
       preProcess();
 
-      const std::size_t samples = t.date - t.prev_date;
+      const std::size_t samples = tk.date - tk.prev_date;
       const auto audio_ins = data.audio_in_ports.size();
       const auto audio_outs = data.audio_out_ports.size();
       ossia::small_vector<ossia::float_vector, 2> in_vec;
@@ -346,7 +346,7 @@ struct lv2_node final : public ossia::graph_node
         }
       }
 
-      postProcess();
+      postProcess(tk.offset);
     }
   }
 };
