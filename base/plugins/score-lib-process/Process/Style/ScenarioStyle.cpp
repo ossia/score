@@ -152,9 +152,9 @@ void ScenarioStyle::update(const score::Skin& skin)
   TimenodeBrush = QBrush{Qt::black};
   TimenodePen.setCosmetic(true);
 
-  MinimapPen = QPen{QColor(qRgba(80, 100, 140, 100)), 2, Qt::SolidLine,
-                    Qt::RoundCap, Qt::RoundJoin};
-  MinimapBrush = QBrush{qRgba(20, 70, 80, 1)};
+  MinimapPen = QPen{QColor("#99aaaaaa"), 1, Qt::SolidLine};
+  MinimapPen.setCosmetic(true);
+  MinimapBrush = QBrush{QColor::fromRgbF(0.31, 0.35, 0.44, 0.5)};
 
   StateTemporalPointBrush = QBrush{Qt::black};
   StateTemporalPointPen.setCosmetic(true);
@@ -219,4 +219,7 @@ void ScenarioStyle::update(const score::Skin& skin)
 
   GrayTextPen.setBrush(TimenodeDefault.getBrush());
   GrayTextPen.setCosmetic(true);
+
+  SlotHeaderPen = QPen{IntervalHeaderSideBorder.getBrush(), 1,
+                                 Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin};
 }

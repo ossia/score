@@ -85,6 +85,13 @@ QString VSTEffectModel::prettyName() const
   return metadata().getLabel();
 }
 
+bool VSTEffectModel::hasExternalUI() const
+{
+  if(!fx)
+    return false;
+  return bool(fx->fx->flags & VstAEffectFlags::effFlagsHasEditor);
+}
+
 void VSTEffectModel::removeControl(int fxNum)
 {
   auto it = controls.find(fxNum);

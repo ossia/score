@@ -45,6 +45,7 @@ void TemporalScenarioView::paint_impl(QPainter* painter) const
     painter->setCompositionMode(QPainter::CompositionMode_Xor);
     painter->setPen(QPen{QColor{0, 0, 0, 127}, 2, Qt::DashLine, Qt::SquareCap,
                          Qt::BevelJoin});
+    painter->setBrush(Qt::transparent);
     painter->drawRect(m_selectArea);
     painter->setCompositionMode(
         QPainter::CompositionMode::CompositionMode_SourceOver);

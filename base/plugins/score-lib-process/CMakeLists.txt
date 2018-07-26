@@ -7,6 +7,9 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 
 ### Library ###
 set(PROCESS_HDRS
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/ProcessCommandFactory.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/EditPort.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Instantiations.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ExpandMode.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Focus/FocusDispatcher.hpp"
@@ -26,6 +29,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/Cable.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/CableItem.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortListWidget.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNode.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/ProcessStateDataInterface.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ScenarioStyle.hpp"
@@ -53,6 +57,9 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/score_lib_process.hpp"
 )
 set(PROCESS_SRCS
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/ProcessCommandFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/EditPort.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Instantiations.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNodeSerialization.cpp"
@@ -67,6 +74,7 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/Cable.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/CableItem.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortListWidget.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Layer/LayerContextMenu.cpp"
 
@@ -82,16 +90,16 @@ set(PROCESS_SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectLayer.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score_lib_process.cpp"
 )
 
 add_library(score_lib_process ${PROCESS_HDRS} ${PROCESS_SRCS}  )
 target_link_libraries(score_lib_process  PUBLIC
-    Qt5::Core Qt5::Widgets score_lib_base score_lib_state score_lib_inspector)
+    Qt5::Core Qt5::Widgets score_lib_base score_lib_state score_lib_inspector score_plugin_deviceexplorer)
 target_compile_definitions(score_lib_process PUBLIC
     $<$<BOOL:${DEFINE_SCORE_SCENARIO_DEBUG_RECTS}>:SCORE_SCENARIO_DEBUG_RECTS>)
 
-setup_score_library(score_lib_process)
-
-generate_export_header(score_lib_process)
+score_generate_command_list_file(${PROJECT_NAME} "${PROCESS_HDRS}")
+setup_score_plugin(score_lib_process)
 
 setup_score_tests(Tests)

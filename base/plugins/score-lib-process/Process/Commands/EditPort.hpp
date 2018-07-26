@@ -1,18 +1,19 @@
 #pragma once
 #include <Process/Process.hpp>
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <Process/Dataflow/Port.hpp>
+#include <Process/Commands/ProcessCommandFactory.hpp>
 #include <State/Address.hpp>
 #include <score/command/Command.hpp>
 #include <score/command/PropertyCommand.hpp>
 #include <score/model/path/Path.hpp>
 
-namespace Dataflow
+namespace Process
 {
 
-class ChangePortAddress final : public score::Command
+class SCORE_LIB_PROCESS_EXPORT ChangePortAddress final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      Scenario::Command::ScenarioCommandFactoryName(),
+      Process::CommandFactoryName(),
       ChangePortAddress,
       "Edit a node port")
 public:
@@ -31,10 +32,10 @@ private:
   State::AddressAccessor m_old, m_new;
 };
 
-class SetPortPropagate final : public score::PropertyCommand
+class SCORE_LIB_PROCESS_EXPORT SetPortPropagate final : public score::PropertyCommand
 {
   SCORE_COMMAND_DECL(
-      Scenario::Command::ScenarioCommandFactoryName(),
+      Process::CommandFactoryName(),
       SetPortPropagate,
       "Set port propagation")
 public:

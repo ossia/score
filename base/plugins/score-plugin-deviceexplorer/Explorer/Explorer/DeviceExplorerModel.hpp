@@ -221,13 +221,4 @@ makeFullAddressAccessorSettings(
     const score::DocumentContext& ctx,
     ossia::value min,
     ossia::value max);
-SCORE_PLUGIN_DEVICEEXPLORER_EXPORT Device::FullAddressAccessorSettings
-makeFullAddressAccessorSettings(
-    const State::AddressAccessor& mess,
-    const Explorer::DeviceExplorerModel& ctx,
-    ossia::value min,
-    ossia::value max);
-SCORE_PLUGIN_DEVICEEXPLORER_EXPORT Device::FullAddressAccessorSettings
-makeFullAddressAccessorSettings(
-    const Device::Node& mess);
 }

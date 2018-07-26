@@ -1,25 +1,21 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AddressAccessorEditWidget.hpp"
-
-#include "DeviceCompleter.hpp"
-
-#include <ossia/editor/state/destination_qualifiers.hpp>
-#include <ossia/network/value/value.hpp>
-
+#include <Device/Widgets/DeviceCompleter.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Device/QMenuView/qmenuview.h>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <QHBoxLayout>
+#include <Device/ItemModels/NodeBasedItemModel.hpp>
 #include <State/Widgets/AddressLineEdit.hpp>
 #include <score/widgets/MarginLess.hpp>
+#include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/value/value.hpp>
+#include <QHBoxLayout>
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(Explorer::AddressAccessorEditWidget)
-namespace Explorer
+W_OBJECT_IMPL(Device::AddressAccessorEditWidget)
+namespace Device
 {
 AddressAccessorEditWidget::AddressAccessorEditWidget(
-    DeviceExplorerModel& model, QWidget* parent)
+    Device::NodeBasedItemModel& model, QWidget* parent)
     : QWidget{parent}, m_model{model}
 {
   setAcceptDrops(true);
@@ -41,7 +37,7 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
     if (res)
     {
       m_address
-          = Explorer::makeFullAddressAccessorSettings(*res, model, 0., 1.);
+          = Device::makeFullAddressAccessorSettings(*res, model, 0., 1.);
     }
 
     addressChanged(m_address);
@@ -96,8 +92,7 @@ void AddressAccessorEditWidget::customContextMenuEvent(const QPoint& p)
   auto device_menu = new QMenuView{m_lineEdit};
   device_menu->setModel(&m_model);
   connect(device_menu, &QMenuView::triggered, this, [&](const QModelIndex& m) {
-    setFullAddress(makeFullAddressAccessorSettings(
-        m_model.nodeFromModelIndex(m)));
+    setFullAddress(makeFullAddressAccessorSettings(m_model.nodeFromModelIndex(m)));
 
     addressChanged(m_address);
   });

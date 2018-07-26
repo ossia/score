@@ -1,5 +1,5 @@
 #pragma once
-#include <Explorer/Widgets/AddressAccessorEditWidget.hpp>
+#include <Device/Widgets/AddressAccessorEditWidget.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortItem.hpp>
@@ -83,7 +83,7 @@ public:
 
 private:
   CommandDispatcher<> m_disp;
-  Explorer::AddressAccessorEditWidget m_edit;
+  Device::AddressAccessorEditWidget m_edit;
 };
 
 class PortInspectorFactory final : public Inspector::InspectorWidgetFactory

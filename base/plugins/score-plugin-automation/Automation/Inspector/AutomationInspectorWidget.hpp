@@ -3,7 +3,6 @@
 #include <Automation/Color/GradientAutomModel.hpp>
 #include <Automation/Metronome/MetronomeModel.hpp>
 #include <Automation/Spline/SplineAutomModel.hpp>
-#include <Explorer/Widgets/AddressEditWidget.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <QString>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -24,10 +23,10 @@ class UnitWidget;
 namespace Device
 {
 struct FullAddressAccessorSettings;
+class AddressAccessorEditWidget;
 }
 namespace Explorer
 {
-class AddressAccessorEditWidget;
 class DeviceExplorerModel;
 }
 class QDoubleSpinBox;
@@ -51,11 +50,10 @@ private:
   void on_tweenChanged();
   void on_unitChanged();
 
-  Explorer::AddressAccessorEditWidget* m_lineEdit{};
+  Device::AddressAccessorEditWidget* m_lineEdit{};
   QCheckBox* m_tween{};
   QDoubleSpinBox *m_minsb{}, *m_maxsb{};
   State::UnitWidget* m_uw{};
-  QLabel* m_label;
 
   CommandDispatcher<> m_dispatcher;
 };
@@ -98,7 +96,7 @@ private:
   void on_addressChange(const Device::FullAddressAccessorSettings& newText);
   void on_tweenChanged();
 
-  Explorer::AddressAccessorEditWidget* m_lineEdit{};
+  Device::AddressAccessorEditWidget* m_lineEdit{};
   QCheckBox* m_tween{};
 
   CommandDispatcher<> m_dispatcher;
@@ -120,7 +118,7 @@ public:
 private:
   void on_addressChange(const Device::FullAddressAccessorSettings& newText);
 
-  Explorer::AddressAccessorEditWidget* m_lineEdit{};
+  Device::AddressAccessorEditWidget* m_lineEdit{};
 
   CommandDispatcher<> m_dispatcher;
 };

@@ -51,11 +51,9 @@ public:
     vis.writeTo(*this);
     init();
   }
-  void init()
-  {
-    m_inlets.push_back(inlet.get());
-    m_outlets.push_back(outlet.get());
-  }
+
+  void init();
+
   ~ProcessModel() override;
 
   //// ScenarioModel specifics ////

@@ -2,9 +2,9 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DeviceCompleter.hpp"
 
+#include <Device/ItemModels/NodeBasedItemModel.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <QAbstractItemModel>
 #include <QChar>
 #include <QVariant>
@@ -13,10 +13,10 @@
 
 class QObject;
 
-namespace Explorer
+namespace Device
 {
 DeviceCompleter::DeviceCompleter(
-    DeviceExplorerModel& treemodel, QObject* parent)
+    Device::NodeBasedItemModel& treemodel, QObject* parent)
     : QCompleter{parent}
 {
   setModel(&treemodel);

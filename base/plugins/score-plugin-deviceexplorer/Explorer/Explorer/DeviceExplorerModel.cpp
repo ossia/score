@@ -22,7 +22,6 @@
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
-#include <Explorer/Explorer/DeviceExplorerWidget.hpp>
 #include <QAbstractProxyModel>
 #include <QApplication>
 #include <QDebug>
@@ -963,23 +962,12 @@ Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
     ossia::value min,
     ossia::value max)
 {
-  auto& newval = addr.address;
-
-  auto newpath = newval.path;
-  newpath.prepend(newval.device);
-
   // First try to find if there is a matching address
   // in the device explorer
   auto deviceexplorer = Explorer::try_deviceExplorerFromContext(ctx);
   if (deviceexplorer)
   {
-    auto new_n
-        = Device::try_getNodeFromString(deviceexplorer->rootNode(), newpath);
-    if (new_n && new_n->is<Device::AddressSettings>())
-    {
-      return Device::FullAddressAccessorSettings{
-          addr, new_n->get<Device::AddressSettings>()};
-    }
+    return Device::makeFullAddressAccessorSettings(addr, *deviceexplorer, std::move(min), std::move(max));
   }
 
   // If there is none, build with some default settings
@@ -989,46 +977,4 @@ Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
   return s;
 }
 
-Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
-    const State::AddressAccessor& addr,
-    const Explorer::DeviceExplorerModel& deviceexplorer,
-    ossia::value min,
-    ossia::value max)
-{
-  auto& newval = addr.address;
-
-  auto newpath = newval.path;
-  newpath.prepend(newval.device);
-
-  // First try to find if there is a matching address
-  // in the device explorer
-  auto new_n
-      = Device::try_getNodeFromString(deviceexplorer.rootNode(), newpath);
-  if (new_n && new_n->is<Device::AddressSettings>())
-  {
-    return Device::FullAddressAccessorSettings{
-        addr, new_n->get<Device::AddressSettings>()};
-  }
-  else
-  {
-    // TODO Try also with the OSSIA conversions.
-    // But this requires refactoring quite a bit...
-  }
-
-  // If there is none, build with some default settings
-  Device::FullAddressAccessorSettings s;
-  s.address = addr;
-  s.domain = ossia::make_domain(std::move(min), std::move(max));
-  return s;
-}
-
-Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
-    const Device::Node& mess)
-{
-  if (auto as_ptr = mess.target<Device::AddressSettings>())
-  {
-    return Device::FullAddressAccessorSettings{Device::address(mess), *as_ptr};
-  }
-  return {};
-}
 }

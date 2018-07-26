@@ -90,7 +90,7 @@ struct Node
     self.p3 = c;
 
     auto res = self.expr.value();
-    output.add_value(res, tk.offset);
+    output.write_value(res, tk.tick_start());
   }
 };
 }

@@ -43,9 +43,16 @@ public:
   QVariant data(const QModelIndex& index, int role) const override;
   Qt::ItemFlags flags(const QModelIndex& index) const override;
 
-  bool
-  setData(const QModelIndex& index, const QVariant& value, int role) override;
+  bool setData(
+      const QModelIndex& index,
+      const QVariant& value,
+      int role) override;
 
+  QMimeData*mimeData(const QModelIndexList& indexes) const override;
+  bool canDropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent) const override;
+  bool dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent) override;
+  Qt::DropActions supportedDropActions() const override;
+  Qt::DropActions supportedDragActions() const override;
 public:
   void changed() W_SIGNAL(changed);
 
@@ -73,6 +80,8 @@ private:
 
   const score::DocumentContext& m_ctx;
   std::vector<QMetaObject::Connection> m_itemCon;
+
+
 };
 
 class ObjectWidget final : public QTreeView
@@ -110,10 +119,10 @@ private:
   QSize m_sizePolicy;
 };
 
-class NeightborSelector
+class NeighbourSelector
 {
 public:
-  NeightborSelector(score::SelectionStack& s, ObjectWidget* objects);
+  NeighbourSelector(score::SelectionStack& s, ObjectWidget* objects);
   // does the current selection have a neightbor in that direction ?
   bool hasRight() const;
   bool hasLeft() const;
@@ -169,7 +178,7 @@ private:
   QToolButton* m_up{};
   QToolButton* m_down{};
   score::SelectionStack& m_stack;
-  NeightborSelector m_selector;
+  NeighbourSelector m_selector;
 };
 
 class ObjectPanelDelegate final : public score::PanelDelegate

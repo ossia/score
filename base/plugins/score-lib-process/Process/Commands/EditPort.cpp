@@ -1,7 +1,7 @@
-#include <Dataflow/Commands/EditPort.hpp>
+#include <Process/Commands/EditPort.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <score/model/path/PathSerialization.hpp>
-namespace Dataflow
+namespace Process
 {
 
 ChangePortAddress::ChangePortAddress(

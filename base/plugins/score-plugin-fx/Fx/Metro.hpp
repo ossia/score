@@ -60,9 +60,9 @@ struct Node
     {
       const auto period = get_period(val, quantif, freq, tempo, st.sampleRate());
       const auto next = next_date(tk.prev_date, period);
-      if (next.impl < tk.date.impl)
+      if (tk.in_range(next))
       {
-        res.add_value(ossia::impulse{}, next - tk.prev_date);
+        res.write_value(ossia::impulse{}, tk.to_tick_time(next));
       }
     }
   }

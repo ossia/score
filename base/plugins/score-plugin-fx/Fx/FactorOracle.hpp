@@ -200,7 +200,7 @@ struct Node
       for(auto& bang : bangs.get_data())
       {
         self.sequence_idx = ossia::clamp<std::size_t>(self.sequence_idx, 0, self.sequence.length() - 1);
-        out.add_value('a' + self.sequence[self.sequence_idx], bang.timestamp);
+        out.write_value('a' + self.sequence[self.sequence_idx], bang.timestamp);
         self.sequence_idx = (self.sequence_idx + 1) % self.sequence.length();
       }
     }

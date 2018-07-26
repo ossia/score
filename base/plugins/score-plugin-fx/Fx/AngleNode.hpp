@@ -61,7 +61,7 @@ struct Node
           output = 0;
         }
 
-        p2.add_value(std::move(output), val.timestamp);
+        p2.write_value(std::move(output), val.timestamp);
       }
     }
   }
