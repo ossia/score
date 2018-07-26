@@ -84,7 +84,7 @@ bool AddressItemModel::setData(
         // Note : if we want to disable remote updating, we have to do it
         // here (e.g. if this becomes a settings)
         m_model->deviceModel().updateProxy.updateRemoteValue(
-            State::AddressAccessor{m_settings.address}, after.value);
+            m_settings.address, after.value);
         return true;
       }
       else
@@ -104,7 +104,7 @@ bool AddressItemModel::setData(
         // Note : if we want to disable remote updating, we have to do it
         // here (e.g. if this becomes a settings)
         m_model->deviceModel().updateProxy.updateRemoteValue(
-            State::AddressAccessor{m_settings.address}, copy);
+            m_settings.address, copy);
         return true;
       }
     }

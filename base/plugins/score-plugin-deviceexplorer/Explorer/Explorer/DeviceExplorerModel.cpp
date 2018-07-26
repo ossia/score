@@ -471,7 +471,7 @@ bool DeviceExplorerModel::setData(
 
       // Note : if we want to disable remote updating, we have to do it
       // here (e.g. if this becomes a settings)
-      m_devicePlugin.updateProxy.updateRemoteValue(Device::address(n), copy);
+      m_devicePlugin.updateProxy.updateRemoteValue(Device::address(n).address, copy);
 
       return true;
     }

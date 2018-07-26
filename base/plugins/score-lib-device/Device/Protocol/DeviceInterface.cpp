@@ -887,28 +887,17 @@ void DeviceInterface::addToListening(const std::vector<State::Address>& addresse
   }
 }
 
-void DeviceInterface::sendMessage(const State::Message& mess)
+void DeviceInterface::sendMessage(const State::Address& addr, const ossia::value& v)
 {
   if (auto dev = getDevice())
   {
-    if (mess.address.qualifiers.get().accessors.empty())
-    {
-      auto node = getNodeFromPath(
-          mess.address.address.path, *dev);
+    auto node = getNodeFromPath(
+          addr.path, *dev);
 
-      auto addr = node->get_parameter();
-      if (addr)
-      {
-        addr->push_value(mess.value);
-      }
-    }
-    else
+    auto addr = node->get_parameter();
+    if (addr)
     {
-      SCORE_TODO;
-      // FIXME handle address accessor
-      // We have to get the current value, and merge the accessed element
-      // inside.
-      // See for instance the various value merging algorithms in ossia.
+      addr->push_value(v);
     }
   }
 }

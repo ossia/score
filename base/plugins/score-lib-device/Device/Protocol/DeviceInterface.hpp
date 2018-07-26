@@ -85,7 +85,7 @@ public:
       const Device::FullAddressSettings& newAddr);
   void removeNode(const State::Address&);
 
-  void sendMessage(const State::Message& mess);
+  void sendMessage(const State::Address& addr, const ossia::value& v);
 
   // Make a node from an inside path, if it has been added for instance.
   Device::Node getNode(const State::Address&);
