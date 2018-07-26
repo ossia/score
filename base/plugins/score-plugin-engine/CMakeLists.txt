@@ -263,6 +263,20 @@ set(AUDIO_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Executor/Dataflow/DataflowClock.cpp"
 )
 
+set(JOYSTICK_HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Joystick/JoystickDevice.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Joystick/JoystickProtocolFactory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Joystick/JoystickProtocolSettingsWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Joystick/JoystickSpecificSettings.hpp"
+)
+
+set(JOYSTICK_SRCS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Joystick/JoystickDevice.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Joystick/JoystickProtocolFactory.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Joystick/JoystickProtocolSettingsWidget.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Protocols/Joystick/JoystickSpecificSettingsSerialization.cpp"
+)
+
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 
 if(OSSIA_PROTOCOL_MIDI)
@@ -286,6 +300,11 @@ endif()
 if(OSSIA_PROTOCOL_PHIDGETS)
     target_sources(${PROJECT_NAME} PRIVATE ${PHIDGETS_HDRS} ${PHIDGETS_SRCS})
 endif()
+
+if(OSSIA_PROTOCOL_JOYSTICK)
+    target_sources(${PROJECT_NAME} PRIVATE ${JOYSTICK_HDRS} ${JOYSTICK_SRCS})
+endif()
+
 if(OSSIA_DATAFLOW)
     target_sources(${PROJECT_NAME} PRIVATE ${AUDIO_HDRS} ${AUDIO_SRCS})
 endif()

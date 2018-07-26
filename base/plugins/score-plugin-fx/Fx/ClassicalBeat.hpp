@@ -47,7 +47,7 @@ struct Node
     {
       if (tk.prev_date == 0)
       {
-        res.add_value(1, 0);
+        res.write_value(1, tk.tick_start());
       }
 
       const auto period
@@ -57,20 +57,20 @@ struct Node
       {
         if (sig == Control::time_signature{3, 4})
         {
-          ossia::tvalue t;
+          ossia::timed_value t;
           if (next.impl == 0 || (next.impl % (3 * period)) == 0)
-            res.add_value(1, next - tk.prev_date);
+            res.write_value(1, tk.to_tick_time(next));
           else
-            res.add_value(0, next - tk.prev_date);
+            res.write_value(0, tk.to_tick_time(next));
 
         }
         else if (sig == Control::time_signature{4, 4})
         {
-          ossia::tvalue t;
+          ossia::timed_value t;
           if (next.impl == 0 || next.impl % (2 * period) == 0)
-            res.add_value(1, next - tk.prev_date);
+            res.write_value(1, tk.to_tick_time(next));
           else
-            res.add_value(0, next - tk.prev_date);
+            res.write_value(0, tk.to_tick_time(next));
         }
       }
     }
