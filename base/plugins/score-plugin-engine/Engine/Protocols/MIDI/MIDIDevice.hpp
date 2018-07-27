@@ -19,6 +19,8 @@ public:
 
   void disconnect() override;
 
+  QMimeData* mimeData() const override;
+
   using OwningDeviceInterface::refresh;
   Device::Node refresh() override;
 };

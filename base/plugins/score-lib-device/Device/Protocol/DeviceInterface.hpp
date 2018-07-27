@@ -99,6 +99,7 @@ public:
   virtual bool isLearning() const;
   virtual void setLearning(bool);
 
+  virtual QMimeData* mimeData() const;
 
   void nodeCreated(const ossia::net::node_base&);
   void nodeRemoving(const ossia::net::node_base&);
@@ -108,6 +109,7 @@ public:
   void addressRemoved(const ossia::net::parameter_base& addr);
 
   Nano::Signal<void(const State::Address&, const ossia::value&)> valueUpdated;
+
 
 public:
   // These signals are emitted if a device changes from the inside
