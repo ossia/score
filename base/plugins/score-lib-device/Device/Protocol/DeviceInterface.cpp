@@ -303,6 +303,11 @@ void DeviceInterface::setLearning(bool)
 
 }
 
+QMimeData* DeviceInterface::mimeData() const
+{
+  return nullptr;
+}
+
 DeviceInterface::DeviceInterface(Device::DeviceSettings s)
   : m_settings(std::move(s))
 {

@@ -237,7 +237,7 @@ void AutomatablePortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
     if (newAddr == m_port.address())
       return;
 
-    if (newAddr.address.path.isEmpty())
+    if (newAddr.address.device.isEmpty())
       return;
 
     disp.submitCommand(new Process::ChangePortAddress{m_port, std::move(newAddr)});
@@ -251,16 +251,7 @@ PortItem* AutomatablePortFactory::makeItem(
     QGraphicsItem* parent,
     QObject* context)
 {
-  auto item = new Dataflow::AutomatablePortItem{port, ctx, parent};
-  /*
-    QObject::connect(item, &Dataflow::PortItem::showPanel,
-            context, [&] {
-      auto panel = new PortDialog{ctx, port, nullptr};
-      panel->exec();
-      panel->deleteLater();
-    });
-  */
-  return item;
+  return new Dataflow::AutomatablePortItem{port, ctx, parent};;
 }
 
 PortItem* AutomatablePortFactory::makeItem(
@@ -269,16 +260,7 @@ PortItem* AutomatablePortFactory::makeItem(
     QGraphicsItem* parent,
     QObject* context)
 {
-  auto item = new Dataflow::AutomatablePortItem{port, ctx, parent};
-  /*
-    QObject::connect(item, &Dataflow::PortItem::showPanel,
-                     context, [&] {
-      auto panel = new PortDialog{ctx, port, nullptr};
-      panel->exec();
-      panel->deleteLater();
-    });
-  */
-  return item;
+  return new Dataflow::AutomatablePortItem{port, ctx, parent};
 }
 
 PortTooltip::PortTooltip(

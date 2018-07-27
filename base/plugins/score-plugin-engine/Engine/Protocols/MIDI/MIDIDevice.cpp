@@ -8,6 +8,9 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Engine/OSSIA2score.hpp>
 #include <Engine/Protocols/MIDI/MIDISpecificSettings.hpp>
+#include <score/serialization/MimeVisitor.hpp>
+#include <State/MessageListSerialization.hpp>
+#include <QMimeData>
 #include <QString>
 #include <memory>
 
@@ -66,6 +69,18 @@ void MIDIDevice::disconnect()
 
   m_callbacks.clear();
   m_dev.reset();
+}
+
+QMimeData* MIDIDevice::mimeData() const
+{
+  auto mimeData = new QMimeData;
+
+  State::Message mess;
+  mess.address.address.device = m_settings.name;
+
+  Mime<State::MessageList>::Serializer s{*mimeData};
+  s.serialize({mess});
+  return mimeData;
 }
 
 Device::Node MIDIDevice::refresh()

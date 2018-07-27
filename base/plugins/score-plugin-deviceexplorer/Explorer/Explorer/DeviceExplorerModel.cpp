@@ -660,9 +660,21 @@ DeviceExplorerModel::uniqueSelectedNodes(const QModelIndexList& indexes) const
 // method called when a drag is initiated
 QMimeData* DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
 {
-  QMimeData* mimeData = new QMimeData;
-
   auto uniqueNodes = uniqueSelectedNodes(indexes);
+
+  // Handle case of a single device which can have custom mimeData
+  if(uniqueNodes.parents.size() == 1 && uniqueNodes.parents[0]->is<Device::DeviceSettings>())
+  {
+    auto node = uniqueNodes.parents[0];
+    if(node->is<Device::DeviceSettings>())
+    {
+      auto& dev = deviceModel().list().device(node->get<Device::DeviceSettings>().name);
+      if(auto d = dev.mimeData())
+        return d;
+    }
+  }
+
+  auto mimeData = new QMimeData;
 
   // Now we request an update to the device explorer.
   m_devicePlugin.updateProxy.refreshRemoteValues(uniqueNodes.parents);
