@@ -133,20 +133,7 @@ public:
   VSTWindow(
       const VSTEffectModel& e,
       const score::DocumentContext& ctx,
-      QWidget* parent)
-      : VSTWindow{e, ctx}
-  {
-    if (!m_defaultWidg)
-    {
-      connect(
-          &ctx.coarseUpdateTimer, &QTimer::timeout, this,
-          [=] {
-            if (auto eff = effect.lock())
-              eff->fx->dispatcher(eff->fx, effEditIdle, 0, 0, nullptr, 0);
-          },
-          Qt::UniqueConnection);
-    }
-  }
+      QWidget* parent);
 
   ~VSTWindow() override;
   void resize(int w, int h);

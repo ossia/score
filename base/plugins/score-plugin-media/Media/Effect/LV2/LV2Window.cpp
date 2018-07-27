@@ -6,6 +6,7 @@
 #include <score/widgets/MarginLess.hpp>
 #include <ossia/network/value/value_conversion.hpp>
 #include <wobjectimpl.h>
+#include <Media/Effect/Settings/Model.hpp>
 
 W_OBJECT_IMPL(Media::LV2::Window)
 namespace Media::LV2
@@ -15,6 +16,12 @@ Window::Window(const LV2EffectModel& fx, const score::DocumentContext& ctx, QWid
 {
   if (!fx.plugin)
     throw std::runtime_error("Cannot create UI");
+
+  bool ontop = ctx.app.settings<Media::Settings::Model>().getVstAlwaysOnTop();
+  if(ontop)
+  {
+    setWindowFlag(Qt::WindowStaysOnTopHint, true);
+  }
 
   auto& p = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
   auto lay = new score::MarginLess<QHBoxLayout>;
