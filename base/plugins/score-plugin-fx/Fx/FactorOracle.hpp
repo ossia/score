@@ -85,7 +85,7 @@ public:
 
   std::string make_rand_sequence(float continuity, int seqSize)
   {
-    auto start = std::uniform_int_distribution<unsigned int>{0, m_sequence.size()}(m_rand_engine);
+    auto start = std::uniform_int_distribution<std::size_t>{0, m_sequence.size()}(m_rand_engine);
     return make_sequence(
           continuity,
           start,
