@@ -13,7 +13,6 @@
 #include <QString>
 #include <QVariant>
 #include <memory>
-#include <ossia-qt/serial/serial_device.hpp>
 #include <ossia-qt/serial/serial_protocol.hpp>
 namespace Engine
 {
@@ -40,7 +39,7 @@ bool SerialDevice::reconnect()
         = settings().deviceSpecificSettings.value<SerialSpecificSettings>();
 
     m_dev = std::make_unique<ossia::net::serial_device>(
-        stgs.text.toUtf8(), stgs.port);
+        std::make_unique<ossia::net::serial_protocol>(stgs.text.toUtf8(), stgs.port), settings().name.toStdString());
 
     enableCallbacks();
 

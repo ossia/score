@@ -11,7 +11,7 @@
 #include <QString>
 #include <QVariant>
 #include <memory>
-#include <ossia-qt/websocket-generic-client/ws_generic_client.hpp>
+#include <ossia-qt/websocket-generic-client/ws_generic_client_protocol.hpp>
 
 namespace Engine
 {
