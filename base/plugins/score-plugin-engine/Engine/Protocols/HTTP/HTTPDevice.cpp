@@ -11,7 +11,7 @@
 #include <QString>
 #include <QVariant>
 #include <memory>
-#include <ossia-qt/http/http.hpp>
+#include <ossia-qt/http/http_protocol.hpp>
 
 #include <wobjectimpl.h>
 namespace Engine

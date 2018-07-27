@@ -2,9 +2,9 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DeviceExplorerModel.hpp"
 
-#include "DeviceExplorerMimeTypes.hpp"
-#include "DeviceExplorerView.hpp"
-#include "Widgets/DeviceEditDialog.hpp" // TODO why here??!!
+#include <Explorer/Explorer/DeviceExplorerMimeTypes.hpp>
+#include <Explorer/Explorer/DeviceExplorerView.hpp>
+#include <Explorer/Explorer/Widgets/DeviceEditDialog.hpp> // TODO why here??!!
 
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/domain/domain.hpp>
