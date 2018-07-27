@@ -360,10 +360,12 @@ void Presenter::modelReset()
 
   // 2. We add / remove new elements if necessary
   {
-    int64_t diff_points = m_model.points().size() - points.size();
+    const int64_t model_points_n = m_model.points().size();
+    const int64_t points_n = points.size();
+    int64_t diff_points = model_points_n - points_n;
     if (diff_points > 0)
     {
-      points.reserve(points.size() + diff_points);
+      points.reserve(points_n + diff_points);
       newPoints.reserve(diff_points);
       for (; diff_points-- > 0;)
       {
@@ -374,21 +376,32 @@ void Presenter::modelReset()
     }
     else if (diff_points < 0)
     {
-      int64_t inv_diff_points = -diff_points;
-      for (; inv_diff_points-- > 0;)
+      if(points_n + diff_points < 0)
       {
-        deleteGraphicsItem(points[points.size() - inv_diff_points - 1]);
+        for(auto p : points)
+          deleteGraphicsItem(p);
+        points.clear();
       }
-      points.resize(points.size() + diff_points);
+      else
+      {
+        int64_t inv_diff_points = -diff_points;
+        for (; inv_diff_points-- > 0;)
+        {
+          deleteGraphicsItem(points[points_n - inv_diff_points - 1]);
+        }
+        points.resize(points_n + diff_points);
+      }
     }
   }
 
   // Same for segments
   {
-    int64_t diff_segts = m_model.segments().size() - segments.size();
+    const int64_t model_segts_n = m_model.segments().size();
+    const int64_t segts_n = segments.size();
+    int64_t diff_segts = model_segts_n - segts_n;
     if (diff_segts > 0)
     {
-      segments.reserve(segments.size() + diff_segts);
+      segments.reserve(segts_n + diff_segts);
       newSegments.reserve(diff_segts);
       for (; diff_segts-- > 0;)
       {
@@ -399,12 +412,21 @@ void Presenter::modelReset()
     }
     else if (diff_segts < 0)
     {
-      int64_t inv_diff_segts = -diff_segts;
-      for (; inv_diff_segts-- > 0;)
+      if(segts_n + diff_segts < 0)
       {
-        deleteGraphicsItem(segments[segments.size() - inv_diff_segts - 1]);
+        for(auto s : segments)
+          deleteGraphicsItem(s);
+        segments.clear();
       }
-      segments.resize(segments.size() + diff_segts);
+      else
+      {
+        int64_t inv_diff_segts = -diff_segts;
+        for (; inv_diff_segts-- > 0;)
+        {
+          deleteGraphicsItem(segments[segts_n - inv_diff_segts - 1]);
+        }
+        segments.resize(segts_n + diff_segts);
+      }
     }
   }
 
