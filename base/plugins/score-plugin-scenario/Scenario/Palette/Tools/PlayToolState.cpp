@@ -27,13 +27,11 @@ void PlayToolState::on_pressed(
   if (!item)
     return;
 
-  auto& p = m_sm.presenter();
   auto root = score::IDocument::get<ScenarioDocumentPresenter>(m_sm.context().context.document);
   SCORE_ASSERT(root);
   auto root_itv = root->presenters().intervalPresenter();
   auto itv_pt = root_itv->view()->mapFromScene(scenePoint);
   auto global_time = TimeVal::fromMsecs(itv_pt.x() * root_itv->zoomRatio());
-
 
   switch (item->type())
   {
