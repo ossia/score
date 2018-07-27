@@ -537,29 +537,43 @@ void Presenter::removeSelection()
   if (segmentsToDelete.empty())
     return;
 
+  double x0 = 0;
   double y0 = 0;
+  double x1 = 1;
   double y1 = 1;
   bool firstRemoved = false;
   bool lastRemoved = false;
   // Then remove
   auto newSegments = model().toCurveData();
   {
+    // First look for the start and end segments
+    {
+      for(auto& seg : newSegments)
+      {
+        if (ossia::contains(segmentsToDelete, seg.id))
+        {
+          if (!seg.previous)
+          {
+            firstRemoved = true;
+            x0 = seg.start.x();
+            y0 = seg.start.y();
+          }
+          if (!seg.following)
+          {
+            lastRemoved = true;
+            x1 = seg.end.x();
+            y1 = seg.end.y();
+          }
+        }
+      }
+    }
+
+    // Then set the others
     auto it = newSegments.begin();
     while (it != newSegments.end())
     {
       if (ossia::contains(segmentsToDelete, it->id))
       {
-        if (it->start.x() == 0)
-        {
-          firstRemoved = true;
-          y0 = it->start.y();
-        }
-        else if (it->end.x() == 1)
-        {
-          lastRemoved = true;
-          y1 = it->end.y();
-        }
-
         if (it->previous)
         {
           auto prev_it
@@ -620,7 +634,7 @@ void Presenter::removeSelection()
 
         // Create a new segment
         SegmentData d;
-        d.start = QPointF{0, y0};
+        d.start = QPointF{x0, y0};
         d.end = it->start;
         d.following = it->id;
         d.id = getSegmentId(newSegments);
@@ -633,12 +647,12 @@ void Presenter::removeSelection()
 
       if (lastRemoved)
       {
-        // Recreate a segment from x = 0 to the beginning of the first segment.
+        // Recreate a segment from x = 0 to the end of the last segment.
         auto it = newSegments.rbegin();
 
         // Create a new segment
         SegmentData d;
-        d.end = QPointF{1, y1};
+        d.end = QPointF{x1, y1};
         d.start = it->end;
         d.previous = it->id;
         d.id = getSegmentId(newSegments);
