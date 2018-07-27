@@ -83,6 +83,15 @@ public:
     m_lrs[n] = 0;
   }
 
+  std::string make_rand_sequence(float continuity, int seqSize)
+  {
+    auto start = std::uniform_int_distribution<unsigned int>{0, m_sequence.size()}(m_rand_engine);
+    return make_sequence(
+          continuity,
+          start,
+          seqSize);
+  }
+
   std::string make_sequence(float continuity, unsigned int curSate, int seqSize)
   {
     if (curSate > m_sequence.size())
@@ -156,8 +165,7 @@ struct Node
 
     static const constexpr auto controls
     = std::make_tuple(
-          Control::Toggle{"Output", false},
-          Control::IntSlider{"Longueur seq", 1, 20, 8}
+          Control::IntSlider{"Sequence length", 1, 64, 8}
           );
     static const constexpr value_in value_ins[]{"in", "regen", "bang"};
     static const constexpr value_out value_outs[]{"out"};
@@ -175,8 +183,7 @@ struct Node
   run(const ossia::value_port& in,
       const ossia::value_port& regen,
       const ossia::value_port& bangs,
-      bool output,
-      int longueur_seq,
+      int seq_len,
       ossia::value_port& out,
       ossia::token_request,
       ossia::exec_state_facade,
@@ -192,7 +199,7 @@ struct Node
 
     if(!regen.get_data().empty())
     {
-      self.sequence = self.oracle.make_sequence(0.4, rand() % 8, 18);
+      self.sequence = self.oracle.make_rand_sequence(0.4, seq_len);
     }
 
     if(!self.sequence.empty())
