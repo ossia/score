@@ -1,9 +1,9 @@
 #!/bin/bash -eux
 ## CMake
-wget https://cmake.org/files/v3.11/cmake-3.11.3-Linux-x86_64.sh
-chmod +x cmake-3.11.3-Linux-x86_64.sh
+wget https://cmake.org/files/v3.12/cmake-3.12.0-Linux-x86_64.sh
+chmod +x cmake-3.12.0-Linux-x86_64.sh
 mkdir /cmake
-./cmake-3.11.3-Linux-x86_64.sh --prefix=/cmake --skip-license
+./cmake-3.12.0-Linux-x86_64.sh --prefix=/cmake --skip-license
 
 yum install -y svn perl-Data-Dump perl-Data-Dumper
 
