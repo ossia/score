@@ -128,39 +128,59 @@ void EffectLayerPresenter::fillContextMenu(
 
   menu.addAction(m_showUI);
   m_showUI->setCheckable(true);
+
+  connect(m_showUI, &QAction::triggered, this, [=] (bool b) {
+    setupExternalUI(m_layer, *fact, context().context, b);
+  });
+
   if (m_layer.externalUI)
     m_showUI->setChecked(true);
-
-  connect(m_showUI, &QAction::triggered, this, [=] {
-    if (!m_showUI->isChecked())
-      return;
-
-    if (m_layer.externalUI)
-      return;
-
-    auto& facts = context().context.processList;
-    if (auto fact = facts.findDefaultFactory(m_layer))
-    {
-      if (QWidget* win
-          = fact->makeExternalUI(m_layer, context().context, nullptr))
-      {
-        const_cast<QWidget*&>(m_layer.externalUI) = win;
-        win->show();
-        connect(win, SIGNAL(uiClosing()), this, SLOT(closeUI()));
-
-        connect(m_showUI, &QAction::toggled, win, [=](bool b) {
-          win->close();
-          delete win;
-          const_cast<QWidget*&>(m_layer.externalUI) = nullptr;
-        });
-      }
-    }
+  connect(&m_layer, &Process::ProcessModel::externalUIVisible,
+          m_showUI, [=] (bool v) {
+    m_showUI->setChecked(v);
   });
 }
 
-void EffectLayerPresenter::closeUI()
+void setupExternalUI(
+      const Process::ProcessModel& proc
+      , const Process::LayerFactory& fact
+      , const score::DocumentContext& ctx
+      , bool show)
 {
-  m_showUI->setChecked(false);
-  const_cast<QWidget*&>(m_layer.externalUI) = nullptr;
+  if(show)
+  {
+    if(proc.externalUI)
+      return;
+
+    if (auto win = fact.makeExternalUI(proc, ctx, nullptr))
+    {
+      const_cast<QWidget*&>(proc.externalUI) = win;
+      win->show();
+    }
+  }
+  else
+  {
+    if(auto win = proc.externalUI)
+    {
+      win->close();
+      delete win;
+      const_cast<QWidget*&>(proc.externalUI) = nullptr;
+    }
+  }
+}
+
+void setupExternalUI(
+      const Process::ProcessModel& proc
+      , const score::DocumentContext& ctx
+      , bool show)
+{
+  auto& facts
+      = ctx.app.interfaces<Process::LayerFactoryList>();
+
+  auto fact = facts.findDefaultFactory(proc);
+  if (!fact || !fact->hasExternalUI(proc, ctx))
+    return;
+
+  setupExternalUI(proc, *fact, ctx, show);
 }
 }

@@ -347,7 +347,7 @@ void VSTEffectModel::closePlugin()
     if (externalUI)
     {
       auto w = reinterpret_cast<VSTWindow*>(externalUI);
-      delete w; // hideUI();
+      delete w;
     }
     fx = nullptr;
   }

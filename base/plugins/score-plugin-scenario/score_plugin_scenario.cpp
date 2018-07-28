@@ -2,7 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Dataflow/Inspector/DataflowWidget.hpp>
 #include <Dataflow/UI/PortItem.hpp>
-#include <Effect/EffectFactory.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Interpolation/InterpolationFactory.hpp>
 #include <Process/Dataflow/PortFactory.hpp>

@@ -16,18 +16,14 @@ public:
       QWidget* parent);
 
   ~Window() override;
-  //void resize(int w, int h);
-
-  void uiClosing() W_SIGNAL(uiClosing);
-
+  // TODO void resize(int w, int h);
   static bool is_resizable(LilvWorld* world, const LilvUI& ui);
-private:
-//  static void setup_rect(QWidget* container, int width, int height);
 
+private:
   void resizeEvent(QResizeEvent* event) override;
   void closeEvent(QCloseEvent* event) override;
 
-  const LV2EffectModel& effect;
+  const LV2EffectModel& m_model;
   QWidget* m_widget{};
 };
 
