@@ -1,6 +1,4 @@
 #pragma once
-#include <Effect/EffectFactory.hpp>
-#include <Media/Effect/DefaultEffectItem.hpp>
 #include <Media/Merger/Metadata.hpp>
 #include <Media/Merger/Model.hpp>
 #include <Media/Merger/Presenter.hpp>

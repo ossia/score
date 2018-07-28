@@ -150,6 +150,7 @@ private:
 
   std::weak_ptr<AEffectWrapper> effect;
   QWidget* m_defaultWidg{};
+  const VSTEffectModel& m_model;
 };
 
 using LayerFactory

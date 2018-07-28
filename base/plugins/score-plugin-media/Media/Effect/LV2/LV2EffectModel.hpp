@@ -40,6 +40,7 @@ public:
       const Id<Process::ProcessModel>&,
       QObject* parent);
 
+  ~LV2EffectModel() override;
   template <typename Impl>
   LV2EffectModel(Impl& vis, QObject* parent) : ProcessModel{vis, parent}
   {

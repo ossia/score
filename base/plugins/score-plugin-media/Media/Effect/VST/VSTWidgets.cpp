@@ -279,6 +279,7 @@ bool VSTWindow::hasUI(AEffect& e)
 VSTWindow::VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx, QWidget* parent)
   : VSTWindow{e, ctx}
 {
+  setAttribute(Qt::WA_DeleteOnClose, true);
   if (!m_defaultWidg)
   {
     connect(
@@ -295,6 +296,11 @@ VSTWindow::VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx,
   {
     setWindowFlag(Qt::WindowStaysOnTopHint, true);
   }
+  e.externalUIVisible(true);
+}
+
+VSTWindow::~VSTWindow()
+{
 }
 
 void VSTWindow::closeEvent(QCloseEvent* event)
@@ -302,7 +308,8 @@ void VSTWindow::closeEvent(QCloseEvent* event)
   QPointer<VSTWindow> p(this);
   if (auto eff = effect.lock())
     eff->fx->dispatcher(eff->fx, effEditClose, 0, 0, nullptr, 0);
-  uiClosing();
+  const_cast<QWidget*&>(m_model.externalUI) = nullptr;
+  m_model.externalUIVisible(false);
   if (p)
     QDialog::closeEvent(event);
 }

@@ -1,7 +1,7 @@
 #pragma once
 
+#include <Effect/EffectLayer.hpp>
 #include <Dataflow/UI/PortItem.hpp>
-#include <Effect/EffectFactory.hpp>
 #include <Media/Commands/InsertEffect.hpp>
 #include <Media/Effect/DefaultEffectItem.hpp>
 #include <Media/Effect/EffectProcessMetadata.hpp>
@@ -155,34 +155,16 @@ public:
       connect(
           ui_btn, &score::QGraphicsPixmapToggle::toggled, this,
           [=, &effect](bool b) {
-            if (b)
-            {
-              if (auto win = fact->makeExternalUI(effect, ctx.context, nullptr))
-              {
-                const_cast<QWidget*&>(effect.externalUI) = win;
-                win->show();
-                auto c0 = connect(
-                      win->windowHandle(), &QWindow::visibilityChanged, ui_btn,
-                      [=, &effect](auto vis) {
-                  if (vis == QWindow::Hidden)
-                  {
-                    ui_btn->toggle();
-                    const_cast<QWidget*&>(effect.externalUI) = nullptr;
-                    win->deleteLater();
-                  }
-                });
+            Process::setupExternalUI(effect, *fact, ctx.context, b);
+      });
 
-                connect(
-                      ui_btn, &score::QGraphicsPixmapToggle::toggled, win,
-                      [=, &effect](bool b) {
-                  QObject::disconnect(c0);
-                  win->close();
-                  delete win;
-                  const_cast<QWidget*&>(effect.externalUI) = nullptr;
-                });
-              }
-            }
-          });
+      if(effect.externalUI)
+        ui_btn->setState(true);
+      connect(&effect, &Process::ProcessModel::externalUIVisible,
+              ui_btn, [=] (bool v) {
+        ui_btn->setState(v);
+      });
+
       ui_btn->setPos({5, 4});
     }
 

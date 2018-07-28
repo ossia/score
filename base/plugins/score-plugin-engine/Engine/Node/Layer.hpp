@@ -1,6 +1,6 @@
 #pragma once
 #include <Dataflow/UI/PortItem.hpp>
-#include <Effect/EffectFactory.hpp>
+#include <Effect/EffectLayer.hpp>
 #include <Engine/Node/Process.hpp>
 #include <Engine/Node/Widgets.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
