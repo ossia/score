@@ -12,7 +12,7 @@ namespace Media
 {
 MediaFileHandle::MediaFileHandle()
 {
-  m_hdl = std::make_shared<audio_data>();
+  m_hdl = std::make_shared<ossia::audio_data>();
 }
 
 void MediaFileHandle::load(
@@ -22,7 +22,7 @@ void MediaFileHandle::load(
   QFile f{m_file};
   if (isAudioFile(f))
   {
-    m_hdl = std::make_shared<audio_data>();
+    m_hdl = std::make_shared<ossia::audio_data>();
     m_decoder.decode(m_file, m_hdl);
 
     m_sampleRate = 44100; // for now everything is reencoded
@@ -37,9 +37,9 @@ void MediaFileHandle::load(
   }
 }
 
-AudioSample** MediaFileHandle::audioData() const
+audio_sample** MediaFileHandle::audioData() const
 {
-  return const_cast<AudioSample**>(m_data.data());
+  return const_cast<audio_sample**>(m_data.data());
 }
 
 bool MediaFileHandle::isAudioFile(const QFile& file)

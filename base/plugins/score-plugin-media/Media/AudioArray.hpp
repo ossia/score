@@ -1,5 +1,2 @@
 #pragma once
-#include <vector>
-
-using AudioSample = double;
-using AudioArray = std::vector<std::vector<AudioSample>>;
+#include <ossia/dataflow/nodes/sound.hpp>
