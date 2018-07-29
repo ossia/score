@@ -2,6 +2,7 @@
 //// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ApplicationPlugin.hpp"
 
+#include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
 #include <ossia/audio/audio_protocol.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
@@ -371,11 +372,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
 void ApplicationPlugin::on_initDocument(score::Document& doc)
 {
 #if !defined(__EMSCRIPTEN__)
-  auto& m = doc.model();
-  auto id = getStrongId(m.pluginModels());
-  auto p = new Engine::LocalTree::DocumentPlugin{
-      doc.context(), id, &doc.model()};
-  m.addPluginModel(p);
+  score::addDocumentPlugin<Engine::LocalTree::DocumentPlugin>(doc);
 #endif
 }
 
@@ -388,8 +385,7 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
     lt->init();
     initLocalTreeNodes(*lt);
   }
-  doc.model().addPluginModel(new Engine::Execution::DocumentPlugin{
-      doc.context(), getStrongId(doc.model().pluginModels()), &doc.model()});
+  score::addDocumentPlugin<Engine::Execution::DocumentPlugin>(doc);
 }
 
 

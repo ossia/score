@@ -10,7 +10,6 @@
 #include <QMimeData>
 #include <QPainter>
 #include <QStyleOption>
-#include <boost/mpl/aux_/config/forwarding.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Process::LayerView)

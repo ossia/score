@@ -2,7 +2,9 @@
 
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/PortItem.hpp>
+#include <Process/DocumentPlugin.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <score/document/DocumentContext.hpp>
 #include <QFormLayout>
 #include <QGraphicsSceneMoveEvent>
 #include <QMenu>
@@ -26,17 +28,19 @@ CableItem::CableItem(
     QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_cable{c}
+    , m_context{ctx}
     , a1{int8_t(abs(qrand()) % 40 - 20)}
     , a2{int8_t(abs(qrand()) % 40 - 20)}
     , a3{int8_t(abs(qrand()) % 40 - 20)}
     , a4{int8_t(abs(qrand()) % 40 - 20)}
 {
+  auto& plug = ctx.plugin<Process::DocumentPlugin>();
   this->setCursor(Qt::CrossCursor);
-  g_cables().insert({&c, this});
+  plug.cables().insert({&c, this});
 
   con(c.selection, &Selectable::changed, this, [=](bool b) { update(); });
 
-  auto& p = PortItem::g_ports();
+  auto& p = plug.ports();
   if (auto src_port = c.source().try_find(ctx))
   {
     auto src = p.find(src_port);
@@ -71,7 +75,8 @@ CableItem::~CableItem()
     ossia::remove_erase(m_p2->cables, this);
   }
 
-  auto& c = g_cables();
+  auto& plug = m_context.plugin<Process::DocumentPlugin>();
+  auto& c = plug.cables();
   auto it = c.find(&m_cable);
   if (it != c.end())
     c.erase(it);
@@ -207,12 +212,6 @@ void CableItem::setTarget(PortItem* p)
 {
   m_p2 = p;
   check();
-}
-
-CableItem::cable_map& CableItem::g_cables()
-{
-  static cable_map c;
-  return c;
 }
 
 QPainterPath CableItem::shape() const

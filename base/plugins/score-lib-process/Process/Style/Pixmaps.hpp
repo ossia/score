@@ -1,9 +1,10 @@
 #pragma once
 #include <QPixmap>
+#include <score_lib_process_export.h>
 
 namespace Process
 {
-struct Pixmaps
+struct SCORE_LIB_PROCESS_EXPORT Pixmaps
 {
   static const Pixmaps& instance() noexcept;
 
