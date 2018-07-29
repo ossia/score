@@ -22,6 +22,7 @@ public:
   static bool isAudioFile(const QFile& f);
 
   MediaFileHandle();
+  ~MediaFileHandle() override;
 
   void load(const QString& path, const score::DocumentContext&);
 

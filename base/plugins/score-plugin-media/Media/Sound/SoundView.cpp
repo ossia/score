@@ -213,6 +213,9 @@ void WaveformComputer::computeDataSet(
     double* densityptr,
     std::vector<ossia::float_vector>& dataset)
 {
+  if(!data.handle())
+    return;
+
   auto& arr = data.data();
 
   const int nchannels = data.channels();
@@ -351,9 +354,15 @@ void WaveformComputer::drawWaveForms(
 void WaveformComputer::on_recompute(
     const MediaFileHandle* pdata, ZoomRatio ratio)
 {
+  if(!pdata)
+    return;
+
   auto& data = *pdata;
+  QPointer<const MediaFileHandle> data_qp{pdata};
   m_zoom = ratio;
 
+  if(!data.handle())
+    return;
   if (data.channels() == 0)
     return;
 
@@ -370,9 +379,11 @@ void WaveformComputer::on_recompute(
       m_prevdensity = m_density;
       m_density = m_nextdensity;
 
-      QTimer::singleShot(0, [this, &data, ratio, density] {
+      QTimer::singleShot(0, [this, data_qp, ratio, density] {
+        if(!data_qp)
+          return;
         if (density > 1)
-          computeDataSet(data, ratio / 2., &m_nextdensity, m_nextdata);
+          computeDataSet(*data_qp, ratio / 2., &m_nextdensity, m_nextdata);
         else
           m_nextdata = m_curdata;
       });
@@ -382,15 +393,19 @@ void WaveformComputer::on_recompute(
       std::swap(m_curdata, m_prevdata);
       m_nextdensity = m_density;
       m_density = m_prevdensity;
-      QTimer::singleShot(0, [this, &data, ratio] {
-        computeDataSet(data, 2. * ratio, &m_prevdensity, m_prevdata);
+      QTimer::singleShot(0, [this, data_qp, ratio] {
+        if(!data_qp)
+          return;
+        computeDataSet(*data_qp, 2. * ratio, &m_prevdensity, m_prevdata);
       });
       break;
     case RECOMPUTE_ALL:
       computeDataSet(data, ratio, &m_density, m_curdata);
-      QTimer::singleShot(0, [this, &data, ratio] {
-        computeDataSet(data, 2. * ratio, &m_prevdensity, m_prevdata);
-        computeDataSet(data, ratio / 2., &m_nextdensity, m_nextdata);
+      QTimer::singleShot(0, [this, data_qp, ratio] {
+        if(!data_qp)
+          return;
+        computeDataSet(*data_qp, 2. * ratio, &m_prevdensity, m_prevdata);
+        computeDataSet(*data_qp, ratio / 2., &m_nextdensity, m_nextdata);
       });
       break;
     default:
