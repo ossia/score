@@ -26,6 +26,10 @@
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
+
+#if __has_include(<valgrind/callgrind.h>)
+#include <valgrind/callgrind.h>
+#endif
 namespace Midi
 {
 Presenter::Presenter(
@@ -88,6 +92,16 @@ Presenter::Presenter(
   {
     on_noteAdded(note);
   }
+#if __has_include(<valgrind/callgrind.h>)
+  //CALLGRIND_START_INSTRUMENTATION;
+#endif
+}
+
+Presenter::~Presenter()
+{
+#if __has_include(<valgrind/callgrind.h>)
+  //CALLGRIND_STOP_INSTRUMENTATION;
+#endif
 }
 
 void Presenter::fillContextMenu(

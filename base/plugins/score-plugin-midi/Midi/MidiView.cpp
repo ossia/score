@@ -15,47 +15,25 @@ W_OBJECT_IMPL(Midi::View)
 namespace Midi
 {
 
+static const MidiStyle style;
 View::View(QGraphicsItem* parent) : Process::LayerView{parent}
 {
   this->setAcceptHoverEvents(true);
   this->setAcceptDrops(true);
   this->setFlag(QGraphicsItem::ItemIsFocusable, true);
+  this->setFlag(QGraphicsItem::ItemClipsToShape, true);
 }
 
 View::~View()
 {
 }
 
-double View::defaultWidth() const
+void View::heightChanged(qreal h)
 {
-  return m_defaultW;
-}
+  QImage bg(1920, h, QImage::Format_ARGB32_Premultiplied );
+  QPainter painter(&bg);
+  auto p = &painter;
 
-void View::setDefaultWidth(double w)
-{
-  m_defaultW = w;
-  update();
-  for (auto cld : childItems())
-    cld->update();
-}
-
-void View::setRange(int min, int max)
-{
-  m_min = min;
-  m_max = max;
-  update();
-}
-static const MidiStyle style;
-
-bool View::canEdit() const
-{
-  const auto rect = boundingRect();
-  const auto note_height = rect.height() / (visibleCount());
-  return note_height > 5;
-}
-
-void View::paint_impl(QPainter* p) const
-{
   p->setRenderHint(QPainter::Antialiasing, false);
   p->setPen(style.darkPen);
   //    1 3   6 8 10
@@ -100,13 +78,7 @@ void View::paint_impl(QPainter* p) const
   {
     if (auto v = getView((QGraphicsItem&)*this))
     {
-      const auto view_left = v->mapToScene(0, 0);
-      const auto view_right = v->mapToScene(v->width(), 0);
-      const auto left = std::max(0., this->mapFromScene(view_left).x());
-      const auto right
-          = std::min(rect.width(), this->mapFromScene(view_right).x());
-      // qDebug() << v->mapToScene(0, 0) << v->mapToScene(v->width(), 0) <<
-      // left << right;
+      const qreal width = std::min(v->width(), 800) * 2;
 
       {
         QRectF* white_rects
@@ -114,8 +86,8 @@ void View::paint_impl(QPainter* p) const
         int max_white = 0;
         const auto draw_bg_white = [&](int i) {
           white_rects[max_white++]
-              = QRectF{left, rect.height() + note_height * (m_min - i - 1) - 1,
-                       right - left, note_height};
+              = QRectF{0, rect.height() + note_height * (m_min - i - 1) - 1,
+                       width, note_height};
         };
         for_white_notes(draw_bg_white);
         p->setBrush(style.lightBrush);
@@ -128,8 +100,8 @@ void View::paint_impl(QPainter* p) const
         int max_black = 0;
         const auto draw_bg_black = [&](int i) {
           black_rects[max_black++]
-              = QRectF{left, rect.height() + note_height * (m_min - i - 1) - 1,
-                       right - left, note_height};
+              = QRectF{0, rect.height() + note_height * (m_min - i - 1) - 1,
+                       width, note_height};
         };
         for_black_notes(draw_bg_black);
 
@@ -155,6 +127,44 @@ void View::paint_impl(QPainter* p) const
     }
   }
 
+  m_bgCache = QPixmap::fromImage(bg);
+}
+
+void View::widthChanged(qreal w)
+{
+}
+
+void View::setDefaultWidth(double w)
+{
+  m_defaultW = w;
+  update();
+  for (auto cld : childItems())
+    cld->update();
+}
+
+void View::setRange(int min, int max)
+{
+  m_min = min;
+  m_max = max;
+  update();
+}
+
+bool View::canEdit() const
+{
+  const auto rect = boundingRect();
+  const auto note_height = rect.height() / (visibleCount());
+  return note_height > 5;
+}
+
+void View::paint_impl(QPainter* p) const
+{
+  if (auto v = getView((QGraphicsItem&)*this))
+  {
+    const auto view_left = v->mapToScene(0, 0);
+    const auto left = std::max(0., this->mapFromScene(view_left).x());
+
+    p->drawPixmap(left,0, m_bgCache);
+  }
   if (!m_selectArea.isEmpty())
   {
     p->setBrush(style.transparentBrush);

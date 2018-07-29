@@ -13,8 +13,8 @@ class View final : public Process::LayerView
 public:
   View(QGraphicsItem* parent);
 
-  ~View();
-  double defaultWidth() const;
+  ~View() override;
+  double defaultWidth() const noexcept { return m_defaultW; }
   void setDefaultWidth(double w);
 
   void setRange(int, int);
@@ -31,6 +31,8 @@ public:
 private:
   bool canEdit() const;
   void paint_impl(QPainter*) const override;
+  void heightChanged(qreal h) override;
+  void widthChanged(qreal w) override;
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
   void mousePressEvent(QGraphicsSceneMouseEvent*) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent*) override;
@@ -42,5 +44,7 @@ private:
   QPainterPath m_selectArea;
   double m_defaultW; // Covers the [ 0; 1 ] area
   int m_min{0}, m_max{127};
+
+  QPixmap m_bgCache;
 };
 }
