@@ -14,7 +14,7 @@ class SCORE_LIB_BASE_EXPORT Skin : public QObject
 {
   W_OBJECT(Skin)
 public:
-  static Skin& instance();
+  static Skin& instance() noexcept;
   ~Skin() override;
 
   void load(const QJsonObject& style);
