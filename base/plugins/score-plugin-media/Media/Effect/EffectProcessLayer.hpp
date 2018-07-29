@@ -134,29 +134,8 @@ public:
         con(effect, &Process::ProcessModel::outletsChanged, this,
             [&, root] { resetOutlets(effect, ctx, root, ui); }));
 
-
-    auto& facts
-        = ctx.context.app.interfaces<Process::LayerFactoryList>();
-    auto fact = facts.findDefaultFactory(effect);
-    if (fact && fact->hasExternalUI(effect, ctx.context))
-    {
-      auto ui_btn
-          = new score::QGraphicsPixmapToggle{pixmaps.show_ui_on, pixmaps.show_ui_off, root};
-      connect(
-          ui_btn, &score::QGraphicsPixmapToggle::toggled, this,
-          [=, &effect](bool b) {
-            Process::setupExternalUI(effect, *fact, ctx.context, b);
-      });
-
-      if(effect.externalUI)
-        ui_btn->setState(true);
-      connect(&effect, &Process::ProcessModel::externalUIVisible,
-              ui_btn, [=] (bool v) {
-        ui_btn->setState(v);
-      });
-
+    if(auto ui_btn = Process::makeExternalUIButton(effect, ctx.context, this, root))
       ui_btn->setPos({5, 4});
-    }
 
     auto rm_btn = new score::QGraphicsPixmapButton{pixmaps.rm_process_on, pixmaps.rm_process_off, root};
     connect(

@@ -4,6 +4,7 @@
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/HeaderDelegate.hpp>
 #include <Process/Process.hpp>
+#include <Effect/EffectLayer.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <QApplication>
 #include <QPainter>
@@ -64,25 +65,25 @@ static double minPortWidth()
   return 20.;
 }
 
-static const QImage& fromGlyphGray()
+static const QImage& fromGlyphGray() noexcept
 {
   static const QImage gl{
       makeGlyphs("I:", ScenarioStyle::instance().GrayTextPen)};
   return gl;
 }
-static const QImage& toGlyphGray()
+static const QImage& toGlyphGray() noexcept
 {
   static const QImage gl{
       makeGlyphs("O:", ScenarioStyle::instance().GrayTextPen)};
   return gl;
 }
-static const QImage& fromGlyphWhite()
+static const QImage& fromGlyphWhite() noexcept
 {
   static const QImage gl{
       makeGlyphs("I:", ScenarioStyle::instance().IntervalHeaderTextPen)};
   return gl;
 }
-static const QImage& toGlyphWhite()
+static const QImage& toGlyphWhite() noexcept
 {
   static const QImage gl{
       makeGlyphs("O:", ScenarioStyle::instance().IntervalHeaderTextPen)};
@@ -92,6 +93,9 @@ static const QImage& toGlyphWhite()
 DefaultHeaderDelegate::DefaultHeaderDelegate(const Process::LayerPresenter& p)
     : HeaderDelegate{p}
 {
+  if(auto ui_btn = Process::makeExternalUIButton(p.model(), p.context().context, this, this))
+    ui_btn->setPos({0, 2});
+
   con(p.model(), &Process::ProcessModel::prettyNameChanged, this, [=] {
     updateName();
     updatePorts();
@@ -104,7 +108,8 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(const Process::LayerPresenter& p)
       [=] { updatePorts(); });
   con(p.model(), &Process::ProcessModel::benchmark, this,
       [=](double d) { updateBench(d); });
-  con(p.model().selection, &Selectable::changed, this, [=] (bool b) {
+  con(p.model().selection, &Selectable::changed, this,
+      [=] (bool b) {
     m_sel = b;
     updateName();
     updatePorts();
@@ -183,7 +188,7 @@ void DefaultHeaderDelegate::updatePorts()
   m_outPorts.clear();
   const auto& ctx = presenter->context().context;
 
-  qreal x = 0.;
+  qreal x = 10.;
   const auto& inlets = presenter->model().inlets();
 
   auto& portFactory
@@ -219,38 +224,39 @@ void DefaultHeaderDelegate::updatePorts()
 void DefaultHeaderDelegate::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
+  constexpr auto start = 10.;
   const auto w = boundingRect().width();
   if (w > minPortWidth())
   {
     if (m_inPorts.empty())
     {
-      painter->drawImage(QPointF{0., 1.}, m_line);
+      painter->drawImage(QPointF{start, 1.}, m_line);
       painter->drawImage(QPointF{w - 32., 1.}, m_bench);
       if (m_sel)
       {
         painter->drawImage(
-            QPointF{8. + m_line.width(), textY()}, toGlyphWhite());
+            QPointF{start + 8. + m_line.width(), textY()}, toGlyphWhite());
       }
       else
       {
         painter->drawImage(
-            QPointF{8. + m_line.width(), textY()}, toGlyphGray());
+            QPointF{start + 8. + m_line.width(), textY()}, toGlyphGray());
       }
     }
     else
     {
-      double startText = 16. + m_inPorts.size() * 10.;
+      double startText = start + 16. + m_inPorts.size() * 10.;
       painter->drawImage(QPointF{startText, 1.}, m_line);
       painter->drawImage(QPointF{w - 32., 1.}, m_bench);
       if (m_sel)
       {
-        painter->drawImage(QPointF{4., textY()}, fromGlyphWhite());
+        painter->drawImage(QPointF{start + 4., textY()}, fromGlyphWhite());
         painter->drawImage(
             QPointF{startText + 8. + m_line.width(), textY()}, toGlyphWhite());
       }
       else
       {
-        painter->drawImage(QPointF{4., textY()}, fromGlyphGray());
+        painter->drawImage(QPointF{start + 4., textY()}, fromGlyphGray());
         painter->drawImage(
             QPointF{startText + 8. + m_line.width(), textY()}, toGlyphGray());
       }
