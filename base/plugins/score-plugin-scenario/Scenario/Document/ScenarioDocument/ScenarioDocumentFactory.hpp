@@ -22,7 +22,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentFactory final
   SCORE_CONCRETE("2bca3373-d858-4288-b054-5960d3e5902c")
 
   score::DocumentDelegateView*
-  makeView(const score::GUIApplicationContext& ctx, QObject* parent) override;
+  makeView(const score::DocumentContext& ctx, QObject* parent) override;
 
   score::DocumentDelegatePresenter* makePresenter(
       const score::DocumentContext& ctx,

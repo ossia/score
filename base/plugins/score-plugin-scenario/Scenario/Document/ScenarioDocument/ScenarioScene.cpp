@@ -7,8 +7,8 @@
 W_OBJECT_IMPL(Scenario::ScenarioScene)
 namespace Scenario
 {
-
-ScenarioScene::ScenarioScene(QWidget* parent) : QGraphicsScene{parent}
+ScenarioScene::ScenarioScene(QObject* parent):
+  QGraphicsScene{parent}
 {
   setItemIndexMethod(QGraphicsScene::NoIndex);
 }

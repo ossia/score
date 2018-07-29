@@ -11,7 +11,6 @@
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Device/Widgets/AddressAccessorEditWidget.hpp>
-#include <Process/Dataflow/CableItem.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <QApplication>

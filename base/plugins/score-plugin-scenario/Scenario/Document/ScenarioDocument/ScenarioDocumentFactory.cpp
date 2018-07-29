@@ -12,7 +12,7 @@
 namespace Scenario
 {
 score::DocumentDelegateView* ScenarioDocumentFactory::makeView(
-    const score::GUIApplicationContext& ctx, QObject* parent)
+    const score::DocumentContext& ctx, QObject* parent)
 {
   return new ScenarioDocumentView{ctx, parent};
 }

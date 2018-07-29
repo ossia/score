@@ -17,7 +17,7 @@ DocumentView::DocumentView(
     DocumentDelegateFactory& fact, const Document& doc, QObject* parent)
     : QObject{parent}
     , m_document{doc}
-    , m_view{fact.makeView(m_document.context().app, this)}
+    , m_view{fact.makeView(doc.context(), this)}
 {
 }
 }

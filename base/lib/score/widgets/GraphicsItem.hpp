@@ -7,6 +7,11 @@
 class QGraphicsObject;
 class QGraphicsItem;
 class QGraphicsView;
+
+namespace score
+{
+struct DocumentContext;
+}
 /**
  * @brief deleteGraphicsItem Properly delete a QGraphicsObject
  * @param item item to delete

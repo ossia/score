@@ -19,6 +19,7 @@
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/RandomNameProvider.hpp>
+#include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
 #include <stdexcept>
 
 namespace score
