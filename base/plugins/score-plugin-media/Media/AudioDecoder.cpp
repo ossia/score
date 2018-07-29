@@ -25,39 +25,40 @@ W_OBJECT_IMPL(Media::AudioDecoder)
 #if __has_include(<libavcodec/avcodec.h>)
 namespace
 {
+using namespace Media;
 static const constexpr std::size_t dynamic_channels
     = std::numeric_limits<std::size_t>::max();
 
 template <typename SampleFormat, int N>
-constexpr AudioSample convert_sample(SampleFormat i);
+constexpr audio_sample convert_sample(SampleFormat i);
 
 template <>
-constexpr AudioSample convert_sample<int16_t, 16>(int16_t i)
+constexpr audio_sample convert_sample<int16_t, 16>(int16_t i)
 {
-  if constexpr(std::is_same_v<AudioSample, float>)
+  if constexpr(std::is_same_v<audio_sample, float>)
     return (i + .5f) / (0x7FFF + .5f);
   else
     return (i + .5) / (0x7FFF + .5);
 }
 
 template <>
-constexpr AudioSample convert_sample<int32_t, 24>(int32_t i)
+constexpr audio_sample convert_sample<int32_t, 24>(int32_t i)
 {
-  if constexpr(std::is_same_v<AudioSample, float>)
-    return ((int32_t)i >> 8) / ((AudioSample)std::numeric_limits<int32_t>::max() / 256.f);
+  if constexpr(std::is_same_v<audio_sample, float>)
+    return ((int32_t)i >> 8) / ((audio_sample)std::numeric_limits<int32_t>::max() / 256.f);
   else
-    return ((int32_t)i >> 8) / ((AudioSample)std::numeric_limits<int32_t>::max() / 256.);
+    return ((int32_t)i >> 8) / ((audio_sample)std::numeric_limits<int32_t>::max() / 256.);
 
 }
 
 template <>
-constexpr AudioSample convert_sample<int32_t, 32>(int32_t i)
+constexpr audio_sample convert_sample<int32_t, 32>(int32_t i)
 {
-  return i / (AudioSample)(std::numeric_limits<int32_t>::max());
+  return i / (audio_sample)(std::numeric_limits<int32_t>::max());
 }
 
 template <>
-constexpr AudioSample convert_sample<float, 32>(float i)
+constexpr audio_sample convert_sample<float, 32>(float i)
 {
   return i;
 }
@@ -73,7 +74,7 @@ template <typename SampleFormat, std::size_t SampleSize>
 struct Decoder<SampleFormat, 1, SampleSize, true>
 {
   void operator()(
-      AudioArray& data, std::size_t curpos, uint8_t** buf, std::size_t n)
+      audio_array& data, std::size_t curpos, uint8_t** buf, std::size_t n)
   {
     auto dat = reinterpret_cast<SampleFormat*>(buf[0]);
     for (std::size_t j = 0; j < n; j++)
@@ -87,7 +88,7 @@ template <typename SampleFormat, std::size_t Channels, std::size_t SampleSize>
 struct Decoder<SampleFormat, Channels, SampleSize, false>
 {
   void operator()(
-      AudioArray& data, std::size_t curpos, uint8_t** buf, std::size_t n)
+      audio_array& data, std::size_t curpos, uint8_t** buf, std::size_t n)
   {
     auto dat = reinterpret_cast<SampleFormat*>(buf[0]);
 
@@ -109,7 +110,7 @@ template <typename SampleFormat, std::size_t Channels, std::size_t SampleSize>
 struct Decoder<SampleFormat, Channels, SampleSize, true>
 {
   void operator()(
-      AudioArray& data, std::size_t curpos, uint8_t** buf, std::size_t n)
+      audio_array& data, std::size_t curpos, uint8_t** buf, std::size_t n)
   {
     auto dat = reinterpret_cast<SampleFormat**>(buf);
     for (std::size_t chan = 0; chan < Channels; chan++)
@@ -128,7 +129,7 @@ struct Decoder<SampleFormat, dynamic_channels, SampleSize, false>
 {
   std::size_t Channels{};
   void operator()(
-      AudioArray& data, std::size_t curpos, uint8_t** buf, std::size_t n)
+      audio_array& data, std::size_t curpos, uint8_t** buf, std::size_t n)
   {
     auto dat = reinterpret_cast<SampleFormat*>(buf[0]);
 
@@ -151,7 +152,7 @@ struct Decoder<SampleFormat, dynamic_channels, SampleSize, true>
 {
   std::size_t Channels{};
   void operator()(
-      AudioArray& data, std::size_t curpos, uint8_t** buf, std::size_t n)
+      audio_array& data, std::size_t curpos, uint8_t** buf, std::size_t n)
   {
     auto dat = reinterpret_cast<SampleFormat**>(buf);
     for (std::size_t chan = 0; chan < Channels; chan++)
@@ -634,7 +635,7 @@ void AudioDecoder::decode(const QString& path, audio_handle hdl)
   startDecode(path, hdl);
 }
 
-ossia::optional<std::pair<AudioInfo, AudioArray>>
+ossia::optional<std::pair<AudioInfo, audio_array>>
 AudioDecoder::decode_synchronous(const QString& path)
 {
 
@@ -645,7 +646,7 @@ AudioDecoder::decode_synchronous(const QString& path)
 
   dec.sampleRate = res->rate;
 
-  auto hdl = std::make_shared<audio_data>();
+  auto hdl = std::make_shared<ossia::audio_data>();
   hdl->data.resize(res->channels);
   for (auto& c : hdl->data)
   {
@@ -658,7 +659,7 @@ AudioDecoder::decode_synchronous(const QString& path)
 }
 
 template <typename Decoder>
-void AudioDecoder::decodeFrame(Decoder dec, AudioArray& data, AVFrame& frame)
+void AudioDecoder::decodeFrame(Decoder dec, audio_array& data, AVFrame& frame)
 {
 #if __has_include(<libavcodec/avcodec.h>)
   const std::size_t channels = data.size();
@@ -675,7 +676,7 @@ void AudioDecoder::decodeFrame(Decoder dec, AudioArray& data, AVFrame& frame)
       return;
     }
 
-    AudioArray tmp;
+    audio_array tmp;
     tmp.resize(channels);
     for (auto& sub : tmp)
       sub.resize(frame.nb_samples * 2);
@@ -685,8 +686,8 @@ void AudioDecoder::decodeFrame(Decoder dec, AudioArray& data, AVFrame& frame)
     int res = 0;
     for (std::size_t i = 0; i < channels; ++i)
     {
-      AudioSample* out_ptr = data[i].data() + decoded;
-      AudioSample* in_ptr = tmp[i].data();
+      audio_sample* out_ptr = data[i].data() + decoded;
+      audio_sample* in_ptr = tmp[i].data();
 
       res = swr_convert(
           resampler[i], (uint8_t**)&out_ptr, new_len, (const uint8_t**)&in_ptr,
@@ -708,7 +709,7 @@ void AudioDecoder::decodeFrame(Decoder dec, AudioArray& data, AVFrame& frame)
 #endif
 }
 
-void AudioDecoder::decodeRemaining(AudioArray& data)
+void AudioDecoder::decodeRemaining(audio_array& data)
 {
 #if __has_include(<libavcodec/avcodec.h>)
   const std::size_t channels = data.size();
@@ -717,7 +718,7 @@ void AudioDecoder::decodeRemaining(AudioArray& data)
     int res = 0;
     for (std::size_t i = 0; i < channels; ++i)
     {
-      AudioSample* out_ptr = data[i].data() + decoded;
+      audio_sample* out_ptr = data[i].data() + decoded;
 
       res = swr_convert(
           resampler[i], (uint8_t**)&out_ptr, data[i].size() - decoded, nullptr,
