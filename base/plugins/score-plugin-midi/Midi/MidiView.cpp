@@ -76,9 +76,9 @@ void View::heightChanged(qreal h)
 
   if (canEdit())
   {
-    if (auto v = getView((QGraphicsItem&)*this))
+    if (auto v = getView(*this))
     {
-      const qreal width = std::min(v->width(), 800) * 2;
+      const qreal width = std::max(v->width(), 800) * 2;
 
       {
         QRectF* white_rects
@@ -116,7 +116,7 @@ void View::heightChanged(qreal h)
         const auto draw_text = [&](int i) {
           p->drawText(
               QRectF{2., rect.height() + note_height * (m_min - i - 1) - 1,
-                     rect.width(), note_height},
+                     width, note_height},
               texts[i % 12], QTextOption{Qt::AlignVCenter});
         };
 
@@ -158,7 +158,7 @@ bool View::canEdit() const
 
 void View::paint_impl(QPainter* p) const
 {
-  if (auto v = getView((QGraphicsItem&)*this))
+  if (auto v = getView(*this))
   {
     const auto view_left = v->mapToScene(0, 0);
     const auto left = std::max(0., this->mapFromScene(view_left).x());
