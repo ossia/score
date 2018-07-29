@@ -20,6 +20,7 @@ public:
       View* view,
       const Process::ProcessPresenterContext& ctx,
       QObject* parent);
+  ~Presenter() override;
 
   void setWidth(qreal width) override;
   void setHeight(qreal height) override;

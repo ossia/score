@@ -10,6 +10,7 @@
 #include <QMimeData>
 #include <QPainter>
 #include <QStyleOption>
+#include <boost/mpl/aux_/config/forwarding.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Process::LayerView)
@@ -29,6 +30,10 @@ LayerView::~LayerView()
     }
   }
 }
+void LayerView::heightChanged(qreal) { }
+void LayerView::widthChanged(qreal) { }
+
+
 MiniLayer::~MiniLayer() = default;
 
 LayerView::LayerView(QGraphicsItem* parent) : QGraphicsItem{parent}
@@ -66,31 +71,27 @@ void LayerView::paint(
 #endif
 }
 
-void LayerView::setHeight(qreal height)
+void LayerView::setHeight(qreal height) noexcept
 {
-  prepareGeometryChange();
-  m_height = height;
-  heightChanged();
+  if(height != m_height)
+  {
+    prepareGeometryChange();
+    m_height = height;
+    heightChanged(height);
+  }
 }
 
-qreal LayerView::height() const
+void LayerView::setWidth(qreal width) noexcept
 {
-  return m_height;
+  if(width != m_width)
+  {
+    prepareGeometryChange();
+    m_width = width;
+    widthChanged(width);
+  }
 }
 
-void LayerView::setWidth(qreal width)
-{
-  prepareGeometryChange();
-  m_width = width;
-  widthChanged();
-}
-
-qreal LayerView::width() const
-{
-  return m_width;
-}
-
-QPixmap LayerView::pixmap()
+QPixmap LayerView::pixmap() noexcept
 {
   // Retrieve the bounding rect
   QRect rect = boundingRect().toRect();
