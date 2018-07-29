@@ -10,6 +10,7 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Process/Style/Pixmaps.hpp>
 #include <Process/WidgetLayer/WidgetProcessFactory.hpp>
 #include <QGraphicsProxyWidget>
 #include <QGraphicsScene>
@@ -120,20 +121,9 @@ public:
       EffectUi& ui)
   {
     auto& doc = ctx.context;
+    auto& pixmaps = Process::Pixmaps::instance();
     auto root = new score::RectItem{};
     root->setRect({0, 0, 170, 40});
-    static const auto undock_off = QPixmap::fromImage(
-        QImage(":/icons/undock_off.png")
-            .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-    static const auto undock_on = QPixmap::fromImage(
-        QImage(":/icons/undock_on.png")
-            .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-    static const auto close_off = QPixmap::fromImage(
-        QImage(":/icons/close_off.png")
-            .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-    static const auto close_on = QPixmap::fromImage(
-        QImage(":/icons/close_on.png")
-            .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
 
     resetInlets(effect, ctx, root, ui);
     resetOutlets(effect, ctx, root, ui);
@@ -151,7 +141,7 @@ public:
     if (fact && fact->hasExternalUI(effect, ctx.context))
     {
       auto ui_btn
-          = new score::QGraphicsPixmapToggle{undock_on, undock_off, root};
+          = new score::QGraphicsPixmapToggle{pixmaps.show_ui_on, pixmaps.show_ui_off, root};
       connect(
           ui_btn, &score::QGraphicsPixmapToggle::toggled, this,
           [=, &effect](bool b) {
@@ -168,7 +158,7 @@ public:
       ui_btn->setPos({5, 4});
     }
 
-    auto rm_btn = new score::QGraphicsPixmapButton{close_on, close_off, root};
+    auto rm_btn = new score::QGraphicsPixmapButton{pixmaps.rm_process_on, pixmaps.rm_process_off, root};
     connect(
         rm_btn, &score::QGraphicsPixmapButton::clicked, this,
         [&]() {

@@ -61,7 +61,7 @@ Skin::Skin() noexcept
   // MonoFont.setHintingPreference(QFont::PreferVerticalHinting);
 }
 
-Skin& score::Skin::instance()
+Skin& score::Skin::instance() noexcept
 {
   static Skin s;
   return s;
