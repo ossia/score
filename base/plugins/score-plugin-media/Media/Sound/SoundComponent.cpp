@@ -46,34 +46,27 @@ void SoundComponent::recompute()
 {
   if constexpr(std::is_same_v<sound_proc_type, ossia::nodes::sound>)
   {
-    //if(std::is_same_v<ossia::audio_channel::value_type, float>)
-    {
-      auto to_double = [](const auto& float_vec) {
-        std::vector<ossia::double_vector> v;
-        v.reserve(float_vec.size());
-        for (auto& chan : float_vec)
-        {
-          v.emplace_back(chan.begin(), chan.end());
-        }
-        return v;
-      };
-      in_exec(
-          [n = std::dynamic_pointer_cast<ossia::nodes::sound>(OSSIAProcess().node),
-           data = to_double(process().file().data()),
-           upmix = process().upmixChannels(),
-           start = process().startChannel(),
-           startOff = process().startOffset()
-          ] {
-            n->set_sound(std::move(data));
-            n->set_start(start);
-            n->set_start_offset(startOff);
-            n->set_upmix(upmix);
-          });
-    }
-    //else
-    {
-
-    }
+    auto to_double = [](const auto& float_vec) {
+      std::vector<ossia::double_vector> v;
+      v.reserve(float_vec.size());
+      for (auto& chan : float_vec)
+      {
+        v.emplace_back(chan.begin(), chan.end());
+      }
+      return v;
+    };
+    in_exec(
+        [n = std::dynamic_pointer_cast<ossia::nodes::sound>(OSSIAProcess().node),
+         data = to_double(process().file().data()),
+         upmix = process().upmixChannels(),
+         start = process().startChannel(),
+         startOff = process().startOffset()
+        ] () mutable {
+          n->set_sound(std::move(data));
+          n->set_start(start);
+          n->set_start_offset(startOff);
+          n->set_upmix(upmix);
+    });
   }
   else
   {
@@ -88,8 +81,7 @@ void SoundComponent::recompute()
           n->set_start(start);
           n->set_start_offset(startOff);
           n->set_upmix(upmix);
-        });
-
+    });
   }
 }
 
