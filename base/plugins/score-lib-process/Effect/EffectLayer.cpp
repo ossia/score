@@ -2,9 +2,11 @@
 
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/Process.hpp>
+#include <Process/Style/Pixmaps.hpp>
 #include <QGraphicsSceneEvent>
 #include <QMenu>
 #include <QWindow>
+#include <score/widgets/GraphicWidgets.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Process::EffectLayerPresenter)
@@ -60,13 +62,10 @@ EffectLayerPresenter::EffectLayerPresenter(
     QObject* parent)
     : LayerPresenter{ctx, parent}, m_layer{model}, m_view{view}
 {
-  m_showUI = new QAction{tr("Show"), this};
-  m_showUI->setCheckable(true);
   putToFront();
   connect(view, &Process::LayerView::pressed, this, [&] {
     m_context.context.focusDispatcher.focus(this);
   });
-
   connect(
       m_view, &Process::LayerView::askContextMenu, this,
       &Process::LayerPresenter::contextMenuRequested);
@@ -119,26 +118,6 @@ void EffectLayerPresenter::fillContextMenu(
     QPointF scenepos,
     const LayerContextMenuManager& mgr)
 {
-  auto& facts
-      = context().context.app.interfaces<Process::LayerFactoryList>();
-
-  auto fact = facts.findDefaultFactory(m_layer);
-  if (!fact || !fact->hasExternalUI(m_layer, context().context))
-    return;
-
-  menu.addAction(m_showUI);
-  m_showUI->setCheckable(true);
-
-  connect(m_showUI, &QAction::triggered, this, [=] (bool b) {
-    setupExternalUI(m_layer, *fact, context().context, b);
-  });
-
-  if (m_layer.externalUI)
-    m_showUI->setChecked(true);
-  connect(&m_layer, &Process::ProcessModel::externalUIVisible,
-          m_showUI, [=] (bool v) {
-    m_showUI->setChecked(v);
-  });
 }
 
 void setupExternalUI(
@@ -183,4 +162,37 @@ void setupExternalUI(
 
   setupExternalUI(proc, *fact, ctx, show);
 }
+
+QGraphicsItem*
+    makeExternalUIButton(
+      const ProcessModel& effect
+      , const score::DocumentContext& context
+      , QObject* self
+      , QGraphicsItem* root)
+{
+  auto& pixmaps = Process::Pixmaps::instance();
+  auto& facts
+      = context.app.interfaces<Process::LayerFactoryList>();
+  auto fact = facts.findDefaultFactory(effect);
+  if (fact && fact->hasExternalUI(effect, context))
+  {
+    auto ui_btn
+        = new score::QGraphicsPixmapToggle{pixmaps.show_ui_on, pixmaps.show_ui_off, root};
+    QObject::connect(
+        ui_btn, &score::QGraphicsPixmapToggle::toggled, self,
+        [=, &effect, &context](bool b) {
+          Process::setupExternalUI(effect, *fact, context, b);
+    });
+
+    if(effect.externalUI)
+      ui_btn->setState(true);
+    QObject::connect(&effect, &Process::ProcessModel::externalUIVisible,
+            ui_btn, [=] (bool v) {
+      ui_btn->setState(v);
+    });
+    return ui_btn;
+  }
+  return nullptr;
+}
+
 }
