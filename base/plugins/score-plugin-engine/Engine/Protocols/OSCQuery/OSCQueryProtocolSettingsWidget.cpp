@@ -43,7 +43,10 @@ OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
       m_browser, &ZeroconfBrowser::sessionSelected, this,
       [=](QString name, QString ip, int port, QMap<QString, QByteArray> txt) {
         m_deviceNameEdit->setText(name);
-        m_localHostEdit->setText("ws://" + ip + ":" + QString::number(port));
+        if(txt.contains("WebSockets") && txt["WebSockets"] == "true")
+          m_localHostEdit->setText("ws://" + ip + ":" + QString::number(port));
+        else
+          m_localHostEdit->setText("http://" + ip + ":" + QString::number(port));
       });
   layout->addWidget(pb);
 #endif
