@@ -1483,7 +1483,6 @@ QTabBar:tab:left:!selected, QTabBar:tab:right:!selected
 QTabBar:tab:selected{
     margin: 10px;
     background-color: #1A2024;
-    font-size: 11pt;
     border-bottom: 2px solid silver;
 }
 
