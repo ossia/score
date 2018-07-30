@@ -18,8 +18,8 @@ AboutDialog::AboutDialog(QWidget *parent) :
   QDialog(parent),
   m_windowSize(492,437),
   m_backgroundImage(score::get_image(":/about/about_background.png")),
-  m_catamaranFont(":/Catamaran-Regular.ttf", 13),
-  m_montserratFont(":/Montserrat-Regular.ttf", 10),
+  m_catamaranFont("Catamaran", 13),
+  m_montserratFont("Montserrat", 10),
   m_mouseAreaLabri(17, 221, 126, 62),
   m_mouseAreaBlueYeti(20, 287, 110, 29),
   m_mouseAreaScrime(22, 320, 100, 35)
@@ -27,10 +27,6 @@ AboutDialog::AboutDialog(QWidget *parent) :
   setWindowFlag(Qt::FramelessWindowHint);
   resize(m_windowSize.width(),m_windowSize.height());
   setMouseTracking(true);
-
-  // fonts
-  m_catamaranFont.setFamily("Catamaran");
-  m_montserratFont.setFamily("Montserrat");
 
   // map
   std::map<QString, QString> map;
@@ -41,10 +37,6 @@ AboutDialog::AboutDialog(QWidget *parent) :
   auto softwareList = new QListWidget{this};
   softwareList->move(145,230);
   softwareList->resize(120,183);
-  softwareList->setFont(m_catamaranFont);
-  softwareList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  softwareList->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-
   softwareList->setStyleSheet(R"_(
                               QListView::item:!selected:hover{
                               background-color:#415491;
@@ -74,6 +66,10 @@ AboutDialog::AboutDialog(QWidget *parent) :
                               background: none;
                               }
                               )_");
+  softwareList->setFont(m_catamaranFont);
+  softwareList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  softwareList->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
   for(const auto& item : map)
   {
     softwareList->addItem(item.first);
