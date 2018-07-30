@@ -1478,14 +1478,33 @@ QTabBar:tab:left:!selected, QTabBar:tab:right:!selected
     margin: 10px;
     padding: 0px;
     background-color:#1A2024;
+    border: 2px transparent silver
 }
 
-QTabBar:tab:selected{
+QTabBar:tab:bottom:selected{
     margin: 10px;
+    padding: 3px 0px 0px 0px;
+    background-color: #1A2024;
+    border-top: 2px solid silver;
+}
+QTabBar:tab:top:selected{
+    margin: 10px;
+    padding: 0px 0px 3px 0px;
     background-color: #1A2024;
     border-bottom: 2px solid silver;
 }
-
+QTabBar:tab:left:selected{
+    margin: 10px;
+    padding: 0px 0px 0px 3px;
+    background-color: #1A2024;
+    border-left: 2px solid silver;
+}
+QTabBar:tab:right:selected{
+    margin: 10px;
+    padding: 0px 3px 0px 0px;
+    background-color: #1A2024;
+    border-right: 2px solid silver;
+}
 QTabBar::close-button  {
     image: url(:/qss_icons/icons/close_off.png);
     background: transparent;
