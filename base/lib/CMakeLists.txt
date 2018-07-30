@@ -379,7 +379,6 @@ set_property(TARGET score_lib_base PROPERTY COTIRE_CXX_PREFIX_HEADER_INIT "${CMA
 setup_score_library(score_lib_base)
 setup_score_tests(tests)
 
-unset(license_text)
 if(NOT license_text)
   include(GenerateLicense)
   AddLicenseFile(license_text ossia "${CMAKE_SOURCE_DIR}/API/LICENSE")
