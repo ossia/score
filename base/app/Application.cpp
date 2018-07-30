@@ -64,7 +64,7 @@ static void setQApplicationSettings(QApplication& m_app)
   QFontDatabase::addApplicationFont(":/Catamaran-Regular.ttf"); // Catamaran
   QFontDatabase::addApplicationFont(":/Montserrat-Regular.ttf");       // Montserrat
 
-  QFile stylesheet_file{":/qdarkstyle/qdarkstyle.qss"};
+  QFile stylesheet_file{":/qdarkcontrastedstyle.qss"};//":/qdarkstyle/qdarkstyle.qss"};
   stylesheet_file.open(QFile::ReadOnly);
   QString stylesheet = QLatin1String(stylesheet_file.readAll());
 

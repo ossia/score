@@ -1,1 +1,15 @@
-<svg id="Calque_1" data-name="Calque 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><defs><style>.cls-1{fill:#3d3d3d;}.cls-2{fill:#000100;}.cls-3{fill:none;stroke:#fff;stroke-miterlimit:10;stroke-width:2px;}</style></defs><title>boutons</title><rect class="cls-1" x="0.5" y="0.5" width="23" height="23"/><path class="cls-2" d="M24,24H0V0H24V24ZM1,23H23V1H1V23Z"/><line class="cls-3" x1="17" y1="12" x2="7" y2="12"/><line class="cls-3" x1="12" y1="7" x2="12" y2="17"/></svg>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 21.0.2, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Calque_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 24 24" style="enable-background:new 0 0 24 24;" xml:space="preserve">
+<style type="text/css">
+	.st0{display:none;fill:#3D3D3D;}
+	.st1{display:none;fill:#000100;}
+	.st2{fill:none;stroke:#FFFFFF;stroke-width:2;stroke-miterlimit:10;}
+</style>
+<title>boutons</title>
+<rect x="0.5" y="0.5" class="st0" width="23" height="23"/>
+<path class="st1" d="M24,24H0V0h24V24z M1,23h22V1H1V23z"/>
+<line class="st2" x1="17" y1="12" x2="7" y2="12"/>
+<line class="st2" x1="12" y1="7" x2="12" y2="17"/>
+</svg>

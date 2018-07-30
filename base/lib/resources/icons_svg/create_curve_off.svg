@@ -1,1 +1,19 @@
-<svg id="Calque_1" data-name="Calque 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28.86 28.86"><defs><style>.cls-1{fill:#3d3d3d;}.cls-2{fill:#000100;}.cls-3{fill:#fff;}.cls-3,.cls-4{stroke:#fff;stroke-miterlimit:10;}.cls-4{fill:none;}</style></defs><title>boutons</title><rect class="cls-1" x="0.5" y="0.5" width="27.86" height="27.86"/><path class="cls-2" d="M28.86,28.86H0V0H28.86V28.86ZM1,27.86H27.86V1H1V27.86Z"/><circle class="cls-3" cx="7.36" cy="8.06" r="1.21"/><circle class="cls-3" cx="12.32" cy="21.37" r="1.21"/><circle class="cls-3" cx="18.17" cy="11.89" r="1.21"/><circle class="cls-3" cx="21.55" cy="17.83" r="1.21"/><polyline class="cls-4" points="7.36 8.06 12.32 21.37 18.17 11.89 21.55 17.84"/></svg>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 21.0.2, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Calque_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 28.9 28.9" style="enable-background:new 0 0 28.9 28.9;" xml:space="preserve">
+<style type="text/css">
+	.st0{display:none;fill:#3D3D3D;}
+	.st1{display:none;fill:#000100;}
+	.st2{fill:#FFFFFF;stroke:#FFFFFF;stroke-miterlimit:10;}
+	.st3{fill:none;stroke:#FFFFFF;stroke-miterlimit:10;}
+</style>
+<title>boutons</title>
+<rect x="0.5" y="0.5" class="st0" width="27.9" height="27.9"/>
+<path class="st1" d="M28.9,28.9H0V0h28.9V28.9z M1,27.9h26.9V1H1V27.9z"/>
+<circle class="st2" cx="7.4" cy="8.1" r="1.2"/>
+<circle class="st2" cx="12.3" cy="21.4" r="1.2"/>
+<circle class="st2" cx="18.2" cy="11.9" r="1.2"/>
+<circle class="st2" cx="21.5" cy="17.8" r="1.2"/>
+<polyline class="st3" points="7.4,8.1 12.3,21.4 18.2,11.9 21.5,17.8 "/>
+</svg>
