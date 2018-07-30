@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cd /image
-BINUTILS=binutils-2.30
+BINUTILS=binutils-2.31.1
 MPC=mpc-1.0.3
 MPFR=mpfr-3.1.4
 GMP=gmp-6.1.2
