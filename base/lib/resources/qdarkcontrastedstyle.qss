@@ -1469,24 +1469,26 @@ QMenu::item:selected{
     color: silver; /*#1A2024;*/
 }
 QTabWidget QTabBar{
-margin: 0px;
-padding: 0px;
+    margin: 0px;
+    padding: 0px;
 }
-QTabBar:tab:top:!selected{
-margin: 10px;
-padding: 0px;
-background-color:#1A2024;
+QTabBar:tab:top:!selected, QTabBar:tab:bottom:!selected,
+QTabBar:tab:left:!selected, QTabBar:tab:right:!selected
+{
+    margin: 10px;
+    padding: 0px;
+    background-color:#1A2024;
 }
 
 QTabBar:tab:selected{
-margin: 10px;
-background-color: #1A2024;
-font-size: 12pt;
-border-bottom: 2px solid silver;
+    margin: 10px;
+    background-color: #1A2024;
+    font-size: 11pt;
+    border-bottom: 2px solid silver;
 }
 
 QTabBar::close-button  {
     image: url(:/qss_icons/icons/close_off.png);
     background: transparent;
-   padding: 3px;
+    padding: 3px;
 }
