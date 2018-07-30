@@ -5,7 +5,7 @@ score_common_setup()
 
 # Packages
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
-find_package(TBB)
+
 # Files & main target
 set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/CurveConversion.hpp"
