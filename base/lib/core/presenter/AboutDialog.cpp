@@ -18,8 +18,8 @@ AboutDialog::AboutDialog(QWidget *parent) :
   QDialog(parent),
   m_windowSize(492,437),
   m_backgroundImage(score::get_image(":/about/about_background.png")),
-  m_catamaranFont("Catamaran", 13),
-  m_montserratFont("Montserrat", 10),
+  m_catamaranFont("Catamaran", 13, QFont::Weight::Normal),
+  m_montserratFont("Montserrat", 10, QFont::Weight::Normal),
   m_mouseAreaLabri(17, 221, 126, 62),
   m_mouseAreaBlueYeti(20, 287, 110, 29),
   m_mouseAreaScrime(22, 320, 100, 35)
@@ -27,6 +27,20 @@ AboutDialog::AboutDialog(QWidget *parent) :
   setWindowFlag(Qt::FramelessWindowHint);
   resize(m_windowSize.width(),m_windowSize.height());
   setMouseTracking(true);
+
+  if(auto scr = qApp->screens(); !scr.empty()) {
+    auto dpi = scr.first()->devicePixelRatio();
+    if(dpi >= 2.)
+    {
+      m_catamaranFont.setPointSize(13);
+      m_montserratFont.setPointSize(10);
+    }
+    else
+    {
+      m_catamaranFont.setPointSize(11);
+      m_montserratFont.setPointSize(9);
+    }
+  }
 
   // map
   std::map<QString, QString> map;
@@ -131,43 +145,47 @@ void AboutDialog::paintEvent(QPaintEvent *event)
   QPen rectPen(QColor("#03c3dd"));
   QBrush rectBrush(QColor(18,23,26));
 
-  auto version_text = QStringLiteral("Version: %1.%2.%3-%4 “%5”\n")
-                      .arg(SCORE_VERSION_MAJOR)
-                      .arg(SCORE_VERSION_MINOR)
-                      .arg(SCORE_VERSION_PATCH)
-                      .arg(SCORE_VERSION_EXTRA)
-                      .arg(SCORE_CODENAME);
-
-  QString commit{GIT_COMMIT};
-
-  if (!commit.isEmpty())
-  {
-    version_text += tr("Commit: %1\n").arg(commit);
-  }
-
-  auto copyright_text = QString("Copyright © Ossia "+ QString::number(QDate::currentDate().year()));
-
   // draw background image
   QPainter painter(this);
   painter.drawImage(QPoint(0,0), m_backgroundImage);
 
   // write version and commit
-  painter.setPen(textPen);
-  painter.setFont(m_catamaranFont);
-  painter.drawText(QRectF(0,110,m_windowSize.width(),40),
-                   Qt::AlignHCenter,
-                   version_text);
+  {
+    auto version_text = QStringLiteral("Version: %1.%2.%3-%4 “%5”\n")
+        .arg(SCORE_VERSION_MAJOR)
+        .arg(SCORE_VERSION_MINOR)
+        .arg(SCORE_VERSION_PATCH)
+        .arg(SCORE_VERSION_EXTRA)
+        .arg(SCORE_CODENAME);
+
+    QString commit{GIT_COMMIT};
+
+    if (!commit.isEmpty())
+    {
+      version_text += tr("Commit: %1\n").arg(commit);
+    }
+    painter.setPen(textPen);
+    painter.setFont(m_catamaranFont);
+    painter.drawText(QRectF(0,100,m_windowSize.width(),60),
+                     Qt::AlignHCenter,
+                     version_text);
+  }
 
   // write copyright
-  painter.setFont(m_montserratFont);
-  painter.drawText(QRectF(0,160,m_windowSize.width(),30),
-                   Qt::AlignHCenter,
-                   copyright_text);
+  {
+    auto copyright_text = QString("Copyright © Ossia "+ QString::number(QDate::currentDate().year()));
+
+    painter.setFont(m_montserratFont);
+    painter.drawText(QRectF(0,160,m_windowSize.width(),30),
+                     Qt::AlignHCenter,
+                     copyright_text);
+  }
 
   // write title above listview
-  m_montserratFont.setPointSize(13);
   painter.setPen(titleText);
-  painter.setFont(m_montserratFont);
+  QFont mb = m_montserratFont;
+  mb.setBold(true);
+  painter.setFont(mb);
   painter.drawText(QRectF(145,210,120,15),
                    Qt::AlignHCenter,
                    "Project");
