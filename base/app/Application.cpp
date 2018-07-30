@@ -61,6 +61,8 @@ static void setQApplicationSettings(QApplication& m_app)
 {
   QFontDatabase::addApplicationFont(":/APCCourierBold.otf"); // APCCourier-Bold
   QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf");       // Ubuntu
+  QFontDatabase::addApplicationFont(":/Catamaran-Regular.ttf"); // Catamaran
+  QFontDatabase::addApplicationFont(":/Montserrat-Regular.ttf");       // Montserrat
 
   QFile stylesheet_file{":/qdarkstyle/qdarkstyle.qss"};
   stylesheet_file.open(QFile::ReadOnly);
@@ -84,7 +86,7 @@ static void setQApplicationSettings(QApplication& m_app)
   pal.setBrush(QPalette::Dark, QColor("#666666"));
   pal.setBrush(QPalette::Shadow, QColor("#666666"));
 
-  QFont f("Ubuntu-R", 9);
+  QFont f("Ubuntu", 10);
   qApp->setFont(f);
 
   qApp->setPalette(pal);
@@ -158,7 +160,7 @@ static QPixmap writeVersionName()
   painter.setRenderHint(QPainter::TextAntialiasing, true);
   painter.setRenderHint(QPainter::HighQualityAntialiasing, true);
   painter.setPen(QPen(QColor("#0092CF")));
-  QFont f(":/Ubuntu-R.ttf", 8, QFont::Light);
+  QFont f("Ubuntu", 8, QFont::Light);
   f.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
   f.setStyleStrategy(QFont::PreferAntialias);
   painter.setFont(f);
