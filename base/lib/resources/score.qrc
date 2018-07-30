@@ -2,6 +2,7 @@
     <qresource prefix="/">
         <file>about/about_background.png</file>
         <file>about/about_background@2x.png</file>
+        <file>qdarkcontrastedstyle.qss</file>
         <file>Catamaran-Regular.ttf</file>
         <file>Montserrat-Regular.ttf</file>
         <file>Ubuntu-R.ttf</file>

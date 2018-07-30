@@ -139,7 +139,11 @@ void Presenter::setupGUI()
           return lhs.row() < rhs.row();
         });
         for (Toolbar& tb : tb_row)
+        {
           view()->addToolBar(Qt::TopToolBarArea, tb.toolbar());
+          tb.toolbar()->setFloatable(false);
+          tb.toolbar()->setMovable(false);
+        }
 
         i++;
         if (i < n - 1)

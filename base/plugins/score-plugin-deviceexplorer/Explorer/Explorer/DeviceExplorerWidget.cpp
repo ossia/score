@@ -52,6 +52,7 @@
 #include <QMenu>
 #include <QPair>
 #include <QPushButton>
+#include <QToolButton>
 #include <QRegExp>
 #include <QSet>
 #include <QSize>
@@ -280,7 +281,7 @@ void DeviceExplorerWidget::buildGUI()
       m_findUsageAction, &QAction::triggered, this,
       &DeviceExplorerWidget::findUsage);
 
-  QPushButton* addButton = new QPushButton(this);
+  auto* addButton = new QPushButton(this);
 
   QIcon addButtonIcon;
   addButtonIcon.addPixmap(QString(":/resources/images/add_off.png"));
@@ -292,10 +293,12 @@ void DeviceExplorerWidget::buildGUI()
       QString(":/resources/images/add_off.png"), QIcon::Mode::Normal,
       QIcon::State::On);
 
-  addButton->setMaximumSize(QSize(32, 32));
+
   addButton->setIcon(addButtonIcon);
-  addButton
-      ->setStyleSheet("QPushButton::menu-indicator{ image: url(none.jpg); }" /*to hide the small triangle added to indicate a menu.*/);
+  addButton->setFixedSize(QSize(24, 24));
+  addButton->setIconSize(QSize(24, 24));
+
+  addButton->setObjectName("buttonWithoutArrow");
 
   m_addDeviceAction = new QAction(
       QIcon(":/resources/images/addDevice.png"), tr("Add device"), this);
@@ -331,7 +334,7 @@ void DeviceExplorerWidget::buildGUI()
   addButton->setMenu(addMenu);
 
   QMenu* editMenu = new QMenu(this);
-  QPushButton* editButton = new QPushButton(this);
+  auto* editButton = new QPushButton(this);
 
   QIcon editButtonIcon;
   editButtonIcon.addPixmap(QString(":/resources/images/edit_off.png"));
@@ -344,14 +347,10 @@ void DeviceExplorerWidget::buildGUI()
       QString(":/resources/images/edit_on.png"), QIcon::Mode::Active);
 
   editButton->setIcon(editButtonIcon);
-  editButton->setMaximumSize(QSize(32, 32));
-  editButton->setStyleSheet(
-      "QPushButton::menu-indicator{ image: url(none.jpg); }"); // to hide the
-                                                               // small
-                                                               // triangle
-                                                               // added to
-                                                               // indicate a
-                                                               // menu.
+
+  editButton->setFixedSize(QSize(24, 24));
+  editButton->setIconSize(QSize(24, 24));
+  editButton->setObjectName("buttonWithoutArrow");
 
   editButton->setMenu(editMenu);
 
