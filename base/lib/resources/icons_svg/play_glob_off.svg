@@ -6,11 +6,11 @@
 	.st0{display:none;fill:#3D3D3D;}
 	.st1{display:none;fill:#000100;}
 	.st2{fill:#FFFFFF;}
+	.st3{fill:none;stroke:#FFFFFF;stroke-miterlimit:10;}
 </style>
 <title>boutons</title>
 <rect x="0.5" y="0.5" class="st0" width="27.9" height="27.9"/>
 <path class="st1" d="M28.9,28.9H0V0h28.9V28.9z M1,27.9h26.9V1H1V27.9z"/>
-<path class="st2" d="M8.2,6C7.5,6,7,6.5,7,7.1c0,0,0,0,0,0l0,0v14.7c0,0.6,0.5,1.1,1.1,1.1c0,0,0,0,0.1,0h12.5
-	c0.6,0,1.1-0.5,1.1-1.1l0,0v-9.5h-5.3V6H8.2z M10.2,14.5h3.2v-3.2h2.1v3.2h3.2v2.1h-3.1v3.2h-2.1v-3.2h-3.2L10.2,14.5L10.2,14.5z
-	 M17.6,11.3h4.2v-0.1l-4.2-4.3L17.6,11.3L17.6,11.3z"/>
+<path class="st2" d="M10.4,9.6l8,4.8l-8,4.8V9.6L10.4,9.6z"/>
+<path class="st3" d="M7.4,4.8l16,9.7l-16,9.7V4.8L7.4,4.8z"/>
 </svg>
