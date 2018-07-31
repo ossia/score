@@ -36,9 +36,9 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   setIcons(
       m_play, QString(":/icons/play_on.png"), QString(":/icons/play_off.png"));
 
-  m_playGlobal = new QAction{tr("Play (Global)"), nullptr};
+  m_playGlobal = new QAction{tr("Play Root"), nullptr};
   m_playGlobal->setCheckable(true);
-  m_playGlobal->setObjectName("Play (Global)");
+  m_playGlobal->setObjectName("Play Root");
   m_playGlobal->setShortcut(Qt::Key_Shift + Qt::Key_Space);
   m_playGlobal->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   m_playGlobal->setData(false);

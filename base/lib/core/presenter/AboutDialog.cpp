@@ -18,8 +18,9 @@ AboutDialog::AboutDialog(QWidget *parent) :
   QDialog(parent),
   m_windowSize(492,437),
   m_backgroundImage(score::get_image(":/about/about_background.png")),
-  m_catamaranFont("Catamaran", 13, QFont::Weight::Normal),
-  m_montserratFont("Montserrat", 10, QFont::Weight::Normal),
+  m_catamaranFont("Catamaran", 13),
+  m_montserratFont("Montserrat", 10),
+  m_mouseAreaOssiaScore(102,13,295,84),
   m_mouseAreaLabri(17, 221, 126, 62),
   m_mouseAreaBlueYeti(20, 287, 110, 29),
   m_mouseAreaScrime(22, 320, 100, 35)
@@ -184,7 +185,11 @@ AboutDialog::AboutDialog(QWidget *parent) :
 void AboutDialog::mousePressEvent(QMouseEvent *event)
 {
   QPointF pos = event->localPos();
-  if(m_mouseAreaLabri.contains(pos))
+  if(m_mouseAreaOssiaScore.contains(pos))
+  {
+    QDesktopServices::openUrl(QUrl("https://ossia.io/"));
+  }
+  else if(m_mouseAreaLabri.contains(pos))
   {
     QDesktopServices::openUrl(QUrl("https://www.labri.fr/"));
   }
@@ -202,7 +207,8 @@ void AboutDialog::mousePressEvent(QMouseEvent *event)
 void AboutDialog::mouseMoveEvent(QMouseEvent *event)
 {
   QPointF pos = event->localPos();
-  if( m_mouseAreaLabri.contains(pos)
+  if( m_mouseAreaOssiaScore.contains(pos)
+      || m_mouseAreaLabri.contains(pos)
       || m_mouseAreaBlueYeti.contains(pos)
       || m_mouseAreaScrime.contains(pos))
   {
