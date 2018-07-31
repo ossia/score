@@ -1,29 +1,34 @@
 if(UNIX)
 
 #use the LSB stuff if possible :)
-EXECUTE_PROCESS(
-  COMMAND cat /etc/lsb-release
-  COMMAND grep DISTRIB_ID
-  COMMAND awk -F= "{ print $2 }"
-  COMMAND tr "\n" " "
-  COMMAND sed "s/ //"
-  OUTPUT_VARIABLE LSB_ID
-  RESULT_VARIABLE LSB_ID_RESULT
-)
+set(LSB_ID "")
+set(LSB_VER "")
 
-EXECUTE_PROCESS(
-  COMMAND cat /etc/lsb-release
-  COMMAND grep DISTRIB_RELEASE
-  COMMAND awk -F= "{ print $2 }"
-  COMMAND tr "\n" " "
-  COMMAND sed "s/ //"
-  OUTPUT_VARIABLE LSB_VER
-  RESULT_VARIABLE LSB_VER_RESULT
-)
+if(EXISTS /etc/lsb-release)
+  execute_process(
+    COMMAND cat /etc/lsb-release
+    COMMAND grep DISTRIB_ID
+    COMMAND awk -F= "{ print $2 }"
+    COMMAND tr "\n" " "
+    COMMAND sed "s/ //"
+    OUTPUT_VARIABLE LSB_ID
+    RESULT_VARIABLE LSB_ID_RESULT
+    )
 
-if(LSB_ID_RESULT EQUAL 1)
+  execute_process(
+    COMMAND cat /etc/lsb-release
+    COMMAND grep DISTRIB_RELEASE
+    COMMAND awk -F= "{ print $2 }"
+    COMMAND tr "\n" " "
+    COMMAND sed "s/ //"
+    OUTPUT_VARIABLE LSB_VER
+    RESULT_VARIABLE LSB_VER_RESULT
+    )
+
+  if(LSB_ID_RESULT EQUAL 1)
     set(LSB_ID "")
     set(LSB_VER "")
+  endif()
 endif()
 
 
@@ -51,7 +56,6 @@ configure_file (
   "${CMAKE_CURRENT_LIST_DIR}/Deployment/Linux/Score.desktop.in"
   "${PROJECT_BINARY_DIR}/Score.desktop"
   )
-
 endif()
 
 if(EXISTS "${CMAKE_BINARY_DIR}/base/plugins/score-plugin-media/faustlibs/src/faustlibs")
@@ -63,12 +67,10 @@ if(EXISTS "${CMAKE_BINARY_DIR}/base/plugins/score-plugin-media/faustlibs/src/fau
    )
 endif()
 
-install(PROGRAMS "${CMAKE_SOURCE_DIR}/base/app/score.sh"
-        DESTINATION bin)
 install(FILES "${PROJECT_BINARY_DIR}/Score.desktop"
         DESTINATION share/applications)
 install(FILES "${CMAKE_SOURCE_DIR}/base/lib/resources/score.png"
-        DESTINATION share/pixmaps)
+        DESTINATION share/pixmaps/ossia-score.png)
 
 set(CPACK_PACKAGE_FILE_NAME "score-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}")
 set(CPACK_PACKAGING_INSTALL_PREFIX "")
