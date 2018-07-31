@@ -9,7 +9,6 @@
 #include <QGraphicsSceneMoveEvent>
 #include <QMenu>
 #include <QPainter>
-#include <QSlider>
 
 
 #include <wobjectimpl.h>

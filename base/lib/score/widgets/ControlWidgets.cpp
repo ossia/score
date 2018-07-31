@@ -3,20 +3,11 @@
 #include <QStyleOptionButton>
 #include <QStyleOptionSlider>
 #include <QPainter>
+#include <ossia/network/dataspace/gain.hpp>
 #include <cmath>
 
 namespace Control
 {
-
-const QPalette& transparentPalette()
-{
-  static QPalette p{[] {
-    QPalette palette;
-    palette.setBrush(QPalette::Background, Qt::transparent);
-    return palette;
-  }()};
-  return p;
-}
 
 void ToggleButton::paintEvent(QPaintEvent* event)
 {
@@ -34,63 +25,36 @@ void ToggleButton::paintEvent(QPaintEvent* event)
 
 void ValueSlider::paintEvent(QPaintEvent* event)
 {
-  QSlider::paintEvent(event);
-  QStyleOptionSlider opt;
-  initStyleOption(&opt);
-  QPainter p{this};
-  p.setFont(QFont("Ubuntu", 8));
-  style()->drawItemText(
-      &p, this->rect(), 0, opt.palette, true, QString::number(value()));
+  paintWithText(QString::number(value()));
 }
 
-void SpeedSlider::paintEvent(QPaintEvent* event)
+void SpeedSlider::paintEvent(QPaintEvent*)
 {
-  QSlider::paintEvent(event);
-  QStyleOptionSlider opt;
-  initStyleOption(&opt);
-  QPainter p{this};
-  p.setFont(QFont("Ubuntu", 8));
-  style()->drawItemText(
-      &p, this->rect(), 0, opt.palette, true, " x " + QString::number(double(value()) * 0.01));
+  paintWithText(QString{" x " + QString::number(double(value()) * 0.01)});
+}
+
+void VolumeSlider::paintEvent(QPaintEvent*)
+{
+  paintWithText(QString::number(ossia::detail::LinearGainToDecibels(value()), 'f', 1) + " dB");
 }
 
 void ValueDoubleSlider::paintEvent(QPaintEvent* event)
 {
-  QSlider::paintEvent(event);
-  QStyleOptionSlider opt;
-  initStyleOption(&opt);
-  QPainter p{this};
-  p.setFont(QFont("Ubuntu", 8));
-  style()->drawItemText(
-      &p, this->rect(), 0, opt.palette, true,
-      QString::number(min + value() * (max - min), 'f', 3));
+  paintWithText(QString::number(min + value() * (max - min), 'f', 3));
 }
 
 void ValueLogDoubleSlider::paintEvent(QPaintEvent* event)
 {
-  QSlider::paintEvent(event);
-  QStyleOptionSlider opt;
-  initStyleOption(&opt);
-  QPainter p{this};
-  p.setFont(QFont("Ubuntu", 8));
-  style()->drawItemText(
-      &p, this->rect(), 0, opt.palette, true,
-      QString::number(std::exp2(min + value() * (max - min)), 'f', 3));
+  paintWithText(QString::number(std::exp2(min + value() * (max - min)), 'f', 3));
 }
 
 ComboSlider::ComboSlider(const QStringList& arr, QWidget* parent)
-    : QSlider{parent}, array{arr}
+    : score::Slider{parent}, array{arr}
 {
 }
 
 void ComboSlider::paintEvent(QPaintEvent* event)
 {
-  QSlider::paintEvent(event);
-  QStyleOptionSlider opt;
-  initStyleOption(&opt);
-  QPainter p{this};
-  p.setFont(QFont("Ubuntu", 8));
-  style()->drawItemText(
-      &p, this->rect(), 0, opt.palette, true, array[value()]);
+  paintWithText(array[value()]);
 }
 }

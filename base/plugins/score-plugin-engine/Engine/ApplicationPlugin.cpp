@@ -26,7 +26,6 @@
 #include <Process/TimeValue.hpp>
 #include <QAction>
 #include <QApplication>
-#include <QSlider>
 #include <QVariant>
 #include <QVector>
 #include <Scenario/Application/ScenarioActions.hpp>
@@ -47,6 +46,7 @@
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/Todo.hpp>
+#include <score/widgets/ControlWidgets.hpp>
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/SetIcons.hpp>
 #include <vector>
@@ -343,10 +343,10 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
   {
     auto bar = new QToolBar;
     bar->addAction(m_audioEngineAct);
-    auto sl = new score::DoubleSlider{bar};
+    auto sl = new Control::VolumeSlider{bar};
     sl->setValue(0.5);
     bar->addWidget(sl);
-    connect(sl, &score::DoubleSlider::valueChanged, this, [=](double v) {
+    connect(sl, &Control::VolumeSlider::valueChanged, this, [=] (double v) {
       if (m_clock)
       {
         if (auto& st = m_clock->context.plugin.execState)

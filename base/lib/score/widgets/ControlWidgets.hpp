@@ -41,25 +41,36 @@ protected:
   void paintEvent(QPaintEvent* event) override;
 };
 
-struct SCORE_LIB_BASE_EXPORT ValueSlider : public QSlider
+struct SCORE_LIB_BASE_EXPORT ValueSlider : public score::Slider
 {
 public:
-  using QSlider::QSlider;
+  using Slider::Slider;
   bool moving = false;
 
 protected:
   void paintEvent(QPaintEvent* event) override;
 };
 
-struct SCORE_LIB_BASE_EXPORT SpeedSlider : public QSlider
+struct SCORE_LIB_BASE_EXPORT SpeedSlider : public score::Slider
 {
 public:
-  using QSlider::QSlider;
+  using Slider::Slider;
   bool moving = false;
 
 protected:
   void paintEvent(QPaintEvent* event) override;
 };
+
+struct SCORE_LIB_BASE_EXPORT VolumeSlider : public score::DoubleSlider
+{
+public:
+  using DoubleSlider::DoubleSlider;
+  bool moving = false;
+
+protected:
+  void paintEvent(QPaintEvent* event) override;
+};
+
 
 struct SCORE_LIB_BASE_EXPORT ValueDoubleSlider
     : public score::DoubleSlider
@@ -87,14 +98,14 @@ protected:
   void paintEvent(QPaintEvent* event) override;
 };
 
-struct SCORE_LIB_BASE_EXPORT ComboSlider : public QSlider
+struct SCORE_LIB_BASE_EXPORT ComboSlider : public score::Slider
 {
   QStringList array;
 
 public:
   template <std::size_t N>
   ComboSlider(const std::array<const char*, N>& arr, QWidget* parent)
-      : QSlider{parent}
+      : score::Slider{parent}
   {
     array.reserve(N);
     for (auto str : arr)
