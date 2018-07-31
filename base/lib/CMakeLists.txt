@@ -124,6 +124,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/documentdelegate/plugin/DocumentPluginBase.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/documentdelegate/plugin/SerializableDocumentPlugin.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/documentdelegate/plugin/DocumentPlugin.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/panel/PanelDelegate.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/panel/PanelDelegateFactory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/qt_interfaces/CommandFactory_QtInterface.hpp"
@@ -181,10 +182,12 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/String.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/StringHash.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ClearLayout.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ControlWidgets.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/CommandSpinBox.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/DoubleSlider.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/GraphicWidgets.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/GraphicsItem.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/GraphicsScene.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/GraphicsProxyObject.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/JS/JSEdit.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/MarginLess.hpp"
@@ -303,6 +306,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/GraphicsItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ClearLayout.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ControlWidgets.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/DoubleSlider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/RectItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SetIcons.cpp"
@@ -376,3 +380,40 @@ target_include_directories(score_lib_base PUBLIC 3rdparty/Qt-Color-Widgets/QtCol
 set_property(TARGET score_lib_base PROPERTY COTIRE_CXX_PREFIX_HEADER_INIT "${CMAKE_CURRENT_SOURCE_DIR}/score/prefix.hpp")
 setup_score_library(score_lib_base)
 setup_score_tests(tests)
+
+if(NOT license_text)
+  include(GenerateLicense)
+  AddLicenseFile(license_text ossia "${CMAKE_SOURCE_DIR}/API/LICENSE")
+  AddLicenseFile(license_text score "${CMAKE_SOURCE_DIR}/LICENSE.txt")
+  AddLicenseFile(license_text Asio "${OSSIA_3RDPARTY_FOLDER}/asio/asio/LICENSE_1_0.txt")
+  AddLicenseFile(license_text bitset2 "${OSSIA_3RDPARTY_FOLDER}/bitset2/LICENSE.txt")
+  AddLicenseFile(license_text Brigand "${OSSIA_3RDPARTY_FOLDER}/brigand/LICENSE")
+  AddLicenseFile(license_text chobo "${OSSIA_3RDPARTY_FOLDER}/chobo-shl/LICENSE.txt")
+  AddLicenseFile(license_text readerwriterqueue "${OSSIA_3RDPARTY_FOLDER}/readerwriterqueue/LICENSE.md")
+  AddLicenseFile(license_text concurrentqueue "${OSSIA_3RDPARTY_FOLDER}/concurrentqueue/LICENSE.md")
+  AddLicenseFile(license_text flat "${OSSIA_3RDPARTY_FOLDER}/flat/LICENSE_1_0.txt")
+  AddLicenseFile(license_text fmt "${OSSIA_3RDPARTY_FOLDER}/fmt/LICENSE.rst")
+  AddLicenseFile(license_text frozen "${OSSIA_3RDPARTY_FOLDER}/frozen/LICENSE")
+  AddLicenseFile(license_text GSL "${OSSIA_3RDPARTY_FOLDER}/GSL/LICENSE")
+  AddLicenseFile(license_text hopscotchmap "${OSSIA_3RDPARTY_FOLDER}/hopscotch-map/LICENSE")
+  AddLicenseFile(license_text rtmidi "${OSSIA_3RDPARTY_FOLDER}/RtMidi17/LICENSE.ModernMidi")
+  AddLicenseFile(license_text modernmidi "${OSSIA_3RDPARTY_FOLDER}/RtMidi17/LICENSE.ModernMidi")
+  AddLicenseFile(license_text multiindex "${OSSIA_3RDPARTY_FOLDER}/multi_index/LICENSE.md")
+  AddLicenseFile(license_text nanosignal "${OSSIA_3RDPARTY_FOLDER}/nano-signal-slot/LICENSE")
+  AddLicenseFile(license_text oscpack "${OSSIA_3RDPARTY_FOLDER}/oscpack/LICENSE")
+  AddLicenseFile(license_text pd "${OSSIA_3RDPARTY_FOLDER}/pure-data/LICENSE.txt")
+  AddLicenseFile(license_text portaudio "${OSSIA_3RDPARTY_FOLDER}/pure-data/portaudio/portaudio/LICENSE.txt")
+  AddLicenseFile(license_text pybind11 "${OSSIA_3RDPARTY_FOLDER}/pybind11/LICENSE")
+  AddLicenseFile(license_text rapidjson "${OSSIA_3RDPARTY_FOLDER}/rapidjson/license.txt")
+  AddLicenseFile(license_text servus "${OSSIA_3RDPARTY_FOLDER}/Servus/LICENSE.txt")
+  AddLicenseFile(license_text smallfun "${OSSIA_3RDPARTY_FOLDER}/SmallFunction/LICENSE")
+  AddLicenseFile(license_text spdlog "${OSSIA_3RDPARTY_FOLDER}/spdlog/LICENSE")
+  AddLicenseFile(license_text variant "${OSSIA_3RDPARTY_FOLDER}/variant/LICENSE.txt")
+  AddLicenseFile(license_text verdigris "${OSSIA_3RDPARTY_FOLDER}/verdigris/LICENSE.LGPLv3")
+  AddLicenseFile(license_text whereami "${OSSIA_3RDPARTY_FOLDER}/whereami/LICENSE")
+  AddLicenseFile(license_text websocketpp "${OSSIA_3RDPARTY_FOLDER}/websocketpp/COPYING")
+
+  AddLicenseFile(license_text qprogressindicator "${CMAKE_SOURCE_DIR}/base/lib/3rdparty/QProgressIndicator/LICENSE")
+  AddLicenseFile(license_text qtcolorwidgets "${CMAKE_SOURCE_DIR}/base/lib/3rdparty/Qt-Color-Widgets/COPYING")
+  score_write_file(${CMAKE_BINARY_DIR}/score_licenses.hpp "${license_text}")
+endif()

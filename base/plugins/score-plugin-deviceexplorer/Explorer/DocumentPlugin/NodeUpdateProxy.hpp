@@ -96,7 +96,7 @@ public:
       const Device::AddressSettings&,
       Device::DeviceInterface& newdev);
 
-  void updateRemoteValue(const State::AddressAccessor&, const ossia::value&);
+  void updateRemoteValue(const State::Address&, const ossia::value&);
 
   ossia::value refreshRemoteValue(const State::Address&) const;
   optional<ossia::value> try_refreshRemoteValue(const State::Address&) const;

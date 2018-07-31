@@ -36,7 +36,7 @@ void deleteGraphicsItem(QGraphicsItem* item)
   }
 }
 
-QGraphicsView* getView(QGraphicsItem& self)
+QGraphicsView* getView(const QGraphicsItem& self)
 {
   if (!self.scene())
     return nullptr;

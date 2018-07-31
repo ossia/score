@@ -2,9 +2,9 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DeviceExplorerModel.hpp"
 
-#include "DeviceExplorerMimeTypes.hpp"
-#include "DeviceExplorerView.hpp"
-#include "Widgets/DeviceEditDialog.hpp" // TODO why here??!!
+#include <Explorer/Explorer/DeviceExplorerMimeTypes.hpp>
+#include <Explorer/Explorer/DeviceExplorerView.hpp>
+#include <Explorer/Explorer/Widgets/DeviceEditDialog.hpp> // TODO why here??!!
 
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/domain/domain.hpp>
@@ -471,7 +471,7 @@ bool DeviceExplorerModel::setData(
 
       // Note : if we want to disable remote updating, we have to do it
       // here (e.g. if this becomes a settings)
-      m_devicePlugin.updateProxy.updateRemoteValue(Device::address(n), copy);
+      m_devicePlugin.updateProxy.updateRemoteValue(Device::address(n).address, copy);
 
       return true;
     }
@@ -660,9 +660,21 @@ DeviceExplorerModel::uniqueSelectedNodes(const QModelIndexList& indexes) const
 // method called when a drag is initiated
 QMimeData* DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
 {
-  QMimeData* mimeData = new QMimeData;
-
   auto uniqueNodes = uniqueSelectedNodes(indexes);
+
+  // Handle case of a single device which can have custom mimeData
+  if(uniqueNodes.parents.size() == 1 && uniqueNodes.parents[0]->is<Device::DeviceSettings>())
+  {
+    auto node = uniqueNodes.parents[0];
+    if(node->is<Device::DeviceSettings>())
+    {
+      auto& dev = deviceModel().list().device(node->get<Device::DeviceSettings>().name);
+      if(auto d = dev.mimeData())
+        return d;
+    }
+  }
+
+  auto mimeData = new QMimeData;
 
   // Now we request an update to the device explorer.
   m_devicePlugin.updateProxy.refreshRemoteValues(uniqueNodes.parents);

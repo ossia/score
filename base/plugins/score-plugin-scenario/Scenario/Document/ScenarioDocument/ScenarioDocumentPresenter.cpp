@@ -12,6 +12,7 @@
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Process/DocumentPlugin.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/Tools/ProcessGraphicsView.hpp>
 #include <QMainWindow>
@@ -172,6 +173,10 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
 
 ScenarioDocumentPresenter::~ScenarioDocumentPresenter()
 {
+  auto& p = context().plugin<Process::DocumentPlugin>();
+  p.cables().clear();
+  p.ports().clear();
+  cableItems.remove_all();
 }
 
 IntervalModel& ScenarioDocumentPresenter::displayedInterval() const

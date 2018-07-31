@@ -4,10 +4,11 @@
 
 namespace Scenario
 {
-class ScenarioScene final : public QGraphicsScene
+class ScenarioScene final
+    : public QGraphicsScene
 {
   W_OBJECT(ScenarioScene)
 public:
-  ScenarioScene(QWidget* parent);
+  ScenarioScene(QObject* parent);
 };
 }

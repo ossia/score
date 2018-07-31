@@ -6,7 +6,6 @@
 #include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
-#include <QSlider>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Loop::LayerView)

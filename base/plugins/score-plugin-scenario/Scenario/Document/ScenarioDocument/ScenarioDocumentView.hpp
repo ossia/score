@@ -16,7 +16,7 @@ class ProcessGraphicsView;
 
 namespace score
 {
-class DoubleSlider;
+struct DocumentContext;
 struct GUIApplicationContext;
 }
 
@@ -31,8 +31,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentView final : public score::Do
 
 public:
   ScenarioDocumentView(
-      const score::GUIApplicationContext& ctx, QObject* parent);
-  virtual ~ScenarioDocumentView() = default;
+      const score::DocumentContext& ctx, QObject* parent);
+  ~ScenarioDocumentView() override;
 
   QWidget* getWidget() override;
 
@@ -55,7 +55,7 @@ public:
 
   QGraphicsView& rulerView()
   {
-    return m_timeRulersView;
+    return m_timeRulerView;
   }
 
   TimeRuler& timeRuler()
@@ -86,8 +86,8 @@ private:
   ProcessGraphicsView m_view;
   BaseGraphicsObject m_baseObject;
 
-  QGraphicsScene m_timerulerScene;
-  TimeRulerGraphicsView m_timeRulersView;
+  QGraphicsScene m_timeRulerScene;
+  TimeRulerGraphicsView m_timeRulerView;
   TimeRuler m_timeRuler;
   QGraphicsScene m_minimapScene;
   MinimapGraphicsView m_minimapView;

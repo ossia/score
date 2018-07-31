@@ -30,19 +30,21 @@ public:
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) final override;
 
-  void setHeight(qreal height);
-  qreal height() const;
+  void setHeight(qreal height) noexcept;
+  qreal height() const noexcept
+  {
+    return m_height;
+  }
 
-  void setWidth(qreal width);
-  qreal width() const;
+  void setWidth(qreal width) noexcept;
+  qreal width() const noexcept
+  {
+    return m_width;
+  }
 
-  virtual QPixmap pixmap();
+  virtual QPixmap pixmap() noexcept;
 
   void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
-
-public:
-  void heightChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, heightChanged);
-  void widthChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, widthChanged);
 
   void pressed(QPointF arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, pressed, arg_1);
   void released(QPointF arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, released, arg_1);
@@ -55,6 +57,9 @@ public:
 
 protected:
   virtual void paint_impl(QPainter*) const = 0;
+  virtual void heightChanged(qreal);
+  virtual void widthChanged(qreal);
+
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
 

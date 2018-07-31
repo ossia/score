@@ -16,6 +16,7 @@
 #include <State/Value.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/widgets/ControlWidgets.hpp>
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/GraphicWidgets.hpp>
 #include <score/widgets/MarginLess.hpp>

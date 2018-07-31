@@ -18,10 +18,9 @@
 #include <memory>
 #include <score/tools/Todo.hpp>
 #include <set>
-// TODO rename this file
-
-#include "LV2Context.hpp"
-#include "LV2Node.hpp"
+#include <Media/Effect/LV2/LV2Context.hpp>
+#include <Media/Effect/LV2/LV2Node.hpp>
+#include <Media/Effect/LV2/LV2Window.hpp>
 
 #include <wobjectimpl.h>
 #include <QListWidget>
@@ -145,6 +144,14 @@ LV2EffectModel::LV2EffectModel(
   reload();
 }
 
+LV2EffectModel::~LV2EffectModel()
+{
+  if (externalUI)
+  {
+    auto w = reinterpret_cast<LV2::Window*>(externalUI);
+    delete w;
+  }
+}
 QString LV2EffectModel::prettyName() const
 {
   return metadata().getLabel();

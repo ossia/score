@@ -7,6 +7,11 @@
 class QGraphicsObject;
 class QGraphicsItem;
 class QGraphicsView;
+
+namespace score
+{
+struct DocumentContext;
+}
 /**
  * @brief deleteGraphicsItem Properly delete a QGraphicsObject
  * @param item item to delete
@@ -18,7 +23,7 @@ SCORE_LIB_BASE_EXPORT void deleteGraphicsObject(QGraphicsObject* item);
 SCORE_LIB_BASE_EXPORT void deleteGraphicsItem(QGraphicsItem* item);
 
 SCORE_LIB_BASE_EXPORT
-QGraphicsView* getView(QGraphicsItem& self);
+QGraphicsView* getView(const QGraphicsItem& self);
 
 template <typename T>
 struct graphics_item_ptr

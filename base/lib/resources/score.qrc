@@ -9,7 +9,7 @@
         <file>Ubuntu-B.ttf</file>
         <file>Ubuntu-L.ttf</file>
         <file>APCCourierBold.otf</file>
-        <file>score.png</file>
+        <file>ossia-score.png</file>
         <file>dict.txt</file>
         <file>icons/next_off.png</file>
         <file>icons/next_on.png</file>
@@ -247,6 +247,8 @@
         <file>icons/engine_on@2x.png</file>
         <file>icons/refresh_off@2x.png</file>
         <file>icons/refresh_on@2x.png</file>
+        <file>icons/search.png</file>
+        <file>icons/search@2x.png</file>
     </qresource>
     <qresource prefix="/qss_icons">
         <file>rc/up_arrow_disabled.png</file>

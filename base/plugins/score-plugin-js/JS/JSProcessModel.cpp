@@ -48,6 +48,8 @@ Item {
 
 ProcessModel::~ProcessModel()
 {
+  if(m_dummyObject)
+    m_dummyObject->deleteLater();
 }
 
 void ProcessModel::setScript(const QString& script)
@@ -99,7 +101,7 @@ void ProcessModel::setQmlData(const QByteArray& data, bool isFile)
     return;
 
   m_qmlData = data;
-  delete m_dummyObject;
+  m_dummyObject->deleteLater();
   m_dummyObject = nullptr;
   m_dummyComponent.reset();
   if (isFile)

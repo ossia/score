@@ -11,14 +11,9 @@ struct SwrContext;
 
 namespace Media
 {
-
-struct audio_data
-{
-  std::string file_path;
-  AudioArray data;
-};
-
-using audio_handle = std::shared_ptr<audio_data>;
+using audio_handle = ossia::audio_handle;
+using audio_array = ossia::audio_array;
+using audio_sample = ossia::audio_sample;
 
 
 struct AudioInfo
@@ -39,7 +34,7 @@ public:
   ossia::optional<AudioInfo> probe(const QString& path);
   void decode(const QString& path, audio_handle hdl);
 
-  static ossia::optional<std::pair<AudioInfo, AudioArray>>
+  static ossia::optional<std::pair<AudioInfo, audio_array>>
   decode_synchronous(const QString& path);
 
   static QHash<QString, AudioInfo>& database();
@@ -62,8 +57,8 @@ private:
   QThread m_decodeThread;
 
   template <typename Decoder>
-  void decodeFrame(Decoder dec, AudioArray& data, AVFrame& frame);
-  void decodeRemaining(AudioArray& data);
+  void decodeFrame(Decoder dec, audio_array& data, AVFrame& frame);
+  void decodeRemaining(audio_array& data);
   std::vector<SwrContext*> resampler;
   void initResample();
 };

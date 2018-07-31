@@ -122,18 +122,52 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
 
 FullViewIntervalPresenter::~FullViewIntervalPresenter()
 {
-  // TODO deleteGraphicsObject ?
-  if (Scenario::view(this))
+  auto view = Scenario::view(this);
+  auto sc = view->scene();
+  if(sc)
   {
-    auto sc = Scenario::view(this)->scene();
-
-    if (sc && sc->items().contains(Scenario::view(this)))
+    for(auto& slt : m_slots)
     {
-      sc->removeItem(Scenario::view(this));
+      if (slt.header)
+      {
+        sc->removeItem(slt.header);
+        delete slt.header;
+      }
+      if (slt.handle)
+      {
+        sc->removeItem(slt.handle);
+        delete slt.handle;
+      }
+      for(auto& layer : slt.processes)
+      {
+        // The presenter will delete their views
+        delete layer.presenter;
+      }
     }
 
-    Scenario::view(this)->deleteLater();
+    sc->removeItem(view);
   }
+  else
+  {
+    for(auto& slt : m_slots)
+    {
+      if (slt.header)
+      {
+        delete slt.header;
+      }
+      if (slt.handle)
+      {
+        delete slt.handle;
+      }
+      for(auto& layer : slt.processes)
+      {
+        // The presenter will delete their views
+        delete layer.presenter;
+      }
+    }
+  }
+
+  delete view;
 }
 
 void FullViewIntervalPresenter::createSlot(int pos, const FullSlot& slt)

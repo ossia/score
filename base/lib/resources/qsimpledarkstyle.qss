@@ -1021,7 +1021,8 @@ QDockWidget {
     background-color: #666666;
     color: #ccc;
     margin: 0px;
-    font: "Catamaran";
+    font: "Helvetica";
+    font-weight: 500;
 }
 
 QDockWidget::title {

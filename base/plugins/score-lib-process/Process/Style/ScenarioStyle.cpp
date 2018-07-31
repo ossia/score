@@ -94,7 +94,7 @@ void ScenarioStyle::setIntervalWidth(double w)
   IntervalWaitingDashPen.setWidthF(3 * w);
 }
 
-ScenarioStyle& ScenarioStyle::instance()
+ScenarioStyle& ScenarioStyle::instance() noexcept
 {
   static ScenarioStyle s(score::Skin::instance());
   return s;

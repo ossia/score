@@ -6,7 +6,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <QGraphicsItem>
 #include <QObject>
-#include <score/model/Identifier.hpp>
+#include <score/widgets/GraphicsScene.hpp>
 namespace Dataflow
 {
 class CableItem;
@@ -54,9 +54,6 @@ public:
   void setSource(PortItem* p);
   void setTarget(PortItem* p);
 
-  using cable_map = ossia::ptr_map<Process::Cable*, Dataflow::CableItem*>;
-  static cable_map& g_cables();
-
 public:
   void clicked() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, clicked);
   void removeRequested() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, removeRequested);
@@ -74,6 +71,7 @@ private:
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
 
   Process::Cable& m_cable;
+  const score::DocumentContext& m_context;
   QPointer<PortItem> m_p1, m_p2;
   QPainterPath m_path;
   Process::PortType m_type{};

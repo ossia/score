@@ -31,23 +31,30 @@ void NoteView::paint(
   painter->setBrush(
       this->isSelected() ? s.noteSelectedBaseBrush : s.noteBaseBrush);
   painter->setPen(s.noteBasePen);
-  painter->drawRect(boundingRect().adjusted(0., 0., 0., -1.5));
-
-  if (m_height > 8)
+  if(m_width <= 1.2)
   {
-    auto orange = s.noteBaseBrush.color();
-    orange.setHslF(
-        orange.hslHueF() - 0.02, 1., 0.25 + (127. - note.velocity()) / 256.);
+    painter->drawLine(0, 0, 0, m_height - 1.5);
+  }
+  else
+  {
+    painter->drawRect(boundingRect().adjusted(0., 0., 0., -1.5));
 
-    s.paintedNote.setColor(orange);
+    if (m_height > 8 && m_width > 4)
+    {
+      auto orange = s.noteBaseBrush.color();
+      orange.setHslF(
+          orange.hslHueF() - 0.02, 1., 0.25 + (127. - note.velocity()) / 256.);
 
-    painter->setPen(s.paintedNote);
-    painter->drawLine(
-        QPointF{2., m_height / 2.}, QPointF{m_width - 2., m_height / 2.});
+      s.paintedNote.setColor(orange);
+
+      painter->setPen(s.paintedNote);
+      painter->drawLine(
+          QPointF{2., m_height / 2.}, QPointF{m_width - 2., m_height / 2.});
+    }
   }
 }
 
-QPointF NoteView::closestPos(QPointF newPos) const
+QPointF NoteView::closestPos(QPointF newPos) const noexcept
 {
   auto& view = *(View*)parentItem();
   const auto [min, max] = view.range();
@@ -65,15 +72,17 @@ QPointF NoteView::closestPos(QPointF newPos) const
   return newPos;
 }
 
-QRectF NoteView::computeRect() const
+QRectF NoteView::computeRect() const noexcept
 {
   auto& view = *(View*)parentItem();
+  const auto h = view.height();
+  const auto w = view.defaultWidth();
   const auto [min, max] = view.range();
-  const auto note_height = view.height() / view.visibleCount();
+  const auto note_height = h / view.visibleCount();
   const QRectF rect{
-    note.start() * view.defaultWidth(),
-    view.height() - std::ceil((note.pitch() - min + 1) * note_height),
-    note.duration() * view.defaultWidth(),
+    note.start() * w,
+    h - std::ceil((note.pitch() - min + 1) * note_height),
+    note.duration() * w,
     note_height
   };
 
@@ -85,10 +94,6 @@ QVariant NoteView::itemChange(
 {
   switch (change)
   {
-    case QGraphicsItem::ItemPositionChange:
-    {
-      return closestPos(value.toPointF());
-    }
     case QGraphicsItem::ItemSelectedChange:
     {
       this->setZValue(10 * (int)value.toBool());
@@ -141,6 +146,7 @@ bool NoteView::canEdit() const
   return boundingRect().height() > 5;
 }
 
+QPointF noteview_origpoint;
 void NoteView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   if (canEdit())
@@ -148,13 +154,13 @@ void NoteView::mousePressEvent(QGraphicsSceneMouseEvent* event)
     if (event->pos().x() >= this->boundingRect().width() - 2)
     {
       m_scaling = true;
-      event->accept();
     }
     else
     {
+      noteview_origpoint = this->pos();
       m_scaling = false;
-      QGraphicsItem::mousePressEvent(event);
     }
+    event->accept();
   }
 }
 
@@ -169,8 +175,9 @@ void NoteView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     }
     else
     {
-      QGraphicsItem::mouseMoveEvent(event);
+      this->setPos(closestPos(noteview_origpoint + event->scenePos() - event->buttonDownScenePos(Qt::LeftButton)));
     }
+    event->accept();
   }
 }
 
@@ -185,9 +192,10 @@ void NoteView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     }
     else
     {
+      this->setPos(closestPos(noteview_origpoint + event->scenePos() - event->buttonDownScenePos(Qt::LeftButton)));
       noteChangeFinished();
-      QGraphicsItem::mouseReleaseEvent(event);
     }
   }
+  event->accept();
 }
 }

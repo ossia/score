@@ -43,13 +43,13 @@ W_OBJECT_IMPL(Scenario::ScenarioDocumentView)
 namespace Scenario
 {
 ScenarioDocumentView::ScenarioDocumentView(
-    const score::GUIApplicationContext& ctx, QObject* parent)
+    const score::DocumentContext& ctx, QObject* parent)
     : score::DocumentDelegateView{parent}
     , m_widget{new QWidget}
     , m_scene{m_widget}
     , m_view{&m_scene, m_widget}
-    , m_timeRulersView{&m_timerulerScene}
-    , m_timeRuler{&m_timeRulersView}
+    , m_timeRulerView{&m_timeRulerScene}
+    , m_timeRuler{&m_timeRulerView}
     , m_minimapScene{m_widget}
     , m_minimapView{&m_minimapScene}
     , m_minimap{&m_minimapView}
@@ -62,8 +62,8 @@ ScenarioDocumentView::ScenarioDocumentView(
 
   m_widget->addAction(new SnapshotAction{m_scene, m_widget});
 
-  m_timeRulersView.setFixedHeight(20);
-  m_timerulerScene.addItem(&m_timeRuler);
+  m_timeRulerView.setFixedHeight(20);
+  m_timeRulerScene.addItem(&m_timeRuler);
   // Transport
   /// Zoom
   QAction* zoomIn = new QAction(tr("Zoom in"), m_widget);
@@ -96,7 +96,7 @@ ScenarioDocumentView::ScenarioDocumentView(
   m_minimapScene.addItem(&m_minimap);
 
   lay->addWidget(&m_minimapView);
-  lay->addWidget(&m_timeRulersView);
+  lay->addWidget(&m_timeRulerView);
   lay->addWidget(&m_view);
 
   lay->setSpacing(1);
@@ -107,7 +107,7 @@ ScenarioDocumentView::ScenarioDocumentView(
   auto& skin = score::Skin::instance();
   con(skin, &score::Skin::changed, this, [&]() {
     auto& skin = ScenarioStyle::instance();
-    m_timeRulersView.setBackgroundBrush(skin.TimeRulerBackground.getBrush());
+    m_timeRulerView.setBackgroundBrush(skin.TimeRulerBackground.getBrush());
     m_minimapView.setBackgroundBrush(skin.TimeRulerBackground.getBrush());
     m_view.setBackgroundBrush(skin.Background.getBrush());
   });
@@ -116,10 +116,15 @@ ScenarioDocumentView::ScenarioDocumentView(
 
   // Cursors
   con(this->view(), &ProcessGraphicsView::focusedOut, this, [&] {
-    auto& es = ctx.guiApplicationPlugin<ScenarioApplicationPlugin>()
+    auto& es = ctx.app.guiApplicationPlugin<ScenarioApplicationPlugin>()
                    .editionSettings();
     es.setTool(Scenario::Tool::Select);
   });
+}
+
+ScenarioDocumentView::~ScenarioDocumentView()
+{
+
 }
 
 QWidget* ScenarioDocumentView::getWidget()

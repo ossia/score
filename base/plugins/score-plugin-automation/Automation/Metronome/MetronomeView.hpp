@@ -24,7 +24,7 @@ public:
   ~LayerView() override;
 
 private:
-  QPixmap pixmap() override;
+  QPixmap pixmap() noexcept override;
   void paint_impl(QPainter* painter) const override;
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
   Curve::View* m_curveView{};

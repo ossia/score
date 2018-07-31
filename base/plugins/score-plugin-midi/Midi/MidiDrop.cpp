@@ -78,12 +78,10 @@ MidiTrack::parse(const QMimeData& mime, const score::DocumentContext& ctx)
       || mime.formats().contains("audio/x-midi"))
   {
     auto data = mime.data("audio/midi");
-    qDebug() << data;
-    qDebug() << mime.text();
+    // TODO
   }
   else if (mime.formats().contains("text/uri-list"))
   {
-    qDebug() << mime.urls();
     if (mime.urls().empty())
       return {};
 
@@ -94,11 +92,7 @@ MidiTrack::parse(const QMimeData& mime, const score::DocumentContext& ctx)
 
     auto dat = f.readAll();
     rtmidi::reader reader{false};
-    std::vector<uint8_t> raw;
-    for (auto v : dat)
-    {
-      raw.push_back(v);
-    }
+    std::vector<uint8_t> raw(dat.begin(), dat.end());
     reader.parse(raw);
 
     if (reader.tracks.empty())

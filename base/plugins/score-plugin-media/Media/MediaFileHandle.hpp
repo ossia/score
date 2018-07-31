@@ -19,46 +19,39 @@ struct SCORE_PLUGIN_MEDIA_EXPORT MediaFileHandle final
     : public QObject
 {
 public:
+  static bool isAudioFile(const QFile& f);
+
   MediaFileHandle();
+  ~MediaFileHandle() override;
 
   void load(const QString& path, const score::DocumentContext&);
 
   QString path() const
-  {
-    return m_file;
-  }
+  { return m_file; }
 
   QString fileName() const
-  {
-    return m_fileName;
-  }
+  { return m_fileName; }
 
   const AudioDecoder& decoder() const
-  {
-    return m_decoder;
-  }
-  const AudioArray& data() const
-  {
-    return m_hdl->data;
-  }
+  { return m_decoder; }
 
-  AudioSample** audioData() const;
+  const audio_array& data() const
+  { return m_hdl->data; }
+
+  audio_handle handle() const
+  { return m_hdl;}
+
+  audio_sample** audioData() const;
 
   int sampleRate() const
-  {
-    return m_sampleRate;
-  }
-
-  static bool isAudioFile(const QFile& f);
+  { return m_sampleRate; }
 
   // Number of samples in a channel.
   int64_t samples() const;
   int64_t channels() const;
 
   bool empty() const
-  {
-    return channels() == 0 || samples() == 0;
-  }
+  { return channels() == 0 || samples() == 0; }
 
   Nano::Signal<void()> on_mediaChanged;
 
@@ -67,7 +60,7 @@ private:
   QString m_fileName;
   AudioDecoder m_decoder;
   audio_handle m_hdl;
-  ossia::small_vector<AudioSample*, 8> m_data;
+  ossia::small_vector<audio_sample*, 8> m_data;
   int m_sampleRate{};
 };
 }
