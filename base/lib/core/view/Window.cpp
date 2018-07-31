@@ -25,9 +25,11 @@
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
+#include <score/widgets/MarginLess.hpp>
 #include <score_git_info.hpp>
 #include <set>
 
+#include <QVBoxLayout>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::View)
 namespace score
@@ -72,7 +74,11 @@ View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
       static_cast<int>(rect.width() * 0.75),
       static_cast<int>(rect.height() * 0.75));
 
-  setCentralWidget(m_tabWidget);
+  auto centralWidg = new QWidget;
+  centralWidg->setContentsMargins(0, 0, 0, 0);
+  auto lay = new score::MarginLess<QVBoxLayout>(centralWidg);
+  lay->addWidget(m_tabWidget);
+  setCentralWidget(centralWidg);
   m_tabWidget->setContentsMargins(0, 0, 0, 0);
   m_tabWidget->tabBar()->setDocumentMode(true);
   m_tabWidget->tabBar()->setDrawBase(false);
