@@ -285,7 +285,7 @@ void ToolMenuActions::makeGUIElements(score::GUIElements& ref)
     bar->addAction(m_playtool);
     bar->addAction(m_altAction);
 
-    ref.toolbars.emplace_back(bar, StringKey<score::Toolbar>("Tools"), 0, 1);
+    ref.toolbars.emplace_back(bar, StringKey<score::Toolbar>("Tools"), Qt::TopToolBarArea, 800);
 
     menu.menu()->addSeparator();
     menu.menu()->addAction(m_selecttool);
@@ -311,7 +311,7 @@ void ToolMenuActions::makeGUIElements(score::GUIElements& ref)
     bar->addAction(m_scale);
     bar->addAction(m_grow);
 
-    ref.toolbars.emplace_back(bar, StringKey<score::Toolbar>("Modes"), 0, 2);
+    ref.toolbars.emplace_back(bar, StringKey<score::Toolbar>("Modes"), Qt::TopToolBarArea, 900);
 
     menu.menu()->addSeparator();
     menu.menu()->addAction(m_scale);

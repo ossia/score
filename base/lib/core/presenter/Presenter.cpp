@@ -39,6 +39,14 @@ W_OBJECT_IMPL(score::Presenter)
 namespace score
 {
 
+  static auto get_menubar(View* view)
+  {
+#ifdef __APPLE__
+    return view ? new QMenuBar : (QMenuBar*)nullptr;
+#else
+    return view ? view->menuBar() : (QMenuBar*)nullptr;
+#endif
+  }
 Presenter::Presenter(
     const score::ApplicationSettings& app,
     const score::Settings& set,
@@ -52,15 +60,8 @@ Presenter::Presenter(
     , m_docManager{view, this}
     , m_components{}
     , m_components_readonly{m_components}
-    ,
-#ifdef __APPLE__
-    m_menubar{view ? new QMenuBar : (QMenuBar*)nullptr}
-    ,
-#else
-    m_menubar{view ? view->menuBar() : (QMenuBar*)nullptr}
-    ,
-#endif
-    m_context{
+    , m_menubar{get_menubar(view)}
+    , m_context{
         app,       m_components_readonly, m_docManager, m_menus, m_toolbars,
         m_actions, m_settings.settings(), m_view}
 {
@@ -113,42 +114,36 @@ void Presenter::setupGUI()
   // 2. Show the toolbars
   // Put them in a matrix corresponding to their organization
   {
-    std::vector<std::vector<Toolbar>> toolbars;
-    auto it = std::max_element(
-        m_toolbars.get().begin(), m_toolbars.get().end(),
-        [](auto& lhs, auto& rhs) {
-          return lhs.second.row() < rhs.second.row();
-        });
-    if (it != m_toolbars.get().end())
+    std::unordered_map<Qt::ToolBarArea, std::vector<Toolbar>> toolbars;
+
+    for (auto& tb : m_toolbars.get())
     {
-      toolbars.resize(it->second.row() + 1);
+      toolbars[(Qt::ToolBarArea)tb.second.row()].push_back(tb.second);
+    }
 
-      for (auto& tb : m_toolbars.get())
-      {
-        toolbars.at(tb.second.row()).push_back(tb.second);
-      }
+    if (!view())
+      return;
 
-      if (!view())
-        return;
-
+    for(auto& tb : toolbars)
+    {
+      auto area = tb.first;
+      auto& tb_row = tb.second;
       int i = 0;
       int n = toolbars.size();
-      for (auto& tb_row : toolbars)
-      {
-        std::sort(tb_row.begin(), tb_row.end(), [](auto& lhs, auto& rhs) {
-          return lhs.row() < rhs.row();
-        });
-        for (Toolbar& tb : tb_row)
-        {
-          view()->addToolBar(Qt::TopToolBarArea, tb.toolbar());
-          tb.toolbar()->setFloatable(false);
-          tb.toolbar()->setMovable(false);
-        }
+      ossia::sort(tb_row, [](auto& lhs, auto& rhs) {
+        return lhs.column() < rhs.column();
+      });
 
-        i++;
-        if (i < n - 1)
-          view()->addToolBarBreak(Qt::TopToolBarArea);
+      for (const Toolbar& tb : tb_row)
+      {
+        view()->addToolBar(area, tb.toolbar());
+        tb.toolbar()->setFloatable(false);
+        tb.toolbar()->setMovable(false);
       }
+
+      i++;
+      if (i < n - 1)
+        view()->addToolBarBreak(area);
     }
   }
 }

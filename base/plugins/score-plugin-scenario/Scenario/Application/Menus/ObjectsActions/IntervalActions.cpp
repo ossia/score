@@ -140,7 +140,7 @@ void IntervalActions::makeGUIElements(score::GUIElements& ref)
     bar->addAction(m_interp);
     bar->addAction(m_curves);
     ref.toolbars.emplace_back(
-        bar, StringKey<score::Toolbar>("Interval"), 0, 0);
+        bar, StringKey<score::Toolbar>("Interval"), Qt::TopToolBarArea, 700);
   }
 
   ref.actions.add<Actions::AddProcess>(m_addProcess);

@@ -112,7 +112,7 @@ auto score::UndoApplicationPlugin::makeGUIElements() -> GUIElements
     auto bar = new QToolBar;
     bar->addAction(&m_undoAction);
     bar->addAction(&m_redoAction);
-    toolbars.emplace_back(bar, StringKey<Toolbar>("Undo"), 0, 3);
+    toolbars.emplace_back(bar, StringKey<score::Toolbar>("Undo"), Qt::TopToolBarArea, 500);
   }
 
   Menu& edit = context.menus.get().at(Menus::Edit());

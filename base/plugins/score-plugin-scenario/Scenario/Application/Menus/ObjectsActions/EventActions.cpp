@@ -81,7 +81,7 @@ void EventActions::makeGUIElements(score::GUIElements& ref)
   auto bar = new QToolBar{tr("Event")};
   bar->addAction(m_addTrigger);
   bar->addAction(m_addCondition);
-  ref.toolbars.emplace_back(bar, StringKey<score::Toolbar>("Event"), 0, 1);
+  ref.toolbars.emplace_back(bar, StringKey<score::Toolbar>("Event"), Qt::TopToolBarArea, 600);
 
   ref.actions.add<Actions::AddTrigger>(m_addTrigger);
   ref.actions.add<Actions::RemoveTrigger>(m_removeTrigger);
