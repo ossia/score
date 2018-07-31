@@ -48,13 +48,13 @@ endif()
 
 if(SCORE_STATIC_QT)
 configure_file (
-  "${CMAKE_CURRENT_LIST_DIR}/Deployment/Linux/Score.static.desktop.in"
-  "${PROJECT_BINARY_DIR}/Score.desktop"
+  "${CMAKE_CURRENT_LIST_DIR}/Deployment/Linux/ossia-score.static.desktop.in"
+  "${PROJECT_BINARY_DIR}/ossia-score.desktop"
   )
 else()
 configure_file (
-  "${CMAKE_CURRENT_LIST_DIR}/Deployment/Linux/Score.desktop.in"
-  "${PROJECT_BINARY_DIR}/Score.desktop"
+  "${CMAKE_CURRENT_LIST_DIR}/Deployment/Linux/ossia-score.desktop.in"
+  "${PROJECT_BINARY_DIR}/ossia-score.desktop"
   )
 endif()
 
@@ -67,10 +67,10 @@ if(EXISTS "${CMAKE_BINARY_DIR}/base/plugins/score-plugin-media/faustlibs/src/fau
    )
 endif()
 
-install(FILES "${PROJECT_BINARY_DIR}/Score.desktop"
+install(FILES "${PROJECT_BINARY_DIR}/ossia-score.desktop"
         DESTINATION share/applications)
-install(FILES "${CMAKE_SOURCE_DIR}/base/lib/resources/score.png"
-        DESTINATION share/pixmaps/ossia-score.png)
+install(FILES "${CMAKE_SOURCE_DIR}/base/lib/resources/ossia-score.png"
+        DESTINATION share/pixmaps)
 
 set(CPACK_PACKAGE_FILE_NAME "score-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}")
 set(CPACK_PACKAGING_INSTALL_PREFIX "")

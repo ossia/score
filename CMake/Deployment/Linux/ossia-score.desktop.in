@@ -2,7 +2,6 @@
 Type=Application
 Name=ossia score
 Comment=An interactive sequencer for the intermedia arts
-Version=${SCORE_VERSION}
 Exec=ossia-score
 Icon=ossia-score
 Terminal=false
