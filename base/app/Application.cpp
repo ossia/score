@@ -68,8 +68,8 @@ static void setQApplicationSettings(QApplication& m_app)
   stylesheet_file.open(QFile::ReadOnly);
   QString stylesheet = QLatin1String(stylesheet_file.readAll());
 
-  qApp->setStyle(QStyleFactory::create("Fusion"));
-  qApp->setStyleSheet(stylesheet);
+  m_app.setStyle(QStyleFactory::create("Fusion"));
+  m_app.setStyleSheet(stylesheet);
 
   auto pal = qApp->palette();
   pal.setBrush(QPalette::Background, QColor("#001A2024"));

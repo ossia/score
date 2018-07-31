@@ -49,8 +49,8 @@ export SOURCE_DIR=$PWD/score
 )
 
 # Copy pixmaps
-cp $APP.AppDir/usr/share/applications/Score.desktop $APP.AppDir/
-cp $APP.AppDir/usr/share/pixmaps/score.png $APP.AppDir/
+cp $APP.AppDir/usr/share/applications/ossia-score.desktop $APP.AppDir/
+cp $APP.AppDir/usr/share/pixmaps/ossia-score.png $APP.AppDir/
 
 export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
 # Copy needed libraries and remove system ones
