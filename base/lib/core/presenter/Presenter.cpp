@@ -171,10 +171,18 @@ void Presenter::setupGUI()
       int i = 1;
       for (const Toolbar& tb : toolbars[Qt::BottomToolBarArea])
       {
+        tb.toolbar()->setIconSize({30,30});
+        tb.toolbar()->setStyleSheet("QToolBar { border: none; }");
         bl->addWidget(tb.toolbar(), 0, i, Qt::AlignCenter);
         bl->addWidget(new ToolbarLabel{tb}, 1, i, Qt::AlignCenter);
         tb.toolbar()->setFloatable(false);
         tb.toolbar()->setMovable(false);
+
+        i++;
+
+        auto sp = new QWidget;
+        sp->setFixedSize(10, 10);
+        bl->addWidget(sp, 0, i, Qt::AlignCenter);
         i++;
       }
 
