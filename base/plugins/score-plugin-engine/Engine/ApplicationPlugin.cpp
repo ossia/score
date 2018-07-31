@@ -323,13 +323,13 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
       }
     });
     timer->start(1000 / 20);
-    toolbars.emplace_back(bar, StringKey<score::Toolbar>("Timing"), 0, 0);
+    toolbars.emplace_back(bar, StringKey<score::Toolbar>("Timing"), Qt::BottomToolBarArea, 100);
   }
 
   // The toolbar with the speed
   {
     m_speedToolbar = new QToolBar;
-    toolbars.emplace_back(m_speedToolbar, StringKey<score::Toolbar>("Speed"), 0, 0);
+    toolbars.emplace_back(m_speedToolbar, StringKey<score::Toolbar>("Speed"), Qt::BottomToolBarArea, 300);
   }
 
   // The toolbar with the volume control
@@ -368,7 +368,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
       }
     });
 
-    toolbars.emplace_back(bar, StringKey<score::Toolbar>("Audio"), 0, 0);
+    toolbars.emplace_back(bar, StringKey<score::Toolbar>("Audio"), Qt::BottomToolBarArea, 400);
   }
 
   e.actions.container.reserve(2);

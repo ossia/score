@@ -183,7 +183,7 @@ void TransportActions::makeGUIElements(score::GUIElements& ref)
     bar->addAction(m_stopAndInit);
 
     ref.toolbars.emplace_back(
-        bar, StringKey<score::Toolbar>("Transport"), 1, 0);
+        bar, StringKey<score::Toolbar>("Transport"), Qt::BottomToolBarArea, 200);
   }
 
   {
