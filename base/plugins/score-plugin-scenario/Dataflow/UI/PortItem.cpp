@@ -11,7 +11,6 @@
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Device/Widgets/AddressAccessorEditWidget.hpp>
-#include <Process/Dataflow/CableItem.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <QApplication>
@@ -39,66 +38,6 @@
 #include <score/widgets/SignalUtils.hpp>
 namespace Dataflow
 {
-
-/** TODO
-class PortPanel final
-    : public QObject
-    , public QGraphicsItem
-{
-    QRectF m_rect;
-    QRectF m_widgrect;
-    PortTooltip* m_pw{};
-    QGraphicsProxyWidget* m_proxy{};
-  public:
-    PortPanel(const score::DocumentContext& ctx, Process::Port& p,
-QGraphicsItem* parent): QGraphicsItem{parent}
-    {
-      m_pw = new PortTooltip{ctx, p};
-      m_proxy = new QGraphicsProxyWidget{this};
-      m_proxy->setWidget(m_pw);
-      m_proxy->setPos(10, 10);
-      connect(m_proxy, &QGraphicsProxyWidget::geometryChanged,
-              this, &PortPanel::updateRect);
-      updateRect();
-    }
-
-    void updateRect()
-    {
-      prepareGeometryChange();
-
-      m_widgrect = m_proxy->subWidgetRect(m_pw);
-      m_rect = m_widgrect.adjusted(0, 0, 30, 20);
-    }
-
-    QRectF boundingRect() const override
-    {
-      return m_rect;
-    }
-
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
-QWidget* widget) override
-    {
-      painter->setRenderHint(QPainter::Antialiasing, true);
-      painter->setPen(QColor("#1A2024"));
-      painter->setBrush(QColor("#1A2024"));
-
-      QPainterPath p;
-      p.moveTo(12, 12);
-      p.lineTo(0, 22);
-      p.lineTo(12, 34);
-      p.lineTo(12, 12);
-      p.closeSubpath();
-
-      painter->drawPath(p);
-      painter->fillPath(p, painter->brush());
-
-      painter->drawRoundedRect(m_rect.adjusted(10, 0, 0, 0), 10, 10);
-
-      painter->setRenderHint(QPainter::Antialiasing, false);
-    }
-};
-*/
-
 template <typename Vec>
 bool intersection_empty(const Vec& v1, const Vec& v2)
 {
@@ -297,7 +236,7 @@ void AutomatablePortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
     if (newAddr == m_port.address())
       return;
 
-    if (newAddr.address.path.isEmpty())
+    if (newAddr.address.device.isEmpty())
       return;
 
     disp.submitCommand(new Process::ChangePortAddress{m_port, std::move(newAddr)});
@@ -311,16 +250,7 @@ PortItem* AutomatablePortFactory::makeItem(
     QGraphicsItem* parent,
     QObject* context)
 {
-  auto item = new Dataflow::AutomatablePortItem{port, ctx, parent};
-  /*
-    QObject::connect(item, &Dataflow::PortItem::showPanel,
-            context, [&] {
-      auto panel = new PortDialog{ctx, port, nullptr};
-      panel->exec();
-      panel->deleteLater();
-    });
-  */
-  return item;
+  return new Dataflow::AutomatablePortItem{port, ctx, parent};;
 }
 
 PortItem* AutomatablePortFactory::makeItem(
@@ -329,16 +259,7 @@ PortItem* AutomatablePortFactory::makeItem(
     QGraphicsItem* parent,
     QObject* context)
 {
-  auto item = new Dataflow::AutomatablePortItem{port, ctx, parent};
-  /*
-    QObject::connect(item, &Dataflow::PortItem::showPanel,
-                     context, [&] {
-      auto panel = new PortDialog{ctx, port, nullptr};
-      panel->exec();
-      panel->deleteLater();
-    });
-  */
-  return item;
+  return new Dataflow::AutomatablePortItem{port, ctx, parent};
 }
 
 PortTooltip::PortTooltip(

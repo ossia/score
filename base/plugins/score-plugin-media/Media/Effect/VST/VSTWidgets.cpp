@@ -17,6 +17,7 @@
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <QGraphicsScene>
 #include <wobjectimpl.h>
+#include <Media/Effect/Settings/Model.hpp>
 W_OBJECT_IMPL(Media::VST::VSTWindow)
 W_OBJECT_IMPL(Media::VST::VSTGraphicsSlider)
 namespace Media::VST
@@ -275,12 +276,40 @@ bool VSTWindow::hasUI(AEffect& e)
   return e.flags & VstAEffectFlags::effFlagsHasEditor;
 }
 
+VSTWindow::VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx, QWidget* parent)
+  : VSTWindow{e, ctx}
+{
+  setAttribute(Qt::WA_DeleteOnClose, true);
+  if (!m_defaultWidg)
+  {
+    connect(
+          &ctx.coarseUpdateTimer, &QTimer::timeout, this,
+          [=] {
+      if (auto eff = effect.lock())
+        eff->fx->dispatcher(eff->fx, effEditIdle, 0, 0, nullptr, 0);
+    },
+    Qt::UniqueConnection);
+  }
+
+  bool ontop = ctx.app.settings<Media::Settings::Model>().getVstAlwaysOnTop();
+  if(ontop)
+  {
+    setWindowFlag(Qt::WindowStaysOnTopHint, true);
+  }
+  e.externalUIVisible(true);
+}
+
+VSTWindow::~VSTWindow()
+{
+}
+
 void VSTWindow::closeEvent(QCloseEvent* event)
 {
   QPointer<VSTWindow> p(this);
   if (auto eff = effect.lock())
     eff->fx->dispatcher(eff->fx, effEditClose, 0, 0, nullptr, 0);
-  uiClosing();
+  const_cast<QWidget*&>(m_model.externalUI) = nullptr;
+  m_model.externalUIVisible(false);
   if (p)
     QDialog::closeEvent(event);
 }

@@ -49,11 +49,27 @@ public:
       const Process::LayerContextMenuManager&) final override;
 
 private:
-  void closeUI(); W_SLOT(closeUI);
-
-private:
   const Process::ProcessModel& m_layer;
   EffectLayerView* m_view{};
-  QAction* m_showUI{};
 };
+
+SCORE_LIB_PROCESS_EXPORT
+void setupExternalUI(
+    const Process::ProcessModel& proc
+    , const Process::LayerFactory& factory
+    , const score::DocumentContext& ctx
+    , bool show);
+
+SCORE_LIB_PROCESS_EXPORT
+void setupExternalUI(
+    const Process::ProcessModel& proc
+    , const score::DocumentContext& ctx
+    , bool show);
+
+SCORE_LIB_PROCESS_EXPORT
+QGraphicsItem* makeExternalUIButton(
+    const Process::ProcessModel& proc
+    , const score::DocumentContext& ctx
+    , QObject* self
+    , QGraphicsItem* parent);
 }

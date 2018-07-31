@@ -25,6 +25,8 @@ public:
   void contextMenuRequested(QPoint arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, contextMenuRequested, arg_1);
 
 private:
+  void heightChanged(qreal h) override;
+  void widthChanged(qreal w) override;
   void paint_impl(QPainter*) const override;
   void mousePressEvent(QGraphicsSceneMouseEvent*) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent*) override;

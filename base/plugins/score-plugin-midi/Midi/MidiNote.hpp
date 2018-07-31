@@ -101,25 +101,46 @@ public:
   }
 
   // Both are between 0 - 1, 1 being the process duration.
-  double start() const;
-  double duration() const;
-  double end() const;
-  midi_size_t pitch() const;
-  midi_size_t velocity() const;
 
-  void scale(double s);
+  double start() const noexcept
+  {
+    return m_start;
+  }
 
-  void setStart(double s);
+  double duration() const noexcept
+  {
+    return m_duration;
+  }
 
-  void setDuration(double s);
+  double end() const noexcept
+  {
+    return m_start + m_duration;
+  }
 
-  void setPitch(midi_size_t s);
+  midi_size_t pitch() const noexcept
+  {
+    return m_pitch;
+  }
 
-  void setVelocity(midi_size_t s);
+  midi_size_t velocity() const noexcept
+  {
+    return m_velocity;
+  }
 
-  NoteData noteData() const;
 
-  void setData(NoteData d);
+  void scale(double s) noexcept;
+
+  void setStart(double s) noexcept;
+
+  void setDuration(double s) noexcept;
+
+  void setPitch(midi_size_t s) noexcept;
+
+  void setVelocity(midi_size_t s) noexcept;
+
+  NoteData noteData() const noexcept;
+
+  void setData(NoteData d) noexcept;
 
 public:
   void noteChanged() W_SIGNAL(noteChanged);

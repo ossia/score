@@ -21,7 +21,7 @@ public:
             parent, proc, ctx, id, "AutomationComponent", parent_obj}
   {
     add<Automation::ProcessModel::p_min>(proc);
-    add<Automation::ProcessModel::p_min>(proc);
+    add<Automation::ProcessModel::p_max>(proc);
   }
 };
 

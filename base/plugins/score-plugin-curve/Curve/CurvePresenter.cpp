@@ -360,10 +360,12 @@ void Presenter::modelReset()
 
   // 2. We add / remove new elements if necessary
   {
-    int64_t diff_points = m_model.points().size() - points.size();
+    const int64_t model_points_n = m_model.points().size();
+    const int64_t points_n = points.size();
+    int64_t diff_points = model_points_n - points_n;
     if (diff_points > 0)
     {
-      points.reserve(points.size() + diff_points);
+      points.reserve(points_n + diff_points);
       newPoints.reserve(diff_points);
       for (; diff_points-- > 0;)
       {
@@ -374,21 +376,32 @@ void Presenter::modelReset()
     }
     else if (diff_points < 0)
     {
-      int64_t inv_diff_points = -diff_points;
-      for (; inv_diff_points-- > 0;)
+      if(points_n + diff_points < 0)
       {
-        deleteGraphicsItem(points[points.size() - inv_diff_points - 1]);
+        for(auto p : points)
+          deleteGraphicsItem(p);
+        points.clear();
       }
-      points.resize(points.size() + diff_points);
+      else
+      {
+        int64_t inv_diff_points = -diff_points;
+        for (; inv_diff_points-- > 0;)
+        {
+          deleteGraphicsItem(points[points_n - inv_diff_points - 1]);
+        }
+        points.resize(points_n + diff_points);
+      }
     }
   }
 
   // Same for segments
   {
-    int64_t diff_segts = m_model.segments().size() - segments.size();
+    const int64_t model_segts_n = m_model.segments().size();
+    const int64_t segts_n = segments.size();
+    int64_t diff_segts = model_segts_n - segts_n;
     if (diff_segts > 0)
     {
-      segments.reserve(segments.size() + diff_segts);
+      segments.reserve(segts_n + diff_segts);
       newSegments.reserve(diff_segts);
       for (; diff_segts-- > 0;)
       {
@@ -399,12 +412,21 @@ void Presenter::modelReset()
     }
     else if (diff_segts < 0)
     {
-      int64_t inv_diff_segts = -diff_segts;
-      for (; inv_diff_segts-- > 0;)
+      if(segts_n + diff_segts < 0)
       {
-        deleteGraphicsItem(segments[segments.size() - inv_diff_segts - 1]);
+        for(auto s : segments)
+          deleteGraphicsItem(s);
+        segments.clear();
       }
-      segments.resize(segments.size() + diff_segts);
+      else
+      {
+        int64_t inv_diff_segts = -diff_segts;
+        for (; inv_diff_segts-- > 0;)
+        {
+          deleteGraphicsItem(segments[segts_n - inv_diff_segts - 1]);
+        }
+        segments.resize(segts_n + diff_segts);
+      }
     }
   }
 
@@ -515,29 +537,43 @@ void Presenter::removeSelection()
   if (segmentsToDelete.empty())
     return;
 
+  double x0 = 0;
   double y0 = 0;
+  double x1 = 1;
   double y1 = 1;
   bool firstRemoved = false;
   bool lastRemoved = false;
   // Then remove
   auto newSegments = model().toCurveData();
   {
+    // First look for the start and end segments
+    {
+      for(auto& seg : newSegments)
+      {
+        if (ossia::contains(segmentsToDelete, seg.id))
+        {
+          if (!seg.previous)
+          {
+            firstRemoved = true;
+            x0 = seg.start.x();
+            y0 = seg.start.y();
+          }
+          if (!seg.following)
+          {
+            lastRemoved = true;
+            x1 = seg.end.x();
+            y1 = seg.end.y();
+          }
+        }
+      }
+    }
+
+    // Then set the others
     auto it = newSegments.begin();
     while (it != newSegments.end())
     {
       if (ossia::contains(segmentsToDelete, it->id))
       {
-        if (it->start.x() == 0)
-        {
-          firstRemoved = true;
-          y0 = it->start.y();
-        }
-        else if (it->end.x() == 1)
-        {
-          lastRemoved = true;
-          y1 = it->end.y();
-        }
-
         if (it->previous)
         {
           auto prev_it
@@ -598,7 +634,7 @@ void Presenter::removeSelection()
 
         // Create a new segment
         SegmentData d;
-        d.start = QPointF{0, y0};
+        d.start = QPointF{x0, y0};
         d.end = it->start;
         d.following = it->id;
         d.id = getSegmentId(newSegments);
@@ -611,12 +647,12 @@ void Presenter::removeSelection()
 
       if (lastRemoved)
       {
-        // Recreate a segment from x = 0 to the beginning of the first segment.
+        // Recreate a segment from x = 0 to the end of the last segment.
         auto it = newSegments.rbegin();
 
         // Create a new segment
         SegmentData d;
-        d.end = QPointF{1, y1};
+        d.end = QPointF{x1, y1};
         d.start = it->end;
         d.previous = it->id;
         d.id = getSegmentId(newSegments);

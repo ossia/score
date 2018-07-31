@@ -20,7 +20,9 @@
 #include <score/widgets/MarginLess.hpp>
 #include <servus/qt/itemModel.h>
 #include <servus/servus.h>
-
+#include <asio/io_service.hpp>
+#include <asio/ip/tcp.hpp>
+#include <asio/ip/resolver_service.hpp>
 class QWidget;
 W_REGISTER_ARGTYPE(QMap<QString, QByteArray>)
 #include <wobjectimpl.h>
@@ -146,6 +148,22 @@ void ZeroconfBrowser::accept()
         }
       }
     }
+  }
+
+  try
+  {
+    asio::io_service io_service;
+    asio::ip::tcp::resolver resolver(io_service);
+    asio::ip::tcp::resolver::query query(ip.toStdString(), std::to_string(port));
+    asio::ip::tcp::resolver::iterator iter = resolver.resolve(query);
+    if(iter->endpoint().address().is_loopback())
+    {
+      ip = "localhost";
+    }
+  }
+  catch(...)
+  {
+
   }
 
   if (!ip.isEmpty() && port > 0)

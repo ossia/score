@@ -212,32 +212,51 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
 TemporalIntervalPresenter::~TemporalIntervalPresenter()
 {
   auto view = Scenario::view(this);
-  // TODO deleteGraphicsObject
-  if (view)
+  auto sc = view->scene();
+  if(sc)
   {
-    if (auto sc = view->scene())
+    for(auto& slt : m_slots)
     {
-      for (auto& slt : m_slots)
+      if (slt.header)
       {
-        if (slt.header)
-        {
-          sc->removeItem(slt.header);
-          delete slt.header;
-        }
-        if (slt.handle)
-        {
-          sc->removeItem(slt.handle);
-          delete slt.handle;
-        }
+        sc->removeItem(slt.header);
+        delete slt.header;
       }
-      if (sc->items().contains(view))
+      if (slt.handle)
       {
-        sc->removeItem(view);
+        sc->removeItem(slt.handle);
+        delete slt.handle;
+      }
+      for(auto& layer : slt.processes)
+      {
+        // The presenter will delete their views
+        delete layer.presenter;
       }
     }
 
-    view->deleteLater();
+    sc->removeItem(view);
   }
+  else
+  {
+    for(auto& slt : m_slots)
+    {
+      if (slt.header)
+      {
+        delete slt.header;
+      }
+      if (slt.handle)
+      {
+        delete slt.handle;
+      }
+      for(auto& layer : slt.processes)
+      {
+        // The presenter will delete their views
+        delete layer.presenter;
+      }
+    }
+  }
+
+  delete view;
 }
 
 void TemporalIntervalPresenter::on_requestOverlayMenu(QPointF)

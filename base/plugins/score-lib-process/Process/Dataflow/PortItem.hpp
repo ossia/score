@@ -7,6 +7,7 @@
 #  include <Process/Dataflow/Port.hpp>
 #endif
 #include <ossia/detail/ptr_set.hpp>
+#include <score/widgets/GraphicsScene.hpp>
 
 #include <score_lib_process_export.h>
 namespace Process
@@ -49,9 +50,6 @@ public:
     return m_port;
   }
 
-  using port_map = ossia::ptr_map<Process::Port*, Dataflow::PortItem*>;
-  static port_map& g_ports();
-
   static PortItem* clickedPort;
 
   virtual void setupMenu(QMenu&, const score::DocumentContext& ctx);
@@ -82,6 +80,7 @@ protected:
   QVariant
   itemChange(GraphicsItemChange change, const QVariant& value) final override;
 
+  const score::DocumentContext& m_context;
   std::vector<QPointer<CableItem>> cables;
   Process::Port& m_port;
   double m_diam = 6.;

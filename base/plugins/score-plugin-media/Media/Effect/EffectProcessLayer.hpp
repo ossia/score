@@ -1,7 +1,7 @@
 #pragma once
 
+#include <Effect/EffectLayer.hpp>
 #include <Dataflow/UI/PortItem.hpp>
-#include <Effect/EffectFactory.hpp>
 #include <Media/Commands/InsertEffect.hpp>
 #include <Media/Effect/DefaultEffectItem.hpp>
 #include <Media/Effect/EffectProcessMetadata.hpp>
@@ -10,6 +10,7 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Process/Style/Pixmaps.hpp>
 #include <Process/WidgetLayer/WidgetProcessFactory.hpp>
 #include <QGraphicsProxyWidget>
 #include <QGraphicsScene>
@@ -120,20 +121,9 @@ public:
       EffectUi& ui)
   {
     auto& doc = ctx.context;
+    auto& pixmaps = Process::Pixmaps::instance();
     auto root = new score::RectItem{};
     root->setRect({0, 0, 170, 40});
-    static const auto undock_off = QPixmap::fromImage(
-        QImage(":/icons/undock_off.png")
-            .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-    static const auto undock_on = QPixmap::fromImage(
-        QImage(":/icons/undock_on.png")
-            .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-    static const auto close_off = QPixmap::fromImage(
-        QImage(":/icons/close_off.png")
-            .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-    static const auto close_on = QPixmap::fromImage(
-        QImage(":/icons/close_on.png")
-            .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
 
     resetInlets(effect, ctx, root, ui);
     resetOutlets(effect, ctx, root, ui);
@@ -144,49 +134,10 @@ public:
         con(effect, &Process::ProcessModel::outletsChanged, this,
             [&, root] { resetOutlets(effect, ctx, root, ui); }));
 
-
-    auto& facts
-        = ctx.context.app.interfaces<Process::LayerFactoryList>();
-    auto fact = facts.findDefaultFactory(effect);
-    if (fact && fact->hasExternalUI(effect, ctx.context))
-    {
-      auto ui_btn
-          = new score::QGraphicsPixmapToggle{undock_on, undock_off, root};
-      connect(
-          ui_btn, &score::QGraphicsPixmapToggle::toggled, this,
-          [=, &effect](bool b) {
-            if (b)
-            {
-              if (auto win = fact->makeExternalUI(effect, ctx.context, nullptr))
-              {
-                const_cast<QWidget*&>(effect.externalUI) = win;
-                win->show();
-                auto c0 = connect(
-                      win->windowHandle(), &QWindow::visibilityChanged, ui_btn,
-                      [=, &effect](auto vis) {
-                  if (vis == QWindow::Hidden)
-                  {
-                    ui_btn->toggle();
-                    const_cast<QWidget*&>(effect.externalUI) = nullptr;
-                    win->deleteLater();
-                  }
-                });
-
-                connect(
-                      ui_btn, &score::QGraphicsPixmapToggle::toggled, win,
-                      [=, &effect](bool b) {
-                  QObject::disconnect(c0);
-                  win->close();
-                  delete win;
-                  const_cast<QWidget*&>(effect.externalUI) = nullptr;
-                });
-              }
-            }
-          });
+    if(auto ui_btn = Process::makeExternalUIButton(effect, ctx.context, this, root))
       ui_btn->setPos({5, 4});
-    }
 
-    auto rm_btn = new score::QGraphicsPixmapButton{close_on, close_off, root};
+    auto rm_btn = new score::QGraphicsPixmapButton{pixmaps.rm_process_on, pixmaps.rm_process_off, root};
     connect(
         rm_btn, &score::QGraphicsPixmapButton::clicked, this,
         [&]() {

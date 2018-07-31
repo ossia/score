@@ -84,6 +84,7 @@ public:
   DisplayedElementsModel displayedElements;
 
   IdContainer<Dataflow::CableItem, Process::Cable> cableItems;
+
   void setLargeView();
 public:
   void pressed(QPointF arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1);

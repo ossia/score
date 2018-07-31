@@ -29,7 +29,7 @@ public:
   ~DocumentDelegateFactory() override;
 
   virtual DocumentDelegateView*
-  makeView(const score::GUIApplicationContext& ctx, QObject* parent)
+  makeView(const score::DocumentContext& ctx, QObject* parent)
       = 0;
 
   virtual DocumentDelegatePresenter* makePresenter(

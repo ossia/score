@@ -14,7 +14,6 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
-#include <QSlider>
 #include <QSpinBox>
 #include <QSyntaxHighlighter>
 #include <QTextEdit>
@@ -338,7 +337,7 @@ public:
       fl.write(doc.toJson());
     });
 
-    QFile css_f(":/qdarkstyle/qdarkstyle.qss");
+    QFile css_f(":/qsimpledarkstyle.qss");
     css_f.open(QFile::ReadOnly);
     css.document()->setPlainText(css_f.readAll());
     connect(css.document(), &QTextDocument::contentsChanged, this, [=] {

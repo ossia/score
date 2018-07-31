@@ -18,16 +18,22 @@ public:
 
   NoteView(const Note& n, View* parent);
 
-  void setWidth(double w)
+  void setWidth(qreal w) noexcept
   {
-    prepareGeometryChange();
-    m_width = w;
+    if(m_width != w)
+    {
+      prepareGeometryChange();
+      m_width = w;
+    }
   }
 
-  void setHeight(double h)
+  void setHeight(qreal h) noexcept
   {
-    prepareGeometryChange();
-    m_height = h;
+    if(m_height != h)
+    {
+      prepareGeometryChange();
+      m_height = h;
+    }
   }
 
   QRectF boundingRect() const override
@@ -40,8 +46,8 @@ public:
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
-  QRectF computeRect() const;
-  QPointF closestPos(QPointF note) const;
+  QRectF computeRect() const noexcept;
+  QPointF closestPos(QPointF note) const noexcept;
 public:
   void noteChanged(int arg_1, double arg_2) W_SIGNAL(noteChanged, arg_1, arg_2); // pitch, scaled between [0; 1]
   void noteChangeFinished() W_SIGNAL(noteChangeFinished);
@@ -58,8 +64,8 @@ private:
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 
-  double m_width{};
-  double m_height{};
+  qreal m_width{};
+  qreal m_height{};
 
   bool m_scaling = false;
 };

@@ -19,7 +19,8 @@
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>
-
+#include <QLineEdit>
+#include <State/Expression.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Explorer::AddressItemModel)
 W_OBJECT_IMPL(Explorer::AddressValueWidget)
@@ -84,7 +85,7 @@ bool AddressItemModel::setData(
         // Note : if we want to disable remote updating, we have to do it
         // here (e.g. if this becomes a settings)
         m_model->deviceModel().updateProxy.updateRemoteValue(
-            State::AddressAccessor{m_settings.address}, after.value);
+            m_settings.address, after.value);
         return true;
       }
       else
@@ -104,7 +105,7 @@ bool AddressItemModel::setData(
         // Note : if we want to disable remote updating, we have to do it
         // here (e.g. if this becomes a settings)
         m_model->deviceModel().updateProxy.updateRemoteValue(
-            State::AddressAccessor{m_settings.address}, copy);
+            m_settings.address, copy);
         return true;
       }
     }
@@ -118,26 +119,46 @@ bool AddressItemModel::setData(
 
     case Rows::Min:
     {
-      const auto& dom = before.domain.get();
-      auto cur_min = dom.get_min();
-      auto copy = State::convert::fromQVariant(value);
-      if (copy.v.which() != cur_min.v.which()
-          && !State::convert::convert(cur_min, copy))
-        return false;
+      if (value.canConvert<ossia::value>())
+      {
+        after.domain.get().set_min(value.value<ossia::value>());
+      }
+      else
+      {
+        // In this case we don't make a command, but we directly push the
+        // new value.
+        auto copy = State::convert::fromQVariant(value);
 
-      after.domain.get().set_min(copy);
+        // We may have to convert types.
+        const ossia::value& orig = before.value;
+        if (copy.v.which() != orig.v.which()
+            && !State::convert::convert(orig, copy))
+          return false;
+
+        after.domain.get().set_min(copy);
+      }
       break;
     }
     case Rows::Max:
     {
-      const auto& dom = before.domain.get();
-      auto cur_max = dom.get_max();
-      auto copy = State::convert::fromQVariant(value);
-      if (copy.v.which() != cur_max.v.which()
-          && !State::convert::convert(cur_max, copy))
-        return false;
+      if (value.canConvert<ossia::value>())
+      {
+        after.domain.get().set_max(value.value<ossia::value>());
+      }
+      else
+      {
+        // In this case we don't make a command, but we directly push the
+        // new value.
+        auto copy = State::convert::fromQVariant(value);
 
-      after.domain.get().set_max(copy);
+        // We may have to convert types.
+        const ossia::value& orig = before.value;
+        if (copy.v.which() != orig.v.which()
+            && !State::convert::convert(orig, copy))
+          return false;
+
+        after.domain.get().set_max(copy);
+      }
       break;
     }
     case Rows::Access:
@@ -423,6 +444,12 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
           return QVariant::fromValue(m_settings.unit);
         case Rows::Value:
           return QVariant::fromValue(m_settings.value);
+        case Rows::Min:
+          return QVariant::fromValue(ossia::get_min(m_settings.domain.get()));
+        case Rows::Max:
+          return QVariant::fromValue(ossia::get_max(m_settings.domain.get()));
+        case Rows::Values:
+          return QVariant::fromValue(ossia::get_values(m_settings.domain.get()));
       }
     }
     else
@@ -535,6 +562,7 @@ class SliderValueWidget final : public AddressValueWidget
 public:
   SliderValueWidget(int min, int max, QWidget* parent)
       : AddressValueWidget{parent}
+      , m_slider{this}
   {
     m_slider.setOrientation(Qt::Horizontal);
     m_slider.setRange(min, max);
@@ -566,12 +594,9 @@ public:
     m_slider.setValue(ossia::convert<int>(t));
   }
 
-public:
-  void changed(ossia::value);
-
 private:
   score::MarginLess<QHBoxLayout> m_lay{this};
-  QSlider m_slider;
+  score::Slider m_slider;
   QSpinBox m_edit;
 };
 
@@ -610,13 +635,39 @@ public:
     m_edit.setValue(ossia::convert<float>(t));
   }
 
-public:
-  void changed(ossia::value);
-
 private:
   score::MarginLess<QHBoxLayout> m_lay{this};
   score::DoubleSlider m_slider;
   QDoubleSpinBox m_edit;
+};
+
+class ListValueWidget final : public AddressValueWidget
+{
+public:
+  ListValueWidget(QWidget* parent)
+      : AddressValueWidget{parent}
+  {
+    m_edit.setContentsMargins(0, 0, 0, 0);
+    this->setFocusProxy(&m_edit);
+    m_lay.addWidget(&m_edit);
+  }
+
+  ossia::value get() const override
+  {
+    auto val = State::parseValue(m_edit.text().toStdString());
+    if(val)
+      return *val;
+    return std::vector<ossia::value>{};
+  }
+
+  void set(ossia::value t) override
+  {
+    m_edit.setText(State::convert::toPrettyString(t));
+  }
+
+private:
+  score::MarginLess<QHBoxLayout> m_lay{this};
+  QLineEdit m_edit;
 };
 
 struct make_unit
@@ -659,33 +710,67 @@ struct make_dataspace
     return nullptr;
   }
 };
+
 AddressValueWidget*
 make_value_widget(Device::FullAddressSettings addr, QWidget* parent)
 {
-  AddressValueWidget* widg{};
-  widg = ossia::apply(make_dataspace{}, addr.unit.get().v);
-  if (!widg)
-  {
-    auto& dom = addr.domain.get();
-    auto min = dom.get_min(), max = dom.get_max();
-    if (!min.valid() || !max.valid() || !addr.value.valid())
-      return nullptr;
+  if(auto widg = ossia::apply(make_dataspace{}, addr.unit.get().v))
+    return widg;
 
+  auto& dom = addr.domain.get();
+  auto min = dom.get_min(), max = dom.get_max();
+  if (min.valid()  && max.valid() && addr.value.valid())
+  {
     switch (addr.value.getType())
     {
       case ossia::val_type::FLOAT:
-        return new DoubleSliderValueWidget{ossia::convert<float>(min),
-                                           ossia::convert<float>(max), parent};
-        break;
+        return new DoubleSliderValueWidget{
+          ossia::convert<float>(min),
+              ossia::convert<float>(max),
+              parent};
       case ossia::val_type::INT:
-        return new SliderValueWidget{ossia::convert<int>(min),
-                                     ossia::convert<int>(max), parent};
+        return new SliderValueWidget{
+          ossia::convert<int>(min),
+              ossia::convert<int>(max),
+              parent};
       default:
         break;
     }
   }
+
+  switch (addr.value.getType())
+  {
+    case ossia::val_type::LIST:
+      return new ListValueWidget{parent};
+  }
+
   return nullptr;
 }
+
+AddressValueWidget*
+make_min_widget(Device::FullAddressSettings addr, QWidget* parent)
+{
+  switch (addr.value.getType())
+  {
+    case ossia::val_type::LIST:
+      return new ListValueWidget{parent};
+  }
+
+  return nullptr;
+}
+
+AddressValueWidget*
+make_max_widget(Device::FullAddressSettings addr, QWidget* parent)
+{
+  switch (addr.value.getType())
+  {
+    case ossia::val_type::LIST:
+      return new ListValueWidget{parent};
+  }
+
+  return nullptr;
+}
+
 QWidget* AddressItemDelegate::createEditor(
     QWidget* parent,
     const QStyleOptionViewItem& option,
@@ -724,6 +809,22 @@ QWidget* AddressItemDelegate::createEditor(
     case AddressItemModel::Rows::Value:
     {
       auto t = make_value_widget(model->settings(), parent);
+      if (t)
+        return t;
+      else
+        break;
+    }
+    case AddressItemModel::Rows::Min:
+    {
+      auto t = make_min_widget(model->settings(), parent);
+      if (t)
+        return t;
+      else
+        break;
+    }
+    case AddressItemModel::Rows::Max:
+    {
+      auto t = make_max_widget(model->settings(), parent);
       if (t)
         return t;
       else
@@ -790,6 +891,8 @@ void AddressItemDelegate::setEditorData(
       break;
     }
     case AddressItemModel::Rows::Value:
+    case AddressItemModel::Rows::Min:
+    case AddressItemModel::Rows::Max:
     {
       if (auto cb = qobject_cast<AddressValueWidget*>(editor))
       {
@@ -847,12 +950,14 @@ void AddressItemDelegate::setModelData(
       return;
     }
     case AddressItemModel::Rows::Value:
+    case AddressItemModel::Rows::Min:
+    case AddressItemModel::Rows::Max:
     {
       if (auto cb = qobject_cast<AddressValueWidget*>(editor))
       {
         model->setData(index, QVariant::fromValue(cb->get()), Qt::EditRole);
+        return;
       }
-      return;
     }
   }
 

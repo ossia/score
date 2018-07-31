@@ -1,5 +1,6 @@
 #include <Process/Dataflow/CableItem.hpp>
 #include <Process/Dataflow/PortItem.hpp>
+#include <Process/DocumentPlugin.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <QApplication>
 #include <QCursor>
@@ -30,7 +31,9 @@ void onCreateCable(
 PortItem* PortItem::clickedPort;
 PortItem::PortItem(
     Process::Port& p, const score::DocumentContext& ctx, QGraphicsItem* parent)
-    : QGraphicsItem{parent}, m_port{p}
+  : QGraphicsItem{parent}
+  , m_context{ctx}
+  , m_port{p}
 {
   this->setCursor(QCursor());
   this->setAcceptDrops(true);
@@ -38,10 +41,11 @@ PortItem::PortItem(
   this->setFlag(QGraphicsItem::ItemSendsScenePositionChanges, true);
   this->setToolTip(p.customData());
 
-  g_ports().insert({&p, this});
+  auto& plug = ctx.plugin<Process::DocumentPlugin>();
+  plug.ports().insert({&p, this});
 
   Path<Process::Port> path = p;
-  for (auto c : CableItem::g_cables())
+  for (auto c : plug.cables())
   {
     if (c.first->source().unsafePath() == path.unsafePath())
     {
@@ -76,16 +80,12 @@ PortItem::~PortItem()
     if (cable->target() == this)
       cable->setTarget(nullptr);
   }
-  auto& p = g_ports();
+  auto& ctx = m_context;
+  auto& plug = ctx.plugin<Process::DocumentPlugin>();
+  auto& p = plug.ports();
   auto it = p.find(&m_port);
   if (it != p.end())
     p.erase(it);
-}
-
-PortItem::port_map& PortItem::g_ports()
-{
-  static port_map g;
-  return g;
 }
 
 void PortItem::setupMenu(QMenu&, const score::DocumentContext& ctx)

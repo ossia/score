@@ -2,9 +2,11 @@
 
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/Process.hpp>
+#include <Process/Style/Pixmaps.hpp>
 #include <QGraphicsSceneEvent>
 #include <QMenu>
 #include <QWindow>
+#include <score/widgets/GraphicWidgets.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Process::EffectLayerPresenter)
@@ -60,13 +62,10 @@ EffectLayerPresenter::EffectLayerPresenter(
     QObject* parent)
     : LayerPresenter{ctx, parent}, m_layer{model}, m_view{view}
 {
-  m_showUI = new QAction{tr("Show"), this};
-  m_showUI->setCheckable(true);
   putToFront();
   connect(view, &Process::LayerView::pressed, this, [&] {
     m_context.context.focusDispatcher.focus(this);
   });
-
   connect(
       m_view, &Process::LayerView::askContextMenu, this,
       &Process::LayerPresenter::contextMenuRequested);
@@ -119,48 +118,81 @@ void EffectLayerPresenter::fillContextMenu(
     QPointF scenepos,
     const LayerContextMenuManager& mgr)
 {
-  auto& facts
-      = context().context.app.interfaces<Process::LayerFactoryList>();
+}
 
-  auto fact = facts.findDefaultFactory(m_layer);
-  if (!fact || !fact->hasExternalUI(m_layer, context().context))
+void setupExternalUI(
+      const Process::ProcessModel& proc
+      , const Process::LayerFactory& fact
+      , const score::DocumentContext& ctx
+      , bool show)
+{
+  if(show)
+  {
+    if(proc.externalUI)
+      return;
+
+    if (auto win = fact.makeExternalUI(proc, ctx, nullptr))
+    {
+      const_cast<QWidget*&>(proc.externalUI) = win;
+      win->show();
+    }
+  }
+  else
+  {
+    if(auto win = proc.externalUI)
+    {
+      win->close();
+      delete win;
+      const_cast<QWidget*&>(proc.externalUI) = nullptr;
+    }
+  }
+}
+
+void setupExternalUI(
+      const Process::ProcessModel& proc
+      , const score::DocumentContext& ctx
+      , bool show)
+{
+  auto& facts
+      = ctx.app.interfaces<Process::LayerFactoryList>();
+
+  auto fact = facts.findDefaultFactory(proc);
+  if (!fact || !fact->hasExternalUI(proc, ctx))
     return;
 
-  menu.addAction(m_showUI);
-  m_showUI->setCheckable(true);
-  if (m_layer.externalUI)
-    m_showUI->setChecked(true);
-
-  connect(m_showUI, &QAction::triggered, this, [=] {
-    if (!m_showUI->isChecked())
-      return;
-
-    if (m_layer.externalUI)
-      return;
-
-    auto& facts = context().context.processList;
-    if (auto fact = facts.findDefaultFactory(m_layer))
-    {
-      if (QWidget* win
-          = fact->makeExternalUI(m_layer, context().context, nullptr))
-      {
-        const_cast<QWidget*&>(m_layer.externalUI) = win;
-        win->show();
-        connect(win, SIGNAL(uiClosing()), this, SLOT(closeUI()));
-
-        connect(m_showUI, &QAction::toggled, win, [=](bool b) {
-          win->close();
-          delete win;
-          const_cast<QWidget*&>(m_layer.externalUI) = nullptr;
-        });
-      }
-    }
-  });
+  setupExternalUI(proc, *fact, ctx, show);
 }
 
-void EffectLayerPresenter::closeUI()
+QGraphicsItem*
+    makeExternalUIButton(
+      const ProcessModel& effect
+      , const score::DocumentContext& context
+      , QObject* self
+      , QGraphicsItem* root)
 {
-  m_showUI->setChecked(false);
-  const_cast<QWidget*&>(m_layer.externalUI) = nullptr;
+  auto& pixmaps = Process::Pixmaps::instance();
+  auto& facts
+      = context.app.interfaces<Process::LayerFactoryList>();
+  auto fact = facts.findDefaultFactory(effect);
+  if (fact && fact->hasExternalUI(effect, context))
+  {
+    auto ui_btn
+        = new score::QGraphicsPixmapToggle{pixmaps.show_ui_on, pixmaps.show_ui_off, root};
+    QObject::connect(
+        ui_btn, &score::QGraphicsPixmapToggle::toggled, self,
+        [=, &effect, &context](bool b) {
+          Process::setupExternalUI(effect, *fact, context, b);
+    });
+
+    if(effect.externalUI)
+      ui_btn->setState(true);
+    QObject::connect(&effect, &Process::ProcessModel::externalUIVisible,
+            ui_btn, [=] (bool v) {
+      ui_btn->setState(v);
+    });
+    return ui_btn;
+  }
+  return nullptr;
 }
+
 }

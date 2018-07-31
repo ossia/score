@@ -15,28 +15,24 @@ namespace WidgetLayer
 View::View(QGraphicsItem* parent) : LayerView{parent}
 {
   m_widg = new QGraphicsProxyWidget{this};
-  connect(this, &LayerView::heightChanged, this, [=] {
-    m_widg->setGeometry(QRectF{0, 0, std::max(0., this->width() - 10),
-                               std::max(0., this->height() - 10)});
-    bool visible = m_widg->isVisible();
-    bool enough_space = this->width() > 21 && this->height() > 21;
-    if (!enough_space && visible)
-      m_widg->setVisible(false);
-    else if (enough_space && !visible)
-      m_widg->setVisible(true);
-  });
-  connect(this, &LayerView::widthChanged, this, [=] {
-    m_widg->setGeometry(QRectF{0, 0, std::max(0., this->width() - 10),
-                               std::max(0., this->height() - 10)});
-    bool visible = m_widg->isVisible();
-    bool enough_space = this->width() > 21 && this->height() > 21;
-    if (!enough_space && visible)
-      m_widg->setVisible(false);
-    else if (enough_space && !visible)
-      m_widg->setVisible(true);
-  });
 }
 
+void View::heightChanged(qreal h)
+{
+  m_widg->setGeometry(QRectF{0, 0, std::max(0., this->width() - 10),
+                             std::max(0., this->height() - 10)});
+  bool visible = m_widg->isVisible();
+  bool enough_space = this->width() > 21 && this->height() > 21;
+  if (!enough_space && visible)
+    m_widg->setVisible(false);
+  else if (enough_space && !visible)
+    m_widg->setVisible(true);
+}
+
+void View::widthChanged(qreal w)
+{
+  heightChanged(w);
+}
 void View::setWidget(QWidget* w)
 {
   m_widg->setWidget(w);

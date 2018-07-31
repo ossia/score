@@ -6,6 +6,7 @@
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
+#include <score/plugins/PluginInstances.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <score/tools/exceptions/MissingCommand.hpp>
 
@@ -33,10 +34,10 @@ ApplicationComponentsData::~ApplicationComponentsData()
     delete elt;
   }
 
-  // FIXME do not delete static plug-ins ?
+  const auto& static_plugs = score::staticPlugins();
   for (auto& elt : addons)
   {
-    if (elt.plugin)
+    if (elt.plugin && ossia::find(static_plugs, elt.plugin) == static_plugs.end())
     {
       if(auto obj = dynamic_cast<QObject*>(elt.plugin))
       {

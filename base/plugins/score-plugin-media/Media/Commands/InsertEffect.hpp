@@ -1,6 +1,5 @@
 #pragma once
 #include <Dataflow/Commands/CableHelpers.hpp>
-#include <Effect/EffectFactory.hpp>
 #include <Media/Commands/MediaCommandFactory.hpp>
 #include <Media/Effect/EffectProcessModel.hpp>
 #include <Process/ProcessList.hpp>

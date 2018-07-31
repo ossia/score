@@ -19,9 +19,12 @@ SETTINGS_PARAMETER_IMPL(VstPaths){
   }
 #endif
 };
+
+SETTINGS_PARAMETER_IMPL(VstAlwaysOnTop){
+    QStringLiteral("score_plugin_engine/VstAlwaysOnTop"), true};
 static auto list()
 {
-  return std::tie(VstPaths);
+  return std::tie(VstPaths, VstAlwaysOnTop);
 }
 }
 
@@ -31,4 +34,5 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(QStringList, Model, VstPaths)
+SCORE_SETTINGS_PARAMETER_CPP(bool, Model, VstAlwaysOnTop)
 }

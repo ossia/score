@@ -1,6 +1,9 @@
 #include <score_lib_process.hpp>
 #include <score_lib_process_commands_files.hpp>
 #include <score/plugins/customfactory/FactorySetup.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
+#include <Process/DocumentPlugin.hpp>
 
 score_lib_process::score_lib_process() = default;
 score_lib_process::~score_lib_process() = default;
@@ -27,6 +30,22 @@ score_lib_process::make_commands()
       >(score::commands::FactoryInserter{cmds.second});
 
   return cmds;
+}
+
+score::GUIApplicationPlugin* score_lib_process::make_guiApplicationPlugin(
+    const score::GUIApplicationContext& app)
+{
+  struct app_plug final : public score::GUIApplicationPlugin
+  {
+    using score::GUIApplicationPlugin::GUIApplicationPlugin;
+
+    void on_initDocument(score::Document& doc)
+    {
+      score::addDocumentPlugin<Process::DocumentPlugin>(doc);
+    }
+  };
+
+  return new app_plug{app};
 }
 
 #include <score/plugins/PluginInstances.hpp>

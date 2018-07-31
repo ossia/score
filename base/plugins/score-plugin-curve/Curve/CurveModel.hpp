@@ -89,7 +89,7 @@ private:
   void addPoint(PointModel* pt);
   void removePoint(PointModel* pt);
 
-  IdContainer<SegmentModel> m_segments; // TODO why not notifying
+  IdContainer<SegmentModel> m_segments;
   std::vector<PointModel*> m_points;    // Each between 0, 1
 };
 

@@ -2,6 +2,7 @@
 #include <score/plugins/qt_interfaces/CommandFactory_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+#include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
 /**
  * \namespace Process
  * \brief Base classes and tools to implement processes and layers
@@ -55,10 +56,11 @@
  *
  */
 
-class score_lib_process
+class score_lib_process final
     : public score::Plugin_QtInterface
     , public score::FactoryInterface_QtInterface
     , public score::CommandFactory_QtInterface
+    , public score::ApplicationPlugin_QtInterface
 {
   SCORE_PLUGIN_METADATA(1, "bca574b4-2534-441f-9db1-32eb9a1325c7")
 
@@ -75,4 +77,7 @@ private:
   // CommandFactory_QtInterface interface
   std::pair<const CommandGroupKey, CommandGeneratorMap>
   make_commands() override;
+
+  score::GUIApplicationPlugin*
+  make_guiApplicationPlugin(const score::GUIApplicationContext& app) override;
 };

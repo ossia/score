@@ -5,6 +5,7 @@
 #include <QApplication>
 #include <QKeyEvent>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Palette/ScenarioPalette.hpp>
@@ -25,6 +26,12 @@ void PlayToolState::on_pressed(
   auto item = m_sm.scene().itemAt(scenePoint, QTransform());
   if (!item)
     return;
+
+  auto root = score::IDocument::get<ScenarioDocumentPresenter>(m_sm.context().context.document);
+  SCORE_ASSERT(root);
+  auto root_itv = root->presenters().intervalPresenter();
+  auto itv_pt = root_itv->view()->mapFromScene(scenePoint);
+  auto global_time = TimeVal::fromMsecs(itv_pt.x() * root_itv->zoomRatio());
 
   switch (item->type())
   {
@@ -63,7 +70,7 @@ void PlayToolState::on_pressed(
     }
       // TODO Play interval ? the code is already here.
     default:
-      m_exec.playAtDate(scenarioPoint.date);
+      m_exec.playAtDate(global_time);
       break;
   }
 }

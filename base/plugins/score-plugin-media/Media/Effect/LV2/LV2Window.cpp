@@ -6,15 +6,23 @@
 #include <score/widgets/MarginLess.hpp>
 #include <ossia/network/value/value_conversion.hpp>
 #include <wobjectimpl.h>
+#include <Media/Effect/Settings/Model.hpp>
 
 W_OBJECT_IMPL(Media::LV2::Window)
 namespace Media::LV2
 {
 Window::Window(const LV2EffectModel& fx, const score::DocumentContext& ctx, QWidget* parent)
-  : effect{fx}
+  : m_model{fx}
 {
   if (!fx.plugin)
     throw std::runtime_error("Cannot create UI");
+
+  bool ontop = ctx.app.settings<Media::Settings::Model>().getVstAlwaysOnTop();
+  if(ontop)
+  {
+    setWindowFlag(Qt::WindowStaysOnTopHint, true);
+  }
+  setAttribute(Qt::WA_DeleteOnClose, true);
 
   auto& p = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
   auto lay = new score::MarginLess<QHBoxLayout>;
@@ -161,7 +169,7 @@ Window::Window(const LV2EffectModel& fx, const score::DocumentContext& ctx, QWid
 
   // Show ui and resize
   QTimer::singleShot(0, [=,&p] {
-    if (!is_resizable(p.lilv.me, *effect.effectContext.ui))
+    if (!is_resizable(p.lilv.me, *m_model.effectContext.ui))
     {
       widget->setMinimumSize(default_w, default_h);
       widget->setMaximumSize(default_w, default_h);
@@ -174,6 +182,8 @@ Window::Window(const LV2EffectModel& fx, const score::DocumentContext& ctx, QWid
       resize(min(800, default_w), min(800, default_h));
     }
   });
+
+  fx.externalUIVisible(true);
 }
 
 Window::~Window()
@@ -196,9 +206,10 @@ void Window::closeEvent(QCloseEvent* event)
 {
   if(m_widget)
     m_widget->setParent(nullptr);
-  suil_instance_free(effect.effectContext.ui_instance);
-  effect.effectContext.ui_instance = nullptr;
-  uiClosing();
+  suil_instance_free(m_model.effectContext.ui_instance);
+  m_model.effectContext.ui_instance = nullptr;
+  m_model.externalUIVisible(false);
+  const_cast<QWidget*&>(m_model.externalUI) = nullptr;
   QDialog::closeEvent(event);
 }
 

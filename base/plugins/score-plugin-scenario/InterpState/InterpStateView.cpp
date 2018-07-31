@@ -33,7 +33,7 @@ void View::dropEvent(QGraphicsSceneDragDropEvent* event)
   dropReceived(event->pos(), *event->mimeData());
 }
 
-QPixmap View::pixmap()
+QPixmap View::pixmap() noexcept
 {
   if (m_curveView)
     return m_curveView->pixmap();

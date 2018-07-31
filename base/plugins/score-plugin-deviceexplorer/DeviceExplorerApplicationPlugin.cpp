@@ -3,6 +3,7 @@
 #include "DeviceExplorerApplicationPlugin.hpp"
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
 #include <algorithm>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
@@ -54,8 +55,7 @@ void ApplicationPlugin::setupConnections(
 
 void ApplicationPlugin::on_newDocument(score::Document& doc)
 {
-  doc.model().addPluginModel(new DeviceDocumentPlugin{
-                               doc.context(), getStrongId(doc.model().pluginModels()), &doc.model()});
+  score::addDocumentPlugin<DeviceDocumentPlugin>(doc);
 }
 
 void ApplicationPlugin::on_documentChanged(

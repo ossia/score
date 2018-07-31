@@ -148,31 +148,6 @@ public:
     }
   }
 
-  void swap(const Id<T>& id1, const Id<T>& id2) INLINE_EXPORT
-  {
-    if (id1 != id2)
-    {
-      m_map.swap(id1, id2);
-      orderChanged();
-    }
-  }
-
-  // Will put id2 before id1
-  void relocate(const Id<T>& id1, const Id<T>& id2) INLINE_EXPORT
-  {
-    if (id1 != id2)
-    {
-      m_map.relocate(id1, id2);
-      orderChanged();
-    }
-  }
-
-  void putToEnd(const Id<T>& id1) INLINE_EXPORT
-  {
-    m_map.putToEnd(id1);
-    orderChanged();
-  }
-
 private:
   IdContainer<T> m_map;
 };

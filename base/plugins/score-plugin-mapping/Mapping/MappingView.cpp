@@ -28,7 +28,7 @@ void LayerView::paint_impl(QPainter* painter) const
 {
 }
 
-QPixmap LayerView::pixmap()
+QPixmap LayerView::pixmap() noexcept
 {
   if (m_curveView)
     return m_curveView->pixmap();

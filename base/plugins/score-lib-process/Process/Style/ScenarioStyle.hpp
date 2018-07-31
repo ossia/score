@@ -21,7 +21,7 @@ struct SCORE_LIB_PROCESS_EXPORT ScenarioStyle
 
   void setIntervalWidth(double w);
 
-  static ScenarioStyle& instance();
+  static ScenarioStyle& instance() noexcept;
 
   score::ColorRef IntervalBase;
   score::ColorRef IntervalSelected;

@@ -48,7 +48,7 @@ View::~View()
 View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
 {
   setObjectName("View");
-  this->setWindowIcon(QIcon("://score.png"));
+  this->setWindowIcon(QIcon("://ossia-score.png"));
 
   QString version = QString{"%1.%2.%3-%4"}
                         .arg(SCORE_VERSION_MAJOR)
