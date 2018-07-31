@@ -700,8 +700,8 @@ QPushButton:disabled
 }
 
 QPushButton:focus {
-    background-color: #416681;
-    color: white;
+   /* background-color: #416681;*/
+    color: #416681;
 }
 
 QComboBox
@@ -736,13 +736,13 @@ QPushButton:checked{
 
 QComboBox:hover,QPushButton:hover,QAbstractSpinBox:hover,QLineEdit:hover,QTextEdit:hover,QPlainTextEdit:hover
 {
-    border: 1px solid silver;
+    border: 1px solid #aaa;
     color: white;
 }
 
 QComboBox:focus,QPushButton:focus,QAbstractSpinBox:focus,QLineEdit:focus,QTextEdit:focus,QPlainTextEdit:focus
 {
-    border: 1px solid silver;
+    border: 1px solid #aaa;
     color: white;
 }
 
@@ -865,7 +865,7 @@ QTabBar
 
 QTabBar:focus
 {
-    border: 1px solid silver;
+    border: 1px solid #aaa;
 
 }
 
@@ -1019,8 +1019,9 @@ QDockWidget {
     titlebar-close-icon: url(:/qss_icons/icons/blank.png);
     titlebar-normal-icon: url(:/qss_icons/icons/blank.png);
     background-color: #666666;
-    color: silver;
-    margin: 10px;
+    color: #ccc;
+    margin: 0px;
+    font: "Catamaran";
 }
 
 QDockWidget::title {
@@ -1030,6 +1031,9 @@ QDockWidget::title {
     /*background-image: url(:/qss_icons/icons/close_on.png);
     background-repeat: repeat-x;
     background-position: center;*/
+    padding: 0px;
+    padding-top: 5px;
+
 }
 
 QDockWidget > QWidget {
@@ -1452,7 +1456,7 @@ QPushButton#buttonWithoutArrow{
     margin: 0px;
 }
 QPushButton#buttonWithoutArrow:hover{
-    border: 1px solid silver;
+    border: 1px solid #aaa;
     background-color: none;
     padding: 0px;
     margin: 0px;
@@ -1482,25 +1486,25 @@ QTabBar:tab:bottom:selected{
     margin: 10px;
     padding: 3px 0px 0px 0px;
     background-color: #1A2024;
-    border-top: 2px solid silver;
+    border-top: 2px solid #aaa;
 }
 QTabBar:tab:top:selected{
     margin: 10px;
     padding: 0px 0px 3px 0px;
     background-color: #1A2024;
-    border-bottom: 2px solid silver;
+    border-bottom: 2px solid #aaa;
 }
 QTabBar:tab:left:selected{
     margin: 10px;
     padding: 0px 0px 0px 3px;
     background-color: #1A2024;
-    border-left: 2px solid silver;
+    border-left: 2px solid #aaa;
 }
 QTabBar:tab:right:selected{
     margin: 10px;
     padding: 0px 3px 0px 0px;
     background-color: #1A2024;
-    border-right: 2px solid silver;
+    border-right: 2px solid #aaa;
 }
 QTabBar::close-button  {
     image: url(:/qss_icons/icons/close_off.png);
