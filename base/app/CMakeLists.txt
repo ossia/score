@@ -8,53 +8,58 @@ set(APPNAME "score")
 set(CMAKE_POSITION_INDEPENDENT_CODE 1)
 # TODO strip symbols after deployment build
 
-find_package(Qt5 5.7 COMPONENTS QuickControls2)
-set(SRCS
+add_executable(${APPNAME} WIN32
   "${CMAKE_CURRENT_SOURCE_DIR}/Application.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Application.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
 )
-if(APPLE)
-  set(SRCS ${SRCS} "${CMAKE_CURRENT_SOURCE_DIR}/mac_main.m")
-endif()
-if(WIN32)
-  set(SRCS ${SRCS} "${CMAKE_CURRENT_SOURCE_DIR}/../lib/resources/score.rc")
-endif()
-
-if(APPLE)
-  set(ICON_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../lib/resources/score.icns")
-  set_source_files_properties(${ICON_SRC} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
-endif()
-
-if(MSVC)
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /DYNAMICBASE:NO" )
-endif()
-
-if(DEPLOYMENT_BUILD)
-    add_executable(${APPNAME} WIN32 MACOSX_BUNDLE ${SRCS} ${ICON_SRC})
-else()
-    add_executable(${APPNAME} WIN32 ${SRCS})
-endif()
 
 target_link_libraries(${APPNAME} PUBLIC score_lib_base)
-if(TARGET Qt5::QuickControls2)
-  target_link_libraries(${APPNAME} PUBLIC score_lib_base Qt5::QuickControls2)
-endif()
-if(APPLE)
-    find_library(CFLIB CoreFoundation)
-    target_link_libraries(${APPNAME} PRIVATE ${CFLIB})
-endif()
 if(SCORE_STATIC_PLUGINS)
   target_link_libraries(${APPNAME} PUBLIC ${SCORE_PLUGINS_LIST})
 endif()
+
+find_package(Qt5 5.7 COMPONENTS QuickControls2)
+if(TARGET Qt5::QuickControls2)
+  target_link_libraries(${APPNAME} PUBLIC score_lib_base Qt5::QuickControls2)
+endif()
+
+if(MSVC)
+  set_property(
+    TARGET ${APPNAME}
+    APPEND PROPERTY
+      LINK_FLAGS "/DYNAMICBASE:NO")
+
+  target_sources(${APPNAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../lib/resources/score.rc")
+endif()
+
 if(UNIX AND NOT APPLE)
+  # Linux package is called ossia-score
+  set_target_properties(${APPNAME}
+    PROPERTIES
+      OUTPUT_NAME ossia-score)
+
   target_link_libraries(${APPNAME} PUBLIC X11)
 endif()
-include(StaticApp.cmake)
+
 if(APPLE)
-    find_library(FOUNDATION_LIBRARY Foundation)
-    target_link_libraries(${APPNAME} PUBLIC ${FOUNDATION_LIBRARY})
+    target_sources(${APPNAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/mac_main.m")
+
+    find_library(CFLIB CoreFoundation)
+    find_library(FLIB Foundation)
+    target_link_libraries(${APPNAME} PRIVATE ${CFLIB} ${FLIB})
+
+    if(DEPLOYMENT_BUILD)
+      set(ICON_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../lib/resources/score.icns")
+      set_source_files_properties(${ICON_SRC} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+
+      target_sources(${APPNAME} PRIVATE ${ICON_SRC})
+      set_target_properties(${APPNAME} PROPERTIES MACOSX_BUNDLE TRUE)
+    endif()
 endif()
+
+include(StaticApp.cmake)
+
 if(IOS)
   find_library(COREFOUNDATION_LIBRARY CoreFoundation)
   find_library(COREAUDIO_LIBRARY CoreAudio)
@@ -79,7 +84,6 @@ if(IOS)
     ${ACCELERATE_LIBRARY} ${AUDIOTOOLBOX_LIBRARY}
     ${MobileCoreServices_LIBRARY} ${SystemConfiguration_LIBRARY} ${UIKit_LIBRARY}
     )
-
 endif()
 
 setup_score_common_exe_features(${APPNAME})
