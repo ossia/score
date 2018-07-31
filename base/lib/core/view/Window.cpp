@@ -113,7 +113,7 @@ void View::addDocumentView(DocumentView* doc)
 void View::setupPanel(PanelDelegate* v)
 {
   using namespace std;
-  auto dial = new QDockWidget{v->defaultPanelStatus().prettyName, this};
+  auto dial = new QDockWidget{v->defaultPanelStatus().prettyName.toUpper(), this};
   auto w = v->widget();
   dial->setWidget(w);
   dial->toggleViewAction()->setShortcut(v->defaultPanelStatus().shortcut);
