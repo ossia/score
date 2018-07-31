@@ -21,9 +21,9 @@ AboutDialog::AboutDialog(QWidget *parent) :
   m_catamaranFont("Catamaran", 13, QFont::Weight::Normal),
   m_montserratFont("Montserrat", 10, QFont::Weight::Normal),
   m_mouseAreaOssiaScore(102,13,295,84),
-  m_mouseAreaLabri(17, 221, 126, 62),
-  m_mouseAreaBlueYeti(20, 287, 110, 29),
-  m_mouseAreaScrime(22, 320, 100, 35)
+  m_mouseAreaLabri(16, 218, 116, 55),
+  m_mouseAreaScrime(21, 275, 114, 40),
+  m_mouseAreaBlueYeti(33, 321, 85, 84)
 {
   setWindowFlag(Qt::FramelessWindowHint);
   resize(m_windowSize.width(),m_windowSize.height());
@@ -193,13 +193,13 @@ void AboutDialog::mousePressEvent(QMouseEvent *event)
   {
     QDesktopServices::openUrl(QUrl("https://www.labri.fr/"));
   }
-  else if(m_mouseAreaBlueYeti.contains(pos))
-  {
-    QDesktopServices::openUrl(QUrl("http://www.blueyeti.fr/"));
-  }
   else if(m_mouseAreaScrime.contains(pos))
   {
     QDesktopServices::openUrl(QUrl("https://scrime.u-bordeaux.fr/"));
+  }
+  else if(m_mouseAreaBlueYeti.contains(pos))
+  {
+    QDesktopServices::openUrl(QUrl("http://www.blueyeti.fr/"));
   }
   this->close();
 }
@@ -208,9 +208,9 @@ void AboutDialog::mouseMoveEvent(QMouseEvent *event)
 {
   QPointF pos = event->localPos();
   if( m_mouseAreaOssiaScore.contains(pos)
-      || m_mouseAreaLabri.contains(pos)
-      || m_mouseAreaBlueYeti.contains(pos)
-      || m_mouseAreaScrime.contains(pos))
+      || m_mouseAreaLabri.contains(pos)    
+      || m_mouseAreaScrime.contains(pos)
+      || m_mouseAreaBlueYeti.contains(pos) )
   {
     this->setCursor(Qt::PointingHandCursor);
   }
