@@ -21,8 +21,8 @@ class AboutDialog final : public QDialog
 
     QRectF m_mouseAreaOssiaScore;
     QRectF m_mouseAreaLabri;
-    QRectF m_mouseAreaBlueYeti;
     QRectF m_mouseAreaScrime;
+    QRectF m_mouseAreaBlueYeti;
 
 };
 
