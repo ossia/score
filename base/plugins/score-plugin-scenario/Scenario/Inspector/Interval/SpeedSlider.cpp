@@ -53,7 +53,7 @@ SpeedSlider::SpeedSlider(
   }
 
   // Slider
-  auto speedSlider = new Control::SpeedSlider{Qt::Horizontal};
+  auto speedSlider = new Control::SpeedSlider{this};
   speedSlider->setTickInterval(100);
   speedSlider->setMinimum(-100);
   speedSlider->setMaximum(500);

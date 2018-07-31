@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
-#include <QSlider>
 #include <QString>
 #include <QVector>
 #include <list>

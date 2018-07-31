@@ -562,6 +562,7 @@ class SliderValueWidget final : public AddressValueWidget
 public:
   SliderValueWidget(int min, int max, QWidget* parent)
       : AddressValueWidget{parent}
+      , m_slider{this}
   {
     m_slider.setOrientation(Qt::Horizontal);
     m_slider.setRange(min, max);
@@ -595,7 +596,7 @@ public:
 
 private:
   score::MarginLess<QHBoxLayout> m_lay{this};
-  QSlider m_slider;
+  score::Slider m_slider;
   QSpinBox m_edit;
 };
 

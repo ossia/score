@@ -1298,7 +1298,7 @@ SearchWidget::SearchWidget(const score::GUIApplicationContext& ctx)
   m_lineEdit = new QLineEdit();
   m_lineEdit->setPlaceholderText("Search");
   m_btn = new QPushButton();
-  m_btn->setText("go");
+  m_btn->setIcon(QIcon(":/icons/search.png"));
 
   lay->addWidget(m_lineEdit);
   lay->addWidget(m_btn);
