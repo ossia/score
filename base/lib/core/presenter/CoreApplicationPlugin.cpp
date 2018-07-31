@@ -14,6 +14,11 @@
 #include <score/actions/Menu.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score_git_info.hpp>
+
+SCORE_DECLARE_ACTION(Documentation, "&Documentation", Common, QKeySequence::UnknownKey)
+SCORE_DECLARE_ACTION(Issues, "&Report Issues", Common, QKeySequence::UnknownKey)
+SCORE_DECLARE_ACTION(Forum, "&Forum", Common, QKeySequence::UnknownKey)
+
 namespace score
 {
 
@@ -115,7 +120,7 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
   auto play = new QMenu{tr("&Play")};
   auto view = new QMenu{tr("&View")};
   auto settings = new QMenu{tr("&Settings")};
-  auto about = new QMenu{tr("&About")};
+  auto about = new QMenu{tr("&Help")};
   menus.emplace_back(file, Menus::File(), Menu::is_toplevel{}, 0);
   menus.emplace_back(edit, Menus::Edit(), Menu::is_toplevel{}, 1);
   menus.emplace_back(object, Menus::Object(), Menu::is_toplevel{}, 2);
@@ -281,6 +286,39 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
           about_act, &QAction::triggered, this, &CoreApplicationPlugin::about);
       e.actions.add<Actions::About>(about_act);
       about->addAction(about_act);
+    }
+
+    {
+      auto doc_act = new QAction(m_presenter.view());
+      connect(
+            doc_act, &QAction::triggered, this,
+            [] {
+         QDesktopServices::openUrl(QUrl("https://ossia.github.io/score/"));
+      });
+      e.actions.add<Actions::Documentation>(doc_act);
+      about->addAction(doc_act);
+    }
+
+    {
+      auto issues_act = new QAction(m_presenter.view());
+      connect(
+            issues_act, &QAction::triggered, this,
+            [] {
+         QDesktopServices::openUrl(QUrl("https://github.com/OSSIA/score/issues"));
+      });
+      e.actions.add<Actions::Issues>(issues_act);
+      about->addAction(issues_act);
+    }
+
+    {
+      auto forum_act = new QAction(m_presenter.view());
+      connect(
+            forum_act, &QAction::triggered, this,
+            [] {
+         QDesktopServices::openUrl(QUrl("http://forum.ossia.io/"));
+      });
+      e.actions.add<Actions::Forum>(forum_act);
+      about->addAction(forum_act);
     }
   }
 
