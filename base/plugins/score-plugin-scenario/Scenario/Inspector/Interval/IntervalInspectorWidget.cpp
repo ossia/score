@@ -61,7 +61,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   lay->addRow(fullview);
 
   // Speed
-  auto speedWidg = new SpeedSlider{m_model, ctx, true, this};
+  auto speedWidg = new SpeedWidget{m_model, ctx, true, this};
   lay->addRow(tr("Speed"), speedWidg);
 
 

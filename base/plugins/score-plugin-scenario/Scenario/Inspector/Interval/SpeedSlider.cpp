@@ -13,7 +13,7 @@
 namespace Scenario
 {
 
-SpeedSlider::SpeedSlider(
+SpeedWidget::SpeedWidget(
     const Scenario::IntervalModel& model
     , const score::DocumentContext&
     , bool withButtons
@@ -71,6 +71,11 @@ SpeedSlider::SpeedSlider(
     lay->setColumnStretch(i, 0);
   lay->setColumnStretch(5, 10);
   connect(speedSlider, &QSlider::valueChanged, this, setSpeedFun);
+}
+
+SpeedWidget::~SpeedWidget()
+{
+
 }
 
 }
