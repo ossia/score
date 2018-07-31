@@ -144,10 +144,12 @@ void Presenter::setupGUI()
     }
 
     {
+      /*
       auto tb = new QToolBar;
       tb->setContentsMargins(0,0,0,0);
       tb->setFloatable(false);
       tb->setMovable(false);
+      */
       auto bw = new QWidget;
       bw->setContentsMargins(0,0,0,0);
       auto bl = new score::MarginLess<QGridLayout>{bw};
@@ -156,8 +158,11 @@ void Presenter::setupGUI()
       bl->addWidget(dummy1,0,0,2,1);
       bl->setColumnStretch(0, 10);
 
+      view()->centralWidget()->layout()->addWidget(bw);
+      /*
       tb->addWidget(bw);
       view()->addToolBar(Qt::BottomToolBarArea, tb);
+      */
 
       struct ToolbarLabel final : public QLabel
       {
