@@ -1185,9 +1185,7 @@ QToolBar QToolButton  {
     padding: 0px;
 }
 QToolButton:disabled {
-
-    background-color: #2d363d; /*#1A2024;*/
-    color:#454545;
+   background-color: #333333;
 }
 QToolButton[popupMode="1"] { /* only for MenuButtonPopup */
     padding-right: 20px; /* make way for the popup button */
@@ -1424,8 +1422,7 @@ QListView::item:!selected:hover{
     color: #ffffff;
 }
 
-QListView::item:selected:active, QListView::item:selected:!active,
-QComboBox::item:selected:active, QComboBox::item:selected:!active{
+QListView::item:selected:active, QListView::item:selected:!active{
     background-color: #1c384c;/*#73C1C6;*/
     color: #ffffff;
 }
@@ -1436,7 +1433,7 @@ QPushButton:pressed, QPushButton:pressed:!active, QPushButton:pressed:active, QP
 }*/
 
 
-QComboBox::item:!selected:hover{
+QComboBox::item:selected{
     background-color: #64788a;
     color: #ffffff;
 }
@@ -1465,8 +1462,8 @@ QPushButton#buttonWithoutArrow QIcon{
     padding: 0px;
 }
 QMenu::item:selected{
-    background-color: #404d58;
-    color: silver; /*#1A2024;*/
+    background-color:  #64788a;
+    color: #ffffff;
 }
 QTabWidget QTabBar{
     margin: 0px;
@@ -1478,14 +1475,33 @@ QTabBar:tab:left:!selected, QTabBar:tab:right:!selected
     margin: 10px;
     padding: 0px;
     background-color:#1A2024;
+    border: 2px transparent silver
 }
 
-QTabBar:tab:selected{
+QTabBar:tab:bottom:selected{
     margin: 10px;
+    padding: 3px 0px 0px 0px;
+    background-color: #1A2024;
+    border-top: 2px solid silver;
+}
+QTabBar:tab:top:selected{
+    margin: 10px;
+    padding: 0px 0px 3px 0px;
     background-color: #1A2024;
     border-bottom: 2px solid silver;
 }
-
+QTabBar:tab:left:selected{
+    margin: 10px;
+    padding: 0px 0px 0px 3px;
+    background-color: #1A2024;
+    border-left: 2px solid silver;
+}
+QTabBar:tab:right:selected{
+    margin: 10px;
+    padding: 0px 3px 0px 0px;
+    background-color: #1A2024;
+    border-right: 2px solid silver;
+}
 QTabBar::close-button  {
     image: url(:/qss_icons/icons/close_off.png);
     background: transparent;
