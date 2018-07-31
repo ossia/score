@@ -428,7 +428,7 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
 void ApplicationPlugin::on_documentChanged(
     score::Document* olddoc, score::Document* newdoc)
 {
-  auto cld = m_speedToolbar->findChildren<Scenario::SpeedSlider*>("SpeedSlider");
+  auto cld = m_speedToolbar->findChildren<Scenario::SpeedWidget*>("SpeedSlider");
   if(!cld.empty())
     cld[0]->deleteLater();
 
@@ -453,7 +453,7 @@ void ApplicationPlugin::on_documentChanged(
 
     // Setup speed toolbar
     auto& root = score::IDocument::get<Scenario::ScenarioDocumentModel>(*newdoc);
-    auto slider = new Scenario::SpeedSlider{root.baseInterval(), newdoc->context(), false, m_speedToolbar};
+    auto slider = new Scenario::SpeedWidget{root.baseInterval(), newdoc->context(), false, m_speedToolbar};
     m_speedToolbar->addWidget(slider);
 
     // Setup audio & devices
