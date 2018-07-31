@@ -33,7 +33,10 @@
 #include <sys/types.h>
 #include <utility>
 #include <vector>
+#include <unordered_map>
+#include <score/widgets/MarginLess.hpp>
 
+#include <QLabel>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::Presenter)
 namespace score
@@ -126,24 +129,59 @@ void Presenter::setupGUI()
 
     for(auto& tb : toolbars)
     {
-      auto area = tb.first;
-      auto& tb_row = tb.second;
-      int i = 0;
-      int n = toolbars.size();
-      ossia::sort(tb_row, [](auto& lhs, auto& rhs) {
+      ossia::sort(tb.second, [](auto& lhs, auto& rhs) {
         return lhs.column() < rhs.column();
       });
+    }
 
-      for (const Toolbar& tb : tb_row)
+    {
+      for (const Toolbar& tb : toolbars[Qt::TopToolBarArea])
       {
-        view()->addToolBar(area, tb.toolbar());
+        view()->addToolBar(Qt::TopToolBarArea, tb.toolbar());
         tb.toolbar()->setFloatable(false);
         tb.toolbar()->setMovable(false);
       }
+    }
 
-      i++;
-      if (i < n - 1)
-        view()->addToolBarBreak(area);
+    {
+      auto tb = new QToolBar;
+      tb->setContentsMargins(0,0,0,0);
+      tb->setFloatable(false);
+      tb->setMovable(false);
+      auto bw = new QWidget;
+      bw->setContentsMargins(0,0,0,0);
+      auto bl = new score::MarginLess<QGridLayout>{bw};
+      auto dummy1 = new QWidget;
+      dummy1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+      bl->addWidget(dummy1,0,0,2,1);
+      bl->setColumnStretch(0, 10);
+
+      tb->addWidget(bw);
+      view()->addToolBar(Qt::BottomToolBarArea, tb);
+
+      struct ToolbarLabel final : public QLabel
+      {
+        ToolbarLabel(const Toolbar& tb)
+          : QLabel{QString::fromStdString(tb.key().toString())}
+        {
+          setFont(QFont("Ubuntu", 8));
+        }
+      };
+
+      int i = 1;
+      for (const Toolbar& tb : toolbars[Qt::BottomToolBarArea])
+      {
+        bl->addWidget(tb.toolbar(), 0, i, Qt::AlignCenter);
+        bl->addWidget(new ToolbarLabel{tb}, 1, i, Qt::AlignCenter);
+        tb.toolbar()->setFloatable(false);
+        tb.toolbar()->setMovable(false);
+        i++;
+      }
+
+      auto dummy2 = new QWidget;
+      dummy2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+      bl->addWidget(dummy1,0,i,2,1);
+      bl->setColumnStretch(i, 10);
     }
   }
 }
