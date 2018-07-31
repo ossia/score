@@ -60,8 +60,10 @@ class DocumentModel;
 static void setQApplicationSettings(QApplication& m_app)
 {
   QFontDatabase::addApplicationFont(":/APCCourierBold.otf"); // APCCourier-Bold
-  QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf");       // Ubuntu
-  QFontDatabase::addApplicationFont(":/Catamaran-Regular.ttf"); // Catamaran
+  QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf");       // Ubuntu Regular
+  QFontDatabase::addApplicationFont(":/Ubuntu-B.ttf");       // Ubuntu Bold
+  QFontDatabase::addApplicationFont(":/Ubuntu-L.ttf");       // Ubuntu Light
+  QFontDatabase::addApplicationFont(":/Catamaran-Regular.ttf"); // Catamaran Regular
   QFontDatabase::addApplicationFont(":/Montserrat-Regular.ttf");       // Montserrat
 
   QFile stylesheet_file{":/qsimpledarkstyle.qss"};//":/qdarkstyle/qdarkstyle.qss"};
