@@ -6,6 +6,7 @@
 
 class QCheckBox;
 class QGridLayout;
+class QFormLayout;
 class QLabel;
 namespace score
 {
@@ -25,6 +26,7 @@ class DurationWidget final : public QWidget
 public:
   DurationWidget(
       const Scenario::EditionSettings& set,
+      QFormLayout& lay,
       IntervalInspectorWidget* parent);
 
 private:

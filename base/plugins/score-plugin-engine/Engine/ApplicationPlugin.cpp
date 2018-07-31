@@ -50,7 +50,9 @@
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/SetIcons.hpp>
 #include <vector>
+#include <Scenario/Inspector/Interval/SpeedSlider.hpp>
 
+#include <QLabel>
 #include <wobjectimpl.h>
 SCORE_DECLARE_ACTION(
     RestartAudio, "Restart Audio", Common, QKeySequence::UnknownKey)
@@ -296,8 +298,41 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
 
   auto& toolbars = e.toolbars;
 
-  toolbars.reserve(1);
+  toolbars.reserve(2);
 
+  // The toolbar with the time
+  {
+    auto bar = new QToolBar;
+    auto time_label = new QLabel;
+    QFont time_font("Ubuntu", 12, QFont::Weight::DemiBold);
+    time_label->setFont(time_font);
+    time_label->setText("00:00:00.000");
+    bar->addWidget(time_label);
+    auto timer = new QTimer{this};
+    connect(timer, &QTimer::timeout,
+            this, [=] {
+      if(m_clock)
+      {
+        auto& itv = m_clock->context.scenario.baseInterval().scoreInterval().duration;
+        auto time = (itv.defaultDuration() * itv.playPercentage()).toQTime();
+        time_label->setText(time.toString("HH:mm:ss.zzz"));
+      }
+      else
+      {
+        time_label->setText("00:00:00.000");
+      }
+    });
+    timer->start(1000 / 20);
+    toolbars.emplace_back(bar, StringKey<score::Toolbar>("Timing"), 0, 0);
+  }
+
+  // The toolbar with the speed
+  {
+    m_speedToolbar = new QToolBar;
+    toolbars.emplace_back(m_speedToolbar, StringKey<score::Toolbar>("Speed"), 0, 0);
+  }
+
+  // The toolbar with the volume control
   m_audioEngineAct = new QAction{tr("Restart Audio"), this};
   m_audioEngineAct->setCheckable(true);
   m_audioEngineAct->setChecked(bool(audio));
@@ -339,7 +374,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
   e.actions.container.reserve(2);
   e.actions.add<Actions::RestartAudio>(m_audioEngineAct);
 
-  connect(m_audioEngineAct, &QAction::triggered, this, [=] (bool k) {
+  connect(m_audioEngineAct, &QAction::triggered, this, [=] (bool) {
     if (audio)
     {
       audio->stop();
@@ -393,6 +428,10 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
 void ApplicationPlugin::on_documentChanged(
     score::Document* olddoc, score::Document* newdoc)
 {
+  auto cld = m_speedToolbar->findChildren<Scenario::SpeedSlider*>("SpeedSlider");
+  if(!cld.empty())
+    cld[0]->deleteLater();
+
   if (olddoc)
   {
     // Disable the local tree for this document by removing
@@ -412,6 +451,12 @@ void ApplicationPlugin::on_documentChanged(
     doc_plugin.setConnection(true);
     */
 
+    // Setup speed toolbar
+    auto& root = score::IDocument::get<Scenario::ScenarioDocumentModel>(*newdoc);
+    auto slider = new Scenario::SpeedSlider{root.baseInterval(), newdoc->context(), false, m_speedToolbar};
+    m_speedToolbar->addWidget(slider);
+
+    // Setup audio & devices
     auto& doc_plugin
         = newdoc->context().plugin<Explorer::DeviceDocumentPlugin>();
     auto* set

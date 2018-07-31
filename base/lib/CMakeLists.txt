@@ -182,6 +182,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/String.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/StringHash.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ClearLayout.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ControlWidgets.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/CommandSpinBox.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/DoubleSlider.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/GraphicWidgets.hpp"
@@ -305,6 +306,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/GraphicsItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ClearLayout.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ControlWidgets.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/DoubleSlider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/RectItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SetIcons.cpp"

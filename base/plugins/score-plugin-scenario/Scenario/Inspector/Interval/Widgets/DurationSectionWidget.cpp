@@ -37,7 +37,8 @@
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SpinBoxes.hpp>
 #include <score/widgets/TextLabel.hpp>
-
+#include <QFormLayout>
+#include <QStackedWidget>
 namespace Scenario
 {
 class EditionGrid : public QWidget
@@ -46,6 +47,7 @@ public:
   EditionGrid(
       const IntervalModel& m,
       const score::DocumentContext& fac,
+      QFormLayout& lay,
       const Scenario::EditionSettings& set)
       : m_model{m}
       , m_dur{m.duration}
@@ -54,7 +56,8 @@ public:
       , m_simpleDispatcher{fac.commandStack}
   {
     using namespace score;
-    auto editableGrid = new score::MarginLess<QGridLayout>{this};
+    auto editableGrid = &lay;
+    //auto editableGrid = new score::MarginLess<QGridLayout>{this};
 
     // SPINBOXES
     m_minSpin = new TimeSpinBox{this};
@@ -85,25 +88,28 @@ public:
     m_maxInfinity = new TextLabel{tr("Infinity")};
     m_maxInfinity->hide();
 
-    auto dur = new TextLabel(tr("Default Duration"));
-    editableGrid->addWidget(dur, 0, 1, 1, 1);
-    editableGrid->addWidget(m_valueSpin, 0, 2, 1, 1);
+    editableGrid->addRow(tr("Duration"), m_valueSpin);
 
-    m_minTitle = new TextLabel(tr("Min Duration"));
-    editableGrid->addWidget(m_minNonNullBox, 1, 0, 1, 1);
-    editableGrid->addWidget(m_minTitle, 1, 1, 1, 1);
-    editableGrid->addWidget(m_minSpin, 1, 2, 1, 1);
-    editableGrid->addWidget(m_minNull, 1, 2, 1, 1);
+    m_minTitle = new TextLabel(tr("Min"));
+    m_maxTitle = new TextLabel(tr("Max"));
+    auto minstack = new QStackedWidget;
+    minstack->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    minstack->addWidget(m_minNull);
+    minstack->addWidget(m_minSpin);
+    auto minboxwidg = new QWidget;
+    auto minboxlay = new score::MarginLess<QHBoxLayout>{minboxwidg};
+    minboxlay->addWidget(m_minNonNullBox);
+    minboxlay->addWidget(m_minTitle);
+    editableGrid->addRow(minboxwidg, minstack);
 
-    m_maxTitle = new TextLabel(tr("Max Duration"));
-    editableGrid->addWidget(m_maxFiniteBox, 2, 0, 1, 1);
-    editableGrid->addWidget(m_maxTitle, 2, 1, 1, 1);
-    editableGrid->addWidget(m_maxSpin, 2, 2, 1, 1);
-    editableGrid->addWidget(m_maxInfinity, 2, 2, 1, 1);
-
-    editableGrid->setColumnStretch(0, 0);
-    editableGrid->setColumnStretch(1, 1);
-    editableGrid->setColumnStretch(2, 2);
+    auto maxstack = new QStackedWidget;
+    maxstack->addWidget(m_maxInfinity);
+    maxstack->addWidget(m_maxSpin);
+    auto maxboxwidg = new QWidget;
+    auto maxboxlay = new score::MarginLess<QHBoxLayout>{maxboxwidg};
+    maxboxlay->addWidget(m_maxFiniteBox);
+    maxboxlay->addWidget(m_maxTitle);
+    editableGrid->addRow(maxboxwidg, maxstack);
 
     connect(
         m_valueSpin, &TimeSpinBox::editingFinished, this,
@@ -123,11 +129,8 @@ public:
     con(m_dur, &IntervalDurations::maxInfiniteChanged, this,
         &EditionGrid::on_modelMaxInfiniteChanged);
 
-    m_minNull->setVisible(m_model.duration.isMinNull());
-    m_minSpin->setVisible(!m_model.duration.isMinNull());
-
-    m_maxInfinity->setVisible(m_model.duration.isMaxInfinite());
-    m_maxSpin->setVisible(!m_model.duration.isMaxInfinite());
+    minstack->setCurrentIndex(m_model.duration.isMinNull() ? 0 : 1);
+    maxstack->setCurrentIndex(m_model.duration.isMaxInfinite() ? 0 : 1);
 
     on_modelRigidityChanged(m_model.duration.isRigid());
 
@@ -273,17 +276,19 @@ public:
   const IntervalDurations& m_dur;
   const Scenario::EditionSettings& m_editionSettings;
 
-  QLabel* m_maxTitle{};
-  QLabel* m_minTitle{};
-  QLabel* m_maxInfinity{};
-  QLabel* m_minNull{};
 
-  score::TimeSpinBox* m_minSpin{};
   score::TimeSpinBox* m_valueSpin{};
-  score::TimeSpinBox* m_maxSpin{};
 
   QCheckBox* m_minNonNullBox{};
+  QLabel* m_minTitle{};
+  QLabel* m_minNull{};
+  score::TimeSpinBox* m_minSpin{};
+
   QCheckBox* m_maxFiniteBox{};
+  QLabel* m_maxTitle{};
+  QLabel* m_maxInfinity{};
+  score::TimeSpinBox* m_maxSpin{};
+
 
   TimeVal m_max;
   TimeVal m_min;
@@ -361,10 +366,11 @@ private:
 */
 DurationWidget::DurationWidget(
     const Scenario::EditionSettings& set,
+    QFormLayout& lay,
     IntervalInspectorWidget* parent)
     : QWidget{parent}
     , m_editingWidget{
-          new EditionGrid{parent->model(), parent->context(), set}}
+          new EditionGrid{parent->model(), parent->context(), lay, set}}
 // , m_playingWidget{new PlayGrid{parent->model().duration}}
 {
   using namespace score;
