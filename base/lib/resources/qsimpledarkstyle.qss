@@ -1185,9 +1185,7 @@ QToolBar QToolButton  {
     padding: 0px;
 }
 QToolButton:disabled {
-
-    background-color: #2d363d; /*#1A2024;*/
-    color:#454545;
+   background-color: #333333;
 }
 QToolButton[popupMode="1"] { /* only for MenuButtonPopup */
     padding-right: 20px; /* make way for the popup button */
