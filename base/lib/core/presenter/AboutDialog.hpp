@@ -19,6 +19,7 @@ class AboutDialog final : public QDialog
     QFont m_catamaranFont;
     QFont m_montserratFont;
 
+    QRectF m_mouseAreaOssiaScore;
     QRectF m_mouseAreaLabri;
     QRectF m_mouseAreaBlueYeti;
     QRectF m_mouseAreaScrime;
