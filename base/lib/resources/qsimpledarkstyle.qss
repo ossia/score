@@ -1424,8 +1424,7 @@ QListView::item:!selected:hover{
     color: #ffffff;
 }
 
-QListView::item:selected:active, QListView::item:selected:!active,
-QComboBox::item:selected:active, QComboBox::item:selected:!active{
+QListView::item:selected:active, QListView::item:selected:!active{
     background-color: #1c384c;/*#73C1C6;*/
     color: #ffffff;
 }
@@ -1436,7 +1435,7 @@ QPushButton:pressed, QPushButton:pressed:!active, QPushButton:pressed:active, QP
 }*/
 
 
-QComboBox::item:!selected:hover{
+QComboBox::item:selected{
     background-color: #64788a;
     color: #ffffff;
 }
@@ -1465,8 +1464,8 @@ QPushButton#buttonWithoutArrow QIcon{
     padding: 0px;
 }
 QMenu::item:selected{
-    background-color: #404d58;
-    color: silver; /*#1A2024;*/
+    background-color:  #64788a;
+    color: #ffffff;
 }
 QTabWidget QTabBar{
     margin: 0px;
