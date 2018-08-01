@@ -17,9 +17,6 @@ Clock::Clock(const Execution::Context& ctx)
     , m_default{ctx}
     , m_plug{context.doc.plugin<Execution::DocumentPlugin>()}
 {
-  auto& bs = context.scenario;
-  if (!bs.active())
-    return;
 }
 
 Clock::~Clock()
@@ -49,8 +46,8 @@ void Clock::resume_impl(Execution::BaseScenarioElement& bs)
 {
   m_paused = false;
   m_default.resume();
-  auto tick = m_plug.context().settings.getTick();
-  auto commit = m_plug.context().settings.getCommit();
+  auto tick = m_plug.settings.getTick();
+  auto commit = m_plug.settings.getCommit();
 
   ossia::tick_setup_options opt;
   if (tick == Execution::Settings::TickPolicies{}.Buffer)
@@ -69,7 +66,7 @@ void Clock::resume_impl(Execution::BaseScenarioElement& bs)
   else if (commit == Execution::Settings::CommitPolicies{}.Merged)
     opt.commit = ossia::tick_setup_options::Merged;
 
-  if (m_plug.context().settings.getBench())
+  if (m_plug.settings.getBench())
   {
     auto tick = ossia::make_tick(
         opt, *m_plug.execState, *m_plug.execGraph,

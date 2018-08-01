@@ -83,7 +83,9 @@ bool PlayFromIntervalScenarioPruner::toRemove(
   return (toKeep.find(c_addr) == toKeep.end()) && (c_addr != &interval);
 }
 
-void PlayFromIntervalScenarioPruner::operator()(const Context& exec_ctx)
+void PlayFromIntervalScenarioPruner::operator()(
+    const Context& exec_ctx
+    , const BaseScenarioElement& bs)
 {
   auto process_ptr = dynamic_cast<const Process::ProcessModel*>(&scenar);
   if (!process_ptr)
@@ -95,7 +97,7 @@ void PlayFromIntervalScenarioPruner::operator()(const Context& exec_ctx)
   auto toKeep = intervalsToKeep();
 
   // Get the intervals in the scenario execution
-  auto& source_procs = exec_ctx.scenario.baseInterval().processes();
+  auto& source_procs = bs.baseInterval().processes();
   auto scenar_proc_it = source_procs.find(process_ptr->id());
 
   SCORE_ASSERT(scenar_proc_it != source_procs.end());

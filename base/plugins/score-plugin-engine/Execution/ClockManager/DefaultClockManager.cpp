@@ -24,8 +24,9 @@ DefaultClockManager::DefaultClockManager(const Context& ctx)
 void DefaultClockManager::prepareExecution(
     const TimeVal& t, BaseScenarioElement& bs)
 {
+  auto& settings = context.doc.app.settings<Execution::Settings::Model>();
   IntervalComponentBase& comp = bs.baseInterval();
-  if(context.settings.getValueCompilation())
+  if(settings.getValueCompilation())
   {
     comp.interval().duration.setPlayPercentage(0);
 
@@ -75,7 +76,7 @@ ControlClockFactory::~ControlClockFactory() = default;
 ControlClock::ControlClock(const Execution::Context& ctx)
     : ClockManager{ctx}
     , m_default{ctx}
-    , m_clock{*ctx.scenario.baseInterval().OSSIAInterval(), 1.}
+    , m_clock{*scenario.baseInterval().OSSIAInterval(), 1.}
 {
   m_clock.set_granularity(std::chrono::microseconds(
       context.doc.app.settings<Settings::Model>().getRate() * 1000));
@@ -84,12 +85,12 @@ ControlClock::ControlClock(const Execution::Context& ctx)
   m_clock.set_exec_status_callback([=](ossia::clock::exec_status c) {
     if (c == ossia::clock::exec_status::STOPPED)
     {
-      context.scenario.endEvent().OSSIAEvent()->tick(
+      scenario.endEvent().OSSIAEvent()->tick(
           ossia::Zero, 0., ossia::Zero);
       context.execGraph->state(*context.execState);
       context.execState->commit();
 
-      context.scenario.finished();
+      scenario.finished();
     }
   });
 }

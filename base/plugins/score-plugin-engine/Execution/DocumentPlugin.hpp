@@ -50,6 +50,7 @@ public:
 
   void on_documentClosing() override;
   const BaseScenarioElement& baseScenario() const;
+  BaseScenarioElement& baseScenario();
 
   bool isPlaying() const;
 
@@ -61,6 +62,7 @@ public:
 
   void runAllCommands() const;
 
+  const Execution::Settings::Model& settings;
 
   std::shared_ptr<ossia::graph_interface> execGraph;
   std::shared_ptr<ossia::execution_state> execState;
@@ -81,6 +83,7 @@ private:
   Context m_ctx;
   SetupContext m_setup_ctx;
   BaseScenarioElement m_base;
+  std::atomic_bool m_created{};
 
   void on_finished();
 

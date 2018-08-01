@@ -61,8 +61,7 @@ struct SCORE_PLUGIN_ENGINE_EXPORT Context
   Context& operator=(Context&&) = delete;
 
   const score::DocumentContext& doc;
-  Execution::BaseScenarioElement& scenario;
-  const Execution::Settings::Model& settings;
+  const std::atomic_bool& created;
 
   /** Used to map the "high-level" durations in score to low-level durations
    *
