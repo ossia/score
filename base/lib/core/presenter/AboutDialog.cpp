@@ -46,6 +46,20 @@ AboutDialog::AboutDialog(QWidget *parent) :
   // map
   struct License
   {
+    License() = default;
+    License(const License&) = default;
+    License(License&&) = default;
+    License& operator=(const License&) = default;
+    License& operator=(License&&) = default;
+    License(QString u, QString l): url{u}, license{l} { }
+    License(QString u, const unsigned char* l): url{u}
+    {
+      license = QString::fromUtf8(reinterpret_cast<const char*>(l));
+    }
+    License(QString u, QString lstart, const unsigned char* l): url{u}, license{lstart}
+    {
+      license += QString::fromUtf8(reinterpret_cast<const char*>(l));
+    }
     QString url;
     QString license;
   };
@@ -69,21 +83,20 @@ AboutDialog::AboutDialog(QWidget *parent) :
 
   map["RtMidi17"] = License{"https://github.com/jcelerier/RtMidi17",
                             "Based on RtMidi (https://github.com/thestk/rtmidi) and "
-                            "ModernMIDI (https://github.com/ddiakopoulos/ModernMIDI)\n"
-                            "RtMidi license: " + rtmidi_LICENSE +
-                            "\n\nModernMidi license: " + modernmidi_LICENSE
-  };
-  map["Servus"] = License{"https://github.com/jcelerier/Servus", "Based on https://github.com/HBPVIS/Servus\n" + servus_LICENSE};
+                            "ModernMIDI (https://github.com/ddiakopoulos/ModernMIDI)"};
+  map["RtMidi"] = License{"https://github.com/thestk/rtmidi", rtmidi_LICENSE};
+  map["ModernMidi"] = License{"(https://github.com/ddiakopoulos/ModernMIDI", modernmidi_LICENSE};
+  map["Servus"] = License{"https://github.com/jcelerier/Servus", "Based on https://github.com/HBPVIS/Servus\n", servus_LICENSE};
 
   map["SmallFunction"] = License{"https://github.com/jcelerier/SmallFunction"
-      , "Based on https://github.com/LoopPerfect/smallfunction\n" + smallfun_LICENSE};
+      , "Based on https://github.com/LoopPerfect/smallfunction\n", smallfun_LICENSE};
 
   map["bitset2"] = License{"https://github.com/ClaasBontus/bitset2", bitset2_LICENSE};
   map["Brigand"] = License{"https://github.com/edouarda/brigand", Brigand_LICENSE};
   map["Chobo"] = License{"https://github.com/Chobolabs/chobo-shl", chobo_LICENSE};
   map["ConcurrentQueue"] = License{"https://github.com/cameron314/concurrentqueue", concurrentqueue_LICENSE};
   map["ReaderWriterQueue"] = License{"https://github.com/cameron314/readerwriterqueue", readerwriterqueue_LICENSE};
-  map["flat"] = License{"https://github.com/jcelerier/flat", "Based on https://github.com/pubby/flat\n" + flat_LICENSE};
+  map["flat"] = License{"https://github.com/jcelerier/flat", "Based on https://github.com/pubby/flat\n", flat_LICENSE};
   map["flat_hash_map"] = License{"https://github.com/jcelerier/flat_hash_map"
       , "Based on https://github.com/skarupke/flat_hash_map\n" };
   map["fmt"] = License{"https://github.com/fmtlib/fmt", fmt_LICENSE};
@@ -208,7 +221,7 @@ void AboutDialog::mouseMoveEvent(QMouseEvent *event)
 {
   QPointF pos = event->localPos();
   if( m_mouseAreaOssiaScore.contains(pos)
-      || m_mouseAreaLabri.contains(pos)    
+      || m_mouseAreaLabri.contains(pos)
       || m_mouseAreaScrime.contains(pos)
       || m_mouseAreaBlueYeti.contains(pos) )
   {
