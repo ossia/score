@@ -115,10 +115,10 @@ private:
   // Document-specific
   std::unique_ptr<Document> m_currentDocument;
   Explorer::DeviceDocumentPlugin* m_devicesPlugin{};
-  Engine::Execution::DocumentPlugin* m_execPlugin{};
+  Execution::DocumentPlugin* m_execPlugin{};
   Engine::LocalTree::DocumentPlugin* m_localTreePlugin{};
   Network::NetworkDocumentPlugin* m_networkPlugin{};
-  std::unique_ptr<Engine::Execution::ClockManager> m_clock;
+  std::unique_ptr<Execution::ClockManager> m_clock;
 
   std::vector<ossia::net::device_base*> m_ownedDevices;
 };

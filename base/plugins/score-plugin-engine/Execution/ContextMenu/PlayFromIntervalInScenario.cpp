@@ -16,8 +16,6 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <boost/graph/depth_first_search.hpp>
 
-namespace Engine
-{
 namespace Execution
 {
 
@@ -146,5 +144,5 @@ void PlayFromIntervalScenarioPruner::operator()(const Context& exec_ctx)
   // TODO how to remove also the states ? for instance if there is a state on
   // the first timesync ?
 }
-}
+
 }

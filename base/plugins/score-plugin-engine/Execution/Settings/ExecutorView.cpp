@@ -8,8 +8,6 @@
 #include <QSpinBox>
 #include <score/widgets/SignalUtils.hpp>
 
-namespace Engine
-{
 namespace Execution
 {
 namespace Settings
@@ -84,7 +82,6 @@ void View::populateClocks(
 QWidget* View::getWidget()
 {
   return m_widg;
-}
 }
 }
 }

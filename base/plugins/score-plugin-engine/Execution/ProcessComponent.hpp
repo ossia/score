@@ -12,17 +12,14 @@
 #include <score/plugins/customfactory/ModelFactory.hpp>
 #include <score_plugin_engine_export.h>
 
-Q_DECLARE_METATYPE(std::shared_ptr<Engine::Execution::ProcessComponent>)
-W_REGISTER_ARGTYPE(std::shared_ptr<Engine::Execution::ProcessComponent>)
+Q_DECLARE_METATYPE(std::shared_ptr<Execution::ProcessComponent>)
+W_REGISTER_ARGTYPE(std::shared_ptr<Execution::ProcessComponent>)
 namespace ossia
 {
 class scenario;
 class time_process;
 }
 
-// TODO RENAMEME
-namespace Engine
-{
 namespace Execution
 {
 struct Context;
@@ -43,7 +40,7 @@ class SCORE_PLUGIN_ENGINE_EXPORT ProcessComponent
 {
   W_OBJECT(ProcessComponent)
   ABSTRACT_COMPONENT_METADATA(
-      Engine::Execution::ProcessComponent,
+      Execution::ProcessComponent,
       "d0f714de-c832-42d8-a605-60f5ffd0b7af")
 
 public:
@@ -100,10 +97,10 @@ struct ProcessComponent_T
 class SCORE_PLUGIN_ENGINE_EXPORT ProcessComponentFactory
     : public score::GenericComponentFactory<
           Process::ProcessModel,
-          Engine::Execution::DocumentPlugin,
-          Engine::Execution::ProcessComponentFactory>
+          Execution::DocumentPlugin,
+          Execution::ProcessComponentFactory>
 {
-  SCORE_ABSTRACT_COMPONENT_FACTORY(Engine::Execution::ProcessComponent)
+  SCORE_ABSTRACT_COMPONENT_FACTORY(Execution::ProcessComponent)
 public:
   virtual ~ProcessComponentFactory() override;
   virtual std::shared_ptr<ProcessComponent> make(
@@ -144,12 +141,12 @@ public:
 class SCORE_PLUGIN_ENGINE_EXPORT ProcessComponentFactoryList final
     : public score::GenericComponentFactoryList<
           Process::ProcessModel,
-          Engine::Execution::DocumentPlugin,
-          Engine::Execution::ProcessComponentFactory>
+          Execution::DocumentPlugin,
+          Execution::ProcessComponentFactory>
 {
 public:
   ~ProcessComponentFactoryList();
 };
 }
-}
+
 W_REGISTER_ARGTYPE(ossia::node_ptr)

@@ -10,7 +10,7 @@
 
 namespace Scenario
 { class IntervalModel; }
-namespace Engine::Execution
+namespace Execution
 {
 struct Context;
 class ClockManager;
@@ -49,7 +49,7 @@ public:
   void on_play(
       Scenario::IntervalModel&,
       bool,
-      std::function<void(const Engine::Execution::Context&)> setup = {},
+      std::function<void(const Execution::Context&)> setup = {},
       ::TimeVal t = ::TimeVal::zero());
 
   void on_record(::TimeVal t);
@@ -74,12 +74,12 @@ private:
   void on_transport(TimeVal t);
   void initLocalTreeNodes(Engine::LocalTree::DocumentPlugin&);
 
-  std::unique_ptr<Engine::Execution::ClockManager>
-  makeClock(const Engine::Execution::Context&);
+  std::unique_ptr<Execution::ClockManager>
+  makeClock(const Execution::Context&);
 
-  Engine::Execution::PlayContextMenu m_playActions;
+  Execution::PlayContextMenu m_playActions;
 
-  std::unique_ptr<Engine::Execution::ClockManager> m_clock;
+  std::unique_ptr<Execution::ClockManager> m_clock;
   QAction* m_audioEngineAct{};
   QToolBar* m_speedToolbar{};
   bool m_playing{false}, m_paused{false};

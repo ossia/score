@@ -17,20 +17,20 @@ namespace Scenario
 class StateModel;
 }
 
-namespace Engine::Execution
+namespace Execution
 {
 class StateComponentBase
     : public Execution::Component
 {
   COMMON_COMPONENT_METADATA("b3905e79-2bd0-48bd-8654-8666455ceedd")
 public:
-  using parent_t = Engine::Execution::Component;
+  using parent_t = Execution::Component;
   using model_t = Process::ProcessModel;
   using component_t = ProcessComponent;
   using component_factory_list_t = ProcessComponentFactoryList;
   StateComponentBase(
       const Scenario::StateModel& element,
-      const Engine::Execution::Context& ctx,
+      const Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent);
 

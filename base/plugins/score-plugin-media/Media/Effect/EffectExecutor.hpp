@@ -7,25 +7,23 @@
 #include <score/model/ComponentFactory.hpp>
 #include <score/model/ComponentHierarchy.hpp>
 #include <score/plugins/customfactory/ModelFactory.hpp>
-namespace Engine
-{
-namespace Execution
+namespace Media
 {
 
 class EffectProcessComponentBase
-    : public ::Engine::Execution::ProcessComponent_T<
+    : public ::Execution::ProcessComponent_T<
           Media::Effect::ProcessModel,
           ossia::node_chain_process>
 {
   COMPONENT_METADATA("d638adb3-64da-4b6e-b84d-7c32684fa79d")
 public:
-  using parent_t = Engine::Execution::Component;
+  using parent_t = Execution::Component;
   using model_t = Process::ProcessModel;
   using component_t = ProcessComponent;
-  using component_factory_list_t = ProcessComponentFactoryList;
+  using component_factory_list_t = Execution::ProcessComponentFactoryList;
   EffectProcessComponentBase(
       Media::Effect::ProcessModel& element,
-      const ::Engine::Execution::Context& ctx,
+      const ::Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent);
 
@@ -35,7 +33,7 @@ public:
 
   ProcessComponent* make(
       const Id<score::Component>& id,
-      ProcessComponentFactory& factory,
+      Execution::ProcessComponentFactory& factory,
       Process::ProcessModel& process);
   void added(ProcessComponent& e);
 
@@ -88,7 +86,7 @@ class EffectProcessComponent final
 public:
   EffectProcessComponent(
       Media::Effect::ProcessModel& element,
-      const ::Engine::Execution::Context& ctx,
+      const ::Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent)
       : score::
@@ -122,10 +120,9 @@ public:
 };
 
 using EffectProcessComponentFactory
-    = ::Engine::Execution::ProcessComponentFactory_T<EffectProcessComponent>;
-}
+    = ::Execution::ProcessComponentFactory_T<EffectProcessComponent>;
 }
 
 SCORE_CONCRETE_COMPONENT_FACTORY(
-    Engine::Execution::ProcessComponentFactory,
-    Engine::Execution::EffectComponentFactory)
+    Execution::ProcessComponentFactory,
+    Execution::EffectComponentFactory)

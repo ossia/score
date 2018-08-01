@@ -195,7 +195,7 @@ public:
 
 template <typename DSP>
 class Executor final
-    : public Engine::Execution::
+    : public Execution::
           ProcessComponent_T<Fx<DSP>, ossia::node_process>
 {
 
@@ -244,21 +244,21 @@ public:
   bool key_match(score::Component::Key other) const noexcept final override
   {
     return static_key() == other
-           || Engine::Execution::ProcessComponent::base_key_match(other);
+           || Execution::ProcessComponent::base_key_match(other);
   }
 
   Executor(
       Fx<DSP>& proc,
-      const Engine::Execution::Context& ctx,
+      const Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent)
-      : Engine::Execution::ProcessComponent_T<Fx<DSP>, ossia::node_process>{
+      : Execution::ProcessComponent_T<Fx<DSP>, ossia::node_process>{
             proc, ctx, id, "FaustComponent", parent}
   {
     auto node = std::make_shared<exec_node>();
     this->node = node;
     this->m_ossia_process = std::make_shared<ossia::node_process>(node);
-    node->dsp.instanceInit(ctx.plugin.execState->sampleRate);
+    node->dsp.instanceInit(ctx.execState->sampleRate);
 
     for (std::size_t i = 1; i < proc.inlets().size(); i++)
     {
@@ -340,5 +340,5 @@ using LayerFactory
 
 template <typename DSP>
 using ExecutorFactory
-    = Engine::Execution::ProcessComponentFactory_T<Executor<DSP>>;
+    = Execution::ProcessComponentFactory_T<Executor<DSP>>;
 }

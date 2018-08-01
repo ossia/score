@@ -137,10 +137,10 @@ using LayerFactory = Process::EffectLayerFactory_T<
     FaustEditDialog>;
 }
 
-namespace Engine::Execution
+namespace Execution
 {
 class FaustEffectComponent final
-    : public Engine::Execution::ProcessComponent_T<
+    : public Execution::ProcessComponent_T<
           Media::Faust::FaustEffectModel,
           ossia::node_process>
 {
@@ -152,11 +152,11 @@ public:
 
   FaustEffectComponent(
       Media::Faust::FaustEffectModel& proc,
-      const Engine::Execution::Context& ctx,
+      const Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent);
 };
 using FaustEffectComponentFactory
-    = Engine::Execution::ProcessComponentFactory_T<FaustEffectComponent>;
+    = Execution::ProcessComponentFactory_T<FaustEffectComponent>;
 }
 #endif

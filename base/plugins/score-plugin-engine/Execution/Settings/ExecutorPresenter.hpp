@@ -1,8 +1,6 @@
 #pragma once
 #include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 
-namespace Engine
-{
 namespace Execution
 {
 namespace Settings
@@ -20,6 +18,5 @@ private:
   QString settingsName() override;
   QIcon settingsIcon() override;
 };
-}
 }
 }

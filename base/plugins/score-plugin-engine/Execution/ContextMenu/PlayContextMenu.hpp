@@ -18,13 +18,15 @@ class TemporalScenarioPresenter;
 namespace Engine
 {
 class ApplicationPlugin;
+}
+
 namespace Execution
 {
 class PlayContextMenu final : public QObject
 {
 public:
   PlayContextMenu(
-      ApplicationPlugin& plug, const score::GUIApplicationContext& ctx);
+      Engine::ApplicationPlugin& plug, const score::GUIApplicationContext& ctx);
   void setupContextMenu(Process::LayerContextMenuManager& ctxm);
 
   void setEnabled(bool);
@@ -42,4 +44,4 @@ private:
   QAction* m_playFromHere{};
 };
 }
-}
+

@@ -5,8 +5,6 @@
 class QSpinBox;
 class QComboBox;
 class QCheckBox;
-namespace Engine
-{
 namespace Execution
 {
 namespace Settings
@@ -56,6 +54,5 @@ private:
 
   QComboBox* m_Clock{};
 };
-}
 }
 }

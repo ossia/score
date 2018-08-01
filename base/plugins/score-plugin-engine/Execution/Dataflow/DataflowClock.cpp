@@ -12,10 +12,10 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 namespace Dataflow
 {
-Clock::Clock(const Engine::Execution::Context& ctx)
+Clock::Clock(const Execution::Context& ctx)
     : ClockManager{ctx}
     , m_default{ctx}
-    , m_plug{context.doc.plugin<Engine::Execution::DocumentPlugin>()}
+    , m_plug{context.doc.plugin<Execution::DocumentPlugin>()}
 {
   auto& bs = context.scenario;
   if (!bs.active())
@@ -27,7 +27,7 @@ Clock::~Clock()
 }
 
 void Clock::play_impl(
-    const TimeVal& t, Engine::Execution::BaseScenarioElement& bs)
+    const TimeVal& t, Execution::BaseScenarioElement& bs)
 {
   m_paused = false;
 
@@ -38,14 +38,14 @@ void Clock::play_impl(
   resume_impl(bs);
 }
 
-void Clock::pause_impl(Engine::Execution::BaseScenarioElement& bs)
+void Clock::pause_impl(Execution::BaseScenarioElement& bs)
 {
   m_paused = true;
   m_plug.audioProto().set_tick([](auto&&...) {});
   m_default.pause();
 }
 
-void Clock::resume_impl(Engine::Execution::BaseScenarioElement& bs)
+void Clock::resume_impl(Execution::BaseScenarioElement& bs)
 {
   m_paused = false;
   m_default.resume();
@@ -53,20 +53,20 @@ void Clock::resume_impl(Engine::Execution::BaseScenarioElement& bs)
   auto commit = m_plug.context().settings.getCommit();
 
   ossia::tick_setup_options opt;
-  if (tick == Engine::Execution::Settings::TickPolicies{}.Buffer)
+  if (tick == Execution::Settings::TickPolicies{}.Buffer)
     opt.tick = ossia::tick_setup_options::Buffer;
-  else if (tick == Engine::Execution::Settings::TickPolicies{}.ScoreAccurate)
+  else if (tick == Execution::Settings::TickPolicies{}.ScoreAccurate)
     opt.tick = ossia::tick_setup_options::ScoreAccurate;
-  else if (tick == Engine::Execution::Settings::TickPolicies{}.Precise)
+  else if (tick == Execution::Settings::TickPolicies{}.Precise)
     opt.tick = ossia::tick_setup_options::Precise;
 
-  if (commit == Engine::Execution::Settings::CommitPolicies{}.Default)
+  if (commit == Execution::Settings::CommitPolicies{}.Default)
     opt.commit = ossia::tick_setup_options::Default;
-  else if (commit == Engine::Execution::Settings::CommitPolicies{}.Ordered)
+  else if (commit == Execution::Settings::CommitPolicies{}.Ordered)
     opt.commit = ossia::tick_setup_options::Ordered;
-  else if (commit == Engine::Execution::Settings::CommitPolicies{}.Priorized)
+  else if (commit == Execution::Settings::CommitPolicies{}.Priorized)
     opt.commit = ossia::tick_setup_options::Priorized;
-  else if (commit == Engine::Execution::Settings::CommitPolicies{}.Merged)
+  else if (commit == Execution::Settings::CommitPolicies{}.Merged)
     opt.commit = ossia::tick_setup_options::Merged;
 
   if (m_plug.context().settings.getBench())
@@ -77,7 +77,7 @@ void Clock::resume_impl(Engine::Execution::BaseScenarioElement& bs)
 
     m_plug.audioProto().set_tick([tick, plug = &m_plug](auto&&... args) {
       // Run some commands if they have been submitted.
-      Engine::Execution::ExecutionCommand c;
+      Execution::ExecutionCommand c;
       while (plug->context().executionQueue.try_dequeue(c))
       {
         c();
@@ -117,7 +117,7 @@ void Clock::resume_impl(Engine::Execution::BaseScenarioElement& bs)
 
     m_plug.audioProto().set_tick([tick, plug = &m_plug](auto&&... args) {
       // Run some commands if they have been submitted.
-      Engine::Execution::ExecutionCommand c;
+      Execution::ExecutionCommand c;
       while (plug->context().executionQueue.try_dequeue(c))
       {
         c();
@@ -128,7 +128,7 @@ void Clock::resume_impl(Engine::Execution::BaseScenarioElement& bs)
   }
 }
 
-void Clock::stop_impl(Engine::Execution::BaseScenarioElement& bs)
+void Clock::stop_impl(Execution::BaseScenarioElement& bs)
 {
   m_paused = false;
 
@@ -144,13 +144,13 @@ bool Clock::paused() const
   return m_paused;
 }
 
-std::unique_ptr<Engine::Execution::ClockManager>
-ClockFactory::make(const Engine::Execution::Context& ctx)
+std::unique_ptr<Execution::ClockManager>
+ClockFactory::make(const Execution::Context& ctx)
 {
   return std::make_unique<Clock>(ctx);
 }
 
-Engine::Execution::time_function
+Execution::time_function
 ClockFactory::makeTimeFunction(const score::DocumentContext& ctx) const
 {
   auto rate = ctx.app.settings<Audio::Settings::Model>().getRate();
@@ -164,7 +164,7 @@ ClockFactory::makeTimeFunction(const score::DocumentContext& ctx) const
   };
 }
 
-Engine::Execution::reverse_time_function
+Execution::reverse_time_function
 ClockFactory::makeReverseTimeFunction(const score::DocumentContext& ctx) const
 {
   auto rate = ctx.app.settings<Audio::Settings::Model>().getRate();

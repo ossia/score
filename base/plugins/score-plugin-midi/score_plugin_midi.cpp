@@ -20,7 +20,7 @@ score_plugin_midi::factories(
       score::ApplicationContext,
       FW<Process::ProcessModelFactory, Midi::ProcessFactory>,
       FW<Process::LayerFactory, Midi::LayerFactory>,
-      FW<Engine::Execution::ProcessComponentFactory,
+      FW<Execution::ProcessComponentFactory,
          Midi::Executor::ComponentFactory>,
       FW<Scenario::DropHandler, Midi::DropMidiInSenario>,
       FW<Inspector::InspectorWidgetFactory, Midi::InspectorFactory>>(ctx, key);

@@ -25,7 +25,7 @@ State::State(
   m_properties.push_back(
       add_setProperty<::State::impulse>(node(), "trigger", [&](auto) {
         auto plug
-            = doc.context().findPlugin<Engine::Execution::DocumentPlugin>();
+            = doc.context().findPlugin<Execution::DocumentPlugin>();
         if (plug)
         {
           auto ossia_state

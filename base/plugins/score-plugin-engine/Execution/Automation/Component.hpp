@@ -20,14 +20,14 @@ namespace Automation
 namespace RecreateOnPlay
 {
 class Component final
-    : public ::Engine::Execution::
+    : public ::Execution::
           ProcessComponent_T<Automation::ProcessModel, ossia::node_process>
 {
   COMPONENT_METADATA("f759eacd-5a67-4627-bbe8-c649e0f9b6c5")
 public:
   Component(
       Automation::ProcessModel& element,
-      const ::Engine::Execution::Context& ctx,
+      const ::Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent);
 
@@ -44,10 +44,10 @@ private:
   on_curveChanged_impl(const optional<ossia::destination>&);
 };
 using ComponentFactory
-    = ::Engine::Execution::ProcessComponentFactory_T<Component>;
+    = ::Execution::ProcessComponentFactory_T<Component>;
 }
 }
 
 SCORE_CONCRETE_COMPONENT_FACTORY(
-    Engine::Execution::ProcessComponentFactory,
+    Execution::ProcessComponentFactory,
     Automation::RecreateOnPlay::ComponentFactory)

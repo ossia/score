@@ -8,6 +8,7 @@
 #include <ossia/editor/scenario/time_sync.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
 #include <ossia/editor/state/state.hpp>
+#include <ossia/dataflow/execution_state.hpp>
 
 
 #include <Execution/EventComponent.hpp>
@@ -30,9 +31,8 @@
 #include <ossia/dataflow/nodes/forward_node.hpp>
 #include <vector>
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(Engine::Execution::BaseScenarioElement)
-namespace Engine
-{
+W_OBJECT_IMPL(Execution::BaseScenarioElement)
+
 namespace Execution
 {
 BaseScenarioElement::BaseScenarioElement(const Context& ctx, QObject* parent)
@@ -98,14 +98,18 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
   m_ossia_interval->onSetup(
       m_ossia_interval, main_interval, m_ossia_interval->makeDurations());
 
-  if(auto dev = m_ctx.devices.list().findDevice("audio"))
+  for(auto dev : m_ctx.execState->audioDevices)
   {
-    if(auto n = ossia::net::find_node(dev->getDevice()->get_root_node(), "/out/main"))
+    if(dev->get_name() == "audio")
     {
-      if(auto param = n->get_parameter())
+      if(auto n = ossia::net::find_node(dev->get_root_node(), "/out/main"))
       {
-        auto node = main_interval->node;
-        m_ctx.executionQueue.enqueue([=] { static_cast<ossia::nodes::interval*>(node.get())->audio_out.address = param; });
+        if(auto param = n->get_parameter())
+        {
+          auto node = main_interval->node;
+          m_ctx.executionQueue.enqueue([=] { static_cast<ossia::nodes::interval*>(node.get())->audio_out.address = param; });
+          break;
+        }
       }
     }
   }
@@ -171,7 +175,7 @@ StateComponent& BaseScenarioElement::endState() const
   return *m_ossia_endState;
 }
 }
-}
+
 
 BaseScenarioRefContainer::BaseScenarioRefContainer(
     Scenario::IntervalModel& interval, Scenario::ScenarioInterface& s)

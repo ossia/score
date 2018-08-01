@@ -85,7 +85,7 @@ private:
         FW<Process::LayerFactory, FaustDSP::LayerFactory<mydsp>>,
         // FW<Process::InspectorWidgetDelegateFactory,
         // Shader::InspectorFactory>,
-        FW<Engine::Execution::ProcessComponentFactory,
+        FW<Execution::ProcessComponentFactory,
            FaustDSP::ExecutorFactory<mydsp>>>(ctx, key);
   }
 };

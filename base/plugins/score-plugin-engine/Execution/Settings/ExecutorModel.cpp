@@ -10,8 +10,6 @@
 #include <Engine/score2OSSIA.hpp>
 #include <score/application/ApplicationContext.hpp>
 
-namespace Engine
-{
 namespace Execution
 {
 namespace Settings
@@ -55,7 +53,7 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 }
 
 std::unique_ptr<ClockManager>
-Model::makeClock(const Engine::Execution::Context& ctx) const
+Model::makeClock(const Execution::Context& ctx) const
 {
   auto it = m_clockFactories.find(m_Clock);
   return it != m_clockFactories.end() ? it->make(ctx)
@@ -66,7 +64,7 @@ time_function Model::makeTimeFunction(const score::DocumentContext& ctx) const
 {
   auto it = m_clockFactories.find(m_Clock);
   return it != m_clockFactories.end() ? it->makeTimeFunction(ctx)
-                                      : &score_to_ossia::defaultTime;
+                                      : &Engine::score_to_ossia::defaultTime;
 }
 
 reverse_time_function
@@ -74,7 +72,7 @@ Model::makeReverseTimeFunction(const score::DocumentContext& ctx) const
 {
   auto it = m_clockFactories.find(m_Clock);
   return it != m_clockFactories.end() ? it->makeReverseTimeFunction(ctx)
-                                      : &ossia_to_score::defaultTime;
+                                      : &Engine::ossia_to_score::defaultTime;
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(ClockManagerFactory::ConcreteKey, Model, Clock)
@@ -91,6 +89,5 @@ SCORE_SETTINGS_PARAMETER_CPP(bool, Model, Bench)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, ScoreOrder)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, ValueCompilation)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, TransportValueCompilation)
-}
 }
 }

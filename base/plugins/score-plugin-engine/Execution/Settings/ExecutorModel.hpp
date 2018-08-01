@@ -6,8 +6,7 @@
 #include <Process/TimeValue.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 #include <score_plugin_engine_export.h>
-namespace Engine
-{
+
 namespace Execution
 {
 namespace Settings
@@ -95,7 +94,7 @@ public:
   }
 
   std::unique_ptr<ClockManager>
-  makeClock(const Engine::Execution::Context& ctx) const;
+  makeClock(const Execution::Context& ctx) const;
   time_function makeTimeFunction(const score::DocumentContext&) const;
   reverse_time_function
   makeReverseTimeFunction(const score::DocumentContext&) const;
@@ -130,6 +129,5 @@ SCORE_SETTINGS_PARAMETER(Model, Bench)
 SCORE_SETTINGS_PARAMETER(Model, ScoreOrder)
 SCORE_SETTINGS_PARAMETER(Model, ValueCompilation)
 SCORE_SETTINGS_PARAMETER(Model, TransportValueCompilation)
-}
 }
 }

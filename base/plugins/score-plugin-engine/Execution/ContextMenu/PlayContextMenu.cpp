@@ -17,13 +17,11 @@
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 #include <core/presenter/DocumentManager.hpp>
 
-namespace Engine
-{
 namespace Execution
 {
 
 PlayContextMenu::PlayContextMenu(
-    ApplicationPlugin& plug, const score::GUIApplicationContext& ctx)
+    Engine::ApplicationPlugin& plug, const score::GUIApplicationContext& ctx)
     : m_ctx{ctx}
 {
   auto& exec_signals
@@ -39,7 +37,7 @@ PlayContextMenu::PlayContextMenu(
     auto sm = focusedScenarioInterface(ctx);
     if (sm)
     {
-      auto& r_ctx = ctx.plugin<Engine::Execution::DocumentPlugin>().context();
+      auto& r_ctx = ctx.plugin<Execution::DocumentPlugin>().context();
 
       for (const StateModel* state : selectedElements(sm->getStates()))
       {
@@ -87,7 +85,7 @@ PlayContextMenu::PlayContextMenu(
           const Id<StateModel>& id) {
         const auto& ctx = m_ctx.documents.currentDocument()->context();
         auto& r_ctx
-            = ctx.plugin<Engine::Execution::DocumentPlugin>().context();
+            = ctx.plugin<Execution::DocumentPlugin>().context();
 
         auto ossia_state
             = Engine::score_to_ossia::state(scenar.state(id), r_ctx);
@@ -231,6 +229,5 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
     m_recordAutomations->setData(data);
     m_recordMessages->setData(data);
   });
-}
 }
 }

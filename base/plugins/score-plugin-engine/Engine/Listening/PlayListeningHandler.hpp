@@ -5,18 +5,16 @@ namespace Device
 {
 class DeviceList;
 }
-namespace Engine
-{
 namespace Execution
 {
 class DocumentPlugin;
 
 class PlayListeningHandler final : public Explorer::ListeningHandler
 {
-  const Engine::Execution::DocumentPlugin& m_executor;
+  const Execution::DocumentPlugin& m_executor;
 
 public:
-  PlayListeningHandler(const Engine::Execution::DocumentPlugin& docpl);
+  PlayListeningHandler(const Execution::DocumentPlugin& docpl);
 
 private:
   void setListening(
@@ -31,5 +29,4 @@ private:
       Device::DeviceInterface& dev,
       const std::vector<State::Address>& v) override;
 };
-}
 }

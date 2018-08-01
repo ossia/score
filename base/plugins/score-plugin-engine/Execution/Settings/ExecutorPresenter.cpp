@@ -12,10 +12,8 @@
 #include <score/command/SettingsCommand.hpp>
 
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(Engine::Execution::Settings::Model)
-W_OBJECT_IMPL(Engine::Execution::Settings::View)
-namespace Engine
-{
+W_OBJECT_IMPL(Execution::Settings::Model)
+W_OBJECT_IMPL(Execution::Settings::View)
 namespace Execution
 {
 namespace Settings
@@ -76,5 +74,5 @@ QIcon Presenter::settingsIcon()
   return QApplication::style()->standardIcon(QStyle::SP_MediaPlay);
 }
 }
-}
+
 }

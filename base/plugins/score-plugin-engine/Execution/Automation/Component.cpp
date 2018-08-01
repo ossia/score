@@ -77,7 +77,7 @@ struct range_position
 
 Component::Component(
     ::Automation::ProcessModel& element,
-    const ::Engine::Execution::Context& ctx,
+    const ::Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
     : ProcessComponent_T{element, ctx, id, "Executor::AutomationComponent",
@@ -108,7 +108,7 @@ Component::~Component()
 void Component::recompute()
 {
   auto dest = Engine::score_to_ossia::makeDestination(
-      system().devices.list(), process().address());
+      *system().execState, process().address());
 
   if (dest)
   {

@@ -23,15 +23,15 @@
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <Execution/ExecutorSetup.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <utility>
 #include <wobjectimpl.h>
 #include <ossia/detail/pod_vector.hpp>
-W_OBJECT_IMPL(Engine::Execution::IntervalRawPtrComponent)
-namespace Engine
-{
+W_OBJECT_IMPL(Execution::IntervalRawPtrComponent)
+
 namespace Execution
 {
 IntervalRawPtrComponentBase::IntervalRawPtrComponentBase(
@@ -111,7 +111,7 @@ void IntervalRawPtrComponent::init()
                                  ossia::inlet_ptr{}, prev_node, m_ossia_interval->node));
 
         std::weak_ptr<ossia::graph_interface> g_weak
-            = context().plugin.execGraph;
+            = context().execGraph;
 
         in_exec([edges = std::move(edges_to_add), g_weak] {
           if (auto g = g_weak.lock())
@@ -137,7 +137,7 @@ void IntervalRawPtrComponent::cleanup(
       itv->set_callback(ossia::time_interval::exec_callback{});
       itv->cleanup();
     });
-    system().plugin.unregister_node(
+    system().setup.unregister_node(
         {interval().inlet.get()}, {interval().outlet.get()},
         m_ossia_interval->node);
   }
@@ -183,7 +183,7 @@ void IntervalRawPtrComponent::onSetup(
   });
 
   // set-up the interval ports
-  system().plugin.register_node(
+  system().setup.register_node(
       {interval().inlet.get()}, {interval().outlet.get()},
       m_ossia_interval->node);
 
@@ -267,7 +267,7 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
 {
   try
   {
-    const Engine::Execution::Context& ctx = system();
+    const Execution::Context& ctx = system();
     auto plug = fac.make(proc, ctx, id, nullptr);
     if (plug && plug->OSSIAProcessPtr())
     {
@@ -283,7 +283,7 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
       }
 
       if (auto& onode = plug->node)
-        ctx.plugin.register_node(proc, onode);
+        ctx.setup.register_node(proc, onode);
 
       auto cst = m_ossia_interval;
 
@@ -300,7 +300,7 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
 
       std::weak_ptr<ossia::time_process> oproc_weak = oproc;
       std::weak_ptr<ossia::graph_interface> g_weak
-          = plug->system().plugin.execGraph;
+          = plug->system().execGraph;
       std::weak_ptr<ossia::graph_node> cst_node_weak = cst->node;
 
       in_exec(
@@ -394,6 +394,5 @@ std::function<void()> IntervalRawPtrComponentBase::removing(
     return [=] { m_processes.erase(it); };
   }
   return {};
-}
 }
 }

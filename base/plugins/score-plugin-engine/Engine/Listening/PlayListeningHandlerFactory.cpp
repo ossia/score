@@ -7,16 +7,13 @@
 #include <Execution/DocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <score/document/DocumentContext.hpp>
-namespace Engine
-{
 namespace Execution
 {
 std::unique_ptr<Explorer::ListeningHandler> PlayListeningHandlerFactory::make(
     const Explorer::DeviceDocumentPlugin& plug,
     const score::DocumentContext& ctx)
 {
-  auto& exe = ctx.plugin<Engine::Execution::DocumentPlugin>();
+  auto& exe = ctx.plugin<Execution::DocumentPlugin>();
   return std::make_unique<PlayListeningHandler>(exe);
-}
 }
 }

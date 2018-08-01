@@ -10,8 +10,6 @@ namespace ossia
 class time_event;
 }
 
-namespace Engine
-{
 namespace Execution
 {
 class EventComponent final
@@ -22,7 +20,7 @@ class EventComponent final
 public:
   EventComponent(
       const Scenario::EventModel& element,
-      const Engine::Execution::Context& ctx,
+      const Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent);
 
@@ -52,4 +50,4 @@ private:
   std::shared_ptr<ossia::time_event> m_ossia_event;
 };
 }
-}
+

@@ -4,15 +4,7 @@
 #include <Dataflow/UI/PortItem.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Interpolation/InterpolationFactory.hpp>
-#include <Process/Dataflow/PortFactory.hpp>
-#include <Process/LayerPresenter.hpp>
-#include <Process/ProcessFactory.hpp>
-#include <Process/ProcessList.hpp>
 #include <Process/TimeValue.hpp>
-#include <QList>
-#include <QMetaType>
-#include <QPainterPath>
-#include <QString>
 #include <Process/TimeValueSerialization.hpp>
 #include <Scenario/Application/Drops/AutomationDropHandler.hpp>
 #include <Scenario/Application/Drops/MessageDropHandler.hpp>
@@ -61,6 +53,10 @@
 #include <score/widgets/GraphicsItem.hpp>
 #include <score_plugin_scenario_commands_files.hpp>
 #include <utility>
+#include <QList>
+#include <QMetaType>
+#include <QPainterPath>
+#include <QString>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Interpolation::Presenter)
@@ -115,9 +111,7 @@ score_plugin_scenario::factoryFamilies()
   using namespace Scenario;
   using namespace Scenario::Command;
   return make_ptr_vector<
-      score::InterfaceListBase, Process::ProcessFactoryList,
-      Process::PortFactoryList, Process::LayerFactoryList,
-      Process::ProcessFactoryList, MoveEventList, CSPCoherencyCheckerList,
+      score::InterfaceListBase, MoveEventList, CSPCoherencyCheckerList,
       DisplayedElementsToolPaletteFactoryList, TriggerCommandFactoryList,
       DisplayedElementsProviderList, DropHandlerList,
       IntervalDropHandlerList>();

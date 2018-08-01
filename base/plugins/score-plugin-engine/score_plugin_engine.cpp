@@ -68,17 +68,17 @@
 #include <score_plugin_scenario.hpp>
 #include <score_plugin_deviceexplorer.hpp>
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(Engine::ManualClock::TimeWidget)
+W_OBJECT_IMPL(Execution::ManualClock::TimeWidget)
 
 score_plugin_engine::score_plugin_engine()
 {
-  qRegisterMetaType<Engine::Execution::ClockManagerFactory::ConcreteKey>(
+  qRegisterMetaType<Execution::ClockManagerFactory::ConcreteKey>(
       "ClockManagerKey");
   qRegisterMetaTypeStreamOperators<
-      Engine::Execution::ClockManagerFactory::ConcreteKey>("ClockManagerKey");
+      Execution::ClockManagerFactory::ConcreteKey>("ClockManagerKey");
 
-  qRegisterMetaType<std::shared_ptr<Engine::Execution::ProcessComponent>>();
-  qRegisterMetaType<std::shared_ptr<Engine::Execution::EventComponent>>();
+  qRegisterMetaType<std::shared_ptr<Execution::ProcessComponent>>();
+  qRegisterMetaType<std::shared_ptr<Execution::EventComponent>>();
   qRegisterMetaType<ossia::time_event::status>();
   qRegisterMetaType<ossia::time_value>();
 }
@@ -98,8 +98,8 @@ score_plugin_engine::factoryFamilies()
 {
   return make_ptr_vector<
       score::InterfaceListBase, Engine::LocalTree::ProcessComponentFactoryList,
-      Engine::Execution::ProcessComponentFactoryList,
-      Engine::Execution::ClockManagerFactoryList>();
+      Execution::ProcessComponentFactoryList,
+      Execution::ClockManagerFactoryList>();
 }
 
 std::vector<std::unique_ptr<score::InterfaceBase>>
@@ -108,7 +108,7 @@ score_plugin_engine::factories(
 {
   using namespace Scenario;
   using namespace Engine;
-  using namespace Engine::Execution;
+  using namespace Execution;
   return instantiate_factories<
       score::ApplicationContext,
       FW<Device::ProtocolFactory, Network::LocalProtocolFactory
@@ -154,8 +154,8 @@ score_plugin_engine::factories(
         Network::JoystickProtocolFactory
 #endif
          >,
-      FW<Engine::Execution::ProcessComponentFactory,
-         Engine::Execution::ScenarioComponentFactory
+      FW<Execution::ProcessComponentFactory,
+         Execution::ScenarioComponentFactory
          //, Interpolation::Executor::ComponentFactory
          ,
          Automation::RecreateOnPlay::ComponentFactory,
@@ -165,8 +165,8 @@ score_plugin_engine::factories(
          Spline::RecreateOnPlay::ComponentFactory,
          Metronome::RecreateOnPlay::ComponentFactory>,
       FW<Explorer::ListeningHandlerFactory,
-         Engine::Execution::PlayListeningHandlerFactory>,
-      FW<score::SettingsDelegateFactory, Engine::Execution::Settings::Factory,
+         Execution::PlayListeningHandlerFactory>,
+      FW<score::SettingsDelegateFactory, Execution::Settings::Factory,
          Audio::Settings::Factory>,
       FW<Engine::LocalTree::ProcessComponentFactory,
          Engine::LocalTree::ScenarioComponentFactory,
@@ -175,8 +175,8 @@ score_plugin_engine::factories(
          Engine::LocalTree::MappingComponentFactory>,
       FW<score::PanelDelegateFactory,
          Audio::PanelDelegateFactory>,
-      FW<Engine::Execution::ClockManagerFactory
-         // , Engine::Execution::ControlClockFactory
+      FW<Execution::ClockManagerFactory
+         // , Execution::ControlClockFactory
          , Dataflow::ClockFactory
          // , Engine::ManualClock::ClockFactory
       >>(ctx, key);

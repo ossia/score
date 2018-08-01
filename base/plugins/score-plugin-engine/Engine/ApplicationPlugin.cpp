@@ -348,7 +348,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     connect(sl, &Control::VolumeSlider::valueChanged, this, [=] (double v) {
       if (m_clock)
       {
-        if (auto& st = m_clock->context.plugin.execState)
+        if (auto& st = m_clock->context.execState)
         {
           for (auto& dev : st->audioDevices)
           {
@@ -419,7 +419,7 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
     lt->init();
     initLocalTreeNodes(*lt);
   }
-  score::addDocumentPlugin<Engine::Execution::DocumentPlugin>(doc);
+  score::addDocumentPlugin<Execution::DocumentPlugin>(doc);
 }
 
 
@@ -542,7 +542,7 @@ void ApplicationPlugin::on_transport(TimeVal t)
   auto& ctx = m_clock->context;
   if(ctx.settings.getTransportValueCompilation())
   {
-    auto execState = m_clock->context.plugin.execState;
+    auto execState = m_clock->context.execState;
     ctx.executionQueue.enqueue(
         [execState, itv, time = m_clock->context.time(t)] {
       itv->offset(time);
@@ -561,7 +561,7 @@ void ApplicationPlugin::on_transport(TimeVal t)
 void ApplicationPlugin::on_play(
     Scenario::IntervalModel& cst,
     bool b,
-    std::function<void(const Engine::Execution::Context&)> setup_fun,
+    std::function<void(const Execution::Context&)> setup_fun,
     TimeVal t)
 {
   auto doc = currentDocument();
@@ -569,7 +569,7 @@ void ApplicationPlugin::on_play(
     return;
 
   auto plugmodel
-      = doc->context().findPlugin<Engine::Execution::DocumentPlugin>();
+      = doc->context().findPlugin<Execution::DocumentPlugin>();
   if (!plugmodel)
     return;
 
@@ -637,7 +637,7 @@ void ApplicationPlugin::on_record(::TimeVal t)
   if (auto doc = currentDocument())
   {
     auto plugmodel
-        = doc->context().findPlugin<Engine::Execution::DocumentPlugin>();
+        = doc->context().findPlugin<Execution::DocumentPlugin>();
     if (!plugmodel)
       return;
     auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(
@@ -675,7 +675,7 @@ void ApplicationPlugin::on_stop()
   {
     doc->context().execTimer.stop();
     auto plugmodel
-        = doc->context().findPlugin<Engine::Execution::DocumentPlugin>();
+        = doc->context().findPlugin<Execution::DocumentPlugin>();
     if (!plugmodel)
       return;
     else
@@ -733,7 +733,7 @@ void ApplicationPlugin::on_init()
   if (auto doc = currentDocument())
   {
     auto plugmodel
-        = doc->context().findPlugin<Engine::Execution::DocumentPlugin>();
+        = doc->context().findPlugin<Execution::DocumentPlugin>();
     if (!plugmodel)
       return;
 
@@ -982,10 +982,10 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
   }
 }
 
-std::unique_ptr<Engine::Execution::ClockManager>
-ApplicationPlugin::makeClock(const Engine::Execution::Context& ctx)
+std::unique_ptr<Execution::ClockManager>
+ApplicationPlugin::makeClock(const Execution::Context& ctx)
 {
-  auto& s = context.settings<Engine::Execution::Settings::Model>();
+  auto& s = context.settings<Execution::Settings::Model>();
   return s.makeClock(ctx);
 }
 }

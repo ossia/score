@@ -1,15 +1,17 @@
 #pragma once
 #include <ossia/editor/scenario/time_value.hpp>
-
 #include <Process/TimeValue.hpp>
-#include <functional>
 #include <readerwriterqueue.h>
 #include <score_plugin_engine_export.h>
 #include <smallfun.hpp>
+#include <functional>
+#include <memory>
 
 namespace ossia
 {
 class graph_node;
+class graph_interface;
+struct execution_state;
 }
 namespace score
 {
@@ -24,11 +26,7 @@ class DeviceDocumentPlugin;
 namespace Process
 {
 class ProcessModel;
-class ProcessModel;
 }
-
-namespace Engine
-{
 namespace Execution
 {
 class DocumentPlugin;
@@ -36,6 +34,7 @@ class ProcessComponent;
 class ProcessComponentFactory;
 class ProcessComponentFactoryList;
 class BaseScenarioElement;
+struct SetupContext;
 namespace Settings
 {
 class Model;
@@ -62,30 +61,33 @@ struct SCORE_PLUGIN_ENGINE_EXPORT Context
   Context& operator=(Context&&) = delete;
 
   const score::DocumentContext& doc;
-  Engine::Execution::BaseScenarioElement& scenario;
-  const Explorer::DeviceDocumentPlugin& devices;
-  const Engine::Execution::ProcessComponentFactoryList& processes;
-  const Engine::Execution::Settings::Model& settings;
+  Execution::BaseScenarioElement& scenario;
+  const Execution::Settings::Model& settings;
 
   /** Used to map the "high-level" durations in score to low-level durations
    *
    * For instance, milliseconds to microseconds
    * or milliseconds to samples
    */
-  Engine::Execution::time_function time;
-  Engine::Execution::reverse_time_function reverseTime;
+  Execution::time_function time;
+  Execution::reverse_time_function reverseTime;
 
   //! \see LiveModification
   ExecutionCommandQueue& executionQueue;
   ExecutionCommandQueue& editionQueue;
   DocumentPlugin& plugin;
+  SetupContext& setup;
+
+  const std::shared_ptr<ossia::graph_interface>& execGraph;
+  const std::shared_ptr<ossia::execution_state>& execState;
 
   auto& context() const
   {
     return *this;
   }
+
+
 };
-}
 }
 
 #define in_exec system().executionQueue.enqueue

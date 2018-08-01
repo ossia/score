@@ -25,6 +25,7 @@
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <Execution/ExecutorSetup.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
@@ -32,10 +33,9 @@
 #include <utility>
 #include <wobjectimpl.h>
 #include <ossia/detail/pod_vector.hpp>
-W_OBJECT_IMPL(Engine::Execution::IntervalComponentBase)
-W_OBJECT_IMPL(Engine::Execution::IntervalComponent)
-namespace Engine
-{
+W_OBJECT_IMPL(Execution::IntervalComponentBase)
+W_OBJECT_IMPL(Execution::IntervalComponent)
+
 namespace Execution
 {
 IntervalComponentBase::IntervalComponentBase(
@@ -157,7 +157,7 @@ void IntervalComponent::init()
                                  ossia::inlet_ptr{}, prev_node, m_ossia_interval->node));
 
         std::weak_ptr<ossia::graph_interface> g_weak
-            = context().plugin.execGraph;
+            = context().execGraph;
 
         in_exec([edges = std::move(edges_to_add), g_weak] {
           if (auto g = g_weak.lock())
@@ -182,7 +182,7 @@ void IntervalComponent::cleanup(const std::shared_ptr<IntervalComponent>& self)
       itv->set_callback(ossia::time_interval::exec_callback{});
       itv->cleanup();
     });
-    system().plugin.unregister_node(
+    system().setup.unregister_node(
         {interval().inlet.get()}, {interval().outlet.get()},
         m_ossia_interval->node);
   }
@@ -228,7 +228,7 @@ void IntervalComponent::onSetup(
   });
 
   // set-up the interval ports
-  system().plugin.register_node(
+  system().setup.register_node(
       {interval().inlet.get()}, {interval().outlet.get()},
       m_ossia_interval->node);
 
@@ -311,7 +311,7 @@ ProcessComponent* IntervalComponentBase::make(
 {
   try
   {
-    const Engine::Execution::Context& ctx = system();
+    const Execution::Context& ctx = system();
     auto plug = fac.make(proc, ctx, id, nullptr);
     if (plug && plug->OSSIAProcessPtr())
     {
@@ -327,7 +327,7 @@ ProcessComponent* IntervalComponentBase::make(
       }
 
       if (auto& onode = plug->node)
-        ctx.plugin.register_node(proc, onode);
+        ctx.setup.register_node(proc, onode);
 
       if (interval().muted())
         mute_rec{true}(*oproc);
@@ -347,7 +347,7 @@ ProcessComponent* IntervalComponentBase::make(
 
       std::weak_ptr<ossia::time_process> oproc_weak = oproc;
       std::weak_ptr<ossia::graph_interface> g_weak
-          = plug->system().plugin.execGraph;
+          = plug->system().execGraph;
       std::weak_ptr<ossia::graph_node> cst_node_weak = cst->node;
 
       in_exec(
@@ -443,4 +443,4 @@ std::function<void()> IntervalComponentBase::removing(
   return {};
 }
 }
-}
+

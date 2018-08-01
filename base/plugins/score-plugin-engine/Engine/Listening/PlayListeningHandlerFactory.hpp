@@ -2,8 +2,6 @@
 
 #include <Explorer/Listening/ListeningHandlerFactory.hpp>
 
-namespace Engine
-{
 namespace Execution
 {
 class PlayListeningHandlerFactory final
@@ -15,5 +13,4 @@ public:
       const Explorer::DeviceDocumentPlugin& plug,
       const score::DocumentContext& ctx) override;
 };
-}
 }

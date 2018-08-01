@@ -80,7 +80,7 @@ private:
 
 
 class LV2EffectComponent final
-    : public Engine::Execution::
+    : public Execution::
           ProcessComponent_T<Media::LV2::LV2EffectModel, ossia::node_process>
 {
   W_OBJECT(LV2EffectComponent)
@@ -91,7 +91,7 @@ public:
 
   LV2EffectComponent(
       Media::LV2::LV2EffectModel& proc,
-      const Engine::Execution::Context& ctx,
+      const Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent);
 
@@ -118,6 +118,6 @@ namespace Media::LV2
 {
 using LV2EffectFactory = Process::EffectProcessFactory_T<LV2EffectModel>;
 using LV2EffectComponentFactory
-    = Engine::Execution::ProcessComponentFactory_T<LV2EffectComponent>;
+    = Execution::ProcessComponentFactory_T<LV2EffectComponent>;
 
 }

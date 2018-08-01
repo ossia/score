@@ -13,8 +13,6 @@
 #include <Engine/OSSIA2score.hpp>
 #include <Engine/score2OSSIA.hpp>
 
-namespace Engine
-{
 namespace Execution
 {
 DefaultClockManager::~DefaultClockManager() = default;
@@ -34,12 +32,12 @@ void DefaultClockManager::prepareExecution(
     // Send the first state
     const auto& oc = comp.OSSIAInterval();
     oc->get_start_event().tick(ossia::Zero, 0., ossia::Zero);
-    context.plugin.execGraph->state(*context.plugin.execState);
+    context.execGraph->state(*context.execState);
 
     if (t != TimeVal::zero())
       oc->offset(context.time(t));
 
-    context.plugin.execState->commit();
+    context.execState->commit();
   }
 }
 
@@ -74,7 +72,7 @@ void DefaultClockManager::stop_impl(BaseScenarioElement& bs)
 
 ControlClockFactory::~ControlClockFactory() = default;
 
-ControlClock::ControlClock(const Engine::Execution::Context& ctx)
+ControlClock::ControlClock(const Execution::Context& ctx)
     : ClockManager{ctx}
     , m_default{ctx}
     , m_clock{*ctx.scenario.baseInterval().OSSIAInterval(), 1.}
@@ -88,8 +86,8 @@ ControlClock::ControlClock(const Engine::Execution::Context& ctx)
     {
       context.scenario.endEvent().OSSIAEvent()->tick(
           ossia::Zero, 0., ossia::Zero);
-      context.plugin.execGraph->state(*context.plugin.execState);
-      context.plugin.execState->commit();
+      context.execGraph->state(*context.execState);
+      context.execState->commit();
 
       context.scenario.finished();
     }
@@ -97,7 +95,7 @@ ControlClock::ControlClock(const Engine::Execution::Context& ctx)
 }
 
 void ControlClock::play_impl(
-    const TimeVal& t, Engine::Execution::BaseScenarioElement& bs)
+    const TimeVal& t, Execution::BaseScenarioElement& bs)
 {
   m_default.prepareExecution(t, bs);
   try
@@ -111,19 +109,19 @@ void ControlClock::play_impl(
   }
 }
 
-void ControlClock::pause_impl(Engine::Execution::BaseScenarioElement& bs)
+void ControlClock::pause_impl(Execution::BaseScenarioElement& bs)
 {
   m_clock.pause();
   m_default.pause();
 }
 
-void ControlClock::resume_impl(Engine::Execution::BaseScenarioElement& bs)
+void ControlClock::resume_impl(Execution::BaseScenarioElement& bs)
 {
   m_default.resume();
   m_clock.resume();
 }
 
-void ControlClock::stop_impl(Engine::Execution::BaseScenarioElement& bs)
+void ControlClock::stop_impl(Execution::BaseScenarioElement& bs)
 {
   m_clock.stop();
   m_default.stop();
@@ -140,22 +138,22 @@ QString ControlClockFactory::prettyName() const
 }
 
 std::unique_ptr<ClockManager>
-ControlClockFactory::make(const Engine::Execution::Context& ctx)
+ControlClockFactory::make(const Execution::Context& ctx)
 {
   return std::make_unique<ControlClock>(ctx);
 }
 
-Engine::Execution::time_function
+Execution::time_function
 ControlClockFactory::makeTimeFunction(const score::DocumentContext& ctx) const
 {
-  return &score_to_ossia::defaultTime;
+  return &Engine::score_to_ossia::defaultTime;
 }
 
-Engine::Execution::reverse_time_function
+Execution::reverse_time_function
 ControlClockFactory::makeReverseTimeFunction(
     const score::DocumentContext& ctx) const
 {
-  return &ossia_to_score::defaultTime;
+  return &Engine::ossia_to_score::defaultTime;
 }
 }
-}
+

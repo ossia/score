@@ -20,14 +20,14 @@ namespace Mapping
 namespace RecreateOnPlay
 {
 class Component final
-    : public ::Engine::Execution::
+    : public ::Execution::
           ProcessComponent_T<Mapping::ProcessModel, ossia::node_process>
 {
   COMPONENT_METADATA("da360b58-9885-4106-be54-8e272ed45dbe")
 public:
   Component(
       ::Mapping::ProcessModel& element,
-      const ::Engine::Execution::Context& ctx,
+      const ::Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent);
 
@@ -47,10 +47,10 @@ private:
 };
 
 using ComponentFactory
-    = ::Engine::Execution::ProcessComponentFactory_T<Component>;
+    = ::Execution::ProcessComponentFactory_T<Component>;
 }
 }
 
 SCORE_CONCRETE_COMPONENT_FACTORY(
-    Engine::Execution::ProcessComponentFactory,
+    Execution::ProcessComponentFactory,
     Mapping::RecreateOnPlay::ComponentFactory)

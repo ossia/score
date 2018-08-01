@@ -95,15 +95,15 @@ struct js_process final
 };
 Component::Component(
     JS::ProcessModel& element,
-    const ::Engine::Execution::Context& ctx,
+    const ::Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
-    : ::Engine::Execution::
+    : ::Execution::
           ProcessComponent_T<JS::ProcessModel, ossia::node_process>{
               element, ctx, id, "JSComponent", parent}
 {
   std::shared_ptr<js_node> node
-      = std::make_shared<js_node>(*ctx.plugin.execState);
+      = std::make_shared<js_node>(*ctx.execState);
   this->node = node;
   auto proc = std::make_shared<js_process>(node);
   m_ossia_process = proc;

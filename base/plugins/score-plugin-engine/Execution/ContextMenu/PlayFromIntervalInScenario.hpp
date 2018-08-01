@@ -3,8 +3,6 @@
 #include <Scenario/Document/Graph.hpp>
 #include <hopscotch_set.h>
 
-namespace Engine
-{
 namespace Execution
 {
 struct Context;
@@ -26,4 +24,4 @@ struct PlayFromIntervalScenarioPruner
   void operator()(const Context& exec_ctx);
 };
 }
-}
+

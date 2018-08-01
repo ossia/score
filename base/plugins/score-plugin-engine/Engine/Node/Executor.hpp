@@ -16,14 +16,14 @@ template <typename Info_T, typename Node_T, typename Element>
 struct setup_Impl0
 {
   Element& element;
-  const Engine::Execution::Context& ctx;
+  const Execution::Context& ctx;
   const std::shared_ptr<Node_T>& node_ptr;
   QObject* parent;
 
   template <typename Idx_T>
   struct con_validated
   {
-    const Engine::Execution::Context& ctx;
+    const Execution::Context& ctx;
     std::weak_ptr<Node_T> weak_node;
     void operator()(const ossia::value& val)
     {
@@ -47,7 +47,7 @@ struct setup_Impl0
   template <typename Idx_T>
   struct con_unvalidated
   {
-    const Engine::Execution::Context& ctx;
+    const Execution::Context& ctx;
     std::weak_ptr<Node_T> weak_node;
     void operator()(const ossia::value& val)
     {
@@ -124,7 +124,7 @@ template <typename Info, typename Node_T, typename Element_T>
 void setup_node(
     const std::shared_ptr<Node_T>& node_ptr,
     Element_T& element,
-    const Engine::Execution::Context& ctx,
+    const Execution::Context& ctx,
     QObject* parent)
 {
   using namespace ossia::safe_nodes;
@@ -169,7 +169,7 @@ void setup_node(
 
 template <typename Info>
 class Executor final
-    : public Engine::Execution::
+    : public Execution::
           ProcessComponent_T<ControlProcess<Info>, ossia::node_process>
 {
 public:
@@ -186,15 +186,15 @@ public:
   bool key_match(score::Component::Key other) const noexcept final override
   {
     return static_key() == other
-           || Engine::Execution::ProcessComponent::base_key_match(other);
+           || Execution::ProcessComponent::base_key_match(other);
   }
 
   Executor(
       ControlProcess<Info>& element,
-      const ::Engine::Execution::Context& ctx,
+      const ::Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent)
-      : Engine::Execution::
+      : Execution::
             ProcessComponent_T<ControlProcess<Info>, ossia::node_process>{
                 element, ctx, id, "Executor::ControlProcess<Info>", parent}
   {

@@ -232,7 +232,7 @@ public:
       const score::DocumentContext& ctx,
       QWidget* parent)
       : Device::AddressDialog{parent}
-      , m_device{*ctx.plugin<Engine::Execution::DocumentPlugin>().audio_device}
+      , m_device{*ctx.plugin<Execution::DocumentPlugin>().audio_device}
       , m_layout{this}
       , m_nameEdit{this}
       , m_type{this}

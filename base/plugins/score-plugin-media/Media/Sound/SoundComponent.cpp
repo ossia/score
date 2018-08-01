@@ -7,18 +7,17 @@
 #include <Engine/score2OSSIA.hpp>
 
 #include <ossia/detail/pod_vector.hpp>
-namespace Engine
-{
+
 namespace Execution
 {
 using sound_proc_type = ossia::nodes::sound_ref;
 
 SoundComponent::SoundComponent(
     Media::Sound::ProcessModel& element,
-    const Engine::Execution::Context& ctx,
+    const Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
-    : Engine::Execution::
+    : Execution::
           ProcessComponent_T<Media::Sound::ProcessModel, ossia::node_process>{
               element, ctx, id, "Executor::SoundComponent", parent}
 {
@@ -88,19 +87,17 @@ void SoundComponent::recompute()
 SoundComponent::~SoundComponent()
 {
 }
-}
+
 }
 
-namespace Engine
-{
 namespace Execution
 {
 InputComponent::InputComponent(
     Media::Input::ProcessModel& element,
-    const Engine::Execution::Context& ctx,
+    const Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
-    : Engine::Execution::
+    : Execution::
           ProcessComponent_T<Media::Input::ProcessModel, ossia::node_process>{
               element, ctx, id, "Executor::InputComponent", parent}
 {
@@ -131,4 +128,4 @@ InputComponent::~InputComponent()
 {
 }
 }
-}
+

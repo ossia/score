@@ -26,7 +26,7 @@ score_addon_skeleton::factories(
       FW<Process::ProcessModelFactory, Skeleton::ProcessFactory>,
       FW<Process::LayerFactory, Skeleton::LayerFactory>,
       FW<Process::InspectorWidgetDelegateFactory, Skeleton::InspectorFactory>,
-      FW<Engine::Execution::ProcessComponentFactory,
+      FW<Execution::ProcessComponentFactory,
          Skeleton::ProcessExecutorComponentFactory>,
       FW<Engine::LocalTree::ProcessComponentFactory,
          Skeleton::LocalTreeProcessComponentFactory>>(ctx, key);
