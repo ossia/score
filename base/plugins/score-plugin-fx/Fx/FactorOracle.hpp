@@ -10,7 +10,7 @@ class FactorOracle
 public:
   FactorOracle(int sz = 0)
     : m_oracleSize{sz}
-    , m_forwardLink(m_oracleSize + 1, {-1})
+    , m_forwardLink(m_oracleSize + 1, std::vector<int>{-1})
     , m_rand_engine{std::random_device{}()}
   {
     m_sp[0] = -1;
