@@ -381,8 +381,11 @@ set_property(TARGET score_lib_base PROPERTY COTIRE_CXX_PREFIX_HEADER_INIT "${CMA
 setup_score_library(score_lib_base)
 setup_score_tests(tests)
 
-if(NOT license_text)
+set(_score_license_written 0 CACHE INTERNAL "")
+if(NOT _score_license_written)
+  set(_score_license_written 1 CACHE INTERNAL "")
   include(GenerateLicense)
+  file(WRITE "${CMAKE_BINARY_DIR}/score_licenses.hpp" "")
   AddLicenseFile(license_text ossia "${CMAKE_SOURCE_DIR}/API/LICENSE")
   AddLicenseFile(license_text score "${CMAKE_SOURCE_DIR}/LICENSE.txt")
   AddLicenseFile(license_text Asio "${OSSIA_3RDPARTY_FOLDER}/asio/asio/LICENSE_1_0.txt")
@@ -415,5 +418,4 @@ if(NOT license_text)
 
   AddLicenseFile(license_text qprogressindicator "${CMAKE_SOURCE_DIR}/base/lib/3rdparty/QProgressIndicator/LICENSE")
   AddLicenseFile(license_text qtcolorwidgets "${CMAKE_SOURCE_DIR}/base/lib/3rdparty/Qt-Color-Widgets/COPYING")
-  score_write_file(${CMAKE_BINARY_DIR}/score_licenses.hpp "${license_text}")
 endif()
