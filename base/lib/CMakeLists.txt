@@ -66,7 +66,6 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/command/Dispatchers/MacroCommandDispatcher.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/command/Dispatchers/OngoingCommandDispatcher.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/score/command/Dispatchers/QuietOngoingCommandDispatcher.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/command/Dispatchers/SendStrategy.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/command/Dispatchers/SettingsCommandDispatcher.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp"
@@ -187,7 +186,6 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/DoubleSlider.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/GraphicWidgets.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/GraphicsItem.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/GraphicsScene.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/GraphicsProxyObject.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/JS/JSEdit.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/MarginLess.hpp"
@@ -270,8 +268,6 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/settingsdelegate/SettingsDelegateFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/settingsdelegate/SettingsDelegateModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/settingsdelegate/SettingsDelegatePresenter.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/settingsdelegate/SettingsDelegateView.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/ProjectSettings/ProjectSettingsFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/ProjectSettings/ProjectSettingsModel.cpp"

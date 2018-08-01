@@ -1,7 +1,6 @@
 #pragma once
 #include <ossia/network/domain/domain.hpp>
 
-#include <Engine/Node/BaseWidgets.hpp>
 #include <Engine/Node/Port.hpp>
 #include <Engine/Node/TimeSignature.hpp>
 #include <Process/Dataflow/Port.hpp>

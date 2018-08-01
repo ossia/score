@@ -2,8 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TimeSyncComponent.hpp"
 
-#include "MetadataParameters.hpp"
-
 #include <State/Value.hpp>
 
 namespace Engine

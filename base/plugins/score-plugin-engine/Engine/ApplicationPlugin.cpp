@@ -16,7 +16,6 @@
 #include <Execution/Settings/ExecutorModel.hpp>
 #include <Execution/StateComponent.hpp>
 #include <LocalTree/LocalTreeDocumentPlugin.hpp>
-#include <Engine/OssiaLogger.hpp>
 #include <Protocols/Audio/AudioDevice.hpp>
 #include <Audio/Settings/Model.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>

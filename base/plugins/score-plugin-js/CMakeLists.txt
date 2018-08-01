@@ -38,7 +38,6 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/ConsolePanel.hpp"
 )
 set(SRCS
-"${CMAKE_CURRENT_SOURCE_DIR}/JS/ConsolePanel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessModelSerialization.cpp"
 

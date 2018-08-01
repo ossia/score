@@ -7,7 +7,6 @@
 
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Engine/ApplicationPlugin.hpp>
-#include <Engine/AudioPanel.hpp>
 #include <Execution/Automation/Component.hpp>
 #include <Execution/Automation/GradientComponent.hpp>
 #include <Execution/Automation/MetronomeComponent.hpp>
@@ -27,6 +26,7 @@
 #include <LocalTree/Scenario/ScenarioComponent.hpp>
 #include <Protocols/Local/LocalProtocolFactory.hpp>
 #include <Audio/Settings/Factory.hpp>
+#include <Audio/AudioPanel.hpp>
 #include <QString>
 #include <ossia-config.hpp>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
