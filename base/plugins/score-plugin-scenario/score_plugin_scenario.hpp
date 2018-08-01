@@ -69,19 +69,15 @@ public:
   ~score_plugin_scenario() override;
 
 private:
-  // Application plugin interface
   score::GUIApplicationPlugin*
   make_guiApplicationPlugin(const score::GUIApplicationContext& app) override;
 
   std::pair<const CommandGroupKey, CommandGeneratorMap>
   make_commands() override;
 
-  // Offre la factory de Process
   std::vector<std::unique_ptr<score::InterfaceListBase>>
   factoryFamilies() override;
 
-  // Crée les objets correspondant aux factories passées en argument.
-  // ex. si QString = Process, renvoie un vecteur avec ScenarioFactory.
   std::vector<std::unique_ptr<score::InterfaceBase>> factories(
       const score::ApplicationContext&,
       const score::InterfaceKey& factoryName) const override;

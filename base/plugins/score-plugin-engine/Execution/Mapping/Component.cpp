@@ -17,10 +17,10 @@ namespace RecreateOnPlay
 {
 Component::Component(
     ::Mapping::ProcessModel& element,
-    const ::Engine::Execution::Context& ctx,
+    const ::Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
-    : ::Engine::Execution::
+    : ::Execution::
           ProcessComponent_T<Mapping::ProcessModel, ossia::node_process>{
               element, ctx, id, "MappingElement", parent}
 {
@@ -53,7 +53,7 @@ Component::~Component()
 
 void Component::recompute()
 {
-  const auto& devices = system().devices.list();
+  const auto& devices = *system().execState;
   auto ossia_source_addr = Engine::score_to_ossia::makeDestination(
       devices, process().sourceAddress());
   auto ossia_target_addr = Engine::score_to_ossia::makeDestination(

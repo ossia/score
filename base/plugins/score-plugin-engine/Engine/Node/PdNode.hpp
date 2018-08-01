@@ -19,9 +19,9 @@ using ProcessFactory = Process::ProcessFactory_T<ControlProcess<Node>>;
 
 template <typename Node>
 struct ExecutorFactory final
-    : public Engine::Execution::ProcessComponentFactory_T<Executor<Node>>
+    : public Execution::ProcessComponentFactory_T<Executor<Node>>
 {
-  using Engine::Execution::ProcessComponentFactory_T<
+  using Execution::ProcessComponentFactory_T<
       Executor<Node>>::ProcessComponentFactory_T;
 };
 
@@ -46,7 +46,7 @@ template <typename... Nodes>
 std::vector<std::unique_ptr<score::InterfaceBase>> instantiate_fx(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key)
 {
-  if (key == Engine::Execution::ProcessComponentFactory::static_interfaceKey())
+  if (key == Execution::ProcessComponentFactory::static_interfaceKey())
   {
     return create_types<Nodes...>{}
         .template perform<Control::ExecutorFactory>();

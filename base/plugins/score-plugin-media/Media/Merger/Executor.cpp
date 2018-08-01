@@ -5,17 +5,15 @@
 
 #include <Engine/score2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-namespace Engine
-{
 namespace Execution
 {
 
 MergerComponent::MergerComponent(
     Media::Merger::Model& element,
-    const Engine::Execution::Context& ctx,
+    const Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
-    : Engine::Execution::
+    : Execution::
           ProcessComponent_T<Media::Merger::Model, ossia::node_process>{
               element, ctx, id, "Executor::MergerComponent", parent}
 {
@@ -32,6 +30,5 @@ void MergerComponent::recompute()
 
 MergerComponent::~MergerComponent()
 {
-}
 }
 }

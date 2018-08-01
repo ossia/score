@@ -3,6 +3,7 @@
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
+#include <score/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 /**
  * \namespace Process
  * \brief Base classes and tools to implement processes and layers
@@ -51,7 +52,7 @@
  * score provides extensions for processes through \ref score::Component%s.
  * Available extensions are :
  * * Execution of the process, given through
- * Engine::Execution::ProcessComponent.
+ * Execution::ProcessComponent.
  * * Local tree, given through Engine::LocalTree::ProcessComponent.
  *
  */
@@ -59,6 +60,7 @@
 class score_lib_process final
     : public score::Plugin_QtInterface
     , public score::FactoryInterface_QtInterface
+    , public score::FactoryList_QtInterface
     , public score::CommandFactory_QtInterface
     , public score::ApplicationPlugin_QtInterface
 {
@@ -74,7 +76,9 @@ private:
       const score::ApplicationContext& ctx,
       const score::InterfaceKey& factoryName) const override;
 
-  // CommandFactory_QtInterface interface
+  std::vector<std::unique_ptr<score::InterfaceListBase>>
+  factoryFamilies() override;
+
   std::pair<const CommandGroupKey, CommandGeneratorMap>
   make_commands() override;
 

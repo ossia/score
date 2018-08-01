@@ -51,9 +51,9 @@ ossia::state_element ProcessExecutor::state(ossia::time_value date, double pos)
 }
 
 ProcessExecutorComponent::ProcessExecutorComponent(
-    Engine::Execution::IntervalComponent& parentInterval,
+    Execution::IntervalComponent& parentInterval,
     Skeleton::Model& element,
-    const Engine::Execution::Context& ctx,
+    const Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
     : ProcessComponent_T{

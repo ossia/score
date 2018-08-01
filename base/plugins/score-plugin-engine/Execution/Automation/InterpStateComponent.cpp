@@ -54,7 +54,7 @@ namespace InterpState
 
 ExecComponent::ExecComponent(
     InterpState::ProcessModel& element,
-    const Engine::Execution::Context& ctx,
+    const Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
     : ProcessComponent_T{element, ctx, id, "Executor::InterpStateComponent", parent}
@@ -91,7 +91,7 @@ ExecComponent::~ExecComponent()
 void ExecComponent::recompute()
 {/*
   auto dest = Engine::score_to_ossia::makeDestination(
-      system().devices.list(), process().address());
+      system().execState, process().address());
 
   if (dest)
   {

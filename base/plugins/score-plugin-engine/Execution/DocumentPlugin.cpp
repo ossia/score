@@ -30,9 +30,7 @@
 #include <QCoreApplication>
 #include <wobjectimpl.h>
 W_REGISTER_ARGTYPE(ossia::bench_map)
-W_OBJECT_IMPL(Engine::Execution::DocumentPlugin)
-namespace Engine
-{
+W_OBJECT_IMPL(Execution::DocumentPlugin)
 namespace Execution
 {
 DocumentPlugin::DocumentPlugin(
@@ -44,14 +42,16 @@ DocumentPlugin::DocumentPlugin(
     , m_editionQueue(1024)
     , m_ctx{ctx,
             m_base,
-            ctx.plugin<Explorer::DeviceDocumentPlugin>(),
-            ctx.app.interfaces<ProcessComponentFactoryList>(),
             ctx.app.settings<Execution::Settings::Model>(),
             {},
             {},
             m_execQueue,
             m_editionQueue,
-            *this}
+            *this,
+            m_setup_ctx,
+            execGraph,
+            execState}
+    , m_setup_ctx{m_ctx}
     , m_base{m_ctx, this}
 {
   makeGraph();
@@ -70,11 +70,11 @@ DocumentPlugin::DocumentPlugin(
 
   auto& model = ctx.model<Scenario::ScenarioDocumentModel>();
   model.cables.mutable_added
-      .connect<&DocumentPlugin::on_cableCreated>(*this);
+      .connect<&SetupContext::on_cableCreated>(m_setup_ctx);
   model.cables.removing
-      .connect<&DocumentPlugin::on_cableRemoved>(*this);
+      .connect<&SetupContext::on_cableRemoved>(m_setup_ctx);
 
-  con(m_base, &Engine::Execution::BaseScenarioElement::finished, this,
+  con(m_base, &Execution::BaseScenarioElement::finished, this,
       [=] {
         auto& stop_action = context().doc.app.actions.action<Actions::Stop>();
         stop_action.action()->trigger();
@@ -87,31 +87,31 @@ DocumentPlugin::DocumentPlugin(
   connect(this, &DocumentPlugin::sig_bench, this, &DocumentPlugin::slot_bench);
 }
 
-void DocumentPlugin::on_cableCreated(Process::Cable& c)
+void SetupContext::on_cableCreated(Process::Cable& c)
 {
   connectCable(c);
 }
 
-void DocumentPlugin::on_cableRemoved(const Process::Cable& c)
+void SetupContext::on_cableRemoved(const Process::Cable& c)
 {
-  if (!m_base.active())
+  if (!context.scenario.active())
     return;
   auto it = m_cables.find(c.id());
   if (it != m_cables.end())
   {
-    context().executionQueue.enqueue(
-        [cable = it->second, graph = execGraph] { graph->disconnect(cable); });
+    context.executionQueue.enqueue(
+        [cable = it->second, graph = context.execGraph] { graph->disconnect(cable); });
   }
 }
 
-void DocumentPlugin::connectCable(Process::Cable& cable)
+void SetupContext::connectCable(Process::Cable& cable)
 {
-  if (!m_base.active())
+  if (!context.scenario.active())
     return;
   ossia::node_ptr source_node{}, sink_node{};
   ossia::outlet_ptr source_port{};
   ossia::inlet_ptr sink_port{};
-  if (auto port_src = cable.source().try_find(context().doc))
+  if (auto port_src = cable.source().try_find(context.doc))
   {
     auto it = outlets.find(port_src);
     if (it != outlets.end())
@@ -120,7 +120,7 @@ void DocumentPlugin::connectCable(Process::Cable& cable)
       source_port = it->second.second;
     }
   }
-  if (auto port_snk = cable.sink().try_find(context().doc))
+  if (auto port_snk = cable.sink().try_find(context.doc))
   {
     auto it = inlets.find(port_snk);
     if (it != inlets.end())
@@ -170,8 +170,8 @@ void DocumentPlugin::connectCable(Process::Cable& cable)
     }
 
     m_cables[cable.id()] = edge;
-    context().executionQueue.enqueue(
-        [edge, graph = execGraph] { graph->connect(std::move(edge)); });
+    context.executionQueue.enqueue(
+        [edge, graph = context.execGraph] { graph->connect(std::move(edge)); });
   }
 }
 
@@ -205,15 +205,14 @@ void DocumentPlugin::on_finished()
 
   execState = std::make_unique<ossia::execution_state>();
 
-  for (auto& v : runtime_connections)
+  for (auto& v : m_setup_ctx.runtime_connections)
   {
     for (auto& con : v.second)
     {
       QObject::disconnect(con);
     }
   }
-  runtime_connections.clear();
-
+  m_setup_ctx.runtime_connections.clear();
 }
 
 void DocumentPlugin::timerEvent(QTimerEvent* event)
@@ -226,9 +225,9 @@ void DocumentPlugin::timerEvent(QTimerEvent* event)
 void DocumentPlugin::makeGraph()
 {
   using namespace ossia;
-  static const Engine::Execution::Settings::SchedulingPolicies sched_t;
-  static const Engine::Execution::Settings::OrderingPolicies order_t;
-  static const Engine::Execution::Settings::MergingPolicies merge_t;
+  static const Execution::Settings::SchedulingPolicies sched_t;
+  static const Execution::Settings::OrderingPolicies order_t;
+  static const Execution::Settings::MergingPolicies merge_t;
 
   // note: cas qui n'ont pas de sens: dynamic avec les cas ou on append les
   // valeurs. parallel avec dynamic il manque le cas "default score order" il
@@ -270,8 +269,10 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
   }
   clear();
 
-  auto& ctx = m_ctx.doc;
-  auto& settings = ctx.app.settings<Engine::Execution::Settings::Model>();
+
+  const score::DocumentContext& ctx = m_ctx.doc;
+  auto& devlist = ctx.plugin<Explorer::DeviceDocumentPlugin>().list().devices();
+  auto& settings = ctx.app.settings<Execution::Settings::Model>();
   auto& audiosettings = ctx.app.settings<Audio::Settings::Model>();
   auto& app = ctx.app.guiApplicationPlugin<Engine::ApplicationPlugin>();
 
@@ -292,7 +293,7 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
   execState->start_date = 0; // TODO set it in the first callback
   execState->cur_date = execState->start_date;
   execState->register_device(audio_device->getDevice());
-  for (auto dev : m_ctx.devices.list().devices())
+  for (auto dev : devlist)
   {
     if (auto d = dev->getDevice())
     {
@@ -310,7 +311,7 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
   auto& model = context().doc.model<Scenario::ScenarioDocumentModel>();
   for (auto& cable : model.cables)
   {
-    connectCable(cable);
+    m_setup_ctx.connectCable(cable);
   }
 
   m_tid = startTimer(32);
@@ -319,10 +320,10 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
 
 void DocumentPlugin::clear()
 {
-  inlets.clear();
-  outlets.clear();
-  m_cables.clear();
-  proc_map.clear();
+  m_setup_ctx.inlets.clear();
+  m_setup_ctx.outlets.clear();
+  m_setup_ctx.m_cables.clear();
+  m_setup_ctx.proc_map.clear();
 
   if (m_base.active())
   {
@@ -373,14 +374,14 @@ void DocumentPlugin::runAllCommands() const
     com();
 }
 
-void DocumentPlugin::register_node(
+void SetupContext::register_node(
     const Process::ProcessModel& proc,
     const std::shared_ptr<ossia::graph_node>& node)
 {
   register_node(proc.inlets(), proc.outlets(), node);
   proc_map[node.get()] = &proc;
 }
-void DocumentPlugin::unregister_node(
+void SetupContext::unregister_node(
     const Process::ProcessModel& proc,
     const std::shared_ptr<ossia::graph_node>& node)
 {
@@ -389,17 +390,16 @@ void DocumentPlugin::unregister_node(
 }
 
 template<typename T>
-void set_destination_impl(const DocumentPlugin& plug, const State::AddressAccessor& address, const T& port)
+void set_destination_impl(const Context& plug, const State::AddressAccessor& address, const T& port)
 {
   if (address.address.device.isEmpty())
     return;
 
   auto& qual = address.qualifiers.get();
-  auto& equeue = plug.context().executionQueue;
-  if (auto ossia_addr = Engine::score_to_ossia::findAddress(
-          plug.context().devices.list(), address.address))
+  auto& equeue = plug.executionQueue;
+  if (auto n = Engine::score_to_ossia::findNode(*plug.execState, address.address))
   {
-    auto p = ossia_addr->get_parameter();
+    auto p = n->get_parameter();
     if (p)
     {
       equeue.enqueue([=, g = plug.execGraph] {
@@ -416,7 +416,7 @@ void set_destination_impl(const DocumentPlugin& plug, const State::AddressAccess
     else
     {
       equeue.enqueue([=, g = plug.execGraph] {
-        port->address = ossia_addr;
+        port->address = n;
         g->mark_dirty();
       });
     }
@@ -452,16 +452,16 @@ void set_destination_impl(const DocumentPlugin& plug, const State::AddressAccess
   }
 }
 
-void DocumentPlugin::set_destination(
+void SetupContext::set_destination(
     const State::AddressAccessor& address, const ossia::inlet_ptr& port)
 {
-  set_destination_impl(*this, address, port);
+  set_destination_impl(context, address, port);
 }
 
-void DocumentPlugin::set_destination(
+void SetupContext::set_destination(
     const State::AddressAccessor& address, const ossia::outlet_ptr& port)
 {
-  set_destination_impl(*this, address, port);
+  set_destination_impl(context, address, port);
 }
 
 void DocumentPlugin::slot_bench(ossia::bench_map b, int64_t ns)
@@ -470,8 +470,8 @@ void DocumentPlugin::slot_bench(ossia::bench_map b, int64_t ns)
   {
     if (p.second)
     {
-      auto proc = proc_map.find(p.first);
-      if (proc != proc_map.end())
+      auto proc = m_setup_ctx.proc_map.find(p.first);
+      if (proc != m_setup_ctx.proc_map.end())
       {
         if (proc->second)
         {
@@ -483,7 +483,7 @@ void DocumentPlugin::slot_bench(ossia::bench_map b, int64_t ns)
   }
 }
 
-void DocumentPlugin::register_node(
+void SetupContext::register_node(
     const Process::Inlets& proc_inlets,
     const Process::Outlets& proc_outlets,
     const std::shared_ptr<ossia::graph_node>& node)
@@ -511,8 +511,8 @@ void DocumentPlugin::register_node(
 
       inlets.insert({proc_inlets[i], std::make_pair(node, node->inputs()[i])});
 
-      m_execQueue.enqueue([this, port = node->inputs()[i]] {
-        execState->register_inlet(*port);
+      context.executionQueue.enqueue([this, port = node->inputs()[i]] {
+        context.execState->register_inlet(*port);
       });
     }
 
@@ -531,15 +531,15 @@ void DocumentPlugin::register_node(
           {proc_outlets[i], std::make_pair(node, node->outputs()[i])});
     }
 
-    std::weak_ptr<ossia::graph_interface> wg = execGraph;
-    m_execQueue.enqueue([wg, node = std::move(node)]() mutable {
+    std::weak_ptr<ossia::graph_interface> wg = context.execGraph;
+    context.executionQueue.enqueue([wg, node = std::move(node)]() mutable {
       if (auto g = wg.lock())
         g->add_node(std::move(node));
     });
   }
 }
 
-void DocumentPlugin::register_inlet(
+void SetupContext::register_inlet(
     Process::Inlet& proc_inlet,
     const ossia::inlet_ptr& port,
     const std::shared_ptr<ossia::graph_node>& node)
@@ -557,9 +557,9 @@ void DocumentPlugin::register_inlet(
 
     inlets.insert({&proc_inlet, std::make_pair(node, port)});
 
-    std::weak_ptr<ossia::graph_interface> wg = execGraph;
-    std::weak_ptr<ossia::execution_state> ws = execState;
-    m_execQueue.enqueue([wg, ws, port, node] {
+    std::weak_ptr<ossia::graph_interface> wg = context.execGraph;
+    std::weak_ptr<ossia::execution_state> ws = context.execState;
+    context.executionQueue.enqueue([wg, ws, port, node] {
       if (auto state = ws.lock())
         state->register_inlet(*port);
       if (auto g = wg.lock())
@@ -567,15 +567,15 @@ void DocumentPlugin::register_inlet(
     });
   }
 }
-void DocumentPlugin::unregister_node(
+void SetupContext::unregister_node(
     const Process::Inlets& proc_inlets,
     const Process::Outlets& proc_outlets,
     const std::shared_ptr<ossia::graph_node>& node)
 {
   if (node)
   {
-    std::weak_ptr<ossia::graph_interface> wg = execGraph;
-    m_execQueue.enqueue([wg, node] {
+    std::weak_ptr<ossia::graph_interface> wg = context.execGraph;
+    context.executionQueue.enqueue([wg, node] {
       if (auto g = wg.lock())
         g->remove_node(node);
       node->clear();
@@ -596,7 +596,7 @@ void DocumentPlugin::unregister_node(
     outlets.erase(ptr);
 }
 
-void DocumentPlugin::unregister_node_soft(
+void SetupContext::unregister_node_soft(
     const Process::Inlets& proc_inlets,
     const Process::Outlets& proc_outlets,
     const std::shared_ptr<ossia::graph_node>& node)
@@ -614,6 +614,5 @@ void DocumentPlugin::unregister_node_soft(
     inlets.erase(ptr);
   for (auto ptr : proc_outlets)
     outlets.erase(ptr);
-}
 }
 }

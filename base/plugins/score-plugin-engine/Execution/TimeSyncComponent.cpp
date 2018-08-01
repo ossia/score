@@ -16,13 +16,12 @@
 #include <QDebug>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <exception>
-namespace Engine
-{
+
 namespace Execution
 {
 TimeSyncComponent::TimeSyncComponent(
     const Scenario::TimeSyncModel& element,
-    const Engine::Execution::Context& ctx,
+    const Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
     : Execution::Component{ctx, id, "Executor::TimeSync", nullptr}
@@ -52,7 +51,7 @@ ossia::expression_ptr TimeSyncComponent::makeTrigger() const
       try
       {
         return Engine::score_to_ossia::trigger_expression(
-              element->expression(), system().devices.list());
+              element->expression(), *system().execState);
       }
       catch (std::exception& e)
       {
@@ -102,4 +101,4 @@ void TimeSyncComponent::on_GUITrigger()
   this->in_exec([e = m_ossia_node] { e->trigger_request = true; });
 }
 }
-}
+

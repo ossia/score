@@ -5,10 +5,10 @@
 #include <Execution/ProcessComponent.hpp>
 #include <Media/Effect/VST/VSTEffectModel.hpp>
 
-namespace Engine::Execution
+namespace Execution
 {
 class VSTEffectComponent final
-    : public Engine::Execution::
+    : public Execution::
           ProcessComponent_T<Media::VST::VSTEffectModel, ossia::node_process>
 {
   W_OBJECT(VSTEffectComponent)
@@ -19,10 +19,10 @@ public:
 
   VSTEffectComponent(
       Media::VST::VSTEffectModel& proc,
-      const Engine::Execution::Context& ctx,
+      const Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent);
 };
 using VSTEffectComponentFactory
-    = Engine::Execution::ProcessComponentFactory_T<VSTEffectComponent>;
+    = Execution::ProcessComponentFactory_T<VSTEffectComponent>;
 }

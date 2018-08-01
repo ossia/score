@@ -42,6 +42,7 @@ set(HDRS
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Component.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Execution/ExecutorContext.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Execution/ExecutorSetup.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Execution/BaseScenarioComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Execution/EventComponent.hpp"

@@ -93,7 +93,7 @@ void PlayerImpl::init()
 
 #if defined(SCORE_PLUGIN_AUDIO)
   auto& exec_settings
-      = m_appContext.settings<Engine::Execution::Settings::Model>();
+      = m_appContext.settings<Execution::Settings::Model>();
   exec_settings.setClock(
       Audio::AudioStreamEngine::AudioClockFactory::static_concreteKey());
   auto& audio_settings = m_appContext.settings<Audio::Settings::Model>();
@@ -220,7 +220,7 @@ void PlayerImpl::setupLoadedDocument()
   m_localTreePlugin = new Engine::LocalTree::DocumentPlugin{
       ctx, Id<DocumentPlugin>{999}, nullptr};
   m_localTreePlugin->init();
-  m_execPlugin = new Engine::Execution::DocumentPlugin{
+  m_execPlugin = new Execution::DocumentPlugin{
       ctx, Id<DocumentPlugin>{998}, nullptr};
 
   DocumentModel& doc_model = m_currentDocument->model();
@@ -305,7 +305,7 @@ void PlayerImpl::prepare_play()
   auto& exec_ctx = m_execPlugin->context();
 
   auto& exec_settings
-      = m_appContext.settings<Engine::Execution::Settings::Model>();
+      = m_appContext.settings<Execution::Settings::Model>();
   m_clock = exec_settings.makeClock(exec_ctx);
 }
 

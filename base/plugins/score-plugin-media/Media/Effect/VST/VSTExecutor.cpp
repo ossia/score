@@ -11,12 +11,12 @@
 #include <Media/Effect/VST/VSTNode.hpp>
 
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(Engine::Execution::VSTEffectComponent)
-namespace Engine::Execution
+W_OBJECT_IMPL(Execution::VSTEffectComponent)
+namespace Execution
 {
 VSTEffectComponent::VSTEffectComponent(
     Media::VST::VSTEffectModel& proc,
-    const Engine::Execution::Context& ctx,
+    const Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
     : ProcessComponent_T{proc, ctx, id, "VSTComponent", parent}
@@ -89,14 +89,14 @@ VSTEffectComponent::VSTEffectComponent(
     if (fx.flags & effFlagsIsSynth)
     {
       auto n = Media::VST::make_vst_fx<true, true>(
-          proc.fx, ctx.plugin.execState->sampleRate);
+          proc.fx, ctx.execState->sampleRate);
       setup_controls(n);
       node = std::move(n);
     }
     else
     {
       auto n = Media::VST::make_vst_fx<true, false>(
-          proc.fx, ctx.plugin.execState->sampleRate);
+          proc.fx, ctx.execState->sampleRate);
       setup_controls(n);
       node = std::move(n);
     }
@@ -106,14 +106,14 @@ VSTEffectComponent::VSTEffectComponent(
     if (fx.flags & effFlagsIsSynth)
     {
       auto n = Media::VST::make_vst_fx<false, true>(
-          proc.fx, ctx.plugin.execState->sampleRate);
+          proc.fx, ctx.execState->sampleRate);
       setup_controls(n);
       node = std::move(n);
     }
     else
     {
       auto n = Media::VST::make_vst_fx<false, false>(
-          proc.fx, ctx.plugin.execState->sampleRate);
+          proc.fx, ctx.execState->sampleRate);
       setup_controls(n);
       node = std::move(n);
     }

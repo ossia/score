@@ -26,7 +26,7 @@
  * * \ref Engine::LocalTree handles the conversion from score's data
  * structures to
  * the Local protocol.
- * * \ref Engine::Execution handles the conversion from score's data
+ * * \ref Execution handles the conversion from score's data
  * structures to
  * the OSSIA classes responsible for the execution (ossia::time_process,
  * ossia::clock, etc.)
@@ -56,7 +56,7 @@
  */
 
 /**
- * \namespace Engine::Execution
+ * \namespace Execution
  * \brief Components used for the execution of a score.
  *
  * This hierarchy of types is used to create the OSSIA structures for the
@@ -66,8 +66,8 @@
  * Currently, all the execution structures are recreated from scratch when
  * doing "play".
  * <br>
- * The classes inheriting from Engine::Execution::ProcessComponent
- * are first created, then the Engine::Execution::IntervalComponent will ask
+ * The classes inheriting from Execution::ProcessComponent
+ * are first created, then the Execution::IntervalComponent will ask
  * them for their ossia::time_process which it gives to the matching
  * ossia::time_interval.
  *
@@ -78,8 +78,8 @@
  * structures of the OSSIA API with mutex, which may slow down the execution,
  * we instead have a lock-free queue of edition commands. <br> Modifications
  * are submitted from the component hierarchy : <br>
- * * Engine::Execution::ScenarioComponent
- * * Engine::Execution::IntervalComponent
+ * * Execution::ScenarioComponent
+ * * Execution::IntervalComponent
  * * etc...
  * <br><br>
  * To the OSSIA structures :
@@ -107,7 +107,7 @@
  *          |
  *          v
  * [ Command inserted into
- *   Engine::Execution::Context::executionQueue ]
+ *   Execution::Context::executionQueue ]
  *          |
  *          v
  * [ The execution algorithm applies the
@@ -116,14 +116,14 @@
  *
  * For modification of values, for instance the duration of a
  * Interval, this is easily visible.
- * See for instance Engine::Execution::IntervalComponentBase 's constructor.
+ * See for instance Execution::IntervalComponentBase 's constructor.
  * <br>
  * For creation and removal of objects, this should be handled automatically by
  * the various ComponentHierarchy classes which take care of creating and
  * removing the objects in the correct order. The Component classes just have
  * to provide functions that will do the actual instantiation, and pre- & post-
  * removal steps. <br><br> The actual "root" execution algorithm is given in
- * Engine::Execution::DefaulClockManager::makeDefaultCallback
+ * Execution::DefaulClockManager::makeDefaultCallback
  *
  * \subsection ExecutionThreadSafety Execution Thread Safety
  * One must take care when modifying the Execution classes, since thins

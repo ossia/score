@@ -26,10 +26,10 @@ namespace RecreateOnPlay
 {
 Component::Component(
     ::Loop::ProcessModel& element,
-    const ::Engine::Execution::Context& ctx,
+    const ::Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
-    : ::Engine::Execution::ProcessComponent_T<Loop::ProcessModel, ossia::loop>{
+    : ::Execution::ProcessComponent_T<Loop::ProcessModel, ossia::loop>{
           element, ctx, id, "LoopComponent", parent}
 {
   ossia::time_value main_duration(
@@ -86,7 +86,7 @@ Component::Component(
   auto main_start_event = *main_start_node.get_time_events().begin();
   auto main_end_event = *main_end_node.get_time_events().begin();
 
-  using namespace Engine::Execution;
+  using namespace Execution;
   m_ossia_startTimeSync = std::make_shared<TimeSyncRawPtrComponent>(
       element.startTimeSync(), system(), score::newId(element.startTimeSync()),
       this);
@@ -132,7 +132,7 @@ Component::Component(
       loop->node->inputs()[0], m_ossia_interval->OSSIAInterval()->node,
       loop->node);
 
-  in_exec([g = system().plugin.execGraph, cable] { g->connect(cable); });
+  in_exec([g = system().execGraph, cable] { g->connect(cable); });
 }
 
 Component::~Component()

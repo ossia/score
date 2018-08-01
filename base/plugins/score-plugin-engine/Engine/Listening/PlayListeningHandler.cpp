@@ -5,12 +5,10 @@
 #include <Execution/DocumentPlugin.hpp>
 #include <Explorer/DeviceList.hpp>
 
-namespace Engine
-{
 namespace Execution
 {
 PlayListeningHandler::PlayListeningHandler(
-    const Engine::Execution::DocumentPlugin& docpl)
+    const Execution::DocumentPlugin& docpl)
     : m_executor{docpl}
 {
 }
@@ -40,6 +38,5 @@ void PlayListeningHandler::addToListening(
   {
     dev.addToListening(v);
   }
-}
 }
 }

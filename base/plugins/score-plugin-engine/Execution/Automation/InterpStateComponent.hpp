@@ -18,14 +18,14 @@ class DeviceList;
 namespace InterpState
 {
 class ExecComponent final
-    : public ::Engine::Execution::
+    : public ::Execution::
           ProcessComponent_T<InterpState::ProcessModel, ossia::node_process>
 {
   COMPONENT_METADATA("66327ccc-1478-4bef-9ce7-3c9765bd76a7")
 public:
   ExecComponent(
       InterpState::ProcessModel& element,
-      const Engine::Execution::Context& ctx,
+      const Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent);
 
@@ -42,9 +42,9 @@ private:
   on_curveChanged_impl(const optional<ossia::destination>&);
 };
 using ExecComponentFactory
-    = ::Engine::Execution::ProcessComponentFactory_T<ExecComponent>;
+    = ::Execution::ProcessComponentFactory_T<ExecComponent>;
 }
 
 SCORE_CONCRETE_COMPONENT_FACTORY(
-    Engine::Execution::ProcessComponentFactory,
+    Execution::ProcessComponentFactory,
     InterpState::ExecComponentFactory)

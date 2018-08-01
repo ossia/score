@@ -19,15 +19,12 @@ class BaseScenario;
 class ScenarioInterface;
 }
 class DeviceList;
-namespace Engine
-{
 namespace Execution
 {
 class IntervalComponent;
 class EventComponent;
 class StateComponent;
 class TimeSyncComponent;
-}
 }
 
 // MOVEME
@@ -99,8 +96,7 @@ private:
   Scenario::TimeSyncModel& m_endNode;
 };
 
-namespace Engine
-{
+
 namespace Execution
 {
 struct Context;
@@ -146,4 +142,4 @@ private:
   std::shared_ptr<StateComponent> m_ossia_endState;
 };
 }
-}
+

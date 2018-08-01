@@ -9,7 +9,7 @@
 #include <QMainWindow>
 #include <QPushButton>
 #include <QToolBar>
-namespace Engine
+namespace Execution
 {
 namespace ManualClock
 {
@@ -41,11 +41,11 @@ public:
 
 class Clock final
     : public QObject
-    , public Engine::Execution::ClockManager
+    , public Execution::ClockManager
     , public Nano::Observer
 {
 public:
-  Clock(const Engine::Execution::Context& ctx)
+  Clock(const Execution::Context& ctx)
       : ClockManager{ctx}, m_default{ctx}, m_plug{ctx.plugin}
   {
   }
@@ -58,7 +58,7 @@ private:
   TimeWidget* m_widg{};
   // Clock interface
   void play_impl(
-      const TimeVal& t, Engine::Execution::BaseScenarioElement& bs) override
+      const TimeVal& t, Execution::BaseScenarioElement& bs) override
   {
     m_paused = false;
 
@@ -79,13 +79,13 @@ private:
 
     resume_impl(bs);
   }
-  void pause_impl(Engine::Execution::BaseScenarioElement&) override
+  void pause_impl(Execution::BaseScenarioElement&) override
   {
   }
-  void resume_impl(Engine::Execution::BaseScenarioElement&) override
+  void resume_impl(Execution::BaseScenarioElement&) override
   {
   }
-  void stop_impl(Engine::Execution::BaseScenarioElement&) override
+  void stop_impl(Execution::BaseScenarioElement&) override
   {
     delete m_widg;
     m_plug.finished();
@@ -95,13 +95,13 @@ private:
     return m_paused;
   }
 
-  Engine::Execution::DefaultClockManager m_default;
-  Engine::Execution::DocumentPlugin& m_plug;
-  Engine::Execution::BaseScenarioElement* m_cur{};
+  Execution::DefaultClockManager m_default;
+  Execution::DocumentPlugin& m_plug;
+  Execution::BaseScenarioElement* m_cur{};
   bool m_paused{};
 };
 
-class ClockFactory final : public Engine::Execution::ClockManagerFactory
+class ClockFactory final : public Execution::ClockManagerFactory
 {
   SCORE_CONCRETE("5e8d0f1b-752f-4e29-8c8c-ecd65bd69806")
 
@@ -110,13 +110,13 @@ class ClockFactory final : public Engine::Execution::ClockManagerFactory
     return QObject::tr("Manual");
   }
 
-  std::unique_ptr<Engine::Execution::ClockManager>
-  make(const Engine::Execution::Context& ctx) override
+  std::unique_ptr<Execution::ClockManager>
+  make(const Execution::Context& ctx) override
   {
     return std::make_unique<Clock>(ctx);
   }
 
-  Engine::Execution::time_function
+  Execution::time_function
   makeTimeFunction(const score::DocumentContext& ctx) const override
   {
     constexpr double rate = 44100;
@@ -127,7 +127,7 @@ class ClockFactory final : public Engine::Execution::ClockManagerFactory
     };
   }
 
-  Engine::Execution::reverse_time_function
+  Execution::reverse_time_function
   makeReverseTimeFunction(const score::DocumentContext& ctx) const override
   {
     constexpr double rate = 44100;

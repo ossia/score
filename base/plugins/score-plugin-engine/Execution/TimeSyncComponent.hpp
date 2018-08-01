@@ -12,8 +12,6 @@ namespace Scenario
 class TimeSyncModel;
 }
 
-namespace Engine
-{
 namespace Execution
 {
 class TimeSyncComponent final
@@ -24,7 +22,7 @@ public:
   static const constexpr bool is_unique = true;
   TimeSyncComponent(
       const Scenario::TimeSyncModel& element,
-      const Engine::Execution::Context& ctx,
+      const Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent);
 
@@ -46,5 +44,4 @@ private:
   std::shared_ptr<ossia::time_sync> m_ossia_node;
   QPointer<const Scenario::TimeSyncModel> m_score_node;
 };
-}
 }

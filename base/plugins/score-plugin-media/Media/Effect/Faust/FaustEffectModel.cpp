@@ -260,19 +260,19 @@ void JSONObjectWriter::write(Media::Faust::FaustEffectModel& eff)
   eff.reload();
 }
 
-namespace Engine::Execution
+namespace Execution
 {
 
-Engine::Execution::FaustEffectComponent::FaustEffectComponent(
+Execution::FaustEffectComponent::FaustEffectComponent(
     Media::Faust::FaustEffectModel& proc,
-    const Engine::Execution::Context& ctx,
+    const Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
     : ProcessComponent_T{proc, ctx, id, "FaustComponent", parent}
 {
   if (proc.faust_object)
   {
-    initCDSPInstance(proc.faust_object, ctx.plugin.execState->sampleRate);
+    initCDSPInstance(proc.faust_object, ctx.execState->sampleRate);
     auto node = std::make_shared<ossia::nodes::faust>(proc.faust_object);
     this->node = node;
     m_ossia_process = std::make_shared<ossia::node_process>(node);
@@ -294,5 +294,5 @@ Engine::Execution::FaustEffectComponent::FaustEffectComponent(
 }
 
 }
-W_OBJECT_IMPL(Engine::Execution::FaustEffectComponent)
+W_OBJECT_IMPL(Execution::FaustEffectComponent)
 #endif

@@ -22,7 +22,7 @@ class ProcessModel;
 namespace Executor
 {
 class Component final
-    : public ::Engine::Execution::
+    : public ::Execution::
           ProcessComponent_T<Midi::ProcessModel, ossia::node_process>
     , public Nano::Observer
 {
@@ -31,7 +31,7 @@ public:
   static const constexpr bool is_unique = true;
   Component(
       Midi::ProcessModel& element,
-      const Engine::Execution::Context& ctx,
+      const Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent);
   ~Component() override;
@@ -44,6 +44,6 @@ private:
 };
 
 using ComponentFactory
-    = ::Engine::Execution::ProcessComponentFactory_T<Component>;
+    = ::Execution::ProcessComponentFactory_T<Component>;
 }
 }

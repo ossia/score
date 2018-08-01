@@ -14,14 +14,13 @@
 #include <exception>
 
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(Engine::Execution::EventComponent)
-namespace Engine
-{
+W_OBJECT_IMPL(Execution::EventComponent)
+
 namespace Execution
 {
 EventComponent::EventComponent(
     const Scenario::EventModel& element,
-    const Engine::Execution::Context& ctx,
+    const Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
     : Execution::Component{ctx, id, "Executor::Event", nullptr}
@@ -50,7 +49,7 @@ ossia::expression_ptr EventComponent::makeExpression() const
     try
     {
       return Engine::score_to_ossia::condition_expression(
-            m_score_event->condition(), system().devices.list());
+            m_score_event->condition(), *system().execState);
     }
     catch (std::exception& e)
     {
@@ -73,6 +72,5 @@ void EventComponent::onSetup(
 std::shared_ptr<ossia::time_event> EventComponent::OSSIAEvent() const
 {
   return m_ossia_event;
-}
 }
 }

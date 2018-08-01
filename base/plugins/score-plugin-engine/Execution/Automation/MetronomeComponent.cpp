@@ -15,10 +15,10 @@ namespace RecreateOnPlay
 using metronome = ossia::nodes::metronome;
 Component::Component(
     ::Metronome::ProcessModel& element,
-    const ::Engine::Execution::Context& ctx,
+    const ::Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
-    : ::Engine::Execution::
+    : ::Execution::
           ProcessComponent_T<Metronome::ProcessModel, ossia::node_process>{
               element, ctx, id, "Executor::MetronomeComponent", parent}
 {

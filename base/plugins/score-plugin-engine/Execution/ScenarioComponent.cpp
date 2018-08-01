@@ -43,9 +43,8 @@
 #include <vector>
 
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(Engine::Execution::ScenarioComponentBase)
-namespace Engine
-{
+W_OBJECT_IMPL(Execution::ScenarioComponentBase)
+
 namespace Execution
 {
 ScenarioComponentBase::ScenarioComponentBase(
@@ -181,7 +180,7 @@ void ScenarioComponent::lazy_init()
       }
     }
 
-    std::weak_ptr<ossia::graph_interface> g_weak = ctx.plugin.execGraph;
+    std::weak_ptr<ossia::graph_interface> g_weak = ctx.execGraph;
 
     in_exec([edges = std::move(edges_to_add), g_weak] {
       if (auto g = g_weak.lock())
@@ -332,7 +331,7 @@ ScenarioComponentBase::make<IntervalComponent, Scenario::IntervalModel>(
   std::shared_ptr<ossia::scenario> proc
       = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
 
-  m_ctx.executionQueue.enqueue([g = system().plugin.execGraph, proc, ossia_sev,
+  m_ctx.executionQueue.enqueue([g = system().execGraph, proc, ossia_sev,
                                 ossia_eev, ossia_cst] {
     if (auto sev = ossia_sev->OSSIAEvent())
       sev->next_time_intervals().push_back(ossia_cst);
@@ -597,4 +596,4 @@ void ScenarioComponentBase::timeSyncCallback(
   }
 }
 }
-}
+

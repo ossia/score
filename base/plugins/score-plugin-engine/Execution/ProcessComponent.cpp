@@ -3,10 +3,10 @@
 #include "ProcessComponent.hpp"
 
 #include <Execution/ExecutorContext.hpp>
+#include <Execution/ExecutorSetup.hpp>
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(Engine::Execution::ProcessComponent)
-namespace Engine
-{
+W_OBJECT_IMPL(Execution::ProcessComponent)
+
 namespace Execution
 {
 ProcessComponent::~ProcessComponent() = default;
@@ -32,11 +32,11 @@ void ProcessComponent::cleanup()
 {
   if (auto proc = OSSIAProcessPtr())
   {
-    this->system().plugin.unregister_node(process(), proc->node);
+    this->system().setup.unregister_node(process(), proc->node);
     in_exec([proc] { proc->node.reset(); });
   }
   node.reset();
   m_ossia_process.reset();
 }
-}
+
 }

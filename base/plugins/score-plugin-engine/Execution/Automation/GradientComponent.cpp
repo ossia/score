@@ -13,10 +13,10 @@ namespace RecreateOnPlay
 using gradient = ossia::nodes::gradient;
 Component::Component(
     ::Gradient::ProcessModel& element,
-    const ::Engine::Execution::Context& ctx,
+    const ::Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
-    : ::Engine::Execution::
+    : ::Execution::
           ProcessComponent_T<Gradient::ProcessModel, ossia::node_process>{
               element, ctx, id, "Executor::GradientComponent", parent}
 {
@@ -77,7 +77,7 @@ static auto to_ossia_gradient(const Gradient::ProcessModel::gradient_colors& c)
 
 void Component::recompute()
 {
-  const Engine::Execution::Context& s = this->system();
+  const Execution::Context& s = this->system();
   auto g = process().gradient();
 
   s.executionQueue.enqueue(

@@ -2,33 +2,29 @@
 #include <Execution/IntervalComponent.hpp>
 #include <wobjectdefs.h>
 
-namespace Engine
-{
 namespace Execution
 {
 class IntervalRawPtrComponentBase;
 class IntervalRawPtrComponent;
 }
-}
+
 
 namespace score
 {
 template <>
 struct is_component_serializable<
-    Engine::Execution::IntervalRawPtrComponentBase>
+    Execution::IntervalRawPtrComponentBase>
 {
   using type = score::not_serializable_tag;
 };
 
 template <>
-struct is_component_serializable<Engine::Execution::IntervalRawPtrComponent>
+struct is_component_serializable<Execution::IntervalRawPtrComponent>
 {
   using type = score::not_serializable_tag;
 };
 }
 
-namespace Engine
-{
 namespace Execution
 {
 struct Context;
@@ -39,7 +35,7 @@ class IntervalRawPtrComponentBase
 {
   COMMON_COMPONENT_METADATA("15f89c71-75a8-4966-8c3e-710a46f7a4db")
 public:
-  using parent_t = Engine::Execution::Component;
+  using parent_t = Execution::Component;
   using model_t = Process::ProcessModel;
   using component_t = ProcessComponent;
   using component_factory_list_t = ProcessComponentFactoryList;
@@ -149,4 +145,4 @@ public:
   void slot_callback(double position, ossia::time_value date); W_SLOT(slot_callback);
 };
 }
-}
+

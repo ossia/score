@@ -10,12 +10,9 @@
 #include <State/Expression.hpp>
 #include <State/Value.hpp>
 #include <memory>
-namespace Engine
-{
 namespace Execution
 {
 struct Context;
-}
 }
 namespace Scenario
 {
@@ -27,6 +24,7 @@ class DeviceList;
 }
 namespace ossia
 {
+struct execution_state;
 namespace net
 {
 class parameter_base;
@@ -57,7 +55,7 @@ ossia::net::node_base*
 findAddress(const Device::DeviceList& devices, const State::Address& addr);
 
 optional<ossia::destination> makeDestination(
-    const Device::DeviceList& devices, const State::AddressAccessor& addr);
+    const ossia::execution_state& devices, const State::AddressAccessor& addr);
 
 //// Other conversions
 inline ossia::time_value
@@ -70,14 +68,16 @@ defaultTime(const TimeVal& t)
 void state(
     ossia::state& ossia_state,
     const Scenario::StateModel& score_state,
-    const Engine::Execution::Context& ctx);
+    const Execution::Context& ctx);
 ossia::state state(
     const Scenario::StateModel& score_state,
-    const Engine::Execution::Context& ctx);
+    const Execution::Context& ctx);
 
 ossia::expression_ptr
-condition_expression(const State::Expression& expr, const Device::DeviceList&);
+condition_expression(const State::Expression& expr, const ossia::execution_state&);
 ossia::expression_ptr
-trigger_expression(const State::Expression& expr, const Device::DeviceList&);
+trigger_expression(const State::Expression& expr, const ossia::execution_state&);
+
+ossia::net::node_base* findNode(const ossia::execution_state& st, const State::Address& addr);
 }
 }

@@ -130,15 +130,15 @@ score_plugin_media::factories(
       FW<Process::PortFactory, Media::VST::VSTControlPortFactory>,
 #endif
 
-      FW<Engine::Execution::ProcessComponentFactory,
-         Engine::Execution::SoundComponentFactory,
-         Engine::Execution::InputComponentFactory,
-         Engine::Execution::EffectProcessComponentFactory,
-         Engine::Execution::StepComponentFactory,
-         Engine::Execution::MergerComponentFactory
+      FW<Execution::ProcessComponentFactory,
+         Execution::SoundComponentFactory,
+         Execution::InputComponentFactory,
+         Media::EffectProcessComponentFactory,
+         Execution::StepComponentFactory,
+         Execution::MergerComponentFactory
 #if defined(HAS_VST2)
          ,
-         Engine::Execution::VSTEffectComponentFactory
+         Execution::VSTEffectComponentFactory
 #endif
 #if defined(LILV_SHARED)
          ,
@@ -146,7 +146,7 @@ score_plugin_media::factories(
 #endif
 #if defined(HAS_FAUST)
          ,
-         Engine::Execution::FaustEffectComponentFactory
+         Execution::FaustEffectComponentFactory
 #endif
          >,
       FW<Scenario::DropHandler, Media::Sound::DropHandler>,

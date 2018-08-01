@@ -9,8 +9,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <core/document/DocumentView.hpp>
-namespace Engine
-{
+
 namespace Execution
 {
 
@@ -62,4 +61,4 @@ bool ClockManager::paused() const
   return false;
 }
 }
-}
+

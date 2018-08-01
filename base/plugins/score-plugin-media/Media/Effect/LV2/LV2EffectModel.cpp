@@ -400,7 +400,7 @@ namespace Media::LV2
 {
 struct on_finish
 {
-  std::weak_ptr<Engine::Execution::ProcessComponent> self;
+  std::weak_ptr<Execution::ProcessComponent> self;
   void operator()()
   {
     auto p = self.lock();
@@ -452,7 +452,7 @@ struct on_finish
 
 LV2EffectComponent::LV2EffectComponent(
     Media::LV2::LV2EffectModel& proc,
-    const Engine::Execution::Context& ctx,
+    const Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
     : ProcessComponent_T{proc, ctx, id, "LV2Component", parent}

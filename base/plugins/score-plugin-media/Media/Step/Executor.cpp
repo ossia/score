@@ -6,17 +6,16 @@
 #include <Engine/score2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <ossia/detail/pod_vector.hpp>
-namespace Engine
-{
+
 namespace Execution
 {
 
 StepComponent::StepComponent(
     Media::Step::Model& element,
-    const Engine::Execution::Context& ctx,
+    const Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
-    : Engine::Execution::
+    : Execution::
           ProcessComponent_T<Media::Step::Model, ossia::node_process>{
               element, ctx, id, "Executor::StepComponent", parent}
 {
@@ -56,5 +55,5 @@ void StepComponent::recompute()
 StepComponent::~StepComponent()
 {
 }
-}
+
 }

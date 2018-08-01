@@ -4,6 +4,10 @@
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
 #include <Process/DocumentPlugin.hpp>
+#include <Process/Dataflow/PortFactory.hpp>
+#include <Process/LayerPresenter.hpp>
+#include <Process/ProcessFactory.hpp>
+#include <Process/ProcessList.hpp>
 
 score_lib_process::score_lib_process() = default;
 score_lib_process::~score_lib_process() = default;
@@ -15,8 +19,17 @@ score_lib_process::factories(
   using namespace Process;
   return instantiate_factories<
       score::ApplicationContext>(
-      ctx, key);
+        ctx, key);
 }
+
+std::vector<std::unique_ptr<score::InterfaceListBase> > score_lib_process::factoryFamilies()
+{
+  return make_ptr_vector<
+      score::InterfaceListBase, Process::ProcessFactoryList,
+      Process::PortFactoryList, Process::LayerFactoryList,
+      Process::ProcessFactoryList>();
+}
+
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>
 score_lib_process::make_commands()

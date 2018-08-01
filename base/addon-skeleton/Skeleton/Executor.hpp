@@ -25,19 +25,19 @@ private:
 };
 
 class ProcessExecutorComponent final
-    : public Engine::Execution::
+    : public Execution::
           ProcessComponent_T<Skeleton::Model, Skeleton::ProcessExecutor>
 {
   COMPONENT_METADATA("00000000-0000-0000-0000-000000000000")
 public:
   ProcessExecutorComponent(
-      Engine::Execution::IntervalComponent& parentInterval,
+      Execution::IntervalComponent& parentInterval,
       Model& element,
-      const Engine::Execution::Context& ctx,
+      const Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent);
 };
 
 using ProcessExecutorComponentFactory
-    = Engine::Execution::ProcessComponentFactory_T<ProcessExecutorComponent>;
+    = Execution::ProcessComponentFactory_T<ProcessExecutorComponent>;
 }

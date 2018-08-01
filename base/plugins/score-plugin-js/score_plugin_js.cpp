@@ -48,7 +48,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_js::factories(
       FW<Process::LayerFactory, JS::LayerFactory>,
       FW<Inspector::InspectorWidgetFactory, JS::InspectorFactory>,
       FW<score::PanelDelegateFactory, JS::PanelDelegateFactory>,
-      FW<Engine::Execution::ProcessComponentFactory,
+      FW<Execution::ProcessComponentFactory,
          JS::Executor::ComponentFactory>>(ctx, key);
 }
 

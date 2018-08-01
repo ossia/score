@@ -14,10 +14,10 @@ namespace RecreateOnPlay
 using spline = ossia::nodes::spline;
 Component::Component(
     ::Spline::ProcessModel& element,
-    const ::Engine::Execution::Context& ctx,
+    const ::Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
-    : ::Engine::Execution::
+    : ::Execution::
           ProcessComponent_T<Spline::ProcessModel, ossia::node_process>{
               element, ctx, id, "Executor::SplineComponent", parent}
 {
@@ -37,7 +37,7 @@ Component::~Component()
 
 void Component::recompute()
 {
-  const Engine::Execution::Context& s = this->system();
+  const Execution::Context& s = this->system();
   auto g = process().spline();
   s.executionQueue.enqueue(
       [proc = std::dynamic_pointer_cast<spline>(OSSIAProcess().node), g] {

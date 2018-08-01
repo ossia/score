@@ -10,8 +10,6 @@ namespace score
 {
 struct DocumentContext;
 }
-namespace Engine
-{
 namespace Execution
 {
 struct Context;
@@ -41,7 +39,7 @@ using reverse_time_function
 class SCORE_PLUGIN_ENGINE_EXPORT ClockManager
 {
 public:
-  ClockManager(const Engine::Execution::Context& ctx) : context{ctx}
+  ClockManager(const Execution::Context& ctx) : context{ctx}
   {
   }
   virtual ~ClockManager();
@@ -70,7 +68,7 @@ public:
 
   virtual QString prettyName() const = 0;
   virtual std::unique_ptr<ClockManager>
-  make(const Engine::Execution::Context& ctx) = 0;
+  make(const Execution::Context& ctx) = 0;
 
   virtual time_function
   makeTimeFunction(const score::DocumentContext& ctx) const = 0;
@@ -85,7 +83,7 @@ public:
   using object_type = ClockManager;
 };
 }
-}
 
-Q_DECLARE_METATYPE(Engine::Execution::ClockManagerFactory::ConcreteKey)
-W_REGISTER_ARGTYPE(Engine::Execution::ClockManagerFactory::ConcreteKey)
+
+Q_DECLARE_METATYPE(Execution::ClockManagerFactory::ConcreteKey)
+W_REGISTER_ARGTYPE(Execution::ClockManagerFactory::ConcreteKey)

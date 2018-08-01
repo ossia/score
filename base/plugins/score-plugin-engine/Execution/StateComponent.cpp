@@ -5,19 +5,18 @@
 #include <ossia/dataflow/node_process.hpp>
 #include <ossia/dataflow/nodes/state.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
+#include <Execution/ExecutorSetup.hpp>
 
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/ExecutorContext.hpp>
 #include <Engine/score2OSSIA.hpp>
 #include <ossia/detail/pod_vector.hpp>
 
-namespace Engine
-{
 namespace Execution
 {
 StateComponentBase::StateComponentBase(
     const Scenario::StateModel& element,
-    const Engine::Execution::Context& ctx,
+    const Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
     : Execution::Component{ctx, id, "Executor::State", nullptr}
@@ -38,10 +37,10 @@ StateComponentBase::StateComponentBase(
 
 void StateComponentBase::onDelete() const
 {
-  system().plugin.unregister_node({}, {}, m_node);
+  system().setup.unregister_node({}, {}, m_node);
   if(m_ev)
   {
-    in_exec([gr = this->system().plugin.execGraph, ev = m_ev] {
+    in_exec([gr = this->system().execGraph, ev = m_ev] {
       auto& procs = ev->get_time_processes();
       if (!procs.empty())
       {
@@ -59,7 +58,7 @@ ProcessComponent* StateComponentBase::make(
 {
   try
   {
-    const Engine::Execution::Context& ctx = system();
+    const Execution::Context& ctx = system();
     auto plug = fac.make(proc, ctx, id, nullptr);
     if (plug && plug->OSSIAProcessPtr())
     {
@@ -75,7 +74,7 @@ ProcessComponent* StateComponentBase::make(
       }
 
       if (auto& onode = plug->node)
-        ctx.plugin.register_node(proc, onode);
+        ctx.setup.register_node(proc, onode);
 
       auto cst = m_ev;
 
@@ -92,7 +91,7 @@ ProcessComponent* StateComponentBase::make(
 
       std::weak_ptr<ossia::time_process> oproc_weak = oproc;
       std::weak_ptr<ossia::graph_interface> g_weak
-          = plug->system().plugin.execGraph;
+          = plug->system().execGraph;
 
       in_exec([cst = m_ev, oproc_weak, g_weak, propagated_outlets] {
         if (auto oproc = oproc_weak.lock())
@@ -143,7 +142,7 @@ void StateComponent::onSetup(
 {
   m_ev = root;
   m_ev->add_time_process(std::make_shared<ossia::node_process>(m_node));
-  system().plugin.register_node({}, {}, m_node);
+  system().setup.register_node({}, {}, m_node);
 
   init();
 }
@@ -172,6 +171,5 @@ void StateComponent::cleanup(const std::shared_ptr<StateComponent>& self)
   m_ev.reset();
   m_node.reset();
   disconnect();
-}
 }
 }

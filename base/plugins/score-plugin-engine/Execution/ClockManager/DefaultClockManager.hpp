@@ -7,8 +7,6 @@ namespace Scenario
 {
 class IntervalModel;
 }
-namespace Engine
-{
 namespace Execution
 {
 class BaseScenarioElement;
@@ -37,13 +35,13 @@ public:
 private:
   // Clock interface
   void play_impl(
-      const TimeVal& t, Engine::Execution::BaseScenarioElement&) override;
-  void pause_impl(Engine::Execution::BaseScenarioElement&) override;
-  void resume_impl(Engine::Execution::BaseScenarioElement&) override;
-  void stop_impl(Engine::Execution::BaseScenarioElement&) override;
+      const TimeVal& t, Execution::BaseScenarioElement&) override;
+  void pause_impl(Execution::BaseScenarioElement&) override;
+  void resume_impl(Execution::BaseScenarioElement&) override;
+  void stop_impl(Execution::BaseScenarioElement&) override;
   bool paused() const override;
 
-  Engine::Execution::DefaultClockManager m_default;
+  Execution::DefaultClockManager m_default;
   ossia::clock m_clock;
 };
 
@@ -56,7 +54,7 @@ public:
   virtual ~ControlClockFactory();
   QString prettyName() const override;
   std::unique_ptr<ClockManager>
-  make(const Engine::Execution::Context& ctx) override;
+  make(const Execution::Context& ctx) override;
 
   time_function
   makeTimeFunction(const score::DocumentContext& ctx) const override;
@@ -64,4 +62,4 @@ public:
   makeReverseTimeFunction(const score::DocumentContext& ctx) const override;
 };
 }
-}
+

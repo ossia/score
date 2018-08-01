@@ -31,32 +31,28 @@ namespace Scenario
 class IntervalModel;
 }
 
-namespace Engine
-{
 namespace Execution
 {
 class IntervalComponentBase;
 class IntervalComponent;
 }
-}
+
 
 namespace score
 {
 template <>
-struct is_component_serializable<Engine::Execution::IntervalComponentBase>
+struct is_component_serializable<Execution::IntervalComponentBase>
 {
   using type = score::not_serializable_tag;
 };
 
 template <>
-struct is_component_serializable<Engine::Execution::IntervalComponent>
+struct is_component_serializable<Execution::IntervalComponent>
 {
   using type = score::not_serializable_tag;
 };
 }
 
-namespace Engine
-{
 namespace Execution
 {
 struct Context;
@@ -76,7 +72,7 @@ class IntervalComponentBase
   W_OBJECT(IntervalComponentBase)
   COMMON_COMPONENT_METADATA("4d644678-1924-49bf-8c82-89841581d23f")
 public:
-  using parent_t = Engine::Execution::Component;
+  using parent_t = Execution::Component;
   using model_t = Process::ProcessModel;
   using component_t = ProcessComponent;
   using component_factory_list_t = ProcessComponentFactoryList;
@@ -184,4 +180,4 @@ public:
   void slot_callback(double position, ossia::time_value date); W_SLOT(slot_callback);
 };
 }
-}
+

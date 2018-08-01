@@ -17,8 +17,8 @@
 #include <score/model/Identifier.hpp>
 #include <score/tools/std/Optional.hpp>
 
-Q_DECLARE_METATYPE(std::shared_ptr<Engine::Execution::EventComponent>)
-W_REGISTER_ARGTYPE(std::shared_ptr<Engine::Execution::EventComponent>)
+Q_DECLARE_METATYPE(std::shared_ptr<Execution::EventComponent>)
+W_REGISTER_ARGTYPE(std::shared_ptr<Execution::EventComponent>)
 Q_DECLARE_METATYPE(ossia::time_event::status)
 W_REGISTER_ARGTYPE(ossia::time_event::status)
 namespace Device
@@ -35,15 +35,14 @@ namespace ossia
 class time_process;
 struct time_value;
 } // namespace OSSIA
-namespace Engine
-{
+
 namespace Execution
 {
 class EventComponent;
 class StateComponent;
 class TimeSyncComponent;
 }
-} // namespace RecreateOnPlay
+
 namespace Scenario
 {
 class ProcessModel;
@@ -58,8 +57,6 @@ namespace ossia
 class scenario;
 }
 
-namespace Engine
-{
 namespace Execution
 {
 class IntervalComponent;
@@ -135,7 +132,7 @@ protected:
       std::shared_ptr<EventComponent> ev, ossia::time_event::status newStatus);
 
   void timeSyncCallback(
-      Engine::Execution::TimeSyncComponent* tn, ossia::time_value date);
+      Execution::TimeSyncComponent* tn, ossia::time_value date);
 
   score::
       hash_map<Id<Scenario::IntervalModel>, std::shared_ptr<IntervalComponent>>
@@ -180,6 +177,6 @@ struct ScenarioComponent final : public ScenarioComponentHierarchy
   void cleanup() override;
 };
 
-using ScenarioComponentFactory = Engine::Execution::ProcessComponentFactory_T<ScenarioComponent>;
+using ScenarioComponentFactory = Execution::ProcessComponentFactory_T<ScenarioComponent>;
 }
-}
+
