@@ -3,8 +3,8 @@
 #include <ossia/editor/scenario/time_process.hpp>
 
 
-#include <Engine/Executor/ExecutorContext.hpp>
-#include <Engine/Executor/ProcessComponent.hpp>
+#include <Execution/ExecutorContext.hpp>
+#include <Execution/ProcessComponent.hpp>
 #include <Midi/MidiNote.hpp>
 #include <ossia/detail/flat_set.hpp>
 namespace ossia::nodes

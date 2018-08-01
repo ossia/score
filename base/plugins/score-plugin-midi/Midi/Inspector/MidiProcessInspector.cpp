@@ -2,15 +2,13 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MidiProcessInspector.hpp"
 
-#include <Engine/Protocols/MIDI/MIDIProtocolFactory.hpp>
-#include <Engine/Protocols/MIDI/MIDISpecificSettings.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Midi/Commands/SetOutput.hpp>
-#include <QComboBox>
-#include <QFormLayout>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>
+#include <QComboBox>
+#include <QFormLayout>
 
 namespace Midi
 {

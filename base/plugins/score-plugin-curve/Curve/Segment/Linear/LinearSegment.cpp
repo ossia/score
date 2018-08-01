@@ -9,6 +9,9 @@
 #include <score/model/Identifier.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 #include <vector>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+
 namespace Curve
 {
 LinearSegment::LinearSegment(
@@ -62,4 +65,44 @@ ossia::curve_segment<int> LinearSegment::makeIntFunction() const
   return ossia::curve_segment_linear<int>{};
 }
 
+}
+
+template <>
+void DataStreamReader::read(const Curve::LinearSegment& segmt)
+{
+}
+
+template <>
+void DataStreamWriter::write(Curve::LinearSegment& segmt)
+{
+}
+
+template <>
+void JSONObjectReader::read(const Curve::LinearSegment& segmt)
+{
+}
+
+template <>
+void JSONObjectWriter::write(Curve::LinearSegment& segmt)
+{
+}
+
+template <>
+void DataStreamReader::read(const Curve::LinearSegmentData& segmt)
+{
+}
+
+template <>
+void DataStreamWriter::write(Curve::LinearSegmentData& segmt)
+{
+}
+
+template <>
+void JSONObjectReader::read(const Curve::LinearSegmentData& segmt)
+{
+}
+
+template <>
+void JSONObjectWriter::write(Curve::LinearSegmentData& segmt)
+{
 }

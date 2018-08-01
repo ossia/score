@@ -1,6 +1,6 @@
 #include "LocalTree.hpp"
 
-#include <Engine/LocalTree/Property.hpp>
+#include <LocalTree/Property.hpp>
 #include <Skeleton/Process.hpp>
 
 namespace Skeleton

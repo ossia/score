@@ -10,6 +10,8 @@
 #include <random>
 #include <score/model/Identifier.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
 #include <vector>
 namespace Curve
 {
@@ -18,6 +20,7 @@ struct Noise
 {
   auto get_rand(double min, double max) const
   {
+    // TODO get a better random generator. c.f. LFO, FactorOracle, etc.
     static std::mt19937_64 gen(std::time(0));
     return std::uniform_real_distribution<>{min, max}(gen);
   }
@@ -109,4 +112,44 @@ ossia::curve_segment<int> NoiseSegment::makeIntFunction() const
 {
   return Noise<int>{};
 }
+}
+
+template <>
+void DataStreamReader::read(const Curve::NoiseSegment& segmt)
+{
+}
+
+template <>
+void DataStreamWriter::write(Curve::NoiseSegment& segmt)
+{
+}
+
+template <>
+void JSONObjectReader::read(const Curve::NoiseSegment& segmt)
+{
+}
+
+template <>
+void JSONObjectWriter::write(Curve::NoiseSegment& segmt)
+{
+}
+
+template <>
+void DataStreamReader::read(const Curve::NoiseSegmentData& segmt)
+{
+}
+
+template <>
+void DataStreamWriter::write(Curve::NoiseSegmentData& segmt)
+{
+}
+
+template <>
+void JSONObjectReader::read(const Curve::NoiseSegmentData& segmt)
+{
+}
+
+template <>
+void JSONObjectWriter::write(Curve::NoiseSegmentData& segmt)
+{
 }

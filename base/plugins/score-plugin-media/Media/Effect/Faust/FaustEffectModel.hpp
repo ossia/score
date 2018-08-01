@@ -4,7 +4,7 @@
 #include <wobjectdefs.h>
 
 #include <Effect/EffectFactory.hpp>
-#include <Engine/Executor/ProcessComponent.hpp>
+#include <Execution/ProcessComponent.hpp>
 #include <Media/Effect/DefaultEffectItem.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>

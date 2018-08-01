@@ -10,7 +10,7 @@
 #include <ossia/dataflow/port.hpp>
 #include <ossia/editor/state/state.hpp>
 
-#include <Engine/Executor/DocumentPlugin.hpp>
+#include <Execution/DocumentPlugin.hpp>
 #include <Engine/OSSIA2score.hpp>
 #include <Engine/score2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>

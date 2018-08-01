@@ -1,6 +1,6 @@
 #pragma once
-#include <Engine/LocalTree/LocalTreeComponent.hpp>
-#include <Engine/LocalTree/Scenario/ProcessComponent.hpp>
+#include <LocalTree/LocalTreeComponent.hpp>
+#include <LocalTree/Scenario/ProcessComponent.hpp>
 
 namespace Skeleton
 {

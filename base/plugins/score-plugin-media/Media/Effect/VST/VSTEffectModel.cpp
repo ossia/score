@@ -5,8 +5,8 @@
 #include <ossia/detail/math.hpp>
 #include <ossia/detail/pod_vector.hpp>
 
-#include <Engine/Executor/DocumentPlugin.hpp>
-#include <Engine/Protocols/Settings/Model.hpp>
+#include <Execution/DocumentPlugin.hpp>
+#include <Audio/Settings/Model.hpp>
 #include <Media/ApplicationPlugin.hpp>
 #include <Media/Commands/VSTCommands.hpp>
 #include <Media/Effect/VST/VSTControl.hpp>

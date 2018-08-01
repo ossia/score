@@ -4,7 +4,7 @@
 
 #include "JS/Commands/JSCommandFactory.hpp"
 
-#include <Engine/Executor/DocumentPlugin.hpp>
+#include <Execution/DocumentPlugin.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <JS/Executor/Component.hpp>
 #include <JS/Inspector/JSInspectorFactory.hpp>

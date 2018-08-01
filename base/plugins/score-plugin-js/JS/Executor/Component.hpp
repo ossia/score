@@ -3,8 +3,8 @@
 #include <ossia/editor/scenario/time_process.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
 
-#include <Engine/Executor/ExecutorContext.hpp>
-#include <Engine/Executor/ProcessComponent.hpp>
+#include <Execution/ExecutorContext.hpp>
+#include <Execution/ProcessComponent.hpp>
 #include <JS/Qml/QmlObjects.hpp>
 #include <QEventLoop>
 #include <QJSValue>

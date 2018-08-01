@@ -2,10 +2,10 @@
 #include <ossia/context.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 
-#include <Engine/Executor/DocumentPlugin.hpp>
-#include <Engine/Executor/IntervalComponent.hpp>
-#include <Engine/Executor/Settings/ExecutorModel.hpp>
-#include <Engine/LocalTree/LocalTreeDocumentPlugin.hpp>
+#include <Execution/DocumentPlugin.hpp>
+#include <Execution/IntervalComponent.hpp>
+#include <Execution/Settings/ExecutorModel.hpp>
+#include <LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Process/ProcessList.hpp>
 #include <QCoreApplication>

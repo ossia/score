@@ -11,7 +11,7 @@
 #endif
 #include <ossia/audio/audio_protocol.hpp>
 
-#include <Engine/Protocols/Audio/AudioDevice.hpp>
+#include <Protocols/Audio/AudioDevice.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <QDirIterator>

@@ -2,7 +2,7 @@
 #include <ossia/dataflow/node_process.hpp>
 #include <wobjectdefs.h>
 
-#include <Engine/Executor/ProcessComponent.hpp>
+#include <Execution/ProcessComponent.hpp>
 #include <Media/Effect/VST/VSTEffectModel.hpp>
 
 namespace Engine::Execution
