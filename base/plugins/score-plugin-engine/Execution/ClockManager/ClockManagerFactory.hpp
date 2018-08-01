@@ -39,12 +39,11 @@ using reverse_time_function
 class SCORE_PLUGIN_ENGINE_EXPORT ClockManager
 {
 public:
-  ClockManager(const Execution::Context& ctx) : context{ctx}
-  {
-  }
+  ClockManager(const Execution::Context& ctx);
   virtual ~ClockManager();
 
   const Context& context;
+  BaseScenarioElement& scenario;
 
   void play(const TimeVal& t);
   void pause();

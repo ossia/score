@@ -312,7 +312,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
             this, [=] {
       if(m_clock)
       {
-        auto& itv = m_clock->context.scenario.baseInterval().scoreInterval().duration;
+        auto& itv = m_clock->scenario.baseInterval().scoreInterval().duration;
         auto time = (itv.defaultDuration() * itv.playPercentage()).toQTime();
         time_label->setText(time.toString("HH:mm:ss.zzz"));
       }
@@ -535,12 +535,13 @@ void ApplicationPlugin::on_transport(TimeVal t)
   if (!m_clock)
     return;
 
-  auto itv = m_clock->context.scenario.baseInterval().OSSIAInterval();
+  auto itv = m_clock->scenario.baseInterval().OSSIAInterval();
   if (!itv)
     return;
 
+  auto& settings = context.settings<Execution::Settings::Model>();
   auto& ctx = m_clock->context;
-  if(ctx.settings.getTransportValueCompilation())
+  if(settings.getTransportValueCompilation())
   {
     auto execState = m_clock->context.execState;
     ctx.executionQueue.enqueue(
@@ -561,7 +562,7 @@ void ApplicationPlugin::on_transport(TimeVal t)
 void ApplicationPlugin::on_play(
     Scenario::IntervalModel& cst,
     bool b,
-    std::function<void(const Execution::Context&)> setup_fun,
+    exec_setup_fun setup_fun,
     TimeVal t)
 {
   auto doc = currentDocument();
@@ -606,7 +607,7 @@ void ApplicationPlugin::on_play(
       if (setup_fun)
       {
         plugmodel->runAllCommands();
-        setup_fun(c);
+        setup_fun(c, plugmodel->baseScenario());
         plugmodel->runAllCommands();
       }
 

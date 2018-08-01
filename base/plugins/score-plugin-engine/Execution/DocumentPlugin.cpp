@@ -38,11 +38,11 @@ DocumentPlugin::DocumentPlugin(
     Id<score::DocumentPlugin> id,
     QObject* parent)
     : score::DocumentPlugin{ctx, std::move(id), "OSSIADocumentPlugin", parent}
+    , settings{ctx.app.settings<Execution::Settings::Model>()}
     , m_execQueue(1024)
     , m_editionQueue(1024)
     , m_ctx{ctx,
-            m_base,
-            ctx.app.settings<Execution::Settings::Model>(),
+            m_created,
             {},
             {},
             m_execQueue,
@@ -94,7 +94,7 @@ void SetupContext::on_cableCreated(Process::Cable& c)
 
 void SetupContext::on_cableRemoved(const Process::Cable& c)
 {
-  if (!context.scenario.active())
+  if (!context.created)
     return;
   auto it = m_cables.find(c.id());
   if (it != m_cables.end())
@@ -106,7 +106,7 @@ void SetupContext::on_cableRemoved(const Process::Cable& c)
 
 void SetupContext::connectCable(Process::Cable& cable)
 {
-  if (!context.scenario.active())
+  if (!context.created)
     return;
   ossia::node_ptr source_node{}, sink_node{};
   ossia::outlet_ptr source_port{};
@@ -233,7 +233,7 @@ void DocumentPlugin::makeGraph()
   // valeurs. parallel avec dynamic il manque le cas "default score order" il
   // manque le log pour dynamic
 
-  auto sched = m_ctx.settings.getScheduling();
+  auto sched = settings.getScheduling();
 
   if (execGraph)
     execGraph->clear();
@@ -242,10 +242,10 @@ void DocumentPlugin::makeGraph()
   execState = std::make_unique<ossia::execution_state>();
 
   ossia::graph_setup_options opt;
-  opt.parallel = m_ctx.settings.getParallel();
-  if (m_ctx.settings.getLogging())
+  opt.parallel = settings.getParallel();
+  if (settings.getLogging())
     opt.log = ossia::logger_ptr();
-  if (m_ctx.settings.getBench())
+  if (settings.getBench())
     opt.bench = ossia::bench_ptr();
 
   ossia::bench_ptr()->clear();
@@ -307,6 +307,7 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
   auto parent = dynamic_cast<Scenario::ScenarioInterface*>(cst.parent());
   SCORE_ASSERT(parent);
   m_base.init(BaseScenarioRefContainer{cst, *parent});
+  m_created = true;
 
   auto& model = context().doc.model<Scenario::ScenarioDocumentModel>();
   for (auto& cable : model.cables)
@@ -330,6 +331,7 @@ void DocumentPlugin::clear()
     runAllCommands();
     runAllCommands();
     m_base.cleanup();
+    m_created = false;
     runAllCommands();
     runAllCommands();
 
@@ -352,6 +354,11 @@ void DocumentPlugin::on_documentClosing()
 }
 
 const BaseScenarioElement& DocumentPlugin::baseScenario() const
+{
+  return m_base;
+}
+
+BaseScenarioElement& DocumentPlugin::baseScenario()
 {
   return m_base;
 }

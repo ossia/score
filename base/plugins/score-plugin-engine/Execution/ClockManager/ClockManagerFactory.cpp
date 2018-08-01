@@ -16,10 +16,15 @@ namespace Execution
 ClockManager::~ClockManager() = default;
 ClockManagerFactory::~ClockManagerFactory() = default;
 
+ClockManager::ClockManager(const Context& ctx)
+  : context{ctx}
+  , scenario{context.doc.plugin<DocumentPlugin>().baseScenario()}
+{
+}
+
 void ClockManager::play(const TimeVal& t)
 {
-  auto& bs = context.scenario;
-  play_impl(t, bs);
+  play_impl(t, scenario);
   if(auto v = context.doc.document.view())
   {
     auto view = static_cast<Scenario::ScenarioDocumentView*>(
@@ -27,27 +32,24 @@ void ClockManager::play(const TimeVal& t)
     view->timeBar().setVisible(
         context.doc.app.settings<Scenario::Settings::Model>().getTimeBar());
     view->timeBar().playing = true;
-    view->timeBar().setInterval(&bs.baseInterval().interval());
+    view->timeBar().setInterval(&scenario.baseInterval().interval());
   }
 }
 
 void ClockManager::pause()
 {
-  auto& bs = context.scenario;
-  pause_impl(bs);
+  pause_impl(scenario);
 }
 
 void ClockManager::resume()
 {
-  auto& bs = context.scenario;
-  resume_impl(bs);
+  resume_impl(scenario);
 }
 
 void ClockManager::stop()
 {
-  auto& bs = context.scenario;
-  if (bs.active())
-    stop_impl(bs);
+  if (scenario.active())
+    stop_impl(scenario);
 
   auto view = static_cast<Scenario::ScenarioDocumentView*>(
       &context.doc.document.view()->viewDelegate());

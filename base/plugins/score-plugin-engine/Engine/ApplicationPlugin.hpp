@@ -14,6 +14,7 @@ namespace Execution
 {
 struct Context;
 class ClockManager;
+class BaseScenarioElement;
 }
 
 namespace Engine::LocalTree
@@ -21,11 +22,13 @@ namespace Engine::LocalTree
 class DocumentPlugin;
 }
 
+
 namespace ossia
 { class audio_engine; }
 
 namespace Engine
 {
+using exec_setup_fun = std::function<void(const Execution::Context&, Execution::BaseScenarioElement&)>;
 class SCORE_PLUGIN_ENGINE_EXPORT ApplicationPlugin final
     : public QObject
     , public score::GUIApplicationPlugin
@@ -49,7 +52,7 @@ public:
   void on_play(
       Scenario::IntervalModel&,
       bool,
-      std::function<void(const Execution::Context&)> setup = {},
+      exec_setup_fun setup = {},
       ::TimeVal t = ::TimeVal::zero());
 
   void on_record(::TimeVal t);
