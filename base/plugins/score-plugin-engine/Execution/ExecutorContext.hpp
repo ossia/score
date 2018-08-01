@@ -19,21 +19,15 @@ struct DocumentContext;
 template <typename T, typename U, typename V>
 class GenericComponentFactoryList;
 }
-namespace Explorer
-{
-class DeviceDocumentPlugin;
-}
 namespace Process
 {
 class ProcessModel;
 }
 namespace Execution
 {
-class DocumentPlugin;
 class ProcessComponent;
 class ProcessComponentFactory;
 class ProcessComponentFactoryList;
-class BaseScenarioElement;
 struct SetupContext;
 namespace Settings
 {
@@ -74,7 +68,6 @@ struct SCORE_PLUGIN_ENGINE_EXPORT Context
   //! \see LiveModification
   ExecutionCommandQueue& executionQueue;
   ExecutionCommandQueue& editionQueue;
-  DocumentPlugin& plugin;
   SetupContext& setup;
 
   const std::shared_ptr<ossia::graph_interface>& execGraph;
