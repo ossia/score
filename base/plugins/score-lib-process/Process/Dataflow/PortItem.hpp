@@ -7,7 +7,6 @@
 #  include <Process/Dataflow/Port.hpp>
 #endif
 #include <ossia/detail/ptr_set.hpp>
-#include <score/widgets/GraphicsScene.hpp>
 
 #include <score_lib_process_export.h>
 namespace Process

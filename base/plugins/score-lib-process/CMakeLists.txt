@@ -89,7 +89,6 @@ set(PROCESS_SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegateFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegate.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/DocumentPlugin.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectLayer.cpp"

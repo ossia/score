@@ -2,7 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "PluginSettingsPresenter.hpp"
 
-#include "PluginSettings/commands/BlacklistCommand.hpp"
 #include "PluginSettingsModel.hpp"
 #include "PluginSettingsView.hpp"
 

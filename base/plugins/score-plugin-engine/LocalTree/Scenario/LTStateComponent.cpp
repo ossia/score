@@ -2,8 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "StateComponent.hpp"
 
-#include "MetadataParameters.hpp"
-
 #include <Execution/DocumentPlugin.hpp>
 #include <Engine/score2OSSIA.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>

@@ -6,7 +6,6 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 
 # Files & main target
 set(HEADER_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/PluginSettings/commands/BlacklistCommand.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/PluginSettings/PluginSettings.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/PluginSettings/PluginSettingsModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/PluginSettings/PluginSettingsPresenter.hpp"
@@ -17,7 +16,6 @@ set(HEADER_FILES
 )
 
 set(SOURCE_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/PluginSettings/commands/BlacklistCommand.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/PluginSettings/PluginSettingsModel.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/PluginSettings/PluginSettingsPresenter.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/PluginSettings/PluginSettingsView.cpp"

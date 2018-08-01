@@ -2,8 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "PluginSettingsModel.hpp"
 
-#include "commands/BlacklistCommand.hpp"
-
 #include <ossia/detail/algorithms.hpp>
 
 #include <QApplication>

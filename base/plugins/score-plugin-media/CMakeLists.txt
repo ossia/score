@@ -51,7 +51,6 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectProcessLayer.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectProcessMetadata.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectProcessModel.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/Widgets/EffectSlider.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Inspector/EffectInspector.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectExecutor.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/DefaultEffectItem.hpp"
@@ -75,9 +74,6 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Merger/Factory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Merger/Inspector.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Merger/Model.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Merger/Presenter.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Merger/View.hpp"
-
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/MediaFileHandle.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioDecoder.hpp"
@@ -87,9 +83,6 @@ set(HDRS ${HDRS}
 )
 
 set(SRCS
-
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundModelSerialization.cpp"
-
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/ChangeAudioFile.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/MediaCommandFactory.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/InsertEffect.cpp"
@@ -105,7 +98,6 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Input/InputModel.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectProcessModel.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Effect/Widgets/EffectSlider.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Inspector/EffectInspector.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectExecutor.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/DefaultEffectItem.cpp"

@@ -6,7 +6,6 @@
 #include <Process/Dataflow/Port.hpp>
 #include <QGraphicsItem>
 #include <QObject>
-#include <score/widgets/GraphicsScene.hpp>
 namespace Dataflow
 {
 class CableItem;

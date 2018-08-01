@@ -10,7 +10,6 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/CurveConversion.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/OSSIA2score.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/OssiaLogger.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitProtocolSettingsWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitDevice.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitSpecificSettings.hpp"
@@ -56,7 +55,6 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Execution/IntervalRawPtrComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Automation/Component.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Automation/SplineComponent.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Automation/InterpolationComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Automation/InterpStateComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Automation/GradientComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Automation/MetronomeComponent.hpp"
@@ -92,7 +90,6 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/Scenario/EventComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/Scenario/TimeSyncComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/Scenario/StateComponent.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/Scenario/MetadataParameters.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/PdNode.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Widgets.hpp"
@@ -100,7 +97,6 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Inspector.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Layer.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Executor.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/BaseWidgets.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/CommonWidgets.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Port.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/TimeSignature.hpp"
@@ -126,15 +122,12 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCProtocolSettingsWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCDevice.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCProtocolFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSSIADevice.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/Settings/Model.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/Settings/Presenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/Settings/View.cpp"
 
 
-
-"${CMAKE_CURRENT_SOURCE_DIR}/Engine/OSSIA2score.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/ApplicationPlugin.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Execution/ContextMenu/PlayContextMenu.cpp"
@@ -154,7 +147,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Automation/GradientComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Automation/MetronomeComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Automation/SplineComponent.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Execution/Automation/InterpolationComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Automation/InterpStateComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Mapping/Component.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Loop/Component.cpp"
@@ -178,7 +170,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/Scenario/LTEventComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/Scenario/LTTimeSyncComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/Scenario/LTStateComponent.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/Scenario/MetadataParameters.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/score2OSSIA.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Widgets.cpp"
