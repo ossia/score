@@ -46,7 +46,7 @@ class Clock final
 {
 public:
   Clock(const Execution::Context& ctx)
-      : ClockManager{ctx}, m_default{ctx}, m_plug{ctx.plugin}
+      : ClockManager{ctx}, m_default{ctx}
   {
   }
 
@@ -70,11 +70,10 @@ private:
     }
     QObject::connect(m_widg, &TimeWidget::advance, this, [=](int val) {
       using namespace ossia;
-      m_cur->baseInterval().OSSIAInterval()->tick_offset(ossia::time_value{val}, 0_tv);
+      scenario.baseInterval().OSSIAInterval()->tick_offset(ossia::time_value{val}, 0_tv);
     });
     m_widg->show();
 
-    m_cur = &bs;
     m_default.play(t);
 
     resume_impl(bs);
@@ -88,7 +87,7 @@ private:
   void stop_impl(Execution::BaseScenarioElement&) override
   {
     delete m_widg;
-    m_plug.finished();
+    context.doc.plugin<DocumentPlugin>().finished();
   }
   bool paused() const override
   {
@@ -96,8 +95,6 @@ private:
   }
 
   Execution::DefaultClockManager m_default;
-  Execution::DocumentPlugin& m_plug;
-  Execution::BaseScenarioElement* m_cur{};
   bool m_paused{};
 };
 

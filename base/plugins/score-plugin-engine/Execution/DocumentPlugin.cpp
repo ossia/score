@@ -47,7 +47,6 @@ DocumentPlugin::DocumentPlugin(
             {},
             m_execQueue,
             m_editionQueue,
-            *this,
             m_setup_ctx,
             execGraph,
             execState}

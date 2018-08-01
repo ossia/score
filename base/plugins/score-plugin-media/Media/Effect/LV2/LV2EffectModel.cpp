@@ -471,7 +471,7 @@ void LV2EffectComponent::lazy_init()
 
   auto node = std::make_shared<Media::LV2::lv2_node<on_finish>>(
       Media::LV2::LV2Data{host.lv2_host_context, proc.effectContext},
-      ctx.plugin.execState->sampleRate,
+      ctx.execState->sampleRate,
       of);
 
   for (std::size_t i = proc.m_controlInStart; i < proc.inlets().size(); i++)
