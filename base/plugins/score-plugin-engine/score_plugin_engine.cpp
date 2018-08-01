@@ -8,64 +8,63 @@
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Engine/ApplicationPlugin.hpp>
 #include <Engine/AudioPanel.hpp>
-#include <Engine/Curve/EasingSegment.hpp>
-#include <Engine/Executor/Automation/Component.hpp>
-#include <Engine/Executor/Automation/GradientComponent.hpp>
-#include <Engine/Executor/Automation/MetronomeComponent.hpp>
-#include <Engine/Executor/Automation/SplineComponent.hpp>
-#include <Engine/Executor/ClockManager/ClockManagerFactory.hpp>
-#include <Engine/Executor/ClockManager/DefaultClockManager.hpp>
-#include <Engine/Executor/DocumentPlugin.hpp>
-#include <Engine/Executor/Loop/Component.hpp>
-#include <Engine/Executor/Mapping/Component.hpp>
-#include <Engine/Executor/ProcessComponent.hpp>
-#include <Engine/Executor/ScenarioComponent.hpp>
-#include <Engine/Executor/Settings/ExecutorFactory.hpp>
+#include <Execution/Automation/Component.hpp>
+#include <Execution/Automation/GradientComponent.hpp>
+#include <Execution/Automation/MetronomeComponent.hpp>
+#include <Execution/Automation/SplineComponent.hpp>
+#include <Execution/ClockManager/ClockManagerFactory.hpp>
+#include <Execution/ClockManager/DefaultClockManager.hpp>
+#include <Execution/DocumentPlugin.hpp>
+#include <Execution/Loop/Component.hpp>
+#include <Execution/Mapping/Component.hpp>
+#include <Execution/ProcessComponent.hpp>
+#include <Execution/ScenarioComponent.hpp>
+#include <Execution/Settings/ExecutorFactory.hpp>
 #include <Engine/Listening/PlayListeningHandlerFactory.hpp>
-#include <Engine/LocalTree/Scenario/AutomationComponent.hpp>
-#include <Engine/LocalTree/Scenario/LoopComponent.hpp>
-#include <Engine/LocalTree/Scenario/MappingComponent.hpp>
-#include <Engine/LocalTree/Scenario/ScenarioComponent.hpp>
-#include <Engine/Protocols/Local/LocalProtocolFactory.hpp>
-#include <Engine/Protocols/Settings/Factory.hpp>
+#include <LocalTree/Scenario/AutomationComponent.hpp>
+#include <LocalTree/Scenario/LoopComponent.hpp>
+#include <LocalTree/Scenario/MappingComponent.hpp>
+#include <LocalTree/Scenario/ScenarioComponent.hpp>
+#include <Protocols/Local/LocalProtocolFactory.hpp>
+#include <Audio/Settings/Factory.hpp>
 #include <QString>
 #include <ossia-config.hpp>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
 #include <score/plugins/customfactory/FactorySetup.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #if defined(OSSIA_PROTOCOL_MINUIT)
-#  include <Engine/Protocols/Minuit/MinuitProtocolFactory.hpp>
+#  include <Protocols/Minuit/MinuitProtocolFactory.hpp>
 #endif
 #if defined(OSSIA_PROTOCOL_OSC)
-#  include <Engine/Protocols/OSC/OSCProtocolFactory.hpp>
+#  include <Protocols/OSC/OSCProtocolFactory.hpp>
 #endif
 
 #if defined(OSSIA_PROTOCOL_OSCQUERY)
-#  include <Engine/Protocols/OSCQuery/OSCQueryProtocolFactory.hpp>
+#  include <Protocols/OSCQuery/OSCQueryProtocolFactory.hpp>
 #endif
 
 #if defined(OSSIA_PROTOCOL_MIDI)
-#  include <Engine/Protocols/MIDI/MIDIProtocolFactory.hpp>
+#  include <Protocols/MIDI/MIDIProtocolFactory.hpp>
 #endif
 #if defined(OSSIA_PROTOCOL_HTTP)
-#  include <Engine/Protocols/HTTP/HTTPProtocolFactory.hpp>
+#  include <Protocols/HTTP/HTTPProtocolFactory.hpp>
 #endif
 #if defined(OSSIA_PROTOCOL_WEBSOCKETS)
-#  include <Engine/Protocols/WS/WSProtocolFactory.hpp>
+#  include <Protocols/WS/WSProtocolFactory.hpp>
 #endif
 #if defined(OSSIA_PROTOCOL_SERIAL)
-#  include <Engine/Protocols/Serial/SerialProtocolFactory.hpp>
+#  include <Protocols/Serial/SerialProtocolFactory.hpp>
 #endif
 #if defined(OSSIA_PROTOCOL_PHIDGETS)
-#  include <Engine/Protocols/Phidgets/PhidgetsProtocolFactory.hpp>
+#  include <Protocols/Phidgets/PhidgetsProtocolFactory.hpp>
 #endif
 #if defined(OSSIA_PROTOCOL_JOYSTICK)
-#  include <Engine/Protocols/Joystick/JoystickProtocolFactory.hpp>
+#  include <Protocols/Joystick/JoystickProtocolFactory.hpp>
 #endif
 
-#include <Engine/Executor/Dataflow/DataflowClock.hpp>
-#include <Engine/Protocols/Audio/AudioDevice.hpp>
-#include <Engine/Executor/Dataflow/ManualClock.hpp>
+#include <Execution/Dataflow/DataflowClock.hpp>
+#include <Protocols/Audio/AudioDevice.hpp>
+#include <Execution/Dataflow/ManualClock.hpp>
 #include <score_plugin_scenario.hpp>
 #include <score_plugin_deviceexplorer.hpp>
 #include <wobjectimpl.h>
@@ -110,8 +109,6 @@ score_plugin_engine::factories(
   using namespace Scenario;
   using namespace Engine;
   using namespace Engine::Execution;
-  using namespace EasingCurve;
-
   return instantiate_factories<
       score::ApplicationContext,
       FW<Device::ProtocolFactory, Network::LocalProtocolFactory
@@ -182,38 +179,7 @@ score_plugin_engine::factories(
          // , Engine::Execution::ControlClockFactory
          , Dataflow::ClockFactory
          // , Engine::ManualClock::ClockFactory
-      >,
-      FW<Curve::SegmentFactory, Curve::SegmentFactory_T<Segment_backIn>,
-         Curve::SegmentFactory_T<Segment_backOut>,
-         Curve::SegmentFactory_T<Segment_backInOut>,
-         Curve::SegmentFactory_T<Segment_bounceIn>,
-         Curve::SegmentFactory_T<Segment_bounceOut>,
-         Curve::SegmentFactory_T<Segment_bounceInOut>,
-         Curve::SegmentFactory_T<Segment_quadraticIn>,
-         Curve::SegmentFactory_T<Segment_quadraticOut>,
-         Curve::SegmentFactory_T<Segment_quadraticInOut>,
-         Curve::SegmentFactory_T<Segment_cubicIn>,
-         Curve::SegmentFactory_T<Segment_cubicOut>,
-         Curve::SegmentFactory_T<Segment_cubicInOut>,
-         Curve::SegmentFactory_T<Segment_quarticIn>,
-         Curve::SegmentFactory_T<Segment_quarticOut>,
-         Curve::SegmentFactory_T<Segment_quarticInOut>,
-         Curve::SegmentFactory_T<Segment_quinticIn>,
-         Curve::SegmentFactory_T<Segment_quinticOut>,
-         Curve::SegmentFactory_T<Segment_quinticInOut>,
-         Curve::SegmentFactory_T<Segment_sineIn>,
-         Curve::SegmentFactory_T<Segment_sineOut>,
-         Curve::SegmentFactory_T<Segment_sineInOut>,
-         Curve::SegmentFactory_T<Segment_circularIn>,
-         Curve::SegmentFactory_T<Segment_circularOut>,
-         Curve::SegmentFactory_T<Segment_circularInOut>,
-         Curve::SegmentFactory_T<Segment_exponentialIn>,
-         Curve::SegmentFactory_T<Segment_exponentialOut>,
-         Curve::SegmentFactory_T<Segment_exponentialInOut>,
-         Curve::SegmentFactory_T<Segment_elasticIn>,
-         Curve::SegmentFactory_T<Segment_elasticOut>,
-         Curve::SegmentFactory_T<Segment_elasticInOut>,
-         Curve::SegmentFactory_T<Segment_perlinInOut>>>(ctx, key);
+      >>(ctx, key);
 }
 
 auto score_plugin_engine::required() const -> std::vector<score::PluginKey>

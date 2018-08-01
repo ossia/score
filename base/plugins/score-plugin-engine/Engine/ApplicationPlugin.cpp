@@ -8,17 +8,17 @@
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 
-#include <Engine/Executor/BaseScenarioComponent.hpp>
-#include <Engine/Executor/ClockManager/ClockManagerFactory.hpp>
-#include <Engine/Executor/ContextMenu/PlayContextMenu.hpp>
-#include <Engine/Executor/DocumentPlugin.hpp>
-#include <Engine/Executor/IntervalComponent.hpp>
-#include <Engine/Executor/Settings/ExecutorModel.hpp>
-#include <Engine/Executor/StateComponent.hpp>
-#include <Engine/LocalTree/LocalTreeDocumentPlugin.hpp>
+#include <Execution/BaseScenarioComponent.hpp>
+#include <Execution/ClockManager/ClockManagerFactory.hpp>
+#include <Execution/ContextMenu/PlayContextMenu.hpp>
+#include <Execution/DocumentPlugin.hpp>
+#include <Execution/IntervalComponent.hpp>
+#include <Execution/Settings/ExecutorModel.hpp>
+#include <Execution/StateComponent.hpp>
+#include <LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <Engine/OssiaLogger.hpp>
-#include <Engine/Protocols/Audio/AudioDevice.hpp>
-#include <Engine/Protocols/Settings/Model.hpp>
+#include <Protocols/Audio/AudioDevice.hpp>
+#include <Audio/Settings/Model.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/Settings/ExplorerModel.hpp>

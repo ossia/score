@@ -7,7 +7,7 @@
 #include <ossia/detail/logger.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 
-#include <Engine/Executor/Settings/ExecutorModel.hpp>
+#include <Execution/Settings/ExecutorModel.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #if defined(SCORE_PLUGIN_AUDIO)

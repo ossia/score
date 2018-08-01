@@ -10,6 +10,7 @@
 #include <Curve/Segment/PointArray/PointArraySegment.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
 #include <Curve/Segment/Sin/SinSegment.hpp>
+#include <Curve/Segment/EasingSegment.hpp>
 #include <Curve/Settings/CurveSettingsFactory.hpp>
 #include <score/plugins/customfactory/FactorySetup.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
@@ -29,19 +30,50 @@ score_plugin_curve::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& factoryName) const
 {
+  using namespace Curve;
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Curve::SegmentFactory, Curve::SegmentFactory_T<Curve::LinearSegment>,
-         Curve::SegmentFactory_T<Curve::PowerSegment>,
-         Curve::SegmentFactory_T<Curve::NoiseSegment>,
-         Curve::SegmentFactory_T<Curve::PointArraySegment>,
-         Curve::SegmentFactory_T<Curve::PeriodicSegment<Curve::Sin>>,
-         Curve::SegmentFactory_T<Curve::PeriodicSegment<Curve::Square>>,
-         Curve::SegmentFactory_T<Curve::PeriodicSegment<Curve::Triangle>>,
-         Curve::SegmentFactory_T<Curve::PeriodicSegment<Curve::Saw>>
-
+      FW<SegmentFactory, SegmentFactory_T<LinearSegment>,
+         SegmentFactory_T<PowerSegment>,
+         SegmentFactory_T<NoiseSegment>,
+         SegmentFactory_T<PointArraySegment>,
+         SegmentFactory_T<PeriodicSegment<Sin>>,
+         SegmentFactory_T<PeriodicSegment<Square>>,
+         SegmentFactory_T<PeriodicSegment<Triangle>>,
+         SegmentFactory_T<PeriodicSegment<Saw>>,
+         SegmentFactory_T<Segment_backIn>,
+         SegmentFactory_T<Segment_backOut>,
+         SegmentFactory_T<Segment_backInOut>,
+         SegmentFactory_T<Segment_bounceIn>,
+         SegmentFactory_T<Segment_bounceOut>,
+         SegmentFactory_T<Segment_bounceInOut>,
+         SegmentFactory_T<Segment_quadraticIn>,
+         SegmentFactory_T<Segment_quadraticOut>,
+         SegmentFactory_T<Segment_quadraticInOut>,
+         SegmentFactory_T<Segment_cubicIn>,
+         SegmentFactory_T<Segment_cubicOut>,
+         SegmentFactory_T<Segment_cubicInOut>,
+         SegmentFactory_T<Segment_quarticIn>,
+         SegmentFactory_T<Segment_quarticOut>,
+         SegmentFactory_T<Segment_quarticInOut>,
+         SegmentFactory_T<Segment_quinticIn>,
+         SegmentFactory_T<Segment_quinticOut>,
+         SegmentFactory_T<Segment_quinticInOut>,
+         SegmentFactory_T<Segment_sineIn>,
+         SegmentFactory_T<Segment_sineOut>,
+         SegmentFactory_T<Segment_sineInOut>,
+         SegmentFactory_T<Segment_circularIn>,
+         SegmentFactory_T<Segment_circularOut>,
+         SegmentFactory_T<Segment_circularInOut>,
+         SegmentFactory_T<Segment_exponentialIn>,
+         SegmentFactory_T<Segment_exponentialOut>,
+         SegmentFactory_T<Segment_exponentialInOut>,
+         SegmentFactory_T<Segment_elasticIn>,
+         SegmentFactory_T<Segment_elasticOut>,
+         SegmentFactory_T<Segment_elasticInOut>,
+         SegmentFactory_T<Segment_perlinInOut>
          >,
-      FW<score::SettingsDelegateFactory, Curve::Settings::Factory>>(
+      FW<score::SettingsDelegateFactory, Settings::Factory>>(
       ctx, factoryName);
 }
 

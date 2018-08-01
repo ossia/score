@@ -16,6 +16,8 @@
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <ossia/detail/pod_vector.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Curve::PointArraySegment)
@@ -268,3 +270,51 @@ void PointArraySegment::reset()
   dataChanged();
 }
 }
+template <>
+void DataStreamReader::read(const Curve::PointArraySegment& segmt)
+{
+  SCORE_TODO;
+}
+
+template <>
+void DataStreamWriter::write(Curve::PointArraySegment& segmt)
+{
+  SCORE_TODO;
+}
+
+template <>
+void JSONObjectReader::read(const Curve::PointArraySegment& segmt)
+{
+  SCORE_TODO;
+}
+
+template <>
+void JSONObjectWriter::write(Curve::PointArraySegment& segmt)
+{
+  SCORE_TODO;
+}
+
+template <>
+void DataStreamReader::read(const Curve::PointArraySegmentData& segmt)
+{
+  SCORE_TODO;
+}
+
+template <>
+void DataStreamWriter::write(Curve::PointArraySegmentData& segmt)
+{
+  SCORE_TODO;
+}
+
+template <>
+void JSONObjectReader::read(const Curve::PointArraySegmentData& segmt)
+{
+  SCORE_TODO;
+}
+
+template <>
+void JSONObjectWriter::write(Curve::PointArraySegmentData& segmt)
+{
+  SCORE_TODO;
+}
+

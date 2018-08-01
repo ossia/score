@@ -4,16 +4,12 @@
 #include "PowerSegment.hpp"
 
 #include <ossia/editor/curve/curve_segment/linear.hpp>
-
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
-#include <QPoint>
-#include <cmath>
-#include <cstddef>
-#include <iostream>
 #include <score/serialization/VisitorCommon.hpp>
-#include <vector>
-#include <score/model/Identifier.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+
 namespace Curve
 {
 
@@ -154,4 +150,52 @@ optional<double> PowerSegment::verticalParameter() const
   else
     return -(gamma / 6. - 1);
 }
+}
+
+template <>
+void DataStreamReader::read(const Curve::PowerSegment& segmt)
+{
+  m_stream << segmt.gamma;
+}
+
+template <>
+void DataStreamWriter::write(Curve::PowerSegment& segmt)
+{
+  m_stream >> segmt.gamma;
+}
+
+template <>
+void JSONObjectReader::read(const Curve::PowerSegment& segmt)
+{
+  obj[strings.Power] = segmt.gamma;
+}
+
+template <>
+void JSONObjectWriter::write(Curve::PowerSegment& segmt)
+{
+  segmt.gamma = obj[strings.Power].toDouble();
+}
+
+template <>
+void DataStreamReader::read(const Curve::PowerSegmentData& segmt)
+{
+  m_stream << segmt.gamma;
+}
+
+template <>
+void DataStreamWriter::write(Curve::PowerSegmentData& segmt)
+{
+  m_stream >> segmt.gamma;
+}
+
+template <>
+void JSONObjectReader::read(const Curve::PowerSegmentData& segmt)
+{
+  obj[strings.Power] = segmt.gamma;
+}
+
+template <>
+void JSONObjectWriter::write(Curve::PowerSegmentData& segmt)
+{
+  segmt.gamma = obj[strings.Power].toDouble();
 }

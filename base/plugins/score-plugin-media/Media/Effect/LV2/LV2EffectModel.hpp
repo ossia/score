@@ -3,7 +3,7 @@
 #include <wobjectdefs.h>
 
 #include <Effect/EffectFactory.hpp>
-#include <Engine/Executor/ProcessComponent.hpp>
+#include <Execution/ProcessComponent.hpp>
 #include <Media/Effect/DefaultEffectItem.hpp>
 #include <Media/Effect/LV2/LV2Context.hpp>
 #include <Process/GenericProcessFactory.hpp>

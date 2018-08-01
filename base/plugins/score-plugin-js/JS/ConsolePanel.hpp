@@ -15,8 +15,8 @@
 #include <wobjectimpl.h>
 #include <Explorer/Commands/Add/AddDevice.hpp>
 #include <Explorer/Commands/Add/AddAddress.hpp>
-#include <Engine/Protocols/OSC/OSCProtocolFactory.hpp>
-#include <Engine/Protocols/OSC/OSCSpecificSettings.hpp>
+#include <Protocols/OSC/OSCProtocolFactory.hpp>
+#include <Protocols/OSC/OSCSpecificSettings.hpp>
 #include <core/command/CommandStack.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <ossia/network/common/complex_type.hpp>

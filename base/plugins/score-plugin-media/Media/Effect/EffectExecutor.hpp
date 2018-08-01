@@ -2,7 +2,7 @@
 #include <ossia/dataflow/fx_node.hpp>
 #include <ossia/dataflow/node_chain_process.hpp>
 
-#include <Engine/Executor/ProcessComponent.hpp>
+#include <Execution/ProcessComponent.hpp>
 #include <Media/Effect/EffectProcessModel.hpp>
 #include <score/model/ComponentFactory.hpp>
 #include <score/model/ComponentHierarchy.hpp>
