@@ -405,6 +405,9 @@ void TemporalScenarioPresenter::on_intervalExecutionTimer()
 
 void TemporalScenarioPresenter::doubleClick(QPointF pt)
 {
+  if(m_editionSettings.tool() == Scenario::Tool::Play)
+    return;
+
   auto sp = toScenarioPoint(pt);
 
   // Just create a dot
