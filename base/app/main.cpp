@@ -42,18 +42,6 @@ Q_IMPORT_PLUGIN(QXcbIntegrationPlugin)
 #include <QItemSelectionModel>
 #include <QSurfaceFormat>
 
-static void init_plugins()
-{
-// TODO generate this too
-#if defined(SCORE_STATIC_PLUGINS)
-  Q_INIT_RESOURCE(score);
-  Q_INIT_RESOURCE(ScenarioResources);
-  Q_INIT_RESOURCE(DeviceExplorer);
-#  if defined(SCORE_PLUGIN_TEMPORALAUTOMATAS)
-  Q_INIT_RESOURCE(TAResources);
-#  endif
-#endif
-}
 #if defined(__SSE3__)
 #  include <pmmintrin.h>
 #endif
@@ -118,7 +106,13 @@ int main(int argc, char** argv)
   QLocale::setDefault(QLocale::C);
   setlocale(LC_ALL, "C");
 
-  init_plugins();
+
+#if defined(SCORE_STATIC_PLUGINS)
+  Q_INIT_RESOURCE(score);
+#if defined(SCORE_PLUGIN_TEMPORALAUTOMATAS)
+  Q_INIT_RESOURCE(TAResources);
+#endif
+#endif
 
 #if !defined(__EMSCRIPTEN__)
   QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
