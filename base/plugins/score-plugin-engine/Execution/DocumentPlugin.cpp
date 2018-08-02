@@ -67,6 +67,17 @@ DocumentPlugin::DocumentPlugin(
         audio_device);
   }
 
+  con(devs.list(), &Device::DeviceList::deviceAdded, this,
+      [=] (auto& dev) {
+    if(auto d = dev.getDevice())
+      registerDevice(d);
+  });
+  con(devs.list(), &Device::DeviceList::deviceRemoved, this,
+      [=] (auto& dev) {
+    if(auto d = dev.getDevice())
+      unregisterDevice(d);
+  });
+
   auto& model = ctx.model<Scenario::ScenarioDocumentModel>();
   model.cables.mutable_added
       .connect<&SetupContext::on_cableCreated>(m_setup_ctx);
@@ -221,9 +232,23 @@ void DocumentPlugin::timerEvent(QTimerEvent* event)
     cmd();
 }
 
+void DocumentPlugin::registerDevice(ossia::net::device_base* d)
+{
+  execState->register_device(d);
+}
+
+void DocumentPlugin::unregisterDevice(ossia::net::device_base* d)
+{
+  execState->unregister_device(d);
+}
+
 void DocumentPlugin::makeGraph()
 {
   using namespace ossia;
+  const score::DocumentContext& ctx = m_ctx.doc;
+  auto& devlist = ctx.plugin<Explorer::DeviceDocumentPlugin>().list().devices();
+  auto& audiosettings = ctx.app.settings<Audio::Settings::Model>();
+
   static const Execution::Settings::SchedulingPolicies sched_t;
   static const Execution::Settings::OrderingPolicies order_t;
   static const Execution::Settings::MergingPolicies merge_t;
@@ -238,7 +263,19 @@ void DocumentPlugin::makeGraph()
     execGraph->clear();
   execGraph.reset();
 
-  execState = std::make_unique<ossia::execution_state>();
+  execState = std::make_shared<ossia::execution_state>();
+
+  execState->bufferSize = audiosettings.getBufferSize();
+  execState->sampleRate = audiosettings.getRate();
+  execState->samples_since_start = 0;
+  execState->start_date = 0; // TODO set it in the first callback
+  execState->cur_date = execState->start_date;
+  if(audio_device)
+    execState->register_device(audio_device->getDevice());
+  for (auto dev : devlist)
+  {
+    registerDevice(dev->getDevice());
+  }
 
   ossia::graph_setup_options opt;
   opt.parallel = settings.getParallel();
@@ -260,6 +297,7 @@ void DocumentPlugin::makeGraph()
 
   execGraph = ossia::make_graph(opt);
 }
+
 void DocumentPlugin::reload(Scenario::IntervalModel& cst)
 {
   if (m_base.active())
@@ -270,9 +308,7 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
 
 
   const score::DocumentContext& ctx = m_ctx.doc;
-  auto& devlist = ctx.plugin<Explorer::DeviceDocumentPlugin>().list().devices();
   auto& settings = ctx.app.settings<Execution::Settings::Model>();
-  auto& audiosettings = ctx.app.settings<Audio::Settings::Model>();
   auto& app = ctx.app.guiApplicationPlugin<Engine::ApplicationPlugin>();
 
   m_ctx.time = settings.makeTimeFunction(ctx);
@@ -284,23 +320,6 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
   {
     audioProto().stop();
     app.audio->reload(&audioProto());
-  }
-
-  execState->bufferSize = audiosettings.getBufferSize();
-  execState->sampleRate = audiosettings.getRate();
-  execState->samples_since_start = 0;
-  execState->start_date = 0; // TODO set it in the first callback
-  execState->cur_date = execState->start_date;
-  execState->register_device(audio_device->getDevice());
-  for (auto dev : devlist)
-  {
-    if (auto d = dev->getDevice())
-    {
-      if (auto midi_dev = dynamic_cast<ossia::net::midi::midi_device*>(d))
-        execState->register_device(midi_dev);
-      else
-        execState->register_device(d);
-    }
   }
 
   auto parent = dynamic_cast<Scenario::ScenarioInterface*>(cst.parent());

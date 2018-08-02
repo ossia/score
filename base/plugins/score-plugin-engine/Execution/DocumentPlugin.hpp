@@ -19,6 +19,10 @@ namespace ossia
 class audio_protocol;
 struct bench_map;
 }
+namespace Device
+{
+class DeviceInterface;
+}
 namespace score
 {
 class DocumentModel;
@@ -77,7 +81,8 @@ public:
   void slot_bench(ossia::bench_map, int64_t ns); W_SLOT(slot_bench);
 
 private:
-
+  void registerDevice(ossia::net::device_base*);
+  void unregisterDevice(ossia::net::device_base*);
   mutable ExecutionCommandQueue m_execQueue;
   mutable ExecutionCommandQueue m_editionQueue;
   Context m_ctx;

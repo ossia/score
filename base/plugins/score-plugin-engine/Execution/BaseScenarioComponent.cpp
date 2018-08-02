@@ -31,6 +31,7 @@
 #include <ossia/dataflow/nodes/forward_node.hpp>
 #include <vector>
 #include <wobjectimpl.h>
+#include <ossia/audio/audio_protocol.hpp>
 W_OBJECT_IMPL(Execution::BaseScenarioElement)
 
 namespace Execution
@@ -98,9 +99,9 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
   m_ossia_interval->onSetup(
       m_ossia_interval, main_interval, m_ossia_interval->makeDurations());
 
-  for(auto dev : m_ctx.execState->audioDevices)
+  for(auto dev : m_ctx.execState->edit_devices())
   {
-    if(dev->get_name() == "audio")
+    if(dynamic_cast<ossia::audio_protocol*>(&dev->get_protocol()))
     {
       if(auto n = ossia::net::find_node(dev->get_root_node(), "/out/main"))
       {

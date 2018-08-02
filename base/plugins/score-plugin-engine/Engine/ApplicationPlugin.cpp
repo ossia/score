@@ -350,16 +350,19 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
       {
         if (auto& st = m_clock->context.execState)
         {
-          for (auto& dev : st->audioDevices)
+          for (auto& dev : st->edit_devices())
           {
-            auto root
-                = ossia::net::find_node(dev->get_root_node(), "/out/main");
-            if (root)
+            if(auto protocol = dynamic_cast<ossia::audio_protocol*>(&dev->get_protocol()))
             {
-              if (auto p = root->get_parameter())
+              auto root
+                  = ossia::net::find_node(dev->get_root_node(), "/out/main");
+              if (root)
               {
-                auto audio_p = static_cast<ossia::audio_parameter*>(p);
-                audio_p->push_value(v);
+                if (auto p = root->get_parameter())
+                {
+                  auto audio_p = static_cast<ossia::audio_parameter*>(p);
+                  audio_p->push_value(v);
+                }
               }
             }
           }
