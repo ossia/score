@@ -2,8 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ProcessComponent.hpp"
 
-#include <Execution/ExecutorContext.hpp>
-#include <Execution/ExecutorSetup.hpp>
+#include <Process/ExecutionContext.hpp>
+#include <Process/ExecutionSetup.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Execution::ProcessComponent)
 

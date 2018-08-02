@@ -7,8 +7,8 @@
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/local/local.hpp>
 
-#include <Execution/ExecutorContext.hpp>
-#include <Execution/ExecutorSetup.hpp>
+#include <Process/ExecutionContext.hpp>
+#include <Process/ExecutionSetup.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <memory>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>

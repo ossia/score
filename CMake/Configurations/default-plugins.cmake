@@ -4,10 +4,10 @@ score-plugin-pluginsettings
 score-lib-inspector
 score-lib-state
 score-lib-device
+score-lib-process
 
 score-plugin-inspector
 score-plugin-deviceexplorer
-score-lib-process
 score-plugin-curve
 score-plugin-automation
 score-plugin-scenario

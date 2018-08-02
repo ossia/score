@@ -28,7 +28,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT PortWidget : public QWidget
   QPushButton m_remove;
 
 public:
-  PortWidget(Explorer::DeviceExplorerModel& model, QWidget* parent);
+  PortWidget(const score::DocumentContext& model, QWidget* parent);
 
   QLineEdit localName;
   Device::AddressAccessorEditWidget accessor;
@@ -65,7 +65,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT DataflowWidget : public QWidget
 {
   W_OBJECT(DataflowWidget)
   const Process::ProcessModel& m_proc;
-  Explorer::DeviceExplorerModel& m_explorer;
+  const score::DocumentContext& m_ctx;
   CommandDispatcher<> m_disp;
   score::MarginLess<QVBoxLayout> m_lay;
   QPushButton* m_addInlet{};

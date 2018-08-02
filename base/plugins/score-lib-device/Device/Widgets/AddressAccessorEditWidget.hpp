@@ -5,6 +5,10 @@
 #include <score_lib_device_export.h>
 
 class QLineEdit;
+namespace score
+{
+struct DocumentContext;
+}
 namespace Device
 {
 class NodeBasedItemModel;
@@ -16,7 +20,7 @@ class SCORE_LIB_DEVICE_EXPORT AddressAccessorEditWidget final
 {
   W_OBJECT(AddressAccessorEditWidget)
 public:
-  AddressAccessorEditWidget(Device::NodeBasedItemModel& model, QWidget* parent);
+  AddressAccessorEditWidget(const score::DocumentContext& ctx, QWidget* parent);
 
   void setAddress(const State::AddressAccessor& addr);
   void setFullAddress(Device::FullAddressAccessorSettings&& addr);
@@ -35,6 +39,6 @@ private:
 
   QLineEdit* m_lineEdit{};
   Device::FullAddressAccessorSettings m_address;
-  Device::NodeBasedItemModel& m_model;
+  Device::NodeBasedItemModel* m_model{};
 };
 }

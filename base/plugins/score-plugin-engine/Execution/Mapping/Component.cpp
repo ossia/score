@@ -6,11 +6,10 @@
 #include <ossia/editor/mapper/detail/mapper_visitor.hpp>
 
 #include <Engine/CurveConversion.hpp>
-#include <Execution/IntervalComponent.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Engine/score2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-
+#include <Process/ExecutionFunctions.hpp>
 namespace Mapping
 {
 namespace RecreateOnPlay
@@ -54,9 +53,9 @@ Component::~Component()
 void Component::recompute()
 {
   const auto& devices = *system().execState;
-  auto ossia_source_addr = Engine::score_to_ossia::makeDestination(
+  auto ossia_source_addr = Execution::makeDestination(
       devices, process().sourceAddress());
-  auto ossia_target_addr = Engine::score_to_ossia::makeDestination(
+  auto ossia_target_addr = Execution::makeDestination(
       devices, process().targetAddress());
 
   std::shared_ptr<ossia::curve_abstract> curve;

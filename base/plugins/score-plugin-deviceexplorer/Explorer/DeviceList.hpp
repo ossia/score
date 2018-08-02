@@ -62,7 +62,6 @@ private:
   bool m_logging = false;
 };
 
-SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceLogging get_cur_logging(bool b);
 }
 
 W_REGISTER_ARGTYPE(Device::DeviceInterface&)

@@ -6,7 +6,7 @@
 #include <ossia/editor/expression/expression.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
 
-#include <Execution/ExecutorContext.hpp>
+#include <Process/ExecutionContext.hpp>
 #include <Engine/score2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <QDebug>

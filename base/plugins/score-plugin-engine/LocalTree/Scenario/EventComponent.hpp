@@ -3,8 +3,6 @@
 #include <LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 
-namespace Engine
-{
 namespace LocalTree
 {
 class Event final : public CommonComponent
@@ -22,4 +20,4 @@ private:
   bool m_setting{};
 };
 }
-}
+

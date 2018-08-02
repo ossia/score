@@ -2,8 +2,7 @@
 #include <LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <LocalTree/NameProperty.hpp>
 #include <score/model/Component.hpp>
-namespace Engine
-{
+
 namespace LocalTree
 {
 template <typename Component_T>
@@ -47,5 +46,4 @@ protected:
 };
 
 using CommonComponent = Component<score::GenericComponent<DocumentPlugin>>;
-}
 }

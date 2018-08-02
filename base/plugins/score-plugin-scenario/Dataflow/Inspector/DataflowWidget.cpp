@@ -9,7 +9,7 @@ W_OBJECT_IMPL(Dataflow::DataflowWidget)
 namespace Dataflow
 {
 
-PortWidget::PortWidget(Explorer::DeviceExplorerModel& model, QWidget* parent)
+PortWidget::PortWidget(const score::DocumentContext& model, QWidget* parent)
     : QWidget{parent}
     , m_lay{this}
     , m_remove{tr("X"), this}
@@ -29,7 +29,7 @@ DataflowWidget::DataflowWidget(
     QWidget* parent)
     : QWidget{parent}
     , m_proc{proc}
-    , m_explorer{doc.plugin<Explorer::DeviceDocumentPlugin>().explorer()}
+    , m_ctx{doc}
     , m_disp{doc.commandStack}
     , m_lay{this}
 {
@@ -56,7 +56,7 @@ void DataflowWidget::reinit()
   std::size_t i{};
   for (auto& port : m_proc.inlets())
   {
-    auto widg = new PortWidget{m_explorer, this};
+    auto widg = new PortWidget{m_ctx, this};
     widg->localName.setText(port->customData());
     widg->accessor.setAddress(port->address());
 
@@ -97,7 +97,7 @@ void DataflowWidget::reinit()
   i = 0;
   for (auto& port : m_proc.outlets())
   {
-    auto widg = new PortWidget{m_explorer, this};
+    auto widg = new PortWidget{m_ctx, this};
     widg->localName.setText(port->customData());
     widg->accessor.setAddress(port->address());
 

@@ -20,6 +20,7 @@
 #include <QRadioButton>
 #include <QTableWidget>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
+#include <Explorer/DeviceLogging.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
 #include <wobjectimpl.h>

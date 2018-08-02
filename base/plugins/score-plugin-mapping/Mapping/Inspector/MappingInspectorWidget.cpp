@@ -2,8 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
 #include "MappingInspectorWidget.hpp"
-
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <score/document/DocumentContext.hpp>
 #include <Device/Widgets/AddressAccessorEditWidget.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Mapping/Commands/ChangeAddresses.hpp>
@@ -38,7 +37,6 @@ InspectorWidget::InspectorWidget(
     , m_dispatcher{doc.commandStack}
 {
   using namespace Device;
-  using namespace Explorer;
   setObjectName("MappingInspectorWidget");
   setParent(parent);
 
@@ -47,13 +45,11 @@ InspectorWidget::InspectorWidget(
   lay->setMargin(2);
   lay->setContentsMargins(0, 0, 0, 0);
 
-  auto& explorer = doc.plugin<DeviceDocumentPlugin>().explorer();
-
   {
     // Source
     lay->addWidget(new TextLabel{tr("Source")});
 
-    m_sourceLineEdit = new AddressAccessorEditWidget{explorer, this};
+    m_sourceLineEdit = new AddressAccessorEditWidget{doc, this};
 
     m_sourceLineEdit->setAddress(process().sourceAddress());
     con(process(), &ProcessModel::sourceAddressChanged, m_sourceLineEdit,
@@ -96,7 +92,7 @@ InspectorWidget::InspectorWidget(
     // target
     lay->addWidget(new TextLabel{tr("Target")});
 
-    m_targetLineEdit = new AddressAccessorEditWidget{explorer, this};
+    m_targetLineEdit = new AddressAccessorEditWidget{doc, this};
 
     m_targetLineEdit->setAddress(process().targetAddress());
     con(process(), &ProcessModel::targetAddressChanged, m_targetLineEdit,

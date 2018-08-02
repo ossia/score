@@ -6,6 +6,7 @@
 #include <ossia/network/generic/generic_parameter.hpp>
 #include <ossia/network/osc/osc.hpp>
 
+#include <Explorer/DeviceLogging.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Protocols/OSC/OSCSpecificSettings.hpp>
 #include <Explorer/DeviceList.hpp>

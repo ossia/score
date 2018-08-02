@@ -6,7 +6,7 @@
 
 #include <Process/Process.hpp>
 
-Engine::LocalTree::ProcessComponent::ProcessComponent(
+LocalTree::ProcessComponent::ProcessComponent(
     ossia::net::node_base& parentNode,
     Process::ProcessModel& proc,
     DocumentPlugin& doc,
@@ -18,8 +18,8 @@ Engine::LocalTree::ProcessComponent::ProcessComponent(
 {
 }
 
-Engine::LocalTree::ProcessComponent::~ProcessComponent() = default;
-Engine::LocalTree::ProcessComponentFactory::~ProcessComponentFactory()
+LocalTree::ProcessComponent::~ProcessComponent() = default;
+LocalTree::ProcessComponentFactory::~ProcessComponentFactory()
     = default;
-Engine::LocalTree::ProcessComponentFactoryList::~ProcessComponentFactoryList()
+LocalTree::ProcessComponentFactoryList::~ProcessComponentFactoryList()
     = default;

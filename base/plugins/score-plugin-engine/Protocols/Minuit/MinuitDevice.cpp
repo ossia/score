@@ -5,6 +5,7 @@
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
 #include <ossia/network/minuit/minuit.hpp>
+#include <Explorer/DeviceLogging.hpp>
 
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Protocols/Minuit/MinuitSpecificSettings.hpp>

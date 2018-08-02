@@ -6,6 +6,7 @@
 
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Explorer/Settings/ExplorerModel.hpp>
+#include <Explorer/DeviceLogging.hpp>
 #include <score/application/GUIApplicationContext.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Device::DeviceList)

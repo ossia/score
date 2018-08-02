@@ -14,7 +14,7 @@
 
 #include <Automation/AutomationModel.hpp>
 #include <Execution/DocumentPlugin.hpp>
-#include <Execution/ExecutorContext.hpp>
+#include <Process/ExecutionContext.hpp>
 #include <Execution/ProcessComponent.hpp>
 #include <Execution/Settings/ExecutorModel.hpp>
 #include <Engine/OSSIA2score.hpp>
@@ -25,7 +25,7 @@
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Execution/ExecutorSetup.hpp>
+#include <Process/ExecutionSetup.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/tools/IdentifierGeneration.hpp>

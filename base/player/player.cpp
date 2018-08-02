@@ -217,7 +217,7 @@ void PlayerImpl::setupLoadedDocument()
 
   // Create execution plug-ins
   const score::DocumentContext& ctx = m_currentDocument->context();
-  m_localTreePlugin = new Engine::LocalTree::DocumentPlugin{
+  m_localTreePlugin = new LocalTree::DocumentPlugin{
       ctx, Id<DocumentPlugin>{999}, nullptr};
   m_localTreePlugin->init();
   m_execPlugin = new Execution::DocumentPlugin{

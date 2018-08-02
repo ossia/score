@@ -1,33 +1,22 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "LocalDevice.hpp"
-
-
-#include <ossia/network/base/device.hpp>
-#include <ossia/network/generic/generic_device.hpp>
-#include <ossia/network/local/local.hpp>
-
-#include <QString>
-#include <QVariant>
-#include <memory>
-#include <ossia-config.hpp>
+#include <Protocols/Local/LocalSpecificSettings.hpp>
+#include <Explorer/DeviceLogging.hpp>
 #include <score/document/DocumentContext.hpp>
 #if defined(OSSIA_PROTOCOL_OSCQUERY)
 #  include <ossia/network/oscquery/oscquery_server.hpp>
 #endif
-#include <Device/Protocol/DeviceSettings.hpp>
-#include <LocalTree/LocalTreeDocumentPlugin.hpp>
-#include <Engine/OSSIA2score.hpp>
-#include <Protocols/Local/LocalSpecificSettings.hpp>
-#include <Engine/score2OSSIA.hpp>
-#include <Explorer/DeviceList.hpp>
-#include <wobjectimpl.h>
+#include <ossia/network/base/device.hpp>
+#include <ossia/network/local/local.hpp>
+#include <ossia-config.hpp>
+
 namespace Engine
 {
 namespace Network
 {
 LocalDevice::LocalDevice(
-    ossia::net::generic_device& dev,
+    ossia::net::device_base& dev,
     const score::DocumentContext& ctx,
     const Device::DeviceSettings& settings)
     : DeviceInterface{settings}, m_dev{dev}
@@ -44,6 +33,8 @@ LocalDevice::LocalDevice(
 
   m_proto = &proto;
   setLogging_impl(Device::get_cur_logging(isLogging()));
+  // FIXME instead make the logging a property and bind to it.
+
 
   setRemoteSettings(settings);
 

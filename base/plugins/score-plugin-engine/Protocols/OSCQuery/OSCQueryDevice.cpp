@@ -7,6 +7,7 @@
 #include <ossia/network/oscquery/oscquery_mirror.hpp>
 
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <Explorer/DeviceLogging.hpp>
 #include <Protocols/OSCQuery/OSCQuerySpecificSettings.hpp>
 #include <Explorer/DeviceList.hpp>
 #include <QString>

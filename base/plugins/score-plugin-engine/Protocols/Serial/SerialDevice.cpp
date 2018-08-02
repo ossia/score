@@ -8,6 +8,7 @@
 #include <ossia/network/generic/generic_parameter.hpp>
 
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <Explorer/DeviceLogging.hpp>
 #include <Protocols/Serial/SerialSpecificSettings.hpp>
 #include <Explorer/DeviceList.hpp>
 #include <QString>

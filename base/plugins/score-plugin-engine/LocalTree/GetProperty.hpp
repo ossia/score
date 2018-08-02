@@ -1,10 +1,8 @@
 #pragma once
 #include <LocalTree/BaseCallbackWrapper.hpp>
-#include <Engine/OSSIA2score.hpp>
-#include <Engine/score2OSSIA.hpp>
+#include <LocalTree/TypeConversion.hpp>
+#include <ossia/network/base/node.hpp>
 
-namespace Engine
-{
 namespace LocalTree
 {
 
@@ -15,7 +13,7 @@ struct GetPropertyWrapper final : public BaseProperty
   using param_t = typename Property::param_type;
   model_t& m_model;
   using converter_t
-      = Engine::ossia_to_score::MatchingType<typename Property::param_type>;
+      = ossia::matching_type<typename Property::param_type>;
 
   GetPropertyWrapper(
       ossia::net::parameter_base& param_addr,
@@ -52,7 +50,7 @@ auto add_getProperty(
     Object& obj,
     QObject* context)
 {
-  constexpr const auto t = Engine::ossia_to_score::MatchingType<typename Property::param_type>::val;
+  constexpr const auto t = ossia::matching_type<typename Property::param_type>::val;
   auto node = n.create_child(Property::name);
   SCORE_ASSERT(node);
 
@@ -63,6 +61,5 @@ auto add_getProperty(
 
   return std::make_unique<GetPropertyWrapper<Property>>(
       *addr, obj, context);
-}
 }
 }

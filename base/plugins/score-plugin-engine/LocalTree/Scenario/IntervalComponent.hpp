@@ -3,8 +3,8 @@
 #include <LocalTree/Scenario/ProcessComponent.hpp>
 #include <Scenario/Document/Components/IntervalComponent.hpp>
 #include <score/model/ComponentHierarchy.hpp>
-namespace Engine
-{
+
+
 namespace LocalTree
 {
 class IntervalBase
@@ -15,10 +15,10 @@ public:
   using parent_t
       = Component<Scenario::GenericIntervalComponent<DocumentPlugin>>;
   using model_t = Process::ProcessModel;
-  using component_t = Engine::LocalTree::ProcessComponent;
-  using component_factory_t = Engine::LocalTree::ProcessComponentFactory;
+  using component_t = LocalTree::ProcessComponent;
+  using component_factory_t = LocalTree::ProcessComponentFactory;
   using component_factory_list_t
-      = Engine::LocalTree::ProcessComponentFactoryList;
+      = LocalTree::ProcessComponentFactoryList;
 
   IntervalBase(
       ossia::net::node_base& parent,
@@ -59,4 +59,4 @@ public:
   }
 };
 }
-}
+

@@ -1,5 +1,5 @@
 #pragma once
-#include <Execution/Component.hpp>
+#include <Process/ExecutionComponent.hpp>
 #include <Execution/ProcessComponent.hpp>
 #include <Process/Process.hpp>
 #include <Scenario/Document/Components/IntervalComponent.hpp>

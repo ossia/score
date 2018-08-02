@@ -2,14 +2,11 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "StateComponent.hpp"
 
-#include <Execution/DocumentPlugin.hpp>
-#include <Engine/score2OSSIA.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <ossia/editor/state/state_element.hpp>
 
-namespace Engine
-{
 namespace LocalTree
 {
 
@@ -25,14 +22,11 @@ State::State(
   m_properties.push_back(
       add_setProperty<::State::impulse>(node(), "trigger", [&](auto) {
         auto plug
-            = doc.context().findPlugin<Execution::DocumentPlugin>();
+            = doc.context().findPlugin<Scenario::ScenarioApplicationPlugin>();
         if (plug)
         {
-          auto ossia_state
-              = Engine::score_to_ossia::state(state, plug->context());
-          ossia_state.launch();
+          plug->execution().playState(Scenario::parentScenario(state), state.id());
         }
       }));
-}
 }
 }

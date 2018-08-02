@@ -2,11 +2,9 @@
 #include <LocalTree/Scenario/ProcessComponent.hpp>
 #include <Mapping/MappingModel.hpp>
 
-namespace Engine
-{
 namespace LocalTree
 {
-class MappingComponent : public ProcessComponent_T<Mapping::ProcessModel>
+class MappingComponent final : public ProcessComponent_T<Mapping::ProcessModel>
 {
   COMPONENT_METADATA("30bec9cc-c495-4a6d-bd91-ec1313cc9078")
 
@@ -29,4 +27,4 @@ public:
 
 using MappingComponentFactory = ProcessComponentFactory_T<MappingComponent>;
 }
-}
+

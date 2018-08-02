@@ -3,7 +3,7 @@
 #include <wobjectdefs.h>
 #include <ossia/editor/scenario/time_event.hpp>
 
-#include <Execution/Component.hpp>
+#include <Process/ExecutionComponent.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 namespace ossia
 {

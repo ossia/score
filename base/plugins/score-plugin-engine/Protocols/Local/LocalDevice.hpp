@@ -9,7 +9,7 @@ namespace ossia
 {
 namespace net
 {
-class generic_device;
+class device_base;
 class multiplex_protocol;
 }
 }
@@ -22,11 +22,11 @@ class LocalDevice final
 {
 public:
   LocalDevice(
-      ossia::net::generic_device& dev,
+      ossia::net::device_base& dev,
       const score::DocumentContext& ctx,
       const Device::DeviceSettings& settings);
 
-  ~LocalDevice();
+  ~LocalDevice() override;
 
   void setRemoteSettings(const Device::DeviceSettings&);
 
@@ -42,7 +42,7 @@ private:
   Device::Node refresh() override;
 
   ossia::net::device_base& m_dev;
-  ossia::net::multiplex_protocol* m_proto;
+  ossia::net::multiplex_protocol* m_proto{};
   using DeviceInterface::refresh;
 };
 }

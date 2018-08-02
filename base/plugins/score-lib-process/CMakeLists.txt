@@ -45,6 +45,10 @@ set(PROCESS_HDRS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Actions/ProcessActions.hpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/ExecutionContext.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/ExecutionSetup.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/ExecutionComponent.hpp"
+
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegate.hpp"
@@ -87,6 +91,8 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ProcessGraphicsView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ProcessPanelGraphicsProxy.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/ExecutionSetup.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegateFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegate.cpp"
 
@@ -97,7 +103,7 @@ set(PROCESS_SRCS
 
 add_library(score_lib_process ${PROCESS_HDRS} ${PROCESS_SRCS}  )
 target_link_libraries(score_lib_process  PUBLIC
-    Qt5::Core Qt5::Widgets score_lib_base score_lib_state score_lib_inspector score_plugin_deviceexplorer)
+    Qt5::Core Qt5::Widgets score_lib_base score_lib_state score_lib_inspector score_lib_device)
 target_compile_definitions(score_lib_process PUBLIC
     $<$<BOOL:${DEFINE_SCORE_SCENARIO_DEBUG_RECTS}>:SCORE_SCENARIO_DEBUG_RECTS>)
 

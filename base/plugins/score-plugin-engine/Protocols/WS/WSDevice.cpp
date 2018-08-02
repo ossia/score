@@ -6,6 +6,7 @@
 #include <ossia/network/generic/generic_parameter.hpp>
 
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <Explorer/DeviceLogging.hpp>
 #include <Protocols/WS/WSSpecificSettings.hpp>
 #include <Explorer/DeviceList.hpp>
 #include <QString>

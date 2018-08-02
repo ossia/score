@@ -2,8 +2,6 @@
 #include <LocalTree/LocalTreeComponent.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 
-namespace Engine
-{
 namespace LocalTree
 {
 class TimeSync final : public CommonComponent
@@ -18,4 +16,4 @@ public:
       QObject* parent_comp);
 };
 }
-}
+

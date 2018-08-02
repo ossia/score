@@ -2,8 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "LoopComponent.hpp"
 
-namespace Engine
-{
 namespace LocalTree
 {
 
@@ -53,5 +51,5 @@ State* LoopComponentBase::make<State, Scenario::StateModel>(
 {
   return new State{m_statesNode, id, elt, system(), this};
 }
-}
+
 }

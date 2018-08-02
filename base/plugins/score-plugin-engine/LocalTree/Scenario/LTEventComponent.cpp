@@ -2,8 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "EventComponent.hpp"
 
-namespace Engine
-{
+
 namespace LocalTree
 {
 Event::Event(
@@ -63,5 +62,5 @@ Event::Event(
 
   exp_a->set_value(event.condition().toString().toStdString());
 }
-}
+
 }

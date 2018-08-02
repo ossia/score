@@ -9,7 +9,6 @@
 #include <Dataflow/Commands/EditConnection.hpp>
 #include <Process/Commands/EditPort.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Device/Widgets/AddressAccessorEditWidget.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
@@ -266,7 +265,7 @@ PortTooltip::PortTooltip(
     const score::DocumentContext& ctx, const Process::Port& p, QWidget* parent)
     : QWidget{parent}
     , m_disp{ctx.commandStack}
-    , m_edit{ctx.plugin<Explorer::DeviceDocumentPlugin>().explorer(), this}
+    , m_edit{ctx, this}
 {
   auto lay = new QFormLayout{this};
   lay->addRow(p.customData(), (QWidget*)nullptr);

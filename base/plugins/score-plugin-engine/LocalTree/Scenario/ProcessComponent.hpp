@@ -7,15 +7,13 @@
 #include <score/plugins/customfactory/ModelFactory.hpp>
 
 // TODO clean me up
-namespace Engine
-{
 namespace LocalTree
 {
 class SCORE_PLUGIN_ENGINE_EXPORT ProcessComponent
     : public Component<Process::GenericProcessComponent<DocumentPlugin>>
 {
   ABSTRACT_COMPONENT_METADATA(
-      Engine::LocalTree::ProcessComponent,
+      LocalTree::ProcessComponent,
       "0732ab51-a052-4e2e-a1f7-9bf2926c199c")
 public:
   ProcessComponent(
@@ -39,7 +37,7 @@ class SCORE_PLUGIN_ENGINE_EXPORT ProcessComponentFactory
           LocalTree::DocumentPlugin,
           LocalTree::ProcessComponentFactory>
 {
-  SCORE_ABSTRACT_COMPONENT_FACTORY(Engine::LocalTree::ProcessComponent)
+  SCORE_ABSTRACT_COMPONENT_FACTORY(LocalTree::ProcessComponent)
 public:
   virtual ~ProcessComponentFactory();
   virtual ProcessComponent* make(
@@ -80,4 +78,4 @@ public:
   ~ProcessComponentFactoryList();
 };
 }
-}
+

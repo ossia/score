@@ -1,10 +1,8 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Device/Protocol/DeviceInterface.hpp>
-#include <Explorer/DeviceList.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Engine/score2OSSIA.hpp>
-#include <Execution/ExecutorContext.hpp>
+#include <Process/ExecutionContext.hpp>
+#include <Process/ExecutionFunctions.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 
 #include <ossia/network/value/value.hpp>
@@ -39,7 +37,7 @@ address(const State::Address& addr, const ossia::execution_state& deviceList)
 {
   // OPTIMIZEME by sorting by device prior
   // to this.
-  auto n = findNode(deviceList, addr);
+  auto n = Execution::findNode(deviceList, addr);
   if(n)
     return n->get_parameter();
   return nullptr;
@@ -103,7 +101,7 @@ ossia::state state(
 static ossia::destination expressionAddress(
     const State::Address& addr, const ossia::execution_state& devlist)
 {
-  auto n = findNode(devlist, addr);
+  auto n = Execution::findNode(devlist, addr);
   if (n)
   {
     auto ossia_addr = n->get_parameter();
@@ -255,45 +253,6 @@ trigger_expression(const State::Expression& e, const ossia::execution_state& lis
   return expression(e, list, def_trig{});
 }
 
-ossia::net::node_base*
-findAddress(const Device::DeviceList& devs, const State::Address& addr)
-{
-  if (auto dev_p = devs.findDevice(addr.device))
-  {
-    auto ossia_dev = dev_p->getDevice();
-    if (ossia_dev)
-    {
-      auto node = Device::findNodeFromPath(addr.path, *ossia_dev);
-      if (node)
-        return node;
-    }
-  }
-  return {};
-}
-
-optional<ossia::destination> makeDestination(
-    const ossia::execution_state& devices, const State::AddressAccessor& addr)
-{
-  auto n = findNode(devices, addr.address);
-  if(!n)
-    return {};
-
-  auto p = n->get_parameter();
-  if(!p)
-    return {};
-
-  auto& qual = addr.qualifiers.get();
-  return ossia::destination{*p, qual.accessors, qual.unit};
-}
-
-ossia::net::node_base*findNode(const ossia::execution_state& st, const State::Address& addr)
-{
-  auto& devs = st.edit_devices();
-  auto dev_p = ossia::find_if(devs, [d=addr.device.toStdString()] (auto& dev) { return dev->get_name() == d; });
-  if (dev_p == devs.end())
-    return nullptr;
-  return ossia::net::find_node((*dev_p)->get_root_node(), addr.path.join("/").toStdString());
-}
 
 }
 }

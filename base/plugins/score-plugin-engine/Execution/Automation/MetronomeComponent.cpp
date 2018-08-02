@@ -6,7 +6,7 @@
 
 #include <Engine/CurveConversion.hpp>
 #include <Execution/DocumentPlugin.hpp>
-#include <Execution/ExecutorContext.hpp>
+#include <Process/ExecutionContext.hpp>
 #include <Engine/score2OSSIA.hpp>
 namespace Metronome
 {
