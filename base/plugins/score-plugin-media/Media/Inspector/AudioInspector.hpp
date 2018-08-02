@@ -28,22 +28,4 @@ private:
 };
 }
 
-namespace Input
-{
-class InspectorWidget final
-    : public Process::InspectorWidgetDelegate_T<Input::ProcessModel>
-{
-public:
-  explicit InspectorWidget(
-      const Input::ProcessModel& object,
-      const score::DocumentContext& doc,
-      QWidget* parent);
-
-private:
-  CommandDispatcher<> m_dispatcher;
-
-  QSpinBox m_start;
-  QSpinBox m_count;
-};
-}
 }

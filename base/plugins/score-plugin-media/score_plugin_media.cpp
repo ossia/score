@@ -5,7 +5,6 @@
 #include <Media/Effect/EffectProcessFactory.hpp>
 #include <Media/Effect/Inspector/EffectInspector.hpp>
 #include <Media/Effect/Settings/Factory.hpp>
-#include <Media/Input/InputFactory.hpp>
 #include <Media/Inspector/Factory.hpp>
 #include <Media/Merger/Executor.hpp>
 #include <Media/Merger/Factory.hpp>
@@ -88,8 +87,7 @@ score_plugin_media::factories(
   return instantiate_factories<
       score::ApplicationContext,
       FW<Process::ProcessModelFactory, Media::Sound::ProcessFactory,
-         Media::Input::ProcessFactory, Media::Effect::ProcessFactory,
-         Media::Step::ProcessFactory, Media::Merger::ProcessFactory
+         Media::Effect::ProcessFactory, Media::Step::ProcessFactory, Media::Merger::ProcessFactory
 #if defined(HAS_FAUST)
          , Media::Faust::FaustEffectFactory
 #endif
@@ -102,7 +100,6 @@ score_plugin_media::factories(
          >,
       FW<Inspector::InspectorWidgetFactory
       , Media::Sound::InspectorFactory
-      , Media::Input::InspectorFactory
       , Media::Effect::InspectorFactory
     #if defined(HAS_FAUST)
       , Media::Faust::InspectorFactory
@@ -111,7 +108,7 @@ score_plugin_media::factories(
       , Media::Merger::InspectorFactory
       >,
       FW<Process::LayerFactory, Media::Sound::LayerFactory,
-         Media::Input::LayerFactory, Media::Effect::LayerFactory,
+         Media::Effect::LayerFactory,
          Media::Step::LayerFactory, Media::Merger::LayerFactory
 #if defined(HAS_VST2)
          , Media::VST::LayerFactory
@@ -132,7 +129,6 @@ score_plugin_media::factories(
 
       FW<Execution::ProcessComponentFactory,
          Execution::SoundComponentFactory,
-         Execution::InputComponentFactory,
          Media::EffectProcessComponentFactory,
          Execution::StepComponentFactory,
          Execution::MergerComponentFactory

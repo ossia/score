@@ -1,7 +1,6 @@
 #include "SoundComponent.hpp"
 
 #include <ossia/dataflow/execution_state.hpp>
-#include <ossia/dataflow/nodes/input.hpp>
 #include <ossia/dataflow/nodes/sound.hpp>
 
 #include <Engine/score2OSSIA.hpp>
@@ -88,44 +87,5 @@ SoundComponent::~SoundComponent()
 {
 }
 
-}
-
-namespace Execution
-{
-InputComponent::InputComponent(
-    Media::Input::ProcessModel& element,
-    const Execution::Context& ctx,
-    const Id<score::Component>& id,
-    QObject* parent)
-    : Execution::
-          ProcessComponent_T<Media::Input::ProcessModel, ossia::node_process>{
-              element, ctx, id, "Executor::InputComponent", parent}
-{
-  auto node = std::make_shared<ossia::nodes::input>();
-  this->node = node;
-  m_ossia_process = std::make_shared<ossia::node_process>(node);
-  con(element, &Media::Input::ProcessModel::startChannelChanged, this, [=] {
-    in_exec(
-        [node, start = process().startChannel()] { node->set_start(start); });
-  });
-  con(element, &Media::Input::ProcessModel::numChannelChanged, this, [=] {
-    in_exec(
-        [node, num = process().numChannel()] { node->set_num_channel(num); });
-  });
-  recompute();
-}
-
-void InputComponent::recompute()
-{
-  auto n = std::dynamic_pointer_cast<ossia::nodes::input>(OSSIAProcess().node);
-  in_exec([n, num = process().numChannel(), start = process().startChannel()] {
-    n->set_start(start);
-    n->set_num_channel(num);
-  });
-}
-
-InputComponent::~InputComponent()
-{
-}
 }
 

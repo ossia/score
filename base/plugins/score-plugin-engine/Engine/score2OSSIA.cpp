@@ -288,7 +288,7 @@ optional<ossia::destination> makeDestination(
 
 ossia::net::node_base*findNode(const ossia::execution_state& st, const State::Address& addr)
 {
-  auto& devs = st.allDevices;
+  auto& devs = st.edit_devices();
   auto dev_p = ossia::find_if(devs, [d=addr.device.toStdString()] (auto& dev) { return dev->get_name() == d; });
   if (dev_p == devs.end())
     return nullptr;

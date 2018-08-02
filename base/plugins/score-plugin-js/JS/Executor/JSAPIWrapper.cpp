@@ -47,12 +47,12 @@ const ossia::destination_t& ExecStateWrapper::find_address(const QString& str)
 
   // Split in devices
   auto dev = ossia::find_if(
-      devices.allDevices,
+      devices.exec_devices(),
       [=, devname = str.mid(0, d).toStdString()](const auto& dev) {
         return dev->get_name() == devname;
       });
 
-  if (dev != devices.allDevices.end())
+  if (dev != devices.exec_devices().end())
   {
     if (d == str.size() - 1)
     {
@@ -92,7 +92,7 @@ QVariant ExecStateWrapper::read(const QString& address)
     QVariant var;
     QVariantMap mv;
 
-    bool unique = ossia::apply_to_destination(addr, devices.allDevices,
+    bool unique = ossia::apply_to_destination(addr, devices.exec_devices(),
       [&] (ossia::net::parameter_base* addr, bool unique) {
         if(unique)
         {
@@ -117,7 +117,7 @@ void ExecStateWrapper::write(const QString& address, const QVariant& value)
   {
     auto val = ossia::qt::qt_to_ossia{}(value);
 
-    ossia::apply_to_destination(addr, devices.allDevices,
+    ossia::apply_to_destination(addr, devices.exec_devices(),
       [&] (ossia::net::parameter_base* addr, bool unique) {
         devices.insert(*addr, ossia::typed_value{val});
     });

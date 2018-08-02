@@ -39,10 +39,5 @@ SCORE_COMMAND_DECL_T(Media::Commands::ChangeStart)
 SCORE_COMMAND_DECL_T(Media::Commands::ChangeUpmix)
 SCORE_COMMAND_DECL_T(Media::Commands::ChangeStartOffset)
 
-PROPERTY_COMMAND_T(ChangeInputStart, Input::ProcessModel::p_startChannel, "Change input start channel")
-PROPERTY_COMMAND_T(ChangeInputNum, Input::ProcessModel::p_numChannel, "Change input num channel")
-SCORE_COMMAND_DECL_T(Media::Commands::ChangeInputStart)
-SCORE_COMMAND_DECL_T(Media::Commands::ChangeInputNum)
-
 }
 }
