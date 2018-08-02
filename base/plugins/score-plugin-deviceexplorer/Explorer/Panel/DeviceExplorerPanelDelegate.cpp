@@ -38,15 +38,17 @@ void PanelDelegate::on_modelChanged(
   // DeviceExplorerModel ownership goes to document plugin
   if (oldm)
   {
-    auto& plug = oldm->plugin<DeviceDocumentPlugin>();
-    plug.explorer().setView(nullptr);
+    if(auto plug = oldm->findPlugin<DeviceDocumentPlugin>())
+      plug->explorer().setView(nullptr);
   }
 
   if (newm)
   {
-    auto& plug = newm->plugin<DeviceDocumentPlugin>();
-    plug.explorer().setView(m_widget->view());
-    m_widget->setModel(&plug.explorer());
+    if(auto plug = newm->findPlugin<DeviceDocumentPlugin>())
+    {
+      plug->explorer().setView(m_widget->view());
+      m_widget->setModel(&plug->explorer());
+    }
   }
   else
   {
