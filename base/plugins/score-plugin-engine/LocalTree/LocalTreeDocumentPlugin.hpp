@@ -20,12 +20,11 @@ class EventModel;
 class TimeSyncModel;
 class StateModel;
 }
-namespace Engine
-{
+
 namespace LocalTree
 {
 class Interval;
-class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin : public score::DocumentPlugin
+class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final : public score::DocumentPlugin
 {
 public:
   DocumentPlugin(
@@ -38,16 +37,16 @@ public:
   void init();
 
   void on_documentClosing() override;
-  ossia::net::generic_device& device()
+  ossia::net::device_base& device()
   {
     return *m_localDevice;
   }
-  const ossia::net::generic_device& device() const
+  const ossia::net::device_base& device() const
   {
     return *m_localDevice;
   }
 
-  Network::LocalDevice& localDevice()
+  Engine::Network::LocalDevice& localDevice()
   {
     return m_localDeviceWrapper;
   }
@@ -57,8 +56,8 @@ private:
   void cleanup();
 
   Interval* m_root{};
-  std::unique_ptr<ossia::net::generic_device> m_localDevice;
-  Network::LocalDevice m_localDeviceWrapper;
+  std::unique_ptr<ossia::net::device_base> m_localDevice;
+  Engine::Network::LocalDevice m_localDeviceWrapper;
 };
 }
-}
+

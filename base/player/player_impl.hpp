@@ -116,7 +116,7 @@ private:
   std::unique_ptr<Document> m_currentDocument;
   Explorer::DeviceDocumentPlugin* m_devicesPlugin{};
   Execution::DocumentPlugin* m_execPlugin{};
-  Engine::LocalTree::DocumentPlugin* m_localTreePlugin{};
+  LocalTree::DocumentPlugin* m_localTreePlugin{};
   Network::NetworkDocumentPlugin* m_networkPlugin{};
   std::unique_ptr<Execution::ClockManager> m_clock;
 

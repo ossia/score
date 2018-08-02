@@ -48,6 +48,7 @@
 #include <score/widgets/ControlWidgets.hpp>
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/SetIcons.hpp>
+#include <Engine/score2OSSIA.hpp>
 #include <vector>
 #include <Scenario/Inspector/Interval/SpeedSlider.hpp>
 
@@ -409,7 +410,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
 void ApplicationPlugin::on_initDocument(score::Document& doc)
 {
 #if !defined(__EMSCRIPTEN__)
-  score::addDocumentPlugin<Engine::LocalTree::DocumentPlugin>(doc);
+  score::addDocumentPlugin<LocalTree::DocumentPlugin>(doc);
 #endif
 }
 

@@ -5,7 +5,7 @@
 #include <ossia/dataflow/nodes/spline.hpp>
 
 #include <Execution/DocumentPlugin.hpp>
-#include <Execution/ExecutorContext.hpp>
+#include <Process/ExecutionContext.hpp>
 #include <Engine/score2OSSIA.hpp>
 namespace Spline
 {

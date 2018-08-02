@@ -6,8 +6,6 @@
 #include <Loop/LoopProcessModel.hpp>
 #include <Scenario/Document/Components/ScenarioComponent.hpp>
 
-namespace Engine
-{
 namespace LocalTree
 {
 class LoopComponentBase : public ProcessComponent_T<Loop::ProcessModel>
@@ -47,4 +45,4 @@ using LoopComponent = HierarchicalBaseScenario<
 
 using LoopComponentFactory = ProcessComponentFactory_T<LoopComponent>;
 }
-}
+

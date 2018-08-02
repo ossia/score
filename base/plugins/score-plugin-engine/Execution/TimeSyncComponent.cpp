@@ -2,15 +2,12 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TimeSyncComponent.hpp"
 
-#include "IntervalComponent.hpp"
-#include "ScenarioComponent.hpp"
-
 #include <ossia/detail/logger.hpp>
 #include <ossia/editor/expression/expression.hpp>
 #include <ossia/editor/scenario/time_sync.hpp>
 #include <ossia/editor/state/state.hpp>
 
-#include <Execution/ExecutorContext.hpp>
+#include <Process/ExecutionContext.hpp>
 #include <Engine/score2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <QDebug>

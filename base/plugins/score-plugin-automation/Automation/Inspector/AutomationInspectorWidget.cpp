@@ -40,7 +40,7 @@ InspectorWidget::InspectorWidget(
     : InspectorWidgetDelegate_T{automationModel, parent}
     , m_dispatcher{doc.commandStack}
 {
-  using namespace Explorer;
+
   using namespace Device;
   setObjectName("AutomationInspectorWidget");
   setParent(parent);
@@ -52,7 +52,7 @@ InspectorWidget::InspectorWidget(
 
   // Address
   m_lineEdit = new AddressAccessorEditWidget{
-      doc.plugin<DeviceDocumentPlugin>().explorer(), this};
+      doc, this};
 
   m_lineEdit->setAddress(process().address());
   con(process(), &ProcessModel::addressChanged, m_lineEdit,
@@ -171,7 +171,7 @@ InspectorWidget::InspectorWidget(
     QWidget* parent)
     : InspectorWidgetDelegate_T{proc, parent}, m_dispatcher{doc.commandStack}
 {
-  using namespace Explorer;
+
   setObjectName("GradientInspectorWidget");
   setParent(parent);
 
@@ -234,7 +234,7 @@ InspectorWidget::InspectorWidget(
     , m_dispatcher{doc.commandStack}
 {
   using namespace Device;
-  using namespace Explorer;
+
   setObjectName("SplineInspectorWidget");
   setParent(parent);
 
@@ -244,8 +244,7 @@ InspectorWidget::InspectorWidget(
   vlay->setContentsMargins(0, 0, 0, 0);
 
   // Address
-  m_lineEdit = new AddressAccessorEditWidget{
-      doc.plugin<DeviceDocumentPlugin>().explorer(), this};
+  m_lineEdit = new AddressAccessorEditWidget{doc, this};
 
   m_lineEdit->setAddress(process().address());
   con(process(), &ProcessModel::addressChanged, m_lineEdit,
@@ -307,7 +306,7 @@ InspectorWidget::InspectorWidget(
     , m_dispatcher{doc.commandStack}
 {
   using namespace Device;
-  using namespace Explorer;
+
   setObjectName("MetronomeInspectorWidget");
   setParent(parent);
 
@@ -317,8 +316,7 @@ InspectorWidget::InspectorWidget(
   vlay->setContentsMargins(0, 0, 0, 0);
 
   // Address
-  m_lineEdit = new AddressAccessorEditWidget{
-      doc.plugin<DeviceDocumentPlugin>().explorer(), this};
+  m_lineEdit = new AddressAccessorEditWidget{doc, this};
 
   m_lineEdit->setAddress(State::AddressAccessor{process().address()});
   con(process(), &ProcessModel::addressChanged, m_lineEdit,

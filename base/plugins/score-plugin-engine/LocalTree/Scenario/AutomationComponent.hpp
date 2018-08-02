@@ -2,11 +2,9 @@
 #include <Automation/AutomationModel.hpp>
 #include <LocalTree/Scenario/ProcessComponent.hpp>
 
-namespace Engine
-{
 namespace LocalTree
 {
-class AutomationComponent : public ProcessComponent_T<Automation::ProcessModel>
+class AutomationComponent final : public ProcessComponent_T<Automation::ProcessModel>
 {
   COMPONENT_METADATA("49d55f75-1ee7-47c9-9a77-450e4da7083c")
 
@@ -27,5 +25,5 @@ public:
 
 using AutomationComponentFactory
     = ProcessComponentFactory_T<AutomationComponent>;
-}
+
 }

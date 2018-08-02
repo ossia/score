@@ -40,10 +40,6 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Execution/ContextMenu/PlayContextMenu.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Execution/ContextMenu/PlayFromIntervalInScenario.hpp"
 
-    "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Component.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Execution/ExecutorContext.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Execution/ExecutorSetup.hpp"
-
     "${CMAKE_CURRENT_SOURCE_DIR}/Execution/BaseScenarioComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Execution/EventComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Execution/ScenarioComponent.hpp"
@@ -81,6 +77,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/GetProperty.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/NameProperty.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/BaseCallbackWrapper.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/TypeConversion.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/Scenario/AutomationComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/Scenario/MappingComponent.hpp"

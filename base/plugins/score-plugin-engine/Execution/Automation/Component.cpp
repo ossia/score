@@ -9,6 +9,7 @@
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Engine/score2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Process/ExecutionFunctions.hpp>
 namespace Automation
 {
 namespace RecreateOnPlay
@@ -107,7 +108,7 @@ Component::~Component()
 
 void Component::recompute()
 {
-  auto dest = Engine::score_to_ossia::makeDestination(
+  auto dest = Execution::makeDestination(
       *system().execState, process().address());
 
   if (dest)

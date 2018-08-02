@@ -1,10 +1,8 @@
 #pragma once
 #include <LocalTree/BaseCallbackWrapper.hpp>
-#include <Engine/OSSIA2score.hpp>
-#include <Engine/score2OSSIA.hpp>
+#include <LocalTree/TypeConversion.hpp>
+#include <ossia/network/base/node.hpp>
 
-namespace Engine
-{
 namespace LocalTree
 {
 template <typename T, typename SetFun>
@@ -19,7 +17,7 @@ struct SetPropertyWrapper final : public BaseCallbackWrapper
   {
     callbackIt = addr.add_callback([=](const ossia::value& v) { setFun(v); });
 
-    //addr.set_value(typename Engine::ossia_to_score::MatchingType<T>::type{});
+    //addr.set_value(typename ossia::matching_type<T>::type{});
   }
 };
 
@@ -35,7 +33,7 @@ template <typename T, typename Callback>
 auto add_setProperty(
     ossia::net::node_base& n, const std::string& name, Callback cb)
 {
-  constexpr const auto t = Engine::ossia_to_score::MatchingType<T>::val;
+  constexpr const auto t = ossia::matching_type<T>::val;
   auto node = n.create_child(name);
   SCORE_ASSERT(node);
 
@@ -45,6 +43,5 @@ auto add_setProperty(
   addr->set_access(ossia::access_mode::SET);
 
   return make_setProperty<T>(*addr, cb);
-}
 }
 }

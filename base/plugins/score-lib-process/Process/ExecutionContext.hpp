@@ -2,7 +2,7 @@
 #include <ossia/editor/scenario/time_value.hpp>
 #include <Process/TimeValue.hpp>
 #include <readerwriterqueue.h>
-#include <score_plugin_engine_export.h>
+#include <score_lib_process_export.h>
 #include <smallfun.hpp>
 #include <functional>
 #include <memory>
@@ -12,12 +12,20 @@ namespace ossia
 class graph_node;
 class graph_interface;
 struct execution_state;
+namespace net
+{
+class node_base;
+}
 }
 namespace score
 {
 struct DocumentContext;
 template <typename T, typename U, typename V>
 class GenericComponentFactoryList;
+}
+namespace State
+{
+struct Address;
 }
 namespace Process
 {
@@ -46,7 +54,7 @@ using ExecutionCommandQueue
     = moodycamel::ReaderWriterQueue<ExecutionCommand, 1024>;
 
 //! Useful structures when creating the execution elements.
-struct SCORE_PLUGIN_ENGINE_EXPORT Context
+struct SCORE_LIB_PROCESS_EXPORT Context
 {
   Context() = delete;
   Context(const Context&) = delete;
@@ -77,9 +85,9 @@ struct SCORE_PLUGIN_ENGINE_EXPORT Context
   {
     return *this;
   }
-
-
 };
+
+
 }
 
 #define in_exec system().executionQueue.enqueue

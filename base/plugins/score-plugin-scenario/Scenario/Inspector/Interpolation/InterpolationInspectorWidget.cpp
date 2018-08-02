@@ -2,10 +2,9 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "InterpolationInspectorWidget.hpp"
 
+#include <score/document/DocumentContext.hpp>
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
-
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Interpolation/Commands/ChangeAddress.hpp>
 #include <State/ValueConversion.hpp>
 #include <QCheckBox>
@@ -24,7 +23,6 @@ InspectorWidget::InspectorWidget(
     , m_dispatcher{doc.commandStack}
 {
   using namespace Device;
-  using namespace Explorer;
   setObjectName("InterpolationInspectorWidget");
   setParent(parent);
 
@@ -39,8 +37,7 @@ InspectorWidget::InspectorWidget(
   vlay->addWidget(m_label);
 
   // Address
-  m_lineEdit = new AddressAccessorEditWidget{
-      doc.plugin<DeviceDocumentPlugin>().explorer(), this};
+  m_lineEdit = new AddressAccessorEditWidget{doc, this};
 
   m_lineEdit->setAddress(process().address());
   con(process(), &ProcessModel::addressChanged, m_lineEdit,

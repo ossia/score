@@ -5,8 +5,6 @@
 #include <ossia/detail/algorithms.hpp>
 
 
-namespace Engine
-{
 namespace LocalTree
 {
 IntervalBase::IntervalBase(
@@ -42,5 +40,5 @@ bool IntervalBase::removing(
 {
   return true;
 }
-}
+
 }

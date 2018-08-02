@@ -5,8 +5,6 @@
 #include <LocalTree/Scenario/TimeSyncComponent.hpp>
 #include <Scenario/Document/Components/ScenarioComponent.hpp>
 
-namespace Engine
-{
 namespace LocalTree
 {
 class ScenarioComponentBase : public ProcessComponent_T<Scenario::ProcessModel>
@@ -50,6 +48,6 @@ using ScenarioComponent = HierarchicalScenarioComponent<
     State>;
 
 using ScenarioComponentFactory
-    = Engine::LocalTree::ProcessComponentFactory_T<ScenarioComponent>;
+    = LocalTree::ProcessComponentFactory_T<ScenarioComponent>;
 }
-}
+

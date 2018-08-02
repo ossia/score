@@ -1,16 +1,13 @@
 #pragma once
 #include <LocalTree/BaseCallbackWrapper.hpp>
-#include <Engine/OSSIA2score.hpp>
-#include <Engine/score2OSSIA.hpp>
 #include <State/ValueConversion.hpp>
 #include <State/Value.hpp>
+#include <LocalTree/TypeConversion.hpp>
 
-namespace Engine
-{
 namespace LocalTree
 {
 template <typename T>
-using MatchingType_T = Engine::ossia_to_score::MatchingType<
+using matching_type_T = ossia::matching_type<
     std::remove_const_t<std::remove_reference_t<T>>>;
 
 template <typename Property>
@@ -20,7 +17,7 @@ struct PropertyWrapper final : public BaseCallbackWrapper
   using param_t = typename Property::param_type;
   model_t& m_model;
   using converter_t
-      = Engine::ossia_to_score::MatchingType<typename Property::param_type>;
+      = ossia::matching_type<typename Property::param_type>;
   PropertyWrapper(
       ossia::net::parameter_base& param_addr,
       model_t& obj,
@@ -62,7 +59,7 @@ auto add_property(
     Object& obj,
     QObject* context)
 {
-  constexpr const auto t = Engine::ossia_to_score::MatchingType<typename Property::param_type>::val;
+  constexpr const auto t = ossia::matching_type<typename Property::param_type>::val;
   auto node = n.create_child(Property::name);
   SCORE_ASSERT(node);
 
@@ -72,5 +69,5 @@ auto add_property(
   addr->set_access(ossia::access_mode::BI);
   return std::make_unique<PropertyWrapper<Property>>(*addr, obj, context);
 }
-}
+
 }

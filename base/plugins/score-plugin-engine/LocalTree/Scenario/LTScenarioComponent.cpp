@@ -2,8 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioComponent.hpp"
 
-namespace Engine
-{
 namespace LocalTree
 {
 
@@ -52,6 +50,5 @@ State* ScenarioComponentBase::make<State, Scenario::StateModel>(
     const Id<score::Component>& id, Scenario::StateModel& elt)
 {
   return new State{m_statesNode, id, elt, system(), this};
-}
 }
 }

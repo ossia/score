@@ -5,10 +5,10 @@
 #include <ossia/dataflow/node_process.hpp>
 #include <ossia/dataflow/nodes/state.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
-#include <Execution/ExecutorSetup.hpp>
+#include <Process/ExecutionSetup.hpp>
 
 #include <Execution/DocumentPlugin.hpp>
-#include <Execution/ExecutorContext.hpp>
+#include <Process/ExecutionContext.hpp>
 #include <Engine/score2OSSIA.hpp>
 #include <ossia/detail/pod_vector.hpp>
 

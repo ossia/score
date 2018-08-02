@@ -3,8 +3,8 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Commands/EditPort.hpp>
 #include <score/widgets/ClearLayout.hpp>
+#include <score/document/DocumentContext.hpp>
 #include <Device/Widgets/AddressAccessorEditWidget.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <QFormLayout>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 namespace Process
@@ -30,10 +30,8 @@ void PortListWidget::reload()
   auto& lay = *(QFormLayout*)layout();
   score::clearLayout(&lay);
 
-  auto& explorer = m_ctx.plugin<Explorer::DeviceDocumentPlugin>().explorer();
-
   auto setup = [&] (Process::Port* port) {
-    auto edit = new Device::AddressAccessorEditWidget{explorer, this};
+    auto edit = new Device::AddressAccessorEditWidget{m_ctx, this};
     edit->setAddress(port->address());
 
     connect(port, &Port::addressChanged, edit,

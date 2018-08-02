@@ -1,6 +1,6 @@
 #include "BaseProperty.hpp"
 
-namespace Engine::LocalTree
+namespace LocalTree
 {
 BaseProperty::~BaseProperty() = default;
 }

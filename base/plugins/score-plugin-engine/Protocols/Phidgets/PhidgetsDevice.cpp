@@ -4,6 +4,7 @@
 #include <ossia/detail/config.hpp>
 #if defined(OSSIA_PROTOCOL_PHIDGETS)
 #include "PhidgetsDevice.hpp"
+#include <Explorer/DeviceLogging.hpp>
 
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>

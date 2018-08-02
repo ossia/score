@@ -2,7 +2,7 @@
 #include <ossia/editor/scenario/time_process.hpp>
 #include <wobjectdefs.h>
 
-#include <Execution/Component.hpp>
+#include <Process/ExecutionComponent.hpp>
 #include <Execution/DocumentPlugin.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessComponent.hpp>

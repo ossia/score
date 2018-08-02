@@ -97,7 +97,7 @@ std::vector<std::unique_ptr<score::InterfaceListBase>>
 score_plugin_engine::factoryFamilies()
 {
   return make_ptr_vector<
-      score::InterfaceListBase, Engine::LocalTree::ProcessComponentFactoryList,
+      score::InterfaceListBase, LocalTree::ProcessComponentFactoryList,
       Execution::ProcessComponentFactoryList,
       Execution::ClockManagerFactoryList>();
 }
@@ -168,11 +168,11 @@ score_plugin_engine::factories(
          Execution::PlayListeningHandlerFactory>,
       FW<score::SettingsDelegateFactory, Execution::Settings::Factory,
          Audio::Settings::Factory>,
-      FW<Engine::LocalTree::ProcessComponentFactory,
-         Engine::LocalTree::ScenarioComponentFactory,
-         Engine::LocalTree::LoopComponentFactory,
-         Engine::LocalTree::AutomationComponentFactory,
-         Engine::LocalTree::MappingComponentFactory>,
+      FW<LocalTree::ProcessComponentFactory,
+         LocalTree::ScenarioComponentFactory,
+         LocalTree::LoopComponentFactory,
+         LocalTree::AutomationComponentFactory,
+         LocalTree::MappingComponentFactory>,
       FW<score::PanelDelegateFactory,
          Audio::PanelDelegateFactory>,
       FW<Execution::ClockManagerFactory

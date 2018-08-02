@@ -4,6 +4,7 @@
 
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
+#include <Explorer/DeviceLogging.hpp>
 
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Protocols/HTTP/HTTPSpecificSettings.hpp>

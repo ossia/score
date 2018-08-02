@@ -23,7 +23,7 @@
  *
  * There are three main parts :
  *
- * * \ref Engine::LocalTree handles the conversion from score's data
+ * * \ref LocalTree handles the conversion from score's data
  * structures to
  * the Local protocol.
  * * \ref Execution handles the conversion from score's data
@@ -40,7 +40,7 @@
  */
 
 /**
- * \namespace Engine::LocalTree
+ * \namespace LocalTree
  * \brief Local tree provides a way to extend the tree given through the \ref
  * Engine::Network::LocalDevice.
  *

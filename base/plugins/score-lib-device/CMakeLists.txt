@@ -26,6 +26,7 @@ set(HEADERS
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/QMenuView/qmenuview.h"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/QMenuView/qmenuview_p.h"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Widgets/DeviceCompleter.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Device/Widgets/DeviceModelProvider.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Widgets/AddressAccessorEditWidget.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score_lib_device.hpp"
 )
@@ -43,6 +44,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Protocol/DeviceSettingsSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Protocol/ProtocolFactoryInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Protocol/ProtocolSettingsWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Device/Widgets/DeviceModelProvider.cpp"
 
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/ItemModels/NodeBasedItemModel.cpp"

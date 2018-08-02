@@ -53,7 +53,7 @@
  * Available extensions are :
  * * Execution of the process, given through
  * Execution::ProcessComponent.
- * * Local tree, given through Engine::LocalTree::ProcessComponent.
+ * * Local tree, given through LocalTree::ProcessComponent.
  *
  */
 

@@ -4,8 +4,6 @@
 
 #include <State/Value.hpp>
 
-namespace Engine
-{
 namespace LocalTree
 {
 TimeSync::TimeSync(
@@ -21,4 +19,4 @@ TimeSync::TimeSync(
       node(), "trigger", [&](auto) { timeSync.triggeredByGui(); }));
 }
 }
-}
+

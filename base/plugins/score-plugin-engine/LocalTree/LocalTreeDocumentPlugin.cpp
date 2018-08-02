@@ -1,45 +1,20 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "LocalTreeDocumentPlugin.hpp"
-
-#include "Scenario/ScenarioComponent.hpp"
-
-
-#include <ossia/network/base/device.hpp>
-#include <ossia/network/base/parameter.hpp>
-#include <ossia/network/generic/generic_device.hpp>
-#include <ossia/network/local/local.hpp>
-#include <ossia/network/value/value.hpp>
-
-#include <Automation/AutomationModel.hpp>
-#include <Curve/CurveModel.hpp>
-#include <Curve/Segment/CurveSegmentData.hpp>
-#include <Engine/ApplicationPlugin.hpp>
-#include <Engine/OSSIA2score.hpp>
 #include <Protocols/Local/LocalProtocolFactory.hpp>
 #include <Protocols/Local/LocalSpecificSettings.hpp>
-#include <Engine/score2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Settings/ExplorerModel.hpp>
-#include <Process/State/MessageNode.hpp>
-#include <Scenario/Application/ScenarioActions.hpp>
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <State/Message.hpp>
-#include <State/Value.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <score/actions/ActionManager.hpp>
-#include <score/document/DocumentInterface.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+#include <LocalTree/Scenario/IntervalComponent.hpp>
+#include <ossia/network/local/local.hpp>
 
-Engine::LocalTree::DocumentPlugin::DocumentPlugin(
+#include <ossia/network/generic/generic_device.hpp>
+
+LocalTree::DocumentPlugin::DocumentPlugin(
     const score::DocumentContext& ctx,
     Id<score::DocumentPlugin> id,
     QObject* parent)
@@ -49,11 +24,11 @@ Engine::LocalTree::DocumentPlugin::DocumentPlugin(
           std::make_unique<ossia::net::multiplex_protocol>(), "score")}
     , m_localDeviceWrapper{
           *m_localDevice, ctx,
-          Network::LocalProtocolFactory::static_defaultSettings()}
+          Engine::Network::LocalProtocolFactory::static_defaultSettings()}
 {
 }
 
-Engine::LocalTree::DocumentPlugin::~DocumentPlugin()
+LocalTree::DocumentPlugin::~DocumentPlugin()
 {
   cleanup();
 
@@ -62,7 +37,7 @@ Engine::LocalTree::DocumentPlugin::~DocumentPlugin()
     docplug->list().setLocalDevice(nullptr);
 }
 
-void Engine::LocalTree::DocumentPlugin::init()
+void LocalTree::DocumentPlugin::init()
 {
   auto& set = m_context.app.settings<Explorer::Settings::Model>();
   if (set.getLocalTree())
@@ -84,12 +59,12 @@ void Engine::LocalTree::DocumentPlugin::init()
     docplug->list().setLocalDevice(&m_localDeviceWrapper);
 }
 
-void Engine::LocalTree::DocumentPlugin::on_documentClosing()
+void LocalTree::DocumentPlugin::on_documentClosing()
 {
   cleanup();
 }
 
-void Engine::LocalTree::DocumentPlugin::create()
+void LocalTree::DocumentPlugin::create()
 {
   if (m_root)
     cleanup();
@@ -99,14 +74,14 @@ void Engine::LocalTree::DocumentPlugin::create()
   if (!scenar)
     return;
 
-  auto& cstr = scenar->baseScenario().interval();
+  auto& cstr = scenar->baseInterval();
   m_root = new Interval(
       m_localDevice->get_root_node(), getStrongId(cstr.components()), cstr,
       *this, this);
   cstr.components().add(m_root);
 }
 
-void Engine::LocalTree::DocumentPlugin::cleanup()
+void LocalTree::DocumentPlugin::cleanup()
 {
   if (!m_root)
     return;

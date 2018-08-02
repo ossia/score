@@ -72,6 +72,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/command/PropertyCommand.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/command/SettingsCommand.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/command/Validity/ValidityChecker.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/document/ChangeId.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/document/DocumentContext.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/document/DocumentInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/locking/ObjectLocker.hpp"

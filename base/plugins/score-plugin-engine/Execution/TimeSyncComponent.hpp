@@ -1,7 +1,7 @@
 #pragma once
 #include <ossia/editor/expression/expression.hpp>
 
-#include <Execution/Component.hpp>
+#include <Process/ExecutionComponent.hpp>
 namespace ossia
 {
 class time_sync;

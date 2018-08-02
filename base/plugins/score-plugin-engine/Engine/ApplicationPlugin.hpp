@@ -17,7 +17,7 @@ class ClockManager;
 class BaseScenarioElement;
 }
 
-namespace Engine::LocalTree
+namespace LocalTree
 {
 class DocumentPlugin;
 }
@@ -75,7 +75,7 @@ private:
   void on_init();
   void initialize() override;
   void on_transport(TimeVal t);
-  void initLocalTreeNodes(Engine::LocalTree::DocumentPlugin&);
+  void initLocalTreeNodes(LocalTree::DocumentPlugin&);
 
   std::unique_ptr<Execution::ClockManager>
   makeClock(const Execution::Context&);

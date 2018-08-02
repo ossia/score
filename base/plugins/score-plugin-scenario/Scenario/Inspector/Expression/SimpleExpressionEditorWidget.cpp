@@ -2,8 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SimpleExpressionEditorWidget.hpp"
 
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Device/Widgets/AddressAccessorEditWidget.hpp>
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <QBoxLayout>
@@ -34,8 +32,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
 
   m_binOperator = new QComboBox{this};
 
-  m_address = new Device::AddressAccessorEditWidget{
-      doc.plugin<Explorer::DeviceDocumentPlugin>().explorer(), this};
+  m_address = new Device::AddressAccessorEditWidget{doc, this};
   m_ok = new TextLabel{QStringLiteral("/!\\ "), this};
 
   m_comparator = new QComboBox{this};

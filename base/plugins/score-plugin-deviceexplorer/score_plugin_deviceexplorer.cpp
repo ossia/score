@@ -13,6 +13,7 @@
 #include <Explorer/Listening/ListeningHandlerFactoryList.hpp>
 #include <Explorer/Panel/DeviceExplorerPanelFactory.hpp>
 #include <Explorer/Settings/ExplorerFactory.hpp>
+#include <Explorer/Explorer/ExplorerModelProvider.hpp>
 #include <State/ValueSerialization.hpp>
 #include <score/plugins/customfactory/FactorySetup.hpp>
 #include <score/serialization/AnySerialization.hpp>
@@ -82,8 +83,10 @@ std::vector<std::unique_ptr<score::InterfaceListBase>>
 score_plugin_deviceexplorer::factoryFamilies()
 {
   return make_ptr_vector<
-      score::InterfaceListBase, Device::ProtocolFactoryList,
-      Explorer::ListeningHandlerFactoryList>();
+      score::InterfaceListBase
+      , Device::ProtocolFactoryList
+      , Device::DeviceModelProviderList
+      , Explorer::ListeningHandlerFactoryList>();
 }
 
 std::vector<std::unique_ptr<score::InterfaceBase>>
@@ -95,7 +98,8 @@ score_plugin_deviceexplorer::factories(
       FW<score::DocumentPluginFactory, Explorer::DocumentPluginFactory,
          Explorer::ProjectSettings::Factory>,
       FW<score::PanelDelegateFactory, Explorer::PanelDelegateFactory>,
-      FW<score::SettingsDelegateFactory, Explorer::Settings::Factory>>(
+      FW<score::SettingsDelegateFactory, Explorer::Settings::Factory>,
+      FW<Device::DeviceModelProvider, Explorer::ModelProvider>>(
       ctx, key);
 }
 
