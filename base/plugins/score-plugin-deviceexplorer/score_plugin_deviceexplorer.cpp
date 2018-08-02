@@ -44,6 +44,9 @@ struct audio_channels_attr
 };
 score_plugin_deviceexplorer::score_plugin_deviceexplorer()
 {
+#if defined(SCORE_STATIC_PLUGINS)
+  Q_INIT_RESOURCE(DeviceExplorer);
+#endif
   QMetaType::registerComparators<UuidKey<Device::ProtocolFactory>>();
   qRegisterMetaType<Device::AddressSettings>();
   qRegisterMetaType<Device::FullAddressSettings>();
