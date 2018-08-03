@@ -5,7 +5,7 @@
 namespace ossia
 {
 template <>
-struct matching_type<::TimeVal>
+struct qt_property_converter<::TimeVal>
 {
   static constexpr const auto val = ossia::val_type::FLOAT;
   using type = float;

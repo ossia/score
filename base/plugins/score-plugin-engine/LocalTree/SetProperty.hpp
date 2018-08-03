@@ -17,7 +17,7 @@ struct SetPropertyWrapper final : public BaseCallbackWrapper
   {
     callbackIt = addr.add_callback([=](const ossia::value& v) { setFun(v); });
 
-    //addr.set_value(typename ossia::matching_type<T>::type{});
+    //addr.set_value(typename ossia::qt_property_converter<T>::type{});
   }
 };
 
@@ -33,7 +33,7 @@ template <typename T, typename Callback>
 auto add_setProperty(
     ossia::net::node_base& n, const std::string& name, Callback cb)
 {
-  constexpr const auto t = ossia::matching_type<T>::val;
+  constexpr const auto t = ossia::qt_property_converter<T>::val;
   auto node = n.create_child(name);
   SCORE_ASSERT(node);
 
