@@ -7,7 +7,7 @@
 namespace LocalTree
 {
 template <typename T>
-using matching_type_T = ossia::matching_type<
+using qt_property_converter_T = ossia::qt_property_converter<
     std::remove_const_t<std::remove_reference_t<T>>>;
 
 template <typename Property>
@@ -17,7 +17,7 @@ struct PropertyWrapper final : public BaseCallbackWrapper
   using param_t = typename Property::param_type;
   model_t& m_model;
   using converter_t
-      = ossia::matching_type<typename Property::param_type>;
+      = ossia::qt_property_converter<typename Property::param_type>;
   PropertyWrapper(
       ossia::net::parameter_base& param_addr,
       model_t& obj,
@@ -59,7 +59,7 @@ auto add_property(
     Object& obj,
     QObject* context)
 {
-  constexpr const auto t = ossia::matching_type<typename Property::param_type>::val;
+  constexpr const auto t = ossia::qt_property_converter<typename Property::param_type>::val;
   auto node = n.create_child(Property::name);
   SCORE_ASSERT(node);
 

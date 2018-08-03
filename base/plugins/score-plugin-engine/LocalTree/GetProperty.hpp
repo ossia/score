@@ -13,7 +13,7 @@ struct GetPropertyWrapper final : public BaseProperty
   using param_t = typename Property::param_type;
   model_t& m_model;
   using converter_t
-      = ossia::matching_type<typename Property::param_type>;
+      = ossia::qt_property_converter<typename Property::param_type>;
 
   GetPropertyWrapper(
       ossia::net::parameter_base& param_addr,
@@ -50,7 +50,7 @@ auto add_getProperty(
     Object& obj,
     QObject* context)
 {
-  constexpr const auto t = ossia::matching_type<typename Property::param_type>::val;
+  constexpr const auto t = ossia::qt_property_converter<typename Property::param_type>::val;
   auto node = n.create_child(Property::name);
   SCORE_ASSERT(node);
 
