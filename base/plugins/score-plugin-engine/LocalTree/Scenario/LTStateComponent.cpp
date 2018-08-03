@@ -21,8 +21,7 @@ State::State(
 {
   m_properties.push_back(
       add_setProperty<::State::impulse>(node(), "trigger", [&](auto) {
-        auto plug
-            = doc.context().findPlugin<Scenario::ScenarioApplicationPlugin>();
+        auto plug = doc.context().app.findGuiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
         if (plug)
         {
           plug->execution().playState(Scenario::parentScenario(state), state.id());

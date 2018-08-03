@@ -24,7 +24,8 @@ struct AddressAccessor;
 namespace Execution
 {
 struct Context;
-struct SetupContext: public QObject
+struct SCORE_LIB_PROCESS_EXPORT SetupContext final
+    : public QObject
 {
   SetupContext(Context& other): context{other} { }
   Context& context;

@@ -80,6 +80,7 @@ public:
     SCORE_ABORT;
     throw;
   }
+
   template <typename T>
   T& guiApplicationPlugin() const
   {
@@ -93,6 +94,34 @@ public:
 
     SCORE_ABORT;
     throw;
+  }
+
+  template <typename T>
+  T* findApplicationPlugin() const
+  {
+    for (auto& elt : m_data.appPlugins)
+    {
+      if (auto c = dynamic_cast<T*>(elt))
+      {
+        return c;
+      }
+    }
+
+    return nullptr;
+  }
+
+  template <typename T>
+  T* findGuiApplicationPlugin() const
+  {
+    for (auto& elt : m_data.guiAppPlugins)
+    {
+      if (auto c = dynamic_cast<T*>(elt))
+      {
+        return c;
+      }
+    }
+
+    return nullptr;
   }
 
   auto panels() const
