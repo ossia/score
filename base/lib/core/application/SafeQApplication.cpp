@@ -4,6 +4,7 @@
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(SafeQApplication)
+
 SafeQApplication::~SafeQApplication()
 {
 }

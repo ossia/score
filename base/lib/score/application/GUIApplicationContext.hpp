@@ -75,6 +75,12 @@ struct GUIApplicationContext : public score::ApplicationContext
     return components.applicationPlugin<T>();
   }
 
+  template <typename T>
+  T* findApplicationPlugin() const
+  {
+    return components.findApplicationPlugin<T>();
+  }
+
   /**
    * @brief Access a specific gui application plug-in instance.
    *
@@ -84,6 +90,12 @@ struct GUIApplicationContext : public score::ApplicationContext
   T& guiApplicationPlugin() const
   {
     return components.guiApplicationPlugin<T>();
+  }
+
+  template <typename T>
+  T* findGuiApplicationPlugin() const
+  {
+    return components.findGuiApplicationPlugin<T>();
   }
 
   DocumentManager& docManager;

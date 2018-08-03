@@ -104,7 +104,10 @@ using add_cref_t = std::add_lvalue_reference_t<std::add_const_t<T>>;
 #ifdef SCORE_DEBUG
 template <typename T, typename U>
 T safe_cast(U* other)
-{
+{ // there is also a static_cast since compilers
+  // must ensure that the downcast is possible, which it
+  // does not with dynamic_cast
+  auto check = static_cast<T>(other);
   auto res = dynamic_cast<T>(other);
   SCORE_ASSERT(res);
   return res;
@@ -113,6 +116,7 @@ T safe_cast(U* other)
 template <typename T, typename U>
 T safe_cast(U&& other) try
 {
+  auto&& check = static_cast<T>(other);
   auto&& res = dynamic_cast<T>(other);
   return res;
 }
@@ -121,7 +125,6 @@ catch (const std::exception& e)
   qDebug() << e.what();
   SCORE_ABORT;
 }
-
 #else
 #  define safe_cast static_cast
 #endif
@@ -138,7 +141,7 @@ QMetaObject::Connection con(const T& t, Args&&... args)
 }
 
 template <typename T, typename Property, typename U, typename Slot, typename... Args>
-QMetaObject::Connection bind(T& t, const Property& prop, const U* tgt, Slot&& slt, Args&&... args)
+QMetaObject::Connection bind(T& t, const Property&, const U* tgt, Slot&& slt, Args&&... args)
 {
   slt((t.*(Property::get()))());
 
