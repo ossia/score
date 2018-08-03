@@ -25,10 +25,6 @@ namespace Dataflow
 {
 class PortItem;
 }
-extern template class tsl::hopscotch_map<
-    Process::Port*,
-    Dataflow::PortItem*,
-    ossia::EgurHash<Process::Port*>>;
 namespace Dataflow
 {
 class CableItem;

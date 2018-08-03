@@ -90,9 +90,9 @@ public:
   DisplayedElementsToolPalette(
       const Scenario::DisplayedElementsModel&,
       Scenario::ScenarioDocumentPresenter&,
-      BaseGraphicsObject&);
+      QGraphicsItem*);
 
-  BaseGraphicsObject& view() const;
+  QGraphicsItem& view() const;
   const Scenario::DisplayedElementsPresenter& presenter() const;
   const Loop::ProcessModel& model() const;
   const Scenario::BaseElementContext& context() const;
@@ -112,7 +112,7 @@ private:
   const Loop::ProcessModel& m_scenarioModel;
   Scenario::ScenarioDocumentPresenter& m_presenter;
   Scenario::BaseElementContext m_context;
-  BaseGraphicsObject& m_view;
+  QGraphicsItem& m_view;
   const Scenario::EditionSettings& m_editionSettings;
 
   Scenario::SmartTool<
@@ -143,6 +143,7 @@ public:
 
   std::unique_ptr<GraphicsSceneToolPalette> make(
       Scenario::ScenarioDocumentPresenter& pres,
-      const Scenario::IntervalModel& interval) override;
+      const Scenario::IntervalModel& interval,
+      QGraphicsItem* parent) override;
 };
 }

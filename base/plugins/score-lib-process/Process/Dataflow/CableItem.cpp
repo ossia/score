@@ -5,6 +5,7 @@
 #include <Process/DocumentPlugin.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <hopscotch_map.h>
 #include <QFormLayout>
 #include <QGraphicsSceneMoveEvent>
 #include <QMenu>
@@ -13,10 +14,6 @@
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Dataflow::CableItem)
-template class SCORE_LIB_PROCESS_EXPORT tsl::hopscotch_map<
-    Process::Cable*,
-    Dataflow::CableItem*,
-    ossia::EgurHash<std::remove_pointer_t<Process::Cable*>>>;
 namespace Dataflow
 {
 bool CableItem::g_cables_enabled = true;

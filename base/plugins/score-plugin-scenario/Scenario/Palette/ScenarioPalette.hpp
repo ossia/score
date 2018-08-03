@@ -80,7 +80,7 @@ private:
       Scenario::Tool,
       ToolPalette,
       Process::LayerContext,
-      TemporalScenarioView>
+      Process::LayerView>
       m_inputDisp;
 };
 }

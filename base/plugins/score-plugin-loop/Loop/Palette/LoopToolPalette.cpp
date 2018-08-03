@@ -11,7 +11,6 @@
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/BaseScenarioDisplayedElements_StateWrappers.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
@@ -119,14 +118,14 @@ DisplayedElementsToolPalette::ScenePointToScenarioPoint(QPointF point)
 DisplayedElementsToolPalette::DisplayedElementsToolPalette(
     const Scenario::DisplayedElementsModel& model,
     Scenario::ScenarioDocumentPresenter& pres,
-    BaseGraphicsObject& view)
-    : GraphicsSceneToolPalette{*view.scene()}
+    QGraphicsItem* view)
+    : GraphicsSceneToolPalette{*view->scene()}
     , m_model{model}
     , m_scenarioModel{*safe_cast<Loop::ProcessModel*>(
           m_model.interval().parent())}
     , m_presenter{pres}
     , m_context{pres.context(), m_presenter}
-    , m_view{view}
+    , m_view{*view}
     , m_editionSettings{m_context.context.app
                             .guiApplicationPlugin<
                                 Scenario::ScenarioApplicationPlugin>()
@@ -136,7 +135,7 @@ DisplayedElementsToolPalette::DisplayedElementsToolPalette(
 {
 }
 
-BaseGraphicsObject& DisplayedElementsToolPalette::view() const
+QGraphicsItem& DisplayedElementsToolPalette::view() const
 {
   return m_view;
 }
@@ -199,11 +198,12 @@ void DisplayedElementsToolPalette::on_cancel()
 }
 std::unique_ptr<GraphicsSceneToolPalette>
 DisplayedElementsToolPaletteFactory::make(
-    Scenario::ScenarioDocumentPresenter& pres,
-    const Scenario::IntervalModel& interval)
+    Scenario::ScenarioDocumentPresenter& pres
+    , const Scenario::IntervalModel& interval
+    , QGraphicsItem* parent)
 {
   return std::make_unique<DisplayedElementsToolPalette>(
-      pres.displayedElements, pres, pres.view().baseItem());
+      pres.displayedElements, pres, parent);
 }
 
 bool DisplayedElementsToolPaletteFactory::matches(

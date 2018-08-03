@@ -13,13 +13,10 @@
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
+#include <hopscotch_map.h>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Dataflow::PortItem)
 
-template class SCORE_LIB_PROCESS_EXPORT tsl::hopscotch_map<
-    Process::Port*,
-    Dataflow::PortItem*,
-    ossia::EgurHash<std::remove_pointer_t<Process::Port*>>>;
 
 namespace Dataflow
 {

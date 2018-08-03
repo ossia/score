@@ -294,6 +294,24 @@ void ScenarioDocumentPresenter::setLargeView()
   updateMinimap();
   view().minimap().setLargeView();
 }
+
+void ScenarioDocumentPresenter::startTimeBar(IntervalModel& itv)
+{
+  auto& bar = view().timeBar();
+  bar.setVisible(
+      context().app.settings<Scenario::Settings::Model>().getTimeBar());
+  view().timeBar().playing = true;
+  view().timeBar().setInterval(&itv);
+}
+
+void ScenarioDocumentPresenter::stopTimeBar()
+{
+  auto& bar = view().timeBar();
+  bar.setVisible(false);
+  bar.playing = false;
+  bar.setInterval(nullptr);
+
+}
 static bool window_size_set = false;
 void ScenarioDocumentPresenter::on_windowSizeChanged(QSize)
 {
@@ -630,7 +648,7 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel& interval)
   const auto& fact
       = ctx.app.interfaces<DisplayedElementsToolPaletteFactoryList>();
   m_stateMachine
-      = fact.make(&DisplayedElementsToolPaletteFactory::make, *this, interval);
+      = fact.make(&DisplayedElementsToolPaletteFactory::make, *this, interval, &view().baseItem());
 
   m_updatingView = true;
   m_scenarioPresenter.on_displayedIntervalChanged(interval);

@@ -86,6 +86,9 @@ public:
   IdContainer<Dataflow::CableItem, Process::Cable> cableItems;
 
   void setLargeView();
+
+  void startTimeBar(Scenario::IntervalModel& itv);
+  void stopTimeBar();
 public:
   void pressed(QPointF arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1);
   void moved(QPointF arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1);

@@ -37,14 +37,14 @@ ScenarioDisplayedElementsToolPalette::ScenePointToScenarioPoint(QPointF point)
 ScenarioDisplayedElementsToolPalette::ScenarioDisplayedElementsToolPalette(
     const DisplayedElementsModel& model,
     ScenarioDocumentPresenter& pres,
-    BaseGraphicsObject& view)
-    : GraphicsSceneToolPalette{*view.scene()}
+    QGraphicsItem* view)
+    : GraphicsSceneToolPalette{*view->scene()}
     , m_model{model}
     , m_scenarioModel{*safe_cast<Scenario::ProcessModel*>(
           m_model.interval().parent())}
     , m_presenter{pres}
     , m_context{pres.context(), m_presenter}
-    , m_view{view}
+    , m_view{*view}
     , m_editionSettings{m_context.context.app
                             .guiApplicationPlugin<ScenarioApplicationPlugin>()
                             .editionSettings()}
@@ -53,7 +53,7 @@ ScenarioDisplayedElementsToolPalette::ScenarioDisplayedElementsToolPalette(
 {
 }
 
-BaseGraphicsObject& ScenarioDisplayedElementsToolPalette::view() const
+QGraphicsItem& ScenarioDisplayedElementsToolPalette::view() const
 {
   return m_view;
 }

@@ -3,7 +3,7 @@
 #include <score/plugins/customfactory/FactoryInterface.hpp>
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
 #include <score_plugin_scenario_export.h>
-
+class QGraphicsItem;
 namespace Scenario
 {
 class IntervalModel;
@@ -19,12 +19,14 @@ public:
   virtual bool matches(const IntervalModel& interval) const = 0;
 
   bool
-  matches(ScenarioDocumentPresenter& pres, const IntervalModel& interval) const
+  matches(ScenarioDocumentPresenter& pres, const IntervalModel& interval, QGraphicsItem*) const
   {
     return matches(interval);
   }
 
   virtual std::unique_ptr<GraphicsSceneToolPalette>
-  make(ScenarioDocumentPresenter& pres, const IntervalModel& interval) = 0;
+  make(ScenarioDocumentPresenter& pres
+       , const IntervalModel& interval
+       , QGraphicsItem* parent) = 0;
 };
 }

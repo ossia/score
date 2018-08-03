@@ -40,8 +40,149 @@
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::ScenarioDocumentView)
+W_OBJECT_IMPL(Scenario::ProcessGraphicsView)
 namespace Scenario
 {
+ProcessGraphicsView::ProcessGraphicsView(
+    QGraphicsScene* scene, QWidget* parent)
+    : QGraphicsView{scene, parent}
+{
+  m_lastwheel = std::chrono::steady_clock::now();
+  setAlignment(Qt::AlignTop | Qt::AlignLeft);
+  setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+  setRenderHints(
+      QPainter::Antialiasing | QPainter::SmoothPixmapTransform
+      | QPainter::TextAntialiasing);
+
+  setFrameStyle(0);
+  // setCacheMode(QGraphicsView::CacheBackground);
+  setDragMode(QGraphicsView::NoDrag);
+
+#if !defined(__EMSCRIPTEN__)
+  setOptimizationFlag(QGraphicsView::DontSavePainterState, true);
+  setOptimizationFlag(QGraphicsView::DontAdjustForAntialiasing, true);
+  setAttribute(Qt::WA_PaintOnScreen, true);
+  setAttribute(Qt::WA_OpaquePaintEvent, true);
+#endif
+#if defined(__APPLE__)
+  // setRenderHints(0);
+  // setOptimizationFlag(QGraphicsView::IndirectPainting, true);
+#endif
+}
+
+ProcessGraphicsView::~ProcessGraphicsView()
+{
+
+}
+
+void ProcessGraphicsView::drawBackground(QPainter* painter, const QRectF& rect)
+{
+  painter->fillRect(rect, ScenarioStyle::instance().Background.getBrush());
+}
+
+void ProcessGraphicsView::scrollHorizontal(double dx)
+{
+  if (auto bar = horizontalScrollBar())
+  {
+    bar->setValue(bar->value() + dx);
+  }
+}
+
+void ProcessGraphicsView::resizeEvent(QResizeEvent* ev)
+{
+  QGraphicsView::resizeEvent(ev);
+  sizeChanged(size());
+}
+
+void ProcessGraphicsView::scrollContentsBy(int dx, int dy)
+{
+  QGraphicsView::scrollContentsBy(dx, dy);
+
+  this->scene()->update();
+  if (dx != 0)
+    scrolled(dx);
+}
+
+void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
+{
+  auto t = std::chrono::steady_clock::now();
+  if (std::chrono::duration_cast<std::chrono::milliseconds>(t - m_lastwheel)
+          .count()
+      < 16)
+  {
+    return;
+  }
+
+  m_lastwheel = t;
+  QPoint d = event->angleDelta();
+  QPointF delta = {d.x() / 8., d.y() / 8.};
+  if (m_hZoom)
+  {
+    horizontalZoom(delta, mapToScene(event->pos()));
+    return;
+  }
+  else if (m_vZoom)
+  {
+    verticalZoom(delta, mapToScene(event->pos()));
+    return;
+  }
+  struct MyWheelEvent : public QWheelEvent
+  {
+    MyWheelEvent(const QWheelEvent& other) : QWheelEvent{other}
+    {
+      p.ry() /= 4.;
+      pixelD.ry() /= 4.;
+      angleD /= 4.;
+      qt4D /= 4.;
+    }
+  };
+  MyWheelEvent e{*event};
+  QGraphicsView::wheelEvent(&e);
+}
+
+void ProcessGraphicsView::keyPressEvent(QKeyEvent* event)
+{
+  if (event->key() == Qt::Key_Control)
+    m_hZoom = true;
+  else if (event->key() == Qt::Key_Shift)
+    m_vZoom = true;
+
+  event->ignore();
+
+  QGraphicsView::keyPressEvent(event);
+}
+
+void ProcessGraphicsView::keyReleaseEvent(QKeyEvent* event)
+{
+  if (event->key() == Qt::Key_Control)
+    m_hZoom = false;
+  else if (event->key() == Qt::Key_Shift)
+    m_vZoom = false;
+
+  event->ignore();
+
+  QGraphicsView::keyReleaseEvent(event);
+}
+
+void ProcessGraphicsView::focusOutEvent(QFocusEvent* event)
+{
+  m_hZoom = false;
+  m_vZoom = false;
+  focusedOut();
+  event->ignore();
+
+  QGraphicsView::focusOutEvent(event);
+}
+
+void ProcessGraphicsView::leaveEvent(QEvent* event)
+{
+  m_hZoom = false;
+  m_vZoom = false;
+  focusedOut();
+  QGraphicsView::leaveEvent(event);
+}
+
+
 ScenarioDocumentView::ScenarioDocumentView(
     const score::DocumentContext& ctx, QObject* parent)
     : score::DocumentDelegateView{parent}
