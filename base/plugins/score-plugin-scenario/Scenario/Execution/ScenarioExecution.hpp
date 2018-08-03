@@ -20,6 +20,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioExecution : public QObject
 {
   W_OBJECT(ScenarioExecution)
 public:
+  ScenarioExecution();
+  ~ScenarioExecution();
   //! Play a single state
   void playState(const ScenarioInterface& arg_1, Id<StateModel> arg_2)
   E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, playState, arg_1, arg_2);

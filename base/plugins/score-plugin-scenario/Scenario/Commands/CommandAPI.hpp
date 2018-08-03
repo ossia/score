@@ -1,5 +1,6 @@
 #pragma once
 #include <score/command/AggregateCommand.hpp>
+#include <score/command/PropertyCommand.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
@@ -176,6 +177,13 @@ class SCORE_PLUGIN_SCENARIO_EXPORT Macro
         State::AddressAccessor address,
         const Curve::CurveDomain& dom,
         bool tween);
+
+    template<typename Property, typename T, typename U>
+    void setProperty(const T& object, U&& value)
+    {
+      auto cmd = new score::PropertyCommand_T<Property>{object, std::forward<U>(value)};
+      m.submitCommand(cmd);
+    }
 
     void submit(score::Command* cmd);
     void commit();

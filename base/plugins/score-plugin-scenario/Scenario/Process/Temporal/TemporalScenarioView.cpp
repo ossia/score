@@ -16,7 +16,7 @@
 #include <QDebug>
 #include <qnamespace.h>
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(Scenario::TemporalScenarioView)
+
 namespace Scenario
 {
 TemporalScenarioView::TemporalScenarioView(QGraphicsItem* parent)

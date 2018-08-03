@@ -69,6 +69,8 @@ SCORE_DECLARE_ACTION(
     ShowCables, "&Show cables", Dataflow, Qt::ALT + Qt::SHIFT + Qt::Key_G)
 namespace Scenario
 {
+ScenarioExecution::ScenarioExecution() { }
+ScenarioExecution::~ScenarioExecution() { }
 void test_parse_expr_full();
 
 ScenarioApplicationPlugin::ScenarioApplicationPlugin(

@@ -30,9 +30,9 @@ public:
   ScenarioDisplayedElementsToolPalette(
       const DisplayedElementsModel&,
       ScenarioDocumentPresenter&,
-      BaseGraphicsObject&);
+      QGraphicsItem*);
 
-  BaseGraphicsObject& view() const;
+  QGraphicsItem& view() const;
   const DisplayedElementsPresenter& presenter() const;
   const Scenario::ProcessModel& model() const;
   const BaseElementContext& context() const;
@@ -52,7 +52,7 @@ private:
   const Scenario::ProcessModel& m_scenarioModel;
   ScenarioDocumentPresenter& m_presenter;
   BaseElementContext m_context;
-  BaseGraphicsObject& m_view;
+  QGraphicsItem& m_view;
   const Scenario::EditionSettings& m_editionSettings;
 
   Scenario::SmartTool<

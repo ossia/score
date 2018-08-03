@@ -18,10 +18,8 @@ namespace Scenario
 {
 class TemporalScenarioPresenter;
 
-class SCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioView final : public Process::LayerView
+class TemporalScenarioView final : public Process::LayerView
 {
-  W_OBJECT(TemporalScenarioView)
-
 public:
   TemporalScenarioView(QGraphicsItem* parent);
   ~TemporalScenarioView();
@@ -36,36 +34,25 @@ public:
 
   void drawDragLine(QPointF, QPointF);
   void stopDrawDragLine();
-public:
-  void clearPressed() W_SIGNAL(clearPressed);
-  void escPressed() W_SIGNAL(escPressed);
-
-  void keyPressed(int arg_1) W_SIGNAL(keyPressed, arg_1);
-  void keyReleased(int arg_1) W_SIGNAL(keyReleased, arg_1);
-
-  // Screen pos, scene pos
-  void dragEnter(const QPointF& pos, const QMimeData& arg_2) W_SIGNAL(dragEnter, pos, arg_2);
-  void dragMove(const QPointF& pos, const QMimeData& arg_2) W_SIGNAL(dragMove, pos, arg_2);
-  void dragLeave(const QPointF& pos, const QMimeData& arg_2) W_SIGNAL(dragLeave, pos, arg_2);
 
 public:
   void lock()
   {
     m_lock = true;
     update();
-  }; W_SLOT(lock)
+  }
   void unlock()
   {
     m_lock = false;
     update();
-  }; W_SLOT(unlock)
+  }
 
   void pressedAsked(const QPointF& p)
   {
     m_previousPoint = p;
     pressed(p);
-  }; W_SLOT(pressedAsked)
-  void movedAsked(const QPointF& p); W_SLOT(movedAsked);
+  }
+  void movedAsked(const QPointF& p);
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;

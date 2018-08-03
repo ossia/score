@@ -2,6 +2,7 @@
 #include <Process/Dataflow/CableItem.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+#include <ossia/detail/ptr_set.hpp>
 
 namespace Process
 {

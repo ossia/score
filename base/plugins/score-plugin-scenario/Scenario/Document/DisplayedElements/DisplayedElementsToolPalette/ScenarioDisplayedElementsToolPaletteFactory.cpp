@@ -5,9 +5,7 @@
 #include <QObject>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/ScenarioDisplayedElementsToolPalette.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
@@ -16,10 +14,11 @@ namespace Scenario
 {
 std::unique_ptr<GraphicsSceneToolPalette>
 ScenarioDisplayedElementsToolPaletteFactory::make(
-    ScenarioDocumentPresenter& pres, const IntervalModel& interval)
+    ScenarioDocumentPresenter& pres, const IntervalModel& interval,
+    QGraphicsItem* parent)
 {
   return std::make_unique<ScenarioDisplayedElementsToolPalette>(
-      pres.displayedElements, pres, pres.view().baseItem());
+      pres.displayedElements, pres, parent);
 }
 
 bool ScenarioDisplayedElementsToolPaletteFactory::matches(

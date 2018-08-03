@@ -12,7 +12,6 @@
 #include <Scenario/Commands/MoveBaseEvent.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 namespace Media
 {
