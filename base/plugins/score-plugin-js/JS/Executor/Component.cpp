@@ -12,7 +12,7 @@
 
 #include <Execution/DocumentPlugin.hpp>
 #include <Engine/OSSIA2score.hpp>
-#include <Engine/score2OSSIA.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <JS/JSProcessModel.hpp>
 #include <QEventLoop>

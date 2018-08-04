@@ -14,6 +14,7 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveEventClassicFactory.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <Scenario/Document/Event/EventExecution.hpp>
 #include <Scenario/Commands/TimeSync/TriggerCommandFactory/BaseScenarioTriggerCommandFactory.hpp>
 #include <Scenario/Commands/TimeSync/TriggerCommandFactory/ScenarioTriggerCommandFactory.hpp>
 #include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactory.hpp>
@@ -35,6 +36,7 @@
 #include <Scenario/Inspector/Scenario/ScenarioInspectorFactory.hpp>
 #include <Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.hpp>
 #include <Scenario/Process/ScenarioFactory.hpp>
+#include <Scenario/Process/ScenarioExecution.hpp>
 #include <Scenario/Settings/ScenarioSettingsFactory.hpp>
 #include <score_plugin_scenario.hpp>
 #include <State/Message.hpp>
@@ -97,6 +99,11 @@ score_plugin_scenario::score_plugin_scenario()
 
   qRegisterMetaType<QPainterPath>();
   qRegisterMetaType<QList<QPainterPath>>();
+
+  qRegisterMetaType<std::shared_ptr<Execution::ProcessComponent>>();
+  qRegisterMetaType<std::shared_ptr<Execution::EventComponent>>();
+  qRegisterMetaType<ossia::time_event::status>();
+  qRegisterMetaType<ossia::time_value>();
 }
 
 score_plugin_scenario::~score_plugin_scenario() = default;
@@ -169,7 +176,8 @@ score_plugin_scenario::factories(
       FW<score::ValidityChecker, ScenarioValidityChecker>,
       FW<Process::PortFactory, Dataflow::InletFactory,
          Dataflow::ControlInletFactory, Dataflow::OutletFactory,
-         Dataflow::ControlOutletFactory>
+         Dataflow::ControlOutletFactory>,
+      FW<Execution::ProcessComponentFactory, Execution::ScenarioComponentFactory>
       >(ctx, key);
 }
 

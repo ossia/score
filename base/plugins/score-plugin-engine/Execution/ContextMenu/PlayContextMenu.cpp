@@ -4,10 +4,8 @@
 
 #include <Engine/ApplicationPlugin.hpp>
 #include <Execution/ContextMenu/PlayFromIntervalInScenario.hpp>
-#include <Execution/EventComponent.hpp>
-#include <Execution/IntervalComponent.hpp>
-#include <Execution/ScenarioComponent.hpp>
-#include <Engine/score2OSSIA.hpp>
+#include <Execution/DocumentPlugin.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Application/ScenarioRecordInitData.hpp>
@@ -16,7 +14,7 @@
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 #include <core/presenter/DocumentManager.hpp>
-
+#include <ossia/editor/state/state_element.hpp>
 namespace Execution
 {
 

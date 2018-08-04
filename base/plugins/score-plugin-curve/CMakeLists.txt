@@ -16,6 +16,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurvePresenter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveStyle.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveView.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveConversion.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/CommandObjects/CreatePointCommandObject.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/CommandObjects/CurveCommandObjectBase.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Palette/CommandObjects/MovePointCommandObject.hpp"

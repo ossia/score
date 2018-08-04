@@ -3,7 +3,8 @@
 #include <ossia/network/value/value.hpp>
 
 #include <InterpState/InterpStateProcess.hpp>
-#include <Execution/ProcessComponent.hpp>
+#include <Process/Execution/ProcessComponent.hpp>
+#include <ossia/network/value/destination.hpp>
 #include <memory>
 namespace ossia
 {

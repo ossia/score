@@ -13,11 +13,11 @@
 #include <ossia/editor/scenario/time_interval.hpp>
 
 #include <Engine/ApplicationPlugin.hpp>
-#include <Execution/IntervalComponent.hpp>
+#include <Scenario/Document/Interval/IntervalExecution.hpp>
 #include <Execution/Settings/ExecutorModel.hpp>
 #include <Protocols/Audio/AudioDevice.hpp>
 #include <Audio/Settings/Model.hpp>
-#include <Engine/score2OSSIA.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>

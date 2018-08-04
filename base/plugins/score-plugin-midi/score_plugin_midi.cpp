@@ -6,6 +6,7 @@
 #include <Midi/MidiDrop.hpp>
 #include <Midi/MidiExecutor.hpp>
 #include <Midi/MidiFactory.hpp>
+#include <Process/Dataflow/Port.hpp>
 #include <score/plugins/customfactory/FactorySetup.hpp>
 #include <score_plugin_midi_commands_files.hpp>
 

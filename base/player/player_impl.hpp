@@ -118,7 +118,7 @@ private:
   Execution::DocumentPlugin* m_execPlugin{};
   LocalTree::DocumentPlugin* m_localTreePlugin{};
   Network::NetworkDocumentPlugin* m_networkPlugin{};
-  std::unique_ptr<Execution::ClockManager> m_clock;
+  std::unique_ptr<Execution::Clock> m_clock;
 
   std::vector<ossia::net::device_base*> m_ownedDevices;
 };

@@ -6,7 +6,7 @@
 #include <Engine/ApplicationPlugin.hpp>
 #include <Execution/DocumentPlugin.hpp>
 #include <Audio/Settings/Model.hpp>
-#include <Engine/score2OSSIA.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <QButtonGroup>

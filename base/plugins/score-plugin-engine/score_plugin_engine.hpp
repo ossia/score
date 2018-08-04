@@ -123,7 +123,7 @@
  * removing the objects in the correct order. The Component classes just have
  * to provide functions that will do the actual instantiation, and pre- & post-
  * removal steps. <br><br> The actual "root" execution algorithm is given in
- * Execution::DefaulClockManager::makeDefaultCallback
+ * Execution::DefaulClock::makeDefaultCallback
  *
  * \subsection ExecutionThreadSafety Execution Thread Safety
  * One must take care when modifying the Execution classes, since thins

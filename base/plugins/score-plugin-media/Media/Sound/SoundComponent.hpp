@@ -2,7 +2,7 @@
 #include <ossia/dataflow/node_process.hpp>
 #include <ossia/network/value/value.hpp>
 
-#include <Execution/ProcessComponent.hpp>
+#include <Process/Execution/ProcessComponent.hpp>
 #include <Media/Sound/SoundModel.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>

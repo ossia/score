@@ -6,6 +6,7 @@
 
 #include <Media/Commands/EditFaustEffect.hpp>
 #include <Media/Effect/Faust/FaustUtils.hpp>
+#include <Process/ExecutionContext.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <QDialog>
 #include <QDialogButtonBox>

@@ -5,12 +5,12 @@
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/scenario/time_sync.hpp>
 
+#include <Scenario/Process/ScenarioExecution.hpp>
+#include <Scenario/Document/Interval/IntervalExecution.hpp>
 
 #include <Execution/BaseScenarioComponent.hpp>
 #include <Execution/ContextMenu/PlayFromIntervalInScenario.hpp>
-#include <Execution/IntervalComponent.hpp>
-#include <Execution/ProcessComponent.hpp>
-#include <Execution/ScenarioComponent.hpp>
+#include <Process/Execution/ProcessComponent.hpp>
 #include <Process/Process.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>

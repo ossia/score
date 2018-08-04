@@ -4,7 +4,7 @@
 
 
 #include <Process/ExecutionContext.hpp>
-#include <Execution/ProcessComponent.hpp>
+#include <Process/Execution/ProcessComponent.hpp>
 #include <Midi/MidiNote.hpp>
 #include <ossia/detail/flat_set.hpp>
 namespace ossia::nodes

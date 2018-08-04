@@ -8,7 +8,6 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 
 # Files & main target
 set(HDRS
-    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/CurveConversion.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/OSSIA2score.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitProtocolSettingsWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitDevice.hpp"
@@ -35,36 +34,21 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/Settings/Factory.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/ApplicationPlugin.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/score2OSSIA.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Execution/ContextMenu/PlayContextMenu.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Execution/ContextMenu/PlayFromIntervalInScenario.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Execution/BaseScenarioComponent.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Execution/EventComponent.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Execution/ScenarioComponent.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Execution/ProcessComponent.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Execution/StateComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Execution/DocumentPlugin.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Execution/TimeSyncComponent.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Execution/TimeSyncRawPtrComponent.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Execution/IntervalComponent.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Execution/IntervalRawPtrComponent.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Automation/Component.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Automation/SplineComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Automation/InterpStateComponent.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Automation/GradientComponent.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Automation/MetronomeComponent.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Mapping/Component.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Loop/Component.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Settings/ExecutorModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Settings/ExecutorPresenter.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Settings/ExecutorView.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Settings/ExecutorFactory.hpp"
 
-    "${CMAKE_CURRENT_SOURCE_DIR}/Execution/ClockManager/ClockManagerFactory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Execution/ClockManager/DefaultClockManager.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Clock/ClockFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Clock/DefaultClock.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Listening/PlayListeningHandler.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Listening/PlayListeningHandlerFactory.hpp"
@@ -131,25 +115,11 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Execution/ContextMenu/PlayContextMenu.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Execution/ContextMenu/PlayFromIntervalInScenario.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Execution/ProcessComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Execution/BaseScenarioComponent.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Execution/EventComponent.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Execution/ScenarioComponent.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Execution/StateComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Execution/DocumentPlugin.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Execution/TimeSyncComponent.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Execution/IntervalComponent.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Execution/TimeSyncRawPtrComponent.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Execution/IntervalRawPtrComponent.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Execution/Automation/Component.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Execution/Automation/GradientComponent.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Execution/Automation/MetronomeComponent.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Execution/Automation/SplineComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Automation/InterpStateComponent.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Execution/Mapping/Component.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Execution/Loop/Component.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Execution/ClockManager/ClockManagerFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Execution/ClockManager/DefaultClockManager.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Execution/Clock/ClockFactory.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Execution/Clock/DefaultClock.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Settings/ExecutorModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Settings/ExecutorPresenter.cpp"
@@ -169,7 +139,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/Scenario/LTTimeSyncComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/Scenario/LTStateComponent.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Engine/score2OSSIA.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Widgets.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioPanel.cpp"

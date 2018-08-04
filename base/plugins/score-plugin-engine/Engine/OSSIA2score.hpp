@@ -1,11 +1,9 @@
 #pragma once
 #include <ossia/editor/scenario/time_value.hpp>
-#include <State/Value.hpp>
 #include <Process/TimeValue.hpp>
 
 namespace Engine::ossia_to_score
 {
-
 inline ::TimeVal defaultTime(ossia::time_value t)
 {
   return t.infinite() ? ::TimeVal::infinite()

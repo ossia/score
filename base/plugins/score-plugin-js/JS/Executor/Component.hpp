@@ -4,7 +4,7 @@
 #include <ossia/editor/scenario/time_value.hpp>
 
 #include <Process/ExecutionContext.hpp>
-#include <Execution/ProcessComponent.hpp>
+#include <Process/Execution/ProcessComponent.hpp>
 #include <JS/Qml/QmlObjects.hpp>
 #include <QEventLoop>
 #include <QJSValue>

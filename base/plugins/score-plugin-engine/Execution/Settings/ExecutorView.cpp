@@ -41,7 +41,7 @@ View::View() : m_widg{new QWidget}
       m_Clock, SignalUtils::QComboBox_currentIndexChanged_int(), this,
       [this](int i) {
         ClockChanged(
-            m_Clock->itemData(i).value<ClockManagerFactory::ConcreteKey>());
+            m_Clock->itemData(i).value<ClockFactory::ConcreteKey>());
       });
 
   SETTINGS_UI_SPINBOX_SETUP("Rate (default clock only)", Rate);
@@ -63,7 +63,7 @@ SETTINGS_UI_TOGGLE_IMPL(Bench)
 SETTINGS_UI_TOGGLE_IMPL(ValueCompilation)
 SETTINGS_UI_TOGGLE_IMPL(TransportValueCompilation)
 
-void View::setClock(ClockManagerFactory::ConcreteKey k)
+void View::setClock(ClockFactory::ConcreteKey k)
 {
   int idx = m_Clock->findData(QVariant::fromValue(k));
   if (idx != m_Clock->currentIndex())
@@ -71,7 +71,7 @@ void View::setClock(ClockManagerFactory::ConcreteKey k)
 }
 
 void View::populateClocks(
-    const std::map<QString, ClockManagerFactory::ConcreteKey>& map)
+    const std::map<QString, ClockFactory::ConcreteKey>& map)
 {
   for (auto& elt : map)
   {

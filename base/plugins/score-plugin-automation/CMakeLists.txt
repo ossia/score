@@ -13,22 +13,26 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationPresenter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationProcessMetadata.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationView.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationExecution.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Color/GradientAutomModel.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Color/GradientAutomPresenter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Color/GradientAutomView.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Color/GradientAutomMetadata.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Color/GradientExecution.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Spline/SplineAutomModel.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Spline/SplineAutomPresenter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Spline/SplineAutomView.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Spline/SplineAutomMetadata.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Spline/SplineExecution.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Metronome/MetronomeColors.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Metronome/MetronomeModel.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Metronome/MetronomePresenter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Metronome/MetronomeView.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Metronome/MetronomeProcessMetadata.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Metronome/MetronomeExecution.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/AutomationCommandFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/ChangeAddress.hpp"
@@ -48,18 +52,22 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Automation/AutomationExecution.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Color/GradientAutomModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Color/GradientAutomPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Color/GradientAutomView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Automation/Color/GradientExecution.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Spline/SplineAutomModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Spline/SplineAutomPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Spline/SplineAutomView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Automation/Spline/SplineExecution.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Metronome/MetronomeColors.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Metronome/MetronomeModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Metronome/MetronomeView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Automation/Metronome/MetronomeExecution.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/InitAutomation.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Commands/ChangeAddress.cpp"

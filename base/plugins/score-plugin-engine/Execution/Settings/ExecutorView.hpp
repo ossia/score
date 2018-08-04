@@ -24,10 +24,10 @@ class View : public score::GlobalSettingsView
 public:
   View();
 
-  void setClock(ClockManagerFactory::ConcreteKey k);
+  void setClock(ClockFactory::ConcreteKey k);
 
   void
-  populateClocks(const std::map<QString, ClockManagerFactory::ConcreteKey>&);
+  populateClocks(const std::map<QString, ClockFactory::ConcreteKey>&);
 
   SETTINGS_UI_COMBOBOX_HPP(Scheduling)
   SETTINGS_UI_COMBOBOX_HPP(Ordering)
@@ -46,7 +46,7 @@ public:
   SETTINGS_UI_TOGGLE_HPP(TransportValueCompilation)
 
 public:
-  void ClockChanged(ClockManagerFactory::ConcreteKey arg_1) W_SIGNAL(ClockChanged, arg_1);
+  void ClockChanged(ClockFactory::ConcreteKey arg_1) W_SIGNAL(ClockChanged, arg_1);
 
 private:
   QWidget* getWidget() override;

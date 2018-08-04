@@ -3,7 +3,7 @@
 #include <ossia/dataflow/nodes/merger.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
 
-#include <Engine/score2OSSIA.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 namespace Execution
 {

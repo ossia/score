@@ -1,7 +1,7 @@
 #pragma once
 #include <ossia/dataflow/node_process.hpp>
 
-#include <Execution/ProcessComponent.hpp>
+#include <Process/Execution/ProcessComponent.hpp>
 #include <Media/Merger/Model.hpp>
 namespace Execution
 {

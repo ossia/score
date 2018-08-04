@@ -4,10 +4,10 @@
 
 
 
-#include <Execution/ClockManager/DefaultClockManager.hpp>
+#include <Execution/Clock/DefaultClock.hpp>
 #include <Execution/Dataflow/DataflowClock.hpp>
 #include <Engine/OSSIA2score.hpp>
-#include <Engine/score2OSSIA.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
 #include <score/application/ApplicationContext.hpp>
 
 namespace Execution
@@ -47,12 +47,12 @@ static auto list()
 }
 
 Model::Model(QSettings& set, const score::ApplicationContext& ctx)
-    : m_clockFactories{ctx.interfaces<ClockManagerFactoryList>()}
+    : m_clockFactories{ctx.interfaces<ClockFactoryList>()}
 {
   score::setupDefaultSettings(set, Parameters::list(), *this);
 }
 
-std::unique_ptr<ClockManager>
+std::unique_ptr<Clock>
 Model::makeClock(const Execution::Context& ctx) const
 {
   auto it = m_clockFactories.find(m_Clock);
@@ -75,7 +75,7 @@ Model::makeReverseTimeFunction(const score::DocumentContext& ctx) const
                                       : &Engine::ossia_to_score::defaultTime;
 }
 
-SCORE_SETTINGS_PARAMETER_CPP(ClockManagerFactory::ConcreteKey, Model, Clock)
+SCORE_SETTINGS_PARAMETER_CPP(ClockFactory::ConcreteKey, Model, Clock)
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, Scheduling)
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, Ordering)
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, Merging)

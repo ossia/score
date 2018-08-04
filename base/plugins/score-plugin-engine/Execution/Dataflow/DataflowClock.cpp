@@ -4,7 +4,7 @@
 #include <ossia/audio/audio_protocol.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
 
-#include <Execution/IntervalComponent.hpp>
+#include <Scenario/Document/Interval/IntervalExecution.hpp>
 #include <Execution/Settings/ExecutorModel.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Audio/Settings/Model.hpp>
@@ -13,7 +13,7 @@
 namespace Dataflow
 {
 Clock::Clock(const Execution::Context& ctx)
-    : ClockManager{ctx}
+    : Execution::Clock{ctx}
     , m_default{ctx}
     , m_plug{context.doc.plugin<Execution::DocumentPlugin>()}
 {
@@ -141,7 +141,7 @@ bool Clock::paused() const
   return m_paused;
 }
 
-std::unique_ptr<Execution::ClockManager>
+std::unique_ptr<Execution::Clock>
 ClockFactory::make(const Execution::Context& ctx)
 {
   return std::make_unique<Clock>(ctx);
