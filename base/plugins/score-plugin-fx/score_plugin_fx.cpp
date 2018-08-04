@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "score_plugin_fx.hpp"
 
+#include <Fx/Arpeggiator.hpp>
 #include <Fx/AngleNode.hpp>
 #include <Fx/Chord.hpp>
 #include <Fx/ClassicalBeat.hpp>
@@ -30,7 +31,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_fx::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return Control::instantiate_fx<
-      Nodes::PulseToNote::Node, Nodes::ClassicalBeat::Node, Nodes::LFO::Node,
+      Nodes::Arpeggiator::Node, Nodes::PulseToNote::Node, Nodes::ClassicalBeat::Node, Nodes::LFO::Node,
       Nodes::Chord::Node, Nodes::MidiUtil::Node, Nodes::Gain::Node,
       Nodes::Metro::Node, Nodes::Envelope::Node, Nodes::Quantifier::Node,
       Nodes::MathGenerator::Node, Nodes::MathAudioGenerator::Node,
