@@ -6,7 +6,7 @@
 #include <ossia/detail/apply.hpp>
 #include <ossia/network/value/value.hpp>
 
-#include <Engine/score2OSSIA.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <ossia-qt/js_utilities.hpp>

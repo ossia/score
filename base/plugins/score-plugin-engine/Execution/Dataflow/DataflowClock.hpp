@@ -1,6 +1,6 @@
 #pragma once
-#include <Execution/ClockManager/ClockManagerFactory.hpp>
-#include <Execution/ClockManager/DefaultClockManager.hpp>
+#include <Execution/Clock/ClockFactory.hpp>
+#include <Execution/Clock/DefaultClock.hpp>
 #include <Execution/DocumentPlugin.hpp>
 namespace Process
 {
@@ -10,7 +10,7 @@ namespace Dataflow
 {
 class DocumentPlugin;
 class Clock final
-    : public Execution::ClockManager
+    : public Execution::Clock
     , public Nano::Observer
 {
 public:
@@ -27,18 +27,18 @@ private:
   void stop_impl(Execution::BaseScenarioElement&) override;
   bool paused() const override;
 
-  Execution::DefaultClockManager m_default;
+  Execution::DefaultClock m_default;
   Execution::DocumentPlugin& m_plug;
   Execution::BaseScenarioElement* m_cur{};
   bool m_paused{};
 };
 
-class ClockFactory final : public Execution::ClockManagerFactory
+class ClockFactory final : public Execution::ClockFactory
 {
   SCORE_CONCRETE("e9ae6dec-a10f-414f-9060-b21d15b5d58d")
 
   QString prettyName() const override;
-  std::unique_ptr<Execution::ClockManager>
+  std::unique_ptr<Execution::Clock>
   make(const Execution::Context& ctx) override;
 
   Execution::time_function

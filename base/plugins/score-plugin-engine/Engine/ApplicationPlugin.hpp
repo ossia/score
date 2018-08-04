@@ -13,7 +13,7 @@ namespace Scenario
 namespace Execution
 {
 struct Context;
-class ClockManager;
+class Clock;
 class BaseScenarioElement;
 }
 
@@ -77,12 +77,12 @@ private:
   void on_transport(TimeVal t);
   void initLocalTreeNodes(LocalTree::DocumentPlugin&);
 
-  std::unique_ptr<Execution::ClockManager>
+  std::unique_ptr<Execution::Clock>
   makeClock(const Execution::Context&);
 
   Execution::PlayContextMenu m_playActions;
 
-  std::unique_ptr<Execution::ClockManager> m_clock;
+  std::unique_ptr<Execution::Clock> m_clock;
   QAction* m_audioEngineAct{};
   QToolBar* m_speedToolbar{};
   bool m_playing{false}, m_paused{false};

@@ -11,6 +11,7 @@
 #include <Mapping/MappingPresenter.hpp>
 #include <Mapping/MappingProcessMetadata.hpp>
 #include <Mapping/MappingView.hpp>
+#include <Mapping/MappingExecution.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/HeaderDelegate.hpp>
 #include <Process/ProcessFactory.hpp>
@@ -45,7 +46,8 @@ score_plugin_mapping::factories(
       score::ApplicationContext,
       FW<Process::ProcessModelFactory, Mapping::MappingFactory>,
       FW<Process::LayerFactory, Mapping::MappingLayerFactory>,
-      FW<Inspector::InspectorWidgetFactory, MappingInspectorFactory>>(
+      FW<Inspector::InspectorWidgetFactory, MappingInspectorFactory>,
+      FW<Execution::ProcessComponentFactory, Mapping::RecreateOnPlay::ComponentFactory>>(
       ctx, key);
 }
 

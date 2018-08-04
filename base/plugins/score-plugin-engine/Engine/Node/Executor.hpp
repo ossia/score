@@ -1,11 +1,12 @@
 #pragma once
 #include <ossia/dataflow/safe_nodes/executor.hpp>
 
-#include <Execution/ProcessComponent.hpp>
+#include <Process/Execution/ProcessComponent.hpp>
 #include <Engine/Node/Process.hpp>
 #include <Engine/Node/TickPolicy.hpp>
-#include <Engine/score2OSSIA.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
 #include <Explorer/DeviceList.hpp>
+#include <Process/ExecutionContext.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <QTimer>
 

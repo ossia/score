@@ -9,12 +9,12 @@
 #include <ossia/network/generic/generic_device.hpp>
 
 #include <Execution/BaseScenarioComponent.hpp>
-#include <Execution/ClockManager/ClockManagerFactory.hpp>
-#include <Execution/ContextMenu/PlayContextMenu.hpp>
+#include <Execution/Clock/ClockFactory.hpp>
 #include <Execution/DocumentPlugin.hpp>
-#include <Execution/IntervalComponent.hpp>
+#include <Execution/ContextMenu/PlayContextMenu.hpp>
+#include <Process/ExecutionContext.hpp>
 #include <Execution/Settings/ExecutorModel.hpp>
-#include <Execution/StateComponent.hpp>
+#include <Scenario/Document/Interval/IntervalExecution.hpp>
 #include <LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <Protocols/Audio/AudioDevice.hpp>
 #include <Audio/Settings/Model.hpp>
@@ -48,7 +48,7 @@
 #include <score/widgets/ControlWidgets.hpp>
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/SetIcons.hpp>
-#include <Engine/score2OSSIA.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
 #include <vector>
 #include <Scenario/Inspector/Interval/SpeedSlider.hpp>
 
@@ -987,7 +987,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
   }
 }
 
-std::unique_ptr<Execution::ClockManager>
+std::unique_ptr<Execution::Clock>
 ApplicationPlugin::makeClock(const Execution::Context& ctx)
 {
   auto& s = context.settings<Execution::Settings::Model>();

@@ -19,6 +19,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingPresenter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingProcessMetadata.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingView.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingExecution.hpp"
 
 )
 set(SRCS
@@ -26,6 +27,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingModel.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingExecution.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/Commands/ChangeAddresses.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/Commands/MappingCommandFactory.cpp"

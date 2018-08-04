@@ -36,7 +36,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   SETTINGS_PRESENTER(TransportValueCompilation);
 
   // Clock used
-  std::map<QString, ClockManagerFactory::ConcreteKey> clockMap;
+  std::map<QString, ClockFactory::ConcreteKey> clockMap;
   for (auto& fact : m.clockFactories())
   {
     clockMap.insert(std::make_pair(fact.prettyName(), fact.concreteKey()));

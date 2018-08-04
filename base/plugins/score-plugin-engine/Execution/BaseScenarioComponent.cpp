@@ -10,14 +10,15 @@
 #include <ossia/editor/state/state.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 
-
-#include <Execution/EventComponent.hpp>
 #include <Process/ExecutionContext.hpp>
-#include <Execution/IntervalComponent.hpp>
-#include <Execution/StateComponent.hpp>
-#include <Execution/TimeSyncComponent.hpp>
+
+#include <Scenario/Document/Event/EventExecution.hpp>
+#include <Scenario/Document/Interval/IntervalExecution.hpp>
+#include <Scenario/Document/State/StateExecution.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncExecution.hpp>
+
 #include <Engine/OSSIA2score.hpp>
-#include <Engine/score2OSSIA.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>

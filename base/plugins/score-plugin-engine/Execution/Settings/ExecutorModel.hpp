@@ -2,7 +2,7 @@
 #include <ossia/editor/scenario/time_value.hpp>
 #include <wobjectdefs.h>
 
-#include <Execution/ClockManager/ClockManagerFactory.hpp>
+#include <Execution/Clock/ClockFactory.hpp>
 #include <Process/TimeValue.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 #include <score_plugin_engine_export.h>
@@ -68,7 +68,7 @@ class SCORE_PLUGIN_ENGINE_EXPORT Model : public score::SettingsDelegateModel
 {
   W_OBJECT(Model)
 
-  ClockManagerFactory::ConcreteKey m_Clock;
+  ClockFactory::ConcreteKey m_Clock;
   QString m_Scheduling;
   QString m_Ordering;
   QString m_Merging;
@@ -83,23 +83,23 @@ class SCORE_PLUGIN_ENGINE_EXPORT Model : public score::SettingsDelegateModel
   bool m_ValueCompilation{};
   bool m_TransportValueCompilation{};
 
-  const ClockManagerFactoryList& m_clockFactories;
+  const ClockFactoryList& m_clockFactories;
 
 public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
 
-  const ClockManagerFactoryList& clockFactories() const
+  const ClockFactoryList& clockFactories() const
   {
     return m_clockFactories;
   }
 
-  std::unique_ptr<ClockManager>
+  std::unique_ptr<Clock>
   makeClock(const Execution::Context& ctx) const;
   time_function makeTimeFunction(const score::DocumentContext&) const;
   reverse_time_function
   makeReverseTimeFunction(const score::DocumentContext&) const;
 
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, ClockManagerFactory::ConcreteKey, Clock)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, ClockFactory::ConcreteKey, Clock)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, Scheduling)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, Ordering)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, Merging)

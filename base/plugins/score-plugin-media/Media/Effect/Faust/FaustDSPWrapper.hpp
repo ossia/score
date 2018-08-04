@@ -2,7 +2,7 @@
 #include <ossia/dataflow/node_process.hpp>
 
 #include <Effect/EffectFactory.hpp>
-#include <Execution/ProcessComponent.hpp>
+#include <Process/Execution/ProcessComponent.hpp>
 #include <Media/Effect/DefaultEffectItem.hpp>
 #include <Media/Effect/Faust/FaustUtils.hpp>
 #include <Process/Dataflow/PortFactory.hpp>

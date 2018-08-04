@@ -7,6 +7,7 @@
 #include <ossia/dataflow/port.hpp>
 #include <ossia/network/domain/domain.hpp>
 
+#include <Process/ExecutionContext.hpp>
 #include <Media/Effect/VST/VSTControl.hpp>
 #include <Media/Effect/VST/VSTNode.hpp>
 

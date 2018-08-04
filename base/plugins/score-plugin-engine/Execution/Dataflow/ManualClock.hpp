@@ -1,10 +1,10 @@
 #pragma once
 
-#include <Execution/ClockManager/ClockManagerFactory.hpp>
+#include <Execution/Clock/ClockFactory.hpp>
 #include <wobjectdefs.h>
-#include <Execution/ClockManager/DefaultClockManager.hpp>
+#include <Execution/Clock/DefaultClock.hpp>
 #include <Execution/DocumentPlugin.hpp>
-#include <Execution/IntervalComponent.hpp>
+#include <Scenario/Document/Interval/IntervalExecution.hpp>
 #include <QHBoxLayout>
 #include <QMainWindow>
 #include <QPushButton>
@@ -41,12 +41,12 @@ public:
 
 class Clock final
     : public QObject
-    , public Execution::ClockManager
+    , public Execution::Clock
     , public Nano::Observer
 {
 public:
   Clock(const Execution::Context& ctx)
-      : ClockManager{ctx}, m_default{ctx}
+      : Execution::Clock{ctx}, m_default{ctx}
   {
   }
 
@@ -94,11 +94,11 @@ private:
     return m_paused;
   }
 
-  Execution::DefaultClockManager m_default;
+  Execution::DefaultClock m_default;
   bool m_paused{};
 };
 
-class ClockFactory final : public Execution::ClockManagerFactory
+class ClockFactory final : public Execution::ClockFactory
 {
   SCORE_CONCRETE("5e8d0f1b-752f-4e29-8c8c-ecd65bd69806")
 
@@ -107,7 +107,7 @@ class ClockFactory final : public Execution::ClockManagerFactory
     return QObject::tr("Manual");
   }
 
-  std::unique_ptr<Execution::ClockManager>
+  std::unique_ptr<Execution::Clock>
   make(const Execution::Context& ctx) override
   {
     return std::make_unique<Clock>(ctx);

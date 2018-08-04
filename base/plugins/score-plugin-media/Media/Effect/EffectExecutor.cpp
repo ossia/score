@@ -4,6 +4,7 @@
 #include <ossia/dataflow/port.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
 #include <Process/ExecutionSetup.hpp>
+#include <Process/ExecutionContext.hpp>
 namespace Media
 {
 

@@ -4,7 +4,7 @@
 
 #include <ossia/dataflow/nodes/midi.hpp>
 
-#include <Engine/score2OSSIA.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
 #include <Midi/MidiProcess.hpp>
 namespace Midi
 {

@@ -7,17 +7,10 @@
 
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Engine/ApplicationPlugin.hpp>
-#include <Execution/Automation/Component.hpp>
-#include <Execution/Automation/GradientComponent.hpp>
-#include <Execution/Automation/MetronomeComponent.hpp>
-#include <Execution/Automation/SplineComponent.hpp>
-#include <Execution/ClockManager/ClockManagerFactory.hpp>
-#include <Execution/ClockManager/DefaultClockManager.hpp>
+#include <Execution/Clock/ClockFactory.hpp>
+#include <Execution/Clock/DefaultClock.hpp>
 #include <Execution/DocumentPlugin.hpp>
-#include <Execution/Loop/Component.hpp>
-#include <Execution/Mapping/Component.hpp>
-#include <Execution/ProcessComponent.hpp>
-#include <Execution/ScenarioComponent.hpp>
+#include <Process/Execution/ProcessComponent.hpp>
 #include <Execution/Settings/ExecutorFactory.hpp>
 #include <Engine/Listening/PlayListeningHandlerFactory.hpp>
 #include <LocalTree/Scenario/AutomationComponent.hpp>
@@ -28,6 +21,7 @@
 #include <Audio/Settings/Factory.hpp>
 #include <Audio/AudioPanel.hpp>
 #include <QString>
+#include <ossia/editor/scenario/time_event.hpp>
 #include <ossia-config.hpp>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
 #include <score/plugins/customfactory/FactorySetup.hpp>
@@ -72,15 +66,10 @@ W_OBJECT_IMPL(Execution::ManualClock::TimeWidget)
 
 score_plugin_engine::score_plugin_engine()
 {
-  qRegisterMetaType<Execution::ClockManagerFactory::ConcreteKey>(
-      "ClockManagerKey");
+  qRegisterMetaType<Execution::ClockFactory::ConcreteKey>(
+      "ClockKey");
   qRegisterMetaTypeStreamOperators<
-      Execution::ClockManagerFactory::ConcreteKey>("ClockManagerKey");
-
-  qRegisterMetaType<std::shared_ptr<Execution::ProcessComponent>>();
-  qRegisterMetaType<std::shared_ptr<Execution::EventComponent>>();
-  qRegisterMetaType<ossia::time_event::status>();
-  qRegisterMetaType<ossia::time_value>();
+      Execution::ClockFactory::ConcreteKey>("ClockKey");
 }
 
 score_plugin_engine::~score_plugin_engine()
@@ -99,7 +88,7 @@ score_plugin_engine::factoryFamilies()
   return make_ptr_vector<
       score::InterfaceListBase, LocalTree::ProcessComponentFactoryList,
       Execution::ProcessComponentFactoryList,
-      Execution::ClockManagerFactoryList>();
+      Execution::ClockFactoryList>();
 }
 
 std::vector<std::unique_ptr<score::InterfaceBase>>
@@ -154,16 +143,7 @@ score_plugin_engine::factories(
         Network::JoystickProtocolFactory
 #endif
          >,
-      FW<Execution::ProcessComponentFactory,
-         Execution::ScenarioComponentFactory
-         //, Interpolation::Executor::ComponentFactory
-         ,
-         Automation::RecreateOnPlay::ComponentFactory,
-         Mapping::RecreateOnPlay::ComponentFactory,
-         Loop::RecreateOnPlay::ComponentFactory,
-         Gradient::RecreateOnPlay::ComponentFactory,
-         Spline::RecreateOnPlay::ComponentFactory,
-         Metronome::RecreateOnPlay::ComponentFactory>,
+
       FW<Explorer::ListeningHandlerFactory,
          Execution::PlayListeningHandlerFactory>,
       FW<score::SettingsDelegateFactory, Execution::Settings::Factory,
@@ -175,7 +155,7 @@ score_plugin_engine::factories(
          LocalTree::MappingComponentFactory>,
       FW<score::PanelDelegateFactory,
          Audio::PanelDelegateFactory>,
-      FW<Execution::ClockManagerFactory
+      FW<Execution::ClockFactory
          // , Execution::ControlClockFactory
          , Dataflow::ClockFactory
          // , Engine::ManualClock::ClockFactory

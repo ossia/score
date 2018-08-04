@@ -60,6 +60,8 @@ set(PROCESS_HDRS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectLayer.hpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Execution/ProcessComponent.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score_lib_process.hpp"
 )
 set(PROCESS_SRCS
@@ -97,6 +99,7 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegate.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerView.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Execution/ProcessComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectLayer.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score_lib_process.cpp"
 )

@@ -3,7 +3,8 @@
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/nodes/sound.hpp>
 
-#include <Engine/score2OSSIA.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
+#include <Process/ExecutionContext.hpp>
 
 #include <ossia/detail/pod_vector.hpp>
 

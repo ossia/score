@@ -34,11 +34,11 @@ View::View() : m_widg{new QWidget}
   SETTINGS_UI_COMBOBOX_SETUP(
       "Driver", Driver, audio_drivers);
   SETTINGS_UI_NUM_COMBOBOX_SETUP(
-      "Rate", Rate, (std::vector<int>{44100, 48000, 88200, 96000}));
+      "Rate", Rate, (std::vector<int>{44100, 48000, 88200, 96000, 192000}));
   SETTINGS_UI_NUM_COMBOBOX_SETUP(
-      "BufferSize", BufferSize, (std::vector<int>{64, 128, 256, 512}));
-  SETTINGS_UI_SPINBOX_SETUP("Default Ins\n(JACK)", DefaultIn);
-  SETTINGS_UI_SPINBOX_SETUP("Default Outs\n(JACK)", DefaultOut);
+      "BufferSize", BufferSize, (std::vector<int>{32, 64, 128, 256, 512, 1024, 2048}));
+  SETTINGS_UI_SPINBOX_SETUP("Inputs", DefaultIn);
+  SETTINGS_UI_SPINBOX_SETUP("Outputs", DefaultOut);
 
   QStringList raw_cards_in, cards_in;
   ossia::int_vector indices_in;

@@ -3,10 +3,11 @@
 #include <ossia/dataflow/nodes/step.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
 
-#include <Engine/score2OSSIA.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <ossia/detail/pod_vector.hpp>
 
+#include <Process/ExecutionContext.hpp>
 namespace Execution
 {
 

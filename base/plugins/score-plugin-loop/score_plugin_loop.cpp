@@ -8,6 +8,7 @@
 #include <Loop/Inspector/LoopTriggerCommandFactory.hpp>
 #include <Loop/LoopDisplayedElements.hpp>
 #include <Loop/LoopProcessFactory.hpp>
+#include <Loop/LoopExecution.hpp>
 #include <Loop/Palette/LoopToolPalette.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
@@ -95,6 +96,7 @@ score_plugin_loop::factories(
   using namespace Scenario::Command;
   return instantiate_factories<
       score::ApplicationContext,
+      FW<Execution::ProcessComponentFactory, Loop::RecreateOnPlay::ComponentFactory>,
       FW<Process::ProcessModelFactory, Loop::ProcessFactory>,
       FW<Process::LayerFactory, Loop::LayerFactory>,
       FW<Inspector::InspectorWidgetFactory, Loop::InspectorFactory>,

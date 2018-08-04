@@ -2,25 +2,31 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "score_plugin_automation.hpp"
 
+#include <Automation/Commands/AutomationCommandFactory.hpp>
+#include <Automation/Inspector/AutomationInspectorFactory.hpp>
+#include <Automation/Inspector/AutomationStateInspectorFactory.hpp>
+#include <Automation/Inspector/CurvePointInspectorFactory.hpp>
+
 #include <Automation/AutomationColors.hpp>
 #include <Automation/AutomationModel.hpp>
 #include <Automation/AutomationPresenter.hpp>
 #include <Automation/AutomationProcessMetadata.hpp>
 #include <Automation/AutomationView.hpp>
+#include <Automation/AutomationExecution.hpp>
 #include <Automation/Color/GradientAutomModel.hpp>
 #include <Automation/Color/GradientAutomPresenter.hpp>
 #include <Automation/Color/GradientAutomView.hpp>
-#include <Automation/Commands/AutomationCommandFactory.hpp>
-#include <Automation/Inspector/AutomationInspectorFactory.hpp>
-#include <Automation/Inspector/AutomationStateInspectorFactory.hpp>
-#include <Automation/Inspector/CurvePointInspectorFactory.hpp>
+#include <Automation/Color/GradientExecution.hpp>
 #include <Automation/Metronome/MetronomeColors.hpp>
 #include <Automation/Metronome/MetronomeModel.hpp>
 #include <Automation/Metronome/MetronomePresenter.hpp>
+#include <Automation/Metronome/MetronomeExecution.hpp>
 #include <Automation/Metronome/MetronomeView.hpp>
 #include <Automation/Spline/SplineAutomModel.hpp>
 #include <Automation/Spline/SplineAutomPresenter.hpp>
 #include <Automation/Spline/SplineAutomView.hpp>
+#include <Automation/Spline/SplineExecution.hpp>
+
 #include <Curve/Process/CurveProcessFactory.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Process/GenericProcessFactory.hpp>
@@ -131,7 +137,16 @@ score_plugin_automation::factories(
       FW<Inspector::InspectorWidgetFactory, Automation::StateInspectorFactory,
          Automation::PointInspectorFactory, Automation::InspectorFactory,
          Gradient::InspectorFactory, Spline::InspectorFactory,
-         Metronome::InspectorFactory>>(ctx, key);
+         Metronome::InspectorFactory>,
+
+      FW<Execution::ProcessComponentFactory,
+         //, Interpolation::Executor::ComponentFactory,
+
+         Automation::RecreateOnPlay::ComponentFactory,
+         Gradient::RecreateOnPlay::ComponentFactory,
+         Spline::RecreateOnPlay::ComponentFactory,
+         Metronome::RecreateOnPlay::ComponentFactory>
+      >(ctx, key);
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>
