@@ -112,7 +112,9 @@ struct FloatSlider final : ossia::safe_nodes::control_in
               inlet, min + (v / score::DoubleSlider::max) * (max - min));
         });
     QObject::connect(
-        sl, &score::DoubleSlider::sliderReleased, context, [&ctx, sl]() {
+        sl, &score::DoubleSlider::sliderReleased, context, [=, &inlet, &ctx]() {
+          ctx.dispatcher.submitCommand<SetControlValue>(
+            inlet, min + (((QSlider*)sl)->value() / score::DoubleSlider::max) * (max - min));
           ctx.dispatcher.commit();
           sl->moving = false;
         });

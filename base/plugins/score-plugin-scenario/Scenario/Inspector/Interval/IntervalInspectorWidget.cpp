@@ -15,6 +15,7 @@
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/Separator.hpp>
 #include <score/widgets/TextLabel.hpp>
+#include <Inspector/InspectorLayout.hpp>
 
 namespace Scenario
 {
@@ -44,8 +45,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   // Separator
   parts.push_back(new score::HSeparator{this});
   auto w = new QWidget;
-  auto lay = new QFormLayout{w};
-  lay->setHorizontalSpacing(20);
+  auto lay = new Inspector::Layout{w};
   parts.push_back(w);
 
 

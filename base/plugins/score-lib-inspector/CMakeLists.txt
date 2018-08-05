@@ -12,6 +12,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Inspector/InspectorWidgetBase.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Inspector/InspectorWidgetFactoryInterface.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Inspector/InspectorWidgetList.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Inspector/InspectorLayout.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/score_lib_inspector.hpp"
 )
 

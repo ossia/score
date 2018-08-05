@@ -3,6 +3,7 @@
 #include "SetIcons.hpp"
 
 #include <QHash>
+#include <score/widgets/Pixmap.hpp>
 #include <hopscotch_map.h>
 
 namespace std
@@ -34,8 +35,8 @@ void setIcons(QAction* action, const QString& iconOn, const QString& iconOff, bo
   else
   {
     QIcon icon;
-    QPixmap on(iconOn);
-    QPixmap off(iconOff);
+    QPixmap on = score::get_pixmap(iconOn);
+    QPixmap off = score::get_pixmap(iconOff);
     icon.addPixmap(on, QIcon::Mode::Selected);
     if(enableHover)
       icon.addPixmap(on, QIcon::Mode::Active);
@@ -76,4 +77,55 @@ QIcon genIconFromPixmaps(const QString& iconOn, const QString& iconOff)
     map.insert(std::make_pair(std::move(pair), icon));
     return icon;
   }
+}
+
+namespace score
+{
+
+QPixmap get_pixmap(QString str)
+{
+  QPixmap img;
+  if (auto screen = qApp->primaryScreen())
+  {
+    if (screen->devicePixelRatio() >= 2.0)
+    {
+      auto newstr = str;
+      newstr.replace(".png", "@2x.png", Qt::CaseInsensitive);
+      if(QFile::exists(newstr))
+      {
+        str = newstr;
+      }
+      else
+      {
+        qDebug() << "hidpi pixmap not found: " << newstr;
+      }
+    }
+  }
+  img.load(str);
+  return img;
+}
+
+QImage get_image(QString str)
+{
+  QImage img;
+  if (auto screen = qApp->primaryScreen())
+  {
+    if (screen->devicePixelRatio() >= 2.0)
+    {
+      auto newstr = str;
+      newstr.replace(".png", "@2x.png", Qt::CaseInsensitive);
+      if(QFile::exists(newstr))
+      {
+        str = newstr;
+      }
+      else
+      {
+        qDebug() << "hidpi pixmap not found: " << newstr;
+      }
+    }
+  }
+  img.load(str);
+  return img;
+}
+
 }

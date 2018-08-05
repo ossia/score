@@ -1,21 +1,15 @@
 #pragma once
 #include <QApplication>
 #include <QPixmap>
+#include <QFile>
 #include <QScreen>
+#include <QDebug>
+#include <score_lib_base_export.h>
 
 namespace score
 {
-inline QImage get_image(QString str)
-{
-  QImage img;
-  if (auto screen = qApp->primaryScreen())
-  {
-    if (screen->devicePixelRatio() >= 2.0)
-    {
-      str.replace(".png", "@2x.png", Qt::CaseInsensitive);
-    }
-  }
-  img.load(str);
-  return img;
-}
+SCORE_LIB_BASE_EXPORT
+QImage get_image(QString str);
+SCORE_LIB_BASE_EXPORT
+QPixmap get_pixmap(QString str);
 }

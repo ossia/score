@@ -80,10 +80,6 @@ public:
       const score::DocumentContext& ctx,
       const Process::Port& p,
       QWidget* parent);
-
-private:
-  CommandDispatcher<> m_disp;
-  Device::AddressAccessorEditWidget m_edit;
 };
 
 class PortInspectorFactory final : public Inspector::InspectorWidgetFactory
