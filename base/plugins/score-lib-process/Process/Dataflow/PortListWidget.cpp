@@ -9,6 +9,7 @@
 #include <QFormLayout>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <Inspector/InspectorLayout.hpp>
+#include <Process/Dataflow/PortFactory.hpp>
 #include <QCheckBox>
 #include <QVBoxLayout>
 #include <QToolButton>
@@ -34,12 +35,22 @@ void PortListWidget::reload()
   auto& lay = *(Inspector::Layout*)layout();
   score::clearLayout(&lay);
 
+  auto& pf = m_ctx.app.interfaces<PortFactoryList>();
+
   if(!m_process.inlets().empty())
   {
     lay.addRow(tr("<b>Inputs</b>"), (QWidget*)nullptr);
     for(auto port : m_process.inlets())
     {
-      PortWidgetSetup::setupAlone(*port, m_ctx, lay, this);
+      auto fact = pf.get(port->concreteKey());
+      if(fact)
+      {
+        fact->setupInspector(*port, m_ctx, this, lay, this);
+      }
+      else
+      {
+        PortWidgetSetup::setupAlone(*port, m_ctx, lay, this);
+      }
     }
   }
 
@@ -48,7 +59,15 @@ void PortListWidget::reload()
     lay.addRow(tr("<b>Outputs</b>"), (QWidget*)nullptr);
     for(auto port : m_process.outlets())
     {
-      PortWidgetSetup::setupAlone(*port, m_ctx, lay, this);
+      auto fact = pf.get(port->concreteKey());
+      if(fact)
+      {
+        fact->setupInspector(*port, m_ctx, this, lay, this);
+      }
+      else
+      {
+        PortWidgetSetup::setupAlone(*port, m_ctx, lay, this);
+      }
     }
   }
 }
@@ -104,11 +123,9 @@ void PortWidgetSetup::setupControl(
   vlay.addRow(sw);
 }
 
-void PortWidgetSetup::setupImpl(
-    const QString& txt
-    , const Port& port
+QWidget* PortWidgetSetup::makeAddressWidget(
+    const Port& port
     , const score::DocumentContext& ctx
-    , Inspector::Layout& lay
     , QWidget* parent)
 {
   using namespace Device;
@@ -135,21 +152,38 @@ void PortWidgetSetup::setupImpl(
     CommandDispatcher<>{ctx.dispatcher}.submitCommand(new Process::ChangePortAddress{port, newAddr.address});
   });
 
-  QString str;
+  return edit;
+}
+
+void PortWidgetSetup::setupImpl(
+    const QString& txt
+    , const Port& port
+    , const score::DocumentContext& ctx
+    , Inspector::Layout& lay
+    , QWidget* parent)
+{
+  auto widg = new QWidget;
+  auto hl = new score::MarginLess<QHBoxLayout>{widg};
+  auto lab = new TextLabel{txt, widg};
+  auto advBtn = new QToolButton{widg};
+
   switch(port.type)
   {
     case Process::PortType::Audio:
-      str += QString::fromUtf8("<b>〜</b> ");
+      advBtn->setText(QString::fromUtf8("〜"));
       break;
     case Process::PortType::Midi:
-      str += QString::fromUtf8("<b>♪</b> ");
+      advBtn->setText(QString::fromUtf8("♪"));
       break;
     case Process::PortType::Message:
-      str += QString::fromUtf8("<b>⇢</b> ");
+      advBtn->setText(QString::fromUtf8("⇢"));
       break;
   }
-  str += txt;
-  lay.addRow(str, edit);
+  hl->addWidget(advBtn);
+  hl->addWidget(lab);
+
+  auto port_widg = PortWidgetSetup::makeAddressWidget(port, ctx, parent);
+  lay.addRow(widg, port_widg);
 
   if (auto outlet = qobject_cast<const Process::Outlet*>(&port))
   {

@@ -153,10 +153,7 @@ class FloatSlider : public ValueInlet
 {
   W_OBJECT(FloatSlider)
 
-
-
-
-public:
+  public:
   using ValueInlet::ValueInlet;
   virtual ~FloatSlider() override;
   qreal getMin() const
@@ -234,10 +231,7 @@ class IntSlider : public ValueInlet
 {
   W_OBJECT(IntSlider)
 
-
-
-
-public:
+  public:
   using ValueInlet::ValueInlet;
   virtual ~IntSlider() override;
   int getMin() const

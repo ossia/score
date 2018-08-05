@@ -25,7 +25,10 @@
 #include <QGraphicsSceneMoveEvent>
 #include <QMenu>
 #include <QMimeData>
+#include <QPushButton>
+#include <QLineEdit>
 #include <QPainter>
+#include <Process/Dataflow/PortListWidget.hpp>
 #include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -35,8 +38,10 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+#include <score/widgets/ControlWidgets.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <Inspector/InspectorLayout.hpp>
+#include <Process/Dataflow/ControlWidgets.hpp>
 namespace Dataflow
 {
 template <typename Vec>
@@ -271,4 +276,106 @@ PortTooltip::PortTooltip(
   lay->addRow(p.customData(), (QWidget*)nullptr);
   Process::PortWidgetSetup::setupAlone(p, ctx, *lay, this);
 }
+
+template<typename T>
+struct minmax
+{
+    const ossia::domain& domain;
+    auto getMin() const { return domain.convert_min<T>(); }
+    auto getMax() const { return domain.convert_max<T>(); }
+};
+
+struct control_visitor
+{
+    Process::ControlInlet& inlet;
+    const score::DocumentContext& ctx;
+    QWidget* parent{};
+    QWidget* operator()(ossia::impulse) const noexcept
+    {
+      return new QPushButton{QObject::tr("Bang"), parent};
+    }
+    QWidget* operator()(bool b) const noexcept
+    {
+      struct t { } tog ;
+      return WidgetFactory::Toggle::make_widget(tog, inlet, ctx, parent, parent);
+    }
+    QWidget* operator()(int x) const noexcept
+    {
+      minmax<int> sl{inlet.domain().get()};
+      return WidgetFactory::IntSlider::make_widget(sl, inlet, ctx, parent, parent);
+    }
+    QWidget* operator()(float x) const noexcept
+    {
+      minmax<float> sl{inlet.domain().get()};
+      return WidgetFactory::FloatSlider::make_widget(sl, inlet, ctx, parent, parent);
+    }
+    QWidget* operator()(const std::string& c) const noexcept
+    {
+      struct le { } l;
+      return WidgetFactory::LineEdit::make_widget(l, inlet, ctx, parent, parent);
+    }
+    template<typename T>
+    QWidget* operator()(const T&) const noexcept
+    {
+      SCORE_TODO;
+      return nullptr;
+    }
+    QWidget* operator()() const noexcept
+    {
+      SCORE_TODO;
+      return nullptr;
+    }
+};
+
+
+void ControlInletFactory::setupInspector(
+    Process::Inlet& port
+    , const score::DocumentContext& ctx
+    , QWidget* parent
+    , Inspector::Layout& lay
+    , QObject* context)
+{
+  using namespace Process;
+  auto& ctrl = static_cast<Process::ControlInlet&>(port);
+  auto widg = ossia::apply(control_visitor{ctrl, ctx, parent}, ctrl.value());
+  if(widg)
+  {
+    PortWidgetSetup::setupControl(ctrl, widg, ctx, lay, parent);
+  }
+  else
+  {
+    PortWidgetSetup::setupInLayout(port, ctx, lay, parent);
+  }
+}
+
+
+template<typename T>
+struct WidgetInletFactory final : public AutomatablePortFactory
+{
+    using Model_T = T;
+    UuidKey<Process::Port> concreteKey() const noexcept override
+    {
+      return Metadata<ConcreteKey_k, Model_T>::get();
+    }
+
+    Model_T* load(const VisitorVariant& vis, QObject* parent) override
+    {
+      return score::deserialize_dyn(vis, [&](auto&& deserializer) {
+        return new Model_T{deserializer, parent};
+      });
+    }
+
+    void setupInspector(
+        Process::Inlet& port,
+        const score::DocumentContext& ctx,
+        QWidget* parent,
+        Inspector::Layout& lay,
+        QObject* context) override
+    {
+      using factory = typename Model_T::control_type;
+      auto& ctrl = static_cast<Model_T&>(port);
+      auto widg = factory::make_widget(ctrl, ctrl, ctx, parent, parent);
+      Process::PortWidgetSetup::setupControl(ctrl, widg, ctx, lay, parent);
+    }
+};
 }

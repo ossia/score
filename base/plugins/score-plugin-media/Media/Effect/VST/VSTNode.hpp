@@ -2,7 +2,7 @@
 #include <ossia/dataflow/fx_node.hpp>
 #include <ossia/dataflow/graph_node.hpp>
 
-#include <Engine/Node/TimeSignature.hpp>
+#include <Process/Dataflow/TimeSignature.hpp>
 #include <Media/Effect/VST/VSTEffectModel.hpp>
 #include <ossia/detail/pod_vector.hpp>
 

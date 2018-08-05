@@ -4,7 +4,7 @@
 
 #include "JS/Commands/EditScript.hpp"
 
-#include <Engine/Node/Widgets.hpp>
+#include <Process/Dataflow/ControlWidgets.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <JS/JSProcessModel.hpp>
 #include <JS/Qml/QmlObjects.hpp>
@@ -116,32 +116,32 @@ void InspectorWidget::updateControls(const score::DocumentContext& doc)
       {
         clay->addRow(
             ctrl->objectName(),
-            Control::FloatSlider::make_widget(
+            WidgetFactory::FloatSlider::make_widget(
                 *fslider, get_control(i), doc, this, this));
       }
       else if (auto islider = qobject_cast<IntSlider*>(ctrl))
       {
         clay->addRow(
             ctrl->objectName(),
-            Control::IntSlider::make_widget(
+            WidgetFactory::IntSlider::make_widget(
                 *islider, get_control(i), doc, this, this));
       }
       else if (auto toggle = qobject_cast<Toggle*>(ctrl))
       {
         clay->addRow(
-            ctrl->objectName(), Control::Toggle::make_widget(
+            ctrl->objectName(), WidgetFactory::Toggle::make_widget(
                                     *toggle, get_control(i), doc, this, this));
       }
       else if (auto edit = qobject_cast<LineEdit*>(ctrl))
       {
         clay->addRow(
-            ctrl->objectName(), Control::LineEdit::make_widget(
+            ctrl->objectName(), WidgetFactory::LineEdit::make_widget(
                                     *edit, get_control(i), doc, this, this));
       }
       else if (auto en = qobject_cast<Enum*>(ctrl))
       {
         clay->addRow(
-            ctrl->objectName(), Control::Enum<QStringList>::make_widget(
+            ctrl->objectName(), WidgetFactory::Enum::make_widget(
                                     *en, get_control(i), doc, this, this));
       }
 

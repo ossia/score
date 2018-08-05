@@ -119,4 +119,11 @@ public:
 protected:
   void paintEvent(QPaintEvent* event) override;
 };
+
+SCORE_LIB_BASE_EXPORT const QPalette& transparentPalette();
+static inline auto transparentStylesheet()
+{
+  return QStringLiteral("QWidget { background-color:transparent }");
+}
+
 }

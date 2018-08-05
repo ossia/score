@@ -69,9 +69,31 @@ private:
 };
 
 using InletFactory = AutomatablePortFactory_T<Process::Inlet>;
-using ControlInletFactory = AutomatablePortFactory_T<Process::ControlInlet>;
 using OutletFactory = AutomatablePortFactory_T<Process::Outlet>;
 using ControlOutletFactory = AutomatablePortFactory_T<Process::ControlOutlet>;
+
+struct ControlInletFactory final : public AutomatablePortFactory
+{
+    using Model_T = Process::ControlInlet;
+    UuidKey<Process::Port> concreteKey() const noexcept override
+    {
+      return Metadata<ConcreteKey_k, Model_T>::get();
+    }
+
+    Model_T* load(const VisitorVariant& vis, QObject* parent) override
+    {
+      return score::deserialize_dyn(vis, [&](auto&& deserializer) {
+        return new Model_T{deserializer, parent};
+      });
+    }
+
+    void setupInspector(
+        Process::Inlet& port,
+        const score::DocumentContext& ctx,
+        QWidget* parent,
+        Inspector::Layout& lay,
+        QObject* context) override;
+};
 
 class PortTooltip final : public QWidget
 {

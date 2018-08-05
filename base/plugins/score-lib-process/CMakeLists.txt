@@ -10,6 +10,7 @@ set(PROCESS_HDRS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/ProcessCommandFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/EditPort.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/SetControlValue.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Instantiations.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ExpandMode.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Focus/FocusDispatcher.hpp"
@@ -25,11 +26,14 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessMetadata.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessList.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/Port.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/TimeSignature.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortItem.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/Cable.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/CableItem.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortListWidget.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/ControlWidgets.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/WidgetInlets.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNode.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/ProcessStateDataInterface.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/ScenarioStyle.hpp"
@@ -50,6 +54,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ExecutionComponent.hpp"
 
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/GenericProcessInspector.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegate.hpp"
 
