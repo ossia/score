@@ -61,8 +61,6 @@ void ApplicationPlugin::on_newDocument(score::Document& doc)
 void ApplicationPlugin::on_documentChanged(
     score::Document* olddoc, score::Document* newdoc)
 {
-  auto& messages = score::GUIAppContext().panel<score::MessagesPanelDelegate>();
-
   disableConnections();
   QObject::disconnect(m_visible);
 
@@ -81,21 +79,25 @@ void ApplicationPlugin::on_documentChanged(
     // Set-up logging
     auto& devices = doc_plugin.list();
 
-    if (auto qw = messages.dock())
+    auto messages = context.findPanel<score::MessagesPanelDelegate>();
+    if(messages)
     {
-      auto func = [=,&devices,&messages](bool visible) {
-        disableConnections();
-          if (visible)
-          {
-            setupConnections(messages, devices);
-          }
-          devices.setLogging(visible);
-      };
+      if (auto qw = messages->dock())
+      {
+        auto func = [=,&devices](bool visible) {
+          disableConnections();
+            if (visible)
+            {
+              setupConnections(*messages, devices);
+            }
+            devices.setLogging(visible);
+        };
 
-      m_visible
-          = QObject::connect(qw, &QDockWidget::visibilityChanged, &messages, func);
+        m_visible
+            = QObject::connect(qw, &QDockWidget::visibilityChanged, messages, func);
 
-      func(qw->isVisible());
+        func(qw->isVisible());
+      }
     }
   }
 }
