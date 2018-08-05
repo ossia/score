@@ -4,6 +4,7 @@
 
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
+#include <Process/Dataflow/PortListWidget.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <ossia-qt/value_metatypes.hpp>
 #include <wobjectimpl.h>
@@ -268,6 +269,26 @@ Dataflow::PortItem* PortFactory::makeItem(
     QObject* context)
 {
   return new Dataflow::PortItem{port, ctx, parent};
+}
+
+void PortFactory::setupInspector(
+      Inlet& port,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      Inspector::Layout& lay,
+      QObject* context)
+{
+  PortWidgetSetup::setupInLayout(port, ctx, lay, parent);
+}
+
+void PortFactory::setupInspector(
+      Outlet& port,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      Inspector::Layout& lay,
+      QObject* context)
+{
+  PortWidgetSetup::setupInLayout(port, ctx, lay, parent);
 }
 
 Port* PortFactoryList::loadMissing(

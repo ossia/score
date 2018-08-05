@@ -8,6 +8,16 @@
 
 namespace Control
 {
+SCORE_LIB_BASE_EXPORT
+const QPalette& transparentPalette()
+{
+  static QPalette p{[] {
+    QPalette palette;
+    palette.setBrush(QPalette::Background, Qt::transparent);
+    return palette;
+  }()};
+  return p;
+}
 
 void ToggleButton::paintEvent(QPaintEvent* event)
 {

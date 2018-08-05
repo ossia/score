@@ -81,7 +81,6 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Executor.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/CommonWidgets.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Port.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/TimeSignature.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/TickPolicy.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioPanel.hpp"

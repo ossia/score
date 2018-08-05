@@ -136,10 +136,9 @@ public:
 private:
 };
 
-class SCORE_LIB_PROCESS_EXPORT ControlInlet final : public Inlet
+class SCORE_LIB_PROCESS_EXPORT ControlInlet : public Inlet
 {
   W_OBJECT(ControlInlet)
-
 
   SCORE_SERIALIZE_FRIENDS
 public:

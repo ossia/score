@@ -3,6 +3,10 @@
 #include <score/plugins/customfactory/FactoryFamily.hpp>
 #include <score/plugins/customfactory/FactoryInterface.hpp>
 class QGraphicsItem;
+namespace Inspector
+{
+class Layout;
+}
 namespace Dataflow
 {
 class PortItem;
@@ -27,6 +31,20 @@ public:
       const score::DocumentContext& ctx,
       QGraphicsItem* parent,
       QObject* context);
+
+  virtual void setupInspector(
+      Process::Inlet& port,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      Inspector::Layout& lay,
+      QObject* context);
+  virtual void setupInspector(
+      Process::Outlet& port,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      Inspector::Layout& lay,
+      QObject* context);
+
 };
 
 class SCORE_LIB_PROCESS_EXPORT PortFactoryList final

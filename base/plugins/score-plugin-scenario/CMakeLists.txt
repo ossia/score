@@ -33,7 +33,6 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/ScenarioRecordInitData.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/ScenarioValidity.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/CommandAPI.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/SetControlValue.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/ClearSelection.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Cohesion/CreateCurveFromStates.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Cohesion/CreateCurves.hpp"
