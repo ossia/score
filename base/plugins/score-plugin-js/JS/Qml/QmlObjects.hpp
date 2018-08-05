@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/network/domain/domain.hpp>
+#include <Process/Dataflow/WidgetInlets.hpp>
 #include <wobjectdefs.h>
 
 #include <rtmidi17/message.hpp>
@@ -87,7 +88,6 @@ class ValueInlet : public Inlet
 {
   W_OBJECT(ValueInlet)
 
-
   QVariant m_value;
   QVariantList m_values;
 
@@ -118,7 +118,6 @@ public:
   }
 
 W_PROPERTY(QVariantList, values READ values)
-
 W_PROPERTY(QVariant, value READ value)
 };
 
@@ -175,11 +174,7 @@ class FloatSlider : public ValueInlet
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    auto p = new Process::ControlInlet(id, parent);
-    p->type = Process::PortType::Message;
-    p->setValue(m_init);
-    p->setDomain(ossia::make_domain(m_min, m_max));
-    return p;
+    return new Process::FloatSlider{(float)m_min, (float)m_max, (float)m_init, objectName(), id, parent};
   }
 
 public:
@@ -221,9 +216,7 @@ private:
   qreal m_init{};
 
 W_PROPERTY(qreal, init READ init WRITE setInit NOTIFY initChanged)
-
 W_PROPERTY(qreal, max READ getMax WRITE setMax NOTIFY maxChanged)
-
 W_PROPERTY(qreal, min READ getMin WRITE setMin NOTIFY minChanged)
 };
 
@@ -253,11 +246,7 @@ class IntSlider : public ValueInlet
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    auto p = new Process::ControlInlet(id, parent);
-    p->type = Process::PortType::Message;
-    p->setValue(m_init);
-    p->setDomain(ossia::make_domain(m_min, m_max));
-    return p;
+    return new Process::IntSlider{m_min, m_max, m_init, objectName(), id, parent};
   }
 
 public:
@@ -299,18 +288,13 @@ private:
   int m_init{};
 
 W_PROPERTY(int, init READ init WRITE setInit NOTIFY initChanged)
-
 W_PROPERTY(int, max READ getMax WRITE setMax NOTIFY maxChanged)
-
 W_PROPERTY(int, min READ getMin WRITE setMin NOTIFY minChanged)
 };
 
 class Enum : public ValueInlet
 {
   W_OBJECT(Enum)
-
-
-
 
 public:
   using ValueInlet::ValueInlet;
@@ -330,10 +314,7 @@ public:
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    auto p = new Process::ControlInlet(id, parent);
-    p->type = Process::PortType::Message;
-    p->setValue(current());
-    return p;
+    return new Process::Enum{m_choices, current(), objectName(), id, parent};
   }
 
   auto getValues() const
@@ -378,13 +359,12 @@ private:
   int m_index{};
 
 W_PROPERTY(int, index READ index WRITE setIndex NOTIFY indexChanged)
-
 W_PROPERTY(QStringList, choices READ choices WRITE setChoices NOTIFY choicesChanged)
 };
+
 class Toggle : public ValueInlet
 {
   W_OBJECT(Toggle)
-
 
 public:
   using ValueInlet::ValueInlet;
@@ -399,10 +379,7 @@ public:
   }
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    auto p = new Process::ControlInlet(id, parent);
-    p->type = Process::PortType::Message;
-    p->setValue(m_checked);
-    return p;
+    return new Process::Toggle{m_checked, objectName(), id, parent};
   }
 
 public:
@@ -442,10 +419,7 @@ public:
   }
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    auto p = new Process::ControlInlet(id, parent);
-    p->type = Process::PortType::Message;
-    p->setValue(m_text.toStdString());
-    return p;
+    return new Process::LineEdit{m_text, objectName(), id, parent};
   }
 
 public:
