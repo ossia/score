@@ -1,5 +1,5 @@
 #pragma once
-#include <Automation/Color/GradientAutomModel.hpp>
+#include <Color/GradientModel.hpp>
 #include <Automation/Commands/AutomationCommandFactory.hpp>
 #include <Device/Address/AddressSettings.hpp>
 #include <Process/LayerPresenter.hpp>

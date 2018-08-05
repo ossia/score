@@ -1,6 +1,6 @@
 #pragma once
 #include <Automation/Commands/AutomationCommandFactory.hpp>
-#include <Automation/Spline/SplineAutomModel.hpp>
+#include <Spline/SplineModel.hpp>
 #include <Device/Address/AddressSettings.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <score/model/path/PathSerialization.hpp>

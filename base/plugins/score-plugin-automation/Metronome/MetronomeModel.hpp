@@ -1,5 +1,5 @@
 #pragma once
-#include <Automation/Metronome/MetronomeProcessMetadata.hpp>
+#include <Metronome/MetronomeProcessMetadata.hpp>
 #include <wobjectdefs.h>
 #include <Curve/Process/CurveProcessModel.hpp>
 #include <Process/TimeValue.hpp>

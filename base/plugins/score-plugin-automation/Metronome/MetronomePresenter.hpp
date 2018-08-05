@@ -1,8 +1,8 @@
 #pragma once
 #include <Automation/Commands/ChangeAddress.hpp>
 #include <wobjectdefs.h>
-#include <Automation/Metronome/MetronomeModel.hpp>
-#include <Automation/Metronome/MetronomeView.hpp>
+#include <Metronome/MetronomeModel.hpp>
+#include <Metronome/MetronomeView.hpp>
 #include <Curve/Process/CurveProcessPresenter.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Process/ProcessContext.hpp>

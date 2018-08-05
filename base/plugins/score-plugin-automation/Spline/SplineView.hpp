@@ -2,7 +2,7 @@
 #include <ossia/editor/automation/tinysplinecpp.h>
 #include <wobjectdefs.h>
 
-#include <Automation/Spline/SplineAutomModel.hpp>
+#include <Spline/SplineModel.hpp>
 #include <Process/LayerView.hpp>
 namespace Spline
 {

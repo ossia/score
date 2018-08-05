@@ -7,9 +7,9 @@
 #include <ossia/network/value/value_conversion.hpp>
 
 #include <Automation/AutomationModel.hpp>
-#include <Automation/Color/GradientAutomModel.hpp>
-#include <Automation/Metronome/MetronomeModel.hpp>
-#include <Automation/Spline/SplineAutomModel.hpp>
+#include <Color/GradientModel.hpp>
+#include <Metronome/MetronomeModel.hpp>
+#include <Spline/SplineModel.hpp>
 #include <Curve/Point/CurvePointModel.hpp>
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>

@@ -2,8 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <ossia/editor/state/destination_qualifiers.hpp>
 
-#include <Automation/Spline/SplineAutomModel.hpp>
-#include <Automation/Spline/SplineAutomPresenter.hpp>
+#include <Spline/SplineModel.hpp>
+#include <Spline/SplinePresenter.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <QColor>
 #include <wobjectimpl.h>

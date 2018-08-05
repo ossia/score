@@ -1,7 +1,7 @@
 #pragma once
 #include <Automation/Commands/AutomationCommandFactory.hpp>
 #include <Automation/AutomationModel.hpp>
-#include <Automation/Color/GradientAutomModel.hpp>
+#include <Color/GradientModel.hpp>
 #include <State/Unit.hpp>
 #include <score/command/PropertyCommand.hpp>
 
