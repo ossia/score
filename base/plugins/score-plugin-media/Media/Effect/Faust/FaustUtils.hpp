@@ -4,6 +4,7 @@
 #include <ossia/dataflow/port.hpp>
 #include <ossia/network/domain/domain.hpp>
 
+#include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/Dataflow/Port.hpp>
 
 namespace Media
@@ -44,15 +45,14 @@ struct UI
 
   void addButton(const char* label, FAUSTFLOAT* zone)
   {
-    auto inl = new Process::ControlInlet{getStrongId(fx.inlets()), &fx};
-    inl->setCustomData(label);
-    inl->hidden = true;
+    auto inl = new Process::Button{label, getStrongId(fx.inlets()), &fx};
     fx.inlets().push_back(inl);
   }
 
   void addCheckButton(const char* label, FAUSTFLOAT* zone)
   {
-    addButton(label, zone);
+    auto inl = new Process::Toggle{bool(*zone), label, getStrongId(fx.inlets()), &fx};
+    fx.inlets().push_back(inl);
   }
 
   void addVerticalSlider(
@@ -63,11 +63,7 @@ struct UI
       FAUSTFLOAT max,
       FAUSTFLOAT step)
   {
-    auto inl = new Process::ControlInlet{getStrongId(fx.inlets()), &fx};
-    inl->setCustomData(label);
-    inl->setDomain(ossia::make_domain(min, max));
-    inl->setValue(init);
-    inl->hidden = true;
+    auto inl = new Process::FloatSlider{min, max, init, label, getStrongId(fx.inlets()), &fx};
     fx.inlets().push_back(inl);
   }
 
@@ -90,6 +86,7 @@ struct UI
       FAUSTFLOAT max,
       FAUSTFLOAT step)
   {
+    // TODO spinbox ?
     addVerticalSlider(label, zone, init, min, max, step);
   }
 
@@ -139,29 +136,53 @@ struct UpdateUI
 
   void addButton(const char* label, FAUSTFLOAT* zone)
   {
-    Process::ControlInlet* inlet{};
     if (i < fx.inlets().size())
     {
-      inlet = static_cast<Process::ControlInlet*>(fx.inlets()[i]);
-      inlet->setCustomData(label);
-      inlet->setDomain(ossia::make_domain(false, true));
-      inlet->hidden = true;
+      if(auto inlet = dynamic_cast<Process::Button*>(fx.inlets()[i]))
+      {
+        inlet->setCustomData(label);
+      }
+      else
+      {
+        delete fx.inlets()[i];
+        auto inl = new Process::Button{label, getStrongId(fx.inlets()), &fx};
+        fx.inlets()[i] = inl;
+        // TODO REUSE ADDRESS ?
+      }
     }
     else
     {
-      inlet = new Process::ControlInlet{getStrongId(fx.inlets()), &fx};
-      inlet->setCustomData(label);
-      inlet->setDomain(ossia::make_domain(false, true));
-      inlet->hidden = true;
-      fx.inlets().push_back(inlet);
-      fx.controlAdded(inlet->id());
+      auto inl = new Process::Button{label, getStrongId(fx.inlets()), &fx};
+      fx.inlets().push_back(inl);
+      fx.controlAdded(inl->id());
     }
     i++;
   }
 
   void addCheckButton(const char* label, FAUSTFLOAT* zone)
   {
-    addButton(label, zone);
+    if (i < fx.inlets().size())
+    {
+      if(auto inlet = dynamic_cast<Process::Toggle*>(fx.inlets()[i]))
+      {
+        inlet->setCustomData(label);
+        inlet->setValue(bool(*zone));
+      }
+      else
+      {
+        delete fx.inlets()[i];
+        auto inl = new Process::Toggle{bool(*zone), label, getStrongId(fx.inlets()), &fx};
+        fx.inlets()[i] = inl;
+        // TODO REUSE ADDRESS ?
+      }
+    }
+    else
+    {
+      auto inl = new Process::Toggle{bool(*zone), label, getStrongId(fx.inlets()), &fx};
+      fx.inlets().push_back(inl);
+      fx.controlAdded(inl->id());
+    }
+    i++;
   }
 
   void addVerticalSlider(
@@ -172,24 +193,26 @@ struct UpdateUI
       FAUSTFLOAT max,
       FAUSTFLOAT step)
   {
-    Process::ControlInlet* inlet{};
     if (i < fx.inlets().size())
     {
-      inlet = static_cast<Process::ControlInlet*>(fx.inlets()[i]);
-      inlet->setCustomData(label);
-      inlet->setDomain(ossia::make_domain(min, max));
-      inlet->setValue(init);
-      inlet->hidden = true;
+      if(auto inlet = dynamic_cast<Process::FloatSlider*>(fx.inlets()[i]))
+      {
+        inlet->setCustomData(label);
+        inlet->setDomain(ossia::make_domain(min, max));
+        inlet->setValue(init);
+      }
+      else
+      {
+        delete fx.inlets()[i];
+        auto inl = new Process::FloatSlider{min, max, init, label, getStrongId(fx.inlets()), &fx};
+        fx.inlets()[i] = inl;
+      }
     }
     else
     {
-      inlet = new Process::ControlInlet{getStrongId(fx.inlets()), &fx};
-      inlet->setCustomData(label);
-      inlet->setDomain(ossia::make_domain(min, max));
-      inlet->setValue(init);
-      inlet->hidden = true;
-      fx.inlets().push_back(inlet);
-      fx.controlAdded(inlet->id());
+      auto inl = new Process::FloatSlider{min, max, init, label, getStrongId(fx.inlets()), &fx};
+      fx.inlets().push_back(inl);
+      fx.controlAdded(inl->id());
     }
     i++;
   }

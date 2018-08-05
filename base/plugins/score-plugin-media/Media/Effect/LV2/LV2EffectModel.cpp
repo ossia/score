@@ -263,17 +263,14 @@ void LV2EffectModel::readPlugin()
   // CONTROL
   for (int port_id : data.control_in_ports)
   {
-    auto port = new Process::ControlInlet{Id<Process::Port>{in_id++}, this};
-
-    port->hidden = true;
-    port->setDomain(State::Domain{
-        ossia::make_domain(fParamMin[port_id], fParamMax[port_id])});
-    port->setValue(fParamInit[port_id]);
-
     Lilv::Port p = data.effect.plugin.get_port_by_index(port_id);
     Lilv::Node n = p.get_name();
 
-    port->setCustomData(QString::fromUtf8(n.as_string()));
+    auto port = new Process::FloatSlider{
+            fParamMin[port_id], fParamMax[port_id], fParamInit[port_id],
+            QString::fromUtf8(n.as_string()),
+            Id<Process::Port>{in_id++}, this};
+
     control_map.insert({port_id, {port, false}});
     connect(
         port, &Process::ControlInlet::valueChanged, this,

@@ -89,6 +89,7 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/Cable.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/CableItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortListWidget.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/WidgetInlets.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Layer/LayerContextMenu.cpp"
 

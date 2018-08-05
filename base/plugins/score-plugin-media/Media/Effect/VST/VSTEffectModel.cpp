@@ -484,22 +484,13 @@ void VSTEffectModel::create()
 
   // Tempo
   {
-    auto tempo = new Process::ControlInlet(Id<Process::Port>{inlet_i++}, this);
+    auto tempo = new Process::FloatSlider(20., 200., 120., "Tempo", Id<Process::Port>{inlet_i++}, this);
     m_inlets.push_back(tempo);
-    tempo->type = Process::PortType::Message;
-    tempo->hidden = true;
-    tempo->setCustomData("Tempo");
-    tempo->setValue(120.);
-    tempo->setDomain(ossia::make_domain(20., 200.));
   }
   {
     // Signature
-    auto sig = new Process::ControlInlet(Id<Process::Port>{inlet_i++}, this);
+    auto sig = new Process::TimeSignatureChooser("4/4", "Time signature", Id<Process::Port>{inlet_i++}, this);
     m_inlets.push_back(sig);
-    sig->type = Process::PortType::Message;
-    sig->hidden = true;
-    sig->setCustomData("Time signature");
-    sig->setValue("4/4");
   }
 
   if (fx->fx->numParams < 10
