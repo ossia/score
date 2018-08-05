@@ -249,6 +249,8 @@
         <file>icons/refresh_on@2x.png</file>
         <file>icons/search.png</file>
         <file>icons/search@2x.png</file>
+        <file>icons/play_glob_off@2x.png</file>
+        <file>icons/play_glob_on@2x.png</file>
     </qresource>
     <qresource prefix="/qss_icons">
         <file>rc/up_arrow_disabled.png</file>

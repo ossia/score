@@ -1,6 +1,18 @@
 #pragma once
 #include <QWidget>
 
+namespace Inspector
+{
+class Layout;
+}
+namespace Process
+{
+class Port;
+class Inlet;
+class Outlet;
+class ControlInlet;
+class ControlOutlet;
+}
 namespace score
 {
 struct DocumentContext;
@@ -8,6 +20,34 @@ struct DocumentContext;
 namespace Process
 {
 class ProcessModel;
+
+class PortWidgetSetup final
+{
+public:
+  static void setupAlone(
+      const Process::Port& port
+      , const score::DocumentContext& ctx
+      , Inspector::Layout& lay
+      , QWidget* parent);
+  static void setupInLayout(
+      const Process::Port& port
+      , const score::DocumentContext& ctx
+      , Inspector::Layout& lay
+      , QWidget* parent);
+  static void setupControl(const Process::ControlInlet& inlet
+                           , QWidget* inlet_widget
+                           , const score::DocumentContext& ctx
+                           , Inspector::Layout& lay
+                           , QWidget* parent);
+
+  private:
+  static void setupImpl(
+      const QString& txt
+      , const Process::Port& port
+      , const score::DocumentContext& ctx
+      , Inspector::Layout& lay
+      , QWidget* parent);
+};
 /**
  * @brief Show the list of ports / addresses
  *

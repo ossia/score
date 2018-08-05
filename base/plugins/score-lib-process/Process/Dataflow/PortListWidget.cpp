@@ -3,10 +3,15 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Commands/EditPort.hpp>
 #include <score/widgets/ClearLayout.hpp>
+#include <score/widgets/TextLabel.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <Device/Widgets/AddressAccessorEditWidget.hpp>
 #include <QFormLayout>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <Inspector/InspectorLayout.hpp>
+#include <QCheckBox>
+#include <QVBoxLayout>
+#include <QToolButton>
 namespace Process
 {
 PortListWidget::PortListWidget(
@@ -17,7 +22,7 @@ PortListWidget::PortListWidget(
   , m_process{proc}
   , m_ctx{ctx}
 {
-  setLayout(new QFormLayout);
+  setLayout(new Inspector::Layout);
   reload();
 
   con(proc, &Process::ProcessModel::inletsChanged, this, [this] { reload(); });
@@ -26,52 +31,15 @@ PortListWidget::PortListWidget(
 
 void PortListWidget::reload()
 {
-  using namespace Device;
-  auto& lay = *(QFormLayout*)layout();
+  auto& lay = *(Inspector::Layout*)layout();
   score::clearLayout(&lay);
-
-  auto setup = [&] (Process::Port* port) {
-    auto edit = new Device::AddressAccessorEditWidget{m_ctx, this};
-    edit->setAddress(port->address());
-
-    connect(port, &Port::addressChanged, edit,
-        &AddressAccessorEditWidget::setAddress);
-
-    connect(
-        edit, &AddressAccessorEditWidget::addressChanged, this,
-          [=] (const auto& newAddr) {
-      if (newAddr.address == port->address())
-        return;
-
-      if (newAddr.address.address.path.isEmpty())
-        return;
-
-      CommandDispatcher<>{m_ctx.dispatcher}.submitCommand(new Process::ChangePortAddress{*port, newAddr.address});
-    });
-
-    QString str;
-    switch(port->type)
-    {
-      case Process::PortType::Audio:
-        str += QString::fromUtf8("<b>〜</b> ");
-        break;
-      case Process::PortType::Midi:
-        str += QString::fromUtf8("<b>♪</b> ");
-        break;
-      case Process::PortType::Message:
-        str += QString::fromUtf8("<b>⇢</b> ");
-        break;
-    }
-    str += port->customData();
-    lay.addRow(str, edit);
-  };
 
   if(!m_process.inlets().empty())
   {
     lay.addRow(tr("<b>Inputs</b>"), (QWidget*)nullptr);
     for(auto port : m_process.inlets())
     {
-      setup(port);
+      PortWidgetSetup::setupAlone(*port, m_ctx, lay, this);
     }
   }
 
@@ -80,9 +48,135 @@ void PortListWidget::reload()
     lay.addRow(tr("<b>Outputs</b>"), (QWidget*)nullptr);
     for(auto port : m_process.outlets())
     {
-      setup(port);
+      PortWidgetSetup::setupAlone(*port, m_ctx, lay, this);
     }
   }
 }
+
+void PortWidgetSetup::setupAlone(
+      const Port& port
+    , const score::DocumentContext& ctx
+    , Inspector::Layout& lay
+    , QWidget* parent)
+{
+  setupImpl(port.customData(), port, ctx, lay, parent);
+}
+
+void PortWidgetSetup::setupInLayout(
+      const Port& port
+    , const score::DocumentContext& ctx
+    , Inspector::Layout& lay
+    , QWidget* parent)
+{
+  setupImpl(QObject::tr("Address"), port, ctx, lay, parent);
+}
+
+void PortWidgetSetup::setupControl(
+    const ControlInlet& inlet
+    , QWidget* inlet_widget
+    , const score::DocumentContext& ctx
+    , Inspector::Layout& vlay
+    , QWidget* parent)
+{
+  auto widg = new QWidget;
+  auto advBtn = new QToolButton{widg};
+  advBtn->setText("●");
+
+  auto lab = new TextLabel{inlet.customData(), widg};
+  auto hl = new score::MarginLess<QHBoxLayout>{widg};
+  hl->addWidget(advBtn);
+  hl->addWidget(lab);
+
+  auto sw = new QWidget{parent};
+  sw->setContentsMargins(0,0,0,0);
+  auto hl2 = new score::MarginLess<QHBoxLayout>{sw};
+  hl2->addSpacing(30);
+  auto lay = new Inspector::Layout{};
+  Process::PortWidgetSetup::setupInLayout(inlet, ctx, *lay, sw);
+  hl2->addLayout(lay);
+
+  QObject::connect(advBtn, &QToolButton::clicked, sw, [=] {
+    sw->setVisible(!sw->isVisible());
+  });
+  sw->setVisible(false);
+
+  vlay.addRow(widg, inlet_widget);
+  vlay.addRow(sw);
+}
+
+void PortWidgetSetup::setupImpl(
+    const QString& txt
+    , const Port& port
+    , const score::DocumentContext& ctx
+    , Inspector::Layout& lay
+    , QWidget* parent)
+{
+  using namespace Device;
+  auto edit = new AddressAccessorEditWidget{ctx, parent};
+  edit->setAddress(port.address());
+
+  QObject::connect(&port, &Port::addressChanged, edit,
+                   [edit](const State::AddressAccessor& addr) {
+    if (addr != edit->address().address)
+    {
+      edit->setAddress(addr);
+    }
+  });
+
+  QObject::connect(
+      edit, &AddressAccessorEditWidget::addressChanged, parent,
+        [&port,&ctx] (const auto& newAddr) {
+    if (newAddr.address == port.address())
+      return;
+
+    if (newAddr.address.address.path.isEmpty())
+      return;
+
+    CommandDispatcher<>{ctx.dispatcher}.submitCommand(new Process::ChangePortAddress{port, newAddr.address});
+  });
+
+  QString str;
+  switch(port.type)
+  {
+    case Process::PortType::Audio:
+      str += QString::fromUtf8("<b>〜</b> ");
+      break;
+    case Process::PortType::Midi:
+      str += QString::fromUtf8("<b>♪</b> ");
+      break;
+    case Process::PortType::Message:
+      str += QString::fromUtf8("<b>⇢</b> ");
+      break;
+  }
+  str += txt;
+  lay.addRow(str, edit);
+
+  if (auto outlet = qobject_cast<const Process::Outlet*>(&port))
+  {
+    if (port.type == Process::PortType::Audio)
+    {
+      auto cb = new QCheckBox{parent};
+      cb->setChecked(outlet->propagate());
+      lay.addRow(QObject::tr("Propagate"), cb);
+      QObject::connect(cb, &QCheckBox::toggled,
+              parent, [&ctx, &out = *outlet] (auto ok) {
+        if (ok != out.propagate())
+        {
+          CommandDispatcher<> d{ctx.commandStack};
+          d.submitCommand<Process::SetPortPropagate>(out, ok);
+        }
+      });
+      con(*outlet, &Process::Outlet::propagateChanged,
+          cb, [=] (bool p) {
+        if (p != cb->isChecked())
+        {
+          cb->setChecked(p);
+        }
+      });
+    }
+  }
+
+}
+
 }
 

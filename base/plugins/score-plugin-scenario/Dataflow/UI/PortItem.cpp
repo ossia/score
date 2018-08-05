@@ -11,6 +11,7 @@
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Device/Widgets/AddressAccessorEditWidget.hpp>
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/PortListWidget.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <QApplication>
 #include <QCheckBox>
@@ -35,6 +36,7 @@
 #include <score/document/DocumentInterface.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/widgets/SignalUtils.hpp>
+#include <Inspector/InspectorLayout.hpp>
 namespace Dataflow
 {
 template <typename Vec>
@@ -264,47 +266,9 @@ PortItem* AutomatablePortFactory::makeItem(
 PortTooltip::PortTooltip(
     const score::DocumentContext& ctx, const Process::Port& p, QWidget* parent)
     : QWidget{parent}
-    , m_disp{ctx.commandStack}
-    , m_edit{ctx, this}
 {
-  auto lay = new QFormLayout{this};
+  auto lay = new Inspector::Layout{this};
   lay->addRow(p.customData(), (QWidget*)nullptr);
-  lay->addRow(tr("Address"), &m_edit);
-  if (auto outlet = qobject_cast<const Process::Outlet*>(&p))
-  {
-    if (p.type == Process::PortType::Audio)
-    {
-      auto cb = new QCheckBox{this};
-      cb->setChecked(outlet->propagate());
-      lay->addRow(tr("Propagate"), cb);
-      connect(cb, &QCheckBox::toggled, this, [&ctx, &out = *outlet](auto ok) {
-        if (ok != out.propagate())
-        {
-          CommandDispatcher<> d{ctx.commandStack};
-          d.submitCommand<Process::SetPortPropagate>(out, ok);
-        }
-      });
-      con(*outlet, &Process::Outlet::propagateChanged, this, [=](bool p) {
-        if (p != cb->isChecked())
-        {
-          cb->setChecked(p);
-        }
-      });
-    }
-  }
-
-  m_edit.setAddress(p.address());
-  con(p, &Process::Port::addressChanged, this,
-      [this](const State::AddressAccessor& addr) {
-        if (addr != m_edit.address().address)
-        {
-          m_edit.setAddress(addr);
-        }
-      });
-  con(m_edit, &Device::AddressAccessorEditWidget::addressChanged, this,
-      [this, &p](const Device::FullAddressAccessorSettings& set) {
-        if (set.address != p.address())
-          m_disp.submitCommand<Process::ChangePortAddress>(p, set.address);
-      });
+  Process::PortWidgetSetup::setupAlone(p, ctx, *lay, this);
 }
 }
