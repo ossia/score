@@ -10,11 +10,6 @@ namespace ossia
 class curve_abstract;
 }
 
-namespace Device
-{
-class DeviceList;
-}
-
 namespace Automation
 {
 namespace RecreateOnPlay

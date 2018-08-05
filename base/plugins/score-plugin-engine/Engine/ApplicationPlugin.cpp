@@ -431,9 +431,12 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
 void ApplicationPlugin::on_documentChanged(
     score::Document* olddoc, score::Document* newdoc)
 {
-  auto cld = m_speedToolbar->findChildren<Scenario::SpeedWidget*>("SpeedSlider");
-  if(!cld.empty())
-    cld[0]->deleteLater();
+  if (context.applicationSettings.gui)
+  {
+    auto cld = m_speedToolbar->findChildren<Scenario::SpeedWidget*>("SpeedSlider");
+    if(!cld.empty())
+      cld[0]->deleteLater();
+  }
 
   if (olddoc)
   {
@@ -456,8 +459,12 @@ void ApplicationPlugin::on_documentChanged(
 
     // Setup speed toolbar
     auto& root = score::IDocument::get<Scenario::ScenarioDocumentModel>(*newdoc);
-    auto slider = new Scenario::SpeedWidget{root.baseInterval(), newdoc->context(), false, m_speedToolbar};
-    m_speedToolbar->addWidget(slider);
+
+    if (context.applicationSettings.gui)
+    {
+      auto slider = new Scenario::SpeedWidget{root.baseInterval(), newdoc->context(), false, m_speedToolbar};
+      m_speedToolbar->addWidget(slider);
+    }
 
     // Setup audio & devices
     auto& doc_plugin
@@ -468,7 +475,6 @@ void ApplicationPlugin::on_documentChanged(
     {
       if (set->getReconnectOnStart())
       {
-
         auto& list = doc_plugin.list();
         list.apply([&](Device::DeviceInterface& dev) {
           if (&dev != list.audioDevice() && &dev != list.localDevice())

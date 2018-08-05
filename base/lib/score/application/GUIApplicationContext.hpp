@@ -43,6 +43,11 @@ struct GUIApplicationContext : public score::ApplicationContext
   {
     return components.panel<T>();
   }
+  template <typename T>
+  T* findPanel() const
+  {
+    return components.findPanel<T>();
+  }
 
   /**
    * @brief List of all the application-wide plug-ins
