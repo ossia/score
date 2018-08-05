@@ -5,7 +5,7 @@
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 
-#include <Automation/Metronome/MetronomeProcessMetadata.hpp>
+#include <Metronome/MetronomeProcessMetadata.hpp>
 #include <Curve/CurveModel.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Process/CurveProcessModel.hpp>

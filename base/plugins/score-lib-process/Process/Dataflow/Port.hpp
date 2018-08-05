@@ -57,8 +57,6 @@ class SCORE_LIB_PROCESS_EXPORT Port
     , public score::SerializableInterface<Port>
 {
   W_OBJECT(Port)
-
-
   SCORE_SERIALIZE_FRIENDS
 public:
   Selectable selection;
@@ -71,6 +69,8 @@ public:
   const QString& customData() const;
   const State::AddressAccessor& address() const;
   const std::vector<Path<Cable>>& cables() const;
+  const QString& exposed() const;
+  const QString& description() const;
 
   const score::Components& components() const
   {
@@ -83,9 +83,13 @@ public:
 
 public:
   void setCustomData(const QString& customData); W_SLOT(setCustomData);
+  void setExposed(const QString& add); W_SLOT(setExposed);
+  void setDescription(const QString& add); W_SLOT(setDescription);
   void setAddress(const State::AddressAccessor& address); W_SLOT(setAddress);
 
 public:
+  void exposedChanged(const QString& addr) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, exposedChanged, addr);
+  void descriptionChanged(const QString& txt) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, descriptionChanged, txt);
   void cablesChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, cablesChanged);
   void customDataChanged(const QString& customData) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, customDataChanged, customData);
   void addressChanged(const State::AddressAccessor& address) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, addressChanged, address);
@@ -104,6 +108,8 @@ protected:
 private:
   std::vector<Path<Cable>> m_cables;
   QString m_customData;
+  QString m_exposed;
+  QString m_description;
   State::AddressAccessor m_address;
   score::Components m_components;
 

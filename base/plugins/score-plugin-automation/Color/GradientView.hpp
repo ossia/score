@@ -1,5 +1,5 @@
 #pragma once
-#include <Automation/Color/GradientAutomModel.hpp>
+#include <Color/GradientModel.hpp>
 #include <wobjectdefs.h>
 #include <Process/LayerView.hpp>
 namespace Gradient

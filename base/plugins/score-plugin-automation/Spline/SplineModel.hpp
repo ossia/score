@@ -2,7 +2,7 @@
 #include <ossia/dataflow/nodes/spline.hpp>
 #include <wobjectdefs.h>
 
-#include <Automation/Spline/SplineAutomMetadata.hpp>
+#include <Spline/SplineMetadata.hpp>
 #include <Process/Process.hpp>
 #include <State/Address.hpp>
 #include <State/Unit.hpp>

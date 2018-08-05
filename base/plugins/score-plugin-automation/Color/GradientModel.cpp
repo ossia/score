@@ -2,8 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <ossia/editor/state/destination_qualifiers.hpp>
 
-#include <Automation/Color/GradientAutomModel.hpp>
-#include <Automation/Color/GradientAutomPresenter.hpp>
+#include <Color/GradientModel.hpp>
+#include <Color/GradientPresenter.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <QColor>
 #include <wobjectimpl.h>

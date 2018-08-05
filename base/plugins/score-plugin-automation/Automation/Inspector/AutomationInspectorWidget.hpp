@@ -1,8 +1,8 @@
 #pragma once
 #include <Automation/AutomationModel.hpp>
-#include <Automation/Color/GradientAutomModel.hpp>
-#include <Automation/Metronome/MetronomeModel.hpp>
-#include <Automation/Spline/SplineAutomModel.hpp>
+#include <Color/GradientModel.hpp>
+#include <Metronome/MetronomeModel.hpp>
+#include <Spline/SplineModel.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <QString>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>

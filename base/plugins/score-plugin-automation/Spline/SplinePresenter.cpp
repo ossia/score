@@ -2,9 +2,9 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <ossia/detail/math.hpp>
 
-#include <Automation/Spline/SplineAutomModel.hpp>
-#include <Automation/Spline/SplineAutomPresenter.hpp>
-#include <Automation/Spline/SplineAutomView.hpp>
+#include <Spline/SplineModel.hpp>
+#include <Spline/SplinePresenter.hpp>
+#include <Spline/SplineView.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>

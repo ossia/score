@@ -65,6 +65,14 @@ const QString& Port::customData() const
 {
   return m_customData;
 }
+const QString& Port::exposed() const
+{
+  return m_exposed;
+}
+const QString& Port::description() const
+{
+  return m_description;
+}
 
 const State::AddressAccessor& Port::address() const
 {
@@ -83,6 +91,24 @@ void Port::setCustomData(const QString& customData)
 
   m_customData = customData;
   customDataChanged(m_customData);
+}
+
+void Port::setExposed(const QString& exposed)
+{
+  if (m_exposed == exposed)
+    return;
+
+  m_exposed = exposed;
+  exposedChanged(m_exposed);
+}
+
+void Port::setDescription(const QString& description)
+{
+  if (m_description == description)
+    return;
+
+  m_description = description;
+  descriptionChanged(m_description);
 }
 
 void Port::setAddress(const State::AddressAccessor& address)
@@ -292,7 +318,7 @@ SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::Port>(const Process::Port& p)
 {
   insertDelimiter();
-  m_stream << p.type << p.hidden << p.m_customData << p.m_address;
+  m_stream << p.type << p.hidden << p.m_customData << p.m_exposed << p.m_description << p.m_address;
   insertDelimiter();
 }
 template <>
@@ -300,7 +326,7 @@ SCORE_LIB_PROCESS_EXPORT void
 DataStreamWriter::write<Process::Port>(Process::Port& p)
 {
   checkDelimiter();
-  m_stream >> p.type >> p.hidden >> p.m_customData >> p.m_address;
+  m_stream >> p.type >> p.hidden >> p.m_customData >> p.m_exposed >> p.m_description >> p.m_address;
   checkDelimiter();
 }
 
@@ -311,6 +337,8 @@ JSONObjectReader::read<Process::Port>(const Process::Port& p)
   obj["Type"] = (int)p.type;
   obj["Hidden"] = (bool)p.hidden;
   obj["Custom"] = p.m_customData;
+  obj["Exposed"] = p.m_exposed;
+  obj["Description"] = p.m_description;
   obj["Address"] = toJsonObject(p.m_address);
 }
 template <>
@@ -320,6 +348,8 @@ JSONObjectWriter::write<Process::Port>(Process::Port& p)
   p.type = (Process::PortType)obj["Type"].toInt();
   p.hidden = obj["Hidden"].toBool();
   p.m_customData = obj["Custom"].toString();
+  p.m_exposed = obj["Exposed"].toString();
+  p.m_description = obj["Description"].toString();
   p.m_address = fromJsonObject<State::AddressAccessor>(obj["Address"]);
 }
 

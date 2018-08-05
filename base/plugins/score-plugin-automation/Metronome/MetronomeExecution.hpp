@@ -2,7 +2,7 @@
 #include <ossia/dataflow/node_process.hpp>
 #include <ossia/editor/curve/curve.hpp>
 
-#include <Automation/Metronome/MetronomeModel.hpp>
+#include <Metronome/MetronomeModel.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 
 namespace Device

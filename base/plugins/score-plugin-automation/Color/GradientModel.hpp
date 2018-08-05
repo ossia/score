@@ -1,5 +1,5 @@
 #pragma once
-#include <Automation/Color/GradientAutomMetadata.hpp>
+#include <Color/GradientMetadata.hpp>
 #include <wobjectdefs.h>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
