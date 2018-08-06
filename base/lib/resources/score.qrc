@@ -330,6 +330,30 @@
         <file>icons/close_dock_on@2x.png</file>
         <file>icons/close_dock_off.png</file>
         <file>icons/close_dock_off@2x.png</file>
+        <file>icons/checkbox_unchecked_focus.png</file>
+        <file>icons/checkbox_unchecked_disabled.png</file>
+        <file>icons/checkbox_unchecked.png</file>
+        <file>icons/checkbox_checked.png</file>
+        <file>icons/checkbox_checked_disabled.png</file>
+        <file>icons/checkbox_checked_focus.png</file>
+        <file>icons/radio_unchecked_focus.png</file>
+        <file>icons/radio_checked_focus.png</file>
+        <file>icons/radio_checked.png</file>
+        <file>icons/radio_checked_disabled.png</file>
+        <file>icons/radio_unchecked_disabled.png</file>
+        <file>icons/radio_unchecked.png</file>
+        <file>icons/checkbox_checked@2x.png</file>
+        <file>icons/checkbox_unchecked@2x.png</file>
+        <file>icons/checkbox_checked_disabled@2x.png</file>
+        <file>icons/checkbox_unchecked_disabled@2x.png</file>
+        <file>icons/checkbox_unchecked_focus@2x.png</file>
+        <file>icons/checkbox_checked_focus@2x.png</file>
+        <file>icons/radio_unchecked_focus@2x.png</file>
+        <file>icons/radio_checked_focus@2x.png</file>
+        <file>icons/radio_unchecked_disabled@2x.png</file>
+        <file>icons/radio_checked_disabled@2x.png</file>
+        <file>icons/radio_unchecked@2x.png</file>
+        <file>icons/radio_checked@2x.png</file>
     </qresource>
     <qresource prefix="/qss_icons">
         <file>rc/up_arrow_disabled.png</file>
@@ -371,10 +395,6 @@
         <file>rc/radio_unchecked_disabled.png</file>
         <file>rc/radio_unchecked_focus.png</file>
         <file>rc/radio_unchecked.png</file>
-        <file>icons/close_off.png</file>
-        <file>icons/close_on.png</file>
-        <file>icons/undock_off.png</file>
-        <file>icons/undock_on.png</file>
         <file>icons/blank.png</file>
     </qresource>
     <qresource prefix="/qdarkstyle">
