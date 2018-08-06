@@ -23,7 +23,8 @@ static auto& iconMap()
   return icons;
 }
 
-void setIcons(QAction* action, const QString& iconOn, const QString& iconOff, bool enableHover)
+void setIcons(QAction* action, const QString& iconOn, const QString& iconOff,
+              const QString& iconDisable, bool enableHover)
 {
   auto& map = iconMap();
   auto pair = std::make_pair(iconOn, iconOff);
@@ -37,10 +38,12 @@ void setIcons(QAction* action, const QString& iconOn, const QString& iconOff, bo
     QIcon icon;
     QPixmap on = score::get_pixmap(iconOn);
     QPixmap off = score::get_pixmap(iconOff);
+    QPixmap disable = score::get_pixmap(iconDisable);
     icon.addPixmap(on, QIcon::Mode::Selected);
     if(enableHover)
       icon.addPixmap(on, QIcon::Mode::Active);
     icon.addPixmap(on, QIcon::Mode::Normal, QIcon::State::On);
+    icon.addPixmap(disable,QIcon::Mode::Disabled);
     icon.addPixmap(off, QIcon::Mode::Normal);
     action->setIcon(icon);
 
@@ -48,12 +51,12 @@ void setIcons(QAction* action, const QString& iconOn, const QString& iconOff, bo
   }
 }
 
-QIcon makeIcons(const QString& iconOn, const QString& iconOff)
+QIcon makeIcons(const QString& iconOn, const QString& iconOff, const QString& iconDisabled)
 {
-  return genIconFromPixmaps(iconOn, iconOff);
+  return genIconFromPixmaps(iconOn, iconOff, iconDisabled);
 }
 
-QIcon genIconFromPixmaps(const QString& iconOn, const QString& iconOff)
+QIcon genIconFromPixmaps(const QString& iconOn, const QString& iconOff, const QString& iconDisabled)
 {
   auto& map = iconMap();
   auto pair = std::make_pair(iconOn, iconOff);
@@ -67,12 +70,15 @@ QIcon genIconFromPixmaps(const QString& iconOn, const QString& iconOff)
     QIcon icon;
     QPixmap on(iconOn);
     QPixmap off(iconOff);
+    QPixmap disabled(iconDisabled);
+
     icon.addPixmap(on, QIcon::Mode::Selected);
     icon.addPixmap(on, QIcon::Mode::Active);
     icon.addPixmap(on, QIcon::Mode::Normal, QIcon::State::On);
     icon.addPixmap(on, QIcon::Mode::Selected, QIcon::State::On);
     icon.addPixmap(on, QIcon::Mode::Active, QIcon::State::On);
     icon.addPixmap(off, QIcon::Mode::Normal);
+    icon.addPixmap(iconDisabled, QIcon::Mode::Disabled);
 
     map.insert(std::make_pair(std::move(pair), icon));
     return icon;

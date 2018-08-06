@@ -870,20 +870,16 @@ QTabBar:focus
 }
 
 QTabBar::close-button  {
-    image: url(:/qss_icons/icons/close_off.png);
+    image: url(:/icons/close_dock_off.png);
     background: transparent;
 }
 
 QTabBar::close-button:hover
 {
-    image: url(:/qss_icons/icons/close_on.png);
+   image: url(:/icons/close_dock_on.png);
     background: transparent;
 }
 
-/*QTabBar::close-button:pressed {
-    image: url(:/qss_icons/rc/close-pressed.png);
-    background: transparent;
-}*/
 
 /* TOP TABS */
 QTabBar::tab:top {
@@ -1050,19 +1046,19 @@ QDockWidget::close-button, QDockWidget::float-button {
 }
 
 QDockWidget::close-button {
-    image: url(:/qss_icons/icons/close_off.png);
+   image: url(:/icons/close_dock_off.png);
 }
 
 QDockWidget::float-button {
-    image: url(:/qss_icons/icons/undock_off.png);
+    image: url(:/icons/undock_dock_off.png);
 }
 
 QDockWidget::close-button:hover {
-    image: url(:/qss_icons/icons/close_on.png);
+    image: url(:/icons/close_dock_on.png);
 }
 
 QDockWidget::float-button:hover {
-    image: url(:/qss_icons/icons/undock_on.png);
+    image: url(:/icons/undock_dock_on.png);
 }
 
 QTreeView {
@@ -1189,9 +1185,9 @@ QToolBar QToolButton  {
     margin: 0px;
     padding: 0px;
 }
-QToolButton:disabled {
+/*QToolButton:disabled {
    background-color: #333333;
-}
+}*/
 QToolButton[popupMode="1"] { /* only for MenuButtonPopup */
     padding-right: 20px; /* make way for the popup button */
     border: 1px transparent #666666;
@@ -1507,8 +1503,4 @@ QTabBar:tab:right:selected{
     background-color: #1A2024;
     border-right: 2px solid #aaa;
 }
-QTabBar::close-button  {
-    image: url(:/qss_icons/icons/close_off.png);
-    background: transparent;
-    padding: 3px;
-}
+

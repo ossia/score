@@ -45,7 +45,9 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
   m_rmBtn->setText(QStringLiteral("-"));
   m_rmBtn->setMaximumSize(30, 30);
   auto remIcon = makeIcons(
-      ":/icons/condition_remove_on.png", ":/icons/condition_remove_off.png");
+      QStringLiteral(":/icons/condition_remove_on.png"),
+      QStringLiteral(":/icons/condition_remove_off.png"),
+      QStringLiteral(":/icons/condition_remove_disabled.png"));
 
   m_rmBtn->setIcon(remIcon);
 
@@ -54,7 +56,9 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
   m_addBtn->setMaximumSize(30, 30);
   m_addBtn->setVisible(false);
   auto addIcon = makeIcons(
-      ":/icons/condition_add_on.png", ":/icons/condition_add_off.png");
+      QStringLiteral(":/icons/condition_add_on.png"),
+      QStringLiteral(":/icons/condition_add_off.png"),
+      QStringLiteral(":/icons/condition_add_disabled.png"));
 
   m_addBtn->setIcon(addIcon);
 

@@ -29,7 +29,8 @@ score::UndoApplicationPlugin::UndoApplicationPlugin(
 
   setIcons(
       &m_undoAction, QStringLiteral(":/icons/prev_on.png"),
-      QStringLiteral(":/icons/prev_off.png"));
+      QStringLiteral(":/icons/prev_off.png"),
+      QStringLiteral(":/icons/prev_disabled.png") );
 
   con(m_undoAction, &QAction::triggered,
       [&]() { currentDocument()->commandStack().undo(); });
@@ -41,7 +42,8 @@ score::UndoApplicationPlugin::UndoApplicationPlugin(
 
   setIcons(
       &m_redoAction, QStringLiteral(":/icons/next_on.png"),
-      QStringLiteral(":/icons/next_off.png"));
+      QStringLiteral(":/icons/next_off.png"),
+      QStringLiteral(":/icons/next_disabled.png") );
 
   con(m_redoAction, &QAction::triggered,
       [&]() { currentDocument()->commandStack().redo(); });

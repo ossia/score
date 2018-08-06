@@ -18,6 +18,8 @@
 #include <QGraphicsScene>
 #include <wobjectimpl.h>
 #include <Media/Effect/Settings/Model.hpp>
+#include <score/widgets/Pixmap.hpp>
+
 W_OBJECT_IMPL(Media::VST::VSTWindow)
 W_OBJECT_IMPL(Media::VST::VSTGraphicsSlider)
 namespace Media::VST
@@ -197,12 +199,8 @@ void VSTEffectItem::setupInlet(
   double pos_y = this->childrenBoundingRect().height();
 
   auto port_item = VSTControlPortFactory{}.makeItem(inlet, doc, rect, this);
-  static const auto close_off = QPixmap::fromImage(
-      QImage(":/icons/close_off.png")
-          .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-  static const auto close_on = QPixmap::fromImage(
-      QImage(":/icons/close_on.png")
-          .scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+  static const auto close_off = score::get_pixmap(":/icons/close_off.png");
+  static const auto close_on = score::get_pixmap(":/icons/close_on.png");
 
   auto lab = new Scenario::SimpleTextItem{rect};
   lab->setColor(ScenarioStyle::instance().EventDefault);
