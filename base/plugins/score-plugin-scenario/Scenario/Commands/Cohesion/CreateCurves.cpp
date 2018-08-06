@@ -594,6 +594,8 @@ int CreateCurvesFromAddresses(
   auto process_ids = getStrongIdRange<Process::ProcessModel>(N, interval.processes);
   auto macro = Scenario::Command::makeAddProcessMacro(interval, N);
 
+  auto slots = macro->slotsToUse;
+  m.submit(macro);
   const auto& ss = startState(interval, scenar);
   const auto& es = endState(interval, scenar);
 
@@ -610,29 +612,28 @@ int CreateCurvesFromAddresses(
 
   for (const Device::FullAddressSettings& as : addresses.float_addr)
   {
-    CurveCreator{as, ss, es, interval, process_ids, m, macro->slotsToUse, created}(float{});
+    CurveCreator{as, ss, es, interval, process_ids, m, slots, created}(float{});
   }
   for (const Device::FullAddressSettings& as : addresses.int_addr)
   {
-    CurveCreator{as, ss, es, interval, process_ids, m, macro->slotsToUse, created}(int{});
+    CurveCreator{as, ss, es, interval, process_ids, m, slots, created}(int{});
   }
   for (const Device::FullAddressSettings& as : addresses.vec2f_addr)
   {
-    CurveCreator{as, ss, es, interval, process_ids, m, macro->slotsToUse, created}(ossia::vec2f{});
+    CurveCreator{as, ss, es, interval, process_ids, m, slots, created}(ossia::vec2f{});
   }
   for (const Device::FullAddressSettings& as : addresses.vec3f_addr)
   {
-    CurveCreator{as, ss, es, interval, process_ids, m, macro->slotsToUse, created}(ossia::vec3f{});
+    CurveCreator{as, ss, es, interval, process_ids, m, slots, created}(ossia::vec3f{});
   }
   for (const Device::FullAddressSettings& as : addresses.vec4f_addr)
   {
-    CurveCreator{as, ss, es, interval, process_ids, m, macro->slotsToUse, created}(ossia::vec4f{});
+    CurveCreator{as, ss, es, interval, process_ids, m, slots, created}(ossia::vec4f{});
   }
   for (const Device::FullAddressSettings& as : addresses.list_addr)
   {
-    CurveCreator{as, ss, es, interval, process_ids, m, macro->slotsToUse, created}(as.value.get<std::vector<ossia::value>>());
+    CurveCreator{as, ss, es, interval, process_ids, m, slots, created}(as.value.get<std::vector<ossia::value>>());
   }
-  m.submit(macro);
   return created.size();
 }
 

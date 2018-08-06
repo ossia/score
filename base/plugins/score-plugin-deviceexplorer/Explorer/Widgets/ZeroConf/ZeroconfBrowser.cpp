@@ -100,6 +100,7 @@ void ZeroconfBrowser::accept()
     m_dialog->close();
     return;
   }
+  ip.clear();
 
   auto selection = m_list->currentIndex();
   if (!selection.isValid())
@@ -132,12 +133,18 @@ void ZeroconfBrowser::accept()
       if (str.startsWith("servus_host = "))
       {
         str.remove("servus_host = ");
-        ip = std::move(str);
+        if(ip.isEmpty())
+          ip = std::move(str);
       }
       else if (str.startsWith("servus_port = "))
       {
         str.remove("servus_port = ");
         port = str.toInt();
+      }
+      else if (str.startsWith("servus_ip = "))
+      {
+        str.remove("servus_ip = ");
+        ip = str;
       }
       else
       {
