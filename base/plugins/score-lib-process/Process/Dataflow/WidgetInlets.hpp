@@ -11,6 +11,7 @@ struct IntSlider;
 struct IntSpinBox;
 struct Toggle;
 struct ChooserToggle;
+struct ComboBox;
 struct LineEdit;
 struct Enum;
 struct TimeSignatureChooser;
@@ -62,6 +63,12 @@ UUID_METADATA(
     Process::Port,
     Process::Enum,
     "8b1d76c4-3838-4ac0-9b9c-c12bc5db8e8a")
+
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT,
+    Process::Port,
+    Process::ComboBox,
+    "485680cc-b8b9-4a01-acc7-3e8334bdc016")
 
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT,
@@ -215,31 +222,33 @@ struct LineEdit final
     using Process::ControlInlet::ControlInlet;
 };
 
-/*
+
 struct ComboBox final
     : public Process::ControlInlet
 {
     using control_type = WidgetFactory::ComboBox;
-    std::array<std::pair<const char*, T>, N> alternatives;
-    template<typename T, std::size_t N>
-    ComboBox(std::array<std::pair<const char*, T>, N> values, T init, const QString& name, Id<Process::Port> id, QObject* parent):
+    std::vector<std::pair<QString, ossia::value>> alternatives;
+    ComboBox(std::vector<std::pair<QString, ossia::value>> values,
+             ossia::value init,
+             const QString& name,
+             Id<Process::Port> id, QObject* parent):
       ControlInlet{id, parent}
-    , alternatives{values}
+    , alternatives{std::move(values)}
     {
       type = Process::PortType::Message;
       hidden = true;
       setValue(init);
-      ossia::domain_base<T> dom;
-      for(auto& val : values)
-        dom.values.insert(val.second);
-      setDomain(State::Domain{dom});
+      std::vector<ossia::value> vals;
+      for(auto& v : alternatives)
+        vals.push_back(v.second);
+      setDomain(State::Domain{ossia::make_domain(vals)});
       setCustomData(name);
     }
 
-    QStringList alternatives;
+    const auto& getValues() const { return alternatives; }
     using Process::ControlInlet::ControlInlet;
 };
-*/
+
 
 struct Enum final
     : public Process::ControlInlet

@@ -635,7 +635,6 @@ struct Enum
     }
 };
 
-template<typename T, std::size_t N>
 struct ComboBox
 {
     template <typename U>
@@ -655,9 +654,8 @@ struct ComboBox
       sl->setContentsMargins(0, 0, 0, 0);
 
       auto set_index = [values, sl](const ossia::value& val) {
-        auto v = ossia::convert<T>(val);
         auto it = ossia::find_if(
-            values, [&](const auto& pair) { return pair.second == v; });
+            values, [&](const auto& pair) { return pair.second == val; });
         if (it != values.end())
         {
           sl->setCurrentIndex(std::distance(values.begin(), it));
@@ -687,18 +685,20 @@ struct ComboBox
         QWidget* parent,
         QObject* context)
     {
+      const auto N = slider.count();
+
       const auto& values = slider.getValues();
-      std::array<const char*, N> arr;
+      QStringList arr;
+      arr.reserve(N);
       for (std::size_t i = 0; i < N; i++)
-        arr[i] = values[i].first;
+        arr.push_back(values[i].first);
 
       auto sl = new score::QGraphicsComboSlider{arr, nullptr};
       sl->setRect({0., 0., 150., 15.});
 
       auto set_index = [values, sl](const ossia::value& val) {
-        auto v = ossia::convert<T>(val);
         auto it = ossia::find_if(
-            values, [&](const auto& pair) { return pair.second == v; });
+            values, [&](const auto& pair) { return pair.second == val; });
         if (it != values.end())
         {
           sl->setValue(std::distance(values.begin(), it));

@@ -21,6 +21,7 @@
 #include <Media/Effect/LV2/LV2Context.hpp>
 #include <Media/Effect/LV2/LV2Node.hpp>
 #include <Media/Effect/LV2/LV2Window.hpp>
+#include <Process/Dataflow/WidgetInlets.hpp>
 
 #include <wobjectimpl.h>
 #include <QListWidget>

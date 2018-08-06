@@ -52,7 +52,7 @@ struct FloatSlider final
 
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
-    return new Process::FloatSlider{init, min, max, QString::fromUtf8(name.data(), name.size()), id, parent};
+    return new Process::FloatSlider{min, max, init, QString::fromUtf8(name.data(), name.size()), id, parent};
   }
 
   float fromValue(const ossia::value& v) const
@@ -93,7 +93,7 @@ struct LogFloatSlider final
 
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
-    return new Process::LogFloatSlider{init, min, max, QString::fromUtf8(name.data(), name.size()), id, parent};
+    return new Process::LogFloatSlider{min, max, init, QString::fromUtf8(name.data(), name.size()), id, parent};
   }
 
   float fromValue(const ossia::value& v) const
@@ -142,7 +142,7 @@ struct IntSlider final
 
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
-    return new Process::IntSlider{init, min, max, QString::fromUtf8(name.data(), name.size()), id, parent};
+    return new Process::IntSlider{min, max, init, QString::fromUtf8(name.data(), name.size()), id, parent};
   }
 };
 
@@ -182,7 +182,7 @@ struct IntSpinBox final
 
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
-    return new Process::IntSpinBox{init, min, max, QString::fromUtf8(name.data(), name.size()), id, parent};
+    return new Process::IntSpinBox{min, max, init, QString::fromUtf8(name.data(), name.size()), id, parent};
   }
 
 };
@@ -279,13 +279,14 @@ struct LineEdit final
 template <typename T, std::size_t N>
 struct ComboBox final
     : ossia::safe_nodes::control_in
-    , WidgetFactory::ComboBox<T,N>
+    , WidgetFactory::ComboBox
 {
   static const constexpr bool must_validate = false;
   using type = T;
   const std::size_t init{};
   const std::array<std::pair<const char*, T>, N> values;
 
+  static constexpr auto count() { return N; }
   template <std::size_t M, typename Arr>
   constexpr ComboBox(const char (&name)[M], std::size_t in, Arr arr)
       : ossia::safe_nodes::control_in{name}, init{in}, values{arr}

@@ -223,6 +223,7 @@ score_plugin_scenario::factories(
       Dataflow::WidgetInletFactory<Process::Button>,
       Dataflow::WidgetInletFactory<Process::ChooserToggle>,
       Dataflow::WidgetInletFactory<Process::LineEdit>,
+      Dataflow::WidgetInletFactory<Process::ComboBox>,
       Dataflow::WidgetInletFactory<Process::Enum>,
       Dataflow::WidgetInletFactory<Process::TimeSignatureChooser>
       >,
