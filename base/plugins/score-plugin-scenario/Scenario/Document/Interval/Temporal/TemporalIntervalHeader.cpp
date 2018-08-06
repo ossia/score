@@ -126,7 +126,7 @@ void TemporalIntervalHeader::paint(
 void TemporalIntervalHeader::updateButtons()
 {
   if (m_button)
-    m_button->setPos(15, 5);
+    m_button->setPos(10, 5);
   if (m_mute)
     m_mute->setPos(30, 5);
 }
@@ -267,6 +267,20 @@ static const QPainterPath trianglePath{[] {
 static const auto rotatedTriangle
     = QTransform().rotate(90).translate(8, -12).map(trianglePath);
 
+static const QPainterPath arrowPath{[] {
+  QPainterPath p;
+
+  p.moveTo(QPointF(5, 5));
+  p.lineTo(QPointF(14, 13));
+  p.lineTo(QPointF(5, 21));
+
+  p = QTransform().scale(0.6, 0.6).translate(0,4).map(p);
+
+  return p;
+}()};
+static const auto rotatedArrow
+    = QTransform().rotate(90).translate(6, -16).map(arrowPath);
+
 QRectF RackButton::boundingRect() const
 {
   return QRectF(trianglePath.boundingRect());
@@ -276,15 +290,23 @@ void RackButton::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, true);
-  auto& skin = ScenarioStyle::instance();
-  painter->setBrush(skin.IntervalHeaderSeparator.brush());
+  painter->setBrush(Qt::NoBrush);
+
+  auto pen = QPen(QColor("#f6a019"));
+  pen.setCapStyle(Qt::RoundCap);
+  pen.setJoinStyle(Qt::RoundJoin);
+  pen.setWidth(2);
+
   if (m_unroll)
   {
-    painter->fillPath(trianglePath, painter->brush());
+    pen.setColor("#a0a0a0");
+    painter->setPen(pen);
+    painter->drawPath(arrowPath);
   }
   else
   {
-    painter->fillPath(rotatedTriangle, painter->brush());
+    painter->setPen(pen);
+    painter->drawPath(rotatedArrow);
   }
   painter->setRenderHint(QPainter::Antialiasing, false);
 }
