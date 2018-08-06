@@ -34,7 +34,9 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   m_play->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   m_play->setData(false);
   setIcons(
-      m_play, QString(":/icons/play_on.png"), QString(":/icons/play_off.png"));
+      m_play, QStringLiteral(":/icons/play_on.png"),
+      QStringLiteral(":/icons/play_off.png"),
+      QStringLiteral(":/icons/play_disabled.png"));
 
   m_playGlobal = new QAction{tr("Play Root"), nullptr};
   m_playGlobal->setCheckable(true);
@@ -43,15 +45,17 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   m_playGlobal->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   m_playGlobal->setData(false);
   setIcons(
-      m_playGlobal, QString(":/icons/play_glob_on.png"),
-      QString(":/icons/play_glob_off.png"));
+      m_playGlobal, QStringLiteral(":/icons/play_glob_on.png"),
+      QStringLiteral(":/icons/play_glob_off.png"),
+      QStringLiteral(":/icons/play_glob_disabled.png"));
 
   m_stop = new QAction{tr("Stop"), nullptr};
   m_stop->setObjectName("Stop");
   m_stop->setShortcut(Qt::Key_Return);
   m_stop->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   setIcons(
-      m_stop, QString(":/icons/stop_on.png"), QString(":/icons/stop_off.png"));
+      m_stop, QStringLiteral(":/icons/stop_on.png"), QStringLiteral(":/icons/stop_off.png"),
+      QStringLiteral(":/icons/stop_disabled.png"));
   /*
       m_goToStart = new QAction{tr("⏮ Start"), nullptr};
       m_goToStart->setObjectName("Start");
@@ -69,8 +73,9 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   m_stopAndInit->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 
   setIcons(
-      m_stopAndInit, QString(":/icons/reinitialize_on.png"),
-      QString(":/icons/reinitialize_off.png"));
+      m_stopAndInit, QStringLiteral(":/icons/reinitialize_on.png"),
+      QStringLiteral(":/icons/reinitialize_off.png"),
+      QStringLiteral(":/icons/reinitialize_disabled.png"));
   /*
       m_record = new QAction{tr("Record"), nullptr};
       m_record->setObjectName("Record");
@@ -85,18 +90,22 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
                         // false for "play" state (i.e. currently paused)
     setIcons(
         m_play,
-        b ? QString(":/icons/pause_on.png") : QString(":/icons/play_on.png"),
-        b ? QString(":/icons/pause_off.png")
-          : QString(":/icons/play_off.png"));
+        b ? QStringLiteral(":/icons/pause_on.png") : QStringLiteral(":/icons/play_on.png"),
+        b ? QStringLiteral(":/icons/pause_off.png")
+          : QStringLiteral(":/icons/play_off.png"),
+        b ? QStringLiteral(":/icons/pause_disabled.png")
+          : QStringLiteral(":/icons/play_disabled.png"));
 
     m_playGlobal->setText(b ? tr("Pause") : tr("Play (global)"));
     m_playGlobal->setData(b);
     setIcons(
         m_playGlobal,
-        b ? QString(":/icons/pause_on.png")
-          : QString(":/icons/play_glob_on.png"),
-        b ? QString(":/icons/pause_off.png")
-          : QString(":/icons/play_glob_off.png"));
+        b ? QStringLiteral(":/icons/pause_on.png")
+          : QStringLiteral(":/icons/play_glob_on.png"),
+        b ? QStringLiteral(":/icons/pause_off.png")
+          : QStringLiteral(":/icons/play_glob_off.png"),
+          b ? QStringLiteral(":/icons/pause_disabled.png")
+            : QStringLiteral(":/icons/play_glob_disabled.png"));
   };
   connect(m_play, &QAction::toggled, this, [=](bool b) {
     on_play(b);
@@ -115,16 +124,18 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
     m_play->setChecked(false);
     m_play->setText(tr("Play"));
     setIcons(
-        m_play, QString(":/icons/play_on.png"),
-        QString(":/icons/play_off.png"));
+        m_play, QStringLiteral(":/icons/play_on.png"),
+        QStringLiteral(":/icons/play_off.png"),
+        QStringLiteral(":/icons/play_disabled.png"));
     m_play->setData(false);
 
     m_playGlobal->setEnabled(true);
     m_playGlobal->setChecked(false);
     m_play->setText(tr("Play (global)"));
     setIcons(
-        m_playGlobal, QString(":/icons/play_glob_on.png"),
-        QString(":/icons/play_glob_off.png"));
+        m_playGlobal, QStringLiteral(":/icons/play_glob_on.png"),
+        QStringLiteral(":/icons/play_glob_off.png"),
+        QStringLiteral(":/icons/play_glob_disabled.png"));
     m_playGlobal->setData(false);
     //        m_record->setChecked(false);
 

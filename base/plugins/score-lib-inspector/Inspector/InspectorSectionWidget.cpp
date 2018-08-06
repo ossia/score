@@ -17,7 +17,9 @@ MenuButton::MenuButton(QWidget* parent)
 {
   setFlat(true);
   setObjectName(QStringLiteral("SettingsMenu"));
-  auto icon = makeIcons(":/icons/gear_on.png", ":/icons/gear_off.png");
+  auto icon = makeIcons(QStringLiteral(":/icons/gear_on.png"),
+                        QStringLiteral(":/icons/gear_off.png"),
+                        QStringLiteral(":/icons/gear_disabled.png"));
   setIcon(icon);
   setIconSize(QSize(16, 16));
 }
