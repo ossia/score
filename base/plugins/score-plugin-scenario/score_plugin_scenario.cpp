@@ -61,6 +61,44 @@
 #include <QString>
 
 #include <wobjectimpl.h>
+
+#include <Process/Dataflow/PortListWidget.hpp>
+#include <Process/Dataflow/WidgetInlets.hpp>
+
+namespace Dataflow
+{
+template<typename T>
+struct WidgetInletFactory final : public AutomatablePortFactory
+{
+    using Model_T = T;
+    UuidKey<Process::Port> concreteKey() const noexcept override
+    {
+      return Metadata<ConcreteKey_k, Model_T>::get();
+    }
+
+    Model_T* load(const VisitorVariant& vis, QObject* parent) override
+    {
+      return score::deserialize_dyn(vis, [&](auto&& deserializer) {
+        return new Model_T{deserializer, parent};
+      });
+    }
+
+    void setupInspector(
+        Process::Inlet& port,
+        const score::DocumentContext& ctx,
+        QWidget* parent,
+        Inspector::Layout& lay,
+        QObject* context) override
+    {
+      using factory = typename Model_T::control_type;
+      auto& ctrl = static_cast<Model_T&>(port);
+      auto widg = factory::make_widget(ctrl, ctrl, ctx, parent, parent);
+      Process::PortWidgetSetup::setupControl(ctrl, widg, ctx, lay, parent);
+    }
+};
+
+}
+
 W_OBJECT_IMPL(Interpolation::Presenter)
 score_plugin_scenario::score_plugin_scenario()
 {
@@ -176,7 +214,18 @@ score_plugin_scenario::factories(
       FW<score::ValidityChecker, ScenarioValidityChecker>,
       FW<Process::PortFactory, Dataflow::InletFactory,
          Dataflow::ControlInletFactory, Dataflow::OutletFactory,
-         Dataflow::ControlOutletFactory>,
+         Dataflow::ControlOutletFactory,
+      Dataflow::WidgetInletFactory<Process::FloatSlider>,
+      Dataflow::WidgetInletFactory<Process::LogFloatSlider>,
+      Dataflow::WidgetInletFactory<Process::IntSlider>,
+      Dataflow::WidgetInletFactory<Process::IntSpinBox>,
+      Dataflow::WidgetInletFactory<Process::Toggle>,
+      Dataflow::WidgetInletFactory<Process::Button>,
+      Dataflow::WidgetInletFactory<Process::ChooserToggle>,
+      Dataflow::WidgetInletFactory<Process::LineEdit>,
+      Dataflow::WidgetInletFactory<Process::Enum>,
+      Dataflow::WidgetInletFactory<Process::TimeSignatureChooser>
+      >,
       FW<Execution::ProcessComponentFactory, Execution::ScenarioComponentFactory>
       >(ctx, key);
 }
