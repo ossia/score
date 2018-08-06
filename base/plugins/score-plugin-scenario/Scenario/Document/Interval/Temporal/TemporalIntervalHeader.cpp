@@ -22,6 +22,7 @@
 #include <cmath>
 #include <score/model/Skin.hpp>
 #include <score/widgets/GraphicsItem.hpp>
+#include <score/widgets/Pixmap.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::RackButton)
@@ -139,12 +140,8 @@ void TemporalIntervalHeader::enableOverlay(bool b)
       ((TemporalIntervalPresenter&)m_presenter).changeRackState();
     });
 
-    static const auto pix_unmuted = QPixmap::fromImage(
-        QImage(":/icons/engine_on.png")
-            .scaled(20, 20, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-    static const auto pix_muted = QPixmap::fromImage(
-        QImage(":/icons/engine_off.png")
-            .scaled(20, 20, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+    static const auto pix_unmuted = score::get_pixmap(":/icons/process_on.png");
+    static const auto pix_muted = score::get_pixmap(":/icons/process_off.png");
 
     m_mute = new score::QGraphicsPixmapToggle{pix_muted, pix_unmuted, this};
     if (m_presenter.model().muted())

@@ -91,6 +91,10 @@
         <file>icons/play_on@2x.png</file>
         <file>icons/prev_off@2x.png</file>
         <file>icons/prev_on@2x.png</file>
+        <file>icons/process_off.png</file>
+        <file>icons/process_off@2x.png</file>
+        <file>icons/process_on.png</file>
+        <file>icons/process_on@2x.png</file>
         <file>icons/record_off.png</file>
         <file>icons/record_off@2x.png</file>
         <file>icons/record_on.png</file>
