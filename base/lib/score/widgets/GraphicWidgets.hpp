@@ -333,6 +333,14 @@ public:
     this->setAcceptedMouseButtons(Qt::LeftButton);
   }
 
+  QGraphicsComboSlider(
+      QStringList arr, QGraphicsItem* parent)
+      : QGraphicsItem{parent}
+      , array{std::move(arr)}
+  {
+    this->setAcceptedMouseButtons(Qt::LeftButton);
+  }
+
   QGraphicsComboSlider(QGraphicsItem* parent);
 
   void setRect(const QRectF& r);

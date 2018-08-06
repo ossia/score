@@ -197,6 +197,26 @@ JSONObjectWriter::write<Process::TimeSignatureChooser>(Process::TimeSignatureCho
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read<Process::ComboBox>(const Process::ComboBox& p)
+{
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write<Process::ComboBox>(Process::ComboBox& p)
+{
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONObjectReader::read<Process::ComboBox>(const Process::ComboBox& p)
+{
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONObjectWriter::write<Process::ComboBox>(Process::ComboBox& p)
+{
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::Button>(const Process::Button& p)
 {
 }
