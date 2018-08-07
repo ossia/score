@@ -1,5 +1,6 @@
 #pragma once
 #include <QWidget>
+#include <score_lib_process_export.h>
 
 namespace Inspector
 {
@@ -21,7 +22,8 @@ namespace Process
 {
 class ProcessModel;
 
-class PortWidgetSetup final
+
+class SCORE_LIB_PROCESS_EXPORT PortWidgetSetup final
 {
 public:
   static void setupAlone(
