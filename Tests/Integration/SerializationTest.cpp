@@ -10,6 +10,7 @@
 #include <wobjectimpl.h>
 #include <IscoreIntegrationTests.hpp>
 
+//////// Test basic objects ////////
 struct foo : public IdentifiedObject<foo>
 {
   foo(Id<foo> id, QObject* p): IdentifiedObject{id, "foo_objname", p}
@@ -25,6 +26,18 @@ struct foo : public IdentifiedObject<foo>
 
   int foo_var = 0;
 };
+
+template <>
+void DataStreamReader::read(const foo& pt)
+{
+  m_stream << pt.foo_var;
+}
+
+template <>
+void DataStreamWriter::write(foo& pt)
+{
+  m_stream >> pt.foo_var;
+}
 
 template <>
 void JSONObjectReader::read(const foo& pt)
@@ -56,6 +69,17 @@ struct bar : public score::Entity<bar>
   int bar_var = 0;
 };
 
+template <>
+void DataStreamReader::read(const bar& pt)
+{
+  m_stream << pt.bar_var;
+}
+
+template <>
+void DataStreamWriter::write(bar& pt)
+{
+  m_stream >> pt.bar_var;
+}
 
 template <>
 void JSONObjectReader::read(const bar& pt)
@@ -69,6 +93,9 @@ void JSONObjectWriter::write(bar& pt)
   pt.bar_var = obj["bar_var"].toInt();
 }
 
+
+
+//////// Test dynamically loaded objects ////////
 struct base;
 struct base_factory
     : score::InterfaceBase
@@ -185,6 +212,7 @@ void JSONObjectWriter::write(derived& pt)
   pt.derived_var = obj["derived_var"].toInt();
 }
 
+
 struct derived2;
 MODEL_METADATA(, base, derived2, "3f77dcba-f1eb-420b-ad76-994cfc439304", "derived2", "derived2")
 struct derived2 : public derived
@@ -243,6 +271,112 @@ void JSONObjectWriter::write(derived2& pt)
 }
 
 
+///////// Test trait-based objects /////////
+
+template<typename T>
+struct trait : public T
+{
+  friend struct TSerializer<JSONObject, trait<T>>;
+  friend struct TSerializer<DataStream, trait<T>>;
+
+public:
+  using base_type = T;
+  using id_type = decltype(std::declval<T>().id());
+  using T::T;
+  template <typename DeserializerVisitor>
+  trait(DeserializerVisitor&& vis, QObject* parent)
+      : T{vis, parent}
+  {
+    vis.writeTo(*this);
+  }
+  template <typename DeserializerVisitor>
+  trait(DeserializerVisitor& vis, QObject* parent)
+      : T{vis, parent}
+  {
+    vis.writeTo(*this);
+  }
+
+  int trait_var{};
+};
+
+
+template <typename T>
+struct TSerializer<DataStream, trait<T>>
+{
+  static void readFrom(DataStream::Serializer& s, const trait<T>& v)
+  {
+    s.stream() << v.trait_var;
+  }
+
+  static void writeTo(DataStream::Deserializer& s, trait<T>& v)
+  {
+    s.stream() >> v.trait_var;
+  }
+};
+
+template <typename T>
+struct TSerializer<JSONObject, trait<T>>
+{
+  static void readFrom(JSONObject::Serializer& s, const trait<T>& v)
+  {
+    s.obj["trait_var"] = v.trait_var;
+  }
+
+  static void writeTo(JSONObject::Deserializer& s, trait<T>& v)
+  {
+    v.trait_var = s.obj["trait_var"].toInt();
+  }
+};
+
+template <typename T>
+struct is_custom_serialized<trait<T>> : std::true_type
+{
+};
+
+struct crtp : public trait<score::Entity<crtp>>
+{
+public:
+  using base_type = trait<score::Entity<crtp>>;
+  crtp(Id<crtp> id, QObject* parent)
+    : base_type{id, "crtp_objname", parent}
+  {
+
+  }
+
+  template <typename DeserializerVisitor>
+  crtp(DeserializerVisitor&& vis, QObject* parent)
+      : base_type{vis, parent}
+  {
+    vis.writeTo(*this);
+  }
+
+  int crtp_var{};
+};
+
+template <>
+void DataStreamReader::read(const crtp& pt)
+{
+  m_stream << pt.crtp_var;
+}
+
+template <>
+void DataStreamWriter::write(crtp& pt)
+{
+  m_stream >> pt.crtp_var;
+}
+
+template <>
+void JSONObjectReader::read(const crtp& pt)
+{
+  obj["crtp_var"] = pt.crtp_var;
+}
+
+template <>
+void JSONObjectWriter::write(crtp& pt)
+{
+  pt.crtp_var = obj["crtp_var"].toInt();
+}
+
 class SerializationTest : public TestBase
 {
   W_OBJECT(SerializationTest)
@@ -275,6 +409,14 @@ private:
       QCOMPARE(obj.objectName(), "foo_objname");
       QCOMPARE(obj.foo_var, 4567);
     }
+
+    // Test DataStream serialization
+    {
+      foo obj(DataStreamWriter{score::marshall<DataStream>(f)}, nullptr);
+      QCOMPARE(obj.id().val(), 1234);
+      QCOMPARE(obj.objectName(), "foo_objname");
+      QCOMPARE(obj.foo_var, 4567);
+    }
   }
   W_SLOT(serialization_identified_object_test)
 
@@ -294,6 +436,14 @@ private:
       QVERIFY(json["Components"].isArray());
 
       bar obj(JSONObjectWriter{json}, nullptr);
+      QCOMPARE(obj.id().val(), 1234);
+      QCOMPARE(obj.objectName(), "bar_objname");
+      QCOMPARE(obj.bar_var, 4567);
+    }
+
+    // Test DataStream serialization
+    {
+      bar obj(DataStreamWriter{score::marshall<DataStream>(f)}, nullptr);
       QCOMPARE(obj.id().val(), 1234);
       QCOMPARE(obj.objectName(), "bar_objname");
       QCOMPARE(obj.bar_var, 4567);
@@ -321,6 +471,20 @@ private:
       auto& pl = components().interfaces<base_factories>();
 
       JSONObject::Deserializer deserializer{json};
+      auto proc = deserialize_interface(pl, deserializer);
+      QVERIFY(proc);
+      auto obj = dynamic_cast<derived*>(proc);
+      QVERIFY(obj);
+      QCOMPARE(obj->id().val(), 1234);
+      QCOMPARE(obj->objectName(), "base_objname");
+      QCOMPARE(obj->base_var, 4567);
+      QCOMPARE(obj->derived_var, 8910);
+    }
+
+    {
+      auto& pl = components().interfaces<base_factories>();
+
+      DataStreamWriter deserializer{score::marshall<DataStream>((base&)f)};
       auto proc = deserialize_interface(pl, deserializer);
       QVERIFY(proc);
       auto obj = dynamic_cast<derived*>(proc);
@@ -365,8 +529,61 @@ private:
       QCOMPARE(obj->derived_var, 8910);
       QCOMPARE(obj->derived2_var, 555);
     }
+    {
+      auto& pl = components().interfaces<base_factories>();
+
+      DataStreamWriter deserializer{score::marshall<DataStream>((base&)f)};
+      auto proc = deserialize_interface(pl, deserializer);
+      QVERIFY(proc);
+      auto obj = dynamic_cast<derived2*>(proc);
+      QVERIFY(obj);
+      QCOMPARE(obj->id().val(), 1234);
+      QCOMPARE(obj->objectName(), "base_objname");
+      QCOMPARE(obj->base_var, 4567);
+      QCOMPARE(obj->derived_var, 8910);
+      QCOMPARE(obj->derived2_var, 555);
+    }
   }
   W_SLOT(serialization_abstract_child_test)
+
+
+  void serialization_trait_test()
+  {
+    crtp f{Id<crtp>{1234}, nullptr};
+    f.trait_var = 4567;
+    f.crtp_var = 8910;
+
+    // Test JSON serialization
+    {
+      auto json = score::marshall<JSONObject>(f);
+      qDebug() << json;
+      QCOMPARE(json["id"].toInt(), 1234);
+      QCOMPARE(json["ObjectName"].toString(), "crtp_objname");
+      QCOMPARE(json["trait_var"].toInt(), 4567);
+      QCOMPARE(json["crtp_var"].toInt(), 8910);
+      QVERIFY(json["Metadata"].isObject());
+      QVERIFY(json["Components"].isArray());
+
+      crtp obj(JSONObjectWriter{json}, nullptr);
+      QCOMPARE(obj.id().val(), 1234);
+      QCOMPARE(obj.objectName(), "crtp_objname");
+      QCOMPARE(obj.trait_var, 4567);
+      QCOMPARE(obj.crtp_var, 8910);
+    }
+
+    {
+      crtp obj(DataStreamWriter{score::marshall<DataStream>(f)}, nullptr);
+      QCOMPARE(obj.id().val(), 1234);
+      QCOMPARE(obj.objectName(), "crtp_objname");
+      QCOMPARE(obj.trait_var, 4567);
+      QCOMPARE(obj.crtp_var, 8910);
+    }
+  }
+  W_SLOT(serialization_trait_test)
+
+  // TODO crtp *before* and *after* factories
+
+
   void JSONTest()
   {
     JSONObjectReader reader;

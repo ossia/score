@@ -68,6 +68,29 @@ struct is_entity<T, enable_if_entity<T>> : std::true_type
 {
 };
 
+
+struct has_no_base
+{
+};
+struct has_base
+{
+};
+
+template <typename T, typename U = void>
+struct base_kind
+{
+  using type = has_no_base;
+  static constexpr bool value = false;
+};
+
+template <typename T>
+struct base_kind<T, std::void_t<typename T::base_type>>
+{
+  using type = has_base;
+  static constexpr bool value = true;
+};
+
+
 //! Classes that only inherit from score::SerializableInterface
 struct visitor_abstract_tag
 {

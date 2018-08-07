@@ -20,24 +20,6 @@
 
 namespace score
 {
-struct has_no_base
-{
-};
-struct has_base
-{
-};
-
-template <typename T, typename U = void>
-struct base_kind
-{
-  using type = has_no_base;
-};
-
-template <typename T>
-struct base_kind<T, std::void_t<typename T::base_type>>
-{
-  using type = has_base;
-};
 
 template <typename Vis, typename T>
 void serialize_dyn_impl(Vis& v, const T& t);

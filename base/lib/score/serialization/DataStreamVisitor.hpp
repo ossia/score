@@ -211,7 +211,15 @@ private:
   template <typename T>
   void readFrom_impl(const T& obj, visitor_object_tag)
   {
-    TSerializer<DataStream, IdentifiedObject<T>>::readFrom(*this, obj);
+    if constexpr(base_kind<T>::value)
+    {
+      readFrom_impl((const typename T::base_type&) obj, typename serialization_tag<T>::type{});
+    }
+    else
+    {
+      TSerializer<DataStream, IdentifiedObject<T>>::readFrom(*this, obj);
+    }
+
     if constexpr(is_custom_serialized<T>::value || is_template<T>::value)
         TSerializer<DataStream, T>::readFrom(*this, obj);
     else
@@ -221,7 +229,15 @@ private:
   template <typename T>
   void readFrom_impl(const T& obj, visitor_entity_tag)
   {
-    TSerializer<DataStream, score::Entity<T>>::readFrom(*this, obj);
+    if constexpr(base_kind<T>::value)
+    {
+      readFrom_impl((const typename T::base_type&) obj, typename serialization_tag<T>::type{});
+    }
+    else
+    {
+      TSerializer<DataStream, score::Entity<T>>::readFrom(*this, obj);
+    }
+
     if constexpr(is_custom_serialized<T>::value || is_template<T>::value)
         TSerializer<DataStream, T>::readFrom(*this, obj);
     else
