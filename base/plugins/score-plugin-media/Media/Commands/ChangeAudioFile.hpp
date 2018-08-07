@@ -32,12 +32,13 @@ private:
   TimeVal m_olddur;
 };
 
-PROPERTY_COMMAND_T(ChangeStart, Sound::ProcessModel::p_startChannel, "Change start channel")
-PROPERTY_COMMAND_T(ChangeUpmix, Sound::ProcessModel::p_upmixChannels, "Change upmix channels")
-PROPERTY_COMMAND_T(ChangeStartOffset, Sound::ProcessModel::p_startOffset, "Change start offset")
-SCORE_COMMAND_DECL_T(Media::Commands::ChangeStart)
-SCORE_COMMAND_DECL_T(Media::Commands::ChangeUpmix)
-SCORE_COMMAND_DECL_T(Media::Commands::ChangeStartOffset)
 
 }
 }
+
+PROPERTY_COMMAND_T(Media::Commands, ChangeStart, ProcessModel::p_startChannel, "Change start channel")
+PROPERTY_COMMAND_T(Media::Commands, ChangeUpmix, ProcessModel::p_upmixChannels, "Change upmix channels")
+PROPERTY_COMMAND_T(Media::Commands, ChangeStartOffset, ProcessModel::p_startOffset, "Change start offset")
+SCORE_COMMAND_DECL_T(Media::Commands::ChangeStart)
+SCORE_COMMAND_DECL_T(Media::Commands::ChangeUpmix)
+SCORE_COMMAND_DECL_T(Media::Commands::ChangeStartOffset)

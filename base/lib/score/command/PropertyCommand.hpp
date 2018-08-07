@@ -60,6 +60,10 @@ class PropertyCommand_T : public score::Command
 public:
   using model_t = typename T::model_type;
   using param_t = typename T::param_type;
+
+  template<typename U>
+  struct command;
+
   using score::Command::Command;
   PropertyCommand_T() = default;
 
@@ -108,11 +112,24 @@ private:
 };
 }
 
-#define PROPERTY_COMMAND_T(Name, Property, Description)        \
+#define PROPERTY_COMMAND_T(NS, Name, Property, Description)    \
+namespace NS {                                                 \
 class Name final :                                             \
     public score::PropertyCommand_T<Property>                  \
 {                                                              \
   SCORE_COMMAND_DECL(CommandFactoryName(), Name, Description)  \
 public:                                                        \
   using PropertyCommand_T::PropertyCommand_T;                  \
-};
+};                                                             \
+}                                                              \
+                                                               \
+namespace score {                                              \
+template<>                                                     \
+template<>                                                     \
+struct score::PropertyCommand_T<NS::Property>::command<void> {     \
+  using type = NS::Name;                                           \
+};                                                             \
+}
+
+
+
