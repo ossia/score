@@ -99,14 +99,20 @@ private:
   void readFrom_impl(const T& obj, visitor_object_tag)
   {
     TSerializer<JSONObject, IdentifiedObject<T>>::readFrom(*this, obj);
-    read(obj);
+    if constexpr(is_custom_serialized<T>::value || is_template<T>::value)
+        TSerializer<JSONObject, T>::readFrom(*this, obj);
+    else
+        read(obj);
   }
 
   template <typename T>
   void readFrom_impl(const T& obj, visitor_entity_tag)
   {
     TSerializer<JSONObject, score::Entity<T>>::readFrom(*this, obj);
-    read(obj);
+    if constexpr(is_custom_serialized<T>::value || is_template<T>::value)
+        TSerializer<JSONObject, T>::readFrom(*this, obj);
+    else
+        read(obj);
   }
 
   template <typename T, typename Fun>

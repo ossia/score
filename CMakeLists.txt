@@ -102,13 +102,13 @@ add_subdirectory(Tests/testbed)
 endif()
 
 add_custom_target(Docs SOURCES Documentation/Models/score.qmodel)
-#if(INTEGRATION_TESTING)
 
- #       include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Tests")
- #       file(GLOB_RECURSE TESTS_HDRS
- #               "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.hpp")
-  #      add_custom_target(MocksHeaders SOURCES ${TESTS_HDRS})
-  #  setup_score_tests(Tests/Integration)
-#endif()
+set(INTEGRATION_TESTING 1)
+if(INTEGRATION_TESTING)
+  include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Tests")
+  file(GLOB_RECURSE TESTS_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.hpp")
+  add_custom_target(MocksHeaders SOURCES ${TESTS_HDRS})
+  setup_score_tests(Tests/Integration)
+endif()
 
-#include(CTest)
+include(CTest)

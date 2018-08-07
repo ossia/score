@@ -1,12 +1,12 @@
 #include <IscoreIntegrationTests.hpp>
 #include <Mocks/MockDevice.hpp>
 
-class TestStatesDragDrop: public IscoreTestBase
+class TestStatesDragDrop: public TestBase
 {
         Q_OBJECT
     public:
         TestStatesDragDrop(int& argc, char** argv):
-            IscoreTestBase(argc, argv)
+            TestBase(argc, argv)
         {
             SingletonProtocolList::instance().registerFactory(new MockDeviceFactory);
         }
