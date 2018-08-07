@@ -1,12 +1,12 @@
 #include <IscoreIntegrationTests.hpp>
 #include <Mocks/MockDevice.hpp>
 
-class TestStatesMinMax: public IscoreTestBase
+class TestStatesMinMax: public TestBase
 {
         Q_OBJECT
     public:
         TestStatesMinMax(int& argc, char** argv):
-            IscoreTestBase(argc, argv)
+            TestBase(argc, argv)
         {
             SingletonProtocolList::instance().registerFactory(new MockDeviceFactory);
         }

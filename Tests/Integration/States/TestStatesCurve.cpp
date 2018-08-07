@@ -3,12 +3,12 @@
 #include <Curve/CurveModel.hpp>
 #include <Curve/Segment/Linear/LinearCurveSegmentModel.hpp>
 
-class TestStatesCurve: public IscoreTestBase
+class TestStatesCurve: public TestBase
 {
         Q_OBJECT
     public:
         TestStatesCurve(int& argc, char** argv):
-            IscoreTestBase(argc, argv)
+            TestBase(argc, argv)
         {
             SingletonProtocolList::instance().registerFactory(new MockDeviceFactory);
         }

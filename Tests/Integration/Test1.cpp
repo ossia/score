@@ -2,11 +2,11 @@
 #include <Editor/TimeConstraint.h>
 #include <Editor/Scenario.h>
 
-class Test1: public IscoreTestBase
+class Test1: public TestBase
 {
         Q_OBJECT
     public:
-        using IscoreTestBase::IscoreTestBase;
+        using TestBase::TestBase;
 
     private Q_SLOTS:
         void testGui()
