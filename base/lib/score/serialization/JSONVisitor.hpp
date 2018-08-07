@@ -98,7 +98,15 @@ private:
   template <typename T>
   void readFrom_impl(const T& obj, visitor_object_tag)
   {
-    TSerializer<JSONObject, IdentifiedObject<T>>::readFrom(*this, obj);
+    if constexpr(base_kind<T>::value)
+    {
+      readFrom_impl((const typename T::base_type&) obj, typename serialization_tag<T>::type{});
+    }
+    else
+    {
+      TSerializer<JSONObject, IdentifiedObject<T>>::readFrom(*this, obj);
+    }
+
     if constexpr(is_custom_serialized<T>::value || is_template<T>::value)
         TSerializer<JSONObject, T>::readFrom(*this, obj);
     else
@@ -108,7 +116,15 @@ private:
   template <typename T>
   void readFrom_impl(const T& obj, visitor_entity_tag)
   {
-    TSerializer<JSONObject, score::Entity<T>>::readFrom(*this, obj);
+    if constexpr(base_kind<T>::value)
+    {
+      readFrom_impl((const typename T::base_type&) obj, typename serialization_tag<T>::type{});
+    }
+    else
+    {
+      TSerializer<JSONObject, score::Entity<T>>::readFrom(*this, obj);
+    }
+
     if constexpr(is_custom_serialized<T>::value || is_template<T>::value)
         TSerializer<JSONObject, T>::readFrom(*this, obj);
     else
