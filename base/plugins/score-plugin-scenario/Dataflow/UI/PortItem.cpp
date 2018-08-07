@@ -337,7 +337,7 @@ void ControlInletFactory::setupInspector(
 {
   using namespace Process;
   auto& ctrl = static_cast<Process::ControlInlet&>(port);
-  auto widg = ossia::apply(control_visitor{ctrl, ctx, parent}, ctrl.value());
+  auto widg = ctrl.value().apply(control_visitor{ctrl, ctx, parent});
   if(widg)
   {
     PortWidgetSetup::setupControl(ctrl, widg, ctx, lay, parent);
