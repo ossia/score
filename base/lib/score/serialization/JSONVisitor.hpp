@@ -92,6 +92,10 @@ private:
   template <typename T>
   void readFrom_impl(const T& obj, visitor_template_tag)
   {
+    if constexpr(base_kind<T>::value)
+    {
+      readFrom_impl((const typename T::base_type&) obj, typename serialization_tag<T>::type{});
+    }
     TSerializer<JSONObject, T>::readFrom(*this, obj);
   }
 

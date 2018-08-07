@@ -35,10 +35,12 @@ public:
   }
 
   template <typename Visitor>
-  Entity(Visitor& vis, QObject* parent) : IdentifiedObject<T>{vis, parent}
+  Entity(Visitor&& vis, QObject* parent) noexcept
+    : IdentifiedObject<T>{std::forward<Visitor>(vis), parent}
   {
+    using vis_type = typename std::remove_reference_t<Visitor>::type;
     m_metadata.setParent(this);
-    TSerializer<typename Visitor::type, Entity<T>>::writeTo(vis, *this);
+    TSerializer<vis_type, Entity<T>>::writeTo(vis, *this);
   }
 
   const score::Components& components() const noexcept

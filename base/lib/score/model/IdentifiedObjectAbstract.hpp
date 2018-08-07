@@ -28,7 +28,7 @@ public:
   virtual void resetCache() = 0;
   protected:
     using QObject::QObject;
-    IdentifiedObjectAbstract(const QString& name, QObject* parent)
+    IdentifiedObjectAbstract(const QString& name, QObject* parent) noexcept
     {
       QObject::setObjectName(name);
       QObject::setParent(parent);
