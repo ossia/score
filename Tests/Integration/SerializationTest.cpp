@@ -285,13 +285,7 @@ public:
   using T::T;
   template <typename DeserializerVisitor>
   trait(DeserializerVisitor&& vis, QObject* parent)
-      : T{vis, parent}
-  {
-    vis.writeTo(*this);
-  }
-  template <typename DeserializerVisitor>
-  trait(DeserializerVisitor& vis, QObject* parent)
-      : T{vis, parent}
+      : T{std::forward<DeserializerVisitor>(vis), parent}
   {
     vis.writeTo(*this);
   }
@@ -345,7 +339,7 @@ public:
 
   template <typename DeserializerVisitor>
   crtp(DeserializerVisitor&& vis, QObject* parent)
-      : base_type{vis, parent}
+      : base_type{std::forward<DeserializerVisitor>(vis), parent}
   {
     vis.writeTo(*this);
   }
@@ -376,6 +370,107 @@ void JSONObjectWriter::write(crtp& pt)
 {
   pt.crtp_var = obj["crtp_var"].toInt();
 }
+
+
+
+template<typename T>
+struct trait2 : public T
+{
+  friend struct TSerializer<JSONObject, trait2<T>>;
+  friend struct TSerializer<DataStream, trait2<T>>;
+
+public:
+  using base_type = T;
+  using id_type = decltype(std::declval<T>().id());
+  using T::T;
+  template <typename DeserializerVisitor>
+  trait2(DeserializerVisitor&& vis, QObject* parent)
+      : T{std::forward<DeserializerVisitor>(vis), parent}
+  {
+    vis.writeTo(*this);
+  }
+
+  int trait2_var{};
+};
+
+
+template <typename T>
+struct TSerializer<DataStream, trait2<T>>
+{
+  static void readFrom(DataStream::Serializer& s, const trait2<T>& v)
+  {
+    s.stream() << v.trait2_var;
+  }
+
+  static void writeTo(DataStream::Deserializer& s, trait2<T>& v)
+  {
+    s.stream() >> v.trait2_var;
+  }
+};
+
+template <typename T>
+struct TSerializer<JSONObject, trait2<T>>
+{
+  static void readFrom(JSONObject::Serializer& s, const trait2<T>& v)
+  {
+    s.obj["trait2_var"] = v.trait2_var;
+  }
+
+  static void writeTo(JSONObject::Deserializer& s, trait2<T>& v)
+  {
+    v.trait2_var = s.obj["trait2_var"].toInt();
+  }
+};
+
+template <typename T>
+struct is_custom_serialized<trait2<T>> : std::true_type
+{
+};
+
+struct crtp2 : public trait2<trait<score::Entity<crtp2>>>
+{
+public:
+  using base_type = trait2<trait<score::Entity<crtp2>>>;
+  crtp2(Id<crtp2> id, QObject* parent)
+    : base_type{id, "crtp2_objname", parent}
+  {
+
+  }
+
+  template <typename DeserializerVisitor>
+  crtp2(DeserializerVisitor&& vis, QObject* parent)
+      : base_type{std::forward<DeserializerVisitor>(vis), parent}
+  {
+    vis.writeTo(*this);
+  }
+
+  int crtp2_var{};
+};
+
+template <>
+void DataStreamReader::read(const crtp2& pt)
+{
+  m_stream << pt.crtp2_var;
+}
+
+template <>
+void DataStreamWriter::write(crtp2& pt)
+{
+  m_stream >> pt.crtp2_var;
+}
+
+template <>
+void JSONObjectReader::read(const crtp2& pt)
+{
+  obj["crtp2_var"] = pt.crtp2_var;
+}
+
+template <>
+void JSONObjectWriter::write(crtp2& pt)
+{
+  pt.crtp2_var = obj["crtp2_var"].toInt();
+}
+
 
 class SerializationTest : public TestBase
 {
@@ -581,6 +676,43 @@ private:
   }
   W_SLOT(serialization_trait_test)
 
+  void serialization_trait2_test()
+  {
+    crtp2 f{Id<crtp2>{1234}, nullptr};
+    f.trait_var = 4567;
+    f.trait2_var = 111;
+    f.crtp2_var = 8910;
+
+    // Test JSON serialization
+    {
+      auto json = score::marshall<JSONObject>(f);
+      qDebug() << json;
+      QCOMPARE(json["id"].toInt(), 1234);
+      QCOMPARE(json["ObjectName"].toString(), "crtp2_objname");
+      QCOMPARE(json["trait_var"].toInt(), 4567);
+      QCOMPARE(json["trait2_var"].toInt(), 111);
+      QCOMPARE(json["crtp2_var"].toInt(), 8910);
+      QVERIFY(json["Metadata"].isObject());
+      QVERIFY(json["Components"].isArray());
+
+      crtp2 obj(JSONObjectWriter{json}, nullptr);
+      QCOMPARE(obj.id().val(), 1234);
+      QCOMPARE(obj.objectName(), "crtp2_objname");
+      QCOMPARE(obj.trait_var, 4567);
+      QCOMPARE(obj.trait2_var, 111);
+      QCOMPARE(obj.crtp2_var, 8910);
+    }
+
+    {
+      crtp2 obj(DataStreamWriter{score::marshall<DataStream>(f)}, nullptr);
+      QCOMPARE(obj.id().val(), 1234);
+      QCOMPARE(obj.objectName(), "crtp2_objname");
+      QCOMPARE(obj.trait_var, 4567);
+      QCOMPARE(obj.trait2_var, 111);
+      QCOMPARE(obj.crtp2_var, 8910);
+    }
+  }
+  W_SLOT(serialization_trait2_test)
   // TODO crtp *before* and *after* factories
 
 

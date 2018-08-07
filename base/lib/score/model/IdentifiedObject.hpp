@@ -29,11 +29,11 @@ public:
   }
 
   template <typename Visitor>
-  IdentifiedObject(Visitor& v, QObject* parent)
+  IdentifiedObject(Visitor&& v, QObject* parent) noexcept
       : IdentifiedObjectAbstract{parent}
   {
-    TSerializer<typename Visitor::type, IdentifiedObject<model>>::writeTo(
-        v, *this);
+    using vis_type = typename std::remove_reference_t<Visitor>::type;
+    TSerializer<vis_type, IdentifiedObject<model>>::writeTo(v, *this);
     m_id.m_ptr = this;
   }
 
@@ -68,10 +68,10 @@ public:
     m_path_cache.unsafePath().vec().clear();
   }
 
-  mutable Path<model>
-      m_path_cache; // TODO see
-                    // http://stackoverflow.com/questions/32987869/befriending-of-function-template-with-enable-if
-                    // to put in private
+  mutable Path<model> m_path_cache;
+  // TODO see
+  // http://stackoverflow.com/questions/32987869/befriending-of-function-template-with-enable-if
+  // to put in private
 private:
   id_type m_id{};
 };
@@ -83,13 +83,13 @@ std::size_t hash_value(const Id<model>& id) noexcept
 }
 
 template <typename T, typename U>
-bool operator==(const T* obj, const Id<U>& id)  noexcept
+bool operator==(const T* obj, const Id<U>& id) noexcept
 {
   return obj->id() == id;
 }
 
 template <typename T, typename U, typename = decltype(std::declval<T>().id())>
-bool operator==(const T& obj, const Id<U>& id)  noexcept
+bool operator==(const T& obj, const Id<U>& id) noexcept
 {
   return obj.id() == id;
 }
