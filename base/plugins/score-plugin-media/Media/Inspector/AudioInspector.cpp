@@ -38,19 +38,19 @@ InspectorWidget::InspectorWidget(
 
   con(m_edit, &QLineEdit::editingFinished, this, [&]() {
     m_dispatcher.submitCommand(
-        new Commands::ChangeAudioFile(object, m_edit.text()));
+        new ChangeAudioFile(object, m_edit.text()));
   });
   con(m_start, &QSpinBox::editingFinished, this, [&]() {
     m_dispatcher.submitCommand(
-        new Commands::ChangeStart(object, m_start.value()));
+        new ChangeStart(object, m_start.value()));
   });
   con(m_upmix, &QSpinBox::editingFinished, this, [&]() {
     m_dispatcher.submitCommand(
-        new Commands::ChangeUpmix(object, m_upmix.value()));
+        new ChangeUpmix(object, m_upmix.value()));
   });
   con(m_startOffset, &QSpinBox::editingFinished, this, [&]() {
     m_dispatcher.submitCommand(
-          new Commands::ChangeStartOffset(object, m_startOffset.value()));
+          new ChangeStartOffset(object, m_startOffset.value()));
   });
 
   lay->addRow(tr("Path"), &m_edit);

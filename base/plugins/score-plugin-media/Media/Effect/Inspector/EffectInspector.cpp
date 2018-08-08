@@ -109,7 +109,7 @@ void InspectorWidget::add_score(std::size_t pos)
 
   dialog->on_okPressed = [&](const auto& proc, const QString&) {
     m_dispatcher.submitCommand(
-        new Commands::InsertEffect{process(), proc, pos});
+        new InsertEffect{process(), proc, pos});
   };
   dialog->launchWindow();
   dialog->deleteLater();
@@ -122,7 +122,7 @@ void InspectorWidget::add_lv2(std::size_t pos)
   if (!txt.isEmpty())
   {
     m_dispatcher.submitCommand(
-        new Commands::InsertGenericEffect<LV2::LV2EffectModel>{process(), txt,
+        new InsertGenericEffect<LV2::LV2EffectModel>{process(), txt,
                                                                pos});
   }
 #endif
@@ -131,7 +131,7 @@ void InspectorWidget::add_faust(std::size_t pos)
 {
 #if defined(HAS_FAUST)
   m_dispatcher.submitCommand(
-      new Commands::InsertGenericEffect<Faust::FaustEffectModel>{
+      new InsertGenericEffect<Faust::FaustEffectModel>{
           process(), "process = _;", pos});
 #endif
 }
@@ -144,7 +144,7 @@ void InspectorWidget::add_vst2(std::size_t pos)
   if (!res.isEmpty())
   {
     m_dispatcher.submitCommand(
-        new Commands::InsertGenericEffect<VST::VSTEffectModel>{process(), res,
+        new InsertGenericEffect<VST::VSTEffectModel>{process(), res,
                                                                pos});
   }
 #endif

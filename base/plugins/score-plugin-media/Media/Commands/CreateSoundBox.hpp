@@ -2,9 +2,6 @@
 #include <score/command/AggregateCommand.hpp>
 namespace Media
 {
-namespace Commands
-{
-
 class CreateSoundBoxMacro final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
@@ -18,5 +15,4 @@ class CreateSoundBoxesMacro final : public score::AggregateCommand
       CreateSoundBoxesMacro,
       "Add sounds in sequence")
 };
-}
 }

@@ -1,9 +1,6 @@
 #include "InsertEffect.hpp"
 namespace Media
 {
-namespace Commands
-{
-
 InsertEffect::InsertEffect(
     const Effect::ProcessModel& model,
     const UuidKey<Process::ProcessModel>& effectKind,
@@ -126,6 +123,5 @@ void MoveEffect::serializeImpl(DataStreamInput& s) const
 void MoveEffect::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_model >> m_id >> m_oldPos >> m_newPos;
-}
 }
 }

@@ -23,8 +23,6 @@ namespace Effect
 class ProcessModel;
 }
 
-namespace Commands
-{
 class InsertEffect final : public score::Command
 {
   SCORE_COMMAND_DECL(
@@ -163,5 +161,4 @@ private:
   Id<Process::ProcessModel> m_id;
   int m_oldPos, m_newPos{};
 };
-}
 }

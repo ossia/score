@@ -51,15 +51,27 @@
 #  include <QQuickStyle>
 #endif
 
+#if defined(SCORE_STATIC_PLUGINS)
+#  include <score_static_plugins.hpp>
+#endif
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Application)
+
+#if defined(SCORE_STATIC_PLUGINS)
+int qInitResources_score();
+#endif
+
 namespace score
 {
 class DocumentModel;
 
 static void setQApplicationSettings(QApplication& m_app)
 {
-  /*
+#if defined(SCORE_STATIC_PLUGINS)
+  qInitResources_score();
+#endif
+
   QFontDatabase::addApplicationFont(":/APCCourierBold.otf"); // APCCourier-Bold
   QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf");       // Ubuntu Regular
   QFontDatabase::addApplicationFont(":/Ubuntu-B.ttf");       // Ubuntu Bold
@@ -93,7 +105,7 @@ static void setQApplicationSettings(QApplication& m_app)
   qApp->setFont(f);
 
   qApp->setPalette(pal);
-*/
+
 #if __has_include(<QQuickStyle>)
   QQuickStyle::setStyle(":/desktopqqc2style/Desktop");
 #endif
@@ -175,6 +187,10 @@ static QPixmap writeVersionName()
 
 void Application::init()
 {
+#if defined(SCORE_STATIC_PLUGINS)
+  score_init_static_plugins();
+#endif
+
   std::vector<spdlog::sink_ptr> v{spdlog::sinks::stderr_sink_mt::instance(),
                                   std::make_shared<ossia::qt::log_sink>()};
 

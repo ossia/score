@@ -27,7 +27,7 @@ static void createSoundProcesses(
     // TODO set file directly
     // Create sound process
     auto& proc = m.createProcess<Media::Sound::ProcessModel>(interval, {});
-    m.submit(new Media::Commands::ChangeAudioFile{proc, std::move(file)});
+    m.submit(new Media::ChangeAudioFile{proc, std::move(file)});
     m.addLayerInNewSlot(interval, proc);
   }
 }
@@ -98,7 +98,7 @@ bool DropHandler::createInParallel(
     DroppedAudioFiles&& drop)
 {
   Scenario::Command::Macro m{
-    new Media::Commands::CreateSoundBoxMacro,
+    new Media::CreateSoundBoxMacro,
     pres.context().context};
 
   // Create a box.
@@ -149,7 +149,7 @@ bool IntervalDropHandler::drop(
   }
 
   auto& doc = score::IDocument::documentContext(interval);
-  Scenario::Command::Macro m{new Media::Commands::CreateSoundBoxMacro, doc};
+  Scenario::Command::Macro m{new Media::CreateSoundBoxMacro, doc};
 
   // TODO dynamic_safe_cast ? for non-static-castable types, have the compiler
   // enforce dynamic_cast ?

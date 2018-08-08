@@ -100,7 +100,7 @@ public:
 private:
   const Process::ProcessModel& m_layer;
   View* m_view{};
-  SingleOngoingCommandDispatcher<Media::Commands::ChangeSteps> m_disp;
+  SingleOngoingCommandDispatcher<Media::ChangeSteps> m_disp;
   ZoomRatio m_ratio{};
 };
 }

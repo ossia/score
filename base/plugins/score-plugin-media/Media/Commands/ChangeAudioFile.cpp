@@ -8,9 +8,6 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 namespace Media
 {
-namespace Commands
-{
-
 ChangeAudioFile::ChangeAudioFile(
     const Sound::ProcessModel& model, const QString& text)
     : m_model{model}, m_new{text}
@@ -57,6 +54,5 @@ void ChangeAudioFile::serializeImpl(DataStreamInput& s) const
 void ChangeAudioFile::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_model >> m_old >> m_new >> m_olddur;
-}
 }
 }

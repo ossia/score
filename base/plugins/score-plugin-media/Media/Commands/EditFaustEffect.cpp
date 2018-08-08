@@ -3,7 +3,7 @@
 #include <Media/Effect/Faust/FaustEffectModel.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
-namespace Media::Commands
+namespace Media
 {
 
 EditFaustEffect::EditFaustEffect(

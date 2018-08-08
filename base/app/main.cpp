@@ -5,7 +5,18 @@
 #include <QApplication>
 #include <QPixmapCache>
 #include <qnamespace.h>
+#include <QItemSelectionModel>
+#include <QSurfaceFormat>
 #include <ossia/detail/thread.hpp>
+
+#if defined(__linux__)
+#  include <X11/Xlib.h>
+#endif
+
+#if defined(__SSE3__)
+#  include <pmmintrin.h>
+#endif
+
 #if defined(__APPLE__)
 struct NSAutoreleasePool;
 #  include <CoreFoundation/CFNumber.h>
@@ -20,11 +31,6 @@ void disableAppRestore()
 
   CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication);
 }
-
-#endif
-
-#if defined(SCORE_STATIC_PLUGINS)
-#  include <score_static_plugins.hpp>
 #endif
 
 #if defined(SCORE_STATIC_QT)
@@ -35,18 +41,8 @@ Q_IMPORT_PLUGIN(QXcbIntegrationPlugin)
 #  endif
 #endif
 
-#if defined(__linux__)
-#  include <X11/Xlib.h>
-#endif
 
-#include <QItemSelectionModel>
-#include <QSurfaceFormat>
-
-#if defined(__SSE3__)
-#  include <pmmintrin.h>
-#endif
-
-int main(int argc, char** argv)
+static void setup_x11()
 {
 #if defined(__linux__)
   if (!XInitThreads())
@@ -54,24 +50,10 @@ int main(int argc, char** argv)
     qDebug() << "Failed to initialise xlib thread support.";
   }
 #endif
+}
 
-#if defined(__APPLE__)
-  auto pool = mac_init_pool();
-  disableAppRestore();
-  qputenv("QT_MAC_WANTS_LAYER", "1");
-  auto path = ossia::get_exe_path();
-  auto last_slash = path.find_last_of('/');
-  path = path.substr(0, last_slash);
-  path += "/../Frameworks/Faust";
-  qputenv("FAUST_LIB_PATH", path.c_str());
-#elif defined(__linux__)
-  auto path = ossia::get_exe_path();
-  auto last_slash = path.find_last_of('/');
-  path = path.substr(0, last_slash);
-  path += "/../share/faust";
-  qputenv("FAUST_LIB_PATH", path.c_str());
-#endif
-
+static void disable_denormals()
+{
 #if defined(__SSE3__)
   // See https://en.wikipedia.org/wiki/Denormal_number
   // and
@@ -88,33 +70,29 @@ int main(int argc, char** argv)
       :);
   printf("ARM FPSCR: %08x\n", x);
 #endif
+}
 
-#if defined(__EMSCRIPTEN__)
-  qRegisterMetaType<Qt::ApplicationState>();
-  qRegisterMetaType<QItemSelection>();
+static void setup_faust_path()
+{
+#if defined(__APPLE__)
+  auto path = ossia::get_exe_path();
+  auto last_slash = path.find_last_of('/');
+  path = path.substr(0, last_slash);
+  path += "/../Frameworks/Faust";
+  qputenv("FAUST_LIB_PATH", path.c_str());
+#elif defined(__linux__)
+  auto path = ossia::get_exe_path();
+  auto last_slash = path.find_last_of('/');
+  path = path.substr(0, last_slash);
+  path += "/../share/faust";
+  qputenv("FAUST_LIB_PATH", path.c_str());
 #endif
 
-#if !defined(__EMSCRIPTEN__)
-  QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-  QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
-  QCoreApplication::setAttribute(Qt::AA_CompressHighFrequencyEvents);
-#endif
+  // TODO windows
+}
 
-#if defined(__EMSCRIPTEN__)
-  QCoreApplication::setAttribute(Qt::AA_ForceRasterWidgets, true);
-#endif
-
-  QLocale::setDefault(QLocale::C);
-  setlocale(LC_ALL, "C");
-
-
-#if defined(SCORE_STATIC_PLUGINS)
-  Q_INIT_RESOURCE(score);
-#if defined(SCORE_PLUGIN_TEMPORALAUTOMATAS)
-  Q_INIT_RESOURCE(TAResources);
-#endif
-#endif
-
+static void setup_opengl()
+{
 #if !defined(__EMSCRIPTEN__)
   QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
   fmt.setMajorVersion(4);
@@ -126,17 +104,51 @@ int main(int argc, char** argv)
   fmt.setAlphaBufferSize(0);
   fmt.setDefaultFormat(fmt);
 #endif
+}
 
-  QPixmapCache::setCacheLimit(819200);
-  Application app(argc, argv);
+static void setup_locale()
+{
+  QLocale::setDefault(QLocale::C);
+  setlocale(LC_ALL, "C");
+}
 
-#if defined(SCORE_STATIC_PLUGINS)
-  score_init_static_plugins();
+static void setup_app_flags()
+{
+#if defined(__EMSCRIPTEN__)
+  qRegisterMetaType<Qt::ApplicationState>();
+  qRegisterMetaType<QItemSelection>();
+  QCoreApplication::setAttribute(Qt::AA_ForceRasterWidgets, true);
 #endif
 
-  app.init();
+#if !defined(__EMSCRIPTEN__)
+  QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+  QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+  QCoreApplication::setAttribute(Qt::AA_CompressHighFrequencyEvents);
+#endif
+}
 
+
+int main(int argc, char** argv)
+{
+#if defined(__APPLE__)
+  auto pool = mac_init_pool();
+
+  disableAppRestore();
+  qputenv("QT_MAC_WANTS_LAYER", "1");
+#endif
+
+  setup_x11();
+  disable_denormals();
+  setup_faust_path();
+  setup_locale();
+  setup_opengl();
+  setup_app_flags();
+
+  QPixmapCache::setCacheLimit(819200);
+  Application app(argc, argv);;
+  app.init();
   int res = app.exec();
+
 #if defined(__APPLE__)
   mac_finish_pool(pool);
 #endif

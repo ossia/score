@@ -8,8 +8,6 @@
 
 namespace Media
 {
-namespace Commands
-{
 class SetMergeInCount final : public score::PropertyCommand
 {
   SCORE_COMMAND_DECL(
@@ -21,5 +19,4 @@ public:
   {
   }
 };
-}
 }
