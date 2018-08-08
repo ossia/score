@@ -4,7 +4,7 @@
 #pragma GCC system_header
 #pragma clang system_header
 
-///////////
+//
 #include <ossia/detail/small_vector.hpp>
 #include <ossia/detail/string_map.hpp>
 
