@@ -59,6 +59,7 @@ class DocumentModel;
 
 static void setQApplicationSettings(QApplication& m_app)
 {
+  /*
   QFontDatabase::addApplicationFont(":/APCCourierBold.otf"); // APCCourier-Bold
   QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf");       // Ubuntu Regular
   QFontDatabase::addApplicationFont(":/Ubuntu-B.ttf");       // Ubuntu Bold
@@ -92,7 +93,7 @@ static void setQApplicationSettings(QApplication& m_app)
   qApp->setFont(f);
 
   qApp->setPalette(pal);
-
+*/
 #if __has_include(<QQuickStyle>)
   QQuickStyle::setStyle(":/desktopqqc2style/Desktop");
 #endif
@@ -204,9 +205,8 @@ void Application::init()
   path += ";" + QCoreApplication::applicationDirPath();
   path += ";" + QCoreApplication::applicationDirPath() + "/plugins";
   qputenv("PATH", path);
-  SetDllDirectory((wchar_t*)QCoreApplication::applicationDirPath().utf16());
-  SetDllDirectory((wchar_t*)
-      (QCoreApplication::applicationDirPath() + "/plugins").utf16());
+  SetDllDirectoryW((wchar_t*)QCoreApplication::applicationDirPath().utf16());
+  SetDllDirectoryW((wchar_t*)(QCoreApplication::applicationDirPath() + "/plugins").utf16());
 #endif
 
   // MVP

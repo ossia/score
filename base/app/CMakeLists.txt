@@ -29,7 +29,7 @@ if(MSVC)
     TARGET ${APPNAME}
     APPEND PROPERTY
       LINK_FLAGS "/DYNAMICBASE:NO")
-
+  target_link_libraries(${APPNAME} PRIVATE)
   target_sources(${APPNAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../lib/resources/score.rc")
 endif()
 
