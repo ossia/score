@@ -574,6 +574,7 @@ private:
       QCOMPARE(obj->objectName(), "base_objname");
       QCOMPARE(obj->base_var, 4567);
       QCOMPARE(obj->derived_var, 8910);
+      delete proc;
     }
 
     {
@@ -588,6 +589,7 @@ private:
       QCOMPARE(obj->objectName(), "base_objname");
       QCOMPARE(obj->base_var, 4567);
       QCOMPARE(obj->derived_var, 8910);
+      delete proc;
     }
   }
   W_SLOT(serialization_abstract_test)
@@ -623,6 +625,7 @@ private:
       QCOMPARE(obj->base_var, 4567);
       QCOMPARE(obj->derived_var, 8910);
       QCOMPARE(obj->derived2_var, 555);
+      delete proc;
     }
     {
       auto& pl = components().interfaces<base_factories>();
@@ -637,6 +640,7 @@ private:
       QCOMPARE(obj->base_var, 4567);
       QCOMPARE(obj->derived_var, 8910);
       QCOMPARE(obj->derived2_var, 555);
+      delete proc;
     }
   }
   W_SLOT(serialization_abstract_child_test)

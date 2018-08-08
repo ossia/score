@@ -141,7 +141,7 @@ public:
     connect(
         rm_btn, &score::QGraphicsPixmapButton::clicked, this,
         [&]() {
-          auto cmd = new Commands::RemoveEffect{object, effect};
+          auto cmd = new RemoveEffect{object, effect};
           CommandDispatcher<> disp{doc.commandStack};
           disp.submitCommand(cmd);
         },

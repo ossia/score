@@ -9,8 +9,6 @@
 
 namespace Media
 {
-namespace Commands
-{
 class ChangeSteps final : public score::Command
 {
   SCORE_COMMAND_DECL(Media::CommandFactoryName(), ChangeSteps, "Change steps")
@@ -92,5 +90,4 @@ public:
   {
   }
 };
-}
 }

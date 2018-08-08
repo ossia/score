@@ -9,6 +9,5 @@ const CommandGroupKey& CommandFactoryName();
 
 namespace Gradient
 {
-SCORE_PLUGIN_AUTOMATION_EXPORT
-const CommandGroupKey& CommandFactoryName();
+using namespace Automation;
 }

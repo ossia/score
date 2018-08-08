@@ -12,12 +12,3 @@ const CommandGroupKey& CommandFactoryName()
   return key;
 }
 }
-
-namespace Gradient
-{
-const CommandGroupKey& CommandFactoryName()
-{
-  static const CommandGroupKey key{"Gradient"};
-  return key;
-}
-}

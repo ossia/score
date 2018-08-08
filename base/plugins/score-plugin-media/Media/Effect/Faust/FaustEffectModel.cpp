@@ -193,7 +193,7 @@ InspectorWidget::InspectorWidget(
 
   connect(m_textedit, &QPlainTextEdit::textChanged, this, [&] {
     CommandDispatcher<>{doc.commandStack}.submitCommand(
-        new Media::Commands::EditFaustEffect{fx, m_textedit->document()->toPlainText()});
+        new Media::EditFaustEffect{fx, m_textedit->document()->toPlainText()});
   });
 }
 
@@ -215,7 +215,7 @@ FaustEditDialog::FaustEditDialog(
   lay->addWidget(bbox);
   connect(bbox, &QDialogButtonBox::accepted, this, [&] {
     CommandDispatcher<>{ctx.commandStack}.submitCommand(
-        new Media::Commands::EditFaustEffect{fx, text()});
+        new Media::EditFaustEffect{fx, text()});
   });
   connect(bbox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 }

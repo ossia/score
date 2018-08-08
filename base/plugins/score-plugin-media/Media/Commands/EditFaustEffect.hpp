@@ -8,7 +8,7 @@ namespace Media::Faust
 class FaustEffectModel;
 }
 
-namespace Media::Commands
+namespace Media
 {
 class EditFaustEffect final : public score::Command
 {

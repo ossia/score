@@ -183,7 +183,7 @@ void Presenter::setupGUI()
 
       auto dummy2 = new QWidget;
       dummy2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-      bl->addWidget(dummy1,0,i,2,1);
+      bl->addWidget(dummy2,0,i,2,1);
       bl->setColumnStretch(i, 10);
     }
   }
