@@ -11,6 +11,8 @@
         <file>APCCourierBold.otf</file>
         <file>ossia-score.png</file>
         <file>dict.txt</file>
+        <file>icons/next_disabled.png</file>
+        <file>icons/next_disabled@2x.png</file>
         <file>icons/next_off.png</file>
         <file>icons/next_on.png</file>
         <file>icons/prev_off.png</file>
@@ -89,8 +91,15 @@
         <file>icons/play_off@2x.png</file>
         <file>icons/play_on.png</file>
         <file>icons/play_on@2x.png</file>
+        <file>icons/prev_disabled.png</file>
+        <file>icons/prev_disabled@2x.png</file>
+        <file>icons/prev_on@2x.png</file>
         <file>icons/prev_off@2x.png</file>
         <file>icons/prev_on@2x.png</file>
+        <file>icons/process_off.png</file>
+        <file>icons/process_off@2x.png</file>
+        <file>icons/process_on.png</file>
+        <file>icons/process_on@2x.png</file>
         <file>icons/record_off.png</file>
         <file>icons/record_off@2x.png</file>
         <file>icons/record_on.png</file>
@@ -251,6 +260,100 @@
         <file>icons/search@2x.png</file>
         <file>icons/play_glob_off@2x.png</file>
         <file>icons/play_glob_on@2x.png</file>
+        <file>icons/write_disabled.png</file>
+        <file>icons/write_disabled@2x.png</file>
+        <file>icons/trigger_disabled.png</file>
+        <file>icons/trigger_disabled@2x.png</file>
+        <file>icons/select_and_move_disabled.png</file>
+        <file>icons/select_and_move_disabled@2x.png</file>
+        <file>icons/scale_disabled.png</file>
+        <file>icons/scale_disabled@2x.png</file>
+        <file>icons/reinitialize_disabled.png</file>
+        <file>icons/reinitialize_disabled@2x.png</file>
+        <file>icons/reinit_new_disabled.png</file>
+        <file>icons/reinit_new_disabled@2x.png</file>
+        <file>icons/refresh_disabled.png</file>
+        <file>icons/refresh_disabled@2x.png</file>
+        <file>icons/record_disabled.png</file>
+        <file>icons/record_disabled@2x.png</file>
+        <file>icons/playfromhere_disabled.png</file>
+        <file>icons/playfromhere_disabled@2x.png</file>
+        <file>icons/play_disabled.png</file>
+        <file>icons/play_disabled@2x.png</file>
+        <file>icons/play_glob_disabled.png</file>
+        <file>icons/play_glob_disabled@2x.png</file>
+        <file>icons/move_disabled.png</file>
+        <file>icons/move_disabled@2x.png</file>
+        <file>icons/interpolate_disabled.png</file>
+        <file>icons/interpolate_disabled@2x.png</file>
+        <file>icons/grow_shrink_disabled.png</file>
+        <file>icons/grow_shrink_disabled@2x.png</file>
+        <file>icons/gear_disabled.png</file>
+        <file>icons/gear_disabled@2x.png</file>
+        <file>icons/fast_rewind_disabled.png</file>
+        <file>icons/fast_rewind_disabled@2x.png</file>
+        <file>icons/fast_forward_disabled.png</file>
+        <file>icons/fast_forward_disabled@2x.png</file>
+        <file>icons/engine_disabled.png</file>
+        <file>icons/engine_disabled@2x.png</file>
+        <file>icons/end_disabled.png</file>
+        <file>icons/end_disabled@2x.png</file>
+        <file>icons/edit_disabled.png</file>
+        <file>icons/edit_disabled@2x.png</file>
+        <file>icons/delete_disabled.png</file>
+        <file>icons/delete_disabled@2x.png</file>
+        <file>icons/create_disabled.png</file>
+        <file>icons/create_disabled@2x.png</file>
+        <file>icons/create_curve_disabled.png</file>
+        <file>icons/create_curve_disabled@2x.png</file>
+        <file>icons/condition_disabled.png</file>
+        <file>icons/condition_disabled@2x.png</file>
+        <file>icons/condition_add_disabled.png</file>
+        <file>icons/condition_add_disabled@2x.png</file>
+        <file>icons/clip_duration_disabled.png</file>
+        <file>icons/clip_duration_disabled@2x.png</file>
+        <file>icons/add_disabled.png</file>
+        <file>icons/add_disabled@2x.png</file>
+        <file>icons/stop_disabled.png</file>
+        <file>icons/stop_disabled@2x.png</file>
+        <file>icons/pause_disabled.png</file>
+        <file>icons/pause_disabled@2x.png</file>
+        <file>icons/sequence_disabled.png</file>
+        <file>icons/sequence_disabled@2x.png</file>
+        <file>icons/snapshot_disabled.png</file>
+        <file>icons/snapshot_disabled@2x.png</file>
+        <file>icons/undock_dock_off.png</file>
+        <file>icons/undock_dock_off@2x.png</file>
+        <file>icons/undock_dock_on.png</file>
+        <file>icons/undock_dock_on@2x.png</file>
+        <file>icons/close_dock_on.png</file>
+        <file>icons/close_dock_on@2x.png</file>
+        <file>icons/close_dock_off.png</file>
+        <file>icons/close_dock_off@2x.png</file>
+        <file>icons/checkbox_unchecked_focus.png</file>
+        <file>icons/checkbox_unchecked_disabled.png</file>
+        <file>icons/checkbox_unchecked.png</file>
+        <file>icons/checkbox_checked.png</file>
+        <file>icons/checkbox_checked_disabled.png</file>
+        <file>icons/checkbox_checked_focus.png</file>
+        <file>icons/radio_unchecked_focus.png</file>
+        <file>icons/radio_checked_focus.png</file>
+        <file>icons/radio_checked.png</file>
+        <file>icons/radio_checked_disabled.png</file>
+        <file>icons/radio_unchecked_disabled.png</file>
+        <file>icons/radio_unchecked.png</file>
+        <file>icons/checkbox_checked@2x.png</file>
+        <file>icons/checkbox_unchecked@2x.png</file>
+        <file>icons/checkbox_checked_disabled@2x.png</file>
+        <file>icons/checkbox_unchecked_disabled@2x.png</file>
+        <file>icons/checkbox_unchecked_focus@2x.png</file>
+        <file>icons/checkbox_checked_focus@2x.png</file>
+        <file>icons/radio_unchecked_focus@2x.png</file>
+        <file>icons/radio_checked_focus@2x.png</file>
+        <file>icons/radio_unchecked_disabled@2x.png</file>
+        <file>icons/radio_checked_disabled@2x.png</file>
+        <file>icons/radio_unchecked@2x.png</file>
+        <file>icons/radio_checked@2x.png</file>
     </qresource>
     <qresource prefix="/qss_icons">
         <file>rc/up_arrow_disabled.png</file>
@@ -292,10 +395,6 @@
         <file>rc/radio_unchecked_disabled.png</file>
         <file>rc/radio_unchecked_focus.png</file>
         <file>rc/radio_unchecked.png</file>
-        <file>icons/close_off.png</file>
-        <file>icons/close_on.png</file>
-        <file>icons/undock_off.png</file>
-        <file>icons/undock_on.png</file>
         <file>icons/blank.png</file>
     </qresource>
     <qresource prefix="/qdarkstyle">

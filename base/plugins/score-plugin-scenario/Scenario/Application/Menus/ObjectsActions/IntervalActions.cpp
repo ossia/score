@@ -83,8 +83,9 @@ IntervalActions::IntervalActions(ScenarioApplicationPlugin* parent)
   m_interp->setShortcutContext(Qt::ApplicationShortcut);
   m_interp->setToolTip(tr("Interpolate states (Ctrl+K)"));
   setIcons(
-      m_interp, QString(":/icons/interpolate_on.png"),
-      QString(":/icons/interpolate_off.png"));
+      m_interp, QStringLiteral(":/icons/interpolate_on.png"),
+      QStringLiteral(":/icons/interpolate_off.png"),
+      QStringLiteral(":/icons/interpolate_disabled.png"));
   connect(m_interp, &QAction::triggered, this, [&]() {
     if(auto doc = m_parent->currentDocument())
     {
@@ -111,8 +112,9 @@ IntervalActions::IntervalActions(ScenarioApplicationPlugin* parent)
     parent->context.mainWindow->addAction(m_curves);
 
   setIcons(
-      m_curves, QString(":/icons/create_curve_on.png"),
-      QString(":/icons/create_curve_off.png"));
+      m_curves, QStringLiteral(":/icons/create_curve_on.png"),
+      QStringLiteral(":/icons/create_curve_off.png"),
+      QStringLiteral(":/icons/create_curve_disabled.png"));
 
   connect(m_curves, &QAction::triggered, this, [&]() {
     if (auto doc = m_parent->currentDocument())

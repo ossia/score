@@ -22,6 +22,7 @@
 #include <cmath>
 #include <score/model/Skin.hpp>
 #include <score/widgets/GraphicsItem.hpp>
+#include <score/widgets/Pixmap.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::RackButton)
@@ -125,7 +126,7 @@ void TemporalIntervalHeader::paint(
 void TemporalIntervalHeader::updateButtons()
 {
   if (m_button)
-    m_button->setPos(15, 5);
+    m_button->setPos(10, 5);
   if (m_mute)
     m_mute->setPos(30, 5);
 }
@@ -139,12 +140,8 @@ void TemporalIntervalHeader::enableOverlay(bool b)
       ((TemporalIntervalPresenter&)m_presenter).changeRackState();
     });
 
-    static const auto pix_unmuted = QPixmap::fromImage(
-        QImage(":/icons/engine_on.png")
-            .scaled(20, 20, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-    static const auto pix_muted = QPixmap::fromImage(
-        QImage(":/icons/engine_off.png")
-            .scaled(20, 20, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
+    static const auto pix_unmuted = score::get_pixmap(":/icons/process_on.png");
+    static const auto pix_muted = score::get_pixmap(":/icons/process_off.png");
 
     m_mute = new score::QGraphicsPixmapToggle{pix_muted, pix_unmuted, this};
     if (m_presenter.model().muted())
@@ -270,6 +267,20 @@ static const QPainterPath trianglePath{[] {
 static const auto rotatedTriangle
     = QTransform().rotate(90).translate(8, -12).map(trianglePath);
 
+static const QPainterPath arrowPath{[] {
+  QPainterPath p;
+
+  p.moveTo(QPointF(5, 5));
+  p.lineTo(QPointF(14, 13));
+  p.lineTo(QPointF(5, 21));
+
+  p = QTransform().scale(0.6, 0.6).translate(0,4).map(p);
+
+  return p;
+}()};
+static const auto rotatedArrow
+    = QTransform().rotate(90).translate(6, -16).map(arrowPath);
+
 QRectF RackButton::boundingRect() const
 {
   return QRectF(trianglePath.boundingRect());
@@ -279,15 +290,23 @@ void RackButton::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, true);
-  auto& skin = ScenarioStyle::instance();
-  painter->setBrush(skin.IntervalHeaderSeparator.brush());
+  painter->setBrush(Qt::NoBrush);
+
+  auto pen = QPen(QColor("#f6a019"));
+  pen.setCapStyle(Qt::RoundCap);
+  pen.setJoinStyle(Qt::RoundJoin);
+  pen.setWidth(2);
+
   if (m_unroll)
   {
-    painter->fillPath(trianglePath, painter->brush());
+    pen.setColor("#a0a0a0");
+    painter->setPen(pen);
+    painter->drawPath(arrowPath);
   }
   else
   {
-    painter->fillPath(rotatedTriangle, painter->brush());
+    painter->setPen(pen);
+    painter->drawPath(rotatedArrow);
   }
   painter->setRenderHint(QPainter::Antialiasing, false);
 }

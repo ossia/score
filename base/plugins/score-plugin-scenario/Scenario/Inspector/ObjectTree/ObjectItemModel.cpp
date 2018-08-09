@@ -462,7 +462,7 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
   }
   if (role == Qt::FontRole)
   {
-    return ScenarioStyle::instance().Bold10Pt;
+    return ScenarioStyle::instance().Medium10Pt;
   }
 
   if (index.column() == 0)

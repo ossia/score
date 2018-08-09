@@ -190,7 +190,6 @@ void IntervalView::setWarning(bool warning)
 
 const QBrush& IntervalView::intervalColor(const ScenarioStyle& skin) const
 {
-  // TODO make a switch instead
   if (isSelected())
   {
     return skin.IntervalSelected.getBrush();
