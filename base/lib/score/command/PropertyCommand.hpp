@@ -117,7 +117,7 @@ namespace NS {                                                 \
 class Name final :                                             \
     public score::PropertyCommand_T<Property>                  \
 {                                                              \
-  SCORE_COMMAND_DECL(CommandFactoryName(), Name, Description)  \
+  SCORE_COMMAND_DECL(NS::CommandFactoryName(), Name, Description)  \
 public:                                                        \
   using PropertyCommand_T::PropertyCommand_T;                  \
 };                                                             \
