@@ -532,7 +532,7 @@ private:
 
       bar obj(JSONObjectWriter{json}, nullptr);
       QCOMPARE(obj.id().val(), 1234);
-      QCOMPARE(obj.objectName(), QString("foo_objname"));
+      QCOMPARE(obj.objectName(), QString("bar_objname"));
       QCOMPARE(obj.bar_var, 4567);
     }
 
@@ -540,7 +540,7 @@ private:
     {
       bar obj(DataStreamWriter{score::marshall<DataStream>(f)}, nullptr);
       QCOMPARE(obj.id().val(), 1234);
-      QCOMPARE(obj.objectName(), QString("foo_objname"));
+      QCOMPARE(obj.objectName(), QString("bar_objname"));
       QCOMPARE(obj.bar_var, 4567);
     }
   }
@@ -571,7 +571,7 @@ private:
       auto obj = dynamic_cast<derived*>(proc);
       QVERIFY(obj);
       QCOMPARE(obj->id().val(), 1234);
-      QCOMPARE(obj->objectName(), QString("foo_objname"));
+      QCOMPARE(obj->objectName(), QString("base_objname"));
       QCOMPARE(obj->base_var, 4567);
       QCOMPARE(obj->derived_var, 8910);
       delete proc;
@@ -586,7 +586,7 @@ private:
       auto obj = dynamic_cast<derived*>(proc);
       QVERIFY(obj);
       QCOMPARE(obj->id().val(), 1234);
-      QCOMPARE(obj->objectName(), QString("foo_objname"));
+      QCOMPARE(obj->objectName(), QString("base_objname"));
       QCOMPARE(obj->base_var, 4567);
       QCOMPARE(obj->derived_var, 8910);
       delete proc;
@@ -621,7 +621,7 @@ private:
       auto obj = dynamic_cast<derived2*>(proc);
       QVERIFY(obj);
       QCOMPARE(obj->id().val(), 1234);
-      QCOMPARE(obj->objectName(), QString("foo_objname"));
+      QCOMPARE(obj->objectName(), QString("base_objname"));
       QCOMPARE(obj->base_var, 4567);
       QCOMPARE(obj->derived_var, 8910);
       QCOMPARE(obj->derived2_var, 555);
@@ -636,7 +636,7 @@ private:
       auto obj = dynamic_cast<derived2*>(proc);
       QVERIFY(obj);
       QCOMPARE(obj->id().val(), 1234);
-      QCOMPARE(obj->objectName(), QString("foo_objname"));
+      QCOMPARE(obj->objectName(), QString("base_objname"));
       QCOMPARE(obj->base_var, 4567);
       QCOMPARE(obj->derived_var, 8910);
       QCOMPARE(obj->derived2_var, 555);
@@ -665,7 +665,7 @@ private:
 
       crtp obj(JSONObjectWriter{json}, nullptr);
       QCOMPARE(obj.id().val(), 1234);
-      QCOMPARE(obj.objectName(), QString("foo_objname"));
+      QCOMPARE(obj.objectName(), QString("crtp_objname"));
       QCOMPARE(obj.trait_var, 4567);
       QCOMPARE(obj.crtp_var, 8910);
     }
@@ -673,7 +673,7 @@ private:
     {
       crtp obj(DataStreamWriter{score::marshall<DataStream>(f)}, nullptr);
       QCOMPARE(obj.id().val(), 1234);
-      QCOMPARE(obj.objectName(), QString("foo_objname"));
+      QCOMPARE(obj.objectName(), QString("crtp_objname"));
       QCOMPARE(obj.trait_var, 4567);
       QCOMPARE(obj.crtp_var, 8910);
     }
@@ -701,7 +701,7 @@ private:
 
       crtp2 obj(JSONObjectWriter{json}, nullptr);
       QCOMPARE(obj.id().val(), 1234);
-      QCOMPARE(obj.objectName(), QString("foo_objname"));
+      QCOMPARE(obj.objectName(), QString("crtp2_objname"));
       QCOMPARE(obj.trait_var, 4567);
       QCOMPARE(obj.trait2_var, 111);
       QCOMPARE(obj.crtp2_var, 8910);
@@ -710,7 +710,7 @@ private:
     {
       crtp2 obj(DataStreamWriter{score::marshall<DataStream>(f)}, nullptr);
       QCOMPARE(obj.id().val(), 1234);
-      QCOMPARE(obj.objectName(), QString("foo_objname"));
+      QCOMPARE(obj.objectName(), QString("crtp2_objname"));
       QCOMPARE(obj.trait_var, 4567);
       QCOMPARE(obj.trait2_var, 111);
       QCOMPARE(obj.crtp2_var, 8910);
