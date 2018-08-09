@@ -120,6 +120,7 @@ struct SCORE_LIB_PROCESS_EXPORT ScenarioStyle
   QFont Bold12Pt;
   QFont Medium7Pt;
   QFont Medium8Pt;
+  QFont Medium10Pt;
   QFont Medium12Pt;
 
   QPen CommentBlockPen;

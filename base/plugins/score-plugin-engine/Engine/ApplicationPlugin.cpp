@@ -338,8 +338,8 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
   m_audioEngineAct->setChecked(bool(audio));
 
   setIcons(
-      m_audioEngineAct, QString(":/icons/engine_on.png"),
-      QString(":/icons/engine_off.png"), false);
+      m_audioEngineAct, QStringLiteral(":/icons/engine_on.png"),
+      QStringLiteral(":/icons/engine_off.png"), QStringLiteral(":/icons/engine_disabled.png"), false);
   {
     auto bar = new QToolBar;
     bar->addAction(m_audioEngineAct);

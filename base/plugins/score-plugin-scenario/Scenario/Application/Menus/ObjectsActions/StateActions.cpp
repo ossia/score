@@ -31,8 +31,9 @@ StateActions::StateActions(ScenarioApplicationPlugin* parent)
   if (parent->context.mainWindow)
     parent->context.mainWindow->addAction(m_refreshStates);
   setIcons(
-      m_refreshStates, QString(":/icons/refresh_on.png"),
-      QString(":/icons/refresh_off.png"));
+      m_refreshStates, QStringLiteral(":/icons/refresh_on.png"),
+      QStringLiteral(":/icons/refresh_off.png"),
+      QStringLiteral(":/icons/refresh_disabled.png"));
 
   connect(m_refreshStates, &QAction::triggered, this, [&]() {
     Command::RefreshStates(m_parent->currentDocument()->context());
@@ -44,8 +45,9 @@ StateActions::StateActions(ScenarioApplicationPlugin* parent)
     parent->context.mainWindow->addAction(m_snapshot);
 
   setIcons(
-      m_snapshot, QString(":/icons/snapshot_on.png"),
-      QString(":/icons/snapshot_off.png"));
+      m_snapshot, QStringLiteral(":/icons/snapshot_on.png"),
+      QStringLiteral(":/icons/snapshot_off.png"),
+      QStringLiteral(":/icons/snapshot_disabled.png"));
 
   connect(m_snapshot, &QAction::triggered, this, [&]() {
     if (auto doc = m_parent->currentDocument())

@@ -16,7 +16,9 @@ SelectionButton::SelectionButton(
     QWidget* parent)
     : QPushButton{text, parent}, m_dispatcher{disp}
 {
-  auto icon = makeIcons(":/icons/next_on.png", ":/icons/next_off.png");
+  auto icon = makeIcons(QStringLiteral(":/icons/next_on.png"),
+                        QStringLiteral(":/icons/next_off.png"),
+                        QStringLiteral(":/icons/next_disabled.png"));
 
   setObjectName("SelectionButton");
   setIcon(icon);

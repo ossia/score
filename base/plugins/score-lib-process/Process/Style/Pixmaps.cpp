@@ -1,19 +1,14 @@
 #include <Process/Style/Pixmaps.hpp>
+#include <score/widgets/Pixmap.hpp>
 
 namespace Process
 {
 
-static auto mini_pixmap(QString str)
-{
-  auto img = QImage(str).scaled(10, 10, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
-  return QPixmap::fromImage(std::move(img));
-}
-
 Pixmaps::Pixmaps()
-  : show_ui_off   {mini_pixmap(":/icons/undock_off.png")}
-  , show_ui_on    {mini_pixmap(":/icons/undock_on.png")}
-  , rm_process_off{mini_pixmap(":/icons/close_off.png")}
-  , rm_process_on {mini_pixmap(":/icons/close_on.png")}
+  : show_ui_off   {score::get_pixmap(":/icons/undock_on.png")}
+  , show_ui_on    {score::get_pixmap(":/icons/undock_off.png")}
+  , rm_process_off{score::get_pixmap(":/icons/close_on.png")}
+  , rm_process_on {score::get_pixmap(":/icons/close_off.png")}
 {
 
 }

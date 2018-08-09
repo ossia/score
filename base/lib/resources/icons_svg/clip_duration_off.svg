@@ -8,42 +8,19 @@
 	.st0{display:none;fill:#3E3E3E;}
 	.st1{display:none;}
 	.st2{fill:#FFFFFF;}
-	.st3{clip-path:url(#SVGID_2_);}
-	.st4{fill:none;stroke:#FFFFFF;stroke-miterlimit:10;}
+	.st3{fill:none;stroke:#FFFFFF;stroke-miterlimit:10;}
 </style>
 <sodipodi:namedview  bordercolor="#666666" borderopacity="1" gridtolerance="10" guidetolerance="10" id="namedview3485" inkscape:current-layer="g3491" inkscape:cx="18.035875" inkscape:cy="18.035875" inkscape:pageopacity="0" inkscape:pageshadow="2" inkscape:window-height="480" inkscape:window-maximized="0" inkscape:window-width="774" inkscape:window-x="0" inkscape:window-y="0" inkscape:zoom="6.5425158" objecttolerance="10" pagecolor="#ffffff" showgrid="false">
 	</sodipodi:namedview>
 <g id="g3491" transform="matrix(1.25,0,0,-1.25,0,36.07175)" inkscape:groupmode="layer" inkscape:label="boutons_iscore">
-	<path id="path3493" inkscape:connector-curvature="0" class="st0" d="M0.5,0.5h27.9v27.9H0.5C0.5,28.4,0.5,0.5,0.5,0.5z"/>
+	<path id="path3493" inkscape:connector-curvature="0" class="st0" d="M0.5,0.5h27.9v27.9H0.5V0.5z"/>
 	<path id="path3495" inkscape:connector-curvature="0" class="st1" d="M0,0h28.9v28.9H0V0z M1,27.9h26.9V1H1V27.9z"/>
-	<g id="g3497" transform="translate(6.6132,10.5908)">
-		<path id="path3499" inkscape:connector-curvature="0" class="st2" d="M0,0l-4.5,3.6L0,7.3V0z"/>
-	</g>
-	<g id="g3501" transform="translate(22.5204,17.8574)">
-		<path id="path3503" inkscape:connector-curvature="0" class="st2" d="M0,0l4.5-3.6L0-7.3V0z"/>
-	</g>
-	<g id="g3505">
-		<g>
-			<defs>
-				<rect id="SVGID_1_" x="-3.6" y="-3.6" width="36.1" height="36.1"/>
-			</defs>
-			<clipPath id="SVGID_2_">
-				<use xlink:href="#SVGID_1_"  style="overflow:visible;"/>
-			</clipPath>
-			<g id="g3507" class="st3">
-				<g id="g3513" transform="translate(13.6679,11.5606)">
-					<path id="path3515" inkscape:connector-curvature="0" class="st2" d="M0,0c-0.4,0.2-0.6,0.5-0.6,0.9C-0.6,1.5,0.1,2,0.9,2
-						s1.5-0.5,1.5-1.1c0-0.4-0.2-0.7-0.6-0.9l0.6-2.5h-3L0,0z M-1.4,5.1c0,1.2,1,2.3,2.3,2.3c1.3,0,2.3-1,2.3-2.3V2.8h-4.5
-						C-1.4,2.8-1.4,5.1-1.4,5.1z M-2.9,5V2.8h-0.8v-6h9.1v6H4.7V5c0,2.1-1.7,3.8-3.8,3.8C-1.2,8.8-2.9,7.2-2.9,5"/>
-				</g>
-				<g id="g3517" transform="translate(8.3857,22.8321)">
-					<path id="path3519" inkscape:connector-curvature="0" class="st4" d="M0,0v-17"/>
-				</g>
-				<g id="g3521" transform="translate(20.7284,22.8321)">
-					<path id="path3523" inkscape:connector-curvature="0" class="st4" d="M0,0v-17"/>
-				</g>
-			</g>
-		</g>
-	</g>
+	<path id="path3499" inkscape:connector-curvature="0" class="st2" d="M6.6,10.6l-4.5,3.6l4.5,3.7V10.6z"/>
+	<path id="path3503" inkscape:connector-curvature="0" class="st2" d="M22.5,17.9l4.5-3.6l-4.5-3.7V17.9z"/>
+	<path id="path3515" inkscape:connector-curvature="0" class="st2" d="M13.7,11.6c-0.4,0.2-0.6,0.5-0.6,0.9c0,0.6,0.7,1.1,1.5,1.1
+		c0.8,0,1.5-0.5,1.5-1.1c0-0.4-0.2-0.7-0.6-0.9l0.6-2.5h-3L13.7,11.6z M12.3,16.7c0,1.2,1,2.3,2.3,2.3s2.3-1,2.3-2.3v-2.3h-4.5
+		C12.3,14.4,12.3,16.7,12.3,16.7z M10.8,16.6v-2.2H10v-6h9.1v6h-0.7v2.2c0,2.1-1.7,3.8-3.8,3.8S10.8,18.8,10.8,16.6"/>
+	<path id="path3519" inkscape:connector-curvature="0" class="st3" d="M8.4,22.8v-17"/>
+	<path id="path3523" inkscape:connector-curvature="0" class="st3" d="M20.7,22.8v-17"/>
 </g>
 </svg>

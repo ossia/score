@@ -5,10 +5,10 @@
 <style type="text/css">
 	.st0{display:none;fill:#3D3D3D;}
 	.st1{display:none;fill:#000100;}
-	.st2{fill:#FFFFFF;}
+	.st2{fill:#F0F0F0;}
 </style>
 <title>boutons</title>
 <rect x="0.5" y="0.5" class="st0" width="27.9" height="27.9"/>
 <path class="st1" d="M28.9,28.9H0V0h28.9V28.9z M1,27.9h26.9V1H1V27.9z"/>
-<path class="st2" d="M10.9,8.9l9.1,5.5l-9.1,5.5L10.9,8.9L10.9,8.9z"/>
+<path class="st2" d="M10.9,8.9l9.1,5.5l-9.1,5.5V8.9L10.9,8.9z"/>
 </svg>
