@@ -12,7 +12,7 @@ class time_event;
 
 namespace Execution
 {
-class EventComponent final
+class SCORE_PLUGIN_SCENARIO_EXPORT EventComponent final
     : public Execution::Component
 {
   W_OBJECT(EventComponent)

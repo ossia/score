@@ -6,6 +6,7 @@
 #include <State/Value.hpp>
 #include <QStringList>
 #include <memory>
+#include <score_plugin_scenario_export.h>
 namespace Execution
 {
 struct Context;
@@ -35,6 +36,8 @@ void state(
     ossia::state& ossia_state,
     const Scenario::StateModel& score_state,
     const Execution::Context& ctx);
+
+SCORE_PLUGIN_SCENARIO_EXPORT
 ossia::state state(
     const Scenario::StateModel& score_state,
     const Execution::Context& ctx);
