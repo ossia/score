@@ -8,6 +8,7 @@
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
+#include <Process/ExecutionContext.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <faust/gui/GUI.h>
 #include <score/tools/IdentifierGeneration.hpp>
