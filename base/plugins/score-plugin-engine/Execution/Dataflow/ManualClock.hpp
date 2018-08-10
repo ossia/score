@@ -5,6 +5,7 @@
 #include <Execution/Clock/DefaultClock.hpp>
 #include <Execution/DocumentPlugin.hpp>
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
+#include <ossia/editor/scenario/time_value.hpp>
 #include <QHBoxLayout>
 #include <QMainWindow>
 #include <QPushButton>
@@ -70,7 +71,9 @@ private:
     }
     QObject::connect(m_widg, &TimeWidget::advance, this, [=](int val) {
       using namespace ossia;
-      scenario.baseInterval().OSSIAInterval()->tick_offset(ossia::time_value{val}, 0_tv);
+      ossia::time_interval& itv = *scenario.baseInterval().OSSIAInterval();
+      ossia::time_value time{val};
+      itv.tick_offset(time, 0_tv);
     });
     m_widg->show();
 
