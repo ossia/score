@@ -18,9 +18,15 @@
 #include <Protocols/OSC/OSCProtocolFactory.hpp>
 #include <Protocols/OSC/OSCSpecificSettings.hpp>
 #include <core/command/CommandStack.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <ossia/network/common/complex_type.hpp>
+#include <core/application/ApplicationSettings.hpp>
 #include <ossia/network/base/parameter_data.hpp>
+#include <Scenario/Application/ScenarioActions.hpp>
+#include <score/actions/ActionManager.hpp>
+#include <Engine/ApplicationPlugin.hpp>
 namespace JS
 {
 
@@ -95,6 +101,7 @@ public:
 
   } W_SLOT(automate)
 
+
   void undo()
   { ctx().document.commandStack().undo(); }
   W_SLOT(undo)
@@ -121,6 +128,40 @@ public:
   {
      return score::GUIAppContext().documents.currentDocument();
   } W_SLOT(document)
+
+
+  /// Execution ///
+
+  void play(QObject* obj)
+  {
+    auto plug = score::GUIAppContext().findGuiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
+    if (!plug)
+      return;
+
+    if(auto itv = qobject_cast<Scenario::IntervalModel*>(obj))
+    {
+      plug->execution().playInterval(Scenario::parentScenario(*itv), itv->id());
+    }
+    else if(auto state = qobject_cast<Scenario::StateModel*>(obj))
+    {
+      plug->execution().playState(Scenario::parentScenario(*state), state->id());
+    }
+  } W_SLOT(play)
+
+  void stop()
+  {
+    const auto& context = score::GUIAppContext();
+    if (context.applicationSettings.gui)
+    {
+      auto& stop_action = context.actions.action<Actions::Stop>();
+      stop_action.action()->trigger();
+    }
+    else
+    {
+      context.guiApplicationPlugin<Engine::ApplicationPlugin>().on_stop();
+    }
+  } W_SLOT(stop)
+
 };
 
 W_OBJECT_IMPL(EditJsContext)
