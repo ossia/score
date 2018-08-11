@@ -290,7 +290,7 @@ struct AddressAccessorCurveCreator
       // TODO do a proper recursive algorithm here ; also change the count algorithm before to match
       for(std::size_t c = 0; c < v.size(); c++)
       {
-        const auto t = v[c].getType();
+        const auto t = v[c].get_type();
         if(t == ossia::val_type::FLOAT || t == ossia::val_type::INT)
         {
           acc[0] = (int)c;
@@ -565,7 +565,7 @@ struct CurveCreator
     // TODO do a proper recursive algorithm here ; also change the count algorithm before to match
     for(std::size_t c = 0; c < v.size(); c++)
     {
-      const auto t = v[c].getType();
+      const auto t = v[c].get_type();
       if(t == ossia::val_type::FLOAT || t == ossia::val_type::INT)
       {
         acc[0] = (int)c;

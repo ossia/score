@@ -358,7 +358,7 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
           case Rows::Type:
           {
             return State::convert::ValuePrettyTypesArray()
-                [(int)m_settings.value.getType()];
+                [(int)m_settings.value.get_type()];
           }
           case Rows::Min:
           {
@@ -435,7 +435,7 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
       switch (index.row())
       {
         case Rows::Type:
-          return (int)m_settings.value.getType();
+          return (int)m_settings.value.get_type();
         case Rows::Access:
           return m_settings.ioType ? (int)*m_settings.ioType : -1;
         case Rows::Bounding:
@@ -721,7 +721,7 @@ make_value_widget(Device::FullAddressSettings addr, QWidget* parent)
   auto min = dom.get_min(), max = dom.get_max();
   if (min.valid()  && max.valid() && addr.value.valid())
   {
-    switch (addr.value.getType())
+    switch (addr.value.get_type())
     {
       case ossia::val_type::FLOAT:
         return new DoubleSliderValueWidget{
@@ -738,7 +738,7 @@ make_value_widget(Device::FullAddressSettings addr, QWidget* parent)
     }
   }
 
-  switch (addr.value.getType())
+  switch (addr.value.get_type())
   {
     case ossia::val_type::LIST:
       return new ListValueWidget{parent};
@@ -750,7 +750,7 @@ make_value_widget(Device::FullAddressSettings addr, QWidget* parent)
 AddressValueWidget*
 make_min_widget(Device::FullAddressSettings addr, QWidget* parent)
 {
-  switch (addr.value.getType())
+  switch (addr.value.get_type())
   {
     case ossia::val_type::LIST:
       return new ListValueWidget{parent};
@@ -762,7 +762,7 @@ make_min_widget(Device::FullAddressSettings addr, QWidget* parent)
 AddressValueWidget*
 make_max_widget(Device::FullAddressSettings addr, QWidget* parent)
 {
-  switch (addr.value.getType())
+  switch (addr.value.get_type())
   {
     case ossia::val_type::LIST:
       return new ListValueWidget{parent};

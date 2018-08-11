@@ -81,7 +81,7 @@ public:
 
       set.ioType = ossia::access_mode::BI;
       set.value = t->value;
-      if(set.value.getType() == ossia::val_type::NONE)
+      if(set.value.get_type() == ossia::val_type::NONE)
       {
         set.value = ossia::init_value(ossia::underlying_type(t->type));
       }
