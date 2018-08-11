@@ -179,7 +179,7 @@ static void updateOSSIAAddress(
   addr.set_repetition_filter(
       ossia::repetition_filter(settings.repetitionFilter));
 
-  addr.set_value_type(settings.value.getType());
+  addr.set_value_type(settings.value.get_type());
 
   addr.set_value(settings.value);
 
@@ -196,7 +196,7 @@ static void createOSSIAAddress(
   if (!settings.value.v)
     return;
 
-  auto addr = node.create_parameter(settings.value.getType());
+  auto addr = node.create_parameter(settings.value.get_type());
   if (addr)
     updateOSSIAAddress(settings, *addr);
 }

@@ -88,7 +88,7 @@ struct Node
         case 2:
         {
           int note = ossia::convert<int>(v[0]);
-          switch (v[1].getType())
+          switch (v[1].get_type())
           {
             case ossia::val_type::FLOAT:
               return operator()(note, *v[1].v.target<float>());
