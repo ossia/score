@@ -12,14 +12,19 @@
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
+#include <QApplication>
+#include <QColumnView>
+#include <QTreeView>
+#include <QPushButton>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(State::UnitWidget)
+W_OBJECT_IMPL(State::DestinationQualifierWidget)
 
 namespace State
 {
 UnitWidget::UnitWidget(QWidget* parent) : QWidget{parent}
 {
-  m_layout = new score::MarginLess<QHBoxLayout>{this};
+  m_layout = new score::MarginLess<QVBoxLayout>{this};
 
   m_dataspace = new QComboBox{this};
   m_unit = new QComboBox{this};
@@ -127,5 +132,328 @@ void UnitWidget::on_dataspaceChanged(const State::Unit& unit)
     // No unit
     unitChanged({});
   }
+}
+class EmptyModel final : public QAbstractItemModel
+{
+public:
+
+  // QAbstractItemModel interface
+public:
+  QModelIndex index(int row, int column, const QModelIndex& parent) const override
+  {
+    return QModelIndex();
+  }
+  QModelIndex parent(const QModelIndex& child) const override
+  {
+    return QModelIndex();
+  }
+  int rowCount(const QModelIndex& parent) const override
+  {
+    return 0;
+  }
+  int columnCount(const QModelIndex& parent) const override
+  {
+    return 0;
+  }
+  QVariant data(const QModelIndex& index, int role) const override
+  {
+    return {};
+  }
+};
+class UnitModel final : public QAbstractItemModel
+{
+public:
+
+  struct UnitDataModel;
+  struct DataspaceModel;
+
+  struct TreeNode
+  {
+    TreeNode* parent{};
+    virtual ~TreeNode() { }
+  };
+
+  struct AccessorModel : TreeNode
+  {
+    AccessorModel(ossia::destination_qualifiers a): accessor{a} { }
+    virtual ~AccessorModel() { }
+    ossia::destination_qualifiers accessor;
+  };
+
+  struct UnitDataModel : TreeNode
+  {
+    virtual ~UnitDataModel() { }
+    ossia::unit_t unit;
+    std::vector<AccessorModel> accessors;
+  };
+
+  struct DataspaceModel : TreeNode
+  {
+    virtual ~DataspaceModel() { }
+    ossia::unit_t dataspace;
+    std::vector<UnitDataModel> units;
+  };
+
+  std::vector<DataspaceModel> m_data;
+
+  UnitModel()
+  {
+    m_data.push_back(DataspaceModel{});
+
+    ossia::for_each_tagged(ossia::dataspace_u_list{},
+                           [&] (auto d_t)
+    {
+      using dataspace_type = typename decltype(d_t)::type;
+
+      DataspaceModel d; d.dataspace = typename ossia::matching_unit_u_list<dataspace_type>::type{};
+      ossia::for_each_tagged(dataspace_type{},
+                             [&] (auto u_t)
+      {
+        using unit_type = typename decltype(u_t)::type;
+
+        UnitDataModel u; u.unit = unit_type{};
+        if constexpr(unit_type::is_multidimensional::value)
+        {
+          for(int32_t i = 0; i < unit_type::array_parameters().size(); i++)
+          {
+            u.accessors.emplace_back(ossia::destination_qualifiers{ossia::destination_index{i}, unit_type{}});
+          }
+        }
+        d.units.push_back(std::move(u));
+      });
+      m_data.push_back(std::move(d));
+    });
+
+    for(auto& d : m_data)
+    {
+      for(auto& u : d.units)
+      {
+        for(auto& a : u.accessors)
+        {
+          a.parent = &u;
+        }
+        u.parent = &d;
+      }
+    }
+  }
+
+  bool hasChildren(const QModelIndex& index) const override
+  {
+    if(!index.isValid())
+    {
+      return true;
+    }
+    else if(!index.parent().isValid())
+    {
+      // Dataspace
+      if(index.row() == 0)
+        return false;
+      else
+        return true;
+    }
+    else if(!index.parent().parent().isValid())
+    {
+      // Unit
+      auto& units = m_data[index.parent().row()].units[index.row()];
+      return !units.accessors.empty();
+    }
+    return false;
+  }
+
+  QModelIndex index(int row, int column, const QModelIndex& parent) const override
+  {
+    if(!hasIndex(row, column, parent))
+      return QModelIndex{};
+
+    if(!parent.isValid())
+    {
+      return createIndex(row, column, (void*)&m_data[row]);
+    }
+    else if(!parent.parent().isValid())
+    {
+      return createIndex(row, column, (void*)&m_data[parent.row()].units[row]);
+    }
+    else if(!parent.parent().parent().isValid())
+    {
+      return createIndex(row, column, (void*)&m_data[parent.parent().row()].units[parent.row()].accessors[row]);
+    }
+    else
+    {
+      return {};
+    }
+  }
+
+  template<typename T, typename U>
+  static int ptr_distance(const T& container, U* ptr)
+  {
+    int i = 0;
+    for(auto& e : container)
+    {
+      if(&e == ptr)
+        return i;
+      i++;
+    }
+    return -1;
+  }
+  QModelIndex parent(const QModelIndex& child) const override
+  {
+    if (!child.isValid())
+      return QModelIndex{};
+
+    TreeNode* p = (TreeNode*)child.internalPointer();
+    if(!p)
+      return QModelIndex{};
+
+    if(auto d = dynamic_cast<DataspaceModel*>(p))
+    {
+      return QModelIndex{};
+    }
+    else if(auto u = dynamic_cast<UnitDataModel*>(p))
+    {
+      auto i = ptr_distance(m_data, static_cast<DataspaceModel*>(u->parent));
+      if(i != -1)
+        return createIndex(i, 0, (void*)u->parent);
+      else
+        return QModelIndex{};
+    }
+    else if(auto a = dynamic_cast<AccessorModel*>(p))
+    {
+      auto u = static_cast<UnitDataModel*>(a->parent);
+      auto d = static_cast<DataspaceModel*>(u->parent);
+
+      auto i = ptr_distance(d->units, u);
+      if(i != -1)
+        return createIndex(i, 0, (void*)a->parent);
+      else
+        return QModelIndex{};
+    }
+    return QModelIndex{};
+  }
+
+  int rowCount(const QModelIndex& parent) const override
+  {
+    if(parent == QModelIndex{})
+    {
+      return m_data.size();
+    }
+
+    TreeNode* p = (TreeNode*)parent.internalPointer();
+    if(!p)
+    {
+      return 0;
+    }
+    else if(auto d = dynamic_cast<DataspaceModel*>(p))
+    {
+      return d->units.size();
+    }
+    else if(auto u = dynamic_cast<UnitDataModel*>(p))
+    {
+      return u->accessors.size();
+    }
+    else
+    {
+      return 0;
+    }
+
+  }
+
+  int columnCount(const QModelIndex& parent) const override
+  {
+    return 1;
+  }
+
+  QVariant data(const QModelIndex& index, int role) const override
+  {
+    if(role == Qt::DisplayRole)
+    {
+      if(!index.internalPointer())
+        return {};
+
+      auto p = (TreeNode*) index.internalPointer();
+      if(auto d = dynamic_cast<DataspaceModel*>(p))
+      {
+        if(d->dataspace)
+          return QString::fromUtf8(ossia::get_dataspace_text(d->dataspace).data());
+        else
+          return tr("None");
+      }
+      else if(auto u = dynamic_cast<UnitDataModel*>(p))
+      {
+        return QString::fromUtf8(ossia::get_unit_text(u->unit).data());
+      }
+      else if(auto a = dynamic_cast<AccessorModel*>(p))
+      {
+        return QChar(get_unit_accessors(a->accessor.unit)[a->accessor.accessors[0]]);
+      }
+    }
+
+    return {};
+  }
+
+};
+DestinationQualifierWidget::DestinationQualifierWidget(QWidget* parent) : QWidget{parent}
+{
+  static EmptyModel empty;
+  static UnitModel m;
+  auto lay = new score::MarginLess<QHBoxLayout>{this};
+
+  {
+    auto tv = new QComboBox;
+    tv->setModel(&m);
+    lay->addWidget(tv);
+
+    auto tv2 = new QComboBox;
+    lay->addWidget(tv2);
+
+    auto tv3 = new QComboBox;
+    lay->addWidget(tv3);
+    connect(tv, qOverload<int>(&QComboBox::currentIndexChanged), this, [=] (int idx) {
+      tv2->setModel(&empty);
+      tv3->setModel(&empty);
+      if(idx != 0)
+      {
+        tv2->setModel(&m);
+        tv2->setRootModelIndex(m.index(idx, 0, QModelIndex()));
+        tv2->setCurrentIndex(0);
+      }
+      else
+      {
+        tv2->setCurrentIndex(-1);
+      }
+    });
+
+    connect(tv2, qOverload<int>(&QComboBox::currentIndexChanged), this, [=] (int idx) {
+      auto unit_idx = m.index(idx, 0, tv2->rootModelIndex());
+
+      tv3->setModel(&empty);
+      if(m.hasChildren(unit_idx))
+      {
+        tv3->setModel(&m);
+        tv3->setRootModelIndex(unit_idx);
+        tv3->setCurrentIndex(0);
+      }
+      else
+      {
+        tv3->setCurrentIndex(-1);
+      }
+    });
+  }
+
+
+}
+
+DestinationQualifierWidget::DestinationQualifierWidget(const State::DestinationQualifiers& u, QWidget* parent)
+    : DestinationQualifierWidget{parent}
+{
+  setQualifiers(u);
+}
+
+State::DestinationQualifiers DestinationQualifierWidget::qualifiers() const
+{
+  return {};
+}
+
+void DestinationQualifierWidget::setQualifiers(const State::DestinationQualifiers& unit)
+{
 }
 }
