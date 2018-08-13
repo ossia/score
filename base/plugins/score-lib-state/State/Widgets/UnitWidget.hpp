@@ -1,9 +1,13 @@
 #pragma once
 #include <QWidget>
 #include <wobjectdefs.h>
+#include <State/Address.hpp>
 #include <State/Unit.hpp>
+
 #include <score_lib_state_export.h>
 
+class QPushButton;
+class QColumnView;
 class QComboBox;
 class QHBoxLayout;
 namespace State
@@ -24,8 +28,26 @@ public:
 private:
   void on_dataspaceChanged(const State::Unit&);
 
-  QHBoxLayout* m_layout{};
+  QLayout* m_layout{};
   QComboBox* m_dataspace{};
   QComboBox* m_unit{};
+};
+
+class SCORE_LIB_STATE_EXPORT DestinationQualifierWidget : public QWidget
+{
+  W_OBJECT(DestinationQualifierWidget)
+public:
+  DestinationQualifierWidget(QWidget* parent);
+  DestinationQualifierWidget(const State::DestinationQualifiers& u, QWidget* parent);
+
+  State::DestinationQualifiers qualifiers() const;
+  void setQualifiers(const State::DestinationQualifiers&);
+
+public:
+  void qualifiersChanged(const State::DestinationQualifiers& arg_1) E_SIGNAL(SCORE_LIB_STATE_EXPORT, qualifiersChanged, arg_1);
+
+private:
+  QPushButton* m_button{};
+  QColumnView* m_col{};
 };
 }
