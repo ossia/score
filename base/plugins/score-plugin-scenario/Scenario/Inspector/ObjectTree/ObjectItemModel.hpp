@@ -159,7 +159,6 @@ public:
 
 private:
   QLineEdit* m_lineEdit{};
-  QPushButton* m_btn;
   const score::GUIApplicationContext& m_ctx;
 };
 

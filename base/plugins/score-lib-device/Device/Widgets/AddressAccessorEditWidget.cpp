@@ -8,6 +8,7 @@
 #include <Device/Widgets/DeviceModelProvider.hpp>
 
 #include <State/Widgets/AddressLineEdit.hpp>
+#include <State/Widgets/UnitWidget.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/value/value.hpp>
@@ -22,9 +23,27 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
     : QWidget{parent}
 {
   setAcceptDrops(true);
-  auto lay = new score::MarginLess<QHBoxLayout>{this};
+  auto lay = new score::MarginLess<QVBoxLayout>{this};
   m_lineEdit = new State::AddressAccessorLineEdit<AddressAccessorEditWidget>{this};
 
+  auto uw = new State::DestinationQualifierWidget{this};
+  uw->setVisible(false);
+  auto act = new QAction{this};
+  act->setIcon(QIcon(":/qss_icons/rc/branch_closed.png"));
+  m_lineEdit->addAction(act, QLineEdit::TrailingPosition);
+
+  connect(act, &QAction::triggered, [=] {
+    if(uw->isVisible())
+    {
+      uw->setVisible(false);
+      act->setIcon(QIcon(":/qss_icons/rc/branch_closed.png"));
+    }
+    else
+    {
+      uw->setVisible(true);
+      act->setIcon(QIcon(":/qss_icons/rc/branch_open.png"));
+    }
+  });
   {
     auto& plist = ctx.app.interfaces<DeviceModelProviderList>();
     if(auto provider = plist.getBestProvider(ctx))
@@ -66,6 +85,7 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
     m_lineEdit->setCompleter(new DeviceCompleter{*m_model, this});
 
   lay->addWidget(m_lineEdit);
+  lay->addWidget(uw);
 }
 
 void AddressAccessorEditWidget::setAddress(const State::AddressAccessor& addr)

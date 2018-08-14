@@ -47,7 +47,9 @@ public:
   void qualifiersChanged(const State::DestinationQualifiers& arg_1) E_SIGNAL(SCORE_LIB_STATE_EXPORT, qualifiersChanged, arg_1);
 
 private:
-  QPushButton* m_button{};
-  QColumnView* m_col{};
+  QComboBox* m_ds{};
+  QComboBox* m_unit{};
+  QComboBox* m_ac{};
+
 };
 }
