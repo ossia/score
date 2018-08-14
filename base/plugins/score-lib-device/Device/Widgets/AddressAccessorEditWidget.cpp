@@ -28,6 +28,12 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
 
   auto uw = new State::DestinationQualifierWidget{this};
   uw->setVisible(false);
+  connect(uw, &State::DestinationQualifierWidget::qualifiersChanged, this, [=] (const auto& qual) {
+    m_address.address.qualifiers = qual;
+    m_lineEdit->setText(m_address.address.toString_unsafe());
+    addressChanged(m_address);
+  });
+
   auto act = new QAction{this};
   act->setIcon(QIcon(":/qss_icons/rc/branch_closed.png"));
   m_lineEdit->addAction(act, QLineEdit::TrailingPosition);
