@@ -354,6 +354,8 @@
         <file>icons/radio_checked_disabled@2x.png</file>
         <file>icons/radio_unchecked@2x.png</file>
         <file>icons/radio_checked@2x.png</file>
+        <file>icons/unit_icon.png</file>
+        <file>icons/unit_icon@2x.png</file>
     </qresource>
     <qresource prefix="/qss_icons">
         <file>rc/up_arrow_disabled.png</file>

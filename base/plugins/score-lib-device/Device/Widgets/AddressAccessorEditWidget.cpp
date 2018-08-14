@@ -26,30 +26,32 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
   auto lay = new score::MarginLess<QVBoxLayout>{this};
   m_lineEdit = new State::AddressAccessorLineEdit<AddressAccessorEditWidget>{this};
 
-  auto uw = new State::DestinationQualifierWidget{this};
-  uw->setVisible(false);
-  connect(uw, &State::DestinationQualifierWidget::qualifiersChanged, this, [=] (const auto& qual) {
-    m_address.address.qualifiers = qual;
-    m_lineEdit->setText(m_address.address.toString_unsafe());
-    addressChanged(m_address);
+  m_qualifiers = new State::DestinationQualifierWidget{this};
+  m_qualifiers->setVisible(false);
+  connect(m_qualifiers, &State::DestinationQualifierWidget::qualifiersChanged, this, [=] (const auto& qual) {
+    if(m_address.address.qualifiers != qual)
+    {
+      m_address.address.qualifiers = qual;
+      m_lineEdit->setText(m_address.address.toString_unsafe());
+      addressChanged(m_address);
+    }
   });
 
   auto act = new QAction{this};
-  act->setIcon(QIcon(":/qss_icons/rc/branch_closed.png"));
+  act->setIcon(QIcon(":/icons/unit_icon.png"));
   m_lineEdit->addAction(act, QLineEdit::TrailingPosition);
 
   connect(act, &QAction::triggered, [=] {
-    if(uw->isVisible())
+    if(m_qualifiers->isVisible())
     {
-      uw->setVisible(false);
-      act->setIcon(QIcon(":/qss_icons/rc/branch_closed.png"));
+      m_qualifiers->setVisible(false);
     }
     else
     {
-      uw->setVisible(true);
-      act->setIcon(QIcon(":/qss_icons/rc/branch_open.png"));
+      m_qualifiers->setVisible(true);
     }
   });
+
   {
     auto& plist = ctx.app.interfaces<DeviceModelProviderList>();
     if(auto provider = plist.getBestProvider(ctx))
@@ -91,7 +93,7 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
     m_lineEdit->setCompleter(new DeviceCompleter{*m_model, this});
 
   lay->addWidget(m_lineEdit);
-  lay->addWidget(uw);
+  lay->addWidget(m_qualifiers);
 }
 
 void AddressAccessorEditWidget::setAddress(const State::AddressAccessor& addr)
@@ -99,12 +101,16 @@ void AddressAccessorEditWidget::setAddress(const State::AddressAccessor& addr)
   m_address = Device::FullAddressAccessorSettings{};
   m_address.address = addr;
   m_lineEdit->setText(m_address.address.toString_unsafe());
+  if(m_qualifiers->qualifiers() != m_address.address.qualifiers)
+    m_qualifiers->setQualifiers(m_address.address.qualifiers);
 }
 void AddressAccessorEditWidget::setFullAddress(
     Device::FullAddressAccessorSettings&& addr)
 {
   m_address = std::move(addr);
   m_lineEdit->setText(m_address.address.toString_unsafe());
+  if(m_qualifiers->qualifiers() != m_address.address.qualifiers)
+    m_qualifiers->setQualifiers(m_address.address.qualifiers);
 }
 
 const Device::FullAddressAccessorSettings&
