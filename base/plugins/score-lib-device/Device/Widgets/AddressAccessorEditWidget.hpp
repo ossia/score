@@ -9,6 +9,10 @@ namespace score
 {
 struct DocumentContext;
 }
+namespace State
+{
+class DestinationQualifierWidget;
+}
 namespace Device
 {
 class NodeBasedItemModel;
@@ -40,5 +44,6 @@ private:
   QLineEdit* m_lineEdit{};
   Device::FullAddressAccessorSettings m_address;
   Device::NodeBasedItemModel* m_model{};
+  State::DestinationQualifierWidget* m_qualifiers{};
 };
 }

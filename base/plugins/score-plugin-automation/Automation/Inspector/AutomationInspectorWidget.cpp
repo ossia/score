@@ -20,7 +20,6 @@
 #include <QStringList>
 #include <QWidget>
 #include <State/Address.hpp>
-#include <State/Widgets/UnitWidget.hpp>
 #include <algorithm>
 #include <list>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -78,19 +77,13 @@ InspectorWidget::InspectorWidget(
   m_minsb->setValue(process().min());
   m_maxsb->setValue(process().max());
 
-  m_uw = new State::UnitWidget{{}, this};
-  m_uw->setUnit(process().unit());
-
   vlay->addRow(tr("Min"), m_minsb);
   vlay->addRow(tr("Max"), m_maxsb);
-  vlay->addRow(tr("Unit"), m_uw);
 
   con(process(), &ProcessModel::minChanged, m_minsb,
       &QDoubleSpinBox::setValue);
   con(process(), &ProcessModel::maxChanged, m_maxsb,
       &QDoubleSpinBox::setValue);
-  con(process(), &ProcessModel::unitChanged, m_uw,
-      &State::UnitWidget::setUnit);
 
   connect(
       m_minsb, &QAbstractSpinBox::editingFinished, this,
@@ -98,9 +91,6 @@ InspectorWidget::InspectorWidget(
   connect(
       m_maxsb, &QAbstractSpinBox::editingFinished, this,
       &InspectorWidget::on_maxValueChanged);
-  connect(
-      m_uw, &State::UnitWidget::unitChanged, this,
-      [=](const State::Unit&) { on_unitChanged(); });
 
   this->setLayout(vlay);
 }
@@ -147,16 +137,6 @@ void InspectorWidget::on_tweenChanged()
   if (newVal != process().tween())
   {
     auto cmd = new SetTween{process(), newVal};
-
-    m_dispatcher.submitCommand(cmd);
-  }
-}
-void InspectorWidget::on_unitChanged()
-{
-  auto newVal = m_uw->unit();
-  if (newVal != process().unit())
-  {
-    auto cmd = new SetUnit{process(), newVal};
 
     m_dispatcher.submitCommand(cmd);
   }
