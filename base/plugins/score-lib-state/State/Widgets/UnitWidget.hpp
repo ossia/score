@@ -47,6 +47,8 @@ public:
   void qualifiersChanged(const State::DestinationQualifiers& arg_1) E_SIGNAL(SCORE_LIB_STATE_EXPORT, qualifiersChanged, arg_1);
 
 private:
+  void on_dataspaceChanged(int idx);
+  void on_unitChanged(int idx);
   QComboBox* m_ds{};
   QComboBox* m_unit{};
   QComboBox* m_ac{};

@@ -421,6 +421,7 @@ public:
 
     return {};
   }
+
 };
 
 static EmptyModel& empty_model() noexcept
@@ -433,91 +434,117 @@ static UnitModel& unit_model() noexcept
   static UnitModel e;
   return e;
 }
-DestinationQualifierWidget::DestinationQualifierWidget(QWidget* parent) : QWidget{parent}
+
+DestinationQualifierWidget::DestinationQualifierWidget(QWidget* parent)
+  : QWidget{parent}
 {
   auto& empty = empty_model();
   auto& m = unit_model();
   auto lay = new score::MarginLess<QHBoxLayout>{this};
 
-  {
-    m_ds = new QComboBox;
-    m_ds->setModel(&m);
-    lay->addWidget(m_ds);
+  m_ds = new QComboBox;
+  m_ds->setModel(&m);
+  lay->addWidget(m_ds);
 
-    m_unit = new QComboBox;
-    lay->addWidget(m_unit);
+  m_unit = new QComboBox;
+  lay->addWidget(m_unit);
 
-    m_ac = new QComboBox;
-    lay->addWidget(m_ac);
-    connect(m_ds, qOverload<int>(&QComboBox::currentIndexChanged), this, [=,&m,&empty] (int idx) {
-      m_unit->setModel(&empty);
-      m_ac->setModel(&empty);
-      if(idx != 0)
-      {
-        m_unit->setModel(&m);
-        m_unit->setRootModelIndex(m.index(idx, 0, QModelIndex()));
-        m_unit->setCurrentIndex(0);
-      }
-      else
-      {
-        m_unit->setCurrentIndex(-1);
-      }
+  m_ac = new QComboBox;
+  lay->addWidget(m_ac);
+  connect(m_ds, qOverload<int>(&QComboBox::currentIndexChanged),
+          this, &DestinationQualifierWidget::on_dataspaceChanged);
 
-      qualifiersChanged(qualifiers());
-    });
+  connect(m_unit, qOverload<int>(&QComboBox::currentIndexChanged),
+          this, &DestinationQualifierWidget::on_unitChanged);
 
-    connect(m_unit, qOverload<int>(&QComboBox::currentIndexChanged), this, [=,&m,&empty] (int idx) {
-      auto unit_idx = m.index(idx, 0, m_unit->rootModelIndex());
-
-      m_ac->setModel(&empty);
-      if(m.hasChildren(unit_idx))
-      {
-        m_ac->setModel(&m);
-        m_ac->setRootModelIndex(unit_idx);
-        m_ac->setCurrentIndex(0);
-      }
-      else
-      {
-        m_ac->setCurrentIndex(-1);
-      }
-
-      qualifiersChanged(qualifiers());
-    });
-
-    connect(m_ac, qOverload<int>(&QComboBox::currentIndexChanged), this, [=] (int idx) {
-      qualifiersChanged(qualifiers());
-    });
-  }
-
+  connect(m_ac, qOverload<int>(&QComboBox::currentIndexChanged), this, [=] (int idx) {
+    qualifiersChanged(qualifiers());
+  });
 }
 
-DestinationQualifierWidget::DestinationQualifierWidget(const State::DestinationQualifiers& u, QWidget* parent)
+DestinationQualifierWidget::DestinationQualifierWidget(
+      const State::DestinationQualifiers& u
+      , QWidget* parent)
     : DestinationQualifierWidget{parent}
 {
   setQualifiers(u);
 }
 
+
+void DestinationQualifierWidget::on_dataspaceChanged(int idx)
+{
+  auto& e = empty_model();
+  auto& m = unit_model();
+  {
+    QSignalBlocker b{m_unit};
+    QSignalBlocker b2{m_ac};
+    m_unit->setModel(&e);
+    m_ac->setModel(&e);
+    if(idx != 0)
+    {
+      m_unit->setModel(&unit_model());
+      m_unit->setRootModelIndex(m.index(idx, 0, QModelIndex()));
+      m_unit->setCurrentIndex(0);
+    }
+    else
+    {
+      m_unit->setCurrentIndex(-1);
+    }
+  }
+
+  on_unitChanged(m_unit->currentIndex());
+  qualifiersChanged(qualifiers());
+}
+
+void DestinationQualifierWidget::on_unitChanged(int idx)
+{
+  auto& e = empty_model();
+  auto& m = unit_model();
+  auto unit_idx = m.index(idx, 0, m_unit->rootModelIndex());
+  {
+    QSignalBlocker b{m_ac};
+    m_ac->setModel(&e);
+    if(m.hasChildren(unit_idx) && idx != -1)
+    {
+      m_ac->setModel(&m);
+      m_ac->setRootModelIndex(unit_idx);
+      m_ac->setCurrentIndex(0);
+    }
+    else
+    {
+      m_ac->setCurrentIndex(-1);
+    }
+  }
+
+  qualifiersChanged(qualifiers());
+}
+
 State::DestinationQualifiers DestinationQualifierWidget::qualifiers() const
 {
+  if(m_unit->model() == &empty_model())
+    return {};
+  if(m_unit->currentIndex() == -1)
+    return {};
+
   if(m_ac->model() == &empty_model())
   {
-    if(m_unit->model() == &empty_model())
-    {
-      return {};
-    }
-
     auto ds = m_unit->rootModelIndex();
     auto idx = unit_model().index(m_unit->currentIndex(), 0, ds);
-    auto unit = (UnitModel::UnitDataModel*) idx.internalPointer();
-    return State::DestinationQualifiers{ossia::destination_qualifiers{{}, unit->unit}};
+    if(auto unit = (UnitModel::UnitDataModel*) idx.internalPointer())
+      return State::DestinationQualifiers{ossia::destination_qualifiers{{}, unit->unit}};
   }
   else
   {
+    if(m_ac->currentIndex() == -1)
+      return {};
+
     auto unit = m_ac->rootModelIndex();
     auto idx = unit_model().index(m_ac->currentIndex(), 0, unit);
-    auto acc = (UnitModel::AccessorModel*) idx.internalPointer();
-    return acc->accessor;
+    if(auto acc = (UnitModel::AccessorModel*) idx.internalPointer())
+      return acc->accessor;
   }
+
+  return {};
 }
 
 void DestinationQualifierWidget::setQualifiers(const State::DestinationQualifiers& unit)
