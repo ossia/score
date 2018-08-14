@@ -1295,17 +1295,17 @@ SearchWidget::SearchWidget(const score::GUIApplicationContext& ctx)
   setAcceptDrops(true);
   auto lay = new score::MarginLess<QHBoxLayout>{this};
 
-  m_lineEdit = new QLineEdit();
+  m_lineEdit = new QLineEdit{this};
   m_lineEdit->setPlaceholderText("Search");
-  m_btn = new QPushButton();
-  m_btn->setIcon(QIcon(":/icons/search.png"));
+  auto act = new QAction{this};
+  act->setIcon(QIcon(":/icons/search.png"));
+  m_lineEdit->addAction(act, QLineEdit::TrailingPosition);
 
   lay->addWidget(m_lineEdit);
-  lay->addWidget(m_btn);
   setLayout(lay);
 
   connect(m_lineEdit, &QLineEdit::returnPressed, [&]() { search(); });
-  connect(m_btn, &QPushButton::pressed, [&]() { search(); });
+  connect(act, &QAction::triggered, [&]() { search(); });
 
   const auto& appCtx = score::GUIAppContext();
 

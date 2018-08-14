@@ -214,6 +214,7 @@ public:
         UnitDataModel u; u.unit = unit_type{};
         if constexpr(unit_type::is_multidimensional::value)
         {
+          u.accessors.emplace_back(ossia::destination_qualifiers{ossia::destination_index{}, unit_type{}});
           for(int32_t i = 0; i < unit_type::array_parameters().size(); i++)
           {
             u.accessors.emplace_back(ossia::destination_qualifiers{ossia::destination_index{i}, unit_type{}});
@@ -235,6 +236,33 @@ public:
         u.parent = &d;
       }
     }
+  }
+
+  std::tuple<int,int,int> from(const ossia::destination_qualifiers& dq)
+  {
+    if(dq.unit)
+    {
+      for(std::size_t i = 0; i < m_data.size(); i++)
+      {
+        auto& data = m_data[i];
+        for(std::size_t j = 0; j < data.units.size(); j++)
+        {
+          if(dq.unit == data.units[j].unit)
+          {
+            if(dq.accessors.empty())
+            {
+              return {i, j, -1};
+            }
+            else
+            {
+              return {i, j, dq.accessors[0] + 1};
+            }
+          }
+        }
+      }
+    }
+
+    return {0, -1, -1};
   }
 
   bool hasChildren(const QModelIndex& index) const override
@@ -295,6 +323,7 @@ public:
     }
     return -1;
   }
+
   QModelIndex parent(const QModelIndex& child) const override
   {
     if (!child.isValid())
@@ -383,62 +412,82 @@ public:
       }
       else if(auto a = dynamic_cast<AccessorModel*>(p))
       {
-        return QChar(get_unit_accessors(a->accessor.unit)[a->accessor.accessors[0]]);
+        if(!a->accessor.accessors.empty())
+          return QChar(get_unit_accessors(a->accessor.unit)[a->accessor.accessors[0]]);
+        else
+          return QChar();
       }
     }
 
     return {};
   }
-
 };
+
+static EmptyModel& empty_model() noexcept
+{
+  static EmptyModel e;
+  return e;
+}
+static UnitModel& unit_model() noexcept
+{
+  static UnitModel e;
+  return e;
+}
 DestinationQualifierWidget::DestinationQualifierWidget(QWidget* parent) : QWidget{parent}
 {
-  static EmptyModel empty;
-  static UnitModel m;
+  auto& empty = empty_model();
+  auto& m = unit_model();
   auto lay = new score::MarginLess<QHBoxLayout>{this};
 
   {
-    auto tv = new QComboBox;
-    tv->setModel(&m);
-    lay->addWidget(tv);
+    m_ds = new QComboBox;
+    m_ds->setModel(&m);
+    lay->addWidget(m_ds);
 
-    auto tv2 = new QComboBox;
-    lay->addWidget(tv2);
+    m_unit = new QComboBox;
+    lay->addWidget(m_unit);
 
-    auto tv3 = new QComboBox;
-    lay->addWidget(tv3);
-    connect(tv, qOverload<int>(&QComboBox::currentIndexChanged), this, [=] (int idx) {
-      tv2->setModel(&empty);
-      tv3->setModel(&empty);
+    m_ac = new QComboBox;
+    lay->addWidget(m_ac);
+    connect(m_ds, qOverload<int>(&QComboBox::currentIndexChanged), this, [=,&m,&empty] (int idx) {
+      m_unit->setModel(&empty);
+      m_ac->setModel(&empty);
       if(idx != 0)
       {
-        tv2->setModel(&m);
-        tv2->setRootModelIndex(m.index(idx, 0, QModelIndex()));
-        tv2->setCurrentIndex(0);
+        m_unit->setModel(&m);
+        m_unit->setRootModelIndex(m.index(idx, 0, QModelIndex()));
+        m_unit->setCurrentIndex(0);
       }
       else
       {
-        tv2->setCurrentIndex(-1);
+        m_unit->setCurrentIndex(-1);
       }
+
+      qualifiersChanged(qualifiers());
     });
 
-    connect(tv2, qOverload<int>(&QComboBox::currentIndexChanged), this, [=] (int idx) {
-      auto unit_idx = m.index(idx, 0, tv2->rootModelIndex());
+    connect(m_unit, qOverload<int>(&QComboBox::currentIndexChanged), this, [=,&m,&empty] (int idx) {
+      auto unit_idx = m.index(idx, 0, m_unit->rootModelIndex());
 
-      tv3->setModel(&empty);
+      m_ac->setModel(&empty);
       if(m.hasChildren(unit_idx))
       {
-        tv3->setModel(&m);
-        tv3->setRootModelIndex(unit_idx);
-        tv3->setCurrentIndex(0);
+        m_ac->setModel(&m);
+        m_ac->setRootModelIndex(unit_idx);
+        m_ac->setCurrentIndex(0);
       }
       else
       {
-        tv3->setCurrentIndex(-1);
+        m_ac->setCurrentIndex(-1);
       }
+
+      qualifiersChanged(qualifiers());
+    });
+
+    connect(m_ac, qOverload<int>(&QComboBox::currentIndexChanged), this, [=] (int idx) {
+      qualifiersChanged(qualifiers());
     });
   }
-
 
 }
 
@@ -450,10 +499,34 @@ DestinationQualifierWidget::DestinationQualifierWidget(const State::DestinationQ
 
 State::DestinationQualifiers DestinationQualifierWidget::qualifiers() const
 {
-  return {};
+  if(m_ac->model() == &empty_model())
+  {
+    if(m_unit->model() == &empty_model())
+    {
+      return {};
+    }
+
+    auto ds = m_unit->rootModelIndex();
+    auto idx = unit_model().index(m_unit->currentIndex(), 0, ds);
+    auto unit = (UnitModel::UnitDataModel*) idx.internalPointer();
+    return State::DestinationQualifiers{ossia::destination_qualifiers{{}, unit->unit}};
+  }
+  else
+  {
+    auto unit = m_ac->rootModelIndex();
+    auto idx = unit_model().index(m_ac->currentIndex(), 0, unit);
+    auto acc = (UnitModel::AccessorModel*) idx.internalPointer();
+    return acc->accessor;
+  }
 }
 
 void DestinationQualifierWidget::setQualifiers(const State::DestinationQualifiers& unit)
 {
+  const auto& [ds, u, acc] = unit_model().from(unit);
+  m_ds->setCurrentIndex(ds);
+  if(u != -1)
+    m_unit->setCurrentIndex(u);
+  if(acc != -1)
+    m_ac->setCurrentIndex(acc);
 }
 }
