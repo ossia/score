@@ -34,7 +34,7 @@ Automation's function can also be hand-drawn by holding the `alt` key and drawin
 ![Hand-drawing function](../images/function_handraw.gif)
 
 
-### Advance editing
+### Advanced editing
 
 The automation editor provides different options for point displacement. By default, moving a point horizontally is locked to the x position of the preceding and following point.
 
@@ -52,7 +52,7 @@ Other curve segments are available, including the common easing functions :
 
 ![Tween function](../images/function_types.gif)
 
-To set a function type, right click in the automation editor and select the desired type: `Automation (float) > Type`
+To set a function type, right-click on a segment in the automation editor and select the desired type: `Automation (float) > Type`
 
 
 ## Tween mode
