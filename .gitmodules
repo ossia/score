@@ -12,4 +12,4 @@
 	url = https://github.com/Velron/doxygen-bootstrapped
 [submodule "3rdparty/desktopqqc2style"]
 	path = base/lib/resources/desktopqqc2style
-	url = https://anongit.kde.org/scratch/mart/desktopqqc2style.git
+	url = https://github.com/KDE/qqc2-desktop-style
