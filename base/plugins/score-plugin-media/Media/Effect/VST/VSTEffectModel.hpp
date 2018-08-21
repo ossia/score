@@ -38,15 +38,15 @@ struct AEffectWrapper
   AEffect* fx{};
   VstTimeInfo info;
 
-  AEffectWrapper(AEffect* f) : fx{f}
+  AEffectWrapper(AEffect* f) noexcept : fx{f}
   {
   }
 
-  auto getParameter(int32_t index)
+  auto getParameter(int32_t index) const noexcept
   {
     return fx->getParameter(fx, index);
   }
-  auto setParameter(int32_t index, float p)
+  auto setParameter(int32_t index, float p) const noexcept
   {
     return fx->setParameter(fx, index, p);
   }
@@ -56,7 +56,7 @@ struct AEffectWrapper
       int32_t index = 0,
       intptr_t value = 0,
       void* ptr = nullptr,
-      float opt = 0.0f)
+      float opt = 0.0f) const noexcept
   {
     return fx->dispatcher(fx, opcode, index, value, ptr, opt);
   }
@@ -110,6 +110,8 @@ public:
   void addControl(int idx, float v) W_SIGNAL(addControl, idx, v);
   void on_addControl(int idx, float v); W_SLOT(on_addControl);
   void on_addControl_impl(VSTControlInlet* inl);
+
+  void reloadControls();
 
 private:
   QString getString(AEffectOpcodes op, int param);

@@ -12,6 +12,7 @@
 #endif
 
 #include <ossia/detail/hash_map.hpp>
+#include <thread>
 namespace Media
 {
 namespace LV2
@@ -50,6 +51,9 @@ public:
   };
   std::vector<vst_info> vst_infos;
   ossia::fast_hash_map<int32_t, Media::VST::VSTModule*> vst_modules;
+
+  const std::thread::id m_tid{std::this_thread::get_id()};
+  auto mainThreadId() const noexcept { return m_tid; }
 #endif
 };
 
