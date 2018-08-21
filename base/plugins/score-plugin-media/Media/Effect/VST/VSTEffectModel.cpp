@@ -191,6 +191,17 @@ void VSTEffectModel::on_addControl_impl(VSTControlInlet* ctrl)
   controlAdded(ctrl->id());
 }
 
+void VSTEffectModel::reloadControls()
+{
+  if(!fx)
+    return;
+
+  for(auto ctrl : controls)
+  {
+    ctrl.second->setValue(fx->getParameter(ctrl.first));
+  }
+}
+
 QString VSTEffectModel::getString(AEffectOpcodes op, int param)
 {
   char paramName[512] = {0};
@@ -242,6 +253,16 @@ intptr_t vst_host_callback(
         result = effect->uniqueID;
         break;
 
+      case audioMasterUpdateDisplay:
+      {
+        auto vst = reinterpret_cast<VSTEffectModel*>(effect->resvd1);
+        if (vst)
+        {
+          vst->reloadControls();
+        }
+        break;
+      }
+
       case audioMasterAutomate:
       {
         auto vst = reinterpret_cast<VSTEffectModel*>(effect->resvd1);
@@ -267,7 +288,6 @@ intptr_t vst_host_callback(
     }
   }
 
-  static const auto& settings = score::GUIAppContext().settings<Audio::Settings::Model>();
   switch (opcode)
   {
     case audioMasterProcessEvents:
@@ -278,21 +298,52 @@ intptr_t vst_host_callback(
       result = 1;
       break;
     case audioMasterGetInputLatency:
+    {
+      static const auto& context = score::AppContext();
+      static const auto& settings = context.settings<Audio::Settings::Model>();
+      result = settings.getBufferSize() / double(settings.getRate());
       break;
+    }
     case audioMasterGetOutputLatency:
+    {
+      static const auto& context = score::AppContext();
+      static const auto& settings = context.settings<Audio::Settings::Model>();
+      result = settings.getBufferSize() / double(settings.getRate());
       break;
+    }
     case audioMasterVersion:
       result = kVstVersion;
       break;
     case audioMasterGetSampleRate:
-      return settings.getRate();
+    {
+      static const auto& context = score::AppContext();
+      static const auto& settings = context.settings<Audio::Settings::Model>();
+      result = settings.getRate();
       break;
+    }
     case audioMasterGetBlockSize:
-      return settings.getBufferSize();
+    {
+      static const auto& context = score::AppContext();
+      static const auto& settings = context.settings<Audio::Settings::Model>();
+      result = settings.getBufferSize();
       break;
+    }
     case audioMasterGetCurrentProcessLevel:
-      result = kVstProcessLevelUnknown;
+    {
+      static const auto& context = score::GUIAppContext();
+      static const auto& plug = context.applicationPlugin<Media::ApplicationPlugin>();
+      auto this_t = std::this_thread::get_id();
+      if(this_t == plug.mainThreadId())
+      {
+        result = kVstProcessLevelUser;
+      }
+      else
+      {
+        result = kVstProcessLevelRealtime;
+      }
+
       break;
+    }
     case audioMasterGetAutomationState:
       result = kVstAutomationUnsupported;
       break;
@@ -308,10 +359,6 @@ intptr_t vst_host_callback(
       break;
     case audioMasterGetProductString:
       std::copy_n("score", 6, static_cast<char*>(ptr));
-      result = 1;
-      break;
-    case audioMasterUpdateDisplay:
-      // TODO update all values
       result = 1;
       break;
     case audioMasterBeginEdit:
