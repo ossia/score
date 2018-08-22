@@ -16,6 +16,10 @@ if(SCORE_MERGE_COMPONENTS)
   add_subdirectory(component-wrapper)
 endif()
 
+if(TARGET score_plugin_media)
+  add_subdirectory(vstpuppet)
+endif()
+
 if(ANDROID)
 #    add_subdirectory(app-android)
 elseif(NACL)
