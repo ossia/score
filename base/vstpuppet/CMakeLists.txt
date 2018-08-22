@@ -1,0 +1,17 @@
+project(vstpuppet CXX)
+
+add_executable(ossia-score-vstpuppet vstpuppet.cpp "${SCORE_ROOT_SOURCE_DIR}/base/plugins/score-plugin-media/Media/Effect/VST/VSTLoader.cpp")
+target_link_libraries(
+  ossia-score-vstpuppet
+  PRIVATE
+    Qt5::Core
+    ${CMAKE_DL_LIBS})
+target_include_directories(
+  ossia-score-vstpuppet
+  PRIVATE
+    "${SCORE_ROOT_SOURCE_DIR}/base/plugins/score-plugin-media")
+
+install(
+  TARGETS ossia-score-vstpuppet
+  BUNDLE DESTINATION .
+  RUNTIME DESTINATION bin)

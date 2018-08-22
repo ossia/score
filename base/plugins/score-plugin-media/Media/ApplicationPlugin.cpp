@@ -18,6 +18,7 @@
 #include <QFileInfo>
 #include <QCoreApplication>
 #include <wobjectimpl.h>
+#include <QProcess>
 W_OBJECT_IMPL(Media::ApplicationPlugin)
 
 #if defined(HAS_VST2)
@@ -199,27 +200,28 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
     vst_infos.push_back(i);
   };
 
+  std::vector<std::pair<QString, std::unique_ptr<QProcess>>> processes;
+  processes.reserve(newPlugins.size());
+  int i = 0;
   for (const QString& path : newPlugins)
   {
     qDebug() << "Loading VST " << path;
-    SCORE_ASSERT(!path.isEmpty());
-    bool isFile = QFile(QUrl(path).toString(QUrl::PreferLocalFile)).exists();
-    if (!isFile)
+    processes.emplace_back(path, std::make_unique<QProcess>());
+    processes.back().second->start("ossia-score-vstpuppet", {path}, QProcess::ReadOnly);
+    i++;
+  }
+
+  for(auto& proc : processes)
+  {
+    auto& p = *proc.second;
+    p.waitForFinished();
+    bool valid =
+        p.exitStatus() == QProcess::ExitStatus::NormalExit
+     && p.exitCode() == 0;
+
+    auto path = proc.first;
+    if(valid)
     {
-      qDebug() << "Invalid path: " << path;
-      continue;
-    }
-
-    try
-    {
-
-      bool isFile = QFile(QUrl(path).toString(QUrl::PreferLocalFile)).exists();
-      if (!isFile)
-      {
-        qDebug() << "Invalid path: " << path;
-        continue;
-      }
-
       auto plugin = new Media::VST::VSTModule{path.toStdString()};
 
       bool ok = false;
@@ -251,11 +253,9 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
         delete plugin;
       }
     }
-    catch (const std::runtime_error& e)
+    else
     {
       add_invalid(path);
-      qDebug() << e.what();
-      continue;
     }
   }
 

@@ -442,14 +442,44 @@ DestinationQualifierWidget::DestinationQualifierWidget(QWidget* parent)
   auto& m = unit_model();
   auto lay = new score::MarginLess<QHBoxLayout>{this};
 
+  QString combo_style = R"_(
+QComboBox {
+   font: 8pt;
+   padding: -2px 0px -2px 2px;
+   margin: 0px 0px 0px 0px;
+}
+
+QComboBox::down-arrow {
+   width:10px;
+   height: 10px;
+   right:-8px;
+   padding: 0px;
+   margin: 0px;
+}
+
+QComboBox::drop-down {
+  padding: 0px;
+  margin: 0px;
+}
+  )_";
+
   m_ds = new QComboBox;
+  m_ds->setStyleSheet(combo_style);
   m_ds->setModel(&m);
+  // m_ds->setMinimumWidth(75);
+  // m_ds->setMaximumWidth(75);
   lay->addWidget(m_ds);
 
   m_unit = new QComboBox;
+  m_unit->setStyleSheet(combo_style);
+  // m_unit->setMinimumWidth(75);
+  // m_unit->setMaximumWidth(75);
   lay->addWidget(m_unit);
 
   m_ac = new QComboBox;
+  m_ac->setStyleSheet(combo_style);
+  m_ac->setMinimumWidth(45);
+  m_ac->setMaximumWidth(45);
   lay->addWidget(m_ac);
   connect(m_ds, qOverload<int>(&QComboBox::currentIndexChanged),
           this, &DestinationQualifierWidget::on_dataspaceChanged);

@@ -46,9 +46,7 @@ install(FILES
   "${QT_DLL_DIR}/Qt5Svg${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5Qml${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5WebSockets${DEBUG_CHAR}.dll"
-#  "${QT_DLL_DIR}/Qt5Multimedia${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5SerialPort${DEBUG_CHAR}.dll"
-#  "${QT_DLL_DIR}/Qt5Test${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5Quick${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5QuickWidgets${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5QuickControls2${DEBUG_CHAR}.dll"
@@ -68,15 +66,14 @@ set(QT_PLUGINS_DIR "${QT_DLL_DIR}/../plugins")
 set(QT_QML_PLUGINS_DIR "${QT_DLL_DIR}/../qml")
 set(plugin_dest_dir "${SCORE_BIN_INSTALL_DIR}/plugins")
 
-if(WIN32)
-  if(EXISTS "c:/faust/faust.dll")
-    install(FILES "c:/faust/faust.dll" DESTINATION "${SCORE_BIN_INSTALL_DIR}")
-  endif()
-
-  if(EXISTS "c:/tbb/bin/tbb.dll")
-    install(FILES "c:/tbb/bin/tbb.dll" DESTINATION "${SCORE_BIN_INSTALL_DIR}")
-  endif()
+if(EXISTS "c:/faust/faust.dll")
+  install(FILES "c:/faust/faust.dll" DESTINATION "${SCORE_BIN_INSTALL_DIR}")
 endif()
+
+if(EXISTS "c:/tbb/bin/tbb.dll")
+  install(FILES "c:/tbb/bin/tbb.dll" DESTINATION "${SCORE_BIN_INSTALL_DIR}")
+endif()
+
 install(FILES "${QT_PLUGINS_DIR}/platforms/qwindows${DEBUG_CHAR}.dll" DESTINATION "${plugin_dest_dir}/platforms")
 install(FILES "${QT_PLUGINS_DIR}/imageformats/qsvg${DEBUG_CHAR}.dll" DESTINATION "${plugin_dest_dir}/imagesformats")
 install(FILES "${QT_PLUGINS_DIR}/iconengines/qsvgicon${DEBUG_CHAR}.dll" DESTINATION "${plugin_dest_dir}/iconengines")
