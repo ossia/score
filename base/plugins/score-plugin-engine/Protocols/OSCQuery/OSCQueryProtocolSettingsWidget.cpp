@@ -14,7 +14,8 @@
 #include <QString>
 #include <QVariant>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
-
+#include <QNetworkReply>
+#include <QJsonDocument>
 #if defined(OSSIA_DNSSD)
 #  include <Explorer/Widgets/ZeroConf/ZeroconfBrowser.hpp>
 #endif
@@ -32,6 +33,10 @@ OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
 
   m_localHostEdit = new QLineEdit(this);
 
+  connect(&m_http_client, &QNetworkAccessManager::finished,
+          this, [] {
+  });
+
   QFormLayout* layout = new QFormLayout;
 
 #if defined(OSSIA_DNSSD)
@@ -43,6 +48,19 @@ OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
       m_browser, &ZeroconfBrowser::sessionSelected, this,
       [=](QString name, QString ip, int port, QMap<QString, QByteArray> txt) {
         m_deviceNameEdit->setText(name);
+
+        if(auto ret = m_http_client.get(QNetworkRequest(QUrl("http://" + ip + ":" + QString::number(port) + "/?HOST_INFO"))))
+        {
+          ret->waitForBytesWritten(10);
+          auto doc = QJsonDocument::fromJson(ret->readAll());
+          if(doc.object().contains("NAME"))
+          {
+            auto str = doc.object()["NAME"].toString();
+            if(!str.isEmpty())
+              m_deviceNameEdit->setText(str);
+          }
+        }
+
         if(txt.contains("WebSockets") && txt["WebSockets"] == "true")
           m_localHostEdit->setText("ws://" + ip + ":" + QString::number(port));
         else
