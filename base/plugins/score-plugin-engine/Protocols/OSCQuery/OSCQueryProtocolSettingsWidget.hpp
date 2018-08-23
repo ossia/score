@@ -1,7 +1,8 @@
 #pragma once
-
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
 
 class ZeroconfBrowser;
 class QLineEdit;
@@ -30,6 +31,7 @@ protected:
   QLineEdit* m_localHostEdit{};
 
   ZeroconfBrowser* m_browser{};
+  QNetworkAccessManager m_http_client;
 };
 }
 }
