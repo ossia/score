@@ -215,43 +215,27 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
   {
     auto& p = *proc.second;
     p.waitForFinished();
+    QJsonDocument doc = QJsonDocument::fromJson(p.readAllStandardOutput());
     bool valid =
         p.exitStatus() == QProcess::ExitStatus::NormalExit
-     && p.exitCode() == 0;
+     && p.exitCode() == 0
+     && doc.isObject();
 
     auto path = proc.first;
     if(valid)
     {
-      auto plugin = new Media::VST::VSTModule{path.toStdString()};
+      vst_info i;
+      i.path = path;
+      i.uniqueID = doc.object()["UniqueID"].toInt();
+      i.isSynth = doc.object()["Synth"].toBool();
+      i.isValid = true;
 
-      bool ok = false;
-      if (auto m = plugin->getMain())
-      {
-        if (auto p = (AEffect*)m(Media::VST::vst_host_callback))
-        {
-          vst_info i;
-          i.path = path;
-          i.uniqueID = p->uniqueID;
-          {
-            // Only way to get a separation between Kontakt 5 / Kontakt 5 (8
-            // out) / Kontakt 5 (16 out),  etc...
-            i.prettyName = QFileInfo(path).baseName();
-          }
+      // Only way to get a separation between Kontakt 5 / Kontakt 5 (8
+      // out) / Kontakt 5 (16 out),  etc...
+      i.prettyName = QFileInfo(path).baseName();
 
-          i.isSynth = p->flags & effFlagsIsSynth;
-          i.isValid = true;
-          vst_infos.push_back(std::move(i));
-
-          vst_modules.insert({p->uniqueID, plugin});
-          ok = true;
-        }
-      }
-
-      if (!ok)
-      {
-        add_invalid(path);
-        delete plugin;
-      }
+      vst_modules.insert({i.uniqueID, nullptr});
+      vst_infos.push_back(std::move(i));
     }
     else
     {

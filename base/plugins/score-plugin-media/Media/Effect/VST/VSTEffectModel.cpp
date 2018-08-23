@@ -419,6 +419,9 @@ AEffect* getPluginInstance(const QString& name)
     auto it = app.vst_modules.find(info_it->uniqueID);
     if (it != app.vst_modules.end())
     {
+      if(!it->second)
+        it->second = new Media::VST::VSTModule{info_it->path.toStdString()};
+
       if (auto m = it->second->getMain())
       {
         return m(vst_host_callback);
@@ -457,6 +460,8 @@ AEffect* getPluginInstance(int32_t id)
     auto it = app.vst_modules.find(info_it->uniqueID);
     if (it != app.vst_modules.end())
     {
+      if(!it->second)
+        it->second = new Media::VST::VSTModule{info_it->path.toStdString()};
       if (auto m = it->second->getMain())
       {
         return m(vst_host_callback);
