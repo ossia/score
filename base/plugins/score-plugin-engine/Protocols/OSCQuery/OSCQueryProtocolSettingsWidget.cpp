@@ -34,7 +34,22 @@ OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
   m_localHostEdit = new QLineEdit(this);
 
   connect(&m_http_client, &QNetworkAccessManager::finished,
-          this, [] {
+          this, [&] (QNetworkReply* ret) {
+    if(ret != m_cur_reply)
+    {
+      ret->deleteLater();
+      return;
+    }
+
+    auto doc = QJsonDocument::fromJson(ret->readAll());
+    if(doc.object().contains("NAME"))
+    {
+      auto str = doc.object()["NAME"].toString();
+      if(!str.isEmpty())
+        m_deviceNameEdit->setText(str);
+    }
+    ret->deleteLater();
+    m_cur_reply = nullptr;
   });
 
   QFormLayout* layout = new QFormLayout;
@@ -51,14 +66,7 @@ OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
 
         if(auto ret = m_http_client.get(QNetworkRequest(QUrl("http://" + ip + ":" + QString::number(port) + "/?HOST_INFO"))))
         {
-          ret->waitForBytesWritten(10);
-          auto doc = QJsonDocument::fromJson(ret->readAll());
-          if(doc.object().contains("NAME"))
-          {
-            auto str = doc.object()["NAME"].toString();
-            if(!str.isEmpty())
-              m_deviceNameEdit->setText(str);
-          }
+          m_cur_reply = ret;
         }
 
         if(txt.contains("WebSockets") && txt["WebSockets"] == "true")

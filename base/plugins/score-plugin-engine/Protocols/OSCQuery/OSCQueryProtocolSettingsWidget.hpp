@@ -32,6 +32,7 @@ protected:
 
   ZeroconfBrowser* m_browser{};
   QNetworkAccessManager m_http_client;
+  QNetworkReply* m_cur_reply{};
 };
 }
 }
