@@ -2,6 +2,8 @@
 #include <QUrl>
 #include <set>
 #include <iostream>
+#include <QJsonObject>
+#include <QJsonDocument>
 #include <Media/Effect/VST/VSTLoader.hpp>
 
 intptr_t vst_host_callback(
@@ -112,6 +114,10 @@ bool load_vst(const QString& path)
     {
       if (auto p = (AEffect*)m(vst_host_callback))
       {
+        QJsonObject obj;
+        obj["UniqueID"] = p->uniqueID;
+        obj["Synth"] = bool(p->flags & effFlagsIsSynth);
+        std::cout << QJsonDocument{obj}.toJson().toStdString() << std::endl;
         return 0;
       }
     }
