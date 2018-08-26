@@ -274,7 +274,7 @@ static const QPainterPath arrowPath{[] {
   p.lineTo(QPointF(14, 13));
   p.lineTo(QPointF(5, 21));
 
-  p = QTransform().scale(0.6, 0.6).translate(0,4).map(p);
+  p = QTransform().scale(0.55, 0.55).translate(0,6).map(p);
 
   return p;
 }()};
