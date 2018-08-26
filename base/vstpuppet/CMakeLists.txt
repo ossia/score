@@ -6,6 +6,14 @@ target_link_libraries(
   PRIVATE
     Qt5::Core
     ${CMAKE_DL_LIBS})
+
+if(APPLE)
+    find_library(Foundation_FK Foundation)
+    target_link_libraries(ossia-score-vstpuppet PRIVATE
+        ${Foundation_FK}
+        )
+endif()
+
 target_include_directories(
   ossia-score-vstpuppet
   PRIVATE
