@@ -64,7 +64,7 @@ time_function Model::makeTimeFunction(const score::DocumentContext& ctx) const
 {
   auto it = m_clockFactories.find(m_Clock);
   return it != m_clockFactories.end() ? it->makeTimeFunction(ctx)
-                                      : &Engine::score_to_ossia::defaultTime;
+                                      : Dataflow::ClockFactory{}.makeTimeFunction(ctx);
 }
 
 reverse_time_function
@@ -72,7 +72,7 @@ Model::makeReverseTimeFunction(const score::DocumentContext& ctx) const
 {
   auto it = m_clockFactories.find(m_Clock);
   return it != m_clockFactories.end() ? it->makeReverseTimeFunction(ctx)
-                                      : &Engine::ossia_to_score::defaultTime;
+                                      : Dataflow::ClockFactory{}.makeReverseTimeFunction(ctx);
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(ClockFactory::ConcreteKey, Model, Clock)
