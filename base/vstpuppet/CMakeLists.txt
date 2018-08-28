@@ -22,4 +22,8 @@ target_include_directories(
 install(
   TARGETS ossia-score-vstpuppet
   BUNDLE DESTINATION .
-  RUNTIME DESTINATION bin)
+  RUNTIME DESTINATION score.app/Contents/macOS)
+
+if(SCORE_COTIRE)
+  cotire(ossia-score-vstpuppet)
+endif()
