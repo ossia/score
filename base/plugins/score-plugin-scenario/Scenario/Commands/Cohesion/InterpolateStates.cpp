@@ -2,14 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "InterpolateStates.hpp"
 
-#include <ossia/network/domain/domain.hpp>
-#include <ossia/network/value/value_conversion.hpp>
-
 #include <Automation/AutomationModel.hpp>
-#include <Device/Address/AddressSettings.hpp>
-#include <Device/Node/DeviceNode.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Interpolation/InterpolationProcess.hpp>
 #include <Process/Process.hpp>
 #include <Process/State/MessageNode.hpp>
 #include <QObject>
@@ -22,7 +16,6 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <State/Address.hpp>
 #include <State/Domain.hpp>
 #include <State/Message.hpp>
 #include <State/Value.hpp>
@@ -37,6 +30,7 @@
 #include <score/model/tree/TreeNode.hpp>
 #include <score/selection/SelectionStack.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+#include <ossia/editor/state/destination_qualifiers.hpp>
 #include <utility>
 #include <vector>
 
@@ -105,15 +99,26 @@ struct MessagePairs
           auto has_existing_curve = ossia::any_of(
               interval.processes, [&](const Process::ProcessModel& proc) {
                 auto ptr
-                    = dynamic_cast<const Interpolation::ProcessModel*>(&proc);
-                return ptr && ptr->address() == message.address;
+                    = dynamic_cast<const Automation::ProcessModel*>(&proc);
+                return ptr && ptr->address().address == message.address.address; // check for the pure "address" part
               });
 
           if (has_existing_curve)
             continue;
 
-          // We can add this
-          listMessages.emplace_back(message, *it);
+          // We can add this. The index is put in the start message
+          // for the sake of convenience
+
+          // TODO handle sub-vecs
+          auto sz = message.value.apply(value_size{});
+          for(std::size_t i = 0; i < sz; i++)
+          {
+            auto m = message;
+            auto& acc = m.address.qualifiers.get().accessors;
+            acc.clear();
+            acc.push_back(sz - i - 1);
+            listMessages.emplace_back(m, *it);
+          }
         }
       }
     }
@@ -168,19 +173,10 @@ void InterpolateStates(
     // Generate automations between numeric values
     for (const auto& elt : pairs.numericMessages)
     {
-      double start = State::convert::value<double>(elt.first.value);
-      double end = State::convert::value<double>(elt.second.value);
-
-      Curve::CurveDomain d{start, end};
-
-      if (auto node = Device::try_getNodeFromAddress(
-              rootNode, elt.first.address.address))
-      {
-        const Device::AddressSettings& as
-            = node->get<Device::AddressSettings>();
-
-        d.refine(as.domain.get());
-      }
+      Curve::CurveDomain d = ossia::apply(
+            get_curve_domain{elt.first.address, {}, rootNode},
+            elt.first.value.v,
+            elt.second.value.v);
 
       macro->addCommand(new CreateAutomationFromStates{
           interval, macro->slotsToUse, process_ids[cur_proc],
@@ -192,9 +188,14 @@ void InterpolateStates(
     // Generate interpolations between lists
     for (const auto& elt : pairs.listMessages)
     {
-      macro->addCommand(new CreateInterpolationFromStates{
+      Curve::CurveDomain d = ossia::apply(
+            get_curve_domain{elt.first.address, elt.first.address.qualifiers.get().accessors, rootNode},
+            elt.first.value.v,
+            elt.second.value.v);
+
+      macro->addCommand(new CreateAutomationFromStates{
           interval, macro->slotsToUse, process_ids[cur_proc],
-          elt.first.address, elt.first.value, elt.second.value});
+          elt.first.address, d});
       cur_proc++;
     }
 

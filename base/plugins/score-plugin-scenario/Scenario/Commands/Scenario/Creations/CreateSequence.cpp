@@ -3,6 +3,7 @@
 #include "CreateSequence.hpp"
 
 #include <ossia/network/domain/domain.hpp>
+#include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/value/value_conversion.hpp>
 
 #include <Device/Address/AddressSettings.hpp>
@@ -17,6 +18,7 @@
 #include <QtGlobal>
 #include <Scenario/Commands/Cohesion/CreateCurveFromStates.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
+#include <Scenario/Commands/Cohesion/InterpolateStates.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event_TimeSync.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
@@ -139,7 +141,16 @@ CreateSequenceProcesses::CreateSequenceProcesses(
 
       if (addr_it != std::end(endAddresses))
       {
-        matchingListMessages.emplace_back(message, *addr_it);
+        // TODO handle sub-vecs
+        auto sz = message.value.apply(value_size{});
+        for(std::size_t i = 0; i < sz; i++)
+        {
+          auto m = message;
+          auto& acc = m.address.qualifiers.get().accessors;
+          acc.clear();
+          acc.push_back(sz - i - 1);
+          matchingListMessages.emplace_back(m, *addr_it);
+        }
       }
     }
   }
@@ -177,9 +188,14 @@ CreateSequenceProcesses::CreateSequenceProcesses(
 
   for (const auto& elt : matchingListMessages)
   {
-    m_interpolations.addCommand(new CreateInterpolationFromStates{
+    Curve::CurveDomain d = ossia::apply(
+          get_curve_domain{elt.first.address, elt.first.address.qualifiers.get().accessors, rootNode},
+          elt.first.value.v,
+          elt.second.value.v);
+
+    m_interpolations.addCommand(new CreateAutomationFromStates{
         interval, m_interpolations.slotsToUse, process_ids[cur_proc],
-        elt.first.address, elt.first.value, elt.second.value});
+        elt.first.address, d});
     cur_proc++;
   }
 }
