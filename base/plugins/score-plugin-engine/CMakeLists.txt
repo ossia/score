@@ -9,24 +9,8 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 # Files & main target
 set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/OSSIA2score.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitProtocolSettingsWidget.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitDevice.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitSpecificSettings.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitProtocolFactory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSCQuery/OSCQueryProtocolSettingsWidget.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSCQuery/OSCQueryDevice.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSCQuery/OSCQuerySpecificSettings.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSCQuery/OSCQueryProtocolFactory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Local/LocalProtocolSettingsWidget.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Local/LocalDevice.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Local/LocalSpecificSettings.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Local/LocalProtocolFactory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSSIADevice.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/DefaultProtocolFactory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCDevice.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCProtocolFactory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCProtocolSettingsWidget.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCSpecificSettings.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/Settings/Model.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/Settings/Presenter.hpp"
@@ -87,22 +71,6 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_engine.hpp"
     )
 set(SRCS
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitSpecificSettingsSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitProtocolSettingsWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitDevice.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitProtocolFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSCQuery/OSCQuerySpecificSettingsSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSCQuery/OSCQueryProtocolSettingsWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSCQuery/OSCQueryDevice.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSCQuery/OSCQueryProtocolFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Local/LocalSpecificSettingsSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Local/LocalProtocolSettingsWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Local/LocalDevice.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Local/LocalProtocolFactory.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCSpecificSettingsSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCProtocolSettingsWidget.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCDevice.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCProtocolFactory.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/Settings/Model.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/Settings/Presenter.cpp"
@@ -145,17 +113,69 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_engine.cpp"
 )
 
+set(OSC_HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCDevice.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCProtocolFactory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCProtocolSettingsWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCSpecificSettings.hpp"
+)
+set(OSC_SRCS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCSpecificSettingsSerialization.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCProtocolSettingsWidget.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCDevice.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSC/OSCProtocolFactory.cpp"
+)
+
+set(MINUIT_HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitProtocolSettingsWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitDevice.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitSpecificSettings.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitProtocolFactory.hpp"
+)
+set(MINUIT_SRCS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitSpecificSettingsSerialization.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitProtocolSettingsWidget.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitDevice.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Minuit/MinuitProtocolFactory.cpp"
+)
+
+set(OSCQUERY_HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSCQuery/OSCQueryProtocolSettingsWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSCQuery/OSCQueryDevice.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSCQuery/OSCQuerySpecificSettings.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSCQuery/OSCQueryProtocolFactory.hpp"
+)
+set(OSCQUERY_SRCS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSCQuery/OSCQuerySpecificSettingsSerialization.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSCQuery/OSCQueryProtocolSettingsWidget.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSCQuery/OSCQueryDevice.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSCQuery/OSCQueryProtocolFactory.cpp"
+)
+
 set(MIDI_HDRS
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIProtocolFactory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIDevice.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIProtocolSettingsWidget.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDISpecificSettings.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIProtocolFactory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIDevice.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIProtocolSettingsWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDISpecificSettings.hpp"
 )
 set(MIDI_SRCS
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIProtocolSettingsWidget.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIDevice.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIProtocolFactory.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDISpecificSettingsSerialization.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIProtocolSettingsWidget.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIDevice.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDIProtocolFactory.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/MIDI/MIDISpecificSettingsSerialization.cpp"
+)
+
+set(LOCAL_HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Local/LocalProtocolSettingsWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Local/LocalDevice.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Local/LocalSpecificSettings.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Local/LocalProtocolFactory.hpp"
+)
+set(LOCAL_SRCS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Local/LocalSpecificSettingsSerialization.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Local/LocalProtocolSettingsWidget.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Local/LocalDevice.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Local/LocalProtocolFactory.cpp"
 )
 
 set(HTTP_HDRS
@@ -236,6 +256,20 @@ set(JOYSTICK_SRCS
 
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 
+if(OSSIA_PROTOCOL_OSC)
+    target_sources(${PROJECT_NAME} PRIVATE ${OSC_HDRS} ${OSC_SRCS})
+endif()
+
+if(OSSIA_PROTOCOL_MINUIT)
+    target_sources(${PROJECT_NAME} PRIVATE ${MINUIT_HDRS} ${MINUIT_SRCS})
+endif()
+
+if(OSSIA_PROTOCOL_OSCQUERY)
+  target_sources(${PROJECT_NAME} PRIVATE ${OSCQUERY_HDRS} ${OSCQUERY_SRCS})
+endif()
+
+target_sources(${PROJECT_NAME} PRIVATE ${LOCAL_HDRS} ${LOCAL_SRCS})
+
 if(OSSIA_PROTOCOL_MIDI)
     target_sources(${PROJECT_NAME} PRIVATE ${MIDI_HDRS} ${MIDI_SRCS})
 endif()
@@ -262,7 +296,7 @@ if(OSSIA_PROTOCOL_JOYSTICK)
     target_sources(${PROJECT_NAME} PRIVATE ${JOYSTICK_HDRS} ${JOYSTICK_SRCS})
 endif()
 
-if(OSSIA_DATAFLOW)
+if(OSSIA_PROTOCOL_AUDIO)
     target_sources(${PROJECT_NAME} PRIVATE ${AUDIO_HDRS} ${AUDIO_SRCS})
 endif()
 
