@@ -185,6 +185,7 @@ FullAddressSettings::make(const State::Message& mess) noexcept
   FullAddressSettings as;
 
   as.address = mess.address.address;
+  as.unit = mess.address.qualifiers.get().unit;
   as.value = mess.value;
 
   return as;

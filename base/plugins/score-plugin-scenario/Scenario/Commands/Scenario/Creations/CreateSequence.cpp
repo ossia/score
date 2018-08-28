@@ -104,8 +104,9 @@ CreateSequenceProcesses::CreateSequenceProcesses(
   endMessages.reserve(endAddresses.size());
   ossia::transform(
       endAddresses, std::back_inserter(endMessages), [](const auto& addr) {
-        return State::Message{State::AddressAccessor{addr.address},
-                              addr.value};
+        auto m = State::Message{State::AddressAccessor{addr.address}, addr.value};
+        m.address.qualifiers.get().unit = addr.unit;
+        return m;
       });
 
   updateTreeWithMessageList(m_stateData, endMessages);
