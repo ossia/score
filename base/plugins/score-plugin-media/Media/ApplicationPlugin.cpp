@@ -190,7 +190,7 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
   }
 
   // 3. Add remaining plug-ins
-  auto add_invalid = [=](const QString& path) {
+  auto add_invalid = [this] (const QString& path) {
     vst_info i;
     i.path = path;
     i.prettyName = "invalid";
@@ -200,51 +200,50 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
     vst_infos.push_back(i);
   };
 
-  std::vector<std::pair<QString, std::unique_ptr<QProcess>>> processes;
-  processes.reserve(newPlugins.size());
+  m_processes.clear();
+  m_processes.reserve(newPlugins.size());
   int i = 0;
   for (const QString& path : newPlugins)
   {
     qDebug() << "Loading VST " << path;
-    processes.emplace_back(path, std::make_unique<QProcess>());
-    processes.back().second->start("ossia-score-vstpuppet", {path}, QProcess::ReadOnly);
+    m_processes.emplace_back(path, std::make_unique<QProcess>());
+    auto& p = *m_processes.back().second;
+    connect(m_processes.back().second.get(), qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
+            [=,&p] (int code, QProcess::ExitStatus e) {
+      QJsonDocument doc = QJsonDocument::fromJson(p.readAllStandardOutput());
+      bool valid =
+          e == QProcess::ExitStatus::NormalExit
+       && code == 0
+       && doc.isObject();
+
+      if(valid)
+      {
+        vst_info i;
+        i.path = path;
+        i.uniqueID = doc.object()["UniqueID"].toInt();
+        i.isSynth = doc.object()["Synth"].toBool();
+        i.isValid = true;
+
+        // Only way to get a separation between Kontakt 5 / Kontakt 5 (8
+        // out) / Kontakt 5 (16 out),  etc...
+        i.prettyName = QFileInfo(path).baseName();
+
+        vst_modules.insert({i.uniqueID, nullptr});
+        vst_infos.push_back(std::move(i));
+      }
+      else
+      {
+        add_invalid(path);
+      }
+
+      // write in the database
+      QSettings{}.setValue("Effect/KnownVST2", QVariant::fromValue(vst_infos));
+
+    });
+    m_processes.back().second->start("ossia-score-vstpuppet", {path}, QProcess::ReadOnly);
     i++;
   }
 
-  for(auto& proc : processes)
-  {
-    auto& p = *proc.second;
-    p.waitForFinished();
-    QJsonDocument doc = QJsonDocument::fromJson(p.readAllStandardOutput());
-    bool valid =
-        p.exitStatus() == QProcess::ExitStatus::NormalExit
-     && p.exitCode() == 0
-     && doc.isObject();
-
-    auto path = proc.first;
-    if(valid)
-    {
-      vst_info i;
-      i.path = path;
-      i.uniqueID = doc.object()["UniqueID"].toInt();
-      i.isSynth = doc.object()["Synth"].toBool();
-      i.isValid = true;
-
-      // Only way to get a separation between Kontakt 5 / Kontakt 5 (8
-      // out) / Kontakt 5 (16 out),  etc...
-      i.prettyName = QFileInfo(path).baseName();
-
-      vst_modules.insert({i.uniqueID, nullptr});
-      vst_infos.push_back(std::move(i));
-    }
-    else
-    {
-      add_invalid(path);
-    }
-  }
-
-  // write in the database
-  QSettings{}.setValue("Effect/KnownVST2", QVariant::fromValue(vst_infos));
 }
 #endif
 
