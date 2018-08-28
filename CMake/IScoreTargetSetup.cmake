@@ -295,12 +295,12 @@ endfunction()
 
 ### Initialization of common stuff ###
 function(setup_score_common_exe_features TheTarget)
-    setup_score_common_features("${TheTarget}")
+  setup_score_common_features("${TheTarget}")
   score_cotire_post("${TheTarget}")
 endfunction()
 
 function(setup_score_common_test_features TheTarget)
-    setup_score_common_features("${TheTarget}")
+  setup_score_common_features("${TheTarget}")
 endfunction()
 
 function(setup_score_common_lib_features TheTarget)

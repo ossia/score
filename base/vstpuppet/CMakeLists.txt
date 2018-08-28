@@ -19,10 +19,15 @@ target_include_directories(
   PRIVATE
     "${SCORE_ROOT_SOURCE_DIR}/base/plugins/score-plugin-media")
 
-install(
-  TARGETS ossia-score-vstpuppet
-  BUNDLE DESTINATION .
-  RUNTIME DESTINATION score.app/Contents/macOS)
+if(APPLE)
+  install(
+    TARGETS ossia-score-vstpuppet
+    RUNTIME DESTINATION score.app/Contents/macOS)
+else()
+  install(
+    TARGETS ossia-score-vstpuppet
+    RUNTIME DESTINATION bin)
+endif()
 
 if(SCORE_COTIRE)
   cotire(ossia-score-vstpuppet)
