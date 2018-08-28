@@ -12,6 +12,7 @@
 #endif
 
 #include <ossia/detail/hash_map.hpp>
+#include <QProcess>
 #include <thread>
 namespace Media
 {
@@ -54,6 +55,7 @@ public:
 
   const std::thread::id m_tid{std::this_thread::get_id()};
   auto mainThreadId() const noexcept { return m_tid; }
+  std::vector<std::pair<QString, std::unique_ptr<QProcess>>> m_processes;
 #endif
 };
 
