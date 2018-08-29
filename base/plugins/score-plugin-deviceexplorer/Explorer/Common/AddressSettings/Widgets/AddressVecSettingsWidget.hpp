@@ -6,6 +6,8 @@
 #include <State/ValueConversion.hpp>
 #include <State/Widgets/Values/NumericValueWidget.hpp>
 #include <State/Widgets/Values/VecWidgets.hpp>
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
+#include <State/Widgets/UnitWidget.hpp>
 namespace Explorer
 {
 template <std::size_t N>
@@ -30,6 +32,17 @@ public:
     m_layout->insertRow(
         1, makeLabel(tr("Domain Type"), this), m_domainSelector);
     m_layout->insertRow(2, makeLabel(tr("Domain"), this), m_domainFloatEdit);
+
+    connect(m_unit, &State::UnitWidget::unitChanged,
+            this, [=] (const State::Unit& u) {
+      auto dom = ossia::get_unit_default_domain(u.get());
+
+      if(auto p = dom.v.target<ossia::vecf_domain<N>>())
+      {
+        m_domainVecEdit->set_domain(dom);
+        m_domainSelector->setCurrentIndex(1);
+      }
+    });
 
     m_domainSelector->setCurrentIndex(0);
   }

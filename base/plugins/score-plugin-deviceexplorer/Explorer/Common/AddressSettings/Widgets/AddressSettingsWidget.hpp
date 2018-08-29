@@ -40,9 +40,8 @@ protected:
   Device::AddressSettings getCommonSettings() const;
   void setCommonSettings(const Device::AddressSettings&);
 
-  QFormLayout* m_layout;
+  QFormLayout* m_layout{};
 
-private:
   QComboBox* m_ioTypeCBox{};
   QComboBox* m_clipModeCBox{};
   QCheckBox* m_repetition{};

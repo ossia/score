@@ -96,7 +96,8 @@ public:
       Id<Process::ProcessModel> curveId,
       State::AddressAccessor address,
       ossia::value start,
-      ossia::value end);
+      ossia::value end,
+      bool tween = false);
 
   void redo(const score::DocumentContext& ctx) const override;
 
@@ -106,7 +107,8 @@ protected:
 
 private:
   State::AddressAccessor m_address;
-  ossia::value m_start, m_end;
+  ossia::value m_start{}, m_end{};
+  bool m_tween{};
 };
 }
 }
