@@ -353,8 +353,7 @@ QString toString(const ossia::destination_qualifiers& qualifiers)
         = QString::fromStdString(ossia::get_pretty_unit_text(qualifiers.unit));
     if (!qualifiers.accessors.empty())
     {
-      char c
-          = ossia::get_unit_accessor(qualifiers.unit, qualifiers.accessors[0]);
+      char c = ossia::get_unit_accessor(qualifiers.unit, qualifiers.accessors[0]);
       if (c != 0)
       {
         unit_text += '.';

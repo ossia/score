@@ -112,10 +112,8 @@ CreateSequenceProcesses::CreateSequenceProcesses(
   updateTreeWithMessageList(m_stateData, endMessages);
 
   // We also create relevant curves.
-  std::vector<std::pair<State::Message, Device::FullAddressSettings>>
-      matchingNumericMessages;
-  std::vector<std::pair<State::Message, Device::FullAddressSettings>>
-      matchingListMessages;
+  std::vector<std::pair<State::Message, Device::FullAddressSettings>> matchingNumericMessages;
+  std::vector<std::pair<State::Message, Device::FullAddressSettings>> matchingListMessages;
   // First we filter the messages
   for (auto& message : startMessages)
   {
@@ -189,11 +187,15 @@ CreateSequenceProcesses::CreateSequenceProcesses(
 
   for (const auto& elt : matchingListMessages)
   {
+    const auto& idx = elt.first.address.qualifiers.get().accessors;
     Curve::CurveDomain d = ossia::apply(
-          get_curve_domain{elt.first.address, elt.first.address.qualifiers.get().accessors, rootNode},
+          get_curve_domain{elt.first.address, idx, rootNode},
           elt.first.value.v,
           elt.second.value.v);
 
+    qDebug() << elt.first.address.toString();
+    qDebug() << "   start/end: " << d.start << d.end;
+    qDebug() << "   min/max: " << d.min<< d.max;
     m_interpolations.addCommand(new CreateAutomationFromStates{
         interval, m_interpolations.slotsToUse, process_ids[cur_proc],
         elt.first.address, d});

@@ -78,7 +78,6 @@ struct get_curve_domain
           d.max = std::max(d.max, (double)*max_v);
       }
     }
-    d.ensureValid();
 
     return d;
   }
@@ -148,6 +147,60 @@ struct get_curve_domain
       const U& end)
   {
     return {};
+  }
+};
+
+struct get_start_end
+{
+  const ossia::destination_index& idx;
+
+  template<std::size_t N>
+  std::pair<double, double> operator()(
+      const std::array<float, N>& start,
+      const std::array<float, N>& end)
+  {
+    SCORE_ASSERT(!idx.empty());
+    const auto i = idx[0];
+    return {(double)start[i], (double)end[i]};
+  }
+
+  std::pair<double, double> operator()(
+      const std::vector<ossia::value>& start,
+      const std::vector<ossia::value>& end)
+  {
+    SCORE_ASSERT(!idx.empty());
+    const auto i = idx[0];
+    return {ossia::convert<double>(start[i]), ossia::convert<double>(end[i])};
+  }
+
+  template<typename T>
+  std::pair<double, double> operator()(
+      const T& start,
+      const T& end)
+  {
+    return {(double)start, (double)end};
+  }
+
+  std::pair<double, double> operator()(
+      ossia::impulse start,
+      ossia::impulse end)
+  {
+    return {0., 1.};
+  }
+
+  std::pair<double, double> operator()(
+      const std::string& start,
+      const std::string& end)
+  {
+    return {0., 1.};
+  }
+
+  template<typename T, typename U>
+  std::pair<double, double> operator()(
+      const T& start,
+      const U& end)
+  {
+    return {0., 1.};
   }
 };
 

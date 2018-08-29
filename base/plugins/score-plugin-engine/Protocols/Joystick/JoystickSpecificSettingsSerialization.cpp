@@ -1,4 +1,4 @@
-
+²
 #include "JoystickSpecificSettings.hpp"
 
 #include <QJsonObject>

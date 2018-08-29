@@ -74,14 +74,18 @@ void CreateAutomationFromStates::redo(const score::DocumentContext& ctx) const
 void CreateAutomationFromStates::serializeImpl(DataStreamInput& s) const
 {
   CreateProcessAndLayers::serializeImpl(s);
-  s << m_address << m_dom;
+  s << m_address << m_dom << m_tween;
 }
 
 void CreateAutomationFromStates::deserializeImpl(DataStreamOutput& s)
 {
   CreateProcessAndLayers::deserializeImpl(s);
-  s >> m_address >> m_dom;
+  s >> m_address >> m_dom >> m_tween;
 }
+
+
+
+
 
 CreateInterpolationFromStates::CreateInterpolationFromStates(
     const IntervalModel& interval,
@@ -89,11 +93,13 @@ CreateInterpolationFromStates::CreateInterpolationFromStates(
     Id<Process::ProcessModel> curveId,
     State::AddressAccessor address,
     ossia::value start,
-    ossia::value end)
-    : CreateProcessAndLayers{interval, slotList, std::move(curveId), Metadata<ConcreteKey_k, Interpolation::ProcessModel>::get()}
+    ossia::value end,
+    bool tween)
+    : CreateProcessAndLayers{interval, slotList, std::move(curveId), Metadata<ConcreteKey_k, Automation::ProcessModel>::get()}
     , m_address{std::move(address)}
     , m_start{std::move(start)}
     , m_end{std::move(end)}
+    , m_tween{tween}
 {
 }
 
@@ -116,14 +122,19 @@ void CreateInterpolationFromStates::redo(
 void CreateInterpolationFromStates::serializeImpl(DataStreamInput& s) const
 {
   CreateProcessAndLayers::serializeImpl(s);
-  s << m_address << m_start << m_end;
+  s << m_address << m_start << m_end << m_tween;
 }
 
 void CreateInterpolationFromStates::deserializeImpl(DataStreamOutput& s)
 {
   CreateProcessAndLayers::deserializeImpl(s);
-  s >> m_address >> m_start >> m_end;
+  s >> m_address >> m_start >> m_end >> m_tween;
 }
+
+
+
+
+
 
 CreateProcessAndLayers::CreateProcessAndLayers(
     const IntervalModel& interval
