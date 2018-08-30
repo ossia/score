@@ -144,8 +144,9 @@ struct UpdateUI
       }
       else
       {
+        auto id = fx.inlets()[i]->id();
         delete fx.inlets()[i];
-        auto inl = new Process::Button{label, getStrongId(fx.inlets()), &fx};
+        auto inl = new Process::Button{label, id, &fx};
         fx.inlets()[i] = inl;
         // TODO REUSE ADDRESS ?
       }
@@ -170,8 +171,9 @@ struct UpdateUI
       }
       else
       {
+        auto id = fx.inlets()[i]->id();
         delete fx.inlets()[i];
-        auto inl = new Process::Toggle{bool(*zone), label, getStrongId(fx.inlets()), &fx};
+        auto inl = new Process::Toggle{bool(*zone), label, id, &fx};
         fx.inlets()[i] = inl;
         // TODO REUSE ADDRESS ?
       }
@@ -203,8 +205,9 @@ struct UpdateUI
       }
       else
       {
+        auto id = fx.inlets()[i]->id();
         delete fx.inlets()[i];
-        auto inl = new Process::FloatSlider{min, max, init, label, getStrongId(fx.inlets()), &fx};
+        auto inl = new Process::FloatSlider{min, max, init, label, id, &fx};
         fx.inlets()[i] = inl;
       }
     }
