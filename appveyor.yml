@@ -4,7 +4,7 @@ environment:
 
 configuration: Release
 
-image: Visual Studio 2017
+image: Previous Visual Studio 2017
 platform: x64
 
 install:
