@@ -88,6 +88,7 @@ struct FloatSlider final
     : public Process::ControlInlet
 {
     MODEL_METADATA_IMPL(FloatSlider)
+    using base_type = Process::ControlInlet;
     using control_type = WidgetFactory::FloatSlider;
     FloatSlider(float min, float max, float init, const QString& name, Id<Process::Port> id, QObject* parent):
       ControlInlet{id, parent}
@@ -108,6 +109,7 @@ struct LogFloatSlider final
     : public Process::ControlInlet
 {
     MODEL_METADATA_IMPL(LogFloatSlider)
+    using base_type = Process::ControlInlet;
     using control_type = WidgetFactory::LogFloatSlider;
     LogFloatSlider(float min, float max, float init, const QString& name, Id<Process::Port> id, QObject* parent):
       ControlInlet{id, parent}
@@ -128,6 +130,7 @@ struct IntSlider final
     : public Process::ControlInlet
 {
     MODEL_METADATA_IMPL(IntSlider)
+    using base_type = Process::ControlInlet;
     using control_type = WidgetFactory::IntSlider;
     IntSlider(int min, int max, int init, const QString& name, Id<Process::Port> id, QObject* parent):
       ControlInlet{id, parent}
@@ -148,6 +151,7 @@ struct IntSpinBox final
     : public Process::ControlInlet
 {
     MODEL_METADATA_IMPL(IntSpinBox)
+    using base_type = Process::ControlInlet;
     using control_type = WidgetFactory::IntSpinBox;
     IntSpinBox(int min, int max, int init, const QString& name, Id<Process::Port> id, QObject* parent):
       ControlInlet{id, parent}
@@ -169,6 +173,7 @@ struct Toggle final
     : public Process::ControlInlet
 {
     MODEL_METADATA_IMPL(Toggle)
+    using base_type = Process::ControlInlet;
     using control_type = WidgetFactory::Toggle;
     Toggle(bool init, const QString& name, Id<Process::Port> id, QObject* parent):
       ControlInlet{id, parent}
@@ -188,6 +193,7 @@ struct ChooserToggle final
     : public Process::ControlInlet
 {
     MODEL_METADATA_IMPL(ChooserToggle)
+    using base_type = Process::ControlInlet;
     using control_type = WidgetFactory::ChooserToggle;
     ChooserToggle(QStringList values, bool init, const QString& name, Id<Process::Port> id, QObject* parent):
       ControlInlet{id, parent}
@@ -209,6 +215,7 @@ struct LineEdit final
     : public Process::ControlInlet
 {
     MODEL_METADATA_IMPL(LineEdit)
+    using base_type = Process::ControlInlet;
     using control_type = WidgetFactory::LineEdit;
     LineEdit(QString init, const QString& name, Id<Process::Port> id, QObject* parent):
       ControlInlet{id, parent}
@@ -227,6 +234,7 @@ struct ComboBox final
     : public Process::ControlInlet
 {
     using control_type = WidgetFactory::ComboBox;
+    using base_type = Process::ControlInlet;
     std::vector<std::pair<QString, ossia::value>> alternatives;
     ComboBox(std::vector<std::pair<QString, ossia::value>> values,
              ossia::value init,
@@ -254,6 +262,7 @@ struct Enum final
     : public Process::ControlInlet
 {
     MODEL_METADATA_IMPL(Enum)
+    using base_type = Process::ControlInlet;
     using control_type = WidgetFactory::Enum;
     QStringList values;
     Enum(const ossia::flat_set<std::string>& dom, std::string init, const QString& name, Id<Process::Port> id, QObject* parent):
@@ -291,6 +300,7 @@ struct TimeSignatureChooser final
     : public Process::ControlInlet
 {
     MODEL_METADATA_IMPL(TimeSignatureChooser)
+    using base_type = Process::ControlInlet;
     using control_type = WidgetFactory::TimeSignatureChooser;
     TimeSignatureChooser(std::string init, const QString& name, Id<Process::Port> id, QObject* parent):
       ControlInlet{id, parent}
@@ -310,6 +320,7 @@ struct Button final
     : public Process::ControlInlet
 {
     MODEL_METADATA_IMPL(Button)
+    using base_type = Process::ControlInlet;
     using control_type = WidgetFactory::Button;
     Button(const QString& name, Id<Process::Port> id, QObject* parent):
       ControlInlet{id, parent}
