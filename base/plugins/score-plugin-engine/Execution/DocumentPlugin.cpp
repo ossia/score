@@ -70,7 +70,16 @@ DocumentPlugin::DocumentPlugin(
   con(devs.list(), &Device::DeviceList::deviceAdded, this,
       [=] (auto& dev) {
     if(auto d = dev.getDevice())
+    {
+      connect(&dev, &Device::DeviceInterface::deviceChanged,
+              this, [=] (ossia::net::device_base* old_dev, ossia::net::device_base* new_dev) {
+        if(old_dev)
+          unregisterDevice(old_dev);
+        if(new_dev)
+          registerDevice(new_dev);
+      });
       registerDevice(d);
+    }
   });
   con(devs.list(), &Device::DeviceList::deviceRemoved, this,
       [=] (auto& dev) {
@@ -127,6 +136,13 @@ void DocumentPlugin::on_finished()
   clear();
 
   execState = std::make_unique<ossia::execution_state>();
+  auto& devlist = score::DocumentPlugin::context().plugin<Explorer::DeviceDocumentPlugin>().list().devices();
+  if(audio_device)
+    execState->register_device(audio_device->getDevice());
+  for (auto dev : devlist)
+  {
+    registerDevice(dev->getDevice());
+  }
 
   for (auto& v : m_setup_ctx.runtime_connections)
   {

@@ -1,6 +1,7 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <ossia-qt/device_metatype.hpp>
 #include <score_lib_device_export.h>
 #include <nano_observer.hpp>
 #include <wobjectdefs.h>
@@ -126,6 +127,10 @@ public:
   void namespaceUpdated()
   E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, namespaceUpdated);
 
+  // In case the device changed
+  void deviceChanged(ossia::net::device_base* old_dev, ossia::net::device_base* new_dev)
+  E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, deviceChanged, old_dev, new_dev);
+
   /* If logging is enabled, these two signals may be sent
    * when something happens */
   void logInbound(const QString& arg_1) const
@@ -166,7 +171,7 @@ class SCORE_LIB_DEVICE_EXPORT OwningDeviceInterface
     : public DeviceInterface
 {
 public:
-  virtual ~OwningDeviceInterface();
+  ~OwningDeviceInterface() override;
   void replaceDevice(ossia::net::device_base*);
   void releaseDevice();
 
@@ -196,3 +201,4 @@ findNodeFromPath(const Device::Node& path, ossia::net::device_base& dev);
 SCORE_LIB_DEVICE_EXPORT ossia::net::node_base*
 findNodeFromPath(const QStringList& path, ossia::net::device_base& dev);
 }
+

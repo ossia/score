@@ -42,6 +42,7 @@ bool HTTPDevice::reconnect()
     m_dev = std::make_unique<ossia::net::http_device>(
         std::make_unique<ossia::net::http_protocol>(stgs.text.toUtf8()),
         settings().name.toStdString());
+    deviceChanged(nullptr, m_dev.get());
 
     enableCallbacks();
     setLogging_impl(Device::get_cur_logging(isLogging()));

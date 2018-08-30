@@ -57,6 +57,7 @@ bool PhidgetDevice::reconnect()
     m_dev = std::make_unique<ossia::net::generic_device>(
         std::make_unique<ossia::phidget_protocol>(),
         settings().name.toStdString());
+    deviceChanged(nullptr, m_dev.get());
     enableCallbacks();
     m_timer = startTimer(200);
     /*

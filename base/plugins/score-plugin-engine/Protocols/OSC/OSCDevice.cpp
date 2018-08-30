@@ -38,6 +38,7 @@ bool OSCDevice::reconnect()
             stgs.host.toStdString(), stgs.inputPort, stgs.outputPort);
     m_dev = std::make_unique<ossia::net::generic_device>(
         std::move(ossia_settings), settings().name.toStdString());
+    deviceChanged(nullptr, m_dev.get());
     setLogging_impl(Device::get_cur_logging(isLogging()));
   }
   catch (...)

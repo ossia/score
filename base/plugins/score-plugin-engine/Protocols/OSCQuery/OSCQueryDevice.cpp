@@ -68,6 +68,8 @@ bool OSCQueryDevice::reconnect()
     m_dev = std::make_unique<ossia::net::generic_device>(
         std::move(ossia_settings), settings().name.toStdString());
 
+    deviceChanged(nullptr, m_dev.get());
+
     p.set_command_callback([=] { sig_command(); });
     p.set_disconnect_callback([=] { sig_disconnect(); });
     p.set_fail_callback([=] { sig_disconnect(); });

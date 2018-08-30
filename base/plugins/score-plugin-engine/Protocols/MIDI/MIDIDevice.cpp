@@ -50,6 +50,7 @@ bool MIDIDevice::reconnect()
     dev->set_name(settings().name.toStdString());
     dev->update_namespace();
     m_dev = std::move(dev);
+    deviceChanged(nullptr, m_dev.get());
   }
   catch (std::exception& e)
   {
