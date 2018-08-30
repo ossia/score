@@ -105,6 +105,7 @@ void VSTGraphicsSlider::paint(
   static const constexpr auto dpi_adjust = -2;
 #endif
 
+  painter->setFont(skin.SansFontSmall);
   painter->drawText(
       srect.adjusted(6, dpi_adjust, -6, 0), QString::fromUtf8(str),
       getHandleX() > srect.width() / 2 ? QTextOption()

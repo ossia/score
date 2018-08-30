@@ -2,7 +2,7 @@
     "Document": {
         "BaseScenario": {
             "Constraint": {
-                "Center": 5220.199351267054,
+                "Center": 5114.463351988927,
                 "Components": [
                 ],
                 "DefaultDuration": 10106.894012591787,
@@ -12,7 +12,7 @@
                         "Process": 1
                     }
                 ],
-                "GuiDuration": 24652.100252827706,
+                "GuiDuration": 27981.098673161105,
                 "HeightPercentage": 0,
                 "Inlet": {
                     "Address": {
@@ -25,6 +25,8 @@
                         }
                     },
                     "Custom": "",
+                    "Description": "",
+                    "Exposed": "",
                     "Hidden": false,
                     "ObjectName": "Inlet",
                     "Type": 1,
@@ -53,6 +55,8 @@
                         }
                     },
                     "Custom": "",
+                    "Description": "",
+                    "Exposed": "",
                     "Hidden": false,
                     "ObjectName": "Outlet",
                     "Propagate": false,
@@ -120,9 +124,9 @@
                                 "id": 8
                             },
                             {
-                                "Date": 7854.729001833026,
+                                "Date": 7840.139080168434,
                                 "HTMLContent": "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\np, li { white-space: pre-wrap; }\n</style></head><body style=\" font-family:'Ubuntu-R'; font-size:9pt; font-weight:400; font-style:normal;\">\n<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Ubuntu'; font-size:10pt;\">MIDI is supported, along with <br />VST and VSTi.</span></p></body></html>",
-                                "HeightPercentage": 0.298,
+                                "HeightPercentage": 0.2886666666666667,
                                 "ObjectName": "CommentBlockModel",
                                 "id": 9
                             }
@@ -151,6 +155,8 @@
                                         }
                                     },
                                     "Custom": "",
+                                    "Description": "",
+                                    "Exposed": "",
                                     "Hidden": false,
                                     "ObjectName": "Inlet",
                                     "Type": 1,
@@ -179,6 +185,8 @@
                                         }
                                     },
                                     "Custom": "",
+                                    "Description": "",
+                                    "Exposed": "",
                                     "Hidden": false,
                                     "ObjectName": "Outlet",
                                     "Propagate": false,
@@ -218,6 +226,8 @@
                                         }
                                     },
                                     "Custom": "",
+                                    "Description": "",
+                                    "Exposed": "",
                                     "Hidden": false,
                                     "ObjectName": "Inlet",
                                     "Type": 1,
@@ -246,6 +256,8 @@
                                         }
                                     },
                                     "Custom": "",
+                                    "Description": "",
+                                    "Exposed": "",
                                     "Hidden": false,
                                     "ObjectName": "Outlet",
                                     "Propagate": false,
@@ -285,6 +297,8 @@
                                         }
                                     },
                                     "Custom": "",
+                                    "Description": "",
+                                    "Exposed": "",
                                     "Hidden": false,
                                     "ObjectName": "Inlet",
                                     "Type": 1,
@@ -313,6 +327,8 @@
                                         }
                                     },
                                     "Custom": "",
+                                    "Description": "",
+                                    "Exposed": "",
                                     "Hidden": false,
                                     "ObjectName": "Outlet",
                                     "Propagate": false,
@@ -370,6 +386,8 @@
                                         }
                                     },
                                     "Custom": "",
+                                    "Description": "",
+                                    "Exposed": "",
                                     "Hidden": false,
                                     "ObjectName": "Inlet",
                                     "Type": 1,
@@ -398,6 +416,8 @@
                                         }
                                     },
                                     "Custom": "",
+                                    "Description": "",
+                                    "Exposed": "",
                                     "Hidden": false,
                                     "ObjectName": "Outlet",
                                     "Propagate": false,
@@ -452,7 +472,9 @@
                                                     "Path": "master/backgroundColorR"
                                                 }
                                             },
-                                            "Custom": "",
+                                            "Custom": "Out",
+                                            "Description": "",
+                                            "Exposed": "",
                                             "Hidden": false,
                                             "ObjectName": "Outlet",
                                             "Propagate": false,
@@ -542,7 +564,9 @@
                                                     "Path": "master/backgroundColorB"
                                                 }
                                             },
-                                            "Custom": "",
+                                            "Custom": "Out",
+                                            "Description": "",
+                                            "Exposed": "",
                                             "Hidden": false,
                                             "ObjectName": "Outlet",
                                             "Propagate": false,
@@ -616,7 +640,9 @@
                                                     "Path": "master/backgroundColorG"
                                                 }
                                             },
-                                            "Custom": "",
+                                            "Custom": "Out",
+                                            "Description": "",
+                                            "Exposed": "",
                                             "Hidden": false,
                                             "ObjectName": "Outlet",
                                             "Propagate": false,
@@ -674,7 +700,9 @@
                                                     "Path": "master/addColorR"
                                                 }
                                             },
-                                            "Custom": "",
+                                            "Custom": "Out",
+                                            "Description": "",
+                                            "Exposed": "",
                                             "Hidden": false,
                                             "ObjectName": "Outlet",
                                             "Propagate": false,
@@ -732,7 +760,9 @@
                                                     "Path": "master/addColorG"
                                                 }
                                             },
-                                            "Custom": "",
+                                            "Custom": "Out",
+                                            "Description": "",
+                                            "Exposed": "",
                                             "Hidden": false,
                                             "ObjectName": "Outlet",
                                             "Propagate": false,
@@ -837,7 +867,9 @@
                                                     "Path": "master/alpha"
                                                 }
                                             },
-                                            "Custom": "",
+                                            "Custom": "Out",
+                                            "Description": "",
+                                            "Exposed": "",
                                             "Hidden": false,
                                             "ObjectName": "Outlet",
                                             "Propagate": false,
@@ -895,6 +927,8 @@
                                         }
                                     },
                                     "Custom": "",
+                                    "Description": "",
+                                    "Exposed": "",
                                     "Hidden": false,
                                     "ObjectName": "Inlet",
                                     "Type": 1,
@@ -923,6 +957,8 @@
                                         }
                                     },
                                     "Custom": "",
+                                    "Description": "",
+                                    "Exposed": "",
                                     "Hidden": false,
                                     "ObjectName": "Outlet",
                                     "Propagate": false,
@@ -967,7 +1003,9 @@
                                                     "Path": "master/soundOutLevel"
                                                 }
                                             },
-                                            "Custom": "",
+                                            "Custom": "In",
+                                            "Description": "",
+                                            "Exposed": "",
                                             "Hidden": false,
                                             "ObjectName": "Inlet",
                                             "Type": 0,
@@ -991,7 +1029,9 @@
                                                     "Path": "layer/rotation/y"
                                                 }
                                             },
-                                            "Custom": "",
+                                            "Custom": "Out",
+                                            "Description": "",
+                                            "Exposed": "",
                                             "Hidden": false,
                                             "ObjectName": "Outlet",
                                             "Propagate": false,
@@ -1050,6 +1090,8 @@
                                         }
                                     },
                                     "Custom": "",
+                                    "Description": "",
+                                    "Exposed": "",
                                     "Hidden": false,
                                     "ObjectName": "Inlet",
                                     "Type": 1,
@@ -1078,6 +1120,8 @@
                                         }
                                     },
                                     "Custom": "",
+                                    "Description": "",
+                                    "Exposed": "",
                                     "Hidden": false,
                                     "ObjectName": "Outlet",
                                     "Propagate": false,
@@ -1173,20 +1217,13 @@
                                                     }
                                                 },
                                                 "Custom": "",
-                                                "Domain": {
-                                                    "Int": {
-                                                        "Max": 127,
-                                                        "Min": -127
-                                                    }
-                                                },
-                                                "Hidden": false,
+                                                "Description": "",
+                                                "Exposed": "",
+                                                "Hidden": true,
                                                 "ObjectName": "Inlet",
                                                 "Type": 0,
-                                                "Value": {
-                                                    "Int": 0
-                                                },
                                                 "id": 0,
-                                                "uuid": "9a13fb32-269a-47bf-99a9-930188c1f19c"
+                                                "uuid": "348b80a4-45dc-4f70-8f5f-6546c85089a2"
                                             },
                                             {
                                                 "Address": {
@@ -1199,6 +1236,8 @@
                                                     }
                                                 },
                                                 "Custom": "",
+                                                "Description": "",
+                                                "Exposed": "",
                                                 "Hidden": false,
                                                 "ObjectName": "Inlet",
                                                 "Type": 2,
@@ -1225,6 +1264,8 @@
                                                     }
                                                 },
                                                 "Custom": "",
+                                                "Description": "",
+                                                "Exposed": "",
                                                 "Hidden": false,
                                                 "ObjectName": "Outlet",
                                                 "Propagate": false,
@@ -1248,7 +1289,7 @@
                                         ]
                                     },
                                     {
-                                        "Height": 190,
+                                        "Height": 248,
                                         "Process": 2,
                                         "Processes": [
                                             2
@@ -1285,6 +1326,8 @@
                                         }
                                     },
                                     "Custom": "",
+                                    "Description": "",
+                                    "Exposed": "",
                                     "Hidden": false,
                                     "ObjectName": "Inlet",
                                     "Type": 1,
@@ -1313,6 +1356,8 @@
                                         }
                                     },
                                     "Custom": "",
+                                    "Description": "",
+                                    "Exposed": "",
                                     "Hidden": false,
                                     "ObjectName": "Outlet",
                                     "Propagate": false,
@@ -1348,6 +1393,8 @@
                                                     }
                                                 },
                                                 "Custom": "",
+                                                "Description": "",
+                                                "Exposed": "",
                                                 "Hidden": false,
                                                 "ObjectName": "Inlet",
                                                 "Type": 1,
@@ -1376,6 +1423,8 @@
                                                     }
                                                 },
                                                 "Custom": "",
+                                                "Description": "",
+                                                "Exposed": "",
                                                 "Hidden": false,
                                                 "ObjectName": "Outlet",
                                                 "Propagate": false,
@@ -1446,7 +1495,9 @@
                                                                 "Path": "master/scale"
                                                             }
                                                         },
-                                                        "Custom": "",
+                                                        "Custom": "Out",
+                                                        "Description": "",
+                                                        "Exposed": "",
                                                         "Hidden": false,
                                                         "ObjectName": "Outlet",
                                                         "Propagate": false,
@@ -1614,6 +1665,8 @@
                                                 }
                                             },
                                             "Custom": "",
+                                            "Description": "",
+                                            "Exposed": "",
                                             "Hidden": false,
                                             "ObjectName": "Inlet",
                                             "Type": 1,
@@ -1638,6 +1691,8 @@
                                                 }
                                             },
                                             "Custom": "",
+                                            "Description": "",
+                                            "Exposed": "",
                                             "Hidden": false,
                                             "ObjectName": "Outlet",
                                             "Propagate": false,
@@ -1812,6 +1867,8 @@
                                         }
                                     },
                                     "Custom": "",
+                                    "Description": "",
+                                    "Exposed": "",
                                     "Hidden": false,
                                     "ObjectName": "Inlet",
                                     "Type": 1,
@@ -1840,6 +1897,8 @@
                                         }
                                     },
                                     "Custom": "",
+                                    "Description": "",
+                                    "Exposed": "",
                                     "Hidden": false,
                                     "ObjectName": "Outlet",
                                     "Propagate": false,
@@ -1867,7 +1926,7 @@
                                 "FullViewRack": [
                                 ],
                                 "GuiDuration": 722.5173027010356,
-                                "HeightPercentage": 0.1759055206671543,
+                                "HeightPercentage": 0.17390552066715428,
                                 "Inlet": {
                                     "Address": {
                                         "Accessors": [
@@ -1879,6 +1938,8 @@
                                         }
                                     },
                                     "Custom": "",
+                                    "Description": "",
+                                    "Exposed": "",
                                     "Hidden": false,
                                     "ObjectName": "Inlet",
                                     "Type": 1,
@@ -1907,6 +1968,8 @@
                                         }
                                     },
                                     "Custom": "",
+                                    "Description": "",
+                                    "Exposed": "",
                                     "Hidden": false,
                                     "ObjectName": "Outlet",
                                     "Propagate": false,
@@ -1929,15 +1992,15 @@
                                 "Center": 0,
                                 "Components": [
                                 ],
-                                "DefaultDuration": 2130.0153531151427,
+                                "DefaultDuration": 1987.3543364862526,
                                 "EndState": 16,
                                 "FullViewRack": [
                                     {
                                         "Process": 1
                                     }
                                 ],
-                                "GuiDuration": 2456.416922919173,
-                                "HeightPercentage": 0.1759055206671543,
+                                "GuiDuration": 3932.205562465872,
+                                "HeightPercentage": 0.17390552066715428,
                                 "Inlet": {
                                     "Address": {
                                         "Accessors": [
@@ -1949,13 +2012,15 @@
                                         }
                                     },
                                     "Custom": "",
+                                    "Description": "",
+                                    "Exposed": "",
                                     "Hidden": false,
                                     "ObjectName": "Inlet",
                                     "Type": 1,
                                     "id": 0,
                                     "uuid": "8884228a-d197-4b0a-b6ca-d1fb15291559"
                                 },
-                                "MaxDuration": 2130.0153531151427,
+                                "MaxDuration": 1987.3543364862526,
                                 "MaxInf": false,
                                 "Metadata": {
                                     "Color": "Transparent1",
@@ -1963,7 +2028,7 @@
                                     "Label": "",
                                     "ScriptingName": "Units"
                                 },
-                                "MinDuration": 2130.0153531151427,
+                                "MinDuration": 1987.3543364862526,
                                 "MinNull": false,
                                 "ObjectName": "Scenario::ConstraintModel",
                                 "Outlet": {
@@ -1977,6 +2042,8 @@
                                         }
                                     },
                                     "Custom": "",
+                                    "Description": "",
+                                    "Exposed": "",
                                     "Hidden": false,
                                     "ObjectName": "Outlet",
                                     "Propagate": false,
@@ -1993,16 +2060,32 @@
                                             "Segments": [
                                                 {
                                                     "End": [
-                                                        1,
-                                                        1
+                                                        0.4912384056096767,
+                                                        0.2857263936248031
                                                     ],
-                                                    "Following": null,
+                                                    "Following": 1,
                                                     "ObjectName": "CurveSegmentModel",
-                                                    "Power": 10.55,
+                                                    "Power": 9.71,
                                                     "Previous": null,
                                                     "Start": [
                                                         0,
-                                                        0
+                                                        0.5623221383056543
+                                                    ],
+                                                    "id": 2007760186,
+                                                    "uuid": "1e7cb83f-4e47-4b14-814d-2242a9c75991"
+                                                },
+                                                {
+                                                    "End": [
+                                                        1,
+                                                        0.6474285212843776
+                                                    ],
+                                                    "Following": null,
+                                                    "ObjectName": "CurveSegmentModel",
+                                                    "Power": 9.71,
+                                                    "Previous": 2007760186,
+                                                    "Start": [
+                                                        0.4912384056096767,
+                                                        0.2857263936248031
                                                     ],
                                                     "id": 1,
                                                     "uuid": "1e7cb83f-4e47-4b14-814d-2242a9c75991"
@@ -2010,7 +2093,7 @@
                                             ],
                                             "id": 45345
                                         },
-                                        "Duration": 2130.0153531151427,
+                                        "Duration": 1987.3543364862526,
                                         "Height": 300,
                                         "Max": 1,
                                         "Metadata": {
@@ -2032,7 +2115,9 @@
                                                     "Path": "master/invColor"
                                                 }
                                             },
-                                            "Custom": "",
+                                            "Custom": "Out",
+                                            "Description": "",
+                                            "Exposed": "",
                                             "Hidden": false,
                                             "ObjectName": "Outlet",
                                             "Propagate": false,
@@ -2048,7 +2133,7 @@
                                 "Rigidity": true,
                                 "SmallViewRack": [
                                     {
-                                        "Height": 100,
+                                        "Height": 94,
                                         "Process": 1,
                                         "Processes": [
                                             1
@@ -2082,6 +2167,8 @@
                                         }
                                     },
                                     "Custom": "",
+                                    "Description": "",
+                                    "Exposed": "",
                                     "Hidden": false,
                                     "ObjectName": "Inlet",
                                     "Type": 1,
@@ -2110,6 +2197,8 @@
                                         }
                                     },
                                     "Custom": "",
+                                    "Description": "",
+                                    "Exposed": "",
                                     "Hidden": false,
                                     "ObjectName": "Outlet",
                                     "Propagate": true,
@@ -2155,6 +2244,8 @@
                                         }
                                     },
                                     "Custom": "",
+                                    "Description": "",
+                                    "Exposed": "",
                                     "Hidden": false,
                                     "ObjectName": "Inlet",
                                     "Type": 1,
@@ -2183,6 +2274,8 @@
                                         }
                                     },
                                     "Custom": "",
+                                    "Description": "",
+                                    "Exposed": "",
                                     "Hidden": false,
                                     "ObjectName": "Outlet",
                                     "Propagate": true,
@@ -2216,6 +2309,8 @@
                                                 }
                                             },
                                             "Custom": "",
+                                            "Description": "",
+                                            "Exposed": "",
                                             "Hidden": false,
                                             "ObjectName": "Outlet",
                                             "Propagate": true,
@@ -2246,6 +2341,8 @@
                                                     }
                                                 },
                                                 "Custom": "",
+                                                "Description": "",
+                                                "Exposed": "",
                                                 "Hidden": false,
                                                 "ObjectName": "Inlet",
                                                 "Type": 1,
@@ -2263,20 +2360,13 @@
                                                     }
                                                 },
                                                 "Custom": "Damp",
-                                                "Domain": {
-                                                    "Float": {
-                                                        "Max": 1,
-                                                        "Min": 0
-                                                    }
-                                                },
+                                                "Description": "",
+                                                "Exposed": "",
                                                 "Hidden": true,
                                                 "ObjectName": "Inlet",
                                                 "Type": 0,
-                                                "Value": {
-                                                    "Float": 0.5
-                                                },
                                                 "id": 2,
-                                                "uuid": "9a13fb32-269a-47bf-99a9-930188c1f19c"
+                                                "uuid": "af2b4fc3-aecb-4c15-a5aa-1c573a239925"
                                             },
                                             {
                                                 "Address": {
@@ -2289,20 +2379,13 @@
                                                     }
                                                 },
                                                 "Custom": "RoomSize",
-                                                "Domain": {
-                                                    "Float": {
-                                                        "Max": 1,
-                                                        "Min": 0
-                                                    }
-                                                },
+                                                "Description": "",
+                                                "Exposed": "",
                                                 "Hidden": true,
                                                 "ObjectName": "Inlet",
                                                 "Type": 0,
-                                                "Value": {
-                                                    "Float": 0.8999999761581421
-                                                },
                                                 "id": 3,
-                                                "uuid": "9a13fb32-269a-47bf-99a9-930188c1f19c"
+                                                "uuid": "af2b4fc3-aecb-4c15-a5aa-1c573a239925"
                                             },
                                             {
                                                 "Address": {
@@ -2315,20 +2398,13 @@
                                                     }
                                                 },
                                                 "Custom": "Wet",
-                                                "Domain": {
-                                                    "Float": {
-                                                        "Max": 1,
-                                                        "Min": 0
-                                                    }
-                                                },
+                                                "Description": "",
+                                                "Exposed": "",
                                                 "Hidden": true,
                                                 "ObjectName": "Inlet",
                                                 "Type": 0,
-                                                "Value": {
-                                                    "Float": 0.8999999761581421
-                                                },
                                                 "id": 4,
-                                                "uuid": "9a13fb32-269a-47bf-99a9-930188c1f19c"
+                                                "uuid": "af2b4fc3-aecb-4c15-a5aa-1c573a239925"
                                             }
                                         ],
                                         "Metadata": {
@@ -2350,6 +2426,8 @@
                                                     }
                                                 },
                                                 "Custom": "",
+                                                "Description": "",
+                                                "Exposed": "",
                                                 "Hidden": false,
                                                 "ObjectName": "Outlet",
                                                 "Propagate": true,
@@ -2401,7 +2479,7 @@
                                     }
                                 ],
                                 "GuiDuration": 2117.6151597634444,
-                                "HeightPercentage": 0.3346666666666668,
+                                "HeightPercentage": 0.3233333333333335,
                                 "Inlet": {
                                     "Address": {
                                         "Accessors": [
@@ -2413,6 +2491,8 @@
                                         }
                                     },
                                     "Custom": "",
+                                    "Description": "",
+                                    "Exposed": "",
                                     "Hidden": false,
                                     "ObjectName": "Inlet",
                                     "Type": 1,
@@ -2441,6 +2521,8 @@
                                         }
                                     },
                                     "Custom": "",
+                                    "Description": "",
+                                    "Exposed": "",
                                     "Hidden": false,
                                     "ObjectName": "Outlet",
                                     "Propagate": true,
@@ -2509,6 +2591,8 @@
                                                 }
                                             },
                                             "Custom": "",
+                                            "Description": "",
+                                            "Exposed": "",
                                             "Hidden": false,
                                             "ObjectName": "Outlet",
                                             "Propagate": false,
@@ -2522,9 +2606,8 @@
                                     {
                                         "Components": [
                                         ],
-                                        "Data": "I3BnbT1pbml0aWFsaXplCiNBTT1Qb2RvbHNraQojVmVycz0xMDIwMQojRW5kaWFuPWxpdHRsZQojbm09MTcKI21zPW5vbmUKI21zPU1vZFdoZWVsCiNtcz1QaXRjaFdoZWVsCiNtcz1CcmVhdGhDdHJsCiNtcz1FeHByZXNzaW9uCiNtcz1MRk9nbG9iYWwKI21zPUdhdGUKI21zPVZlbG9jaXR5CiNtcz1QcmVzc3VyZQojbXM9S2V5Rm9sbG93CiNtcz1LZXlGb2xsb3cyCiNtcz1BbHRlcm5hdGUKI21zPVJhbmRvbQojbXM9Q29uc3RhbnQKI21zPUFycE1vZHVsYXRvcgojbXM9RW52ZWxvcGUxCiNtcz1MRk8xCiNudj0yCiNtdj1HYXRlCiNtdj1FbnZlbG9wZTEKI2NtPW1haW4KQ2NPcD0xMDAuMDAKI0xGT0c9MQojQ2hycz0xCiNEbHkxPTEKI2NtPVBDb3JlClNCYXNlPTQKU3dpbmc9MC4wMApTVHJpZz0xClBTb25nPTAKUEZvbGQ9MApQRmlsZT0xCkdGaWxlPTIKR1NjYWxlPTAKQ2hMYXk9MApTdXJyTz0xClJldj00NDA4CkxFRD0wLjAwClBBR0U9MApQYWdlc09uPTAKQ29yZU49MwpTbGljZT00ClVJX29wPTEKTWlkaUE9NQpNaWRpUD02CiNjbT1MRk9HClN5bmM9MgpUcmlnPTAKV2F2ZT0xClBoc2U9MC4wMApQb2xhcj0wCiNjbT1WQ0MKI0xGTzE9MQpWb2ljZXM9MQpWb2ljaW5nPTEKTW9kZT0wClBvcnRhPTAuMDAKUEI9MgpQQkQ9MgpEcmZ0PTEKTVR1blM9MApNVHVuTj03Ck1UdW5UPTgKVHJzcD0tMTIKRlR1bj0wLjAwClZjMT0wLjAwClZjMj0wLjAwClZjMz0wLjAwClZjND0wLjAwClZjNT0wLjAwClZjNj0wLjAwClZjNz0wLjAwClZjOD0wLjAwClByaW9yPTAKTXVDb3JlPTAKQ29udEVuPTAKUk5vdGU9MApSVmVsPTAKQXJTYz00CkFyT3JkPTAKQXJMcD0wCkFyT2N0PTEKQXJMTD0xNgpBclRyPTAKQWd0ZTE9MgpBdHJwMT0wCkF2b2MxPTEKQW11bDE9MQpBbW9kMT0wCkFNRHB0MT0wLjAwCkFndGUyPTIKQXRycDI9MApBdm9jMj0xCkFtdWwyPTEKQW1vZDI9MApBTURwdDI9MC4wMApBZ3RlMz0yCkF0cnAzPTAKQXZvYzM9MQpBbXVsMz0xCkFtb2QzPTAKQU1EcHQzPTAuMDAKQWd0ZTQ9MgpBdHJwND0wCkF2b2M0PTEKQW11bDQ9MQpBbW9kND0wCkFNRHB0ND0wLjAwCkFndGU1PTIKQXRycDU9MApBdm9jNT0xCkFtdWw1PTEKQW1vZDU9MApBTURwdDU9MC4wMApBZ3RlNj0yCkF0cnA2PTAKQXZvYzY9MQpBbXVsNj0xCkFtb2Q2PTAKQU1EcHQ2PTAuMDAKQWd0ZTc9MgpBdHJwNz0wCkF2b2M3PTEKQW11bDc9MQpBbW9kNz0wCkFNRHB0Nz0wLjAwCkFndGU4PTIKQXRycDg9MApBdm9jOD0xCkFtdWw4PTEKQW1vZDg9MApBTURwdDg9MC4wMApBZ3RlOT0yCkF0cnA5PTAKQXZvYzk9MQpBbXVsOT0xCkFtb2Q5PTAKQU1EcHQ5PTAuMDAKQWd0ZTEwPTIKQXRycDEwPTAKQXZvYzEwPTEKQW11bDEwPTEKQW1vZDEwPTAKQU1EcHQxMD0wLjAwCkFndGUxMT0yCkF0cnAxMT0wCkF2b2MxMT0xCkFtdWwxMT0xCkFtb2QxMT0wCkFNRHB0MTE9MC4wMApBZ3RlMTI9MgpBdHJwMTI9MApBdm9jMTI9MQpBbXVsMTI9MQpBbW9kMTI9MApBTURwdDEyPTAuMDAKQWd0ZTEzPTIKQXRycDEzPTAKQXZvYzEzPTEKQW11bDEzPTEKQW1vZDEzPTAKQU1EcHQxMz0wLjAwCkFndGUxND0yCkF0cnAxND0wCkF2b2MxND0xCkFtdWwxND0xCkFtb2QxND0wCkFNRHB0MTQ9MC4wMApBZ3RlMTU9MgpBdHJwMTU9MApBdm9jMTU9MQpBbXVsMTU9MQpBbW9kMTU9MApBTURwdDE1PTAuMDAKQWd0ZTE2PTIKQXRycDE2PTAKQXZvYzE2PTEKQW11bDE2PTEKQW1vZDE2PTAKQU1EcHQxNj0wLjAwCiNjbT1FTlYxCk1vZGU9MApBdGs9MS4wMApEZWM9NTAuMDAKU3VzPTgwLjAwClN1c1Q9MC4wMApSZWw9MTAuMDAKVmVsPTI1LjAwCiNjbT1MRk8xClN5bmM9MgpUcmlnPTEKV2F2ZT0xClBoc2U9MC4wMApQb2xhcj0wCkRseT0wLjAwCkRNUzE9MQpETUQxPTEwMC4wMApSYXRlPTAuMDAKRk1TMT0wCkZNRDE9MC4wMAojY209T1NDMQpXYXZlPTAKVHVuZT0wLjAwCktleVNjbD0xMDAuMDAKVE1TcmM9MApUTURwdD0wLjAwClBoc2U9NTAuMDAKUGhzTVNyYz0wClBoc01EcHQ9MC4wMApJbnZWb2w9LTEwMC4wMApTeW0xPTUwLjAwCldQU3JjPTAKV1BEcHQ9MC4wMApWdG9EPTAuMDAKI2NtPVZDRjAKVHlwPTAKQ3V0PTc4LjAwClJlcz0wLjAwCkRydj0yMy4wMApGTTE9MC4wMApGUzE9MApGTTI9MC4wMApGUzI9MApLZXlTY2w9NTAuMDAKQUZNPTAuMDAKQ2xrPTAuMDAKI2NtPVZDQTEKUGFuPTAuMDAKVm9sPTMwLjAwClZDQT0xCk1vZFNyYz0wCk1vZERwdD0wLjAwClBhblNyYz0wCkF0dFM9MQojY209Q2hycwpDZW50PTIwLjAwClNwZWQ9NTAuMDAKRHB0aD01MC4wMApGZWVCPTAuMDAKTWl4PTAuMDAKI2NtPURseTEKU25jTD00ClNuY1I9NApGZWVCPTAuMDAKQ3JzQj0wLjAwCk1peD0wLjAwCgoKCi8vIFNlY3Rpb24gZm9yIHVnbHkgY29tcHJlc3NlZCBiaW5hcnkgRGF0YQovLyBET04nVCBUT1VDSCBUSElTCgokJCQkMTU1Ngo/Z2RnY2VuZWI6a2FocGFhYWE6ZWFhYWFhYWE6cG9ocGFhYWE6amlpY3BmY2k6YWFhYWlhZHA6YWFhYmFhYWE6CmJhYWFhYWFhOmRhYWFhYWFhOmNjYWFhYWFhOmFhOmVjOmViOmVhOmdmOmNoOmNhOmFlOmFoOmZhOmdqOmlhOmMKaTpnYjpoYTpoZjpiYTpiaTpkYTpnZzpnbzpoYzppaTprYTpraTpsaSFxd0E3ZG9BN2xmaWNra2ttampsb2tjeAp5QTd6QTNPV0hsa3R1cm5hbGZQSUEzbnBjbG9vTXJuaUxuZ01yWkNwaE1ydXJmZ2ZwSmZjZXBKZWZmY2ZlZmpHClVOZ25FZG5GSlZFVEVWRVVnZEVGR0tnZWRuRlNGR2hnTmdtUEVkbkZDUGdlS2dwSlZFVGhkZGtCTmhkRWVtTmgKZUVVZ2RoakJQVDFFVmRiZGdka2ZqZWZmZEZha0FSWW9kYWdhYkEyUllvZGFnQTI3U2tlamVJQTNabW5jbElBMwpHaW5IbGt0QTdRbWZGSUEzcXNBN0tVS2hlS05nbUtoa0Vjb1RoaU9Ba2N4eUE3ekEzT1dIbGt0dXJuYWxmUElBCjNxc0E3MXFzQTdvbm9vb3BwYXBicGNwZHBlcGZwZ3BocGlwanBrcGxwbXBucG9wcEFhYmFjYWRIYWZhZ0lhaWEKamFrYWxhbWFuYW9hcFFiYmJjYmRiZWJmYmdiaFJiamJrYmxibWJuYm9icEdjYmNjY2RjZWNmY2dGTWNqY2tjbApjbXFIQTl3QXF3QTI2M3FMQTEzOHFzQTQzdkEyREExRDFBMUxEQTFYREExbWFEQTFvYURxQWFjQTV2QTN2QTJECkExRDFBMUxEQTFYREExbWFEQTFvYXNDQTFRQ0ExR0NBMVNDQTFEQ0ExSkNBMWdhQ0ExT0NBMUxDQTFXQ0ExamEKQ0ExamlDQTFYQ0ExWUNBMWxhQ0ExWkNBMW1hQ0ExbWlDQTFuYUNBMW5pQ0Exb2FDQTFvaUNBMXBhQ0ExcGlDQQoyQkExSEJBMWFpQkExYW1CQTFRQkExYmVCQTFSQkExYm1CQTFHQkExY2VCQTFNQkExY21CQTFTQkExZGVCQTFkCmlCQTFkbUJBMURCQTFlZUJBMWVpQkExZW1CQTFKQkExZmVCQTFmaUJBMWZtQkExZ2FCQTFnZUJBMWdpQkExZ20KQkExT0JBMWhlQkExaGlCQTFobUJBMUxCQTFpY0JBMWllQkExaWdCQTFXQkExaWtCQTFpbUJBMWlvQkExamFCQQoxamNCQTFqZUJBMWpnQkExamlCQTFqa0JBMWptQkExam9CQTFYQkExa2NCQTFrZUJBMWtnQkExWUJBMWtrQkExCmttQkExa29CQTFsYUJBMWxjQkExbGVCQTFsZ0JBMVpCQTFsa0JBMWxtQkExbG9CQTFtYUJBMW1jQkExbWVCQTEKbWdCQTFtaUJBMW1rQkExbW1CQTFtb0JBMW5hQkExbmNCQTFuZUJBMW5nQkExbmlCQTFua0JBMW5tQkExbm9CQQoxb2FCQTFvY0JBMW9lQkExb2dCQTFvaUJBMW9rQkExb21CQTFvb0JBMXBhQkExcGNCQTFwZUJBMXBnQkExcGlCCkExcGtCQTFwbUJBMXBvQj0xMDMyNDMKAAA=",
                                         "Duration": 1776.7341582212057,
-                                        "EffectId": 1349477487,
+                                        "EffectId": 1145988459,
                                         "Height": 300,
                                         "Inlets": [
                                             {
@@ -2538,6 +2621,8 @@
                                                     }
                                                 },
                                                 "Custom": "",
+                                                "Description": "",
+                                                "Exposed": "",
                                                 "Hidden": false,
                                                 "ObjectName": "Inlet",
                                                 "Type": 2,
@@ -2555,20 +2640,13 @@
                                                     }
                                                 },
                                                 "Custom": "Tempo",
-                                                "Domain": {
-                                                    "Float": {
-                                                        "Max": 200,
-                                                        "Min": 20
-                                                    }
-                                                },
+                                                "Description": "",
+                                                "Exposed": "",
                                                 "Hidden": true,
                                                 "ObjectName": "Inlet",
                                                 "Type": 0,
-                                                "Value": {
-                                                    "Float": 120
-                                                },
                                                 "id": 1,
-                                                "uuid": "9a13fb32-269a-47bf-99a9-930188c1f19c"
+                                                "uuid": "af2b4fc3-aecb-4c15-a5aa-1c573a239925"
                                             },
                                             {
                                                 "Address": {
@@ -2581,16 +2659,13 @@
                                                     }
                                                 },
                                                 "Custom": "Time signature",
-                                                "Domain": {
-                                                },
+                                                "Description": "",
+                                                "Exposed": "",
                                                 "Hidden": true,
                                                 "ObjectName": "Inlet",
                                                 "Type": 0,
-                                                "Value": {
-                                                    "String": "4/4"
-                                                },
                                                 "id": 2,
-                                                "uuid": "9a13fb32-269a-47bf-99a9-930188c1f19c"
+                                                "uuid": "91970a5f-aab8-4993-8410-4aff56adf7dc"
                                             },
                                             {
                                                 "Address": {
@@ -2602,8 +2677,10 @@
                                                         "Path": ""
                                                     }
                                                 },
-                                                "Custom": "VCF0: Cutoff",
-                                                "FxNum": 47,
+                                                "Custom": "Waveform",
+                                                "Description": "",
+                                                "Exposed": "",
+                                                "FxNum": 0,
                                                 "Hidden": true,
                                                 "ObjectName": "Inlet",
                                                 "Type": 0,
@@ -2620,19 +2697,161 @@
                                                         "Path": ""
                                                     }
                                                 },
-                                                "Custom": "VCF0: Drive",
-                                                "FxNum": 49,
+                                                "Custom": "Tuning",
+                                                "Description": "",
+                                                "Exposed": "",
+                                                "FxNum": 1,
                                                 "Hidden": true,
                                                 "ObjectName": "Inlet",
                                                 "Type": 0,
                                                 "id": 4,
+                                                "uuid": "e523bc44-8599-4a04-94c1-04ce0d1a692a"
+                                            },
+                                            {
+                                                "Address": {
+                                                    "Accessors": [
+                                                    ],
+                                                    "Unit": "none",
+                                                    "address": {
+                                                        "Device": "",
+                                                        "Path": ""
+                                                    }
+                                                },
+                                                "Custom": "Cutoff",
+                                                "Description": "",
+                                                "Exposed": "",
+                                                "FxNum": 2,
+                                                "Hidden": true,
+                                                "ObjectName": "Inlet",
+                                                "Type": 0,
+                                                "id": 5,
+                                                "uuid": "e523bc44-8599-4a04-94c1-04ce0d1a692a"
+                                            },
+                                            {
+                                                "Address": {
+                                                    "Accessors": [
+                                                    ],
+                                                    "Unit": "none",
+                                                    "address": {
+                                                        "Device": "",
+                                                        "Path": ""
+                                                    }
+                                                },
+                                                "Custom": "VCF Resonance",
+                                                "Description": "",
+                                                "Exposed": "",
+                                                "FxNum": 3,
+                                                "Hidden": true,
+                                                "ObjectName": "Inlet",
+                                                "Type": 0,
+                                                "id": 6,
+                                                "uuid": "e523bc44-8599-4a04-94c1-04ce0d1a692a"
+                                            },
+                                            {
+                                                "Address": {
+                                                    "Accessors": [
+                                                    ],
+                                                    "Unit": "none",
+                                                    "address": {
+                                                        "Device": "",
+                                                        "Path": ""
+                                                    }
+                                                },
+                                                "Custom": "Env Mod",
+                                                "Description": "",
+                                                "Exposed": "",
+                                                "FxNum": 4,
+                                                "Hidden": true,
+                                                "ObjectName": "Inlet",
+                                                "Type": 0,
+                                                "id": 7,
+                                                "uuid": "e523bc44-8599-4a04-94c1-04ce0d1a692a"
+                                            },
+                                            {
+                                                "Address": {
+                                                    "Accessors": [
+                                                    ],
+                                                    "Unit": "none",
+                                                    "address": {
+                                                        "Device": "",
+                                                        "Path": ""
+                                                    }
+                                                },
+                                                "Custom": "Decay",
+                                                "Description": "",
+                                                "Exposed": "",
+                                                "FxNum": 5,
+                                                "Hidden": true,
+                                                "ObjectName": "Inlet",
+                                                "Type": 0,
+                                                "id": 8,
+                                                "uuid": "e523bc44-8599-4a04-94c1-04ce0d1a692a"
+                                            },
+                                            {
+                                                "Address": {
+                                                    "Accessors": [
+                                                    ],
+                                                    "Unit": "none",
+                                                    "address": {
+                                                        "Device": "",
+                                                        "Path": ""
+                                                    }
+                                                },
+                                                "Custom": "Accent",
+                                                "Description": "",
+                                                "Exposed": "",
+                                                "FxNum": 6,
+                                                "Hidden": true,
+                                                "ObjectName": "Inlet",
+                                                "Type": 0,
+                                                "id": 9,
+                                                "uuid": "e523bc44-8599-4a04-94c1-04ce0d1a692a"
+                                            },
+                                            {
+                                                "Address": {
+                                                    "Accessors": [
+                                                    ],
+                                                    "Unit": "none",
+                                                    "address": {
+                                                        "Device": "",
+                                                        "Path": ""
+                                                    }
+                                                },
+                                                "Custom": "Volume",
+                                                "Description": "",
+                                                "Exposed": "",
+                                                "FxNum": 7,
+                                                "Hidden": true,
+                                                "ObjectName": "Inlet",
+                                                "Type": 0,
+                                                "id": 10,
+                                                "uuid": "e523bc44-8599-4a04-94c1-04ce0d1a692a"
+                                            },
+                                            {
+                                                "Address": {
+                                                    "Accessors": [
+                                                    ],
+                                                    "Unit": "none",
+                                                    "address": {
+                                                        "Device": "",
+                                                        "Path": ""
+                                                    }
+                                                },
+                                                "Custom": "Bypass",
+                                                "Description": "",
+                                                "Exposed": "",
+                                                "FxNum": 8,
+                                                "Hidden": true,
+                                                "ObjectName": "Inlet",
+                                                "Type": 0,
+                                                "id": 11,
                                                 "uuid": "e523bc44-8599-4a04-94c1-04ce0d1a692a"
                                             }
                                         ],
                                         "Metadata": {
                                             "Color": "Base1",
                                             "Comment": "",
-                                            "Label": "Podolski",
+                                            "Label": "Nekobi-vst",
                                             "ScriptingName": ""
                                         },
                                         "ObjectName": "VST",
@@ -2648,6 +2867,8 @@
                                                     }
                                                 },
                                                 "Custom": "",
+                                                "Description": "",
+                                                "Exposed": "",
                                                 "Hidden": false,
                                                 "ObjectName": "Outlet",
                                                 "Propagate": true,
@@ -2655,6 +2876,17 @@
                                                 "id": 0,
                                                 "uuid": "34e2c5a7-18c4-4759-b6cc-46feaeee06e2"
                                             }
+                                        ],
+                                        "Params": [
+                                            0.3640894591808319,
+                                            0.5964838266372681,
+                                            0.25,
+                                            0.2631579041481018,
+                                            0.5,
+                                            0.75,
+                                            0.25,
+                                            0.75,
+                                            0
                                         ],
                                         "id": 2,
                                         "uuid": "be8e6bd3-75f2-4102-8895-8a4eb4ea545a"
@@ -2670,7 +2902,7 @@
                                         ]
                                     },
                                     {
-                                        "Height": 163,
+                                        "Height": 152,
                                         "Process": 2,
                                         "Processes": [
                                             2
@@ -2785,7 +3017,7 @@
                                 "Date": 7683.777105906532,
                                 "Extent": [
                                     0.04478609625668449,
-                                    0.3346666666666668
+                                    0.3233333333333335
                                 ],
                                 "Metadata": {
                                     "Color": "Emphasis4",
@@ -2974,8 +3206,8 @@
                                 },
                                 "Date": 7850.115296708127,
                                 "Extent": [
-                                    0.1759055206671543,
-                                    0.1759055206671543
+                                    0.17390552066715428,
+                                    0.17390552066715428
                                 ],
                                 "Metadata": {
                                     "Color": "Emphasis4",
@@ -3000,10 +3232,10 @@
                                     "RootNode": {
                                     }
                                 },
-                                "Date": 9980.13064982327,
+                                "Date": 9837.46963319438,
                                 "Extent": [
-                                    0.1759055206671543,
-                                    0.1759055206671543
+                                    0.17390552066715428,
+                                    0.17390552066715428
                                 ],
                                 "Metadata": {
                                     "Color": "Emphasis4",
@@ -3086,8 +3318,8 @@
                                 },
                                 "Date": 9460.511264127737,
                                 "Extent": [
-                                    0.3346666666666668,
-                                    0.3346666666666668
+                                    0.3233333333333335,
+                                    0.3233333333333335
                                 ],
                                 "Metadata": {
                                     "Color": "Emphasis4",
@@ -3115,7 +3347,9 @@
                                     "Path": ""
                                 }
                             },
-                            "Custom": "",
+                            "Custom": "In",
+                            "Description": "",
+                            "Exposed": "",
                             "Hidden": false,
                             "ObjectName": "Inlet",
                             "Type": 1,
@@ -3139,7 +3373,9 @@
                                     "Path": ""
                                 }
                             },
-                            "Custom": "",
+                            "Custom": "Out",
+                            "Description": "",
+                            "Exposed": "",
                             "Hidden": false,
                             "ObjectName": "Outlet",
                             "Propagate": false,
@@ -3841,7 +4077,7 @@
                                 "Components": [
                                 ],
                                 "Event": 3,
-                                "HeightPercentage": 0.1759055206671543,
+                                "HeightPercentage": 0.17390552066715428,
                                 "Messages": {
                                     "Accessors": [
                                     ],
@@ -3876,7 +4112,7 @@
                                 "Components": [
                                 ],
                                 "Event": 9,
-                                "HeightPercentage": 0.1759055206671543,
+                                "HeightPercentage": 0.17390552066715428,
                                 "Messages": {
                                     "Accessors": [
                                     ],
@@ -3928,7 +4164,7 @@
                                 "Components": [
                                 ],
                                 "Event": 10,
-                                "HeightPercentage": 0.1759055206671543,
+                                "HeightPercentage": 0.17390552066715428,
                                 "Messages": {
                                     "Accessors": [
                                     ],
@@ -4085,7 +4321,7 @@
                                 "Components": [
                                 ],
                                 "Event": 3,
-                                "HeightPercentage": 0.3346666666666668,
+                                "HeightPercentage": 0.3233333333333335,
                                 "Messages": {
                                     "Accessors": [
                                     ],
@@ -4120,7 +4356,7 @@
                                 "Components": [
                                 ],
                                 "Event": 13,
-                                "HeightPercentage": 0.3346666666666668,
+                                "HeightPercentage": 0.3233333333333335,
                                 "Messages": {
                                     "Accessors": [
                                     ],
@@ -4301,7 +4537,7 @@
                                 ],
                                 "Extent": [
                                     0.04478609625668449,
-                                    0.3346666666666668
+                                    0.3233333333333335
                                 ],
                                 "Metadata": {
                                     "Color": "Gray",
@@ -4530,8 +4766,8 @@
                                     9
                                 ],
                                 "Extent": [
-                                    0.1759055206671543,
-                                    0.1759055206671543
+                                    0.17390552066715428,
+                                    0.17390552066715428
                                 ],
                                 "Metadata": {
                                     "Color": "Gray",
@@ -4571,13 +4807,13 @@
                             {
                                 "Components": [
                                 ],
-                                "Date": 9980.13064982327,
+                                "Date": 9837.46963319438,
                                 "Events": [
                                     10
                                 ],
                                 "Extent": [
-                                    0.1759055206671543,
-                                    0.1759055206671543
+                                    0.17390552066715428,
+                                    0.17390552066715428
                                 ],
                                 "Metadata": {
                                     "Color": "Gray",
@@ -4714,8 +4950,8 @@
                                     13
                                 ],
                                 "Extent": [
-                                    0.3346666666666668,
-                                    0.3346666666666668
+                                    0.3233333333333335,
+                                    0.3233333333333335
                                 ],
                                 "Metadata": {
                                     "Color": "Gray",
@@ -4763,7 +4999,7 @@
                 "SmallViewShown": false,
                 "StartDate": 0,
                 "StartState": 0,
-                "Zoom": 8.17572333792804,
+                "Zoom": 7.401538859607709,
                 "id": 0
             },
             "EndEvent": {
@@ -5009,77 +5245,6 @@
                                 "ObjectName": "Scenario"
                             },
                             {
-                                "ObjectId": 12,
-                                "ObjectName": "Scenario::IntervalModel"
-                            },
-                            {
-                                "ObjectId": 2,
-                                "ObjectName": "Faust"
-                            },
-                            {
-                                "ObjectId": 1,
-                                "ObjectName": "Inlet"
-                            }
-                        ]
-                    },
-                    "Source": {
-                        "Identifiers": [
-                            {
-                                "ObjectId": 1,
-                                "ObjectName": "Scenario::ScenarioDocumentModel"
-                            },
-                            {
-                                "ObjectId": 0,
-                                "ObjectName": "Scenario::BaseScenario"
-                            },
-                            {
-                                "ObjectId": 0,
-                                "ObjectName": "Scenario::ConstraintModel"
-                            },
-                            {
-                                "ObjectId": 1,
-                                "ObjectName": "Scenario"
-                            },
-                            {
-                                "ObjectId": 12,
-                                "ObjectName": "Scenario::IntervalModel"
-                            },
-                            {
-                                "ObjectId": 1,
-                                "ObjectName": "Sound"
-                            },
-                            {
-                                "ObjectId": 0,
-                                "ObjectName": "Outlet"
-                            }
-                        ]
-                    },
-                    "Type": 0
-                },
-                "ObjectName": "Process::Cable",
-                "id": 1
-            },
-            {
-                "Data": {
-                    "Sink": {
-                        "Identifiers": [
-                            {
-                                "ObjectId": 1,
-                                "ObjectName": "Scenario::ScenarioDocumentModel"
-                            },
-                            {
-                                "ObjectId": 0,
-                                "ObjectName": "Scenario::BaseScenario"
-                            },
-                            {
-                                "ObjectId": 0,
-                                "ObjectName": "Scenario::ConstraintModel"
-                            },
-                            {
-                                "ObjectId": 1,
-                                "ObjectName": "Scenario"
-                            },
-                            {
                                 "ObjectId": 13,
                                 "ObjectName": "Scenario::IntervalModel"
                             },
@@ -5129,6 +5294,77 @@
                 },
                 "ObjectName": "Process::Cable",
                 "id": 2
+            },
+            {
+                "Data": {
+                    "Sink": {
+                        "Identifiers": [
+                            {
+                                "ObjectId": 1,
+                                "ObjectName": "Scenario::ScenarioDocumentModel"
+                            },
+                            {
+                                "ObjectId": 0,
+                                "ObjectName": "Scenario::BaseScenario"
+                            },
+                            {
+                                "ObjectId": 0,
+                                "ObjectName": "Scenario::ConstraintModel"
+                            },
+                            {
+                                "ObjectId": 1,
+                                "ObjectName": "Scenario"
+                            },
+                            {
+                                "ObjectId": 12,
+                                "ObjectName": "Scenario::IntervalModel"
+                            },
+                            {
+                                "ObjectId": 2,
+                                "ObjectName": "Faust"
+                            },
+                            {
+                                "ObjectId": 1,
+                                "ObjectName": "Inlet"
+                            }
+                        ]
+                    },
+                    "Source": {
+                        "Identifiers": [
+                            {
+                                "ObjectId": 1,
+                                "ObjectName": "Scenario::ScenarioDocumentModel"
+                            },
+                            {
+                                "ObjectId": 0,
+                                "ObjectName": "Scenario::BaseScenario"
+                            },
+                            {
+                                "ObjectId": 0,
+                                "ObjectName": "Scenario::ConstraintModel"
+                            },
+                            {
+                                "ObjectId": 1,
+                                "ObjectName": "Scenario"
+                            },
+                            {
+                                "ObjectId": 12,
+                                "ObjectName": "Scenario::IntervalModel"
+                            },
+                            {
+                                "ObjectId": 1,
+                                "ObjectName": "Sound"
+                            },
+                            {
+                                "ObjectId": 0,
+                                "ObjectName": "Outlet"
+                            }
+                        ]
+                    },
+                    "Type": 0
+                },
+                "ObjectName": "Process::Cable",
+                "id": 1
             }
         ],
         "ObjectName": "Scenario::ScenarioDocumentModel",

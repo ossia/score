@@ -153,6 +153,7 @@ void QGraphicsSlider::paint(
   static const constexpr auto dpi_adjust = -2;
 #endif
   painter->setPen(grayPen);
+  painter->setFont(skin.SansFontSmall);
   painter->drawText(
       srect.adjusted(6, dpi_adjust, -6, 0),
       QString::number(min + value() * (max - min), 'f', 3),
