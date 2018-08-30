@@ -935,12 +935,14 @@ void OwningDeviceInterface::replaceDevice(ossia::net::device_base* d)
 {
   disconnect();
   m_dev.reset(d);
+  deviceChanged(nullptr, d);
   m_owned = false;
 }
 
 void OwningDeviceInterface::releaseDevice()
 {
   DeviceInterface::disconnect();
+  deviceChanged(m_dev.get(), nullptr);
   m_dev.release();
 }
 
@@ -949,6 +951,7 @@ void OwningDeviceInterface::disconnect()
   if (m_owned)
   {
     DeviceInterface::disconnect();
+    deviceChanged(m_dev.get(), nullptr);
     m_dev.reset();
   }
 }

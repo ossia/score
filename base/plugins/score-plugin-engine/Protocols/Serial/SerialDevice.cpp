@@ -42,6 +42,8 @@ bool SerialDevice::reconnect()
     m_dev = std::make_unique<ossia::net::serial_device>(
         std::make_unique<ossia::net::serial_protocol>(stgs.text.toUtf8(), stgs.port), settings().name.toStdString());
 
+    deviceChanged(nullptr, m_dev.get());
+
     enableCallbacks();
 
     setLogging_impl(Device::get_cur_logging(isLogging()));

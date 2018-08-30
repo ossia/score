@@ -45,6 +45,8 @@ bool WSDevice::reconnect()
     enableCallbacks();
 
     setLogging_impl(Device::get_cur_logging(isLogging()));
+
+    deviceChanged(nullptr, m_dev.get());
   }
   catch (std::exception& e)
   {
