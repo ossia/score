@@ -21,6 +21,7 @@ public:
 
   QFont SansFont;
   QFont MonoFont;
+  QFont SansFontSmall;
 
   QBrush Dark;
   QBrush HalfDark;

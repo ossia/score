@@ -40,7 +40,7 @@
 W_OBJECT_IMPL(JSEdit)
 const std::array<QColor, 16> colors{
     QColor{"#151515"}, QColor{"#202020"}, QColor{"#303030"},
-    QColor{"#505050"}, QColor{"#b0b0b0"}, QColor{"#d0d0d0"},
+    QColor{"#F4F4F0"}, QColor{"#b0b0b0"}, QColor{"#d0d0d0"},
     QColor{"#e0e0e0"}, QColor{"#f5f5f5"}, QColor{"#ac4142"},
     QColor{"#d28445"}, QColor{"#f4bf75"}, QColor{"#90a959"},
     QColor{"#75b5aa"}, QColor{"#6a9fb5"}, QColor{"#aa759f"},
