@@ -203,13 +203,13 @@ class ExpressionParsingTests : public QObject
 {
   Q_OBJECT
 public:
-private:
+private Q_SLOTS:
 
   void test_parse_impulse()
   {
 
     {
-      std::string str("minuit:/device/lol impulse");
+      std::string str("%minuit:/device/lol% impulse");
 
       typedef std::string::const_iterator iterator_type;
       Pulse_parser<iterator_type> parser;
@@ -221,7 +221,7 @@ private:
     }
 
     {
-      std::string str("{ minuit:/device/lol impulse }");
+      std::string str("{ %minuit:/device/lol% impulse }");
 
       typedef std::string::const_iterator iterator_type;
       Pulse_parser<iterator_type> parser;
@@ -233,7 +233,7 @@ private:
     }
 
     {
-      QString str("minuit:/device/lol impulse");
+      QString str("%minuit:/device/lol% impulse");
 
       auto expr = State::parseExpression(str);
 
@@ -241,7 +241,7 @@ private:
     }
 
     {
-      QString str("{ minuit:/device/lol impulse }");
+      QString str("{ %minuit:/device/lol% impulse }");
 
       auto expr = State::parseExpression(str);
 
@@ -268,7 +268,7 @@ private:
     }
 
     {
-      std::string str("minuit:/device/lol@[7]");
+      std::string str("%minuit:/device/lol@[7]%");
 
       typedef std::string::const_iterator iterator_type;
       RelationMember_parser<iterator_type> parser;
@@ -285,7 +285,7 @@ private:
     }
 
     {
-      QString str("{ minuit:/device/lol@[1][2] < 3.14 }");
+      QString str("{ %minuit:/device/lol@[1][2]% < 3.14 }");
 
       auto expr = State::parseExpression(str);
 
@@ -329,7 +329,7 @@ private:
     }
 
     {
-      QString str("{minuit:/device/lol@[color.rgb] < 3.14}");
+      QString str("{ %minuit:/device/lol@[color.rgb]% < 3.14}");
 
       auto expr = State::parseExpression(str);
 
@@ -360,7 +360,7 @@ private:
     }
 
     {
-      std::string str("minuit:/device/lol");
+      std::string str("%minuit:/device/lol%");
 
       typedef std::string::const_iterator iterator_type;
       RelationMember_parser<iterator_type> parser;
@@ -418,8 +418,8 @@ private:
 
   void test_parse_rel()
   {
-    std::vector<std::string> str_list{"minuit:/device<=1234",
-                                      "minuit:/device <= 1234"};
+    std::vector<std::string> str_list{"%minuit:/device%<=1234",
+                                      "%minuit:/device% <= 1234"};
 
     for (const auto& str : str_list)
     {
@@ -440,13 +440,13 @@ private:
   void test_parse_expr_full()
   {
     for (auto& input :
-         std::list<std::string>{"dev:/minuit != [1, 2, 3.12, 'c'];",
-                                "{ dev:/minuit != [1, 2, 3.12, 'c'] };",
-                                "a:/b >= c:/d/e/f;", "{ a:/b >= c:/d/e/f };",
-                                "{ dev:/minuit != [1, 2, 3.12, 'c']} and not "
-                                "{ a:/b >= c:/d/e/f };",
-                                "{ { dev:/minuit != [1, 2, 3.12, 'c'] } and "
-                                "not { a:/b >= c:/d/e/f } };"})
+         std::list<std::string>{"%dev:/minuit% != [1, 2, 3.12, 'c'];",
+                                "{ %dev:/minuit% != [1, 2, 3.12, 'c'] };",
+                                "%a:/b% >= %c:/d/e/f%;", "{ %a:/b% >= %c:/d/e/f% };",
+                                "{ %dev:/minuit% != [1, 2, 3.12, 'c']} and not "
+                                "{ %a:/b% >= %c:/d/e/f% };",
+                                "{ { %dev:/minuit% != [1, 2, 3.12, 'c'] } and "
+                                "not { %a:/b% >= %c:/d/e/f% } };"})
     {
       auto f(std::begin(input)), l(std::end(input));
       Expression_parser<decltype(f)> p;
@@ -505,20 +505,20 @@ private:
     using namespace std::literals;
     QVERIFY(bool(
         State::parseAddressAccessor("myapp:/score/color.1@[color.rgb.r]")));
-    QVERIFY(bool(State::parseExpression("{ myapp:/score > 2}"s)));
-    QVERIFY(bool(State::parseExpression("{2 > myapp:/stagescore }"s)));
+    QVERIFY(bool(State::parseExpression("{ %myapp:/score% > 2}"s)));
+    QVERIFY(bool(State::parseExpression("{2 > %myapp:/stagescore% }"s)));
     QVERIFY(
-        bool(State::parseExpression("{ myapp:/score > myapp:/stagescore }"s)));
+        bool(State::parseExpression("{ %myapp:/score% > %myapp:/stagescore% }"s)));
     QVERIFY(bool(
-        State::parseExpression("{ myapp:/score >= myapp:/stagescore }"s)));
+        State::parseExpression("{ %myapp:/score% >= %myapp:/stagescore% }"s)));
     QVERIFY(bool(
-        State::parseExpression("{ my_app:/score > my_app:/stagescore }"s)));
+        State::parseExpression("{ %my_app:/score% > %my_app:/stagescore% }"s)));
     QVERIFY(bool(
-        State::parseExpression("{ my_app:/score > my_app:/stage_score }"s)));
+        State::parseExpression("{ %my_app:/score% > %my_app:/stage_score% }"s)));
     QVERIFY(bool(
-        State::parseExpression("{ my_app:/score > my_app:/stage_score }"s)));
+        State::parseExpression("{ %my_app:/score% > %my_app:/stage_score% }"s)));
     QVERIFY(bool(
-        State::parseExpression("{ { A:/B > c:/D } and { e:/f > g:/h } }"s)));
+        State::parseExpression("{ { %A:/B% > %c:/D% } and { %e:/f% > %g:/h% } }"s)));
   }
 
   void test_parse_patternmatch()

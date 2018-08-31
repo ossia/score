@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0)
 project(StateTests)
-
+set(CMAKE_AUTOMOC ON)
 enable_testing()
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Test)
 
@@ -13,12 +13,14 @@ endFunction()
 
 
 # Commands
-addStateTest(SerializationTest
-             "${CMAKE_CURRENT_SOURCE_DIR}/SerializationTest.cpp")
-
-addStateTest(EqualityTest
-             "${CMAKE_CURRENT_SOURCE_DIR}/EqualityTest.cpp")
 addStateTest(ExpressionTest
              "${CMAKE_CURRENT_SOURCE_DIR}/ExpressionParsingTests.cpp")
-addStateTest(UnitTest
-             "${CMAKE_CURRENT_SOURCE_DIR}/UnitTests.cpp")
+
+# addStateTest(SerializationTest
+#              "${CMAKE_CURRENT_SOURCE_DIR}/SerializationTest.cpp")
+# addStateTest(EqualityTest
+#              "${CMAKE_CURRENT_SOURCE_DIR}/EqualityTest.cpp")
+# addStateTest(UnitTest
+#              "${CMAKE_CURRENT_SOURCE_DIR}/UnitTests.cpp")
+
+set(CMAKE_AUTOMOC OFF)
