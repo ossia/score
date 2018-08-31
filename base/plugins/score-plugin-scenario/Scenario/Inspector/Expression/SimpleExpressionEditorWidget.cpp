@@ -322,8 +322,8 @@ QString SimpleExpressionEditorWidget::currentRelation()
     case ExpressionEditorComparator::Greater:
     case ExpressionEditorComparator::Lower:
     {
-      QString expr = m_address->addressString();
-      expr += " ";
+      QString expr = "%" + m_address->addressString();
+      expr += "% ";
       expr += m_comparator->currentText();
       expr += " ";
       expr += m_value->text();
@@ -340,7 +340,7 @@ QString SimpleExpressionEditorWidget::currentRelation()
 
     case ExpressionEditorComparator::Pulse:
     {
-      QString expr = m_address->addressString() + " impulse";
+      QString expr = "%" + m_address->addressString() + "% impulse";
       return expr;
     }
     case ExpressionEditorComparator::AlwaysTrue:

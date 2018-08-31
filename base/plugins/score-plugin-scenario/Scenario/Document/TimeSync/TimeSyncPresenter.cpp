@@ -102,7 +102,7 @@ void TimeSyncPresenter::handleDrop(const QPointF& pos, const QMimeData& mime)
 
     if (ml.size() > 0)
     {
-      QString expr = "{ " + ml[0].address.toString() + " impulse }";
+      QString expr = "{" + toString(State::Pulse{ml[0].address.address}) + "}";
       auto trig = State::parseExpression(expr);
 
       if (trig)

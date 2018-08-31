@@ -3,9 +3,8 @@
 #include <QMetaType>
 #include <QObject>
 #include <QtTest/QtTest>
+#include <score/tools/Todo.hpp>
 #include <State/Message.hpp>
-
-using namespace score;
 class EqualityTest : public QObject
 {
   Q_OBJECT
@@ -15,7 +14,6 @@ private:
   void equalityTest()
   {
     using namespace State;
-    using namespace score;
     qRegisterMetaTypeStreamOperators<State::Address>();
 
     QMetaType::registerComparators<State::Message>();
