@@ -56,7 +56,6 @@ private:
 
   QVBoxLayout* m_mainLayout{};
 
-  ExpressionValidator<State::Expression> m_validator;
   QMenu* m_menu{};
 
   QString m_expression{};

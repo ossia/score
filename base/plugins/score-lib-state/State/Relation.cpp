@@ -11,7 +11,7 @@ namespace State
 
 QString toString(const Pulse& pulse)
 {
-  return pulse.address.toString() + " impulse";
+  return "%" + pulse.address.toString() + "% impulse";
 }
 
 } // namespace score
