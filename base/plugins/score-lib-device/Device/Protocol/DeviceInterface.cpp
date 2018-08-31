@@ -533,6 +533,11 @@ void DeviceInterface::renameListening_impl(
   // Put things back after renaming
   for (auto&& p : std::move(saved_elts))
   {
+    p.second.first->replace_callback(
+          p.second.second,
+          [this, addr = p.first] (const ossia::value& val) {
+      valueUpdated(addr, val);
+    });
     m_callbacks.insert(std::move(p));
   }
 }
