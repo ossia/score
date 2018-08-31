@@ -219,7 +219,7 @@ void NodeUpdateProxy::updateLocalSettings(
           = Device::try_getNodeFromAddress(devModel.rootNode(), parentAddr);
       if (parent)
       {
-        const auto& last = addr.path[addr.path.size() - 1];
+        const auto& last = addr.path.back();
         auto it = ossia::find_if(
             *parent, [&](const auto& n) { return n.displayName() == last; });
         if (it == parent->cend())
