@@ -24,7 +24,7 @@ QString State::toString(const State::RelationMember& m)
     using return_type = QString;
     return_type operator()(const State::Address& addr) const
     {
-      return addr.toString();
+      return "%" + addr.toString() + "%";
     }
 
     return_type operator()(const ossia::value& val) const
@@ -39,7 +39,7 @@ QString State::toString(const State::RelationMember& m)
       {
         addr += QString("[%1]").arg(val);
       }
-      return addr;
+      return "%" + addr + "%";
     }
   } visitor{};
 

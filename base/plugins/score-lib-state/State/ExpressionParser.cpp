@@ -269,7 +269,7 @@ struct RelationMember_parser : qi::grammar<Iterator, State::RelationMember()>
 {
   RelationMember_parser() : RelationMember_parser::base_type(start)
   {
-    start %= addracc | addr | val;
+    start %= ("%" >> addracc >> "%") | ("%" >> addr >> "%") | val;
   }
 
   Address_parser<Iterator> addr;
