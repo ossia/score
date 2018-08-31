@@ -317,9 +317,9 @@ struct Pulse_parser : qi::grammar<Iterator, State::Pulse()>
     using boost::spirit::qi::lit;
     using boost::spirit::qi::skip;
     using boost::spirit::standard::string;
-    start %= skip(boost::spirit::standard::space)[addr >> "impulse"]
+    start %= skip(boost::spirit::standard::space)["%" >> addr >> "%" >> "impulse"]
              | skip(boost::spirit::standard::space)
-                   ['{' >> addr >> "impulse" >> '}'];
+                   [lit('{') >> lit("%") >> addr >> lit("%") >> lit("impulse") >> '}'];
   }
 
   Address_parser<Iterator> addr;
