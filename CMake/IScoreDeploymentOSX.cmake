@@ -95,15 +95,14 @@ endif()
 
 if(SCORE_STATIC_PLUGINS)
     install(CODE "
-        file(GLOB_RECURSE QTPLUGINS
-            \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/*.dylib\")
-        file(GLOB_RECURSE QMLPLUGINS
-            \"\${CMAKE_INSTALL_PREFIX}/${qml_plugin_dest_dir}/*.dylib\")
+        file(GLOB_RECURSE QTPLUGINS \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/*.dylib\")
+        file(GLOB_RECURSE QMLPLUGINS \"\${CMAKE_INSTALL_PREFIX}/${qml_dest_dir}/*.dylib\")
+
         set(BU_CHMOD_BUNDLE_ITEMS ON)
         include(BundleUtilities)
         fixup_bundle(
           \"\${CMAKE_INSTALL_PREFIX}/${APPNAME}.app\"
-          \"\${QTPLUGINS};${QMLPLUGINS}\"
+          \"\${QTPLUGINS};\${QMLPLUGINS}\"
           \"${QT_LIBRARY_DIR}\")
 
       execute_process(COMMAND
@@ -121,12 +120,12 @@ else()
         file(GLOB_RECURSE QTPLUGINS
             \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/*.dylib\")
         file(GLOB_RECURSE QMLPLUGINS
-            \"\${CMAKE_INSTALL_PREFIX}/${qml_plugin_dest_dir}/*.dylib\")
+            \"\${CMAKE_INSTALL_PREFIX}/${qml_dest_dir}/*.dylib\")
         set(BU_CHMOD_BUNDLE_ITEMS ON)
         include(BundleUtilities)
         fixup_bundle(
            \"${CMAKE_INSTALL_PREFIX}/score.app\"
-           \"\${QTPLUGINS};${QMLPLUGINS};${SCORE_BUNDLE_INSTALLED_PLUGINS}\"
+           \"\${QTPLUGINS};\${QMLPLUGINS};${SCORE_BUNDLE_INSTALLED_PLUGINS}\"
        \"${QT_LIBRARY_DIR};${CMAKE_BINARY_DIR}/plugins;${CMAKE_INSTALL_PREFIX}/plugins;${CMAKE_BINARY_DIR}/API/OSSIA;${CMAKE_BINARY_DIR}/base/lib;${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins/\"
         )
 message(\"${SCORE_ROOT_SOURCE_DIR}/CMake/Deployment/OSX/set_rpath.sh\"
