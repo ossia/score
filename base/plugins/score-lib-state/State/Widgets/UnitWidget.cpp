@@ -215,9 +215,9 @@ public:
         if constexpr(unit_type::is_multidimensional::value)
         {
           u.accessors.emplace_back(ossia::destination_qualifiers{ossia::destination_index{}, unit_type{}});
-          for(int32_t i = 0; i < unit_type::array_parameters().size(); i++)
+          for(std::size_t i = 0; i < unit_type::array_parameters().size(); i++)
           {
-            u.accessors.emplace_back(ossia::destination_qualifiers{ossia::destination_index{i}, unit_type{}});
+            u.accessors.emplace_back(ossia::destination_qualifiers{ossia::destination_index{(int32_t)i}, unit_type{}});
           }
         }
         d.units.push_back(std::move(u));

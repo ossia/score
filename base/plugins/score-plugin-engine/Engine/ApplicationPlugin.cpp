@@ -51,6 +51,7 @@
 #include <Scenario/Execution/score2OSSIA.hpp>
 #include <vector>
 #include <Scenario/Inspector/Interval/SpeedSlider.hpp>
+#include <Audio/AudioInterface.hpp>
 
 #include <QLabel>
 #include <wobjectimpl.h>
@@ -144,82 +145,6 @@ bool ApplicationPlugin::handleStartup()
   return false;
 }
 
-struct AlteredAudioSettings
-{
-    ossia::optional<QString> driver;
-    ossia::optional<QString> card_in;
-    ossia::optional<QString> card_out;
-    ossia::optional<int> default_ins{};
-    ossia::optional<int> default_outs{};
-    ossia::optional<int> rate{};
-    ossia::optional<int> buffer_size{};
-};
-static std::unique_ptr<ossia::audio_engine> make_engine(AlteredAudioSettings& alt_set)
-{
-  auto& set = score::AppContext().settings<Audio::Settings::Model>();
-  auto driver = set.getDriver();
-  auto req_in = set.getCardIn();
-  auto req_out = set.getCardOut();
-  auto ins = set.getDefaultIn();
-  auto old_ins = ins;
-  auto outs = set.getDefaultOut();
-  auto old_outs = outs;
-  auto rate = set.getRate();
-  auto old_rate = rate;
-  auto bs = set.getBufferSize();
-  auto old_bs = bs;
-
-  ossia::audio_engine* eng{};
-
-  try
-  {
-    eng = ossia::make_audio_engine(
-             driver.toStdString(), "score",
-             req_in.toStdString(), req_out.toStdString(),
-             ins, outs, rate, bs);
-  }
-  catch(...)
-  {
-    try {
-      eng = ossia::make_audio_engine(
-               "PortAudio", "score",
-               req_in.toStdString(), req_out.toStdString(),
-               ins, outs, rate, bs);
-      alt_set.driver = QString{"PortAudio"};
-    }
-    catch(...)
-    {
-      try
-      {
-        eng = ossia::make_audio_engine(
-                 "SDL", "score",
-                 req_in.toStdString(), req_out.toStdString(),
-                 ins, outs, rate, bs);
-        alt_set.driver = QString{"SDL"};
-      }
-      catch(...)
-      {
-        eng = ossia::make_audio_engine(
-                 "Dummy", "score",
-                 req_in.toStdString(), req_out.toStdString(),
-                 ins, outs, rate, bs);
-        alt_set.driver = QString{"Dummy"};
-      }
-    }
-  }
-
-  if (ins != old_ins)
-    alt_set.default_ins = ins;
-  if (outs != old_outs)
-    alt_set.default_outs = outs;
-  if (bs != old_bs)
-    alt_set.buffer_size = bs;
-  if (rate != old_rate)
-    alt_set.rate = rate;
-
-  return std::unique_ptr<ossia::audio_engine>{eng};
-}
-
 void ApplicationPlugin::restart_engine()
 {
   if(m_updating_audio)
@@ -244,31 +169,16 @@ void ApplicationPlugin::restart_engine()
 
 void ApplicationPlugin::setup_engine()
 {
+  auto& ctx = score::AppContext();
+  auto& set = ctx.settings<Audio::Settings::Model>();
+  auto& engines = score::GUIAppContext().interfaces<Audio::AudioFactoryList>();
+
   audio.reset();
-  AlteredAudioSettings alt;
-  audio = make_engine(alt);
+  if(auto dev = engines.get(set.getDriver()))
   {
-    auto& set = score::AppContext().settings<Audio::Settings::Model>();
-
-    m_updating_audio = true;
-
-    if(alt.driver)
-      set.setDriver(*alt.driver);
-    if(alt.card_in)
-      set.setCardIn(*alt.card_in);
-    if(alt.card_out)
-      set.setCardOut(*alt.card_out);
-    if(alt.buffer_size)
-      set.setBufferSize(*alt.buffer_size);
-    if(alt.rate)
-      set.setRate(*alt.rate);
-    if(alt.default_ins)
-      set.setDefaultIn(*alt.default_ins);
-    if(alt.default_outs)
-      set.setDefaultOut(*alt.default_outs);
-
-    m_updating_audio = false;
+    audio = dev->make_engine(set, ctx);
   }
+
   if(m_audioEngineAct)
     m_audioEngineAct->setChecked(bool(audio));
 }
@@ -277,16 +187,11 @@ void ApplicationPlugin::initialize()
 {
   auto& set = context.settings<Audio::Settings::Model>();
 
-  con(set, &Audio::Settings::Model::DriverChanged, this, &ApplicationPlugin::restart_engine);
-  con(set, &Audio::Settings::Model::BufferSizeChanged, this, &ApplicationPlugin::restart_engine);
-  con(set, &Audio::Settings::Model::RateChanged, this, &ApplicationPlugin::restart_engine);
-  con(set, &Audio::Settings::Model::CardInChanged, this, &ApplicationPlugin::restart_engine);
-  con(set, &Audio::Settings::Model::CardOutChanged, this, &ApplicationPlugin::restart_engine);
-  con(set, &Audio::Settings::Model::DefaultInChanged, this, &ApplicationPlugin::restart_engine);
-  con(set, &Audio::Settings::Model::DefaultOutChanged, this, &ApplicationPlugin::restart_engine);
+  con(set, &Audio::Settings::Model::changed,
+      this, &ApplicationPlugin::restart_engine, Qt::QueuedConnection);
 
   try {
-  setup_engine();
+    setup_engine();
   } catch(...) {
 
   }

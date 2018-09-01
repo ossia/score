@@ -57,6 +57,22 @@ using GlobalSettingsPresenter
 using GlobalSettingsView = SettingsDelegateView<SettingsDelegateModel>;
 }
 
+
+#define DEFERRED_SETTINGS_PRESENTER(Control)                                     \
+  do                                                                             \
+  {                                                                              \
+    con(v, &View::Control##Changed, this, [&](auto val) {                        \
+      if (val != m.get##Control())                                               \
+      {                                                                          \
+        m_disp.submitDeferredCommand<SetModel##Control>(this->model(this), val); \
+      }                                                                          \
+    });                                                                          \
+                                                                                 \
+    con(m, &Model::Control##Changed, &v, &View::set##Control);                   \
+    v.set##Control(m.get##Control());                                            \
+  } while (0)
+
+
 #define SETTINGS_PRESENTER(Control)                                      \
   do                                                                     \
   {                                                                      \

@@ -26,6 +26,10 @@
 #include <score/plugins/customfactory/FactoryFamily.hpp>
 #include <score/plugins/customfactory/FactorySetup.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <Audio/DummyInterface.hpp>
+#include <Audio/JackInterface.hpp>
+#include <Audio/SDLInterface.hpp>
+#include <Audio/PortAudioInterface.hpp>
 #if defined(OSSIA_PROTOCOL_MINUIT)
 #  include <Protocols/Minuit/MinuitProtocolFactory.hpp>
 #endif
@@ -70,6 +74,9 @@ score_plugin_engine::score_plugin_engine()
       "ClockKey");
   qRegisterMetaTypeStreamOperators<
       Execution::ClockFactory::ConcreteKey>("ClockKey");
+
+  qRegisterMetaType<Audio::AudioFactory::ConcreteKey>("AudioKey");
+  qRegisterMetaTypeStreamOperators<Audio::AudioFactory::ConcreteKey>("AudioKey");
 }
 
 score_plugin_engine::~score_plugin_engine()
@@ -88,7 +95,7 @@ score_plugin_engine::factoryFamilies()
   return make_ptr_vector<
       score::InterfaceListBase, LocalTree::ProcessComponentFactoryList,
       Execution::ProcessComponentFactoryList,
-      Execution::ClockFactoryList>();
+      Execution::ClockFactoryList, Audio::AudioFactoryList>();
 }
 
 std::vector<std::unique_ptr<score::InterfaceBase>>
@@ -143,6 +150,19 @@ score_plugin_engine::factories(
         Network::JoystickProtocolFactory
 #endif
          >,
+
+      FW<Audio::AudioFactory,
+          Audio::DummyFactory
+          #if defined(OSSIA_AUDIO_JACK)
+          , Audio::JackFactory
+          #endif
+          #if defined(OSSIA_AUDIO_PORTAUDIO)
+          , Audio::PortAudioFactory
+          #endif
+          #if defined(OSSIA_AUDIO_SDL)
+          , Audio::SDLFactory
+          #endif
+      >,
 
       FW<Explorer::ListeningHandlerFactory,
          Execution::PlayListeningHandlerFactory>,
