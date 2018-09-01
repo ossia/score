@@ -30,7 +30,7 @@ Skin::~Skin()
 Skin::Skin() noexcept
     : SansFont{"Ubuntu"}
     , MonoFont{"APCCourier-Bold", 10, QFont::Black}
-    , SansFontSmall{"Ubuntu", 8}
+    , SansFontSmall{"Ubuntu", 7}
     , TransparentPen{Qt::transparent}
     , TransparentBrush{Qt::transparent}
     , NoPen{Qt::NoPen}

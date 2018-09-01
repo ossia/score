@@ -132,38 +132,11 @@ QRectF QGraphicsSlider::boundingRect() const
 void QGraphicsSlider::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  const auto& skin = score::Skin::instance();
-  painter->setRenderHint(QPainter::Antialiasing, true);
-
-  static const QPen darkPen{skin.HalfDark.color()};
-  static const QPen grayPen{skin.Gray.color()};
-  painter->setPen(darkPen);
-  painter->setBrush(skin.Dark);
-
-  // Draw rect
-  const auto srect = sliderRect();
-  painter->drawRoundedRect(srect, 1, 1);
-
-  // Draw text
-#if defined(__linux__)
-  static const auto dpi_adjust = widget->devicePixelRatioF() > 1 ? 0 : -2;
-#elif defined(_MSC_VER)
-  static const constexpr auto dpi_adjust = -4;
-#else
-  static const constexpr auto dpi_adjust = -2;
-#endif
-  painter->setPen(grayPen);
-  painter->setFont(skin.SansFontSmall);
-  painter->drawText(
-      srect.adjusted(6, dpi_adjust, -6, 0),
-      QString::number(min + value() * (max - min), 'f', 3),
-      getHandleX() > srect.width() / 2 ? QTextOption()
-                                       : QTextOption(Qt::AlignRight));
-
-  // Draw handle
-  painter->setBrush(skin.HalfLight);
-  painter->setRenderHint(QPainter::Antialiasing, false);
-  painter->drawRect(handleRect());
+  DefaultGraphicsSliderImpl::paint(
+        *this,
+        score::Skin::instance(),
+        QString::number(min + value() * (max - min), 'f', 3),
+        painter, widget);
 }
 
 bool QGraphicsSlider::isInHandle(QPointF p)
@@ -237,30 +210,11 @@ QRectF QGraphicsLogSlider::boundingRect() const
 void QGraphicsLogSlider::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  const auto& skin = score::Skin::instance();
-  painter->setRenderHint(QPainter::Antialiasing, true);
-
-  static const QPen darkPen{skin.HalfDark.color()};
-  static const QPen grayPen{skin.Gray.color()};
-  painter->setPen(darkPen);
-  painter->setBrush(skin.Dark);
-
-  // Draw rect
-  const auto srect = sliderRect();
-  painter->drawRoundedRect(srect, 1, 1);
-
-  // Draw text
-  painter->setPen(grayPen);
-  painter->drawText(
-      srect.adjusted(6, -2, -6, -1),
-      QString::number(std::exp2(min + value() * (max - min)), 'f', 3),
-      getHandleX() > srect.width() / 2 ? QTextOption()
-                                       : QTextOption(Qt::AlignRight));
-
-  // Draw handle
-  painter->setBrush(skin.HalfLight);
-  painter->setRenderHint(QPainter::Antialiasing, false);
-  painter->drawRect(handleRect());
+  DefaultGraphicsSliderImpl::paint(
+        *this,
+        score::Skin::instance(),
+        QString::number(std::exp2(min + value() * (max - min)), 'f', 3),
+        painter, widget);
 }
 
 bool QGraphicsLogSlider::isInHandle(QPointF p)
@@ -381,29 +335,11 @@ QRectF QGraphicsIntSlider::boundingRect() const
 void QGraphicsIntSlider::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  const auto& skin = score::Skin::instance();
-  painter->setRenderHint(QPainter::Antialiasing, true);
-
-  static const QPen darkPen{skin.HalfDark.color()};
-  static const QPen grayPen{skin.Gray.color()};
-  painter->setPen(darkPen);
-  painter->setBrush(skin.Dark);
-
-  // Draw rect
-  const auto srect = sliderRect();
-  painter->drawRoundedRect(srect, 1, 1);
-
-  // Draw text
-  painter->setPen(grayPen);
-  painter->drawText(
-      srect.adjusted(6, -2, -6, -1), QString::number(value()),
-      getHandleX() > srect.width() / 2 ? QTextOption()
-                                       : QTextOption(Qt::AlignRight));
-
-  // Draw handle
-  painter->setBrush(skin.HalfLight);
-  painter->setRenderHint(QPainter::Antialiasing, false);
-  painter->drawRect(handleRect());
+  DefaultGraphicsSliderImpl::paint(
+        *this,
+        score::Skin::instance(),
+        QString::number(value()),
+        painter, widget);
 }
 
 bool QGraphicsIntSlider::isInHandle(QPointF p)
@@ -519,29 +455,11 @@ QRectF QGraphicsComboSlider::boundingRect() const
 void QGraphicsComboSlider::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  const auto& skin = score::Skin::instance();
-  painter->setRenderHint(QPainter::Antialiasing, true);
-
-  static const QPen darkPen{skin.HalfDark.color()};
-  static const QPen grayPen{skin.Gray.color()};
-  painter->setPen(darkPen);
-  painter->setBrush(skin.Dark);
-
-  // Draw rect
-  const auto srect = sliderRect();
-  painter->drawRoundedRect(srect, 1, 1);
-
-  // Draw text
-  painter->setPen(grayPen);
-  painter->drawText(
-      srect.adjusted(6, -2, -6, -1), array[value()],
-      getHandleX() > srect.width() / 2 ? QTextOption()
-                                       : QTextOption(Qt::AlignRight));
-
-  // Draw handle
-  painter->setBrush(skin.HalfLight);
-  painter->setRenderHint(QPainter::Antialiasing, false);
-  painter->drawRect(handleRect());
+  DefaultGraphicsSliderImpl::paint(
+        *this,
+        score::Skin::instance(),
+        array[value()],
+        painter, widget);
 }
 
 bool QGraphicsComboSlider::isInHandle(QPointF p)

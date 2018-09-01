@@ -79,6 +79,42 @@ struct DefaultGraphicsSliderImpl
     }
   };
 
+  template<typename T, typename U>
+  static void paint(T& self, const U& skin, const QString& text, QPainter* painter, QWidget* widget)
+  {
+    painter->setRenderHint(QPainter::Antialiasing, true);
+
+    static const QPen darkPen{skin.HalfDark.color()};
+    static const QPen grayPen{skin.Gray.color()};
+    painter->setPen(darkPen);
+    painter->setBrush(skin.Dark);
+
+    // Draw rect
+    const auto srect = self.sliderRect();
+    painter->drawRoundedRect(srect, 1, 1);
+
+    // Draw text
+  #if defined(__linux__)
+    static const auto dpi_adjust = widget->devicePixelRatioF() > 1 ? 0 : -1;
+  #elif defined(_MSC_VER)
+    static const constexpr auto dpi_adjust = -4;
+  #else
+    static const constexpr auto dpi_adjust = -2;
+  #endif
+    painter->setPen(grayPen);
+    painter->setFont(skin.SansFontSmall);
+    painter->drawText(
+        srect.adjusted(6, dpi_adjust, -6, -1),
+        text,
+        self.getHandleX() > srect.width() / 2 ? QTextOption()
+                                         : QTextOption(Qt::AlignRight));
+
+    // Draw handle
+    painter->setBrush(skin.HalfLight);
+    painter->setRenderHint(QPainter::Antialiasing, false);
+    painter->drawRect(self.handleRect());
+  }
+
   template<typename T>
   static void mousePressEvent(T& self, QGraphicsSceneMouseEvent* event)
   {
