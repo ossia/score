@@ -2,173 +2,63 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Audio/Settings/Model.hpp>
 #include <Audio/Settings/View.hpp>
-#include <QFileDialog>
-#include <QFormLayout>
-#include <QListWidget>
-#include <QMenu>
-#include <QPushButton>
 #include <score/widgets/SignalUtils.hpp>
-#if __has_include(<portaudio.h>)
-#  include <portaudio.h>
-#endif
-#include <ossia/detail/pod_vector.hpp>
+#include <QSpinBox>
+#include <QComboBox>
+#include <QFormLayout>
 namespace Audio::Settings
 {
 View::View() : m_widg{new QWidget}
 {
-  auto lay = new QFormLayout;
+  auto lay = new QFormLayout{m_widg};
 
+  m_sw = new QStackedWidget;
   QStringList audio_drivers;
-#if __has_include(<portaudio.h>)
-  audio_drivers.append("PortAudio");
-#endif
-#if __has_include(<jack/jack.h>)
-  audio_drivers.append("JACK");
-#endif
-#if defined(__EMSCRIPTEN__) || __has_include(<SDL/SDL_audio.h>)
-  audio_drivers.append("SDL");
-#endif
-  audio_drivers.append("Dummy");
+  m_Driver = new QComboBox{m_widg};
+  lay->addRow(tr("Driver"), m_Driver);
+  connect(
+      m_Driver, SignalUtils::QComboBox_currentIndexChanged_int(), this,
+      [this] (int i) {
+    DriverChanged(m_Driver->itemData(i).value<AudioFactory::ConcreteKey>());
+    m_sw->setCurrentIndex(i);
+  });
 
-
-  SETTINGS_UI_COMBOBOX_SETUP(
-      "Driver", Driver, audio_drivers);
   SETTINGS_UI_NUM_COMBOBOX_SETUP(
       "Rate", Rate, (std::vector<int>{44100, 48000, 88200, 96000, 192000}));
   SETTINGS_UI_NUM_COMBOBOX_SETUP(
       "BufferSize", BufferSize, (std::vector<int>{32, 64, 128, 256, 512, 1024, 2048}));
-  SETTINGS_UI_SPINBOX_SETUP("Inputs", DefaultIn);
-  SETTINGS_UI_SPINBOX_SETUP("Outputs", DefaultOut);
 
-  QStringList raw_cards_in, cards_in;
-  ossia::int_vector indices_in;
 
-  QStringList raw_cards_out, cards_out;
-  ossia::int_vector indices_out;
-#if __has_include(<portaudio.h>)
-  Pa_Initialize();
+  lay->addWidget(m_sw);
+}
 
-  for (int i = 0; i < Pa_GetHostApiCount(); i++)
+void View::addDriver(QString txt, QVariant data, QWidget* widg)
+{
+  m_Driver->addItem(txt, data);
+  if(widg)
   {
-    auto dev = Pa_GetHostApiInfo(i);
-    QString dev_text;
-    switch (dev->type)
-    {
-      case PaHostApiTypeId::paInDevelopment:
-        continue;
-      case PaHostApiTypeId::paDirectSound:
-        dev_text = "DirectSound";
-        break;
-      case PaHostApiTypeId::paMME:
-        dev_text = "MME";
-        break;
-      case PaHostApiTypeId::paASIO:
-        dev_text = "ASIO";
-        break;
-      case PaHostApiTypeId::paSoundManager:
-        dev_text = "SoundManager";
-        break;
-      case PaHostApiTypeId::paCoreAudio:
-        dev_text = "CoreAudio";
-        break;
-      case PaHostApiTypeId::paOSS:
-        dev_text = "OSS";
-        break;
-      case PaHostApiTypeId::paALSA:
-        dev_text = "ALSA";
-        break;
-      case PaHostApiTypeId::paAL:
-        dev_text = "OpenAL";
-        break;
-      case PaHostApiTypeId::paBeOS:
-        dev_text = "BeOS";
-        break;
-      case PaHostApiTypeId::paWDMKS:
-        dev_text = "WDMKS";
-        break;
-      case PaHostApiTypeId::paJACK:
-        dev_text = "Jack";
-        break;
-      case PaHostApiTypeId::paWASAPI:
-        dev_text = "WASAPI";
-        break;
-      case PaHostApiTypeId::paAudioScienceHPI:
-        dev_text = "HPI";
-        break;
-    }
-
-    for (int card = 0; card < dev->deviceCount; card++)
-    {
-      auto dev_idx = Pa_HostApiDeviceIndexToDeviceIndex(i, card);
-      auto dev = Pa_GetDeviceInfo(dev_idx);
-      auto raw_name = QString::fromLocal8Bit(Pa_GetDeviceInfo(dev_idx)->name);
-      if (dev->maxInputChannels > 0)
-      {
-        cards_in.push_back("(" + dev_text + ") " + raw_name);
-        raw_cards_in.push_back(raw_name);
-        indices_in.push_back(dev_idx);
-      }
-      if (dev->maxOutputChannels > 0)
-      {
-        cards_out.push_back("(" + dev_text + ") " + raw_name);
-        raw_cards_out.push_back(raw_name);
-        indices_out.push_back(dev_idx);
-      }
-    }
+    m_sw->addWidget(widg);
   }
-
-  Pa_Terminate();
-#endif
-
-  m_CardIn = new QComboBox{m_widg};
-  for (int i = 0; i < cards_in.size(); i++)
-    m_CardIn->addItem(cards_in[i], indices_in[i]);
-  lay->addRow(tr("Device In\n(PortAudio)"), m_CardIn);
-  connect(
-      m_CardIn, SignalUtils::QComboBox_currentIndexChanged_int(), this,
-      [=](int i) { CardInChanged(raw_cards_in[i]); });
-  m_CardOut = new QComboBox{m_widg};
-  for (int i = 0; i < cards_out.size(); i++)
-    m_CardOut->addItem(cards_out[i], indices_out[i]);
-  lay->addRow(tr("Device Out\n(PortAudio)"), m_CardOut);
-  connect(
-      m_CardOut, SignalUtils::QComboBox_currentIndexChanged_int(), this,
-      [=](int i) { CardOutChanged(raw_cards_out[i]); });
-  m_widg->setLayout(lay);
+  else
+  {
+    m_sw->addWidget(new QWidget);
+  }
 }
 
 QWidget* View::getWidget()
 {
   return m_widg;
 }
-SETTINGS_UI_COMBOBOX_IMPL(Driver)
+
+void View::setDriver(AudioFactory::ConcreteKey k)
+{
+  int idx = m_Driver->findData(QVariant::fromValue(k));
+  if (idx != m_Driver->currentIndex())
+    m_Driver->setCurrentIndex(idx);
+}
+
+
 SETTINGS_UI_NUM_COMBOBOX_IMPL(Rate)
 SETTINGS_UI_NUM_COMBOBOX_IMPL(BufferSize)
-SETTINGS_UI_SPINBOX_IMPL(DefaultIn)
-SETTINGS_UI_SPINBOX_IMPL(DefaultOut)
 
-void View::setCardIn(QString val)
-{
-  int idx = m_CardIn->findData(QVariant::fromValue(val));
-  if (idx != -1 && idx != m_CardIn->currentIndex())
-    m_CardIn->setCurrentIndex(idx);
-  else
-  {
-    idx = m_CardIn->findText(val);
-    if (idx != -1 && idx != m_CardIn->currentIndex())
-      m_CardIn->setCurrentIndex(idx);
-  }
-}
-void View::setCardOut(QString val)
-{
-  int idx = m_CardOut->findData(QVariant::fromValue(val));
-  if (idx != -1 && idx != m_CardOut->currentIndex())
-    m_CardOut->setCurrentIndex(idx);
-  else
-  {
-    idx = m_CardOut->findText(val);
-    if (idx != -1 && idx != m_CardOut->currentIndex())
-      m_CardOut->setCurrentIndex(idx);
-  }
-}
 }

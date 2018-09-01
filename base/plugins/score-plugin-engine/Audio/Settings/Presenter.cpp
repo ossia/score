@@ -1,5 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <Audio/AudioInterface.hpp>
 #include <Audio/Settings/Model.hpp>
 #include <Audio/Settings/Presenter.hpp>
 #include <Audio/Settings/View.hpp>
@@ -17,13 +18,45 @@ namespace Audio::Settings
 Presenter::Presenter(Model& m, View& v, QObject* parent)
     : score::GlobalSettingsPresenter{m, v, parent}
 {
-  SETTINGS_PRESENTER(Driver);
-  SETTINGS_PRESENTER(CardIn);
-  SETTINGS_PRESENTER(CardOut);
-  SETTINGS_PRESENTER(BufferSize);
-  SETTINGS_PRESENTER(Rate);
-  SETTINGS_PRESENTER(DefaultIn);
-  SETTINGS_PRESENTER(DefaultOut);
+  auto& ctx = score::GUIAppContext().interfaces<AudioFactoryList>();
+  for(auto& drv : ctx)
+  {
+    v.addDriver(
+          drv.prettyName(),
+          QVariant::fromValue(drv.concreteKey()),
+          drv.make_settings(m, v, m_disp, nullptr));
+  }
+
+  v.setDriver(m.getDriver());
+  v.setRate(m.getRate());
+  v.setBufferSize(m.getBufferSize());
+
+  con(v, &View::DriverChanged, this, [&](auto val) {
+    if (val != m.getDriver())
+    {
+      m_disp.submitCommand<SetModelDriver>(this->model(this), val);
+    }
+  });
+
+  con(v, &View::BufferSizeChanged, this, [&](auto val) {
+    if (val != m.getBufferSize())
+    {
+      m_disp.submitDeferredCommand<SetModelBufferSize>(this->model(this), val);
+    }
+  });
+  con(v, &View::RateChanged, this, [&](auto val) {
+    if (val != m.getRate())
+    {
+      m_disp.submitDeferredCommand<SetModelRate>(this->model(this), val);
+    }
+  });
+
+  con(m, &Model::changed,
+      this, [&] {
+    v.setDriver(m.getDriver());
+    v.setRate(m.getRate());
+    v.setBufferSize(m.getBufferSize());
+  });
 }
 
 QString Presenter::settingsName()

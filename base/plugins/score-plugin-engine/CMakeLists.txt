@@ -16,6 +16,11 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/Settings/Presenter.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/Settings/View.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/Settings/Factory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioInterface.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Audio/JackInterface.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Audio/SDLInterface.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Audio/PortAudioInterface.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Audio/DummyInterface.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/ApplicationPlugin.hpp"
 
@@ -75,6 +80,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/Settings/Model.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/Settings/Presenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/Settings/View.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioInterface.cpp"
 
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/ApplicationPlugin.cpp"
