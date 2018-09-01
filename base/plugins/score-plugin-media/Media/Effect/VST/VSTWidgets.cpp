@@ -80,41 +80,13 @@ QRectF VSTGraphicsSlider::boundingRect() const
 void VSTGraphicsSlider::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  const auto& skin = score::Skin::instance();
-  painter->setRenderHint(QPainter::Antialiasing, true);
-
-  static const QPen darkPen{skin.HalfDark.color()};
-  static const QPen grayPen{skin.Gray.color()};
-  painter->setPen(darkPen);
-  painter->setBrush(skin.Dark);
-
-  // Draw rect
-  const auto srect = sliderRect();
-  painter->drawRoundedRect(srect, 1, 1);
-
-  // Draw text
-  painter->setPen(grayPen);
   char str[256]{};
   fx->dispatcher(fx, effGetParamDisplay, num, 0, str, m_value);
-
-#if defined(__linux__)
-  static const auto dpi_adjust = widget->devicePixelRatioF() > 1 ? 0 : -2;
-#elif defined(_MSC_VER)
-  static const constexpr auto dpi_adjust = -4;
-#else
-  static const constexpr auto dpi_adjust = -2;
-#endif
-
-  painter->setFont(skin.SansFontSmall);
-  painter->drawText(
-      srect.adjusted(6, dpi_adjust, -6, 0), QString::fromUtf8(str),
-      getHandleX() > srect.width() / 2 ? QTextOption()
-                                       : QTextOption(Qt::AlignRight));
-
-  // Draw handle
-  painter->setBrush(skin.HalfLight);
-  painter->setRenderHint(QPainter::Antialiasing, false);
-  painter->drawRect(handleRect());
+  score::DefaultGraphicsSliderImpl::paint(
+        *this,
+        score::Skin::instance(),
+        QString::fromUtf8(str),
+        painter, widget);
 }
 
 bool VSTGraphicsSlider::isInHandle(QPointF p)
