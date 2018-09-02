@@ -14,6 +14,7 @@ public:
   Presenter(Model&, View&, QObject* parent);
 
 private:
+  void on_accept() override;
   QString settingsName() override;
   QIcon settingsIcon() override;
 };

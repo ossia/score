@@ -59,6 +59,11 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   });
 }
 
+void Presenter::on_accept()
+{
+  m_disp.commit();
+  model(this).changed();
+}
 QString Presenter::settingsName()
 {
   return tr("Audio");

@@ -20,12 +20,12 @@ public:
   }
 
   virtual ~SettingsDelegatePresenter() = default;
-  void on_accept()
+  virtual void on_accept()
   {
     m_disp.commit();
   }
 
-  void on_reject()
+  virtual void on_reject()
   {
     m_disp.rollback();
   }

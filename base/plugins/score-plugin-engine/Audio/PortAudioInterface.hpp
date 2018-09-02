@@ -20,6 +20,8 @@ struct PortAudioCard
 {
   QString api;
   QString raw_name;
+  QString pretty_name;
+  PaDeviceIndex dev_idx{};
 
   int inputChan{};
   int outputChan{};
@@ -35,6 +37,7 @@ class PortAudioFactory final
   SCORE_CONCRETE("e7543875-3b22-457c-bf41-75504637686f")
 public:
   std::vector<PortAudioCard> devices;
+
   PortAudioFactory()
   {
     // Important note : for this to work, no audio engine must have been created
@@ -100,12 +103,20 @@ public:
           break;
       }
 
+      devices.push_back(PortAudioCard{{}, {}, QObject::tr("Disabled"), -1, 0, 0, {}});
       for (int card = 0; card < hostapi->deviceCount; card++)
       {
         auto dev_idx = Pa_HostApiDeviceIndexToDeviceIndex(i, card);
         auto dev = Pa_GetDeviceInfo(dev_idx);
         auto raw_name = QString::fromLocal8Bit(Pa_GetDeviceInfo(dev_idx)->name);
-        devices.push_back(PortAudioCard{api_text, raw_name, dev->maxInputChannels, dev->maxOutputChannels, hostapi->type});
+
+        devices.push_back(PortAudioCard{
+                            api_text,
+                            raw_name,
+                            "(" + api_text + ") " + raw_name,
+                            dev_idx,
+                            dev->maxInputChannels, dev->maxOutputChannels,
+                            hostapi->type});
       }
     }
 
@@ -153,17 +164,24 @@ public:
     auto card_in = new QComboBox{w};
     auto card_out = new QComboBox{w};
 
-    for(std::size_t i = 0; i < devices.size(); i++)
+    // Disabled case
+    card_in->addItem(devices.front().pretty_name, 0);
+    card_out->addItem(devices.front().pretty_name, 0);
+    devices.front().in_index = 0;
+    devices.front().out_index = 0;
+
+    // Normal devices
+    for(std::size_t i = 1; i < devices.size(); i++)
     {
       auto& card = devices[i];
       if (card.inputChan > 0)
       {
-        card_in->addItem("(" + card.api + ") " + card.raw_name, (int)i);
+        card_in->addItem(card.pretty_name, (int)i);
         card.in_index = card_in->count() - 1;
       }
       if (card.outputChan > 0)
       {
-        card_out->addItem("(" + card.api + ") " + card.raw_name, (int)i);
+        card_out->addItem(card.pretty_name, (int)i);
         card.out_index = card_out->count() - 1;
       }
     }
@@ -173,10 +191,8 @@ public:
 
     {
       lay->addRow(QObject::tr("Input device"), card_in);
-      QObject::connect(
-          card_in, SignalUtils::QComboBox_currentIndexChanged_int(), &v,
-          [=,&m,&m_disp](int i) {
-        auto& dev = devices[card_in->itemData(i).toInt()];
+
+      auto update_dev = [=,&m,&m_disp] (const PortAudioCard& dev) {
         if(dev.raw_name != m.getCardIn())
         {
           m_disp.submitDeferredCommand<Audio::Settings::SetModelCardIn>(m, dev.raw_name);
@@ -187,17 +203,35 @@ public:
               card_out->setCurrentIndex(dev.out_index);
           }
         }
-      });
+      };
 
-      setCardIn(card_in, m.getCardIn());
+      QObject::connect(
+            card_in, SignalUtils::QComboBox_currentIndexChanged_int(),
+            &v, [=] (int i) { update_dev(devices[card_in->itemData(i).toInt()]); });
+
+      if(m.getCardIn().isEmpty())
+      {
+        auto default_in = Pa_GetDefaultInputDevice();
+
+        for(auto& v : devices)
+        {
+          if(v.dev_idx == default_in)
+          {
+            update_dev(v);
+            break;
+          }
+        }
+      }
+      else
+      {
+        setCardIn(card_in, m.getCardIn());
+      }
     }
 
     {
       lay->addRow(QObject::tr("Output device"), card_out);
-      QObject::connect(
-          card_out, SignalUtils::QComboBox_currentIndexChanged_int(), &v,
-          [=,&m,&m_disp](int i) {
-        auto& dev = devices[card_out->itemData(i).toInt()];
+
+      auto update_dev = [=,&m,&m_disp] (const PortAudioCard& dev) {
         if(dev.raw_name != m.getCardOut())
         {
           m_disp.submitDeferredCommand<Audio::Settings::SetModelCardOut>(m, dev.raw_name);
@@ -208,14 +242,33 @@ public:
               card_in->setCurrentIndex(dev.in_index);
           }
         }
-      });
+      };
 
-      setCardOut(card_out, m.getCardOut());
+      QObject::connect(
+          card_out, SignalUtils::QComboBox_currentIndexChanged_int(), &v,
+          [=,&m,&m_disp] (int i) { update_dev(devices[card_out->itemData(i).toInt()]); });
+
+      if(m.getCardOut().isEmpty())
+      {
+        auto default_out = Pa_GetDefaultOutputDevice();
+        for(auto& v : devices)
+        {
+          if(v.dev_idx == default_out)
+          {
+            update_dev(v);
+            break;
+          }
+        }
+      }
+      else
+      {
+        setCardOut(card_out, m.getCardOut());
+      }
     }
 
     con(m, &Model::changed, &v, [=,&m] {
       setCardIn(card_in, m.getCardIn());
-      setCardOut(card_in, m.getCardOut());
+      setCardOut(card_out, m.getCardOut());
     });
     return w;
   }
