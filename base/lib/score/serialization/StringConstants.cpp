@@ -2,8 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "StringConstants.hpp"
 
-#include <score/command/Command.hpp>
-
 namespace score
 {
 SCORE_LIB_BASE_EXPORT const StringConstants& StringConstant()

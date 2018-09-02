@@ -270,11 +270,6 @@ QString AddressAccessor::toShortString() const
   return address.toShortString() + State::toString(qualifiers);
 }
 
-optional<AddressAccessor> AddressAccessor::fromString(const QString& str)
-{
-  return parseAddressAccessor(str);
-}
-
 bool AddressAccessor::operator==(const AddressAccessor& other) const
 {
   return address == other.address && qualifiers == other.qualifiers;

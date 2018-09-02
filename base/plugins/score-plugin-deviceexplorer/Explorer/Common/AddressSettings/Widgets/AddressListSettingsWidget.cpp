@@ -17,7 +17,7 @@ AddressListSettingsWidget::AddressListSettingsWidget(QWidget* parent)
 Device::AddressSettings AddressListSettingsWidget::getSettings() const
 {
   auto settings = getCommonSettings();
-  settings.value = State::list_t{};
+  settings.value = std::vector<ossia::value>{};
   return settings;
 }
 

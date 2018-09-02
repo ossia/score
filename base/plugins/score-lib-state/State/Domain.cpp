@@ -83,27 +83,3 @@ Domain::operator ossia::domain&() noexcept
   return *domain;
 }
 }
-
-template <>
-SCORE_LIB_STATE_EXPORT void DataStreamReader::read(const State::Domain& var)
-{
-  readFrom(var.get());
-}
-
-template <>
-SCORE_LIB_STATE_EXPORT void DataStreamWriter::write(State::Domain& var)
-{
-  writeTo(var.get());
-}
-
-template <>
-SCORE_LIB_STATE_EXPORT void JSONObjectReader::read(const State::Domain& var)
-{
-  readFrom(var.get());
-}
-
-template <>
-SCORE_LIB_STATE_EXPORT void JSONObjectWriter::write(State::Domain& var)
-{
-  writeTo(var.get());
-}

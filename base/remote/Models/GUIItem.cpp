@@ -8,6 +8,7 @@
 #include <RemoteApplication.hpp>
 #include <RemoteContext.hpp>
 #include <State/Expression.hpp>
+#include <State/ValueParser.hpp>
 #include <WebSocketClient.hpp>
 namespace RemoteUI
 {

@@ -1366,14 +1366,14 @@ void SearchWidget::search()
       while (comma >= 0)
       {
         auto sub = addrstr.mid(offset, comma);
-        auto optaddr = State::AddressAccessor::fromString(sub);
+        auto optaddr = State::parseAddressAccessor(sub);
         if (optaddr)
           addresses.push_back(*optaddr);
         offset = comma + 1;
         comma = addrstr.indexOf(",", offset);
       }
       auto sub = addrstr.mid(offset, comma);
-      auto optaddr = State::AddressAccessor::fromString(sub);
+      auto optaddr = State::parseAddressAccessor(sub);
       if (optaddr)
         addresses.push_back(*optaddr);
     }
@@ -1381,7 +1381,7 @@ void SearchWidget::search()
 
   if (addresses.empty())
   {
-    auto opt = State::AddressAccessor::fromString(stxt);
+    auto opt = State::parseAddressAccessor(stxt);
     if (opt)
       addresses.push_back(*opt);
   }

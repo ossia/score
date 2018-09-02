@@ -176,7 +176,7 @@ struct SetCheckboxAddress
     // TODO
   }
 
-  void operator()(const State::list_t& c)
+  void operator()(const std::vector<ossia::value>& c)
   {
     // TODO
   }
@@ -238,7 +238,7 @@ struct SetLineEditAddress
         SLOT(on_parsableValueChanged(QString)));
   }
 
-  void operator()(const State::list_t& c)
+  void operator()(const std::vector<ossia::value>& c)
   {
     item.m_connection = QObject::connect(
         item.item(), SIGNAL(textChange(QString)), &item,
@@ -295,7 +295,7 @@ struct SetLabelAddress
             "Array" + QString::fromStdString(ossia::convert<std::string>(c)));
   }
 
-  void operator()(const State::list_t& c)
+  void operator()(const std::vector<ossia::value>& c)
   {
     QQmlProperty(item.item(), "text.text")
         .write("List" + State::convert::value<QString>(c));

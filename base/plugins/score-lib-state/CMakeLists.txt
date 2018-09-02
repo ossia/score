@@ -35,6 +35,8 @@ set(SRCS
 )
 set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/score_lib_state.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/ValueParser.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/State/AddressParser.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/Address.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/DomainSerializationImpl.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/Domain.hpp"
