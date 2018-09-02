@@ -138,17 +138,21 @@ public:
           set.getBufferSize());
   }
 
-  static void setCardIn(QComboBox* m_CardIn, QString val)
+  void setCardIn(QComboBox* combo, QString val)
   {
-    int idx = m_CardIn->findText(val);
-    if (idx != -1 && idx != m_CardIn->currentIndex())
-      m_CardIn->setCurrentIndex(idx);
+    auto dev_it = ossia::find_if(devices, [&] (const PortAudioCard& d) { return d.raw_name == val; });
+    if(dev_it != devices.end())
+    {
+      combo->setCurrentIndex(dev_it->in_index);
+    }
   }
-  static void setCardOut(QComboBox* m_CardOut, QString val)
+  void setCardOut(QComboBox* combo, QString val)
   {
-    int idx = m_CardOut->findText(val);
-    if (idx != -1 && idx != m_CardOut->currentIndex())
-      m_CardOut->setCurrentIndex(idx);
+    auto dev_it = ossia::find_if(devices, [&] (const PortAudioCard& d) { return d.raw_name == val; });
+    if(dev_it != devices.end())
+    {
+      combo->setCurrentIndex(dev_it->out_index);
+    }
   }
 
   QWidget* make_settings(
@@ -246,7 +250,7 @@ public:
 
       QObject::connect(
           card_out, SignalUtils::QComboBox_currentIndexChanged_int(), &v,
-          [=,&m,&m_disp] (int i) { update_dev(devices[card_out->itemData(i).toInt()]); });
+          [=] (int i) { update_dev(devices[card_out->itemData(i).toInt()]); });
 
       if(m.getCardOut().isEmpty())
       {
