@@ -5,9 +5,11 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <WebSocketClient.hpp>
+#include <ZeroconfListener.hpp>
 #include <core/application/ApplicationInterface.hpp>
 #include <core/application/ApplicationSettings.hpp>
 #include <core/presenter/DocumentManager.hpp>
+#include <ossia/network/generic/generic_device.hpp>
 
 namespace score
 {
@@ -31,9 +33,6 @@ public:
 
   int exec();
 
-  void enableListening(const Device::FullAddressSettings& a, GUIItem*);
-  void disableListening(const Device::FullAddressSettings& a, GUIItem*);
-
 private:
   void loadPlugins();
   // Base stuff.
@@ -50,11 +49,10 @@ private:
 
   RemoteUI::WidgetListModel m_widgets{m_engine};
   RemoteUI::NodeModel m_nodes;
-  WebSocketClient m_ws;
 
   RemoteUI::Context m_context;
   RemoteUI::CentralItemModel m_centralItemModel;
-
-  std::unordered_map<State::Address, GUIItem*> m_listening;
+  std::vector<std::unique_ptr<ossia::net::generic_device>> m_clients;
+  ZeroconfListener m_zeroconf;
 };
 }

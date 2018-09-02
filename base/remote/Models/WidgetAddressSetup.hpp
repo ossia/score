@@ -4,25 +4,28 @@
 #include <Device/Address/AddressSettings.hpp>
 #include <Models/GUIItem.hpp>
 #include <QQmlProperty>
+#include <State/ValueConversion.hpp>
 #include <QQuickItem>
 
 namespace RemoteUI
 {
+
 struct SetSliderAddress
 {
   GUIItem& item;
   const Device::FullAddressSettings& address;
 
-  void operator()()
-  {
-  }
-  void operator()(State::impulse c)
+
+  template<typename D, typename U>
+  void operator()(State::impulse c, const D&, const U&)
   {
     // Do nothing
     item.m_connection = QObject::connect(
         item.item(), SIGNAL(clicked()), &item, SLOT(on_impulse()));
   }
-  void operator()(bool c)
+
+  template<typename D, typename U>
+  void operator()(bool c, const D&, const U&)
   {
     QQmlProperty(item.item(), "slider.from").write(0.);
     QQmlProperty(item.item(), "slider.to").write(1.);
@@ -32,13 +35,11 @@ struct SetSliderAddress
         item.item(), SIGNAL(toggled()), &item, SLOT(on_impulse()));
   }
 
-  void operator()(int i)
+  template<typename D, typename U>
+  void operator()(int i, const D&, const U&)
   {
-    auto min = ossia::convert<int>(ossia::get_min(address.domain.get()));
-    auto max = ossia::convert<int>(ossia::get_max(address.domain.get()));
-
-    QQmlProperty(item.item(), "slider.from").write((qreal)min);
-    QQmlProperty(item.item(), "slider.to").write((qreal)max);
+    QQmlProperty(item.item(), "slider.from").write((qreal)0);
+    QQmlProperty(item.item(), "slider.to").write((qreal)127);
     QQmlProperty(item.item(), "slider.stepSize").write(1);
     QQmlProperty(item.item(), "slider.value").write((qreal)i);
 
@@ -47,13 +48,30 @@ struct SetSliderAddress
         SLOT(on_intValueChanged(qreal)));
   }
 
-  void operator()(float f)
-  {
-    auto min = ossia::convert<float>(ossia::get_min(address.domain.get()));
-    auto max = ossia::convert<float>(ossia::get_max(address.domain.get()));
 
-    QQmlProperty(item.item(), "slider.from").write((qreal)min);
-    QQmlProperty(item.item(), "slider.to").write((qreal)max);
+  template<typename U>
+  void operator()(int i, const ossia::domain_base<int>& d, const U& u)
+  {
+    if(d.min)
+      QQmlProperty(item.item(), "slider.from").write((qreal)*d.min);
+
+    if(d.max)
+      QQmlProperty(item.item(), "slider.to").write((qreal)*d.max);
+
+    QQmlProperty(item.item(), "slider.stepSize").write(1);
+    QQmlProperty(item.item(), "slider.value").write((qreal)i);
+
+    item.m_connection = QObject::connect(
+        item.item(), SIGNAL(valueChange(qreal)), &item,
+        SLOT(on_intValueChanged(qreal)));
+  }
+
+  template<typename D, typename U>
+  void operator()(float f, const D&, const U&)
+  {
+    QQmlProperty(item.item(), "slider.from").write(0.);
+    QQmlProperty(item.item(), "slider.to").write(1.);
+
     QQmlProperty(item.item(), "slider.value").write((qreal)f);
 
     item.m_connection = QObject::connect(
@@ -61,24 +79,44 @@ struct SetSliderAddress
         SLOT(on_floatValueChanged(qreal)));
   }
 
-  void operator()(char c)
+  template<typename U>
+  void operator()(float f, const ossia::domain_base<float>& d, const U& u)
+  {
+    if(d.min)
+      QQmlProperty(item.item(), "slider.from").write((qreal)*d.min);
+
+    if(d.max)
+      QQmlProperty(item.item(), "slider.to").write((qreal)*d.max);
+
+    QQmlProperty(item.item(), "slider.value").write((qreal)f);
+
+    item.m_connection = QObject::connect(
+        item.item(), SIGNAL(valueChange(qreal)), &item,
+        SLOT(on_floatValueChanged(qreal)));
+  }
+
+  template<typename D, typename U>
+  void operator()(char c, const D&, const U&)
   {
     QQmlProperty(item.item(), "min_chars").write(1);
     QQmlProperty(item.item(), "max_chars").write(1);
     QQmlProperty(item.item(), "value").write(c);
   }
-  void operator()(const std::string& s)
+
+  template<typename D, typename U>
+  void operator()(const std::string& s, const D&, const U&)
   {
     QQmlProperty(item.item(), "value").write(QString::fromStdString(s));
   }
 
-  template <std::size_t N>
-  void operator()(std::array<float, N> c)
+  template <std::size_t N, typename D, typename U>
+  void operator()(std::array<float, N> c, const D&, const U&)
   {
     // TODO
   }
 
-  void operator()(const State::list_t& c)
+  template<typename D, typename U>
+  void operator()(const std::vector<ossia::value>& c, const D&, const U&)
   {
     // TODO
   }

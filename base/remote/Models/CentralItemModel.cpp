@@ -22,7 +22,7 @@ struct AddressItemFactory
     throw std::runtime_error("no item");
     return WidgetKind::PushButton;
   }
-  auto operator()(State::impulse i)
+  auto operator()(ossia::impulse i)
   {
     return WidgetKind::PushButton;
   }
@@ -58,7 +58,7 @@ struct AddressItemFactory
     return WidgetKind::Label;
   }
 
-  auto operator()(const State::list_t& c)
+  auto operator()(const std::vector<ossia::value>& c)
   {
     return WidgetKind::Label;
   }

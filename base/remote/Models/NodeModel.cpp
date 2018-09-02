@@ -3,7 +3,7 @@
 #include "NodeModel.hpp"
 
 #include <ossia/network/value/value_traits.hpp>
-
+#include <State/ValueConversion.hpp>
 #include <Device/ItemModels/NodeDisplayMethods.hpp>
 namespace RemoteUI
 {
@@ -12,12 +12,21 @@ NodeModel::NodeModel(QObject* parent) : QAbstractItemModel(parent)
 {
 }
 
-void NodeModel::replace(Device::Node n)
+void NodeModel::add_device(Device::Node n)
 {
   beginResetModel();
+  m_root.push_back(std::move(n));
+  endResetModel();
+}
+void NodeModel::remove_device(QString n)
+{
+  beginResetModel();
+  auto it = ossia::find_if(
+        m_root.children(),
+        [&] (const auto& cld) { return cld.displayName() == n; });
 
-  m_root = n;
-
+  if(it != m_root.end())
+    m_root.erase(it);
   endResetModel();
 }
 

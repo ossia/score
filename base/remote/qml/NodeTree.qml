@@ -1,8 +1,8 @@
-import QtQuick 2.0
+import QtQuick 2.11
 import QtQuick.Controls 1.4
 import QtQuick.Layouts 1.3
 Item {
-
+    objectName: "NodeTree"
     TreeView {
         id: nodeView
         model: nodesModel
@@ -54,6 +54,10 @@ Item {
                         Drag.active: mouseArea.drag.active
                         Drag.hotSpot.x: 0
                         Drag.hotSpot.y: 0
+                        Drag.onDragStarted: {
+                            console.log( nodesModel.nodeToAddressString(styleData.index))
+                            console.log("imma dragin")
+                        }
 
                         Drag.mimeData: {
                             "iscore/x-remote-address": nodesModel.nodeToAddressString(styleData.index)
