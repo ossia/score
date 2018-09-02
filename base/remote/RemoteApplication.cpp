@@ -18,7 +18,6 @@
 #include <score/serialization/VisitorCommon.hpp>
 namespace RemoteUI
 {
-
 RemoteApplication::RemoteApplication(int& argc, char** argv)
     : m_app{argc, argv}
     , m_engine{}
@@ -26,7 +25,7 @@ RemoteApplication::RemoteApplication(int& argc, char** argv)
     , m_context{m_engine,
                 m_widgets.componentList,
                 m_nodes,
-                m_ws,
+                m_clients,
                 *this,
                 [&] {
                   m_engine.rootContext()->setContextProperty(
@@ -44,28 +43,12 @@ RemoteApplication::RemoteApplication(int& argc, char** argv)
                       "centralItem", Qt::FindChildrenRecursively);
                 }()}
     , m_centralItemModel{m_context, nullptr}
+    , m_clients{}
+    , m_zeroconf{m_context}
 {
   m_instance = this;
 
   using namespace std::literals;
-  m_ws.actions.insert(
-      std::make_pair("DeviceTree"s, json_fun{[this](const QJsonObject& json) {
-                       JSONObject::Deserializer wr{json["Nodes"].toObject()};
-                       Device::Node n;
-                       wr.writeTo(n);
-                       m_nodes.replace(n);
-                     }}));
-
-  m_ws.actions.insert(
-      std::make_pair("Message"s, json_fun{[this](const QJsonObject& json) {
-                       auto m = score::unmarshall<State::Message>(json);
-                       qDebug() << m;
-                       auto it = m_listening.find(m.address.address);
-                       if (it != m_listening.end())
-                         it->second->setValue(m);
-                     }}));
-
-  m_ws.open(QUrl("ws://127.0.0.1:10212"));
 }
 
 RemoteApplication::~RemoteApplication()
@@ -85,37 +68,5 @@ const score::ApplicationComponents& RemoteApplication::components() const
 int RemoteApplication::exec()
 {
   return m_app.exec();
-}
-
-void RemoteApplication::enableListening(
-    const Device::FullAddressSettings& a, GUIItem* i)
-{
-  if (!a.address.path.empty())
-  {
-    QJsonObject obj;
-    obj[score::StringConstant().Message] = "EnableListening";
-    obj[score::StringConstant().Address]
-        = score::marshall<JSONObject>(a.address);
-    m_ws.socket().sendTextMessage(QJsonDocument(obj).toJson());
-
-    m_listening[a.address] = i;
-  }
-}
-
-void RemoteApplication::disableListening(
-    const Device::FullAddressSettings& a, GUIItem* i)
-{
-  if (!a.address.path.empty())
-  {
-    QJsonObject obj;
-    obj[score::StringConstant().Message] = "DisableListening";
-    obj[score::StringConstant().Address]
-        = score::marshall<JSONObject>(a.address);
-    m_ws.socket().sendTextMessage(QJsonDocument(obj).toJson());
-  }
-
-  auto it = m_listening.find(a.address);
-  if (it != m_listening.end())
-    m_listening.erase(it);
 }
 }

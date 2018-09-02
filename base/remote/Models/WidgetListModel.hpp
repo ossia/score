@@ -70,7 +70,7 @@ public:
     return m_kind;
   }
 
-public:
+Q_SIGNALS:
   void nameChanged(QString name);
 
   void prettyNameChanged(QString prettyName);

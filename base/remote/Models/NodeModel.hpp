@@ -1,8 +1,8 @@
 #ifndef NODEMODEL_H
 #define NODEMODEL_H
 
-#include <Device/ItemModels/NodeBasedItemModel.hpp>
 #include <QAbstractItemModel>
+#include <Device/Node/DeviceNode.hpp>
 #include <unordered_map>
 
 namespace RemoteUI
@@ -22,7 +22,8 @@ class NodeModel : public QAbstractItemModel
 public:
   explicit NodeModel(QObject* parent = 0);
 
-  void replace(Device::Node n);
+  void add_device(Device::Node n);
+  void remove_device(QString n);
   Q_INVOKABLE QString nodeToAddressString(QModelIndex idx);
   Device::Node& rootNode();
   const Device::Node& rootNode() const;
