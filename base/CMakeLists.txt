@@ -12,21 +12,11 @@ if(NOT SCORE_DISABLE_ADDONS)
 add_subdirectory(addons)
 endif()
 
-if(SCORE_MERGE_COMPONENTS)
-  add_subdirectory(component-wrapper)
-endif()
-
 if(TARGET score_plugin_media)
   add_subdirectory(vstpuppet)
 endif()
 
-if(ANDROID)
-#    add_subdirectory(app-android)
-elseif(NACL)
-    add_subdirectory(app-nacl)
-else()
-  add_subdirectory(app)
-endif()
+add_subdirectory(app)
 
 if(SCORE_PLAYER)
   add_subdirectory(player)
