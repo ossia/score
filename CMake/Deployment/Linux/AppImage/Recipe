@@ -145,6 +145,10 @@ export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
     rm -f usr/lib/libwind.so.0 || true
     rm -f usr/lib/libz.so.1 || true
 
+    # Let's copy openssl stuff since more recent systems will only have 
+    # an incompatible version
+    
+
     # Delete potentially dangerous libraries
     rm -f usr/lib/libgobject* usr/lib/libc.so.* || true
 
