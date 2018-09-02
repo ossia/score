@@ -145,66 +145,61 @@ void GUIItem::setAddress(QString data)
   }
 }
 
-void GUIItem::on_impulse()
-{
-  sendMessage(State::Message{State::AddressAccessor{m_addr.address},
-                             ossia::value(State::impulse{})});
-}
-
-void GUIItem::on_boolValueChanged(bool b)
-{
-  sendMessage(
-      State::Message{State::AddressAccessor{m_addr.address}, ossia::value(b)});
-}
-
-void GUIItem::on_floatValueChanged(qreal r)
-{
-  sendMessage(State::Message{State::AddressAccessor{m_addr.address},
-                             ossia::value((float)r)});
-}
-
-void GUIItem::on_stringValueChanged(QString str)
-{
-  sendMessage(State::Message{State::AddressAccessor{m_addr.address},
-                             ossia::value(str.toStdString())});
-}
-
-void GUIItem::on_parsableValueChanged(QString s)
-{
-  if (auto val = State::parseValue(s.toStdString()))
-  {
-    sendMessage(State::Message{State::AddressAccessor{m_addr.address}, *val});
-  }
-}
-
-void GUIItem::on_intValueChanged(qreal r)
-{
-  sendMessage(State::Message{State::AddressAccessor{m_addr.address},
-                             ossia::value((int)r)});
-}
-
 void GUIItem::setValue(const State::Message& m)
 {
   if (m_compType == WidgetKind::Label)
     m.value.apply(SetLabelAddress{*this, m_addr});
 }
 
-void GUIItem::sendMessage(const State::Message& m)
+void GUIItem::on_impulse()
 {
-  auto dev_name = m.address.address.device.toStdString();
+  sendMessage(m_addr.address, ossia::impulse{});
+}
+
+void GUIItem::on_boolValueChanged(bool b)
+{
+  sendMessage(m_addr.address, b);
+}
+
+void GUIItem::on_floatValueChanged(qreal r)
+{
+  sendMessage(m_addr.address, (float)r);
+}
+
+void GUIItem::on_stringValueChanged(QString str)
+{
+  sendMessage(m_addr.address, str.toStdString());
+}
+
+void GUIItem::on_parsableValueChanged(QString s)
+{
+  if (auto val = State::parseValue(s.toStdString()))
+  {
+    sendMessage(m_addr.address, *val);
+  }
+}
+
+void GUIItem::on_intValueChanged(qreal r)
+{
+  sendMessage(m_addr.address, (int) r);
+}
+
+
+void GUIItem::sendMessage(const State::Address& m, const ossia::value& v)
+{
+  auto dev_name = m.device.toStdString();
   auto dev_it = ossia::find_if(m_ctx.device, [&] (const auto& dev) { return dev->get_name() == dev_name; });
   if(dev_it != m_ctx.device.end())
   {
     auto& dev = **dev_it;
 
-    if(auto n = ossia::net::find_node(dev, ("/" + m.address.address.path.join("/")).toStdString()))
+    if(auto n = ossia::net::find_node(dev, ("/" + m.path.join("/")).toStdString()))
     {
       if(auto p = n->get_parameter())
       {
-        p->push_value(m.value);
+        p->push_value(v);
       }
     }
-
   }
 }
 }

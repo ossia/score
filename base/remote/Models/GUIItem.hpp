@@ -52,7 +52,7 @@ private Q_SLOTS:
   void on_parsableValueChanged(QString);
 
 private:
-  void sendMessage(const State::Message& m);
+  void sendMessage(const State::Address& m, const ossia::value& v);
   Context& m_ctx;
 
   WidgetKind m_compType;

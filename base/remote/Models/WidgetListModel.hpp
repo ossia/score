@@ -6,6 +6,11 @@
 #include <WidgetKind.hpp>
 namespace RemoteUI
 {
+/** An instance of this class represents a type of widget that can be instantiated.
+ * There are two components:
+ * - the main component which is put on CentralItemModel
+ * - And the static component which is shown in the widget list
+ */
 class WidgetListData : public QObject
 {
   Q_OBJECT
@@ -85,6 +90,7 @@ private:
   QQmlComponent m_exampleComponent;
 };
 
+//! Register new widgets in this class
 struct WidgetListModel
 {
   WidgetListModel(QQmlApplicationEngine& engine);

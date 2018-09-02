@@ -11,6 +11,8 @@ class QQmlApplicationEngine;
 namespace RemoteUI
 {
 class GUIItem;
+
+//! Data model for the control surface: just a list of widgets
 class CentralItemModel : public QObject
 {
   Q_OBJECT

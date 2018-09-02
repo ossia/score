@@ -15,6 +15,8 @@ enum Roles : int
 
   Count // column count, always last
 };
+
+//! Data model for the device tree
 class NodeModel : public QAbstractItemModel
 {
   Q_OBJECT

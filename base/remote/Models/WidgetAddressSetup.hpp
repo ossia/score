@@ -112,9 +112,44 @@ struct SetSliderAddress
   template <std::size_t N, typename D, typename U>
   void operator()(std::array<float, N> c, const D&, const U&)
   {
-    // TODO
+    // TODO multislider
   }
 
+  template<typename D>
+  void operator()(std::array<float, 4> c, const D&, const ossia::rgba8_u&)
+  {
+    // TODO
+  }
+  template<typename D>
+  void operator()(std::array<float, 4> c, const D&, const ossia::argb8_u&)
+  {
+    // TODO
+  }
+  template<typename D>
+  void operator()(std::array<float, 4> c, const D&, const ossia::rgba_u&)
+  {
+    // TODO
+  }
+  template<typename D>
+  void operator()(std::array<float, 4> c, const D&, const ossia::argb_u&)
+  {
+    // TODO
+  }
+  template<typename D>
+  void operator()(std::array<float, 3> c, const D&, const ossia::hsv_u&)
+  {
+    // TODO
+  }
+  template<typename D>
+  void operator()(std::array<float, 3> c, const D&, const ossia::rgb_u&)
+  {
+    // TODO
+  }
+  template<typename D>
+  void operator()(std::array<float, 4> c, const D&, const ossia::bgr_u&)
+  {
+    // TODO
+  }
   template<typename D, typename U>
   void operator()(const std::vector<ossia::value>& c, const D&, const U&)
   {

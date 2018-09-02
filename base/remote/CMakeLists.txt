@@ -11,7 +11,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Models/GUIItem.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteApplication.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteContext.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/WebSocketClient.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/WidgetKind.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/ZeroconfListener.hpp"
 
@@ -21,7 +20,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Models/WidgetListModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Models/GUIItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/RemoteApplication.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/WebSocketClient.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/ZeroconfListener.cpp"
 
 
