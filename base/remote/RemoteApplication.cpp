@@ -4,24 +4,16 @@
 
 #include <Device/Address/AddressSettings.hpp>
 #include <Models/GUIItem.hpp>
-#include <QDebug>
-#include <QJsonDocument>
-#include <QQmlComponent>
-#include <QQmlContext>
-#include <QQmlProperty>
-#include <QVector>
-#include <core/application/ApplicationRegistrar.hpp>
-#include <core/plugin/PluginManager.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+#include <QQmlContext>
 namespace RemoteUI
 {
 RemoteApplication::RemoteApplication(int& argc, char** argv)
     : m_app{argc, argv}
     , m_engine{}
-    , m_appContext{m_applicationSettings, m_components, m_docs, m_settings}
     , m_context{m_engine,
                 m_widgets.componentList,
                 m_nodes,
@@ -46,23 +38,10 @@ RemoteApplication::RemoteApplication(int& argc, char** argv)
     , m_clients{}
     , m_zeroconf{m_context}
 {
-  m_instance = this;
-
-  using namespace std::literals;
 }
 
 RemoteApplication::~RemoteApplication()
 {
-}
-
-const score::ApplicationContext& RemoteApplication::context() const
-{
-  throw;
-}
-
-const score::ApplicationComponents& RemoteApplication::components() const
-{
-  return m_components;
 }
 
 int RemoteApplication::exec()

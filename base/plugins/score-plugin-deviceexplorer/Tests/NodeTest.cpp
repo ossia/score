@@ -246,7 +246,7 @@ private:
     for (auto val :
          {ossia::value(State::impulse{}), ossia::value(int{}),
           ossia::value(float{}), ossia::value(char{}),
-          ossia::value(std::string{}), ossia::value(State::list_t{}),
+          ossia::value(std::string{}), ossia::value(std::vector<ossia::value>{}),
           ossia::value(std::array<float, 2>{}),
           ossia::value(std::array<float, 3>{}),
           ossia::value(std::array<float, 4>{})})

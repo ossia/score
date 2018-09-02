@@ -1,26 +1,8 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Expression.hpp"
-#ifndef Q_MOC_RUN
-//#define BOOST_SPIRIT_DEBUG
-// see https://svn.boost.org/trac/boost/ticket/11875
-#  if defined(_GLIBCXX_DEBUG)
-#    define BOOST_PHOENIX_USING_LIBCPP
-#  endif
-#  include <ossia/network/base/name_validation.hpp>
-#  include <ossia/network/dataspace/dataspace_parse.hpp>
-
-#  include <boost/fusion/adapted.hpp>
-#  include <boost/spirit/include/phoenix.hpp>
-#  include <boost/spirit/include/phoenix_operator.hpp>
-#  include <boost/spirit/include/qi.hpp>
-#  include <boost/spirit/include/qi_eoi.hpp>
-#  include <boost/spirit/include/qi_lit.hpp>
-#  include <boost/spirit/include/qi_real.hpp>
-#  include <boost/spirit/repository/include/qi_confix.hpp>
-#  include <boost/variant/recursive_wrapper.hpp>
-#  include <score/prefix.hpp>
-#endif
+#include <State/ValueParser.hpp>
+#include <State/AddressParser.hpp>
 /*
 Here is the grammar used. The grammar itself is split in multiple classes where
 relevant.
@@ -73,75 +55,12 @@ Not				:= ('not', Simple) | Simple;
 Simple			:= ('{', Expr, '}') | Relation;
 */
 
-// Taken from boost doc, necessary to have support of QString
-namespace boost
-{
-namespace spirit
-{
-namespace traits
-{
-// Make Qi recognize QString as a container
-template <>
-struct is_container<QString> : mpl::true_
-{
-};
-
-// Expose the container's (QString's) value_type
-template <>
-struct container_value<QString> : mpl::identity<QChar>
-{
-};
-
-// Define how to insert a new element at the end of the container (QString)
-template <>
-struct push_back_container<QString, QChar>
-{
-  static bool call(QString& c, QChar const& val)
-  {
-    c.append(val);
-    return true;
-  }
-};
-
-// Test if a QString is empty (required for debug)
-template <>
-struct is_empty_container<QString>
-{
-  static bool call(QString const& c)
-  {
-    return c.isEmpty();
-  }
-};
-
-// Define how to stream a QString (required for debug)
-template <typename Out, typename Enable>
-struct print_attribute_debug<Out, QString, Enable>
-{
-  static void call(Out& out, QString const& val)
-  {
-    out << val.toStdString();
-  }
-};
-}
-}
-}
-
-BOOST_FUSION_ADAPT_STRUCT(State::Address, (QString, device)(QStringList, path))
-
-BOOST_FUSION_ADAPT_STRUCT(
-    ossia::destination_qualifiers,
-    (ossia::destination_index, accessors)(ossia::unit_t, unit))
-
-BOOST_FUSION_ADAPT_STRUCT(
-    State::AddressAccessor,
-    (State::Address, address)(ossia::destination_qualifiers, qualifiers))
 
 BOOST_FUSION_ADAPT_STRUCT(
     State::Relation,
     (State::RelationMember,
      lhs)(ossia::expressions::comparator, op)(State::RelationMember, rhs))
 
-BOOST_FUSION_ADAPT_STRUCT(State::Pulse, (State::Address, address))
 namespace
 {
 /// Address parsing.
@@ -149,119 +68,6 @@ namespace qi = boost::spirit::qi;
 
 using boost::spirit::qi::rule;
 
-template <typename Iterator>
-struct Address_parser : qi::grammar<Iterator, State::Address()>
-{
-  Address_parser() : Address_parser::base_type(start)
-  {
-    using qi::alnum;
-    // OPTIMIZEME
-    dev = +qi::char_(std::string(ossia::net::device_characters()));
-    member_elt
-        = +qi::char_(std::string(ossia::net::pattern_match_characters()));
-    path %= (+("/" >> member_elt) | "/");
-    start %= dev >> ":" >> path;
-  }
-
-  qi::rule<Iterator, QString()> dev;
-  qi::rule<Iterator, QString()> member_elt;
-  qi::rule<Iterator, QStringList()> path;
-  qi::rule<Iterator, State::Address()> start;
-};
-
-template <typename Iterator>
-struct AccessorList_parser : qi::grammar<Iterator, ossia::destination_index()>
-{
-  AccessorList_parser() : AccessorList_parser::base_type(start)
-  {
-    using boost::spirit::int_;
-    using boost::spirit::qi::skip;
-    using boost::spirit::standard::space;
-    using qi::alnum;
-
-    index %= skip(space)["[" >> int_ >> "]"];
-    start %= skip(space)[+(index)];
-  }
-
-  qi::rule<Iterator, ossia::destination_index()> start;
-  qi::rule<Iterator, uint8_t()> index;
-};
-
-template <typename Iterator>
-struct AddressQualifiers_parser
-    : qi::grammar<Iterator, ossia::destination_qualifiers()>
-{
-  AddressQualifiers_parser() : AddressQualifiers_parser::base_type(start)
-  {
-    using boost::spirit::int_;
-    using boost::spirit::qi::skip;
-    using boost::spirit::standard::space;
-    using qi::alnum;
-
-    unit %= boost::spirit::eoi;
-    start %= "@" >> ((accessors >> -unit)
-                     | ("[" >> ossia::get_unit_parser() >> "]"));
-  }
-
-  qi::rule<Iterator, ossia::destination_qualifiers()> start;
-  AccessorList_parser<Iterator> accessors;
-  qi::rule<Iterator, ossia::unit_t()> unit;
-};
-
-template <typename Iterator>
-struct AddressAccessor_parser : qi::grammar<Iterator, State::AddressAccessor()>
-{
-  AddressAccessor_parser() : AddressAccessor_parser::base_type(start)
-  {
-    using boost::spirit::int_;
-    using boost::spirit::qi::skip;
-    using boost::spirit::standard::space;
-    using qi::alnum;
-
-    start %= skip(space)[address >> qualifiers];
-  }
-
-  qi::rule<Iterator, State::AddressAccessor()> start;
-  Address_parser<Iterator> address;
-  AddressQualifiers_parser<Iterator> qualifiers;
-};
-
-/// Value parsing
-struct BoolParse_map : qi::symbols<char, bool>
-{
-  BoolParse_map()
-  {
-    add("true", true)("false", false);
-  }
-};
-template <typename Iterator>
-struct Value_parser : qi::grammar<Iterator, ossia::value()>
-{
-  Value_parser() : Value_parser::base_type(start)
-  {
-    using boost::spirit::int_;
-    using boost::spirit::qi::char_;
-    using boost::spirit::qi::real_parser;
-    using boost::spirit::qi::skip;
-    using qi::alnum;
-
-    char_parser %= "'" >> (char_ - "'") >> "'";
-    str_parser %= '"' >> qi::lexeme[*(char_ - '"')] >> '"';
-
-    list_parser
-        %= skip(boost::spirit::standard::space)["[" >> start % "," >> "]"];
-    start
-        %= real_parser<float, boost::spirit::qi::strict_real_policies<float>>()
-           | int_ | bool_parser | char_parser | str_parser | list_parser;
-  }
-
-  BoolParse_map bool_parser;
-
-  qi::rule<Iterator, State::list_t()> list_parser;
-  qi::rule<Iterator, char()> char_parser;
-  qi::rule<Iterator, std::string()> str_parser;
-  qi::rule<Iterator, ossia::value()> start;
-};
 
 //// RelMember parsing
 template <typename Iterator>
@@ -503,105 +309,4 @@ State::parseExpression(const std::string& input)
 ossia::optional<State::Expression> State::parseExpression(const QString& str)
 {
   return parseExpression(str.toStdString());
-}
-
-ossia::optional<ossia::value> State::parseValue(const std::string& input)
-{
-  auto f(std::begin(input)), l(std::end(input));
-  Value_parser<decltype(f)> p;
-  try
-  {
-    ossia::value result;
-    bool ok = qi::phrase_parse(f, l, p, qi::standard::space, result);
-
-    if (!ok)
-    {
-      return {};
-    }
-
-    return result;
-  }
-  catch (const qi::expectation_failure<decltype(f)>& e)
-  {
-    // SCORE_BREAKPOINT;
-    return {};
-  }
-  catch (...)
-  {
-    // SCORE_BREAKPOINT;
-    return {};
-  }
-}
-
-ossia::optional<State::Address> State::parseAddress(const QString& str)
-{
-  auto input = str.toStdString();
-  auto f(std::begin(input)), l(std::end(input));
-  auto p = std::make_unique<Address_parser<decltype(f)>>();
-  try
-  {
-    State::Address result;
-    bool ok = qi::phrase_parse(f, l, *p, qi::standard::space, result);
-
-    if (!ok)
-    {
-      return {};
-    }
-
-    return result;
-  }
-  catch (const qi::expectation_failure<decltype(f)>& e)
-  {
-    // SCORE_BREAKPOINT;
-    return {};
-  }
-  catch (...)
-  {
-    // SCORE_BREAKPOINT;
-    return {};
-  }
-}
-
-ossia::optional<State::AddressAccessor>
-State::parseAddressAccessor(const QString& str)
-{
-  auto input = str.toStdString();
-  auto f(std::begin(input)), l(std::end(input));
-  auto p = std::make_unique<AddressAccessor_parser<decltype(f)>>();
-  try
-  {
-    State::AddressAccessor result;
-    bool ok = qi::phrase_parse(f, l, *p, qi::standard::space, result);
-
-    if (ok)
-    {
-      return result;
-    }
-    else
-    {
-      // We try to get an address instead.
-      ossia::optional<State::Address> res = State::parseAddress(str);
-      if (res)
-      {
-        result.address = (*res);
-        result.qualifiers.get().accessors.clear();
-
-        return result;
-      }
-      else
-      {
-        return {};
-      }
-    }
-  }
-  catch (const qi::expectation_failure<decltype(f)>& e)
-  {
-    // SCORE_BREAKPOINT;
-    return {};
-  }
-  catch (...)
-  {
-    // SCORE_BREAKPOINT;
-    return {};
-  }
 }

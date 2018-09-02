@@ -38,7 +38,7 @@ static ossia::value stringToVal(const QString& str, const QString& type)
   }
   else if (type == "array")
   {
-    val = State::list_t{};
+    val = std::vector<ossia::value>{};
     // TODO
     ok = true;
   }
@@ -289,7 +289,7 @@ static ossia::value fromJamomaTextualType(const QString& str)
       {"integer", ossia::value(0)},
       {"decimal", ossia::value(0.)},
       {"filepath", ossia::value(std::string(""))},
-      {"decimalArray", ossia::value(State::list_t{})},
+      {"decimalArray", ossia::value(std::vector<ossia::value>{})},
       {"string", ossia::value(std::string(""))}};
   auto it = value_map.find(str);
   if (it != value_map.end())
@@ -379,7 +379,7 @@ fromJamomaJsonValue(const QJsonValue& val, ossia::val_type type)
     {
       // Lists are always lists of numbers in this case.
       auto arr = val.toString().split(' ');
-      State::list_t list;
+      std::vector<ossia::value> list;
       list.reserve(arr.size());
 
       for (const auto& val : arr)

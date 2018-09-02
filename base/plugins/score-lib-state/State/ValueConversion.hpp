@@ -1,4 +1,5 @@
 #pragma once
+#include <score/tools/Todo.hpp>
 #include <QChar>
 #include <QDebug>
 #include <QJsonValue>

@@ -277,7 +277,7 @@ std::vector<Process::ProcessModel*> Macro::automate(
     , const QString& str)
 {
   // Find the address in the device explorer
-  if(auto addr = State::AddressAccessor::fromString(str))
+  if(auto addr = State::parseAddressAccessor(str))
   {
     auto& ctx = m.stack().context();
     auto fa = Explorer::makeFullAddressAccessorSettings(*addr, ctx, ossia::value{}, ossia::value{});
