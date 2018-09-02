@@ -46,7 +46,6 @@ public:
     auto lay = new QFormLayout{w};
 
     using Model = Audio::Settings::Model;
-    using View = Audio::Settings::View;
 
     auto in_count = new QSpinBox{w};
     auto out_count = new QSpinBox{w};
