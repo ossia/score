@@ -52,7 +52,7 @@
 #include <vector>
 #include <Scenario/Inspector/Interval/SpeedSlider.hpp>
 #include <Audio/AudioInterface.hpp>
-
+#include <QMessageBox>
 #include <QLabel>
 #include <wobjectimpl.h>
 SCORE_DECLARE_ACTION(
@@ -176,7 +176,11 @@ void ApplicationPlugin::setup_engine()
   audio.reset();
   if(auto dev = engines.get(set.getDriver()))
   {
-    audio = dev->make_engine(set, ctx);
+    try {
+      audio = dev->make_engine(set, ctx);
+    } catch (...) {
+      QMessageBox::warning(nullptr, tr("Audio error"), tr("The desired audio settings could not be applied.\nPlease change them."));
+    }
   }
 
   if(m_audioEngineAct)
