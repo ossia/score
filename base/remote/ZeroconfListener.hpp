@@ -5,6 +5,7 @@
 
 namespace RemoteUI
 {
+//! Periodically checks for new OSCQuery devices on the network
 class ZeroconfListener final
     : public servus::Listener
 {
