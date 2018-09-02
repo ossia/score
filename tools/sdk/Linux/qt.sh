@@ -2,21 +2,23 @@
 
 cd /image
 
-NPROC=$(nproc)
+export CC=/usr/local/bin/gcc
+export CXX=/usr/local/bin/g++
+export CFLAGS="-O3"
+export CXXFLAGS="-O3"
+export NPROC=$(nproc)
 
-yum -y install harfbuzz-devel which make perl-version libxcb libxcb-devel xcb-util xcb-util-devel fontconfig-devel libX11-devel libXrender-devel libXi-devel git openssl-devel dbus-devel glib2-devel mesa-libGL-devel
+yum -y install perl harfbuzz-devel which make perl-version libxcb libxcb-devel xcb-util xcb-util-devel fontconfig-devel libX11-devel libXrender-devel libXi-devel git dbus-devel glib2-devel mesa-libGL-devel
 
 git clone https://code.qt.io/qt/qt5.git
 
 (
   cd qt5
-  git checkout 5.11.1
+  git checkout 5.11.2
   git submodule update --init --recursive qtbase qtdeclarative qtquickcontrols2 qtserialport qtimageformats qtgraphicaleffects qtsvg qtwebsockets
 )
 
 cp /usr/local/bin/* /usr/bin/
-export CC=/usr/local/bin/gcc
-export CXX=/usr/local/bin/g++
 
 mkdir qt5-build
 (
@@ -44,7 +46,6 @@ mkdir qt5-build
                    -qt-xkbcommon-x11 \
                    -no-xinput2 \
                    -glib \
-                   -no-compile-examples \
                    -no-cups \
                    -no-iconv \
                    -no-tslib \
