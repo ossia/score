@@ -194,42 +194,6 @@ public:
     auto vlay = new Inspector::Layout{this};
 
     visit_ports(inlet_visitor<ControlProcess<Info>>{object, doc, *vlay, this}, object);
-    /*
-    std::size_t i = 0;
-
-
-    // TODO have a port visitor which does them in order to be safe
-    for(auto& port : Info::Metadata::audio_ins)
-    {
-      auto& inlet = *object.inlets()[i];
-      Process::PortWidgetSetup::setupAlone(inlet, doc, *vlay, this);
-      i++;
-    }
-
-    for(auto& port : Info::Metadata::midi)
-    {
-      auto& inlet = *object.inlets()[i];
-      Process::PortWidgetSetup::setupAlone(inlet, doc, *vlay, this);
-      i++;
-    }
-
-    for(auto& port : Info::Metadata::value)
-    {
-      auto& inlet = *object.inlets()[i];
-      Process::PortWidgetSetup::setupAlone(inlet, doc, *vlay, this);
-      i++;
-    }
-
-    if constexpr (info_functions<Info>::control_count > 0)
-    {
-      std::size_t i = 0;
-      ossia::for_each_in_tuple(meta::controls, [&](const auto& ctrl) {
-        auto& inlet = *static_cast<Process::ControlInlet*>(
-            object.inlets()[info_functions<Info>::control_start + i]);
-        Process::PortWidgetSetup::setupControl(inlet, ctrl.make_widget(ctrl, inlet, doc, this, this), doc, *vlay, this);
-        i++;
-      });
-    }*/
   }
 
 private:
