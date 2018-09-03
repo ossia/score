@@ -9,10 +9,6 @@ if(SCORE_PLAYER)
   add_subdirectory(player)
 endif()
 
-if(SCORE_REMOTE)
-  add_subdirectory(remote)
-endif()
-
 add_subdirectory(lib)
 add_subdirectory(plugins)
 
@@ -25,6 +21,10 @@ if(TARGET score_plugin_media)
 endif()
 
 add_subdirectory(app)
+
+if(SCORE_PLAYER)
+  add_subdirectory(player)
+endif()
 
 if(SCORE_COVERAGE)
     add_subdirectory(app-test)
