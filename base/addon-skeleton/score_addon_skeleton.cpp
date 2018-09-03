@@ -39,11 +39,9 @@ score_addon_skeleton::make_commands()
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       CommandFactoryName(), CommandGeneratorMap{}};
 
-  using Types = TypeList<
+  ossia::for_each_type<
 #include <score_addon_skeleton_commands.hpp>
-      >;
-
-  for_each_type<Types>(score::commands::FactoryInserter{cmds.second});
+      >(score::commands::FactoryInserter{cmds.second});
 
   return cmds;
 }
