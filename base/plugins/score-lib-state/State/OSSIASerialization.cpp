@@ -4,7 +4,7 @@
 #include <State/ValueSerializationImpl.hpp>
 #include <State/Domain.hpp>
 #include <State/Unit.hpp>
-
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
 void TSerializer<DataStream, ossia::unit_t>::readFrom(
     DataStream::Serializer& s, const ossia::unit_t& var)
 {

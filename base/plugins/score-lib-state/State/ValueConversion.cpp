@@ -24,8 +24,6 @@
 
 namespace State
 {
-ossia::optional<ossia::value> parseValue(const std::string& input);
-
 namespace convert
 {
 const std::array<const QString, 11> ValuePrettyTypes{
@@ -488,14 +486,17 @@ QString value(const ossia::value& val)
 }
 
 template<std::size_t N>
-auto string_to_vec(std::string_view s)
+auto string_to_vec(std::string_view s0)
 {
   std::array<float, N> o;
-  if(!s.empty() && s.front() == '[')
-    s.remove_prefix(1);
-  if(!s.empty() && s.back() == ']')
-    s.remove_suffix(1);
+  if(!s0.empty() && s0.front() == '[')
+    s0.remove_prefix(1);
+  if(!s0.empty() && s0.back() == ']')
+    s0.remove_suffix(1);
 
+  // todo check when boost updates
+  // to have this work without malloc
+  std::string s{s0};
   using tok_t = boost::tokenizer<boost::escaped_list_separator<char>>;
 
   tok_t tok(s);
