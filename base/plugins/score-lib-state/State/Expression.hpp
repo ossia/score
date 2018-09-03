@@ -161,13 +161,6 @@ SCORE_LIB_STATE_EXPORT optional<State::Expression>
 parseExpression(const QString& str);
 SCORE_LIB_STATE_EXPORT optional<State::Expression>
 parseExpression(const std::string& str);
-SCORE_LIB_STATE_EXPORT optional<ossia::value>
-parseValue(const std::string& str);
-SCORE_LIB_STATE_EXPORT optional<State::Address>
-parseAddress(const QString& str);
-SCORE_LIB_STATE_EXPORT optional<State::AddressAccessor>
-parseAddressAccessor(const QString& str);
-
 SCORE_LIB_STATE_EXPORT State::Expression defaultTrueExpression();
 SCORE_LIB_STATE_EXPORT State::Expression defaultFalseExpression();
 

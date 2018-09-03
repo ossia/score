@@ -17,7 +17,7 @@ function(score_cotire_pre TheTarget)
     set_target_properties(${TheTarget} PROPERTIES
       COTIRE_PREFIX_HEADER_IGNORE_PATH "${COTIRE_PREFIX_HEADER_IGNORE_PATH};/usr/include/boost/preprocessor/")
 
-    if(NOT ${TheTarget} STREQUAL "score_lib_base")
+    if(TARGET score_lib_base AND NOT ${TheTarget} STREQUAL "score_lib_base")
       # We reuse the same prefix header
 
       get_target_property(SCORE_COMMON_PREFIX_HEADER score_lib_base COTIRE_CXX_PREFIX_HEADER)
