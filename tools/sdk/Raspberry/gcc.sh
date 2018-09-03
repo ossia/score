@@ -6,8 +6,8 @@ NPROC=$(nproc)
 mkdir gcc-build
 (
   cd gcc-build
-  export CFLAGS="-O3 -march=armv7-a -g0"
-  export CXXFLAGS="-O3 -march=armv7-a -g0"
+  # export CFLAGS="-O3 -march=armv7-a -g0"
+  # export CXXFLAGS="-O3 -march=armv7-a -g0"
   ../combined/configure \
         --enable-languages=c,c++,lto \
         --enable-gold \
@@ -20,12 +20,14 @@ mkdir gcc-build
         --enable-lto \
         --with-float=hard \
         --with-arch=armv7-a \
-        --with-fpu=vfp \
+        --with-fpu=neon \
         --build=arm-linux-gnueabihf \
         --host=arm-linux-gnueabihf \
         --with-build-config=bootstrap-lto \
+        --enable-stage1-checking=release \
         --target=arm-linux-gnueabihf 
-  make BOOT_CFLAGS="-O3 -march=armv7-a -g0" -j$NPROC
+  # make BOOT_CFLAGS="-O3 -march=armv7-a -g0" -j$NPROC
+  make profiledbootstrap -j$NPROC 
   make install-strip
   rsync -rtva /usr/local/ /usr/
 )
