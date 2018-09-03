@@ -9,7 +9,7 @@ class Model final : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Skeleton::Model)
-  Q_OBJECT
+  W_OBJECT(Model)
 
 public:
   Model(
@@ -36,5 +36,5 @@ private:
   void setDurationAndShrink(const TimeVal& newDuration) override;
 };
 
-using ProcessFactory = Process::GenericProcessModelFactory<Skeleton::Model>;
+using ProcessFactory = Process::ProcessFactory_T<Skeleton::Model>;
 }

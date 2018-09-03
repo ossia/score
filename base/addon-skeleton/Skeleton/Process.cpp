@@ -1,5 +1,7 @@
 #include "Process.hpp"
+#include <wobjectimpl.h>
 
+W_OBJECT_IMPL(Skeleton::Model)
 namespace Skeleton
 {
 

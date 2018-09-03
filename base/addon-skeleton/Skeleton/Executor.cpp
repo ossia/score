@@ -1,65 +1,50 @@
 #include "Executor.hpp"
-
-
-
-#include <Scenario/Execution/score2OSSIA.hpp>
-#include <Explorer/DeviceList.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Skeleton/Process.hpp>
-
+#include <ossia/dataflow/port.hpp>
+#include <Process/ExecutionContext.hpp>
 namespace Skeleton
 {
-ProcessExecutor::ProcessExecutor(const Device::DeviceList& devices)
-    : m_devices{devices}
+class node final
+    : public ossia::nonowning_graph_node
 {
-}
-
-void ProcessExecutor::start(ossia::state&)
-{
-}
-
-void ProcessExecutor::stop()
-{
-}
-
-void ProcessExecutor::pause()
-{
-}
-
-void ProcessExecutor::resume()
-{
-}
-
-ossia::state_element ProcessExecutor::state(ossia::time_value date, double pos)
-{
-  State::Address address{"my_device", {"a", "banana"}};
-  ossia::value value = std::abs(qrand()) % 100;
-  State::Message m;
-  m.address = address;
-  m.value = value;
-
-  if (auto res = Engine::score_to_ossia::message(m, m_devices))
+public:
+  node()
   {
-    if (unmuted())
-      return *res;
-    return {};
   }
-  else
+
+  void run(ossia::token_request tk, ossia::exec_state_facade s) noexcept override
   {
-    return {};
   }
-}
+
+  std::string label() const noexcept override
+  { return "skeleton"; }
+
+private:
+};
 
 ProcessExecutorComponent::ProcessExecutorComponent(
-    Execution::IntervalComponent& parentInterval,
     Skeleton::Model& element,
     const Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
     : ProcessComponent_T{
-          parentInterval, element, ctx, id, "SkeletonExecutorComponent",
-          parent}
+        element, ctx, id, "SkeletonExecutorComponent", parent}
 {
-  m_ossia_process = std::make_shared<ProcessExecutor>(ctx.devices.list());
+  auto n = std::make_shared<Skeleton::node>();
+  this->node = n;
+  m_ossia_process = std::make_shared<ossia::node_process>(n);
+
+  /** Don't forget that the node executes in another thread.
+   * -> handle live updates with the in_exec function, e.g. :
+   *
+   * connect(&element.metadata(), &score::ModelMetadata::ColorChanged,
+   *         this, [=] (const QColor& c) {
+   *
+   *   in_exec([c,n=std::dynamic_pointer_cast<Skeleton::node>(this->node)] {
+   *     n->set_color(c);
+   *   });
+   *
+   * });
+   */
 }
 }
