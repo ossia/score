@@ -15,4 +15,21 @@ public:
   LibraryWidget(JSONModel* model, QWidget* parent);
   ~LibraryWidget();
 };
+
+}
+
+#include <QTreeView>
+namespace Library
+{
+class ProcessWidget : public QWidget
+{
+public:
+  ProcessWidget(QAbstractItemModel& model, QWidget* parent);
+  ~ProcessWidget();
+
+
+private:
+  QTreeView m_tv;
+
+};
 }

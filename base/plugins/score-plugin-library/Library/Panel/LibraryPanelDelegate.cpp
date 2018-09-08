@@ -3,6 +3,7 @@
 #include "LibraryPanelDelegate.hpp"
 
 #include <Library/JSONLibrary/LibraryWidget.hpp>
+#include <Library/JSONLibrary/ProcessesItemModel.hpp>
 #include <Process/ProcessList.hpp>
 #include <QTabWidget>
 #include <score/application/GUIApplicationContext.hpp>
@@ -32,6 +33,10 @@ PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
 
   auto systemLib = new LibraryWidget{systemModel, m_widget};
   m_widget->addTab(systemLib, QObject::tr("System"));
+
+  auto proc_model = new ProcessesItemModel{ctx, m_widget};
+  auto proc_lib = new ProcessWidget{*proc_model, m_widget};
+  m_widget->addTab(proc_lib, QObject::tr("Processes"));
 
   m_widget->setObjectName("LibraryExplorer");
 }
