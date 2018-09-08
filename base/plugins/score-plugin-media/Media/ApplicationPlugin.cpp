@@ -39,6 +39,7 @@ Q_DECLARE_METATYPE(Media::ApplicationPlugin::vst_info)
 W_REGISTER_ARGTYPE(Media::ApplicationPlugin::vst_info)
 Q_DECLARE_METATYPE(std::vector<Media::ApplicationPlugin::vst_info>)
 W_REGISTER_ARGTYPE(std::vector<Media::ApplicationPlugin::vst_info>)
+
 #endif
 
 #if defined(LILV_SHARED)
