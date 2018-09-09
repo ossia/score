@@ -119,7 +119,6 @@ bool MessageDropHandler::drop(
     const QMimeData& mime)
 {
   using namespace Scenario::Command;
-  pres.stopDrawDragLine();
 
   // If the mime data has states in it we can handle it.
   State::MessageList ml;

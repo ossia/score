@@ -135,6 +135,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
       [=](const QPointF& pos, const QMimeData& mime) {
         try
         {
+          stopDrawDragLine();
           m_context.context.app.interfaces<Scenario::DropHandlerList>()
               .dragLeave(*this, pos, mime);
         }
@@ -148,6 +149,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
       [=](const QPointF& pos, const QMimeData& mime) {
         try
         {
+          stopDrawDragLine();
           m_context.context.app.interfaces<Scenario::DropHandlerList>().drop(
               *this, pos, mime);
         }
