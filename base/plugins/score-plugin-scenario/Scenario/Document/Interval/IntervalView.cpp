@@ -1,15 +1,23 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "IntervalView.hpp"
+#include "IntervalModel.hpp"
 
 #include "IntervalMenuOverlay.hpp"
 #include "IntervalPresenter.hpp"
+#include <Process/ProcessMimeSerialization.hpp>
+#include <Scenario/Application/Menus/ScenarioCopy.hpp>
 #include <Process/Dataflow/CableItem.hpp>
+#include <QDrag>
+#include <QMimeData>
 #include <QCursor>
 #include <QGraphicsSceneEvent>
 #include <QtGlobal>
 
 #include <wobjectimpl.h>
+
+#include <Scenario/Process/ScenarioInterface.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 W_OBJECT_IMPL(Scenario::IntervalView)
 namespace Scenario
 {
@@ -154,18 +162,34 @@ void IntervalView::setUngripCursor()
 
 void IntervalView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (event->button() == Qt::MouseButton::LeftButton)
-  {
-    if (event->pos().y() < 4)
-      setGripCursor();
-    else
-      unsetCursor();
-    m_presenter.pressed(event->scenePos());
-  }
+  if (event->pos().y() < 4)
+    setGripCursor();
+  else
+    unsetCursor();
+  m_presenter.pressed(event->scenePos());
 }
 
 void IntervalView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
+
+  if(event->buttons() & Qt::MiddleButton)
+  {
+    if(auto si = dynamic_cast<Scenario::ScenarioInterface*>(presenter().model().parent()))
+    {
+      auto obj = copySelectedElementsToJson(*const_cast<ScenarioInterface*>(si), m_presenter.context());
+
+      if (!obj.empty())
+      {
+        QDrag d{this};
+        auto m = new QMimeData;
+        QJsonDocument doc{obj};;
+        m->setData(score::mime::scenariodata(), doc.toJson(QJsonDocument::Indented));
+        d.setMimeData(m);
+        d.exec();
+      }
+    }
+
+  }
   m_presenter.moved(event->scenePos());
 }
 

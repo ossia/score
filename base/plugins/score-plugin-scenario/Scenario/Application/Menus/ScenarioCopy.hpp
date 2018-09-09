@@ -4,6 +4,10 @@
 class QJsonObject;
 class QObject;
 
+namespace score
+{
+struct DocumentContext;
+}
 namespace Process
 {
 class ProcessModel;
@@ -17,6 +21,7 @@ class EventModel;
 class StateModel;
 class TimeSyncModel;
 
+class ScenarioInterface;
 class BaseScenario;
 class BaseScenarioContainer;
 
@@ -67,4 +72,7 @@ QJsonObject copyProcess(const Process::ProcessModel&);
 //        QObject* parent);
 QJsonObject
 copySelectedScenarioElements(const BaseScenarioContainer& sm, QObject* parent);
+
+QJsonObject copySelectedElementsToJson(ScenarioInterface& s, const score::DocumentContext& ctx);
+
 }

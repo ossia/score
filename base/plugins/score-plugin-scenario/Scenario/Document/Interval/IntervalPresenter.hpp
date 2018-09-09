@@ -80,6 +80,9 @@ public:
 
   const Id<IntervalModel>& id() const;
 
+  const Process::ProcessPresenterContext& context() const
+  { return m_context; }
+
   void on_minDurationChanged(const TimeVal&);
   void on_maxDurationChanged(const TimeVal&);
 
