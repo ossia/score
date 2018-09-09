@@ -66,8 +66,7 @@ bool SlotLibraryHandler::onDrop(
 
   QString filename = addUniqueSuffix(path + "/" + basename + ".layer");
 
-  QFile f(filename);
-  if(f.open(QIODevice::WriteOnly))
+  if(QFile f(filename); f.open(QIODevice::WriteOnly))
   {
     json.remove("PID");
     f.write(QJsonDocument{json}.toJson());
@@ -85,5 +84,42 @@ QStringList SlotLibraryHandler::acceptedMimeTypes() const
 QStringList SlotLibraryHandler::acceptedFiles() const
 {
   return {"*.layer"};
+}
+
+
+
+
+bool ScenarioLibraryHandler::onDrop(
+    Library::FileSystemModel& model,
+    const QMimeData& mime,
+    int row, int column, const QModelIndex& parent)
+{
+  if(!mime.hasFormat(score::mime::scenariodata()))
+    return false;
+
+  auto file = model.fileInfo(parent);
+
+  QString path = file.isDir() ? file.absoluteFilePath() : file.absolutePath();
+
+  auto basename = "Scenario";
+  QString filename = addUniqueSuffix(path + "/" + basename + ".scenario");
+
+  if(QFile f(filename); f.open(QIODevice::WriteOnly))
+  {
+    f.write(mime.data(score::mime::scenariodata()));
+  }
+
+  return true;
+}
+
+QStringList ScenarioLibraryHandler::acceptedMimeTypes() const
+{
+  return {score::mime::scenariodata()};
+
+}
+
+QStringList ScenarioLibraryHandler::acceptedFiles() const
+{
+  return {"*.scenario"};
 }
 }
