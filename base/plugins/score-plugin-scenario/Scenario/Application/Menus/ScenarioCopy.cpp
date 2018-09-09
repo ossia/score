@@ -27,6 +27,7 @@
 #include <score/tools/std/Optional.hpp>
 #include <ossia/detail/thread.hpp>
 #include <vector>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 namespace Scenario
 {
 template <typename Selected_T>
@@ -355,4 +356,30 @@ CategorisedScenario::CategorisedScenario(const BaseScenarioContainer& sm)
   selectedTimeSyncs = selectedElementsVec(getTimeSyncs(sm));
   selectedStates = selectedElementsVec(getStates(sm));
 }
+
+QJsonObject copySelectedElementsToJson(ScenarioInterface& si, const score::DocumentContext& ctx)
+{
+  auto si_obj = dynamic_cast<QObject*>(&si);
+  if (auto sm = dynamic_cast<const Scenario::ProcessModel*>(&si))
+  {
+    return copySelectedScenarioElements(*sm);
+  }
+  else if (auto bsm = dynamic_cast<const Scenario::BaseScenarioContainer*>(&si))
+  {
+    return copySelectedScenarioElements(*bsm, si_obj);
+  }
+  else
+  {
+    // Full-view copy
+    auto& bem = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(ctx.document);
+    if (!bem.baseScenario().selectedChildren().empty())
+    {
+      return copySelectedScenarioElements(
+            bem.baseScenario(), &bem.baseScenario());
+    }
+  }
+
+  return {};
+}
+
 }

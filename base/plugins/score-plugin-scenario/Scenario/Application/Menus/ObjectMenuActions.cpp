@@ -438,27 +438,10 @@ void ObjectMenuActions::setupContextMenu(
 
 QJsonObject ObjectMenuActions::copySelectedElementsToJson()
 {
-  auto si = focusedScenarioInterface(m_parent->currentDocument()->context());
-  auto si_obj = dynamic_cast<QObject*>(const_cast<ScenarioInterface*>(si));
-  if (auto sm = dynamic_cast<const Scenario::ProcessModel*>(si))
+  const auto& ctx = m_parent->currentDocument()->context();
+  if(auto si = focusedScenarioInterface(ctx))
   {
-    return copySelectedScenarioElements(*sm);
-  }
-  else if (auto bsm = dynamic_cast<const Scenario::BaseScenarioContainer*>(si))
-  {
-    return copySelectedScenarioElements(*bsm, si_obj);
-  }
-  else
-  {
-    // Full-view copy
-    auto& bem
-        = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(
-            *m_parent->currentDocument());
-    if (!bem.baseScenario().selectedChildren().empty())
-    {
-      return copySelectedScenarioElements(
-          bem.baseScenario(), &bem.baseScenario());
-    }
+    return Scenario::copySelectedElementsToJson(*const_cast<ScenarioInterface*>(si), ctx);
   }
 
   return {};
@@ -531,7 +514,7 @@ static void writeJsonToScenario(
       self.dispatcher().stack()};
   auto selectedIntervals = selectedElements(getIntervals(scen));
   auto expandMode = self.appPlugin()->editionSettings().expandMode();
-  for (const auto& json_vref : obj["Intervals"].toArray())
+  for (const auto& json_vref : qAsConst(obj["Intervals"].toArray()))
   {
     for (const auto& interval : selectedIntervals)
     {
@@ -543,7 +526,7 @@ static void writeJsonToScenario(
   }
 
   auto selectedStates = selectedElements(getStates(scen));
-  for (const auto& json_vref : obj["States"].toArray())
+  for (const auto& json_vref : qAsConst(obj["States"].toArray()))
   {
     for (const auto& state : selectedStates)
     {
