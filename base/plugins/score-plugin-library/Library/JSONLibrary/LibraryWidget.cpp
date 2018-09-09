@@ -1,12 +1,46 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "LibraryWidget.hpp"
-
+#include <Library/JSONLibrary/ProcessesItemModel.hpp>
 #include <QStandardItemModel>
 #include <QVBoxLayout>
+#include <QFormLayout>
+#include <QLabel>
 
 namespace Library
 {
+class InfoWidget final
+    : public QWidget
+{
+public:
+  InfoWidget(QWidget* parent)
+  {
+    auto lay = new QFormLayout{this};
+    lay->addRow(tr("Name"), &m_name);
+    lay->addRow(tr("Author"), &m_author);
+    lay->addRow(tr("Tags"), &m_tags);
+  }
+
+  void setData(const ProcessData& d)
+  {
+    m_name.setText(d.name);
+    if(auto f = score::GUIAppContext().interfaces<Process::ProcessFactoryList>().get(d.key))
+    {
+      m_tags.setText(f->tags().join(", "));
+    }
+    else
+    {
+      m_tags.clear();
+    }
+  }
+
+
+  QLabel m_name;
+  QLabel m_author;
+  QLabel m_tags;
+
+};
+
 LibraryWidget::LibraryWidget(JSONModel* model, QWidget* parent)
     : QWidget{parent}
 {

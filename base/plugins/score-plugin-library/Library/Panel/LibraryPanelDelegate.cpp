@@ -25,6 +25,8 @@ PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
 
     auto idx = m_systemModel->setRootPath(ctx.settings<Library::Settings::Model>().getPath());
     system_lib->tree().setRootIndex(idx);
+    for (int i = 1; i < m_systemModel->columnCount(); ++i)
+        system_lib->tree().hideColumn(i);
     m_widget->addTab(system_lib, QObject::tr("Library"));
   }
 
@@ -62,9 +64,12 @@ void PanelDelegate::on_modelChanged(score::MaybeDocument oldm, score::MaybeDocum
   {
     if(auto file = newm->document.metadata().fileName(); QFile::exists(file))
     {
-      m_projectView->tree().setModel(m_projectModel);
       auto idx = m_projectModel->setRootPath(QFileInfo{file}.absolutePath());
+
+      m_projectView->tree().setModel(m_projectModel);
       m_projectView->tree().setRootIndex(idx);
+      for (int i = 1; i < m_projectModel->columnCount(); ++i)
+          m_projectView->tree().hideColumn(i);
       return;
     }
   }

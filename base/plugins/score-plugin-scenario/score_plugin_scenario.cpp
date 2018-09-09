@@ -38,6 +38,7 @@
 #include <Scenario/Process/ScenarioFactory.hpp>
 #include <Scenario/Process/ScenarioExecution.hpp>
 #include <Scenario/Settings/ScenarioSettingsFactory.hpp>
+#include <Scenario/Library/SlotLibraryHandler.hpp>
 #include <score_plugin_scenario.hpp>
 #include <State/Message.hpp>
 #include <State/Unit.hpp>
@@ -226,8 +227,9 @@ score_plugin_scenario::factories(
       Dataflow::WidgetInletFactory<Process::ComboBox>,
       Dataflow::WidgetInletFactory<Process::Enum>,
       Dataflow::WidgetInletFactory<Process::TimeSignatureChooser>
-      >,
-      FW<Execution::ProcessComponentFactory, Execution::ScenarioComponentFactory>
+      >
+      , FW<Execution::ProcessComponentFactory, Execution::ScenarioComponentFactory>
+      , FW<Library::LibraryInterface, Scenario::SlotLibraryHandler>
       >(ctx, key);
 }
 

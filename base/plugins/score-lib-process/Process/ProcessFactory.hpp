@@ -36,6 +36,7 @@ public:
 
   virtual QString prettyName() const = 0;
   virtual QString category() const = 0;
+  virtual QStringList tags() const = 0;
   virtual ProcessFlags flags() const = 0;
 
   virtual QString customConstructionData() const;
