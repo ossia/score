@@ -4,35 +4,36 @@
 
 #include <Library/JSONLibrary/LibraryWidget.hpp>
 #include <Library/JSONLibrary/ProcessesItemModel.hpp>
+#include <Library/JSONLibrary/FileSystemModel.hpp>
+#include <Library/JSONLibrary/SystemLibraryModel.hpp>
+#include <Library/JSONLibrary/ProjectLibraryModel.hpp>
 #include <Process/ProcessList.hpp>
 #include <QTabWidget>
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
-
+#include <Library/LibrarySettings.hpp>
+#include <core/document/Document.hpp>
 namespace Library
 {
 PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
     : score::PanelDelegate{ctx}, m_widget{new QTabWidget}
 {
-  auto projectModel = new JSONModel;
-  auto projectLib = new LibraryWidget{projectModel, m_widget};
-  m_widget->addTab(projectLib, QObject::tr("Project"));
-
-  auto systemModel = new JSONModel;
-  auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
-  for (Process::ProcessModelFactory& proc : procs)
   {
-    LibraryElement e;
-    e.category = Category::Process;
-    e.name = proc.prettyName();
-    e.obj["Type"] = "Process";
-    e.obj["uuid"] = toJsonValue(proc.concreteKey().impl());
-    systemModel->addElement(e);
+    m_systemModel = new FileSystemModel{ctx, m_widget};
+    auto system_lib = new SystemLibraryWidget{*m_systemModel, m_widget};
+
+    auto idx = m_systemModel->setRootPath(ctx.settings<Library::Settings::Model>().getPath());
+    system_lib->tree().setRootIndex(idx);
+    m_widget->addTab(system_lib, QObject::tr("Library"));
   }
 
-  auto systemLib = new LibraryWidget{systemModel, m_widget};
-  m_widget->addTab(systemLib, QObject::tr("System"));
+  {
+    m_projectModel = new FileSystemModel{ctx, m_widget};
+    m_projectView = new ProjectLibraryWidget{*m_projectModel, m_widget};
+
+    m_widget->addTab(m_projectView, QObject::tr("Project"));
+  }
 
   auto proc_model = new ProcessesItemModel{ctx, m_widget};
   auto proc_lib = new ProcessWidget{*proc_model, m_widget};
@@ -48,10 +49,28 @@ QWidget* PanelDelegate::widget()
 
 const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
 {
-  static const score::PanelStatus status{false, Qt::RightDockWidgetArea, 0,
+  static const score::PanelStatus status{true, Qt::LeftDockWidgetArea, 0,
                                          QObject::tr("Library"),
                                          QObject::tr("Ctrl+Shift+B")};
 
   return status;
 }
+
+void PanelDelegate::on_modelChanged(score::MaybeDocument oldm, score::MaybeDocument newm)
+{
+  if(newm)
+  {
+    if(auto file = newm->document.metadata().fileName(); QFile::exists(file))
+    {
+      m_projectView->tree().setModel(m_projectModel);
+      auto idx = m_projectModel->setRootPath(QFileInfo{file}.absolutePath());
+      m_projectView->tree().setRootIndex(idx);
+      return;
+    }
+  }
+
+  m_projectView->tree().setModel(nullptr);
 }
+}
+
+

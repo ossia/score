@@ -51,4 +51,72 @@ ProcessWidget::~ProcessWidget()
 
 }
 
+
+FileBrowserWidget::FileBrowserWidget(QAbstractItemModel& model, QWidget* parent)
+  : QWidget{parent}
+{
+  auto lay = new QVBoxLayout;
+  lay->setMargin(0);
+  lay->setContentsMargins(0, 0, 0, 0);
+
+  this->setLayout(lay);
+
+  lay->addWidget(&m_tv);
+  m_tv.setModel(&model);
+  m_tv.setDragEnabled(true);
+  m_tv.setAcceptDrops(true);
+  m_tv.setDropIndicatorShown(true);
+
+}
+
+FileBrowserWidget::~FileBrowserWidget()
+{
+
+}
+
+
+SystemLibraryWidget::SystemLibraryWidget(QAbstractItemModel& model, QWidget* parent)
+  : QWidget{parent}
+{
+  auto lay = new QVBoxLayout;
+  lay->setMargin(0);
+  lay->setContentsMargins(0, 0, 0, 0);
+
+  this->setLayout(lay);
+
+  lay->addWidget(&m_tv);
+  m_tv.setModel(&model);
+  m_tv.setDragEnabled(true);
+  m_tv.setAcceptDrops(true);
+  m_tv.setDropIndicatorShown(true);
+
+}
+
+SystemLibraryWidget::~SystemLibraryWidget()
+{
+
+}
+
+ProjectLibraryWidget::ProjectLibraryWidget(QAbstractItemModel& model, QWidget* parent)
+  : QWidget{parent}
+{
+  auto lay = new QVBoxLayout;
+  lay->setMargin(0);
+  lay->setContentsMargins(0, 0, 0, 0);
+
+  this->setLayout(lay);
+
+  lay->addWidget(&m_tv);
+  m_tv.setModel(&model);
+  m_tv.setDragEnabled(true);
+  m_tv.setAcceptDrops(true);
+  m_tv.setDropIndicatorShown(true);
+
+}
+
+ProjectLibraryWidget::~ProjectLibraryWidget()
+{
+
+}
+
 }

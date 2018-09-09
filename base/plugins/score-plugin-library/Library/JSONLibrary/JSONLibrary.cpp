@@ -23,8 +23,7 @@ enum class LibraryColumns
 
 JSONModel::JSONModel()
 {
-  // elements.append(LibraryElement{"dada", Category::StateNode, {"da di do",
-  // "yada"}, {}});
+  // elements.append(LibraryElement{"dada", Category::StateNode, {"da di do", "yada"}, {}});
 }
 
 void JSONModel::addElement(const LibraryElement& e)
