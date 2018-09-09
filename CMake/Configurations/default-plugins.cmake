@@ -7,6 +7,7 @@ score-lib-device
 score-lib-process
 
 score-plugin-inspector
+score-plugin-library
 score-plugin-deviceexplorer
 score-plugin-curve
 score-plugin-automation

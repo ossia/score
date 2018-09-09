@@ -13,7 +13,7 @@
 #include <ossia/network/value/value_traits.hpp>
 #include <Scenario/Commands/Cohesion/CreateCurves.hpp>
 #include <ossia/detail/thread.hpp>
-
+#include <QFileInfo>
 namespace Scenario
 {
 
@@ -119,6 +119,7 @@ bool DropLayerInScenario::drop(
 
     const auto& doc = score::IDocument::documentContext(scenar);
     DropLayerInInterval::perform(interval, doc, m, json);
+    m.commit();
     return true;
   }
 
@@ -157,8 +158,6 @@ void DropLayerInInterval::perform(
 
   // Finally we show the newly created rack
   m.showRack(interval);
-
-  m.commit();
 }
 
 bool DropLayerInInterval::drop(
@@ -171,6 +170,29 @@ bool DropLayerInInterval::drop(
 
     const auto json = QJsonDocument::fromJson(mime.data(score::mime::layerdata())).object();
     perform(interval, doc, m, json);
+    m.commit();
+    return true;
+  }
+  else if(mime.hasUrls())
+  {
+    const auto& doc = score::IDocument::documentContext(interval);
+    Scenario::Command::Macro m{new Scenario::Command::DropProcessInIntervalMacro, doc};
+    bool ok = false;
+    for(const QUrl& u : mime.urls())
+    {
+      auto path = u.toLocalFile();
+      if(QFile f{path}; QFileInfo{f}.suffix() == "layer" && f.open(QIODevice::ReadOnly))
+      {
+        ok = true;
+        QJsonParseError e{};
+        const auto json = QJsonDocument::fromJson(f.readAll(), &e).object();
+        if(e.error == QJsonParseError::NoError)
+          perform(interval, doc, m, json);
+      }
+    }
+
+    if(ok)
+      m.commit();
     return true;
   }
 

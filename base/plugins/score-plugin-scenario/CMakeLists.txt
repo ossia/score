@@ -291,6 +291,9 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Tools/dataStructures.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Tools/elementFindingHelper.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/ViewCommands/PutLayerModelToFront.hpp"
+
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Library/SlotLibraryHandler.hpp"
+
   "${CMAKE_CURRENT_SOURCE_DIR}/tests/helpers/ForwardDeclaration.hpp"
 
 
@@ -564,6 +567,8 @@ set(SRCS ${SRCS}
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Tools/dataStructures.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Library/SlotLibraryHandler.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_scenario.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Interpolation/Commands/ChangeAddress.cpp"
@@ -592,7 +597,7 @@ target_link_libraries(score_plugin_scenario
         score_lib_base
     score_lib_process score_lib_device score_plugin_deviceexplorer
     score_lib_state score_plugin_curve score_plugin_automation
-    score_lib_inspector Threads::Threads)
+    score_lib_inspector score_plugin_library Threads::Threads)
 
 if(SCORE_WEBSOCKETS)
 target_link_libraries(score_plugin_scenario PRIVATE Qt5::WebSockets)

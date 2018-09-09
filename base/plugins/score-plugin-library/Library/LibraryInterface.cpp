@@ -13,4 +13,21 @@ void LibraryInterface::setup(ProcessesItemModel& model, const score::GUIApplicat
 
 }
 
+QStringList LibraryInterface::acceptedFiles() const
+{
+  return {};
+}
+
+QStringList LibraryInterface::acceptedMimeTypes() const
+{
+  return {};
+}
+
+bool LibraryInterface::onDrop(
+    FileSystemModel& model
+    , const QMimeData& mime
+    , int row, int column, const QModelIndex& parent)
+{
+  return false;
+}
 }
