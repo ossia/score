@@ -14,6 +14,7 @@
 #include <Scenario/Commands/Cohesion/CreateCurves.hpp>
 #include <ossia/detail/thread.hpp>
 #include <QFileInfo>
+#include <Scenario/Commands/Scenario/ScenarioPasteElements.hpp>
 namespace Scenario
 {
 
@@ -95,6 +96,29 @@ bool DropPortInScenario::drop(
 
     m.commit();
     return true;
+  }
+
+  return false;
+}
+
+
+bool DropScenario::drop(
+    const TemporalScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
+{
+  if(mime.hasUrls())
+  {
+    const auto& doc = pres.context().context;
+    auto& sm = pres.model();
+    auto path = mime.urls().first().toLocalFile();
+    if(QFile f{path}; QFileInfo{f}.suffix() == "scenario" && f.open(QIODevice::ReadOnly))
+    {
+      CommandDispatcher<> d{doc.commandStack};
+      d.submitCommand(new Scenario::Command::ScenarioPasteElements(
+                         sm,
+                         QJsonDocument::fromJson(f.readAll()).object(),
+                         pres.toScenarioPoint(pos)));
+      return true;
+    }
   }
 
   return false;

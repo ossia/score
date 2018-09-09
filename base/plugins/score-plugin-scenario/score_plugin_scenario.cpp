@@ -203,7 +203,7 @@ score_plugin_scenario::factories(
       FW<score::SettingsDelegateFactory, Scenario::Settings::Factory>,
       FW<score::PanelDelegateFactory, Scenario::ObjectPanelDelegateFactory>,
       //      FW<score::PanelDelegateFactory, Scenario::PanelDelegateFactory>,
-      FW<Scenario::DropHandler, Scenario::MessageDropHandler,
+      FW<Scenario::DropHandler, Scenario::MessageDropHandler, Scenario::DropScenario,
          Scenario::DropProcessInScenario, Scenario::DropPortInScenario, Scenario::DropLayerInScenario>,
       FW<Scenario::IntervalDropHandler, Scenario::DropProcessInInterval, Scenario::DropLayerInInterval,
          Scenario::AutomationDropHandler>,
@@ -229,7 +229,7 @@ score_plugin_scenario::factories(
       Dataflow::WidgetInletFactory<Process::TimeSignatureChooser>
       >
       , FW<Execution::ProcessComponentFactory, Execution::ScenarioComponentFactory>
-      , FW<Library::LibraryInterface, Scenario::SlotLibraryHandler>
+      , FW<Library::LibraryInterface, Scenario::SlotLibraryHandler, Scenario::ScenarioLibraryHandler>
       >(ctx, key);
 }
 

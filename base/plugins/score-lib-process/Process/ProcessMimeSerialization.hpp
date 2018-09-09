@@ -16,6 +16,10 @@ inline constexpr auto layerdata()
 {
   return "application/x-score-layerdata";
 }
+inline constexpr auto scenariodata()
+{
+  return "application/x-score-scenariodata";
+}
 }
 }
 

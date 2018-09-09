@@ -41,6 +41,16 @@ class DropLayerInScenario final : public DropHandler
       const QMimeData& mime) override;
 };
 
+class DropScenario final : public DropHandler
+{
+  SCORE_CONCRETE("34961e8b-19a5-408f-af90-55f59ce8c58a")
+
+  bool drop(
+      const Scenario::TemporalScenarioPresenter&,
+      QPointF pos,
+      const QMimeData& mime) override;
+};
+
 class DropLayerInInterval final : public IntervalDropHandler
 {
   SCORE_CONCRETE("9df2eac6-6680-43cc-9634-60324416ba04")

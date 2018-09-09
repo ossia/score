@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TemporalScenarioView.hpp"
 
+#include <Scenario/Application/Menus/ScenarioCopy.hpp>
 #include <Process/LayerView.hpp>
 #include <QApplication>
 #include <QColor>
@@ -14,13 +15,17 @@
 #include <QPainter>
 #include <QPen>
 #include <QDebug>
+#include <QDrag>
+#include <QMimeData>
+#include <Process/ProcessMimeSerialization.hpp>
 #include <qnamespace.h>
 #include <wobjectimpl.h>
 
 namespace Scenario
 {
-TemporalScenarioView::TemporalScenarioView(QGraphicsItem* parent)
+TemporalScenarioView::TemporalScenarioView(const ProcessModel& m, QGraphicsItem* parent)
     : LayerView{parent}
+    , m_scenario{m}
 {
   this->setFlags(
       ItemIsSelectable | ItemIsFocusable | ItemClipsChildrenToShape);
@@ -96,10 +101,26 @@ void TemporalScenarioView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void TemporalScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(m_moving || (event->buttonDownScreenPos(Qt::LeftButton) - event->screenPos()).manhattanLength() > QApplication::startDragDistance())
+  if(event->buttons() & Qt::MiddleButton)
   {
-    m_moving = true;
-    moved(event->scenePos());
+    auto obj = copySelectedScenarioElements(m_scenario);
+    if (!obj.empty())
+    {
+      QDrag d{this};
+      auto m = new QMimeData;
+      QJsonDocument doc{obj};;
+      m->setData(score::mime::scenariodata(), doc.toJson(QJsonDocument::Indented));
+      d.setMimeData(m);
+      d.exec();
+    }
+  }
+  else
+  {
+    if(m_moving || (event->buttonDownScreenPos(Qt::LeftButton) - event->screenPos()).manhattanLength() > QApplication::startDragDistance())
+    {
+      m_moving = true;
+      moved(event->scenePos());
+    }
   }
   event->accept();
 }

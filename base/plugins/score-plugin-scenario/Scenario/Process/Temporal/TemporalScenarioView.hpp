@@ -16,12 +16,13 @@ class QPainter;
 
 namespace Scenario
 {
+class ProcessModel;
 class TemporalScenarioPresenter;
 
 class TemporalScenarioView final : public Process::LayerView
 {
 public:
-  TemporalScenarioView(QGraphicsItem* parent);
+  TemporalScenarioView(const ProcessModel& m, QGraphicsItem* parent);
   ~TemporalScenarioView();
 
   void paint_impl(QPainter* painter) const override;
@@ -70,6 +71,7 @@ protected:
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
 private:
+  const ProcessModel& m_scenario;
   QRectF m_selectArea{};
   QPointF m_previousPoint{};
   ossia::optional<QRectF> m_dragLine{};

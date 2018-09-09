@@ -40,8 +40,8 @@ ScenarioTemporalLayerFactory::ScenarioTemporalLayerFactory(
 Process::LayerView* ScenarioTemporalLayerFactory::makeLayerView(
     const Process::ProcessModel& p, QGraphicsItem* parent) const
 {
-  if (dynamic_cast<const Scenario::ProcessModel*>(&p))
-    return new TemporalScenarioView{parent};
+  if (auto s = dynamic_cast<const Scenario::ProcessModel*>(&p))
+    return new TemporalScenarioView{*s, parent};
 
   return nullptr;
 }
