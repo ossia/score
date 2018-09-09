@@ -12,8 +12,12 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/LibraryElement.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/LibraryWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/ProcessesItemModel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/SystemLibraryModel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/ProjectLibraryModel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/FileSystemModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/Panel/LibraryPanelDelegate.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/Panel/LibraryPanelFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Library/LibrarySettings.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/LibraryInterface.hpp"
 )
 set(SRCS
@@ -24,6 +28,7 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/Panel/LibraryPanelDelegate.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/Panel/LibraryPanelFactory.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/LibraryWidget.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Library/LibrarySettings.cpp"
 )
 
 add_library(score_plugin_library ${SRCS} ${HDRS})

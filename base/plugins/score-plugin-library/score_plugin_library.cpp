@@ -4,6 +4,7 @@
 
 #include <Library/Panel/LibraryPanelFactory.hpp>
 #include <Library/LibraryInterface.hpp>
+#include <Library/LibrarySettings.hpp>
 #include <score/plugins/customfactory/FactorySetup.hpp>
 
 
@@ -27,8 +28,9 @@ score_plugin_library::guiFactories(
 {
   return instantiate_factories<
       score::ApplicationContext,
-      FW<score::PanelDelegateFactory, Library::PanelDelegateFactory>>(
-      ctx, key);
+        FW<score::PanelDelegateFactory, Library::PanelDelegateFactory>
+      , FW<score::SettingsDelegateFactory, Library::Settings::Factory>
+      >(ctx, key);
 }
 
 #include <score/plugins/PluginInstances.hpp>
