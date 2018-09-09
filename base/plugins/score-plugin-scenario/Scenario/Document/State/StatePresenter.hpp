@@ -15,7 +15,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT StatePresenter final : public QObject
 
 public:
   StatePresenter(
-      const StateModel& model, QGraphicsItem* parentview, QObject* parent);
+      const StateModel& model, const score::DocumentContext& ctx, QGraphicsItem* parentview, QObject* parent);
 
   virtual ~StatePresenter();
 
@@ -45,6 +45,6 @@ private:
   const StateModel& m_model;
   graphics_item_ptr<StateView> m_view{};
 
-  CommandDispatcher<> m_dispatcher;
+  const score::DocumentContext& m_ctx;
 };
 }

@@ -489,7 +489,7 @@ void TemporalScenarioPresenter::on_timeSyncCreated(
 
 void TemporalScenarioPresenter::on_stateCreated(const StateModel& state)
 {
-  auto st_pres = new StatePresenter{state, m_view, this};
+  auto st_pres = new StatePresenter{state, m_context.context, m_view, this};
   m_states.insert(st_pres);
 
   st_pres->view()->setScale(m_graphicalScale);

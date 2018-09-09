@@ -67,9 +67,9 @@ LayerPresenter::LayerPresenter(
   m_intervalPresenter = new TemporalIntervalPresenter{layer.interval(), ctx,
                                                       false, view, this};
   m_startStatePresenter = new StatePresenter{
-      layer.BaseScenarioContainer::startState(), m_view, this};
+      layer.BaseScenarioContainer::startState(), ctx, m_view, this};
   m_endStatePresenter = new StatePresenter{
-      layer.BaseScenarioContainer::endState(), m_view, this};
+      layer.BaseScenarioContainer::endState(), ctx, m_view, this};
   m_startEventPresenter = new EventPresenter{layer.startEvent(), m_view, this};
   m_endEventPresenter = new EventPresenter{layer.endEvent(), m_view, this};
   m_startNodePresenter
