@@ -514,7 +514,7 @@ static void writeJsonToScenario(
       self.dispatcher().stack()};
   auto selectedIntervals = selectedElements(getIntervals(scen));
   auto expandMode = self.appPlugin()->editionSettings().expandMode();
-  for (const auto& json_vref : qAsConst(obj["Intervals"].toArray()))
+  for (const auto& json_vref : obj["Intervals"].toArray())
   {
     for (const auto& interval : selectedIntervals)
     {
@@ -526,7 +526,7 @@ static void writeJsonToScenario(
   }
 
   auto selectedStates = selectedElements(getStates(scen));
-  for (const auto& json_vref : qAsConst(obj["States"].toArray()))
+  for (const auto& json_vref : obj["States"].toArray())
   {
     for (const auto& state : selectedStates)
     {
