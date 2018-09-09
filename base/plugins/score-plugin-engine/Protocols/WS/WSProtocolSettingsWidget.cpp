@@ -9,6 +9,8 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QPlainTextEdit>
+#include <QQmlComponent>
+#include <QQmlEngine>
 #include <QSpinBox>
 #include <QString>
 #include <QVariant>
@@ -34,6 +36,36 @@ WSProtocolSettingsWidget::WSProtocolSettingsWidget(QWidget* parent)
   m_codeEdit->setSizePolicy(
       QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
   m_codeEdit->setMinimumHeight(300);
+
+  connect(m_codeEdit, &JSEdit::editingFinished,
+          this, [=] {
+    auto engine = new QQmlEngine;
+    auto comp = new QQmlComponent{engine};
+    connect(
+        comp, &QQmlComponent::statusChanged, this,
+        [=](QQmlComponent::Status status)
+    {
+          switch (status)
+          {
+            case QQmlComponent::Status::Ready:
+            {
+              auto object = comp->create();
+              if(auto prop = object->property("host").toString(); !prop.isEmpty())
+              {
+                m_addressNameEdit->setText(prop);
+              }
+              object->deleteLater();
+            }
+            default:
+              qDebug() << status << comp->errorString();
+          }
+          comp->deleteLater();
+          engine->deleteLater();
+    });
+
+    comp->setData(m_codeEdit->document()->toPlainText().toUtf8(), QUrl{});
+
+  });
 
   auto layout = new QGridLayout;
 
