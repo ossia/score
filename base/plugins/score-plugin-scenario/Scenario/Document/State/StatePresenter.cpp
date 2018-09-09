@@ -6,6 +6,9 @@
 
 #include <QApplication>
 #include <QMimeData>
+#include <QUrl>
+#include <QFile>
+#include <QFileInfo>
 #include <QStringList>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
@@ -25,16 +28,17 @@
 #include <score/widgets/GraphicsItem.hpp>
 #include <score/model/Identifier.hpp>
 
+#include <QJsonDocument>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::StatePresenter)
 namespace Scenario
 {
 StatePresenter::StatePresenter(
-    const StateModel& model, QGraphicsItem* parentview, QObject* parent)
+    const StateModel& model, const score::DocumentContext& ctx, QGraphicsItem* parentview, QObject* parent)
     : QObject{parent}
     , m_model{model}
     , m_view{new StateView{*this, parentview}}
-    , m_dispatcher{score::IDocument::documentContext(m_model).commandStack}
+    , m_ctx{ctx}
 {
   // The scenario catches this :
   con(m_model.selection, &Selectable::changed, m_view,
@@ -91,7 +95,28 @@ void StatePresenter::handleDrop(const QMimeData& mime)
 
     auto cmd = new Command::AddMessagesToState{m_model, ml};
 
-    m_dispatcher.submitCommand(cmd);
+    CommandDispatcher<>{m_ctx.commandStack}.submitCommand(cmd);
+  }
+  else if(mime.hasUrls())
+  {
+    State::MessageList ml;
+    for(const auto& u : mime.urls())
+    {
+      auto path = u.toLocalFile();
+      if(QFile f{path}; QFileInfo{f}.suffix() == "cues" && f.open(QIODevice::ReadOnly))
+      {
+        State::MessageList sub;
+        fromJsonArray(
+            QJsonDocument::fromJson(f.readAll()).array(),
+            sub);
+        ml += sub;
+      }
+    }
+    if(!ml.empty())
+    {
+      auto cmd = new Command::AddMessagesToState{m_model, ml};
+      CommandDispatcher<>{m_ctx.commandStack}.submitCommand(cmd);
+    }
   }
 }
 

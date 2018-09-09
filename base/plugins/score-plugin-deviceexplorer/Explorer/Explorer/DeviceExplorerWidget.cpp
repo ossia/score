@@ -1013,7 +1013,7 @@ void DeviceExplorerWidget::removeNodes()
   };
 
   std::set<Device::NodePath, PathComparator> paths;
-  for (const auto& n : Device::filterUniqueParents(nodes))
+  for (const auto& n : filterUniqueParents(nodes))
   {
     if (n->is<Device::DeviceSettings>())
     {

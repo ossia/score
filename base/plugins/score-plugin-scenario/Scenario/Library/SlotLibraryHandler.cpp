@@ -1,7 +1,10 @@
 #include <Scenario/Library/SlotLibraryHandler.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
+#include <State/MessageListSerialization.hpp>
+#include <State/StateMimeTypes.hpp>
 #include <QMimeData>
 #include <Library/JSONLibrary/FileSystemModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 namespace Scenario
 {
 
@@ -94,32 +97,67 @@ bool ScenarioLibraryHandler::onDrop(
     const QMimeData& mime,
     int row, int column, const QModelIndex& parent)
 {
-  if(!mime.hasFormat(score::mime::scenariodata()))
-    return false;
-
-  auto file = model.fileInfo(parent);
-
-  QString path = file.isDir() ? file.absoluteFilePath() : file.absolutePath();
-
-  auto basename = "Scenario";
-  QString filename = addUniqueSuffix(path + "/" + basename + ".scenario");
-
-  if(QFile f(filename); f.open(QIODevice::WriteOnly))
+  if(mime.hasFormat(score::mime::scenariodata()))
   {
-    f.write(mime.data(score::mime::scenariodata()));
+    auto file = model.fileInfo(parent);
+    QString path = file.isDir() ? file.absoluteFilePath() : file.absolutePath();
+
+    auto obj = QJsonDocument::fromJson(mime.data(score::mime::scenariodata())).object();
+    const auto& states = obj["States"].toArray();
+    if(states.size() == 1 && obj["Intervals"].toArray().size() == 0)
+    {
+      const auto& state = states.first().toObject();
+
+      // Go from a tree to a list
+      auto msgs = toJsonObject(flatten(fromJsonObject<Process::MessageNode>(state["Messages"].toObject())))["Data"].toArray();
+
+      auto basename = state["Metadata"].toObject()["ScriptingName"].toString();
+      QString filename = addUniqueSuffix(path + "/" + basename + ".cues");
+      if(QFile f(filename); f.open(QIODevice::WriteOnly))
+      {
+        f.write(QJsonDocument{msgs}.toJson());
+      }
+    }
+    else
+    {
+      auto basename = "Scenario";
+      QString filename = addUniqueSuffix(path + "/" + basename + ".scenario");
+
+      if(QFile f(filename); f.open(QIODevice::WriteOnly))
+      {
+        f.write(mime.data(score::mime::scenariodata()));
+      }
+    }
+
+    return true;
+  }
+  else if(mime.hasFormat(score::mime::messagelist()))
+  {
+    auto file = model.fileInfo(parent);
+    QString path = file.isDir() ? file.absoluteFilePath() : file.absolutePath();
+
+    QString filename = addUniqueSuffix(path + "/Messages.cues");
+    if(QFile f(filename); f.open(QIODevice::WriteOnly))
+    {
+      f.write(mime.data(score::mime::messagelist()));
+    }
+    return true;
   }
 
-  return true;
+  return false;
 }
 
 QStringList ScenarioLibraryHandler::acceptedMimeTypes() const
 {
-  return {score::mime::scenariodata()};
+  return {
+    score::mime::scenariodata(),
+    score::mime::messagelist()
+  };
 
 }
 
 QStringList ScenarioLibraryHandler::acceptedFiles() const
 {
-  return {"*.scenario"};
+  return {"*.scenario", "*.cues"};
 }
 }

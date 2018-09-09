@@ -45,8 +45,8 @@ DisplayedElementsProvider::make_presenters(
   {
     return Scenario::DisplayedElementsPresenterContainer{
         new Scenario::FullViewIntervalPresenter{m, ctx, view_parent, parent},
-        new Scenario::StatePresenter{bs->startState(), view_parent, parent},
-        new Scenario::StatePresenter{bs->endState(), view_parent, parent},
+        new Scenario::StatePresenter{bs->startState(), ctx, view_parent, parent},
+        new Scenario::StatePresenter{bs->endState(), ctx, view_parent, parent},
         new Scenario::EventPresenter{bs->startEvent(), view_parent, parent},
         new Scenario::EventPresenter{bs->endEvent(), view_parent, parent},
         new Scenario::TimeSyncPresenter{bs->startTimeSync(), view_parent,

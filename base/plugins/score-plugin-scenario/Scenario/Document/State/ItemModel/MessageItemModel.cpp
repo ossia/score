@@ -25,6 +25,9 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <QFile>
+#include <QFileInfo>
+#include <QUrl>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::MessageItemModel)
 namespace Scenario
@@ -152,11 +155,44 @@ bool MessageItemModel::setHeaderData(
 
 QStringList MessageItemModel::mimeTypes() const
 {
-  return {score::mime::state()};
+  return {score::mime::messagelist()};
 }
+
+struct SelectedNodes
+{
+  /**
+   * @brief parents The topmost parents of the selected parameters
+   */
+  std::vector<Process::MessageNode*> parents;
+
+  /**
+   * @brief messages The selected messages
+   */
+  std::vector<Process::MessageNode*> messages;
+};
 
 QMimeData* MessageItemModel::mimeData(const QModelIndexList& indexes) const
 {
+  SelectedNodes nodes;
+  ossia::transform(
+        indexes, std::back_inserter(nodes.parents),
+        [&](const QModelIndex& idx) { return &nodeFromModelIndex(idx); });
+  nodes.parents = filterUniqueParents(nodes.parents);
+
+  State::MessageList messages;
+  for (auto* node : nodes.parents)
+  {
+    messages += flatten(*node);
+  }
+
+  if (!messages.empty())
+  {
+    auto mimeData = new QMimeData;
+    Mime<State::MessageList>::Serializer s{*mimeData};
+    s.serialize(messages);
+    return mimeData;
+  }
+
   return nullptr;
 }
 
@@ -177,8 +213,7 @@ bool MessageItemModel::canDropMimeData(
     return false;
   }
 
-  // TODO extended to accept mime::device, mime::address, mime::node?
-  if (!data || (!data->hasFormat(score::mime::messagelist())))
+  if (!(data->hasFormat(score::mime::messagelist()) || data->hasUrls()))
   {
     return false;
   }
@@ -203,25 +238,42 @@ bool MessageItemModel::dropMimeData(
     return false;
   }
 
-  // TODO extended to accept mime::device, mime::address, mime::node?
-  if (!data || (!data->hasFormat(score::mime::messagelist())))
+  if (data->hasFormat(score::mime::messagelist()))
   {
-    return false;
+    State::MessageList ml;
+    fromJsonArray(
+        QJsonDocument::fromJson(data->data(score::mime::messagelist())).array(),
+        ml);
+
+    auto cmd = new Command::AddMessagesToState{stateModel, ml};
+
+    CommandDispatcher<> disp(score::IDocument::documentContext(stateModel).commandStack);
+    beginResetModel();
+    disp.submitCommand(cmd);
+    endResetModel();
   }
-
-  State::MessageList ml;
-  fromJsonArray(
-      QJsonDocument::fromJson(data->data(score::mime::messagelist())).array(),
-      ml);
-
-  auto cmd = new Command::AddMessagesToState{stateModel, ml};
-
-  CommandDispatcher<> disp(score::IDocument::documentContext(stateModel).commandStack);
-  beginResetModel();
-  disp.submitCommand(cmd);
-  endResetModel();
-
-  return true;
+  else if(data->hasUrls())
+  {
+    State::MessageList ml;
+    for(const auto& u : data->urls())
+    {
+      auto path = u.toLocalFile();
+      if(QFile f{path}; QFileInfo{f}.suffix() == "cues" && f.open(QIODevice::ReadOnly))
+      {
+        State::MessageList sub;
+        fromJsonArray(
+            QJsonDocument::fromJson(f.readAll()).array(),
+            sub);
+        ml += sub;
+      }
+    }
+    if(!ml.empty())
+    {
+      auto cmd = new Command::AddMessagesToState{stateModel, ml};
+      CommandDispatcher<>{score::IDocument::documentContext(stateModel).commandStack}.submitCommand(cmd);
+    }
+  }
+  return false;
 }
 
 Qt::DropActions MessageItemModel::supportedDropActions() const
@@ -231,7 +283,7 @@ Qt::DropActions MessageItemModel::supportedDropActions() const
 
 Qt::DropActions MessageItemModel::supportedDragActions() const
 {
-  return Qt::IgnoreAction;
+  return Qt::CopyAction;
 }
 
 Qt::ItemFlags MessageItemModel::flags(const QModelIndex& index) const

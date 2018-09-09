@@ -63,8 +63,8 @@ ScenarioDisplayedElementsProvider::make_presenters(
     const auto& endNode = sm->timeSyncs.at(endEvent.timeSync());
     return DisplayedElementsPresenterContainer{
         new FullViewIntervalPresenter{m, ctx, view_parent, parent},
-        new StatePresenter{startState, view_parent, parent},
-        new StatePresenter{endState, view_parent, parent},
+        new StatePresenter{startState, ctx, view_parent, parent},
+        new StatePresenter{endState, ctx, view_parent, parent},
         new EventPresenter{startEvent, view_parent, parent},
         new EventPresenter{endEvent, view_parent, parent},
         new TimeSyncPresenter{startNode, view_parent, parent},
