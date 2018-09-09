@@ -267,6 +267,7 @@ bool MessageItemModel::dropMimeData(
         ml += sub;
       }
     }
+
     if(!ml.empty())
     {
       auto cmd = new Command::AddMessagesToState{stateModel, ml};

@@ -14,6 +14,8 @@
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 #include <State/MessageListSerialization.hpp>
+#include <QFile>
+#include <QFileInfo>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 
 namespace Scenario
@@ -82,7 +84,7 @@ bool MessageDropHandler::dragMove(
     QPointF pos,
     const QMimeData& mime)
 {
-  if (!mime.formats().contains(score::mime::messagelist()))
+  if (!mime.formats().contains(score::mime::messagelist()) && !mime.hasUrls())
     return false;
 
   auto pt = pres.toScenarioPoint(pos);
@@ -117,14 +119,33 @@ bool MessageDropHandler::drop(
     const QMimeData& mime)
 {
   using namespace Scenario::Command;
-  // If the mime data has states in it we can handle it.
-  if (!mime.formats().contains(score::mime::messagelist()))
-    return false;
-
   pres.stopDrawDragLine();
 
-  Mime<State::MessageList>::Deserializer des{mime};
-  State::MessageList ml = des.deserialize();
+  // If the mime data has states in it we can handle it.
+  State::MessageList ml;
+  if (mime.formats().contains(score::mime::messagelist()))
+  {
+    Mime<State::MessageList>::Deserializer des{mime};
+    ml = des.deserialize();
+  }
+  else if(mime.hasUrls())
+  {
+    for(const auto& u : mime.urls())
+    {
+      auto path = u.toLocalFile();
+      if(QFile f{path}; QFileInfo{f}.suffix() == "cues" && f.open(QIODevice::ReadOnly))
+      {
+        State::MessageList sub;
+        fromJsonArray(
+            QJsonDocument::fromJson(f.readAll()).array(),
+            sub);
+        ml += sub;
+      }
+    }
+  }
+
+  if(ml.empty())
+    return true;
 
   Scenario::Command::Macro m{
     new Scenario::Command::CreateStateMacro,
