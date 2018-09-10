@@ -121,11 +121,13 @@ void LoadOnlyProcessInInterval::undo(IntervalModel& interval) const
 Process::ProcessModel& LoadOnlyProcessInInterval::redo(
     IntervalModel& interval, const score::DocumentContext& ctx) const
 {
+
   // Create process model
   auto obj = m_data[score::StringConstant().Process].toObject();
   auto key = fromJsonValue<UuidKey<Process::ProcessModel>>(obj[score::StringConstant().uuid]);
   auto fac = ctx.app.interfaces<Process::ProcessFactoryList>().get(key);
   SCORE_ASSERT(fac);
+  // TODO handle missing process
   JSONObject::Deserializer des{obj};
   auto proc = fac->load(des.toVariant(), &interval);
   const auto ports = proc->findChildren<Process::Port*>();

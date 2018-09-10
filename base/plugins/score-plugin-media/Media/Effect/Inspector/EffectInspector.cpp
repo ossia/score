@@ -109,7 +109,7 @@ void InspectorWidget::add_score(std::size_t pos)
 
   dialog->on_okPressed = [&](const auto& proc, const QString&) {
     m_dispatcher.submitCommand(
-        new InsertEffect{process(), proc, pos});
+        new InsertEffect{process(), proc, {}, pos});
   };
   dialog->launchWindow();
   dialog->deleteLater();
