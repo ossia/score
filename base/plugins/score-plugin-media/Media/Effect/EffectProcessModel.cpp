@@ -47,22 +47,28 @@ void ProcessModel::insertEffect(Process::ProcessModel* eff, int pos)
   }
   clamp(pos, 0, int(m_effects.size()));
 
-  if (pos > 0)
+  if(!bad_effect)
   {
-    if (inlets[0]->type != m_effects.at_pos(pos - 1).outlets()[0]->type)
+    if (pos > 0)
     {
-      bad_effect = true;
+      if (inlets[0]->type != m_effects.at_pos(pos - 1).outlets()[0]->type)
+      {
+        bad_effect = true;
+      }
     }
-  }
-  if (m_effects.size() > 0 && pos < (int)m_effects.size())
-  {
-    if (outlets[0]->type != m_effects.at_pos(pos).inlets()[0]->type)
+    if (m_effects.size() > 0 && pos < (int)m_effects.size())
     {
-      bad_effect = true;
+      if (outlets[0]->type != m_effects.at_pos(pos).inlets()[0]->type)
+      {
+        bad_effect = true;
+      }
     }
   }
 
   m_effects.insert_at(pos, eff);
+
+  setBadChaining(bad_effect);
+
   connect(
       eff, &Process::ProcessModel::inletsChanged, this,
       &ProcessModel::checkChaining);
@@ -70,24 +76,31 @@ void ProcessModel::insertEffect(Process::ProcessModel* eff, int pos)
       eff, &Process::ProcessModel::outletsChanged, this,
       &ProcessModel::checkChaining);
 
-  if (pos == 0)
+  if(!bad_effect)
   {
-    if (inlets[0]->type != this->inlet->type)
+    if (pos == 0)
     {
-      this->inlet->type = inlets[0]->type;
-      inletsChanged();
+      if (inlets[0]->type != this->inlet->type)
+      {
+        this->inlet->type = inlets[0]->type;
+        inletsChanged();
+      }
+    }
+    if (pos == (int)m_effects.size() - 1)
+    {
+      if (outlets[0]->type != this->outlet->type)
+      {
+        this->outlet->type = outlets[0]->type;
+        outletsChanged();
+      }
     }
   }
-  if (pos == (int)m_effects.size() - 1)
+  else
   {
-    if (outlets[0]->type != this->outlet->type)
-    {
-      this->outlet->type = outlets[0]->type;
-      outletsChanged();
-    }
+    inletsChanged();
+    outletsChanged();
   }
 
-  setBadChaining(bad_effect);
 
   effectsChanged();
 }
@@ -105,7 +118,7 @@ void ProcessModel::moveEffect(const Id<Process::ProcessModel>& e, int new_pos)
   if (m_effects.size() == 0)
     new_pos = 0;
   else
-    new_pos = clamp(new_pos, 0, (int)m_effects.size() - 1);
+    new_pos = clamp(new_pos, 0, (int)m_effects.size());
 
   auto old_pos = effectPosition(e);
   if (old_pos != -1)

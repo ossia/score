@@ -166,9 +166,9 @@ void DropLayerInInterval::perform(
   const bool small_view = json["View"].toString() == "Small";
   const int slot_index = json["SlotIndex"].toInt();
 
-  const auto old_p = fromJsonObject<Path<Process::ProcessModel>>(json["Path"]);
   if(same_doc)
   {
+    const auto old_p = fromJsonObject<Path<Process::ProcessModel>>(json["Path"]);
     if(auto obj = old_p.try_find(doc))
     if(auto itv = qobject_cast<IntervalModel*>(obj->parent()))
     {
