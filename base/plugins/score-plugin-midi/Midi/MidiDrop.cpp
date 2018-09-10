@@ -5,16 +5,18 @@
 #include <Midi/Commands/SetOutput.hpp>
 #include <Midi/MidiProcess.hpp>
 #include <rtmidi17/reader.hpp>
-#include <QByteArray>
-#include <QFile>
-#include <QMimeData>
-#include <QUrl>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
+#include <QByteArray>
+#include <QFile>
+#include <QMimeData>
+#include <QFileInfo>
+#include <QUrl>
+
 namespace Midi
 {
 
@@ -86,6 +88,8 @@ MidiTrack::parse(const QMimeData& mime, const score::DocumentContext& ctx)
       return {};
 
     QFile f(mime.urls().first().toLocalFile());
+    if(!QFileInfo{f}.suffix().toLower().contains("mid"))
+      return {};
 
     if (!f.open(QIODevice::ReadOnly))
       return {};
