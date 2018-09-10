@@ -1,4 +1,3 @@
-cmake_minimum_required(VERSION 3.1)
 project(score_plugin_recording LANGUAGES CXX)
 
 if(NOT TARGET score_plugin_engine)

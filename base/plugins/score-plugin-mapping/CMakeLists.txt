@@ -1,4 +1,3 @@
-cmake_minimum_required(VERSION 3.1)
 project(score_plugin_mapping LANGUAGES CXX)
 
 score_common_setup()
@@ -41,8 +40,6 @@ set(SRCS
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
-target_link_libraries(${PROJECT_NAME} PUBLIC
-                     Qt5::Core Qt5::Widgets
-                     score_lib_base score_lib_device score_plugin_deviceexplorer score_lib_process score_lib_state score_plugin_curve)
+target_link_libraries(${PROJECT_NAME} PUBLIC score_lib_base score_lib_inspector score_lib_process score_plugin_curve)
 
 setup_score_plugin(${PROJECT_NAME})
