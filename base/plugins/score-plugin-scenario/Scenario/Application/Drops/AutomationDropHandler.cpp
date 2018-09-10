@@ -153,8 +153,7 @@ bool DropLayerInScenario::drop(
 
   auto& interval = m.createBox(scenar, pt.date, pt.date + t, pt.y);
 
-  const auto& doc = score::IDocument::documentContext(scenar);
-  DropLayerInInterval::perform(interval, doc, m, json);
+  DropLayerInInterval::perform(interval, pres.context().context, m, json);
   m.commit();
   return true;
 }
