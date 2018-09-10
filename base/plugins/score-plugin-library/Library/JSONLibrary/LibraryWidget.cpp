@@ -53,6 +53,7 @@ ProcessWidget::ProcessWidget(QAbstractItemModel& model, QWidget* parent)
 
   lay->addWidget(&m_tv);
   m_tv.setModel(&model);
+  m_tv.setHeaderHidden(true);
   m_tv.setDragEnabled(true);
   m_tv.setAcceptDrops(true);
   m_tv.setDropIndicatorShown(true);
@@ -76,6 +77,7 @@ FileBrowserWidget::FileBrowserWidget(QAbstractItemModel& model, QWidget* parent)
 
   lay->addWidget(&m_tv);
   m_tv.setModel(&model);
+  m_tv.setHeaderHidden(true);
   m_tv.setDragEnabled(true);
   m_tv.setAcceptDrops(true);
   m_tv.setDropIndicatorShown(true);
@@ -99,6 +101,7 @@ SystemLibraryWidget::SystemLibraryWidget(QAbstractItemModel& model, QWidget* par
 
   lay->addWidget(&m_tv);
   m_tv.setModel(&model);
+  m_tv.setHeaderHidden(true);
   m_tv.setDragEnabled(true);
   m_tv.setAcceptDrops(true);
   m_tv.setDropIndicatorShown(true);
@@ -121,6 +124,7 @@ ProjectLibraryWidget::ProjectLibraryWidget(QAbstractItemModel& model, QWidget* p
 
   lay->addWidget(&m_tv);
   m_tv.setModel(&model);
+  m_tv.setHeaderHidden(true);
   m_tv.setDragEnabled(true);
   m_tv.setAcceptDrops(true);
   m_tv.setDropIndicatorShown(true);
