@@ -7,7 +7,6 @@
 
 #include <Curve/CurveConversion.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionFunctions.hpp>
 namespace Automation

@@ -1,8 +1,8 @@
 #!/bin/bash -eux
 
-if [[ "$1" == "" ]]; 
-	then
-	exit 1
+if [[ "$1" == "" ]];
+  then
+  exit 1
 fi
 
 FAUST_SRC=$1
@@ -20,7 +20,6 @@ mkdir "score-faust-$FAUST_NAME"
 cd "score-faust-$FAUST_NAME"
 
 echo "
-cmake_minimum_required(VERSION 3.1)
 set(CMAKE_AUTOMOC ON)
 project(score_faust_$FAUST_NAME LANGUAGES CXX)
 

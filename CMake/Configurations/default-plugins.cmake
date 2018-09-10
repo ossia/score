@@ -9,12 +9,12 @@ score-lib-process
 score-plugin-inspector
 score-plugin-deviceexplorer
 score-plugin-curve
+score-plugin-mapping
 score-plugin-automation
 score-plugin-library
 score-plugin-scenario
 score-plugin-loop
 
-score-plugin-mapping
 score-plugin-engine
 
 score-plugin-media

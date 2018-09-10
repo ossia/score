@@ -7,6 +7,8 @@ function(score_cotire_pre TheTarget)
   if(SCORE_COTIRE)
     if(SCORE_COTIRE_DISABLE_UNITY)
       set_property(TARGET ${TheTarget} PROPERTY COTIRE_ADD_UNITY_BUILD FALSE)
+    else()
+      set_property(TARGET ${TheTarget} PROPERTY COTIRE_UNITY_SOURCE_MAXIMUM_NUMBER_OF_INCLUDES 9999)
     endif()
 
     if(SCORE_COTIRE_ALL_HEADERS)

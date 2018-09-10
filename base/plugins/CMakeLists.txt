@@ -1,4 +1,3 @@
-cmake_minimum_required(VERSION 3.0)
 enable_testing()
 
 # SCORE_PLUGINS_TO_BUILD is defined in the configuration.

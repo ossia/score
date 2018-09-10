@@ -1,4 +1,3 @@
-cmake_minimum_required(VERSION 3.0)
 project(score_plugin_deviceexplorer_tests)
 enable_testing()
 include(CppcheckTargets)
