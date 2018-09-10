@@ -212,12 +212,12 @@ void SlotHeader::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
   const auto xpos = event->pos().x();
   if (xpos >= 0 && xpos < 16)
   {
-    if (this->cursor().shape() != Qt::OpenHandCursor)
-      setCursor(Qt::OpenHandCursor);
+    if (this->cursor().shape() != Qt::CrossCursor)
+      setCursor(Qt::CrossCursor);
   }
   else
   {
-    if (this->cursor().shape() == Qt::OpenHandCursor)
+    if (this->cursor().shape() == Qt::CrossCursor)
       unsetCursor();
   }
 }
@@ -227,19 +227,19 @@ void SlotHeader::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
   const auto xpos = event->pos().x();
   if (xpos >= 0 && xpos < 16)
   {
-    if (this->cursor().shape() != Qt::OpenHandCursor)
-      setCursor(Qt::OpenHandCursor);
+    if (this->cursor().shape() != Qt::CrossCursor)
+      setCursor(Qt::CrossCursor);
   }
   else
   {
-    if (this->cursor().shape() == Qt::OpenHandCursor)
+    if (this->cursor().shape() == Qt::CrossCursor)
       unsetCursor();
   }
 }
 
 void SlotHeader::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
-  if (this->cursor().shape() == Qt::OpenHandCursor)
+  if (this->cursor().shape() == Qt::CrossCursor)
     unsetCursor();
 }
 

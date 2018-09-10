@@ -9,18 +9,25 @@
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
+#include <Process/ProcessMimeSerialization.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Process/Style/Pixmaps.hpp>
 #include <Process/WidgetLayer/WidgetProcessFactory.hpp>
+#include <QFileInfo>
+#include <ossia/detail/thread.hpp>
 #include <QGraphicsProxyWidget>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
+#include <QJsonDocument>
+#include <QApplication>
 #include <QPainter>
 #include <QWindow>
+#include <core/document/Document.hpp>
 #include <Scenario/Document/CommentBlock/TextItem.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/widgets/GraphicWidgets.hpp>
 #include <score/widgets/RectItem.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 
 namespace Media::Effect
 {
@@ -62,7 +69,8 @@ public:
     m_invalid = b;
     update();
   }
-  explicit View(QGraphicsItem* parent) : Process::LayerView{parent}
+  explicit View(QGraphicsItem* parent)
+    : Process::LayerView{parent}
   {
   }
 
@@ -175,7 +183,7 @@ public:
       delete item;
     }
 
-    double pos_x = 0;
+    double pos_x = 10;
     for (auto& effect : object.effects())
     {
       auto root_item = new score::RectItem(this);
@@ -208,7 +216,7 @@ public:
           {0., 0., 170.,
            fx_ui.root_item->childrenBoundingRect().height() + 10.});
       fx_ui.root_item->setPos(pos_x, 0);
-      pos_x += 5 + fx_ui.root_item->boundingRect().width();
+      pos_x += 10 + fx_ui.root_item->boundingRect().width();
 
       connect(
           &effect.selection, &Selectable::changed, root_item, [=](bool ok) {
@@ -218,12 +226,42 @@ public:
     }
   }
 
+
+  int findDropPosition(QPointF pos)
+  {
+    int idx = effects.size();
+    int i = 0;
+    for(const auto& item : effects)
+    {
+      if(pos.x() < item->root_item->pos().x() + item->root_item->boundingRect().width() * 0.5)
+      {
+        idx = i;
+        break;
+      }
+      i++;
+    }
+    return idx;
+  }
+
 private:
+  std::vector<std::shared_ptr<EffectUi>> effects;
   void paint_impl(QPainter* p) const override
   {
     if (m_invalid)
     {
-      p->fillRect(boundingRect(), ScenarioStyle::instance().AudioPortBrush);
+      p->fillRect(boundingRect(),
+                  ScenarioStyle::instance().AudioPortBrush);
+    }
+
+    if(m_lit)
+    {
+      int idx = *m_lit;
+
+      p->setRenderHint(QPainter::Antialiasing, false);
+      p->setPen(ScenarioStyle::instance().TransparentPen);
+      p->setBrush(ScenarioStyle::instance().StateDot.getBrush());
+      p->drawRoundedRect(QRectF(2.5 + idx * 180, 15, 5, boundingRect().height() - 30), 4, 4);
+      p->setRenderHint(QPainter::Antialiasing, false);
     }
   }
   void mousePressEvent(QGraphicsSceneMouseEvent* ev) override
@@ -255,14 +293,36 @@ private:
     ev->accept();
   }
 
-  std::vector<std::shared_ptr<EffectUi>> effects;
+  void dragEnterEvent(QGraphicsSceneDragDropEvent* ev) override
+  {
+    dragMoveEvent(ev);
+  }
+  void dragMoveEvent(QGraphicsSceneDragDropEvent* ev) override
+  {
+    m_lit = findDropPosition(ev->pos());
+    ev->accept();
+    update();
+  }
+  void dragLeaveEvent(QGraphicsSceneDragDropEvent* ev) override
+  {
+    m_lit = {};
+    ev->accept();
+    update();
+  }
+  void dropEvent(QGraphicsSceneDragDropEvent* ev) override
+  {
+    dropReceived(ev->pos(), *ev->mimeData());
+    m_lit = {};
+  }
+
+  optional<int> m_lit{};
 };
 
 class Presenter final : public Process::LayerPresenter
 {
 public:
   explicit Presenter(
-      const Process::ProcessModel& model,
+      const Effect::ProcessModel& model,
       View* view,
       const Process::ProcessPresenterContext& ctx,
       QObject* parent)
@@ -273,8 +333,13 @@ public:
       m_context.context.focusDispatcher.focus(this);
     });
 
-    connect(
-        m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
+    connect(m_view, &View::askContextMenu,
+            this, &Presenter::contextMenuRequested);
+    connect(m_view, &View::dropReceived,
+            this, [=] (const QPointF& pos, const QMimeData& m) {
+      int idx = view->findDropPosition(pos);
+      on_drop(m, idx);
+    });
 
     auto& m = static_cast<const Effect::ProcessModel&>(model);
     con(m, &Effect::ProcessModel::effectsChanged, this, [&] {
@@ -323,8 +388,76 @@ public:
     return m_layer.id();
   }
 
+  void on_drop(const QMimeData& mime, int pos)
+  {
+    const auto& ctx = context().context;
+    if(mime.hasFormat(score::mime::processdata()))
+    {
+      Mime<Process::ProcessData>::Deserializer des{mime};
+      Process::ProcessData p = des.deserialize();
+
+      auto cmd = new InsertEffect(m_layer, p.key, p.customData, pos);
+      CommandDispatcher<> d{ctx.commandStack};
+      d.submitCommand(cmd);
+    }
+    else
+    {
+      bool all_layers = ossia::all_of(
+            mime.urls(),
+            [] (const QUrl& u) { return QFileInfo{u.toLocalFile()}.suffix() == "layer"; });
+
+      QJsonObject json;
+      if(mime.hasFormat(score::mime::layerdata()))
+      {
+        json = QJsonDocument::fromJson(mime.data(score::mime::layerdata())).object();
+      }
+      else if(mime.hasUrls() && all_layers)
+      {
+        auto path = mime.urls().first().toLocalFile();
+        if(QFile f{path}; f.open(QIODevice::ReadOnly))
+        {
+          json = QJsonDocument::fromJson(f.readAll()).object();
+        }
+      }
+
+      auto cmd = new LoadEffect(m_layer, json, pos);
+      CommandDispatcher<> d{ctx.commandStack};
+      d.submitCommand(cmd);
+
+      // TODO refactor in some way with DropLayerInInterval ?
+      /*
+      const auto pid = ossia::get_pid();
+      const bool same_doc = (pid == json["PID"].toInt()) && (ctx.document.id().val() == json["Document"] .toInt());
+      const bool small_view = json["View"].toString() == "Small";
+      const int slot_index = json["SlotIndex"].toInt();
+
+      const auto old_p = fromJsonObject<Path<Process::ProcessModel>>(json["Path"]);
+      if(same_doc)
+      {
+        if(auto obj = old_p.try_find(ctx))
+        if(auto itv = qobject_cast<Scenario::IntervalModel*>(obj->parent()))
+        {
+          if(small_view && (qApp->keyboardModifiers() & Qt::ALT))
+          {
+            m.moveSlot(*itv, interval, slot_index);
+          }
+          else
+          {
+            m.moveProcess(*itv, interval, obj->id());
+          }
+        }
+      }
+      else
+      {
+        // Just create a new process
+        m.loadProcessInSlot(interval, json);
+      }
+      */
+    }
+  }
+
 private:
-  const Process::ProcessModel& m_layer;
+  const Effect::ProcessModel& m_layer;
   View* m_view{};
 };
 }

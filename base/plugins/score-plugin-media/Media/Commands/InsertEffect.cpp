@@ -1,13 +1,17 @@
 #include "InsertEffect.hpp"
+#include <score/document/ChangeId.hpp>
+
 namespace Media
 {
 InsertEffect::InsertEffect(
     const Effect::ProcessModel& model,
     const UuidKey<Process::ProcessModel>& effectKind,
+    QString data,
     std::size_t effectPos)
     : m_model{model}
     , m_id{getStrongId(model.effects())}
     , m_effectKind{effectKind}
+    , m_data{data}
     , m_pos{effectPos}
 {
 }
@@ -26,7 +30,7 @@ void InsertEffect::redo(const score::DocumentContext& ctx) const
 
   if (auto fact = fact_list.get(m_effectKind))
   {
-    auto model = fact->make(TimeVal::zero(), {}, m_id, &process);
+    auto model = fact->make(TimeVal::zero(), m_data, m_id, &process);
     process.insertEffect(model, m_pos);
   }
   else
@@ -38,13 +42,72 @@ void InsertEffect::redo(const score::DocumentContext& ctx) const
 
 void InsertEffect::serializeImpl(DataStreamInput& s) const
 {
-  s << m_model << m_id << m_effectKind << m_pos;
+  s << m_model << m_id << m_effectKind << m_data << m_pos;
 }
 
 void InsertEffect::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_model >> m_id >> m_effectKind >> m_pos;
+  s >> m_model >> m_id >> m_effectKind >> m_data >> m_pos;
 }
+
+
+
+
+LoadEffect::LoadEffect(
+    const Effect::ProcessModel& model,
+    const QJsonObject& data,
+    std::size_t effectPos)
+    : m_path{model}
+    , m_id{getStrongId(model.effects())}
+    , m_data{data}
+    , m_pos{effectPos}
+{
+}
+
+void LoadEffect::undo(const score::DocumentContext& ctx) const
+{
+  auto& process = m_path.find(ctx);
+  if (ossia::find(process.effects(), m_id) != process.effects().end())
+    process.removeEffect(m_id);
+}
+
+void LoadEffect::redo(const score::DocumentContext& ctx) const
+{
+  auto& echain = m_path.find(ctx);
+
+  // Create process model
+  auto obj = m_data[score::StringConstant().Process].toObject();
+  auto key = fromJsonValue<UuidKey<Process::ProcessModel>>(obj[score::StringConstant().uuid]);
+  auto fac = ctx.app.interfaces<Process::ProcessFactoryList>().get(key);
+  SCORE_ASSERT(fac);
+  // TODO handle missing effect
+  JSONObject::Deserializer des{obj};
+  auto fx = fac->load(des.toVariant(), &echain);
+  const auto ports = fx->findChildren<Process::Port*>();
+  for(Process::Port* port : ports)
+  {
+    while(!port->cables().empty())
+    {
+      port->removeCable(port->cables().back());
+    }
+  }
+
+  score::IDocument::changeObjectId(*fx, m_id);
+
+  echain.insertEffect(fx, m_pos);
+}
+
+void LoadEffect::serializeImpl(DataStreamInput& s) const
+{
+  s << m_path << m_id << m_data << m_pos;
+}
+
+void LoadEffect::deserializeImpl(DataStreamOutput& s)
+{
+  s >> m_path >> m_id >> m_data >> m_pos;
+}
+
+
 
 RemoveEffect::RemoveEffect(
     const Effect::ProcessModel& model, const Process::ProcessModel& effect)

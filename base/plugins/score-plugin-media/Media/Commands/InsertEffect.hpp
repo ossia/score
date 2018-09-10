@@ -31,6 +31,7 @@ public:
   InsertEffect(
       const Effect::ProcessModel& model,
       const UuidKey<Process::ProcessModel>& effectKind,
+      QString d,
       std::size_t effectPos);
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -44,6 +45,31 @@ private:
   Path<Effect::ProcessModel> m_model;
   Id<Process::ProcessModel> m_id;
   UuidKey<Process::ProcessModel> m_effectKind;
+  QString m_data;
+  quint64 m_pos{};
+};
+
+class LoadEffect final : public score::Command
+{
+  SCORE_COMMAND_DECL(
+      Media::CommandFactoryName(), LoadEffect, "Load effect")
+public:
+  LoadEffect(
+      const Effect::ProcessModel& model,
+      const QJsonObject& obj,
+      std::size_t effectPos);
+
+  void undo(const score::DocumentContext& ctx) const override;
+  void redo(const score::DocumentContext& ctx) const override;
+
+protected:
+  void serializeImpl(DataStreamInput& s) const override;
+  void deserializeImpl(DataStreamOutput& s) override;
+
+private:
+  Path<Effect::ProcessModel> m_path;
+  Id<Process::ProcessModel> m_id;
+  QJsonObject m_data;
   quint64 m_pos{};
 };
 
