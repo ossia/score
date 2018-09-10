@@ -2,10 +2,9 @@ if(NOT WIN32)
   return()
 endif()
 
-set(SCORE_BIN_INSTALL_DIR "bin")
+set(SCORE_BIN_INSTALL_DIR ".")
 
-### TODO InstallRequiredSystemLibraries ###
- # Compiler Runtime DLLs
+# Compiler Runtime DLLs
 if (MSVC)
    # Visual Studio
     set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP true)
@@ -51,7 +50,7 @@ install(FILES
   "${QT_DLL_DIR}/Qt5QuickWidgets${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5QuickControls2${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5QuickTemplates2${DEBUG_CHAR}.dll"
-  DESTINATION ${SCORE_BIN_INSTALL_DIR})
+  DESTINATION "${SCORE_BIN_INSTALL_DIR}")
 
 # Qt conf file
 install(
