@@ -127,27 +127,36 @@ bool DropScenario::drop(
 bool DropLayerInScenario::drop(
     const TemporalScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
 {
+  QJsonObject json;
   if (mime.formats().contains(score::mime::layerdata()))
   {
-    Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, pres.context().context};
-
-    // Create a box.
-    const Scenario::ProcessModel& scenar = pres.model();
-    const Scenario::Point pt = pres.toScenarioPoint(pos);
-
-    const auto json = QJsonDocument::fromJson(mime.data(score::mime::layerdata())).object();
-
-    const TimeVal t = TimeVal::fromMsecs(json["Duration"].toDouble());
-
-    auto& interval = m.createBox(scenar, pt.date, pt.date + t, pt.y);
-
-    const auto& doc = score::IDocument::documentContext(scenar);
-    DropLayerInInterval::perform(interval, doc, m, json);
-    m.commit();
-    return true;
+    json = QJsonDocument::fromJson(mime.data(score::mime::layerdata())).object();
+  }
+  else if(mime.hasUrls())
+  {
+    if(QFile f{mime.urls()[0].toLocalFile()}; QFileInfo{f}.suffix() == "layer" && f.open(QIODevice::ReadOnly))
+    {
+      json = QJsonDocument::fromJson(f.readAll()).object();
+    }
   }
 
-  return false;
+  if(json.empty())
+    return false;
+
+  Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, pres.context().context};
+
+  // Create a box.
+  const Scenario::ProcessModel& scenar = pres.model();
+  const Scenario::Point pt = pres.toScenarioPoint(pos);
+
+  const TimeVal t = TimeVal::fromMsecs(json["Duration"].toDouble());
+
+  auto& interval = m.createBox(scenar, pt.date, pt.date + t, pt.y);
+
+  const auto& doc = score::IDocument::documentContext(scenar);
+  DropLayerInInterval::perform(interval, doc, m, json);
+  m.commit();
+  return true;
 }
 
 void DropLayerInInterval::perform(
