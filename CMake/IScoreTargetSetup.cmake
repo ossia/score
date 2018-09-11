@@ -106,8 +106,15 @@ function(score_set_gcc_compile_options theTarget)
         #          "$<$<CONFIG:Debug>:-Wa,--compress-debug-sections>"
         #          "$<$<CONFIG:Debug>:-Wl,--compress-debug-sections=zlib>"
                   "$<$<CONFIG:Debug>:-fvar-tracking-assignments>"
-                  "$<$<CONFIG:Debug>:-Wl,--gdb-index>"
         )
+
+      if(LINKER_IS_GOLD OR LINKER_IS_LLD)
+        if(NOT OSSIA_SANITIZE)
+          target_link_libraries(${theTarget} PUBLIC
+            "$<$<CONFIG:Debug>:-Wl,--gdb-index>"
+          )
+        endif()
+      endif()
     endif()
 
       get_target_property(NO_LTO ${theTarget} SCORE_TARGET_NO_LTO)
