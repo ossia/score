@@ -15,6 +15,7 @@
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/selection/SelectionStack.hpp>
 #include <score/widgets/MarginLess.hpp>
+#include <score/widgets/SearchLineEdit.hpp>
 class QToolButton;
 class QGraphicsSceneMouseEvent;
 namespace Scenario
@@ -141,7 +142,8 @@ private:
   score::SelectionDispatcher m_selectionDispatcher;
 };
 
-class SearchWidget final : public QWidget
+class SearchWidget final
+    : public score::SearchLineEdit
 {
 public:
   SearchWidget(const score::GUIApplicationContext& ctx);
@@ -150,15 +152,14 @@ public:
   {
     this->isHidden() ? this->show() : this->hide();
   }
-  void search();
+
+private:
+  void search() override;
 
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent* event) override;
   void on_findAddresses(QStringList strlst);
-  void search_for(QString address);
 
-private:
-  QLineEdit* m_lineEdit{};
   const score::GUIApplicationContext& m_ctx;
 };
 

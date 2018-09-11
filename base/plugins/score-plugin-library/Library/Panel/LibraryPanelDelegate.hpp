@@ -21,7 +21,6 @@ private:
 
   FileSystemModel* m_projectModel{};
   ProjectLibraryWidget* m_projectView{};
-  FileSystemModel* m_systemModel{};
 
 };
 }

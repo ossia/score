@@ -1,36 +1,35 @@
 #pragma once
-#include "JSONLibrary.hpp"
+#include <score/tools/std/Optional.hpp>
+#include <Library/JSONLibrary/ProcessesItemModel.hpp>
 
 #include <QStandardItemModel>
 #include <QTableView>
 #include <QTreeView>
+class QFileSystemModel;
+class QSortFilterProxyModel;
+namespace score { struct GUIApplicationContext; }
 namespace Library
 {
+class ProcessTreeView
+    : public QTreeView
+{
+  W_OBJECT(ProcessTreeView)
+public:
+  using QTreeView::QTreeView;
+  void selected(optional<ProcessData> p) W_SIGNAL(selected, p);
+
+  void selectionChanged(
+      const QItemSelection& selected, const QItemSelection& deselected);
+};
+
 class ProcessWidget : public QWidget
 {
 public:
   ProcessWidget(QAbstractItemModel& model, QWidget* parent);
   ~ProcessWidget();
 
-
 private:
-  QTreeView m_tv;
-
-};
-}
-
-#include <QTreeView>
-namespace Library
-{
-class FileBrowserWidget : public QWidget
-{
-public:
-  FileBrowserWidget(QAbstractItemModel& model, QWidget* parent);
-  ~FileBrowserWidget();
-
-
-private:
-  QTreeView m_tv;
+  ProcessTreeView m_tv;
 
 };
 }
@@ -41,12 +40,14 @@ namespace Library
 class SystemLibraryWidget : public QWidget
 {
 public:
-  SystemLibraryWidget(QAbstractItemModel& model, QWidget* parent);
+  SystemLibraryWidget(const score::GUIApplicationContext& ctx, QWidget* parent);
   ~SystemLibraryWidget();
 
-  QTreeView& tree() { return m_tv; }
+  void setRoot(QString path);
 
 private:
+  QFileSystemModel* m_model{};
+  QSortFilterProxyModel* m_proxy{};
   QTreeView m_tv;
 
 };
@@ -58,13 +59,17 @@ namespace Library
 class ProjectLibraryWidget : public QWidget
 {
 public:
-  ProjectLibraryWidget(QAbstractItemModel& model, QWidget* parent);
+  ProjectLibraryWidget(const score::GUIApplicationContext& ctx, QWidget* parent);
   ~ProjectLibraryWidget();
 
-  QTreeView& tree() { return m_tv; }
-
+  void setRoot(QString path);
 private:
+  QFileSystemModel* m_model{};
+  QSortFilterProxyModel* m_proxy{};
   QTreeView m_tv;
 
 };
 }
+
+W_REGISTER_ARGTYPE(optional<Library::ProcessData>)
+Q_DECLARE_METATYPE(optional<Library::ProcessData>)
