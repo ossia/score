@@ -19,23 +19,10 @@ namespace Library
 PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
     : score::PanelDelegate{ctx}, m_widget{new QTabWidget}
 {
-  {
-    m_systemModel = new FileSystemModel{ctx, m_widget};
-    auto system_lib = new SystemLibraryWidget{*m_systemModel, m_widget};
+  m_widget->addTab(new SystemLibraryWidget{ctx, m_widget}, QObject::tr("Library"));
 
-    auto idx = m_systemModel->setRootPath(ctx.settings<Library::Settings::Model>().getPath());
-    system_lib->tree().setRootIndex(idx);
-    for (int i = 1; i < m_systemModel->columnCount(); ++i)
-        system_lib->tree().hideColumn(i);
-    m_widget->addTab(system_lib, QObject::tr("Library"));
-  }
-
-  {
-    m_projectModel = new FileSystemModel{ctx, m_widget};
-    m_projectView = new ProjectLibraryWidget{*m_projectModel, m_widget};
-
-    m_widget->addTab(m_projectView, QObject::tr("Project"));
-  }
+  m_projectView = new ProjectLibraryWidget{ctx, m_widget};
+  m_widget->addTab(m_projectView, QObject::tr("Project"));
 
   auto proc_model = new ProcessesItemModel{ctx, m_widget};
   auto proc_lib = new ProcessWidget{*proc_model, m_widget};
@@ -64,17 +51,12 @@ void PanelDelegate::on_modelChanged(score::MaybeDocument oldm, score::MaybeDocum
   {
     if(auto file = newm->document.metadata().fileName(); QFile::exists(file))
     {
-      auto idx = m_projectModel->setRootPath(QFileInfo{file}.absolutePath());
-
-      m_projectView->tree().setModel(m_projectModel);
-      m_projectView->tree().setRootIndex(idx);
-      for (int i = 1; i < m_projectModel->columnCount(); ++i)
-          m_projectView->tree().hideColumn(i);
+      m_projectView->setRoot(QFileInfo{file}.absolutePath());
       return;
     }
   }
 
-  m_projectView->tree().setModel(nullptr);
+  m_projectView->setRoot({});
 }
 }
 
