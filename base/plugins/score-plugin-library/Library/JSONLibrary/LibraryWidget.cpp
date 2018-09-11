@@ -172,9 +172,22 @@ public:
         m_name.setText(desc.prettyName);
         m_author.setText(tr("Provided by ") + desc.author);
         m_description.setText(desc.description);
-        m_io.setText(QString("%1 inputs, %2 outputs")
-                     .arg(desc.inlets ? QString::number(desc.inlets->size()) : QString{"Undefined"})
-                     .arg(desc.outlets ? QString::number(desc.outlets->size()) : QString{"Undefined"}));
+        QString io;
+        if(desc.inlets)
+        {
+          io += QString::number(desc.inlets->size()) + tr(" input");
+          if(desc.inlets->size() > 1)
+            io += "s";
+        }
+        if(desc.inlets && desc.outlets)
+          io += ", ";
+        if(desc.outlets)
+        {
+          io += QString::number(desc.outlets->size()) + tr(" output");
+          if(desc.outlets->size() > 1)
+            io += "s";
+        }
+        m_io.setText(io);
         if(!desc.tags.empty())
         {
           m_tags.setText(tr("Tags: ") + desc.tags.join(", "));
