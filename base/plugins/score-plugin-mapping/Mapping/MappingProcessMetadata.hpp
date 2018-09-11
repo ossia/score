@@ -14,6 +14,11 @@ PROCESS_METADATA(
     "12a5d9b8-823e-4303-99f8-34db37c448b4",
     "Mapping",
     "Mapping (float)",
+    Process::ProcessCategory::Mapping,
     "Mappings",
+    "Mapping on a single value",
+    "ossia score",
     (QStringList{"Curve", "Mapping"}),
+    {std::vector<Process::PortType>{Process::PortType::Message}},
+    {std::vector<Process::PortType>{Process::PortType::Message}},
     Process::ProcessFlags::SupportsTemporal)

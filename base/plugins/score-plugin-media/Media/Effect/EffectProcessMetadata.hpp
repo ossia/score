@@ -15,7 +15,12 @@ PROCESS_METADATA(
     "d27bc0ed-a93e-434c-913d-ccab0b22b4e8",
     "Effects",
     "Effect chain",
+    Process::ProcessCategory::Structure,
     "Structure",
+    "Puts processes one after the other",
+    "ossia score",
+    {},
+    {},
     {},
     Process::ProcessFlags::SupportsTemporal
   | Process::ProcessFlags::PutInNewSlot

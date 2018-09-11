@@ -11,6 +11,10 @@ struct Node
     static const constexpr auto prettyName = "Custom Mapping (Value)";
     static const constexpr auto objectKey = "MathMapping";
     static const constexpr auto category = "Control";
+    static const constexpr auto author = "ossia score, ExprTK (Arash Partow)";
+    static const constexpr auto kind = Process::ProcessCategory::Mapping;
+    static const constexpr auto description = "Applies a math expression to an input.\n"
+                                              "See the documentation at http://www.partow.net/programming/exprtk";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto uuid
         = make_uuid("ae84e8b6-74ff-4259-aeeb-305d95cdfcab");
@@ -92,7 +96,11 @@ struct Node
     static const constexpr auto prettyName = "Audio Filter";
     static const constexpr auto objectKey = "MathAudioFilter";
     static const constexpr auto category = "Audio";
+    static const constexpr auto author = "ossia score, ExprTK (Arash Partow)";
     static const constexpr auto tags = std::array<const char*, 0>{};
+    static const constexpr auto kind = Process::ProcessCategory::AudioEffect;
+    static const constexpr auto description = "Applies a math expression to an audio input.\n"
+                                              "See the documentation at http://www.partow.net/programming/exprtk";
     static const constexpr auto uuid
         = make_uuid("13e1f4b0-1c2c-40e6-93ad-dfc91aac5335");
 

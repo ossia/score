@@ -12,7 +12,10 @@ struct Node
     static const constexpr auto prettyName = "Gain";
     static const constexpr auto objectKey = "Gain";
     static const constexpr auto category = "Audio";
+    static const constexpr auto author = "ossia score";
     static const constexpr auto tags = std::array<const char*, 0>{};
+    static const constexpr auto kind = Process::ProcessCategory::AudioEffect;
+    static const constexpr auto description = "A simple volume control";
     static const constexpr auto uuid
         = make_uuid("6c158669-0f81-41c9-8cc6-45820dcda867");
 

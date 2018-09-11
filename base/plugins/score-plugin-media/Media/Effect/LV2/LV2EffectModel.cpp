@@ -22,6 +22,7 @@
 #include <Media/Effect/LV2/LV2Node.hpp>
 #include <Media/Effect/LV2/LV2Window.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
+#include <score/tools/std/StringHash.hpp>
 
 #include <wobjectimpl.h>
 #include <QListWidget>
@@ -31,6 +32,51 @@
 W_OBJECT_IMPL(Media::LV2::LV2EffectModel)
 namespace Media::LV2
 {
+  optional<Lilv::Plugin> find_lv2_plugin(Lilv::World& world, QString path)
+  {
+    static tsl::hopscotch_map<QString, const LilvPlugin*> plug_map;
+    if(auto it = plug_map.find(path); it != plug_map.end())
+    {
+      if(it->second)
+        return it->second;
+      else
+        return {};
+    }
+
+    auto old_str = path;
+    const bool isFile = QFile(QUrl(path).toString(QUrl::PreferLocalFile)).exists();
+    if (isFile)
+    {
+      if (*path.rbegin() != '/')
+        path.append('/');
+    }
+
+    auto plugs = world.get_all_plugins();
+    auto it = plugs.begin();
+    while (!plugs.is_end(it))
+    {
+      auto plug = plugs.get(it);
+      if ((isFile && QString(plug.get_bundle_uri().as_string()) == path)
+          || (!isFile && QString(plug.get_name().as_string()) == path))
+      {
+        plug_map[old_str] = plug;
+        return plug;
+      }
+      else if (!isFile && QString(plug.get_name().as_string()) == path)
+      {
+        plug_map[old_str] = plug;
+        return plug;
+      }
+      else
+      {
+        it = plugs.next(it);
+      }
+    }
+
+    plug_map[old_str] = nullptr;
+    return {};
+  }
+
 
   struct LV2PluginChooserDialog
       : public QDialog
@@ -127,6 +173,94 @@ EffectProcessFactory_T<Media::LV2::LV2EffectModel>::customConstructionData()
   Media::LV2::LV2PluginChooserDialog dial{world, nullptr};
   dial.exec();
   return dial.m_accepted;
+}
+
+
+template <>
+Process::Descriptor
+EffectProcessFactory_T<Media::LV2::LV2EffectModel>::descriptor(QString d) const
+{
+  Process::Descriptor desc;
+  auto& app_plug
+      = score::AppComponents().applicationPlugin<Media::ApplicationPlugin>();
+  auto& host = app_plug.lv2_host_context;
+  if(auto plug = Media::LV2::find_lv2_plugin(app_plug.lilv, d))
+  {
+    desc.prettyName = plug->get_name().as_string();
+    desc.categoryText = plug->get_class().get_label().as_string();
+    desc.description = plug->get_author_homepage().as_string();
+    desc.author = plug->get_author_name().as_string();
+
+    const auto numports = plug->get_num_ports();
+    std::vector<Process::PortType> ins;
+    std::vector<Process::PortType> outs;
+
+    for (std::size_t i = 0; i < numports; i++)
+    {
+      Lilv::Port port = plug->get_port_by_index(i);
+
+      if (port.is_a(host.audio_class))
+      {
+        if (port.is_a(host.input_class))
+        {
+          ins.push_back(Process::PortType::Audio);
+        }
+        else if (port.is_a(host.output_class))
+        {
+          outs.push_back(Process::PortType::Audio);
+        }
+        else
+        {
+          // cv_ports.push_back(i);
+        }
+      }
+      else if (port.is_a(host.atom_class))
+      {
+        // TODO use  atom:supports midi:MidiEvent
+        if (port.is_a(host.input_class))
+        {
+          ins.push_back(Process::PortType::Midi);
+        }
+        else if (port.is_a(host.output_class))
+        {
+          outs.push_back(Process::PortType::Midi);
+        }
+        else
+        {
+          //midi_other_ports.push_back(i);
+        }
+      }
+      else if (port.is_a(host.cv_class))
+      {
+        // cv_ports.push_back(i);
+      }
+      else if (port.is_a(host.control_class))
+      {
+        if (port.is_a(host.input_class))
+        {
+          ins.push_back(Process::PortType::Message);
+        }
+        else if (port.is_a(host.output_class))
+        {
+          outs.push_back(Process::PortType::Message);
+        }
+        else
+        {
+          //control_other_ports.push_back(i);
+        }
+      }
+      else
+      {
+        //control_other_ports.push_back(i);
+      }
+    }
+
+    desc.inlets = ins;
+    desc.outlets = outs;
+
+  }
+  return desc;
+
 }
 }
 
@@ -323,47 +457,18 @@ void LV2EffectModel::reload()
   if (path.isEmpty())
     return;
 
-  bool isFile = QFile(QUrl(path).toString(QUrl::PreferLocalFile)).exists();
-  if (isFile)
-  {
-    if (*path.rbegin() != '/')
-      path.append('/');
-  }
-
   auto& app_plug
       = score::AppComponents().applicationPlugin<Media::ApplicationPlugin>();
   auto& world = app_plug.lilv;
 
-  auto plugs = world.get_all_plugins();
-  auto it = plugs.begin();
-  while (!plugs.is_end(it))
+  if(auto plug = find_lv2_plugin(world, path))
   {
-    auto plug = plugs.get(it);
-    if ((isFile && QString(plug.get_bundle_uri().as_string()) == path)
-        || (!isFile && QString(plug.get_name().as_string()) == path))
-    {
-      plugin = plug.me;
-      metadata().setLabel(QString(plug.get_name().as_string()));
-      effectContext.plugin.me = plug;
-      readPlugin();
-      return;
-    }
-    else if (!isFile && QString(plug.get_name().as_string()) == path)
-    {
-      plugin = plug.me;
-      effectContext.plugin.me = plug;
-      readPlugin();
-      metadata().setLabel(QString(plug.get_name().as_string()));
-      return;
-    }
-    else
-    {
-      it = plugs.next(it);
-    }
+    plugin = plug->me;
+    effectContext.plugin.me = *plug;
+    readPlugin();
+    metadata().setLabel(QString(plug->get_name().as_string()));
   }
 }
-
-
 
 }
 }

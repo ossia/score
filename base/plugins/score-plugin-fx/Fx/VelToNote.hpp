@@ -15,6 +15,13 @@ struct Node
     static const constexpr auto prettyName = "Pulse to Note";
     static const constexpr auto objectKey = "VelToNote";
     static const constexpr auto category = "Midi";
+    static const constexpr auto author = "ossia score";
+    static const constexpr auto kind = Process::ProcessCategory::Other;
+    static const constexpr auto description = "Converts a message into MIDI.\n"
+                                              "If the input is an impulse, the output will be the default pitch at the default velocity.\n"
+                                              "If the input is a single integer in [0; 127], the output will be the relevant note at the default velocity"
+                                              "If the input is an array of two values between [0; 127], the output will be the relevant note.";
+
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto uuid
         = make_uuid("2c6493c3-5449-4e52-ae04-9aee3be5fb6a");

@@ -20,7 +20,10 @@ struct Node
     static const constexpr auto prettyName = "LFO";
     static const constexpr auto objectKey = "LFO";
     static const constexpr auto category = "Control";
+    static const constexpr auto author = "ossia score";
     static const constexpr auto tags = std::array<const char*, 0>{};
+    static const constexpr auto kind = Process::ProcessCategory::Generator;
+    static const constexpr auto description = "Low-frequency oscillator";
     static const constexpr auto uuid
         = make_uuid("0697b807-f588-49b5-926c-f97701edd0d8");
 

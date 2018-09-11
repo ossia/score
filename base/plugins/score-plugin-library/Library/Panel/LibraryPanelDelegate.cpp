@@ -24,9 +24,8 @@ PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
   m_projectView = new ProjectLibraryWidget{ctx, m_widget};
   m_widget->addTab(m_projectView, QObject::tr("Project"));
 
-  auto proc_model = new ProcessesItemModel{ctx, m_widget};
-  auto proc_lib = new ProcessWidget{*proc_model, m_widget};
-  m_widget->addTab(proc_lib, QObject::tr("Processes"));
+  m_widget->addTab(new ProcessWidget{ctx, m_widget},
+                   QObject::tr("Processes"));
 
   m_widget->setObjectName("LibraryExplorer");
 }

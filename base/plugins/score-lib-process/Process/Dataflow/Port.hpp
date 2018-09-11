@@ -7,6 +7,7 @@
 #include <QUuid>
 #include <State/Address.hpp>
 #include <State/Domain.hpp>
+#include <Process/Dataflow/PortType.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/plugins/customfactory/SerializableInterface.hpp>
@@ -46,12 +47,6 @@ UUID_METADATA(
 namespace Process
 {
 class Cable;
-enum class PortType
-{
-  Message,
-  Audio,
-  Midi
-};
 class SCORE_LIB_PROCESS_EXPORT Port
     : public IdentifiedObject<Port>
     , public score::SerializableInterface<Port>
