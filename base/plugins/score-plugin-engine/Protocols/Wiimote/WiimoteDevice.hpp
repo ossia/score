@@ -3,8 +3,10 @@
 
 namespace Engine::Network {
 
+
 class WiimoteDevice final : public Device::OwningDeviceInterface
 {
+
   W_OBJECT(WiimoteDevice)
 public:
   WiimoteDevice(const Device::DeviceSettings& settings);

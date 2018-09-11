@@ -3,6 +3,10 @@
 #include "WiimoteSpecificSettings.hpp"
 #include <ossia/network/wiimote/wiimote_protocol.hpp>
 
+#include <QProgressDialog>
+#include <QLabel>
+#include <thread>
+
 W_OBJECT_IMPL(Engine::Network::WiimoteDevice)
 
 namespace Engine::Network {
@@ -26,21 +30,35 @@ bool WiimoteDevice::reconnect()
 {
   disconnect();
 
-  try
-  {
-    auto stgs
-        = settings().deviceSpecificSettings.value<WiimoteSpecificSettings>();
+  QProgressDialog dialog;
 
-    m_dev = std::make_unique<ossia::net::generic_device>(
-        std::make_unique<ossia::net::wiimote_protocol>(
-            false),
-        settings().name.toStdString());
-    deviceChanged(nullptr, m_dev.get());
-  }
-  catch (...)
-  {
-    SCORE_TODO;
-  }
+  dialog.setRange(0, 0);
+  dialog.setLabel(new QLabel(tr("Looking for wiimotes")));
+  dialog.setCancelButton(nullptr);
+
+  std::thread task{
+      [&dialog, this]()
+      {
+          try
+          {
+              auto addr =
+                  std::make_unique<ossia::net::generic_device>(
+                      std::make_unique<ossia::net::wiimote_protocol>(false),
+                      settings().name.toStdString());
+
+              m_dev = std::move(addr);
+              deviceChanged(nullptr, m_dev.get());
+          }
+          catch (...)
+          {
+            SCORE_TODO;
+          }
+          dialog.cancel();
+      }};
+
+
+  dialog.exec();
+  task.join();
 
   return connected();
 }
@@ -49,5 +67,6 @@ void WiimoteDevice::disconnect()
 {
   OwningDeviceInterface::disconnect();
 }
+
 
 }
