@@ -138,7 +138,7 @@ void ApplicationPlugin::initialize()
     vst_infos = val.value<std::vector<vst_info>>();
   }
 
-  //if(vst_invalid_format)
+  if(vst_invalid_format)
   {
     vst_infos.clear();
     vst_invalid_format = false;
