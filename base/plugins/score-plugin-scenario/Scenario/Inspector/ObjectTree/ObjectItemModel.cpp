@@ -1290,23 +1290,10 @@ void NeighbourSelector::selectDown()
 }
 
 SearchWidget::SearchWidget(const score::GUIApplicationContext& ctx)
-    : m_ctx{ctx}
+  : score::SearchLineEdit{nullptr}
+  , m_ctx{ctx}
 {
   setAcceptDrops(true);
-  auto lay = new score::MarginLess<QHBoxLayout>{this};
-
-  m_lineEdit = new QLineEdit{this};
-  m_lineEdit->setPlaceholderText("Search");
-  auto act = new QAction{this};
-  act->setIcon(QIcon(":/icons/search.png"));
-  m_lineEdit->addAction(act, QLineEdit::TrailingPosition);
-
-  lay->addWidget(m_lineEdit);
-  setLayout(lay);
-
-  connect(m_lineEdit, &QLineEdit::returnPressed, [&]() { search(); });
-  connect(act, &QAction::triggered, [&]() { search(); });
-
   const auto& appCtx = score::GUIAppContext();
 
   for (auto& cpt : appCtx.panels())
@@ -1342,13 +1329,13 @@ void SearchWidget::on_findAddresses(QStringList strlst)
     if (str != strlst.back())
       searchTxt += ",";
   }
-  m_lineEdit->setText(searchTxt);
+  setText(searchTxt);
   search();
 }
 
 void SearchWidget::search()
 {
-  QString stxt = m_lineEdit->text();
+  const QString& stxt = text();
   std::vector<State::AddressAccessor> addresses;
 
   int idx = stxt.indexOf("=");
@@ -1491,8 +1478,8 @@ void SearchWidget::dropEvent(QDropEvent* ev)
     if (as.address.path.isEmpty())
       return;
 
-    m_lineEdit->setText(as.address.toString());
-    m_lineEdit->returnPressed();
+    setText(as.address.toString());
+    returnPressed();
   }
   else if (mime.formats().contains(score::mime::nodelist()))
   {
@@ -1512,8 +1499,8 @@ void SearchWidget::dropEvent(QDropEvent* ev)
       static_cast<Device::AddressSettingsCommon&>(as) = addr;
       as.address = nl.front().first;
 
-      m_lineEdit->setText(as.address.toString());
-      m_lineEdit->returnPressed();
+      setText(as.address.toString());
+      returnPressed();
     }
   }
   else if (mime.formats().contains(score::mime::messagelist()))
@@ -1522,8 +1509,8 @@ void SearchWidget::dropEvent(QDropEvent* ev)
     State::MessageList ml = des.deserialize();
     if (!ml.empty())
     {
-      m_lineEdit->setText(ml[0].address.toString());
-      m_lineEdit->returnPressed();
+      setText(ml[0].address.toString());
+      returnPressed();
     }
   }
 }

@@ -56,24 +56,6 @@ bool DeviceExplorerFilterProxyModel::filterAcceptsRow(
 bool DeviceExplorerFilterProxyModel::filterAcceptsRowItself(
     int srcRow, const QModelIndex& srcParent) const
 {
-  static const QMap<QString, bool> values{{
-      {"true", true},
-      {"True", true},
-      {"1", true},
-      {"y", true},
-      {"yes", true},
-      {"oui", true},
-      {"v", true},
-      {"vrai", true},
-      {"false", false},
-      {"False", false},
-      {"0", false},
-      {"n", false},
-      {"no", false},
-      {"non", false},
-      {"f", false},
-      {"faux", false},
-  }};
   const Explorer::Column col = m_col;
   QModelIndex index = sourceModel()->index(srcRow, (int)col, srcParent);
   switch (col)
