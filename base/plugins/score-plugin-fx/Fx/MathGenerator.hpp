@@ -31,7 +31,11 @@ struct Node
     static const constexpr auto prettyName = "Value Generator";
     static const constexpr auto objectKey = "MathGenerator";
     static const constexpr auto category = "Control";
+    static const constexpr auto author = "ossia score, ExprTK (Arash Partow)";
     static const constexpr auto tags = std::array<const char*, 0>{};
+    static const constexpr auto kind = Process::ProcessCategory::Generator;
+    static const constexpr auto description = "Generate a signal from a math expression.\n"
+                                              "See the documentation at http://www.partow.net/programming/exprtk";
     static const constexpr auto uuid
         = make_uuid("d757bd0d-c0a1-4aec-bf72-945b722ab85b");
 
@@ -104,7 +108,11 @@ struct Node
     static const constexpr auto prettyName = "Audio Generator";
     static const constexpr auto objectKey = "MathAudioGenerator";
     static const constexpr auto category = "Audio";
+    static const constexpr auto author = "ossia score, ExprTK (Arash Partow)";
     static const constexpr auto tags = std::array<const char*, 0>{};
+    static const constexpr auto kind = Process::ProcessCategory::Generator;
+    static const constexpr auto description = "Generate an audio signal from a math expression.\n"
+                                              "See the documentation at http://www.partow.net/programming/exprtk";
     static const constexpr auto uuid
         = make_uuid("eae294b3-afeb-4fba-bbe4-337998d3748a");
 

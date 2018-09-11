@@ -21,18 +21,25 @@
 #include <QProcess>
 W_OBJECT_IMPL(Media::ApplicationPlugin)
 
+// TODO remove me in a few versions
+static bool vst_invalid_format = false;
 #if defined(HAS_VST2)
 template <>
 void DataStreamReader::read<Media::ApplicationPlugin::vst_info>(
     const Media::ApplicationPlugin::vst_info& p)
 {
-  m_stream << p.path << p.prettyName << p.uniqueID << p.isSynth << p.isValid;
+  m_stream << p.path << p.prettyName << p.displayName << p.author << p.uniqueID << p.controls << p.isSynth << p.isValid;
 }
 template <>
 void DataStreamWriter::write<Media::ApplicationPlugin::vst_info>(
     Media::ApplicationPlugin::vst_info& p)
 {
-  m_stream >> p.path >> p.prettyName >> p.uniqueID >> p.isSynth >> p.isValid;
+  if(!vst_invalid_format)
+    m_stream >> p.path >> p.prettyName >> p.displayName >> p.author >> p.uniqueID >> p.controls >> p.isSynth >> p.isValid;
+  if(m_stream.stream.status() != QDataStream::Status::Ok)
+  {
+    vst_invalid_format = true;
+  }
 }
 
 Q_DECLARE_METATYPE(Media::ApplicationPlugin::vst_info)
@@ -131,6 +138,12 @@ void ApplicationPlugin::initialize()
     vst_infos = val.value<std::vector<vst_info>>();
   }
 
+  //if(vst_invalid_format)
+  {
+    vst_infos.clear();
+    vst_invalid_format = false;
+  }
+
   auto& set = context.settings<Media::Settings::Model>();
   con(set, &Media::Settings::Model::VstPathsChanged, this,
       &ApplicationPlugin::rescanVSTs);
@@ -219,10 +232,14 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
 
       if(valid)
       {
+        const auto& obj = doc.object();
         vst_info i;
         i.path = path;
-        i.uniqueID = doc.object()["UniqueID"].toInt();
-        i.isSynth = doc.object()["Synth"].toBool();
+        i.uniqueID = obj["UniqueID"].toInt();
+        i.isSynth = obj["Synth"].toBool();
+        i.author = obj["Author"].toString();
+        i.displayName = obj["PrettyName"].toString();
+        i.controls = obj["Controls"].toInt();
         i.isValid = true;
 
         // Only way to get a separation between Kontakt 5 / Kontakt 5 (8

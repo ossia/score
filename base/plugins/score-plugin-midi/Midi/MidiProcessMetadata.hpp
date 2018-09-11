@@ -13,7 +13,12 @@ PROCESS_METADATA(
     "c189e507-3afa-4a53-9369-e38860e6bb2d",
     "Midi",
     "Piano roll",
+    Process::ProcessCategory::MediaSource,
     "Midi",
+    "MIDI note playback",
+    "ossia score",
     {},
+    {},
+    {std::vector<Process::PortType>{Process::PortType::Midi}},
     Process::ProcessFlags::SupportsTemporal
         | Process::ProcessFlags::PutInNewSlot)

@@ -1,21 +1,74 @@
 #pragma once
 #include <Process/ProcessFlags.hpp>
+#include <Process/Dataflow/PortType.hpp>
 #include <score/plugins/customfactory/SerializableInterface.hpp>
 #include <score/tools/Metadata.hpp>
+#include <score/tools/std/Optional.hpp>
 #include <QObject>
 #include <QStringList>
 #include <cinttypes>
+
+namespace Process
+{
+
+enum ProcessCategory
+{
+  Other,
+  Automation,
+  Generator, // lfo, etc
+  MediaSource, // sound, video, image, etc
+  Analyzer,
+  AudioEffect, // audio in and audio out
+  MidiEffect, // midi in and midi out
+  Synth, // midi in and audio out
+  Mapping, // value in and value out
+  Script, // JS, PD, etc
+  Structure // scenario, loop, etc
+};
+
+struct Descriptor
+{
+  QString prettyName;
+  ProcessCategory category{};
+  QString categoryText;
+  QString description;
+  QString author{"ossia score"};
+  QStringList tags;
+  optional<std::vector<Process::PortType>> inlets;
+  optional<std::vector<Process::PortType>> outlets;
+};
+class Descriptor_k;
+
+}
 #define PROCESS_FLAGS_METADATA(Export, Model, Flags) \
   TYPED_METADATA(                                    \
       Export, Model, Process::ProcessFlags_k, Process::ProcessFlags, Flags)
 
 #define PROCESS_METADATA(                                                \
-    Export, Model, Uuid, ObjectKey, PrettyName, Category, Tags, Flags)   \
+    Export, Model, Uuid, ObjectKey, PrettyName, CategoryEnum, Category, Desc, Author, Tags, InputSpec, OutputSpec, Flags)   \
   MODEL_METADATA(                                                        \
       Export, Process::ProcessModel, Model, Uuid, ObjectKey, PrettyName) \
   CATEGORY_METADATA(Export, Model, Category)                             \
   TAGS_METADATA(Export, Model, Tags)                                     \
-  PROCESS_FLAGS_METADATA(Export, Model, (Process::ProcessFlags)(Flags))
+  PROCESS_FLAGS_METADATA(Export, Model, (Process::ProcessFlags)(Flags))  \
+  template <>                                                            \
+  struct Export Metadata<::Process::Descriptor_k, Model>                 \
+  {                                                                      \
+    static ::Process::Descriptor get()                                   \
+    {                                                                    \
+      static const ::Process::Descriptor k{                              \
+        PrettyName,                                                      \
+        CategoryEnum,                                                    \
+        Category,                                                        \
+        Desc,                                                            \
+        Author,                                                          \
+        Tags,                                                            \
+        InputSpec,                                                       \
+        OutputSpec                                                       \
+      };                                                                 \
+      return k;                                                          \
+    }                                                                    \
+  };
 
 #define PROCESS_METADATA_IMPL(Model)                        \
   MODEL_METADATA_IMPL(Model)                                \

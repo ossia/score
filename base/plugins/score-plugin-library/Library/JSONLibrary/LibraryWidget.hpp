@@ -25,10 +25,11 @@ public:
 class ProcessWidget : public QWidget
 {
 public:
-  ProcessWidget(QAbstractItemModel& model, QWidget* parent);
+  ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* parent);
   ~ProcessWidget();
 
 private:
+  ProcessesItemModel* m_model{};
   ProcessTreeView m_tv;
 
 };

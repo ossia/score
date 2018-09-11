@@ -16,7 +16,12 @@ PROCESS_METADATA(
     "995d41a8-0f10-4152-971d-e4c033579a02",
     "Loop",
     "Loop",
+    Process::ProcessCategory::Structure,
     "Structure",
+    "Temporal looping structure",
+    "ossia score",
+    {},
+    {},
     {},
     Process::ProcessFlags::SupportsTemporal
         | Process::ProcessFlags::PutInNewSlot)

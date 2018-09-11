@@ -12,6 +12,9 @@ struct Node
     static const constexpr auto prettyName = "Classical Beat";
     static const constexpr auto objectKey = "ClassicalBeat";
     static const constexpr auto category = "Control";
+    static const constexpr auto author = "ossia score";
+    static const constexpr auto kind = Process::ProcessCategory::Generator;
+    static const constexpr auto description = "A simple metronome - currently only supports 3/4 and 4/4";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto uuid
         = make_uuid("5d71816e-e081-4d85-b385-fb42472b41bf");

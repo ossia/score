@@ -13,7 +13,10 @@ struct Node
     static const constexpr auto prettyName = "Chord";
     static const constexpr auto objectKey = "Chord";
     static const constexpr auto category = "Midi";
+    static const constexpr auto author = "ossia score";
     static const constexpr auto tags = std::array<const char*, 0>{};
+    static const constexpr auto kind = Process::ProcessCategory::Mapping;
+    static const constexpr auto description = "Generate a chord from a single note";
     static const constexpr auto uuid
         = make_uuid("F0904279-EA26-48DB-B0DF-F68FE3091DA1");
 

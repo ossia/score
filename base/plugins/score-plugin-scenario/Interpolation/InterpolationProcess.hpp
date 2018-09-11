@@ -22,8 +22,13 @@ PROCESS_METADATA(
     "aa569e11-03a9-4023-92c2-b590e88fec90",
     "Interpolation",
     "Interpolation",
+    Process::ProcessCategory::Automation,
     "Automations",
+    "Interpolate between two states",
+    "ossia score",
     (QStringList{"Curve", "Automation"}),
+    {},
+    {std::vector<Process::PortType>{Process::PortType::Message}},
     Process::ProcessFlags::SupportsTemporal)
 namespace Interpolation
 {
@@ -62,10 +67,10 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
   PROCESS_METADATA_IMPL(Interpolation::ProcessModel)
 
   W_OBJECT(ProcessModel)
-  
-  
-  
-  
+
+
+
+
 
 public:
   ProcessModel(

@@ -15,6 +15,11 @@ PROCESS_METADATA(
     "e6f5d1fd-6b32-4799-ba53-ff793b3faabc",
     "Metronome",
     "Metronome",
+    Process::ProcessCategory::Automation,
     "Automations",
+    "Sends messages at the speed given by the curve",
+    "ossia score",
     (QStringList{"Curve", "Automation"}),
+    {},
+    {std::vector<Process::PortType>{Process::PortType::Message}},
     Process::ProcessFlags::SupportsTemporal)

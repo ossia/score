@@ -207,7 +207,10 @@ struct Node
     static const constexpr auto prettyName = "Midi scale";
     static const constexpr auto objectKey = "MidiScale";
     static const constexpr auto category = "Midi";
+    static const constexpr auto author = "ossia score";
     static const constexpr auto tags = std::array<const char*, 0>{};
+    static const constexpr auto kind = Process::ProcessCategory::MidiEffect;
+    static const constexpr auto description = "Maps a midi input to a given scale";
     static const constexpr auto uuid
         = make_uuid("06b33b83-bb67-4f7a-9980-f5d66e4266c5");
 

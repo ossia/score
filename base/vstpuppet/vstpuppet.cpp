@@ -97,6 +97,14 @@ intptr_t vst_host_callback(
   return result;
 }
 
+static QString getString(AEffect* fx, AEffectOpcodes op, int param)
+{
+  char paramName[512] = {0};
+  fx->dispatcher(fx, op, param, 0, paramName, 0.f);
+  return QString::fromUtf8(paramName);
+}
+
+
 bool load_vst(const QString& path)
 {
   try
@@ -116,6 +124,10 @@ bool load_vst(const QString& path)
       {
         QJsonObject obj;
         obj["UniqueID"] = p->uniqueID;
+        obj["Controls"] = p->numParams;
+        obj["Author"] = getString(p, effGetVendorString, 0);
+        obj["PrettyName"] = getString(p, effGetProductString, 0);
+        obj["Version"] = getString(p, effGetVendorVersion, 0);
         obj["Synth"] = bool(p->flags & effFlagsIsSynth);
         std::cout << QJsonDocument{obj}.toJson().toStdString() << std::endl;
         return 0;

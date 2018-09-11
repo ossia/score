@@ -129,7 +129,11 @@ void ProcessTreeView::selectionChanged(const QItemSelection& sel, const QItemSel
   if (sel.size() > 0)
   {
     auto idx = sel.indexes().front();
-    //auto model =
+    auto proxy = (QSortFilterProxyModel*) this->model();
+    auto model_idx = proxy->mapToSource(idx);
+    auto data = reinterpret_cast<TreeNode<ProcessData>*>(model_idx.internalPointer());
+
+    selected(*data);
   }
   else if(desel.size() > 0)
   {
@@ -144,28 +148,51 @@ class InfoWidget final
 public:
   InfoWidget(QWidget* parent)
   {
-    setMinimumHeight(200);
-    setMaximumHeight(200);
-    auto lay = new QFormLayout{this};
+    setMinimumHeight(120);
+    setMaximumHeight(160);
+    auto lay = new QVBoxLayout{this};
+    QFont f; f.setBold(true);
+    m_name.setFont(f);
     lay->addWidget(&m_name);
-    lay->addRow(tr("Author"), &m_author);
-    lay->addRow(tr("Tags"), &m_tags);
+    lay->addWidget(&m_author); m_author.setWordWrap(true);
+    lay->addWidget(&m_io);
+    lay->addWidget(&m_description); m_description.setWordWrap(true);
+    lay->addWidget(&m_tags); m_tags.setWordWrap(true);
+    setVisible(false);
   }
 
-  void setData(const ProcessData& d)
+  void setData(const optional<ProcessData>& d)
   {
-    m_name.setText(d.name);
-    if(auto f = score::GUIAppContext().interfaces<Process::ProcessFactoryList>().get(d.key))
+    if(d)
     {
-      m_tags.setText(f->tags().join(", "));
+      if(auto f = score::GUIAppContext().interfaces<Process::ProcessFactoryList>().get(d->key))
+      {
+        setVisible(true);
+        auto desc = f->descriptor(d->json["Data"].toString());
+        m_name.setText(desc.prettyName);
+        m_author.setText(tr("Provided by ") + desc.author);
+        m_description.setText(desc.description);
+        m_io.setText(QString("%1 inputs, %2 outputs")
+                     .arg(desc.inlets ? QString::number(desc.inlets->size()) : QString{"Undefined"})
+                     .arg(desc.outlets ? QString::number(desc.outlets->size()) : QString{"Undefined"}));
+        if(!desc.tags.empty())
+        {
+          m_tags.setText(tr("Tags: ") + desc.tags.join(", "));
+        }
+        else
+        {
+          m_tags.clear();
+        }
+        return;
+      }
     }
-    else
-    {
-      m_tags.clear();
-    }
+
+    setVisible(false);
   }
 
   QLabel m_name;
+  QLabel m_io;
+  QLabel m_description;
   QLabel m_author;
   QLabel m_tags;
 };
@@ -181,15 +208,16 @@ static void setup_treeview(QTreeView& tv)
     tv.hideColumn(i);
 }
 
-ProcessWidget::ProcessWidget(QAbstractItemModel& model, QWidget* parent)
+ProcessWidget::ProcessWidget(const score::GUIApplicationContext& ctx, QWidget* parent)
   : QWidget{parent}
+  , m_model{new ProcessesItemModel{ctx, this}}
 {
   auto lay = new score::MarginLess<QVBoxLayout>;
 
   this->setLayout(lay);
 
   auto m_proxy = new RecursiveFilterProxy{this};
-  m_proxy->setSourceModel(&model);
+  m_proxy->setSourceModel(m_model);
   m_proxy->setFilterKeyColumn(0);
   lay->addWidget(new ItemModelFilterLineEdit{*m_proxy, m_tv, this});
   lay->addWidget(&m_tv);
@@ -198,6 +226,11 @@ ProcessWidget::ProcessWidget(QAbstractItemModel& model, QWidget* parent)
 
   auto widg = new InfoWidget{this};
   lay->addWidget(widg);
+
+  con(m_tv, &ProcessTreeView::selected,
+      this, [=] (const auto& pdata) {
+    widg->setData(pdata);
+  });
 }
 
 ProcessWidget::~ProcessWidget()
@@ -223,11 +256,7 @@ SystemLibraryWidget::SystemLibraryWidget(const score::GUIApplicationContext& ctx
   setup_treeview(m_tv);
   m_tv.setAcceptDrops(true);
 
-  auto widg = new InfoWidget{this};
-  lay->addWidget(widg);
-
   setRoot(ctx.settings<Library::Settings::Model>().getPath());
-
 }
 
 SystemLibraryWidget::~SystemLibraryWidget()
@@ -259,9 +288,6 @@ ProjectLibraryWidget::ProjectLibraryWidget(const score::GUIApplicationContext& c
   m_tv.setModel(m_proxy);
   setup_treeview(m_tv);
   m_tv.setAcceptDrops(true);
-
-  auto widg = new InfoWidget{this};
-  lay->addWidget(widg);
 }
 
 ProjectLibraryWidget::~ProjectLibraryWidget()
