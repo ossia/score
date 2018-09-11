@@ -505,7 +505,7 @@ public:
         {
           if(obj->parent() == &m_layer)
           {
-            QMetaObject::invokeMethod(qApp, [this, &ctx, id=obj->id(), pos] {
+            QTimer::singleShot(0, [this, &ctx, id=obj->id(), pos] {
               CommandDispatcher<>{ctx.commandStack}.submitCommand(new MoveEffect(m_layer, id, pos));
             });
             return;
