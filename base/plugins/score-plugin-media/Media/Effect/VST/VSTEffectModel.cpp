@@ -87,7 +87,7 @@ EffectProcessFactory_T<Media::VST::VSTEffectModel>::descriptor(QString d) const
       for(int i = 0; i < it->controls; i++) inlets.push_back(Process::PortType::Message);
       desc.inlets = std::move(inlets);
 
-      desc.outlets = {Process::PortType::Audio};
+      desc.outlets = {std::vector<Process::PortType>{Process::PortType::Audio}};
     }
     else
     {
@@ -97,7 +97,7 @@ EffectProcessFactory_T<Media::VST::VSTEffectModel>::descriptor(QString d) const
       for(int i = 0; i < it->controls; i++) inlets.push_back(Process::PortType::Message);
       desc.inlets = std::move(inlets);
 
-      desc.outlets = {Process::PortType::Audio};
+      desc.outlets = {std::vector<Process::PortType>{Process::PortType::Audio}};
     }
   }
   return desc;
