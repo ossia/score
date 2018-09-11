@@ -1,8 +1,9 @@
 ossia score
 =======
 
+[![join the chat at https://gitter.im/OSSIA/score](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OSSIA/score?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) ![Downloads](https://img.shields.io/github/downloads/OSSIA/score/total.svg) ![Version](https://img.shields.io/github/release/OSSIA/score.svg) 
 
-ossia score is an interactive intermedia sequencer - read more on http://ossia.io or come ask questions on the [forum](http://forum.ossia.io/c/score) or chat with us ! [![join the chat at https://gitter.im/OSSIA/score](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OSSIA/score?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+ossia score is an interactive intermedia sequencer - read more on http://ossia.io, come ask questions on the [forum](http://forum.ossia.io/c/score) or hang out in a chat with us ! 
 
 With *score* you can sequence OSC, MIDI, etc. parameters between multiple software and hardware, to create interactive and intermedia **score**s.
 
