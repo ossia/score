@@ -43,6 +43,7 @@
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::Step::View)
+W_OBJECT_IMPL(Media::Effect::EffectTitleItem)
 
 #if defined(HAS_VST2)
 namespace Media::VST

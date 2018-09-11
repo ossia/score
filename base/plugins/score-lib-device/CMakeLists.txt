@@ -1,4 +1,3 @@
-cmake_minimum_required(VERSION 3.0)
 project(score_lib_device LANGUAGES CXX)
 
 score_common_setup()

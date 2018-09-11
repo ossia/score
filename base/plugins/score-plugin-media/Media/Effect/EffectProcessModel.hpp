@@ -161,14 +161,11 @@ public:
   }
   void move(const Id<T>& id, std::size_t pos)
   {
+    auto new_it = m_list.begin();
+    std::advance(new_it, pos);
     auto it1 = find(id);
-    SCORE_ASSERT(it1 != m_list.end());
+    m_list.splice(new_it, m_list, it1);
 
-    auto it2 = m_list.begin();
-    SCORE_ASSERT(pos < m_list.size());
-    std::advance(it2, pos);
-
-    std::swap(it1, it2);
     orderChanged();
   }
 

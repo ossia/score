@@ -1,4 +1,3 @@
-cmake_minimum_required(VERSION 3.0)
 project(score_lib_process LANGUAGES CXX)
 score_common_setup()
 
@@ -119,4 +118,4 @@ target_compile_definitions(score_lib_process PUBLIC
 score_generate_command_list_file(${PROJECT_NAME} "${PROCESS_HDRS}")
 setup_score_plugin(score_lib_process)
 
-setup_score_tests(Tests)
+# setup_score_tests(Tests)

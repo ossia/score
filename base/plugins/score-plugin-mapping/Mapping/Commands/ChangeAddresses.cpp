@@ -7,7 +7,6 @@
 
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Mapping/MappingModel.hpp>
 #include <QString>
 #include <QStringList>

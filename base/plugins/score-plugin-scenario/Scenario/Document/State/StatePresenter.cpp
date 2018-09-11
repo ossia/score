@@ -15,6 +15,7 @@
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Application/Drops/AutomationDropHandler.hpp>
 #include <State/Message.hpp>
 #include <State/MessageListSerialization.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -27,6 +28,9 @@
 #include <score/tools/Todo.hpp>
 #include <score/widgets/GraphicsItem.hpp>
 #include <score/model/Identifier.hpp>
+#include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 
 #include <QJsonDocument>
 #include <wobjectimpl.h>
@@ -99,23 +103,47 @@ void StatePresenter::handleDrop(const QMimeData& mime)
   }
   else if(mime.hasUrls())
   {
-    State::MessageList ml;
-    for(const auto& u : mime.urls())
+    auto scenario = dynamic_cast<TemporalScenarioPresenter*>(parent());
+    if(ossia::all_of(mime.urls(), [] (const QUrl& u) { return QFileInfo{u.toLocalFile()}.suffix() == "cues"; }))
     {
-      auto path = u.toLocalFile();
-      if(QFile f{path}; QFileInfo{f}.suffix() == "cues" && f.open(QIODevice::ReadOnly))
+      State::MessageList ml;
+      for(const auto& u : mime.urls())
       {
-        State::MessageList sub;
-        fromJsonArray(
-            QJsonDocument::fromJson(f.readAll()).array(),
-            sub);
-        ml += sub;
+        auto path = u.toLocalFile();
+        if(QFile f{path}; f.open(QIODevice::ReadOnly))
+        {
+          State::MessageList sub;
+          fromJsonArray(
+              QJsonDocument::fromJson(f.readAll()).array(),
+              sub);
+          ml += sub;
+        }
+      }
+      if(!ml.empty())
+      {
+        auto cmd = new Command::AddMessagesToState{m_model, ml};
+        CommandDispatcher<>{m_ctx.commandStack}.submitCommand(cmd);
       }
     }
-    if(!ml.empty())
+    else if(scenario && ossia::all_of(mime.urls(), [] (const QUrl& u) { return QFileInfo{u.toLocalFile()}.suffix() == "layer"; }))
     {
-      auto cmd = new Command::AddMessagesToState{m_model, ml};
-      CommandDispatcher<>{m_ctx.commandStack}.submitCommand(cmd);
+      auto path = mime.urls().first().toLocalFile();
+      if(QFile f{path}; f.open(QIODevice::ReadOnly))
+      {
+        const auto& ctx = scenario->context().context;
+        auto json = QJsonDocument::fromJson(f.readAll()).object();
+        Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, ctx};
+
+        // Create a box.
+        const Scenario::ProcessModel& scenar = scenario->model();
+
+        const TimeVal t = TimeVal::fromMsecs(json["Duration"].toDouble());
+
+        auto& interval = m.createIntervalAfter(scenar, m_model.id(), Scenario::Point{t, m_model.heightPercentage()});
+
+        DropLayerInInterval::perform(interval, ctx, m, json);
+        m.commit();
+      }
     }
   }
 }

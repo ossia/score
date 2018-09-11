@@ -4,11 +4,10 @@
 #include "AutomationInspectorWidget.hpp"
 
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
-
+#include <score/document/DocumentContext.hpp>
 #include <Automation/AutomationModel.hpp>
 #include <Automation/Commands/ChangeAddress.hpp>
 #include <Automation/Commands/SetAutomationMax.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Device/Widgets/AddressAccessorEditWidget.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <QBoxLayout>

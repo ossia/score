@@ -1,4 +1,3 @@
-cmake_minimum_required(VERSION 3.0)
 project(StateTests)
 set(CMAKE_AUTOMOC ON)
 enable_testing()

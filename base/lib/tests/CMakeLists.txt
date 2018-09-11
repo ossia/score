@@ -1,5 +1,3 @@
-#cmake_minimum_required(VERSION 3.1)
-
 #include(CppcheckTargets)
 
 #set (TEST2_HDRS  "${CMAKE_SOURCE_DIR}/base/lib/presenter/command/Command.hpp"
