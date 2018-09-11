@@ -35,6 +35,7 @@ bool WiimoteDevice::reconnect()
   dialog.setRange(0, 0);
   dialog.setLabel(new QLabel(tr("Looking for wiimotes")));
   dialog.setCancelButton(nullptr);
+  dialog.setWindowFlags(Qt::FramelessWindowHint);
 
   std::thread task{
       [&dialog, this]()
