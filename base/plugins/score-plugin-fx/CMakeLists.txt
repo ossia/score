@@ -8,6 +8,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/MidiUtil.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/AngleNode.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/VelToNote.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/FactorOracle.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/LFO.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Chord.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/Gain.hpp"

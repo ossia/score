@@ -25,10 +25,9 @@ public:
   {
     return Metadata<Category_k, Model_T>::get();
   }
-  QStringList tags() const override
-  {
-    return Metadata<Tags_k, Model_T>::get();
-  }
+
+  Descriptor descriptor(QString) const override;
+
   ProcessFlags flags() const override
   {
     return Metadata<ProcessFlags_k, Model_T>::get();

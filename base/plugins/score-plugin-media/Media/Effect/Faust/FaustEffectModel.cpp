@@ -18,6 +18,26 @@
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::Faust::FaustEffectModel)
+
+namespace Process
+{
+
+template <>
+QString EffectProcessFactory_T<
+    Media::Faust::FaustEffectModel>::customConstructionData() const
+{
+  return "process = _;";
+}
+
+template <>
+Process::Descriptor
+EffectProcessFactory_T<Media::Faust::FaustEffectModel>::descriptor(QString d) const
+{
+  Process::Descriptor desc;
+  return desc;
+}
+
+}
 namespace Media::Faust
 {
 

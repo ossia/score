@@ -62,7 +62,48 @@ EffectProcessFactory_T<Media::VST::VSTEffectModel>::customConstructionData()
     return QString::number(ids[res]);
   return {};
 }
+
+template <>
+Process::Descriptor
+EffectProcessFactory_T<Media::VST::VSTEffectModel>::descriptor(QString d) const
+{
+  Process::Descriptor desc;
+  auto& app
+      = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
+
+  auto it = ossia::find_if(
+        app.vst_infos,
+        [=] (const Media::ApplicationPlugin::vst_info& vst) { return vst.uniqueID == d.toInt(); });
+  if(it != app.vst_infos.end())
+  {
+    desc.prettyName = it->displayName;
+    desc.author = it->author;
+
+    if (it->isSynth)
+    {
+      desc.category = Process::ProcessCategory::Synth;
+
+      auto inlets = std::vector<Process::PortType>{Process::PortType::Midi};
+      for(int i = 0; i < it->controls; i++) inlets.push_back(Process::PortType::Message);
+      desc.inlets = std::move(inlets);
+
+      desc.outlets = {std::vector<Process::PortType>{Process::PortType::Audio}};
+    }
+    else
+    {
+      desc.category = Process::ProcessCategory::AudioEffect;
+
+      auto inlets = std::vector<Process::PortType>{Process::PortType::Audio};
+      for(int i = 0; i < it->controls; i++) inlets.push_back(Process::PortType::Message);
+      desc.inlets = std::move(inlets);
+
+      desc.outlets = {std::vector<Process::PortType>{Process::PortType::Audio}};
+    }
+  }
+  return desc;
 }
+}
+
 namespace Media::VST
 {
 VSTEffectModel::VSTEffectModel(

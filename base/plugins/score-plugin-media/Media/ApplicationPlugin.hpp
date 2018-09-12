@@ -46,7 +46,10 @@ public:
   {
     QString path;
     QString prettyName;
+    QString displayName;
+    QString author;
     int32_t uniqueID{};
+    int32_t controls{};
     bool isSynth{};
     bool isValid{};
   };

@@ -23,7 +23,12 @@ PROCESS_METADATA(
     "5354c61a-1649-4f59-b952-5c2f1b79c1bd",
     "Faust",
     "Faust",
+    Process::ProcessCategory::Script,
     "Audio",
+    "Faust process. Refer to https://faust.grame.fr",
+    "GRAME and the Faust team",
+    {"Script"},
+    {},
     {},
     Process::ProcessFlags::ExternalEffect)
 DESCRIPTION_METADATA(, Media::Faust::FaustEffectModel, "Faust")
@@ -86,11 +91,12 @@ private:
 namespace Process
 {
 template <>
-inline QString EffectProcessFactory_T<
-    Media::Faust::FaustEffectModel>::customConstructionData() const
-{
-  return "process = _;";
-}
+QString EffectProcessFactory_T<
+    Media::Faust::FaustEffectModel>::customConstructionData() const;
+
+template <>
+Process::Descriptor
+EffectProcessFactory_T<Media::Faust::FaustEffectModel>::descriptor(QString d) const;
 }
 class QPlainTextEdit;
 namespace Media::Faust

@@ -14,7 +14,10 @@ struct Node
         static const constexpr auto prettyName = "Arpeggiator";
         static const constexpr auto objectKey = "Arpeggiator";
         static const constexpr auto category = "Midi";
+        static const constexpr auto author = "ossia score";
         static const constexpr auto tags = std::array<const char*, 0>{};
+        static const constexpr auto kind = Process::ProcessCategory::MidiEffect;
+        static const constexpr auto description = "Arpeggiator";
         static const constexpr auto uuid
         = make_uuid("0b98c7cd-f831-468f-81e3-706d6a97d705");
 

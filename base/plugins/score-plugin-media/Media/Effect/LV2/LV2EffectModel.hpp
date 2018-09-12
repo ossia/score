@@ -22,7 +22,12 @@ PROCESS_METADATA(
     "fd5243ba-70b5-4164-b44a-ecb0dcdc0494",
     "LV2",
     "LV2",
+    Process::ProcessCategory::Other,
     "Audio",
+    "LV2 plug-in",
+    "ossia score",
+    {},
+    {},
     {},
     Process::ProcessFlags::ExternalEffect)
 DESCRIPTION_METADATA(, Media::LV2::LV2EffectModel, "LV2")

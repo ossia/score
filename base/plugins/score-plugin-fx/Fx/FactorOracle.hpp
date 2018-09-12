@@ -159,6 +159,9 @@ struct Node
     static const constexpr auto prettyName = "Factor Oracle";
     static const constexpr auto objectKey = "Factor Oracle";
     static const constexpr auto category = "Impro";
+    static const constexpr auto author = "Shlomo Dubnov, Ge Wang, Éric Meaux, Jean-Michaël Celerier";
+    static const constexpr auto kind = Process::ProcessCategory::Mapping;
+    static const constexpr auto description = "Factor Oracle algorithm ."; // TODO cite
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto uuid
     = make_uuid("d90284c0-4196-47e0-802d-7e07342029ec");

@@ -21,7 +21,12 @@ PROCESS_METADATA(
     "BE8E6BD3-75F2-4102-8895-8A4EB4EA545A",
     "VST",
     "VST",
+    Process::ProcessCategory::Other,
     "Audio",
+    "VST plug-in",
+    "ossia score",
+    {},
+    {},
     {},
     Process::ProcessFlags::ExternalEffect)
 UUID_METADATA(
@@ -151,6 +156,10 @@ template <>
 QString
 EffectProcessFactory_T<Media::VST::VSTEffectModel>::customConstructionData()
     const;
+
+template <>
+Process::Descriptor
+EffectProcessFactory_T<Media::VST::VSTEffectModel>::descriptor(QString d) const;
 }
 
 namespace Media::VST

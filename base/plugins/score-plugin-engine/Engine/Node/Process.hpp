@@ -43,6 +43,66 @@ struct Metadata<Tags_k, Control::ControlProcess<Info>>
     return lst;
   }
 };
+
+template <typename Info>
+struct Metadata<Process::Descriptor_k, Control::ControlProcess<Info>>
+{
+  static std::vector<Process::PortType> inletDescription()
+  {
+    std::vector<Process::PortType> port;
+    for (const auto& in : Info::Metadata::audio_ins)
+    {
+      port.push_back(Process::PortType::Audio);
+    }
+    for (const auto& in : Info::Metadata::midi_ins)
+    {
+      port.push_back(Process::PortType::Midi);
+    }
+    for (const auto& in : Info::Metadata::value_ins)
+    {
+      port.push_back(Process::PortType::Message);
+    }
+    for (const auto& in : Info::Metadata::address_ins)
+    {
+      port.push_back(Process::PortType::Message);
+    }
+    for(int i = 0; i < std::tuple_size_v<decltype(Info::Metadata::controls)>; i++)
+      port.push_back(Process::PortType::Message);
+    return port;
+  }
+  static std::vector<Process::PortType> outletDescription()
+  {
+    std::vector<Process::PortType> port;
+    for (const auto& in : Info::Metadata::audio_outs)
+    {
+      port.push_back(Process::PortType::Audio);
+    }
+    for (const auto& in : Info::Metadata::midi_outs)
+    {
+      port.push_back(Process::PortType::Midi);
+    }
+    for (const auto& in : Info::Metadata::value_outs)
+    {
+      port.push_back(Process::PortType::Message);
+    }
+    return port;
+  }
+  static Process::Descriptor get()
+  {
+    static Process::Descriptor desc
+    {
+      Info::Metadata::prettyName,
+          Info::Metadata::kind,
+          Info::Metadata::category,
+          Info::Metadata::description,
+          Info::Metadata::author,
+          Metadata<Tags_k, Control::ControlProcess<Info>>::get(),
+          inletDescription(),
+          outletDescription()
+    };
+    return desc;
+  }
+};
 template <typename Info>
 struct Metadata<Process::ProcessFlags_k, Control::ControlProcess<Info>>
 {

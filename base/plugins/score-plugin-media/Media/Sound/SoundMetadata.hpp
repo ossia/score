@@ -15,8 +15,13 @@ PROCESS_METADATA(
     "63174570-d608-44bf-a9cb-e6f5a11f73cc",
     "Sound",
     "Sound file",
+    Process::ProcessCategory::MediaSource,
     "Audio",
+    "Reads a sound file",
+    "ossia score",
     {},
+    {},
+    {std::vector<Process::PortType>{Process::PortType::Audio}},
     Process::ProcessFlags::SupportsTemporal
         | Process::ProcessFlags::PutInNewSlot)
 
