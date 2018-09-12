@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
-Name=score
+Name=ossia score
 Comment=An interactive sequencer for the intermedia arts
-Exec=score
-Icon=score
+Exec=ossia-score
+Icon=ossia-score
 Terminal=false
 Categories=AudioVideo;
