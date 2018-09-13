@@ -30,10 +30,6 @@ set(SCORE_VERSION_EXTRA 17)
 set(SCORE_CODENAME "Tranquillou bibliou")
 set(SCORE_VERSION "${SCORE_VERSION_MAJOR}.${SCORE_VERSION_MINOR}.${SCORE_VERSION_PATCH}-${SCORE_VERSION_EXTRA}")
 
-enable_testing()
-include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreFunctions.cmake")
-include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreConfiguration.cmake")
-
 # OSSIA API-specific configuration
 if(SCORE_SANITIZE)
     set(OSSIA_SANITIZE True CACHE INTERNAL "" FORCE)
@@ -72,6 +68,11 @@ else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z")
 endif()
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/API" )
+
+enable_testing()
+include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreFunctions.cmake")
+include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreConfiguration.cmake")
+
 #set(COTIRE_DEBUG 1)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
