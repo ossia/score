@@ -113,7 +113,7 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(const Process::LayerPresenter& p)
     updateName();
     updatePorts();
     update();
-  });
+  }, Qt::QueuedConnection);
 
   updateName();
   updatePorts();
