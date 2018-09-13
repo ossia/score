@@ -40,8 +40,10 @@ struct FloatSlider
         QWidget* parent,
         QObject* context)
     {
-      const auto min = slider.getMin();
-      const auto max = slider.getMax();
+      auto min = slider.getMin();
+      auto max = slider.getMax();
+      if(max - min == 0)
+        max = min + 1;
       auto sl = new Control::ValueDoubleSlider{parent};
       sl->setOrientation(Qt::Horizontal);
       sl->setContentsMargins(0, 0, 0, 0);
@@ -82,8 +84,10 @@ struct FloatSlider
         QWidget* parent,
         QObject* context)
     {
-      const auto min = slider.getMin();
-      const auto max = slider.getMax();
+      auto min = slider.getMin();
+      auto max = slider.getMax();
+      if(max - min == 0)
+        max = min + 1;
       auto sl = new score::QGraphicsSlider{nullptr};
       sl->min = min;
       sl->max = max;
@@ -132,8 +136,10 @@ struct LogFloatSlider
         QWidget* parent,
         QObject* context)
     {
-      const auto min = std::log2(slider.getMin());
-      const auto max = std::log2(slider.getMax());
+      auto min = std::log2(slider.getMin());
+      auto max = std::log2(slider.getMax());
+      if(max - min == 0)
+        max = min + 1;
       auto sl = new Control::ValueLogDoubleSlider{parent};
       sl->setOrientation(Qt::Horizontal);
       sl->setContentsMargins(0, 0, 0, 0);
@@ -174,8 +180,10 @@ struct LogFloatSlider
         QWidget* parent,
         QObject* context)
     {
-      const auto min = std::log2(slider.getMin());
-      const auto max = std::log2(slider.getMax());
+      auto min = std::log2(slider.getMin());
+      auto max = std::log2(slider.getMax());
+      if(max - min == 0)
+        max = min + 1;
       auto sl = new score::QGraphicsLogSlider{nullptr};
       sl->min = min;
       sl->max = max;
@@ -217,8 +225,10 @@ struct IntSlider
         QWidget* parent,
         QObject* context)
     {
-      const auto min = slider.getMin();
-      const auto max = slider.getMax();
+      auto min = slider.getMin();
+      auto max = slider.getMax();
+      if(max - min == 0)
+        max = min + 1;
       auto sl = new Control::ValueSlider{parent};
       sl->setOrientation(Qt::Horizontal);
       sl->setRange(min, max);
@@ -254,8 +264,11 @@ struct IntSlider
         QWidget* parent,
         QObject* context)
     {
-      const auto min = slider.getMin();
-      const auto max = slider.getMax();
+      auto min = slider.getMin();
+      auto max = slider.getMax();
+      if(max - min == 0)
+        max = min + 1;
+
       auto sl = new score::QGraphicsIntSlider{nullptr};
       sl->setRange(min, max);
       sl->setRect({0., 0., 150., 15.});
@@ -295,8 +308,11 @@ struct IntSpinBox
         QWidget* parent,
         QObject* context)
     {
-      const auto min = slider.getMin();
-      const auto max = slider.getMax();
+      auto min = slider.getMin();
+      auto max = slider.getMax();
+      if(max - min == 0)
+        max = min + 1;
+
       auto sl = new QSpinBox{parent};
       sl->setRange(min, max);
       sl->setValue(ossia::convert<int>(inlet.value()));
@@ -324,8 +340,11 @@ struct IntSpinBox
         QWidget* parent,
         QObject* context)
     {
-      const auto min = slider.getMin();
-      const auto max = slider.getMax();
+      auto min = slider.getMin();
+      auto max = slider.getMax();
+      if(max - min == 0)
+        max = min + 1;
+
       auto sl = new score::QGraphicsIntSlider{nullptr};
       sl->setRange(min, max);
       sl->setRect({0., 0., 150., 15.});

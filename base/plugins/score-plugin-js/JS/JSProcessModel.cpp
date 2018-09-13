@@ -56,7 +56,8 @@ ProcessModel::~ProcessModel()
 void ProcessModel::setScript(const QString& script)
 {
   m_watch.reset();
-  m_dummyObject->deleteLater();
+  if(m_dummyObject)
+    m_dummyObject->deleteLater();
   m_dummyObject = nullptr;
   m_dummyComponent.reset();
   m_dummyComponent = std::make_unique<QQmlComponent>(&m_dummyEngine);
@@ -102,7 +103,8 @@ void ProcessModel::setQmlData(const QByteArray& data, bool isFile)
     return;
 
   m_qmlData = data;
-  m_dummyObject->deleteLater();
+  if(m_dummyObject)
+    m_dummyObject->deleteLater();
   m_dummyObject = nullptr;
   m_dummyComponent.reset();
   if (isFile)
