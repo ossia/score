@@ -23,6 +23,10 @@ if(APPLE)
   install(
     TARGETS ossia-score-vstpuppet
     RUNTIME DESTINATION score.app/Contents/macOS)
+elseif(WIN32)
+  install(
+    TARGETS ossia-score-vstpuppet
+    RUNTIME DESTINATION .)
 else()
   install(
     TARGETS ossia-score-vstpuppet
