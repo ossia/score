@@ -1,8 +1,6 @@
 include(CheckCXXCompilerFlag)
 
 # Options
-CHECK_CXX_COMPILER_FLAG("-Wl,-z,defs" WL_ZDEFS_SUPPORTED)
-CHECK_CXX_COMPILER_FLAG("-fuse-ld=gold" GOLD_LINKER_SUPPORTED)
 
 if(UNIX AND NOT APPLE)
     find_program(LSB_RELEASE lsb_release)
