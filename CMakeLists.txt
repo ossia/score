@@ -104,7 +104,7 @@ endif()
 
 add_custom_target(Docs SOURCES Documentation/Models/score.qmodel)
 
-set(INTEGRATION_TESTING 1)
+set(INTEGRATION_TESTING 0)
 if(INTEGRATION_TESTING)
   include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Tests")
   file(GLOB_RECURSE TESTS_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.hpp")
