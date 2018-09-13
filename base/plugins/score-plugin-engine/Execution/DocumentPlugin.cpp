@@ -143,6 +143,7 @@ void DocumentPlugin::on_finished()
   {
     registerDevice(dev->getDevice());
   }
+  execState->apply_device_changes();
 
   for (auto& v : m_setup_ctx.runtime_connections)
   {
@@ -205,6 +206,7 @@ void DocumentPlugin::makeGraph()
   {
     registerDevice(dev->getDevice());
   }
+  execState->apply_device_changes();
 
   ossia::graph_setup_options opt;
   opt.parallel = settings.getParallel();
