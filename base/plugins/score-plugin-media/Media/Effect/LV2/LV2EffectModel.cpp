@@ -23,6 +23,7 @@
 #include <Media/Effect/LV2/LV2Window.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 #include <score/tools/std/StringHash.hpp>
+#include <score/tools/DeleteAll.hpp>
 
 #include <wobjectimpl.h>
 #include <QListWidget>
@@ -340,10 +341,8 @@ void LV2EffectModel::readPlugin()
   data.effect.plugin.get_port_ranges_float(
       fParamMin.data(), fParamMax.data(), fParamInit.data());
 
-  qDeleteAll(m_inlets);
-  m_inlets.clear();
-  qDeleteAll(m_outlets);
-  m_outlets.clear();
+  score::deleteAndClear(m_inlets);
+  score::deleteAndClear(m_outlets);
 
   int in_id = 0;
   int out_id = 0;
