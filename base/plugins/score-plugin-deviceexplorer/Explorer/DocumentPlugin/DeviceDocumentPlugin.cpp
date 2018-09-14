@@ -226,12 +226,13 @@ void DeviceDocumentPlugin::initDevice(Device::DeviceInterface& newdev)
       });
 
   con(newdev, &Device::DeviceInterface::pathRemoved, this,
-      [&](const State::Address& addr) { updateProxy.removeLocalNode(addr); });
+      [&](const State::Address& addr) { updateProxy.removeLocalNode(addr); }
+  , Qt::QueuedConnection);
 
   con(newdev, &Device::DeviceInterface::pathUpdated, this,
       [&](const State::Address& addr, const Device::AddressSettings& set) {
         updateProxy.updateLocalSettings(addr, set, newdev);
-      });
+      }, Qt::QueuedConnection);
 
   m_list.addDevice(&newdev);
   newdev.setParent(this);
