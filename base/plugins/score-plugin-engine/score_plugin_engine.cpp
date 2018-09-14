@@ -59,6 +59,9 @@
 #if defined(OSSIA_PROTOCOL_JOYSTICK)
 #  include <Protocols/Joystick/JoystickProtocolFactory.hpp>
 #endif
+#if defined(OSSIA_PROTOCOL_WIIMOTE)
+#  include <Protocols/Wiimote/WiimoteProtocolFactory.hpp>
+#endif
 
 #include <Execution/Dataflow/DataflowClock.hpp>
 #include <Protocols/Audio/AudioDevice.hpp>
@@ -148,6 +151,10 @@ score_plugin_engine::factories(
 #if defined(OSSIA_PROTOCOL_JOYSTICK)
         ,
         Network::JoystickProtocolFactory
+#endif
+#if defined(OSSIA_PROTOCOL_WIIMOTE)
+        ,
+        Network::WiimoteProtocolFactory
 #endif
          >,
 

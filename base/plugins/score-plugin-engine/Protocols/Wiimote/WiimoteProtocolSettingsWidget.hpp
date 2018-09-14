@@ -8,23 +8,19 @@ class QComboBox;
 
 namespace Engine::Network {
 
-class JoystickProtocolSettingsWidget final
+class WiimoteProtocolSettingsWidget final
     : public Device::ProtocolSettingsWidget
 {
-  W_OBJECT(JoystickProtocolSettingsWidget)
+  W_OBJECT(WiimoteProtocolSettingsWidget)
 
 public:
-  JoystickProtocolSettingsWidget(QWidget* parent = nullptr);
-  virtual ~JoystickProtocolSettingsWidget();
-
+  WiimoteProtocolSettingsWidget(QWidget* parent = nullptr);
+  virtual ~WiimoteProtocolSettingsWidget();
   Device::DeviceSettings getSettings() const override;
   void setSettings(const Device::DeviceSettings& settings) override;
 
-  void update_device_list();
-
 protected:
   QLineEdit* m_deviceNameEdit{};
-  QComboBox* m_deviceChoice{};
 };
 
 }
